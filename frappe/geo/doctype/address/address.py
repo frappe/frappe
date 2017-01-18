@@ -71,18 +71,21 @@ class Address(Document):
 
 def get_default_address(doctype, name, sort_key='is_primary_address'):
 	'''Returns default Address name for the given doctype, name'''
-	out = frappe.db.sql('''select address.name
+	out = frappe.db.sql('''select
+			parent,
+			(select `{0}` from tabAddress a where a.name=dl.parent) as `{0}`
 		from
-			tabAddress address, `tabDynamic Link` dl
+			`tabDynamic Link` dl
 		where
-			dl.link_doctype=%s and
-			dl.link_name=%s and
-			dl.parent = address.name and
-			dl.parenttype = "Address"
-		order by
-			address.`{0}` desc, name
-		limit 1'''.format(sort_key), (doctype, name))
-	return out and out[0][0] or None
+			link_doctype=%s and
+			link_name=%s and
+			parenttype = "Address"
+		'''.format(sort_key), (doctype, name))
+
+	if out:
+		return sorted(out, lambda x,y: cmp(y[1], x[1]))[0][0]
+	else:
+		return None
 
 
 @frappe.whitelist()

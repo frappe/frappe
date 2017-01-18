@@ -48,19 +48,20 @@ class Contact(Document):
 
 def get_default_contact(doctype, name):
 	'''Returns default contact for the given doctype, name'''
-	out = frappe.db.sql('''select contact.name
+	out = frappe.db.sql('''select parent,
+			(select is_primary_contact from tabContact c where c.name = dl.parent)
+				as is_primary_contact
 		from
-			tabContact contact, `tabDynamic Link` dl
+			`tabDynamic Link` dl
 		where
-			dl.parent = contact.name and
 			dl.link_doctype=%s and
 			dl.link_name=%s and
-			dl.parenttype = "Contact"
-		order by
-			contact.is_primary_contact desc, name
-		limit 1''', (doctype, name))
+			dl.parenttype = "Contact"''', (doctype, name))
 
-	return out and out[0][0] or None
+	if out:
+		return sorted(out, lambda x,y: cmp(y[1], x[1]))[0][0]
+	else:
+		return None
 
 @frappe.whitelist()
 def invite_user(contact):
