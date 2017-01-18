@@ -99,10 +99,14 @@ def update_order(board_name, order):
 def quick_kanban_board(doctype, board_name, field_name):
 	'''Create new KanbanBoard quickly with default options'''
 	doc = frappe.new_doc('Kanban Board')
-	columns = frappe.get_value('DocField', dict(
+	options = frappe.get_value('DocField', dict(
             parent=doctype,
             fieldname=field_name
-        ), 'options').split('\n')
+        ), 'options')
+
+	columns = []
+	if options:
+		columns = options.split('\n')
 
 	for column in columns:
 		doc.append("columns", dict(

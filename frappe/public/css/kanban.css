@@ -115,7 +115,7 @@
   outline: none;
 }
 .kanban .add-new-column a:hover {
-  color: #36414C;
+  color: #36414C !important;
 }
 .kanban .kanban-card-meta {
   margin-top: 8px;

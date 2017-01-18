@@ -820,8 +820,8 @@ frappe.provide("frappe.views");
 			if (df.fieldtype === "Text Editor" && !description_field) {
 				description_field = df;
 			}
-			if (df.fieldtype === "Date" && df.fieldname.indexOf("end") !== -1 && !due_date_field) {
-				due_date_field = df;
+			if (!due_date_field) {
+				due_date_field = get_date_field(meta.fields);
 			}
 		});
 		return {
@@ -830,6 +830,17 @@ frappe.provide("frappe.views");
 			description_field: description_field,
 			due_date_field: due_date_field,
 		}
+	}
+
+	function get_date_field(fields) {
+		var filtered = fields.filter(function(df) {
+			return df.fieldtype === 'Date' &&
+				df.fieldname.indexOf('date') !== -1;
+		});
+		var field = filtered.find(function(df) {
+			return df.fieldname.indexOf('end') !== -1;
+		});
+		return field || filtered[0];
 	}
 
 	function prepare_card(card, state, doc) {
