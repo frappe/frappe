@@ -61,7 +61,8 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 		"reference_doctype": doctype,
 		"reference_name": name,
 		"message_id":email.utils.make_msgid("{0}".format(frappe.local.site)),
-		"read_receipt":read_receipt
+		"read_receipt":read_receipt,
+		"has_attachment": 1 if attachments else 0
 	})
 	comm.insert(ignore_permissions=True)
 
