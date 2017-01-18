@@ -1705,7 +1705,71 @@ frappe.ui.form.ControlTable = frappe.ui.form.Control.extend({
 			return false;
 		});
 	}
-})
+});
+
+frappe.ui.form.ControlSignature = frappe.ui.form.ControlData.extend({
+	make_input: function() {
+		var me = this;
+
+		// make jSignature field
+		this.$pad = $('<div class="signature-field"></div>')
+		    .prependTo(me.input_area)
+		    .jSignature({height:300, width: "100%"});
+
+		// handle save button
+		this.$btnWrapper = $('<div class="btn-group btn-group-justified">' +
+		                    '<a href="#" type="button" class="signature-reset btn btn-default btn-block">Reset</button>' +
+                            '<a href="#" type="button" class="signature-save btn btn-primary btn-block">Save</button></div>')
+		    .appendTo(me.input_area)
+			.on("click", '.signature-save', function() {
+				me.on_save_sign();
+				return false;
+			})
+			.on("click", '.signature-reset', function() {
+				me.on_reset_sign();
+				return false;
+			});
+
+        // display value
+		this.$value = $('<img src="http://placehold.it/400x300" class="signature-img img-responsive"/>')
+		    .prependTo(me.input_area)
+			.toggle(false);
+
+	    // display image if there is value
+	    //this.$wrapper.on("refresh", function() {
+			me.set_image();
+			if(me.get_status()=="Read") {
+				$(me.disp_area).toggle(false);
+			}
+		//});
+
+		this.has_input = true;
+    },
+    set_image: function() {
+        console.log("this.get_value()", this.get_value());
+        if(this.get_value()) {
+            this.$value.attr("src", this.value).toggle(true);
+        }
+    },
+    set_value: function(value) {
+        this._super(value);
+        this.value = value;
+    },
+    get_value: function() {
+		return this.value? this.value: this.get_model_value();
+	},
+    // reset signature canvas
+    on_reset_sign: function() {
+        this.$pad.jSignature("reset");
+        this.set_value("");
+    },
+    // save signature value to model and display
+    on_save_sign: function() {
+        var base64_img = this.$pad.jSignature("getData");
+        this.set_value(base64_img);
+        console.log("sdsds", this.get_value());
+    }
+});
 
 frappe.ui.form.fieldtype_icons = {
 	"Date": "fa fa-calendar",
