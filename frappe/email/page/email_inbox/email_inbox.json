@@ -5,7 +5,7 @@
  "doctype": "Page", 
  "icon": "fa fa-inbox", 
  "idx": 0, 
- "modified": "2016-12-22 17:19:55.284608", 
+ "modified": "2017-01-16 22:46:18.276855", 
  "modified_by": "Administrator", 
  "module": "Email", 
  "name": "email_inbox", 
@@ -13,7 +13,7 @@
  "page_name": "email_inbox", 
  "roles": [
   {
-   "role": "Email User"
+   "role": "All"
   }
  ], 
  "script": null, 

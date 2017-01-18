@@ -7,11 +7,11 @@ frappe.ui.form.on("Contact", {
 	refresh: function(frm) {
 		if(frm.doc.__islocal) {
 			var last_route = frappe.route_history.slice(-2, -1)[0];
-			if(frappe.contact_link && frappe.contact_link.doc
-					&& frappe.contact_link.doc.name==last_route[2]) {
+			if(frappe.dynamic_link && frappe.dynamic_link.doc
+					&& frappe.dynamic_link.doc.name==last_route[2]) {
 				frm.add_child('links', {
-					link_doctype: frappe.contact_link.doctype,
-					link_name: frappe.contact_link.doc[frappe.contact_link.fieldname]
+					link_doctype: frappe.dynamic_link.doctype,
+					link_name: frappe.dynamic_link.doc[frappe.dynamic_link.fieldname]
 				});
 			}
 		}
