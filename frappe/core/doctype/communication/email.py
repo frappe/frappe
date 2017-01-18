@@ -61,7 +61,8 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 		"reference_doctype": doctype,
 		"reference_name": name,
 		"message_id":get_message_id().strip(" <>"),
-		"read_receipt":read_receipt
+		"read_receipt":read_receipt,
+		"has_attachment": 1 if attachments else 0
 	})
 	comm.insert(ignore_permissions=True)
 
@@ -339,13 +340,12 @@ def add_attachments(name, attachments):
 
 	# loop through attachments
 	for a in attachments:
-		if isinstance(a, basestring):
-			attach = frappe.db.get_value("File", {"name":a},
-				["file_name", "file_url", "is_private"], as_dict=1)
+		attach = frappe.db.get_value("File", {"name":a},
+			["file_name", "file_url", "is_private"], as_dict=1)
 
-			# save attachments to new doc
-			save_url(attach.file_url, attach.file_name, "Communication", name,
-				"Home/Attachments", attach.is_private)
+		# save attachments to new doc
+		save_url(attach.file_url, attach.file_name, "Communication", name,
+			"Home/Attachments", attach.is_private)
 
 def filter_email_list(doc, email_list, exclude, is_cc=False):
 	# temp variables
