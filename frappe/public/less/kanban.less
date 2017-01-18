@@ -27,8 +27,19 @@
 		font-size: 12px;
 
 		.column-options {
-			position: absolute;
-			right: 0px;
+
+			.button-group {
+				display: flex;
+				padding: 12px 14px;
+
+				.btn.indicator {
+					flex: 1;
+				}
+			}
+
+			.indicator::before {
+				margin: 0;
+			}
 		}
 
 		&:hover {
@@ -36,7 +47,7 @@
 		}
 	}
 
-	.sortable-ghost > .kanban-card {
+	.sortable-ghost > .kanban-card:not(.add-card) {
 		background: #ccc !important;
 		color: transparent;
 

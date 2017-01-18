@@ -137,8 +137,21 @@ def update_column_order(board_name, order):
 		board.append("columns", dict(
 			column_name=col.column_name,
 			status=col.status,
-			order=col.order
+			order=col.order,
+			indicator=col.indicator,
 		))
 
+	board.save()
+	return board
+
+@frappe.whitelist()
+def set_indicator(board_name, column_name, indicator):
+	'''Set the indicator color of column'''
+	board = frappe.get_doc('Kanban Board', board_name)
+
+	for column in board.columns:
+		if column.column_name == column_name:
+			column.indicator = indicator
+	
 	board.save()
 	return board

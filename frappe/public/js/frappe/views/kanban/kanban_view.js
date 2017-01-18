@@ -174,6 +174,22 @@ frappe.provide("frappe.views");
 						columns: columns
 					});
 				});
+			},
+			set_indicator: function(updater, column, color) {
+				return frappe.call({
+					method: method_prefix + "set_indicator",
+					args: {
+						board_name: this.board.name,
+						column_name: column.title,
+						indicator: color
+					}
+				}).then(function(r) {
+					var board = r.message;
+					var columns = prepare_columns(board.columns);
+					updater.set({
+						columns: columns
+					});
+				})
 			}
 		}
 	});
@@ -332,11 +348,11 @@ frappe.provide("frappe.views");
 		}
 
 		function make_dom() {
-			
 			self.$kanban_column = $(frappe.render_template(
 				'kanban_column', {
 					title: column.title,
-					doctype: store.getState().doctype
+					doctype: store.getState().doctype,
+					indicator: column.indicator
 				})).appendTo(wrapper);
 			self.$kanban_cards = self.$kanban_column.find('.kanban-cards');
 		}
@@ -437,14 +453,28 @@ frappe.provide("frappe.views");
 
 		function bind_options() {
 			self.$kanban_column.find(".column-options .dropdown-menu")
-				.on("click", "a", function (e) {
+				.on("click", "[data-action]", function (e) {
 					var $btn = $(this);
 					var action = $btn.data().action;
 
 					if (action === "archive") {
 						fluxify.doAction('archive_column', column);
+					} else if (action === "indicator") {
+						var color = $btn.data().indicator;
+						fluxify.doAction('set_indicator', column, color);
 					}
 				});
+			get_column_indicators(function(indicators) {
+				var html = '<li class="button-group">'
+				html += indicators.reduce(function(prev, curr) {
+					return prev + '<div \
+						data-action="indicator" data-indicator="'+curr+'"\
+						class="btn btn-default btn-xs indicator ' + curr + '"></div>'
+				}, "");
+				html += '</li>';
+				self.$kanban_column.find(".column-options .dropdown-menu")
+					.append(html);
+			});
 		}
 
 		init();
@@ -529,7 +559,6 @@ frappe.provide("frappe.views");
 					fluxify.doAction('update_doc', doc, card)
 						.then(function (r) {
 							d.working = false;
-							// fluxify.doAction('update_card', card)
 						});
 				});
 				d.show();
@@ -828,9 +857,10 @@ frappe.provide("frappe.views");
 			return {
 				title: col.column_name,
 				status: col.status,
-				order: col.order
+				order: col.order,
+				indicator: col.indicator || 'darkgrey'
 			};
-		})
+		});
 	}
 
 	function modify_column_field_in_c11n(doc, board, title, action) {
@@ -939,4 +969,16 @@ frappe.provide("frappe.views");
 		return cards;
 	}
 
+	function get_column_indicators(callback) {
+		frappe.model.with_doctype('Kanban Board Column', function() {
+			var meta = frappe.get_meta('Kanban Board Column');
+			var indicators;
+			meta.fields.forEach(function(df) {
+				if(df.fieldname==='indicator') {
+					indicators = df.options.split("\n");
+				}
+			});
+			callback(indicators);
+		});
+	}
 })();

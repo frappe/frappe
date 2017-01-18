@@ -22,18 +22,24 @@
   font-weight: bold;
   font-size: 12px;
 }
-.kanban .kanban-column-title .column-options {
-  position: absolute;
-  right: 0px;
+.kanban .kanban-column-title .column-options .button-group {
+  display: flex;
+  padding: 12px 14px;
+}
+.kanban .kanban-column-title .column-options .button-group .btn.indicator {
+  flex: 1;
+}
+.kanban .kanban-column-title .column-options .indicator::before {
+  margin: 0;
 }
 .kanban .kanban-column-title:hover {
   cursor: pointer;
 }
-.kanban .sortable-ghost > .kanban-card {
+.kanban .sortable-ghost > .kanban-card:not(.add-card) {
   background: #ccc !important;
   color: transparent;
 }
-.kanban .sortable-ghost > .kanban-card * {
+.kanban .sortable-ghost > .kanban-card:not(.add-card) * {
   background: transparent !important;
   color: transparent !important;
 }
