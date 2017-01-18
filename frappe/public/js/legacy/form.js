@@ -933,7 +933,7 @@ _f.Frm.prototype.validate_form_action = function(action) {
 		var allowed_for_workflow = true;
 	}
 
-	if (!this.perm[0][perm_to_check]) {
+	if (!this.perm[0][perm_to_check] && !allowed_for_workflow) {
 		frappe.throw (__("No permission to '{0}' {1}", [__(action), __(this.doc.doctype)]));
 	}
 };
