@@ -27,7 +27,6 @@
 					&& data.comment_type==="Comment")) { %}
 				<div class="comment-header small" style="cursor: pointer;">
 					<i class="{%= data.icon %} fa-fw"></i>
-					<i class="expand-icon octicon octicon-chevron-down"></i>
 					<span title="{%= data.comment_by %}">{%= data.fullname %}</span>
 					<span>
 						{% if (data.timeline_doctype===data.frm.doc.doctype
@@ -81,7 +80,7 @@
 						{% if (frappe.model.can_read(\'Communication\')) { %}
 						</a>
 						{% } %}
-						
+
 						{% if (data.communication_medium === "Email") { %}
 						<a class="text-muted relink-link timeline-content-show hide"
                             data-name="{%= data.name %}"> &ndash; {%= __("Relink") %}</a>

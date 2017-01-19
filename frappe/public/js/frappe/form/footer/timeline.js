@@ -37,10 +37,9 @@ frappe.ui.form.Timeline = Class.extend({
 		this.list.on("click",".comment-header",function(e) {
 			if (!inList(["A","BUTTON"],e.target.tagName)) {
 				$(this).parent().find(".timeline-content-show").toggleClass("hide");
-				$(this).find(".expand-icon").toggleClass("octicon-chevron-down octicon-chevron-up")
 			}
 		})
-		
+
 		this.email_button = this.wrapper.find(".btn-new-email")
 			.on("click", function() {
 				new frappe.views.CommunicationComposer({
@@ -137,7 +136,6 @@ frappe.ui.form.Timeline = Class.extend({
 
 		this.frm.trigger('timeline_refresh');
 		$(this.list.find(".comment-header")[0]).parent().find(".timeline-content-show").toggleClass("hide")
-		$(this.list.find(".comment-header")[0]).find(".expand-icon").toggleClass("octicon-chevron-down octicon-chevron-up")
 	},
 
 	render_timeline_item: function(c) {

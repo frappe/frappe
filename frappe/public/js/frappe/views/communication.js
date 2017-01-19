@@ -47,10 +47,7 @@ frappe.views.CommunicationComposer = Class.extend({
 	},
 
 	get_fields: function() {
-		this.from = {};
-		this.get_from();
 		var fields= [
-			this.from ,
 			{label:__("To"), fieldtype:"Data", reqd: 0, fieldname:"recipients",length:524288},
 			{fieldtype: "Section Break", collapsible: 1, label: "CC & Standard Reply"},
 			{label:__("CC"), fieldtype:"Data", fieldname:"cc",length:524288},
@@ -86,32 +83,16 @@ frappe.views.CommunicationComposer = Class.extend({
 			{label:__("Select Attachments"), fieldtype:"HTML",
 				fieldname:"select_attachments"}
 		];
-		if(!fields[1]){//removes from if doesnt have assigned email
-			fields.splice(1,1)
+
+		// add from if user has access to multiple email accounts
+		if(frappe.boot.email_accounts && frappe.boot.email_accounts.length > 1) {
+			fields = [
+				{label: __("From"), fieldtype: "Select", reqd: 1, fieldname: "sender",
+					options: frappe.boot.email_accounts.map(function(d) { return e.email_id; }) }
+			].concat(fields);
 		}
-		return fields
-	},
-	get_from:function(){
-		var me = this;
-		frappe.call({
-			method: 'frappe.email.page.email_inbox.get_accounts',
-			args: {user: frappe.user["name"]},
-			async: false,
-			callback: function (list) {
-				if (list["message"]) {
-					var accounts = [];
 
-					for (var i =0;i<list["message"].length;i++){
-						accounts.push(list["message"][i]["email_id"])
-					}
-					me.from = {label: __("From"), fieldtype: "Select", reqd: 1, fieldname: "sender", options: accounts}
-
-				} else {
-					me.from = false
-				}
-			}
-		})
-
+		return fields;
 	},
 	prepare: function() {
 		this.setup_subject_and_recipients();
@@ -248,7 +229,7 @@ frappe.views.CommunicationComposer = Class.extend({
 					me.dialog.set_value("content", last_edited_communication.content || "");
 				}
 			}
-			
+
 		}
 
 	},
