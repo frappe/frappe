@@ -50,10 +50,12 @@ class Address(Document):
 
 	def validate_reference(self):
 		if self.is_your_company_address:
-			if not self.company:
+			if not [row for row in self.links if row.link_doctype == "Company"]:
 				frappe.throw(_("Company is mandatory, as it is your company address"))
-			if self.links:
-				self.links = []
+
+			# removing other links
+			to_remove = [row for row in self.links if row.link_doctype != "Company"]
+			[ self.remove(row) for row in to_remove ]
 
 	def get_display(self):
 		return get_address_display(self.as_dict())
@@ -169,12 +171,16 @@ def get_address_templates(address):
 
 @frappe.whitelist()
 def get_shipping_address(company):
-	filters = {"company": company, "is_your_company_address":1}
-	fieldname = ["name", "address_line1", "address_line2", "city", "state", "country"]
+	filters = [
+		["Dynamic Link", "link_doctype", "=", "Company"],
+		["Dynamic Link", "link_name", "=", company],
+		["Address", "is_your_company_address", "=", 1]
+	]
+	fields = ["name", "address_line1", "address_line2", "city", "state", "country"]
+	address = frappe.get_all("Address", filters=filters, fields=fields) or {}
 
-	address_as_dict = frappe.db.get_value("Address", filters=filters, fieldname=fieldname, as_dict=True)
-
-	if address_as_dict:
+	if address:
+		address_as_dict = address[0]
 		name, address_template = get_address_templates(address_as_dict)
 		return address_as_dict.get("name"), frappe.render_template(address_template, address_as_dict)
 
