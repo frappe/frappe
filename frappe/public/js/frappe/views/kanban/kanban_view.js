@@ -559,6 +559,7 @@ frappe.provide("frappe.views");
 					fluxify.doAction('update_doc', doc, card)
 						.then(function (r) {
 							d.working = false;
+							d.hide();
 						});
 				});
 				d.show();
