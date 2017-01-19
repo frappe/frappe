@@ -637,7 +637,7 @@ fieldset[disabled] .form-control {
 }
 .search-modal .layout-side-section, .search-modal .layout-main-section {
   height: 500px;
-  padding: 0px 5px;
+  padding: 0px;
   overflow-y: scroll;
 }
 .search-modal .layout-side-section {
@@ -651,6 +651,7 @@ fieldset[disabled] .form-control {
   z-index: 2;
   /*outline: none;*/
 }
+
 
 /*.search-modal .results-list button.active,
 .search-modal .results-list button:active{
@@ -684,6 +685,10 @@ fieldset[disabled] .form-control {
 .search-modal .results-div {
   padding: 10px 20px;
 }
+.search-modal .section-body div {
+  min-height: 22px; 
+  margin-top: 8px;
+}
 .search-modal .results-div h4 {
   text-transform: uppercase;
   font-size: 14px;
@@ -691,6 +696,13 @@ fieldset[disabled] .form-control {
 }
 .search-modal .result-area a {
   color: #5E64FF;
+}
+.search-modal .result-status {
+  margin-top: 30px;
+  text-align: center;
+}
+.search-modal .more-results {
+  display: none;
 }
 @media (max-width: 767px) {
   .search-modal .modal-dialog {
@@ -704,9 +716,12 @@ fieldset[disabled] .form-control {
     width: 100%;
   }
 }
-.search-result, .help-result {
-  margin-bottom: 24px;
-}
-.search-result p, .help-result p {
+
+.result p {
   margin-top: 0.2em;
 }
+
+.help-modal {
+  z-index: 1000;
+}
+

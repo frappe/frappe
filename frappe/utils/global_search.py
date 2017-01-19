@@ -21,10 +21,6 @@ def setup_table():
 		print "Table created"
 	print "Table not created"
 	reset()
-	# insert_test_events()
-	# event_doctype = frappe.get_doc('DocType', 'Event')
-	# event_doctype.validate()
-	# event_doctype.sync_global_search()
 
 def reset():
 	'''Deletes all data in __global_search'''
@@ -54,13 +50,13 @@ def update_global_search(doc):
 				  	if innerdoc.parent == doc.name:
 				  		for field in innerdoc.meta.fields:
 				  			if innerdoc.get(field.fieldname):
-				  				content.append(field.label + ": " + innerdoc.get(field.fieldname))
+				  				content.append(field.label + ": " + unicode(innerdoc.get(field.fieldname)))
 			else:
-				content.append(field.label + ": " + doc.get(field.fieldname))
+				content.append(field.label + ": " + unicode(doc.get(field.fieldname)))
 
 	if content:
 		frappe.flags.update_global_search.append(
-			dict(doctype=doc.doctype, name=doc.name, content=', '.join(content)))
+			dict(doctype=doc.doctype, name=doc.name, content='|||'.join(content)))
 
 def sync_global_search():
 	'''Add values from `frappe.flags.update_global_search` to __global_search.
@@ -74,7 +70,6 @@ def sync_global_search():
 					(%(doctype)s, %(name)s, %(content)s)
 				on duplicate key update
 					content = %(content)s''', value)
-	print "In SGS"
 
 def rebuild_for_doctype(doctype):
 	frappe.db.sql('''
@@ -111,8 +106,8 @@ def search(text, start=0, limit=20):
 		from
 			__global_search
 		where
-			match(content) against ('{term}' IN BOOLEAN MODE)
-		limit {start}, {limit}'''.format(start=start, limit=limit, term=text), as_dict=True)
+			match(content) against (%s IN BOOLEAN MODE)
+		limit {start}, {limit}'''.format(start=start, limit=limit), text, as_dict=True)
 	print results
 	return results
 

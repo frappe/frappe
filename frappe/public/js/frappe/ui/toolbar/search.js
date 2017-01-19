@@ -8,6 +8,7 @@ frappe.search.Search = Class.extend({
 	setup: function() {
 		var me = this;
 		var d = new frappe.ui.Dialog();
+		this.awesome_bar = new frappe.search.AwesomeBar();
 
 		$(frappe.render_template("search")).appendTo($(d.body));
 		$(d.header).html($(frappe.render_template("search_header")));
@@ -15,47 +16,79 @@ frappe.search.Search = Class.extend({
 		this.search_dialog = d;
 		this.search_modal = $(d.$wrapper);
 		this.search_modal.addClass('search-modal');
-		this.result_area = this.search_modal.find(".result-area");
+		this.result_area = this.search_modal.find(".result-area .module-body");
 
-		this.base_list_length = 8;
-		this.more_results_length = 7;
-		this.condensed_length = 2;
+		this.condensed_length = 3;
+	},
 
+	on_awesome_bar: function(keywords) {
+		var me = this;
 		this.search_modal.find(".search-input").on("input", function (e) {
 			var keywords = me.search_modal.find(".search-input").val();
 			if(keywords !== ""){
-				// setTimeout(function() { me.setup_search(keywords) }, 20);
-				me.setup_search(keywords);
+				me.get_all_results(keywords);
+			} else {
+				me.result_area.html("");
 			}
 		});
-	},
-
-	on_dialog_show: function(keywords) {
-		var me = this;
 		this.search_modal.find(".search-input").val(keywords);
-		this.setup_search(keywords);
+		this.get_all_results(keywords);
 		// timeout hack: focus and select input
 		setTimeout(function() { me.search_modal.find(".search-input").select(); }, 500);
 	},
 
-	setup_search: function(keywords) {
-		this.search_modal.find(".search-list").addClass("hide");
-		this.search_modal.find(".report-list").addClass("hide");
-		this.search_modal.find(".help-list").addClass("hide");
-		// Set the results-area to no results found or something
-		this.get_results(keywords);
+	on_help_search: function() {
+		var me = this;
+		this.search_modal.find(".search-input").on("input", function (e) {
+			var keywords = me.search_modal.find(".search-input").val();
+			if(keywords !== ""){
+				me.get_help_menu_results(keywords);
+			} else {
+				me.result_area.html("");
+			}
+		});
+		this.search_modal.find(".search-input").val(keywords);
+		this.get_help_menu_results(keywords);
+		// timeout hack: focus and select input
+		setTimeout(function() { me.search_modal.find(".search-input").select(); }, 500);
 	},
 
-	get_results: function(keywords) {
+	get_all_results: function(keywords) {
+		this.setup_search(keywords);
 		this.get_search_results(keywords);
-		//this.get_reports(keywords);
+		this.get_nav_results(keywords);
 		this.get_help_results(keywords);
+		
+	},
+
+	get_help_menu_results: function(keywords) {
+		this.setup_search(keywords);
+		this.get_help_results(keywords);
+	},
+
+	setup_search: function(keywords) {
+		this.results_modules = [];
+		this.search_modal.find(".search-list").addClass("hide");
+		this.search_modal.find(".nav-list").addClass("hide");
+		this.search_modal.find(".help-list").addClass("hide");
+		// Set the results-area to no results found 
+		this.result_area.empty();
+		this.result_area.html('<p class="result-status text-muted">'+
+			'No results found for: '+ "'"+ keywords +"'" +'</p>');
+	},
+
+	bold_keywords: function(keywords){
+		this.result_area.contents().filter(function() {
+			return this.nodeType == 3
+		}).each(function(){
+			console.log("inside bold_keywords");
+			this.textContent = this.textContent.replace(keywords, keywords.bold);
+		});
 	},
 
 	get_search_results: function(keywords) {
 		var me = this;
 		this.search_results = {};
-		this.results_divs = {};
 		frappe.call({
 			method: "frappe.utils.global_search.search",
 			args: {
@@ -64,9 +97,7 @@ frappe.search.Search = Class.extend({
 			callback: function(r) {
 				if(r.message) {
 					me.format_search_results(r.message, keywords);
-					me.make_all_results_divs();
-					me.show_search_list();
-					me.bind_search_results();
+					me.make_all_results_modules();
 				}
 			}
 		});
@@ -75,9 +106,11 @@ frappe.search.Search = Class.extend({
 	format_search_results: function(search_data, keywords) {
 		var me = this;
 		search_data.forEach(function(d) {
-			var fpath = '#Form/' + d.doctype + '/' + d.name;
-			var title = d.name;
-			var result_html = me.render_result("search", keywords, [fpath, title, d.content]);
+			var result = {};
+			result.route = '#Form/' + d.doctype + '/' + d.name;
+			result.title = d.name;
+			result.content = me.get_finds(d.content, keywords);
+			var result_html = me.render_result("search", result);
 			if(me.search_results[d.doctype]) {
 				me.search_results[d.doctype].push(result_html);
 			} else {
@@ -86,83 +119,121 @@ frappe.search.Search = Class.extend({
 		});
 	},
 
-	make_all_results_divs: function() {
+	get_finds: function(searchables, keywords) {
+		parts = searchables.split("|||");
+		content = "";
+		parts.forEach(function(part) {
+			if(part.toLowerCase().indexOf(keywords) !== -1) {
+				console.log("part", part);
+				content += part;
+			}
+		});
+		return content;
+	},
+
+	render_result: function(type, result) {
+		var result_base_html = '<div class="result '+ type +'-result">' +
+			'<a href="{0}" class="module-section-link">{1}</a>' +
+			'<p class="small">{2}</p>' +
+			'</div>';
+		return __(result_base_html, [result.route, result.title, result.content]);
+	},
+
+	make_all_results_modules: function() {
+		this.result_area.html("");
+		this.result_area.empty();
 		for (var doctype in this.search_results) {
 			if (this.search_results.hasOwnProperty(doctype)) {
-				this.results_divs[doctype] = this.make_results_div(
-					this.search_results[doctype], doctype);
+				this.results_modules.push(this.make_results_module(
+					this.search_results[doctype], doctype));
 			}
 		}
 	},
 
-	make_results_div: function(results, name) {
+	make_results_module: function(results, name) {
 		var me = this;
-		var results_div = $('<div class="results-div '+name+'-results"></div>');
-		if(results.length <= this.base_list_length) {
-			results.forEach(function(result_html) {
-				results_div.append(result_html);
+		var results_module = $('<div class="row module-section '+name+'-section">'+
+			'<div class="col-sm-12 module-section-column">' +
+			'<div class="h4 section-head">'+name+'</div>' +
+			'<div class="section-body"></div>'+
+			'</div></div>');
+		var results_col = results_module.find('.module-section-column');
+		if(results.length <= this.condensed_length) {
+			results.forEach(function(result) {
+				results_col.append(result);
 			});
-			results = [];
 		} else {
-			// Append a more button for additional results
-			for(var i = 0; i < this.base_list_length; i++) {
-				results_div.append(results.shift());
+			var more_div = $('<div class="more-results"></div>');
+			for(var i = 0; i < this.condensed_length; i++) {
+				results_col.append(results.shift());
 			}
-			results_div.append('<hr><button class="btn btn-default more-' + name +
-				' btn-more btn-sm">More...</button>');
-			var more_button = results_div.find('.more-'+name);
-			console.log("more button", more_button);
-			more_button.on("click", function () {
-				console.log("more button clicked!");
-				for(var i = 0; (i < me.more_results_length) && (results.length !== 0); i++){
-					results_div.find('.search-result').last().after(results.shift());
-				}
-				if(results.length === 0) { more_button.hide(); }
+			results.forEach(function(result) {
+				more_div.append(result);
+			});
+			results_col.append(more_div);
+			results_col.append('<a class="more-' + name + '">More...</a>');
+			var more_link = results_col.find('.more-'+name);
+			more_link.click(function () {
+				more = $(this);
+				var more_results = results_col.find('.more-results');
+				more_results.slideToggle(500, function () {
+					more.text(function () {
+						return more_results.is(":visible") ? "Less" : "More...";
+					});
+				});
+
 			});
 		}
-		return results_div;
+		return results_module;
 	},
 
-	show_search_list: function() {
+	get_nav_results: function(keywords) {
 		var me = this;
-		var search_list = this.search_modal.find(".search-list");
-		search_list.html('').append('<li class="divider"></li>' + 
-			'<li class="h6">Global Search</li>').removeClass("hide");
-		Object.keys(this.search_results).forEach(function(doctype) {
-			search_list.append(me.render_list_item(doctype));
+		this.nav_results = {};
+
+		var get_nav = function(options, type) {
+			if(options.length > 0) {
+				me.nav_results[type] = [];
+				options.forEach(function(result) {
+					me.nav_results[type].push(me.render_nav_result(result));
+				});
+			}
+		}
+		console.log("Lists", this.awesome_bar.get_doctypes(keywords));
+		get_nav(this.awesome_bar.get_doctypes(keywords), "Lists");
+		get_nav(this.awesome_bar.get_reports(keywords), "Reports");
+		// get_nav(this.awesome_bar.get_pages(keywords), "Pages");
+		get_nav(this.awesome_bar.get_modules(keywords), "Modules");
+
+		this.make_nav_modules();
+	},
+
+	render_nav_result: function(result) {
+		console.log("nav result", result);
+		var result_base_html = '<div> <a class="module-section-link small" href="{0}">{1}</a></div>   ';
+		return __(result_base_html, [this.make_path(result.route), result.label]);
+	},
+
+	make_path: function(route) {
+		var path = "#";
+		route.forEach(function(r) {
+			path += r + '/';
 		});
+		return path;
 	},
 
-	bind_search_results: function() {
-		var me = this;
-		this.search_modal.find(".search-list .list-link").on('click', function(){
-			me.search_modal.find(".list-link a").removeClass("disabled");
-			$(this).find('a').addClass("disabled");
-			var doctype = $(this).attr('data-category');
-			me.result_area.html(me.results_divs[doctype]);
-			return false;
-		});
-	},
-
-	render_result: function(type, keywords, data) {
-		var result_base_html = '<div class="'+ type +'-result">' +
-			'<a href="{0}" class="h4">{1}</a>' +
-			'<p>{2}</p>' +
-			'</div>';
-		// no bold if it's a link, then can make everywhere
-		var regEx = new RegExp("("+ keywords +")", "ig");
-		data[2] = data[2].replace(regEx, '<b>$1</b>');
-		return __(result_base_html, data);
-	},
-
-	render_list_item: function(doctype) {
-		var list_item_base_html = '<li class="list-link"' + 
-			'data-category="{0}"><a href="#">{0}</a></li>';
-		return __(list_item_base_html, [doctype]);
+	make_nav_modules: function() {
+		for (var nav_type in this.nav_results) {
+			if (this.nav_results.hasOwnProperty(nav_type)) {
+				this.results_modules.push(this.make_results_module(
+					this.nav_results[nav_type], nav_type));
+			}
+		}
 	},
 
 	get_help_results: function(keywords) {
 		var me = this;
+		this.help_results = [];
 		frappe.call({
 			method: "frappe.utils.help.get_help",
 			args: {
@@ -171,107 +242,42 @@ frappe.search.Search = Class.extend({
 			callback: function (r) {
 				if(r.message) {
 					me.format_help_results(r.message, keywords);
-					me.make_help();
+					me.make_help_module();
 				}
-				me.show_condensed_results();
+				me.show_results();
+				me.bold_keywords();
 			}
 		});
 	},
-
+	
 	format_help_results: function(help_data, keywords) {
 		var me = this;
-		this.search_results["Help"] = [];
 		help_data.forEach(function(d) {
-			var title = d[0];
-			var intro = d[1];
-			var fpath = '#" data-path="' + d[2];
-			var result_html = me.render_result("help", keywords, [fpath, title, intro]);
-			me.search_results["Help"].push(result_html)
+			var result = {};
+			result.title = d[0];
+			result.content = d[1];
+			result.route = '#" data-path="' + d[2];
+			var result_html = me.render_result("help", result);
+			me.help_results.push(result_html);
 		});
 	},
 
-	make_help: function() {
+	make_help_module: function() {
 		var me = this;
-		this.results_divs["Help"] = this.make_results_div(
-			this.search_results["Help"], "Help");
-		this.search_modal.find(".help-list").removeClass("hide");
-		
-		this.search_modal.find(".help-list .list-link").on('click', function() {
-			me.search_modal.find(".list-link a").removeClass("disabled");
-			$(this).find('a').addClass("disabled");
-			
-			me.result_area.html(me.results_divs["Help"]);
-			me.bind_help_results();
-			return false;
-		});
+		this.results_modules.push(this.make_results_module(
+			this.help_results, "Help"));
 	},
 
-	bind_help_results: function() {
+	show_results: function() {
 		var me = this;
-		console.log("path");
-		me.search_modal.find(".help-result .h4").on("click", function() {
-			var path = $(this).attr("data-path");
-			console.log(path);
-			if(path) {
-				me.show_help_article(path);
-			}
-			return false;
-		});
-	},
-
-	show_help_article: function(path) {
-		var me = this;
-		frappe.call({
-			method: "frappe.utils.help.get_help_content",
-			args: {
-				path: path
-			},
-			callback: function (r) {
-				console.log("inside search callback:", r.message);
-				if(r.message && r.message.title) {
-					me.result_area.html('<span class="h4">' + 
-						r.message.title + '</span>' + r.message.content);
-				}
-			}
-		});
-	},
-
-	show_condensed_results: function() {
-		this.result_area.html('');
-		var me = this;
-
-		for (var doctype in me.search_results) {
-			if (this.search_results.hasOwnProperty(doctype)) {
-				var results = this.search_results[doctype].slice(0,this.condensed_length);
-				var more_link = false;
-				if(this.search_results[doctype].length > this.condensed_length){
-					more_link = true;
-				} 
-				this.result_area.append(this.make_condensed_div(results, doctype, more_link));
-			}
-		}
-	},
-
-	make_condensed_div: function(results, name, more_link) {
-		var me = this;
-		var results_div = $('<div class="results-div '+name+'-results"><h4>'+name+'</h4></div>');
-		results.forEach(function(result_html) {
-			results_div.append(result_html);
-		});
-		if(more_link) {
-			results_div.append('<a class="more-' + name + '">More...</a><hr>');
-			var more_link = results_div.find('.more-'+name);
-			more_link.on("click", function () {
-				me.search_modal.find('*[data-category="'+ name +'"]').trigger("click");
+		if(this.results_modules.length > 0) {
+			me.result_area.html("");
+			me.result_area.empty();
+			this.results_modules.forEach(function(results_module) {
+				me.result_area.append(results_module);
 			});
-		} else {
-			results_div.append('<hr>');
 		}
-		
-		return results_div;
-	},
-
-
+	}
 });
 
 
