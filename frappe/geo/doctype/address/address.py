@@ -12,6 +12,7 @@ from frappe.model.document import Document
 from jinja2 import TemplateSyntaxError
 from frappe.utils.user import is_website_user
 from frappe.model.naming import make_autoname
+from frappe.core.doctype.dynamic_link.dynamic_link import deduplicate_dynamic_links
 
 class Address(Document):
 	def __setup__(self):
@@ -33,6 +34,7 @@ class Address(Document):
 	def validate(self):
 		self.link_address()
 		self.validate_reference()
+		deduplicate_dynamic_links(self)
 
 	def link_address(self):
 		"""Link address based on owner"""

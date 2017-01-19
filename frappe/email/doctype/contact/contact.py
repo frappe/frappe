@@ -6,6 +6,7 @@ import frappe
 from frappe.utils import cstr, has_gravatar
 from frappe import _
 from frappe.model.document import Document
+from frappe.core.doctype.dynamic_link.dynamic_link import deduplicate_dynamic_links
 
 class Contact(Document):
 	def autoname(self):
@@ -22,6 +23,8 @@ class Contact(Document):
 		self.set_user()
 		if self.email_id:
 			self.image = has_gravatar(self.email_id)
+
+		deduplicate_dynamic_links(self)
 
 	def set_user(self):
 		if not self.user and self.email_id:
