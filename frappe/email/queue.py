@@ -19,7 +19,8 @@ class EmailLimitCrossedError(frappe.ValidationError): pass
 def send(recipients=None, sender=None, subject=None, message=None, reference_doctype=None,
 		reference_name=None, unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None,
 		attachments=None, reply_to=None, cc=[], message_id=None, in_reply_to=None, send_after=None,
-		expose_recipients=None, send_priority=1, communication=None, now=False, read_receipt=None):
+		expose_recipients=None, send_priority=1, communication=None, now=False, read_receipt=None,
+		queue_separately=False):
 	"""Add email to sending queue (Email Queue)
 
 	:param recipients: List of recipients.
@@ -37,6 +38,7 @@ def send(recipients=None, sender=None, subject=None, message=None, reference_doc
 	:param send_after: Send this email after the given datetime. If value is in integer, then `send_after` will be the automatically set to no of days from current date.
 	:param communication: Communication link to be set in Email Queue record
 	:param now: Send immediately (don't send in the background)
+	:param queue_separately: Queue each email separately
 	"""
 	if not unsubscribe_method:
 		unsubscribe_method = "/api/method/frappe.email.queue.unsubscribe"
@@ -46,6 +48,9 @@ def send(recipients=None, sender=None, subject=None, message=None, reference_doc
 
 	if isinstance(recipients, basestring):
 		recipients = split_emails(recipients)
+
+	if isinstance(cc, basestring):
+		cc = split_emails(cc)
 
 	if isinstance(send_after, int):
 		send_after = add_days(nowdate(), send_after)
@@ -83,31 +88,68 @@ def send(recipients=None, sender=None, subject=None, message=None, reference_doc
 		email_text_context += unsubscribe_link.text
 
 	# add to queue
-	email_queue = add(recipients, sender, subject, email_content, email_text_context, reference_doctype,
-		reference_name, attachments, reply_to, cc, message_id, in_reply_to, send_after, send_priority, email_account=email_account, communication=communication,
-		unsubscribe_method=unsubscribe_method, unsubscribe_params=unsubscribe_params, expose_recipients=expose_recipients, read_receipt=read_receipt)
-	if now:
-		send_one(email_queue.name, now=True)
+	add(recipients, sender, subject,
+		formatted=email_content,
+		text_content=email_text_context,
+		reference_doctype=reference_doctype,
+		reference_name=reference_name,
+		attachments=attachments,
+		reply_to=reply_to,
+		cc=cc,
+		message_id=message_id,
+		in_reply_to=in_reply_to,
+		send_after=send_after,
+		send_priority=send_priority,
+		email_account=email_account,
+		communication=communication,
+		unsubscribe_method=unsubscribe_method,
+		unsubscribe_params=unsubscribe_params,
+		expose_recipients=expose_recipients,
+		read_receipt=read_receipt,
+		queue_separately=queue_separately,
+		now=now)
 
 
-def add(recipients, sender, subject, formatted, text_content=None,
-	reference_doctype=None, reference_name=None, attachments=None, reply_to=None,
-	cc=[], message_id=None, in_reply_to=None, send_after=None, send_priority=1, email_account=None,
-	communication=None, unsubscribe_method=None, unsubscribe_params=None, expose_recipients=None, read_receipt=None):
+def add(recipients, sender, subject, **kwargs):
 	"""Add to Email Queue"""
+	if kwargs.get('queue_separately') or len(recipients) > 20:
+		email_queue = None
+		for r in recipients:
+			if not email_queue:
+				email_queue = get_email_queue([r], sender, subject, **kwargs)
+			else:
+				duplicate = email_queue.get_duplicate([r])
+				duplicate.insert(ignore_permissions=True)
+
+			if kwargs.get('now'):
+				send_one(email_queue.name, now=True)
+	else:
+		email_queue = get_email_queue(recipients, sender, subject, **kwargs)
+		if kwargs.get('now'):
+			send_one(email_queue.name, now=True)
+
+def get_email_queue(recipients, sender, subject, **kwargs):
+	'''Make Email Queue object'''
 	e = frappe.new_doc('Email Queue')
-	e.priority = send_priority
+	e.priority = kwargs.get('send_priority')
 
 	try:
-		mail = get_email(recipients, sender=sender, formatted=formatted, subject=subject,
-			text_content=text_content, attachments=attachments, reply_to=reply_to,
-			cc=cc, email_account=email_account, expose_recipients=expose_recipients)
+		mail = get_email(recipients,
+			sender=sender,
+			subject=subject,
+			formatted=kwargs.get('formatted'),
+			text_content=kwargs.get('text_content'),
+			attachments=kwargs.get('attachments'),
+			reply_to=kwargs.get('reply_to'),
+			cc=kwargs.get('cc'),
+			email_account=kwargs.get('email_account'),
+			expose_recipients=kwargs.get('expose_recipients'))
 
-		mail.set_message_id(message_id)
-		if read_receipt:
+		mail.set_message_id(kwargs.get('message_id'))
+		if kwargs.get('read_receipt'):
 			mail.msg_root["Disposition-Notification-To"] = sender
-		if in_reply_to:
-			mail.set_in_reply_to(in_reply_to)
+		if kwargs.get('in_reply_to'):
+			mail.set_in_reply_to(kwargs.get('in_reply_to'))
 
 		e.message_id = mail.msg_root["Message-Id"].strip(" <>")
 		e.message = cstr(mail.as_string())
@@ -115,22 +157,20 @@ def add(recipients, sender, subject, formatted, text_content=None,
 
 	except frappe.InvalidEmailAddressError:
 		# bad Email Address - don't add to queue
-		return
+		frappe.log_error('Invalid Email ID Sender: {0}, Recipients: {1}'.format(mail.sender,
+			', '.join(mail.recipients)), 'Email Not Sent')
 
-	e.set("recipient", [])
-	for r in recipients + cc:
-		e.append("recipient",{"recipient":r})
-	e.reference_doctype = reference_doctype
-	e.reference_name = reference_name
-	e.unsubscribe_method = unsubscribe_method
-	e.unsubscribe_params = unsubscribe_params
-	e.expose_recipients = expose_recipients
-	e.communication = communication
-	e.send_after = send_after
-	e.show_as_cc = ",".join(cc)
+	e.set_recipients(recipients + kwargs.get('cc', []))
+	e.reference_doctype = kwargs.get('reference_doctype')
+	e.reference_name = kwargs.get('reference_name')
+	e.unsubscribe_method = kwargs.get('unsubscribe_method')
+	e.unsubscribe_params = kwargs.get('unsubscribe_params')
+	e.expose_recipients = kwargs.get('expose_recipients')
+	e.communication = kwargs.get('communication')
+	e.send_after = kwargs.get('send_after')
+	e.show_as_cc = ",".join(kwargs.get('cc', []))
 	e.insert(ignore_permissions=True)
 
-	return e
 
 def check_email_limit(recipients):
 	# if using settings from site_config.json, check email limit
@@ -244,7 +284,7 @@ def flush(from_test=False):
 
 		if cint(frappe.defaults.get_defaults().get("hold_queue"))==1:
 			break
-		
+
 		if email:
 			send_one(email, smtpserver, auto_commit, from_test=from_test)
 
@@ -272,7 +312,8 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False, from_test=Fals
 		message, sender, reference_doctype, reference_name, unsubscribe_param, unsubscribe_method, expose_recipients, show_as_cc
 		from `tabEmail Queue` where name=%s for update''', email, as_dict=True)[0]
 
-	recipients_list = frappe.db.sql('''select name, recipient, status from `tabEmail Queue Recipient` where parent=%s''',email.name,as_dict=1)
+	recipients_list = frappe.db.sql('''select name, recipient, status from
+		`tabEmail Queue Recipient` where parent=%s''',email.name,as_dict=1)
 
 	if frappe.are_emails_muted():
 		frappe.msgprint(_("Emails are muted"))
