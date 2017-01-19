@@ -44,20 +44,20 @@ frappe.views.Calendar = frappe.views.CalendarBase.extend({
 
 		frappe.breadcrumbs.add(module, this.doctype)
 
-		this.add_filters();
+		// this.add_filters();
 
-		this.page.add_field({fieldtype:"Date", label:"Date",
-			fieldname:"selected",
-			"default": frappe.datetime.month_start(),
-			input_css: {"z-index": 1},
-			change: function() {
-				var selected = $(this).val();
-				if (selected) {
-					me.$cal.fullCalendar('changeView', 'agendaDay');
-					me.$cal.fullCalendar("gotoDate", frappe.datetime.user_to_obj(selected));
-				}
-			}
-		});
+		// this.page.add_field({fieldtype:"Date", label:"Date",
+		// 	fieldname:"selected",
+		// 	"default": frappe.datetime.month_start(),
+		// 	input_css: {"z-index": 1},
+		// 	change: function() {
+		// 		var selected = $(this).val();
+		// 		if (selected) {
+		// 			me.$cal.fullCalendar('changeView', 'agendaDay');
+		// 			me.$cal.fullCalendar("gotoDate", frappe.datetime.user_to_obj(selected));
+		// 		}
+		// 	}
+		// });
 
 		this.page.set_primary_action(__("New"), function() {
 			var doc = frappe.model.get_new_doc(me.doctype);
@@ -87,10 +87,6 @@ frappe.views.Calendar = frappe.views.CalendarBase.extend({
 		footnote = frappe.utils.set_footnote(this, this.$wrapper,
 			__("Select or drag across time slots to create a new event."));
 		footnote.css({"border-top": "0px"});
-		//
-		// $('<div class="help"></div>')
-		// 	.html(__("Select dates to create a new ") + __(me.doctype))
-		// 	.appendTo(this.$wrapper);
 
 		this.$cal.fullCalendar(this.cal_options);
 		this.set_css();
@@ -103,7 +99,7 @@ frappe.views.Calendar = frappe.views.CalendarBase.extend({
 
 		this.$wrapper.find(".fc-button-group").addClass("btn-group");
 
-		var btn_group = this.$wrapper.find(".fc-right .fc-button-group");
+		var btn_group = this.$wrapper.find(".fc-button-group");
 		btn_group.find(".fc-state-active").addClass("active");
 
 		btn_group.find(".btn").on("click", function() {
@@ -151,9 +147,9 @@ frappe.views.Calendar = frappe.views.CalendarBase.extend({
 		var me = this;
 		this.cal_options = {
 			header: {
-				left: '',
-				center: 'prev,title,next',
-				right: 'month,agendaWeek,agendaDay'
+				left: 'title',
+				center: '',
+				right: 'prev,next month,agendaWeek,agendaDay'
 			},
 			editable: true,
 			selectable: true,
@@ -276,6 +272,7 @@ frappe.views.Calendar = frappe.views.CalendarBase.extend({
 	},
 	update_event: function(event, revertFunc) {
 		var me = this;
+		console.log(me.get_update_args(event));
 		frappe.model.remove_from_locals(me.doctype, event.name);
 		return frappe.call({
 			method: me.update_event_method || "frappe.desk.calendar.update_event",

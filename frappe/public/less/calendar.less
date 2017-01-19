@@ -7,6 +7,7 @@
 
 .fc-view-container {
 	margin-left: -1px;
+	margin-right: -1px;
 }
 
 th.fc-widget-header {
@@ -25,11 +26,19 @@ th.fc-widget-header {
 }
 
 .fc-unthemed .fc-today {
-	background-color: #FFFEF2 !important;
+	background-color: #FFF !important;
+	
+	.fc-day-number {
+		background-color: @brand-primary;
+		min-width: 20px;
+		border-radius: 50%;
+		color: #fff;
+		text-align: center;
+	}
 }
 
 .fc-highlight {
-	background-color: #D9F6FF !important;
+	background-color: @light-yellow !important;
 }
 
 .fc-event {
@@ -41,4 +50,48 @@ th.fc-widget-header {
 	.fc-scroller {
 		height: auto !important;
 	}
+}
+
+.fc-day-top {
+	padding: 12px 12px 0 0 !important;
+}
+
+th.fc-day-header {
+	text-align: right !important;
+	padding: 10px 12px 10px 0 !important;
+	text-transform: uppercase;
+	font-size: 12px;
+}
+
+.fc.fc-unthemed .fc-toolbar {
+	padding: 15px;
+}
+
+.fc-event-container .fc-content {
+	padding: 3px;
+}
+
+.fc-left h2 {
+	font-size: 14px;
+}
+
+.fc button {
+	height: auto !important;
+	font-size: @text-medium !important;
+	outline: none !important;
+	.fc-icon {
+		top: -1px !important;
+	}
+}
+
+.fc-state-active {
+	box-shadow: none !important;
+	background: #cfdce5 !important;
+}
+
+.fc-day-grid-event {
+	background-color: rgba(94, 100, 255, 0.2) !important;
+	border: none !important;
+	margin: 5px 4px 0 !important;
+	padding: 1px 5px !important;
 }

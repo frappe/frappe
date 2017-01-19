@@ -156,8 +156,12 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 
 		if (this.current_view === 'List') {
 			this.header = "list_item_main_head";
-		} else if (in_list(['Image', 'Kanban', 'Gantt', 'Calendar'], this.current_view)) {
+		} else if (in_list(['Image', 'Kanban', 'Gantt'], this.current_view)) {
 			this.header = "image_view_item_main_head";
+		} else if (this.current_view === 'Calendar') {
+			this.header = null;
+			this.list_header = $();
+			return;
 		}
 
 		var main = frappe.render_template(this.header, {
