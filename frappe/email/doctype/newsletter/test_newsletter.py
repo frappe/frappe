@@ -7,11 +7,13 @@ import frappe, unittest
 from frappe.email.doctype.newsletter.newsletter import unsubscribe
 from urllib import unquote
 
+emails = ["test_subscriber1@example.com", "test_subscriber2@example.com",
+			"test_subscriber3@example.com"]
+
 class TestNewsletter(unittest.TestCase):
 	def setUp(self):
 		frappe.db.sql('delete from `tabEmail Group Member`')
-		for email in ["test_subscriber1@example.com", "test_subscriber2@example.com",
-			"test_subscriber3@example.com"]:
+		for email in emails:
 				frappe.get_doc({
 					"doctype": "Email Group Member",
 					"email": email,
@@ -24,26 +26,26 @@ class TestNewsletter(unittest.TestCase):
 		email_queue_list = [frappe.get_doc('Email Queue', e.name) for e in frappe.get_all("Email Queue")]
 		self.assertEquals(len(email_queue_list), 3)
 		recipients = [e.recipients[0].recipient for e in email_queue_list]
-		self.assertTrue('test_subscriber1@example.com' in recipients)
-		self.assertTrue('test_subscriber2@example.com' in recipients)
-		self.assertTrue('test_subscriber3@example.com' in recipients)
+		for email in emails:
+			self.assertTrue(email in recipients)
 
 	def test_unsubscribe(self):
 		# test unsubscribe
 		self.send_newsletter()
 		from frappe.email.queue import flush
 		flush(from_test=True)
-		email = unquote(frappe.local.flags.signed_query_string.split("email=")[1].split("&")[0])
+		to_unsubscribe = unquote(frappe.local.flags.signed_query_string.split("email=")[1].split("&")[0])
 
-		unsubscribe(email, "_Test Email Group")
+		unsubscribe(to_unsubscribe, "_Test Email Group")
 
 		self.send_newsletter()
 
 		email_queue_list = [frappe.get_doc('Email Queue', e.name) for e in frappe.get_all("Email Queue")]
 		self.assertEquals(len(email_queue_list), 2)
 		recipients = [e.recipients[0].recipient for e in email_queue_list]
-		self.assertTrue('test_subscriber1@example.com' in recipients)
-		self.assertTrue('test_subscriber2@example.com' in recipients)
+		for email in emails:
+			if email != to_unsubscribe:
+				self.assertTrue(email in recipients)
 
 	def send_newsletter(self):
 		frappe.db.sql("delete from `tabEmail Queue`")
