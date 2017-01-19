@@ -55,6 +55,7 @@ frappe.views.Calendar = frappe.views.CalendarBase.extend({
 			change: function() {
 				var selected = $(this).val();
 				if (selected) {
+					me.$cal.fullCalendar('changeView', 'agendaDay');
 					me.$cal.fullCalendar("gotoDate", frappe.datetime.user_to_obj(selected));
 				}
 			}
