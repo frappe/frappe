@@ -4,7 +4,7 @@ from frappe import _
 from frappe.utils import now_datetime, getdate, flt, cint, get_fullname
 from frappe.installer import update_site_config
 from frappe.utils.data import formatdate
-from frappe.utils.user import get_enabled_system_users
+from frappe.utils.user import get_enabled_system_users, disable_users
 import os, subprocess, urlparse, urllib
 
 class SiteExpiredError(frappe.ValidationError):
@@ -149,6 +149,7 @@ def update_limits(limits_dict):
 	limits = get_limits()
 	limits.update(limits_dict)
 	update_site_config("limits", limits, validate=False)
+	disable_users(limits)
 	frappe.local.conf.limits = limits
 
 def clear_limit(key):

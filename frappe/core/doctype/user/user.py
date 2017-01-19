@@ -327,22 +327,22 @@ class User(Document):
 			and reference_doctype='User'
 			and (reference_name=%s or owner=%s)""", (self.name, self.name))
 
-	def before_rename(self, olddn, newdn, merge=False):
-		frappe.clear_cache(user=olddn)
-		self.validate_rename(olddn, newdn)
+	def before_rename(self, old_name, new_name, merge=False):
+		frappe.clear_cache(user=old_name)
+		self.validate_rename(old_name, new_name)
 
-	def validate_rename(self, olddn, newdn):
+	def validate_rename(self, old_name, new_name):
 		# do not allow renaming administrator and guest
-		if olddn in STANDARD_USERS:
+		if old_name in STANDARD_USERS:
 			throw(_("User {0} cannot be renamed").format(self.name))
 
-		self.validate_email_type(newdn)
+		self.validate_email_type(new_name)
 
 	def validate_email_type(self, email):
 		from frappe.utils import validate_email_add
 		validate_email_add(email.strip(), True)
 
-	def after_rename(self, olddn, newdn, merge=False):
+	def after_rename(self, old_name, new_name, merge=False):
 		tables = frappe.db.sql("show tables")
 		for tab in tables:
 			desc = frappe.db.sql("desc `%s`" % tab[0], as_dict=1)
@@ -354,12 +354,12 @@ class User(Document):
 				frappe.db.sql("""\
 					update `%s` set `%s`=%s
 					where `%s`=%s""" % \
-					(tab[0], field, '%s', field, '%s'), (newdn, olddn))
+					(tab[0], field, '%s', field, '%s'), (new_name, old_name))
 
 		# set email
 		frappe.db.sql("""\
 			update `tabUser` set email=%s
-			where name=%s""", (newdn, newdn))
+			where name=%s""", (new_name, new_name))
 
 	def append_roles(self, *roles):
 		"""Add roles to user"""

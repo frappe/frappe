@@ -6,7 +6,7 @@ import frappe
 import os, base64, re
 import hashlib
 import mimetypes
-from frappe.utils import get_site_path, get_hook_method, get_files_path, random_string, encode, cstr, call_hook_method, cint
+from frappe.utils import get_hook_method, get_files_path, random_string, encode, cstr, call_hook_method, cint
 from frappe import _
 from frappe import conf
 from copy import copy
@@ -229,12 +229,12 @@ def write_file(content, fname, is_private=0):
 
 	return get_files_path(fname, is_private=is_private)
 
-def remove_all(dt, dn):
+def remove_all(dt, dn, from_delete=False):
 	"""remove all files in a transaction"""
 	try:
 		for fid in frappe.db.sql_list("""select name from `tabFile` where
 			attached_to_doctype=%s and attached_to_name=%s""", (dt, dn)):
-			remove_file(fid, dt, dn)
+			remove_file(fid, dt, dn, from_delete)
 	except Exception, e:
 		if e.args[0]!=1054: raise # (temp till for patched)
 
@@ -248,7 +248,7 @@ def remove_file_by_url(file_url, doctype=None, name=None):
 	if fid:
 		return remove_file(fid)
 
-def remove_file(fid, attached_to_doctype=None, attached_to_name=None):
+def remove_file(fid, attached_to_doctype=None, attached_to_name=None, from_delete=False):
 	"""Remove file and File entry"""
 	file_name = None
 	if not (attached_to_doctype and attached_to_name):
@@ -258,7 +258,7 @@ def remove_file(fid, attached_to_doctype=None, attached_to_name=None):
 			attached_to_doctype, attached_to_name, file_name = attached
 
 	ignore_permissions, comment = False, None
-	if attached_to_doctype and attached_to_name:
+	if attached_to_doctype and attached_to_name and not from_delete:
 		doc = frappe.get_doc(attached_to_doctype, attached_to_name)
 		ignore_permissions = doc.has_permission("write") or False
 		if frappe.flags.in_web_form:

@@ -153,15 +153,15 @@ textarea.form-control {
 	&--cell {
 		&.-current- {
 			color: @brand-primary;
-			
+
 			&.-in-range- {
 				color: @brand-primary;
 			}
 		}
 
 		&.-range-from-, &.-range-to- {
-			border: 1px solid fade(@brand-primary, 30%); 
-			background: fade(@brand-primary, 10%);			
+			border: 1px solid fade(@brand-primary, 30%);
+			background: fade(@brand-primary, 10%);
 		}
 
 		&.-selected-, &.-current-.-selected- {
@@ -203,6 +203,11 @@ textarea.form-control {
 
 		&:before {
 			display: none;
+		}
+
+		li[aria-selected="true"] mark, mark {
+			padding: 0px;
+			background-color: inherit;
 		}
 
 		&> li {

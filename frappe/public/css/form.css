@@ -449,9 +449,17 @@ select.form-control {
   background: #fefefe;
   border: 1px solid #ddd;
 }
+.signature-img {
+  border: 1px solid #0d4488;
+  background: #e6e6e6;
+  border-radius: 5px;
+  margin: 5px 0;
+  width: 100%;
+  max-height: 300px;
+}
 .form-headline {
   padding: 0px 15px;
-  margin: 0px;
+  margin:s 0px;
 }
 .form-headline .alert {
   font-size: 12px;

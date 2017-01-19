@@ -322,21 +322,28 @@ $.extend(frappe.model, {
 		/* help: Set a value locally (if changed) and execute triggers */
 		var doc = locals[doctype] && locals[doctype][docname];
 
-		if(doc && doc[fieldname] !== value) {
-			if(doc.__unedited && !(!doc[fieldname] && !value)) {
-				// unset unedited flag for virgin rows
-				doc.__unedited = false;
-			}
-
-			doc[fieldname] = value;
-			frappe.model.trigger(fieldname, value, doc);
-			return true;
-		} else {
-			// execute link triggers (want to reselect to execute triggers)
-			if(fieldtype=="Link" && doc) {
-				frappe.model.trigger(fieldname, value, doc);
-			}
+		var to_update = fieldname;
+		if(!$.isPlainObject(to_update)) {
+			to_update = {};
+			to_update[fieldname] = value;
 		}
+
+		$.each(to_update, function(key, value) {
+			if(doc && doc[key] !== value) {
+				if(doc.__unedited && !(!doc[key] && !value)) {
+					// unset unedited flag for virgin rows
+					doc.__unedited = false;
+				}
+
+				doc[key] = value;
+				frappe.model.trigger(key, value, doc);
+			} else {
+				// execute link triggers (want to reselect to execute triggers)
+				if(fieldtype=="Link" && doc) {
+					frappe.model.trigger(key, value, doc);
+				}
+			}
+		});
 	},
 
 	on: function(doctype, fieldname, fn) {

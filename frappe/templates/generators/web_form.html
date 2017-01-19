@@ -171,6 +171,7 @@
 			{% if with_label %}
 			<label class='text-muted'>
 				<input type="checkbox" id="{{ field.fieldname }}"
+					{{ properties(field) }}
 					name="{{ field.fieldname }}" data-doctype="{{ field.parent }}"
 					{{ _doc and _doc.get(field.fieldname) and 'checked' or '' }}>
 					{{ _(field.label) }}
@@ -267,6 +268,7 @@
 		<div class="section">
 			{% if section.label %}
 			<h5 class='uppercase'>{{ _(section.label) }}</h5>
+			<span class="help-block small text-muted">{{ _(section.description) }}</span>
 			{% endif %}
 			<div class="row">
 					{% for column in section.columns %}

@@ -5,7 +5,7 @@
 		<div>{{ frappe.render_template(df.options, {"doc": doc}) or "" }}</div>
 	{%- elif df.fieldtype in ("Text", "Text Editor", "Code") -%}
 		{{ render_text_field(df, doc) }}
-	{%- elif df.fieldtype in ("Image", "Attach Image", "Attach")
+	{%- elif df.fieldtype in ("Image", "Attach Image", "Attach", "Signature")
 		and (guess_mimetype(doc[df.fieldname])[0] or "").startswith("image/")  -%}
 		{{ render_image(df, doc) }}
 	{%- else -%}
@@ -104,6 +104,8 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 		<img src="{{ doc[doc.meta.get_field(df.fieldname).options] }}"
 			class="img-responsive"
 			{%- if df.print_width %} style="width: {{ get_width(df) }};"{% endif %}>
+	{% elif df.fieldtype=="Signature" %}
+		<img src="{{ doc[df.fieldname] }}" class="signature-img img-responsive">
 	{% elif df.fieldtype in ("Attach", "Attach Image") and doc[df.fieldname]
 		and (guess_mimetype(doc[df.fieldname])[0] or "").startswith("image/") %}
 		<img src="{{ doc[df.fieldname] }}" class="img-responsive"

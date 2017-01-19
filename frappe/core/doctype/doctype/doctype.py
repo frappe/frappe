@@ -9,7 +9,7 @@ import frappe
 from frappe import _
 
 from frappe.utils import now, cint
-from frappe.model import no_value_fields
+from frappe.model import no_value_fields, default_fields
 from frappe.model.document import Document
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 from frappe.desk.notifications import delete_notification_count_for
@@ -419,7 +419,6 @@ def validate_fields(meta):
 		if not meta.search_fields:
 			return
 
-		fieldname_list = [d.fieldname for d in fields]
 		for fieldname in (meta.search_fields or "").split(","):
 			fieldname = fieldname.strip()
 			if fieldname not in fieldname_list:
@@ -429,8 +428,6 @@ def validate_fields(meta):
 		"""Throw exception if `title_field` isn't a valid fieldname."""
 		if not meta.get("title_field"):
 			return
-
-		fieldname_list = [d.fieldname for d in fields]
 
 		if meta.title_field not in fieldname_list:
 			frappe.throw(_("Title field must be a valid fieldname"), InvalidFieldNameError)
@@ -469,8 +466,6 @@ def validate_fields(meta):
 		if not meta.timeline_field:
 			return
 
-		fieldname_list = [d.fieldname for d in fields]
-
 		if meta.timeline_field not in fieldname_list:
 			frappe.throw(_("Timeline field must be a valid fieldname"), InvalidFieldNameError)
 
@@ -478,7 +473,22 @@ def validate_fields(meta):
 		if df.fieldtype not in ("Link", "Dynamic Link"):
 			frappe.throw(_("Timeline field must be a Link or Dynamic Link"), InvalidFieldNameError)
 
+	def check_sort_field(meta):
+		'''Validate that sort_field(s) is a valid field'''
+		if meta.sort_field:
+			sort_fields = [meta.sort_field]
+			if ','  in meta.sort_field:
+				sort_fields = [d.split()[0] for d in meta.sort_field.split(',')]
+
+			for fieldname in sort_fields:
+				if not fieldname in fieldname_list + list(default_fields):
+					frappe.throw(_("Sort field {0} must be a valid fieldname").format(fieldname),
+						InvalidFieldNameError)
+
+
 	fields = meta.get("fields")
+	fieldname_list = [d.fieldname for d in fields]
+
 	not_allowed_in_list_view = list(copy.copy(no_value_fields))
 	if meta.istable:
 		not_allowed_in_list_view.remove('Button')
@@ -502,6 +512,7 @@ def validate_fields(meta):
 	check_search_fields(meta)
 	check_title_field(meta)
 	check_timeline_field(meta)
+	check_sort_field(meta)
 
 def validate_permissions_for_doctype(doctype, for_remove=False):
 	"""Validates if permissions are set correctly."""
