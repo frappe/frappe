@@ -104,7 +104,6 @@ def sync_customizations_for_doctype(data):
 			if not frappe.db.exists('Custom Field', d['name']):
 				doc = frappe.get_doc(d)
 				doc.db_insert()
-				doc.save()
 
 	if data['property_setters']:
 		frappe.db.sql('delete from `tabProperty Setter` where doc_type=%s', doctype)
@@ -114,9 +113,7 @@ def sync_customizations_for_doctype(data):
 			if not frappe.db.exists('Property Setter', d['name']):
 				doc = frappe.get_doc(d)
 				doc.db_insert()
-				doc.save()
-
-
+				
 def scrub(txt):
 	return frappe.scrub(txt)
 
