@@ -117,12 +117,14 @@ def add(recipients, sender, subject, **kwargs):
 		for r in recipients:
 			if not email_queue:
 				email_queue = get_email_queue([r], sender, subject, **kwargs)
+				if kwargs.get('now'):
+					email_queue(email_queue.name, now=True)
 			else:
 				duplicate = email_queue.get_duplicate([r])
 				duplicate.insert(ignore_permissions=True)
 
-			if kwargs.get('now'):
-				send_one(email_queue.name, now=True)
+				if kwargs.get('now'):
+					send_one(duplicate.name, now=True)
 	else:
 		email_queue = get_email_queue(recipients, sender, subject, **kwargs)
 		if kwargs.get('now'):
@@ -171,6 +173,7 @@ def get_email_queue(recipients, sender, subject, **kwargs):
 	e.show_as_cc = ",".join(kwargs.get('cc', []))
 	e.insert(ignore_permissions=True)
 
+	return e
 
 def check_email_limit(recipients):
 	# if using settings from site_config.json, check email limit
