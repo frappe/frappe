@@ -101,12 +101,7 @@ def sync_customizations_for_doctype(data):
 		frappe.db.sql('delete from `tabCustom Field` where dt=%s', doctype)
 		for d in data['custom_fields']:
 			d['doctype'] = 'Custom Field'
-			# There are case where sync_customizations can cause conflict
-			# of duplicate records ex. myapp/setup/custom_install_script
-			# record_exists ensures that record in not there
-			record_exists = frappe.get_all('Custom Field',
-									       filters={'name': d['name']})
-			if not record_exists:
+			if not frappe.db.exists('Custom Field', d['name']):
 				doc = frappe.get_doc(d)
 				doc.db_insert()
 				doc.save()
@@ -116,12 +111,7 @@ def sync_customizations_for_doctype(data):
 
 		for d in data['property_setters']:
 			d['doctype'] = 'Property Setter'
-			# There are case where sync_customizations can cause conflict
-			# of duplicate records ex. myapp/setup/custom_install_script
-			# record_exists ensures that record in not there
-			record_exists = frappe.get_all('Property Setter',
-									       filters={'name': d['name']})
-			if not record_exists:
+			if not frappe.db.exists('Property Setter', d['name']):
 				doc = frappe.get_doc(d)
 				doc.db_insert()
 				doc.save()
