@@ -125,6 +125,8 @@ def add(recipients, sender, subject, **kwargs):
 
 				if kwargs.get('now'):
 					send_one(duplicate.name, now=True)
+
+			frappe.db.commit()
 	else:
 		email_queue = get_email_queue(recipients, sender, subject, **kwargs)
 		if kwargs.get('now'):
@@ -298,9 +300,15 @@ def make_cache_queue():
 	'''cache values in queue before sendign'''
 	cache = frappe.cache()
 
-	emails = frappe.db.sql('''select name from `tabEmail Queue`
-		where (status='Not Sent' or status='Partially Sent') and (send_after is null or send_after < %(now)s)
-		order by priority desc, creation asc
+	emails = frappe.db.sql('''select
+			name
+		from
+			`tabEmail Queue`
+		where
+			(status='Not Sent' or status='Partially Sent') and
+			(send_after is null or send_after < %(now)s)
+		order
+			by priority desc, creation asc
 		limit 500''', { 'now': now_datetime() })
 
 	# reset value
@@ -311,9 +319,15 @@ def make_cache_queue():
 def send_one(email, smtpserver=None, auto_commit=True, now=False, from_test=False):
 	'''Send Email Queue with given smtpserver'''
 
-	email = frappe.db.sql('''select name, status, communication,
-		message, sender, reference_doctype, reference_name, unsubscribe_param, unsubscribe_method, expose_recipients, show_as_cc
-		from `tabEmail Queue` where name=%s for update''', email, as_dict=True)[0]
+	email = frappe.db.sql('''select
+			name, status, communication, message, sender, reference_doctype,
+			reference_name, unsubscribe_param, unsubscribe_method, expose_recipients,
+			show_as_cc
+		from
+			`tabEmail Queue`
+		where
+			name=%s
+		for update''', email, as_dict=True)[0]
 
 	recipients_list = frappe.db.sql('''select name, recipient, status from
 		`tabEmail Queue Recipient` where parent=%s''',email.name,as_dict=1)

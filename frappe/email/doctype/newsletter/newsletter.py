@@ -40,7 +40,7 @@ class Newsletter(Document):
 			self.validate_send()
 
 			# using default queue with a longer timeout as this isn't a scheduled task
-			enqueue(send_newsletter, queue='default', timeout=5000, event='send_newsletter',
+			enqueue(send_newsletter, queue='default', timeout=6000, event='send_newsletter',
 				newsletter=self.name)
 
 		else:
@@ -49,6 +49,7 @@ class Newsletter(Document):
 		frappe.msgprint(_("Scheduled to send to {0} recipients").format(len(self.recipients)))
 
 		frappe.db.set(self, "email_sent", 1)
+		frappe.db.set(self, 'scheduled_to_send', len(self.recipients))
 
 	def queue_all(self):
 		if not self.get("recipients"):
