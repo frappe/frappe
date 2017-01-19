@@ -41,29 +41,6 @@ class User(Document):
 	def before_insert(self):
 		self.flags.in_insert = True
 
-	def force_user_email_update(self):
-		for user_email in self.user_emails:
-			if not user_email.email_id:
-				user_email.email_id = frappe.db.get_value("Email Account",
-					{"name": user_email.email_account}, "email_id")
-
-	def user_emails_to_permissions(self):
-		if frappe.session.user == "Administrator" or "System Manager" in frappe.get_roles():
-			from frappe.core.page.user_permissions.user_permissions import get_permissions
-
-			permissions = set([x.defvalue for x in get_permissions(self.name, "Email Account")])
-			user_emails = set([x.email_account for x in self.user_emails])
-
-			# compare vs user email
-			add = user_emails - permissions
-			remove = permissions - user_emails
-
-			# set the difference
-			for r in remove:
-				frappe.permissions.remove_user_permission("Email Account", r, self.name)
-			for a in add:
-				frappe.permissions.add_user_permission("Email Account", a, self.name, with_message=True)
-
 	def validate(self):
 		self.check_demo()
 
@@ -83,8 +60,6 @@ class User(Document):
 		self.remove_all_roles_for_guest()
 		self.validate_username()
 		self.remove_disabled_roles()
-		self.force_user_email_update()
-		self.user_emails_to_permissions()
 		ask_pass_update()
 
 		if self.language == "Loading...":
