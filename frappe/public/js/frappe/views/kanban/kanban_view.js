@@ -806,6 +806,10 @@ frappe.provide("frappe.views");
 		var description_field = null;
 		var due_date_field = null;
 
+		if(meta.title_field) {
+			field = frappe.meta.get_field(opts.doctype, meta.title_field);
+		}
+
 		meta.fields.forEach(function (df) {
 			if (df.reqd && !doc[df.fieldname]) {
 				// missing mandatory
@@ -825,6 +829,11 @@ frappe.provide("frappe.views");
 				due_date_field = get_date_field(meta.fields);
 			}
 		});
+
+		if(!field) {
+			field = frappe.meta.get_field(opts.doctype, 'name');
+		}
+
 		return {
 			quick_entry: quick_entry,
 			title_field: field,
@@ -990,6 +999,10 @@ frappe.provide("frappe.views");
 					indicators = df.options.split("\n");
 				}
 			});
+			if(!indicators) {
+				//
+				indicators = ['green', 'blue', 'orange', 'grey']
+			}
 			callback(indicators);
 		});
 	}

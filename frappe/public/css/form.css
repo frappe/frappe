@@ -270,7 +270,7 @@ h6.uppercase,
 }
 .timeline-item.user-content .comment-header {
   background-color: #fafbfc;
-  padding: 7px 15px;
+  padding: 10px 15px 10px 13px;
   margin: 0px;
   color: #8D99A6;
   border-bottom: 1px solid #EBEFF2;
@@ -280,7 +280,7 @@ h6.uppercase,
   cursor: pointer;
 }
 .timeline-item.user-content .reply {
-  padding: 10px 15px;
+  padding: 15px;
 }
 .timeline-item.user-content .reply > div > p:first-child {
   margin-top: 0px;
@@ -288,11 +288,14 @@ h6.uppercase,
 .timeline-item.user-content .reply > div > p:last-child {
   margin-bottom: 0px;
 }
+.timeline-item.user-content .reply hr {
+  margin: 10px 0px;
+}
 .timeline-item.user-content .close-btn-container {
-  padding: 2px 10px 2px 5px;
+  padding: 4px 10px 2px 5px;
 }
 .timeline-item.user-content .edit-btn-container {
-  padding: 2px 5px;
+  padding: 4px 5px;
 }
 .timeline-item.user-content .edit-btn-container .edit {
   color: inherit;

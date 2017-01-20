@@ -34,11 +34,6 @@ frappe.ui.form.Timeline = Class.extend({
 				}
 			}
 		});
-		this.list.on("click",".comment-header",function(e) {
-			if (!inList(["A","BUTTON"],e.target.tagName)) {
-				$(this).parent().find(".timeline-content-show").toggleClass("hide");
-			}
-		})
 
 		this.email_button = this.wrapper.find(".btn-new-email")
 			.on("click", function() {
@@ -135,14 +130,13 @@ frappe.ui.form.Timeline = Class.extend({
 		this.frm.sidebar.refresh_comments();
 
 		this.frm.trigger('timeline_refresh');
-		$(this.list.find(".comment-header")[0]).parent().find(".timeline-content-show").toggleClass("hide")
 	},
 
 	render_timeline_item: function(c) {
 		var me = this;
 		this.prepare_timeline_item(c);
 
-		var $timeline_item = $(frappe.render_template("timeline_item", {data:c}))
+		var $timeline_item = $(frappe.render_template("timeline_item", {data:c, frm:this.frm}))
 			.appendTo(me.list)
 			.on("click", ".close", function() {
 				var name = $timeline_item.data('name');
@@ -193,7 +187,6 @@ frappe.ui.form.Timeline = Class.extend({
 		if(c.communication_type=="Communication" && c.communication_medium==="Email") {
 			this.last_type = c.communication_medium;
 			this.add_reply_btn_event($timeline_item, c);
-			this.add_relink_btn_event($timeline_item, c);
 		}
 
 	},
@@ -220,18 +213,6 @@ frappe.ui.form.Timeline = Class.extend({
 				last_email: last_email
 			});
 		});
-	},
-
-	add_relink_btn_event: function($timeline_item, c) {
-		var me = this;
-		$timeline_item.find(".relink-link").on("click", function() {
-			var name = $(this).attr("data-name");
-			callback= function (frm) {
-							$timeline_item.hide()
-						}
-			frappe.timeline.relink_dialog(name, cur_frm.doctype, cur_frm.name, callback)
-		 });
-
 	},
 
 	prepare_timeline_item: function(c) {
@@ -311,6 +292,16 @@ frappe.ui.form.Timeline = Class.extend({
 
 		// basic level of XSS protection
 		c.content_html = frappe.dom.remove_script_and_style(c.content_html);
+
+		// subject
+		c.show_subject = false;
+		if(c.subject
+			&& c.communication_type==="Communication"
+			&& !frappe._in(this.frm.doc.subject, c.subject)
+			&& !frappe._in(this.frm.doc.name, c.subject)
+			&& !frappe._in(this.frm.doc[this.frm.meta.title_field || "name"], c.subject)) {
+			c.show_subject = true;
+		}
 	},
 
 	is_communication_or_comment: function(c) {
@@ -689,53 +680,5 @@ $.extend(frappe.timeline, {
 		}
 
 		return index;
-	},
-	relink_dialog: function(name, reference_doctype, reference_name, callback, timeline_hide){
-		var lib = "frappe.email";
-		var d = new frappe.ui.Dialog ({
-			title: __("Relink Communication"),
-			fields: [{
-				"fieldtype": "Link",
-				"options": "DocType",
-				"label": __("Reference Doctype"),
-				"fieldname": "reference_doctype",
-				"get_query": function() {return {"query": lib +".get_communication_doctype"}}
-			},
-			{
-				"fieldtype": "Dynamic Link",
-				"options": "reference_doctype",
-				"label": __("Reference Name"),
-				"fieldname": "reference_name"
-			}]
-		});
-		d.set_value("reference_doctype", reference_doctype);
-		d.set_value("reference_name", reference_name);
-		d.set_primary_action(__("Relink"), function (frm) {
-			values = d.get_values();
-			if (values) {
-				frappe.confirm(
-					'Are you sure you want to relink this communication to ' + values["reference_name"] + '?',
-					function () {
-						d.hide();
-						frappe.call
-						({
-							method: lib + ".relink",
-							args: {
-								"name": timeline_hide ? timeline_hide: name,
-								"reference_doctype": values["reference_doctype"],
-								"reference_name": values["reference_name"]
-							},
-							callback: function (frm) {
-								callback(frm)
-							}
-						})
-					},
-					function () {
-						show_alert('Document not Relinked')
-					}
-				)
-			}
-		});
-		d.show();
 	}
 })

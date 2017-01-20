@@ -2,6 +2,9 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on('Kanban Board', {
+	onload: function(frm) {
+		frm.trigger('reference_doctype');
+	},
 	refresh: function(frm) {
 		if(frm.is_new()) return;
 		frm.add_custom_button("Show Board", function() {
