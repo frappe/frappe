@@ -96,7 +96,7 @@ frappe.ui.form.Timeline = Class.extend({
 
 		var communications = this.get_communications(true);
 
-		$.each(communications.sort(function(a, b) { return a.creation > b.communication_date ? -1 : 1 }),
+		$.each(communications.sort(function(a, b) { return a.creation > b.creation ? -1 : 1 }),
 			function(i, c) {
 				if(c.content) {
 					c.frm = me.frm;

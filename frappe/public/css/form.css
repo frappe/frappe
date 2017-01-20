@@ -259,7 +259,7 @@ h6.uppercase,
   }
 }
 .timeline-item.user-content {
-  margin: 30px 0px 30px 30px;
+  margin: 30px 0px 30px 27px;
 }
 .timeline-item.user-content .media-body {
   border: 1px solid #d1d8dd;
@@ -267,6 +267,11 @@ h6.uppercase,
   margin-left: -7px;
   position: relative;
   overflow: visible;
+}
+.timeline-item.user-content .avatar-medium {
+  margin-right: 10px;
+  height: 45px;
+  width: 45px;
 }
 .timeline-item.user-content .comment-header {
   background-color: #fafbfc;
@@ -403,7 +408,7 @@ h6.uppercase,
 }
 .timeline-new-email {
   margin: 30px 0px;
-  padding: 0px 65px;
+  padding-left: 70px;
   position: relative;
 }
 .timeline-new-email::before {
