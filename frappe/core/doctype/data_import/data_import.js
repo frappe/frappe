@@ -4,6 +4,7 @@
 frappe.ui.form.on('Data Import', {
 
 	onload: function(frm) {
+		console.log("in the onload");
 		var doctype_options = "";
 		for (var i=0; i < frappe.boot.user.can_import.sort().length; i++) {
 			doctype_options = doctype_options + "\n" + frappe.boot.user.can_import[i];
@@ -12,54 +13,66 @@ frappe.ui.form.on('Data Import', {
 		// setTimeout(function() {
 		// 	console.log("Loading");
 		// }, 500)
-		cur_frm.enable_save();
 	},
 
 	refresh: function(frm) {
 		var me = this;
 		console.log("in the refresh");
+
 		frm.events.add_primary_class(frm);
 
-		if(frm.doc.template == "raw" && frm.doc.freeze_doctype != 1) { 
+		// if (frm.doc.import_file) {
+		// 	$("button.primary-action :last-child").html("Import");
+		// }
+		if (!frm.doc.import_file) {
+			frm.dirty();
+		}
+
+		if(frm.doc.template == "raw" && frm.doc.docstatus == 0) { 
 			console.log("trigeering render function");
 			frm.events.render_html(frm);
 			frm.doc.only_new_records = 1;
 			frm.get_field('only_new_records').df.read_only = 1;
 		}
-		if (frm.doc.template != "raw") {
+
+		if (frm.doc.template != "raw" && frm.doc.docstatus == 0) {
 			frm.doc.only_new_records = 0;
 			frm.get_field('only_new_records').df.read_only = 0;
 		}
 		if(frm.doc.reference_doctype && frm.doc.template != "raw") {
 			frm.add_custom_button(__("Download template"), function() {
+				frm.doc.__unsaved = 0;
 				frappe.model.open_mapped_doc({
 					method: "frappe.core.doctype.data_import.data_import.route_to_export_template",
 					frm: frm
 				})
 			}).addClass("btn-primary");
 		}
-		if (frm.doc.freeze_doctype == 1) {
-			cur_frm.disable_save();
-			console.log("in the frezze doctype after freezing the document");
+		if (frm.doc.docstatus != 0) {
+			console.log("in the submitted doctype");
 			if (frm.doc.log_details) {
-				console.log("callback received");
+				console.log("log details found");
 				r = JSON.parse(frm.doc.log_details);
-				if(r.message.error || r.message.messages.length==0) {
-					frm.events.onerror(r);
-				} 
-				else {
-					if(me.has_progress) {
-						frappe.show_progress(__("Importing"), 1, 1);
-						setTimeout(frappe.hide_progress, 3000);
-					}
+				console.log(r);
+				// if(r.message.error || r.message.messages.length==0) {
+				// 	frm.events.onerror(r);
+				// } 
+				// else {
+				// 	if(me.has_progress) {
+				// 		frappe.show_progress(__("Importing"), 1, 1);
+				// 		setTimeout(frappe.hide_progress, 3000);
+				// 	}
 
-					r.messages = ["<h5 style='color:green'>" + __("Import Successful!") + "</h5>"].
-						concat(r.message.messages);
+				// 	r.messages = ["<h5 style='color:green'>" + __("Import Successful!") + "</h5>"].
+				// 		concat(r.message.messages);
 
-					// cur_frm.cscript.display_import_log(r.messages);
-					frm.events.write_messages(frm, r.messages);
-				}
-			 } //else {
+				// 	// cur_frm.cscript.display_import_log(r.messages);
+				// 	frm.events.write_messages(frm, r.messages);
+				// }
+			} else{
+				console.log("log details not found");
+			} 
+			//else {
 			// 	console.log("callback not received");
 			// 	// $(frm.fields_dict.import_log.wrapper).empty();
 			// 	var $log_wrapper = $(cur_frm.fields_dict.import_log.wrapper).empty();
@@ -95,6 +108,7 @@ frappe.ui.form.on('Data Import', {
 	},
 
 	before_save: function(frm) {
+		console.log("before save");
 		if (frm.doc.flag_file_preview && frm.doc.preview_data) {
 			var column_map = [];
 			$(frm.fields_dict.file_preview.wrapper).find("select.column-map" ).each(function(index) {
@@ -104,6 +118,10 @@ frappe.ui.form.on('Data Import', {
 				frm.doc.selected_columns = JSON.stringify(column_map);
 			}
 		}
+	},
+
+	after_save: function(frm) {
+		console.log("in after save");
 	},
 
 	reference_doctype: function(frm) {
@@ -136,48 +154,53 @@ frappe.ui.form.on('Data Import', {
 							$(this).parent().addClass("has-error");
 						}
 						count++;
+						$(this).on("change",function() {
+							frm.dirty();
+						})
 				});
 			}
 		});
 		frm.doc.flag_file_preview = 1;
 	},
 
-	import_button: function(frm) {
-		var me = this;
-		frm.save();
-		if (!frm.doc.import_file) {
-			frappe.throw("Attach a file for importing")
-		}
-		else {
-			console.log("frappe.call");
-			frappe.call({
-				method: "frappe.core.doctype.data_import.data_import.insert_into_db",
-				args: {
-					"reference_doctype": frm.doc.reference_doctype,
-					"import_file": frm.doc.import_file,
-					"selected_columns": frm.doc.selected_columns,
-					"selected_row": frm.doc.selected_row,
-					"doc_name": frm.doc.name,
-					"only_new_records": frm.doc.only_new_records,
-					"only_update": frm.doc.only_update,
-					"submit_after_import": frm.doc.submit_after_import,
-					"ignore_encoding_errors": frm.doc.ignore_encoding_errors,
-					"no_email": frm.doc.no_email,
-					"template": frm.doc.template
-				},
-				callback: function(r) {
-					console.log("in the frappe.call callback");
-					frm.doc.log_details = JSON.stringify(r);
-					frm.events.write_messages(frm, r.messages);
-					// frm.save();
+	// import_button: function(frm) {
+	// 	var me = this;
+	// 	// frm.save();
+	// 	if (!frm.doc.import_file) {
+	// 		frappe.throw("Attach a file for importing")
+	// 	} else {
+	// 		console.log("import button triggered")
+	// 	}
+	// 	// else {
+	// 	// 	console.log("frappe.call");
+	// 	// 	frappe.call({
+	// 	// 		method: "frappe.core.doctype.data_import.data_import.insert_into_db",
+	// 	// 		args: {
+	// 	// 			"reference_doctype": frm.doc.reference_doctype,
+	// 	// 			"import_file": frm.doc.import_file,
+	// 	// 			"selected_columns": frm.doc.selected_columns,
+	// 	// 			"selected_row": frm.doc.selected_row,
+	// 	// 			"doc_name": frm.doc.name,
+	// 	// 			"only_new_records": frm.doc.only_new_records,
+	// 	// 			"only_update": frm.doc.only_update,
+	// 	// 			"submit_after_import": frm.doc.submit_after_import,
+	// 	// 			"ignore_encoding_errors": frm.doc.ignore_encoding_errors,
+	// 	// 			"no_email": frm.doc.no_email,
+	// 	// 			"template": frm.doc.template
+	// 	// 		},
+	// 	// 		callback: function(r) {
+	// 	// 			console.log("in the frappe.call callback");
+	// 	// 			frm.doc.log_details = JSON.stringify(r);
+	// 	// 			frm.events.write_messages(frm, r.messages);
+	// 	// 			// frm.save();
 
-				}
-			});
-			console.log("before the freeze doctype");
-			frm.doc.freeze_doctype = 1;
-			frm.save();
-		}
-	},
+	// 	// 		}
+	// 	// 	});
+	// 	// 	console.log("before the freeze doctype");
+	// 	// 	frm.doc.freeze_doctype = 1;
+	// 	// 	frm.save();
+	// 	// }
+	// },
 
 
 	write_messages: function(frm, data) {
@@ -188,7 +211,7 @@ frappe.ui.form.on('Data Import', {
 		var log_template = '<div class="table-responsive">\
 								<table class="table table-bordered table-hover log-details-table">\
 									<tr>\
-										<th>Row No</th> <th>Row Name</th> <th>Document Name</th> <th>Action Performed</th>\
+										<th>Row No</th> <th>Row Name</th> <th>Document Name</th> <th>Action</th>\
 									</tr>\
 								</table>\
 							</div>';
