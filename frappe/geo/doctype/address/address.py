@@ -187,6 +187,16 @@ def get_shipping_address(company):
 def address_query(doctype, txt, searchfield, start, page_len, filters):
 	from frappe.desk.reportview import get_match_cond
 
+	link_doctype = filters.pop('link_doctype')
+	link_name = filters.pop('link_name')
+
+	condition = ""
+	for fieldname, value in filters.iteritems():
+		condition += " and {field}={value}".format(
+			field=fieldname,
+			value=value
+		)
+
 	return frappe.db.sql("""select
 			address.name, address.city, address.country
 		from
@@ -197,18 +207,19 @@ def address_query(doctype, txt, searchfield, start, page_len, filters):
 			dl.link_doctype = %(link_doctype)s and
 			dl.link_name = %(link_name)s and
 			address.`{key}` like %(txt)s
-			{mcond}
+			{mcond} {condition}
 		order by
 			if(locate(%(_txt)s, address.name), locate(%(_txt)s, address.name), 99999),
 			address.idx desc, address.name
 		limit %(start)s, %(page_len)s """.format(
 			mcond=get_match_cond(doctype),
-			key=frappe.db.escape(searchfield)),
+			key=frappe.db.escape(searchfield),
+			condition=condition or ""),
 		{
 			'txt': "%%%s%%" % frappe.db.escape(txt),
 			'_txt': txt.replace("%", ""),
 			'start': start,
 			'page_len': page_len,
-			'link_doctype': filters.get('link_doctype'),
-			'link_name': filters.get('link_name')
+			'link_doctype': link_doctype,
+			'link_name': link_name
 		})
