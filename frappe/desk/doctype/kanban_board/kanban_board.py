@@ -109,6 +109,8 @@ def quick_kanban_board(doctype, board_name, field_name):
 		columns = options.split('\n')
 
 	for column in columns:
+		if not column:
+			continue
 		doc.append("columns", dict(
 			column_name=column
 		))
