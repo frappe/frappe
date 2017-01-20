@@ -16,7 +16,6 @@ import MySQLdb
 import time
 from frappe import _
 from frappe.utils.background_jobs import enqueue
-import email.utils
 
 @frappe.whitelist()
 def make(doctype=None, name=None, content=None, subject=None, sent_or_received = "Sent",
@@ -117,6 +116,9 @@ def notify(doc, print_html=None, print_format=None, attachments=None,
 	recipients, cc = get_recipients_and_cc(doc, recipients, cc,
 		fetched_from_email_account=fetched_from_email_account)
 
+	if not recipients:
+		return
+
 	doc.emails_not_sent_to = set(doc.all_email_addresses) - set(doc.sent_email_addresses)
 
 	if frappe.flags.in_test:
@@ -200,7 +202,7 @@ def get_recipients_and_cc(doc, recipients, cc, fetched_from_email_account=False)
 		original_recipients, recipients = recipients, []
 
 		# send email to the sender of the previous email in the thread which this email is a reply to
-		#provides erratic results and can send external 
+		#provides erratic results and can send external
 		#if doc.previous_email_sender:
 		#	recipients.append(doc.previous_email_sender)
 
@@ -209,6 +211,9 @@ def get_recipients_and_cc(doc, recipients, cc, fetched_from_email_account=False)
 
 		# don't cc to people who already received the mail from sender's email service
 		cc = list(set(cc) - set(original_cc) - set(original_recipients))
+
+	if 'Administrator' in recipients:
+		recipients.remove('Administrator')
 
 	return recipients, cc
 
