@@ -153,7 +153,7 @@ frappe.Inbox = frappe.ui.Listing.extend({
 			doctype: this.doctype,
 			fields:["name", "sender", "sender_full_name", "communication_date", "recipients", "cc","communication_medium",
 				"subject", "status" ,"reference_doctype", "reference_name", "timeline_doctype", "timeline_name",
-				"timeline_label", "sent_or_received", "uid", "message_id", "seen", "nomatch", "has_attachment", "timeline_hide"],
+				"timeline_label", "sent_or_received", "uid", "message_id", "seen", "nomatch", "has_attachment"],
 			filters: this.filter_list.get_filters(),
 			order_by: 'communication_date desc',
 			save_list_settings: false
@@ -451,7 +451,7 @@ frappe.Inbox = frappe.ui.Listing.extend({
 			row.reference_doctype = values["reference_doctype"];
 			row.reference_name = values["reference_name"];
 		}
-		frappe.timeline.relink_dialog(row.name, row.reference_doctype, row.reference_name, callback, row.timeline_hide);
+		frappe.timeline.relink_dialog(row.name, row.reference_doctype, row.reference_name, callback);
 	},
 	run:function(more,footer) {
 		var me = this;

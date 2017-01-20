@@ -7,5 +7,4 @@ import frappe
 from frappe.model.document import Document
 
 class UnhandledEmail(Document):
-	def on_trash(self):
-		frappe.db.set_value("Email Account",self.email_account,"no_remaining",None)
+	pass
