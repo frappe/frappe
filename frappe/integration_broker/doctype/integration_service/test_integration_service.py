@@ -11,10 +11,16 @@ from frappe.utils.scheduler import get_scheduler_events
 
 class TestIntegrationService(unittest.TestCase):
 	def test_scheudler_events(self):
-		dropbox_settings = frappe.get_doc('Dropbox Settings')
-		dropbox_settings.db_set('enabled', 1)
+		if not frappe.db.exists("Integration Service", "Dropbox"):
+			frappe.get_doc({
+				"doctype": "Integration Service",
+				"service": "Dropbox"
+			}).insert(ignore_permissions=True)
 
+		frappe.db.set_value("Integration Service", "Dropbox", "enabled", 1)
+		frappe.cache().delete_key('scheduler_events')
 		events = get_scheduler_events('daily_long')
-		self.assertTrue('frappe.integrations.dropbox_integration.take_backups_daily' in events)
 
-		dropbox_settings.db_set('enabled', 0)
+		self.assertTrue('frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backups_daily' in events)
+
+		frappe.db.set_value("Integration Service", "Dropbox", "enabled", 0)
