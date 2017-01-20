@@ -22,15 +22,24 @@
   font-weight: bold;
   font-size: 12px;
 }
-.kanban .kanban-column-title .column-options {
-  position: absolute;
-  right: 0px;
+.kanban .kanban-column-title .column-options .button-group {
+  display: flex;
+  padding: 12px 14px;
 }
-.kanban .sortable-ghost > .kanban-card {
+.kanban .kanban-column-title .column-options .button-group .btn.indicator {
+  flex: 1;
+}
+.kanban .kanban-column-title .column-options .indicator::before {
+  margin: 0;
+}
+.kanban .kanban-column-title:hover {
+  cursor: pointer;
+}
+.kanban .sortable-ghost > .kanban-card:not(.add-card) {
   background: #ccc !important;
   color: transparent;
 }
-.kanban .sortable-ghost > .kanban-card * {
+.kanban .sortable-ghost > .kanban-card:not(.add-card) * {
   background: transparent !important;
   color: transparent !important;
 }
@@ -47,8 +56,7 @@
   color: #8D99A6;
 }
 .kanban .kanban-card.add-card:hover {
-  background-color: #fff;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  box-shadow: none;
   color: #36414C;
   cursor: pointer;
 }
@@ -107,7 +115,7 @@
   outline: none;
 }
 .kanban .add-new-column a:hover {
-  color: #36414C;
+  color: #36414C !important;
 }
 .kanban .kanban-card-meta {
   margin-top: 8px;
@@ -116,4 +124,20 @@
 .kanban .kanban-card-meta .avatar {
   width: 16px;
   height: 16px;
+}
+body[data-route*="Kanban"] .modal .add-assignment:hover i {
+  color: #36414C !important;
+}
+.edit-card-title .h4 {
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+.edit-card-title span:hover {
+  background-color: #fffce7;
+  cursor: pointer;
+}
+.edit-card-title input {
+  border: none;
+  outline: none;
+  width: 100%;
 }

@@ -129,7 +129,112 @@ frappe.views.ListSidebar = Class.extend({
 		});
 
 		$dropdown.find('.new-kanban-board').click(function() {
-			frappe.new_doc('Kanban Board', {reference_doctype: me.doctype});
+			// frappe.new_doc('Kanban Board', {reference_doctype: me.doctype});
+			var select_fields = frappe.get_meta(me.doctype)
+				.fields.filter(function(df) {
+					return df.fieldtype === 'Select';
+				}).map(function(df) {
+					return df.fieldname;
+				});
+
+			var fields = [
+				{
+					fieldtype: 'Data',
+					fieldname: 'board_name',
+					label: __('Kanban Board Name'),
+					reqd: 1
+				}
+			]
+
+			if(select_fields.length > 0) {
+				fields = fields.concat([{
+					fieldtype: 'Select',
+					fieldname: 'field_name',
+					label: __('Columns based on'),
+					options: select_fields.join('\n'),
+					default: select_fields[0]
+				},
+				{
+					fieldtype: 'Check',
+					fieldname: 'custom_column',
+					label: __('Add Custom Column Field'),
+					default: 0,
+					onchange: function(e) {
+						var checked = d.get_value('custom_column');
+						if(checked) {
+							d.get_input('field_name').prop('disabled', true);
+						} else {
+							d.get_input('field_name').prop('disabled', null);
+						}
+					}
+				}]);
+			}
+
+			var d = new frappe.ui.Dialog({
+				title: __('New Kanban Board'),
+				fields: fields,
+				primary_action: function() {
+					var values = d.get_values();
+					var custom_column = values.custom_column !== undefined ?
+						values.custom_column : 1;
+
+					me.add_custom_column_field(custom_column)
+						.then(function(custom_column) {
+							console.log(custom_column)
+							var f = custom_column ?
+								'kanban_column' : values.field_name;
+							console.log(f)
+							return me.make_kanban_board(values.board_name, f)
+						})
+						.then(function() {
+							d.hide();
+						}, function(err) {
+							msgprint(err);
+						});
+				}
+			});
+			d.show();
+		});
+	},
+	add_custom_column_field: function(flag) {
+		var me = this;
+		return new Promise(function(resolve, reject) {
+			if(!flag) resolve(false);
+			frappe.call({
+				method: 'frappe.custom.doctype.custom_field.custom_field.add_custom_field',
+				args: {
+					doctype: me.doctype,
+					df: {
+						label: 'Kanban Column',
+						fieldname: 'kanban_column',
+						fieldtype: 'Select',
+						hidden: 1
+					}
+				}
+			}).success(function() {
+				resolve(true);
+			}).error(function(err) {
+				reject(err);
+			});
+		});
+	},
+	make_kanban_board: function(board_name, field_name) {
+		var me = this;
+		return frappe.call({
+			method: 'frappe.desk.doctype.kanban_board.kanban_board.quick_kanban_board',
+			args: {
+				doctype: me.doctype,
+				board_name: board_name,
+				field_name: field_name
+			},
+			callback: function(r) {
+				frappe.set_route(
+					'List',
+					me.doctype,
+					'Kanban',
+					r.message.kanban_board_name
+				);
+			}
 		});
 	},
 	setup_assigned_to_me: function() {

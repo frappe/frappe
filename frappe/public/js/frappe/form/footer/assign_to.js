@@ -132,7 +132,7 @@ frappe.ui.form.AssignTo = Class.extend({
 frappe.ui.form.AssignToDialog = Class.extend({
 	init: function(opts){
 		var me = this
-		$.extend(me,new frappe.ui.Dialog({
+		$.extend(me, new frappe.ui.Dialog({
 			title: __('Add to To Do'),
 			fields: [
 				{fieldtype: 'Link', fieldname:'assign_to', options:'User',
@@ -152,11 +152,7 @@ frappe.ui.form.AssignToDialog = Class.extend({
 						{value:'High', label:__('High')}],
 					'default':'Medium'},
 			],
-			primary_action: function() {
-				var assign_to = opts.obj.dialog.fields_dict.assign_to.get_value();
-				var args = opts.obj.dialog.get_values();
-				frappe.ui.add_assignment(assign_to, args, opts, opts.obj.dialog);
-			},
+			primary_action: function() { frappe.ui.add_assignment(opts, me) },
 			primary_action_label: __("Add")
 		}));
 
@@ -184,7 +180,9 @@ frappe.ui.form.AssignToDialog = Class.extend({
 
 });
 
-frappe.ui.add_assignment = function(assign_to, args, opts, dialog) {
+frappe.ui.add_assignment = function(opts, dialog) {
+	var assign_to = opts.obj.dialog.fields_dict.assign_to.get_value();
+	var args = opts.obj.dialog.get_values();
 	if(args && assign_to) {
 		return frappe.call({
 			method: opts.method,

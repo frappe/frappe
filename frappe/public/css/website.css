@@ -381,6 +381,10 @@ a.no-decoration:active {
 .indicator-right.light-blue::after {
   background: #7CD6FD;
 }
+.indicator.lightblue::before,
+.indicator-right.lightblue::after {
+  background: #7CD6FD;
+}
 .modal-header .indicator {
   float: left;
   margin-top: 7.5px;

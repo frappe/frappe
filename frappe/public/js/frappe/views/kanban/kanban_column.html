@@ -1,7 +1,7 @@
 <div class="kanban-column" data-column-value="{{title}}">
-	<div class="kanban-column-title">
+	<div class="kanban-column-title indicator {{indicator}}">
 		<span>{{ __(title) }}</span>
-		<div class="btn-group column-options">
+		<div class="btn-group column-options dropdown pull-right">
 		  <a class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 		    <button class="btn btn-default btn-xs"><span class="caret"></span></button>
 		  </a>
@@ -16,7 +16,7 @@
 
 	<div class="kanban-card add-card">
 		<div class="kanban-card-title">
-			<i class="octicon octicon-plus"></i> {{ __("Add a card") }}
+			<i class="octicon octicon-plus"></i> {{ __("Add " + doctype) }}
 		</div>
 	</div>
 	<div class="kanban-card new-card-area">
