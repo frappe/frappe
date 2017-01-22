@@ -73,8 +73,6 @@ frappe.views.Calendar = frappe.views.CalendarBase.extend({
 			}
 		});
 
-		this.page.page_actions.find(".menu-btn-group-label").text(__("Type"));
-
 		$(this.parent).on("show", function() {
 			me.$cal.fullCalendar("refetchEvents");
 		})
@@ -216,7 +214,6 @@ frappe.views.Calendar = frappe.views.CalendarBase.extend({
 		}
 	},
 	get_args: function(start, end) {
-		console.log(this.filter_vals)
 		if(this.filter_vals) {
 			var filters = {};
 			this.filter_vals.forEach(function(f) {
@@ -272,7 +269,6 @@ frappe.views.Calendar = frappe.views.CalendarBase.extend({
 	},
 	update_event: function(event, revertFunc) {
 		var me = this;
-		console.log(me.get_update_args(event));
 		frappe.model.remove_from_locals(me.doctype, event.name);
 		return frappe.call({
 			method: me.update_event_method || "frappe.desk.calendar.update_event",
@@ -303,6 +299,8 @@ frappe.views.Calendar = frappe.views.CalendarBase.extend({
 			if (!event.end) {
 				event.end = event.start.add(1, "hour");
 			}
+
+			args[this.field_map.end] = me.get_system_datetime(event.end);
 
 			if (args[this.field_map.allDay]) {
 				args[this.field_map.end] = me.get_system_datetime(moment(event.end).subtract(1, "s"));
