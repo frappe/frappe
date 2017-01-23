@@ -10,6 +10,8 @@ import frappe.permissions
 from frappe.model.document import Document
 from frappe.model.mapper import get_mapped_doc
 
+import time
+
 from frappe import _
 
 from frappe.utils.dateutils import parse_date
@@ -46,6 +48,7 @@ class DataImport(Document):
 			print "in not import file update"
 			self.preview_data = None
 			self.file_preview = None
+			self.flag_file_preview = 0
 			# self.selected_columns = None Considering user will upload same file in a particular doctype
 			self.template = "no file"
 
@@ -58,13 +61,9 @@ class DataImport(Document):
 			elif file_extension == '.csv':
 				self.template = "template"
 				self.preview_data = ""
-				# frappe.msgprint(_("You have uploaded a template file"))
+				frappe.msgprint(_("You have uploaded a template file"))
 			else:
 				frappe.throw("Unsupported file format")
-
-	def on_submit(self):
-		print "in on submit"
-
 
 
 	def set_preview_data(self, file_path):
@@ -121,9 +120,12 @@ class DataImport(Document):
 	def insert_into_db(self, file_path=None, rows=None):
 		print "in the inset_into_db"
 
-		self.submit()
-
-		# frappe.throw("stop");		
+		enqueue(testrun())
+		
+		data = [["#1","Asdfhr sdfbr","DOC0001","Row Inserted and saved"],["#2","Sgdgrtg ddggrt","DOC0002","Row Updated"],["#3","Rdfgf dfggf","DOC0003","Row Ignored"]];
+		return data
+		# print "before stop"
+		# frappe.throw("stop")		
 
 		# print "in the insert into db"
 		
@@ -223,6 +225,15 @@ class DataImport(Document):
 		self.log_details = json.dumps(log_message)
 
 
+def testrun():
+	sum = 0
+	print "in testrun"
+	for i in range(10):
+		print "publishing"
+		frappe.publish_realtime("data_import_p", {"progress": [i, 10]},user=frappe.session.user)
+		time.sleep(2);
+
+
 @frappe.whitelist()
 def route_to_export_template(source_name):
 	print source_name
@@ -235,6 +246,7 @@ def route_to_export_template(source_name):
 		}}, ignore_permissions=True)
 	# export_template.save()
 	return export_template
+
 
 
 
