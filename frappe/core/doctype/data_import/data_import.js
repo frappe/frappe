@@ -10,36 +10,28 @@ frappe.ui.form.on('Data Import', {
 			doctype_options = doctype_options + "\n" + frappe.boot.user.can_import[i];
 		}
 		frm.get_field('reference_doctype').df.options = doctype_options;
-		// setTimeout(function() {
-		// 	console.log("Loading");
-		// }, 500)
+		frm.enable_save();
 	},
 
 	refresh: function(frm) {
 		var me = this;
 		console.log("in the refresh");
-
 		frm.events.add_primary_class(frm);
 
 		// if (frm.doc.import_file) {
 		// 	$("button.primary-action :last-child").html("Import");
 		// }
-		if (!frm.doc.import_file) {
-			frm.dirty();
-		}
 
-		if(frm.doc.template == "raw" && frm.doc.docstatus == 0) { 
+		if(!frm.doc.freeze_doctype && frm.doc.template == "raw") { 
 			console.log("trigeering render function");
 			frm.events.render_html(frm);
 			frm.doc.only_new_records = 1;
-			frm.get_field('only_new_records').df.read_only = 1;
 		}
 
-		if (frm.doc.template != "raw" && frm.doc.docstatus == 0) {
+		if (frm.doc.template != "raw") {
 			frm.doc.only_new_records = 0;
-			frm.get_field('only_new_records').df.read_only = 0;
 		}
-		if(frm.doc.reference_doctype && frm.doc.template != "raw") {
+		if(frm.doc.reference_doctype && !frm.doc.import_file) {
 			frm.add_custom_button(__("Download template"), function() {
 				frm.doc.__unsaved = 0;
 				frappe.model.open_mapped_doc({
@@ -48,48 +40,38 @@ frappe.ui.form.on('Data Import', {
 				})
 			}).addClass("btn-primary");
 		}
-		if (frm.doc.docstatus != 0) {
-			console.log("in the submitted doctype");
-			if (frm.doc.log_details) {
-				console.log("log details found");
-				r = JSON.parse(frm.doc.log_details);
-				console.log(r);
-				// if(r.message.error || r.message.messages.length==0) {
-				// 	frm.events.onerror(r);
-				// } 
-				// else {
-				// 	if(me.has_progress) {
-				// 		frappe.show_progress(__("Importing"), 1, 1);
-				// 		setTimeout(frappe.hide_progress, 3000);
-				// 	}
-
-				// 	r.messages = ["<h5 style='color:green'>" + __("Import Successful!") + "</h5>"].
-				// 		concat(r.message.messages);
-
-				// 	// cur_frm.cscript.display_import_log(r.messages);
-				// 	frm.events.write_messages(frm, r.messages);
-				// }
-			} else{
-				console.log("log details not found");
-			} 
-			//else {
-			// 	console.log("callback not received");
-			// 	// $(frm.fields_dict.import_log.wrapper).empty();
-			// 	var $log_wrapper = $(cur_frm.fields_dict.import_log.wrapper).empty();
-			// 	$('<h2></h2>').html(frappe.markdown("Importing the documents...")).appendTo($log_wrapper);
-			// 	// frappe.realtime.on("data_import_progress", function(data) {
-			// 	// 	if(data.progress) {
-			// 	// 		frappe.hide_msgprint(true);
-			// 	// 		me.has_progress = true;
-			// 	// 		frappe.show_progress(__("Importing"), data.progress[0],
-			// 	// 			data.progress[1]);
-			// 	// 	}
-			// 	// })
-			// }
+		if (frm.doc.log_details) {
+			console.log("in the log details");
+			msg = JSON.parse(frm.doc.log_details);
+			frm.events.write_messages(frm, msg);
 		}
-		// var data = [["#1","Asdfhr sdfbr","Row Inserted","Saved"],["#2","Sgdgrtg ddggrt","Row Updated","Updated"],
-		// 		["#3","Rdfgf dfggf","Row Ignored","Ignored"]];
-		// frm.events.write_messages(frm,data);
+		if (frm.doc.freeze_doctype) {
+			frm.disable_save();
+			frm.set_read_only();
+		}
+		frm.events.setup_dashboard(frm);
+
+	},
+
+	setup_dashboard: function(frm) {
+
+		cur_frm.dashboard.add_progress("Status", [
+			{
+				title: "Inserted",
+				width: "40%",
+				progress_class: "progress-bar-success"
+			},
+			{
+				title: "Ignored",
+				width: "30%",
+				progress_class: "progress-bar-warning"
+			},
+			{
+				title: "Error",
+				width: "20%",
+				progress_class: "progress-bar-danger"
+			}
+		]);
 	},
 
 	add_primary_class: function(frm) {
@@ -107,9 +89,9 @@ frappe.ui.form.on('Data Import', {
 		}, 500)
 	},
 
-	before_save: function(frm) {
-		console.log("before save");
-		if (frm.doc.flag_file_preview && frm.doc.preview_data) {
+	save_columns: function(frm) {
+		console.log("before saving columns");
+		if (frm.doc.flag_file_preview) {
 			var column_map = [];
 			$(frm.fields_dict.file_preview.wrapper).find("select.column-map" ).each(function(index) {
 				column_map.push($(this).val());
@@ -117,19 +99,12 @@ frappe.ui.form.on('Data Import', {
 			if(column_map.length != 0){
 				frm.doc.selected_columns = JSON.stringify(column_map);
 			}
+			// frm.save();
 		}
-	},
-
-	after_save: function(frm) {
-		console.log("in after save");
 	},
 
 	reference_doctype: function(frm) {
 		frm.save();
-	},
-
-	import_file: function(frm) {
-		// frm.save();
 	},
 
 	render_html: function(frm) {
@@ -155,7 +130,8 @@ frappe.ui.form.on('Data Import', {
 						}
 						count++;
 						$(this).on("change",function() {
-							frm.dirty();
+							frm.events.save_columns(frm);
+
 						})
 				});
 			}
@@ -163,49 +139,57 @@ frappe.ui.form.on('Data Import', {
 		frm.doc.flag_file_preview = 1;
 	},
 
-	// import_button: function(frm) {
-	// 	var me = this;
-	// 	// frm.save();
-	// 	if (!frm.doc.import_file) {
-	// 		frappe.throw("Attach a file for importing")
-	// 	} else {
-	// 		console.log("import button triggered")
-	// 	}
-	// 	// else {
-	// 	// 	console.log("frappe.call");
-	// 	// 	frappe.call({
-	// 	// 		method: "frappe.core.doctype.data_import.data_import.insert_into_db",
-	// 	// 		args: {
-	// 	// 			"reference_doctype": frm.doc.reference_doctype,
-	// 	// 			"import_file": frm.doc.import_file,
-	// 	// 			"selected_columns": frm.doc.selected_columns,
-	// 	// 			"selected_row": frm.doc.selected_row,
-	// 	// 			"doc_name": frm.doc.name,
-	// 	// 			"only_new_records": frm.doc.only_new_records,
-	// 	// 			"only_update": frm.doc.only_update,
-	// 	// 			"submit_after_import": frm.doc.submit_after_import,
-	// 	// 			"ignore_encoding_errors": frm.doc.ignore_encoding_errors,
-	// 	// 			"no_email": frm.doc.no_email,
-	// 	// 			"template": frm.doc.template
-	// 	// 		},
-	// 	// 		callback: function(r) {
-	// 	// 			console.log("in the frappe.call callback");
-	// 	// 			frm.doc.log_details = JSON.stringify(r);
-	// 	// 			frm.events.write_messages(frm, r.messages);
-	// 	// 			// frm.save();
+	import_button: function(frm) {
+		import_button = frm.get_field('import_button');
+		frm.save();
+		var me = this;
+		if (!frm.doc.import_file) {
+			frappe.throw("Attach a file for importing")
+		} else {
+			console.log(" before frappe.call");
 
-	// 	// 		}
-	// 	// 	});
-	// 	// 	console.log("before the freeze doctype");
-	// 	// 	frm.doc.freeze_doctype = 1;
-	// 	// 	frm.save();
-	// 	// }
-	// },
+			// $(import_button.input).set_working();
+
+			frappe.call({
+				method: "runserverobj",
+				args: {'docs':frm.doc, 'method': 'insert_into_db'},
+				// btn: import_button.$input,
+				callback: function(r) {
+					console.log("in the frappe.call callback");
+					frm.doc.log_details = JSON.stringify(r.message);
+					// console.log(r.message);
+					
+					// frm.read_only = 1;
+					// frm.events.write_messages(frm, r.messages);
+					// frm.save();
+					// if(!r.exc) {
+					// 	if(onrefresh) {
+					// 		onrefresh(r);
+					// 	}
+
+					// 	me.refresh_fields();
+					// }
+				}
+			});	
+			frm.doc.freeze_doctype = 1;
+			console.log("before freeze doctype");
+			frappe.realtime.on("data_import_p", function(data) {
+				console.log("in frappe realtime");
+				console.log(data)
+				if(data.progress) {
+					frappe.hide_msgprint(true);
+					me.has_progress = true;
+					frappe.show_progress(__("Importing"), data.progress[0],
+						data.progress[1]);
+				}
+			})
+
+		}
+	},
 
 
 	write_messages: function(frm, data) {
 		console.log("in write messages");
-		// $(frm.fields_dict.import_log.wrapper).empty();
 		var $log_wrapper = $(cur_frm.fields_dict.import_log.wrapper).empty();
 		
 		var log_template = '<div class="table-responsive">\
