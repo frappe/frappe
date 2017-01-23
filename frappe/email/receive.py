@@ -735,7 +735,7 @@ class Email:
 			# sent by outlook when another email is sent as an attachment to this email
 			self.show_attached_email_headers_in_content(part)
 
-		elif part.get_filename():
+		elif part.get_filename() or 'image' in content_type:
 			self.get_attachment(part)
 
 	def show_attached_email_headers_in_content(self, part):
