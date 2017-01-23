@@ -12,7 +12,6 @@ from frappe import _
 @frappe.whitelist()
 def get():
 	args = get_form_params()
-	args.save_list_settings = True
 
 	data = compress(execute(**args), args = args)
 
@@ -33,6 +32,10 @@ def get_form_params():
 		data["fields"] = json.loads(data["fields"])
 	if isinstance(data.get("docstatus"), basestring):
 		data["docstatus"] = json.loads(data["docstatus"])
+	if isinstance(data.get("save_list_settings"), basestring):
+		data["save_list_settings"] = json.loads(data["save_list_settings"])
+	else:
+		data["save_list_settings"] = True
 
 
 	# queries must always be server side
@@ -165,8 +168,15 @@ def delete_items():
 	il = json.loads(frappe.form_dict.get('items'))
 	doctype = frappe.form_dict.get('doctype')
 
-	for d in il:
-		frappe.delete_doc(doctype, d)
+	for i, d in enumerate(il):
+		try:
+			frappe.delete_doc(doctype, d)
+			if len(il) >= 5:
+				frappe.publish_realtime("progress",
+					dict(progress=[i+1, len(il)], title=_('Deleting {0}').format(doctype)),
+					user=frappe.session.user)
+		except Exception:
+			pass
 
 @frappe.whitelist()
 def get_sidebar_stats(stats, doctype, filters=[]):
@@ -272,3 +282,27 @@ def build_match_conditions(doctype, as_condition=True):
 		return match_conditions.replace("%", "%%")
 	else:
 		return match_conditions
+
+def get_filters_cond(doctype, filters, conditions):
+	if filters:
+		flt = filters
+		if isinstance(filters, dict):
+			filters = filters.items()
+			flt = []
+			for f in filters:
+				if isinstance(f[1], basestring) and f[1][0] == '!':
+					flt.append([doctype, f[0], '!=', f[1][1:]])
+				else:
+					value = frappe.db.escape(f[1]) if isinstance(f[1], basestring) else f[1]
+					flt.append([doctype, f[0], '=', value])
+
+		query = DatabaseQuery(doctype)
+		query.filters = flt
+		query.conditions = conditions
+		query.build_filter_conditions(flt, conditions)
+
+		cond = ' and ' + ' and '.join(query.conditions)
+	else:
+		cond = ''
+	return cond
+

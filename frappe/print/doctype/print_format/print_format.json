@@ -333,7 +333,7 @@
    "bold": 0, 
    "collapsible": 0, 
    "columns": 0, 
-   "default": "1", 
+   "default": "0", 
    "fieldname": "show_section_headings", 
    "fieldtype": "Check", 
    "hidden": 0, 
@@ -362,7 +362,7 @@
    "bold": 0, 
    "collapsible": 0, 
    "columns": 0, 
-   "default": "1", 
+   "default": "0", 
    "fieldname": "line_breaks", 
    "fieldtype": "Check", 
    "hidden": 0, 
@@ -653,7 +653,7 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 0, 
- "modified": "2016-11-07 05:23:46.983533", 
+ "modified": "2016-12-30 15:12:46.182376", 
  "modified_by": "Administrator", 
  "module": "Print", 
  "name": "Print Format", 
@@ -686,5 +686,6 @@
  "read_only_onload": 0, 
  "sort_field": "modified", 
  "sort_order": "DESC", 
+ "track_changes": 1, 
  "track_seen": 0
 }

@@ -207,6 +207,7 @@ class Meta(Document):
 		self.apply_property_setters()
 		self.sort_fields()
 		self.get_valid_columns()
+		self.set_custom_permissions()
 
 	def add_custom_fields(self):
 		try:
@@ -277,6 +278,22 @@ class Meta(Document):
 				f.idx = i + 1
 
 			self.fields = newlist
+
+	def set_custom_permissions(self):
+		'''Reset `permissions` with Custom DocPerm if exists'''
+		if frappe.flags.in_patch or frappe.flags.in_import:
+			return
+
+		if not self.istable and self.name not in ('DocType', 'DocField', 'DocPerm',
+			'Custom DocPerm'):
+			custom_perms = frappe.get_all('Custom DocPerm', fields='*',
+				filters=dict(parent=self.name), update=dict(doctype='Custom DocPerm'))
+			if custom_perms:
+				self.permissions = [Document(d) for d in custom_perms]
+
+	def get_fieldnames_with_value(self):
+		return [df.fieldname for df in self.fields if df.fieldtype not in no_value_fields]
+
 
 	def get_fields_to_check_permissions(self, user_permission_doctypes):
 		fields = self.get("fields", {
@@ -430,7 +447,7 @@ def trim_tables():
 	for doctype in frappe.db.get_all("DocType", filters={"issingle": 0}):
 		doctype = doctype.name
 		columns = frappe.db.get_table_columns(doctype)
-		fields = [df.fieldname for df in frappe.get_meta(doctype).fields if df.fieldtype not in no_value_fields]
+		fields = frappe.get_meta(doctype).get_fieldnames_with_value()
 		columns_to_remove = [f for f in list(set(columns) - set(fields)) if f not in ignore_fields
 			and not f.startswith("_")]
 		if columns_to_remove:

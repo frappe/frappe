@@ -809,7 +809,7 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 0, 
- "modified": "2016-11-07 05:31:17.333435", 
+ "modified": "2016-12-29 14:40:19.097127", 
  "modified_by": "Administrator", 
  "module": "Desk", 
  "name": "Event", 
@@ -863,5 +863,6 @@
  "read_only_onload": 0, 
  "sort_order": "DESC", 
  "title_field": "subject", 
+ "track_changes": 1, 
  "track_seen": 1
 }

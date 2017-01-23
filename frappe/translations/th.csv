@@ -466,7 +466,7 @@ apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.js +33,Send
 DocType: Report,Query,สอบถาม
 DocType: DocType,Sort Order,เรียง
 apps/frappe/frappe/core/doctype/doctype/doctype.py +353,'In List View' not allowed for type {0} in row {1},' ในมุมมองรายการ ' ไม่ได้รับอนุญาตสำหรับประเภท {0} ในแถว {1}
-apps/frappe/frappe/templates/includes/comments/comments.html +38,Your Email Id,อีเมล์ ID ของคุณ
+apps/frappe/frappe/templates/includes/comments/comments.html +38,Your Email Address,อีเมล์ ID ของคุณ
 DocType: Custom Field,Select the label after which you want to insert new field.,เลือกป้ายชื่อหลังจากที่คุณต้องการแทรกเขตข้อมูลใหม่
 ,Document Share Report,แบ่งปันเอกสารรายงาน
 DocType: User,Last Login,เข้าสู่ระบบล่าสุด
@@ -650,7 +650,7 @@ DocType: Page,Page HTML,HTML หน้า
 apps/frappe/frappe/public/js/frappe/views/treeview.js +236,Further nodes can be only created under 'Group' type nodes,โหนด เพิ่มเติมสามารถ ถูกสร้างขึ้น ภายใต้ โหนด ' กลุ่ม ประเภท
 DocType: Web Page,Header,ส่วนหัว
 apps/frappe/frappe/public/js/frappe/model/model.js +80,Unknown Column: {0},ไม่ทราบ คอลัมน์ : {0}
-DocType: Email Alert Recipient,Optional: Always send to these ids. Each email id on a new row,ตัวเลือก: ส่งไปให้รหัสเหล่านี้ อีเมล์แต่ละแถวใหม่
+DocType: Email Alert Recipient,Optional: Always send to these ids. Each Email Address on a new row,ตัวเลือก: ส่งไปให้รหัสเหล่านี้ อีเมล์แต่ละแถวใหม่
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +299,Users with role {0}:,ผู้ใช้ที่มี บทบาท {0}:
 apps/frappe/frappe/desk/page/applications/applications.py +76,Installing App {0},การติดตั้ง App {0}
 DocType: Print Format,Custom Format,รูปแบบที่กำหนดเอง
@@ -719,7 +719,7 @@ DocType: Workflow State,retweet,retweet
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +53,Update the template and save in CSV (Comma Separate Values) format before attaching.,อัพเดทแม่แบบและบันทึกในรูปแบบ CSV (Comma เฉพาะกิจค่า) รูปแบบก่อนที่จะแนบ
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +213,Specify the value of the field,ระบุค่าของฟิลด์
 DocType: Report,Disabled,ถูกปิดการใช้งาน
-DocType: Email Account,Always use Account's Email ID as Sender,มักจะใช้อีเมล์ ID ของบัญชีเป็นผู้ส่ง
+DocType: Email Account,Always use Account's Email Address as Sender,มักจะใช้อีเมล์ ID ของบัญชีเป็นผู้ส่ง
 DocType: Workflow State,eye-close,ตาใกล้
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py +93,Please select another payment method. {0} does not support transactions in currency '{1}',โปรดเลือกวิธีการชำระเงินอีกครั้ง {0} ไม่สนับสนุนการทำธุรกรรมในสกุลเงิน &#39;{1}&#39;
 DocType: OAuth Provider Settings,OAuth Provider Settings,การตั้งค่าของผู้ให้บริการ OAuth
@@ -862,7 +862,7 @@ DocType: File,rgt,RGT
 DocType: Email Account,Sendgrid,SendGrid
 DocType: Workflow State,leaf,ใบไม้
 DocType: Portal Menu Item,Portal Menu Item,รายการเมนูพอร์ทัล
-DocType: Email Account,Email ID,ID อีเมล์
+DocType: Email Account,Email Address,ID อีเมล์
 apps/frappe/frappe/public/js/frappe/ui/editor.html +48,Insert Link,ใส่ที่อยู่เว็บไซต์
 DocType: OAuth Client,A list of resources which the Client App will have access to after the user allows it.<br> e.g. project,รายการของทรัพยากรที่ app ลูกค้าจะสามารถเข้าถึงหลังจากที่ผู้ใช้จะช่วยให้มัน <br> เช่นโครงการ
 DocType: Contact Us Settings,Query Options,ตัวเลือกแบบสอบถาม
@@ -898,7 +898,7 @@ apps/frappe/frappe/core/page/data_import_tool/exporter.py +60,Notes:,บัน�
 apps/frappe/frappe/public/js/frappe/form/control.js +1673,Markdown,Markdown
 DocType: DocShare,Document Name,ชื่อเอกสาร
 DocType: ToDo,Medium,กลาง
-apps/frappe/frappe/email/doctype/newsletter/newsletter.py +131,Please verify your email id,โปรดตรวจสอบอีเมลของคุณ id
+apps/frappe/frappe/email/doctype/newsletter/newsletter.py +131,Please verify your Email Address,โปรดตรวจสอบอีเมลของคุณ id
 apps/frappe/frappe/public/js/frappe/form/linked_with.js +86,Not enough permission to see links.,ไม่ได้รับอนุญาตพอที่จะเห็นการเชื่อมโยง
 DocType: Customize Form,Customize Form,ปรับแต่งรูปแบบ
 DocType: Currency,A symbol for this currency. For e.g. $,สัญลักษณ์สำหรับสกุลเงินนี้. ตัวอย่างเช่น $
@@ -1089,7 +1089,7 @@ DocType: Workflow State,step-backward,ขั้นตอนย้อนหลั
 apps/frappe/frappe/utils/boilerplate.py +252,{app_title},{app_title}
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +52,Please set Dropbox access keys in your site config,โปรดตั้งค่า คีย์ การเข้าถึง Dropbox ใน การตั้งค่า เว็บไซต์ของคุณ
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +16,Delete this record to allow sending to this email address,ลบบันทึกนี้จะอนุญาตให้ส่งไปยังที่อยู่อีเมลนี้
-DocType: Email Account,Uses the Email ID mentioned in this Account as the Sender for all emails sent using this Account. ,ใช้อีเมล์ ID ที่ระบุไว้ในบัญชีนี้เป็นผู้ส่งอีเมลทั้งหมดที่ส่งโดยใช้บัญชีนี้
+DocType: Email Account,Uses the Email Address mentioned in this Account as the Sender for all emails sent using this Account. ,ใช้อีเมล์ ID ที่ระบุไว้ในบัญชีนี้เป็นผู้ส่งอีเมลทั้งหมดที่ส่งโดยใช้บัญชีนี้
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +65,Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish.,เฉพาะข้อมูลที่จำเป็นต้องมีความจำเป็นสำหรับระเบียนใหม่ คุณสามารถลบคอลัมน์ไม่ได้รับคำสั่งหากคุณต้องการ
 apps/frappe/frappe/public/js/frappe/views/calendar.js +276,Unable to update event,ไม่สามารถปรับเหตุการณ์ให้เป็นค่าล่าสุดได้
 apps/frappe/frappe/templates/generators/web_form.html +292,Payment Complete,ดำเนินการชำระเงิน
@@ -1285,7 +1285,7 @@ DocType: Workflow State,bookmark,คั่น
 DocType: Note,Note,หมายเหตุ
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot.html +32,Error Report,รายงานข้อผิดพลาด
 apps/frappe/frappe/core/doctype/doctype/doctype.py +475,Timeline field must be a valid fieldname,ข้อมูล Timeline จะต้องเป็น fieldname ที่ถูกต้อง
-DocType: Email Account,Email Ids,อีเมล์หมายเลข
+DocType: Email Account,Email Addresses,อีเมล์หมายเลข
 DocType: Currency,Symbol,สัญญลักษณ์
 apps/frappe/frappe/model/base_document.py +529,Row #{0}:,แถว # {0}:
 apps/frappe/frappe/core/doctype/user/user.py +163,New password emailed,ส่ง รหัสผ่านใหม่
@@ -1715,7 +1715,7 @@ DocType: Async Task,Queued,จัดคิว
 DocType: PayPal Settings,Use Sandbox,ใช้ Sandbox
 apps/frappe/frappe/public/js/frappe/form/print.js +98,New Custom Print Format,รูปแบบใหม่ที่กำหนดเองพิมพ์
 DocType: DocPerm,Create,สร้าง
-DocType: Newsletter,A Lead with this email id should exist,ควรมีช่องทางที่ใช้อีเมลนี้อยู่
+DocType: Newsletter,A Lead with this Email Address should exist,ควรมีช่องทางที่ใช้อีเมลนี้อยู่
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +201,Invalid Filter: {0},กรอง ที่ไม่ถูกต้อง : {0}
 DocType: Integration Service,Background Events,เหตุการณ์พื้นหลัง
 DocType: Dropbox Settings,App Access Key,App คีย์
@@ -1891,7 +1891,7 @@ DocType: Workflow Document State,Only Allow Edit For,อนุญาตให้
 apps/frappe/frappe/templates/includes/comments/comments.html +34,Your Name,ชื่อของคุณ
 DocType: DocType,InnoDB,InnoDB
 DocType: File,Is Folder,เป็นโฟลเดอร์
-DocType: Newsletter,Test Email Id,Email รหัสการทดสอบ
+DocType: Newsletter,Test Email Address,Email รหัสการทดสอบ
 DocType: DocType,DocType,DOCTYPE
 apps/frappe/frappe/core/doctype/user/user.py +629,User {0} does not exist,ผู้ใช้ {0} ไม่อยู่
 DocType: Website Theme,"If image is selected, color will be ignored.",หากภาพเลือกสีจะถูกละเว้น
@@ -2246,7 +2246,7 @@ DocType: Communication,Email Account,บัญชีอีเมล์
 DocType: Workflow State,Download,ดาวน์โหลด
 DocType: Blog Post,Blog Intro,แนะนำบล็อก
 DocType: Async Task,Result,ผล
-apps/frappe/frappe/email/doctype/email_group/email_group.py +87,{0} is not a valid email id,{0} ไม่ได้เป็น id ของ อีเมลที่ถูกต้อง
+apps/frappe/frappe/email/doctype/email_group/email_group.py +87,{0} is not a valid Email Address,{0} ไม่ได้เป็น id ของ อีเมลที่ถูกต้อง
 apps/frappe/frappe/core/doctype/report/report.js +37,Enable Report,เปิดใช้งานการรายงาน
 DocType: DocField,Display Depends On,จอแสดงผลขึ้นอยู่กับ
 DocType: Web Page,Insert Code,ใส่รหัส

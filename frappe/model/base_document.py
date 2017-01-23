@@ -544,7 +544,7 @@ class BaseDocument(object):
 		for fieldname in constants:
 			df = self.meta.get_field(fieldname)
 
-			# This conversion to string only when fieldtype is Date 
+			# This conversion to string only when fieldtype is Date
 			if df.fieldtype == 'Date':
 				value = str(values.get(fieldname))
 
@@ -608,7 +608,7 @@ class BaseDocument(object):
 			if not value or not isinstance(value, basestring):
 				continue
 
-			elif ("<" not in value and ">" not in value):
+			elif (u"<" not in value and u">" not in value):
 				# doesn't look like html so no need
 				continue
 

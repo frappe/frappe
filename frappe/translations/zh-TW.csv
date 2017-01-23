@@ -415,7 +415,7 @@ apps/frappe/frappe/desk/like.py +89,Liked,喜歡
 apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.js +33,Send Now,立即發送
 DocType: Report,Query,查詢
 apps/frappe/frappe/core/doctype/doctype/doctype.py +353,'In List View' not allowed for type {0} in row {1},“在列表視圖中”第{1}行的類型{0}不允許
-apps/frappe/frappe/templates/includes/comments/comments.html +38,Your Email Id,您的電子郵件ID
+apps/frappe/frappe/templates/includes/comments/comments.html +38,Your Email Address,您的電子郵件ID
 DocType: Custom Field,Select the label after which you want to insert new field.,之後要插入新字段中選擇的標籤。
 ,Document Share Report,文檔分享舉報
 DocType: User,Last Login,上次登錄
@@ -571,7 +571,7 @@ DocType: Page,Page HTML,頁面的HTML
 apps/frappe/frappe/public/js/frappe/views/treeview.js +236,Further nodes can be only created under 'Group' type nodes,此外節點可以在&#39;集團&#39;類型的節點上創建
 DocType: Web Page,Header,頁首
 apps/frappe/frappe/public/js/frappe/model/model.js +80,Unknown Column: {0},未知專欄： {0}
-DocType: Email Alert Recipient,Optional: Always send to these ids. Each email id on a new row,選項：總是發送給這些ID。每一個電子郵件ID一列
+DocType: Email Alert Recipient,Optional: Always send to these ids. Each Email Address on a new row,選項：總是發送給這些ID。每一個電子郵件ID一列
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +299,Users with role {0}:,角色{0} 的用戶：
 apps/frappe/frappe/desk/page/applications/applications.py +76,Installing App {0},安裝應用程序{0}
 DocType: Print Format,Custom Format,自定義格式
@@ -636,7 +636,7 @@ apps/frappe/frappe/core/page/data_import_tool/data_import_tool.py +13,Start ente
 DocType: Workflow State,retweet,轉推
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +53,Update the template and save in CSV (Comma Separate Values) format before attaching.,更新模板和附加之前保存在CSV（逗號分隔值）格式。
 DocType: Report,Disabled,不使用
-DocType: Email Account,Always use Account's Email ID as Sender,使用帳戶的電子郵件ID作為發件人
+DocType: Email Account,Always use Account's Email Address as Sender,使用帳戶的電子郵件ID作為發件人
 DocType: Workflow State,eye-close,眼睛閉
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py +93,Please select another payment method. {0} does not support transactions in currency '{1}',請選擇其他付款方式。 {0}不支持貨幣交易“{1}”
 DocType: OAuth Provider Settings,OAuth Provider Settings,OAuth的提供商設置
@@ -761,7 +761,7 @@ DocType: Integration Request,Output,產量
 apps/frappe/frappe/config/setup.py +243,Add fields to forms.,將欄位添加到表單。
 DocType: Workflow State,leaf,葉
 DocType: Portal Menu Item,Portal Menu Item,門戶菜單項
-DocType: Email Account,Email ID,電子郵件ID
+DocType: Email Account,Email Address,電子郵件ID
 apps/frappe/frappe/public/js/frappe/ui/editor.html +48,Insert Link,插入鏈接
 DocType: OAuth Client,A list of resources which the Client App will have access to after the user allows it.<br> e.g. project,資源的列表，它的客戶端應用程序必須將用戶允許後訪問。 <br>如項目
 DocType: Contact Us Settings,Query Options,查詢選項
@@ -793,7 +793,7 @@ DocType: System Settings,Enable Scheduled Jobs,啟用預定作業
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +60,Notes:,注意事項：
 apps/frappe/frappe/public/js/frappe/form/control.js +1673,Markdown,「Markdown」語法
 DocType: DocShare,Document Name,文件名稱
-apps/frappe/frappe/email/doctype/newsletter/newsletter.py +131,Please verify your email id,請驗證您的電子郵件ID
+apps/frappe/frappe/email/doctype/newsletter/newsletter.py +131,Please verify your Email Address,請驗證您的電子郵件ID
 apps/frappe/frappe/public/js/frappe/form/linked_with.js +86,Not enough permission to see links.,沒有足夠的權限查看鏈接。
 DocType: Customize Form,Customize Form,自定義表單
 DocType: Currency,A symbol for this currency. For e.g. $,這種貨幣的符號。例如$
@@ -957,7 +957,7 @@ apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +15,now,現在
 DocType: Workflow State,step-backward,往後退
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +52,Please set Dropbox access keys in your site config,請在您的網站配置設定Dropbox的存取碼
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +16,Delete this record to allow sending to this email address,刪除此記錄允許發送此郵件地址
-DocType: Email Account,Uses the Email ID mentioned in this Account as the Sender for all emails sent using this Account. ,使用此帳戶提到作為發件人使用此帳戶發送的所有電子郵件的電子郵件ID。
+DocType: Email Account,Uses the Email Address mentioned in this Account as the Sender for all emails sent using this Account. ,使用此帳戶提到作為發件人使用此帳戶發送的所有電子郵件的電子郵件ID。
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +65,Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish.,只有必填字段所必需的新記錄。如果你願意，你可以刪除非強制性列。
 apps/frappe/frappe/public/js/frappe/views/calendar.js +276,Unable to update event,無法更新事件
 DocType: Web Form Field,Max Length,最長長度
@@ -1115,7 +1115,7 @@ DocType: Workflow State,bookmark,書籤
 DocType: Note,Note,注釋
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot.html +32,Error Report,錯誤報告
 apps/frappe/frappe/core/doctype/doctype/doctype.py +475,Timeline field must be a valid fieldname,時間軸場必須是有效的字段名
-DocType: Email Account,Email Ids,電子郵件ID
+DocType: Email Account,Email Addresses,電子郵件ID
 DocType: Currency,Symbol,符號
 apps/frappe/frappe/model/base_document.py +529,Row #{0}:,列#{0}：
 apps/frappe/frappe/core/doctype/user/user.py +163,New password emailed,新的密碼通過電子郵件發送
@@ -1493,7 +1493,7 @@ apps/frappe/frappe/public/js/frappe/ui/filters/edit_filter.html +16,Between,之�
 DocType: Async Task,Queued,排隊
 apps/frappe/frappe/public/js/frappe/form/print.js +98,New Custom Print Format,新自定義列印格式
 DocType: DocPerm,Create,建立
-DocType: Newsletter,A Lead with this email id should exist,以此電子郵件id的機會應該存在
+DocType: Newsletter,A Lead with this Email Address should exist,以此電子郵件id的機會應該存在
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +201,Invalid Filter: {0},無效的過濾器： {0}
 DocType: Dropbox Settings,App Access Key,應用程序訪問密鑰
 DocType: OAuth Bearer Token,Access Token,存取 Token
@@ -1643,7 +1643,7 @@ DocType: DocType,Name Case,案例名稱
 apps/frappe/frappe/model/base_document.py +417,Data missing in table,在表中的數據丟失
 DocType: Workflow Document State,Only Allow Edit For,只允許編輯
 DocType: File,Is Folder,在文件夾
-DocType: Newsletter,Test Email Id,測試電子郵件Id
+DocType: Newsletter,Test Email Address,測試電子郵件Id
 DocType: DocType,DocType,DocType
 apps/frappe/frappe/core/doctype/user/user.py +629,User {0} does not exist,用戶{0}不存在
 DocType: Website Theme,"If image is selected, color will be ignored.",如果圖像被選擇時，顏色將被忽略。
@@ -1947,7 +1947,7 @@ DocType: Communication,Email Account,電子郵件帳戶
 DocType: Workflow State,Download,下載
 DocType: Blog Post,Blog Intro,部落格介紹
 DocType: Async Task,Result,成績
-apps/frappe/frappe/email/doctype/email_group/email_group.py +87,{0} is not a valid email id,{0}不是一個有效的電子郵件ID
+apps/frappe/frappe/email/doctype/email_group/email_group.py +87,{0} is not a valid Email Address,{0}不是一個有效的電子郵件ID
 apps/frappe/frappe/core/doctype/report/report.js +37,Enable Report,啟用報告
 DocType: DocField,Display Depends On,顯示的內容取決於
 DocType: Web Page,Insert Code,插入源碼

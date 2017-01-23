@@ -7,6 +7,7 @@ import frappe, json
 from frappe import _dict
 import frappe.share
 from frappe.utils import cint
+from frappe.permissions import get_roles, get_valid_perms
 
 class UserPermissions:
 	"""
@@ -69,10 +70,7 @@ class UserPermissions:
 	def build_perm_map(self):
 		"""build map of permissions at level 0"""
 		self.perm_map = {}
-		roles = self.get_roles()
-		for r in frappe.db.sql("""select * from tabDocPerm where docstatus=0
-			and ifnull(permlevel,0)=0
-			and role in ({roles})""".format(roles=", ".join(["%s"]*len(roles))), tuple(roles), as_dict=1):
+		for r in get_valid_perms():
 			dt = r['parent']
 
 			if not dt in  self.perm_map:
@@ -272,26 +270,6 @@ def add_system_manager(email, first_name=None, last_name=None, send_welcome_emai
 		where name not in ("Administrator", "Guest", "All")""")
 	user.add_roles(*roles)
 
-def get_roles(user=None, with_standard=True):
-	"""get roles of current user"""
-	if not user:
-		user = frappe.session.user
-
-	if user=='Guest':
-		return ['Guest']
-
-	def get():
-		return [r[0] for r in frappe.db.sql("""select role from tabUserRole
-			where parent=%s and role not in ('All', 'Guest')""", (user,))] + ['All', 'Guest']
-
-	roles = frappe.cache().hget("roles", user, get)
-
-	# filter standard if required
-	if not with_standard:
-		roles = filter(lambda x: x not in ['All', 'Guest', 'Administrator'], roles)
-
-	return roles
-
 def get_enabled_system_users():
 	return frappe.db.sql("""select * from tabUser where
 		user_type='System User' and enabled=1 and name not in ('Administrator', 'Guest')""", as_dict=1)
@@ -343,4 +321,20 @@ def disable_users(limits=None):
 			for user in active_users:
 				frappe.db.set_value("User", user, 'enabled', 0)
 
+		from frappe.core.doctype.user.user import get_total_users
+
+		if get_total_users() > cint(limits.get('users')):
+			reset_simultaneous_sessions(cint(limits.get('users')))
+
 	frappe.db.commit()
+
+def reset_simultaneous_sessions(user_limit):
+	for user in frappe.db.sql("""select name, simultaneous_sessions from tabUser
+		where name not in ('Administrator', 'Guest') and user_type = 'System User' and enabled=1
+		order by creation desc""", as_dict=1):
+		if user.simultaneous_sessions < user_limit:
+			user_limit = user_limit - user.simultaneous_sessions
+		else:
+			frappe.db.set_value("User", user.name, "simultaneous_sessions", 1)
+			user_limit = user_limit - 1
+

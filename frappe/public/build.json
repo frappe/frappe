@@ -54,7 +54,12 @@
 		"public/css/tree.css",
 		"public/css/desktop.css",
 		"public/css/form.css",
-		"public/css/mobile.css"
+		"public/css/mobile.css",
+		"public/css/kanban.css"
+	],
+	"css/frappe-rtl.css": [
+		"public/css/bootstrap-rtl.css",
+		"public/css/desk-rtl.css"
 	],
 	"js/libs.min.js": [
 		"public/js/lib/awesomplete/awesomplete.min.js",
@@ -232,7 +237,9 @@
 		"public/js/frappe/list/header_select_all_like_filter.html",
 		"public/js/frappe/list/item_assigned_to_comment_count.html",
 		"public/js/frappe/views/treeview.js",
-		"public/js/frappe/views/gantt.js"
+		"public/js/frappe/views/kanban/kanban_board.html",
+		"public/js/frappe/views/kanban/kanban_column.html",
+		"public/js/frappe/views/kanban/kanban_card.html"
 	],
 	"css/report.min.css": [
 		"public/css/report.css",
@@ -244,6 +251,7 @@
 	],
 	"js/report.min.js": [
 		"public/js/frappe/views/reports/reportview.js",
+		"public/js/frappe/views/reports/reportview_footer.html",
 		"public/js/frappe/views/reports/query_report.js",
 		"public/js/frappe/views/reports/grid_report.js",
 		"public/js/frappe/views/reports/print_grid.html",

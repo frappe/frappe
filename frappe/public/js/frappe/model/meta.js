@@ -53,7 +53,20 @@ $.extend(frappe.meta, {
 	},
 
 	get_field: function(doctype, fieldname, name) {
-		return frappe.meta.get_docfield(doctype, fieldname, name);
+		var out = frappe.meta.get_docfield(doctype, fieldname, name);
+
+		// search in standard fields
+		if (!out) {
+			frappe.model.std_fields.every(function(d) {
+				if(d.fieldname===fieldname) {
+					out = d;
+					return false;
+				} else {
+					return true;
+				}
+			});
+		}
+		return out;
 	},
 
 	get_docfield: function(doctype, fieldname, name) {

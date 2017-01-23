@@ -40,7 +40,8 @@ class Newsletter(Document):
 			self.validate_send()
 
 			# using default queue with a longer timeout as this isn't a scheduled task
-			enqueue(send_newsletter, queue='default', timeout=3000, event='send_newsletter', newsletter=self.name)
+			enqueue(send_newsletter, queue='default', timeout=6000, event='send_newsletter',
+				newsletter=self.name)
 
 		else:
 			self.queue_all()
@@ -48,6 +49,7 @@ class Newsletter(Document):
 		frappe.msgprint(_("Scheduled to send to {0} recipients").format(len(self.recipients)))
 
 		frappe.db.set(self, "email_sent", 1)
+		frappe.db.set(self, 'scheduled_to_send', len(self.recipients))
 
 	def queue_all(self):
 		if not self.get("recipients"):
@@ -66,7 +68,7 @@ class Newsletter(Document):
 			reference_doctype = self.doctype, reference_name = self.name,
 			unsubscribe_method = "/api/method/frappe.email.doctype.newsletter.newsletter.unsubscribe",
 			unsubscribe_params = {"name": self.email_group},
-			send_priority = 0)
+			send_priority = 0, queue_separately=True)
 
 		if not frappe.flags.in_test:
 			frappe.db.auto_commit_on_many_writes = False
@@ -98,7 +100,8 @@ def unsubscribe(email, name):
 	return_unsubscribed_page(email)
 
 def return_unsubscribed_page(email):
-	frappe.respond_as_web_page(_("Unsubscribed"), _("{0} has been successfully unsubscribed from this list.").format(email))
+	frappe.respond_as_web_page(_("Unsubscribed"),
+		_("{0} has been successfully unsubscribed from this list.").format(email), indicator_color='green')
 
 def create_lead(email_id):
 	"""create a lead if it does not exist"""
@@ -128,7 +131,7 @@ def subscribe(email):
 
 	messages = (
 		_("Thank you for your interest in subscribing to our updates"),
-		_("Please verify your email id"),
+		_("Please verify your Email Address"),
 		url,
 		_("Click here to verify")
 	)
@@ -157,7 +160,9 @@ def confirm_subscription(email):
 	add_subscribers(_("Website"), email)
 	frappe.db.commit()
 
-	frappe.respond_as_web_page(_("Confirmed"), _("{0} has been successfully added to our Email Group.").format(email))
+	frappe.respond_as_web_page(_("Confirmed"),
+		_("{0} has been successfully added to the Email Group.").format(email),
+		indicator_color='green')
 
 
 def send_newsletter(newsletter):

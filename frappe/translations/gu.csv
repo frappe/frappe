@@ -466,7 +466,7 @@ apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.js +33,Send
 DocType: Report,Query,ક્વેરી
 DocType: DocType,Sort Order,સૉર્ટ કરો ઓર્ડર
 apps/frappe/frappe/core/doctype/doctype/doctype.py +353,'In List View' not allowed for type {0} in row {1},&#39;યાદી દૃશ્યમાં&#39; પંક્તિ પ્રકાર {0} માટે મંજૂરી નથી {1}
-apps/frappe/frappe/templates/includes/comments/comments.html +38,Your Email Id,તમારા ઇમેઇલ ને
+apps/frappe/frappe/templates/includes/comments/comments.html +38,Your Email Address,તમારા ઇમેઇલ ને
 DocType: Custom Field,Select the label after which you want to insert new field.,"તમે નવા ક્ષેત્ર દાખલ કરવા માંગો છો, જે પછી લેબલ પસંદ કરો."
 ,Document Share Report,દસ્તાવેજ શેર રિપોર્ટ
 DocType: User,Last Login,છેલ્લું લૉગિન
@@ -650,7 +650,7 @@ DocType: Page,Page HTML,પેજમાં HTML
 apps/frappe/frappe/public/js/frappe/views/treeview.js +236,Further nodes can be only created under 'Group' type nodes,વધુ ગાંઠો માત્ર &#39;ગ્રુપ&#39; પ્રકાર ગાંઠો હેઠળ બનાવી શકાય છે
 DocType: Web Page,Header,મથાળું
 apps/frappe/frappe/public/js/frappe/model/model.js +80,Unknown Column: {0},અજ્ઞાત કૉલમ: {0}
-DocType: Email Alert Recipient,Optional: Always send to these ids. Each email id on a new row,વૈકલ્પિક: હંમેશા આ ID મોકલો. એક નવી પંક્તિ પર દરેક ઇમેઇલ ને
+DocType: Email Alert Recipient,Optional: Always send to these ids. Each Email Address on a new row,વૈકલ્પિક: હંમેશા આ ID મોકલો. એક નવી પંક્તિ પર દરેક ઇમેઇલ ને
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +299,Users with role {0}:,ભૂમિકા {0} સાથે વપરાશકર્તાઓ:
 apps/frappe/frappe/desk/page/applications/applications.py +76,Installing App {0},સ્થાપિત એપ્લિકેશન {0}
 DocType: Print Format,Custom Format,કસ્ટમ ફોર્મેટ
@@ -719,7 +719,7 @@ DocType: Workflow State,retweet,રીટ્વીટ
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +53,Update the template and save in CSV (Comma Separate Values) format before attaching.,આ નમૂનો અપડેટ અને જોડાણ પહેલાં CSV માં ફોર્મેટ (અલ્પવિરામથી અલગ કિંમતો) સાચવો.
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +213,Specify the value of the field,આ ક્ષેત્ર ની કિંમત સ્પષ્ટ કરો
 DocType: Report,Disabled,અક્ષમ
-DocType: Email Account,Always use Account's Email ID as Sender,હંમેશા મોકલનાર તરીકે એકાઉન્ટનાં ઇમેઇલ ID નો ઉપયોગ
+DocType: Email Account,Always use Account's Email Address as Sender,હંમેશા મોકલનાર તરીકે એકાઉન્ટનાં ઇમેઇલ ID નો ઉપયોગ
 DocType: Workflow State,eye-close,આંખ બંધ
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py +93,Please select another payment method. {0} does not support transactions in currency '{1}',કૃપા કરીને અન્ય ચુકવણી પદ્ધતિ પસંદ કરો. {0} ચલણ વ્યવહારો સપોર્ટ કરતું નથી &#39;{1}&#39;
 DocType: OAuth Provider Settings,OAuth Provider Settings,ઑથ પ્રદાતા સેટિંગ્સ
@@ -862,7 +862,7 @@ DocType: File,rgt,rgt
 DocType: Email Account,Sendgrid,Sendgrid
 DocType: Workflow State,leaf,પર્ણ
 DocType: Portal Menu Item,Portal Menu Item,પોર્ટલ મેનુ વસ્તુ
-DocType: Email Account,Email ID,ઇમેઇલ ને
+DocType: Email Account,Email Address,ઇમેઇલ ને
 apps/frappe/frappe/public/js/frappe/ui/editor.html +48,Insert Link,સામેલ કરો લિંક
 DocType: OAuth Client,A list of resources which the Client App will have access to after the user allows it.<br> e.g. project,સંસાધનો યાદી કે જે ક્લાઈન્ટ એપ્લિકેશન વપરાશકર્તા તેને પરવાનગી આપે છે પછી ઍક્સેસ હશે. <br> દા.ત. પ્રોજેક્ટ
 DocType: Contact Us Settings,Query Options,ક્વેરી વિકલ્પો
@@ -898,7 +898,7 @@ apps/frappe/frappe/core/page/data_import_tool/exporter.py +60,Notes:,નોં�
 apps/frappe/frappe/public/js/frappe/form/control.js +1673,Markdown,Markdown
 DocType: DocShare,Document Name,દસ્તાવેજ નામ
 DocType: ToDo,Medium,મધ્યમ
-apps/frappe/frappe/email/doctype/newsletter/newsletter.py +131,Please verify your email id,તમારા ઇમેઇલ ને ચકાસો
+apps/frappe/frappe/email/doctype/newsletter/newsletter.py +131,Please verify your Email Address,તમારા ઇમેઇલ ને ચકાસો
 apps/frappe/frappe/public/js/frappe/form/linked_with.js +86,Not enough permission to see links.,કડીઓ જોવા માટે પર્યાપ્ત પરવાનગી.
 DocType: Customize Form,Customize Form,ફોર્મ કસ્ટમાઇઝ
 DocType: Currency,A symbol for this currency. For e.g. $,આ ચલણ માટે એક પ્રતીક. દા.ત. $ માટે
@@ -1089,7 +1089,7 @@ DocType: Workflow State,step-backward,પગલું પછાત
 apps/frappe/frappe/utils/boilerplate.py +252,{app_title},{App_title}
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +52,Please set Dropbox access keys in your site config,તમારી સાઇટ રૂપરેખા ડ્રૉપબૉક્સ વપરાશ કીઓ સુયોજિત કરો
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +16,Delete this record to allow sending to this email address,આ ઈમેઈલ સરનામાને મોકલવા માટે પરવાનગી આપે છે આ રેકોર્ડ કાઢી નાખો
-DocType: Email Account,Uses the Email ID mentioned in this Account as the Sender for all emails sent using this Account. ,આ એકાઉન્ટ નો ઉપયોગ કરીને મોકલવામાં બધા ઇમેઇલ્સ માટે મોકલનાર તરીકે આ એકાઉન્ટ ઉલ્લેખ ઇમેઇલ આઈડી ઉપયોગ કરે છે.
+DocType: Email Account,Uses the Email Address mentioned in this Account as the Sender for all emails sent using this Account. ,આ એકાઉન્ટ નો ઉપયોગ કરીને મોકલવામાં બધા ઇમેઇલ્સ માટે મોકલનાર તરીકે આ એકાઉન્ટ ઉલ્લેખ ઇમેઇલ આઈડી ઉપયોગ કરે છે.
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +65,Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish.,માત્ર ફરજિયાત ક્ષેત્રો નવા વિક્રમો માટે જરૂરી છે. જો તમે ઈચ્છો તો તમે બિન-ફરજિયાત કૉલમ કાઢી શકો છો.
 apps/frappe/frappe/public/js/frappe/views/calendar.js +276,Unable to update event,ઘટના અપડેટ કરવામાં અસમર્થ
 apps/frappe/frappe/templates/generators/web_form.html +292,Payment Complete,ચુકવણી પૂર્ણ
@@ -1284,7 +1284,7 @@ DocType: Workflow State,bookmark,બુકમાર્ક
 DocType: Note,Note,નૉૅધ
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot.html +32,Error Report,ભૂલ રિપોર્ટ
 apps/frappe/frappe/core/doctype/doctype/doctype.py +475,Timeline field must be a valid fieldname,સમયરેખા ક્ષેત્ર માન્ય FIELDNAME હોવા જ જોઈએ
-DocType: Email Account,Email Ids,ઇમેઇલ ids
+DocType: Email Account,Email Addresses,ઇમેઇલ ids
 DocType: Currency,Symbol,નિશાનીનો
 apps/frappe/frappe/model/base_document.py +529,Row #{0}:,ROW # {0}:
 apps/frappe/frappe/core/doctype/user/user.py +163,New password emailed,નવો પાસવર્ડ ઇમેઇલ
@@ -1714,7 +1714,7 @@ DocType: Async Task,Queued,કતારબદ્ધ
 DocType: PayPal Settings,Use Sandbox,ઉપયોગ સેન્ડબોક્સ
 apps/frappe/frappe/public/js/frappe/form/print.js +98,New Custom Print Format,નવા કસ્ટમ પ્રિન્ટ ફોર્મેટ
 DocType: DocPerm,Create,બનાવો
-DocType: Newsletter,A Lead with this email id should exist,આ ઇમેઇલ ID સાથે લીડ અસ્તિત્વ ધરાવતું હોવું જોઈએ
+DocType: Newsletter,A Lead with this Email Address should exist,આ ઇમેઇલ ID સાથે લીડ અસ્તિત્વ ધરાવતું હોવું જોઈએ
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +201,Invalid Filter: {0},અમાન્ય ફિલ્ટર કરો: {0}
 DocType: Integration Service,Background Events,પૃષ્ઠભૂમિ ઘટનાઓ
 DocType: Dropbox Settings,App Access Key,એપ્લિકેશન ઍક્સેસ કી
@@ -1890,7 +1890,7 @@ DocType: Workflow Document State,Only Allow Edit For,માત્ર ફેર�
 apps/frappe/frappe/templates/includes/comments/comments.html +34,Your Name,તમારું નામ
 DocType: DocType,InnoDB,InnoDB
 DocType: File,Is Folder,ફોલ્ડર છે
-DocType: Newsletter,Test Email Id,પરીક્ષણ ઇમેઇલ આઈડી
+DocType: Newsletter,Test Email Address,પરીક્ષણ ઇમેઇલ આઈડી
 DocType: DocType,DocType,Doctype
 apps/frappe/frappe/core/doctype/user/user.py +629,User {0} does not exist,વપરાશકર્તા {0} અસ્તિત્વમાં નથી
 DocType: Website Theme,"If image is selected, color will be ignored.","છબી પસંદ થયેલ હોય, રંગ અવગણવામાં આવશે."
@@ -2243,7 +2243,7 @@ DocType: Communication,Email Account,ઇમેઇલ એકાઉન્ટ
 DocType: Workflow State,Download,ડાઉનલોડ કરો
 DocType: Blog Post,Blog Intro,પ્રસ્તાવના બ્લોગ
 DocType: Async Task,Result,પરિણામ
-apps/frappe/frappe/email/doctype/email_group/email_group.py +87,{0} is not a valid email id,{0} માન્ય ઈમેઈલ આઈડી નથી
+apps/frappe/frappe/email/doctype/email_group/email_group.py +87,{0} is not a valid Email Address,{0} માન્ય ઈમેઈલ આઈડી નથી
 apps/frappe/frappe/core/doctype/report/report.js +37,Enable Report,રિપોર્ટ સક્ષમ
 DocType: DocField,Display Depends On,ડિસ્પ્લે પર આધાર રાખે છે
 DocType: Web Page,Insert Code,સામેલ કરો કોડ

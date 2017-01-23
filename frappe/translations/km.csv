@@ -465,7 +465,7 @@ apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.js +33,Send
 DocType: Report,Query,សំណួរ
 DocType: DocType,Sort Order,តម្រៀបតាមលំដាប់
 apps/frappe/frappe/core/doctype/doctype/doctype.py +353,'In List View' not allowed for type {0} in row {1},«នៅក្នុងទិដ្ឋភាពបញ្ជី &#39;មិនបានអនុញ្ញាតសម្រាប់ប្រភេទ {0} នៅក្នុងជួរដេក {1}
-apps/frappe/frappe/templates/includes/comments/comments.html +38,Your Email Id,អ៊ីមែលរបស់អ្នកលេខសម្គាល់
+apps/frappe/frappe/templates/includes/comments/comments.html +38,Your Email Address,អ៊ីមែលរបស់អ្នកលេខសម្គាល់
 DocType: Custom Field,Select the label after which you want to insert new field.,ជ្រើសស្លាកបន្ទាប់ពីការដែលអ្នកចង់បញ្ចូលវាលថ្មី។
 ,Document Share Report,ឯកសារដែលបានចែករំលែករបាយការណ៍
 DocType: User,Last Login,ចូលចុងក្រោយ
@@ -649,7 +649,7 @@ DocType: Page,Page HTML,HTML ដែលទំព័រ
 apps/frappe/frappe/public/js/frappe/views/treeview.js +236,Further nodes can be only created under 'Group' type nodes,ថ្នាំងបន្ថែមទៀតអាចត្រូវបានបង្កើតក្រោមការថ្នាំងប្រភេទ &#39;ក្រុម
 DocType: Web Page,Header,បឋមកថា
 apps/frappe/frappe/public/js/frappe/model/model.js +80,Unknown Column: {0},មិនស្គាល់ជួរឈរ: {0}
-DocType: Email Alert Recipient,Optional: Always send to these ids. Each email id on a new row,ស្រេចចិត្ត: ផ្ញើទៅកាន់លេខសម្គាល់ទាំងនេះជានិច្ច។ លេខសម្គាល់អ៊ីម៉ែលគ្នានៅលើជួរដេកថ្មីមួយ
+DocType: Email Alert Recipient,Optional: Always send to these ids. Each Email Address on a new row,ស្រេចចិត្ត: ផ្ញើទៅកាន់លេខសម្គាល់ទាំងនេះជានិច្ច។ លេខសម្គាល់អ៊ីម៉ែលគ្នានៅលើជួរដេកថ្មីមួយ
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +299,Users with role {0}:,អ្នកប្រើដែលមានតួនាទី {0}:
 apps/frappe/frappe/desk/page/applications/applications.py +76,Installing App {0},ការដំឡើងកម្មវិធី {0}
 DocType: Print Format,Custom Format,ទ្រង់ទ្រាយផ្ទាល់ខ្លួន
@@ -718,7 +718,7 @@ DocType: Workflow State,retweet,retweets
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +53,Update the template and save in CSV (Comma Separate Values) format before attaching.,ធ្វើឱ្យទាន់សម័យពុម្ពនិងរក្សាទុកក្នុងជា CSV (Comma គុណតម្លៃដាច់ដោយឡែក) ទ្រង់ទ្រាយដែលបានមុនពេលដែលការភ្ជាប់។
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +213,Specify the value of the field,បញ្ជាក់តម្លៃរបស់វាលនេះ
 DocType: Report,Disabled,ជនពិការ
-DocType: Email Account,Always use Account's Email ID as Sender,តែងតែប្រើលេខសម្គាល់គណនីអ៊ីម៉ែលថាជាអ្នកផ្ញើ
+DocType: Email Account,Always use Account's Email Address as Sender,តែងតែប្រើលេខសម្គាល់គណនីអ៊ីម៉ែលថាជាអ្នកផ្ញើ
 DocType: Workflow State,eye-close,បិទភ្នែក
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py +93,Please select another payment method. {0} does not support transactions in currency '{1}',សូមជ្រើសវិធីសាស្រ្តទូទាត់ផ្សេងទៀត។ {0} មិនគាំទ្រការប្រតិបត្តិការនៅក្នុងរូបិយប័ណ្ណ &#39;{1}&#39;
 DocType: OAuth Provider Settings,OAuth Provider Settings,ការកំណត់ក្រុមហ៊ុនផ្ដល់ OAuth
@@ -861,7 +861,7 @@ DocType: File,rgt,rgt
 DocType: Email Account,Sendgrid,Sendgrid
 DocType: Workflow State,leaf,ស្លឹក
 DocType: Portal Menu Item,Portal Menu Item,ធាតុម៉ឺនុយវិបផតថល
-DocType: Email Account,Email ID,លេខសម្គាល់អ៊ីម៉ែល
+DocType: Email Account,Email Address,លេខសម្គាល់អ៊ីម៉ែល
 apps/frappe/frappe/public/js/frappe/ui/editor.html +48,Insert Link,បញ្ចូលតំណ
 DocType: OAuth Client,A list of resources which the Client App will have access to after the user allows it.<br> e.g. project,បញ្ជីនៃធនធានដែលកម្មវិធីអតិថិជននឹងមានសិទ្ធិចូលដំណើរការទៅបន្ទាប់ពីអ្នកប្រើអនុញ្ញាតឱ្យវា។ <br> គម្រោងឧ
 DocType: Contact Us Settings,Query Options,ជម្រើសសំណួរ
@@ -897,7 +897,7 @@ apps/frappe/frappe/core/page/data_import_tool/exporter.py +60,Notes:,កំណ�
 apps/frappe/frappe/public/js/frappe/form/control.js +1673,Markdown,Markdown
 DocType: DocShare,Document Name,ឈ្មោះឯកសារ
 DocType: ToDo,Medium,មធ្យម
-apps/frappe/frappe/email/doctype/newsletter/newsletter.py +131,Please verify your email id,សូមផ្ទៀងផ្ទាត់លេខសម្គាល់អ៊ីមែលរបស់អ្នក
+apps/frappe/frappe/email/doctype/newsletter/newsletter.py +131,Please verify your Email Address,សូមផ្ទៀងផ្ទាត់លេខសម្គាល់អ៊ីមែលរបស់អ្នក
 apps/frappe/frappe/public/js/frappe/form/linked_with.js +86,Not enough permission to see links.,មិនមានសិទ្ធិគ្រប់គ្រាន់ក្នុងការមើលឃើញតំណ។
 DocType: Customize Form,Customize Form,ប្ដូរតាមបំណងសំណុំបែបបទ
 DocType: Currency,A symbol for this currency. For e.g. $,ជានិមិត្តរូបសម្រាប់រូបិយប័ណ្ណនេះ។ ឧទាហរណ៍ៈ $
@@ -1088,7 +1088,7 @@ DocType: Workflow State,step-backward,ជំហានថយក្រោយ
 apps/frappe/frappe/utils/boilerplate.py +252,{app_title},{app_title}
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +52,Please set Dropbox access keys in your site config,សូមកំណត់កូនសោកំណត់រចនាសម្ព័ន្ធការចូលដំណើរការ Dropbox ក្នុងតំបន់របស់អ្នក
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +16,Delete this record to allow sending to this email address,លុបកំណត់ត្រានេះដើម្បីឱ្យផ្ញើទៅកាន់អាសយដ្ឋានអ៊ីមែលនេះ
-DocType: Email Account,Uses the Email ID mentioned in this Account as the Sender for all emails sent using this Account. ,ប្រើលេខសម្គាល់អ៊ីមែលបានរៀបរាប់នៅក្នុងគណនីនេះថាជាអ្នកផ្ញើសម្រាប់អ៊ីមែលទាំងអស់ដែលបានផ្ញើដោយប្រើគណនីនេះ។
+DocType: Email Account,Uses the Email Address mentioned in this Account as the Sender for all emails sent using this Account. ,ប្រើលេខសម្គាល់អ៊ីមែលបានរៀបរាប់នៅក្នុងគណនីនេះថាជាអ្នកផ្ញើសម្រាប់អ៊ីមែលទាំងអស់ដែលបានផ្ញើដោយប្រើគណនីនេះ។
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +65,Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish.,មានតែវាលជាចាំបាច់គឺចាំបាច់សម្រាប់កំណត់ត្រាថ្មីមួយ។ អ្នកអាចលុបជួរឈរដែលមិនចាំបាច់ប្រសិនបើអ្នកចង់។
 apps/frappe/frappe/public/js/frappe/views/calendar.js +276,Unable to update event,មិនអាចធ្វើឱ្យទាន់សម័យដែលព្រឹត្តិការណ៍
 apps/frappe/frappe/templates/generators/web_form.html +292,Payment Complete,បញ្ចប់ការទូទាត់
@@ -1283,7 +1283,7 @@ DocType: Workflow State,bookmark,កំណត់ចំណាំ
 DocType: Note,Note,ចំណាំ
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot.html +32,Error Report,របាយការណ៍កំហុស &amp; ‧;
 apps/frappe/frappe/core/doctype/doctype/doctype.py +475,Timeline field must be a valid fieldname,វាលកំណត់ពេលវេលាត្រូវតែជា fieldname ត្រឹមត្រូវ
-DocType: Email Account,Email Ids,អ៊ីម៉ែលលេខសម្គាល់
+DocType: Email Account,Email Addresses,អ៊ីម៉ែលលេខសម្គាល់
 DocType: Currency,Symbol,និមិត្តសញ្ញា
 apps/frappe/frappe/model/base_document.py +529,Row #{0}:,ជួរដេក # {0}:
 apps/frappe/frappe/core/doctype/user/user.py +163,New password emailed,ពាក្យសម្ងាត់ថ្មីតាមអ៊ីមែលនៅ
@@ -1713,7 +1713,7 @@ DocType: Async Task,Queued,បានដាក់ជាជួរ
 DocType: PayPal Settings,Use Sandbox,ប្រើសេនបក់
 apps/frappe/frappe/public/js/frappe/form/print.js +98,New Custom Print Format,ញូទ្រង់ទ្រាយបោះពុម្ពផ្ទាល់ខ្លួន
 DocType: DocPerm,Create,បង្កើត
-DocType: Newsletter,A Lead with this email id should exist,អ្នកដឹកនាំដែលមានលេខសម្គាល់អ៊ីមែលនេះគួរតែមាន
+DocType: Newsletter,A Lead with this Email Address should exist,អ្នកដឹកនាំដែលមានលេខសម្គាល់អ៊ីមែលនេះគួរតែមាន
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +201,Invalid Filter: {0},តម្រងមិនត្រឹមត្រូវ: {0}
 DocType: Integration Service,Background Events,ព្រឹត្តិការណ៍ផ្ទៃខាងក្រោយ
 DocType: Dropbox Settings,App Access Key,ការចូលដំណើរការកម្មវិធីគន្លឹះ
@@ -1889,7 +1889,7 @@ DocType: Workflow Document State,Only Allow Edit For,អនុញ្ញាតត
 apps/frappe/frappe/templates/includes/comments/comments.html +34,Your Name,ឈ្មោះរបស់អ្នក
 DocType: DocType,InnoDB,InnoDB
 DocType: File,Is Folder,តើការថត
-DocType: Newsletter,Test Email Id,ការធ្វើតេស្តអ៊ីម៉ែលលេខសម្គាល់
+DocType: Newsletter,Test Email Address,ការធ្វើតេស្តអ៊ីម៉ែលលេខសម្គាល់
 DocType: DocType,DocType,ចង្អុលបង្ហាញ
 apps/frappe/frappe/core/doctype/user/user.py +629,User {0} does not exist,ប្រើ {0} មិនមាន
 DocType: Website Theme,"If image is selected, color will be ignored.",ប្រសិនបើបានជ្រើសរូបភាពពណ៌នឹងត្រូវបានអើពើ។
@@ -2242,7 +2242,7 @@ DocType: Communication,Email Account,គណនីអ៊ីម៉ែល
 DocType: Workflow State,Download,ទាញយក
 DocType: Blog Post,Blog Intro,កំណត់ហេតុបណ្ដាញសេចក្ដីណែនាំ
 DocType: Async Task,Result,លទ្ឋផល
-apps/frappe/frappe/email/doctype/email_group/email_group.py +87,{0} is not a valid email id,{0} គឺមិនមានលេខសម្គាល់អ៊ីមែលត្រឹមត្រូវ
+apps/frappe/frappe/email/doctype/email_group/email_group.py +87,{0} is not a valid Email Address,{0} គឺមិនមានលេខសម្គាល់អ៊ីមែលត្រឹមត្រូវ
 apps/frappe/frappe/core/doctype/report/report.js +37,Enable Report,បើកការរបាយការណ៍
 DocType: DocField,Display Depends On,បង្ហាញអាស្រ័យលើ
 DocType: Web Page,Insert Code,បញ្ចូលលេខកូដ

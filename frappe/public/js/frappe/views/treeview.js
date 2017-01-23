@@ -2,6 +2,7 @@
 // MIT License. See license.txt
 
 frappe.provide("frappe.treeview_settings");
+frappe.provide('frappe.views.trees');
 cur_tree = null;
 
 frappe.views.TreeFactory = frappe.views.Factory.extend({
@@ -17,7 +18,7 @@ frappe.views.TreeFactory = frappe.views.Factory.extend({
 				return false;
 			}
 			$.extend(options, frappe.treeview_settings[route[1]] || {});
-			new frappe.views.TreeView(options);
+			frappe.views.trees[options.doctype] = new frappe.views.TreeView(options);
 		});
 	}
 });
@@ -145,7 +146,8 @@ frappe.views.TreeView = Class.extend({
 				condition: function(node) { return !node.root && me.can_write; },
 				click: function(node) {
 					frappe.model.rename_doc(me.doctype, node.label, function(new_name) {
-						node.$a.html(new_name);
+						node.tree_link.find('a').text(new_name);
+						node.label = new_name;
 					});
 				},
 				btnClass: "hidden-xs"
@@ -185,12 +187,13 @@ frappe.views.TreeView = Class.extend({
 		var d = new frappe.ui.Dialog({
 			title: __('New {0}',[__(me.doctype)]),
 			fields: me.fields
-		})
+		});
 
-		me.args["parent_"+me.doctype.toLowerCase().replace(/ /g,'_')] = me.args["parent"];
+		var args = $.extend({}, me.args);
+		args["parent_"+me.doctype.toLowerCase().replace(/ /g,'_')] = me.args["parent"];
 
 		d.set_value("is_group", 0);
-		d.set_values(me.args);
+		d.set_values(args);
 
 		// create
 		d.set_primary_action(__("Create New"), function() {
@@ -210,18 +213,17 @@ frappe.views.TreeView = Class.extend({
 				v.root_type = null;
 			}
 
-			$.extend(me.args, v)
-
+			$.extend(args, v)
 			return frappe.call({
 				method: me.opts.add_tree_node || "frappe.desk.treeview.add_node",
-				args: me.args,
+				args: args,
 				callback: function(r) {
 					if(!r.exc) {
 						d.hide();
 						if(node.expanded) {
 							node.toggle_node();
 						}
-						node.reload();
+						node.load_all();
 					}
 				}
 			});

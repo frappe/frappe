@@ -157,14 +157,7 @@ def send_private_file(path):
 	return response
 
 def handle_session_stopped():
-	response = Response("""<html>
-							<body style="background-color: #EEE;">
-									<h3 style="width: 900px; background-color: #FFF; border: 2px solid #AAA; padding: 20px; font-family: Arial; margin: 20px auto">
-											Updating.
-											We will be back in a few moments...
-									</h3>
-							</body>
-					</html>""")
-	response.status_code = 503
-	response.content_type = 'text/html'
-	return response
+	frappe.respond_as_web_page(_("Updating"),
+		_("Your system is being updated. Please refresh again after a few moments"),
+		http_status_code=503, indicator_color='orange', fullpage = True, primary_action=None)
+	return frappe.website.render.render("message", http_status_code=503)

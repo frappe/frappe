@@ -322,6 +322,7 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 
 	bind_change_event: function() {
 		var me = this;
+
 		this.$input && this.$input.on("change", this.change || function(e) {
 			if(me.df.change || me.df.onchange) {
 				// onchange event specified in df
@@ -602,8 +603,6 @@ frappe.ui.form.ControlPercent = frappe.ui.form.ControlFloat;
 frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 	datepicker_options: {
 		language: "en",
-		minDate: moment().add(-70, 'year').toDate(),
-		maxDate: moment().add(10, 'year').toDate(),
 		autoClose: true
 	},
 	make_input: function() {
@@ -620,6 +619,7 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 
 		this.datepicker_options.onSelect = function(dateObj) {
 			me.set_value(me.get_value())
+			me.$input.trigger('change')
 		}
 	},
 	set_datepicker: function() {
@@ -677,7 +677,7 @@ frappe.ui.form.ControlDatetime = frappe.ui.form.ControlDate.extend({
 	set_date_options: function() {
 		this._super();
 		this.datepicker_options.timepicker = true;
-		this.datepicker_options.timeFormat = "hh:ii";
+		this.datepicker_options.timeFormat = "hh:ii:ss";
 	},
 	parse: function(value) {
 		if(value) {
@@ -708,7 +708,8 @@ frappe.ui.form.ControlDateRange = frappe.ui.form.ControlData.extend({
 		this.datepicker_options = {
 			language: "en",
 			range: true,
-			autoClose: true
+			autoClose: true,
+			toggleSelected: false
 		}
 		this.datepicker_options.dateFormat =
 			(frappe.boot.sysdefaults.date_format || 'yyyy-mm-dd');
@@ -736,11 +737,11 @@ frappe.ui.form.ControlDateRange = frappe.ui.form.ControlData.extend({
 		this.set_mandatory && this.set_mandatory(value);
 	},
 	parse: function(value) {
-		if(value) {
-			vals = value.split(",")
-			value = dateutil.user_to_obj(vals[0]);
-			value2 = dateutil.user_to_obj(vals[vals.length-1]);
-			return [value,value2];
+		if(value && (value.indexOf(',') !== -1 || value.indexOf('to') !== -1)) {
+			vals = value.split(/[( to )(,)]/)
+			from_date = moment(dateutil.user_to_obj(vals[0])).format('YYYY-MM-DD');
+			to_date = moment(dateutil.user_to_obj(vals[vals.length-1])).format('YYYY-MM-DD');
+			return [from_date, to_date];
 		}
 	},
 	format_for_input: function(value,value2) {
@@ -1316,7 +1317,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 			if (!me.$input.cache[doctype]) {
 				me.$input.cache[doctype] = {};
 			}
-			
+
 			var term = e.target.value;
 
 			if (me.$input.cache[doctype][term]!=null) {
