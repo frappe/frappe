@@ -72,16 +72,20 @@ frappe.provide("frappe.views");
 			},
 			save_filters: function (updater) {
 				var filters = JSON.stringify(this.cur_list.filter_list.get_filters());
-				frappe.db.set_value(
-					'Kanban Board', this.board.name,
-					'filters', filters,
-					function() {
-						updater.set({ filters_modified: false });
-						show_alert({
-							message: __("Filters saved"),
-							indicator: 'green'
-						}, 1);
-					});
+				console.log(this.board.name, filters)
+				frappe.call({
+					method: method_prefix + 'save_filters',
+					args: {
+						board_name: this.board.name,
+						filters: filters
+					}
+				}).then(function(r) {
+					updater.set({ filters_modified: false });
+					show_alert({
+						message: __('Filters saved'),
+						indicator: 'green'
+					}, 0.5);
+				});
 			},
 			add_card: function (updater, card_title, column_title) {
 				var doc = frappe.model.get_new_doc(this.doctype);
