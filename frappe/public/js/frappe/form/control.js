@@ -1717,7 +1717,7 @@ frappe.ui.form.ControlSignature = frappe.ui.form.ControlData.extend({
 		// make jSignature field
 		this.$pad = $('<div class="signature-field"></div>')
 		    .prependTo(me.input_area)
-		    .jSignature({height:300, width: "100%"});
+		    .jSignature({height:300, width: "100%",lineWidth:0.8});
 
 		// handle save button
 		this.$btnEditWrapper = $('<div class="btn-group btn-group-justified"><a href="#" type="button" class="signature-edit btn btn-primary btn-block">Edit</a></div>')
@@ -1796,6 +1796,7 @@ frappe.ui.form.ControlSignature = frappe.ui.form.ControlData.extend({
     // reset signature canvas
     on_reset_sign: function() {
         this.$pad.jSignature("reset");
+		console.log("Reset Pushed")
         this.set_value("");
     },
     // save signature value to model and display
