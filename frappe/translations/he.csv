@@ -417,7 +417,7 @@ apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.js +33,Send
 DocType: Report,Query,שאילתא
 DocType: DocType,Sort Order,סדר מיון
 apps/frappe/frappe/core/doctype/doctype/doctype.py +353,'In List View' not allowed for type {0} in row {1},"""ברשימת צפייה 'לא אפשר לסוג {0} בשורת {1}"
-apps/frappe/frappe/templates/includes/comments/comments.html +38,Your Email Id,הדואר האלקטרוני שלך Id
+apps/frappe/frappe/templates/includes/comments/comments.html +38,Your Email Address,הדואר האלקטרוני שלך Id
 DocType: Custom Field,Select the label after which you want to insert new field.,בחר את התווית לאחר שרצונך להוסיף שדה חדש.
 ,Document Share Report,מסמך שתף דווח
 DocType: User,Last Login,הביקור אחרון
@@ -574,7 +574,7 @@ DocType: Page,Page HTML,הדף HTML
 apps/frappe/frappe/public/js/frappe/views/treeview.js +236,Further nodes can be only created under 'Group' type nodes,צמתים נוספים ניתן ליצור אך ורק תחת צמתים הסוג 'הקבוצה'
 DocType: Web Page,Header,כותרת
 apps/frappe/frappe/public/js/frappe/model/model.js +80,Unknown Column: {0},טור ידוע: {0}
-DocType: Email Alert Recipient,Optional: Always send to these ids. Each email id on a new row,אופציונאלי: תמיד לשלוח למזהים הללו. כל id הדואר האלקטרוני בשורה חדשה
+DocType: Email Alert Recipient,Optional: Always send to these ids. Each Email Address on a new row,אופציונאלי: תמיד לשלוח למזהים הללו. כל id הדואר האלקטרוני בשורה חדשה
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +299,Users with role {0}:,משתמשים עם תפקיד {0}:
 apps/frappe/frappe/desk/page/applications/applications.py +76,Installing App {0},להתקין יישום {0}
 DocType: Print Format,Custom Format,פורמט מותאם אישית
@@ -637,7 +637,7 @@ DocType: Workflow State,retweet,retweet
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +53,Update the template and save in CSV (Comma Separate Values) format before attaching.,עדכון התבנית ולשמור בCSV (ערכים נפרדים פסיק) פורמט לפני הצמדה.
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +213,Specify the value of the field,ציין את הערך של השדה
 DocType: Report,Disabled,נכים
-DocType: Email Account,Always use Account's Email ID as Sender,השתמש תמיד מזהה דוא&quot;ל של החשבון כשולח
+DocType: Email Account,Always use Account's Email Address as Sender,השתמש תמיד מזהה דוא&quot;ל של החשבון כשולח
 DocType: Workflow State,eye-close,עין-קרוב
 apps/frappe/frappe/public/js/frappe/request.js +304,Report this issue,דווח על בעיה זו
 apps/frappe/frappe/public/js/frappe/form/save.js +78,Name is required,שם נדרש
@@ -758,7 +758,7 @@ apps/frappe/frappe/config/setup.py +243,Add fields to forms.,הוספת שדות
 DocType: File,rgt,rgt
 DocType: Workflow State,leaf,עלה
 DocType: Portal Menu Item,Portal Menu Item,פריט תפריט פורטל
-DocType: Email Account,Email ID,מזהה דוא&quot;ל
+DocType: Email Account,Email Address,מזהה דוא&quot;ל
 apps/frappe/frappe/public/js/frappe/ui/editor.html +48,Insert Link,הכנס קישור
 DocType: Contact Us Settings,Query Options,שאילתא אפשרויות
 apps/frappe/frappe/core/page/data_import_tool/data_import_tool.js +154,Import Successful!,יבוא מוצלח!
@@ -793,7 +793,7 @@ apps/frappe/frappe/core/page/data_import_tool/exporter.py +60,Notes:,הערות:
 apps/frappe/frappe/public/js/frappe/form/control.js +1673,Markdown,Markdown
 DocType: DocShare,Document Name,שם מסמך
 DocType: ToDo,Medium,בינוני
-apps/frappe/frappe/email/doctype/newsletter/newsletter.py +131,Please verify your email id,אנא ודא id הדוא&quot;ל שלך
+apps/frappe/frappe/email/doctype/newsletter/newsletter.py +131,Please verify your Email Address,אנא ודא id הדוא&quot;ל שלך
 apps/frappe/frappe/public/js/frappe/form/linked_with.js +86,Not enough permission to see links.,לא מספיק רשות לראות קישורים.
 DocType: Customize Form,Customize Form,התאמה אישית של טופס
 DocType: Currency,A symbol for this currency. For e.g. $,סימן של מטבע זה. לדוגמה: $$
@@ -965,7 +965,7 @@ DocType: Workflow State,step-backward,צעד אחורה
 apps/frappe/frappe/utils/boilerplate.py +252,{app_title},{} App_title
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +52,Please set Dropbox access keys in your site config,אנא הגדר מקשי גישת Dropbox בconfig האתר שלך
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +16,Delete this record to allow sending to this email address,למחוק רשומה זו כדי לאפשר שליחה לכתובת דוא&quot;ל זו
-DocType: Email Account,Uses the Email ID mentioned in this Account as the Sender for all emails sent using this Account. ,משתמש בזיהוי הדואר האלקטרוני שצוין בחשבון זה כשולח לכל הדואר האלקטרוני שנשלח באמצעות חשבון זה.
+DocType: Email Account,Uses the Email Address mentioned in this Account as the Sender for all emails sent using this Account. ,משתמש בזיהוי הדואר האלקטרוני שצוין בחשבון זה כשולח לכל הדואר האלקטרוני שנשלח באמצעות חשבון זה.
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +65,Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish.,"רק שדות חובה נחוצים לשיאים חדשים. אתה יכול למחוק את העמודות שאינן חובה, אם תרצה."
 apps/frappe/frappe/public/js/frappe/views/calendar.js +276,Unable to update event,לא ניתן לעדכן את האירוע
 DocType: Workflow State,text-height,טקסט גובה
@@ -1129,7 +1129,7 @@ DocType: Workflow State,bookmark,סימנייה
 DocType: Note,Note,הערה
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot.html +32,Error Report,דוח שגיאות
 apps/frappe/frappe/core/doctype/doctype/doctype.py +475,Timeline field must be a valid fieldname,שדה ציר הזמן חייב להיות fieldname תקף
-DocType: Email Account,Email Ids,דוא&quot;ל המזהים
+DocType: Email Account,Email Addresses,דוא&quot;ל המזהים
 DocType: Currency,Symbol,סמל
 apps/frappe/frappe/model/base_document.py +529,Row #{0}:,# השורה {0}:
 apps/frappe/frappe/core/doctype/user/user.py +163,New password emailed,"דוא""ל סיסמא חדשה"
@@ -1507,7 +1507,7 @@ apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +439,"Select your Coun
 DocType: Async Task,Queued,בתור
 apps/frappe/frappe/public/js/frappe/form/print.js +98,New Custom Print Format,פורמט הדפסה מותאמת אישית חדש
 DocType: DocPerm,Create,צור
-DocType: Newsletter,A Lead with this email id should exist,"ליד עם  דוא""ל זה צריך להיות קיים"
+DocType: Newsletter,A Lead with this Email Address should exist,"ליד עם  דוא""ל זה צריך להיות קיים"
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +201,Invalid Filter: {0},מסנן לא חוקי: {0}
 DocType: OAuth Bearer Token,Access Token,גישת אסימון
 DocType: About Us Settings,Org History,ההיסטוריה org
@@ -1666,7 +1666,7 @@ DocType: Email Account,Append To,צרף ל
 DocType: Workflow Document State,Only Allow Edit For,אפשר לערוך רק ל
 apps/frappe/frappe/templates/includes/comments/comments.html +34,Your Name,השם שלך
 DocType: File,Is Folder,האם תיקייה
-DocType: Newsletter,Test Email Id,"דוא""ל מבחן זיהוי"
+DocType: Newsletter,Test Email Address,"דוא""ל מבחן זיהוי"
 DocType: DocType,DocType,DOCTYPE
 apps/frappe/frappe/core/doctype/user/user.py +629,User {0} does not exist,משתמש {0} אינו קיים
 DocType: Website Theme,"If image is selected, color will be ignored.","אם תמונה שנבחרה, צבע יהיה להתעלם ממנו."
@@ -1980,7 +1980,7 @@ DocType: Communication,Email Account,"חשבון דוא""ל"
 DocType: Workflow State,Download,הורדה
 DocType: Blog Post,Blog Intro,בלוג Intro
 DocType: Async Task,Result,תוצאה
-apps/frappe/frappe/email/doctype/email_group/email_group.py +87,{0} is not a valid email id,"{0} אינו מזהה דוא""ל חוקי"
+apps/frappe/frappe/email/doctype/email_group/email_group.py +87,{0} is not a valid Email Address,"{0} אינו מזהה דוא""ל חוקי"
 apps/frappe/frappe/core/doctype/report/report.js +37,Enable Report,אפשר דווח
 DocType: DocField,Display Depends On,התצוגה תלויה
 DocType: Web Page,Insert Code,הכנס קוד

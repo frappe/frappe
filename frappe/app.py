@@ -24,6 +24,7 @@ from frappe.utils import get_site_name, get_site_path
 from frappe.middlewares import StaticDataMiddleware
 from frappe.utils.error import make_error_snapshot
 from frappe.core.doctype.communication.comment import update_comments_in_parent_after_request
+from frappe import _
 
 local_manager = LocalManager([frappe.local])
 
@@ -123,6 +124,7 @@ def make_form_dict(request):
 
 def handle_exception(e):
 	http_status_code = getattr(e, "http_status_code", 500)
+	return_as_message = False
 
 	if (http_status_code==500
 		and isinstance(e, MySQLdb.OperationalError)
@@ -132,17 +134,31 @@ def handle_exception(e):
 			# code 409 represents conflict
 			http_status_code = 508
 
-	if frappe.local.is_ajax or 'application/json' in frappe.local.request.headers.get('Accept', ''):
+	if http_status_code==403:
+		frappe.respond_as_web_page(_("Not Permitted"),
+			_("You do not have enough permissions to complete the action"),
+			http_status_code=http_status_code,  indicator_color='red')
+		return_as_message = True
+
+	elif http_status_code==404:
+		frappe.respond_as_web_page(_("Not Found"),
+			_("The resource you are looking for is not available"),
+			http_status_code=http_status_code,  indicator_color='red')
+		return_as_message = True
+
+
+	elif frappe.local.is_ajax or 'application/json' in frappe.local.request.headers.get('Accept', ''):
 		response = frappe.utils.response.report_error(http_status_code)
+
 	else:
 		traceback = "<pre>"+frappe.get_traceback()+"</pre>"
 		if frappe.local.flags.disable_traceback:
 			traceback = ""
 
 		frappe.respond_as_web_page("Server Error",
-			traceback,
-			http_status_code=http_status_code)
-		response = frappe.website.render.render("message", http_status_code=http_status_code)
+			traceback, http_status_code=http_status_code,
+			indicator_color='red')
+		return_as_message = True
 
 	if e.__class__ == frappe.AuthenticationError:
 		if hasattr(frappe.local, "login_manager"):
@@ -151,6 +167,9 @@ def handle_exception(e):
 	if http_status_code >= 500:
 		frappe.logger().error('Request Error', exc_info=True)
 		make_error_snapshot(e)
+
+	if return_as_message:
+		response = frappe.website.render.render("message", http_status_code=http_status_code)
 
 	return response
 

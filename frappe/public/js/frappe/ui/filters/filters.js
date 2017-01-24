@@ -240,14 +240,14 @@ frappe.ui.FilterList = Class.extend({
 			var self = this;
 			var date;
 			var date_wrapper = $('<div>').appendTo($(this));
-			make_date("single");
+			make_date("range");
 
 			var check = frappe.ui.form.make_control({
 				parent: this,
 				df: {
 					fieldtype: "Check",
 					fieldname: "is_date_range",
-					label: "Date Range",
+					label: __("Date Range"),
 					input_css: { "margin-top": "-2px" }
 				}
 			});
@@ -259,6 +259,7 @@ frappe.ui.FilterList = Class.extend({
 					make_date("single");
 			}
 			check.refresh();
+			check.set_input(1);
 
 			function make_date(mode) {
 				var fieldtype = mode==="range" ? "DateRange" : "Date";
@@ -281,10 +282,11 @@ frappe.ui.FilterList = Class.extend({
 					var filt = me.get_filter(name);
 					filt && filt.remove(true);
 					if(!dateObj.length && dateObj && date.datepicker.opts.range===false) {
-						me.add_filter(me.doctype, name, '=', dateObj);
+						me.add_filter(me.doctype, name, '=', moment(dateObj).format('YYYY-MM-DD'));
 						me.listobj.run();
 					} else if(dateObj.length===2 && date.datepicker.opts.range===true) {
-						me.add_filter(me.doctype, name, 'Between', [dateObj[0], dateObj[1]]);
+						me.add_filter(me.doctype, name, 'Between',
+							[moment(dateObj[0]).format('YYYY-MM-DD'), moment(dateObj[1]).format('YYYY-MM-DD')]);
 						me.listobj.run();
 					}
 				});
@@ -356,15 +358,18 @@ frappe.ui.FilterList = Class.extend({
 	},
 
 	filter_exists: function(doctype, fieldname, condition, value) {
+		var flag = false;
 		for(var i in this.filters) {
 			if(this.filters[i].field) {
 				var f = this.filters[i].get_value();
-				if(f[0]==doctype && f[1]==fieldname && f[2]==condition
-					&& f[3]==value) return true;
-
+				if(f[0]==doctype && f[1]==fieldname && f[2]==condition && f[3]==value) {
+					flag = true;
+				} else if($.isArray(value) && frappe.utils.arrays_equal(value, f[3])) {
+					flag = true;
+				}
 			}
 		}
-		return false;
+		return flag;
 	},
 
 	get_filters: function() {

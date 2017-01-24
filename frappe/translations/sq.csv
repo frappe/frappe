@@ -466,7 +466,7 @@ apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.js +33,Send
 DocType: Report,Query,Pyetje
 DocType: DocType,Sort Order,Rendit
 apps/frappe/frappe/core/doctype/doctype/doctype.py +353,'In List View' not allowed for type {0} in row {1},&quot;Në Lista View&quot; nuk lejohet për llojin {0} në rresht {1}
-apps/frappe/frappe/templates/includes/comments/comments.html +38,Your Email Id,Email Juaj Id
+apps/frappe/frappe/templates/includes/comments/comments.html +38,Your Email Address,Email Juaj Id
 DocType: Custom Field,Select the label after which you want to insert new field.,Zgjidhni etiketën pasi që ju doni të futur fushë të re.
 ,Document Share Report,Dokumenti Shpërndaj Raporto
 DocType: User,Last Login,Kycja e fundit
@@ -650,7 +650,7 @@ DocType: Page,Page HTML,Faqe HTML
 apps/frappe/frappe/public/js/frappe/views/treeview.js +236,Further nodes can be only created under 'Group' type nodes,Nyjet e mëtejshme mund të krijohet vetëm në nyjet e tipit &#39;Grupit&#39;
 DocType: Web Page,Header,Arkitra
 apps/frappe/frappe/public/js/frappe/model/model.js +80,Unknown Column: {0},Kolona Panjohur: {0}
-DocType: Email Alert Recipient,Optional: Always send to these ids. Each email id on a new row,Fakultativ: Gjithmonë dërgoni në këto kartat e identitetit. Çdo id email në një rresht të ri
+DocType: Email Alert Recipient,Optional: Always send to these ids. Each Email Address on a new row,Fakultativ: Gjithmonë dërgoni në këto kartat e identitetit. Çdo id email në një rresht të ri
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +299,Users with role {0}:,Përdoruesit me rolin {0}:
 apps/frappe/frappe/desk/page/applications/applications.py +76,Installing App {0},Instalimi App {0}
 DocType: Print Format,Custom Format,Format Custom
@@ -719,7 +719,7 @@ DocType: Workflow State,retweet,retweet
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +53,Update the template and save in CSV (Comma Separate Values) format before attaching.,Update template dhe për të shpëtuar në CSV (Comma Vlerat Individuale) format para se të bashkëngjitur.
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +213,Specify the value of the field,Specifikoni vlerën e fushës
 DocType: Report,Disabled,I paaftë
-DocType: Email Account,Always use Account's Email ID as Sender,Gjithmonë përdorni llogarinë e Email ID si Dërguesit
+DocType: Email Account,Always use Account's Email Address as Sender,Gjithmonë përdorni llogarinë e Email Address si Dërguesit
 DocType: Workflow State,eye-close,sy-ngushtë
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py +93,Please select another payment method. {0} does not support transactions in currency '{1}',Ju lutem zgjidhni një tjetër metodë e pagesës. {0} nuk mbështet transaksionet në monedhë të &#39;{1}&#39;
 DocType: OAuth Provider Settings,OAuth Provider Settings,Cilësimet OAuth Provider
@@ -862,7 +862,7 @@ DocType: File,rgt,rgt
 DocType: Email Account,Sendgrid,Sendgrid
 DocType: Workflow State,leaf,fletë
 DocType: Portal Menu Item,Portal Menu Item,Portal Menu Item
-DocType: Email Account,Email ID,Email ID
+DocType: Email Account,Email Address,Email Address
 apps/frappe/frappe/public/js/frappe/ui/editor.html +48,Insert Link,Fut Link
 DocType: OAuth Client,A list of resources which the Client App will have access to after the user allows it.<br> e.g. project,"Një listë e burimeve të cilat Klienti App do të kenë qasje për të, pasi përdoruesit e lejon atë. <br> p.sh. projekti"
 DocType: Contact Us Settings,Query Options,Query Options
@@ -898,7 +898,7 @@ apps/frappe/frappe/core/page/data_import_tool/exporter.py +60,Notes:,Shënime:
 apps/frappe/frappe/public/js/frappe/form/control.js +1673,Markdown,Markdown
 DocType: DocShare,Document Name,Dokumenti Emri
 DocType: ToDo,Medium,Medium
-apps/frappe/frappe/email/doctype/newsletter/newsletter.py +131,Please verify your email id,Ju lutem verifikoni id tuaj e-mail
+apps/frappe/frappe/email/doctype/newsletter/newsletter.py +131,Please verify your Email Address,Ju lutem verifikoni id tuaj e-mail
 apps/frappe/frappe/public/js/frappe/form/linked_with.js +86,Not enough permission to see links.,Jo leje të mjaftueshme për të parë lidhjet.
 DocType: Customize Form,Customize Form,Customize Form
 DocType: Currency,A symbol for this currency. For e.g. $,Një simbol për këtë monedhë. Për shembull $
@@ -1089,7 +1089,7 @@ DocType: Workflow State,step-backward,hap prapa
 apps/frappe/frappe/utils/boilerplate.py +252,{app_title},{App_title}
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +52,Please set Dropbox access keys in your site config,Ju lutemi të vendosur çelësat Dropbox akses ne faqen config tuaj
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +16,Delete this record to allow sending to this email address,Fshije këtë rekord për të lejuar dërgimin në këtë adresë e-mail
-DocType: Email Account,Uses the Email ID mentioned in this Account as the Sender for all emails sent using this Account. ,Përdor Email ID e përmendur në këtë llogari sa Dërguesit për të gjitha emailet e dërguara përdorur këtë llogari.
+DocType: Email Account,Uses the Email Address mentioned in this Account as the Sender for all emails sent using this Account. ,Përdor Email Address e përmendur në këtë llogari sa Dërguesit për të gjitha emailet e dërguara përdorur këtë llogari.
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +65,Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish.,Vetëm Fushat e detyrueshme janë të nevojshme për të dhënat e reja. Ju mund të fshini kolona jo-detyrueshme në qoftë se ju dëshironi.
 apps/frappe/frappe/public/js/frappe/views/calendar.js +276,Unable to update event,Në pamundësi për të rinovuar ngjarje
 apps/frappe/frappe/templates/generators/web_form.html +292,Payment Complete,Complete pagesa
@@ -1284,7 +1284,7 @@ DocType: Workflow State,bookmark,bookmark
 DocType: Note,Note,Shënim
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot.html +32,Error Report,Gabim Raport
 apps/frappe/frappe/core/doctype/doctype/doctype.py +475,Timeline field must be a valid fieldname,Fusha Timeline duhet të jetë një fieldname vlefshme
-DocType: Email Account,Email Ids,Email IDS
+DocType: Email Account,Email Addresses,Email Addresses
 DocType: Currency,Symbol,Simbol
 apps/frappe/frappe/model/base_document.py +529,Row #{0}:,Row # {0}:
 apps/frappe/frappe/core/doctype/user/user.py +163,New password emailed,Fjalëkalimi i ri me email
@@ -1714,7 +1714,7 @@ DocType: Async Task,Queued,Queued
 DocType: PayPal Settings,Use Sandbox,Përdorimi Sandbox
 apps/frappe/frappe/public/js/frappe/form/print.js +98,New Custom Print Format,Re Format Custom Print
 DocType: DocPerm,Create,Krijoj
-DocType: Newsletter,A Lead with this email id should exist,Një Lead me këtë id email duhet të ekzistojë
+DocType: Newsletter,A Lead with this Email Address should exist,Një Lead me këtë id email duhet të ekzistojë
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +201,Invalid Filter: {0},Filter pavlefshme: {0}
 DocType: Integration Service,Background Events,Historiku Events
 DocType: Dropbox Settings,App Access Key,App Access Key
@@ -1890,7 +1890,7 @@ DocType: Workflow Document State,Only Allow Edit For,Vetëm Lejo Edit për
 apps/frappe/frappe/templates/includes/comments/comments.html +34,Your Name,Emri juaj
 DocType: DocType,InnoDB,InnoDB
 DocType: File,Is Folder,Është Folder
-DocType: Newsletter,Test Email Id,Test Email Id
+DocType: Newsletter,Test Email Address,Test Email Address
 DocType: DocType,DocType,DOCTYPE
 apps/frappe/frappe/core/doctype/user/user.py +629,User {0} does not exist,Përdoruesi {0} nuk ekziston
 DocType: Website Theme,"If image is selected, color will be ignored.","Nëse imazhi është zgjedhur, ngjyra do të injorohen."
@@ -2243,7 +2243,7 @@ DocType: Communication,Email Account,Email Llogaria
 DocType: Workflow State,Download,Shkarko
 DocType: Blog Post,Blog Intro,Blog Intro
 DocType: Async Task,Result,Rezultat
-apps/frappe/frappe/email/doctype/email_group/email_group.py +87,{0} is not a valid email id,{0} nuk është një ID e vlefshme email
+apps/frappe/frappe/email/doctype/email_group/email_group.py +87,{0} is not a valid Email Address,{0} nuk është një ID e vlefshme email
 apps/frappe/frappe/core/doctype/report/report.js +37,Enable Report,Aktivizo Raportin
 DocType: DocField,Display Depends On,Display varet
 DocType: Web Page,Insert Code,Fut Kodi

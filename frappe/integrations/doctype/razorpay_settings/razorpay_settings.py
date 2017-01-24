@@ -219,8 +219,8 @@ def get_checkout_url(**kwargs):
 		return frappe.get_doc("Razorpay Settings").get_payment_url(**kwargs)
 	except Exception:
 		frappe.respond_as_web_page(_("Something went wrong"),
-			_("Looks like something is wrong with this site's Razorpay configuration. Don't worry! No payment has been made."),
-			success=False,
+			_("Looks like something is wrong with this site's Razorpay configuration. No payment has been made."),
+			indicator_color='red',
 			http_status_code=frappe.ValidationError.http_status_code)
 
 @frappe.whitelist()

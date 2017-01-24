@@ -31,7 +31,8 @@ frappe.email_alert = {
 
 			// set email recipient options
 			frappe.meta.get_docfield("Email Alert Recipient", "email_by_document_field",
-				frm.doc.name).options = ["owner"].concat(email_fields);
+				// set first option as blank to allow email alert not to be defaulted to the owner
+				frm.doc.name).options = [""].concat(["owner"].concat(email_fields));
 
 		});
 	}

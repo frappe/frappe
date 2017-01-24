@@ -86,6 +86,9 @@ class AutoEmailReport(Document):
 		return "{0}.{1}".format(self.report.replace(" ", "-").replace("/", "-"), self.format.lower())
 
 	def send(self):
+		if self.filter_meta and not self.filters:
+			frappe.throw(_("Please set filters value in Report Filter table."))
+		
 		data = self.get_report_content()
 		if not data:
 			return
@@ -96,7 +99,7 @@ class AutoEmailReport(Document):
 					frappe.utils.format_datetime(frappe.utils.now_datetime())))
 
 		if self.description:
-			message += '<hr>' + self.description
+			message += '<hr style="margin: 15px 0px;">' + self.description
 
 		if self.format=='HTML':
 			message += '<hr>' + data
@@ -106,7 +109,13 @@ class AutoEmailReport(Document):
 				'fcontent': data
 			}]
 
-		message += '<hr><p style="font-size: 10px;"> Edit Auto Email Report Settings: {0}</p>'.format(frappe.utils.get_link_to_form('Auto Email Report', self.name))
+		report_doctype = frappe.db.get_value('Report', self.report, 'ref_doctype')
+		report_footer = frappe.render_template(self.get_report_footer(),
+						dict(report_url = frappe.utils.get_url_to_report(self.report, self.report_type, report_doctype),
+							report_name = self.report,
+							edit_report_settings = frappe.utils.get_link_to_form('Auto Email Report', self.name)))
+
+		message += report_footer
 
 		frappe.sendmail(
 			recipients = self.email_to.split(),
@@ -114,6 +123,14 @@ class AutoEmailReport(Document):
 			message = message,
 			attachments = attachments
 		)
+
+	def get_report_footer(self):
+		return """<hr style="margin: 30px 0px 15px 0px;">
+		<p style="font-size: 9px;">
+			View report in your browser: 
+			<a href= {{report_url}} target="_blank">{{report_name}}</a><br><br>
+			Edit Auto Email Report Settings: {{edit_report_settings}}
+		</p>"""
 
 @frappe.whitelist()
 def download(name):

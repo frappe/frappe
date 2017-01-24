@@ -26,7 +26,7 @@ class User(Document):
 		self.flags.ignore_save_passwords = True
 
 	def autoname(self):
-		"""set name as email id"""
+		"""set name as Email Address"""
 		if self.get("is_admin") or self.get("is_guest"):
 			self.name = self.first_name
 		else:
@@ -40,9 +40,6 @@ class User(Document):
 
 	def before_insert(self):
 		self.flags.in_insert = True
-
-	def after_insert(self):
-		self.set_default_roles()
 
 	def validate(self):
 		self.check_demo()
@@ -63,6 +60,7 @@ class User(Document):
 		self.remove_all_roles_for_guest()
 		self.validate_username()
 		self.remove_disabled_roles()
+		ask_pass_update()
 
 		if self.language == "Loading...":
 			self.language = None
@@ -100,33 +98,6 @@ class User(Document):
 		# clear sessions if disabled
 		if not cint(self.enabled) and getattr(frappe.local, "login_manager", None):
 			frappe.local.login_manager.logout(user=self.name)
-
-	def set_default_roles(self):
-		"""Set a default role if specified by rules (`default_role`) in hooks or Portal Settings
-
-		Hooks for default roles can be set as:
-
-			default_roles = [
-				{'role': 'Customer', 'doctype':'Contact', 'email_field': 'email_id',
-					'filters': {'ifnull(customer, "")': ('!=', '')}}
-			]
-
-		"""
-		role_found = False
-		for rule in frappe.get_hooks('default_roles'):
-			filters = {rule.get('email_field'): self.email}
-			if rule.get('filters'):
-				filters.update(rule.get('filters'))
-
-			match = frappe.get_all(rule.get('doctype'), filters=filters, limit=1)
-			if match:
-				role_found = True
-				self.add_roles(rule.get('role'))
-
-		if not role_found:
-			default_role = frappe.db.get_single_value('Portal Settings', 'default_role')
-			if default_role:
-				self.add_roles(default_role)
 
 	def add_system_manager_role(self):
 		# if adding system manager, do nothing
@@ -499,10 +470,10 @@ def get_user_roles(arg=None):
 	return frappe.get_roles(frappe.form_dict['uid'])
 
 @frappe.whitelist()
-def get_perm_info(arg=None):
+def get_perm_info(role):
 	"""get permission info"""
-	return frappe.db.sql("""select * from tabDocPerm where role=%s
-		and docstatus<2 order by parent, permlevel""", (frappe.form_dict['role'],), as_dict=1)
+	from frappe.permissions import get_all_perms
+	return get_all_perms(role)
 
 @frappe.whitelist(allow_guest=True)
 def update_password(new_password, key=None, old_password=None):
@@ -534,18 +505,57 @@ def update_password(new_password, key=None, old_password=None):
 def test_password_strength(new_password, key=None, old_password=None):
 	from frappe.utils.password_strength import test_password_strength as _test_password_strength
 
-	res = _get_user_for_update_password(key, old_password)
-	if not res:
-		return
-	elif res.get('message'):
-		return res['message']
-	else:
-		user = res['user']
-
-	user_data = frappe.db.get_value('User', user, ['first_name', 'middle_name', 'last_name', 'email', 'birth_date'])
+	user_data = frappe.db.get_value('User', frappe.session.user, ['first_name', 'middle_name', 'last_name', 'email', 'birth_date'])
 
 	if new_password:
 		return _test_password_strength(new_password, user_inputs=user_data)
+
+#for login
+@frappe.whitelist()
+def has_email_account(email):
+	return frappe.get_list("Email Account", filters={"email_id": email})
+
+@frappe.whitelist(allow_guest=False)
+def get_email_awaiting(user):
+	waiting = frappe.db.sql("""select email_account,email_id
+		from `tabUser Email`
+		where awaiting_password = 1
+		and parent = %(user)s""", {"user":user}, as_dict=1)
+	if waiting:
+		return waiting
+	else:
+		frappe.db.sql("""update `tabUser Email`
+	    		set awaiting_password =0
+	    		where parent = %(user)s""",{"user":user})
+		return False
+
+@frappe.whitelist(allow_guest=False)
+def set_email_password(email_account, user, password):
+	account = frappe.get_doc("Email Account", email_account)
+	if account.awaiting_password:
+		account.set("awaiting_password",0)
+		account.set("password",password)
+		try:
+			account.save(ignore_permissions=True)
+			frappe.db.sql("""update `tabUser Email` set awaiting_password = 0
+				where email_account = %(account)s""",{"account": email_account})
+			ask_pass_update()
+		except Exception:
+			frappe.db.rollback()
+			return False
+	return True
+
+def ask_pass_update():
+	# update the sys defaults as to awaiting users
+	from frappe.utils import set_default
+	users = frappe.db.sql("""SELECT DISTINCT(parent)
+                    FROM `tabUser Email`
+                    WHERE awaiting_password = 1""", as_list=1)
+
+	password_list = []
+	for u in users:
+		password_list.append(u[0])
+	set_default("email_user_password", u','.join(password_list))
 
 def _get_user_for_update_password(key, old_password):
 	# verify old password
@@ -586,9 +596,9 @@ def sign_up(email, full_name, redirect_to):
 	user = frappe.db.get("User", {"email": email})
 	if user:
 		if user.disabled:
-			return _("Registered but disabled.")
+			return 0, _("Registered but disabled")
 		else:
-			return _("Already Registered")
+			return 0, _("Already Registered")
 	else:
 		if frappe.db.sql("""select count(*) from tabUser where
 			HOUR(TIMEDIFF(CURRENT_TIMESTAMP, TIMESTAMP(modified)))=1""")[0][0] > 300:
@@ -613,24 +623,25 @@ def sign_up(email, full_name, redirect_to):
 			frappe.cache().hset('redirect_after_login', user.name, redirect_to)
 
 		if user.flags.email_sent:
-			return _("Please check your email for verification")
+			return 1, _("Please check your email for verification")
 		else:
-			return _("Please ask your administrator to verify your sign-up")
+			return 2, _("Please ask your administrator to verify your sign-up")
 
 @frappe.whitelist(allow_guest=True)
 def reset_password(user):
 	if user=="Administrator":
-		return _("Not allowed to reset the password of {0}").format(user)
+		return 'not allowed'
 
 	try:
 		user = frappe.get_doc("User", user)
 		user.validate_reset_password()
 		user.reset_password(send_email=True)
 
-		return _("Password reset instructions have been sent to your email")
+		return frappe.msgprint(_("Password reset instructions have been sent to your email"))
 
 	except frappe.DoesNotExistError:
-		return _("User {0} does not exist").format(user)
+		frappe.clear_messages()
+		return 'not found'
 
 def user_query(doctype, txt, searchfield, start, page_len, filters):
 	from frappe.desk.reportview import get_match_cond

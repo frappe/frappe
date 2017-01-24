@@ -144,7 +144,7 @@ frappe.ui.form.LinkSelector = Class.extend({
 
 frappe.link_search = function(doctype, args, callback, btn) {
 	if(!args) {
-		args: {
+		args = {
 			txt: ''
 		}
 	}

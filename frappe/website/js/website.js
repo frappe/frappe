@@ -120,10 +120,10 @@ $.extend(frappe, {
 		}
 
 		if(data.exc) {
-			if(opts.btn) {
-				$(opts.btn).addClass($(opts.btn).is('button') || $(opts.btn).hasClass('btn') ? "btn-danger" : "text-danger");
-				setTimeout(function() { $(opts.btn).removeClass("btn-danger text-danger"); }, 1000);
-			}
+			// if(opts.btn) {
+			// 	$(opts.btn).addClass($(opts.btn).is('button') || $(opts.btn).hasClass('btn') ? "btn-danger" : "text-danger");
+			// 	setTimeout(function() { $(opts.btn).removeClass("btn-danger text-danger"); }, 1000);
+			// }
 			try {
 				var err = JSON.parse(data.exc);
 				if($.isArray(err)) {
@@ -135,10 +135,10 @@ $.extend(frappe, {
 			}
 
 		} else{
-			if(opts.btn) {
-				$(opts.btn).addClass($(opts.btn).is('button') || $(opts.btn).hasClass('btn') ? "btn-success" : "text-success");
-				setTimeout(function() { $(opts.btn).removeClass("btn-success text-success"); }, 1000);
-			}
+			// if(opts.btn) {
+			// 	$(opts.btn).addClass($(opts.btn).is('button') || $(opts.btn).hasClass('btn') ? "btn-success" : "text-success");
+			// 	setTimeout(function() { $(opts.btn).removeClass("btn-success text-success"); }, 1000);
+			// }
 		}
 		if(opts.msg && data.message) {
 			$(opts.msg).html(data.message).toggle(true);

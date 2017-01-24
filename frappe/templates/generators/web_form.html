@@ -233,7 +233,7 @@
 	{% for page in layout %}
 	<i data-idx="{{ loop.index }}" data-toggle="tooltip" data-placement="top"
 		title="{{ page.label or _("Page {0}").format(loop.index) }}" class="fa-fw
-		{% if loop.index==1 %}fa fa-circle{% else %}fa fa-circle-blank{% endif %}"></i>
+		{% if loop.index==1 %}fa fa-circle{% else %}fa fa-circle-o{% endif %}"></i>
 	{% endfor %}
 </div>
 {% endif %}
@@ -347,7 +347,7 @@ frappe.ready(function() {
 	frappe.file_reading = false;
 	frappe.allow_incomplete = {{ allow_incomplete or 0 }};
 	frappe.success_link = '<p>{{ success_message or _("Your information has been submitted") }}</p><p><a href="{{ success_url or "/" }}" class="btn btn-sm btn-default">{{ _("Continue") }}</a></p>'
-	frappe.datepicker_format = "{{ frappe.date_format.replace('yyyy', 'yy') }}";
+	frappe.datepicker_format = "{{ frappe.date_format }}";
 	frappe.web_form_doctype = "{{ doc_type }}";
 	frappe.web_form_name = "{{ name }}";
 	frappe.is_new = {{ 1 if frappe.form_dict.new else 0 }};
@@ -463,10 +463,10 @@ frappe.ready(function() {
 		$('.web-form-page').addClass('hidden');
 
 		// slide-progress
-		$('.slide-progress .fa-fw fa-circle')
-			.removeClass('fa fa-circle').addClass('fa fa-circle-blank');
+		$('.slide-progress .fa-circle')
+			.removeClass('fa-circle').addClass('fa-circle-o');
 		$('.slide-progress .fa-fw[data-idx="'+idx+'"]')
-			.removeClass('fa fa-circle-blank').addClass('fa fa-circle');
+			.removeClass('fa-circle-o').addClass('fa-circle');
 
 		// un hide target section
 		$('.web-form-page[data-idx="'+idx+'"]')
@@ -718,15 +718,18 @@ frappe.ready(function() {
 		var $dates = ele.find("[data-fieldtype='Date']");
 		var $date_times = ele.find("[data-fieldtype='Datetime']");
 
+		if($dates.length || $date_times.length) {
+			frappe.require("assets/frappe/js/lib/datepicker/datepicker.min.js");
+			frappe.require("assets/frappe/js/lib/datepicker/datepicker.en.js");
+			frappe.require("assets/frappe/js/lib/datepicker/datepicker.min.css");
+		}
+
 		// setup date
 		if($dates.length) {
-			frappe.require("assets/frappe/js/lib/jquery/jquery-ui.min.js");
-			frappe.require("assets/frappe/js/lib/jquery/bootstrap_theme/jquery-ui.selected.css");
 			$dates.datepicker({
-				altFormat:'yy-mm-dd',
-				changeYear: true,
-				yearRange: "-70Y:+10Y",
-				dateFormat: frappe.datepicker_format,
+				language: "en",
+				autoClose: true,
+				dateFormat: frappe.datepicker_format
 			});
 
 			// initialize dates from YYYY-MM-DD to user format
@@ -740,16 +743,12 @@ frappe.ready(function() {
 
 		// setup datetime
 		if($date_times.length) {
-			frappe.require("assets/frappe/js/lib/jquery/jquery.ui.slider.min.js");
-			frappe.require("assets/frappe/js/lib/jquery/jquery.ui.sliderAccess.js");
-			frappe.require("assets/frappe/js/lib/jquery/jquery.ui.timepicker-addon.css");
-			frappe.require("assets/frappe/js/lib/jquery/jquery.ui.timepicker-addon.js");
-
-			$date_times.datetimepicker({
-				altFormat:'yy-mm-dd',
-				changeYear: true,
-				yearRange: "-70Y:+10Y",
+			$date_times.datepicker({
+				language: "en",
+				autoClose: true,
 				dateFormat: frappe.datepicker_format,
+				timepicker: true,
+				timeFormat: "hh:ii:ss"
 			});
 		}
 	}
@@ -758,7 +757,7 @@ frappe.ready(function() {
 });
 
 {% if script is defined %}
-{{ script }}
+{{ script.decode('utf-8') }}
 {% endif %}
 
 </script>

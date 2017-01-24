@@ -466,7 +466,7 @@ apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.js +33,Send
 DocType: Report,Query,Pertanyaan
 DocType: DocType,Sort Order,Sort Order
 apps/frappe/frappe/core/doctype/doctype/doctype.py +353,'In List View' not allowed for type {0} in row {1},'Dalam Lihat Senarai' tidak dibenarkan jenis {0} di baris {1}
-apps/frappe/frappe/templates/includes/comments/comments.html +38,Your Email Id,E-mel anda Id
+apps/frappe/frappe/templates/includes/comments/comments.html +38,Your Email Address,E-mel anda Id
 DocType: Custom Field,Select the label after which you want to insert new field.,Pilih label yang anda kehendaki untuk memasukkan bidang baru.
 ,Document Share Report,Dokumen Laporan Share
 DocType: User,Last Login,Log masuk lepas
@@ -650,7 +650,7 @@ DocType: Page,Page HTML,Page HTML
 apps/frappe/frappe/public/js/frappe/views/treeview.js +236,Further nodes can be only created under 'Group' type nodes,Nod lagi hanya boleh diwujudkan di bawah nod jenis &#39;Kumpulan
 DocType: Web Page,Header,Tandukan
 apps/frappe/frappe/public/js/frappe/model/model.js +80,Unknown Column: {0},Ruang yang tidak diketahui: {0}
-DocType: Email Alert Recipient,Optional: Always send to these ids. Each email id on a new row,Pilihan: Sentiasa hantar ke id ini. Setiap id e-mel pada baris baru
+DocType: Email Alert Recipient,Optional: Always send to these ids. Each Email Address on a new row,Pilihan: Sentiasa hantar ke id ini. Setiap id e-mel pada baris baru
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +299,Users with role {0}:,Pengguna dengan peranan {0}:
 apps/frappe/frappe/desk/page/applications/applications.py +76,Installing App {0},Memasang App {0}
 DocType: Print Format,Custom Format,Format Custom
@@ -719,7 +719,7 @@ DocType: Workflow State,retweet,retweet
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +53,Update the template and save in CSV (Comma Separate Values) format before attaching.,Mengemaskini template dan simpan dalam CSV (Comma Nilai berasingan) Format sebelum melampirkan.
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +213,Specify the value of the field,Nyatakan nilai medan
 DocType: Report,Disabled,Orang kurang upaya
-DocType: Email Account,Always use Account's Email ID as Sender,Sentiasa gunakan E-mel ID Akaun sebagai Penghantar
+DocType: Email Account,Always use Account's Email Address as Sender,Sentiasa gunakan E-mel ID Akaun sebagai Penghantar
 DocType: Workflow State,eye-close,mata yang terletak berhampiran
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py +93,Please select another payment method. {0} does not support transactions in currency '{1}',Sila pilih kaedah pembayaran yang lain. {0} tidak menyokong urus niaga dalam mata wang &#39;{1}&#39;
 DocType: OAuth Provider Settings,OAuth Provider Settings,Tetapan OAuth Pembekal
@@ -862,7 +862,7 @@ DocType: File,rgt,Rgt
 DocType: Email Account,Sendgrid,Sendgrid
 DocType: Workflow State,leaf,daun
 DocType: Portal Menu Item,Portal Menu Item,Menu Portal Item
-DocType: Email Account,Email ID,ID e-mel
+DocType: Email Account,Email Address,ID e-mel
 apps/frappe/frappe/public/js/frappe/ui/editor.html +48,Insert Link,Masukkan Link
 DocType: OAuth Client,A list of resources which the Client App will have access to after the user allows it.<br> e.g. project,Senarai sumber mana App Pelanggan akan mempunyai akses kepada selepas pengguna membenarkannya. <br> contohnya projek
 DocType: Contact Us Settings,Query Options,Pertanyaan Pilihan
@@ -898,7 +898,7 @@ apps/frappe/frappe/core/page/data_import_tool/exporter.py +60,Notes:,Nota:
 apps/frappe/frappe/public/js/frappe/form/control.js +1673,Markdown,Turun harga
 DocType: DocShare,Document Name,Dokumen Nama
 DocType: ToDo,Medium,Sederhana
-apps/frappe/frappe/email/doctype/newsletter/newsletter.py +131,Please verify your email id,Sila sahkan id e-mel anda
+apps/frappe/frappe/email/doctype/newsletter/newsletter.py +131,Please verify your Email Address,Sila sahkan id e-mel anda
 apps/frappe/frappe/public/js/frappe/form/linked_with.js +86,Not enough permission to see links.,Tidak cukup kebenaran untuk melihat pautan.
 DocType: Customize Form,Customize Form,Menyesuaikan Borang
 DocType: Currency,A symbol for this currency. For e.g. $,Satu simbol untuk mata wang ini. Contohnya: $
@@ -1089,7 +1089,7 @@ DocType: Workflow State,step-backward,langkah ke belakang
 apps/frappe/frappe/utils/boilerplate.py +252,{app_title},{Tajuk_App}
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +52,Please set Dropbox access keys in your site config,Sila set kunci akses Dropbox dalam config laman anda
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +16,Delete this record to allow sending to this email address,Padam rekod ini untuk membenarkan menghantar ke alamat email ini
-DocType: Email Account,Uses the Email ID mentioned in this Account as the Sender for all emails sent using this Account. ,Menggunakan ID E-mel yang dinyatakan di dalam Akaun ini sebagai penghantar untuk semua e-mel yang dihantar menggunakan akaun ini.
+DocType: Email Account,Uses the Email Address mentioned in this Account as the Sender for all emails sent using this Account. ,Menggunakan ID E-mel yang dinyatakan di dalam Akaun ini sebagai penghantar untuk semua e-mel yang dihantar menggunakan akaun ini.
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +65,Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish.,Hanya medan mandatori yang perlu bagi rekod baru. Anda boleh memadam lajur bukan mandatori jika anda mahu.
 apps/frappe/frappe/public/js/frappe/views/calendar.js +276,Unable to update event,Tidak dapat mengemas kini acara
 apps/frappe/frappe/templates/generators/web_form.html +292,Payment Complete,Complete pembayaran
@@ -1284,7 +1284,7 @@ DocType: Workflow State,bookmark,penanda buku
 DocType: Note,Note,Nota
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot.html +32,Error Report,Laporan ralat
 apps/frappe/frappe/core/doctype/doctype/doctype.py +475,Timeline field must be a valid fieldname,bidang Timeline mesti FIELDNAME yang sah
-DocType: Email Account,Email Ids,E-mel Id
+DocType: Email Account,Email Addresses,E-mel Id
 DocType: Currency,Symbol,Simbol
 apps/frappe/frappe/model/base_document.py +529,Row #{0}:,Row # {0}:
 apps/frappe/frappe/core/doctype/user/user.py +163,New password emailed,Kata laluan baru melalui e-mel
@@ -1714,7 +1714,7 @@ DocType: Async Task,Queued,Beratur
 DocType: PayPal Settings,Use Sandbox,Penggunaan Sandbox
 apps/frappe/frappe/public/js/frappe/form/print.js +98,New Custom Print Format,New Format Custom Cetak
 DocType: DocPerm,Create,Buat
-DocType: Newsletter,A Lead with this email id should exist,Satu Broker dengan id e-mel ini perlu wujud
+DocType: Newsletter,A Lead with this Email Address should exist,Satu Broker dengan id e-mel ini perlu wujud
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +201,Invalid Filter: {0},Penapis tidak sah: {0}
 DocType: Integration Service,Background Events,latar Belakang Peristiwa
 DocType: Dropbox Settings,App Access Key,Aplikasi Access Key
@@ -1890,7 +1890,7 @@ DocType: Workflow Document State,Only Allow Edit For,Hanya Benarkan Edit Untuk
 apps/frappe/frappe/templates/includes/comments/comments.html +34,Your Name,Nama awak
 DocType: DocType,InnoDB,InnoDB
 DocType: File,Is Folder,Adakah Folder
-DocType: Newsletter,Test Email Id,Id Ujian E-mel
+DocType: Newsletter,Test Email Address,Id Ujian E-mel
 DocType: DocType,DocType,DOCTYPE
 apps/frappe/frappe/core/doctype/user/user.py +629,User {0} does not exist,Pengguna {0} tidak wujud
 DocType: Website Theme,"If image is selected, color will be ignored.","Jika imej dipilih, warna akan diabaikan."
@@ -2243,7 +2243,7 @@ DocType: Communication,Email Account,Akaun e-mel
 DocType: Workflow State,Download,Muat turun
 DocType: Blog Post,Blog Intro,Blog Pengenalan
 DocType: Async Task,Result,Keputusan
-apps/frappe/frappe/email/doctype/email_group/email_group.py +87,{0} is not a valid email id,{0} bukan id e-mel yang sah
+apps/frappe/frappe/email/doctype/email_group/email_group.py +87,{0} is not a valid Email Address,{0} bukan id e-mel yang sah
 apps/frappe/frappe/core/doctype/report/report.js +37,Enable Report,Membolehkan Laporan
 DocType: DocField,Display Depends On,Paparan Bergantung Pada
 DocType: Web Page,Insert Code,Masukkan Kod

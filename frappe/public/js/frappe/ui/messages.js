@@ -14,8 +14,12 @@ frappe.messages.get_waiting_message = function(msg) {
 }
 
 frappe.throw = function(msg) {
+	if(typeof msg==='string') {
+		msg = {message: msg, title: __('Error')};
+	}
+	if(!msg.indicator) msg.indicator = 'red';
 	msgprint(msg);
-	throw new Error(msg);
+	throw new Error(msg.message);
 }
 
 frappe.confirm = function(message, ifyes, ifno) {
