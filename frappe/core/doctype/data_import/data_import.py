@@ -8,7 +8,6 @@ import frappe, json, csv
 import frappe.async
 import frappe.permissions
 from frappe.model.document import Document
-from frappe.model.mapper import get_mapped_doc
 
 import time
 
@@ -45,7 +44,6 @@ class DataImport(Document):
 		self.name = self.reference_doctype +" import on "+ format_datetime(self.creation)
 
 		if not self.import_file:
-			print "in not import file update"
 			self.preview_data = None
 			self.file_preview = None
 			self.flag_file_preview = 0
@@ -53,7 +51,6 @@ class DataImport(Document):
 			self.template = "no file"
 
 		if self.import_file and self.template == "no file":
-			print "in template deciding"
 			file_path = os.getcwd()+get_site_path()[1:].encode('utf8')+self.import_file
 			filename, file_extension = os.path.splitext(file_path)
 			if file_extension == '.xlsx':	
@@ -67,7 +64,7 @@ class DataImport(Document):
 
 
 	def set_preview_data(self, file_path):
-		print "in set preview data"
+
 		wb = load_workbook(filename=file_path)
 		ws = wb.active
 
@@ -85,11 +82,9 @@ class DataImport(Document):
 			for row in ws.iter_rows(max_row=max_randered_row):
 				tmp_list = []
 				for cell in row:
-					print cell.value
 					tmp_list.append(cell.value)
 				if [x for x in tmp_list if x != None]:
 					file_data.append(tmp_list)
-			print file_data
 			self.preview_data = json.dumps(file_data)
 
 			# Considering user will upload same file in a particular doctype
@@ -118,48 +113,36 @@ class DataImport(Document):
 			return ""
 
 	def insert_into_db(self, file_path=None, rows=None):
-		print "in the inset_into_db"
-
-		enqueue(testrun())
+		print "in the insert into db"
 		
-		data = [["#1","Asdfhr sdfbr","DOC0001","Row Inserted and saved"],["#2","Sgdgrtg ddggrt","DOC0002","Row Updated"],["#3","Rdfgf dfggf","DOC0003","Row Ignored"]];
-		return data
-		# print "before stop"
-		# frappe.throw("stop")		
+		if not file_path:
+			file_path = os.getcwd()+get_site_path()[1:].encode('utf8') + self.import_file
+		filename, file_extension = os.path.splitext(file_path)
 
-		# print "in the insert into db"
-		
-		# if not file_path:
-		# 	file_path = os.getcwd()+get_site_path()[1:].encode('utf8') + self.import_file
-		# filename, file_extension = os.path.splitext(file_path)
+		if self.template == "raw" and file_extension == '.xlsx':
+			enqueue(self.upload_raw(file_path))
 
-		# if self.template == "raw" and file_extension == '.xlsx':
-		# 	print "in xlsx file"
-		# 	enqueue(self.upload_raw(file_path))
+		elif self.template == "template" and file_extension == '.xlsx':
+			wb = load_workbook(filename=file_path, read_only=True)
+			ws = wb.active
 
-		# elif self.template == "template" and file_extension == '.xlsx':
-		# 	print "in xlsx template"
-		# 	wb = load_workbook(filename=file_path, read_only=True)
-		# 	ws = wb.active
+			rows = []
+			for row in ws.iter_rows():
+				tmp_list = []
+				for cell in row:
+					tmp_list.append(cell.value)
+				rows.append(tmp_list)
 
-		# 	rows = []
-		# 	for row in ws.iter_rows():
-		# 		tmp_list = []
-		# 		for cell in row:
-		# 			tmp_list.append(cell.value)
-		# 		rows.append(tmp_list)
+			log_message = upload_template(doc_name=doc_name, overwrite=only_new_records, update_only=only_update,
+				submit_after_import=submit_after_import, ignore_encoding_errors=ignore_encoding_errors,
+				no_email=no_email, rows=rows)
+			return log_message
 
-		# 	log_message = upload_template(doc_name=doc_name, overwrite=only_new_records, update_only=only_update,
-		# 		submit_after_import=submit_after_import, ignore_encoding_errors=ignore_encoding_errors,
-		# 		no_email=no_email, rows=rows)
-		# 	return log_message
-
-		# elif self.template == "template" and file_extension == '.csv':
-		# 	print "in csv template"
-		# 	log_message = upload_template(doc_name=doc_name, overwrite=only_new_records, update_only=only_update,
-		# 		submit_after_import=submit_after_import, ignore_encoding_errors=ignore_encoding_errors,
-		# 		no_email=no_email, rows=rows)
-		# 	return log_message
+		elif self.template == "template" and file_extension == '.csv':
+			log_message = upload_template(doc_name=doc_name, overwrite=only_new_records, update_only=only_update,
+				submit_after_import=submit_after_import, ignore_encoding_errors=ignore_encoding_errors,
+				no_email=no_email, rows=rows)
+			return log_message
 
 
 	def upload_raw(self,file_path):
@@ -183,22 +166,24 @@ class DataImport(Document):
 
 		error = False
 		column_map = json.loads(self.selected_columns)
-		doc = frappe.new_doc(self.reference_doctype)
-		for field in doc.meta.fields:
+		# doc = frappe.new_doc(self.reference_doctype)
+		
+		for field in frappe.get_meta(self.reference_doctype).fields:
 			if field.reqd == 1 and field.fieldname not in column_map:
 				frappe.throw("Please select all required fields to insert")
+
 		wb = load_workbook(filename=file_path, read_only=True)
 		ws = wb.active
 
 		start =  int(self.selected_row)
 		for i,row in enumerate(ws.iter_rows(min_row=start)):
 			if [x for x in row if x.value != None]:
-				
+				frappe.publish_realtime("data_import_progress", {"progress": [i, ws.max_row]},user=frappe.session.user)
+
 				try:
 					new_doc = frappe.new_doc(self.reference_doctype)
 					for j,cell in enumerate(row):
 						if column_map[j] and column_map[j] != "do_not_map":
-							print column_map[j],cell.value
 							setattr(new_doc, column_map[j], cell.value)
 					new_doc.insert()
 					new_doc.save()
@@ -206,8 +191,8 @@ class DataImport(Document):
 
 				except Exception, e:
 					error = True
-					if doc:
-						frappe.errprint(doc if isinstance(doc, dict) else doc.as_dict())
+					if new_doc:
+						frappe.errprint(new_doc if isinstance(new_doc, dict) else new_doc.as_dict())
 					err_msg = frappe.local.message_log and "\n\n".join(frappe.local.message_log) or cstr(e)
 					log([i,row[1].value,"","Error"])
 					log('Error for insertion')
@@ -223,38 +208,12 @@ class DataImport(Document):
 
 		log_message = {"messages": ret, "error": error}
 		self.log_details = json.dumps(log_message)
-
-
-def testrun():
-	sum = 0
-	print "in testrun"
-	for i in range(10):
-		print "publishing"
-		frappe.publish_realtime("data_import_p", {"progress": [i, 10]},user=frappe.session.user)
-		time.sleep(2);
-
-
-@frappe.whitelist()
-def route_to_export_template(source_name):
-	print source_name
-	export_template = get_mapped_doc("Data Import", source_name,
-		{"Data Import": {
-			"doctype": "Export Template",
-			"field_map": {
-				# "reference_doctype": "reference_doctype"
-			}
-		}}, ignore_permissions=True)
-	# export_template.save()
-	return export_template
-
-
-
+		self.freeze_doctype = 1
+		
 
 def upload_template(doc_name, overwrite, update_only, submit_after_import, ignore_encoding_errors,
 		no_email, rows = None, ignore_links=False, pre_process=None, via_console=False):
 	"""upload the templated data"""
-
-	print doc_name,overwrite,update_only,submit_after_import,ignore_encoding_errors,no_email
 
 	frappe.flags.in_import = True
 
@@ -406,10 +365,6 @@ def upload_template(doc_name, overwrite, update_only, submit_after_import, ignor
 
 
 	make_column_map()
-
-	# print doctypes
-	# frappe.throw("stop")
-
 
 	# delete child rows (if parenttype)
 	parentfield = None
