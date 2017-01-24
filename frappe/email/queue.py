@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 import frappe
 import HTMLParser
-import smtplib
+import smtplib, quopri
 from frappe import msgprint, throw, _
 from frappe.email.smtp import SMTPServer, get_outgoing_email_account
 from frappe.email.email_body import get_email, get_formatted_html
@@ -426,7 +426,7 @@ def prepare_message(email, recipient, recipients_list):
 	if email.reference_doctype: # is missing the check for unsubscribe message but will not add as there will be no unsubscribe url
 		unsubscribe_url = get_unsubcribed_url(email.reference_doctype, email.reference_name, recipient,
 		email.unsubscribe_method, email.unsubscribe_params)
-		message = message.replace("<!--unsubscribe url-->", unsubscribe_url)
+		message = message.replace("<!--unsubscribe url-->", quopri.encodestring(unsubscribe_url))
 
 	if email.expose_recipients == "header":
 		pass
@@ -442,9 +442,9 @@ def prepare_message(email, recipient, recipients_list):
 				email_sent_message = _("This email was sent to {0} and copied to {1}").format(email_sent_to,email_sent_cc)
 			else:
 				email_sent_message = _("This email was sent to {0}").format(email_sent_to)
-			message = message.replace("<!--cc message-->", email_sent_message)
+			message = message.replace("<!--cc message-->", quopri.encodestring(email_sent_message))
 
-		message = message.replace("<!--recipient-->", recipient)
+		message = message.replace("<!--recipient-->", quopri.encodestring(recipient))
 	return message
 
 def clear_outbox():
