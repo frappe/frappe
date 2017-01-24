@@ -7,7 +7,10 @@ frappe.search.AwesomeBar = Class.extend({
 		var $input = $(element);
 		var input = $input.get(0);
 		var me = this;
-		this.search = new frappe.search.Search();
+		this.search = new frappe.search.UnifiedSearch();
+		this.global = new frappe.search.Search();
+		this.help = new frappe.search.HelpSearch();
+		this.nav = new frappe.search.NavSearch();
 
 		var awesomplete = new Awesomplete(input, {
 			minChars: 0,
@@ -72,8 +75,6 @@ frappe.search.AwesomeBar = Class.extend({
 
 			if(item.onclick) {
 				item.onclick(item.match);
-				console.log("onclick", item.onclick);
-				console.log("match", item.match);
 			} else {
 				var previous_hash = window.location.hash;
 				frappe.set_route(item.route);
@@ -88,10 +89,8 @@ frappe.search.AwesomeBar = Class.extend({
 		$input.on("awesomplete-selectcomplete", function(e) {
 			$input.val("");
 		});
-
-		this.make_page_title_map();
 		this.setup_recent();
-
+		this.search.setup();
 	},
 
 	add_recent: function(txt) {
@@ -168,15 +167,7 @@ frappe.search.AwesomeBar = Class.extend({
 			}
 		});
 	},
-	
-	make_page_title_map: function() {
-		var me = this;
-		this.pages = {};
-		$.each(frappe.boot.page_info, function(name, p) {
-			me.pages[p.title] = p;
-			p.name = name;
-		});
-	},
+
 	setup_recent: function() {
 		this.recent = JSON.parse(frappe.boot.user.recent || "[]") || [];
 	},
@@ -214,7 +205,7 @@ frappe.search.AwesomeBar = Class.extend({
 			match: txt,
 			onclick: function() {
 				me.search.search_dialog.show();
-				me.search.on_awesome_bar(txt);
+				me.search.setup_search(txt, [me.global]);
 			}
 		}];
 	},
@@ -296,19 +287,10 @@ frappe.search.AwesomeBar = Class.extend({
 						route: ["List", target]
 					});
 				}
-<<<<<<< HEAD
-				if(frappe.boot.calendars.indexOf(match) !== -1) {
-					out.push({
-						label: __("{0} Calendar", [__(match).bold()]),
-						value: __("{0} Calendar", [__(match)]),
-						route:["List", match, "Calendar"]
-					});
-=======
 			});
 		}
 		return out;
 	},
->>>>>>> 583657e... Fix SQL bug, Refactor awesome bar, Fix unicode bug, add nav results
 
 	get_doctypes: function(txt) {
 		var me = this;
@@ -332,8 +314,8 @@ frappe.search.AwesomeBar = Class.extend({
 					out.push({
 						label: __("New {0}", [target.bold()]),
 						value: __("New {0}", [target]),
+						route: [],
 						match: target,
-						route: [""],
 						onclick: function() { frappe.new_doc(target, true); }
 					});
 				}
@@ -388,6 +370,11 @@ frappe.search.AwesomeBar = Class.extend({
 	get_pages: function(txt) {
 		var me = this;
 		var out = [];
+		this.pages = {};
+		$.each(frappe.boot.page_info, function(name, p) {
+			me.pages[p.title] = p;
+			p.name = name;
+		});
 		Object.keys(this.pages).forEach(function(item) {
 			var target = me.is_present(txt, item);
 			if(target) {
@@ -403,19 +390,11 @@ frappe.search.AwesomeBar = Class.extend({
 		// calendar
 		var target = 'Calendar';
 		if(__('calendar').indexOf(txt.toLowerCase()) === 0) {
-<<<<<<< HEAD
-			frappe.awesome_bar.options.push({
-				label: __("Open {0}", [__(match).bold()]),
-				value: __("Open {0}", [__(match)]),
-				route: ['List', 'Event', 'Calendar'],
-				match: match
-=======
 			out.push({
 				label: __("Open {0}", [__(target).bold()]),
 				value: __("Open {0}", [__(target)]),
 				route: [target, 'Event'],
-				match: target
->>>>>>> 583657e... Fix SQL bug, Refactor awesome bar, Fix unicode bug, add nav results
+				match: target 
 			});
 		}
 		return out;
@@ -444,5 +423,4 @@ frappe.search.AwesomeBar = Class.extend({
 		});
 		return out;
 	},
-	
 });

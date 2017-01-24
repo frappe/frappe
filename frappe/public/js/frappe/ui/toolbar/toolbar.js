@@ -9,8 +9,8 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 			avatar: frappe.avatar(frappe.session.user)
 		}));
 
-		this.search = new frappe.search.Search();
-		this.search.setup();
+		// this.search = new frappe.search.Search();
+		// this.search.setup();
 
 		this.setup_sidebar();
 
@@ -106,11 +106,9 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 
 		$(document).on("page-change", function () {
 			var $help_links = $(".dropdown-help #help-links");
-			console.log("$help_links", $help_links);
 			$help_links.html("");
 
 			var route = frappe.get_route_str();
-			console.log("route", route);
 			var breadcrumbs = route.split("/");
 
 			var links = [];
@@ -118,9 +116,7 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 				var r = route.split("/", i + 1);
 				var key = r.join("/");
 				var help_links = frappe.help.help_links[key] || [];
-				console.log("help_links", help_links);
 				links = $.merge(links, help_links);
-				console.log("links", links);
 			}
 
 			if(links.length === 0) {
@@ -152,12 +148,12 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 		});
 
 		var $help_modal = frappe.get_modal("Help", "");
-		$help_modal.addClass('search-modal');
+		$help_modal.addClass('help-modal');
 
 		var $result_modal = frappe.get_modal("", "");
-		$result_modal.addClass("search-modal help-modal");
+		$result_modal.addClass("help-modal");
 
-		$(document).on("click", ".search-modal a", show_results);
+		$(document).on("click", ".help-modal a", show_results);
 
 		function show_help_results(keywords) {
 			frappe.call({
@@ -188,7 +184,6 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 					$help_modal.modal('show');
 				}
 			});
-
 		}
 
 		function show_results(e) {
@@ -200,7 +195,6 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 
 			var converter = new Showdown.converter();
 			var path = $(this).attr("data-path");
-			console.log("inside help path", path);
 			if(path) {
 				e.preventDefault();
 				frappe.call({
@@ -209,7 +203,6 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 						path: path
 					},
 					callback: function (r) {
-						console.log("inside help callback:", r.message);
 						if(r.message && r.message.title) {
 							$result_modal.find('.modal-title').html("<span>"
 								+ r.message.title + "</span>");
@@ -222,6 +215,7 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 		}
 	}
 });
+
 
 $.extend(frappe.ui.toolbar, {
 	add_dropdown_button: function(parent, label, click, icon) {

@@ -7,7 +7,6 @@ import frappe
 
 def setup_table():
 	'''Creates __global_seach table'''
-	print "creating table"
 	if not '__global_search' in frappe.db.get_tables():
 		frappe.db.sql('''create table __global_search(
 			doctype varchar(100),
@@ -18,8 +17,6 @@ def setup_table():
 			COLLATE=utf8mb4_unicode_ci
 			ENGINE=MyISAM
 			CHARACTER SET=utf8mb4''')
-		print "Table created"
-	print "Table not created"
 	reset()
 
 def reset():
@@ -39,8 +36,6 @@ def update_global_search(doc):
 		frappe.flags.update_global_search = []
 
 	content = []
-	print doc.doctype
-	print doc.meta.get_global_search_fields()
 	for field in doc.meta.get_global_search_fields():
 		if getattr(field, 'in_global_search', None) and doc.get(field.fieldname):
 			if getattr(field, 'fieldtype', None) == "Table":
@@ -96,9 +91,7 @@ def search(text, start=0, limit=20):
 	:param text: phrase to be searched
 	:param start: start results at, default 0
 	:param limit: number of results to return, default 20'''
-	print "Here's what I got:"
 	text = "+" + text + "*"
-	print text
 
 	results = frappe.db.sql('''
 		select
@@ -108,6 +101,40 @@ def search(text, start=0, limit=20):
 		where
 			match(content) against (%s IN BOOLEAN MODE)
 		limit {start}, {limit}'''.format(start=start, limit=limit), text, as_dict=True)
-	print results
 	return results
+
+@frappe.whitelist()
+def get_doctypes():
+	'''Return all doctypes in __global_search ordered by count of entries'''
+
+	results = frappe.db.sql('''
+		select 
+			doctype 
+		from 
+			__global_search 
+		group by 
+			doctype 
+		order by 
+			count(doctype) desc''', as_dict=True)
+	return results
+
+@frappe.whitelist()
+def search_in_doctype(doctype, text, start=0, limit=20):
+	'''Search for given text in given doctype in __global_search
+
+	:param doctype: doctype to be searched in
+	:param text: phrase to be searched
+	:param start: start results at, default 0
+	:param limit: number of results to return, default 20'''
+	results = frappe.db.sql('''
+		select
+			doctype, name, content
+		from
+			__global_search
+		where
+			doctype = %s AND
+			match(content) against (%s IN BOOLEAN MODE)
+		limit {start}, {limit}'''.format(start=start, limit=limit), (doctype, text), as_dict=True)
+	return results
+
 
