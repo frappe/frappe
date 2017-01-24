@@ -32,7 +32,9 @@ frappe.ui.form.on('Kanban Board', {
 	field_name: function(frm) {
 		var field = frappe.meta.get_field(frm.doc.reference_doctype, frm.doc.field_name);
 		frm.doc.columns = [];
-		field.options.split('\n').forEach(function(o, i) {
+		field.options && field.options.split('\n').forEach(function(o, i) {
+			o = o.trim();
+			if(!o) return;
 			d = frm.add_child('columns');
 			d.column_name = o;
 		});

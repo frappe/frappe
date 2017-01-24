@@ -801,26 +801,19 @@ frappe.provide("frappe.views");
 	function get_card_meta(opts) {
 		var meta = frappe.get_meta(opts.doctype);
 		var doc = frappe.model.get_new_doc(opts.doctype);
-		var field = null;
-		var quick_entry = true;
+		var title_field = null;
+		var quick_entry = false;
 		var description_field = null;
 		var due_date_field = null;
 
 		if(meta.title_field) {
-			field = frappe.meta.get_field(opts.doctype, meta.title_field);
+			title_field = frappe.meta.get_field(opts.doctype, meta.title_field);
 		}
 
 		meta.fields.forEach(function (df) {
-			if (df.reqd && !doc[df.fieldname]) {
-				// missing mandatory
-				if (in_list(['Data', 'Text', 'Small Text', 'Text Editor'], df.fieldtype) && !field) {
-					// can be mapped to textarea
-					field = df;
-					quick_entry = false;
-				} else {
-					// second mandatory missing, use quick_entry
-					quick_entry = true;
-				}
+			if (in_list(['Data', 'Text', 'Small Text', 'Text Editor'], df.fieldtype) && !title_field) {
+				// can be mapped to textarea
+				title_field = df;
 			}
 			if (df.fieldtype === "Text Editor" && !description_field) {
 				description_field = df;
@@ -830,13 +823,21 @@ frappe.provide("frappe.views");
 			}
 		});
 
-		if(!field) {
-			field = frappe.meta.get_field(opts.doctype, 'name');
+		// quick entry
+		var mandatory = meta.fields.filter(function(df) {
+			return df.reqd && !doc[df.fieldname];
+		});
+		if(mandatory.length > 1) {
+			quick_entry = true;
+		}
+
+		if(!title_field) {
+			title_field = frappe.meta.get_field(opts.doctype, 'name');
 		}
 
 		return {
 			quick_entry: quick_entry,
-			title_field: field,
+			title_field: title_field,
 			description_field: description_field,
 			due_date_field: due_date_field,
 		}
