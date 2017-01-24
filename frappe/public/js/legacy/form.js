@@ -922,8 +922,18 @@ _f.Frm.prototype.action_perm_type_map = {
 
 _f.Frm.prototype.validate_form_action = function(action) {
 	var perm_to_check = this.action_perm_type_map[action];
+	var allowed_for_workflow = false;
+	var perms = frappe.perm.get_perm(this.doc.doctype)[0];
 
-	if (!this.perm[0][perm_to_check]) {
+	// Allow submit, write and create permissions for read only documents that are assigned by 
+	// workflows if the user already have those permissions. This is to allow for users to 
+	// continue through the workflow states and to allow execution of functions like Duplicate.
+	if (frappe.workflow.is_read_only(this.doctype, this.docname) && (perms["write"] ||
+		perms["create"] || perms["submit"])) {
+		var allowed_for_workflow = true;
+	}
+
+	if (!this.perm[0][perm_to_check] && !allowed_for_workflow) {
 		frappe.throw (__("No permission to '{0}' {1}", [__(action), __(this.doc.doctype)]));
 	}
 };
