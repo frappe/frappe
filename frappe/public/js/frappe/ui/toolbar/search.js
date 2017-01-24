@@ -32,7 +32,6 @@ frappe.search.UnifiedSearch = Class.extend({
 				me.sidebar.empty();
 				me.results_area.empty();
 				if(keywords.length > 0) {
-					me.reset(keywords);
 					me.build_results(keywords);
 				}
 			}, 250));
@@ -41,76 +40,61 @@ frappe.search.UnifiedSearch = Class.extend({
 		setTimeout(function() { me.input.select(); }, 500);
 	},
 
-	reset: function(keywords) {
+	reset: function() {
 		this.sidebar.empty();
 		this.results_area.empty();
-		var input = this.input.val();
-		if(input.length > 0) {
-			this.results_area.html('<p class="result-status text-muted">'+
-			'No results found for: '+ "'"+ keywords +"'" +'</p>');
-		}
 	},
 
 	build_results: function(keywords) {
 		var me = this;
-		this.sidebar.empty();
-		this.results_area.empty();
-		this.count = 1;
-		this.search_objects.forEach(function(search_object) {
-			search_object.build_results_object(me, keywords);
-			
-		});
+		this.full_lists = {};
+		this.current = 0;
+		this.results_area.html('<p class="results-status text-muted">'+
+			'No results found for: '+ "'"+ keywords +"'" +'</p>');
+		this.search_objects[me.current].build_results_object(me, keywords);
 	},
 
-	show_results: function(results_obj, search_obj) {
+	show_results: function(results_obj, search_obj, keywords) {
 		if(results_obj) {
 			this.render_results(results_obj);
-			this.bind_events(results_obj, search_obj);
+			this.bind_events(results_obj, search_obj, keywords);
 		}
 	},
 
 	render_results: function(results_obj){
 		var me = this;
+		if(this.current === 0) { this.reset() }
 		this.sidebar.append(results_obj.sidelist);
+		this.results_area.find('.results-status').remove();
 		results_obj.sections.forEach(function(section) {
 			me.results_area.append(section);
 		});
+		this.full_lists = Object.assign(this.full_lists, results_obj.lists);
 	},
 
-	bind_events: function(results_obj, search_obj) {
+	bind_events: function(results_obj, search_obj, keywords) {
 		var me = this;
 		this.sidebar.find('.list-link').on('click', function() {
 			me.sidebar.find(".list-link a").removeClass("disabled");
 			$(this).find('a').addClass("disabled");
 			var type = $(this).attr('data-category');
-
-			console.log("doclist defined?", results_obj.lists[type]);
-			me.results_area.empty().html(results_obj.lists[type]);
+			me.results_area.empty().html(me.full_lists[type]);
 
 			search_obj.start[type] = search_obj.more_length;
 			var more_button = me.results_area.find('.list-more');
 			more_button.on('click', function() {
-				var more_data = search_obj.get_more_results(type);
-				var more_results = more_data[0];
-				var more = more_data[1];
-				me.results_area.find('.list-more').before(more_results);
-
-				if(!more) {
-					me.results_area.find('.list-more').hide();
-				}
+				console.log("list more clicked");
+				search_obj.get_more_results(type, me);
 			});
-
 			return false;
 		});
+
 		this.results_area.find('.section-more').on('click', function() {
 			var type = $(this).attr('data-category');
 			me.sidebar.find('*[data-category="'+ type +'"]').trigger("click");
 		});
 
-		// If there's only one link in sidebar, show its full list
-		if(this.sidebar.find('.list-link').length === 1) {
-			this.sidebar.find('.list-link').trigger("click");
-		}
+		this.render_next_search(keywords);
 	},
 
 	add_more_results: function(more_data) {
@@ -119,6 +103,18 @@ frappe.search.UnifiedSearch = Class.extend({
 		this.results_area.find('.list-more').before(more_results);
 		if(!more) {
 			this.results_area.find('.list-more').hide();
+		}
+	},
+
+	render_next_search: function(keywords) {
+		this.current += 1;
+		if(this.current < this.search_objects.length){
+			this.search_objects[this.current].build_results_object(this, keywords);
+		} else {
+			// If there's only one link in sidebar, show its full list
+			if(this.sidebar.find('.list-link').length === 1) {
+				this.sidebar.find('.list-link').trigger("click");
+			}
 		}
 	}
 
@@ -131,7 +127,7 @@ frappe.search.Search = Class.extend({
 		this.types = [];
 		this.sections = [];
 		this.lists = {};
-		this.more_length = 5;
+		this.more_length = 15;
 		this.start = {};
 		this.section_length = 3;
 		this.set_types();
@@ -140,9 +136,10 @@ frappe.search.Search = Class.extend({
 	set_types: function() {
 		var me = this;
 		this.search_type = 'Global Search';
+		var keywords = this.keywords;
 		frappe.call({
-			method: "frappe.utils.global_search.get_doctypes",
-			args: {},
+			method: "frappe.utils.global_search.get_search_doctypes",
+			args: { text: keywords },
 			callback: function(r) {
 				if(r.message) {
 					r.message.forEach(function(d) {
@@ -151,6 +148,8 @@ frappe.search.Search = Class.extend({
 					});
 					me.sidelist = me.make_sidelist();
 					me.get_results();
+				} else {
+					me.render_object.render_next_search(me.keywords);
 				}
 			}
 		});
@@ -166,43 +165,45 @@ frappe.search.Search = Class.extend({
 	get_result_set: function(doctype){
 		var me = this;
 		var more = true;
-		var keywords = this.keywords;
-		var start = this.start[doctype];
-		var limit = this.more_length;
 		var last_type = (doctype == this.types.slice(-1));
 		frappe.call({
 			method: "frappe.utils.global_search.search_in_doctype",
 			args: { 
 				doctype: doctype, 
-				text: keywords, 
-				start: 0, 
-				limit: 20,
+				text: me.keywords, 
+				start: me.start[doctype], 
+				limit: me.more_length,
 			},
 			callback: function(r) {
 				if(r.message) {
+					me.start[doctype] += me.more_length;
+					if(r.message.length <= me.more_length) {
+						more = false;
+					}
 					me.make_type_results(doctype, r.message, more);
 					if(last_type) {
 						me.show_results();
 					}
-				} 
+				}
 			}
 		});
 	},
 
-	get_more_results: function(doctype) {
+	get_more_results: function(doctype, render_object) {
 		var me = this;
 		var more = true;
 		frappe.call({
 			method: "frappe.utils.global_search.search_in_doctype",
 			args: { 
 				doctype: doctype, 
-				text: keywords, 
-				start: 0, 
-				limit: 20,
+				text: me.keywords, 
+				start: me.start[doctype], 
+				limit: me.more_length,
 			},
 			callback: function(r) {
 				if(r.message) {
-					me.make_more_list(doctype, r.message, more);
+					me.start[doctype] += me.more_length;
+					me.make_more_list(doctype, r.message, more, render_object);
 				} 
 			}
 		});
@@ -217,23 +218,19 @@ frappe.search.Search = Class.extend({
 	},
 	
 	build_results_object: function(r, keywords) {
-		console.log("this setup called");
 		this.render_object = r;
 		this.keywords = keywords;
 		this.setup();
-		console.log("this setup done");
 	},
 
 	show_results: function() {
 		var me = this;
 		if(this.sections.length > 0) {
-			console.log(me.search_type);
-			console.log(me.lists);
 			this.render_object.show_results({
 				sidelist: me.sidelist,
 				sections: me.sections,
 				lists: me.lists
-			}, me);
+			}, me, me.keywords);
 		}
 	},
 
@@ -297,7 +294,7 @@ frappe.search.Search = Class.extend({
 		return results_module;
 	},
 
-	make_more_list: function(type, results, more) {
+	make_more_list: function(type, results, more, render_object) {
 		var me = this;
 		if(results.length < this.more_length) { more = false; }
 
@@ -305,7 +302,7 @@ frappe.search.Search = Class.extend({
 		results.forEach(function(result) {
 			more_results.append(me.make_result_item(type, result));
 		});
-		return [more_results, more];
+		render_object.add_more_results([more_results, more]);
 	},
 
 	make_sidelist: function() {
@@ -335,6 +332,7 @@ frappe.search.NavSearch = frappe.search.Search.extend({
 		this.awesome_bar = new frappe.search.AwesomeBar();
 		this.nav_results = {
 			"Lists": me.awesome_bar.get_doctypes(keywords),
+			////// Search In
 			"Reports": me.awesome_bar.get_reports(keywords),
 			"Pages": me.awesome_bar.get_pages(keywords),
 			"Modules": me.awesome_bar.get_modules(keywords)
@@ -349,11 +347,13 @@ frappe.search.NavSearch = frappe.search.Search.extend({
 		if(this.types.length > 0) {
 			this.sidelist = this.make_sidelist();
 			this.get_results();
+		} else {
+			this.render_object.render_next_search(me.keywords);
 		}
 	}, 
 	get_result_set: function(type) {
 		var last_type = (type == this.types.slice(-1));
-
+		
 		var results = this.nav_results[type].slice(this.start[type], this.more_length);
 		this.start[type] += this.more_length;
 		var more = true;
@@ -366,14 +366,14 @@ frappe.search.NavSearch = frappe.search.Search.extend({
 		}
 	},
 
-	get_more_results: function(type) {	
+	get_more_results: function(type, render_object) {	
 		var results = this.nav_results[type].slice(this.start[type], this.start[type]+this.more_length);
 		this.start[type] += this.more_length;
 		var more = true;
 		if(results.slice(-1)[0] === this.nav_results[type].slice(-1)[0]) {
 			more = false;
 		}
-		return this.make_more_list(type, results, more)
+		return this.make_more_list(type, results, more, render_object)
 	},
 
 	make_result_item: function(type, result) {
@@ -404,6 +404,8 @@ frappe.search.NavSearch = frappe.search.Search.extend({
 });
 
 frappe.search.HelpSearch = frappe.search.Search.extend({
+
+	// Help search doesn't have a more button for list
 	set_types: function() {
 		this.search_type = 'Help';
 		this.types = ['Help'];
@@ -413,17 +415,18 @@ frappe.search.HelpSearch = frappe.search.Search.extend({
 
 	get_result_set: function(type, start) {
 		var me = this;
-		var keywords = this.keywords;
 		frappe.call({
 			method: "frappe.utils.help.get_help",
 			args: {
-				text: keywords
+				text: me.keywords
 			},
 			callback: function(r) {
 				if(r.message) {
 					me.make_type_results(type, r.message, false);
 					me.show_results();
-				} 
+				} else {
+					me.render_object.render_next_search(me.keywords);
+				}
 			}
 		});
 	},

@@ -31,7 +31,10 @@ frappe.search.AwesomeBar = Class.extend({
 					.html('<a style="font-weight:normal"><p>' + html + '</p></a>')
 					.get(0);
 			},
-			sort: function(a, b) { return 0; }
+			sort: function(a, b) { 
+				// make better
+				return 0; 
+			}
 		});
 
 		$input.on("input", function(e) {
@@ -180,21 +183,17 @@ frappe.search.AwesomeBar = Class.extend({
 	},
 
 	build_options: function(txt) {
-		this.single_results = 
+		this.options = 
 			this.make_global_search(txt).concat(
 				this.make_search_in_current(txt),
-				this.make_calculator(txt)
-			);
-		this.multi_results = 
-			this.make_new_doc(txt).concat(
+				this.make_calculator(txt),
+				this.make_new_doc(txt),
 				this.make_search_in_list(txt),
 				this.get_doctypes(txt),
 				this.get_reports(txt),
 				this.get_pages(txt),
 				this.get_modules(txt)
 			);
-
-		this.options = this.single_results.concat(this.multi_results);
 	},
 
 	make_global_search: function(txt) {
@@ -205,7 +204,7 @@ frappe.search.AwesomeBar = Class.extend({
 			match: txt,
 			onclick: function() {
 				me.search.search_dialog.show();
-				me.search.setup_search(txt, [me.global]);
+				me.search.setup_search(txt, [me.nav, me.global]);
 			}
 		}];
 	},
@@ -273,6 +272,7 @@ frappe.search.AwesomeBar = Class.extend({
 	},
 
 	make_search_in_list: function(txt) {
+		// make this 
 		var me = this;
 		var out = [];
 		if(in_list(txt.split(" "), "in")) {
@@ -293,6 +293,7 @@ frappe.search.AwesomeBar = Class.extend({
 	},
 
 	get_doctypes: function(txt) {
+		// make this 
 		var me = this;
 		var out = [];
 
@@ -305,7 +306,6 @@ frappe.search.AwesomeBar = Class.extend({
 				match: target
 			}
 		}
-		// shows options for a any second word
 		frappe.boot.user.can_read.forEach(function (item) {
 			target = me.is_present(txt, item);
 			if(target) {
