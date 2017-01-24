@@ -241,7 +241,9 @@ frappe.ui.form.Timeline = Class.extend({
 		}
 
 		c.comment_on = comment_when(c.creation);
-		c.fullname = c.sender_full_name || frappe.user.full_name(c.sender);
+		if(!c.fullname) {
+			c.fullname = c.sender_full_name || frappe.user.full_name(c.sender);
+		}
 
 		if(c.attachments && typeof c.attachments==="string")
 			c.attachments = JSON.parse(c.attachments);
@@ -372,6 +374,8 @@ frappe.ui.form.Timeline = Class.extend({
 					creation: version.creation,
 					owner: version.owner,
 					version_name: version.name,
+					sender: version.owner,
+					comment_by: version.owner,
 					content: text
 				});
 			}
