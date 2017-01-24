@@ -55,11 +55,13 @@ def export_fixtures():
 	for app in frappe.get_installed_apps():
 		for fixture in frappe.get_hooks("fixtures", app_name=app):
 			filters = None
+			or_filters = None
 			if isinstance(fixture, dict):
 				filters = fixture.get("filters")
+				or_filters = fixture.get("or_filters")
 				fixture = fixture.get("doctype") or fixture.get("dt")
-			print "Exporting {0} app {1} filters {2}".format(fixture, app, filters)
+			print "Exporting {0} app {1} filters {2}".format(fixture, app, (filters if filters else or_filters))
 			if not os.path.exists(frappe.get_app_path(app, "fixtures")):
 				os.mkdir(frappe.get_app_path(app, "fixtures"))
 
-			export_json(fixture, frappe.get_app_path(app, "fixtures", frappe.scrub(fixture) + ".json"), filters=filters)
+			export_json(fixture, frappe.get_app_path(app, "fixtures", frappe.scrub(fixture) + ".json"), filters=filters, or_filters=or_filters)
