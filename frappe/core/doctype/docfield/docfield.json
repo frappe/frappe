@@ -322,7 +322,7 @@
    "bold": 0, 
    "collapsible": 0, 
    "columns": 0, 
-   "depends_on": "eval:(in_list(['Data', 'Table', 'Text', 'Text Editor', 'Heading', 'Select', 'Link', 'Long Text', 'Small Text'], doc.fieldtype))", 
+   "depends_on": "eval:([\"Data\", \"Select\", \"Table\", \"Text\", \"Text Editor\", \"Link\", \"Small Text\", \"Long Text\", \"Read Only\", \"Heading\"].indexOf(doc.fieldtype) !== -1)", 
    "fieldname": "in_global_search", 
    "fieldtype": "Check", 
    "hidden": 0, 
@@ -1288,11 +1288,7 @@
  "issingle": 0, 
  "istable": 1, 
  "max_attachments": 0, 
-<<<<<<< HEAD
- "modified": "2017-01-30 02:31:32.591687", 
-=======
- "modified": "2017-01-05 05:54:02.620116", 
->>>>>>> f6d822d... II: save list state, UI, default condensed view, refactor
+ "modified": "2017-01-30 02:31:32.591687",
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "DocField", 
