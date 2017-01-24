@@ -44,7 +44,7 @@ frappe.socket = {
 				} else {
 					frappe.show_progress(data.title || __("Progress"), data.percent, 100);
 				}
-			}s
+			}
 		});
 
 		frappe.socket.setup_listeners();
