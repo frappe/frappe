@@ -462,7 +462,7 @@ textarea.form-control {
 	max-width: 100%;
 }
 
-.search-modal {
+.help-modal {
 	a {
 		color: @brand-primary;
 	}
@@ -484,47 +484,6 @@ textarea.form-control {
 
 	.edit-container {
 		padding-bottom: 12px;
-	}
-
-	.results-list,
-	.result-area {
-		height: 500px;
-		padding: 0px 10px;
-		overflow-y: scroll;
-	}
-
-	.result-area {
-		padding-left: 10px;
-	}
-
-	button.results-list{
-		&:hover {
-			background-color: #f0f4f7;
-		}
-		&:focus {
-			background-color: #cfdce5;
-			outline: none;
-		}
-	}
-
-	.panel {
-		margin-bottom: 10px;
-		border-radius: 3px;
-	}
-
-	.panel-heading {
-		padding: 2px 10px;
-	}
-
-	.search-category,
-	.btn-more {
-		display: none;
-	}
-
-	.list-group-item {
-		padding: 5px 10px;
-		width: 100%;
-		text-align: left;
 	}
 
 	@media (max-width: @screen-xs) {
@@ -568,16 +527,106 @@ textarea.form-control {
 	.dropdown-menu {
 		z-index: 100;
 		max-height: 300px;
-		overflow: scroll;
+		overflow: auto;
 	}
 }
 
-.note-editor.note-frame .note-editing-area .note-editable {
-	color: @text-color;
+.search-dialog {
+	.modal-dialog {
+		width: 768px;
+		height: 500px;
+	}
+
+	.modal-body {
+		padding: 0px 20px;
+	}
+
+	input.form-control, .input-group-addon {
+		border: none;
+		border-left-style:none;
+	}
+
+	input.form-control:focus {
+		outline: none;
+		box-shadow: none;
+	}
+
+	.input-group-addon{
+    	background-color: #FFF;
+	}
+
+	.layout-side-section,
+	.layout-main-section {
+		height: 500px;
+		padding: 0px;
+		overflow-y: auto;
+	}
+
+	.layout-side-section {
+		padding-left: 15px;
+	}
+
+	.results-area a {
+		color: #5E64FF;
+	}
+
+	.module-section {
+		.back-link {
+			margin-bottom: 20px;
+			margin-top: -10px;
+		}
+
+		.all-results-link:before {
+			font-family: 'Octicons';
+			content: '\f0a4';
+		}
+	}
+
+	.dual-section .result a {
+		color: black;
+	}
+
+	.dual-section .result a b{
+		color: #4e6161;
+	}
+
+	.result-status {
+		margin-top: 30px;
+		text-align: center;
+	}
+
+	.more-results {
+		display: none;
+	}
+
+	@media (max-width: @screen-xs) {
+		.modal-dialog {
+			width: auto;
+		}
+
+		.modal-content {
+			height: auto !important;
+		}
+	}
+
+	@media (max-width: @screen-sm) {
+		.module-body {
+			margin: 0px;
+			border-top: none;
+		}
+
+		.layout-side-section .sidebar-menu {
+			margin: 30px 0px;
+		}
+	}
 }
 
 .result {
 	p {
 		margin-top: 0.2em;
 	}
+}
+
+.search-result {
+  margin-bottom: 24px;
 }

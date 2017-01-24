@@ -611,37 +611,63 @@ fieldset[disabled] .form-control {
   margin: 8px 0px;
   max-width: 100%;
 }
-.search-modal .modal-dialog {
+
+.help-modal {
+  z-index: 1000;
+}
+
+.help-modal a {
+  color: #5E64FF;
+}
+.help-modal .modal-dialog {
   width: 768px;
-  height: 500px;
 }
-.search-modal .modal-body {
-  padding: 0px 20px;
+.help-modal .modal-body {
+  padding: 15px 27px;
 }
-.search-modal .parent-link:before {
+.help-modal .parent-link:before {
   font-family: 'Octicons';
   content: '\f0a4';
 }
-.search-modal .edit-container {
+.help-modal .edit-container {
   padding-bottom: 12px;
 }
-.search-modal input.form-control, .search-modal .input-group-addon{
+@media (max-width: 767px) {
+  .help-modal .modal-dialog {
+    width: auto;
+  }
+  .help-modal .modal-content {
+    height: auto !important;
+  }
+  .help-modal iframe {
+    height: auto;
+    width: 100%;
+  }
+}
+.search-dialog .modal-dialog {
+  width: 768px;
+  height: 500px;
+}
+.search-dialog .modal-body {
+  padding: 0px 20px;
+}
+.search-dialog input.form-control, .search-dialog .input-group-addon{
   border: none;
   border-left-style:none;
 }
-.search-modal input.form-control:focus{
+.search-dialog input.form-control:focus{
   outline: none;
   box-shadow: none;
 }
-.search-modal .input-group-addon{
+.search-dialog .input-group-addon{
     background-color: #FFF;
 }
-.search-modal .layout-side-section, .search-modal .layout-main-section {
+.search-dialog .layout-side-section, .search-dialog .layout-main-section {
   height: 500px;
   padding: 0px;
   overflow-y: scroll;
 }
-.search-modal .layout-side-section {
+.search-dialog .layout-side-section {
   padding-left: 15px;
 }
 /*.search-modal .results-list button:hover,
@@ -687,7 +713,7 @@ fieldset[disabled] .form-control {
   padding: 10px 20px;
 }
 .search-modal .section-body div {
-  min-height: 22px; 
+  min-height: 22px;
   margin-top: 8px;
 }
 .search-modal .results-div h4 {
@@ -698,26 +724,25 @@ fieldset[disabled] .form-control {
 .search-modal .result-area a {
   color: #5E64FF;
 }
-.search-modal .result-status {
+.search-dialog .result-status {
   margin-top: 30px;
   text-align: center;
 }
-.search-modal .more-results {
+.search-dialog .more-results {
   display: none;
 }
 @media (max-width: 767px) {
-  .search-modal .modal-dialog {
+  .search-dialog .modal-dialog {
     width: auto;
   }
-  .search-modal .modal-content {
+  .search-dialog .modal-content {
     height: auto !important;
   }
-  .search-modal iframe {
+  .search-dialog iframe {
     height: auto;
     width: 100%;
   }
 }
-<<<<<<< HEAD
 .search-result, .help-result {
   margin-bottom: 24px;
 }
@@ -747,8 +772,7 @@ fieldset[disabled] .form-control {
 .result p {
   margin-top: 0.2em;
 }
-
-.help-modal {
-  z-index: 1000;
+.search-result {
+  margin-bottom: 24px;
 }
 

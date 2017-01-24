@@ -88,29 +88,4 @@ class TestGlobalSearch(unittest.TestCase):
 
 		results = global_search.search('extraterrestrial')
 		self.assertDictEqual(dict(doctype='Event', name=events[2].name), results[0])
-
-	## test all remaining with the search test
-
-	# def test_insert_child_table:
-
-	## STARRED
-	# def test_insert_default_data:
-		# on creation of a new doc
-
-	# def test_data_update_in_doc:
-
-	# def test_remove_data_in_doc:
-
-	# def test_delete_doc:
-
-	# def test_change_fields:
-
-	# def test_update_custom_doc:
-		# redundant? as we have already tested for a normal doc
-
-	# def tearDown(self):
-	# 	print "The property setter table before"
-	# 	print frappe.db.sql('select * from `tabProperty Setter`')
-	# 	frappe.db.sql('delete from `tabProperty Setter`')
-
-	# 	frappe.clear_cache(doctype='Event')
+		
