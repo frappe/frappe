@@ -148,15 +148,16 @@ def dropbox_callback(oauth_token=None, not_approved=False):
 		else:
 			frappe.respond_as_web_page(_("Dropbox Setup"),
 				_("Illegal Access Token. Please try again") + close,
-				success=False, http_status_code=frappe.AuthenticationError.http_status_code)
+				indicator_color='red',
+				http_status_code=frappe.AuthenticationError.http_status_code)
 	else:
 		frappe.respond_as_web_page(_("Dropbox Setup"),
 			_("You did not apporve Dropbox Access.") + close,
-			success=False, http_status_code=frappe.AuthenticationError.http_status_code)
+			indicator_color='red')
 
 	frappe.respond_as_web_page(_("Dropbox Setup"),
 		_("Dropbox access is approved!") + close,
-		success=False, http_status_code=frappe.AuthenticationError.http_status_code)
+		indicator_color='red')
 
 # backup process
 @frappe.whitelist()
@@ -258,7 +259,7 @@ def upload_file_to_dropbox(filename, folder, dropbox_client):
 	from dropbox import rest
 	size = os.stat(encode(filename)).st_size
 
-	with open(filename, 'r') as f:
+	with open(encode(filename), 'r') as f:
 		# if max packet size reached, use chunked uploader
 		max_packet_size = 4194304
 

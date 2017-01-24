@@ -170,6 +170,7 @@ frappe.upload = {
 					return;
 				}
 				var attachment = r.message;
+				opts.loopcallback && opts.loopcallback();
 				opts.callback && opts.callback(attachment, r);
 				$(document).trigger("upload_complete", attachment);
 			},
@@ -207,6 +208,36 @@ frappe.upload = {
 			// validate max file size
 			frappe.throw(__("File size exceeded the maximum allowed size of {0} MB", [max_file_size / 1048576]));
 		}
-	}
-}
+	},
+	multifile_upload:function(fileobjs, args, opts) {
 
+		//loop through filenames and checkboxes then append to list
+		var fields = [];
+		for (var i =0,j = fileobjs.length;i<j;i++) {
+			var filename = fileobjs[i].name;
+			fields.push({'fieldname': 'label1', 'fieldtype': 'Heading', 'label': filename});
+			fields.push({'fieldname': 'is_private', 'fieldtype': 'Check', 'label': 'Private', 'default': 1});
+			}
+			
+			var d = new frappe.ui.Dialog({
+				'title': __('Make file(s) private or public?'),
+				'fields': fields,
+				primary_action: function(){
+					var i =0,j = fileobjs.length;
+					d.hide();
+				opts.loopcallback = function (){
+				   if (i < j) {
+					   frappe.upload.upload_file(fileobjs[i], args, opts);
+					   i++;
+				   }        
+				}
+				
+				opts.loopcallback();
+
+				}
+			});
+			d.show();
+			opts.confirm_is_private =  0;
+	}
+
+}

@@ -34,7 +34,8 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 			}, 300);
 		});
 
-		frappe.search.setup();
+		frappe.search.setup("#navbar-search");
+		frappe.search.setup("#modal-search");
 	},
 
 	setup_sidebar: function () {

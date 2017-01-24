@@ -63,8 +63,11 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .banner {
-	margin-top: 20px;
-	padding: 0px 20px;
+	padding: 10px 0px;
+
+	img {
+		max-height: 50px;
+	}
 }
 
 .no-border {
@@ -556,12 +559,11 @@ a.active {
 }
 
 .footer-group {
-	margin-bottom: 28px;
+	margin-bottom: 1em;
 }
 
 .footer-group-label {
 	display:inline-block;
-	font-size: 11px;
 }
 
 
@@ -582,11 +584,6 @@ li .footer-child-item {
 	p {
 		margin-bottom: 30px;
 	}
-}
-
-.blogger-name {
-	margin-bottom:0px;
-	margin-top:0px;
 }
 
 .comment-view {
@@ -660,4 +657,34 @@ li .footer-child-item {
 	font-weight: 500;
 	margin-top: -10px;
 	margin-right: -8px;
+}
+
+.page-card {
+    max-width: 360px;
+	padding: 15px;
+	margin: 70px auto;
+	border: 1px solid @border-color;
+	border-radius: 4px;
+  background-color: #fff;
+	box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.1);
+
+	.page-card-head {
+		padding: 10px 15px;
+		margin: -15px;
+		margin-bottom: 15px;
+		border-bottom: 1px solid @border-color;
+
+		.indicator {
+			color: @text-color;
+			font-size: 14px;
+		}
+
+		.indicator::before {
+		    margin: 0 6px 0.5px 0px;
+		}
+	}
+
+	.btn {
+		margin-top: 30px;
+	}
 }

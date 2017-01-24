@@ -219,7 +219,7 @@ frappe.Chat = Class.extend({
 			data.owner = 'bot';
 		}
 
-		data.content = frappe.markdown(data.content);
+		data.content = frappe.markdown(data.content.substr(0, 1000));
 	}
 
 

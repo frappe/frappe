@@ -466,7 +466,7 @@ apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.js +33,Send
 DocType: Report,Query,ການສອບຖາມ
 DocType: DocType,Sort Order,ຮຽງ
 apps/frappe/frappe/core/doctype/doctype/doctype.py +353,'In List View' not allowed for type {0} in row {1},&#39;ໃນຊີ View&#39; ບໍ່ອະນຸຍາດໃຫ້ສໍາລັບປະເພດ {0} ຕິດຕໍ່ກັນ {1}
-apps/frappe/frappe/templates/includes/comments/comments.html +38,Your Email Id,ອີເມວຂອງທ່ານ Id
+apps/frappe/frappe/templates/includes/comments/comments.html +38,Your Email Address,ອີເມວຂອງທ່ານ Id
 DocType: Custom Field,Select the label after which you want to insert new field.,ເລືອກເອົາປ້າຍຫຼັງຈາກທີ່ທ່ານຕ້ອງການທີ່ຈະສະແດງກິ່ງງ່າພາກສະຫນາມໃຫມ່.
 ,Document Share Report,ເອກະສານລາຍວຽກ
 DocType: User,Last Login,ລະບົບຫຼ້າສຸດ
@@ -650,7 +650,7 @@ DocType: Page,Page HTML,ຫນ້າ HTML
 apps/frappe/frappe/public/js/frappe/views/treeview.js +236,Further nodes can be only created under 'Group' type nodes,ຂໍ້ເພີ່ມເຕີມສາມາດໄດ້ຮັບການສ້າງຕັ້ງພຽງແຕ່ພາຍໃຕ້ &#39;ຂອງກຸ່ມຂໍ້ປະເພດ
 DocType: Web Page,Header,Header
 apps/frappe/frappe/public/js/frappe/model/model.js +80,Unknown Column: {0},ຮູ້ຈັກຄໍລໍາ: {0}
-DocType: Email Alert Recipient,Optional: Always send to these ids. Each email id on a new row,ທາງເລືອກ: ສະເຫມີສົ່ງໄປຫັດເຫຼົ່ານີ້. ອີເມວແຕ່ລະສຸດຕິດຕໍ່ກັນໃຫມ່
+DocType: Email Alert Recipient,Optional: Always send to these ids. Each Email Address on a new row,ທາງເລືອກ: ສະເຫມີສົ່ງໄປຫັດເຫຼົ່ານີ້. ອີເມວແຕ່ລະສຸດຕິດຕໍ່ກັນໃຫມ່
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +299,Users with role {0}:,ຜູ້ໃຊ້ທີ່ມີພາລະບົດບາດ {0}:
 apps/frappe/frappe/desk/page/applications/applications.py +76,Installing App {0},ການຕິດຕັ້ງ App {0}
 DocType: Print Format,Custom Format,ຮູບແບບການລູກຄ້າ
@@ -719,7 +719,7 @@ DocType: Workflow State,retweet,retweet
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +53,Update the template and save in CSV (Comma Separate Values) format before attaching.,ປັບປຸງແມ່ແບບແລະຊ່ວຍປະຢັດໃນ CSV (Comma ຄ່າແຍກຕ່າງຫາກ) ຮູບແບບກ່ອນທີ່ຈະຕິດຄັດ.
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +213,Specify the value of the field,ລະບຸຄ່າຂອງພາກສະຫນາມໄດ້
 DocType: Report,Disabled,ຄົນພິການ
-DocType: Email Account,Always use Account's Email ID as Sender,ສະເຫມີໃຊ້ ID Email ບັນຊີເປັນຜູ້ສົ່ງ
+DocType: Email Account,Always use Account's Email Address as Sender,ສະເຫມີໃຊ້ ID Email ບັນຊີເປັນຜູ້ສົ່ງ
 DocType: Workflow State,eye-close,ຕາທີ່ໃກ້ຊິດ
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py +93,Please select another payment method. {0} does not support transactions in currency '{1}',ກະລຸນາເລືອກວິທີການຊໍາລະເງິນອື່ນ. {0} ບໍ່ໄດ້ສະຫນັບສະຫນູນກິດຈະກໍາໃນສະກຸນເງິນ &#39;{1}&#39;
 DocType: OAuth Provider Settings,OAuth Provider Settings,ການຕັ້ງຄ່າໃຫ້ບໍລິການ OAuth
@@ -862,7 +862,7 @@ DocType: File,rgt,rgt
 DocType: Email Account,Sendgrid,Sendgrid
 DocType: Workflow State,leaf,ໃບ
 DocType: Portal Menu Item,Portal Menu Item,Menu Item Portal
-DocType: Email Account,Email ID,ID Email
+DocType: Email Account,Email Address,ID Email
 apps/frappe/frappe/public/js/frappe/ui/editor.html +48,Insert Link,ໃສ່ Link
 DocType: OAuth Client,A list of resources which the Client App will have access to after the user allows it.<br> e.g. project,ບັນຊີລາຍຊື່ຂອງຊັບພະຍາກອນ A ທີ່ App Client ຈະມີການເຂົ້າເຖິງພາຍຫຼັງທີ່ຜູ້ໃຊ້ອະນຸຍາດໃຫ້ມັນ. <br> ຕົວຢ່າງໂຄງການ
 DocType: Contact Us Settings,Query Options,ຕົວເລືອກການສອບຖາມ
@@ -898,7 +898,7 @@ apps/frappe/frappe/core/page/data_import_tool/exporter.py +60,Notes:,ຫມາ�
 apps/frappe/frappe/public/js/frappe/form/control.js +1673,Markdown,markdown
 DocType: DocShare,Document Name,ຊື່ເອກະສານ
 DocType: ToDo,Medium,ຂະຫນາດກາງ
-apps/frappe/frappe/email/doctype/newsletter/newsletter.py +131,Please verify your email id,ກະລຸນາກວດສອບອີເມວຂອງທ່ານ
+apps/frappe/frappe/email/doctype/newsletter/newsletter.py +131,Please verify your Email Address,ກະລຸນາກວດສອບອີເມວຂອງທ່ານ
 apps/frappe/frappe/public/js/frappe/form/linked_with.js +86,Not enough permission to see links.,ບໍ່ອະນຸຍາດພຽງພໍເພື່ອເຂົ້າໄປເບິ່ງການເຊື່ອມຕໍ່.
 DocType: Customize Form,Customize Form,ປັບຮູບແບບ
 DocType: Currency,A symbol for this currency. For e.g. $,ເປັນສັນຍາລັກສໍາລັບການສະກຸນເງິນນີ້. ສໍາລັບຕົວຢ່າງ: $
@@ -1089,7 +1089,7 @@ DocType: Workflow State,step-backward,ຂັ້ນຕອນທີກັບຄື
 apps/frappe/frappe/utils/boilerplate.py +252,{app_title},{app_title}
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +52,Please set Dropbox access keys in your site config,ກະລຸນາຕັ້ງຕົວທີ່ໃຊ້ໃນການເຂົ້າເຖິງ Dropbox ໃນ config ເວັບໄຊຂອງທ່ານ
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +16,Delete this record to allow sending to this email address,ລຶບບັນທຶກນີ້ຈະອະນຸຍາດໃຫ້ສົ່ງໄປຫາທີ່ຢູ່ອີເມວນີ້
-DocType: Email Account,Uses the Email ID mentioned in this Account as the Sender for all emails sent using this Account. ,ການນໍາໃຊ້ລະຫັດອີເມວທີ່ໄດ້ກ່າວມາໃນບັນຊີນີ້ເປັນຜູ້ສົ່ງສໍາລັບອີເມວທັງຫມົດທີ່ສົ່ງການນໍາໃຊ້ບັນຊີນີ້.
+DocType: Email Account,Uses the Email Address mentioned in this Account as the Sender for all emails sent using this Account. ,ການນໍາໃຊ້ລະຫັດອີເມວທີ່ໄດ້ກ່າວມາໃນບັນຊີນີ້ເປັນຜູ້ສົ່ງສໍາລັບອີເມວທັງຫມົດທີ່ສົ່ງການນໍາໃຊ້ບັນຊີນີ້.
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +65,Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish.,ພຽງແຕ່ຕ້ອງໃສ່ຂໍ້ມູນທີ່ຈໍາເປັນສໍາລັບການບັນທຶກໃຫມ່. ທ່ານສາມາດລຶບຖັນທີ່ບໍ່ແມ່ນການບັງຄັບຖ້າຫາກວ່າທ່ານຕ້ອງການ.
 apps/frappe/frappe/public/js/frappe/views/calendar.js +276,Unable to update event,ບໍ່ສາມາດທີ່ຈະປັບປຸງກິດຈະກໍາ
 apps/frappe/frappe/templates/generators/web_form.html +292,Payment Complete,ສໍາເລັດການຊໍາລະເງິນ
@@ -1284,7 +1284,7 @@ DocType: Workflow State,bookmark,Bookmark
 DocType: Note,Note,ຫມາຍເຫດ
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot.html +32,Error Report,ບົດລາຍງານຄວາມຜິດພາດ
 apps/frappe/frappe/core/doctype/doctype/doctype.py +475,Timeline field must be a valid fieldname,ພາກສະຫນາມກໍານົດເວລາຕ້ອງເປັນ fieldname ຖືກຕ້ອງ
-DocType: Email Account,Email Ids,Email Ids
+DocType: Email Account,Email Addresses,Email Addresses
 DocType: Currency,Symbol,ສັນຍາລັກ
 apps/frappe/frappe/model/base_document.py +529,Row #{0}:,"ຕິດຕໍ່ກັນ, {0}:"
 apps/frappe/frappe/core/doctype/user/user.py +163,New password emailed,ລະຫັດຜ່ານໃຫມ່ໄດ້ສົ່ງອີເມວ
@@ -1714,7 +1714,7 @@ DocType: Async Task,Queued,ຄິວ
 DocType: PayPal Settings,Use Sandbox,ການນໍາໃຊ້ Sandbox
 apps/frappe/frappe/public/js/frappe/form/print.js +98,New Custom Print Format,ຮູບແບບການລູກຄ້າພິມໃຫມ່
 DocType: DocPerm,Create,ສ້າງ
-DocType: Newsletter,A Lead with this email id should exist,ທີ່ເຮັດໃຫ້ກັບອີເມວນີ້ຄວນຈະມີ
+DocType: Newsletter,A Lead with this Email Address should exist,ທີ່ເຮັດໃຫ້ກັບອີເມວນີ້ຄວນຈະມີ
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +201,Invalid Filter: {0},ເຄື່ອງດື່ມ: {0}
 DocType: Integration Service,Background Events,ເຫດການຄວາມເປັນມາ
 DocType: Dropbox Settings,App Access Key,App Access Key
@@ -1890,7 +1890,7 @@ DocType: Workflow Document State,Only Allow Edit For,ພຽງແຕ່ອະນ
 apps/frappe/frappe/templates/includes/comments/comments.html +34,Your Name,ຊື່ຂອງເຈົ້າ
 DocType: DocType,InnoDB,InnoDB
 DocType: File,Is Folder,ແມ່ນ Folder
-DocType: Newsletter,Test Email Id,Id Test Email
+DocType: Newsletter,Test Email Address,Id Test Email
 DocType: DocType,DocType,DocType
 apps/frappe/frappe/core/doctype/user/user.py +629,User {0} does not exist,ຜູ້ໃຊ້ {0} ບໍ່ມີ
 DocType: Website Theme,"If image is selected, color will be ignored.","ຖ້າຫາກວ່າຮູບພາບໄດ້ຖືກຄັດເລືອກ, ສີຈະໄດ້ຮັບການໃສ່ໃຈ."
@@ -2243,7 +2243,7 @@ DocType: Communication,Email Account,ບັນຊີອີເມວ
 DocType: Workflow State,Download,ດາວໂຫລດ
 DocType: Blog Post,Blog Intro,Blog Intro
 DocType: Async Task,Result,ຜົນ
-apps/frappe/frappe/email/doctype/email_group/email_group.py +87,{0} is not a valid email id,{0} ບໍ່ໄດ້ເປັນອີເມວທີ່ຖືກຕ້ອງ
+apps/frappe/frappe/email/doctype/email_group/email_group.py +87,{0} is not a valid Email Address,{0} ບໍ່ໄດ້ເປັນອີເມວທີ່ຖືກຕ້ອງ
 apps/frappe/frappe/core/doctype/report/report.js +37,Enable Report,ເຮັດໃຫ້ບົດລາຍງານ
 DocType: DocField,Display Depends On,ການສະແດງຂຶ້ນຢູ່ກັບ
 DocType: Web Page,Insert Code,ລະຫັດໃສ່

@@ -26,18 +26,15 @@ class SentEmailInInbox(Exception): pass
 
 class EmailAccount(Document):
 	def autoname(self):
-		"""Set name as `email_account_name` or make title from email id."""
+		"""Set name as `email_account_name` or make title from Email Address."""
 		if not self.email_account_name:
 			self.email_account_name = self.email_id.split("@", 1)[0]\
 				.replace("_", " ").replace(".", " ").replace("-", " ").title()
 
-			if self.service:
-				self.email_account_name = self.email_account_name + " " + self.service
-
 		self.name = self.email_account_name
 
 	def validate(self):
-		"""Validate email id and check POP3/IMAP and SMTP connections is enabled."""
+		"""Validate Email Address and check POP3/IMAP and SMTP connections is enabled."""
 		if self.email_id:
 			validate_email_add(self.email_id, True)
 
@@ -50,15 +47,22 @@ class EmailAccount(Document):
 		if frappe.local.flags.in_patch or frappe.local.flags.in_test:
 			return
 
-		if self.enable_incoming and not self.append_to:
-			frappe.throw(_("Append To is mandatory for incoming mails"))
+		#if self.enable_incoming and not self.append_to:
+		#	frappe.throw(_("Append To is mandatory for incoming mails"))
 
-		if not frappe.local.flags.in_install and not frappe.local.flags.in_patch:
-			if self.enable_incoming:
-				self.get_incoming_server()
+		if (not self.awaiting_password and not frappe.local.flags.in_install
+			and not frappe.local.flags.in_patch):
+			if self.password:
+				if self.enable_incoming:
+					self.get_incoming_server()
+					self.no_failed = 0
 
-			if self.enable_outgoing:
-				self.check_smtp()
+
+				if self.enable_outgoing:
+					self.check_smtp()
+			else:
+				if self.enable_incoming or self.enable_outgoing:
+					frappe.throw(_("Password is required or select Awaiting Password"))
 
 		if self.notify_if_unreplied:
 			if not self.send_notification_to:
@@ -71,9 +75,20 @@ class EmailAccount(Document):
 			if self.append_to not in valid_doctypes:
 				frappe.throw(_("Append To can be one of {0}").format(comma_or(valid_doctypes)))
 
+
+
 	def on_update(self):
 		"""Check there is only one default of each type."""
 		self.there_must_be_only_one_default()
+		if self.awaiting_password:
+			# push values to user_emails
+			frappe.db.sql("""UPDATE `tabUser Email` SET awaiting_password = 1
+						  WHERE email_account = %(account)s""", {"account": self.name})
+		else:
+			frappe.db.sql("""UPDATE `tabUser Email` SET awaiting_password = 0
+									  WHERE email_account = %(account)s""", {"account": self.name})
+		from frappe.core.doctype.user.user import ask_pass_update
+		ask_pass_update()
 
 	def there_must_be_only_one_default(self):
 		"""If current Email Account is default, un-default all other accounts."""
@@ -87,6 +102,18 @@ class EmailAccount(Document):
 						email_account.name)
 					email_account.set(fn, 0)
 					email_account.save()
+
+	@frappe.whitelist()
+	def get_domain(self,email_id):
+		"""look-up the domain and then full"""
+		try:
+			domain = email_id.split("@")
+			return frappe.db.sql("""select name,use_imap,email_server,use_ssl,smtp_server,use_tls,smtp_port
+			from `tabEmail Domain`
+			where name = %s
+			""",domain[1],as_dict=1)
+		except Exception:
+			pass
 
 	def check_smtp(self):
 		"""Checks SMTP settings."""
@@ -106,12 +133,15 @@ class EmailAccount(Document):
 
 	def get_incoming_server(self, in_receive=False):
 		"""Returns logged in POP3/IMAP connection object."""
+		if frappe.cache().get_value("workers:no-internet") == True:
+			return None
 
 		args = frappe._dict({
+			"email_account":self.name,
 			"host": self.email_server,
 			"use_ssl": self.use_ssl,
 			"username": getattr(self, "login_id", None) or self.email_id,
-			"use_imap": self.use_imap
+			"use_imap": self.use_imap,
 		})
 		if self.password:
 			args.password = self.get_password()
@@ -139,38 +169,46 @@ class EmailAccount(Document):
 			if in_receive:
 				# timeout while connecting, see receive.py connect method
 				description = frappe.message_log.pop() if frappe.message_log else "Socket Error"
-				self.handle_incoming_connect_error(description=description)
-
+				if test_internet():
+					self.db_set("no_failed", self.no_failed + 1)
+					if self.no_failed > 2:
+						self.handle_incoming_connect_error(description=description)
+				else:
+					frappe.cache().set_value("workers:no-internet", True)
 				return None
 
 			else:
 				raise
-
+		if not in_receive:
+			if self.use_imap:
+				email_server.imap.logout()
 		# reset failed attempts count
 		self.set_failed_attempts_count(0)
 
 		return email_server
 
 	def handle_incoming_connect_error(self, description):
-		'''Disable email account if 3 failed attempts found'''
-		if self.get_failed_attempts_count() == 3:
-			self.db_set("enable_incoming", 0)
+		if test_internet():
+			if self.get_failed_attempts_count() > 2:
+				self.db_set("enable_incoming", 0)
 
-			for user in get_system_managers(only_name=True):
-				try:
-					assign_to.add({
-						'assign_to': user,
-						'doctype': self.doctype,
-						'name': self.name,
-						'description': description,
-						'priority': 'High',
-						'notify': 1
-					})
-				except assign_to.DuplicateToDoError:
-					frappe.message_log.pop()
-					pass
+				for user in get_system_managers(only_name=True):
+					try:
+						assign_to.add({
+							'assign_to': user,
+							'doctype': self.doctype,
+							'name': self.name,
+							'description': description,
+							'priority': 'High',
+							'notify': 1
+						})
+					except assign_to.DuplicateToDoError:
+						frappe.message_log.pop()
+						pass
+			else:
+				self.set_failed_attempts_count(self.get_failed_attempts_count() + 1)
 		else:
-			self.set_failed_attempts_count(self.get_failed_attempts_count() + 1)
+			frappe.cache().set_value("workers:no-internet", True)
 
 	def set_failed_attempts_count(self, value):
 		frappe.cache().set('{0}:email-account-failed-attempts'.format(self.name), value)
@@ -181,19 +219,18 @@ class EmailAccount(Document):
 	def receive(self, test_mails=None):
 		"""Called by scheduler to receive emails from this EMail account using POP3/IMAP."""
 		if self.enable_incoming:
+			exceptions = []
 			if frappe.local.flags.in_test:
 				incoming_mails = test_mails
 			else:
 				email_server = self.get_incoming_server(in_receive=True)
-				if not email_server:
-					return
-
 				incoming_mails = email_server.get_messages()
 
-			exceptions = []
-			for raw in incoming_mails:
+			for msg in incoming_mails:
 				try:
-					communication = self.insert_communication(raw)
+
+					communication = self.insert_communication(msg)
+					#self.notify_update()
 
 				except SentEmailInInbox:
 					frappe.db.rollback()
@@ -201,24 +238,55 @@ class EmailAccount(Document):
 				except Exception:
 					frappe.db.rollback()
 					log('email_account.receive')
+					if self.use_imap:
+						self.handle_bad_emails(email_server, msg[1], msg[0], frappe.get_traceback())
 					exceptions.append(frappe.get_traceback())
 
 				else:
 					frappe.db.commit()
 					attachments = [d.file_name for d in communication._attachments]
 
-					# TODO fix bug where it sends emails to 'Adminsitrator' during testing
 					communication.notify(attachments=attachments, fetched_from_email_account=True)
+
+			#notify if user is linked to account
+			if len(incoming_mails)>0 and not frappe.local.flags.in_test:
+				frappe.publish_realtime('new_email', {"account":self.email_account_name,"number":len(incoming_mails)})
 
 			if exceptions:
 				raise Exception, frappe.as_json(exceptions)
 
-	def insert_communication(self, raw):
+	def handle_bad_emails(self, email_server, uid, raw, reason):
+		if cint(email_server.settings.use_imap):
+			import email
+			try:
+				mail = email.message_from_string(raw)
+
+				message_id = mail.get('Message-ID')
+			except Exception:
+				message_id = "can't be parsed"
+
+			unhandled_email = frappe.get_doc({
+				"doctype": "Unhandled Email",
+				"email_account": email_server.settings.email_account,
+				"uid": uid,
+				"message_id": message_id,
+				"reason":reason
+			})
+			unhandled_email.save()
+			frappe.db.commit()
+
+	def insert_communication(self, msg):
+		if isinstance(msg,list):
+			raw, uid, seen = msg
+		else:
+			raw = msg
+			seen = uid = None
 		email = Email(raw)
 
-		if email.from_email == self.email_id:
+		if email.from_email == self.email_id and not email.mail.get("Reply-To"):
 			# gmail shows sent emails in inbox
 			# and we don't want emails sent by us to be pulled back into the system again
+			# dont count emails sent by the system get those
 			raise SentEmailInInbox
 
 		communication = frappe.get_doc({
@@ -232,7 +300,12 @@ class EmailAccount(Document):
 			"recipients": email.mail.get("To"),
 			"cc": email.mail.get("CC"),
 			"email_account": self.name,
-			"communication_medium": "Email"
+			"communication_medium": "Email",
+			"uid": uid,
+			"message_id": email.message_id,
+			"communication_date": email.date,
+			"has_attachment": 1 if email.attachments else 0,
+			"seen": seen
 		})
 
 		self.set_thread(communication, email)
@@ -275,7 +348,7 @@ class EmailAccount(Document):
 
 		parent = self.find_parent_from_in_reply_to(communication, email)
 
-		if not parent:
+		if not parent and self.append_to:
 			self.set_sender_field_and_subject_field()
 
 		if not parent and self.append_to:
@@ -335,7 +408,7 @@ class EmailAccount(Document):
 					}, fields="name")
 
 			if parent:
-				parent = frappe.get_doc(self.append_to, parent[0].name)
+				parent = frappe._dict(doctype=self.append_to, name=parent[0].name)
 				return parent
 
 
@@ -378,19 +451,21 @@ class EmailAccount(Document):
 
 		if in_reply_to and "@{0}".format(frappe.local.site) in in_reply_to:
 			# reply to a communication sent from the system
-			email_queue = frappe.db.get_value('Email Queue', dict(message_id=in_reply_to), ['reference_doctype', 'reference_name'])
+			email_queue = frappe.db.get_value('Email Queue', dict(message_id=in_reply_to), ['communication','reference_doctype', 'reference_name'])
 			if email_queue:
-				parent_doctype, parent_name = email_queue
+				parent_communication, parent_doctype, parent_name = email_queue
+				if parent_communication:
+					communication.in_reply_to = parent_communication
 			else:
 				reference, domain = in_reply_to.split("@", 1)
 				parent_doctype, parent_name = 'Communication', reference
 
 			if frappe.db.exists(parent_doctype, parent_name):
-				parent = frappe.get_doc(parent_doctype, parent_name)
+				parent = frappe._dict(doctype=parent_doctype, name=parent_name)
 
 				# set in_reply_to of current communication
 				if parent_doctype=='Communication':
-					communication.in_reply_to = parent_name
+					# communication.in_reply_to = email_queue.communication
 
 					if parent.reference_name:
 						# the true parent is the communication parent
@@ -438,6 +513,21 @@ def get_append_to(doctype=None, txt=None, searchfield=None, start=None, page_len
 	if not txt: txt = ""
 	return [[d] for d in frappe.get_hooks("email_append_to") if txt in d]
 
+def test_internet(host="8.8.8.8", port=53, timeout=3):
+	"""Returns True if internet is connected
+
+	Host: 8.8.8.8 (google-public-dns-a.google.com)
+	OpenPort: 53/tcp
+	Service: domain (DNS/TCP)
+	"""
+	try:
+		socket.setdefaulttimeout(timeout)
+		socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect((host, port))
+		return True
+	except Exception as ex:
+		print ex.message
+		return False
+
 def notify_unreplied():
 	"""Sends email notifications if there are unreplied Communications
 		and `notify_if_unreplied` is set as true."""
@@ -451,6 +541,7 @@ def notify_unreplied():
 					"sent_or_received": "Received",
 					"reference_doctype": email_account.append_to,
 					"unread_notification_sent": 0,
+					"email_account":email_account.name,
 					"creation": ("<", datetime.now() - timedelta(seconds = (email_account.unreplied_for_mins or 30) * 60)),
 					"creation": (">", datetime.now() - timedelta(seconds = (email_account.unreplied_for_mins or 30) * 60 * 3))
 				}):
@@ -467,9 +558,14 @@ def notify_unreplied():
 
 def pull(now=False):
 	"""Will be called via scheduler, pull emails from all enabled Email accounts."""
+	if frappe.cache().get_value("workers:no-internet") == True:
+		if test_internet():
+			frappe.cache().set_value("workers:no-internet", False)
+		else:
+			return
 	queued_jobs = get_jobs(site=frappe.local.site, key='job_name')[frappe.local.site]
-
-	for email_account in frappe.get_list("Email Account", filters={"enable_incoming": 1}):
+	for email_account in frappe.get_list("Email Account",
+		filters={"enable_incoming": 1, "awaiting_password": 0}):
 		if now:
 			pull_from_email_account(email_account.name)
 

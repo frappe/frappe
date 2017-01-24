@@ -74,9 +74,19 @@ frappe.views.QueryReport = Class.extend({
 			frappe.set_route("Form", "Report", me.report_name);
 		}, true);
 
-		this.page.add_menu_item(__("Print"), function() { me.print_report(); }, true);
+		this.page.add_menu_item(__("Print"), function() {
+			frappe.ui.get_print_settings(false, function(print_settings) {
+				me.print_settings = print_settings;
+				me.print_report();
+			}, me.report_doc.letter_head);
+		}, true);
 
-		this.page.add_menu_item(__("PDF"), function() { me.pdf_report(); }, true);
+		this.page.add_menu_item(__("PDF"), function() {
+			frappe.ui.get_print_settings(true, function(print_settings) {
+				me.print_settings = print_settings;
+				me.pdf_report();
+			}, me.report_doc.letter_head);
+		}, true);
 
 		this.page.add_menu_item(__('Export'), function() { me.export_report(); },
 			true);
@@ -166,9 +176,6 @@ frappe.views.QueryReport = Class.extend({
 		}()).then(function() {
 			me.refresh();
 		});
-
-
-
 	},
 	print_report: function() {
 		if(!frappe.model.can_print(this.report_doc.ref_doctype)) {
@@ -177,12 +184,23 @@ frappe.views.QueryReport = Class.extend({
 		}
 
 		if(this.html_format) {
-			var content = frappe.render(this.html_format,
-				{data: frappe.slickgrid_tools.get_filtered_items(this.dataView), filters:this.get_values(), report:this});
+			var content = frappe.render(this.html_format, {
+				data: frappe.slickgrid_tools.get_filtered_items(this.dataView),
+				filters:this.get_values(),
+				report:this});
 
-			frappe.render_grid({content:content, title:__(this.report_name)});
+			frappe.render_grid({
+				content:content,
+				title:__(this.report_name),
+				print_settings: this.print_settings,
+			});
 		} else {
-			frappe.render_grid({grid:this.grid, report: this, title:__(this.report_name)});
+			frappe.render_grid({
+				grid:this.grid,
+				report: this,
+				title:__(this.report_name),
+				print_settings: this.print_settings,
+			});
 		}
 	},
 	pdf_report: function() {
@@ -200,27 +218,34 @@ frappe.views.QueryReport = Class.extend({
 				{data: frappe.slickgrid_tools.get_filtered_items(this.dataView), filters:this.get_values(), report:this});
 
 			//Render Report in HTML
-			var html = frappe.render_template("print_template",
-				{content:content, title:__(this.report_name), base_url: base_url, print_css: print_css});
+				var html = frappe.render_template("print_template", {
+					content:content,
+					title:__(this.report_name),
+					base_url: base_url,
+					print_css: print_css,
+					print_settings: this.print_settings
+				});
 		} else {
 			var columns = this.grid.getColumns();
 			var data = this.grid.getData().getItems();
-			var content = frappe.render_template("print_grid", {columns:columns, data:data, title:__(this.report_name)})
+			var content = frappe.render_template("print_grid", {
+				columns:columns,
+				data:data,
+				title:__(this.report_name)
+			})
 
 			//Render Report in HTML
-			var html = frappe.render_template("print_template",
-				{content:content, title:__(this.report_name), base_url: base_url, print_css: print_css});
+			var html = frappe.render_template("print_template",{
+				content:content,
+				title:__(this.report_name),
+				base_url: base_url,
+				print_css: print_css,
+				print_settings: this.print_settings
+			});
 		}
 
-		frappe.prompt({
-			fieldtype: "Select",
-			fieldname: "orientation",
-			label: __("Orientation"),
-			options: "Landscape\nPortrait",
-			default: "Landscape"
-		}, function(data) {
-			me.open_pdf_report(html, data.orientation);
-		}, __("Select orientation"));
+		orientation = this.print_settings.orientation;
+		this.open_pdf_report(html, orientation)
 	},
 	open_pdf_report: function(html, orientation) {
 		//Create a form to place the HTML content

@@ -1047,5 +1047,6 @@
  "read_only_onload": 0, 
  "search_fields": "dt,label,fieldtype,options", 
  "sort_order": "ASC", 
+ "track_changes": 1, 
  "track_seen": 0
 }

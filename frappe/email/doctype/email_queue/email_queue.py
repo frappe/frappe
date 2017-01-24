@@ -10,6 +10,11 @@ from frappe.email.queue import send_one
 from frappe.limits import get_limits
 
 class EmailQueue(Document):
+	def set_recipients(self, recipients):
+		self.set("recipients", [])
+		for r in recipients:
+			self.append("recipients", {"recipient":r})
+
 	def on_trash(self):
 		self.prevent_email_queue_delete()
 
@@ -18,6 +23,12 @@ class EmailQueue(Document):
 		if get_limits().emails and frappe.session.user != 'Administrator':
 			frappe.throw(_('Only Administrator can delete Email Queue'))
 
+	def get_duplicate(self, recipients):
+		values = self.as_dict()
+		del values['name']
+		duplicate = frappe.get_doc(values)
+		duplicate.set_recipients(recipients)
+		return duplicate
 
 @frappe.whitelist()
 def retry_sending(name):

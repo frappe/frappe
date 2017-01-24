@@ -79,7 +79,7 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 0, 
- "modified": "2016-11-07 05:54:42.688231", 
+ "modified": "2016-12-29 14:40:10.236430", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "Module Def", 
@@ -131,5 +131,6 @@
  "quick_entry": 1, 
  "read_only": 0, 
  "read_only_onload": 0, 
+ "track_changes": 1, 
  "track_seen": 0
 }

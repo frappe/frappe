@@ -76,6 +76,10 @@ frappe.ui.form.on("Customize Form", {
 				frappe.customize_form.confirm(__('Remove all customizations?'), frm);
 			}, "fa fa-eraser", "btn-default");
 
+			frm.add_custom_button(__('Set Permissions'), function() {
+				frappe.set_route('permission-manager', frm.doc.doc_type);
+			}, "fa fa-lock", "btn-default");
+
 			if(frappe.boot.developer_mode) {
 				frm.add_custom_button(__('Export Customizations'), function() {
 					frappe.prompt(
@@ -84,6 +88,8 @@ frappe.ui.form.on("Customize Form", {
 								label: __('Module to Export')},
 							{fieldtype:'Check', fieldname:'sync_on_migrate',
 								label: __('Sync on Migrate'), 'default': 1},
+							{fieldtype:'Check', fieldname:'with_permissions',
+								label: __('Export Custom Permissions'), 'default': 1},
 						],
 						function(data) {
 							frappe.call({
@@ -91,7 +97,8 @@ frappe.ui.form.on("Customize Form", {
 								args: {
 									doctype: frm.doc.doc_type,
 									module: data.module,
-									sync_on_migrate: data.sync_on_migrate
+									sync_on_migrate: data.sync_on_migrate,
+									with_permissions: data.with_permissions
 								}
 							});
 						},

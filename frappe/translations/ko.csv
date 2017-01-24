@@ -466,7 +466,7 @@ apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.js +33,Send
 DocType: Report,Query,질문
 DocType: DocType,Sort Order,정렬 순서
 apps/frappe/frappe/core/doctype/doctype/doctype.py +353,'In List View' not allowed for type {0} in row {1},'목록보기'허용되지 않는 유형에 대한 {0} 행에서 {1}
-apps/frappe/frappe/templates/includes/comments/comments.html +38,Your Email Id,이메일 아이디
+apps/frappe/frappe/templates/includes/comments/comments.html +38,Your Email Address,이메일 아이디
 DocType: Custom Field,Select the label after which you want to insert new field.,당신이 새 필드를 삽입 할 후 레이블을 선택합니다.
 ,Document Share Report,문서 공유 보고서
 DocType: User,Last Login,마지막 로그인
@@ -650,7 +650,7 @@ DocType: Page,Page HTML,페이지의 HTML
 apps/frappe/frappe/public/js/frappe/views/treeview.js +236,Further nodes can be only created under 'Group' type nodes,또한 노드는 '그룹'형태의 노드에서 생성 할 수 있습니다
 DocType: Web Page,Header,머리글
 apps/frappe/frappe/public/js/frappe/model/model.js +80,Unknown Column: {0},알 수없는 열 {0}
-DocType: Email Alert Recipient,Optional: Always send to these ids. Each email id on a new row,선택 사항 : 항상이 ID로 보낼 수 있습니다.새 행에 각 전자 메일 ID
+DocType: Email Alert Recipient,Optional: Always send to these ids. Each Email Address on a new row,선택 사항 : 항상이 ID로 보낼 수 있습니다.새 행에 각 전자 메일 ID
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +299,Users with role {0}:,역할이 사용자 {0}
 apps/frappe/frappe/desk/page/applications/applications.py +76,Installing App {0},설치 응용 프로그램 {0}
 DocType: Print Format,Custom Format,사용자 정의 형식
@@ -719,7 +719,7 @@ DocType: Workflow State,retweet,리트 위트 (retweet)
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +53,Update the template and save in CSV (Comma Separate Values) format before attaching.,템플릿을 업데이트하고 연결하기 전에 CSV의 형식 (쉼표로 분리 된 값)을 저장합니다.
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +213,Specify the value of the field,필드의 값을 지정
 DocType: Report,Disabled,사용 안함
-DocType: Email Account,Always use Account's Email ID as Sender,항상 보낸 사람으로 계정의 전자 메일 ID를 사용
+DocType: Email Account,Always use Account's Email Address as Sender,항상 보낸 사람으로 계정의 전자 메일 ID를 사용
 DocType: Workflow State,eye-close,눈을 닫기
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py +93,Please select another payment method. {0} does not support transactions in currency '{1}',다른 결제 방법을 선택하세요. {0} 통화 거래를 지원하지 않습니다 &#39;{1}&#39;
 DocType: OAuth Provider Settings,OAuth Provider Settings,OAuth를 제공 설정
@@ -862,7 +862,7 @@ DocType: File,rgt,RGT
 DocType: Email Account,Sendgrid,Sendgrid
 DocType: Workflow State,leaf,잎
 DocType: Portal Menu Item,Portal Menu Item,포털 메뉴 항목
-DocType: Email Account,Email ID,이메일 ID
+DocType: Email Account,Email Address,이메일 ID
 apps/frappe/frappe/public/js/frappe/ui/editor.html +48,Insert Link,링크 삽입
 DocType: OAuth Client,A list of resources which the Client App will have access to after the user allows it.<br> e.g. project,클라이언트 응용 프로그램은 사용자가 허용 한 후에 액세스 할 수 있습니다 자원의 목록입니다. <br> 예를 들어 프로젝트
 DocType: Contact Us Settings,Query Options,쿼리 옵션
@@ -898,7 +898,7 @@ apps/frappe/frappe/core/page/data_import_tool/exporter.py +60,Notes:,주석:
 apps/frappe/frappe/public/js/frappe/form/control.js +1673,Markdown,마크 다운
 DocType: DocShare,Document Name,문서 이름
 DocType: ToDo,Medium,중간
-apps/frappe/frappe/email/doctype/newsletter/newsletter.py +131,Please verify your email id,귀하의 이메일 ID를 확인하십시오
+apps/frappe/frappe/email/doctype/newsletter/newsletter.py +131,Please verify your Email Address,귀하의 이메일 ID를 확인하십시오
 apps/frappe/frappe/public/js/frappe/form/linked_with.js +86,Not enough permission to see links.,링크가 아닌 참조 할 수있는 충분한 권한.
 DocType: Customize Form,Customize Form,사용자 정의 양식
 DocType: Currency,A symbol for this currency. For e.g. $,이 통화에 대한 기호.예를 들어 $
@@ -1089,7 +1089,7 @@ DocType: Workflow State,step-backward,스텝 뒤로
 apps/frappe/frappe/utils/boilerplate.py +252,{app_title},{app_title}
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +52,Please set Dropbox access keys in your site config,사이트 구성에 보관 액세스 키를 설정하십시오
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +16,Delete this record to allow sending to this email address,이 이메일 주소로 보낼 수 있도록이 기록을 삭제
-DocType: Email Account,Uses the Email ID mentioned in this Account as the Sender for all emails sent using this Account. ,이 계정을 사용하여 전송되는 모든 이메일에 대한 보낸 사람이 계정에 언급 된 이메일 ID를 사용합니다.
+DocType: Email Account,Uses the Email Address mentioned in this Account as the Sender for all emails sent using this Account. ,이 계정을 사용하여 전송되는 모든 이메일에 대한 보낸 사람이 계정에 언급 된 이메일 ID를 사용합니다.
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +65,Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish.,만 필수 필드는 새로운 기록을 위해 필요하다.당신이 원하는 경우 필수가 아닌 열을 삭제할 수 있습니다.
 apps/frappe/frappe/public/js/frappe/views/calendar.js +276,Unable to update event,이벤트를 업데이트 할 수 없습니다
 apps/frappe/frappe/templates/generators/web_form.html +292,Payment Complete,결제 완료
@@ -1285,7 +1285,7 @@ DocType: Workflow State,bookmark,북마크
 DocType: Note,Note,정보
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot.html +32,Error Report,오류 보고서
 apps/frappe/frappe/core/doctype/doctype/doctype.py +475,Timeline field must be a valid fieldname,타임 라인 필드는 유효한 필드 이름이어야합니다
-DocType: Email Account,Email Ids,이메일 IDS
+DocType: Email Account,Email Addresses,이메일 IDS
 DocType: Currency,Symbol,상징
 apps/frappe/frappe/model/base_document.py +529,Row #{0}:,행 # {0} :
 apps/frappe/frappe/core/doctype/user/user.py +163,New password emailed,새 암호를 이메일로 전송
@@ -1715,7 +1715,7 @@ DocType: Async Task,Queued,대기 중
 DocType: PayPal Settings,Use Sandbox,사용 샌드 박스
 apps/frappe/frappe/public/js/frappe/form/print.js +98,New Custom Print Format,새 사용자 정의 인쇄 형식
 DocType: DocPerm,Create,생성
-DocType: Newsletter,A Lead with this email id should exist,이 이메일 ID와 리드가 존재한다
+DocType: Newsletter,A Lead with this Email Address should exist,이 이메일 ID와 리드가 존재한다
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +201,Invalid Filter: {0},잘못된 필터 : {0}
 DocType: Integration Service,Background Events,이벤트
 DocType: Dropbox Settings,App Access Key,앱 액세스 키
@@ -1891,7 +1891,7 @@ DocType: Workflow Document State,Only Allow Edit For,만 편집을 위해이 허
 apps/frappe/frappe/templates/includes/comments/comments.html +34,Your Name,당신의 이름
 DocType: DocType,InnoDB,InnoDB의
 DocType: File,Is Folder,폴더입니다
-DocType: Newsletter,Test Email Id,테스트 이메일 아이디
+DocType: Newsletter,Test Email Address,테스트 이메일 아이디
 DocType: DocType,DocType,문서 종류
 apps/frappe/frappe/core/doctype/user/user.py +629,User {0} does not exist,{0} 사용자가 존재하지 않습니다
 DocType: Website Theme,"If image is selected, color will be ignored.","이미지가 선택된 경우, 컬러는 무시 될 것이다."
@@ -2246,7 +2246,7 @@ DocType: Communication,Email Account,이메일 계정
 DocType: Workflow State,Download,다운로드
 DocType: Blog Post,Blog Intro,블로그 소개
 DocType: Async Task,Result,결과
-apps/frappe/frappe/email/doctype/email_group/email_group.py +87,{0} is not a valid email id,{0} 유효한 이메일 ID가 아닌
+apps/frappe/frappe/email/doctype/email_group/email_group.py +87,{0} is not a valid Email Address,{0} 유효한 이메일 ID가 아닌
 apps/frappe/frappe/core/doctype/report/report.js +37,Enable Report,보고서 사용
 DocType: DocField,Display Depends On,디스플레이에 따라 달라집니다
 DocType: Web Page,Insert Code,코드에게 삽입

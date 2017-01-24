@@ -54,7 +54,7 @@ def get_fullname(user=None):
 	return frappe.local.fullnames.get(user)
 
 def get_formatted_email(user):
-	"""get email id of user formatted as: `John Doe <johndoe@example.com>`"""
+	"""get Email Address of user formatted as: `John Doe <johndoe@example.com>`"""
 	if user == "Administrator":
 		return user
 	from email.utils import formataddr
@@ -62,7 +62,7 @@ def get_formatted_email(user):
 	return formataddr((fullname, user))
 
 def extract_email_id(email):
-	"""fetch only the email part of the email id"""
+	"""fetch only the email part of the Email Address"""
 	from email.utils import parseaddr
 	fullname, email_id = parseaddr(email)
 	if isinstance(email_id, basestring) and not isinstance(email_id, unicode):
@@ -77,6 +77,8 @@ def validate_email_add(email_str, throw=False):
 
 	if not email_str:
 		valid = False
+	if 'undisclosed-recipient' in email_str:
+		return False
 
 	elif " " in email_str and "<" not in email_str:
 		# example: "test@example.com test2@example.com" will return "test@example.comtest2" after parseaddr!!!
@@ -91,7 +93,7 @@ def validate_email_add(email_str, throw=False):
 
 	if not valid:
 		if throw:
-			frappe.throw(frappe._("{0} is not a valid email id").format(email),
+			frappe.throw(frappe._("{0} is not a valid Email Address").format(email),
 				frappe.InvalidEmailAddressError)
 		else:
 			return False
@@ -102,7 +104,7 @@ def validate_email_add(email_str, throw=False):
 		match = matched==email.lower()
 
 	if not match and throw:
-		frappe.throw(frappe._("{0} is not a valid email id").format(email),
+		frappe.throw(frappe._("{0} is not a valid Email Address").format(email),
 			frappe.InvalidEmailAddressError)
 
 	return matched
@@ -111,7 +113,8 @@ def split_emails(txt):
 	email_list = []
 
 	# emails can be separated by comma or newline
-	for email in re.split('''[,\\n](?=(?:[^"]|"[^"]*")*$)''', cstr(txt)):
+	s = re.sub(r'[\t\n\r]', ' ', cstr(txt))
+	for email in re.split('''[,\\n](?=(?:[^"]|"[^"]*")*$)''', s):
 		email = strip(cstr(email))
 		if email:
 			email_list.append(email)
@@ -134,7 +137,7 @@ def has_gravatar(email):
 		# since querying gravatar for every item will be slow
 		return ''
 
-	hexdigest = md5.md5(frappe.as_unicode(email)).hexdigest()
+	hexdigest = md5.md5(frappe.as_unicode(email).encode('utf-8')).hexdigest()
 
 	gravatar_url = "https://secure.gravatar.com/avatar/{hash}?d=404&s=200".format(hash=hexdigest)
 	try:

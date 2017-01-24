@@ -466,7 +466,7 @@ apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.js +33,Send
 DocType: Report,Query,வினா
 DocType: DocType,Sort Order,வரிசையை
 apps/frappe/frappe/core/doctype/doctype/doctype.py +353,'In List View' not allowed for type {0} in row {1},' பட்டியல் பார்வையில் ' அனுமதி இல்லை வகை {0} வரிசையில் {1}
-apps/frappe/frappe/templates/includes/comments/comments.html +38,Your Email Id,உங்கள் மின்னஞ்சல் ஐடி
+apps/frappe/frappe/templates/includes/comments/comments.html +38,Your Email Address,உங்கள் மின்னஞ்சல் ஐடி
 DocType: Custom Field,Select the label after which you want to insert new field.,நீங்கள் புதிய துறையில் சேர்க்க வேண்டும் பின்னர் லேபிள் தேர்வு.
 ,Document Share Report,ஆவண பகிர் அறிக்கை
 DocType: User,Last Login,கடைசியாக உட்சென்ற தேதி
@@ -650,7 +650,7 @@ DocType: Page,Page HTML,பக்கம் HTML
 apps/frappe/frappe/public/js/frappe/views/treeview.js +236,Further nodes can be only created under 'Group' type nodes,மேலும் முனைகளில் ஒரே 'குரூப்' வகை முனைகளில் கீழ் உருவாக்கப்பட்ட
 DocType: Web Page,Header,தலை கீழாக நீரில் மூழ்குதல்
 apps/frappe/frappe/public/js/frappe/model/model.js +80,Unknown Column: {0},தெரியாத வரிசை : {0}
-DocType: Email Alert Recipient,Optional: Always send to these ids. Each email id on a new row,விருப்பப்பட்ட: எப்போதும் இந்த ஐடிகள் அனுப்ப. ஒரு புதிய வரிசையில் ஒவ்வொரு மின்னஞ்சல் ஐடி
+DocType: Email Alert Recipient,Optional: Always send to these ids. Each Email Address on a new row,விருப்பப்பட்ட: எப்போதும் இந்த ஐடிகள் அனுப்ப. ஒரு புதிய வரிசையில் ஒவ்வொரு மின்னஞ்சல் ஐடி
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +299,Users with role {0}:,பங்கு பயனர்கள் {0} :
 apps/frappe/frappe/desk/page/applications/applications.py +76,Installing App {0},நிறுவுதல் ஆப் {0}
 DocType: Print Format,Custom Format,விருப்ப வடிவம்
@@ -719,7 +719,7 @@ DocType: Workflow State,retweet,மறு ட்வீட் செய்க
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +53,Update the template and save in CSV (Comma Separate Values) format before attaching.,டெம்ப்ளேட் புதுப்பிக்கவும் மற்றும் இணைக்கிறேன் முன் CSV இல் வடிவமைப்பில் (Comma தனி மதிப்புகள்) சேமிக்க.
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +213,Specify the value of the field,துறையில் மதிப்பு குறிப்பிடவும்
 DocType: Report,Disabled,முடக்கப்பட்டது
-DocType: Email Account,Always use Account's Email ID as Sender,எப்போதும் அனுப்புநர் என கணக்கின் மின்னஞ்சல் ஐடி பயன்படுத்த
+DocType: Email Account,Always use Account's Email Address as Sender,எப்போதும் அனுப்புநர் என கணக்கின் மின்னஞ்சல் ஐடி பயன்படுத்த
 DocType: Workflow State,eye-close,கண் நெருக்கமான
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py +93,Please select another payment method. {0} does not support transactions in currency '{1}',மற்றொரு கட்டண முறையை தேர்ந்தெடுக்கவும். {0} நாணய பரிவர்த்தனையில் ஆதரிக்கவில்லை &#39;{1}&#39;
 DocType: OAuth Provider Settings,OAuth Provider Settings,அறிந்திருந்தால் வழங்குநர் அமைப்புகள்
@@ -862,7 +862,7 @@ DocType: File,rgt,rgt
 DocType: Email Account,Sendgrid,Sendgrid
 DocType: Workflow State,leaf,இலை
 DocType: Portal Menu Item,Portal Menu Item,போர்டல் மெனு உருப்படி
-DocType: Email Account,Email ID,மின்னஞ்சல் ஐடி
+DocType: Email Account,Email Address,மின்னஞ்சல் ஐடி
 apps/frappe/frappe/public/js/frappe/ui/editor.html +48,Insert Link,வாசகன்
 DocType: OAuth Client,A list of resources which the Client App will have access to after the user allows it.<br> e.g. project,வாடிக்கையாளர் பயன்பாட்டை பயனர் அதை அனுமதிக்கிறது பின்னர் அணுக வேண்டும் இது வளங்களை பட்டியல். <br> எ.கா. திட்டம்
 DocType: Contact Us Settings,Query Options,கேள்வி விருப்பங்கள்
@@ -898,7 +898,7 @@ apps/frappe/frappe/core/page/data_import_tool/exporter.py +60,Notes:,குற�
 apps/frappe/frappe/public/js/frappe/form/control.js +1673,Markdown,Markdown
 DocType: DocShare,Document Name,ஆவண பெயர்
 DocType: ToDo,Medium,ஊடகம்
-apps/frappe/frappe/email/doctype/newsletter/newsletter.py +131,Please verify your email id,உங்கள் மின்னஞ்சல் ஐடி சரிபார்க்கவும்
+apps/frappe/frappe/email/doctype/newsletter/newsletter.py +131,Please verify your Email Address,உங்கள் மின்னஞ்சல் ஐடி சரிபார்க்கவும்
 apps/frappe/frappe/public/js/frappe/form/linked_with.js +86,Not enough permission to see links.,இல்லை இணைப்புகளை பார்க்க போதுமான அனுமதி.
 DocType: Customize Form,Customize Form,படிவம் தனிப்பயனாக்கு
 DocType: Currency,A symbol for this currency. For e.g. $,இந்த நாணயம் ஒரு குறியீடு. உதாரணமாக $ க்கு
@@ -1089,7 +1089,7 @@ DocType: Workflow State,step-backward,படி-பின்தங்கிய
 apps/frappe/frappe/utils/boilerplate.py +252,{app_title},{ app_title }
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +52,Please set Dropbox access keys in your site config,உங்கள் தளத்தில் கட்டமைப்பு டிராப்பாக்ஸ் அணுகல் விசைகள் அமைக்கவும்
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +16,Delete this record to allow sending to this email address,இந்த மின்னஞ்சல் முகவரிக்கு அனுப்பும் அனுமதிக்க இந்தப் பதிவை நீக்கு
-DocType: Email Account,Uses the Email ID mentioned in this Account as the Sender for all emails sent using this Account. ,இந்த கணக்கை பயன்படுத்தி அனுப்பப்படும் அனைத்து மின்னஞ்சல்கள் அனுப்புநர் இந்த கணக்கு குறிப்பிடப்பட்டுள்ளது மின்னஞ்சல் ஐடி பயன்படுத்துகிறது.
+DocType: Email Account,Uses the Email Address mentioned in this Account as the Sender for all emails sent using this Account. ,இந்த கணக்கை பயன்படுத்தி அனுப்பப்படும் அனைத்து மின்னஞ்சல்கள் அனுப்புநர் இந்த கணக்கு குறிப்பிடப்பட்டுள்ளது மின்னஞ்சல் ஐடி பயன்படுத்துகிறது.
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +65,Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish.,"ஒரே கட்டாய துறைகள், புதிய பதிவுகள் அவசியம். நீங்கள் விரும்பினால் நீங்கள் அல்லாத கட்டாய பத்திகள் நீக்க முடியும்."
 apps/frappe/frappe/public/js/frappe/views/calendar.js +276,Unable to update event,நிகழ்வை முடியவில்லை
 apps/frappe/frappe/templates/generators/web_form.html +292,Payment Complete,கொடுப்பனவு முழுமையான
@@ -1285,7 +1285,7 @@ DocType: Workflow State,bookmark,புக்மார்க்
 DocType: Note,Note,குறிப்பு
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot.html +32,Error Report,பிழை அறிக்கை
 apps/frappe/frappe/core/doctype/doctype/doctype.py +475,Timeline field must be a valid fieldname,காலக்கெடு புலத்தில் செல்லுபடியாகும் FIELDNAME இருக்க வேண்டும்
-DocType: Email Account,Email Ids,மின்னஞ்சல் ஐடிகள்
+DocType: Email Account,Email Addresses,மின்னஞ்சல் ஐடிகள்
 DocType: Currency,Symbol,அடையாளம்
 apps/frappe/frappe/model/base_document.py +529,Row #{0}:,ரோ # {0}:
 apps/frappe/frappe/core/doctype/user/user.py +163,New password emailed,புதிய கடவுச்சொல்லை மின்னஞ்சல்
@@ -1715,7 +1715,7 @@ DocType: Async Task,Queued,வரிசைப்படுத்திய
 DocType: PayPal Settings,Use Sandbox,சாண்ட்பாக்ஸினைப் பயன்படுத்தவும்
 apps/frappe/frappe/public/js/frappe/form/print.js +98,New Custom Print Format,புதிய தனிபயன் அச்சு வடிவம்
 DocType: DocPerm,Create,உருவாக்கு
-DocType: Newsletter,A Lead with this email id should exist,வாடிக்கையாளர் மின்னஞ்சல் முகவரி ஏற்கனவே பெறப்பட்டுள்ளது
+DocType: Newsletter,A Lead with this Email Address should exist,வாடிக்கையாளர் மின்னஞ்சல் முகவரி ஏற்கனவே பெறப்பட்டுள்ளது
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +201,Invalid Filter: {0},செல்லாத வடிகட்டவும்: {0}
 DocType: Integration Service,Background Events,பின்னணி நிகழ்வுகள்
 DocType: Dropbox Settings,App Access Key,ஆப் அணுகல் விசை
@@ -1891,7 +1891,7 @@ DocType: Workflow Document State,Only Allow Edit For,மட்டும் த�
 apps/frappe/frappe/templates/includes/comments/comments.html +34,Your Name,உங்கள் பெயர்
 DocType: DocType,InnoDB,InnoDB என்ற
 DocType: File,Is Folder,அடைவு
-DocType: Newsletter,Test Email Id,டெஸ்ட் மின்னஞ்சல் விலாசம்
+DocType: Newsletter,Test Email Address,டெஸ்ட் மின்னஞ்சல் விலாசம்
 DocType: DocType,DocType,DOCTYPE
 apps/frappe/frappe/core/doctype/user/user.py +629,User {0} does not exist,பயனர் {0} இல்லை
 DocType: Website Theme,"If image is selected, color will be ignored.","படத்தை தேர்ந்தெடுக்கப்பட்டால், நிறம் மட்டும் புறக்கணிக்கப்படும்."
@@ -2246,7 +2246,7 @@ DocType: Communication,Email Account,மின்னஞ்சல் கணக்
 DocType: Workflow State,Download,பதிவிறக்கம்
 DocType: Blog Post,Blog Intro,வலைப்பதிவு அறிமுகம்
 DocType: Async Task,Result,முடிவு
-apps/frappe/frappe/email/doctype/email_group/email_group.py +87,{0} is not a valid email id,{0} சரியான மின்னஞ்சல் ஐடி அல்ல
+apps/frappe/frappe/email/doctype/email_group/email_group.py +87,{0} is not a valid Email Address,{0} சரியான மின்னஞ்சல் ஐடி அல்ல
 apps/frappe/frappe/core/doctype/report/report.js +37,Enable Report,இயக்கு
 DocType: DocField,Display Depends On,காட்சி பொறுத்தது
 DocType: Web Page,Insert Code,கோட் செருக

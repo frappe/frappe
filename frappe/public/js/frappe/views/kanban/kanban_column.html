@@ -1,0 +1,25 @@
+<div class="kanban-column" data-column-value="{{title}}">
+	<div class="kanban-column-title indicator {{indicator}}">
+		<span>{{ __(title) }}</span>
+		<div class="btn-group column-options dropdown pull-right">
+		  <a class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+		    <button class="btn btn-default btn-xs"><span class="caret"></span></button>
+		  </a>
+		  <ul class="dropdown-menu" style="max-height: 300px; overflow-y: auto;">
+		    <li><a data-action="archive">{{ __("Archive") }}</a></li>
+		  </ul>
+		</div>
+	</div>
+	<div class="kanban-cards">
+
+	</div>
+
+	<div class="kanban-card add-card">
+		<div class="kanban-card-title">
+			<i class="octicon octicon-plus"></i> {{ __("Add " + doctype) }}
+		</div>
+	</div>
+	<div class="kanban-card new-card-area">
+		<textarea name="title"></textarea>
+	</div>
+</div>
