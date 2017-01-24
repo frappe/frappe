@@ -91,8 +91,8 @@ def get_context(context):
 		'''Build recipients and send email alert'''
 		context = get_context(doc)
 
+		recipients = []
 		for recipient in self.recipients:
-			recipients = []
 			if recipient.condition:
 				if not eval(recipient.condition, context):
 					continue
@@ -108,6 +108,7 @@ def get_context(context):
 		if not recipients:
 			return
 
+		recipients = list(set(recipients))
 		subject = self.subject
 
 		context = {"doc": doc, "alert": self, "comments": None}

@@ -72,6 +72,14 @@ frappe.pages['activity'].on_page_load = function(wrapper) {
 		}, 'fa fa-th')
 	}
 
+	this.page.add_menu_item(__('Authentication Log'), function() {
+		frappe.route_options = {
+			"user": user
+		}
+
+		frappe.set_route('Report', "Authentication Log");
+	}, 'fa fa-th')
+
 	this.page.add_menu_item(__('Show Likes'), function() {
 		frappe.route_options = {
 			show_likes: true
