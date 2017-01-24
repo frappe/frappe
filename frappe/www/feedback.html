@@ -1,0 +1,54 @@
+{% extends "templates/web.html" %}
+
+{% block page_content %}
+<p class='lead'>
+	{{ _("Please share your feedback for {0} {1}").format(reference_doctype, reference_name) }}
+</p>
+
+<div>
+	{{ _("Your rating: ") }}
+	<i class='fa fa-fw fa-star-o star-icon' data-idx=1></i>
+	<i class='fa fa-fw fa-star-o star-icon' data-idx=2></i>
+	<i class='fa fa-fw fa-star-o star-icon' data-idx=3></i>
+	<i class='fa fa-fw fa-star-o star-icon' data-idx=4></i>
+	<i class='fa fa-fw fa-star-o star-icon' data-idx=5></i>
+</div>
+
+<div style='max-width: 500px;'>
+	<p>{{ _("Detailed feedback") }}</p>
+	<textarea class='form-control feedback-text' style='min-height: 300px;'></textarea>
+</div>
+
+<p><button class='btn btn-primary btn-sm btn-submit'>{{ _("Submit") }}</button></p>
+
+<script>
+frappe.ready(function() {
+	$('.star-icon').hover(function() {
+		var idx = $(this).attr('data-idx');
+		$('.star-icon.fa-star').removeClass('fa-star').addClass('fa-star-o');
+		for(var i=0; i<parseInt(idx); i++) {
+			$($('.star-icon').get(i)).removeClass('fa-star-o').addClass('fa-star');
+		}
+	});
+
+	$('.btn-submit').on('click', function() {
+		if(!rating: $('.star-icon.fa-star').length) {
+			frappe.msgprint("{{ _("Please give a rating.") }}");
+			return;
+		}
+		frappe.call({
+			method: 'frappe.www.feedback.accept',
+			args: {
+				reference_doctype: "{{ reference_doctype }}",
+				reference_name: "{{ reference_name }}",
+				feedback: $('.feedback-text').val(),
+				rating: $('.star-icon.fa-star').length
+			},
+			callback: function() {
+
+			}
+		})
+	});
+})
+</script>
+{% endblock %}

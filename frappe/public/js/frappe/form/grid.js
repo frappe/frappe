@@ -855,6 +855,7 @@ frappe.ui.form.GridRow = Class.extend({
 				column.static_area.toggle(false);
 				column.field_area.toggle(true);
 			});
+
 			frappe.ui.form.editable_row = this;
 			return false;
 		} else {
@@ -899,7 +900,13 @@ frappe.ui.form.GridRow = Class.extend({
 			field.$input
 				.attr('data-col-idx', column.column_index)
 				.attr('placeholder', __(df.label));
+
+				// flag list input
+				if (this.columns_list && this.columns_list.slice(-1)[0]===column) {
+					field.$input.attr('data-last-input', 1);
+				}
 		}
+
 		this.set_arrow_keys(field);
 		column.field = field;
 		this.on_grid_fields_dict[df.fieldname] = field;
@@ -915,14 +922,26 @@ frappe.ui.form.GridRow = Class.extend({
 				var fieldname = $(this).attr('data-fieldname');
 				var fieldtype = $(this).attr('data-fieldtype');
 
-				// TAB
-				if(in_list(['Text', 'Small Text'], fieldtype)) {
-					return;
+				var move_up_down = function(base) {
+					if(in_list(['Text', 'Small Text'], fieldtype)) {
+						return;
+					}
+
+					base.toggle_editable_row();
+					setTimeout(function() {
+						var input = base.columns[fieldname].field.$input;
+						if(input) {
+							input.focus();
+						}
+					}, 400)
+
 				}
 
+				// TAB
 				if(e.which==TAB) {
 					// last column
-					if(me.grid.wrapper.find('input:enabled:last').get(0)===this) {
+					if($(this).attr('data-last-input') ||
+						me.grid.wrapper.find(':input:enabled:last').get(0)===this) {
 						setTimeout(function() {
 							if(me.doc.idx === values.length) {
 								// last row
@@ -938,24 +957,12 @@ frappe.ui.form.GridRow = Class.extend({
 				} else if(e.which==UP_ARROW) {
 					if(me.doc.idx > 1) {
 						var prev = me.grid.grid_rows[me.doc.idx-2];
-						prev.toggle_editable_row();
-						setTimeout(function() {
-							var input = prev.columns[fieldname].field.$input;
-							if(input) {
-								input.focus();
-							}
-						}, 400)
+						move_up_down(prev);
 					}
 				} else if(e.which==DOWN_ARROW) {
 					if(me.doc.idx < values.length) {
 						var next = me.grid.grid_rows[me.doc.idx];
-						next.toggle_editable_row();
-						setTimeout(function() {
-							var input = next.columns[fieldname].field.$input;
-							if(input) {
-								input.focus();
-							}
-						}, 400)
+						move_up_down(next);
 					}
 				}
 
