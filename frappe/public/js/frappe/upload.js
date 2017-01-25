@@ -13,7 +13,7 @@ frappe.upload = {
 			function() { $file_input.click(); });
 
 		$file_input.on("change", function() {
-			if (this.files.length > 0) {
+			if (this.files.length == 1) {
 				$upload.find(".web-link-wrapper").addClass("hidden");
 				$upload.find(".btn-browse").removeClass("btn-primary").addClass("btn-default");
 
@@ -44,6 +44,9 @@ frappe.upload = {
 					$upload.find(".private-file").removeClass("hidden");
 				}
 
+			} else if (this.files.length > 1){
+				var fileobjs = $upload.find(":file").get(0).files;
+				frappe.upload.multifile_upload(fileobjs, opts.args, opts);
 			} else {
 				$upload.find(".uploaded-filename").addClass("hidden")
 				$upload.find(".web-link-wrapper").removeClass("hidden");
