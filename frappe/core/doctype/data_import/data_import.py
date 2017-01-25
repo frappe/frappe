@@ -112,15 +112,15 @@ class DataImport(Document):
 		else:
 			return ""
 
-	def insert_into_db(self, file_path=None, rows=None):
-		print "in the insert into db"
+	def upload_file(self, file_path=None, rows=None):
+		print "in the ipload file"
 		
 		if not file_path:
 			file_path = os.getcwd()+get_site_path()[1:].encode('utf8') + self.import_file
 		filename, file_extension = os.path.splitext(file_path)
 
 		if self.template == "raw" and file_extension == '.xlsx':
-			enqueue(self.upload_raw(file_path))
+			enqueue(upload_raw, file_path=file_path, doc_name=self.name, job_name="data_import")
 
 		elif self.template == "template" and file_extension == '.xlsx':
 			wb = load_workbook(filename=file_path, read_only=True)
@@ -133,91 +133,101 @@ class DataImport(Document):
 					tmp_list.append(cell.value)
 				rows.append(tmp_list)
 
-			log_message = upload_template(doc_name=doc_name, overwrite=only_new_records, update_only=only_update,
-				submit_after_import=submit_after_import, ignore_encoding_errors=ignore_encoding_errors,
-				no_email=no_email, rows=rows)
-			return log_message
+			self.upload_template(overwrite=only_new_records, rows=rows)
+
 
 		elif self.template == "template" and file_extension == '.csv':
-			log_message = upload_template(doc_name=doc_name, overwrite=only_new_records, update_only=only_update,
-				submit_after_import=submit_after_import, ignore_encoding_errors=ignore_encoding_errors,
-				no_email=no_email, rows=rows)
-			return log_message
+			enqueue(self.upload_template(overwrite=self.only_new_records), job_name="data_import")
 
 
-	def upload_raw(self,file_path):
+def upload_raw(file_path,doc_name):
 
-		print "in upload raw"
+	print "in upload raw"
 
-		frappe.flags.mute_emails = self.no_email
+	di_doc = frappe.get_doc("Data Import",doc_name)
 
-		if self.submit_after_import and not cint(frappe.db.get_value("DocType",
-				self.reference_doctype, "is_submittable")):
-			self.submit_after_import = 0
+	frappe.flags.mute_emails = di_doc.no_email
 
-		# check permissions
-		if not frappe.permissions.can_import(self.reference_doctype):
-			frappe.flags.mute_emails = False
-			return {"messages": [_("Not allowed to Import") + ": " + _(self.reference_doctype)], "error": True}
+	if di_doc.submit_after_import and not cint(frappe.db.get_value("DocType",
+			di_doc.reference_doctype, "is_submittable")):
+		di_doc.submit_after_import = 0
 
-		ret = []
-		def log(msg):
-			ret.append(msg)
+	# check permissions
+	if not frappe.permissions.can_import(di_doc.reference_doctype):
+		frappe.flags.mute_emails = False
+		return {"messages": [_("Not allowed to Import") + ": " + _(di_doc.reference_doctype)], "error": True}
 
-		error = False
-		column_map = json.loads(self.selected_columns)
-		# doc = frappe.new_doc(self.reference_doctype)
-		
-		for field in frappe.get_meta(self.reference_doctype).fields:
-			if field.reqd == 1 and field.fieldname not in column_map:
-				frappe.throw("Please select all required fields to insert")
+	ret = []
+	def log(msg):
+		ret.append(msg)
 
-		wb = load_workbook(filename=file_path, read_only=True)
-		ws = wb.active
+	error = False
+	column_map = json.loads(di_doc.selected_columns)
+	# doc = frappe.new_doc(self.reference_doctype)
+	
+	mendatory_field_flag = False
 
-		start =  int(self.selected_row)
-		for i,row in enumerate(ws.iter_rows(min_row=start)):
-			if [x for x in row if x.value != None]:
-				frappe.publish_realtime("data_import_progress", {"progress": [i, ws.max_row]},user=frappe.session.user)
+	mendatory_field_list = []
+	child_table_list = []
 
-				try:
-					new_doc = frappe.new_doc(self.reference_doctype)
-					for j,cell in enumerate(row):
-						if column_map[j] and column_map[j] != "do_not_map":
-							setattr(new_doc, column_map[j], cell.value)
-					new_doc.insert()
-					new_doc.save()
-					log([i,row[1].value,(getlink(self.reference_doctype,new_doc.name)),"Row Inserted"])
+	for field in frappe.get_meta(di_doc.reference_doctype).fields:
+		if field.fieldtype == "Table":
+			child_table_list.append(field.fieldname)
+		if field.reqd == 1:
+			mendatory_field_list.append(field.fieldname)
+			if field.fieldname not in column_map:
+				mendatory_field_flag = True
+			
+	if mendatory_field_flag:
+		frappe.throw(_("Please select all mendatory fields: <br>{0}<br> child tables {1}")
+			.format(mendatory_field_list, child_table_list))
 
-				except Exception, e:
-					error = True
-					if new_doc:
-						frappe.errprint(new_doc if isinstance(new_doc, dict) else new_doc.as_dict())
-					err_msg = frappe.local.message_log and "\n\n".join(frappe.local.message_log) or cstr(e)
-					log([i,row[1].value,"","Error"])
-					log('Error for insertion')
-					frappe.errprint(frappe.get_traceback())
-				
-				finally:
-					frappe.local.message_log = []
-				
-				if error:
-					frappe.db.rollback()
-				else:
-					frappe.db.commit()
+	wb = load_workbook(filename=file_path, read_only=True)
+	ws = wb.active
 
-		log_message = {"messages": ret, "error": error}
-		self.log_details = json.dumps(log_message)
-		self.freeze_doctype = 1
-		
+	start =  int(di_doc.selected_row)
+	for i,row in enumerate(ws.iter_rows(min_row=start)):
+		if [x for x in row if x.value != None]:
+			frappe.publish_realtime("data_import", {"progress": [i, ws.max_row]}, user=frappe.session.user)
 
-def upload_template(doc_name, overwrite, update_only, submit_after_import, ignore_encoding_errors,
-		no_email, rows = None, ignore_links=False, pre_process=None, via_console=False):
+			try:
+				new_doc = frappe.new_doc(di_doc.reference_doctype)
+				for j,cell in enumerate(row):
+					if column_map[j] and column_map[j] != "do_not_map":
+						setattr(new_doc, column_map[j], cell.value)
+				new_doc.insert()
+				new_doc.save()
+				log([i,row[1].value,(getlink(di_doc.reference_doctype,new_doc.name)),"Row Inserted"])
+
+			except Exception, e:
+				error = True
+				if new_doc:
+					frappe.errprint(new_doc if isinstance(new_doc, dict) else new_doc.as_dict())
+				err_msg = frappe.local.message_log and "\n\n".join(frappe.local.message_log) or cstr(e)
+				log([i,row[1].value,"","Error"])
+				log('Error for insertion')
+				frappe.errprint(frappe.get_traceback())
+			
+			finally:
+				frappe.local.message_log = []
+			
+			if error:
+				frappe.db.rollback()
+			else:
+				frappe.db.commit()
+
+	log_message = {"messages": ret, "error": error}
+	di_doc.log_details = json.dumps(log_message)
+	di_doc.freeze_doctype = 1
+	di_doc.save()
+	
+
+def upload_template(self, overwrite, rows = None, ignore_links=False, pre_process=None, via_console=False):
 	"""upload the templated data"""
 
 	frappe.flags.in_import = True
 
-	frappe.flags.mute_emails = no_email
+	frappe.flags.mute_emails = self.no_email
 
 	def bad_template():
 		frappe.throw(_("Please do not change the rows above {0}").format(get_data_keys_definition().data_separator))
@@ -337,8 +347,8 @@ def upload_template(doc_name, overwrite, update_only, submit_after_import, ignor
 
 	# header
 	if not rows:
-		rows = read_csv_content_from_attached_file(frappe.get_doc("Data Import", doc_name),
-			ignore_encoding_errors)
+		rows = read_csv_content_from_attached_file(frappe.get_doc("Data Import", self.name),
+			self.ignore_encoding_errors)
 
 	start_row = get_start_row()
 	header = rows[:start_row]
@@ -349,9 +359,9 @@ def upload_template(doc_name, overwrite, update_only, submit_after_import, ignor
 	column_idx_to_fieldname = {}
 	column_idx_to_fieldtype = {}
 
-	if submit_after_import and not cint(frappe.db.get_value("DocType",
+	if self.submit_after_import and not cint(frappe.db.get_value("DocType",
 			doctype, "is_submittable")):
-		submit_after_import = False
+		self.submit_after_import = False
 
 	parenttype = get_header_row(get_data_keys_definition().parent_table)
 
@@ -399,7 +409,7 @@ def upload_template(doc_name, overwrite, update_only, submit_after_import, ignor
 		doc = None
 
 		# publish task_update
-		frappe.publish_realtime("data_import_progress", {"progress": [i, total]},
+		frappe.publish_realtime("data_import", {"progress": [i+1, total]},
 			user=frappe.session.user)
 
 		try:
@@ -411,8 +421,8 @@ def upload_template(doc_name, overwrite, update_only, submit_after_import, ignor
 				parent = frappe.get_doc(parenttype, doc["parent"])
 				doc = parent.append(parentfield, doc)
 				parent.save()
-				log('Inserted row for %s at #%s' % (as_link(parenttype,
-					doc.parent), unicode(doc.idx)))
+				# log('Inserted row for %s at #%s' % (as_link(parenttype,doc.parent), unicode(doc.idx)))
+				log([i, row[1], getlink(self.reference_doctype,new_doc.name), "Row Inserted"])
 			else:
 				if overwrite and doc["name"] and frappe.db.exists(doctype, doc["name"]):
 					original = frappe.get_doc(doctype, doc["name"])
@@ -422,27 +432,33 @@ def upload_template(doc_name, overwrite, update_only, submit_after_import, ignor
 					original.name = original_name
 					original.flags.ignore_links = ignore_links
 					original.save()
-					log('Updated row (#%d) %s' % (row_idx + 1, as_link(original.doctype, original.name)))
+					# log('Updated row (#%d) %s' % (row_idx + 1, as_link(original.doctype, original.name)))
+					log([row_idx+1, row[1], getlink(original.doctype, original.name), "Row updated"])
 					doc = original
 				else:
-					if not update_only:
+					if not self.only_update:
 						doc = frappe.get_doc(doc)
 						prepare_for_insert(doc)
 						doc.flags.ignore_links = ignore_links
 						doc.insert()
-						log('Inserted row (#%d) %s' % (row_idx + 1, as_link(doc.doctype, doc.name)))
+						# log('Inserted row (#%d) %s' % (row_idx + 1, as_link(doc.doctype, doc.name)))
+						log([row_idx+1, row[1], getlink(doc.doctype, doc.name), "Row inserted"])
 					else:
-						log('Ignored row (#%d) %s' % (row_idx + 1, row[1]))
-				if submit_after_import:
+						# log('Ignored row (#%d) %s' % (row_idx + 1, row[1]))
+						log([row_idx+1, row[1], "", "Row ignored"])
+				if self.submit_after_import:
 					doc.submit()
-					log('Submitted row (#%d) %s' % (row_idx + 1, as_link(doc.doctype, doc.name)))
+					# log('Submitted row (#%d) %s' % (row_idx + 1, as_link(doc.doctype, doc.name)))
+					log([row_idx+1, row[1], getlink(doc.doctype, doc.name), "Row submitted"])
+
 		except Exception, e:
 			error = True
 			if doc:
 				frappe.errprint(doc if isinstance(doc, dict) else doc.as_dict())
 			err_msg = frappe.local.message_log and "\n\n".join(frappe.local.message_log) or cstr(e)
-			log('Error for row (#%d) %s : %s' % (row_idx + 1,
-				len(row)>1 and row[1] or "", err_msg))
+			# log('Error for row (#%d) %s : %s' % (row_idx + 1, len(row)>1 and row[1] or "", err_msg))
+			log([row_idx+1, len(row)>1 and row[1] or "", "", err_msg])
+		
 			frappe.errprint(frappe.get_traceback())
 		finally:
 			frappe.local.message_log = []
@@ -455,7 +471,10 @@ def upload_template(doc_name, overwrite, update_only, submit_after_import, ignor
 	frappe.flags.mute_emails = False
 	frappe.flags.in_import = False
 
-	return {"messages": ret, "error": error}
+
+	log_message = {"messages": ret, "error": error}
+	self.log_details = json.dumps(log_message)
+	self.freeze_doctype = 1
 
 	def get_parent_field(doctype, parenttype):
 		parentfield = None
