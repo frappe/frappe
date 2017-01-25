@@ -139,7 +139,16 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		this.setup_filterable();
 		this.init_filters();
 		this.init_sort_selector();
+		this.set_title();
 		this.init_headers();
+	},
+
+	set_title: function() {
+		if(this.current_view==='Kanban') {
+			this.page.set_title(this.kanban_board);
+		} else {
+			this.page.set_title(__(this.doctype));
+		}
 	},
 
 	init_headers: function() {
@@ -350,6 +359,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 
 		// if view has changed, re-render header
 		if(this.current_view !== this.last_view) {
+			this.set_title();
 			this.init_headers();
 			this.dirty = true;
 		}
@@ -357,6 +367,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		// if kanban board changed, set filters
 		if(this.current_view==="Kanban" &&
 			this.kanban_board!==this.last_kanban_board) {
+			this.set_title();
 			this.init_headers();
 			this.set_kanban_board_filters();
 			return;
