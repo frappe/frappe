@@ -32,7 +32,6 @@ frappe.search.AwesomeBar = Class.extend({
 					.get(0);
 			},
 			sort: function(a, b) { 
-				// make better
 				return 0; 
 			}
 		});
@@ -47,7 +46,7 @@ frappe.search.AwesomeBar = Class.extend({
 			}
 
 			me.add_recent(txt || "");
-			// console.log(me.options);
+			me.add_help();
 			awesomplete.list = me.options;
 
 		});
@@ -96,6 +95,28 @@ frappe.search.AwesomeBar = Class.extend({
 		this.search.setup();
 	},
 
+	add_help: function() {
+		this.options.push({
+			label: __("Help on Search"),
+			value: "Help on Search",
+			onclick: function() {
+				var txt = '<table class="table table-bordered">\
+					<tr><td style="width: 50%">'+__("Make a new record")+'</td><td>'+
+						__("new type of document")+'</td></tr>\
+					<tr><td>'+__("List a document type")+'</td><td>'+
+						__("document type..., e.g. customer")+'</td></tr>\
+					<tr><td>'+__("Search in a document type")+'</td><td>'+
+						__("text in document type")+'</td></tr>\
+					<tr><td>'+__("Open a module or tool")+'</td><td>'+
+						__("module name...")+'</td></tr>\
+					<tr><td>'+__("Calculate")+'</td><td>'+
+						__("e.g. (55 + 434) / 4 or =Math.sin(Math.PI/2)...")+'</td></tr>\
+				</table>'
+				msgprint(txt, "Search Help");
+			}
+		});
+	},
+
 	add_recent: function(txt) {
 		var me = this;
 		values = [];
@@ -118,8 +139,6 @@ frappe.search.AwesomeBar = Class.extend({
 				values.push([frappe.route_titles[route[0]] || route[0], route]);
 			}
 		});
-
-		console.log("values", values);
 
 		this.find(values, txt, function(match) {
 			out = {
@@ -204,7 +223,7 @@ frappe.search.AwesomeBar = Class.extend({
 			match: txt,
 			onclick: function() {
 				me.search.search_dialog.show();
-				me.search.setup_search(txt, [me.nav, me.global]);
+				me.search.setup_search(txt, [me.global, me.nav, me.help]);
 			}
 		}];
 	},
@@ -272,7 +291,6 @@ frappe.search.AwesomeBar = Class.extend({
 	},
 
 	make_search_in_list: function(txt) {
-		// make this 
 		var me = this;
 		var out = [];
 		if(in_list(txt.split(" "), "in")) {
@@ -292,8 +310,7 @@ frappe.search.AwesomeBar = Class.extend({
 		return out;
 	},
 
-	get_doctypes: function(txt) {
-		// make this 
+	get_doctypes: function(txt) { 
 		var me = this;
 		var out = [];
 
