@@ -193,6 +193,7 @@ frappe.search.AwesomeBar = Class.extend({
 	setup_recent: function() {
 		this.recent = JSON.parse(frappe.boot.user.recent || "[]") || [];
 	},
+	
 	is_present: function(txt, item) {
 		($.isArray(item)) ?	_item = item[0] : _item = item;
 		_item = __(_item || '').toLowerCase().replace(/-/g, " ");
