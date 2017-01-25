@@ -9,7 +9,6 @@ frappe.ui.form.on('Data Import', {
 			doctype_options = doctype_options + "\n" + frappe.boot.user.can_import[i];
 		}
 		frm.get_field('reference_doctype').df.options = doctype_options;
-		frm.data_progress = 0;
 	},
 
 	refresh: function(frm) {
@@ -33,6 +32,7 @@ frappe.ui.form.on('Data Import', {
 
 		if (frm.doc.log_details) {
 			msg = JSON.parse(frm.doc.log_details);
+			console.log("in the log details");
 			console.log(msg);
 			frm.events.write_messages(frm, msg);
 		}
@@ -123,7 +123,6 @@ frappe.ui.form.on('Data Import', {
 
 			console.log("before publishing");
 			frappe.realtime.on("data_import", function(data) {
-				console.log(data);
 				if(data.progress) {
 					frappe.hide_msgprint(true);
 					frappe.show_progress(__("Importing"), data.progress[0],
@@ -132,10 +131,11 @@ frappe.ui.form.on('Data Import', {
 			})
 
 			frappe.call({
-				method: "insert_into_db",
+				method: "upload_file",
 				doc:frm.doc,
 				callback: function(r) {
 					console.log("in callback");
+					frappe.hide_progress();
 					frm.reload_doc();
 				}
 			});
