@@ -724,6 +724,14 @@ fieldset[disabled] .form-control {
 .search-modal .result-area a {
   color: #5E64FF;
 }
+.search-dialog .module-section .back-link {
+  margin-bottom: 20px;
+  margin-top: -10px;
+}
+.search-dialog .module-section .all-results-link:before {
+  font-family: 'Octicons';
+  content: '\f0a4';
+}
 .search-dialog .result-status {
   margin-top: 30px;
   text-align: center;
