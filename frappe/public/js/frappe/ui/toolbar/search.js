@@ -95,7 +95,7 @@ frappe.search.UnifiedSearch = Class.extend({
 
 		this.results_area.find('.section-more').on('click', function() {
 			var type = $(this).attr('data-category');
-			me.sidebar.find('*[data-category="'+ type +'"]').trigger("click");
+			me.sidebar.find('*[data-category="'+ type +'"]').trigger('click');
 		});
 
 		this.render_next_search(keywords);
@@ -105,6 +105,9 @@ frappe.search.UnifiedSearch = Class.extend({
 		var more_results = more_data[0];
 		var more = more_data[1];
 		this.results_area.find('.list-more').before(more_results);
+		this.results_area.find('.more-results.last').slideDown(200, function() {
+			$(this).removeClass('last');
+		});
 		if(!more) {
 			this.results_area.find('.list-more').hide();
 		}
@@ -117,7 +120,7 @@ frappe.search.UnifiedSearch = Class.extend({
 		} else {
 			// If there's only one link in sidebar, show its full list
 			if(this.sidebar.find('.list-link').length === 1) {
-				this.sidebar.find('.list-link').trigger("click");
+				this.sidebar.find('.list-link').trigger('click');
 			}
 		}
 	}
@@ -259,20 +262,24 @@ frappe.search.Search = Class.extend({
 		content = "";
 		parts.forEach(function(part) {
 			if(part.toLowerCase().indexOf(me.keywords) !== -1) {
-				content += part;
+				var colon_index = part.indexOf(':');
+				var regEx = new RegExp("("+ me.keywords +")", "ig");
+				part = '<span class="field-name">' + part.slice(0, colon_index + 1) + 
+					'</span>' + (part.slice(colon_index + 1)).replace(regEx, '<b>$1</b>');
+				content += part + ',  ';
 			}
 		});
-		return content;
+		return content.slice(0, -2);
 	},
 
 	make_section: function(type, results) {
 		var me = this;
-		var results_module = $('<div class="row module-section '+type+'-section">'+
+		var results_section = $('<div class="row module-section '+type+'-section">'+
 			'<div class="col-sm-12 module-section-column">' +
 			'<div class="h4 section-head">'+type+'</div>' +
 			'<div class="section-body"></div>'+
 			'</div></div>');
-		var results_col = results_module.find('.module-section-column');
+		var results_col = results_section.find('.module-section-column');
 		results.slice(0, this.section_length).forEach(function(result) {
 			results_col.append(me.make_result_item(type, result));
 		});
@@ -280,17 +287,18 @@ frappe.search.Search = Class.extend({
 			results_col.append('<a class="small section-more" data-category="' 
 				+ type + '">More...</a>');
 		}
-		return results_module;
+		return results_section;
 	},
 
 	make_full_list: function(type, results, more) {
 		var me = this;
-		var results_module = $('<div class="row module-section '+type+'-section">'+
+		var results_section = $('<div class="row module-section '+type+'-section">'+
 			'<div class="col-sm-12 module-section-column">' +
+			'<div class="back-link"><a class="all-results-link small"> All Results</a></div>' +
 			'<div class="h4 section-head">'+type+'</div>' +
 			'<div class="section-body"></div>'+
 			'</div></div>');
-		var results_col = results_module.find('.module-section-column');
+		var results_col = results_section.find('.module-section-column');
 		results.forEach(function(result) {
 			results_col.append(me.make_result_item(type, result));
 		});
@@ -298,14 +306,14 @@ frappe.search.Search = Class.extend({
 			results_col.append('<a class="small list-more" data-search="'+ this.search_type +'" data-category="'
 				+ type + '">More...</a>');
 		}
-		return results_module;
+		return results_section;
 	},
 
 	make_more_list: function(type, results, more) {
 		var me = this;
 		if(results.length < this.more_length) { more = false; }
 
-		var more_results = $('<div></div>');
+		var more_results = $('<div class="more-results last"></div>');
 		results.forEach(function(result) {
 			more_results.append(me.make_result_item(type, result));
 		});
@@ -339,15 +347,16 @@ frappe.search.NavSearch = frappe.search.Search.extend({
 	set_types: function() {
 		var me = this;
 		var keywords = this.keywords;
+		this.section_length = 4;
 		this.awesome_bar = new frappe.search.AwesomeBar();
 		this.nav_results = {
+			"Search in ...": me.awesome_bar.make_search_in_list(keywords),
 			"Lists": me.awesome_bar.get_doctypes(keywords),
-			////// Search In
 			"Reports": me.awesome_bar.get_reports(keywords),
 			"Pages": me.awesome_bar.get_pages(keywords),
 			"Modules": me.awesome_bar.get_modules(keywords)
 		}
-		var types = ["Lists", "Reports", "Pages", "Modules"];
+		var types = ["Search in ...", "Lists", "Reports", "Pages", "Modules"];
 		types.forEach(function(type) {
 			if(me.nav_results[type].length > 0) {
 				me.types.push(type);
@@ -406,12 +415,49 @@ frappe.search.NavSearch = frappe.search.Search.extend({
 		if(path === '#'){ return path }
 		return path.slice(0, -1);
 	},
-	// Render OnClicks!!!
+	// // Render OnClicks!!!
 
-	// make_condensed_section: function() {
-	// 	this.section_length = 6;
+	make_dual_sections: function() {
+		this.dual_sections = [];
+		var section_html = '<div class="row module-section dual-section"></div>';
+		for(var i = 0; i < this.sections.length; i++) {
+			var results_section = $(section_html);
+			for(var j = 0; j < 2 && i < this.sections.length; j++, i++){
+				results_section.append(this.sections[i]);
+			}
+			i--;
+			this.dual_sections.push(results_section);
+		}
+	},
 
-	// }
+	show_results: function() {
+		var me = this;
+		this.make_dual_sections();
+		console.log("this.dual_sections", this.dual_sections);
+		if(this.dual_sections.length > 0) {
+			this.render_object.show_results({
+				sidelist: me.sidelist,
+				sections: me.dual_sections,
+				lists: me.lists
+			}, me, me.keywords);
+		}
+	},
+
+	make_section: function(type, results) {
+		var me = this;
+		var results_column = $('<div class="col-sm-6 module-section-column">' +
+			'<div class="h4 section-head">'+type+'</div>' +
+			'<div class="section-body"></div>'+
+			'</div>');
+		results.slice(0, this.section_length).forEach(function(result) {
+			results_column.append(me.make_result_item(type, result));
+		});
+		if(results.length > this.section_length) {
+			results_column.append('<a class="small section-more" data-category="' 
+				+ type + '">More...</a>');
+		}
+		return results_column;
+	}
 });
 
 frappe.search.HelpSearch = frappe.search.Search.extend({
