@@ -52,12 +52,13 @@ frappe.ui.form.LinkedWith = Class.extend({
 		var me = this;
 		var already_loaded = Object.keys(locals.DocType);
 		var doctypes_to_load = [];
-		$.each(Object.keys(me.frm.__linked_doctypes), function(i, v) {
-			if (already_loaded.indexOf(v)===-1) {
-				doctypes_to_load.push(v);
-			}
-		});
-
+		if (me.frm.__linked_doctypes) {
+			$.each(Object.keys(me.frm.__linked_doctypes), function(i, v) {
+				if (already_loaded.indexOf(v)===-1) {
+					doctypes_to_load.push(v);
+				}
+			});
+		}
 		// load all doctypes sequentially using with_doctype
 		return $.when.apply($, $.map(doctypes_to_load, function(dt) {
 			return frappe.model.with_doctype(dt, function() {
