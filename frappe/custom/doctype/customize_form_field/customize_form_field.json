@@ -255,6 +255,7 @@
    "bold": 0, 
    "collapsible": 0, 
    "columns": 0, 
+   "depends_on": "eval:([\"Data\", \"Select\", \"Table\", \"Text\", \"Text Editor\", \"Link\", \"Small Text\", \"Long Text\", \"Read Only\", \"Heading\"].indexOf(doc.fieldtype) !== -1)", 
    "fieldname": "in_global_search", 
    "fieldtype": "Check", 
    "hidden": 0, 
@@ -1103,8 +1104,7 @@
  "issingle": 0, 
  "istable": 1, 
  "max_attachments": 0, 
- "modified": "2016-12-27 05:16:18.941042", 
- "modified": "2017-01-05 17:29:44.206837", 
+ "modified": "2017-01-26 09:41:50.320370", 
  "modified_by": "Administrator", 
  "module": "Custom", 
  "name": "Customize Form Field", 
@@ -1114,5 +1114,6 @@
  "read_only": 0, 
  "read_only_onload": 0, 
  "sort_order": "ASC", 
+ "track_changes": 0, 
  "track_seen": 0
 }
