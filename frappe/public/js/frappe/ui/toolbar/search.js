@@ -15,7 +15,7 @@ frappe.search.UnifiedSearch = Class.extend({
 
 		this.input = this.search_modal.find(".search-input");
 		this.sidebar = this.search_modal.find(".search-sidebar");
-		this.results_area = this.search_modal.find(".result-area .module-body");
+		this.results_area = this.search_modal.find(".result-area");
 	},
 
 	setup_search: function(keywords, search_objects) {
@@ -50,6 +50,7 @@ frappe.search.UnifiedSearch = Class.extend({
 
 	build_results: function(keywords) {
 		var me = this;
+		this.summary = $('<div class="module-body summary"></div>');
 		this.full_lists = {};
 		this.current = 0;
 		this.results_area.html('<p class="results-status text-muted">'+
@@ -57,25 +58,27 @@ frappe.search.UnifiedSearch = Class.extend({
 		this.search_objects[me.current].build_results_object(me, keywords);
 	},
 
-	show_results: function(results_obj, search_obj, keywords) {
+	show_results: function(results_obj, keywords) {
 		if(results_obj) {
-			this.render_results(results_obj);
-			this.bind_events(results_obj, search_obj, keywords);
+			this.render_results(results_obj,keywords);
+			// this.bind_events(keywords);
 		}
 	},
 
-	render_results: function(results_obj){
+	render_results: function(results_obj, keywords){
 		var me = this;
 		if(this.current === 0) { this.reset() }
 		this.sidebar.append(results_obj.sidelist);
 		this.results_area.find('.results-status').remove();
 		results_obj.sections.forEach(function(section) {
-			me.results_area.append(section);
+			me.summary.append(section);
+			// me.results_area.append(section);
 		});
 		this.full_lists = Object.assign(this.full_lists, results_obj.lists);
+		this.render_next_search(keywords);
 	},
 
-	bind_events: function(results_obj, search_obj, keywords) {
+	bind_events: function() {
 		var me = this;
 		this.sidebar.find('.list-link').on('click', function() {
 			me.sidebar.find(".list-link a").removeClass("disabled");
@@ -83,13 +86,10 @@ frappe.search.UnifiedSearch = Class.extend({
 			var type = $(this).attr('data-category');
 			me.results_area.empty().html(me.full_lists[type]);
 
-			search_obj.start[type] = search_obj.more_length;
-			var more_button = me.results_area.find('.list-more');
-			more_button.on('click', function() {
-				var more_search_type = $(this).attr('data-search');
-				var s_obj = me.search_objects[me.search_types.indexOf(more_search_type)];
-				s_obj.get_more_results(type);
-			});
+			// all results link
+			me.set_back_link();
+			// more results
+			me.set_list_more(type);
 			return false;
 		});
 
@@ -98,7 +98,26 @@ frappe.search.UnifiedSearch = Class.extend({
 			me.sidebar.find('*[data-category="'+ type +'"]').trigger('click');
 		});
 
-		this.render_next_search(keywords);
+		// this.render_next_search(keywords);
+	},
+
+	set_back_link: function() {
+		var me = this;
+		var back_link = this.results_area.find('.all-results-link');
+		back_link.on('click', function() {
+			me.results_area.empty().html(me.summary);
+			me.bind_events();
+		});
+	},
+
+	set_list_more: function(type) {
+		var me = this;
+		var more_link = this.results_area.find('.list-more');
+		more_link.on('click', function() {
+			var more_search_type = $(this).attr('data-search');
+			var s_obj = me.search_objects[me.search_types.indexOf(more_search_type)];
+			s_obj.get_more_results(type);
+		});
 	},
 
 	add_more_results: function(more_data) {
@@ -110,6 +129,9 @@ frappe.search.UnifiedSearch = Class.extend({
 		});
 		if(!more) {
 			this.results_area.find('.list-more').hide();
+			var no_of_results = this.results_area.find('.result').length;
+			var no_of_results_cue = $('<p class="results-status text-muted">'+ no_of_results +' results found</p>');
+			this.results_area.append(no_of_results_cue);
 		}
 	},
 
@@ -118,10 +140,14 @@ frappe.search.UnifiedSearch = Class.extend({
 		if(this.current < this.search_objects.length){
 			this.search_objects[this.current].build_results_object(this, keywords);
 		} else {
+			this.results_area.empty().html(this.summary);
+			this.bind_events();
 			// If there's only one link in sidebar, show its full list
 			if(this.sidebar.find('.list-link').length === 1) {
 				this.sidebar.find('.list-link').trigger('click');
+				// also hide all results link
 			}
+			// add final case for no results
 		}
 	}
 
@@ -144,10 +170,10 @@ frappe.search.Search = Class.extend({
 
 	set_types: function() {
 		var me = this;
-		var keywords = this.keywords;
+		this.current_type = 0;
 		frappe.call({
 			method: "frappe.utils.global_search.get_search_doctypes",
-			args: { text: keywords },
+			args: { text: me.keywords },
 			callback: function(r) {
 				if(r.message) {
 					r.message.forEach(function(d) {
@@ -155,7 +181,7 @@ frappe.search.Search = Class.extend({
 						me.start[d.doctype] = 0;
 					});
 					me.sidelist = me.make_sidelist();
-					me.get_results();
+					me.get_result_set(me.types[me.current_type]);
 				} else {
 					me.render_object.render_next_search(me.keywords);
 				}
@@ -163,17 +189,9 @@ frappe.search.Search = Class.extend({
 		});
 	}, 
 
-	get_results: function() {
-		var me = this;
-		this.types.forEach(function(type) {
-			me.get_result_set(type);
-		});
-	},
-
 	get_result_set: function(doctype){
 		var me = this;
 		var more = true;
-		var last_type = (doctype == this.types.slice(-1));
 		frappe.call({
 			method: "frappe.utils.global_search.search_in_doctype",
 			args: { 
@@ -189,9 +207,6 @@ frappe.search.Search = Class.extend({
 						more = false;
 					}
 					me.make_type_results(doctype, r.message, more);
-					if(last_type) {
-						me.show_results();
-					}
 				}
 			}
 		});
@@ -218,10 +233,15 @@ frappe.search.Search = Class.extend({
 	},
 
 	make_type_results: function(type, results, more) {
-		var me = this;
-		if(results.length > 0) {
-			this.sections.push(this.make_section(type, results));
-			this.lists[type] = this.make_full_list(type, results, more);
+		var last_type = (type == this.types.slice(-1));
+		console.log('Sections made: ', type);
+		this.sections.push(this.make_section(type, results));
+		this.lists[type] = this.make_full_list(type, results, more);
+		if(!last_type) {
+			this.current_type += 1;
+			this.get_result_set(this.types[this.current_type]);
+		} else {
+			this.show_results();
 		}
 	},
 	
@@ -238,7 +258,7 @@ frappe.search.Search = Class.extend({
 				sidelist: me.sidelist,
 				sections: me.sections,
 				lists: me.lists
-			}, me, me.keywords);
+			}, me.keywords);
 		}
 	},
 
@@ -292,13 +312,13 @@ frappe.search.Search = Class.extend({
 
 	make_full_list: function(type, results, more) {
 		var me = this;
-		var results_section = $('<div class="row module-section '+type+'-section">'+
-			'<div class="col-sm-12 module-section-column">' +
+		var results_list = $(' <div class="module-body"><div class="row module-section '+
+			type+'-section">'+'<div class="col-sm-12 module-section-column">' +
 			'<div class="back-link"><a class="all-results-link small"> All Results</a></div>' +
 			'<div class="h4 section-head">'+type+'</div>' +
 			'<div class="section-body"></div>'+
-			'</div></div>');
-		var results_col = results_section.find('.module-section-column');
+			'</div></div></div>');
+		var results_col = results_list.find('.module-section-column');
 		results.forEach(function(result) {
 			results_col.append(me.make_result_item(type, result));
 		});
@@ -306,7 +326,7 @@ frappe.search.Search = Class.extend({
 			results_col.append('<a class="small list-more" data-search="'+ this.search_type +'" data-category="'
 				+ type + '">More...</a>');
 		}
-		return results_section;
+		return results_list;
 	},
 
 	make_more_list: function(type, results, more) {
@@ -346,15 +366,14 @@ frappe.search.NavSearch = frappe.search.Search.extend({
 
 	set_types: function() {
 		var me = this;
-		var keywords = this.keywords;
 		this.section_length = 4;
 		this.awesome_bar = new frappe.search.AwesomeBar();
 		this.nav_results = {
-			"Search in ...": me.awesome_bar.make_search_in_list(keywords),
-			"Lists": me.awesome_bar.get_doctypes(keywords),
-			"Reports": me.awesome_bar.get_reports(keywords),
-			"Pages": me.awesome_bar.get_pages(keywords),
-			"Modules": me.awesome_bar.get_modules(keywords)
+			"Search in ...": me.awesome_bar.make_search_in_list(me.keywords),
+			"Lists": me.awesome_bar.get_doctypes(me.keywords),
+			"Reports": me.awesome_bar.get_reports(me.keywords),
+			"Pages": me.awesome_bar.get_pages(me.keywords),
+			"Modules": me.awesome_bar.get_modules(me.keywords)
 		}
 		var types = ["Search in ...", "Lists", "Reports", "Pages", "Modules"];
 		types.forEach(function(type) {
@@ -369,10 +388,17 @@ frappe.search.NavSearch = frappe.search.Search.extend({
 		} else {
 			this.render_object.render_next_search(me.keywords);
 		}
-	}, 
+	},
+
+	get_results: function() {
+		var me = this;
+		this.types.forEach(function(type) {
+			me.get_result_set(type);
+		});
+	},
+
 	get_result_set: function(type) {
 		var last_type = (type == this.types.slice(-1));
-		
 		var results = this.nav_results[type].slice(this.start[type], this.more_length);
 		this.start[type] += this.more_length;
 		var more = true;
@@ -383,6 +409,13 @@ frappe.search.NavSearch = frappe.search.Search.extend({
 		if(last_type) {
 			this.show_results();
 		}
+	},
+
+	make_type_results: function(type, results, more) {
+		var me = this;
+		console.log('Sections made', type);
+		this.sections.push(this.make_section(type, results));
+		this.lists[type] = this.make_full_list(type, results, more);
 	},
 
 	get_more_results: function(type) {	
@@ -439,7 +472,7 @@ frappe.search.NavSearch = frappe.search.Search.extend({
 				sidelist: me.sidelist,
 				sections: me.dual_sections,
 				lists: me.lists
-			}, me, me.keywords);
+			}, me.keywords);
 		}
 	},
 
@@ -468,10 +501,10 @@ frappe.search.HelpSearch = frappe.search.Search.extend({
 	set_types: function() {
 		this.types = ['Help'];
 		this.sidelist = this.make_sidelist();
-		this.get_results();
+		this.get_result_set(this.types[0]);
 	}, 
 
-	get_result_set: function(type, start) {
+	get_result_set: function(type) {
 		var me = this;
 		frappe.call({
 			method: "frappe.utils.help.get_help",
@@ -488,6 +521,13 @@ frappe.search.HelpSearch = frappe.search.Search.extend({
 				}
 			}
 		});
+	},
+
+	make_type_results: function(type, results, more) {
+		var me = this;
+		console.log('Sections made', type);
+		this.sections.push(this.make_section(type, results));
+		this.lists[type] = this.make_full_list(type, results, more);
 	},
 
 	make_result_item: function(type, result) {
