@@ -33,7 +33,7 @@ frappe.search.UnifiedSearch = Class.extend({
 			$this.data('timeout', setTimeout(function(){
 				var keywords = me.input.val();
 				me.reset();
-				if(keywords.length > 0) {
+				if(keywords.length > 1) {
 					me.build_results(keywords);
 				}
 			}, 250));
@@ -121,8 +121,9 @@ frappe.search.UnifiedSearch = Class.extend({
 		if(!more) {
 			this.results_area.find('.list-more').hide();
 			var no_of_results = this.results_area.find('.result').length;
-			var no_of_results_cue = $('<p class="results-status text-muted">'+ no_of_results +' results found</p>');
-			this.results_area.append(no_of_results_cue);
+			var no_of_results_cue = $('<p class="results-status text-muted small">'+ 
+				no_of_results +' results found</p>');
+			this.results_area.find(".result:last").append(no_of_results_cue);
 		}
 	},
 
@@ -131,14 +132,14 @@ frappe.search.UnifiedSearch = Class.extend({
 		if(this.current < this.search_objects.length){
 			this.search_objects[this.current].build_results_object(this, keywords);
 		} else {
-			// If there's only one link in sidebar, no summary (show its full list)
+			// If there's only one link in sidebar, there's no summary (show its full list)
 			if(this.sidebar.find('.list-link').length === 1) {
 				this.bind_events();
 				this.sidebar.find('.list-link').trigger('click');
 				this.results_area.find('.all-results-link').hide();
 
 			} else if (this.sidebar.find('.list-link').length === 0) {
-				this.results_area.html('<p class="results-status text-muted">'+
+				this.results_area.html('<p class="results-status text-muted" style="text-align: center;">'+
 					'No results found for: '+ "'"+ keywords +"'" +'</p>');
 			} else {
 				this.show_summary();
@@ -433,8 +434,15 @@ frappe.search.NavSearch = frappe.search.Search.extend({
 			'<a href="{0}" class="module-section-link small">{1}</a>' +
 			'<p class="small"></p></div>';
 		if(!result.onclick) {
-			var formatted_result = [this.make_path(result.route), result.label];
-			return $(__(link_html, formatted_result));
+			var link = $(__(link_html, ['#', result.label]));
+			link.on('click', function() {
+				if(result.route_options) {
+					frappe.route_options = result.route_options;
+				}
+				frappe.set_route(result.route);
+				return false;
+			});
+			return link;
 		} else {
 			var link = $(__(link_html, ['#', result.label]));
 			link.on('click', function() {
@@ -443,12 +451,6 @@ frappe.search.NavSearch = frappe.search.Search.extend({
 			});
 			return link;
 		}
-	},
-
-	make_path: function(route) {
-		var path = "#";
-		route.forEach(function(r) { path += r + '/'; });
-		return path.slice(0, -1);
 	},
 
 	make_dual_sections: function() {
@@ -531,36 +533,36 @@ frappe.search.HelpSearch = frappe.search.Search.extend({
 	make_result_item: function(type, result) {
 		var me = this;
 		var link_html = '<div class="result '+ type +'-result">' +
-			'<a href="#" class="module-section-link small">{0}</a>' +
-			'<p class="small">{1}</p>' +
+			'<a href="#" data-path="{0}" class="module-section-link small">{1}</a>' +
+			'<p class="small">{2}</p>' +
 			'</div>';
-		var link = $(__(link_html, [result[0], result[1]]));
-		link.on('click', function() {
-			me.show_article(result[2]);
-		});
+		var link = $(__(link_html, [result[2], result[0], result[1]]));
+		// link.on('click', function() {
+		// 	me.show_article(result[2]);
+		// });
+		link.on('click', frappe.help.show_results);
 		return link;
 	},
 
-	// show results modal
-	show_article: function(path) {
-		var me = this;
-		var $result_modal = frappe.get_modal("", "");
-		$result_modal.addClass("help-modal");
-		if(path) {
-			frappe.call({
-				method: "frappe.utils.help.get_help_content",
-				args: {
-					path: path
-				},
-				callback: function (r) {
-					if(r.message && r.message.title) {
-						$result_modal.find('.modal-title').html("<span>"
-							+ r.message.title + "</span>");
-						$result_modal.find('.modal-body').html(r.message.content);
-						$result_modal.modal('show');
-					}
-				}
-			});
-		}
-	}
+	// show_article: function(path) {
+	// 	var me = this;
+	// 	var $result_modal = frappe.get_modal("", "");
+	// 	$result_modal.addClass("help-modal");
+	// 	if(path) {
+	// 		frappe.call({
+	// 			method: "frappe.utils.help.get_help_content",
+	// 			args: {
+	// 				path: path
+	// 			},
+	// 			callback: function (r) {
+	// 				if(r.message && r.message.title) {
+	// 					$result_modal.find('.modal-title').html("<span>"
+	// 						+ r.message.title + "</span>");
+	// 					$result_modal.find('.modal-body').html(r.message.content);
+	// 					$result_modal.modal('show');
+	// 				}
+	// 			}
+	// 		});
+	// 	}
+	// }
 });

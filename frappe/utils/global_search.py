@@ -66,7 +66,7 @@ def sync_global_search():
 
 def rebuild_for_doctype(doctype):
 	frappe.db.sql('''
-		delete 
+		delete
 			from __global_search
 		where
 			doctype = (%s)''', doctype, as_dict=True)
