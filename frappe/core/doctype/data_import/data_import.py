@@ -192,7 +192,7 @@ def import_raw(file_path,doc_name):
 
 		if [x for x in row if x.value != None]:
 
-			frappe.publish_realtime("data_import", {"progress": [i, ws.max_row]}, 
+			frappe.publish_realtime("data_import", {"progress": [i+1, ws.max_row]}, 
 				user=frappe.session.user)
 
 			try:
