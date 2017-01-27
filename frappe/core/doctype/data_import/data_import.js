@@ -12,7 +12,6 @@ frappe.ui.form.on('Data Import', {
 	},
 
 	refresh: function(frm) {
-		var me = this;
 		frm.events.add_primary_class(frm);
 
 		if(!frm.doc.freeze_doctype && frm.doc.template == "raw") { 
@@ -31,19 +30,16 @@ frappe.ui.form.on('Data Import', {
 		}
 
 		if (frm.doc.log_details) {
-			msg = JSON.parse(frm.doc.log_details);
-			console.log("in the log details");
-			console.log(msg);
-			frm.events.write_messages(frm, msg);
-		}
+			frappe.hide_msgprint(true);
+			frm.events.write_messages(frm);
 
-		if (frm.doc.freeze_doctype) {
-			frm.disable_save();
-			frm.set_read_only();
-		} else {
-			frm.enable_save();
+			if (frm.doc.freeze_doctype) {
+				frm.disable_save();
+				frm.set_read_only();
+			} else {
+				frm.enable_save();
+			}
 		}
-
 	},
 
 	add_primary_class: function(frm) {
@@ -84,10 +80,10 @@ frappe.ui.form.on('Data Import', {
 			if(frm.doc.reference_doctype && frm.doc.preview_data) {
 				
 				frm.selected_doctype = frappe.get_meta(frm.doc.reference_doctype).fields;
-				
 				me.preview_data = JSON.parse(frm.doc.preview_data);
 				me.selected_columns = JSON.parse(frm.doc.selected_columns);
 				
+				console.log("in render template");
 				$(frm.fields_dict.file_preview.wrapper).empty();
 				$(frappe.render_template("file_preview_template", {imported_data: me.preview_data, 
 					fields: frm.selected_doctype, column_map: me.selected_columns}))
@@ -115,13 +111,12 @@ frappe.ui.form.on('Data Import', {
 
 	import_button: function(frm) {
 		frm.save();
-		var me = this;
 				
 		if (!frm.doc.import_file) {
 			frappe.throw("Attach a file for importing")
 		} else {
 
-			console.log("before publishing");
+			console.log("before call");
 			frappe.realtime.on("data_import", function(data) {
 				if(data.progress) {
 					frappe.hide_msgprint(true);
@@ -131,40 +126,26 @@ frappe.ui.form.on('Data Import', {
 			})
 
 			frappe.call({
-				method: "upload_file",
+				method: "file_import",
 				doc:frm.doc,
 				callback: function(r) {
-					console.log("in callback");
-					frappe.hide_progress();
-					frm.reload_doc();
+					
 				}
 			});
 		}
 	},
 
-	write_messages: function(frm, data) {
-		var $log_wrapper = $(cur_frm.fields_dict.import_log.wrapper).empty();
-		
-		var log_template = '<div class="table-responsive">\
-								<table class="table table-bordered table-hover log-details-table">\
-									<tr>\
-										<th>Row No</th> <th>Row Name</th> <th>Document Name</th> <th>Action</th>\
-									</tr>\
-								</table>\
-							</div>';
+	write_messages: function(frm) {
 
-		$('<div><div>').html(frappe.markdown(log_template)).appendTo($log_wrapper);
-
-		// TODO render using template!
-		for (var i=0, l=data.length; i<l; i++) {
-			$("table.log-details-table tbody:last-child" ).append("<tr></tr>")
-			var v = data[i];
-			// var table_row = '';
-			for (var j=0; j<data[i].length; j++) {
-				// table_row = table_row + '<td>'+data[i][j]+'</td>';	
-				$("table.log-details-table tr:last-child" ).append("<td>"+data[i][j]+"</td>")
-
-			}
+		msg = JSON.parse(frm.doc.log_details);
+		log = msg.messages;
+		if (msg.error == false) {
+			var $log_wrapper = $(cur_frm.fields_dict.import_log.wrapper).empty();
+			$(frappe.render_template("log_detail_template", {data:log}))
+				.appendTo($log_wrapper);	
+		}
+		else {
+			frappe.throw(_("Error in import"))
 		}
 	}
 });
