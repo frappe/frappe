@@ -35,9 +35,9 @@ class DataImport(Document):
 
 	def validate(self):
 		'''
-		Decide whether the file is templated
-		Template data field can be ['no file', 'raw', 'template']
-		If the template field is 'raw' then set preview data and selected columns
+			Decide whether the file is templated
+			Template data field can be ['no file', 'raw', 'template']
+			If the template field is 'raw' then set preview data and selected columns
 		'''
 		print "===============>>>>>>>TESTING" 
 
@@ -47,7 +47,6 @@ class DataImport(Document):
 			self.preview_data = None
 			self.file_preview = None
 			self.flag_file_preview = 0
-			# self.selected_columns = None Considering user will upload same file in a particular doctype
 			self.template = "no file"
 
 		if self.import_file and self.template == "no file":
@@ -64,7 +63,10 @@ class DataImport(Document):
 
 
 	def set_preview_data(self, file_path):
-
+		'''
+			Store the first 25 rows or less in the preview data 
+			and check whether the xlsx file is templated or not
+		'''
 		wb = load_workbook(filename=file_path)
 		ws = wb.active
 
@@ -96,9 +98,13 @@ class DataImport(Document):
 
 
 	def get_matched_column(self, column_name=None):
+		'''
+			Fuzzy match the fieldname and input column 
+		'''
 		new_doc = frappe.new_doc(self.reference_doctype)
 		doc_field = [frappe.unscrub(field.fieldname) for field in new_doc.meta.fields if field.fieldtype not in 
 					['Section Break','Column Break','HTML','Table','Button','Image','Fold','Heading']]
+		
 		max_match = 0
 		matched_field = ''
 		for field in doc_field:
@@ -107,20 +113,23 @@ class DataImport(Document):
 			if d > max_match:
 				max_match = d
 				matched_field = field
+		
 		if max_match > 70:
 			return frappe.scrub(matched_field)
 		else:
 			return ""
 
-	def upload_file(self, file_path=None, rows=None):
-		print "in the ipload file"
+	def file_import(self, file_path=None, rows=None):
+		'''
+			Trigger on import button and push the task to the background worker
+		'''
 		
 		if not file_path:
 			file_path = os.getcwd()+get_site_path()[1:].encode('utf8') + self.import_file
 		filename, file_extension = os.path.splitext(file_path)
 
 		if self.template == "raw" and file_extension == '.xlsx':
-			enqueue(upload_raw, file_path=file_path, doc_name=self.name, job_name="data_import")
+			enqueue(import_raw, file_path=file_path, doc_name=self.name, job_name="data_import")
 
 		elif self.template == "template" and file_extension == '.xlsx':
 			wb = load_workbook(filename=file_path, read_only=True)
@@ -133,16 +142,16 @@ class DataImport(Document):
 					tmp_list.append(cell.value)
 				rows.append(tmp_list)
 
-			self.upload_template(overwrite=only_new_records, rows=rows)
-
+			enqueue(import_template, doc_name=self.name, rows=rows, job_name="data_import")
 
 		elif self.template == "template" and file_extension == '.csv':
-			enqueue(self.upload_template(overwrite=self.only_new_records), job_name="data_import")
+			enqueue(import_template, doc_name=self.name, job_name="data_import")
 
 
-def upload_raw(file_path,doc_name):
-
-	print "in upload raw"
+def import_raw(file_path,doc_name):
+	'''
+		Import the raw xlsx file. It will insert new records only.
+	'''
 
 	di_doc = frappe.get_doc("Data Import",doc_name)
 
@@ -163,32 +172,28 @@ def upload_raw(file_path,doc_name):
 
 	error = False
 	column_map = json.loads(di_doc.selected_columns)
-	# doc = frappe.new_doc(self.reference_doctype)
 	
 	mendatory_field_flag = False
-
-	mendatory_field_list = []
-	child_table_list = []
-
+	# mendatory_field_list = []
+	
 	for field in frappe.get_meta(di_doc.reference_doctype).fields:
-		if field.fieldtype == "Table":
-			child_table_list.append(field.fieldname)
-		if field.reqd == 1:
-			mendatory_field_list.append(field.fieldname)
-			if field.fieldname not in column_map:
-				mendatory_field_flag = True
+		if field.reqd == 1 and field.fieldname not in column_map:
+			# mendatory_field_list.append(field.fieldname)
+			mendatory_field_flag = True
 			
 	if mendatory_field_flag:
-		frappe.throw(_("Please select all mendatory fields: <br>{0}<br> child tables {1}")
-			.format(mendatory_field_list, child_table_list))
+		frappe.throw(_("Please select all mendatory fields"))
 
 	wb = load_workbook(filename=file_path, read_only=True)
 	ws = wb.active
 
 	start =  int(di_doc.selected_row)
 	for i,row in enumerate(ws.iter_rows(min_row=start)):
+
 		if [x for x in row if x.value != None]:
-			frappe.publish_realtime("data_import", {"progress": [i, ws.max_row]}, user=frappe.session.user)
+
+			frappe.publish_realtime("data_import", {"progress": [i, ws.max_row]}, 
+				user=frappe.session.user)
 
 			try:
 				new_doc = frappe.new_doc(di_doc.reference_doctype)
@@ -197,15 +202,15 @@ def upload_raw(file_path,doc_name):
 						setattr(new_doc, column_map[j], cell.value)
 				new_doc.insert()
 				new_doc.save()
-				log([i,row[1].value,(getlink(di_doc.reference_doctype,new_doc.name)),"Row Inserted"])
+				log([i,row[0].value,(getlink(di_doc.reference_doctype,new_doc.name)),"Row Inserted"])
 
 			except Exception, e:
 				error = True
 				if new_doc:
 					frappe.errprint(new_doc if isinstance(new_doc, dict) else new_doc.as_dict())
 				err_msg = frappe.local.message_log and "\n\n".join(frappe.local.message_log) or cstr(e)
-				log([i,row[1].value,"","Error"])
-				log('Error for insertion')
+				log([i,row[0].value,"","Error"])
+				# log('Error for insertion')
 				frappe.errprint(frappe.get_traceback())
 			
 			finally:
@@ -222,12 +227,13 @@ def upload_raw(file_path,doc_name):
 	di_doc.save()
 	
 
-def upload_template(self, overwrite, rows = None, ignore_links=False, pre_process=None, via_console=False):
+def import_template(doc_name, rows = None, ignore_links=False, pre_process=None, via_console=False):
 	"""upload the templated data"""
 
-	frappe.flags.in_import = True
+	di_doc = frappe.get_doc("Data Import",doc_name)	
 
-	frappe.flags.mute_emails = self.no_email
+	frappe.flags.in_import = True
+	frappe.flags.mute_emails = di_doc.no_email
 
 	def bad_template():
 		frappe.throw(_("Please do not change the rows above {0}").format(get_data_keys_definition().data_separator))
@@ -318,7 +324,7 @@ def upload_template(self, overwrite, rows = None, ignore_links=False, pre_proces
 							if dt == doctype:
 								doc.update(d)
 							else:
-								if not overwrite:
+								if not di_doc.only_new_records:
 									d['parent'] = doc["name"]
 								d['parenttype'] = doctype
 								d['parentfield'] = parentfield
@@ -347,8 +353,8 @@ def upload_template(self, overwrite, rows = None, ignore_links=False, pre_proces
 
 	# header
 	if not rows:
-		rows = read_csv_content_from_attached_file(frappe.get_doc("Data Import", self.name),
-			self.ignore_encoding_errors)
+		rows = read_csv_content_from_attached_file(frappe.get_doc("Data Import", di_doc.name),
+			di_doc.ignore_encoding_errors)
 
 	start_row = get_start_row()
 	header = rows[:start_row]
@@ -359,9 +365,9 @@ def upload_template(self, overwrite, rows = None, ignore_links=False, pre_proces
 	column_idx_to_fieldname = {}
 	column_idx_to_fieldtype = {}
 
-	if self.submit_after_import and not cint(frappe.db.get_value("DocType",
+	if di_doc.submit_after_import and not cint(frappe.db.get_value("DocType",
 			doctype, "is_submittable")):
-		self.submit_after_import = False
+		di_doc.submit_after_import = False
 
 	parenttype = get_header_row(get_data_keys_definition().parent_table)
 
@@ -381,7 +387,7 @@ def upload_template(self, overwrite, rows = None, ignore_links=False, pre_proces
 	if parenttype:
 		parentfield = get_parent_field(doctype, parenttype)
 
-		if overwrite:
+		if di_doc.only_new_records:
 			delete_child_rows(data, doctype)
 
 	ret = []
@@ -422,9 +428,9 @@ def upload_template(self, overwrite, rows = None, ignore_links=False, pre_proces
 				doc = parent.append(parentfield, doc)
 				parent.save()
 				# log('Inserted row for %s at #%s' % (as_link(parenttype,doc.parent), unicode(doc.idx)))
-				log([i, row[1], getlink(self.reference_doctype,new_doc.name), "Row Inserted"])
+				log([i, row[1], getlink(di_doc.reference_doctype,new_doc.name), "Row Inserted"])
 			else:
-				if overwrite and doc["name"] and frappe.db.exists(doctype, doc["name"]):
+				if di_doc.only_new_records and doc["name"] and frappe.db.exists(doctype, doc["name"]):
 					original = frappe.get_doc(doctype, doc["name"])
 					original_name = original.name
 					original.update(doc)
@@ -436,7 +442,7 @@ def upload_template(self, overwrite, rows = None, ignore_links=False, pre_proces
 					log([row_idx+1, row[1], getlink(original.doctype, original.name), "Row updated"])
 					doc = original
 				else:
-					if not self.only_update:
+					if not di_doc.only_update:
 						doc = frappe.get_doc(doc)
 						prepare_for_insert(doc)
 						doc.flags.ignore_links = ignore_links
@@ -446,7 +452,7 @@ def upload_template(self, overwrite, rows = None, ignore_links=False, pre_proces
 					else:
 						# log('Ignored row (#%d) %s' % (row_idx + 1, row[1]))
 						log([row_idx+1, row[1], "", "Row ignored"])
-				if self.submit_after_import:
+				if di_doc.submit_after_import:
 					doc.submit()
 					# log('Submitted row (#%d) %s' % (row_idx + 1, as_link(doc.doctype, doc.name)))
 					log([row_idx+1, row[1], getlink(doc.doctype, doc.name), "Row submitted"])
@@ -473,8 +479,9 @@ def upload_template(self, overwrite, rows = None, ignore_links=False, pre_proces
 
 
 	log_message = {"messages": ret, "error": error}
-	self.log_details = json.dumps(log_message)
-	self.freeze_doctype = 1
+	di_doc.log_details = json.dumps(log_message)
+	di_doc.freeze_doctype = 1
+	di_doc.save()
 
 	def get_parent_field(doctype, parenttype):
 		parentfield = None
