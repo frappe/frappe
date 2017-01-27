@@ -160,6 +160,9 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 			me.search.setup_search(keywords, [me.help]);
 		}
 
+		frappe.provide('frappe.help');
+		frappe.help.show_results = show_results;
+
 		function show_results(e) {
 			//edit links
 			href = e.target.href;
@@ -168,7 +171,7 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 			}
 
 			var converter = new Showdown.converter();
-			var path = $(this).attr("data-path");
+			var path = $(this).find('a').attr("data-path");
 			if(path) {
 				e.preventDefault();
 				frappe.call({
