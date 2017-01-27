@@ -12,11 +12,16 @@
 					<select class="form-control column-map">
 						<option value="" disabled selected>
 							{{ __("Select Fieldtype") }}</option>
-						<option value="do_not_map">
-							{{ __("Do Not Map") }}</option>
+						<option value="do_not_map" style="color:red">
+							{{ __("Ignore Column") }}</option>
 						{% for (var k = 0; k < fields.length; k++) { %}
 						<option value="{{ fields[k].fieldname }}">
-							{{ __(fields[k].label) }}</option>
+							{% if (fields[k].reqd == 0) { %}
+								{{ __(fields[k].label) }}
+							{% } else { %}
+								{{ __(fields[k].label + " (Mendatory)") }} 
+							{% } %}
+						</option>
 						{% } %}
 					</select>
 					<div>
