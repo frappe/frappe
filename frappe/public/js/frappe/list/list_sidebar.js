@@ -51,7 +51,6 @@ frappe.views.ListSidebar = Class.extend({
 
 			if(this.current_view === 'Kanban') {
 				this.kanban_board = route[3];
-				this.page.set_title(this.doctype +" - "+ this.kanban_board);
 			}
 		}
 

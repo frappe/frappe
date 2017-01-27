@@ -66,22 +66,28 @@ frappe.provide("frappe.views");
 					});
 			},
 			set_filter_state: function (updater) {
-				updater.set({
-					filters_modified: is_filters_modified(this.board, this.cur_list)
-				});
+				is_filters_modified(this.board, this.cur_list)
+					.then(function(flag) {
+						updater.set({
+							filters_modified: flag
+						});
+					});
 			},
 			save_filters: function (updater) {
 				var filters = JSON.stringify(this.cur_list.filter_list.get_filters());
-				frappe.db.set_value(
-					'Kanban Board', this.board.name,
-					'filters', filters,
-					function() {
-						updater.set({ filters_modified: false });
-						show_alert({
-							message: __("Filters saved"),
-							indicator: 'green'
-						}, 1);
-					});
+				frappe.call({
+					method: method_prefix + 'save_filters',
+					args: {
+						board_name: this.board.name,
+						filters: filters
+					}
+				}).then(function(r) {
+					updater.set({ filters_modified: false });
+					show_alert({
+						message: __('Filters saved'),
+						indicator: 'green'
+					}, 0.5);
+				});
 			},
 			add_card: function (updater, card_title, column_title) {
 				var doc = frappe.model.get_new_doc(this.doctype);
@@ -285,13 +291,15 @@ frappe.provide("frappe.views");
 		}
 
 		function bind_save_filter() {
+			var set_filter_state = function () {
+				fluxify.doAction('set_filter_state');
+			}
+			if(isBound(self.cur_list.wrapper, 'render-complete', set_filter_state)) return;
+
 			store.on('change:filters_modified', function (modified) {
 				if(modified) fluxify.doAction('save_filters');
 			});
-
-			self.cur_list.wrapper.on('render-complete', function () {
-				fluxify.doAction('set_filter_state');
-			});
+			self.cur_list.wrapper.on('render-complete', set_filter_state);
 		}
 
 		function setup_restore_columns() {
@@ -959,8 +967,12 @@ frappe.provide("frappe.views");
 	}
 
 	function is_filters_modified(board, cur_list) {
-		var list_filters = JSON.stringify(cur_list.filter_list.get_filters());
-		return list_filters !== board.filters;
+		return new Promise(function(resolve, reject) {
+			setTimeout(function() {
+				var list_filters = JSON.stringify(cur_list.filter_list.get_filters());
+				resolve(list_filters !== board.filters);
+			}, 2000);
+		})
 	}
 
 	function is_active_column(col) {
@@ -1006,5 +1018,16 @@ frappe.provide("frappe.views");
 			}
 			callback(indicators);
 		});
+	}
+
+	function isBound(el, event, fn) {
+		var events = $._data(el[0], 'events');
+		var handlers = events[event];
+		var flag = false;
+		handlers.forEach(function(h) {
+			if(h.handler.name === fn.name)
+				flag = true;
+		});
+		return flag;
 	}
 })();
