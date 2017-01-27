@@ -10,47 +10,43 @@ from frappe.utils import encode
 
 from openpyxl import load_workbook
 
-from frappe.core.doctype.data_import.data_import import insert_into_db
-
 # test_records = frappe.get_test_records('Data Import')
 
 class TestDataImport(unittest.TestCase):
+	'''
 	def test_preview_data_and_column(self):
-
 		file_path = os.path.join(os.path.dirname(__file__), "test_data", "test_csv_file.csv")
 
-		# doc = frappe.new_doc("Data Import")
-		# doc.reference_doctype = "User"
-		# doc.save()
+		doc = frappe.new_doc("Data Import")
+		doc.reference_doctype = "User"
+		doc.save()
+		doc.set_preview_data(file_path)
 
-		# doc.set_preview_data(file_path)
-
-		# self.assertTrue(doc.preview_data)
-
-		# self.assertTrue(doc.selected_columns)
-
-		# doc.save()
-		# new_doc = frappe.get_all("Student Applicant")
-		# print doc
+		self.assertTrue(doc.preview_data)
+		self.assertTrue(doc.selected_columns)
+	'''
 
 	def test_raw_file(self):
-
+		pass
+		'''
 		print "in test raw files"
-'''
-		file_path = os.path.join(os.path.dirname(__file__), "test_data", "test_xlsx_file.xlsx")
+
+		file_path = os.path.join(os.path.dirname(__file__), "test_data", "test_xlsx_raw.xlsx")
 
 		doc = frappe.new_doc("Data Import")
-		doc.reference_doctype = "Student Applicant"
-		doc.selected_columns = json.dumps(["first_name", "last_name", "do_not_map", 
-			"student_mobile_number", "student_email_id", "program"])
+		doc.reference_doctype = "User"
+		doc.import_file = file_path
+		doc.save()
 		doc.selected_row = 2
-
-
-		log_messages = insert_into_db(reference_doctype=doc.reference_doctype, doc_name=doc, only_new_records=1, only_update=0,
-			submit_after_import=0, ignore_encoding_errors=0,no_email=1, selected_columns=doc.selected_columns, selected_row=doc.selected_row,
-			template="raw", file_path=file_path)
+		doc.selected_columns = json.dumps(["first_name","last_name","gender","phone","email"])
+		doc.file_import(file_path)
+		print frappe.get_all("User")
+		while(not doc.freeze_doctype):
+			continue
+		print doc.log_details
 		
-		print log_messages
+		# self.assertTrue(json.loads(doc.log_details))
+
 		# status = insert_into_db("Student Applicant", doc.selected_columns, 1, file_path=file_path)
 
 		# wb = load_workbook(filename=file_path, read_only=True)
@@ -70,10 +66,12 @@ class TestDataImport(unittest.TestCase):
 		# 			"program": tmp_list[5]
 		# 			}
 		# 		))
-'''
+		'''
 
 	def test_csv_template(self):
-'''
+		pass
+		
+		'''
 		file_path = os.path.join(os.path.dirname(__file__), "test_data", "test_user_csv_template.csv")
 
 		with open(encode(file_path), 'r') as f:
@@ -94,13 +92,15 @@ class TestDataImport(unittest.TestCase):
 		log_messages = insert_into_db(reference_doctype="User", file_path=file_path, doc_name="Data Import", only_new_records=0, only_update=0,
 			submit_after_import=0, ignore_encoding_errors=0, no_email=1, selected_columns=None, selected_row=None, template=1, rows=rows)
 		print log_messages
-'''
+		'''
 
 	def test_xlsx_template(self):
-'''
+		pass
+		
+		'''
 		file_path = os.path.join(os.path.dirname(__file__), "test_data", "test_xlsx_template.xlsx")
 
 		log_messages = insert_into_db(reference_doctype="Customer", file_path=file_path, doc_name="Data Import", only_new_records=0, only_update=0,
 			submit_after_import=0, ignore_encoding_errors=0, no_email=1, selected_columns=None, selected_row=None, template="template")
 		print log_messages
-'''
+		'''
