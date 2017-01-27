@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 import frappe, json, csv
 from frappe import _
 import frappe.permissions
-import re
+import re, os
 from frappe.utils.csvutils import UnicodeWriter
 from frappe.utils import cstr, formatdate, format_datetime
 from frappe.model.document import Document
@@ -306,14 +306,14 @@ def get_template(xlsx_format, doctype=None, parent_doctype=None, all_doctypes="N
 		frappe.response['doctype'] = doctype	
 
 	else:
-		filename = doctype + '.csv'
-		with open(filename, 'wb') as f:
+
+		with open('temp001.csv', 'wb') as f:
 		    f.write(cstr(w.getvalue()).encode("utf-8"))
 
 		import openpyxl
 		wb = openpyxl.Workbook()
 		ws = wb.active
-		f = open(filename)
+		f = open('temp001.csv')
 		reader = csv.reader(f)
 		for row in reader:
 			ws.append(row)
@@ -322,6 +322,8 @@ def get_template(xlsx_format, doctype=None, parent_doctype=None, all_doctypes="N
 		from StringIO import StringIO
 		xlsx_file = StringIO()
 		wb.save(xlsx_file)
+
+		os.remove('temp001.csv')
 
 		# write out response as a xlsx type
 		frappe.response['filename'] = doctype + '.xlsx'
