@@ -2,6 +2,7 @@
 // MIT License. See license.txt
 
 frappe.provide("frappe.ui.toolbar");
+frappe.provide('frappe.search');
 
 frappe.ui.toolbar.Toolbar = Class.extend({
 	init: function() {
@@ -9,10 +10,11 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 			avatar: frappe.avatar(frappe.session.user)
 		}));
 
-		// this.search = new frappe.search.Search();
-		// this.search.setup();
-
 		this.setup_sidebar();
+
+		this.search = new frappe.search.UnifiedSearch();
+		this.help = new frappe.search.HelpSearch();
+		this.search.setup();
 
 		$(document).on("notification-update", function() {
 			frappe.ui.notifications.update_notifications();
@@ -147,43 +149,18 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 			$('.dropdown-help .dropdown-menu').on('click', 'a', show_results);
 		});
 
-		var $help_modal = frappe.get_modal("Help", "");
-		$help_modal.addClass('help-modal');
+		// var $help_modal = frappe.get_modal("Help", "");
+		// $help_modal.addClass('help-modal');
 
-		var $result_modal = frappe.get_modal("", "");
-		$result_modal.addClass("help-modal");
+		// var $result_modal = frappe.get_modal("", "");
+		// $result_modal.addClass("help-modal");
 
 		$(document).on("click", ".help-modal a", show_results);
 
+		var me = this;
 		function show_help_results(keywords) {
-			frappe.call({
-				method: "frappe.utils.help.get_help",
-				args: {
-					text: keywords
-				},
-				callback: function (r) {
-					var results = r.message || [];
-					var result_html = "<h4 style='margin-bottom: 25px'>Showing results for '" + keywords + "' </h4>";
-
-					for (var i = 0, l = results.length; i < l; i++) {
-						var title = results[i][0];
-						var intro = results[i][1];
-						var fpath = results[i][2];
-
-						result_html +=	"<div class='search-result'>" +
-											"<a href='#' class='h4' data-path='"+fpath+"'>" + title + "</a>" +
-											"<p>" + intro + "</p>" +
-										"</div>";
-					}
-
-					if(results.length === 0) {
-						result_html += "<p class='padding'>No results found</p>";
-					}
-
-					$help_modal.find('.modal-body').html(result_html);
-					$help_modal.modal('show');
-				}
-			});
+			me.search.search_dialog.show();
+			me.search.setup_search(keywords, [me.help]);
 		}
 
 		function show_results(e) {
