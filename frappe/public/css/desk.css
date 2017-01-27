@@ -612,10 +612,6 @@ fieldset[disabled] .form-control {
   max-width: 100%;
 }
 
-.help-modal {
-  z-index: 1000;
-}
-
 .help-modal a {
   color: #5E64FF;
 }
