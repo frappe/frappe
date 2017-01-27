@@ -97,7 +97,8 @@ def get_docinfo(doc=None, doctype=None, name=None):
 		'versions': get_versions(doc),
 		"assignments": get_assignments(doc.doctype, doc.name),
 		"permissions": get_doc_permissions(doc),
-		"shared": frappe.share.get_users(doc.doctype, doc.name)
+		"shared": frappe.share.get_users(doc.doctype, doc.name),
+		"rating": get_feedback_rating(doc.doctype, doc.name)
 	}
 
 def get_user_permissions(meta):
@@ -139,7 +140,6 @@ def _get_communications(doctype, name, start=0, limit=20):
 
 		elif c.communication_type=="Comment" and c.comment_type=="Comment":
 			c.content = frappe.utils.markdown(c.content)
-
 	return communications
 
 def get_communication_data(doctype, name, start=0, limit=20, after=None, fields=None,
@@ -152,9 +152,9 @@ def get_communication_data(doctype, name, start=0, limit=20, after=None, fields=
 			timeline_doctype, timeline_name,
 			reference_doctype, reference_name,
 			link_doctype, link_name,
-			"Communication" as doctype'''
+			rating, feedback, "Communication" as doctype'''
 
-	conditions = '''communication_type in ("Communication", "Comment")
+	conditions = '''communication_type in ("Communication", "Comment", "Feedback")
 			and (
 				(reference_doctype=%(doctype)s and reference_name=%(name)s)
 				or (
@@ -206,3 +206,18 @@ def get_badge_info(doctypes, filters):
 def run_onload(doc):
 	doc.set("__onload", frappe._dict())
 	doc.run_method("onload")
+
+def get_feedback_rating(doctype, docname):
+	""" get and return the latest feedback rating if available """
+
+	rating = frappe.db.sql_list("""select rating from `tabCommunication`
+				where reference_doctype='{doctype}' and reference_name='{name}'
+				and communication_type='Feedback'""".format(
+					doctype=doctype,
+					name=docname
+				));
+
+	if not rating:
+		return 0
+	else:
+		return rating[0]

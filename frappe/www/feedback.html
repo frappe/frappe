@@ -1,9 +1,9 @@
 {% extends "templates/web.html" %}
 
+{% block title %} Feedback {% endblock %}
+
 {% block page_content %}
-<p class='lead'>
-	{{ _("Please share your feedback for {0} {1}").format(reference_doctype, reference_name) }}
-</p>
+<p class='lead'></p>
 
 <div>
 	{{ _("Your rating: ") }}
@@ -22,33 +22,59 @@
 <p><button class='btn btn-primary btn-sm btn-submit'>{{ _("Submit") }}</button></p>
 
 <script>
-frappe.ready(function() {
-	$('.star-icon').hover(function() {
-		var idx = $(this).attr('data-idx');
-		$('.star-icon.fa-star').removeClass('fa-star').addClass('fa-star-o');
-		for(var i=0; i<parseInt(idx); i++) {
-			$($('.star-icon').get(i)).removeClass('fa-star-o').addClass('fa-star');
-		}
-	});
+	window.feedback = {
+		init: function() {
+			var me = this;
 
-	$('.btn-submit').on('click', function() {
-		if(!rating: $('.star-icon.fa-star').length) {
-			frappe.msgprint("{{ _("Please give a rating.") }}");
-			return;
-		}
-		frappe.call({
-			method: 'frappe.www.feedback.accept',
-			args: {
-				reference_doctype: "{{ reference_doctype }}",
-				reference_name: "{{ reference_name }}",
-				feedback: $('.feedback-text').val(),
-				rating: $('.star-icon.fa-star').length
-			},
-			callback: function() {
+			this.key = get_url_arg("key");
+			this.reference_name = get_url_arg("reference_name");
+			this.reference_doctype = get_url_arg("reference_doctype");
+			this.sender = get_url_arg("email")
 
-			}
-		})
-	});
-})
+			me.bind_events();
+			$(".lead").empty().html(__("Please share your feedback for {0}", [me.reference_name]));
+		},
+
+		bind_events: function() {
+			// bind ratings on hover
+			var me = this;
+
+			$('.star-icon').hover(function() {
+				var idx = $(this).attr('data-idx');
+				$('.star-icon.fa-star').removeClass('fa-star').addClass('fa-star-o');
+				for(var i=0; i<parseInt(idx); i++) {
+					$($('.star-icon').get(i)).removeClass('fa-star-o').addClass('fa-star');
+				}
+			});
+
+			// bind submit button
+			$('.btn-submit').on('click', function() {
+				if(!$('.star-icon.fa-star').length) {
+					frappe.msgprint(__("Please give a rating."));
+					return;
+				}
+
+				frappe.call({
+					method: 'frappe.www.feedback.accept',
+					args: {
+						nonce: me.key,
+						sender: me.sender,
+						reference_name: me.reference_name,
+						reference_doctype: me.reference_doctype,
+						feedback: $('.feedback-text').val(),
+						rating: $('.star-icon.fa-star').length
+					},
+					callback: function(r) {
+						if(r.message)
+							frappe.msgprint("Thank you");
+					}
+				})
+			});
+		}
+	};
+
+	frappe.ready(function() {
+		feedback.init();
+	})
 </script>
 {% endblock %}

@@ -1,0 +1,6 @@
+{% if show_label %}
+	{{ __("Rating: ") }}
+{% endif %}
+{% for(var i=1, l=6; i<l; i++) { %}
+	<i class="fa fa-fw {{ i<=rating? "fa-star": "fa-star-o" }} star-icon" data-idx=1></i>
+{% } %}
