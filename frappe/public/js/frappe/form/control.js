@@ -1709,21 +1709,28 @@ frappe.ui.form.ControlTable = frappe.ui.form.Control.extend({
 });
 
 frappe.ui.form.ControlSignature = frappe.ui.form.ControlData.extend({
-    // Local editing mode
 	editing: true,
 	empty_img: "data:image/gif;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8Xw8AAoMBgDTD2qgAAAAASUVORK5CYII=",
-	make_input: function() {
+	make: function() {
 		var me = this;
+		this._super();
 
 		// make jSignature field
 		this.$pad = $('<div class="signature-field"></div>')
-		    .prependTo(me.input_area)
+		    .appendTo(me.wrapper)
 		    .jSignature({height:300, width: "100%",lineWidth:0.8});
+
+		this.img_wrapper = $('<div style="margin: 7px 0px;">\
+			<div class="missing-image attach-missing-image"><i class="octicon octicon-circle-slash"></i></div></div>')
+			.appendTo(this.wrapper);
+		this.img = $("<img class='img-responsive attach-image-display'>")
+			.appendTo(this.img_wrapper).toggle(false);
 
 		// handle save button
 		this.$btnEditWrapper = $('<div class="btn-group btn-group-justified"><a href="#" type="button" class="signature-edit btn btn-primary btn-block">Edit</a></div>')
-		    .appendTo(me.input_area)
+		    .appendTo(this.img_wrapper)
 		    .on("click", '.signature-edit', function() {
+				this.editing = true;
 				me.toggle_edit(true);
 				return false;
 			});
@@ -1731,7 +1738,7 @@ frappe.ui.form.ControlSignature = frappe.ui.form.ControlData.extend({
 		this.$btnWrapper = $('<div class="btn-group btn-group-justified">' +
 		                    '<a href="#" type="button" class="signature-reset btn btn-default btn-block">Reset</a>' +
                             '<a href="#" type="button" class="signature-save btn btn-success btn-block">Save</a></div>')
-		    .appendTo(me.input_area)
+		    .appendTo(this.$pad)
 			.on("click", '.signature-save', function() {
 				me.on_save_sign();
 				return false;
@@ -1741,27 +1748,36 @@ frappe.ui.form.ControlSignature = frappe.ui.form.ControlData.extend({
 				return false;
 			});
 
-        // display value
-		this.$value = $('<img src="http://placehold.it/400x300" class="signature-img img-responsive"/>')
-		    .prependTo(me.input_area);
-
 		this.editing = me.get_status()=="Write";
-        this.toggle_edit(this.editing);
+        me.toggle_edit(this.editing);
         this.load_pad();
-	    // display image if there is value
-	    this.$wrapper.on("refresh",  function() {
-	        editing = me.get_status()=="Write" && me.editing;
-            me.toggle_edit(editing);
+		me.$wrapper.find(".control-input").toggle(false);
+
+		this.$wrapper.on("refresh", function() {
+			me.editing = me.get_status()=="Write";
+			me.toggle_edit(me.editing);
             me.load_pad();
-	    });
-	    this.has_input = true;
-    },
-    load_pad: function() {
+			me.$wrapper.find(".control-input").toggle(false);
+			if(me.get_status()=="Read") {
+				$(me.disp_area).toggle(false);
+			}
+		});
+	},
+	set_image: function(value) {
+		if(value) {
+			$(this.img_wrapper).find(".missing-image").toggle(false);
+			this.img.attr("src", value).toggle(true);
+		} else {
+			$(this.img_wrapper).find(".missing-image").toggle(true);
+			this.img.toggle(false);
+		}
+	},
+	load_pad: function() {
         value = this.get_value();
         console.log("value", value, this.$pad);
         if (this.$pad) {
             this.$pad.jSignature('reset');
-            this.set_image(value? value: this.empty_img);
+            this.set_image(value ? value: this.empty_img);
             if (value) {
                 this.$pad.jSignature('setData', value);
             }
@@ -1769,8 +1785,8 @@ frappe.ui.form.ControlSignature = frappe.ui.form.ControlData.extend({
     },
     toggle_edit: function(editing) {
         this.$pad.toggle(editing);
-        this.$value.toggle(!editing);
-        this.$btnEditWrapper.toggle(!editing);
+        this.img_wrapper.toggle(!editing);
+        this.$btnEditWrapper.toggle(!editing && this.get_status()=="Write");
         this.$btnWrapper.toggle(editing);
         if (editing) {
             this.$btnWrapper.addClass('editing');
@@ -1779,12 +1795,6 @@ frappe.ui.form.ControlSignature = frappe.ui.form.ControlData.extend({
         else {
             this.$btnWrapper.removeClass('editing');
             this.editing = false;
-        }
-    },
-    set_image: function(value) {
-        if (this.$value)
-        {
-            this.$value.attr("src", value);
         }
     },
     set_value: function(value) {
@@ -1805,6 +1815,7 @@ frappe.ui.form.ControlSignature = frappe.ui.form.ControlData.extend({
         var base64_img = this.$pad.jSignature("getData");
         this.set_value(base64_img);
         this.set_image(this.get_value());
+		this.editing=false;
         this.toggle_edit(false);
     }
 });
