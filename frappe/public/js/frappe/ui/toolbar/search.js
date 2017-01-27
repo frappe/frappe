@@ -32,8 +32,7 @@ frappe.search.UnifiedSearch = Class.extend({
 
 			$this.data('timeout', setTimeout(function(){
 				var keywords = me.input.val();
-				me.sidebar.empty();
-				me.results_area.empty();
+				me.reset();
 				if(keywords.length > 0) {
 					me.build_results(keywords);
 				}
@@ -53,16 +52,7 @@ frappe.search.UnifiedSearch = Class.extend({
 		this.summary = $('<div class="module-body summary"></div>');
 		this.full_lists = {};
 		this.current = 0;
-		this.results_area.html('<p class="results-status text-muted">'+
-			'No results found for: '+ "'"+ keywords +"'" +'</p>');
 		this.search_objects[me.current].build_results_object(me, keywords);
-	},
-
-	show_results: function(results_obj, keywords) {
-		if(results_obj) {
-			this.render_results(results_obj,keywords);
-			// this.bind_events(keywords);
-		}
 	},
 
 	render_results: function(results_obj, keywords){
@@ -72,7 +62,6 @@ frappe.search.UnifiedSearch = Class.extend({
 		this.results_area.find('.results-status').remove();
 		results_obj.sections.forEach(function(section) {
 			me.summary.append(section);
-			// me.results_area.append(section);
 		});
 		this.full_lists = Object.assign(this.full_lists, results_obj.lists);
 		this.render_next_search(keywords);
@@ -81,36 +70,38 @@ frappe.search.UnifiedSearch = Class.extend({
 	bind_events: function() {
 		var me = this;
 		this.sidebar.find('.list-link').on('click', function() {
-			me.sidebar.find(".list-link a").removeClass("disabled");
-			$(this).find('a').addClass("disabled");
-			var type = $(this).attr('data-category');
-			me.results_area.empty().html(me.full_lists[type]);
-
-			// all results link
-			me.set_back_link();
-			// more results
-			me.set_list_more(type);
-			return false;
+			me.set_sidebar_link_action($(this));
 		});
-
 		this.results_area.find('.section-more').on('click', function() {
 			var type = $(this).attr('data-category');
 			me.sidebar.find('*[data-category="'+ type +'"]').trigger('click');
 		});
+	},
 
-		// this.render_next_search(keywords);
+	set_sidebar_link_action: function(link) {
+		this.sidebar.find(".list-link a").removeClass("disabled");
+		link.find('a').addClass("disabled");
+		var type = link.attr('data-category');
+		this.results_area.empty().html(this.full_lists[type]);
+
+		this.set_back_link();
+		this.set_list_more_link(type);
 	},
 
 	set_back_link: function() {
 		var me = this;
 		var back_link = this.results_area.find('.all-results-link');
 		back_link.on('click', function() {
-			me.results_area.empty().html(me.summary);
-			me.bind_events();
+			me.show_summary();
 		});
 	},
 
-	set_list_more: function(type) {
+	show_summary: function() {
+		this.results_area.empty().html(this.summary);
+		this.bind_events();
+	},
+
+	set_list_more_link: function(type) {
 		var me = this;
 		var more_link = this.results_area.find('.list-more');
 		more_link.on('click', function() {
@@ -140,16 +131,20 @@ frappe.search.UnifiedSearch = Class.extend({
 		if(this.current < this.search_objects.length){
 			this.search_objects[this.current].build_results_object(this, keywords);
 		} else {
-			this.results_area.empty().html(this.summary);
-			this.bind_events();
-			// If there's only one link in sidebar, show its full list
+			// If there's only one link in sidebar, no summary (show its full list)
 			if(this.sidebar.find('.list-link').length === 1) {
+				this.bind_events();
 				this.sidebar.find('.list-link').trigger('click');
-				// also hide all results link
+				this.results_area.find('.all-results-link').hide();
+
+			} else if (this.sidebar.find('.list-link').length === 0) {
+				this.results_area.html('<p class="results-status text-muted">'+
+					'No results found for: '+ "'"+ keywords +"'" +'</p>');
+			} else {
+				this.show_summary();
 			}
-			// add final case for no results
 		}
-	}
+	},
 
 });
 
@@ -188,6 +183,23 @@ frappe.search.Search = Class.extend({
 			}
 		});
 	}, 
+
+	make_sidelist: function() {
+		var me = this;
+		var sidelist = $('<ul class="list-unstyled sidebar-menu nav-list"></ul>');
+		sidelist.append('<li class="h6">'+ me.search_type +'</li>');
+		this.types.forEach(function(type) {
+			sidelist.append(me.make_sidelist_item(type));
+		});
+		sidelist.append('<li class="divider"></li>');
+		return sidelist;
+	},
+
+	make_sidelist_item: function(type) {
+		var sidelist_item = '<li class="list-link"' + 
+			'data-category="{0}"><a>{0}</a></li>';
+		return $(__(sidelist_item, [type]));
+	},
 
 	get_result_set: function(doctype){
 		var me = this;
@@ -241,7 +253,7 @@ frappe.search.Search = Class.extend({
 			this.current_type += 1;
 			this.get_result_set(this.types[this.current_type]);
 		} else {
-			this.show_results();
+			this.render_results();
 		}
 	},
 	
@@ -251,10 +263,10 @@ frappe.search.Search = Class.extend({
 		this.setup();
 	},
 
-	show_results: function() {
+	render_results: function() {
 		var me = this;
 		if(this.sections.length > 0) {
-			this.render_object.show_results({
+			this.render_object.render_results({
 				sidelist: me.sidelist,
 				sections: me.sections,
 				lists: me.lists
@@ -273,7 +285,8 @@ frappe.search.Search = Class.extend({
 
 	format_result: function(result) {
 		var route = '#Form/' + result.doctype + '/' + result.name;
-		return [route, result.name, this.get_finds(result.content)]
+		return [route, this.bold_keywords(result.name), 
+			this.get_finds(result.content)]
 	},
 	
 	get_finds: function(searchables) {
@@ -284,12 +297,18 @@ frappe.search.Search = Class.extend({
 			if(part.toLowerCase().indexOf(me.keywords) !== -1) {
 				var colon_index = part.indexOf(':');
 				var regEx = new RegExp("("+ me.keywords +")", "ig");
-				part = '<span class="field-name">' + part.slice(0, colon_index + 1) + 
-					'</span>' + (part.slice(colon_index + 1)).replace(regEx, '<b>$1</b>');
-				content += part + ',  ';
+				part = '<span class="field-name text-muted">' + 
+					part.slice(0, colon_index + 1) + '</span>' + 
+					me.bold_keywords(part.slice(colon_index + 1));
+				content += part + ', ';
 			}
 		});
 		return content.slice(0, -2);
+	},
+
+	bold_keywords: function(str) {
+		var regEx = new RegExp("("+ this.keywords +")", "ig");
+		return str.replace(regEx, '<b>$1</b>');
 	},
 
 	make_section: function(type, results) {
@@ -338,23 +357,6 @@ frappe.search.Search = Class.extend({
 			more_results.append(me.make_result_item(type, result));
 		});
 		this.render_object.add_more_results([more_results, more]);
-	},
-
-	make_sidelist: function() {
-		var me = this;
-		var sidelist = $('<ul class="list-unstyled sidebar-menu nav-list"></ul>');
-		sidelist.append('<li class="h6">'+ me.search_type +'</li>');
-		this.types.forEach(function(type) {
-			sidelist.append(me.make_sidelist_item(type));
-		});
-		sidelist.append('<li class="divider"></li>');
-		return sidelist;
-	},
-
-	make_sidelist_item: function(type) {
-		var sidelist_item = '<li class="list-link"' + 
-			'data-category="{0}"><a href="#">{0}</a></li>';
-		return $(__(sidelist_item, [type]));
 	},
 
 });
@@ -407,13 +409,11 @@ frappe.search.NavSearch = frappe.search.Search.extend({
 		}
 		this.make_type_results(type, results, more);
 		if(last_type) {
-			this.show_results();
+			this.render_results();
 		}
 	},
 
 	make_type_results: function(type, results, more) {
-		var me = this;
-		console.log('Sections made', type);
 		this.sections.push(this.make_section(type, results));
 		this.lists[type] = this.make_full_list(type, results, more);
 	},
@@ -430,25 +430,27 @@ frappe.search.NavSearch = frappe.search.Search.extend({
 	},
 
 	make_result_item: function(type, result) {
-		var link_html = '<div class="result '+ type +'-result">' +
+		var link_html = '<div class="result '+ type +'-result single-link">' +
 			'<a href="{0}" class="module-section-link small">{1}</a>' +
-			'<p class="small">{2}</p>' +
-			'</div>';
-		var formatted_result = this.format_result(result);
-		return $(__(link_html, formatted_result));
-	},
-
-	format_result: function(result) {
-		return [this.make_path(result.route), result.label, ""];
+			'<p class="small"></p></div>';
+		if(!result.onclick) {
+			var formatted_result = [this.make_path(result.route), result.label];
+			return $(__(link_html, formatted_result));
+		} else {
+			var link = $(__(link_html, ['#', result.label]));
+			link.on('click', function() {
+				frappe.new_doc(result.match, true);
+				// result.onclick(result.match, true);
+			});
+			return link;
+		}
 	},
 
 	make_path: function(route) {
 		var path = "#";
 		route.forEach(function(r) { path += r + '/'; });
-		if(path === '#'){ return path }
 		return path.slice(0, -1);
 	},
-	// // Render OnClicks!!!
 
 	make_dual_sections: function() {
 		this.dual_sections = [];
@@ -463,12 +465,11 @@ frappe.search.NavSearch = frappe.search.Search.extend({
 		}
 	},
 
-	show_results: function() {
+	render_results: function() {
 		var me = this;
 		this.make_dual_sections();
-		console.log("this.dual_sections", this.dual_sections);
 		if(this.dual_sections.length > 0) {
-			this.render_object.show_results({
+			this.render_object.render_results({
 				sidelist: me.sidelist,
 				sections: me.dual_sections,
 				lists: me.lists
@@ -515,7 +516,7 @@ frappe.search.HelpSearch = frappe.search.Search.extend({
 				if(r.message) {
 					// Help search doesn't have a more button for full list
 					me.make_type_results(type, r.message, false);
-					me.show_results();
+					me.render_results();
 				} else {
 					me.render_object.render_next_search(me.keywords);
 				}
@@ -524,31 +525,30 @@ frappe.search.HelpSearch = frappe.search.Search.extend({
 	},
 
 	make_type_results: function(type, results, more) {
-		var me = this;
-		console.log('Sections made', type);
 		this.sections.push(this.make_section(type, results));
 		this.lists[type] = this.make_full_list(type, results, more);
 	},
 
 	make_result_item: function(type, result) {
+		var me = this;
 		var link_html = '<div class="result '+ type +'-result">' +
-			'<a href="{0}" class="module-section-link small">{1}</a>' +
-			'<p class="small">{2}</p>' +
+			'<a href="#" class="module-section-link small">{0}</a>' +
+			'<p class="small">{1}</p>' +
 			'</div>';
-		var formatted_result = this.format_result(result);
-		return $(__(link_html, formatted_result));
-	},
-
-	format_result: function(result) {
-		var route = '#" data-path="' + result[2];
-		return [route, result[0], result[1]]
+		var link = $(__(link_html, [result[0], result[1]]));
+		link.on('click', function() {
+			console.log('path', result[2]);
+			me.show_article(result[2]);
+		});
+		return link;
 	},
 
 	// show results modal
-	show_article: function() {
-		var path = $(this).attr("data-path");
+	show_article: function(path) {
+		console.log('show results called');
+		var $result_modal = frappe.get_modal("", "");
+		$result_modal.addClass("help-modal");
 		if(path) {
-			e.preventDefault();
 			frappe.call({
 				method: "frappe.utils.help.get_help_content",
 				args: {
