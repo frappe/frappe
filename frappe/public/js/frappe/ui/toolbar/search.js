@@ -246,7 +246,6 @@ frappe.search.Search = Class.extend({
 
 	make_type_results: function(type, results, more) {
 		var last_type = (type == this.types.slice(-1));
-		console.log('Sections made: ', type);
 		this.sections.push(this.make_section(type, results));
 		this.lists[type] = this.make_full_list(type, results, more);
 		if(!last_type) {
@@ -503,7 +502,7 @@ frappe.search.HelpSearch = frappe.search.Search.extend({
 		this.types = ['Help'];
 		this.sidelist = this.make_sidelist();
 		this.get_result_set(this.types[0]);
-	}, 
+	},
 
 	get_result_set: function(type) {
 		var me = this;
@@ -537,7 +536,6 @@ frappe.search.HelpSearch = frappe.search.Search.extend({
 			'</div>';
 		var link = $(__(link_html, [result[0], result[1]]));
 		link.on('click', function() {
-			console.log('path', result[2]);
 			me.show_article(result[2]);
 		});
 		return link;
@@ -545,7 +543,7 @@ frappe.search.HelpSearch = frappe.search.Search.extend({
 
 	// show results modal
 	show_article: function(path) {
-		console.log('show results called');
+		var me = this;
 		var $result_modal = frappe.get_modal("", "");
 		$result_modal.addClass("help-modal");
 		if(path) {

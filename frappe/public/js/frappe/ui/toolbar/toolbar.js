@@ -149,11 +149,8 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 			$('.dropdown-help .dropdown-menu').on('click', 'a', show_results);
 		});
 
-		// var $help_modal = frappe.get_modal("Help", "");
-		// $help_modal.addClass('help-modal');
-
-		// var $result_modal = frappe.get_modal("", "");
-		// $result_modal.addClass("help-modal");
+		var $result_modal = frappe.get_modal("", "");
+		$result_modal.addClass("help-modal");
 
 		$(document).on("click", ".help-modal a", show_results);
 
