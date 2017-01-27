@@ -9,8 +9,8 @@ frappe.search.AwesomeBar = Class.extend({
 		var me = this;
 		this.search = new frappe.search.UnifiedSearch();
 		this.global = new frappe.search.Search();
-		this.help = new frappe.search.HelpSearch();
 		this.nav = new frappe.search.NavSearch();
+		this.help = new frappe.search.HelpSearch();
 
 		var awesomplete = new Awesomplete(input, {
 			minChars: 0,
@@ -332,7 +332,6 @@ frappe.search.AwesomeBar = Class.extend({
 					out.push({
 						label: __("New {0}", [target.bold()]),
 						value: __("New {0}", [target]),
-						route: [],
 						match: target,
 						onclick: function() { frappe.new_doc(target, true); }
 					});
