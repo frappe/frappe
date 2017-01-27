@@ -20,7 +20,7 @@ def get_context(context):
 		order by published_on desc limit 20""", as_dict=1)
 
 	for blog in blog_list:
-		blog_page = cstr(urllib.quote(blog.route.encode("utf-8")))
+		blog_page = cstr(urllib.quote(blog.name.encode("utf-8")))
 		blog.link = urllib.basejoin(host, blog_page)
 		blog.content = escape_html(blog.content or "")
 
