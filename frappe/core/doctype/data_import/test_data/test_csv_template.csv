@@ -1,40 +1,162 @@
-"Data Import Template"
-"Table:","Customer"
-""
-""
-"Notes:"
-"Please do not change the template headings."
-"First data column must be blank."
-"If you are uploading new records, leave the ""name"" (ID) column blank."
-"If you are uploading new records, ""Naming Series"" becomes mandatory, if present."
-"Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish."
-"For updating, you can update only selective columns."
-"You can only upload upto 5000 records in one go. (may be less in some cases)"
-""
-"DocType:","Customer","","","","","","","","","","","","","","","","","","","~","Party Account","accounts","~","Sales Team","sales_team","",""
-"Column Labels:","ID","Full Name","Type","Customer Group","Territory","From Lead","Tax ID","Disabled","Billing Currency","Default Price List","Print Language","Website","Credit Days Based On","Credit Days","Credit Limit","Customer Details","Is Frozen","Sales Partner","Commission Rate","","Company","Account","","Sales Person","Contribution (%)","Contribution to Net Total","Incentives"
-"Column Name:","name","customer_name","customer_type","customer_group","territory","lead_name","tax_id","disabled","default_currency","default_price_list","language","website","credit_days_based_on","credit_days","credit_limit","customer_details","is_frozen","default_sales_partner","default_commission_rate","~","company","account","~","sales_person","allocated_percentage","allocated_amount","incentives"
-"Mandatory:","Yes","Yes","Yes","Yes","Yes","No","No","No","No","No","No","No","No","No","No","No","No","No","No","","Yes","Yes","","Yes","No","No","No"
-"Type:","Data (text)","Data","Select","Link","Link","Link","Data","Check","Link","Link","Link","Data","Select","Int","Currency","Text","Check","Link","Float","","Link","Link","","Link","Float","Currency","Currency"
-"Info:","","","One of: Company, Individual","Valid Customer Group","Valid Territory","Valid Lead","","0 or 1","Valid Currency","Valid Price List","Valid Language","","One of: Fixed Days, Last Day of the Next Month","Integer","","","0 or 1","Valid Sales Partner","","","Valid Company","Valid Account","","Valid Sales Person","","",""
-"Start entering data below this line"
-"","""Fayva""","Fayva","Company","Commercial","Rest Of The World","","",0,"","","","","",0,0.0,"",0,"",0.0,"","","","","","","",""
-"","""Adaptas""","Adaptas","Individual","Commercial","Rest Of The World","","",0,"","","","","",0,0.0,"",0,"",0.0,"","","","","","","",""
-"","""Asian Fusion""","Asian Fusion","Individual","Commercial","Rest Of The World","","",0,"","","","","",0,0.0,"",0,"",0.0,"","","","","","","",""
-"","""Crafts Canada""","Crafts Canada","Individual","Commercial","Rest Of The World","","",0,"","","","","",0,0.0,"",0,"",0.0,"","","","","","","",""
-"","""Intelacard""","Intelacard","Individual","Commercial","Rest Of The World","","",0,"","","","","",0,0.0,"",0,"",0.0,"","","","","","","",""
-"","""Netobill""","Netobill","Company","Commercial","Rest Of The World","","",0,"","","","","",0,0.0,"",0,"",0.0,"","","","","","","",""
-"","""Consumers and Consumers Express""","Consumers and Consumers Express","Individual","Commercial","Rest Of The World","","",0,"","","","","",0,0.0,"",0,"",0.0,"","","","","","","",""
-"","""Hind Enterprises""","Hind Enterprises","Company","Commercial","Rest Of The World","","",0,"","","","","",0,0.0,"",0,"",0.0,"","","","","","","",""
-"","""Landskip Yard Care""","Landskip Yard Care","Company","Commercial","Rest Of The World","","",0,"","","","","",0,0.0,"",0,"",0.0,"","","","","","","",""
-"","""Asian Junction""","Asian Junction","Individual","Commercial","Rest Of The World","","",0,"","","","","",0,0.0,"",0,"",0.0,"","","","","","","",""
-"","""Choices""","Choices","Company","Commercial","Rest Of The World","","",0,"","","","","",0,0.0,"",0,"",0.0,"","","","","","","",""
-"","""Chi-Chis""","Chi-Chis","Company","Commercial","Rest Of The World","","",0,"","","","","",0,0.0,"",0,"",0.0,"","","","","","","",""
-"","""Mr Fables""","Mr Fables","Company","Commercial","Rest Of The World","","",0,"","","","","",0,0.0,"",0,"",0.0,"","","","","","","",""
-"","""Endicott Shoes""","Endicott Shoes","Individual","Commercial","Rest Of The World","","",0,"","","","","",0,0.0,"",0,"",0.0,"","","","","","","",""
-"","""Life Plan Counselling""","Life Plan Counselling","Company","Commercial","Rest Of The World","","",0,"","","","","",0,0.0,"",0,"",0.0,"","","","","","","",""
-"","""Buttrey Food & Drug""","Buttrey Food & Drug","Individual","Commercial","Rest Of The World","","",0,"","","","","",0,0.0,"",0,"",0.0,"","","","","","","",""
-"","""Big D Supermarkets""","Big D Supermarkets","Company","Commercial","Rest Of The World","","",0,"","","","","",0,0.0,"",0,"",0.0,"","","","","","","",""
-"","""Red Food""","Red Food","Individual","Commercial","Rest Of The World","","",0,"","","","","",0,0.0,"",0,"",0.0,"","","","","","","",""
-"","""Two Pesos""","Two Pesos","Individual","Commercial","Rest Of The World","","",0,"","","","","",0,0.0,"",0,"",0.0,"","","","","","","",""
-"","""Nelson Brothers""","Nelson Brothers","Company","Commercial","Rest Of The World","","",0,"","","","","",0,0.0,"",0,"",0.0,"","","","","","","",""
+Data Import Template,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+Table:,User,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+Notes:,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+Please do not change the template headings.,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+First data column must be blank.,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+"If you are uploading new records, leave the ""name"" (ID) column blank.",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+"If you are uploading new records, ""Naming Series"" becomes mandatory, if present.",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish.,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+"For updating, you can update only selective columns.",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+You can only upload upto 5000 records in one go. (may be less in some cases),,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+DocType:,User,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,~,User Email,user_emails,,~,UserRole,user_roles,~,Block Module,block_modules,~,DefaultValue,defaults
+Column Labels:,ID,Email,First Name,Enabled,Middle Name (Optional),Last Name,Send Welcome Email,Username,Language,Timezone,Gender,Phone,Birth Date,Location,Bio,Mute Sounds,Set New Password,Send Password Update Notification,Send Notifications for Transactions I Follow,Email Signature,Background Image,Background Style,Simultaneous Sessions,User Type,Login After,Login Before,Restrict IP,Last Login,Last IP,Last Active,Facebook Username,Facebook User ID,Google User ID,Github User ID,Github Username,Frappe User ID,,Email Account,Awaiting Password,Email ID,,Role,,,Module,,,Key,Value
+Column Name:,name,email,first_name,enabled,middle_name,last_name,send_welcome_email,username,language,time_zone,gender,phone,birth_date,location,bio,mute_sounds,new_password,send_password_update_notification,thread_notify,email_signature,background_image,background_style,simultaneous_sessions,user_type,login_after,login_before,restrict_ip,last_login,last_ip,last_active,fb_username,fb_userid,google_userid,github_userid,github_username,frappe_userid,~,email_account,awaiting_password,email_id,~,role,~,~,module,~,~,defkey,defvalue
+Mandatory:,Yes,Yes,Yes,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,No,,Yes,No,No,,Yes,,,Yes,,,Yes,No
+Type:,Data (text),Data,Data,Check,Data,Data,Check,Data,Link,Select,Select,Data,Date,Data,Small Text,Check,Password,Check,Check,Small Text,Attach,Select,Int,Select,Int,Int,Data,Read Only,Read Only,Datetime,Data,Data,Data,Data,Data,Data,,Link,Check,Data,,Link,,,Data,,,Data,Text
+Info:,,,,0 or 1,,,0 or 1,,Valid Language,,"One of: Male, Female, Other",,,,,0 or 1,,0 or 1,0 or 1,,,"One of: Fill Screen, Tile",Integer,"One of: System User, Website User",Integer,Integer,,,,,,,,,,,,Valid Email Account,0 or 1,,,Valid Role,,,,,,,
+Start entering data below this line,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,"""test010@gmail.com""",test010@gmail.com,Test10,1,,Sam,1,test10,en-US,,Male,8745632109,,,,0,,0,1,,,Fill Screen,1,Website User,0,0,,,,,,,,,,36dded4d4af24ac1970916c065deac7c8bd633e,,,,,,,,,,,,,
+,"""test009@gmail.com""",test009@gmail.com,Test9,1,,Rathi,1,test9,en-US,,Female,8547963214,,,,0,,0,1,,,Fill Screen,1,Website User,0,0,,,,,,,,,,fe8296ac9ee61dc381680b4de77acdb69378f5d,,,,,,,,,,,,,
+,"""test008@gmail.com""",test008@gmail.com,Test8,1,,Kaushik,1,test8,en-US,,Male,8521479632,,,,0,,0,1,,,Fill Screen,1,Website User,0,0,,,,,,,,,,4b4ee7631ad7b3a4b0213238e7d4de2bfd527bf,,,,,,,,,,,,,
+,"""test007@gmail.com""",test007@gmail.com,Test7,1,,Singh,1,test7,en-US,,Female,9638527410,,,,0,,0,1,,,Fill Screen,1,Website User,0,0,,,,,,,,,,be95a2aabdd55b89d1ca2a48fa4889581a72dd3,,,,,,,,,,,,,
+,"""test006@gmail.com""",test006@gmail.com,Test6,1,,Malik,1,test6,en-US,,Male,9632587410,,,,0,,0,1,,,Fill Screen,1,Website User,0,0,,,,,,,,,,57de4d0f6fc1b1b9adc13f6d5db19cafec6ee56,,,,,,,,,,,,,
+,"""test005@gmail.com""",test005@gmail.com,Test5,1,,Solanki,1,test5,en-US,,Male,9852014789,,,,0,,0,1,,,Fill Screen,1,Website User,0,0,,,,,,,,,,c604a587886c4db3ee0641b8367d61926613b92,,,,,,,,,,,,,
+,"""test004@gmail.com""",test004@gmail.com,Test4,1,,Chauhan,1,test4,en-US,,Female,9874103652,,,,0,,0,1,,,Fill Screen,1,Website User,0,0,,,,,,,,,,72eafe23b35bb0a292e539e96fb1652f4eaeec4,,,,,,,,,,,,,
+,"""test003@gmail.com""",test003@gmail.com,Test3,1,,Tomar,1,test3,en-US,,Male,9854261543,,,,0,,0,1,,,Fill Screen,1,Website User,0,0,,,,,,,,,,588057b176d56337c219655fb02a3444959592b,,,,,,,,,,,,,
+,"""test002@gmail.com""",test002@gmail.com,Test2,1,,Kumar,1,test2,en-US,,Male,9852145632,,,,0,,0,1,,,Fill Screen,1,Website User,0,0,,,,,,,,,,6ba846feaaebe44349cab18e5bee06e9d417dd8,,,,,,,,,,,,,
+,"""test001@gmail.com""",test001@gmail.com,Test1,1,,Nath,1,test1,en-US,,Male,9584521458,,,,0,,0,1,,,Fill Screen,1,Website User,0,0,,,,,,,,,,412959c691d1ea55a8bb09266aa891433b84a78,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,System Manager,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Accounts User,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Guest,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Purchase User,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Website Manager,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Purchase Manager,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Librarian,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Accounts Manager,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Library Member,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Auditor,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Blogger,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Customer,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Expense Approver,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Leave Approver,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Maintenance Manager,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,HR User,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Maintenance User,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Manufacturing Manager,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Manufacturing User,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Newsletter Manager,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Projects User,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Item Manager,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Purchase Master Manager,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Quality Manager,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,HR Manager,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Report Manager,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Sales Manager,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Sales Master Manager,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Academics User,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Sales User,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Stock Manager,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Stock User,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Supplier,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Student,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Fleet Manager,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Support Team,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,_Test Role,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,_Test Role 2,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,_Test Role 3,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,_Test Role 4,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Admin,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Knowledge Base Contributor,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Knowledge Base Editor,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Instructor,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Projects Manager,,,,,,,
+,"""test2@example.com""",test2@example.com,_Test,1,Employee,2,1,_test2,en-US,,Male,,1980-01-01,,,0,,0,1,,,Fill Screen,1,System User,0,0,,,,,,,,,,595bce726f2fe6015437e5875977725c9f4ea4e,,,,,,Student,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Employee,,,,,,,
+,"""test1@example.com""",test1@example.com,_Test,1,Employee,1,1,_test1,en-US,,Male,,1980-01-01,,,0,,0,1,,,Fill Screen,1,System User,0,0,,,,,,,,,,bf7b9d7b2eccb02e0e532c986bd303f74ed37de,,,,,,Student,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Employee,,,,,,,
+,"""test@example.com""",test@example.com,_Test,1,,Employee,1,_test,en-US,,Female,,1980-01-01,,,0,,0,1,,,Fill Screen,1,System User,0,0,,,,,,,,,,c6a1da6637288c8876d148988fb1c3b7aa62b44,,,,,,_Test Role,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,System Manager,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Student,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Employee,,,,,,,
+,"""testdelete@example.com""",testdelete@example.com,_Test,1,,,1,,en-US,,,,,,,0,,0,1,,,Fill Screen,1,System User,0,0,,,,,,,,,,fc89768f3c5aa15b564aba81f0a5e6df0e763eb,,,,,,_Test Role 2,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,System Manager,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Student,,,,,,,
+,"""testperm@example.com""",testperm@example.com,_Test Perm,1,,,1,_test_perm,en-US,,,,,,,0,,0,1,,,Fill Screen,1,Website User,0,0,,,,,,,,,,b9cb8532feaa371d76942d841f5d638e2f59a13,,,,,,Student,,,,,,,
+,"""manas@erpnext.com""",manas@erpnext.com,Manas,1,,,1,manas,,,,,,,,0,,0,1,,,Fill Screen,1,System User,0,0,,2016-11-07 16:04:53.117864,127.0.0.1,2016-11-07 17:20:16,,,,,,,,,,,,Academics User,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Accounts Manager,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Accounts User,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Auditor,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Blogger,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Customer,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Expense Approver,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,HR Manager,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,HR User,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Item Manager,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Leave Approver,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Librarian,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Library Member,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Maintenance Manager,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Maintenance User,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Manufacturing Manager,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Manufacturing User,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Newsletter Manager,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Projects User,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Purchase Manager,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Purchase Master Manager,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Purchase User,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Quality Manager,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Report Manager,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Sales Manager,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Sales Master Manager,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Sales User,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Stock Manager,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Stock User,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Student,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Supplier,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Support Team,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,System Manager,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Website Manager,,,,,,,
+,"""systemmanager1@erpnext.com""",systemmanager1@erpnext.com,System,1,,,0,system_manager_1,en-US,,,,,,,0,,0,1,,,Fill Screen,1,System User,0,0,,,,,,,,,,,,,,,,System Manager,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Purchase Master Manager,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Maintenance User,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Accounts Manager,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Academics User,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,HR Manager,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Item Manager,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Librarian,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Maintenance Manager,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Purchase Manager,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Report Manager,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Purchase User,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Sales Master Manager,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Stock Manager,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Website Manager,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Support Team,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Student,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Accounts User,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Auditor,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Blogger,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Customer,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Expense Approver,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,HR User,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Leave Approver,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Library Member,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Manufacturing Manager,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Manufacturing User,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Newsletter Manager,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Projects User,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Quality Manager,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Sales Manager,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Sales User,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Stock User,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Supplier,,,,,,,
+,"""librarian@erpnext.com""",librarian@erpnext.com,Librarian,1,,,1,,en-US,,,,,,,0,,0,1,,,Fill Screen,1,System User,0,0,,2016-10-24 12:11:17.455249,127.0.0.1,2016-10-24 19:00:11,,,,,,,,,,,,Academics User,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Accounts User,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Librarian,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Library Member,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,Student,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,HR Manager,,,,,,,
+,"""Guest""",guest@example.com,Guest,1,,,1,guest,,,,,,,,0,,0,1,,,Fill Screen,1,System User,0,0,,,,,,,,,,,,,,,,Guest,,,,,,,
