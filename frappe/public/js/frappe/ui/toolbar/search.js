@@ -303,28 +303,27 @@ frappe.search.GlobalSearch = Class.extend({
 	format_result: function(result) {
 		var route = '#Form/' + result.doctype + '/' + result.name;
 		return [route, this.bold_keywords(result.name), 
-			this.get_finds(result.content)]
+			this.get_finds(result.content, this.keywords)]
 	},
 	
-	get_finds: function(searchables) {
+	get_finds: function(searchables, keywords) {
 		var me = this;
 		parts = searchables.split("|||");
 		content = "";
 		parts.forEach(function(part) {
-			if(part.toLowerCase().indexOf(me.keywords) !== -1) {
+			if(part.toLowerCase().indexOf(keywords) !== -1) {
 				var colon_index = part.indexOf(':');
-				var regEx = new RegExp("("+ me.keywords +")", "ig");
 				part = '<span class="field-name text-muted">' + 
 					part.slice(0, colon_index + 1) + '</span>' + 
-					me.bold_keywords(part.slice(colon_index + 1));
+					me.bold_keywords(part.slice(colon_index + 1), keywords);
 				content += part + ', ';
 			}
 		});
 		return content.slice(0, -2);
 	},
 
-	bold_keywords: function(str) {
-		var regEx = new RegExp("("+ this.keywords +")", "ig");
+	bold_keywords: function(str, keywords) {
+		var regEx = new RegExp("("+ keywords +")", "ig");
 		return str.replace(regEx, '<b>$1</b>');
 	},
 
@@ -426,7 +425,7 @@ frappe.search.GlobalSearch = Class.extend({
 					doctype: doctypes[current], 
 					text: keywords, 
 					start: 0, 
-					limit: 5,
+					limit: 4,
 				},
 				callback: function(r) {
 					if(r.message) {
@@ -444,12 +443,18 @@ frappe.search.GlobalSearch = Class.extend({
 			});
 		};
 
+		// var truncate = function() {
+
+		// };
+
 		var make_option = function(data) {
+			console.log("content", me.get_finds(data.content, keywords).slice(0,20));
 			return {
 				label: __("{0}: {1}", [__(data.doctype).bold(), data.name]),
 				value: __("{0}: {1}", [__(data.doctype), data.name]),
 				route: ["Form", data.doctype, data.name],
-				match: data.doctype
+				match: data.doctype,
+				description: me.get_finds(data.content, keywords).slice(0,86) + '...'
 			}
 		};
 
