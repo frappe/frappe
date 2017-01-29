@@ -20,8 +20,18 @@ frappe.search.AwesomeBar = Class.extend({
 			filter: function (text, term) { 
 				return true; 
 			},
+			data: function (item, input) {
+				var label = item.label + "%%%" + item.value + "%%%" + (item.description || "");
+				return {
+					label: label,
+					value: item.value
+				};
+			},
 			item: function(item, term) {
 				var d = item;
+				var parts = item.split("%%%"),
+				d = { label: parts[0], value: parts[1], description: parts[2] };
+
 				var html = "<span>" + __(d.label || d.value) + "</span>";
 				if(d.description && d.value!==d.description) {
 					html += '<br><span class="text-muted">' + __(d.description) + '</span>';
@@ -213,7 +223,7 @@ frappe.search.AwesomeBar = Class.extend({
 
 	set_global_results: function(global_results){
 		this.options = this.options.concat(global_results);
-		console.log("GS options", this.options);
+		// console.log("GS options", this.options);
 	},
 
 	build_options: function(txt) {
