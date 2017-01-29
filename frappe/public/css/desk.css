@@ -677,6 +677,12 @@ fieldset[disabled] .form-control {
   font-family: 'Octicons';
   content: '\f0a4';
 }
+.search-dialog .dual-section .result a {
+  color: black;
+}
+.search-dialog .dual-section .result a b{
+  color: #4e6161;
+}
 .search-dialog .result-status {
   margin-top: 30px;
   text-align: center;
@@ -691,11 +697,17 @@ fieldset[disabled] .form-control {
   .search-dialog .modal-content {
     height: auto !important;
   }
-  .search-dialog iframe {
-    height: auto;
-    width: 100%;
+}
+@media (max-width: 991px) {
+  .search-dialog .module-body {
+    margin: 0px;
+    border-top: none;
+  }
+  .search-dialog .layout-side-section .sidebar-menu {
+    margin: 30px 0px;
   }
 }
+<<<<<<< HEAD
 <<<<<<< HEAD
 .search-result, .help-result {
   margin-bottom: 24px;
@@ -723,7 +735,7 @@ fieldset[disabled] .form-control {
   overflow: scroll;
 }
 
-.search-result p, .help-result p {
+.result p {
   margin-top: 0.2em;
 }
 .search-result {
