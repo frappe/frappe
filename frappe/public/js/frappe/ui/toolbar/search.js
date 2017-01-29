@@ -126,12 +126,10 @@ frappe.search.UnifiedSearch = Class.extend({
 	},
 
 	add_more_results: function(more_data) {
+		var me = this;
 		var more_results = more_data[0];
 		var more = more_data[1];
 		this.results_area.find('.list-more').before(more_results);
-		this.results_area.find('.more-results.last').slideDown(200, function() {
-			$(this).removeClass('last');
-		});
 		if(!more) {
 			this.results_area.find('.list-more').hide();
 			var no_of_results = this.results_area.find('.result').length;
@@ -139,6 +137,15 @@ frappe.search.UnifiedSearch = Class.extend({
 				no_of_results +' results found</p>');
 			this.results_area.find(".result:last").append(no_of_results_cue);
 		}
+		this.results_area.find('.more-results.last').slideDown(200, function() {
+			var height = me.results_area.find('.module-body').height() - 750;
+			if(me.results_area.find('.list-more').is(":visible")) {
+				me.results_area.animate({
+					scrollTop: height
+				}, 400);
+			}
+			$(this).removeClass('last');
+		});
 	},
 
 	render_next_search: function(keywords) {
@@ -592,9 +599,19 @@ frappe.search.HelpSearch = frappe.search.GlobalSearch.extend({
 	},
 
 	set_types: function() {
-		this.types = ['Help'];
+		this.types = [this.search_type];
 		this.sidelist = this.make_sidelist();
 		this.get_result_set(this.types[0]);
+	},
+
+	make_sidelist: function() {
+		var sidelist = $('<ul class="list-unstyled sidebar-menu nav-list"></ul>');
+		var sidelist_item = '<li class="h6 list-link" data-search="'+ this.search_type + '"' + 
+			'data-category="'+ this.search_type + '"><a style="font-size: 11px;">'+ 
+			this.search_type +'</a></li>';
+		sidelist.append(sidelist_item);
+		sidelist.append('<li class="divider"></li>');
+		return sidelist;
 	},
 
 	get_result_set: function(type) {

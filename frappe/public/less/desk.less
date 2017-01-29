@@ -594,6 +594,14 @@ textarea.form-control {
 		}
 	}
 
+	.dual-section .result a {
+		color: black;
+	}
+
+	.dual-section .result a b{
+		color: #4e6161;
+	}
+
 	.result-status {
 		margin-top: 30px;
 		text-align: center;
@@ -611,10 +619,16 @@ textarea.form-control {
 		.modal-content {
 			height: auto !important;
 		}
+	}
 
-		iframe {
-			height: auto;
-			width: 100%;
+	@media (max-width: @screen-sm) {
+		.module-body {
+			margin: 0px;
+			border-top: none;
+		}
+
+		.layout-side-section .sidebar-menu {
+			margin: 30px 0px;
 		}
 	}
 
