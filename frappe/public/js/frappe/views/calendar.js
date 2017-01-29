@@ -4,28 +4,7 @@
 frappe.provide("frappe.views.calendar");
 frappe.provide("frappe.views.calendars");
 
-frappe.views.CalendarFactory = frappe.views.Factory.extend({
-	make: function(route) {
-		var me = this;
-
-		frappe.require([
-			'assets/frappe/js/lib/fullcalendar/fullcalendar.min.css',
-			'assets/frappe/js/lib/fullcalendar/fullcalendar.min.js'
-		], function() {
-			frappe.model.with_doctype(route[1], function() {
-				var options = {
-					doctype: route[1]
-				};
-				$.extend(options, frappe.views.calendar[route[1]] || {});
-
-				frappe.views.calendars[route[1]] = new frappe.views.Calendar(options);
-			});
-		});
-	}
-});
-
-
-frappe.views.Calendar = frappe.views.CalendarBase.extend({
+frappe.views.Calendar = Class.extend({
 	init: function(options) {
 		$.extend(this, options);
 		this.make_page();
@@ -42,22 +21,7 @@ frappe.views.Calendar = frappe.views.CalendarBase.extend({
 		var module = locals.DocType[this.doctype].module;
 		this.page.set_title(__("Calendar") + " - " + __(this.doctype));
 
-		frappe.breadcrumbs.add(module, this.doctype)
-
-		// this.add_filters();
-
-		// this.page.add_field({fieldtype:"Date", label:"Date",
-		// 	fieldname:"selected",
-		// 	"default": frappe.datetime.month_start(),
-		// 	input_css: {"z-index": 1},
-		// 	change: function() {
-		// 		var selected = $(this).val();
-		// 		if (selected) {
-		// 			me.$cal.fullCalendar('changeView', 'agendaDay');
-		// 			me.$cal.fullCalendar("gotoDate", frappe.datetime.user_to_obj(selected));
-		// 		}
-		// 	}
-		// });
+		frappe.breadcrumbs.add(module, this.doctype);
 
 		this.page.set_primary_action(__("New"), function() {
 			var doc = frappe.model.get_new_doc(me.doctype);
@@ -322,6 +286,51 @@ frappe.views.Calendar = frappe.views.CalendarBase.extend({
 			// We use inclusive end dates. This workaround fixes the rendering of events
 			event.start = event.start ? $.fullCalendar.moment(event.start).stripTime() : null;
 			event.end = event.end ? $.fullCalendar.moment(event.end).add(1, "day").stripTime() : null;
+		}
+	},
+	add_filters: function() {
+		var me = this;
+		if(this.filters) {
+			$.each(this.filters, function(i, df) {
+				df.change = function() {
+					me.refresh();
+				};
+				me.page.add_field(df);
+			});
+		}
+	},
+	set_filter: function(doctype, value) {
+		var me = this;
+		if(this.filters) {
+			$.each(this.filters, function(i, df) {
+				if(df.options===value)
+					me.page.fields_dict[df.fieldname].set_input(value);
+					return false;
+			});
+		}
+	},
+	get_filters: function() {
+		var filter_vals = {},
+			me = this;
+		if(this.filters) {
+			$.each(this.filters, function(i, df) {
+				filter_vals[df.fieldname || df.label] =
+					me.page.fields_dict[df.fieldname || df.label].get_parsed_value();
+			});
+		}
+		return filter_vals;
+	},
+	set_filters_from_route_options: function() {
+		var me = this;
+		if(frappe.route_options) {
+			$.each(frappe.route_options, function(k, value) {
+				if(me.page.fields_dict[k]) {
+					me.page.fields_dict[k].set_input(value);
+				};
+			})
+			frappe.route_options = null;
+			me.refresh();
+			return false;
 		}
 	}
 })

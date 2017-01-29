@@ -612,8 +612,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 
 	render_rows_Calendar: function(values) {
 
-		var options = $.extend(
-			{
+		var options = $.extend({
 				doctype: this.doctype,
 				parent: this.wrapper.find('.result-list'),
 				page: this.page,
