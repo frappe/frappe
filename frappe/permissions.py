@@ -334,8 +334,7 @@ def get_all_perms(role):
 	for p in perms:
 		if p.parent not in doctypes_with_custom_perms:
 			custom_perms.append(p)
-
-	return p
+	return custom_perms
 
 def get_roles(user=None, with_standard=True):
 	"""get roles of current user"""
