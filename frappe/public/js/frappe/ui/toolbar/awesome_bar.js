@@ -8,7 +8,7 @@ frappe.search.AwesomeBar = Class.extend({
 		var input = $input.get(0);
 		var me = this;
 		this.search = new frappe.search.UnifiedSearch();
-		this.global = new frappe.search.Search();
+		this.global = new frappe.search.GlobalSearch();
 		this.nav = new frappe.search.NavSearch();
 		this.help = new frappe.search.HelpSearch();
 
@@ -42,12 +42,21 @@ frappe.search.AwesomeBar = Class.extend({
 			me.options = [];
 
 			if(txt) {
-				me.build_options(strip(txt.toLowerCase()));
+				var keywords = strip(txt.toLowerCase());
+				me.build_options(keywords);
+				if(me.options.length < 2) {
+					me.global.get_awesome_bar_options(keywords, me);
+				}
 			}
 
-			me.add_recent(txt || "");
-			me.add_help();
-			awesomplete.list = me.options;
+			var $this = $(this);
+			clearTimeout($this.data('timeout'));
+
+			$this.data('timeout', setTimeout(function(){
+				me.add_recent(txt || "");
+				me.add_help();
+				awesomplete.list = me.options;
+			}, 100));
 
 		});
 
@@ -202,6 +211,11 @@ frappe.search.AwesomeBar = Class.extend({
 		}
 	},
 
+	set_global_results: function(global_results){
+		this.options = this.options.concat(global_results);
+		console.log("GS options", this.options);
+	},
+
 	build_options: function(txt) {
 		this.options = 
 			this.make_global_search(txt).concat(
@@ -323,7 +337,7 @@ frappe.search.AwesomeBar = Class.extend({
 				route: route,
 				match: target
 			}
-		}
+		};
 		frappe.boot.user.can_read.forEach(function (item) {
 			target = me.is_present(txt, item);
 			if(target) {
