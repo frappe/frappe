@@ -31,6 +31,8 @@ frappe.search.UnifiedSearch = Class.extend({
 		this.search_types = search_objects.map(function(s) {
 			return s.search_type;
 		});
+		this.current_type = '';
+
 		this.reset(keywords);
 		this.input.val(keywords);
 		this.input.on("input", function() {
@@ -42,6 +44,8 @@ frappe.search.UnifiedSearch = Class.extend({
 				me.reset();
 				if(keywords.length > 1) {
 					me.build_results(keywords);
+				} else {
+					me.current_type = '';
 				}
 			}, 250));
 		});
@@ -91,6 +95,8 @@ frappe.search.UnifiedSearch = Class.extend({
 		var type = link.attr('data-category');
 		this.results_area.empty().html(this.full_lists[type]);
 
+		this.current_type = type;
+
 		this.set_back_link();
 		this.set_list_more_link(type);
 	},
@@ -104,6 +110,7 @@ frappe.search.UnifiedSearch = Class.extend({
 	},
 
 	show_summary: function() {
+		this.current_type = '';
 		this.results_area.empty().html(this.summary);
 		this.bind_events();
 	},
@@ -137,6 +144,7 @@ frappe.search.UnifiedSearch = Class.extend({
 	render_next_search: function(keywords) {
 		this.current += 1;
 		if(this.current < this.search_objects.length){
+			// More searches to go
 			this.search_objects[this.current].build_results_object(this, keywords);
 		} else {
 			// If there's only one link in sidebar, there's no summary (show its full list)
@@ -149,10 +157,24 @@ frappe.search.UnifiedSearch = Class.extend({
 				this.results_area.html('<p class="results-status text-muted" style="text-align: center;">'+
 					'No results found for: '+ "'"+ keywords +"'" +'</p>');
 			} else {
-				this.show_summary();
+				var list_types = this.get_all_list_types();
+				if(list_types.indexOf(this.current_type) >= 0) {
+					this.bind_events();
+					this.sidebar.find('*[data-category="'+ this.current_type +'"]').trigger('click');
+				} else {
+					this.show_summary();
+				}
 			}
 		}
 	},
+
+	get_all_list_types: function() {
+		var types = [];
+		this.sidebar.find('.list-link').each(function() {
+			types.push($(this).attr('data-category'));
+		});
+		return types;
+	}
 
 });
 
@@ -205,9 +227,9 @@ frappe.search.GlobalSearch = Class.extend({
 	},
 
 	make_sidelist_item: function(type) {
-		var sidelist_item = '<li class="list-link"' + 
-			'data-category="{0}"><a>{0}</a></li>';
-		return $(__(sidelist_item, [type]));
+		var sidelist_item = '<li class="list-link" data-search="{0}"' + 
+			'data-category="{1}"><a>{1}</a></li>';
+		return $(__(sidelist_item, [this.search_type, type]));
 	},
 
 	get_result_set: function(doctype){
