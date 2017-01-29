@@ -4,7 +4,14 @@ frappe.search.UnifiedSearch = Class.extend({
 
 	setup: function() {
 		var me = this;
-		var d = new frappe.ui.Dialog();
+		var d;
+		if(!frappe.search.dialog) {
+			d = new frappe.ui.Dialog();
+			frappe.search.dialog = d;
+		} else {
+			d = frappe.search.dialog;
+			$(d.body).empty();
+		}
 
 		$(frappe.render_template("search")).appendTo($(d.body));
 		$(d.header).html($(frappe.render_template("search_header")));
@@ -149,7 +156,7 @@ frappe.search.UnifiedSearch = Class.extend({
 
 });
 
-frappe.search.Search = Class.extend({
+frappe.search.GlobalSearch = Class.extend({
 	init: function() {
 		this.search_type = 'Global Search';
 	},
@@ -161,6 +168,7 @@ frappe.search.Search = Class.extend({
 		this.more_length = 15;
 		this.start = {};
 		this.section_length = 3;
+
 		this.set_types();
 	},
 
@@ -221,26 +229,6 @@ frappe.search.Search = Class.extend({
 					}
 					me.make_type_results(doctype, r.message, more);
 				}
-			}
-		});
-	},
-
-	get_more_results: function(doctype) {
-		var me = this;
-		var more = true;
-		frappe.call({
-			method: "frappe.utils.global_search.search_in_doctype",
-			args: { 
-				doctype: doctype, 
-				text: me.keywords, 
-				start: me.start[doctype], 
-				limit: me.more_length,
-			},
-			callback: function(r) {
-				if(r.message) {
-					me.start[doctype] += me.more_length;
-					me.make_more_list(doctype, r.message, more);
-				} 
 			}
 		});
 	},
@@ -348,6 +336,26 @@ frappe.search.Search = Class.extend({
 		return results_list;
 	},
 
+	get_more_results: function(doctype) {
+		var me = this;
+		var more = true;
+		frappe.call({
+			method: "frappe.utils.global_search.search_in_doctype",
+			args: { 
+				doctype: doctype, 
+				text: me.keywords, 
+				start: me.start[doctype], 
+				limit: me.more_length,
+			},
+			callback: function(r) {
+				if(r.message) {
+					me.start[doctype] += me.more_length;
+					me.make_more_list(doctype, r.message, more);
+				} 
+			}
+		});
+	},
+
 	make_more_list: function(type, results, more) {
 		var me = this;
 		if(results.length < this.more_length) { more = false; }
@@ -359,9 +367,70 @@ frappe.search.Search = Class.extend({
 		this.render_object.add_more_results([more_results, more]);
 	},
 
+	get_awesome_bar_options: function(keywords, ref) {
+		
+		var me = this;
+		var doctypes = [];
+		var current = 0;
+		var results = [];
+
+		var get_doctypes = function(){
+			var me = this;
+			frappe.call({
+				method: "frappe.utils.global_search.get_search_doctypes",
+				args: { text: keywords },
+				callback: function(r) {
+					if(r.message) {
+						r.message.forEach(function(d) {
+							doctypes.push(d.doctype);
+						});
+						get_results();
+					}
+				}
+			});
+		};
+
+		var get_results = function() {
+			frappe.call({
+				method: "frappe.utils.global_search.search_in_doctype",
+				args: { 
+					doctype: doctypes[current], 
+					text: keywords, 
+					start: 0, 
+					limit: 5,
+				},
+				callback: function(r) {
+					if(r.message) {
+						r.message.forEach(function(d) {
+							results.push(make_option(d));
+						});
+						current += 1;
+						if(current < doctypes.length) {
+							get_results();
+						} else {
+							ref.set_global_results(results);
+						}
+					}
+				}
+			});
+		};
+
+		var make_option = function(data) {
+			return {
+				label: __("{0}: {1}", [__(data.doctype).bold(), data.name]),
+				value: __("{0}: {1}", [__(data.doctype), data.name]),
+				route: ["Form", data.doctype, data.name],
+				match: data.doctype
+			}
+		};
+
+		get_doctypes();
+
+	}
+
 });
 
-frappe.search.NavSearch = frappe.search.Search.extend({
+frappe.search.NavSearch = frappe.search.GlobalSearch.extend({
 	init: function() {
 		this.search_type = 'Navigation';
 	},
@@ -495,7 +564,7 @@ frappe.search.NavSearch = frappe.search.Search.extend({
 	}
 });
 
-frappe.search.HelpSearch = frappe.search.Search.extend({
+frappe.search.HelpSearch = frappe.search.GlobalSearch.extend({
 	init: function() {
 		this.search_type = 'Help';
 	},
