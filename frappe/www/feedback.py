@@ -1,5 +1,5 @@
 import frappe
-from frappe.core.doctype.feedback_request.feedback_request import verify_feedback_request
+from frappe.core.doctype.feedback_request.feedback_request import is_valid_feedback_request
 
 @frappe.whitelist(allow_guest=True)
 def accept(key, sender, reference_doctype, reference_name, feedback, rating):
@@ -7,7 +7,7 @@ def accept(key, sender, reference_doctype, reference_name, feedback, rating):
 	if not reference_doctype and not reference_name:
 		frappe.throw("Invalid Reference Doctype, Reference Name")
 
-	if not verify_feedback_request(key):
+	if not is_valid_feedback_request(key):
 		frappe.throw("Link is Expired")
 
 	frappe.get_doc({

@@ -1,25 +1,36 @@
 {% extends "templates/web.html" %}
 
-{% block title %} Feedback {% endblock %}
+{% block title %}{{ _("Feedback") }}{% endblock %}
 
 {% block page_content %}
-<p class='lead'></p>
+<div class="feedback">
+	<p class='lead' id="feedback-msg"></p>
 
-<div>
-	{{ _("Your rating: ") }}
-	<i class='fa fa-fw fa-star-o star-icon' data-idx=1></i>
-	<i class='fa fa-fw fa-star-o star-icon' data-idx=2></i>
-	<i class='fa fa-fw fa-star-o star-icon' data-idx=3></i>
-	<i class='fa fa-fw fa-star-o star-icon' data-idx=4></i>
-	<i class='fa fa-fw fa-star-o star-icon' data-idx=5></i>
+	<div>
+		{{ _("Your rating: ") }}
+		<i class='fa fa-fw fa-star-o star-icon' data-idx=1></i>
+		<i class='fa fa-fw fa-star-o star-icon' data-idx=2></i>
+		<i class='fa fa-fw fa-star-o star-icon' data-idx=3></i>
+		<i class='fa fa-fw fa-star-o star-icon' data-idx=4></i>
+		<i class='fa fa-fw fa-star-o star-icon' data-idx=5></i>
+	</div>
+
+	<div style='max-width: 500px;'>
+		<p>{{ _("Detailed feedback") }}</p>
+		<textarea class='form-control feedback-text' style='min-height: 300px;'></textarea>
+	</div>
+
+	<p><button class='btn btn-primary btn-sm btn-submit'>{{ _("Submit") }}</button></p>	
 </div>
-
-<div style='max-width: 500px;'>
-	<p>{{ _("Detailed feedback") }}</p>
-	<textarea class='form-control feedback-text' style='min-height: 300px;'></textarea>
+<div class="feedback-result" style="display: none">
+	<div class='page-card'>
+		<div class='page-card-head'>
+			<span class='indicator darkgrey'>{{_("Thank You !!")}}</span>
+		</div>
+		<p class="lead" id="feedback-result"></p>
+		<div><a href='/' class='btn btn-primary btn-sm'>{{ _("Home") }}</a></div>
+	</div>
 </div>
-
-<p><button class='btn btn-primary btn-sm btn-submit'>{{ _("Submit") }}</button></p>
 
 <script>
 	window.feedback = {
@@ -32,7 +43,7 @@
 			this.sender = get_url_arg("email")
 
 			me.bind_events();
-			$(".lead").empty().html(__("Please share your feedback for {0}", [me.reference_name]));
+			$("#feedback-msg").empty().html(__("Please share your feedback for {0}", [me.reference_name]));
 		},
 
 		bind_events: function() {
@@ -57,7 +68,7 @@
 				frappe.call({
 					method: 'frappe.www.feedback.accept',
 					args: {
-						nonce: me.key,
+						key: me.key,
 						sender: me.sender,
 						reference_name: me.reference_name,
 						reference_doctype: me.reference_doctype,
@@ -65,8 +76,11 @@
 						rating: $('.star-icon.fa-star').length
 					},
 					callback: function(r) {
-						if(r.message)
-							frappe.msgprint("Thank you");
+						if(r.message) {
+							$(".feedback, .feedback-result").toggle();
+							$("#feedback-result").empty().html(__("Your Feedback for document {0} is saved successfully",
+								[me.reference_name]));
+						}
 					}
 				})
 			});

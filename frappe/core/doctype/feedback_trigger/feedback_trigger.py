@@ -30,18 +30,20 @@ def send_feedback_alert(reference_doctype, reference_name, trigger=None, alert_d
 	details = json.loads(alert_details) if alert_details else \
 		get_feedback_alert_details(reference_doctype, reference_name, trigger=trigger)
 
-	if details:	
+	if details:
+		feedback_request = details.pop("feedback_request")
 		frappe.sendmail(**details)
+		frappe.db.set_value("Feedback Request", feedback_request, "is_sent", 1)
 	else:
 		frappe.throw(_("Can not find Feedback Details"))
 
 def trigger_feedback_alert(doc, method):
 	""" trigger the feedback alert"""
 
-	name = frappe.db.get_value("Feedback Trigger", { "enabled": 1, "document_type": doc.doctype })
-	if name:
+	feedback_trigger = frappe.db.get_value("Feedback Trigger", { "enabled": 1, "document_type": doc.doctype })
+	if feedback_trigger:
 		frappe.enqueue('frappe.core.doctype.feedback_trigger.feedback_trigger.send_feedback_alert', 
-			trigger=name, reference_doctype=doc.doctype, reference_name=doc.name)
+			trigger=feedback_trigger, reference_doctype=doc.doctype, reference_name=doc.name)
 
 @frappe.whitelist()
 def get_feedback_alert_details(reference_doctype, reference_name, trigger=None, request=None):
@@ -51,6 +53,18 @@ def get_feedback_alert_details(reference_doctype, reference_name, trigger=None, 
 		frappe.throw("Can not find Feedback Alert for {0}".format(reference_name))
 	elif not trigger and request:
 		trigger = frappe.db.get_value("Feedback Request", request, "feedback_trigger")
+
+	# check if feedback mail alert is already sent but feedback is not submitted
+	# to avoid sending multiple feedback mail alerts
+
+	feedback_requests = frappe.get_all("Feedback Request", {
+							"is_sent": 1,
+							"is_feedback_submitted": 0,
+							"reference_name": reference_name,
+							"reference_doctype": reference_doctype
+						}, ["name"])
+	if feedback_requests:
+		frappe.throw(_("Feedback Alert Mail has been already sent to the recipient"))
 
 	feedback_trigger = frappe.get_doc("Feedback Trigger", trigger)
 	doc = frappe.get_doc(reference_doctype, reference_name)
@@ -74,10 +88,7 @@ def get_feedback_alert_details(reference_doctype, reference_name, trigger=None, 
 							email_id=recipients,
 							nonce=feedback_request.name
 						)
-		context = {"doc": doc, "alert": feedback_trigger, "comments": None, "feedback_url": feedback_url}
-
-		if doc.get("_comments"):
-			context["comments"] = json.loads(doc.get("_comments"))
+		context.update({ "alert": feedback_trigger, "feedback_url": feedback_url })
 
 		if "{" in subject:
 			subject = frappe.render_template(feedback_trigger.subject, context)
@@ -89,7 +100,8 @@ def get_feedback_alert_details(reference_doctype, reference_name, trigger=None, 
 			"recipients": recipients,
 			"reference_name":doc.name,
 			"reference_doctype":doc.doctype,
-			"message": feedback_alert_message
+			"message": feedback_alert_message,
+			"feedback_request": feedback_request.name
 		}
 	else:
 		return None
