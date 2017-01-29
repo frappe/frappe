@@ -65,7 +65,7 @@ frappe.views.set_list_as_dirty = function(doctype) {
 	}
 
 	var route = frappe.get_route()[2];
-	if(route && route === "Kanban") return;
+	if(route && in_list(["Kanban", "Gantt"], route)) return;
 
 	var list_page = "List/" + doctype;
 	if(frappe.pages[list_page]) {
@@ -517,9 +517,14 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 				dependencies: item.depends_on_tasks || ""
 			};
 		});
+		var set_value = frappe.db.set_value;
+		var show_success = function() {
+			show_alert({message:__("Saved"), indicator:'green'}, 1);
+		}
+
 		frappe.require([
 				"assets/frappe/js/lib/snap.svg-min.js",
-				"assets/frappe/js/lib/frappe-gantt/frappe-gantt.min.js"
+				"assets/frappe/js/lib/frappe-gantt/frappe-gantt.js"
 			], function() {
 				me.gantt = new Gantt("#"+id, tasks, {
 					date_format: "YYYY-MM-DD",
@@ -527,16 +532,14 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 						frappe.set_route('Form', task.doctype, task.id);
 					},
 					on_date_change: function(task, start, end) {
-						update_field(task.id, field_map.start, start.format("YYYY-MM-DD"), function() {
-							update_field(task.id, field_map.end, end.format("YYYY-MM-DD"), function() {
-								show_alert({message:__("Saved"), indicator:'green'}, 1);
-							});
-						});
+						set_value(task.doctype, task.id, field_map.start, start.format('YYYY-MM-DD'))
+						.then(function() {
+							set_value(task.doctype, task.id, field_map.end, end.format('YYYY-MM-DD'))
+						}).then(show_success);
 					},
 					on_progress_change: function(task, progress) {
-						update_field(task.id, 'progress', progress, function() {
-							show_alert({message:__("Saved"), indicator:'green'}, 1);
-						});
+						set_value(task.doctype, task.id, 'progress', progress)
+						.then(show_success);
 					},
 					on_view_change: function(mode) {
 						me.list_settings.view_mode = mode;
@@ -570,19 +573,6 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 				me.gantt.change_view_mode(mode)
 				$dropdown.find(".dropdown-text").text(mode);
 			})
-		});
-	},
-
-	update_field: function (name, fieldname, value, callback) {
-		frappe.call({
-			method: "frappe.client.set_value",
-			args: {
-				doctype: this.doctype,
-				name: name,
-				fieldname: fieldname,
-				value: value
-			},
-			callback: callback
 		});
 	},
 
