@@ -4,28 +4,7 @@
 frappe.provide("frappe.views.calendar");
 frappe.provide("frappe.views.calendars");
 
-frappe.views.CalendarFactory = frappe.views.Factory.extend({
-	make: function(route) {
-		var me = this;
-
-		frappe.require([
-			'assets/frappe/js/lib/fullcalendar/fullcalendar.min.css',
-			'assets/frappe/js/lib/fullcalendar/fullcalendar.min.js'
-		], function() {
-			frappe.model.with_doctype(route[1], function() {
-				var options = {
-					doctype: route[1]
-				};
-				$.extend(options, frappe.views.calendar[route[1]] || {});
-
-				frappe.views.calendars[route[1]] = new frappe.views.Calendar(options);
-			});
-		});
-	}
-});
-
-
-frappe.views.Calendar = frappe.views.CalendarBase.extend({
+frappe.views.Calendar = Class.extend({
 	init: function(options) {
 		$.extend(this, options);
 		this.make_page();
@@ -34,32 +13,15 @@ frappe.views.Calendar = frappe.views.CalendarBase.extend({
 	},
 	make_page: function() {
 		var me = this;
-		this.parent = frappe.make_page();
 
 		$(this.parent).on("show", function() {
 			me.set_filters_from_route_options();
 		});
 
-		this.page = this.parent.page;
 		var module = locals.DocType[this.doctype].module;
 		this.page.set_title(__("Calendar") + " - " + __(this.doctype));
 
-		frappe.breadcrumbs.add(module, this.doctype)
-
-		this.add_filters();
-
-		this.page.add_field({fieldtype:"Date", label:"Date",
-			fieldname:"selected",
-			"default": frappe.datetime.month_start(),
-			input_css: {"z-index": 1},
-			change: function() {
-				var selected = $(this).val();
-				if (selected) {
-					me.$cal.fullCalendar('changeView', 'agendaDay');
-					me.$cal.fullCalendar("gotoDate", frappe.datetime.user_to_obj(selected));
-				}
-			}
-		});
+		frappe.breadcrumbs.add(module, this.doctype);
 
 		this.page.set_primary_action(__("New"), function() {
 			var doc = frappe.model.get_new_doc(me.doctype);
@@ -70,12 +32,10 @@ frappe.views.Calendar = frappe.views.CalendarBase.extend({
 		$.each(frappe.boot.calendars, function(i, doctype) {
 			if(frappe.model.can_read(doctype)) {
 				me.page.add_menu_item(__(doctype), function() {
-					frappe.set_route("Calendar", doctype);
+					frappe.set_route("List", doctype, "Calendar");
 				});
 			}
 		});
-
-		this.page.page_actions.find(".menu-btn-group-label").text(__("Type"));
 
 		$(this.parent).on("show", function() {
 			me.$cal.fullCalendar("refetchEvents");
@@ -84,14 +44,11 @@ frappe.views.Calendar = frappe.views.CalendarBase.extend({
 
 	make: function() {
 		var me = this;
-		this.$wrapper = this.page.main;
+		this.$wrapper = this.parent;
 		this.$cal = $("<div>").appendTo(this.$wrapper);
-		footnote = frappe.utils.set_footnote(this, this.$wrapper, __("Select or drag across time slots to create a new event."));
+		footnote = frappe.utils.set_footnote(this, this.$wrapper,
+			__("Select or drag across time slots to create a new event."));
 		footnote.css({"border-top": "0px"});
-		//
-		// $('<div class="help"></div>')
-		// 	.html(__("Select dates to create a new ") + __(me.doctype))
-		// 	.appendTo(this.$wrapper);
 
 		this.$cal.fullCalendar(this.cal_options);
 		this.set_css();
@@ -104,7 +61,12 @@ frappe.views.Calendar = frappe.views.CalendarBase.extend({
 
 		this.$wrapper.find(".fc-button-group").addClass("btn-group");
 
-		var btn_group = this.$wrapper.find(".fc-right .fc-button-group");
+		this.$wrapper.find('.fc-prev-button span')
+			.attr('class', '').addClass('fa fa-chevron-left')
+		this.$wrapper.find('.fc-next-button span')
+			.attr('class', '').addClass('fa fa-chevron-right')
+
+		var btn_group = this.$wrapper.find(".fc-button-group");
 		btn_group.find(".fc-state-active").addClass("active");
 
 		btn_group.find(".btn").on("click", function() {
@@ -152,9 +114,9 @@ frappe.views.Calendar = frappe.views.CalendarBase.extend({
 		var me = this;
 		this.cal_options = {
 			header: {
-				left: 'prev,next today',
-				center: 'title',
-				right: 'month,agendaWeek,agendaDay'
+				left: 'title',
+				center: '',
+				right: 'prev,next month,agendaWeek,agendaDay'
 			},
 			editable: true,
 			selectable: true,
@@ -221,11 +183,19 @@ frappe.views.Calendar = frappe.views.CalendarBase.extend({
 		}
 	},
 	get_args: function(start, end) {
+		if(this.filter_vals) {
+			var filters = {};
+			this.filter_vals.forEach(function(f) {
+				if(f[2]==="=") {
+					filters[f[1]] = f[3];
+				}
+			});
+		}
 		var args = {
 			doctype: this.doctype,
 			start: this.get_system_datetime(start),
 			end: this.get_system_datetime(end),
-			filters: this.get_filters()
+			filters: filters
 		};
 		return args;
 	},
@@ -299,6 +269,8 @@ frappe.views.Calendar = frappe.views.CalendarBase.extend({
 				event.end = event.start.add(1, "hour");
 			}
 
+			args[this.field_map.end] = me.get_system_datetime(event.end);
+
 			if (args[this.field_map.allDay]) {
 				args[this.field_map.end] = me.get_system_datetime(moment(event.end).subtract(1, "s"));
 			}
@@ -314,6 +286,51 @@ frappe.views.Calendar = frappe.views.CalendarBase.extend({
 			// We use inclusive end dates. This workaround fixes the rendering of events
 			event.start = event.start ? $.fullCalendar.moment(event.start).stripTime() : null;
 			event.end = event.end ? $.fullCalendar.moment(event.end).add(1, "day").stripTime() : null;
+		}
+	},
+	add_filters: function() {
+		var me = this;
+		if(this.filters) {
+			$.each(this.filters, function(i, df) {
+				df.change = function() {
+					me.refresh();
+				};
+				me.page.add_field(df);
+			});
+		}
+	},
+	set_filter: function(doctype, value) {
+		var me = this;
+		if(this.filters) {
+			$.each(this.filters, function(i, df) {
+				if(df.options===value)
+					me.page.fields_dict[df.fieldname].set_input(value);
+					return false;
+			});
+		}
+	},
+	get_filters: function() {
+		var filter_vals = {},
+			me = this;
+		if(this.filters) {
+			$.each(this.filters, function(i, df) {
+				filter_vals[df.fieldname || df.label] =
+					me.page.fields_dict[df.fieldname || df.label].get_parsed_value();
+			});
+		}
+		return filter_vals;
+	},
+	set_filters_from_route_options: function() {
+		var me = this;
+		if(frappe.route_options) {
+			$.each(frappe.route_options, function(k, value) {
+				if(me.page.fields_dict[k]) {
+					me.page.fields_dict[k].set_input(value);
+				};
+			})
+			frappe.route_options = null;
+			me.refresh();
+			return false;
 		}
 	}
 })

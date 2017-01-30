@@ -65,7 +65,7 @@ frappe.views.set_list_as_dirty = function(doctype) {
 	}
 
 	var route = frappe.get_route()[2];
-	if(route && in_list(["Kanban", "Gantt"], route)) return;
+	if(route && in_list(["Kanban", "Calendar", "Gantt"], route)) return;
 
 	var list_page = "List/" + doctype;
 	if(frappe.pages[list_page]) {
@@ -158,6 +158,10 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 			this.header = "list_item_main_head";
 		} else if (in_list(['Image', 'Kanban', 'Gantt'], this.current_view)) {
 			this.header = "image_view_item_main_head";
+		} else if (this.current_view === 'Calendar') {
+			this.header = null;
+			this.list_header = $();
+			return;
 		}
 
 		var main = frappe.render_template(this.header, {
@@ -269,7 +273,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 			}
 		}
 
-		//Always sort based on start_date field for Gantt View
+		// Always sort based on start_date field for Gantt View
 		if(frappe.get_route()[2] === 'Gantt') {
 			var field_map = frappe.views.calendar[this.doctype].field_map;
 			args = {
@@ -429,7 +433,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 
 		if(!this.listview.settings.use_route) {
 			var route = frappe.get_route();
-			if(route[2] && !in_list(['Image', 'Gantt', 'Kanban'], route[2])) {
+			if(route[2] && !in_list(['Image', 'Gantt', 'Kanban', 'Calendar'], route[2])) {
 				$.each(frappe.utils.get_args_dict_from_url(route[2]), function(key, val) {
 					me.set_filter(key, val, true);
 				});
@@ -520,7 +524,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		var set_value = frappe.db.set_value;
 		var show_success = function() {
 			show_alert({message:__("Saved"), indicator:'green'}, 1);
-		}
+		} 
 
 		frappe.require([
 				"assets/frappe/js/lib/snap.svg-min.js",
@@ -535,10 +539,11 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 						set_value(task.doctype, task.id, field_map.start, start.format('YYYY-MM-DD'))
 						.then(function() {
 							set_value(task.doctype, task.id, field_map.end, end.format('YYYY-MM-DD'))
-						}).then(show_success);
+						})
+						.then(show_success);
 					},
 					on_progress_change: function(task, progress) {
-						set_value(task.doctype, task.id, 'progress', progress)
+						set_value(task.doctype, task.id, 'progress', parseInt(progress))
 						.then(show_success);
 					},
 					on_view_change: function(mode) {
@@ -603,6 +608,24 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 				me.set_filters(filters);
 				me.run();
 			});
+	},
+
+	render_rows_Calendar: function(values) {
+
+		var options = $.extend({
+				doctype: this.doctype,
+				parent: this.wrapper.find('.result-list'),
+				page: this.page,
+				filter_vals: this.filter_list.get_filters()
+			},
+			frappe.views.calendar[this.doctype]
+		);
+		frappe.require([
+			'assets/frappe/js/lib/fullcalendar/fullcalendar.min.css',
+			'assets/frappe/js/lib/fullcalendar/fullcalendar.min.js'
+		], function() {
+			frappe.views.calendars[this.doctype] = new frappe.views.Calendar(options);
+		});
 	},
 
 	render_row: function(row, data) {
