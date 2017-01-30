@@ -39,9 +39,8 @@ class DataImport(Document):
 			Template data field can be ['no file', 'raw', 'template']
 			If the template field is 'raw' then set preview data and selected columns
 		'''
-		print "===============>>>>>>>TESTING" 
-
-		self.name = self.reference_doctype +" import on "+ format_datetime(self.creation)
+		if not frappe.flags.in_test:
+			self.name = self.reference_doctype +" import on "+ format_datetime(self.creation)
 
 		if not self.import_file:
 			self.preview_data = None
@@ -119,33 +118,22 @@ class DataImport(Document):
 		else:
 			return ""
 
-	def file_import(self, file_path=None, rows=None):
+	def file_import(self, file_path=None):
 		'''
 			Trigger on import button and push the task to the background worker
-		'''
-		
+		'''	
 		if not file_path:
 			file_path = os.getcwd()+get_site_path()[1:].encode('utf8') + self.import_file
 		filename, file_extension = os.path.splitext(file_path)
 
-		if self.template == "raw" and file_extension == '.xlsx':
+		if self.template == "raw":
 			enqueue(import_raw, file_path=file_path, doc_name=self.name, job_name="data_import")
 
-		elif self.template == "template" and file_extension == '.xlsx':
-			wb = load_workbook(filename=file_path, read_only=True)
-			ws = wb.active
+		elif self.template == "template":
+			enqueue(import_template, doc_name=self.name, file_path=file_path, job_name="data_import")
 
-			rows = []
-			for row in ws.iter_rows():
-				tmp_list = []
-				for cell in row:
-					tmp_list.append(cell.value)
-				rows.append(tmp_list)
-
-			enqueue(import_template, doc_name=self.name, rows=rows, job_name="data_import")
-
-		elif self.template == "template" and file_extension == '.csv':
-			enqueue(import_template, doc_name=self.name, job_name="data_import")
+		else:
+			frappe.throw(_("Error - Upload file again"))
 
 
 def import_raw(file_path,doc_name):
@@ -224,12 +212,14 @@ def import_raw(file_path,doc_name):
 	log_message = {"messages": ret, "error": error}
 	di_doc.log_details = json.dumps(log_message)
 	di_doc.freeze_doctype = 1
+	# di_doc.insert()
 	di_doc.save()
 	
 
-def import_template(doc_name, rows = None, ignore_links=False, pre_process=None, via_console=False):
+def import_template(doc_name, file_path, rows = None, ignore_links=False, pre_process=None, via_console=False):
 	"""upload the templated data"""
 
+	filename, file_extension = os.path.splitext(file_path)
 	di_doc = frappe.get_doc("Data Import",doc_name)	
 
 	frappe.flags.in_import = True
@@ -352,9 +342,21 @@ def import_template(doc_name, rows = None, ignore_links=False, pre_process=None,
 
 
 	# header
-	if not rows:
+
+	if not rows and file_extension == '.csv':
 		rows = read_csv_content_from_attached_file(frappe.get_doc("Data Import", di_doc.name),
 			di_doc.ignore_encoding_errors)
+
+	if not rows and file_extension == ".xlsx":
+		rows = []
+		wb1 = load_workbook(filename=file_path, read_only=True)
+		ws1 = wb1.active
+
+		for row in ws1.iter_rows():
+			tmp_list = []
+			for cell in row:
+				tmp_list.append(cell.value)
+			rows.append(tmp_list)
 
 	start_row = get_start_row()
 	header = rows[:start_row]
@@ -481,6 +483,7 @@ def import_template(doc_name, rows = None, ignore_links=False, pre_process=None,
 	log_message = {"messages": ret, "error": error}
 	di_doc.log_details = json.dumps(log_message)
 	di_doc.freeze_doctype = 1
+	# di_doc.insert()
 	di_doc.save()
 
 	def get_parent_field(doctype, parenttype):
