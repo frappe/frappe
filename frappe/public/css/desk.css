@@ -666,7 +666,7 @@ fieldset[disabled] .form-control {
 .search-dialog .layout-side-section {
   padding-left: 15px;
 }
-.search-dialog .result-area a {
+.search-dialog .results-area a {
   color: #5E64FF;
 }
 .search-dialog .module-section .back-link {

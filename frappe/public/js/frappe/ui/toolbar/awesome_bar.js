@@ -21,7 +21,8 @@ frappe.search.AwesomeBar = Class.extend({
 				return true; 
 			},
 			data: function (item, input) {
-				var label = item.label + "%%%" + item.value + "%%%" + (item.description || "");
+				var label = item.label + "%%%" + item.value + "%%%" + 
+					(item.description || "") + "%%%" + (item.order || "");
 				return {
 					label: label,
 					value: item.value

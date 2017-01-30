@@ -12,6 +12,10 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 
 		this.setup_sidebar();
 
+		this.awesome_bar = new frappe.search.AwesomeBar();
+		this.awesome_bar.setup("#navbar-search");
+		this.awesome_bar.setup("#modal-search");
+
 		this.search = new frappe.search.UnifiedSearch();
 		this.help = new frappe.search.HelpSearch();
 		this.search.setup();
@@ -38,11 +42,6 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 				search_modal.find('#modal-search').focus();
 			}, 300);
 		});
-
-		this.awesome_bar = new frappe.search.AwesomeBar();
-		this.awesome_bar.setup("#navbar-search");
-		this.awesome_bar.setup("#modal-search");
-
 	},
 
 	setup_sidebar: function () {
@@ -169,9 +168,8 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 			if(href.indexOf('blob') > 0) {
 				window.open(href, '_blank');
 			}
-
 			var converter = new Showdown.converter();
-			var path = $(this).find('a').attr("data-path");
+			var path = $(e.target).attr("data-path");
 			if(path) {
 				e.preventDefault();
 				frappe.call({
