@@ -115,7 +115,7 @@ frappe.ui.form.on("Communication", {
 					details = r.message;
 
 					dialog = new frappe.ui.Dialog({
-						title: __("Resend Feedback Alert"),
+						title: __("Resend Feedback Request"),
 						fields: [
 							{
 								"reqd": 1,

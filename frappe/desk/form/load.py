@@ -210,14 +210,13 @@ def run_onload(doc):
 def get_feedback_rating(doctype, docname):
 	""" get and return the latest feedback rating if available """
 
-	rating = frappe.db.sql_list("""select rating from `tabCommunication`
-				where reference_doctype='{doctype}' and reference_name='{name}'
-				and communication_type='Feedback'""".format(
-					doctype=doctype,
-					name=docname
-				));
+	rating= frappe.get_all("Communication", filters={
+				"reference_doctype": doctype,
+				"reference_name": docname,
+				"communication_type": "Feedback"
+			}, fields=["rating"], order_by="creation desc", as_list=True)
 
 	if not rating:
 		return 0
 	else:
-		return rating[0]
+		return rating[0][0]
