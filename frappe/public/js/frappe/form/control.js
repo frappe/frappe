@@ -1682,6 +1682,103 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 	}
 });
 
+frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
+	make_input: function() {
+		this.has_input = true;
+		this.make_editor();
+	},
+	make_editor: function() {
+		var me = this;
+		this.editor = $("<div>").appendTo(this.input_area);
+		this.editor.summernote({
+			minHeight: 400,
+			toolbar: [
+				['magic', ['style']],
+				['style', ['bold', 'italic', 'underline', 'clear']],
+				['fontsize', ['fontsize']],
+				['color', ['color']],
+				['para', ['ul', 'ol', 'paragraph']],
+				['height', ['height']],
+				['misc', ['fullscreen', 'codeview']]
+			],
+			callbacks: {
+				onChange: function() {
+					var value = me.get_value();
+					me.parse_validate_and_set_in_model(value);
+				},
+				onKeydown: function(e) {
+					me.editor.summernote('saveRange');
+					var key = frappe.ui.keys.get_key(e)
+					if(['ctrl+b', 'meta+b'].indexOf(key) !== -1) {
+						e.stopPropagation();
+					}
+				}
+			},
+			icons: {
+				'align': 'fa fa-align',
+				'alignCenter': 'fa fa-align-center',
+				'alignJustify': 'fa fa-align-justify',
+				'alignLeft': 'fa fa-align-left',
+				'alignRight': 'fa fa-align-right',
+				'indent': 'fa fa-indent',
+				'outdent': 'fa fa-outdent',
+				'arrowsAlt': 'fa fa-arrows-alt',
+				'bold': 'fa fa-bold',
+				'caret': 'caret',
+				'circle': 'fa fa-circle',
+				'close': 'fa fa-close',
+				'code': 'fa fa-code',
+				'eraser': 'fa fa-eraser',
+				'font': 'fa fa-font',
+				'frame': 'fa fa-frame',
+				'italic': 'fa fa-italic',
+				'link': 'fa fa-link',
+				'unlink': 'fa fa-chain-broken',
+				'magic': 'fa fa-magic',
+				'menuCheck': 'fa fa-check',
+				'minus': 'fa fa-minus',
+				'orderedlist': 'fa fa-list-ol',
+				'pencil': 'fa fa-pencil',
+				'picture': 'fa fa-picture',
+				'question': 'fa fa-question',
+				'redo': 'fa fa-redo',
+				'square': 'fa fa-square',
+				'strikethrough': 'fa fa-strikethrough',
+				'subscript': 'fa fa-subscript',
+				'superscript': 'fa fa-superscript',
+				'table': 'fa fa-table',
+				'textHeight': 'fa fa-text-height',
+				'trash': 'fa fa-trash',
+				'underline': 'fa fa-underline',
+				'undo': 'fa fa-undo',
+				'unorderedlist': 'fa fa-list-ul',
+				'video': 'fa fa-video'
+			}
+		});
+		this.editor.summernote('code',
+			frappe.model.get_value(this.doctype, this.docname, this.df.fieldname));
+	},
+	get_value: function() {
+		return this.editor.summernote('code');
+	},
+	set_in_model: function(value) {
+		if(this.doctype && this.docname) {
+			frappe.model.set_value(this.doctype, this.docname,
+				this.df.fieldname, value, this.df.fieldtype)
+			this.last_value = value;
+		}
+	},
+	set_input: function(value) {
+		if(value == null) value = "";
+		value = frappe.dom.remove_script_and_style(value);
+		// this.editor.summernote('code', value);
+		this.last_value = value;
+	},
+	set_focus: function() {
+		return this.editor.summernote('focus');
+	}
+});
+
 frappe.ui.form.ControlTable = frappe.ui.form.Control.extend({
 	make: function() {
 		this._super();

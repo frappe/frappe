@@ -2,23 +2,7 @@ frappe.provide('frappe.ui.keys.handlers');
 
 frappe.ui.keys.setup = function() {
 	$(window).on('keydown', function(e) {
-		var key = e.key;
-		//safari doesn't have key property
-		if(!key) {
-			key = String.fromCharCode(e.keyCode).toLowerCase();
-		}
-		if(key.substr(0, 5)==='Arrow') {
-			// ArrowDown -> down
-			key = key.substr(5).toLowerCase();
-		}
-		if(e.ctrlKey || e.metaKey) {
-			// add ctrl+ the key
-			key = 'ctrl+' + key;
-		}
-		if(e.shiftKey) {
-			// add ctrl+ the key
-			key = 'shift+' + key;
-		}
+		var key = frappe.ui.keys.get_key(e);
 		if(frappe.ui.keys.handlers[key]) {
 			var out = null;
 			for(var i=0, l = frappe.ui.keys.handlers[key].length; i<l; i++) {
@@ -32,6 +16,27 @@ frappe.ui.keys.setup = function() {
 			return out;
 		}
 	});
+}
+
+frappe.ui.keys.get_key = function(e) {
+	var key = e.key;
+	//safari doesn't have key property
+	if(!key) {
+		key = String.fromCharCode(e.keyCode).toLowerCase();
+	}
+	if(key.substr(0, 5)==='Arrow') {
+		// ArrowDown -> down
+		key = key.substr(5).toLowerCase();
+	}
+	if(e.ctrlKey || e.metaKey) {
+		// add ctrl+ the key
+		key = 'ctrl+' + key;
+	}
+	if(e.shiftKey) {
+		// add ctrl+ the key
+		key = 'shift+' + key;
+	}
+	return key;
 }
 
 frappe.ui.keys.on = function(key, handler) {
