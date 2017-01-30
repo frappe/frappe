@@ -49,7 +49,7 @@ class Database:
 		"""Connects to a database as set in `site_config.json`."""
 		warnings.filterwarnings('ignore', category=MySQLdb.Warning)
 		self._conn = MySQLdb.connect(user=self.user, host=self.host, passwd=self.password,
-			use_unicode=True, charset='utf8')
+			use_unicode=True, charset='utf8mb4')
 		self._conn.converter[246]=float
 		self._conn.converter[12]=get_datetime
 		self._conn.encoders[UnicodeWithAttrs] = self._conn.encoders[UnicodeType]
