@@ -3,16 +3,7 @@ frappe.provide('frappe.search');
 frappe.search.UnifiedSearch = Class.extend({
 
 	setup: function() {
-		var me = this;
-		var d;
-		if(!frappe.search.dialog) {
-			d = new frappe.ui.Dialog();
-			frappe.search.dialog = d;
-		} else {
-			d = frappe.search.dialog;
-			$(d.body).empty();
-		}
-
+		var d = new frappe.ui.Dialog();
 		$(frappe.render_template("search")).appendTo($(d.body));
 		$(d.header).html($(frappe.render_template("search_header")));
 
@@ -22,7 +13,7 @@ frappe.search.UnifiedSearch = Class.extend({
 
 		this.input = this.search_modal.find(".search-input");
 		this.sidebar = this.search_modal.find(".search-sidebar");
-		this.results_area = this.search_modal.find(".result-area");
+		this.results_area = this.search_modal.find(".results-area");
 	},
 
 	setup_search: function(keywords, search_objects) {
@@ -32,8 +23,7 @@ frappe.search.UnifiedSearch = Class.extend({
 			return s.search_type;
 		});
 		this.current_type = '';
-
-		this.reset(keywords);
+		this.reset();
 		this.input.val(keywords);
 		this.input.on("input", function() {
 			var $this = $(this);
@@ -448,7 +438,6 @@ frappe.search.GlobalSearch = Class.extend({
 		// };
 
 		var make_option = function(data) {
-			console.log("content", me.get_finds(data.content, keywords).slice(0,20));
 			return {
 				label: __("{0}: {1}", [__(data.doctype).bold(), data.name]),
 				value: __("{0}: {1}", [__(data.doctype), data.name]),
@@ -650,32 +639,8 @@ frappe.search.HelpSearch = frappe.search.GlobalSearch.extend({
 			'<p class="small">{2}</p>' +
 			'</div>';
 		var link = $(__(link_html, [result[2], result[0], result[1]]));
-		// link.on('click', function() {
-		// 	me.show_article(result[2]);
-		// });
-		link.on('click', frappe.help.show_results);
+		link.find('a').on('click', frappe.help.show_results);
 		return link;
 	},
 
-	// show_article: function(path) {
-	// 	var me = this;
-	// 	var $result_modal = frappe.get_modal("", "");
-	// 	$result_modal.addClass("help-modal");
-	// 	if(path) {
-	// 		frappe.call({
-	// 			method: "frappe.utils.help.get_help_content",
-	// 			args: {
-	// 				path: path
-	// 			},
-	// 			callback: function (r) {
-	// 				if(r.message && r.message.title) {
-	// 					$result_modal.find('.modal-title').html("<span>"
-	// 						+ r.message.title + "</span>");
-	// 					$result_modal.find('.modal-body').html(r.message.content);
-	// 					$result_modal.modal('show');
-	// 				}
-	// 			}
-	// 		});
-	// 	}
-	// }
 });
