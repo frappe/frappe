@@ -45,7 +45,6 @@ CREATE TABLE `tabDocField` (
   `columns` int(11) NOT NULL DEFAULT 0,
   `default` text,
   `description` text,
-  `in_filter` int(1) NOT NULL DEFAULT 0,
   `in_list_view` int(1) NOT NULL DEFAULT 0,
   `in_standard_filter` int(1) NOT NULL DEFAULT 0,
   `read_only` int(1) NOT NULL DEFAULT 0,
