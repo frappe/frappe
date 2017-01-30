@@ -717,7 +717,7 @@ fieldset[disabled] .form-control {
   font-size: 14px;
   color: #717171;
 }
-.search-modal .result-area a {
+.search-dialog .results-area a {
   color: #5E64FF;
 }
 .search-dialog .module-section .back-link {
