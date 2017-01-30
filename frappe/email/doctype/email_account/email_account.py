@@ -390,7 +390,8 @@ class EmailAccount(Document):
 				# try and match by subject and sender
 				# if sent by same sender with same subject,
 				# append it to old coversation
-				subject = strip(re.sub("(^\s*(Fw|FW|fwd)[^:]*:|\s*(Re|RE)[^:]*:\s*)*", "", email.subject))
+				subject = frappe.as_unicode(strip(re.sub("(^\s*(Fw|FW|fwd)[^:]*:|\s*(Re|RE)[^:]*:\s*)*",
+					"", email.subject)))
 
 				parent = frappe.db.get_all(self.append_to, filters={
 					self.sender_field: email.from_email,
