@@ -282,7 +282,7 @@ frappe.search.verbs = [
 					out.push({
 						label: __("{0} Calendar", [__(match).bold()]),
 						value: __("{0} Calendar", [__(match)]),
-						route:["Calendar", match]
+						route:["List", match, "Calendar"]
 					});
 
 					out.push({
