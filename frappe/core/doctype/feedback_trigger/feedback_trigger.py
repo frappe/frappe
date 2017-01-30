@@ -34,16 +34,17 @@ def send_feedback_alert(reference_doctype, reference_name, trigger=None, alert_d
 		feedback_request = details.pop("feedback_request")
 		frappe.sendmail(**details)
 		frappe.db.set_value("Feedback Request", feedback_request, "is_sent", 1)
-	else:
-		frappe.throw(_("Can not find Feedback Details"))
 
 def trigger_feedback_alert(doc, method):
 	""" trigger the feedback alert"""
 
 	feedback_trigger = frappe.db.get_value("Feedback Trigger", { "enabled": 1, "document_type": doc.doctype })
-	if feedback_trigger:
+	if feedback_trigger and not frappe.flags.in_test:
 		frappe.enqueue('frappe.core.doctype.feedback_trigger.feedback_trigger.send_feedback_alert', 
 			trigger=feedback_trigger, reference_doctype=doc.doctype, reference_name=doc.name)
+	elif feedback_trigger and frappe.flags.in_test:
+		# To run the Test cases
+		send_feedback_alert(doc.doctype, doc.name, trigger=feedback_trigger)
 
 @frappe.whitelist()
 def get_feedback_alert_details(reference_doctype, reference_name, trigger=None, request=None):
