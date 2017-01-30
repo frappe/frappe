@@ -83,7 +83,6 @@ frappe.ui.form.on('Data Import', {
 				me.preview_data = JSON.parse(frm.doc.preview_data);
 				me.selected_columns = JSON.parse(frm.doc.selected_columns);
 				
-				console.log("in render template");
 				$(frm.fields_dict.file_preview.wrapper).empty();
 				$(frappe.render_template("file_preview_template", {imported_data: me.preview_data, 
 					fields: frm.selected_doctype, column_map: me.selected_columns}))
@@ -116,7 +115,6 @@ frappe.ui.form.on('Data Import', {
 			frappe.throw("Attach a file for importing")
 		} else {
 
-			console.log("before call");
 			frappe.realtime.on("data_import", function(data) {
 				if(data.progress) {
 					frappe.hide_msgprint(true);
@@ -138,14 +136,16 @@ frappe.ui.form.on('Data Import', {
 	write_messages: function(frm) {
 
 		msg = JSON.parse(frm.doc.log_details);
-		log = msg.messages;
+		var $log_wrapper = $(cur_frm.fields_dict.import_log.wrapper).empty();
+		
 		if (msg.error == false) {
-			var $log_wrapper = $(cur_frm.fields_dict.import_log.wrapper).empty();
-			$(frappe.render_template("log_detail_template", {data:log}))
+			$(frappe.render_template("log_detail_template", {data:msg.messages, error:msg.error}))
 				.appendTo($log_wrapper);	
 		}
 		else {
-			frappe.throw(_("Error in import"))
+			frappe.msgprint(__("Error in Importing"));
+			$(frappe.render_template("log_detail_template", {data:["","","",""], error:msg.error}))
+				.appendTo($log_wrapper);
 		}
 	}
 });
