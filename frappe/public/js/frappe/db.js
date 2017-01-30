@@ -11,7 +11,7 @@ frappe.db = {
 				filters: filters
 			},
 			callback: function(r, rt) {
-				callback(r.message);
+				callback && callback(r.message);
 			}
 		});
 	},

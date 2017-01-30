@@ -528,7 +528,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 
 		frappe.require([
 				"assets/frappe/js/lib/snap.svg-min.js",
-				"assets/frappe/js/lib/frappe-gantt/frappe-gantt.min.js"
+				"assets/frappe/js/lib/frappe-gantt/frappe-gantt.js"
 			], function() {
 				me.gantt = new Gantt("#"+id, tasks, {
 					date_format: "YYYY-MM-DD",
