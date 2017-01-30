@@ -41,7 +41,6 @@ docfield_properties = {
 	'reqd': 'Check',
 	'unique': 'Check',
 	'ignore_user_permissions': 'Check',
-	'in_filter': 'Check',
 	'in_list_view': 'Check',
 	'in_standard_filter': 'Check',
 	'hidden': 'Check',

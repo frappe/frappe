@@ -1115,9 +1115,6 @@ frappe.ui.form.ControlSelect = frappe.ui.form.ControlData.extend({
 		if(typeof this.df.options==="string") {
 			options = this.df.options.split("\n");
 		}
-		if(this.in_filter && options[0] != "") {
-			options = add_lists([''], options);
-		}
 
 		// nothing changed
 		if(options.toString() === this.last_options) {

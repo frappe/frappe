@@ -26,6 +26,10 @@ frappe.ui.form.on('DocType', {
 		if(!frm.doc.__islocal) {
 			frm.toggle_enable("engine", 0);
 		}
+
+		// set label for "In List View" for child tables
+		frm.get_docfield('fields', 'in_list_view').label = frm.doc.istable ?
+			__('In Grid View') : __('In List View');
 	}
 })
 
