@@ -29,7 +29,7 @@
 					<tr>
 						<th style="width: 40px" class="table-sr">Sr</th>
 						{% for tdf in visible_columns %}
-						{% if data and not data[0].flags.compact_item_print or tdf.fieldname in doc.get(df.fieldname)[0].flags.compact_item_fields %}
+						{% if (data and not data[0].flags.compact_item_print) or tdf.fieldname in doc.get(df.fieldname)[0].flags.compact_item_fields %}
 							<th style="width: {{ get_width(tdf) }};" class="{{ get_align_class(tdf) }}" {{ fieldmeta(df) }}>
 								{{ _(tdf.label) }}</th>
 						{% endif %}
