@@ -37,6 +37,15 @@ frappe.dom = {
 				elements[i].parentNode.removeChild(elements[i]);
 			}
 		});
+		["link"].forEach(function(e, i) {
+			var elements = div.getElementsByTagName(e);
+			var i = elements.length;
+			while (i--) {
+				if (elements[i].getAttribute("rel")=="stylesheet"){
+					elements[i].parentNode.removeChild(elements[i]);
+				}
+			}
+		});
 		return div.innerHTML;
 	},
 	is_element_in_viewport: function (el) {
