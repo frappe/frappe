@@ -378,7 +378,7 @@ frappe.ui.form.Timeline = Class.extend({
 
 			// comment
 			if(data.comment) {
-				out.push(this.get_version_comment(version, data.comment, data.comment_type));
+				out.push(me.get_version_comment(version, data.comment, data.comment_type));
 				return;
 			}
 
