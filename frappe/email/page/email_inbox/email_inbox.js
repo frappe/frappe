@@ -169,7 +169,8 @@ frappe.Inbox = frappe.ui.Listing.extend({
 			for (var i = 0; i < data.length; i++)
 			{
 				this.prepare_row(data[i]);
-				$(frappe.render_template("inbox_list", {data: data[i]})).data("data", data[i]).appendTo($(me.wrapper).find(".result-list"))
+				$(frappe.render_template("inbox_list", {data: data[i]})).data("data", data[i])
+					.appendTo($(me.wrapper).find(".result-list"))
 			}
 			//click action
 			$(me.wrapper).find(".result-list").find(".list-row").click(function (btn) {
@@ -204,7 +205,7 @@ frappe.Inbox = frappe.ui.Listing.extend({
 			bootstrapMajorVersion:3,
 			onPageClicked: function(e,originalEvent,type,page){
 				me.cur_page = page;
-				$('.footer-numbers').html('showing: ' + (me.cur_page - 1) * me.page_length + ' to ' + (
+				$('.footer-numbers').html('Showing: ' + (me.cur_page - 1) * me.page_length + ' to ' + (
 					(me.data_length > (me.cur_page * me.page_length))?(me.cur_page * me.page_length):me.data_length) + ' of ' + me.data_length);
 				me.run(true,true);
 			}
@@ -239,7 +240,7 @@ frappe.Inbox = frappe.ui.Listing.extend({
 				} else {
 					me.footer.hide();
 				}
-				$('.footer-numbers').html('showing: ' + (me.cur_page - 1) * me.page_length + ' to ' + (
+				$('.footer-numbers').html('Showing: ' + (me.cur_page - 1) * me.page_length + ' to ' + (
 					(me.data_length > (me.cur_page * me.page_length)) ? (me.cur_page * me.page_length) : me.data_length) + ' of ' + me.data_length);
 			},
 			no_spinner: this.no_loading
@@ -488,12 +489,13 @@ frappe.Inbox = frappe.ui.Listing.extend({
 
 		c.comment = c.content;
         if (c.comment_type == "Email") {
-            c.comment = c.comment.split("<!-- original-reply -->")[0];
+           //should show full email content from past emails in inbox
+            //c.comment = c.comment.split("<!-- original-reply -->")[0];
             c.comment = frappe.utils.strip_original_content(c.comment);
             c.comment = frappe.dom.remove_script_and_style(c.comment);
 
             c.original_comment = c.comment;
-            c.comment = frappe.utils.toggle_blockquote(c.comment);
+            //c.comment = frappe.utils.toggle_blockquote(c.comment);
         }
 
 
