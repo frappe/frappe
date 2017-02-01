@@ -209,11 +209,13 @@ def import_raw(file_path,doc_name):
 			else:
 				frappe.db.commit()
 
-	log_message = {"messages": ret, "error": error}
-	di_doc.log_details = json.dumps(log_message)
-	di_doc.freeze_doctype = 1
-	# di_doc.insert()
-	di_doc.save()
+	if frappe.flags.in_test:
+		return True
+	else:
+		log_message = {"messages": ret, "error": error}
+		di_doc.log_details = json.dumps(log_message)
+		di_doc.freeze_doctype = 1
+		di_doc.save()
 	
 
 def import_template(doc_name, file_path, rows = None, ignore_links=False, pre_process=None, via_console=False):
@@ -479,12 +481,13 @@ def import_template(doc_name, file_path, rows = None, ignore_links=False, pre_pr
 	frappe.flags.mute_emails = False
 	frappe.flags.in_import = False
 
-
-	log_message = {"messages": ret, "error": error}
-	di_doc.log_details = json.dumps(log_message)
-	di_doc.freeze_doctype = 1
-	# di_doc.insert()
-	di_doc.save()
+	if frappe.flags.in_test:
+		return True
+	else:
+		log_message = {"messages": ret, "error": error}
+		di_doc.log_details = json.dumps(log_message)
+		di_doc.freeze_doctype = 1
+		di_doc.save()
 
 	def get_parent_field(doctype, parenttype):
 		parentfield = None
