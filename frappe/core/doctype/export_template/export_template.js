@@ -56,10 +56,6 @@ frappe.ui.form.on('Export Template', {
 		});
 	},
 
-	download_in_xlsx: function(frm) {
-
-	},
-
 	download_blank_template: function(frm) {
 		var get_template_url = '/api/method/frappe.core.doctype.export_template.export_template.get_template';
 		open_url_post(get_template_url, frm.events.get_export_params(frm, false));
