@@ -307,7 +307,8 @@ def get_template(xlsx_format, doctype=None, parent_doctype=None, all_doctypes="N
 
 	else:
 
-		with open('temp001.csv', 'wb') as f:
+		filename = frappe.generate_hash("", 10)
+		with open(filename, 'wb') as f:
 		    f.write(cstr(w.getvalue()).encode("utf-8"))
 
 		import openpyxl
@@ -323,7 +324,7 @@ def get_template(xlsx_format, doctype=None, parent_doctype=None, all_doctypes="N
 		xlsx_file = StringIO()
 		wb.save(xlsx_file)
 
-		os.remove('temp001.csv')
+		os.remove(filename)
 
 		# write out response as a xlsx type
 		frappe.response['filename'] = doctype + '.xlsx'

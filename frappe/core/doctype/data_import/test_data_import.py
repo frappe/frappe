@@ -22,10 +22,8 @@ class TestDataImport(unittest.TestCase):
 		doc = frappe.new_doc("Data Import")
 		doc.reference_doctype = "User"
 		doc.import_file = file_path
-		# doc.insert()
+
 		doc.save()
-		time.sleep(1)
-		
 		doc.set_preview_data(file_path)
 		self.assertTrue(doc.preview_data)
 		self.assertTrue(doc.selected_columns)
@@ -43,12 +41,9 @@ class TestDataImport(unittest.TestCase):
 		doc.submit_after_import = 0
 		doc.no_email = 1
 		doc.template = "raw"
-		# doc.insert()
-		doc.save()
-		time.sleep(1)
 
-		import_raw(doc_name=doc.name, file_path=file_path)
-		self.assertTrue(frappe.db.get_value("Data Import", doc.name, "freeze_doctype"))
+		doc.save()
+		self.assertTrue(import_raw(doc_name=doc.name, file_path=file_path))
 
 
 	def test_csv_template(self):
@@ -64,24 +59,7 @@ class TestDataImport(unittest.TestCase):
 		doc.only_new_records = 0
 		doc.only_update = 0
 
-		# doc.insert()
 		doc.save()
-		time.sleep(1)
-
-		with open(encode(file_path), 'r') as f:
-			fcontent = f.read()
-		fcontent = fcontent.encode("utf-8").splitlines(True)
-
-		rows = []
-		for row in csv.reader(fcontent):
-			r = []
-			for val in row:
-				val = unicode(val, "utf-8").strip()
-				if val=="":
-					r.append(None)
-				else:
-					r.append(val)
-			rows.append(r)
 
 		rows = []
 		with open(encode(file_path), 'r') as f:
@@ -96,10 +74,8 @@ class TestDataImport(unittest.TestCase):
 					else:
 						r.append(val)
 				rows.append(r)
-
-
-		import_template(doc_name=doc.name, file_path=file_path, rows=rows)
-		self.assertTrue(frappe.db.get_value("Data Import", doc.name, "freeze_doctype"))
+		
+		self.assertTrue(import_template(doc_name=doc.name, file_path=file_path, rows=rows))
 
 
 	def test_xlsx_template(self):
@@ -114,9 +90,5 @@ class TestDataImport(unittest.TestCase):
 		doc.only_new_records = 0
 		doc.only_update = 0
 		
-		# doc.insert()
 		doc.save()
-		time.sleep(1)
-
-		import_template(doc_name=doc.name, file_path=file_path)
-		self.assertTrue(frappe.db.get_value("Data Import", doc.name, "freeze_doctype"))
+		self.assertTrue(import_template(doc_name=doc.name, file_path=file_path))
