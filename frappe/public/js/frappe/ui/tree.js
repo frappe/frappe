@@ -61,8 +61,12 @@ frappe.ui.TreeNode = Class.extend({
 				if(me.tree.toolbar) {
 					me.show_toolbar();
 				}
-				if(me.tree.click)
+				if(me.tree.click) {
 					me.tree.click(this);
+				}
+				if(me.tree.onclick) {
+					me.tree.onclick(me);
+				}
 			})
 			.data('label', this.label)
 			.data('node', this)

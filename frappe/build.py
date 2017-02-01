@@ -155,14 +155,19 @@ def pack(target, sources, no_compress, verbose):
 	print "Wrote %s - %sk" % (target, str(int(os.path.getsize(target)/1024)))
 
 def html_to_js_template(path, content):
+	'''returns HTML template content as Javascript code, adding it to `frappe.templates`'''
+	return """frappe.templates["{key}"] = '{content}';\n""".format(\
+		key=path.rsplit("/", 1)[-1][:-5], content=scrub_html_template(content))
+
+def scrub_html_template(content):
+	'''Returns HTML content with removed whitespace and comments'''
 	# remove whitespace to a single space
 	content = re.sub("\s+", " ", content)
 
 	# strip comments
 	content =  re.sub("(<!--.*?-->)", "", content)
 
-	return """frappe.templates["{key}"] = '{content}';\n""".format(\
-		key=path.rsplit("/", 1)[-1][:-5], content=content.replace("'", "\'"))
+	return content.replace("'", "\'")
 
 def files_dirty():
 	for target, sources in get_build_maps().iteritems():
