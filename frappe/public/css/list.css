@@ -267,7 +267,7 @@ table.field-info tr td {
   background-color: #F0F4F7;
 }
 .taggle_list .taggle:hover {
-  padding: 2px 10px 2px 4px;
+  padding: 2px 15px 2px 4px;
   background: #cfdce5;
   transition: all .2s;
 }
@@ -279,6 +279,11 @@ table.field-info tr td {
 }
 .taggle_list li .awesomplete > ul {
   top: 15px;
+}
+.taggle_list .close {
+  right: 5px;
+  color: #36414C;
+  font-size: 11px;
 }
 .taggle_input {
   padding: 0;

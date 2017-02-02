@@ -70,7 +70,12 @@ frappe.ui.form.Grid = Class.extend({
 			$check = $(this);
 			if($check.parents('.grid-heading-row:first').length!==0) {
 				// select all?
-				$check.parents('.form-grid:first').find('.grid-row-check').prop('checked', $check.prop('checked'));
+				var checked = $check.prop('checked');
+				$check.parents('.form-grid:first')
+					.find('.grid-row-check').prop('checked', checked);
+
+				// set all
+				(me.grid_rows || []).forEach(function(row) { row.doc.__checked = checked ? 1 : 0; });
 			} else {
 				var docname = $check.parents('.grid-row:first').attr('data-name');
 				me.grid_rows_by_docname[docname].select($check.prop('checked'));

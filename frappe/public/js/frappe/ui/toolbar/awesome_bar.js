@@ -330,7 +330,7 @@ frappe.search.verbs = [
 			frappe.search.options.push({
 				label: __("Open {0}", [__(match).bold()]),
 				value: __("Open {0}", [__(match)]),
-				route: [match, 'Event'],
+				route: ['List', 'Event', 'Calendar'],
 				match: match
 			});
 		}

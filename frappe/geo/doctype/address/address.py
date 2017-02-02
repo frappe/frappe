@@ -220,6 +220,6 @@ def address_query(doctype, txt, searchfield, start, page_len, filters):
 			'_txt': txt.replace("%", ""),
 			'start': start,
 			'page_len': page_len,
-			'link_doctype': link_doctype,
-			'link_name': link_name
+			'link_name': link_name,
+			'link_doctype': link_doctype
 		})

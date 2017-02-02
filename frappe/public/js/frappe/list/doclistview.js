@@ -312,7 +312,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 
 	setup_view_variables: function() {
 		var route = frappe.get_route();
-		this.last_view = this.current_view || ''; 
+		this.last_view = this.current_view || '';
 		this.current_view = route[2] || route[0];
 		if(this.current_view==="Kanban") {
 			this.last_kanban_board = this.kanban_board;
@@ -511,20 +511,29 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		var me = this;
 		var field_map = frappe.views.calendar[this.doctype].field_map;
 		var tasks = values.map(function(item) {
+
+			// set progress
+			var progress = 0;
+			if(field_map.progress && $.isFunction(field_map.progress)) {
+				progress = field_map.progress(item);
+			} else if(field_map.progress) {
+				progress = item[field_map.progress]
+			}
+
 			return {
 				start: item[field_map.start],
 				end: item[field_map.end],
 				name: item[field_map.title],
 				id: item[field_map.id],
 				doctype: me.doctype,
-				progress: item.progress,
+				progress: progress,
 				dependencies: item.depends_on_tasks || ""
 			};
 		});
 		var set_value = frappe.db.set_value;
 		var show_success = function() {
 			show_alert({message:__("Saved"), indicator:'green'}, 1);
-		} 
+		}
 
 		frappe.require([
 				"assets/frappe/js/lib/snap.svg-min.js",
@@ -539,7 +548,13 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 						me.update_gantt_task(task, start, end);
 					},
 					on_progress_change: function(task, progress) {
-						frappe.db.set_value(task.doctype, task.id, 'progress', progress)
+						var progress_fieldname = 'progress';
+						if($.isFunction(field_map.progress)) { progress_fieldname = null; }
+						else if(field_map.progress) { progress_fieldname = field_map.progress; }
+
+						if(progress_fieldname) {
+							set_value(task.doctype, task.id, progress_fieldname, parseInt(progress))
+						}
 					},
 					on_view_change: function(mode) {
 						me.list_settings.view_mode = mode;

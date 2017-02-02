@@ -340,6 +340,9 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 						me.set_input(after);
 					}
 					me.set_mandatory && me.set_mandatory(after);
+					if(me.after_validate) {
+						me.after_validate(after, me.$input);
+					}
 				}
 				if(me.validate) {
 					me.validate(parsed, function(validated) {
@@ -603,7 +606,8 @@ frappe.ui.form.ControlPercent = frappe.ui.form.ControlFloat;
 frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 	datepicker_options: {
 		language: "en",
-		autoClose: true
+		autoClose: true,
+		todayButton: new Date()
 	},
 	make_input: function() {
 		this._super();
