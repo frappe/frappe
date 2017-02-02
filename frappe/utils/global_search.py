@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 
 import frappe
 
-def setup_table():
+def setup_global_search_table():
 	'''Creates __global_seach table'''
 	
 	if not '__global_search' in frappe.db.get_tables():
