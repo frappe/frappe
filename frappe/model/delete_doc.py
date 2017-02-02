@@ -83,7 +83,7 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 			update_naming_series(doc)
 			delete_from_table(doctype, name, ignore_doctypes, doc)
 			doc.run_method("after_delete")
-			if not frappe.flags.in_install and not frappe.flags.in_install_db: 
+			if not frappe.flags.in_install: 
 				frappe.enqueue('frappe.utils.global_search.delete_for_document', now=frappe.flags.in_test, doc=doc) 
 
 			# delete attachments
