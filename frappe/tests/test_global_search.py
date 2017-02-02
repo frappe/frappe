@@ -12,85 +12,90 @@ class TestGlobalSearch(unittest.TestCase):
 	def setUp(self):
 		global_search.setup_table()
 		self.assertTrue('__global_search' in frappe.db.get_tables())
-		print "In setup"
-
 		doctype = "Event"
+		global_search.reset()
 		from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 		make_property_setter(doctype, "subject", "in_global_search", 1, "Int")
+		make_property_setter(doctype, "event_type", "in_global_search", 1, "Int")
 
-
-		global_search.reset()
-		search_table = frappe.db.sql('''select * from __global_search''', as_dict=True)
-		print "after reset"
-		print search_table
-		self.test_insert_events()
-
-	def test_insert_events(self):
-		phrases1 = ['"The Sixth Extinction II: Amor Fati" is the second episode of the seventh season of the American science fiction.','After Mulder awakens from his coma, he realizes his duty to prevent alien colonization. ',"Carter explored themes of extraterrestrial involvement in ancient mass extinctions in this episode, the third in a trilogy."]
-		phrases2 = ['Hydrus is a small constellation in the deep southern sky. ','It was first depicted on a celestial atlas by Johann Bayer in his 1603 Uranometria. ','The French explorer and astronomer Nicolas Louis de Lacaille charted the brighter stars and gave their Bayer designations in 1756. ','Its name means "male water snake", as opposed to Hydra, a much larger constellation that represents a female water snake. ','It remains below the horizon for most Northern Hemisphere observers.',
-		'The brightest star is the 2.8-magnitude Beta Hydri, also the closest reasonably bright star to the south celestial pole. ','Pulsating between magnitude 3.26 and 3.33, Gamma Hydri is a variable red giant some 60 times the diameter of our Sun. ','Lying near it is VW Hydri, one of the brightest dwarf novae in the heavens. ','Four star systems have been found to have exoplanets to date, most notably HD 10180, which could bear up to nine planetary companions.']
-		phrases3 = ['Keyzer and de Houtman assigned 15 stars to the constellation in their Malay and Madagascan vocabulary, with a star that ','Gamma the chest and a number of stars that were later allocated to Tucana, Reticulum, Mensa and Horologium marking the body and tail. ','Lacaille charted and designated 20 stars with the Bayer designations Alpha through to Tau in 1756. ','Of these, he used the designations Eta, Pi and Tau twice each, for three sets of two stars close together, and omitted Omicron and Xi. ','He assigned Rho to a star that subsequent astronomers were unable to find.']
-		phrases = phrases1 + phrases2 + phrases3
+	def insert_test_events(self):
+		frappe.db.sql('delete from tabEvent')
+		phrases = ['"The Sixth Extinction II: Amor Fati" is the second episode of the seventh season of the American science fiction.',
+		'After Mulder awakens from his coma, he realizes his duty to prevent alien colonization. ',
+		'Carter explored themes of extraterrestrial involvement in ancient mass extinctions in this episode, the third in a trilogy.']
 
 		for text in phrases:
 			frappe.get_doc(dict(
 				doctype='Event',
 				subject=text,
+				repeat_on='Every Month',
 				starts_on=frappe.utils.now_datetime())).insert()
 
 		frappe.db.commit()
 
 	def test_search(self):
-		search_table = frappe.db.sql('''select * from __global_search''', as_dict=True)
-		print search_table
-		phrases = ['"The Sixth Extinction II: Amor Fati" is the second episode of the seventh season of the American science fiction.',
-			'After Mulder awakens from his coma, he realizes his duty to prevent alien colonization. ',
-			"Carter explored themes of extraterrestrial involvement in ancient mass extinctions in this episode, the third in a trilogy."
-		]
-
-		events = []
-		for text in phrases:
-			events.append(frappe.get_doc('Event', dict(subject=text)))
-
+		self.insert_test_events()
 		results = global_search.search('awakens')
-		self.assertDictEqual(dict(doctype='Event', name=events[1].name, content=events[1].subject), results[0])
+		self.assertTrue('After Mulder awakens from his coma, he realizes his duty to prevent alien colonization. ' in results[0].content)
 
 		results = global_search.search('extraterrestrial')
-		self.assertDictEqual(dict(doctype='Event', name=events[2].name, content=events[2].subject), results[0])
+		self.assertTrue('Carter explored themes of extraterrestrial involvement in ancient mass extinctions in this episode, the third in a trilogy.' in results[0].content)
 
-	# def test_insert(self):
-	# 	test_subject = 'testing global search'
+	def test_update_doc(self):
+		self.insert_test_events()
+		test_subject = 'testing global search'
+		event = frappe.get_doc('Event', frappe.get_all('Event')[0].name)
+		event.subject = test_subject
+		event.save()
+		frappe.db.commit()
 
-	# 	existing = frappe.db.get_value('Event', dict(subject=test_subject))
-	# 	if existing:
-	# 		frappe.delete_doc('Event', existing)
+		results = global_search.search('testing global search')
 
-	# 	global_search.reset()
+		self.assertTrue('testing global search' in results[0].content)
 
-	# 	phrases = ['"The Sixth Extinction II: Amor Fati" is the second episode of the seventh season of the American science fiction television series The X-Files.',
-	# 		'After Mulder awakens from his coma, he realizes his duty to prevent alien colonization. ',
-	# 		"Carter explored themes of extraterrestrial involvement in ancient mass extinctions in this episode, the third in a trilogy focused on Mulder's severe reaction to an alien artifact."
-	# 	]
+	def test_update_fields(self):
+		results = global_search.search('Every Month')
+		self.assertEquals(len(results), 0)
+		doctype = "Event"
+		from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+		make_property_setter(doctype, "repeat_on", "in_global_search", 1, "Int")
+		global_search.rebuild_for_doctype(doctype)
+		results = global_search.search('Every Month')
+		self.assertEquals(len(results), 3)
 
-	# 	events = []
-	# 	for text in phrases:
-	# 		events.append(frappe.get_doc(dict(
-	# 			doctype='Event',
-	# 			subject=text,
-	# 			starts_on=frappe.utils.now_datetime())).insert())
+	def test_delete_doc(self):
+		self.insert_test_events()
 
-	# 	frappe.db.commit()
+		event_name = frappe.get_all('Event')[0].name
+		event = frappe.get_doc('Event', event_name)
+		test_subject = event.subject
+		results = global_search.search(test_subject)
+		self.assertEquals(len(results), 1)
 
-	# 	results = global_search.search('awakens')
-	# 	self.assertDictEqual(dict(doctype='Event', name=events[1].name), results[0])
+		frappe.delete_doc('Event', event_name)
 
-	# 	results = global_search.search('extraterrestrial')
-	# 	self.assertDictEqual(dict(doctype='Event', name=events[2].name), results[0])
+		results = global_search.search(test_subject)
+		self.assertEquals(len(results), 0)
+
+	def test_insert_child_table(self):
+		frappe.db.sql('delete from tabEvent')
+		phrases = ['"The Sixth Extinction II: Amor Fati" is the second episode of the seventh season of the American science fiction.',
+		'After Mulder awakens from his coma, he realizes his duty to prevent alien colonization. ',
+		'Carter explored themes of extraterrestrial involvement in ancient mass extinctions in this episode, the third in a trilogy.']
+
+		for text in phrases:
+			doc = frappe.get_doc({
+				'doctype':'Event',
+				'subject': text,
+				'starts_on': frappe.utils.now_datetime()
+			})
+			doc.append('roles', dict(role='Student'))
+			doc.insert()
 		
+		frappe.db.commit()
+		results = global_search.search('Student')
+		self.assertEquals(len(results), 3)
 
 	def tearDown(self):
-		print "The property setter table before"
-		print frappe.db.sql('select * from `tabProperty Setter`')
 		frappe.db.sql('delete from `tabProperty Setter`')
-
 		frappe.clear_cache(doctype='Event')

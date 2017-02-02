@@ -132,7 +132,7 @@ frappe.search.UnifiedSearch = Class.extend({
 			if(me.results_area.find('.list-more').is(":visible")) {
 				me.results_area.animate({
 					scrollTop: height
-				}, 400);
+				}, 300);
 			}
 			$(this).removeClass('last');
 		});
@@ -433,16 +433,14 @@ frappe.search.GlobalSearch = Class.extend({
 			});
 		};
 
-		// var truncate = function() {
-
-		// };
-
 		var make_option = function(data) {
+			console.log("GS search", me.get_finds(data.content, keywords).slice(0,86) + '...');
 			return {
 				label: __("{0}: {1}", [__(data.doctype).bold(), data.name]),
 				value: __("{0}: {1}", [__(data.doctype), data.name]),
 				route: ["Form", data.doctype, data.name],
 				match: data.doctype,
+				index: 5,
 				description: me.get_finds(data.content, keywords).slice(0,86) + '...'
 			}
 		};

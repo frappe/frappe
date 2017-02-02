@@ -15,6 +15,7 @@ from frappe.custom.doctype.property_setter.property_setter import make_property_
 from frappe.desk.notifications import delete_notification_count_for
 from frappe.modules import make_boilerplate
 from frappe.model.db_schema import validate_column_name
+from frappe.utils.global_search import rebuild_for_doctype
 
 class InvalidFieldNameError(frappe.ValidationError): pass
 
@@ -203,15 +204,16 @@ class DocType(Document):
 
 		delete_notification_count_for(doctype=self.name)
 		frappe.clear_cache(doctype=self.name)
-		if not frappe.flags.in_install:
-    			self.sync_global_search()
+		# if not frappe.flags.in_install:
+		self.sync_global_search()
 
 	def sync_global_search(self):
 		global_search_fields_before_update = [d.fieldname for d in self.before_update.fields if d.in_global_search]
 		global_search_fields_after_update = [d.fieldname for d in self.fields if d.in_global_search]
 
 		if set(global_search_fields_before_update) != set(global_search_fields_after_update):
-			frappe.enqueue('frappe.utils.global_search.rebuild_for_doctype', doctype=self.name)
+			frappe.enqueue('frappe.utils.global_search.rebuild_for_doctype', now=frappe.flags.in_test, doctype=self.name)
+			# rebuild_for_doctype(doc)
 
 	def run_module_method(self, method):
 		from frappe.modules import load_doctype_module

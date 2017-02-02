@@ -22,7 +22,7 @@ frappe.search.AwesomeBar = Class.extend({
 			},
 			data: function (item, input) {
 				var label = item.label + "%%%" + item.value + "%%%" + 
-					(item.description || "") + "%%%" + (item.order || "");
+					(item.description || "") + "%%%" + (item.index || "");
 				return {
 					label: label,
 					value: item.value
@@ -42,8 +42,10 @@ frappe.search.AwesomeBar = Class.extend({
 					.html('<a style="font-weight:normal"><p>' + html + '</p></a>')
 					.get(0);
 			},
-			sort: function(a, b) { 
-				return 0; 
+			sort: function(a, b) {
+				var a_index = a.split("%%%")[3];
+				var b_index = b.split("%%%")[3];
+				return (a_index - b_index); 
 			}
 		});
 
@@ -67,7 +69,7 @@ frappe.search.AwesomeBar = Class.extend({
 				me.add_recent(txt || "");
 				me.add_help();
 				awesomplete.list = me.options;
-			}, 100));
+			}, 200));
 
 		});
 
@@ -119,6 +121,7 @@ frappe.search.AwesomeBar = Class.extend({
 		this.options.push({
 			label: __("Help on Search"),
 			value: "Help on Search",
+			index: 20,
 			onclick: function() {
 				var txt = '<table class="table table-bordered">\
 					<tr><td style="width: 50%">'+__("Make a new record")+'</td><td>'+
@@ -224,7 +227,6 @@ frappe.search.AwesomeBar = Class.extend({
 
 	set_global_results: function(global_results){
 		this.options = this.options.concat(global_results);
-		// console.log("GS options", this.options);
 	},
 
 	build_options: function(txt) {
@@ -247,6 +249,7 @@ frappe.search.AwesomeBar = Class.extend({
 			label: __("Search for '" + txt.bold() + "'"),
 			value: __("Search for '" + txt + "'"),
 			match: txt,
+			index: 11,
 			onclick: function() {
 				me.search.search_dialog.show();
 				me.search.setup_search(txt, [me.global, me.nav, me.help]);
@@ -266,6 +269,7 @@ frappe.search.AwesomeBar = Class.extend({
 				label: __('Find {0} in {1}', [txt.bold(), route[1].bold()]),
 				value: __('Find {0} in {1}', [txt, route[1]]),
 				route_options: options,
+				index: 10,
 				onclick: function() {
 					cur_list.refresh();
 				},
@@ -287,6 +291,7 @@ frappe.search.AwesomeBar = Class.extend({
 					label: formatted_value,
 					value: __('{0} = {1}', [txt, val]),
 					match: val,
+					index: 10,
 					onclick: function() {
 						msgprint(formatted_value, "Result");
 					}
@@ -307,6 +312,7 @@ frappe.search.AwesomeBar = Class.extend({
 					out.push({
 						label: __("New {0}", [target.bold()]),
 						value: __("New {0}", [target]),
+						index: 10,
 						match: target,
 						onclick: function() { frappe.new_doc(target, true); }
 					});
@@ -328,6 +334,7 @@ frappe.search.AwesomeBar = Class.extend({
 						label: __('Find {0} in {1}', [__(parts[0]).bold(), __(target).bold()]),
 						value: __('Find {0} in {1}', [__(parts[0]), __(target)]),
 						route_options: {"name": ["like", "%" + parts[0] + "%"]},
+						index: 10,
 						route: ["List", target]
 					});
 				}
@@ -340,24 +347,30 @@ frappe.search.AwesomeBar = Class.extend({
 		var me = this;
 		var out = [];
 
-		var target;
+
+		var target, index;
 		var option = function(type, route) {
 			return {
 				label: __("{0} " + type, [__(target).bold()]),
 				value: __(target),
 				route: route,
+				index: index,
 				match: target
 			}
 		};
 		frappe.boot.user.can_read.forEach(function (item) {
 			target = me.is_present(txt, item);
 			if(target) {
+				var match_ratio = txt.length / item.length;
+				index = (match_ratio > 0.6) ? 10 : 12;
+
 				// include 'making new' option
 				if(in_list(frappe.boot.user.can_create, target)) {
 					out.push({
 						label: __("New {0}", [target.bold()]),
 						value: __("New {0}", [target]),
 						match: target,
+						index: 12,
 						onclick: function() { frappe.new_doc(target, true); }
 					});
 				}
@@ -391,7 +404,8 @@ frappe.search.AwesomeBar = Class.extend({
 			var target = me.is_present(txt, item);
 			if(target) {
 				var report = frappe.boot.user.all_reports[target];
-
+				var match_ratio = txt.length / item.length;
+				var index = (match_ratio > 0.6) ? 10 : 13;
 				var route = [];
 				if(report.report_type == "Report Builder")
 					route = ["Report", report.ref_doctype, target];
@@ -402,6 +416,7 @@ frappe.search.AwesomeBar = Class.extend({
 					label: __("Report {0}", [__(target).bold()]),
 					value: __("Report {0}" , [__(target)]),
 					match: txt,
+					index: index,
 					route: route
 				});
 			}
@@ -420,11 +435,14 @@ frappe.search.AwesomeBar = Class.extend({
 		Object.keys(this.pages).forEach(function(item) {
 			var target = me.is_present(txt, item);
 			if(target) {
+				var match_ratio = txt.length / item.length;
+				var index = (match_ratio > 0.6) ? 10 : 14;
 				var page = me.pages[target];
 				out.push({
 					label: __("Open {0}", [__(target).bold()]),
 					value: __("Open {0}", [__(target)]),
 					match: txt,
+					index: index,
 					route: [page.route || page.name]
 				});
 			}
@@ -436,7 +454,8 @@ frappe.search.AwesomeBar = Class.extend({
 				label: __("Open {0}", [__(target).bold()]),
 				value: __("Open {0}", [__(target)]),
 				route: [target, 'Event'],
-				match: target 
+				index: 14,
+				match: target
 			});
 		}
 		return out;
@@ -448,12 +467,15 @@ frappe.search.AwesomeBar = Class.extend({
 		Object.keys(frappe.modules).forEach(function(item) {
 			var target = me.is_present(txt, item);
 			if(target) {
+				var match_ratio = txt.length / item.length;
+				var index = (match_ratio > 0.6) ? 10 : 15;
 				var module = frappe.modules[target];
 				if(module._doctype) return;
 				ret = {
 					label: __("Open {0}", [__(target).bold()]),
 					value: __("Open {0}", [__(target)]),
-					match: txt
+					match: txt,
+					index: index
 				}
 				if(module.link) {
 					ret.route = [module.link];
