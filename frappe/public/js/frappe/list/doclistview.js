@@ -520,10 +520,17 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 				progress = item[field_map.progress]
 			}
 
+			// title
+			if(me.meta.title_field) {
+				var label = $.format("{0} ({1})", [item[me.meta.title_field], item.name]);
+			} else {
+				var label = item[field_map.title];
+			}
+
 			return {
 				start: item[field_map.start],
 				end: item[field_map.end],
-				name: item[field_map.title],
+				name: label,
 				id: item[field_map.id],
 				doctype: me.doctype,
 				progress: progress,
