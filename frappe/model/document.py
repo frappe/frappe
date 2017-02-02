@@ -12,8 +12,7 @@ from frappe.model.naming import set_new_name
 from werkzeug.exceptions import NotFound, Forbidden
 import hashlib, json
 from frappe.model import optional_fields
-from frappe.utils.file_manager import save_url
-from frappe.utils.global_search import update_global_search
+from frappe.utils.file_manager import save_url 
 # once_only validation
 # methods
 
@@ -788,9 +787,8 @@ class Document(BaseDocument):
 		self.clear_cache()
 		self.notify_update()
 
-		# if not frappe.flags.in_install:
-		frappe.enqueue('frappe.utils.global_search.update_global_search', now=frappe.flags.in_test, doc=self)
-		# update_global_search(self)
+		if not frappe.flags.in_install:
+			frappe.enqueue('frappe.utils.global_search.update_global_search', now=frappe.flags.in_test, doc=self) 
 
 		if self._doc_before_save and not self.flags.ignore_version:
 			self.save_version()
