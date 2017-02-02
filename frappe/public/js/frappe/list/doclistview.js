@@ -545,11 +545,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 						frappe.set_route('Form', task.doctype, task.id);
 					},
 					on_date_change: function(task, start, end) {
-						set_value(task.doctype, task.id, field_map.start, start.format('YYYY-MM-DD'))
-						.then(function() {
-							set_value(task.doctype, task.id, field_map.end, end.format('YYYY-MM-DD'))
-						})
-						.then(show_success);
+						me.update_gantt_task(task, start, end);
 					},
 					on_progress_change: function(task, progress) {
 						var progress_fieldname = 'progress';
@@ -558,7 +554,6 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 
 						if(progress_fieldname) {
 							set_value(task.doctype, task.id, progress_fieldname, parseInt(progress))
-							.then(show_success);
 						}
 					},
 					on_view_change: function(mode) {
@@ -594,6 +589,33 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 				$dropdown.find(".dropdown-text").text(mode);
 			})
 		});
+	},
+
+	update_gantt_task: function(task, start, end) {
+		var me = this;
+		if(me.gantt.updating_task) {
+			setTimeout(me.update_gantt_task.bind(me, task, start, end), 500)
+			return;
+		}
+		me.gantt.updating_task = true;
+
+		var field_map = frappe.views.calendar[this.doctype].field_map;
+		frappe.call({
+			method: 'frappe.desk.gantt.update_task',
+			args: {
+				args: {
+					doctype: task.doctype,
+					name: task.id,
+					start: start.format('YYYY-MM-DD'),
+					end: end.format('YYYY-MM-DD')
+				},
+				field_map: field_map
+			},
+			callback: function() {
+				me.gantt.updating_task = false;
+				show_alert({message:__("Saved"), indicator:'green'}, 1);
+			}
+		})
 	},
 
 	render_rows_Kanban: function(values) {
