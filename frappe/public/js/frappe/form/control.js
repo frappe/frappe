@@ -1702,15 +1702,22 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 				['misc', ['fullscreen', 'codeview']]
 			],
 			callbacks: {
-				onChange: function() {
-					var value = me.get_value();
+				onChange: function(value) {
 					me.parse_validate_and_set_in_model(value);
 				},
 				onKeydown: function(e) {
-					me.editor.summernote('saveRange');
-					var key = frappe.ui.keys.get_key(e)
+					var key = frappe.ui.keys.get_key(e);
+					// prevent 'New DocType (Ctrl + B)' shortcut in editor
 					if(['ctrl+b', 'meta+b'].indexOf(key) !== -1) {
 						e.stopPropagation();
+					}
+					if(key.indexOf('escape') !== -1) {
+						if(me.note_editor.hasClass('fullscreen')) {
+							// exit fullscreen on escape key
+							me.note_editor
+								.find('.note-btn.btn-fullscreen')
+								.trigger('click');
+						}
 					}
 				}
 			},
@@ -1755,23 +1762,16 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 				'video': 'fa fa-video'
 			}
 		});
-		this.editor.summernote('code',
-			frappe.model.get_value(this.doctype, this.docname, this.df.fieldname));
+		this.note_editor = $(this.input_area).find('.note-editor');
 	},
 	get_value: function() {
 		return this.editor.summernote('code');
 	},
-	set_in_model: function(value) {
-		if(this.doctype && this.docname) {
-			frappe.model.set_value(this.doctype, this.docname,
-				this.df.fieldname, value, this.df.fieldtype)
-			this.last_value = value;
-		}
-	},
 	set_input: function(value) {
 		if(value == null) value = "";
 		value = frappe.dom.remove_script_and_style(value);
-		// this.editor.summernote('code', value);
+		if(value !== this.get_value())
+			this.editor.summernote('code', value);
 		this.last_value = value;
 	},
 	set_focus: function() {

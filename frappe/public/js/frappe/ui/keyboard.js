@@ -22,7 +22,9 @@ frappe.ui.keys.get_key = function(e) {
 	var key = e.key;
 	//safari doesn't have key property
 	if(!key) {
-		key = String.fromCharCode(e.keyCode).toLowerCase();
+		var keycode = e.keyCode || e.which;
+		key = frappe.ui.keys.key_map[keycode] ||
+			String.fromCharCode(keycode);
 	}
 	if(key.substr(0, 5)==='Arrow') {
 		// ArrowDown -> down
@@ -36,7 +38,7 @@ frappe.ui.keys.get_key = function(e) {
 		// add ctrl+ the key
 		key = 'shift+' + key;
 	}
-	return key;
+	return key.toLowerCase();
 }
 
 frappe.ui.keys.on = function(key, handler) {
@@ -103,3 +105,14 @@ frappe.ui.keys.on('ctrl+up', function(e) {
 frappe.ui.keys.on('shift+ctrl+r', function(e) {
 	frappe.ui.toolbar.clear_cache();
 });
+
+frappe.ui.keys.key_map = {
+	8: 'backspace',
+	9: 'tab',
+	13: 'enter',
+	16: 'shift',
+	17: 'ctrl',
+	91: 'meta',
+	18: 'alt',
+	27: 'escape'
+}
