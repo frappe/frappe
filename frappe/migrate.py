@@ -46,8 +46,6 @@ def migrate(verbose=True, rebuild_website=False):
 	if not frappe.conf.get('global_help_setup'):
 		# sync help if not set as global
 		frappe.utils.help.sync()
-	
-	frappe.utils.global_search.setup_table()
 
 	clear_notifications()
 
