@@ -505,3 +505,28 @@ textarea.form-control {
 .search-result {
 	margin-bottom: 24px;
 }
+
+// summernote editor
+.note-editor {
+	margin-top: 5px;
+
+	&.note-frame {
+		border-color: @border-color;
+	}
+
+	.btn {
+		outline: none !important;
+	}
+
+	.dropdown-style > li > a > * {
+		margin: 0;
+	}
+	.fa.fa-check {
+		color: @text-color !important;
+	}
+	.dropdown-menu {
+		z-index: 100;
+		max-height: 300px;
+		overflow: scroll;
+	}
+}
