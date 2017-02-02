@@ -69,7 +69,7 @@ frappe.ui.form.on('User', {
 			frm.roles_editor && frm.roles_editor.show();
 			frm.module_editor && frm.module_editor.refresh();
 
-			if(user==doc.name) {
+			if(user == doc.name) {
 				// update display settings
 				if(doc.user_image) {
 					frappe.boot.user_info[user].image = frappe.utils.get_file_link(doc.user_image);
@@ -77,24 +77,28 @@ frappe.ui.form.on('User', {
 			}
 		}
 		if (frm.doc.user_emails){
-			var found =0;
-			for (var i = 0;i<frm.doc.user_emails.length;i++){
-				if (frm.doc.email==frm.doc.user_emails[i].email_id){
+			var found = 0;
+			$.each(frm.doc.user_emails, function(idx, row) {
+				if(row.email_id == frm.doc.email){
 					found = 1;
+					return false;
 				}
-			}
+			});
+
 			if (!found){
-				frm.add_custom_button("Create User Email",frm.events.create_user_email)
+				frm.add_custom_button("Create User Email",function() {
+					frm.events.create_user_email(frm);
+				});
 			}
 		}
 
-		if (frappe.route_flags.unsaved===1){
+		if (frappe.route_flags.unsaved === 1){
 			delete frappe.route_flags.unsaved;
-			for ( var i=0;i<frm.doc.user_emails.length;i++){
-				frm.doc.user_emails[i].idx=frm.doc.user_emails[i].idx+1;
-			}
-			frm.doc.email_account
-		cur_frm.dirty();
+			$.each(frm.doc.user_emails, function(idx, row) {
+				row.idx = row.idx + 1
+			})
+
+			frm.dirty();
 		}
 	},
 	validate: function(frm) {
@@ -116,22 +120,25 @@ frappe.ui.form.on('User', {
 	create_user_email:function(frm) {
 		frappe.call({
 			method: 'frappe.core.doctype.user.user.has_email_account',
-			args: {email:cur_frm.doc.email},
+			args: {
+				email:frm.doc.email
+			},
 			callback: function(r) {
-				if (r["message"]== undefined){
+				if (r.message == undefined){
 					frappe.route_options = {
-						"email_id": cur_frm.doc.email,
+						"email_id": frm.doc.email,
 						"awaiting_password":1,
 						"enable_incoming":1
 					};
-					frappe.model.with_doctype("Email Account", function (doc) {
+
+					frappe.model.with_doctype("Email Account", function () {
 						var doc = frappe.model.get_new_doc("Email Account");
-					frappe.route_flags.create_user_account=cur_frm.doc.name;
-					frappe.set_route("Form", "Email Account", doc.name);
+						frappe.route_flags.create_user_account = frm.doc.name;
+						frappe.set_route("Form", "Email Account", doc.name);
 					})
-				}else{
-					frappe.route_flags.create_user_account=cur_frm.doc.name;					
-					frappe.set_route("Form", "Email Account", r["message"][0]["name"]);
+				} else {
+					frappe.route_flags.create_user_account = frm.doc.name;					
+					frappe.set_route("Form", "Email Account", r.message[0].name);
 				}
 			}
 		})
