@@ -147,6 +147,7 @@ scheduler_events = {
 		"frappe.email.doctype.auto_email_report.auto_email_report.send_daily",
 		"frappe.desk.page.backups.backups.delete_downloadable_backups",
 		"frappe.core.doctype.feedback_request.feedback_request.delete_feedback_request"
+		"frappe.core.doctype.authentication_log.authentication_log.clear_authentication_logs"
 	],
 	"monthly": [
 		"frappe.email.doctype.auto_email_report.auto_email_report.send_monthly"
