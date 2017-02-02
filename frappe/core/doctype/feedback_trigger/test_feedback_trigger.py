@@ -9,12 +9,12 @@ import unittest
 # test_records = frappe.get_test_records('Feedback Trigger')
 def get_feedback_request(todo, feedback_trigger):
 	return frappe.db.get_value("Feedback Request", {
-			"is_sent": 1,
-			"is_feedback_submitted": 0,
-			"reference_doctype": "ToDo",
-			"reference_name": todo,
-			"feedback_trigger": feedback_trigger
-		})
+		"is_sent": 1,
+		"is_feedback_submitted": 0,
+		"reference_doctype": "ToDo",
+		"reference_name": todo,
+		"feedback_trigger": feedback_trigger
+	})
 
 class TestFeedbackTrigger(unittest.TestCase):
 	def setUp(self):
@@ -43,21 +43,21 @@ class TestFeedbackTrigger(unittest.TestCase):
 			"email_field": "assigned_by",
 			"subject": "{{ doc.name }} Task Completed",
 			"condition": "doc.status == 'Closed'",
-			"message": """Task {{ doc.name }} is complated by {{ doc.owner }}.
-				<br>Please visit the {{ feedback_url }} and give your feedback 
-				regarding the Task {{ doc.name }}"""
+			"message": """Task {{ doc.name }} is Completed by {{ doc.owner }}.
+			<br>Please visit the {{ feedback_url }} and give your feedback 
+			regarding the Task {{ doc.name }}"""
 		}).insert(ignore_permissions=True)
 
 		# create a todo
 		todo = frappe.get_doc({
-					"doctype": "ToDo",
-					"owner": "test-feedback@example.com",
-					"allocated_by": "test-feedback@example.com",
-					"description": "Unable To Submit Sales Order #SO-00001"
-				}).insert(ignore_permissions=True)
+			"doctype": "ToDo",
+			"owner": "test-feedback@example.com",
+			"allocated_by": "test-feedback@example.com",
+			"description": "Unable To Submit Sales Order #SO-00001"
+		}).insert(ignore_permissions=True)
 
 		email_queue = frappe.db.sql("""select name from `tabEmail Queue` where
-						reference_doctype='ToDo' and reference_name='{0}'""".format(todo.name))
+			reference_doctype='ToDo' and reference_name='{0}'""".format(todo.name))
 
 		# feedback alert mail should be sent only on 'Closed' status
 		self.assertFalse(email_queue)
@@ -67,7 +67,7 @@ class TestFeedbackTrigger(unittest.TestCase):
 		todo.save(ignore_permissions=True)
 
 		email_queue = frappe.db.sql("""select name from `tabEmail Queue` where
-						reference_doctype='ToDo' and reference_name='{0}'""".format(todo.name))
+			reference_doctype='ToDo' and reference_name='{0}'""".format(todo.name))
 
 		self.assertTrue(email_queue)
 		frappe.db.sql('delete from `tabEmail Queue`')
@@ -85,11 +85,11 @@ class TestFeedbackTrigger(unittest.TestCase):
 
 		# test if feedback is saved in Communication
 		docname = frappe.db.get_value("Communication", {
-							"reference_doctype": "ToDo",
-							"reference_name": todo.name,
-							"communication_type": "Feedback",
-							"feedback_request": feedback_request
-						})
+			"reference_doctype": "ToDo",
+			"reference_name": todo.name,
+			"communication_type": "Feedback",
+			"feedback_request": feedback_request
+		})
 
 		communication = frappe.get_doc("Communication", docname)
 		self.assertEqual(communication.rating, 4)

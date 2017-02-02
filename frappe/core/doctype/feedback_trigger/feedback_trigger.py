@@ -39,12 +39,9 @@ def trigger_feedback_alert(doc, method):
 	""" trigger the feedback alert"""
 
 	feedback_trigger = frappe.db.get_value("Feedback Trigger", { "enabled": 1, "document_type": doc.doctype })
-	if feedback_trigger and not frappe.flags.in_test:
+	if feedback_trigger:
 		frappe.enqueue('frappe.core.doctype.feedback_trigger.feedback_trigger.send_feedback_alert', 
-			trigger=feedback_trigger, reference_doctype=doc.doctype, reference_name=doc.name)
-	elif feedback_trigger and frappe.flags.in_test:
-		# To run the Test cases
-		send_feedback_alert(doc.doctype, doc.name, trigger=feedback_trigger)
+			trigger=feedback_trigger, reference_doctype=doc.doctype, reference_name=doc.name, now=frappe.flags.in_test)
 
 @frappe.whitelist()
 def get_feedback_alert_details(reference_doctype, reference_name, trigger=None, request=None):
@@ -59,11 +56,11 @@ def get_feedback_alert_details(reference_doctype, reference_name, trigger=None, 
 	# to avoid sending multiple feedback mail alerts
 
 	feedback_requests = frappe.get_all("Feedback Request", {
-							"is_sent": 1,
-							"is_feedback_submitted": 0,
-							"reference_name": reference_name,
-							"reference_doctype": reference_doctype
-						}, ["name"])
+		"is_sent": 1,
+		"is_feedback_submitted": 0,
+		"reference_name": reference_name,
+		"reference_doctype": reference_doctype
+	}, ["name"])
 	if feedback_requests:
 		frappe.throw(_("Feedback Alert Mail has been already sent to the recipient"))
 
@@ -83,12 +80,12 @@ def get_feedback_alert_details(reference_doctype, reference_name, trigger=None, 
 		}).insert(ignore_permissions=True)
 
 		feedback_url = "{base_url}/feedback?reference_doctype={doctype}&reference_name={docname}&email={email_id}&key={nonce}".format(	
-							base_url=get_url(),
-							doctype=doc.doctype,
-							docname=doc.name,
-							email_id=recipients,
-							nonce=feedback_request.name
-						)
+			base_url=get_url(),
+			doctype=doc.doctype,
+			docname=doc.name,
+			email_id=recipients,
+			nonce=feedback_request.name
+		)
 		context.update({ "alert": feedback_trigger, "feedback_url": feedback_url })
 
 		if "{" in subject:

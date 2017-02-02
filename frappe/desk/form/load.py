@@ -211,10 +211,10 @@ def get_feedback_rating(doctype, docname):
 	""" get and return the latest feedback rating if available """
 
 	rating= frappe.get_all("Communication", filters={
-				"reference_doctype": doctype,
-				"reference_name": docname,
-				"communication_type": "Feedback"
-			}, fields=["rating"], order_by="creation desc", as_list=True)
+		"reference_doctype": doctype,
+		"reference_name": docname,
+		"communication_type": "Feedback"
+	}, fields=["rating"], order_by="creation desc", as_list=True)
 
 	if not rating:
 		return 0
