@@ -81,6 +81,8 @@ permission_query_conditions = {
 	"ToDo": "frappe.desk.doctype.todo.todo.get_permission_query_conditions",
 	"User": "frappe.core.doctype.user.user.get_permission_query_conditions",
 	"Note": "frappe.desk.doctype.note.note.get_permission_query_conditions",
+	"Contact": "frappe.geo.address_and_contact.get_permission_query_conditions_for_contact",
+	"Address": "frappe.geo.address_and_contact.get_permission_query_conditions_for_address"
 }
 
 has_permission = {
@@ -88,7 +90,9 @@ has_permission = {
 	"ToDo": "frappe.desk.doctype.todo.todo.has_permission",
 	"User": "frappe.core.doctype.user.user.has_permission",
 	"Note": "frappe.desk.doctype.note.note.has_permission",
-	"Communication": "frappe.core.doctype.communication.communication.has_permission"
+	"Contact": "frappe.geo.address_and_contact.has_permission",
+	"Address": "frappe.geo.address_and_contact.has_permission",
+	"Communication": "frappe.core.doctype.communication.communication.has_permission",
 }
 
 has_website_permission = {

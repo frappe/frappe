@@ -33,7 +33,7 @@ frappe.views.ListSidebar = Class.extend({
 		var show_list_link = false;
 
 		if(frappe.views.calendar[this.doctype]) {
-			this.sidebar.find(".calendar-link").removeClass("hide");
+			this.sidebar.find('.list-link[data-view="Calendar"]').removeClass("hide");
 			this.sidebar.find('.list-link[data-view="Gantt"]').removeClass('hide');
 			show_list_link = true;
 		}
@@ -46,12 +46,11 @@ frappe.views.ListSidebar = Class.extend({
 
 		this.current_view = 'List';
 		var route = frappe.get_route();
-		if(route.length > 2 && in_list(['Gantt', 'Image', 'Kanban'], route[2])) {
+		if(route.length > 2 && in_list(['Gantt', 'Image', 'Kanban', 'Calendar'], route[2])) {
 			this.current_view = route[2];
 
 			if(this.current_view === 'Kanban') {
 				this.kanban_board = route[3];
-				this.page.set_title(this.doctype +" - "+ this.kanban_board);
 			}
 		}
 

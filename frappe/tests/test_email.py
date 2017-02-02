@@ -3,7 +3,7 @@
 
 from __future__ import unicode_literals
 
-import unittest, frappe, re
+import unittest, frappe, re, email
 
 from frappe.test_runner import make_test_records
 make_test_records("User")
@@ -87,6 +87,7 @@ class TestEmail(unittest.TestCase):
 		self.assertTrue('This email was sent to test@example.com and copied to test1@example.com' in frappe.flags.sent_mail)
 
 	def test_expose(self):
+		from frappe.utils.verified_command import verify_request
 		frappe.sendmail(recipients=['test@example.com'],
 			cc=['test1@example.com'],
 			sender="admin@example.com",
@@ -103,9 +104,14 @@ class TestEmail(unittest.TestCase):
 			where status='Sent'""", as_dict=1)[0].message
 		self.assertTrue('<!--recipient-->' in message)
 
-		frappe.local.flags.signed_query_string = re.search('(?<=/api/method/frappe.email.queue.unsubscribe\?).*(?=\n)', frappe.flags.sent_mail).group(0)
-		from frappe.utils.verified_command import verify_request
-		self.assertTrue(verify_request())
+		email_obj = email.message_from_string(frappe.flags.sent_mail)
+		for part in email_obj.walk():
+			content = part.get_payload(decode=True)
+
+			if content:
+				frappe.local.flags.signed_query_string = re.search('(?<=/api/method/frappe.email.queue.unsubscribe\?).*(?=\n)', content).group(0)
+				self.assertTrue(verify_request())
+				break
 
 	def test_expired(self):
 		self.test_email_queue()

@@ -13,7 +13,7 @@ import os, sys, importlib, inspect, json
 from .exceptions import *
 from .utils.jinja import get_jenv, get_template, render_template
 
-__version__ = '7.2.12'
+__version__ = '7.2.14'
 __title__ = "Frappe Framework"
 
 local = Local()
@@ -1286,7 +1286,7 @@ def enqueue(*args, **kwargs):
 		:param kwargs: keyword arguments to be passed to the method
 	'''
 	import frappe.utils.background_jobs
-	frappe.utils.background_jobs.enqueue(*args, **kwargs)
+	return frappe.utils.background_jobs.enqueue(*args, **kwargs)
 
 def get_doctype_app(doctype):
 	def _get_doctype_app():

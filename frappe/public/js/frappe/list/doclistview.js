@@ -65,7 +65,7 @@ frappe.views.set_list_as_dirty = function(doctype) {
 	}
 
 	var route = frappe.get_route()[2];
-	if(route && route === "Kanban") return;
+	if(route && in_list(["Kanban", "Calendar", "Gantt"], route)) return;
 
 	var list_page = "List/" + doctype;
 	if(frappe.pages[list_page]) {
@@ -139,7 +139,16 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		this.setup_filterable();
 		this.init_filters();
 		this.init_sort_selector();
+		this.set_title();
 		this.init_headers();
+	},
+
+	set_title: function() {
+		if(this.current_view==='Kanban') {
+			this.page.set_title(this.kanban_board);
+		} else {
+			this.page.set_title(__(this.doctype));
+		}
 	},
 
 	init_headers: function() {
@@ -149,6 +158,10 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 			this.header = "list_item_main_head";
 		} else if (in_list(['Image', 'Kanban', 'Gantt'], this.current_view)) {
 			this.header = "image_view_item_main_head";
+		} else if (this.current_view === 'Calendar') {
+			this.header = null;
+			this.list_header = $();
+			return;
 		}
 
 		var main = frappe.render_template(this.header, {
@@ -260,7 +273,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 			}
 		}
 
-		//Always sort based on start_date field for Gantt View
+		// Always sort based on start_date field for Gantt View
 		if(frappe.get_route()[2] === 'Gantt') {
 			var field_map = frappe.views.calendar[this.doctype].field_map;
 			args = {
@@ -299,7 +312,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 
 	setup_view_variables: function() {
 		var route = frappe.get_route();
-		this.last_view = this.current_view || ''; 
+		this.last_view = this.current_view || '';
 		this.current_view = route[2] || route[0];
 		if(this.current_view==="Kanban") {
 			this.last_kanban_board = this.kanban_board;
@@ -350,6 +363,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 
 		// if view has changed, re-render header
 		if(this.current_view !== this.last_view) {
+			this.set_title();
 			this.init_headers();
 			this.dirty = true;
 		}
@@ -357,6 +371,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		// if kanban board changed, set filters
 		if(this.current_view==="Kanban" &&
 			this.kanban_board!==this.last_kanban_board) {
+			this.set_title();
 			this.init_headers();
 			this.set_kanban_board_filters();
 			return;
@@ -418,7 +433,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 
 		if(!this.listview.settings.use_route) {
 			var route = frappe.get_route();
-			if(route[2] && !in_list(['Image', 'Gantt', 'Kanban'], route[2])) {
+			if(route[2] && !in_list(['Image', 'Gantt', 'Kanban', 'Calendar'], route[2])) {
 				$.each(frappe.utils.get_args_dict_from_url(route[2]), function(key, val) {
 					me.set_filter(key, val, true);
 				});
@@ -496,19 +511,33 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		var me = this;
 		var field_map = frappe.views.calendar[this.doctype].field_map;
 		var tasks = values.map(function(item) {
+
+			// set progress
+			var progress = 0;
+			if(field_map.progress && $.isFunction(field_map.progress)) {
+				progress = field_map.progress(item);
+			} else if(field_map.progress) {
+				progress = item[field_map.progress]
+			}
+
 			return {
 				start: item[field_map.start],
 				end: item[field_map.end],
 				name: item[field_map.title],
 				id: item[field_map.id],
 				doctype: me.doctype,
-				progress: item.progress,
+				progress: progress,
 				dependencies: item.depends_on_tasks || ""
 			};
 		});
+		var set_value = frappe.db.set_value;
+		var show_success = function() {
+			show_alert({message:__("Saved"), indicator:'green'}, 1);
+		}
+
 		frappe.require([
 				"assets/frappe/js/lib/snap.svg-min.js",
-				"assets/frappe/js/lib/frappe-gantt/frappe-gantt.min.js"
+				"assets/frappe/js/lib/frappe-gantt/frappe-gantt.js"
 			], function() {
 				me.gantt = new Gantt("#"+id, tasks, {
 					date_format: "YYYY-MM-DD",
@@ -516,16 +545,16 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 						frappe.set_route('Form', task.doctype, task.id);
 					},
 					on_date_change: function(task, start, end) {
-						update_field(task.id, field_map.start, start.format("YYYY-MM-DD"), function() {
-							update_field(task.id, field_map.end, end.format("YYYY-MM-DD"), function() {
-								show_alert({message:__("Saved"), indicator:'green'}, 1);
-							});
-						});
+						me.update_gantt_task(task, start, end);
 					},
 					on_progress_change: function(task, progress) {
-						update_field(task.id, 'progress', progress, function() {
-							show_alert({message:__("Saved"), indicator:'green'}, 1);
-						});
+						var progress_fieldname = 'progress';
+						if($.isFunction(field_map.progress)) { progress_fieldname = null; }
+						else if(field_map.progress) { progress_fieldname = field_map.progress; }
+
+						if(progress_fieldname) {
+							set_value(task.doctype, task.id, progress_fieldname, parseInt(progress))
+						}
 					},
 					on_view_change: function(mode) {
 						me.list_settings.view_mode = mode;
@@ -562,17 +591,31 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		});
 	},
 
-	update_field: function (name, fieldname, value, callback) {
+	update_gantt_task: function(task, start, end) {
+		var me = this;
+		if(me.gantt.updating_task) {
+			setTimeout(me.update_gantt_task.bind(me, task, start, end), 500)
+			return;
+		}
+		me.gantt.updating_task = true;
+
+		var field_map = frappe.views.calendar[this.doctype].field_map;
 		frappe.call({
-			method: "frappe.client.set_value",
+			method: 'frappe.desk.gantt.update_task',
 			args: {
-				doctype: this.doctype,
-				name: name,
-				fieldname: fieldname,
-				value: value
+				args: {
+					doctype: task.doctype,
+					name: task.id,
+					start: start.format('YYYY-MM-DD'),
+					end: end.format('YYYY-MM-DD')
+				},
+				field_map: field_map
 			},
-			callback: callback
-		});
+			callback: function() {
+				me.gantt.updating_task = false;
+				show_alert({message:__("Saved"), indicator:'green'}, 1);
+			}
+		})
 	},
 
 	render_rows_Kanban: function(values) {
@@ -602,6 +645,24 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 				me.set_filters(filters);
 				me.run();
 			});
+	},
+
+	render_rows_Calendar: function(values) {
+
+		var options = $.extend({
+				doctype: this.doctype,
+				parent: this.wrapper.find('.result-list'),
+				page: this.page,
+				filter_vals: this.filter_list.get_filters()
+			},
+			frappe.views.calendar[this.doctype]
+		);
+		frappe.require([
+			'assets/frappe/js/lib/fullcalendar/fullcalendar.min.css',
+			'assets/frappe/js/lib/fullcalendar/fullcalendar.min.js'
+		], function() {
+			frappe.views.calendars[this.doctype] = new frappe.views.Calendar(options);
+		});
 	},
 
 	render_row: function(row, data) {

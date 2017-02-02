@@ -337,7 +337,7 @@ frappe.search.AwesomeBar = Class.extend({
 						index: 10,
 						route: ["List", target]
 					});
-				}
+				} 
 			});
 		}
 		return out;
@@ -346,7 +346,6 @@ frappe.search.AwesomeBar = Class.extend({
 	get_doctypes: function(txt) { 
 		var me = this;
 		var out = [];
-
 
 		var target, index;
 		var option = function(type, route) {
@@ -387,7 +386,7 @@ frappe.search.AwesomeBar = Class.extend({
 						out.push(option("Report", ["Report", target]));
 					}
 					if(frappe.boot.calendars.indexOf(target) !== -1) {
-						out.push(option("Calendar", ["Calendar", target]));
+						out.push(option("Calendar", ["List", match, "Calendar"]));
 						out.push(option("Gantt", ["List", target, "Gantt"]));
 					}
 				}
@@ -453,7 +452,7 @@ frappe.search.AwesomeBar = Class.extend({
 			out.push({
 				label: __("Open {0}", [__(target).bold()]),
 				value: __("Open {0}", [__(target)]),
-				route: [target, 'Event'],
+				route: ['List', 'Event', 'Calendar'],
 				index: 14,
 				match: target
 			});

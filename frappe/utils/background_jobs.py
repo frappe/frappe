@@ -15,7 +15,7 @@ queue_timeout = {
 }
 
 def enqueue(method, queue='default', timeout=300, event=None,
-	async=True, job_name=None, **kwargs):
+	async=True, job_name=None, now=False, **kwargs):
 	'''
 		Enqueue method to be executed using a background worker
 
@@ -27,6 +27,9 @@ def enqueue(method, queue='default', timeout=300, event=None,
 		:param job_name: can be used to name an enqueue call, which can be used to prevent duplicate calls
 		:param kwargs: keyword arguments to be passed to the method
 	'''
+	if now:
+		return frappe.call(method, **kwargs)
+
 	q = get_queue(queue, async=async)
 	if not timeout:
 		timeout = queue_timeout.get(queue) or 300

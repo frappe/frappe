@@ -114,6 +114,16 @@ def update_contact(doc, method):
 def contact_query(doctype, txt, searchfield, start, page_len, filters):
 	from frappe.desk.reportview import get_match_cond
 
+	link_doctype = filters.pop('link_doctype')
+	link_name = filters.pop('link_name')
+
+	condition = ""
+	for fieldname, value in filters.iteritems():
+		condition += " and {field}={value}".format(
+			field=fieldname,
+			value=value
+		)
+
 	return frappe.db.sql("""select
 			contact.name, contact.first_name, contact.last_name
 		from
@@ -136,6 +146,6 @@ def contact_query(doctype, txt, searchfield, start, page_len, filters):
 			'_txt': txt.replace("%", ""),
 			'start': start,
 			'page_len': page_len,
-			'link_doctype': filters.get('link_doctype'),
-			'link_name': filters.get('link_name')
+			'link_name': link_name,
+			'link_doctype': link_doctype
 		})

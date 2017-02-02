@@ -140,6 +140,9 @@ $.extend(frappe.model, {
 		if(meta.__tree_js) {
 			eval(meta.__tree_js);
 		}
+		if(meta.__templates) {
+			$.extend(frappe.templates, meta.__templates);
+		}
 	},
 
 	with_doc: function(doctype, name, callback) {
