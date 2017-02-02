@@ -23,6 +23,7 @@
 				</span>
 			</div>
 			{% if(data.communication_type==="Communication"
+				|| data.communication_type==="Feedback"
 				|| (data.communication_type==="Comment"
 					&& data.comment_type==="Comment")) { %}
 			<div class="comment-header small" style="cursor: pointer;">
@@ -40,11 +41,11 @@
 				</span>
 				<span class="text-muted" style="font-weight: normal;">
 					&ndash; {%= data.comment_on %}</span>
-					{% if(data.communication_type==="Communication") { %}
+					{% if(inList(["Communication", "Feedback"], data.communication_type)) { %}
 						{% if (frappe.model.can_read(\'Communication\')) { %}
 						<a href="#Form/{%= data.doctype %}/{%= data.name %}"
 							class="text-muted">
-					{% } %}
+						{% } %}
 
 						{% if (data.delivery_status) {
 							if (in_list(["Sent", "Opened", "Clicked"], data.delivery_status)) {
@@ -68,15 +69,15 @@
 							{% } %}
 						{% } %}
 
-					{% if (frappe.model.can_read(\'Communication\')) { %}
-					</a>
-					{% } %}
+						{% if (frappe.model.can_read(\'Communication\')) { %}
+						</a>
+						{% } %}
 
-					{% if (data.communication_medium === "Email") { %}
-					<a class="text-muted reply-link pull-right timeline-content-show"
-						data-name="{%= data.name %}">{%= __("Reply") %}</a>
+						{% if (data.communication_medium === "Email") { %}
+						<a class="text-muted reply-link pull-right timeline-content-show"
+							data-name="{%= data.name %}">{%= __("Reply") %}</a>
+						{% } %}
 					{% } %}
-				{% } %}
 				<span class="comment-likes"
 					data-liked-by=\'{{ JSON.stringify(data._liked_by) }}\'>
 					<i class="octicon octicon-heart like-action
@@ -97,25 +98,30 @@
 						<hr>
 					{% endif %}
 
+					{% if data.communication_type == "Feedback" && data.rating_icons %}
+						<p class="text-muted small">{{ data.rating_icons }}</p>
+						<hr>
+					{% endif %}
+
 					{%= data.content_html %}
 				</div>
 				{% if(data.attachments && data.attachments.length) { %}
-			<div style="margin: 10px 0px">
-				{% $.each(data.attachments, function(i, a) { %}
-				<div class="ellipsis">
-					<a href="{%= encodeURI(a.file_url).replace(/#/g, \'%23\') %}"
-						class="text-muted small" target="_blank">
-						<i class="fa fa-paperclip"></i>
-						{%= a.file_url.split("/").slice(-1)[0] %}
-						{% if (a.is_private) { %}
-						<i class="fa fa-lock text-warning"></i>
-						{% } %}
-					</a>
+				<div style="margin: 10px 0px">
+					{% $.each(data.attachments, function(i, a) { %}
+					<div class="ellipsis">
+						<a href="{%= encodeURI(a.file_url).replace(/#/g, \'%23\') %}"
+							class="text-muted small" target="_blank">
+							<i class="fa fa-paperclip"></i>
+							{%= a.file_url.split("/").slice(-1)[0] %}
+							{% if (a.is_private) { %}
+							<i class="fa fa-lock text-warning"></i>
+							{% } %}
+						</a>
+					</div>
+					{% }); %}
 				</div>
-				{% }); %}
+				{% } %}
 			</div>
-			{% } %}
-				</div>
 
 			{% } else if(in_list(["Assignment Completed", "Assigned", "Shared",
 				"Unshared"], data.comment_type)) { %}

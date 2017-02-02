@@ -98,7 +98,7 @@ frappe.ui.form.Timeline = Class.extend({
 
 		$.each(communications.sort(function(a, b) { return a.creation > b.creation ? -1 : 1 }),
 			function(i, c) {
-				if(c.content) {
+				if(c.content || c.feedback) {
 					c.frm = me.frm;
 					me.render_timeline_item(c);
 				}
@@ -267,6 +267,11 @@ frappe.ui.form.Timeline = Class.extend({
 
 				c.original_content = c.content;
 				c.content = frappe.utils.toggle_blockquote(c.content);
+			} else if (c.communication_type==="Feedback") {
+				c.content = frappe.utils.strip_original_content(c.feedback);
+
+				c.original_content = c.feedback;
+				c.content = frappe.utils.toggle_blockquote(c.feedback);
 			}
 
 			if(!frappe.utils.is_html(c.content)) {
@@ -307,57 +312,64 @@ frappe.ui.form.Timeline = Class.extend({
 	},
 
 	is_communication_or_comment: function(c) {
-		return c.communication_type==="Communication" || (c.communication_type==="Comment" && (c.comment_type==="Comment"||c.comment_type==="Relinked"));
+		return c.communication_type==="Communication" 
+		|| c.communication_type==="Feedback"
+		|| (c.communication_type==="Comment" && (c.comment_type==="Comment"||c.comment_type==="Relinked"));
 	},
 
 	set_icon_and_color: function(c) {
-		c.icon = {
-			"Email": "octicon octicon-mail",
-			"Chat": "octicon octicon-comment-discussion",
-			"Phone": "octicon octicon-device-mobile",
-			"SMS": "octicon octicon-comment",
-			"Created": "octicon octicon-plus",
-			"Submitted": "octicon octicon-lock",
-			"Cancelled": "octicon octicon-x",
-			"Assigned": "octicon octicon-person",
-			"Assignment Completed": "octicon octicon-check",
-			"Comment": "octicon octicon-comment-discussion",
-			"Workflow": "octicon octicon-git-branch",
-			"Label": "octicon octicon-tag",
-			"Attachment": "octicon octicon-cloud-upload",
-			"Attachment Removed": "octicon octicon-trashcan",
-			"Shared": "octicon octicon-eye",
-			"Unshared": "octicon octicon-circle-slash",
-			"Like": "octicon octicon-heart",
-			"Edit": "octicon octicon-pencil",
-			"Relinked": "octicon octicon-check"
-		}[c.comment_type || c.communication_medium]
+		if(c.communication_type == "Feedback"){
+			c.icon = "octicon octicon-comment-discussion"
+			c.rating_icons = frappe.render_template("rating_icons", {rating: c.rating, show_label: true})
+			c.color = "#f39c12"
+		} else {
+			c.icon = {
+				"Email": "octicon octicon-mail",
+				"Chat": "octicon octicon-comment-discussion",
+				"Phone": "octicon octicon-device-mobile",
+				"SMS": "octicon octicon-comment",
+				"Created": "octicon octicon-plus",
+				"Submitted": "octicon octicon-lock",
+				"Cancelled": "octicon octicon-x",
+				"Assigned": "octicon octicon-person",
+				"Assignment Completed": "octicon octicon-check",
+				"Comment": "octicon octicon-comment-discussion",
+				"Workflow": "octicon octicon-git-branch",
+				"Label": "octicon octicon-tag",
+				"Attachment": "octicon octicon-cloud-upload",
+				"Attachment Removed": "octicon octicon-trashcan",
+				"Shared": "octicon octicon-eye",
+				"Unshared": "octicon octicon-circle-slash",
+				"Like": "octicon octicon-heart",
+				"Edit": "octicon octicon-pencil",
+				"Relinked": "octicon octicon-check"
+			}[c.comment_type || c.communication_medium]
 
-		c.color = {
-			"Email": "#3498db",
-			"Chat": "#3498db",
-			"Phone": "#3498db",
-			"SMS": "#3498db",
-			"Created": "#1abc9c",
-			"Submitted": "#1abc9c",
-			"Cancelled": "#c0392b",
-			"Assigned": "#f39c12",
-			"Assignment Completed": "#16a085",
-			"Comment": "#f39c12",
-			"Workflow": "#2c3e50",
-			"Label": "#2c3e50",
-			"Attachment": "#7f8c8d",
-			"Attachment Removed": "#eee",
-			"Relinked": "#16a085"
-		}[c.comment_type || c.communication_medium];
+			c.color = {
+				"Email": "#3498db",
+				"Chat": "#3498db",
+				"Phone": "#3498db",
+				"SMS": "#3498db",
+				"Created": "#1abc9c",
+				"Submitted": "#1abc9c",
+				"Cancelled": "#c0392b",
+				"Assigned": "#f39c12",
+				"Assignment Completed": "#16a085",
+				"Comment": "#f39c12",
+				"Workflow": "#2c3e50",
+				"Label": "#2c3e50",
+				"Attachment": "#7f8c8d",
+				"Attachment Removed": "#eee",
+				"Relinked": "#16a085"
+			}[c.comment_type || c.communication_medium];
 
-		c.icon_fg = {
-			"Attachment Removed": "#333",
-		}[c.comment_type || c.communication_medium]
+			c.icon_fg = {
+				"Attachment Removed": "#333",
+			}[c.comment_type || c.communication_medium]
 
+		}
 		if(!c.icon_fg)
 			c.icon_fg = "#fff";
-
 	},
 	get_communications: function(with_versions) {
 		var docinfo = this.frm.get_docinfo(),

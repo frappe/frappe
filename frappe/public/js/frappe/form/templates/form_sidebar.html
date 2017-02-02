@@ -12,8 +12,14 @@
 	<label class="label label-warning" title="{{ __("This feature is brand new and still experimental") }}">{{ __("Experimental Feature") }}</label>
 </div>
 {% endif %}
-<ul class="list-unstyled sidebar-menu user-actions hide">
+<ul class="list-unstyled sidebar-menu sidebar-rating hide">
 	<li class="divider"></li>
+	<li style="position: relative;">
+		<a class="strong badge-hover">
+			<span>{%= __("Feedback Rating") %}</span>
+		</a>
+	</li>
+	<li class="rating-icons"></li>
 </ul>
 <ul class="list-unstyled sidebar-menu">
 	<li class="divider"></li>
