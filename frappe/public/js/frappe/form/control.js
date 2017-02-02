@@ -1555,130 +1555,111 @@ frappe.ui.form.ControlCode = frappe.ui.form.ControlText.extend({
 });
 
 frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
-	editor_name: "bsEditor",
-	horizontal: false,
 	make_input: function() {
-		//$(this.input_area).css({"min-height":"360px"});
 		this.has_input = true;
-		this.make_rich_text_editor();
-		this.make_markdown_editor();
-		this.make_switcher();
+		this.make_editor();
+		this.hide_elements_on_mobile();
 	},
-	make_rich_text_editor: function() {
+	make_editor: function() {
 		var me = this;
-		this.editor_wrapper = $("<div>").appendTo(this.input_area);
-		var onchange = function(value) {
-			me.md_editor.val(value);
-			me.parse_validate_and_set_in_model(value);
+		this.editor = $("<div>").appendTo(this.input_area);
+		this.editor.summernote({
+			minHeight: 400,
+			toolbar: [
+				['magic', ['style']],
+				['style', ['bold', 'italic', 'underline', 'clear']],
+				['fontsize', ['fontsize']],
+				['color', ['color']],
+				['para', ['ul', 'ol', 'paragraph']],
+				['height', ['height']],
+				['misc', ['fullscreen', 'codeview']]
+			],
+			callbacks: {
+				onChange: function(value) {
+					me.parse_validate_and_set_in_model(value);
+				},
+				onKeydown: function(e) {
+					var key = frappe.ui.keys.get_key(e);
+					// prevent 'New DocType (Ctrl + B)' shortcut in editor
+					if(['ctrl+b', 'meta+b'].indexOf(key) !== -1) {
+						e.stopPropagation();
+					}
+					if(key.indexOf('escape') !== -1) {
+						if(me.note_editor.hasClass('fullscreen')) {
+							// exit fullscreen on escape key
+							me.note_editor
+								.find('.note-btn.btn-fullscreen')
+								.trigger('click');
+						}
+					}
+				}
+			},
+			icons: {
+				'align': 'fa fa-align',
+				'alignCenter': 'fa fa-align-center',
+				'alignJustify': 'fa fa-align-justify',
+				'alignLeft': 'fa fa-align-left',
+				'alignRight': 'fa fa-align-right',
+				'indent': 'fa fa-indent',
+				'outdent': 'fa fa-outdent',
+				'arrowsAlt': 'fa fa-arrows-alt',
+				'bold': 'fa fa-bold',
+				'caret': 'caret',
+				'circle': 'fa fa-circle',
+				'close': 'fa fa-close',
+				'code': 'fa fa-code',
+				'eraser': 'fa fa-eraser',
+				'font': 'fa fa-font',
+				'frame': 'fa fa-frame',
+				'italic': 'fa fa-italic',
+				'link': 'fa fa-link',
+				'unlink': 'fa fa-chain-broken',
+				'magic': 'fa fa-magic',
+				'menuCheck': 'fa fa-check',
+				'minus': 'fa fa-minus',
+				'orderedlist': 'fa fa-list-ol',
+				'pencil': 'fa fa-pencil',
+				'picture': 'fa fa-picture',
+				'question': 'fa fa-question',
+				'redo': 'fa fa-redo',
+				'square': 'fa fa-square',
+				'strikethrough': 'fa fa-strikethrough',
+				'subscript': 'fa fa-subscript',
+				'superscript': 'fa fa-superscript',
+				'table': 'fa fa-table',
+				'textHeight': 'fa fa-text-height',
+				'trash': 'fa fa-trash',
+				'underline': 'fa fa-underline',
+				'undo': 'fa fa-undo',
+				'unorderedlist': 'fa fa-list-ul',
+				'video': 'fa fa-video'
+			}
+		});
+		this.note_editor = $(this.input_area).find('.note-editor');
+	},
+	hide_elements_on_mobile: function() {
+		this.note_editor.find('.note-btn-underline,\
+			.note-btn-italic, .note-fontsize,\
+			.note-color, .note-height, .btn-codeview')
+			.addClass('hidden-xs');
+		if($('.toggle-sidebar').is(':visible')) {
+			// disable tooltips on mobile
+			this.note_editor.find('.note-btn')
+				.attr('data-original-title', '');
 		}
-		this.editor = new (frappe.provide(this.editor_name))({
-			parent: this.editor_wrapper,
-			change: onchange,
-			field: this
-		});
-		this.editor.editor.on("blur", function() {
-			onchange(me.editor.clean_html());
-		});
-		this.editor.editor.keypress("ctrl+s meta+s", function() {
-			me.frm.save_or_update();
-		});
-	},
-	make_markdown_editor: function() {
-		var me = this;
-		this.md_editor_wrapper = $("<div class='hide'>")
-			.appendTo(this.input_area);
-		this.md_editor = $("<textarea class='form-control markdown-text-editor'>")
-		.appendTo(this.md_editor_wrapper)
-		.allowTabs()
-		.on("change", function() {
-			var value = $(this).val();
-			me.editor.set_input(value);
-			me.parse_validate_and_set_in_model(value);
-		});
-
-		$('<div class="text-muted small">Add &lt;!-- markdown --&gt; \
-			to always interpret as markdown</div>')
-			.appendTo(this.md_editor_wrapper);
-	},
-	make_switcher: function() {
-		var me = this;
-		this.current_editor = this.editor;
-		this.switcher = $('<p class="text-right small">\
-			<a href="#" class="switcher"></a></p>')
-			.appendTo(this.input_area)
-			.find("a")
-			.click(function() {
-				me.switch();
-				return false;
-			});
-		this.render_switcher();
-	},
-	switch: function() {
-		if(this.current_editor===this.editor) {
-			// switch to md
-			var value = this.editor.get_value();
-			this.editor_wrapper.addClass("hide");
-			this.md_editor_wrapper.removeClass("hide");
-			this.current_editor = this.md_editor;
-			this.add_type_marker("markdown");
-		} else {
-			// switch to html
-			var value = this.md_editor.val();
-			this.md_editor_wrapper.addClass("hide");
-			this.editor_wrapper.removeClass("hide");
-			this.current_editor = this.editor;
-			this.add_type_marker("html");
-		}
-		this.render_switcher();
-	},
-	add_type_marker: function(marker) {
-		var opp_marker = marker==="html" ? "markdown" : "html";
-		if(!this.value) this.value = "";
-		if(this.value.indexOf("<!-- " + opp_marker + " -->")!==-1) {
-			// replace opposite marker
-			this.set_value(this.value.split("<!-- " + opp_marker + " -->").join("<!-- " + marker + " -->"));
-		} else if(this.value.indexOf("<!-- " + marker + " -->")===-1) {
-			// add marker (marker missing)
-			this.set_value(this.value + "\n\n\n<!-- " + marker + " -->");
-		}
-	},
-	render_switcher: function() {
-		this.switcher.html(__("Edit as {0}", [this.current_editor == this.editor ?
-			__("Markdown") : __("Rich Text")]));
 	},
 	get_value: function() {
-		return this.current_editor === this.editor
-			? this.editor.get_value()
-			: this.md_editor.val();
+		return this.editor.summernote('code');
 	},
 	set_input: function(value) {
-		this._set_input(value);
-
-		// guess editor type
-		var is_markdown = false;
-		if(value) {
-			if(value.indexOf("<!-- markdown -->") !== -1) {
-				var is_markdown = true;
-			}
-			if((is_markdown && this.current_editor===this.editor)
-				|| (!is_markdown && this.current_editor===this.md_editor)) {
-				this.switch();
-			}
-		}
-	},
-	_set_input: function(value) {
 		if(value == null) value = "";
 		value = frappe.dom.remove_script_and_style(value);
-		this.editor.set_input(value);
-		this.md_editor.val(value);
+		if(value !== this.get_value())
+			this.editor.summernote('code', value);
 		this.last_value = value;
 	},
 	set_focus: function() {
-		var editor = this.$wrapper.find('.text-editor');
-		if(editor) {
-			editor.focus();
-			return true;
-		}
+		return this.editor.summernote('focus');
 	}
 });
 

@@ -19,7 +19,8 @@
 		"public/js/frappe/class.js",
 		"public/js/lib/microtemplate.js",
 		"public/js/frappe/query_string.js",
-		"website/js/website.js"
+		"website/js/website.js",
+		"public/js/frappe/misc/rating_icons.html"
 	],
 	"js/editor.min.js": [
 		"public/js/lib/jquery/jquery.hotkeys.js",
@@ -40,6 +41,7 @@
 	"css/desk.min.css": [
 		"public/js/lib/datepicker/datepicker.min.css",
 		"public/js/lib/awesomplete/awesomplete.css",
+		"public/js/lib/summernote/summernote.css",
 		"public/css/bootstrap.css",
 		"public/css/font-awesome.css",
 		"public/css/octicons/octicons.css",
@@ -65,6 +67,7 @@
 		"public/js/lib/awesomplete/awesomplete.min.js",
 		"public/js/lib/Sortable.min.js",
 		"public/js/lib/taggle/taggle.min.js",
+		"public/js/lib/summernote/summernote.js",
 		"public/js/lib/notify.js",
 		"public/js/lib/bootstrap.min.js",
 		"public/js/lib/moment/moment-with-locales.min.js",
@@ -153,7 +156,8 @@
 		"public/js/frappe/desk.js",
 		"public/js/frappe/query_string.js",
 
-		"public/js/frappe/ui/charts.js"
+		"public/js/frappe/ui/charts.js",
+		"public/js/frappe/misc/rating_icons.html"
 	],
 	"js/d3.min.js": [
 		"public/js/lib/d3.min.js",

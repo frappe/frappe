@@ -211,4 +211,3 @@ def evaluate_alert(doc, alert, event):
 
 def get_context(doc):
 	return {"doc": doc, "nowdate": nowdate}
-

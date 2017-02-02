@@ -31,6 +31,12 @@ frappe.ui.form.on("Communication", {
 			}
 		}
 
+		if(frm.doc.communication_type == "Feedback") {
+			frm.add_custom_button(__("Resend"), function() {
+				frm.events.resend_feedback(frm);
+			});
+		}
+
 		if(frm.doc.status==="Open") {
 			frm.add_custom_button(__("Close"), function() {
 				frm.set_value("status", "Closed");
@@ -93,6 +99,60 @@ frappe.ui.form.on("Communication", {
 			}
 		});
 		d.show();
-	}
+	},
 
+	resend_feedback: function(frm) {
+		/* resend the feedback request email */
+		return frappe.call({
+			method: "frappe.core.doctype.feedback_trigger.feedback_trigger.get_feedback_alert_details",
+			args: {
+				request: frm.doc.feedback_request,
+				reference_name: frm.doc.reference_name,
+				reference_doctype: frm.doc.reference_doctype
+			},
+			callback: function(r) {
+				if(r.message) {
+					details = r.message;
+
+					dialog = new frappe.ui.Dialog({
+						title: __("Resend Feedback Request"),
+						fields: [
+							{
+								"reqd": 1,
+								"label": __("Message"), 
+								"fieldname": "message",
+								"fieldtype": "Text Editor",
+								"default": details.message
+							}
+						],
+					});
+
+					dialog.set_primary_action(__("Send"), function() {
+						args = dialog.get_values();
+						if(!args)
+							return;
+						else
+							details.message = args.message
+						dialog.hide();
+
+						return frappe.call({
+							method: "frappe.core.doctype.feedback_trigger.feedback_trigger.send_feedback_alert",
+							args: {
+								reference_name: frm.doc.reference_name,
+								reference_doctype: frm.doc.reference_doctype,
+								alert_details: details,
+							},
+							freeze: true,
+							callback: function(r) {
+								frappe.msgprint(__("Feedback Alert for {0} is sent to {1}",
+									[frm.doc.reference_name, frm.doc.sender]));
+							}
+						})
+					});
+
+					dialog.show();
+				}
+			}
+		});
+	}
 });

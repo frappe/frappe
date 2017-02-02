@@ -713,4 +713,23 @@ fieldset[disabled] .form-control {
 .search-result {
   margin-bottom: 24px;
 }
-
+.note-editor {
+  margin-top: 5px;
+}
+.note-editor.note-frame {
+  border-color: #d1d8dd;
+}
+.note-editor .btn {
+  outline: none !important;
+}
+.note-editor .dropdown-style > li > a > * {
+  margin: 0;
+}
+.note-editor .fa.fa-check {
+  color: #36414C !important;
+}
+.note-editor .dropdown-menu {
+  z-index: 100;
+  max-height: 300px;
+  overflow: scroll;
+}
