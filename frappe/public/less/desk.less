@@ -518,10 +518,15 @@ textarea.form-control {
 		outline: none !important;
 	}
 
-	.dropdown-menu > li > a {
-		padding: 3px 20px;
+	.dropdown-style > li > a > * {
+		margin: 0;
 	}
 	.fa.fa-check {
 		color: @text-color !important;
+	}
+	.dropdown-menu {
+		z-index: 100;
+		max-height: 300px;
+		overflow: scroll;
 	}
 }

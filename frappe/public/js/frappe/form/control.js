@@ -1686,6 +1686,7 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 	make_input: function() {
 		this.has_input = true;
 		this.make_editor();
+		this.hide_elements_on_mobile();
 	},
 	make_editor: function() {
 		var me = this;
@@ -1763,6 +1764,17 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 			}
 		});
 		this.note_editor = $(this.input_area).find('.note-editor');
+	},
+	hide_elements_on_mobile: function() {
+		this.note_editor.find('.note-btn-underline,\
+			.note-btn-italic, .note-fontsize,\
+			.note-color, .note-height, .btn-codeview')
+			.addClass('hidden-xs');
+		if($('.toggle-sidebar').is(':visible')) {
+			// disable tooltips on mobile
+			this.note_editor.find('.note-btn')
+				.attr('data-original-title', '');
+		}
 	},
 	get_value: function() {
 		return this.editor.summernote('code');
