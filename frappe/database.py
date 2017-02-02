@@ -722,7 +722,7 @@ class Database:
 		self.sql("commit")
 		frappe.local.rollback_observers = []
 		self.flush_realtime_log()
-		if not frappe.flags.in_install and not frappe.flags.in_install_db: 
+		if not frappe.flags.in_install and not frappe.flags.in_install_db and not frappe.flags.in_install_app: 
 			frappe.enqueue('frappe.utils.global_search.sync_global_search', now=frappe.flags.in_test)
 
 	def flush_realtime_log(self):
