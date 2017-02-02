@@ -22,7 +22,8 @@ Clique em um artigo e você vai ver uma Web View padrão
 
 <img class="screenshot" alt="web view" src="{{docs_base_url}}/assets/img/web-view.png">
 
-Agora, se você quiser fazer uma List View melhor para o artigo, crie um arquivo chamado `list_item.html` na pasta `library_management/doctype/article`. Aqui está um exemplo de arquivo:
+Agora, se você quiser fazer uma List View melhor para o artigo, crie um arquivo chamado `row_template.html` na pasta
+`library_management/templates/includes/list/`. Aqui está um exemplo de arquivo:
 
 	{% raw %}<div class="row">
 		<div class="col-sm-4">

@@ -26,8 +26,8 @@ Cliquez sur un article et vous devriez voir une vue par défaut.
 
 <img class="screenshot" alt="web view" src="{{docs_base_url}}/assets/img/web-view.png">
 
-Maintenant, si vous voulez une meilleur liste pour vos articles, créez un fichier appelé `list_item.html` dans le 
-repertoire `library_management/doctype/article`. Voici un exemple du contenu de ce fichier:
+Maintenant, si vous voulez une meilleur liste pour vos articles, créez un fichier appelé `row_template.html` dans le
+repertoire `library_management/templates/includes/list/`. Voici un exemple du contenu de ce fichier:
 
 	{% raw %}<div class="row">
 		<div class="col-sm-4">

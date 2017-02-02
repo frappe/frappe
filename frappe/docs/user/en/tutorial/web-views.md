@@ -22,7 +22,8 @@ Click on one article and you will see the default web view
 
 <img class="screenshot" alt="web view" src="{{docs_base_url}}/assets/img/web-view.png">
 
-Now if you want to make a better list view for the article, drop a file called `list_item.html` in the `library_management/doctype/article` folder. Here is an example file:
+Now if you want to make a better list view for the article, drop a file called `row_template.html` in the
+`library_management/templates/includes/list/` folder. Here is an example file:
 
 	{% raw %}<div class="row">
 		<div class="col-sm-4">
