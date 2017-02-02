@@ -137,7 +137,8 @@ scheduler_events = {
 		"frappe.utils.scheduler.restrict_scheduler_events_if_dormant",
 		"frappe.limits.update_space_usage",
 		"frappe.email.doctype.auto_email_report.auto_email_report.send_daily",
-		"frappe.desk.page.backups.backups.delete_downloadable_backups"
+		"frappe.desk.page.backups.backups.delete_downloadable_backups",
+		"frappe.core.doctype.authentication_log.authentication_log.clear_authentication_logs"
 	],
 	"monthly": [
 		"frappe.email.doctype.auto_email_report.auto_email_report.send_monthly"

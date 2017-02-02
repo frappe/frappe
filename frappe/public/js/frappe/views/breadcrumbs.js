@@ -51,7 +51,7 @@ frappe.breadcrumbs = {
 					label = module_info ? module_info.label : breadcrumbs.module;
 
 
-				if(module_info) {
+				if(module_info && !module_info.blocked) {
 					$(repl('<li><a href="#modules/%(module)s">%(label)s</a></li>',
 						{ module: breadcrumbs.module, label: __(label) }))
 						.appendTo($breadcrumbs);
