@@ -322,7 +322,7 @@
    "bold": 0,
    "collapsible": 0,
    "columns": 0,
-   "depends_on": "eval:([\"Data\", \"Select\", \"Table\", \"Text\", \"Text Editor\", \"Link\", \"Small Text\", \"Long Text\", \"Read Only\", \"Heading\"].indexOf(doc.fieldtype) !== -1) && df.is_table === 0",
+   "depends_on": "eval:([\"Data\", \"Select\", \"Table\", \"Text\", \"Text Editor\", \"Link\", \"Small Text\", \"Long Text\", \"Read Only\", \"Heading\"].indexOf(doc.fieldtype) !== -1) && doc.is_table === 0",
    "fieldname": "in_global_search",
    "fieldtype": "Check",
    "hidden": 0,

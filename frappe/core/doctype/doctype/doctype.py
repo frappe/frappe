@@ -203,7 +203,7 @@ class DocType(Document):
 
 		delete_notification_count_for(doctype=self.name)
 		frappe.clear_cache(doctype=self.name)
-		if not frappe.flags.in_install  and not frappe.flags.in_install_db:
+		if not frappe.flags.in_install and not frappe.flags.in_install_db:
 			self.sync_global_search()
 
 	def sync_global_search(self):
