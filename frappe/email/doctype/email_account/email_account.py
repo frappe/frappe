@@ -361,12 +361,6 @@ class EmailAccount(Document):
 			communication.reference_doctype = parent.doctype
 			communication.reference_name = parent.name
 
-		# check if message is notification and disable notifications for this message
-		references = email.mail.get("References")
-		if references:
-			if "notification" in references:
-				communication.unread_notification_sent = 1
-
 	def set_sender_field_and_subject_field(self):
 		'''Identify the sender and subject fields from the `append_to` DocType'''
 		# set subject_field and sender_field
