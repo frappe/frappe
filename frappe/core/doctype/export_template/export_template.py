@@ -314,7 +314,7 @@ def get_template(xlsx_format, doctype=None, parent_doctype=None, all_doctypes="N
 		import openpyxl
 		wb = openpyxl.Workbook()
 		ws = wb.active
-		f = open('temp001.csv')
+		f = open(filename)
 		reader = csv.reader(f)
 		for row in reader:
 			ws.append(row)

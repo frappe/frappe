@@ -265,6 +265,7 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 			filters: this.filter_list.get_filters(),
 			save_list_settings_fields: 1,
 			with_childnames: 1,
+			file_format_type: this.file_format_type
 		}
 	},
 
@@ -676,11 +677,22 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 		}
 		var export_btn = this.page.add_menu_item(__('Export'), function() {
 			var args = me.get_args();
-			args.cmd = 'frappe.desk.reportview.export_query'
-			if(me.add_totals_row) {
-				args.add_totals_row = 1;
-			}
-			open_url_post(frappe.request.url, args);
+
+			frappe.prompt({fieldtype:"Select", label: __("Select File Format"), fieldname:"file_format_type",
+				options:"xlsx Format\ncsv Format", default:"xlsx Format", reqd: 1},
+				function(data) {
+
+					args.cmd = 'frappe.desk.reportview.export_query';
+					args.file_format_type = data.file_format_type;
+
+					if(me.add_totals_row) {
+						args.add_totals_row = 1;
+					}
+
+					open_url_post(frappe.request.url, args);
+
+				}, __("Export Report Data"), __("Download"));
+
 		}, true);
 	},
 

@@ -30,9 +30,8 @@ frappe.ui.form.on('Data Import', {
 		}
 
 		if (frm.doc.log_details) {
-			frappe.hide_msgprint(true);
-			frm.events.write_messages(frm);
 
+			frm.events.write_messages(frm);
 			if (frm.doc.freeze_doctype) {
 				frm.disable_save();
 				frm.set_read_only();
@@ -138,13 +137,21 @@ frappe.ui.form.on('Data Import', {
 		msg = JSON.parse(frm.doc.log_details);
 		var $log_wrapper = $(cur_frm.fields_dict.import_log.wrapper).empty();
 		
+		frappe.hide_msgprint(true);
+		frappe.hide_progress();
+
 		if (msg.error == false) {
+
+			frappe.msgprint(__("Import Successful"));
 			$(frappe.render_template("log_detail_template", {data:msg.messages, error:msg.error}))
 				.appendTo($log_wrapper);	
 		}
+
 		else {
-			frappe.msgprint(__("Error in Importing"));
-			$(frappe.render_template("log_detail_template", {data:["","","",""], error:msg.error}))
+
+			frappe.msgprint(__("Import Failed"));
+			msg.messages[1] = msg.messages[1].split("\n").join("<br>");
+			$(frappe.render_template("log_detail_template", {data:msg.messages, error:msg.error}))
 				.appendTo($log_wrapper);
 		}
 	}

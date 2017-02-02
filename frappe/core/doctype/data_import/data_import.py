@@ -190,20 +190,23 @@ def import_raw(file_path,doc_name):
 						setattr(new_doc, column_map[j], cell.value)
 				new_doc.insert()
 				new_doc.save()
-				log([i,row[0].value,(getlink(di_doc.reference_doctype,new_doc.name)),"Row Inserted"])
+				log([i,(getlink(di_doc.reference_doctype,new_doc.name)),"Row Inserted"])
 
 			except Exception, e:
 				error = True
 				if new_doc:
 					frappe.errprint(new_doc if isinstance(new_doc, dict) else new_doc.as_dict())
 				err_msg = frappe.local.message_log and "\n\n".join(frappe.local.message_log) or cstr(e)
-				log([i,row[0].value,"","Error"])
-				# log('Error for insertion')
+
 				frappe.errprint(frappe.get_traceback())
-			
+
+				ret = []
+				ret.append(err_msg)
+				ret.append(frappe.get_traceback())
+
 			finally:
 				frappe.local.message_log = []
-			
+
 			if error:
 				frappe.db.rollback()
 			else:
@@ -216,6 +219,7 @@ def import_raw(file_path,doc_name):
 		di_doc.log_details = json.dumps(log_message)
 		di_doc.freeze_doctype = 1
 		di_doc.save()
+		frappe.db.commit()
 	
 
 def import_template(doc_name, file_path, rows = None, ignore_links=False, pre_process=None, via_console=False):
@@ -431,8 +435,7 @@ def import_template(doc_name, file_path, rows = None, ignore_links=False, pre_pr
 				parent = frappe.get_doc(parenttype, doc["parent"])
 				doc = parent.append(parentfield, doc)
 				parent.save()
-				# log('Inserted row for %s at #%s' % (as_link(parenttype,doc.parent), unicode(doc.idx)))
-				log([i, row[1], getlink(di_doc.reference_doctype,new_doc.name), "Row Inserted"])
+				log([i, getlink(di_doc.reference_doctype,new_doc.name), "Row Inserted"])
 			else:
 				if di_doc.only_new_records and doc["name"] and frappe.db.exists(doctype, doc["name"]):
 					original = frappe.get_doc(doctype, doc["name"])
@@ -442,8 +445,7 @@ def import_template(doc_name, file_path, rows = None, ignore_links=False, pre_pr
 					original.name = original_name
 					original.flags.ignore_links = ignore_links
 					original.save()
-					# log('Updated row (#%d) %s' % (row_idx + 1, as_link(original.doctype, original.name)))
-					log([row_idx+1, row[1], getlink(original.doctype, original.name), "Row updated"])
+					log([row_idx+1, getlink(original.doctype, original.name), "Row updated"])
 					doc = original
 				else:
 					if not di_doc.only_update:
@@ -451,25 +453,25 @@ def import_template(doc_name, file_path, rows = None, ignore_links=False, pre_pr
 						prepare_for_insert(doc)
 						doc.flags.ignore_links = ignore_links
 						doc.insert()
-						# log('Inserted row (#%d) %s' % (row_idx + 1, as_link(doc.doctype, doc.name)))
-						log([row_idx+1, row[1], getlink(doc.doctype, doc.name), "Row inserted"])
+						log([row_idx+1, getlink(doc.doctype, doc.name), "Row inserted"])
 					else:
-						# log('Ignored row (#%d) %s' % (row_idx + 1, row[1]))
-						log([row_idx+1, row[1], "", "Row ignored"])
+						log([row_idx+1, "", "Row ignored"])
 				if di_doc.submit_after_import:
 					doc.submit()
-					# log('Submitted row (#%d) %s' % (row_idx + 1, as_link(doc.doctype, doc.name)))
-					log([row_idx+1, row[1], getlink(doc.doctype, doc.name), "Row submitted"])
+					log([row_idx+1, getlink(doc.doctype, doc.name), "Row submitted"])
 
 		except Exception, e:
 			error = True
 			if doc:
 				frappe.errprint(doc if isinstance(doc, dict) else doc.as_dict())
 			err_msg = frappe.local.message_log and "\n\n".join(frappe.local.message_log) or cstr(e)
-			# log('Error for row (#%d) %s : %s' % (row_idx + 1, len(row)>1 and row[1] or "", err_msg))
-			log([row_idx+1, len(row)>1 and row[1] or "", "", err_msg])
-		
+
 			frappe.errprint(frappe.get_traceback())
+
+			ret = []
+			ret.append(err_msg)
+			ret.append(frappe.get_traceback())
+
 		finally:
 			frappe.local.message_log = []
 
@@ -488,6 +490,7 @@ def import_template(doc_name, file_path, rows = None, ignore_links=False, pre_pr
 		di_doc.log_details = json.dumps(log_message)
 		di_doc.freeze_doctype = 1
 		di_doc.save()
+		frappe.db.commit()
 
 	def get_parent_field(doctype, parenttype):
 		parentfield = None
