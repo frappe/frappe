@@ -203,13 +203,12 @@ class DocType(Document):
 
 		delete_notification_count_for(doctype=self.name)
 		frappe.clear_cache(doctype=self.name)
-		if not frappe.flags.in_install and not frappe.flags.in_install_db:
+		if not frappe.flags.in_install:
 			self.sync_global_search()
 
 	def sync_global_search(self):
 		global_search_fields_before_update = [d.fieldname for d in self.before_update.fields if d.in_global_search]
 		global_search_fields_after_update = [d.fieldname for d in self.fields if d.in_global_search]
-
 		if set(global_search_fields_before_update) != set(global_search_fields_after_update):
 			frappe.enqueue('frappe.utils.global_search.rebuild_for_doctype', now=frappe.flags.in_test, doctype=self.name)
 

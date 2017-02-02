@@ -787,8 +787,8 @@ class Document(BaseDocument):
 		self.clear_cache()
 		self.notify_update()
 
-		if not frappe.flags.in_install and not frappe.flags.in_install_db:
-			frappe.enqueue('frappe.utils.global_search.update_global_search', now=frappe.flags.in_test, doc=self) 
+		if not frappe.flags.in_install:
+			frappe.enqueue('frappe.utils.global_search.update_global_search', now=frappe.flags.in_test, doc=self)
 
 		if self._doc_before_save and not self.flags.ignore_version:
 			self.save_version()
