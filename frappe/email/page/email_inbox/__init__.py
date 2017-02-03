@@ -5,45 +5,7 @@
 from __future__ import unicode_literals
 import frappe
 import json
-from frappe.model.document import Document
 from frappe.desk.form.load import get_attachments
-
-@frappe.whitelist()
-def get_list(email_account, start, page_length):
-	inbox_list = []
-	communications = frappe.db.sql("""SELECT name, sender, sender_full_name, actualdate, recipients,
-		  communication_medium AS comment_type, subject, status, reference_doctype, reference_name, timeline_doctype, 
-		  timeline_name, timeline_label, sent_or_received, uid, message_id, seen, nomatch, has_attachment
-		FROM tabCommunication
-		WHERE email_account = %(email_account)s AND deleted = 0
-		ORDER BY actualdate DESC
-		LIMIT %(page_length)s OFFSET %(START)s""", {"email_account": email_account, "start": int(start),
-	                                                "page_length": int(page_length)}, as_dict=1)
-	for c in communications:
-		comm = {}
-
-		comm["name"] = c.get('name')
-		comm["reference_doctype"] = c.get('reference_doctype')
-		comm["reference_name"] = c.get('reference_name')
-		if c.get('recipients') != None:
-			comm["recipients"] = c.get('recipients').replace('"', "").strip("<>")
-		comm["sender"] = c.get('sender')
-		comm["sender_full_name"] = c.get('sender_full_name')
-		comm["actualdate"] = c.get('actualdate')
-		comm["subject"] = c.get('subject')
-		comm["status"] = c.get('status')
-		comm["content"] = c.get('content')
-		comm["timeline_doctype"] = c.get('timeline_doctype')
-		comm["timeline_name"] = c.get('timeline_name')
-		comm["timeline_label"] = c.get('timeline_label')
-		comm["sent_or_received"] = c.get('sent_or_received')
-		comm["uid"] = c.get('uid')
-		comm["message_id"] = c.get("message_id")
-		comm["seen"] = c.get('seen')
-		comm["nomatch"] = c.get('nomatch')
-		comm["has_attachment"] = c.get('has_attachment')
-		inbox_list.append(comm)
-	return inbox_list
 
 @frappe.whitelist()
 def get_email_content(name):
@@ -104,7 +66,7 @@ def get_length(email_account):
 def get_accounts(user):
 	try:
 		return frappe.db.sql("""SELECT email_account,email_id
-		FROM `tabUser Emails`
+		FROM `tabUser Email`
 		WHERE parent = %(user)s
 		ORDER BY idx""", {"user": user}, as_dict=1)
 	except:
