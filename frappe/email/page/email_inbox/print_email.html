@@ -1,0 +1,13 @@
+<p><strong>{%= __("From") %}: </strong>{%=data.sender_full_name %} {%= data.sender_full_name ? "<"+data.sender+">" :data.sender %}</p>
+<p><strong>{%= __("To") %}: </strong>{%=data.recipients %} </p>
+{% if(data.cc) { %}<p><strong>{%= __("CC") %}:</strong>{%=data.cc %} </p> {% } %}
+<p><strong>{%= __("Subject") %}: </strong>{%=data.subject %}</p>
+<p><strong>{%= __("Date") %}: </strong>{%= frappe.form.formatters.Datetime(data.communication_date) %}</p>
+
+{%= frappe.render_template("inbox_email", {data:data}) %}
+<script>
+window.print();
+setTimeout(function(){
+	window.close();
+}, 1000);
+</script>

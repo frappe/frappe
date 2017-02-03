@@ -32,6 +32,15 @@ frappe.Inbox = frappe.ui.Listing.extend({
 		this.start = 0;
 		this.cur_page = 1;
 		this.no_result_message = 'No Emails to Display';
+		//check if mailto link
+		var email = frappe.get_route_str().split("?")
+			if (email.length>1){
+				window.location.hash = window.location.hash.split("?")[0]
+				new frappe.views.CommunicationComposer({
+					doc: {},
+					recipients: email[1].replace("mailto:",""),
+				});
+			}
 
 		this.render_sidemenu();
 		if (this.account) {
@@ -357,7 +366,10 @@ frappe.Inbox = frappe.ui.Listing.extend({
 			me.delete_email({n:row.name, u:row.uid});
 			emailitem.hide()
 		});
-
+		$(emailitem.$wrapper).find(".print-link").on("click", function () {
+			var newWindow = window.open();
+			newWindow.document.write(frappe.render_template("print_email", {data:c}))
+		});
 		$(emailitem.$wrapper).find(".company-link").on("click", function () {
 			me.company_select(row, true)});
 		me.add_reply_btn_event(emailitem, c);
@@ -561,7 +573,49 @@ frappe.Inbox = frappe.ui.Listing.extend({
 					doc: {},
 					sender: sender
 			});
-		},"fa-plus","New Email");
+		},"fa fa-plus","New Email");
+		//register mailto-handler
+		me.page.add_action_icon("icon-gear", function(){
+			var d = new frappe.ui.Dialog({
+				title:"Settings",
+				fields:[{
+					fieldtype: "Heading",
+					label: __("Set Default Email Client"),
+					fieldname: "set_default_email"
+				},{"fieldtype": "Button",
+					click: me.setup_mailto,
+					label: __("Set Default Email Client"), 
+					description: __("Set your OS default email client to open Mailto links")
+				}]
+			})
+			d.show()
+		})
+	},
+	setup_mailto:function() {
+		var OSName = "Unknown";
+		// Safari 3.0+ "[object HTMLElementConstructor]" 
+		var isSafari = Object.prototype.toString.call(window.HTMLElement).indexOf('Constructor') > 0 || (function (p) { return p.toString() === "[object SafariRemoteNotification]"; })(!window['safari'] || safari.pushNotification);
+		// Internet Explorer 6-11
+		var isIE = /*@cc_on!@*/false || !!document.documentMode;
+
+		if(isSafari  || isIE) {
+			msgprint("sorry your browser doesnt support this feature supported use chrome or firefox")
+		} else {
+			if(window.navigator.userAgent.indexOf("Windows NT 10.0") != -1) OSName = "Windows 10";
+			if(window.navigator.userAgent.indexOf("Windows NT 6.2") != -1) OSName = "Windows 8";
+			if(window.navigator.userAgent.indexOf("Windows NT 6.1") != -1) OSName = "Windows 7";
+			if(window.navigator.userAgent.indexOf("Windows NT 6.0") != -1) OSName = "Windows Vista";
+			if(window.navigator.userAgent.indexOf("Windows NT 5.1") != -1) OSName = "Windows XP";
+			if(window.navigator.userAgent.indexOf("Windows NT 5.0") != -1) OSName = "Windows 2000";
+			if(window.navigator.userAgent.indexOf("Mac") != -1) OSName = "Mac/iOS";
+			if(window.navigator.userAgent.indexOf("X11") != -1) OSName = "UNIX";
+			if(window.navigator.userAgent.indexOf("Linux") != -1) OSName = "Linux";
+			if(OSName == "Windows 10"){
+				msgprint("To setup the default email client select allow when your browser asks " +
+					"then select your browser as the default email handler in windows 10 default programs")
+			}
+			window.navigator.registerProtocolHandler("mailto", window.location.href + "?%s", "ERPNext Inbox")
+		}
 	},
     toggle_actions: function () {
         var me = this;
