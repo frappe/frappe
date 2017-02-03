@@ -616,6 +616,12 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 		autoClose: true,
 		todayButton: new Date()
 	},
+	set_input: function(value) {
+		this._super(value);
+		if(value && this.last_value !== this.value) {
+			this.datepicker.selectDate(new Date(value));
+		}
+	},
 	make_input: function() {
 		this._super();
 		this.set_date_options();
@@ -1298,6 +1304,13 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 					label: label,
 					value: item.value
 				};
+			},
+			filter: function(item, input) {
+				var value = item.value.toLowerCase();
+				if(value.indexOf('__link_option') !== -1 ||
+					value.indexOf(input) !== -1) {
+					return true;
+				}
 			},
 			item: function (item, input) {
 				var parts = item.split("%%%"),
