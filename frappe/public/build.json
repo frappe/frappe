@@ -22,10 +22,6 @@
 		"website/js/website.js",
 		"public/js/frappe/misc/rating_icons.html"
 	],
-	"js/editor.min.js": [
-		"public/js/lib/summernote/summernote.js",
-		"public/js/lib/summernote/summernote.css"
-	],
 	"js/dialog.min.js": [
 		"public/js/frappe/dom.js",
 		"public/js/frappe/ui/modal.html",
@@ -65,6 +61,7 @@
 		"public/js/lib/awesomplete/awesomplete.min.js",
 		"public/js/lib/Sortable.min.js",
 		"public/js/lib/taggle/taggle.min.js",
+		"public/js/lib/jquery/jquery.hotkeys.js",
 		"public/js/lib/summernote/summernote.js",
 		"public/js/lib/notify.js",
 		"public/js/lib/bootstrap.min.js",

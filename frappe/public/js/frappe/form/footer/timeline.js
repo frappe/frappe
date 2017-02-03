@@ -312,7 +312,7 @@ frappe.ui.form.Timeline = Class.extend({
 	},
 
 	is_communication_or_comment: function(c) {
-		return c.communication_type==="Communication" 
+		return c.communication_type==="Communication"
 		|| c.communication_type==="Feedback"
 		|| (c.communication_type==="Comment" && (c.comment_type==="Comment"||c.comment_type==="Relinked"));
 	},
