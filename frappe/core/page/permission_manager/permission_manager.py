@@ -16,7 +16,11 @@ def get_roles_and_doctypes():
 	send_translations(frappe.get_lang_dict("doctype", "DocPerm"))
 	return {
 		"doctypes": [d[0] for d in frappe.db.sql("""select name from `tabDocType` dt where
-			istable=0 and name not in ('DocType')""")],
+			istable=0 and
+			name not in ('DocType') and
+			exists(select * from `tabDocField` where parent=dt.name) and
+			( exists(select * from `tabDocPerm` dp,`tabRole` role where dp.role = role.name and dp.parent=dt.name and not role.disabled) or 
+			not exists(select * from `tabDocPerm` dp,`tabRole` role where dp.role = role.name and dp.parent=dt.name))""")],
 		"roles": [d[0] for d in frappe.db.sql("""select name from tabRole where
 			name != 'Administrator' and disabled=0""")]
 	}
