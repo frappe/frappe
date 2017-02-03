@@ -224,6 +224,11 @@ frappe.ui.Listing = Class.extend({
 		var args = this.get_call_args();
 		this.save_list_settings_locally(args);
 
+		// list_settings are saved by db_query.py when dirty
+		$.extend(args, {
+			list_settings: frappe.model.list_settings[this.doctype]
+		});
+
 		return frappe.call({
 			method: this.opts.method || 'frappe.desk.query_builder.runquery',
 			type: "GET",
@@ -251,7 +256,7 @@ frappe.ui.Listing = Class.extend({
 
 			if(!frappe.utils.arrays_equal(args.filters, list_settings.filters)) {
 				//dont save filters in Kanban view
-				if(!frappe.get_route()[2]==="Kanban") {
+				if(this.current_view!=="Kanban") {
 					// settings are dirty if filters change
 					list_settings.filters = args.filters || [];
 					different = true;
@@ -271,7 +276,7 @@ frappe.ui.Listing = Class.extend({
 			// save fields in list settings
 			if(args.save_list_settings_fields) {
 				list_settings.fields = args.fields;
-			};
+			}
 
 			if(different) {
 				list_settings.updated_on = moment().toString();

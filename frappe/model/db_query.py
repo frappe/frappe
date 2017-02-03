@@ -31,7 +31,7 @@ class DatabaseQuery(object):
 		ignore_permissions=False, user=None, with_comment_count=False,
 		join='left join', distinct=False, start=None, page_length=None, limit=None,
 		ignore_ifnull=False, save_list_settings=False, save_list_settings_fields=False,
-		update=None, add_total_row=None):
+		update=None, add_total_row=None, list_settings=None):
 		if not ignore_permissions and not frappe.has_permission(self.doctype, "read", user=user):
 			raise frappe.PermissionError, self.doctype
 
@@ -74,6 +74,8 @@ class DatabaseQuery(object):
 		self.update = update
 		self.list_settings_fields = copy.deepcopy(self.fields)
 		#self.debug = True
+		if list_settings:
+			self.list_settings = json.loads(list_settings)
 
 		if query:
 			result = self.run_custom_query(query)
@@ -487,6 +489,9 @@ class DatabaseQuery(object):
 	def update_list_settings(self):
 		# update list settings if new search
 		list_settings = json.loads(get_list_settings(self.doctype) or '{}')
+
+		if hasattr(self, 'list_settings'):
+			list_settings.update(self.list_settings)
 		list_settings['filters'] = self.filters
 		list_settings['limit'] = self.limit_page_length
 		list_settings['order_by'] = self.order_by

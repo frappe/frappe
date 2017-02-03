@@ -130,6 +130,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		this.meta = locals.DocType[this.doctype];
 		this.$page.find('.frappe-list-area').empty(),
 		this.init_list_settings();
+		this.load_last_view();
 		this.setup_view_variables();
 		this.setup_listview();
 		this.init_list(false);
@@ -149,6 +150,19 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		} else {
 			this.page.set_title(__(this.doctype));
 		}
+	},
+
+	load_last_view: function() {
+		var ls = this.list_settings;
+		var route = ['List', this.doctype];
+
+		if(ls.last_view !== 'List')
+			route.push(ls.last_view);
+		
+		if(ls.last_view === 'Kanban')
+			route.push(ls.last_kanban_board);
+
+		frappe.set_route(route);
 	},
 
 	init_headers: function() {
@@ -399,6 +413,33 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		}
 	},
 
+	save_list_settings_locally: function (args) {
+		this._super(args);
+		if (this.opts.save_list_settings && this.doctype && !this.docname) {
+			list_settings = frappe.model.list_settings[this.doctype];
+
+			if(!list_settings) return;
+
+			var different = false;
+			// save last view
+			if (list_settings.last_view !== this.current_view) {
+				list_settings.last_view = this.current_view;
+				different = true;
+			}
+
+			if (this.current_view === "Kanban") {
+				if (list_settings.last_kanban_board !== this.kanban_board) {
+					list_settings.last_kanban_board = this.kanban_board;
+					different = true;
+				}
+			}
+
+			if(different) {
+				list_settings.updated_on = moment().toString();
+			}
+		}
+	},
+
 	set_filters_before_run: function() {
 		// set filters from frappe.route_options
 		// before switching pages, frappe.route_options can have pre-set filters
@@ -541,12 +582,14 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		var show_success = function() {
 			show_alert({message:__("Saved"), indicator:'green'}, 1);
 		}
+		var gantt_view_mode = me.list_settings.gantt_view_mode || 'Day';
 
 		frappe.require([
 				"assets/frappe/js/lib/snap.svg-min.js",
 				"assets/frappe/js/lib/frappe-gantt/frappe-gantt.js"
 			], function() {
 				me.gantt = new Gantt("#"+id, tasks, {
+					view_mode: gantt_view_mode,
 					date_format: "YYYY-MM-DD",
 					on_click: function (task) {
 						frappe.set_route('Form', task.doctype, task.id);
@@ -564,14 +607,14 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 						}
 					},
 					on_view_change: function(mode) {
-						me.list_settings.view_mode = mode;
+						me.list_settings.gantt_view_mode = mode;
 					}
 				});
 
 			var view_modes = me.gantt.config.view_modes || [];
 			var dropdown = "<div class='dropdown pull-right'>" +
 				"<a class='text-muted dropdown-toggle' data-toggle='dropdown'>" +
-				"<span class='dropdown-text'>"+__('Day')+"</span><i class='caret'></i></a>" +
+				"<span class='dropdown-text'>"+__(gantt_view_mode)+"</span><i class='caret'></i></a>" +
 				"<ul class='dropdown-menu'></ul>" +
 				"</div>";
 
