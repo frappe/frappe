@@ -723,15 +723,14 @@ class Database:
 		self.sql("commit")
 		frappe.local.rollback_observers = []
 		self.flush_realtime_log()
-		if not frappe.flags.in_install and not frappe.flags.in_install_db: 
-			frappe.enqueue('frappe.utils.global_search.sync_global_search', now=frappe.flags.in_test) 
+		# frappe.enqueue('frappe.utils.global_search.sync_global_search', now=frappe.flags.in_test)
+		# sync_global_search() 
 
 	def flush_realtime_log(self):
 		for args in frappe.local.realtime_log:
 			frappe.async.emit_via_redis(*args)
 
 		frappe.local.realtime_log = []
-
 
 	def rollback(self):
 		"""`ROLLBACK` current transaction."""
