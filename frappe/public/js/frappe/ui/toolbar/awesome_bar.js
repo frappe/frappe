@@ -245,6 +245,7 @@ frappe.search.AwesomeBar = Class.extend({
 
 	make_global_search: function(txt) {
 		var me = this;
+		console.log("here in gs");
 		return [{
 			label: __("Search for '" + txt.bold() + "'"),
 			value: __("Search for '" + txt + "'"),
@@ -387,7 +388,7 @@ frappe.search.AwesomeBar = Class.extend({
 						out.push(option("Report", ["Report", target]));
 					}
 					if(frappe.boot.calendars.indexOf(target) !== -1) {
-						out.push(option("Calendar", ["Calendar", target]));
+						out.push(option("Calendar", ["List", target, "Calendar"]));
 						out.push(option("Gantt", ["List", target, "Gantt"]));
 					}
 				}
