@@ -6,8 +6,10 @@
 
 {%= frappe.render_template("inbox_email", {data:data}) %}
 <script>
-window.print();
 setTimeout(function(){
-	window.close();
-}, 1000);
+	window.print();
+	setTimeout(function(){
+		window.close();
+	}, 1000);
+}, 100);
 </script>
