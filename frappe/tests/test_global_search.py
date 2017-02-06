@@ -55,6 +55,7 @@ class TestGlobalSearch(unittest.TestCase):
 		self.assertTrue('testing global search' in results[0].content)
 
 	def test_update_fields(self):
+		self.insert_test_events()
 		results = global_search.search('Every Month')
 		self.assertEquals(len(results), 0)
 		doctype = "Event"
@@ -97,15 +98,16 @@ class TestGlobalSearch(unittest.TestCase):
 				'subject': text,
 				'starts_on': frappe.utils.now_datetime()
 			})
-			doc.append('roles', dict(role='Student'))
+			doc.append('roles', dict(role='Administrator'))
 			doc.insert()
 		
 		global_search.sync_global_search()
-		results = global_search.search('Student')
+		results = global_search.search('Administrator')
 		self.assertEquals(len(results), 9)
 
 	def tearDown(self):
 		frappe.db.sql('delete from `tabProperty Setter`')
 		frappe.clear_cache(doctype='Event')
+		frappe.db.sql('delete from `tabEvent`')
 		frappe.db.sql('delete from `tabEvent Role`')
 		frappe.db.sql('delete from __global_search')

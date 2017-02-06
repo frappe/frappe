@@ -62,7 +62,14 @@ class DocType(Document):
 		if not self.is_new():
 			self.setup_fields_to_fetch() 
 		self.update_fields_to_fetch()
+<<<<<<< HEAD
 		self.before_update = frappe.get_doc('DocType', self.name)
+=======
+		if frappe.get_doc('DocType', self.name):
+			self.before_update = frappe.get_doc('DocType', self.name)
+		if not self.is_new():
+			self.setup_fields_to_fetch()
+>>>>>>> e5fdf2a... Fix tests
 
 	def check_developer_mode(self):
 		"""Throw exception if not developer mode or via patch"""
