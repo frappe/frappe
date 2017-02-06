@@ -132,6 +132,10 @@ frappe.ui.form.Control = Class.extend({
 				this.last_value = value;
 			}
 		} else {
+			console.log(this.df.fieldname, value, this.doc);
+			if(this.doc) {
+				this.doc[this.df.fieldname] = value;
+			}
 			this.set_input(value);
 		}
 	},
@@ -338,6 +342,9 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 				var set_input = function(before, after) {
 					if(before !== after) {
 						me.set_input(after);
+					}
+					if(me.doc) {
+						me.doc[me.df.fieldname] = value;
 					}
 					me.set_mandatory && me.set_mandatory(after);
 					if(me.after_validate) {
@@ -609,6 +616,12 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 		autoClose: true,
 		todayButton: new Date()
 	},
+	set_input: function(value) {
+		this._super(value);
+		if(value && this.last_value !== this.value) {
+			this.datepicker.selectDate(new Date(value));
+		}
+	},
 	make_input: function() {
 		this._super();
 		this.set_date_options();
@@ -665,12 +678,14 @@ frappe.ui.form.ControlTime = frappe.ui.form.ControlData.extend({
 		var me = this;
 		this._super();
 		this.$input.datepicker({
+			language: "en",
 			timepicker: true,
 			onlyTimepicker: true,
-			timeFormat: "hh:ii",
+			timeFormat: "hh:ii:ss",
 			onSelect: function(dateObj) {
 				me.set_value(dateObj);
-			}
+			},
+			todayButton: new Date()
 		});
 		this.datepicker = this.$input.data('datepicker');
 		this.refresh();
@@ -1290,6 +1305,13 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 					value: item.value
 				};
 			},
+			filter: function(item, input) {
+				var value = item.value.toLowerCase();
+				if(value.indexOf('__link_option') !== -1 ||
+					value.indexOf(input) !== -1) {
+					return true;
+				}
+			},
 			item: function (item, input) {
 				var parts = item.split("%%%"),
 				d = { value: parts[0], description: parts[1] };
@@ -1469,7 +1491,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 				args.query = get_query;
 			} else {
 				// get_query by function
-				var q = (get_query)(this.frm && this.frm.doc, this.doctype, this.docname);
+				var q = (get_query)(this.frm && this.frm.doc || this.doc, this.doctype, this.docname);
 
 				if (typeof(q)==="string") {
 					// returns a string
@@ -1671,11 +1693,12 @@ frappe.ui.form.ControlTable = frappe.ui.form.Control.extend({
 		this.grid = new frappe.ui.form.Grid({
 			frm: this.frm,
 			df: this.df,
-			perm: this.perm || this.frm.perm,
+			perm: this.perm || (this.frm && this.frm.perm) || this.df.perm,
 			parent: this.wrapper
 		})
-		if(this.frm)
+		if(this.frm) {
 			this.frm.grids[this.frm.grids.length] = this;
+		}
 
 		// description
 		if(this.df.description) {
@@ -1688,6 +1711,11 @@ frappe.ui.form.ControlTable = frappe.ui.form.Control.extend({
 			me.grid.refresh();
 			return false;
 		});
+	},
+	get_parsed_value: function() {
+		if(this.grid) {
+			return this.grid.get_data();
+		}
 	}
 })
 

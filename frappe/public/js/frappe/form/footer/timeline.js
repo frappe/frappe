@@ -216,17 +216,13 @@ frappe.ui.form.Timeline = Class.extend({
 	},
 
 	prepare_timeline_item: function(c) {
-		if(!c.sender) c.sender = this.frm.doc.owner;
+		if(!c.sender) c.sender = c.owner;
 
 		if(c.sender && c.sender.indexOf("<")!==-1) {
 			c.sender = c.sender.split("<")[1].split(">")[0];
 		}
 
-		if(c.sender) {
-			c.user_info = frappe.user_info(c.sender);
-		} else {
-			c.user_info = frappe.user_info(c.owner);
-		}
+		c.user_info = frappe.user_info(c.sender);
 
 		c["delete"] = "";
 		c["edit"] = "";
@@ -312,7 +308,7 @@ frappe.ui.form.Timeline = Class.extend({
 	},
 
 	is_communication_or_comment: function(c) {
-		return c.communication_type==="Communication" 
+		return c.communication_type==="Communication"
 		|| c.communication_type==="Feedback"
 		|| (c.communication_type==="Comment" && (c.comment_type==="Comment"||c.comment_type==="Relinked"));
 	},

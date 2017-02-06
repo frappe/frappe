@@ -462,6 +462,18 @@ frappe.PrintFormatBuilder = Class.extend({
 						fieldtype: "Select",
 						options: [{'label': __('Left'), 'value': 'left'}, {'label': __('Right'), 'value': 'right'}]
 					},
+					{
+						label: __("Remove Field"),
+						fieldtype: "Button",
+						click: function() {
+							d.hide();
+							field.remove();
+						},
+						input_class: "btn-danger",
+						input_css: {
+							"margin-top": "10px"
+						}
+					}
 				],
 			});
 

@@ -23,7 +23,6 @@ page_js = {
 app_include_js = [
 	"assets/js/libs.min.js",
 	"assets/js/desk.min.js",
-	"assets/js/editor.min.js",
 	"assets/js/list.min.js",
 	"assets/js/form.min.js",
 	"assets/js/report.min.js",

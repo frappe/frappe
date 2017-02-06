@@ -358,7 +358,7 @@ frappe.PermissionEngine = Class.extend({
 						// exception: reverse
 						chk.prop("checked", !chk.prop("checked"));
 					} else {
-						me.get_perm(args.name)[args.ptype]=args.value;
+						me.get_perm(args.role)[args.ptype]=args.value;
 					}
 				}
 			})
@@ -508,8 +508,8 @@ frappe.PermissionEngine = Class.extend({
 			})
 	},
 
-	get_perm: function(name) {
-		return $.map(this.perm_list, function(d) { if(d.name==name) return d; })[0];
+	get_perm: function(role) {
+		return $.map(this.perm_list, function(d) { if(d.role==role) return d; })[0];
 	},
 	get_link_fields: function(doctype) {
 		return frappe.get_children("DocType", doctype, "fields",

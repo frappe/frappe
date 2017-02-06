@@ -362,9 +362,9 @@ class EmailAccount(Document):
 			communication.reference_name = parent.name
 
 		# check if message is notification and disable notifications for this message
-		references = email.mail.get("References")
-		if references:
-			if "notification" in references:
+		isnotification = email.mail.get("isnotification")
+		if isnotification:
+			if "notification" in isnotification:
 				communication.unread_notification_sent = 1
 
 	def set_sender_field_and_subject_field(self):

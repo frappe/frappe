@@ -199,8 +199,11 @@ h6.uppercase,
 .modal .form-layout {
   margin: -15px;
 }
+.modal .form-grid .form-layout {
+  margin: 0px;
+}
 .modal .form-section {
-  padding: 7px;
+  padding: 15px 7px;
 }
 .help ol {
   padding-left: 19px;
