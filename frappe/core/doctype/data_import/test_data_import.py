@@ -37,7 +37,8 @@ class TestDataImport(unittest.TestCase):
 		doc.reference_doctype = "User"
 		doc.import_file = file_path
 		doc.selected_row = 2
-		doc.selected_columns = json.dumps(["first_name","last_name","gender","phone","email"])
+		doc.selected_columns = json.dumps([["first_name","User"],["last_name","User"],["gender","User"],
+											["phone","User"],["email","User"]])
 		doc.submit_after_import = 0
 		doc.no_email = 1
 		doc.template = "raw"
