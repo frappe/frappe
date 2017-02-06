@@ -59,11 +59,10 @@ class DocType(Document):
 
 		self.make_amendable()
 		self.validate_website()
-		if not self.is_new():
-			self.setup_fields_to_fetch() 
-		self.update_fields_to_fetch()
-		if frappe.get_doc('DocType', self.name):
+		try:
 			self.before_update = frappe.get_doc('DocType', self.name)
+		except frappe.DoesNotExistError:
+			pass 
 		if not self.is_new():
 			self.setup_fields_to_fetch()
 

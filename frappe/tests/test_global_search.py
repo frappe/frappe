@@ -109,6 +109,6 @@ class TestGlobalSearch(unittest.TestCase):
 	def tearDown(self):
 		frappe.db.sql('delete from `tabProperty Setter`')
 		frappe.clear_cache(doctype='Event')
-		# frappe.db.sql('delete from `tabEvent`')
+		frappe.db.sql('delete from `tabEvent`')
 		frappe.db.sql('delete from `tabEvent Role`')
 		frappe.db.sql('delete from __global_search')
