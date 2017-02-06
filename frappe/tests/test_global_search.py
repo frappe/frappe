@@ -18,6 +18,7 @@ class TestGlobalSearch(unittest.TestCase):
 		make_property_setter(doctype, "subject", "in_global_search", 1, "Int")
 		make_property_setter(doctype, "event_type", "in_global_search", 1, "Int")
 		make_property_setter(doctype, "roles", "in_global_search", 1, "Int")
+		make_property_setter(doctype, "repeat_on", "in_global_search", 0, "Int")
 
 	def insert_test_events(self):
 		frappe.db.sql('delete from tabEvent')
@@ -32,7 +33,7 @@ class TestGlobalSearch(unittest.TestCase):
 				repeat_on='Every Month',
 				starts_on=frappe.utils.now_datetime())).insert()
 
-		global_search.sync_global_search()
+		frappe.db.commit()
 
 	def test_search(self):
 		self.insert_test_events()
@@ -48,7 +49,7 @@ class TestGlobalSearch(unittest.TestCase):
 		event = frappe.get_doc('Event', frappe.get_all('Event')[0].name)
 		event.subject = test_subject
 		event.save()
-		global_search.sync_global_search()
+		frappe.db.commit()
 
 		results = global_search.search('testing global search')
 
@@ -101,13 +102,13 @@ class TestGlobalSearch(unittest.TestCase):
 			doc.append('roles', dict(role='Administrator'))
 			doc.insert()
 		
-		global_search.sync_global_search()
+		frappe.db.commit()
 		results = global_search.search('Administrator')
 		self.assertEquals(len(results), 9)
 
 	def tearDown(self):
 		frappe.db.sql('delete from `tabProperty Setter`')
 		frappe.clear_cache(doctype='Event')
-		frappe.db.sql('delete from `tabEvent`')
+		# frappe.db.sql('delete from `tabEvent`')
 		frappe.db.sql('delete from `tabEvent Role`')
 		frappe.db.sql('delete from __global_search')

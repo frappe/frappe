@@ -791,11 +791,9 @@ class Document(BaseDocument):
 		self.notify_update()
 		
 		try:
-			frappe.enqueue('frappe.utils.global_search.update_global_search', now=frappe.flags.in_test, doc=self)
-			frappe.enqueue('frappe.utils.global_search.sync_global_search', now=frappe.flags.in_test)
+			frappe.enqueue('frappe.utils.global_search.update_global_search', now=frappe.flags.in_test, doc=self) 
 		except redis.exceptions.ConnectionError:
-			update_global_search(self)
-			sync_global_search()
+			update_global_search(self) 
 
 		if self._doc_before_save and not self.flags.ignore_version:
 			self.save_version()

@@ -38,16 +38,14 @@ def update_global_search(doc):
 	for field in doc.meta.get_global_search_fields():
 		if getattr(field, 'in_global_search', None) and doc.get(field.fieldname):
 			if getattr(field, 'fieldtype', None) == "Table":
-    				
-				child_doctype = getattr(field, 'options', None)
-				for d in frappe.get_all(child_doctype):
-    					
-				  	innerdoc = frappe.get_doc(child_doctype, d.name)
-				  	if innerdoc.parent == doc.name:
+    			
+				# Get children
+				for d in doc.get(field.fieldname):
+				  	if d.parent == doc.name:
     						  
-				  		for field in innerdoc.meta.fields:
-				  			if innerdoc.get(field.fieldname):
-				  				content.append(field.label + ": " + unicode(innerdoc.get(field.fieldname)))
+				  		for field in d.meta.fields:
+				  			if d.get(field.fieldname):
+				  				content.append(field.label + ": " + unicode(d.get(field.fieldname)))
 			else:
 				content.append(field.label + ": " + unicode(doc.get(field.fieldname)))
 
@@ -59,17 +57,16 @@ def sync_global_search():
 	'''Add values from `frappe.flags.update_global_search` to __global_search.
 		This is called internally at the end of the request.'''
 
-	if frappe.flags.update_global_search:
-		for value in frappe.flags.update_global_search:
-			frappe.db.sql('''
-				insert into __global_search
-					(doctype, name, content)
-				values
-					(%(doctype)s, %(name)s, %(content)s)
-				on duplicate key update
-					content = %(content)s''', value)
+	for value in frappe.flags.update_global_search:
+		frappe.db.sql('''
+			insert into __global_search
+				(doctype, name, content)
+			values
+				(%(doctype)s, %(name)s, %(content)s)
+			on duplicate key update
+				content = %(content)s''', value)
 
-		frappe.flags.update_global_search = []
+	frappe.flags.update_global_search = []
 
 def rebuild_for_doctype(doctype):
 	'''Rebuild entries of doctype's documents in __global_search on change of
