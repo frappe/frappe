@@ -14,8 +14,7 @@ from werkzeug.exceptions import NotFound, Forbidden
 import hashlib, json
 from frappe.model import optional_fields
 from frappe.utils.file_manager import save_url 
-from frappe.utils.global_search import update_global_search, sync_global_search
-# from frappe import 
+from frappe.utils.global_search import update_global_search, sync_global_search 
 
 # once_only validation
 # methods

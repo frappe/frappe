@@ -1379,11 +1379,7 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 0, 
-<<<<<<< HEAD
- "modified": "2017-01-27 16:11:37.344686", 
-=======
  "modified": "2017-02-03 06:59:30.717655", 
->>>>>>> 713cfed... Fix redis exception, remove commit enqueue, add gs in migrate
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "Communication", 

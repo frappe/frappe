@@ -31,8 +31,6 @@ def update_global_search(doc):
 
 	:param doc: Document to be added to global search'''
 
-	print "update"
-
 	if frappe.flags.update_global_search==None:
 		frappe.flags.update_global_search = []
 
@@ -61,7 +59,6 @@ def sync_global_search():
 	'''Add values from `frappe.flags.update_global_search` to __global_search.
 		This is called internally at the end of the request.'''
 
-	print "sync"
 	if frappe.flags.update_global_search:
 		for value in frappe.flags.update_global_search:
 			frappe.db.sql('''
