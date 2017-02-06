@@ -723,8 +723,8 @@ class Database:
 		self.sql("commit")
 		frappe.local.rollback_observers = []
 		self.flush_realtime_log()
-		# frappe.enqueue('frappe.utils.global_search.sync_global_search', now=frappe.flags.in_test)
-		# sync_global_search() 
+		if frappe.flags.update_global_search:
+			sync_global_search()
 
 	def flush_realtime_log(self):
 		for args in frappe.local.realtime_log:
