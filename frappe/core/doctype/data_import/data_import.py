@@ -101,27 +101,45 @@ class DataImport(Document):
 			Fuzzy match the fieldname and input column 
 		'''
 		new_doc = frappe.new_doc(self.reference_doctype)
-		doc_field = [frappe.unscrub(field.fieldname) for field in new_doc.meta.fields if field.fieldtype not in 
-					['Section Break','Column Break','HTML','Table','Button','Image','Fold','Heading']]
+		doctype_list = [new_doc]
+		for d in frappe.get_meta(self.reference_doctype).get_table_fields():
+			doctype_list.append(d)
 		
 		max_match = 0
-		matched_field = ''
-		for field in doc_field:
-			seq=difflib.SequenceMatcher(None, str(field), str(column_name))
-			d=seq.ratio()*100
-			if d > max_match:
-				max_match = d
-				matched_field = field
-		
+		matched_field = None
+		matched_doctype = None
+		matched_doctype_fieldname = None
+
+		for d in doctype_list:
+			doc_field = [frappe.unscrub(field.fieldname) for field in d.meta.fields if field.fieldtype not in 
+						['Section Break','Column Break','HTML','Table','Button','Image','Fold','Heading']]
+			
+			for field in doc_field:
+				seq=difflib.SequenceMatcher(None, str(field), str(column_name))
+				diff = seq.ratio()*100
+				if diff > max_match:
+					max_match = diff
+					matched_field = field
+					matched_doctype = d.doctype
+					if not d.doctype == self.reference_doctype:
+						matched_doctype_fieldname = d.fieldname
+					else:
+						matched_doctype_fieldname = None
+
 		if max_match > 70:
-			return frappe.scrub(matched_field)
+			return [frappe.scrub(matched_field),matched_doctype,matched_doctype_fieldname]
 		else:
-			return ""
+			return [None,None,None]
 
 	def file_import(self, file_path=None):
 		'''
 			Trigger on import button and push the task to the background worker
 		'''	
+		frappe.publish_realtime("data_import", {"progress": [0, 10]}, 
+				user=frappe.session.user)
+
+		self.save()
+		
 		if not file_path:
 			file_path = os.getcwd()+get_site_path()[1:].encode('utf8') + self.import_file
 		filename, file_extension = os.path.splitext(file_path)
@@ -161,16 +179,37 @@ def import_raw(file_path,doc_name):
 	error = False
 	column_map = json.loads(di_doc.selected_columns)
 	
-	mendatory_field_flag = False
-	# mendatory_field_list = []
+	# Checking all mendatory fields before importing the data
+
+	# mendatory_field_flag = False
+	# # mendatory_field_list = []
 	
-	for field in frappe.get_meta(di_doc.reference_doctype).fields:
-		if field.reqd == 1 and field.fieldname not in column_map:
-			# mendatory_field_list.append(field.fieldname)
-			mendatory_field_flag = True
+	# for field in frappe.get_meta(di_doc.reference_doctype).fields:
+	# 	if field.reqd == 1 and field.fieldname not in column_map:
+	# 		# mendatory_field_list.append(field.fieldname)
+	# 		mendatory_field_flag = True
 			
-	if mendatory_field_flag:
-		frappe.throw(_("Please select all mendatory fields"))
+	# if mendatory_field_flag:
+	# 	frappe.throw(_("Please select all mendatory fields"))
+
+
+	child_doctype_list = set([x[1] for x in column_map])
+	child_doctype_dict = {}
+
+	parent_doc_dic = {}
+	for field in frappe.get_meta(di_doc.reference_doctype).fields:
+		if field.fieldtype == "Table" and field.options in child_doctype_list:
+			
+			child_doctype_dict[field.options] = {}
+			if not child_doctype_dict[field.options]:
+				for f in frappe.get_meta(field.options).fields:
+					if [x[0] for x in column_map if (x[0] == f.fieldname and x[1] == field.options)]:
+						child_doctype_dict[field.options].update({f.fieldname:None})
+			parent_doc_dic[field.fieldname] = child_doctype_dict[field.options]
+
+		elif [x[0] for x in column_map if x[0] == field.fieldname]:
+			parent_doc_dic[field.fieldname] = None
+
 
 	wb = load_workbook(filename=file_path, read_only=True)
 	ws = wb.active
@@ -184,18 +223,35 @@ def import_raw(file_path,doc_name):
 				user=frappe.session.user)
 
 			try:
-				new_doc = frappe.new_doc(di_doc.reference_doctype)
+				parent_doc = frappe.new_doc(di_doc.reference_doctype)
 				for j,cell in enumerate(row):
-					if column_map[j] and column_map[j] != "do_not_map":
-						setattr(new_doc, column_map[j], cell.value)
-				new_doc.insert()
-				new_doc.save()
-				log([i,(getlink(di_doc.reference_doctype,new_doc.name)),"Row Inserted"])
+					
+					if column_map[j][0] and column_map[j][0] != "do_not_map" and column_map[j][1] == di_doc.reference_doctype:
+						parent_doc_dic[column_map[j][0]] = cell.value
+
+					elif column_map[j][0] and column_map[j][1] != di_doc.reference_doctype:
+						parent_doc_dic[column_map[j][2]][column_map[j][0]] = cell.value 				
+
+				parent_doc.update(parent_doc_dic)
+				parent_doc.save()
+
+				if di_doc.submit_after_import:
+					parent_doc.submit()
+
+				# for child_doc_name in child_doctype_list:
+				# 	child_doc = frappe.new_doc(child_doc_name)
+				# 	for j,cell in enumerate(row):
+				# 		if column_map[j][0] and column_map[j][0] != "do_not_map" and column_map[j][1] == child_doc_name:
+				# 			setattr(child_doc, column_map[j][0], cell.value)
+				# 		child_doc.insert()
+				# 		child_doc.save()
+
+				log([i,(getlink(di_doc.reference_doctype,parent_doc.name)),"Row Inserted"])
 
 			except Exception, e:
 				error = True
-				if new_doc:
-					frappe.errprint(new_doc if isinstance(new_doc, dict) else new_doc.as_dict())
+				if parent_doc:
+					frappe.errprint(parent_doc if isinstance(parent_doc, dict) else parent_doc.as_dict())
 				err_msg = frappe.local.message_log and "\n\n".join(frappe.local.message_log) or cstr(e)
 
 				frappe.errprint(frappe.get_traceback())
