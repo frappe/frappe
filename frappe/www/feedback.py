@@ -1,6 +1,24 @@
 import frappe
 from frappe.core.doctype.feedback_request.feedback_request import is_valid_feedback_request
 
+no_cache = True
+
+def get_context(context):
+	reference_doctype = frappe.form_dict.get("reference_doctype")
+	reference_name = frappe.form_dict.get("reference_name")
+	communications = frappe.get_all("Communication", filters={
+		"reference_doctype": reference_doctype,
+		"reference_name": reference_name,
+		"communication_type": "Communication"	
+	}, fields=["*"], limit_page_length=10, order_by="creation desc")
+
+	return {
+		"reference_doctype": reference_doctype,
+		"reference_name": reference_name,
+		"comment_list": communications,
+		"is_communication": True
+	}
+
 @frappe.whitelist(allow_guest=True)
 def accept(key, sender, reference_doctype, reference_name, feedback, rating):
 	""" save the feedback in communication """
@@ -8,7 +26,7 @@ def accept(key, sender, reference_doctype, reference_name, feedback, rating):
 		frappe.throw("Invalid Reference Doctype, Reference Name")
 
 	if not is_valid_feedback_request(key):
-		frappe.throw("Link is Expired")
+		frappe.throw("Link is expired")
 
 	frappe.get_doc({
 		"rating": rating,
