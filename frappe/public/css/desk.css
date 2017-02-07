@@ -611,7 +611,6 @@ fieldset[disabled] .form-control {
   margin: 8px 0px;
   max-width: 100%;
 }
-
 .help-modal a {
   color: #5E64FF;
 }
@@ -640,6 +639,29 @@ fieldset[disabled] .form-control {
     width: 100%;
   }
 }
+.search-result {
+  margin-bottom: 24px;
+}
+.note-editor {
+  margin-top: 5px;
+}
+.note-editor.note-frame {
+  border-color: #d1d8dd;
+}
+.note-editor .btn {
+  outline: none !important;
+}
+.note-editor .dropdown-style > li > a > * {
+  margin: 0;
+}
+.note-editor .fa.fa-check {
+  color: #36414C !important;
+}
+.note-editor .dropdown-menu {
+  z-index: 100;
+  max-height: 300px;
+  overflow: auto;
+}
 .search-dialog .modal-dialog {
   width: 768px;
   height: 500px;
@@ -647,21 +669,23 @@ fieldset[disabled] .form-control {
 .search-dialog .modal-body {
   padding: 0px 20px;
 }
-.search-dialog input.form-control, .search-dialog .input-group-addon{
+.search-dialog input.form-control,
+.search-dialog .input-group-addon {
   border: none;
-  border-left-style:none;
+  border-left-style: none;
 }
-.search-dialog input.form-control:focus{
+.search-dialog input.form-control:focus {
   outline: none;
   box-shadow: none;
 }
-.search-dialog .input-group-addon{
-    background-color: #FFF;
+.search-dialog .input-group-addon {
+  background-color: #FFF;
 }
-.search-dialog .layout-side-section, .search-dialog .layout-main-section {
+.search-dialog .layout-side-section,
+.search-dialog .layout-main-section {
   height: 500px;
   padding: 0px;
-  overflow-y: scroll;
+  overflow-y: auto;
 }
 .search-dialog .layout-side-section {
   padding-left: 15px;
@@ -680,7 +704,7 @@ fieldset[disabled] .form-control {
 .search-dialog .dual-section .result a {
   color: black;
 }
-.search-dialog .dual-section .result a b{
+.search-dialog .dual-section .result a b {
   color: #4e6161;
 }
 .search-dialog .result-status {
@@ -707,34 +731,9 @@ fieldset[disabled] .form-control {
     margin: 30px 0px;
   }
 }
-.search-result, .help-result {
-  margin-bottom: 24px;
-}
-.note-editor {
-  margin-top: 5px;
-}
-.note-editor.note-frame {
-  border-color: #d1d8dd;
-}
-.note-editor .btn {
-  outline: none !important;
-}
-.note-editor .dropdown-style > li > a > * {
-  margin: 0;
-}
-.note-editor .fa.fa-check {
-  color: #36414C !important;
-}
-.note-editor .dropdown-menu {
-  z-index: 100;
-  max-height: 300px;
-  overflow: scroll;
-}
-
 .result p {
   margin-top: 0.2em;
 }
 .search-result {
   margin-bottom: 24px;
 }
-
