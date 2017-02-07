@@ -99,15 +99,19 @@ def validate_email_add(email_str, throw=False):
 				if match:
 					match = matched==e.lower()
 
-				if not match and throw:
-					frappe.throw(frappe._("{0} is not a valid Email Address").format(e),
-						frappe.InvalidEmailAddressError)
-
-		return matched
+		if not valid:
+			if throw:
+				frappe.throw(frappe._("{0} is not a valid Email Address").format(e),
+					frappe.InvalidEmailAddressError)
+			return None
+		else:
+			return matched
 
 	out = []
 	for e in email_str.split(','):
-		out.append(_check(e.strip()))
+		email = _check(e.strip())
+		if email:
+			out.append(email)
 
 	return ', '.join(out)
 
