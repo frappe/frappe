@@ -7,7 +7,6 @@ import frappe
 
 def setup_global_search_table():
 	'''Creates __global_seach table'''
-	
 	if not '__global_search' in frappe.db.get_tables():
 		frappe.db.sql('''create table __global_search(
 			doctype varchar(100),
@@ -18,15 +17,13 @@ def setup_global_search_table():
 			COLLATE=utf8mb4_unicode_ci
 			ENGINE=MyISAM
 			CHARACTER SET=utf8mb4''')
-			
-	reset()
 
 def reset():
 	'''Deletes all data in __global_search'''
 	frappe.db.sql('delete from __global_search')
 
 def update_global_search(doc):
-	'''Add values marked with `in_global_search` to 
+	'''Add values marked with `in_global_search` to
 		`frappe.flags.update_global_search` from given doc
 
 	:param doc: Document to be added to global search'''
@@ -38,11 +35,11 @@ def update_global_search(doc):
 	for field in doc.meta.get_global_search_fields():
 		if getattr(field, 'in_global_search', None) and doc.get(field.fieldname):
 			if getattr(field, 'fieldtype', None) == "Table":
-    			
+
 				# Get children
 				for d in doc.get(field.fieldname):
 				  	if d.parent == doc.name:
-    						  
+
 				  		for field in d.meta.fields:
 				  			if d.get(field.fieldname):
 				  				content.append(field.label + ": " + unicode(d.get(field.fieldname)))
@@ -71,9 +68,9 @@ def sync_global_search():
 def rebuild_for_doctype(doctype):
 	'''Rebuild entries of doctype's documents in __global_search on change of
 		searchable fields
-		
+
 	:param doctype: Doctype '''
-	
+
 	frappe.db.sql('''
 			delete
 				from __global_search
@@ -87,11 +84,11 @@ def rebuild_for_doctype(doctype):
 def delete_for_document(doc):
 	'''Delete the __global_search entry of a document that has
 		been deleted
-		
+
 		:param doc: Deleted document'''
 
 	frappe.db.sql('''
-		delete 
+		delete
 			from __global_search
 		where
 			name = (%s)''', (doc.name), as_dict=True)
@@ -103,7 +100,7 @@ def search(text, start=0, limit=20):
 	:param text: phrase to be searched
 	:param start: start results at, default 0
 	:param limit: number of results to return, default 20
-	
+
 	:return: Array of result objects'''
 
 	text = "+" + text + "*"
@@ -122,7 +119,7 @@ def get_search_doctypes(text):
 	'''Search for all t
 
 	:param text: phrase to be searched
-	
+
 	:return: Array of result objects'''
 
 	text = "+" + text + "*"
@@ -133,9 +130,9 @@ def get_search_doctypes(text):
 			__global_search
 		where
 			match(content) against (%s IN BOOLEAN MODE)
-		group by 
-			doctype 
-		order by 
+		group by
+			doctype
+		order by
 			count(doctype) desc limit 0, 80''', text, as_dict=True)
 	return results
 
@@ -147,9 +144,9 @@ def search_in_doctype(doctype, text, start, limit):
 	:param text: phrase to be searched
 	:param start: start results at, default 0
 	:param limit: number of results to return, default 20
-	
+
 	:return: Array of result objects'''
-	
+
 	text = "+" + text + "*"
 	results = frappe.db.sql('''
 		select
