@@ -11,11 +11,13 @@ from frappe.modules import scrub, get_module_path
 from frappe.utils import flt, cint, get_html_format, cstr
 from frappe.translate import send_translations
 import frappe.desk.reportview
+from frappe.desk.moduleview import validate_user_permission, get_user_reports
 from frappe.permissions import get_role_permissions
 
 def get_report_doc(report_name):
 	doc = frappe.get_doc("Report", report_name)
-	if not doc.has_permission("read"):
+	user_reports = get_user_reports()
+	if not doc.has_permission("read") or not validate_user_permission(user_reports, report_name):
 		frappe.throw(_("You don't have access to Report: {0}").format(report_name), frappe.PermissionError)
 
 	if not frappe.has_permission(doc.ref_doctype, "report"):
