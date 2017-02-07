@@ -75,39 +75,41 @@ def validate_email_add(email_str, throw=False):
 
 	valid = True
 
-	if not email_str:
-		valid = False
-	if 'undisclosed-recipient' in email_str:
-		return False
+	def _check(e):
+		_valid = True
+		if not e:
+			_valid = False
 
-	elif " " in email_str and "<" not in email_str:
-		# example: "test@example.com test2@example.com" will return "test@example.comtest2" after parseaddr!!!
-		valid = False
-
-	else:
-		email = extract_email_id(email_str.strip())
-		match = re.match("[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?", email.lower())
-
-		if not match:
-			valid = False
-
-	if not valid:
-		if throw:
-			frappe.throw(frappe._("{0} is not a valid Email Address").format(email),
-				frappe.InvalidEmailAddressError)
-		else:
+		if 'undisclosed-recipient' in e:
 			return False
 
-	matched = match.group(0)
+		elif " " in e and "<" not in e:
+			# example: "test@example.com test2@example.com" will return "test@example.comtest2" after parseaddr!!!
+			_valid = False
 
-	if match:
-		match = matched==email.lower()
+		else:
+			e = extract_email_id(e)
+			match = re.match("[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?", e.lower())
 
-	if not match and throw:
-		frappe.throw(frappe._("{0} is not a valid Email Address").format(email),
-			frappe.InvalidEmailAddressError)
+			if not match:
+				_valid = False
+			else:
+				matched = match.group(0)
 
-	return matched
+				if match:
+					match = matched==e.lower()
+
+				if not match and throw:
+					frappe.throw(frappe._("{0} is not a valid Email Address").format(e),
+						frappe.InvalidEmailAddressError)
+
+		return matched
+
+	out = []
+	for e in email_str.split(','):
+		out.append(_check(e.strip()))
+
+	return ', '.join(out)
 
 def split_emails(txt):
 	email_list = []
