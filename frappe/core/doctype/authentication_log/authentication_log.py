@@ -20,3 +20,8 @@ def add_authentication_log(subject, user, operation="Login", status="Success"):
 		"subject": subject,
 		"operation": operation,
 	}).insert(ignore_permissions=True)
+
+def clear_authentication_logs():
+	"""clear 100 day old authentication logs"""
+	frappe.db.sql("""delete from `tabAuthentication Log` where 
+		creation<DATE_SUB(NOW(), INTERVAL 100 DAY)""")
