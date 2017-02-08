@@ -88,7 +88,7 @@ frappe.views.QueryReport = Class.extend({
 			}, me.report_doc.letter_head);
 		}, true);
 
-		this.page.add_menu_item(__('Export'), function() { me.export_report(); },
+		this.page.add_menu_item(__('Export'), function() { me.make_export(); },
 			true);
 
 		this.page.add_menu_item(__("Setup Auto Email"), function() {
@@ -784,18 +784,49 @@ frappe.views.QueryReport = Class.extend({
 			}
 		});
 	},
-	export_report: function() {
+
+	make_export: function() {
+
+		var me = this;
+		this.title = this.report_name;
+
 		if(!frappe.model.can_export(this.report_doc.ref_doctype)) {
 			msgprint(__("You are not allowed to export this report"));
 			return false;
 		}
 
-		var result = $.map(frappe.slickgrid_tools.get_view_data(this.columns, this.dataView),
-		 	function(row) {
-				return [row.splice(1)];
-		});
-		this.title = this.report_name;
-		frappe.tools.downloadify(result, null, this.title);
+		frappe.prompt({fieldtype:"Select", label: __("Select File Type"), fieldname:"file_format_type",
+			options:"Excel\nCSV", default:"Excel", reqd: 1},
+			function(data) {
+
+				if (data.file_format_type == "CSV") {
+
+					var result = $.map(frappe.slickgrid_tools.get_view_data(me.columns, me.dataView),
+					 	function(row) {
+							return [row.splice(1)];
+					});
+					frappe.tools.downloadify(result, null, me.title);
+				}
+
+				else if (data.file_format_type == "Excel") {
+
+					me.wrapper.find(".results").toggle(false);
+					try {
+						var filters = me.get_values(true);
+					} catch(e) {
+						return;
+					}
+					var args = {
+						cmd: 'frappe.desk.query_report.export_query',
+						report_name: me.report_name,
+						file_format_type: data.file_format_type,
+						filters: filters
+					};
+
+					open_url_post(frappe.request.url, args);
+				}
+			}, __("Export Report: "+ me.title), __("Download"));
+
 		return false;
 	},
 

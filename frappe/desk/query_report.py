@@ -61,6 +61,7 @@ def get_script(report_name):
 
 @frappe.whitelist()
 def run(report_name, filters=None, user=None):
+
 	report = get_report_doc(report_name)
 	if not user:
 		user = frappe.session.user
@@ -110,6 +111,44 @@ def run(report_name, filters=None, user=None):
 		"message": message,
 		"chart": chart
 	}
+
+
+@frappe.whitelist()
+def export_query():
+	"""export from query reports"""
+
+	data = frappe._dict(frappe.local.form_dict)
+
+	del data["cmd"]
+
+	if isinstance(data.get("filters"), basestring):
+		filters = json.loads(data["filters"])
+	if isinstance(data.get("report_name"), basestring):
+		report_name = data["report_name"]
+	if isinstance(data.get("file_format_type"), basestring):
+		file_format_type = data["file_format_type"]
+
+	if file_format_type == "Excel":
+		data = run(report_name, filters)
+		data = frappe._dict(data)
+
+		# convert to xlsx
+		import openpyxl
+		from cStringIO import StringIO
+
+		wb = openpyxl.Workbook()
+		ws = wb.active
+		ws.append(data.columns)
+		for row in data.result:
+			ws.append(row)
+
+		xlsx_file = StringIO()
+		wb.save(xlsx_file)
+
+		frappe.response['filename'] = report_name + '.xlsx'
+		frappe.response['filecontent'] = xlsx_file.getvalue()
+		frappe.response['type'] = 'binary'
+
 
 def get_report_module_dotted_path(module, report_name):
 	return frappe.local.module_app[scrub(module)] + "." + scrub(module) \
@@ -166,6 +205,7 @@ def add_total_row(result, columns, meta = None):
 	result.append(total_row)
 	return result
 
+
 def get_filtered_data(ref_doctype, columns, data, user):
 	result = []
 	linked_doctypes = get_linked_doctypes(columns, data)
@@ -188,6 +228,7 @@ def get_filtered_data(ref_doctype, columns, data, user):
 		result = list(data)
 
 	return result
+
 
 def has_match(row, linked_doctypes, doctype_match_filters, ref_doctype, if_owner, columns_dict, user):
 	"""Returns True if after evaluating permissions for each linked doctype
