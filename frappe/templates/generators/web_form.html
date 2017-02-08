@@ -136,6 +136,18 @@
 		</select>
 		{{ help(field) }}
 	</div>
+		{% elif field.fieldtype=="Link" %}
+	<div class="form-group">
+		{% if with_label %}{{ label(field) }}{% endif %}
+		<select class="form-control" {{ properties(field) }}>
+			{% for option in frappe.get_all(field.options) -%}
+			<option value="{{ option.name }}"
+				{{ 'selected="selected"' if value(field, _doc)==option.name else '' }}>
+				{{ option.name }}</option>
+			{%- endfor %}
+		</select>
+		{{ help(field) }}
+	</div>
 	{% elif field.fieldtype=="Text" %}
 	<div class="form-group{% if field.reqd %} has-error{% endif %}">
 		{% if with_label %}{{ label(field) }}{% endif %}
