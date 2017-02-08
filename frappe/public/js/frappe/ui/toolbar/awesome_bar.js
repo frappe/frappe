@@ -42,7 +42,7 @@ frappe.search.AwesomeBar = Class.extend({
 					.html('<a style="font-weight:normal"><p>' + html + '</p></a>')
 					.get(0);
 			},
-			sort: function(a, b) {
+			sort: function(a, b) { 
 				var a_index = a.split("%%%")[3];
 				var b_index = b.split("%%%")[3];
 				return (a_index - b_index); 
@@ -50,25 +50,39 @@ frappe.search.AwesomeBar = Class.extend({
 		});
 
 		$input.on("input", function(e) {
-			var value = e.target.value;
-			var txt = strip(value);
-			me.options = [];
-
-			if(txt) {
-				var keywords = strip(txt.toLowerCase());
-				me.build_options(keywords);
-				if(me.options.length < 2) {
-					me.global.get_awesome_bar_options(keywords, me);
-				}
-			}
-
 			var $this = $(this);
 			clearTimeout($this.data('timeout'));
 
 			$this.data('timeout', setTimeout(function(){
+				var value = e.target.value;
+				var txt = strip(value);
+				me.options = [];
+				if(txt) {
+					var keywords = strip(txt.toLowerCase());
+					me.build_options(keywords);
+					if(me.options.length < 2) {
+						me.global.get_awesome_bar_options(keywords, me);
+					}
+				}
+
 				me.add_recent(txt || "");
 				me.add_help();
-				awesomplete.list = me.options;
+
+				// de-duplicate
+				var out = [], routes = [];
+				me.options.forEach(function(option) {
+					if(option.route) {
+						var str_route = (typeof option.route==='string') ?
+								option.route : option.route.join('/');
+						if(routes.indexOf(str_route)===-1) {
+							out.push(option);
+							routes.push(str_route);
+						}
+					} else {
+						out.push(option);
+					}
+				});
+				awesomplete.list = out;
 			}, 200));
 
 		});
@@ -229,7 +243,7 @@ frappe.search.AwesomeBar = Class.extend({
 		this.options = this.options.concat(global_results);
 	},
 
-	build_options: function(txt) {
+	build_options: function(txt) { 
 		this.options = 
 			this.make_global_search(txt).concat(
 				this.make_search_in_current(txt),
@@ -245,12 +259,11 @@ frappe.search.AwesomeBar = Class.extend({
 
 	make_global_search: function(txt) {
 		var me = this;
-		console.log("here in gs");
 		return [{
 			label: __("Search for '" + txt.bold() + "'"),
 			value: __("Search for '" + txt + "'"),
 			match: txt,
-			index: 11,
+			index: 3,
 			onclick: function() {
 				me.search.search_dialog.show();
 				me.search.setup_search(txt, [me.global, me.nav, me.help]);
@@ -348,7 +361,6 @@ frappe.search.AwesomeBar = Class.extend({
 		var me = this;
 		var out = [];
 
-
 		var target, index;
 		var option = function(type, route) {
 			return {
@@ -363,7 +375,7 @@ frappe.search.AwesomeBar = Class.extend({
 			target = me.is_present(txt, item);
 			if(target) {
 				var match_ratio = txt.length / item.length;
-				index = (match_ratio > 0.6) ? 10 : 12;
+				index = (match_ratio > 0.7) ? 10 : 12;
 
 				// include 'making new' option
 				if(in_list(frappe.boot.user.can_create, target)) {
@@ -382,8 +394,7 @@ frappe.search.AwesomeBar = Class.extend({
 					out.push(option("Tree", ["Tree", target]));
 
 				} else {
-					out.push(option("List", ["List", target]));
-
+					out.push(option("List", ["List", target])); 
 					if(frappe.model.can_get_report(target)) {
 						out.push(option("Report", ["Report", target]));
 					}
@@ -406,7 +417,7 @@ frappe.search.AwesomeBar = Class.extend({
 			if(target) {
 				var report = frappe.boot.user.all_reports[target];
 				var match_ratio = txt.length / item.length;
-				var index = (match_ratio > 0.6) ? 10 : 13;
+				var index = (match_ratio > 0.7) ? 10 : 13;
 				var route = [];
 				if(report.report_type == "Report Builder")
 					route = ["Report", report.ref_doctype, target];
@@ -437,7 +448,7 @@ frappe.search.AwesomeBar = Class.extend({
 			var target = me.is_present(txt, item);
 			if(target) {
 				var match_ratio = txt.length / item.length;
-				var index = (match_ratio > 0.6) ? 10 : 14;
+				var index = (match_ratio > 0.7) ? 10 : 14;
 				var page = me.pages[target];
 				out.push({
 					label: __("Open {0}", [__(target).bold()]),
@@ -469,7 +480,7 @@ frappe.search.AwesomeBar = Class.extend({
 			var target = me.is_present(txt, item);
 			if(target) {
 				var match_ratio = txt.length / item.length;
-				var index = (match_ratio > 0.6) ? 10 : 15;
+				var index = (match_ratio > 0.7) ? 10 : 15;
 				var module = frappe.modules[target];
 				if(module._doctype) return;
 				ret = {
