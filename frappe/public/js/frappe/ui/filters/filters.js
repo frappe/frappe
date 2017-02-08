@@ -17,16 +17,16 @@ frappe.ui.FilterList = Class.extend({
 
 		//show filter dashboard
 		this.filters_visible = false;
-		this.wrapper.find('.show-filters').click(function() {
-			var wrapper = $(me.wrapper).find('.filter-dashboard-wrapper');
+		this.show_filter_button = this.wrapper.find('.show-filters')
+		me.filter_list_wrapper = $(me.wrapper).find('.filter-dashboard-wrapper');
+		this.show_filter_button.click(function() {
 			if(!me.filters_visible) {
-				wrapper.toggle(true);
-				$(this).text(__("Hide Filters"));
-				me.filters_visible = true;
+				me.show_filter_list();
 			} else {
-				wrapper.toggle(false);
-				$(this).text(__("Show Filters"));
-				me.filters_visible = false;
+				me.hide_filter_list();
+			}
+			if (!me.loaded_stats && me.filters_visible){
+				me.reload_stats()
 			}
 		});
 
@@ -56,6 +56,16 @@ frappe.ui.FilterList = Class.extend({
 
 		me.reload_stats()
 	},
+	show_filter_list: function(){
+		$(this.filter_list_wrapper).toggle(true);
+		this.show_filter_button.prop('title',__("Hide Filters"));
+		this.filters_visible = true;
+	},
+	hide_filter_list: function(){
+		$(this.filter_list_wrapper).toggle(false);
+		this.show_filter_button.prop('title',__("Show Filters"));
+		this.filters_visible = false;
+	},
 	render_dashboard_headers: function(field){
 		var me = this;
 		var context = {
@@ -67,16 +77,18 @@ frappe.ui.FilterList = Class.extend({
 			.appendTo(this.wrapper.find(".filter-dashboard-items"));
 	},
 	reload_stats: function(){
-		if(this.fresh) {
+		var me = this
+		if(this.fresh || this.filters_visible == false) {
 			return;
 		}
+		$(me.wrapper).find(".filter-loading").toggle(true)
 		// set a fresh so that multiple refreshes do not happen
 		// at the same time.
 		this.fresh = true;
 		setTimeout(function() {
 			me.fresh = false;
 		}, 1000);
-
+		this.loaded_stats = true
 		//get stats
 		var me = this
 		return frappe.call({
@@ -93,6 +105,7 @@ frappe.ui.FilterList = Class.extend({
 				$.each(me.stats, function (i, v) {
 						me.render_filters(v, (r.message|| {})[v.name]);
 				});
+				$(me.wrapper).find(".filter-loading").toggle(false)
 			}
 		});
 	},
@@ -238,59 +251,33 @@ frappe.ui.FilterList = Class.extend({
 		//setup date-time range pickers
 		this.wrapper.find(".filter-input-date").each(function(i,v) {
 			var self = this;
-			var date;
 			var date_wrapper = $('<div>').appendTo($(this));
-			make_date("range");
 
-			var check = frappe.ui.form.make_control({
-				parent: this,
+			var name = $(v).data("name");
+			
+			var date = frappe.ui.form.make_control({
 				df: {
-					fieldtype: "Check",
-					fieldname: "is_date_range",
-					label: __("Date Range"),
-					input_css: { "margin-top": "-2px" }
+					fieldtype: "DateRange",
+					fieldname: name,
+				},
+				parent: date_wrapper,
+				only_input: true
+			});
+			date.refresh();
+
+			date.datepicker.update("onSelect", function(fd, dateObj) {
+				var filt = me.get_filter(name);
+				filt && filt.remove(true);
+				if(!dateObj.length && dateObj && date.datepicker.opts.range===false) {
+					me.add_filter(me.doctype, name, '=', moment(dateObj).format('YYYY-MM-DD'));
+					me.listobj.run();
+				} else if(dateObj.length===2 && date.datepicker.opts.range===true) {
+					me.add_filter(me.doctype, name, 'Between',
+						[moment(dateObj[0]).format('YYYY-MM-DD'), moment(dateObj[1]).format('YYYY-MM-DD')]);
+					me.listobj.run();
 				}
 			});
-			check.change = function() {
-				date.datepicker.clear();
-				date && date.wrapper.remove();
-				check.get_value() ?
-					make_date("range"):
-					make_date("single");
-			}
-			check.refresh();
-			check.set_input(1);
-
-			function make_date(mode) {
-				var fieldtype = mode==="range" ? "DateRange" : "Date";
-				var name = $(v).data("name");
-				if(date) {
-					//cleanup old datepicker
-					date.datepicker.destroy();
-				}
-				date = frappe.ui.form.make_control({
-					df: {
-						fieldtype: fieldtype,
-						fieldname: name,
-					},
-					parent: date_wrapper,
-					only_input: true
-				});
-				date.refresh();
-
-				date.datepicker.update("onSelect", function(fd, dateObj) {
-					var filt = me.get_filter(name);
-					filt && filt.remove(true);
-					if(!dateObj.length && dateObj && date.datepicker.opts.range===false) {
-						me.add_filter(me.doctype, name, '=', moment(dateObj).format('YYYY-MM-DD'));
-						me.listobj.run();
-					} else if(dateObj.length===2 && date.datepicker.opts.range===true) {
-						me.add_filter(me.doctype, name, 'Between',
-							[moment(dateObj[0]).format('YYYY-MM-DD'), moment(dateObj[1]).format('YYYY-MM-DD')]);
-						me.listobj.run();
-					}
-				});
-			}
+			
 		})
 	},
 
@@ -398,6 +385,14 @@ frappe.ui.FilterList = Class.extend({
 			if(this.filters[i].field && this.filters[i].field.df.fieldname==fieldname)
 				return this.filters[i];
 		}
+	},
+	remove_filter: function(fieldname, dont_run) {
+		for(var i in this.filters) {
+			if(this.filters[i].field && this.filters[i].field.df.fieldname==fieldname)
+				this.filters[i].remove(dont_run);
+				return true;
+		}
+		return false;
 	}
 });
 
