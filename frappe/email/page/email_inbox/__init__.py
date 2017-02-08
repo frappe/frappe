@@ -14,6 +14,11 @@ def get_email_content(name):
 	return docinfo, content
 
 @frappe.whitelist()
+def get_list_settings(key):
+	list_settings = frappe.cache().hget('_list_settings','{0}::{1}'.format(key, frappe.session.user))
+	return list_settings
+
+@frappe.whitelist()
 def create_flag_queue(names, action, flag, field):
 	names = json.loads(names)
 
