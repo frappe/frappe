@@ -115,7 +115,7 @@ def export_query():
 
 	from cStringIO import StringIO
 
-	if file_format_type == "csv Format":
+	if file_format_type == "CSV":
 
 		# convert to csv
 		import csv
@@ -131,7 +131,7 @@ def export_query():
 		frappe.response['type'] = 'csv'
 		frappe.response['doctype'] = doctype
 
-	elif file_format_type == "xlsx Format":
+	elif file_format_type == "Excel":
 
 		# convert to xlsx
 		import openpyxl
