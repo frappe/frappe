@@ -20,7 +20,16 @@
 		<textarea class='form-control feedback-text' style='min-height: 300px;'></textarea>
 	</div>
 
-	<p><button class='btn btn-primary btn-sm btn-submit'>{{ _("Submit") }}</button></p>	
+	<p><button class='btn btn-primary btn-sm btn-submit'>{{ _("Submit") }}</button></p>
+
+	{% if comment_list -%}
+		<div class="comments">
+			<br><br>
+			<h3>{{ _("Communication") }}</h3>
+			{% include 'templates/includes/comments/comments.html' %}
+		</div>
+	{% endif %}
+
 </div>
 <div class="feedback-result" style="display: none">
 	<div class='page-card'>
