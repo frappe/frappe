@@ -20,14 +20,14 @@ Jettons un oeil aux vues standards:
 
 Si vous êtes connecté avec votre utilisateur de test, rendez-vous sur`/article` et vous devriez voir la liste des articles:
 
-![Web List]({{docs_base_url}}/assets/img/guide/26-web-list.png)
+<img class="screenshot" alt="web list" src="{{docs_base_url}}/assets/img/web-list.png">
 
 Cliquez sur un article et vous devriez voir une vue par défaut.
 
-![Web List]({{docs_base_url}}/assets/img/guide/26-web-view.png)
+<img class="screenshot" alt="web view" src="{{docs_base_url}}/assets/img/web-view.png">
 
-Maintenant, si vous voulez une meilleur liste pour vos articles, créez un fichier appelé `list_item.html` dans le 
-repertoire `library_management/doctype/article`. Voici un exemple du contenu de ce fichier:
+Maintenant, si vous voulez une meilleur liste pour vos articles, créez un fichier appelé `row_template.html` dans le
+repertoire `library_management/templates/includes/list/`. Voici un exemple du contenu de ce fichier:
 
 	{% raw %}<div class="row">
 		<div class="col-sm-4">
@@ -50,7 +50,7 @@ Ici, vous aurez toutes les propriétés d'un article dans l'object `doc`.
 
 La mise à jour de la liste ressemble à ca !
 
-![Web List]({{docs_base_url}}/assets/img/guide/27-web-view-list.png)
+<img class="screenshot" alt="new web list" src="{{docs_base_url}}/assets/img/web-list-new.png">
 
 #### La page d'accueil
 
