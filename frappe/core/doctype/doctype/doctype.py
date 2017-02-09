@@ -59,12 +59,20 @@ class DocType(Document):
 
 		self.make_amendable()
 		self.validate_website()
+
 		try:
 			self.before_update = frappe.get_doc('DocType', self.name)
 		except frappe.DoesNotExistError:
 			pass 
+
 		if not self.is_new():
 			self.setup_fields_to_fetch()
+
+		meta = frappe.get_meta(self.name, cached=False) 
+		if self.show_name_in_global_search == 1:
+			make_property_setter(self.name, meta.get_title_field(), "in_global_search", 1, "Int")
+		else:
+			make_property_setter(self.name, meta.get_title_field(), "in_global_search", 0, "Int")
 
 	def check_developer_mode(self):
 		"""Throw exception if not developer mode or via patch"""
@@ -205,10 +213,11 @@ class DocType(Document):
 
 		delete_notification_count_for(doctype=self.name)
 		frappe.clear_cache(doctype=self.name)
+
 		if not frappe.flags.in_install and hasattr(self, 'before_update'):
 			self.sync_global_search()
 
-	def sync_global_search(self):
+	def sync_global_search(self): 
 		global_search_fields_before_update = [d.fieldname for d in self.before_update.fields if d.in_global_search]
 		global_search_fields_after_update = [d.fieldname for d in self.fields if d.in_global_search]
 		if set(global_search_fields_before_update) != set(global_search_fields_after_update):
@@ -219,7 +228,6 @@ class DocType(Document):
 		module = load_doctype_module(self.name, self.module)
 		if hasattr(module, method):
 			getattr(module, method)()
-
 
 	def before_rename(self, old, new, merge=False):
 		"""Throw exception if merge. DocTypes cannot be merged."""
@@ -276,7 +284,7 @@ class DocType(Document):
 		import_from_files(record_list=[[self.module, 'doctype', self.name]])
 
 	def make_controller_template(self):
-		"""Make boilderplate controller template."""
+		"""Make boilerplate controller template."""
 		make_boilerplate("controller.py", self)
 
 		if not (self.istable or self.issingle):

@@ -150,6 +150,7 @@ CREATE TABLE `tabDocType` (
   `engine` varchar(20) DEFAULT 'InnoDB',
   `default_print_format` varchar(255) DEFAULT NULL,
   `is_submittable` int(1) NOT NULL DEFAULT 0,
+  `show_name_in_global_search` int(1) NOT NULL DEFAULT 0,
   `_user_tags` varchar(255) DEFAULT NULL,
   `custom` int(1) NOT NULL DEFAULT 0,
   `beta` int(1) NOT NULL DEFAULT 0,

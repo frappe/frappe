@@ -194,6 +194,7 @@ frappe.search.AwesomeBar = Class.extend({
 				out.label = match[0].bold();
 				out.value = match[0];
 			}
+			out.index = 10
 			return out;
 		}, true);
 	},
@@ -263,7 +264,7 @@ frappe.search.AwesomeBar = Class.extend({
 			label: __("Search for '" + txt.bold() + "'"),
 			value: __("Search for '" + txt + "'"),
 			match: txt,
-			index: 3,
+			index: 5,
 			onclick: function() {
 				me.search.search_dialog.show();
 				me.search.setup_search(txt, [me.global, me.nav, me.help]);
@@ -388,7 +389,7 @@ frappe.search.AwesomeBar = Class.extend({
 					});
 				}
 				if(in_list(frappe.boot.single_types, target)) {
-					out.push(option("Form", ["Form", target, target]));
+					out.push(option("", ["Form", target, target]));
 
 				} else if(in_list(frappe.boot.treeviews, target)) {
 					out.push(option("Tree", ["Tree", target]));
