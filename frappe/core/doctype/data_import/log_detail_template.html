@@ -1,12 +1,19 @@
 {% if (error == true) { %}
 	<h4 style="color:red"> {{ __("Import Failed") }} </h4>
+		<br>
+		<article>
+
+			<h5> {{ __(data[0]) }} </h5>
+			<p> {{ __(data[1]) }} </p>
+
+		</article>
+
 {% } else { %}
 	<h4 style="color:green"> {{ __("Import Successful!") }} </h4>
 	<div class="table-responsive">
 		<table class="table table-bordered table-hover log-details-table">
 				<tr>
 					<th> Row No </th>
-					<th> Row Name </th>
 					<th> Document </th>
 					<th> Action </th>
 				</tr>
