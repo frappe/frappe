@@ -68,12 +68,6 @@ class DocType(Document):
 		if not self.is_new():
 			self.setup_fields_to_fetch()
 
-		meta = frappe.get_meta(self.name, cached=False) 
-		if self.show_name_in_global_search == 1:
-			make_property_setter(self.name, meta.get_title_field(), "in_global_search", 1, "Int")
-		else:
-			make_property_setter(self.name, meta.get_title_field(), "in_global_search", 0, "Int")
-
 	def check_developer_mode(self):
 		"""Throw exception if not developer mode or via patch"""
 		if frappe.flags.in_patch or frappe.flags.in_test:
