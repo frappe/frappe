@@ -28,3 +28,28 @@ class TestReport(unittest.TestCase):
 		self.assertEquals(columns[1].get('label'), 'Module')
 		self.assertTrue('User' in [d[0] for d in data])
 
+	def test_report_permisisons(self):
+		frappe.db.sql("""delete from `tabUserRole` where parent = %s 
+			and role = 'Test Report Role'""", frappe.session.user, auto_commit=1)
+
+		if not frappe.db.exists('Role', 'Test Report Role'):
+			role = frappe.get_doc({
+				'doctype': 'Role',
+				'role_name': 'Test Report Role'
+			}).insert(ignore_permissions=True)
+
+		if not frappe.db.exists("Report", "Test Report"):
+			report = frappe.get_doc({
+				'doctype': 'Report',
+				'ref_doctype': 'User',
+				'report_name': 'Test Report',
+				'report_type': 'Query Report',
+				'is_standard': 'No',
+				'roles': [
+					{'role': 'Test Report Role'}
+				]
+			}).insert(ignore_permissions=True)
+		else:
+			report = frappe.get_doc('Report', 'Test Report')
+
+		self.assertNotEquals(report.is_permitted(), True)

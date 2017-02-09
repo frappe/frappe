@@ -113,6 +113,28 @@ def get_allowed_pages():
 
 	return page_info
 
+def get_allowed_reports():
+	roles = frappe.get_roles()
+	report_info = frappe._dict()
+
+	for d in frappe.db.sql("""select distinct
+		tabReport.name, tabReport.report_type, tabReport.ref_doctype
+		from `tabReport Role`, `tabReport`
+		where `tabReport Role`.role in (%s)
+			and `tabReport Role`.parent = `tabReport`.name""" % ', '.join(['%s']*len(roles)),
+				roles, as_dict=True):
+
+		report_info[d.name] = d
+
+	# reports where role is not set are also allowed
+	for d in frappe.db.sql("""select name, report_type, ref_doctype
+		from `tabReport` where
+			(select count(*) from `tabReport Role`
+				where `tabReport Role`.parent=tabReport.name) = 0""", as_dict=1):
+
+		report_info[d.name] = d
+	return report_info
+
 def load_translations(bootinfo):
 	messages = frappe.get_lang_dict("boot")
 

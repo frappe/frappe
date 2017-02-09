@@ -15,7 +15,7 @@ from frappe.permissions import get_role_permissions
 
 def get_report_doc(report_name):
 	doc = frappe.get_doc("Report", report_name)
-	if not doc.has_permission("read"):
+	if not doc.is_permitted():
 		frappe.throw(_("You don't have access to Report: {0}").format(report_name), frappe.PermissionError)
 
 	if not frappe.has_permission(doc.ref_doctype, "report"):

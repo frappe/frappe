@@ -7,6 +7,7 @@ import frappe, json
 from frappe import _dict
 import frappe.share
 from frappe.utils import cint
+from frappe.boot import get_allowed_reports
 from frappe.permissions import get_roles, get_valid_perms
 
 class UserPermissions:
@@ -211,10 +212,7 @@ class UserPermissions:
 		return d
 
 	def get_all_reports(self):
-		reports =  frappe.db.sql("""select name, report_type, ref_doctype from tabReport
-		    where ref_doctype in ('{0}') and disabled = 0""".format("', '".join(self.can_get_report)), as_dict=1)
-
-		return frappe._dict((d.name, d) for d in reports)
+		return get_allowed_reports()
 
 def get_user_fullname(user):
 	fullname = frappe.db.sql("SELECT CONCAT_WS(' ', first_name, last_name) FROM `tabUser` WHERE name=%s", (user,))

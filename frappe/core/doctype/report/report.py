@@ -38,6 +38,28 @@ class Report(Document):
 	def on_update(self):
 		self.export_doc()
 
+	def set_doctype_roles(self):
+		if self.roles: return
+
+		doc = frappe.get_meta(self.ref_doctype)
+		roles = [{'role': d.role} for d in doc.permissions]
+		self.set('roles', roles)
+
+	def is_permitted(self):
+		"""Returns true if Page Role is not set or the user is allowed."""
+		from frappe.utils import has_common
+
+		allowed = [d.role for d in frappe.get_all("Report Role", fields=["role"],
+			filters={"parent": self.name})]
+
+		if not allowed:
+			return True
+
+		roles = frappe.get_roles()
+
+		if has_common(roles, allowed):
+			return True
+
 	def update_report_json(self):
 		if self.json:
 			data = json.loads(self.json)
