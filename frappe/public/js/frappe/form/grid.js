@@ -110,6 +110,10 @@ frappe.ui.form.Grid = Class.extend({
 		return (this.grid_rows || []).map(function(row) { return row.doc.__checked ? row.doc.name : null; })
 			.filter(function(d) { return d; });
 	},
+	get_selected_children: function() {
+		return (this.grid_rows || []).map(function(row) { return row.doc.__checked ? row.doc : null; })
+			.filter(function(d) { return d; });
+	},
 	make_head: function() {
 		// labels
 		if(!this.header_row) {
