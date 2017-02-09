@@ -101,12 +101,14 @@ class EmailServer:
 		if not self.connect():
 			return []
 
+		uid_list = []
+
 		try:
 			# track if errors arised
 			self.errors = False
 			self.latest_messages = []
 
-			email_list = self.get_new_mails()
+			uid_list = email_list = self.get_new_mails()
 			num = num_copy = len(email_list)
 
 			# WARNING: Hard coded max no. of messages to be popped
@@ -149,13 +151,16 @@ class EmailServer:
 			else:
 				self.pop.quit()
 
-		return self.latest_messages
+		out = { "latest_messages": self.latest_messages }
+		if self.settings.use_imap: out.update({ "uid_list": uid_list })
+
+		return out
 
 	def get_new_mails(self):
 		"""Return list of new mails"""
 		if cint(self.settings.use_imap):
 			self.imap.select("Inbox")
-			response, message = self.imap.uid('search', None, "UNSEEN")
+			response, message = self.imap.uid('search', None, self.settings.email_sync_rule)
 			email_list =  message[0].split()
 		else:
 			email_list = self.pop.list()[1]

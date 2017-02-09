@@ -75,8 +75,6 @@ class EmailAccount(Document):
 			if self.append_to not in valid_doctypes:
 				frappe.throw(_("Append To can be one of {0}").format(comma_or(valid_doctypes)))
 
-
-
 	def on_update(self):
 		"""Check there is only one default of each type."""
 		self.there_must_be_only_one_default()
@@ -131,7 +129,7 @@ class EmailAccount(Document):
 				server.password = self.get_password()
 			server.sess
 
-	def get_incoming_server(self, in_receive=False):
+	def get_incoming_server(self, in_receive=False, email_sync_rule="UNSEEN"):
 		"""Returns logged in POP3/IMAP connection object."""
 		if frappe.cache().get_value("workers:no-internet") == True:
 			return None
@@ -142,6 +140,7 @@ class EmailAccount(Document):
 			"use_ssl": self.use_ssl,
 			"username": getattr(self, "login_id", None) or self.email_id,
 			"use_imap": self.use_imap,
+			"email_sync_rule": email_sync_rule
 		})
 		if self.password:
 			args.password = self.get_password()
@@ -221,17 +220,24 @@ class EmailAccount(Document):
 	def receive(self, test_mails=None):
 		"""Called by scheduler to receive emails from this EMail account using POP3/IMAP."""
 		if self.enable_incoming:
+			uid_list = []
 			exceptions = []
+
 			if frappe.local.flags.in_test:
 				incoming_mails = test_mails
 			else:
-				email_server = self.get_incoming_server(in_receive=True)
-				incoming_mails = email_server.get_messages()
+				email_sync_rule = self.build_email_sync_rule()
 
-			for msg in incoming_mails:
+				email_server = self.get_incoming_server(in_receive=True, email_sync_rule=email_sync_rule)
+				emails = email_server.get_messages()
+
+				incoming_mails = emails.get("latest_messages")
+				uid_list = emails.get("uid_list", [])
+
+			for idx, msg in enumerate(incoming_mails):
 				try:
-
-					communication = self.insert_communication(msg)
+					uid = None if not uid_list else uid_list[idx]
+					communication = self.insert_communication(msg, uid)
 					#self.notify_update()
 
 				except SentEmailInInbox:
@@ -277,12 +283,15 @@ class EmailAccount(Document):
 			unhandled_email.save()
 			frappe.db.commit()
 
-	def insert_communication(self, msg):
+	def insert_communication(self, msg, _uid=None):
 		if isinstance(msg,list):
 			raw, uid, seen = msg
 		else:
 			raw = msg
 			seen = uid = None
+
+		if _uid: uid = _uid
+
 		email = Email(raw)
 
 		if email.from_email == self.email_id and not email.mail.get("Reply-To"):
@@ -511,6 +520,17 @@ class EmailAccount(Document):
 	def after_rename(self, old, new, merge=False):
 		frappe.db.set_value("Email Account", new, "email_account_name", new)
 
+	def build_email_sync_rule(self):
+		if not self.use_imap:
+			return "UNSEEN"
+
+		if self.email_sync_option == "ALL":
+			max_uid = get_max_email_uid(self.name)
+			last_uid = max_uid + int(self.initial_sync_count or 100) if max_uid == 1 else "*"
+			return "UID {}:{}".format(max_uid, last_uid)
+		else:
+			return self.email_sync_option
+
 @frappe.whitelist()
 def get_append_to(doctype=None, txt=None, searchfield=None, start=None, page_len=None, filters=None):
 	if not txt: txt = ""
@@ -584,3 +604,19 @@ def pull_from_email_account(email_account):
 	'''Runs within a worker process'''
 	email_account = frappe.get_doc("Email Account", email_account)
 	email_account.receive()
+
+def get_max_email_uid(email_account):
+	# get maximum uid of emails
+	max_uid = 1
+
+	result = frappe.db.get_all("Communication", filters={
+		"communication_medium": "Email",
+		"sent_or_received": "Received",
+		"email_account": email_account
+	}, fields=["ifnull(max(uid), 0) as uid"])
+
+	if not result:
+		return 1
+	else:
+		max_uid = int(result[0].get("uid", 0)) + 1
+		return max_uid
