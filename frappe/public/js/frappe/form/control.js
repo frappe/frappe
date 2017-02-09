@@ -610,11 +610,6 @@ frappe.ui.form.ControlCurrency = frappe.ui.form.ControlFloat.extend({
 frappe.ui.form.ControlPercent = frappe.ui.form.ControlFloat;
 
 frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
-	datepicker_options: {
-		language: "en",
-		autoClose: true,
-		todayButton: new Date()
-	},
 	set_input: function(value) {
 		this._super(value);
 		if(value && this.last_value !== this.value) {
@@ -629,6 +624,12 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 	},
 	set_date_options: function() {
 		var me = this;
+		this.datepicker_options = {
+			language: "en",
+			autoClose: true,
+			todayButton: new Date()
+		};
+
 		var date_format =
 			(frappe.boot.sysdefaults.date_format || 'yyyy-mm-dd');
 		this.datepicker_options.dateFormat = date_format;

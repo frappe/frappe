@@ -671,7 +671,8 @@ frappe.views.GridReportWithPlot = frappe.views.GridReport.extend({
 
 		this.chart = new frappe.ui.Chart({
 			wrapper: this.chart_area,
-			data: chart_data
+			data: chart_data,
+			x_type: 'timeseries'
 		});
 	},
 
