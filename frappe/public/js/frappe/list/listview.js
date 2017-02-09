@@ -1,6 +1,8 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
+frappe.provide("frappe.views");
+
 frappe.views.get_listview = function(doctype, parent) {
 	if(frappe.listviews[doctype]) {
 		var listview = new frappe.listviews[doctype](parent);
@@ -17,7 +19,7 @@ frappe.views.ListView = Class.extend({
 	init: function(doclistview, doctype) {
 		this.doclistview = doclistview;
 		this.doctype = doctype;
-		this.meta = frappe.get_doc("DocType", this.doctype);
+		this.meta = frappe.get_meta(this.doctype);
 		this.image_field = this.meta.image_field || 'image';
 		this.settings = frappe.listview_settings[this.doctype] || {};
 		if(this.meta.__listview_template) {
@@ -39,7 +41,7 @@ frappe.views.ListView = Class.extend({
 	},
 	set_fields: function() {
 		var me = this;
-		var t = "`tab"+this.doctype+"`.";
+		var t = "`tab" + this.doctype + "`.";
 		this.fields = [];
 		this.stats = ['_user_tags'];
 
@@ -223,11 +225,13 @@ frappe.views.ListView = Class.extend({
 
 	},
 	render_row_List: function(row, data) {
+		var indicator = this.get_indicator_html(data);
 		var main = frappe.render_template("list_item_main", {
 			data: data,
 			columns: this.columns,
 			subject: this.get_avatar_and_id(data, true),
 			list: this,
+			indicator: indicator,
 			right_column: this.settings.right_column
 		});
 
@@ -293,23 +297,14 @@ frappe.views.ListView = Class.extend({
 
 	get_avatar_and_id: function(data, without_workflow) {
 		data._without_workflow = without_workflow;
-		data.css_seen = '';
-
-		if(data._seen) {
-			var seen = JSON.parse(data._seen);
-			if(seen && seen.indexOf(frappe.session.user) !== -1) {
-				data.css_seen = 'seen'
-			}
-		}
-
 		return frappe.render_template("list_item_subject", data);
 	},
 
-	get_indicator: function(doc) {
+	get_indicator_html: function(doc) {
         var indicator = frappe.get_indicator(doc, this.doctype);
 		if(indicator) {
-	        return '<span class="indicator '+indicator[1]+' filterable" data-filter="'
-				+indicator[2]+'">'+__(indicator[0])+'<span>';
+	        return '<span class="indicator ' + indicator[1] + ' filterable" data-filter="'
+				+ indicator[2] + '">' + __(indicator[0]) + '<span>';
 		} else {
 			return "";
 		}
@@ -327,9 +322,15 @@ frappe.views.ListView = Class.extend({
 		if(data.modified)
 			this.prepare_when(data, data.modified);
 
-		data._liked_by = data._liked_by ?
-			JSON.parse(data._liked_by) : [];
+		// nulls as strings
+		for(key in data) {
+			if(data[key]==null) {
+				data[key]='';
+			}
+		}
 
+		data.doctype = this.doctype;
+		data._liked_by = JSON.parse(data._liked_by || "[]");
 		data._checkbox = (frappe.model.can_delete(this.doctype) || this.settings.selectable) && !this.no_delete
 
 		data._doctype_encoded = encodeURIComponent(data.doctype);
@@ -337,7 +338,8 @@ frappe.views.ListView = Class.extend({
 		data._name_encoded = encodeURIComponent(data.name);
 		data._submittable = frappe.model.is_submittable(this.doctype);
 
-		data._title = strip_html(data[this.title_field || "name"] || data["name"]);
+		var title_field = frappe.get_meta(this.doctype).title_field || "name";
+		data._title = strip_html(data[title_field]) || data.name;
 		data._full_title = data._title;
 
 		if(data._title.length > 40) {
@@ -352,22 +354,29 @@ frappe.views.ListView = Class.extend({
 				style: frappe.utils.guess_style(data[this.workflow_state_fieldname])
 			}
 		}
-		data._user = user;
 
-		data._tags = $.map((data._user_tags || "").split(","),
-			function(v) { return v ? v : null; });
-		data._assign_list = data._assign ? JSON.parse(data._assign) : [];
+		data._user = frappe.session.user;
 
-		// nulls as strings
-		for(key in data) {
-			if(data[key]==null) {
-				data[key]='';
+		data._tags = data._user_tags.split(",").filter(function(v) {
+			// filter falsy values
+			return v;
+		});
+
+		data.css_seen = '';
+		if(data._seen) {
+			var seen = JSON.parse(data._seen);
+			if(seen && in_list(seen, data._user)) {
+				data.css_seen = 'seen'
 			}
 		}
+
+		data._assign_list = JSON.parse(data._assign || "[]");
 
 		// prepare data in settings
 		if(this.settings.prepare_data)
 			this.settings.prepare_data(data);
+
+		return data;
 	},
 
 	prepare_when: function(data, date_str) {
@@ -375,13 +384,13 @@ frappe.views.ListView = Class.extend({
 		// when
 		data.when = (dateutil.str_to_user(date_str)).split(' ')[0];
 		var diff = dateutil.get_diff(dateutil.get_today(), date_str.split(' ')[0]);
-		if(diff==0) {
+		if(diff === 0) {
 			data.when = comment_when(date_str);
 		}
-		if(diff == 1) {
+		if(diff === 1) {
 			data.when = __('Yesterday')
 		}
-		if(diff == 2) {
+		if(diff === 2) {
 			data.when = __('2 days ago')
 		}
 	},

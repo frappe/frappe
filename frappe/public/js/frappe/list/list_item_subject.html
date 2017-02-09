@@ -1,6 +1,6 @@
 {% if (_checkbox) { %}
-<input class="list-delete" type="checkbox"
-    style="margin: 0 7px 0 0; vertical-align: middle;">
+<input class="list-delete" type="checkbox" data-name="{{name}}"
+    style="margin: 0 7px 2px 0; vertical-align: middle;">
 {% } %}
 <span class="liked-by" data-liked-by=\'{{ JSON.stringify(_liked_by) }}\'>
 	<i class="octicon octicon-heart

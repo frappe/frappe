@@ -20,7 +20,7 @@
             {% if (col.type==="Subject") { %}
                 {%= subject %}
             {% } else if (col.type==="Indicator") { %}
-                {%= list.get_indicator(data) %}
+                {%= indicator %}
             {% } else if (col.render) { %}
                 {%= col.render(data) %}
             {% } else if (col.fieldtype==="Image") { %}
