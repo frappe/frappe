@@ -58,12 +58,12 @@ frappe.ui.FilterList = Class.extend({
 	},
 	show_filter_list: function(){
 		$(this.filter_list_wrapper).toggle(true);
-		this.show_filter_button.prop('title',__("Hide Filters"));
+		this.show_filter_button.text(__("Hide Filters"));
 		this.filters_visible = true;
 	},
 	hide_filter_list: function(){
 		$(this.filter_list_wrapper).toggle(false);
-		this.show_filter_button.prop('title',__("Show Filters"));
+		this.show_filter_button.text(__("Show Filters"));
 		this.filters_visible = false;
 	},
 	render_dashboard_headers: function(field){
