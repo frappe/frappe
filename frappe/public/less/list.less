@@ -368,3 +368,28 @@ table.field-info tr td {
 	font-size: 11px;
 	max-width: 100px;
 }
+
+// Image view
+
+.image-view-container {
+
+	display: flex;
+	flex-wrap: wrap;
+
+	.image-view-item {
+		&:hover {
+			background-color: @panel-bg;
+		}
+
+		flex: 0 0 25%;
+		padding: 15px;
+
+		@media(max-width: @screen-sm) {
+			flex: 0 0 33.3333333333%
+		}
+	}
+
+	.image-view-header {
+		margin-bottom: 10px;
+	}
+}

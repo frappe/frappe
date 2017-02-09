@@ -291,3 +291,19 @@ table.field-info tr td {
   font-size: 11px;
   max-width: 100px;
 }
+.image-view-container {
+  display: flex;
+  flex-wrap: wrap;
+}
+.image-view-container .image-view-item {
+  flex: 0 0 25%;
+  padding: 15px;
+}
+.image-view-container .image-view-item:hover {
+  background-color: #F7FAFC;
+}
+@media (max-width: 991px) {
+  .image-view-container .image-view-item {
+    flex: 0 0 33.33333333%;
+  }
+}
