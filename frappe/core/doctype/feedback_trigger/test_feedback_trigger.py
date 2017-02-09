@@ -41,10 +41,10 @@ class TestFeedbackTrigger(unittest.TestCase):
 			"doctype": "Feedback Trigger",
 			"document_type": "ToDo",
 			"email_field": "assigned_by",
+			"email_fieldname": "assigned_by",
 			"subject": "{{ doc.name }} Task Completed",
 			"condition": "doc.status == 'Closed'",
 			"message": """Task {{ doc.name }} is Completed by {{ doc.owner }}.
-			<br>Please visit the {{ feedback_url }} and give your feedback 
 			regarding the Task {{ doc.name }}"""
 		}).insert(ignore_permissions=True)
 
@@ -52,15 +52,26 @@ class TestFeedbackTrigger(unittest.TestCase):
 		todo = frappe.get_doc({
 			"doctype": "ToDo",
 			"owner": "test-feedback@example.com",
-			"allocated_by": "test-feedback@example.com",
+			"assigned_by": "test-feedback@example.com",
 			"description": "Unable To Submit Sales Order #SO-00001"
-		}).insert(ignore_permissions=True)
+		})
+
+		# feedback alert mail should be sent only on 'Closed' status
+		self.assertRaises(frappe.ValidationError, todo.insert, ignore_permissions=True)
 
 		email_queue = frappe.db.sql("""select name from `tabEmail Queue` where
 			reference_doctype='ToDo' and reference_name='{0}'""".format(todo.name))
-
-		# feedback alert mail should be sent only on 'Closed' status
 		self.assertFalse(email_queue)
+
+		# add a communication
+		frappe.get_doc({
+			"reference_doctype": "ToDo",
+			"reference_name": todo.name,
+			"communication_type": "Communication",
+			"content": "Test Communication",
+			"subject": "Test Communication",
+			"doctype": "Communication"
+		}).insert(ignore_permissions=True)
 
 		# check if feedback mail alert is triggered
 		todo.status = "Closed"

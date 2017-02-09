@@ -12,6 +12,7 @@ import frappe.desk.desk_page
 from frappe.desk.form.load import get_meta_bundle
 from frappe.utils.change_log import get_versions
 from frappe.translate import get_lang_dict
+from frappe.core.doctype.feedback_trigger.feedback_trigger import get_enabled_feedback_trigger
 
 def get_bootinfo():
 	"""build and return boot info"""
@@ -68,6 +69,7 @@ def get_bootinfo():
 	bootinfo.email_accounts = frappe.get_all('User Email', fields=['email_account', 'email_id'],
 		filters=dict(parent=frappe.session.user))
 	bootinfo.lang_dict = get_lang_dict()
+	bootinfo.feedback_triggers = get_enabled_feedback_trigger()
 
 	return bootinfo
 
