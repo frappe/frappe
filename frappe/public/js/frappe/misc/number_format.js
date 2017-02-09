@@ -12,7 +12,8 @@ function flt(v, decimals, number_format) {
 		// strip currency symbol if exists
 		if(v.indexOf(" ")!=-1) {
 			// using slice(1).join(" ") because space could also be a group separator
-			v = isNaN(parseFloat(v.split(" ")[0])) ? v.split(" ").slice(1).join(" ") : v;
+			last_index = v.split(" ").length - 1;
+			v = isNaN(parseFloat(v.split(" ")[0])) ? v.split(" ").slice(last_index).join(" ") : v;
 		}
 
 		v = strip_number_groups(v, number_format);
