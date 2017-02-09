@@ -11,10 +11,14 @@ import json
 
 from frappe.desk.doctype.event.event import get_events
 
+test_records = frappe.get_test_records('Event')
+
 class TestEvent(unittest.TestCase):
 	def setUp(self):
 		self.test_records = frappe.get_test_records('Event')
-		self.test_user = "test1@example.com" 
+		self.test_user = "test1@example.com"
+		if not frappe.get_all('Event'):
+			[frappe.get_doc(d).insert() for d in frappe.get_test_records('Event')]
 
 	def tearDown(self):
 		frappe.set_user("Administrator")
@@ -26,7 +30,6 @@ class TestEvent(unittest.TestCase):
 
 	def test_not_allowed_private(self):
 		frappe.set_user(self.test_user)
-		print frappe.db.get_value("Event", {"subject":"_Test Event 2"})
 		doc = frappe.get_doc("Event", frappe.db.get_value("Event", {"subject":"_Test Event 2"}))
 		self.assertFalse(frappe.has_permission("Event", doc=doc))
 
@@ -122,4 +125,3 @@ class TestEvent(unittest.TestCase):
 
 		ev_list3 = get_events("2015-02-01", "2015-02-01", "Administrator", for_reminder=True)
 		self.assertTrue(filter(lambda e: e.name==ev.name, ev_list3))
-
