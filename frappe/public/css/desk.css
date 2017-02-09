@@ -662,3 +662,6 @@ fieldset[disabled] .form-control {
   max-height: 300px;
   overflow: scroll;
 }
+.note-editor.note-frame .note-editing-area .note-editable {
+  color: #36414C;
+}
