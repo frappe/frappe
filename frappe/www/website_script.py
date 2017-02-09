@@ -18,6 +18,5 @@ def get_context(context):
 		context.javascript += "\n" + js
 
 	if not frappe.conf.developer_mode:
-		context["google_analytics_id"] = frappe.conf.get("google_analytics_id") \
-			or frappe.db.get_single_value("Website Settings", "google_analytics_id")
-
+		context["google_analytics_id"] = (frappe.db.get_single_value("Website Settings", "google_analytics_id")
+			or frappe.conf.get("google_analytics_id"))
