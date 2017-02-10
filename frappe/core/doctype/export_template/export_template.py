@@ -315,7 +315,7 @@ def get_template(xlsx_format, doctype=None, parent_doctype=None, all_doctypes="N
 		import openpyxl
 		wb = openpyxl.Workbook()
 		ws = wb.active
-		f = open('temp001.csv')
+		f = open(filename)
 		reader = csv.reader(f)
 		for row in reader:
 			ws.append(row)
@@ -336,7 +336,7 @@ def get_template(xlsx_format, doctype=None, parent_doctype=None, all_doctypes="N
 
 def export_csv(doctype, path):
 	with open(path, "w") as csvfile:
-		get_template(xlsx_format=0, doctype=doctype, all_doctypes="Yes", with_data="Yes")
+		get_template(xlsx_format='0', doctype=doctype, all_doctypes="Yes", with_data="Yes")
 		csvfile.write(frappe.response.result.encode("utf-8"))
 
 
