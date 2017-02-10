@@ -1,0 +1,19 @@
+{
+ "content": null, 
+ "creation": "2016-11-17 03:48:14.948585", 
+ "docstatus": 0, 
+ "doctype": "Page", 
+ "icon": "icon-upload", 
+ "idx": 0, 
+ "modified": "2016-11-17 03:48:20.318990", 
+ "modified_by": "Administrator", 
+ "module": "Core", 
+ "name": "data-transfer-wizard", 
+ "owner": "Administrator", 
+ "page_name": "data-transfer-wizard", 
+ "roles": [], 
+ "script": null, 
+ "standard": "Yes", 
+ "style": null, 
+ "title": "Data Transfer Wizard"
+}
