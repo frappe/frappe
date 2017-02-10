@@ -140,8 +140,10 @@ class EmailAccount(Document):
 			"use_ssl": self.use_ssl,
 			"username": getattr(self, "login_id", None) or self.email_id,
 			"use_imap": self.use_imap,
-			"email_sync_rule": email_sync_rule
+			"email_sync_rule": email_sync_rule,
+			"uid_validity": self.uidvalidity
 		})
+
 		if self.password:
 			args.password = self.get_password()
 
@@ -219,6 +221,12 @@ class EmailAccount(Document):
 
 	def receive(self, test_mails=None):
 		"""Called by scheduler to receive emails from this EMail account using POP3/IMAP."""
+		def get_seen(status):
+			if not status:
+				return None
+			seen = 0 if status == "SEEN" else 1
+			return seen
+
 		if self.enable_incoming:
 			uid_list = []
 			exceptions = []
@@ -233,11 +241,13 @@ class EmailAccount(Document):
 
 				incoming_mails = emails.get("latest_messages")
 				uid_list = emails.get("uid_list", [])
+				seen_status = email.get("seen_status", [])
 
 			for idx, msg in enumerate(incoming_mails):
 				try:
 					uid = None if not uid_list else uid_list[idx]
-					communication = self.insert_communication(msg, uid)
+					seen = None if not seen_status else get_seen(seen_status.get(uid, None))
+					communication = self.insert_communication(msg, _uid=uid, _seen=seen)
 					#self.notify_update()
 
 				except SentEmailInInbox:
@@ -283,7 +293,7 @@ class EmailAccount(Document):
 			unhandled_email.save()
 			frappe.db.commit()
 
-	def insert_communication(self, msg, _uid=None):
+	def insert_communication(self, msg, _uid=None, _seen=None):
 		if isinstance(msg,list):
 			raw, uid, seen = msg
 		else:
@@ -291,6 +301,7 @@ class EmailAccount(Document):
 			seen = uid = None
 
 		if _uid: uid = _uid
+		if _seen: seen = _seen
 
 		email = Email(raw)
 

@@ -11,6 +11,7 @@ from frappe.utils import (extract_email_id, convert_utc_to_user_timezone, now,
 	cint, cstr, strip, markdown)
 from frappe.utils.scheduler import log
 from frappe.utils.file_manager import get_random_filename, save_file, MaxFileSizeReachedError
+import re
 
 class EmailSizeExceededError(frappe.ValidationError): pass
 class EmailTimeoutError(frappe.ValidationError): pass
@@ -107,6 +108,7 @@ class EmailServer:
 			# track if errors arised
 			self.errors = False
 			self.latest_messages = []
+			self.seen_status = {}
 
 			uid_list = email_list = self.get_new_mails()
 			num = num_copy = len(email_list)
@@ -128,7 +130,6 @@ class EmailServer:
 					self.retrieve_message(message_meta, i+1)
 				except (TotalSizeExceededError, EmailTimeoutError, LoginLimitExceeded):
 					break
-
 			# WARNING: Mark as read - message number 101 onwards from the pop list
 			# This is to avoid having too many messages entering the system
 			num = num_copy
@@ -152,13 +153,20 @@ class EmailServer:
 				self.pop.quit()
 
 		out = { "latest_messages": self.latest_messages }
-		if self.settings.use_imap: out.update({ "uid_list": uid_list })
+		if self.settings.use_imap:
+			out.update({
+				"uid_list": uid_list,
+				"seen_status": self.seen_status
+			})
 
 		return out
 
 	def get_new_mails(self):
 		"""Return list of new mails"""
 		if cint(self.settings.use_imap):
+			if not self.check_imap_uidvalidity():
+				frappe.throw(_("UIDVALIDITY is changed in imap server"))
+
 			self.imap.select("Inbox")
 			response, message = self.imap.uid('search', None, self.settings.email_sync_rule)
 			email_list =  message[0].split()
@@ -167,18 +175,46 @@ class EmailServer:
 
 		return email_list
 
+	def check_imap_uidvalidity(self):
+		# compare the UIDVALIDITY of email account and imap server
+		uid_validity = self.settings.uid_validity
+
+		responce, message = self.imap.status("Inbox", "(UIDVALIDITY)")
+		current_uid_validity = self.parse_imap_responce("UIDVALIDITY", message[0])
+
+		if not uid_validity:
+			# uid validity is not available for email account
+			frappe.db.set_value("Email Account", self.settings.email_account, "uidvalidity", current_uid_validity)
+			return True
+		elif uid_validity == current_uid_validity:
+			return True
+		else:
+			# UIDs are reindexed on imap server
+			# self.settings.email_sync_rule = "UNSEEN"
+			return False
+
+	def parse_imap_responce(self, cmd, responce):
+		pattern = r"(?<={cmd} )[0-9]*".format(cmd=cmd)
+		match = re.search(pattern, responce, re.U | re.I)
+		if match:
+			return match.group(0)
+		else:
+			return None
+
 	def retrieve_message(self, message_meta, msg_num=None):
 		incoming_mail = None
 		try:
 			self.validate_message_limits(message_meta)
 
 			if cint(self.settings.use_imap):
+				status, response = self.imap.uid("fetch", message_meta, "(FLAGS)")
+				self.get_mail_seen_status(message_meta, response[0])
+
 				status, message = self.imap.uid('fetch', message_meta, '(RFC822)')
 				self.latest_messages.append(message[0][1])
 			else:
 				msg = self.pop.retr(msg_num)
 				self.latest_messages.append(b'\n'.join(msg[1]))
-
 		except (TotalSizeExceededError, EmailTimeoutError):
 			# propagate this error to break the loop
 			self.errors = True
@@ -206,6 +242,22 @@ class EmailServer:
 			else:
 				# mark as seen
 				self.imap.uid('STORE', message_meta, '+FLAGS', '(\\SEEN)')
+
+	def get_mail_seen_status(self, uid, flag_string):
+		# parse the mail flags
+		if not flag_string:
+			return None
+
+		flags = []
+		for flag in imaplib.ParseFlags(flag_string) or []:
+			pattern = re.compile("\w+")
+			match = re.search(pattern, flag)
+			flags.append(match.group(0))
+
+		if "Seen" in flags:
+			self.seen_status.update({ uid: "SEEN" })
+		else:
+			self.seen_status.update({ uid: "UNSEEN" })
 
 	def has_login_limit_exceeded(self, e):
 		return "-ERR Exceeded the login limit" in strip(cstr(e.message))
