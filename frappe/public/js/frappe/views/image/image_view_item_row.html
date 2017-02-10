@@ -19,18 +19,10 @@
 				{% } %}
 				border: 0px;"
 			>
-				{% if (!item_image) { %}{%= frappe.get_abbr(data.name) %}{% } %}
-				<button class="btn btn-info zoom-view hide">
-					<i class="fa fa-zoom-in"></i>
+				{% if (!item_image) { %}{%= frappe.get_abbr(data._title) %}{% } %}
+				<button class="btn btn-default zoom-view">
+					<i class="fa fa-search-plus"></i>
 				</button>
-				<table class="table table-condensed field-info hide">
-					{% for col in additional_columns %}
-					<tr>
-						<td align="right" width="40%">{%= col.title %}</td>
-						<td align="left" width="60%">{%= col.value %}</td>
-					</tr>
-					{% endfor %}
-				</table>
 			</div>
 		</a>
 	</div>

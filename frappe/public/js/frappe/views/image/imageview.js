@@ -15,9 +15,12 @@ frappe.views.ImageView = Class.extend({
 		this.setup_additional_columns();
 
 		this.items = this.items.map(function(item) {
-			return me.listview.prepare_data(item);
+			var i = me.listview.prepare_data(item);
+			if (i._title.length > 20) {
+				i._title = i._title.slice(0, 20) + "...";
+			}
+			return i;
 		});
-		console.log(this.items)
 	},
 	setup_additional_columns: function () {
 		this.additional_columns = this.listview.columns.filter(function (col) {

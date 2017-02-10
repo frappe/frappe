@@ -141,7 +141,26 @@
 }
 
 .list-value {
+	display: table;
 	vertical-align: middle;
+
+	.list-delete, .liked-by, .list-id, .list-select-all {
+		display: table-cell;
+		vertical-align: middle;
+	}
+
+	.list-delete, .list-select-all {
+		margin: 0;
+		margin-right: 7px;
+	}
+
+	.liked-by {
+		padding-top: 1px;
+	}
+
+	.list-col-title {
+		vertical-align: middle;
+	}
 }
 
 .progress {
@@ -210,10 +229,6 @@
 	cursor: pointer;
 }
 
-.list-row-head .octicon-heart {
-	margin-right: 13px;
-}
-
 .like-action.octicon-heart {
 	// color: #ffdb4c;
 	color: @heart-color;
@@ -253,65 +268,6 @@
 	display: inline-block;
 	width: 37px;
 	text-align: left;
-}
-
-.image-view {
-  float: left;
-}
-
-.image-view-subject {
-  padding: inherit;
-}
-
-.image-view-col {
-  padding-bottom: 5px;
-  padding-top: 5px;
-
-  a {
-	  text-decoration: none !important;
-  }
-}
-
-table.field-info {
-  opacity: 0;
-  bottom: -20px;
-  font-size: 8pt;
-  color: white;
-  background-color: @text-color;
-  position: absolute;
-  padding-bottom: 0px !important;
-  border: 0px;
-}
-
-table.field-info tr td {
-    border: none !important;
-}
-
-.zoom-view {
-  top: 10px !important;
-  right: 10px !important;
-  width: 36px;
-  height: 36px;
-  opacity: 0;
-  font-size: 16px;
-  color: @text-color;
-  position: absolute;
-  padding: 0px !important;
-  border-radius: 5px;
-  border: 0px;
-}
-
-.image-field {
-  background-size: contain;
-  position: relative;
-}
-
-.image-field:hover .field-info {
-  opacity: 0.7;
-}
-
-.image-field:hover .zoom-view {
-  opacity: 0.6;
 }
 
 // tags
@@ -377,19 +333,51 @@ table.field-info tr td {
 	flex-wrap: wrap;
 
 	.image-view-item {
-		&:hover {
-			background-color: @panel-bg;
-		}
 
 		flex: 0 0 25%;
 		padding: 15px;
+		border-bottom: 1px solid @light-border-color;
 
 		@media(max-width: @screen-sm) {
-			flex: 0 0 33.3333333333%
+			flex: 0 0 100/3%;
 		}
+	}
+
+	.image-view-item:not(:nth-child(4n)) {
+		border-right: 1px solid @light-border-color;
+	}
+	.image-view-item:nth-last-child(-n + 4):nth-child(4n + 1),
+	.image-view-item:nth-last-child(-n + 4):nth-child(4n + 1) ~ .image-view-item {
+		border-bottom: none;
 	}
 
 	.image-view-header {
 		margin-bottom: 10px;
+	}
+
+	.image-view-body {
+		&:hover .zoom-view {
+			opacity: 0.7;
+		}
+
+		a {
+			text-decoration: none;
+		}
+	}
+
+	.image-field {
+		background-size: contain;
+		position: relative;
+	}
+
+	.zoom-view {
+		bottom: 10px !important;
+		right: 10px !important;
+		width: 36px;
+		height: 36px;
+		opacity: 0;
+		font-size: 16px;
+		color: @text-color;
+		position: absolute;
 	}
 }
