@@ -27,6 +27,7 @@ reflags = {
 	"D": re.DEBUG
 }
 
+
 @frappe.whitelist()
 def get_data_keys():
     return frappe._dict({
@@ -331,3 +332,52 @@ def get_template(xlsx_format, doctype=None, parent_doctype=None, all_doctypes="N
 		frappe.response['filename'] = doctype + '.xlsx'
 		frappe.response['filecontent'] = xlsx_file.getvalue()
 		frappe.response['type'] = 'binary'
+
+
+def export_csv(doctype, path):
+	with open(path, "w") as csvfile:
+		get_template(xlsx_format=0, doctype=doctype, all_doctypes="Yes", with_data="Yes")
+		csvfile.write(frappe.response.result.encode("utf-8"))
+
+
+def export_json(doctype, path, filters=None, or_filters=None, name=None):
+	def post_process(out):
+		del_keys = ('parent', 'parentfield', 'parenttype', 'modified_by', 'creation', 'owner', 'idx')
+		for doc in out:
+			for key in del_keys:
+				if key in doc:
+					del doc[key]
+			for k, v in doc.items():
+				if isinstance(v, list):
+					for child in v:
+						for key in del_keys + ('docstatus', 'doctype', 'modified', 'name'):
+							if key in child:
+								del child[key]
+
+	out = []
+	if name:
+		out.append(frappe.get_doc(doctype, name).as_dict())
+	elif frappe.db.get_value("DocType", doctype, "issingle"):
+		out.append(frappe.get_doc(doctype).as_dict())
+	else:
+		for doc in frappe.get_all(doctype, fields=["name"], filters=filters, or_filters=or_filters, limit_page_length=0, order_by="creation asc"):
+			out.append(frappe.get_doc(doctype, doc.name).as_dict())
+	post_process(out)
+
+	dirname = os.path.dirname(path)
+	if not os.path.exists(dirname):
+		path = os.path.join('..', path)
+
+	with open(path, "w") as outfile:
+		outfile.write(frappe.as_json(out))
+
+
+@frappe.whitelist()
+def export_fixture(doctype, app):
+	if frappe.session.user != "Administrator":
+		raise frappe.PermissionError
+
+	if not os.path.exists(frappe.get_app_path(app, "fixtures")):
+		os.mkdir(frappe.get_app_path(app, "fixtures"))
+
+	export_json(doctype, frappe.get_app_path(app, "fixtures", frappe.scrub(doctype) + ".json"))

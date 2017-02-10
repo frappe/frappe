@@ -1,26 +1,26 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2015, Frappe Technologies and contributors
 # For license information, please see license.txt
-
 from __future__ import unicode_literals
+
+import time
 import os, difflib
-import frappe, json, csv
 import frappe.async
+from frappe import _
+import frappe, json, csv
 import frappe.permissions
 from frappe.model.document import Document
 
-import time
-
-from frappe import _
-
-from frappe.utils.dateutils import parse_date
-from frappe.utils import cint, cstr, flt, getdate, get_datetime
-from frappe.utils import get_site_name, get_site_path, get_site_base_path, get_path
-from frappe.utils.csvutils import read_csv_content_from_attached_file, getlink
+import frappe.modules.import_file
 from frappe.utils.data import format_datetime
+from frappe.utils.dateutils import parse_date
 from frappe.utils.background_jobs import enqueue
+from frappe.utils import cint, cstr, flt, getdate, get_datetime
+from frappe.utils.csvutils import read_csv_content_from_attached_file, getlink
+from frappe.utils import get_site_name, get_site_path, get_site_base_path, get_path
 
 from openpyxl import load_workbook
+
 
 def get_data_keys_definition():
 		return frappe._dict({
@@ -154,7 +154,7 @@ class DataImport(Document):
 			frappe.throw(_("Error - Upload file again"))
 
 
-def import_raw(file_path,doc_name):
+def import_raw(file_path,doc_name, ignore_links=False):
 	'''
 		Import the raw xlsx file. It will insert new records only.
 	'''
@@ -278,14 +278,26 @@ def import_raw(file_path,doc_name):
 		frappe.db.commit()
 	
 
-def import_template(doc_name, file_path, rows = None, ignore_links=False, pre_process=None, via_console=False):
+def import_template(doc_name=None, file_path=None, rows=None, submit_after_import=None, ignore_encoding_errors=False,
+	no_email=True, overwrite=None, update_only=None, ignore_links=False, pre_process=None, via_console=False):
 	"""upload the templated data"""
 
-	filename, file_extension = os.path.splitext(file_path)
-	di_doc = frappe.get_doc("Data Import",doc_name)	
+	if doc_name:
+		di_doc = frappe.get_doc("Data Import",doc_name)
+		no_email = di_doc.no_email
+		ignore_encoding_errors = di_doc.ignore_encoding_errors
+		update_only = di_doc.only_update
+		submit_after_import = di_doc.submit_after_import
+		overwrite = di_doc.only_new_records
+	
+	if file_path:
+		filename, file_extension = os.path.splitext(file_path)
+	else:
+		filename = None
+		file_extension = None
 
 	frappe.flags.in_import = True
-	frappe.flags.mute_emails = di_doc.no_email
+	frappe.flags.mute_emails = no_email
 
 	def bad_template():
 		frappe.throw(_("Please do not change the rows above {0}").format(get_data_keys_definition().data_separator))
@@ -376,7 +388,7 @@ def import_template(doc_name, file_path, rows = None, ignore_links=False, pre_pr
 							if dt == doctype:
 								doc.update(d)
 							else:
-								if not di_doc.only_new_records:
+								if not overwrite:
 									d['parent'] = doc["name"]
 								d['parenttype'] = doctype
 								d['parentfield'] = parentfield
@@ -404,10 +416,9 @@ def import_template(doc_name, file_path, rows = None, ignore_links=False, pre_pr
 
 
 	# header
-
-	if not rows and file_extension == '.csv':
+	if not rows and doc_name and file_extension == '.csv':
 		rows = read_csv_content_from_attached_file(frappe.get_doc("Data Import", di_doc.name),
-			di_doc.ignore_encoding_errors)
+			ignore_encoding_errors)
 
 	if not rows and file_extension == ".xlsx":
 		rows = []
@@ -429,9 +440,9 @@ def import_template(doc_name, file_path, rows = None, ignore_links=False, pre_pr
 	column_idx_to_fieldname = {}
 	column_idx_to_fieldtype = {}
 
-	if di_doc.submit_after_import and not cint(frappe.db.get_value("DocType",
+	if submit_after_import and not cint(frappe.db.get_value("DocType",
 			doctype, "is_submittable")):
-		di_doc.submit_after_import = False
+		submit_after_import = False
 
 	parenttype = get_header_row(get_data_keys_definition().parent_table)
 
@@ -451,7 +462,7 @@ def import_template(doc_name, file_path, rows = None, ignore_links=False, pre_pr
 	if parenttype:
 		parentfield = get_parent_field(doctype, parenttype)
 
-		if di_doc.only_new_records:
+		if overwrite:
 			delete_child_rows(data, doctype)
 
 	ret = []
@@ -491,9 +502,9 @@ def import_template(doc_name, file_path, rows = None, ignore_links=False, pre_pr
 				parent = frappe.get_doc(parenttype, doc["parent"])
 				doc = parent.append(parentfield, doc)
 				parent.save()
-				log([i, getlink(di_doc.reference_doctype,new_doc.name), "Row Inserted"])
+				log([unicode(doc.idx), getlink(parenttype,doc.parent), "Row Inserted"])
 			else:
-				if di_doc.only_new_records and doc["name"] and frappe.db.exists(doctype, doc["name"]):
+				if overwrite and doc["name"] and frappe.db.exists(doctype, doc["name"]):
 					original = frappe.get_doc(doctype, doc["name"])
 					original_name = original.name
 					original.update(doc)
@@ -504,7 +515,7 @@ def import_template(doc_name, file_path, rows = None, ignore_links=False, pre_pr
 					log([row_idx+1, getlink(original.doctype, original.name), "Row updated"])
 					doc = original
 				else:
-					if not di_doc.only_update:
+					if not update_only:
 						doc = frappe.get_doc(doc)
 						prepare_for_insert(doc)
 						doc.flags.ignore_links = ignore_links
@@ -512,7 +523,7 @@ def import_template(doc_name, file_path, rows = None, ignore_links=False, pre_pr
 						log([row_idx+1, getlink(doc.doctype, doc.name), "Row inserted"])
 					else:
 						log([row_idx+1, "", "Row ignored"])
-				if di_doc.submit_after_import:
+				if submit_after_import:
 					doc.submit()
 					log([row_idx+1, getlink(doc.doctype, doc.name), "Row submitted"])
 
@@ -541,12 +552,15 @@ def import_template(doc_name, file_path, rows = None, ignore_links=False, pre_pr
 
 	if frappe.flags.in_test:
 		return True
-	else:
+
+	if doc_name:
 		log_message = {"messages": ret, "error": error}
 		di_doc.log_details = json.dumps(log_message)
 		di_doc.freeze_doctype = 1
 		di_doc.save()
 		frappe.db.commit()
+	else:
+		return {"messages": ret, "error": error}
 
 	def get_parent_field(doctype, parenttype):
 		parentfield = None
@@ -569,3 +583,30 @@ def import_template(doc_name, file_path, rows = None, ignore_links=False, pre_pr
 		for p in list(set([r[1] for r in rows])):
 			if p:
 				frappe.db.sql("""delete from `tab{0}` where parent=%s""".format(doctype), p)
+
+
+def import_file_by_path(path, ignore_links=False, overwrite=False, submit=False, pre_process=None, no_email=True):
+	from frappe.utils.csvutils import read_csv_content
+	print "Importing " + path
+	with open(path, "r") as infile:
+		import_template(rows = read_csv_content(infile.read()), ignore_links=ignore_links, no_email=no_email, overwrite=overwrite,
+            submit_after_import=submit, pre_process=pre_process)
+
+
+def import_doc(path, overwrite=False, ignore_links=False, ignore_insert=False,
+    insert=False, submit=False, pre_process=None):
+	if os.path.isdir(path):
+		files = [os.path.join(path, f) for f in os.listdir(path)]
+	else:
+		files = [path]
+
+	for f in files:
+		if f.endswith(".json"):
+			frappe.flags.mute_emails = True
+			frappe.modules.import_file.import_file_by_path(f, data_import=True, force=True, pre_process=pre_process, reset_permissions=True)
+			frappe.flags.mute_emails = False
+			frappe.db.commit()
+		elif f.endswith(".csv"):
+			import_file_by_path(f, ignore_links=ignore_links, overwrite=overwrite, submit=submit, pre_process=pre_process)
+			frappe.db.commit()
+

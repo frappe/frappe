@@ -25,7 +25,7 @@ def get_doctypes():
 def get_doctype_options():
 	doctype = frappe.form_dict['doctype']
 	return [doctype] + [d.options for d in frappe.get_meta(doctype).get_table_fields()]
-
+'''
 def import_file_by_path(path, ignore_links=False, overwrite=False, submit=False, pre_process=None, no_email=True):
 	from frappe.utils.csvutils import read_csv_content
 	from frappe.core.page.data_import_tool.importer import upload
@@ -33,13 +33,17 @@ def import_file_by_path(path, ignore_links=False, overwrite=False, submit=False,
 	with open(path, "r") as infile:
 		upload(rows = read_csv_content(infile.read()), ignore_links=ignore_links, no_email=no_email, overwrite=overwrite,
             submit_after_import=submit, pre_process=pre_process)
+'''
 
+'''
 def export_csv(doctype, path):
 	from frappe.core.page.data_import_tool.exporter import get_template
 	with open(path, "w") as csvfile:
 		get_template(doctype=doctype, all_doctypes="Yes", with_data="Yes")
 		csvfile.write(frappe.response.result.encode("utf-8"))
+'''
 
+'''
 def export_json(doctype, path, filters=None, or_filters=None, name=None):
 	def post_process(out):
 		del_keys = ('parent', 'parentfield', 'parenttype', 'modified_by', 'creation', 'owner', 'idx')
@@ -70,7 +74,9 @@ def export_json(doctype, path, filters=None, or_filters=None, name=None):
 
 	with open(path, "w") as outfile:
 		outfile.write(frappe.as_json(out))
+'''
 
+'''
 @frappe.whitelist()
 def export_fixture(doctype, app):
 	if frappe.session.user != "Administrator":
@@ -80,7 +86,7 @@ def export_fixture(doctype, app):
 		os.mkdir(frappe.get_app_path(app, "fixtures"))
 
 	export_json(doctype, frappe.get_app_path(app, "fixtures", frappe.scrub(doctype) + ".json"))
-
+'''
 
 def import_doc(path, overwrite=False, ignore_links=False, ignore_insert=False,
     insert=False, submit=False, pre_process=None):
