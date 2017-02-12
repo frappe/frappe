@@ -1,7 +1,7 @@
 frappe.provide('frappe.ui.misc');
 frappe.ui.misc.about = function() {
 	if(!frappe.ui.misc.about_dialog) {
-		var d = new frappe.ui.Dialog({title: __('Frappe Framework')})
+		var d = new frappe.ui.Dialog({title: __('Frappe Framework')});
 
 		$(d.body).html(repl("<div>\
 		<p>"+__("Open Source Applications for the Web")+"</p>  \

@@ -95,6 +95,9 @@ class Meta(Document):
 
 		return self._table_fields
 
+	def get_global_search_fields(self):
+		return self.get("fields", {"in_global_search": 1 }) + self.get("fields", {"in_global_search": '1'})
+
 	def get_valid_columns(self):
 		if not hasattr(self, "_valid_columns"):
 			if self.name in ("DocType", "DocField", "DocPerm", "Property Setter"):

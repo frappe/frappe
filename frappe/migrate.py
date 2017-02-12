@@ -14,7 +14,7 @@ from frappe.website import render
 from frappe.desk.doctype.desktop_icon.desktop_icon import sync_desktop_icons
 from frappe.core.doctype.language.language import sync_languages
 from frappe.modules.utils import sync_customizations
-import frappe.utils.help
+import frappe.utils.help 
 
 def migrate(verbose=True, rebuild_website=False):
 	'''Migrate all apps to the latest version, will:
