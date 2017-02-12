@@ -328,6 +328,10 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		var route = frappe.get_route();
 		this.last_view = this.current_view || '';
 		this.current_view = route[2] || route[0];
+
+		// clean this up later
+		if(this.doctype==='File') this.current_view = 'List';
+
 		if(this.current_view==="Kanban") {
 			this.last_kanban_board = this.kanban_board;
 			this.kanban_board = route[3];

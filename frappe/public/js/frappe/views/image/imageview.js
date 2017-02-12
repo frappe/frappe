@@ -8,6 +8,7 @@ frappe.views.ImageView = Class.extend({
 		$.extend(this, opts);
 		this.prepare();
 		this.render();
+		this.setup_gallery();
 	},
 	prepare: function () {
 		var me = this;
@@ -58,20 +59,152 @@ frappe.views.ImageView = Class.extend({
 			url = frappe.base_url + url;
 		}
 		if (url) {
-			return "url('" + url + "')";
+			return url
+		// 	return "url('" + url + "')";
 		}
 		return null;
+	},
+	setup_gallery: function() {
+		var me = this;
+		var gallery = new frappe.views.GalleryView({
+			doctype: this.doctype,
+			items: this.items,
+			wrapper: this.container
+		});
+		this.container.on('click', '.btn.zoom-view', function(e) {
+			e.preventDefault();
+			var name = $(this).data().name;
+			gallery.show(name);
+		});
 	},
 	refresh: function (data) {
 		this.items = data;
 		this.prepare();
 		this.render();
 	}
-})
+});
 
 frappe.views.GalleryView = Class.extend({
+	init: function(opts) {
+		$.extend(this, opts);
+		var me = this;
+
+		this.ready = false;
+		this.load_lib(function() {
+			me.prepare();
+			me.ready = true;
+		});
+	},
+	prepare: function() {
+		// keep only one pswp dom element
+		this.pswp_root = $('body > .pswp');
+		if(this.pswp_root.length === 0) {
+			var pswp = frappe.render_template('photoswipe_dom');
+			this.pswp_root = $(pswp).appendTo('body');
+		}
+	},
+	render: function() {
+		var me = this;
+		this.get_image_urls()
+		.then(function(items) {
+			
+		});
+	},
+	show: function(docname) {
+		var me = this;
+		if(!this.ready) {
+			setTimeout(this.show.bind(this), 200);
+			return;
+		}
+		var items = this.items.map(function(i) {
+			var el = me.wrapper.find('img[data-name="'+i.name+'"]').get(0);
+			return {
+				src: i.image,
+				name: i.name,
+				w: 500,
+				h: 400,
+				el: el
+			}
+		});
+		console.log(items);
+		var index;
+		items.map(function(item, i) {
+			if(item.name === docname)
+				index = i;
+		});
+		console.log(index)
+
+		var options = {
+			index: index,
+			getThumbBoundsFn: function(index) {
+				var thumbnail = document.querySelectorAll('.image-view-item')[index];
+
+				var pageYScroll = window.pageYOffset || document.documentElement.scrollTop; 
+
+				var rect = thumbnail.getBoundingClientRect(); 
+
+				return {x:rect.left, y:rect.top + pageYScroll, w:rect.width};
+			}
+		}
+		var pswp = new PhotoSwipe(
+			this.pswp_root.get(0),
+			PhotoSwipeUI_Default,
+			this.items,
+			options
+		);
+		pswp.init();
+	},
+	get_image_urls: function() {
+		return frappe.call({
+			method: "frappe.client.get_list",
+			args: {
+				doctype: "File",
+				order_by: "attached_to_name",
+				fields: [
+					"'image/*' as type", "ifnull(thumbnail_url, file_url) as thumbnail",
+					"concat(attached_to_name, ' - ', file_name) as title", "file_url as src",
+					"attached_to_name as name"
+				],
+				filters: [
+					["File", "attached_to_doctype", "=", this.doctype],
+					["File", "attached_to_name", "in", this.docnames],
+					["File", "is_folder", "!=", 1]
+				]
+			},
+			freeze: true,
+			freeze_message: "Fetching Images.."
+		}).then(function(r) {
+			if (!r.message) {
+				msgprint("No Images found")
+			} else {
+				console.log(r.message);
+				// filter image files from other
+				var images = r.message.filter(function(image) {
+					return frappe.utils.is_image_file(image.title || image.href);
+				});
+				console.log(images);
+
+				// if (images) {
+				// 	me.prepare_images(images);
+				// 	me.render();
+				// }
+			}
+		})
+	},
+	load_lib: function(callback) {
+		var asset_dir = 'assets/frappe/js/lib/photoswipe/';
+		frappe.require([
+			asset_dir + 'photoswipe.css',
+			asset_dir + 'default-skin/default-skin.css',
+			asset_dir + 'photoswipe.js',
+			asset_dir + 'photoswipe-ui-default.js'
+		], callback);
+	}
+})
+
+frappe.views.GalleryViewOld = Class.extend({
 	init: function (opts) {
-		console.log(arguments.callee.name)
+		// console.log(arguments.callee.name)
 		this.docnames = []
 		this.doc_images = {}
 		this.doctype = opts.doctype;

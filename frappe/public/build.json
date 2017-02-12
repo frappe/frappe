@@ -241,6 +241,7 @@
 		"public/js/frappe/views/image/blueimp-gallery.html",
 		"public/js/frappe/views/image/image_view_item_row.html",
 		"public/js/frappe/views/image/image_view_item_main_head.html",
+		"public/js/frappe/views/image/photoswipe_dom.html",
 		
 		"public/js/frappe/views/kanban/kanban_board.html",
 		"public/js/frappe/views/kanban/kanban_column.html",
