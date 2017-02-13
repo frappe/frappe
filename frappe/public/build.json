@@ -238,7 +238,6 @@
 		"public/js/frappe/list/item_assigned_to_comment_count.html",
 		"public/js/frappe/views/treeview.js",
 
-		"public/js/frappe/views/image/blueimp-gallery.html",
 		"public/js/frappe/views/image/image_view_item_row.html",
 		"public/js/frappe/views/image/image_view_item_main_head.html",
 		"public/js/frappe/views/image/photoswipe_dom.html",

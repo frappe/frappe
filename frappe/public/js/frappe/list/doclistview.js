@@ -579,10 +579,10 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 
 	render_rows_Kanban: function(values) {
 		var me = this;
-		frappe.require(
-			['assets/frappe/js/frappe/views/kanban/fluxify.min.js',
-			'assets/frappe/js/frappe/views/kanban/kanban_view.js'],
-			function() {
+		frappe.require([
+			'assets/frappe/js/frappe/views/kanban/fluxify.min.js',
+			'assets/frappe/js/frappe/views/kanban/kanban_view.js'
+			], function() {
 				me.kanban = new frappe.views.KanbanBoard({
 					doctype: me.doctype,
 					board_name: me.kanban_board,

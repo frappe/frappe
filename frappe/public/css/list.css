@@ -294,7 +294,7 @@
   padding: 15px;
 }
 .image-view-container .image-field img {
-  height: 100%;
+  max-height: 100%;
 }
 .image-view-container .placeholder-text {
   font-size: 72px;
@@ -309,6 +309,11 @@
   font-size: 16px;
   color: #36414C;
   position: absolute;
+}
+@media (max-width: 767px) {
+  .image-view-container .zoom-view {
+    opacity: 0.5;
+  }
 }
 @media (max-width: 991px) {
   .image-view-container .image-view-item {
@@ -328,4 +333,13 @@
   .image-view-container .image-view-item:nth-last-child(-n + 4):nth-child(4n + 1) ~ .image-view-item {
     border-bottom: 1px solid #EBEFF2;
   }
+}
+.pswp--svg .pswp__button,
+.pswp--svg .pswp__button--arrow--left:before,
+.pswp--svg .pswp__button--arrow--right:before {
+  background-image: url('/assets/frappe/images/default-skin.svg') !important;
+}
+.pswp--svg .pswp__button--arrow--left,
+.pswp--svg .pswp__button--arrow--right {
+  background: none !important;
 }

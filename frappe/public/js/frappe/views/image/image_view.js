@@ -83,6 +83,7 @@ frappe.views.ImageView = Class.extend({
 		this.items = data;
 		this.prepare();
 		this.render();
+		this.setup_gallery();
 	}
 });
 
@@ -114,44 +115,44 @@ frappe.views.GalleryView = Class.extend({
 		var items = this.items.map(function(i) {
 			var query = 'img[data-name="'+i.name+'"]';
 			var el = me.wrapper.find(query).get(0);
-			console.log(el, query)
 			return {
 				src: i.image,
+				msrc: i.image,
 				name: i.name,
-				w: el.width,
-				h: el.height,
+				w: el.naturalWidth,
+				h: el.naturalHeight,
 				el: el
 			}
 		});
-		console.log(items);
+
 		var index;
 		items.map(function(item, i) {
 			if(item.name === docname)
 				index = i;
 		});
-		console.log(index)
 
 		var options = {
 			index: index,
 			getThumbBoundsFn: function(index) {
-				var thumbnail = document.querySelectorAll('.image-view-item')[index];
+                var thumbnail = items[index].el, // find thumbnail
+                    pageYScroll = window.pageYOffset || document.documentElement.scrollTop,
+                    rect = thumbnail.getBoundingClientRect(); 
 
-				var pageYScroll = window.pageYOffset || document.documentElement.scrollTop; 
-
-				var rect = thumbnail.getBoundingClientRect(); 
-
-				return {x:rect.left, y:rect.top + pageYScroll, w:rect.width};
-			}
+                return {x:rect.left, y:rect.top + pageYScroll, w:rect.width};
+            },
+			history: false,
+			shareEl: false,
 		}
 		var pswp = new PhotoSwipe(
 			this.pswp_root.get(0),
 			PhotoSwipeUI_Default,
-			this.items,
+			items,
 			options
 		);
 		pswp.init();
 	},
 	get_image_urls: function() {
+		// not implemented yet
 		return frappe.call({
 			method: "frappe.client.get_list",
 			args: {
@@ -174,175 +175,20 @@ frappe.views.GalleryView = Class.extend({
 			if (!r.message) {
 				msgprint("No Images found")
 			} else {
-				console.log(r.message);
 				// filter image files from other
 				var images = r.message.filter(function(image) {
 					return frappe.utils.is_image_file(image.title || image.href);
 				});
-				console.log(images);
-
-				// if (images) {
-				// 	me.prepare_images(images);
-				// 	me.render();
-				// }
 			}
-		})
+		});
 	},
 	load_lib: function(callback) {
 		var asset_dir = 'assets/frappe/js/lib/photoswipe/';
 		frappe.require([
 			asset_dir + 'photoswipe.css',
-			asset_dir + 'default-skin/default-skin.css',
+			asset_dir + 'default-skin.css',
 			asset_dir + 'photoswipe.js',
 			asset_dir + 'photoswipe-ui-default.js'
 		], callback);
-	}
-})
-
-frappe.views.GalleryViewOld = Class.extend({
-	init: function (opts) {
-		// console.log(arguments.callee.name)
-		this.docnames = []
-		this.doc_images = {}
-		this.doctype = opts.doctype;
-		this.docname = opts.docname;
-		this.container = opts.container;
-
-		this.get_images(this.doctype, this.docname);
-	},
-
-	get_images: function (doctype, docname) {
-		/*	get the list of all the Images associated with doc */
-		var me = this;
-		if (Object.keys(this.doc_images).length == 0) {
-			frappe.call({
-				method: "frappe.client.get_list",
-				args: {
-					doctype: "File",
-					order_by: "attached_to_name",
-					fields: [
-						"'image/*' as type", "ifnull(thumbnail_url, file_url) as thumbnail",
-						"concat(attached_to_name, ' - ', file_name) as title", "file_url as href",
-						"attached_to_name as name"
-					],
-					filters: [
-						["File", "attached_to_doctype", "=", this.doctype],
-						["File", "attached_to_name", "in", this.get_docname_list()],
-						["File", "is_folder", "!=", 1]
-					]
-				},
-				freeze: true,
-				freeze_message: "Fetching Images ..",
-				callback: function (r) {
-					if (!r.message) {
-						msgprint("No Images found")
-					} else {
-						// filter image files from other
-						images = r.message.filter(function (image) {
-							return frappe.utils.is_image_file(image.title ? image.title : image.href);
-						});
-
-						if (images) {
-							me.prepare_images(images);
-							me.render();
-						}
-					}
-				}
-			});
-		} else {
-			this.render()
-		}
-	},
-
-	get_docname_list: function () {
-		var names = []
-		$.each(cur_list.data, function (idx, doc) {
-			names.push(doc.name);
-		});
-		return names
-	},
-
-	prepare_images: function (images) {
-		var me = this;
-		this.doc_images = {}
-
-		$.each(images, function (idx, image) {
-			name = image.name;
-			delete image.name;
-
-			_images = me.doc_images[name] || [];
-			_images.push(image)
-
-			me.doc_images[name] = _images;
-			delete _images;
-		});
-
-		this.docnames = $.map(cur_list.data, function (doc, idx) {
-			if (inList(Object.keys(me.doc_images), doc.name)) {
-				return doc.name;
-			}
-		});
-	},
-
-	render: function () {
-		if (this.docname in this.doc_images) {
-			this.gallery = blueimp.Gallery(this.doc_images[this.docname], this.get_options());
-			this.setup_navigation();
-		} else {
-			msgprint("No Images found for <b>" + this.doctype + "</b> : " + this.docname);
-		}
-	},
-
-	setup_navigation: function () {
-		// extend gallery library to enable document navigation using UP / Down arrow key
-		var me = this;
-		var args = {}
-
-		$.extend(me.gallery, {
-			nextSlides: function () {
-				args.offset = 1;
-				me.navigate(args)
-			},
-
-			prevSlides: function () {
-				args.offset = -1;
-				me.navigate(args)
-			}
-		});
-	},
-
-	navigate: function (args) {
-		var index = 0;
-		var me = this;
-		var last_idx = this.docnames.length - 1;
-
-		$.each(this.docnames, function (idx, name) {
-			if (name == me.docname) {
-				if (idx == last_idx && args.offset == 1) {
-					index = 0
-				} else if (idx == 0 && args.offset == -1) {
-					index = last_idx
-				} else {
-					index = idx + args.offset
-				}
-				me.docname = me.docnames[index];
-				return false;
-			}
-		});
-		this.gallery.close();
-		window.setTimeout(function () {
-			me.get_images(me.doctype, me.docname)
-		}, 300);
-	},
-
-	get_options: function () {
-		/* options for the gallery plugin */
-		return {
-			indicatorContainer: 'ol',
-			thumbnailIndicators: true,
-			thumbnailProperty: 'thumbnail',
-			activeIndicatorClass: 'active',
-			container: this.container.find(".blueimp-gallery")
-		}
 	}
 });
