@@ -123,7 +123,7 @@ frappe.search.UnifiedSearch = Class.extend({
 		if(!more) {
 			this.results_area.find('.list-more').hide();
 			var no_of_results = this.results_area.find('.result').length;
-			var no_of_results_cue = $('<p class="results-status text-muted small">'+ 
+			var no_of_results_cue = $('<p class="results-status text-muted small">'+
 				no_of_results +' results found</p>');
 			this.results_area.find(".result:last").append(no_of_results_cue);
 		}
@@ -210,7 +210,7 @@ frappe.search.GlobalSearch = Class.extend({
 				}
 			}
 		});
-	}, 
+	},
 
 	make_sidelist: function() {
 		var me = this;
@@ -224,7 +224,7 @@ frappe.search.GlobalSearch = Class.extend({
 	},
 
 	make_sidelist_item: function(type) {
-		var sidelist_item = '<li class="list-link" data-search="{0}"' + 
+		var sidelist_item = '<li class="list-link" data-search="{0}"' +
 			'data-category="{1}"><a>{1}</a></li>';
 		return $(__(sidelist_item, [this.search_type, type]));
 	},
@@ -234,10 +234,10 @@ frappe.search.GlobalSearch = Class.extend({
 		var more = true;
 		frappe.call({
 			method: "frappe.utils.global_search.search_in_doctype",
-			args: { 
-				doctype: doctype, 
-				text: me.keywords, 
-				start: me.start[doctype], 
+			args: {
+				doctype: doctype,
+				text: me.keywords,
+				start: me.start[doctype],
 				limit: me.more_length,
 			},
 			callback: function(r) {
@@ -263,7 +263,7 @@ frappe.search.GlobalSearch = Class.extend({
 			this.render_results();
 		}
 	},
-	
+
 	build_results_object: function(r, keywords) {
 		this.render_object = r;
 		this.keywords = keywords;
@@ -292,10 +292,10 @@ frappe.search.GlobalSearch = Class.extend({
 
 	format_result: function(result) {
 		var route = '#Form/' + result.doctype + '/' + result.name;
-		return [route, this.bold_keywords(result.name), 
+		return [route, this.bold_keywords(result.name),
 			this.get_finds(result.content, this.keywords)]
 	},
-	
+
 	get_finds: function(searchables, keywords) {
 		var me = this;
 		parts = searchables.split("|||");
@@ -303,8 +303,8 @@ frappe.search.GlobalSearch = Class.extend({
 		parts.forEach(function(part) {
 			if(part.toLowerCase().indexOf(keywords) !== -1) {
 				var colon_index = part.indexOf(':');
-				part = '<span class="field-name text-muted">' + 
-					part.slice(0, colon_index + 1) + '</span>' + 
+				part = '<span class="field-name text-muted">' +
+					part.slice(0, colon_index + 1) + '</span>' +
 					me.bold_keywords(part.slice(colon_index + 1), keywords);
 				content += part + ', ';
 			}
@@ -329,7 +329,7 @@ frappe.search.GlobalSearch = Class.extend({
 			results_col.append(me.make_result_item(type, result));
 		});
 		if(results.length > this.section_length) {
-			results_col.append('<a class="small section-more" data-category="' 
+			results_col.append('<a class="small section-more" data-category="'
 				+ type + '">More...</a>');
 		}
 		return results_section;
@@ -359,17 +359,17 @@ frappe.search.GlobalSearch = Class.extend({
 		var more = true;
 		frappe.call({
 			method: "frappe.utils.global_search.search_in_doctype",
-			args: { 
-				doctype: doctype, 
-				text: me.keywords, 
-				start: me.start[doctype], 
+			args: {
+				doctype: doctype,
+				text: me.keywords,
+				start: me.start[doctype],
 				limit: me.more_length,
 			},
 			callback: function(r) {
 				if(r.message) {
 					me.start[doctype] += me.more_length;
 					me.make_more_list(doctype, r.message, more);
-				} 
+				}
 			}
 		});
 	},
@@ -386,7 +386,7 @@ frappe.search.GlobalSearch = Class.extend({
 	},
 
 	get_awesome_bar_options: function(keywords, ref) {
-		
+
 		var me = this;
 		var doctypes = [];
 		var current = 0;
@@ -411,10 +411,10 @@ frappe.search.GlobalSearch = Class.extend({
 		var get_results = function() {
 			frappe.call({
 				method: "frappe.utils.global_search.search_in_doctype",
-				args: { 
-					doctype: doctypes[current], 
-					text: keywords, 
-					start: 0, 
+				args: {
+					doctype: doctypes[current],
+					text: keywords,
+					start: 0,
 					limit: 4,
 				},
 				callback: function(r) {
@@ -508,8 +508,8 @@ frappe.search.NavSearch = frappe.search.GlobalSearch.extend({
 		this.lists[type] = this.make_full_list(type, results, more);
 	},
 
-	get_more_results: function(type) {	
-		var results = this.nav_results[type].slice(this.start[type], 
+	get_more_results: function(type) {
+		var results = this.nav_results[type].slice(this.start[type],
 			this.start[type]+this.more_length);
 		this.start[type] += this.more_length;
 		var more = true;
@@ -578,7 +578,7 @@ frappe.search.NavSearch = frappe.search.GlobalSearch.extend({
 			results_column.append(me.make_result_item(type, result));
 		});
 		if(results.length > this.section_length) {
-			results_column.append('<a class="small section-more" data-category="' 
+			results_column.append('<a class="small section-more" data-category="'
 				+ type + '">More...</a>');
 		}
 		return results_column;
@@ -598,8 +598,8 @@ frappe.search.HelpSearch = frappe.search.GlobalSearch.extend({
 
 	make_sidelist: function() {
 		var sidelist = $('<ul class="list-unstyled sidebar-menu nav-list"></ul>');
-		var sidelist_item = '<li class="h6 list-link" data-search="'+ this.search_type + '"' + 
-			'data-category="'+ this.search_type + '"><a style="font-size: 11px;">'+ 
+		var sidelist_item = '<li class="h6 list-link" data-search="'+ this.search_type + '"' +
+			'data-category="'+ this.search_type + '"><a style="font-size: 11px;">'+
 			this.search_type +'</a></li>';
 		sidelist.append(sidelist_item);
 		sidelist.append('<li class="divider"></li>');

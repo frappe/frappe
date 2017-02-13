@@ -32,7 +32,7 @@ def update_global_search(doc):
 
 	content = []
 	for field in doc.meta.get_global_search_fields():
-		if getattr(field, 'in_global_search', None) and doc.get(field.fieldname):
+		if doc.get(field.fieldname):
 			if getattr(field, 'fieldtype', None) == "Table":
 
 				# Get children

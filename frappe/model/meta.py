@@ -18,7 +18,7 @@ Example:
 from __future__ import unicode_literals
 import frappe, json
 from frappe.utils import cstr, cint
-from frappe.model import integer_docfield_properties, default_fields, no_value_fields, optional_fields
+from frappe.model import default_fields, no_value_fields, optional_fields
 from frappe.model.document import Document
 from frappe.model.base_document import BaseDocument
 from frappe.model.db_schema import type_map
@@ -96,7 +96,12 @@ class Meta(Document):
 		return self._table_fields
 
 	def get_global_search_fields(self):
-		return self.get("fields", {"in_global_search": 1 }) + self.get("fields", {"in_global_search": '1'})
+		'''Returns list of fields with `in_global_search` set and `name` if set'''
+		fields = self.get("fields", {"in_global_search": 1 })
+		if self.show_name_in_global_search:
+			fields.append(frappe._dict(fieldtype='Data', fieldname='name', label='Name'))
+
+		return fields
 
 	def get_valid_columns(self):
 		if not hasattr(self, "_valid_columns"):
@@ -224,8 +229,14 @@ class Meta(Document):
 				raise
 
 	def apply_property_setters(self):
-		for ps in frappe.db.sql("""select * from `tabProperty Setter` where
-			doc_type=%s""", (self.name,), as_dict=1):
+		property_setters = frappe.db.sql("""select * from `tabProperty Setter` where
+			doc_type=%s""", (self.name,), as_dict=1)
+
+		if not property_setters: return
+
+		integer_docfield_properties = [d.fieldname for d in frappe.get_meta('DocType').fields
+			if d.fieldtype in ('Int', 'Check')]
+		for ps in property_setters:
 			if ps.doctype_or_field=='DocType':
 				if ps.property_type in ('Int', 'Check'):
 					ps.value = cint(ps.value)
