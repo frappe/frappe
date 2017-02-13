@@ -123,7 +123,10 @@ class EmailAccount(Document):
 		try:
 			email_server.connect()
 		except (error_proto, imaplib.IMAP4.error), e:
-			if in_receive and ("authentication failed" in e.message.lower() or "log in via your web browser" in e.message.lower()):
+			message = e.message.lower().replace(" ","")
+			if in_receive and ("authenticationfail" in message #abbreviated to work with both failure and failed
+			or "loginviayourwebbrowser" in message or "loginfailed" in message
+			or "-err[auth]" in message or "-errtemporaryerror" in message): #temporary error to deal with godaddy
 				# if called via self.receive and it leads to authentication error, disable incoming
 				# and send email to system manager
 				self.handle_incoming_connect_error(
