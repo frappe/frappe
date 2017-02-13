@@ -16,9 +16,12 @@ test_records = frappe.get_test_records('Event')
 
 class TestEvent(unittest.TestCase):
 	def setUp(self):
+		frappe.db.sql('delete from tabEvent')
+		frappe.db.sql('delete from `tabEvent Role`')
+		make_test_objects('Event', reset=True)
+
 		self.test_records = frappe.get_test_records('Event')
 		self.test_user = "test1@example.com"
-		make_test_objects('Event')
 
 	def tearDown(self):
 		frappe.set_user("Administrator")
@@ -35,7 +38,6 @@ class TestEvent(unittest.TestCase):
 
 	def test_allowed_private_if_in_event_user(self):
 		name = frappe.db.get_value("Event", {"subject":"_Test Event 3"})
-		print name
 		frappe.share.add("Event", name, self.test_user, "read")
 		frappe.set_user(self.test_user)
 		doc = frappe.get_doc("Event", name)

@@ -264,7 +264,7 @@ def make_test_records_for_doctype(doctype, verbose=0, force=False):
 			print_mandatory_fields(doctype)
 
 
-def make_test_objects(doctype, test_records=None, verbose=None):
+def make_test_objects(doctype, test_records=None, verbose=None, reset=False):
 	'''Make test objects from given list of `test_records` or from `test_records.json`'''
 	records = []
 
@@ -280,7 +280,7 @@ def make_test_objects(doctype, test_records=None, verbose=None):
 		if doc.get('name'):
 			d.name = doc.get('name')
 
-		if frappe.local.test_objects.get(d.doctype):
+		if frappe.local.test_objects.get(d.doctype) and not reset:
 			# do not create test records, if already exists
 			return []
 
