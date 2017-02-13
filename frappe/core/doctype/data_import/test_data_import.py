@@ -41,7 +41,7 @@ class TestDataImport(unittest.TestCase):
 											["phone","User"],["email","User"]])
 		doc.submit_after_import = 0
 		doc.no_email = 1
-		doc.template = "raw"
+		doc.template = "Non-Template"
 
 		doc.save()
 		self.assertTrue(import_raw(doc_name=doc.name, file_path=file_path))
@@ -55,7 +55,7 @@ class TestDataImport(unittest.TestCase):
 		doc.reference_doctype = "User"
 		doc.submit_after_import = 0
 		doc.no_email = 1
-		doc.template = "template"
+		doc.template = "Template"
 		doc.ignore_encoding_errors = 0
 		doc.only_new_records = 0
 		doc.only_update = 0
@@ -86,7 +86,7 @@ class TestDataImport(unittest.TestCase):
 		doc.reference_doctype = "User"
 		doc.submit_after_import = 0
 		doc.no_email = 1
-		doc.template = "template"
+		doc.template = "Template"
 		doc.ignore_encoding_errors = 0
 		doc.only_new_records = 0
 		doc.only_update = 0

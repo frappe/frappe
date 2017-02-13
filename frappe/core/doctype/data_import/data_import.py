@@ -39,53 +39,45 @@ class DataImport(Document):
 			Template data field can be ['no file', 'raw', 'template']
 			If the template field is 'raw' then set preview data and selected columns
 		'''
+		print "=====================>>>>>>>>>>>>>> TESTING"
 		if not frappe.flags.in_test:
-			self.name = self.reference_doctype +" import on "+ format_datetime(self.creation)
+			self.name = "Import on "+ format_datetime(self.creation)
 
 		if not self.import_file:
 			self.preview_data = None
 			self.file_preview = None
 			self.flag_file_preview = 0
-			self.template = "no file"
 
-		if self.import_file and self.template == "no file":
-			file_path = os.getcwd()+get_site_path()[1:].encode('utf8')+self.import_file
-			filename, file_extension = os.path.splitext(file_path)
-			if file_extension == '.xlsx':	
-				self.set_preview_data(file_path)
-			elif file_extension == '.csv':
-				self.template = "template"
-				self.preview_data = ""
-				frappe.msgprint(_("You have uploaded a template file"))
-			else:
-				frappe.throw("Unsupported file format")
+		if self.import_file and not self.selected_columns:
+			self.set_preview_data()
 
 
-	def set_preview_data(self, file_path):
+	def set_preview_data(self):
 		'''
 			Store the first 25 rows or less in the preview data 
 			and check whether the xlsx file is templated or not
 		'''
-		wb = load_workbook(filename=file_path)
-		ws = wb.active
-
-		if ws.cell(row=20, column=1).value == get_data_keys_definition().data_separator:
-			self.template = "template"
-			self.preview_data = ""
-			frappe.msgprint(_("You have uploaded a template file"))
-
+		file_path = os.getcwd()+get_site_path()[1:].encode('utf8')+self.import_file
+		filename, file_extension = os.path.splitext(file_path)
+		
+		if file_extension == '.xlsx':
+			from frappe.utils.xlsxutils import read_xlsx_from_attached_file
+			file_data = read_xlsx_from_attached_file(file_path,25)
+		elif file_extension == '.csv':
+			rows = read_csv_content_from_attached_file(self, self.ignore_encoding_errors)
+			file_data = rows[:25]
 		else:
-			frappe.msgprint(_("Map the columns of your file using the dropdown"))
-			
-			self.template = "raw"
-			file_data = []
-			max_randered_row = 25 if ws.max_row>25 else ws.max_row
-			for row in ws.iter_rows(max_row=max_randered_row):
-				tmp_list = []
-				for cell in row:
-					tmp_list.append(cell.value)
-				if [x for x in tmp_list if x != None]:
-					file_data.append(tmp_list)
+			frappe.throw(_("Unsupported file format"))
+
+		# validation for template
+		if self.template == "Template" and len(file_data)<20 and (len(file_data)>20 and file_data[19][0] != get_data_keys_definition().data_separator):
+			frappe.throw(_("You have uploaded a bad template<br>Please do not change the rows above <em>{0}</em>")
+				.format(get_data_keys_definition().data_separator))
+
+		if self.template == "Non-Template":
+			if len(file_data)>19 and file_data[19][0] == get_data_keys_definition().data_separator:
+				frappe.throw(_("You have uploaded a template. Please select 'Import via' as Template"))
+
 			self.preview_data = json.dumps(file_data)
 
 			# Considering user will upload same file in a particular doctype
@@ -135,8 +127,6 @@ class DataImport(Document):
 		'''
 			Trigger on import button and push the task to the background worker
 		'''	
-		frappe.publish_realtime("data_import", {"progress": [0, 10]}, 
-				user=frappe.session.user)
 
 		self.save()
 		
@@ -144,21 +134,30 @@ class DataImport(Document):
 			file_path = os.getcwd()+get_site_path()[1:].encode('utf8') + self.import_file
 		filename, file_extension = os.path.splitext(file_path)
 
-		if self.template == "raw":
-			enqueue(import_raw, file_path=file_path, doc_name=self.name, job_name="data_import")
+		# Checking all mendatory fields before importing the data
+		if self.template == "Non-Template":
+			column_map = json.loads(self.selected_columns)
+			columns = [column[0] for column in column_map]
+			mendatory_field_flag = False
+			for field in frappe.get_meta(self.reference_doctype).fields:
+				if field.reqd == 1 and field.fieldname not in columns:
+					mendatory_field_flag = True
 
-		elif self.template == "template":
+			if mendatory_field_flag:
+				frappe.throw(_("Please select all mendatory fields"))
+			enqueue(import_raw, doc_name=self.name, job_name="data_import")
+
+		elif self.template == "Template":
 			enqueue(import_template, doc_name=self.name, file_path=file_path, job_name="data_import")
-
 		else:
 			frappe.throw(_("Error - Upload file again"))
 
 
-def import_raw(file_path,doc_name, ignore_links=False):
+def import_raw(doc_name, file_path=None, ignore_links=False):
 	'''
 		Import the raw xlsx file. It will insert new records only.
 	'''
-
+	print "in import raw"
 	di_doc = frappe.get_doc("Data Import",doc_name)
 
 	frappe.flags.mute_emails = di_doc.no_email
@@ -178,91 +177,107 @@ def import_raw(file_path,doc_name, ignore_links=False):
 
 	error = False
 	column_map = json.loads(di_doc.selected_columns)
+	print "column_map", column_map
 	
-	# Checking all mendatory fields before importing the data
-
-	# mendatory_field_flag = False
-	# # mendatory_field_list = []
-	
-	# for field in frappe.get_meta(di_doc.reference_doctype).fields:
-	# 	if field.reqd == 1 and field.fieldname not in column_map:
-	# 		# mendatory_field_list.append(field.fieldname)
-	# 		mendatory_field_flag = True
-			
-	# if mendatory_field_flag:
-	# 	frappe.throw(_("Please select all mendatory fields"))
-
-
 	child_doctype_list = set([x[1] for x in column_map])
 	child_doctype_dict = {}
 
-	parent_doc_dic = {}
-	for field in frappe.get_meta(di_doc.reference_doctype).fields:
-		if field.fieldtype == "Table" and field.options in child_doctype_list:
+	parent_doc_dict = {}
+	parent_fields_dict = {}
+
+	def make_doc_meta():
+		for field in frappe.get_meta(di_doc.reference_doctype).fields:
+			if field.fieldtype == "Table" and field.options in child_doctype_list:
+
+				child_doctype_dict[field.options] = {}
+				child_field_dict[field.options] = {}
+				if not child_doctype_dict[field.options]:
+					for f in frappe.get_meta(field.options).fields:
+						if [x[0] for x in column_map if (x[0] == f.fieldname and x[1] == field.options)]:
+							child_doctype_dict[field.options].update({f.fieldname:None})
+							child_field_dict[field.options].update({f.fieldname:f.fieldtype})
+				parent_doc_dict[field.fieldname] = child_doctype_dict[field.options]
+				parent_fields_dict[field.fieldname] = child_field_dict[field.options]
+
+			elif [x[0] for x in column_map if x[0] == field.fieldname]:
+				parent_doc_dict[field.fieldname] = None
+				parent_fields_dict[field.fieldname] = field.fieldtype
+
+	def parse_data(data, data_field):
+		if data_field in ("Int", "Check"):
+			return cint(data)
+		elif data_field in ("Float", "Currency", "Percent"):
+			return flt(data)
+		elif data_field == "Date":
+			return getdate(parse_date(data)) if data else None
+		elif data_field == "Datetime":
+			if data:
+				if " " in data:
+					_date, _time = data.split()
+				else:
+					_date, _time = data, '00:00:00'
+				_date = parse_date(data)
+				return get_datetime(_date + " " + _time)
+			else:
+				return None
+		else:
+			return data
+
+	make_doc_meta()
+	print parent_doc_dict
+	print parent_fields_dict
+
+	if not file_path:
+		file_path = os.getcwd()+get_site_path()[1:].encode('utf8')+di_doc.import_file
+	filename, file_extension = os.path.splitext(file_path)
+	
+	if file_extension == '.xlsx':
+		from frappe.utils.xlsxutils import read_xlsx_from_attached_file
+		file_data = read_xlsx_from_attached_file(file_path)
+	elif file_extension == '.csv':
+		file_data = read_csv_content_from_attached_file(frappe.get_doc("Data Import", di_doc.name),
+			di.ignore_encoding_errors)
+
+	print "file_data",file_data
+	print "before inserting"	
+	start = int(di_doc.selected_row)
+	# print start
+	for i,row in enumerate(file_data[start:]):
+
+		frappe.publish_realtime("data_import", {"progress": [i,len(file_data)]}, 
+			user=frappe.session.user)
+
+		try:
+			parent_doc = frappe.new_doc(di_doc.reference_doctype)
+			for j,cell in enumerate(row):
+				
+				if column_map[j][0] and column_map[j][0] != "do_not_map" and column_map[j][1] == di_doc.reference_doctype:
+						parent_doc_dict[column_map[j][0]] = parse_data(cell, parent_fields_dict[column_map[j][0]])
+
+				elif column_map[j][0] and column_map[j][1] != di_doc.reference_doctype:
+					parent_doc_dict[column_map[j][2]][column_map[j][0]] = parse_data(cell,
+						parent_fields_dict[column_map[j][2]][column_map[j][0]]) 				
+
+			parent_doc.update(parent_doc_dict)
+			parent_doc.save()
+
+			if di_doc.submit_after_import:
+				parent_doc.submit()
+
+			log([i+1,(getlink(di_doc.reference_doctype,parent_doc.name)),"Row Inserted"])
+
+		except Exception, e:
+			error = True
+			if parent_doc:
+				frappe.errprint(parent_doc if isinstance(parent_doc, dict) else parent_doc.as_dict())
+			err_msg = frappe.local.message_log and "\n\n".join(frappe.local.message_log) or cstr(e)
+
+			frappe.errprint(frappe.get_traceback())
 			
-			child_doctype_dict[field.options] = {}
-			if not child_doctype_dict[field.options]:
-				for f in frappe.get_meta(field.options).fields:
-					if [x[0] for x in column_map if (x[0] == f.fieldname and x[1] == field.options)]:
-						child_doctype_dict[field.options].update({f.fieldname:None})
-			parent_doc_dic[field.fieldname] = child_doctype_dict[field.options]
-
-		elif [x[0] for x in column_map if x[0] == field.fieldname]:
-			parent_doc_dic[field.fieldname] = None
-
-
-	wb = load_workbook(filename=file_path, read_only=True)
-	ws = wb.active
-
-	start =  int(di_doc.selected_row)
-	for i,row in enumerate(ws.iter_rows(min_row=start)):
-
-		if [x for x in row if x.value != None]:
-
-			frappe.publish_realtime("data_import", {"progress": [i+1, ws.max_row]}, 
-				user=frappe.session.user)
-
-			try:
-				parent_doc = frappe.new_doc(di_doc.reference_doctype)
-				for j,cell in enumerate(row):
-					
-					if column_map[j][0] and column_map[j][0] != "do_not_map" and column_map[j][1] == di_doc.reference_doctype:
-						parent_doc_dic[column_map[j][0]] = cell.value
-
-					elif column_map[j][0] and column_map[j][1] != di_doc.reference_doctype:
-						parent_doc_dic[column_map[j][2]][column_map[j][0]] = cell.value 				
-
-				parent_doc.update(parent_doc_dic)
-				parent_doc.save()
-
-				if di_doc.submit_after_import:
-					parent_doc.submit()
-
-				# for child_doc_name in child_doctype_list:
-				# 	child_doc = frappe.new_doc(child_doc_name)
-				# 	for j,cell in enumerate(row):
-				# 		if column_map[j][0] and column_map[j][0] != "do_not_map" and column_map[j][1] == child_doc_name:
-				# 			setattr(child_doc, column_map[j][0], cell.value)
-				# 		child_doc.insert()
-				# 		child_doc.save()
-
-				log([i,(getlink(di_doc.reference_doctype,parent_doc.name)),"Row Inserted"])
-
-			except Exception, e:
-				error = True
-				if parent_doc:
-					frappe.errprint(parent_doc if isinstance(parent_doc, dict) else parent_doc.as_dict())
-				err_msg = frappe.local.message_log and "\n\n".join(frappe.local.message_log) or cstr(e)
-
-				frappe.errprint(frappe.get_traceback())
-
-				ret = []
-				ret.append(err_msg)
-				ret.append(frappe.get_traceback())
-
-			finally:
-				frappe.local.message_log = []
-
+			log([i+1,file_data[i][0],"Error:"+err_msg.message])
+		
+		finally:
+			frappe.local.message_log = []
 			if error:
 				frappe.db.rollback()
 			else:
@@ -272,8 +287,9 @@ def import_raw(file_path,doc_name, ignore_links=False):
 		return True
 	else:
 		log_message = {"messages": ret, "error": error}
+		print log_message
 		di_doc.log_details = json.dumps(log_message)
-		di_doc.freeze_doctype = 1
+		di_doc.import_status = "Failure" if error else "Success"
 		di_doc.save()
 		frappe.db.commit()
 	
@@ -535,9 +551,7 @@ def import_template(doc_name=None, file_path=None, rows=None, submit_after_impor
 
 			frappe.errprint(frappe.get_traceback())
 
-			ret = []
-			ret.append(err_msg)
-			ret.append(frappe.get_traceback())
+			log([i+1,file_data[i][0],"Error:"+err_msg.message])
 
 		finally:
 			frappe.local.message_log = []
@@ -556,7 +570,7 @@ def import_template(doc_name=None, file_path=None, rows=None, submit_after_impor
 	if doc_name:
 		log_message = {"messages": ret, "error": error}
 		di_doc.log_details = json.dumps(log_message)
-		di_doc.freeze_doctype = 1
+		di_doc.import_status = "Failure" if error else "Success"
 		di_doc.save()
 		frappe.db.commit()
 	else:

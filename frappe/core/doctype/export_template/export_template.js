@@ -5,20 +5,18 @@ frappe.ui.form.on('Export Template', {
 
 	onload: function(frm) {
 		var doctype_options = "";
-		for (var i=0; i < frappe.boot.user.can_import.sort().length; i++) {
+		for (var i=0, l=frappe.boot.user.can_import.sort().length; i<l; i++) {
 			doctype_options = doctype_options + "\n" + frappe.boot.user.can_import[i];
 		}
 		frm.get_field('reference_doctype').df.options = doctype_options;
 		cur_frm.disable_save();
-		frm.save();
 	},
 
 	refresh: function(frm) {
-		if (frm.get_field('download_blank_template').$input) {
-			frm.get_field('download_blank_template').$input.addClass("btn-primary");
-		}
-		if (frm.get_field('download_with_data').$input) {
-			frm.get_field('download_with_data').$input.addClass("btn-primary");
+		if (frappe.route_options) {
+			frm.doc.reference_doctype = frappe.route_options.reference_doctype;
+			frappe.route_options = null;
+			frm.events.reference_doctype(frm);
 		}
 	},
 
@@ -52,8 +50,15 @@ frappe.ui.form.on('Export Template', {
 					frm.$columns.find('.select-column-check').prop('checked', false);
 					frm.$columns.find('.select-column-check[data-reqd="1"]').prop('checked', true);
 				});
+				if (frm.get_field('download_blank_template').$input) {
+					frm.get_field('download_blank_template').$input.addClass("btn-primary");
+				}
+				if (frm.get_field('download_with_data').$input) {
+					frm.get_field('download_with_data').$input.addClass("btn-primary");
+				}
 			}
 		});
+
 	},
 
 	download_blank_template: function(frm) {

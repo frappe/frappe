@@ -12,9 +12,7 @@ from frappe.utils import cstr, formatdate, format_datetime
 from frappe.model.document import Document
 
 class ExportTemplate(Document):
-	def validate(self):
-		self.reference_doctype = ""
-		self.download_in_xlsx = 1
+	pass
 
 
 reflags = {
