@@ -35,6 +35,7 @@ class TestEvent(unittest.TestCase):
 
 	def test_allowed_private_if_in_event_user(self):
 		name = frappe.db.get_value("Event", {"subject":"_Test Event 3"})
+		print name
 		frappe.share.add("Event", name, self.test_user, "read")
 		frappe.set_user(self.test_user)
 		doc = frappe.get_doc("Event", name)
