@@ -17,7 +17,8 @@ import re
 import frappe.model.meta
 from frappe.utils import now, get_datetime, cstr
 from frappe import _
-from types import StringType, UnicodeType
+from types import StringType, UnicodeType 
+from frappe.utils.global_search import sync_global_search
 
 class Database:
 	"""
@@ -722,13 +723,14 @@ class Database:
 		self.sql("commit")
 		frappe.local.rollback_observers = []
 		self.flush_realtime_log()
+		if frappe.flags.update_global_search:
+			sync_global_search()
 
 	def flush_realtime_log(self):
 		for args in frappe.local.realtime_log:
 			frappe.async.emit_via_redis(*args)
 
 		frappe.local.realtime_log = []
-
 
 	def rollback(self):
 		"""`ROLLBACK` current transaction."""

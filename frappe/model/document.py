@@ -4,6 +4,7 @@
 from __future__ import unicode_literals
 import frappe
 import time
+import redis
 from frappe import _, msgprint
 from frappe.utils import flt, cstr, now, get_datetime_str, file_lock
 from frappe.utils.background_jobs import enqueue
@@ -13,7 +14,7 @@ from werkzeug.exceptions import NotFound, Forbidden
 import hashlib, json
 from frappe.model import optional_fields
 from frappe.utils.file_manager import save_url
-
+from frappe.utils.global_search import update_global_search
 
 # once_only validation
 # methods
@@ -788,6 +789,11 @@ class Document(BaseDocument):
 		self.update_timeline_doc()
 		self.clear_cache()
 		self.notify_update()
+
+		try:
+			frappe.enqueue('frappe.utils.global_search.update_global_search', now=frappe.flags.in_test, doc=self)
+		except redis.exceptions.ConnectionError:
+			update_global_search(self)
 
 		if self._doc_before_save and not self.flags.ignore_version:
 			self.save_version()

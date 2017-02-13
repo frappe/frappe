@@ -660,7 +660,79 @@ fieldset[disabled] .form-control {
 .note-editor .dropdown-menu {
   z-index: 100;
   max-height: 300px;
-  overflow: scroll;
+  overflow: auto;
+}
+.search-dialog .modal-dialog {
+  width: 768px;
+  height: 500px;
+}
+.search-dialog .modal-body {
+  padding: 0px 15px;
+}
+.search-dialog input.form-control,
+.search-dialog .input-group-addon {
+  border: none;
+  border-left-style: none;
+}
+.search-dialog input.form-control:focus {
+  outline: none;
+  box-shadow: none;
+}
+.search-dialog .input-group-addon {
+  background-color: #FFF;
+}
+.search-dialog .layout-side-section,
+.search-dialog .layout-main-section {
+  height: 500px;
+  padding: 0px;
+  overflow-y: auto;
+}
+.search-dialog .layout-side-section {
+  padding-left: 15px;
+}
+.search-dialog .module-section .back-link {
+  margin-bottom: 20px;
+  margin-top: -10px;
+}
+.search-dialog .module-section .all-results-link:before {
+  font-family: 'Octicons';
+  content: '\f0a4';
+}
+.search-dialog .dual-section .result a {
+  color: black;
+}
+.search-dialog .dual-section .result a b {
+  color: #4e6161;
+}
+.search-dialog .result-status {
+  margin-top: 30px;
+  text-align: center;
+}
+.search-dialog .more-results {
+  display: none;
+}
+@media (max-width: 767px) {
+  .search-dialog .modal-dialog {
+    width: auto;
+  }
+  .search-dialog .modal-content {
+    height: auto !important;
+  }
+}
+@media (max-width: 991px) {
+  .search-dialog .module-body {
+    margin: 0px;
+    border-top: none;
+  }
+  .search-dialog .layout-side-section .sidebar-menu {
+    margin: 30px 0px;
+  }
+}
+.result p {
+  margin-top: 0.2em;
+}
+.search-result {
+  margin-bottom: 24px;
 }
 .note-editor.note-frame .note-editing-area .note-editable {
   color: #36414C;
