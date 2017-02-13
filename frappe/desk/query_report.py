@@ -129,21 +129,17 @@ def export_query():
 		file_format_type = data["file_format_type"]
 
 	if file_format_type == "Excel":
+
 		data = run(report_name, filters)
 		data = frappe._dict(data)
 
-		# convert to xlsx
-		import openpyxl
-		from cStringIO import StringIO
+		columns = get_columns_dict(data.columns)
+		content = []
+		for col in columns.values():
+			content.append(col["label"])
 
-		wb = openpyxl.Workbook()
-		ws = wb.active
-		ws.append(data.columns)
-		for row in data.result:
-			ws.append(row)
-
-		xlsx_file = StringIO()
-		wb.save(xlsx_file)
+		from frappe.utils.xlsxutils import make_xlsx
+		xlsx_file = make_xlsx([content] + data.result, "Query Report")
 
 		frappe.response['filename'] = report_name + '.xlsx'
 		frappe.response['filecontent'] = xlsx_file.getvalue()
@@ -338,6 +334,7 @@ def get_columns_dict(columns):
 				else:
 					col_dict["fieldtype"] = col[1]
 
+			col_dict["label"] = col[0]
 			col_dict["fieldname"] = frappe.scrub(col[0])
 
 		# dict

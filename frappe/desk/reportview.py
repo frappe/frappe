@@ -112,13 +112,11 @@ def export_query():
 	for i, row in enumerate(ret):
 		data.append([i+1] + list(row))
 
-
-	from cStringIO import StringIO
-
 	if file_format_type == "CSV":
 
 		# convert to csv
 		import csv
+		from cStringIO import StringIO
 
 		f = StringIO()
 		writer = csv.writer(f)
@@ -133,16 +131,8 @@ def export_query():
 
 	elif file_format_type == "Excel":
 
-		# convert to xlsx
-		import openpyxl
-
-		wb = openpyxl.Workbook()
-		ws = wb.active
-		for row in data:
-			ws.append(row)
-
-		xlsx_file = StringIO()
-		wb.save(xlsx_file)
+		from frappe.utils.xlsxutils import make_xlsx
+		xlsx_file = make_xlsx(data, doctype)
 
 		frappe.response['filename'] = doctype + '.xlsx'
 		frappe.response['filecontent'] = xlsx_file.getvalue()
