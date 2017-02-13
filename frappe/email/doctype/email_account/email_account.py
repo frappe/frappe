@@ -230,6 +230,7 @@ class EmailAccount(Document):
 		if self.enable_incoming:
 			uid_list = []
 			exceptions = []
+			seen_status = []
 
 			if frappe.local.flags.in_test:
 				incoming_mails = test_mails
@@ -331,6 +332,12 @@ class EmailAccount(Document):
 		})
 
 		self.set_thread(communication, email)
+		if communication.seen:
+			# get email account user and set communication as seen
+			users = frappe.get_all("User Email", filters={ "email_account": self.name },
+				fields=["parent"])
+			users = list(set([ user.get("parent") for user in users ]))
+			communication._seen = json.dumps(users)
 
 		communication.flags.in_receive = True
 		communication.insert(ignore_permissions = 1)
@@ -339,7 +346,6 @@ class EmailAccount(Document):
 		communication._attachments = email.save_attachments_in_doc(communication)
 
 		# replace inline images
-
 
 		dirty = False
 		for file in communication._attachments:
@@ -542,6 +548,26 @@ class EmailAccount(Document):
 		else:
 			return self.email_sync_option
 
+	def mark_emails_as_seen(self):
+		""" mark Email Flag Queue of self.email_account mails as seen"""
+		if not self.use_imap:
+			return
+
+		flags = frappe.get_all("Email Flag Queue", {
+			"email_account": self.name,
+			"action": "Seen"
+		}, ["name", "uid", "communication"])
+
+		uid_list = [ flag.get("uid") for flag in flags ]
+		if flags and uid_list:
+			email_server = self.get_incoming_server()
+			email_server.mark_as_seen(uid_list=uid_list)
+
+		# delete Email Flag Queue
+		for flag in flags:
+			frappe.db.set_value("Communication", flag.get("communication"), "seen", 1)
+			frappe.delete_doc("Email Flag Queue", flag.get("name"))
+
 @frappe.whitelist()
 def get_append_to(doctype=None, txt=None, searchfield=None, start=None, page_len=None, filters=None):
 	if not txt: txt = ""
@@ -615,6 +641,9 @@ def pull_from_email_account(email_account):
 	'''Runs within a worker process'''
 	email_account = frappe.get_doc("Email Account", email_account)
 	email_account.receive()
+
+	# mark Email Flag Queue mail as read
+	email_account.mark_emails_as_seen()
 
 def get_max_email_uid(email_account):
 	# get maximum uid of emails

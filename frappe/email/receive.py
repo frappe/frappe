@@ -302,6 +302,14 @@ class EmailServer:
 
 		return error_msg
 
+	def mark_as_seen(uid_list=[]):
+		""" set all uids mails the flag as seen  """
+		if not uid_list:
+			return
+
+		uid = ",".join(uid_list)
+		self.imap.uid('STORE', uid, '+FLAGS', '(\\SEEN)')
+
 class Email:
 	"""Wrapper for an email."""
 	def __init__(self, content):
