@@ -14,7 +14,7 @@ from frappe.model.document import Document
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 from frappe.desk.notifications import delete_notification_count_for
 from frappe.modules import make_boilerplate
-from frappe.model.db_schema import validate_column_name
+from frappe.model.db_schema import validate_column_name 
 
 class InvalidFieldNameError(frappe.ValidationError): pass
 
@@ -33,7 +33,7 @@ class DocType(Document):
 		- Validate series
 		- Check fieldnames (duplication etc)
 		- Clear permission table for child tables
-		- Add `amended_from` and `ameneded_by` if Amendable"""
+		- Add `amended_from` and `amended_by` if Amendable"""
 		self.check_developer_mode()
 
 		self.validate_name()
@@ -59,6 +59,12 @@ class DocType(Document):
 
 		self.make_amendable()
 		self.validate_website()
+
+		try:
+			self.before_update = frappe.get_doc('DocType', self.name)
+		except frappe.DoesNotExistError:
+			pass 
+
 		if not self.is_new():
 			self.setup_fields_to_fetch()
 
@@ -162,6 +168,7 @@ class DocType(Document):
 			self.autoname = "naming_series:"
 
 		# validate field name if autoname field:fieldname is used
+	
 		if autoname and autoname.startswith('field:'):
 			field = autoname.split(":")[1]
 			if not field or field not in [ df.fieldname for df in self.fields ]:
@@ -201,12 +208,20 @@ class DocType(Document):
 		delete_notification_count_for(doctype=self.name)
 		frappe.clear_cache(doctype=self.name)
 
+		if not frappe.flags.in_install and hasattr(self, 'before_update'):
+			self.sync_global_search()
+
+	def sync_global_search(self): 
+		global_search_fields_before_update = [d.fieldname for d in self.before_update.fields if d.in_global_search]
+		global_search_fields_after_update = [d.fieldname for d in self.fields if d.in_global_search]
+		if set(global_search_fields_before_update) != set(global_search_fields_after_update):
+			frappe.enqueue('frappe.utils.global_search.rebuild_for_doctype', now=frappe.flags.in_test, doctype=self.name)
+
 	def run_module_method(self, method):
 		from frappe.modules import load_doctype_module
 		module = load_doctype_module(self.name, self.module)
 		if hasattr(module, method):
 			getattr(module, method)()
-
 
 	def before_rename(self, old, new, merge=False):
 		"""Throw exception if merge. DocTypes cannot be merged."""
@@ -263,7 +278,7 @@ class DocType(Document):
 		import_from_files(record_list=[[self.module, 'doctype', self.name]])
 
 	def make_controller_template(self):
-		"""Make boilderplate controller template."""
+		"""Make boilerplate controller template."""
 		make_boilerplate("controller.py", self)
 
 		if not (self.istable or self.issingle):
