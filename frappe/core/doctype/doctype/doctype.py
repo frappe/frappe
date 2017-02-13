@@ -501,6 +501,7 @@ def validate_fields(meta):
 	fieldname_list = [d.fieldname for d in fields]
 
 	not_allowed_in_list_view = list(copy.copy(no_value_fields))
+	not_allowed_in_list_view.append("Attach Image")
 	if meta.istable:
 		not_allowed_in_list_view.remove('Button')
 
