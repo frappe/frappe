@@ -395,6 +395,14 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 			return;
 		}
 
+		// show view even if no results
+		// force_render_view flag used in listing.js
+		if(['Calendar', 'Kanban'].includes(this.current_view)) {
+			this.force_render_view = true;
+		} else {
+			this.force_render_view = false;
+		}
+
 		if(this.listview.settings.refresh) {
 			this.listview.settings.refresh(this);
 		}
@@ -541,7 +549,6 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 			this.image_view.refresh(values);
 			return;
 		}
-		// console.log(this.listview)
 
 		frappe.require(['assets/frappe/js/frappe/views/image/imageview.js'], () => {
 			this.image_view = new frappe.views.ImageView({
@@ -551,8 +558,6 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 				wrapper: this.wrapper.find('.result-list')
 			});
 		});
-
-		// this.render_image_gallery();
 	},
 
 	render_rows_Gantt: function(values) {
@@ -729,13 +734,6 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 	render_row: function(row, data) {
 		data.doctype = this.doctype;
 		this.listview.render(row, data, this);
-	},
-
-	render_image_view_row: function(row, data) {
-		for (var i = 0; i < data.length; i++) {
-			data[i].doctype = this.doctype;
-			this.listview.render(row, data[i], this)
-		}
 	},
 
 	get_args: function() {

@@ -323,7 +323,7 @@ frappe.ui.Listing = Class.extend({
 			r.values = this.get_values_from_response(r.message);
 		}
 
-		if(r.values.length) {
+		if(r.values.length || this.force_render_view) {
 			this.data = this.data.concat(r.values);
 			this.render_list(r.values);
 			this.update_paging(r.values);
@@ -374,33 +374,6 @@ frappe.ui.Listing = Class.extend({
 		for(var i=0; i < m; i++) {
 			this.render_row(this.add_row(values[i]), values[i], this, i);
 		}
-	},
-	render_image_gallery: function(){
-		var me = this;
-		frappe.require(
-			[
-				"assets/frappe/js/frappe/list/imageview.js",
-				"assets/frappe/js/lib/gallery/js/blueimp-gallery.js",
-				"assets/frappe/js/lib/gallery/css/blueimp-gallery.css",
-				"assets/frappe/js/lib/gallery/js/blueimp-gallery-indicator.js",
-				"assets/frappe/js/lib/gallery/css/blueimp-gallery-indicator.css"
-			], function(){
-				// remove previous gallery container
-				me.wrapper.find(".blueimp-gallery").remove();
-				// append gallery div
-				var gallery = frappe.render_template("blueimp-gallery", {});
-				$(gallery).appendTo(me.wrapper);
-
-				me.wrapper.find(".zoom-view").click(function(event){
-					event.preventDefault();
-					opts = {
-						doctype: me.doctype,
-						docname: $(this).parent().attr('data-name'),
-						container: me.wrapper
-					};
-					new frappe.views.ImageView(opts);
-			});
-		});
 	},
 	update_paging: function(values) {
 		if(values.length >= this.page_length) {
