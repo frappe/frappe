@@ -234,8 +234,9 @@ class Meta(Document):
 
 		if not property_setters: return
 
-		integer_docfield_properties = [d.fieldname for d in frappe.get_meta('DocType').fields
+		integer_docfield_properties = [d.fieldname for d in frappe.get_meta('DocField').fields
 			if d.fieldtype in ('Int', 'Check')]
+
 		for ps in property_setters:
 			if ps.doctype_or_field=='DocType':
 				if ps.property_type in ('Int', 'Check'):

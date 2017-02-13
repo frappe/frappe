@@ -6,7 +6,7 @@ import unittest
 import frappe
 
 from frappe.utils import global_search
-from frappe.utils.test_runner import make_test_objects
+from frappe.test_runner import make_test_objects
 import frappe.utils
 
 class TestGlobalSearch(unittest.TestCase):
@@ -28,6 +28,7 @@ class TestGlobalSearch(unittest.TestCase):
 		frappe.db.sql('delete from `tabEvent Role`')
 		frappe.db.sql('delete from __global_search')
 		make_test_objects('Event')
+		frappe.db.commit()
 
 	def insert_test_events(self):
 		frappe.db.sql('delete from tabEvent')
