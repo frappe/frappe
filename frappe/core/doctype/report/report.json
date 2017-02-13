@@ -457,7 +457,7 @@
    "label": "Roles", 
    "length": 0, 
    "no_copy": 0, 
-   "options": "Report Role", 
+   "options": "Has Role", 
    "permlevel": 0, 
    "precision": "", 
    "print_hide": 0, 

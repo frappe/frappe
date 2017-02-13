@@ -6,5 +6,5 @@ from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
 
-class ReportRole(Document):
+class CustomRole(Document):
 	pass

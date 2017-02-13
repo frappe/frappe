@@ -30,12 +30,12 @@ class TestReport(unittest.TestCase):
 
 	def test_report_permisisons(self):
 		frappe.db.sql("""delete from `tabUserRole` where parent = %s 
-			and role = 'Test Report Role'""", frappe.session.user, auto_commit=1)
+			and role = 'Test Has Role'""", frappe.session.user, auto_commit=1)
 
-		if not frappe.db.exists('Role', 'Test Report Role'):
+		if not frappe.db.exists('Role', 'Test Has Role'):
 			role = frappe.get_doc({
 				'doctype': 'Role',
-				'role_name': 'Test Report Role'
+				'role_name': 'Test Has Role'
 			}).insert(ignore_permissions=True)
 
 		if not frappe.db.exists("Report", "Test Report"):
@@ -46,7 +46,7 @@ class TestReport(unittest.TestCase):
 				'report_type': 'Query Report',
 				'is_standard': 'No',
 				'roles': [
-					{'role': 'Test Report Role'}
+					{'role': 'Test Has Role'}
 				]
 			}).insert(ignore_permissions=True)
 		else:
