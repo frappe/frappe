@@ -550,138 +550,31 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 			return;
 		}
 
-		frappe.require(['assets/frappe/js/frappe/views/image/imageview.js'], () => {
+		frappe.require(['assets/frappe/js/frappe/views/image/image_view.js'], function() {
 			this.image_view = new frappe.views.ImageView({
 				doctype: this.doctype,
 				items: values,
 				listview: this.listview,
 				wrapper: this.wrapper.find('.result-list')
 			});
-		});
+		}.bind(this));
 	},
 
 	render_rows_Gantt: function(values) {
-		var gantt_area = $('<svg width="20" height="20"></svg>')
-			.appendTo(this.wrapper.find('.result-list').css("overflow", "scroll"));
-		var id = frappe.dom.set_unique_id(gantt_area);
-
-		var me = this;
-		var field_map = frappe.views.calendar[this.doctype].field_map;
-		var tasks = values.map(function(item) {
-
-			// set progress
-			var progress = 0;
-			if(field_map.progress && $.isFunction(field_map.progress)) {
-				progress = field_map.progress(item);
-			} else if(field_map.progress) {
-				progress = item[field_map.progress]
-			}
-
-			// title
-			if(me.meta.title_field) {
-				var label = $.format("{0} ({1})", [item[me.meta.title_field], item.name]);
-			} else {
-				var label = item[field_map.title];
-			}
-
-			return {
-				start: item[field_map.start],
-				end: item[field_map.end],
-				name: label,
-				id: item[field_map.id],
-				doctype: me.doctype,
-				progress: progress,
-				dependencies: item.depends_on_tasks || ""
-			};
-		});
-		var set_value = frappe.db.set_value;
-		var show_success = function() {
-			show_alert({message:__("Saved"), indicator:'green'}, 1);
-		}
-		var gantt_view_mode = me.list_settings.gantt_view_mode || 'Day';
-
-		frappe.require([
-				"assets/frappe/js/lib/snap.svg-min.js",
-				"assets/frappe/js/lib/frappe-gantt/frappe-gantt.js"
-			], function() {
-				me.gantt = new Gantt("#"+id, tasks, {
-					view_mode: gantt_view_mode,
-					date_format: "YYYY-MM-DD",
-					on_click: function (task) {
-						frappe.set_route('Form', task.doctype, task.id);
-					},
-					on_date_change: function(task, start, end) {
-						me.update_gantt_task(task, start, end);
-					},
-					on_progress_change: function(task, progress) {
-						var progress_fieldname = 'progress';
-						if($.isFunction(field_map.progress)) { progress_fieldname = null; }
-						else if(field_map.progress) { progress_fieldname = field_map.progress; }
-
-						if(progress_fieldname) {
-							set_value(task.doctype, task.id, progress_fieldname, parseInt(progress))
-						}
-					},
-					on_view_change: function(mode) {
-						me.list_settings.gantt_view_mode = mode;
-					}
-				});
-
-			var view_modes = me.gantt.config.view_modes || [];
-			var dropdown = "<div class='dropdown pull-right'>" +
-				"<a class='text-muted dropdown-toggle' data-toggle='dropdown'>" +
-				"<span class='dropdown-text'>"+__(gantt_view_mode)+"</span><i class='caret'></i></a>" +
-				"<ul class='dropdown-menu'></ul>" +
-				"</div>";
-
-			// view modes (for translation) __("Day"), __("Week"), __("Month"),
-			//__("Half Day"), __("Quarter Day")
-
-			var dropdown_list = "";
-			view_modes.forEach(function(view_mode) {
-				dropdown_list += "<li>" +
-					"<a class='option' data-value='"+view_mode+"'>" +
-					__(view_mode) + "</a></li>";
-			})
-			var $dropdown = $(dropdown)
-			$dropdown.find(".dropdown-menu")
-				.append(dropdown_list);
-
-			me.$page.find(".list-row-right").css("margin-top", 0).html($dropdown)
-
-			$dropdown.on("click", ".option", function() {
-				var mode = $(this).data('value');
-				me.gantt.change_view_mode(mode)
-				$dropdown.find(".dropdown-text").text(mode);
-			})
-		});
-	},
-
-	update_gantt_task: function(task, start, end) {
-		var me = this;
-		if(me.gantt.updating_task) {
-			setTimeout(me.update_gantt_task.bind(me, task, start, end), 500)
+		if (this.gantt_view) {
+			this.gantt_view.refresh(values);
 			return;
 		}
-		me.gantt.updating_task = true;
 
-		var field_map = frappe.views.calendar[this.doctype].field_map;
-		frappe.call({
-			method: 'frappe.desk.gantt.update_task',
-			args: {
-				args: {
-					doctype: task.doctype,
-					name: task.id,
-					start: start.format('YYYY-MM-DD'),
-					end: end.format('YYYY-MM-DD')
-				},
-				field_map: field_map
-			},
-			callback: function() {
-				me.gantt.updating_task = false;
-				show_alert({message:__("Saved"), indicator:'green'}, 1);
-			}
-		})
+		frappe.require(['assets/frappe/js/frappe/views/gantt/gantt_view.js'], function(){
+			this.gantt_view = new frappe.views.GanttView({
+				doctype: this.doctype,
+				items: values,
+				list_settings: this.list_settings,
+				$page: this.$page,
+				wrapper: this.wrapper.find('.result-list')
+			});
+		}.bind(this));
 	},
 
 	render_rows_Kanban: function(values) {
@@ -700,21 +593,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		});
 	},
 
-	set_kanban_board_filters: function() {
-		var me = this;
-		frappe.db.get_value('Kanban Board',
-			{name: this.kanban_board}, 'filters',
-			function(res) {
-				var filters = res.filters ? JSON.parse(res.filters) : [];
-
-				me.filter_list.clear_filters();
-				me.set_filters(filters);
-				me.run();
-			});
-	},
-
 	render_rows_Calendar: function(values) {
-
 		var options = $.extend({
 				doctype: this.doctype,
 				parent: this.wrapper.find('.result-list'),
@@ -729,6 +608,18 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		], function() {
 			frappe.views.calendars[this.doctype] = new frappe.views.Calendar(options);
 		});
+	},
+
+	set_kanban_board_filters: function() {
+		var me = this;
+		frappe.db.get_value('Kanban Board',
+			{name: this.kanban_board}, 'filters',
+			function(res) {
+				var filters = JSON.parse(res.filters || "[]");
+				me.filter_list.clear_filters();
+				me.set_filters(filters);
+				me.run();
+			});
 	},
 
 	render_row: function(row, data) {
