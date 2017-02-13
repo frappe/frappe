@@ -73,8 +73,10 @@ frappe.views.ImageView = Class.extend({
 		});
 		this.container.on('click', '.btn.zoom-view', function(e) {
 			e.preventDefault();
+			e.stopPropagation();
 			var name = $(this).data().name;
 			gallery.show(name);
+			return false;
 		});
 	},
 	refresh: function (data) {
@@ -103,13 +105,6 @@ frappe.views.GalleryView = Class.extend({
 			this.pswp_root = $(pswp).appendTo('body');
 		}
 	},
-	render: function() {
-		var me = this;
-		this.get_image_urls()
-		.then(function(items) {
-			
-		});
-	},
 	show: function(docname) {
 		var me = this;
 		if(!this.ready) {
@@ -117,12 +112,14 @@ frappe.views.GalleryView = Class.extend({
 			return;
 		}
 		var items = this.items.map(function(i) {
-			var el = me.wrapper.find('img[data-name="'+i.name+'"]').get(0);
+			var query = 'img[data-name="'+i.name+'"]';
+			var el = me.wrapper.find(query).get(0);
+			console.log(el, query)
 			return {
 				src: i.image,
 				name: i.name,
-				w: 500,
-				h: 400,
+				w: el.width,
+				h: el.height,
 				el: el
 			}
 		});

@@ -1,6 +1,8 @@
 <div class="image-view-item has-checkbox ellipsis">
 	<div class="image-view-header doclist-row">
+		<div class="list-value">
 		{{ frappe.render_template("list_item_subject", data) }}
+		</div>
 	</div>
 	<!-- Image -->
 	<div class="image-view-body">
@@ -22,7 +24,7 @@
 				</span>
 				{% } %}
 				{% if (item_image) { %}
-				<img data-name={{data.name}} src="{{ item_image }}" alt="{{data.title}}">
+				<img data-name="{{ data.name }}" src="{{ item_image }}" alt="{{data.title}}">
 				{% } %}
 				<button class="btn btn-default zoom-view" data-name="{{data.name}}">
 					<i class="fa fa-search-plus"></i>
