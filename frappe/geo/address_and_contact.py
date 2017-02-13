@@ -21,7 +21,7 @@ def load_address_and_contact(doc, key):
 	address_list = sorted(address_list,
 		lambda a, b:
 			(int(a.is_primary_address - b.is_primary_address)) or
-			(1 if a.modified - b.modified else 0))
+			(1 if a.modified - b.modified else 0), reverse=True)
 
 	doc.set_onload('addr_list', address_list)
 
@@ -36,7 +36,7 @@ def load_address_and_contact(doc, key):
 		contact_list = sorted(contact_list,
 			lambda a, b:
 				(int(a.is_primary_contact - b.is_primary_contact)) or
-				(1 if a.modified - b.modified else 0))
+				(1 if a.modified - b.modified else 0), reverse=True)
 
 		doc.set_onload('contact_list', contact_list)
 
