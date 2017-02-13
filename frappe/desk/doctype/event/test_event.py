@@ -10,6 +10,7 @@ import unittest
 import json
 
 from frappe.desk.doctype.event.event import get_events
+from frappe.test_runner import make_test_objects
 
 test_records = frappe.get_test_records('Event')
 
@@ -17,8 +18,7 @@ class TestEvent(unittest.TestCase):
 	def setUp(self):
 		self.test_records = frappe.get_test_records('Event')
 		self.test_user = "test1@example.com"
-		if not frappe.get_all('Event'):
-			[frappe.get_doc(d).insert() for d in frappe.get_test_records('Event')]
+		make_test_objects('Event')
 
 	def tearDown(self):
 		frappe.set_user("Administrator")
