@@ -36,7 +36,7 @@ def send_feedback_request(reference_doctype, reference_name, trigger=None, detai
 	feedback_request, url = get_feedback_request_url(reference_doctype,
 		reference_name, details.get("recipients"), trigger)
 
-	feedback_url = "Please click <a href='{url}'>here</a> to submit feedback.".format(url=url)
+	feedback_url = "Please click <a href='{url}'>here</a> to submit your feedback.".format(url=url)
 
 	# appending feedback url to message body
 	details.update({ "message": "{message}<br>{feedback_url}".format(
