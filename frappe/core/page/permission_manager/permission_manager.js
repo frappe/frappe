@@ -183,6 +183,7 @@ frappe.PermissionEngine = Class.extend({
 		});
 
 		$.each(perm_list, function(i, d) {
+			if(d.parent==="DocType") { return; }
 			if(!d.permlevel) d.permlevel = 0;
 			var row = $("<tr>").appendTo(me.table.find("tbody"));
 			me.add_cell(row, d, "parent");
