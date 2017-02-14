@@ -134,12 +134,12 @@ frappe.views.GalleryView = Class.extend({
 		var options = {
 			index: index,
 			getThumbBoundsFn: function(index) {
-                var thumbnail = items[index].el, // find thumbnail
-                    pageYScroll = window.pageYOffset || document.documentElement.scrollTop,
-                    rect = thumbnail.getBoundingClientRect(); 
+				var thumbnail = items[index].el, // find thumbnail
+					pageYScroll = window.pageYOffset || document.documentElement.scrollTop,
+					rect = thumbnail.getBoundingClientRect(); 
 
-                return {x:rect.left, y:rect.top + pageYScroll, w:rect.width};
-            },
+				return {x:rect.left, y:rect.top + pageYScroll, w:rect.width};
+			},
 			history: false,
 			shareEl: false,
 		}

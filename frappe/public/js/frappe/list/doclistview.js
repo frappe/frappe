@@ -877,8 +877,8 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 				"octicon octicon-trashcan");
 			this.page.btn_primary.addClass("btn-danger");
 			this.page.checked_items_status.text(no_of_checked_items == 1
-    				? __("1 item selected")
-    				: __("{0} items selected", [no_of_checked_items]))
+					? __("1 item selected")
+					: __("{0} items selected", [no_of_checked_items]))
 			this.page.checked_items_status.removeClass("hide");
 		} else {
 			this.page.btn_primary.removeClass("btn-danger");
