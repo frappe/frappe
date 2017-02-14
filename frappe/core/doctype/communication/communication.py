@@ -196,6 +196,8 @@ class Communication(Document):
 		'''Look into the status of Email Queue linked to this Communication and set the Delivery Status of this Communication'''
 		delivery_status = None
 		status_counts = Counter(frappe.db.sql_list('''select status from `tabEmail Queue` where communication=%s''', self.name))
+		if self.sent_or_received == "Received":
+			return
 
 		if status_counts.get('Not Sent') or status_counts.get('Sending'):
 			delivery_status = 'Sending'

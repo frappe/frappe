@@ -265,10 +265,15 @@ class Email:
 		self.message_id = (self.mail.get('Message-ID') or "").strip(" <>")
 
 		if self.mail["Date"]:
-			utc = email.utils.mktime_tz(email.utils.parsedate_tz(self.mail["Date"]))
-			utc_dt = datetime.datetime.utcfromtimestamp(utc)
-			self.date = convert_utc_to_user_timezone(utc_dt).strftime('%Y-%m-%d %H:%M:%S')
+			try:
+				utc = email.utils.mktime_tz(email.utils.parsedate_tz(self.mail["Date"]))
+				utc_dt = datetime.datetime.utcfromtimestamp(utc)
+				self.date = convert_utc_to_user_timezone(utc_dt).strftime('%Y-%m-%d %H:%M:%S')
+			except:
+				self.date = now()
 		else:
+			self.date = now()
+		if self.date > now():
 			self.date = now()
 
 	def parse(self):
@@ -294,14 +299,27 @@ class Email:
 		# use X-Original-Sender if available, as gmail sometimes modifies the 'From'
 		_from_email = self.mail.get("X-Original-From") or self.mail["From"]
 		_from_email, encoding = decode_header(_from_email)[0]
+		_reply_to, _reply_to_encoding = decode_header(self.mail.get("Reply-To"))[0]
 
 		if encoding:
 			_from_email = _from_email.decode(encoding)
 		else:
 			_from_email = _from_email.decode('utf-8')
+			
+		if _reply_to_encoding:
+			_reply_to = _from_email.decode(encoding)
+		else:
+			_reply_to = _from_email.decode('utf-8')
 
-		self.from_email = extract_email_id(_from_email)
-		self.from_real_name = email.utils.parseaddr(_from_email)[0]
+		if _reply_to and not frappe.db.get_value('Email Account', {"email_id":_reply_to}, 'email_id'):
+			self.from_email = extract_email_id(_reply_to)
+		else:
+			self.from_email = extract_email_id(_from_email)
+			
+		if self.from_email:
+			self.from_email = self.from_email.lower()
+			
+		self.from_real_name = email.utils.parseaddr(_from_email)[0] if "@" in _from_email else _from_email
 
 	def set_content_and_type(self):
 		self.content, self.content_type = '[Blank Email]', 'text/plain'
@@ -323,7 +341,7 @@ class Email:
 			# sent by outlook when another email is sent as an attachment to this email
 			self.show_attached_email_headers_in_content(part)
 
-		elif part.get_filename():
+		elif part.get_filename() or 'image' in content_type:
 			self.get_attachment(part)
 
 	def show_attached_email_headers_in_content(self, part):
