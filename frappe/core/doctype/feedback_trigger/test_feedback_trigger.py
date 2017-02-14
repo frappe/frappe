@@ -14,7 +14,7 @@ def get_feedback_request(todo, feedback_trigger):
 		"reference_doctype": "ToDo",
 		"reference_name": todo,
 		"feedback_trigger": feedback_trigger
-	})
+	}, ["name", "key"])
 
 class TestFeedbackTrigger(unittest.TestCase):
 	def setUp(self):
@@ -84,14 +84,14 @@ class TestFeedbackTrigger(unittest.TestCase):
 		frappe.db.sql('delete from `tabEmail Queue`')
 
 		# test if feedback is submitted for the todo
-		feedback_request = get_feedback_request(todo.name, feedback_trigger.name)
+		feedback_request, request_key = get_feedback_request(todo.name, feedback_trigger.name)
 		self.assertTrue(feedback_request)
 
 		# test if mail alerts are triggered multiple times for same document
 		self.assertRaises(Exception, todo.save, ignore_permissions=True) 
 
 		# Test if feedback is submitted sucessfully
-		result = accept(feedback_request, "test-feedback@example.com", "ToDo", todo.name, "Great Work !!", 4)
+		result = accept(request_key, "test-feedback@example.com", "ToDo", todo.name, "Great Work !!", 4)
 		self.assertTrue(result)
 
 		# test if feedback is saved in Communication
@@ -107,7 +107,7 @@ class TestFeedbackTrigger(unittest.TestCase):
 		self.assertEqual(communication.feedback, "Great Work !!")
 
 		# test if link expired after feedback submission
-		self.assertRaises(Exception, accept, key=feedback_request, sender="test-feedback@example.com",
+		self.assertRaises(Exception, accept, key=request_key, sender="test-feedback@example.com",
 			reference_doctype="ToDo", reference_name=todo.name, feedback="Thank You !!", rating=4)
 
 		frappe.delete_doc("ToDo", todo.name)
