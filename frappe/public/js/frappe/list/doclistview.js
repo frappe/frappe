@@ -571,6 +571,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 				doctype: this.doctype,
 				items: values,
 				list_settings: this.list_settings,
+				listview: this.listview,
 				$page: this.$page,
 				wrapper: this.wrapper.find('.result-list')
 			});

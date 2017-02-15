@@ -137,7 +137,7 @@
 .doclist-row {
   font-size: 12px;
 }
-.doclist-row .likes-count {
+.likes-count {
   display: inline-block;
   width: 15px;
   margin-left: -5px;
@@ -342,4 +342,12 @@
 .pswp--svg .pswp__button--arrow--left,
 .pswp--svg .pswp__button--arrow--right {
   background: none !important;
+}
+.gantt .details-container .heading {
+  margin-bottom: 10px;
+  font-size: 12px;
+}
+.gantt .details-container .avatar-small {
+  width: 16px;
+  height: 16px;
 }

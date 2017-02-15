@@ -10,6 +10,10 @@ frappe.views.GanttView = Class.extend({
 		});
 	},
 	prepare: function() {
+		var me = this;
+		this.items = this.items.map(function(item) {
+			return me.listview.prepare_data(item);
+		});
 		this.prepare_tasks();
 		this.prepare_dom();
 	},
@@ -48,6 +52,20 @@ frappe.views.GanttView = Class.extend({
 			on_view_change: function(mode) {
 				// will be cached in __ListSettings table in db
 				me.list_settings.gantt_view_mode = mode;
+			},
+			custom_popup_html: function(task) {
+				var item = me.get_item(task.id);
+				var list_item_subject = frappe.render_template('list_item_subject', item);
+				var html = '<div class="heading">'+
+					list_item_subject +'</div>';
+
+				// custom html in {doctype}_list.js
+				var custom = frappe.listview_settings[me.doctype].gantt_custom_popup_html;
+				if(custom) {
+					html = custom(item, html);
+				}
+
+				return '<div class="details-container">'+ html +'</div>';
 			}
 		});
 		this.render_dropdown();
@@ -104,11 +122,16 @@ frappe.views.GanttView = Class.extend({
 				start: item[field_map.start],
 				end: item[field_map.end],
 				name: label,
-				id: item[field_map.id],
+				id: item[field_map.id || 'name'],
 				doctype: me.doctype,
 				progress: progress,
 				dependencies: item.depends_on_tasks || ""
 			};
+		});
+	},
+	get_item: function(name) {
+		return this.items.find(function(item) {
+			return item.name === name;
 		});
 	},
 	load_lib: function(callback) {
