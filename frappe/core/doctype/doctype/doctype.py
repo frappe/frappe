@@ -139,7 +139,7 @@ class DocType(Document):
 	def scrub_field_names(self):
 		"""Sluggify fieldnames if not set from Label."""
 		restricted = ('name','parent','creation','modified','modified_by',
-			'parentfield','parenttype',"file_list")
+			'parentfield','parenttype','file_list', 'flags', 'docstatus')
 		for d in self.get("fields"):
 			if d.fieldtype:
 				if (not getattr(d, "fieldname", None)):
@@ -501,6 +501,7 @@ def validate_fields(meta):
 	fieldname_list = [d.fieldname for d in fields]
 
 	not_allowed_in_list_view = list(copy.copy(no_value_fields))
+	not_allowed_in_list_view.append("Attach Image")
 	if meta.istable:
 		not_allowed_in_list_view.remove('Button')
 

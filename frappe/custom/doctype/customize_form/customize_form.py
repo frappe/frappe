@@ -176,7 +176,7 @@ class CustomizeForm(Document):
 							.format(df.idx))
 						continue
 					elif property == "in_list_view" and df.get(property) \
-						and df.fieldtype!="Image" and df.fieldtype in no_value_fields:
+						and df.fieldtype!="Attach Image" and df.fieldtype in no_value_fields:
 								frappe.msgprint(_("'In List View' not allowed for type {0} in row {1}")
 									.format(df.fieldtype, df.idx))
 								continue
