@@ -20,21 +20,6 @@ class Communication(Document):
 	no_feed_on_delete = True
 
 	"""Communication represents an external communication like Email."""
-	def onload(self):
-		# set mail as seen
-		if self.communication_medium == "Email" and not self.seen and \
-			not frappe.db.get_value("Email Flag Queue", { "communication": self.name }):
-			# create email flag queue
-
-			doc = frappe.get_doc({
-				"flag": "Seen",
-				"uid": self.uid,
-				"action": "+FLAGS",
-				"doctype": "Email Flag Queue",
-				"email_account": self.email_account,
-				"communication": self.name,
-			}).insert(ignore_permissions=True)
-
 	def validate(self):
 		if self.reference_doctype and self.reference_name:
 			if not self.reference_owner:

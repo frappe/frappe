@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import frappe
 import imaplib
 import re
+import json
 import socket
 from frappe import _
 from frappe.model.document import Document
@@ -231,6 +232,7 @@ class EmailAccount(Document):
 			uid_list = []
 			exceptions = []
 			seen_status = []
+			unique_id_list = []
 
 			if frappe.local.flags.in_test:
 				incoming_mails = test_mails
@@ -242,13 +244,15 @@ class EmailAccount(Document):
 
 				incoming_mails = emails.get("latest_messages")
 				uid_list = emails.get("uid_list", [])
-				seen_status = email.get("seen_status", [])
+				seen_status = emails.get("seen_status", [])
+				unique_id_list = emails.get("unique_id_list", [])
 
 			for idx, msg in enumerate(incoming_mails):
 				try:
 					uid = None if not uid_list else uid_list[idx]
 					seen = None if not seen_status else get_seen(seen_status.get(uid, None))
-					communication = self.insert_communication(msg, _uid=uid, _seen=seen)
+					unique_id = None if not unique_id_list else unique_id_list.get(uid, None)
+					communication = self.insert_communication(msg, _uid=uid, _seen=seen, unique_id=unique_id)
 					#self.notify_update()
 
 				except SentEmailInInbox:
@@ -294,7 +298,7 @@ class EmailAccount(Document):
 			unhandled_email.save()
 			frappe.db.commit()
 
-	def insert_communication(self, msg, _uid=None, _seen=None):
+	def insert_communication(self, msg, _uid=None, _seen=None, unique_id=None):
 		if isinstance(msg,list):
 			raw, uid, seen = msg
 		else:
@@ -312,6 +316,16 @@ class EmailAccount(Document):
 			# dont count emails sent by the system get those
 			raise SentEmailInInbox
 
+		name = frappe.db.get_value("Communication", { "unique_id": unique_id })
+		if name:
+			# email is already available update communication uid instead
+			communication = frappe.get_doc("Communication", name)
+			communication.uid = uid
+			communication.save(ignore_permissions=True)
+			communication._attachments = []
+
+			return communication
+
 		communication = frappe.get_doc({
 			"doctype": "Communication",
 			"subject": email.subject,
@@ -328,7 +342,8 @@ class EmailAccount(Document):
 			"message_id": email.message_id,
 			"communication_date": email.date,
 			"has_attachment": 1 if email.attachments else 0,
-			"seen": seen
+			"seen": seen,
+			"unique_id": unique_id
 		})
 
 		self.set_thread(communication, email)
@@ -346,7 +361,6 @@ class EmailAccount(Document):
 		communication._attachments = email.save_attachments_in_doc(communication)
 
 		# replace inline images
-
 		dirty = False
 		for file in communication._attachments:
 			if file.name in email.cid_map and email.cid_map[file.name]:
@@ -553,20 +567,17 @@ class EmailAccount(Document):
 		if not self.use_imap:
 			return
 
-		flags = frappe.get_all("Email Flag Queue", {
-			"email_account": self.name,
-			"action": "Seen"
-		}, ["name", "uid", "communication"])
+		flags = frappe.db.sql("""select name, uid from `tabCommunication` where sent_or_received = "Received" 
+			and seen = 0 and communication_medium = "Email" and email_account='{email_account}' and 
+			ifnull(_seen, '') = ''""".format(email_account=self.name), as_dict=True)
 
-		uid_list = [ flag.get("uid") for flag in flags ]
+		uid_list = list(set([ flag.get("uid") for flag in flags ]))
 		if flags and uid_list:
 			email_server = self.get_incoming_server()
-			email_server.mark_as_seen(uid_list=uid_list)
+			marked_as_seen = email_server.mark_as_seen(uid_list=uid_list)
 
-		# delete Email Flag Queue
-		for flag in flags:
-			frappe.db.set_value("Communication", flag.get("communication"), "seen", 1)
-			frappe.delete_doc("Email Flag Queue", flag.get("name"))
+		docnames = ",".join([ "'%s'"%uid for uid in uid_list ])
+		frappe.db.sql(""" update `tabCommunication` set seen=1 where name in ({docnames})""".format(docnames=docnames))
 
 @frappe.whitelist()
 def get_append_to(doctype=None, txt=None, searchfield=None, start=None, page_len=None, filters=None):

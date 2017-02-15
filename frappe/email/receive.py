@@ -2,7 +2,7 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
-import time, _socket, poplib, imaplib, email, email.utils, datetime, chardet, re
+import time, _socket, poplib, imaplib, email, email.utils, datetime, chardet, re, hashlib
 from email_reply_parser import EmailReplyParser
 from email.header import decode_header
 import frappe
@@ -109,12 +109,13 @@ class EmailServer:
 			self.errors = False
 			self.latest_messages = []
 			self.seen_status = {}
+			self.unique_id_list = {}
 
 			uid_list = email_list = self.get_new_mails()
 			num = num_copy = len(email_list)
 
 			# WARNING: Hard coded max no. of messages to be popped
-			if num > 20: num = 20
+			if num > 50: num = 50
 
 			# size limits
 			self.total_size = 0
@@ -156,7 +157,8 @@ class EmailServer:
 		if self.settings.use_imap:
 			out.update({
 				"uid_list": uid_list,
-				"seen_status": self.seen_status
+				"seen_status": self.seen_status,
+				"unique_id_list": self.unique_id_list
 			})
 
 		return out
@@ -164,10 +166,9 @@ class EmailServer:
 	def get_new_mails(self):
 		"""Return list of new mails"""
 		if cint(self.settings.use_imap):
-			if not self.check_imap_uidvalidity():
-				frappe.throw(_("UIDVALIDITY is changed in imap server"))
+			self.check_imap_uidvalidity()
 
-			self.imap.select("Inbox")
+			self.imap.select("Inbox", readonly=True)
 			response, message = self.imap.uid('search', None, self.settings.email_sync_rule)
 			email_list =  message[0].split()
 		else:
@@ -179,19 +180,27 @@ class EmailServer:
 		# compare the UIDVALIDITY of email account and imap server
 		uid_validity = self.settings.uid_validity
 
-		responce, message = self.imap.status("Inbox", "(UIDVALIDITY)")
+		responce, message = self.imap.status("Inbox", "(UIDVALIDITY UIDNEXT)")
 		current_uid_validity = self.parse_imap_responce("UIDVALIDITY", message[0])
+		if not current_uid_validity:
+			frappe.throw(_("Can not find UIDVALIDITY in imap status response"))
 
-		if not uid_validity:
-			# uid validity is not available for email account
-			frappe.db.set_value("Email Account", self.settings.email_account, "uidvalidity", current_uid_validity)
-			return True
+		uidnext = int(self.parse_imap_responce("UIDNEXT", message[0]) or "1")
+		frappe.db.set_value("Email Account", self.settings.email_account, "uidnext", uidnext)
+
+		if not uid_validity or uid_validity != current_uid_validity:
+			# uidvalidity changed & all email uids are reindexed by server
+			frappe.db.sql("""update `tabCommunication` set uid=-1 where communication_medium='Email'
+				and email_account='{email_account}'""".format(email_account=self.settings.email_account))
+			frappe.db.sql(""" update `tabEmail Account` set uidvalidity='{uidvalidity}', uidnext={uidnext} where
+				name='{email_account}'""".format(uidvalidity=current_uid_validity, uidnext=uidnext, email_account=self.settings.email_account))
+
+			from_uid = 1 if uidnext < 101 or (uidnext - 100) < 1 else uidnext - 100
+			# sync last 100 email
+			self.settings.email_sync_rule = "UID {}:{}".format(from_uid, uidnext)
+		
 		elif uid_validity == current_uid_validity:
-			return True
-		else:
-			# UIDs are reindexed on imap server
-			# self.settings.email_sync_rule = "UNSEEN"
-			return False
+			return
 
 	def parse_imap_responce(self, cmd, responce):
 		pattern = r"(?<={cmd} )[0-9]*".format(cmd=cmd)
@@ -207,11 +216,13 @@ class EmailServer:
 			self.validate_message_limits(message_meta)
 
 			if cint(self.settings.use_imap):
-				status, response = self.imap.uid("fetch", message_meta, "(FLAGS)")
-				self.get_mail_seen_status(message_meta, response[0])
+				status, message = self.imap.uid('fetch', message_meta, '(RFC822 BODY.PEEK[HEADER] FLAGS)')
+				raw, header, ignore = message
 
-				status, message = self.imap.uid('fetch', message_meta, '(RFC822)')
-				self.latest_messages.append(message[0][1])
+				self.get_email_seen_status(message_meta, header[0])
+				self.get_email_headers_hash(message_meta, header[1])
+
+				self.latest_messages.append(raw[1])
 			else:
 				msg = self.pop.retr(msg_num)
 				self.latest_messages.append(b'\n'.join(msg[1]))
@@ -221,6 +232,7 @@ class EmailServer:
 			raise
 
 		except Exception, e:
+			print e
 			if self.has_login_limit_exceeded(e):
 				self.errors = True
 				raise LoginLimitExceeded, e
@@ -243,8 +255,8 @@ class EmailServer:
 				# mark as seen
 				self.imap.uid('STORE', message_meta, '+FLAGS', '(\\SEEN)')
 
-	def get_mail_seen_status(self, uid, flag_string):
-		# parse the mail flags
+	def get_email_seen_status(self, uid, flag_string):
+		""" parse the email FLAGS response """
 		if not flag_string:
 			return None
 
@@ -258,6 +270,28 @@ class EmailServer:
 			self.seen_status.update({ uid: "SEEN" })
 		else:
 			self.seen_status.update({ uid: "UNSEEN" })
+
+	def get_email_headers_hash(self, uid, headers):
+		""" generate the email unique id from header hash
+			unique id can be used to update uid if UID is reindexed"""
+
+		hash = hashlib.sha1()		
+		for header in headers:
+			if header[0] == 'Content-Type':
+			  # skip variable boundaries
+			  continue
+
+			try:
+				decoded_header = decode_header(header[1])
+				decoded = ''.join([val[0].decode(val[1]).encode('ascii', 'ignore') \
+					if val[1] is not None else val[0] for val in decoded_header])
+				cleaned = re.sub(r"\s+", u"", decoded, flags=re.UNICODE)
+				hash.update(cleaned)
+			except:
+				pass
+
+		self.unique_id_list.update({ uid: hash.hexdigest() })
+		print self.unique_id_list
 
 	def has_login_limit_exceeded(self, e):
 		return "-ERR Exceeded the login limit" in strip(cstr(e.message))
@@ -302,13 +336,21 @@ class EmailServer:
 
 		return error_msg
 
-	def mark_as_seen(uid_list=[]):
+	def mark_as_seen(self, uid_list=[]):
 		""" set all uids mails the flag as seen  """
+
 		if not uid_list:
 			return
 
-		uid = ",".join(uid_list)
-		self.imap.uid('STORE', uid, '+FLAGS', '(\\SEEN)')
+		if not self.connect():
+			return
+
+		self.imap.select("Inbox")
+		for uid in uid_list:
+			try:
+				self.imap.uid('STORE', uid, '+FLAGS', '(\\SEEN)')
+			except Exception as e:
+				continue
 
 class Email:
 	"""Wrapper for an email."""
