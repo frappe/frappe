@@ -33,9 +33,11 @@ frappe.views.GanttView = Class.extend({
 				frappe.set_route('Form', task.doctype, task.id);
 			},
 			on_date_change: function(task, start, end) {
+				if(!me.can_write()) return;
 				me.update_gantt_task(task, start, end);
 			},
 			on_progress_change: function(task, progress) {
+				if(!me.can_write()) return;
 				var progress_fieldname = 'progress';
 
 				if($.isFunction(field_map.progress)) {
@@ -162,13 +164,23 @@ frappe.views.GanttView = Class.extend({
 			},
 			callback: function() {
 				me.gantt.updating_task = false;
-				show_alert({message:__("Saved"), indicator:'green'}, 1);
+				show_alert({message:__("Saved"), indicator: 'green'}, 1);
 			}
-		})
+		});
 	},
 	refresh: function(values) {
 		this.items = values;
 		this.prepare();
 		this.render();
+	},
+	can_write: function() {
+		if(frappe.model.can_write(this.doctype)) {
+			return true;
+		} else {
+			// reset gantt state
+			this.gantt.change_view_mode(this.gantt_view_mode);
+			show_alert({message: __("Not permitted"), indicator: 'red'}, 1);
+			return false;
+		}
 	}
 })
