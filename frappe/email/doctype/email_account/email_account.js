@@ -138,9 +138,8 @@ frappe.ui.form.on("Email Account", {
 	update_domain:function(frm,norefresh){
 		if (cur_frm.doc.email_id && !cur_frm.doc.service) {
 			frappe.call({
-				method: 'get_domain',
-				doc: cur_frm.doc,
-				async:false,
+				method: 'frappe.email.doctype.email_account.email_account.get_domain',
+				//doc: cur_frm.doc,
 				args: {
 					"email_id": cur_frm.doc.email_id
 				},
@@ -169,7 +168,7 @@ frappe.ui.form.on("Email Account", {
 								frappe.set_route("Form", "Email Domain", doc.name);
 							})
 						}
-					)
+						)
 					}
 				}
 			});

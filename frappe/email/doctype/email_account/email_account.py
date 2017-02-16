@@ -103,18 +103,6 @@ class EmailAccount(Document):
 					email_account.set(fn, 0)
 					email_account.save()
 
-	@frappe.whitelist()
-	def get_domain(self,email_id):
-		"""look-up the domain and then full"""
-		try:
-			domain = email_id.split("@")
-			return frappe.db.sql("""select name,use_imap,email_server,use_ssl,smtp_server,use_tls,smtp_port
-			from `tabEmail Domain`
-			where name = %s
-			""",domain[1],as_dict=1)
-		except Exception:
-			pass
-
 	def check_smtp(self):
 		"""Checks SMTP settings."""
 		if self.enable_outgoing:
@@ -582,3 +570,15 @@ def pull_from_email_account(email_account):
 	'''Runs within a worker process'''
 	email_account = frappe.get_doc("Email Account", email_account)
 	email_account.receive()
+
+@frappe.whitelist()
+def get_domain(email_id):
+	"""look-up the domain and then full"""
+	try:
+		domain = email_id.split("@")
+		return frappe.db.sql("""select name,use_imap,email_server,use_ssl,smtp_server,use_tls,smtp_port
+		from `tabEmail Domain`
+		where name = %s
+		""",domain[1],as_dict=1)
+	except Exception:
+		pass

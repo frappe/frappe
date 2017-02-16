@@ -2,10 +2,11 @@
     <span class="caret"/>
 </button>
 <ul class="dropdown-menu" style="min-width: 100px">
-    <li class="user-action reply-link"><a>Reply</a></li>
-    <li class="user-action reply-all-link"><a>Reply-All</a></li>
-    <li class="user-action forward-link"><a>Forward</a></li>
-    <li class="user-action delete-link"><a>Delete</a></li>
+    <li class="user-action reply-link"><a>{%=__("Reply") %}</a></li>
+    <li class="user-action reply-all-link"><a>{%=__("Reply-All") %}</a></li>
+    <li class="user-action forward-link"><a>{%=__("Forward") %}</a></li>
+    <li class="user-action delete-link"><a>{%=__("Delete") %}</a></li>
     <li class="user-action company-link"><a>{%= data.timeline_label ? "Rematch" : "Match" %}</a></li>
     <li class="user-action relink-link"><a>{%= data.reference_name ? "Relink": "Link" %} </a></li>
+    <li class="user-action print-link"><a>{%=__("Print") %}</a></li>
 </ul>
