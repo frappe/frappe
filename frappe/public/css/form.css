@@ -238,6 +238,9 @@ h6.uppercase,
 .timeline-item .btn-more {
   margin-left: 65px;
 }
+.timeline-item .gmail_extra {
+  display: none;
+}
 .timeline-items {
   position: relative;
 }
