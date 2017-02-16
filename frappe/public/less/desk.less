@@ -768,3 +768,31 @@ textarea.form-control {
 
 .c3-tooltip td.value {
   text-align: right; }
+
+// custom font awesome checkbox
+input[type="checkbox"] {
+	visibility: hidden;
+	position: relative;
+
+	&:before {
+		position: absolute;
+		font-family: 'FontAwesome';
+		content: '\f096';
+		visibility: visible;
+		font-style: normal;
+		font-weight: normal;
+		font-variant: normal;
+		text-transform: none;
+		line-height: 14px;
+		display: inline-block;
+		font-size: 14px;
+		color: @text-extra-muted;
+		.transition(150ms color);
+	}
+
+	&:checked:before {
+		content: '\f14a';
+		font-size: 13px;
+		color: @checkbox-color;
+	}
+}
