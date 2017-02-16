@@ -234,6 +234,7 @@ frappe.ui.form.Toolbar = Class.extend({
 			}
 		} else {
 			this.page.clear_actions();
+			this.current_status = null
 		}
 	},
 	get_action_status: function() {
