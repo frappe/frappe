@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 # IMPORTANT: only import safe functions as this module will be included in jinja environment
 import frappe
 import operator
-import re, urllib, datetime, math
+import re, urllib, datetime, math, time
 import babel.dates
 from babel.core import UnknownLocaleError
 from dateutil import parser
@@ -116,6 +116,9 @@ def time_diff_in_hours(string_ed_date, string_st_date):
 def now_datetime():
 	dt = convert_utc_to_user_timezone(datetime.datetime.utcnow())
 	return dt.replace(tzinfo=None)
+
+def get_timestamp(date):
+	return time.mktime(getdate(date).timetuple())
 
 def get_eta(from_time, percent_complete):
 	diff = time_diff(now_datetime(), from_time).total_seconds()
