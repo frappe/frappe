@@ -102,7 +102,7 @@ def add_security_response_headers(response):
 	""" add security and xss headers in response to avoid cross site scripting """
 
 	response.headers["X-XSS-Protection"] = "1; mode=block"
-	response.headers["Content-Security-Policy"] = "default-src 'none'; font-src data: * ;script-src 'self' 'unsafe-inline'; connect-src 'self' 'unsafe-inline'; img-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';"
+	response.headers["Content-Security-Policy"] = "default-src 'none'; media-src 'self';font-src data: * ;script-src 'self' 'unsafe-inline' 'unsafe-eval'; connect-src *; img-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';"
 
 def init_request(request):
 	frappe.local.request = request
