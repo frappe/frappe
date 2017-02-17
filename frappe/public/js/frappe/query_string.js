@@ -19,7 +19,7 @@ function get_query_params(query_string) {
 		var value = pair[1];
 		if (typeof value === "string") {
 			value = value.replace(/\+/g, "%20");
-			value = decodeURIComponent(value);
+			value = escapeHtml(decodeURIComponent(value));
 		}
 
 		if (key in query_params) {
@@ -34,6 +34,18 @@ function get_query_params(query_string) {
 		}
 	}
 	return query_params;
+}
+
+function escapeHtml(text) {
+	return text.replace(/[&"'\/<>]/g, function(c) {
+		return (
+			c == '&' ? '&amp;' :
+			c == '"' ? '&quot;' :
+			c == "'" ? '&#039;' :
+			c == "/" ? '&#x2F;' :
+			c == '<' ? '&lt;' : '&gt;'
+		);
+	});
 }
 
 function make_query_string(obj) {

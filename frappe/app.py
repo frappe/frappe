@@ -56,8 +56,8 @@ def application(request):
 			response = frappe.handler.handle()
 
 		elif frappe.request.path.startswith("/api/"):
-                	if frappe.local.form_dict.data is None:
-                        	frappe.local.form_dict.data = request.get_data()
+			if frappe.local.form_dict.data is None:
+				frappe.local.form_dict.data = request.get_data()
 			response = frappe.api.handle()
 
 		elif frappe.request.path.startswith('/backups'):
@@ -94,12 +94,19 @@ def application(request):
 
 		frappe.destroy()
 
+	add_security_response_headers(response)
+
 	return response
+
+def add_security_response_headers(response):
+	""" add security and xss headers in response to avoid cross site scripting """
+
+	response.headers["X-XSS-Protection"] = "1; mode=block"
+	response.headers["Content-Security-Policy"] = "default-src 'none'; font-src data: * ;script-src 'self' 'unsafe-inline'; connect-src 'self' 'unsafe-inline'; img-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';"
 
 def init_request(request):
 	frappe.local.request = request
 	frappe.local.is_ajax = frappe.get_request_header("X-Requested-With")=="XMLHttpRequest"
-
 	site = _site or request.headers.get('X-Frappe-Site-Name') or get_site_name(request.host)
 	frappe.init(site=site, sites_path=_sites_path)
 
