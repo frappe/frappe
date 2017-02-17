@@ -225,7 +225,7 @@ class DocType(Document):
 
 		if set(global_search_fields_before_update) != set(global_search_fields_after_update):
 			frappe.enqueue('frappe.utils.global_search.rebuild_for_doctype',
-				now=frappe.flags.in_test, doctype=self.name)
+				now=frappe.flags.in_test or frappe.flags.in_install, doctype=self.name)
 
 	def run_module_method(self, method):
 		from frappe.modules import load_doctype_module

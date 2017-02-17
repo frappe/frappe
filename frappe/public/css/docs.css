@@ -135,6 +135,11 @@
 .navbar-form .awesomplete {
   width: 300px;
 }
+@media (max-width: 1199px) {
+  .navbar-form .awesomplete {
+    width: 280px;
+  }
+}
 @media (max-width: 991px) {
   .navbar-form .awesomplete {
     width: 250px;
@@ -200,7 +205,7 @@
   }
 }
 .toolbar-user-fullname {
-  max-width: 200px;
+  max-width: 150px;
   display: inline-block;
 }
 .navbar-brand {

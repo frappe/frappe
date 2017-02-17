@@ -950,7 +950,7 @@ frappe.ui.form.GridRow = Class.extend({
 					return;
 				}
 
-				var values = me.get_data();
+				var values = me.grid.get_data();
 				var fieldname = $(this).attr('data-fieldname');
 				var fieldtype = $(this).attr('data-fieldtype');
 
