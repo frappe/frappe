@@ -1571,6 +1571,414 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 	},
 });
 
+frappe.ui.form.ControlLinkMultiSelect = frappe.ui.form.ControlLink.extend({
+	make_input: function() {
+		var me = this;
+		// line-height: 1 is for Mozilla 51, shows extra padding otherwise
+		$('<div class="multilink"><div class="link-field ui-front" style="position: relative; line-height: 1;">' +
+			'<input type="text" class="input-with-feedback form-control">' +
+			'</div><div class="multilink results" style="margin-top: 20px;">'+
+			'<p class="text-muted">Add items from:</p></div>' +
+		'</div>').prependTo(this.input_area);
+		this.$input_area = $(this.input_area);
+		this.$input = this.$input_area.find('input');
+		this.$link = this.$input_area.find('.link-btn');
+		this.$link_open = this.$link.find('.btn-open');
+		this.$results = this.$input_area.find('.results');
+		this.selected_state = {};
+		this.set_input_attributes();
+		this.$input.on("focus", function() {
+			setTimeout(function() {
+				if(me.$input.val() && me.get_options()) {
+					me.$link.toggle(true);
+					me.$link_open.attr('href', '#Form/' + me.get_options() + '/' + me.$input.val());
+				}
+
+				if(me.$input.val()) {
+					me.$input.trigger("input");
+				}
+
+				if(!me.$input.val()) {
+					me.$input.val("").trigger("input");
+				}
+			}, 500);
+		});
+		this.$input.on("blur", function() {
+			// if this disappears immediately, the user's click
+			// does not register, hence timeout
+			setTimeout(function() {
+				me.$link.toggle(false);
+			}, 500);
+		});
+		this.input = this.$input.get(0);
+		this.has_input = true;
+		this.translate_values = true;
+		var me = this;
+		this.setup_buttons();
+		this.setup_awesomeplete();
+	},
+	get_options: function() {
+		return this.df.options;
+	},
+	open_advanced_search: function() {
+		var doctype = this.get_options();
+		if(!doctype) return;
+		new frappe.ui.form.LinkSelector({
+			doctype: doctype,
+			target: this,
+			txt: this.get_value()
+		});
+		return false;
+	},
+	new_doc: function() {
+		var doctype = this.get_options();
+		var me = this;
+
+		if(!doctype) return;
+
+		// set values to fill in the new document
+		if(this.df.get_route_options_for_new_doc) {
+			frappe.route_options = this.df.get_route_options_for_new_doc(this);
+		} else {
+			frappe.route_options = {};
+		}
+
+		// partially entered name field
+		frappe.route_options.name_field = this.get_value();
+
+		// reference to calling link
+		frappe._from_link = this;
+		frappe._from_link_scrollY = $(document).scrollTop();
+
+		frappe.ui.form.quick_entry(doctype, function(doc) {
+			if(me.frm) {
+				me.parse_validate_and_set_in_model(doc.name);
+			} else {
+				me.set_value(doc.name);
+			}
+		});
+
+		return false;
+	},
+	get_value: function() {
+		var selects = [];
+		var me = this;
+		Object.keys(this.selected_state).forEach(function(d) {
+			if(me.selected_state[d]) {selects.push(d)}
+		});
+		console.log("selects", selects);
+		return selects;
+	},
+	setup_awesomeplete: function() {
+		var me = this;
+		this.$input.on("blur", function() {
+			if(me.selected) {
+				me.selected = false;
+				return;
+			}
+			var value = me.get_value();
+
+			// Nothing to do here probably
+		});
+
+		this.$input.cache = {};
+
+		this.awesomplete = new Awesomplete(me.input, {
+			minChars: 0,
+			maxItems: 99,
+			autoFirst: true,
+			list: [],
+
+			data: function (item, input) {
+				var label = item.value + "%%%" + (item.description || "");
+				if(item.value.indexOf("__link_option") !== -1) {
+					label = item.label;
+				}
+				return {
+					label: label,
+					value: item.value
+				};
+			},
+			filter: function(item, input) {
+				var value = item.value.toLowerCase();
+				if(value.indexOf('__link_option') !== -1 ||
+					value.indexOf(input.toLowerCase()) !== -1) {
+					return true;
+				}
+			},
+			item: function (item, input) {
+				var parts = item.split("%%%"),
+				d = { value: parts[0], description: parts[1] };
+				var _value = d.value;
+
+				if(me.translate_values) {
+					_value = __(d.value)
+				}
+				var html = "<strong>" + _value + "</strong>";
+				if(d.description && d.value!==d.description) {
+					html += '<br><span class="small">' + __(d.description) + '</span>';
+				}
+				var hidden = "";
+				if(!me.selected_state[d.value]) { hidden = " hide" }
+				return $('<li></li>')
+					.data('item.autocomplete', d)
+					.prop('aria-selected', 'false')
+					.html('<div class="row"><div class="col-xs-1 check"><i class="octicon octicon-check' + hidden + '"></i></div><div class="col-xs-11"><a><p>' + html + '</p></a></div></div>')
+					.get(0);
+			},
+			sort: function(a, b) {
+				return 0;
+			}
+		});
+
+		this.$input.on("input", function(e) {
+			var doctype = me.get_options();
+			if(!doctype) return;
+			if (!me.$input.cache[doctype]) {
+				me.$input.cache[doctype] = {};
+			}
+
+			var term = e.target.value;
+
+			if (me.$input.cache[doctype][term]!=null) {
+				// immediately show from cache
+				me.awesomplete.list = me.$input.cache[doctype][term];
+			}
+
+			var args = {
+				'txt': term,
+				'doctype': doctype,
+			};
+
+			me.set_custom_query(args);
+
+			frappe.call({
+				type: "GET",
+				method:'frappe.desk.search.search_link',
+				no_spinner: true,
+				args: args,
+				callback: function(r) {
+
+					// Add new found items to selected states
+					r.results.forEach(function(d) {
+						if(Object.keys(me.selected_state).indexOf(d.value) === -1) {
+							me.selected_state[d.value] = false;
+						}
+					});
+
+					// update with cache select states
+					// if (me.$input.cache[doctype][term]!=null) {
+					// 	me.$input.cache[doctype][term].forEach(function(current_state_item) {
+					// 		if(current_state_item.value.indexOf("__link_option") !== -1) {
+					// 			var new_item = $.grep(r.results, function(item) {
+					// 				return item.value === current_state_item.value;
+					// 			});
+					// 			if(new_item.length === 1) {
+					// 				r.results[r.results.indexOf(new_item[0])].selected = current_state_item.selected;
+					// 			}
+					// 		}
+					// 	});
+					// }
+
+					if(!me.df.only_select) {
+						if(frappe.model.can_create(doctype)
+							&& me.df.fieldtype !== "Dynamic Link") {
+							// new item
+							r.results.push({
+								label: "<span class='text-primary link-option'>"
+									+ "<i class='fa fa-plus' style='margin-right: 5px;'></i> "
+									+ __("Create a new {0}", [__(me.df.options)])
+									+ "</span>",
+								value: "create_new__link_option",
+								action: me.new_doc
+							})
+						};
+					}
+
+					me.$input.cache[doctype][term] = r.results;
+					me.awesomplete.list = me.$input.cache[doctype][term];
+				}
+			});
+		});
+
+		this.$input.on("awesomplete-open", function(e) {
+			me.$wrapper.css({"z-index": 101});
+			me.autocomplete_open = true;
+		});
+
+		this.$input.on("awesomplete-close", function(e) {
+			me.$wrapper.css({"z-index": 1});
+			me.autocomplete_open = false;
+		});
+
+		this.$input.on("awesomplete-select", function(e) {
+			e.preventDefault();
+			var o = e.originalEvent;
+			var $list_item = $(o.origin);
+			var item = me.awesomplete.get_item(o.text.value);
+			var doctype = me.get_options();
+			var term = e.target.value;
+
+			me.autocomplete_open = false;
+
+			// prevent selection on tab
+			var TABKEY = 9;
+			if(e.keyCode === TABKEY) {
+				e.preventDefault();
+				me.awesomplete.close();
+				return false;
+			}
+
+			// Do all your awesome stuff here; setting checks, updating shown list(after validating) and stuff
+			// me.$input.val(item.value);
+			// me.set_mandatory(item.value);
+			if(item.action) {
+				item.value = "";
+				item.action.apply(me);
+			} else {
+				console.log("here");
+				if(!$list_item.is("li")) {
+					$list_item = $list_item.closest("li");
+				}
+				$list_item.find("i").toggleClass("hide");
+				me.selected_state[o.text.value] = !me.selected_state[o.text.value];
+
+				// me.$input.val(item.value);
+				me.set_value(item.value);
+
+				// add/remove from list to show
+				if(me.selected_state[o.text.value]) {
+					var row = $(repl('<div class="row link-select-row" style="margin: 0px">\
+								<div class="col-xs-4">\
+									<b><a href="#">%(name)s</a></b></div>\
+								<div class="col-xs-8">\
+									<span class="text-muted">%(values)s</span></div>\
+								</div>', {
+									name: item.value,
+									values: item.description
+								})).appendTo(me.$results);
+
+						row.find("a")
+							.attr('data-value', item.value)
+							.click(function() {
+							var value = $(this).attr("data-value");
+							var $link = this;
+							// if(me.target.is_grid) {
+							// 	// set in grid
+							// 	me.set_in_grid(value);
+							// } else {
+							// 	if(me.target.doctype)
+							// 		me.target.parse_validate_and_set_in_model(value);
+							// 	else {
+							// 		me.target.set_input(value);
+							// 	}
+							// 	me.dialog.hide();
+							// }
+							return false;
+						})
+					}
+			}
+
+		});
+
+		this.$input.on("awesomplete-selectcomplete", function(e) {
+			e.preventDefault();
+			var o = e.originalEvent;
+			if(o.text.value.indexOf("__link_option") !== -1) {
+				me.$input.val("");
+			}
+		});
+	},
+	set_custom_query: function(args) {
+		var set_nulls = function(obj) {
+			$.each(obj, function(key, value) {
+				if(value!==undefined) {
+					obj[key] = value;
+				}
+			});
+			return obj;
+		}
+		if(this.get_query || this.df.get_query) {
+			console.log("ONE");
+			var get_query = this.get_query || this.df.get_query;
+			if($.isPlainObject(get_query)) {
+				console.log("TWO");
+				var filters = null;
+				if(get_query.filters) {
+					// passed as {'filters': {'key':'value'}}
+					filters = get_query.filters;
+				} else if(get_query.query) {
+
+					// passed as {'query': 'path.to.method'}
+					args.query = get_query;
+				} else {
+
+					// dict is filters
+					filters = get_query;
+				}
+
+				if (filters) {
+					var filters = set_nulls(filters);
+
+					// extend args for custom functions
+					$.extend(args, filters);
+
+					// add "filters" for standard query (search.py)
+					args.filters = filters;
+				}
+			} else if(typeof(get_query)==="string") {
+				console.log("THREE");
+				args.query = get_query;
+			} else {
+				console.log("FOUR");
+				// get_query by function
+				var q = (get_query)(this.frm && this.frm.doc || this.doc, this.doctype, this.docname);
+
+				if (typeof(q)==="string") {
+					// returns a string
+					args.query = q;
+				} else if($.isPlainObject(q)) {
+					// returns a plain object with filters
+					if(q.filters) {
+						set_nulls(q.filters);
+					}
+
+					// turn off value translation
+					if(q.translate_values !== undefined) {
+						this.translate_values = q.translate_values;
+					}
+
+					// extend args for custom functions
+					$.extend(args, q);
+
+					// add "filters" for standard query (search.py)
+					args.filters = q.filters;
+				}
+			}
+		}
+		if(this.df.filters) {
+			console.log("FIVE");
+			set_nulls(this.df.filters);
+			if(!args.filters) args.filters = {};
+			$.extend(args.filters, this.df.filters);
+		}
+	},
+	validate: function(value, callback) {
+		// validate the value just entered
+		var me = this;
+
+		if(this.df.options=="[Select]") {
+			callback(value);
+			return;
+		}
+
+		if(this.frm) {
+			this.frm.script_manager.validate_link_and_fetch(this.df, this.get_options(),
+				this.docname, value, callback);
+		}
+	},
+});
+
 if(Awesomplete) {
 	Awesomplete.prototype.get_item = function(value) {
 		return this._list.find(function(item) {

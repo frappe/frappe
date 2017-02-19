@@ -44,9 +44,7 @@ $.extend(frappe.model, {
 					}
 				}
 			}
-
 			if(cur_frm && dirty.indexOf(cur_frm.doctype)!==-1) cur_frm.dirty();
-
 		}
 
 		// set docinfo (comments, assign, attachments)
