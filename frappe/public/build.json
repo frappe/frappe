@@ -88,6 +88,7 @@
 		"public/js/frappe/socketio_client.js",
 		"public/js/frappe/router.js",
 		"public/js/frappe/defaults.js",
+		"public/js/frappe/roles_editor.js",
 		"public/js/lib/microtemplate.js",
 
 		"public/js/legacy/globals.js",
@@ -208,6 +209,7 @@
 		"public/js/lib/taggle/taggle.min.css",
 		"public/css/list.css",
 		"public/css/calendar.css",
+		"public/css/role_editor.css",
 		"public/css/filter_dashboard.css"
 	],
 	"js/list.min.js": [

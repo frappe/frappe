@@ -10,35 +10,37 @@ from frappe.model.document import Document
 class CustomRoleManager(Document):
 	def get_custom_roles(self):
 		args = self.get_args()
-		
-		self.set('roles', [])
-		for data in frappe.get_all('Custom Role', 
-			filters=args, fields=['role', 'page', 'report']):
-			self.append('roles', {
-				'report': data.report,
-				'page': data.page,
-				'role': data.role
-			})
+		name = frappe.db.get_value('Custom Role', args, "name")
+		if not name:
+			self.set('has_roles', [])
+			return
+
+		doc = frappe.get_doc('Custom Role', name)
+		self.set('has_roles', doc.roles)
 
 	def set_custom_roles(self):
-		for d in self.roles:
-			args = self.get_args(d)
-			name = frappe.db.get_value('Custom Role', args, "role")
-			if not name:
-				args.update({'doctype': "Custom Role"})
-				self.make_custom_role(args)
-				frappe.msgprint(_("Successfully Updated"))
+		args = self.get_args()
+		name = frappe.db.get_value('Custom Role', args, "name")
+
+		args.update({
+			'doctype': 'Custom Role',
+			'has_roles': self.has_roles
+		})
+
+		if name:
+			doc = frappe.get_doc("Custom Role", name)
+			doc.set('has_roles', self.has_roles)
+			doc.save()
+		else:
+			frappe.get_doc(args).insert()
 
 	def get_args(self, row=None):
-		args = {}
 		name = self.page if self.set_role_for == 'Page' else self.report
-		check_for = self.set_role_for.replace(" ","_").lower()
+		check_for_field = self.set_role_for.replace(" ","_").lower()
+
+		return {
+			check_for_field: name
+		}
 		
-		args = {check_for: name}
-		if row:
-			args.update({'role': row.role})
-
-		return args
-
-	def make_custom_role(self, args):
-		frappe.get_doc(args).insert()
+	def update_status(self):
+		return frappe.render_template

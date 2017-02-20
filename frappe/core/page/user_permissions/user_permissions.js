@@ -82,7 +82,7 @@ frappe.UserPermissions = Class.extend({
 					options: "[Select]"
 				});
 
-				if(user_roles.indexOf("System Manager")!==-1) {
+				if(has_roles.indexOf("System Manager")!==-1) {
 					me.download = me.wrapper.page.add_field({
 						fieldname: "download",
 						label: __("Download"),
