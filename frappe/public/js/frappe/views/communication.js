@@ -529,7 +529,9 @@ frappe.views.CommunicationComposer = Class.extend({
 		if(last_email) {
 			var last_email_content = last_email.original_comment || last_email.content;
 
-			fields.content.set_input(reply
+			fields.content.set_input(
+				'<p><br></p>'
+				+ reply
 				+ "<br><!-- original-reply --><br>"
 				+ '<blockquote>' +
 					'<p>' + __("On {0}, {1} wrote:",
