@@ -713,17 +713,17 @@ frappe.ui.form.ControlDatetime = frappe.ui.form.ControlDate.extend({
 });
 
 frappe.ui.form.ControlDateRange = frappe.ui.form.ControlData.extend({
-	
+
 	make_input: function() {
 		var me = this
 		var me = this;
 		var _super = this._super;
 		_super.apply(me);
 		import_daterangepicker(function() {
-			
+
 			me.refresh();
 			me.set_daterangepicker();
-			
+
 		});
 	},
 	set_daterangepicker: function() {
@@ -758,7 +758,7 @@ frappe.ui.form.ControlDateRange = frappe.ui.form.ControlData.extend({
 					'Last Financial Year': [moment(frappe.defaults.get_default("year_start_date"), "YYYY-MM-DD").subtract(1, 'year'), moment(frappe.defaults.get_default("year_end_date"), "YYYY-MM-DD").subtract(1, 'year')]
 			}
 		}
-		
+
 		this.$input.daterangepicker(daterangepicker_options)
 			.on('apply.daterangepicker',function(ev,picker){
 				me.set_input(picker.startDate,picker.endDate)
@@ -787,7 +787,7 @@ frappe.ui.form.ControlDateRange = frappe.ui.form.ControlData.extend({
 			this.$input && this.$input.val("")
 		}
 		this.set_disp_area();
-		
+
 		this.set_mandatory && this.set_mandatory(value);
 	},
 	parse: function(value) {
@@ -797,7 +797,7 @@ frappe.ui.form.ControlDateRange = frappe.ui.form.ControlData.extend({
 			value2 = dateutil.user_to_obj(vals[vals.length-1]);
 			return [value,value2];
 		}
-		
+
 	},
 	format_for_input: function(value,value2) {
 		if(value && value2) {
@@ -805,7 +805,7 @@ frappe.ui.form.ControlDateRange = frappe.ui.form.ControlData.extend({
 			value2 = dateutil.str_to_user(value2);
 			return value + " - " + value2
 		}
-		
+
 		return "";
 	},
 	validate: function(value, callback) {
@@ -1423,7 +1423,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 					ui.item.action.apply(me);
 				}
 
-				// if remember_last_selected is checked in the doctype against the field, 
+				// if remember_last_selected is checked in the doctype against the field,
 				// then add this value
 				// to defaults so you do not need to set it again
 				// unless it is changed.

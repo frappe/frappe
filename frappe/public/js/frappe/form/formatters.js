@@ -59,7 +59,7 @@ frappe.form.formatters = {
 		if(value) {
 			return '<i class="octicon octicon-check" style="margin-right: 3px;"></i>';
 		} else {
-			return '<i class="fa fa-ban-circle text-extra-muted" style="margin-right: 3px;"></i>';
+			return '<i class="fa fa-circle-o text-extra-muted" style="margin-right: 3px; margin-bottom: -2px;"></i>';
 		}
 	},
 	Link: function(value, docfield, options, doc) {

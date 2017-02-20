@@ -34,6 +34,7 @@ class WebApplicationServer(AuthorizationEndpoint, TokenEndpoint, ResourceEndpoin
 		:param kwargs: Extra parameters to pass to authorization-,
 					   token-, resource-, and revocation-endpoint constructors.
 		"""
+		implicit_grant = ImplicitGrant(request_validator)
 		auth_grant = AuthorizationCodeGrant(request_validator)
 		refresh_grant = RefreshTokenGrant(request_validator)
 		openid_connect_auth = OpenIDConnectAuthCode(request_validator)
@@ -48,6 +49,7 @@ class WebApplicationServer(AuthorizationEndpoint, TokenEndpoint, ResourceEndpoin
 											'code token': openid_connect_auth,
 											'code id_token': openid_connect_auth,
 											'code token id_token': openid_connect_auth,
+											'token': implicit_grant
 										},
 									   default_token_type=bearer)
 		TokenEndpoint.__init__(self, default_grant_type='authorization_code',
@@ -205,7 +207,7 @@ class OAuthWebRequestValidator(RequestValidator):
 		otoken.user = request.user
 		otoken.scopes = get_url_delimiter().join(request.scopes)
 		otoken.access_token = token['access_token']
-		otoken.refresh_token = token['refresh_token']
+		otoken.refresh_token = token.get('refresh_token')
 		otoken.expires_in = token['expires_in']
 		otoken.save(ignore_permissions=True)
 		frappe.db.commit()
