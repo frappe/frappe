@@ -12,11 +12,11 @@ class CustomRoleManager(Document):
 		args = self.get_args()
 		name = frappe.db.get_value('Custom Role', args, "name")
 		if not name:
-			self.set('has_roles', [])
+			self.set('roles', [])
 			return
 
 		doc = frappe.get_doc('Custom Role', name)
-		self.set('has_roles', doc.roles)
+		self.set('roles', doc.roles)
 
 	def set_custom_roles(self):
 		args = self.get_args()
@@ -24,12 +24,12 @@ class CustomRoleManager(Document):
 
 		args.update({
 			'doctype': 'Custom Role',
-			'has_roles': self.has_roles
+			'roles': self.roles
 		})
 
 		if name:
 			doc = frappe.get_doc("Custom Role", name)
-			doc.set('has_roles', self.has_roles)
+			doc.set('roles', self.roles)
 			doc.save()
 		else:
 			frappe.get_doc(args).insert()

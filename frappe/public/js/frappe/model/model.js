@@ -230,7 +230,7 @@ $.extend(frappe.model, {
 
 	can_import: function(doctype, frm) {
 		// system manager can always import
-		if(has_roles.indexOf("System Manager")!==-1) return true;
+		if(roles.indexOf("System Manager")!==-1) return true;
 
 		if(frm) return frm.perm[0].import===1;
 		return frappe.boot.user.can_import.indexOf(doctype)!==-1;
@@ -238,7 +238,7 @@ $.extend(frappe.model, {
 
 	can_export: function(doctype, frm) {
 		// system manager can always export
-		if(has_roles.indexOf("System Manager")!==-1) return true;
+		if(roles.indexOf("System Manager")!==-1) return true;
 
 		if(frm) return frm.perm[0].export===1;
 		return frappe.boot.user.can_export.indexOf(doctype)!==-1;
@@ -263,7 +263,7 @@ $.extend(frappe.model, {
 
 	can_set_user_permissions: function(doctype, frm) {
 		// system manager can always set user permissions
-		if(has_roles.indexOf("System Manager")!==-1) return true;
+		if(roles.indexOf("System Manager")!==-1) return true;
 
 		if(frm) return frm.perm[0].set_user_permissions===1;
 		return frappe.boot.user.can_set_user_permissions.indexOf(doctype)!==-1;

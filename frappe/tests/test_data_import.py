@@ -62,7 +62,7 @@ class TestDataImport(unittest.TestCase):
 
 		user = frappe.get_doc("User", user_email)
 		self.assertTrue(frappe.db.get_value("UserRole", filters={"role": "Blogger", "parent": user_email}))
-		self.assertTrue(user.get("user_roles")[0].role, "Blogger")
+		self.assertTrue(user.get("roles")[0].role, "Blogger")
 
 		# overwrite
 		exporter.get_template("UserRole", "User", all_doctypes="No", with_data="No")
@@ -71,8 +71,8 @@ class TestDataImport(unittest.TestCase):
 		importer.upload(content, overwrite=True)
 
 		user = frappe.get_doc("User", user_email)
-		self.assertEquals(len(user.get("user_roles")), 1)
-		self.assertTrue(user.get("user_roles")[0].role, "Website Manager")
+		self.assertEquals(len(user.get("roles")), 1)
+		self.assertTrue(user.get("roles")[0].role, "Website Manager")
 
 	def test_import_with_children(self):
 		exporter.get_template("Event", all_doctypes="Yes", with_data="No")

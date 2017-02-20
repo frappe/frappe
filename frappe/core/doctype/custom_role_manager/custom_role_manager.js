@@ -19,7 +19,7 @@ frappe.ui.form.on('Custom Role Manager', {
 			method:"get_custom_roles",
 			doc: frm.doc,
 			callback: function(r) {
-				refresh_field('has_roles')
+				refresh_field('roles')
 				frm.roles_editor.show()
 			}
 		})
