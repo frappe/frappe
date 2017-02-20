@@ -42,7 +42,7 @@ class TestUser(unittest.TestCase):
 	def test_delete(self):
 		frappe.get_doc("User", "test@example.com").add_roles("_Test Role 2")
 		self.assertRaises(frappe.LinkExistsError, delete_doc, "Role", "_Test Role 2")
-		frappe.db.sql("""delete from tabUserRole where role='_Test Role 2'""")
+		frappe.db.sql("""delete from `tabHas Role` where role='_Test Role 2'""")
 		delete_doc("Role","_Test Role 2")
 
 		if frappe.db.exists("User", "_test@example.com"):

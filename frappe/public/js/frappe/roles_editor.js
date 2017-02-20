@@ -87,14 +87,14 @@ frappe.RoleEditor = Class.extend({
 		// remove unchecked roles
 		$.each(opts.unchecked_roles, function(i, role) {
 			if(existing_roles_list.indexOf(role)!=-1) {
-				frappe.model.clear_doc("UserRole", existing_roles_map[role]);
+				frappe.model.clear_doc("Has Role", existing_roles_map[role]);
 			}
 		});
 
 		// add new roles that are checked
 		$.each(opts.checked_roles, function(i, role) {
 			if(existing_roles_list.indexOf(role)==-1) {
-				var user_role = frappe.model.add_child(cur_frm.doc, "UserRole", "roles");
+				var user_role = frappe.model.add_child(cur_frm.doc, "Has Role", "roles");
 				user_role.role = role;
 			}
 		});

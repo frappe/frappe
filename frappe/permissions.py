@@ -345,7 +345,7 @@ def get_roles(user=None, with_standard=True):
 		return ['Guest']
 
 	def get():
-		return [r[0] for r in frappe.db.sql("""select role from tabUserRole
+		return [r[0] for r in frappe.db.sql("""select role from `tabHas Role`
 			where parent=%s and role not in ('All', 'Guest')""", (user,))] + ['All', 'Guest']
 
 	roles = frappe.cache().hget("roles", user, get)

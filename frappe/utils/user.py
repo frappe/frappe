@@ -236,7 +236,7 @@ def get_system_managers(only_name=False):
 		as fullname from tabUser p
 		where docstatus < 2 and enabled = 1
 		and name not in ({})
-		and exists (select * from tabUserRole ur
+		and exists (select * from `tabHas Role` ur
 			where ur.parent = p.name and ur.role="System Manager")
 		order by creation desc""".format(", ".join(["%s"]*len(STANDARD_USERS))),
 			STANDARD_USERS, as_dict=True)

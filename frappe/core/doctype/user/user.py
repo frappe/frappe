@@ -108,7 +108,7 @@ class User(Document):
 		if self.name not in STANDARD_USERS and self.user_type == "System User" and not self.get_other_system_managers():
 			msgprint(_("Adding System Manager to this User as there must be atleast one System Manager"))
 			self.append("roles", {
-				"doctype": "UserRole",
+				"doctype": "Has Role",
 				"role": "System Manager"
 			})
 
@@ -116,11 +116,11 @@ class User(Document):
 			# Administrator should always have System Manager Role
 			self.extend("roles", [
 				{
-					"doctype": "UserRole",
+					"doctype": "Has Role",
 					"role": "System Manager"
 				},
 				{
-					"doctype": "UserRole",
+					"doctype": "Has Role",
 					"role": "Administrator"
 				}
 			])
@@ -210,7 +210,7 @@ class User(Document):
 		return link
 
 	def get_other_system_managers(self):
-		return frappe.db.sql("""select distinct user.name from tabUserRole user_role, tabUser user
+		return frappe.db.sql("""select distinct user.name from `tabHas Role` user_role, tabUser user
 			where user_role.role='System Manager'
 				and user.docstatus<2
 				and user.enabled=1
