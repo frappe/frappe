@@ -712,8 +712,15 @@ fieldset[disabled] .form-control {
   border-bottom: 1px solid #d1d8dd;
   margin-top: 10px;
 }
+.search-dialog .full-list .result .result-subtype{
+  float: right;
+  margin-left: 10px;
+}
 .search-dialog .full-list .section-head {
   margin-bottom: 25px;
+}
+.search-dialog .dual-section .result-subtype {
+  display: none;
 }
 .search-dialog .result-status {
   margin-top: 30px;

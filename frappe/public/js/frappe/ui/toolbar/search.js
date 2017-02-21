@@ -356,14 +356,39 @@ frappe.search.GlobalSearch = Class.extend({
 		return results_section;
 	},
 
+	make_result_subtypes_property: function(results) {
+		var compressed_results = [];
+		var labels = [];
+		results.forEach(function(r) {
+			if(labels.indexOf(r.label) === -1) {
+				labels.push(r.label);
+			}
+		});
+		labels.forEach(function(l) {
+			var item_group = {
+				title: l,
+				subtypes: []
+			};
+			results.forEach(function(r) {
+				if (r.label === l) {
+					item_group.subtypes.push(r);
+				}
+			});
+			compressed_results.push(item_group);
+		});
+		return compressed_results;
+	},
+
 	make_full_list: function(type, results, more) {
 		var me = this;
 		var results_list = $(' <div class="module-body"><div class="row module-section full-list '+
 			type+'-section">'+'<div class="col-sm-12 module-section-column">' +
 			'<div class="back-link"><a class="all-results-link small"> All Results</a></div>' +
 			'<div class="h4 section-head">'+type+'</div>' +
-			'<div class="section-body"></div>'+
-			'</div></div></div>');
+			'<div class="section-body"></div></div></div></div>');
+		if(type === "Lists") {
+			results = this.make_result_subtypes_property(results);
+		}
 		var results_col = results_list.find('.module-section-column');
 		results.forEach(function(result) {
 			results_col.append(me.make_result_item(type, result));
@@ -475,7 +500,6 @@ frappe.search.NavSearch = frappe.search.GlobalSearch.extend({
 	init: function() {
 		this.search_type = 'Navigation';
 	},
-
 	set_types: function() {
 		var me = this;
 		this.section_length = 4;
@@ -540,9 +564,47 @@ frappe.search.NavSearch = frappe.search.GlobalSearch.extend({
 	},
 
 	make_result_item: function(type, result) {
-		var link_html = '<div class="result '+ type +'-result single-link">' +
-			'<a href="{0}" class="module-section-link small">{1}</a>' +
-			'<p class="small"></p></div>';
+		if(!result.subtypes) {
+			var link_html = '<div class="result '+ type +'-result single-link">' +
+				'<a href="{0}" class="module-section-link small">{1}</a>' +
+				'<p class="small"></p></div>';
+			return this.make_result_link(type, result, link_html);
+
+		} else {
+			var result_div = $('<div class="result '+ type +'-result single-link"></div>');
+			var button_html = '<button class="btn btn-default btn-xs text-muted result-subtype"'+
+				'>{0}</button>'
+			result.subtypes.forEach(function(s) {
+				if(["Gantt", "Report", "Calendar"].indexOf(s.type) !== -1) {
+					var button = $(__(button_html, [s.type]));
+					button.on('click', function() {
+						if(s.route_options) {
+							frappe.route_options = s.route_options;
+						}
+						frappe.set_route(s.route);
+						return false;
+					});
+					result_div.append(button);
+				} else {
+					title_link_html = '<a href="{0}" class="module-section-link small">{1}</a>';
+					var link = $(__(title_link_html, ['#', result.title + ' ' + s.type]));
+					link.on('click', function() {
+						if(s.route_options) {
+							frappe.route_options = s.route_options;
+						}
+						frappe.set_route(s.route);
+						return false;
+					});
+					result_div.append(link);
+				}
+			})
+			result_div.append($('<p class="small"></p>'));
+			return result_div;
+		}
+
+	},
+
+	make_result_link: function(type, result, link_html) {
 		if(!result.onclick) {
 			var link = $(__(link_html, ['#', result.label]));
 			link.on('click', function() {
@@ -599,6 +661,9 @@ frappe.search.NavSearch = frappe.search.GlobalSearch.extend({
 			'<div class="h4 section-head">'+type+'</div>' +
 			'<div class="section-body"></div>'+
 			'</div>');
+		if(type === "Lists") {
+			results = this.make_result_subtypes_property(results);
+		}
 		results.slice(0, this.section_length).forEach(function(result) {
 			results_column.append(me.make_result_item(type, result));
 		});

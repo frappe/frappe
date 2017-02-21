@@ -131,7 +131,8 @@ frappe.search.AwesomeBar = Class.extend({
 			}
 
 			if(item.onclick) {
-				frappe.new_doc(item.match, true);
+				// frappe.new_doc(item.match, true);
+				item.onclick(item.match);
 			} else {
 				var previous_hash = window.location.hash;
 				frappe.set_route(item.route);
@@ -255,6 +256,7 @@ frappe.search.AwesomeBar = Class.extend({
 
 	fuzzy_search: function(txt, _item, index) {
 		item = __(_item || '').toLowerCase().replace(/-/g, " ");
+
 		txt = txt.toLowerCase();
 
 		var ilen = item.length;
@@ -263,7 +265,7 @@ frappe.search.AwesomeBar = Class.extend({
 		var match_level2 = 0.8;
 		var index = ((tlen/ilen) > match_level1) ? 24 : index;
 		var rendered_label = "";
-		var i, j;
+		var i, j, skips = 0, mismatches = 0;
 
 		if (tlen > ilen) {
 			return [];
@@ -280,6 +282,9 @@ frappe.search.AwesomeBar = Class.extend({
 		}
 		outer: for (i = 0, j = 0; i < tlen; i++) {
 			var t_ch = txt.charCodeAt(i);
+			if(mismatches !== 0) skips++;
+			if(skips > 3) return [];
+			mismatches = 0;
 			while (j < ilen) {
 				var i_ch = item.charCodeAt(j);
 				if (i_ch === t_ch) {
@@ -292,6 +297,8 @@ frappe.search.AwesomeBar = Class.extend({
 					j++;
 					continue outer;
 				}
+				mismatches++;
+				if(mismatches > 2) return [];
 				rendered_label += _item.charAt(j);
 				j++;
 			}
@@ -398,7 +405,7 @@ frappe.search.AwesomeBar = Class.extend({
 	make_search_in_list: function(txt) {
 		var me = this;
 		var out = [];
-		if(in_list(txt.split(" "), "in")) {
+		if(in_list(txt.split(" "), "in") && (txt.slice(-2) !== "in")) {
 			parts = txt.split(" in ");
 			frappe.boot.user.can_read.forEach(function (item) {
 				var target = me.fuzzy_search(parts[1], item, 21)[0];
@@ -462,17 +469,17 @@ frappe.search.AwesomeBar = Class.extend({
 			index = result[1];
 			rendered_label = result[2];
 			if(target) {
-				// include 'making new' option
-				if(in_list(frappe.boot.user.can_create, target)) {
-					out.push({
-						label: rendered_label,
-						value: __("New {0}", [target]),
-						index: index,
-						type: "New",
-						prefix: "New",
-						onclick: function() { frappe.new_doc(target, true); }
-					});
-				}
+				// include 'making new' option (not working)
+				// if(in_list(frappe.boot.user.can_create, target)) {
+				// 	out.push({
+				// 		label: rendered_label,
+				// 		value: __("New {0}", [target]),
+				// 		index: index,
+				// 		type: "New",
+				// 		prefix: "New",
+				// 		onclick: function() { frappe.new_doc(target, true); }
+				// 	});
+				// }
 				if(in_list(frappe.boot.single_types, target)) {
 					out.push(option("", ["Form", target, target]));
 
