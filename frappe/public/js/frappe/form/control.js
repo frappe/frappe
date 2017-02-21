@@ -1594,6 +1594,7 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 				['color', ['color']],
 				['para', ['ul', 'ol', 'paragraph']],
 				['height', ['height']],
+				['media', ['link', 'picture', 'video', 'link', 'table']],
 				['misc', ['fullscreen', 'codeview']]
 			],
 			callbacks: {
@@ -1641,7 +1642,7 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 				'minus': 'fa fa-minus',
 				'orderedlist': 'fa fa-list-ol',
 				'pencil': 'fa fa-pencil',
-				'picture': 'fa fa-picture',
+				'picture': 'fa fa-image',
 				'question': 'fa fa-question',
 				'redo': 'fa fa-redo',
 				'square': 'fa fa-square',
@@ -1654,7 +1655,7 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 				'underline': 'fa fa-underline',
 				'undo': 'fa fa-undo',
 				'unorderedlist': 'fa fa-list-ul',
-				'video': 'fa fa-video'
+				'video': 'fa fa-video-camera'
 			}
 		});
 		this.note_editor = $(this.input_area).find('.note-editor');
