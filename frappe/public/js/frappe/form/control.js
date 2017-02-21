@@ -1594,7 +1594,7 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 				['color', ['color']],
 				['para', ['ul', 'ol', 'paragraph']],
 				['height', ['height']],
-				['media', ['picture', 'video']],
+				['media', ['link', 'picture', 'video', 'link', 'table']],
 				['misc', ['fullscreen', 'codeview']]
 			],
 			callbacks: {
