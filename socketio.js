@@ -10,72 +10,71 @@ var conf = get_conf();
 var subscriber = redis.createClient(conf.redis_socketio || conf.redis_async_broker_port);
 
 // serve socketio
-http.listen(conf.socketio_port, function(){
-  console.log('listening on *:', conf.socketio_port);
+http.listen(conf.socketio_port, function () {
+	console.log('listening on *:', conf.socketio_port);
 });
 
 // test route
-app.get('/', function(req, res){
-  res.sendfile('index.html');
+app.get('/', function (req, res) {
+	res.sendfile('index.html');
 });
 
 // on socket connection
-io.on('connection', function(socket){
+io.on('connection', function (socket) {
 	if (get_hostname(socket.request.headers.host) != get_hostname(socket.request.headers.origin)) {
 		return;
 	}
 
 	// console.log("connection!");
 	var sid = cookie.parse(socket.request.headers.cookie).sid
-	if(!sid) {
+	if (!sid) {
 		return;
 	}
 
 	socket.user = cookie.parse(socket.request.headers.cookie).user_id;
-
+	var _url = get_url(socket, '/api/method/frappe.async.get_user_info');
 	// console.log("firing get_user_info");
-	request.get(get_url(socket, '/api/method/frappe.async.get_user_info'))
+	request.get(_url)
 		.type('form')
 		.query({
 			sid: sid
 		})
-		.end(function(err, res) {
-			if(err) {
+		.end(function (err, res) {
+			if (err) {
 				console.log(err);
 				return;
 			}
-			if(res.status == 200) {
+			if (res.status == 200) {
 				var room = get_user_room(socket, res.body.message.user);
-				// console.log('joining', room);
 				socket.join(room);
 				socket.join(get_site_room(socket));
 			}
 		});
 
-	socket.on('task_subscribe', function(task_id) {
+	socket.on('task_subscribe', function (task_id) {
 		var room = get_task_room(socket, task_id);
 		socket.join(room);
 	});
 
-	socket.on('task_unsubscribe', function(task_id) {
+	socket.on('task_unsubscribe', function (task_id) {
 		var room = get_task_room(socket, task_id);
 		socket.leave(room);
 	});
 
-	socket.on('progress_subscribe', function(task_id) {
+	socket.on('progress_subscribe', function (task_id) {
 		var room = get_task_room(socket, task_id);
 		socket.join(room);
 		send_existing_lines(task_id, socket);
 	});
 
-	socket.on('doc_subscribe', function(doctype, docname) {
+	socket.on('doc_subscribe', function (doctype, docname) {
 		// console.log('trying to subscribe', doctype, docname)
 		can_subscribe_doc({
 			socket: socket,
 			sid: sid,
 			doctype: doctype,
 			docname: docname,
-			callback: function(err, res) {
+			callback: function (err, res) {
 				var room = get_doc_room(socket, doctype, docname);
 				// console.log('joining', room)
 				socket.join(room);
@@ -83,24 +82,24 @@ io.on('connection', function(socket){
 		});
 	});
 
-	socket.on('doc_unsubscribe', function(doctype, docname) {
+	socket.on('doc_unsubscribe', function (doctype, docname) {
 		var room = get_doc_room(socket, doctype, docname);
 		socket.leave(room);
 	});
 
-	socket.on('task_unsubscribe', function(task_id) {
+	socket.on('task_unsubscribe', function (task_id) {
 		var room = 'task:' + task_id;
 		socket.leave(room);
 	});
 
-	socket.on('doc_open', function(doctype, docname) {
+	socket.on('doc_open', function (doctype, docname) {
 		// show who is currently viewing the form
 		can_subscribe_doc({
 			socket: socket,
 			sid: sid,
 			doctype: doctype,
 			docname: docname,
-			callback: function(err, res) {
+			callback: function (err, res) {
 				var room = get_open_doc_room(socket, doctype, docname);
 				// console.log('joining', room)
 				socket.join(room);
@@ -114,7 +113,7 @@ io.on('connection', function(socket){
 		});
 	});
 
-	socket.on('doc_close', function(doctype, docname) {
+	socket.on('doc_close', function (doctype, docname) {
 		// remove this user from the list of 'who is currently viewing the form'
 		var room = get_open_doc_room(socket, doctype, docname);
 		socket.leave(room);
@@ -130,17 +129,28 @@ io.on('connection', function(socket){
 	// });
 });
 
-subscriber.on("message", function(channel, message) {
+
+
+subscriber.on("message", function (channel, message) {
 	message = JSON.parse(message);
+	// if (typeof (message.type) !== 'undefined' && message.type.includes('fromkickApp')) {
+
+	// } else {
+	// 	io.to(message.room).emit(message.event, message.message);
+	// }
 	io.to(message.room).emit(message.event, message.message);
 	// console.log(message.room, message.event, message.message)
 });
+
+
+
+
 
 subscriber.subscribe("events");
 
 function send_existing_lines(task_id, socket) {
 	var room = get_task_room(socket, task_id);
-	subscriber.hgetall('task_log:' + task_id, function(err, lines) {
+	subscriber.hgetall('task_log:' + task_id, function (err, lines) {
 		io.to(room).emit('task_progress', {
 			"task_id": task_id,
 			"message": {
@@ -151,11 +161,11 @@ function send_existing_lines(task_id, socket) {
 }
 
 function get_doc_room(socket, doctype, docname) {
-	return get_site_name(socket) + ':doc:'+ doctype + '/' + docname;
+	return get_site_name(socket) + ':doc:' + doctype + '/' + docname;
 }
 
 function get_open_doc_room(socket, doctype, docname) {
-	return get_site_name(socket) + ':open_doc:'+ doctype + '/' + docname;
+	return get_site_name(socket) + ':open_doc:' + doctype + '/' + docname;
 }
 
 function get_user_room(socket, user) {
@@ -190,20 +200,25 @@ function get_site_name(socket) {
 function get_hostname(url) {
 	if (!url) return undefined;
 	if (url.indexOf("://") > -1) {
-        url = url.split('/')[2];
-    }
-	return ( url.match(/:/g) ) ? url.slice( 0, url.indexOf(":") ) : url
+		url = url.split('/')[2];
+	}
+	return (url.match(/:/g)) ? url.slice(0, url.indexOf(":")) : url
 }
 
 function get_url(socket, path) {
 	if (!path) {
 		path = '';
 	}
+	var _url = socket.request.headers.origin.split(':');
+	if (_url.length > 2) {
+		return _url[0] + ':' + _url[1] + ':8000' + path;
+	}
+
 	return socket.request.headers.origin + path;
 }
 
 function can_subscribe_doc(args) {
-	if(!args) return;
+	if (!args) return;
 	request.get(get_url(args.socket, '/api/method/frappe.async.can_subscribe_doc'))
 		.type('form')
 		.query({
@@ -211,7 +226,7 @@ function can_subscribe_doc(args) {
 			doctype: args.doctype,
 			docname: args.docname
 		})
-		.end(function(err, res) {
+		.end(function (err, res) {
 			if (!res) {
 				console.log("No response for doc_subscribe");
 
@@ -250,7 +265,7 @@ function send_viewers(args) {
 	var viewers = [];
 	for (var i in io.sockets.sockets) {
 		var s = io.sockets.sockets[i];
-		if (clients.indexOf(s.id)!==-1) {
+		if (clients.indexOf(s.id) !== -1) {
 			// this socket is connected to the room
 			viewers.push(s.user);
 		}
@@ -271,8 +286,8 @@ function get_conf() {
 		socketio_port: 3000
 	};
 
-	var read_config = function(path) {
-		if(fs.existsSync(path)){
+	var read_config = function (path) {
+		if (fs.existsSync(path)) {
 			var bench_config = JSON.parse(fs.readFileSync(path));
 			for (var key in bench_config) {
 				if (bench_config[key]) {
@@ -287,9 +302,98 @@ function get_conf() {
 	read_config('sites/common_site_config.json');
 
 	// detect current site
-	if(fs.existsSync('sites/currentsite.txt')) {
+	if (fs.existsSync('sites/currentsite.txt')) {
 		conf.default_site = fs.readFileSync('sites/currentsite.txt').toString().trim();
 	}
 
 	return conf;
 }
+
+
+function Room(type, name, owner, id) {
+	//type is :bot, :personal, :group.
+	//name is 
+	//owner is user(username) who created the group or in case of personal chat who's username is small.
+
+	this.owner = owner;
+	this.people = [];
+	this.roomName = type === 'personal' ? type + name + owner : type + name + owner + id;
+	this.peopleLimit = 25;
+
+	this.status = "available";
+	// this.private = false;
+
+	addPerson = function (personID) {
+		if (this.status === "available") {
+			this.people.push(personID);
+		}
+	};
+
+	removePerson = function (person) {
+		var personIndex = -1;
+		for (var i = 0; i < this.people.length; i++) {
+			if (this.people[i].id === person.id) {
+				personIndex = i;
+				break;
+			}
+		}
+		this.people.remove(personIndex);
+	};
+
+
+	getPerson = function (personID) {
+		var person = null;
+		for (var i = 0; i < this.people.length; i++) {
+			if (this.people[i].id == personID) {
+				person = this.people[i];
+				break;
+			}
+		}
+		return person;
+	};
+
+
+	isAvailable = function () {
+		return this.available === "available";
+	};
+
+
+};
+
+Room.prototype.addPerson = function (personID) {
+	if (this.status === "available") {
+		this.people.push(personID);
+	}
+};
+
+Room.prototype.removePerson = function (person) {
+	var personIndex = -1;
+	for (var i = 0; i < this.people.length; i++) {
+		if (this.people[i].id === person.id) {
+			personIndex = i;
+			break;
+		}
+	}
+	this.people.remove(personIndex);
+};
+
+Room.prototype.getPerson = function (personID) {
+	var person = null;
+	for (var i = 0; i < this.people.length; i++) {
+		if (this.people[i].id == personID) {
+			person = this.people[i];
+			break;
+		}
+	}
+	return person;
+};
+
+Room.prototype.isAvailable = function () {
+	return this.available === "available";
+};
+
+Room.prototype.isPrivate = function () {
+	return this.private;
+};
+
+module.exports = Room;
