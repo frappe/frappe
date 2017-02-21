@@ -10,5 +10,5 @@ def get_dev_port():
 
 @frappe.whitelist()
 def get_all_users():
-    return frappe.get_all('User',
-                          ["email", "first_name", "last_name", "last_active"])
+    return frappe.get_all(
+        'User', ["email", "first_name", "last_name", "last_active"])
