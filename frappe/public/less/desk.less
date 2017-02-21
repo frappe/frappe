@@ -563,12 +563,26 @@ textarea.form-control {
 	}
 
 	.layout-side-section {
-		padding-left: 15px;
+		.help-link {
+			padding-top: 20px;
+			text-transform: uppercase;
+		}
+
+		.nav > li > a {
+			padding-left: 20px;
+		}
 	}
 
-	// .results-area a {
-	// 	color: #5E64FF;
-	// }
+	.results-area {
+		a {
+			color: #5E64FF;
+		}
+
+		.single-link a {
+			color: #36414c;
+		}
+	}
+
 	.module-section {
 		.back-link {
 			margin-bottom: 20px;
@@ -580,13 +594,18 @@ textarea.form-control {
 			content: '\f0a4';
 		}
 	}
-	.dual-section .result a {
-		color: black;
+
+	.full-list {
+		.result {
+			border-bottom: 1px solid #d1d8dd;
+			margin-top: 10px;
+		}
+
+		.section-head {
+			margin-bottom: 25px;
+		}
 	}
 
-	.dual-section .result a b{
-		color: #4e6161;
-	}
 	.result-status {
 		margin-top: 30px;
 		text-align: center;

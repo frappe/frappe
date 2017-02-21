@@ -12,7 +12,7 @@ frappe.search.UnifiedSearch = Class.extend({
 		this.search_modal.addClass('search-dialog');
 
 		this.input = this.search_modal.find(".search-input");
-		this.sidebar = this.search_modal.find(".search-sidebar");
+		this.sidelist = this.search_modal.find(".search-sidelist");
 		this.results_area = this.search_modal.find(".results-area");
 	},
 
@@ -37,14 +37,14 @@ frappe.search.UnifiedSearch = Class.extend({
 				} else {
 					me.current_type = '';
 				}
-			}, 250));
+			}, 600));
 		});
 		this.build_results(keywords);
 		setTimeout(function() { me.input.select(); }, 500);
 	},
 
 	reset: function() {
-		this.sidebar.empty();
+		this.sidelist.empty();
 		this.results_area.empty();
 	},
 
@@ -59,7 +59,9 @@ frappe.search.UnifiedSearch = Class.extend({
 	render_results: function(results_obj, keywords){
 		var me = this;
 		if(this.current === 0) { this.reset() }
-		this.sidebar.append(results_obj.sidelist);
+		results_obj.sidelist.forEach(function(list_item) {
+			me.sidelist.append(list_item);
+		})
 		this.results_area.find('.results-status').remove();
 		results_obj.sections.forEach(function(section) {
 			me.summary.append(section);
@@ -70,18 +72,35 @@ frappe.search.UnifiedSearch = Class.extend({
 
 	bind_events: function() {
 		var me = this;
-		this.sidebar.find('.list-link').on('click', function() {
-			me.set_sidebar_link_action($(this));
+		this.results_area.on('scroll', function() {
+			if(me.results_area.find('.all-results-link').length !== 0) {
+				return;
+			}
+			var r = me.results_area.find('.module-section')[1];
+			me.results_area.find('.module-section').each(function() {
+				if(($(this).position().top < 120) && ($(this).position().top + $(this).height() > 120)) {
+					var types = $(this).attr('data-type').split(',');
+					me.sidelist.find('.list-link').removeClass('active');
+					types.forEach(function(type) {
+						me.sidelist.find('*[data-category="'+ type +'"]').addClass('active');
+					});
+				}
+			});
+		});
+		this.sidelist.find('.list-link').on('click', function() {
+			me.set_sidelist_link_action($(this));
 		});
 		this.results_area.find('.section-more').on('click', function() {
 			var type = $(this).attr('data-category');
-			me.sidebar.find('*[data-category="'+ type +'"]').trigger('click');
+			me.sidelist.find('*[data-category="'+ type +'"]').trigger('click');
 		});
 	},
 
-	set_sidebar_link_action: function(link) {
-		this.sidebar.find(".list-link a").removeClass("disabled");
-		link.find('a').addClass("disabled");
+	set_sidelist_link_action: function(link) {
+		this.sidelist.find(".list-link").removeClass("active");
+		this.sidelist.find(".list-link i").addClass("hide");
+		link.addClass("active");
+		link.find("i").removeClass("hide");
 		var type = link.attr('data-category');
 		this.results_area.empty().html(this.full_lists[type]);
 
@@ -101,6 +120,9 @@ frappe.search.UnifiedSearch = Class.extend({
 
 	show_summary: function() {
 		this.current_type = '';
+		this.sidelist.find(".list-link i").addClass("hide");
+		this.sidelist.find(".list-link").removeClass("active");
+		this.sidelist.find(".list-link").first().addClass("active");
 		this.results_area.empty().html(this.summary);
 		this.bind_events();
 	},
@@ -125,7 +147,7 @@ frappe.search.UnifiedSearch = Class.extend({
 			var no_of_results = this.results_area.find('.result').length;
 			var no_of_results_cue = $('<p class="results-status text-muted small">'+
 				no_of_results +' results found</p>');
-			this.results_area.find(".result:last").append(no_of_results_cue);
+			this.results_area.find(".more-results:last").append(no_of_results_cue);
 		}
 		this.results_area.find('.more-results.last').slideDown(200, function() {
 			var height = me.results_area.find('.module-body').height() - 750;
@@ -144,20 +166,20 @@ frappe.search.UnifiedSearch = Class.extend({
 			// More searches to go
 			this.search_objects[this.current].build_results_object(this, keywords);
 		} else {
-			// If there's only one link in sidebar, there's no summary (show its full list)
-			if(this.sidebar.find('.list-link').length === 1) {
+			// If there's only one link in sidelist, there's no summary (show its full list)
+			if(this.sidelist.find('.list-link').length === 1) {
 				this.bind_events();
-				this.sidebar.find('.list-link').trigger('click');
+				this.sidelist.find('.list-link').trigger('click');
 				this.results_area.find('.all-results-link').hide();
 
-			} else if (this.sidebar.find('.list-link').length === 0) {
+			} else if (this.sidelist.find('.list-link').length === 0) {
 				this.results_area.html('<p class="results-status text-muted" style="text-align: center;">'+
 					'No results found for: '+ "'"+ keywords +"'" +'</p>');
 			} else {
 				var list_types = this.get_all_list_types();
 				if(list_types.indexOf(this.current_type) >= 0) {
 					this.bind_events();
-					this.sidebar.find('*[data-category="'+ this.current_type +'"]').trigger('click');
+					this.sidelist.find('*[data-category="'+ this.current_type +'"]').trigger('click');
 				} else {
 					this.show_summary();
 				}
@@ -167,7 +189,7 @@ frappe.search.UnifiedSearch = Class.extend({
 
 	get_all_list_types: function() {
 		var types = [];
-		this.sidebar.find('.list-link').each(function() {
+		this.sidelist.find('.list-link').each(function() {
 			types.push($(this).attr('data-category'));
 		});
 		return types;
@@ -214,18 +236,16 @@ frappe.search.GlobalSearch = Class.extend({
 
 	make_sidelist: function() {
 		var me = this;
-		var sidelist = $('<ul class="list-unstyled sidebar-menu nav-list"></ul>');
-		sidelist.append('<li class="h6">'+ me.search_type +'</li>');
+		var sidelist = [];
 		this.types.forEach(function(type) {
-			sidelist.append(me.make_sidelist_item(type));
+			sidelist.push(me.make_sidelist_item(type));
 		});
-		sidelist.append('<li class="divider"></li>');
 		return sidelist;
 	},
 
 	make_sidelist_item: function(type) {
-		var sidelist_item = '<li class="list-link" data-search="{0}"' +
-			'data-category="{1}"><a>{1}</a></li>';
+		var sidelist_item = '<li class="strong module-sidebar-item list-link" data-search="{0}"' +
+			'data-category="{1}"><a><span>{1}</span><i class="fa fa-chevron-right pull-right hide"></a></li>';
 		return $(__(sidelist_item, [this.search_type, type]));
 	},
 
@@ -319,7 +339,7 @@ frappe.search.GlobalSearch = Class.extend({
 
 	make_section: function(type, results) {
 		var me = this;
-		var results_section = $('<div class="row module-section '+type+'-section">'+
+		var results_section = $('<div class="row module-section" data-type="'+type+'">'+
 			'<div class="col-sm-12 module-section-column">' +
 			'<div class="h4 section-head">'+type+'</div>' +
 			'<div class="section-body"></div>'+
@@ -329,15 +349,16 @@ frappe.search.GlobalSearch = Class.extend({
 			results_col.append(me.make_result_item(type, result));
 		});
 		if(results.length > this.section_length) {
-			results_col.append('<a class="small section-more" data-category="'
-				+ type + '">More...</a>');
+			results_col.append('<button class="btn btn-default btn-xs text-muted section-more" data-category="'
+				+ type + '" style="margin-top:10px">More...</button>');
+
 		}
 		return results_section;
 	},
 
 	make_full_list: function(type, results, more) {
 		var me = this;
-		var results_list = $(' <div class="module-body"><div class="row module-section '+
+		var results_list = $(' <div class="module-body"><div class="row module-section full-list '+
 			type+'-section">'+'<div class="col-sm-12 module-section-column">' +
 			'<div class="back-link"><a class="all-results-link small"> All Results</a></div>' +
 			'<div class="h4 section-head">'+type+'</div>' +
@@ -348,8 +369,8 @@ frappe.search.GlobalSearch = Class.extend({
 			results_col.append(me.make_result_item(type, result));
 		});
 		if(more) {
-			results_col.append('<a class="small list-more" data-search="'+ this.search_type +'" data-category="'
-				+ type + '">More...</a>');
+			results_col.append('<button class="btn btn-default btn-xs text-muted list-more" data-search="'+
+			this.search_type +'" data-category="'+ type + '" style="margin-top:10px"> More...</button>');
 		}
 		return results_list;
 	},
@@ -386,7 +407,6 @@ frappe.search.GlobalSearch = Class.extend({
 	},
 
 	get_awesome_bar_options: function(keywords, ref) {
-
 		var me = this;
 		var doctypes = [];
 		var current = 0;
@@ -426,7 +446,7 @@ frappe.search.GlobalSearch = Class.extend({
 						if(current < doctypes.length) {
 							get_results();
 						} else {
-							ref.set_global_results(results);
+							ref.set_global_results(results, keywords);
 						}
 					}
 				}
@@ -434,13 +454,13 @@ frappe.search.GlobalSearch = Class.extend({
 		};
 
 		var make_option = function(data) {
-			console.log("GS search", me.get_finds(data.content, keywords).slice(0,86) + '...');
 			return {
 				label: __("{0}: {1}", [__(data.doctype).bold(), data.name]),
 				value: __("{0}: {1}", [__(data.doctype), data.name]),
 				route: ["Form", data.doctype, data.name],
 				match: data.doctype,
-				index: 5,
+				index: 35,
+				type: "Global",
 				description: me.get_finds(data.content, keywords).slice(0,86) + '...'
 			}
 		};
@@ -545,9 +565,14 @@ frappe.search.NavSearch = frappe.search.GlobalSearch.extend({
 
 	make_dual_sections: function() {
 		this.dual_sections = [];
-		var section_html = '<div class="row module-section dual-section"></div>';
 		for(var i = 0; i < this.sections.length; i++) {
-			var results_section = $(section_html);
+			var types;
+			if(i+1 < this.types.length) {
+				types = this.types[i] + ',' + this.types[i+1];
+			} else {
+				types = this.types[i];
+			}
+			var results_section = $('<div class="row module-section dual-section" data-type="'+ types +'"></div>');
 			for(var j = 0; j < 2 && i < this.sections.length; j++, i++){
 				results_section.append(this.sections[i]);
 			}
@@ -578,8 +603,8 @@ frappe.search.NavSearch = frappe.search.GlobalSearch.extend({
 			results_column.append(me.make_result_item(type, result));
 		});
 		if(results.length > this.section_length) {
-			results_column.append('<a class="small section-more" data-category="'
-				+ type + '">More...</a>');
+			results_column.append('<button class="btn btn-default btn-xs text-muted section-more" data-category="'
+				+ type + '" style="margin-top:10px">More...</button>');
 		}
 		return results_column;
 	}
@@ -597,12 +622,11 @@ frappe.search.HelpSearch = frappe.search.GlobalSearch.extend({
 	},
 
 	make_sidelist: function() {
-		var sidelist = $('<ul class="list-unstyled sidebar-menu nav-list"></ul>');
-		var sidelist_item = '<li class="h6 list-link" data-search="'+ this.search_type + '"' +
-			'data-category="'+ this.search_type + '"><a style="font-size: 11px;">'+
-			this.search_type +'</a></li>';
-		sidelist.append(sidelist_item);
-		sidelist.append('<li class="divider"></li>');
+		var sidelist = [];
+		var sidelist_item = '<li class="strong module-sidebar-item list-link help-link" '+
+		'data-search="'+ this.search_type + '" data-category="'+ this.search_type + '"><a><span>'+
+			this.search_type +'</span><i class="fa fa-chevron-right pull-right hide"></a></li>';
+		sidelist.push(sidelist_item);
 		return sidelist;
 	},
 

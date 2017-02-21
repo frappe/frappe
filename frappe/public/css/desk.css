@@ -687,8 +687,18 @@ fieldset[disabled] .form-control {
   padding: 0px;
   overflow-y: auto;
 }
-.search-dialog .layout-side-section {
-  padding-left: 15px;
+.search-dialog .layout-side-section .help-link {
+  padding-top: 20px;
+  text-transform: uppercase;
+}
+.search-dialog .layout-side-section .nav > li > a {
+  padding-left: 20px;
+}
+.search-dialog .results-area a {
+		color: #5E64FF;
+}
+.search-dialog .results-area .single-link a {
+  color: #36414c;
 }
 .search-dialog .module-section .back-link {
   margin-bottom: 20px;
@@ -698,11 +708,12 @@ fieldset[disabled] .form-control {
   font-family: 'Octicons';
   content: '\f0a4';
 }
-.search-dialog .dual-section .result a {
-  color: black;
+.search-dialog .full-list .result {
+  border-bottom: 1px solid #d1d8dd;
+  margin-top: 10px;
 }
-.search-dialog .dual-section .result a b {
-  color: #4e6161;
+.search-dialog .full-list .section-head {
+  margin-bottom: 25px;
 }
 .search-dialog .result-status {
   margin-top: 30px;

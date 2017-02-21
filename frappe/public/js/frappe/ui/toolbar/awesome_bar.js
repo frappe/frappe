@@ -12,17 +12,21 @@ frappe.search.AwesomeBar = Class.extend({
 		this.nav = new frappe.search.NavSearch();
 		this.help = new frappe.search.HelpSearch();
 
+		this.options = [];
+		this.global_results = [];
+
 		var awesomplete = new Awesomplete(input, {
 			minChars: 0,
 			maxItems: 99,
 			autoFirst: true,
 			list: [],
-			filter: function (text, term) { 
-				return true; 
+			filter: function (text, term) {
+				return true;
 			},
 			data: function (item, input) {
-				var label = item.label + "%%%" + item.value + "%%%" + 
-					(item.description || "") + "%%%" + (item.index || "");
+				var label = item.label + "%%%" + item.value + "%%%" +
+					(item.description || "") + "%%%" + (item.index || "")
+					 + "%%%" + (item.type || "");
 				return {
 					label: label,
 					value: item.value
@@ -42,10 +46,10 @@ frappe.search.AwesomeBar = Class.extend({
 					.html('<a style="font-weight:normal"><p>' + html + '</p></a>')
 					.get(0);
 			},
-			sort: function(a, b) { 
+			sort: function(a, b) {
 				var a_index = a.split("%%%")[3];
 				var b_index = b.split("%%%")[3];
-				return (a_index - b_index); 
+				return (a_index - b_index);
 			}
 		});
 
@@ -53,18 +57,23 @@ frappe.search.AwesomeBar = Class.extend({
 			var $this = $(this);
 			clearTimeout($this.data('timeout'));
 
+			var value = e.target.value;
+			var txt = value.trim().replace(/\s\s+/g, ' ');
+			if(txt && txt.length > 2) {
+				// set to a very high index, to keep below, when you done
+				me.global.get_awesome_bar_options(txt.toLowerCase(), me);
+			}
+
 			$this.data('timeout', setTimeout(function(){
-				var value = e.target.value;
-				var txt = strip(value);
 				me.options = [];
-				if(txt) {
+				if(txt && txt.length > 2) {
 					var keywords = strip(txt.toLowerCase());
 					me.build_options(keywords);
-					if(me.options.length < 2) {
-						me.global.get_awesome_bar_options(keywords, me);
-					}
 				}
 
+				if(me.options.length < 2) {
+					me.options = me.options.concat(me.global_results);
+				}
 				me.add_recent(txt || "");
 				me.add_help();
 
@@ -83,7 +92,7 @@ frappe.search.AwesomeBar = Class.extend({
 					}
 				});
 				awesomplete.list = out;
-			}, 200));
+			}, 300));
 
 		});
 
@@ -231,7 +240,7 @@ frappe.search.AwesomeBar = Class.extend({
 	setup_recent: function() {
 		this.recent = JSON.parse(frappe.boot.user.recent || "[]") || [];
 	},
-	
+
 	is_present: function(txt, item) {
 		($.isArray(item)) ?	_item = item[0] : _item = item;
 		_item = __(_item || '').toLowerCase().replace(/-/g, " ");
@@ -240,12 +249,12 @@ frappe.search.AwesomeBar = Class.extend({
 		}
 	},
 
-	set_global_results: function(global_results){
-		this.options = this.options.concat(global_results);
+	set_global_results: function(global_results, txt){
+		this.global_results = this.global_results.concat(global_results);
 	},
 
-	build_options: function(txt) { 
-		this.options = 
+	build_options: function(txt) {
+		this.options =
 			this.make_global_search(txt).concat(
 				this.make_search_in_current(txt),
 				this.make_calculator(txt),
@@ -358,7 +367,7 @@ frappe.search.AwesomeBar = Class.extend({
 		return out;
 	},
 
-	get_doctypes: function(txt) { 
+	get_doctypes: function(txt) {
 		var me = this;
 		var out = [];
 
@@ -395,7 +404,7 @@ frappe.search.AwesomeBar = Class.extend({
 					out.push(option("Tree", ["Tree", target]));
 
 				} else {
-					out.push(option("List", ["List", target])); 
+					out.push(option("List", ["List", target]));
 					if(frappe.model.can_get_report(target)) {
 						out.push(option("Report", ["Report", target]));
 					}
