@@ -124,7 +124,7 @@ frappe.search.AwesomeBar = Class.extend({
 			}
 
 			if(item.onclick) {
-				item.onclick(item.match);
+				frappe.new_doc(item.match, true);
 			} else {
 				var previous_hash = window.location.hash;
 				frappe.set_route(item.route);
@@ -246,12 +246,36 @@ frappe.search.AwesomeBar = Class.extend({
 		this.recent = JSON.parse(frappe.boot.user.recent || "[]") || [];
 	},
 
-	is_present: function(txt, item) {
-		($.isArray(item)) ?	_item = item[0] : _item = item;
-		_item = __(_item || '').toLowerCase().replace(/-/g, " ");
-		if(txt===_item || _item.indexOf(txt) !== -1) {
-			return item;
+	fuzzy_search: function(txt, _item, index) {
+		item = __(_item || '').toLowerCase().replace(/-/g, " ");
+		txt = txt.toLowerCase();
+
+		var ilen = item.length;
+		var tlen = txt.length;
+		var match_level1 = 0.5;
+		var match_level2 = 0.8;
+		var index = ((tlen/ilen) > match_level1) ? 24 : index;
+
+		if (tlen > ilen) {
+			return [];
 		}
+		if (item.indexOf(txt) !== -1) {
+			// prefer single words
+			index = (item.indexOf(' ') === -1) ? index-1 : index;
+
+			index = ((tlen/ilen) > match_level2) ? 21 : index;
+			return [_item, index];
+		}
+		outer: for (var i = 0, j = 0; i < tlen; i++) {
+			var nch = txt.charCodeAt(i);
+			while (j < ilen) {
+				if (item.charCodeAt(j++) === nch) {
+					continue outer;
+				}
+			}
+			return [];
+		}
+		return [_item, index + 10];
 	},
 
 	set_specifics: function(txt, end_txt) {
@@ -259,6 +283,9 @@ frappe.search.AwesomeBar = Class.extend({
 		var results = this.build_options(txt);
 		results.forEach(function(r) {
 			if((r.type).toLowerCase().indexOf(end_txt.toLowerCase()) === 0) {
+				if(r.index < 25) {
+					r.index = 21;
+				}
 				me.options.push(r);
 			}
 		});
@@ -351,7 +378,7 @@ frappe.search.AwesomeBar = Class.extend({
 		if(in_list(txt.split(" "), "in")) {
 			parts = txt.split(" in ");
 			frappe.boot.user.can_read.forEach(function (item) {
-				target = me.is_present(parts[1], item);
+				var target = me.fuzzy_search(parts[1], item, 21)[0];
 				if(target) {
 					out.push({
 						label: __('Find {0} in {1}', [__(parts[0]).bold(), __(target).bold()]),
@@ -372,7 +399,7 @@ frappe.search.AwesomeBar = Class.extend({
 		var out = [];
 		if(txt.split(" ")[0]==="new") {
 			frappe.boot.user.can_create.forEach(function (item) {
-				var target = me.is_present(txt.substr(4), item);
+				var target = me.fuzzy_search(txt.substr(4), item, 21)[0];
 				if(target) {
 					out.push({
 						label: __("New {0}", [target.bold()]),
@@ -404,11 +431,10 @@ frappe.search.AwesomeBar = Class.extend({
 			}
 		};
 		frappe.boot.user.can_read.forEach(function (item) {
-			target = me.is_present(txt, item);
+			result = me.fuzzy_search(txt, item, 25);
+			target = result[0];
+			index = result[1];
 			if(target) {
-				var match_ratio = txt.length / item.length;
-				index = (match_ratio > 0.7) ? 10 : 12;
-
 				// include 'making new' option
 				if(in_list(frappe.boot.user.can_create, target)) {
 					out.push({
@@ -445,11 +471,11 @@ frappe.search.AwesomeBar = Class.extend({
 		var me = this;
 		var out = [];
 		Object.keys(frappe.boot.user.all_reports).forEach(function(item) {
-			var target = me.is_present(txt, item);
+			var result = me.fuzzy_search(txt, item, 26);
+			var target = result[0];
+			var index = result[1];
 			if(target) {
 				var report = frappe.boot.user.all_reports[target];
-				var match_ratio = txt.length / item.length;
-				var index = (match_ratio > 0.7) ? 10 : 13;
 				var route = [];
 				if(report.report_type == "Report Builder")
 					route = ["Report", report.ref_doctype, target];
@@ -478,10 +504,10 @@ frappe.search.AwesomeBar = Class.extend({
 			p.name = name;
 		});
 		Object.keys(this.pages).forEach(function(item) {
-			var target = me.is_present(txt, item);
+			var result = me.fuzzy_search(txt, item, 27);
+			var target = result[0];
+			var index = result[1];
 			if(target) {
-				var match_ratio = txt.length / item.length;
-				var index = (match_ratio > 0.7) ? 10 : 14;
 				var page = me.pages[target];
 				out.push({
 					label: __("Open {0}", [__(target).bold()]),
@@ -512,10 +538,10 @@ frappe.search.AwesomeBar = Class.extend({
 		var me = this;
 		var out = [];
 		Object.keys(frappe.modules).forEach(function(item) {
-			var target = me.is_present(txt, item);
+			var result = me.fuzzy_search(txt, item, 28);
+			var target = result[0];
+			var index = result[1];
 			if(target) {
-				var match_ratio = txt.length / item.length;
-				var index = (match_ratio > 0.7) ? 10 : 15;
 				var module = frappe.modules[target];
 				if(module._doctype) return;
 				ret = {
