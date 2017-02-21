@@ -4,10 +4,9 @@
 
 from __future__ import unicode_literals
 import frappe
-from frappe import _
 from frappe.model.document import Document
 
-class CustomRoleManager(Document):
+class UserPermissionforPageandReport(Document):
 	def get_custom_roles(self):
 		args = self.get_args()
 		name = frappe.db.get_value('Custom Role', args, "name")

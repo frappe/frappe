@@ -1,7 +1,7 @@
 // Copyright (c) 2016, Frappe Technologies and contributors
 // For license information, please see license.txt
 
-frappe.ui.form.on('Custom Role Manager', {
+frappe.ui.form.on('User Permission for Page and Report', {
 	refresh: function(frm) {
 		frm.disable_save();
 	},

@@ -7,3 +7,8 @@ import frappe
 def execute():
 	if not frappe.db.exists('DocType', 'Has Role'):
 		frappe.rename_doc('DocType', 'Page Role', 'Has Role')
+
+	frappe.reload_doc("core", 'doctype', "page")
+	frappe.reload_doc("core", 'doctype', "report")
+	frappe.reload_doc("core", 'doctype', "user")
+	frappe.reload_doc("core", 'doctype', "has_role")
