@@ -142,6 +142,10 @@ subscriber.on("message", function (channel, message) {
 	// console.log(message.room, message.event, message.message)
 });
 
+
+
+
+
 subscriber.subscribe("events");
 
 function send_existing_lines(task_id, socket) {
