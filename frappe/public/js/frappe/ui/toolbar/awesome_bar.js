@@ -54,26 +54,29 @@ frappe.search.AwesomeBar = Class.extend({
 		});
 
 		$input.on("input", function(e) {
-			var $this = $(this);
-			clearTimeout($this.data('timeout'));
-
 			var value = e.target.value;
 			var txt = value.trim().replace(/\s\s+/g, ' ');
+			var last_space = txt.lastIndexOf(' ');
+
 			if(txt && txt.length > 2) {
-				// set to a very high index, to keep below, when you done
 				me.global.get_awesome_bar_options(txt.toLowerCase(), me);
 			}
+
+			var $this = $(this);
+			clearTimeout($this.data('timeout'));
 
 			$this.data('timeout', setTimeout(function(){
 				me.options = [];
 				if(txt && txt.length > 2) {
-					var keywords = strip(txt.toLowerCase());
-					me.build_options(keywords);
-				}
-
-				if(me.options.length < 2) {
+					if(last_space !== -1) {
+						me.set_specifics(txt.slice(0,last_space), txt.slice(last_space+1));
+					}
+					me.options = me.options.concat(me.build_options(txt));
+					me.build_defaults(txt);
 					me.options = me.options.concat(me.global_results);
 				}
+
+				me.make_calculator(txt);
 				me.add_recent(txt || "");
 				me.add_help();
 
@@ -92,7 +95,7 @@ frappe.search.AwesomeBar = Class.extend({
 					}
 				});
 				awesomplete.list = out;
-			}, 300));
+			}, 200));
 
 		});
 
@@ -144,7 +147,8 @@ frappe.search.AwesomeBar = Class.extend({
 		this.options.push({
 			label: __("Help on Search"),
 			value: "Help on Search",
-			index: 20,
+			index: 50,
+			default: "Help",
 			onclick: function() {
 				var txt = '<table class="table table-bordered">\
 					<tr><td style="width: 50%">'+__("Make a new record")+'</td><td>'+
@@ -203,7 +207,8 @@ frappe.search.AwesomeBar = Class.extend({
 				out.label = match[0].bold();
 				out.value = match[0];
 			}
-			out.index = 10
+			out.index = 29;
+			out.default = "Recent";
 			return out;
 		}, true);
 	},
@@ -249,36 +254,48 @@ frappe.search.AwesomeBar = Class.extend({
 		}
 	},
 
+	set_specifics: function(txt, end_txt) {
+		var me = this;
+		var results = this.build_options(txt);
+		results.forEach(function(r) {
+			if((r.type).toLowerCase().indexOf(end_txt.toLowerCase()) === 0) {
+				me.options.push(r);
+			}
+		});
+	},
+
+	build_defaults: function(txt) {
+		this.make_global_search(txt);
+		this.make_search_in_current(txt);
+		this.options = this.options.concat(this.make_search_in_list(txt));
+	},
+
+	build_options: function(txt) {
+		return this.make_new_doc(txt).concat(
+			this.get_doctypes(txt),
+			this.get_reports(txt),
+			this.get_pages(txt),
+			this.get_modules(txt)
+		);
+	},
+
 	set_global_results: function(global_results, txt){
 		this.global_results = this.global_results.concat(global_results);
 	},
 
-	build_options: function(txt) {
-		this.options =
-			this.make_global_search(txt).concat(
-				this.make_search_in_current(txt),
-				this.make_calculator(txt),
-				this.make_new_doc(txt),
-				this.make_search_in_list(txt),
-				this.get_doctypes(txt),
-				this.get_reports(txt),
-				this.get_pages(txt),
-				this.get_modules(txt)
-			);
-	},
-
 	make_global_search: function(txt) {
 		var me = this;
-		return [{
+		this.options.push({
 			label: __("Search for '" + txt.bold() + "'"),
 			value: __("Search for '" + txt + "'"),
 			match: txt,
-			index: 5,
+			index: 22,
+			default: "Search",
 			onclick: function() {
 				me.search.search_dialog.show();
 				me.search.setup_search(txt, [me.global, me.nav, me.help]);
 			}
-		}];
+		});
 	},
 
 	make_search_in_current: function(txt) {
@@ -289,17 +306,18 @@ frappe.search.AwesomeBar = Class.extend({
 			var search_field = meta.title_field || "name";
 			var options = {};
 			options[search_field] = ["like", "%" + txt + "%"];
-			return [{
+			this.options.push({
 				label: __('Find {0} in {1}', [txt.bold(), route[1].bold()]),
 				value: __('Find {0} in {1}', [txt, route[1]]),
 				route_options: options,
-				index: 10,
+				index: 23,
 				onclick: function() {
 					cur_list.refresh();
 				},
+				default: "Current",
 				match: txt
-			}];
-		} else { return []; }
+			});
+		}
 	},
 
 	make_calculator: function(txt) {
@@ -311,39 +329,20 @@ frappe.search.AwesomeBar = Class.extend({
 			try {
 				var val = eval(txt);
 				var formatted_value = __('{0} = {1}', [txt, (val + '').bold()]);
-				return [{
+				this.options.push({
 					label: formatted_value,
 					value: __('{0} = {1}', [txt, val]),
 					match: val,
-					index: 10,
+					index: 24,
+					default: "Calculator",
 					onclick: function() {
 						msgprint(formatted_value, "Result");
 					}
-				}];
+				});
 			} catch(e) {
 				// pass
 			}
-		} else { return []; }
-	},
-
-	make_new_doc: function(txt) {
-		var me = this;
-		var out = [];
-		if(txt.split(" ")[0]==="new") {
-			frappe.boot.user.can_create.forEach(function (item) {
-				var target = me.is_present(txt.substr(4), item);
-				if(target) {
-					out.push({
-						label: __("New {0}", [target.bold()]),
-						value: __("New {0}", [target]),
-						index: 10,
-						match: target,
-						onclick: function() { frappe.new_doc(target, true); }
-					});
-				}
-			});
 		}
-		return out;
 	},
 
 	make_search_in_list: function(txt) {
@@ -358,8 +357,30 @@ frappe.search.AwesomeBar = Class.extend({
 						label: __('Find {0} in {1}', [__(parts[0]).bold(), __(target).bold()]),
 						value: __('Find {0} in {1}', [__(parts[0]), __(target)]),
 						route_options: {"name": ["like", "%" + parts[0] + "%"]},
-						index: 10,
+						index: 21,
+						type: "In List",
 						route: ["List", target]
+					});
+				}
+			});
+		}
+		return out;
+	},
+
+	make_new_doc: function(txt) {
+		var me = this;
+		var out = [];
+		if(txt.split(" ")[0]==="new") {
+			frappe.boot.user.can_create.forEach(function (item) {
+				var target = me.is_present(txt.substr(4), item);
+				if(target) {
+					out.push({
+						label: __("New {0}", [target.bold()]),
+						value: __("New {0}", [target]),
+						index: 21,
+						type: "New",
+						match: target,
+						onclick: function() { frappe.new_doc(target, true); }
 					});
 				}
 			});
@@ -371,14 +392,15 @@ frappe.search.AwesomeBar = Class.extend({
 		var me = this;
 		var out = [];
 
-		var target, index;
+		var result, target, index;
 		var option = function(type, route) {
 			return {
 				label: __("{0} " + type, [__(target).bold()]),
 				value: __(target),
 				route: route,
 				index: index,
-				match: target
+				match: target,
+				type: type
 			}
 		};
 		frappe.boot.user.can_read.forEach(function (item) {
@@ -392,8 +414,8 @@ frappe.search.AwesomeBar = Class.extend({
 					out.push({
 						label: __("New {0}", [target.bold()]),
 						value: __("New {0}", [target]),
-						match: target,
-						index: 12,
+						index: index,
+						type: "New",
 						onclick: function() { frappe.new_doc(target, true); }
 					});
 				}
@@ -439,6 +461,7 @@ frappe.search.AwesomeBar = Class.extend({
 					value: __("Report {0}" , [__(target)]),
 					match: txt,
 					index: index,
+					type: "Report",
 					route: route
 				});
 			}
@@ -465,6 +488,7 @@ frappe.search.AwesomeBar = Class.extend({
 					value: __("Open {0}", [__(target)]),
 					match: txt,
 					index: index,
+					type: "Page",
 					route: [page.route || page.name]
 				});
 			}
@@ -476,7 +500,8 @@ frappe.search.AwesomeBar = Class.extend({
 				label: __("Open {0}", [__(target).bold()]),
 				value: __("Open {0}", [__(target)]),
 				route: [target, 'Event'],
-				index: 14,
+				index: 27,
+				type: "Calendar",
 				match: target
 			});
 		}
@@ -497,7 +522,8 @@ frappe.search.AwesomeBar = Class.extend({
 					label: __("Open {0}", [__(target).bold()]),
 					value: __("Open {0}", [__(target)]),
 					match: txt,
-					index: index
+					index: index,
+					type: "Module"
 				}
 				if(module.link) {
 					ret.route = [module.link];

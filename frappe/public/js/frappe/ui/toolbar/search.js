@@ -32,7 +32,7 @@ frappe.search.UnifiedSearch = Class.extend({
 			$this.data('timeout', setTimeout(function(){
 				var keywords = me.input.val();
 				me.reset();
-				if(keywords.length > 1) {
+				if(keywords.length > 2) {
 					me.build_results(keywords);
 				} else {
 					me.current_type = '';
@@ -459,7 +459,7 @@ frappe.search.GlobalSearch = Class.extend({
 				value: __("{0}: {1}", [__(data.doctype), data.name]),
 				route: ["Form", data.doctype, data.name],
 				match: data.doctype,
-				index: 35,
+				index: 41,
 				type: "Global",
 				description: me.get_finds(data.content, keywords).slice(0,86) + '...'
 			}
