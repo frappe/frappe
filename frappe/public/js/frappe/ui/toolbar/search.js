@@ -460,7 +460,7 @@ frappe.search.GlobalSearch = Class.extend({
 				route: ["Form", data.doctype, data.name],
 				match: data.doctype,
 				index: 41,
-				type: "Global",
+				default: "Global",
 				description: me.get_finds(data.content, keywords).slice(0,86) + '...'
 			}
 		};
