@@ -109,7 +109,8 @@ class EmailServer:
 			self.errors = False
 			self.latest_messages = []
 			self.seen_status = {}
-			self.unique_id_list = {}
+			self.fingerprint_list = {}
+			self.uid_reindexed = False
 
 			uid_list = email_list = self.get_new_mails()
 			num = num_copy = len(email_list)
@@ -158,7 +159,8 @@ class EmailServer:
 			out.update({
 				"uid_list": uid_list,
 				"seen_status": self.seen_status,
-				"unique_id_list": self.unique_id_list
+				"fingerprint_list": self.fingerprint_list,
+				"uid_reindexed": self.uid_reindexed
 			})
 
 		return out
@@ -192,12 +194,18 @@ class EmailServer:
 			# uidvalidity changed & all email uids are reindexed by server
 			frappe.db.sql("""update `tabCommunication` set uid=-1 where communication_medium='Email'
 				and email_account='{email_account}'""".format(email_account=self.settings.email_account))
-			frappe.db.sql(""" update `tabEmail Account` set uidvalidity='{uidvalidity}', uidnext={uidnext} where
-				name='{email_account}'""".format(uidvalidity=current_uid_validity, uidnext=uidnext, email_account=self.settings.email_account))
-
-			from_uid = 1 if uidnext < 101 or (uidnext - 100) < 1 else uidnext - 100
+			frappe.db.sql("""update `tabEmail Account` set uidvalidity='{uidvalidity}', uidnext={uidnext} where
+				name='{email_account}'""".format(
+				uidvalidity=current_uid_validity,
+				uidnext=uidnext,
+				email_account=self.settings.email_account)
+			)
+			
+			sync_count = 100 if uid_validity else self.settings.initial_sync_count
+			from_uid = 1 if uidnext < (sync_count + 1) or (uidnext - sync_count) < 1 else uidnext - sync_count
 			# sync last 100 email
 			self.settings.email_sync_rule = "UID {}:{}".format(from_uid, uidnext)
+			self.uid_reindexed = True
 		
 		elif uid_validity == current_uid_validity:
 			return
@@ -232,7 +240,6 @@ class EmailServer:
 			raise
 
 		except Exception, e:
-			print e
 			if self.has_login_limit_exceeded(e):
 				self.errors = True
 				raise LoginLimitExceeded, e
@@ -290,8 +297,7 @@ class EmailServer:
 			except:
 				pass
 
-		self.unique_id_list.update({ uid: hash.hexdigest() })
-		print self.unique_id_list
+		self.fingerprint_list.update({ uid: hash.hexdigest() })
 
 	def has_login_limit_exceeded(self, e):
 		return "-ERR Exceeded the login limit" in strip(cstr(e.message))

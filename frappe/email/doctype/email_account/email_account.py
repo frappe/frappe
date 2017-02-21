@@ -232,7 +232,8 @@ class EmailAccount(Document):
 			uid_list = []
 			exceptions = []
 			seen_status = []
-			unique_id_list = []
+			fingerprint_list = []
+			uid_reindexed = False
 
 			if frappe.local.flags.in_test:
 				incoming_mails = test_mails
@@ -245,14 +246,18 @@ class EmailAccount(Document):
 				incoming_mails = emails.get("latest_messages")
 				uid_list = emails.get("uid_list", [])
 				seen_status = emails.get("seen_status", [])
-				unique_id_list = emails.get("unique_id_list", [])
+				fingerprint_list = emails.get("fingerprint_list", [])
+				uid_reindexed = emails.get("uid_reindexed", False)
 
 			for idx, msg in enumerate(incoming_mails):
 				try:
-					uid = None if not uid_list else uid_list[idx]
-					seen = None if not seen_status else get_seen(seen_status.get(uid, None))
-					unique_id = None if not unique_id_list else unique_id_list.get(uid, None)
-					communication = self.insert_communication(msg, _uid=uid, _seen=seen, unique_id=unique_id)
+					args = {
+						"uid": None if not uid_list else uid_list[idx],
+						"seen": None if not seen_status else get_seen(seen_status.get(uid, None)),
+						"fingerprint": None if not fingerprint_list else fingerprint_list.get(uid, None),
+						"uid_reindexed": uid_reindexed
+					}
+					communication = self.insert_communication(msg, args=args)
 					#self.notify_update()
 
 				except SentEmailInInbox:
@@ -298,15 +303,15 @@ class EmailAccount(Document):
 			unhandled_email.save()
 			frappe.db.commit()
 
-	def insert_communication(self, msg, _uid=None, _seen=None, unique_id=None):
+	def insert_communication(self, msg, args={}):
 		if isinstance(msg,list):
 			raw, uid, seen = msg
 		else:
 			raw = msg
 			seen = uid = None
 
-		if _uid: uid = _uid
-		if _seen: seen = _seen
+		if args.get("uid", None): uid = _uid
+		if args.get("seen", None): seen = _seen
 
 		email = Email(raw)
 
@@ -316,8 +321,8 @@ class EmailAccount(Document):
 			# dont count emails sent by the system get those
 			raise SentEmailInInbox
 
-		name = frappe.db.get_value("Communication", { "unique_id": unique_id })
-		if name:
+		name = frappe.db.get_value("Communication", { "fingerprint": args.get("fingerprint", None) })
+		if args.get("uid_reindexed", False) and name:
 			# email is already available update communication uid instead
 			communication = frappe.get_doc("Communication", name)
 			communication.uid = uid
@@ -343,7 +348,7 @@ class EmailAccount(Document):
 			"communication_date": email.date,
 			"has_attachment": 1 if email.attachments else 0,
 			"seen": seen,
-			"unique_id": unique_id
+			"fingerprint": args.get("fingerprint", None)
 		})
 
 		self.set_thread(communication, email)
