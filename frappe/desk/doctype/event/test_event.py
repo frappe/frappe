@@ -17,7 +17,6 @@ test_records = frappe.get_test_records('Event')
 class TestEvent(unittest.TestCase):
 	def setUp(self):
 		frappe.db.sql('delete from tabEvent')
-		frappe.db.sql('delete from `tabEvent Role`')
 		make_test_objects('Event', reset=True)
 
 		self.test_records = frappe.get_test_records('Event')

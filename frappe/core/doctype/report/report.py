@@ -10,6 +10,7 @@ from frappe.utils import cint
 from frappe.model.document import Document
 from frappe.modules.export_file import export_to_files
 from frappe.modules import make_boilerplate
+from frappe.core.doctype.page.page import delete_custom_role
 
 class Report(Document):
 	def validate(self):
@@ -40,11 +41,14 @@ class Report(Document):
 	def on_update(self):
 		self.export_doc()
 
+	def on_trash(self):
+		delete_custom_role('report', self.name)
+
 	def set_doctype_roles(self):
 		if self.get('roles'): return
 
 		doc = frappe.get_meta(self.ref_doctype)
-		roles = [{'role': d.role} for d in doc.permissions]
+		roles = [{'role': d.role} for d in doc.permissions if d.permlevel==0]
 		self.set('roles', roles)
 
 	def is_permitted(self):

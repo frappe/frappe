@@ -15,7 +15,15 @@ frappe.ui.form.on('User Permission for Page and Report', {
 	},
 	
 	page: function(frm) {
-		frappe.call({
+		frm.trigger("get_roles")
+	},
+
+	report: function(frm){
+		frm.trigger("get_roles")
+	},
+
+	get_roles: function(frm) {
+		return frappe.call({
 			method:"get_custom_roles",
 			doc: frm.doc,
 			callback: function(r) {

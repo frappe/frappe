@@ -25,7 +25,6 @@ class TestGlobalSearch(unittest.TestCase):
 		frappe.db.sql('delete from `tabProperty Setter` where doc_type="Event"')
 		frappe.clear_cache(doctype='Event')
 		frappe.db.sql('delete from `tabEvent`')
-		frappe.db.sql('delete from `tabEvent Role`')
 		frappe.db.sql('delete from __global_search')
 		make_test_objects('Event')
 		frappe.db.commit()
@@ -92,7 +91,6 @@ class TestGlobalSearch(unittest.TestCase):
 
 	def test_insert_child_table(self):
 		frappe.db.sql('delete from tabEvent')
-		frappe.db.sql('delete from `tabEvent Role`')
 		phrases = ['Hydrus is a small constellation in the deep southern sky. ',
 		'It was first depicted on a celestial atlas by Johann Bayer in his 1603 Uranometria. ',
 		'The French explorer and astronomer Nicolas Louis de Lacaille charted the brighter stars and gave their Bayer designations in 1756. ',

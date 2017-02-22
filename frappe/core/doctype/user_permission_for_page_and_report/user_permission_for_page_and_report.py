@@ -9,12 +9,16 @@ from frappe.model.document import Document
 class UserPermissionforPageandReport(Document):
 	def get_custom_roles(self):
 		args = self.get_args()
-		name = frappe.db.get_value('Custom Role', args, "name")
-		if not name:
-			self.set('roles', [])
-			return
+		self.set('roles', [])
 
-		doc = frappe.get_doc('Custom Role', name)
+		name = frappe.db.get_value('Custom Role', args, "name")
+		if name:
+			doc = frappe.get_doc('Custom Role', name)
+		else:
+			doctype = self.set_role_for
+			docname = self.page if self.set_role_for == 'Page' else self.report
+			doc = frappe.get_doc(doctype, docname)
+
 		self.set('roles', doc.roles)
 
 	def set_custom_roles(self):
