@@ -113,14 +113,14 @@
   display: table;
   vertical-align: middle;
 }
-.list-value .list-delete,
+.list-value .list-row-checkbox,
 .list-value .liked-by,
 .list-value .list-id,
 .list-value .list-select-all {
   display: table-cell;
   vertical-align: middle;
 }
-.list-value .list-delete,
+.list-value .list-row-checkbox,
 .list-value .list-select-all {
   margin: 0;
   margin-right: 7px;

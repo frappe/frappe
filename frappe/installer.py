@@ -71,7 +71,7 @@ def create_database_and_user(force, verbose):
 	frappe.db.close()
 
 def create_list_settings_table():
-	frappe.db.sql_ddl("""create table if not exists __ListSettings (
+	frappe.db.sql_ddl("""create table if not exists __UserSettings (
 		`user` VARCHAR(180) NOT NULL,
 		`doctype` VARCHAR(180) NOT NULL,
 		`data` TEXT,

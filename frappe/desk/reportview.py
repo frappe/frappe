@@ -32,10 +32,10 @@ def get_form_params():
 		data["fields"] = json.loads(data["fields"])
 	if isinstance(data.get("docstatus"), basestring):
 		data["docstatus"] = json.loads(data["docstatus"])
-	if isinstance(data.get("save_list_settings"), basestring):
-		data["save_list_settings"] = json.loads(data["save_list_settings"])
+	if isinstance(data.get("save_user_settings"), basestring):
+		data["save_user_settings"] = json.loads(data["save_user_settings"])
 	else:
-		data["save_list_settings"] = True
+		data["save_user_settings"] = True
 
 
 	# queries must always be server side

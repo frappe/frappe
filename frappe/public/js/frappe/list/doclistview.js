@@ -7,8 +7,8 @@ frappe.provide('frappe.listviews');
 cur_list = null;
 frappe.views.ListFactory = frappe.views.Factory.extend({
 	make: function(route) {
-		var me = this,
-			doctype = route[1];
+		var me = this;
+		var doctype = route[1];
 
 		frappe.model.with_doctype(doctype, function() {
 			if(locals["DocType"][doctype].issingle) {
@@ -65,7 +65,7 @@ frappe.views.set_list_as_dirty = function(doctype) {
 	}
 
 	var route = frappe.get_route()[2];
-	if(route && in_list(["Kanban", "Calendar", "Gantt"], route)) return;
+	if(route && ["Kanban", "Calendar", "Gantt"].includes(route)) return;
 
 	var list_page = "List/" + doctype;
 	if(frappe.pages[list_page]) {
@@ -92,7 +92,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		if(!in_list(frappe.boot.user.all_read, this.doctype)) {
 			frappe.show_not_permitted(frappe.get_route_str());
 			return;
-		};
+		}
 
 		this.label = __(this.doctype);
 		this.page_name = "List/" + this.doctype;
@@ -108,7 +108,6 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 	},
 
 	make_page: function() {
-		var me = this;
 		this.parent.doclistview = this;
 		this.page = this.parent.page;
 
@@ -125,18 +124,22 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 	},
 
 	setup: function() {
-		var me = this;
 		this.can_delete = frappe.model.can_delete(this.doctype);
 		this.meta = locals.DocType[this.doctype];
 		this.$page.find('.frappe-list-area').empty(),
 		this.init_list_settings();
 		this.load_last_view();
 		this.setup_view_variables();
+
+		// this.setup_result_view();
 		this.setup_listview();
+		
 		this.init_list(false);
 		this.init_menu();
 		this.show_match_help();
+		
 		this.init_listview();
+		
 		this.setup_filterable();
 		this.init_filters();
 		this.init_sort_selector();
@@ -317,6 +320,14 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 			$(this.footnote_area).css({"margin-top":"0px"});
 		}
 	},
+
+	setup_result_view: function() {
+		this.result_view = frappe.views.get_result_view(this.doctype);
+		this.wrapper = this.$page.find('.frappe-list-area');
+		this.page_length = this.list_settings.limit || 20;
+		this.allow_delete = true;
+	},
+
 	setup_listview: function() {
 		this.listview = frappe.views.get_listview(this.doctype, this);
 		this.wrapper = this.$page.find('.frappe-list-area');
@@ -361,9 +372,8 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		// for example - communication list in customer
 		if(this.listview.settings.list_view_doc) {
 			this.listview.settings.list_view_doc(this);
-		}
-		else{
-			$(this.wrapper).on("click", 'button[list_view_doc="'+me.doctype+'"]', function(){
+		} else {
+			$(this.wrapper).on("click", 'button[list_view_doc="'+me.doctype+'"]', function() {
 				(me.listview.make_new_doc || me.make_new_doc).apply(me, [me.doctype]);
 			});
 		}
@@ -531,6 +541,14 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 			<p>' + __("No {0} found", [__(this.doctype)])  + '</p>' + new_button + '</div>';
 
 		return no_result_message;
+	},
+
+	render_view: function() {
+		frappe.views.render_result_view({
+			doctype: this.doctype,
+			values: values,
+			doclistview: doclistview
+		});
 	},
 
 	render_rows: function(values) {

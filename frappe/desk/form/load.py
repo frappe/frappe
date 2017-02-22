@@ -7,7 +7,7 @@ import frappe.utils
 import frappe.share
 import frappe.defaults
 import frappe.desk.form.meta
-from frappe.model.utils.list_settings import get_list_settings
+from frappe.model.utils.user_settings import get_user_settings
 from frappe.permissions import get_doc_permissions
 from frappe import _
 
@@ -70,7 +70,7 @@ def getdoctype(doctype, with_parent=False, cached_timestamp=None):
 		docs = get_meta_bundle(doctype)
 
 	frappe.response['user_permissions'] = get_user_permissions(docs)
-	frappe.response['list_settings'] = get_list_settings(parent_dt or doctype)
+	frappe.response['user_settings'] = get_user_settings(parent_dt or doctype)
 
 	if cached_timestamp and docs[0].modified==cached_timestamp:
 		return "use_cache"

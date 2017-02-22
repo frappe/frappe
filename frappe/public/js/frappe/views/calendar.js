@@ -46,9 +46,9 @@ frappe.views.Calendar = Class.extend({
 		var me = this;
 		this.$wrapper = this.parent;
 		this.$cal = $("<div>").appendTo(this.$wrapper);
-		footnote = frappe.utils.set_footnote(this, this.$wrapper,
+		this.footnote_area = frappe.utils.set_footnote(this.footnote_area, this.$wrapper,
 			__("Select or drag across time slots to create a new event."));
-		footnote.css({"border-top": "0px"});
+		this.footnote_area.css({"border-top": "0px"});
 
 		this.$cal.fullCalendar(this.cal_options);
 		this.set_css();

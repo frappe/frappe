@@ -15,7 +15,7 @@ frappe.views.get_listview = function(doctype, parent) {
 // Renders customized list
 // usually based on `in_list_view` property
 
-frappe.views.ListView = Class.extend({
+frappe.views.CustomizedList = Class.extend({
 	init: function(doclistview, doctype) {
 		this.doclistview = doclistview;
 		this.doctype = doctype;
@@ -266,9 +266,9 @@ frappe.views.ListView = Class.extend({
 	},
 	render_tags: function(row, data) {
 		var me = this;
-		var row2 = $('<div class="tag-row">\
-			<div class="list-tag xs-hidden"></div>\
-			<div class="clearfix"></div>\
+		var row2 = $('<div class='tag-row'>\
+			<div class='list-tag xs-hidden'></div>\
+			<div class='clearfix'></div>\
 		</div>').appendTo(row);
 
 		if(!me.doclistview.tags_shown) {

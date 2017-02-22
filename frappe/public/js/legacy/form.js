@@ -887,7 +887,7 @@ _f.Frm.prototype.set_intro = function(txt, append) {
 }
 
 _f.Frm.prototype.set_footnote = function(txt) {
-	frappe.utils.set_footnote(this, this.body, txt);
+	this.footnote_area = frappe.utils.set_footnote(this.footnote_area, this.body, txt);
 }
 
 

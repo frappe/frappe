@@ -79,11 +79,11 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 		this._body = $('<div>').appendTo(this.page.main);
 		this.page_title = __('Report')+ ': ' + __(this.docname ? (this.doctype + ' - ' + this.docname) : this.doctype);
 		this.page.set_title(this.page_title);
-		this.init_list_settings();
+		this.init_user_settings();
 		this.make({
 			page: this.parent.page,
 			method: 'frappe.desk.reportview.get',
-			save_list_settings: true,
+			save_user_settings: true,
 			get_args: this.get_args,
 			parent: this._body,
 			start: 0,
@@ -139,8 +139,8 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 		// pre-select mandatory columns
 		var me = this;
 		var columns = [];
-		if(this.list_settings.fields && !this.docname) {
-			this.list_settings.fields.forEach(function(field) {
+		if(this.user_settings.fields && !this.docname) {
+			this.user_settings.fields.forEach(function(field) {
 				var coldef = me.get_column_info_from_field(field);
 				if(!in_list(['_seen', '_comments', '_user_tags', '_assign', '_liked_by', 'docstatus'], coldef[0])) {
 					columns.push(coldef);
@@ -226,21 +226,21 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 
 	set_route_filters: function(first_load) {
 		var me = this;
-		if(frappe.route_options && !this.list_settings.filters) {
+		if(frappe.route_options && !this.user_settings.filters) {
 			this.set_filters_from_route_options();
 			return true;
-		} else if(this.list_settings
-			&& this.list_settings.filters
+		} else if(this.user_settings
+			&& this.user_settings.filters
 			&& !this.docname
-			&& (this.list_settings.updated_on != this.list_settings_updated_on)) {
+			&& (this.user_settings.updated_on != this.user_settings_updated_on)) {
 			// list settings (previous settings)
 			this.filter_list.clear_filters();
-			$.each(this.list_settings.filters, function(i, f) {
+			$.each(this.user_settings.filters, function(i, f) {
 				me.filter_list.add_filter(f[0], f[1], f[2], f[3]);
 			});
 			return true;
 		}
-		this.list_settings_updated_on = this.list_settings.updated_on;
+		this.user_settings_updated_on = this.user_settings.updated_on;
 	},
 
 	setup_print: function() {
@@ -263,7 +263,7 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 			order_by: this.get_order_by(),
 			add_total_row: this.add_total_row,
 			filters: this.filter_list.get_filters(),
-			save_list_settings_fields: 1,
+			save_user_settings_fields: 1,
 			with_childnames: 1,
 			file_format_type: this.file_format_type
 		}

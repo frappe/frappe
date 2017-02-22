@@ -325,7 +325,8 @@ frappe.ui.Listing = Class.extend({
 
 		if(r.values.length || this.force_render_view) {
 			this.data = this.data.concat(r.values);
-			this.render_list(r.values);
+			this.render_view(r.values);
+			// this.render_list(r.values);
 			this.update_paging(r.values);
 		} else {
 			if(this.start===0) {
@@ -360,11 +361,20 @@ frappe.ui.Listing = Class.extend({
 		}
 	},
 
+	render_view: function(values) {
+		this.list_view = new frappe.views.ListView({
+			doctype: this.doctype,
+			values: values,
+		});
+	},
+
 	render_list: function(values) {
-		this.last_page = values;
-		if(this.filter_list) {
-			this.filter_values = this.filter_list.get_filters();
-		}
+		// TODO: where is this used?
+		// this.last_page = values;
+		// if(this.filter_list) {
+		// 	// and this?
+		// 	this.filter_values = this.filter_list.get_filters();
+		// }
 
 		this.render_rows(values);
 	},

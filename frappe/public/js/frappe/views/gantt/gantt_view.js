@@ -1,29 +1,33 @@
 frappe.provide('frappe.views');
 
-frappe.views.GanttView = Class.extend({
-	init: function(opts) {
-		$.extend(this, opts);
-		var me = this;
-		this.load_lib(function() {
-			me.prepare();
-			me.render();
-		});
-	},
-	prepare: function() {
-		var me = this;
-		this.items = this.items.map(function(item) {
-			return me.listview.prepare_data(item);
-		});
+frappe.views.GanttView = frappe.views.ListRenderer.extend({
+	prepare: function(values) {
+		this.items = values.map(this.prepare_data.bind(this));
 		this.prepare_tasks();
 		this.prepare_dom();
 	},
-	prepare_dom: function() {
-		this.gantt_area = $('<svg class="gantt-container" width="20" height="20"></svg>')
-			.appendTo(this.wrapper.css("overflow", "scroll"));
-	},
-	render: function() {
+
+	render_view: function(values, wrapper) {
 		var me = this;
-		this.gantt_view_mode = this.list_settings.gantt_view_mode || 'Day';
+		this.load_lib(function() {
+			me.prepare(values);
+			me.render_gantt();
+		});
+	},
+
+	prepare_meta: function() {
+		this._super();
+		this.no_realtime = true;
+	},
+
+	prepare_dom: function() {
+		this.wrapper.css('overflow', 'auto')
+			.append('<svg class="gantt-container" width="20" height="20"></svg>')
+	},
+
+	render_gantt: function(tasks) {
+		var me = this;
+		this.gantt_view_mode = this.user_settings.gantt_view_mode || 'Day';
 		var field_map = frappe.views.calendar[this.doctype].field_map;
 
 		this.gantt = new Gantt(".gantt-container", this.tasks, {
@@ -52,17 +56,18 @@ frappe.views.GanttView = Class.extend({
 				}
 			},
 			on_view_change: function(mode) {
-				// will be cached in __ListSettings table in db
-				me.list_settings.gantt_view_mode = mode;
+				// will be cached in __UserSettings table in db
+				me.user_settings.gantt_view_mode = mode;
 			},
 			custom_popup_html: function(task) {
 				var item = me.get_item(task.id);
+				console.log(item, task)
 				var list_item_subject = frappe.render_template('list_item_subject', item);
 				var html = '<div class="heading">'+
 					list_item_subject +'</div>';
 
 				// custom html in {doctype}_list.js
-				var custom = frappe.listview_settings[me.doctype].gantt_custom_popup_html;
+				var custom = me.settings.gantt_custom_popup_html;
 				if(custom) {
 					html = custom(item, html);
 				}
@@ -72,6 +77,7 @@ frappe.views.GanttView = Class.extend({
 		});
 		this.render_dropdown();
 	},
+
 	render_dropdown: function() {
 		var me = this;
 		var view_modes = this.gantt.config.view_modes || [];
@@ -93,13 +99,14 @@ frappe.views.GanttView = Class.extend({
 		var $dropdown = $(dropdown)
 		$dropdown.find(".dropdown-menu")
 				.append(dropdown_list);
-		me.$page.find(".list-row-right").css("margin-top", 0).html($dropdown)
+		me.list_view.$page.find(".list-row-right").css("margin-top", 0).html($dropdown)
 		$dropdown.on("click", ".option", function() {
 			var mode = $(this).data('value');
 			me.gantt.change_view_mode(mode);
 			$dropdown.find(".dropdown-text").text(mode);
 		});
 	},
+
 	prepare_tasks: function() {
 		var me = this;
 		var meta = frappe.get_meta(this.doctype);
@@ -169,8 +176,7 @@ frappe.views.GanttView = Class.extend({
 		});
 	},
 	refresh: function(values) {
-		this.items = values;
-		this.prepare();
+		this.prepare(values);
 		this.render();
 	},
 	can_write: function() {
@@ -182,5 +188,6 @@ frappe.views.GanttView = Class.extend({
 			show_alert({message: __("Not permitted"), indicator: 'red'}, 1);
 			return false;
 		}
-	}
+	},
+	set_columns: function() {}
 })
