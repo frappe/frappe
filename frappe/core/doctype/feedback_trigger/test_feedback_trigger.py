@@ -111,3 +111,19 @@ class TestFeedbackTrigger(unittest.TestCase):
 			reference_doctype="ToDo", reference_name=todo.name, feedback="Thank You !!", rating=4)
 
 		frappe.delete_doc("ToDo", todo.name)
+
+		# test if feedback requests and feedback communications are deleted?
+		communications = frappe.get_all("Communication", {
+			"reference_doctype": "ToDo",
+			"reference_name": todo.name,
+			"communication_type": "Feedback"
+		})
+		self.assertFalse(communications)
+		
+		feedback_requests = frappe.get_all("Feedback Request", {
+			"reference_doctype": "ToDo",
+			"reference_name": todo.name,
+			"is_feedback_submitted": 0
+		})
+		self.assertFalse(feedback_requests)
+		

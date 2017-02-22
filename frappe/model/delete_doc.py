@@ -71,6 +71,7 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 
 				if not ignore_on_trash:
 					doc.run_method("on_trash")
+					doc.flags.in_delete = True
 					doc.run_method('on_change')
 
 				frappe.enqueue('frappe.model.delete_doc.delete_dynamic_links', doctype=doc.doctype, name=doc.name,
