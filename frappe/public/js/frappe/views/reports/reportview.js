@@ -847,6 +847,11 @@ frappe.ui.ColumnPicker = Class.extend({
 		});
 
 		new Sortable(this.column_list.get(0), {
+			//handle: '.sortable-handle',
+			filter: 'input',
+			draggable: '.column-list-item',
+			chosenClass: 'sortable-chosen',
+			dragClass: 'sortable-chosen',
 			onUpdate: function(event) {
 				me.columns = [];
 				$.each($(me.dialog.body).find('.column-list .column-list-item'),
@@ -868,7 +873,8 @@ frappe.ui.ColumnPicker = Class.extend({
 		var me = this;
 
 		var w = $('<div class="column-list-item"><div class="row">\
-				<div class="col-xs-1"><i class="fa fa-sort text-muted drag-handle" style="margin-top: 9px;"></i></div>\
+				<div class="col-xs-1">\
+					<i class="fa fa-sort text-muted"></i></div>\
 				<div class="col-xs-10"></div>\
 				<div class="col-xs-1"><a class="close">&times;</a></div>\
 			</div></div>')

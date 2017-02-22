@@ -695,7 +695,7 @@ fieldset[disabled] .form-control {
   padding-left: 20px;
 }
 .search-dialog .results-area a {
-		color: #5E64FF;
+  color: #5E64FF;
 }
 .search-dialog .results-area .single-link a {
   color: #36414c;
@@ -712,7 +712,7 @@ fieldset[disabled] .form-control {
   border-bottom: 1px solid #d1d8dd;
   margin-top: 10px;
 }
-.search-dialog .full-list .result .result-subtype{
+.search-dialog .full-list .result .result-subtype {
   float: right;
   margin-left: 10px;
 }
