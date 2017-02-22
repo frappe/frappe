@@ -369,17 +369,22 @@ frappe.Application = Class.extend({
 		var me = this;
 		if(frappe.boot.notes.length) {
 			frappe.boot.notes.forEach(function(note) {
-				if(!note.seen) {
+				if(!note.seen || !note.notify_once) {
 					var d = frappe.msgprint({message:note.content, title:note.title});
 					d.keep_open = true;
 					d.custom_onhide = function() {
 						note.seen = true;
-						frappe.call({
-							method: "frappe.desk.doctype.note.note.mark_as_seen",
-							args: {
-								note: note.name
-							}
-						});
+
+						// Mark note as read if the Notify Users Once flag is set
+						if (note.notify_once) {
+							frappe.call({
+								method: "frappe.desk.doctype.note.note.mark_as_seen",
+								args: {
+									note: note.name
+								}
+							});
+						}
+						
 						// next note
 						me.show_notes();
 
