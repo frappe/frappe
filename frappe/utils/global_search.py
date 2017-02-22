@@ -149,7 +149,4 @@ def search_in_doctype(doctype, text, start, limit):
 			match(content) against (%s IN BOOLEAN MODE)
 		limit {start}, {limit}'''.format(start=start, limit=limit), (doctype, text), as_dict=True)
 
-	for r in results:
-		if frappe.get_doc(r.doctype, r.name):
-			pass
 	return results
