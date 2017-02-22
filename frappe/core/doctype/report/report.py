@@ -35,11 +35,13 @@ class Report(Document):
 		if self.report_type == "Report Builder":
 			self.update_report_json()
 
+		self.set_doctype_roles()
+
 	def on_update(self):
 		self.export_doc()
 
 	def set_doctype_roles(self):
-		if self.roles: return
+		if self.get('roles'): return
 
 		doc = frappe.get_meta(self.ref_doctype)
 		roles = [{'role': d.role} for d in doc.permissions]
