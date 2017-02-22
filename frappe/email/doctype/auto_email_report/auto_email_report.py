@@ -19,6 +19,7 @@ class AutoEmailReport(Document):
 	def validate(self):
 		self.validate_report_count()
 		self.validate_emails()
+		self.validate_report_format()
 
 	def validate_emails(self):
 		'''Cleanup list of emails'''
@@ -38,6 +39,13 @@ class AutoEmailReport(Document):
 		count = frappe.db.sql('select count(*) from `tabAuto Email Report` where user=%s and enabled=1', self.user)[0][0]
 		if count > max_reports_per_user + (-1 if self.flags.in_insert else 0):
 			frappe.throw(_('Only {0} emailed reports are allowed per user').format(max_reports_per_user))
+	
+	def validate_report_format(self):
+		""" check if user has select correct report format """
+		valid_report_formats = ["HTML", "XLS", "CSV"]
+		if self.format not in valid_report_formats:
+			frappe.throw(_("%s is not a valid report format. Report format should \
+				one of the following %s"%(frappe.bold(self.format), frappe.bold(", ".join(valid_report_formats)))))
 
 	def get_report_content(self):
 		'''Returns file in for the report in given format'''
