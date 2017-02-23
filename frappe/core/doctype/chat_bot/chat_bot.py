@@ -5,6 +5,11 @@
 from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
+import json
 
 class ChatBot(Document):
-	pass
+
+	def validate(self):
+		self.list_items = json.dumps(self.list_items)
+		self.action = json.dumps(self.action)
+		self.info = json.dumps(self.info)
