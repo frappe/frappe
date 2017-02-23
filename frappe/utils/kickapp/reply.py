@@ -6,7 +6,9 @@ import frappe.utils
 from frappe.desk.notifications import get_notifications
 from frappe import _
 import json
-from frappe.utils.kickapp.helper import format_response
+from frappe.utils.kickapp.helper import format_response,\
+    format_info_before_adding_to_database, format_list_items_before_adding_to_database, format_action_before_adding_to_database
+from frappe.utils.kickapp.engine import Engine
 
 
 @frappe.whitelist()
@@ -30,6 +32,7 @@ def get_users_in_group(room):
 
 ''' Call this for every room in Kick app when app is first launched'''
 
+
 @frappe.whitelist()
 def get_message_for_first_time(obj):
     chats = []
@@ -44,11 +47,11 @@ def get_message_for_first_time(obj):
     if len(chat_room) > 0:
 
         if is_bot == 'true':
-            chats = frappe.get_all('Chat Bot', ["bot_name", "text", "list_items", "info", "action"],
+            chats = frappe.get_all('Chat Bot', ["bot_name", "text", "list_items", "info", "action", "modified"],
                                    filters={"parent": chat_room[0].name, "modified": (">", last_time)})
 
         else:
-            chats = frappe.get_all('Chat Message', ["user_name", "user_id", "is_alert", "text"],
+            chats = frappe.get_all('Chat Message', ["user_name", "user_id", "is_alert", "text", "chat_title", "modified"],
                                    filters={"parent": chat_room[0].name, "modified": (">", last_time)})
 
         frappe.publish_realtime(event='message_from_server', message=format_response(
@@ -56,7 +59,7 @@ def get_message_for_first_time(obj):
 
 
 @frappe.whitelist()
-def set_user_in_room(room, users):
+def set_users_in_room(room, users):
 
     chat_room = frappe.get_all(
         'Chat Room', ["name, room_name"], filters={"room_name": room})
@@ -78,7 +81,7 @@ def send_message_and_get_reply(obj):
     chats = save_message_in_database(is_bot, room, query)
 
     if is_bot == 'true':
-        response_data = Engine().get_bot_reply(room, query)
+        response_data = Engine().get_reply(room, query)
         chats = save_message_in_database('true', room, response_data)
 
     frappe.publish_realtime(event='message_from_server', message=format_response(
@@ -119,9 +122,12 @@ def create_and_save_bot_object(parent, query):
 
     new_bot_chat.bot_name = query.bot_name
     new_bot_chat.text = query.text
-    new_bot_chat.info = query.info
-    new_bot_chat.action = query.action
-    new_bot_chat.list_items = query.list_items
+    new_bot_chat.info = format_info_before_adding_to_database(
+        query.info.button_text, query.info.is_interactive_chat, query.info.is_interactive_list)
+    new_bot_chat.action = format_action_before_adding_to_database(
+        query.action.action_on_button_click, query.action.action_on_list_item_click)
+    new_bot_chat.list_items = format_list_items_before_adding_to_database(
+        query.list_items.action_on_internal_item_click, query.list_items)
 
     new_bot_chat.save()
     frappe.db.commit()
@@ -138,6 +144,7 @@ def create_and_save_other_message_object(parent, query):
     new_other_chat.user_id = query.user_id
     new_other_chat.is_alert = query.is_alert
     new_other_chat.text = query.text
+    new_other_chat.chat_title = query.chat_title
 
     new_other_chat.save()
     frappe.db.commit()

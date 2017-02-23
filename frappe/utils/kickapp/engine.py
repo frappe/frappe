@@ -4,19 +4,26 @@ import re
 import frappe.utils
 from frappe.desk.notifications import get_notifications
 from frappe import _
+from frappe.utils.kickapp.helper import get_doctype_from_bot_name, create_bot_message_object
 
 
 class Engine(object):
 
-    def get_reply(self, obj):
-        reply = None
+    def get_reply(self, room, query):
+        reply = {}
+        class_name = None
         try:
-            className = doctype_dict.get(doctype, 'Error') + 'Bot'
-            reply = globals()[className](
-                doctype, query, action, id).get_results()
+            class_name = get_doctype_from_bot_name(query.bot_name)
+            reply = globals()[class_name](room, query).get_results()
         except Exception, exce:
-            msg = 'Oops, you are not allowed to know that'
-            message = format_message(msg, [], 'nothing')
-            info = format_info('', False, False, False, [])
-            reply = format_output(doctype, message, info)
+            print exce
+            msg_obj = {
+                "bot_name": class_name,
+                "text": "Something went wrong, Please try in a little bit."
+            }
+            reply = create_bot_message_object(room, msg_obj, True)
         return reply
+
+
+
+
