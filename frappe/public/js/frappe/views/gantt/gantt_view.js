@@ -2,17 +2,15 @@ frappe.provide('frappe.views');
 
 frappe.views.GanttView = frappe.views.ListRenderer.extend({
 	prepare: function(values) {
-		this.items = values.map(this.prepare_data.bind(this));
+		this.items = values;
 		this.prepare_tasks();
 		this.prepare_dom();
 	},
 
 	render_view: function(values, wrapper) {
 		var me = this;
-		this.load_lib(function() {
-			me.prepare(values);
-			me.render_gantt();
-		});
+		this.prepare(values);
+		this.render_gantt();
 	},
 
 	prepare_meta: function() {
@@ -61,7 +59,6 @@ frappe.views.GanttView = frappe.views.ListRenderer.extend({
 			},
 			custom_popup_html: function(task) {
 				var item = me.get_item(task.id);
-				console.log(item, task)
 				var list_item_subject = frappe.render_template('list_item_subject', item);
 				var html = '<div class="heading">'+
 					list_item_subject +'</div>';
@@ -143,12 +140,6 @@ frappe.views.GanttView = frappe.views.ListRenderer.extend({
 			return item.name === name;
 		});
 	},
-	load_lib: function(callback) {
-		frappe.require([
-				"assets/frappe/js/lib/snap.svg-min.js",
-				"assets/frappe/js/lib/frappe-gantt/frappe-gantt.js"
-			], callback);
-	},
 	update_gantt_task: function(task, start, end) {
 		var me = this;
 		if(me.gantt.updating_task) {
@@ -189,5 +180,9 @@ frappe.views.GanttView = frappe.views.ListRenderer.extend({
 			return false;
 		}
 	},
-	set_columns: function() {}
-})
+	set_columns: function() {},
+	required_libs: [
+		"assets/frappe/js/lib/snap.svg-min.js",
+		"assets/frappe/js/lib/frappe-gantt/frappe-gantt.js"
+	]
+});

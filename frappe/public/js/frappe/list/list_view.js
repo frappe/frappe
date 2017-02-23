@@ -68,7 +68,7 @@ frappe.views.set_list_as_dirty = function (doctype) {
 	var current_view = route[2] || 'List';
 
 	var list_renderer = frappe.views.list_renderers[doctype];
-	if(list_renderer
+	if (list_renderer
 		&& list_renderer[current_view]
 		&& list_renderer[current_view].no_realtime) {
 		return;
@@ -148,21 +148,54 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 		this.setup_view_variables();
 
 		this.setup_list_renderer();
-
 		this.init_base_list(false);
-		
 		this.list_renderer.set_wrapper();
-
-		this.init_menu();
-		this.show_match_help();
-
 		this.list_renderer_onload();
 
+		this.show_match_help();
+		this.init_menu();
 		this.setup_filterable();
 		this.init_filters();
 		this.init_sort_selector();
 		this.set_title();
 		this.init_headers();
+	},
+
+	setup_list_renderer: function () {
+		frappe.provide('frappe.views.list_renderers.' + this.doctype);
+
+		var list_renderer = frappe.views.list_renderers[this.doctype][this.current_view];
+		if (list_renderer) {
+			this.list_renderer = list_renderer;
+			return;
+		}
+
+		if (this.current_view === 'List') {
+			this.list_renderer = new frappe.views.ListRenderer({
+				doctype: this.doctype,
+				list_view: this
+			});
+		} else if (this.current_view === 'Gantt') {
+			this.list_renderer = new frappe.views.GanttView({
+				doctype: this.doctype,
+				list_view: this,
+				user_settings: this.user_settings
+			})
+		} else if (this.current_view === 'Calendar') {
+			this.list_renderer = new frappe.views.CalendarView({
+				doctype: this.doctype,
+				list_view: this
+			});
+		} else if (this.current_view === 'Image') {
+			this.list_renderer = new frappe.views.ImageView({
+				doctype: this.doctype,
+				list_view: this
+			});
+		}
+	},
+
+	render_view: function (values) {
+		this.list_renderer.render_view(values);
 	},
 
 	set_title: function () {
@@ -252,7 +285,7 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 		});
 		this.$page.find('.result-list').on('click', '.list-row-left', function (e) {
 			// don't open in case of checkbox, like, filterable
-			if($(e.target).hasClass('filterable')
+			if ($(e.target).hasClass('filterable')
 				|| $(e.target).hasClass('octicon-heart')
 				|| $(e.target).is(':checkbox')) {
 				return
@@ -343,34 +376,6 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 		}
 	},
 
-	setup_list_renderer: function () {
-		if(!frappe.views.list_renderers[this.doctype])
-			frappe.views.list_renderers[this.doctype] = {}
-
-		var list_renderer = frappe.views.list_renderers[this.doctype][this.current_view];
-		if(list_renderer){
-			this.list_renderer = list_renderer;
-			return;
-		}
-
-		if (this.current_view === 'List') {
-			this.list_renderer = new frappe.views.ListRenderer({
-				doctype: this.doctype,
-				list_view: this
-			});
-		} else if (this.current_view === 'Gantt') {
-			this.list_renderer = new frappe.views.GanttView({
-				doctype: this.doctype,
-				list_view: this,
-				user_settings: this.user_settings
-			})
-		}
-	},
-
-	render_view: function (values) {
-		this.list_renderer.render_view(values);
-	},
-
 	setup_view_variables: function () {
 		var route = frappe.get_route();
 		this.last_view = this.current_view || '';
@@ -421,6 +426,7 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 		var me = this;
 
 		if (dirty !== undefined) this.dirty = dirty;
+
 		this.refresh_sidebar();
 		this.setup_view_variables();
 
@@ -714,13 +720,13 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 		this.page.set_secondary_action(__('Refresh'), function () {
 			me.refresh(true);
 		}, 'octicon octicon-sync')
-		.addClass('hidden-xs');
+			.addClass('hidden-xs');
 
 		// Refresh button as menu item in small screens
 		this.page.add_menu_item(__('Refresh'), function () {
 			me.refresh(true);
 		}, 'octicon octicon-sync')
-		.addClass('visible-xs');
+			.addClass('visible-xs');
 
 		if (frappe.model.can_import(this.doctype)) {
 			this.page.add_menu_item(__('Import'), function () {
@@ -905,12 +911,12 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 		}
 	},
 
-	setup_delete: function() {
+	setup_delete: function () {
 		var me = this;
-		if(!(this.can_delete || this.list_renderer.settings.selectable)) {
+		if (!(this.can_delete || this.list_renderer.settings.selectable)) {
 			return;
 		}
-		this.$page.find('.list-row-checkbox').change(function() {
+		this.$page.find('.list-row-checkbox').change(function () {
 			me.toggle_delete();
 		});
 		// after delete, hide delete button
@@ -927,12 +933,12 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 			this.page.set_primary_action(__('Delete'), function () {
 				me.delete_items()
 			}, 'octicon octicon-trashcan')
-			.addClass('btn-danger');
+				.addClass('btn-danger');
 
 			checked_items_status.text(
 				no_of_checked_items == 1
-				? __('1 item selected')
-				: __('{0} items selected', [checked_items.length])
+					? __('1 item selected')
+					: __('{0} items selected', [checked_items.length])
 			)
 			checked_items_status.removeClass('hide');
 		} else {
@@ -962,7 +968,7 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 		});
 	},
 
-	set_primary_action: function() {
+	set_primary_action: function () {
 		if (this.list_renderer.settings.set_primary_action) {
 			this.list_renderer.settings.set_primary_action(this);
 		} else {

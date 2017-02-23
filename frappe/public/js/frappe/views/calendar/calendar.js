@@ -4,6 +4,24 @@
 frappe.provide("frappe.views.calendar");
 frappe.provide("frappe.views.calendars");
 
+frappe.views.CalendarView = frappe.views.ListRenderer.extend({
+	render_view: function() {
+		var me = this;
+		var options = {
+			doctype: this.doctype,
+			parent: this.wrapper,
+			page: this.list_view.page,
+			filter_vals: this.list_view.filter_list.get_filters()
+		}
+		$.extend(options, frappe.views.calendar[this.doctype]);
+		this.calendar = new frappe.views.Calendar(options);
+	},
+	required_libs: [
+		'assets/frappe/js/lib/fullcalendar/fullcalendar.min.css',
+		'assets/frappe/js/lib/fullcalendar/fullcalendar.min.js'
+	]
+})
+
 frappe.views.Calendar = Class.extend({
 	init: function(options) {
 		$.extend(this, options);
@@ -14,19 +32,19 @@ frappe.views.Calendar = Class.extend({
 	make_page: function() {
 		var me = this;
 
-		$(this.parent).on("show", function() {
-			me.set_filters_from_route_options();
-		});
+		// $(this.parent).on("show", function() {
+		// 	me.set_filters_from_route_options();
+		// });
 
-		var module = locals.DocType[this.doctype].module;
+		// var module = locals.DocType[this.doctype].module;
 		this.page.set_title(__("Calendar") + " - " + __(this.doctype));
 
-		frappe.breadcrumbs.add(module, this.doctype);
+		// frappe.breadcrumbs.add(module, this.doctype);
 
-		this.page.set_primary_action(__("New"), function() {
-			var doc = frappe.model.get_new_doc(me.doctype);
-			frappe.set_route("Form", me.doctype, doc.name);
-		});
+		// this.page.set_primary_action(__("New"), function() {
+		// 	var doc = frappe.model.get_new_doc(me.doctype);
+		// 	frappe.set_route("Form", me.doctype, doc.name);
+		// });
 
 		// add links to other calendars
 		$.each(frappe.boot.calendars, function(i, doctype) {

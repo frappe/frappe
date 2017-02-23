@@ -23,7 +23,8 @@ frappe.views.ListRenderer = Class.extend({
 		this.order_by = this.settings.order_by;
 		this.group_by = this.settings.group_by;
 		this.set_wrapper();
-		
+		this.prepare_render_view();
+
 		// flag to enable/disable realtime updates in list_view
 		this.no_realtime = false;
 
@@ -238,20 +239,16 @@ frappe.views.ListRenderer = Class.extend({
 
 	// renders data(doc) in element
 	render_item: function (element, data) {
-		this.prepare_data(data);
-
 		// maintain id_list to avoid duplication incase
 		// of filtering by child table
-		if (this.id_list.includes(data.name)) {
-			$(element).hide();
-			return;
-		} else {
-			this.id_list.push(data.name);
-		}
+		// if (this.id_list.includes(data.name)) {
+		// 	$(element).hide();
+		// 	return;
+		// } else {
+		// 	this.id_list.push(data.name);
+		// }
 
 		$(element).append(this.get_item_html(data));
-
-		// this['render_row_' + this.list_view.current_view](row, data);
 
 		if (this.settings.post_render_item) {
 			this.settings.post_render_item(this, element, data);
@@ -408,6 +405,34 @@ frappe.views.ListRenderer = Class.extend({
 		if (diff === 2) {
 			data.when = __('2 days ago')
 		}
+	},
+
+	// for views which require 3rd party libs
+	required_libs: null,
+
+	prepare_render_view: function() {
+		var me = this;
+		this.og_render_view = this.render_view;
+
+		var lib_exists = (typeof this.required_libs === 'string' && this.required_libs)
+				|| ($.isArray(this.required_libs) && this.required_libs.length);
+
+		this.render_view = function(values) {
+			// prepare data before rendering view
+			values = values.map(me.prepare_data.bind(this));
+
+			if(lib_exists) {
+				me.load_lib(function() {
+					me.og_render_view(values);
+				});
+			} else {
+				me.og_render_view(values);
+			}
+		}.bind(this);
+	},
+
+	load_lib: function(callback) {
+		frappe.require(this.required_libs, callback);
 	},
 
 	render_bar_graph: function (parent, data, field, label) {

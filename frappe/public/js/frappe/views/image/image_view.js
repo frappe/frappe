@@ -3,36 +3,13 @@
  */
 frappe.provide("frappe.views");
 
-frappe.views.ImageView = Class.extend({
-	init: function (opts) {
-		$.extend(this, opts);
-		this.prepare();
-		this.render();
+frappe.views.ImageView = frappe.views.ListRenderer.extend({
+	render_view: function (values) {
+		this.items = values;
+		this.render_image_view();
 		this.setup_gallery();
 	},
-	prepare: function () {
-		var me = this;
-		this.meta = frappe.get_meta(this.doctype);
-		this.setup_additional_columns();
-
-		this.items = this.items.map(function(item) {
-			var i = me.listview.prepare_data(item);
-			if (i._title.length > 20) {
-				i._title = i._title.slice(0, 20) + "...";
-			}
-			return i;
-		});
-	},
-	setup_additional_columns: function () {
-		this.additional_columns = this.listview.columns.filter(function (col) {
-			return col.fieldtype && in_list([
-				"Check", "Currency", "Data", "Date",
-				"Datetime", "Float", "Int", "Link",
-				"Percent", "Select", "Read Only", "Time"
-			], col.fieldtype);
-		});
-	},
-	render: function () {
+	render_image_view: function () {
 		var html = this.items.map(this.render_item.bind(this)).join("");
 		this.container = $('<div>')
 			.addClass('image-view-container')
@@ -41,7 +18,7 @@ frappe.views.ImageView = Class.extend({
 	},
 	render_item: function (item) {
 		var image_url = this.get_image_url(item);
-		var indicator = this.listview.get_indicator_html(item);
+		var indicator = this.get_indicator_html(item);
 		return frappe.render_template("image_view_item_row", {
 			data: item,
 			indicator: indicator,
@@ -79,12 +56,7 @@ frappe.views.ImageView = Class.extend({
 			return false;
 		});
 	},
-	refresh: function (data) {
-		this.items = data;
-		this.prepare();
-		this.render();
-		this.setup_gallery();
-	}
+	refresh: this.render_view
 });
 
 frappe.views.GalleryView = Class.extend({

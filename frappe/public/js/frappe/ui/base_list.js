@@ -333,6 +333,7 @@ frappe.ui.BaseList = Class.extend({
 			this.wrapper.find('.result').hide();
 
 			var msg = '';
+			var no_result_message = this.no_result_message;
 			if(no_result_message && $.isFunction(no_result_message)) {
 				msg = no_result_message();
 			} else if(typeof no_result_message === 'string') {
