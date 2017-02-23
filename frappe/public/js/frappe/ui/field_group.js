@@ -63,13 +63,13 @@ frappe.ui.FieldGroup = frappe.ui.form.Layout.extend({
 	get_values: function(ignore_errors) {
 		var ret = {};
 		var errors = [];
-		console.log("this.fields_dict", this.fields_dict);
+		// console.log("this.fields_dict", this.fields_dict);
 		for(var key in this.fields_dict) {
 			var f = this.fields_dict[key];
 			if(f.get_parsed_value) {
 				var v = f.get_parsed_value();
-				console.log("f", f);
-				console.log("f.df.reqd", f.df.reqd);
+				// console.log("f", f);
+				// console.log("f.df.reqd", f.df.reqd);
 				if(f.df.reqd && is_null(v))
 					errors.push(__(f.df.label));
 
