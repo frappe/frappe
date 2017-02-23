@@ -634,8 +634,9 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 			(frappe.boot.sysdefaults.date_format || 'yyyy-mm-dd');
 		this.datepicker_options.dateFormat = date_format;
 
-		this.datepicker_options.onSelect = function(dateObj) {
-			me.set_value(me.get_value())
+		this.datepicker_options.onSelect = function(dateStr) {
+			if(dateStr === me.get_value()) return;
+			me.set_value(me.get_value());
 			me.$input.trigger('change')
 		}
 	},
