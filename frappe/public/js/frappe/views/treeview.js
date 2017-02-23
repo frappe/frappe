@@ -149,7 +149,7 @@ frappe.views.TreeView = Class.extend({
 		var toolbar = [
 			{toggle_btn: true},
 			{
-				label:__("Edit"),
+				label:__(me.can_write? "Edit": "Details"),
 				condition: function(node) {
 					return !node.root && me.can_read;
 				},
@@ -283,7 +283,7 @@ frappe.views.TreeView = Class.extend({
 	},
 	set_primary_action: function(){
 		var me = this;
-		if (!this.opts.disable_add_node) {
+		if (!this.opts.disable_add_node && this.can_create) {
 			me.page.set_primary_action(__("New"), function() {
 				me.new_node();
 			}, "octicon octicon-plus")
