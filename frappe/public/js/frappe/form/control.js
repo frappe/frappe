@@ -295,7 +295,6 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 					if(me.only_input) {
 						make_input();
 						update_input();
-						me.$input && me.$input.prop("disabled", true);
 					} else {
 						$(me.input_area).toggle(false);
 						if (me.disp_area) {
@@ -303,6 +302,7 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 							$(me.disp_area).toggle(true);
 						}
 					}
+					me.$input && me.$input.prop("disabled", true);
 				}
 
 				me.set_description();
@@ -826,11 +826,20 @@ frappe.ui.form.ControlText = frappe.ui.form.ControlData.extend({
 	make_wrapper: function() {
 		this._super();
 		this.$wrapper.find(".like-disabled-input").addClass("for-description");
+	},
+	make_input: function() {
+		this._super();
+		this.$input.css({'height': '300px'})
 	}
 });
 
 frappe.ui.form.ControlLongText = frappe.ui.form.ControlText;
-frappe.ui.form.ControlSmallText = frappe.ui.form.ControlText;
+frappe.ui.form.ControlSmallText = frappe.ui.form.ControlText.extend({
+	make_input: function() {
+		this._super();
+		this.$input.css({'height': '150px'})
+	}
+});
 
 frappe.ui.form.ControlCheck = frappe.ui.form.ControlData.extend({
 	input_type: "checkbox",
