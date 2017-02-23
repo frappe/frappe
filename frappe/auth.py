@@ -9,7 +9,7 @@ from frappe import _
 import frappe
 import frappe.database
 import frappe.utils
-from frappe.utils import cint
+from frappe.utils import cint, flt, time_diff_in_seconds, now
 import frappe.utils.user
 from frappe import conf
 from frappe.sessions import Session, clear_sessions, delete_session
@@ -197,13 +197,18 @@ class LoginManager:
 
 	def check_password(self, user, pwd):
 		"""check password"""
+		frappe.flags.auth_failed = False
 		self.is_ip_banned()
 		try:
 			# returns user in correct case
-			return check_password(user, pwd)
+			user = check_password(user, pwd)
 		except frappe.AuthenticationError:
-			self.add_to_failed_ip_dict()
+			frappe.flags.auth_failed = True
 			self.fail('Incorrect password', user=user)
+		finally:
+			update_failed_to_ban_count()
+			if not frappe.flags.auth_failed:
+				return user
 
 	def fail(self, message, user="NA"):
 		frappe.local.response['message'] = message
@@ -231,44 +236,11 @@ class LoginManager:
 
 		frappe.throw(_("Not allowed from this IP Address"), frappe.AuthenticationError)
 
-	def add_to_failed_ip_dict(self):
-		cache = frappe.cache()
-		login_failed_from_ip = {}
-
-		if not cache.get("login_failed_from_ip"):
-			cache.set("login_failed_from_ip", {})
-		else:
-			login_failed_from_ip = json.loads(cache.get("login_failed_from_ip"))
-
-		if not login_failed_from_ip.get(frappe.local.request_ip):
-			login_failed_from_ip[frappe.local.request_ip] = 0
-
-		login_failed_from_ip[frappe.local.request_ip] += 1
-
-		cache.set("login_failed_from_ip", json.dumps(login_failed_from_ip))
-
-		if login_failed_from_ip[frappe.local.request_ip] >= 3:
-			self.ban_login_from_ip()
-
-	def ban_login_from_ip(self):
-		banned_ip = frappe.db.get_value("Banned IP", filters={"ip_address": frappe.local.request_ip})
-
-		if not banned_ip:
-			frappe.get_doc({
-				"doctype": "Banned IP",
-				"ip_address": frappe.local.request_ip,
-				"banned": 1
-			}).insert(ignore_permissions=True)
-		else:
-			frappe.db.set_value("Banned IP", banned_ip, "banned", 1)
-
-		frappe.db.commit()
-
 	def is_ip_banned(self):
 		if frappe.local.request_ip in frappe.db.sql_list("""select distinct ip_address
 			from `tabBanned IP` where banned=1"""):
 			frappe.local.response['_server_messages'] = json.dumps(['Login from this IP address has beed blocked for security reasons. Please try again after sometime.'])
-			self.fail('Login from this IP address has beed blocked for security reasons. Please try again after sometime')
+			self.fail('Login from this IP address has beed blocked for security reasons. Please try again after sometime.')
 
 	def validate_hour(self):
 		"""check if user is logging in during restricted hours"""
@@ -358,3 +330,54 @@ def get_website_user_home_page(user):
 		return '/' + home_page.strip('/')
 	else:
 		return '/me'
+
+def upban_ip_address():
+	for doc in frappe.get_all("Banned IP", filters={'banned': 1}, fields=["name", "modified", "ip_address"]):
+		minutes = round(flt(time_diff_in_seconds(now(), doc.modified))/60, 6)
+
+		if minutes > 5.0:
+			frappe.db.set_value("Banned IP", doc.name, "banned", 0)
+			update_failed_to_ban_count(doc.ip_address, reset_count=True)
+
+def update_failed_to_ban_count(ip_address=None, reset_count=False):
+	cache = frappe.cache()
+	login_failed_from_ip = {}
+	ip_address = ip_address or frappe.local.request_ip
+
+	# if cache not contains login_failed_from_ip then add key to cache
+	# else load failed ip count dict from cache
+	if not cache.get("login_failed_from_ip"):
+		cache.set("login_failed_from_ip", {})
+	else:
+		login_failed_from_ip = json.loads(cache.get("login_failed_from_ip"))
+
+	if not login_failed_from_ip.get(ip_address) and not reset_count:
+		login_failed_from_ip[ip_address] = 0
+
+	elif login_failed_from_ip.get(ip_address) and reset_count:
+		del login_failed_from_ip[ip_address]
+
+	if not reset_count:
+		login_failed_from_ip[ip_address] += 1 if frappe.flags.auth_failed else -1
+
+		if login_failed_from_ip.get(ip_address, 0) < 0:
+			login_failed_from_ip[ip_address] = 0
+
+	if login_failed_from_ip.get(ip_address) >= 3:
+		ban_ip_address()
+
+	cache.set("login_failed_from_ip", json.dumps(login_failed_from_ip))
+
+def ban_ip_address():
+	banned_ip = frappe.db.get_value("Banned IP", filters={"ip_address": frappe.local.request_ip})
+
+	if not banned_ip:
+		frappe.get_doc({
+			"doctype": "Banned IP",
+			"ip_address": frappe.local.request_ip,
+			"banned": 1
+		}).insert(ignore_permissions=True)
+	else:
+		frappe.db.set_value("Banned IP", banned_ip, "banned", 1)
+
+	frappe.db.commit()
