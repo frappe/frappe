@@ -26,7 +26,8 @@ Go to
 
 > Setup > Integrations > OAuth Provider Settings
 
-<img class="screenshot" src="assets/frappe/img/oauth_provider_settings.png">
+<img class="screenshot" src="{{docs_base_url}}/assets/img/oauth_provider_settings.png">
+
 
 ## Add a Client App
 
@@ -34,7 +35,7 @@ As a System Manager go to
 
 > Setup > Integrations > OAuth Client
 
-<img class="screenshot" src="assets/frappe/img/oauth2_client_app.png">
+<img class="screenshot" src="{{docs_base_url}}/assets/img/oauth2_client_app.png">
 
 To add a client fill in the following details
 
