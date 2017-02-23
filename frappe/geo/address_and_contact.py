@@ -25,6 +25,7 @@ def load_address_and_contact(doc, key):
 
 	doc.set_onload('addr_list', address_list)
 
+	contact_list = []
 	if doc.doctype != "Lead":
 		filters = [
 			["Dynamic Link", "link_doctype", "=", doc.doctype],
@@ -38,7 +39,7 @@ def load_address_and_contact(doc, key):
 				(int(a.is_primary_contact - b.is_primary_contact)) or
 				(1 if a.modified - b.modified else 0), reverse=True)
 
-		doc.set_onload('contact_list', contact_list)
+	doc.set_onload('contact_list', contact_list)
 
 def set_default_role(doc, method):
 	'''Set customer, supplier, student based on email'''
