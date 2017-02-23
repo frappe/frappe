@@ -694,6 +694,24 @@ fieldset[disabled] .form-control {
 .search-dialog .layout-side-section .nav > li > a {
   padding-left: 20px;
 }
+.search-dialog .results-area .search-intro-placeholder {
+  color: #d4d9dd;
+  height: inherit;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.search-dialog .results-area .search-intro-placeholder span {
+  text-align: center;
+}
+.search-dialog .results-area .search-intro-placeholder span i{
+  font-size: 120px;
+  display: block;
+}
+.search-dialog .results-area .search-intro-placeholder span p{
+  font-size: 20px;
+  display: block;
+}
 .search-dialog .results-area a {
   color: #5E64FF;
 }

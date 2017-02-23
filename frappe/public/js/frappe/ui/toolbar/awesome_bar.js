@@ -4,9 +4,11 @@ frappe.provide('frappe.search');
 
 frappe.search.AwesomeBar = Class.extend({
 	setup: function(element) {
+		var me = this;
+
 		var $input = $(element);
 		var input = $input.get(0);
-		var me = this;
+
 		this.search = new frappe.search.UnifiedSearch();
 		this.global = new frappe.search.GlobalSearch();
 		this.nav = new frappe.search.NavSearch();
@@ -102,7 +104,7 @@ frappe.search.AwesomeBar = Class.extend({
 					}
 				});
 				awesomplete.list = out;
-			}, 200));
+			}, 100));
 
 		});
 
@@ -346,11 +348,11 @@ frappe.search.AwesomeBar = Class.extend({
 			label: __("Search for '" + txt.bold() + "'"),
 			value: __("Search for '" + txt + "'"),
 			match: txt,
-			index: 22,
+			index: 19,
 			default: "Search",
 			onclick: function() {
 				me.search.search_dialog.show();
-				me.search.setup_search(txt, [me.global, me.nav, me.help]);
+				me.search.setup_search(txt, [me.nav, me.global, me.help]);
 			}
 		});
 	},
@@ -469,7 +471,7 @@ frappe.search.AwesomeBar = Class.extend({
 			index = result[1];
 			rendered_label = result[2];
 			if(target) {
-				// include 'making new' option (not working)
+				// include 'making new' option
 				// if(in_list(frappe.boot.user.can_create, target)) {
 				// 	out.push({
 				// 		label: rendered_label,
