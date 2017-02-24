@@ -45,6 +45,7 @@ class DocType(Document):
 
 		elif self.istable:
 			self.allow_import = 0
+			self.permissions = []
 
 		self.scrub_field_names()
 		self.validate_series()
@@ -60,10 +61,8 @@ class DocType(Document):
 		self.make_amendable()
 		self.validate_website()
 
-		try:
+		if not self.is_new():
 			self.before_update = frappe.get_doc('DocType', self.name)
-		except frappe.DoesNotExistError:
-			pass
 
 		if not self.is_new():
 			self.setup_fields_to_fetch()
@@ -224,8 +223,9 @@ class DocType(Document):
 			global_search_fields_after_update.append('name')
 
 		if set(global_search_fields_before_update) != set(global_search_fields_after_update):
+			now = (not frappe.request) or frappe.flags.in_test or frappe.flags.in_install
 			frappe.enqueue('frappe.utils.global_search.rebuild_for_doctype',
-				now=frappe.flags.in_test or frappe.flags.in_install, doctype=self.name)
+				now=now, doctype=self.name)
 
 	def run_module_method(self, method):
 		from frappe.modules import load_doctype_module

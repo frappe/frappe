@@ -160,7 +160,7 @@ class Document(BaseDocument):
 		frappe.msgprint(msg)
 		raise frappe.PermissionError(msg)
 
-	def insert(self, ignore_permissions=None):
+	def insert(self, ignore_permissions=None, ignore_if_duplicate=False, ignore_mandatory=None):
 		"""Insert the document in the database (as a new document).
 		This will check for user permissions and execute `before_insert`,
 		`validate`, `on_update`, `after_insert` methods if they are written.
@@ -173,6 +173,9 @@ class Document(BaseDocument):
 
 		if ignore_permissions!=None:
 			self.flags.ignore_permissions = ignore_permissions
+
+		if ignore_mandatory!=None:
+			self.flags.ignore_mandatory = ignore_mandatory
 
 		self.set("__islocal", True)
 
@@ -198,7 +201,11 @@ class Document(BaseDocument):
 		if getattr(self.meta, "issingle", 0):
 			self.update_single(self.get_valid_dict())
 		else:
-			self.db_insert()
+			try:
+				self.db_insert()
+			except frappe.DuplicateEntryError, e:
+				if not ignore_if_duplicate:
+					raise  e
 
 		# children
 		for d in self.get_all_children():

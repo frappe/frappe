@@ -658,10 +658,10 @@ def reload_doc(module, dt=None, dn=None, force=False, reset_permissions=False):
 	import frappe.modules
 	return frappe.modules.reload_doc(module, dt, dn, force=force, reset_permissions=reset_permissions)
 
-def rename_doc(doctype, old, new, debug=0, force=False, merge=False, ignore_permissions=False):
+def rename_doc(*args, **kwargs):
 	"""Rename a document. Calls `frappe.model.rename_doc.rename_doc`"""
 	from frappe.model.rename_doc import rename_doc
-	return rename_doc(doctype, old, new, force=force, merge=merge, ignore_permissions=ignore_permissions)
+	return rename_doc(*args, **kwargs)
 
 def get_module(modulename):
 	"""Returns a module object for given Python module name using `importlib.import_module`."""

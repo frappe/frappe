@@ -14,10 +14,6 @@ default_fields = ('doctype','name','owner','creation','modified','modified_by',
 	'parent','parentfield','parenttype','idx','docstatus')
 optional_fields = ("_user_tags", "_comments", "_assign", "_liked_by", "_seen")
 
-def rename(doctype, old, new, debug=False):
-	import frappe.model.rename_doc
-	frappe.model.rename_doc.rename_doc(doctype, old, new, debug)
-
 def copytables(srctype, src, srcfield, tartype, tar, tarfield, srcfields, tarfields=[]):
 	if not tarfields:
 		tarfields = srcfields

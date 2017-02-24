@@ -10,12 +10,15 @@ from frappe.model.dynamic_links import get_dynamic_link_map
 from frappe.utils.password import rename_password
 
 @frappe.whitelist()
-def rename_doc(doctype, old, new, force=False, merge=False, ignore_permissions=False):
+def rename_doc(doctype, old, new, force=False, merge=False, ignore_permissions=False, ignore_if_exists=False):
 	"""
 		Renames a doc(dt, old) to doc(dt, new) and
 		updates all linked fields of type "Link"
 	"""
 	if not frappe.db.exists(doctype, old):
+		return
+
+	if ignore_if_exists and frappe.db.exists(doctype, new):
 		return
 
 	force = cint(force)
