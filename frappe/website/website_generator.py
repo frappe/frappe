@@ -3,13 +3,10 @@
 
 from __future__ import unicode_literals
 import frappe
-from frappe.utils import quoted
 from frappe.model.document import Document
-from frappe.model.naming import append_number_if_name_exists
-from frappe.website.utils import cleanup_page_name, get_home_page
+from frappe.website.utils import cleanup_page_name
 from frappe.website.render import clear_cache
 from frappe.modules import get_module_name
-from frappe.website.router import get_page_context_from_template, get_page_context
 
 class WebsiteGenerator(Document):
 	website = frappe._dict(
@@ -20,9 +17,16 @@ class WebsiteGenerator(Document):
 		self.route = None
 		super(WebsiteGenerator, self).__init__(*args, **kwargs)
 
+	def get_website_properties(self, key=None, default=None):
+		out = getattr(self, '_website', None) or getattr(self, 'website', None) or {}
+		if key:
+			return out.get(key, default)
+		else:
+			return out
+
 	def autoname(self):
 		if not self.name and self.meta.autoname != "hash":
-			self.name = self.scrub(self.get(self.website.page_title_field or "title"))
+			self.name = self.make_route()
 
 	def onload(self):
 		self.get("__onload").update({
@@ -38,7 +42,7 @@ class WebsiteGenerator(Document):
 			self.route = self.route.strip('/.')[:139]
 
 	def make_route(self):
-		return self.scrub(self.get(self.website.page_title_field or "name"))
+		return self.scrub(self.get(self.get_website_properties('page_title_field', 'title')))
 
 	def clear_cache(self):
 		clear_cache(self.route)
@@ -55,8 +59,8 @@ class WebsiteGenerator(Document):
 
 	def is_website_published(self):
 		"""Return true if published in website"""
-		if self.website.condition_field:
-			return self.get(self.website.condition_field) and True or False
+		if self.get_website_properties('condition_field'):
+			return self.get(self.get_website_properties('condition_field')) and True or False
 		else:
 			return True
 
@@ -71,9 +75,12 @@ class WebsiteGenerator(Document):
 			"controller": get_module_name(self.doctype, self.meta.module),
 		})
 
-		route.update(self.website)
+		print self.get_website_properties()
+
+		route.update(self.get_website_properties())
 
 		if not route.page_title:
-			route.page_title = self.get(self.website.page_title_field or "name")
+			route.page_title = self.get(self.get_website_properties('page_title'), 'title') \
+				or self.get('name')
 
 		return route

@@ -137,7 +137,8 @@ frappe.socket = {
 	},
 	doc_open: function(doctype, docname) {
 		// notify that the user has opened this doc, if not already notified
-		if(frappe.socket.last_doc[0]!=doctype && frappe.socket.last_doc[0]!=docname) {
+		if(!frappe.socket.last_doc
+			|| (frappe.socket.last_doc[0]!=doctype && frappe.socket.last_doc[0]!=docname)) {
 			frappe.socket.socket.emit('doc_open', doctype, docname);
 		}
 		frappe.socket.last_doc = [doctype, docname];

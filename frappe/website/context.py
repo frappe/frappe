@@ -75,7 +75,7 @@ def build_context(context):
 	# provide doc
 	if context.doc:
 		context.update(context.doc.as_dict())
-		context.update(context.doc.website)
+		context.update(context.doc.get_website_properties())
 		if hasattr(context.doc, "get_context"):
 			ret = context.doc.get_context(context)
 
