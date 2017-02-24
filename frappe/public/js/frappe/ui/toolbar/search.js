@@ -86,9 +86,9 @@ frappe.search.UnifiedSearch = Class.extend({
 
 	bind_events: function() {
 		var me = this;
-		this.search_modal.on('keypress', function() {
-			me.input.focus();
-		});
+		// this.search_modal.on('keypress', function() {
+		// 	me.input.focus();
+		// });
 		this.sidebar.find('.list-link').on('click', function() {
 			me.set_sidebar_link_action($(this));
 		});
