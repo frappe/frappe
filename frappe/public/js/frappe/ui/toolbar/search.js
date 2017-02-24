@@ -78,6 +78,12 @@ frappe.search.UnifiedSearch = Class.extend({
 						last_type = list_types[current_type_index - 1];
 						me.sidebar.find('*[data-category="'+ last_type +'"]').trigger('click');
 					}
+				} else if (e.which === 9) {
+					// Tab key rolls back after the last result
+					if(me.results_area.find('a').last().is(":focus")) {
+						e.preventDefault();
+						me.results_area.find('.module-section-link').first().focus();
+					}
 				} else if(e.which === 8) {
 					// Backspace key focuses input
 					if(!me.input.is(":focus")) {
@@ -181,9 +187,9 @@ frappe.search.UnifiedSearch = Class.extend({
 		var me = this;
 		var more_results = more_data[0];
 		var more = more_data[1];
-		var last_result = this.results_area.find('.module-section-link').last();
+		this.results_area.find('.module-section-link').last().addClass('.current-last');
 		this.results_area.find('.list-more').before(more_results);
-		last_result.next().focus();
+		this.results_area.find('.more_results').last().find('.module-section-link').first().focus();
 		if(!more) {
 			this.results_area.find('.list-more').hide();
 			var no_of_results = this.results_area.find('.result').length;
