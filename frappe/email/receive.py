@@ -292,16 +292,28 @@ class Email:
 	def set_from(self):
 		# gmail mailing-list compatibility
 		# use X-Original-Sender if available, as gmail sometimes modifies the 'From'
-		_from_email = self.mail.get("X-Original-From") or self.mail["From"]
-		_from_email, encoding = decode_header(_from_email)[0]
+		_from_email = self.decode_email(self.mail.get("X-Original-From") or self.mail["From"])
+		_reply_to = self.decode_email(self.mail.get("Reply-To"))
 
-		if encoding:
-			_from_email = _from_email.decode(encoding)
+		if _reply_to and not frappe.db.get_value('Email Account', {"email_id":_reply_to}, 'email_id'):
+			self.from_email = extract_email_id(_reply_to)
 		else:
-			_from_email = _from_email.decode('utf-8')
+			self.from_email = extract_email_id(_from_email)
 
-		self.from_email = extract_email_id(_from_email)
-		self.from_real_name = email.utils.parseaddr(_from_email)[0]
+		if self.from_email:
+			self.from_email = self.from_email.lower()
+
+		self.from_real_name = email.utils.parseaddr(_from_email)[0] if "@" in _from_email else _from_email
+
+	def decode_email(self, email):
+		if not email: return 
+		decoded = ""
+		for part, encoding in decode_header(email):
+			if encoding:
+				decoded += part.decode(encoding)
+			else:
+				decoded += part.decode('utf-8')
+		return decoded
 
 	def set_content_and_type(self):
 		self.content, self.content_type = '[Blank Email]', 'text/plain'
