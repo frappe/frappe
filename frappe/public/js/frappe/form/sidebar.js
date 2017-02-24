@@ -118,10 +118,10 @@ frappe.ui.form.Sidebar = Class.extend({
 	},
 	add_user_action: function(label, click) {
 		return $('<a>').html(label).appendTo($('<li class="user-action-row">')
-			.appendTo(this.user_actions.removeClass("hide"))).on("click", click);
+			.appendTo(this.user_actions.removeClass("hidden"))).on("click", click);
 	},
 	clear_user_actions: function() {
-		this.user_actions.addClass("hide")
+		this.user_actions.addClass("hidden")
 		this.user_actions.find(".user-action-row").remove();
 	},
 

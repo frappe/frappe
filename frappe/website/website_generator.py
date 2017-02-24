@@ -26,7 +26,7 @@ class WebsiteGenerator(Document):
 
 	def autoname(self):
 		if not self.name and self.meta.autoname != "hash":
-			self.name = self.make_route()
+			self.name = self.scrubbed_title()
 
 	def onload(self):
 		self.get("__onload").update({
@@ -42,6 +42,9 @@ class WebsiteGenerator(Document):
 			self.route = self.route.strip('/.')[:139]
 
 	def make_route(self):
+		return self.scrubbed_title()
+
+	def scrubbed_title(self):
 		return self.scrub(self.get(self.get_website_properties('page_title_field', 'title')))
 
 	def clear_cache(self):
@@ -74,8 +77,6 @@ class WebsiteGenerator(Document):
 			"docname": self.name,
 			"controller": get_module_name(self.doctype, self.meta.module),
 		})
-
-		print self.get_website_properties()
 
 		route.update(self.get_website_properties())
 

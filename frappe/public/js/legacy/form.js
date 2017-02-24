@@ -371,7 +371,8 @@ _f.Frm.prototype.show_web_link = function() {
 }
 
 _f.Frm.prototype.add_web_link = function(path) {
-	this.web_link = this.sidebar.add_user_action(__("See on Website"),
+	this.web_link = this.sidebar.add_user_action('<span class="octicon octicon-link-external" style="margin-right: 7px;"></span>'
+		+ __("See on Website"),
 		function() {}).attr("href", path || this.doc.route).attr("target", "_blank");
 }
 
