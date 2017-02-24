@@ -20,15 +20,15 @@ def get_dev_port():
 def get_doctype_from_bot_name(bot_name):
     return Constant.doctype_dict.get(bot_name, 'Error')
 
-
 ''' functions related to message formating '''
-
 
 def create_bot_message_object(room, chat, is_null):
     if is_null:
         return {
             "room": room,
+            "is_bot": 'true',
             "bot_name": chat.bot_name,
+            "created_on" : chat.modified,
             "text": chat.text,
             "action": {},
             "info": {},
@@ -37,7 +37,9 @@ def create_bot_message_object(room, chat, is_null):
     else:
         return {
             "room": room,
+            "is_bot": 'true',
             "bot_name": chat.bot_name,
+            "created_on" : chat.modified,
             "text": chat.text,
             "action": format_action_to_json(chat.action),
             "info": format_info_to_json(chat.info),
@@ -80,7 +82,8 @@ def format_response_for_others(chats, room):
             "user_id": chat.user_id,
             "text": chat.text,
             "is_alert": chat.is_alert,
-            "chat_title": chat.chat_title
+            "chat_title": chat.chat_title,
+            "chat_type" : chat.chat_type
         }
         results.append(item)
     return results
@@ -124,12 +127,12 @@ def get_items_from_array(items):
     results = []
     for item in items:
         keys = item.keys()
-        results.append(get_object_fron_key_value(keys, items))
+        results.append(get_object_fron_key_value(keys, item))
     return results
 
 
-def get_object_fron_key_value(keys, items):
+def get_object_fron_key_value(keys, item):
     obj = {}
     for key in keys:
-        obj[key] = items[key]
+        obj[key] = item[key]
     return obj

@@ -5,6 +5,7 @@ import frappe.utils
 from frappe.desk.notifications import get_notifications
 from frappe import _
 from frappe.utils.kickapp.helper import get_doctype_from_bot_name, create_bot_message_object
+import datetime
 
 
 class Engine(object):
@@ -19,11 +20,8 @@ class Engine(object):
             print exce
             msg_obj = {
                 "bot_name": class_name,
-                "text": "Something went wrong, Please try in a little bit."
+                "text": "Something went wrong, Please try in a little bit.",
+                "modified": str(datetime.datetime)
             }
             reply = create_bot_message_object(room, msg_obj, True)
         return reply
-
-
-
-
