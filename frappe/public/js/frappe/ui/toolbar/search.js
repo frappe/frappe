@@ -57,7 +57,7 @@ frappe.search.UnifiedSearch = Class.extend({
 		this.sidebar.empty();
 		this.results_area.empty();
 		this.results_area.append($('<div class="search-intro-placeholder"><span>' +
-			'<i class="mega-octicon octicon-telescope"></i><p>Search for anything</p></span></div>'));
+			'<i class="mega-octicon octicon-telescope"></i><p>'+__("Search for anything")+'</p></span></div>'));
 	},
 
 	build_results: function(keywords) {
@@ -190,7 +190,7 @@ frappe.search.UnifiedSearch = Class.extend({
 					'No results found for: '+ "'"+ keywords +"'" +'</p>');
 			} else {
 				this.sidebar.find('.search-sidelist').prepend('<li class="module-sidebar-item list-link"' +
-					'data-category="All Results"><a><span>All Results</span><i class="octicon octicon-chevron-right pull-right hide"' +
+					'data-category="All Results"><a><span>'+__("All Results")+'</span><i class="octicon octicon-chevron-right pull-right hide"' +
 					'></a></li>');
 				var list_types = this.get_all_list_types();
 				if(list_types.indexOf(this.current_type) === -1) {
@@ -367,7 +367,7 @@ frappe.search.GlobalSearch = Class.extend({
 		});
 		if(results.length > this.section_length) {
 			results_col.append('<a href="#" class="section-more small" data-category="'
-				+ type + '" style="margin-top:10px">More...</a>');
+				+ type + '" style="margin-top:10px">'+__("More...")+'</a>');
 
 		}
 		return results_section;
@@ -412,7 +412,7 @@ frappe.search.GlobalSearch = Class.extend({
 		});
 		if(more) {
 			results_col.append('<a href="#" class="list-more small" data-search="'+ this.search_type +
-				'" data-category="'+ type + '" style="margin-top:10px"> More...</a>');
+				'" data-category="'+ type + '" style="margin-top:10px">'+__("More...")+'</a>');
 		}
 		return results_list;
 	},
@@ -694,7 +694,7 @@ frappe.search.NavSearch = frappe.search.GlobalSearch.extend({
 		});
 		if(results.length > this.section_length) {
 			results_column.append('<a href="#" class="section-more small" data-category="'
-				+ type + '" style="margin-top:10px">More...</a>');
+				+ type + '" style="margin-top:10px">'+__("More...")+'</a>');
 		}
 		return results_column;
 	}
@@ -758,7 +758,7 @@ frappe.search.HelpSearch = frappe.search.GlobalSearch.extend({
 		});
 		if(results.length > this.section_length) {
 			results_col.append('<a href="#" class="section-more small" data-category="'
-				+ type + '" style="margin-top:10px">More...</a>');
+				+ type + '" style="margin-top:10px">'+__("More...")+'</a>');
 
 		}
 		return results_section;
