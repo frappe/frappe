@@ -200,7 +200,7 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 			this.list_renderer = new frappe.views.KanbanView({
 				doctype: this.doctype,
 				list_view: this,
-				board_name: this.kanban_board
+				board_name: this.kanban_board_name
 			});
 		}
 	},
