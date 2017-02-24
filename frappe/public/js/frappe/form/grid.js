@@ -290,7 +290,7 @@ frappe.ui.form.Grid = Class.extend({
 
 		new Sortable($rows.get(0), {
 			group: {name: 'row'},
-			handle: ".sortable-handle",
+			handle: '.sortable-handle',
 			draggable: '.grid-row',
 			filter: 'li, a',
 			onUpdate: function(event, ui) {
@@ -628,7 +628,7 @@ frappe.ui.form.GridRow = Class.extend({
 		var me = this;
 
 		this.wrapper = $('<div class="grid-row"></div>').appendTo(this.parent).data("grid_row", this);
-		this.row = $('<div class="data-row row sortable-handle"></div>').appendTo(this.wrapper)
+		this.row = $('<div class="data-row row"></div>').appendTo(this.wrapper)
 			.on("click", function(e) {
 				if($(e.target).hasClass('grid-row-check') || $(e.target).hasClass('row-index') || $(e.target).parent().hasClass('row-index')) {
 					return;
@@ -750,7 +750,7 @@ frappe.ui.form.GridRow = Class.extend({
 		// index (1, 2, 3 etc)
 		if(!this.row_index) {
 			var txt = (this.doc ? this.doc.idx : "&nbsp;");
-			this.row_index = $('<div class="row-index col col-xs-1">' +
+			this.row_index = $('<div class="row-index sortable-handle col col-xs-1">' +
 				this.row_check_html +
 				 ' <span>' + txt + '</span></div>')
 				.appendTo(this.row)
@@ -787,7 +787,7 @@ frappe.ui.form.GridRow = Class.extend({
 			if(!this.open_form_button) {
 				this.open_form_button = $('<a class="close btn-open-row">\
 					<span class="octicon octicon-triangle-down"></span></a>')
-					.appendTo($('<div class="col col-xs-1"></div>').appendTo(this.row))
+					.appendTo($('<div class="col col-xs-1 sortable-handle"></div>').appendTo(this.row))
 					.on('click', function() { me.toggle_view(); return false; });
 
 				if(this.is_too_small()) {
@@ -950,7 +950,7 @@ frappe.ui.form.GridRow = Class.extend({
 					return;
 				}
 
-				var values = me.get_data();
+				var values = me.grid.get_data();
 				var fieldname = $(this).attr('data-fieldname');
 				var fieldtype = $(this).attr('data-fieldtype');
 

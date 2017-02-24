@@ -101,6 +101,7 @@ def sync_customizations_for_doctype(data):
 	from frappe.core.doctype.doctype.doctype import validate_fields_for_doctype
 
 	doctype = data['doctype']
+	update_schema = False
 
 	def sync(key, custom_doctype, doctype_fieldname):
 		frappe.db.sql('delete from `tab{0}` where `{1}`=%s'.format(custom_doctype, doctype_fieldname),
@@ -113,6 +114,7 @@ def sync_customizations_for_doctype(data):
 
 	if data['custom_fields']:
 		sync('custom_fields', 'Custom Field', 'dt')
+		update_schema = True
 
 	if data['property_setters']:
 		sync('property_setters', 'Property Setter', 'doc_type')
@@ -122,6 +124,10 @@ def sync_customizations_for_doctype(data):
 
 	print 'Updating customizations for {0}'.format(doctype)
 	validate_fields_for_doctype(doctype)
+
+	if update_schema and not frappe.db.get_value('DocType', doctype, 'issingle'):
+		from frappe.model.db_schema import updatedb
+		updatedb(doctype)
 
 def scrub(txt):
 	return frappe.scrub(txt)

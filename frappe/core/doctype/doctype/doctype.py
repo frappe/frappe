@@ -145,7 +145,7 @@ class DocType(Document):
 	def scrub_field_names(self):
 		"""Sluggify fieldnames if not set from Label."""
 		restricted = ('name','parent','creation','modified','modified_by',
-			'parentfield','parenttype',"file_list")
+			'parentfield','parenttype','file_list', 'flags', 'docstatus')
 		for d in self.get("fields"):
 			if d.fieldtype:
 				if (not getattr(d, "fieldname", None)):
@@ -225,7 +225,7 @@ class DocType(Document):
 
 		if set(global_search_fields_before_update) != set(global_search_fields_after_update):
 			frappe.enqueue('frappe.utils.global_search.rebuild_for_doctype',
-				now=frappe.flags.in_test, doctype=self.name)
+				now=frappe.flags.in_test or frappe.flags.in_install, doctype=self.name)
 
 	def run_module_method(self, method):
 		from frappe.modules import load_doctype_module
@@ -526,6 +526,7 @@ def validate_fields(meta):
 	fieldname_list = [d.fieldname for d in fields]
 
 	not_allowed_in_list_view = list(copy.copy(no_value_fields))
+	not_allowed_in_list_view.append("Attach Image")
 	if meta.istable:
 		not_allowed_in_list_view.remove('Button')
 

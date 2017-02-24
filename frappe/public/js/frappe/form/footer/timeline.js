@@ -401,8 +401,10 @@ frappe.ui.form.Timeline = Class.extend({
 							out.push(me.get_version_comment(version, __('cancelled this document')));
 						}
 					} else {
+						
 						var df = frappe.meta.get_docfield(me.frm.doctype, p[0], me.frm.docname);
-						if(!df.hidden) {
+
+						if(df && !df.hidden) {
 							var field_display_status = frappe.perm.get_field_display_status(df, null,
 								me.frm.perm);
 							if(field_display_status === 'Read' || field_display_status === 'Write') {
@@ -429,7 +431,7 @@ frappe.ui.form.Timeline = Class.extend({
 						var df = frappe.meta.get_docfield(me.frm.fields_dict[row[0]].grid.doctype,
 							p[0], me.frm.docname);
 
-						if(!df.hidden) {
+						if(df && !df.hidden) {
 							field_display_status = frappe.perm.get_field_display_status(df,
 								null, me.frm.perm);
 

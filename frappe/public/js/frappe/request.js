@@ -158,12 +158,17 @@ frappe.request.call = function(opts) {
 			}
 		})
 		.always(function(data, textStatus, xhr) {
-			if(typeof data==="string") {
-				data = JSON.parse(data);
-			}
-			if(data.responseText) {
-				var xhr = data;
-				data = JSON.parse(data.responseText);
+			try {
+				if(typeof data==="string") {
+					data = JSON.parse(data);
+				}
+				if(data.responseText) {
+					var xhr = data;
+					data = JSON.parse(data.responseText);
+				}
+			} catch(e) {
+				data = null;
+				// pass
 			}
 			frappe.request.cleanup(opts, data);
 			if(opts.always) {

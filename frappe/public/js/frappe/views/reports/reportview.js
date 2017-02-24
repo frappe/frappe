@@ -265,6 +265,7 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 			filters: this.filter_list.get_filters(),
 			save_list_settings_fields: 1,
 			with_childnames: 1,
+			file_format_type: this.file_format_type
 		}
 	},
 
@@ -676,11 +677,22 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 		}
 		var export_btn = this.page.add_menu_item(__('Export'), function() {
 			var args = me.get_args();
-			args.cmd = 'frappe.desk.reportview.export_query'
-			if(me.add_totals_row) {
-				args.add_totals_row = 1;
-			}
-			open_url_post(frappe.request.url, args);
+
+			frappe.prompt({fieldtype:"Select", label: __("Select File Type"), fieldname:"file_format_type",
+				options:"Excel\nCSV", default:"Excel", reqd: 1},
+				function(data) {
+
+					args.cmd = 'frappe.desk.reportview.export_query';
+					args.file_format_type = data.file_format_type;
+
+					if(me.add_totals_row) {
+						args.add_totals_row = 1;
+					}
+
+					open_url_post(frappe.request.url, args);
+
+				}, __("Export Report: " + me.doctype), __("Download"));
+
 		}, true);
 	},
 
@@ -835,6 +847,11 @@ frappe.ui.ColumnPicker = Class.extend({
 		});
 
 		new Sortable(this.column_list.get(0), {
+			//handle: '.sortable-handle',
+			filter: 'input',
+			draggable: '.column-list-item',
+			chosenClass: 'sortable-chosen',
+			dragClass: 'sortable-chosen',
 			onUpdate: function(event) {
 				me.columns = [];
 				$.each($(me.dialog.body).find('.column-list .column-list-item'),
@@ -856,7 +873,8 @@ frappe.ui.ColumnPicker = Class.extend({
 		var me = this;
 
 		var w = $('<div class="column-list-item"><div class="row">\
-				<div class="col-xs-1"><i class="fa fa-sort text-muted drag-handle" style="margin-top: 9px;"></i></div>\
+				<div class="col-xs-1">\
+					<i class="fa fa-sort text-muted"></i></div>\
 				<div class="col-xs-10"></div>\
 				<div class="col-xs-1"><a class="close">&times;</a></div>\
 			</div></div>')

@@ -13,7 +13,7 @@ import os, sys, importlib, inspect, json
 from .exceptions import *
 from .utils.jinja import get_jenv, get_template, render_template
 
-__version__ = '7.2.15'
+__version__ = '7.2.19'
 __title__ = "Frappe Framework"
 
 local = Local()
@@ -1039,7 +1039,7 @@ def respond_as_web_page(title, html, success=None, http_status_code=None,
 
 	local.response['context'] = context
 
-def redirect_to_message(title, html, http_status_code=None, context=None):
+def redirect_to_message(title, html, http_status_code=None, context=None, indicator=None):
 	"""Redirects to /message?id=random
 	Similar to respond_as_web_page, but used to 'redirect' and show message pages like success, failure, etc. with a detailed message
 
@@ -1062,6 +1062,11 @@ def redirect_to_message(title, html, http_status_code=None, context=None):
 		'title': title,
 		'message': html
 	})
+
+	if indicator:
+		message['context'].update({
+			"indicator_color": indicator
+		})
 
 	cache().set_value("message_id:{0}".format(message_id), message, expires_in_sec=60)
 	location = '/message?id={0}'.format(message_id)
