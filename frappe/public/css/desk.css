@@ -712,9 +712,9 @@ fieldset[disabled] .form-control {
   font-size: 20px;
   display: block;
 }
-.search-dialog .results-area a {
+/*.search-dialog .results-area a {
   color: #5E64FF;
-}
+}*/
 .search-dialog .results-area .single-link a {
   color: #36414c;
 }

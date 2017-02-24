@@ -73,7 +73,6 @@ frappe.search.UnifiedSearch = Class.extend({
 		var me = this;
 		if(this.current === 0) { this.reset() }
 		results_obj.sidelist.forEach(function(list_item) {
-			// Don't append to main sidebar here
 			me.sidelist.append(list_item);
 		})
 		this.results_area.find('.results-status').remove();
@@ -502,7 +501,7 @@ frappe.search.GlobalSearch = Class.extend({
 				value: __("{0}: {1}", [__(data.doctype), data.name]),
 				route: ["Form", data.doctype, data.name],
 				match: data.doctype,
-				index: 41,
+				index: 40,
 				default: "Global",
 				description: me.get_finds(data.content, keywords).slice(0,86) + '...'
 			}
@@ -541,11 +540,14 @@ frappe.search.NavSearch = frappe.search.GlobalSearch.extend({
 	set_nav_results: function(keywords) {
 		var me = this;
 		this.awesome_bar = new frappe.search.AwesomeBar();
+		var compare = function(a, b) {
+			return a.index - b.index;
+		}
 		this.nav_results = {
-			"Lists": me.awesome_bar.get_doctypes(keywords),
-			"Reports": me.awesome_bar.get_reports(keywords),
-			"Pages": me.awesome_bar.get_pages(keywords),
-			"Modules": me.awesome_bar.get_modules(keywords)
+			"Lists": me.awesome_bar.get_doctypes(keywords).sort(compare),
+			"Reports": me.awesome_bar.get_reports(keywords).sort(compare),
+			"Pages": me.awesome_bar.get_pages(keywords).sort(compare),
+			"Modules": me.awesome_bar.get_modules(keywords).sort(compare)
 		}
 	},
 
