@@ -127,7 +127,7 @@ scheduler_events = {
 		"frappe.email.doctype.email_account.email_account.pull",
 		"frappe.email.doctype.email_account.email_account.notify_unreplied",
 		"frappe.oauth.delete_oauth2_data",
-		"frappe.auth.upban_ip_address"
+		"frappe.core.doctype.banned_ip.banned_ip.upban_ip_address"
 	],
 	"hourly": [
 		"frappe.model.utils.link_count.update_link_count",
