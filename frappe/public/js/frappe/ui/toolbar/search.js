@@ -189,7 +189,7 @@ frappe.search.UnifiedSearch = Class.extend({
 		var more = more_data[1];
 		this.results_area.find('.module-section-link').last().addClass('.current-last');
 		this.results_area.find('.list-more').before(more_results);
-		this.results_area.find('.more_results').last().find('.module-section-link').first().focus();
+		setTimeout(function() { me.results_area.find('.more-results').last().find('.module-section-link').first().focus(); }, 200);
 		if(!more) {
 			this.results_area.find('.list-more').hide();
 			var no_of_results = this.results_area.find('.result').length;
