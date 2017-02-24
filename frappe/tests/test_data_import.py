@@ -26,7 +26,7 @@ class TestDataImport(unittest.TestCase):
 		self.assertTrue('"Administrator"' in [c[1] for c in content if len(c)>1])
 		self.assertEquals(content[13][0], "DocType:")
 		self.assertEquals(content[13][1], "User")
-		self.assertTrue("UserRole" in content[13])
+		self.assertTrue("Has Role" in content[13])
 
 	def test_import(self):
 		if frappe.db.exists("Blog Category", "test-category"):
@@ -55,17 +55,17 @@ class TestDataImport(unittest.TestCase):
 		frappe.get_doc({"doctype": "User", "email": user_email, 
 			"first_name": "Test Import UserRole"}).insert()
 
-		exporter.get_template("UserRole", "User", all_doctypes="No", with_data="No")
+		exporter.get_template("Has Role", "User", all_doctypes="No", with_data="No")
 		content = read_csv_content(frappe.response.result)
 		content.append(["", "test_import_userrole@example.com", "Blogger"])
 		importer.upload(content)
 
 		user = frappe.get_doc("User", user_email)
-		self.assertTrue(frappe.db.get_value("UserRole", filters={"role": "Blogger", "parent": user_email}))
+		self.assertTrue(frappe.db.get_value("Has Role", filters={"role": "Blogger", "parent": user_email, "parenttype": "User"}))
 		self.assertTrue(user.get("roles")[0].role, "Blogger")
 
 		# overwrite
-		exporter.get_template("UserRole", "User", all_doctypes="No", with_data="No")
+		exporter.get_template("Has Role", "User", all_doctypes="No", with_data="No")
 		content = read_csv_content(frappe.response.result)
 		content.append(["", "test_import_userrole@example.com", "Website Manager"])
 		importer.upload(content, overwrite=True)
