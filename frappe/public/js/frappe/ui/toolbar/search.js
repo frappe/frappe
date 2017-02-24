@@ -33,6 +33,7 @@ frappe.search.UnifiedSearch = Class.extend({
 		});
 		this.current_type = "All Results";
 		this.reset();
+		this.bind_keyboard_events();
 		this.input.val(keywords);
 		this.input.on("input", function() {
 			var $this = $(this);
@@ -58,6 +59,38 @@ frappe.search.UnifiedSearch = Class.extend({
 		this.results_area.empty();
 		this.results_area.append($('<div class="search-intro-placeholder"><span>' +
 			'<i class="mega-octicon octicon-telescope"></i><p>'+__("Search for anything")+'</p></span></div>'));
+	},
+
+	bind_keyboard_events: function() {
+		var me = this;
+		this.search_modal.on('keydown', function(e) {
+			if(me.sidebar.find('.list-link').length > 1) {
+				var list_types = me.get_all_list_types();
+				var current_type_index = list_types.indexOf(me.current_type);
+				// DOWN and UP keys navigate sidebar
+				if(e.which === 40) {
+					if(current_type_index < list_types.length - 1) {
+						next_type = list_types[current_type_index + 1];
+						me.sidebar.find('*[data-category="'+ next_type +'"]').trigger('click');
+					}
+				} else if(e.which === 38) {
+					if(current_type_index > 0) {
+						last_type = list_types[current_type_index - 1];
+						me.sidebar.find('*[data-category="'+ last_type +'"]').trigger('click');
+					}
+				} else if(e.which === 8) {
+					// Backspace key focuses input
+					if(!me.input.is(":focus")) {
+						me.input.focus();
+					}
+				}
+			}
+		});
+		this.search_modal.on('keypress', function(e) {
+			if(!me.input.is(":focus")) {
+				me.input.focus();
+			}
+		});
 	},
 
 	build_results: function(keywords) {
@@ -103,6 +136,7 @@ frappe.search.UnifiedSearch = Class.extend({
 		link.addClass("active");
 		var type = link.attr('data-category');
 		this.results_area.empty().html(this.full_lists[type]);
+		me.results_area.find('.module-section-link').first().focus();
 
 		this.results_area.find('.section-more').on('click', function() {
 			var type = $(this).attr('data-category');
@@ -147,7 +181,9 @@ frappe.search.UnifiedSearch = Class.extend({
 		var me = this;
 		var more_results = more_data[0];
 		var more = more_data[1];
+		var last_result = this.results_area.find('.module-section-link').last();
 		this.results_area.find('.list-more').before(more_results);
+		last_result.next().focus();
 		if(!more) {
 			this.results_area.find('.list-more').hide();
 			var no_of_results = this.results_area.find('.result').length;
