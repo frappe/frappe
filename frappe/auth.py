@@ -198,6 +198,7 @@ class LoginManager:
 	def check_password(self, user, pwd):
 		"""check password"""
 		frappe.flags.auth_failed = False
+		frappe.flags.ban_ip = False
 		self.is_ip_banned()
 		try:
 			# returns user in correct case
@@ -242,7 +243,9 @@ class LoginManager:
 			from `tabBanned IP` where banned=1"""):
 
 			frappe.local.response['_server_messages'] = json.dumps(['Login from this IP address\
-				has been blocked for security reasons. Please try again after {}.'.format(defaults.defaults.ban_ip_till or 5.0)])
+				has been blocked for security reasons. Please try again after {}.'.format(defaults.ban_ip_till or 5.0)])
+			frappe.flags.ban_ip = True
+			frappe.flags.auth_failed = False
 			self.fail('Login from this IP address has been blocked for security reasons. Please try again after sometime.')
 
 	def validate_hour(self):
