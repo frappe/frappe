@@ -320,7 +320,7 @@ frappe.search.GlobalSearch = Class.extend({
 
 	make_result_item: function(type, result) {
 		var link_html = '<div class="result '+ type +'-result">' +
-			'<a href="{0}" class="module-section-link small">{1}</a>' +
+			'<b><a href="{0}" class="module-section-link small">{1}</a></b>' +
 			'<p class="small">{2}</p>' +
 			'</div>';
 		var formatted_result = this.format_result(result);
@@ -341,7 +341,7 @@ frappe.search.GlobalSearch = Class.extend({
 			if(part.toLowerCase().indexOf(keywords) !== -1) {
 				var colon_index = part.indexOf(':');
 				part = '<span class="field-name text-muted">' +
-					part.slice(0, colon_index + 1) + '</span>' +
+					me.bold_keywords(part.slice(0, colon_index + 1), keywords) + '</span>' +
 					me.bold_keywords(part.slice(colon_index + 1), keywords);
 				content += part + ', ';
 			}
@@ -605,7 +605,7 @@ frappe.search.NavSearch = frappe.search.GlobalSearch.extend({
 			return this.make_result_link(type, result, link_html);
 
 		} else {
-			var result_div = $('<div class="result '+ type +'-result single-link"></div>');
+			var result_div = $('<div class="result '+ type +'-result single-link result-with-subtype"></div>');
 			result.subtypes.forEach(function(s) {
 				if(["Gantt", "Report", "Calendar"].indexOf(s.type) !== -1) {
 					var button_html = '<button class="btn btn-default btn-xs result-subtype"'+
@@ -706,6 +706,7 @@ frappe.search.HelpSearch = frappe.search.GlobalSearch.extend({
 	},
 
 	set_types: function() {
+		this.section_length = 4;
 		this.types = [this.search_type];
 		this.sidelist = this.make_sidelist();
 		this.get_result_set(this.types[0]);
@@ -744,10 +745,39 @@ frappe.search.HelpSearch = frappe.search.GlobalSearch.extend({
 		this.lists[type] = this.make_full_list(type, results, more);
 	},
 
+	make_section: function(type, results) {
+		var me = this;
+		var results_section = $('<div class="row module-section" data-type="'+type+'">'+
+			'<div class="col-sm-12 module-section-column">' +
+			'<div class="h4 section-head">'+type+'</div>' +
+			'<div class="section-body"></div>'+
+			'</div></div>');
+		var results_col = results_section.find('.module-section-column');
+		results.slice(0, this.section_length).forEach(function(result) {
+			results_col.append(me.make_condensed_result_item(type, result));
+		});
+		if(results.length > this.section_length) {
+			results_col.append('<a href="#" class="section-more small" data-category="'
+				+ type + '" style="margin-top:10px">More...</a>');
+
+		}
+		return results_section;
+	},
+
+	make_condensed_result_item: function(type, result) {
+		var me = this;
+		var link_html = '<div class="result '+ type +'-result">' +
+			'<b><a href="#" data-path="{0}" class="module-section-link small">{1}</a></b>' +
+			'<p class="small"></p>' +
+			'</div>';
+		var link = $(__(link_html, [result[2], result[0]]));
+		return link;
+	},
+
 	make_result_item: function(type, result) {
 		var me = this;
 		var link_html = '<div class="result '+ type +'-result">' +
-			'<a href="#" data-path="{0}" class="module-section-link small">{1}</a>' +
+			'<b><a href="#" data-path="{0}" class="module-section-link small">{1}</a></b>' +
 			'<p class="small">{2}</p>' +
 			'</div>';
 		var link = $(__(link_html, [result[2], result[0], result[1]]));

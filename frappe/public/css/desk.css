@@ -727,12 +727,15 @@ fieldset[disabled] .form-control {
   content: '\f0a4';
 }
 .search-dialog .full-list .result {
-  border-bottom: 1px solid #d1d8dd;
-  margin-top: 10px;
+  margin-top: 15px;
 }
 .search-dialog .full-list .result .result-subtype {
   float: right;
   margin-left: 10px;
+}
+.search-dialog .full-list .result-with-subtype {
+  border-bottom: 1px solid #d1d8dd;
+  margin-top: 10px;
 }
 .search-dialog .full-list .section-head {
   margin-bottom: 25px;
