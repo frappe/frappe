@@ -4,9 +4,11 @@ frappe.provide('frappe.search');
 
 frappe.search.AwesomeBar = Class.extend({
 	setup: function(element) {
+		var me = this;
+
 		var $input = $(element);
 		var input = $input.get(0);
-		var me = this;
+
 		this.search = new frappe.search.UnifiedSearch();
 		this.global = new frappe.search.GlobalSearch();
 		this.nav = new frappe.search.NavSearch();
@@ -56,7 +58,7 @@ frappe.search.AwesomeBar = Class.extend({
 			sort: function(a, b) {
 				var a_index = a.split("%%%")[3];
 				var b_index = b.split("%%%")[3];
-				return (a_index - b_index);
+				return (a_index*10 - b_index*10);
 			}
 		});
 
@@ -102,7 +104,7 @@ frappe.search.AwesomeBar = Class.extend({
 					}
 				});
 				awesomplete.list = out;
-			}, 200));
+			}, 100));
 
 		});
 
@@ -215,7 +217,7 @@ frappe.search.AwesomeBar = Class.extend({
 				out.label = match[0].bold();
 				out.value = match[0];
 			}
-			out.index = 29;
+			out.index = 30;
 			out.default = "Recent";
 			return out;
 		}, true);
@@ -261,9 +263,7 @@ frappe.search.AwesomeBar = Class.extend({
 
 		var ilen = item.length;
 		var tlen = txt.length;
-		var match_level1 = 0.5;
-		var match_level2 = 0.8;
-		var index = ((tlen/ilen) > match_level1) ? 24 : index;
+		var match_level = tlen/ilen;
 		var rendered_label = "";
 		var i, j, skips = 0, mismatches = 0;
 
@@ -271,14 +271,9 @@ frappe.search.AwesomeBar = Class.extend({
 			return [];
 		}
 		if (item.indexOf(txt) !== -1) {
-			// prefer single words
-			index = (item.indexOf(' ') === -1) ? index-1 : index;
-			index = ((tlen/ilen) > match_level2) ? 21 : index;
-
 			var regEx = new RegExp("("+ txt +")", "ig");
 			rendered_label = _item.replace(regEx, '<b>$1</b>');
-
-			return [_item, index, rendered_label];
+			return [_item, ilen/50, rendered_label];
 		}
 		outer: for (i = 0, j = 0; i < tlen; i++) {
 			var t_ch = txt.charCodeAt(i);
@@ -305,7 +300,7 @@ frappe.search.AwesomeBar = Class.extend({
 			return [];
 		}
 		rendered_label += _item.slice(j);
-		return [_item, index + 10, rendered_label];
+		return [_item, 20 + ilen/50, rendered_label];
 	},
 
 	set_specifics: function(txt, end_txt) {
@@ -313,9 +308,6 @@ frappe.search.AwesomeBar = Class.extend({
 		var results = this.build_options(txt);
 		results.forEach(function(r) {
 			if((r.type).toLowerCase().indexOf(end_txt.toLowerCase()) === 0) {
-				if(r.index < 25) {
-					r.index = 21;
-				}
 				me.options.push(r);
 			}
 		});
@@ -346,11 +338,11 @@ frappe.search.AwesomeBar = Class.extend({
 			label: __("Search for '" + txt.bold() + "'"),
 			value: __("Search for '" + txt + "'"),
 			match: txt,
-			index: 22,
+			index: 10,
 			default: "Search",
 			onclick: function() {
 				me.search.search_dialog.show();
-				me.search.setup_search(txt, [me.global, me.nav, me.help]);
+				me.search.setup_search(txt, [me.nav, me.global, me.help]);
 			}
 		});
 	},
@@ -367,7 +359,7 @@ frappe.search.AwesomeBar = Class.extend({
 				label: __('Find {0} in {1}', [txt.bold(), route[1].bold()]),
 				value: __('Find {0} in {1}', [txt, route[1]]),
 				route_options: options,
-				index: 23,
+				index: 11,
 				onclick: function() {
 					cur_list.refresh();
 				},
@@ -390,7 +382,7 @@ frappe.search.AwesomeBar = Class.extend({
 					label: formatted_value,
 					value: __('{0} = {1}', [txt, val]),
 					match: val,
-					index: 24,
+					index: 12,
 					default: "Calculator",
 					onclick: function() {
 						msgprint(formatted_value, "Result");
@@ -408,13 +400,13 @@ frappe.search.AwesomeBar = Class.extend({
 		if(in_list(txt.split(" "), "in") && (txt.slice(-2) !== "in")) {
 			parts = txt.split(" in ");
 			frappe.boot.user.can_read.forEach(function (item) {
-				var target = me.fuzzy_search(parts[1], item, 21)[0];
+				var target = me.fuzzy_search(parts[1], item, 13)[0];
 				if(target) {
 					out.push({
 						label: __('Find {0} in {1}', [__(parts[0]).bold(), __(target).bold()]),
 						value: __('Find {0} in {1}', [__(parts[0]), __(target)]),
 						route_options: {"name": ["like", "%" + parts[0] + "%"]},
-						index: 21,
+						index: 13,
 						default: "In List",
 						route: ["List", target]
 					});
@@ -429,14 +421,15 @@ frappe.search.AwesomeBar = Class.extend({
 		var out = [];
 		if(txt.split(" ")[0]==="new") {
 			frappe.boot.user.can_create.forEach(function (item) {
-				var result = me.fuzzy_search(txt.substr(4), item, 21);
+				var result = me.fuzzy_search(txt.substr(4), item, 14);
 				var target = result[0];
+				var index = result[1];
 				var rendered_label = result[2];
 				if(target) {
 					out.push({
 						label: rendered_label,
 						value: __("New {0}", [target]),
-						index: 21,
+						index: 14 + index,
 						type: "New",
 						prefix: "New",
 						match: target,
@@ -453,23 +446,23 @@ frappe.search.AwesomeBar = Class.extend({
 		var out = [];
 
 		var result, target, index, rendered_label;
-		var option = function(type, route) {
+		var option = function(type, route, order) {
 			return {
 				label: rendered_label,
 				value: __(target),
 				route: route,
-				index: index,
+				index: 15 + index + order,
 				match: target,
 				type: type
 			}
 		};
 		frappe.boot.user.can_read.forEach(function (item) {
-			result = me.fuzzy_search(txt, item, 25);
+			result = me.fuzzy_search(txt, item, 15);
 			target = result[0];
 			index = result[1];
 			rendered_label = result[2];
 			if(target) {
-				// include 'making new' option (not working)
+				// include 'making new' option
 				// if(in_list(frappe.boot.user.can_create, target)) {
 				// 	out.push({
 				// 		label: rendered_label,
@@ -481,19 +474,19 @@ frappe.search.AwesomeBar = Class.extend({
 				// 	});
 				// }
 				if(in_list(frappe.boot.single_types, target)) {
-					out.push(option("", ["Form", target, target]));
+					out.push(option("", ["Form", target, target], 0));
 
 				} else if(in_list(frappe.boot.treeviews, target)) {
-					out.push(option("Tree", ["Tree", target]));
+					out.push(option("Tree", ["Tree", target], 0));
 
 				} else {
-					out.push(option("List", ["List", target]));
+					out.push(option("List", ["List", target], 0));
 					if(frappe.model.can_get_report(target)) {
-						out.push(option("Report", ["Report", target]));
+						out.push(option("Report", ["Report", target], 0.001));
 					}
 					if(frappe.boot.calendars.indexOf(target) !== -1) {
-						out.push(option("Calendar", ["List", target, "Calendar"]));
-						out.push(option("Gantt", ["List", target, "Gantt"]));
+						out.push(option("Calendar", ["List", target, "Calendar"], 0.002));
+						out.push(option("Gantt", ["List", target, "Gantt"], 0.003));
 					}
 				}
 
@@ -506,7 +499,7 @@ frappe.search.AwesomeBar = Class.extend({
 		var me = this;
 		var out = [];
 		Object.keys(frappe.boot.user.all_reports).forEach(function(item) {
-			var result = me.fuzzy_search(txt, item, 26);
+			var result = me.fuzzy_search(txt, item, 20);
 			var target = result[0];
 			var index = result[1];
 			var rendered_label = result[2];
@@ -522,7 +515,7 @@ frappe.search.AwesomeBar = Class.extend({
 					label: rendered_label,
 					value: __("Report {0}" , [__(target)]),
 					match: txt,
-					index: index,
+					index: 20 + index,
 					type: "Report",
 					prefix: "Report",
 					route: route
@@ -541,7 +534,7 @@ frappe.search.AwesomeBar = Class.extend({
 			p.name = name;
 		});
 		Object.keys(this.pages).forEach(function(item) {
-			var result = me.fuzzy_search(txt, item, 27);
+			var result = me.fuzzy_search(txt, item, 21);
 			var target = result[0];
 			var index = result[1];
 			var rendered_label = result[2];
@@ -551,7 +544,7 @@ frappe.search.AwesomeBar = Class.extend({
 					label: rendered_label,
 					value: __("Open {0}", [__(target)]),
 					match: txt,
-					index: index,
+					index: 21 + index,
 					type: "Page",
 					prefix: "Open",
 					route: [page.route || page.name]
@@ -565,7 +558,7 @@ frappe.search.AwesomeBar = Class.extend({
 				label: rendered_label,
 				value: __("Open {0}", [__(target)]),
 				route: [target, 'Event'],
-				index: 27,
+				index: 21,
 				type: "Calendar",
 				prefix: "Open",
 				match: target
@@ -578,7 +571,7 @@ frappe.search.AwesomeBar = Class.extend({
 		var me = this;
 		var out = [];
 		Object.keys(frappe.modules).forEach(function(item) {
-			var result = me.fuzzy_search(txt, item, 28);
+			var result = me.fuzzy_search(txt, item, 22);
 			var target = result[0];
 			var index = result[1];
 			var rendered_label = result[2];
@@ -589,7 +582,7 @@ frappe.search.AwesomeBar = Class.extend({
 					label: rendered_label,
 					value: __("Open {0}", [__(target)]),
 					match: txt,
-					index: index,
+					index: 22 + index,
 					type: "Module",
 					prefix: "Open"
 				}
