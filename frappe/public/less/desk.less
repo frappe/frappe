@@ -563,13 +563,29 @@ textarea.form-control {
 	}
 
 	.layout-side-section {
+		.module-sidebar-nav {
+			margin-top: 0px;
+		}
 		.help-link {
 			padding-top: 20px;
 			text-transform: uppercase;
 		}
 
-		.nav > li > a {
-			padding-left: 20px;
+		.nav {
+			li a {
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				padding-left: 20px;
+
+				i {
+					visibility: hidden;
+				}
+			}
+
+			.active i {
+				visibility: visible;
+			}
 		}
 	}
 

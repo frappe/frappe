@@ -492,7 +492,6 @@ frappe.search.AwesomeBar = Class.extend({
 
 			}
 		});
-		console.log(out);
 		return out;
 	},
 

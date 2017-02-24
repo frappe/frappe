@@ -86,9 +86,6 @@ frappe.search.UnifiedSearch = Class.extend({
 
 	bind_events: function() {
 		var me = this;
-		// this.search_modal.on('keypress', function() {
-		// 	me.input.focus();
-		// });
 		this.sidebar.find('.list-link').on('click', function() {
 			me.set_sidebar_link_action($(this));
 		});
@@ -103,9 +100,7 @@ frappe.search.UnifiedSearch = Class.extend({
 	set_sidebar_link_action: function(link) {
 		var me = this;
 		this.sidebar.find(".list-link").removeClass("active");
-		this.sidebar.find(".list-link i").addClass("hide");
 		link.addClass("active");
-		link.find("i").removeClass("hide");
 		var type = link.attr('data-category');
 		this.results_area.empty().html(this.full_lists[type]);
 
@@ -132,7 +127,6 @@ frappe.search.UnifiedSearch = Class.extend({
 
 	show_summary: function() {
 		this.current_type = '';
-		this.sidebar.find(".list-link i").addClass("hide");
 		this.sidebar.find(".list-link").removeClass("active");
 		this.sidebar.find(".list-link").first().addClass("active");
 		this.results_area.empty().html(this.summary);
@@ -190,7 +184,7 @@ frappe.search.UnifiedSearch = Class.extend({
 					'No results found for: '+ "'"+ keywords +"'" +'</p>');
 			} else {
 				this.sidebar.find('.search-sidelist').prepend('<li class="module-sidebar-item list-link"' +
-					'data-category="All Results"><a><span>'+__("All Results")+'</span><i class="octicon octicon-chevron-right pull-right hide"' +
+					'data-category="All Results"><a><span>'+__("All Results")+'</span><i class="octicon octicon-chevron-right pull-right"' +
 					'></a></li>');
 				var list_types = this.get_all_list_types();
 				if(list_types.indexOf(this.current_type) === -1) {
@@ -261,7 +255,7 @@ frappe.search.GlobalSearch = Class.extend({
 
 	make_sidelist_item: function(type) {
 		var sidelist_item = '<li class="module-sidebar-item list-link" data-search="{0}"' +
-			'data-category="{1}"><a><span>{1}</span><i class="octicon octicon-chevron-right pull-right hide"' +
+			'data-category="{1}"><a><span>{1}</span><i class="octicon octicon-chevron-right pull-right"' +
 			'></a></li>';
 		return $(__(sidelist_item, [this.search_type, type]));
 	},
@@ -716,7 +710,7 @@ frappe.search.HelpSearch = frappe.search.GlobalSearch.extend({
 		var sidelist = [];
 		var sidelist_item = '<li class="module-sidebar-item list-link help-link" '+
 		'data-search="'+ this.search_type + '" data-category="'+ this.search_type + '"><a><span>'+
-			this.search_type +'</span><i class="octicon octicon-chevron-right pull-right hide"></a></li>';
+			this.search_type +'</span><i class="octicon octicon-chevron-right pull-right"></a></li>';
 		sidelist.push(sidelist_item);
 		return sidelist;
 	},

@@ -687,12 +687,24 @@ fieldset[disabled] .form-control {
   padding: 0px;
   overflow-y: auto;
 }
+.search-dialog .layout-side-section .module-sidebar-nav {
+  margin-top: 0px;
+}
 .search-dialog .layout-side-section .help-link {
   padding-top: 20px;
   text-transform: uppercase;
 }
-.search-dialog .layout-side-section .nav > li > a {
+.search-dialog .layout-side-section .nav > li a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   padding-left: 20px;
+}
+.search-dialog .layout-side-section .nav li a i {
+  visibility: hidden;
+}
+.search-dialog .layout-side-section .nav .active i {
+  visibility: visible;
 }
 .search-dialog .results-area .search-intro-placeholder {
   color: #d4d9dd;
