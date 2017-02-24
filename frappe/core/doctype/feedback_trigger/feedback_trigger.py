@@ -36,10 +36,10 @@ def send_feedback_request(reference_doctype, reference_name, trigger=None, detai
 	feedback_request, url = get_feedback_request_url(reference_doctype,
 		reference_name, details.get("recipients"), trigger)
 
-	feedback_url = "Please click <a href='{url}'>here</a> to submit your feedback.".format(url=url)
+	feedback_url = frappe.render_template("templates/emails/feedback_request_url.html", { "url": url })
 
 	# appending feedback url to message body
-	details.update({ "message": "{message}<br>{feedback_url}".format(
+	details.update({ "message": "{message}{feedback_url}".format(
 		message=details.get("message"),
 		feedback_url=feedback_url)
 	})
@@ -51,10 +51,14 @@ def send_feedback_request(reference_doctype, reference_name, trigger=None, detai
 def trigger_feedback_request(doc, method):
 	""" trigger the feedback alert"""
 
-	feedback_trigger = frappe.db.get_value("Feedback Trigger", { "enabled": 1, "document_type": doc.doctype })
-	if feedback_trigger:
-		frappe.enqueue('frappe.core.doctype.feedback_trigger.feedback_trigger.send_feedback_request', 
-			trigger=feedback_trigger, reference_doctype=doc.doctype, reference_name=doc.name, now=frappe.flags.in_test)
+	if doc.flags.in_delete:
+		frappe.enqueue('frappe.core.doctype.feedback_trigger.feedback_trigger.delete_feedback_request_and_feedback',
+			reference_doctype=doc.doctype, reference_name=doc.name, now=frappe.flags.in_test)
+	else:
+		feedback_trigger = frappe.db.get_value("Feedback Trigger", { "enabled": 1, "document_type": doc.doctype })
+		if feedback_trigger:
+			frappe.enqueue('frappe.core.doctype.feedback_trigger.feedback_trigger.send_feedback_request',
+				trigger=feedback_trigger, reference_doctype=doc.doctype, reference_name=doc.name, now=frappe.flags.in_test)
 
 @frappe.whitelist()
 def get_feedback_request_details(reference_doctype, reference_name, trigger=None, request=None):
@@ -80,13 +84,17 @@ def get_feedback_request_details(reference_doctype, reference_name, trigger=None
 	context = get_context(doc)
 
 	recipients = doc.get(feedback_trigger.email_fieldname, None)
-	communications = frappe.get_all("Communication", filters={
-		"reference_doctype": reference_doctype,
-		"reference_name": reference_name,
-		"communication_type": "Communication"
-	}, fields=["name"])
+	if feedback_trigger.check_communication:
+		communications = frappe.get_all("Communication", filters={
+			"reference_doctype": reference_doctype,
+			"reference_name": reference_name,
+			"communication_type": "Communication"
+		}, fields=["name"])
 
-	if recipients and eval(feedback_trigger.condition, context) and len(communications) >= 1:
+		if len(communications) < 1:
+			frappe.throw(_("No communication found for the document"))
+
+	if recipients and eval(feedback_trigger.condition, context):
 		subject = feedback_trigger.subject
 		context.update({ "feedback_trigger": feedback_trigger })
 
@@ -118,7 +126,7 @@ def get_feedback_request_url(reference_doctype, reference_name, recipients, trig
 		doctype=reference_doctype,
 		docname=reference_name,
 		email_id=recipients,
-		nonce=feedback_request.name
+		nonce=feedback_request.key
 	)
 
 	return [ feedback_request.name, feedback_url ]
@@ -145,3 +153,26 @@ def get_enabled_feedback_trigger():
 
 def get_context(doc):
 	return { "doc": doc }
+
+def delete_feedback_request_and_feedback(reference_doctype, reference_name):
+	""" delete all the feedback request and feedback communication """
+	if not all([reference_doctype, reference_name]):
+		return
+
+	feedback_requests = frappe.get_all("Feedback Request", filters={
+		"is_feedback_submitted": 0,
+		"reference_doctype": reference_doctype,
+		"reference_name": reference_name
+	})
+
+	communications = frappe.get_all("Communication", {
+		"communication_type": "Feedback",
+		"reference_doctype": reference_doctype,
+		"reference_name": reference_name
+	})
+
+	for request in feedback_requests:
+		frappe.delete_doc("Feedback Request", request.get("name"), ignore_permissions=True)
+
+	for communication in communications:
+		frappe.delete_doc("Communication", communication.get("name"), ignore_permissions=True)

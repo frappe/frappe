@@ -5,8 +5,18 @@
 from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
+from frappe.utils import get_datetime
 
 class FeedbackRequest(Document):
+	def autoname(self):
+		""" feedback request name in the format Feedback for {doctype} {name} on {datetime}"""
+
+		self.name = "Feedback for {doctype} {docname} on {datetime}".format(
+			doctype=self.reference_doctype,
+			docname=self.reference_name,
+			datetime=get_datetime()
+		)
+
 	def before_insert(self):
 		from frappe.utils import random_string
 
@@ -17,7 +27,7 @@ def is_valid_feedback_request(key=None):
 	if not key:
 		return False
 
-	is_feedback_submitted = frappe.db.get_value("Feedback Request", key, "is_feedback_submitted")
+	is_feedback_submitted = frappe.db.get_value("Feedback Request", { "key": key }, "is_feedback_submitted")
 	if is_feedback_submitted:
 		return False
 	else:

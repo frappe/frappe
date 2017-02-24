@@ -153,7 +153,6 @@ frappe.ui.form.Sidebar = Class.extend({
 	setup_ratings: function() {
 		_ratings = this.frm.get_docinfo().rating || 0;
 
-
 		if(_ratings) {
 			this.ratings.removeClass("hide");
 			rating_icons = frappe.render_template("rating_icons", {rating: _ratings, show_label: false});
