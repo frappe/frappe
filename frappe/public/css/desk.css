@@ -764,6 +764,11 @@ fieldset[disabled] .form-control {
     margin: 30px 0px;
   }
 }
+@media (min-width: 600px) {
+  .search-dialog .results-area .back-link {
+    display: none;
+  }
+}
 .result p {
   margin-top: 0.2em;
 }

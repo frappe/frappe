@@ -31,7 +31,7 @@ frappe.search.UnifiedSearch = Class.extend({
 		this.search_types = search_objects.map(function(s) {
 			return s.search_type;
 		});
-		this.current_type = '';
+		this.current_type = "All Results";
 		this.reset();
 		this.input.val(keywords);
 		this.input.on("input", function() {
@@ -57,7 +57,7 @@ frappe.search.UnifiedSearch = Class.extend({
 		this.sidebar.empty();
 		this.results_area.empty();
 		this.results_area.append($('<div class="search-intro-placeholder"><span>' +
-			'<i class="mega-octicon octicon-telescope"></i><p>Look for anything</p></span></div>'));
+			'<i class="mega-octicon octicon-telescope"></i><p>Search for anything</p></span></div>'));
 	},
 
 	build_results: function(keywords) {
@@ -81,25 +81,14 @@ frappe.search.UnifiedSearch = Class.extend({
 			me.summary.append(section);
 		});
 		this.full_lists = Object.assign(this.full_lists, results_obj.lists);
+		this.full_lists["All Results"] = this.summary;
 		this.render_next_search(keywords);
 	},
 
 	bind_events: function() {
 		var me = this;
-		this.results_area.on('scroll', function() {
-			if(me.results_area.find('.all-results-link').length !== 0) {
-				return;
-			}
-			var r = me.results_area.find('.module-section')[1];
-			me.results_area.find('.module-section').each(function() {
-				if(($(this).position().top < 120) && ($(this).position().top + $(this).height() > 120)) {
-					var types = $(this).attr('data-type').split(',');
-					me.sidebar.find('.list-link').removeClass('active');
-					types.forEach(function(type) {
-						me.sidebar.find('*[data-category="'+ type +'"]').addClass('active');
-					});
-				}
-			});
+		this.search_modal.on('keypress', function() {
+			me.input.focus();
 		});
 		this.sidebar.find('.list-link').on('click', function() {
 			me.set_sidebar_link_action($(this));
@@ -107,17 +96,25 @@ frappe.search.UnifiedSearch = Class.extend({
 		this.results_area.find('.section-more').on('click', function() {
 			var type = $(this).attr('data-category');
 			me.sidebar.find('*[data-category="'+ type +'"]').trigger('click');
+			return false;
 		});
 		this.results_area.find('.Help-result a').on('click', frappe.help.show_results);
 	},
 
 	set_sidebar_link_action: function(link) {
+		var me = this;
 		this.sidebar.find(".list-link").removeClass("active");
 		this.sidebar.find(".list-link i").addClass("hide");
 		link.addClass("active");
 		link.find("i").removeClass("hide");
 		var type = link.attr('data-category');
 		this.results_area.empty().html(this.full_lists[type]);
+
+		this.results_area.find('.section-more').on('click', function() {
+			var type = $(this).attr('data-category');
+			me.sidebar.find('*[data-category="'+ type +'"]').trigger('click');
+			return false;
+		});
 
 		this.current_type = type;
 
@@ -197,12 +194,12 @@ frappe.search.UnifiedSearch = Class.extend({
 					'data-category="All Results"><a><span>All Results</span><i class="octicon octicon-chevron-right pull-right hide"' +
 					'></a></li>');
 				var list_types = this.get_all_list_types();
-				if(list_types.indexOf(this.current_type) >= 0) {
-					this.bind_events();
-					this.sidebar.find('*[data-category="'+ this.current_type +'"]').trigger('click');
-				} else {
-					this.show_summary();
+				if(list_types.indexOf(this.current_type) === -1) {
+					this.current_type = "All Results";
 				}
+				this.bind_events();
+				this.sidebar.find('*[data-category="'+ this.current_type +'"]').trigger('click');
+				this.bind_events();
 			}
 		}
 	},
@@ -370,7 +367,7 @@ frappe.search.GlobalSearch = Class.extend({
 			results_col.append(me.make_result_item(type, result));
 		});
 		if(results.length > this.section_length) {
-			results_col.append('<a class="section-more small" data-category="'
+			results_col.append('<a href="#" class="section-more small" data-category="'
 				+ type + '" style="margin-top:10px">More...</a>');
 
 		}
@@ -415,7 +412,7 @@ frappe.search.GlobalSearch = Class.extend({
 			results_col.append(me.make_result_item(type, result));
 		});
 		if(more) {
-			results_col.append('<a class="list-more small" data-search="'+ this.search_type +
+			results_col.append('<a href="#" class="list-more small" data-search="'+ this.search_type +
 				'" data-category="'+ type + '" style="margin-top:10px"> More...</a>');
 		}
 		return results_list;
@@ -526,7 +523,7 @@ frappe.search.NavSearch = frappe.search.GlobalSearch.extend({
 		this.section_length = 4;
 
 		this.set_nav_results(me.keywords);
-		var types = ["Search in ...", "Lists", "Reports", "Pages", "Modules"];
+		var types = ["Lists", "Reports", "Pages", "Modules"];
 		types.forEach(function(type) {
 			if(me.nav_results[type].length > 0) {
 				me.types.push(type);
@@ -545,7 +542,6 @@ frappe.search.NavSearch = frappe.search.GlobalSearch.extend({
 		var me = this;
 		this.awesome_bar = new frappe.search.AwesomeBar();
 		this.nav_results = {
-			"Search in ...": me.awesome_bar.make_search_in_list(keywords),
 			"Lists": me.awesome_bar.get_doctypes(keywords),
 			"Reports": me.awesome_bar.get_reports(keywords),
 			"Pages": me.awesome_bar.get_pages(keywords),
@@ -590,7 +586,16 @@ frappe.search.NavSearch = frappe.search.GlobalSearch.extend({
 		this.make_more_list(type, results, more)
 	},
 
+	make_path: function(route) {
+		path = '#';
+		route.forEach(function(r) {
+			path += r + '/';
+		});
+		return path.slice(0, -1);
+	},
+
 	make_result_item: function(type, result) {
+		var me = this;
 		if(!result.subtypes) {
 			var link_html = '<div class="result '+ type +'-result single-link">' +
 				'<a href="{0}" class="module-section-link small">{1}</a>' +
@@ -599,29 +604,19 @@ frappe.search.NavSearch = frappe.search.GlobalSearch.extend({
 
 		} else {
 			var result_div = $('<div class="result '+ type +'-result single-link"></div>');
-			var button_html = '<button class="btn btn-default btn-xs text-muted result-subtype"'+
-				'>{0}</button>'
 			result.subtypes.forEach(function(s) {
 				if(["Gantt", "Report", "Calendar"].indexOf(s.type) !== -1) {
-					var button = $(__(button_html, [s.type]));
-					button.on('click', function() {
-						if(s.route_options) {
-							frappe.route_options = s.route_options;
-						}
-						frappe.set_route(s.route);
-						return false;
-					});
+					var button_html = '<button class="btn btn-default btn-xs result-subtype"'+
+						'><a class="text-muted" href="{0}">{1}</a></button>';
+					var button = $(__(button_html, [me.make_path(s.route), s.type]));
 					result_div.append(button);
 				} else {
-					title_link_html = '<a href="{0}" class="module-section-link small">{1}</a>';
-					var link = $(__(title_link_html, ['#', result.title + ' ' + s.type]));
-					link.on('click', function() {
-						if(s.route_options) {
-							frappe.route_options = s.route_options;
-						}
-						frappe.set_route(s.route);
-						return false;
-					});
+					title_link_html = '<a href="{0}" class="module-section-link small result-main">{1}</a>';
+					if(s.type === "List") {
+						var link = $(__(title_link_html, [me.make_path(s.route), result.title]));
+					} else {
+						var link = $(__(title_link_html, [me.make_path(s.route), result.title + ' ' + s.type]));
+					}
 					result_div.append(link);
 				}
 			})
@@ -632,8 +627,9 @@ frappe.search.NavSearch = frappe.search.GlobalSearch.extend({
 	},
 
 	make_result_link: function(type, result, link_html) {
+		var me = this;
 		if(!result.onclick) {
-			var link = $(__(link_html, ['#', result.label]));
+			var link = $(__(link_html, [me.make_path(result.route), result.label]));
 			link.on('click', function() {
 				if(result.route_options) {
 					frappe.route_options = result.route_options;
@@ -695,7 +691,7 @@ frappe.search.NavSearch = frappe.search.GlobalSearch.extend({
 			results_column.append(me.make_result_item(type, result));
 		});
 		if(results.length > this.section_length) {
-			results_column.append('<a class="section-more small" data-category="'
+			results_column.append('<a href="#" class="section-more small" data-category="'
 				+ type + '" style="margin-top:10px">More...</a>');
 		}
 		return results_column;
