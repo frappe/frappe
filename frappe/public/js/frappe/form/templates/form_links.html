@@ -10,7 +10,12 @@
 				data-doctype="{{ doctype }}">
 				<a class="badge-link small">{{ __(doctype) }}</a>
 				<span class="text-muted small count"></span>
-				<span class="open-notification hidden" title="{{ __("Open {0}", [__(doctype)])}}"></span>
+				<span class="open-notification hidden"
+					title="{{ __("Open {0}", [__(doctype)])}}"></span>
+				{% if !internal_links[doctype] %}
+					<button class="btn btn-new btn-default btn-xs pull-right hidden"
+						data-doctype="{{ doctype }}">{{ __("New") }}</button>
+				{% endif %}
 			</div>
 			{% } %}
 		</div>

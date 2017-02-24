@@ -144,8 +144,14 @@
   padding-bottom: 15px;
 }
 .form-links .document-link {
-  margin-bottom: 5px;
+  margin-bottom: 10px;
   height: 22px;
+}
+.form-links .document-link:hover .badge-link {
+  text-decoration: underline;
+}
+.form-links .document-link:hover .badge-link[disabled='disabled'] {
+  text-decoration: none;
 }
 .form-links .count {
   display: inline-block;
