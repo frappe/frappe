@@ -4,10 +4,15 @@
 frappe.provide("frappe.views");
 
 frappe.views.ImageView = frappe.views.ListRenderer.extend({
+	name: 'Image',
 	render_view: function (values) {
 		this.items = values;
 		this.render_image_view();
 		this.setup_gallery();
+	},
+	prepare_meta: function() {
+		this._super();
+		this.page_title = this.page_title + ' ' + __('Images');
 	},
 	render_image_view: function () {
 		var html = this.items.map(this.render_item.bind(this)).join("");
@@ -40,6 +45,15 @@ frappe.views.ImageView = frappe.views.ListRenderer.extend({
 		// 	return "url('" + url + "')";
 		}
 		return null;
+	},
+	get_header_html: function () {
+		var main = frappe.render_template('image_view_item_main_head', {
+			columns: this.columns,
+			right_column: this.settings.right_column,
+			_checkbox: ((frappe.model.can_delete(this.doctype) || this.settings.selectable)
+				&& !this.no_delete)
+		});
+		return frappe.render_template('list_item_row_head', { main: main, list: this });
 	},
 	setup_gallery: function() {
 		var me = this;

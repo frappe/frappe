@@ -158,6 +158,7 @@ frappe.request.call = function(opts) {
 			}
 		})
 		.always(function(data, textStatus, xhr) {
+			console.log(data)
 			try {
 				if(typeof data==="string") {
 					data = JSON.parse(data);
@@ -224,6 +225,7 @@ frappe.request.cleanup = function(opts, r) {
 
 	$("body").attr("data-ajax-state", "complete");
 
+	console.log(opts, r)
 	// un-freeze page
 	if(opts.freeze) frappe.dom.unfreeze();
 

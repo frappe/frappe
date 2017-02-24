@@ -154,9 +154,14 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 
 		this.show_match_help();
 		this.init_menu();
-		this.setup_filterable();
-		this.init_filters();
 		this.init_sort_selector();
+		this.init_filters();
+		this.set_title();
+		this.init_headers();
+	},
+
+	refresh_surroundings: function() {
+		this.init_filters();
 		this.set_title();
 		this.init_headers();
 	},
@@ -191,6 +196,12 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 				doctype: this.doctype,
 				list_view: this
 			});
+		} else if (this.current_view === 'Kanban') {
+			this.list_renderer = new frappe.views.KanbanView({
+				doctype: this.doctype,
+				list_view: this,
+				board_name: this.kanban_board
+			});
 		}
 	},
 
@@ -199,8 +210,8 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 	},
 
 	set_title: function () {
-		if (this.current_view === 'Kanban') {
-			this.page.set_title(this.kanban_board);
+		if (this.list_renderer.page_title) {
+			this.page.set_title(this.list_renderer.page_title);
 		} else {
 			this.page.set_title(__(this.doctype));
 		}
@@ -220,27 +231,24 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 	},
 
 	init_headers: function () {
-		this.page.main.find('.list-headers').empty();
+		this.page.main.find('.list-headers > .list-row-head').hide();
+		this.list_header = this.page.main.find('.list-headers > '
+				+ '.list-row-head[data-list-renderer="'
+				+ this.list_renderer.name +'"]');
+		
+		if(this.list_header.length > 0) {
+			this.list_header.show();
+			return;
+		}
 
-		if (this.current_view === 'List') {
-			this.header = 'list_item_main_head';
-		} else if (in_list(['Image', 'Kanban', 'Gantt'], this.current_view)) {
-			this.header = 'image_view_item_main_head';
-		} else if (this.current_view === 'Calendar') {
-			this.header = null;
+
+		var html = this.list_renderer.get_header_html();
+		if(!html) {
 			this.list_header = $();
 			return;
 		}
 
-		var main = frappe.render_template(this.header, {
-			columns: this.list_renderer.columns,
-			right_column: this.list_renderer.settings.right_column,
-			_checkbox: ((frappe.model.can_delete(this.doctype) || this.list_renderer.settings.selectable)
-				&& !this.list_renderer.no_delete)
-		});
-
-		this.list_header = $(frappe.render_template('list_item_row_head', { main: main, list: this.list_renderer }))
-			.appendTo(this.page.main.find('.list-headers'));
+		this.list_header = $(html).appendTo(this.page.main.find('.list-headers'));
 
 		this.setup_like();
 		this.setup_select_all();
@@ -260,52 +268,14 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 			this.$page.find('.layout-main-section').css({ 'min-height': h_side });
 	},
 
-	setup_filterable: function () {
-		var me = this;
-		this.$page.on('click', '.filterable', function (e) {
-			var filters = $(this).attr('data-filter').split('|');
-			var added = false;
-
-			filters.forEach(function (f, i) {
-				f = f.split(',');
-				if (f[2] === 'Today') {
-					f[2] = frappe.datetime.get_today();
-				} else if (f[2] == 'User') {
-					f[2] = frappe.session.user;
-				}
-				var new_filter = me.filter_list.add_filter(me.doctype, f[0], f[1], f.slice(2).join(','));
-				if (new_filter) {
-					// set it to true if atleast 1 filter is added
-					added = true;
-				}
-			});
-			if (added) {
-				me.refresh(true);
-			}
-		});
-		this.$page.find('.result-list').on('click', '.list-row-left', function (e) {
-			// don't open in case of checkbox, like, filterable
-			if ($(e.target).hasClass('filterable')
-				|| $(e.target).hasClass('octicon-heart')
-				|| $(e.target).is(':checkbox')) {
-				return
-			}
-
-			var link = $(this).parent().find('a.list-id').get(0);
-			window.location.href = link.href;
-			return false;
-		});
-	},
-
 	init_filters: function () {
-		this.default_filters = this.list_renderer.default_filters || this.list_renderer.settings.default_filters || []
-		if (this.current_view === 'Kanban') {
-			this.set_kanban_board_filters();
-		} else if (this.user_settings.filters) {
-			this.set_filters(this.user_settings.filters);
-		} else if (this.list_renderer.settings.filters) {
-			this.set_filters(this.list_renderer.settings.filters);
+		var filters = this.user_settings.filters || this.list_renderer.filters;
+
+		if(this.list_renderer.override_user_settings.filters) {
+			filters = this.list_renderer.filters;
 		}
+
+		this.set_filters(filters);
 	},
 
 	set_filters: function (filters) {
@@ -319,40 +289,31 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 	},
 
 	init_sort_selector: function () {
-		var args = null;
-		var me = this;
-		if (this.list_renderer.sort_selector) {
-			args = this.list_renderer.sort_selector;
+		var order_by = this.user_settings.order_by || this.list_renderer.order_by;
+
+		if (order_by && order_by.includes('`.`')) {
+			// scrub table name (separated by dot), like `tabTime Log`.`modified` desc`
+			order_by = order_by.split('.')[1];
 		}
 
-		if (this.user_settings.order_by) {
-			// last saved settings
-			var order_by = this.user_settings.order_by
-
-			if (order_by.includes('`.`')) {
-				// scrub table name (separated by dot), like `tabTime Log`.`modified` desc`
-				order_by = order_by.split('.')[1];
-			}
-
-			parts = order_by.split(' ');
-			if (parts.length === 2) {
-				var fieldname = strip(parts[0], '`');
-				args = {
-					sort_by: fieldname,
-					sort_order: parts[1]
-				}
+		parts = order_by && order_by.split(' ');
+		if (parts && parts.length === 2) {
+			var fieldname = strip(parts[0], '`');
+			var args = {
+				sort_by: fieldname,
+				sort_order: parts[1]
 			}
 		}
 
+		if(!args) return;
 		// Always sort based on start_date field for Gantt View
-		if (frappe.get_route()[2] === 'Gantt') {
-			var field_map = frappe.views.calendar[this.doctype].field_map;
-			args = {
-				sort_by: field_map.start,
-				sort_order: 'asc'
-			}
-		}
-
+		// if (frappe.get_route()[2] === 'Gantt') {
+		// 	var field_map = frappe.views.calendar[this.doctype].field_map;
+		// 	args = {
+		// 		sort_by: field_map.start,
+		// 		sort_order: 'asc'
+		// 	}
+		// }
 		this.sort_selector = new frappe.ui.SortSelector({
 			parent: this.wrapper.find('.list-filters'),
 			doctype: this.doctype,
@@ -400,7 +361,10 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 			page_length: this.page_length,
 			show_filters: true,
 			new_doctype: this.doctype,
-			no_result_message: this.make_no_result()
+			no_result_message: this.make_no_result(),
+			show_no_result: function() {
+				return me.list_renderer.show_no_result;
+			}
 		});
 
 		this.setup_make_new_doc();
@@ -430,30 +394,14 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 		this.refresh_sidebar();
 		this.setup_view_variables();
 
-		// if view has changed, re-render header
+		// if view has changed, setup list_renderer
 		if (this.current_view !== this.last_view) {
 			this.setup_list_renderer();
-			this.set_title();
-			this.init_headers();
+			this.refresh_surroundings();
 			this.dirty = true;
 		}
 
 		// if kanban board changed, set filters
-		if (this.current_view === 'Kanban' &&
-			this.kanban_board !== this.last_kanban_board) {
-			this.set_title();
-			this.init_headers();
-			this.set_kanban_board_filters();
-			return;
-		}
-
-		// show view even if no results
-		// force_render_view flag used in listing.js
-		if (['Calendar', 'Kanban'].includes(this.current_view)) {
-			this.force_render_view = true;
-		} else {
-			this.force_render_view = false;
-		}
 
 		if (this.list_renderer.settings.refresh) {
 			this.list_renderer.settings.refresh(this);
@@ -477,30 +425,51 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 		}
 	},
 
-	save_user_settings_locally: function (args) {
-		this._super(args);
-		if (this.opts.save_user_settings && this.doctype && !this.docname) {
-			user_settings = frappe.model.user_settings[this.doctype];
+	save_user_settings_locally_asdf: function (args) {
 
-			if (!user_settings) return;
+		var user_settings = frappe.model.user_settings[this.doctype];
+		if (!user_settings) return;
 
-			var different = false;
-			// save last view
-			if (user_settings.last_view !== this.current_view) {
-				user_settings.last_view = this.current_view;
+		// save user_settings with a prefix
+		var prefix = this.current_view + ':';
+
+		var different = false;
+		if (!frappe.utils.arrays_equal(args.filters, user_settings.filters)) {
+			// settings are dirty if filters change
+			user_settings[prefix + 'filters'] = args.filters;
+			different = true;
+		}
+
+		if (user_settings.order_by !== args.order_by) {
+			user_settings[prefix + 'order_by'] = args.order_by;
+			different = true;
+		}
+
+		if (user_settings.limit !== args.limit_page_length) {
+			user_settings[prefix + 'limit'] = args.limit_page_length || 20
+			different = true;
+		}
+
+		// save fields in list settings
+		if (args.save_user_settings_fields) {
+			user_settings[prefix + 'fields'] = args.fields;
+		}
+
+		// save last view
+		if (user_settings.last_view !== this.current_view) {
+			user_settings.last_view = this.current_view;
+			different = true;
+		}
+
+		if (this.current_view === 'Kanban') {
+			if (user_settings.last_kanban_board !== this.kanban_board) {
+				user_settings.last_kanban_board = this.kanban_board;
 				different = true;
 			}
+		}
 
-			if (this.current_view === 'Kanban') {
-				if (user_settings.last_kanban_board !== this.kanban_board) {
-					user_settings.last_kanban_board = this.kanban_board;
-					different = true;
-				}
-			}
-
-			if (different) {
-				user_settings.updated_on = moment().toString();
-			}
+		if (different) {
+			user_settings.updated_on = moment().toString();
 		}
 	},
 
@@ -517,9 +486,7 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 			&& this.user_settings.updated_on != this.user_settings_updated_on) {
 			// update remembered list settings
 			this.filter_list.clear_filters();
-			this.user_settings.filters.forEach(function (f) {
-				me.filter_list.add_filter(f[0], f[1], f[2], f[3]);
-			});
+			this.set_filters(this.user_settings.filters);
 			this.dirty = true;
 		}
 	},
@@ -589,51 +556,6 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 		return no_result_message;
 	},
 
-	render_rows: function (values) {
-		this['render_rows_' + this.current_view](values);
-	},
-
-	render_rows_List: function (values) {
-		var m = Math.min(values.length, this.page_length);
-		for (var i = 0; i < m; i++) {
-			this.render_row(this.add_row(values[i]), values[i], this, i);
-		}
-	},
-
-	render_rows_Image: function (values) {
-		if (this.image_view) {
-			this.image_view.refresh(values);
-			return;
-		}
-
-		frappe.require(['assets/frappe/js/frappe/views/image/image_view.js'], function () {
-			this.image_view = new frappe.views.ImageView({
-				doctype: this.doctype,
-				items: values,
-				list_renderer: this.list_renderer,
-				wrapper: this.wrapper.find('.result-list')
-			});
-		}.bind(this));
-	},
-
-	render_rows_Gantt: function (values) {
-		if (this.gantt_view) {
-			this.gantt_view.refresh(values);
-			return;
-		}
-
-		frappe.require(['assets/frappe/js/frappe/views/gantt/gantt_view.js'], function () {
-			this.gantt_view = new frappe.views.GanttView({
-				doctype: this.doctype,
-				items: values,
-				user_settings: this.user_settings,
-				list_renderer: this.list_renderer,
-				$page: this.$page,
-				wrapper: this.wrapper.find('.result-list')
-			});
-		}.bind(this));
-	},
-
 	render_rows_Kanban: function (values) {
 		var me = this;
 		frappe.require([
@@ -647,23 +569,6 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 				wrapper: me.wrapper.find('.result-list'),
 				cur_list: me
 			});
-		});
-	},
-
-	render_rows_Calendar: function (values) {
-		var options = $.extend({
-			doctype: this.doctype,
-			parent: this.wrapper.find('.result-list'),
-			page: this.page,
-			filter_vals: this.filter_list.get_filters()
-		},
-			frappe.views.calendar[this.doctype]
-		);
-		frappe.require([
-			'assets/frappe/js/lib/fullcalendar/fullcalendar.min.css',
-			'assets/frappe/js/lib/fullcalendar/fullcalendar.min.js'
-		], function () {
-			frappe.views.calendars[this.doctype] = new frappe.views.Calendar(options);
 		});
 	},
 
@@ -684,17 +589,19 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 			doctype: this.doctype,
 			fields: this.list_renderer.fields,
 			filters: this.filter_list.get_filters(),
-			order_by: this.list_renderer.order_by || undefined,
-			group_by: this.list_renderer.group_by || undefined,
+			order_by: this.list_renderer.order_by,
 			with_comment_count: true
 		}
 
-		// apply default filters, if specified for a listing
-		$.each((this.default_filters), function (i, f) {
+		// apply default filters, from listview_settings.[DocType]
+		$.each((this.list_renderer.filters), function (i, f) {
 			args.filters.push(f);
 		});
 
-		args.order_by = '`tab' + this.doctype + '`.`' + this.sort_selector.sort_by + '` ' + this.sort_selector.sort_order;
+		// args.order_by =
+		// 	'`tab' + this.doctype + '`.`' +
+		// 	this.sort_selector.sort_by + '` ' +
+		// 	this.sort_selector.sort_order;
 
 		return args;
 	},
@@ -1011,7 +918,7 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 			stats: this.list_renderer.stats,
 			parent: this.$page.find('.layout-side-section'),
 			set_filter: this.set_filter.bind(this),
-			default_filters: this.default_filters,
+			default_filters: this.list_renderer.filters,
 			page: this.page,
 			list_view: this
 		})

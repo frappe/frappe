@@ -7,6 +7,7 @@ frappe.provide('frappe.views');
 // usually based on `in_list_view` property
 
 frappe.views.ListRenderer = Class.extend({
+	name: 'List',
 	init: function (opts) {
 		$.extend(this, opts);
 
@@ -19,17 +20,28 @@ frappe.views.ListRenderer = Class.extend({
 		var me = this;
 		this.meta = frappe.get_meta(this.doctype);
 		this.settings = frappe.listview_settings[this.doctype] || {};
-		this.id_list = [];
 		this.order_by = this.settings.order_by;
-		this.group_by = this.settings.group_by;
+		this.filters = this.settings.filters || [];
+		this.page_title = __(this.doctype);
+
 		this.set_wrapper();
 		this.prepare_render_view();
 
 		// flag to enable/disable realtime updates in list_view
 		this.no_realtime = false;
+		// set false to render view even if no results
+		// e.g Calendar
+		this.show_no_result = true;
 
+		this.id_list = [];
 		this.list_view.onreset = function () {
 			me.id_list = [];
+		}
+
+		// override these user_settings while rendering
+		this.override_user_settings = {
+			filters: false,
+			order_by: false
 		}
 	},
 	cache: function() {
@@ -227,6 +239,45 @@ frappe.views.ListRenderer = Class.extend({
 		this.columns.push(col);
 	},
 
+	setup_filterable: function () {
+		var me = this;
+		this.wrapper.on('click', '.filterable', function (e) {
+			var filters = $(this).attr('data-filter').split('|');
+			var added = false;
+
+			filters.forEach(function (f) {
+				f = f.split(',');
+				if (f[2] === 'Today') {
+					f[2] = frappe.datetime.get_today();
+				} else if (f[2] == 'User') {
+					f[2] = frappe.session.user;
+				}
+				var new_filter = me.list_view.filter_list
+						.add_filter(me.doctype, f[0], f[1], f.slice(2).join(','));
+
+				if (new_filter) {
+					// set it to true if atleast 1 filter is added
+					added = true;
+				}
+			});
+			if (added) {
+				me.list_view.refresh(true);
+			}
+		});
+		this.wrapper.on('click', '.list-row-left', function (e) {
+			// don't open in case of checkbox, like, filterable
+			if ($(e.target).hasClass('filterable')
+				|| $(e.target).hasClass('octicon-heart')
+				|| $(e.target).is(':checkbox')) {
+				return;
+			}
+
+			var link = $(this).parent().find('a.list-id').get(0);
+			window.location.href = link.href;
+			return false;
+		});
+	},
+
 	render_view: function(values) {
 		var me = this;
 		values.map(function(value) {
@@ -235,6 +286,8 @@ frappe.views.ListRenderer = Class.extend({
 				.appendTo(me.wrapper).get(0);
 			me.render_item(row, value);
 		});
+
+		this.setup_filterable();
 	},
 
 	// renders data(doc) in element
@@ -275,6 +328,17 @@ frappe.views.ListRenderer = Class.extend({
 			indicator_dot: this.get_indicator_dot(data),
 			right_column: this.settings.right_column
 		})
+	},
+
+	get_header_html: function () {
+		var main = frappe.render_template('list_item_main_head', {
+			columns: this.columns,
+			right_column: this.settings.right_column,
+			_checkbox: ((frappe.model.can_delete(this.doctype) || this.settings.selectable)
+				&& !this.no_delete)
+		});
+
+		return frappe.render_template('list_item_row_head', { main: main, list: this });
 	},
 
 	render_tags: function (element, data) {

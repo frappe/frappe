@@ -1,6 +1,7 @@
 frappe.provide('frappe.views');
 
 frappe.views.GanttView = frappe.views.ListRenderer.extend({
+	name: 'Gantt',
 	prepare: function(values) {
 		this.items = values;
 		this.prepare_tasks();
@@ -16,6 +17,7 @@ frappe.views.GanttView = frappe.views.ListRenderer.extend({
 	prepare_meta: function() {
 		this._super();
 		this.no_realtime = true;
+		this.page_title = this.page_title + ' ' + __('Gantt');
 	},
 
 	prepare_dom: function() {
@@ -165,6 +167,9 @@ frappe.views.GanttView = frappe.views.ListRenderer.extend({
 				show_alert({message:__("Saved"), indicator: 'green'}, 1);
 			}
 		});
+	},
+	get_header_html: function() {
+		return frappe.render_template('list_item_row_head', { main: '', list: this });
 	},
 	refresh: function(values) {
 		this.prepare(values);

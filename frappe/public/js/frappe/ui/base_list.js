@@ -257,12 +257,9 @@ frappe.ui.BaseList = Class.extend({
 			}
 
 			if (!frappe.utils.arrays_equal(args.filters, user_settings.filters)) {
-				// dont save filters in Kanban view
-				if (this.current_view !== "Kanban") {
-					// settings are dirty if filters change
-					user_settings.filters = args.filters || [];
-					different = true;
-				}
+				// settings are dirty if filters change
+				user_settings.filters = args.filters;
+				different = true;
 			}
 
 			if (user_settings.order_by !== args.order_by) {
@@ -323,7 +320,7 @@ frappe.ui.BaseList = Class.extend({
 			values = this.get_values_from_response(r.message);
 		}
 
-		if (values.length || this.force_render_view) {
+		if (values.length || !this.show_no_result()) {
 			this.data = this.data.concat(values);
 			this.render_view(values);
 			// this.render_list(values);

@@ -5,6 +5,7 @@ frappe.provide("frappe.views.calendar");
 frappe.provide("frappe.views.calendars");
 
 frappe.views.CalendarView = frappe.views.ListRenderer.extend({
+	name: 'Calendar',
 	render_view: function() {
 		var me = this;
 		var options = {
@@ -15,6 +16,15 @@ frappe.views.CalendarView = frappe.views.ListRenderer.extend({
 		}
 		$.extend(options, frappe.views.calendar[this.doctype]);
 		this.calendar = new frappe.views.Calendar(options);
+	},
+	prepare_meta: function() {
+		this._super();
+		this.page_title = this.page_title + ' ' + __('Calendar');
+		this.no_realtime = true;
+		this.show_no_result = false;
+	},
+	get_header_html: function() {
+		return null;
 	},
 	required_libs: [
 		'assets/frappe/js/lib/fullcalendar/fullcalendar.min.css',
@@ -31,20 +41,6 @@ frappe.views.Calendar = Class.extend({
 	},
 	make_page: function() {
 		var me = this;
-
-		// $(this.parent).on("show", function() {
-		// 	me.set_filters_from_route_options();
-		// });
-
-		// var module = locals.DocType[this.doctype].module;
-		this.page.set_title(__("Calendar") + " - " + __(this.doctype));
-
-		// frappe.breadcrumbs.add(module, this.doctype);
-
-		// this.page.set_primary_action(__("New"), function() {
-		// 	var doc = frappe.model.get_new_doc(me.doctype);
-		// 	frappe.set_route("Form", me.doctype, doc.name);
-		// });
 
 		// add links to other calendars
 		$.each(frappe.boot.calendars, function(i, doctype) {
