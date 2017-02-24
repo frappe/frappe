@@ -20,6 +20,4 @@ def get_help_messages():
 	for fn in frappe.get_hooks('get_help_messages'):
 		messages += frappe.get_attr(fn)()
 
-	print sorted(messages, lambda a, b: cmp(a.get('count'), b.get('count')))
-
 	return sorted(messages, lambda a, b: cmp(a.get('count'), b.get('count')))
