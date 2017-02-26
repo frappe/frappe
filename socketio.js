@@ -56,6 +56,16 @@ io.on('connection', function (socket) {
 		socket.join(room);
 	});
 
+	socket.on('join_room', function (room_name) {
+		socket.join(room_name);
+		socket.emit('joined_room', 'joined_room');
+	});
+
+	socket.on('leave_room', function (room_name) {
+		socket.leave(room_name)
+		socket.emit('joined_room', 'left_room');
+	});
+
 	socket.on('task_unsubscribe', function (task_id) {
 		var room = get_task_room(socket, task_id);
 		socket.leave(room);
@@ -130,16 +140,10 @@ io.on('connection', function (socket) {
 });
 
 
-
 subscriber.on("message", function (channel, message) {
 	message = JSON.parse(message);
-	// if (typeof (message.type) !== 'undefined' && message.type.includes('fromkickApp')) {
-
-	// } else {
-	// 	io.to(message.room).emit(message.event, message.message);
-	// }
+	console.log(message.room);
 	io.to(message.room).emit(message.event, message.message);
-	// console.log(message.room, message.event, message.message)
 });
 
 subscriber.subscribe("events");
@@ -304,92 +308,3 @@ function get_conf() {
 
 	return conf;
 }
-
-
-function Room(type, name, owner, id) {
-	//type is :bot, :personal, :group.
-	//name is 
-	//owner is user(username) who created the group or in case of personal chat who's username is small.
-
-	this.owner = owner;
-	this.people = [];
-	this.roomName = type === 'personal' ? type + name + owner : type + name + owner + id;
-	this.peopleLimit = 25;
-
-	this.status = "available";
-	// this.private = false;
-
-	addPerson = function (personID) {
-		if (this.status === "available") {
-			this.people.push(personID);
-		}
-	};
-
-	removePerson = function (person) {
-		var personIndex = -1;
-		for (var i = 0; i < this.people.length; i++) {
-			if (this.people[i].id === person.id) {
-				personIndex = i;
-				break;
-			}
-		}
-		this.people.remove(personIndex);
-	};
-
-
-	getPerson = function (personID) {
-		var person = null;
-		for (var i = 0; i < this.people.length; i++) {
-			if (this.people[i].id == personID) {
-				person = this.people[i];
-				break;
-			}
-		}
-		return person;
-	};
-
-
-	isAvailable = function () {
-		return this.available === "available";
-	};
-
-
-};
-
-Room.prototype.addPerson = function (personID) {
-	if (this.status === "available") {
-		this.people.push(personID);
-	}
-};
-
-Room.prototype.removePerson = function (person) {
-	var personIndex = -1;
-	for (var i = 0; i < this.people.length; i++) {
-		if (this.people[i].id === person.id) {
-			personIndex = i;
-			break;
-		}
-	}
-	this.people.remove(personIndex);
-};
-
-Room.prototype.getPerson = function (personID) {
-	var person = null;
-	for (var i = 0; i < this.people.length; i++) {
-		if (this.people[i].id == personID) {
-			person = this.people[i];
-			break;
-		}
-	}
-	return person;
-};
-
-Room.prototype.isAvailable = function () {
-	return this.available === "available";
-};
-
-Room.prototype.isPrivate = function () {
-	return this.private;
-};
-
-module.exports = Room;

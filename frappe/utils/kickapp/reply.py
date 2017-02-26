@@ -46,27 +46,75 @@ def get_users_in_group(room):
     if len(chat_room) > 0:
         return frappe.get_all('Chat User', ["title", "email", "number"], filters={"parent": chat_room[0].name})
 
+
 ''' Call this for every room in Kick app when app is first launched'''
 
 
 @frappe.whitelist()
 def get_message_for_first_time(obj):
     chats = []
+    filters = {}
     obj = frappe._dict(json.loads(obj))
-    room = str(obj.room)
-    is_bot = str(obj.is_bot).lower()
-    last_time = str(obj.last_login_time + '.123456')
-    chat_room = frappe.get_all(
-        'Chat Room', ["name, room_name"], filters={"room_name": room})
-    if len(chat_room) > 0:
-        if is_bot == 'true':
-            chats = frappe.get_all('Chat Bot', ["bot_name", "text", "list_items", "info", "action", "modified"],
-                                   filters={"parent": chat_room[0].name, "modified": (">", last_time)})
-        else:
-            chats = frappe.get_all('Chat Message', ["user_name", "user_id", "is_alert", "text", "chat_title", "modified"],
-                                   filters={"parent": chat_room[0].name, "modified": (">", last_time)})
-        frappe.publish_realtime(event='message_from_server', message=format_response(
-            is_bot, chats, room), room=room)
+    last_time = None
+    if obj.last_time != None:
+        last_time = str(obj.last_time)
+    mail_id = str(obj.mail_id)
+    user = frappe.get_all('User', ["last_active"], filters={
+                          "email": mail_id})
+    if len(user) > 0:
+        room_list = frappe.get_all(
+            'Chat Room', ["name", "room_name", "is_bot"])
+        for room in room_list:
+            user_data = frappe.get_all('Chat User', ["email", "title", "number"], filters={
+                                       "parent": room.name, "email": mail_id})
+            if len(user_data) > 0:
+
+                filters = {"parent": room.name, "modified": (">", last_time)}
+                if room.is_bot == 'true':
+                    items = frappe.get_all('Chat Bot', ["bot_name", "text", "list_items", "info", "action", "modified"],
+                                           filters=filters)
+                    if len(items) > 0:
+                        messages = format_response('true', items, room)
+                        for message in messages:
+                            chats.append(message)
+                else:
+                    items = frappe.get_all('Chat Message', ["user_name", "user_id", "is_alert", "text", "chat_title", "chat_type", "modified"],
+                                           filters=filters)
+                    if len(items) > 0:
+                        messages = format_response('false', items, room)
+                        for message in messages:
+                            chats.append(message)
+
+    # objs = query.objs
+    # for obj in objs:
+    #     obj = frappe._dict(obj)
+    #     room = str(obj.room)
+    #     is_bot = str(obj.is_bot).lower()
+    #     chat_room = frappe.get_all(
+    #         'Chat Room', ["name, room_name"], filters={"room_name": room})
+    #     if len(chat_room) > 0:
+    #         if last_time != None:
+    #             filters = {"parent": chat_room[
+    #                 0].name, "modified": (">", last_time)}
+    #         else:
+    #             filters = {"parent": chat_room[0].name}
+
+    #         if is_bot == 'true':
+    #             items = frappe.get_all('Chat Bot', ["bot_name", "text", "list_items", "info", "action", "modified"],
+    #                                    filters=filters)
+    #             if len(items) > 0:
+    #                 messages = format_response('true', items, room)
+    #                 for message in messages:
+    #                     chats.append(message)
+    #         else:
+    #             items = frappe.get_all('Chat Message', ["user_name", "user_id", "is_alert", "text", "chat_title", "chat_type", "modified"],
+    #                                    filters=filters)
+    #             if len(items) > 0:
+    #                 messages = format_response('false', items, room)
+    #                 for message in messages:
+    #                     chats.append(message)
+    frappe.publish_realtime(event='message_from_server',
+                            message=chats, room=mail_id)
 
 
 @frappe.whitelist()
@@ -78,11 +126,10 @@ def set_users_in_room(obj):
         'Chat Room', ["name", "room_name"], filters={"room_name": room})
     if len(chat_room) < 1:
         chat_room = create_and_save_room_object(room, 'false')
-    
     for user in users:
         email = frappe._dict(user).email
         user_data = frappe.get_all(
-        'Chat User', ["email"], filters={"email": email})
+            'Chat User', ["email"], filters={"email": email, "parent": chat_room[0].name})
         if len(user_data) < 1:
             create_and_save_user_object(chat_room[0].name, user)
 
@@ -92,13 +139,12 @@ def send_message_and_get_reply(obj):
     obj = frappe._dict(json.loads(obj))
     room = str(obj.room)
     is_bot = str(obj.is_bot).lower()
-    query = obj.query
-    chats = save_message_in_database(is_bot, room, query)
+    chats = save_message_in_database(is_bot, room, obj)
     if is_bot == 'true':
-        response_data = Engine().get_reply(room, query)
+        response_data = Engine().get_reply(obj)
         chats = save_message_in_database('true', room, response_data)
     frappe.publish_realtime(event='message_from_server', message=format_response(
-        'false', chats, room), room=room)
+        is_bot, chats, room), room=room)
 
 
 def save_message_in_database(is_bot, room, query):
@@ -153,8 +199,7 @@ def create_and_save_other_message_object(parent, query):
     new_other_chat.parent = parent
     new_other_chat.parentfield = 'message'
     new_other_chat.parenttype = 'Chat Room'
-    query = frappe._dict(query)
-
+    print query
     new_other_chat.user_name = query.user_name
     new_other_chat.user_id = query.user_id
     new_other_chat.is_alert = query.is_alert

@@ -10,18 +10,18 @@ import datetime
 
 class Engine(object):
 
-    def get_reply(self, room, query):
+    def get_reply(self, obj):
         reply = {}
         class_name = None
         try:
-            class_name = get_doctype_from_bot_name(query.bot_name)
-            reply = globals()[class_name](room, query).get_results()
+            class_name = get_doctype_from_bot_name(obj.bot_name)
+            reply = globals()[class_name](obj).get_results()
         except Exception, exce:
             print exce
-            msg_obj = {
+            msg_obj = frappe._dict({
                 "bot_name": class_name,
                 "text": "Something went wrong, Please try in a little bit.",
                 "modified": str(datetime.datetime)
-            }
-            reply = create_bot_message_object(room, msg_obj, True)
+            })
+            reply = create_bot_message_object(obj.room, msg_obj, True)
         return reply

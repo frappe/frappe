@@ -105,7 +105,6 @@ def emit_via_redis(event, message, room):
 	:param message: JSON message object. For async must contain `task_id`
 	:param room: name of the room"""
 	r = get_redis_server()
-
 	try:
 		r.publish('events', frappe.as_json({'event': event, 'message': message, 'room': room}))
 	except redis.exceptions.ConnectionError:
