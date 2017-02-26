@@ -55,3 +55,12 @@ cur_frm.cscript.setup_dashboard = function() {
 		}
 	}
 }
+
+frappe.ui.form.on('Newsletter', {
+	add_attachements: function(frm) {
+		if (!frm.doc.add_attachements) {
+			frm.get_field("attach_file").clear_attachment();
+		}
+
+	}
+});
