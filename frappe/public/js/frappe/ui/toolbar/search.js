@@ -558,7 +558,7 @@ frappe.search.NavSearch = frappe.search.GlobalSearch.extend({
 		this.section_length = 4;
 
 		this.set_nav_results(me.keywords);
-		var types = ["Lists", "Reports", "Modules", "Tools", "Setup"];
+		var types = ["Lists", "Reports", "Modules", "Administration", "Setup"];
 		types.forEach(function(type) {
 			if(me.nav_results[type].length > 0) {
 				me.types.push(type);
@@ -591,7 +591,7 @@ frappe.search.NavSearch = frappe.search.GlobalSearch.extend({
 			"Lists": lists.sort(compare),
 			"Reports": me.awesome_bar.get_reports(keywords).sort(compare),
 			"Modules": me.awesome_bar.get_modules(keywords).sort(compare),
-			"Tools": me.awesome_bar.get_pages(keywords).sort(compare),
+			"Administration": me.awesome_bar.get_pages(keywords).sort(compare),
 			"Setup": setup.sort(compare)
 		}
 	},
