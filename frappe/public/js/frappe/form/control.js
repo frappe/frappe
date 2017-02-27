@@ -612,7 +612,7 @@ frappe.ui.form.ControlPercent = frappe.ui.form.ControlFloat;
 frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 	set_input: function(value) {
 		this._super(value);
-		if(value && this.last_value !== this.value) {
+		if(value && this.last_value && this.last_value !== this.value) {
 			this.datepicker.selectDate(new Date(value));
 		}
 	},
@@ -635,9 +635,8 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 		this.datepicker_options.dateFormat = date_format;
 
 		this.datepicker_options.onSelect = function(dateStr) {
-			if(dateStr === me.get_value()) return;
 			me.set_value(me.get_value());
-			me.$input.trigger('change')
+			me.$input.trigger('change');
 		}
 	},
 	set_datepicker: function() {
