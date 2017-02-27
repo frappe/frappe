@@ -330,7 +330,7 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 						docfield = columnDef.report_docfield;
 
 						docfield.link_onclick =
-							repl('frappe.container.page.reportview.set_filter("%(fieldname)s", "%(value)s")',
+							repl('frappe.container.page.reportview.filter_or_open("%(fieldname)s", "%(value)s")',
 								{fieldname:docfield.fieldname, value:value});
 					}
 					return frappe.format(value, docfield, {for_print: for_print, always_show_decimals: true}, dataContext);
@@ -338,6 +338,25 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 			}
 			return coldef;
 		});
+	},
+
+	filter_or_open: function(fieldname, value) {
+		// set filter on click, if filter is set, open the document
+		var filter_set = false;
+		this.filter_list.get_filters().forEach(function(f) {
+			if(f[1]===fieldname) {
+				filter_set = true;
+			}
+		});
+
+		if(!filter_set) {
+			this.set_filter(fieldname, value);
+		} else {
+			var df = frappe.meta.get_docfield(this.doctype, fieldname);
+			if(df.fieldtype==='Link') {
+				frappe.set_route('Form', df.options, value);
+			}
+		}
 	},
 
 	// render data

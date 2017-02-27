@@ -448,5 +448,53 @@ _f.Frm.prototype.set_indicator_formatter = function(fieldname, get_color, get_te
 				return '';
 			}
 		};
+}
 
+_f.Frm.prototype.can_create = function(doctype) {
+	// return true or false if the user can make a particlar doctype
+	// will check permission, `can_make_methods` if exists, or will decided on
+	// basis of whether the document is submittable
+	if(!frappe.model.can_create(doctype)) {
+		return false;
+	}
+
+	if(this.custom_make_buttons && this.custom_make_buttons[doctype]) {
+		// if the button is present, then show make
+		return !!this.custom_buttons[this.custom_make_buttons[doctype]];
+	}
+
+	if(this.can_make_methods && this.can_make_methods[doctype]) {
+		return this.can_make_methods[doctype](this);
+	} else {
+		if(this.meta.is_submittable && !this.doc.docstatus==1) {
+			return false;
+		} else {
+			return true;
+		}
+	}
+}
+
+_f.Frm.prototype.make_new = function(doctype) {
+	// make new doctype from the current form
+	// will handover to `make_methods` if defined
+	// or will create and match link fields
+	var me = this;
+	if(this.make_methods && this.make_methods[doctype]) {
+		return this.make_methods[doctype](this);
+	} else if(this.custom_make_buttons && this.custom_make_buttons[doctype]) {
+		this.custom_buttons[this.custom_make_buttons[doctype]].trigger('click');
+	} else {
+		frappe.model.with_doctype(doctype, function() {
+			new_doc = frappe.model.get_new_doc(doctype);
+
+			// set link fields (if found)
+			frappe.get_meta(doctype).fields.forEach(function(df) {
+				if(df.fieldtype==='Link' && df.options===me.doctype) {
+					new_doc[df.fieldname] = me.doc.name;
+				}
+			});
+
+			frappe.set_route('Form', doctype, new_doc.name);
+		});
+	}
 }
