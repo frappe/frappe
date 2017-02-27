@@ -1308,7 +1308,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 			filter: function(item, input) {
 				var value = item.value.toLowerCase();
 				if(value.indexOf('__link_option') !== -1 ||
-					value.indexOf(input) !== -1) {
+					value.indexOf(input.toLowerCase()) !== -1) {
 					return true;
 				}
 			},
