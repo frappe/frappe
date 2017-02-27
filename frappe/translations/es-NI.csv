@@ -3,4 +3,4 @@ DocType: Auto Email Report,Based on Permissions For User,Base sobre Permiso de U
 apps/frappe/frappe/model/base_document.py +574,"{0}: '{1}' ({3}) will get truncated, as max characters allowed is {2}","{0}: '{1}' ({3}) resultarán truncadas, como caracteres máximo permitido es {2}"
 DocType: System Settings,Backups,Respaldos
 DocType: Integration Service,Background Events,Eventos de Fondo
-apps/frappe/frappe/utils/password_strength.py +53,Better add a few more letters or another word,Mejor añadir algunas letras extras u otra palabra
+apps/frappe/frappe/utils/password_strength.py +54,Better add a few more letters or another word,Mejor añadir algunas letras extras u otra palabra

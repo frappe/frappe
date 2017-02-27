@@ -694,7 +694,7 @@ fieldset[disabled] .form-control {
   padding-top: 20px;
   text-transform: uppercase;
 }
-.search-dialog .layout-side-section .nav > li a {
+.search-dialog .layout-side-section .nav li a {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -716,17 +716,14 @@ fieldset[disabled] .form-control {
 .search-dialog .results-area .search-intro-placeholder span {
   text-align: center;
 }
-.search-dialog .results-area .search-intro-placeholder span i{
+.search-dialog .results-area .search-intro-placeholder span i {
   font-size: 120px;
   display: block;
 }
-.search-dialog .results-area .search-intro-placeholder span p{
+.search-dialog .results-area .search-intro-placeholder span p {
   font-size: 20px;
   display: block;
 }
-/*.search-dialog .results-area a {
-  color: #5E64FF;
-}*/
 .search-dialog .results-area .single-link a {
   color: #36414c;
 }
