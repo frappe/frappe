@@ -1,0 +1,64 @@
+<div class="table-responsive">
+	<table class="table table-bordered table-hover">
+		<caption>{{ __("Imported File Data") }}</caption>
+		{% for (var i = -1; i < imported_data.length; i++) { %}
+		<tr>
+
+			{% if (i == -1) { %}
+				<td>{{ __("Row No.") }}</td>
+				{% for (var j = 0; j < imported_data[0].length; j++) { %}
+				<td>
+					<div class="">
+					<select class="form-control column-map">
+						<option value="" disabled selected>
+							{{ __("Select Fieldtype") }}</option>
+						<option value="do_not_map" style="color:red">
+							{{ __("Ignore Column") }}</option>
+
+						{% for doctype in doctype_list %}
+							<option value="" disabled></option>>
+							<option value="" disabled style="color:green">
+								<strong>
+								{% if (doctype.reqd == 0) { %}
+									{{ doctype.name }}
+								{% } else { %}
+									{{ doctype.name + " (Mendatory)" }} 
+								{% } %}
+								</strong>
+							</option>
+							
+							{% for f in doctype.fields %}
+							{% if (frappe.model.no_value_type.indexOf(f.fieldtype)===-1) %}	
+								
+								<option value="{{ f.fieldname + ',' + doctype.name }}">
+
+									{% if (f.reqd == 0) { %}
+										{{ __(f.label) }}
+									{% } else { %}
+										{{ __(f.label + " (Mendatory)") }} 
+									{% } %}
+										
+								</option>
+
+							{% endif %}
+							{% endfor %}
+
+						{% endfor %}
+
+					</select>
+					<div>
+				</td>
+				{% } %}
+			{% } %}
+
+			{% if (i != -1) { %}
+				<td> {{ i+1 }} </td>
+				{% for (var j = 0; j < imported_data[i].length; j++) { %}
+				<td> {{ imported_data[i][j] }} </td>
+				{% } %}
+			{% } %}
+
+		</tr>
+		{% } %}
+	</table>
+</div>
