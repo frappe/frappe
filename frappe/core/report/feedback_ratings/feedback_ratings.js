@@ -4,23 +4,28 @@
 frappe.query_reports["Feedback Ratings"] = {
 	"filters": [
 		{
-			"fieldname": "party_type",
-			"label": __("Party Type"),
+			"fieldname": "document_type",
+			"label": __("Document Type"),
 			"fieldtype": "Link",
 			"options": "DocType",
 			"reqd": 1,
-			"default": "Issue"
+			"default": "Issue",
+			"get_query": function() {
+				return {
+					"query": "frappe.core.report.feedback_ratings.feedback_ratings.get_document_type"
+				}
+			}
 		},
 		{
-			"fieldname": "party_name",
-			"label": __("Party"),
+			"fieldname": "document_id",
+			"label": __("Document ID"),
 			"fieldtype": "Dynamic Link",
 			"get_options": function() {
-				var party_type = frappe.query_report_filters_by_name.party_type.get_value();
-				if(!party_type) {
-					frappe.throw(__("Please select Party Type first"));
+				var document_type = frappe.query_report_filters_by_name.document_type.get_value();
+				if(!document_type) {
+					frappe.throw(__("Please select Document Type first"));
 				}
-				return party_type;
+				return document_type;
 			}
 		},
 		{ 

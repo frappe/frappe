@@ -88,7 +88,8 @@ def get_feedback_request_details(reference_doctype, reference_name, trigger=None
 		communications = frappe.get_all("Communication", filters={
 			"reference_doctype": reference_doctype,
 			"reference_name": reference_name,
-			"communication_type": "Communication"
+			"communication_type": "Communication",
+			"sent_or_received": "Sent"
 		}, fields=["name"])
 
 		if len(communications) < 1:
