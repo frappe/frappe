@@ -142,7 +142,8 @@ class EmailAccount(Document):
 			"username": getattr(self, "login_id", None) or self.email_id,
 			"use_imap": self.use_imap,
 			"email_sync_rule": email_sync_rule,
-			"uid_validity": self.uidvalidity
+			"uid_validity": self.uidvalidity,
+			"initial_sync_count": self.initial_sync_count or 100
 		})
 
 		if self.password:
@@ -251,8 +252,9 @@ class EmailAccount(Document):
 
 			for idx, msg in enumerate(incoming_mails):
 				try:
+					uid = None if not uid_list else uid_list[idx]
 					args = {
-						"uid": None if not uid_list else uid_list[idx],
+						"uid": uid,
 						"seen": None if not seen_status else get_seen(seen_status.get(uid, None)),
 						"fingerprint": None if not fingerprint_list else fingerprint_list.get(uid, None),
 						"uid_reindexed": uid_reindexed
@@ -310,8 +312,8 @@ class EmailAccount(Document):
 			raw = msg
 			seen = uid = None
 
-		if args.get("uid", None): uid = _uid
-		if args.get("seen", None): seen = _seen
+		if args.get("uid", None): uid = args.get("uid", None)
+		if args.get("seen", None): seen = args.get("seen", None)
 
 		email = Email(raw)
 

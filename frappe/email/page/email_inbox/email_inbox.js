@@ -46,7 +46,7 @@ frappe.Inbox = frappe.ui.Listing.extend({
 					start: 0,
 					show_filters: true
 				});
-			this.filter_list.add_filter("Communication", "deleted", "=", "No");
+
 			this.render_headers();
 			this.render_footer();
 			this.run();
@@ -140,7 +140,7 @@ frappe.Inbox = frappe.ui.Listing.extend({
 								["Communication", "sent_or_received", "=", "Received"]];
 						}
 						me.filter_list.clear_filters();
-						me.filter_list.add_filter("Communication", "deleted", "=", "No");
+
 						if (me.filter_list.reload_stats){me.filter_list.reload_stats()}
 						me.refresh();
 					});
@@ -153,7 +153,7 @@ frappe.Inbox = frappe.ui.Listing.extend({
 			doctype: this.doctype,
 			fields:["name", "sender", "sender_full_name", "communication_date", "recipients", "cc","communication_medium",
 				"subject", "status" ,"reference_doctype", "reference_name", "timeline_doctype", "timeline_name",
-				"timeline_label", "sent_or_received", "uid", "message_id", "seen", "nomatch", "has_attachment"],
+				"timeline_label", "sent_or_received", "uid", "message_id", "seen"],
 			filters: this.filter_list.get_filters(),
 			order_by: 'communication_date desc',
 			save_list_settings: false
@@ -581,9 +581,6 @@ frappe.Inbox = frappe.ui.Listing.extend({
 		} else {
 			var names = [{name:data.name, uid:data.uid}]
 		}
-		//could add flag to sync deletes but not going to as keeps history
-
-		me.update_local_flags(names, "deleted", "1")
 	},
 	mark_unread:function(){
 		var me = this;
