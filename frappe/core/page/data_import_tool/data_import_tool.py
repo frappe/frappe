@@ -46,7 +46,10 @@ def export_json(doctype, path, filters=None, or_filters=None, name=None):
 		for doc in out:
 			for key in del_keys:
 				if key in doc:
-					del doc[key]
+					if doc.doctype == 'Custom DocPerm' and key == 'parent':
+						pass
+					else:
+						del doc[key]
 			for k, v in doc.items():
 				if isinstance(v, list):
 					for child in v:
