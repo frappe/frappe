@@ -29,18 +29,28 @@ def create_bot_message_object(room, chat, is_null):
             "room": room,
             "is_bot": 'true',
             "bot_name": chat.bot_name,
-            "created_on": get_date(chat.modified),
+            "created_on": get_date(chat.created_at),
             "text": chat.text,
-            "action": {},
-            "info": {},
-            "list_items": {}
+            "list_items": {
+                "action_on_internal_item_click": None,
+                "items": None
+            },
+            "info": {
+                "button_text": None,
+                "is_interactive_chat": None,
+                "is_interactive_list": None
+            },
+            "action": {
+                "action_on_button_click": None,
+                "action_on_list_item_click": None
+            }
         }
     else:
         return {
             "room": room,
             "is_bot": 'true',
             "bot_name": chat.bot_name,
-            "created_on": get_date(chat.modified),
+            "created_on": get_date(chat.created_at),
             "text": chat.text,
             "action": format_action_to_json(chat.action),
             "info": format_info_to_json(chat.info),
@@ -62,7 +72,7 @@ def format_response_for_bot(chats, room):
             "room": room,
             "is_bot": 'true',
             "bot_name": chat.bot_name,
-            "created_on": get_date(chat.modified),
+            "created_on": get_date(chat.created_at),
             "text": chat.text,
             "action": format_action_to_json(chat.action),
             "info": format_info_to_json(chat.info),
@@ -78,7 +88,7 @@ def format_response_for_others(chats, room):
         item = {
             "room": room,
             "is_bot": 'false',
-            "created_on": get_date(chat.modified),
+            "created_on": get_date(chat.created_at),
             "user_name": chat.user_name,
             "user_id": chat.user_id,
             "text": chat.text,
@@ -91,19 +101,19 @@ def format_response_for_others(chats, room):
 
 
 def format_list_items_to_json(list_items):
-    return json.loads(list_items)
+    return list_items
 
 
 def format_info_to_json(info):
-    return json.loads(info)
+    return info
 
 
 def format_action_to_json(action):
-    return json.loads(action)
+    return action
 
 
-def get_date(modified):
-    created_on = str(modified)
+def get_date(created_at):
+    created_on = str(created_at)
     return created_on.split('.')[0]
 
 
@@ -112,7 +122,6 @@ def format_list_items_before_adding_to_database(action_on_internal_item_click, l
         "action_on_internal_item_click": action_on_internal_item_click,
         "items": get_items_from_array(list_items)
     }
-
 
 def format_action_before_adding_to_database(action_on_button_click, action_on_list_item_click):
     return {

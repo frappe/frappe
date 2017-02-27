@@ -17,11 +17,10 @@ class Engine(object):
             class_name = get_doctype_from_bot_name(obj.bot_name)
             reply = globals()[class_name](obj).get_results()
         except Exception, exce:
-            print exce
             msg_obj = frappe._dict({
                 "bot_name": class_name,
                 "text": "Something went wrong, Please try in a little bit.",
-                "modified": str(datetime.datetime)
+                "created_at": str(datetime.datetime.now())
             })
             reply = create_bot_message_object(obj.room, msg_obj, True)
         return reply

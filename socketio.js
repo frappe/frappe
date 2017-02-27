@@ -63,7 +63,7 @@ io.on('connection', function (socket) {
 
 	socket.on('leave_room', function (room_name) {
 		socket.leave(room_name)
-		socket.emit('joined_room', 'left_room');
+		socket.emit('left_room', 'left_room');
 	});
 
 	socket.on('task_unsubscribe', function (task_id) {
