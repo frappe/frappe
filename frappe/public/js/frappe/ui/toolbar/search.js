@@ -558,7 +558,7 @@ frappe.search.NavSearch = frappe.search.GlobalSearch.extend({
 		this.section_length = 4;
 
 		this.set_nav_results(me.keywords);
-		var types = ["Lists", "Reports", "Modules", "Tools", "Settings"];
+		var types = ["Lists", "Reports", "Modules", "Tools", "Setup"];
 		types.forEach(function(type) {
 			if(me.nav_results[type].length > 0) {
 				me.types.push(type);
@@ -574,7 +574,7 @@ frappe.search.NavSearch = frappe.search.GlobalSearch.extend({
 	},
 
 	set_nav_results: function(keywords) {
-		var me = this, lists = [], settings = [];
+		var me = this, lists = [], setup = [];
 		this.awesome_bar = new frappe.search.AwesomeBar();
 		var compare = function(a, b) {
 			return a.index - b.index;
@@ -582,7 +582,7 @@ frappe.search.NavSearch = frappe.search.GlobalSearch.extend({
 		var all_doctypes = me.awesome_bar.get_doctypes(keywords);
 		all_doctypes.forEach(function(d) {
 			if(d.type === "") {
-				settings.push(d);
+				setup.push(d);
 			} else {
 				lists.push(d);
 			}
@@ -592,7 +592,7 @@ frappe.search.NavSearch = frappe.search.GlobalSearch.extend({
 			"Reports": me.awesome_bar.get_reports(keywords).sort(compare),
 			"Modules": me.awesome_bar.get_modules(keywords).sort(compare),
 			"Tools": me.awesome_bar.get_pages(keywords).sort(compare),
-			"Settings": settings.sort(compare)
+			"Setup": setup.sort(compare)
 		}
 	},
 
