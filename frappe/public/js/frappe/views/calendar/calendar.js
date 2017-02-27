@@ -17,7 +17,7 @@ frappe.views.CalendarView = frappe.views.ListRenderer.extend({
 		$.extend(options, frappe.views.calendar[this.doctype]);
 		this.calendar = new frappe.views.Calendar(options);
 	},
-	prepare_meta: function() {
+	set_defaults: function() {
 		this._super();
 		this.page_title = this.page_title + ' ' + __('Calendar');
 		this.no_realtime = true;

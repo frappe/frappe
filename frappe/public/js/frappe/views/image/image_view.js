@@ -10,7 +10,7 @@ frappe.views.ImageView = frappe.views.ListRenderer.extend({
 		this.render_image_view();
 		this.setup_gallery();
 	},
-	prepare_meta: function() {
+	set_defaults: function() {
 		this._super();
 		this.page_title = this.page_title + ' ' + __('Images');
 	},

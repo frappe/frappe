@@ -137,11 +137,8 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 
 	setup: function () {
 		this.can_delete = frappe.model.can_delete(this.doctype);
-		this.meta = locals.DocType[this.doctype];
+		this.meta = frappe.get_meta(this.doctype);
 		this.wrapper = this.$page.find('.frappe-list-area').empty();
-
-		this.init_user_settings();
-		this.page_length = this.user_settings.limit || 20;
 		this.allow_delete = true;
 
 		this.load_last_view();
@@ -161,6 +158,7 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 	},
 
 	refresh_surroundings: function() {
+		this.init_sort_selector();
 		this.init_filters();
 		this.set_title();
 		this.init_headers();
@@ -175,37 +173,28 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 			return;
 		}
 
+		var opts = {
+			doctype: this.doctype,
+			list_view: this
+		}
+
 		if (this.current_view === 'List') {
-			this.list_renderer = new frappe.views.ListRenderer({
-				doctype: this.doctype,
-				list_view: this
-			});
+			this.list_renderer = new frappe.views.ListRenderer(opts);
 		} else if (this.current_view === 'Gantt') {
-			this.list_renderer = new frappe.views.GanttView({
-				doctype: this.doctype,
-				list_view: this,
-				user_settings: this.user_settings
-			})
+			this.list_renderer = new frappe.views.GanttView(opts);
 		} else if (this.current_view === 'Calendar') {
-			this.list_renderer = new frappe.views.CalendarView({
-				doctype: this.doctype,
-				list_view: this
-			});
+			this.list_renderer = new frappe.views.CalendarView(opts);
 		} else if (this.current_view === 'Image') {
-			this.list_renderer = new frappe.views.ImageView({
-				doctype: this.doctype,
-				list_view: this
-			});
+			this.list_renderer = new frappe.views.ImageView(opts);
 		} else if (this.current_view === 'Kanban') {
-			this.list_renderer = new frappe.views.KanbanView({
-				doctype: this.doctype,
-				list_view: this,
+			this.list_renderer = new frappe.views.KanbanView($.extend(opts, {
 				board_name: this.kanban_board_name
-			});
+			}));
 		}
 	},
 
 	render_view: function (values) {
+		console.log(values);
 		this.list_renderer.render_view(values);
 	},
 
@@ -218,14 +207,15 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 	},
 
 	load_last_view: function () {
-		var ls = this.user_settings;
+		frappe.provide('frappe.model.user_settings.' + this.doctype);
+		var us = frappe.model.user_settings[this.doctype];
 		var route = ['List', this.doctype];
 
-		if (ls.last_view !== 'List')
-			route.push(ls.last_view);
+		if (us.last_view && us.last_view !== 'List')
+			route.push(us.last_view);
 
-		if (ls.last_view === 'Kanban')
-			route.push(ls.last_kanban_board);
+		if (us.last_view && us.last_view === 'Kanban')
+			route.push(us['Kanban'].last_kanban_board);
 
 		frappe.set_route(route);
 	},
@@ -269,13 +259,7 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 	},
 
 	init_filters: function () {
-		var filters = this.user_settings.filters || this.list_renderer.filters;
-
-		if(this.list_renderer.override_user_settings.filters) {
-			filters = this.list_renderer.filters;
-		}
-
-		this.set_filters(filters);
+		this.set_filters(this.list_renderer.filters);
 	},
 
 	set_filters: function (filters) {
@@ -289,15 +273,16 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 	},
 
 	init_sort_selector: function () {
-		var order_by = this.user_settings.order_by || this.list_renderer.order_by;
+		var me = this;
+		var order_by = this.list_renderer.order_by;
 
-		if (order_by && order_by.includes('`.`')) {
+		if (order_by.includes('`.`')) {
 			// scrub table name (separated by dot), like `tabTime Log`.`modified` desc`
 			order_by = order_by.split('.')[1];
 		}
 
-		parts = order_by && order_by.split(' ');
-		if (parts && parts.length === 2) {
+		parts = order_by.split(' ');
+		if (parts.length === 2) {
 			var fieldname = strip(parts[0], '`');
 			var args = {
 				sort_by: fieldname,
@@ -305,15 +290,6 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 			}
 		}
 
-		if(!args) return;
-		// Always sort based on start_date field for Gantt View
-		// if (frappe.get_route()[2] === 'Gantt') {
-		// 	var field_map = frappe.views.calendar[this.doctype].field_map;
-		// 	args = {
-		// 		sort_by: field_map.start,
-		// 		sort_order: 'asc'
-		// 	}
-		// }
 		this.sort_selector = new frappe.ui.SortSelector({
 			parent: this.wrapper.find('.list-filters'),
 			doctype: this.doctype,
@@ -358,7 +334,7 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 			parent: this.wrapper,
 			freeze: true,
 			start: 0,
-			page_length: this.page_length,
+			page_length: this.list_renderer.page_length,
 			show_filters: true,
 			new_doctype: this.doctype,
 			no_result_message: this.make_no_result(),
@@ -397,11 +373,10 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 		// if view has changed, setup list_renderer
 		if (this.current_view !== this.last_view) {
 			this.setup_list_renderer();
+			this.list_renderer.before_refresh && this.list_renderer.before_refresh();
 			this.refresh_surroundings();
 			this.dirty = true;
 		}
-
-		// if kanban board changed, set filters
 
 		if (this.list_renderer.settings.refresh) {
 			this.list_renderer.settings.refresh(this);
@@ -425,51 +400,44 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 		}
 	},
 
-	save_user_settings_locally_asdf: function (args) {
+	save_user_settings_locally: function (args) {
 
-		var user_settings = frappe.model.user_settings[this.doctype];
+		frappe.provide('frappe.model.user_settings.' + this.doctype + '.' + this.list_renderer.name);
+		var user_settings_common = frappe.model.user_settings[this.doctype];
+		var user_settings = frappe.model.user_settings[this.doctype][this.list_renderer.name];
+
 		if (!user_settings) return;
-
-		// save user_settings with a prefix
-		var prefix = this.current_view + ':';
 
 		var different = false;
 		if (!frappe.utils.arrays_equal(args.filters, user_settings.filters)) {
 			// settings are dirty if filters change
-			user_settings[prefix + 'filters'] = args.filters;
+			user_settings.filters = args.filters;
 			different = true;
 		}
 
 		if (user_settings.order_by !== args.order_by) {
-			user_settings[prefix + 'order_by'] = args.order_by;
+			user_settings.order_by = args.order_by;
 			different = true;
 		}
 
-		if (user_settings.limit !== args.limit_page_length) {
-			user_settings[prefix + 'limit'] = args.limit_page_length || 20
+		if (user_settings.page_length !== args.page_length) {
+			user_settings.page_length = args.page_length || 20
 			different = true;
 		}
 
 		// save fields in list settings
 		if (args.save_user_settings_fields) {
-			user_settings[prefix + 'fields'] = args.fields;
+			user_settings.fields = args.fields;
 		}
 
 		// save last view
-		if (user_settings.last_view !== this.current_view) {
-			user_settings.last_view = this.current_view;
+		if (user_settings_common.last_view !== this.current_view) {
+			user_settings_common.last_view = this.current_view;
 			different = true;
 		}
 
-		if (this.current_view === 'Kanban') {
-			if (user_settings.last_kanban_board !== this.kanban_board) {
-				user_settings.last_kanban_board = this.kanban_board;
-				different = true;
-			}
-		}
-
 		if (different) {
-			user_settings.updated_on = moment().toString();
+			user_settings_common.updated_on = moment().toString();
 		}
 	},
 
@@ -482,11 +450,10 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 		if (frappe.route_options) {
 			this.set_filters_from_route_options();
 			this.dirty = true;
-		} else if (this.user_settings && this.user_settings.filters
-			&& this.user_settings.updated_on != this.user_settings_updated_on) {
+		} else if (this.list_renderer.filters.length) {
 			// update remembered list settings
 			this.filter_list.clear_filters();
-			this.set_filters(this.user_settings.filters);
+			this.set_filters(this.list_renderer.filters);
 			this.dirty = true;
 		}
 	},
@@ -537,7 +504,6 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 			this.list_renderer.settings.post_render(this);
 		}
 
-		this.user_settings_updated_on = this.user_settings.updated_on;
 	},
 
 	make_no_result: function () {
@@ -598,10 +564,7 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 			args.filters.push(f);
 		});
 
-		// args.order_by =
-		// 	'`tab' + this.doctype + '`.`' +
-		// 	this.sort_selector.sort_by + '` ' +
-		// 	this.sort_selector.sort_order;
+		args.order_by = this.sort_selector.sort_by + ' ' + this.sort_selector.sort_order;
 
 		return args;
 	},

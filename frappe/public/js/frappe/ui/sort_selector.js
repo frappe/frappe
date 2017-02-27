@@ -14,6 +14,7 @@ frappe.ui.SortSelector = Class.extend({
 	},
 	make: function() {
 		this.prepare_args();
+		this.parent.find('.sort-selector').remove();
 		this.wrapper = $(frappe.render_template('sort_selector', this.args)).appendTo(this.parent);
 		this.bind_events();
 	},

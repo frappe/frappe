@@ -3,21 +3,25 @@ frappe.provide('frappe.views');
 frappe.views.GanttView = frappe.views.ListRenderer.extend({
 	name: 'Gantt',
 	prepare: function(values) {
+		console.log(values)
 		this.items = values;
 		this.prepare_tasks();
 		this.prepare_dom();
 	},
 
-	render_view: function(values, wrapper) {
+	render_view: function(values) {
 		var me = this;
 		this.prepare(values);
 		this.render_gantt();
 	},
 
-	prepare_meta: function() {
+	set_defaults: function() {
 		this._super();
 		this.no_realtime = true;
 		this.page_title = this.page_title + ' ' + __('Gantt');
+		this.field_map = frappe.views.calendar[this.doctype].field_map;
+
+		this.order_by = this.field_map.start + ' asc';
 	},
 
 	prepare_dom: function() {
@@ -56,8 +60,10 @@ frappe.views.GanttView = frappe.views.ListRenderer.extend({
 				}
 			},
 			on_view_change: function(mode) {
-				// will be cached in __UserSettings table in db
-				me.user_settings.gantt_view_mode = mode;
+				// save view mode
+				frappe.model.user_settings.save(me.doctype, 'Gantt', {
+					gantt_view_mode: mode
+				});
 			},
 			custom_popup_html: function(task) {
 				var item = me.get_item(task.id);
@@ -98,7 +104,7 @@ frappe.views.GanttView = frappe.views.ListRenderer.extend({
 		var $dropdown = $(dropdown)
 		$dropdown.find(".dropdown-menu")
 				.append(dropdown_list);
-		me.list_view.$page.find(".list-row-right").css("margin-top", 0).html($dropdown)
+		me.list_view.$page.find(`.list-row-head[data-list-renderer='Gantt'] .list-row-right`).css("margin-top", 0).html($dropdown)
 		$dropdown.on("click", ".option", function() {
 			var mode = $(this).data('value');
 			me.gantt.change_view_mode(mode);

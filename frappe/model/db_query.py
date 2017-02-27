@@ -516,14 +516,11 @@ class DatabaseQuery(object):
 				r._comment_count = len(json.loads(r._comments or "[]"))
 
 	def update_user_settings(self):
-		# update list settings if new search
-		user_settings = json.loads(get_user_settings(self.doctype) or '{}')
+		# update user settings if new search
+		user_settings = json.loads(get_user_settings(self.doctype))
 
 		if hasattr(self, 'user_settings'):
 			user_settings.update(self.user_settings)
-		user_settings['filters'] = self.filters
-		user_settings['limit'] = self.limit_page_length
-		user_settings['order_by'] = self.order_by
 
 		if self.save_user_settings_fields:
 			user_settings['fields'] = self.user_settings_fields

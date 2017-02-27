@@ -112,6 +112,7 @@
 		"public/js/frappe/model/create_new.js",
 		"public/js/frappe/model/perm.js",
 		"public/js/frappe/model/workflow.js",
+		"public/js/frappe/model/user_settings.js",
 
 		"public/js/lib/md5.min.js",
 		"public/js/frappe/misc/user.js",

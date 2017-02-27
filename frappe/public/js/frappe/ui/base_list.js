@@ -294,8 +294,8 @@ frappe.ui.BaseList = Class.extend({
 			args.simple_query = query;
 		} else {
 			var args = {
-				limit_start: this.start,
-				limit_page_length: this.page_length
+				start: this.start,
+				page_length: this.page_length
 			}
 		}
 
@@ -323,9 +323,10 @@ frappe.ui.BaseList = Class.extend({
 		if (values.length || !this.show_no_result()) {
 			this.data = this.data.concat(values);
 			this.render_view(values);
-			// this.render_list(values);
+			console.log('have values');
 			this.update_paging(values);
 		} else if (this.start === 0) {
+			console.log('doesnot')
 			// show no result message
 			this.wrapper.find('.result').hide();
 
@@ -362,29 +363,9 @@ frappe.ui.BaseList = Class.extend({
 	},
 
 	render_view: function (values) {
-		// this.list_view = new frappe.views.ListView({
-		// 	doctype: this.doctype,
-		// 	values: values,
-		// });
+		// override this method in derived class
 	},
 
-	render_list: function (values) {
-		// TODO: where is this used?
-		// this.last_page = values;
-		// if(this.filter_list) {
-		// 	// and this?
-		// 	this.filter_values = this.filter_list.get_filters();
-		// }
-
-		this.render_rows(values);
-	},
-	render_rows: function (values) {
-		// render the rows
-		var m = Math.min(values.length, this.page_length);
-		for (var i = 0; i < m; i++) {
-			this.render_row(this.add_row(values[i]), values[i], this, i);
-		}
-	},
 	update_paging: function (values) {
 		if (values.length >= this.page_length) {
 			this.wrapper.find('.btn-more').show();

@@ -14,8 +14,8 @@ def get_user_settings(doctype, for_update=False):
 
 		if not for_update:
 			update_user_settings(doctype, user_settings, True)
-
-	return user_settings
+	
+	return user_settings or '{}'
 
 def update_user_settings(doctype, user_settings, for_update=False):
 	'''update user settings in cache'''
@@ -40,3 +40,9 @@ def sync_user_settings():
 		doctype, user = key.split('::')
 		frappe.db.sql('''insert into __UserSettings (user, doctype, data) values (%s, %s, %s)
 			on duplicate key update data=%s''', (user, doctype, data, data))
+
+@frappe.whitelist()
+def save(doctype, user_settings):
+	user_settings = json.loads(user_settings or '{}')
+	update_user_settings(doctype, user_settings)
+	return user_settings

@@ -11,17 +11,15 @@ frappe.views.ListRenderer = Class.extend({
 	init: function (opts) {
 		$.extend(this, opts);
 
-		this.prepare_meta();
+		this.init_settings();
+		this.set_defaults();
 		this.set_fields();
 		this.set_columns();
 		this.cache();
 	},
-	prepare_meta: function() {
+	set_defaults: function () {
 		var me = this;
 		this.meta = frappe.get_meta(this.doctype);
-		this.settings = frappe.listview_settings[this.doctype] || {};
-		this.order_by = this.settings.order_by;
-		this.filters = this.settings.filters || [];
 		this.page_title = __(this.doctype);
 
 		this.set_wrapper();
@@ -29,29 +27,32 @@ frappe.views.ListRenderer = Class.extend({
 
 		// flag to enable/disable realtime updates in list_view
 		this.no_realtime = false;
+
 		// set false to render view even if no results
 		// e.g Calendar
 		this.show_no_result = true;
 
-		this.id_list = [];
-		this.list_view.onreset = function () {
-			me.id_list = [];
-		}
-
-		// override these user_settings while rendering
-		this.override_user_settings = {
-			filters: false,
-			order_by: false
-		}
 	},
-	cache: function() {
+	cache: function () {
 		frappe.provide('frappe.views.list_renderers')
-		if(!frappe.views.list_renderers[this.doctype])
+		if (!frappe.views.list_renderers[this.doctype])
 			frappe.views.list_renderers[this.doctype] = {}
 
 		frappe.views.list_renderers[this.doctype][this.list_view.current_view] = this;
 	},
-	set_wrapper: function() {
+	init_settings: function () {
+		this.settings = frappe.listview_settings[this.doctype] || {};
+		this.init_user_settings();
+
+		this.order_by = this.user_settings.order_by || this.settings.order_by || 'modified desc';
+		this.filters = this.user_settings.filters || this.settings.filters || [];
+		this.page_length = this.user_settings.page_length || this.settings.page_length || 20;
+	},
+	init_user_settings: function () {
+		frappe.provide('frappe.model.user_settings.' + this.doctype + '.' + this.name);
+		this.user_settings = frappe.model.user_settings[this.doctype][this.name];
+	},
+	set_wrapper: function () {
 		this.wrapper = this.list_view.wrapper.find('.result-list');
 	},
 	set_fields: function () {
@@ -253,7 +254,7 @@ frappe.views.ListRenderer = Class.extend({
 					f[2] = frappe.session.user;
 				}
 				var new_filter = me.list_view.filter_list
-						.add_filter(me.doctype, f[0], f[1], f.slice(2).join(','));
+					.add_filter(me.doctype, f[0], f[1], f.slice(2).join(','));
 
 				if (new_filter) {
 					// set it to true if atleast 1 filter is added
@@ -278,9 +279,9 @@ frappe.views.ListRenderer = Class.extend({
 		});
 	},
 
-	render_view: function(values) {
+	render_view: function (values) {
 		var me = this;
-		values.map(function(value) {
+		values.map(function (value) {
 			var row = $('<div class="list-row">')
 				.data("data", me.meta)
 				.appendTo(me.wrapper).get(0);
@@ -292,14 +293,6 @@ frappe.views.ListRenderer = Class.extend({
 
 	// renders data(doc) in element
 	render_item: function (element, data) {
-		// maintain id_list to avoid duplication incase
-		// of filtering by child table
-		// if (this.id_list.includes(data.name)) {
-		// 	$(element).hide();
-		// 	return;
-		// } else {
-		// 	this.id_list.push(data.name);
-		// }
 
 		$(element).append(this.get_item_html(data));
 
@@ -310,7 +303,7 @@ frappe.views.ListRenderer = Class.extend({
 
 	// returns html for a data item,
 	// usually based on a template
-	get_item_html: function(data) {
+	get_item_html: function (data) {
 		var main = frappe.render_template('list_item_main', {
 			data: data,
 			columns: this.columns,
@@ -474,28 +467,28 @@ frappe.views.ListRenderer = Class.extend({
 	// for views which require 3rd party libs
 	required_libs: null,
 
-	prepare_render_view: function() {
+	prepare_render_view: function () {
 		var me = this;
-		this.og_render_view = this.render_view;
+		this._render_view = this.render_view;
 
 		var lib_exists = (typeof this.required_libs === 'string' && this.required_libs)
-				|| ($.isArray(this.required_libs) && this.required_libs.length);
+			|| ($.isArray(this.required_libs) && this.required_libs.length);
 
-		this.render_view = function(values) {
+		this.render_view = function (values) {
 			// prepare data before rendering view
 			values = values.map(me.prepare_data.bind(this));
 
-			if(lib_exists) {
-				me.load_lib(function() {
-					me.og_render_view(values);
+			if (lib_exists) {
+				me.load_lib(function () {
+					me._render_view(values);
 				});
 			} else {
-				me.og_render_view(values);
+				me._render_view(values);
 			}
 		}.bind(this);
 	},
 
-	load_lib: function(callback) {
+	load_lib: function (callback) {
 		frappe.require(this.required_libs, callback);
 	},
 
