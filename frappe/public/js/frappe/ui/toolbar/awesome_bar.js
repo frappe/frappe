@@ -133,7 +133,6 @@ frappe.search.AwesomeBar = Class.extend({
 			}
 
 			if(item.onclick) {
-				// frappe.new_doc(item.match, true);
 				item.onclick(item.match);
 			} else {
 				var previous_hash = window.location.hash;
@@ -463,16 +462,18 @@ frappe.search.AwesomeBar = Class.extend({
 			rendered_label = result[2];
 			if(target) {
 				// include 'making new' option
-				// if(in_list(frappe.boot.user.can_create, target)) {
-				// 	out.push({
-				// 		label: rendered_label,
-				// 		value: __("New {0}", [target]),
-				// 		index: index,
-				// 		type: "New",
-				// 		prefix: "New",
-				// 		onclick: function() { frappe.new_doc(target, true); }
-				// 	});
-				// }
+				if(in_list(frappe.boot.user.can_create, target)) {
+					var match = target;
+					out.push({
+						label: rendered_label,
+						value: __("New {0}", [target]),
+						index: 15 + index + 0.004,
+						type: "New",
+						prefix: "New",
+						match: target,
+						onclick: function() { frappe.new_doc(match, true); }
+					});
+				}
 				if(in_list(frappe.boot.single_types, target)) {
 					out.push(option("", ["Form", target, target], 0));
 
