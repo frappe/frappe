@@ -106,13 +106,13 @@
 }
 .filter-loading-background {
   position: absolute;
-  background-color:#e6e6e6;
+  background-color: #e6e6e6;
   top: 0px;
   left: 0px;
   bottom: 0px;
   right: 0px;
-  z-index:100;
-  opacity:0.2;
+  z-index: 100;
+  opacity: 0.2;
 }
 .filter-loading-message {
   position: absolute;
@@ -122,6 +122,6 @@
   transform: translate(-50%, -50%);
   -webkit-transform: translate(-50%, -50%);
   text-align: center;
-  opacity:1 !important;
+  opacity: 1 !important;
   color: #36414C !important;
 }
