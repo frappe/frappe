@@ -220,10 +220,9 @@ frappe.ui.FilterList = Class.extend({
 			me.add_filter();
 		});
 
-
-		this.wrapper.find('.clear-filter').bind('click', function() {
+		this.wrapper.find('.clear-filters').bind('click', function() {
 			me.clear_filters();
-			$('.date-range-picker').val('')
+			$('.date-range-picker').val('');
 			me.listobj.run();
 		});
 
