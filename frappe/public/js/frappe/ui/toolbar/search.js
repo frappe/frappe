@@ -648,7 +648,7 @@ frappe.search.NavSearch = frappe.search.GlobalSearch.extend({
 						'><a class="text-muted" href="{0}">{1}</a></button>';
 					var button = $(__(button_html, [me.make_path(s.route), s.type]));
 					result_div.append(button);
-				} else {
+				} else if (s.type !== "New") {
 					title_link_html = '<a href="{0}" class="module-section-link small result-main">{1}</a>';
 					if(s.type === "List") {
 						var link = $(__(title_link_html, [me.make_path(s.route), result.title]));
