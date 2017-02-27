@@ -530,7 +530,7 @@ frappe.views.CommunicationComposer = Class.extend({
 			var last_email_content = last_email.original_comment || last_email.content;
 
 			fields.content.set_input(
-				'<p><br></p>'
+				'<div><br></div>'
 				+ reply
 				+ "<br><!-- original-reply --><br>"
 				+ '<blockquote>' +
@@ -539,7 +539,7 @@ frappe.views.CommunicationComposer = Class.extend({
 					last_email_content +
 				'<blockquote>');
 		} else {
-			fields.content.set_input(reply);
+			fields.content.set_input("<div><br></div>" + reply);
 		}
 	},
 	setup_awesomplete: function() {
