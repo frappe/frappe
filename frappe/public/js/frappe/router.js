@@ -58,6 +58,10 @@ frappe.route = function() {
 			frappe.route_titles[frappe.get_route_str()] = frappe._original_title || document.title;
 		}, 1000);
 	}
+
+	if(window.mixpanel) {
+		window.mixpanel.track(route.slice(0, 2).join(' '));
+	}
 }
 
 frappe.get_route = function(route) {
