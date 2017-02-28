@@ -481,9 +481,12 @@ class DatabaseQuery(object):
 				1. check for . to split table and columns and check for `tab prefix
 				2. elif check field in meta
 		"""
+		if not parameters:
+			return
+
 		for field in parameters.split(","):
-			if "." in field and field.startswith("`tab"):
-				tbl = field.split('.')[0]
+			if "." in field and field.strip().startswith("`tab"):
+				tbl = field.strip().split('.')[0]
 				if tbl not in self.tables:
 					if tbl.startswith('`'):
 						tbl = tbl[4:-1]
