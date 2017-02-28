@@ -1,15 +1,19 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# -*- coding: utf-8 -*-
+# Copyright (c) 2015, Frappe Technologies and contributors
+# For license information, please see license.txt
 
 from __future__ import unicode_literals
-
-import frappe, json
+import frappe, json, csv
 from frappe import _
 import frappe.permissions
-import re
+import re, os
 from frappe.utils.csvutils import UnicodeWriter
 from frappe.utils import cstr, formatdate, format_datetime
-from  frappe.core.page.data_import_tool.data_import_tool import get_data_keys
+from frappe.model.document import Document
+
+class ExportTemplate(Document):
+	pass
+
 
 reflags = {
 	"I":re.I,
@@ -21,8 +25,22 @@ reflags = {
 	"D": re.DEBUG
 }
 
+
 @frappe.whitelist()
-def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data="No", select_columns=None):
+def get_data_keys():
+    return frappe._dict({
+        "data_separator": _('Start entering data below this line'),
+        "main_table": _("Table") + ":",
+        "parent_table": _("Parent Table") + ":",
+        "columns": _("Column Name") + ":",
+        "doctype": _("DocType") + ":"
+    })
+
+
+@frappe.whitelist()
+def get_template(xlsx_format, doctype=None, parent_doctype=None, all_doctypes="No", with_data="No",
+	select_columns=None):
+	
 	all_doctypes = all_doctypes=="Yes"
 	if select_columns:
 		select_columns = json.loads(select_columns);
@@ -280,7 +298,84 @@ def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data
 	add_field_headings()
 	add_data()
 
-	# write out response as a type csv
-	frappe.response['result'] = cstr(w.getvalue())
-	frappe.response['type'] = 'csv'
-	frappe.response['doctype'] = doctype
+	if xlsx_format == '0':
+		# write out response as a type csv
+		frappe.response['result'] = cstr(w.getvalue())
+		frappe.response['type'] = 'csv'
+		frappe.response['doctype'] = doctype	
+
+	else:
+
+		filename = frappe.generate_hash("", 10)
+		with open(filename, 'wb') as f:
+		    f.write(cstr(w.getvalue()).encode("utf-8"))
+
+		import openpyxl
+		wb = openpyxl.Workbook()
+		ws = wb.active
+		f = open(filename)
+		reader = csv.reader(f)
+		for row in reader:
+			ws.append(row)
+		f.close()
+
+		from StringIO import StringIO
+		import os
+		xlsx_file = StringIO()
+		wb.save(xlsx_file)
+
+		os.remove(filename)
+
+		# write out response as a xlsx type
+		frappe.response['filename'] = doctype + '.xlsx'
+		frappe.response['filecontent'] = xlsx_file.getvalue()
+		frappe.response['type'] = 'binary'
+
+
+def export_csv(doctype, path):
+	with open(path, "w") as csvfile:
+		get_template(xlsx_format='0', doctype=doctype, all_doctypes="Yes", with_data="Yes")
+		csvfile.write(frappe.response.result.encode("utf-8"))
+
+
+def export_json(doctype, path, filters=None, or_filters=None, name=None):
+	def post_process(out):
+		del_keys = ('parent', 'parentfield', 'parenttype', 'modified_by', 'creation', 'owner', 'idx')
+		for doc in out:
+			for key in del_keys:
+				if key in doc:
+					del doc[key]
+			for k, v in doc.items():
+				if isinstance(v, list):
+					for child in v:
+						for key in del_keys + ('docstatus', 'doctype', 'modified', 'name'):
+							if key in child:
+								del child[key]
+
+	out = []
+	if name:
+		out.append(frappe.get_doc(doctype, name).as_dict())
+	elif frappe.db.get_value("DocType", doctype, "issingle"):
+		out.append(frappe.get_doc(doctype).as_dict())
+	else:
+		for doc in frappe.get_all(doctype, fields=["name"], filters=filters, or_filters=or_filters, limit_page_length=0, order_by="creation asc"):
+			out.append(frappe.get_doc(doctype, doc.name).as_dict())
+	post_process(out)
+
+	dirname = os.path.dirname(path)
+	if not os.path.exists(dirname):
+		path = os.path.join('..', path)
+
+	with open(path, "w") as outfile:
+		outfile.write(frappe.as_json(out))
+
+
+@frappe.whitelist()
+def export_fixture(doctype, app):
+	if frappe.session.user != "Administrator":
+		raise frappe.PermissionError
+
+	if not os.path.exists(frappe.get_app_path(app, "fixtures")):
+		os.mkdir(frappe.get_app_path(app, "fixtures"))
+
+	export_json(doctype, frappe.get_app_path(app, "fixtures", frappe.scrub(doctype) + ".json"))
