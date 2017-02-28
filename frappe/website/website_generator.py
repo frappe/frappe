@@ -9,9 +9,7 @@ from frappe.website.render import clear_cache
 from frappe.modules import get_module_name
 
 class WebsiteGenerator(Document):
-	website = frappe._dict(
-		page_title_field = "name"
-	)
+	website = frappe._dict()
 
 	def __init__(self, *args, **kwargs):
 		self.route = None

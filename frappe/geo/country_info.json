@@ -1135,7 +1135,7 @@
    "Asia/Pontianak"
   ]
  },
- "Iran, Islamic Republic of": {
+ "Iran": {
   "code": "ir",
   "currency": "IRR",
   "currency_name": "Iranian Rial",
@@ -2303,7 +2303,7 @@
    "Europe/Zurich"
   ]
  },
- "Syrian Arab Republic": {
+ "Syria": {
   "code": "sy",
   "currency": "SYP",
   "currency_name": "Syrian Pound",

@@ -1,0 +1,52 @@
+.introduction {
+	border-bottom: 1px solid #e1e9f0;
+	padding: 15px;
+	padding-top: 0px;
+	margin-left: -15px;
+	margin-right: -15px;
+	margin-bottom: 15px;
+}
+
+.form-group label {
+	font-weight: normal;
+}
+
+input[type='checkbox'] {
+	margin-top: 3px;
+}
+
+.checkbox label {
+	font-size: 12px;
+}
+
+.web-form-page, .web-form-page .section {
+	padding: 20px 0px;
+}
+
+.web-form-grid-row input, .web-form-grid-row select {
+	border: 0px;
+	padding: 0px;
+}
+.web-form-grid-row input:focus, .web-form-grid-row select:focus {
+	box-shadow: none;
+}
+.web-form-grid-row .form-group {
+	margin: 0px;
+}
+
+.slide-progress {
+    /*border-top: 1px solid #d1d8dd;*/
+	margin-top: -10px;
+}
+.slide-progress .fa-fw {
+	vertical-align: middle;
+	margin-right: 9px;
+	padding-left: 2px;
+	cursor: pointer;
+}
+.slide-progress .icon-circle-blank {
+	font-size: 12px;
+}
+.slide-progress .icon-circle {
+	font-size: 14px;
+}

@@ -103,13 +103,16 @@ def get_page_info_from_doctypes(path=None):
 				condition += ' {0} `route`=%s limit 1'.format('and' if 'where' in condition else 'where')
 				values.append(path)
 
-			for r in frappe.db.sql("""select route, name, modified from `tab{0}`
-					{1}""".format(doctype, condition), values=values, as_dict=True):
-				routes[r.route] = {"doctype": doctype, "name": r.name, "modified": r.modified}
+			try:
+				for r in frappe.db.sql("""select route, name, modified from `tab{0}`
+						{1}""".format(doctype, condition), values=values, as_dict=True):
+					routes[r.route] = {"doctype": doctype, "name": r.name, "modified": r.modified}
 
-				# just want one path, return it!
-				if path:
-					return routes[r.route]
+					# just want one path, return it!
+					if path:
+						return routes[r.route]
+			except Exception, e:
+				if e.args[0]!=1054: raise e
 
 	return routes
 

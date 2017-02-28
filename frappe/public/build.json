@@ -268,6 +268,17 @@
 		"public/js/lib/slickgrid/slick.grid.js",
 		"public/js/lib/slickgrid/slick.dataview.js"
 	],
+	"js/web_form.min.js": [
+		"website/js/web_form.js",
+		"public/js/lib/summernote/summernote.js",
+		"public/js/lib/datepicker/datepicker.min.js",
+		"public/js/lib/datepicker/datepicker.en.js"
+	],
+	"css/web_form.css": [
+		"website/css/web_form.css",
+		"public/js/lib/summernote/summernote.css",
+		"public/js/lib/datepicker/datepicker.min.css"
+	],
 	"js/print_format_v3.min.js": [
 		"public/js/legacy/layout.js",
 		"public/js/legacy/print_table.js",

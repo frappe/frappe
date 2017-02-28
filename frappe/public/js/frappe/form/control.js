@@ -1594,6 +1594,12 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 	make_editor: function() {
 		var me = this;
 		this.editor = $("<div>").appendTo(this.input_area);
+
+		// Note: while updating summernote, please make sure all 'p' blocks
+		// in the summernote source code are replaced by 'div' blocks.
+		// by default summernote, adds <p> blocks for new paragraphs, which adds
+		// unexpected whitespaces, esp for email replies.
+
 		this.editor.summernote({
 			minHeight: 400,
 			toolbar: [
