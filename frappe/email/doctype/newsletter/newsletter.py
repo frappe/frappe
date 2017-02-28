@@ -128,7 +128,7 @@ def confirmed_unsubscribe(email, name):
 	return_unsubscribed_page(email, name)
 
 def return_confirmation_page(email, name, primary_action):
-	frappe.respond_as_web_page(_("Unsubscribe from Newsletter"),_("Do you want to unsubscribe this mailing list?"),
+	frappe.respond_as_web_page(_("Unsubscribe from Newsletter"),_("Do you want to unsubscribe from this mailing list?"),
 		indicator_color="blue", primary_label = _("Unsubscribe"), primary_action=primary_action)
 
 def return_unsubscribed_page(email, name):
