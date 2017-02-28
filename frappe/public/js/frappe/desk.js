@@ -27,6 +27,7 @@ frappe.Application = Class.extend({
 		this.load_bootinfo();
 		this.make_nav_bar();
 		this.set_favicon();
+		this.setup_analytics();
 		frappe.ui.keys.setup();
 		this.set_rtl();
 
@@ -274,6 +275,18 @@ frappe.Application = Class.extend({
 			});
 			me.show_notes();
 		};
+	},
+
+	setup_analytics: function() {
+		if(window.mixpanel) {
+			window.mixpanel.identify(frappe.session.user);
+			window.mixpanel.people.set({
+			    "$first_name": frappe.boot.user.first_name,
+			    "$last_name": frappe.boot.user.last_name,
+			    "$created": frappe.boot.user.creation,
+			    "$email": frappe.session.user
+			});
+		}
 	},
 
 	show_notes: function() {
