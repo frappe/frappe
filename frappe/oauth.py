@@ -204,7 +204,7 @@ class OAuthWebRequestValidator(RequestValidator):
 
 		otoken = frappe.new_doc("OAuth Bearer Token")
 		otoken.client = request.client['name']
-		otoken.user = request.user
+		otoken.user = request.user if request.user else frappe.db.get_value("OAuth Bearer Token", {"refresh_token":request.body.get("refresh_token")}, "user")
 		otoken.scopes = get_url_delimiter().join(request.scopes)
 		otoken.access_token = token['access_token']
 		otoken.refresh_token = token.get('refresh_token')
