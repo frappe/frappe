@@ -74,9 +74,6 @@ frappe.views.set_list_as_dirty = function (doctype) {
 		return;
 	}
 
-	// var route = frappe.get_route()[2];
-	// if(route && ['Kanban', 'Calendar', 'Gantt'].includes(route)) return;
-
 	var list_page = 'List/' + doctype;
 	if (frappe.pages[list_page]) {
 		if (frappe.pages[list_page].list_view) {

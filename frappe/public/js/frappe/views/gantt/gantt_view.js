@@ -18,11 +18,11 @@ frappe.views.GanttView = frappe.views.ListRenderer.extend({
 		this._super();
 		this.no_realtime = true;
 		this.page_title = this.page_title + ' ' + __('Gantt');
-		this.field_map = frappe.views.calendar[this.doctype].field_map;
 	},
 
 	init_settings: function() {
 		this._super();
+		this.field_map = frappe.views.calendar[this.doctype].field_map;
 		this.order_by = this.order_by || this.field_map.start + ' asc';
 	},
 
