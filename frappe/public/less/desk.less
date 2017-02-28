@@ -531,6 +531,17 @@ textarea.form-control {
 	}
 }
 
+// hide some buttons in modal
+.modal .note-editor {
+	.note-btn-italic,
+	.note-btn-underline,
+	[data-original-title="Font Size"],
+	[data-original-title="Video"],
+	[data-original-title="Table"] {
+		display: none;
+	}
+}
+
 .search-dialog {
 	.modal-dialog {
 		width: 768px;

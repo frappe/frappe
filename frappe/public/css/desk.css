@@ -662,6 +662,13 @@ fieldset[disabled] .form-control {
   max-height: 300px;
   overflow: auto;
 }
+.modal .note-editor .note-btn-italic,
+.modal .note-editor .note-btn-underline,
+.modal .note-editor [data-original-title="Font Size"],
+.modal .note-editor [data-original-title="Video"],
+.modal .note-editor [data-original-title="Table"] {
+  display: none;
+}
 .search-dialog .modal-dialog {
   width: 768px;
   height: 500px;

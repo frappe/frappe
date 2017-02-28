@@ -1668,6 +1668,8 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 			}
 		});
 		this.note_editor = $(this.input_area).find('.note-editor');
+		// to fix <p> on enter
+		this.set_input('<div><br></div>');
 	},
 	hide_elements_on_mobile: function() {
 		this.note_editor.find('.note-btn-underline,\
