@@ -558,7 +558,7 @@ frappe.search.NavSearch = frappe.search.GlobalSearch.extend({
 		this.section_length = 4;
 
 		this.set_nav_results(me.keywords);
-		var types = ["Lists", "Reports", "Pages", "Modules"];
+		var types = ["Lists", "Reports", "Modules", "Administration", "Setup"];
 		types.forEach(function(type) {
 			if(me.nav_results[type].length > 0) {
 				me.types.push(type);
@@ -574,16 +574,25 @@ frappe.search.NavSearch = frappe.search.GlobalSearch.extend({
 	},
 
 	set_nav_results: function(keywords) {
-		var me = this;
+		var me = this, lists = [], setup = [];
 		this.awesome_bar = new frappe.search.AwesomeBar();
 		var compare = function(a, b) {
 			return a.index - b.index;
 		}
+		var all_doctypes = me.awesome_bar.get_doctypes(keywords);
+		all_doctypes.forEach(function(d) {
+			if(d.type === "") {
+				setup.push(d);
+			} else {
+				lists.push(d);
+			}
+		});
 		this.nav_results = {
-			"Lists": me.awesome_bar.get_doctypes(keywords).sort(compare),
+			"Lists": lists.sort(compare),
 			"Reports": me.awesome_bar.get_reports(keywords).sort(compare),
-			"Pages": me.awesome_bar.get_pages(keywords).sort(compare),
-			"Modules": me.awesome_bar.get_modules(keywords).sort(compare)
+			"Modules": me.awesome_bar.get_modules(keywords).sort(compare),
+			"Administration": me.awesome_bar.get_pages(keywords).sort(compare),
+			"Setup": setup.sort(compare)
 		}
 	},
 
