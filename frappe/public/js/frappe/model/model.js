@@ -105,7 +105,6 @@ $.extend(frappe.model, {
 					if(r.exc) {
 						msgprint(__("Unable to load: {0}", [__(doctype)]));
 						throw "No doctype";
-						return;
 					}
 					if(r.message=="use_cache") {
 						frappe.model.sync(cached_doc);
