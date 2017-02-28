@@ -65,18 +65,22 @@ class Newsletter(Document):
 		if not frappe.flags.in_test:
 			frappe.db.auto_commit_on_many_writes = True
 
-		attachment = []
-		if self.attach_file:
-			try:
-				file = get_file(self.attach_file)
-				attachment.append({"fname": file[0], "fcontent": file[1]})
-			except IOError:
-				frappe.throw(_("Unable to find attachment {0}").format(a))
+		attachments = []
+		if self.send_attachements:
+			files = frappe.get_all("File", fields = ["name"], filters = {"attached_to_doctype": "Newsletter",
+				"attached_to_name":self.name}, order_by="creation desc")
+
+			for file in files:
+				try:
+					file = get_file(file.name)
+					attachments.append({"fname": file[0], "fcontent": file[1]})
+				except IOError:
+					frappe.throw(_("Unable to find attachment {0}").format(a))
 
 		send(recipients = self.recipients, sender = sender,
 			subject = self.subject, message = self.message,
 			reference_doctype = self.doctype, reference_name = self.name,
-			add_unsubscribe_link = self.add_unsubscribe_link, attachments=attachment,
+			add_unsubscribe_link = self.send_unsubscribe_link, attachments=attachments,
 			unsubscribe_method = "/api/method/frappe.email.doctype.newsletter.newsletter.unsubscribe",
 			unsubscribe_params = {"name": self.name},
 			send_priority = 0, queue_separately=True)
@@ -90,7 +94,7 @@ class Newsletter(Document):
 		for email_group in get_email_groups(self.name):
 			[recipients_list.append(d.email) for d in frappe.db.get_all("Email Group Member", ["email"],
 			{"unsubscribed": 0, "email_group": email_group.email_group})]
-		return recipients_list
+		return list(set(recipients_list))
 
 	def validate_send(self):
 		if self.get("__islocal"):
@@ -118,11 +122,7 @@ def confirmed_unsubscribe(email, name):
 		return
 
 	for email_group in get_email_groups(name):
-		subs_id = frappe.db.get_value("Email Group Member", {"email": email, "email_group": email_group.email_group})
-		if subs_id:
-			subscriber = frappe.get_doc("Email Group Member", subs_id)
-			subscriber.unsubscribed = 1
-			subscriber.save(ignore_permissions=True)
+		frappe.db.sql('''update `tabEmail Group Member` set unsubscribed=1 where email=%s and email_group=%s''',(email, email_group.email_group))
 
 	frappe.db.commit()
 	return_unsubscribed_page(email, name)
