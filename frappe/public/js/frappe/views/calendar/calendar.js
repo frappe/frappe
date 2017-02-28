@@ -22,6 +22,7 @@ frappe.views.CalendarView = frappe.views.ListRenderer.extend({
 		this.page_title = this.page_title + ' ' + __('Calendar');
 		this.no_realtime = true;
 		this.show_no_result = false;
+		this.hide_sort_selector = true;
 	},
 	get_header_html: function() {
 		return null;

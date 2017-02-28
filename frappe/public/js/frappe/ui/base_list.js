@@ -323,10 +323,8 @@ frappe.ui.BaseList = Class.extend({
 		if (values.length || !this.show_no_result()) {
 			this.data = this.data.concat(values);
 			this.render_view(values);
-			console.log('have values');
 			this.update_paging(values);
 		} else if (this.start === 0) {
-			console.log('doesnot')
 			// show no result message
 			this.wrapper.find('.result').hide();
 

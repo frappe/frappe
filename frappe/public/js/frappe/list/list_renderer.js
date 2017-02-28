@@ -32,6 +32,13 @@ frappe.views.ListRenderer = Class.extend({
 		// e.g Calendar
 		this.show_no_result = true;
 
+		// hide sort selector
+		this.hide_sort_selector = false;
+
+		// default settings
+		this.order_by = this.order_by || 'modified desc';
+		this.filters = this.filters || [];
+		this.page_length = this.page_length || 20;
 	},
 	cache: function () {
 		frappe.provide('frappe.views.list_renderers')
@@ -44,13 +51,22 @@ frappe.views.ListRenderer = Class.extend({
 		this.settings = frappe.listview_settings[this.doctype] || {};
 		this.init_user_settings();
 
-		this.order_by = this.user_settings.order_by || this.settings.order_by || 'modified desc';
-		this.filters = this.user_settings.filters || this.settings.filters || [];
-		this.page_length = this.user_settings.page_length || this.settings.page_length || 20;
+
+		this.order_by = this.user_settings.order_by || this.settings.order_by;
+		this.filters = this.user_settings.filters || this.settings.filters;
+		this.page_length = this.user_settings.page_length || this.settings.page_length;
+		
+		// default filter for submittable doctype
+		if(frappe.model.is_submittable(this.doctype) && (!this.filters || !this.filters.length)) {
+			this.filters = [[this.doctype, "docstatus", "!=", 2]];
+		}
 	},
 	init_user_settings: function () {
 		frappe.provide('frappe.model.user_settings.' + this.doctype + '.' + this.name);
-		this.user_settings = frappe.model.user_settings[this.doctype][this.name];
+		this.user_settings = frappe.get_user_settings(this.doctype)[this.name];
+	},
+	before_refresh: function() {
+		// called before refresh in list_view
 	},
 	set_wrapper: function () {
 		this.wrapper = this.list_view.wrapper.find('.result-list');

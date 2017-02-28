@@ -170,6 +170,7 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 		var list_renderer = frappe.views.list_renderers[this.doctype][this.current_view];
 		if (list_renderer) {
 			this.list_renderer = list_renderer;
+			this.list_renderer.init_settings();
 			return;
 		}
 
@@ -187,14 +188,11 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 		} else if (this.current_view === 'Image') {
 			this.list_renderer = new frappe.views.ImageView(opts);
 		} else if (this.current_view === 'Kanban') {
-			this.list_renderer = new frappe.views.KanbanView($.extend(opts, {
-				board_name: this.kanban_board_name
-			}));
+			this.list_renderer = new frappe.views.KanbanView(opts);
 		}
 	},
 
 	render_view: function (values) {
-		console.log(values);
 		this.list_renderer.render_view(values);
 	},
 
@@ -259,6 +257,12 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 	},
 
 	init_filters: function () {
+		this.filter_list = new frappe.ui.FilterList({
+			base_list: this,
+			parent: this.wrapper.find('.list-filters').show(),
+			doctype: this.doctype,
+			default_filters: []
+		});
 		this.set_filters(this.list_renderer.filters);
 	},
 
@@ -276,24 +280,10 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 		var me = this;
 		var order_by = this.list_renderer.order_by;
 
-		if (order_by.includes('`.`')) {
-			// scrub table name (separated by dot), like `tabTime Log`.`modified` desc`
-			order_by = order_by.split('.')[1];
-		}
-
-		parts = order_by.split(' ');
-		if (parts.length === 2) {
-			var fieldname = strip(parts[0], '`');
-			var args = {
-				sort_by: fieldname,
-				sort_order: parts[1]
-			}
-		}
-
 		this.sort_selector = new frappe.ui.SortSelector({
 			parent: this.wrapper.find('.list-filters'),
 			doctype: this.doctype,
-			args: args,
+			args: order_by,
 			change: function () { me.run(); }
 		});
 	},
@@ -335,7 +325,7 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 			freeze: true,
 			start: 0,
 			page_length: this.list_renderer.page_length,
-			show_filters: true,
+			show_filters: false,
 			new_doctype: this.doctype,
 			no_result_message: this.make_no_result(),
 			show_no_result: function() {
@@ -373,11 +363,11 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 		// if view has changed, setup list_renderer
 		if (this.current_view !== this.last_view) {
 			this.setup_list_renderer();
-			this.list_renderer.before_refresh && this.list_renderer.before_refresh();
 			this.refresh_surroundings();
 			this.dirty = true;
 		}
 
+		this.list_renderer.before_refresh();
 		if (this.list_renderer.settings.refresh) {
 			this.list_renderer.settings.refresh(this);
 		}
@@ -449,11 +439,6 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 
 		if (frappe.route_options) {
 			this.set_filters_from_route_options();
-			this.dirty = true;
-		} else if (this.list_renderer.filters.length) {
-			// update remembered list settings
-			this.filter_list.clear_filters();
-			this.set_filters(this.list_renderer.filters);
 			this.dirty = true;
 		}
 	},
@@ -538,35 +523,37 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 		});
 	},
 
-	set_kanban_board_filters: function () {
-		var me = this;
-		frappe.db.get_value('Kanban Board',
-			{ name: this.kanban_board }, 'filters',
-			function (res) {
-				var filters = JSON.parse(res.filters || '[]');
-				me.filter_list.clear_filters();
-				me.set_filters(filters);
-				me.run();
-			});
-	},
-
 	get_args: function () {
 		var args = {
 			doctype: this.doctype,
 			fields: this.list_renderer.fields,
-			filters: this.filter_list.get_filters(),
-			order_by: this.list_renderer.order_by,
+			filters: this.get_filters_args(),
+			order_by: this.get_order_by_args(),
 			with_comment_count: true
 		}
-
-		// apply default filters, from listview_settings.[DocType]
-		$.each((this.list_renderer.filters), function (i, f) {
-			args.filters.push(f);
-		});
-
-		args.order_by = this.sort_selector.sort_by + ' ' + this.sort_selector.sort_order;
-
 		return args;
+	},
+	get_filters_args: function() {
+		var filters = [];
+		if(this.filter_list) {
+			// get filters from filter_list
+			filters = this.filter_list.get_filters();
+		} else {
+			filters = this.list_renderer.filters;
+		}
+		// remove duplicates
+		var uniq = filters.uniqBy(JSON.stringify);
+		return uniq;
+	},
+	get_order_by_args: function() {
+		var order_by = '';
+		if(this.sort_selector) {
+			// get order_by from sort_selector
+			order_by = this.sort_selector.sort_by + ' ' + this.sort_selector.sort_order;
+		} else {
+			order_by = this.list_renderer.order_by;
+		}
+		return order_by;
 	},
 	assigned_to_me: function () {
 		this.filter_list.add_filter(this.doctype, '_assign', 'like', '%' + user + '%');

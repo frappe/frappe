@@ -27,7 +27,6 @@ $.extend(frappe.model.user_settings, {
 			},
 			callback: function(r) {
 				frappe.model.user_settings[doctype] = r.message;
-				console.log(r);
 			}
 		})
 	}

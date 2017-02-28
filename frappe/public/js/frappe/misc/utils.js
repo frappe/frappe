@@ -635,3 +635,15 @@ if (!Array.prototype.includes) {
     }
   });
 }
+// Array de duplicate
+if (!Array.prototype.uniqBy) {
+	Object.defineProperty(Array.prototype, 'uniqBy', {
+		value: function (key) {
+			var seen = {};
+			return this.filter(function (item) {
+				var k = key(item);
+				return seen.hasOwnProperty(k) ? false : (seen[k] = true);
+			})
+		}
+	})
+}

@@ -13,6 +13,20 @@ frappe.ui.FilterList = Class.extend({
 	make: function() {
 		var me = this;
 
+		this.wrapper.find('.show_filters').remove();
+		this.wrapper.append(`
+			<div class="show_filters">
+				<div class="set-filters">
+					<button
+						class="btn btn-default btn-xs show-filters text-muted"
+						style="margin-right: 10px;">
+							${__("Show Filters")}
+					</button>
+					<button style="margin-left: -5px;"
+						class="btn btn-default btn-xs new-filter text-muted">
+						<i class="octicon octicon-plus"></i></button>
+				</div>
+			</div>`);
 		$(frappe.render_template("filter_dashboard", {})).appendTo(this.wrapper.find('.show_filters'));
 
 		//show filter dashboard
@@ -85,7 +99,7 @@ frappe.ui.FilterList = Class.extend({
 			args: {
 				stats: me.stats,
 				doctype: me.doctype,
-				filters:me.default_filters
+				filters: me.default_filters
 			},
 			callback: function(r) {
 				// This gives a predictable stats order
@@ -482,9 +496,8 @@ frappe.ui.Filter = Class.extend({
 		this.flist.update_filters();
 
 		if(!dont_run) {
-			this.flist.base_list.dirty = true;
 			this.flist.base_list.clean_dash = true;
-			this.flist.base_list.refresh();
+			this.flist.base_list.refresh(true);
 		}
 	},
 

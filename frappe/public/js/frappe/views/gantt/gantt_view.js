@@ -3,7 +3,6 @@ frappe.provide('frappe.views');
 frappe.views.GanttView = frappe.views.ListRenderer.extend({
 	name: 'Gantt',
 	prepare: function(values) {
-		console.log(values)
 		this.items = values;
 		this.prepare_tasks();
 		this.prepare_dom();
@@ -20,8 +19,11 @@ frappe.views.GanttView = frappe.views.ListRenderer.extend({
 		this.no_realtime = true;
 		this.page_title = this.page_title + ' ' + __('Gantt');
 		this.field_map = frappe.views.calendar[this.doctype].field_map;
+	},
 
-		this.order_by = this.field_map.start + ' asc';
+	init_settings: function() {
+		this._super();
+		this.order_by = this.order_by || this.field_map.start + ' asc';
 	},
 
 	prepare_dom: function() {
