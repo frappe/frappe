@@ -1,9 +1,9 @@
 frappe.ready(function() {
 	frappe.file_reading = false;
 	frappe.form_dirty = false;
-	moment.defaultFormat = frappe.moment_date_format;
 
 	$.extend(frappe, web_form_settings);
+	moment.defaultFormat = frappe.moment_date_format;
 
 	$('[data-toggle="tooltip"]').tooltip();
 

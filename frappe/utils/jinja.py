@@ -59,6 +59,7 @@ def get_allowed_functions_for_jenv():
 	from frappe.website.utils import get_shade
 	from frappe.modules import scrub
 	import mimetypes
+	from html2text import html2text
 
 	datautils = {}
 	if frappe.db:
@@ -110,6 +111,7 @@ def get_allowed_functions_for_jenv():
 		"get_shade": get_shade,
 		"scrub": scrub,
 		"guess_mimetype": mimetypes.guess_type,
+		'html2text': html2text,
 		"dev_server": 1 if os.environ.get('DEV_SERVER', False) else 0
 	}
 
