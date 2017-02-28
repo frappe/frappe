@@ -220,11 +220,11 @@ frappe.ui.FilterList = Class.extend({
 			me.add_filter();
 		});
 
-
-		this.wrapper.find('.clear-filter').bind('click', function() {
+		this.wrapper.find('.clear-filters').bind('click', function() {
 			me.clear_filters();
-			$('.date-range-picker').val('')
+			$('.date-range-picker').val('');
 			me.listobj.run();
+			$(this).addClass("hide");
 		});
 
 		//set sort filters
@@ -330,6 +330,10 @@ frappe.ui.FilterList = Class.extend({
 
 		var filter = this.push_new_filter(doctype, fieldname, condition, value);
 
+		if(this.wrapper.find('.clear-filters').hasClass("hide")) {
+			this.wrapper.find('.clear-filters').removeClass("hide");
+		}
+
 		if (filter && is_new_filter) {
 			filter.wrapper.addClass("is-new-filter");
 		}
@@ -391,6 +395,9 @@ frappe.ui.FilterList = Class.extend({
 			if(f.field) fl.push(f);
 		})
 		this.filters = fl;
+		if(this.filters.length === 0) {
+			this.wrapper.find('.clear-filters').addClass("hide");
+		}
 	},
 
 	get_filter: function(fieldname) {
