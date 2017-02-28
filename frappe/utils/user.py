@@ -187,7 +187,7 @@ class UserPermissions:
 		return self.can_read
 
 	def load_user(self):
-		d = frappe.db.sql("""select email, first_name, last_name,
+		d = frappe.db.sql("""select email, first_name, last_name, creation,
 			email_signature, user_type, language, background_image, background_style, mute_sounds
 			from tabUser where name = %s""", (self.name,), as_dict=1)[0]
 
