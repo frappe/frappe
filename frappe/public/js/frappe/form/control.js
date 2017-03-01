@@ -288,7 +288,7 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 				if(me.disp_status=="Write") {
 					me.disp_area && $(me.disp_area).toggle(false);
 					$(me.input_area).toggle(true);
-					$(me.input_area).find("input").prop("disabled", false);
+					me.$input && me.$input.prop("disabled", false);
 					make_input();
 					update_input();
 				} else {
