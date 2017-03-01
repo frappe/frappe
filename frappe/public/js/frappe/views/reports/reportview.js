@@ -509,8 +509,11 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 				me.update_value(docfield, d, row);
 			}
 		});
-		d.show();
 		d.set_input(docfield.fieldname, row[docfield.fieldname]);
+
+		// Show dialog if field is editable and not hidden
+		if (d.fields_list[0].disp_status != "Write") d.hide();
+		else d.show();
 	},
 
 	update_value: function(docfield, dialog, row) {
