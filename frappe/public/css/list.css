@@ -343,6 +343,9 @@
 .pswp--svg .pswp__button--arrow--right {
   background: none !important;
 }
+.pswp__bg {
+  background-color: #fff !important;
+}
 .gantt .details-container .heading {
   margin-bottom: 10px;
   font-size: 12px;
