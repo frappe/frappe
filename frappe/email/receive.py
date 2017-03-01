@@ -224,7 +224,7 @@ class EmailServer:
 			self.validate_message_limits(message_meta)
 
 			if cint(self.settings.use_imap):
-				status, message = self.imap.uid('fetch', message_meta, '(RFC822 BODY.PEEK[HEADER] FLAGS)')
+				status, message = self.imap.uid('fetch', message_meta, '(BODY.PEEK[] BODY.PEEK[HEADER] FLAGS)')
 				raw, header, ignore = message
 
 				self.get_email_seen_status(message_meta, header[0])
@@ -342,7 +342,7 @@ class EmailServer:
 
 		return error_msg
 
-	def mark_as_seen(self, uid_list=[]):
+	def update_flag(self, uid_list=[], operation="Read"):
 		""" set all uids mails the flag as seen  """
 
 		if not uid_list:
@@ -351,10 +351,12 @@ class EmailServer:
 		if not self.connect():
 			return
 
+		op = "+FLAGS" if operation == "Read" else "-FLAGS"
+
 		self.imap.select("Inbox")
 		for uid in uid_list:
 			try:
-				self.imap.uid('STORE', uid, '+FLAGS', '(\\SEEN)')
+				self.imap.uid('STORE', uid, op, '(\\SEEN)')
 			except Exception as e:
 				continue
 

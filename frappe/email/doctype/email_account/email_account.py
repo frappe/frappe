@@ -280,7 +280,7 @@ class EmailAccount(Document):
 
 			#notify if user is linked to account
 			if len(incoming_mails)>0 and not frappe.local.flags.in_test:
-				frappe.publish_realtime('new_email', {"account":self.email_account_name,"number":len(incoming_mails)})
+				frappe.publish_realtime('new_email', {"account":self.email_account_name, "number":len(incoming_mails)})
 
 			if exceptions:
 				raise Exception, frappe.as_json(exceptions)
@@ -306,14 +306,15 @@ class EmailAccount(Document):
 			frappe.db.commit()
 
 	def insert_communication(self, msg, args={}):
-		if isinstance(msg,list):
+		if isinstance(msg, list):
 			raw, uid, seen = msg
 		else:
 			raw = msg
-			seen = uid = None
+			uid = -1
+			seen = 0
 
-		if args.get("uid", None): uid = args.get("uid", None)
-		if args.get("seen", None): seen = args.get("seen", None)
+		if args.get("uid", -1): uid = args.get("uid", -1)
+		if args.get("seen", 0): seen = args.get("seen", 0)
 
 		email = Email(raw)
 
@@ -345,11 +346,11 @@ class EmailAccount(Document):
 			"cc": email.mail.get("CC"),
 			"email_account": self.name,
 			"communication_medium": "Email",
-			"uid": uid,
+			"uid": int(uid or -1),
 			"message_id": email.message_id,
 			"communication_date": email.date,
 			"has_attachment": 1 if email.attachments else 0,
-			"seen": seen,
+			"seen": seen or 0,
 			"fingerprint": args.get("fingerprint", None)
 		})
 
@@ -565,12 +566,13 @@ class EmailAccount(Document):
 		if self.email_sync_option == "ALL":
 			max_uid = get_max_email_uid(self.name)
 			last_uid = max_uid + int(self.initial_sync_count or 100) if max_uid == 1 else "*"
+			print "UID {}:{}".format(max_uid, last_uid)
 			return "UID {}:{}".format(max_uid, last_uid)
 		else:
 			return self.email_sync_option
 
-	def mark_emails_as_seen(self):
-		""" mark Email Flag Queue of self.email_account mails as seen"""
+	def mark_emails_as_read(self):
+		""" mark Email Flag Queue of self.email_account mails as read"""
 		if not self.use_imap:
 			return
 
@@ -581,10 +583,33 @@ class EmailAccount(Document):
 		uid_list = list(set([ flag.get("uid") for flag in flags ]))
 		if flags and uid_list:
 			email_server = self.get_incoming_server()
-			marked_as_seen = email_server.mark_as_seen(uid_list=uid_list)
+			email_server.update_flag(uid_list=uid_list)
 
-		docnames = ",".join([ "'%s'"%uid for uid in uid_list ])
-		frappe.db.sql(""" update `tabCommunication` set seen=1 where name in ({docnames})""".format(docnames=docnames))
+			docnames = ",".join([ "'%s'"%flag.get("name") for flag in flags ])
+			frappe.db.sql(""" update `tabCommunication` set seen=1 
+				where name in ({docnames})""".format(docnames=docnames))
+
+	def mark_emails_as_unread(self):
+		""" mark Email Flag Queue of self.email_account mails as unread"""
+
+		if not self.use_imap:
+			return
+
+		flags = frappe.db.sql("""select name, communication, uid from `tabEmail Flag Queue`
+			where action = "Unread" and is_completed=0 """.format(email_account=self.name), as_dict=True)
+
+		uid_list = list(set([ flag.get("uid") for flag in flags ]))
+		if flags and uid_list:
+			email_server = self.get_incoming_server()
+			email_server.update_flag(uid_list=uid_list, operation="Unread")
+
+			docnames = ",".join([ "'%s'"%flag.get("communication") for flag in flags ])
+			frappe.db.sql(""" update `tabCommunication` set seen=0 
+				where name in ({docnames})""".format(docnames=docnames))
+
+			docnames = ",".join([ "'%s'"%flag.get("name") for flag in flags ])
+			frappe.db.sql(""" update `tabEmail Flag Queue` set is_completed=1 
+				where name in ({docnames})""".format(docnames=docnames))
 
 @frappe.whitelist()
 def get_append_to(doctype=None, txt=None, searchfield=None, start=None, page_len=None, filters=None):
@@ -661,7 +686,8 @@ def pull_from_email_account(email_account):
 	email_account.receive()
 
 	# mark Email Flag Queue mail as read
-	email_account.mark_emails_as_seen()
+	email_account.mark_emails_as_read()
+	email_account.mark_emails_as_unread()
 
 def get_max_email_uid(email_account):
 	# get maximum uid of emails
