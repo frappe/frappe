@@ -10,7 +10,7 @@ import frappe.share
 import frappe.permissions
 from frappe.utils import flt, cint, getdate, get_datetime, get_time, make_filter_tuple, get_filter, add_to_date
 from frappe import _
-from frappe.model import optional_fields, default_fields
+from frappe.model import optional_fields
 from frappe.model.utils.list_settings import get_list_settings, update_list_settings
 
 class DatabaseQuery(object):
@@ -136,12 +136,13 @@ class DatabaseQuery(object):
 		self.set_field_tables()
 
 		args.fields = ', '.join(self.fields)
-		meta = frappe.get_meta(self.doctype)
-		self.set_order_by(args, meta)
-		# self.validate_order_by_and_group_by_params(args.order_by, meta)
+		
+		self.set_order_by(args)
+		
+		self.validate_order_by_and_group_by(args.order_by)
 		args.order_by = args.order_by and (" order by " + args.order_by) or ""
 
-		# self.validate_order_by_and_group_by_params(self.group_by, meta)
+		self.validate_order_by_and_group_by(self.group_by)
 		args.group_by = self.group_by and (" group by " + self.group_by) or ""
 
 		return args
@@ -442,7 +443,9 @@ class DatabaseQuery(object):
 			query = query.replace('%(key)s', 'name')
 		return frappe.db.sql(query, as_dict = (not self.as_list))
 
-	def set_order_by(self, args, meta):
+	def set_order_by(self, args):
+		meta = frappe.get_meta(self.doctype)
+		
 		if self.order_by:
 			args.order_by = self.order_by
 		else:
@@ -475,14 +478,15 @@ class DatabaseQuery(object):
 				if meta.is_submittable:
 					args.order_by = "`tab{0}`.docstatus asc, {1}".format(self.doctype, args.order_by)
 
-	def validate_order_by_and_group_by_params(self, parameters, meta):
-		"""
-			Clause cases:
-				1. check for . to split table and columns and check for `tab prefix
-				2. elif check field in meta
-		"""
+	def validate_order_by_and_group_by(self, parameters):
+		"""Check order by, group by so that atleast one column is selected and does not have subquery"""
 		if not parameters:
 			return
+
+		_lower = parameters.lower()
+		if 'select' in _lower and ' from ' in _lower:
+			frappe.throw(_('Cannot use sub-query in order by'))
+		
 
 		for field in parameters.split(","):
 			if "." in field and field.strip().startswith("`tab"):
@@ -491,10 +495,6 @@ class DatabaseQuery(object):
 					if tbl.startswith('`'):
 						tbl = tbl[4:-1]
 					frappe.throw(_("Please select atleast 1 column from {0} to sort/group").format(tbl))
-			else:
-				field = field.strip().split(' ')[0]
-				if field not in [f.fieldname for f in meta.fields] and field not in (default_fields + optional_fields):
-					frappe.throw(_("Invalid field used to sort/group: {0}").format(field))
 
 	def add_limit(self):
 		if self.limit_page_length:
