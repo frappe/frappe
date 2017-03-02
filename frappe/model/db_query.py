@@ -493,7 +493,7 @@ class DatabaseQuery(object):
 					frappe.throw(_("Please select atleast 1 column from {0} to sort/group").format(tbl))
 			else:
 				field = field.strip().split(' ')[0]
-				if field not in [f.fieldname for f in meta.fields] and field not in default_fields:
+				if field not in [f.fieldname for f in meta.fields] and field not in (default_fields + optional_fields):
 					frappe.throw(_("Invalid field used to sort/group: {0}").format(field))
 
 	def add_limit(self):
