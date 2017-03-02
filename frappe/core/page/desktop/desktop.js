@@ -108,10 +108,7 @@ $.extend(frappe.desktop, {
 			help_messages.forEach(function(message, i) {
 				var $message = $('<div class="help-message-item hidden"></div>')
 					.attr('data-message-idx', i)
-					.html($.format('<div><span class="indicator blue">{0}</span></div>\
-						<p>{1}</p>\
-						<div><a class="btn btn-sm btn-default" href="#{2}">{3}</a></div>',
-							[message.title, message.description, message.route, message.action]))
+					.html(frappe.render_template('desktop_help_message', message))
 					.appendTo($help_messages);
 
 			});
