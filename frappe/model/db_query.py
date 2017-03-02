@@ -139,10 +139,10 @@ class DatabaseQuery(object):
 		args.fields = ', '.join(self.fields)
 		meta = frappe.get_meta(self.doctype)
 		self.set_order_by(args, meta)
-		self.validate_order_by_and_group_by_params(args.order_by, meta)
+		# self.validate_order_by_and_group_by_params(args.order_by, meta)
 		args.order_by = args.order_by and (" order by " + args.order_by) or ""
 
-		self.validate_order_by_and_group_by_params(self.group_by, meta)
+		# self.validate_order_by_and_group_by_params(self.group_by, meta)
 		args.group_by = self.group_by and (" group by " + self.group_by) or ""
 
 		return args
