@@ -79,7 +79,7 @@ class WebsiteGenerator(Document):
 		route.update(self.get_website_properties())
 
 		if not route.page_title:
-			route.page_title = self.get(self.get_website_properties('page_title'), 'title') \
+			route.page_title = self.get(self.get_website_properties('page_title_field'), 'title') \
 				or self.get('name')
 
 		return route
