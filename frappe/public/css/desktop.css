@@ -234,3 +234,24 @@ body[data-route="desktop"] .navbar-set-desktop-icons {
 .help-message-wrapper .indicator {
   color: #36414C;
 }
+.help-message-wrapper .help-progress {
+  display: inline-block;
+  margin-left: 10px;
+  height: 4px;
+  background-color: #fafbfc;
+}
+.help-message-wrapper .help-progress {
+  display: inline-block;
+  margin-left: 10px;
+  height: 4px;
+  width: 100px;
+  background-color: #f5f7fa;
+  border-radius: 2px;
+}
+.help-message-wrapper .help-progress-bar {
+  display: inline-block;
+  height: 4px;
+  background-color: #5E64FF;
+  float: left;
+  border-radius: 2px;
+}
