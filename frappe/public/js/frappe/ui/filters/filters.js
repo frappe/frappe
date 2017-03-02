@@ -261,8 +261,7 @@ frappe.ui.FilterList = Class.extend({
 				df: {
 					fieldtype: "Check",
 					fieldname: "is_date_range",
-					label: __("Date Range"),
-					input_css: { "margin-top": "-2px" }
+					label: __("Date Range")
 				}
 			});
 			check.change = function() {
