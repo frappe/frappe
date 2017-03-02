@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 
 import frappe
 from frappe.utils import now
+from frappe import _
 
 def get_context(context):
 	doc = frappe.get_doc("Contact Us Settings", "Contact Us Settings")
@@ -13,10 +14,6 @@ def get_context(context):
 		query_options = [opt.strip() for opt in doc.query_options.replace(",", "\n").split("\n") if opt]
 	else:
 		query_options = ["Sales", "Support", "General"]
-
-	address = None
-	if doc.get("address"):
-		address = frappe.get_doc("Address", doc.address)
 
 	out = {
 		"query_options": query_options
@@ -48,5 +45,16 @@ def send_message(subject="Website Query", message="", sender=""):
 	forward_to_email = frappe.db.get_value("Contact Us Settings", None, "forward_to_email")
 	if forward_to_email:
 		frappe.sendmail(recipients=forward_to_email, sender=sender, content=message, subject=subject)
+
+
+	# add to to-do ?
+	frappe.get_doc(dict(
+		doctype = 'Communication',
+		sender=sender,
+		subject= _('New Message from Website Contact Page'),
+		sent_or_received='Received',
+		content=message,
+		status='Open',
+	)).insert(ignore_permissions=True)
 
 	return "okay"
