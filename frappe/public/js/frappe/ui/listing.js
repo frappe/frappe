@@ -413,7 +413,7 @@ frappe.ui.Listing = Class.extend({
 		query += ' LIMIT ' + this.start + ',' + (this.page_length+1);
 		return query
 	},
-	set_filter: function(parent, fieldname, label, no_run, no_duplicate) {
+	set_filter: function(fieldname, label, no_run, no_duplicate, parent) {
 		var filter = this.filter_list.get_filter(fieldname);
 		doctype = parent && this.doctype != parent? parent: this.doctype
 
