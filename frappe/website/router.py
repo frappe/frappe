@@ -220,27 +220,25 @@ def setup_source(page_info):
 	if page_info.template.endswith('.html') or page_info.template.endswith('.md'):
 		if ('</body>' not in source) and ('{% block' not in source):
 			page_info.only_content = True
-			js, css = '', ''
-
-			js_path = os.path.join(page_info.basepath, page_info.basename + '.js')
-			if os.path.exists(js_path):
-				js = unicode(open(js_path, 'r').read(), 'utf-8')
-
-			css_path = os.path.join(page_info.basepath, page_info.basename + '.css')
-			if os.path.exists(css_path):
-				css = unicode(open(css_path, 'r').read(), 'utf-8')
-
 			html = '{% extends "templates/web.html" %}'
-
-			if css:
-				html += '\n{% block style %}\n<style>\n' + css + '\n</style>\n{% endblock %}'
-
 			html += '\n{% block page_content %}\n' + source + '\n{% endblock %}'
-
-			if js:
-				html += '\n{% block script %}<script>' + js + '\n</script>\n{% endblock %}'
 		else:
 			html = source
+
+		# load css/js files
+		js, css = '', ''
+
+		js_path = os.path.join(page_info.basepath, (page_info.basename or 'index') + '.js')
+		if os.path.exists(js_path):
+			if not '{% block script %}' in html:
+				js = unicode(open(js_path, 'r').read(), 'utf-8')
+				html += '\n{% block script %}<script>' + js + '\n</script>\n{% endblock %}'
+
+		css_path = os.path.join(page_info.basepath, (page_info.basename or 'index') + '.css')
+		if os.path.exists(css_path):
+			if not '{% block style %}' in html:
+				css = unicode(open(css_path, 'r').read(), 'utf-8')
+				html += '\n{% block style %}\n<style>\n' + css + '\n</style>\n{% endblock %}'
 
 	page_info.source = html
 
@@ -292,8 +290,6 @@ def make_toc(context, out, app=None):
 
 def load_properties(page_info):
 	'''Load properties like no_cache, title from raw'''
-	import re
-
 	if not page_info.title:
 		page_info.title = extract_title(page_info.source, page_info.name)
 
