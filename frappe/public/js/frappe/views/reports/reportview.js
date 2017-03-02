@@ -368,7 +368,7 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 		});
 
 		if(!filter_set) {
-			this.set_filter(parent, fieldname, value);
+			this.set_filter(fieldname, value, false, false, parent);
 		} else {
 			var df = frappe.meta.get_docfield(parent, fieldname);
 			if(df.fieldtype==='Link') {
