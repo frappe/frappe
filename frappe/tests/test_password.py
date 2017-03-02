@@ -34,6 +34,7 @@ class TestPassword(unittest.TestCase):
 		if not frappe.db.exists('Email Account', name):
 			return frappe.get_doc({
 				'doctype': 'Email Account',
+				'domain': 'example.com',
 				'email_account_name': name,
 				'append_to': 'Communication',
 				'smtp_server': 'test.example.com',

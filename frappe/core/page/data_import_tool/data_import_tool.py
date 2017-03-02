@@ -40,7 +40,7 @@ def export_csv(doctype, path):
 		get_template(doctype=doctype, all_doctypes="Yes", with_data="Yes")
 		csvfile.write(frappe.response.result.encode("utf-8"))
 
-def export_json(doctype, path, filters=None, name=None):
+def export_json(doctype, path, filters=None, or_filters=None, name=None):
 	def post_process(out):
 		del_keys = ('parent', 'parentfield', 'parenttype', 'modified_by', 'creation', 'owner', 'idx')
 		for doc in out:
@@ -60,7 +60,7 @@ def export_json(doctype, path, filters=None, name=None):
 	elif frappe.db.get_value("DocType", doctype, "issingle"):
 		out.append(frappe.get_doc(doctype).as_dict())
 	else:
-		for doc in frappe.get_all(doctype, fields=["name"], filters=filters, limit_page_length=0, order_by="creation asc"):
+		for doc in frappe.get_all(doctype, fields=["name"], filters=filters, or_filters=or_filters, limit_page_length=0, order_by="creation asc"):
 			out.append(frappe.get_doc(doctype, doc.name).as_dict())
 	post_process(out)
 

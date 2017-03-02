@@ -23,7 +23,7 @@ frappe.ui.Chart = Class.extend({
 		    data: {},
 			axis: {
 		        x: {
-		            type: 'category' // this needed to load string x value
+		            type: this.opts.x_type || 'category' // this needed to load string x value
 		        },
 				y: {
 					padding: { bottom: 10 }
@@ -46,6 +46,27 @@ frappe.ui.Chart = Class.extend({
 		$.extend(chart_dict, this.opts);
 
 		chart_dict["data"]["type"] = this.opts.chart_type || "line";
+
+		if(this.opts.x_type==='timeseries') {
+			if(!chart_dict.axis.x.tick) {
+				chart_dict.axis.x.tick = {}
+			}
+			chart_dict.axis.x.tick.culling = {max: 15};
+			chart_dict.axis.x.tick.format = frappe.boot.sysdefaults.date_format
+				.replace('yyyy', '%Y').replace('mm', '%m').replace('dd', '%d');
+		};
+
+		// set color
+		if(!chart_dict.data.colors) {
+			colors = ['#4E50A6', '#7679FB', '#A3A5FC', '#925191', '#5D3EA4', '#8D5FFA',
+				'#5E3AA8', '#7B933D', '#4F8EA8'];
+			chart_dict.data.colors = {};
+			chart_dict.data.columns.forEach(function(d, i) {
+				if(d[0]!=='x') {
+					chart_dict.data.colors[d[0]] = colors[i-1];
+				}
+			});
+		}
 
 		return c3.generate(chart_dict);
 	},

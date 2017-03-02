@@ -37,7 +37,7 @@ def after_install():
 	update_password("Administrator", get_admin_password())
 
 	# setup wizard now in frappe
-	frappe.db.set_default('desktop:home_page', 'setup-wizard');
+	frappe.db.set_default('desktop:home_page', 'setup-wizard')
 
 	frappe.db.commit()
 
@@ -62,8 +62,9 @@ def install_basic_docs():
 		{'doctype': "Workflow Action", "workflow_action_name": "Approve"},
 		{'doctype': "Workflow Action", "workflow_action_name": "Reject"},
 		{'doctype': "Workflow Action", "workflow_action_name": "Review"},
-		{'doctype': "Email Account", "email_id": "notifications@example.com", "default_outgoing": 1},
-		{'doctype': "Email Account", "email_id": "replies@example.com", "default_incoming": 1}
+		{'doctype': "Email Domain", "domain_name":"example.com", "email_id": "account@example.com", "password": "pass", "email_server": "imap.example.com","use_imap": 1, "smtp_server": "smtp.example.com"},
+		{'doctype': "Email Account", "domain":"example.com", "email_id": "notifications@example.com", "default_outgoing": 1},
+		{'doctype': "Email Account", "domain":"example.com", "email_id": "replies@example.com", "default_incoming": 1}
 	]
 
 	for d in install_docs:

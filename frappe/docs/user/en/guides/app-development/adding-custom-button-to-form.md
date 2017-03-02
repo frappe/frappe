@@ -13,7 +13,7 @@ We should edit `frappe\core\doctype\user\user.js`
     frappe.ui.form.on('User', {
     	refresh: function(frm) {
         ...
-          frm.add_custom_button(__('Get User Email ID'), function(){
+          frm.add_custom_button(__('Get User Email Address'), function(){
             frappe.msgprint(frm.doc.email);
         }, __("Utilities"));
         ...
@@ -22,6 +22,7 @@ We should edit `frappe\core\doctype\user\user.js`
 
 You should be seeing a button on user form as shown below,
 
-![add_custom_button_screenshot](/assets/img/app-development/add_custom_button.png)
+<img class="screenshot" alt="Custom Button" src="{{docs_base_url}}/assets/img/app-development/add_custom_button.png">
+
 
 <!-- markdown -->

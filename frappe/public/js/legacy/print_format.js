@@ -404,7 +404,7 @@ $.extend(_p, {
 	get_letter_head: function() {
 		var lh = '';
 		if(cur_frm.doc.letter_head) {
-			lh = cstr(frappe.boot.letter_heads[cur_frm.doc.letter_head]);
+			lh = cstr(frappe.boot.letter_heads[cur_frm.doc.letter_head].header);
 		} else if (frappe.boot.sysdefaults.default_letter_head_content) {
 			lh = frappe.boot.sysdefaults.default_letter_head_content;
 		}

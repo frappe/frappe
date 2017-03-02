@@ -178,32 +178,39 @@ frappe.ui.FilterList = Class.extend({
 
 			var search_input = dashboard_filter.parent().find(".search-dashboard");
 
-			dashboard_filter.parent().find(".search-dropdown").removeClass("hide").on("shown.bs.dropdown", function (event) {
-				search_input.focus();
-				search_input.val("")
+			dashboard_filter.parent().find(".search-dropdown")
+				.removeClass("hide")
+				.on("shown.bs.dropdown", function (event) {
+					search_input.focus();
+					search_input.val("")
+				});
+
+			new Awesomplete(search_input.get(0), {
+				minChars: 0,
+				maxItems: 99,
+				autoFirst: true,
+				list: autolist,
+				item: function(item, input) {
+					return $("<li>").text(item.label).get(0);
+				},
+				replace: function(text) {
+					this.input.value = '';
+				}
 			});
 
-			search_input.autocomplete({
-				source: autolist,
-				select: function (ev, ui) {
-					if (ui.item) {
-						if (df && df.fieldtype == 'Check') {
-							var noduplicate = true
-						}
-						if (ui.item.label == "No Data") {
-							me.listobj.set_filter(ui.item.value, '', false, noduplicate);
-						} else {
-							me.listobj.set_filter(ui.item.value, ui.item.label, false, noduplicate);
-						}
-						search_input.val('');
-						return false;
+			search_input.on("awesomplete-select", function(e) {
+				var item = e.originalEvent.text;
+				if (item) {
+					if (df && df.fieldtype == 'Check') {
+						var noduplicate = true
 					}
-				},
-				focus: function (event, ui) {
-					search_input.val(ui.item.label);
-					return false;
+					if (item.label == "No Data") {
+						me.listobj.set_filter(item.value, '', false, noduplicate);
+					} else {
+						me.listobj.set_filter(item.value, item.label, false, noduplicate);
+					}
 				}
-			})
+			});
 		}
 	},
 	set_events: function() {
@@ -230,31 +237,60 @@ frappe.ui.FilterList = Class.extend({
 
 		//setup date-time range pickers
 		this.wrapper.find(".filter-input-date").each(function(i,v) {
-			var name = $(v).data("name");
-			var f = frappe.ui.form.make_control({
+			var self = this;
+			var date;
+			var date_wrapper = $('<div>').appendTo($(this));
+			make_date("range");
+
+			var check = frappe.ui.form.make_control({
+				parent: this,
+				df: {
+					fieldtype: "Check",
+					fieldname: "is_date_range",
+					label: __("Date Range"),
+					input_css: { "margin-top": "-2px" }
+				}
+			});
+			check.change = function() {
+				date.datepicker.clear();
+				date && date.wrapper.remove();
+				check.get_value() ?
+					make_date("range"):
+					make_date("single");
+			}
+			check.refresh();
+			check.set_input(1);
+
+			function make_date(mode) {
+				var fieldtype = mode==="range" ? "DateRange" : "Date";
+				var name = $(v).data("name");
+				if(date) {
+					//cleanup old datepicker
+					date.datepicker.destroy();
+				}
+				date = frappe.ui.form.make_control({
 					df: {
-						fieldtype:"DateRange",
-						fieldname:name,
+						fieldtype: fieldtype,
+						fieldname: name,
 					},
-					parent: this,
-					only_input: true,
-					applydaterange:function(ev,picker){
-						var filt = me.get_filter(name);
-						if (filt) {
-							filt.remove(true)
-						}
-						me.add_filter(me.doctype, name, 'Between', [picker.startDate,picker.endDate]);
+					parent: date_wrapper,
+					only_input: true
+				});
+				date.refresh();
+
+				date.datepicker.update("onSelect", function(fd, dateObj) {
+					var filt = me.get_filter(name);
+					filt && filt.remove(true);
+					if(!dateObj.length && dateObj && date.datepicker.opts.range===false) {
+						me.add_filter(me.doctype, name, '=', moment(dateObj).format('YYYY-MM-DD'));
 						me.listobj.run();
-					},
-					canceldaterange:function(ev,picker){
-						$(this).val('');
-						var filt = me.get_filter(name);
-						if (filt) {
-							filt.remove(true)
-						}
+					} else if(dateObj.length===2 && date.datepicker.opts.range===true) {
+						me.add_filter(me.doctype, name, 'Between',
+							[moment(dateObj[0]).format('YYYY-MM-DD'), moment(dateObj[1]).format('YYYY-MM-DD')]);
+						me.listobj.run();
 					}
-					})
-			f.refresh();
+				});
+			}
 		})
 	},
 
@@ -322,15 +358,18 @@ frappe.ui.FilterList = Class.extend({
 	},
 
 	filter_exists: function(doctype, fieldname, condition, value) {
+		var flag = false;
 		for(var i in this.filters) {
 			if(this.filters[i].field) {
 				var f = this.filters[i].get_value();
-				if(f[0]==doctype && f[1]==fieldname && f[2]==condition
-					&& f[3]==value) return true;
-
+				if(f[0]==doctype && f[1]==fieldname && f[2]==condition && f[3]==value) {
+					flag = true;
+				} else if($.isArray(value) && frappe.utils.arrays_equal(value, f[3])) {
+					flag = true;
+				}
 			}
 		}
-		return false;
+		return flag;
 	},
 
 	get_filters: function() {
@@ -554,7 +593,7 @@ frappe.ui.Filter = Class.extend({
 			df.options = null;
 		}
 		if(this.wrapper.find('.condition').val()== "Between" && (df.fieldtype == 'Date' || df.fieldtype == 'Datetime')){
-			df.fieldtype='DateRange'
+			df.fieldtype = 'DateRange';
 		}
 	},
 
@@ -681,28 +720,33 @@ frappe.ui.FieldSelect = Class.extend({
 		this.options = [];
 		this.$select = $('<input class="form-control">')
 			.appendTo(this.parent)
-			.on("click", function () { $(this).select(); })
-			.autocomplete({
-				source: me.options,
-				minLength: 0,
-				autoFocus: true,
-				focus: function(event, ui) {
-					event.preventDefault();
-				},
-				select: function(event, ui) {
-					me.selected_doctype = ui.item.doctype;
-					me.selected_fieldname = ui.item.fieldname;
-					me.$select.val(ui.item.label);
-					if(me.select) me.select(ui.item.doctype, ui.item.fieldname);
-					return false;
-				}
-			});
-
-		this.$select.data('ui-autocomplete')._renderItem = function(ul, item) {
-			return $(repl('<li class="filter-field-select"><p>%(label)s</p></li>', item))
+			.on("click", function () { $(this).select(); });
+		this.select_input = this.$select.get(0);
+		this.awesomplete = new Awesomplete(this.select_input, {
+			minChars: 0,
+			maxItems: 99,
+			autoFirst: true,
+			list: me.options,
+			item: function(item, input) {
+				return $(repl('<li class="filter-field-select"><p>%(label)s</p></li>', item))
 				.data("item.autocomplete", item)
-				.appendTo(ul);
-		}
+				.get(0);
+			}
+		});
+		this.$select.on("awesomplete-select", function(e) {
+			var o = e.originalEvent;
+			var value = o.text.value;
+			var item = me.awesomplete.get_item(value);
+			me.selected_doctype = item.doctype;
+			me.selected_fieldname = item.fieldname;
+			if(me.select) me.select(item.doctype, item.fieldname);
+		});
+		this.$select.on("awesomplete-selectcomplete", function(e) {
+			var o = e.originalEvent;
+			var value = o.text.value;
+			var item = me.awesomplete.get_item(value);
+			me.$select.val(item.label);
+		});
 
 		if(this.filter_fields) {
 			for(var i in this.filter_fields)

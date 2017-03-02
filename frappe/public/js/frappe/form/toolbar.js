@@ -170,13 +170,23 @@ frappe.ui.form.Toolbar = Class.extend({
 				}, true);
 			}
 		}
+		
+		// feedback
+		if(!this.frm.doc.__unsaved) {
+			if(is_submittable && docstatus != 1)
+				return
+
+			this.page.add_menu_item(__("Ask a Feedback"), function() {
+				feedback = new frappe.utils.Feedback();
+				feedback.manual_feedback_request(me.frm.doc);
+			}, true)
+		}
 
 		// New
 		if(p[CREATE] && !this.frm.meta.issingle) {
 			this.page.add_menu_item(__("New {0} (Ctrl+B)", [__(me.frm.doctype)]), function() {
 				frappe.new_doc(me.frm.doctype, true);}, true);
 		}
-
 	},
 	can_save: function() {
 		return this.get_docstatus()===0;

@@ -23,7 +23,6 @@ page_js = {
 app_include_js = [
 	"assets/js/libs.min.js",
 	"assets/js/desk.min.js",
-	"assets/js/editor.min.js",
 	"assets/js/list.min.js",
 	"assets/js/form.min.js",
 	"assets/js/report.min.js",
@@ -81,6 +80,8 @@ permission_query_conditions = {
 	"ToDo": "frappe.desk.doctype.todo.todo.get_permission_query_conditions",
 	"User": "frappe.core.doctype.user.user.get_permission_query_conditions",
 	"Note": "frappe.desk.doctype.note.note.get_permission_query_conditions",
+	"Contact": "frappe.geo.address_and_contact.get_permission_query_conditions_for_contact",
+	"Address": "frappe.geo.address_and_contact.get_permission_query_conditions_for_address"
 }
 
 has_permission = {
@@ -88,7 +89,13 @@ has_permission = {
 	"ToDo": "frappe.desk.doctype.todo.todo.has_permission",
 	"User": "frappe.core.doctype.user.user.has_permission",
 	"Note": "frappe.desk.doctype.note.note.has_permission",
-	"Communication": "frappe.core.doctype.communication.communication.has_permission"
+	"Contact": "frappe.geo.address_and_contact.has_permission",
+	"Address": "frappe.geo.address_and_contact.has_permission",
+	"Communication": "frappe.core.doctype.communication.communication.has_permission",
+}
+
+has_website_permission = {
+	"Address": "erpnext.utilities.doctype.address.address.has_website_permission"
 }
 
 standard_queries = {
@@ -105,7 +112,8 @@ doc_events = {
 		"on_cancel": [
 			"frappe.desk.notifications.clear_doctype_notifications",
 		],
-		"on_trash": "frappe.desk.notifications.clear_doctype_notifications"
+		"on_trash": "frappe.desk.notifications.clear_doctype_notifications",
+		"on_change": "frappe.core.doctype.feedback_trigger.feedback_trigger.trigger_feedback_request"
 	},
 	"Email Group Member": {
 		"validate": "frappe.email.doctype.email_group.email_group.restrict_email_group"
@@ -138,6 +146,7 @@ scheduler_events = {
 		"frappe.limits.update_space_usage",
 		"frappe.email.doctype.auto_email_report.auto_email_report.send_daily",
 		"frappe.desk.page.backups.backups.delete_downloadable_backups",
+		"frappe.core.doctype.feedback_request.feedback_request.delete_feedback_request",
 		"frappe.core.doctype.authentication_log.authentication_log.clear_authentication_logs"
 	],
 	"monthly": [

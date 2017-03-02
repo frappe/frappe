@@ -132,7 +132,7 @@ class File(NestedSet):
 			if not self.file_name:
 				self.file_name = self.file_url.split("/files/")[-1]
 
-			if not os.path.exists(get_files_path(self.file_name.lstrip("/"))):
+			if not os.path.exists(get_files_path(frappe.as_unicode(self.file_name.lstrip("/")))):
 				frappe.throw(_("File {0} does not exist").format(self.file_url), IOError)
 
 	def validate_duplicate_entry(self):

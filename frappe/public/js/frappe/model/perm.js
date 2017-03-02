@@ -255,11 +255,16 @@ $.extend(frappe.perm, {
 	},
 
 	get_field_display_status: function(df, doc, perm, explain) {
-		if(!doc) {
+		// returns the display status of a particular field
+		// returns one of "Read", "Write" or "None"
+		if(!perm && doc) {
+			perm = frappe.perm.get_perm(doc.doctype, doc);
+		}
+
+		if(!perm) {
 			return (df && (cint(df.hidden) || cint(df.hidden_due_to_dependency))) ? "None": "Write";
 		}
 
-		perm = perm || frappe.perm.get_perm(doc.doctype, doc);
 		if(!df.permlevel) df.permlevel = 0;
 		var p = perm[df.permlevel];
 		var status = "None";
@@ -281,6 +286,10 @@ $.extend(frappe.perm, {
 		// hidden due to dependency
 		if(cint(df.hidden_due_to_dependency)) status = "None";
 		if(explain) console.log("By Hidden Due To Dependency:" + status);
+
+		if(!doc) {
+			return status;
+		}
 
 		// submit
 		if(status==="Write" && cint(doc.docstatus) > 0) status = "Read";

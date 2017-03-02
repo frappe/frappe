@@ -75,7 +75,7 @@ def build_context(context):
 	# provide doc
 	if context.doc:
 		context.update(context.doc.as_dict())
-		context.update(context.doc.website)
+		context.update(context.doc.get_website_properties())
 		if hasattr(context.doc, "get_context"):
 			ret = context.doc.get_context(context)
 
@@ -126,7 +126,6 @@ def add_sidebar_data(context):
 	import frappe.www.list
 
 	if not context.sidebar_items:
-
 		sidebar_items = frappe.cache().hget('portal_menu_items', frappe.session.user)
 		if sidebar_items == None:
 			sidebar_items = []

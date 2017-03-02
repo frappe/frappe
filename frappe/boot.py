@@ -12,6 +12,7 @@ import frappe.desk.desk_page
 from frappe.desk.form.load import get_meta_bundle
 from frappe.utils.change_log import get_versions
 from frappe.translate import get_lang_dict
+from frappe.core.doctype.feedback_trigger.feedback_trigger import get_enabled_feedback_trigger
 
 def get_bootinfo():
 	"""build and return boot info"""
@@ -34,6 +35,7 @@ def get_bootinfo():
 	bootinfo.modules = {}
 	bootinfo.module_list = []
 	load_desktop_icons(bootinfo)
+	bootinfo.letter_heads = get_letter_heads()
 
 	bootinfo.module_app = frappe.local.module_app
 	bootinfo.single_types = frappe.db.sql_list("""select name from tabDocType
@@ -64,9 +66,19 @@ def get_bootinfo():
 	bootinfo.error_report_email = frappe.get_hooks("error_report_email")
 	bootinfo.calendars = sorted(frappe.get_hooks("calendars"))
 	bootinfo.treeviews = frappe.get_hooks("treeviews") or []
+	bootinfo.email_accounts = frappe.get_all('User Email', fields=['email_account', 'email_id'],
+		filters=dict(parent=frappe.session.user))
 	bootinfo.lang_dict = get_lang_dict()
+	bootinfo.feedback_triggers = get_enabled_feedback_trigger()
 
 	return bootinfo
+
+def get_letter_heads():
+	letter_heads = {}
+	for letter_head in frappe.get_all("Letter Head", fields = ["name", "content"]):
+		letter_heads.setdefault(letter_head.name, {'header': letter_head.content, 'footer': letter_head.footer})
+
+	return letter_heads
 
 def load_conf_settings(bootinfo):
 	from frappe import conf

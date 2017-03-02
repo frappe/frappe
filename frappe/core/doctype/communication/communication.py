@@ -48,12 +48,11 @@ class Communication(Document):
 	def after_insert(self):
 		if not (self.reference_doctype and self.reference_name):
 			return
-
 		if self.communication_type in ("Communication", "Comment"):
 			# send new comment to listening clients
 			frappe.publish_realtime('new_communication', self.as_dict(),
-				doctype= self.reference_doctype, docname = self.reference_name,
-				after_commit=True)
+			    doctype=self.reference_doctype, docname=self.reference_name,
+			    after_commit=True)
 
 			if self.communication_type == "Comment":
 				notify_mentions(self)
@@ -66,7 +65,7 @@ class Communication(Document):
 			else:
 				# reference_name contains the user who is addressed in the messages' page comment
 				frappe.publish_realtime('new_message', self.as_dict(),
-					user=self.reference_name, after_commit=True)
+				    user=self.reference_name, after_commit=True)
 
 	def on_update(self):
 		"""Update parent status as `Open` or `Replied`."""
@@ -101,7 +100,7 @@ class Communication(Document):
 	def set_sender_full_name(self):
 		if not self.sender_full_name and self.sender:
 			if self.sender == "Administrator":
-				self.sender_full_name = self.sender
+				self.sender_full_name = frappe.db.get_value("User", "Administrator", "full_name")
 				self.sender = frappe.db.get_value("User", "Administrator", "email")
 			elif self.sender == "Guest":
 				self.sender_full_name = self.sender
@@ -118,7 +117,7 @@ class Communication(Document):
 						sender_name = None
 
 				self.sender = sender_email
-				self.sender_full_name = sender_name or get_fullname(frappe.session.user)
+				self.sender_full_name = sender_name or get_fullname(frappe.session.user) if frappe.session.user!='Administrator' else None
 
 	def get_parent_doc(self):
 		"""Returns document of `reference_doctype`, `reference_doctype`"""
@@ -171,7 +170,8 @@ class Communication(Document):
 		:param fetched_from_email_account: True when pulling email, the notification shouldn't go to the main recipient
 
 		"""
-		notify(self, print_html, print_format, attachments, recipients, cc, fetched_from_email_account)
+		notify(self, print_html, print_format, attachments, recipients, cc,
+			fetched_from_email_account)
 
 	def _notify(self, print_html=None, print_format=None, attachments=None,
 		recipients=None, cc=None):
@@ -227,8 +227,7 @@ def on_doctype_update():
 	frappe.db.add_index("Communication", ["timeline_doctype", "timeline_name"])
 	frappe.db.add_index("Communication", ["link_doctype", "link_name"])
 	frappe.db.add_index("Communication", ["status", "communication_type"])
-	frappe.db.add_index("Communication", ["creation"])
-	frappe.db.add_index("Communication", ["modified"])
+	frappe.db.add_index("Communication", ["communication_date"])
 	frappe.db.add_index("Communication", ["message_id(200)"])
 
 def has_permission(doc, ptype, user):

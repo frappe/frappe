@@ -206,10 +206,10 @@ def set_content_type(response, data, path):
 def clear_cache(path=None):
 	frappe.cache().delete_value("website_generator_routes")
 	delete_page_cache(path)
+	frappe.cache().delete_value("website_404")
 	if not path:
 		clear_sitemap()
 		frappe.clear_cache("Guest")
-		frappe.cache().delete_value("website_404")
 		frappe.cache().delete_value("portal_menu_items")
 		frappe.cache().delete_value("home_page")
 
@@ -218,11 +218,13 @@ def clear_cache(path=None):
 
 def render_403(e, pathname):
 	path = "message"
-	frappe.local.message = """<p><strong>{error}</strong></p>
-	<p>
-		<a href="/login?redirect-to=/{pathname}" class="btn btn-primary">{login}</a>
-	</p>""".format(error=cstr(e.message), login=_("Login"), pathname=frappe.local.path)
+	frappe.local.message = cstr(e.message)
 	frappe.local.message_title = _("Not Permitted")
+	frappe.local.response['context'] = dict(
+		indicator_color = 'red',
+		primary_action = '/login',
+		primary_label = _('Login')
+	)
 	return render_page(path), e.http_status_code
 
 def get_doctype_from_path(path):

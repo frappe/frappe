@@ -1432,7 +1432,7 @@
   "currency_name": "Pataca",
   "number_format": "#,###.##"
  },
- "Macedonia, Republic of": {
+ "Macedonia": {
   "code": "mk",
   "currency": "MKD",
   "currency_fraction": "Deni",
@@ -2325,7 +2325,7 @@
    "Asia/Dushanbe"
   ]
  },
- "Tanzania, United Republic of": {
+ "Tanzania": {
   "code": "tz",
   "currency": "TZS",
   "currency_name": "Tanzanian Shilling",

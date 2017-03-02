@@ -17,6 +17,7 @@ from frappe.utils.fixtures import sync_fixtures
 from frappe.website import render
 from frappe.desk.doctype.desktop_icon.desktop_icon import sync_from_app
 from frappe.utils.password import create_auth_table
+from frappe.utils.global_search import setup_global_search_table
 from frappe.modules.utils import sync_customizations
 
 def install_db(root_login="root", root_password=None, db_name=None, source_sql=None,
@@ -41,6 +42,7 @@ def install_db(root_login="root", root_password=None, db_name=None, source_sql=N
 	remove_missing_apps()
 
 	create_auth_table()
+	setup_global_search_table()
 	create_list_settings_table()
 
 	frappe.flags.in_install_db = False

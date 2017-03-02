@@ -27,10 +27,10 @@ def get_context(context):
 		if get_oauth_keys(provider):
 			context["{provider}_login".format(provider=provider)] = get_oauth2_authorize_url(provider)
 			context["social_login"] = True
-	
+
 	ldap_settings = get_ldap_settings()
 	context["ldap_settings"] = ldap_settings
-	
+
 	return context
 
 @frappe.whitelist(allow_guest=True)

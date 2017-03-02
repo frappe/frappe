@@ -276,7 +276,7 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 0, 
- "modified": "2016-11-07 05:55:29.162083", 
+ "modified": "2016-12-29 14:40:09.047100", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "Page", 
@@ -328,5 +328,6 @@
  "quick_entry": 0, 
  "read_only": 0, 
  "read_only_onload": 0, 
+ "track_changes": 1, 
  "track_seen": 0
 }

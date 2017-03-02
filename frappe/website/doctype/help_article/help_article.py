@@ -26,7 +26,6 @@ class HelpArticle(WebsiteGenerator):
 	def on_update(self):
 		self.update_category()
 		clear_cache()
-		super(HelpArticle, self).on_update()
 
 	def update_category(self):
 		cnt = frappe.db.sql("""select count(*) from `tabHelp Article`

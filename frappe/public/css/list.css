@@ -55,12 +55,6 @@
 .filter-box .filter_field .frappe-control {
   position: relative;
 }
-.ui-autocomplete .filter-field-select {
-  cursor: pointer;
-}
-.ui-autocomplete .filter-field-select p {
-  margin: 5px;
-}
 @media (min-width: 768px) {
   .filter-box .row > div[class*="col-sm-"] {
     padding-right: 0px;
@@ -252,4 +246,48 @@ table.field-info tr td {
 }
 .image-field:hover .zoom-view {
   opacity: 0.6;
+}
+.tag-row {
+  margin-top: 5px;
+  padding-left: 55px;
+}
+.taggle_placeholder {
+  top: 0;
+  left: 0;
+  font-size: 11px;
+}
+.taggle_list {
+  padding-left: 0;
+  margin-bottom: 0;
+}
+.taggle_list .taggle {
+  font-size: 11px;
+  padding: 2px 4px;
+  font-weight: normal;
+  background-color: #F0F4F7;
+}
+.taggle_list .taggle:hover {
+  padding: 2px 15px 2px 4px;
+  background: #cfdce5;
+  transition: all .2s;
+}
+.taggle_list li {
+  margin-bottom: 0;
+}
+.taggle_list li .awesomplete > ul > li {
+  width: 100%;
+}
+.taggle_list li .awesomplete > ul {
+  top: 15px;
+}
+.taggle_list .close {
+  right: 5px;
+  color: #36414C;
+  font-size: 11px;
+}
+.taggle_input {
+  padding: 0;
+  margin-top: 3px;
+  font-size: 11px;
+  max-width: 100px;
 }

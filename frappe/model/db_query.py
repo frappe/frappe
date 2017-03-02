@@ -12,6 +12,7 @@ from frappe.utils import flt, cint, getdate, get_datetime, get_time, make_filter
 from frappe import _
 from frappe.model import optional_fields
 from frappe.model.utils.list_settings import get_list_settings, update_list_settings
+from datetime import datetime
 
 class DatabaseQuery(object):
 	def __init__(self, doctype):
@@ -297,11 +298,12 @@ class DatabaseQuery(object):
 					get_datetime(f.value[0]).strftime("%Y-%m-%d %H:%M:%S.%f"),
 					add_to_date(get_datetime(f.value[1]),days=1).strftime("%Y-%m-%d %H:%M:%S.%f"))
 				fallback = "'0000-00-00 00:00:00'"
+
 			elif df and df.fieldtype=="Date":
 				value = getdate(f.value).strftime("%Y-%m-%d")
 				fallback = "'0000-00-00'"
 
-			elif df and df.fieldtype=="Datetime":
+			elif (df and df.fieldtype=="Datetime") or isinstance(f.value, datetime):
 				value = get_datetime(f.value).strftime("%Y-%m-%d %H:%M:%S.%f")
 				fallback = "'0000-00-00 00:00:00'"
 
@@ -456,32 +458,16 @@ class DatabaseQuery(object):
 				) and not self.group_by)
 
 			if not group_function_without_group_by:
-				sort_field = sort_order = None
-				if meta.sort_field and ',' in meta.sort_field:
-					# multiple sort given in doctype definition
-					# Example:
-					# `idx desc, modified desc`
-					# will covert to
-					# `tabItem`.`idx` desc, `tabItem`.`modified` desc
-					args.order_by = ', '.join(['`tab{0}`.`{1}` {2}'.format(self.doctype,
-						f.split()[0].strip(), f.split()[1].strip()) for f in meta.sort_field.split(',')])
-				else:
-					sort_field = meta.sort_field or 'modified'
-					sort_order = (meta.sort_field and meta.sort_order) or 'desc'
+				args.order_by = get_order_by(self.doctype, meta)
 
-					args.order_by = "`tab{0}`.`{1}` {2}".format(self.doctype, sort_field or "modified", sort_order or "desc")
-
-				# draft docs always on top
-				if meta.is_submittable:
-					args.order_by = "`tab{0}`.docstatus asc, {1}".format(self.doctype, args.order_by)
-
-	def check_sort_by_table(self, order_by):
-		if "." in order_by:
-			tbl = order_by.split('.')[0]
-			if tbl not in self.tables:
-				if tbl.startswith('`'):
-					tbl = tbl[4:-1]
-				frappe.throw(_("Please select atleast 1 column from {0} to sort").format(tbl))
+	def check_sort_by_table(self, order_by_query):
+		for order_by in order_by_query.split(","):
+			if "." in order_by:
+				tbl = order_by.split('.')[0].strip()
+				if tbl not in self.tables:
+					if tbl.startswith('`'):
+						tbl = tbl[4:-1]
+					frappe.throw(_("Please select atleast 1 column from {0} to sort").format(tbl))
 
 	def add_limit(self):
 		if self.limit_page_length:
@@ -510,3 +496,26 @@ class DatabaseQuery(object):
 
 		update_list_settings(self.doctype, list_settings)
 
+def get_order_by(doctype, meta):
+	order_by = ""
+
+	sort_field = sort_order = None
+	if meta.sort_field and ',' in meta.sort_field:
+		# multiple sort given in doctype definition
+		# Example:
+		# `idx desc, modified desc`
+		# will covert to
+		# `tabItem`.`idx` desc, `tabItem`.`modified` desc
+		order_by = ', '.join(['`tab{0}`.`{1}` {2}'.format(doctype,
+			f.split()[0].strip(), f.split()[1].strip()) for f in meta.sort_field.split(',')])
+	else:
+		sort_field = meta.sort_field or 'modified'
+		sort_order = (meta.sort_field and meta.sort_order) or 'desc'
+
+		order_by = "`tab{0}`.`{1}` {2}".format(doctype, sort_field or "modified", sort_order or "desc")
+
+	# draft docs always on top
+	if meta.is_submittable:
+		order_by = "`tab{0}`.docstatus asc, {1}".format(doctype, order_by)
+
+	return order_by

@@ -19,13 +19,8 @@
 		"public/js/frappe/class.js",
 		"public/js/lib/microtemplate.js",
 		"public/js/frappe/query_string.js",
-		"website/js/website.js"
-	],
-	"js/editor.min.js": [
-		"public/js/lib/jquery/jquery.hotkeys.js",
-		"public/js/lib/beautify-html.js",
-		"public/js/frappe/ui/editor.html",
-		"public/js/frappe/ui/editor.js"
+		"website/js/website.js",
+		"public/js/frappe/misc/rating_icons.html"
 	],
 	"js/dialog.min.js": [
 		"public/js/frappe/dom.js",
@@ -38,7 +33,9 @@
 		"public/js/frappe/ui/dialog.js"
 	],
 	"css/desk.min.css": [
-		"public/js/lib/jquery/bootstrap_theme/jquery-ui.selected.css",
+		"public/js/lib/datepicker/datepicker.min.css",
+		"public/js/lib/awesomplete/awesomplete.css",
+		"public/js/lib/summernote/summernote.css",
 		"public/css/bootstrap.css",
 		"public/css/font-awesome.css",
 		"public/css/octicons/octicons.css",
@@ -53,18 +50,28 @@
 		"public/css/tree.css",
 		"public/css/desktop.css",
 		"public/css/form.css",
-		"public/css/mobile.css"
+		"public/css/mobile.css",
+		"public/css/kanban.css"
+	],
+	"css/frappe-rtl.css": [
+		"public/css/bootstrap-rtl.css",
+		"public/css/desk-rtl.css"
 	],
 	"js/libs.min.js": [
-		"public/js/lib/jquery/jquery-ui.min.js",
+		"public/js/lib/awesomplete/awesomplete.min.js",
 		"public/js/lib/Sortable.min.js",
-		"public/js/lib/tag-it.min.js",
+		"public/js/lib/taggle/taggle.min.js",
+		"public/js/lib/jquery/jquery.hotkeys.js",
+		"public/js/lib/summernote/summernote.js",
 		"public/js/lib/notify.js",
 		"public/js/lib/bootstrap.min.js",
 		"public/js/lib/moment/moment-with-locales.min.js",
 		"public/js/lib/moment/moment-timezone-with-data.min.js",
 		"public/js/lib/socket.io.min.js",
-		"public/js/lib/markdown.js"
+		"public/js/lib/markdown.js",
+		"public/js/frappe/translate.js",
+		"public/js/lib/datepicker/datepicker.min.js",
+		"public/js/lib/datepicker/datepicker.en.js"
 	],
 	"js/desk.min.js": [
 		"public/js/frappe/provide.js",
@@ -72,7 +79,6 @@
 		"public/js/frappe/assets.js",
 		"public/js/frappe/format.js",
 		"public/js/frappe/form/formatters.js",
-		"public/js/frappe/translate.js",
 		"public/js/frappe/ui/modal.html",
 		"public/js/frappe/dom.js",
 		"public/js/frappe/ui/messages.js",
@@ -117,6 +123,7 @@
 		"public/js/frappe/misc/number_format.js",
 		"public/js/frappe/misc/help.js",
 		"public/js/frappe/misc/help_links.js",
+		"public/js/frappe/misc/address_and_contact.js",
 
 		"public/js/frappe/ui/upload.html",
 		"public/js/frappe/upload.js",
@@ -128,6 +135,9 @@
 		"public/js/frappe/views/pageview.js",
 
 		"public/js/frappe/ui/toolbar/awesome_bar.js",
+		"public/js/frappe/ui/toolbar/search.js",
+		"public/js/frappe/ui/toolbar/search.html",
+		"public/js/frappe/ui/toolbar/search_header.html",
 		"public/js/frappe/ui/toolbar/about.js",
 		"public/js/frappe/ui/toolbar/navbar.html",
 		"public/js/frappe/ui/toolbar/toolbar.js",
@@ -141,7 +151,10 @@
 		"public/js/frappe/desk.js",
 		"public/js/frappe/query_string.js",
 
-		"public/js/frappe/ui/charts.js"
+		"public/js/frappe/ui/charts.js",
+		"public/js/frappe/misc/rating_icons.html",
+
+		"public/js/frappe/feedback.js"
 	],
 	"js/d3.min.js": [
 		"public/js/lib/d3.min.js",
@@ -191,8 +204,8 @@
 		"public/js/frappe/form/quick_entry.js"
 	],
 	"css/list.min.css": [
+		"public/js/lib/taggle/taggle.min.css",
 		"public/css/list.css",
-		"public/css/tag-it.css",
 		"public/css/calendar.css",
 		"public/css/filter_dashboard.css"
 	],
@@ -220,7 +233,6 @@
 		"public/js/frappe/list/list_item_subject.html",
 		"public/js/frappe/list/list_permission_footer.html",
 		"public/js/frappe/list/listview.js",
-		"public/js/frappe/views/calendar_base.js",
 		"public/js/frappe/views/calendar.js",
 		"public/js/frappe/list/blueimp-gallery.html",
 		"public/js/frappe/list/image_view_item_row.html",
@@ -228,7 +240,9 @@
 		"public/js/frappe/list/header_select_all_like_filter.html",
 		"public/js/frappe/list/item_assigned_to_comment_count.html",
 		"public/js/frappe/views/treeview.js",
-		"public/js/frappe/views/gantt.js"
+		"public/js/frappe/views/kanban/kanban_board.html",
+		"public/js/frappe/views/kanban/kanban_column.html",
+		"public/js/frappe/views/kanban/kanban_card.html"
 	],
 	"css/report.min.css": [
 		"public/css/report.css",
@@ -240,6 +254,7 @@
 	],
 	"js/report.min.js": [
 		"public/js/frappe/views/reports/reportview.js",
+		"public/js/frappe/views/reports/reportview_footer.html",
 		"public/js/frappe/views/reports/query_report.js",
 		"public/js/frappe/views/reports/grid_report.js",
 		"public/js/frappe/views/reports/print_grid.html",

@@ -304,13 +304,13 @@ frappe.ui.form.Dashboard = Class.extend({
 		if(open_count) {
 			$link.find('.open-notification')
 				.removeClass('hidden')
-				.html((open_count > 5) ? '5+' : open_count);
+				.html((open_count > 99) ? '99+' : open_count);
 		}
 
 		if(count) {
 			$link.find('.count')
 				.removeClass('hidden')
-				.html((count > 9) ? '9+' : count);
+				.html((count > 99) ? '99+' : count);
 		}
 
 		if(this.data.internal_links[doctype]) {

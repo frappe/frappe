@@ -1,12 +1,9 @@
 Use Facebook, Google or GitHub authentication to login to Frappe, and your users will be spared from remembering another password.
 
-The system uses the **Email ID** supplied by these services to **match with an existing user** in Frappe. If no such user is found, **a new user is created** of the default type **Website User**, if Signup is not disabled in Website Settings. Any System Manager can later change the user type from **Website User** to **System User**, so that the user can access the Desktop.
+The system uses the **Email Address** supplied by these services to **match with an existing user** in Frappe. If no such user is found, **a new user is created** of the default type **Website User**, if Signup is not disabled in Website Settings. Any System Manager can later change the user type from **Website User** to **System User**, so that the user can access the Desktop.
 
-<figure class="text-center">
-	<img src="/assets/img/social-logins-1.jpg"
-		alt="Login screen with Social Logins enabled">
-	<figcaption>Login screen with Social Logins enabled</figcaption>
-</figure>
+#### Login screen with Social Logins enabled
+<img class="screenshot" alt="Login screen with Social Logins enabled" src="{{docs_base_url}}/assets/img/social-logins.png">
 
 To enable these signups, you need to have **Client ID** and **Client Secret** from these authentication services for your Frappe site. The Client ID and Client Secret are to be set in Website > Setup > Social Login Keys. Here are the steps to obtain these credentials.
 

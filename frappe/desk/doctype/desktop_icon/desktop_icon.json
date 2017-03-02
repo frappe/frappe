@@ -525,7 +525,7 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 0, 
- "modified": "2016-11-07 05:31:01.259347", 
+ "modified": "2016-12-29 14:40:19.444916", 
  "modified_by": "Administrator", 
  "module": "Desk", 
  "name": "Desktop Icon", 
@@ -560,5 +560,6 @@
  "sort_field": "modified", 
  "sort_order": "DESC", 
  "title_field": "module_name", 
+ "track_changes": 1, 
  "track_seen": 0
 }
