@@ -62,7 +62,7 @@ frappe.views.ReportViewPage = Class.extend({
 	}
 });
 
-frappe.views.ReportView = frappe.ui.Listing.extend({
+frappe.views.ReportView = frappe.ui.BaseList.extend({
 	init: function(opts) {
 		var me = this;
 		$.extend(this, opts);
@@ -378,7 +378,7 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 	},
 
 	// render data
-	render_list: function() {
+	render_view: function() {
 		var me = this;
 		var data = this.get_unique_data(this.column_info);
 
@@ -598,7 +598,7 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 
 		this.page.add_inner_button(__('Show Totals'), function() {
 			me.add_totals_row = 1 - (me.add_totals_row ? me.add_totals_row : 0);
-			me.render_list();
+			me.render_view();
 		});
 	},
 
