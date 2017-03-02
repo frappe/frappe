@@ -95,3 +95,35 @@ th.fc-day-header {
 	margin: 5px 4px 0 !important;
 	padding: 1px 5px !important;
 }
+
+.fc-bg-color(@color) {
+	@light: ~"@{color}-light";
+	@extra-light: ~"@{color}-extra-light";
+	@dark: ~"@{color}-dark";
+
+	background-color: @@extra-light !important;
+	color: @@dark !important;
+
+	&.fc-start {
+		border-left: 3px solid @@light !important;
+	}
+}
+
+.fc-bg-orange {
+	.fc-bg-color(orange);
+}
+.fc-bg-red {
+	.fc-bg-color(red);
+}
+.fc-bg-skyblue {
+	.fc-bg-color(skyblue);
+}
+.fc-bg-green {
+	.fc-bg-color(green);
+}
+.fc-bg-blue {
+	.fc-bg-color(blue);
+}
+.fc-bg-yellow {
+	.fc-bg-color(yellow);
+}
