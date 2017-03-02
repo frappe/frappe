@@ -12,7 +12,6 @@ from frappe.utils import flt, cint, getdate, get_datetime, get_time, make_filter
 from frappe import _
 from frappe.model import optional_fields, default_fields
 from frappe.model.utils.list_settings import get_list_settings, update_list_settings
-from datetime import datetime
 
 class DatabaseQuery(object):
 	def __init__(self, doctype):
@@ -139,10 +138,10 @@ class DatabaseQuery(object):
 		args.fields = ', '.join(self.fields)
 		meta = frappe.get_meta(self.doctype)
 		self.set_order_by(args, meta)
-		# self.validate_order_by_and_group_by_params(args.order_by, meta)
+		self.validate_order_by_and_group_by_params(args.order_by, meta)
 		args.order_by = args.order_by and (" order by " + args.order_by) or ""
 
-		# self.validate_order_by_and_group_by_params(self.group_by, meta)
+		self.validate_order_by_and_group_by_params(self.group_by, meta)
 		args.group_by = self.group_by and (" group by " + self.group_by) or ""
 
 		return args
@@ -299,12 +298,11 @@ class DatabaseQuery(object):
 					get_datetime(f.value[0]).strftime("%Y-%m-%d %H:%M:%S.%f"),
 					add_to_date(get_datetime(f.value[1]),days=1).strftime("%Y-%m-%d %H:%M:%S.%f"))
 				fallback = "'0000-00-00 00:00:00'"
-
 			elif df and df.fieldtype=="Date":
 				value = getdate(f.value).strftime("%Y-%m-%d")
 				fallback = "'0000-00-00'"
 
-			elif (df and df.fieldtype=="Datetime") or isinstance(f.value, datetime):
+			elif df and df.fieldtype=="Datetime":
 				value = get_datetime(f.value).strftime("%Y-%m-%d %H:%M:%S.%f")
 				fallback = "'0000-00-00 00:00:00'"
 
@@ -485,7 +483,8 @@ class DatabaseQuery(object):
 		"""
 		if not parameters:
 			return
-
+		#print parameters
+		parameters = parameters.replace("if(_relevance, _relevance, 99999),","")
 		for field in parameters.split(","):
 			if "." in field and field.strip().startswith("`tab"):
 				tbl = field.strip().split('.')[0]
@@ -525,26 +524,3 @@ class DatabaseQuery(object):
 
 		update_list_settings(self.doctype, list_settings)
 
-def get_order_by(doctype, meta):
-	order_by = ""
-
-	sort_field = sort_order = None
-	if meta.sort_field and ',' in meta.sort_field:
-		# multiple sort given in doctype definition
-		# Example:
-		# `idx desc, modified desc`
-		# will covert to
-		# `tabItem`.`idx` desc, `tabItem`.`modified` desc
-		order_by = ', '.join(['`tab{0}`.`{1}` {2}'.format(doctype,
-			f.split()[0].strip(), f.split()[1].strip()) for f in meta.sort_field.split(',')])
-	else:
-		sort_field = meta.sort_field or 'modified'
-		sort_order = (meta.sort_field and meta.sort_order) or 'desc'
-
-		order_by = "`tab{0}`.`{1}` {2}".format(doctype, sort_field or "modified", sort_order or "desc")
-
-	# draft docs always on top
-	if meta.is_submittable:
-		order_by = "`tab{0}`.docstatus asc, {1}".format(doctype, order_by)
-
-	return order_by
