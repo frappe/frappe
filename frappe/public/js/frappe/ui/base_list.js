@@ -409,11 +409,7 @@ frappe.ui.BaseList = Class.extend({
 			this.run();
 	},
 	init_user_settings: function () {
-		if (frappe.model.user_settings[this.doctype]) {
-			this.user_settings = frappe.model.user_settings[this.doctype];
-		} else {
-			this.user_settings = {};
-		}
+		this.user_settings = frappe.model.user_settings[this.doctype] || {};
 	},
 	call_for_selected_items: function (method, args) {
 		var me = this;
