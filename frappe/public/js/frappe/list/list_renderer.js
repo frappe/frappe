@@ -10,6 +10,7 @@ frappe.views.ListRenderer = Class.extend({
 	name: 'List',
 	init: function (opts) {
 		$.extend(this, opts);
+		this.meta = frappe.get_meta(this.doctype);
 
 		this.init_settings();
 		this.set_defaults();
@@ -19,7 +20,6 @@ frappe.views.ListRenderer = Class.extend({
 	},
 	set_defaults: function () {
 		var me = this;
-		this.meta = frappe.get_meta(this.doctype);
 		this.page_title = __(this.doctype);
 
 		this.set_wrapper();
@@ -51,7 +51,6 @@ frappe.views.ListRenderer = Class.extend({
 		this.settings = frappe.listview_settings[this.doctype] || {};
 		this.init_user_settings();
 
-
 		this.order_by = this.user_settings.order_by || this.settings.order_by;
 		this.filters = this.user_settings.filters || this.settings.filters;
 		this.page_length = this.user_settings.page_length || this.settings.page_length;
@@ -65,8 +64,14 @@ frappe.views.ListRenderer = Class.extend({
 		frappe.provide('frappe.model.user_settings.' + this.doctype + '.' + this.name);
 		this.user_settings = frappe.get_user_settings(this.doctype)[this.name];
 	},
+	after_refresh: function() {
+		// called after refresh in list_view
+	},
 	before_refresh: function() {
 		// called before refresh in list_view
+	},
+	should_refresh: function() {
+		return this.list_view.current_view !== this.list_view.last_view;
 	},
 	set_wrapper: function () {
 		this.wrapper = this.list_view.wrapper.find('.result-list');

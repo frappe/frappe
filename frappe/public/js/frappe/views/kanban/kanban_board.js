@@ -3,6 +3,7 @@ frappe.provide("frappe.views");
 (function () {
 
 	var method_prefix = 'frappe.desk.doctype.kanban_board.kanban_board.';
+	var saving_filters = false;
 
 	var store = fluxify.createStore({
 		id: 'store',
@@ -79,6 +80,8 @@ frappe.provide("frappe.views");
 					});
 			},
 			save_filters: function (updater) {
+				if(saving_filters) return;
+				saving_filters = true;
 				var filters = JSON.stringify(this.cur_list.filter_list.get_filters());
 				frappe.call({
 					method: method_prefix + 'save_filters',
@@ -87,6 +90,7 @@ frappe.provide("frappe.views");
 						filters: filters
 					}
 				}).then(function(r) {
+					saving_filters = false;
 					updater.set({ filters_modified: false });
 					show_alert({
 						message: __('Filters saved'),
@@ -299,12 +303,13 @@ frappe.provide("frappe.views");
 			var set_filter_state = function () {
 				fluxify.doAction('set_filter_state');
 			}
-			if(isBound(self.cur_list.wrapper, 'render-complete', set_filter_state)) return;
+			
+			if(isBound(self.$kanban_board, 'after-refresh', set_filter_state)) return;
 
 			store.on('change:filters_modified', function (modified) {
 				if(modified) fluxify.doAction('save_filters');
 			});
-			self.cur_list.wrapper.on('render-complete', set_filter_state);
+			self.$kanban_board.on('after-refresh', set_filter_state);
 		}
 
 		function setup_restore_columns() {
@@ -1030,6 +1035,7 @@ frappe.provide("frappe.views");
 
 	function isBound(el, event, fn) {
 		var events = $._data(el[0], 'events');
+		if(!events) return false;
 		var handlers = events[event];
 		var flag = false;
 		handlers.forEach(function(h) {

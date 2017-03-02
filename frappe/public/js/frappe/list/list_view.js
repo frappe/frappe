@@ -357,14 +357,12 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 		this.refresh_sidebar();
 		this.setup_view_variables();
 
-		// if view has changed, setup list_renderer
-		if (this.current_view !== this.last_view) {
+		if (this.list_renderer.should_refresh()) {
 			this.setup_list_renderer();
 			this.refresh_surroundings();
 			this.dirty = true;
 		}
 
-		this.list_renderer.before_refresh();
 		if (this.list_renderer.settings.refresh) {
 			this.list_renderer.settings.refresh(this);
 		}
@@ -486,6 +484,9 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 			this.list_renderer.settings.post_render(this);
 		}
 
+		this.wrapper.on('render-complete', function() {
+			me.list_renderer.after_refresh();
+		})
 	},
 
 	make_no_result: function () {
@@ -502,22 +503,6 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 			</div>`;
 
 		return no_result_message;
-	},
-
-	render_rows_Kanban: function (values) {
-		var me = this;
-		frappe.require([
-			'assets/frappe/js/frappe/views/kanban/fluxify.min.js',
-			'assets/frappe/js/frappe/views/kanban/kanban_view.js'
-		], function () {
-			me.kanban = new frappe.views.KanbanBoard({
-				doctype: me.doctype,
-				board_name: me.kanban_board,
-				cards: values,
-				wrapper: me.wrapper.find('.result-list'),
-				cur_list: me
-			});
-		});
 	},
 
 	get_args: function () {
