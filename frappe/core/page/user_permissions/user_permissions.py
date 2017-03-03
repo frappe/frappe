@@ -73,9 +73,9 @@ def get_doctypes_for_user_permissions():
 	'''Get doctypes for the current user where user permissions are applicable'''
 	user_roles = frappe.get_roles()
 	if "System Manager" in user_roles:
-		return list(set([p.parent for p in get_valid_perms()]))
+		return sorted(set([p.parent for p in get_valid_perms()]))
 	else:
-		return list(set([p.parent for p in get_valid_perms() if p.set_user_permissions]))
+		return sorted(set([p.parent for p in get_valid_perms() if p.set_user_permissions]))
 		
 
 
