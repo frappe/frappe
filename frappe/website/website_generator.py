@@ -56,6 +56,8 @@ class WebsiteGenerator(Document):
 			else:
 				title_field = 'name'
 
+		return title_field
+
 	def clear_cache(self):
 		clear_cache(self.route)
 
