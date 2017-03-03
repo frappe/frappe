@@ -16,6 +16,8 @@
 	</div>
 
 	<div style='max-width: 500px;'>
+		<p>{{ _("Full Name") }}</p>
+		<input class="form-control fullname" type="text" placeholder="Your Full Name">
 		<p>{{ _("Detailed feedback") }}</p>
 		<textarea class='form-control feedback-text' style='min-height: 300px;'></textarea>
 	</div>
@@ -53,7 +55,6 @@
 			this.rating = get_url_arg("rating") || 0;
 
 			// set ratings
-			console.log(this.rating)
 			this.set_ratings_icon(this.rating)
 
 			this.bind_events();
@@ -81,6 +82,9 @@
 				if(!$('.star-icon.fa-star').length) {
 					frappe.msgprint(__("Please give a rating."));
 					return;
+				} else if(!$('.fullname').val().length){
+					frappe.msgprint(__("Please give a fullname."));
+					return;
 				} else if(!$('.feedback-text').val().length){
 					frappe.msgprint(__("Please give a detailed feebdack."));
 					return;
@@ -94,7 +98,8 @@
 						reference_name: me.reference_name,
 						reference_doctype: me.reference_doctype,
 						feedback: $('.feedback-text').val(),
-						rating: $('.star-icon.fa-star').length
+						rating: $('.star-icon.fa-star').length,
+						fullname: $('.fullname').val()
 					},
 					callback: function(r) {
 						if(r.message) {
