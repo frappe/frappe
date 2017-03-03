@@ -141,7 +141,6 @@ CREATE TABLE `tabDocType` (
   `max_attachments` int(11) NOT NULL DEFAULT 0,
   `print_outline` varchar(255) DEFAULT NULL,
   `read_only_onload` int(1) NOT NULL DEFAULT 0,
-  `in_dialog` int(1) NOT NULL DEFAULT 0,
   `document_type` varchar(255) DEFAULT NULL,
   `icon` varchar(255) DEFAULT NULL,
   `tag_fields` varchar(255) DEFAULT NULL,

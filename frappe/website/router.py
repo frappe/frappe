@@ -100,8 +100,6 @@ def get_page_info_from_doctypes(path=None):
 		if condition_field:
 			condition ="where {0}=1".format(condition_field)
 
-			print condition_field, condition
-
 		if path:
 			condition += ' {0} `route`=%s limit 1'.format('and' if 'where' in condition else 'where')
 			values.append(path)
@@ -323,7 +321,7 @@ def get_doctypes_with_web_view():
 	'''Return doctypes with Has Web View or set via hooks'''
 	def _get():
 		installed_apps = frappe.get_installed_apps()
-		doctypes = frappe.get_hooks("doctypes_with_web_view")
+		doctypes = frappe.get_hooks("website_generators")
 		doctypes += [d.name for d in frappe.get_all('DocType', 'name, module',
 			dict(has_web_view=1)) if frappe.local.module_app[frappe.scrub(d.module)] in installed_apps]
 		return doctypes
