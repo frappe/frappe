@@ -7,6 +7,7 @@ import frappe
 def execute():
 	for data in frappe.get_all('User', fields = ["name"]):
 		doc = frappe.get_doc('User', data.name)
+		doc.set('roles',[])
 		roles = [{'role': d.role} for d in doc.user_roles]
 		doc.set('roles', roles)
 		for role in doc.roles:

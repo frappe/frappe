@@ -1,5 +1,4 @@
 {
- "_liked_by": "[]", 
  "allow_copy": 0, 
  "allow_import": 1, 
  "allow_rename": 1, 
@@ -1145,7 +1144,7 @@
    "length": 0, 
    "no_copy": 0, 
    "options": "Has Role", 
-   "permlevel": 0, 
+   "permlevel": 1, 
    "precision": "", 
    "print_hide": 1, 
    "print_hide_if_no_value": 0, 
@@ -1878,7 +1877,7 @@
  "istable": 0, 
  "max_attachments": 5, 
  "menu_index": 0, 
- "modified": "2017-02-22 16:47:32.546965", 
+ "modified": "2017-03-02 08:00:49.978706", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "User", 
