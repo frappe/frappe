@@ -2,12 +2,18 @@ import frappe, json
 
 def execute():
 	for us in frappe.db.sql('''select user, doctype, data from __ListSettings''', as_dict=True):
-		data = json.loads(us.data)
 		try:
+			data = json.loads(us.data)
+		except:
+			continue
+		
+		if 'List' in data:
+			continue
+
+		if 'limit' in data:
 			data['page_length'] = data['limit']
 			del data['limit']
-		except:
-			pass
+
 		new_data = dict(List=data)
 		new_data = json.dumps(new_data)
 
