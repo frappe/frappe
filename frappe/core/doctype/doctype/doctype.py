@@ -15,6 +15,7 @@ from frappe.custom.doctype.property_setter.property_setter import make_property_
 from frappe.desk.notifications import delete_notification_count_for
 from frappe.modules import make_boilerplate
 from frappe.model.db_schema import validate_column_name
+import frappe.website.render
 
 class InvalidFieldNameError(frappe.ValidationError): pass
 
@@ -122,15 +123,13 @@ class DocType(Document):
 
 	def validate_website(self):
 		"""Ensure that website generator has field 'route'"""
-		from frappe.model.base_document import get_controller
-		try:
-			controller = get_controller(self.name)
-		except:
-			controller = None
-
-		if controller and getattr(controller, 'website', None):
+		if self.has_web_view:
+			# route field must be present
 			if not 'route' in [d.fieldname for d in self.fields]:
-				frappe.throw('Field "route" is mandatory for Website Generator pages', title='Missing Field')
+				frappe.throw('Field "route" is mandatory for Web Views', title='Missing Field')
+
+			# clear website cache
+			frappe.website.render.clear_cache()
 
 	def change_modified_of_parent(self):
 		"""Change the timestamp of parent DocType if the current one is a child to clear caches."""
@@ -296,6 +295,10 @@ class DocType(Document):
 
 		if not self.istable:
 			make_boilerplate("controller.js", self.as_dict())
+
+		if self.has_web_view:
+			make_boilerplate('templates/controller.html', self.as_dict())
+			make_boilerplate('templates/controller_row.html', self.as_dict())
 
 	def make_amendable(self):
 		"""If is_submittable is set, add amended_from docfields."""
@@ -497,6 +500,12 @@ def validate_fields(meta):
 		if df[0].fieldtype != 'Attach Image':
 			frappe.throw(_("Image field must be of type Attach Image"), InvalidFieldNameError)
 
+	def check_is_published_field(meta):
+		if not meta.is_published_field:
+			return
+
+		if meta.is_published_field not in fieldname_list:
+			frappe.throw(_("Is Published Field must be a valid fieldname"), InvalidFieldNameError)
 
 	def check_timeline_field(meta):
 		if not meta.timeline_field:
@@ -549,6 +558,7 @@ def validate_fields(meta):
 	check_search_fields(meta)
 	check_title_field(meta)
 	check_timeline_field(meta)
+	check_is_published_field(meta)
 	check_sort_field(meta)
 
 def validate_permissions_for_doctype(doctype, for_remove=False):

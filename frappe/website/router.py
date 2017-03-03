@@ -90,29 +90,32 @@ def get_all_page_context_from_doctypes():
 
 def get_page_info_from_doctypes(path=None):
 	routes = {}
-	for app in frappe.get_installed_apps():
-		for doctype in frappe.get_hooks("website_generators", app_name = app):
-			condition = ""
-			values = []
-			controller = get_controller(doctype)
+	for doctype in get_doctypes_with_web_view():
+		condition = ""
+		values = []
+		controller = get_controller(doctype)
+		meta = frappe.get_meta(doctype)
+		condition_field = meta.is_published_field or controller.website.condition_field
 
-			if controller.website.condition_field:
-				condition ="where {0}=1".format(controller.website.condition_field)
+		if condition_field:
+			condition ="where {0}=1".format(condition_field)
 
-			if path:
-				condition += ' {0} `route`=%s limit 1'.format('and' if 'where' in condition else 'where')
-				values.append(path)
+			print condition_field, condition
 
-			try:
-				for r in frappe.db.sql("""select route, name, modified from `tab{0}`
-						{1}""".format(doctype, condition), values=values, as_dict=True):
-					routes[r.route] = {"doctype": doctype, "name": r.name, "modified": r.modified}
+		if path:
+			condition += ' {0} `route`=%s limit 1'.format('and' if 'where' in condition else 'where')
+			values.append(path)
 
-					# just want one path, return it!
-					if path:
-						return routes[r.route]
-			except Exception, e:
-				if e.args[0]!=1054: raise e
+		try:
+			for r in frappe.db.sql("""select route, name, modified from `tab{0}`
+					{1}""".format(doctype, condition), values=values, as_dict=True):
+				routes[r.route] = {"doctype": doctype, "name": r.name, "modified": r.modified}
+
+				# just want one path, return it!
+				if path:
+					return routes[r.route]
+		except Exception, e:
+			if e.args[0]!=1054: raise e
 
 	return routes
 
@@ -316,18 +319,13 @@ def load_properties(page_info):
 	if "<!-- no-sitemap -->" in page_info.source:
 		page_info.no_cache = 1
 
-def process_generators(func):
-	for app in frappe.get_installed_apps():
-		for doctype in frappe.get_hooks("website_generators", app_name = app):
-			order_by = "name asc"
-			condition_field = None
-			controller = get_controller(doctype)
+def get_doctypes_with_web_view():
+	'''Return doctypes with Has Web View or set via hooks'''
+	def _get():
+		installed_apps = frappe.get_installed_apps()
+		doctypes = frappe.get_hooks("doctypes_with_web_view")
+		doctypes += [d.name for d in frappe.get_all('DocType', 'name, module',
+			dict(has_web_view=1)) if frappe.local.module_app[frappe.scrub(d.module)] in installed_apps]
+		return doctypes
 
-			if "condition_field" in controller.website:
-				condition_field = controller.website['condition_field']
-			if 'order_by' in controller.website:
-				order_by = controller.website['order_by']
-
-			val = func(doctype, condition_field, order_by)
-			if val:
-				return val
+	return frappe.cache().get_value('doctypes_with_web_view', _get)

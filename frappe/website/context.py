@@ -83,6 +83,9 @@ def build_context(context):
 			if ret:
 				context.update(ret)
 
+		if not context.template:
+			context.template = context.doc.meta.get_web_template()
+
 		for prop in ("no_cache", "no_sitemap"):
 			if not prop in context:
 				context[prop] = getattr(context.doc, prop, False)

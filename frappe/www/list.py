@@ -45,9 +45,15 @@ def get(doctype, txt=None, limit_start=0, limit=20, **kwargs):
 
 	_get_list = list_context.get_list or get_list
 
-	raw_result = _get_list(doctype=doctype, txt=txt, filters=filters,
+	kwargs = dict(doctype=doctype, txt=txt, filters=filters,
 		limit_start=limit_start, limit_page_length=limit_page_length + 1,
 		order_by = list_context.order_by or 'modified desc')
+
+	# allow guest if flag is set
+	if not list_context.get_list and (list_context.allow_guest or meta.allow_guest_to_view):
+		kwargs['ignore_permissions'] = True
+
+	raw_result = _get_list(**kwargs)
 
 	if not raw_result: return {"result": []}
 
@@ -122,6 +128,10 @@ def get_list_context(context, doctype):
 		out = frappe._dict(module.get_list_context(list_context) or {})
 		if out:
 			list_context = out
+
+	# get path from '/templates/' folder of the doctype
+	if not list_context.row_template:
+		list_context.row_template = frappe.get_meta(doctype).get_row_template()
 
 	# is web form, show the default web form filters
 	# which is only the owner
