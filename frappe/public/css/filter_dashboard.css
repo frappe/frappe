@@ -10,6 +10,7 @@
   padding-bottom: 0px;
 }
 .list-filter-dashboard {
+  position: relative;
   border-top: 1px solid #d1d8dd;
   overflow-x: scroll;
   overflow-y: hidden;
@@ -103,6 +104,14 @@
 }
 .filter-dash-controls > .filter-label {
   padding-bottom: 5px;
+}
+.age-dropdown {
+  padding-left: 10px;
+  padding-right: 10px;
+}
+.age-wrapper {
+  border-top: 1px solid #d1d8dd;
+  padding-bottom: 2px;
 }
 .filter-loading-background {
   position: absolute;

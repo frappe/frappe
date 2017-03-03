@@ -388,9 +388,6 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 	execute_run: function() {
 		if(this.dirty) {
 			this.run();
-			if (this.clean_dash != true) {
-				this.filter_list.reload_stats();
-			}
 		} else {
 			if(new Date() - (this.last_updated_on || 0) > 30000) {
 				// older than 5 mins, refresh
