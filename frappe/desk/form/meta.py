@@ -176,7 +176,7 @@ class FormMeta(Meta):
 
 	def load_kanban_boards(self):
 		kanban_boards = frappe.get_all(
-			'Kanban Board', fields=["*"], filters={'reference_doctype': self.name})
+			'Kanban Board', fields=['name', 'filters', 'reference_doctype'], filters={'reference_doctype': self.name})
 		self.set("__kanban_boards", kanban_boards, as_value=True)
 
 	def load_kanban_column_fields(self):

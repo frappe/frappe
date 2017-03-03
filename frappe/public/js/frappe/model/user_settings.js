@@ -32,6 +32,10 @@ $.extend(frappe.model.user_settings, {
 	}
 });
 
-frappe.get_user_settings = function(doctype) {
-	return frappe.model.user_settings[doctype] || {};
+frappe.get_user_settings = function(doctype, key) {
+	var settings = frappe.model.user_settings[doctype] || {};
+	if(key) {
+		settings = settings[key] || {};
+	}
+	return settings;
 }

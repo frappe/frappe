@@ -104,10 +104,10 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 		this.dirty = true;
 		this.tags_shown = false;
 
-		this.label = __(this.doctype);
-		this.label =
-			(this.label.toLowerCase().substr(-4) == 'list') && __(this.label)
-			|| __(this.label) + ' ' + __('List');
+		this.page_title = __(this.doctype);
+		this.page_title =
+			(this.page_title.toLowerCase().substr(-4) == 'list') && __(this.page_title)
+			|| __(this.page_title) + ' ' + __('List');
 
 		this.make_page();
 		this.setup();
@@ -128,7 +128,6 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 		this.page.main.addClass('listview-main-section');
 		var module = locals.DocType[this.doctype].module;
 
-		this.page.set_title(__(this.doctype));
 		frappe.breadcrumbs.add(module, this.doctype);
 	},
 
@@ -197,20 +196,21 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 		if (this.list_renderer.page_title) {
 			this.page.set_title(this.list_renderer.page_title);
 		} else {
-			this.page.set_title(__(this.doctype));
+			this.page.set_title(this.page_title);
 		}
 	},
 
 	load_last_view: function () {
-		frappe.provide('frappe.model.user_settings.' + this.doctype);
-		var us = frappe.model.user_settings[this.doctype];
+		var us = frappe.get_user_settings(this.doctype);
 		var route = ['List', this.doctype];
 
-		if (us.last_view && us.last_view !== 'List')
+		if (us.last_view && us.last_view !== 'List') {
 			route.push(us.last_view);
 
-		if (us.last_view && us.last_view === 'Kanban')
-			route.push(us['Kanban'].last_kanban_board);
+			if (us.last_view === 'Kanban') {
+				route.push(us['Kanban'].last_kanban_board);
+			}
+		}
 
 		frappe.set_route(route);
 	},
@@ -304,11 +304,6 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 		var route = frappe.get_route();
 		this.last_view = this.current_view || '';
 		this.current_view = route[2] || 'List';
-
-		if (this.current_view === 'Kanban') {
-			this.last_kanban_board_name = this.kanban_board_name || '';
-			this.kanban_board_name = route[3];
-		}
 	},
 
 	init_base_list: function (auto_run) {

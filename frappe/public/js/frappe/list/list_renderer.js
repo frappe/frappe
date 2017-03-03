@@ -16,7 +16,7 @@ frappe.views.ListRenderer = Class.extend({
 		this.set_defaults();
 		this.set_fields();
 		this.set_columns();
-		this.cache();
+		this.setup_cache();
 	},
 	set_defaults: function () {
 		var me = this;
@@ -40,11 +40,8 @@ frappe.views.ListRenderer = Class.extend({
 		this.filters = this.filters || [];
 		this.page_length = this.page_length || 20;
 	},
-	cache: function () {
-		frappe.provide('frappe.views.list_renderers')
-		if (!frappe.views.list_renderers[this.doctype])
-			frappe.views.list_renderers[this.doctype] = {}
-
+	setup_cache: function () {
+		frappe.provide('frappe.views.list_renderers.' + this.doctype);
 		frappe.views.list_renderers[this.doctype][this.list_view.current_view] = this;
 	},
 	init_settings: function () {
@@ -54,7 +51,7 @@ frappe.views.ListRenderer = Class.extend({
 		this.order_by = this.user_settings.order_by || this.settings.order_by;
 		this.filters = this.user_settings.filters || this.settings.filters;
 		this.page_length = this.user_settings.page_length || this.settings.page_length;
-		
+
 		// default filter for submittable doctype
 		if(frappe.model.is_submittable(this.doctype) && (!this.filters || !this.filters.length)) {
 			this.filters = [[this.doctype, "docstatus", "!=", 2]];
@@ -146,8 +143,9 @@ frappe.views.ListRenderer = Class.extend({
 			this.settings.add_fields.forEach(add_field);
 		}
 		// kanban column fields
-		if (me.meta.__kanban_column_fields)
+		if (me.meta.__kanban_column_fields) {
 			me.fields = me.fields.concat(me.meta.__kanban_column_fields);
+		}
 	},
 	set_columns: function () {
 		var me = this;
