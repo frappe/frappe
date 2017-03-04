@@ -25,13 +25,12 @@ class FeedbackTrigger(Document):
 				frappe.throw(_("The condition '{0}' is invalid").format(self.condition))
 
 @frappe.whitelist()
-def send_feedback_request(reference_doctype, reference_name, trigger=None, details=None, is_manual=False):
+def send_feedback_request(reference_doctype, reference_name, trigger="Manual", details=None, is_manual=False):
 	""" send feedback alert """
+
+	is_feedback_request_already_sent(reference_doctype, reference_name, is_manual=is_manual)
 	details = json.loads(details) if details else \
 		get_feedback_request_details(reference_doctype, reference_name, trigger=trigger)
-	
-	if is_manual:
-		is_feedback_request_already_sent(reference_doctype, reference_name)
 
 	feedback_request, url = get_feedback_request_url(reference_doctype,
 		reference_name, details.get("recipients"), trigger)
@@ -61,7 +60,7 @@ def trigger_feedback_request(doc, method):
 				trigger=feedback_trigger, reference_doctype=doc.doctype, reference_name=doc.name, now=frappe.flags.in_test)
 
 @frappe.whitelist()
-def get_feedback_request_details(reference_doctype, reference_name, trigger=None, request=None):
+def get_feedback_request_details(reference_doctype, reference_name, trigger="Manual", request=None):
 	feedback_url = ""
 
 	if not trigger and not request and not frappe.db.get_value("Feedback Trigger", { "document_type": reference_doctype }):
@@ -73,10 +72,6 @@ def get_feedback_request_details(reference_doctype, reference_name, trigger=None
 
 	if not trigger:
 		frappe.throw(_("Feedback Trigger not found"))
-
-	# check if feedback request mail is already sent but feedback is not submitted
-	# to avoid sending multiple feedback request mail
-	is_feedback_request_already_sent(reference_doctype, reference_name)
 
 	feedback_trigger = frappe.get_doc("Feedback Trigger", trigger)
 	doc = frappe.get_doc(reference_doctype, reference_name)
@@ -115,11 +110,14 @@ def get_feedback_request_details(reference_doctype, reference_name, trigger=None
 		frappe.throw("Feedback conditions does not match !!")
 
 def get_feedback_request_url(reference_doctype, reference_name, recipients, trigger="Manual"):
+	""" prepare the feedback request url """
+	is_manual = 1 if trigger == "Manual" else 0
 	feedback_request = frappe.get_doc({
+		"is_manual": is_manual,
+		"feedback_trigger": trigger,
 		"doctype": "Feedback Request",
 		"reference_name": reference_name,
 		"reference_doctype": reference_doctype,
-		"feedback_trigger": trigger
 	}).insert(ignore_permissions=True)
 
 	feedback_url = "{base_url}/feedback?reference_doctype={doctype}&reference_name={docname}&email={email_id}&key={nonce}".format(	
@@ -132,13 +130,22 @@ def get_feedback_request_url(reference_doctype, reference_name, recipients, trig
 
 	return [ feedback_request.name, feedback_url ]
 
-def is_feedback_request_already_sent(reference_doctype, reference_name):
-	feedback_request = frappe.get_all("Feedback Request", {
+def is_feedback_request_already_sent(reference_doctype, reference_name, is_manual=False):
+	""" 
+		check if feedback request mail is already sent but feedback is not submitted
+		to avoid sending multiple feedback request mail
+	"""
+	filters = {
 		"is_sent": 1,
-		"is_feedback_submitted": 0,
 		"reference_name": reference_name,
+		"is_manual": 1 if is_manual else 0,
 		"reference_doctype": reference_doctype
-	}, ["name"])
+	}
+
+	if is_manual:
+		filters.update({ "is_feedback_submitted": 0 })
+
+	feedback_request = frappe.get_all("Feedback Request", filters=filters, fields=["name"])
 
 	if feedback_request:
 		frappe.throw(_("Feedback request mail has been already sent to the recipient"))

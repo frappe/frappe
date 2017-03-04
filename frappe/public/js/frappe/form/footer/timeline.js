@@ -98,7 +98,7 @@ frappe.ui.form.Timeline = Class.extend({
 
 		$.each(communications.sort(function(a, b) { return a.creation > b.creation ? -1 : 1 }),
 			function(i, c) {
-				if(c.content || c.feedback) {
+				if(c.content) {
 					c.frm = me.frm;
 					me.render_timeline_item(c);
 				}
@@ -264,10 +264,10 @@ frappe.ui.form.Timeline = Class.extend({
 				c.original_content = c.content;
 				c.content = frappe.utils.toggle_blockquote(c.content);
 			} else if (c.communication_type==="Feedback") {
-				c.content = frappe.utils.strip_original_content(c.feedback);
+				c.content = frappe.utils.strip_original_content(c.content);
 
-				c.original_content = c.feedback;
-				c.content = frappe.utils.toggle_blockquote(c.feedback);
+				c.original_content = c.content;
+				c.content = frappe.utils.toggle_blockquote(c.content);
 			}
 
 			if(!frappe.utils.is_html(c.content)) {

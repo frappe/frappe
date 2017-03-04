@@ -91,7 +91,7 @@ class TestFeedbackTrigger(unittest.TestCase):
 		self.assertRaises(Exception, todo.save, ignore_permissions=True) 
 
 		# Test if feedback is submitted sucessfully
-		result = accept(request_key, "test-feedback@example.com", "ToDo", todo.name, "Great Work !!", 4)
+		result = accept(request_key, "test-feedback@example.com", "ToDo", todo.name, "Great Work !!", 4, fullname="Test User")
 		self.assertTrue(result)
 
 		# test if feedback is saved in Communication
@@ -104,11 +104,14 @@ class TestFeedbackTrigger(unittest.TestCase):
 
 		communication = frappe.get_doc("Communication", docname)
 		self.assertEqual(communication.rating, 4)
-		self.assertEqual(communication.feedback, "Great Work !!")
+		self.assertEqual(communication.content, "Great Work !!")
 
 		# test if link expired after feedback submission
 		self.assertRaises(Exception, accept, key=request_key, sender="test-feedback@example.com",
-			reference_doctype="ToDo", reference_name=todo.name, feedback="Thank You !!", rating=4)
+			reference_doctype="ToDo", reference_name=todo.name, feedback="Thank You !!", rating=4, fullname="Test User")
+
+		# auto feedback request should trigger only once
+		self.assertRaises(Exception, todo.save, ignore_permissions=True)
 
 		frappe.delete_doc("ToDo", todo.name)
 
