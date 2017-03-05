@@ -1140,7 +1140,7 @@
   "currency": "IRR",
   "currency_name": "Iranian Rial",
   "currency_symbol": "\ufdfc",
-  "number_format": "#,###.##"
+  "number_format": "#,###.##",
   "timezones": [
    "Asia/Tehran"
   ]
