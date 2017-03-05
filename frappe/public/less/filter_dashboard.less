@@ -15,6 +15,7 @@
 }
 
 .list-filter-dashboard {
+    position: relative;
 	border-top: 1px solid @border-color;
     overflow-x: scroll;
 	overflow-y: hidden;
@@ -126,4 +127,36 @@
 
 .filter-dash-controls >.filter-label {
     padding-bottom: 5px;
+}
+
+.age-dropdown {
+    padding-left:10px;
+    padding-right:10px;
+}
+.age-wrapper {
+  border-top: 1px solid @border-color;
+  padding-bottom: 2px;
+}
+
+.filter-loading-background {
+    position: absolute;
+    background-color: #e6e6e6;
+    top: 0px;
+    left: 0px;
+    bottom: 0px;
+    right: 0px;
+    z-index: 100;
+    opacity: 0.2;
+}
+
+.filter-loading-message {
+    position: absolute;  
+    top: 50%;
+    left: 50%;
+    width: 100%;
+    transform: translate(-50%, -50%);
+    -webkit-transform: translate(-50%, -50%);  
+    text-align: center;
+    opacity: 1 !important;
+    color: @text-color !important;
 }

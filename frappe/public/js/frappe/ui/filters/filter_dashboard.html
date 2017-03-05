@@ -1,6 +1,35 @@
 <div class="filter_area">
     <div class="filter-dashboard-wrapper">
+        <div class="age-wrapper clearfix">
+            <div class="pull-left dropdown age-dropdown">
+	            <a class="dropdown-toggle text-muted small" data-toggle="dropdown" 
+	               aria-haspopup="true" aria-expanded="true">
+		            <span class="field_label">{{ __(field_label) }}</span><span class="caret"></span>
+	            </a>
+	            <ul class="dropdown-menu">
+	                {% for value in dashboard_age_fields %}
+		            <li><a class="age_fields" data-field="{{ value.fieldname }}">{{ __(value.label) }}</a></li>
+	                {% endfor %}
+	            </ul>
+            </div>
+            <div class="pull-left dropdown">
+                <a class="dropdown-toggle text-muted small" data-toggle="dropdown" 
+                   aria-haspopup="true" aria-expanded="true">
+	                <span class="date_label">{{ __(date_label) }}</span><span class="caret"></span>
+                </a>
+	            <ul class="dropdown-menu">
+                {% for value in dashboard_age_dates %}
+	                <li><a class="age_dates" data-date="{{ value.label }}">{{ __(value.label) }}</a></li>
+                {% endfor %}
+	            </ul>
+            </div>
+        </div>
+        
         <div class="list-filter-dashboard">
+            <div class="filter-loading">
+                <div class="filter-loading-background"></div>
+                <div class="filter-loading-message">{%= __("Loading filters") %}</div>
+            </div>
             <div class="filter-dashboard-items">
 
             </div>
