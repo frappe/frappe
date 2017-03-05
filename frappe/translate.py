@@ -178,6 +178,7 @@ def get_full_dict(lang):
 	if not lang:
 		return {}
 
+	# found in local, return!
 	if getattr(frappe.local, 'lang_full_dict', {}).get(lang, None):
 		return frappe.local.lang_full_dict
 
