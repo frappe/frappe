@@ -178,10 +178,7 @@ def get_full_dict(lang):
 	if not lang:
 		return {}
 
-	# found in local, return!
-	# Check if the passed lang exists in lang_full_dict cash in frappe
-	if not getattr(frappe.local, 'lang_full_dict',
-				   None) is None and frappe.local.lang_full_dict and lang in frappe.local.lang_full_dict:
+	if getattr(frappe.local, 'lang_full_dict', {}).get(lang, None):
 		return frappe.local.lang_full_dict
 
 	frappe.local.lang_full_dict = load_lang(lang)

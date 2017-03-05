@@ -48,7 +48,7 @@ def _(msg, lang=None):
 	# msg should always be unicode
 	msg = as_unicode(msg).strip()
 
-	# Retrun lang_full_dict according to lang passed parameter
+	# retrun lang_full_dict according to lang passed parameter
 	return get_full_dict(lang).get(msg) or msg
 
 def as_unicode(text, encoding='utf-8'):
