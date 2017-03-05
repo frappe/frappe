@@ -19,12 +19,11 @@ def export_module_json(doc, is_standard, module):
 	if (not frappe.flags.in_import and getattr(frappe.get_conf(),'developer_mode', 0)
 		and is_standard):
 		from frappe.modules.export_file import export_to_files
-		from frappe.modules import get_module_path
 
 		# json
 		export_to_files(record_list=[[doc.doctype, doc.name]], record_module=module)
 
-		path = os.path.join(get_module_path(module), scrub(doc.doctype),
+		path = os.path.join(frappe.get_module_path(module), scrub(doc.doctype),
 			scrub(doc.name), scrub(doc.name))
 
 		return path
@@ -209,6 +208,8 @@ def make_boilerplate(template, doc, opts=None):
 	template_name = template.replace("controller", scrub(doc.name))
 	target_file_path = os.path.join(target_path, template_name)
 
+	if not doc: doc = {}
+
 	app_publisher = get_app_publisher(doc.module)
 
 	if not os.path.exists(target_file_path):
@@ -219,6 +220,9 @@ def make_boilerplate(template, doc, opts=None):
 			with open(os.path.join(get_module_path("core"), "doctype", scrub(doc.doctype),
 				"boilerplate", template), 'r') as source:
 				target.write(frappe.utils.encode(
-					frappe.utils.cstr(source.read()).format(app_publisher=app_publisher,
-						classname=doc.name.replace(" ", ""), doctype=doc.name, **opts)
+					frappe.utils.cstr(source.read()).format(
+						app_publisher=app_publisher,
+						year=frappe.utils.nowdate()[:4],
+						classname=doc.name.replace(" ", ""),
+						doctype=doc.name, **opts)
 				))

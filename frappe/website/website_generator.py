@@ -43,7 +43,20 @@ class WebsiteGenerator(Document):
 		return self.scrubbed_title()
 
 	def scrubbed_title(self):
-		return self.scrub(self.get(self.get_website_properties('page_title_field', 'title')))
+		return self.scrub(self.get(self.get_title_field()))
+
+	def get_title_field(self):
+		'''return title field from website properties or meta.title_field'''
+		title_field = self.get_website_properties('page_title_field')
+		if not title_field:
+			if self.meta.title_field:
+				title_field = self.meta.title_field
+			elif self.meta.has_field('title'):
+				title_field = 'title'
+			else:
+				title_field = 'name'
+
+		return title_field
 
 	def clear_cache(self):
 		clear_cache(self.route)
@@ -60,10 +73,18 @@ class WebsiteGenerator(Document):
 
 	def is_website_published(self):
 		"""Return true if published in website"""
-		if self.get_website_properties('condition_field'):
-			return self.get(self.get_website_properties('condition_field')) and True or False
+		if self.get_condition_field():
+			return self.get(self.get_condition_field()) and True or False
 		else:
 			return True
+
+	def get_condition_field(self):
+		condition_field = self.get_website_properties('condition_field')
+		if not condition_field:
+			if self.meta.is_published_field:
+				condition_field = self.meta.is_published_field
+
+		return condition_field
 
 	def get_page_info(self):
 		route = frappe._dict()
@@ -79,7 +100,6 @@ class WebsiteGenerator(Document):
 		route.update(self.get_website_properties())
 
 		if not route.page_title:
-			route.page_title = self.get(self.get_website_properties('page_title_field'), 'title') \
-				or self.get('name')
+			route.page_title = self.get(self.get_title_field())
 
 		return route
