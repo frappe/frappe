@@ -179,7 +179,7 @@ def get_full_dict(lang):
 		return {}
 
 	# found in local, return!
-	if getattr(frappe.local, 'lang_full_dict', {}).get(lang, None):
+	if (lambda: {}, lambda: frappe.local.lang_full_dict)[hasattr(frappe.local, 'lang_full_dict')]().get(lang, None):
 		return frappe.local.lang_full_dict
 
 	frappe.local.lang_full_dict = load_lang(lang)
