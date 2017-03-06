@@ -6,6 +6,10 @@ no_cache = True
 def get_context(context):
 	reference_doctype = frappe.form_dict.get("reference_doctype")
 	reference_name = frappe.form_dict.get("reference_name")
+
+	if not all([reference_name, reference_doctype]):
+		return {}
+
 	communications = frappe.get_all("Communication", filters={
 		"reference_doctype": reference_doctype,
 		"reference_name": reference_name,
@@ -20,7 +24,7 @@ def get_context(context):
 	}
 
 @frappe.whitelist(allow_guest=True)
-def accept(key, sender, reference_doctype, reference_name, feedback, rating):
+def accept(key, sender, reference_doctype, reference_name, feedback, rating, fullname):
 	""" save the feedback in communication """
 	if not reference_doctype and not reference_name:
 		frappe.throw("Invalid Reference Doctype, Reference Name")
@@ -36,13 +40,14 @@ def accept(key, sender, reference_doctype, reference_name, feedback, rating):
 
 		communication = frappe.get_doc({
 			"rating": rating,
-			"sender": sender,
 			"status": "Closed",
-			"feedback": feedback,
+			"content": feedback,
 			"doctype": "Communication",
+			"sender": sender or "Guest",
 			"sent_or_received": "Received",
 			"communication_type": "Feedback",
 			"reference_name": reference_name,
+			"sender_full_name": fullname or "",
 			"feedback_request": feedback_request,
 			"reference_doctype": reference_doctype,
 			"subject": "Feedback for {0} {1}".format(reference_doctype, reference_name),

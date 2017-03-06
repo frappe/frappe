@@ -16,7 +16,7 @@ Example:
 '''
 
 from __future__ import unicode_literals
-import frappe, json
+import frappe, json, os
 from frappe.utils import cstr, cint
 from frappe.model import default_fields, no_value_fields, optional_fields
 from frappe.model.document import Document
@@ -351,6 +351,20 @@ class Meta(Document):
 			pass
 
 		return data
+
+	def get_row_template(self):
+		return self.get_web_template(suffix='_row')
+
+	def get_web_template(self, suffix=''):
+		'''Returns the relative path of the row template for this doctype'''
+		module_name = frappe.scrub(self.module)
+		doctype = frappe.scrub(self.name)
+		template_path = frappe.get_module_path(module_name, 'doctype',
+			doctype, 'templates', doctype + suffix + '.html')
+		if os.path.exists(template_path):
+			return '{module_name}/doctype/{doctype_name}/templates/{doctype_name}{suffix}.html'.format(
+				module_name = module_name, doctype_name = doctype, suffix=suffix)
+		return None
 
 doctype_table_fields = [
 	frappe._dict({"fieldname": "fields", "options": "DocField"}),
