@@ -165,3 +165,4 @@ execute:frappe.rename_doc('Country', 'Tanzania, United Republic of', 'Tanzania',
 execute:frappe.rename_doc('Country', 'Syrian Arab Republic', 'Syria', ignore_if_exists=True)
 frappe.patches.v8_0.rename_listsettings_to_usersettings
 frappe.patches.v7_2.update_communications
+frappe.patches.v8_0.drop_in_dialog
