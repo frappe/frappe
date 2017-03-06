@@ -364,25 +364,36 @@ frappe.search.GlobalSearch = Class.extend({
 	},
 
 	format_result: function(result) {
-		var route = '#Form/' + result.doctype + '/' + result.name;
-		return [route, this.bold_keywords(result.name),
-			this.get_finds(result.content, this.keywords)]
+		var name, route = '#Form/' + result.doctype + '/' + result.name;
+		var description = this.get_finds(result.content, this.keywords);
+		if(result.doctype === "Communication") {
+			if(description.indexOf(',') === -1) {
+				name = description.slice(description.indexOf(':') + 8);
+			} else {
+				name = description.slice(description.indexOf(':') + 8, description.indexOf(','));
+			}
+		} else {
+			name = result.name;
+		}
+		return [route, this.bold_keywords(name), description];
 	},
 
 	get_finds: function(searchables, keywords) {
 		var me = this;
 		parts = searchables.split("|||");
-		content = "";
+		content = [];
 		parts.forEach(function(part) {
 			if(part.toLowerCase().indexOf(keywords) !== -1) {
 				var colon_index = part.indexOf(':');
 				part = '<span class="field-name text-muted">' +
 					me.bold_keywords(part.slice(0, colon_index + 1), keywords) + '</span>' +
 					me.bold_keywords(part.slice(colon_index + 1), keywords);
-				content += part + ', ';
+				if(content.indexOf(part) === -1) {
+					content.push(part);
+				}
 			}
 		});
-		return content.slice(0, -2);
+		return content.join(', ');
 	},
 
 	bold_keywords: function(str, keywords) {
@@ -537,7 +548,7 @@ frappe.search.GlobalSearch = Class.extend({
 				value: __("{0}: {1}", [__(data.doctype), data.name]),
 				route: ["Form", data.doctype, data.name],
 				match: data.doctype,
-				index: 40,
+				index: 60,
 				default: "Global",
 				description: me.get_finds(data.content, keywords).slice(0,86) + '...'
 			}

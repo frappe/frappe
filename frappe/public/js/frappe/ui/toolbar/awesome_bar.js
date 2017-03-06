@@ -93,6 +93,9 @@ frappe.search.AwesomeBar = Class.extend({
 				var out = [], routes = [];
 				me.options.forEach(function(option) {
 					if(option.route) {
+						if(option.route[0] = "List") {
+							option.route.splice(2, 1);
+						}
 						var str_route = (typeof option.route==='string') ?
 								option.route : option.route.join('/');
 						if(routes.indexOf(str_route)===-1) {
@@ -156,7 +159,7 @@ frappe.search.AwesomeBar = Class.extend({
 		this.options.push({
 			label: __("Help on Search"),
 			value: "Help on Search",
-			index: 50,
+			index: 70,
 			default: "Help",
 			onclick: function() {
 				var txt = '<table class="table table-bordered">\
@@ -216,7 +219,7 @@ frappe.search.AwesomeBar = Class.extend({
 				out.label = match[0].bold();
 				out.value = match[0];
 			}
-			out.index = 30;
+			out.index = 50;
 			out.default = "Recent";
 			return out;
 		}, true);
@@ -255,10 +258,8 @@ frappe.search.AwesomeBar = Class.extend({
 		this.recent = JSON.parse(frappe.boot.user.recent || "[]") || [];
 	},
 
-	fuzzy_search: function(txt, _item, index) {
-		item = __(_item || '').toLowerCase().replace(/-/g, " ");
-
-		txt = txt.toLowerCase();
+	fuzzy_search: function(txt, _item) {
+		item = __(_item || '').replace(/-/g, " ");
 
 		var ilen = item.length;
 		var tlen = txt.length;
@@ -273,6 +274,13 @@ frappe.search.AwesomeBar = Class.extend({
 			var regEx = new RegExp("("+ txt +")", "ig");
 			rendered_label = _item.replace(regEx, '<b>$1</b>');
 			return [_item, ilen/50, rendered_label];
+		}
+		item = item.toLowerCase();
+		txt = txt.toLowerCase();
+		if (item.indexOf(txt) !== -1) {
+			var regEx = new RegExp("("+ txt +")", "ig");
+			rendered_label = _item.replace(regEx, '<b>$1</b>');
+			return [_item, 20 + ilen/50, rendered_label];
 		}
 		outer: for (i = 0, j = 0; i < tlen; i++) {
 			var t_ch = txt.charCodeAt(i);
@@ -299,7 +307,7 @@ frappe.search.AwesomeBar = Class.extend({
 			return [];
 		}
 		rendered_label += _item.slice(j);
-		return [_item, 20 + ilen/50, rendered_label];
+		return [_item, 40 + ilen/50, rendered_label];
 	},
 
 	set_specifics: function(txt, end_txt) {
@@ -399,7 +407,7 @@ frappe.search.AwesomeBar = Class.extend({
 		if(in_list(txt.split(" "), "in") && (txt.slice(-2) !== "in")) {
 			parts = txt.split(" in ");
 			frappe.boot.user.can_read.forEach(function (item) {
-				var target = me.fuzzy_search(parts[1], item, 13)[0];
+				var target = me.fuzzy_search(parts[1], item)[0];
 				if(target) {
 					out.push({
 						label: __('Find {0} in {1}', [__(parts[0]).bold(), __(target).bold()]),
@@ -420,7 +428,7 @@ frappe.search.AwesomeBar = Class.extend({
 		var out = [];
 		if(txt.split(" ")[0]==="new") {
 			frappe.boot.user.can_create.forEach(function (item) {
-				var result = me.fuzzy_search(txt.substr(4), item, 14);
+				var result = me.fuzzy_search(txt.substr(4), item);
 				var target = result[0];
 				var index = result[1];
 				var rendered_label = result[2];
@@ -456,7 +464,7 @@ frappe.search.AwesomeBar = Class.extend({
 			}
 		};
 		frappe.boot.user.can_read.forEach(function (item) {
-			result = me.fuzzy_search(txt, item, 15);
+			result = me.fuzzy_search(txt, item);
 			target = result[0];
 			index = result[1];
 			rendered_label = result[2];
@@ -490,7 +498,6 @@ frappe.search.AwesomeBar = Class.extend({
 						out.push(option("Gantt", ["List", target, "Gantt"], 0.003));
 					}
 				}
-
 			}
 		});
 		return out;
@@ -500,7 +507,7 @@ frappe.search.AwesomeBar = Class.extend({
 		var me = this;
 		var out = [];
 		Object.keys(frappe.boot.user.all_reports).forEach(function(item) {
-			var result = me.fuzzy_search(txt, item, 20);
+			var result = me.fuzzy_search(txt, item);
 			var target = result[0];
 			var index = result[1];
 			var rendered_label = result[2];
@@ -535,7 +542,7 @@ frappe.search.AwesomeBar = Class.extend({
 			p.name = name;
 		});
 		Object.keys(this.pages).forEach(function(item) {
-			var result = me.fuzzy_search(txt, item, 21);
+			var result = me.fuzzy_search(txt, item);
 			var target = result[0];
 			var index = result[1];
 			var rendered_label = result[2];
@@ -572,7 +579,7 @@ frappe.search.AwesomeBar = Class.extend({
 		var me = this;
 		var out = [];
 		Object.keys(frappe.modules).forEach(function(item) {
-			var result = me.fuzzy_search(txt, item, 22);
+			var result = me.fuzzy_search(txt, item);
 			var target = result[0];
 			var index = result[1];
 			var rendered_label = result[2];
