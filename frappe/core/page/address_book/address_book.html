@@ -1,0 +1,66 @@
+<div class="row">
+	<div class="col-xs-12 address-book">
+		<div class="row">
+			<div class="col-xs-4">
+				<div class="address-book-slider">
+					<div class="slider-content">
+						<ul>
+							{% for key in keys %}
+								<li id="{{ key }}"><a name="{{ key }}" class="title">{{ key }}</a>
+									<ul>
+										{% for(i = 0; i < contacts[key].length;i++){ %}
+										<li><a href="/">{{ contacts[key][i] }}</a></li>
+										{% } %}
+									</ul>
+								</li>	
+							{% endfor %}
+						</ul>
+					</div>
+				</div>	
+			</div>
+			<div class="col-xs-8">
+				<div id="contact-card" class="panel panel-default">
+				  <div class="panel-heading">
+					<h2 class="panel-title"></h2>
+				  </div>
+				  <div class="panel-body">
+					<div id="card" class="row">
+						<div class="col-xs-3 card-avatar">
+						</div>
+						<div class="col-xs-9">
+							<table class="table table-hover">
+							    <tbody>
+							      	<tr>
+										<th><i class="fa fa-font"></i> Name</th>
+								        <td class="card-name"></td>
+									</tr>
+									<tr>	
+										<th><i class="fa fa-phone"></i> Phone</th>
+								        <td class="card-phone"></td>
+									</tr>
+									<tr>	
+										<th><i class="fa fa-mobile"></i> Mobile</th>
+								        <td class="card-mobile"></td>
+									</tr>
+									<tr>	
+										<th><i class="fa fa-envelope"></i> Email</th>
+										<td class="card-email"></td>
+							      	</tr>
+									<tr>	
+										<th><i class="fa fa-home"></i> Address</th>
+								        <td class="card-address"></td>
+									</tr>
+							      	<tr>
+										<th></i>Type</th>
+								        <td class="card-type"></td>
+									</tr>
+							    </tbody>
+							</table>
+						</div>
+					</div>
+				  </div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

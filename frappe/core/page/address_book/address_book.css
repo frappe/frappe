@@ -1,0 +1,87 @@
+.slider-content { 
+	float: left; 
+	width: 100%; 
+	display: block; 
+	overflow: auto; 
+	min-height: 250px; 
+}
+
+.slider-content ul { 
+	float: left; 
+	width: 100%; 
+	display: block; 
+	position: relative; 
+	list-style: none; 
+	overflow: auto;
+}
+.slider-content ul li { 
+	float: left; 
+	width: 100%;
+}
+.slider-content ul ul li a { 
+	padding: 5px; 
+	display: block; 
+}
+.slider-content ul ul li a:hover { 
+	font-weight: bold; 
+}
+.slider-content .title { 
+	padding: 5px 5px 5px 5px; 
+	width: 100%; 
+	float: left; 
+	font-weight: bold; 
+	text-transform: uppercase;
+	background: #F7FAFC; 
+}
+.card-avatar { 
+	padding-top: 20px; 
+}
+.card-avatar .avatar { 
+	width: 100px;
+	height: 100px; 
+}
+.card-avatar .avatar .standard-image {
+	font-size: 42px;
+}
+a:hover, a:visited, a:link, a:active { 
+	text-decoration: none; 
+}
+
+.slidernav { 
+	width: 100%; 
+	min-height: 250px; 
+	display: block; 
+	position: relative; 
+	overflow: hidden;
+}
+
+.slidernav ul { 
+	list-style: none; 
+}
+
+.slidernav .slider-nav { 
+	position: absolute; 
+	right: 0; 
+	top: 0; 
+	background: darkgrey; 
+	min-height: 250px; 
+}
+
+.slidernav .slider-nav ul { 
+	padding: 5px 0; 
+}
+
+.slidernav .slider-nav li a { 
+	padding: 3px 5px; 
+	line-height: 13px; 
+	text-align: center; 
+	color: #fff; 
+	font-weight: bold; 
+	display: block; 
+	cursor: pointer; 
+}
+.panel {
+	margin-top: 20px;
+	margin-right: 20px;
+	margin-left: -10px;
+}
