@@ -3,6 +3,7 @@
 
 from __future__ import unicode_literals
 import datetime
+import json
 
 from frappe import _
 import frappe
@@ -16,7 +17,7 @@ from frappe.modules.patch_handler import check_session_stopped
 from frappe.translate import get_lang_code
 from frappe.utils.password import check_password
 from frappe.core.doctype.authentication_log.authentication_log import add_authentication_log
-
+from frappe.core.doctype.banned_ip.banned_ip import update_failed_to_ban_count
 from urllib import quote
 
 class HTTPRequest:
@@ -196,11 +197,19 @@ class LoginManager:
 
 	def check_password(self, user, pwd):
 		"""check password"""
+		frappe.flags.auth_failed = False
+		frappe.flags.ban_ip = False
+		self.is_ip_banned()
 		try:
 			# returns user in correct case
-			return check_password(user, pwd)
+			user = check_password(user, pwd)
 		except frappe.AuthenticationError:
+			frappe.flags.auth_failed = True
 			self.fail('Incorrect password', user=user)
+		finally:
+			update_failed_to_ban_count(frappe.local.request_ip)
+			if not frappe.flags.auth_failed:
+				return user
 
 	def fail(self, message, user="NA"):
 		frappe.local.response['message'] = message
@@ -215,6 +224,7 @@ class LoginManager:
 	def validate_ip_address(self):
 		"""check if IP Address is valid"""
 		ip_list = frappe.db.get_value('User', self.user, 'restrict_ip', ignore=True)
+
 		if not ip_list:
 			return
 
@@ -226,6 +236,17 @@ class LoginManager:
 				return
 
 		frappe.throw(_("Not allowed from this IP Address"), frappe.AuthenticationError)
+
+	def is_ip_banned(self):
+		defaults = frappe.defaults.get_defaults()
+		if frappe.local.request_ip in frappe.db.sql_list("""select distinct ip_address
+			from `tabBanned IP` where banned=1"""):
+
+			frappe.local.response['_server_messages'] = json.dumps(['Login from this IP address\
+				has been blocked for security reasons. Please try again after {}.'.format(defaults.ban_ip_till or 5.0)])
+			frappe.flags.ban_ip = True
+			frappe.flags.auth_failed = False
+			self.fail('Login from this IP address has been blocked for security reasons. Please try again after sometime.')
 
 	def validate_hour(self):
 		"""check if user is logging in during restricted hours"""
