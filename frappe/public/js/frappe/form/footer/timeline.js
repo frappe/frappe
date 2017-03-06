@@ -461,7 +461,7 @@ frappe.ui.form.Timeline = Class.extend({
 				if(data[key] && data[key].length) {
 					parts = (data[key] || []).map(function(p) {
 						var df = frappe.meta.get_docfield(me.frm.doctype, p[0], me.frm.docname);
-						if(!df.hidden) {
+						if(df && !df.hidden) {
 							var field_display_status = frappe.perm.get_field_display_status(df, null,
 								me.frm.perm);
 

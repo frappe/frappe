@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _
-from frappe.boot import get_allowed_pages
+from frappe.boot import get_allowed_pages, get_allowed_reports
 from frappe.desk.doctype.desktop_icon.desktop_icon import set_hidden, clear_desktop_icons_cache
 
 @frappe.whitelist()
@@ -126,6 +126,7 @@ def apply_permissions(data):
 	user.build_permissions()
 
 	allowed_pages = get_allowed_pages()
+	allowed_reports = get_allowed_reports()
 
 	new_data = []
 	for section in data:
@@ -139,7 +140,7 @@ def apply_permissions(data):
 
 			if ((item.type=="doctype" and item.name in user.can_read)
 				or (item.type=="page" and item.name in allowed_pages)
-				or (item.type=="report" and item.doctype in user.can_get_report)
+				or (item.type=="report" and item.name in allowed_reports)
 				or item.type=="help"):
 
 				new_items.append(item)

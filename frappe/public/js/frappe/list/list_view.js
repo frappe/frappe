@@ -576,7 +576,7 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 				});
 			}, true);
 		}
-		if (user_roles.includes('System Manager')) {
+		if (roles.includes('System Manager')) {
 			this.page.add_menu_item(__('Role Permissions Manager'), function () {
 				frappe.set_route('permission-manager', {
 					doctype: me.doctype
@@ -597,7 +597,7 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 			frappe.add_to_desktop(me.doctype, me.doctype);
 		}, true);
 
-		if (user_roles.includes('System Manager') && frappe.boot.developer_mode === 1) {
+		if (roles.includes('System Manager') && frappe.boot.developer_mode === 1) {
 			// edit doctype
 			this.page.add_menu_item(__('Edit DocType'), function () {
 				frappe.set_route('Form', 'DocType', me.doctype);
@@ -653,7 +653,7 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 					return !is_submittable || doc.docstatus === 1 ||
 						(allow_print_for_cancelled && doc.docstatus == 2) ||
 						(allow_print_for_draft && doc.docstatus == 0) ||
-						user_roles.includes('Administrator')
+						roles.includes('Administrator')
 				}).map(function (doc) {
 					return doc.name
 				});

@@ -158,7 +158,7 @@ def create_user(params):
 			"send_welcome_email": 0,
 			"language": "",
 			"user_type": "System User",
-			"user_roles": [{
+			"roles": [{
 				"role": _("Blogger")
 			}]
 		})

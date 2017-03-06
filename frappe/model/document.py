@@ -34,7 +34,7 @@ def get_doc(arg1, arg2=None):
 		user = get_doc({
 			"doctype":"User"
 			"email_id": "test@example.com",
-			"user_roles: [
+			"roles: [
 				{"role": "System Manager"}
 			]
 		})
@@ -459,10 +459,10 @@ class Document(BaseDocument):
 
 	def get_permlevel_access(self, permission_type='write'):
 		if not hasattr(self, "_has_access_to"):
-			user_roles = frappe.get_roles()
+			roles = frappe.get_roles()
 			self._has_access_to = []
 			for perm in self.get_permissions():
-				if perm.role in user_roles and perm.permlevel > 0 and perm.get(permission_type):
+				if perm.role in roles and perm.permlevel > 0 and perm.get(permission_type):
 					if perm.permlevel not in self._has_access_to:
 						self._has_access_to.append(perm.permlevel)
 

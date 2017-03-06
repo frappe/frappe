@@ -91,27 +91,45 @@ def load_desktop_icons(bootinfo):
 	bootinfo.desktop_icons = get_desktop_icons()
 
 def get_allowed_pages():
+	return get_user_page_or_report('Page')
+
+def get_allowed_reports():
+	return get_user_page_or_report('Report')
+	
+def get_user_page_or_report(parent):
 	roles = frappe.get_roles()
-	page_info = {}
+	has_role = {}
+	field = "title" if parent == 'Page' else "name"
+	
+	# get pages or reports set on custom role
+	for p in frappe.db.sql("""select `tabCustom Role`.{field} as name, `tabCustom Role`.modified
+		from `tabCustom Role`, `tabHas Role` where
+			`tabHas Role`.parent = `tabCustom Role`.name and
+			`tabCustom Role`.{field} is not null and `tabHas Role`.role in ({roles})
+			""".format(field=parent.lower(), roles = ', '.join(['%s']*len(roles))), roles, as_dict=1):
 
-	for p in frappe.db.sql("""select distinct
-		tabPage.name, tabPage.modified, tabPage.title
-		from `tabPage Role`, `tabPage`
-		where `tabPage Role`.role in (%s)
-			and `tabPage Role`.parent = `tabPage`.name""" % ', '.join(['%s']*len(roles)),
-				roles, as_dict=True):
+		has_role[p.name] = {"modified":p.modified, "title": p.name}
+	
+	if not has_role:
+		for p in frappe.db.sql("""select distinct
+			tab{parent}.name, tab{parent}.modified, tab{parent}.{field} as title
+			from `tabHas Role`, `tab{parent}`
+			where `tabHas Role`.role in ({roles})
+				and `tabHas Role`.parent = `tab{parent}`.name
+				""".format(parent=parent, field=field, roles = ', '.join(['%s']*len(roles))),
+					roles, as_dict=True):
 
-		page_info[p.name] = {"modified":p.modified, "title":p.title}
+			has_role[p.name] = {"modified":p.modified, "title": p.title}
 
-	# pages where role is not set are also allowed
-	for p in frappe.db.sql("""select name, modified, title
-		from `tabPage` where
-			(select count(*) from `tabPage Role`
-				where `tabPage Role`.parent=tabPage.name) = 0""", as_dict=1):
+		# pages or reports where role is not set are also allowed
+		for p in frappe.db.sql("""select name, modified, {field} as title
+			from `tab{parent}` where
+				(select count(*) from `tabHas Role`
+					where `tabHas Role`.parent=tab{parent}.name) = 0""".format(parent=parent, field=field), as_dict=1):
 
-		page_info[p.name] = {"modified":p.modified, "title":p.title}
+			has_role[p.name] = {"modified":p.modified, "title": p.title}
 
-	return page_info
+	return has_role
 
 def load_translations(bootinfo):
 	messages = frappe.get_lang_dict("boot")
