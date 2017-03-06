@@ -11,9 +11,12 @@ def setup_global_search_table():
 		frappe.db.sql('''create table __global_search(
 			doctype varchar(100),
 			name varchar(140),
+			title varchar(140),
 			content text,
 			fulltext(content),
-			unique (doctype, name))
+			unique (doctype, name)),
+			route varchar(140),
+			published int(1) not null default 0,
 			COLLATE=utf8mb4_unicode_ci
 			ENGINE=MyISAM
 			CHARACTER SET=utf8mb4''')
@@ -46,8 +49,13 @@ def update_global_search(doc):
 				content.append(field.label + ": " + unicode(doc.get(field.fieldname)))
 
 	if content:
+		published = 0
+		if hasattr(doc, 'is_website_published') and doc.meta.allow_guest_to_view:
+			published = 1 if doc.is_website_published() else 0
+
 		frappe.flags.update_global_search.append(
-			dict(doctype=doc.doctype, name=doc.name, content='|||'.join(content)))
+			dict(doctype=doc.doctype, name=doc.name, content='|||'.join(content or ''),
+				published=published, title=doc.get_title(), route=doc.get('route')))
 
 def sync_global_search():
 	'''Add values from `frappe.flags.update_global_search` to __global_search.
@@ -56,9 +64,9 @@ def sync_global_search():
 	for value in frappe.flags.update_global_search:
 		frappe.db.sql('''
 			insert into __global_search
-				(doctype, name, content)
+				(doctype, name, content, published, title, route)
 			values
-				(%(doctype)s, %(name)s, %(content)s)
+				(%(doctype)s, %(name)s, %(content)s, %(published)s, %(title)s, %(route)s)
 			on duplicate key update
 				content = %(content)s''', value)
 
@@ -69,11 +77,13 @@ def rebuild_for_doctype(doctype):
 		searchable fields
 	:param doctype: Doctype '''
 
+	frappe.flags.update_global_search = []
+
 	frappe.db.sql('''
 			delete
 				from __global_search
 			where
-				doctype = (%s)''', doctype, as_dict=True)
+				doctype = %s''', doctype, as_dict=True)
 
 	for d in frappe.get_all(doctype):
 		update_global_search(frappe.get_doc(doctype, d.name))
@@ -88,7 +98,8 @@ def delete_for_document(doc):
 		delete
 			from __global_search
 		where
-			name = (%s)''', (doc.name), as_dict=True)
+			doctype = %s and
+			name = %s''', (doc.doctype, doc.name), as_dict=True)
 
 @frappe.whitelist()
 def search(text, start=0, limit=20):
@@ -107,6 +118,27 @@ def search(text, start=0, limit=20):
 		where
 			match(content) against (%s IN BOOLEAN MODE)
 		limit {start}, {limit}'''.format(start=start, limit=limit), text, as_dict=True)
+	return results
+
+@frappe.whitelist(allow_guest=True)
+def web_search(text, start=0, limit=20):
+	'''Search for given text in __global_search where published = 1
+	:param text: phrase to be searched
+	:param start: start results at, default 0
+	:param limit: number of results to return, default 20
+	:return: Array of result objects'''
+
+	text = "+" + text + "*"
+	results = frappe.db.sql('''
+		select
+			doctype, name, content, title, route
+		from
+			__global_search
+		where
+			published = 1 and
+			match(content) against (%s IN BOOLEAN MODE)
+		limit {start}, {limit}'''.format(start=start, limit=limit),
+		text, as_dict=True)
 	return results
 
 @frappe.whitelist()

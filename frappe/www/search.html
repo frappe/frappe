@@ -1,0 +1,49 @@
+{% extends "templates/web.html" %}
+
+{% block title %}
+{{ _('Search Results for "{0}"').format(frappe.form_dict.q) }}
+{% endblock %}
+
+{% block page_content %}
+<h1>{{ _('Search Results for "{0}"').format(frappe.form_dict.q) }}</h1>
+
+<div>
+	<form action='/search'>
+	<input name='q' class='form-control' type='text' style='max-width: 400px;'
+		value='{{ frappe.form_dict.q }}'>
+	</form>
+</div>
+
+{% if results %}
+
+<div class='search-result'>
+{% include "templates/includes/search_result.html" %}
+</div>
+
+{% if has_more %}
+<button class='btn btn-default btn-sm btn-more'>{{ _("More") }}</button>
+{% endif %}
+
+{% else %}
+<p class='text-muted'>{{ _("No matching records. Search something new") }}
+{% endif %}
+
+<script>
+frappe.ready(function() {
+	$('.btn-more').on('click', function() {
+		frappe.call({
+			method: 'frappe.www.search.get_search_results',
+			args: {
+				text: '{{ frappe.form_dict.q }}',
+				start: $('.search-result-item').length,
+				as_html: 1
+			},
+			callback: function(r) {
+				$(r.message.results).appendTo('.search-result');
+				$('.btn-more').toggleClass('hidden', !!!r.message.has_more);
+			}
+		});
+	});
+});
+</script>
+{% endblock %}

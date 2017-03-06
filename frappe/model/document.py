@@ -336,6 +336,10 @@ class Document(BaseDocument):
 		for d in self.get_all_children():
 			set_new_name(d)
 
+	def get_title(self):
+		'''Get the document title based on title_field or `title` or `name`'''
+		return self.get(self.meta.get_title_field())
+
 	def set_title_field(self):
 		"""Set title field based on template"""
 		def get_values():

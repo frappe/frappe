@@ -203,7 +203,15 @@ class Meta(Document):
 		return [d for d in self.fields if d.get('is_custom_field')]
 
 	def get_title_field(self):
-		return self.title_field or "name"
+		'''Return the title field of this doctype,
+		explict via `title_field`, or `title` or `name`'''
+		title_field = self.title_field
+		if not title_field and self.has_field('title'):
+			title_field = 'title'
+		else:
+			title_field = 'name'
+
+		return title_field
 
 	def process(self):
 		# don't process for special doctypes

@@ -29,8 +29,6 @@ def get_context(path, args=None):
 	if hasattr(frappe.local, 'response') and frappe.local.response.get('context'):
 		context.update(frappe.local.response.context)
 
-	# print frappe.as_json(context)
-
 	return context
 
 def update_controller_context(context, controller):
@@ -77,14 +75,15 @@ def build_context(context):
 	if context.doc:
 		context.update(context.doc.as_dict())
 		context.update(context.doc.get_website_properties())
+
+		if not context.template:
+			context.template = context.doc.meta.get_web_template()
+
 		if hasattr(context.doc, "get_context"):
 			ret = context.doc.get_context(context)
 
 			if ret:
 				context.update(ret)
-
-		if not context.template:
-			context.template = context.doc.meta.get_web_template()
 
 		for prop in ("no_cache", "no_sitemap"):
 			if not prop in context:
