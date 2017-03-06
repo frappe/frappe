@@ -408,7 +408,7 @@ def get_sites(sites_path=None):
 	return sorted(sites)
 
 def get_request_session(max_retries=3):
-	from requests.packages.urllib3.util import Retry
+	from urllib3.util import Retry
 	session = requests.Session()
 	session.mount("http://", requests.adapters.HTTPAdapter(max_retries=Retry(total=5, status_forcelist=[500])))
 	session.mount("https://", requests.adapters.HTTPAdapter(max_retries=Retry(total=5, status_forcelist=[500])))
