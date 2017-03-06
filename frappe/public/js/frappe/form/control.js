@@ -1303,33 +1303,24 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 			maxItems: 99,
 			autoFirst: true,
 			list: [],
-
 			data: function (item, input) {
-				var label = item.value + "%%%" + (item.description || "");
-				if(item.value.indexOf("__link_option") !== -1) {
-					label = item.label;
-				}
 				return {
-					label: label,
+					label: item.label || item.value,
 					value: item.value
 				};
 			},
 			filter: function(item, input) {
-				var value = item.value.toLowerCase();
-				if(value.indexOf('__link_option') !== -1 ||
-					value.indexOf(input.toLowerCase()) !== -1) {
-					return true;
-				}
+				var d = this.get_item(item.value);
+				return Awesomplete.FILTER_CONTAINS(d.value, '__link_option') ||
+					Awesomplete.FILTER_CONTAINS(d.value, input) ||
+					Awesomplete.FILTER_CONTAINS(d.description, input);
 			},
 			item: function (item, input) {
-				var parts = item.split("%%%"),
-				d = { value: parts[0], description: parts[1] };
-				var _value = d.value;
+				d = this.get_item(item.value);
+				if(!d.label) {	d.label = d.value; }
 
-				if(me.translate_values) {
-					_value = __(d.value)
-				}
-				var html = "<strong>" + _value + "</strong>";
+				var _label = (me.translate_values) ? __(d.label) : d.label;
+				var html = "<strong>" + _label + "</strong>";
 				if(d.description && d.value!==d.description) {
 					html += '<br><span class="small">' + __(d.description) + '</span>';
 				}
