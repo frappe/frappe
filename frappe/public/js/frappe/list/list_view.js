@@ -760,6 +760,7 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 	},
 
 	toggle_delete: function () {
+		var me = this;
 		var checked_items = this.get_checked_items();
 		var checked_items_status = this.$page.find('.checked-items-status');
 
