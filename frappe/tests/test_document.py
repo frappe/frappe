@@ -45,20 +45,12 @@ class TestDocument(unittest.TestCase):
 			"doctype":"Event",
 			"subject":"test-doc-test-event 2",
 			"starts_on": "2014-01-01",
-			"event_type": "Public",
-			"roles": [
-				{
-					"role": "System Manager"
-				}
-			]
+			"event_type": "Public"
 		})
 		d.insert()
 		self.assertTrue(d.name.startswith("EV"))
 		self.assertEquals(frappe.db.get_value("Event", d.name, "subject"),
 			"test-doc-test-event 2")
-
-		d1 = frappe.get_doc("Event", d.name)
-		self.assertEquals(d1.roles[0].role, "System Manager")
 
 	def test_update(self):
 		d = self.test_insert()

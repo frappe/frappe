@@ -99,6 +99,7 @@ def get_allowed_reports():
 def get_user_page_or_report(parent):
 	roles = frappe.get_roles()
 	has_role = {}
+	field = "title" if parent == 'Page' else "name"
 	
 	# get pages or reports set on custom role
 	for p in frappe.db.sql("""select `tabCustom Role`.{field} as name, `tabCustom Role`.modified
@@ -107,26 +108,26 @@ def get_user_page_or_report(parent):
 			`tabCustom Role`.{field} is not null and `tabHas Role`.role in ({roles})
 			""".format(field=parent.lower(), roles = ', '.join(['%s']*len(roles))), roles, as_dict=1):
 
-		has_role[p.name] = {"modified":p.modified}
+		has_role[p.name] = {"modified":p.modified, "title": p.name}
 	
 	if not has_role:
 		for p in frappe.db.sql("""select distinct
-			tab{parent}.name, tab{parent}.modified
+			tab{parent}.name, tab{parent}.modified, tab{parent}.{field} as title
 			from `tabHas Role`, `tab{parent}`
 			where `tabHas Role`.role in ({roles})
 				and `tabHas Role`.parent = `tab{parent}`.name
-				""".format(parent=parent, roles = ', '.join(['%s']*len(roles))),
+				""".format(parent=parent, field=field, roles = ', '.join(['%s']*len(roles))),
 					roles, as_dict=True):
 
-			has_role[p.name] = {"modified":p.modified}
+			has_role[p.name] = {"modified":p.modified, "title": p.title}
 
 		# pages or reports where role is not set are also allowed
-		for p in frappe.db.sql("""select name, modified
+		for p in frappe.db.sql("""select name, modified, {field} as title
 			from `tab{parent}` where
 				(select count(*) from `tabHas Role`
-					where `tabHas Role`.parent=tab{parent}.name) = 0""".format(parent=parent), as_dict=1):
+					where `tabHas Role`.parent=tab{parent}.name) = 0""".format(parent=parent, field=field), as_dict=1):
 
-			has_role[p.name] = {"modified":p.modified}
+			has_role[p.name] = {"modified":p.modified, "title": p.title}
 
 	return has_role
 

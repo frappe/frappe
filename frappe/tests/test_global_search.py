@@ -107,9 +107,6 @@ class TestGlobalSearch(unittest.TestCase):
 				'subject': text,
 				'starts_on': frappe.utils.now_datetime()
 			})
-			doc.append('roles', dict(role='Administrator'))
 			doc.insert()
 
 		frappe.db.commit()
-		results = global_search.search('Administrator')
-		self.assertEquals(len(results), 9)

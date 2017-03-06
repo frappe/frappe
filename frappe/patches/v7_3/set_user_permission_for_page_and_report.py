@@ -5,17 +5,40 @@ from __future__ import unicode_literals
 import frappe
 
 def execute():
-	for doctype in ['Page', 'Report']:
-		for data in frappe.get_all(doctype, fields = ["name"]):
-			doc = frappe.get_doc(doctype, data.name)
-			make_custom_roles_for_page_and_report(doc, doctype)
+	frappe.reload_doc("core", 'doctype', "custom_role")
+	make_custom_roles_for_page_and_report()
 
-def make_custom_roles_for_page_and_report(doc, doctype):
+def make_custom_roles_for_page_and_report():
+	for doctype in ['Page', 'Report']:
+		for data in get_data(doctype):
+			doc = frappe.get_doc(doctype, data.name)
+			roles = get_roles(doctype, data, doc)
+			make_custom_roles(doctype, doc.name, roles)
+
+def get_data(doctype):
+	fields = ["name"] if doctype == 'Page' else ["name", "ref_doctype"]
+	return frappe.get_all(doctype, fields = fields)
+
+def get_roles(doctype, data, doc):
+	roles = []
+	if doctype == 'Page':
+		for d in doc.roles:
+			if frappe.db.exists('Role', d.role):
+				roles.append({'role': d.role})
+	else:
+		out = frappe.get_all('Custom DocPerm', fields='distinct role', filters=dict(parent = data.ref_doctype))
+		if not out:
+			out = frappe.get_all('DocPerm', fields='distinct role', filters=dict(parent = data.ref_doctype))
+		for d in out:
+			roles.append({'role': d.role})
+	return roles
+
+def make_custom_roles(doctype, name, roles):
 	field = doctype.lower()
-	roles = [{'role': d.role} for d in doc.roles]
+
 	if roles:
 		custom_permission = frappe.get_doc({
 			'doctype': 'Custom Role',
-			field : doc.name,
-			'roles': roles
+			field : name,
+			'roles' : roles
 		}).insert()

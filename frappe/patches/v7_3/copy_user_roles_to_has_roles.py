@@ -8,7 +8,10 @@ def execute():
 	for data in frappe.get_all('User', fields = ["name"]):
 		doc = frappe.get_doc('User', data.name)
 		doc.set('roles',[])
-		roles = [{'role': d.role} for d in doc.user_roles]
-		doc.set('roles', roles)
+		for args in frappe.get_all('UserRole', fields = ["role"], 
+			filters = {'parent': data.name, 'parenttype': 'User'}):
+			doc.append('roles', {
+				'role': args.role
+			})
 		for role in doc.roles:
 			role.db_update()
