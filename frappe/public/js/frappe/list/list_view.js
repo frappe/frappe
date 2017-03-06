@@ -750,7 +750,7 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 		if (!(this.can_delete || this.list_renderer.settings.selectable)) {
 			return;
 		}
-		this.$page.find('.list-row-checkbox').change(function () {
+		this.$page.on('change', '.list-row-checkbox, .list-select-all', function() {
 			me.toggle_delete();
 		});
 		// after delete, hide delete button
@@ -770,7 +770,7 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 				.addClass('btn-danger');
 
 			checked_items_status.text(
-				no_of_checked_items == 1
+				checked_items.length == 1
 					? __('1 item selected')
 					: __('{0} items selected', [checked_items.length])
 			)
