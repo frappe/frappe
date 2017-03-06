@@ -181,7 +181,7 @@ def search_in_doctype(doctype, text, start, limit):
 	text = "+" + text + "*"
 	results = frappe.db.sql('''
 		select
-			doctype, name, content
+			name, content
 		from
 			__global_search
 		where

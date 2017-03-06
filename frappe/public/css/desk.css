@@ -682,6 +682,24 @@ fieldset[disabled] .form-control {
 .search-dialog .modal-body {
   padding: 0px 15px;
 }
+.search-dialog .modal-body .search-intro-placeholder {
+  color: #d4d9dd;
+  height: inherit;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.search-dialog .modal-body .search-intro-placeholder span {
+  text-align: center;
+}
+.search-dialog .modal-body .search-intro-placeholder span i {
+  font-size: 120px;
+  display: block;
+}
+.search-dialog .modal-body .search-intro-placeholder span p {
+  font-size: 20px;
+  display: block;
+}
 .search-dialog input.form-control,
 .search-dialog .input-group-addon {
   border: none;
@@ -719,25 +737,7 @@ fieldset[disabled] .form-control {
 .search-dialog .layout-side-section .nav .active i {
   visibility: visible;
 }
-.search-dialog .results-area .search-intro-placeholder {
-  color: #d4d9dd;
-  height: inherit;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-.search-dialog .results-area .search-intro-placeholder span {
-  text-align: center;
-}
-.search-dialog .results-area .search-intro-placeholder span i {
-  font-size: 64px;
-  display: block;
-}
-.search-dialog .results-area .search-intro-placeholder span p {
-  font-size: 15px;
-  display: block;
-}
-.search-dialog .results-area .single-link a {
+.search-dialog .search-results .single-link a {
   color: #36414c;
 }
 .search-dialog .module-section .back-link {
@@ -790,7 +790,7 @@ fieldset[disabled] .form-control {
   }
 }
 @media (min-width: 600px) {
-  .search-dialog .results-area .back-link {
+  .search-dialog .search-results .back-link {
     display: none;
   }
 }

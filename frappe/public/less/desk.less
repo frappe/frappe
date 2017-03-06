@@ -555,6 +555,28 @@ textarea.form-control {
 
 	.modal-body {
 		padding: 0px 15px;
+
+		.search-intro-placeholder {
+			color: #d4d9dd;
+			height: inherit;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+
+			span {
+				text-align: center;
+
+				i {
+					font-size: 120px;
+					display: block;
+				}
+
+				p {
+					font-size: 20px;
+					display: block;
+				}
+			}
+		}
 	}
 
 	input.form-control, .input-group-addon {
@@ -605,29 +627,7 @@ textarea.form-control {
 		}
 	}
 
-	.results-area {
-		.search-intro-placeholder {
-			color: #d4d9dd;
-			height: inherit;
-			display: flex;
-			justify-content: center;
-			align-items: center;
-
-			span {
-				text-align: center;
-
-				i {
-					font-size: 64px;
-					display: block;
-				}
-
-				p {
-					font-size: 15px;
-					display: block;
-				}
-			}
-		}
-
+	.search-results {
 		// a {
 		// 	color: #5E64FF;
 		// }
@@ -706,7 +706,7 @@ textarea.form-control {
 	}
 
 	@media (min-width: 600px) {
-		.results-area .back-link {
+		.search-results .back-link {
 			display: none;
 		}
 	}

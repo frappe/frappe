@@ -6,49 +6,36 @@ frappe.search.AwesomeBar = Class.extend({
 	setup: function(element) {
 		var me = this;
 
-		var $input = $(element);
-		var input = $input.get(0);
+		this.$input = $(element);
+		this.input = this.$input.get(0);
 
-		this.search = new frappe.search.UnifiedSearch();
-		this.global = new frappe.search.GlobalSearch();
-		this.nav = new frappe.search.NavSearch();
-		this.help = new frappe.search.HelpSearch();
+		this.search = new frappe.search.SearchDialog();
 
 		this.options = [];
 		this.global_results = [];
 
-		var awesomplete = new Awesomplete(input, {
+		var awesomplete = new Awesomplete(me.input, {
 			minChars: 0,
 			maxItems: 99,
 			autoFirst: true,
 			list: [],
 			filter: function (text, term) {
+				this.get_item(text.value).boo = "foo";
 				return true;
 			},
 			data: function (item, input) {
-				var label = item.label + "%%%" + item.value + "%%%" +
-					(item.description || "") + "%%%" + (item.index || "")
-					 + "%%%" + (item.type || "") + "%%%" + (item.prefix || "");
 				return {
-					label: label,
+					label: (item.index || ""),
 					value: item.value
 				};
 			},
 			item: function(item, term) {
-				var d = item;
-				var parts = item.split("%%%"),
-				d = { label: parts[0], value: parts[1], description: parts[2],
-					type: parts[4], prefix: parts[5]};
-
-				if(d.prefix) {
-					var html = "<span>" + __((d.prefix + ' ' + d.label)) + "</span>";
-				} else if(d.type) {
-					var html = "<span>" + __((d.label + ' ' + d.type)) + "</span>";
-				} else {
-					var html = "<span>" + __(d.label || d.value) + "</span>";
-				}
+				var d = this.get_item(item.value);
+				var name = d.prefix ? __(d.prefix + ' ' + (d.label || d.value)) :
+					__((d.label || d.value) + ' ' + (d.type || ''));
+				var html = '<span>' + name + '</span>';
 				if(d.description && d.value!==d.description) {
-					html += '<br><span class="text-muted">' + __(d.description) + '</span>';
+					html += '<br><span class="text-muted ellipsis">' + __(d.description) + '</span>';
 				}
 				return $('<li></li>')
 					.data('item.autocomplete', d)
@@ -56,21 +43,19 @@ frappe.search.AwesomeBar = Class.extend({
 					.get(0);
 			},
 			sort: function(a, b) {
-				var a_index = a.split("%%%")[3];
-				var b_index = b.split("%%%")[3];
-				return (a_index - b_index);
+				return (a.label - b.label);
 			}
 		});
 
-		$input.on("input", function(e) {
+		this.$input.on("input", function(e) {
 			var value = e.target.value;
 			var txt = value.trim().replace(/\s\s+/g, ' ');
 			var last_space = txt.lastIndexOf(' ');
 			me.global_results = [];
 
-			if(txt && txt.length > 2) {
-				me.global.get_awesome_bar_options(txt.toLowerCase(), me);
-			}
+			// if(txt && txt.length > 2) {
+			// 	me.global.get_awesome_bar_options(txt.toLowerCase(), me);
+			// }
 
 			var $this = $(this);
 			clearTimeout($this.data('timeout'));
@@ -123,17 +108,17 @@ frappe.search.AwesomeBar = Class.extend({
 				$(this).trigger("input");
 			}
 		}
-		$input.on("focus", open_recent);
+		this.$input.on("focus", open_recent);
 
-		$input.on("awesomplete-open", function(e) {
+		this.$input.on("awesomplete-open", function(e) {
 			me.autocomplete_open = e.target;
 		});
 
-		$input.on("awesomplete-close", function(e) {
+		this.$input.on("awesomplete-close", function(e) {
 			me.autocomplete_open = false;
 		});
 
-		$input.on("awesomplete-select", function(e) {
+		this.$input.on("awesomplete-select", function(e) {
 			var o = e.originalEvent;
 			var value = o.text.value;
 			var item = awesomplete.get_item(value);
@@ -153,13 +138,13 @@ frappe.search.AwesomeBar = Class.extend({
 					frappe.route();
 				}
 			}
+			me.$input.val("");
 		});
 
-		$input.on("awesomplete-selectcomplete", function(e) {
-			$input.val("");
+		this.$input.on("awesomplete-selectcomplete", function(e) {
+			me.$input.val("");
 		});
 		this.setup_recent();
-		this.search.setup();
 	},
 
 	add_help: function() {
@@ -360,8 +345,7 @@ frappe.search.AwesomeBar = Class.extend({
 			index: 1,
 			default: "Search",
 			onclick: function() {
-				me.search.search_dialog.show();
-				me.search.setup_search(txt, [me.nav, me.global, me.help]);
+				me.search.init_search(txt, "global");
 			}
 		});
 	},
