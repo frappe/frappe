@@ -31,6 +31,9 @@ def update_global_search(doc):
 		frappe.flags.update_global_search = []
 
 	content = []
+	if doc.doctype == "Communication":
+		sub = doc.get("Subject")
+		content.append(sub.label + ": " + unicode(d.get(sub.fieldname)))
 	for field in doc.meta.get_global_search_fields():
 		if doc.get(field.fieldname):
 			if getattr(field, 'fieldtype', None) == "Table":
