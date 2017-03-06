@@ -101,12 +101,24 @@ frappe.views.GalleryView = Class.extend({
 		var items = this.items.map(function(i) {
 			var query = 'img[data-name="'+i.name+'"]';
 			var el = me.wrapper.find(query).get(0);
+
+			if(el) {
+				var width = el.naturalWidth;
+				var height = el.naturalHeight;
+			}
+
+			if(!el) {
+				el = me.wrapper.find('.image-field[data-name="'+i.name+'"]').get(0);
+				width = el.getBoundingClientRect().width;
+				height = el.getBoundingClientRect().height;
+			}
+
 			return {
 				src: i.image,
 				msrc: i.image,
 				name: i.name,
-				w: el.naturalWidth,
-				h: el.naturalHeight,
+				w: width,
+				h: height,
 				el: el
 			}
 		});
@@ -122,7 +134,7 @@ frappe.views.GalleryView = Class.extend({
 			getThumbBoundsFn: function(index) {
 				var thumbnail = items[index].el, // find thumbnail
 					pageYScroll = window.pageYOffset || document.documentElement.scrollTop,
-					rect = thumbnail.getBoundingClientRect(); 
+					rect = thumbnail.getBoundingClientRect();
 
 				return {x:rect.left, y:rect.top + pageYScroll, w:rect.width};
 			},
