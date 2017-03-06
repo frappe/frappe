@@ -126,7 +126,7 @@ frappe.Inbox = frappe.ui.Listing.extend({
 						$(me.page.sidebar).find(".list-row").removeClass("list-row-head").css("font-weight","normal");
 						$(btn.currentTarget).closest(".list-row").addClass("list-row-head").css("font-weight","bold");
 						me.cur_page = 1;
-						$(me.page.main).find(".list-select-all,.list-delete").prop("checked",false);
+						$(me.page.main).find(".list-select-all,.list-row-checkbox").prop("checked",false);
 						me.toggle_actions();
 
 						if(me.account=="Sent"){
@@ -518,11 +518,11 @@ frappe.Inbox = frappe.ui.Listing.extend({
         var me = this;
 
 		$(".list-select-all").on("click", function () {
-			$(me.wrapper).find('.list-delete').prop("checked", $(this).prop("checked"));
+			$(me.wrapper).find('.list-row-checkbox').prop("checked", $(this).prop("checked"));
 			me.toggle_actions();
 		});
 
-		$(me.wrapper).on("click", ".list-delete", function (event) {
+		$(me.wrapper).on("click", ".list-row-checkbox", function (event) {
 			me.toggle_actions();
 
 			// multi-select using shift key
@@ -530,9 +530,9 @@ frappe.Inbox = frappe.ui.Listing.extend({
 			if (event.shiftKey && $this.prop("checked")) {
 				var $end_row = $this.parents(".list-row");
 				var $start_row = $end_row.prevAll(".list-row")
-					.find(".list-delete:checked").last().parents(".list-row");
+					.find(".list-row-checkbox:checked").last().parents(".list-row");
 				if ($start_row) {
-					$start_row.nextUntil($end_row).find(".list-delete").prop("checked", true);
+					$start_row.nextUntil($end_row).find(".list-row-checkbox").prop("checked", true);
 				}
 			}
 		});
@@ -563,7 +563,7 @@ frappe.Inbox = frappe.ui.Listing.extend({
 	},
     toggle_actions: function () {
         var me = this;
-        if (me.page.main.find(".list-delete:checked").length) {
+        if (me.page.main.find(".list-row-checkbox:checked").length) {
             //show buttons
 			$(me.page.actions_btn_group).show();
 			$(me.page.btn_primary).hide()
@@ -625,10 +625,10 @@ frappe.Inbox = frappe.ui.Listing.extend({
 				val:val
 			}
 		})
-		$('.list-delete:checked').prop( "checked", false );
+		$('.list-row-checkbox:checked').prop( "checked", false );
 	},
 	action_checked_items: function(action) {
-		return $.map(this.page.main.find('.list-delete:checked'), function(e) {
+		return $.map(this.page.main.find('.list-row-checkbox:checked'), function(e) {
 			return eval('$(e).closest(".row-named")'+action);
 		});
 	},

@@ -224,6 +224,11 @@ frappe.ui.Listing = Class.extend({
 		var args = this.get_call_args();
 		this.save_list_settings_locally(args);
 
+		// list_settings are saved by db_query.py when dirty
+		$.extend(args, {
+			list_settings: frappe.model.list_settings[this.doctype]
+		});
+
 		return frappe.call({
 			method: this.opts.method || 'frappe.desk.query_builder.runquery',
 			type: "GET",
@@ -251,7 +256,7 @@ frappe.ui.Listing = Class.extend({
 
 			if(!frappe.utils.arrays_equal(args.filters, list_settings.filters)) {
 				//dont save filters in Kanban view
-				if(!frappe.get_route()[2]==="Kanban") {
+				if(this.current_view!=="Kanban") {
 					// settings are dirty if filters change
 					list_settings.filters = args.filters || [];
 					different = true;
@@ -271,7 +276,7 @@ frappe.ui.Listing = Class.extend({
 			// save fields in list settings
 			if(args.save_list_settings_fields) {
 				list_settings.fields = args.fields;
-			};
+			}
 
 			if(different) {
 				list_settings.updated_on = moment().toString();
@@ -318,9 +323,10 @@ frappe.ui.Listing = Class.extend({
 			r.values = this.get_values_from_response(r.message);
 		}
 
-		if(r.values.length) {
+		if(r.values.length || this.force_render_view) {
 			this.data = this.data.concat(r.values);
-			this.render_list(r.values);
+			this.render_view(r.values);
+			// this.render_list(r.values);
 			this.update_paging(r.values);
 		} else {
 			if(this.start===0) {
@@ -355,11 +361,20 @@ frappe.ui.Listing = Class.extend({
 		}
 	},
 
+	render_view: function(values) {
+		this.list_view = new frappe.views.ListView({
+			doctype: this.doctype,
+			values: values,
+		});
+	},
+
 	render_list: function(values) {
-		this.last_page = values;
-		if(this.filter_list) {
-			this.filter_values = this.filter_list.get_filters();
-		}
+		// TODO: where is this used?
+		// this.last_page = values;
+		// if(this.filter_list) {
+		// 	// and this?
+		// 	this.filter_values = this.filter_list.get_filters();
+		// }
 
 		this.render_rows(values);
 	},
@@ -369,33 +384,6 @@ frappe.ui.Listing = Class.extend({
 		for(var i=0; i < m; i++) {
 			this.render_row(this.add_row(values[i]), values[i], this, i);
 		}
-	},
-	render_image_gallery: function(){
-		var me = this;
-		frappe.require(
-			[
-				"assets/frappe/js/frappe/list/imageview.js",
-				"assets/frappe/js/lib/gallery/js/blueimp-gallery.js",
-				"assets/frappe/js/lib/gallery/css/blueimp-gallery.css",
-				"assets/frappe/js/lib/gallery/js/blueimp-gallery-indicator.js",
-				"assets/frappe/js/lib/gallery/css/blueimp-gallery-indicator.css"
-			], function(){
-				// remove previous gallery container
-				me.wrapper.find(".blueimp-gallery").remove();
-				// append gallery div
-				var gallery = frappe.render_template("blueimp-gallery", {});
-				$(gallery).appendTo(me.wrapper);
-
-				me.wrapper.find(".zoom-view").click(function(event){
-					event.preventDefault();
-					opts = {
-						doctype: me.doctype,
-						docname: $(this).parent().attr('data-name'),
-						container: me.wrapper
-					};
-					new frappe.views.ImageView(opts);
-			});
-		});
 	},
 	update_paging: function(values) {
 		if(values.length >= this.page_length) {

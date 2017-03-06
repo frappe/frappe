@@ -4,6 +4,35 @@
 frappe.provide("frappe.views.calendar");
 frappe.provide("frappe.views.calendars");
 
+frappe.views.CalendarView = frappe.views.ListRenderer.extend({
+	name: 'Calendar',
+	render_view: function() {
+		var me = this;
+		var options = {
+			doctype: this.doctype,
+			parent: this.wrapper,
+			page: this.list_view.page,
+			filter_vals: this.list_view.filter_list.get_filters()
+		}
+		$.extend(options, frappe.views.calendar[this.doctype]);
+		this.calendar = new frappe.views.Calendar(options);
+	},
+	set_defaults: function() {
+		this._super();
+		this.page_title = this.page_title + ' ' + __('Calendar');
+		this.no_realtime = true;
+		this.show_no_result = false;
+		this.hide_sort_selector = true;
+	},
+	get_header_html: function() {
+		return null;
+	},
+	required_libs: [
+		'assets/frappe/js/lib/fullcalendar/fullcalendar.min.css',
+		'assets/frappe/js/lib/fullcalendar/fullcalendar.min.js'
+	]
+})
+
 frappe.views.Calendar = Class.extend({
 	init: function(options) {
 		$.extend(this, options);
@@ -13,20 +42,6 @@ frappe.views.Calendar = Class.extend({
 	},
 	make_page: function() {
 		var me = this;
-
-		$(this.parent).on("show", function() {
-			me.set_filters_from_route_options();
-		});
-
-		var module = locals.DocType[this.doctype].module;
-		this.page.set_title(__("Calendar") + " - " + __(this.doctype));
-
-		frappe.breadcrumbs.add(module, this.doctype);
-
-		this.page.set_primary_action(__("New"), function() {
-			var doc = frappe.model.get_new_doc(me.doctype);
-			frappe.set_route("Form", me.doctype, doc.name);
-		});
 
 		// add links to other calendars
 		$.each(frappe.boot.calendars, function(i, doctype) {
@@ -46,9 +61,9 @@ frappe.views.Calendar = Class.extend({
 		var me = this;
 		this.$wrapper = this.parent;
 		this.$cal = $("<div>").appendTo(this.$wrapper);
-		footnote = frappe.utils.set_footnote(this, this.$wrapper,
+		this.footnote_area = frappe.utils.set_footnote(this.footnote_area, this.$wrapper,
 			__("Select or drag across time slots to create a new event."));
-		footnote.css({"border-top": "0px"});
+		this.footnote_area.css({"border-top": "0px"});
 
 		this.$cal.fullCalendar(this.cal_options);
 		this.set_css();

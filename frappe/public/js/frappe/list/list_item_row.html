@@ -1,6 +1,6 @@
 <div class="row doclist-row {% if (data._checkbox) { %} has-checkbox {% } %}">
     <div class="col-xs-10
-		{% if (list.meta.title_field && !list.settings.hide_name_column) { %}
+		{% if (meta.title_field && !settings.hide_name_column) { %}
             col-sm-8
         {% } else { %}
             col-sm-10
@@ -10,8 +10,8 @@
     </div>
 
     <!-- id -->
-    {% if (list.meta.title_field && !list.settings.hide_name_column) {
-		var is_different = data.name !== data[list.meta.title_field];
+    {% if (meta.title_field && !settings.hide_name_column) {
+		var is_different = data.name !== data[meta.title_field];
 	%}
     <div class="list-col col-sm-2 hidden-xs text-right ellipsis list-row-id">
 		{% if (is_different) { %}
@@ -24,7 +24,7 @@
     <!-- comment -->
     <div class="list-col col-sm-2 col-xs-2
 		text-right list-row-right" style="padding-left:0px">
-		<div class="visible-xs list-row-indicator">{%= list.get_indicator_dot(data) %}</div>
+		<div class="visible-xs list-row-indicator">{%= indicator_dot %}</div>
 		<!-- comments count and assigned to section -->
 		{%= frappe.render_template("item_assigned_to_comment_count", { data: data }) %}
     </div>

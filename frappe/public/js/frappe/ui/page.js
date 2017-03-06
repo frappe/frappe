@@ -80,7 +80,6 @@ frappe.ui.Page = Class.extend({
 
 		this.page_actions = this.wrapper.find(".page-actions");
 
-		this.checked_items_status = this.page_actions.find(".checked-items-status");
 		this.btn_primary = this.page_actions.find(".primary-action");
 		this.btn_secondary = this.page_actions.find(".btn-secondary");
 

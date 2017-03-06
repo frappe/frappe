@@ -33,7 +33,7 @@ $.extend(frappe.model, {
 
 	new_names: {},
 	events: {},
-	list_settings: {},
+	user_settings: {},
 
 	init: function() {
 		// setup refresh if the document is updated somewhere else
@@ -105,7 +105,6 @@ $.extend(frappe.model, {
 					if(r.exc) {
 						msgprint(__("Unable to load: {0}", [__(doctype)]));
 						throw "No doctype";
-						return;
 					}
 					if(r.message=="use_cache") {
 						frappe.model.sync(cached_doc);
@@ -115,10 +114,10 @@ $.extend(frappe.model, {
 					frappe.model.init_doctype(doctype);
 					frappe.defaults.set_user_permissions(r.user_permissions);
 
-					if(r.list_settings) {
+					if(r.user_settings) {
 						// remember filters and other settings from last view
-						frappe.model.list_settings[doctype] = JSON.parse(r.list_settings);
-						frappe.model.list_settings[doctype].updated_on = moment().toString();
+						frappe.model.user_settings[doctype] = JSON.parse(r.user_settings);
+						frappe.model.user_settings[doctype].updated_on = moment().toString();
 					}
 					callback && callback(r);
 				}

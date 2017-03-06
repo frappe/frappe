@@ -5,7 +5,7 @@ frappe.ui.FilterList = Class.extend({
 	init: function(opts) {
 		$.extend(this, opts);
 		this.filters = [];
-		this.wrapper = this.$parent;
+		this.wrapper = this.parent;
 		this.stats = [];
 		this.make();
 		this.set_events();
@@ -13,6 +13,20 @@ frappe.ui.FilterList = Class.extend({
 	make: function() {
 		var me = this;
 
+		this.wrapper.find('.show_filters').remove();
+		this.wrapper.append(`
+			<div class="show_filters">
+				<div class="set-filters">
+					<button
+						class="btn btn-default btn-xs show-filters text-muted"
+						style="margin-right: 10px;">
+							${__("Show Filters")}
+					</button>
+					<button style="margin-left: -5px;"
+						class="btn btn-default btn-xs new-filter text-muted">
+						<i class="octicon octicon-plus"></i></button>
+				</div>
+			</div>`);
 		$(frappe.render_template("filter_dashboard", {})).appendTo(this.wrapper.find('.show_filters'));
 
 		//show filter dashboard
@@ -85,7 +99,7 @@ frappe.ui.FilterList = Class.extend({
 			args: {
 				stats: me.stats,
 				doctype: me.doctype,
-				filters:me.default_filters
+				filters: me.default_filters
 			},
 			callback: function(r) {
 				// This gives a predictable stats order
@@ -163,9 +177,9 @@ frappe.ui.FilterList = Class.extend({
 					var noduplicate = true
 				}
 				if (label=="No Data"){
-					me.listobj.set_filter(fieldname, '', false, noduplicate);
+					me.base_list.set_filter(fieldname, '', false, noduplicate);
 				}else{
-					me.listobj.set_filter(fieldname, label, false, noduplicate);
+					me.base_list.set_filter(fieldname, label, false, noduplicate);
 				}
 				return false;
 			})
@@ -205,9 +219,9 @@ frappe.ui.FilterList = Class.extend({
 						var noduplicate = true
 					}
 					if (item.label == "No Data") {
-						me.listobj.set_filter(item.value, '', false, noduplicate);
+						me.base_list.set_filter(item.value, '', false, noduplicate);
 					} else {
-						me.listobj.set_filter(item.value, item.label, false, noduplicate);
+						me.base_list.set_filter(item.value, item.label, false, noduplicate);
 					}
 				}
 			});
@@ -222,8 +236,8 @@ frappe.ui.FilterList = Class.extend({
 
 		this.wrapper.find('.clear-filters').bind('click', function() {
 			me.clear_filters();
-			$('.date-range-picker').val('');
-			me.listobj.run();
+			$('.date-range-picker').val('')
+			me.base_list.run();
 			$(this).addClass("hide");
 		});
 
@@ -247,8 +261,7 @@ frappe.ui.FilterList = Class.extend({
 				df: {
 					fieldtype: "Check",
 					fieldname: "is_date_range",
-					label: __("Date Range"),
-					input_css: { "margin-top": "-2px" }
+					label: __("Date Range")
 				}
 			});
 			check.change = function() {
@@ -283,11 +296,11 @@ frappe.ui.FilterList = Class.extend({
 					filt && filt.remove(true);
 					if(!dateObj.length && dateObj && date.datepicker.opts.range===false) {
 						me.add_filter(me.doctype, name, '=', moment(dateObj).format('YYYY-MM-DD'));
-						me.listobj.run();
+						me.base_list.run();
 					} else if(dateObj.length===2 && date.datepicker.opts.range===true) {
 						me.add_filter(me.doctype, name, 'Between',
 							[moment(dateObj[0]).format('YYYY-MM-DD'), moment(dateObj[1]).format('YYYY-MM-DD')]);
-						me.listobj.run();
+						me.base_list.run();
 					}
 				});
 			}
@@ -444,7 +457,7 @@ frappe.ui.Filter = Class.extend({
 
 		this.wrapper.find(".set-filter-and-run").on("click", function() {
 			me.wrapper.removeClass("is-new-filter");
-			me.flist.listobj.run();
+			me.flist.base_list.run();
 		});
 
 		// add help for "in" codition
@@ -482,9 +495,8 @@ frappe.ui.Filter = Class.extend({
 		this.flist.update_filters();
 
 		if(!dont_run) {
-			this.flist.listobj.dirty = true;
-			this.flist.listobj.clean_dash = true;
-			this.flist.listobj.refresh();
+			this.flist.base_list.clean_dash = true;
+			this.flist.base_list.refresh(true);
 		}
 	},
 
@@ -559,7 +571,7 @@ frappe.ui.Filter = Class.extend({
 		// run on enter
 		$(me.field.wrapper).find(':input').keydown(function(ev) {
 			if(ev.which==13) {
-				me.flist.listobj.run();
+				me.flist.base_list.run();
 			}
 		})
 	},

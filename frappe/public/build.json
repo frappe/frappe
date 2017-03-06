@@ -112,6 +112,7 @@
 		"public/js/frappe/model/create_new.js",
 		"public/js/frappe/model/perm.js",
 		"public/js/frappe/model/workflow.js",
+		"public/js/frappe/model/user_settings.js",
 
 		"public/js/lib/md5.min.js",
 		"public/js/frappe/misc/user.js",
@@ -211,7 +212,9 @@
 	],
 	"js/list.min.js": [
 		"public/js/frappe/ui/listing.html",
-		"public/js/frappe/ui/listing.js",
+		
+		"public/js/frappe/ui/base_list.js",
+
 		"public/js/frappe/model/indicator.js",
 		"public/js/frappe/ui/filters/filters.js",
 		"public/js/frappe/ui/filters/edit_filter.html",
@@ -222,7 +225,9 @@
 		"public/js/frappe/ui/like.js",
 		"public/js/frappe/ui/liked_by.html",
 		"public/html/print_template.html",
-		"public/js/frappe/list/doclistview.js",
+
+		"public/js/frappe/list/list_view.js",
+
 		"public/js/frappe/list/list_sidebar.js",
 		"public/js/frappe/list/list_sidebar.html",
 		"public/js/frappe/list/list_sidebar_stat.html",
@@ -232,14 +237,21 @@
 		"public/js/frappe/list/list_item_row_head.html",
 		"public/js/frappe/list/list_item_subject.html",
 		"public/js/frappe/list/list_permission_footer.html",
-		"public/js/frappe/list/listview.js",
-		"public/js/frappe/views/calendar.js",
-		"public/js/frappe/list/blueimp-gallery.html",
-		"public/js/frappe/list/image_view_item_row.html",
-		"public/js/frappe/list/image_view_item_main_head.html",
+		
+		"public/js/frappe/list/list_renderer.js",
+		"public/js/frappe/views/gantt/gantt_view.js",
+		"public/js/frappe/views/calendar/calendar.js",
+		"public/js/frappe/views/image/image_view.js",
+		"public/js/frappe/views/kanban/kanban_view.js",
+
 		"public/js/frappe/list/header_select_all_like_filter.html",
 		"public/js/frappe/list/item_assigned_to_comment_count.html",
 		"public/js/frappe/views/treeview.js",
+
+		"public/js/frappe/views/image/image_view_item_row.html",
+		"public/js/frappe/views/image/image_view_item_main_head.html",
+		"public/js/frappe/views/image/photoswipe_dom.html",
+		
 		"public/js/frappe/views/kanban/kanban_board.html",
 		"public/js/frappe/views/kanban/kanban_column.html",
 		"public/js/frappe/views/kanban/kanban_card.html"
