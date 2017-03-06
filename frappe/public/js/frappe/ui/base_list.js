@@ -342,7 +342,7 @@ frappe.ui.BaseList = Class.extend({
 		}
 
 		this.wrapper.find('.list-paging-area')
-			.toggle(values.length || this.start > 0);
+			.toggle(values.length > 0 || this.start > 0);
 
 		// callbacks
 		if (this.onrun) this.onrun();
