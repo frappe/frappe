@@ -17,9 +17,6 @@ from frappe.utils.file_manager import get_file
 
 
 class Newsletter(Document):
-	def autoname(self):
-		self.name = self.subject
-
 	def onload(self):
 		if self.email_sent:
 			self.get("__onload").status_count = dict(frappe.db.sql("""select status, count(name)
