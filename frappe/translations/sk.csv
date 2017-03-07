@@ -112,7 +112,7 @@ apps/frappe/frappe/config/setup.py +254,Add your own translations,Pridať vlastn
 apps/frappe/frappe/public/js/frappe/desk.js +516,Added,Pridané
 DocType: Website Settings,"Added HTML in the &lt;head&gt; section of the web page, primarily used for website verification and SEO","Pridané HTML do sekcie &lt;head&gt; webovej stránky, používané najmä pre overovanie webových stránok a SEO"
 apps/frappe/frappe/public/js/frappe/form/link_selector.js +121,Added {0} ({1}),Pridané: {0} ({1})
-apps/frappe/frappe/core/doctype/user/user.py +109,Adding System Manager to this User as there must be atleast one System Manager,Pridávám roli systémového správce tomuto používateľi jelikož musí existovať nejméne jeden systémový správce
+apps/frappe/frappe/core/doctype/user/user.py +109,Adding System Manager to this User as there must be atleast one System Manager,Pridávám rolu systémového správcu tomuto používateľovi keďže musí existovať najmenej jeden systémový správca
 DocType: Custom DocPerm,Additional Permissions,Rozšírená oprávnenie
 DocType: Address,Address,Adresa
 DocType: Address,Address Line 1,Adresa riadok 1
@@ -838,7 +838,7 @@ apps/frappe/frappe/core/doctype/file/file.py +125,Folder is mandatory,Zložka je
 apps/frappe/frappe/core/doctype/file/file.py +295,Folder {0} does not exist,Zložka {0} neexistuje
 apps/frappe/frappe/core/doctype/file/file.py +214,Folder {0} is not empty,Zložka {0} nie je prázdna
 apps/frappe/frappe/website/doctype/web_form/web_form.py +56,Following fields are missing:,
-apps/frappe/frappe/public/js/frappe/ui/field_group.js +80,Following fields have missing values:,
+apps/frappe/frappe/public/js/frappe/ui/field_group.js +80,Following fields have missing values:,Nasledovné polia nemajú uvedenú hodnotu:
 DocType: Print Format,Font,
 DocType: Print Settings,Font Size,Veľkosť písma
 DocType: Email Account,Footer,Päta
@@ -1199,7 +1199,7 @@ DocType: User,Login Before,Prihlásenie pred
 DocType: Email Account,Login Id is Different,Prihlasovacie ID je odlišné
 apps/frappe/frappe/email/doctype/email_account/email_account.py +43,Login Id is required,Je požadované prihlasovacie ID
 DocType: Web Form,Login Required,Požaduje sa prihlásenie
-apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +554,Login id,
+apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +554,Login id,Prihlasovacie meno
 apps/frappe/frappe/auth.py +242,Login not allowed at this time,Prihlásenie nie je povolené v tejto dobe
 apps/frappe/frappe/templates/includes/comments/comments.html +21,Login to comment,
 apps/frappe/frappe/www/login.html +29,Login with LDAP,
@@ -1326,7 +1326,7 @@ DocType: Newsletter Email Group,Newsletter Email Group,
 DocType: Email Group,Newsletter Manager,Newsletter Manažér
 apps/frappe/frappe/email/doctype/newsletter/newsletter.py +37,Newsletter has already been sent,Spravodajca už bol odoslaný
 apps/frappe/frappe/config/desk.py +54,"Newsletters to contacts, leads.",Emailový spravodajca kontaktom a obchodným iniciatívam
-apps/frappe/frappe/desk/page/setup_wizard/setup_wizard_page.html +17,Next,Ďalšie
+apps/frappe/frappe/desk/page/setup_wizard/setup_wizard_page.html +17,Next,Ďalej
 DocType: Workflow Transition,Next State,Nasledujúci stav
 apps/frappe/frappe/public/js/frappe/form/workflow.js +39,Next actions,Nasledujúca akcia
 DocType: Page,No,Nie
@@ -1703,14 +1703,14 @@ apps/frappe/frappe/desk/page/activity/activity.js +43,Refresh,obnoviť
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +71,Refresh Form,Obnoviť formulár
 DocType: OAuth Bearer Token,Refresh Token,
 apps/frappe/frappe/core/doctype/user/user.js +42,Refreshing...,Obnovujem...
-apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +437,Region,Kraj
+apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +437,Region,Región
 apps/frappe/frappe/desk/page/applications/applications.js +50,Regional Extensions,Regionálne Rozšírenie
 apps/frappe/frappe/config/setup.py +226,Register OAuth Client App,
 apps/frappe/frappe/core/doctype/user/user.py +599,Registered but disabled,
 DocType: Communication,Rejected,Zamítnuto
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot_list.js +9,Relapsed,Relapsujúce
 DocType: Error Snapshot,Relapses,Relapsy
-apps/frappe/frappe/public/js/frappe/form/templates/form_links.html +2,Related Documents,
+apps/frappe/frappe/public/js/frappe/form/templates/form_links.html +2,Related Documents,Súvisiace dokumenty
 apps/frappe/frappe/core/doctype/communication/communication.js +53,Relink,
 apps/frappe/frappe/core/doctype/communication/communication.js +60,Relink Communication,
 DocType: Communication,Relinked,
@@ -1874,7 +1874,7 @@ apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +7,Select Ty
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +5,Select Type of Document to Download,Zvoľte typ dokumentu na stiahnutie
 apps/frappe/frappe/core/page/user_permissions/user_permissions.js +68,Select User,Vyberte používateľa
 apps/frappe/frappe/core/page/user_permissions/user_permissions.js +222,Select User or DocType to start.,Vyberte používateľa alebo DocType pre zahájenie
-apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +373,Select Your Language,Zvolte jazyk
+apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +373,Select Your Language,Zvoľte si jazyk
 apps/frappe/frappe/website/doctype/website_settings/website_settings.js +84,Select a Brand Image first.,
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +108,Select a DocType to make a new format,Vyberte DocType vytvorit nový formát
 apps/frappe/frappe/public/js/frappe/views/treeview.js +204,Select a group node first.,Vyberte první uzel skupinu.
@@ -1951,7 +1951,7 @@ DocType: DocField,Set non-standard precision for a Float or Currency field,Nasta
 apps/frappe/frappe/config/setup.py +102,Set numbering series for transactions.,Nastaviť čáslené rady pre transakce.
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +211,Set the display label for the field,Nastaviť zobrazované označení pole
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +126,Setting Up,Nastavenia
-apps/frappe/frappe/geo/doctype/address_template/address_template.py +20,Setting this Address Template as default as there is no other default,"Nastavení Tato adresa šablonu jako výchozí, protože nie je jiná výchozí"
+apps/frappe/frappe/geo/doctype/address_template/address_template.py +20,Setting this Address Template as default as there is no other default,"Nastavuje sa východzia šablóna pre adresu, keďže nie je iná predvolená."
 DocType: Web Page,Settings,Nastavenia
 apps/frappe/frappe/config/website.py +73,Settings for About Us Page.,Nastavenia stránky O nás.
 DocType: Contact Us Settings,Settings for Contact Us Page,Nastavenie stránky Kontaktujte nás
@@ -2134,7 +2134,7 @@ apps/frappe/frappe/templates/emails/auto_reply.html +1,Thank you for your email,
 apps/frappe/frappe/email/doctype/newsletter/newsletter.py +166,Thank you for your interest in subscribing to our updates,Ďakujeme Vám za Váš záujem o prihlásenie do našich aktualizácií
 apps/frappe/frappe/templates/includes/contact.js +30,Thank you for your message,Ďakujeme Vám za správu
 apps/frappe/frappe/email/doctype/email_alert/email_alert.py +60,The Condition '{0}' is invalid,
-apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +548,The First User: You,První Používateľ: Vy
+apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +548,The First User: You,Prvý používateľ: Vy
 apps/frappe/frappe/public/js/frappe/desk.js +79,"The application has been updated to a new version, please refresh this page","Aplikácia bola aktualizovaná na novú verziu, prosím, aktualizujte túto stránku"
 apps/frappe/frappe/core/doctype/feedback_trigger/feedback_trigger.py +25,The condition '{0}' is invalid,
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +560,The first user will become the System Manager (you can change this later).,První používateľ bude System Manager (lze pozdeji zmenit).
@@ -2331,7 +2331,7 @@ apps/frappe/frappe/core/doctype/user/user.py +93,User {0} cannot be disabled,Pou
 apps/frappe/frappe/core/doctype/user/user.py +312,User {0} cannot be renamed,Používateľ: {0} nemôže byť premenovaný
 apps/frappe/frappe/utils/oauth.py +288,User {0} is disabled,Používateľ {0} je zakázána
 DocType: User,Username,Používateľské meno
-apps/frappe/frappe/core/doctype/user/user.py +397,"Username should not contain any special characters other than letters, numbers and underscore","Užívateľské meno nesmie obsahovať žiadne iné ako písmená, čísla a špeciálne znaky podčiarknutia"
+apps/frappe/frappe/core/doctype/user/user.py +397,"Username should not contain any special characters other than letters, numbers and underscore","Užívateľské meno nesmie obsahovať žiadne iné znaky ako písmená, čísla a znak podčiarknutia"
 apps/frappe/frappe/core/doctype/user/user.py +390,Username {0} already exists,Používateľské meno {0} už existuje
 apps/frappe/frappe/core/page/usage_info/usage_info.html +10,Users,Používatelia
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +301,Users with role {0}:,Používatelilias rolí {0}:
@@ -2595,7 +2595,7 @@ apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +45,just now,pred chví�
 DocType: Workflow State,leaf,list
 DocType: File,lft,
 DocType: Kanban Board Column,lightblue,
-apps/frappe/frappe/public/js/frappe/ui/filters/filters.js +720,like,podobá sa
+apps/frappe/frappe/public/js/frappe/ui/filters/filters.js +720,like,ako
 DocType: Desktop Icon,link,
 DocType: Desktop Icon,list,
 DocType: Workflow State,list-alt,list-alt
@@ -2615,8 +2615,8 @@ DocType: Workflow State,music,Hudba
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +167,new type of document,Nový typ dokumentu
 DocType: Email Account,no failed attempts,
 apps/frappe/frappe/model/document.py +900,none of,žiadny z
-apps/frappe/frappe/public/js/frappe/ui/filters/filters.js +720,not like,
-apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +15,now,
+apps/frappe/frappe/public/js/frappe/ui/filters/filters.js +720,not like,iné ako
+apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +15,now,teraz
 DocType: Workflow State,off,off
 DocType: Workflow State,ok,ok
 DocType: Workflow State,ok-circle,ok-circle
