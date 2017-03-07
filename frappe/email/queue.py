@@ -20,7 +20,7 @@ def send(recipients=None, sender=None, subject=None, message=None, reference_doc
 		reference_name=None, unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None,
 		attachments=None, reply_to=None, cc=[], message_id=None, in_reply_to=None, send_after=None,
 		expose_recipients=None, send_priority=1, communication=None, now=False, read_receipt=None,
-		queue_separately=False, add_unsubscribe_link=1):
+		queue_separately=False, is_notification=False, add_unsubscribe_link=1):
 	"""Add email to sending queue (Email Queue)
 
 	:param recipients: List of recipients.
@@ -39,6 +39,7 @@ def send(recipients=None, sender=None, subject=None, message=None, reference_doc
 	:param communication: Communication link to be set in Email Queue record
 	:param now: Send immediately (don't send in the background)
 	:param queue_separately: Queue each email separately
+	:param is_notification: Marks email as notification so will not trigger notifications from system
 	:param add_unsubscribe_link: Send unsubscribe link in the footer of the Email, default 1.
 	"""
 	if not unsubscribe_method:
@@ -109,6 +110,7 @@ def send(recipients=None, sender=None, subject=None, message=None, reference_doc
 		expose_recipients=expose_recipients,
 		read_receipt=read_receipt,
 		queue_separately=queue_separately,
+		is_notification = is_notification,
 		now=now)
 
 
@@ -151,7 +153,7 @@ def get_email_queue(recipients, sender, subject, **kwargs):
 			email_account=kwargs.get('email_account'),
 			expose_recipients=kwargs.get('expose_recipients'))
 
-		mail.set_message_id(kwargs.get('message_id'))
+		mail.set_message_id(kwargs.get('message_id'),kwargs.get('is_notification'))
 		if kwargs.get('read_receipt'):
 			mail.msg_root["Disposition-Notification-To"] = sender
 		if kwargs.get('in_reply_to'):

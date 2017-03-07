@@ -372,7 +372,7 @@ def sendmail(recipients=[], sender="", subject="No Subject", message="No Message
 		unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None,
 		attachments=None, content=None, doctype=None, name=None, reply_to=None,
 		cc=[], message_id=None, in_reply_to=None, send_after=None, expose_recipients=None,
-		send_priority=1, communication=None, retry=1, now=None, read_receipt=None):
+		send_priority=1, communication=None, retry=1, now=None, read_receipt=None, is_notification=False):
 	"""Send email using user's default **Email Account** or global default **Email Account**.
 
 
@@ -411,7 +411,7 @@ def sendmail(recipients=[], sender="", subject="No Subject", message="No Message
 		unsubscribe_method=unsubscribe_method, unsubscribe_params=unsubscribe_params, unsubscribe_message=unsubscribe_message,
 		attachments=attachments, reply_to=reply_to, cc=cc, message_id=message_id, in_reply_to=in_reply_to,
 		send_after=send_after, expose_recipients=expose_recipients, send_priority=send_priority,
-		communication=communication, now=now, read_receipt=read_receipt)
+		communication=communication, now=now, read_receipt=read_receipt, is_notification=is_notification)
 
 whitelisted = []
 guest_methods = []
