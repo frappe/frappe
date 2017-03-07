@@ -27,6 +27,8 @@ frappe.views.InboxView = frappe.views.ListRenderer.extend({
 	render_email_row: function(email) {
 		if(!email.css_seen && email.seen)
 			email.css_seen = "seen"
+		if(email.has_attachment)
+			email.attachment_html = '<span class="text-muted"><i class="fa fa-paperclip fa-large"></i></span>'
 
 		return frappe.render_template("inbox_view_item_row", {
 			data: email,
