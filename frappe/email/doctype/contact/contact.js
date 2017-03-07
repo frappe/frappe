@@ -29,7 +29,15 @@ frappe.ui.form.on("Contact", {
 				});
 			});
 		}
-		cur_frm.set_query("link_doctype", "links", "frappe.email.doctype.contact.contact.contact_links")
+		frm.set_query('link_doctype', "links", function() {
+			return {
+				query: "frappe.geo.address_and_contact.filter_dynamic_link_doctypes",
+				filters: {
+					fieldtype: "Link",
+					options: frm.doc.doctype,
+				}
+			}
+		});
 	},
 	validate: function(frm) {
 		// clear linked customer / supplier / sales partner on saving...
@@ -40,6 +48,7 @@ frappe.ui.form.on("Contact", {
 		}
 	}
 });
+
 frappe.ui.form.on("Dynamic Link", {
 	link_name:function(frm, cdt, cdn){
 		var child = locals[cdt][cdn];
