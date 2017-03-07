@@ -105,8 +105,11 @@ frappe.ui.form.ScriptManager = Class.extend({
 			try {
 				eval(doctype.__custom_js)
 			} catch(e) {
-				frappe.msgprint(__('There was an error in your Custom Script'));
-				frappe.msgprint('<pre class="small"><code>' + e.stack  + '</code></pre>');
+				frappe.msgprint({
+					title: __('Error in Custom Script'),
+					indicator: 'orange',
+					message: '<pre class="small"><code>' + e.stack  + '</code></pre>'
+				});
 			}
 		}
 
