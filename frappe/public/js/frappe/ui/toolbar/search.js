@@ -832,11 +832,13 @@ frappe.search.HelpSearch = frappe.search.GlobalSearch.extend({
 
 	make_result_item: function(type, result) {
 		var me = this;
+		var regEx = new RegExp("{index}", "ig");
+		var content = result[1].replace(regEx, '');
 		var link_html = '<div class="result '+ type +'-result">' +
 			'<b><a href="#" data-path="{0}" class="module-section-link small">{1}</a></b>' +
 			'<p class="small">{2}</p>' +
 			'</div>';
-		var link = $(__(link_html, [result[2], result[0], result[1]]));
+		var link = $(__(link_html, [result[2], result[0], content]));
 		return link;
 	},
 
