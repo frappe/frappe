@@ -684,7 +684,7 @@ fieldset[disabled] .form-control {
 }
 .search-dialog .modal-body .search-intro-placeholder {
   color: #d4d9dd;
-  height: inherit;
+  height: 500px;
   display: flex;
   justify-content: center;
   align-items: center;

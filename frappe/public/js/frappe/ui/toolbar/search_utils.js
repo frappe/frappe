@@ -26,6 +26,7 @@ frappe.search.utils = {
 					label: rendered_label,
 					value: __("Report {0}" , [__(item)]),
 					match: keywords,
+
                     // ???
 					index: index,
 					route: route
@@ -40,7 +41,30 @@ frappe.search.utils = {
     },
 
     get_modules: function(keywords) {
-
+        var me = this;
+		var out = [];
+		Object.keys(frappe.modules).forEach(function(item) {
+			var level = me.fuzzy_search(txt, item);
+			if(level > 0) {
+				var module = frappe.modules[item];
+				if(module._doctype) return;
+				ret = {
+					label: rendered_label,
+					value: __("Open {0}", [__(item)]),
+					match: txt,
+					index: index,
+					type: "Module",
+					prefix: "Open"
+				}
+				if(module.link) {
+					ret.route = [module.link];
+				} else {
+					ret.route = ["Module", item];
+				}
+				out.push(ret);
+			}
+		});
+		return out;
     },
 
     get_all_global_results: function (keywords, start, limit, callback, condensed = 0) {
@@ -55,6 +79,7 @@ frappe.search.utils = {
             }
             data.forEach(function(d) {
                 // Condition for condensed
+                // more properties
                 result = {
                     label: d.name,
                     value: d.name,
@@ -110,7 +135,44 @@ frappe.search.utils = {
 		});
     },
 
-    get_help_results: function(keywords) {
+    get_help_results: function(keywords, callback) {
+        var me = this;
+
+        function get_results_set(data) {
+            var result;
+            var set = {
+                title: "Help",
+                results: []
+            }
+            data.forEach(function(d) {
+                // Condition for condensed
+                // more properties
+                result = {
+                    label: d[0],
+                    value: d[0],
+                    description: d[1],
+                    onclick: function() {
+
+                    }
+                }
+                set.results.push(result);
+            });
+            return [set];
+        }
+		frappe.call({
+			method: "frappe.utils.help.get_help",
+			args: {
+				text: keywords
+			},
+			callback: function(r) {
+				if(r.message) {
+                    callback(get_results_sets(r.message), keywords);
+				}
+			}
+		});
+    },
+
+    get_nav: function(keywords) {
 
     },
 
@@ -162,62 +224,82 @@ frappe.search.utils = {
     },
 
     // Utils
-    fuzzy_search: function(keywords, _item) {
+    fuzzy_search: function(keywords, _item, process) {
+        // Returns 1 for case-perfect contain, 0 for not found
+            // 0.9 for perfect contain,
+            // 0 - 0.5 for fuzzy contain
 
-        // Allow for case sensitive
-        // return only level
-		item = __(_item || '').toLowerCase().replace(/-/g, " ");
-
-		keywords = keywords.toLowerCase();
+        // **Specific use-case step**
+		item = __(_item || '').replace(/-/g, " ");
 
 		var ilen = item.length;
 		var tlen = keywords.length;
-		var match_level = tlen/ilen;
-		var rendered_label = "";
-		var i, j, skips = 0, mismatches = 0;
+        var max_skips = 3, max_mismatch_len = 2;
 
-		if (tlen > ilen) {
-			return [];
-		}
+		if (tlen > ilen) {	return 0;  }
+
 		if (item.indexOf(keywords) !== -1) {
-			var regEx = new RegExp("("+ keywords +")", "ig");
-			rendered_label = _item.replace(regEx, '<b>$1</b>');
-			return [_item, ilen/50, rendered_label];
+			return 1;
 		}
-		outer: for (i = 0, j = 0; i < tlen; i++) {
-			var t_ch = keywords.charCodeAt(i);
+
+		item = item.toLowerCase();
+		keywords = keywords.toLowerCase();
+
+		if (item.indexOf(keywords) !== -1) {
+			return 0.9;
+		}
+
+        var skips = 0, mismatches = 0;
+		outer: for (var i = 0, j = 0; i < tlen; i++) {
 			if(mismatches !== 0) skips++;
-			if(skips > 3) return [];
+			if(skips > max_skips) return 0;
 			mismatches = 0;
 			while (j < ilen) {
-				var i_ch = item.charCodeAt(j);
-				if (i_ch === t_ch) {
-					var item_char =  _item.charAt(j);
-					if(item_char === item_char.toLowerCase()){
-						rendered_label += '<b>' + keywords.charAt(i) + '</b>';
-					} else {
-						rendered_label += '<b>' + keywords.charAt(i).toUpperCase() + '</b>';
-					}
-					j++;
+				if (item.charCodeAt(j++) === keywords.charCodeAt(i)) {
 					continue outer;
 				}
 				mismatches++;
-				if(mismatches > 2) return [];
-				rendered_label += _item.charAt(j);
+				if(mismatches > max_mismatch_len) { return 0 };
 				j++;
 			}
-			return [];
+			return 0;
 		}
-		rendered_label += _item.slice(j);
-		return [_item, 20 + ilen/50, rendered_label];
+
+        // Since indexOf didn't pass, there will be atleast 1 skip
+        // hence no divide by zero
+        return 0.5/(skips + mismatches);
 	},
 
     replace_with_bold: function(string, subsequence) {
-        // if fuzzy_returns zero, return plain string
-
-        // if above 0.5, use regEx
-
-        // if below 0.5, replace the long way
+		var rendered = "";
+        if(this.fuzzy_search(subsequence, string) === 0) {
+            return string;
+        } else if(this.fuzzy_search(subsequence, string) > 0.5) {
+            var regEx = new RegExp("("+ subsequence +")", "ig");
+            return string.replace(regEx, '<b>$1</b>');
+        } else {
+            var string_orig = string;
+            var string = string.toLowerCase();
+            var subsequence = subsequence.toLowerCase();
+            outer: for(var i = 0, j = 0; i < subsequence.length; i++) {
+                while(j < len) {
+                    if(string.charCodeAt(j) === subsequence.charCodeAt()) {
+                        var string_char =  string_orig.charAt(j);
+                        if(string_char === string_char.toLowerCase()) {
+                            rendered += '<b>' + subsequence.charAt(i) + '</b>';
+                        } else {
+                            rendered += '<b>' + subsequence.charAt(i).toUpperCase() + '</b>';
+                        }
+                        j++;
+                        continue outer;
+                    }
+                    rendered += string_orig.charAt(j);
+                }
+                return string_orig;
+            }
+            rendered += string_orig.slice(j);
+            return rendered;
+        }
 
     }
 }

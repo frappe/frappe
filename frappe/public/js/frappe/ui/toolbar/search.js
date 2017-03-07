@@ -28,12 +28,16 @@ frappe.search.SearchDialog = Class.extend({
 		this.$modal_body = $(d.body);
 		this.$input = this.$search_modal.find(".search-input");
 
-		this.$results_area = this.$search_modal.find(".results-area");
+		// this.$results_area = this.$search_modal.find(".results-area");
+		this.$results_area = $('<div class="row results-area hide">' +
+			'<div class="col-md-2 col-sm-2 hidden-xs layout-side-section search-sidebar"></div>' +
+			'<div class="col-md-10 col-sm-10 layout-main-section search-results"></div>' +
+		'</div>');
 		this.$sidebar = this.$results_area.find(".search-sidebar");
 		this.$search_results = this.$results_area.find(".search-results");
 
-		this.$modal_body.append($('<div class="search-intro-placeholder"><span>' +
-			'<i class="mega-octicon octicon-telescope"></i><p>'+__("Search for anything")+'</p></span></div>'));
+		// this.$modal_body.append($('<div class="search-intro-placeholder"><span>' +
+			// '<i class="mega-octicon octicon-telescope"></i><p>'+__("Search for anything")+'</p></span></div>'));
 
 		this.setup();
 	},
@@ -42,12 +46,12 @@ frappe.search.SearchDialog = Class.extend({
 		this.current_keyword = "";
 		this.reset();
 		this.bind_input();
-		this.bind_events();
+		// this.bind_events();
 	},
 
 	reset: function() {
-		this.$results_area.addClass('hide');
-		this.$modal_body.find('.search-intro-placeholder').removeClass('hide');
+		// this.$results_area.addClass('hide');
+		// this.$modal_body.find('.search-intro-placeholder').removeClass('hide');
 		this.$sidebar.empty();
 		this.$search_results.empty();
 	},
@@ -74,29 +78,32 @@ frappe.search.SearchDialog = Class.extend({
 
 	bind_events: function() {
 		var me = this;
+		var $sidebar = this.$modal_body.find('.search-sidebar');
+		var $search_results = this.$modal_body.find('.search-results');
+
 		// Sidebar
-		this.$sidebar.on('click', '.list-link',  function() {
+		this.$modal_body.on('click', '.list-link',  function() {
 			var link = $(this);
-			me.$sidebar.find(".list-link").removeClass("active");
+			$sidebar.find(".list-link").removeClass("active");
 			link.addClass("active");
 			var type = link.attr('data-category');
-			me.$search_results.empty().html(me.full_lists[type]);
-			me.$search_results.find('.module-section-link').first().focus();
+			$search_results.empty().html(me.full_lists[type]);
+			me.$modal_body.find('.module-section-link').first().focus();
 		});
 
 		// Summary more links
-		this.$search_results.on('click', '.section-more', function() {
+		this.$modal_body.on('click', '.section-more', function() {
 			var type = $(this).attr('data-category');
-			me.$sidebar.find('*[data-category="'+ type +'"]').trigger('click');
+			$sidebar.find('*[data-category="'+ type +'"]').trigger('click');
 		});
 
 		// Back-links (mobile-view)
-		this.$search_results.on('click', '.all-results-link', function() {
-			me.$sidebar.find('*[data-category="All Results"]').trigger('click');
+		this.$modal_body.on('click', '.all-results-link', function() {
+			$sidebar.find('*[data-category="All Results"]').trigger('click');
 		});
 
 		// Full list more links
-		this.$search_results.on('click', '.list-more', function() {
+		this.$modal_body.on('click', '.list-more', function() {
 			// increment current result count as well in its data attr
 
 		});
@@ -105,10 +112,10 @@ frappe.search.SearchDialog = Class.extend({
 	},
 
 	bind_keyboard_events: function() {
-
+		var me = this;
 	},
 
-	// Search types
+	// Search types (can be relocated)
 	searches: {
 		global: function(keywords, start, limit, callback) {
 			return frappe.search.utils.get_all_global_results(keywords, start, limit, callback);
@@ -121,6 +128,7 @@ frappe.search.SearchDialog = Class.extend({
 	// Show modal with first results
 	init_search: function(keywords, search_type) {
 		var me = this;
+		this.search = search_type;
 		this.get_results(keywords, search_type);
 		this.search_dialog.show();
 		this.$input.val(keywords);
@@ -128,9 +136,10 @@ frappe.search.SearchDialog = Class.extend({
 	},
 
 	//
-	get_results: function(keywords, search_type) {
+	get_results: function(keywords) {
 		this.current_keyword = keywords;
-		var result_sets = this.searches[search_type](keywords, 0, 20, this.render_data.bind(this));
+		// More on how to collect this later
+		var result_sets = this.searches[this.search](keywords, 0, 20, this.render_data.bind(this));
 
 		// get results type object megatype arrays [ {title:"Item", results: [{a:foo, b:..}, {}, ()]}, {title:"", re} ]   and so on
 		// pass them onto render_results
@@ -158,9 +167,16 @@ frappe.search.SearchDialog = Class.extend({
 		// render_summary (only if sidebar array has > 1)
 
 		this.$sidebar.append(sidelist);
+		// this.$modal_body.find('.search-intro-placeholder').addClass('hide');
 
-		this.$modal_body.find('.search-intro-placeholder').addClass('hide');
-		this.$results_area.removeClass('hide');
+		// Last step
+		var $r = this.$results_area.clone();
+
+		this.$modal_body.append($r);
+		this.$modal_body.find('.results-area').first().addClass("hide");
+		$r.removeClass("hide");
+		this.$modal_body.find('.results-area').first().remove();
+		this.bind_events();
 	},
 
 	render_summary: function() {
