@@ -69,17 +69,18 @@ frappe.views.GanttView = frappe.views.ListRenderer.extend({
 			},
 			custom_popup_html: function(task) {
 				var item = me.get_item(task.id);
-				var list_item_subject = frappe.render_template('list_item_subject', item);
-				var html = '<div class="heading">'+
-					list_item_subject +'</div>';
 
-				// custom html in {doctype}_list.js
+				var html =
+					`<h5>${task.name}</h5>
+					<p>${task._start.format('MMM D')} - ${task._end.format('MMM D')}</p>`;
+
+				// custom html in doctype settings
 				var custom = me.settings.gantt_custom_popup_html;
-				if(custom) {
-					html = custom(item, html);
+				if(custom && $.isFunction(custom)) {
+					var ganttobj = task;
+					html = custom(ganttobj, item);
 				}
-
-				return '<div class="details-container">'+ html +'</div>';
+				return '<div class="details-container">' + html + '</div>';
 			}
 		});
 		this.render_dropdown();
