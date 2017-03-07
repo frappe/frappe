@@ -13,12 +13,6 @@ from frappe.utils.jinja import render_template
 from jinja2.exceptions import TemplateSyntaxError
 
 class WebPage(WebsiteGenerator):
-	website = frappe._dict(
-		template = "templates/generators/web_page.html",
-		condition_field = "published",
-		page_title_field = "title",
-	)
-
 	def get_feed(self):
 		return self.title
 
