@@ -461,7 +461,7 @@ apps/frappe/frappe/public/js/frappe/model/model.js +20,Created On,Vytvorené (ke
 apps/frappe/frappe/public/js/frappe/form/templates/grid_form.html +25,Ctrl + Down,Ctrl + Dole
 apps/frappe/frappe/desk/page/chat/chat_main.html +12,Ctrl + Enter to post,
 apps/frappe/frappe/public/js/frappe/form/templates/grid_form.html +25,Ctrl + Up,Ctrl + Hore
-apps/frappe/frappe/public/js/frappe/form/footer/timeline.html +12,Ctrl+Enter to add comment,
+apps/frappe/frappe/public/js/frappe/form/footer/timeline.html +12,Ctrl+Enter to add comment,Ctrl+Enter pridá komentár
 DocType: DocField,Currency,Mena
 DocType: Currency,Currency Name,Názov meny
 apps/frappe/frappe/core/page/usage_info/usage_info.html +20,Current Users,
@@ -1048,11 +1048,11 @@ DocType: Integration Request,Integration Request Service,
 DocType: Integration Service,Integration Service,
 DocType: Integration Service Parameter,Integration Service Parameter,
 DocType: Integration Request,Integration Type,
-DocType: Dropbox Settings,Integrations,Integrace
+DocType: Dropbox Settings,Integrations,Integrácia
 DocType: Communication,Integrations can use this field to set email delivery status,Integrácia môžete použiť toto pole na nastavenie stavu doručenia e-mailu
 DocType: Help Article,Intermediate,
 DocType: DocShare,Internal record of document shares,Interní záznam akcií dokumentov
-DocType: About Us Settings,Introduce your company to the website visitor.,Predstavte svoji organizaci návštevníkov internetových stránek.
+DocType: About Us Settings,Introduce your company to the website visitor.,Predstavte svoju organizáciu návštevníkom webstránok
 DocType: Contact Us Settings,Introduction,Predstavenie
 DocType: Contact Us Settings,Introductory information for the Contact Us Page,Úvodní informace na stránce kontaktujte nás
 DocType: OAuth Authorization Code,Invalid,
@@ -1115,7 +1115,7 @@ DocType: Kanban Board,Kanban Board Name,
 apps/frappe/frappe/public/js/frappe/views/kanban/kanban_board.js +808,Kanban Board {0} does not exist.,
 DocType: Communication,Keep a track of all communications,Prehľad všetkej komunikácie
 DocType: DefaultValue,Key,Kľúč
-apps/frappe/frappe/config/website.py +93,Knowledge Base,
+apps/frappe/frappe/config/website.py +93,Knowledge Base,Centrum vedomostí
 DocType: Help Article,Knowledge Base Contributor,
 DocType: Help Article,Knowledge Base Editor,
 DocType: LDAP Settings,LDAP Email Field,
