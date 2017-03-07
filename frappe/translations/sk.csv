@@ -259,7 +259,7 @@ DocType: Website Theme,Background Color,Farba pozadia
 apps/frappe/frappe/config/core.py +52,Background Email Queue,Čakacia listina mailov na pozadí
 DocType: Integration Service,Background Events,
 DocType: User,Background Image,Obrázok na pozadí
-,Background Jobs,Operácie v pozadí
+,Background Jobs,Úkony v pozadí
 DocType: User,Background Style,Štýl pozadia
 DocType: System Settings,Background Workers,Operácie v pozadí
 DocType: Dropbox Settings,Backup Frequency,Zálohovacia frekvencia
@@ -996,7 +996,7 @@ DocType: About Us Team Member,Image Link,Odkaz na obrázok
 DocType: DocType,Image View,Image View
 apps/frappe/frappe/core/doctype/doctype/doctype.py +499,Image field must be a valid fieldname,
 apps/frappe/frappe/core/doctype/doctype/doctype.py +501,Image field must be of type Attach Image,
-apps/frappe/frappe/public/js/frappe/views/image/image_view.js +15,Images,
+apps/frappe/frappe/public/js/frappe/views/image/image_view.js +15,Images,Obrázky
 DocType: OAuth Client,Implicit,
 DocType: Custom DocPerm,Import,Importovať
 apps/frappe/frappe/core/doctype/file/file_list.js +85,Import .zip,
@@ -1361,7 +1361,7 @@ apps/frappe/frappe/model/db_query.py +367,No permission to read {0},Bez oprávne
 apps/frappe/frappe/core/doctype/file/file.py +224,No permission to write / remove.,Bez oprávnenia k zápisu / zmazaniu.
 apps/frappe/frappe/share.py +136,No permission to {0} {1} {2},Žiadne povolenie na {0} {1} {2}
 apps/frappe/frappe/public/js/frappe/list/list_sidebar_stat.html +5,No records tagged.,Nie je oštítkovaný žiadny záznam
-apps/frappe/frappe/public/js/frappe/ui/filters/filter_dashboard_value.html +3,No records.,
+apps/frappe/frappe/public/js/frappe/ui/filters/filter_dashboard_value.html +3,No records.,Bez záznamov
 apps/frappe/frappe/www/print.py +219,No template found at path: {0},Žiadna šablóna nenájdená na ceste: {0}
 apps/frappe/frappe/public/js/frappe/list/list_view.js +496,No {0} found,{0}: nenájdené
 apps/frappe/frappe/www/print.py +193,No {0} permission,Bez oprávnenia: {0}
@@ -2381,8 +2381,8 @@ DocType: About Us Settings,Website,Stránky
 DocType: About Us Settings,Website Manager,Správca webu
 DocType: Website Script,Website Script,Skript www stránky
 DocType: Website Settings,Website Settings,Nastavenie www stránok
-DocType: Web Page,Website Sidebar,
-DocType: Website Sidebar Item,Website Sidebar Item,
+DocType: Web Page,Website Sidebar,Bočný panel na stránke
+DocType: Website Sidebar Item,Website Sidebar Item,Položka bočného panelu
 DocType: Website Slideshow,Website Slideshow,Premietanie obrázkov na www stránke
 DocType: Website Slideshow Item,Website Slideshow Item,Položka premietanie obrázkov na www stránke
 DocType: Website Settings,Website Theme,Téma internetovej stránky
