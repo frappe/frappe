@@ -92,8 +92,9 @@ class Newsletter(Document):
 		"""Get recipients from Email Group"""
 		recipients_list = []
 		for email_group in get_email_groups(self.name):
-			[recipients_list.append(d.email) for d in frappe.db.get_all("Email Group Member", ["email"],
-			{"unsubscribed": 0, "email_group": email_group.email_group})]
+			for d in frappe.db.get_all("Email Group Member", ["email"],
+				{"unsubscribed": 0, "email_group": email_group.email_group}):
+					recipients_list.append(d.email)
 		return list(set(recipients_list))
 
 	def validate_send(self):
