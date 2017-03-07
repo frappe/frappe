@@ -7,7 +7,7 @@
 						{% if (data._checkbox) { %}
 						<input class="list-row-checkbox" type="checkbox" data-name="{{data.name}}">
 						{% } %}
-						<a class="grey list-id" href="#Form/{%= data._doctype_encoded %}/{%= data._name_encoded %}">
+						<a class="grey list-id {{ data.css_seen }}" href="#Form/{%= data._doctype_encoded %}/{%= data._name_encoded %}">
 							{%= data.subject %}
 						</a>
 					</span>

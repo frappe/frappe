@@ -53,6 +53,15 @@ frappe.ui.form.on("Communication", {
 		frm.add_custom_button(__("Relink"), function() {
 			frm.trigger('show_relink_dialog');
 		});
+
+		if(frm.doc.communication_type=="Communication" 
+			&& frm.doc.communication_medium == "Email"
+			&& frm.doc.sent_or_received == "Received") {
+
+			frm.add_custom_button(__("Mark as {0}", [frm.doc.seen? "Unread": "Read"]), function() {
+				frm.trigger('mark_as_read_unread');
+			});
+		}
 	},
 	show_relink_dialog: function(frm){
 		var lib = "frappe.email";
@@ -100,5 +109,23 @@ frappe.ui.form.on("Communication", {
 			}
 		});
 		d.show();
+	},
+	mark_as_read_unread: function(frm) {
+		action = frm.doc.seen? "Unread": "Read";
+		flag = "(\\SEEN)";
+
+		return frappe.call({
+			method: "frappe.email.inbox.create_email_flag_queue",
+			args: {
+				'communications': [{
+					'name': frm.doc.name,
+					'uid': frm.doc.uid || 1
+				}],
+				'action': action,
+				'flag': flag
+			},
+			callback: function(r) {
+			}
+		});
 	}
 });
