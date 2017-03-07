@@ -50,8 +50,6 @@ class EmailAccount(Document):
 
 		#if self.enable_incoming and not self.append_to:
 		#	frappe.throw(_("Append To is mandatory for incoming mails"))
-		if self.email_sync_option == "ALL" and not self.uidvalidity:
-			frappe.throw("UIDVALIDITY is not found, setting sync option as ALL will sync all the emails")
 
 		if (not self.awaiting_password and not frappe.local.flags.in_install
 			and not frappe.local.flags.in_patch):
@@ -326,15 +324,23 @@ class EmailAccount(Document):
 			# dont count emails sent by the system get those
 			raise SentEmailInInbox
 
-		name = frappe.db.get_value("Communication", { "fingerprint": args.get("fingerprint", None) })
-		if args.get("uid_reindexed", False) and name:
-			# email is already available update communication uid instead
-			communication = frappe.get_doc("Communication", name)
-			communication.uid = uid
-			communication.save(ignore_permissions=True)
-			communication._attachments = []
+		if args.get("fingerprint", None) or email.message_id:
+			names = frappe.db.sql("""select distinct name from tabCommunication 
+				where fingerprint='{fingerprint}' or message_id='{message_id}'
+				order by creation desc limit 1""".format(
+					fingerprint=args.get("fingerprint", ''),
+					message_id=email.message_id
+				), as_dict=True)
 
-			return communication
+			if names:
+				name = names[0].get("name")
+				# email is already available update communication uid instead
+				communication = frappe.get_doc("Communication", name)
+				communication.uid = uid
+				communication.save(ignore_permissions=True)
+				communication._attachments = []
+
+				return communication
 
 		communication = frappe.get_doc({
 			"doctype": "Communication",
