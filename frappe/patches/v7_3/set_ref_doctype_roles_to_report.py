@@ -7,6 +7,10 @@ import frappe
 def execute():
 	for data in frappe.get_all('Report', fields=["name"]):
 		doc = frappe.get_doc('Report', data.name)
-		doc.set_doctype_roles()
-		for row in doc.roles:
-			row.db_update()
+		if frappe.db.exists("DocType", doc.ref_doctype):
+			try:
+				doc.set_doctype_roles()
+				for row in doc.roles:
+					row.db_update()
+			except:
+				pass
