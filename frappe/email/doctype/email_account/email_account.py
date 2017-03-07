@@ -571,7 +571,7 @@ class EmailAccount(Document):
 			print "UID {}:{}".format(max_uid, last_uid)
 			return "UID {}:{}".format(max_uid, last_uid)
 		else:
-			return self.email_sync_option
+			return self.email_sync_option or "UNSEEN"
 
 	def mark_emails_as_read(self):
 		""" mark Email Flag Queue of self.email_account mails as read"""
