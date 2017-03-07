@@ -12,10 +12,7 @@ from frappe.website.utils import find_first_image, get_comment_list
 
 class BlogPost(WebsiteGenerator):
 	website = frappe._dict(
-		condition_field = "published",
-		template = "templates/generators/blog_post.html",
-		order_by = "published_on desc",
-		page_title_field = "title"
+		order_by = "published_on desc"
 	)
 
 	def make_route(self):
@@ -90,7 +87,6 @@ class BlogPost(WebsiteGenerator):
 def get_list_context(context=None):
 	list_context = frappe._dict(
 		template = "templates/includes/blog/blog.html",
-		row_template = "templates/includes/blog/blog_row.html",
 		get_list = get_blog_list,
 		hide_filters = True,
 		children = get_children(),

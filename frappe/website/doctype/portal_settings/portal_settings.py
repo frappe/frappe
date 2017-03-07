@@ -27,7 +27,7 @@ class PortalSettings(Document):
 	def sync_menu(self):
 		'''Sync portal menu items'''
 		dirty = False
-		for item in frappe.get_hooks('portal_menu_items'):
+		for item in frappe.get_hooks('standard_portal_menu_items'):
 			if item.get('role') and not frappe.db.exists("Role", item.get('role')):
 				frappe.get_doc({"doctype": "Role", "role_name": item.get('role'), "desk_access": 0}).insert()
 			if self.add_item(item):

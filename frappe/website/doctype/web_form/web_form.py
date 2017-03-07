@@ -16,9 +16,6 @@ from urllib import urlencode
 
 class WebForm(WebsiteGenerator):
 	website = frappe._dict(
-		template = "templates/generators/web_form.html",
-		condition_field = "published",
-		page_title_field = "title",
 		no_cache = 1
 	)
 

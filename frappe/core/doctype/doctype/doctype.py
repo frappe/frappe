@@ -3,7 +3,7 @@
 
 from __future__ import unicode_literals
 
-import re, copy
+import re, copy, os
 import MySQLdb
 import frappe
 from frappe import _
@@ -197,6 +197,9 @@ class DocType(Document):
 			self.export_doc()
 			self.make_controller_template()
 
+			if self.has_web_view:
+				self.set_base_class_for_controller()
+
 		# update index
 		if not self.custom:
 			self.run_module_method("on_doctype_update")
@@ -225,6 +228,26 @@ class DocType(Document):
 			now = (not frappe.request) or frappe.flags.in_test or frappe.flags.in_install
 			frappe.enqueue('frappe.utils.global_search.rebuild_for_doctype',
 				now=now, doctype=self.name)
+
+	def set_base_class_for_controller(self):
+		'''Updates the controller class to subclass from `WebsiteGenertor`,
+		if it is a subclass of `Document`'''
+		controller_path = frappe.get_module_path(frappe.scrub(self.module),
+			'doctype', frappe.scrub(self.name), frappe.scrub(self.name) + '.py')
+
+		with open(controller_path, 'r') as f:
+			code = f.read()
+
+		class_string = '\nclass {0}(Document)'.format(self.name.replace(' ', ''))
+		if '\nfrom frappe.model.document import Document' in code and class_string in code:
+			code = code.replace('from frappe.model.document import Document',
+				'from frappe.website.website_generator import WebsiteGenerator')
+			code = code.replace('class {0}(Document)'.format(self.name.replace(' ', '')),
+				'class {0}(WebsiteGenerator)'.format(self.name.replace(' ', '')))
+
+		with open(controller_path, 'w') as f:
+			f.write(code)
+
 
 	def run_module_method(self, method):
 		from frappe.modules import load_doctype_module
@@ -297,6 +320,9 @@ class DocType(Document):
 			make_boilerplate("controller.js", self.as_dict())
 
 		if self.has_web_view:
+			templates_path = frappe.get_module_path(frappe.scrub(self.module), 'doctype', frappe.scrub(self.name), 'templates')
+			if not os.path.exists(templates_path):
+				os.makedirs(templates_path)
 			make_boilerplate('templates/controller.html', self.as_dict())
 			make_boilerplate('templates/controller_row.html', self.as_dict())
 

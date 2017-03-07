@@ -17,7 +17,7 @@ import re
 import frappe.model.meta
 from frappe.utils import now, get_datetime, cstr
 from frappe import _
-from types import StringType, UnicodeType 
+from types import StringType, UnicodeType
 from frappe.utils.global_search import sync_global_search
 
 class Database:
@@ -799,9 +799,13 @@ class Database:
 			where creation >= %s""".format(doctype=doctype),
 			now_datetime() - relativedelta(minutes=minutes))[0][0]
 
+	def get_db_table_columns(self, table):
+		"""Returns list of column names from given table."""
+		return [r[0] for r in self.sql("DESC `%s`" % table)]
+
 	def get_table_columns(self, doctype):
 		"""Returns list of column names from given doctype."""
-		return [r[0] for r in self.sql("DESC `tab%s`" % doctype)]
+		return self.get_db_table_columns('tab' + doctype)
 
 	def has_column(self, doctype, column):
 		"""Returns True if column exists in database."""
