@@ -101,6 +101,15 @@ frappe.ui.form.ScriptManager = Class.extend({
 			var tmp = eval(cs);
 		}
 
+		if(doctype.__custom_js) {
+			try {
+				eval(doctype.__custom_js)
+			} catch(e) {
+				frappe.msgprint(__('There was an error in your Custom Script'));
+				frappe.msgprint('<pre class="small"><code>' + e.stack  + '</code></pre>');
+			}
+		}
+
 		function setup_add_fetch(df) {
 			if((in_list(['Data', 'Read Only', 'Text', 'Small Text',
 					'Text Editor', 'Code'], df.fieldtype) || df.read_only==1)
