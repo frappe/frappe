@@ -93,7 +93,8 @@ frappe.search.AwesomeBar = Class.extend({
 				var out = [], routes = [];
 				me.options.forEach(function(option) {
 					if(option.route) {
-						if(option.route[0] = "List") {
+						if(option.route[0] === "List" && (option.route[0] === "Gantt"
+							|| option.route[0] === "Calendar")) {
 							option.route.splice(2, 1);
 						}
 						var str_route = (typeof option.route==='string') ?
