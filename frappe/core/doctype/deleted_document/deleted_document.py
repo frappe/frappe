@@ -14,7 +14,10 @@ class DeletedDocument(Document):
 def restore(name):
 	deleted = frappe.get_doc('Deleted Document', name)
 	doc = frappe.get_doc(json.loads(deleted.data))
-	doc.insert()
+	try:
+		doc.insert()
+	except frappe.DocstatusTransitionError:
+		frappe.throw(_("Cannot restore Cancelled Document"))
 
 	doc.add_comment('Edit', _('restored {0} as {1}').format(deleted.deleted_name, doc.name))
 

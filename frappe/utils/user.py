@@ -7,6 +7,7 @@ import frappe, json
 from frappe import _dict
 import frappe.share
 from frappe.utils import cint
+from frappe.boot import get_allowed_reports
 from frappe.permissions import get_roles, get_valid_perms
 
 class UserPermissions:
@@ -187,7 +188,7 @@ class UserPermissions:
 		return self.can_read
 
 	def load_user(self):
-		d = frappe.db.sql("""select email, first_name, last_name,
+		d = frappe.db.sql("""select email, first_name, last_name, creation,
 			email_signature, user_type, language, background_image, background_style, mute_sounds
 			from tabUser where name = %s""", (self.name,), as_dict=1)[0]
 
@@ -211,10 +212,7 @@ class UserPermissions:
 		return d
 
 	def get_all_reports(self):
-		reports =  frappe.db.sql("""select name, report_type, ref_doctype from tabReport
-		    where ref_doctype in ('{0}') and disabled = 0""".format("', '".join(self.can_get_report)), as_dict=1)
-
-		return frappe._dict((d.name, d) for d in reports)
+		return get_allowed_reports()
 
 def get_user_fullname(user):
 	fullname = frappe.db.sql("SELECT CONCAT_WS(' ', first_name, last_name) FROM `tabUser` WHERE name=%s", (user,))
@@ -238,7 +236,7 @@ def get_system_managers(only_name=False):
 		as fullname from tabUser p
 		where docstatus < 2 and enabled = 1
 		and name not in ({})
-		and exists (select * from tabUserRole ur
+		and exists (select * from `tabHas Role` ur
 			where ur.parent = p.name and ur.role="System Manager")
 		order by creation desc""".format(", ".join(["%s"]*len(STANDARD_USERS))),
 			STANDARD_USERS, as_dict=True)

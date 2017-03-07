@@ -109,6 +109,7 @@ def get_dict(fortype, name=None):
 			messages = get_messages_from_file(name)
 		elif fortype=="boot":
 			messages = get_messages_from_include_files()
+			messages += frappe.db.sql("select 'Print Format:', name from `tabPrint Format`")
 			messages += frappe.db.sql("select 'DocType:', name from tabDocType")
 			messages += frappe.db.sql("select 'Role:', name from tabRole")
 			messages += frappe.db.sql("select 'Module:', name from `tabModule Def`")

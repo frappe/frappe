@@ -4,7 +4,7 @@ frappe.listview_settings['Email Queue'] = {
 		return [__(doc.status), colour[doc.status], "status,=," + doc.status];
 	},
 	refresh: function(doclist){
-		if (has_common(user_roles, ["Administrator", "System Manager"])){
+		if (has_common(roles, ["Administrator", "System Manager"])){
 			if (cint(frappe.defaults.get_default("hold_queue"))){
 				doclist.page.clear_inner_toolbar()
 				doclist.page.add_inner_button(__("Resume Sending"), function() {

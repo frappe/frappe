@@ -62,7 +62,7 @@ frappe.views.ReportViewPage = Class.extend({
 	}
 });
 
-frappe.views.ReportView = frappe.ui.Listing.extend({
+frappe.views.ReportView = frappe.ui.BaseList.extend({
 	init: function(opts) {
 		var me = this;
 		$.extend(this, opts);
@@ -79,11 +79,11 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 		this._body = $('<div>').appendTo(this.page.main);
 		this.page_title = __('Report')+ ': ' + __(this.docname ? (this.doctype + ' - ' + this.docname) : this.doctype);
 		this.page.set_title(this.page_title);
-		this.init_list_settings();
+		this.init_user_settings();
 		this.make({
 			page: this.parent.page,
 			method: 'frappe.desk.reportview.get',
-			save_list_settings: true,
+			save_user_settings: true,
 			get_args: this.get_args,
 			parent: this._body,
 			start: 0,
@@ -139,8 +139,8 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 		// pre-select mandatory columns
 		var me = this;
 		var columns = [];
-		if(this.list_settings.fields && !this.docname) {
-			this.list_settings.fields.forEach(function(field) {
+		if(this.user_settings.fields && !this.docname) {
+			this.user_settings.fields.forEach(function(field) {
 				var coldef = me.get_column_info_from_field(field);
 				if(!in_list(['_seen', '_comments', '_user_tags', '_assign', '_liked_by', 'docstatus'], coldef[0])) {
 					columns.push(coldef);
@@ -226,21 +226,21 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 
 	set_route_filters: function(first_load) {
 		var me = this;
-		if(frappe.route_options && !this.list_settings.filters) {
+		if(frappe.route_options && !this.user_settings.filters) {
 			this.set_filters_from_route_options();
 			return true;
-		} else if(this.list_settings
-			&& this.list_settings.filters
+		} else if(this.user_settings
+			&& this.user_settings.filters
 			&& !this.docname
-			&& (this.list_settings.updated_on != this.list_settings_updated_on)) {
+			&& (this.user_settings.updated_on != this.user_settings_updated_on)) {
 			// list settings (previous settings)
 			this.filter_list.clear_filters();
-			$.each(this.list_settings.filters, function(i, f) {
+			$.each(this.user_settings.filters, function(i, f) {
 				me.filter_list.add_filter(f[0], f[1], f[2], f[3]);
 			});
 			return true;
 		}
-		this.list_settings_updated_on = this.list_settings.updated_on;
+		this.user_settings_updated_on = this.user_settings.updated_on;
 	},
 
 	setup_print: function() {
@@ -263,8 +263,9 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 			order_by: this.get_order_by(),
 			add_total_row: this.add_total_row,
 			filters: this.filter_list.get_filters(),
-			save_list_settings_fields: 1,
+			save_user_settings_fields: 1,
 			with_childnames: 1,
+			file_format_type: this.file_format_type
 		}
 	},
 
@@ -347,8 +348,8 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 						docfield = columnDef.report_docfield;
 
 						docfield.link_onclick =
-							repl('frappe.container.page.reportview.set_filter("%(fieldname)s", "%(value)s")',
-								{fieldname:docfield.fieldname, value:value});
+							repl('frappe.container.page.reportview.filter_or_open("%(parent)s", "%(fieldname)s", "%(value)s")',
+								{parent: docfield.parent, fieldname:docfield.fieldname, value:value});
 					}
 					return frappe.format(value, docfield, {for_print: for_print, always_show_decimals: true}, dataContext);
 				}
@@ -357,8 +358,27 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 		});
 	},
 
+	filter_or_open: function(parent, fieldname, value) {
+		// set filter on click, if filter is set, open the document
+		var filter_set = false;
+		this.filter_list.get_filters().forEach(function(f) {
+			if(f[1]===fieldname) {
+				filter_set = true;
+			}
+		});
+
+		if(!filter_set) {
+			this.set_filter(fieldname, value, false, false, parent);
+		} else {
+			var df = frappe.meta.get_docfield(parent, fieldname);
+			if(df.fieldtype==='Link') {
+				frappe.set_route('Form', df.options, value);
+			}
+		}
+	},
+
 	// render data
-	render_list: function() {
+	render_view: function() {
 		var me = this;
 		var data = this.get_unique_data(this.column_info);
 
@@ -489,8 +509,11 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 				me.update_value(docfield, d, row);
 			}
 		});
-		d.show();
 		d.set_input(docfield.fieldname, row[docfield.fieldname]);
+
+		// Show dialog if field is editable and not hidden
+		if (d.fields_list[0].disp_status != "Write") d.hide();
+		else d.show();
 	},
 
 	update_value: function(docfield, dialog, row) {
@@ -575,7 +598,7 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 
 		this.page.add_inner_button(__('Show Totals'), function() {
 			me.add_totals_row = 1 - (me.add_totals_row ? me.add_totals_row : 0);
-			me.render_list();
+			me.render_view();
 		});
 	},
 
@@ -676,11 +699,22 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 		}
 		var export_btn = this.page.add_menu_item(__('Export'), function() {
 			var args = me.get_args();
-			args.cmd = 'frappe.desk.reportview.export_query'
-			if(me.add_totals_row) {
-				args.add_totals_row = 1;
-			}
-			open_url_post(frappe.request.url, args);
+
+			frappe.prompt({fieldtype:"Select", label: __("Select File Type"), fieldname:"file_format_type",
+				options:"Excel\nCSV", default:"Excel", reqd: 1},
+				function(data) {
+
+					args.cmd = 'frappe.desk.reportview.export_query';
+					args.file_format_type = data.file_format_type;
+
+					if(me.add_totals_row) {
+						args.add_totals_row = 1;
+					}
+
+					open_url_post(frappe.request.url, args);
+
+				}, __("Export Report: " + me.doctype), __("Download"));
+
 		}, true);
 	},
 
@@ -835,6 +869,11 @@ frappe.ui.ColumnPicker = Class.extend({
 		});
 
 		new Sortable(this.column_list.get(0), {
+			//handle: '.sortable-handle',
+			filter: 'input',
+			draggable: '.column-list-item',
+			chosenClass: 'sortable-chosen',
+			dragClass: 'sortable-chosen',
 			onUpdate: function(event) {
 				me.columns = [];
 				$.each($(me.dialog.body).find('.column-list .column-list-item'),
@@ -856,7 +895,8 @@ frappe.ui.ColumnPicker = Class.extend({
 		var me = this;
 
 		var w = $('<div class="column-list-item"><div class="row">\
-				<div class="col-xs-1"><i class="fa fa-sort text-muted drag-handle" style="margin-top: 9px;"></i></div>\
+				<div class="col-xs-1">\
+					<i class="fa fa-sort text-muted"></i></div>\
 				<div class="col-xs-10"></div>\
 				<div class="col-xs-1"><a class="close">&times;</a></div>\
 			</div></div>')

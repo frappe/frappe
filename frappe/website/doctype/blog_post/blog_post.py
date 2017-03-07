@@ -134,7 +134,7 @@ def clear_blog_cache():
 def get_blog_category(route):
 	return frappe.db.get_value("Blog Category", {"route": route }) or route
 
-def get_blog_list(doctype, txt=None, filters=None, limit_start=0, limit_page_length=20):
+def get_blog_list(doctype, txt=None, filters=None, limit_start=0, limit_page_length=20, order_by=None):
 	conditions = []
 	if filters:
 		if filters.blogger:

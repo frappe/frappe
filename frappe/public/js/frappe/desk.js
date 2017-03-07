@@ -27,6 +27,7 @@ frappe.Application = Class.extend({
 		this.load_bootinfo();
 		this.make_nav_bar();
 		this.set_favicon();
+		this.setup_analytics();
 		frappe.ui.keys.setup();
 		this.set_rtl();
 
@@ -259,7 +260,7 @@ frappe.Application = Class.extend({
 		user = frappe.boot.user.name;
 		user_fullname = frappe.user_info(user).fullname;
 		user_defaults = frappe.boot.user.defaults;
-		user_roles = frappe.boot.user.roles;
+		roles = frappe.boot.user.roles;
 		user_email = frappe.boot.user.email;
 		sys_defaults = frappe.boot.sysdefaults;
 		frappe.ui.py_date_format = frappe.boot.sysdefaults.date_format.replace('dd', '%d').replace('mm', '%m').replace('yyyy', '%Y');
@@ -287,7 +288,7 @@ frappe.Application = Class.extend({
 		user = 'Guest';
 		user_fullname = 'Guest';
 		user_defaults = {};
-		user_roles = ['Guest'];
+		roles = ['Guest'];
 		user_email = '';
 		sys_defaults = {};
 	},
@@ -363,6 +364,18 @@ frappe.Application = Class.extend({
 			});
 			me.show_notes();
 		};
+	},
+
+	setup_analytics: function() {
+		if(window.mixpanel) {
+			window.mixpanel.identify(frappe.session.user);
+			window.mixpanel.people.set({
+			    "$first_name": frappe.boot.user.first_name,
+			    "$last_name": frappe.boot.user.last_name,
+			    "$created": frappe.boot.user.creation,
+			    "$email": frappe.session.user
+			});
+		}
 	},
 
 	show_notes: function() {
@@ -476,12 +489,12 @@ frappe.get_desktop_icons = function(show_hidden, show_global) {
 		}
 	}
 
-	if(user_roles.indexOf('System Manager')!=-1) {
+	if(roles.indexOf('System Manager')!=-1) {
 		var m = frappe.get_module('Setup');
 		if(show_module(m)) add_to_out(m)
 	}
 
-	if(user_roles.indexOf('Administrator')!=-1) {
+	if(roles.indexOf('Administrator')!=-1) {
 		var m = frappe.get_module('Core');
 		if(show_module(m)) add_to_out(m)
 	}

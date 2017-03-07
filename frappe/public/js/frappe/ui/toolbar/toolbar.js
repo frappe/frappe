@@ -16,9 +16,8 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 		this.awesome_bar.setup("#navbar-search");
 		this.awesome_bar.setup("#modal-search");
 
-		this.search = new frappe.search.UnifiedSearch();
-		this.help = new frappe.search.HelpSearch();
-		this.search.setup();
+		this.search = this.awesome_bar.search;
+		this.help = this.awesome_bar.help;
 
 		$(document).on("notification-update", function() {
 			frappe.ui.notifications.update_notifications();
@@ -231,7 +230,7 @@ frappe.ui.toolbar.clear_cache = function() {
 
 frappe.ui.toolbar.download_backup = function() {
 	msgprint(__("Your download is being built, this may take a few moments..."));
-	return $c('frappe.utils.backups.get_backup',{},function(r,rt) {});
+	$c('frappe.utils.backups.get_backup',{},function(r,rt) {});
 	return false;
 }
 

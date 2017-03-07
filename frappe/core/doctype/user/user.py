@@ -102,25 +102,25 @@ class User(Document):
 	def add_system_manager_role(self):
 		# if adding system manager, do nothing
 		if not cint(self.enabled) or ("System Manager" in [user_role.role for user_role in
-				self.get("user_roles")]):
+				self.get("roles")]):
 			return
 
 		if self.name not in STANDARD_USERS and self.user_type == "System User" and not self.get_other_system_managers():
 			msgprint(_("Adding System Manager to this User as there must be atleast one System Manager"))
-			self.append("user_roles", {
-				"doctype": "UserRole",
+			self.append("roles", {
+				"doctype": "Has Role",
 				"role": "System Manager"
 			})
 
 		if self.name == 'Administrator':
 			# Administrator should always have System Manager Role
-			self.extend("user_roles", [
+			self.extend("roles", [
 				{
-					"doctype": "UserRole",
+					"doctype": "Has Role",
 					"role": "System Manager"
 				},
 				{
-					"doctype": "UserRole",
+					"doctype": "Has Role",
 					"role": "Administrator"
 				}
 			])
@@ -142,13 +142,13 @@ class User(Document):
 
 	def has_desk_access(self):
 		'''Return true if any of the set roles has desk access'''
-		if not self.user_roles:
+		if not self.roles:
 			return False
 
 		return len(frappe.db.sql("""select name
 			from `tabRole` where desk_access=1
-				and name in ({0}) limit 1""".format(', '.join(['%s'] * len(self.user_roles))),
-				[d.role for d in self.user_roles]))
+				and name in ({0}) limit 1""".format(', '.join(['%s'] * len(self.roles))),
+				[d.role for d in self.roles]))
 
 
 	def share_with_self(self):
@@ -210,7 +210,7 @@ class User(Document):
 		return link
 
 	def get_other_system_managers(self):
-		return frappe.db.sql("""select distinct user.name from tabUserRole user_role, tabUser user
+		return frappe.db.sql("""select distinct user.name from `tabHas Role` user_role, tabUser user
 			where user_role.role='System Manager'
 				and user.docstatus<2
 				and user.enabled=1
@@ -338,11 +338,11 @@ class User(Document):
 
 	def append_roles(self, *roles):
 		"""Add roles to user"""
-		current_roles = [d.role for d in self.get("user_roles")]
+		current_roles = [d.role for d in self.get("roles")]
 		for role in roles:
 			if role in current_roles:
 				continue
-			self.append("user_roles", {"role": role})
+			self.append("roles", {"role": role})
 
 	def add_roles(self, *roles):
 		"""Add roles to user and save"""
@@ -350,28 +350,28 @@ class User(Document):
 		self.save()
 
 	def remove_roles(self, *roles):
-		existing_roles = dict((d.role, d) for d in self.get("user_roles"))
+		existing_roles = dict((d.role, d) for d in self.get("roles"))
 		for role in roles:
 			if role in existing_roles:
-				self.get("user_roles").remove(existing_roles[role])
+				self.get("roles").remove(existing_roles[role])
 
 		self.save()
 
 	def remove_all_roles_for_guest(self):
 		if self.name == "Guest":
-			self.set("user_roles", list(set(d for d in self.get("user_roles") if d.role == "Guest")))
+			self.set("roles", list(set(d for d in self.get("roles") if d.role == "Guest")))
 
 	def remove_disabled_roles(self):
 		disabled_roles = [d.name for d in frappe.get_all("Role", filters={"disabled":1})]
-		for role in list(self.get('user_roles')):
+		for role in list(self.get('roles')):
 			if role.role in disabled_roles:
-				self.get('user_roles').remove(role)
+				self.get('roles').remove(role)
 
 	def ensure_unique_roles(self):
 		exists = []
-		for i, d in enumerate(self.get("user_roles")):
+		for i, d in enumerate(self.get("roles")):
 			if (not d.role) or (d.role in exists):
-				self.get("user_roles").remove(d)
+				self.get("roles").remove(d)
 			else:
 				exists.append(d.role)
 
@@ -462,10 +462,10 @@ def get_timezones():
 def get_all_roles(arg=None):
 	"""return all roles"""
 	return [r[0] for r in frappe.db.sql("""select name from tabRole
-		where name not in ('Administrator', 'Guest', 'All') and not disabled order by name""")]
+		where name not in ('Administrator', 'Guest', 'All') and not disabled and desk_access = '1' order by name""")]
 
 @frappe.whitelist()
-def get_user_roles(arg=None):
+def get_roles(arg=None):
 	"""get roles for a user"""
 	return frappe.get_roles(frappe.form_dict['uid'])
 

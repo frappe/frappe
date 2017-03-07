@@ -88,7 +88,7 @@ frappe.views.CommunicationComposer = Class.extend({
 		if(frappe.boot.email_accounts && frappe.boot.email_accounts.length > 1) {
 			fields = [
 				{label: __("From"), fieldtype: "Select", reqd: 1, fieldname: "sender",
-					options: frappe.boot.email_accounts.map(function(d) { return e.email_id; }) }
+					options: frappe.boot.email_accounts.map(function(e) { return e.email_id; }) }
 			].concat(fields);
 		}
 
@@ -529,7 +529,9 @@ frappe.views.CommunicationComposer = Class.extend({
 		if(last_email) {
 			var last_email_content = last_email.original_comment || last_email.content;
 
-			fields.content.set_input(reply
+			fields.content.set_input(
+				'<div><br></div>'
+				+ reply
 				+ "<br><!-- original-reply --><br>"
 				+ '<blockquote>' +
 					'<p>' + __("On {0}, {1} wrote:",
@@ -537,7 +539,7 @@ frappe.views.CommunicationComposer = Class.extend({
 					last_email_content +
 				'<blockquote>');
 		} else {
-			fields.content.set_input(reply);
+			fields.content.set_input("<div><br></div>" + reply);
 		}
 	},
 	setup_awesomplete: function() {
@@ -564,28 +566,29 @@ frappe.views.CommunicationComposer = Class.extend({
 			item: function(item, input) {
 				return $('<li>').text(item.value).get(0);
 			},
-			filter: function(text, input) {
-				return Awesomplete.FILTER_CONTAINS(text, input.match(/[^,]*$/)[0]);
-			},
+			filter: function(text, input) { return true },
 			replace: function(text) {
 				var before = this.input.value.match(/^.+,\s*|/)[0];
 				this.input.value = before + text + ", ";
 			}
 		});
-
+		var delay_timer;
 		var $input = $(input);
 		$input.on("input", function(e) {
-			var term = e.target.value;
-			frappe.call({
-				method:'frappe.email.get_contact_list',
-				args: {
-					'txt': extractLast(term) || '%'
-				},
-				quiet: true,
-				callback: function(r) {
-					awesomplete.list = r.message;
-				}
-			});
+			clearTimeout(delay_timer);
+			delay_timer = setTimeout(function() {
+				var term = e.target.value;
+				frappe.call({
+					method:'frappe.email.get_contact_list',
+					args: {
+						'txt': extractLast(term) || '%'
+					},
+					quiet: true,
+					callback: function(r) {
+						awesomplete.list = r.message || [];
+					}
+				});
+			},250);
 		});
 	}
 });

@@ -465,14 +465,15 @@ def check_webform_perm(doctype, name):
 		if doc.has_webform_permission():
 			return True
 
-def get_web_form_list(doctype, txt, filters, limit_start, limit_page_length=20):
+def get_web_form_list(doctype, txt, filters, limit_start, limit_page_length=20, order_by=None):
 	from frappe.www.list import get_list
 	if not filters:
 		filters = {}
 
 	filters["owner"] = frappe.session.user
 
-	return get_list(doctype, txt, filters, limit_start, limit_page_length, ignore_permissions=True)
+	return get_list(doctype, txt, filters, limit_start, limit_page_length, order_by=order_by,
+		ignore_permissions=True)
 
 def make_route_string(parameters):
 	route_string = ""

@@ -45,7 +45,7 @@ $.extend(frappe.perm, {
 			return perm;
 		}
 
-		if (user==="Administrator" || user_roles.indexOf("Administrator")!==-1) {
+		if (user==="Administrator" || roles.indexOf("Administrator")!==-1) {
 			perm[0].read = 1;
 		}
 
@@ -109,7 +109,7 @@ $.extend(frappe.perm, {
 
 		$.each(meta.permissions || [], function(i, p) {
 			// if user has this role
-			if(user_roles.indexOf(p.role)!==-1) {
+			if(roles.indexOf(p.role)!==-1) {
 				var permlevel = cint(p.permlevel);
 				if(!perm[permlevel]) {
 					perm[permlevel] = {};

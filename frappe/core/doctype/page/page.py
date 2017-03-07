@@ -71,11 +71,14 @@ class Page(Document):
 			d[key] = self.get(key)
 		return d
 
+	def on_trash(self):
+		delete_custom_role('page', self.name)
+
 	def is_permitted(self):
-		"""Returns true if Page Role is not set or the user is allowed."""
+		"""Returns true if Has Role is not set or the user is allowed."""
 		from frappe.utils import has_common
 
-		allowed = [d.role for d in frappe.get_all("Page Role", fields=["role"],
+		allowed = [d.role for d in frappe.get_all("Has Role", fields=["role"],
 			filters={"parent": self.name})]
 
 		if not allowed:
@@ -140,4 +143,7 @@ class Page(Document):
 			if js:
 				self.script += "\n\n" + js
 
-
+def delete_custom_role(field, docname):
+	name = frappe.db.get_value('Custom Role', {field: docname}, "name")
+	if name:
+		frappe.delete_doc('Custom Role', name)

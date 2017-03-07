@@ -531,6 +531,17 @@ textarea.form-control {
 	}
 }
 
+// hide some buttons in modal
+.modal .note-editor {
+	.note-btn-italic,
+	.note-btn-underline,
+	[data-original-title="Font Size"],
+	[data-original-title="Video"],
+	[data-original-title="Table"] {
+		display: none;
+	}
+}
+
 .search-dialog {
 	.modal-dialog {
 		width: 768px;
@@ -563,12 +574,64 @@ textarea.form-control {
 	}
 
 	.layout-side-section {
-		padding-left: 15px;
+		.module-sidebar-nav {
+			margin-top: 0px;
+		}
+		.help-link {
+			padding-top: 20px;
+			text-transform: uppercase;
+		}
+
+		.nav {
+			li a {
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				padding-left: 20px;
+
+				i {
+					visibility: hidden;
+				}
+			}
+
+			.active i {
+				visibility: visible;
+			}
+		}
 	}
 
-	// .results-area a {
-	// 	color: #5E64FF;
-	// }
+	.results-area {
+		.search-intro-placeholder {
+			color: #d4d9dd;
+			height: inherit;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+
+			span {
+				text-align: center;
+
+				i {
+					font-size: 120px;
+					display: block;
+				}
+
+				p {
+					font-size: 20px;
+					display: block;
+				}
+			}
+		}
+
+		// a {
+		// 	color: #5E64FF;
+		// }
+
+		.single-link a {
+			color: #36414c;
+		}
+	}
+
 	.module-section {
 		.back-link {
 			margin-bottom: 20px;
@@ -580,13 +643,33 @@ textarea.form-control {
 			content: '\f0a4';
 		}
 	}
-	.dual-section .result a {
-		color: black;
+
+	.full-list {
+		.result {
+			margin-top: 15px;
+
+			.result-subtype {
+				float: right;
+				margin-left: 10px;
+			}
+		}
+
+		.result-with-subtype {
+			border-bottom: 1px solid #d1d8dd;
+			margin-top: 10px;
+		}
+
+		.section-head {
+			margin-bottom: 25px;
+		}
 	}
 
-	.dual-section .result a b{
-		color: #4e6161;
+	.dual-section {
+		.result-subtype{
+			display: none;
+		}
 	}
+
 	.result-status {
 		margin-top: 30px;
 		text-align: center;
@@ -614,6 +697,12 @@ textarea.form-control {
 
 		.layout-side-section .sidebar-menu {
 			margin: 30px 0px;
+		}
+	}
+
+	@media (min-width: 600px) {
+		.results-area .back-link {
+			display: none;
 		}
 	}
 }
@@ -679,3 +768,31 @@ textarea.form-control {
 
 .c3-tooltip td.value {
   text-align: right; }
+
+// custom font awesome checkbox
+input[type="checkbox"] {
+	visibility: hidden;
+	position: relative;
+
+	&:before {
+		position: absolute;
+		font-family: 'FontAwesome';
+		content: '\f096';
+		visibility: visible;
+		font-style: normal;
+		font-weight: normal;
+		font-variant: normal;
+		text-transform: none;
+		line-height: 14px;
+		display: inline-block;
+		font-size: 14px;
+		color: @text-extra-muted;
+		.transition(150ms color);
+	}
+
+	&:checked:before {
+		content: '\f14a';
+		font-size: 13px;
+		color: @checkbox-color;
+	}
+}

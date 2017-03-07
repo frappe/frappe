@@ -34,6 +34,7 @@ _f.Frm = function(doctype, parent, in_form) {
 
 	var me = this;
 	this.opendocs = {};
+	this.custom_buttons = {};
 	this.sections = [];
 	this.grids = [];
 	this.cscript = new frappe.ui.form.Controller({frm:this});
@@ -520,10 +521,13 @@ _f.Frm.prototype.render_form = function(is_a_different_doc) {
 			this.script_manager.trigger("onload_post_render");
 		}
 
+		// update dashboard after refresh
+		this.dashboard.after_refresh();
+
 		// focus on first input
 
-		if(this.doc.docstatus==0) {
-			var first = this.form_wrapper.find('.form-layout :input:first');
+		if(this.is_new()) {
+			var first = this.form_wrapper.find('.form-layout input:first');
 			if(!in_list(["Date", "Datetime"], first.attr("data-fieldtype"))) {
 				first.focus();
 			}
@@ -883,19 +887,22 @@ _f.Frm.prototype.set_intro = function(txt, append) {
 }
 
 _f.Frm.prototype.set_footnote = function(txt) {
-	frappe.utils.set_footnote(this, this.body, txt);
+	this.footnote_area = frappe.utils.set_footnote(this.footnote_area, this.body, txt);
 }
 
 
 _f.Frm.prototype.add_custom_button = function(label, fn, group) {
 	// temp! old parameter used to be icon
 	if(group && group.indexOf("fa fa-")!==-1) group = null;
-	return this.page.add_inner_button(label, fn, group);
+	var btn = this.page.add_inner_button(label, fn, group);
+	this.custom_buttons[label] = btn;
+	return btn;
 }
 
 _f.Frm.prototype.clear_custom_buttons = function() {
 	this.page.clear_inner_toolbar();
 	this.page.clear_user_actions();
+	this.custom_buttons = {};
 }
 
 _f.Frm.prototype.add_fetch = function(link_field, src_field, tar_field) {
@@ -925,8 +932,8 @@ _f.Frm.prototype.validate_form_action = function(action) {
 	var allowed_for_workflow = false;
 	var perms = frappe.perm.get_perm(this.doc.doctype)[0];
 
-	// Allow submit, write and create permissions for read only documents that are assigned by 
-	// workflows if the user already have those permissions. This is to allow for users to 
+	// Allow submit, write and create permissions for read only documents that are assigned by
+	// workflows if the user already have those permissions. This is to allow for users to
 	// continue through the workflow states and to allow execution of functions like Duplicate.
 	if (frappe.workflow.is_read_only(this.doctype, this.docname) && (perms["write"] ||
 		perms["create"] || perms["submit"])) {

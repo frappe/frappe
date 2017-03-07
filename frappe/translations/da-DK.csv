@@ -6,4 +6,4 @@ For e.g. 1 USD = 100 Cent",1 Valuta = [?] Fraktion For eksempel 1 USD = 100 Cent
 DocType: Workflow State,zoom-in,zoom-in
 DocType: Workflow State,zoom-out,zoom-out
 apps/frappe/frappe/public/js/frappe/form/workflow.js +32, by Role ,af rolle
-apps/frappe/frappe/public/js/frappe/list/doclistview.js +505,Half Day,Half Day
+apps/frappe/frappe/public/js/frappe/list/doclistview.js +579,Half Day,Half Day

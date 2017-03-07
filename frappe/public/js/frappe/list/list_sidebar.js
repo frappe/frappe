@@ -17,7 +17,7 @@ frappe.views.ListSidebar = Class.extend({
 		this.cat_tags = [];
 	},
 	make: function() {
-		var sidebar_content = frappe.render_template("list_sidebar", {doctype: this.doclistview.doctype});
+		var sidebar_content = frappe.render_template("list_sidebar", {doctype: this.list_view.doctype});
 
 		this.sidebar = $('<div class="list-sidebar overlay-sidebar hidden-xs hidden-sm"></div>')
 			.html(sidebar_content)
@@ -63,7 +63,7 @@ frappe.views.ListSidebar = Class.extend({
 			.attr('disabled', null).removeClass('disabled')
 
 		// show image link if image_view
-		if(this.doclistview.meta.image_field) {
+		if(this.list_view.meta.image_field) {
 			this.sidebar.find('.list-link[data-view="Image"]').removeClass('hide');
 			show_list_link = true;
 		}
@@ -103,8 +103,8 @@ frappe.views.ListSidebar = Class.extend({
 		}
 
 		// from reference doctype
-		if(this.doclistview.listview.settings.reports) {
-			add_reports(this.doclistview.listview.settings.reports)
+		if(this.list_view.list_renderer.settings.reports) {
+			add_reports(this.list_view.list_renderer.settings.reports)
 		}
 
 		// from specially tagged reports
@@ -119,12 +119,12 @@ frappe.views.ListSidebar = Class.extend({
 		var boards = frappe.get_meta(this.doctype).__kanban_boards;
 		if (!boards) return;
 		boards.forEach(function(board) {
-			var route = ["List", board.parent, "Kanban", board.name].join('/');
+			var route = ["List", board.reference_doctype, "Kanban", board.name].join('/');
 			if(!divider) {
 				$('<li role="separator" class="divider"></li>').appendTo($dropdown);
 				divider = true;
 			}
-			$('<li><a href="#'+ route + '">'+board.name+'</a></li>').appendTo($dropdown);
+			$(`<li><a href="#${route}">${__(board.name)}</a></li>`).appendTo($dropdown);
 		});
 
 		$dropdown.find('.new-kanban-board').click(function() {
@@ -179,10 +179,8 @@ frappe.views.ListSidebar = Class.extend({
 
 					me.add_custom_column_field(custom_column)
 						.then(function(custom_column) {
-							console.log(custom_column)
 							var f = custom_column ?
 								'kanban_column' : values.field_name;
-							console.log(f)
 							return me.make_kanban_board(values.board_name, f)
 						})
 						.then(function() {
@@ -239,7 +237,7 @@ frappe.views.ListSidebar = Class.extend({
 	setup_assigned_to_me: function() {
 		var me = this;
 		this.page.sidebar.find(".assigned-to-me a").on("click", function() {
-			me.doclistview.assigned_to_me();
+			me.list_view.assigned_to_me();
 		});
 	},
 	get_cat_tags:function(){
@@ -280,7 +278,7 @@ frappe.views.ListSidebar = Class.extend({
 					//render normal stats
 					me.render_stat("_user_tags", (r.message.stats|| {})["_user_tags"]);
 				}
-				me.doclistview.set_sidebar_height();
+				me.list_view.set_sidebar_height();
 			}
 		});
 	},
@@ -333,8 +331,8 @@ frappe.views.ListSidebar = Class.extend({
 				var fieldname = $(this).attr('data-field');
 				var label = $(this).attr('data-label');
 				if (label == "No Tags") {
-					me.doclistview.filter_list.add_filter(me.doclistview.doctype, fieldname, 'not like', '%,%')
-					me.doclistview.run();
+					me.list_view.filter_list.add_filter(me.list_view.doctype, fieldname, 'not like', '%,%')
+					me.list_view.run();
 				} else {
 					me.set_filter(fieldname, label);
 				}

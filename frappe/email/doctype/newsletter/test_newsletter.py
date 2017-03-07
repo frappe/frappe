@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 
 import frappe, unittest
 
-from frappe.email.doctype.newsletter.newsletter import unsubscribe
+from frappe.email.doctype.newsletter.newsletter import confirmed_unsubscribe
 from urllib import unquote
 
 emails = ["test_subscriber1@example.com", "test_subscriber2@example.com",
@@ -18,7 +18,7 @@ class TestNewsletter(unittest.TestCase):
 					"doctype": "Email Group Member",
 					"email": email,
 					"email_group": "_Test Email Group"
-				}).insert()
+				}).insert()		
 
 	def test_send(self):
 		self.send_newsletter()
@@ -36,7 +36,7 @@ class TestNewsletter(unittest.TestCase):
 		flush(from_test=True)
 		to_unsubscribe = unquote(frappe.local.flags.signed_query_string.split("email=")[1].split("&")[0])
 
-		unsubscribe(to_unsubscribe, "_Test Email Group")
+		confirmed_unsubscribe(to_unsubscribe, "_Test Newsletter")
 
 		self.send_newsletter()
 
@@ -54,11 +54,12 @@ class TestNewsletter(unittest.TestCase):
 		newsletter = frappe.get_doc({
 			"doctype": "Newsletter",
 			"subject": "_Test Newsletter",
-			"email_group": "_Test Email Group",
 			"send_from": "Test Sender <test_sender@example.com>",
-			"message": "Testing my news."
+			"message": "Testing my news.",
 		}).insert(ignore_permissions=True)
 
+		newsletter.append("email_group", {"email_group": "_Test Email Group"})
+		newsletter.save()
 		newsletter.send_emails()
 
 test_dependencies = ["Email Group"]

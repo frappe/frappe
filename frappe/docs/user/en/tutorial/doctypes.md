@@ -8,7 +8,7 @@ To create a new **DocType**, go to:
 
 <img class="screenshot" alt="New Doctype" src="{{docs_base_url}}/assets/img/doctype_new.png">
 
-In the DocType, first the Module, which in our case is **Library Managment**
+In the DocType, first the Module, which in our case is **Library Management**
 
 #### Adding Fields
 

@@ -76,6 +76,7 @@
 .grid-body .editable-row .checkbox {
   margin: 0px;
   text-align: center;
+  margin-top: 9px;
 }
 .grid-body .editable-row textarea {
   height: 38px !important;

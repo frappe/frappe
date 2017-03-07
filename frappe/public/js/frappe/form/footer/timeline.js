@@ -98,7 +98,7 @@ frappe.ui.form.Timeline = Class.extend({
 
 		$.each(communications.sort(function(a, b) { return a.creation > b.creation ? -1 : 1 }),
 			function(i, c) {
-				if(c.content || c.feedback) {
+				if(c.content) {
 					c.frm = me.frm;
 					me.render_timeline_item(c);
 				}
@@ -264,10 +264,10 @@ frappe.ui.form.Timeline = Class.extend({
 				c.original_content = c.content;
 				c.content = frappe.utils.toggle_blockquote(c.content);
 			} else if (c.communication_type==="Feedback") {
-				c.content = frappe.utils.strip_original_content(c.feedback);
+				c.content = frappe.utils.strip_original_content(c.content);
 
-				c.original_content = c.feedback;
-				c.content = frappe.utils.toggle_blockquote(c.feedback);
+				c.original_content = c.content;
+				c.content = frappe.utils.toggle_blockquote(c.content);
 			}
 
 			if(!frappe.utils.is_html(c.content)) {
@@ -401,8 +401,10 @@ frappe.ui.form.Timeline = Class.extend({
 							out.push(me.get_version_comment(version, __('cancelled this document')));
 						}
 					} else {
+						
 						var df = frappe.meta.get_docfield(me.frm.doctype, p[0], me.frm.docname);
-						if(!df.hidden) {
+
+						if(df && !df.hidden) {
 							var field_display_status = frappe.perm.get_field_display_status(df, null,
 								me.frm.perm);
 							if(field_display_status === 'Read' || field_display_status === 'Write') {
@@ -429,7 +431,7 @@ frappe.ui.form.Timeline = Class.extend({
 						var df = frappe.meta.get_docfield(me.frm.fields_dict[row[0]].grid.doctype,
 							p[0], me.frm.docname);
 
-						if(!df.hidden) {
+						if(df && !df.hidden) {
 							field_display_status = frappe.perm.get_field_display_status(df,
 								null, me.frm.perm);
 
@@ -459,7 +461,7 @@ frappe.ui.form.Timeline = Class.extend({
 				if(data[key] && data[key].length) {
 					parts = (data[key] || []).map(function(p) {
 						var df = frappe.meta.get_docfield(me.frm.doctype, p[0], me.frm.docname);
-						if(!df.hidden) {
+						if(df && !df.hidden) {
 							var field_display_status = frappe.perm.get_field_display_status(df, null,
 								me.frm.perm);
 

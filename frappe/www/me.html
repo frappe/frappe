@@ -40,7 +40,7 @@
 		{% for item in sidebar_items -%}
 			<a class="list-group-item" href="{{ item.route }}"
 				{% if item.target %}target="{{ item.target }}"{% endif %}>
-				{{ _(item.title) }}
+				{{ _(item.title or item.label) }}
 			</a>
 		{%- endfor %}
 	</ul>

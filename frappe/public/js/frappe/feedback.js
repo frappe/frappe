@@ -34,7 +34,6 @@ frappe.utils.Feedback = Class.extend({
 			method: "frappe.core.doctype.feedback_trigger.feedback_trigger.get_feedback_request_details",
 			'args': args,
 			callback: function(r) {
-				console.log(r)
 				if(r.message) {
 					me.make_feedback_request_dialog(r.message, is_resend)
 				}

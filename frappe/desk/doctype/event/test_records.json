@@ -15,9 +15,6 @@
 		"doctype": "Event",
 		"starts_on": "2014-01-01",
 		"subject": "_Test Event 3",
-		"event_type": "Private",
-		"roles": [
-			{"role": "System Manager"}
-		]
+		"event_type": "Private"
 	}
 ]

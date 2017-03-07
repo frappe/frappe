@@ -16,6 +16,8 @@
 	</div>
 
 	<div style='max-width: 500px;'>
+		<p>{{ _("Full Name") }}</p>
+		<input class="form-control fullname" type="text" placeholder="Your Full Name">
 		<p>{{ _("Detailed feedback") }}</p>
 		<textarea class='form-control feedback-text' style='min-height: 300px;'></textarea>
 	</div>
@@ -49,10 +51,21 @@
 			this.key = get_url_arg("key");
 			this.reference_name = get_url_arg("reference_name");
 			this.reference_doctype = get_url_arg("reference_doctype");
-			this.sender = get_url_arg("email")
+			this.sender = get_url_arg("email");
+			this.rating = get_url_arg("rating") || 0;
 
-			me.bind_events();
+			// set ratings
+			this.set_ratings_icon(this.rating)
+
+			this.bind_events();
 			$("#feedback-msg").empty().html(__("Please share your feedback for {0}", [me.reference_name]));
+		},
+
+		set_ratings_icon: function(idx) {
+			$('.star-icon.fa-star').removeClass('fa-star').addClass('fa-star-o');
+			for(var i=0; i<parseInt(idx); i++) {
+				$($('.star-icon').get(i)).removeClass('fa-star-o').addClass('fa-star');
+			}
 		},
 
 		bind_events: function() {
@@ -61,16 +74,19 @@
 
 			$('.star-icon').hover(function() {
 				var idx = $(this).attr('data-idx');
-				$('.star-icon.fa-star').removeClass('fa-star').addClass('fa-star-o');
-				for(var i=0; i<parseInt(idx); i++) {
-					$($('.star-icon').get(i)).removeClass('fa-star-o').addClass('fa-star');
-				}
+				me.set_ratings_icon(idx);
 			});
 
 			// bind submit button
 			$('.btn-submit').on('click', function() {
 				if(!$('.star-icon.fa-star').length) {
 					frappe.msgprint(__("Please give a rating."));
+					return;
+				} else if(!$('.fullname').val().length){
+					frappe.msgprint(__("Please give a fullname."));
+					return;
+				} else if(!$('.feedback-text').val().length){
+					frappe.msgprint(__("Please give a detailed feebdack."));
 					return;
 				}
 
@@ -82,7 +98,8 @@
 						reference_name: me.reference_name,
 						reference_doctype: me.reference_doctype,
 						feedback: $('.feedback-text').val(),
-						rating: $('.star-icon.fa-star').length
+						rating: $('.star-icon.fa-star').length,
+						fullname: $('.fullname').val()
 					},
 					callback: function(r) {
 						if(r.message) {

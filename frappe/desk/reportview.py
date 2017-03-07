@@ -32,10 +32,10 @@ def get_form_params():
 		data["fields"] = json.loads(data["fields"])
 	if isinstance(data.get("docstatus"), basestring):
 		data["docstatus"] = json.loads(data["docstatus"])
-	if isinstance(data.get("save_list_settings"), basestring):
-		data["save_list_settings"] = json.loads(data["save_list_settings"])
+	if isinstance(data.get("save_user_settings"), basestring):
+		data["save_user_settings"] = json.loads(data["save_user_settings"])
 	else:
-		data["save_list_settings"] = True
+		data["save_user_settings"] = True
 
 
 	# queries must always be server side
@@ -91,8 +91,10 @@ def export_query():
 	form_params["as_list"] = True
 	doctype = form_params.doctype
 	add_totals_row = None
+	file_format_type = form_params["file_format_type"]
 
 	del form_params["doctype"]
+	del form_params["file_format_type"]
 
 	if 'add_totals_row' in form_params and form_params['add_totals_row']=='1':
 		add_totals_row = 1
@@ -110,20 +112,32 @@ def export_query():
 	for i, row in enumerate(ret):
 		data.append([i+1] + list(row))
 
-	# convert to csv
-	from cStringIO import StringIO
-	import csv
+	if file_format_type == "CSV":
 
-	f = StringIO()
-	writer = csv.writer(f)
-	for r in data:
-		# encode only unicode type strings and not int, floats etc.
-		writer.writerow(map(lambda v: isinstance(v, unicode) and v.encode('utf-8') or v, r))
+		# convert to csv
+		import csv
+		from cStringIO import StringIO
 
-	f.seek(0)
-	frappe.response['result'] = unicode(f.read(), 'utf-8')
-	frappe.response['type'] = 'csv'
-	frappe.response['doctype'] = doctype
+		f = StringIO()
+		writer = csv.writer(f)
+		for r in data:
+			# encode only unicode type strings and not int, floats etc.
+			writer.writerow(map(lambda v: isinstance(v, unicode) and v.encode('utf-8') or v, r))
+
+		f.seek(0)
+		frappe.response['result'] = unicode(f.read(), 'utf-8')
+		frappe.response['type'] = 'csv'
+		frappe.response['doctype'] = doctype
+
+	elif file_format_type == "Excel":
+
+		from frappe.utils.xlsxutils import make_xlsx
+		xlsx_file = make_xlsx(data, doctype)
+
+		frappe.response['filename'] = doctype + '.xlsx'
+		frappe.response['filecontent'] = xlsx_file.getvalue()
+		frappe.response['type'] = 'binary'
+
 
 def append_totals_row(data):
 	if not data:

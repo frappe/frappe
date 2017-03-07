@@ -187,8 +187,16 @@
 
 .form-links {
 	.document-link {
-		margin-bottom: 5px;
+		margin-bottom: 10px;
 		height: 22px;
+	}
+
+	.document-link:hover .badge-link {
+		text-decoration: underline;
+	}
+
+	.document-link:hover .badge-link[disabled='disabled'] {
+		text-decoration: none;
 	}
 
 	.count {
@@ -308,6 +316,10 @@ h6.uppercase, .h6.uppercase {
 
 	.btn-more {
 		margin-left: 65px;
+	}
+
+	.gmail_extra {
+		display: none;
 	}
 }
 

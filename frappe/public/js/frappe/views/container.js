@@ -12,7 +12,7 @@ frappe.views.Container = Class.extend({
 	init: function() {
 		this.container = $('#body_div').get(0);
 		this.page = null; // current page
-		this.pagewidth = $('#body_div').width();
+		this.pagewidth = $(this.container).width();
 		this.pagemargin = 50;
 
 		var me = this;
@@ -36,7 +36,7 @@ frappe.views.Container = Class.extend({
 		var page = $('<div class="content page-container"></div>')
 			.attr('id', "page-" + label)
 			.attr("data-page-route", label)
-			.toggle(false)
+			.hide()
 			.appendTo(this.container).get(0);
 		page.label = label;
 		frappe.pages[label] = page;
@@ -69,7 +69,7 @@ frappe.views.Container = Class.extend({
 
 		// hide current
 		if(this.page && this.page != page) {
-			$(this.page).toggle(false);
+			$(this.page).hide();
 			$(this.page).trigger('hide');
 		}
 
@@ -77,7 +77,7 @@ frappe.views.Container = Class.extend({
 		if(!this.page || this.page != page) {
 			this.page = page;
 			// $(this.page).fadeIn(300);
-			$(this.page).toggle(true);
+			$(this.page).show();
 		}
 
 		$(document).trigger("page-change");

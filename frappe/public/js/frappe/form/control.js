@@ -291,14 +291,13 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 				if(me.disp_status=="Write") {
 					me.disp_area && $(me.disp_area).toggle(false);
 					$(me.input_area).toggle(true);
-					$(me.input_area).find("input").prop("disabled", false);
+					me.$input && me.$input.prop("disabled", false);
 					make_input();
 					update_input();
 				} else {
 					if(me.only_input) {
 						make_input();
 						update_input();
-						me.$input && me.$input.prop("disabled", true);
 					} else {
 						$(me.input_area).toggle(false);
 						if (me.disp_area) {
@@ -306,6 +305,7 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 							$(me.disp_area).toggle(true);
 						}
 					}
+					me.$input && me.$input.prop("disabled", true);
 				}
 
 				me.set_description();
@@ -612,7 +612,7 @@ frappe.ui.form.ControlPercent = frappe.ui.form.ControlFloat;
 frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 	set_input: function(value) {
 		this._super(value);
-		if(value && this.last_value !== this.value) {
+		if(value && this.last_value && this.last_value !== this.value) {
 			this.datepicker.selectDate(new Date(value));
 		}
 	},
@@ -634,9 +634,9 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 			(frappe.boot.sysdefaults.date_format || 'yyyy-mm-dd');
 		this.datepicker_options.dateFormat = date_format;
 
-		this.datepicker_options.onSelect = function(dateObj) {
-			me.set_value(me.get_value())
-			me.$input.trigger('change')
+		this.datepicker_options.onSelect = function(dateStr) {
+			me.set_value(me.get_value());
+			me.$input.trigger('change');
 		}
 	},
 	set_datepicker: function() {
@@ -782,11 +782,20 @@ frappe.ui.form.ControlText = frappe.ui.form.ControlData.extend({
 	make_wrapper: function() {
 		this._super();
 		this.$wrapper.find(".like-disabled-input").addClass("for-description");
+	},
+	make_input: function() {
+		this._super();
+		this.$input.css({'height': '300px'})
 	}
 });
 
 frappe.ui.form.ControlLongText = frappe.ui.form.ControlText;
-frappe.ui.form.ControlSmallText = frappe.ui.form.ControlText;
+frappe.ui.form.ControlSmallText = frappe.ui.form.ControlText.extend({
+	make_input: function() {
+		this._super();
+		this.$input.css({'height': '150px'})
+	}
+});
 
 frappe.ui.form.ControlCheck = frappe.ui.form.ControlData.extend({
 	input_type: "checkbox",
@@ -1294,33 +1303,24 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 			maxItems: 99,
 			autoFirst: true,
 			list: [],
-
 			data: function (item, input) {
-				var label = item.value + "%%%" + (item.description || "");
-				if(item.value.indexOf("__link_option") !== -1) {
-					label = item.label;
-				}
 				return {
-					label: label,
+					label: item.label || item.value,
 					value: item.value
 				};
 			},
 			filter: function(item, input) {
-				var value = item.value.toLowerCase();
-				if(value.indexOf('__link_option') !== -1 ||
-					value.indexOf(input) !== -1) {
-					return true;
-				}
+				var d = this.get_item(item.value);
+				return Awesomplete.FILTER_CONTAINS(d.value, '__link_option') ||
+					Awesomplete.FILTER_CONTAINS(d.value, input) ||
+					Awesomplete.FILTER_CONTAINS(d.description, input);
 			},
 			item: function (item, input) {
-				var parts = item.split("%%%"),
-				d = { value: parts[0], description: parts[1] };
-				var _value = d.value;
+				d = this.get_item(item.value);
+				if(!d.label) {	d.label = d.value; }
 
-				if(me.translate_values) {
-					_value = __(d.value)
-				}
-				var html = "<strong>" + _value + "</strong>";
+				var _label = (me.translate_values) ? __(d.label) : d.label;
+				var html = "<strong>" + _label + "</strong>";
 				if(d.description && d.value!==d.description) {
 					html += '<br><span class="small">' + __(d.description) + '</span>';
 				}
@@ -1585,6 +1585,12 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 	make_editor: function() {
 		var me = this;
 		this.editor = $("<div>").appendTo(this.input_area);
+
+		// Note: while updating summernote, please make sure all 'p' blocks
+		// in the summernote source code are replaced by 'div' blocks.
+		// by default summernote, adds <p> blocks for new paragraphs, which adds
+		// unexpected whitespaces, esp for email replies.
+
 		this.editor.summernote({
 			minHeight: 400,
 			toolbar: [
@@ -1594,6 +1600,7 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 				['color', ['color']],
 				['para', ['ul', 'ol', 'paragraph']],
 				['height', ['height']],
+				['media', ['link', 'picture', 'video', 'table']],
 				['misc', ['fullscreen', 'codeview']]
 			],
 			callbacks: {
@@ -1641,7 +1648,7 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 				'minus': 'fa fa-minus',
 				'orderedlist': 'fa fa-list-ol',
 				'pencil': 'fa fa-pencil',
-				'picture': 'fa fa-picture',
+				'picture': 'fa fa-image',
 				'question': 'fa fa-question',
 				'redo': 'fa fa-redo',
 				'square': 'fa fa-square',
@@ -1654,10 +1661,12 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 				'underline': 'fa fa-underline',
 				'undo': 'fa fa-undo',
 				'unorderedlist': 'fa fa-list-ul',
-				'video': 'fa fa-video'
+				'video': 'fa fa-video-camera'
 			}
 		});
 		this.note_editor = $(this.input_area).find('.note-editor');
+		// to fix <p> on enter
+		this.set_input('<div><br></div>');
 	},
 	hide_elements_on_mobile: function() {
 		this.note_editor.find('.note-btn-underline,\
