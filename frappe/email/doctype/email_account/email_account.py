@@ -50,6 +50,8 @@ class EmailAccount(Document):
 
 		#if self.enable_incoming and not self.append_to:
 		#	frappe.throw(_("Append To is mandatory for incoming mails"))
+		if self.email_sync_option == "ALL" and not self.uidvalidity:
+			frappe.throw("UIDVALIDITY is not found, setting sync option as ALL will sync all the emails")
 
 		if (not self.awaiting_password and not frappe.local.flags.in_install
 			and not frappe.local.flags.in_patch):
