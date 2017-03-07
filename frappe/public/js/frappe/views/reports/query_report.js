@@ -275,6 +275,8 @@ frappe.views.QueryReport = Class.extend({
 		xhr.send(formData);
 	},
 	setup_filters: function() {
+		if(this.setting_filters) return;
+		
 		this.clear_filters();
 		var me = this;
 		$.each(frappe.query_reports[this.report_name].filters || [], function(i, df) {
@@ -310,8 +312,11 @@ frappe.views.QueryReport = Class.extend({
 		// hide page form if no filters
 		var $filters = $(this.parent).find('.page-form .filters');
 		$(this.parent).find('.page-form').toggle($filters.length ? true : false);
-
+		
+		this.setting_filters = true;
 		this.set_route_filters()
+		this.setting_filters = false;
+		
 		this.set_filters_by_name();
 	},
 	clear_filters: function() {
