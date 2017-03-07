@@ -1,10 +1,16 @@
 from __future__ import unicode_literals
 import frappe
 from frappe.utils.global_search import web_search
+from html2text import html2text
+from frappe import _
 
 def get_context(context):
 	context.no_cache = 1
-	context.update(get_search_results(frappe.form_dict.q))
+	if frappe.form_dict.q:
+		context.title = _('Search Results for "{0}"').format(frappe.form_dict.q)
+		context.update(get_search_results(frappe.form_dict.q))
+	else:
+		context.title = _('Search')
 
 @frappe.whitelist(allow_guest = True)
 def get_search_results(text, start=0, as_html=False):
@@ -16,7 +22,10 @@ def get_search_results(text, start=0, as_html=False):
 		results = results[:20]
 
 	for d in results:
+		d.content = html2text(d.content)
 		index = d.content.lower().index(text.lower())
+		d.content = d.content[:index] + '<b>' + d.content[index:][:len(text)] + '</b>' + d.content[index + len(text):]
+
 		if index < 40:
 			start = 0
 			prefix = ''
@@ -25,10 +34,10 @@ def get_search_results(text, start=0, as_html=False):
 			prefix = '...'
 
 		suffix = ''
-		if (index + len(text) + 40) < len(d.content):
+		if (index + len(text) + 47) < len(d.content):
 			 suffix = '...'
 
-		d.preview = prefix + d.content[start:start + len(text) + 80].replace(text, '<b>' + text + '</b>') + suffix
+		d.preview = prefix + d.content[start:start + len(text) + 87] + suffix
 
 	out.results = results
 

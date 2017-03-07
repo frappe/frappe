@@ -16,5 +16,6 @@
 	{% if not only_static %}
 		{% block navbar_right_extension %}{% endblock %}
 	{% endif %}
+	{% include "templates/includes/navbar/navbar_search.html" %}
 	{% include "templates/includes/navbar/navbar_login.html" %}
 </ul>

@@ -205,7 +205,7 @@ class Meta(Document):
 	def get_title_field(self):
 		'''Return the title field of this doctype,
 		explict via `title_field`, or `title` or `name`'''
-		title_field = self.title_field
+		title_field = getattr(self, 'title_field', None)
 		if not title_field and self.has_field('title'):
 			title_field = 'title'
 		else:
