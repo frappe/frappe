@@ -38,12 +38,11 @@ frappe.listview_settings['File'] = {
 
 		doclist.breadcrumb = $('<ol class="breadcrumb for-file-list"></ol>')
 			.insertBefore(doclist.filter_area);
-
-		doclist.listview.settings.setup_menu(doclist);
-		doclist.listview.settings.setup_dragdrop(doclist);
+		doclist.list_renderer.settings.setup_menu(doclist);
+		doclist.list_renderer.settings.setup_dragdrop(doclist);
 
 		doclist.$page.on("click", ".list-row-checkbox", function(event) {
-				doclist.listview.settings.add_menu_item_copy(doclist);
+				doclist.list_renderer.settings.add_menu_item_copy(doclist);
 		})
 	},
 	list_view_doc:function(doclist){
@@ -130,7 +129,7 @@ frappe.listview_settings['File'] = {
 				if(doclist.$page.find(".list-row-checkbox:checked").length){
 					doclist.selected_files = doclist.get_checked_items();
 					doclist.old_parent = doclist.current_folder;
-					doclist.listview.settings.add_menu_item_paste(doclist);
+					doclist.list_renderer.settings.add_menu_item_paste(doclist);
 				}
 				else{
 					frappe.throw("Please select file to copy");
