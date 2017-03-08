@@ -240,7 +240,7 @@ DocType: Communication,Attachment Removed,Príloha odstránená
 apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html +45,Attachments,Prílohy
 DocType: Authentication Log,Authentication Log,
 apps/frappe/frappe/email/doctype/email_account/email_account.py +162,Authentication failed while receiving emails from Email Account {0}. Message from server: {1},Overovanie pri prijímaní e-mailov z e-mailového konta {0} zlyhalo. Správa zo servera: {1}
-DocType: Help Article,Author,
+DocType: Help Article,Author,Autor
 DocType: OAuth Authorization Code,Authorization Code,
 DocType: Integration Request,Authorized,
 DocType: OAuth Provider Settings,Auto,
@@ -2095,7 +2095,7 @@ apps/frappe/frappe/core/doctype/role_permission_for_page_and_report/role_permiss
 apps/frappe/frappe/core/doctype/user/user.py +415,Suggested Username: {0},Navrhované používateľské meno: {0}
 DocType: Event,Sunday,Nedele
 apps/frappe/frappe/email/doctype/email_queue/email_queue_list.js +16,Suspend Sending,
-apps/frappe/frappe/website/js/website.js +381,Switch To Desk,
+apps/frappe/frappe/website/js/website.js +381,Switch To Desk,Prepnúť na plochu
 DocType: Currency,Symbol,Symbol
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +90,Sync on Migrate,
 apps/frappe/frappe/utils/jinja.py +35,Syntax error in template,
