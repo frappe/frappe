@@ -52,6 +52,9 @@ frappe.socket = {
 		frappe.socket.setup_reconnect();
 
 		$(document).on('form-load form-rename', function(e, frm) {
+			if (frappe.flags.doc_subscribe) {
+				return;
+			}
 			if (frm.is_new()) {
 				return;
 			}
@@ -63,6 +66,11 @@ frappe.socket = {
 					return false;
 				}
 			}
+
+			frappe.flags.doc_subscribe = true;
+
+			// throttle to 1 per sec
+			setTimeout(function() { frappe.flags.doc_subscribe = false }, 1000);
 
 			frappe.socket.doc_subscribe(frm.doctype, frm.docname);
 		});
