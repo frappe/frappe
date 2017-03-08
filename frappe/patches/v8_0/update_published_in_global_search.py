@@ -1,8 +1,9 @@
 import frappe
-from frappe.utils.global_search import rebuild_for_doctype
 
 def execute():
 	from frappe.website.router import get_doctypes_with_web_view
+	from frappe.utils.global_search import rebuild_for_doctype
+
 	if not 'published' in frappe.db.get_db_table_columns('__global_search'):
 		frappe.db.sql('''alter table __global_search
 			add column `title` varchar(140)''')

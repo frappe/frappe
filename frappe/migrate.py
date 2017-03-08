@@ -24,6 +24,7 @@ def migrate(verbose=True, rebuild_website=False):
 	- sync fixtures
 	- sync desktop icons
 	- sync web pages (from /www)'''
+	frappe.flags.in_migrate = True
 	clear_global_cache()
 
 	# run patches
@@ -53,3 +54,4 @@ def migrate(verbose=True, rebuild_website=False):
 	clear_notifications()
 
 	frappe.publish_realtime("version-update")
+	frappe.flags.in_migrate = False

@@ -51,7 +51,8 @@ def update_controller_context(context, controller):
 			except frappe.PermissionError:
 				raise
 			except:
-				frappe.errprint(frappe.utils.get_traceback())
+				if not frappe.flags.in_migrate:
+					frappe.errprint(frappe.utils.get_traceback())
 
 		if hasattr(module, "get_children"):
 			context.children = module.get_children(context)
