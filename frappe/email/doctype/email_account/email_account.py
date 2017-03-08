@@ -233,7 +233,6 @@ class EmailAccount(Document):
 			uid_list = []
 			exceptions = []
 			seen_status = []
-			fingerprint_list = []
 			uid_reindexed = False
 
 			if frappe.local.flags.in_test:
@@ -247,7 +246,6 @@ class EmailAccount(Document):
 				incoming_mails = emails.get("latest_messages")
 				uid_list = emails.get("uid_list", [])
 				seen_status = emails.get("seen_status", [])
-				fingerprint_list = emails.get("fingerprint_list", [])
 				uid_reindexed = emails.get("uid_reindexed", False)
 
 			for idx, msg in enumerate(incoming_mails):
@@ -256,7 +254,6 @@ class EmailAccount(Document):
 					args = {
 						"uid": uid,
 						"seen": None if not seen_status else get_seen(seen_status.get(uid, None)),
-						"fingerprint": None if not fingerprint_list else fingerprint_list.get(uid, None),
 						"uid_reindexed": uid_reindexed
 					}
 					communication = self.insert_communication(msg, args=args)
@@ -324,11 +321,10 @@ class EmailAccount(Document):
 			# dont count emails sent by the system get those
 			raise SentEmailInInbox
 
-		if args.get("fingerprint", None) or email.message_id:
+		if email.message_id:
 			names = frappe.db.sql("""select distinct name from tabCommunication 
-				where fingerprint='{fingerprint}' or message_id='{message_id}'
+				where message_id='{message_id}'
 				order by creation desc limit 1""".format(
-					fingerprint=args.get("fingerprint", ''),
 					message_id=email.message_id
 				), as_dict=True)
 
@@ -358,8 +354,7 @@ class EmailAccount(Document):
 			"message_id": email.message_id,
 			"communication_date": email.date,
 			"has_attachment": 1 if email.attachments else 0,
-			"seen": seen or 0,
-			"fingerprint": args.get("fingerprint", None)
+			"seen": seen or 0
 		})
 
 		self.set_thread(communication, email)
