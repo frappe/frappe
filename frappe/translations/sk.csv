@@ -2535,7 +2535,7 @@ apps/frappe/frappe/limits.py +133,click here,
 DocType: Workflow State,cog,cog
 DocType: Email Flag Queue,comm_name,
 DocType: Workflow State,comment,
-apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +120,created,
+apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +120,created,vytvorené
 apps/frappe/frappe/core/doctype/version/version_view.html +47,danger,
 DocType: Kanban Board Column,darkgrey,
 DocType: System Settings,dd-mm-yyyy,dd-mm-rrrr
