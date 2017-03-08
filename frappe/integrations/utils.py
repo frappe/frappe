@@ -63,12 +63,12 @@ def create_request_log(data, integration_type, service_name, name=None):
 
 	return integration_request
 
-def get_payment_gateway_controller(payment_gateway):
+def get_payment_gateway_controller(service_name):
 	'''Return payment gateway controller'''
 	try:
-		return frappe.get_doc("{0} Settings".format(payment_gateway))
+		return frappe.get_doc("{0} Settings".format(service_name))
 	except Exception:
-		frappe.throw(_("{0} Settings not found".format(payment_gateway)))
+		frappe.throw(_("Module {service} not found".format(service=service_name)))
 
 @frappe.whitelist(allow_guest=True, xss_safe=True)
 def get_checkout_url(**kwargs):
@@ -84,11 +84,3 @@ def get_checkout_url(**kwargs):
 			indicator_color='red',
 			http_status_code=frappe.ValidationError.http_status_code)
 
-def create_payment_gateway(gateway):
-	# NOTE: we don't translate Payment Gateway name because it is an internal doctype
-	if not frappe.db.exists("Payment Gateway", gateway):
-		payment_gateway = frappe.get_doc({
-			"doctype": "Payment Gateway",
-			"gateway": gateway
-		})
-		payment_gateway.insert(ignore_permissions=True)
