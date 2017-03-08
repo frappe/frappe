@@ -35,6 +35,9 @@
 .form-grid .data-row.sortable-handle {
   cursor: move;
 }
+.form-column.col-sm-6 .form-grid .row-index > span {
+  display: none;
+}
 .form-grid .template-row {
   padding: 8px 15px;
 }

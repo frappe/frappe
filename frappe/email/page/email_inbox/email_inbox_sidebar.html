@@ -1,0 +1,19 @@
+<ul class="list-unstyled sidebar-menu user-actions">
+	<li class="divider"></li>
+</ul>
+<ul class="list-unstyled sidebar-menu standard-actions">
+	<li class="divider"></li>
+	<li class="list-link" data-view="List">
+		<a class="email-account" data-account="Sent">{%= __("Sent") %}</a>
+	</li>
+</ul>
+<ul class="list-unstyled sidebar-menu standard-actions">
+	<li class="divider"></li>
+	<li class="list-link"><h6>Email Accounts</h6></li>
+	{% for(var i=0, l=data.length; i<l; i++) { %}
+		<li class="divider"></li>
+		<li class="list-link" data-view="List">
+			<a class="email-account {%= i==0?"strong": "" %}" data-account="{%= data[i].account %}">{%= __(data[i].title) %}</a>
+		</li>
+	{% } %}
+</ul>

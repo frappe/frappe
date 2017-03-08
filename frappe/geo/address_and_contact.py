@@ -139,3 +139,28 @@ def delete_contact_and_address(doctype, docname):
 			doc = frappe.get_doc(parenttype, name)
 			if len(doc.links)==1:
 				doc.delete()
+
+def filter_dynamic_link_doctypes(doctype, txt, searchfield, start, page_len, filters):
+	if not txt: txt = ""
+
+	txt = txt.lower()
+	txt = "%%%s%%" % (txt)
+
+	filters.update({
+		"parent": ("like", txt)
+	})
+
+	doctypes = frappe.db.get_all("DocField", filters=filters, fields=["parent"],
+		order_by="parent asc", distinct=True, as_list=True)
+
+	filters.pop("parent")
+	filters.update({
+		"dt": ("not in", [doctype[0] for doctype in doctypes]),
+		"dt": ("like", txt),
+	})
+
+	_doctypes = frappe.db.get_all("Custom Field", filters=filters, fields=["dt"],
+		order_by="dt asc", as_list=True)
+
+	all_doctypes = doctypes + _doctypes
+	return sorted(all_doctypes, key=lambda item: item[0])
