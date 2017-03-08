@@ -12,7 +12,7 @@ from frappe.custom.doctype.customize_form.customize_form import docfield_propert
 from frappe.utils.file_manager import get_max_file_size
 from frappe.modules.utils import export_module_json, get_doc_module
 from urllib import urlencode
-from frappe.integration_broker.utils import get_payment_gateway_controller
+from frappe.integrations.utils import get_payment_gateway_controller
 
 class WebForm(WebsiteGenerator):
 	website = frappe._dict(

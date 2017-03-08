@@ -6,17 +6,10 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.utils import cstr, cint
-from frappe.integration_broker.doctype.integration_service.integration_service import IntegrationService
+from frappe.model.document import Document
 
-class LDAPSettings(IntegrationService):
-	def on_update(self):
-		pass
-	
+class LDAPSettings(Document):
 	def validate(self):
-		if not self.flags.ignore_mandatory:
-			self.validate_ldap_credentails()
-	
-	def enable(self):
 		if not self.flags.ignore_mandatory:
 			self.validate_ldap_credentails()
 
@@ -39,44 +32,6 @@ class LDAPSettings(IntegrationService):
 		except ldap.LDAPError:
 			conn.unbind_s()
 			frappe.throw("Incorrect UserId or Password")
-
-@frappe.whitelist()
-def get_service_details():
-	return """
-		<div>
-			<p> Steps to configure Service
-			<ol>
-				<li> Setup credentials on LDAP settings doctype
-					Click on
-					<button class="btn btn-default btn-xs disabled"> LDAP Settings </button>
-					top right corner
-					<br>
-					To setup LDAP you need,
-					<ul>
-						<li> Server URL & Port :  ldap://ldap.forumsys.com:389</li>
-						<li> Base Distinguished Name :  cn=read-only-admin,dc=example,dc=com</li>
-						<li> Organisational Unit :  ou=mathematicians,dc=example,dc=com</li>
-						<li> Password :  Base DN password</li>
-						<li> LDAP Search Criteria :  uid=*{0}</li>
-						<li> LDAP First Name Fields :  cn</li>
-						<li> LDAP Username Field :  ui</li>
-						<li> LDAP Email Field :  mail</li>
-					</ul>
-				</li>
-				<br>
-				<li>
-					After saving settings,
-						<label>
-							<span class="input-area">
-								<input type="checkbox" class="input-with-feedback" checked disabled>
-							</span>
-							<span class="label-area small">Enable</span>
-						</label>
-					LDAP Integration Service and Save a document.
-				</li>
-			</ol>
-		</div>
-	"""
 
 def get_ldap_settings():
 	try:

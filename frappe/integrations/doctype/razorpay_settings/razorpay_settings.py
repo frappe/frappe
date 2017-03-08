@@ -9,7 +9,7 @@
 
 Example:
 
-	from frappe.integration_broker.utils import get_payment_gateway_controller
+	from frappe.integrations.utils import get_payment_gateway_controller
 
 	controller = get_payment_gateway_controller("Razorpay")
 	controller().validate_transaction_currency(currency)
@@ -58,7 +58,7 @@ from frappe import _
 import urllib, json
 from frappe.model.document import Document
 from frappe.utils import get_url, call_hook_method, cint
-from frappe.integration_broker.utils import make_get_request, make_post_request, create_request_log
+from frappe.integrations.utils import make_get_request, make_post_request, create_request_log
 
 class RazorpaySettings(Document):
 	service_name = "Razorpay"

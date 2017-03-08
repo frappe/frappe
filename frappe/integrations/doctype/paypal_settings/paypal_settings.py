@@ -9,7 +9,7 @@
 
 Example:
 
-	from frappe.integration_broker.utils import get_payment_gateway_controller
+	from frappe.integrations.utils import get_payment_gateway_controller
 
 	controller = get_payment_gateway_controller("PayPal")
 	controller().validate_transaction_currency(currency)
@@ -63,7 +63,7 @@ from frappe.utils import get_url, call_hook_method, cint
 from urllib import urlencode
 from frappe.model.document import Document
 import urllib
-from frappe.integration_broker.utils import create_request_log, make_post_request
+from frappe.integrations.utils import create_request_log, make_post_request
 
 class PayPalSettings(Document):
 	service_name = "PayPal"
