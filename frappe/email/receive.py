@@ -506,6 +506,7 @@ class Email:
 			fname = part.get_filename()
 			if fname:
 				try:
+					fname = fname.replace('\n', ' ').replace('\r', '')
 					fname = cstr(decode_header(fname)[0][0])
 				except:
 					fname = get_random_filename(content_type=content_type)
