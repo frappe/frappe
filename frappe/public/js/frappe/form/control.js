@@ -391,10 +391,10 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 	},
 	set_bold: function() {
 		if(this.$input) {
-			this.$input.toggleClass("bold", !!this.df.bold);
+			this.$input.toggleClass("bold", !!(this.df.bold || this.df.reqd));
 		}
 		if(this.disp_area) {
-			$(this.disp_area).toggleClass("bold", !!this.df.bold);
+			$(this.disp_area).toggleClass("bold", !!(this.df.bold || this.df.reqd));
 		}
 	}
 });

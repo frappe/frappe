@@ -265,6 +265,7 @@ def add_system_manager(email, first_name=None, last_name=None, send_welcome_emai
 		"user_type": "System User",
 		"send_welcome_email": 1 if send_welcome_email else 0
 	})
+
 	user.insert()
 
 	# add roles
