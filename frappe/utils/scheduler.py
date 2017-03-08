@@ -157,12 +157,12 @@ def trigger(site, event, queued_jobs=(), now=False):
 		else:
 			scheduler_task(site=site, event=event, handler=handler, now=True)
 
-
 def get_scheduler_events(event):
 	'''Get scheduler events from hooks and integrations'''
 	scheduler_events = frappe.cache().get_value('scheduler_events')
 	if not scheduler_events:
-		frappe.cache().set_value('scheduler_events', frappe.get_hooks("scheduler_events"))
+		scheduler_events = frappe.get_hooks("scheduler_events")
+		frappe.cache().set_value('scheduler_events', scheduler_events)
 
 	return scheduler_events.get(event) or []
 

@@ -122,7 +122,7 @@ def take_backups_if(freq):
 def take_backup_to_dropbox():
 	did_not_upload, error_log = [], []
 	try:
-		if cint(frappe.db.get_value("Integration Service", "Dropbox", "enabled")):
+		if cint(frappe.db.get_value("Dropbox Settings", None, "enabled")):
 			did_not_upload, error_log = backup_to_dropbox()
 			if did_not_upload: raise Exception
 

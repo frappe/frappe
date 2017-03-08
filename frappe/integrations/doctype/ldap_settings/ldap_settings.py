@@ -38,7 +38,6 @@ def get_ldap_settings():
 		settings = frappe.get_doc("LDAP Settings")
 
 		settings.update({
-			"enabled": cint(frappe.db.get_value("Integration Service", "LDAP", "enabled")),
 			"method": "frappe.integrations.doctype.ldap_settings.ldap_settings.login"
 		})
 		return settings

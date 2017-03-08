@@ -222,8 +222,23 @@ def get_data():
 				},
 				{
 					"type": "doctype",
-					"name": "Integration Service",
-					"description": _("Centralize access to Integrations"),
+					"name": "PayPal Settings",
+					"description": _("PayPal payment gateway settings"),
+				},
+				{
+					"type": "doctype",
+					"name": "Razorpay Settings",
+					"description": _("Razorpay Payment gateway settings"),
+				},
+				{
+					"type": "doctype",
+					"name": "Dropbox Settings",
+					"description": _("Dropbox backup settings"),
+				},
+				{
+					"type": "doctype",
+					"name": "LDAP Settings",
+					"description": _("Ldap settings"),
 				},
 				{
 					"type": "doctype",
