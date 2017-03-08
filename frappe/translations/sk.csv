@@ -56,7 +56,7 @@ DocType: Razorpay Settings,API Key,
 DocType: PayPal Settings,API Password,
 DocType: Razorpay Settings,API Secret,
 DocType: PayPal Settings,API Username,
-DocType: DocType,ASC,
+DocType: DocType,ASC,Vzostupne
 apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html +61,About,O aplikácii
 DocType: About Us Settings,About Us Settings,Nastavenie O nás
 DocType: About Us Team Member,About Us Team Member,O nás – člen týmu
@@ -488,7 +488,7 @@ DocType: Customize Form Field,Customize Form Field,Prispôsobit formulárové po
 DocType: Customize Form,"Customize Label, Print Hide, Default etc.","Prispôsobiť pomenovanie, skryť tlač, predvolené atď."
 apps/frappe/frappe/config/core.py +32,"Customized Formats for Printing, Email","Upravené formáty pre tlač, e-mail"
 apps/frappe/frappe/config/setup.py +177,Customized HTML Templates for printing transactions.,Upravené HTML Šablóny pre tlač transakcií.
-DocType: DocType,DESC,
+DocType: DocType,DESC,Zostupne
 apps/frappe/frappe/templates/print_formats/standard_macros.html +152,DRAFT,NÁVRH
 DocType: Auto Email Report,Daily,Denný
 apps/frappe/frappe/desk/doctype/event/event.py +58,Daily Event Digest is sent for Calendar Events where reminders are set.,"Denný prehľad udalostí je posielaný k udalostiam v kalendári, pri ktorých bolo nastavené pripomenutie."
@@ -717,9 +717,9 @@ apps/frappe/frappe/public/js/frappe/ui/messages.js +202,Enter your password,Zada
 apps/frappe/frappe/public/js/frappe/ui/filters/edit_filter.html +6,Equals,Je rovné
 DocType: Communication,Error,Chyba
 apps/frappe/frappe/www/404.html +13,Error Code: {0},
-DocType: Error Log,Error Log,
+DocType: Error Log,Error Log,Chybové hlásenia
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot.html +32,Error Report,Error Report
-DocType: Error Snapshot,Error Snapshot,Chyba Snapshot
+DocType: Error Snapshot,Error Snapshot,Snímka chyby
 apps/frappe/frappe/core/doctype/file/file_list.js +102,Error in uploading files.,
 apps/frappe/frappe/email/doctype/email_alert/email_alert.py +210,Error while evaluating Email Alert {0}. Please fix your template.,
 apps/frappe/frappe/model/document.py +535,Error: Document has been modified after you have opened it,"Prosím, skúste znovu: Dokument bol zmenený predtým, ako ste urobili túto akciu."
@@ -1176,7 +1176,7 @@ DocType: Communication,Linked,Previazané s dokumentom
 apps/frappe/frappe/public/js/frappe/form/linked_with.js +25,Linked With,Previazané s
 DocType: Contact,Links,Vyhľadať previazania
 apps/frappe/frappe/public/js/frappe/list/list_view.js +110,List,Zoznam
-DocType: DocType,List View Settings,
+DocType: DocType,List View Settings,Nastavenie pre zobrazenie v zozname
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +168,List a document type,Zoznam typov dokumentov
 DocType: Web Form,"List as [{""label"": _(""Jobs""), ""route"":""jobs""}]",
 apps/frappe/frappe/config/setup.py +123,List of backups available for download,Zoznam záloh k dispozícii na stiahnutie
@@ -2040,7 +2040,7 @@ apps/frappe/frappe/core/doctype/user/user.py +166,Sorry! User should have comple
 apps/frappe/frappe/public/js/frappe/views/pageview.js +112,Sorry! You are not permitted to view this page.,Je nám ľúto! Nemáte povolenie na zobrazenie tejto stránky.
 apps/frappe/frappe/core/doctype/communication/communication.py +81,Sorry! You cannot delete auto-generated comments,
 apps/frappe/frappe/core/doctype/user/user.py +451,Sorry. You have reached the maximum user limit for your subscription. You can either disable an existing user or buy a higher subscription plan.,
-DocType: DocType,Sort Field,Pole radit dle
+DocType: DocType,Sort Field,Zoradiť podľa poľa
 DocType: DocType,Sort Order,Poradie radenia
 apps/frappe/frappe/core/doctype/doctype/doctype.py +530,Sort field {0} must be a valid fieldname,
 DocType: Translation,Source Text,
@@ -2354,7 +2354,7 @@ DocType: Print Format,Verdana,Verdana
 apps/frappe/frappe/public/js/frappe/ui/messages.js +217,Verify,Overiť
 apps/frappe/frappe/public/js/frappe/ui/messages.js +217,Verify Password,Potvrďte heslo
 apps/frappe/frappe/core/doctype/user/user.py +238,Verify Your Account,Overiť Váš účet
-apps/frappe/frappe/templates/includes/login/login.js +106,Verifying...,
+apps/frappe/frappe/templates/includes/login/login.js +106,Verifying...,Overujem...
 DocType: Version,Version,Verzia
 apps/frappe/frappe/email/doctype/email_group/email_group.js +9,View,Pohľad
 apps/frappe/frappe/public/js/frappe/views/treeview.js +297,View List,Zobraziť zoznam
@@ -2487,7 +2487,7 @@ apps/frappe/frappe/limits.py +61,Your subscription has expired.,
 apps/frappe/frappe/limits.py +72,Your subscription will expire on {0}.,
 apps/frappe/frappe/limits.py +66,Your subscription will expire today.,
 apps/frappe/frappe/limits.py +69,Your subscription will expire tomorrow.,
-apps/frappe/frappe/utils/response.py +169,Your system is being updated. Please refresh again after a few moments,
+apps/frappe/frappe/utils/response.py +169,Your system is being updated. Please refresh again after a few moments,Prebieha aktualizácia systému. O chvíľu môžete obnoviť stránku.
 apps/frappe/frappe/core/doctype/report/report.js +10,[Label]:[Field Type]/[Options]:[Width],[Označenie]:[Typ poľa]/[Možnosti]:[šírka]
 DocType: Desktop Icon,_doctype,
 DocType: Email Flag Queue,action,
