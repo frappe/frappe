@@ -13,7 +13,7 @@ import os, sys, importlib, inspect, json
 from .exceptions import *
 from .utils.jinja import get_jenv, get_template, render_template
 
-__version__ = '7.2.27'
+__version__ = '7.2.28'
 __title__ = "Frappe Framework"
 
 local = Local()
@@ -48,7 +48,8 @@ def _(msg, lang=None):
 	# msg should always be unicode
 	msg = as_unicode(msg).strip()
 
-	return get_full_dict(local.lang).get(msg) or msg
+	# return lang_full_dict according to lang passed parameter
+	return get_full_dict(lang).get(msg) or msg
 
 def as_unicode(text, encoding='utf-8'):
 	'''Convert to unicode if required'''
