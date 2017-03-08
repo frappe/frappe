@@ -34,6 +34,18 @@
 			</ul>
 		</div>
 	</li>
+	{% if(doctype == "Communication") { %}
+	<li class="hide list-link" data-view="Email Inbox">
+		<div class="btn-group">
+			<a class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+				{{ __("Email Inbox") }} <span class="caret"></span>
+			</a>
+			<ul class="dropdown-menu inbox-dropdown" style="max-height: 300px; overflow-y: auto;">
+				<li class="new-kanban-board"><a>{{ __("New Kanban Board") }}</a></li>
+			</ul>
+		</div>
+	</li>
+	{% } %}
 	<li class="assigned-to-me">
 		<a>{%= __("Assigned To Me") %}</a>
 	</li>
