@@ -1,3 +1,4 @@
+,Ctrl+enter to save,Ctrl+Enter uloží záznam
 DocType: OAuth Client, Advanced Settings,Rozšírené nastavenia
 apps/frappe/frappe/public/js/frappe/form/workflow.js +32, by Role ,(kým) rolí
 apps/frappe/frappe/model/naming.py +95, for {0},pre {0}
@@ -83,7 +84,7 @@ apps/frappe/frappe/public/js/frappe/views/communication.js +327,Add Attachment,
 apps/frappe/frappe/public/js/frappe/views/treeview.js +161,Add Child,Pridať potomka
 apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +845,Add Column,Pridať stĺpec
 apps/frappe/frappe/templates/includes/comments/comments.html +25,Add Comment,Pridať komentár
-apps/frappe/frappe/public/js/frappe/list/list_sidebar.js +159,Add Custom Column Field,
+apps/frappe/frappe/public/js/frappe/list/list_sidebar.js +159,Add Custom Column Field,Vložiť vlastné pole stĺpca
 apps/frappe/frappe/core/page/desktop/desktop.py +12,Add Employees to Manage Them,
 DocType: Website Settings,Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytics for more information.,Pridať Google Analytics ID: napr.: UA-89XXX57-1. Pro více informací prosím vyhledejte nápovedu na stránkách Google Analytics.
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +375,Add New Permission Rule,Pridať nové pravidlo oprávnenie
@@ -404,7 +405,7 @@ apps/frappe/frappe/core/page/data_import_tool/exporter.py +264,Column Labels:,Oz
 DocType: Kanban Board Column,Column Name,Názov stĺpca
 apps/frappe/frappe/desk/doctype/kanban_board/kanban_board.py +16,Column Name cannot be empty,
 DocType: DocField,Columns,
-apps/frappe/frappe/public/js/frappe/list/list_sidebar.js +152,Columns based on,
+apps/frappe/frappe/public/js/frappe/list/list_sidebar.js +152,Columns based on,Stĺpce vzťahovať na
 DocType: Communication,Comment,Poznámka
 DocType: Communication,Comment Type,Typ komentáre
 apps/frappe/frappe/desk/page/activity/activity_row.html +17,Commented on {0}: {1},Komentoval {0}: {1}
@@ -1111,7 +1112,7 @@ DocType: Print Format,Js,
 apps/frappe/frappe/public/js/frappe/list/list_sidebar.html +30,Kanban,
 DocType: Kanban Board,Kanban Board,
 DocType: Kanban Board Column,Kanban Board Column,
-DocType: Kanban Board,Kanban Board Name,
+DocType: Kanban Board,Kanban Board Name,Názov Kanban nástenky
 apps/frappe/frappe/public/js/frappe/views/kanban/kanban_board.js +808,Kanban Board {0} does not exist.,
 DocType: Communication,Keep a track of all communications,Prehľad všetkej komunikácie
 DocType: DefaultValue,Key,Kľúč
@@ -1216,7 +1217,7 @@ DocType: Contact,Maintenance Manager,Správce údržby
 DocType: Contact,Maintenance User,Údržba používateľe
 DocType: DocType,"Make ""name"" searchable in Global Search",
 apps/frappe/frappe/print/doctype/print_format/print_format.js +31,Make Default,Nastaviť ako predvolený
-apps/frappe/frappe/public/js/frappe/list/list_view.js +491,Make a new ,
+apps/frappe/frappe/public/js/frappe/list/list_view.js +491,Make a new ,Vytvoriť: 
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +166,Make a new record,Vytvoriť nový záznam
 apps/frappe/frappe/public/js/frappe/form/link_selector.js +105,Make a new {0},Vytvoriť: {0}
 apps/frappe/frappe/public/js/frappe/upload.js +223,Make file(s) private or public?,
@@ -1309,7 +1310,7 @@ apps/frappe/frappe/core/doctype/file/file_list.js +200,New,Vytvoriť
 apps/frappe/frappe/public/js/frappe/form/print.js +98,New Custom Print Format,New Custom Print Format
 apps/frappe/frappe/public/js/frappe/form/footer/timeline.html +17,New Email,Nový email
 apps/frappe/frappe/core/doctype/file/file_list.js +63,New Folder,Nový priečinok
-apps/frappe/frappe/public/js/frappe/list/list_sidebar.js +173,New Kanban Board,
+apps/frappe/frappe/public/js/frappe/list/list_sidebar.js +173,New Kanban Board,Nová nástenka Kanban
 apps/frappe/frappe/www/contact.py +54,New Message from Website Contact Page,
 DocType: Deleted Document,New Name,Nové meno
 apps/frappe/frappe/email/doctype/email_group/email_group.js +43,New Newsletter,Nový Newsletter
