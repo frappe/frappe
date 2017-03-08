@@ -8,7 +8,7 @@ import json, urlparse
 from frappe.utils import get_request_session
 from frappe import _
 
-def get_request(url, auth=None, data=None):
+def make_get_request(url, auth=None, data=None):
 	if not auth:
 		auth = ''
 	if not data:
@@ -24,7 +24,7 @@ def get_request(url, auth=None, data=None):
 		frappe.log_error(frappe.get_traceback())
 		raise exc
 
-def post_request(url, auth=None, data=None):
+def make_post_request(url, auth=None, data=None):
 	if not auth:
 		auth = ''
 	if not data:

@@ -9,9 +9,9 @@
 
 Example:
 
-	from frappe.integration_broker.doctype.integration_service.integration_service import get_integration_controller
+	from frappe.integration_broker.utils import get_payment_gateway_controller
 
-	controller = get_integration_controller("Razorpay")
+	controller = get_payment_gateway_controller("Razorpay")
 	controller().validate_transaction_currency(currency)
 
 ### 2. Redirect for payment
@@ -27,7 +27,8 @@ Example:
 		"payer_email": "NuranVerkleij@example.com",
 		"payer_name": "Nuran Verkleij",
 		"order_id": "111",
-		"currency": "INR"
+		"currency": "INR",
+		"payment_gateway": "Razorpay"
 	}
 
 	# Redirect the user to this url
@@ -57,7 +58,7 @@ from frappe import _
 import urllib, json
 from frappe.model.document import Document
 from frappe.utils import get_url, call_hook_method, cint
-from frappe.integration_broker.utils import get_request, post_request, create_request_log
+from frappe.integration_broker.utils import make_get_request, make_post_request, create_request_log
 
 class RazorpaySettings(Document):
 	service_name = "Razorpay"
@@ -71,7 +72,7 @@ class RazorpaySettings(Document):
 	def validate_razorpay_credentails(self):
 		if self.api_key and self.api_secret:
 			try:
-				get_request(url="https://api.razorpay.com/v1/payments",
+				make_get_request(url="https://api.razorpay.com/v1/payments",
 					auth=(self.api_key, self.get_password(fieldname="api_secret", raise_exception=False)))
 			except Exception:
 				frappe.throw(_("Seems API Key or API Secret is wrong !!!"))
@@ -110,7 +111,7 @@ class RazorpaySettings(Document):
 		redirect_message = data.get('notes', {}).get('redirect_message') or None
 
 		try:
-			resp = get_request("https://api.razorpay.com/v1/payments/{0}"
+			resp = make_get_request("https://api.razorpay.com/v1/payments/{0}"
 				.format(self.data.razorpay_payment_id), auth=(settings.api_key,
 					settings.api_secret))
 
@@ -187,7 +188,7 @@ def capture_payment(is_sandbox=False, sanbox_response=None):
 				data = json.loads(doc.data)
 				settings = controller.get_settings(data)
 
-				resp = post_request("https://api.razorpay.com/v1/payments/{0}/capture".format(data.get("razorpay_payment_id")),
+				resp = make_post_request("https://api.razorpay.com/v1/payments/{0}/capture".format(data.get("razorpay_payment_id")),
 					auth=(settings.api_key, settings.api_secret), data={"amount": data.get("amount")})
 
 			if resp.get("status") == "captured":
