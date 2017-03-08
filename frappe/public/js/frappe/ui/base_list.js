@@ -320,7 +320,19 @@ frappe.ui.BaseList = Class.extend({
 			values = this.get_values_from_response(r.message);
 		}
 
-		if (values.length || !this.show_no_result()) {
+		var show_results = true;
+		if(this.show_no_result) {
+			if($.isFunction(this.show_no_result)) {
+				show_results = !this.show_no_result()
+			} else {
+				show_results = !this.show_no_result;
+			}
+		}
+
+		// render result view when
+		// length > 0 OR
+		// explicitly set by flag
+		if (values.length || show_results) {
 			this.data = this.data.concat(values);
 			this.render_view(values);
 			this.update_paging(values);
