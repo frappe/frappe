@@ -12,7 +12,10 @@ def get_email_accounts(user=None):
 		distinct=True, order_by="idx")
 
 	if not accounts:
-		return None
+		return {
+			"email_accounts": [],
+			"all_accounts": ""
+		}
 
 	email_accounts.append({
 		"email_account": "Sent",
@@ -34,25 +37,27 @@ def get_email_accounts(user=None):
 	}
 
 @frappe.whitelist()
-def create_email_flag_queue(communications, action, flag):
+def create_email_flag_queue(names, action, flag="(\\Seen)"):
 	""" create email flag queue to mark email either as read or unread """
 	class Found(Exception):
 		pass
 
-	if not all([communications, action, flag]):
+	if not all([names, action, flag]):
 		return
 
-	for communication in json.loads(communications or []):
-		if not communication.get("uid", None):
+	for name in json.loads(names or []):
+		uid, seen_status = frappe.db.get_value("Communication", name, 
+			["ifnull(uid, -1)", "ifnull(seen, 0)"])
+
+		if not uid or uid == -1:
 			continue
 
 		seen = 1 if action == "Read" else "Unread"
 		# check if states are correct
-		state = frappe.db.get_value("Communication", communication.get("name"), "seen")
-		if (action =='Read' and state == 0) or (action =='Unread' and state == 1):
+		if (action =='Read' and seen_status == 0) or (action =='Unread' and seen_status == 1):
 			try:
 				queue = frappe.db.sql("""select name, action, flag from `tabEmail Flag Queue`
-					where communication = %(name)s""", {"name":communication.get("name")}, as_dict=True)
+					where communication = %(name)s""", {"name":name}, as_dict=True)
 				for q in queue:
 					# is same email with same flag
 					if q.flag == flag:
@@ -63,12 +68,12 @@ def create_email_flag_queue(communications, action, flag):
 
 				flag_queue = frappe.get_doc({
 					"doctype": "Email Flag Queue",
-					"communication": communication.get("name"),
+					"communication": name,
 					"action": action,
 					"flag": flag
 				})
 				flag_queue.save(ignore_permissions=True);
-				frappe.db.set_value("Communication", communication.get("name"), "seen", seen, 
+				frappe.db.set_value("Communication", name, "seen", seen, 
 					update_modified=False)
 			except Found:
 				pass

@@ -60,7 +60,19 @@ frappe.ui.form.on("Communication", {
 
 			frm.add_custom_button(__("Mark as {0}", [frm.doc.seen? "Unread": "Read"]), function() {
 				frm.trigger('mark_as_read_unread');
-			});
+			}, "Actions");
+
+			frm.add_custom_button(__("Reply"), function() {
+				frm.trigger('reply');
+			}, "Actions");
+
+			frm.add_custom_button(__("Reply-All"), function() {
+				frm.trigger('reply_all');
+			}, "Actions");
+
+			frm.add_custom_button(__("Forward"), function() {
+				frm.trigger('forward_mail');
+			}, "Actions");
 		}
 	},
 	show_relink_dialog: function(frm){
@@ -110,6 +122,7 @@ frappe.ui.form.on("Communication", {
 		});
 		d.show();
 	},
+
 	mark_as_read_unread: function(frm) {
 		action = frm.doc.seen? "Unread": "Read";
 		flag = "(\\SEEN)";
@@ -117,15 +130,58 @@ frappe.ui.form.on("Communication", {
 		return frappe.call({
 			method: "frappe.email.inbox.create_email_flag_queue",
 			args: {
-				'communications': [{
-					'name': frm.doc.name,
-					'uid': frm.doc.uid || 1
-				}],
+				'names': [frm.doc.name],
 				'action': action,
 				'flag': flag
 			},
-			callback: function(r) {
+			freeze: true
+		});
+	},
+
+	reply: function(frm) {
+		args = frm.events.get_mail_args(frm);
+		$.extend(args, {
+			subject: __("Re: {0}", [frm.doc.subject]),
+			recipients: frm.doc.sender
+		})
+
+		new frappe.views.CommunicationComposer(args);
+	},
+
+	reply_all: function(frm) {
+		args = frm.events.get_mail_args(frm)
+		$.extend(args, {
+			subject: __("Re: {0}", [frm.doc.subject]),
+			recipients: frm.doc.sender,
+			cc: frm.doc.cc
+		})
+		new frappe.views.CommunicationComposer(args);
+	},
+
+	forward_mail: function(frm) {
+		args = frm.events.get_mail_args(frm)
+		$.extend(args, {		
+			forward: true,
+			subject: __("Fw: {0}", [frm.doc.subject]),
+		})
+
+		new frappe.views.CommunicationComposer(args);
+	},
+
+	get_mail_args: function(frm) {
+		sender_email_id = ""
+		$.each(frappe.boot.email_accounts, function(idx, account) {
+			if(account.email_account == frm.doc.email_account) {
+				sender_email_id = account.email_id
+				return
 			}
 		});
+
+		return {
+			doc: frm.doc,
+			last_email: frm.doc,
+			sender: sender_email_id,
+			attachments: frm.doc.attachments
+		}
 	}
 });
