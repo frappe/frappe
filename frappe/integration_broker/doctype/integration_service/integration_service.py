@@ -84,13 +84,6 @@ class IntegrationService(Document):
 
 		return integration_request
 
-def get_integration_controller(service_name):
-	'''Returns integration controller module from app_name.integrations.{service}'''
-	try:
-		return frappe.get_doc("{0} Settings".format(service_name))
-	except Exception:
-		frappe.throw(_("Module {service} not found".format(service=service_name)))
-
 @frappe.whitelist()
 def get_integration_services():
 	services = [""]

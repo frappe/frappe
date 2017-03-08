@@ -125,6 +125,7 @@ scheduler_events = {
 		"frappe.email.doctype.email_account.email_account.pull",
 		"frappe.email.doctype.email_account.email_account.notify_unreplied",
 		"frappe.oauth.delete_oauth2_data",
+		"frappe.integrations.doctype.razorpay_settings.razorpay_settings.capture_payment"
 	],
 	"hourly": [
 		"frappe.model.utils.link_count.update_link_count",
