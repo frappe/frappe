@@ -446,7 +446,8 @@ def validate_fields(meta):
 			if not d.get("__islocal"):
 				try:
 					has_non_unique_values = frappe.db.sql("""select `{fieldname}`, count(*)
-						from `tab{doctype}` group by `{fieldname}` having count(*) > 1 limit 1""".format(
+						from `tab{doctype}` where ifnull({fieldname}, '') != ''
+						group by `{fieldname}` having count(*) > 1 limit 1""".format(
 						doctype=d.parent, fieldname=d.fieldname))
 
 				except MySQLdb.OperationalError, e:
