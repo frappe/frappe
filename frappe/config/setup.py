@@ -205,54 +205,6 @@ def get_data():
 			]
 		},
 		{
-			"label": _("Integrations"),
-			"icon": "fa fa-star",
-			"items": [
-				{
-					"type": "page",
-					"name": "applications",
-					"label": _("Application Installer"),
-					"description": _("Install Applications."),
-					"icon": "fa fa-download"
-				},
-				{
-					"type": "doctype",
-					"name": "Social Login Keys",
-					"description": _("Enter keys to enable login via Facebook, Google, GitHub."),
-				},
-				{
-					"type": "doctype",
-					"name": "PayPal Settings",
-					"description": _("PayPal payment gateway settings"),
-				},
-				{
-					"type": "doctype",
-					"name": "Razorpay Settings",
-					"description": _("Razorpay Payment gateway settings"),
-				},
-				{
-					"type": "doctype",
-					"name": "Dropbox Settings",
-					"description": _("Dropbox backup settings"),
-				},
-				{
-					"type": "doctype",
-					"name": "LDAP Settings",
-					"description": _("Ldap settings"),
-				},
-				{
-					"type": "doctype",
-					"name": "OAuth Client",
-					"description": _("Register OAuth Client App"),
-				},
-				{
-					"type": "doctype",
-					"name": "OAuth Provider Settings",
-					"description": _("Settings for OAuth Provider"),
-				},
-			]
-		},
-		{
 			"label": _("Customize"),
 			"icon": "fa fa-glass",
 			"items": [
@@ -292,6 +244,18 @@ def get_data():
 
 			]
 		},
+		{
+			"label": _("Applications"),
+			"items":[
+				{
+					"type": "page",
+					"name": "applications",
+					"label": _("Application Installer"),
+					"description": _("Install Applications."),
+					"icon": "fa fa-download"
+				},
+			]
+		}
 	]
 	add_setup_section(data, "frappe", "website", _("Website"), "fa fa-globe")
 	return data

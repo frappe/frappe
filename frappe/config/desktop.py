@@ -37,6 +37,13 @@ def get_data():
 			"hidden": 1
 		},
 		{
+			"module_name": "Integrations",
+			"color": "#16a085",
+			"icon": "octicon octicon-globe",
+			"type": "module",
+			"hidden": 1
+		},
+		{
 			"module_name": "Setup",
 			"color": "#bdc3c7",
 			"reverse": 1,
