@@ -109,7 +109,6 @@ class EmailServer:
 			self.errors = False
 			self.latest_messages = []
 			self.seen_status = {}
-			self.fingerprint_list = {}
 			self.uid_reindexed = False
 
 			uid_list = email_list = self.get_new_mails()
@@ -159,7 +158,6 @@ class EmailServer:
 			out.update({
 				"uid_list": uid_list,
 				"seen_status": self.seen_status,
-				"fingerprint_list": self.fingerprint_list,
 				"uid_reindexed": self.uid_reindexed
 			})
 
@@ -232,9 +230,7 @@ class EmailServer:
 				status, message = self.imap.uid('fetch', message_meta, '(BODY.PEEK[] BODY.PEEK[HEADER] FLAGS)')
 				raw, header, ignore = message
 
-				self.get_email_seen_status(message_meta, header[0])
-				self.get_email_headers_hash(message_meta, header[1])
-
+				self.get_email_seen_status(message_meta, raw[0])
 				self.latest_messages.append(raw[1])
 			else:
 				msg = self.pop.retr(msg_num)
@@ -282,27 +278,6 @@ class EmailServer:
 			self.seen_status.update({ uid: "SEEN" })
 		else:
 			self.seen_status.update({ uid: "UNSEEN" })
-
-	def get_email_headers_hash(self, uid, headers):
-		""" generate the email unique id from header hash
-			unique id can be used to update uid if UID is reindexed"""
-
-		hash = hashlib.sha1()		
-		for header in headers:
-			if header[0] == 'Content-Type':
-			  # skip variable boundaries
-			  continue
-
-			try:
-				decoded_header = decode_header(header[1])
-				decoded = ''.join([val[0].decode(val[1]).encode('ascii', 'ignore') \
-					if val[1] is not None else val[0] for val in decoded_header])
-				cleaned = re.sub(r"\s+", u"", decoded, flags=re.UNICODE)
-				hash.update(cleaned)
-			except:
-				pass
-
-		self.fingerprint_list.update({ uid: hash.hexdigest() })
 
 	def has_login_limit_exceeded(self, e):
 		return "-ERR Exceeded the login limit" in strip(cstr(e.message))
