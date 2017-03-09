@@ -95,7 +95,7 @@ def get_feedback_request_details(reference_doctype, reference_name, trigger="Man
 		}, fields=["name"])
 
 		if len(communications) < 1:
-			frappe.msgprint(_("Atleast one reply is mandatory before requesting Feedback"))
+			frappe.msgprint(_("At least one reply is mandatory before requesting feedback"))
 			return None
 
 	if recipients and eval(feedback_trigger.condition, context):
@@ -115,7 +115,7 @@ def get_feedback_request_details(reference_doctype, reference_name, trigger="Man
 			"message": feedback_request_message,
 		}
 	else:
-		frappe.msgprint("Feedback conditions does not match")
+		frappe.msgprint("Feedback conditions do not match")
 		return None
 
 def get_feedback_request_url(reference_doctype, reference_name, recipients, trigger="Manual"):
