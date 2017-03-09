@@ -24,13 +24,31 @@ class FeedbackTrigger(Document):
 			except:
 				frappe.throw(_("The condition '{0}' is invalid").format(self.condition))
 
+def trigger_feedback_request(doc, method):
+	""" trigger the feedback alert"""
+
+	if doc.flags.in_delete:
+		frappe.enqueue('frappe.core.doctype.feedback_trigger.feedback_trigger.delete_feedback_request_and_feedback',
+			reference_doctype=doc.doctype, reference_name=doc.name, now=frappe.flags.in_test)
+	else:
+		feedback_trigger = frappe.db.get_value("Feedback Trigger", { "enabled": 1, "document_type": doc.doctype })
+		if feedback_trigger:
+			frappe.enqueue('frappe.core.doctype.feedback_trigger.feedback_trigger.send_feedback_request',
+				trigger=feedback_trigger, reference_doctype=doc.doctype, reference_name=doc.name, now=frappe.flags.in_test)
+
 @frappe.whitelist()
 def send_feedback_request(reference_doctype, reference_name, trigger="Manual", details=None, is_manual=False):
 	""" send feedback alert """
 
-	is_feedback_request_already_sent(reference_doctype, reference_name, is_manual=is_manual)
+	if is_feedback_request_already_sent(reference_doctype, reference_name, is_manual=is_manual):
+		frappe.msgprint(_("Feedback Request is already sent to user"))
+		return None
+
 	details = json.loads(details) if details else \
 		get_feedback_request_details(reference_doctype, reference_name, trigger=trigger)
+
+	if not details:
+		return None
 
 	feedback_request, url = get_feedback_request_url(reference_doctype,
 		reference_name, details.get("recipients"), trigger)
@@ -47,17 +65,6 @@ def send_feedback_request(reference_doctype, reference_name, trigger="Manual", d
 		frappe.sendmail(**details)
 		frappe.db.set_value("Feedback Request", feedback_request, "is_sent", 1)
 
-def trigger_feedback_request(doc, method):
-	""" trigger the feedback alert"""
-
-	if doc.flags.in_delete:
-		frappe.enqueue('frappe.core.doctype.feedback_trigger.feedback_trigger.delete_feedback_request_and_feedback',
-			reference_doctype=doc.doctype, reference_name=doc.name, now=frappe.flags.in_test)
-	else:
-		feedback_trigger = frappe.db.get_value("Feedback Trigger", { "enabled": 1, "document_type": doc.doctype })
-		if feedback_trigger:
-			frappe.enqueue('frappe.core.doctype.feedback_trigger.feedback_trigger.send_feedback_request',
-				trigger=feedback_trigger, reference_doctype=doc.doctype, reference_name=doc.name, now=frappe.flags.in_test)
 
 @frappe.whitelist()
 def get_feedback_request_details(reference_doctype, reference_name, trigger="Manual", request=None):
@@ -88,7 +95,8 @@ def get_feedback_request_details(reference_doctype, reference_name, trigger="Man
 		}, fields=["name"])
 
 		if len(communications) < 1:
-			frappe.throw(_("No communication found for the document"))
+			frappe.msgprint(_("At least one reply is mandatory before requesting feedback"))
+			return None
 
 	if recipients and eval(feedback_trigger.condition, context):
 		subject = feedback_trigger.subject
@@ -107,7 +115,8 @@ def get_feedback_request_details(reference_doctype, reference_name, trigger="Man
 			"message": feedback_request_message,
 		}
 	else:
-		frappe.throw("Feedback conditions does not match !!")
+		frappe.msgprint("Feedback conditions do not match")
+		return None
 
 def get_feedback_request_url(reference_doctype, reference_name, recipients, trigger="Manual"):
 	""" prepare the feedback request url """
@@ -135,6 +144,7 @@ def is_feedback_request_already_sent(reference_doctype, reference_name, is_manua
 		check if feedback request mail is already sent but feedback is not submitted
 		to avoid sending multiple feedback request mail
 	"""
+	is_request_sent = False
 	filters = {
 		"is_sent": 1,
 		"reference_name": reference_name,
@@ -147,8 +157,8 @@ def is_feedback_request_already_sent(reference_doctype, reference_name, is_manua
 
 	feedback_request = frappe.get_all("Feedback Request", filters=filters, fields=["name"])
 
-	if feedback_request:
-		frappe.throw(_("Feedback request mail has been already sent to the recipient"))
+	if feedback_request: is_request_sent = True
+	return is_request_sent
 
 def get_enabled_feedback_trigger():
 	""" get mapper of all the enable feedback trigger """

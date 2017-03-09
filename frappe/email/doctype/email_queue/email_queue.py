@@ -8,12 +8,14 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.email.queue import send_one
 from frappe.limits import get_limits
+from frappe.utils import now_datetime
+
 
 class EmailQueue(Document):
 	def set_recipients(self, recipients):
 		self.set("recipients", [])
 		for r in recipients:
-			self.append("recipients", {"recipient":r})
+			self.append("recipients", {"recipient":r, "status":"Not Sent"})
 
 	def on_trash(self):
 		self.prevent_email_queue_delete()
@@ -35,6 +37,9 @@ def retry_sending(name):
 	doc = frappe.get_doc("Email Queue", name)
 	if doc and (doc.status == "Error" or doc.status == "Partially Errored"):
 		doc.status = "Not Sent"
+		for d in doc.recipients:
+			if d.status != 'Sent':
+				d.status = 'Not Sent'
 		doc.save(ignore_permissions=True)
 
 @frappe.whitelist()

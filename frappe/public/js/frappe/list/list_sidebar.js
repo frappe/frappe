@@ -27,7 +27,7 @@ frappe.views.ListSidebar = Class.extend({
 		this.setup_assigned_to_me();
 		this.setup_views();
 		this.setup_kanban_boards();
-
+		this.setup_email_inbox();
 	},
 	setup_views: function() {
 		var show_list_link = false;
@@ -39,6 +39,10 @@ frappe.views.ListSidebar = Class.extend({
 		}
 		//show link for kanban view
 		this.sidebar.find('.list-link[data-view="Kanban"]').removeClass('hide');
+		if(this.doctype === "Communication"){
+			this.sidebar.find('.list-link[data-view="Inbox"]').removeClass('hide');
+			show_list_link = true;
+		}
 
 		if(frappe.treeview_settings[this.doctype]) {
 			this.sidebar.find(".tree-link").removeClass("hide");
@@ -46,11 +50,13 @@ frappe.views.ListSidebar = Class.extend({
 
 		this.current_view = 'List';
 		var route = frappe.get_route();
-		if(route.length > 2 && in_list(['Gantt', 'Image', 'Kanban', 'Calendar'], route[2])) {
+		if(route.length > 2 && in_list(['Gantt', 'Image', 'Kanban', 'Calendar', 'Inbox'], route[2])) {
 			this.current_view = route[2];
 
 			if(this.current_view === 'Kanban') {
 				this.kanban_board = route[3];
+			} else if (this.current_view === 'Inbox') {
+				this.email_account = route[3] || frappe.boot.all_accounts;
 			}
 		}
 
@@ -59,7 +65,7 @@ frappe.views.ListSidebar = Class.extend({
 			.attr('disabled', 'disabled').addClass('disabled');
 
 		//enable link for Kanban view
-		this.sidebar.find('.list-link[data-view="Kanban"] a')
+		this.sidebar.find('.list-link[data-view="Kanban"] a, .list-link[data-view="Inbox"] a')
 			.attr('disabled', null).removeClass('disabled')
 
 		// show image link if image_view
@@ -232,6 +238,30 @@ frappe.views.ListSidebar = Class.extend({
 					r.message.kanban_board_name
 				);
 			}
+		});
+	},
+	setup_email_inbox: function() {
+		// get active email account for the user and add in dropdown
+		if(this.doctype != "Communication")
+			return;
+
+		var $dropdown = this.page.sidebar.find('.email-account-dropdown');
+		var divider = false;
+		accounts = frappe.boot.email_accounts;
+
+		accounts.forEach(function(account) {
+			var route = ["List", "Communication", "Inbox", account.email_account].join('/');
+			if(!divider) {
+				$('<li role="separator" class="divider"></li>').appendTo($dropdown);
+				divider = true;
+			}
+			$('<li><a href="#'+ route + '">'+account.email_id+'</a></li>').appendTo($dropdown);
+			if(account.email_id === "Sent Mail")
+				divider = false
+		});
+
+		$dropdown.find('.new-email-account').click(function() {
+			frappe.new_doc("Email Account")
 		});
 	},
 	setup_assigned_to_me: function() {

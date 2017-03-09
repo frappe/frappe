@@ -19,6 +19,7 @@ frappe.ui.form.save = function(frm, action, callback, btn) {
 
 	var save = function() {
 		check_name(function() {
+			$(frm.wrapper).addClass('validated-form');
 			if(check_mandatory()) {
 				_call({
 					method: "frappe.desk.form.save.savedocs",
@@ -132,10 +133,21 @@ frappe.ui.form.save = function(frm, action, callback, btn) {
 
 				}
 			});
-			if(error_fields.length)
-				msgprint(__('Mandatory fields required in {0}', [(doc.parenttype
-					? (__(frappe.meta.docfield_map[doc.parenttype][doc.parentfield].label) + ' ('+ __("Table") + ')')
-					: __(doc.doctype))]) + '<br> <ul><li>' + error_fields.join('</li><li>') + "</ul>");
+			if(error_fields.length) {
+				if(doc.parenttype) {
+					var message = __('Mandatory fields required in table {0}, Row {1}',
+						[__(frappe.meta.docfield_map[doc.parenttype][doc.parentfield].label).bold(), doc.idx]);
+				} else {
+					var message = __('Mandatory fields required in {0}', [__(doc.doctype)]);
+
+				}
+				message = message + '<br><br><ul><li>' + error_fields.join('</li><li>') + "</ul>";
+				msgprint({
+					message: message,
+					indicator: 'red',
+					title: __('Missing Fields')
+				});
+			}
 		});
 
 		return !has_errors;

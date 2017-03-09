@@ -185,6 +185,8 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 			this.list_renderer = new frappe.views.ImageView(opts);
 		} else if (this.current_view === 'Kanban') {
 			this.list_renderer = new frappe.views.KanbanView(opts);
+		} else if (this.current_view === 'Inbox') {
+			this.list_renderer = new frappe.views.InboxView(opts)
 		}
 	},
 
@@ -210,6 +212,9 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 			if (us.last_view === 'Kanban') {
 				route.push(us['Kanban'].last_kanban_board);
 			}
+
+			if (us.last_view === 'Inbox')
+				route.push(us['Inbox'].last_email_account)
 		}
 
 		frappe.set_route(route);
@@ -266,10 +271,13 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 	set_filters: function (filters) {
 		var me = this;
 		$.each(filters, function (i, f) {
+			hidden = false
 			if (f.length === 3) {
 				f = [me.doctype, f[0], f[1], f[2]]
+			} else if (f.length === 5) {
+				hidden = f.pop(4) || false
 			}
-			me.filter_list.add_filter(f[0], f[1], f[2], f[3]);
+			me.filter_list.add_filter(f[0], f[1], f[2], f[3], hidden);
 		});
 	},
 
@@ -447,7 +455,7 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 
 		if (!this.list_renderer.settings.use_route) {
 			var route = frappe.get_route();
-			if (route[2] && !in_list(['Image', 'Gantt', 'Kanban', 'Calendar'], route[2])) {
+			if (route[2] && !in_list(['Image', 'Gantt', 'Kanban', 'Calendar', 'Inbox'], route[2])) {
 				$.each(frappe.utils.get_args_dict_from_url(route[2]), function (key, val) {
 					me.set_filter(key, val, true);
 				});
