@@ -58,10 +58,6 @@ frappe.ui.form.on("Communication", {
 			&& frm.doc.communication_medium == "Email"
 			&& frm.doc.sent_or_received == "Received") {
 
-			frm.add_custom_button(__("Mark as {0}", [frm.doc.seen? "Unread": "Read"]), function() {
-				frm.trigger('mark_as_read_unread');
-			}, "Actions");
-
 			frm.add_custom_button(__("Reply"), function() {
 				frm.trigger('reply');
 			}, "Actions");
@@ -72,6 +68,14 @@ frappe.ui.form.on("Communication", {
 
 			frm.add_custom_button(__("Forward"), function() {
 				frm.trigger('forward_mail');
+			}, "Actions");
+
+			frm.add_custom_button(__("Add to Contact"), function() {
+				frm.trigger('add_to_contact');
+			}, "Actions");
+
+			frm.add_custom_button(__("Mark as {0}", [frm.doc.seen? "Unread": "Read"]), function() {
+				frm.trigger('mark_as_read_unread');
 			}, "Actions");
 		}
 	},
@@ -183,5 +187,21 @@ frappe.ui.form.on("Communication", {
 			sender: sender_email_id,
 			attachments: frm.doc.attachments
 		}
+	},
+
+	add_to_contact: function(frm) {
+		var me = this;
+		fullname = frm.doc.sender_full_name || ""
+
+		names = fullname.split(" ")
+		first_name = names[0]
+		last_name = names.length >= 2? last_name[names.length - 1]: ""
+
+		frappe.route_options = {
+			"email_id": frm.doc.sender,
+			"first_name": first_name,
+			"last_name": last_name,
+		}
+		frappe.new_doc("Contact")
 	}
 });

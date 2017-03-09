@@ -569,7 +569,6 @@ class EmailAccount(Document):
 		if self.email_sync_option == "ALL":
 			max_uid = get_max_email_uid(self.name)
 			last_uid = max_uid + int(self.initial_sync_count or 100) if max_uid == 1 else "*"
-			print "UID {}:{}".format(max_uid, last_uid)
 			return "UID {}:{}".format(max_uid, last_uid)
 		else:
 			return self.email_sync_option or "UNSEEN"
