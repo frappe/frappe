@@ -18,6 +18,7 @@ import frappe.translate
 from frappe.utils.change_log import get_change_log
 import redis
 from urllib import unquote
+from frappe.desk.notifications import clear_notifications
 
 @frappe.whitelist()
 def clear(user=None):
@@ -44,6 +45,8 @@ def clear_cache(user=None):
 			cache.delete_key(name, user)
 		clear_global_cache()
 		frappe.defaults.clear_cache()
+
+	clear_notifications(user)
 
 def clear_global_cache():
 	frappe.model.meta.clear_cache()
