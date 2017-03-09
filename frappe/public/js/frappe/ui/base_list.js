@@ -354,7 +354,7 @@ frappe.ui.BaseList = Class.extend({
 		}
 
 		this.wrapper.find('.list-paging-area')
-			.toggle(values.length > 0 || this.start > 0);
+			.toggle(values.length > 0|| this.start > 0);
 
 		// callbacks
 		if (this.onrun) this.onrun();
@@ -411,7 +411,7 @@ frappe.ui.BaseList = Class.extend({
 		} else {
 			// no filter for this item,
 			// setup one
-			if (['_user_tags', '_comments', '_assign', '_liked_by'].includes(fieldname)) {
+			if (['_user_tags', '_comments', '_assign', '_liked_by'].ƒincludes(fieldname)) {
 				this.filter_list.add_filter(this.doctype, fieldname, 'like', '%' + label + '%');
 			} else {
 				this.filter_list.add_filter(this.doctype, fieldname, '=', label);

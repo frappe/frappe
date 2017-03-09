@@ -245,6 +245,7 @@
 		"public/js/frappe/views/calendar/calendar.js",
 		"public/js/frappe/views/image/image_view.js",
 		"public/js/frappe/views/kanban/kanban_view.js",
+		"public/js/frappe/views/inbox/inbox_view.js",
 
 		"public/js/frappe/list/header_select_all_like_filter.html",
 		"public/js/frappe/list/item_assigned_to_comment_count.html",
@@ -253,6 +254,9 @@
 		"public/js/frappe/views/image/image_view_item_row.html",
 		"public/js/frappe/views/image/image_view_item_main_head.html",
 		"public/js/frappe/views/image/photoswipe_dom.html",
+
+		"public/js/frappe/views/inbox/inbox_view_item_row.html",
+		"public/js/frappe/views/inbox/inbox_view_item_main_head.html",
 		
 		"public/js/frappe/views/kanban/kanban_board.html",
 		"public/js/frappe/views/kanban/kanban_column.html",
