@@ -4,6 +4,9 @@ from frappe.utils import cint
 def execute():
 	frappe.reload_doc("integrations", "doctype", "ldap_settings")
 
+	if not frappe.db.exists("DocType", "Integration Service"):
+		return
+
 	if not frappe.db.exists("Integration Service", "LDAP"):
 		return
 

@@ -106,7 +106,8 @@ def get_parameters(app_details):
 				"app_secret_key": frappe.conf.dropbox_secret_key,
 				"dropbox_access_key": doc.dropbox_access_key,
 				"dropbox_access_secret": doc.dropbox_access_secret,
-				"backup_frequency": doc.upload_backups_to_dropbox
+				"backup_frequency": doc.upload_backups_to_dropbox,
+				"enabled": doc.send_backups_to_dropbox
 			}
 		}
 

@@ -1,5 +1,6 @@
 import frappe
 from frappe.integrations.utils import create_payment_gateway
+
 def execute():
 	setup_enabled_integrations()
 
@@ -37,12 +38,12 @@ def create_payment_gateway_master_records():
 		doctype = "{0} Settings".format(payment_gateway)
 		doc = frappe.get_doc(doctype)
 		doc_meta = frappe.get_meta(doctype)
-		all_madatory_fieds_has_value = True
+		all_mandatory_fields_has_value = True
 
 		for d in doc_meta.fields:
 			if d.reqd and not doc.get(d.fieldname):
-				all_madatory_fieds_has_value = False
+				all_mandatory_fields_has_value = False
 				break
 
-		if all_madatory_fieds_has_value:
+		if all_mandatory_fields_has_value:
 			create_payment_gateway(payment_gateway)
