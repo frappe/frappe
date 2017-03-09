@@ -48,4 +48,3 @@ def create_payment_gateway_master_records():
 
 		if all_mandatory_fields_has_value:
 			create_payment_gateway(payment_gateway)
-
