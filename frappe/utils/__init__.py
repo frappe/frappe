@@ -463,7 +463,7 @@ def sanitize_html(html, linkify=False):
 			strip_disallowed_elements = False
 			strip_html_comments = strip_comments
 
-		escaped_html = bleach.linkify(escaped_html, tokenizer=s)
+		escaped_html = bleach.linkify(escaped_html, callbacks=[], tokenizer=s)
 
 	return escaped_html
 
