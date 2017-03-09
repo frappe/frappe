@@ -91,10 +91,10 @@ frappe.utils.Feedback = Class.extend({
 			'args': args,
 			freeze: true,
 			callback: function(r) {
-				docname = args.reference_name;
-				recipients = args.details.recipients || ""
-				frappe.msgprint(__("Feedback Request for {0} is sent to {1}",
-					[docname, recipients]));
+				if(r.message) {
+					frappe.msgprint(__("Feedback Request for {0} is sent to {1}",
+						[args.reference_name, args.details.recipients]));
+				}
 			}
 		});
 	}
