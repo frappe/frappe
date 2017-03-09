@@ -110,6 +110,9 @@ def get_notifications_for_doctypes(config, notification_count):
 	return open_count_doctype
 
 def clear_notifications(user=None):
+	if frappe.flags.in_install:
+		return
+
 	config = get_notification_config()
 	groups = config.get("for_doctype").keys() + config.get("for_module").keys()
 	cache = frappe.cache()
