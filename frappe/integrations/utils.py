@@ -84,3 +84,11 @@ def get_checkout_url(**kwargs):
 			indicator_color='red',
 			http_status_code=frappe.ValidationError.http_status_code)
 
+def create_payment_gateway(gateway):
+	# NOTE: we don't translate Payment Gateway name because it is an internal doctype
+	if not frappe.db.exists("Payment Gateway", gateway):
+		payment_gateway = frappe.get_doc({
+			"doctype": "Payment Gateway",
+			"gateway": gateway
+		})
+		payment_gateway.insert(ignore_permissions=True)

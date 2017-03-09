@@ -58,13 +58,13 @@ from frappe import _
 import urllib, json
 from frappe.model.document import Document
 from frappe.utils import get_url, call_hook_method, cint
-from frappe.integrations.utils import make_get_request, make_post_request, create_request_log
+from frappe.integrations.utils import make_get_request, make_post_request, create_request_log, create_payment_gateway
 
 class RazorpaySettings(Document):
-	service_name = "Razorpay"
 	supported_currencies = ["INR"]
 
 	def validate(self):
+		create_payment_gateway('Razorpay')
 		call_hook_method('payment_gateway_enabled', gateway='Razorpay')
 		if not self.flags.ignore_mandatory:
 			self.validate_razorpay_credentails()
@@ -79,7 +79,7 @@ class RazorpaySettings(Document):
 
 	def validate_transaction_currency(self, currency):
 		if currency not in self.supported_currencies:
-			frappe.throw(_("Please select another payment method. {0} does not support transactions in currency '{1}'").format(self.service_name, currency))
+			frappe.throw(_("Please select another payment method. Razorpay does not support transactions in currency '{0}'").format(currency))
 
 	def get_payment_url(self, **kwargs):
 		return get_url("./integrations/razorpay_checkout?{0}".format(urllib.urlencode(kwargs)))

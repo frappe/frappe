@@ -63,11 +63,9 @@ from frappe.utils import get_url, call_hook_method, cint
 from urllib import urlencode
 from frappe.model.document import Document
 import urllib
-from frappe.integrations.utils import create_request_log, make_post_request
+from frappe.integrations.utils import create_request_log, make_post_request, create_payment_gateway
 
 class PayPalSettings(Document):
-	service_name = "PayPal"
-
 	supported_currencies = ["AUD", "BRL", "CAD", "CZK", "DKK", "EUR", "HKD", "HUF", "ILS", "JPY", "MYR", "MXN",
 		"TWD", "NZD", "NOK", "PHP", "PLN", "GBP", "RUB", "SGD", "SEK", "CHF", "THB", "TRY", "USD"]
 
@@ -79,7 +77,8 @@ class PayPalSettings(Document):
 		setattr(self, "use_sandbox", cint(frappe._dict(data).use_sandbox) or 0)
 
 	def validate(self):
-		call_hook_method('payment_gateway_enabled', gateway=self.service_name)
+		create_payment_gateway("PayPal")
+		call_hook_method('payment_gateway_enabled', gateway="PayPal")
 		if not self.flags.ignore_mandatory:
 			self.validate_paypal_credentails()
 
@@ -88,7 +87,7 @@ class PayPalSettings(Document):
 
 	def validate_transaction_currency(self, currency):
 		if currency not in self.supported_currencies:
-			frappe.throw(_("Please select another payment method. {0} does not support transactions in currency '{1}'").format(self.service_name, currency))
+			frappe.throw(_("Please select another payment method. PayPal does not support transactions in currency '{0}'").format(currency))
 
 	def get_paypal_params_and_url(self):
 		params = {
@@ -138,7 +137,7 @@ class PayPalSettings(Document):
 			"correlation_id": response.get("CORRELATIONID")[0]
 		})
 
-		self.integration_request = create_request_log(kwargs, "Remote", self.service_name, response.get("TOKEN")[0])
+		self.integration_request = create_request_log(kwargs, "Remote", "PayPal", response.get("TOKEN")[0])
 
 		return return_url.format(kwargs["token"])
 
