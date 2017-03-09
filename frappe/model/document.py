@@ -692,6 +692,7 @@ class Document(BaseDocument):
 		if not self.flags.in_insert:
 			# value change is not applicable in insert
 			event_map['validate'] = 'Value Change'
+			event_map['before_change'] = 'Value Change'
 
 		for alert in self.flags.email_alerts:
 			event = event_map.get(method, None)
@@ -699,6 +700,7 @@ class Document(BaseDocument):
 				_evaluate_alert(alert)
 			elif alert.event=='Method' and method == alert.method:
 				_evaluate_alert(alert)
+			self.flags.email_alerts_executed.append(alert.name)
 
 	@staticmethod
 	def whitelist(f):
