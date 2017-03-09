@@ -4,6 +4,7 @@
 from __future__ import unicode_literals
 
 import frappe
+from frappe.utils import cint
 
 def setup_global_search_table():
 	'''Creates __global_seach table'''
@@ -30,7 +31,7 @@ def update_global_search(doc):
 		`frappe.flags.update_global_search` from given doc
 	:param doc: Document to be added to global search'''
 
-	if doc.meta.istable:
+	if cint(doc.meta.istable) == 1 and not doc.parenttype.startswith("__"):
 		d = frappe.get_doc(doc.parenttype, doc.parent)
 		update_global_search(d)
 		return
