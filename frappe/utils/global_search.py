@@ -117,7 +117,6 @@ def search(text, start=0, limit=20):
 	:param limit: number of results to return, default 20
 	:return: Array of result objects'''
 
-	text = "+" + text + "*"
 	results = frappe.db.sql('''
 		select
 			doctype, name, content
@@ -125,7 +124,7 @@ def search(text, start=0, limit=20):
 			__global_search
 		where
 			match(content) against (%s IN BOOLEAN MODE)
-		limit {start}, {limit}'''.format(start=start, limit=limit), text, as_dict=True)
+		limit {start}, {limit}'''.format(start=start, limit=limit), text+"*", as_dict=True)
 	return results
 
 @frappe.whitelist(allow_guest=True)
@@ -149,25 +148,25 @@ def web_search(text, start=0, limit=20):
 		text, as_dict=True)
 	return results
 
-@frappe.whitelist()
-def get_search_doctypes(text):
-	'''Search for all t
-	:param text: phrase to be searched
-	:return: Array of result objects'''
+# @frappe.whitelist()
+# def get_search_doctypes(text):
+# 	'''Search for all t
+# 	:param text: phrase to be searched
+# 	:return: Array of result objects'''
 
-	text = "+" + text + "*"
-	results = frappe.db.sql('''
-		select
-			doctype
-		from
-			__global_search
-		where
-			match(content) against (%s IN BOOLEAN MODE)
-		group by
-			doctype
-		order by
-			count(doctype) desc limit 0, 80''', text, as_dict=True)
-	return results
+# 	text = text + "*"
+# 	results = frappe.db.sql('''
+# 		select
+# 			doctype
+# 		from
+# 			__global_search
+# 		where
+# 			match(content) against (%s IN BOOLEAN MODE)
+# 		group by
+# 			doctype
+# 		order by
+# 			count(doctype) desc limit 0, 80''', text, as_dict=True)
+# 	return results
 
 @frappe.whitelist()
 def search_in_doctype(doctype, text, start, limit):
@@ -178,7 +177,7 @@ def search_in_doctype(doctype, text, start, limit):
 	:param limit: number of results to return, default 20
 	:return: Array of result objects'''
 
-	text = "+" + text + "*"
+	text = text + "*"
 	results = frappe.db.sql('''
 		select
 			name, content

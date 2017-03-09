@@ -67,109 +67,116 @@ frappe.search.utils = {
 		return out;
     },
 
-    get_all_global_results: function (keywords, start, limit, callback, condensed = 0) {
-        var me = this;
+    get_all_global_results: function (keywords, start, limit, condensed = 0) {
+        return new Promise(function(resolve, reject) {
+            function get_results_sets(data) {
+                var results_sets = [], result, set;
+                var get_existing_set = function(doctype) {
+                    return results_sets.find(function(set) {
+                        return set.title === doctype;
+                    });
+                }
+                data.forEach(function(d) {
+                    // Condition for condensed
+                    // more properties
+                    result = {
+                        label: d.name,
+                        value: d.name,
+                        description: d.content,
+                        route: ['Form', d.doctype, d.name]
+                    }
+                    set = get_existing_set(d.doctype);
+                    if(set) {
+                        set.results.push(result);
+                    } else {
+                        set = {
+                            title: d.doctype,
+                            results: [result]
+                        }
+                        results_sets.push(set);
+                    }
 
-        function get_results_sets(data) {
-            var results_sets = [], result, set;
-            var get_existing_set = function(doctype) {
-                return results_sets.find(function(set) {
-                    return set.title === doctype;
                 });
+                return results_sets;
             }
-            data.forEach(function(d) {
-                // Condition for condensed
-                // more properties
-                result = {
-                    label: d.name,
-                    value: d.name,
-                    description: d.content,
-                    route: ['Form', d.doctype, d.name]
+
+            frappe.call({
+                method: "frappe.utils.global_search.search",
+                args: {
+                    text: keywords,
+                    start: start,
+                    limit: limit,
+                },
+                callback: function(r) {
+                    if(r.message) {
+                        // console.log(get_results_sets(r.message));
+                        resolve(get_results_sets(r.message));
+                    } else {
+                        resolve([]);
+                    }
                 }
-                set = get_existing_set(d.doctype);
-                if(set) {
+            });
+        });
+    },
+
+    get_doctype_globals: function(doctype, keywords, start, limit) {
+        return new Promise(function(resolve, reject) {
+            frappe.call({
+                method: "frappe.utils.global_search.search_in_doctype",
+                args: {
+                    doctype: doctype,
+                    text: keywords,
+                    start: start,
+                    limit: limit,
+                },
+                callback: function(r) {
+                    if(r.message) {
+                        resolve(r);
+                    } else {
+                        resolve([]);
+                    }
+                }
+            });
+        });
+    },
+
+    get_help_results: function(keywords) {
+        return new Promise(function(resolve, reject) {
+            function get_results_set(data) {
+                var result;
+                var set = {
+                    title: "Help",
+                    results: []
+                }
+                data.forEach(function(d) {
+                    // more properties
+                    result = {
+                        label: d[0],
+                        value: d[0],
+                        description: d[1],
+                        route:[],
+                        onclick: function() {
+
+                        }
+                    }
                     set.results.push(result);
-                } else {
-                    set = {
-                        title: d.doctype,
-                        results: [result]
-                    }
-                    results_sets.push(set);
-                }
-
-            });
-            return results_sets;
-        }
-
-		frappe.call({
-			method: "frappe.utils.global_search.search",
-			args: {
-				text: keywords,
-				start: start,
-				limit: limit,
-			},
-			callback: function(r) {
-				if(r.message) {
-                    // console.log(get_results_sets(r.message));
-                    callback(get_results_sets(r.message), keywords);
-				}
-			}
-		});
-    },
-
-    get_doctype_globals: function(doctype, keywords, start, limit, callback) {
-        var me = this;
-		frappe.call({
-			method: "frappe.utils.global_search.search_in_doctype",
-			args: {
-				doctype: doctype,
-				text: keywords,
-				start: start,
-				limit: limit,
-			},
-			callback: function(r) {
-				if(r.message) {
-                    callback(r);
-				}
-			}
-		});
-    },
-
-    get_help_results: function(keywords, callback) {
-        var me = this;
-
-        function get_results_set(data) {
-            var result;
-            var set = {
-                title: "Help",
-                results: []
+                });
+                return [set];
             }
-            data.forEach(function(d) {
-                // Condition for condensed
-                // more properties
-                result = {
-                    label: d[0],
-                    value: d[0],
-                    description: d[1],
-                    onclick: function() {
-
+            frappe.call({
+                method: "frappe.utils.help.get_help",
+                args: {
+                    text: keywords
+                },
+                callback: function(r) {
+                    if(r.message) {
+                        resolve(get_results_set(r.message));
+                    } else {
+                        resolve([]);
                     }
                 }
-                set.results.push(result);
             });
-            return [set];
-        }
-		frappe.call({
-			method: "frappe.utils.help.get_help",
-			args: {
-				text: keywords
-			},
-			callback: function(r) {
-				if(r.message) {
-                    callback(get_results_sets(r.message), keywords);
-				}
-			}
-		});
+        });
     },
 
     get_nav: function(keywords) {

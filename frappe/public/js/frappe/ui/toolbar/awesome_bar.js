@@ -6,15 +6,15 @@ frappe.search.AwesomeBar = Class.extend({
 	setup: function(element) {
 		var me = this;
 
-		this.$input = $(element);
-		this.input = this.$input.get(0);
+		var $input = $(element);
+		var input = $input.get(0);
 
 		this.search = new frappe.search.SearchDialog();
 
 		this.options = [];
 		this.global_results = [];
 
-		var awesomplete = new Awesomplete(me.input, {
+		var awesomplete = new Awesomplete(input, {
 			minChars: 0,
 			maxItems: 99,
 			autoFirst: true,
@@ -47,7 +47,7 @@ frappe.search.AwesomeBar = Class.extend({
 			}
 		});
 
-		this.$input.on("input", function(e) {
+		$input.on("input", function(e) {
 			var value = e.target.value;
 			var txt = value.trim().replace(/\s\s+/g, ' ');
 			var last_space = txt.lastIndexOf(' ');
@@ -108,17 +108,17 @@ frappe.search.AwesomeBar = Class.extend({
 				$(this).trigger("input");
 			}
 		}
-		this.$input.on("focus", open_recent);
+		$input.on("focus", open_recent);
 
-		this.$input.on("awesomplete-open", function(e) {
+		$input.on("awesomplete-open", function(e) {
 			me.autocomplete_open = e.target;
 		});
 
-		this.$input.on("awesomplete-close", function(e) {
+		$input.on("awesomplete-close", function(e) {
 			me.autocomplete_open = false;
 		});
 
-		this.$input.on("awesomplete-select", function(e) {
+		$input.on("awesomplete-select", function(e) {
 			var o = e.originalEvent;
 			var value = o.text.value;
 			var item = awesomplete.get_item(value);
@@ -138,11 +138,11 @@ frappe.search.AwesomeBar = Class.extend({
 					frappe.route();
 				}
 			}
-			me.$input.val("");
+			$input.val("");
 		});
 
-		this.$input.on("awesomplete-selectcomplete", function(e) {
-			me.$input.val("");
+		$input.on("awesomplete-selectcomplete", function(e) {
+			$input.val("");
 		});
 		this.setup_recent();
 	},

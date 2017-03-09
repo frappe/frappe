@@ -12,11 +12,11 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 
 		this.setup_sidebar();
 
-		this.awesome_bar = new frappe.search.AwesomeBar();
-		this.awesome_bar.setup("#navbar-search");
-		this.awesome_bar.setup("#modal-search");
+		var awesome_bar = new frappe.search.AwesomeBar();
+		awesome_bar.setup("#navbar-search");
+		awesome_bar.setup("#modal-search");
 
-		this.search = this.awesome_bar.search;
+		this.search = awesome_bar.search;
 
 		$(document).on("notification-update", function() {
 			frappe.ui.notifications.update_notifications();
@@ -153,8 +153,7 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 
 		var me = this;
 		function show_help_results(keywords) {
-			me.search.search_dialog.show();
-			me.search.setup_search(keywords, [me.help]);
+			me.search.init_search(keywords, "help");
 		}
 
 		frappe.provide('frappe.help');

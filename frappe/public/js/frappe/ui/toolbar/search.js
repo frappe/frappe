@@ -28,7 +28,6 @@ frappe.search.SearchDialog = Class.extend({
 		this.$modal_body = $(d.body);
 		this.$input = this.$search_modal.find(".search-input");
 
-		// this.$results_area = this.$search_modal.find(".results-area");
 		this.$results_area = $('<div class="row results-area hide">' +
 			'<div class="col-md-2 col-sm-2 hidden-xs layout-side-section search-sidebar"></div>' +
 			'<div class="col-md-10 col-sm-10 layout-main-section search-results"></div>' +
@@ -117,11 +116,26 @@ frappe.search.SearchDialog = Class.extend({
 
 	// Search types (can be relocated)
 	searches: {
-		global: function(keywords, start, limit, callback) {
-			return frappe.search.utils.get_all_global_results(keywords, start, limit, callback);
+		global: function(keywords, callback) {
+			var results = {}, start = 0, limit = 20;
+			frappe.search.utils.get_all_global_results(keywords, start, limit)
+				.then(function(global_results) {
+					results.global = global_results;
+					return frappe.search.utils.get_help_results(keywords);
+				}).then(function(help_results) {
+					results.help = help_results;
+					callback(results);
+				}, function (err) {
+					console.error(err);
+				});
 		},
-		help: function(keywords) {
-
+		help: function(keywords, callback) {
+			frappe.search.utils.get_help_results(keywords)
+				.then(function(help_results) {
+					callback({help: help_results});
+				}, function (err) {
+					console.error(err);
+				});
 		}
 	},
 
@@ -139,18 +153,18 @@ frappe.search.SearchDialog = Class.extend({
 	get_results: function(keywords) {
 		this.current_keyword = keywords;
 		// More on how to collect this later
-		var result_sets = this.searches[this.search](keywords, 0, 20, this.render_data.bind(this));
+		var result_sets = this.searches[this.search](keywords, this.render_data.bind(this));
 
 		// get results type object megatype arrays [ {title:"Item", results: [{a:foo, b:..}, {}, ()]}, {title:"", re} ]   and so on
 		// pass them onto render_results
 		// categorize acc to modal: top, quick_links, results --> for summary
 	},
 
-	render_data: function(result_sets, keywords) {
+	render_data: function(result_sets) {
 		var me = this;
 		var sidelist = $('<ul class="module-sidebar-nav overlay-sidebar nav nav-pills nav-stacked search-sidelist"></ul>');
 		this.full_lists = {};
-		result_sets.forEach(function(set) {
+		result_sets.help.forEach(function(set) {
 			var sidebar_item_html = '<li class="module-sidebar-item list-link" data-category="{0}">' +
 				'<a><span>{0}</span><i class="octicon octicon-chevron-right pull-right"' +
 				'></a></li>';
