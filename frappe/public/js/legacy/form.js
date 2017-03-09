@@ -455,6 +455,7 @@ _f.Frm.prototype.refresh = function(docname) {
 		}
 
 		if(is_a_different_doc) {
+			$(this.wrapper).removeClass('validated-form')
 			if(this.show_print_first && this.doc.docstatus===1) {
 				// show print view
 				this.print_doc();
