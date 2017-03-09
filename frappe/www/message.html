@@ -6,7 +6,8 @@
 
 <div class='page-card'>
 	<div class='page-card-head'>
-		<span class='indicator {{ indicator_color }}'>{{ title or _("Message") }}</span>
+		<span class='indicator {{ indicator_color or "blue" }}'>
+			{{ title or _("Message") }}</span>
 	</div>
 	<p>{{ message or "" }}</p>
 	{% if primary_action %}
