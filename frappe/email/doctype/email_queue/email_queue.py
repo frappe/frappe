@@ -37,10 +37,10 @@ def retry_sending(name):
 	doc = frappe.get_doc("Email Queue", name)
 	if doc and (doc.status == "Error" or doc.status == "Partially Errored"):
 		doc.status = "Not Sent"
+		for d in doc.recipients:
+			if d.status != 'Sent':
+				d.status = 'Not Sent'
 		doc.save(ignore_permissions=True)
-
-	frappe.db.sql("""update `tabEmail Queue Recipient` set status='Not Sent', modified=%s where parent=%s""",
-		(now_datetime(), name))
 
 @frappe.whitelist()
 def send_now(name):
