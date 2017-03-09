@@ -31,7 +31,7 @@ def update_global_search(doc):
 		`frappe.flags.update_global_search` from given doc
 	:param doc: Document to be added to global search'''
 
-	if cint(doc.meta.istable) == 1 and not doc.parenttype.startswith("__"):
+	if cint(doc.meta.istable) == 1 and frappe.db.exists("DocType", doc.parenttype):
 		d = frappe.get_doc(doc.parenttype, doc.parent)
 		update_global_search(d)
 		return
