@@ -264,8 +264,14 @@ class User(Document):
 
 		link = self.reset_password()
 
-		self.send_login_mail(_("Verify Your Account"), "templates/emails/new_user.html",
-			{"link": link, "site_url": get_url()})
+		app_title = [t for t in frappe.get_hooks('app_title') if t != 'Frappe Framework']
+		subject = _("Welcome to {0}").format(app_title[0])
+
+		self.send_login_mail(subject, "templates/emails/new_user.html",
+				dict(
+					link=link,
+					site_url=get_url(),
+				))
 
 
 	def send_login_mail(self, subject, template, add_args, now=None):

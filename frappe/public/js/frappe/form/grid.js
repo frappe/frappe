@@ -50,6 +50,8 @@ frappe.ui.form.Grid = Class.extend({
 			.appendTo(this.parent)
 			.attr("data-fieldname", this.df.fieldname);
 
+		this.form_grid = this.wrapper.find('.form-grid');
+
 		this.wrapper.find(".grid-add-row").click(function() {
 			me.add_new_row(null, null, true);
 			me.set_focus_on_row();
@@ -177,6 +179,9 @@ frappe.ui.form.Grid = Class.extend({
 			this.last_docname = this.frm.docname;
 			frappe.utils.scroll_to(_scroll_y);
 		}
+
+		// red if mandatory
+		this.form_grid.toggleClass('error', !!(this.df.reqd && !(data && data.length)));
 
 		this.refresh_remove_rows_button();
 	},
@@ -783,6 +788,15 @@ frappe.ui.form.GridRow = Class.extend({
 				this.refresh_field(df.fieldname, txt);
 			}
 
+			// background color for cellz
+			if(this.doc) {
+				if(df.reqd && !txt) {
+					column.addClass('error');
+				}
+				if (df.reqd || df.bold) {
+					column.addClass('bold');
+				}
+			}
 		}
 
 	},
@@ -1028,8 +1042,9 @@ frappe.ui.form.GridRow = Class.extend({
 		}
 	},
 	refresh_field: function(fieldname, txt) {
+		var df = this.grid.get_docfield(fieldname);
 		if(txt===undefined) {
-			var txt = frappe.format(this.doc[fieldname], this.grid.get_docfield(fieldname),
+			var txt = frappe.format(this.doc[fieldname], df,
 				null, this.frm.doc);
 		}
 
@@ -1037,6 +1052,9 @@ frappe.ui.form.GridRow = Class.extend({
 		var column = this.columns[fieldname];
 		if(column) {
 			column.static_area.html(txt || "");
+			if(df.reqd) {
+				column.toggleClass('error', !!(txt===null || txt===''));
+			}
 		}
 
 		// reset field value

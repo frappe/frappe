@@ -13,8 +13,9 @@
 				<span class="open-notification hidden"
 					title="{{ __("Open {0}", [__(doctype)])}}"></span>
 				{% if !internal_links[doctype] %}
-					<button class="btn btn-new btn-default btn-xs pull-right hidden"
-						data-doctype="{{ doctype }}">{{ __("New") }}</button>
+					<button class="btn btn-new btn-default btn-xs hidden"
+						data-doctype="{{ doctype }}">
+							<i class="octicon octicon-plus" style="font-size: 12px;"></i></button>
 				{% endif %}
 			</div>
 			{% } %}
