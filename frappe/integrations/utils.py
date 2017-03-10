@@ -63,12 +63,12 @@ def create_request_log(data, integration_type, service_name, name=None):
 
 	return integration_request
 
-def get_payment_gateway_controller(service_name):
+def get_payment_gateway_controller(payment_gateway):
 	'''Return payment gateway controller'''
 	try:
-		return frappe.get_doc("{0} Settings".format(service_name))
+		return frappe.get_doc("{0} Settings".format(payment_gateway))
 	except Exception:
-		frappe.throw(_("Module {service} not found".format(service=service_name)))
+		frappe.throw(_("{0} Settings not found".format(payment_gateway)))
 
 @frappe.whitelist(allow_guest=True, xss_safe=True)
 def get_checkout_url(**kwargs):
