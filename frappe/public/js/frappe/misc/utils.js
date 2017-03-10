@@ -518,14 +518,6 @@ frappe.utils = {
 		frappe.msgprint("Note: Changing the Page Name will break previous URL to this page.");
 	},
 
-	if_notify_permitted: function(callback) {
-		if (Notify.needsPermission) {
-			Notify.requestPermission(callback);
-		} else {
-			callback && callback();
-		}
-	},
-
 	notify: function(subject, body, route, onclick) {
 		console.log('push notifications are evil and deprecated');
 	},
