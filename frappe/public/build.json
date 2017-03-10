@@ -59,7 +59,6 @@
 		"public/js/lib/jquery/jquery-ui.min.js",
 		"public/js/lib/Sortable.min.js",
 		"public/js/lib/tag-it.min.js",
-		"public/js/lib/notify.js",
 		"public/js/lib/bootstrap.min.js",
 		"public/js/lib/moment/moment-with-locales.min.js",
 		"public/js/lib/moment/moment-timezone-with-data.min.js",
