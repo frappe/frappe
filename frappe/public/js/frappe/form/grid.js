@@ -984,10 +984,10 @@ frappe.ui.form.GridRow = Class.extend({
 				}
 
 				// TAB
-				if(e.which==TAB) {
+				if(e.which==TAB && !e.shiftKey) {
 					// last column
 					if($(this).attr('data-last-input') ||
-						me.grid.wrapper.find(':input:enabled:last').get(0)===this) {
+						me.grid.wrapper.find('.grid-row :input:enabled:last').get(0)===this) {
 						setTimeout(function() {
 							if(me.doc.idx === values.length) {
 								// last row
