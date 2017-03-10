@@ -185,21 +185,20 @@ frappe.utils = {
 			me.intro_area = null;
 		}
 	},
-	set_footnote: function(footnote_area, wrapper, txt) {
-		if(!footnote_area) {
-			footnote_area = $('<div class="text-muted footnote-area">')
+	set_footnote: function(me, wrapper, txt) {
+		if(!me.footnote_area) {
+			me.footnote_area = $('<div class="text-muted footnote-area">')
 				.appendTo(wrapper);
 		}
 
 		if(txt) {
-			if(!txt.includes('<p>'))
-				txt = '<p>' + txt + '</p>';
-			footnote_area.html(txt);
+			if(txt.search(/<p>/)==-1) txt = '<p>' + txt + '</p>';
+			me.footnote_area.html(txt);
 		} else {
-			footnote_area.remove();
-			footnote_area = null;
+			me.footnote_area.remove();
+			me.footnote_area = null;
 		}
-		return footnote_area;
+		return me.footnote_area;
 	},
 	get_args_dict_from_url: function(txt) {
 		var args = {};
