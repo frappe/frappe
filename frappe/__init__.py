@@ -1040,7 +1040,7 @@ def respond_as_web_page(title, html, success=None, http_status_code=None,
 
 	local.response['context'] = context
 
-def redirect_to_message(title, html, http_status_code=None, context=None, indicator=None):
+def redirect_to_message(title, html, http_status_code=None, context=None, indicator_color=None):
 	"""Redirects to /message?id=random
 	Similar to respond_as_web_page, but used to 'redirect' and show message pages like success, failure, etc. with a detailed message
 
