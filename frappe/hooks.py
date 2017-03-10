@@ -10,6 +10,8 @@ app_color = "orange"
 source_link = "https://github.com/frappe/frappe"
 app_license = "MIT"
 
+develop_version = '8.0.0-beta'
+
 app_email = "info@frappe.io"
 
 before_install = "frappe.utils.install.before_install"
