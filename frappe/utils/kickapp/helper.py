@@ -1,156 +1,35 @@
 from __future__ import unicode_literals
 import frappe
-import re
-import frappe.utils
-from frappe.desk.notifications import get_notifications
-from frappe import _
-import json
-from frappe import conf
 from frappe.utils.kickapp.constant import Constant
 
+class Helper(object):
+	def __init__(self):
+		self.constant = Constant()
 
-@frappe.whitelist()
-def get_dev_port():
-    return conf.get("developer_mode"), conf.get('socketio_port')
+	def get_doctype_name_from_bot_name(self, bot_name):
+		return self.constant.get_doctype_name_from_bot_name(bot_name)
 
+	def get_doctype_fields_from_bot_name(self, bot_name):
+		return self.constant.get_doctype_fields_from_bot_name(bot_name)
 
-''' misc functions '''
+	def get_doctype_actions_from_bot_name(self, bot_name):
+		return self.constant.get_doctype_actions_from_bot_name(bot_name)
 
+	def get_class_from_bot_name(self, bot_name):
+		return self.constant.get_class_from_bot_name(bot_name)
 
-def get_doctype_from_bot_name(bot_name):
-    return Constant.doctype_dict.get(bot_name, 'Error')
+	def get_messages_from_bot_name(self, bot_name):
+		return self.constant.get_messages_from_bot_name(bot_name)
 
-''' functions related to message formating '''
+	def get_all_items_using_direct_query(self, doctype, fields, filters=None):
+		query = """select {0} from `tab{1}`""".format(fields, doctype)
+		if filters is not None:
+			query = query + """ where """ + filters
 
+		return frappe.db.sql(query + ';')
 
-def create_bot_message_object(room, chat, is_null):
-    if is_null:
-        return {
-            "room": room,
-            "is_bot": 'true',
-            "bot_name": chat.bot_name,
-            "created_on": get_date(chat.created_at),
-            "text": chat.text,
-            "list_items": {
-                "action_on_internal_item_click": None,
-                "items": None
-            },
-            "info": {
-                "button_text": None,
-                "is_interactive_chat": None,
-                "is_interactive_list": None
-            },
-            "action": {
-                "action_on_button_click": None,
-                "action_on_list_item_click": None
-            }
-        }
-    else:
-        return {
-            "room": room,
-            "is_bot": 'true',
-            "bot_name": chat.bot_name,
-            "created_on": get_date(chat.created_at),
-            "text": chat.text,
-            "action": format_action_to_json(chat.action),
-            "info": format_info_to_json(chat.info),
-            "list_items": format_list_items_to_json(chat.list_items)
-        }
-
-
-def format_response(is_bot, chats, room):
-    if is_bot == 'true':
-        return format_response_for_bot(chats, room)
-    else:
-        return format_response_for_others(chats, room)
-
-
-def format_response_for_bot(chats, room):
-    results = []
-    for chat in chats:
-        item = {
-            "room": room,
-            "is_bot": 'true',
-            "bot_name": chat.bot_name,
-            "created_on": get_date(chat.created_at),
-            "text": chat.text,
-            "action": format_action_to_json(chat.action),
-            "info": format_info_to_json(chat.info),
-            "list_items": format_list_items_to_json(chat.list_items)
-        }
-        results.append(item)
-    return results
-
-
-def format_response_for_others(chats, room):
-    results = []
-    for chat in chats:
-        item = {
-            "room": room,
-            "is_bot": 'false',
-            "created_on": get_date(chat.created_at),
-            "user_name": chat.user_name,
-            "user_id": chat.user_id,
-            "text": chat.text,
-            "is_alert": chat.is_alert,
-            "chat_title": chat.chat_title,
-            "chat_type": chat.chat_type
-        }
-        results.append(item)
-    return results
-
-
-def format_list_items_to_json(list_items):
-    return list_items
-
-
-def format_info_to_json(info):
-    return info
-
-
-def format_action_to_json(action):
-    return action
-
-
-def get_date(created_at):
-    created_on = str(created_at)
-    return created_on.split('.')[0]
-
-
-def format_list_items_before_adding_to_database(action_on_internal_item_click, list_items):
-    return {
-        "action_on_internal_item_click": action_on_internal_item_click,
-        "items": get_items_from_array(list_items)
-    }
-
-def format_action_before_adding_to_database(action_on_button_click, action_on_list_item_click):
-    return {
-        "action_on_button_click": action_on_button_click,
-        "action_on_list_item_click": action_on_list_item_click
-    }
-
-
-def format_info_before_adding_to_database(button_text, is_interactive_chat, is_interactive_list):
-    return {
-        "button_text": button_text,
-        "is_interactive_chat": is_interactive_chat,
-        "is_interactive_list": is_interactive_list
-    }
-
-
-def get_items_from_array(items):
-    if items:
-        results = []
-        for item in items:
-            keys = item.keys()
-            results.append(get_object_fron_key_value(keys, item))
-            return results
-    else:
-        return None
-
-
-def get_object_fron_key_value(keys, item):
-    obj = {}
-    for key in keys:
-        obj[key] = item[key]
-    return obj
+	def get_list(self, doctype, fields, limit_start=0, limit_page_length=20,filters=None):
+		if filters is not None:
+			return frappe.get_list(doctype, fields=fields, limit_start=limit_start, limit_page_length=limit_page_length, filters=filters)
+		return frappe.get_all(doctype, fields=fields, limit_start=limit_start, limit_page_length=limit_page_length)
+		

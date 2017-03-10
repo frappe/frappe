@@ -9,7 +9,7 @@ import json
 
 class ChatBot(Document):
 
-    def validate(self):
-        self.list_items = json.dumps(self.list_items)
-        self.action = json.dumps(self.action)
-        self.info = json.dumps(self.info)
+	def validate(self):
+		self.list_items = json.dumps(self.list_items)
+		self.action = json.dumps(self.action)
+		self.info = json.dumps(self.info)
