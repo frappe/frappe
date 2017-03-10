@@ -259,8 +259,10 @@ frappe.search.AwesomeBar = Class.extend({
 		this.recent = JSON.parse(frappe.boot.user.recent || "[]") || [];
 	},
 
-	fuzzy_search: function(txt, _item) {
-		item = __(_item || '').replace(/-/g, " ");
+	fuzzy_search: function(_txt, _item) {
+		parsed_item = __(_item || '').replace(/-/g, " ");
+		item = parsed_item.toLowerCase();
+		txt = _txt.toLowerCase();
 
 		var ilen = item.length;
 		var tlen = txt.length;
@@ -271,13 +273,12 @@ frappe.search.AwesomeBar = Class.extend({
 		if (tlen > ilen) {
 			return [];
 		}
-		if (item.indexOf(txt) !== -1) {
+		if (txt !== _txt && parsed_item.indexOf(_txt) !== -1) {
 			var regEx = new RegExp("("+ txt +")", "ig");
 			rendered_label = _item.replace(regEx, '<b>$1</b>');
+			console.log("first", _txt, parsed_item);
 			return [_item, ilen/50, rendered_label];
 		}
-		item = item.toLowerCase();
-		txt = txt.toLowerCase();
 		if (item.indexOf(txt) !== -1) {
 			var regEx = new RegExp("("+ txt +")", "ig");
 			rendered_label = _item.replace(regEx, '<b>$1</b>');

@@ -334,6 +334,8 @@ def sync_global_search():
 	from frappe.utils.global_search import sync_global_search
 	from bs4 import BeautifulSoup
 
+	if frappe.flags.update_global_search:
+		sync_global_search()
 	frappe.flags.update_global_search = []
 	frappe.session.user = 'Guest'
 	frappe.local.no_cache = True
