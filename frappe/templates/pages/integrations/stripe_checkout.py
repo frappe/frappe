@@ -37,18 +37,14 @@ def get_api_key():
 	return publishable_key
 
 @frappe.whitelist(allow_guest=True)
-def make_payment(stripe_token_id, options=None, reference_doctype=None, reference_docname=None):
-	data = {}
-
-	if isinstance(options, basestring):
-		data = json.loads(options)
+def make_payment(stripe_token_id, data, reference_doctype=None, reference_docname=None):
+	data = json.loads(data)
 
 	data.update({
-		"stripe_payment_id": stripe_token_id,
-		"reference_docname": reference_docname,
-		"reference_doctype": reference_doctype
+		"stripe_token_id": stripe_token_id
 	})
 
+	print "\n\n", data, "\n\n"
 	data =  frappe.get_doc("Stripe Settings").create_request(data)
 	frappe.db.commit()
 	return data

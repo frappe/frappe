@@ -2,12 +2,10 @@ $(document).ready(function(){
 	(function(e){
 		var handler = StripeCheckout.configure({
 			key: "{{ publishable_key }}",
-			image: 'https://stripe.com/img/documentation/checkout/marketplace.png',
-			locale: 'auto',
 			token: function(token) {
 				// You can access the token ID with `token.id`.
 				// Get the token ID to your server-side code for use.
-				stripe.make_payment_log(token, handler);
+				stripe.make_payment_log(token, {{ frappe.form_dict|json }}, "{{ reference_doctype }}", "{{ reference_docname }}");
 			}
 		});
 		
@@ -24,17 +22,16 @@ $(document).ready(function(){
 
 frappe.provide('stripe');
 
-stripe.make_payment_log = function(token, handler, doctype, docname){
+stripe.make_payment_log = function(token, data, doctype, docname){
 	$('.stripe-loading').addClass('hidden');
 	$('.stripe-confirming').removeClass('hidden');
-
 	frappe.call({
 		method:"frappe.templates.pages.integrations.stripe_checkout.make_payment",
 		freeze:true,
 		headers: {"X-Requested-With": "XMLHttpRequest"},
 		args: {
 			"stripe_token_id": token.id,
-			"options": handler,
+			"data": JSON.stringify(data),
 			"reference_doctype": doctype,
 			"reference_docname": docname
 		},
