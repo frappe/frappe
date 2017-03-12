@@ -33,8 +33,8 @@ frappe.ui.form.on("Contact", {
 			return {
 				query: "frappe.geo.address_and_contact.filter_dynamic_link_doctypes",
 				filters: {
-					fieldtype: "Link",
-					options: frm.doc.doctype,
+					fieldtype: "HTML",
+					fieldname: "contact_html",
 				}
 			}
 		});
