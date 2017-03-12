@@ -1773,8 +1773,7 @@ frappe.ui.form.ControlSignature = frappe.ui.form.ControlData.extend({
 		}
 	},
 	load_pad: function() {
-        value = this.get_value();
-        console.log("value", value, this.$pad);
+        var value = this.get_value();
         if (this.$pad) {
             this.$pad.jSignature('reset');
             this.set_image(value ? value: this.empty_img);
@@ -1807,7 +1806,6 @@ frappe.ui.form.ControlSignature = frappe.ui.form.ControlData.extend({
     // reset signature canvas
     on_reset_sign: function() {
         this.$pad.jSignature("reset");
-		console.log("Reset Pushed")
         this.set_value("");
     },
     // save signature value to model and display
