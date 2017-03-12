@@ -22,7 +22,7 @@ frappe.ui.form.on('User', {
 			if(!frm.roles_editor) {
 				var role_area = $('<div style="min-height: 300px">')
 					.appendTo(frm.fields_dict.roles_html.wrapper);
-				frm.roles_editor = new frappe.RoleEditor(role_area);
+				frm.roles_editor = new frappe.RoleEditor(role_area, frm);
 
 				var module_area = $('<div style="min-height: 300px">')
 					.appendTo(frm.fields_dict.modules_html.wrapper);
