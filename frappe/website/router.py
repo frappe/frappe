@@ -361,7 +361,7 @@ def sync_global_search():
 							frappe.flags.update_global_search.append(
 								dict(doctype='Static Web Page',
 									name=route,
-									content=text,
+									content=frappe.unicode(text),
 									published=1,
 									title=soup.title.string,
 									route=route))
