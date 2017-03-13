@@ -227,6 +227,10 @@ frappe.request.cleanup = function(opts, r) {
 	// un-freeze page
 	if(opts.freeze) frappe.dom.unfreeze();
 
+	if(!r) {
+		return;
+	}
+
 	// session expired? - Guest has no business here!
 	if(r.session_expired || frappe.get_cookie("sid")==="Guest") {
 		if(!frappe.app.logged_out) {

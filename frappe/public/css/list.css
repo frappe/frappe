@@ -371,3 +371,6 @@
   width: 16px;
   height: 16px;
 }
+.gantt .details-container .standard-image {
+  display: block;
+}
