@@ -121,13 +121,13 @@ def get_user_page_or_report(parent):
 
 			has_role[p.name] = {"modified":p.modified, "title": p.title}
 
-		# pages or reports where role is not set are also allowed
-		for p in frappe.db.sql("""select name, modified, {field} as title
-			from `tab{parent}` where
-				(select count(*) from `tabHas Role`
-					where `tabHas Role`.parent=tab{parent}.name) = 0""".format(parent=parent, field=field), as_dict=1):
+	# pages or reports where role is not set are also allowed
+	for p in frappe.db.sql("""select name, modified, {field} as title
+		from `tab{parent}` where
+			(select count(*) from `tabHas Role`
+				where `tabHas Role`.parent=tab{parent}.name) = 0""".format(parent=parent, field=field), as_dict=1):
 
-			has_role[p.name] = {"modified":p.modified, "title": p.title}
+		has_role[p.name] = {"modified":p.modified, "title": p.title}
 
 	return has_role
 

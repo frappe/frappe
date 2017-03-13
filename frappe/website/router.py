@@ -334,6 +334,8 @@ def sync_global_search():
 	from frappe.utils.global_search import sync_global_search
 	from bs4 import BeautifulSoup
 
+	if frappe.flags.update_global_search:
+		sync_global_search()
 	frappe.flags.update_global_search = []
 	frappe.session.user = 'Guest'
 	frappe.local.no_cache = True
@@ -361,7 +363,7 @@ def sync_global_search():
 							frappe.flags.update_global_search.append(
 								dict(doctype='Static Web Page',
 									name=route,
-									content=text,
+									content=frappe.unicode(text),
 									published=1,
 									title=soup.title.string,
 									route=route))
