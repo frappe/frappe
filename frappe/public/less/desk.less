@@ -797,3 +797,10 @@ input[type="checkbox"] {
 		color: @checkbox-color;
 	}
 }
+// mozilla doesn't support
+// pseudo elements on checkbox
+@-moz-document url-prefix() {
+	input[type="checkbox"] {
+		visibility: visible;
+	}
+}
