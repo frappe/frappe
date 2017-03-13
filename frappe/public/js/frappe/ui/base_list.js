@@ -381,7 +381,7 @@ frappe.ui.BaseList = Class.extend({
 			this.start += this.page_length;
 		}
 	},
-	
+
 	refresh: function () {
 		this.run();
 	},
@@ -411,7 +411,7 @@ frappe.ui.BaseList = Class.extend({
 		} else {
 			// no filter for this item,
 			// setup one
-			if (['_user_tags', '_comments', '_assign', '_liked_by'].ƒincludes(fieldname)) {
+			if (['_user_tags', '_comments', '_assign', '_liked_by'].includes(fieldname)) {
 				this.filter_list.add_filter(this.doctype, fieldname, 'like', '%' + label + '%');
 			} else {
 				this.filter_list.add_filter(this.doctype, fieldname, '=', label);
