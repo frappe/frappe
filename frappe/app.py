@@ -94,15 +94,40 @@ def application(request):
 
 		frappe.destroy()
 
-	add_security_response_headers(response)
+	add_security_response_headers(request, response)
 
 	return response
 
-def add_security_response_headers(response):
-	""" add security and xss headers in response to avoid cross site scripting """
+def add_security_response_headers(request, response):
+	"""Add security policy and XSS headers in response to avoid cross site scripting"""
 
 	response.headers["X-XSS-Protection"] = "1; mode=block"
-	response.headers["Content-Security-Policy"] = "default-src 'none'; media-src 'self';font-src data: * ;script-src 'self' 'unsafe-inline' 'unsafe-eval'; connect-src *; img-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';"
+	response.headers["Content-Security-Policy"] = get_content_security_policy_rule(request)
+
+def get_content_security_policy_rule(request):
+	policies = {
+		'default-src': ["'self'"],
+		'media-src': ["'self'"],
+		'font-src': ['data: *'],
+		'script-src': ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+		'connect-src': ['*'],
+		'img-src': ['data: *'],
+		'style-src': ["'self'", "'unsafe-inline'"]
+	}
+
+	content_security_policy = ''
+
+	site = _site or request.headers.get('X-Frappe-Site-Name') or get_site_name(request.host)
+	frappe.init(site=site, sites_path=_sites_path)
+
+	whitelisted_policies = frappe.get_hooks("whitelist_content_security_policies")
+
+	for key in policies:
+		if key in whitelisted_policies:
+			policies[key].extend(whitelisted_policies[key])
+		content_security_policy += '{key} {policies}; '.format(key=key, policies=' '.join(policies[key]))
+
+	return content_security_policy
 
 def init_request(request):
 	frappe.local.request = request
