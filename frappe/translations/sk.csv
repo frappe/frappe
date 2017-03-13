@@ -26,10 +26,10 @@ apps/frappe/frappe/templates/emails/feedback_request_url.html +8,1 star being lo
 apps/frappe/frappe/utils/data.py +530,1 weeks ago,pred týždňom
 apps/frappe/frappe/utils/data.py +538,1 year ago,pred rokom
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +18,1. Select Columns,
-apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +57,1. Select File,
+apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +57,1. Select File,1. Zvoľte súbor
 apps/frappe/frappe/public/js/frappe/list/list_renderer.js +482,2 days ago,Pred dvomi dňami
-apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +30,2. Download,
-apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +61,2. Upload,
+apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +30,2. Download,2. Stiahnuť
+apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +61,2. Upload,2. Nahrať
 apps/frappe/frappe/email/doctype/newsletter/newsletter.py +137,<b>{0}</b> has been successfully unsubscribed from this mailing list.,
 DocType: Address Template,"<h4>Default Template</h4>
 <p>Uses <a href=""http://jinja.pocoo.org/docs/templates/"">Jinja Templating</a> and all the fields of Address (including Custom Fields if any) will be available</p>
@@ -898,7 +898,7 @@ DocType: User,Github User ID,Github ID používateľe
 DocType: User,Github Username,Github - používateľské jméno
 apps/frappe/frappe/core/page/modules_setup/modules_setup.html +32,Global Settings: Users will only be able to choose checked icons,Globálne nastavenie: Používatelia budú môcť používať na ploche len označené ikony
 DocType: Email Unsubscribe,Global Unsubscribe,Globálne odhlásenie
-apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html +51,Go,
+apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html +51,Go,Hľadať
 DocType: Web Form,Go to this url after completing the form.,Jít na tuto adresu URL po dokončení formuláre.
 DocType: Social Login Keys,Google,Google
 DocType: Website Settings,Google Analytics ID,Google analytics ID
@@ -2287,7 +2287,7 @@ apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +53,Update t
 DocType: Communication,Updated,Aktualizované
 apps/frappe/frappe/public/js/frappe/desk.js +358,Updated To New Version,Aktualizované na novú verziu
 apps/frappe/frappe/desk/page/activity/activity_row.html +21,Updated {0}: {1},Aktualizovaný {0}: {1}
-apps/frappe/frappe/public/js/frappe/form/save.js +13,Updating,Aktualizácie
+apps/frappe/frappe/public/js/frappe/form/save.js +13,Updating,Prebieha aktualizácia
 apps/frappe/frappe/desk/doctype/bulk_update/bulk_update.py +40,Updating Records,
 apps/frappe/frappe/core/page/usage_info/usage_info.js +20,Upgrade,
 apps/frappe/frappe/core/page/user_permissions/user_permissions.js +95,Upload,Nahrať
@@ -2488,7 +2488,7 @@ apps/frappe/frappe/limits.py +61,Your subscription has expired.,
 apps/frappe/frappe/limits.py +72,Your subscription will expire on {0}.,
 apps/frappe/frappe/limits.py +66,Your subscription will expire today.,
 apps/frappe/frappe/limits.py +69,Your subscription will expire tomorrow.,
-apps/frappe/frappe/utils/response.py +169,Your system is being updated. Please refresh again after a few moments,
+apps/frappe/frappe/utils/response.py +169,Your system is being updated. Please refresh again after a few moments,Aktualizujeme systém. Za chvíľu obnovte stránku.
 apps/frappe/frappe/core/doctype/report/report.js +10,[Label]:[Field Type]/[Options]:[Width],[Označenie]:[Typ poľa]/[Možnosti]:[šírka]
 DocType: Desktop Icon,_doctype,
 DocType: Email Flag Queue,action,
@@ -2782,6 +2782,6 @@ apps/frappe/frappe/core/doctype/doctype/doctype.py +664,{0}: Cannot set import a
 apps/frappe/frappe/core/doctype/doctype/doctype.py +594,{0}: No basic permissions set,{0}:Žiadne základné oprávnenia nastavené
 apps/frappe/frappe/core/doctype/doctype/doctype.py +611,"{0}: Only one rule allowed with the same Role, Level and {1}","{0}: Len jedno pravidlo povolené s rovnakou Úlohou, Úrovňou a {1}"
 apps/frappe/frappe/core/doctype/doctype/doctype.py +623,{0}: Permission at level 0 must be set before higher levels are set,{0}: Oprávnenie na úrovni 0 musí byť nastavené pred nastavením vyšších úrovní
-apps/frappe/frappe/desk/like.py +84,{0}: {1} in {2},
+apps/frappe/frappe/desk/like.py +84,{0}: {1} in {2},{0}: {1} v {2}
 apps/frappe/frappe/utils/boilerplate.py +260,{app_title},{app_title}
 apps/frappe/frappe/core/doctype/doctype/doctype.py +484,{{{0}}} is not a valid fieldname pattern. It should be {{field_name}}.,{{{0}}} nie je platná podoba názvu poľa. Malo by byť {{field_name}}.
