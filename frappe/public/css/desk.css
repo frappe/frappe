@@ -864,3 +864,8 @@ input[type="checkbox"]:checked:before {
   font-size: 13px;
   color: #3b99fc;
 }
+@-moz-document url-prefix() {
+  input[type="checkbox"] {
+    visibility: visible;
+  }
+}

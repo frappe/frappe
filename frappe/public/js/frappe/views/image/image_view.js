@@ -27,6 +27,7 @@ frappe.views.ImageView = frappe.views.ListRenderer.extend({
 		return frappe.render_template("image_view_item_row", {
 			data: item,
 			indicator: indicator,
+			subject: this.get_subject_html(item, true),
 			additional_columns: this.additional_columns,
 			item_image: image_url,
 			color: frappe.get_palette(item.item_name)
@@ -42,7 +43,6 @@ frappe.views.ImageView = frappe.views.ListRenderer.extend({
 		}
 		if (url) {
 			return url
-		// 	return "url('" + url + "')";
 		}
 		return null;
 	},
