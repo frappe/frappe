@@ -109,25 +109,23 @@ def get_user_page_or_report(parent):
 			""".format(field=parent.lower(), roles = ', '.join(['%s']*len(roles))), roles, as_dict=1):
 
 		has_role[p.name] = {"modified":p.modified, "title": p.name}
-	
-	if not has_role:
-		for p in frappe.db.sql("""select distinct
+
+	for p in frappe.db.sql("""select distinct
 			tab{parent}.name, tab{parent}.modified, tab{parent}.{field} as title
 			from `tabHas Role`, `tab{parent}`
 			where `tabHas Role`.role in ({roles})
-				and `tabHas Role`.parent = `tab{parent}`.name
-				""".format(parent=parent, field=field, roles = ', '.join(['%s']*len(roles))),
-					roles, as_dict=True):
-
-			has_role[p.name] = {"modified":p.modified, "title": p.title}
+			and `tabHas Role`.parent = `tab{parent}`.name
+		""".format(parent=parent, field=field, roles = ', '.join(['%s']*len(roles))), roles, as_dict=True):
+			if p.name not in has_role:
+				has_role[p.name] = {"modified":p.modified, "title": p.title}
 
 	# pages or reports where role is not set are also allowed
 	for p in frappe.db.sql("""select name, modified, {field} as title
-		from `tab{parent}` where
+			from `tab{parent}` where
 			(select count(*) from `tabHas Role`
-				where `tabHas Role`.parent=tab{parent}.name) = 0""".format(parent=parent, field=field), as_dict=1):
-
-		has_role[p.name] = {"modified":p.modified, "title": p.title}
+		where `tabHas Role`.parent=tab{parent}.name) = 0""".format(parent=parent, field=field), as_dict=1):
+			if p.name not in has_role:	
+				has_role[p.name] = {"modified":p.modified, "title": p.title}
 
 	return has_role
 

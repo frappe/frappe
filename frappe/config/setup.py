@@ -46,6 +46,11 @@ def get_data():
 					"description": _("Show or hide modules globally.")
 				},
 				{
+					"type": "doctype",
+					"name": "Role Permission for Page and Report",
+					"description": _("Set custom roles for page and report")
+				},
+				{
 					"type": "report",
 					"is_query_report": True,
 					"doctype": "User",

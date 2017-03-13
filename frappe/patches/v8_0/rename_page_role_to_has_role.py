@@ -10,7 +10,6 @@ def execute():
 		reload_doc()
 		set_ref_doctype_roles_to_report()
 		copy_user_roles_to_has_roles()
-		set_user_permission_for_page_and_report()
 		remove_doctypes()
 
 def reload_doc():
@@ -18,7 +17,6 @@ def reload_doc():
 	frappe.reload_doc("core", 'doctype', "report")
 	frappe.reload_doc("core", 'doctype', "user")
 	frappe.reload_doc("core", 'doctype', "has_role")
-	frappe.reload_doc("core", 'doctype', "custom_role")
 	
 def set_ref_doctype_roles_to_report():
 	for data in frappe.get_all('Report', fields=["name"]):
@@ -30,7 +28,7 @@ def set_ref_doctype_roles_to_report():
 					row.db_update()
 			except:
 				pass
-				
+
 def copy_user_roles_to_has_roles():
 	for data in frappe.get_all('User', fields = ["name"]):
 		doc = frappe.get_doc('User', data.name)
@@ -42,44 +40,6 @@ def copy_user_roles_to_has_roles():
 			})
 		for role in doc.roles:
 			role.db_update()
-			
-def set_user_permission_for_page_and_report():
-	make_custom_roles_for_page_and_report()
-	
-def make_custom_roles_for_page_and_report():
-	for doctype in ['Page', 'Report']:
-		for data in get_data(doctype):
-			doc = frappe.get_doc(doctype, data.name)
-			roles = get_roles(doctype, data, doc)
-			make_custom_roles(doctype, doc.name, roles)
-
-def get_data(doctype):
-	fields = ["name"] if doctype == 'Page' else ["name", "ref_doctype"]
-	return frappe.get_all(doctype, fields = fields)
-
-def get_roles(doctype, data, doc):
-	roles = []
-	if doctype == 'Page':
-		for d in doc.roles:
-			if frappe.db.exists('Role', d.role):
-				roles.append({'role': d.role})
-	else:
-		out = frappe.get_all('Custom DocPerm', fields='distinct role', filters=dict(parent = data.ref_doctype))
-		if not out:
-			out = frappe.get_all('DocPerm', fields='distinct role', filters=dict(parent = data.ref_doctype))
-		for d in out:
-			roles.append({'role': d.role})
-	return roles
-
-def make_custom_roles(doctype, name, roles):
-	field = doctype.lower()
-
-	if roles:
-		custom_permission = frappe.get_doc({
-			'doctype': 'Custom Role',
-			field : name,
-			'roles' : roles
-		}).insert()
 
 def remove_doctypes():
 	for doctype in ['UserRole', 'Event Role']:
