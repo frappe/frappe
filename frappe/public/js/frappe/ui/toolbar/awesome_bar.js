@@ -66,6 +66,7 @@ frappe.search.AwesomeBar = Class.extend({
 			var value = e.target.value;
 			var txt = value.trim().replace(/\s\s+/g, ' ');
 			var last_space = txt.lastIndexOf(' ');
+			me.global_results = [];
 
 			if(txt && txt.length > 2) {
 				me.global.get_awesome_bar_options(txt.toLowerCase(), me);
@@ -259,8 +260,11 @@ frappe.search.AwesomeBar = Class.extend({
 		this.recent = JSON.parse(frappe.boot.user.recent || "[]") || [];
 	},
 
-	fuzzy_search: function(txt, _item) {
-		item = __(_item || '').replace(/-/g, " ");
+	fuzzy_search: function(_txt, _item) {
+		parsed_item = __(_item || '').replace(/-|_/g, " ").replace(/\w*/g,
+			function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
+		item = parsed_item.toLowerCase();
+		txt = _txt.toLowerCase();
 
 		var ilen = item.length;
 		var tlen = txt.length;
@@ -268,20 +272,18 @@ frappe.search.AwesomeBar = Class.extend({
 		var rendered_label = "";
 		var i, j, skips = 0, mismatches = 0;
 
-		if (tlen > ilen) {
+		if(tlen > ilen) {
 			return [];
 		}
-		if (item.indexOf(txt) !== -1) {
+		if(parsed_item.indexOf(_txt) !== -1 && txt !== _txt) {
 			var regEx = new RegExp("("+ txt +")", "ig");
-			rendered_label = _item.replace(regEx, '<b>$1</b>');
-			return [_item, ilen/50, rendered_label];
+			rendered_label = parsed_item.replace(regEx, '<b>$1</b>');
+			return [parsed_item, ilen/50, rendered_label];
 		}
-		item = item.toLowerCase();
-		txt = txt.toLowerCase();
-		if (item.indexOf(txt) !== -1) {
+		if(item.indexOf(txt) !== -1) {
 			var regEx = new RegExp("("+ txt +")", "ig");
-			rendered_label = _item.replace(regEx, '<b>$1</b>');
-			return [_item, 20 + ilen/50, rendered_label];
+			rendered_label = parsed_item.replace(regEx, '<b>$1</b>');
+			return [parsed_item, 20 + ilen/50, rendered_label];
 		}
 		outer: for (i = 0, j = 0; i < tlen; i++) {
 			var t_ch = txt.charCodeAt(i);
@@ -291,7 +293,7 @@ frappe.search.AwesomeBar = Class.extend({
 			while (j < ilen) {
 				var i_ch = item.charCodeAt(j);
 				if (i_ch === t_ch) {
-					var item_char =  _item.charAt(j);
+					var item_char =  parsed_item.charAt(j);
 					if(item_char === item_char.toLowerCase()){
 						rendered_label += '<b>' + txt.charAt(i) + '</b>';
 					} else {
@@ -302,13 +304,13 @@ frappe.search.AwesomeBar = Class.extend({
 				}
 				mismatches++;
 				if(mismatches > 2) return [];
-				rendered_label += _item.charAt(j);
+				rendered_label += parsed_item.charAt(j);
 				j++;
 			}
 			return [];
 		}
-		rendered_label += _item.slice(j);
-		return [_item, 40 + ilen/50, rendered_label];
+		rendered_label += parsed_item.slice(j);
+		return [parsed_item, 40 + ilen/50, rendered_label];
 	},
 
 	set_specifics: function(txt, end_txt) {
@@ -416,7 +418,7 @@ frappe.search.AwesomeBar = Class.extend({
 						route_options: {"name": ["like", "%" + parts[0] + "%"]},
 						index: 13,
 						default: "In List",
-						route: ["List", target]
+						route: ["List", item]
 					});
 				}
 			});
@@ -440,8 +442,8 @@ frappe.search.AwesomeBar = Class.extend({
 						index: 14 + index,
 						type: "New",
 						prefix: "New",
-						match: target,
-						onclick: function() { frappe.new_doc(target, true); }
+						match: item,
+						onclick: function() { frappe.new_doc(item, true); }
 					});
 				}
 			});
@@ -471,15 +473,15 @@ frappe.search.AwesomeBar = Class.extend({
 			rendered_label = result[2];
 			if(target) {
 				// include 'making new' option
-				if(in_list(frappe.boot.user.can_create, target)) {
-					var match = target;
+				if(in_list(frappe.boot.user.can_create, item)) {
+					var match = item;
 					out.push({
 						label: rendered_label,
 						value: __("New {0}", [target]),
 						index: 15 + index + 0.004,
 						type: "New",
 						prefix: "New",
-						match: target,
+						match: item,
 						onclick: function() { frappe.new_doc(match, true); }
 					});
 				}
@@ -513,12 +515,12 @@ frappe.search.AwesomeBar = Class.extend({
 			var index = result[1];
 			var rendered_label = result[2];
 			if(target) {
-				var report = frappe.boot.user.all_reports[target];
+				var report = frappe.boot.user.all_reports[item];
 				var route = [];
 				if(report.report_type == "Report Builder")
-					route = ["Report", report.ref_doctype, target];
+					route = ["Report", report.ref_doctype, item];
 				else
-					route = ["query-report",  target];
+					route = ["query-report",  item];
 
 				out.push({
 					label: rendered_label,
@@ -548,7 +550,7 @@ frappe.search.AwesomeBar = Class.extend({
 			var index = result[1];
 			var rendered_label = result[2];
 			if(target) {
-				var page = me.pages[target];
+				var page = me.pages[item];
 				out.push({
 					label: rendered_label,
 					value: __("Open {0}", [__(target)]),
@@ -585,7 +587,7 @@ frappe.search.AwesomeBar = Class.extend({
 			var index = result[1];
 			var rendered_label = result[2];
 			if(target) {
-				var module = frappe.modules[target];
+				var module = frappe.modules[item];
 				if(module._doctype) return;
 				ret = {
 					label: rendered_label,
@@ -598,7 +600,7 @@ frappe.search.AwesomeBar = Class.extend({
 				if(module.link) {
 					ret.route = [module.link];
 				} else {
-					ret.route = ["Module", target];
+					ret.route = ["Module", item];
 				}
 				out.push(ret);
 			}
