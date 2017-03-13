@@ -548,7 +548,7 @@ frappe.search.GlobalSearch = Class.extend({
 				value: __("{0}: {1}", [__(data.doctype), data.name]),
 				route: ["Form", data.doctype, data.name],
 				match: data.doctype,
-				index: 60,
+				index: 90,
 				default: "Global",
 				description: me.get_finds(data.content, keywords).slice(0,86) + '...'
 			}
