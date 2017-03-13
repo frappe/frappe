@@ -14,7 +14,8 @@ def execute():
 	for doctype in ["Integration Service", "Integration Service Parameter"]:
 		frappe.delete_doc("DocType", doctype)
 	
-	frappe.delete_doc("Module Def", "Integration Broker")
+	if not frappe.db.get_value("DocType", {"module": "Integration Broker"}, "name"):
+		frappe.delete_doc("Module Def", "Integration Broker")
 
 def setup_enabled_integrations():
 	if not frappe.db.exists("DocType", "Integration Service"):
