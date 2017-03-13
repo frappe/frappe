@@ -7,10 +7,6 @@ Copy DocPerm to Custom DocPerm where permissions are set differently
 '''
 
 def execute():
-	frappe.reload_doctype('DocPerm')
-	if frappe.db.has_column('DocPerm', 'is_custom'):
-		frappe.db.commit()
-		frappe.db.sql('alter table `tabDocPerm` drop column is_custom')
 	docperm_meta = frappe.get_meta('DocPerm')
 	for d in frappe.db.get_all('DocType', dict(istable=0, issingle=0, custom=0)):
 		perms = frappe.get_all('DocPerm', fields='*', filters=dict(parent=d.name), order_by='idx asc')
