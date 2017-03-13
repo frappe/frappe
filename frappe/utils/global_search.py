@@ -36,6 +36,9 @@ def update_global_search(doc):
 		update_global_search(d)
 		return
 
+	if doc.docstatus > 1:
+		return
+
 	if frappe.flags.update_global_search==None:
 		frappe.flags.update_global_search = []
 

@@ -364,7 +364,7 @@ frappe.search.GlobalSearch = Class.extend({
 	},
 
 	format_result: function(result) {
-		var name, route = '#Form/' + result.doctype + '/' + result.name;
+		var name, route = '#Form/' + result.doctype + '/' + result.title;
 		var description = this.get_finds(result.content, this.keywords);
 		if(result.doctype === "Communication") {
 			if(description.indexOf(',') === -1) {
@@ -373,7 +373,7 @@ frappe.search.GlobalSearch = Class.extend({
 				name = description.slice(description.indexOf(':') + 8, description.indexOf(','));
 			}
 		} else {
-			name = result.name;
+			name = result.title;
 		}
 		return [route, this.bold_keywords(name), description];
 	},
@@ -544,9 +544,9 @@ frappe.search.GlobalSearch = Class.extend({
 
 		var make_option = function(data) {
 			return {
-				label: __("{0}: {1}", [__(data.doctype).bold(), data.name]),
-				value: __("{0}: {1}", [__(data.doctype), data.name]),
-				route: ["Form", data.doctype, data.name],
+				label: __("{0}: {1}", [__(data.doctype).bold(), data.title]),
+				value: __("{0}: {1}", [__(data.doctype), data.title]),
+				route: ["Form", data.doctype, data.title],
 				match: data.doctype,
 				index: 60,
 				default: "Global",
