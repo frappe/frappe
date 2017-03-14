@@ -12,13 +12,14 @@ class Reply(object):
 
 	def get_all_users(self, email):
 		fields = "email, first_name, last_name, last_active"
-		user_list = self.helper.get_all_items_using_direct_query('User', fields)
-		new_list = []
-		for user in user_list:
-			x = list(user)
-			if x[0].lower() != email.lower():
-				new_list.append(self.utils.get_item_as_dict(fields, x))
-		return new_list
+		return frappe.get_list('User', fields=["email", "first_name", "last_active"])
+		# user_list = self.helper.get_all_items_using_direct_query('User', fields)
+		# new_list = []
+		# for user in user_list:
+		# 	x = list(user)
+		# 	if x[0].lower() != email.lower():
+		# 		new_list.append(self.utils.get_item_as_dict(fields, x))
+		# return new_list
 
 	def set_users_in_room(self, obj):
 		room = str(obj.room)

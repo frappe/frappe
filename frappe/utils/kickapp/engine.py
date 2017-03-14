@@ -27,7 +27,7 @@ class Engine(object):
 	
 	def load_more(self, query):
 		class_name = Helper().get_doctype_name_from_bot_name(query.bot_name)
-		
+		print class_name
 		if class_name != 'Error':
 			fields = Helper().get_doctype_fields_from_bot_name(query.bot_name)
 			page_count = str(query.page_count)

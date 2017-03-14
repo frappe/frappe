@@ -3,8 +3,6 @@ import frappe
 import json
 from frappe import conf
 from frappe.utils.kickapp.reply import Reply
-from frappe.utils.kickapp.helper import Helper
-from frappe.utils.kickapp.engine import Engine
 
 
 @frappe.whitelist()
@@ -37,7 +35,7 @@ def send_message_and_get_reply(query):
 @frappe.whitelist()
 def load_more(query):
 	query = frappe._dict(json.loads(query))
-	return Engine().load_more(query)
+	return get_response_from_method_name("load_more", query)
 
 def get_response_from_method_name(method_name, obj, is_return = True):
 	if is_return:
