@@ -26,6 +26,13 @@ frappe.views.ListFactory = frappe.views.Factory.extend({
 			}
 		});
 	},
+	on_show: function() {
+		var route = frappe.get_route();
+		var doctype = route[1];
+		if (route.length === 2 && frappe.views.list_view[doctype]) {
+			frappe.views.list_view[doctype].load_last_view();
+		}
+	},
 	show: function () {
 		this.set_module_breadcrumb();
 		this._super();
