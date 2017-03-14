@@ -222,6 +222,8 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 
 			if (us.last_view === 'Inbox')
 				route.push(us['Inbox'].last_email_account)
+		} else {
+			route.push('List');
 		}
 
 		frappe.set_route(route);
