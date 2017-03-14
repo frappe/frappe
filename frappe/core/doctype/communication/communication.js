@@ -60,9 +60,9 @@ frappe.ui.form.on("Communication", {
 
 			frm.add_custom_button(__("Reply"), function() {
 				frm.trigger('reply');
-			}, "Actions");
+			});
 
-			frm.add_custom_button(__("Reply-All"), function() {
+			frm.add_custom_button(__("Reply All"), function() {
 				frm.trigger('reply_all');
 			}, "Actions");
 
@@ -70,13 +70,24 @@ frappe.ui.form.on("Communication", {
 				frm.trigger('forward_mail');
 			}, "Actions");
 
-			frm.add_custom_button(__("Add to Contact"), function() {
-				frm.trigger('add_to_contact');
-			}, "Actions");
-
 			frm.add_custom_button(__("Mark as {0}", [frm.doc.seen? "Unread": "Read"]), function() {
 				frm.trigger('mark_as_read_unread');
 			}, "Actions");
+
+			frm.add_custom_button(__("Add Contact"), function() {
+				frm.trigger('add_to_contact');
+			}, "Actions");
+
+			if(frm.doc.email_status != "Spam")
+				frm.add_custom_button(__("Mark as Spam"), function() {
+					frm.trigger('mark_as_spam');
+				}, "Actions");
+
+			if(frm.doc.email_status != "Trash") {
+				frm.add_custom_button(__("Move To Trash"), function() {
+					frm.trigger('move_to_trash');
+				}, "Actions");
+			}
 		}
 	},
 	show_relink_dialog: function(frm){
@@ -195,7 +206,7 @@ frappe.ui.form.on("Communication", {
 
 		names = fullname.split(" ")
 		first_name = names[0]
-		last_name = names.length >= 2? last_name[names.length - 1]: ""
+		last_name = names.length >= 2? names[names.length - 1]: ""
 
 		frappe.route_options = {
 			"email_id": frm.doc.sender,
@@ -203,5 +214,32 @@ frappe.ui.form.on("Communication", {
 			"last_name": last_name,
 		}
 		frappe.new_doc("Contact")
+	},
+
+	mark_as_spam: function(frm) {
+		frappe.call({
+			method: "frappe.email.inbox.mark_as_spam",
+			args: {
+				communication: frm.doc.name,
+				sender: frm.doc.sender
+			},
+			freeze: true,
+			callback: function(r) {
+				frappe.msgprint("Email has been marked as spam")
+			}
+		})
+	},
+
+	move_to_trash: function(frm) {
+		frappe.call({
+			method: "frappe.email.inbox.mark_as_trash",
+			args: {
+				communication: frm.doc.name
+			},
+			freeze: true,
+			callback: function(r) {
+				frappe.msgprint("Email has been moved to trash")
+			}
+		})
 	}
 });
