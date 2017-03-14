@@ -23,7 +23,6 @@ from frappe.limits import has_expired
 from frappe.utils.data import get_datetime, now_datetime
 from frappe.core.doctype.user.user import STANDARD_USERS
 from frappe.installer import update_site_config
-from frappe.integration_broker.doctype.integration_service.integration_service import get_integration_service_events
 
 DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 
@@ -158,20 +157,14 @@ def trigger(site, event, queued_jobs=(), now=False):
 		else:
 			scheduler_task(site=site, event=event, handler=handler, now=True)
 
-
 def get_scheduler_events(event):
 	'''Get scheduler events from hooks and integrations'''
 	scheduler_events = frappe.cache().get_value('scheduler_events')
 	if not scheduler_events:
 		scheduler_events = frappe.get_hooks("scheduler_events")
-		integration_events = get_integration_service_events()
-		for key, handlers in integration_events.items():
-			scheduler_events.setdefault(key, []).extend(handlers)
 		frappe.cache().set_value('scheduler_events', scheduler_events)
 
 	return scheduler_events.get(event) or []
-
-
 
 def log(method, message=None):
 	"""log error in patch_log"""
