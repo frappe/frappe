@@ -824,7 +824,7 @@ apps/frappe/frappe/www/list.py +65,"Filtered by ""{0}""",Vyfiltrované podľa &q
 DocType: Kanban Board,Filters,Filtry
 DocType: Auto Email Report,Filters Display,
 apps/frappe/frappe/public/js/frappe/views/kanban/kanban_board.js +96,Filters saved,
-apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +366,Find {0} in {1},Hľadať: {0} v: {1}
+apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +366,Find {0} in {1},Vyhľadať {0} v: {1}
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot_list.js +11,First Level,Prvá úroveň
 DocType: User,First Name,Meno
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +62,First data column must be blank.,První stĺpec dat musí byť prázdný.
@@ -1836,7 +1836,7 @@ apps/frappe/frappe/core/page/desktop/all_applications_dialog.html +1,Search Appl
 DocType: DocType,Search Fields,Vyhľadávacie polia
 apps/frappe/frappe/desk/page/applications/applications.js +61,Search Results,Výsledky vyhľadávania
 apps/frappe/frappe/core/doctype/doctype/doctype.py +464,Search field {0} is not valid,
-apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +345,Search for ',
+apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +345,Search for ',Hľadať '
 apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js +61,Search for anything,
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +170,Search in a document type,Hľadať v type dokumentu
 apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html +81,Search or type a command,Vyhľadávajte alebo zadajte príkaz
@@ -2520,8 +2520,8 @@ DocType: Workflow State,calendar,
 DocType: Workflow State,camera,fotoaparát
 apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +401,cancelled this document,
 DocType: Workflow State,certificate,certifikát
-apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +422,changed value of {0},
-apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +453,changed values for {0},
+apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +422,changed value of {0},zmena hodnoty {0}
+apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +453,changed values for {0},zmena hodnôt {0}
 DocType: Workflow State,check,
 DocType: Workflow State,chevron-down,chevron-down
 DocType: Workflow State,chevron-left,chevron-left
@@ -2729,7 +2729,7 @@ apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +51,{0} days ago,pred {0
 apps/frappe/frappe/website/doctype/website_settings/website_settings.py +34,{0} does not exist in row {1},{0}: neexistuje v riadku {1}
 apps/frappe/frappe/public/js/frappe/form/sidebar.js +59,{0} edited this {1},Upravené kým: {0} kedy: {1}
 apps/frappe/frappe/model/db_schema.py +345,"{0} field cannot be set as unique in {1}, as there are non-unique existing values","Pole {0} nemôže byť nastavené ako jedinečné v {1}, pretože obsahuje nejedinečné hodnoty"
-apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +411,{0} from {1} to {2},{0} od {1} do {2}
+apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +411,{0} from {1} to {2},{0} z {1} na {2}
 apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +439,{0} from {1} to {2} in row #{3},{0} od {1} do {2} v riadku #{3}
 apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.py +105,{0} generated on {1},{0} vytvorených {1}
 apps/frappe/frappe/email/doctype/newsletter/newsletter.py +197,{0} has been successfully added to the Email Group.,{0} bol úspešne pridaný do emailovej skupiny
