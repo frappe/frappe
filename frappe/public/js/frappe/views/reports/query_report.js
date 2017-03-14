@@ -405,6 +405,7 @@ frappe.views.QueryReport = Class.extend({
 			if(v) filters[f.df.fieldname] = v;
 		})
 		if(raise && mandatory_fields.length) {
+			this.chart_area.toggle(true);
 			this.wrapper.find(".waiting-area").empty().toggle(false);
 			this.wrapper.find(".no-report-area").html(__("Please set filters")).toggle(true);
 			if(raise) {
