@@ -4,7 +4,6 @@ import json
 from frappe import conf
 from frappe.utils.kickapp.reply import Reply
 
-
 @frappe.whitelist()
 def get_dev_port():
 	return conf.get("developer_mode"), conf.get('socketio_port')

@@ -25,11 +25,12 @@ class Helper(object):
 		query = """select {0} from `tab{1}`""".format(fields, doctype)
 		if filters is not None:
 			query = query + """ where """ + filters
-
 		return frappe.db.sql(query + ';')
 
-	def get_list(self, doctype, fields, limit_start=0, limit_page_length=20,filters=None):
-		if filters is not None:
+	def get_list(self, doctype, fields, limit_start=0, limit_page_length=20, filters=None, get_all=False):
+		if get_all:
+			return frappe.get_list(doctype, fields=fields, filters=filters)
+		elif filters is not None:
 			return frappe.get_list(doctype, fields=fields, limit_start=limit_start, limit_page_length=limit_page_length, filters=filters)
 		return frappe.get_all(doctype, fields=fields, limit_start=limit_start, limit_page_length=limit_page_length)
 		

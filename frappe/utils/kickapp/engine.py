@@ -3,12 +3,10 @@ import datetime
 import frappe
 import json
 from frappe.utils.kickapp.helper import Helper
-from frappe.utils.kickapp.utils import Utils
+from frappe.utils.kickapp.utils import *
 from frappe.utils.kickapp.query import Query
 
-
 class Engine(object):
-
 	def get_reply(self, obj):
 		reply = {}
 		try:
@@ -18,6 +16,7 @@ class Engine(object):
 			else:
 				reply = globals()[class_name](obj).get_results()
 		except Exception, exce:
+			print exce
 			e = str(exce)
 			if e.find('No permission') > -1:
 				reply = Base(obj).get_error_message("You dont have permission to perform tasks.")
@@ -26,28 +25,24 @@ class Engine(object):
 		return reply
 	
 	def load_more(self, query):
-		class_name = Helper().get_doctype_name_from_bot_name(query.bot_name)
-		print class_name
-		if class_name != 'Error':
-			fields = Helper().get_doctype_fields_from_bot_name(query.bot_name)
-			page_count = str(query.page_count)
-			start = (int(page_count) - 1) * 20
-			end = start + 20
-			email = str(query.email)
-			items = Helper().get_list(class_name, fields, start, end, {"owner":email})
-			
-			return globals()[class_name]().map_list(items)
-		
+		try:
+			class_name = Helper().get_doctype_name_from_bot_name(query.bot_name)
+			if class_name != 'Error':
+				fields = Helper().get_doctype_fields_from_bot_name(query.bot_name)
+				page_count = str(query.page_count)
+				start = (int(page_count) - 1) * 20
+				end = start + 20
+				email = str(query.email)
+				items = Helper().get_list(class_name, fields, start, end, {"owner":email})
+				return globals()[class_name]().map_list(items)
+		except Exception, exce:
+			print exce
 		return []
-
-
-
 
 class Base(object):
 
 	def __init__(self, obj):
 		self.obj = obj
-		self.utils = Utils()
 		self.query = Query(obj.bot_name)
 		self.helper = Helper()
 
@@ -55,10 +50,10 @@ class Base(object):
 		obj = self.obj
 		obj.text = msg
 		obj.created_at = self.get_created_at()
-		obj.action = self.prepare_action(None, None, None)
-		obj.info = self.prepare_info(None, None, None)
-		obj.list_items = self.prepare_list_items(None, [])
-		return self.utils.create_bot_message_object(obj.room, obj)
+		obj.action = self.prepare_action()
+		obj.info = self.prepare_info()
+		obj.list_items = self.prepare_list_items()
+		return create_bot_message_object(obj.room, obj)
 
 	def get_action_by_text(self, text):
 		return self.query.get_action_from_text(text)
@@ -67,26 +62,23 @@ class Base(object):
 		return self.helper.get_list(doctype, fields, 0, 3, filters)
 
 	def get_created_at(self):
-		return self.utils.get_date(str(datetime.datetime.now()))
+		return get_date(str(datetime.datetime.now()))
 
-	def prepare_action(self, x, y, z):
+	def prepare_action(self, base_action=None):
 		return {
-			"base_action": x,
-			"action_on_button_click": y,
-			"action_on_list_item_click": z
+			"base_action": base_action,
 		}
 
-	def prepare_info(self, x, y, z):
+	def prepare_info(self, button_text=None, is_interactive_chat=False, is_interactive_list=False):
 		return {
-			"button_text": x,
-			"is_interactive_chat": y,
-			"is_interactive_list": z
+			"button_text": button_text,
+			"is_interactive_chat": is_interactive_chat,
+			"is_interactive_list": is_interactive_list
 		}
 
-	def prepare_list_items(self, x, y):
+	def prepare_list_items(self, items=[]):
 		return {
-			"action_on_internal_item_click": x,
-			"items": y
+			"items": items
 		}
 
 
@@ -101,20 +93,18 @@ class Basic_Bot(Base):
 
 	def get_results(self):
 		method = self.get_method()
-		print method
 		if method == 'error':
 			return self.get_error_message("Something went wrong, please try a diffrent query")
 		else:
 			return getattr(self, method)()
 
-	def prepare_obj(self, obj, method_name, base_action, action_on_button_click,
-					action_on_list_item_click, button_text, is_interactive_chat,
-					is_intereactive_list, action_on_internal_item_click, items):
+	def prepare_obj(self, method_name, action, info, list_items):
+		obj = self.obj
 		obj.text = self.messages.get(method_name)
 		obj.created_at = self.get_created_at()
-		obj.action = self.prepare_action(base_action, action_on_button_click, action_on_list_item_click)
-		obj.info = self.prepare_info(button_text, is_interactive_chat, is_intereactive_list)
-		obj.list_items = self.prepare_list_items(action_on_internal_item_click, items)
+		obj.action = action
+		obj.info = info
+		obj.list_items = list_items
 		return obj
 	
 	def map_list(self, items):
@@ -131,72 +121,54 @@ class Basic_Bot(Base):
 		return self.get_action_by_text(obj.text).lower()
 
 	def create(self):
-		obj = self.prepare_obj(self.obj, 'create', 'create_',
-							   None, None, None, False, False, None, [])
-		reply = self.utils.create_bot_message_object(obj.room, obj)
-		print reply
-		return reply
+		action = self.prepare_action(base_action='create_')
+		info = self.prepare_info()
+		list_items = self.prepare_list_items()
+		return self.prepare_obj('create', action, info, list_items)
 
 	def update(self):
-		items = self.get_list(self.doctype, self.fields,
-							  filters={"owner": self.obj.user_id})
-		mapped_items = self.map_list(items)
-		obj = self.prepare_obj(self.obj, 'update', 'update_',
-								'load_more', 'update_', 'load more', False, 
-								True, 'update_', mapped_items)
-		reply = self.utils.create_bot_message_object(obj.room, obj)
-		print reply
-		return reply
-
+		items = self.get_list(self.doctype, self.fields, filters={"owner": self.obj.user_id})
+		action = self.prepare_action('update_')
+		info = self.prepare_info(button_text='load more', is_interactive_list=True)
+		list_items = self.prepare_list_items(self.map_list(items))
+		return self.prepare_obj('update', action, info, list_items)
+		
 	def delete(self):
-		items = self.get_list(self.doctype, self.fields,
-							  filters={"owner": self.obj.user_id})
-		mapped_items = self.map_list(items)
-		obj = self.prepare_obj(self.obj, 'delete', 'delete_',
-								'load_more', 'delete_', 'load more', False, 
-								True, 'delete_', mapped_items)
-		reply = self.utils.create_bot_message_object(obj.room, obj)
-		print reply
-		return reply
+		items = self.get_list(self.doctype, self.fields, filters={"owner": self.obj.user_id})
+		action = self.prepare_action('delete_')
+		info = self.prepare_info(button_text='load more', is_interactive_list=True)
+		list_items = self.prepare_list_items(self.map_list(items))
+		return self.prepare_obj('delete', action, info, list_items)
 
 	def get(self):
-		items = self.get_list(self.doctype, self.fields,
-							  filters={"owner": self.obj.user_id})
-		mapped_items = self.map_list(items)
-		obj = self.prepare_obj(self.obj, 'get', None,
-								'load_more', 'get_item_info', 'load more', False, 
-								True, 'get_item_info', mapped_items)
-		reply = self.utils.create_bot_message_object(obj.room, obj)
-		print reply
-		return reply
+		items = self.get_list(self.doctype, self.fields, filters={"owner": self.obj.user_id})
+		action = self.prepare_action()
+		info = self.prepare_info(button_text='load more', is_interactive_list=True)
+		list_items = self.prepare_list_items(self.map_list(items))
+		return self.prepare_obj('get', action, info, list_items)
 
 	def create_(self):
 		data =  globals()[self.doctype]().create_(self.doctype, self.obj)
 		if data.is_success:
 			items = self.get_list(self.doctype, self.fields, data.filters)
-			mapped_items = self.map_list(items)
-			obj = self.prepare_obj(self.obj, 'create_', None,
-									'get_item_info', None, 'view info', True, 
-									False, None, mapped_items)
-			reply = self.utils.create_bot_message_object(obj.room, obj)
+			action = self.prepare_action()
+			info = self.prepare_info(button_text='view info', is_interactive_chat=True)
+			list_items = self.prepare_list_items(self.map_list(items))
+			return self.prepare_obj('create_', action, info, list_items)
 		else:
-			reply = self.get_error_message()
-		print reply
-		return reply
+			return self.get_error_message()
 
 	def update_(self):
 		data =  globals()[self.doctype]().update_(self.doctype, self.obj)
 		if data.is_success:
 			items = self.get_list(self.doctype, self.fields, data.filters)
-			mapped_items = self.map_list(items)
-			obj = self.prepare_obj(self.obj, 'update_', None,
-								'get_item_info', None, 'view info', True, 
-								False, None, mapped_items)
-			reply = self.utils.create_bot_message_object(obj.room, obj)
+			action = self.prepare_action()
+			info = self.prepare_info(button_text='view info', is_interactive_chat=True)
+			list_items = self.prepare_list_items(self.map_list(items))
+			return self.prepare_obj('update_', action, info, list_items)
 		else:
-			reply = self.get_error_message()
-		print reply
-		return reply
+			return self.get_error_message()
+		
 
 	def delete_(self):
 		filters = {"name": self.obj.item_id, "owner": self.obj.user_id}
@@ -205,18 +177,15 @@ class Basic_Bot(Base):
 			if len(items) > 0:
 				frappe.delete_doc(self.doctype, self.obj.item_id)
 				frappe.db.commit()
-				mapped_items = self.map_list(items)
-				obj = self.prepare_obj(self.obj, 'delete_', None,
-								'get_item_info', None, 'view info', True, 
-								False, None, mapped_items)
-				reply = self.utils.create_bot_message_object(obj.room, obj)
+				action = self.prepare_action()
+				info = self.prepare_info(button_text='view info', is_interactive_chat=True)
+				list_items = self.prepare_list_items(self.map_list(items))
+				return self.prepare_obj('delete_', action, info, list_items)
 			else:
-				reply = self.get_error_message("Looks like item already deleted from database.")
+				return self.get_error_message("Looks like item already deleted from database.")
 		except Exception, e:
 			print e
-			reply = self.get_error_message()
-		print reply
-		return reply
+			return self.get_error_message()
 
 
 class Note(object):
@@ -269,7 +238,6 @@ class Note(object):
 			"is_success" : is_success,
 			"filters": filters
 		})
-
 
 class ToDo(object):
 
