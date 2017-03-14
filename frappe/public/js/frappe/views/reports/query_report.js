@@ -25,6 +25,7 @@ frappe.standard_pages["query-report"] = function() {
 frappe.views.QueryReport = Class.extend({
 	init: function(opts) {
 		$.extend(this, opts);
+		this.flags = {};
 		// globalify for slickgrid
 		this.page = this.parent.page;
 		this.parent.query_report = this;
@@ -298,6 +299,10 @@ frappe.views.QueryReport = Class.extend({
 
 				// run report on change
 				f.$input.on("change", function() {
+					if(!me.flags.filter_set) {
+						// don't trigger change while setting filters
+						return;
+					}
 					f.$input.blur();
 					if (f.on_change) {
 						f.on_change(me);
@@ -314,10 +319,11 @@ frappe.views.QueryReport = Class.extend({
 		$(this.parent).find('.page-form').toggle($filters.length ? true : false);
 
 		this.setting_filters = true;
-		this.set_route_filters()
+		this.set_route_filters();
 		this.setting_filters = false;
 
 		this.set_filters_by_name();
+		this.flags.filters_set = true;
 	},
 	clear_filters: function() {
 		this.filters = [];
