@@ -89,8 +89,9 @@ frappe.views.QueryReport = Class.extend({
 			}, me.report_doc.letter_head);
 		}, true);
 
-		this.page.add_menu_item(__('Export'), function() { me.make_export(); },
-			true);
+		this.page.add_menu_item(__('Export'), function() {
+			me.make_export();
+		}, true);
 
 		this.page.add_menu_item(__("Setup Auto Email"), function() {
 			frappe.set_route('List', 'Auto Email Report', {'report' : me.report_name});
@@ -821,8 +822,6 @@ frappe.views.QueryReport = Class.extend({
 				}
 
 				else if (data.file_format_type == "Excel") {
-
-					me.wrapper.find(".results").toggle(false);
 					try {
 						var filters = me.get_values(true);
 					} catch(e) {
