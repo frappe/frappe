@@ -254,10 +254,12 @@ frappe.views.Calendar = Class.extend({
 		var palette_colors = ['red', 'green', 'blue', 'yellow', 'skyblue', 'orange'];
 		var index = 0;
 
-		events = events.map(function(event) {
-			event.className = "fc-bg-" + palette_colors[index];
-			index = (index + 1) % palette_colors.length;
-		})
+		if(events) {
+			events = events.map(function(event) {
+				event.className = "fc-bg-" + palette_colors[index];
+				index = (index + 1) % palette_colors.length;
+			})
+		}
 	},
 	update_event: function(event, revertFunc) {
 		var me = this;

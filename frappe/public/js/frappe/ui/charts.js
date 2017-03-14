@@ -57,7 +57,7 @@ frappe.ui.Chart = Class.extend({
 		};
 
 		// set color
-		if(!chart_dict.data.colors) {
+		if(!chart_dict.data.colors && chart_dict.data.columns) {
 			colors = ['#4E50A6', '#7679FB', '#A3A5FC', '#925191', '#5D3EA4', '#8D5FFA',
 				'#5E3AA8', '#7B933D', '#4F8EA8'];
 			chart_dict.data.colors = {};

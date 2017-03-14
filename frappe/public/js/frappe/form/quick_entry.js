@@ -107,6 +107,8 @@ frappe.ui.form.quick_entry = function(doctype, success) {
 				if(!frappe.request.ajax_count) {
 					// not already working -- double entry
 					dialog.get_primary_btn().trigger("click");
+					e.preventDefault();
+					return false;
 				}
 			}
 		});

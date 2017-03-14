@@ -1598,11 +1598,19 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 				['style', ['bold', 'italic', 'underline', 'clear']],
 				['fontsize', ['fontsize']],
 				['color', ['color']],
-				['para', ['ul', 'ol', 'paragraph']],
-				['height', ['height']],
+				['para', ['ul', 'ol', 'paragraph', 'hr']],
+				//['height', ['height']],
 				['media', ['link', 'picture', 'video', 'table']],
 				['misc', ['fullscreen', 'codeview']]
 			],
+			keyMap: {
+				pc: {
+					'CTRL+ENTER': ''
+				},
+				mac: {
+					'CMD+ENTER': ''
+				}
+			},
 			callbacks: {
 				onChange: function(value) {
 					me.parse_validate_and_set_in_model(value);
