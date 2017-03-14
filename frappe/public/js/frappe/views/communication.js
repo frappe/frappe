@@ -86,13 +86,12 @@ frappe.views.CommunicationComposer = Class.extend({
 
 		// add from if user has access to multiple email accounts
 		email_accounts = frappe.boot.email_accounts.filter(function(account, idx){
-			return !inList(["All Accounts", "Sent"], account.email_account)
+			return !inList(["All Accounts", "Sent", "Spam", "Trash"], account.email_account)
 		})
 		if(frappe.boot.email_accounts && email_accounts.length > 1) {
-
 			fields = [
 				{label: __("From"), fieldtype: "Select", reqd: 1, fieldname: "sender",
-					options: accounts.map(function(e) { return e.email_id; }) }
+					options: email_accounts.map(function(e) { return e.email_id; }) }
 			].concat(fields);
 		}
 

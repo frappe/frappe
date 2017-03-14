@@ -22,19 +22,22 @@ class Communication(Document):
 	"""Communication represents an external communication like Email."""
 	def onload(self):
 		"""create email flag queue"""
-		flag = frappe.db.get_value("Email Flag Queue", {
-			"communication": self.name,
-			"is_completed": 0})
-		if flag:
-			return
+		if self.communication_type == "Communication" and self.communication_medium == "Email" \
+			and self.sent_or_received == "Received":
+			
+			flag = frappe.db.get_value("Email Flag Queue", {
+				"communication": self.name,
+				"is_completed": 0})
+			if flag:
+				return
 
-		frappe.get_doc({
-			"doctype": "Email Flag Queue",
-			"action": "Read",
-			"communication": self.name,
-			"flag": "(\\SEEN)"
-		}).insert(ignore_permissions=True)
-		frappe.db.commit()
+			frappe.get_doc({
+				"doctype": "Email Flag Queue",
+				"action": "Read",
+				"communication": self.name,
+				"flag": "(\\SEEN)"
+			}).insert(ignore_permissions=True)
+			frappe.db.commit()
 
 	def validate(self):
 		if self.reference_doctype and self.reference_name:
@@ -64,6 +67,10 @@ class Communication(Document):
 	def after_insert(self):
 		if not (self.reference_doctype and self.reference_name):
 			return
+		
+		if self.reference_doctype == "Communication" and self.sent_or_received == "Sent":
+			frappe.db.set_value("Communication", self.reference_name, "status", "Replied")
+
 		if self.communication_type in ("Communication", "Comment"):
 			# send new comment to listening clients
 			frappe.publish_realtime('new_communication', self.as_dict(),
@@ -112,6 +119,13 @@ class Communication(Document):
 			self.status = "Open"
 		else:
 			self.status = "Closed"
+
+		# set email status to spam
+		email_rule = frappe.db.get_value("Email Rule", { "email_id": self.sender, "is_spam":1 })
+		if self.communication_type == "Communication" and self.communication_medium == "Email" \
+			and self.sent_or_received == "Sent" and email_rule:
+
+			self.email_status = "Spam"
 
 	def set_sender_full_name(self):
 		if not self.sender_full_name and self.sender:

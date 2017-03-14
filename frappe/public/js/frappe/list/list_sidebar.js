@@ -247,6 +247,12 @@ frappe.views.ListSidebar = Class.extend({
 
 		var $dropdown = this.page.sidebar.find('.email-account-dropdown');
 		var divider = false;
+
+		if(has_common(roles, ["System Manager", "Administrator"])) {
+			$('<li class="new-email-account"><a>'+ __("New Email Account") +'</a></li>')
+				.appendTo($dropdown)
+		}
+
 		accounts = frappe.boot.email_accounts;
 
 		accounts.forEach(function(account) {

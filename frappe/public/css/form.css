@@ -595,3 +595,6 @@ select.form-control {
     box-shadow: none;
   }
 }
+body[data-route^="Form/Communication"] textarea[data-fieldname="subject"] {
+  height: 80px !important;
+}

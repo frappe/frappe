@@ -374,3 +374,10 @@
 .gantt .details-container .standard-image {
   display: block;
 }
+.inbox-attachment,
+.inbox-link {
+  margin-right: 7px;
+}
+.select-inbox {
+  padding: 30px 30px;
+}

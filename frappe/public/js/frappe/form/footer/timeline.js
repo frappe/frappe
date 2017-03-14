@@ -11,7 +11,7 @@ frappe.ui.form.Timeline = Class.extend({
 	make: function() {
 		var me = this;
 		this.wrapper = $(frappe.render_template("timeline",
-			{})).appendTo(this.parent);
+			{doctype: this.frm.doctype})).appendTo(this.parent);
 
 		this.list = this.wrapper.find(".timeline-items");
 		this.input = this.wrapper.find(".form-control");
@@ -35,15 +35,7 @@ frappe.ui.form.Timeline = Class.extend({
 			}
 		});
 
-		this.email_button = this.wrapper.find(".btn-new-email")
-			.on("click", function() {
-				new frappe.views.CommunicationComposer({
-					doc: me.frm.doc,
-					txt: frappe.markdown(me.input.val()),
-					frm: me.frm,
-					recipients: me.get_recipient()
-				})
-			});
+		this.setup_email_button();
 
 		this.list.on("click", ".toggle-blockquote", function() {
 			$(this).parent().siblings("blockquote").toggleClass("hidden");
@@ -80,6 +72,33 @@ frappe.ui.form.Timeline = Class.extend({
 			});
 		});
 
+	},
+
+	setup_email_button: function() {
+		var me = this;
+		selector = this.frm.doctype === "Communication"? ".btn-reply-email": ".btn-new-email"
+		this.email_button = this.wrapper.find(selector)
+			.on("click", function() {
+				args = {
+					doc: me.frm.doc,
+					frm: me.frm,
+					recipients: me.get_recipient()
+				}
+
+				if(me.frm.doctype === "Communication") {
+					$.extend(args, {
+						txt: "",
+						last_email: me.frm.doc,
+						recipients: me.frm.doc.sender,
+						subject: __("Re: {0}", [me.frm.doc.subject]),
+					});
+				} else {
+					$.extend(args, {
+						txt: frappe.markdown(me.input.val())
+					});
+				}
+				new frappe.views.CommunicationComposer(args)
+			});
 	},
 
 	refresh: function(scroll_to_end) {
