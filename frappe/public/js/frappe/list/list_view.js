@@ -158,6 +158,7 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 		this.init_filters();
 		this.set_title();
 		this.init_headers();
+		this.no_result_message = this.list_renderer.make_no_result()
 	},
 
 	setup_list_renderer: function () {
@@ -327,7 +328,7 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 			page_length: this.list_renderer.page_length,
 			show_filters: false,
 			new_doctype: this.doctype,
-			no_result_message: this.make_no_result(),
+			no_result_message: this.list_renderer.make_no_result(),
 			show_no_result: function() {
 				return me.list_renderer.show_no_result;
 			}
@@ -346,8 +347,12 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 		if (this.list_renderer.settings.list_view_doc) {
 			this.list_renderer.settings.list_view_doc(this);
 		} else {
-			$(this.wrapper).on('click', `button[list_view_doc='${this.doctype}']`, function () {
-				me.make_new_doc.apply(me, [me.doctype]);
+			doctype = this.list_renderer.no_result_doctype? this.list_renderer.no_result_doctype: this.doctype
+			$(this.wrapper).on('click', `button[list_view_doc='${doctype}']`, function () {
+				if (me.list_renderer.make_new_doc)
+					me.list_renderer.make_new_doc()
+				else
+					me.make_new_doc.apply(me, [me.doctype]);
 			});
 		}
 	},
@@ -490,22 +495,6 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 		this.wrapper.on('render-complete', function() {
 			me.list_renderer.after_refresh();
 		})
-	},
-
-	make_no_result: function () {
-		var new_button = frappe.boot.user.can_create.includes(this.doctype)
-			? (`<p><button class='btn btn-primary btn-sm'
-				list_view_doc='${this.doctype}'>
-					${__('Make a new ' + __(this.doctype))}
-				</button></p>`)
-			: '';
-		var no_result_message =
-			`<div class='msg-box no-border'>
-				<p>${__('No {0} found', [__(this.doctype)])}</p>
-				${new_button}
-			</div>`;
-
-		return no_result_message;
 	},
 
 	get_args: function () {

@@ -524,5 +524,20 @@ frappe.views.ListRenderer = Class.extend({
 	render_icon: function (parent, icon_class, label) {
 		var icon_html = `<i class='${icon_class}' title='${__(label) || ''}'></i>`;
 		$(parent).append(icon_html);
-	}
+	},
+	make_no_result: function () {
+		var new_button = frappe.boot.user.can_create.includes(this.doctype)
+			? (`<p><button class='btn btn-primary btn-sm'
+				list_view_doc='${this.doctype}'>
+					${__('Make a new ' + __(this.doctype))}
+				</button></p>`)
+			: '';
+		var no_result_message =
+			`<div class='msg-box no-border'>
+				<p>${__('No {0} found', [__(this.doctype)])}</p>
+				${new_button}
+			</div>`;
+
+		return no_result_message;
+	},
 });
