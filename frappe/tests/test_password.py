@@ -39,7 +39,7 @@ class TestPassword(unittest.TestCase):
 				'append_to': 'Communication',
 				'smtp_server': 'test.example.com',
 				'pop3_server': 'pop.test.example.com',
-				'email_id': 'test@example.com',
+				'email_id': 'test-password@example.com',
 				'password': 'password',
 			}).insert()
 
