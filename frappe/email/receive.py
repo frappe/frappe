@@ -322,7 +322,7 @@ class EmailServer:
 
 		return error_msg
 
-	def update_flag(self, uid_list=[], operation="Read"):
+	def update_flag(self, uid_list={}):
 		""" set all uids mails the flag as seen  """
 
 		if not uid_list:
@@ -331,10 +331,11 @@ class EmailServer:
 		if not self.connect():
 			return
 
-		op = "+FLAGS" if operation == "Read" else "-FLAGS"
-
 		self.imap.select("Inbox")
-		for uid in uid_list:
+		for uid, operation in uid_list.iteritems():
+			if not uid: continue
+
+			op = "+FLAGS" if operation == "Read" else "-FLAGS"
 			try:
 				self.imap.uid('STORE', uid, op, '(\\SEEN)')
 			except Exception as e:
