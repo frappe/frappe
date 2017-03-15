@@ -29,8 +29,22 @@ frappe.views.ListFactory = frappe.views.Factory.extend({
 	on_show: function() {
 		var route = frappe.get_route();
 		var doctype = route[1];
+		var last_route = frappe.route_history.slice(-2)[0];
 		if (route[0] === 'List' && route.length === 2 && frappe.views.list_view[doctype]) {
-			frappe.views.list_view[doctype].load_last_view();
+			if(last_route && last_route[0]==='List' && last_route[1]===doctype) {
+				// last route same as this route, so going back.
+				// this happens because #List/Item will redirect to #List/Item/List
+				// while coming from back button, the last 2 routes will be same, so
+				// we know user is coming in the reverse direction (via back button)
+
+				// example:
+				// Step 1: #List/Item redirects to #List/Item/List
+				// Step 2: User hits "back" comes back to #List/Item
+				// Step 3: Now we cannot send the user back to #List/Item/List so go back one more step
+				window.history.go(-1);
+			} else {
+				frappe.views.list_view[doctype].load_last_view();
+			}
 		}
 	},
 	show: function () {
@@ -235,7 +249,7 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 		this.list_header = this.page.main.find('.list-headers > '
 				+ '.list-row-head[data-list-renderer="'
 				+ this.list_renderer.name +'"]');
-		
+
 		if(this.list_header.length > 0) {
 			this.list_header.show();
 			return;
