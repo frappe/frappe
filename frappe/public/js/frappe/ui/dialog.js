@@ -79,7 +79,12 @@ frappe.ui.Dialog = frappe.ui.FieldGroup.extend({
 			.html(label)
 			.click(function() {
 				me.primary_action_fulfilled = true;
-				click.apply(me);
+				// get values and send it
+				// as first parameter to click callback
+				// if no values then return
+				var values = me.get_values();
+				if(!values) return;
+				click.apply(me, [values]);
 			});
 	},
 	make_head: function() {

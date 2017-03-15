@@ -130,16 +130,18 @@ frappe.views.ListSidebar = Class.extend({
 				$('<li role="separator" class="divider"></li>').appendTo($dropdown);
 				divider = true;
 			}
-			$(`<li><a href="#${route}">${__(board.name)}</a></li>`).appendTo($dropdown);
+			$(`<li><a href="#${route}">
+				<span>${__(board.name)}</span>
+				${board.private ? '<i class="fa fa-lock fa-fw text-warning"></i>' : ''}
+			</a></li>`).appendTo($dropdown);
 		});
 
 		$dropdown.find('.new-kanban-board').click(function() {
 			// frappe.new_doc('Kanban Board', {reference_doctype: me.doctype});
 			var select_fields = frappe.get_meta(me.doctype)
 				.fields.filter(function(df) {
-					return df.fieldtype === 'Select';
-				}).map(function(df) {
-					return df.fieldname;
+					return df.fieldtype === 'Select' &&
+						df.fieldname !== 'kanban_column';
 				});
 
 			var fields = [
@@ -149,45 +151,61 @@ frappe.views.ListSidebar = Class.extend({
 					label: __('Kanban Board Name'),
 					reqd: 1
 				}
-			]
+			];
 
 			if(select_fields.length > 0) {
 				fields = fields.concat([{
 					fieldtype: 'Select',
 					fieldname: 'field_name',
 					label: __('Columns based on'),
-					options: select_fields.join('\n'),
+					options: select_fields.map(df => df.label).join('\n'),
 					default: select_fields[0]
 				},
 				{
 					fieldtype: 'Check',
 					fieldname: 'custom_column',
-					label: __('Add Custom Column Field'),
+					label: __('Custom Column'),
 					default: 0,
 					onchange: function(e) {
 						var checked = d.get_value('custom_column');
 						if(checked) {
-							d.get_input('field_name').prop('disabled', true);
+							$(d.body).find('.frappe-control[data-fieldname="field_name"]').hide();
 						} else {
-							d.get_input('field_name').prop('disabled', null);
+							$(d.body).find('.frappe-control[data-fieldname="field_name"]').show();
 						}
 					}
 				}]);
 			}
 
+			if(me.doctype === 'Task') {
+				fields[0].description = __('A new Project with this name will be created');
+			}
+
+			if(me.doctype === 'Note') {
+				fields[0].description = __('This Kanban Board will be private');
+			}
+
 			var d = new frappe.ui.Dialog({
 				title: __('New Kanban Board'),
 				fields: fields,
-				primary_action: function() {
-					var values = d.get_values();
+				primary_action_label: __('Save'),
+				primary_action: function(values) {
+
 					var custom_column = values.custom_column !== undefined ?
 						values.custom_column : 1;
+					
+					if(custom_column) {
+						var field_name = 'kanban_column';
+					} else {
+						var field_name =
+							select_fields
+								.find(df => df.label === values.field_name)
+								.fieldname;
+					}
 
 					me.add_custom_column_field(custom_column)
 						.then(function(custom_column) {
-							var f = custom_column ?
-								'kanban_column' : values.field_name;
-							return me.make_kanban_board(values.board_name, f)
+							return me.make_kanban_board(values.board_name, field_name)
 						})
 						.then(function() {
 							d.hide();
@@ -231,11 +249,16 @@ frappe.views.ListSidebar = Class.extend({
 				field_name: field_name
 			},
 			callback: function(r) {
+				var kb = r.message;
+				if(kb.filters) {
+					frappe.provide('frappe.kanban_filters');
+					frappe.kanban_filters[kb.kanban_board_name] = kb.filters;
+				}
 				frappe.set_route(
 					'List',
 					me.doctype,
 					'Kanban',
-					r.message.kanban_board_name
+					kb.kanban_board_name
 				);
 			}
 		});
