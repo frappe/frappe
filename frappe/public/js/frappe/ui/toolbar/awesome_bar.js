@@ -58,7 +58,7 @@ frappe.search.AwesomeBar = Class.extend({
 			sort: function(a, b) {
 				var a_index = a.split("%%%")[3];
 				var b_index = b.split("%%%")[3];
-				return (a_index*10 - b_index*10);
+				return (a_index - b_index);
 			}
 		});
 
@@ -86,6 +86,7 @@ frappe.search.AwesomeBar = Class.extend({
 					me.options = me.options.concat(me.global_results);
 				}
 
+
 				me.make_calculator(txt);
 				me.add_recent(txt || "");
 				me.add_help();
@@ -94,8 +95,7 @@ frappe.search.AwesomeBar = Class.extend({
 				var out = [], routes = [];
 				me.options.forEach(function(option) {
 					if(option.route) {
-						if(option.route[0] === "List" && option.route[2] && (option.route[2] === "Gantt"
-							|| option.route[2] === "Calendar")) {
+						if(option.route[0] === "List" && option.route[2]) {
 							option.route.splice(2, 1);
 						}
 						var str_route = (typeof option.route==='string') ?
@@ -103,6 +103,11 @@ frappe.search.AwesomeBar = Class.extend({
 						if(routes.indexOf(str_route)===-1) {
 							out.push(option);
 							routes.push(str_route);
+						} else {
+							var old = routes.indexOf(str_route);
+							if(out[old].index > option.index) {
+								out[old] = option;
+							}
 						}
 					} else {
 						out.push(option);
@@ -463,7 +468,7 @@ frappe.search.AwesomeBar = Class.extend({
 		var option = function(type, route, order) {
 			return {
 				label: rendered_label,
-				value: __(target),
+				value: __(target + " " + type),
 				route: route,
 				index: index + order,
 				match: target,
