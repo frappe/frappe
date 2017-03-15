@@ -163,7 +163,6 @@ class Database:
 			# 		auto_commit=auto_commit, update=update)
 
 			else:
-				print query % values
 				raise
 
 		if auto_commit: self.commit()
