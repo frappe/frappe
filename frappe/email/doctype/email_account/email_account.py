@@ -226,7 +226,7 @@ class EmailAccount(Document):
 		def get_seen(status):
 			if not status:
 				return None
-			seen = 0 if status == "SEEN" else 1
+			seen = 1 if status == "SEEN" else 0
 			return seen
 
 		if self.enable_incoming:
