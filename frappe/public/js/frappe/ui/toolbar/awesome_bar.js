@@ -468,7 +468,7 @@ frappe.search.AwesomeBar = Class.extend({
 		var option = function(type, route, order) {
 			return {
 				label: rendered_label,
-				value: __(target),
+				value: __(target + " " + type),
 				route: route,
 				index: index + order,
 				match: target,
