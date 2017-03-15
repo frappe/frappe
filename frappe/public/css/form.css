@@ -448,7 +448,7 @@ h6.uppercase,
   min-height: 30px;
   font-weight: bold;
   background-color: #f5f7fa;
-  padding: 6px;
+  padding: 5px 10px;
   border-radius: 3px;
 }
 .disabled-check {
