@@ -13,6 +13,7 @@ import frappe.permissions
 import frappe.share
 import re
 from frappe.limits import get_limits
+from frappe.website.utils import is_signup_enabled
 
 STANDARD_USERS = ("Guest", "Administrator")
 
@@ -588,6 +589,9 @@ def verify_password(password):
 
 @frappe.whitelist(allow_guest=True)
 def sign_up(email, full_name, redirect_to):
+	if not is_signup_enabled():
+		frappe.throw('Sign Up is disabled', title='Not Allowed')
+		
 	user = frappe.db.get("User", {"email": email})
 	if user:
 		if user.disabled:
