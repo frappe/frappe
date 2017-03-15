@@ -257,7 +257,7 @@ h6.uppercase, .h6.uppercase {
 }
 
 .shaded-section {
-	background-color: @light-bg;
+	//background-color: @light-bg;
 }
 
 .modal {
@@ -568,6 +568,15 @@ h6.uppercase, .h6.uppercase {
 	border-radius: 3px;
 	min-height: 30px;
 	font-weight: bold;
+	background-color: @navbar-bg;
+	padding: 5px 10px;
+	border-radius: 3px;
+}
+
+.disabled-check {
+	color: @navbar-bg;
+	margin-right: 3px;
+	margin-bottom: -2px;
 }
 
 .like-disabled-input.for-description {
@@ -766,4 +775,8 @@ select.form-control {
 		// 	text-indent: -2px;
 		// }
 	}
+}
+
+body[data-route^="Form/Communication"] textarea[data-fieldname="subject"] {
+	height: 80px !important;
 }

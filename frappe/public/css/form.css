@@ -199,9 +199,6 @@ h6.uppercase,
 .empty-section {
   display: none !important;
 }
-.shaded-section {
-  background-color: #fafbfc;
-}
 .modal .form-layout {
   margin: -15px;
 }
@@ -448,9 +445,16 @@ h6.uppercase,
 }
 .like-disabled-input {
   margin-bottom: 7px;
-  border-radius: 3px;
   min-height: 30px;
   font-weight: bold;
+  background-color: #f5f7fa;
+  padding: 5px 10px;
+  border-radius: 3px;
+}
+.disabled-check {
+  color: #f5f7fa;
+  margin-right: 3px;
+  margin-bottom: -2px;
 }
 .like-disabled-input.for-description {
   font-weight: normal;
@@ -594,4 +598,7 @@ select.form-control {
   .form-page .form-control:focus {
     box-shadow: none;
   }
+}
+body[data-route^="Form/Communication"] textarea[data-fieldname="subject"] {
+  height: 80px !important;
 }

@@ -28,6 +28,11 @@ Go to
 
 <img class="screenshot" src="{{docs_base_url}}/assets/img/oauth_provider_settings.png">
 
+### Add Primary Server
+
+This is the main server hosting all the users. e.g. `https://frappe.io`. To setup this as the main server, go to *Setup* > *Integrations* > *Social Login Keys* and enter `https://frappe.io` in the field  `Frappe Server URL`. This URL repeats in all other Frappe servers who connect to this server to authenticate. Effectively, this is the main Identity Provider (IDP). 
+
+Under this server add as many `OAuth Client`(s) as required.
 
 ## Add a Client App
 

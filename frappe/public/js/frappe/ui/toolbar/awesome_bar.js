@@ -209,8 +209,13 @@ frappe.search.AwesomeBar = Class.extend({
 				route: match[1]
 			}
 			if(match[1][0]==='Form') {
-				out.label = __(match[1][1]) + " " + match[1][2].bold();
-				out.value = __(match[1][1]) + " " + match[1][2];
+				if(match[1][1] !== match[1][2]) {
+					out.label = __(match[1][1]) + " " + match[1][2].bold();
+					out.value = __(match[1][1]) + " " + match[1][2];
+				} else {
+					out.label = __(match[1][1]).bold();
+					out.value = __(match[1][1]);
+				}
 			} else if(in_list(['List', 'Report', 'Tree', 'modules', 'query-report'], match[1][0])) {
 				var type = match[1][0], label = type;
 				if(type==='modules') label = 'Module';
@@ -261,8 +266,7 @@ frappe.search.AwesomeBar = Class.extend({
 	},
 
 	fuzzy_search: function(_txt, _item) {
-		parsed_item = __(_item || '').replace(/-|_/g, " ").replace(/\w*/g,
-			function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
+		parsed_item = __(_item || '').replace(/-|_/g, " ");
 		item = parsed_item.toLowerCase();
 		txt = _txt.toLowerCase();
 
@@ -566,7 +570,7 @@ frappe.search.AwesomeBar = Class.extend({
 		var target = 'Calendar';
 		if(__('calendar').indexOf(txt.toLowerCase()) === 0) {
 			out.push({
-				label: rendered_label,
+				label: __(target),
 				value: __("Open {0}", [__(target)]),
 				route: [target, 'Event'],
 				index: 5,

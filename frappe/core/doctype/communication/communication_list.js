@@ -2,7 +2,7 @@ frappe.listview_settings['Communication'] = {
 	add_fields: [
 		"sent_or_received","recipients", "subject",
 		"communication_medium", "communication_type",
-		"sender", "seen"
+		"sender", "seen", "reference_doctype", "reference_name"
 	],
 
 	filters: [["status", "=", "Open"]],

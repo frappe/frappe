@@ -27,10 +27,35 @@ frappe.views.ListFactory = frappe.views.Factory.extend({
 		});
 	},
 	show: function () {
+		if(this.re_route_to_view()) {
+			return;
+		}
 		this.set_module_breadcrumb();
 		this._super();
 		this.set_cur_list();
 		cur_list && cur_list.refresh();
+	},
+	re_route_to_view: function() {
+		var route = frappe.get_route();
+		var doctype = route[1];
+		var last_route = frappe.route_history.slice(-2)[0];
+		if (route[0] === 'List' && route.length === 2 && frappe.views.list_view[doctype]) {
+			if(last_route && last_route[0]==='List' && last_route[1]===doctype) {
+				// last route same as this route, so going back.
+				// this happens because #List/Item will redirect to #List/Item/List
+				// while coming from back button, the last 2 routes will be same, so
+				// we know user is coming in the reverse direction (via back button)
+
+				// example:
+				// Step 1: #List/Item redirects to #List/Item/List
+				// Step 2: User hits "back" comes back to #List/Item
+				// Step 3: Now we cannot send the user back to #List/Item/List so go back one more step
+				window.history.go(-1);
+			} else {
+				frappe.views.list_view[doctype].load_last_view();
+			}
+			return true;
+		}
 	},
 	set_module_breadcrumb: function () {
 		if (frappe.route_history.length > 1) {
@@ -158,6 +183,7 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 		this.init_filters();
 		this.set_title();
 		this.init_headers();
+		this.no_result_message = this.list_renderer.make_no_result()
 	},
 
 	setup_list_renderer: function () {
@@ -206,7 +232,7 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 		var us = frappe.get_user_settings(this.doctype);
 		var route = ['List', this.doctype];
 
-		if (us.last_view && us.last_view !== 'List') {
+		if (us.last_view) {
 			route.push(us.last_view);
 
 			if (us.last_view === 'Kanban') {
@@ -215,6 +241,8 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 
 			if (us.last_view === 'Inbox')
 				route.push(us['Inbox'].last_email_account)
+		} else {
+			route.push('List');
 		}
 
 		frappe.set_route(route);
@@ -225,7 +253,7 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 		this.list_header = this.page.main.find('.list-headers > '
 				+ '.list-row-head[data-list-renderer="'
 				+ this.list_renderer.name +'"]');
-		
+
 		if(this.list_header.length > 0) {
 			this.list_header.show();
 			return;
@@ -327,7 +355,7 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 			page_length: this.list_renderer.page_length,
 			show_filters: false,
 			new_doctype: this.doctype,
-			no_result_message: this.make_no_result(),
+			no_result_message: this.list_renderer.make_no_result(),
 			show_no_result: function() {
 				return me.list_renderer.show_no_result;
 			}
@@ -346,8 +374,12 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 		if (this.list_renderer.settings.list_view_doc) {
 			this.list_renderer.settings.list_view_doc(this);
 		} else {
-			$(this.wrapper).on('click', `button[list_view_doc='${this.doctype}']`, function () {
-				me.make_new_doc.apply(me, [me.doctype]);
+			doctype = this.list_renderer.no_result_doctype? this.list_renderer.no_result_doctype: this.doctype
+			$(this.wrapper).on('click', `button[list_view_doc='${doctype}']`, function () {
+				if (me.list_renderer.make_new_doc)
+					me.list_renderer.make_new_doc()
+				else
+					me.make_new_doc.apply(me, [me.doctype]);
 			});
 		}
 	},
@@ -455,7 +487,7 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 
 		if (!this.list_renderer.settings.use_route) {
 			var route = frappe.get_route();
-			if (route[2] && !in_list(['Image', 'Gantt', 'Kanban', 'Calendar', 'Inbox'], route[2])) {
+			if (route[2] && !in_list(['List', 'Image', 'Gantt', 'Kanban', 'Calendar', 'Inbox'], route[2])) {
 				$.each(frappe.utils.get_args_dict_from_url(route[2]), function (key, val) {
 					me.set_filter(key, val, true);
 				});
@@ -490,22 +522,6 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 		this.wrapper.on('render-complete', function() {
 			me.list_renderer.after_refresh();
 		})
-	},
-
-	make_no_result: function () {
-		var new_button = frappe.boot.user.can_create.includes(this.doctype)
-			? (`<p><button class='btn btn-primary btn-sm'
-				list_view_doc='${this.doctype}'>
-					${__('Make a new {0}', [__(this.doctype)])}
-				</button></p>`)
-			: '';
-		var no_result_message =
-			`<div class='msg-box no-border'>
-				<p>${__('No {0} found', [__(this.doctype)])}</p>
-				${new_button}
-			</div>`;
-
-		return no_result_message;
 	},
 
 	get_args: function () {

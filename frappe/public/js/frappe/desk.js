@@ -62,9 +62,6 @@ frappe.Application = Class.extend({
 			this.show_notes();
 		}
 
-		// ask to allow notifications
-		frappe.utils.if_notify_permitted();
-
 		// listen to csrf_update
 		frappe.realtime.on("csrf_generated", function(data) {
 			// handles the case when a user logs in again from another tab

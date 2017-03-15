@@ -913,7 +913,8 @@ frappe.provide("frappe.views");
 			if (df.fieldname === board.field_name && df.fieldtype === "Select") {
 				if (action === "add") {
 					//add column_name to Select field's option field
-					df.options += "\n" + title;
+					if(!df.options.includes(title))
+						df.options += "\n" + title;
 				} else if (action === "delete") {
 					var options = df.options.split("\n");
 					var index = options.indexOf(title);
