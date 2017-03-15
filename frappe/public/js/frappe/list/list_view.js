@@ -26,7 +26,16 @@ frappe.views.ListFactory = frappe.views.Factory.extend({
 			}
 		});
 	},
-	on_show: function() {
+	show: function () {
+		if(this.re_route_to_view()) {
+			return;
+		}
+		this.set_module_breadcrumb();
+		this._super();
+		this.set_cur_list();
+		cur_list && cur_list.refresh();
+	},
+	re_route_to_view: function() {
 		var route = frappe.get_route();
 		var doctype = route[1];
 		var last_route = frappe.route_history.slice(-2)[0];
@@ -45,13 +54,8 @@ frappe.views.ListFactory = frappe.views.Factory.extend({
 			} else {
 				frappe.views.list_view[doctype].load_last_view();
 			}
+			return true;
 		}
-	},
-	show: function () {
-		this.set_module_breadcrumb();
-		this._super();
-		this.set_cur_list();
-		cur_list && cur_list.refresh();
 	},
 	set_module_breadcrumb: function () {
 		if (frappe.route_history.length > 1) {
