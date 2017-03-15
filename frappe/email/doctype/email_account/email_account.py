@@ -45,6 +45,14 @@ class EmailAccount(Document):
 		else:
 			self.login_id = None
 
+		duplicate_email_account = frappe.get_all("Email Account", filters={
+			"email_id": self.email_id,
+			"name": ("!=", self.name)
+		})
+		if duplicate_email_account:
+			frappe.throw(_("Email id must be unique, Email Account is already exist \
+				for {0}".format(frappe.bold(self.email_id))))
+
 		if frappe.local.flags.in_patch or frappe.local.flags.in_test:
 			return
 
@@ -78,39 +86,44 @@ class EmailAccount(Document):
 
 	def on_update(self):
 		"""Check there is only one default of each type."""
+		from frappe.core.doctype.user.user import ask_pass_update
+
 		self.there_must_be_only_one_default()
 		if self.awaiting_password:
 			# push values to user_emails
 			frappe.db.sql("""UPDATE `tabUser Email` SET awaiting_password = 1
-						  WHERE email_account = %(account)s""", {"account": self.name})
+				WHERE email_account = %(account)s""", {"account": self.name})
 		else:
 			frappe.db.sql("""UPDATE `tabUser Email` SET awaiting_password = 0
-									  WHERE email_account = %(account)s""", {"account": self.name})
-		from frappe.core.doctype.user.user import ask_pass_update
+				WHERE email_account = %(account)s""", {"account": self.name})
+
 		ask_pass_update()
 
 	def there_must_be_only_one_default(self):
 		"""If current Email Account is default, un-default all other accounts."""
-		for fn in ("default_incoming", "default_outgoing"):
-			if self.get(fn):
-				for email_account in frappe.get_all("Email Account",
-					filters={fn: 1}):
-					if email_account.name==self.name:
-						continue
-					email_account = frappe.get_doc("Email Account",
-						email_account.name)
-					email_account.set(fn, 0)
-					email_account.save()
+		for field in ("default_incoming", "default_outgoing"):
+			if not self.get(field):
+				continue
+
+			for email_account in frappe.get_all("Email Account", filters={ field: 1 }):
+				if email_account.name==self.name:
+					continue
+
+				email_account = frappe.get_doc("Email Account", email_account.name)
+				email_account.set(field, 0)
+				email_account.save()
 
 	@frappe.whitelist()
-	def get_domain(self,email_id):
+	def get_domain(self, email_id):
 		"""look-up the domain and then full"""
 		try:
 			domain = email_id.split("@")
-			return frappe.db.sql("""select name,use_imap,email_server,use_ssl,smtp_server,use_tls,smtp_port
-			from `tabEmail Domain`
-			where name = %s
-			""",domain[1],as_dict=1)
+			fields = [
+				"name as domain", "use_imap", "email_server",
+				"use_ssl", "smtp_server", "use_tls",
+				"smtp_port"
+			]
+			return frappe.db.get_value("Email Domain", domain[1], fields, as_dict=True)
 		except Exception:
 			pass
 
