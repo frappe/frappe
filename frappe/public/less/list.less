@@ -189,7 +189,19 @@
 
 .filterable {
 	cursor: pointer;
+	display: inline-block;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
+
+.col-sm-2 .filterable {
+	max-width: 90px;
+}
+
+.col-sm-3 .filterable {
+	max-width: 145px;
+}
+
 
 .doclist-row .label {
 	margin-right: 8px;
