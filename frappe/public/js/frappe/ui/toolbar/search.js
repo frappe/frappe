@@ -28,7 +28,7 @@ frappe.search.SearchDialog = Class.extend({
 		this.$results_area = this.$search_results.find(".results-area");
 
 		// this.$modal_body.append($('<div class="search-intro-placeholder"><span>' +
-			// '<i class="mega-octicon octicon-telescope"></i><p>'+__("Search for anything")+'</p></span></div>'));
+		// 	'<i class="mega-octicon octicon-telescope"></i><p>'+__("Search for anything")+'</p></span></div>'));
 
 		this.setup();
 	},
@@ -37,19 +37,37 @@ frappe.search.SearchDialog = Class.extend({
 		this.current_keyword = "";
 		this.full_lists = {};
 		this.reset();
-		this.modal_state = 0;
+
 		this.bind_input();
 		this.bind_events();
 	},
 
 	reset: function() {
-		// this.$search_results.addClass('hide');
-		// this.$modal_body.find('.search-intro-placeholder').removeClass('hide');
+		this.modal_state = 0;
 		this.$sidebar.empty();
 		this.$results_area.empty();
 	},
 
-	// Bind events
+	put_placeholder: function() {
+		// make a search results div with only the placeholder and replace_content
+		var $placeholder = $('<div class="row search-results hide">' +
+				'<div class="search-intro-placeholder"><span>' +
+				'<i class="mega-octicon octicon-telescope"></i><p>'+__("Search for anything")+'</p></span></div>' +
+			'</div>');
+
+		this.replace_modal_content($placeholder);
+	},
+
+	put_not_found: function() {
+		// make a search results div with only the no results and replace_content
+		var $placeholder = $('<div class="row search-results hide">' +
+				'<div class="no-results-found"><p class="results-status text-muted" style="text-align: center;">'+
+					'No results found for: '+ "'"+ this.current_keyword +"'" +'</p></div>' +
+			'</div>');
+
+		this.replace_modal_content($placeholder);
+	},
+
 	bind_input: function() {
 		var me = this;
 		this.$input.on("input", function() {
@@ -60,9 +78,10 @@ frappe.search.SearchDialog = Class.extend({
 				if(me.$input.val() === me.current_keyword) return;
 				keywords = me.$input.val();
 				me.reset();
-				if(keywords.length > 2) {
-					me.modal_state = 0;
+				if(keywords.length > 1) {
 					me.get_results(keywords);
+				} else if (keywords.length === 0) {
+					me.put_placeholder();
 				} else {
 					me.current_type = '';
 				}
@@ -72,8 +91,6 @@ frappe.search.SearchDialog = Class.extend({
 
 	bind_events: function() {
 		var me = this;
-		// var $sidebar = this.$modal_body.find('.search-sidebar');
-		// var $results_area = this.$modal_body.find('.results-area');
 
 		// Sidebar
 		this.$modal_body.on('click', '.list-link',  function() {
@@ -103,18 +120,25 @@ frappe.search.SearchDialog = Class.extend({
 
 		});
 
+		// Help results
+		// this.$modal_body.on('click', 'a[data-path]', frappe.help.show_results);
 		this.bind_keyboard_events();
 	},
 
 	bind_keyboard_events: function() {
 		var me = this;
 		this.$search_modal.on('keydown', function(e) {
-			if(me.$modal_body.find('.list-link').length > 1) {
-				function focus_input() {
-					if(!me.$input.is(":focus")) {
-						me.$input.focus();
-					}
+
+			function focus_input() {
+				if(!me.$input.is(":focus")) {
+					me.$input.focus();
 				}
+			}
+
+			// Backspace key triggers input
+			if(e.which === 8) focus_input();
+
+			if(me.$modal_body.find('.list-link').length > 1) {
 
 				if(me.modal_state === 0) {
 					// DOWN and UP keys navigate sidebar
@@ -209,6 +233,8 @@ frappe.search.SearchDialog = Class.extend({
 	//
 	get_results: function(keywords) {
 		this.current_keyword = keywords;
+		// TO DO: put loading sign: if placeholder present then that, else the normal one
+
 		var result_sets = this.searches[this.search](keywords, this.render_data.bind(this));
 		// get results type object megatype arrays [ {title:"Item", results: [{a:foo, b:..}, {}, ()]}, {title:"", re} ]   and so on
 		// pass them onto render_results
@@ -231,25 +257,28 @@ frappe.search.SearchDialog = Class.extend({
 			me.full_lists[set.title] = me.render_full_list(set.title, set.results, true);
 		});
 
-		// gather all the results objects, collect type and list from each of each
-		// make sidebar item array, full_list dict,
-		// render_summary (only if sidebar array has > 1)
-
 		if(sidelist.find('.list-link').length > 1) {
 			sidelist.prepend($(__(sidebar_item_html, ["All Results"])));
+		} else if (sidelist.find('.list-link').length === 0) {
+			this.put_not_found();
+			return;
 		}
 
 		this.$sidebar.append(sidelist);
+
+		// probably won't need this anymore now ... ha ha :D
 		// this.$modal_body.find('.search-intro-placeholder').addClass('hide');
 
-		// Last step
-		var $r = this.$search_results.clone();
+		this.replace_modal_content(this.$search_results.clone());
+		this.$modal_body.find('.list-link').first().trigger('click');
+	},
 
+	replace_modal_content: function($r) {
+		// TO DO: hide/remove all loading elements
 		this.$modal_body.append($r);
 		this.$modal_body.find('.search-results').first().addClass("hide");
 		$r.removeClass("hide");
 		this.$modal_body.find('.search-results').first().remove();
-		this.$modal_body.find('.list-link').first().trigger('click');
 	},
 
 	render_full_list: function(type, results, more) {
@@ -297,12 +326,42 @@ frappe.search.SearchDialog = Class.extend({
 	},
 
 	render_result: function(type, result) {
-		// big ... based on result contents ... keep expanding
-		var link_html = '<div class="result '+ type +'-result">' +
-			'<b><a href="{0}" class="module-section-link small">{1}</a></b>' +
-			'<p class="small">{2}</p>' +
-			'</div>';
-		return $(__(link_html, ['#'+result.route.join('/'), result.label, result.description]));
+		var $result = $('<div class="result '+ type +'-result"></div>');
+
+		function get_link(result) {
+			var link;
+			if(result.route) {
+				link = 'href="#'+result.route.join('/')+'" ';
+			} else if (result.data_path) {
+				link = 'data-path="'+result.data_path+'"';
+			} else {
+				link = "";
+			}
+			return link;
+		}
+
+		function make_description(desc){
+			// process
+			return desc;
+		}
+
+		$result.append($('<b><a '+ get_link(result) +' class="module-section-link small">'+ result.label +'</a></b>'));
+
+		if(result.description) {
+			$result.append(make_description('<p class="small">'+ result.description +'</p>'));
+		}
+
+		if(result.image) {
+			$result.append(result.image);
+		}
+
+		if(result.subtypes) {
+			result.subtypes.forEach(function(subtype) {
+				$result.append(subtype);
+			});
+		}
+
+		return $result;
 	},
 
 });
