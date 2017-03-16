@@ -14,11 +14,20 @@ const assets_path = p(sites_path, 'assets');
 
 // console.log(sites_path, app_paths);
 
-build();
+// build();
+
+watch();
 
 function build() {
 	const build_map = make_build_map();
 	pack(build_map);
+}
+
+function watch() {
+	compile_less();
+	build(); // execute build() after compile_less(), not async
+
+	// watch_less();
 }
 
 function pack(build_map) {
@@ -106,6 +115,38 @@ function make_build_map() {
 	return build_map;
 }
 
+function compile_less() {
+	for (const app_path of app_paths) {
+		const public_path = p(app_path, 'public');
+		const less_path = p(public_path, 'less');
+		if (!fs.existsSync(less_path)) continue;
+
+		const files = fs.readdirSync(less_path);
+		for (const file of files) {
+			compile_less_file(file, less_path, public_path);
+		}
+	}
+}
+
+function compile_less_file(file, less_path, public_path) {
+	const file_content = fs.readFileSync(p(less_path, file), 'utf8');
+	const output_file = file.split('.')[0] + '.css';
+
+	less.render(file_content, {
+		paths: [less_path],
+		filename: file,
+		sourceMap: {sourceMapFileInline: true}
+	}, (e, output) => {
+		if (!e) {
+			console.log('compiling', file);
+			fs.writeFileSync(p(public_path, 'css', output_file), output.css)
+		} else {
+			console.log('Error compiling ', file);
+			console.log(e);
+		}
+	});
+}
+
 function make_asset_dirs(make_copy = false) {
 	
 
@@ -137,43 +178,7 @@ function make_asset_dirs(make_copy = false) {
 	}
 }
 
-function compile_less() {
-	for (const app of apps) {
 
-		const public_path = p(get_app_path(app), 'public');
-		const less_path = p(public_path, 'less');
-
-		if (!fs.existsSync(less_path)) continue;
-		const files = fs.readdirSync(less_path);
-
-		for (const file of files) {
-			compile_less_file(file, less_path, public_path);
-		}
-	}
-	// watch_less();
-}
-
-// compile_less();
-
-function compile_less_file(file, less_path, public_path) {
-
-	const file_content = fs.readFileSync(p(less_path, file), 'utf8');
-	const output_file = file.split('.')[0] + '.css';
-
-	less.render(file_content, {
-		paths: [p(less_path)],
-		outputDir: p(public_path, 'css'),
-		filename: file,
-		compress: true
-	}, (e, res) => {
-		if (!e) {
-			fs.writeFileSync(p(public_path, 'css', output_file), res.css)
-			console.log(output_file, ' compiled');
-		} else {
-			console.log(e, css)
-		}
-	})
-}
 
 function watch_less() {
 	const less_paths = apps.map((app) => p(get_app_path(app), 'public', 'less'));
