@@ -21,7 +21,9 @@ class Constant(object):
 		self.doctype_fields = {
 			'todo': ["name", "description", "creation", "priority", "status"],
 			'note': ["name", "content", "creation", "_comments", "_assign"],
-			'chat message':["user_name", "user_id", "is_alert", "text", "chat_title", "chat_type", "created_at"]
+			'chat message':["created_at", "text", "chat_data", "bot_data"],
+			'chat User' : ["full_name", "email", "number"],
+			'chat room' : ["room_name", "is_bot"]
 			}
 		
 		self.doctype_actions = {
