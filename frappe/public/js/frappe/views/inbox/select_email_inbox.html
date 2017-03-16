@@ -18,15 +18,10 @@
 			</div>
 		</div>
 	</div>
-	{% } else if(!is_system_manager) { %}
-		<div class="msg-box no-border">
-			<p>Email Account is not assigned, Please contact System Manager</p>
-		</div>
 	{% } else { %}
 		{%= frappe.render_template("inbox_no_result", { 
 				doctype: "Email Account",
 				label: "Email Account",
-				action: `frappe.new_doc("Email Account")`
 			}) %}
 	{% } %}
 </div>
