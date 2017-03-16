@@ -181,7 +181,7 @@ frappe.views.ListSidebar = Class.extend({
 				fields[0].description = __('A new Project with this name will be created');
 			}
 
-			if(me.doctype === 'Note') {
+			if(['Note', 'ToDo'].includes(me.doctype)) {
 				fields[0].description = __('This Kanban Board will be private');
 			}
 

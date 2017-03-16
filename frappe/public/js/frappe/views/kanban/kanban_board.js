@@ -44,7 +44,15 @@ frappe.provide("frappe.views");
 					});
 			},
 			add_column: function (updater, col) {
-				fluxify.doAction('update_column', col, 'add');
+				if(frappe.model.can_create('Custom Field')) {
+					fluxify.doAction('update_column', col, 'add');
+				} else {
+					frappe.msgprint({
+						title: __('Not permitted'),
+						message: __('You are not allowed to create columns'),
+						indicator: 'red'
+					});
+				}
 			},
 			archive_column: function (updater, col) {
 				fluxify.doAction('update_column', col, 'archive');
@@ -947,7 +955,10 @@ frappe.provide("frappe.views");
 		doc.hide_success = true;
 		return frappe.call({
 			doc: doc,
-			method: "save_customization"
+			method: "save_customization",
+			callback: function(r) {
+				console.log(r);
+			}
 		});
 	}
 
