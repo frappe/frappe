@@ -9,8 +9,6 @@ frappe.search.AwesomeBar = Class.extend({
 		var $input = $(element);
 		var input = $input.get(0);
 
-		this.search = new frappe.search.SearchDialog();
-
 		this.options = [];
 		this.global_results = [];
 
@@ -345,7 +343,7 @@ frappe.search.AwesomeBar = Class.extend({
 			index: 1,
 			default: "Search",
 			onclick: function() {
-				me.search.init_search(txt, "global");
+				frappe.searchdialog.search.init_search(txt, "global");
 			}
 		});
 	},

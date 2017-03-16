@@ -16,7 +16,9 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 		awesome_bar.setup("#navbar-search");
 		awesome_bar.setup("#modal-search");
 
-		this.search = awesome_bar.search;
+		this.search = new frappe.search.SearchDialog();
+		frappe.provide('frappe.searchdialog');
+		frappe.searchdialog.search = this.search;
 
 		$(document).on("notification-update", function() {
 			frappe.ui.notifications.update_notifications();

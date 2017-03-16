@@ -730,12 +730,17 @@ fieldset[disabled] .form-control {
   align-items: center;
   justify-content: space-between;
   padding-left: 20px;
+  background-color: #ffffff;
 }
 .search-dialog .layout-side-section .nav li a i {
   visibility: hidden;
 }
 .search-dialog .layout-side-section .nav .active i {
   visibility: visible;
+}
+.search-dialog .layout-side-section .nav .select a,
+.search-dialog .layout-side-section .nav a:hover {
+  background-color: #f7fafc;
 }
 .search-dialog .results-area .single-link a {
   color: #36414c;

@@ -155,6 +155,7 @@ frappe.search.utils = {
                         value: d[0],
                         description: d[1],
                         route:[],
+                        data_path: d[2],
                         onclick: function() {
 
                         }
