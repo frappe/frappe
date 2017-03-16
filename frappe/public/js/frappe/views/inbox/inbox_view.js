@@ -120,15 +120,15 @@ frappe.views.InboxView = frappe.views.ListRenderer.extend({
 	},
 	make_no_result: function () {
 		var no_result_message = ""
-		email_account = this.get_current_email_account();	
+		email_account = this.get_current_email_account();
 		if (inList(["Spam", "Trash"], email_account)) {
 			return __("No {0} mail", [email_account])
-		} else if(!email_account) {
+		} else if(!email_account && !frappe.boot.email_accounts.length) {
 			// email account is not configured
 			this.no_result_doctype = "Email Account"
 			args = {
 				doctype: "Email Account",
-				label: "New Email Account"
+				label: "New Email Account",
 			}
 		} else {
 			// no sent mail
@@ -149,8 +149,6 @@ frappe.views.InboxView = frappe.views.ListRenderer.extend({
 		});
 		html = frappe.render_template("select_email_inbox", {
 			email_accounts: email_account_map,
-			current_email_account: this.current_email_account,
-			is_system_manager: has_common(["System Manager", "Administrator"], roles),
 			is_inbox_configured: Object.keys(email_account_map).length
 		})
 
@@ -159,6 +157,7 @@ frappe.views.InboxView = frappe.views.ListRenderer.extend({
 
 		return html
 	},
+
 	bind_email_inbox_selector: function() {
 		// bind email_account on_change event
 		var me = this;
@@ -167,6 +166,7 @@ frappe.views.InboxView = frappe.views.ListRenderer.extend({
 			frappe.set_route("List", "Communication", "Inbox", inbox)
 		})
 	},
+
 	make_new_doc: function() {
 		if (this.no_result_doctype == "Communication") {
 			new frappe.views.CommunicationComposer({

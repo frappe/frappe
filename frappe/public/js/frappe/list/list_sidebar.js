@@ -39,7 +39,7 @@ frappe.views.ListSidebar = Class.extend({
 		}
 		//show link for kanban view
 		this.sidebar.find('.list-link[data-view="Kanban"]').removeClass('hide');
-		if(this.doctype === "Communication"){
+		if(this.doctype === "Communication" && frappe.boot.email_accounts.length) {
 			this.sidebar.find('.list-link[data-view="Inbox"]').removeClass('hide');
 			show_list_link = true;
 		}
