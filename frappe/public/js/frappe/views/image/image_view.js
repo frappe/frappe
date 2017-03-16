@@ -68,8 +68,7 @@ frappe.views.ImageView = frappe.views.ListRenderer.extend({
 			gallery.show(name);
 			return false;
 		});
-	},
-	refresh: this.render_view
+	}
 });
 
 frappe.views.GalleryView = Class.extend({

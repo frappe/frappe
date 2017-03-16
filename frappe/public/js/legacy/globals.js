@@ -39,7 +39,7 @@ var user_img = {};
 var _f = {};
 var _p = {};
 var _r = {};
-var FILTER_SEP = '\1';
+// var FILTER_SEP = '\1';
 
 // API globals
 var frms={};

@@ -28,7 +28,9 @@ def bundle(no_compress, make_copy=False, verbose=False):
 	setup()
 
 	make_asset_dirs(make_copy=make_copy)
-	build(no_compress, verbose)
+
+	os.system('node ../apps/frappe/frappe/build.js')
+	# build(no_compress, verbose)
 
 def watch(no_compress):
 	"""watch and rebuild if necessary"""
@@ -101,7 +103,6 @@ def get_build_maps():
 				except ValueError, e:
 					print path
 					print 'JSON syntax error {0}'.format(str(e))
-
 	return build_maps
 
 timestamps = {}
