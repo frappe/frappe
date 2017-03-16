@@ -390,3 +390,6 @@
 .select-inbox {
   padding: 30px 30px;
 }
+.inbox-value {
+  padding-top: 2px;
+}
