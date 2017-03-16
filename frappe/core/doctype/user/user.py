@@ -61,6 +61,7 @@ class User(Document):
 		self.remove_all_roles_for_guest()
 		self.validate_username()
 		self.remove_disabled_roles()
+		self.validate_user_email_inbox()
 		ask_pass_update()
 
 		if self.language == "Loading...":
@@ -247,7 +248,6 @@ class User(Document):
 					link=link,
 					site_url=get_url(),
 				))
-
 
 	def send_login_mail(self, subject, template, add_args, now=None):
 		"""send mail with login details"""
@@ -461,6 +461,13 @@ class User(Document):
 			frappe.throw(_("Sorry. You have reached the maximum user limit for your subscription. You can either disable an existing user or buy a higher subscription plan."),
 				MaxUsersReachedError)
 
+	def validate_user_email_inbox(self):
+		""" check if same email account added in User Emails twice """
+
+		email_accounts = [ user_email.email_account for user_email in self.user_emails ]
+		if len(email_accounts) != len(set(email_accounts)):
+			frappe.throw(_("Email Account added multiple times"))
+
 @frappe.whitelist()
 def get_timezones():
 	import pytz
@@ -543,28 +550,88 @@ def get_email_awaiting(user):
 def set_email_password(email_account, user, password):
 	account = frappe.get_doc("Email Account", email_account)
 	if account.awaiting_password:
-		account.set("awaiting_password",0)
-		account.set("password",password)
+		account.awaiting_password = 0
+		account.password = password
 		try:
 			account.save(ignore_permissions=True)
-			frappe.db.sql("""update `tabUser Email` set awaiting_password = 0
-				where email_account = %(account)s""",{"account": email_account})
-			ask_pass_update()
 		except Exception:
 			frappe.db.rollback()
 			return False
+
 	return True
+
+def setup_user_email_inbox(email_account, awaiting_password, email_id):
+	""" setup email inbox for user """
+	def add_user_email(user):
+		user = frappe.get_doc("User", user)
+		row = user.append("user_emails", {})
+		
+		row.email_id = email_id
+		row.email_account = email_account
+		row.awaiting_password = awaiting_password or 0
+
+		user.save(ignore_permissions=True)
+
+	update_awaiting_password = False
+	if not all([email_account, email_id]):
+		return
+
+	user_names = frappe.db.get_values("User", { "email": email_id }, as_dict=True)
+	if not user_names:
+		return
+
+	for user in user_names:
+		user = user.get("name")
+
+		# check if inbox is alreay configured
+		user_inbox = frappe.db.get_value("User Email", {
+			"email_account": email_account,
+			"parent": user
+		}, ["name"]) or None
+
+		if not user_inbox:
+			add_user_email(user)
+		else:
+			# update awaiting password for email account
+			update_awaiting_password = True
+
+	if update_awaiting_password:
+		frappe.db.sql("""UPDATE `tabUser Email` SET awaiting_password = %(awaiting_password)s
+			WHERE email_account = %(email_account)s""", {
+				"email_account": email_account,
+				"awaiting_password": awaiting_password or 0
+			})
+	else:
+		frappe.msgprint(_("Enabled email inbox for user {users}".format(
+			users=" and ".join([frappe.bold(user.get("name")) for user in user_names])
+		)))
+
+	ask_pass_update()
+
+def remove_user_email_inbox(email_account):
+	""" remove user email inbox settings if email account is deleted """
+	if not email_account:
+		return
+
+	users = frappe.get_all("User Email", filters={
+		"email_account": email_account 
+	}, fields=["parent as name"])
+
+	for user in users:
+		doc = frappe.get_doc("User", user.get("name"))
+		to_remove = [ row for row in doc.user_emails if row.email_account == email_account ]
+		[ doc.remove(row) for row in to_remove ]
+
+		doc.save(ignore_permissions=True)
 
 def ask_pass_update():
 	# update the sys defaults as to awaiting users
 	from frappe.utils import set_default
-	users = frappe.db.sql("""SELECT DISTINCT(parent)
-                    FROM `tabUser Email`
-                    WHERE awaiting_password = 1""", as_list=1)
 
-	password_list = []
-	for u in users:
-		password_list.append(u[0])
+	users = frappe.db.sql("""SELECT DISTINCT(parent) as user FROM `tabUser Email`
+        WHERE awaiting_password = 1""", as_dict=True)
+
+	password_list = [ user.get("user") for user in users ]
 	set_default("email_user_password", u','.join(password_list))
 
 def _get_user_for_update_password(key, old_password):

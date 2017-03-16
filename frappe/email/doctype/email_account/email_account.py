@@ -86,18 +86,13 @@ class EmailAccount(Document):
 
 	def on_update(self):
 		"""Check there is only one default of each type."""
-		from frappe.core.doctype.user.user import ask_pass_update
+		from frappe.core.doctype.user.user import ask_pass_update, setup_user_email_inbox
 
 		self.there_must_be_only_one_default()
-		if self.awaiting_password:
-			# push values to user_emails
-			frappe.db.sql("""UPDATE `tabUser Email` SET awaiting_password = 1
-				WHERE email_account = %(account)s""", {"account": self.name})
-		else:
-			frappe.db.sql("""UPDATE `tabUser Email` SET awaiting_password = 0
-				WHERE email_account = %(account)s""", {"account": self.name})
-
-		ask_pass_update()
+		if self.enable_incoming:
+			# add user inbox only if mail incoming is enabled
+			setup_user_email_inbox(email_account=self.name,
+				awaiting_password=self.awaiting_password, email_id=self.email_id)
 
 	def there_must_be_only_one_default(self):
 		"""If current Email Account is default, un-default all other accounts."""
@@ -570,7 +565,10 @@ class EmailAccount(Document):
 
 	def on_trash(self):
 		"""Clear communications where email account is linked"""
+		from frappe.core.doctype.user.user import remove_user_email_inbox
+
 		frappe.db.sql("update `tabCommunication` set email_account='' where email_account=%s", self.name)
+		remove_user_email_inbox(email_account=self.name)
 
 	def after_rename(self, old, new, merge=False):
 		frappe.db.set_value("Email Account", new, "email_account_name", new)
