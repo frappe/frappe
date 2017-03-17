@@ -590,7 +590,7 @@ def verify_password(password):
 @frappe.whitelist(allow_guest=True)
 def sign_up(email, full_name, redirect_to):
 	if not is_signup_enabled():
-		frappe.throw('Sign Up is disabled', title='Not Allowed')
+		frappe.throw(_('Sign Up is disabled'), title='Not Allowed')
 		
 	user = frappe.db.get("User", {"email": email})
 	if user:
