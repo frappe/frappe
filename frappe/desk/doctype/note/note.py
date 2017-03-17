@@ -39,7 +39,6 @@ def get_permission_query_conditions(user):
 def has_permission(doc, ptype, user):
 	if doc.public == 1 or user == "Administrator":
 		return True
-
 	if user == doc.owner:
 		return True
 

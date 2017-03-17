@@ -52,7 +52,7 @@ def create_bot_message_object(room, chat):
 		"created_on": get_date(chat.created_at),
 		"text": chat.text,
 		"chat_data": chat.chat_data,
-		"bot_data": chat.bot_data,
+		"bot_data": chat.bot_data	
 	}
 
 def format_response(is_bot, chats, room):
@@ -65,8 +65,8 @@ def format_response(is_bot, chats, room):
 			},
 			"created_on": get_date(chat.created_at),
 			"text": chat.text,
-			"chat_data": chat.chat_data,
-			"bot_data": chat.bot_data,
+			"chat_data": json.loads(chat.chat_data),
+			"bot_data": json.loads(chat.bot_data),
 		}
 		results.append(item)
 	return results

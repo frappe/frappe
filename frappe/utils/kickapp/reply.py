@@ -21,7 +21,7 @@ class Reply(object):
 				filters={"chat_room": chat_room}, get_all=True)
 		else:
 			return []
-	""" baad mein bahi """
+
 	def load_more(self, query):
 		return Engine().load_more(query)
 
@@ -69,7 +69,7 @@ class Reply(object):
 					chats = self.helper.get_list('Chat Message', 
 								self.helper.get_doctype_fields_from_bot_name('Chat Message'), 
 								filters=filters, get_all=True)
-			
+
 			frappe.publish_realtime(event='message_from_server', 
 				message=format_response(room.is_bot, chats, room.room_name), 
 				room=mail_id)
@@ -90,13 +90,22 @@ class Reply(object):
 		meta = frappe._dict(obj.meta)
 		room = str(meta.room)
 		is_bot = meta.is_bot
+		add = meta.add
 		user_id = str(meta.user_id)
-
+		
+		chats = []
 		chat_room = frappe.db.exists("Chat Room", {"room_name":room})
-		chats = save_message_in_database(chat_room, is_bot, room, obj)
+		if add:
+			chats = save_message_in_database(chat_room, is_bot, room, obj)
+		elif chat_room is None:
+			chat_room = create_and_save_room_object(room, is_bot)
+
 		if is_bot:
 			response_data = Engine().get_reply(obj)
-			chats = save_message_in_database(chat_room, is_bot, room, response_data)
+			if add:
+				chats = save_message_in_database(chat_room, is_bot, room, response_data)
+			else:
+				chats = self.dump_to_json(response_data)
 			frappe.publish_realtime(event='message_from_server', 
 				message=format_response(is_bot, chats, room), 
 				room=user_id)
@@ -106,3 +115,8 @@ class Reply(object):
 					frappe.publish_realtime(event='message_from_server', 
 						message= format_response(is_bot, chats, room), 
 						room=user.email)
+	
+	def dump_to_json(self, res):
+		res.chat_data = json.dumps(res.chat_data)
+		res.bot_data = json.dumps(res.bot_data)
+		return [res]

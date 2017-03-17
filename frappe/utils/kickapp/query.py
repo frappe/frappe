@@ -10,7 +10,6 @@ class Query(object):
 	
 	def get_action_from_text(self, text):
 		count_array = self.get_count_array(text)
-		print count_array
 		index = count_array.index(max(count_array))
 		if index > -1:
 			return self.actions[index]
