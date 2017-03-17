@@ -409,7 +409,7 @@ class Email:
 	def decode_email(self, email):
 		if not email: return 
 		decoded = ""
-		for part, encoding in decode_header(email):
+		for part, encoding in decode_header(email.replace("\""," ").replace("\'"," ")):
 			if encoding:
 				decoded += part.decode(encoding)
 			else:
