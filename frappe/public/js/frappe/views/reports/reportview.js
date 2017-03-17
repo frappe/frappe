@@ -699,11 +699,10 @@ frappe.views.ReportView = frappe.ui.BaseList.extend({
 		}
 		var export_btn = this.page.add_menu_item(__('Export'), function() {
 			var args = me.get_args();
-
+			selected_items = me.get_checked_items()
 			frappe.prompt({fieldtype:"Select", label: __("Select File Type"), fieldname:"file_format_type",
 				options:"Excel\nCSV", default:"Excel", reqd: 1},
 				function(data) {
-
 					args.cmd = 'frappe.desk.reportview.export_query';
 					args.file_format_type = data.file_format_type;
 
@@ -711,6 +710,9 @@ frappe.views.ReportView = frappe.ui.BaseList.extend({
 						args.add_totals_row = 1;
 					}
 
+					if(selected_items.length >= 1) {
+						args.selected_items = $.map(selected_items, function(d) { return d.name; });
+					}
 					open_url_post(frappe.request.url, args);
 
 				}, __("Export Report: " + me.doctype), __("Download"));
