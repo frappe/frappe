@@ -7,10 +7,10 @@ import frappe
 def execute():
 	if not frappe.db.exists('DocType', 'Has Role'):
 		frappe.rename_doc('DocType', 'Page Role', 'Has Role')
-		reload_doc()
-		set_ref_doctype_roles_to_report()
-		copy_user_roles_to_has_roles()
-		remove_doctypes()
+	reload_doc()
+	set_ref_doctype_roles_to_report()
+	copy_user_roles_to_has_roles()
+	remove_doctypes()
 
 def reload_doc():
 	frappe.reload_doc("core", 'doctype', "page")
@@ -30,16 +30,17 @@ def set_ref_doctype_roles_to_report():
 				pass
 
 def copy_user_roles_to_has_roles():
-	for data in frappe.get_all('User', fields = ["name"]):
-		doc = frappe.get_doc('User', data.name)
-		doc.set('roles',[])
-		for args in frappe.get_all('UserRole', fields = ["role"], 
-			filters = {'parent': data.name, 'parenttype': 'User'}):
-			doc.append('roles', {
-				'role': args.role
-			})
-		for role in doc.roles:
-			role.db_update()
+	if frappe.db.exists('DocType', 'UserRole'):
+		for data in frappe.get_all('User', fields = ["name"]):
+			doc = frappe.get_doc('User', data.name)
+			doc.set('roles',[])
+			for args in frappe.get_all('UserRole', fields = ["role"],
+				filters = {'parent': data.name, 'parenttype': 'User'}):
+				doc.append('roles', {
+					'role': args.role
+				})
+			for role in doc.roles:
+				role.db_update()
 
 def remove_doctypes():
 	for doctype in ['UserRole', 'Event Role']:
