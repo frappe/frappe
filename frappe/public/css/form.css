@@ -485,6 +485,16 @@ select.form-control {
   min-height: 300px;
   background: #fefefe;
   border: 1px solid #ddd;
+  position: relative;
+}
+.signature-display {
+  margin: 7px 0px;
+  background: #f3f3f3;
+}
+.signature-btn-row {
+  position: absolute;
+  bottom: 0;
+  right: 0;
 }
 .signature-img {
   border: 1px solid #0d4488;
