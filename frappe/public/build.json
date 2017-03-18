@@ -72,7 +72,7 @@
 		"public/js/lib/markdown.js",
 		"public/js/frappe/translate.js",
 		"public/js/lib/datepicker/datepicker.min.js",
-		"public/js/lib/datepicker/datepicker.en.js"
+		"public/js/lib/datepicker/locale-all.js"
 	],
 	"js/desk.min.js": [
 		"public/js/frappe/provide.js",
