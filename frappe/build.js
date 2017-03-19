@@ -2,6 +2,7 @@ const path = require('path');
 const fs = require('fs');
 const babel = require('babel-core');
 const less = require('less');
+const chokidar = require('chokidar');
 const p = path.resolve;
 
 // basic setup
@@ -11,61 +12,73 @@ const apps_contents = fs.readFileSync(p(sites_path, 'apps.txt'), 'utf8');
 const apps = apps_contents.split('\n');
 const app_paths = apps.map(app => p(apps_path, app, app)) // base_path of each app
 const assets_path = p(sites_path, 'assets');
+const build_map = make_build_map();
 
-// console.log(sites_path, app_paths);
+//socket
 
+module.exports = {
+	setup_socket: function (io) {
+		// console.log(io)
+		io.on('connection', function (socket) {
+			console.log('=============');
+			console.log(socket);
+		});
+	},
+	watch_css: watch_css,
+	watch: watch
+}
+
+// watch();
 // build();
 
-watch();
-
 function build() {
-	const build_map = make_build_map();
-	pack(build_map);
-}
-
-function watch() {
-	compile_less();
-	build(); // execute build() after compile_less(), not async
-
-	// watch_less();
-}
-
-function pack(build_map) {
 	for (const output_path in build_map) {
-		const inputs = build_map[output_path];
-		const output_type = output_path.split('.').pop();
+		pack(output_path, build_map[output_path]);
+	}
+}
 
-		let output_txt = '';
-		for (const file of inputs) {
+function watch(ondirty) {
+	compile_less().then(() => {
+		build();
+		watch_less();
+		watch_css(ondirty);
+	});
+}
 
-			if(!fs.existsSync(file)) {
-				console.log('File not found: ', file);
-				continue;
-			}
+function pack(output_path, inputs) {
+	const output_type = output_path.split('.').pop();
 
-			let file_content = fs.readFileSync(file, 'utf-8');
+	let output_txt = '';
+	for (const file of inputs) {
 
-			if (file.endsWith('.html') && output_type === 'js') {
-				file_content = html_to_js_template(file, file_content);
-			}
-
-			if (file.endsWith('.js') && !file.includes('/lib/') && output_type === 'js' && !file.endsWith('class.js')) {
-				file_content = babelify(file_content, file);
-			}
-
-			output_txt += `\n/*\n *\t${file}\n */`;
-			output_txt += '\n' + file_content + '\n';
+		if (!fs.existsSync(file)) {
+			console.log('File not found: ', file);
+			continue;
 		}
 
-		const target = p(assets_path, output_path);
+		let file_content = fs.readFileSync(file, 'utf-8');
 
-		try {
-			fs.writeFileSync(target, output_txt);
-			console.log(`Wrote ${output_path} - ${get_file_size(target)}`);
-		} catch (e) {
-			console.log('Error writing to file', output_path);
-			console.log(e);
+		if (file.endsWith('.html') && output_type === 'js') {
+			file_content = html_to_js_template(file, file_content);
 		}
+
+		if (file.endsWith('.js') && !file.includes('/lib/') && output_type === 'js' && !file.endsWith('class.js')) {
+			file_content = babelify(file_content, file);
+		}
+
+		output_txt += `\n/*\n *\t${file}\n */`;
+		output_txt += '\n' + file_content + '\n';
+	}
+
+	const target = p(assets_path, output_path);
+
+	try {
+		fs.writeFileSync(target, output_txt);
+		console.log(`Wrote ${output_path} - ${get_file_size(target)}`);
+		return target;
+	} catch (e) {
+		console.log('Error writing to file', output_path);
+		console.log(e);
 	}
 }
 
@@ -116,39 +129,93 @@ function make_build_map() {
 }
 
 function compile_less() {
-	for (const app_path of app_paths) {
-		const public_path = p(app_path, 'public');
-		const less_path = p(public_path, 'less');
-		if (!fs.existsSync(less_path)) continue;
+	return new Promise(function (resolve) {
+		const promises = [];
+		for (const app_path of app_paths) {
+			const public_path = p(app_path, 'public');
+			const less_path = p(public_path, 'less');
+			if (!fs.existsSync(less_path)) continue;
 
-		const files = fs.readdirSync(less_path);
-		for (const file of files) {
-			compile_less_file(file, less_path, public_path);
+			const files = fs.readdirSync(less_path);
+			for (const file of files) {
+				promises.push(compile_less_file(file, less_path, public_path))
+			}
 		}
-	}
+
+		Promise.all(promises).then(() => {
+			console.log('Less files compiled');
+			resolve();
+		});
+	});
 }
 
 function compile_less_file(file, less_path, public_path) {
 	const file_content = fs.readFileSync(p(less_path, file), 'utf8');
 	const output_file = file.split('.')[0] + '.css';
 
-	less.render(file_content, {
+	return less.render(file_content, {
 		paths: [less_path],
 		filename: file,
-		sourceMap: {sourceMapFileInline: true}
-	}, (e, output) => {
-		if (!e) {
-			console.log('compiling', file);
-			fs.writeFileSync(p(public_path, 'css', output_file), output.css)
-		} else {
-			console.log('Error compiling ', file);
-			console.log(e);
+		sourceMap: { sourceMapFileInline: true }
+	}).then(output => {
+		console.log('compiling', file);
+		fs.writeFileSync(p(public_path, 'css', output_file), output.css)
+	}).catch(e => {
+		console.log('Error compiling ', file);
+		console.log(e);
+	});
+}
+
+function watch_less() {
+	console.log('watch_less execution')
+	const less_paths = app_paths.map(path => p(path, 'public', 'less'));
+
+	const to_watch = [];
+	for (const less_path of less_paths) {
+		// const public_path = p(less_path, '..');
+		if (!fs.existsSync(less_path)) continue;
+		to_watch.push(less_path);
+	}
+	chokidar.watch(to_watch).on('change', (filename, stats) => {
+		console.log(filename, ' dirty less');
+		var last_index = filename.lastIndexOf('/');
+		const less_path = filename.slice(0, last_index);
+		const public_path = p(less_path, '..');
+		filename = filename.split('/').pop();
+		// console.log(filename, less_path, public_path);
+		compile_less_file(filename, less_path, public_path);
+	});
+}
+
+function watch_css(ondirty) {
+	const css_paths = app_paths.map(path => p(path, 'public', 'css'));
+
+	const to_watch = [];
+	for (const css_path of css_paths) {
+		const public_path = p(css_path, '..');
+		if (!fs.existsSync(css_path)) continue;
+		to_watch.push(css_path);
+	}
+	chokidar.watch(to_watch).on('change', (filename, stats) => {
+		console.log(filename, ' dirty chokidar');
+		// console.log(JSON.stringify(stats), null, 4);
+
+		// build the target css file for which this css file is input
+		for (const target in build_map) {
+			const sources = build_map[target];
+			if (sources.includes(filename)) {
+
+				pack(target, sources);
+
+				ondirty && ondirty(target);
+				break;
+			}
 		}
 	});
 }
 
 function make_asset_dirs(make_copy = false) {
-	
+
 
 	for (const dir_path of [p(assets_path, 'js'), p(assets_path, 'css')]) {
 		if (!fs.existsSync(dir_path)) {
@@ -177,22 +244,6 @@ function make_asset_dirs(make_copy = false) {
 		}
 	}
 }
-
-
-
-function watch_less() {
-	const less_paths = apps.map((app) => p(get_app_path(app), 'public', 'less'));
-	// console.log(less_paths)
-	for (const less_path of less_paths) {
-		const public_path = p(less_path, '..');
-		if (!fs.existsSync(less_path)) continue;
-		fs.watch(p(less_path), (e, filename) => {
-			console.log(filename, ' changed');
-			compile_less_file(filename, less_path, public_path);
-		});
-	}
-}
-// bundle();
 
 function get_app_base_path(app) {
 	return p(apps_folder, app, app);
