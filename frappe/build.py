@@ -29,8 +29,8 @@ def bundle(no_compress, make_copy=False, verbose=False):
 
 	make_asset_dirs(make_copy=make_copy)
 
-	os.system('node ../apps/frappe/frappe/build.js')
-	# build(no_compress, verbose)
+	# os.system('node ../apps/frappe/frappe/build.js')
+	build(no_compress, verbose)
 
 def watch(no_compress):
 	"""watch and rebuild if necessary"""
@@ -74,6 +74,7 @@ def make_asset_dirs(make_copy=False):
 					os.symlink(source, target)
 
 def build(no_compress=False, verbose=False):
+	return
 	assets_path = os.path.join(frappe.local.sites_path, "assets")
 
 	for target, sources in get_build_maps().iteritems():
@@ -182,6 +183,7 @@ def files_dirty():
 		return False
 
 def compile_less():
+	return
 	from distutils.spawn import find_executable
 	if not find_executable("lessc"):
 		return
