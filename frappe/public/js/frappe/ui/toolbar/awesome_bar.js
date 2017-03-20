@@ -343,7 +343,7 @@ frappe.search.AwesomeBar = Class.extend({
 			index: 1,
 			default: "Search",
 			onclick: function() {
-				frappe.searchdialog.search.init_search(txt, "global");
+				frappe.searchdialog.search.init_search(txt, "global_search");
 			}
 		});
 	},

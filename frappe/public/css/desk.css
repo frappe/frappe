@@ -682,21 +682,21 @@ fieldset[disabled] .form-control {
 .search-dialog .modal-body {
   padding: 0px 15px;
 }
-.search-dialog .modal-body .search-intro-placeholder {
+.search-dialog .modal-body .search-placeholder {
   color: #d4d9dd;
   height: 500px;
   display: flex;
   justify-content: center;
   align-items: center;
 }
-.search-dialog .modal-body .search-intro-placeholder span {
+.search-dialog .modal-body .search-placeholder span {
   text-align: center;
 }
-.search-dialog .modal-body .search-intro-placeholder span i {
+.search-dialog .modal-body .search-placeholder span i {
   font-size: 64px;
   display: block;
 }
-.search-dialog .modal-body .search-intro-placeholder span p {
+.search-dialog .modal-body .search-placeholder span p {
   font-size: 15px;
   display: block;
 }
@@ -789,9 +789,6 @@ fieldset[disabled] .form-control {
   .search-dialog .module-body {
     margin: 0px;
     border-top: none;
-  }
-  .search-dialog .layout-side-section .sidebar-menu {
-    margin: 30px 0px;
   }
 }
 @media (min-width: 600px) {

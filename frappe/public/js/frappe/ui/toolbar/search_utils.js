@@ -141,31 +141,73 @@ frappe.search.utils = {
     },
 
     get_help_results: function(keywords) {
-        return new Promise(function(resolve, reject) {
-            function get_results_set(data) {
-                var result;
-                var set = {
-                    title: "Help",
-                    results: []
-                }
-                data.forEach(function(d) {
-                    // more properties
-                    result = {
-                        label: d[0],
-                        value: d[0],
-                        description: d[1],
-                        route:[],
-                        data_path: d[2],
-                        onclick: function() {
-
-                        }
-                    }
-                    set.results.push(result);
-                });
-                return [set];
+        function get_results_set(data) {
+            var result;
+            var set = {
+                title: "Help",
+                results: []
             }
+            data.forEach(function(d) {
+                // more properties
+                result = {
+                    label: d[0],
+                    value: d[0],
+                    description: d[1],
+                    route:[],
+                    data_path: d[2],
+                    onclick: function() {
+
+                    }
+                }
+                set.results.push(result);
+            });
+            return [set];
+        }
+        return new Promise(function(resolve, reject) {
             frappe.call({
                 method: "frappe.utils.help.get_help",
+                args: {
+                    text: keywords
+                },
+                callback: function(r) {
+                    if(r.message) {
+                        resolve(get_results_set(r.message));
+                    } else {
+                        resolve([]);
+                    }
+                }
+            });
+        });
+    },
+
+    get_forum_results: function(keywords) {
+        // WOAHH ...
+        var me = this;
+        function get_results_set(data) {
+            var result;
+            var set = {
+                title: "Forum",
+                results: []
+            }
+            data.forEach(function(d) {
+                // more properties
+                result = {
+                    label: me.reverse_scrub(d.topic_slug),
+                    value: "",
+                    description: d.blurb,
+                    route:[],
+                    url: "",
+                    onclick: function() {
+
+                    }
+                }
+                set.results.push(result);
+            });
+            return [set];
+        }
+        return new Promise(function(resolve, reject) {
+            frappe.call({
+                method: "frappe.utils.global_search.get_forum_results",
                 args: {
                     text: keywords
                 },
@@ -290,7 +332,7 @@ frappe.search.utils = {
             var string = string.toLowerCase();
             var subsequence = subsequence.toLowerCase();
             outer: for(var i = 0, j = 0; i < subsequence.length; i++) {
-                while(j < len) {
+                while(j < string.length) {
                     if(string.charCodeAt(j) === subsequence.charCodeAt()) {
                         var string_char =  string_orig.charAt(j);
                         if(string_char === string_char.toLowerCase()) {
@@ -309,5 +351,17 @@ frappe.search.utils = {
             return rendered;
         }
 
-    }
+
+    },
+
+    sort_by_rank: function(arr) {
+        return arr.sort(function(a, b) {
+            return a.index - b.index || a.value.length - b.value.length;
+        });
+    },
+
+    reverse_scrub: function(str) {
+        return __(str || '').replace(/-|_/g, " ").replace(/\w*/g,
+            function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
+    },
 }

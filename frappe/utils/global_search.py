@@ -4,6 +4,9 @@
 from __future__ import unicode_literals
 
 import frappe
+import sys
+import json
+import requests
 from frappe.utils import cint, strip_html_tags
 
 def setup_global_search_table():
@@ -189,3 +192,12 @@ def search_in_doctype(doctype, text, start, limit):
 		limit {start}, {limit}'''.format(start=start, limit=limit), (doctype, text), as_dict=True)
 
 	return results
+
+@frappe.whitelist()
+def get_forum_results(text):
+	response = requests.get("https://discuss.erpnext.com/search/query.json?term="+text)
+	if response.ok and response.status_code == 200:
+		actions = response.json()
+		return actions.get("posts", []) if isinstance(actions, dict) else []
+	else:
+		raise Exception("Error while fetching forum posts")
