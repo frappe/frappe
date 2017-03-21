@@ -1,9 +1,9 @@
 {% extends "templates/web.html" %}
 
-{% block title %}{{ title }}{% endblock %}
+{% block title %}{{ _(title) }}{% endblock %}
 
 {% block header %}
-<h1>{{ title }}</h1>
+<h1>{{ _(title) }}</h1>
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -158,7 +158,7 @@
 				{{ _doc.get(field.fieldname) }}
 			</a>
 			<br><button class="btn btn-small btn-default btn-xs
-				change-attach" style="margin-top: 5px;">Change</button>
+                        	change-attach" style="margin-top: 5px;">{{ _("Change") }}</button>
 		</p>
 		{%- endif %}
 		<p class="{{ value(field, _doc) and 'hide' or '' }} attach-input-wrap">
