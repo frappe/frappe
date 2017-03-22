@@ -281,14 +281,10 @@ frappe.ready(function() {
 			callback: function(data) {
 				if(!data.exc) {
 					frappe.doc_name = data.message;
-					if(!frappe.login_required) {
-						$form.addClass("hide");
-						$(".comments, .introduction, .page-head").addClass("hide");
-						scroll(0, 0);
-						set_message(frappe.success_link, true);
-                    } else {
-						set_message(__('Saved'));
-				    }
+					$form.addClass("hide");
+					$(".comments, .introduction, .page-head").addClass("hide");
+					scroll(0, 0);
+					set_message(frappe.success_link, true);
 
 					if(frappe.is_new && frappe.login_required) {
 						// reload page (with ID)
