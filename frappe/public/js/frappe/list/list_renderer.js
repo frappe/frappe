@@ -318,6 +318,8 @@ frappe.views.ListRenderer = Class.extend({
 		if (this.settings.post_render_item) {
 			this.settings.post_render_item(this, element, data);
 		}
+
+		this.render_tags(element, data);
 	},
 
 	// returns html for a data item,
