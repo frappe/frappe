@@ -955,10 +955,7 @@ frappe.provide("frappe.views");
 		doc.hide_success = true;
 		return frappe.call({
 			doc: doc,
-			method: "save_customization",
-			callback: function(r) {
-				console.log(r);
-			}
+			method: "save_customization"
 		});
 	}
 
