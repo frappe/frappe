@@ -25,7 +25,7 @@ frappe.search.SearchDialog = Class.extend({
 	},
 
 	update: function($r) {
-		// TO DO: hide/remove all loading elements
+		this.$search_modal.find('.loading-state').addClass('hide');
 		this.$modal_body.append($r);
 		if(this.$modal_body.find('.search-results').length > 1) {
 			this.$modal_body.find('.search-results').first().addClass("hide");
@@ -38,9 +38,12 @@ frappe.search.SearchDialog = Class.extend({
 
 	put_placeholder: function(status_text) {
 		var $placeholder = $('<div class="row search-results hide">' +
-				'<div class="search-placeholder"><span>' +
-				'<i class="mega-octicon octicon-telescope"></i><p>'+
-				status_text + '</p></span></div>' +
+				'<div class="empty-state"><span style="margin-top: -100px">' +
+				'<i class="mega-octicon octicon-telescope status-icon">' +
+				'<i class="fa fa-square cover twinkle-one hide" style="left:0px;"></i>'+
+				'<i class="fa fa-square cover twinkle-two hide" style="left:12px; top:7px;"></i>'+
+				'<i class="fa fa-square cover twinkle-three hide" style="left:20px; top:-4px;"></i></i>'+
+				'<p>' + status_text + '</p></span></div>' +
 			'</div>');
 		this.update($placeholder);
 	},
@@ -190,19 +193,25 @@ frappe.search.SearchDialog = Class.extend({
 
 	get_results: function(keywords) {
 		this.current_keyword = keywords;
-		// TO DO: put loading sign: if placeholder present then that, else the normal one
+		if(this.$modal_body.find('.empty-state').length > 0) {
+			this.put_placeholder(__("Searching ..."));
+			this.$modal_body.find('.cover').removeClass('hide')
+		} else {
+			this.$search_modal.find('.loading-state').removeClass('hide');
+		}
+		// var me = this;
+		// setTimeout(function() { me.search.get_results(keywords, me.parse_results.bind(me)); }, 4000);
 		this.search.get_results(keywords, this.parse_results.bind(this));
 	},
 
-	parse_results: function(result_sets) {
+	parse_results: function(result_sets, keyword) {
 		result_sets = result_sets.filter(function(set) {
 			return set.results.length > 0;
 		})
 		if(result_sets.length > 0) {
-			// TO DO: de-duplicate
 			this.render_data(result_sets);
 		} else {
-			this.put_placeholder(this.search.no_results_status(this.current_keyword));
+			this.put_placeholder(this.search.no_results_status(keyword));
 		}
 	},
 
@@ -291,7 +300,7 @@ frappe.search.SearchDialog = Class.extend({
 		}
 
 		function make_description(desc){
-			// TO DO: process?
+			// TO DO: process here or beforehand?
 			return desc;
 		}
 
@@ -329,7 +338,7 @@ frappe.search.SearchDialog = Class.extend({
 						return frappe.search.utils.get_help_results(keywords);
 					}).then(function(help_results) {
 						results = results.concat(help_results);
-						callback(results);
+						callback(results, keywords);
 					}, function (err) {
 						console.error(err);
 					});
@@ -339,7 +348,7 @@ frappe.search.SearchDialog = Class.extend({
 			input_placeholder: __("Search Help"),
 			empty_state_text: __("Search the docs"),
 			no_results_status: (keyword) => __("No results found for '" + keyword +
-				"' in Help<br>Search <a class='switch-to-global-search'>globally</a>"),
+				"' in Help<br>Search <a class='text-muted switch-to-global-search'>globally</a>"),
 			get_results: function(keywords, callback) {
 				var results = [];
 				frappe.search.utils.get_help_results(keywords)
@@ -348,7 +357,7 @@ frappe.search.SearchDialog = Class.extend({
 						return frappe.search.utils.get_forum_results(keywords);
 					}).then(function(forum_results) {
 						results = results.concat(forum_results);
-						callback(results);
+						callback(results, keywords);
 					}, function (err) {
 						console.error(err);
 					});

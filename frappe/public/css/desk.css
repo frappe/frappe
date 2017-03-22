@@ -677,40 +677,105 @@ fieldset[disabled] .form-control {
 }
 .search-dialog .modal-dialog {
   width: 768px;
-  height: 500px;
+}
+.search-dialog .search-header {
+  display: flex;
+  align-items: center;
+  padding: 5px;
 }
 .search-dialog .modal-body {
   padding: 0px 15px;
 }
-.search-dialog .modal-body .search-placeholder {
+.search-dialog .empty-state {
   color: #d4d9dd;
   height: 500px;
   display: flex;
   justify-content: center;
   align-items: center;
-}
-.search-dialog .modal-body .search-placeholder span {
   text-align: center;
 }
-.search-dialog .modal-body .search-placeholder span i {
+.search-dialog .empty-state .status-icon {
   font-size: 64px;
-  display: block;
+  position: relative;
 }
-.search-dialog .modal-body .search-placeholder span p {
+.search-dialog .empty-state p {
   font-size: 15px;
   display: block;
 }
-.search-dialog input.form-control,
-.search-dialog .input-group-addon {
+.search-dialog .empty-state .cover {
+  color: white;
+  font-size: 10px;
+  position: absolute;
+}
+@keyframes twinkle {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+@-o-keyframes twinkle {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+@-moz-keyframes twinkle {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+@-webkit-keyframes twinkle {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+.search-dialog .twinkle-one {
+  -webkit-animation: twinkle 1.5s ease infinite;
+  -moz-animation: twinkle 1.5s ease infinite;
+  -o-animation: twinkle 1.5s ease infinite;
+  animation: twinkle 1.5s ease infinite;
+}
+.search-dialog .twinkle-two {
+  -webkit-animation: twinkle 1.5s ease infinite 0.5s;
+  -moz-animation: twinkle 1.5s ease infinite 0.5s;
+  -o-animation: twinkle 1.5s ease infinite 0.5s;
+  animation: twinkle 1.5s ease infinite 0.5s;
+}
+.search-dialog .twinkle-three {
+  -webkit-animation: twinkle 1.5s ease infinite 1s;
+  -moz-animation: twinkle 1.5s ease infinite 1s;
+  -o-animation: twinkle 1.5s ease infinite 1s;
+  animation: twinkle 1.5s ease infinite 1s;
+}
+.search-dialog input.form-control {
   border: none;
   border-left-style: none;
 }
 .search-dialog input.form-control:focus {
   outline: none;
   box-shadow: none;
-}
-.search-dialog .input-group-addon {
-  background-color: #FFF;
 }
 .search-dialog .layout-side-section,
 .search-dialog .layout-main-section {
