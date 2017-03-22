@@ -91,7 +91,7 @@ frappe.ui.form.Toolbar = Class.extend({
 	set_indicator: function() {
 		if(this.frm.save_disabled)
 			return;
-		
+
 		var indicator = frappe.get_indicator(this.frm.doc);
 		if(indicator) {
 			this.page.set_indicator(indicator[0], indicator[1]);
@@ -173,13 +173,13 @@ frappe.ui.form.Toolbar = Class.extend({
 				}, true);
 			}
 		}
-		
+
 		// feedback
 		if(!this.frm.doc.__unsaved) {
 			if(is_submittable && docstatus != 1)
 				return
 
-			this.page.add_menu_item(__("Ask a Feedback"), function() {
+			this.page.add_menu_item(__("Request Feedback"), function() {
 				feedback = new frappe.utils.Feedback();
 				feedback.manual_feedback_request(me.frm.doc);
 			}, true)
