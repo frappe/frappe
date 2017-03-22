@@ -47,10 +47,10 @@
     clear: 'Clear',
     dateFormat: 'mm/dd/yyyy',
     timeFormat: 'hh:ii aa',
-    firstDay: 0
+    firstDay: 1
 }; })(jQuery);
 
-;(function ($) { $.fn.datepicker.language['en-GB'] = {
+;(function ($) { $.fn.datepicker.language['en-US'] = {
     days: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
     daysShort: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
     daysMin: ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'],
@@ -60,7 +60,7 @@
     clear: 'Clear',
     dateFormat: 'dd/mm/yyyy',
     timeFormat: 'hh:ii aa',
-    firstDay: 1
+    firstDay: 0
 }; })(jQuery);
 
 
