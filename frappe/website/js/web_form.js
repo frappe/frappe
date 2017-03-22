@@ -401,7 +401,7 @@ frappe.ready(function() {
 	var setup_text_editor = function() {
 		var editors = $('[data-fieldtype="Text Editor"]');
 		editors.each(function() {
-			summernotes[$(this).attr('data-fieldname')] = $(this).summernote({
+			text_editor = $(this).summernote({
 				minHeight: 400,
 				toolbar: [
 					['magic', ['style']],
@@ -414,8 +414,11 @@ frappe.ready(function() {
 				],
 				icons: frappe.summer_note_icons
 			});
-		});
+			if($(this).attr("disabled"))
+				$(text_editor).summernote("disable")
 
+			summernotes[$(this).attr('data-fieldname')] = text_editor
+		});
 	}
 	setup_text_editor();
 });
