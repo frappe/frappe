@@ -17,12 +17,21 @@ frappe.breadcrumbs = {
 	},
 
 	add: function(module, doctype, type) {
-		frappe.breadcrumbs.all[frappe.get_route_str()] = {module:module, doctype:doctype, type:type};
+		frappe.breadcrumbs.all[frappe.breadcrumbs.current_page()] = {module:module, doctype:doctype, type:type};
 		frappe.breadcrumbs.update();
 	},
 
+	current_page: function() {
+		var route = frappe.get_route();
+		// for List/DocType/{?} return List/DocType
+		if (route[0] === 'List') {
+			route = route.slice(0, 2);
+		}
+		return route.join("/");
+	},
+
 	update: function() {
-		var breadcrumbs = frappe.breadcrumbs.all[frappe.get_route_str()];
+		var breadcrumbs = frappe.breadcrumbs.all[frappe.breadcrumbs.current_page()];
 
 		var $breadcrumbs = $("#navbar-breadcrumbs").empty();
 		if(!breadcrumbs) {
