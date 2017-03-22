@@ -6,6 +6,20 @@ frappe.upload = {
 	make: function(opts) {
 		if(!opts.args) opts.args = {};
 		opts.allow_multiple = 1
+
+		var d = null;
+		// create new dialog if no parent given
+		if(!opts.parent) {
+			d = new frappe.ui.Dialog({
+				title: __('Upload Attachment'),
+				primary_action_label: __('Attach'),
+				primary_action: function() {}
+			});
+			opts.parent = d.body;
+			opts.btn = d.get_primary_btn();
+			d.show();
+		}
+
 		var $upload = $(frappe.render_template("upload", {opts:opts})).appendTo(opts.parent);
 		var $file_input = $upload.find(".input-upload-file");
 		var $uploaded_files_wrapper = $upload.find('.uploaded-filename');
@@ -15,8 +29,17 @@ frappe.upload = {
 			function() { $file_input.click(); });
 
 		$file_input.on("change", function() {
-			if (this.files.length > 0) {
-				var fileobjs = $upload.find(":file").get(0).files;
+			if (this.files.length > 0 || opts.files) {
+				var fileobjs = null;
+
+				if (opts.files) {
+					// files added programmatically
+					fileobjs = opts.files;
+					delete opts.files;
+				} else {
+					// files from input type file
+					fileobjs = $upload.find(":file").get(0).files;
+				}
 				var file_array = $.makeArray(fileobjs);
 
 				$upload.find(".web-link-wrapper").addClass("hidden");
@@ -24,7 +47,7 @@ frappe.upload = {
 				$uploaded_files_wrapper.removeClass('hidden').empty();
 
 				file_array = file_array.map(
-					file => Object.assign(file, {is_private: true})
+					file => Object.assign(file, {is_private: 1})
 				)
 				$upload.data('attached_files', file_array);
 
@@ -39,6 +62,10 @@ frappe.upload = {
 			}
 		});
 
+		if(opts.files && opts.files.length > 0) {
+			$file_input.trigger('change');
+		}
+
 		// events
 		$uploaded_files_wrapper.on('click', 'button', function () {
 			var $btn = $(this);
@@ -47,9 +74,13 @@ frappe.upload = {
 
 			if ($btn.hasClass('is-private')) {
 				$btn.find('.fa').toggleClass('fa-lock fa-unlock-alt');
+
+				var is_private = $btn.hasClass('fa-lock');
+				$btn.attr('title', is_private ? __('Private') : __('Public'));
+
 				attached_files = attached_files.map(file => {
 					if (file.name === filename) {
-						file.is_private = $btn.hasClass('fa-lock');
+						file.is_private = is_private ? 1 : 0;
 					}
 					return file;
 				});
@@ -75,8 +106,10 @@ frappe.upload = {
 
 		// Primary button handler
 		opts.btn.click(function() {
-			// convert functions to values
+			// close created dialog
+			d && d.hide();
 
+			// convert functions to values
 			if(opts.get_params) {
 				opts.args.params = opts.get_params();
 			}
@@ -88,27 +121,7 @@ frappe.upload = {
 				frappe.upload.upload_file(fileobj, opts.args, opts);
 			} else {
 				var files = $upload.data('attached_files');
-				var i = -1;
-
-				upload_next();
-				$(document).on('upload_complete', on_upload);
-
-				function upload_next() {
-					i += 1;
-					var file = files[i];
-					opts.args.is_private = file.is_private;
-					frappe.upload.upload_file(file, opts.args, opts);
-					frappe.show_progress(__('Uploading'), i+1, files.length);
-				}
-
-				function on_upload(e, attachment) {
-					if (i === files.length - 1) {
-						$(document).off('upload_complete', on_upload);
-						frappe.hide_progress();
-						return;
-					}
-					upload_next();
-				}
+				frappe.upload.upload_multiple_files(files, opts.args, opts);
 			}
 		});
 	},
@@ -117,8 +130,8 @@ frappe.upload = {
 			<div class="btn-group" role="group" data-filename="${filename}">
 				${show_private
 				? `<button type="button" class="btn btn-default btn-sm
-					is-private" data-filename="${filename}">
-					<span class="fa fa-lock"></span></button>`
+					is-private" data-filename="${filename}" title="${__('Private')}">
+					<span class="fa fa-lock text-warning"></span></button>`
 				: ''}
 				<button type="button" class="btn btn-default btn-sm
 					ellipsis uploaded-filename-display">
@@ -131,6 +144,32 @@ frappe.upload = {
 				</button>
 			</div>`);
 		return $file;
+	},
+	upload_multiple_files: function(files /*FileData array*/, args, opts) {
+		var i = -1;
+
+		// upload the first file
+		upload_next();
+		// subsequent files will be uploaded after
+		// upload_complete event is fired for the previous file
+		$(document).on('upload_complete', on_upload);
+
+		function upload_next() {
+			i += 1;
+			var file = files[i];
+			args.is_private = file.is_private;
+			frappe.upload.upload_file(file, args, opts);
+			frappe.show_progress(__('Uploading'), i+1, files.length);
+		}
+
+		function on_upload(e, attachment) {
+			if (i === files.length - 1) {
+				$(document).off('upload_complete', on_upload);
+				frappe.hide_progress();
+				return;
+			}
+			upload_next();
+		}
 	},
 	upload_file: function(fileobj, args, opts) {
 		if(!fileobj && !args.file_url) {
