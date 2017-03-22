@@ -5,7 +5,10 @@
 frappe.upload = {
 	make: function(opts) {
 		if(!opts.args) opts.args = {};
-		opts.allow_multiple = 1
+
+		if(opts.allow_multiple === undefined) {
+			opts.allow_multiple = 1
+		}
 
 		var d = null;
 		// create new dialog if no parent given
@@ -263,6 +266,7 @@ frappe.upload = {
 				if(r.exc) {
 					// if no onerror, assume callback will handle errors
 					opts.onerror ? opts.onerror(r) : opts.callback(null, r);
+					frappe.hide_progress();
 					return;
 				}
 				var attachment = r.message;
@@ -273,6 +277,7 @@ frappe.upload = {
 			error: function(r) {
 				// if no onerror, assume callback will handle errors
 				opts.onerror ? opts.onerror(r) : opts.callback(null, null, r);
+				frappe.hide_progress();
 				return;
 			}
 		}
