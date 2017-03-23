@@ -42,6 +42,9 @@ def _(msg, lang=None):
 	"""Returns translated string in current lang, if exists."""
 	from frappe.translate import get_full_dict
 
+	if not hasattr(local, 'lang'):
+		local.lang = lang or 'en'
+
 	if not lang:
 		lang = local.lang
 
