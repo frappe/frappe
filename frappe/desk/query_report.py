@@ -135,9 +135,13 @@ def export_query():
 		columns = get_columns_dict(data.columns)
 
 		result = [[]]
+
+		# add column headings
 		for idx in range(len(data.columns)):
 			result[0].append(columns[idx]["label"])
-		if isinstance(data.result[0],dict):
+			
+		# build table from dict
+		if isinstance(data.result[0], dict):
 			for row in data.result:
 				if row:
 					row_list = []
