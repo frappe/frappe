@@ -1,9 +1,9 @@
-####Expected Behaviour
+#### Expected Behaviour
 
-####Actual Behaviour
+#### Actual Behaviour
 
-####Steps to reproduce:
+#### Steps to reproduce:
+
 1.
-
 
 Frappe version: 
