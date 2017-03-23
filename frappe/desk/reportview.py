@@ -226,7 +226,7 @@ def get_stats(stats, doctype, filters=[]):
 
 			if tag=='_user_tags':
 				stats[tag] = scrub_user_tags(tagcount)
-				stats[tag].append(["No Tags", frappe.get_list(doctype,
+				stats[tag].append([_("No Tags"), frappe.get_list(doctype,
 					fields=[tag, "count(*)"],
 					filters=filters +["({0} = ',' or {0} is null)".format(tag)], as_list=True)[0][1]])
 			else:
