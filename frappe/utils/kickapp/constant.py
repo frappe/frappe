@@ -10,7 +10,6 @@ class Constant(object):
 			'todo': 'ToDo',
 			'note': 'Note',
 			'help': 'Help',
-			'chat': 'Chat',
 			'issue': 'Issue'
 			}
 
@@ -19,11 +18,13 @@ class Constant(object):
 			}
 
 		self.doctype_fields = {
-			'todo': ["name", "description", "creation", "priority", "status"],
-			'note': ["name", "content", "creation", "_comments", "_assign"],
-			'chat message':["created_at", "text", "chat_data", "bot_data"],
-			'chat User' : ["full_name", "email", "number"],
-			'chat room' : ["room_name", "is_bot"]
+			'todo': ["name", "description", "creation", "priority", "status", "owner"],
+			'note': ["name", "content", "creation", "_comments", "_assign", "owner"],
+			'chat message': ["created_at", "text", "chat_data", "bot_data"],
+			'chat user' : ["title", "email", "chat_room"],
+			'chat room' : ["room_name", "chat_type", "owner"],
+			'user': ["email", "full_name", "last_active", "bio"],
+			'chat bot' : ["bot_name", "description", "commands", "is_default", "is_available_in_group"]
 			}
 		
 		self.doctype_actions = {

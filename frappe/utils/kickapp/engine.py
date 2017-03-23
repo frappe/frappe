@@ -1,7 +1,6 @@
 from __future__ import unicode_literals
 import datetime
 import frappe
-import json
 from frappe.utils.kickapp.helper import Helper
 import frappe.utils.kickapp.bot as Bot_Module 
 
@@ -9,7 +8,7 @@ class Engine(object):
 	def get_reply(self, obj):
 		reply = {}
 		try:
-			class_name = Helper().get_class_from_bot_name(frappe._dict(obj.bot_data).bot_name)
+			class_name = Helper().get_class_from_bot_name(obj.bot_data.bot_name)
 			if class_name == 'Error':
 				reply = getattr(Bot_Module, 'Base')(obj).get_message()
 			else:

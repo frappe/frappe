@@ -3,44 +3,66 @@ import frappe
 from frappe.utils.kickapp.helper import *
 from frappe.utils.kickapp.engine import Engine
 from frappe.utils.kickapp.utils import *
+import json
 
 
 class Reply(object):
-
 	def __init__(self):
 		self.helper = Helper()
 
 	def get_all_users(self, email):
-		return self.helper.get_list('User', fields=["email", "full_name", "last_active"], get_all=True)
+		return self.helper.get_list('User', self.helper.get_doctype_fields_from_bot_name('User'), get_all=True)
 
 	def get_users_in_room(self, room):
-		chat_room = frappe.db.exists("Chat Room", {"room_name": str(room)})
+		chat_room = check_if_exists("Chat Room", {"room_name": str(room)})
 		if chat_room is not None:
 			return self.helper.get_list('Chat User', 
-				fields=["full_name", "email", "number"], 
+				fields=["title", "email"], 
 				filters={"chat_room": chat_room}, get_all=True)
-		else:
-			return []
+		return []
+	
+	def get_user_by_email(self, email):
+		return self.helper.get_list('User', self.helper.get_doctype_fields_from_bot_name('User'),
+			filters={"email":email}, get_all=True)
 
 	def load_more(self, query):
 		return Engine().load_more(query)
-
+	
+	def get_all_bots(self):
+		items = self.helper.get_list('Chat Bot', 
+			self.helper.get_doctype_fields_from_bot_name('Chat Bot'), get_all=True)
+		for item in items:
+			item.commands = json.loads(item.commands)
+		return items
+	
 	def set_users_in_room(self, obj):
 		room = str(obj.room)
 		users = obj.users
-		chat_room = frappe.db.exists("Chat Room", {"room_name": room})
+		chat_type = obj.chat_type
+		chat_room = check_if_exists("Chat Room", {"room_name": room})
 		if chat_room is None:
-			chat_room = create_and_save_room_object(room, False)
+			chat_room = create_and_save_room_object(room, chat_type)
 		i = 0
 		while i <= len(users):
 			if i == len(users):
 				break
 			user = frappe._dict(users[i])
-			user_data = frappe.db.exists("Chat User", {"email": user.email, "chat_room": chat_room})
+			user_data = check_if_exists("Chat User", {"email": user.email, "chat_room": chat_room})
 			if user_data is None:
 				create_and_save_user_object(chat_room, user)
 			i += 1
 		return 'Added Users'
+
+	def remove_user_from_group(self, obj):
+		room = str(obj.room)
+		email = str(obj.email)
+		chat_room = check_if_exists("Chat Room", {"room_name": room})
+		if chat_room is not None:
+			user_data = check_if_exists("Chat User", {"email": email, "chat_room": chat_room})
+			if user_data is not None:
+				frappe.delete_doc('Chat User', user_data)
+				frappe.db.commit()
+		return 'Removed Users'
 
 	def get_message_for_first_time(self, obj):
 		mail_id = str(obj.mail_id)
@@ -49,11 +71,11 @@ class Reply(object):
 		self.get_message_from_rooms_recursively([], mail_id, rooms, last_message_times, 0, 40)
 
 	def get_message_from_rooms_recursively(self, chats, mail_id, rooms, last_message_times, limit_start, limit_page_length):
-		room_list = self.helper.get_list('Chat Room', ["name", "room_name", "is_bot"], 
+		room_list = self.helper.get_list('Chat Room', ["name", "room_name", "chat_type"], 
 			limit_start=limit_start, limit_page_length=limit_page_length)
 		if len(room_list) > 0:
 			for room in room_list:
-				if frappe.db.exists('Chat User', {"chat_room": room.name, "email": mail_id}) is not None:
+				if check_if_exists('Chat User', {"chat_room": room.name, "email": mail_id}) is not None:
 					filters = {"chat_room":room.name}
 					index = -1
 					try:
@@ -66,57 +88,51 @@ class Reply(object):
 							last_message_time = str(str(last_message_time) + '.123456')
 							filters = {"chat_room":room.name, "created_at":(">", last_message_time)}
 					
-					chats = self.helper.get_list('Chat Message', 
+					items = format_response(self.helper.get_list('Chat Message', 
 								self.helper.get_doctype_fields_from_bot_name('Chat Message'), 
-								filters=filters, get_all=True)
+								filters=filters, get_all=True))
+					if len(items) > 0:
+						chats.append(map_chat(items, room.room_name, room.chat_type, room.name))
 
-			frappe.publish_realtime(event='message_from_server', 
-				message=format_response(room.is_bot, chats, room.room_name), 
-				room=mail_id)
-			
+			frappe.publish_realtime(event='message_from_server', message=chats, room=mail_id)
+
 			if len(room_list) > 19:
 				limit_start = limit_start + 40
 				limit_page_length = limit_page_length + 40
 				self.get_message_from_rooms_recursively([], mail_id, rooms, 
 					last_message_times, limit_start, limit_page_length)
 		else:
-			frappe.publish_realtime(event='message_from_server', 
-				message=[], 
-				room=mail_id)
+			frappe.publish_realtime(event='message_from_server', message=[], room=mail_id)
 
 	def send_message_and_get_reply(self, query):
-		
-		obj = frappe._dict(query.obj)
-		meta = frappe._dict(obj.meta)
+		obj = query.obj
+		meta = obj.meta
 		room = str(meta.room)
-		is_bot = meta.is_bot
+		chat_type = meta.chat_type
 		add = meta.add
 		user_id = str(meta.user_id)
-		
+		items = []
 		chats = []
-		chat_room = frappe.db.exists("Chat Room", {"room_name":room})
-		if add:
-			chats = save_message_in_database(chat_room, is_bot, room, obj)
-		elif chat_room is None:
-			chat_room = create_and_save_room_object(room, is_bot)
 
-		if is_bot:
+		chat_room = check_if_exists("Chat Room", {"room_name":room})
+		if add:
+			items = save_message_in_database(chat_room, chat_type, room, obj)
+		elif chat_room is None:
+			chat_room = create_and_save_room_object(room, chat_type)
+
+		if chat_type == "bot":
 			response_data = Engine().get_reply(obj)
 			if add:
-				chats = save_message_in_database(chat_room, is_bot, room, response_data)
+				items = save_message_in_database(chat_room, chat_type, room, response_data)
 			else:
-				chats = self.dump_to_json(response_data)
-			frappe.publish_realtime(event='message_from_server', 
-				message=format_response(is_bot, chats, room), 
-				room=user_id)
+				items = dump_to_json(response_data)
+			
+			chats.append(map_chat(format_response(items), room, chat_type, chat_room))
+			frappe.publish_realtime(event='message_from_server', message=chats, room=user_id)
+
 		else:
 			for user in self.helper.get_list('Chat User', ["email"], filters={"chat_room":chat_room}, get_all=True):
 				if not (user_id == user.email):
-					frappe.publish_realtime(event='message_from_server', 
-						message= format_response(is_bot, chats, room), 
-						room=user.email)
-	
-	def dump_to_json(self, res):
-		res.chat_data = json.dumps(res.chat_data)
-		res.bot_data = json.dumps(res.bot_data)
-		return [res]
+					chats.append(map_chat(format_response(items), room, chat_type, chat_room))
+					frappe.publish_realtime(event='message_from_server', message=chats, room=user.email)
+

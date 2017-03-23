@@ -32,5 +32,4 @@ class Helper(object):
 			return frappe.get_list(doctype, fields=fields, filters=filters)
 		elif filters is not None:
 			return frappe.get_list(doctype, fields=fields, limit_start=limit_start, limit_page_length=limit_page_length, filters=filters)
-		return frappe.get_all(doctype, fields=fields, limit_start=limit_start, limit_page_length=limit_page_length)
-		
+		return frappe.get_list(doctype, fields=fields, limit_start=limit_start, limit_page_length=limit_page_length)

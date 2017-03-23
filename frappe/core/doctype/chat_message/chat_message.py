@@ -6,9 +6,16 @@ from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
 import json
+from frappe import _
 
 class ChatMessage(Document):
 	
 	def validate(self):
-		self.chat_data = json.dumps(self.chat_data)
-		self.bot_data = json.dumps(self.bot_data)
+		try:
+			json.loads(self.chat_data)
+		except Exception, e:
+			frappe.throw(_('Please check the Chat data field before saving.'))
+		try:
+			json.loads(self.bot_data)
+		except Exception, e:
+			frappe.throw(_('Please check the Bot data field before saving.'))

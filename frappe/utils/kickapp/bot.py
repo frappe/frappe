@@ -1,8 +1,6 @@
 from __future__ import unicode_literals
 import datetime
 import frappe
-import json
-import sys
 from frappe.utils.kickapp.helper import Helper
 from frappe.utils.kickapp.utils import *
 from frappe.utils.kickapp.query import Query
@@ -11,8 +9,8 @@ from frappe.utils.kickapp.query import Query
 class Base(object):
 	def __init__(self, obj):
 		self.obj = obj
-		self.bot_name = frappe._dict(obj.bot_data).bot_name
-		self.query = Query(self.bot_name)
+		self.bot_name = obj.bot_data.bot_name
+		self.query = Query(obj.bot_data.bot_name)
 		self.helper = Helper()
 
 	def get_message(self, msg="Something went wrong, Please try in a little bit.", bot_data = None):
@@ -48,11 +46,11 @@ class Base(object):
 class Basic_Bot(Base):
 	def __init__(self, obj):
 		Base.__init__(self, obj)
-		self.bot_name = frappe._dict(obj.bot_data).bot_name
+		self.bot_name = obj.bot_data.bot_name
 		self.fields = self.helper.get_doctype_fields_from_bot_name(self.bot_name)
 		self.messages = self.helper.get_messages_from_bot_name(self.bot_name)
 		self.doctype = self.helper.get_doctype_name_from_bot_name(self.bot_name)
-		self.item_id = frappe._dict(obj.meta).item_id
+		self.item_id = obj.meta.item_id
 
 	def get_results(self):
 		method = self.get_method()
@@ -71,8 +69,8 @@ class Basic_Bot(Base):
 	
 	def get_method(self):
 		obj = self.obj
-		bot_data = frappe._dict(obj.bot_data)
-		base_action = frappe._dict(bot_data.info).base_action
+		bot_data = obj.bot_data
+		base_action = bot_data.info.base_action
 		if obj.text.lower() == 'exit' or obj.text.lower() == 'cancel':
 			return 'cancel'
 		if base_action == 'create_':
@@ -86,19 +84,19 @@ class Basic_Bot(Base):
 		return self.get_message(self.messages.get('create'), bot_data = bot_data)
 
 	def update(self):
-		items = self.get_list(self.doctype, self.fields, filters={"owner": self.obj.user_id})
+		items = self.get_list(self.doctype, self.fields, filters={"owner": self.obj.meta.user_id})
 		bot_data = self.get_bot_data(base_action='update_', button_text='load more', 
 			is_interactive_list=True, items=self.call_lower_class_methods('map_list', items))
 		return self.get_message(self.messages.get('update'), bot_data = bot_data)
 		
 	def delete(self):
-		items = self.get_list(self.doctype, self.fields, filters={"owner": self.obj.user_id})
+		items = self.get_list(self.doctype, self.fields, filters={"owner": self.obj.meta.user_id})
 		bot_data = self.get_bot_data(base_action='delete_', button_text='load more', 
 			is_interactive_list=True, items=self.call_lower_class_methods('map_list', items))
 		return self.get_message(self.messages.get('delete'), bot_data = bot_data)
 
 	def get(self):
-		items = self.get_list(self.doctype, self.fields, filters={"owner": self.obj.user_id})
+		items = self.get_list(self.doctype, self.fields, filters={"owner": self.obj.meta.user_id})
 		bot_data = self.get_bot_data(button_text='load more', is_interactive_list=True, 
 			items=self.call_lower_class_methods('map_list', items))
 		return self.get_message(self.messages.get('get'), bot_data = bot_data)
@@ -135,7 +133,7 @@ class Basic_Bot(Base):
 		return self.get_message()
 
 	def delete_(self):
-		filters = {"name": self.item_id, "owner": self.obj.user_id}
+		filters = {"name": self.item_id, "owner": self.obj.meta.user_id}
 		try:
 			items = self.get_list(self.doctype, self.fields, filters)
 			if len(items) > 0:
@@ -166,7 +164,7 @@ class Note(object):
 	def create_(self, params):
 		doctype = params.get('doctype')
 		obj = params.get('obj')
-		user_id = frappe._dict(obj.meta).user_id
+		user_id = obj.meta.user_id
 		filters = None
 		is_success = False
 		try:
@@ -191,7 +189,7 @@ class Note(object):
 		doctype = params.get('doctype')
 		obj = params.get('obj')
 		item_id = params.get('item_id')
-		user_id = frappe._dict(obj.meta).user_id
+		user_id = obj.meta.user_id
 		filters = None
 		is_success = False
 		try:
@@ -221,10 +219,9 @@ class ToDo(object):
 		return new_list
 
 	def create_(self, params):
-		print 'creatre--------------'
 		doctype = params.get('doctype')
 		obj = params.get('obj')
-		user_id = frappe._dict(obj.meta).user_id
+		user_id = obj.meta.user_id
 		filters = None
 		is_success = False
 		try:
@@ -246,7 +243,7 @@ class ToDo(object):
 	def update_(self, params):
 		doctype = params.get('doctype')
 		obj = params.get('obj')
-		user_id = frappe._dict(obj.meta).user_id
+		user_id = obj.meta.user_id
 		item_id = params.get('item_id')
 		filters = None
 		is_success = False

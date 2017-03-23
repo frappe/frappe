@@ -4,16 +4,16 @@ import json
 import datetime
 
 
-def save_message_in_database(chat_room, is_bot, room, query):
+def save_message_in_database(chat_room, chat_type, room, query):
 	if chat_room is None:
-		chat_room = create_and_save_room_object(room, is_bot)
+		chat_room = create_and_save_room_object(room, chat_type)
 	return create_and_save_message_object(chat_room, query)
 
 
-def create_and_save_room_object(room, is_bot):
+def create_and_save_room_object(room, chat_type):
 	doc = frappe.new_doc('Chat Room')
 	doc.room_name = room
-	doc.is_bot = is_bot
+	doc.chat_type = chat_type
 	doc.save()
 	frappe.db.commit()
 	return doc.name
@@ -27,6 +27,10 @@ def create_and_save_message_object(chat_room, query):
 			continue
 		elif key == 'created_on':
 			doc.set('created_at', str(value + '.123456'))
+		elif key == 'chat_data':
+			doc.set(key, json.dumps(value))
+		elif key == 'bot_data':
+			doc.set(key, json.dumps(value))
 		else:
 			doc.set(key, value)
 	doc.save()
@@ -43,26 +47,10 @@ def create_and_save_user_object(chat_room, user):
 	frappe.db.commit()
 
 
-def create_bot_message_object(room, chat):
-	return {
-		"meta": {
-			"room": room,
-			"is_bot": True
-		},
-		"created_on": get_date(chat.created_at),
-		"text": chat.text,
-		"chat_data": chat.chat_data,
-		"bot_data": chat.bot_data	
-	}
-
-def format_response(is_bot, chats, room):
+def format_response(chats):
 	results = []
 	for chat in chats:
 		item = {
-			"meta": {
-				"room": room,
-				"is_bot": True if is_bot else False
-			},
 			"created_on": get_date(chat.created_at),
 			"text": chat.text,
 			"chat_data": json.loads(chat.chat_data),
@@ -71,11 +59,38 @@ def format_response(is_bot, chats, room):
 		results.append(item)
 	return results
 
+def map_chat(chats, room, chat_type, name):
+	return {
+		"meta": {
+			"room": room,
+			"chat_type": chat_type,
+			"users": get_users(chat_type, name),
+			"owner": get_owner(name)
+		},
+		"chat_items":chats
+	}
 
 def get_date(created_at):
 	created_on = str(created_at)
 	return created_on.split('.')[0]
 
+def check_if_exists(doctype, filters):
+	return frappe.db.exists(doctype, filters)
+
+def dump_to_json(res):
+		res.chat_data = json.dumps(res.chat_data)
+		res.bot_data = json.dumps(res.bot_data)
+		return [res]
+
+def get_users(chat_type, name):
+	if chat_type == "personal":
+		return frappe.get_list('Chat User', 
+				fields=["title", "email"], 
+				filters={"chat_room": name})
+	return []
+
+def get_owner(name):
+	return frappe.get_doc('Chat Room', name).owner
 
 # def get_item_as_dict(fields, item):
 # 	obj = {}
@@ -87,16 +102,13 @@ def get_date(created_at):
 # 		obj[fields_list[index].strip()] = value
 # 	return obj
 
-
 # def get_items_from_array(items):
 # 	results = []
 # 	if items:
 # 		for item in items:
-# 			x = frappe._dict(item)
-# 			keys = x.keys()
-# 			results.append(get_object_from_key_value(keys, item))
+# 			results.append(get_object_from_key_value(item.keys(), item))
+# 	print results
 # 	return results
-
 
 # def get_object_from_key_value(keys, item):
 # 	obj = {}
