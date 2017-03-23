@@ -20,6 +20,7 @@ frappe.search.SearchDialog = Class.extend({
 		this.modal_state = 0;
 		this.current_keyword = "";
 		this.full_lists = {};
+		this.nav_lists = {};
 		this.bind_input();
 		this.bind_events();
 	},
@@ -58,10 +59,9 @@ frappe.search.SearchDialog = Class.extend({
 				keywords = me.$input.val();
 				if(keywords.length > 1) {
 					me.get_results(keywords);
-				} else if (keywords.length === 0) {
-					me.put_placeholder(me.search.empty_state_text);
 				} else {
-					me.current_type = '';
+					me.current_keyword = "";
+					me.put_placeholder(me.search.empty_state_text);
 				}
 			}, 300));
 		});
@@ -95,7 +95,18 @@ frappe.search.SearchDialog = Class.extend({
 		// Full list more links
 		this.$modal_body.on('click', '.list-more', function() {
 			// increment current result count as well in its data attr
-
+			var more_count = 20;
+			var type = $(this).attr('data-category');
+			var fetch_type = $(this).attr('data-search');
+			var current_count = me.$modal_body.find('.result').length;
+			if(fetch_type === "Global") {
+				frappe.search.utils.get_results_from_doctype(type,
+					me.current_keyword, current_count, more_count, me.add_more_results.bind(me));
+			} else {
+				results = me.nav_lists[type].slice(0, more_count);
+				me.nav_lists[type].splice(0, more_count);
+				me.add_more_results(type, results, more_count);
+			}
 		});
 
 		// Switch to global search link
@@ -115,69 +126,32 @@ frappe.search.SearchDialog = Class.extend({
 		var me = this;
 		this.$search_modal.on('keydown', function(e) {
 
-			function focus_input() {
-				if(!me.$input.is(":focus")) {
-					me.$input.focus();
-				}
-			}
-
-			// Backspace key triggers input
-			if(e.which === 8) focus_input();
-
 			if(me.$modal_body.find('.list-link').length > 1) {
-
 				if(me.modal_state === 0) {
 					// DOWN and UP keys navigate sidebar
 					if(e.which === DOWN_ARROW || e.which === TAB) {
 						e.preventDefault();
 						var $link = me.$modal_body.find('.list-link.select').next();
 						if($link.length > 0) {
-							me.$modal_body.find('.list-link').removeClass('select');
-							$link.addClass('select');
+							// me.$modal_body.find('.list-link').removeClass('select');
+							// $link.addClass('select');
+							$link.trigger('click');
 						}
-						focus_input();
 					} else if(e.which === UP_ARROW) {
 						e.preventDefault();
 						var $link = me.$modal_body.find('.list-link.select').prev();
 						if($link.length > 0) {
-							me.$modal_body.find('.list-link').removeClass('select');
-							$link.addClass('select');
-						}
-						focus_input();
-					} else if (e.which === 39 || e.which === 13) {
-						// This state has only right arrow
-						e.preventDefault();
-						// me.modal_state = 1;
-						me.$modal_body.find('.search-sidebar').find('.list-link.select').trigger('click');
-						// call_focusser(); // Should remember last focussed result?
-						focus_input();
-					}
-
-				} else {
-					// // DOWN and UP keys navigate results
-					if(e.which === DOWN_ARROW || e.which === TAB) {
-						// only focus on down key, don't trigger
-						var link = me.$modal_body.find('.list-link.select').next();
-						me.$modal_body.find('.list-link').removeClass('select');
-					} else if(e.which === UP_ARROW) {
-						me.$modal_body.find('.list-link.active').prev();
-					} else if(e.which === 37) {
-						me.modal_state = 0;
-					} else if (e.which === 13) {
-						// Tab key rolls back after the last result
-						if(me.results_area.find('a').last().is(":focus")) {
-							e.preventDefault();
-							me.results_area.find('.module-section-link').first().focus();
+							$link.trigger('click');
 						}
 					}
 				}
 			}
-		});
-		this.$search_modal.on('keypress', function(e) {
+
 			if(!me.$input.is(":focus")) {
 				me.$input.focus();
 			}
 		});
+
 	},
 
 	init_search: function(keywords, search_type) {
@@ -225,11 +199,12 @@ frappe.search.SearchDialog = Class.extend({
 
 		this.modal_state = 0;
 		this.full_lists = {	'All Results': $('<div class="module-body results-summary"></div>') };
+		this.nav_lists = {};
 
 		result_sets.forEach(function(set) {
 			$sidebar.append($(__(sidebar_item_html, [set.title])));
 			me.add_section_to_summary(set.title, set.results);
-			me.full_lists[set.title] = me.render_full_list(set.title, set.results, true);
+			me.full_lists[set.title] = me.render_full_list(set.title, set.results, set.fetch_type);
 		});
 
 		if(result_sets.length > 1) {
@@ -240,8 +215,8 @@ frappe.search.SearchDialog = Class.extend({
 		this.$modal_body.find('.list-link').first().trigger('click');
 	},
 
-	render_full_list: function(type, results, more) {
-		var me = this;
+	render_full_list: function(type, results, fetch_type) {
+		var me = this, max_length = 20;
 		var $results_list = $(' <div class="module-body"><div class="row module-section full-list '+
 			type+'-section">'+'<div class="col-sm-12 module-section-column">' +
 			'<div class="back-link"><a class="all-results-link small"> All Results</a></div>' +
@@ -249,12 +224,14 @@ frappe.search.SearchDialog = Class.extend({
 			'<div class="section-body"></div></div></div></div>');
 
 		var $results_col = $results_list.find('.module-section-column');
-		results.forEach(function(result) {
-			$results_col.append(me.render_result(type, result));
-		});
-		if(more) {
-			$results_col.append('<a class="list-more small" data-search="'+ this.search_type +
-				'" data-category="'+ type + '" style="margin-top:10px">'+__("More...")+'</a>');
+		for(var i = 0; i < max_length && results.length > 0; i++) {
+			$results_col.append(me.render_result(type, results.shift()));
+		}
+		if(results.length > 0) {
+			if(fetch_type === "Nav") this.nav_lists[type] = results;
+			$results_col.append('<a class="list-more small" data-search="'+ fetch_type +
+				'" data-category="'+ type + '" data-count="' + max_length +
+				'" style="margin-top:10px">'+__("More...")+'</a>');
 		}
 		return $results_list;
 	},
@@ -304,10 +281,11 @@ frappe.search.SearchDialog = Class.extend({
 			return desc;
 		}
 
-		$result.append($('<b><a '+ get_link(result) +' class="module-section-link small">'+ result.label +'</a></b>'));
-
 		if(result.description) {
+			$result.append($('<b><a '+ get_link(result) +' class="module-section-link small">'+ result.label +'</a></b>'));
 			$result.append(make_description('<p class="small">'+ result.description +'</p>'));
+		} else {
+			$result.append($('<a '+ get_link(result) +' class="module-section-link small">'+ result.label +'</a>'));
 		}
 
 		if(result.image) {
@@ -323,6 +301,26 @@ frappe.search.SearchDialog = Class.extend({
 		return $result;
 	},
 
+	add_more_results: function(type, results, more_length) {
+		// append each results in a div
+		var me = this;
+		var more_results = $('<div class="more-results last"></div>');
+		results.forEach(function(result) {
+			more_results.append(me.render_result(type, result));
+		});
+		this.$modal_body.find('.list-more').before(more_results);
+
+		if(results.length < more_length) {
+			// hide more button and add a result count
+			this.$modal_body.find('.list-more').hide();
+			var no_of_results = this.$modal_body.find('.result').length;
+			var no_of_results_cue = $('<p class="results-status text-muted small">'+
+				no_of_results +' results found</p>');
+			this.$modal_body.find(".more-results:last").append(no_of_results_cue);
+		}
+		this.$modal_body.find('.more-results.last').slideDown(200, function() {});
+	},
+
 	// Search objects (can be relocated)
 	searches: {
 		global_search: {
@@ -330,7 +328,7 @@ frappe.search.SearchDialog = Class.extend({
 			empty_state_text: __("Search for anything"),
 			no_results_status: (keyword) => __("No results found for '" + keyword + "'"),
 			get_results: function(keywords, callback) {
-				var start = 0, limit = 20;
+				var start = 0, limit = 100;
 				var results = frappe.search.utils.get_nav_results(keywords);
 				frappe.search.utils.get_all_global_results(keywords, start, limit)
 					.then(function(global_results) {

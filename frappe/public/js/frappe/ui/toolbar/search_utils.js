@@ -23,12 +23,9 @@ frappe.search.utils = {
 					route = ["query-report",  item];
 				out.push({
                     type: "Report",
-					label: rendered_label,
-					value: __("Report {0}" , [__(item)]),
-					match: keywords,
-
-                    // ???
-					index: index,
+					label: __("{0}" , [__(me.bolden_match_part(item, keywords))]),
+					value: item,
+					index: level,
 					route: route
 				});
 			}
@@ -49,10 +46,9 @@ frappe.search.utils = {
 				var module = frappe.modules[item];
 				if(module._doctype) return;
 				ret = {
-					label: rendered_label,
-					value: __("Open {0}", [__(item)]),
-					match: txt,
-					index: index,
+					label: __("{0}", [__(me.bolden_match_part(item, keywords))]),
+					value: item,
+					index: level,
 					type: "Module",
 					prefix: "Open"
 				}
@@ -68,38 +64,38 @@ frappe.search.utils = {
     },
 
     get_all_global_results: function (keywords, start, limit, condensed = 0) {
-        return new Promise(function(resolve, reject) {
-            function get_results_sets(data) {
-                var results_sets = [], result, set;
-                var get_existing_set = function(doctype) {
-                    return results_sets.find(function(set) {
-                        return set.title === doctype;
-                    });
-                }
-                data.forEach(function(d) {
-                    // Condition for condensed
-                    // more properties
-                    result = {
-                        label: d.name,
-                        value: d.name,
-                        description: d.content,
-                        route: ['Form', d.doctype, d.name]
-                    }
-                    set = get_existing_set(d.doctype);
-                    if(set) {
-                        set.results.push(result);
-                    } else {
-                        set = {
-                            title: d.doctype,
-                            results: [result]
-                        }
-                        results_sets.push(set);
-                    }
-
+        var me = this;
+        function get_results_sets(data) {
+            var results_sets = [], result, set;
+            var get_existing_set = function(doctype) {
+                return results_sets.find(function(set) {
+                    return set.title === doctype;
                 });
-                return results_sets;
             }
+            data.forEach(function(d) {
+                // more properties
+                result = {
+                    label: d.name,
+                    value: d.name,
+                    description: d.content,
+                    route: ['Form', d.doctype, d.name]
+                }
+                set = get_existing_set(d.doctype);
+                if(set) {
+                    set.results.push(result);
+                } else {
+                    set = {
+                        title: d.doctype,
+                        results: [result],
+                        fetch_type: "Global"
+                    }
+                    results_sets.push(set);
+                }
 
+            });
+            return results_sets;
+        }
+        return new Promise(function(resolve, reject) {
             frappe.call({
                 method: "frappe.utils.global_search.search",
                 args: {
@@ -119,24 +115,31 @@ frappe.search.utils = {
         });
     },
 
-    get_doctype_globals: function(doctype, keywords, start, limit) {
-        return new Promise(function(resolve, reject) {
-            frappe.call({
-                method: "frappe.utils.global_search.search_in_doctype",
-                args: {
-                    doctype: doctype,
-                    text: keywords,
-                    start: start,
-                    limit: limit,
-                },
-                callback: function(r) {
-                    if(r.message) {
-                        resolve(r);
-                    } else {
-                        resolve([]);
-                    }
+    get_results_from_doctype: function(doctype, keywords, start, limit, callback) {
+        frappe.call({
+            method: "frappe.utils.global_search.search_in_doctype",
+            args: {
+                doctype: doctype,
+                text: keywords,
+                start: start,
+                limit: limit,
+            },
+            callback: function(r) {
+                if(r.message) {
+                    results = [];
+                    r.message.forEach(function(d) {
+                        results.push({
+                            label: d.name,
+                            value: d.name,
+                            description: d.content,
+                            route: ['Form', doctype, d.name]
+                        });
+                    });
+                    callback(doctype, results, limit);
+                } else {
+                    callback(doctype, [], limit);
                 }
-            });
+            }
         });
     },
 
@@ -145,6 +148,7 @@ frappe.search.utils = {
             var result;
             var set = {
                 title: "Help",
+                fetch_type: "Help",
                 results: []
             }
             data.forEach(function(d) {
@@ -222,22 +226,36 @@ frappe.search.utils = {
         });
     },
 
-    get_nav: function(keywords) {
-
+    get_nav_results: function(keywords) {
+        var compare = function(a, b) {
+			return a.index - b.index || a.value.length - b.value.length;
+		}
+		// var all_doctypes = this.get_doctypes(keywords);
+		// all_doctypes.forEach(function(d) {
+		// 	if(d.type === "") {
+		// 		setup.push(d);
+		// 	} else {
+		// 		lists.push(d);
+		// 	}
+		// });
+		return [
+			// "Lists": lists.sort(compare),
+			{title: "Reports", fetch_type: "Nav", results: this.get_reports(keywords).sort(compare)},
+			{title: "Modules", fetch_type: "Nav", results: this.get_modules(keywords).sort(compare)},
+			// "Administration": this.get_pages(keywords).sort(compare),
+			// "Setup": setup.sort(compare)
+        ]
     },
 
     get_recent_pages: function(keywords) {
 
     },
-
-    get_frequent_pages: function(keywords) {
-
-    },
-
-    get_calculator: function(expression) {
+    // Find stuff given a condition
+    parse_keyword_and_trigger_results: function(input) {
 
     },
 
+    // Utils
     commands: {
         // single-arg
         cmd_report: function(keywords) {
@@ -320,37 +338,36 @@ frappe.search.utils = {
         return 0.5/(skips + mismatches);
 	},
 
-    replace_with_bold: function(string, subsequence) {
+    replace_with_bold: function(str, subseq) {
 		var rendered = "";
-        if(this.fuzzy_search(subsequence, string) === 0) {
-            return string;
-        } else if(this.fuzzy_search(subsequence, string) > 0.5) {
-            var regEx = new RegExp("("+ subsequence +")", "ig");
-            return string.replace(regEx, '<b>$1</b>');
+        if(this.fuzzy_search(subseq, str) === 0) {
+            return str;
+        } else if(this.fuzzy_search(subseq, str) > 0.5) {
+            var regEx = new RegExp("("+ subseq +")", "ig");
+            return str.replace(regEx, '<b>$1</b>');
         } else {
-            var string_orig = string;
-            var string = string.toLowerCase();
-            var subsequence = subsequence.toLowerCase();
-            outer: for(var i = 0, j = 0; i < subsequence.length; i++) {
-                while(j < string.length) {
-                    if(string.charCodeAt(j) === subsequence.charCodeAt()) {
-                        var string_char =  string_orig.charAt(j);
-                        if(string_char === string_char.toLowerCase()) {
-                            rendered += '<b>' + subsequence.charAt(i) + '</b>';
+            var str_orig = str;
+            var str = str.toLowerCase();
+            var subseq = subseq.toLowerCase();
+            outer: for(var i = 0, j = 0; i < subseq.length; i++) {
+                while(j < str.length) {
+                    if(str.charCodeAt(j) === subseq.charCodeAt()) {
+                        var str_char =  str_orig.charAt(j);
+                        if(str_char === str_char.toLowerCase()) {
+                            rendered += '<b>' + subseq.charAt(i) + '</b>';
                         } else {
-                            rendered += '<b>' + subsequence.charAt(i).toUpperCase() + '</b>';
+                            rendered += '<b>' + subseq.charAt(i).toUpperCase() + '</b>';
                         }
                         j++;
                         continue outer;
                     }
-                    rendered += string_orig.charAt(j);
+                    rendered += str_orig.charAt(j);
                 }
-                return string_orig;
+                return str_orig;
             }
-            rendered += string_orig.slice(j);
+            rendered += str_orig.slice(j);
             return rendered;
         }
-
 
     },
 

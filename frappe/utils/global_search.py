@@ -151,26 +151,6 @@ def web_search(text, start=0, limit=20):
 		text, as_dict=True)
 	return results
 
-# @frappe.whitelist()
-# def get_search_doctypes(text):
-# 	'''Search for all t
-# 	:param text: phrase to be searched
-# 	:return: Array of result objects'''
-
-# 	text = text + "*"
-# 	results = frappe.db.sql('''
-# 		select
-# 			doctype
-# 		from
-# 			__global_search
-# 		where
-# 			match(content) against (%s IN BOOLEAN MODE)
-# 		group by
-# 			doctype
-# 		order by
-# 			count(doctype) desc limit 0, 80''', text, as_dict=True)
-# 	return results
-
 @frappe.whitelist()
 def search_in_doctype(doctype, text, start, limit):
 	'''Search for given text in given doctype in __global_search
