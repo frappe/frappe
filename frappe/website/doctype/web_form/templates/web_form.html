@@ -289,22 +289,22 @@
 					</div>
 					{% endfor %}
 			</div>
-			{% if last_page and accept_payment %}
-			<div class="well payment-details">
-				{% if not doc.paid %}
-					{% if payment_button_help %}
-					<div class='text-muted' style='padding-bottom: 15px;'>
-						{{ payment_button_help }}</div>
-					{% endif %}
-					<a class="btn btn-primary btn-payment">
-						{{ payment_button_label }}</a>
-				{% else %}
-					<div>{{ _("Payment Complete") }}</div>
-				{% endif %}
-			</div>
-			{% endif %}
 		</div>
 		{% endfor %}
+		{% if last_page and accept_payment %}
+		<div class="well payment-details">
+			{% if not doc.paid %}
+				{% if payment_button_help %}
+				<div class='text-muted' style='padding-bottom: 15px;'>
+					{{ payment_button_help }}</div>
+				{% endif %}
+				<a class="btn btn-primary btn-payment">
+					{{ payment_button_label or "Pay"}}</a>
+			{% else %}
+				<div>{{ _("Payment Complete") }}</div>
+			{% endif %}
+		</div>
+		{% endif %}
 		<!-- page footer buttons -->
 		<div>
 			{% if layout|len > 1 %}
