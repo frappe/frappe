@@ -76,6 +76,7 @@ frappe.ui.form.on("Email Account", {
 		}
 		frm.events.show_gmail_message_for_less_secure_apps(frm);
 	},
+
 	use_imap: function(frm) {
 		if (frm.doc.use_imap) {
 			$.each(frappe.email_defaults_imap[frm.doc.service], function(key, value) {
@@ -88,41 +89,26 @@ frappe.ui.form.on("Email Account", {
 			});
 		}
 	},
+
 	enable_incoming: function(frm) {
 		frm.doc.no_remaining = null //perform full sync
 		//frm.set_df_property("append_to", "reqd", frm.doc.enable_incoming);
 	},
+
 	notify_if_unreplied: function(frm) {
 		frm.set_df_property("send_notification_to", "reqd", frm.doc.notify_if_unreplied);
 	},
+
 	onload: function(frm) {
 		frm.set_df_property("append_to", "only_select", true);
 		frm.set_query("append_to", "frappe.email.doctype.email_account.email_account.get_append_to");
 	},
-	validate:function(frm){
-		frm.events.update_domain(frm, true);
-	},
+
 	refresh: function(frm) {
-		frm.events.update_domain(frm, true);
+		frm.events.set_domain_fields(frm);
 		frm.events.enable_incoming(frm);
 		frm.events.notify_if_unreplied(frm);
 		frm.events.show_gmail_message_for_less_secure_apps(frm);
-		if (frm.doc.__islocal != 1) {
-			if (frappe.route_flags.create_user_account) {
-				var user = frappe.route_flags.create_user_account;
-				delete frappe.route_flags.create_user_account;
-				var userdoc = frappe.get_doc("User",user);
-				frappe.model.with_doc("User", user, function (doc) { 
-					var new_row = frappe.model.add_child(userdoc, "User Email", "user_emails");
-					new_row.email_account = cur_frm.doc.name;
-					new_row.awaiting_password = cur_frm.doc.awaiting_password;
-					new_row.email_id = cur_frm.doc.email_id;
-					new_row.idx = 0;
-					frappe.route_flags.unsaved = 1;
-					frappe.set_route("Form", "User",user);
-				});
-            }
-        }
 	},
 
 	show_gmail_message_for_less_secure_apps: function(frm) {
@@ -133,12 +119,12 @@ frappe.ui.form.on("Email Account", {
 		}
 	},
 
-	email_id:function(frm){
+	email_id:function(frm) {
 		//pull domain and if no matching domain go create one
-		frm.events.update_domain(frm, false);
+		frm.events.update_domain(frm);
 	},
 
-	update_domain: function(frm, no_refresh){
+	update_domain: function(frm){
 		if (!frm.doc.email_id && !frm.doc.service)
 			return
 
@@ -150,13 +136,7 @@ frappe.ui.form.on("Email Account", {
 			},
 			callback: function (r) {
 				if (r.message) {
-					domain = r.message;
-
-					for(field in domain)
-						frm.set_value(field, domain[field]);
-
-					if (!no_refresh)
-						frm.refresh();
+					frm.events.set_domain_fields(frm, r.message)
 				} else {
 					frm.set_value("domain", "")
 					frappe.confirm(__('Email Domain not configured for this account, Create one?'),
@@ -173,6 +153,18 @@ frappe.ui.form.on("Email Account", {
 			}
 		});
 	},
+
+	set_domain_fields: function(frm, args) {
+		if(!args)
+			args = frappe.route_flags.set_domain_values? frappe.route_options: {}
+
+		for(field in args)
+			frm.set_value(field, args[field]);
+
+		delete frappe.route_flags.set_domain_values
+		frappe.route_options = {}
+	},
+
 	email_sync_option: function(frm) {
 		// confirm if the ALL sync option is selected
 
