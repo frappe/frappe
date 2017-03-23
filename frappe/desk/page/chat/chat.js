@@ -58,10 +58,8 @@ frappe.Chat = Class.extend({
 	},
 
 	prepend_comment: function(comment) {
-		var $row = $('<div class="list-row"/>');
 		frappe.pages.chat.chat.list.data.unshift(comment);
-		frappe.pages.chat.chat.list.render_row($row, comment);
-		frappe.pages.chat.chat.list.wrapper.prepend($row);
+		this.render_row(comment, true);
 	},
 
 	make_sidebar: function() {
@@ -156,7 +154,7 @@ frappe.Chat = Class.extend({
 	make_message_list: function(contact) {
 		var me = this;
 
-		this.list = new frappe.ui.Listing({
+		this.list = new frappe.ui.BaseList({
 			parent: this.page.main.find(".message-list"),
 			page: this.page,
 			method: 'frappe.desk.page.chat.chat.get_list',
@@ -165,15 +163,29 @@ frappe.Chat = Class.extend({
 			},
 			hide_refresh: true,
 			freeze: false,
-			render_row: function(wrapper, data) {
-				me.prepare(data);
-				var row = $(frappe.render_template("chat_row", {
-					data: data
-				})).appendTo(wrapper);
-				row.find(".avatar, .indicator").tooltip();
-			}
-
+			render_view: function (values) {
+				values.map(function (value) {
+					me.render_row(value);
+				});
+			},
 		});
+	},
+
+	render_row: function(value, prepend) {
+		this.prepare(value)
+
+		var wrapper = $('<div class="list-row">')
+			.data("data", this.meta)
+
+		if(!prepend)
+			wrapper.appendTo($(".result-list")).get(0);
+		else
+			wrapper.prependTo($(".result-list")).get(0);
+
+		var row = $(frappe.render_template("chat_row", {
+			data: value
+		})).appendTo(wrapper)
+		row.find(".avatar, .indicator").tooltip();
 	},
 
 	delete: function(ele) {

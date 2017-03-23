@@ -170,6 +170,7 @@ def get_blog_list(doctype, txt=None, filters=None, limit_start=0, limit_page_len
 	posts = frappe.db.sql(query, as_dict=1)
 
 	for post in posts:
+		post.cover_image = find_first_image(post.content)
 		post.published = global_date_format(post.creation)
 		post.content = strip_html_tags(post.content[:340])
 		if not post.comments:

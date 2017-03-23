@@ -69,6 +69,7 @@
 * `bench drop-site` Removes site from disk and database completely
   * `--root-login` 
   * `--root-password`
+* `bench set-config [key] [value]`   Adds a key-value pair to site's config file 
 * `bench console`   Opens a IPython console in the bench venv
 * `bench execute`   Execute a method inside any app.
   * Eg : `bench execute frappe.utils.scheduler.enqueue_scheduler_events`
