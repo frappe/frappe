@@ -6,7 +6,15 @@ frappe.ui.Chart = Class.extend({
 		$.extend(this.opts, opts);
 		this.show_chart(false);
 
-		this.opts.bind_to = frappe.dom.set_unique_id(this.opts.wrapper);
+		$(this.opts.wrapper).html('<button class="btn btn-default btn-xs show-hide-chart" ' +
+			'type="button" style="margin: 10px;">' +
+			'<span class="chart-btn-text">'+__('Show Chart')+'</span></button>' +
+			'<div class="chart_area_result" style="padding-bottom: 10px">' +
+			'</div>');
+		
+		this.setup_events();
+		
+		this.opts.bind_to = frappe.dom.set_unique_id(this.opts.wrapper.find(".chart_area_result"));
 
 		if(this.opts.data && ((this.opts.data.columns && this.opts.data.columns.length >= 1)
 			|| (this.opts.data.rows && this.opts.data.rows.length >= 1))) {
@@ -79,6 +87,23 @@ frappe.ui.Chart = Class.extend({
 		this.chart.resize({
 			width: width,
 			height: height
+		});
+	},
+	
+	setup_events: function(){
+		var me = this;
+		var chart_result = me.opts.wrapper.find(".chart_area_result");
+		
+		chart_result.toggle(false);
+		me.opts.wrapper.find(".show-hide-chart").toggle(true).on("click", function(){
+			if ($(this).find(".chart-btn-text").text()==__("Show Chart")) {
+				chart_result.toggle(true);
+				$(this).find(".chart-btn-text").text(__("Hide Chart"));
+			}
+			else {
+				chart_result.toggle(false);
+				$(this).find(".chart-btn-text").text(__("Show Chart"));
+			}
 		});
 	}
 });
