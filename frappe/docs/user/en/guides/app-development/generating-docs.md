@@ -100,17 +100,15 @@ Note > The branch name `gh-pages` is only if you are using GitHub. If you are ho
 
 Putting it all together:
 
+    # build the apps/docs folder and write the compiled docs at docs/appname
     bench --site [site] build-docs [appname]
-    git add appname/docs
-    git commit -m "Documentation Initialization"
-    git push origin master
-    bench --site [site] write-docs [appname]
+
+    # commit to the gh-pages branch (for GitHub Pages)
     cd docs/appname
     git checkout --orphan gh-pages
     git remote add origin [remote git repository]
     git add *
     git commit -m "Documentation Initialization"
     git push origin gh-pages
-
 
 To check your documentation online go to: https://[orgname].github.io/[reponame]
