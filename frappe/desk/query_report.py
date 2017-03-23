@@ -132,14 +132,27 @@ def export_query():
 
 		data = run(report_name, filters)
 		data = frappe._dict(data)
-
 		columns = get_columns_dict(data.columns)
-		content = []
-		for col in columns.values():
-			content.append(col["label"])
+
+		result = [[]]
+
+		# add column headings
+		for idx in range(len(data.columns)):
+			result[0].append(columns[idx]["label"])
+			
+		# build table from dict
+		if isinstance(data.result[0], dict):
+			for row in data.result:
+				if row:
+					row_list = []
+					for idx in range(len(data.columns)):
+						row_list.append(row[columns[idx]["fieldname"]])
+					result.append(row_list)
+		else:
+			result = result + data.result
 
 		from frappe.utils.xlsxutils import make_xlsx
-		xlsx_file = make_xlsx([content] + data.result, "Query Report")
+		xlsx_file = make_xlsx(result, "Query Report")
 
 		frappe.response['filename'] = report_name + '.xlsx'
 		frappe.response['filecontent'] = xlsx_file.getvalue()
@@ -321,9 +334,9 @@ def get_columns_dict(columns):
 		The keys for the dict are both idx and fieldname,
 		so either index or fieldname can be used to search for a column's docfield properties
 	"""
-	columns_dict = {}
+	columns_dict = frappe._dict()
 	for idx, col in enumerate(columns):
-		col_dict = {}
+		col_dict = frappe._dict()
 
 		# string
 		if isinstance(col, basestring):

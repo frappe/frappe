@@ -102,6 +102,11 @@ def export_query():
 
 	frappe.permissions.can_export(doctype, raise_exception=True)
 
+	if 'selected_items' in form_params:
+		si = json.loads(frappe.form_dict.get('selected_items'))
+		form_params["filters"] = {"name": ("in", si)}
+
+	del form_params["selected_items"]
 	db_query = DatabaseQuery(doctype)
 	ret = db_query.execute(**form_params)
 
@@ -221,7 +226,7 @@ def get_stats(stats, doctype, filters=[]):
 
 			if tag=='_user_tags':
 				stats[tag] = scrub_user_tags(tagcount)
-				stats[tag].append(["No Tags", frappe.get_list(doctype,
+				stats[tag].append([_("No Tags"), frappe.get_list(doctype,
 					fields=[tag, "count(*)"],
 					filters=filters +["({0} = ',' or {0} is null)".format(tag)], as_list=True)[0][1]])
 			else:

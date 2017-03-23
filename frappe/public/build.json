@@ -63,8 +63,6 @@
 		"public/js/lib/taggle/taggle.min.js",
 		"public/js/lib/jquery/jquery.hotkeys.js",
 		"public/js/lib/summernote/summernote.js",
-		"public/js/lib/notify.js",
-		"public/js/lib/tag-it.min.js",
 		"public/js/lib/bootstrap.min.js",
 		"public/js/lib/moment/moment-with-locales.min.js",
 		"public/js/lib/moment/moment-timezone-with-data.min.js",

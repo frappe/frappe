@@ -146,7 +146,7 @@ def quick_kanban_board(doctype, board_name, field_name):
 
 		doc.filters = '[["Task","project","=","{0}"]]'.format(board_name)
 
-	if doctype == 'Note':
+	if doctype in ['Note', 'ToDo']:
 		doc.private = 1
 
 	doc.save()
