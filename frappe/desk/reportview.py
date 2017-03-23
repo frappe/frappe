@@ -102,6 +102,11 @@ def export_query():
 
 	frappe.permissions.can_export(doctype, raise_exception=True)
 
+	if 'selected_items' in form_params:
+		si = json.loads(frappe.form_dict.get('selected_items'))
+		form_params["filters"] = {"name": ("in", si)}
+
+	del form_params["selected_items"]
 	db_query = DatabaseQuery(doctype)
 	ret = db_query.execute(**form_params)
 
