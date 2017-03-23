@@ -123,11 +123,17 @@ class Document(BaseDocument):
 			table_fields = self.meta.get_table_fields()
 
 		for df in table_fields:
+			print df.options
 			children = frappe.db.get_values(df.options,
 				{"parent": self.name, "parenttype": self.doctype, "parentfield": df.fieldname},
-				"*", as_dict=True, order_by="idx asc")
+				"name", as_dict=True, order_by="idx asc")
 			if children:
-				self.set(df.fieldname, children)
+				for d in children:
+					if df.options == 'DocField':
+						d = frappe.db.get_values(df.options, d.name, '*', as_dict=True)[0]
+					else:
+						d = frappe.get_doc(df.options, d.name)
+					self.append(df.fieldname, d)
 			else:
 				self.set(df.fieldname, [])
 
@@ -178,21 +184,29 @@ class Document(BaseDocument):
 			self.flags.ignore_mandatory = ignore_mandatory
 
 		self.set("__islocal", True)
-
-		self.check_permission("create")
-		self._set_defaults()
-		self.set_user_and_timestamp()
+		self._doc_before_save = None
 		self.set_docstatus()
-		self.check_if_latest()
-		self.run_method("before_insert")
-		self.set_new_name()
-		self.set_parent_in_children()
+
+		self._action = "save"
+		if not self.meta.istable:
+			# check permissions for parent tables
+			self.check_permission("create")
+			self._set_defaults()
+			self.set_user_and_timestamp()
+			self.check_if_latest()
+			self.run_method("before_insert")
+
+		set_new_name(self)
 		self.validate_higher_perm_levels()
+		self.set_parent_in_children()
 
 		self.flags.in_insert = True
-		self.run_before_save_methods()
-		self._validate()
-		self.set_docstatus()
+
+		if not self.meta.istable:
+			self.run_before_save_methods()
+			self._validate()
+			self.set_docstatus()
+
 		self.flags.in_insert = False
 
 		# run validate, on update etc.
@@ -202,6 +216,7 @@ class Document(BaseDocument):
 			self.update_single(self.get_valid_dict())
 		else:
 			try:
+				# db_insert, since this is already insert!
 				self.db_insert()
 			except frappe.DuplicateEntryError, e:
 				if not ignore_if_duplicate:
@@ -209,15 +224,17 @@ class Document(BaseDocument):
 
 		# children
 		for d in self.get_all_children():
-			d.db_insert()
+			# smart insert the children!
+			d.insert()
 
-		self.run_method("after_insert")
 		self.flags.in_insert = True
+		if self.meta.istable:
+			self.run_method("after_insert")
 
-		if self.get("amended_from"):
-			self.copy_attachments_from_amended_from()
+			if self.get("amended_from"):
+				self.copy_attachments_from_amended_from()
 
-		self.run_post_save_methods()
+			self.run_post_save_methods()
 		self.flags.in_insert = False
 
 		# delete __islocal
@@ -254,22 +271,27 @@ class Document(BaseDocument):
 			self.insert()
 			return
 
-		self.check_permission("write", "save")
-
-		self.set_user_and_timestamp()
 		self.set_docstatus()
-		self.check_if_latest()
+		self._action = "save"
+		self._doc_before_save = None
+
+		if not self.meta.istable:
+			self.check_permission("write", "save")
+
+			self.set_user_and_timestamp()
+			self.check_if_latest()
+
 		self.set_parent_in_children()
 		self.validate_higher_perm_levels()
-		self.run_before_save_methods()
 
-		if self._action != "cancel":
-			self._validate()
+		if not self.meta.istable:
+			self.run_before_save_methods()
 
-		if self._action == "update_after_submit":
-			self.validate_update_after_submit()
+			if self._action != "cancel":
+				self._validate()
 
-		self.set_docstatus()
+			if self._action == "update_after_submit":
+				self.validate_update_after_submit()
 
 		# parent
 		if self.meta.issingle:
@@ -278,7 +300,9 @@ class Document(BaseDocument):
 			self.db_update()
 
 		self.update_children()
-		self.run_post_save_methods()
+
+		if not self.meta.istable:
+			self.run_post_save_methods()
 
 		return self
 
@@ -304,13 +328,8 @@ class Document(BaseDocument):
 			df = self.meta.get_field(fieldname)
 
 		for d in self.get(df.fieldname):
-			d.db_update()
+			d.update()
 			rows.append(d.name)
-
-		if df.options in (self.flags.ignore_children_type or []):
-			# do not delete rows for this because of flags
-			# hack for docperm :(
-			return
 
 		if rows:
 			# select rows that do not match the ones in the document
@@ -329,12 +348,12 @@ class Document(BaseDocument):
 				and parenttype=%s and parentfield=%s""".format(df.options),
 				(self.name, self.doctype, fieldname))
 
-	def set_new_name(self):
-		"""Calls `frappe.naming.se_new_name` for parent and child docs."""
-		set_new_name(self)
-		# set name for children
-		for d in self.get_all_children():
-			set_new_name(d)
+	# def set_new_name(self):
+	# 	"""Calls `frappe.naming.se_new_name` for parent and child docs."""
+	# 	set_new_name(self)
+	# 	# # set name for children
+	# 	# for d in self.get_all_children():
+	# 	# 	set_new_name(d)
 
 	def get_title(self):
 		'''Get the document title based on title_field or `title` or `name`'''
@@ -393,8 +412,8 @@ class Document(BaseDocument):
 		if self.docstatus==None:
 			self.docstatus=0
 
-		for d in self.get_all_children():
-			d.docstatus = self.docstatus
+		# for d in self.get_all_children():
+		# 	d.docstatus = self.docstatus
 
 	def _validate(self):
 		self._validate_mandatory()
@@ -454,12 +473,13 @@ class Document(BaseDocument):
 		if high_permlevel_fields:
 			self.reset_values_if_no_permlevel_access(has_access_to, high_permlevel_fields)
 
-		# check for child tables
-		for df in self.meta.get_table_fields():
-			high_permlevel_fields = frappe.get_meta(df.options).meta.get_high_permlevel_fields()
-			if high_permlevel_fields:
-				for d in self.get(df.fieldname):
-					d.reset_values_if_no_permlevel_access(has_access_to, high_permlevel_fields)
+		# NOT NEEDED ANYMORE!
+		# # check for child tables
+		# for df in self.meta.get_table_fields():
+		# 	high_permlevel_fields = frappe.get_meta(df.options).meta.get_high_permlevel_fields()
+		# 	if high_permlevel_fields:
+		# 		for d in self.get(df.fieldname):
+		# 			d.reset_values_if_no_permlevel_access(has_access_to, high_permlevel_fields)
 
 	def get_permlevel_access(self, permission_type='write'):
 		if not hasattr(self, "_has_access_to"):
@@ -511,7 +531,6 @@ class Document(BaseDocument):
 		Will also validate document transitions (Save > Submit > Cancel) calling
 		`self.check_docstatus_transition`."""
 		conflict = False
-		self._action = "save"
 		if not self.get('__islocal'):
 			if self.meta.issingle:
 				modified = frappe.db.sql('''select value from tabSingles
@@ -761,7 +780,6 @@ class Document(BaseDocument):
 		self.set_title_field()
 		self.reset_seen()
 
-		self._doc_before_save = None
 		if not self.is_new() and getattr(self.meta, 'track_changes', False):
 			self._doc_before_save = frappe.get_doc(self.doctype, self.name)
 

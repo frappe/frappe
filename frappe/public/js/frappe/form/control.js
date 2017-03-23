@@ -69,7 +69,8 @@ frappe.ui.form.Control = Class.extend({
 		}
 
 		var status = frappe.perm.get_field_display_status(this.df,
-			frappe.model.get_doc(this.doctype, this.docname), this.perm || (this.frm && this.frm.perm), explain);
+			frappe.model.get_doc(this.doctype, this.docname),
+			this.perm || (this.frm && this.frm.perm), explain);
 
 		// hide if no value
 		if (this.doctype && status==="Read" && !this.only_input
@@ -858,8 +859,8 @@ frappe.ui.form.ControlButton = frappe.ui.form.ControlData.extend({
 	},
 	onclick: function() {
 		if(this.frm && this.frm.doc) {
-			if(this.frm.script_manager.get_handlers(this.df.fieldname, this.doctype, this.docname).length) {
-				this.frm.script_manager.trigger(this.df.fieldname, this.doctype, this.docname);
+			if(this.frm.get_parent_frm().script_manager.get_handlers(this.df.fieldname, this.doctype, this.docname).length) {
+				this.frm.trigger(this.df.fieldname, this.doctype, this.docname);
 			} else {
 				this.frm.runscript(this.df.options, this);
 			}
@@ -1531,7 +1532,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		}
 
 		if(this.frm) {
-			this.frm.script_manager.validate_link_and_fetch(this.df, this.get_options(),
+			this.frm.get_parent_frm().script_manager.validate_link_and_fetch(this.df, this.get_options(),
 				this.docname, value, callback);
 		}
 	},
@@ -1714,7 +1715,7 @@ frappe.ui.form.ControlTable = frappe.ui.form.Control.extend({
 			parent: this.wrapper
 		})
 		if(this.frm) {
-			this.frm.grids[this.frm.grids.length] = this;
+			this.frm.layout.grids[this.frm.layout.grids.length] = this;
 		}
 
 		// description

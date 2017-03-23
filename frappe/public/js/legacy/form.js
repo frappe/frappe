@@ -36,7 +36,6 @@ _f.Frm = function(doctype, parent, in_form) {
 	this.opendocs = {};
 	this.custom_buttons = {};
 	this.sections = [];
-	this.grids = [];
 	this.cscript = new frappe.ui.form.Controller({frm:this});
 	this.events = {};
 	this.pformat = {};
@@ -220,7 +219,7 @@ _f.Frm.prototype.watch_model_updates = function() {
 				&& me.fields_dict[fieldname].refresh(fieldname);
 
 			me.layout.refresh_dependency();
-			me.script_manager.trigger(fieldname, doc.doctype, doc.name);
+			me.trigger(fieldname, doc.doctype, doc.name);
 		}
 	})
 
@@ -233,7 +232,7 @@ _f.Frm.prototype.watch_model_updates = function() {
 			if(doc.parent===me.docname && doc.parentfield===df.fieldname) {
 				me.dirty();
 				me.fields_dict[df.fieldname].grid.set_value(fieldname, value, doc);
-				me.script_manager.trigger(fieldname, doc.doctype, doc.name);
+				me.trigger(fieldname, doc.doctype, doc.name);
 			}
 		});
 	});
@@ -513,7 +512,7 @@ _f.Frm.prototype.render_form = function(is_a_different_doc) {
 		this.layout.show_message();
 
 		// call trigger
-		this.script_manager.trigger("refresh");
+		this.trigger("refresh");
 
 		// trigger global trigger
 		// to use this
@@ -525,7 +524,7 @@ _f.Frm.prototype.render_form = function(is_a_different_doc) {
 
 		// call onload post render for callbacks to be fired
 		if(this.cscript.is_onload) {
-			this.script_manager.trigger("onload_post_render");
+			this.trigger("onload_post_render");
 		}
 
 		// update dashboard after refresh
@@ -607,8 +606,8 @@ _f.Frm.prototype.setnewdoc = function() {
 	var me = this;
 
 	// hide any open grid
-	this.script_manager.trigger("before_load", this.doctype, this.docname, function() {
-		me.script_manager.trigger("onload");
+	this.trigger("before_load", this.doctype, this.docname, function() {
+		me.trigger("onload");
 		me.opendocs[me.docname] = true;
 		me.render_form();
 
@@ -717,7 +716,7 @@ _f.Frm.prototype._save = function(save_action, callback, btn, on_error) {
 				frappe.utils.play_sound("click");
 			}
 
-			me.script_manager.trigger("after_save");
+			me.trigger("after_save");
 			me.refresh();
 		} else {
 			if(on_error)
@@ -729,7 +728,7 @@ _f.Frm.prototype._save = function(save_action, callback, btn, on_error) {
 	if(save_action != "Update") {
 		// validate
 		validated = true;
-		$.when(this.script_manager.trigger("validate"), this.script_manager.trigger("before_save"))
+		$.when(this.trigger("validate"), this.trigger("before_save"))
 			.done(function() {
 				// done is called after all ajaxes in validate & before_save are completed :)
 
@@ -755,7 +754,7 @@ _f.Frm.prototype.savesubmit = function(btn, callback, on_error) {
 	this.validate_form_action("Submit");
 	frappe.confirm(__("Permanently Submit {0}?", [this.docname]), function() {
 		validated = true;
-		me.script_manager.trigger("before_submit").done(function() {
+		me.trigger("before_submit").done(function() {
 			if(!validated) {
 				if(on_error)
 					on_error();
@@ -766,7 +765,7 @@ _f.Frm.prototype.savesubmit = function(btn, callback, on_error) {
 				if(!r.exc) {
 					frappe.utils.play_sound("submit");
 					callback && callback();
-					me.script_manager.trigger("on_submit");
+					me.trigger("on_submit");
 				}
 			}, btn, on_error);
 		});
@@ -778,7 +777,7 @@ _f.Frm.prototype.savecancel = function(btn, callback, on_error) {
 	this.validate_form_action('Cancel');
 	frappe.confirm(__("Permanently Cancel {0}?", [this.docname]), function() {
 		validated = true;
-		me.script_manager.trigger("before_cancel").done(function() {
+		me.trigger("before_cancel").done(function() {
 			if(!validated) {
 				if(on_error)
 					on_error();
@@ -790,7 +789,7 @@ _f.Frm.prototype.savecancel = function(btn, callback, on_error) {
 					frappe.utils.play_sound("cancel");
 					me.refresh();
 					callback && callback();
-					me.script_manager.trigger("after_cancel");
+					me.trigger("after_cancel");
 				} else {
 					on_error();
 				}
@@ -958,6 +957,10 @@ _f.Frm.prototype.get_handlers = function(fieldname, doctype, docname) {
 
 _f.Frm.prototype.has_perm = function(ptype) {
 	return frappe.perm.has_perm(this.doctype, 0, ptype, this.doc);
+}
+
+_f.Frm.prototype.get_parent_frm = function() {
+	return this.parent_frm || this;
 }
 
 _f.Frm.prototype.scroll_to_element = function() {
