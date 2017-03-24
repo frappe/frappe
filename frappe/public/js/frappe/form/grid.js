@@ -39,6 +39,9 @@ frappe.ui.form.Grid = Class.extend({
 		}
 
 		this.is_grid = true;
+
+		// update grid of parent doctypes
+		frappe.ui.form.parent_doctypes[this.frm.get_parent_frm().doctype] = this.doctype;
 	},
 
 	allow_on_grid_editing: function() {
@@ -318,10 +321,10 @@ frappe.ui.form.Grid = Class.extend({
 				me.frm.doc[me.df.fieldname].forEach(function(d) {
 					me.grid_rows.push(me.grid_rows_by_docname[d.name]);
 				});
-				me.frm.this.frm.trigger(me.df.fieldname + "_move", me.df.options, me.frm.doc[me.df.fieldname][event.newIndex].name);
+				me.frm.trigger(me.df.fieldname + "_move", me.df.options, me.frm.doc[me.df.fieldname][event.newIndex].name);
 				me.refresh();
 
-				me.frm.dirty();
+				frappe.ui.form.set_dirty(me.doctype);
 			}
 		});
 
@@ -708,7 +711,7 @@ frappe.ui.form.GridRow = Class.extend({
 
 			this.frm.trigger(this.grid.df.fieldname + "_remove",
 				this.doc.doctype, this.doc.name);
-			this.frm.dirty();
+			frappe.ui.form.set_dirty(this.doc.doctype);
 			this.grid.refresh();
 		}
 	},

@@ -196,23 +196,27 @@ class Document(BaseDocument):
 
 		self._action = "save"
 		if not self.meta.istable:
-			# check permissions for parent tables
 			self.check_permission("create")
-			self._set_defaults()
+
+		self._set_defaults()
+
+		if not self.meta.istable:
 			self.set_user_and_timestamp()
 			self.check_if_latest()
 			self.run_method("before_insert")
+		else:
+			self.update_from_parent()
 
 		set_new_name(self)
+
 		self.validate_higher_perm_levels()
-		self.set_parent_in_children()
 
 		self.flags.in_insert = True
 
 		if not self.meta.istable:
 			self.run_before_save_methods()
-			self._validate()
-			self.set_docstatus()
+
+		self._validate()
 
 		self.flags.in_insert = False
 
@@ -232,6 +236,7 @@ class Document(BaseDocument):
 		# children
 		for d in self.get_all_children():
 			# smart insert the children!
+			d._parent = self
 			d.insert()
 
 		self.flags.in_insert = True
@@ -287,18 +292,19 @@ class Document(BaseDocument):
 
 			self.set_user_and_timestamp()
 			self.check_if_latest()
+		else:
+			self.update_from_parent()
 
-		self.set_parent_in_children()
 		self.validate_higher_perm_levels()
 
 		if not self.meta.istable:
 			self.run_before_save_methods()
 
-			if self._action != "cancel":
-				self._validate()
+		if self._action != "cancel":
+			self._validate()
 
-			if self._action == "update_after_submit":
-				self.validate_update_after_submit()
+		if self._action == "update_after_submit" and not self.meta.issingle:
+			self.validate_update_after_submit()
 
 		# parent
 		if self.meta.issingle:
@@ -335,6 +341,7 @@ class Document(BaseDocument):
 			df = self.meta.get_field(fieldname)
 
 		for d in self.get(df.fieldname):
+			d._parent = self
 			d._save()
 			rows.append(d.name)
 
@@ -389,6 +396,23 @@ class Document(BaseDocument):
 		if self.doctype in frappe.db.value_cache:
 			del frappe.db.value_cache[self.doctype]
 
+	def update_from_parent(self):
+		'''Update docstatus, modified, modified_by, owner, creation from parent'''
+		if not self._parent:
+			return
+
+		self._action = self._parent._action
+
+		self.parent = self._parent.name
+		self.parenttype = self._parent.doctype
+		self.docstatus = self._parent.docstatus
+		self.modified = self._parent.modified
+		self.modified_by = self._parent.modified_by
+		if not self.owner:
+			self.owner = self._parent.owner
+		if not self.creation:
+			self.creation = self._parent.creation
+
 	def set_user_and_timestamp(self):
 		self._original_modified = self.modified
 		self.modified = now()
@@ -398,41 +422,31 @@ class Document(BaseDocument):
 		if not self.owner:
 			self.owner = self.modified_by
 
-		for d in self.get_all_children():
-			d.modified = self.modified
-			d.modified_by = self.modified_by
-			if not d.owner:
-				d.owner = self.owner
-			if not d.creation:
-				d.creation = self.creation
-
 		frappe.flags.currently_saving.append((self.doctype, self.name))
 
 	def set_docstatus(self):
 		if self.docstatus==None:
 			self.docstatus=0
 
-		# for d in self.get_all_children():
-		# 	d.docstatus = self.docstatus
-
 	def _validate(self):
+		if not self.meta.istable:
+			frappe.flags.mandatory_missing = []
+			frappe.flags.invalid_links = []
+			frappe.flags.cancelled_links = []
+
 		self._validate_mandatory()
 		self._validate_links()
+
+		if not self.meta.istable:
+			self.raise_for_mandatory()
+			self.raise_for_links()
+
 		self._validate_selects()
 		self._validate_constants()
 		self._validate_length()
 		self._extract_images_from_text_editor()
 		self._sanitize_content()
 		self._save_passwords()
-
-		children = self.get_all_children()
-		for d in children:
-			d._validate_selects()
-			d._validate_constants()
-			d._validate_length()
-			d._extract_images_from_text_editor()
-			d._sanitize_content()
-			d._save_passwords()
 
 		if self.is_new():
 			# don't set fields like _assign, _comments for new doc
@@ -473,14 +487,6 @@ class Document(BaseDocument):
 		if high_permlevel_fields:
 			self.reset_values_if_no_permlevel_access(has_access_to, high_permlevel_fields)
 
-		# NOT NEEDED ANYMORE!
-		# # check for child tables
-		# for df in self.meta.get_table_fields():
-		# 	high_permlevel_fields = frappe.get_meta(df.options).meta.get_high_permlevel_fields()
-		# 	if high_permlevel_fields:
-		# 		for d in self.get(df.fieldname):
-		# 			d.reset_values_if_no_permlevel_access(has_access_to, high_permlevel_fields)
-
 	def get_permlevel_access(self, permission_type='write'):
 		if not hasattr(self, "_has_access_to"):
 			roles = frappe.get_roles()
@@ -513,14 +519,6 @@ class Document(BaseDocument):
 
 		new_doc = frappe.new_doc(self.doctype, as_dict=True)
 		self.update_if_missing(new_doc)
-
-		# children
-		for df in self.meta.get_table_fields():
-			new_doc = frappe.new_doc(df.options, as_dict=True)
-			value = self.get(df.fieldname)
-			if isinstance(value, list):
-				for d in value:
-					d.update_if_missing(new_doc)
 
 	def check_if_latest(self):
 		"""Checks if `modified` timestamp provided by document being updated is same as the
@@ -596,12 +594,6 @@ class Document(BaseDocument):
 		elif docstatus==2:
 			raise frappe.ValidationError, _("Cannot edit cancelled document")
 
-	def set_parent_in_children(self):
-		"""Updates `parent` and `parenttype` property in all children."""
-		for d in self.get_all_children():
-			d.parent = self.name
-			d.parenttype = self.doctype
-
 	def validate_update_after_submit(self):
 		if self.flags.ignore_validate_update_after_submit:
 			return
@@ -620,42 +612,36 @@ class Document(BaseDocument):
 		if self.flags.ignore_mandatory:
 			return
 
-		missing = self._get_missing_mandatory_fields()
-		for d in self.get_all_children():
-			missing.extend(d._get_missing_mandatory_fields())
+		frappe.flags.mandatory_missing.extend(self._get_missing_mandatory_fields())
 
-		if not missing:
+	def raise_for_mandatory(self):
+		'''Show message and exception if mandatory values are missing'''
+		if not frappe.flags.mandatory_missing:
 			return
 
-		for fieldname, msg in missing:
-			msgprint(msg)
+		for fieldname, label in frappe.flags.mandatory_missing:
+			frappe.msgprint(label)
 
 		if frappe.flags.print_messages:
 			print self.as_json().encode("utf-8")
 
 		raise frappe.MandatoryError('[{doctype}, {name}]: {fields}'.format(
-			fields=", ".join((each[0] for each in missing)),
+			fields=", ".join((f[0] for f in frappe.flags.mandatory_missing)),
 			doctype=self.doctype,
 			name=self.name))
 
-	def _validate_links(self):
+	def raise_for_links(self):
+		'''Show message and raise exception for invalid links'''
 		if self.flags.ignore_links:
 			return
 
-		invalid_links, cancelled_links = self.get_invalid_links()
-
-		for d in self.get_all_children():
-			result = d.get_invalid_links(is_submittable=self.meta.is_submittable)
-			invalid_links.extend(result[0])
-			cancelled_links.extend(result[1])
-
-		if invalid_links:
-			msg = ", ".join((each[2] for each in invalid_links))
+		if frappe.flags.invalid_links:
+			msg = ", ".join((each[2] for each in frappe.flags.invalid_links))
 			frappe.throw(_("Could not find {0}").format(msg),
 				frappe.LinkValidationError)
 
-		if cancelled_links:
-			msg = ", ".join((each[2] for each in cancelled_links))
+		if frappe.flags.cancelled_links:
+			msg = ", ".join((each[2] for each in frappe.flags.cancelled_links))
 			frappe.throw(_("Cannot link cancelled document: {0}").format(msg),
 				frappe.CancelledLinkError)
 

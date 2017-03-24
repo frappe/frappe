@@ -24,6 +24,16 @@ frappe.ui.form.Controller = Class.extend({
 	}
 });
 
+frappe.ui.form.parent_doctypes = {};
+frappe.ui.form.set_dirty = function(doctype, name) {
+	var parent_doctype = frappe.ui.form.parent_doctypes[doctype] || doctype;
+	var frm = frappe.views.formview[parent_doctype]
+		&& frappe.views.formview[parent_doctype].frm;
+	if(frm && frm.doc && (!name || frm.doc.name===name)) {
+		frm.dirty()
+	}
+}
+
 _f.frms = {};
 
 _f.Frm = function(doctype, parent, in_form) {
@@ -222,20 +232,6 @@ _f.Frm.prototype.watch_model_updates = function() {
 			me.trigger(fieldname, doc.doctype, doc.name);
 		}
 	})
-
-	// on table fields
-	var table_fields = frappe.get_children("DocType", me.doctype, "fields", {fieldtype:"Table"});
-
-	// using $.each to preserve df via closure
-	$.each(table_fields, function(i, df) {
-		frappe.model.on(df.options, "*", function(fieldname, value, doc) {
-			if(doc.parent===me.docname && doc.parentfield===df.fieldname) {
-				me.dirty();
-				me.fields_dict[df.fieldname].grid.set_value(fieldname, value, doc);
-				me.trigger(fieldname, doc.doctype, doc.name);
-			}
-		});
-	});
 }
 
 _f.Frm.prototype.setup_std_layout = function() {
@@ -846,8 +842,12 @@ _f.Frm.prototype.save_or_update = function() {
 }
 
 _f.Frm.prototype.dirty = function() {
-	this.doc.__unsaved = 1;
-	this.$wrapper.trigger('dirty');
+	if(this.parent_frm) {
+		this.parent_frm.dirty();
+	} else {
+		this.doc.__unsaved = 1;
+		this.$wrapper.trigger('dirty');
+	}
 }
 
 _f.Frm.prototype.get_docinfo = function() {

@@ -1706,6 +1706,7 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 frappe.ui.form.ControlTable = frappe.ui.form.Control.extend({
 	make: function() {
 		this._super();
+		var me = this;
 
 		// add title if prev field is not column / section heading or html
 		this.grid = new frappe.ui.form.Grid({
@@ -1716,6 +1717,16 @@ frappe.ui.form.ControlTable = frappe.ui.form.Control.extend({
 		})
 		if(this.frm) {
 			this.frm.layout.grids[this.frm.layout.grids.length] = this;
+
+			// using $.each to preserve df via closure
+			frappe.model.on(this.df.options, "*", function(fieldname, value, doc) {
+				if(doc.parent===me.frm.doc.name && doc.parentfield===me.df.fieldname) {
+					me.frm.dirty();
+					me.grid.set_value(fieldname, value, doc);
+					me.frm.trigger(fieldname, doc.doctype, doc.name);
+				}
+			});
+
 		}
 
 		// description

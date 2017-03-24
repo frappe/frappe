@@ -230,15 +230,21 @@ class Meta(Document):
 			self.extend("fields", frappe.db.sql("""SELECT * FROM `tabCustom Field`
 				WHERE dt = %s AND docstatus < 2""", (self.name,), as_dict=1,
 				update={"is_custom_field": 1}))
-		except Exception, e:
+		except frappe.SQLError, e:
 			if e.args[0]==1146:
 				return
 			else:
 				raise
 
 	def apply_property_setters(self):
-		property_setters = frappe.db.sql("""select * from `tabProperty Setter` where
-			doc_type=%s""", (self.name,), as_dict=1)
+		try:
+			property_setters = frappe.db.sql("""select * from `tabProperty Setter` where
+				doc_type=%s""", (self.name,), as_dict=1)
+		except frappe.SQLError, e:
+			if e.args[0]==1146:
+				return
+			else:
+				raise
 
 		if not property_setters: return
 

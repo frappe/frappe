@@ -40,12 +40,16 @@ $.extend(frappe.model, {
 					// update docinfo to new dict keys
 					if(i===0) {
 						frappe.model.docinfo[d.doctype][d.name] = frappe.model.docinfo[d.doctype][d.localname];
-						frappe.model.docinfo[d.doctype][d.localname] = undefined;
+						if(d.name !== d.localname) {
+							frappe.model.docinfo[d.doctype][d.localname] = undefined;
+						}
 					}
 				}
-			}
 
-			if(cur_frm && dirty.indexOf(cur_frm.doctype)!==-1) cur_frm.dirty();
+				if(!d.parent) {
+					frappe.ui.form.set_dirty(d.doctype, d.name);
+				}
+			}
 
 		}
 

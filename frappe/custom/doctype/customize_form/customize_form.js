@@ -71,7 +71,7 @@ frappe.ui.form.on("Customize Form", {
 			frappe.customize_form.set_primary_action(frm);
 
 			frm.add_custom_button(__('Refresh Form'), function() {
-				frm.this.frm.trigger("doc_type");
+				frm.trigger("doc_type");
 			}, "fa fa-refresh", "btn-default");
 
 			frm.add_custom_button(__('Reset to defaults'), function() {

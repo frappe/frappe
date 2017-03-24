@@ -90,6 +90,9 @@ frappe.ui.form.Layout = Class.extend({
 				layout: this,
 				doctype: this.doctype,
 				doc: this.doc,
+				dirty: function() {
+					me.frm.dirty();
+				},
 				parent_doc: this.frm.parent_doc || this.frm.doc,
 				parent_frm: this.frm.parent_frm || this.frm,
 				meta: frappe.get_meta(this.doctype),
