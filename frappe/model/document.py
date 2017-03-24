@@ -116,6 +116,14 @@ class Document(BaseDocument):
 
 			super(Document, self).__init__(d)
 
+		self.load_children()
+
+		# sometimes __setup__ can depend on child values, hence calling again at the end
+		if hasattr(self, "__setup__"):
+			self.__setup__()
+
+	def load_children(self):
+		'''load the records of the child table'''
 		if self.name=="DocType" and self.doctype=="DocType":
 			from frappe.model.meta import doctype_table_fields
 			table_fields = doctype_table_fields
@@ -123,23 +131,22 @@ class Document(BaseDocument):
 			table_fields = self.meta.get_table_fields()
 
 		for df in table_fields:
-			print df.options
 			children = frappe.db.get_values(df.options,
 				{"parent": self.name, "parenttype": self.doctype, "parentfield": df.fieldname},
-				"name", as_dict=True, order_by="idx asc")
+				"*", as_dict=True, order_by="idx asc")
 			if children:
-				for d in children:
-					if df.options == 'DocField':
-						d = frappe.db.get_values(df.options, d.name, '*', as_dict=True)[0]
-					else:
-						d = frappe.get_doc(df.options, d.name)
-					self.append(df.fieldname, d)
+				self.set(df.fieldname, children)
+
+				if self.doctype=='DocType': continue
+
+				# check if any child table has grand children!
+				child_meta = frappe.get_meta('DocType', df.options)
+				if child_meta.get_table_fields():
+					# load grand children
+					for d in self.get(df.fieldname, []):
+						d.load_children()
 			else:
 				self.set(df.fieldname, [])
-
-		# sometimes __setup__ can depend on child values, hence calling again at the end
-		if hasattr(self, "__setup__"):
-			self.__setup__()
 
 	def get_latest(self):
 		if not getattr(self, "latest", None):
@@ -328,7 +335,7 @@ class Document(BaseDocument):
 			df = self.meta.get_field(fieldname)
 
 		for d in self.get(df.fieldname):
-			d.update()
+			d._save()
 			rows.append(d.name)
 
 		if rows:
@@ -347,13 +354,6 @@ class Document(BaseDocument):
 			frappe.db.sql("""delete from `tab{0}` where parent=%s
 				and parenttype=%s and parentfield=%s""".format(df.options),
 				(self.name, self.doctype, fieldname))
-
-	# def set_new_name(self):
-	# 	"""Calls `frappe.naming.se_new_name` for parent and child docs."""
-	# 	set_new_name(self)
-	# 	# # set name for children
-	# 	# for d in self.get_all_children():
-	# 	# 	set_new_name(d)
 
 	def get_title(self):
 		'''Get the document title based on title_field or `title` or `name`'''

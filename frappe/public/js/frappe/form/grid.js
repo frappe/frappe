@@ -6,7 +6,7 @@ frappe.ui.form.get_open_grid_form = function(parent) {
 	return parent.find(".grid-row-open").data("grid_row");
 }
 
-frappe.ui.form.close_grid_form = function() {
+frappe.ui.form.close_all_grid_forms = function() {
 	// hide all open grid forms (child in a child)
 	$('.grid-row-open').each(function() {
 		var open_form = $(this).data("grid_row");
@@ -214,8 +214,8 @@ frappe.ui.form.Grid = Class.extend({
 		}
 
 		// red if mandatory
-		// this.form_grid.toggleClass('error', !!(this.df.reqd
-		// 	&& !(data && data.length)));
+		this.form_grid.toggleClass('error', !!(this.df.reqd
+		 	&& !(data && data.length)));
 
 		this.refresh_remove_rows_button();
 	},
@@ -646,7 +646,9 @@ frappe.ui.form.GridRow = Class.extend({
 		this.wrapper = $('<div class="grid-row"></div>').appendTo(this.parent).data("grid_row", this);
 		this.row = $('<div class="data-row row"></div>').appendTo(this.wrapper)
 			.on("click", function(e) {
-				if($(e.target).hasClass('grid-row-check') || $(e.target).hasClass('row-index') || $(e.target).parent().hasClass('row-index')) {
+				if($(e.target).hasClass('grid-row-check')
+					|| $(e.target).hasClass('row-index')
+					|| $(e.target).parent().hasClass('row-index')) {
 					return;
 				}
 				if(me.grid.allow_on_grid_editing() && me.grid.is_editable()) {
@@ -1047,6 +1049,7 @@ frappe.ui.form.GridRow = Class.extend({
 		// hide other
 		var open_row = this.get_open_form(this.frm.layout.wrapper);
 
+		// if toggle, decide to show or not.
 		if (show===undefined) show = !!!open_row;
 
 		// call blur
@@ -1080,10 +1083,12 @@ frappe.ui.form.GridRow = Class.extend({
 		}
 		this.grid_form.render();
 		this.row.toggle(false);
+		this.grid_form.wrapper.removeClass('hidden');
 		// this.form_panel.toggle(true);
 
 		if(!this.frm.is_child_frm) {
 			frappe.dom.freeze("", "dark");
+			this.frozen_background = true;
 		}
 		cur_frm.cur_grid = this;
 		this.wrapper.addClass("grid-row-open");
@@ -1097,10 +1102,18 @@ frappe.ui.form.GridRow = Class.extend({
 		}
 	},
 	hide_form: function() {
-		frappe.dom.unfreeze();
+		if(this.frozen_background) {
+			frappe.dom.unfreeze();
+			cur_frm.cur_grid = null;
+		} else {
+			this.grid_form.wrapper.addClass('hidden');
+		}
+
+		// show the grid row
 		this.row.toggle(true);
 		this.refresh();
-		cur_frm.cur_grid = null;
+
+		// remove class on grid;
 		this.wrapper.removeClass("grid-row-open");
 	},
 	open_prev: function() {

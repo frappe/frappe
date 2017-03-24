@@ -360,7 +360,7 @@ _f.Frm.prototype.set_read_only = function() {
 }
 
 _f.Frm.prototype.trigger = function(event, doctype, name, callback) {
-	this.get_parent_frm().script_manager.trigger(event, doctype, name, callback);
+	return this.get_parent_frm().script_manager.trigger(event, doctype, name, callback);
 };
 
 _f.Frm.prototype.get_formatted = function(fieldname) {
