@@ -220,7 +220,7 @@ DocType: Social Login Keys,Facebook,Facebook
 apps/frappe/frappe/www/list.py +57,"Filtered by ""{0}""","Gefiltert nach ""{0}"""
 DocType: DocType,Administrator,Administrator
 apps/frappe/frappe/desk/page/chat/chat.js +54,Message from {0},Mitteilung von {0}
-DocType: Communication,Closed,Geschlossen
+DocType: Communication,Closed,Abgeschlossen
 DocType: Blog Settings,Blog Title,Blog-Name
 apps/frappe/frappe/core/doctype/role/role.py +24,Standard roles cannot be disabled,Standardrollen können nicht deaktiviert werden
 DocType: Newsletter,Newsletter,Newsletter
@@ -730,7 +730,7 @@ DocType: User Email,User Email,Benutzer E-Mail
 DocType: Event,Saturday,Samstag
 DocType: User,Represents a User in the system.,Repräsentiert einen Nutzer im System
 DocType: Communication,Label,Bezeichnung
-apps/frappe/frappe/desk/form/assign_to.py +140,"The task {0}, that you assigned to {1}, has been closed.","Die Aufgabe {0}, die Sie {1} zugeordnet haben, wurde geschlossen."
+apps/frappe/frappe/desk/form/assign_to.py +140,"The task {0}, that you assigned to {1}, has been closed.","Die Aufgabe {0}, die Sie {1} zugeordnet haben, wurde abgeschlossen."
 DocType: User,Modules Access,Modulzugriff
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +134,Please close this window,Bitte schließen Sie dieses Fenster
 DocType: Print Format,Print Format Type,Druckformattyp
@@ -1310,7 +1310,7 @@ apps/frappe/frappe/public/js/frappe/form/toolbar.js +160,Customize,Anpassen
 DocType: Auto Email Report,CSV,CSV
 apps/frappe/frappe/www/feedback.html +85,Please give a detailed feebdack.,Bitte geben Sie eine detaillierte feebdack.
 DocType: Currency,"1 Currency = [?] Fraction
-For e.g. 1 USD = 100 Cent","1 Währungseinheit = [?] Teilbetrag 
+For e.g. 1 USD = 100 Cent","1 Währungseinheit = [?] Teilbetrag
  für z. B. 1 Euro = 100 Cent"
 apps/frappe/frappe/core/doctype/user/user.py +607,"Too many users signed up recently, so the registration is disabled. Please try back in an hour","Zu viele Benutzer unterzeichnete vor kurzem, also die Registrierung ist deaktiviert. Bitte versuchen Sie es in einer Stunde zurück"
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +375,Add New Permission Rule,Neue Berechtigungsregel anlegen
@@ -1466,7 +1466,7 @@ apps/frappe/frappe/config/core.py +7,Documents,Dokumente
 apps/frappe/frappe/www/me.html +22,Edit Profile,Profil bearbeiten
 DocType: Kanban Board Column,Archived,Archiviert
 DocType: System Settings,Session Expiry in Hours e.g. 06:00,"Sitzungsende in Stunden, z. B. 06:00"
-DocType: Customize Form Field,"This field will appear only if the fieldname defined here has value OR the rules are true (examples): 
+DocType: Customize Form Field,"This field will appear only if the fieldname defined here has value OR the rules are true (examples):
 myfield
 eval:doc.myfield=='My Value'
 eval:doc.age&gt;18","Dieses Feld wird nur angezeigt, wenn der Feldname hier definierten Wert hat oder die Regeln erfüllt sind (Beispiele): myfield eval: doc.myfield == &#39;My Value&#39; eval: doc.age&gt; 18"
@@ -1603,7 +1603,7 @@ DocType: Social Login Keys,Frappe Server URL,Frappe Server-URL
 apps/frappe/frappe/public/js/frappe/form/print.js +233,With Letter head,Mit Briefkopf
 apps/frappe/frappe/public/js/frappe/form/sidebar.js +62,{0} created this {1},{0} erstellte diese {1}
 apps/frappe/frappe/public/js/frappe/form/workflow.js +36,Document is only editable by users of role,Das Dokument kann nur von Benutzern der Rolle bearbeitet werden
-apps/frappe/frappe/desk/form/assign_to.py +146,"The task {0}, that you assigned to {1}, has been closed by {2}.","Die Aufgabe {0}, die Sie {1} zugeordnet haben, wurde von {2} geschlossen."
+apps/frappe/frappe/desk/form/assign_to.py +146,"The task {0}, that you assigned to {1}, has been closed by {2}.","Die Aufgabe {0}, die Sie {1} zugeordnet haben, wurde von {2} abgeschlossen."
 DocType: Print Format,Show Line Breaks after Sections,Zeige Zeilenumbrüche nach den Abschnitten
 DocType: Blogger,Short Name,Kürzel
 apps/frappe/frappe/templates/generators/web_form.html +235,Page {0},Seite {0}
@@ -2359,17 +2359,17 @@ DocType: Address Template,"<h4>Default Template</h4>
 {% if phone %}Phone: {{ phone }}&lt;br&gt;{% endif -%}
 {% if fax %}Fax: {{ fax }}&lt;br&gt;{% endif -%}
 {% if email_id %}Email: {{ email_id }}&lt;br&gt;{% endif -%}
-</code></pre>","<H4> Default Template </ h4> 
- <p> Verwendet <a href=""http://jinja.pocoo.org/docs/templates/""> Jinja Templating </a> und alle Felder der Adresse ( einschließlich Custom Fields falls vorhanden) zur Verfügung </ p> 
- <pre> <code> {{ADDRESS_LINE1}} & lt; br & gt; 
- {% if ADDRESS_LINE2%} {{ADDRESS_LINE2}} & lt; br & gt; { % endif -%} 
- {{city}} & lt; br & gt; 
- {% if Zustand%} {{Zustand}} & lt; br & gt; {% endif -%} {% 
- wenn PIN-Code%} PIN: {{Pincode}} & lt; br & gt; {% endif -%} 
- {{country}} & lt; br & gt; 
- {% if Telefon%} Telefon: {{Telefon}} & lt; br & gt; { % endif -%} 
- {% if Fax%} Fax: {{Fax}} & lt; br & gt; {% endif -%} 
- {% if email_id%} E-Mail: {{email_id}} & lt; br & gt ; {% endif -%} 
+</code></pre>","<H4> Default Template </ h4>
+ <p> Verwendet <a href=""http://jinja.pocoo.org/docs/templates/""> Jinja Templating </a> und alle Felder der Adresse ( einschließlich Custom Fields falls vorhanden) zur Verfügung </ p>
+ <pre> <code> {{ADDRESS_LINE1}} & lt; br & gt;
+ {% if ADDRESS_LINE2%} {{ADDRESS_LINE2}} & lt; br & gt; { % endif -%}
+ {{city}} & lt; br & gt;
+ {% if Zustand%} {{Zustand}} & lt; br & gt; {% endif -%} {%
+ wenn PIN-Code%} PIN: {{Pincode}} & lt; br & gt; {% endif -%}
+ {{country}} & lt; br & gt;
+ {% if Telefon%} Telefon: {{Telefon}} & lt; br & gt; { % endif -%}
+ {% if Fax%} Fax: {{Fax}} & lt; br & gt; {% endif -%}
+ {% if email_id%} E-Mail: {{email_id}} & lt; br & gt ; {% endif -%}
  </ code> </ pre>"
 DocType: Role,Role Name,Rollenname
 apps/frappe/frappe/website/js/website.js +381,Switch To Desk,Switch To Desk
@@ -2501,7 +2501,7 @@ DocType: Auto Email Report,Send only if there is any data,"Senden Sie nur dann, 
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +170,Reset Filters,Filter zurücksetzen
 apps/frappe/frappe/email/page/email_inbox/email_inbox.js +260,""" Against",&quot; Gegen
 apps/frappe/frappe/core/doctype/doctype/doctype.py +613,{0}: Permission at level 0 must be set before higher levels are set,{0} : Die Erlaubnis für Ebene 0 muss gesetzt werden bevor höhere Ebenen eingestellt werden können
-apps/frappe/frappe/desk/doctype/todo/todo.py +28,Assignment closed by {0},Zuordnung geschlossen von {0}
+apps/frappe/frappe/desk/doctype/todo/todo.py +28,Assignment closed by {0},Zuordnung abgeschlossen von {0}
 DocType: Integration Request,Remote,entfernt
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +171,Calculate,Berechnen
 apps/frappe/frappe/print/doctype/print_format/print_format.js +25,Please select DocType first,Bitte zuerst DocType auswählen
