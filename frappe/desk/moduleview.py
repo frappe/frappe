@@ -126,6 +126,7 @@ def apply_permissions(data):
 	user.build_permissions()
 
 	allowed_pages = get_allowed_pages()
+	user_reports = get_user_reports()
 
 	new_data = []
 	for section in data:
@@ -139,7 +140,7 @@ def apply_permissions(data):
 
 			if ((item.type=="doctype" and item.name in user.can_read)
 				or (item.type=="page" and item.name in allowed_pages)
-				or (item.type=="report" and item.doctype in user.can_get_report)
+				or (item.type=="report" and item.doctype in user.can_get_report and validate_user_permission(user_reports, item.name))
 				or item.type=="help"):
 
 				new_items.append(item)
@@ -150,6 +151,20 @@ def apply_permissions(data):
 			new_data.append(new_section)
 
 	return new_data
+
+def get_user_reports():
+	# Get the reports which are set in the user permissions
+	return frappe.db.sql_list("""select defvalue from `tabDefaultValue`
+		where `parent`=%s and `defkey`='Report'""", frappe.session.user)
+
+def validate_user_permission(user_reports, report):
+	# Validate user permission for reports
+	if not user_reports: return True
+
+	status = False
+	if report in user_reports:
+		status = True
+	return status
 
 def get_config(app, module):
 	"""Load module info from `[app].config.[module]`."""
