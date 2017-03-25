@@ -13,7 +13,7 @@ frappe.upload = {
 			function() { $file_input.click(); });
 
 		$file_input.on("change", function() {
-			if (this.files.length > 0) {
+			if (this.files.length == 1) {
 				$upload.find(".web-link-wrapper").addClass("hidden");
 				$upload.find(".btn-browse").removeClass("btn-primary").addClass("btn-default");
 
@@ -44,6 +44,9 @@ frappe.upload = {
 					$upload.find(".private-file").removeClass("hidden");
 				}
 
+			} else if (this.files.length > 1){
+				var fileobjs = $upload.find(":file").get(0).files;
+				frappe.upload.multifile_upload(fileobjs, opts.args, opts);
 			} else {
 				$upload.find(".uploaded-filename").addClass("hidden")
 				$upload.find(".web-link-wrapper").removeClass("hidden");
@@ -216,7 +219,7 @@ frappe.upload = {
 		for (var i =0,j = fileobjs.length;i<j;i++) {
 			var filename = fileobjs[i].name;
 			fields.push({'fieldname': 'label1', 'fieldtype': 'Heading', 'label': filename});
-			fields.push({'fieldname': 'is_private', 'fieldtype': 'Check', 'label': 'Private', 'default': 1});
+			fields.push({'fieldname':  filename+'_is_private', 'fieldtype': 'Check', 'label': 'Private', 'default': 1});
 			}
 			
 			var d = new frappe.ui.Dialog({
@@ -227,6 +230,7 @@ frappe.upload = {
 					d.hide();
 				opts.loopcallback = function (){
 				   if (i < j) {
+				   	   args.is_private = d.fields_dict[fileobjs[i].name + "_is_private"].get_value()
 					   frappe.upload.upload_file(fileobjs[i], args, opts);
 					   i++;
 				   }        
