@@ -5,3 +5,4 @@ def execute():
 	frappe.db.sql('''
 		update tabNote set
 			notify_once = 1''')
+	
