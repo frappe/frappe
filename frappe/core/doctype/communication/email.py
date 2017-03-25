@@ -314,12 +314,13 @@ def get_cc(doc, recipients=None, fetched_from_email_account=False):
 		exclude += [d[0] for d in
 			frappe.db.get_all("Email Account", ["login_id"], {"enable_incoming": 1}, as_list=True)
 			if d[0]]
-		exclude += [d[0] for d in frappe.db.get_all("User", ["name"], {"thread_notify": 0}, as_list=True)]
 		exclude += [(parseaddr(email)[1] or "").lower() for email in recipients]
 
 		if fetched_from_email_account:
 			# exclude sender when pulling email
 			exclude += [parseaddr(doc.sender)[1]]
+			#remove unsubscribed thread notify
+			exclude += [d[0] for d in frappe.db.get_all("User", ["name"], {"thread_notify": 0}, as_list=True)]
 
 		if doc.reference_doctype and doc.reference_name:
 			exclude += [d[0] for d in frappe.db.get_all("Email Unsubscribe", ["email"],
