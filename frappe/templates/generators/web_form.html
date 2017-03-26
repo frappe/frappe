@@ -344,8 +344,8 @@
 frappe.ready(function() {
 	frappe.file_reading = false;
 	frappe.allow_incomplete = {{ allow_incomplete or 0 }};
-	frappe.success_link = '<p>{{ success_message or _("Your information has been submitted") }}</p><p><a href="{{ success_url or "/" }}" class="btn btn-sm btn-default">{{ _("Continue") }}</a></p>'
-	frappe.datepicker_format = "{{ frappe.date_format.replace('yyyy', 'yy') }}";
+	frappe.success_link = '<p>{{ _("Your information has been submitted") }}</p><p><a href="{{ success_url or "/" }}" class="btn btn-sm btn-default">{{ _("Continue") }}</a></p>'
+    frappe.datepicker_format = "{{ frappe.date_format.replace('yyyy', 'yy') }}";
 	frappe.web_form_doctype = "{{ doc_type }}";
 	frappe.web_form_name = "{{ name }}";
 	frappe.is_new = {{ 1 if frappe.form_dict.new else 0 }};
@@ -600,6 +600,9 @@ frappe.ready(function() {
 	}
 
 	function save(for_payment) {
+
+	    console.log('HELLO YOU RE WELCOME');
+
 		if(window.saving)
 			return false;
 		window.saving = true;
@@ -635,8 +638,11 @@ frappe.ready(function() {
 						$form.addClass("hide");
 						$(".comments, .introduction, .page-head").addClass("hide");
 						scroll(0, 0);
-						set_message(frappe.success_link, true);
-                    } else {
+
+                        var success_message1 = '{{ success_message or _("Your information has been submitted")}}'
+                        frappe.success_link = '<p>'+success_message1+'</p><p><a href="{{ success_url or "/" }}" class="btn btn-sm btn-default">{{ _("Continue") }}</a></p>'
+					    set_message(frappe.success_link, true);
+					} else {
 						set_message(__('Saved'));
 				    }
 
