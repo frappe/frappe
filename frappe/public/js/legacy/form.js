@@ -34,7 +34,6 @@ _f.Frm = function(doctype, parent, in_form) {
 
 	var me = this;
 	this.opendocs = {};
-	this.custom_buttons = {};
 	this.sections = [];
 	this.grids = [];
 	this.cscript = new frappe.ui.form.Controller({frm:this});
@@ -87,8 +86,9 @@ _f.Frm.prototype.setup = function() {
 	this.wrapper = this.parent;
 	frappe.ui.make_app_page({
 		parent: this.wrapper,
-		single_column: this.meta.hide_toolbar
+		single_column: this.meta.hide_sidebar_only
 	});
+
 	this.page = this.wrapper.page;
 	this.layout_main = this.page.main.get(0);
 
@@ -110,13 +110,14 @@ _f.Frm.prototype.setup = function() {
 	this.script_manager.setup();
 	this.watch_model_updates();
 
-	if(!this.meta.hide_toolbar) {
+	if(!this.meta.hide_toolbar) { //BOTTOM
 		this.footer = new frappe.ui.form.Footer({
 			frm: this,
 			parent: $('<div>').appendTo(this.page.main.parent())
 		})
 		$("body").attr("data-sidebar", 1);
 	}
+
 	this.setup_drag_drop();
 
 	this.setup_done = true;
@@ -455,7 +456,6 @@ _f.Frm.prototype.refresh = function(docname) {
 		}
 
 		if(is_a_different_doc) {
-			$(this.wrapper).removeClass('validated-form')
 			if(this.show_print_first && this.doc.docstatus===1) {
 				// show print view
 				this.print_doc();
@@ -520,13 +520,10 @@ _f.Frm.prototype.render_form = function(is_a_different_doc) {
 			this.script_manager.trigger("onload_post_render");
 		}
 
-		// update dashboard after refresh
-		this.dashboard.after_refresh();
-
 		// focus on first input
 
-		if(this.is_new()) {
-			var first = this.form_wrapper.find('.form-layout input:first');
+		if(this.doc.docstatus==0) {
+			var first = this.form_wrapper.find('.form-layout :input:first');
 			if(!in_list(["Date", "Datetime"], first.attr("data-fieldtype"))) {
 				first.focus();
 			}
@@ -893,15 +890,12 @@ _f.Frm.prototype.set_footnote = function(txt) {
 _f.Frm.prototype.add_custom_button = function(label, fn, group) {
 	// temp! old parameter used to be icon
 	if(group && group.indexOf("fa fa-")!==-1) group = null;
-	var btn = this.page.add_inner_button(label, fn, group);
-	this.custom_buttons[label] = btn;
-	return btn;
+	return this.page.add_inner_button(label, fn, group);
 }
 
 _f.Frm.prototype.clear_custom_buttons = function() {
 	this.page.clear_inner_toolbar();
 	this.page.clear_user_actions();
-	this.custom_buttons = {};
 }
 
 _f.Frm.prototype.add_fetch = function(link_field, src_field, tar_field) {
