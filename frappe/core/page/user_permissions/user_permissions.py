@@ -71,7 +71,13 @@ def add(user, defkey, defvalue):
 
 def get_doctypes_for_user_permissions():
 	'''Get doctypes for the current user where user permissions are applicable'''
-	return list(set([p.parent for p in get_valid_perms() if p.set_user_permissions]))
+	user_roles = frappe.get_roles()
+	if "System Manager" in user_roles:
+		return sorted(set([p.parent for p in get_valid_perms()]))
+	else:
+		return sorted(set([p.parent for p in get_valid_perms() if p.set_user_permissions]))
+		
+
 
 @frappe.whitelist()
 def get_user_permissions_csv():
