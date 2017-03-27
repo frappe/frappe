@@ -1611,6 +1611,7 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 					'CMD+ENTER': ''
 				}
 			},
+			prettifyHtml: true,
 			callbacks: {
 				onChange: function(value) {
 					me.parse_validate_and_set_in_model(value);
