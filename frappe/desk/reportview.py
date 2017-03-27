@@ -37,6 +37,23 @@ def get_form_params():
 	else:
 		data["save_user_settings"] = True
 
+	for field in fields:
+		key = field.split(" as ")[0]
+
+		if "." in key:
+			parenttype, fieldname = key.split(".")[0][4:-1], key.split(".")[1].strip("`")
+		else:
+			parenttype = doctype
+			fieldname = fieldname.strip("`")
+
+		df = frappe.get_meta(parenttype).get_field(fieldname)
+		
+		report_hide = df.report_hide if df else None
+		
+		# remove the field from the query if the report hide flag is set
+		if report_hide:
+			fields.remove(field)
+
 
 	# queries must always be server side
 	data.query = None
