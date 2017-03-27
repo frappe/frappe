@@ -250,7 +250,7 @@ frappe.hide_progress = function() {
 }
 
 // Floating Message
-frappe.show_alert = function(message, seconds) {
+frappe.show_alert = function(message, seconds=7) {
 	if(typeof message==='string') {
 		message = {
 			message: message
@@ -261,14 +261,19 @@ frappe.show_alert = function(message, seconds) {
 	}
 
 	if(message.indicator) {
-		message_html = '<span class="indicator ' + message.indicator + '">' + message.message + '</span>';
+		message_html = $('<span class="indicator ' + message.indicator + '"></span>').append(message.message);
 	} else {
 		message_html = message.message;
 	}
 
-	var div = $(repl('<div class="alert desk-alert" style="display: none;">'
-			+ '<span class="alert-message">%(txt)s</span><a class="close">&times;</a>'
-		+ '</div>', {txt: message_html}))
+	var div = $(`
+		<div class="alert desk-alert">
+			<span class="alert-message"></span><a class="close">&times;</a>
+		</div>`);
+
+	div.find('.alert-message').append(message_html);
+
+	div.hide()
 		.appendTo("#alert-container")
 		.fadeIn(300);
 
@@ -277,7 +282,7 @@ frappe.show_alert = function(message, seconds) {
 		return false;
 	});
 
-	div.delay(seconds ? seconds * 1000 : 7000).fadeOut(300);
+	div.delay(seconds * 1000).fadeOut(300);
 	return div;
 }
 

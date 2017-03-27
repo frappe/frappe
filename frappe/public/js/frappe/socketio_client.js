@@ -19,6 +19,23 @@ frappe.socket = {
 			filename = filename.split('?')[0] + '?v=' + +moment();
 			link.attr('href', filename);
 		});
+		frappe.socket.file_watcher.on('reload_js', function(filename) {
+			// filename = "assets/" + filename;
+			// var link = $(`link[href*="${filename}"]`);
+			var msg = $(`
+				<span>${filename} changed, <a data-action="reload">reload</a></span>
+			`)
+			msg.find('a').click(function() {
+				return frappe.ui.toolbar.clear_cache();
+			});
+			// console.log(filename, 'changed');
+			frappe.show_alert({
+				indicator: 'orange',
+				message: msg
+			});
+			// filename = filename.split('?')[0] + '?v=' + +moment();
+			// link.attr('href', filename);
+		});
 
 		//Enable secure option when using HTTPS
 		if (window.location.protocol == "https:") {

@@ -51,9 +51,14 @@ function watch() {
 
 	compile_less().then(() => {
 		build();
-		watch_and_build(function (filename) {
+		watch_less(function (filename) {
 			if(socket_connection) {
 				io.emit('reload_css', filename);
+			}
+		});
+		watch_js(function (filename) {
+			if(socket_connection) {
+				io.emit('reload_js', filename);
 			}
 		});
 	});
@@ -65,10 +70,6 @@ function watch() {
 			socket_connection = false;
 		})
 	});
-}
-
-function watch_and_build(ondirty) {
-	watch_less(ondirty);
 }
 
 function pack(output_path, inputs) {
@@ -221,6 +222,35 @@ function watch_less(ondirty) {
 				}
 			}
 		})
+	});
+}
+
+function watch_js(ondirty) {
+	const js_paths = app_paths.map(path => p(path, 'public', 'js'));
+
+	const to_watch = [];
+	for (const js_path of js_paths) {
+		if (!fs.existsSync(js_path)) continue;
+		to_watch.push(js_path);
+	}
+	chokidar.watch(to_watch).on('change', (filename, stats) => {
+		console.log(filename, 'dirty');
+		var last_index = filename.lastIndexOf('/');
+		const js_path = filename.slice(0, last_index);
+		const public_path = p(js_path, '..');
+		// filename = filename.split('/').pop();
+
+		// console.log(filename);
+
+		// build the target js file for which this js/html file is input
+		for (const target in build_map) {
+			const sources = build_map[target];
+			if (sources.includes(filename)) {
+				pack(target, sources);
+				ondirty && ondirty(target);
+				break;
+			}
+		}
 	});
 }
 
