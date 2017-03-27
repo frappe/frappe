@@ -24,6 +24,9 @@ frappe.views.Container = Class.extend({
 			var has_sidebar = false;
 			if(frappe.ui.pages[route_str] && !frappe.ui.pages[route_str].single_column) {
 				has_sidebar = true;
+			} else if(frappe.route_flags.has_sidebar) {
+				delete frappe.route_flags.has_sidebar;
+				has_sidebar = true
 			}
 			$("body").attr("data-sidebar", has_sidebar ? 1 : 0);
 		});
