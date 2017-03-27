@@ -11,6 +11,15 @@ frappe.socket = {
 			return;
 		}
 
+		frappe.socket.file_watcher = io.connect('http://erpnext.dev:6787');
+		frappe.socket.file_watcher.on('reload_css', function(filename) {
+			filename = "assets/" + filename;
+			var link = $(`link[href*="${filename}"]`);
+			console.log(filename, 'changed');
+			filename = filename.split('?')[0] + '?v=' + +moment();
+			link.attr('href', filename);
+		});
+
 		//Enable secure option when using HTTPS
 		if (window.location.protocol == "https:") {
    			frappe.socket.socket = io.connect(frappe.socket.get_host(), {secure: true});
@@ -121,6 +130,7 @@ frappe.socket = {
 			}
 			host = host + ":" + port;
 		}
+		console.log(host)
 		return host;
 	},
 	subscribe: function(task_id, opts) {

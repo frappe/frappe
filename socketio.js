@@ -294,16 +294,4 @@ function get_conf() {
 	return conf;
 }
 
-var file_watcher = require('./frappe/build');
-// file_watcher.setup_socket(io);
-
-io.on('connection', function(socket) {
-	var emit_css_reload = function(filename) {
-		console.log('++++++++');
-		console.log(get_site_room(socket))
-		io.to(get_site_room(socket)).emit('css_reload', filename);
-	};
-	file_watcher.watch(emit_css_reload);
-});
-
 

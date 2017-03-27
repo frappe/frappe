@@ -3,6 +3,13 @@ const fs = require('fs');
 const babel = require('babel-core');
 const less = require('less');
 const chokidar = require('chokidar');
+
+// for file watcher
+const app = require('express')();
+const http = require('http').Server(app);
+const io = require('socket.io')(http);
+const file_watcher_port = 6787;
+
 const p = path.resolve;
 
 // basic setup
@@ -14,22 +21,20 @@ const app_paths = apps.map(app => p(apps_path, app, app)) // base_path of each a
 const assets_path = p(sites_path, 'assets');
 const build_map = make_build_map();
 
-//socket
-
-module.exports = {
-	setup_socket: function (io) {
-		// console.log(io)
-		io.on('connection', function (socket) {
-			console.log('=============');
-			console.log(socket);
-		});
-	},
-	watch_css: watch_css,
-	watch: watch
+// command line args
+const action = process.argv[2] || '--build';
+if (!['--build', '--watch'].includes(action)) {
+	console.log('Invalid argument: ', action);
+	return;
 }
 
-// watch();
-// build();
+if (action === '--build') {
+	build();
+}
+
+if (action === '--watch') {
+	watch();
+}
 
 function build() {
 	for (const output_path in build_map) {
@@ -37,12 +42,33 @@ function build() {
 	}
 }
 
-function watch(ondirty) {
+let socket_connection = false;
+
+function watch() {
+	http.listen(file_watcher_port, function () {
+		console.log('file watching on *:', file_watcher_port);
+	});
+
 	compile_less().then(() => {
 		build();
-		watch_less();
-		watch_css(ondirty);
+		watch_and_build(function (filename) {
+			if(socket_connection) {
+				io.emit('reload_css', filename);
+			}
+		});
 	});
+
+	io.on('connection', function (socket) {
+		socket_connection = true;
+
+		socket.on('disconnect', function() {
+			socket_connection = false;
+		})
+	});
+}
+
+function watch_and_build(ondirty) {
+	watch_less(ondirty);
 }
 
 function pack(output_path, inputs) {
@@ -152,101 +178,50 @@ function compile_less() {
 function compile_less_file(file, less_path, public_path) {
 	const file_content = fs.readFileSync(p(less_path, file), 'utf8');
 	const output_file = file.split('.')[0] + '.css';
+	console.log('compiling', file);
 
 	return less.render(file_content, {
 		paths: [less_path],
 		filename: file,
-		sourceMap: { sourceMapFileInline: true }
+		sourceMap: { sourceMapFileInline: true, sourceMapBasePath: less_path }
 	}).then(output => {
-		console.log('compiling', file);
-		fs.writeFileSync(p(public_path, 'css', output_file), output.css)
+		const out_css = p(public_path, 'css', output_file);
+		fs.writeFileSync(out_css, output.css);
+		return out_css;
 	}).catch(e => {
 		console.log('Error compiling ', file);
 		console.log(e);
 	});
 }
 
-function watch_less() {
-	console.log('watch_less execution')
+function watch_less(ondirty) {
 	const less_paths = app_paths.map(path => p(path, 'public', 'less'));
 
 	const to_watch = [];
 	for (const less_path of less_paths) {
-		// const public_path = p(less_path, '..');
 		if (!fs.existsSync(less_path)) continue;
 		to_watch.push(less_path);
 	}
 	chokidar.watch(to_watch).on('change', (filename, stats) => {
-		console.log(filename, ' dirty less');
+		console.log(filename, 'dirty');
 		var last_index = filename.lastIndexOf('/');
 		const less_path = filename.slice(0, last_index);
 		const public_path = p(less_path, '..');
 		filename = filename.split('/').pop();
-		// console.log(filename, less_path, public_path);
-		compile_less_file(filename, less_path, public_path);
-	});
-}
 
-function watch_css(ondirty) {
-	const css_paths = app_paths.map(path => p(path, 'public', 'css'));
-
-	const to_watch = [];
-	for (const css_path of css_paths) {
-		const public_path = p(css_path, '..');
-		if (!fs.existsSync(css_path)) continue;
-		to_watch.push(css_path);
-	}
-	chokidar.watch(to_watch).on('change', (filename, stats) => {
-		console.log(filename, ' dirty chokidar');
-		// console.log(JSON.stringify(stats), null, 4);
-
-		// build the target css file for which this css file is input
-		for (const target in build_map) {
-			const sources = build_map[target];
-			if (sources.includes(filename)) {
-
-				pack(target, sources);
-
-				ondirty && ondirty(target);
-				break;
+		compile_less_file(filename, less_path, public_path)
+		.then(css_file_path => {
+			// build the target css file for which this css file is input
+			for (const target in build_map) {
+				const sources = build_map[target];
+				if (sources.includes(css_file_path)) {
+					pack(target, sources);
+					ondirty && ondirty(target);
+					break;
+				}
 			}
-		}
+		})
 	});
-}
-
-function make_asset_dirs(make_copy = false) {
-
-
-	for (const dir_path of [p(assets_path, 'js'), p(assets_path, 'css')]) {
-		if (!fs.existsSync(dir_path)) {
-			fs.mkdirSync(dir_path);
-		}
-	}
-
-	// symlink app/public > assets/app
-	for (const app_name of apps) {
-		const app_base_path = get_app_base_path(app_name);
-
-		let symlinks = []
-		symlinks.push([p(app_base_path, 'public'), p(assets_path, app_name)])
-		symlinks.push([p(app_base_path, 'docs'), p(assets_path, app_name + '_docs')])
-
-		for (const symlink of symlinks) {
-			const source = symlink[0];
-			const target = symlink[1];
-
-			if (!fs.existsSync(target) && fs.existsSync(source)) {
-				if (make_copy)
-					shutil.copytree(source, target)
-				else
-					os.symlink(source, target)
-			}
-		}
-	}
-}
-
-function get_app_base_path(app) {
-	return p(apps_folder, app, app);
 }
 
 function html_to_js_template(path, content) {
