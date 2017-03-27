@@ -80,7 +80,8 @@ permission_query_conditions = {
 	"Note": "frappe.desk.doctype.note.note.get_permission_query_conditions",
 	"Kanban Board": "frappe.desk.doctype.kanban_board.kanban_board.get_permission_query_conditions",
 	"Contact": "frappe.geo.address_and_contact.get_permission_query_conditions_for_contact",
-	"Address": "frappe.geo.address_and_contact.get_permission_query_conditions_for_address"
+	"Address": "frappe.geo.address_and_contact.get_permission_query_conditions_for_address",
+	"Communication": "frappe.core.doctype.communication.communication.get_permission_query_conditions_for_communication"
 }
 
 has_permission = {
