@@ -13,7 +13,7 @@ import os, sys, importlib, inspect, json
 from .exceptions import *
 from .utils.jinja import get_jenv, get_template, render_template
 
-__version__ = '7.2.30'
+__version__ = '7.2.31'
 __title__ = "Frappe Framework"
 
 local = Local()
@@ -41,6 +41,9 @@ class _dict(dict):
 def _(msg, lang=None):
 	"""Returns translated string in current lang, if exists."""
 	from frappe.translate import get_full_dict
+
+	if not hasattr(local, 'lang'):
+		local.lang = lang or 'en'
 
 	if not lang:
 		lang = local.lang

@@ -197,5 +197,5 @@ def evaluate_alert(doc, alert, event):
 		frappe.throw(_("Error while evaluating Email Alert {0}. Please fix your template.").format(alert))
 
 def get_context(doc):
-	return {"doc": doc, "nowdate": nowdate}
+	return {"doc": doc, "nowdate": nowdate, "frappe.utils": frappe.utils}
 
