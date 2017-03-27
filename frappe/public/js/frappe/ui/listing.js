@@ -324,6 +324,9 @@ frappe.ui.Listing = Class.extend({
 		}
 
 		if(r.values.length || this.force_render_view) {
+			if (this.data.length && this.data[this.data.length - 1]._totals_row) {
+				this.data.pop();
+			}
 			this.data = this.data.concat(r.values);
 			this.render_view(r.values);
 			// this.render_list(r.values);
