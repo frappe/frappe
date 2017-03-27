@@ -272,3 +272,22 @@ def has_permission(doc, ptype, user):
 		if doc.timeline_doctype and doc.timeline_name:
 			if frappe.has_permission(doc.timeline_doctype, ptype="read", doc=doc.timeline_name):
 				return True
+
+def get_permission_query_conditions_for_communication(user):
+	from frappe.email.inbox import get_email_accounts
+
+	if not user: user = frappe.session.user
+
+	if "Super Email User" in frappe.get_roles(user):
+		return None
+	else:
+		accounts = frappe.get_all("User Email", filters={ "parent": user },
+			fields=["email_account"],
+			distinct=True, order_by="idx")
+
+		if not accounts:
+			return """tabCommunication.communication_medium!='Email'"""
+
+		email_accounts = [ '"%s"'%account.get("email_account") for account in accounts ]
+		return """tabCommunication.email_account in ({email_accounts})"""\
+			.format(email_accounts=','.join(email_accounts))
