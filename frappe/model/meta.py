@@ -180,7 +180,7 @@ class Meta(Document):
 
 		for df in self.fields:
 			if df.fieldtype in ('Data', 'Read Only', 'Text', 'Small Text',
-				'Text Editor', 'Code') and df.options:
+				'Text Editor', 'Code') and df.get('options'):
 				if link_fieldname:
 					if df.options.startswith(link_fieldname + '.'):
 						out.append(df)

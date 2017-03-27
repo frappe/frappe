@@ -218,10 +218,6 @@ class Document(BaseDocument):
 
 		self._validate()
 
-		self.flags.in_insert = False
-
-		# run validate, on update etc.
-
 		# parent
 		if getattr(self.meta, "issingle", 0):
 			self.update_single(self.get_valid_dict())
@@ -235,18 +231,22 @@ class Document(BaseDocument):
 
 		# children
 		for d in self.get_all_children():
-			# smart insert the children!
+			# insert the children!
 			d._parent = self
+
+			# pass on ignore flags to children
+			d.flags = self.flags
+
 			d.insert()
 
-		self.flags.in_insert = True
-		if self.meta.istable:
+		if not self.meta.istable:
 			self.run_method("after_insert")
 
 			if self.get("amended_from"):
 				self.copy_attachments_from_amended_from()
 
 			self.run_post_save_methods()
+
 		self.flags.in_insert = False
 
 		# delete __islocal

@@ -5,7 +5,6 @@ from __future__ import unicode_literals
 
 import frappe, json
 import frappe.permissions
-import frappe.async
 
 from frappe import _
 

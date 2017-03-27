@@ -444,6 +444,9 @@ class BaseDocument(object):
 
 	def _validate_links(self):
 		'''Returns list of invalid links and also updates fetch values if not set'''
+		if self.flags.ignore_links:
+			return
+
 		is_submittable = (self._parent.meta.is_submittable if self._parent
 			else self.meta.is_submittable)
 
@@ -489,7 +492,9 @@ class BaseDocument(object):
 					values = frappe.db.get_value(doctype, docname,
 						values_to_fetch, as_dict=True)
 
-				if frappe.get_meta(doctype).issingle:
+				link_meta = frappe.get_meta(doctype)
+
+				if link_meta.issingle:
 					values.name = doctype
 
 				setattr(self, df.fieldname, values.name)
@@ -500,13 +505,16 @@ class BaseDocument(object):
 				notify_link_count(doctype, docname)
 
 				if not values.name:
-					frappe.flags.invalid_links.append((df.fieldname, docname, get_msg(df, docname)))
+					frappe.flags.invalid_links.append((df.fieldname, docname,
+						get_msg(df, docname)))
 
 				elif (df.fieldname != "amended_from"
 					and is_submittable
+					and link_meta.is_submittable
 					and cint(frappe.db.get_value(doctype, docname, "docstatus"))==2):
 
-					frappe.flags.cancelled_links.append((df.fieldname, docname, get_msg(df, docname)))
+					frappe.flags.cancelled_links.append((df.fieldname, docname,
+						get_msg(df, docname)))
 
 	def _validate_selects(self):
 		if frappe.flags.in_import:
