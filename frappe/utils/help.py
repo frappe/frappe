@@ -102,7 +102,7 @@ class HelpDatabase(object):
 	def sync_pages(self):
 		self.db.sql('truncate help')
 		doc_contents = '<ol>'
-		for app in os.listdir('../apps'):
+		for app in frappe.get_installed_apps():
 			docs_folder = '../apps/{app}/{app}/docs/user'.format(app=app)
 			self.out_base_path = '../apps/{app}/{app}/docs'.format(app=app)
 			if os.path.exists(docs_folder):
