@@ -1,12 +1,14 @@
-<div class="msg-box no-border">
-	{% if(!frappe.model.can_create(doctype) && doctype == "Email Account") { %}
-		<p>Email Account is not assigned, Please contact System Manager</p>
-	{% } else { %}
-		<p>{{ __("No {} found", [doctype]) }}</p>
-		<p>
-			<button class="btn btn-primary btn-sm btn-no-result" list_view_doc="{{ doctype }}">
-				{{__(label) }}
-			</button>
-		</p>
-	{% } %}
+<div class="no-result">
+	<div class="msg-box no-border">
+		{% if(!frappe.model.can_create(doctype) && doctype == "Email Account") { %}
+			<p>{{ __("No Email Accounts Assigned") }}</p>
+		{% } else { %}
+			<p>{{ msg }}</p>
+			<p>
+				<button class="btn btn-primary btn-sm btn-no-result" list_view_doc="{{ doctype }}">
+					{{ label }}
+				</button>
+			</p>
+		{% } %}
+	</div>
 </div>
