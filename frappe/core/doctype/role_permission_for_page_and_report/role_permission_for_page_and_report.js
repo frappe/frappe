@@ -30,11 +30,15 @@ frappe.ui.form.on('Role Permission for Page and Report', {
 	},
 
 	page: function(frm) {
-		frm.trigger("get_roles")
+		if(frm.doc.page) {
+			frm.trigger("get_roles")
+		}
 	},
 
 	report: function(frm){
-		frm.trigger("get_roles")
+		if(frm.doc.report) {
+			frm.trigger("get_roles")
+		}
 	},
 
 	get_roles: function(frm) {
