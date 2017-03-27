@@ -24,15 +24,12 @@ frappe.views.InboxView = frappe.views.ListRenderer.extend({
 		if(email_account)
 			html = this.emails.map(this.render_email_row.bind(this)).join("");
 		else
-			html = this.get_inbox_selector_html()
+			html = this.make_no_result()
 
 		this.container = $('<div>')
 			.addClass('inbox-container')
 			.appendTo(this.wrapper);
 		this.container.append(html);
-
-		if(!this.current_email_account)
-			this.bind_email_inbox_selector()
 	},
 	render_email_row: function(email) {
 		if(!email.css_seen && email.seen)
@@ -112,9 +109,11 @@ frappe.views.InboxView = frappe.views.ListRenderer.extend({
 	},
 	get_current_email_account: function() {
 		var route = frappe.get_route();
-		if(!route[3] || !frappe.boot.email_accounts.find(b => b.email_account === route[3])) {
+		if(!route[3] && frappe.boot.email_accounts.length) {
+			frappe.set_route("List", "Communication", "Inbox", frappe.boot.email_accounts[0].email_account);
+		} else if(route[3] && !frappe.boot.email_accounts.find(b => b.email_account === route[3])) {
 			// frappe.throw(__(`Email Account <b>${route[3] || ''}</b> not found`));
-			return "";
+			return ''
 		}
 		return route[3];
 	},
@@ -128,51 +127,28 @@ frappe.views.InboxView = frappe.views.ListRenderer.extend({
 			this.no_result_doctype = "Email Account"
 			args = {
 				doctype: "Email Account",
-				label: "New Email Account",
+				msg: __("No Email Account"),
+				label: __("New Email Account"),
 			}
 		} else {
 			// no sent mail
 			this.no_result_doctype = "Communication";
 			args = {
 				doctype: "Communication",
-				label: "Compose Email"
+				msg: __("No Emails"),
+				label: __("Compose Email")
 			}
 		}
 		var no_result_message = frappe.render_template("inbox_no_result", args)
 		return no_result_message;
 	},
-
-	get_inbox_selector_html: function() {
-		email_account_map = {}
-		$.each(frappe.boot.email_accounts, function(idx, account){
-			email_account_map[account.email_id] = account.email_account
-		});
-		html = frappe.render_template("select_email_inbox", {
-			email_accounts: email_account_map,
-			is_inbox_configured: Object.keys(email_account_map).length
-		})
-
-		if(!Object.keys(email_account_map).length)
-			this.no_result_doctype = "Email Account"
-
-		return html
-	},
-
-	bind_email_inbox_selector: function() {
-		// bind email_account on_change event
-		var me = this;
-		this.container.find('select[data-fieldname="email_inbox"]').on("change", function(event) {
-			inbox = $(event.target).val();
-			frappe.set_route("List", "Communication", "Inbox", inbox)
-		})
-	},
-
 	make_new_doc: function() {
 		if (this.no_result_doctype == "Communication") {
 			new frappe.views.CommunicationComposer({
 				doc: {}
 			})
 		} else {
+			frappe.route_options = { 'email_id': user_email }
 			frappe.new_doc(this.no_result_doctype)
 		}
 	}

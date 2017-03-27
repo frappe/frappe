@@ -239,8 +239,9 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 				route.push(us['Kanban'].last_kanban_board);
 			}
 
-			if (us.last_view === 'Inbox')
+			if (us.last_view === 'Inbox') {
 				route.push(us['Inbox'].last_email_account)
+			}
 		} else {
 			route.push('List');
 		}

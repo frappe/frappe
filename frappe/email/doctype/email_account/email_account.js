@@ -109,6 +109,11 @@ frappe.ui.form.on("Email Account", {
 		frm.events.enable_incoming(frm);
 		frm.events.notify_if_unreplied(frm);
 		frm.events.show_gmail_message_for_less_secure_apps(frm);
+
+		if(frappe.route_flags.delete_user_from_locals && frappe.route_flags.linked_user) {
+			delete frappe.route_flags.delete_user_from_locals
+			delete locals['User'][frappe.route_flags.linked_user]
+		}
 	},
 
 	show_gmail_message_for_less_secure_apps: function(frm) {
@@ -125,8 +130,9 @@ frappe.ui.form.on("Email Account", {
 	},
 
 	update_domain: function(frm){
-		if (!frm.doc.email_id && !frm.doc.service)
+		if (!frm.doc.email_id && !frm.doc.service){
 			return
+		}
 
 		frappe.call({
 			method: 'get_domain',
@@ -155,11 +161,13 @@ frappe.ui.form.on("Email Account", {
 	},
 
 	set_domain_fields: function(frm, args) {
-		if(!args)
+		if(!args){
 			args = frappe.route_flags.set_domain_values? frappe.route_options: {}
+		}
 
-		for(field in args)
+		for(field in args) {
 			frm.set_value(field, args[field]);
+		}
 
 		delete frappe.route_flags.set_domain_values
 		frappe.route_options = {}
