@@ -71,14 +71,14 @@ def get_feedback_request_details(reference_doctype, reference_name, trigger="Man
 	feedback_url = ""
 
 	if not trigger and not request and not frappe.db.get_value("Feedback Trigger", { "document_type": reference_doctype }):
-		frappe.throw("Can not find Feedback Trigger for {0}".format(reference_name))
+		return
 	elif not trigger and request:
 		trigger = frappe.db.get_value("Feedback Request", request, "feedback_trigger")
 	else:
 		trigger = frappe.db.get_value("Feedback Trigger", { "document_type": reference_doctype })
 
 	if not trigger:
-		frappe.throw(_("Feedback Trigger not found"))
+		return
 
 	feedback_trigger = frappe.get_doc("Feedback Trigger", trigger)
 	doc = frappe.get_doc(reference_doctype, reference_name)
