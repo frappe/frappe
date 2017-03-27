@@ -1581,6 +1581,7 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 		this.has_input = true;
 		this.make_editor();
 		this.hide_elements_on_mobile();
+		this.setup_drag_drop();
 	},
 	make_editor: function() {
 		var me = this;
@@ -1676,6 +1677,40 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 		this.note_editor = $(this.input_area).find('.note-editor');
 		// to fix <p> on enter
 		this.set_input('<div><br></div>');
+	},
+	setup_drag_drop: function() {
+		this.note_editor.on('dragenter dragover', false)
+			.on('drop', function(e) {
+				var dataTransfer = e.originalEvent.dataTransfer;
+
+				if (dataTransfer && dataTransfer.files && dataTransfer.files.length) {
+					me.note_editor.focus();
+
+					var files = [].slice.call(dataTransfer.files);
+
+					files.forEach(file => {
+						me.get_image(file, (url) => {
+							me.editor.summernote('insertImage', url, file.name);
+						});
+					});
+				}
+				e.preventDefault();
+				e.stopPropagation();
+			});
+	},
+	get_image: function (fileobj, callback) {
+		var freader = new FileReader(),
+			me = this;
+
+		freader.onload = function() {
+			var dataurl = freader.result;
+			// add filename to dataurl
+			var parts = dataurl.split(",");
+			parts[0] += ";filename=" + fileobj.name;
+			dataurl = parts[0] + ',' + parts[1];
+			callback(dataurl);
+		}
+		freader.readAsDataURL(fileobj);
 	},
 	hide_elements_on_mobile: function() {
 		this.note_editor.find('.note-btn-underline,\
