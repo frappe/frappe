@@ -21,7 +21,8 @@ class SystemSettings(Document):
 	def on_update(self):
 		for df in self.meta.get("fields"):
 			if df.fieldtype not in no_value_fields:
-				frappe.db.set_default(df.fieldname, self.get(df.fieldname))
+				if self.get(df.fieldname):
+					frappe.db.set_default(df.fieldname, self.get(df.fieldname))
 
 		if self.language:
 			set_default_language(self.language)

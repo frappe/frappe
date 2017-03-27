@@ -505,7 +505,7 @@ class BaseDocument(object):
 				notify_link_count(doctype, docname)
 
 				if not values.name:
-					frappe.flags.invalid_links.append((df.fieldname, docname,
+					self.flags.invalid_links.append((df.fieldname, docname,
 						get_msg(df, docname)))
 
 				elif (df.fieldname != "amended_from"
@@ -513,7 +513,7 @@ class BaseDocument(object):
 					and link_meta.is_submittable
 					and cint(frappe.db.get_value(doctype, docname, "docstatus"))==2):
 
-					frappe.flags.cancelled_links.append((df.fieldname, docname,
+					self.flags.cancelled_links.append((df.fieldname, docname,
 						get_msg(df, docname)))
 
 	def _validate_selects(self):

@@ -182,8 +182,6 @@ class Document(BaseDocument):
 		if self.flags.in_print:
 			return
 
-		self.flags.email_alerts_executed = []
-
 		if ignore_permissions!=None:
 			self.flags.ignore_permissions = ignore_permissions
 
@@ -193,6 +191,7 @@ class Document(BaseDocument):
 		self.set("__islocal", True)
 		self._doc_before_save = None
 		self.set_docstatus()
+		self.setup_flags()
 
 		self._action = "save"
 		if not self.meta.istable:
@@ -231,13 +230,12 @@ class Document(BaseDocument):
 
 		# children
 		for d in self.get_all_children():
-			# insert the children!
 			d._parent = self
-
-			# pass on ignore flags to children
 			d.flags = self.flags
-
 			d.insert()
+
+		if not self.meta.istable:
+			self.raise_for_links()
 
 		if not self.meta.istable:
 			self.run_method("after_insert")
@@ -284,6 +282,7 @@ class Document(BaseDocument):
 			return
 
 		self.set_docstatus()
+		self.setup_flags()
 		self._action = "save"
 		self._doc_before_save = None
 
@@ -319,6 +318,14 @@ class Document(BaseDocument):
 
 		return self
 
+	def setup_flags(self):
+		'''Initialize lists for flags on parent tables'''
+		if not self.meta.istable:
+			self.flags.email_alerts_executed = []
+			self.flags.invalid_links = []
+			self.flags.cancelled_links = []
+
+
 	def copy_attachments_from_amended_from(self):
 		'''Copy attachments from `amended_from`'''
 		from frappe.desk.form.load import get_attachments
@@ -342,6 +349,7 @@ class Document(BaseDocument):
 
 		for d in self.get(df.fieldname):
 			d._parent = self
+			d.flags = self.flags
 			d._save()
 			rows.append(d.name)
 
@@ -429,18 +437,8 @@ class Document(BaseDocument):
 			self.docstatus=0
 
 	def _validate(self):
-		if not self.meta.istable:
-			frappe.flags.mandatory_missing = []
-			frappe.flags.invalid_links = []
-			frappe.flags.cancelled_links = []
-
 		self._validate_mandatory()
 		self._validate_links()
-
-		if not self.meta.istable:
-			self.raise_for_mandatory()
-			self.raise_for_links()
-
 		self._validate_selects()
 		self._validate_constants()
 		self._validate_length()
@@ -612,36 +610,32 @@ class Document(BaseDocument):
 		if self.flags.ignore_mandatory:
 			return
 
-		frappe.flags.mandatory_missing.extend(self._get_missing_mandatory_fields())
+		missing = self._get_missing_mandatory_fields()
 
-	def raise_for_mandatory(self):
-		'''Show message and exception if mandatory values are missing'''
-		if not frappe.flags.mandatory_missing:
-			return
+		if missing:
+			for fieldname, label in missing:
+				frappe.msgprint(label)
 
-		for fieldname, label in frappe.flags.mandatory_missing:
-			frappe.msgprint(label)
+			if frappe.flags.print_messages:
+				print self.as_json().encode("utf-8")
 
-		if frappe.flags.print_messages:
-			print self.as_json().encode("utf-8")
-
-		raise frappe.MandatoryError('[{doctype}, {name}]: {fields}'.format(
-			fields=", ".join((f[0] for f in frappe.flags.mandatory_missing)),
-			doctype=self.doctype,
-			name=self.name))
+			raise frappe.MandatoryError('[{doctype}, {name}]: {fields}'.format(
+				fields=", ".join((f[0] for f in missing)),
+				doctype=self.doctype,
+				name=self.name))
 
 	def raise_for_links(self):
 		'''Show message and raise exception for invalid links'''
 		if self.flags.ignore_links:
 			return
 
-		if frappe.flags.invalid_links:
-			msg = ", ".join((each[2] for each in frappe.flags.invalid_links))
+		if self.flags.invalid_links:
+			msg = ", ".join((each[2] for each in self.flags.invalid_links))
 			frappe.throw(_("Could not find {0}").format(msg),
 				frappe.LinkValidationError)
 
-		if frappe.flags.cancelled_links:
-			msg = ", ".join((each[2] for each in frappe.flags.cancelled_links))
+		if self.flags.cancelled_links:
+			msg = ", ".join((each[2] for each in self.flags.cancelled_links))
 			frappe.throw(_("Cannot link cancelled document: {0}").format(msg),
 				frappe.CancelledLinkError)
 
