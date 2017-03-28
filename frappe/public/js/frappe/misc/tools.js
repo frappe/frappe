@@ -77,11 +77,14 @@ frappe.slickgrid_tools = {
 	get_filtered_items: function(dataView) {
 		var data = [];
 		for (var i=0, len=dataView.getLength(); i<len; i++) {
-		    // not_quoted to remove single quotes at start and end of total labels
-		    var not_quoted = dataView.getItem(i).account_name;
-		    if(not_quoted && not_quoted.charAt(0) == "'" && not_quoted.charAt(not_quoted.length -1) == "'") {
-		      dataView.getItem(i).account_name = not_quoted.substr(1, not_quoted.length-2);
-		    }
+			// remove single quotes at start and end of total labels when print/pdf 
+			var obj = dataView.getItem(i);
+			for (var item in obj) {
+				if(obj.hasOwnProperty(item) && typeof(obj[item]) == "string"
+					&& obj[item].charAt(0) == "'" && obj[item].charAt(obj[item].length -1) == "'") {
+					dataView.getItem(i)[item] = obj[item].substr(1, obj[item].length-2);
+				}
+			}
 			data.push(dataView.getItem(i));
 		}
 		return data;
@@ -99,9 +102,15 @@ frappe.slickgrid_tools = {
 				if(val===null || val===undefined) {
 					val = "";
 				}
-				// export to csv and get first or second column of the grid indented if it is. e.g: account_name
-				if((i<3) && (typeof(val) == "string" && d['indent'] > 0) && (isNaN((new Date(val)).valueOf()))) {
-					val = " ".repeat(d['indent'] * 8) + val;
+				if(typeof(val) == "string") {
+					// export to csv and get first or second column of the grid indented if it is. e.g: account_name
+					if((i<3) && d['indent'] > 0 && (isNaN((new Date(val)).valueOf()))) {
+						val = " ".repeat(d['indent'] * 8) + val;
+					}
+					// remove single quotes at start and end of total labels when export to csv
+					if(val.charAt(0) == "'" && val.charAt(val.length -1) == "'") {
+						val = val.substr(1, val.length-2);
+					}
 				}
 				row.push(val);
 			});
