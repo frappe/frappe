@@ -842,6 +842,26 @@ fieldset[disabled] .form-control {
 .search-dialog .more-results {
   display: none;
 }
+.search-dialog .result p {
+  margin-top: 0.2em;
+}
+.search-dialog .result .result-image {
+  display: inline-block;
+  margin-right: 10px;
+  height: 60px;
+  width: 60px;
+  background-color: #fafbfc;
+}
+.search-dialog .result .result-image .flex-text {
+  display: flex;
+  height: 60px;
+  align-items: center;
+  justify-content: center;
+}
+.search-dialog .result .result-image span {
+  font-size: 30px;
+  color: #d1d8dd;
+}
 @media (max-width: 767px) {
   .search-dialog .modal-dialog {
     width: auto;
@@ -860,12 +880,6 @@ fieldset[disabled] .form-control {
   .search-dialog .results-area .back-link {
     display: none;
   }
-}
-.result p {
-  margin-top: 0.2em;
-}
-.search-result {
-  margin-bottom: 24px;
 }
 .note-editor.note-frame .note-editing-area .note-editable {
   color: #36414C;

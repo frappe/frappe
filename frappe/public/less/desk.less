@@ -729,6 +729,33 @@ textarea.form-control {
 		display: none;
 	}
 
+	.result {
+		p {
+			margin-top: 0.2em;
+		}
+
+		.result-image {
+			display: inline-block;
+			margin-right: 10px;
+			height: 60px;
+			width: 60px;
+			background-color: #fafbfc;
+
+			.flex-text {
+				display: flex;
+				height: 60px;
+				align-items: center;
+				justify-content: center;
+			}
+
+			span {
+				font-size: 30px;
+				color: @text-extra-muted;
+			}
+		}
+
+	}
+
 	@media (max-width: @screen-xs) {
 		.modal-dialog {
 			width: auto;
@@ -751,16 +778,6 @@ textarea.form-control {
 			display: none;
 		}
 	}
-}
-
-.result {
-	p {
-		margin-top: 0.2em;
-	}
-}
-
-.search-result {
-  margin-bottom: 24px;
 }
 
 .note-editor.note-frame .note-editing-area .note-editable {

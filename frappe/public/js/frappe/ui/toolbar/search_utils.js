@@ -1,7 +1,6 @@
 frappe.provide('frappe.search');
 
 frappe.search.utils = {
-    // Find stuff
     get_doctypes: function(keywords, view = "") {
 
     },
@@ -63,22 +62,48 @@ frappe.search.utils = {
 		return out;
     },
 
-    get_all_global_results: function (keywords, start, limit, condensed = 0) {
+    get_global_results: function (keywords, start, limit, doctype = "") {
         var me = this;
         function get_results_sets(data) {
             var results_sets = [], result, set;
-            var get_existing_set = function(doctype) {
+            function get_existing_set (doctype) {
                 return results_sets.find(function(set) {
                     return set.title === doctype;
                 });
             }
+
+            function make_description(content, doc_name) {
+                parts = content.split("|||");
+                containing_fields = [];
+                parts.forEach(function(part) {
+
+                    if(part.toLowerCase().indexOf(keywords.toLowerCase()) !== -1) {
+                        var colon_index = part.indexOf(':');
+                        var field_name = part.slice(0, colon_index + 1);
+                        var field_value = part.slice(colon_index + 1)
+                        part = '<span class="field-name text-muted">' +
+                            me.bolden_match_part(field_name, keywords) + '</span>' +
+                            me.bolden_match_part(field_value, keywords);
+
+                        if(containing_fields.indexOf(part) === -1 && doc_name !== field_value) {
+
+                            containing_fields.push(part);
+                        }
+                    }
+                });
+                return containing_fields.join(', ');
+            }
+
             data.forEach(function(d) {
                 // more properties
                 result = {
                     label: d.name,
                     value: d.name,
-                    description: d.content,
-                    route: ['Form', d.doctype, d.name]
+                    description: make_description(d.content, d.name),
+                    route: ['Form', d.doctype, d.name],
+                }
+                if(d.image || d.image === null){
+                    result.image = d.image;
                 }
                 set = get_existing_set(d.doctype);
                 if(set) {
@@ -102,44 +127,16 @@ frappe.search.utils = {
                     text: keywords,
                     start: start,
                     limit: limit,
+                    doctype: doctype
                 },
                 callback: function(r) {
                     if(r.message) {
-                        // console.log(get_results_sets(r.message));
                         resolve(get_results_sets(r.message));
                     } else {
                         resolve([]);
                     }
                 }
             });
-        });
-    },
-
-    get_results_from_doctype: function(doctype, keywords, start, limit, callback) {
-        frappe.call({
-            method: "frappe.utils.global_search.search_in_doctype",
-            args: {
-                doctype: doctype,
-                text: keywords,
-                start: start,
-                limit: limit,
-            },
-            callback: function(r) {
-                if(r.message) {
-                    results = [];
-                    r.message.forEach(function(d) {
-                        results.push({
-                            label: d.name,
-                            value: d.name,
-                            description: d.content,
-                            route: ['Form', doctype, d.name]
-                        });
-                    });
-                    callback(doctype, results, limit);
-                } else {
-                    callback(doctype, [], limit);
-                }
-            }
         });
     },
 
@@ -250,46 +247,6 @@ frappe.search.utils = {
     get_recent_pages: function(keywords) {
 
     },
-    // Find stuff given a condition
-    parse_keyword_and_trigger_results: function(input) {
-
-    },
-
-    // Utils
-    commands: {
-        // single-arg
-        cmd_report: function(keywords) {
-            // everything reports
-
-        },
-        cmd_new: function(keywords) {
-
-        },
-        cmd_gantt: function(keywords) {
-
-        },
-        cmd_calendar: function(keywords) {
-
-        },
-        cmd_tree: function(keywords) {
-
-        },
-
-        // multi-arg
-        cmd_in: function(doc, doctype) {
-
-        },
-    },
-
-    // Find stuff given a condition
-    parse_keyword_and_trigger_results: function(input) {
-
-    },
-
-    // Generic: (and neatly categorised and ranked)
-    get_all_results: function(keywords) {
-
-    },
 
     // Utils
     fuzzy_search: function(keywords, _item, process) {
@@ -338,7 +295,7 @@ frappe.search.utils = {
         return 0.5/(skips + mismatches);
 	},
 
-    replace_with_bold: function(str, subseq) {
+    bolden_match_part: function(str, subseq) {
 		var rendered = "";
         if(this.fuzzy_search(subseq, str) === 0) {
             return str;
