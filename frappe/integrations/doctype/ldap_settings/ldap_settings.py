@@ -57,6 +57,10 @@ def get_service_details():
 						<li> Base Distinguished Name :   cn=read-only-admin,dc=example,dc=com</li>
 						<li> Organisational Unit :   ou=mathematicians,dc=example,dc=com</li>
 						<li> Password : Base DN password   </li>
+						<li> LDAP Search Criteria : uid=*{0}   </li>
+						<li> LDAP First Name Fields : cn   </li>
+						<li> LDAP Username Field : ui   </li>
+						<li> LDAP Email Field : mail   </li>
 					</ul>
 				</li>
 				<br>
@@ -126,15 +130,15 @@ def authenticate_ldap_user(user=None, password=None):
 		#available options for how deep a search you want.
 		#LDAP_SCOPE_BASE, LDAP_SCOPE_ONELEVEL,LDAP_SCOPE_SUBTREE,
 		result = conn.search_s(settings.organizational_unit, ldap.SCOPE_SUBTREE,
-			"uid=*{0}".format(user))
+			settings.ldap_search_string.format(user))
 		
 		print result
 		
 		for dn, r in result:
 			dn = cstr(dn)
-			params["email"] = cstr(r['mail'][0])
-			params["username"] = cstr(r['uid'][0])
-			params["first_name"] = cstr(r['cn'][0])
+			params["email"] = cstr(r[settings.ldap_email_field][0])
+			params["username"] = cstr(r[settings.ldap_username_field][0])
+			params["first_name"] = cstr(r[settings.ldap_first_name_field][0])
 			
 		if dn:
 			conn.simple_bind_s(dn, password)
