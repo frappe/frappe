@@ -4771,6 +4771,15 @@
       $editor.addClass('codeview');
       $codable.focus();
 
+      $codable.on('keyup', function () {
+        var value = $codable.val();
+        var isChange = $editable.html() !== value;
+
+        if (isChange) {
+          context.triggerEvent('change', value, $editable);
+        }
+      });
+
       // activate CodeMirror as codable
       if (agent.hasCodeMirror) {
         var cmEditor = CodeMirror.fromTextArea($codable[0], options.codemirror);
