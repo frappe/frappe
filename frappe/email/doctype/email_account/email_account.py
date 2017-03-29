@@ -89,10 +89,8 @@ class EmailAccount(Document):
 		from frappe.core.doctype.user.user import ask_pass_update, setup_user_email_inbox
 
 		self.there_must_be_only_one_default()
-		if self.enable_incoming:
-			# add user inbox only if mail incoming is enabled
-			setup_user_email_inbox(email_account=self.name,
-				awaiting_password=self.awaiting_password, email_id=self.email_id)
+		setup_user_email_inbox(email_account=self.name, awaiting_password=self.awaiting_password,
+			email_id=self.email_id, enable_outgoing=self.enable_outgoing)
 
 	def there_must_be_only_one_default(self):
 		"""If current Email Account is default, un-default all other accounts."""
