@@ -29,7 +29,8 @@ frappe.views.CalendarView = frappe.views.ListRenderer.extend({
 	},
 	required_libs: [
 		'assets/frappe/js/lib/fullcalendar/fullcalendar.min.css',
-		'assets/frappe/js/lib/fullcalendar/fullcalendar.min.js'
+		'assets/frappe/js/lib/fullcalendar/fullcalendar.min.js',
+		'assets/frappe/js/lib/fullcalendar/locale-all.js'
 	]
 })
 
@@ -128,6 +129,7 @@ frappe.views.Calendar = Class.extend({
 	setup_options: function() {
 		var me = this;
 		this.cal_options = {
+			locale: frappe.boot.user.language || "en",
 			header: {
 				left: 'title',
 				center: '',
