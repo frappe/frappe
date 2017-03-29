@@ -560,7 +560,7 @@ def set_email_password(email_account, user, password):
 
 	return True
 
-def setup_user_email_inbox(email_account, awaiting_password, email_id):
+def setup_user_email_inbox(email_account, awaiting_password, email_id, enable_outgoing):
 	""" setup email inbox for user """
 	def add_user_email(user):
 		user = frappe.get_doc("User", user)
@@ -569,6 +569,7 @@ def setup_user_email_inbox(email_account, awaiting_password, email_id):
 		row.email_id = email_id
 		row.email_account = email_account
 		row.awaiting_password = awaiting_password or 0
+		row.enable_outgoing = enable_outgoing or 0
 
 		user.save(ignore_permissions=True)
 
@@ -593,12 +594,13 @@ def setup_user_email_inbox(email_account, awaiting_password, email_id):
 			add_user_email(user)
 		else:
 			# update awaiting password for email account
-			update_awaiting_password = True
+			udpate_user_email_settings = True
 
-	if update_awaiting_password:
-		frappe.db.sql("""UPDATE `tabUser Email` SET awaiting_password = %(awaiting_password)s
-			WHERE email_account = %(email_account)s""", {
+	if udpate_user_email_settings:
+		frappe.db.sql("""UPDATE `tabUser Email` SET awaiting_password = %(awaiting_password)s,
+			enable_outgoing = %(enable_outgoing)s WHERE email_account = %(email_account)s""", {
 				"email_account": email_account,
+				"enable_outgoing": enable_outgoing,
 				"awaiting_password": awaiting_password or 0
 			})
 	else:
