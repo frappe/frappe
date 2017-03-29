@@ -1,26 +1,28 @@
 frappe.email_defaults = {
 	"GMail": {
-		"email_server": "pop.gmail.com",
+		"email_server": "imap.gmail.com",
 		"use_ssl": 1,
 		"enable_outgoing": 1,
 		"smtp_server": "smtp.gmail.com",
 		"smtp_port": 587,
-		"use_tls": 1
+		"use_tls": 1,
+		"use_imap": 1
 	},
 	"Outlook.com": {
-		"email_server": "pop3-mail.outlook.com",
+		"email_server": "imap-mail.outlook.com",
 		"use_ssl": 1,
 		"enable_outgoing": 1,
 		"smtp_server": "smtp-mail.outlook.com",
 		"smtp_port": 587,
-		"use_tls": 1
+		"use_tls": 1,
+		"use_imap": 1
 	},
 	"Sendgrid": {
 		"enable_outgoing": 0,
 		"enable_outgoing": 1,
 		"smtp_server": "smtp.sendgrid.net",
 		"smtp_port": 587,
-		"use_tls": 1
+		"use_tls": 1,
 	},
 	"SparkPost": {
 		"enable_incoming": 0,
@@ -30,35 +32,37 @@ frappe.email_defaults = {
 		"use_tls": 1
 	},
 	"Yahoo Mail": {
-		"email_server": "pop.mail.yahoo.com",
+		"email_server": "imap.mail.yahoo.com",
 		"use_ssl": 1,
 		"enable_outgoing": 1,
 		"smtp_server": "smtp.mail.yahoo.com",
 		"smtp_port": 465,
-		"use_tls": 1
+		"use_tls": 1,
+		"use_imap": 1
 	},
 	"Yandex.Mail": {
-		"email_server": "pop.yandex.com",
+		"email_server": "imap.yandex.com",
 		"use_ssl": 1,
 		"enable_outgoing": 1,
 		"smtp_server": "smtp.yandex.com",
 		"smtp_port": 587,
-		"use_tls": 1
+		"use_tls": 1,
+		"use_imap": 1
 	},
 };
 
-frappe.email_defaults_imap = {
+frappe.email_defaults_pop = {
 	"GMail": {
-		"email_server": "imap.gmail.com"
+		"email_server": "pop.gmail.com"
 	},
 	"Outlook.com": {
-		"email_server": "imap-mail.outlook.com"
+		"email_server": "pop3-mail.outlook.com"
 	},
 	"Yahoo Mail": {
-		"email_server": "imap.mail.yahoo.com"
+		"email_server": "pop.mail.yahoo.com"
 	},
 	"Yandex.Mail": {
-		"email_server": "imap.yandex.com"
+		"email_server": "pop.yandex.com"
 	},
 
 };
@@ -69,8 +73,8 @@ frappe.ui.form.on("Email Account", {
 		$.each(frappe.email_defaults[frm.doc.service], function(key, value) {
 			frm.set_value(key, value);
 		})
-		if (frm.doc.use_imap) {
-			$.each(frappe.email_defaults_imap[frm.doc.service], function(key, value) {
+		if (!frm.doc.use_imap) {
+			$.each(frappe.email_defaults_pop[frm.doc.service], function(key, value) {
 				frm.set_value(key, value);
 			});
 		}
@@ -78,8 +82,8 @@ frappe.ui.form.on("Email Account", {
 	},
 
 	use_imap: function(frm) {
-		if (frm.doc.use_imap) {
-			$.each(frappe.email_defaults_imap[frm.doc.service], function(key, value) {
+		if (!frm.doc.use_imap) {
+			$.each(frappe.email_defaults_pop[frm.doc.service], function(key, value) {
 				frm.set_value(key, value);
 			});
 		}
