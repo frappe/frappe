@@ -155,6 +155,7 @@
   display: inline-block;
   overflow: hidden;
   text-overflow: ellipsis;
+  width: 100%;
 }
 .col-sm-2 .filterable {
   max-width: 90px;
