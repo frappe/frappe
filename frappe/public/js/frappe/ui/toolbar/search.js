@@ -381,18 +381,47 @@ frappe.search.GlobalSearch = Class.extend({
 	get_finds: function(searchables, keywords) {
 		var me = this;
 		parts = searchables.split("|||");
+		content_length = 300;
 		content = [];
-		parts.forEach(function(part) {
+		current_length = 0;
+		var field_text = "";
+		for(var i = 0; i < parts.length; i++) {
+			part = parts[i];
 			if(part.toLowerCase().indexOf(keywords) !== -1) {
-				var colon_index = part.indexOf(':');
-				part = '<span class="field-name text-muted">' +
-					me.bold_keywords(part.slice(0, colon_index + 1), keywords) + '</span>' +
-					me.bold_keywords(part.slice(colon_index + 1), keywords);
-				if(content.indexOf(part) === -1) {
-					content.push(part);
+				if(part.indexOf('&&&') !== -1) {
+					var colon_index = part.indexOf('&&&');
+					var field_value = part.slice(colon_index + 3);
+				} else {
+					var colon_index = part.indexOf(':');
+					var field_value = part.slice(colon_index + 1);
+				}
+				var field_name = part.slice(0, colon_index);
+
+				var remaining_length = content_length - current_length;
+				current_length += field_name.length + field_value.length + 2;
+				if(current_length < content_length) {
+					field_text = '<span class="field-name text-muted">' +
+						me.bold_keywords(field_name, keywords) + ':' + '</span>' +
+						me.bold_keywords(field_value, keywords);
+					if(content.indexOf(field_text) === -1) {
+						content.push(field_text);
+					}
+				} else {
+					if(field_name.length < remaining_length){
+						remaining_length -= field_name.length;
+						field_text = '<span class="field-name text-muted">' +
+							me.bold_keywords(field_name, keywords) + ':' + '</span>';
+						field_value = field_value.slice(0, remaining_length);
+						field_value = field_value.slice(0, field_value.lastIndexOf(' ')) + ' ...';
+						field_text += me.bold_keywords(field_value, keywords);
+						content.push(field_text);
+					} else {
+						content.push('...');
+					}
+					break;
 				}
 			}
-		});
+		}
 		return content.join(', ');
 	},
 

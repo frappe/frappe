@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 
 import frappe
-from frappe.utils import cint
+from frappe.utils import cint, strip_html_tags
 
 def setup_global_search_table():
 	'''Creates __global_seach table'''
@@ -52,9 +52,9 @@ def update_global_search(doc):
 				  	if d.parent == doc.name:
 				  		for field in d.meta.get_global_search_fields():
 				  			if d.get(field.fieldname):
-				  				content.append(field.label + ": " + unicode(d.get(field.fieldname)))
+				  				content.append(field.label + "&&& " + strip_html_tags(unicode(d.get(field.fieldname))))
 			else:
-				content.append(field.label + ": " + unicode(doc.get(field.fieldname)))
+				content.append(field.label + "&&& " + strip_html_tags(unicode(doc.get(field.fieldname))))
 
 	if content:
 		published = 0
