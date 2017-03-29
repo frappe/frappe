@@ -6,6 +6,7 @@ import frappe.utils.kickapp.bot as Bot_Module
 
 class Engine(object):
 	def get_reply(self, obj):
+		print obj
 		reply = {}
 		try:
 			class_name = Helper().get_class_from_bot_name(obj.bot_data.bot_name)
@@ -24,16 +25,18 @@ class Engine(object):
 	
 	def load_more(self, query):
 		try:
-			class_name = Helper().get_doctype_name_from_bot_name(query.bot_name)
+			helper = Helper() 
+			class_name = helper.get_doctype_name_from_bot_name(query.bot_name)
 			if class_name != 'Error':
-				fields = Helper().get_doctype_fields_from_bot_name(query.bot_name)
+				fields = helper.get_doctype_fields_from_bot_name(query.bot_name)
 				page_count = str(query.page_count)
 				start = (int(page_count) - 1) * 20
 				end = start + 20
-				email = str(query.email)
-				items = Helper().get_list(class_name, fields, start, end, {"owner":email})
-				reply = getattr(Bot_Module, class_name)().map_list(items)
-				return reply
+				email = str(query.email)				
+				return helper.get_mapped_list(query.bot_name,
+					helper.get_list(class_name, fields, 
+						start, end, {"owner":email}))
+
 		except Exception, exce:
 			print exce
 		return []

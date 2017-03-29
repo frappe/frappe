@@ -43,6 +43,10 @@ class Base(object):
 			}
 		}
 
+	def get_dummy_list(self, bot_name):
+		return self.helper.get_dummy_list(bot_name)
+		
+
 class Basic_Bot(Base):
 	def __init__(self, obj):
 		Base.__init__(self, obj)
@@ -78,57 +82,40 @@ class Basic_Bot(Base):
 		elif base_action is not None and self.item_id is not None:
 			return base_action.lower()
 		return self.get_action_by_text(obj.text).lower()
+	
+	def get_params(self):
+		return frappe._dict({
+			"doctype":self.doctype,
+			"obj":self.obj,
+			"item_id" : self.item_id
+		})
 
 	def create(self):
-		bot_data = self.get_bot_data(base_action='create_')
+		bot_data = self.get_bot_data(base_action='create_', button_text='create',
+			is_interactive_chat=True, items=self.get_dummy_list(self.bot_name))
 		return self.get_message(self.messages.get('create'), bot_data = bot_data)
-
-	def update(self):
-		items = self.get_list(self.doctype, self.fields, filters={"owner": self.obj.meta.user_id})
-		bot_data = self.get_bot_data(base_action='update_', button_text='load more', 
-			is_interactive_list=True, items=self.call_lower_class_methods('map_list', items))
-		return self.get_message(self.messages.get('update'), bot_data = bot_data)
-		
-	def delete(self):
-		items = self.get_list(self.doctype, self.fields, filters={"owner": self.obj.meta.user_id})
-		bot_data = self.get_bot_data(base_action='delete_', button_text='load more', 
-			is_interactive_list=True, items=self.call_lower_class_methods('map_list', items))
-		return self.get_message(self.messages.get('delete'), bot_data = bot_data)
 
 	def get(self):
 		items = self.get_list(self.doctype, self.fields, filters={"owner": self.obj.meta.user_id})
 		bot_data = self.get_bot_data(button_text='load more', is_interactive_list=True, 
-			items=self.call_lower_class_methods('map_list', items))
+			items=self.helper.get_mapped_list(self.bot_name, items))
 		return self.get_message(self.messages.get('get'), bot_data = bot_data)
-
+	
 	def create_(self):
-		params = {
-			"doctype":self.doctype,
-			"obj":self.obj,
-			"item_id" : self.item_id
-		}
-		
-		data = self.call_lower_class_methods('create_', params)
+		data = self.call_lower_class_methods('create_', self.get_params())
 		if data.is_success:
 			items = self.get_list(self.doctype, self.fields, data.filters)
 			bot_data = self.get_bot_data(button_text='view info', is_interactive_chat=True, 
-				items=self.call_lower_class_methods('map_list', items))
+				items=self.helper.get_mapped_list(self.bot_name, items))
 			return self.get_message(self.messages.get('create_'), bot_data = bot_data)
 		return self.get_message()
 
 	def update_(self):
-		params = {
-			"doctype":self.doctype,
-			"obj":self.obj,
-			"item_id" : self.item_id
-		}
-		
-		data =  self.call_lower_class_methods('update_', params)
-
+		data =  self.call_lower_class_methods('update_', self.get_params())
 		if data.is_success:
 			items = self.get_list(self.doctype, self.fields, data.filters)
 			bot_data = self.get_bot_data(button_text='view info', is_interactive_chat=True, 
-				items=self.call_lower_class_methods('map_list', items))
+				items=self.helper.get_mapped_list(self.bot_name, items))
 			return self.get_message(self.messages.get('update_'), bot_data = bot_data)
 		return self.get_message()
 
@@ -139,40 +126,28 @@ class Basic_Bot(Base):
 			if len(items) > 0:
 				frappe.delete_doc(self.doctype, self.item_id)
 				frappe.db.commit()
-				bot_data = self.get_bot_data(button_text='view info', is_interactive_chat=True, 
-					items=self.call_lower_class_methods('map_list', items))
-				return self.get_message(self.messages.get('delete_'), bot_data = bot_data)
+				return self.get_message(self.messages.get('delete_'),
+				 	bot_data = self.get_bot_data())
 			else:
 				return self.get_message("Looks like item already deleted from database.")
 		except Exception, e:
 			print e
 			return self.get_message()
 
-
 class Note(object):
 
-	def map_list(self, items):
-		new_list = []
-		for item in items:
-			new_list.append({
-				"id": item.name,
-				"text": item.name if item.content is None else item.content,
-				"creation": str(item.creation).split('.')[0]
-			})
-		return new_list
-
 	def create_(self, params):
-		doctype = params.get('doctype')
-		obj = params.get('obj')
+		doctype = params.doctype
+		obj = params.obj
 		user_id = obj.meta.user_id
 		filters = None
 		is_success = False
 		try:
-			title = obj.text[0:9] if len(obj.text) > 10 else obj.text 
-			note_doc = frappe.get_doc({"doctype":doctype, "title": title})
-			note_doc.content = obj.text
+			item = obj.bot_data.info["items"][0]
+			editables = [key for key in item.keys() if item[key]["is_editable"] == 1]
+			note_doc = frappe.get_doc(Helper().get_dict(doctype, editables, item))
 			note_doc.owner = user_id
-			note_doc.save()
+			note_doc.insert()
 			frappe.db.commit()
 			filters = {"name": note_doc.name, "owner": user_id}
 			is_success = True
@@ -186,14 +161,17 @@ class Note(object):
 		})
 
 	def update_(self, params):
-		doctype = params.get('doctype')
-		obj = params.get('obj')
-		item_id = params.get('item_id')
+		doctype = params.doctype
+		obj = params.obj
+		item_id = params.item_id
 		user_id = obj.meta.user_id
 		filters = None
 		is_success = False
 		try:
-			frappe.set_value(doctype, item_id, "content", obj.text)
+			item = frappe._dict(obj.bot_data.info["items"][0])
+			editables = [key for key in item.keys() if item[key]["is_editable"] == 1]
+			for key in editables:
+				frappe.set_value(doctype, item_id, key, item[key]["fieldvalue"])
 			frappe.db.commit()
 			filters = {"name": item_id, "owner": user_id}
 			is_success = True
@@ -208,31 +186,23 @@ class Note(object):
 
 class ToDo(object):
 
-	def map_list(self, items):
-		new_list = []
-		for item in items:
-			new_list.append({
-				"id": item.name,
-				"text": item.description,
-				"creation": str(item.creation).split('.')[0]
-			})
-		return new_list
-
 	def create_(self, params):
-		doctype = params.get('doctype')
-		obj = params.get('obj')
+		doctype = params.doctype
+		obj = params.obj
 		user_id = obj.meta.user_id
 		filters = None
 		is_success = False
 		try:
-			todo_doc = frappe.new_doc(doctype)
-			todo_doc.description = obj.text
+			item = obj.bot_data.info["items"][0]
+			editables = [key for key in item.keys() if item[key]["is_editable"] == 1]
+			todo_doc = frappe.get_doc(Helper().get_dict(doctype, editables, item))
 			todo_doc.owner = user_id
-			todo_doc.save()
+			todo_doc.insert()
 			frappe.db.commit()
 			filters = {"name": todo_doc.name, "owner": user_id}
 			is_success = True
 		except Exception, e:
+			print e
 			filters = None
 			is_success = False
 		return frappe._dict({
@@ -241,14 +211,17 @@ class ToDo(object):
 		})
 
 	def update_(self, params):
-		doctype = params.get('doctype')
-		obj = params.get('obj')
+		doctype = params.doctype
+		obj = params.obj
 		user_id = obj.meta.user_id
-		item_id = params.get('item_id')
+		item_id = params.item_id
 		filters = None
 		is_success = False
 		try:
-			frappe.set_value(doctype, item_id, "description", obj.text)
+			item = frappe._dict(obj.bot_data.info["items"][0])
+			editables = [key for key in item.keys() if item[key]["is_editable"] == 1]
+			for key in editables:
+				frappe.set_value(doctype, item_id, key, item[key]["fieldvalue"])
 			frappe.db.commit()
 			filters = {"name": item_id, "owner": user_id}
 			is_success = True
