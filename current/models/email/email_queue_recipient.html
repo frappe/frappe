@@ -4,7 +4,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Module Def</title>
+	<title>Email Queue Recipient</title>
 	<meta name="generator" content="frappe">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
@@ -22,7 +22,7 @@
     
 
 		</head>
-<body data-path="current/models/core/module_def">
+<body data-path="current/models/email/email_queue_recipient">
 	<div class="main-section">
 		<div>
 				<header>
@@ -95,7 +95,7 @@
                 <div data-html-block="hero"></div>
                 <div class="container" data-html-block="content">
                 
-<div class="page-container" id="page-current/models/core/module_def" data-path="{{ pathname }}"
+<div class="page-container" id="page-current/models/email/email_queue_recipient" data-path="{{ pathname }}"
 	>
 			<div class="row ">
 				
@@ -110,8 +110,8 @@
 <ul class="breadcrumb">
 	<li>
 		<span class="fa fa-angle-left"></span>
-		<a href="https://frappe.github.io/frappe//current/models/core">
-		Module core</a>
+		<a href="https://frappe.github.io/frappe//current/models/email">
+		Module email</a>
 	</li>
 	
 </ul>
@@ -121,7 +121,7 @@
 								
 							</div>
 							<div class="col-sm-8 col-xs-6">
-								<h1>Module Def</h1>
+								<h1>Email Queue Recipient</h1>
 							</div>
 							<div class="col-sm-4 col-xs-6">
 								
@@ -131,7 +131,7 @@
 						</div>
 					</div>
 					<div class="page_content">
-<!-- title: Module Def -->
+<!-- title: Email Queue Recipient -->
 
 
 
@@ -143,16 +143,16 @@
 	Version 7.x.x</a>
 
 
-	<a class="btn btn-default btn-sm" href="https://github.com/frappe/frappe/tree/develop/frappe/core/doctype/module_def"
+	<a class="btn btn-default btn-sm" href="https://github.com/frappe/frappe/tree/develop/frappe/email/doctype/email_queue_recipient"
 		target="_blank" style="margin-left: 10px; margin-bottom: 10px;"><i class="octicon octicon-mark-github"></i> Source</a>
 
 </div>
 
 
+<span class="label label-info">Child Table</span>
 
 
-
-    <p><b>Table Name:</b> <code>tabModule Def</code></p>
+    <p><b>Table Name:</b> <code>tabEmail Queue Recipient</code></p>
 
 
 
@@ -173,23 +173,44 @@
         
         <tr >
             <td>1</td>
-            <td ><code>module_name</code></td>
+            <td ><code>recipient</code></td>
             <td >
                 Data</td>
             <td >
-                Module Name
+                Recipient
                 
             </td>
-            <td></td>
+            <td>
+                <pre>Email</pre>
+            </td>
         </tr>
         
         <tr >
             <td>2</td>
-            <td class="danger" title="Mandatory"><code>app_name</code></td>
+            <td ><code>status</code></td>
             <td >
-                Data</td>
+                Select</td>
             <td >
-                App Name
+                Status
+                
+            </td>
+            <td>
+                <pre>
+Not Sent
+Sending
+Sent
+Error
+Expired</pre>
+            </td>
+        </tr>
+        
+        <tr >
+            <td>3</td>
+            <td ><code>error</code></td>
+            <td >
+                Code</td>
+            <td >
+                Error
                 
             </td>
             <td></td>
@@ -199,142 +220,19 @@
 </table>
 
 
-    <hr>
-    <h3>Controller</h3>
-    <h4>frappe.core.doctype.module_def.module_def</h4>
-
-    
-
-
-
-	
-        
-	<h3 style="font-weight: normal;">Class <b>ModuleDef</b></h3>
-    
-    <p style="padding-left: 30px;"><i>Inherits from frappe.model.document.Document</i></h4>
-    
-    <div class="docs-attr-desc"><p></p>
-</div>
-    <div style="padding-left: 30px;">
-        
-        
     
     
-	<p class="docs-attr-name">
-        <a name="add_to_modules_txt" href="#add_to_modules_txt" class="text-muted small">
-            <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		<b>add_to_modules_txt</b>
-        <i class="text-muted">(self)</i>
-    </p>
-	<div class="docs-attr-desc"><p>Adds to <code>[app]/modules.txt</code></p>
-</div>
-	<br>
-
-        
-        
+    <h4>Child Table Of</h4>
+    <ul>
     
-    
-	<p class="docs-attr-name">
-        <a name="create_modules_folder" href="#create_modules_folder" class="text-muted small">
-            <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		<b>create_modules_folder</b>
-        <i class="text-muted">(self)</i>
-    </p>
-	<div class="docs-attr-desc"><p>Creates a folder <code>[app]/[module]</code> and adds <code><a href="http://__init__.py">__init__.py</a></code></p>
-</div>
-	<br>
-
-        
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="on_update" href="#on_update" class="text-muted small">
-            <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		<b>on_update</b>
-        <i class="text-muted">(self)</i>
-    </p>
-	<div class="docs-attr-desc"><p>If in <code>developer_mode</code>, create folder for module and
-            add in <code>modules.txt</code> of app if missing.</p>
-</div>
-	<br>
-
-        
-    </div>
-    <hr>
-
-	
+        <li>
 
 
-    
-    
-        <h4>Linked In:</h4>
-        <ul>
-        
-			
-            <li>
-
-
-<a href="https://frappe.github.io/frappe/current/models/core/doctype">DocType</a>
+<a href="https://frappe.github.io/frappe/current/models/email/email_queue">Email Queue</a>
 
 </li>
-			
-        
-			
-            <li>
-
-
-<a href="https://frappe.github.io/frappe/current/models/email/email_alert">Email Alert</a>
-
-</li>
-			
-        
-			
-            <li>
-
-
-<a href="https://frappe.github.io/frappe/current/models/core/page">Page</a>
-
-</li>
-			
-        
-			
-            <li>
-
-
-<a href="https://frappe.github.io/frappe/current/models/print/print_format">Print Format</a>
-
-</li>
-			
-        
-			
-            <li>
-
-
-<a href="https://frappe.github.io/frappe/current/models/core/report">Report</a>
-
-</li>
-			
-        
-			
-            <li>
-
-
-<a href="https://frappe.github.io/frappe/current/models/website/web_form">Web Form</a>
-
-</li>
-			
-        
-			
-            <li>
-
-
-<a href="https://frappe.github.io/frappe/current/models/website/website_theme">Website Theme</a>
-
-</li>
-			
-        
-        </ul>
+    
+    </ul>
     
 
 

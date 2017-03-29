@@ -251,11 +251,11 @@
     Similarly, when the request parameter has a ``code`` property defined, the ID Token
     *should* include a calculated ``c_hash`` claim.
 
-    <a href="http://openid.net/specs/openid-connect-core-1_0.html" rel="nofollow">http://openid.net/specs/openid-connect-core-1_0.html</a> (sections `3.1.3.6`_, `3.2.2.10`_, `3.3.2.11`_)
+    <a href="http://openid.net/specs/openid-connect-core-1_0.html">http://openid.net/specs/openid-connect-core-1_0.html</a> (sections `3.1.3.6`_, `3.2.2.10`_, `3.3.2.11`_)
 
-    .. _`3.1.3.6`: <a href="http://openid.net/specs/openid-connect-core-1_0.html#CodeIDToken" rel="nofollow">http://openid.net/specs/openid-connect-core-1_0.html#CodeIDToken</a>
-    .. _`3.2.2.10`: <a href="http://openid.net/specs/openid-connect-core-1_0.html#ImplicitIDToken" rel="nofollow">http://openid.net/specs/openid-connect-core-1_0.html#ImplicitIDToken</a>
-    .. _`3.3.2.11`: <a href="http://openid.net/specs/openid-connect-core-1_0.html#HybridIDToken" rel="nofollow">http://openid.net/specs/openid-connect-core-1_0.html#HybridIDToken</a>
+    .. _`3.1.3.6`: <a href="http://openid.net/specs/openid-connect-core-1_0.html#CodeIDToken">http://openid.net/specs/openid-connect-core-1_0.html#CodeIDToken</a>
+    .. _`3.2.2.10`: <a href="http://openid.net/specs/openid-connect-core-1_0.html#ImplicitIDToken">http://openid.net/specs/openid-connect-core-1_0.html#ImplicitIDToken</a>
+    .. _`3.3.2.11`: <a href="http://openid.net/specs/openid-connect-core-1_0.html#HybridIDToken">http://openid.net/specs/openid-connect-core-1_0.html#HybridIDToken</a>
 </code></pre>
 
 <p><strong>Parameters:</strong></p>
@@ -652,7 +652,7 @@ Method is used by:
         <i class="text-muted">(access_token, hash_alg)</i>
     </p>
 	<div class="docs-attr-desc"><p>Helper method for calculating an access token
-    hash, as described in <a href="http://openid.net/specs/openid-connect-core-1" rel="nofollow">http://openid.net/specs/openid-connect-core-1</a><em>0.html#CodeIDToken
+    hash, as described in <a href="http://openid.net/specs/openid-connect-core-1">http://openid.net/specs/openid-connect-core-1</a><em>0.html#CodeIDToken
     Its value is the base64url encoding of the left-most half of the hash of the octets
     of the ASCII representation of the access</em>token value, where the hash algorithm
     used is the hash algorithm used in the alg Header Parameter of the ID Token's JOSE

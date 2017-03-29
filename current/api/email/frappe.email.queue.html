@@ -169,7 +169,7 @@
         <a name="frappe.email.queue.add" href="#frappe.email.queue.add" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		frappe.email.queue.<b>add</b>
-        <i class="text-muted">(email, sender, subject, formatted, text_content=None, reference_doctype=None, reference_name=None, attachments=None, reply_to=None, cc=(), in_reply_to=None, send_after=None, send_priority=1, email_account=None, communication=None)</i>
+        <i class="text-muted">(recipients, sender, subject, formatted, text_content=None, reference_doctype=None, reference_name=None, attachments=None, reply_to=None, cc=[], message_id=None, in_reply_to=None, send_after=None, send_priority=1, email_account=None, communication=None, unsubscribe_method=None, unsubscribe_params=None, expose_recipients=None)</i>
     </p>
 	<div class="docs-attr-desc"><p>Add to Email Queue</p>
 </div>
@@ -265,10 +265,10 @@
     
     
 	<p class="docs-attr-name">
-        <a name="frappe.email.queue.get_unsubscribe_link" href="#frappe.email.queue.get_unsubscribe_link" class="text-muted small">
+        <a name="frappe.email.queue.get_unsubscribe_message" href="#frappe.email.queue.get_unsubscribe_message" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.email.queue.<b>get_unsubscribe_link</b>
-        <i class="text-muted">(reference_doctype, reference_name, email, recipients, expose_recipients, show_as_cc, unsubscribe_method, unsubscribe_params, unsubscribe_message)</i>
+		frappe.email.queue.<b>get_unsubscribe_message</b>
+        <i class="text-muted">(unsubscribe_message, expose_recipients)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
@@ -287,6 +287,22 @@
         <i class="text-muted">()</i>
     </p>
 	<div class="docs-attr-desc"><p>cache values in queue before sendign</p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.email.queue.prepare_message" href="#frappe.email.queue.prepare_message" class="text-muted small">
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
+		frappe.email.queue.<b>prepare_message</b>
+        <i class="text-muted">(email, recipient, recipients_list)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
 	<br>
 
@@ -316,7 +332,7 @@
         <a name="frappe.email.queue.send" href="#frappe.email.queue.send" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		frappe.email.queue.<b>send</b>
-        <i class="text-muted">(recipients=None, sender=None, subject=None, message=None, reference_doctype=None, reference_name=None, unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None, attachments=None, reply_to=None, cc=(), show_as_cc=(), in_reply_to=None, send_after=None, expose_recipients=False, send_priority=1, communication=None, now=False)</i>
+        <i class="text-muted">(recipients=None, sender=None, subject=None, message=None, reference_doctype=None, reference_name=None, unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None, attachments=None, reply_to=None, cc=[], message_id=None, in_reply_to=None, send_after=None, expose_recipients=None, send_priority=1, communication=None, now=False)</i>
     </p>
 	<div class="docs-attr-desc"><p>Add email to sending queue (Email Queue)</p>
 
