@@ -4,7 +4,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>frappe.desk.form.document_flow</title>
+	<title>Authentication Log</title>
 	<meta name="generator" content="frappe">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
@@ -22,7 +22,7 @@
     
 
 		</head>
-<body data-path="current/api/desk/form/frappe.desk.form.document_flow">
+<body data-path="current/models/core/authentication_log">
 	<div class="main-section">
 		<div>
 				<header>
@@ -95,7 +95,7 @@
                 <div data-html-block="hero"></div>
                 <div class="container" data-html-block="content">
                 
-<div class="page-container" id="page-current/api/desk/form/frappe.desk.form.document_flow" data-path="{{ pathname }}"
+<div class="page-container" id="page-current/models/core/authentication_log" data-path="{{ pathname }}"
 	>
 			<div class="row ">
 				
@@ -110,8 +110,8 @@
 <ul class="breadcrumb">
 	<li>
 		<span class="fa fa-angle-left"></span>
-		<a href="https://frappe.github.io/frappe//current/api/desk/form">
-		form</a>
+		<a href="https://frappe.github.io/frappe//current/models/core">
+		Module core</a>
 	</li>
 	
 </ul>
@@ -121,7 +121,7 @@
 								
 							</div>
 							<div class="col-sm-8 col-xs-6">
-								<h1>frappe.desk.form.document_flow</h1>
+								<h1>Authentication Log</h1>
 							</div>
 							<div class="col-sm-4 col-xs-6">
 								
@@ -131,13 +131,19 @@
 						</div>
 					</div>
 					<div class="page_content">
-<!-- title: frappe.desk.form.document_flow --><div class="dev-header">
+<!-- title: Authentication Log -->
+
+
+
+
+
+<div class="dev-header">
 
 <a class="btn btn-default btn-sm" disabled style="margin-bottom: 10px;">
 	Version 7.x.x</a>
 
 
-	<a class="btn btn-default btn-sm" href="https://github.com/frappe/frappe/blob/develop/frappe/desk/form/document_flow.py"
+	<a class="btn btn-default btn-sm" href="https://github.com/frappe/frappe/tree/develop/frappe/core/doctype/authentication_log"
 		target="_blank" style="margin-left: 10px; margin-bottom: 10px;"><i class="octicon octicon-mark-github"></i> Source</a>
 
 </div>
@@ -146,17 +152,203 @@
 
 
 
+    <p><b>Table Name:</b> <code>tabAuthentication Log</code></p>
+
+
+
+
+<h3>Fields</h3>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th style="width: 5%">Sr</th>
+            <th style="width: 25%">Fieldname</th>
+            <th style="width: 20%">Type</th>
+            <th style="width: 25%">Label</th>
+            <th style="width: 25%">Options</th>
+        </tr>
+    </thead>
+    <tbody>
+        
+        <tr class="info">
+            <td>1</td>
+            <td ><code>user_details</code></td>
+            <td >
+                Section Break</td>
+            <td >
+                User Details
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>2</td>
+            <td class="danger" title="Mandatory"><code>user</code></td>
+            <td >
+                Data</td>
+            <td >
+                User
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>3</td>
+            <td ><code>full_name</code></td>
+            <td >
+                Data</td>
+            <td >
+                Full Name
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>4</td>
+            <td ><code>column_break_8</code></td>
+            <td class="info">
+                Column Break</td>
+            <td >
+                
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>5</td>
+            <td class="danger" title="Mandatory"><code>date</code></td>
+            <td >
+                Datetime</td>
+            <td >
+                Date
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr class="info">
+            <td>6</td>
+            <td ><code>section_break_6</code></td>
+            <td >
+                Section Break</td>
+            <td >
+                
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>7</td>
+            <td class="danger" title="Mandatory"><code>subject</code></td>
+            <td >
+                Data</td>
+            <td >
+                Subject
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>8</td>
+            <td ><code>column_break_2</code></td>
+            <td class="info">
+                Column Break</td>
+            <td >
+                
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>9</td>
+            <td ><code>operation</code></td>
+            <td >
+                Select</td>
+            <td >
+                Operation
+                
+            </td>
+            <td>
+                <pre>
+Login
+Logout</pre>
+            </td>
+        </tr>
+        
+        <tr >
+            <td>10</td>
+            <td ><code>status</code></td>
+            <td >
+                Select</td>
+            <td >
+                Status
+                
+            </td>
+            <td>
+                <pre>
+Success
+Failed</pre>
+            </td>
+        </tr>
+        
+    </tbody>
+</table>
+
+
+    <hr>
+    <h3>Controller</h3>
+    <h4>frappe.core.doctype.authentication_log.authentication_log</h4>
+
+    
+
+
+
+	
+        
+	<h3 style="font-weight: normal;">Class <b>AuthenticationLog</b></h3>
+    
+    <p style="padding-left: 30px;"><i>Inherits from frappe.model.document.Document</i></h4>
+    
+    <div class="docs-attr-desc"><p></p>
+</div>
+    <div style="padding-left: 30px;">
+        
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="before_insert" href="#before_insert" class="text-muted small">
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
+		<b>before_insert</b>
+        <i class="text-muted">(self)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+        
+    </div>
+    <hr>
+
+	
+
 	
         
     
-    <p><span class="label label-info">Public API</span>
-        <br><code>/api/method/frappe.desk.form.document_flow.get_document_completion_status</code>
-    </p>
+    
 	<p class="docs-attr-name">
-        <a name="frappe.desk.form.document_flow.get_document_completion_status" href="#frappe.desk.form.document_flow.get_document_completion_status" class="text-muted small">
+        <a name="frappe.core.doctype.authentication_log.authentication_log.add_authentication_log" href="#frappe.core.doctype.authentication_log.authentication_log.add_authentication_log" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.desk.form.document_flow.<b>get_document_completion_status</b>
-        <i class="text-muted">(doctypes, frm_doctype, frm_docname)</i>
+		frappe.core.doctype.authentication_log.authentication_log.<b>add_authentication_log</b>
+        <i class="text-muted">(subject, user, operation=Login, status=Success)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
@@ -169,20 +361,25 @@
     
     
 	<p class="docs-attr-name">
-        <a name="frappe.desk.form.document_flow.make_condition" href="#frappe.desk.form.document_flow.make_condition" class="text-muted small">
+        <a name="frappe.core.doctype.authentication_log.authentication_log.clear_authentication_logs" href="#frappe.core.doctype.authentication_log.authentication_log.clear_authentication_logs" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.desk.form.document_flow.<b>make_condition</b>
-        <i class="text-muted">(filters=None)</i>
+		frappe.core.doctype.authentication_log.authentication_log.<b>clear_authentication_logs</b>
+        <i class="text-muted">()</i>
     </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+	<div class="docs-attr-desc"><p>clear 100 day old authentication logs</p>
 </div>
 	<br>
 
 	
 
+
+    
+    
 
 
 <!-- autodoc -->
+<!-- jinja -->
+<!-- static -->
 </div>
 				</div>
 			</div>

@@ -164,7 +164,7 @@ Also sets all messages as multipart/alternative for cleaner reading in text-only
         <a name="__init__" href="#__init__" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		<b>__init__</b>
-        <i class="text-muted">(self, sender=, recipients=(), subject=, alternative=0, reply_to=None, cc=(), email_account=None)</i>
+        <i class="text-muted">(self, sender=, recipients=(), subject=, alternative=0, reply_to=None, cc=(), email_account=None, expose_recipients=None)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
@@ -332,7 +332,7 @@ Also sets all messages as multipart/alternative for cleaner reading in text-only
         <a name="set_message_id" href="#set_message_id" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		<b>set_message_id</b>
-        <i class="text-muted">(self)</i>
+        <i class="text-muted">(self, message_id)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
@@ -395,7 +395,7 @@ Also sets all messages as multipart/alternative for cleaner reading in text-only
         <a name="frappe.email.email_body.get_email" href="#frappe.email.email_body.get_email" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		frappe.email.email_body.<b>get_email</b>
-        <i class="text-muted">(recipients, sender=, msg=, subject=[No Subject], text_content=None, footer=None, print_html=None, formatted=None, attachments=None, content=None, reply_to=None, cc=(), email_account=None)</i>
+        <i class="text-muted">(recipients, sender=, msg=, subject=[No Subject], text_content=None, footer=None, print_html=None, formatted=None, attachments=None, content=None, reply_to=None, cc=[], email_account=None, expose_recipients=None)</i>
     </p>
 	<div class="docs-attr-desc"><p>send an html email as multipart with attachments and all</p>
 </div>
