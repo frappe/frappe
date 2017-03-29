@@ -624,8 +624,12 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 	},
 	set_date_options: function() {
 		var me = this;
+		var lang = frappe.boot.user.language;
+		if(!$.fn.datepicker.language[lang]) {
+			lang = 'en'
+		}		
 		this.datepicker_options = {
-			language: "en",
+			language: lang,
 			autoClose: true,
 			todayButton: new Date()
 		};
