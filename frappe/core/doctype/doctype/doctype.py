@@ -591,17 +591,11 @@ def validate_fields(meta):
 def validate_permissions_for_doctype(doctype, for_remove=False):
 	"""Validates if permissions are set correctly."""
 	doctype = frappe.get_doc("DocType", doctype)
+	validate_permissions(doctype, for_remove)
 
-	if frappe.conf.developer_mode and not frappe.flags.in_test:
-		# save doctype
-		doctype.save()
-
-	else:
-		validate_permissions(doctype, for_remove)
-
-		# save permissions
-		for perm in doctype.get("permissions"):
-			perm.db_update()
+	# save permissions
+	for perm in doctype.get("permissions"):
+		perm.db_update()
 
 def validate_permissions(doctype, for_remove=False):
 	permissions = doctype.get("permissions")
