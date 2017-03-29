@@ -43,6 +43,19 @@ frappe.provide("frappe.views");
 						});
 					});
 			},
+			update_cards: function (updater, cards) {
+				var state = this;
+				var _cards =
+					cards.map(card => {
+						return prepare_card(card, state);
+					})
+					.concat(this.cards)
+					.uniqBy(card => card.name);
+
+				updater.set({
+					cards: _cards
+				});
+			},
 			add_column: function (updater, col) {
 				if(frappe.model.can_create('Custom Field')) {
 					fluxify.doAction('update_column', col, 'add');
@@ -223,6 +236,10 @@ frappe.provide("frappe.views");
 		self.wrapper = opts.wrapper;
 		self.cur_list = opts.cur_list;
 
+		self.update_cards = function(cards) {
+			fluxify.doAction('update_cards', cards);
+		}
+
 		function init() {
 			fluxify.doAction('init', opts)
 			store.on('change:columns', make_columns);
@@ -359,6 +376,8 @@ frappe.provide("frappe.views");
 		}
 
 		init();
+
+		return self;
 	}
 
 	frappe.views.KanbanBoardColumn = function (column, wrapper) {
