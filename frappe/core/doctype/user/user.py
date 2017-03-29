@@ -573,7 +573,7 @@ def setup_user_email_inbox(email_account, awaiting_password, email_id, enable_ou
 
 		user.save(ignore_permissions=True)
 
-	update_awaiting_password = False
+	udpate_user_email_settings = False
 	if not all([email_account, email_id]):
 		return
 
