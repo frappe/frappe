@@ -27,9 +27,11 @@ def execute():
 def setup_inbox_from_email_account():
 	""" add user inbox child table entry for existing email account in not exists """
 
+	frappe.reload_doc("core", "doctype", "user_email")
+
 	email_accounts = frappe.get_all("Email Account", filters={"enable_incoming": 1},
-		fields=["name", "email_id", "awaiting_password"])
+		fields=["name", "email_id", "awaiting_password", "enable_outgoing"])
 
 	for email_account in email_accounts:
 		setup_user_email_inbox(email_account.get("name"), email_account.get("awaiting_password"),
-			email_account.get("email_id"))
+			email_account.get("email_id"), email_account.get("enabled_outgoing"))
