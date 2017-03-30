@@ -60,7 +60,7 @@ frappe.search.AwesomeBar = Class.extend({
 
 			$this.data('timeout', setTimeout(function(){
 				me.options = [];
-				if(txt && txt.length > 2) {
+				if(txt && txt.length > 1) {
 					if(last_space !== -1) {
 						me.set_specifics(txt.slice(0,last_space), txt.slice(last_space+1));
 					}
@@ -71,7 +71,7 @@ frappe.search.AwesomeBar = Class.extend({
 
 
 				me.make_calculator(txt);
-				me.add_recent(txt || "");
+				me.options = me.options.concat(frappe.search.utils.get_recent_pages(txt || ""));
 				me.add_help();
 
 				// de-duplicate
@@ -142,7 +142,7 @@ frappe.search.AwesomeBar = Class.extend({
 		$input.on("awesomplete-selectcomplete", function(e) {
 			$input.val("");
 		});
-		this.setup_recent();
+		frappe.search.utils.setup_recent();
 	},
 
 	add_help: function() {
@@ -163,94 +163,10 @@ frappe.search.AwesomeBar = Class.extend({
 						__("module name...")+'</td></tr>\
 					<tr><td>'+__("Calculate")+'</td><td>'+
 						__("e.g. (55 + 434) / 4 or =Math.sin(Math.PI/2)...")+'</td></tr>\
-				</table>'
+				</table><input type="text" class="input-with-feedback form-control" value="help" disabled>'
 				msgprint(txt, "Search Help");
 			}
 		});
-	},
-
-	add_recent: function(txt) {
-		var me = this;
-		values = [];
-		$.each(me.recent, function(i, doctype) {
-			values.push([doctype[1], ['Form', doctype[0], doctype[1]]]);
-		});
-
-		values = values.reverse();
-
-		$.each(frappe.route_history, function(i, route) {
-			if(route[0]==='Form') {
-				values.push([route[2], route]);
-			}
-			else if(in_list(['List', 'Report', 'Tree', 'modules', 'query-report'], route[0])) {
-				if(route[1]) {
-					values.push([route[1], route]);
-				}
-			}
-			else if(route[0]) {
-				values.push([frappe.route_titles[route[0]] || route[0], route]);
-			}
-		});
-
-		this.find(values, txt, function(match) {
-			out = {
-				route: match[1]
-			}
-			if(match[1][0]==='Form') {
-				if(match[1][1] !== match[1][2]) {
-					out.label = __(match[1][1]) + " " + match[1][2].bold();
-					out.value = __(match[1][1]) + " " + match[1][2];
-				} else {
-					out.label = __(match[1][1]).bold();
-					out.value = __(match[1][1]);
-				}
-			} else if(in_list(['List', 'Report', 'Tree', 'modules', 'query-report'], match[1][0])) {
-				var type = match[1][0], label = type;
-				if(type==='modules') label = 'Module';
-				else if(type==='query-report') label = 'Report';
-				out.label = __(match[1][1]).bold() + " " + __(label);
-				out.value = __(match[1][1]) + " " + __(label);
-			} else {
-				out.label = match[0].bold();
-				out.value = match[0];
-			}
-			out.index = 80;
-			out.default = "Recent";
-			return out;
-		}, true);
-	},
-
-	find: function(list, txt, process, prepend) {
-		var me = this;
-		$.each(list, function(i, item) {
-			if($.isArray(item)) {
-				_item = item[0];
-			} else {
-				_item = item;
-			}
-			_item = __(_item || '').toLowerCase().replace(/-/g, " ");
-			if(txt===_item || _item.indexOf(txt) !== -1) {
-				var option = process(item);
-
-				if(option) {
-					if($.isPlainObject(option)) {
-						option = [option];
-					}
-
-					option.forEach(function(o) { o.match = item; });
-
-					if(prepend) {
-						me.options = option.concat(me.options);
-					} else {
-						me.options = me.options.concat(option);
-					}
-				}
-			}
-		});
-	},
-
-	setup_recent: function() {
-		this.recent = JSON.parse(frappe.boot.user.recent || "[]") || [];
 	},
 
 	fuzzy_search: function(_txt, _item) {
@@ -395,6 +311,7 @@ frappe.search.AwesomeBar = Class.extend({
 		}
 	},
 
+	// remove
 	make_search_in_list: function(txt) {
 		var me = this;
 		var out = [];
@@ -417,6 +334,7 @@ frappe.search.AwesomeBar = Class.extend({
 		return out;
 	},
 
+	// remove
 	make_new_doc: function(txt) {
 		var me = this;
 		var out = [];
@@ -442,6 +360,7 @@ frappe.search.AwesomeBar = Class.extend({
 		return out;
 	},
 
+	// remove
 	get_doctypes: function(txt) {
 		var me = this;
 		var out = [];
@@ -497,6 +416,7 @@ frappe.search.AwesomeBar = Class.extend({
 		return out;
 	},
 
+	// remove
 	get_reports: function(txt) {
 		var me = this;
 		var out = [];
@@ -527,6 +447,7 @@ frappe.search.AwesomeBar = Class.extend({
 		return out;
 	},
 
+	// remove
 	get_pages: function(txt) {
 		var me = this;
 		var out = [];
@@ -569,6 +490,7 @@ frappe.search.AwesomeBar = Class.extend({
 		return out;
 	},
 
+	// remove
 	get_modules: function(txt) {
 		var me = this;
 		var out = [];

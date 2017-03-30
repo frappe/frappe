@@ -1,12 +1,176 @@
 frappe.provide('frappe.search');
 
 frappe.search.utils = {
-    get_doctypes: function(keywords, view = "") {
+	setup_recent: function() {
+		this.recent = JSON.parse(frappe.boot.user.recent || "[]") || [];
+	},
 
+    get_recent_pages: function(keywords) {
+		var me = this;
+        values = [], options = [];
+        function find(list, keywords, process) {
+            list.forEach(function(item, i) {
+                _item = ($.isArray(item)) ? item[0] : item;
+                _item = __(_item || '').toLowerCase().replace(/-/g, " ");
+
+                if(keywords===_item || _item.indexOf(keywords) !== -1) {
+                    var option = process(item);
+
+                    if(option) {
+                        if($.isPlainObject(option)) {
+                            option = [option];
+                        }
+                        option.forEach(function(o) { o.match = item; });
+                        options = option.concat(options);
+                    }
+                }
+            });
+        }
+
+		me.recent.forEach(function(doctype, i) {
+			values.push([doctype[1], ['Form', doctype[0], doctype[1]]]);
+		});
+
+		values = values.reverse();
+
+		frappe.route_history.forEach(function(route, i) {
+			if(route[0]==='Form') {
+				values.push([route[2], route]);
+			}
+			else if(in_list(['List', 'Report', 'Tree', 'modules', 'query-report'], route[0])) {
+				if(route[1]) {
+					values.push([route[1], route]);
+				}
+			}
+			else if(route[0]) {
+				values.push([frappe.route_titles[route[0]] || route[0], route]);
+			}
+		});
+
+		find(values, keywords, function(match) {
+			out = {
+				route: match[1]
+			}
+			if(match[1][0]==='Form') {
+				if(match[1][1] !== match[1][2]) {
+					out.label = __(match[1][1]) + " " + match[1][2].bold();
+					out.value = __(match[1][1]) + " " + match[1][2];
+				} else {
+					out.label = __(match[1][1]).bold();
+					out.value = __(match[1][1]);
+				}
+			} else if(in_list(['List', 'Report', 'Tree', 'modules', 'query-report'], match[1][0])) {
+				var type = match[1][0], label = type;
+				if(type==='modules') label = 'Module';
+				else if(type==='query-report') label = 'Report';
+				out.label = __(match[1][1]).bold() + " " + __(label);
+				out.value = __(match[1][1]) + " " + __(label);
+			} else {
+				out.label = match[0].bold();
+				out.value = match[0];
+			}
+			out.index = 80;
+			return out;
+		});
+
+        return options;
+	},
+
+    get_search_in_list: function(keywords) {
+        var me = this;
+		var out = [];
+		if(in_list(keywords.split(" "), "in") && (keywords.slice(-2) !== "in")) {
+			parts = keywords.split(" in ");
+			frappe.boot.user.can_read.forEach(function (item) {
+				var level = me.fuzzy_search(parts[1], item);
+				if(level) {
+					out.push({
+						type: "In List",
+						prefix: "Find '" + __(parts[0]).bold() + "' in ",
+						label: __(me.bolden_match_part(item, parts[1])),
+						value: __('Find {0} in {1}', [__(parts[0]), __(item)]),
+						route_options: {"name": ["like", "%" + parts[0] + "%"]},
+						index: 1 + level,
+						route: ["List", item]
+					});
+				}
+			});
+		}
+		return out;
     },
 
     get_creatables: function(keywords) {
+        var me = this;
+		var out = [];
+		if(keywords.split(" ")[0]==="new") {
+			frappe.boot.user.can_create.forEach(function (item) {
+				var level = me.fuzzy_search(keywords.substr(4), item);
+				if(level) {
+					out.push({
+						type: "New",
+						prefix: "New ",
+						label: __(me.bolden_match_part(item, keywords.substr(4))),
+						value: __("New {0}", [item]),
+						index: 1 + level,
+						match: item,
+						onclick: function() { frappe.new_doc(item, true); }
+					});
+				}
+			});
+		}
+		return out;
+    },
 
+    get_doctypes: function(keywords) {
+        var me = this;
+		var out = [];
+
+		var level, target;
+		var option = function(type, route, order) {
+			return {
+				type: type,
+                label: __("{0}" + " " + type, [__(me.bolden_match_part(target, keywords))]),
+				value: __(target + " " + type),
+				index: level + order,
+				match: target,
+				route: route,
+			}
+		};
+		frappe.boot.user.can_read.forEach(function(item) {
+			level = me.fuzzy_search(keywords, item);
+			if(level) {
+                target = item;
+				// include 'making new' option
+				if(in_list(frappe.boot.user.can_create, item)) {
+					var match = item;
+					out.push({
+						type: "New",
+						label: __("New {0}", [__(me.bolden_match_part(item, keywords))]),
+						value: __("New {0}", [__(item)]),
+						index: level + 0.01,
+						match: item,
+						onclick: function() { frappe.new_doc(match, true); }
+					});
+				}
+				if(in_list(frappe.boot.single_types, item)) {
+					out.push(option("", ["Form", item, item], 0.05));
+
+				} else if(in_list(frappe.boot.treeviews, item)) {
+					out.push(option("Tree", ["Tree", item], 0.05));
+
+				} else {
+					out.push(option("List", ["List", item], 0.05));
+					if(frappe.model.can_get_report(item)) {
+						out.push(option("Report", ["Report", item], 0.04));
+					}
+					if(frappe.boot.calendars.indexOf(item) !== -1) {
+						out.push(option("Calendar", ["List", item, "Calendar"], 0.03));
+						out.push(option("Gantt", ["List", item, "Gantt"], 0.02));
+					}
+				}
+			}
+		});
+		return out;
     },
 
     get_reports: function(keywords) {
@@ -22,8 +186,9 @@ frappe.search.utils = {
 					route = ["query-report",  item];
 				out.push({
                     type: "Report",
-					label: __("{0}" , [__(me.bolden_match_part(item, keywords))]),
-					value: item,
+                    prefix: "Report ",
+					label: __(me.bolden_match_part(item, keywords)),
+					value: __("Report {0}" , [item]),
 					index: level,
 					route: route
 				});
@@ -33,23 +198,56 @@ frappe.search.utils = {
     },
 
     get_pages: function(keywords) {
-
+        var me = this;
+		var out = [];
+		this.pages = {};
+		$.each(frappe.boot.page_info, function(name, p) {
+			me.pages[p.title] = p;
+			p.name = name;
+		});
+		Object.keys(this.pages).forEach(function(item) {
+			var level = me.fuzzy_search(keywords, item);
+			if(level) {
+				var page = me.pages[item];
+				out.push({
+					type: "Page",
+					prefix: "Open ",
+					label: __(me.bolden_match_part(item, keywords)),
+					value: __("Open {0}", [__(item)]),
+					match: item,
+					index: level,
+					route: [page.route || page.name]
+				});
+			}
+		});
+        if(__('calendar').indexOf(keywords.toLowerCase()) === 0) {
+			out.push({
+				type: "Calendar",
+				prefix: "Open ",
+				label: __('Calendar'),
+				value: __("Open {0}", [__(target)]),
+				index: me.fuzzy_search(keywords, 'Calendar'),
+				match: target,
+				route: [target, 'Event'],
+			});
+		}
+		return out;
     },
 
     get_modules: function(keywords) {
         var me = this;
 		var out = [];
 		Object.keys(frappe.modules).forEach(function(item) {
-			var level = me.fuzzy_search(txt, item);
+			var level = me.fuzzy_search(keywords, item);
 			if(level > 0) {
 				var module = frappe.modules[item];
 				if(module._doctype) return;
 				ret = {
-					label: __("{0}", [__(me.bolden_match_part(item, keywords))]),
-					value: item,
-					index: level,
 					type: "Module",
-					prefix: "Open"
+					prefix: "Open ",
+					label: __(me.bolden_match_part(item, keywords)),
+					value: __("Open {0}", [__(item)]),
+					index: level,
 				}
 				if(module.link) {
 					ret.route = [module.link];
@@ -182,7 +380,6 @@ frappe.search.utils = {
     },
 
     get_forum_results: function(keywords) {
-        // WOAHH ...
         var me = this;
         function get_results_set(data) {
             var result;
@@ -224,92 +421,113 @@ frappe.search.utils = {
     },
 
     get_nav_results: function(keywords) {
-        var compare = function(a, b) {
-			return a.index - b.index || a.value.length - b.value.length;
-		}
-		// var all_doctypes = this.get_doctypes(keywords);
-		// all_doctypes.forEach(function(d) {
-		// 	if(d.type === "") {
-		// 		setup.push(d);
-		// 	} else {
-		// 		lists.push(d);
-		// 	}
-		// });
+        function sort_uniques(array) {
+            var routes = [], out = [];
+            array.forEach(function(d) {
+                var route = d.route.join('/');
+                if(routes.indexOf(route) === -1) {
+                    routes.push(route);
+                    out.push(d);
+                }
+            });
+            return out.sort(function(a, b) {
+                return b.index - a.index;
+            });
+        }
+        var lists = [], setup = [];
+		var all_doctypes = sort_uniques(this.get_doctypes(keywords));
+		all_doctypes.forEach(function(d) {
+			if(d.type === "") {
+				setup.push(d);
+			} else {
+				lists.push(d);
+			}
+		});
+        var in_keyword = keywords.split(" in ")[0];
 		return [
-			// "Lists": lists.sort(compare),
-			{title: "Reports", fetch_type: "Nav", results: this.get_reports(keywords).sort(compare)},
-			{title: "Modules", fetch_type: "Nav", results: this.get_modules(keywords).sort(compare)},
-			// "Administration": this.get_pages(keywords).sort(compare),
-			// "Setup": setup.sort(compare)
+            {title: "Recents", fetch_type: "Nav", results: sort_uniques(this.get_recent_pages(keywords))},
+            {title: "Create a new ...", fetch_type: "Nav", results: sort_uniques(this.get_creatables(keywords))},
+            {title: "Find '" + in_keyword + "' in ... ", fetch_type: "Nav", results: sort_uniques(this.get_search_in_list(keywords))},
+            {title: "Lists", fetch_type: "Nav", results: lists},
+			{title: "Reports", fetch_type: "Nav", results: sort_uniques(this.get_reports(keywords))},
+            {title: "Administration", fetch_type: "Nav", results: sort_uniques(this.get_pages(keywords))},
+			{title: "Modules", fetch_type: "Nav", results: sort_uniques(this.get_modules(keywords))},
+            {title: "Setup", fetch_type: "Nav", results: setup},
         ]
     },
 
-    get_recent_pages: function(keywords) {
-
-    },
-
-    // Utils
-    fuzzy_search: function(keywords, _item, process) {
-        // Returns 1 for case-perfect contain, 0 for not found
-            // 0.9 for perfect contain,
-            // 0 - 0.5 for fuzzy contain
+    fuzzy_search: function(keywords, _item) {
+        // Returns 10 for case-perfect contain, 0 for not found
+            // 9 for perfect contain,
+            // 0 - 6 for fuzzy contain
 
         // **Specific use-case step**
 		item = __(_item || '').replace(/-/g, " ");
 
 		var ilen = item.length;
-		var tlen = keywords.length;
+		var klen = keywords.length;
+        var length_ratio = klen/ilen;
         var max_skips = 3, max_mismatch_len = 2;
 
-		if (tlen > ilen) {	return 0;  }
+		if (klen > ilen) {	return 0;  }
 
-		if (item.indexOf(keywords) !== -1) {
-			return 1;
+        if(keywords === item || item.toLowerCase().indexOf(keywords) === 0) {
+            return 10 + length_ratio;
+        }
+
+		if (item.indexOf(keywords) !== -1 && keywords !== keywords.toLowerCase()) {
+			return 9 + length_ratio;
 		}
 
 		item = item.toLowerCase();
 		keywords = keywords.toLowerCase();
 
 		if (item.indexOf(keywords) !== -1) {
-			return 0.9;
+			return 8 + length_ratio;
 		}
 
         var skips = 0, mismatches = 0;
-		outer: for (var i = 0, j = 0; i < tlen; i++) {
+		outer: for (var i = 0, j = 0; i < klen; i++) {
 			if(mismatches !== 0) skips++;
 			if(skips > max_skips) return 0;
+            var k_ch = keywords.charCodeAt(i);
 			mismatches = 0;
 			while (j < ilen) {
-				if (item.charCodeAt(j++) === keywords.charCodeAt(i)) {
+				if (item.charCodeAt(j++) === k_ch) {
 					continue outer;
 				}
-				mismatches++;
-				if(mismatches > max_mismatch_len) { return 0 };
-				j++;
+				if(++mismatches > max_mismatch_len)  return 0 ;
 			}
 			return 0;
 		}
 
         // Since indexOf didn't pass, there will be atleast 1 skip
-        // hence no divide by zero
-        return 0.5/(skips + mismatches);
+        // hence no divide by zero, but just to be safe
+        if((skips + mismatches) > 0) {
+            return (5 + length_ratio)/(skips + mismatches);
+        } else {
+            return 0;
+        }
 	},
 
     bolden_match_part: function(str, subseq) {
 		var rendered = "";
         if(this.fuzzy_search(subseq, str) === 0) {
             return str;
-        } else if(this.fuzzy_search(subseq, str) > 0.5) {
+        } else if(this.fuzzy_search(subseq, str) > 6) {
             var regEx = new RegExp("("+ subseq +")", "ig");
             return str.replace(regEx, '<b>$1</b>');
         } else {
             var str_orig = str;
             var str = str.toLowerCase();
+            var str_len = str.length;
             var subseq = subseq.toLowerCase();
+
             outer: for(var i = 0, j = 0; i < subseq.length; i++) {
-                while(j < str.length) {
-                    if(str.charCodeAt(j) === subseq.charCodeAt()) {
-                        var str_char =  str_orig.charAt(j);
+                var sub_ch = subseq.charCodeAt(i);
+                while(j < str_len) {
+                    if(str.charCodeAt(j) === sub_ch) {
+                        var str_char = str_orig.charAt(j);
                         if(str_char === str_char.toLowerCase()) {
                             rendered += '<b>' + subseq.charAt(i) + '</b>';
                         } else {
@@ -319,6 +537,7 @@ frappe.search.utils = {
                         continue outer;
                     }
                     rendered += str_orig.charAt(j);
+                    j++;
                 }
                 return str_orig;
             }
@@ -328,14 +547,8 @@ frappe.search.utils = {
 
     },
 
-    sort_by_rank: function(arr) {
-        return arr.sort(function(a, b) {
-            return a.index - b.index || a.value.length - b.value.length;
-        });
-    },
-
-    reverse_scrub: function(str) {
+    unscrub_and_titlecase: function(str) {
         return __(str || '').replace(/-|_/g, " ").replace(/\w*/g,
-            function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
+            function(keywords){return keywords.charAt(0).toUpperCase() + keywords.substr(1).toLowerCase();});
     },
 }

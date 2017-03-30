@@ -109,7 +109,7 @@ frappe.search.SearchDialog = Class.extend({
 			} else {
 				results = me.nav_lists[type].slice(0, me.more_count);
 				me.nav_lists[type].splice(0, me.more_count);
-				me.add_more_results(type, results, me.more_count);
+				me.add_more_results([{title: type, results: results}]);
 			}
 		});
 
@@ -298,6 +298,23 @@ frappe.search.SearchDialog = Class.extend({
 			$result_text.append(make_description('<p class="small">'+ result.description +'</p>'));
 		} else {
 			$result_text.append($(title_html));
+			if(result.route_options) {
+				frappe.route_options = result.route_options;
+			}
+			$result_text.on('click', (e) => {
+				this.search_dialog.hide();
+				if(result.onclick) {
+					result.onclick(result.match);
+				} else {
+					var previous_hash = window.location.hash;
+					frappe.set_route(result.route);
+
+					// hashchange didn't fire!
+					if (window.location.hash == previous_hash) {
+						frappe.route();
+					}
+				}
+			});
 		}
 
 		$result.append($result_text);
