@@ -151,7 +151,8 @@ frappe.views.ReportView = frappe.ui.BaseList.extend({
 			var columns = [['name', this.doctype],];
 			$.each(frappe.meta.docfield_list[this.doctype], function(i, df) {
 				if((df.in_standard_filter || df.in_list_view) && df.fieldname!='naming_series'
-					&& !in_list(frappe.model.no_value_type, df.fieldtype)) {
+					&& !in_list(frappe.model.no_value_type, df.fieldtype)
+					&& !df.report_hide) {
 					columns.push([df.fieldname, df.parent]);
 				}
 			});
