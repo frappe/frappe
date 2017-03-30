@@ -9,6 +9,7 @@ from frappe.build import html_to_js_template
 from frappe.model.utils import render_include
 from frappe import conf, _
 from frappe.desk.form.meta import get_code_files_via_hooks, get_js
+from frappe.core.doctype.custom_role.custom_role import get_custom_allowed_roles
 
 class Page(Document):
 	def autoname(self):
@@ -80,6 +81,9 @@ class Page(Document):
 
 		allowed = [d.role for d in frappe.get_all("Has Role", fields=["role"],
 			filters={"parent": self.name})]
+
+		custom_roles = get_custom_allowed_roles('page', self.name)
+		allowed.extend(custom_roles)
 
 		if not allowed:
 			return True
