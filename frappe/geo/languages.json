@@ -49,7 +49,11 @@
  }, 
  {
   "code": "en", 
-  "name": "english"
+  "name": "English"
+ }, 
+ {
+  "code": "en-GB", 
+  "name": "English (United Kingdom)"
  }, 
  {
   "code": "en-US", 
