@@ -368,10 +368,6 @@ frappe.ready(function() {
 
 		// setup date
 		if($dates.length) {
-			var lang = frappe.boot.user.language;
-			if(!$.fn.datepicker.language[lang]) {
-				lang = 'en'
-			}
 			$dates.datepicker({
 				language: lang,
 				autoClose: true,
