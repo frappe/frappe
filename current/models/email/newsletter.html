@@ -25,8 +25,7 @@
 <body data-path="current/models/email/newsletter">
 	<div class="main-section">
 		<div>
-				<header>
-	<nav class="navbar navbar-default navbar-main" role="navigation">
+					<nav class="navbar navbar-default navbar-main" role="navigation">
 		<div class="container">
 			<div class="navbar-header">
 				<a class="navbar-brand ellipsis"
@@ -57,6 +56,7 @@
 	Forum</a></li>
 
 <li class="divider"></li>
+
 <!-- post login tools -->
 
 </ul>
@@ -84,29 +84,29 @@
 		>
 	Forum</a></li>
 	
+	
 	<!-- post login tools -->
 
 </ul>
 				
 			</div>
 		</div>
-	</nav>
-</header><div class="hero-and-content">
+	</nav><div class="hero-and-content">
                 <div data-html-block="hero"></div>
                 <div class="container" data-html-block="content">
                 
 <div class="page-container" id="page-current/models/email/newsletter" data-path="{{ pathname }}"
 	>
-			<div class="row ">
-				
-				<div class=" page-content col-sm-12 ">
-					<div class="page-content-wrapper">
-						<div class="row page-head">
-							<div class='col-sm-12'>
-								
-								<div class="page-breadcrumbs">
-									
-									
+	<div class="row ">
+		
+		<div class=" page-content col-sm-12 ">
+			<div class="page-content-wrapper">
+				<div class="row page-head">
+					<div class='col-sm-12'>
+						
+						<div class="page-breadcrumbs">
+							
+							
 <ul class="breadcrumb">
 	<li>
 		<span class="fa fa-angle-left"></span>
@@ -116,21 +116,21 @@
 	
 </ul>
 
-									
-								</div>
-								
-							</div>
-							<div class="col-sm-8 col-xs-6">
-								<h1>Newsletter</h1>
-							</div>
-							<div class="col-sm-4 col-xs-6">
-								
-
-								
-							</div>
+							
 						</div>
+						
 					</div>
-					<div class="page_content">
+					<div class="col-sm-8 col-xs-6">
+						<h1>Newsletter</h1>
+					</div>
+					<div class="col-sm-4 col-xs-6">
+						
+
+						
+					</div>
+				</div>
+			</div>
+			<div class="page_content">
 <!-- title: Newsletter -->
 
 
@@ -171,11 +171,23 @@ Create and Send Newsletters
     </thead>
     <tbody>
         
-        <tr >
+        <tr class="info">
             <td>1</td>
-            <td class="danger" title="Mandatory"><code>email_group</code></td>
+            <td ><code>receipient</code></td>
             <td >
-                Link</td>
+                Section Break</td>
+            <td >
+                Receipient
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>2</td>
+            <td ><code>email_group</code></td>
+            <td >
+                Table</td>
             <td >
                 Email Group
                 
@@ -185,23 +197,11 @@ Create and Send Newsletters
                 
 
 
-<a href="https://frappe.github.io/frappe/current/models/email/email_group">Email Group</a>
+<a href="https://frappe.github.io/frappe/current/models/email/newsletter_email_group">Newsletter Email Group</a>
 
 
                 
             </td>
-        </tr>
-        
-        <tr >
-            <td>2</td>
-            <td class="danger" title="Mandatory"><code>subject</code></td>
-            <td >
-                Small Text</td>
-            <td >
-                Subject
-                
-            </td>
-            <td></td>
         </tr>
         
         <tr >
@@ -242,6 +242,18 @@ Create and Send Newsletters
         
         <tr >
             <td>6</td>
+            <td class="danger" title="Mandatory"><code>subject</code></td>
+            <td >
+                Small Text</td>
+            <td >
+                Subject
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>7</td>
             <td class="danger" title="Mandatory"><code>message</code></td>
             <td >
                 Text Editor</td>
@@ -252,8 +264,32 @@ Create and Send Newsletters
             <td></td>
         </tr>
         
+        <tr >
+            <td>8</td>
+            <td ><code>send_unsubscribe_link</code></td>
+            <td >
+                Check</td>
+            <td >
+                Send Unsubscribe Link
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>9</td>
+            <td ><code>send_attachements</code></td>
+            <td >
+                Check</td>
+            <td >
+                Send Attachements
+                
+            </td>
+            <td></td>
+        </tr>
+        
         <tr class="info">
-            <td>7</td>
+            <td>10</td>
             <td ><code>test_the_newsletter</code></td>
             <td >
                 Section Break</td>
@@ -265,20 +301,20 @@ Create and Send Newsletters
         </tr>
         
         <tr >
-            <td>8</td>
+            <td>11</td>
             <td ><code>test_email_id</code></td>
             <td >
                 Data</td>
             <td >
-                Test Email Id
+                Test Email Address
                 <p class="text-muted small">
-                    A Lead with this email id should exist</p>
+                    A Lead with this Email Address should exist</p>
             </td>
             <td></td>
         </tr>
         
         <tr >
-            <td>9</td>
+            <td>12</td>
             <td ><code>test_send</code></td>
             <td >
                 Button</td>
@@ -289,6 +325,18 @@ Create and Send Newsletters
             <td>
                 <pre>test_send</pre>
             </td>
+        </tr>
+        
+        <tr >
+            <td>13</td>
+            <td ><code>scheduled_to_send</code></td>
+            <td >
+                Int</td>
+            <td class="text-muted" title="Hidden">
+                Scheduled To Send
+                
+            </td>
+            <td></td>
         </tr>
         
     </tbody>
@@ -312,20 +360,6 @@ Create and Send Newsletters
     <div class="docs-attr-desc"><p></p>
 </div>
     <div style="padding-left: 30px;">
-        
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="autoname" href="#autoname" class="text-muted small">
-            <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		<b>autoname</b>
-        <i class="text-muted">(self)</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
-
         
         
     
@@ -437,6 +471,24 @@ Create and Send Newsletters
 	
         
     
+    <p><span class="label label-info">Public API</span>
+        <br><code>/api/method/frappe.email.doctype.newsletter.newsletter.confirmed_unsubscribe</code>
+    </p>
+	<p class="docs-attr-name">
+        <a name="frappe.email.doctype.newsletter.newsletter.confirmed_unsubscribe" href="#frappe.email.doctype.newsletter.newsletter.confirmed_unsubscribe" class="text-muted small">
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
+		frappe.email.doctype.newsletter.newsletter.<b>confirmed_unsubscribe</b>
+        <i class="text-muted">(email, name)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
     
 	<p class="docs-attr-name">
         <a name="frappe.email.doctype.newsletter.newsletter.create_lead" href="#frappe.email.doctype.newsletter.newsletter.create_lead" class="text-muted small">
@@ -455,10 +507,42 @@ Create and Send Newsletters
     
     
 	<p class="docs-attr-name">
+        <a name="frappe.email.doctype.newsletter.newsletter.get_email_groups" href="#frappe.email.doctype.newsletter.newsletter.get_email_groups" class="text-muted small">
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
+		frappe.email.doctype.newsletter.newsletter.<b>get_email_groups</b>
+        <i class="text-muted">(name)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.email.doctype.newsletter.newsletter.return_confirmation_page" href="#frappe.email.doctype.newsletter.newsletter.return_confirmation_page" class="text-muted small">
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
+		frappe.email.doctype.newsletter.newsletter.<b>return_confirmation_page</b>
+        <i class="text-muted">(email, name, primary_action)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
         <a name="frappe.email.doctype.newsletter.newsletter.return_unsubscribed_page" href="#frappe.email.doctype.newsletter.newsletter.return_unsubscribed_page" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		frappe.email.doctype.newsletter.newsletter.<b>return_unsubscribed_page</b>
-        <i class="text-muted">(email)</i>
+        <i class="text-muted">(email, name)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
@@ -527,8 +611,8 @@ Create and Send Newsletters
 <!-- jinja -->
 <!-- static -->
 </div>
-				</div>
-			</div>
+		</div>
+	</div>
 </div>
 
 				<!-- edit-link -->

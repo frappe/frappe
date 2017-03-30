@@ -25,8 +25,7 @@
 <body data-path="current/api/frappe.sessions">
 	<div class="main-section">
 		<div>
-				<header>
-	<nav class="navbar navbar-default navbar-main" role="navigation">
+					<nav class="navbar navbar-default navbar-main" role="navigation">
 		<div class="container">
 			<div class="navbar-header">
 				<a class="navbar-brand ellipsis"
@@ -57,6 +56,7 @@
 	Forum</a></li>
 
 <li class="divider"></li>
+
 <!-- post login tools -->
 
 </ul>
@@ -84,29 +84,29 @@
 		>
 	Forum</a></li>
 	
+	
 	<!-- post login tools -->
 
 </ul>
 				
 			</div>
 		</div>
-	</nav>
-</header><div class="hero-and-content">
+	</nav><div class="hero-and-content">
                 <div data-html-block="hero"></div>
                 <div class="container" data-html-block="content">
                 
 <div class="page-container" id="page-current/api/frappe.sessions" data-path="{{ pathname }}"
 	>
-			<div class="row ">
-				
-				<div class=" page-content col-sm-12 ">
-					<div class="page-content-wrapper">
-						<div class="row page-head">
-							<div class='col-sm-12'>
-								
-								<div class="page-breadcrumbs">
-									
-									
+	<div class="row ">
+		
+		<div class=" page-content col-sm-12 ">
+			<div class="page-content-wrapper">
+				<div class="row page-head">
+					<div class='col-sm-12'>
+						
+						<div class="page-breadcrumbs">
+							
+							
 <ul class="breadcrumb">
 	<li>
 		<span class="fa fa-angle-left"></span>
@@ -116,21 +116,21 @@
 	
 </ul>
 
-									
-								</div>
-								
-							</div>
-							<div class="col-sm-8 col-xs-6">
-								<h1>frappe.sessions</h1>
-							</div>
-							<div class="col-sm-4 col-xs-6">
-								
-
-								
-							</div>
+							
 						</div>
+						
 					</div>
-					<div class="page_content">
+					<div class="col-sm-8 col-xs-6">
+						<h1>frappe.sessions</h1>
+					</div>
+					<div class="col-sm-4 col-xs-6">
+						
+
+						
+					</div>
+				</div>
+			</div>
+			<div class="page_content">
 <!-- title: frappe.sessions --><div class="dev-header">
 
 <a class="btn btn-default btn-sm" disabled style="margin-bottom: 10px;">
@@ -353,7 +353,7 @@
         <a name="frappe.sessions.clear_all_sessions" href="#frappe.sessions.clear_all_sessions" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		frappe.sessions.<b>clear_all_sessions</b>
-        <i class="text-muted">()</i>
+        <i class="text-muted">(reason=None)</i>
     </p>
 	<div class="docs-attr-desc"><p>This effectively logs out all users</p>
 </div>
@@ -419,7 +419,15 @@
 		frappe.sessions.<b>clear_sessions</b>
         <i class="text-muted">(user=None, keep_current=False, device=None)</i>
     </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+	<div class="docs-attr-desc"><p>Clear other sessions of the current user. Called at login / logout</p>
+
+<p><strong>Parameters:</strong></p>
+
+<ul>
+<li><strong><code>user</code></strong> -  user name (default: current user)</li>
+<li><strong><code>keep_current</code></strong> -  keep current session (default: false)</li>
+<li><strong><code>device</code></strong> -  delete sessions of this device (default: desktop)</li>
+</ul>
 </div>
 	<br>
 
@@ -433,7 +441,7 @@
         <a name="frappe.sessions.delete_session" href="#frappe.sessions.delete_session" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		frappe.sessions.<b>delete_session</b>
-        <i class="text-muted">(sid=None, user=None)</i>
+        <i class="text-muted">(sid=None, user=None, reason=Session Expired)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
@@ -494,6 +502,22 @@
     
     
 	<p class="docs-attr-name">
+        <a name="frappe.sessions.get_expired_sessions" href="#frappe.sessions.get_expired_sessions" class="text-muted small">
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
+		frappe.sessions.<b>get_expired_sessions</b>
+        <i class="text-muted">()</i>
+    </p>
+	<div class="docs-attr-desc"><p>Returns list of expired sessions</p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
         <a name="frappe.sessions.get_expiry_period" href="#frappe.sessions.get_expiry_period" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		frappe.sessions.<b>get_expiry_period</b>
@@ -537,12 +561,36 @@
 
 	
 
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.sessions.get_sessions_to_clear" href="#frappe.sessions.get_sessions_to_clear" class="text-muted small">
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
+		frappe.sessions.<b>get_sessions_to_clear</b>
+        <i class="text-muted">(user=None, keep_current=False, device=None)</i>
+    </p>
+	<div class="docs-attr-desc"><p>Returns sessions of the current user. Called at login / logout</p>
+
+<p><strong>Parameters:</strong></p>
+
+<ul>
+<li><strong><code>user</code></strong> -  user name (default: current user)</li>
+<li><strong><code>keep_current</code></strong> -  keep current session (default: false)</li>
+<li><strong><code>device</code></strong> -  delete sessions of this device (default: desktop)</li>
+</ul>
+</div>
+	<br>
+
+	
+
 
 
 <!-- autodoc -->
 </div>
-				</div>
-			</div>
+		</div>
+	</div>
 </div>
 
 				<!-- edit-link -->

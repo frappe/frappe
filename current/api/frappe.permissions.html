@@ -25,8 +25,7 @@
 <body data-path="current/api/frappe.permissions">
 	<div class="main-section">
 		<div>
-				<header>
-	<nav class="navbar navbar-default navbar-main" role="navigation">
+					<nav class="navbar navbar-default navbar-main" role="navigation">
 		<div class="container">
 			<div class="navbar-header">
 				<a class="navbar-brand ellipsis"
@@ -57,6 +56,7 @@
 	Forum</a></li>
 
 <li class="divider"></li>
+
 <!-- post login tools -->
 
 </ul>
@@ -84,29 +84,29 @@
 		>
 	Forum</a></li>
 	
+	
 	<!-- post login tools -->
 
 </ul>
 				
 			</div>
 		</div>
-	</nav>
-</header><div class="hero-and-content">
+	</nav><div class="hero-and-content">
                 <div data-html-block="hero"></div>
                 <div class="container" data-html-block="content">
                 
 <div class="page-container" id="page-current/api/frappe.permissions" data-path="{{ pathname }}"
 	>
-			<div class="row ">
-				
-				<div class=" page-content col-sm-12 ">
-					<div class="page-content-wrapper">
-						<div class="row page-head">
-							<div class='col-sm-12'>
-								
-								<div class="page-breadcrumbs">
-									
-									
+	<div class="row ">
+		
+		<div class=" page-content col-sm-12 ">
+			<div class="page-content-wrapper">
+				<div class="row page-head">
+					<div class='col-sm-12'>
+						
+						<div class="page-breadcrumbs">
+							
+							
 <ul class="breadcrumb">
 	<li>
 		<span class="fa fa-angle-left"></span>
@@ -116,21 +116,21 @@
 	
 </ul>
 
-									
-								</div>
-								
-							</div>
-							<div class="col-sm-8 col-xs-6">
-								<h1>frappe.permissions</h1>
-							</div>
-							<div class="col-sm-4 col-xs-6">
-								
-
-								
-							</div>
+							
 						</div>
+						
 					</div>
-					<div class="page_content">
+					<div class="col-sm-8 col-xs-6">
+						<h1>frappe.permissions</h1>
+					</div>
+					<div class="col-sm-4 col-xs-6">
+						
+
+						
+					</div>
+				</div>
+			</div>
+			<div class="page_content">
 <!-- title: frappe.permissions --><div class="dev-header">
 
 <a class="btn btn-default btn-sm" disabled style="margin-bottom: 10px;">
@@ -156,7 +156,7 @@
 		frappe.permissions.<b>add_user_permission</b>
         <i class="text-muted">(doctype, name, user, with_message=False)</i>
     </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+	<div class="docs-attr-desc"><p>Add user default</p>
 </div>
 	<br>
 
@@ -263,6 +263,38 @@
     
     
 	<p class="docs-attr-name">
+        <a name="frappe.permissions.copy_perms" href="#frappe.permissions.copy_perms" class="text-muted small">
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
+		frappe.permissions.<b>copy_perms</b>
+        <i class="text-muted">(parent)</i>
+    </p>
+	<div class="docs-attr-desc"><p>Copy all DocPerm in to Custom DocPerm for the given document</p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.permissions.get_all_perms" href="#frappe.permissions.get_all_perms" class="text-muted small">
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
+		frappe.permissions.<b>get_all_perms</b>
+        <i class="text-muted">(role)</i>
+    </p>
+	<div class="docs-attr-desc"><p>Returns valid permissions for a given role</p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
         <a name="frappe.permissions.get_doc_permissions" href="#frappe.permissions.get_doc_permissions" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		frappe.permissions.<b>get_doc_permissions</b>
@@ -279,12 +311,44 @@
     
     
 	<p class="docs-attr-name">
+        <a name="frappe.permissions.get_doctypes_with_read" href="#frappe.permissions.get_doctypes_with_read" class="text-muted small">
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
+		frappe.permissions.<b>get_doctypes_with_read</b>
+        <i class="text-muted">()</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
         <a name="frappe.permissions.get_linked_doctypes" href="#frappe.permissions.get_linked_doctypes" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		frappe.permissions.<b>get_linked_doctypes</b>
         <i class="text-muted">(dt)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.permissions.get_perms_for" href="#frappe.permissions.get_perms_for" class="text-muted small">
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
+		frappe.permissions.<b>get_perms_for</b>
+        <i class="text-muted">(roles, perm_doctype=DocPerm)</i>
+    </p>
+	<div class="docs-attr-desc"><p>Get perms for given roles</p>
 </div>
 	<br>
 
@@ -334,12 +398,44 @@
     
     
 	<p class="docs-attr-name">
+        <a name="frappe.permissions.get_roles" href="#frappe.permissions.get_roles" class="text-muted small">
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
+		frappe.permissions.<b>get_roles</b>
+        <i class="text-muted">(user=None, with_standard=True)</i>
+    </p>
+	<div class="docs-attr-desc"><p>get roles of current user</p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
         <a name="frappe.permissions.get_user_permission_doctypes" href="#frappe.permissions.get_user_permission_doctypes" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		frappe.permissions.<b>get_user_permission_doctypes</b>
         <i class="text-muted">(user_permission_doctypes, user_permissions)</i>
     </p>
 	<div class="docs-attr-desc"><p>returns a list of list like [["User", "Blog Post"], ["User"]]</p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.permissions.get_valid_perms" href="#frappe.permissions.get_valid_perms" class="text-muted small">
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
+		frappe.permissions.<b>get_valid_perms</b>
+        <i class="text-muted">(doctype=None)</i>
+    </p>
+	<div class="docs-attr-desc"><p>Get valid permissions for the current user from DocPerm and Custom DocPerm</p>
 </div>
 	<br>
 
@@ -434,6 +530,22 @@
     
     
 	<p class="docs-attr-name">
+        <a name="frappe.permissions.setup_custom_perms" href="#frappe.permissions.setup_custom_perms" class="text-muted small">
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
+		frappe.permissions.<b>setup_custom_perms</b>
+        <i class="text-muted">(parent)</i>
+    </p>
+	<div class="docs-attr-desc"><p>if custom permssions are not setup for the current doctype, set them up</p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
         <a name="frappe.permissions.update_share_permissions" href="#frappe.permissions.update_share_permissions" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		frappe.permissions.<b>update_share_permissions</b>
@@ -465,8 +577,8 @@
 
 <!-- autodoc -->
 </div>
-				</div>
-			</div>
+		</div>
+	</div>
 </div>
 
 				<!-- edit-link -->

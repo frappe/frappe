@@ -25,8 +25,7 @@
 <body data-path="current/models/core/page">
 	<div class="main-section">
 		<div>
-				<header>
-	<nav class="navbar navbar-default navbar-main" role="navigation">
+					<nav class="navbar navbar-default navbar-main" role="navigation">
 		<div class="container">
 			<div class="navbar-header">
 				<a class="navbar-brand ellipsis"
@@ -57,6 +56,7 @@
 	Forum</a></li>
 
 <li class="divider"></li>
+
 <!-- post login tools -->
 
 </ul>
@@ -84,29 +84,29 @@
 		>
 	Forum</a></li>
 	
+	
 	<!-- post login tools -->
 
 </ul>
 				
 			</div>
 		</div>
-	</nav>
-</header><div class="hero-and-content">
+	</nav><div class="hero-and-content">
                 <div data-html-block="hero"></div>
                 <div class="container" data-html-block="content">
                 
 <div class="page-container" id="page-current/models/core/page" data-path="{{ pathname }}"
 	>
-			<div class="row ">
-				
-				<div class=" page-content col-sm-12 ">
-					<div class="page-content-wrapper">
-						<div class="row page-head">
-							<div class='col-sm-12'>
-								
-								<div class="page-breadcrumbs">
-									
-									
+	<div class="row ">
+		
+		<div class=" page-content col-sm-12 ">
+			<div class="page-content-wrapper">
+				<div class="row page-head">
+					<div class='col-sm-12'>
+						
+						<div class="page-breadcrumbs">
+							
+							
 <ul class="breadcrumb">
 	<li>
 		<span class="fa fa-angle-left"></span>
@@ -116,21 +116,21 @@
 	
 </ul>
 
-									
-								</div>
-								
-							</div>
-							<div class="col-sm-8 col-xs-6">
-								<h1>Page</h1>
-							</div>
-							<div class="col-sm-4 col-xs-6">
-								
-
-								
-							</div>
+							
 						</div>
+						
 					</div>
-					<div class="page_content">
+					<div class="col-sm-8 col-xs-6">
+						<h1>Page</h1>
+					</div>
+					<div class="col-sm-4 col-xs-6">
+						
+
+						
+					</div>
+				</div>
+			</div>
+			<div class="page_content">
 <!-- title: Page -->
 
 
@@ -294,7 +294,7 @@ No</pre>
                 
 
 
-<a href="https://frappe.github.io/frappe/current/models/core/page_role">Page Role</a>
+<a href="https://frappe.github.io/frappe/current/models/core/has_role">Has Role</a>
 
 
                 
@@ -363,7 +363,7 @@ No</pre>
 		<b>is_permitted</b>
         <i class="text-muted">(self)</i>
     </p>
-	<div class="docs-attr-desc"><p>Returns true if Page Role is not set or the user is allowed.</p>
+	<div class="docs-attr-desc"><p>Returns true if Has Role is not set or the user is allowed.</p>
 </div>
 	<br>
 
@@ -375,6 +375,20 @@ No</pre>
         <a name="load_assets" href="#load_assets" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		<b>load_assets</b>
+        <i class="text-muted">(self)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="on_trash" href="#on_trash" class="text-muted small">
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
+		<b>on_trash</b>
         <i class="text-muted">(self)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
@@ -417,8 +431,56 @@ No</pre>
 
 	
 
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.core.doctype.page.page.delete_custom_role" href="#frappe.core.doctype.page.page.delete_custom_role" class="text-muted small">
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
+		frappe.core.doctype.page.page.<b>delete_custom_role</b>
+        <i class="text-muted">(field, docname)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+	
+
 
     
+    
+        <h4>Linked In:</h4>
+        <ul>
+        
+			
+            <li>
+
+
+<a href="https://frappe.github.io/frappe/current/models/core/custom_role">Custom Role</a>
+
+</li>
+			
+        
+			
+            <li>
+
+
+<a href="https://frappe.github.io/frappe/current/models/core/role_permission_for_page_and_report">Role Permission for Page and Report</a>
+
+</li>
+			
+        
+			
+            <li>
+
+
+<a href="https://frappe.github.io/frappe/current/models/core/user_permission_for_page_and_report">User Permission for Page and Report</a>
+
+</li>
+			
+        
+        </ul>
     
 
 
@@ -426,8 +488,8 @@ No</pre>
 <!-- jinja -->
 <!-- static -->
 </div>
-				</div>
-			</div>
+		</div>
+	</div>
 </div>
 
 				<!-- edit-link -->

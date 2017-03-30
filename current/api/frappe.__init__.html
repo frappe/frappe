@@ -25,8 +25,7 @@
 <body data-path="current/api/frappe.__init__">
 	<div class="main-section">
 		<div>
-				<header>
-	<nav class="navbar navbar-default navbar-main" role="navigation">
+					<nav class="navbar navbar-default navbar-main" role="navigation">
 		<div class="container">
 			<div class="navbar-header">
 				<a class="navbar-brand ellipsis"
@@ -57,6 +56,7 @@
 	Forum</a></li>
 
 <li class="divider"></li>
+
 <!-- post login tools -->
 
 </ul>
@@ -84,29 +84,29 @@
 		>
 	Forum</a></li>
 	
+	
 	<!-- post login tools -->
 
 </ul>
 				
 			</div>
 		</div>
-	</nav>
-</header><div class="hero-and-content">
+	</nav><div class="hero-and-content">
                 <div data-html-block="hero"></div>
                 <div class="container" data-html-block="content">
                 
 <div class="page-container" id="page-current/api/frappe.__init__" data-path="{{ pathname }}"
 	>
-			<div class="row ">
-				
-				<div class=" page-content col-sm-12 ">
-					<div class="page-content-wrapper">
-						<div class="row page-head">
-							<div class='col-sm-12'>
-								
-								<div class="page-breadcrumbs">
-									
-									
+	<div class="row ">
+		
+		<div class=" page-content col-sm-12 ">
+			<div class="page-content-wrapper">
+				<div class="row page-head">
+					<div class='col-sm-12'>
+						
+						<div class="page-breadcrumbs">
+							
+							
 <ul class="breadcrumb">
 	<li>
 		<span class="fa fa-angle-left"></span>
@@ -116,21 +116,21 @@
 	
 </ul>
 
-									
-								</div>
-								
-							</div>
-							<div class="col-sm-8 col-xs-6">
-								<h1>frappe.__init__</h1>
-							</div>
-							<div class="col-sm-4 col-xs-6">
-								
-
-								
-							</div>
+							
 						</div>
+						
 					</div>
-					<div class="page_content">
+					<div class="col-sm-8 col-xs-6">
+						<h1>frappe.__init__</h1>
+					</div>
+					<div class="col-sm-4 col-xs-6">
+						
+
+						
+					</div>
+				</div>
+			</div>
+			<div class="page_content">
 <!-- title: frappe.__init__ --><div class="dev-header">
 
 <a class="btn btn-default btn-sm" disabled style="margin-bottom: 10px;">
@@ -268,23 +268,6 @@
     
     
 	<p class="docs-attr-name">
-        <a name="frappe.add_version" href="#frappe.add_version" class="text-muted small">
-            <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.<b>add_version</b>
-        <i class="text-muted">(doc)</i>
-    </p>
-	<div class="docs-attr-desc"><p>Insert a new <strong>Version</strong> of the given document.
-    A <strong>Version</strong> is a JSON dump of the current document state.</p>
-</div>
-	<br>
-
-	
-
-	
-        
-    
-    
-	<p class="docs-attr-name">
         <a name="frappe.append_hook" href="#frappe.append_hook" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		frappe.<b>append_hook</b>
@@ -329,6 +312,22 @@ listify the values against the key.
         <i class="text-muted">(obj, indent=1)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.as_unicode" href="#frappe.as_unicode" class="text-muted small">
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
+		frappe.<b>as_unicode</b>
+        <i class="text-muted">(text, encoding=utf-8)</i>
+    </p>
+	<div class="docs-attr-desc"><p>Convert to unicode if required</p>
 </div>
 	<br>
 
@@ -442,6 +441,22 @@ listify the values against the key.
     
     
 	<p class="docs-attr-name">
+        <a name="frappe.clear_messages" href="#frappe.clear_messages" class="text-muted small">
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
+		frappe.<b>clear_messages</b>
+        <i class="text-muted">()</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
         <a name="frappe.compare" href="#frappe.compare" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		frappe.<b>compare</b>
@@ -516,13 +531,13 @@ listify the values against the key.
 		frappe.<b>create_folder</b>
         <i class="text-muted">(path, with_init=False)</i>
     </p>
-	<div class="docs-attr-desc"><p>Create a folder in the given path and add an <code><a href="http://__init__.py" rel="nofollow">__init__.py</a></code> file (optional).</p>
+	<div class="docs-attr-desc"><p>Create a folder in the given path and add an <code><a href="http://__init__.py">__init__.py</a></code> file (optional).</p>
 
 <p><strong>Parameters:</strong></p>
 
 <ul>
 <li><strong><code>path</code></strong> -  Folder path.</li>
-<li><strong><code>with_init</code></strong> -  Create <code><a href="http://__init__.py" rel="nofollow">__init__.py</a></code> in the new folder.</li>
+<li><strong><code>with_init</code></strong> -  Create <code><a href="http://__init__.py">__init__.py</a></code> in the new folder.</li>
 </ul>
 </div>
 	<br>
@@ -599,6 +614,35 @@ listify the values against the key.
         <i class="text-muted">(js, user=False)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.enqueue" href="#frappe.enqueue" class="text-muted small">
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
+		frappe.<b>enqueue</b>
+        <i class="text-muted">()</i>
+    </p>
+	<div class="docs-attr-desc"><pre><code>    Enqueue method to be executed using a background worker
+</code></pre>
+
+<p><strong>Parameters:</strong></p>
+
+<ul>
+<li><strong><code>method</code></strong> -  method string or method object</li>
+<li><strong><code>queue</code></strong> -  (optional) should be either long, default or short</li>
+<li><strong><code>timeout</code></strong> -  (optional) should be set according to the functions</li>
+<li><strong><code>event</code></strong> -  this is passed to enable clearing of jobs from queues</li>
+<li><strong><code>async</code></strong> -  (optional) if async=False, the method is executed immediately, else via a worker</li>
+<li><strong><code>job_name</code></strong> -  (optional) can be used to name an enqueue call, which can be used to prevent duplicate calls</li>
+<li><strong><code>kwargs</code></strong> -  keyword arguments to be passed to the method</li>
+</ul>
 </div>
 	<br>
 
@@ -922,7 +966,7 @@ todo = frappe.get_doc("ToDo", "TD0001")
 		frappe.<b>get_hooks</b>
         <i class="text-muted">(hook=None, default=None, app_name=None)</i>
     </p>
-	<div class="docs-attr-desc"><p>Get hooks via <code>app/<a href="http://hooks.py" rel="nofollow">hooks.py</a></code></p>
+	<div class="docs-attr-desc"><p>Get hooks via <code>app/<a href="http://hooks.py">hooks.py</a></code></p>
 
 <p><strong>Parameters:</strong></p>
 
@@ -1755,7 +1799,7 @@ given fieldname
         <a name="frappe.redirect_to_message" href="#frappe.redirect_to_message" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		frappe.<b>redirect_to_message</b>
-        <i class="text-muted">(title, html, http_status_code=None, context=None)</i>
+        <i class="text-muted">(title, html, http_status_code=None, context=None, indicator_color=None)</i>
     </p>
 	<div class="docs-attr-desc"><p>Redirects to /message?id=random
     Similar to respond<em>as</em>web_page, but used to 'redirect' and show message pages like success, failure, etc. with a detailed message</p>
@@ -1783,7 +1827,7 @@ given fieldname
         <a name="frappe.reload_doc" href="#frappe.reload_doc" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		frappe.<b>reload_doc</b>
-        <i class="text-muted">(module, dt=None, dn=None, force=False)</i>
+        <i class="text-muted">(module, dt=None, dn=None, force=False, reset_permissions=False)</i>
     </p>
 	<div class="docs-attr-desc"><p>Reload Document from model (<code>[module]/[doctype]/[name]/[name].json</code>) files.</p>
 
@@ -1808,7 +1852,7 @@ given fieldname
         <a name="frappe.reload_doctype" href="#frappe.reload_doctype" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		frappe.<b>reload_doctype</b>
-        <i class="text-muted">(doctype, force=False)</i>
+        <i class="text-muted">(doctype, force=False, reset_permissions=False)</i>
     </p>
 	<div class="docs-attr-desc"><p>Reload DocType from model (<code>[module]/[doctype]/[name]/[name].json</code>) files.</p>
 </div>
@@ -1824,7 +1868,7 @@ given fieldname
         <a name="frappe.rename_doc" href="#frappe.rename_doc" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		frappe.<b>rename_doc</b>
-        <i class="text-muted">(doctype, old, new, debug=0, force=False, merge=False, ignore_permissions=False)</i>
+        <i class="text-muted">()</i>
     </p>
 	<div class="docs-attr-desc"><p>Rename a document. Calls <code>frappe.model.rename_doc.rename_doc</code></p>
 </div>
@@ -1856,7 +1900,7 @@ given fieldname
         <a name="frappe.respond_as_web_page" href="#frappe.respond_as_web_page" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		frappe.<b>respond_as_web_page</b>
-        <i class="text-muted">(title, html, success=None, http_status_code=None, context=None)</i>
+        <i class="text-muted">(title, html, success=None, http_status_code=None, context=None, indicator_color=None, primary_action=/, primary_label=None, fullpage=False)</i>
     </p>
 	<div class="docs-attr-desc"><p>Send response as a web page with a message rather than JSON. Used to show permission errors etc.</p>
 
@@ -1866,7 +1910,12 @@ given fieldname
 <li><strong><code>title</code></strong> -  Page title and heading.</li>
 <li><strong><code>message</code></strong> -  Message to be shown.</li>
 <li><strong><code>success</code></strong> -  Alert message.</li>
-<li><strong><code>http_status_code</code></strong> -  HTTP status code.</li>
+<li><strong><code>http_status_code</code></strong> -  HTTP status code</li>
+<li><strong><code>context</code></strong> -  web template context</li>
+<li><strong><code>indicator_color</code></strong> -  color of indicator in title</li>
+<li><strong><code>primary_action</code></strong> -  route on primary button (default is <code>/</code>)</li>
+<li><strong><code>primary_label</code></strong> -  label on primary button (defaut is "Home")</li>
+<li><strong><code>fullpage</code></strong> -  hide header / footer</li>
 </ul>
 </div>
 	<br>
@@ -1897,7 +1946,7 @@ given fieldname
         <a name="frappe.sendmail" href="#frappe.sendmail" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		frappe.<b>sendmail</b>
-        <i class="text-muted">(recipients=(), sender=, subject=No Subject, message=No Message, as_markdown=False, delayed=True, reference_doctype=None, reference_name=None, unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None, attachments=None, content=None, doctype=None, name=None, reply_to=None, cc=(), show_as_cc=(), in_reply_to=None, send_after=None, expose_recipients=False, send_priority=1, communication=None, retry=1, now=None)</i>
+        <i class="text-muted">(recipients=[], sender=, subject=No Subject, message=No Message, as_markdown=False, delayed=True, reference_doctype=None, reference_name=None, unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None, attachments=None, content=None, doctype=None, name=None, reply_to=None, cc=[], message_id=None, in_reply_to=None, send_after=None, expose_recipients=None, send_priority=1, communication=None, retry=1, now=None, read_receipt=None, is_notification=False)</i>
     </p>
 	<div class="docs-attr-desc"><p>Send email using user's default <strong>Email Account</strong> or global default <strong>Email Account</strong>.</p>
 
@@ -1916,7 +1965,8 @@ given fieldname
 <li><strong><code>unsubscribe_method</code></strong> -  Unsubscribe url with options email, doctype, name. e.g. <code>/api/method/unsubscribe</code></li>
 <li><strong><code>unsubscribe_params</code></strong> -  Unsubscribe paramaters to be loaded on the unsubscribe_method [optional] (dict).</li>
 <li><strong><code>attachments</code></strong> -  List of attachments.</li>
-<li><strong><code>reply_to</code></strong> -  Reply-To email id.</li>
+<li><strong><code>reply_to</code></strong> -  Reply-To Email Address.</li>
+<li><strong><code>message_id</code></strong> -  Used for threading. If a reply is received to this email, Message-Id is sent back as In-Reply-To in received email.</li>
 <li><strong><code>in_reply_to</code></strong> -  Used to send the Message-Id of a received email back as In-Reply-To.</li>
 <li><strong><code>send_after</code></strong> -  Send after the given datetime.</li>
 <li><strong><code>expose_recipients</code></strong> -  Display all recipients in the footer message - "This email was sent to"</li>
@@ -2071,8 +2121,8 @@ def myfunc(param1, param2):
 
 <!-- autodoc -->
 </div>
-				</div>
-			</div>
+		</div>
+	</div>
 </div>
 
 				<!-- edit-link -->

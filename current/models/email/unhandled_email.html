@@ -4,7 +4,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>frappe.model.utils.list_settings</title>
+	<title>Unhandled Email</title>
 	<meta name="generator" content="frappe">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
@@ -22,11 +22,10 @@
     
 
 		</head>
-<body data-path="current/api/model/utils/frappe.model.utils.list_settings">
+<body data-path="current/models/email/unhandled_email">
 	<div class="main-section">
 		<div>
-				<header>
-	<nav class="navbar navbar-default navbar-main" role="navigation">
+					<nav class="navbar navbar-default navbar-main" role="navigation">
 		<div class="container">
 			<div class="navbar-header">
 				<a class="navbar-brand ellipsis"
@@ -57,6 +56,7 @@
 	Forum</a></li>
 
 <li class="divider"></li>
+
 <!-- post login tools -->
 
 </ul>
@@ -84,60 +84,66 @@
 		>
 	Forum</a></li>
 	
+	
 	<!-- post login tools -->
 
 </ul>
 				
 			</div>
 		</div>
-	</nav>
-</header><div class="hero-and-content">
+	</nav><div class="hero-and-content">
                 <div data-html-block="hero"></div>
                 <div class="container" data-html-block="content">
                 
-<div class="page-container" id="page-current/api/model/utils/frappe.model.utils.list_settings" data-path="{{ pathname }}"
+<div class="page-container" id="page-current/models/email/unhandled_email" data-path="{{ pathname }}"
 	>
-			<div class="row ">
-				
-				<div class=" page-content col-sm-12 ">
-					<div class="page-content-wrapper">
-						<div class="row page-head">
-							<div class='col-sm-12'>
-								
-								<div class="page-breadcrumbs">
-									
-									
+	<div class="row ">
+		
+		<div class=" page-content col-sm-12 ">
+			<div class="page-content-wrapper">
+				<div class="row page-head">
+					<div class='col-sm-12'>
+						
+						<div class="page-breadcrumbs">
+							
+							
 <ul class="breadcrumb">
 	<li>
 		<span class="fa fa-angle-left"></span>
-		<a href="https://frappe.github.io/frappe//current/api/model/utils">
-		utils</a>
+		<a href="https://frappe.github.io/frappe//current/models/email">
+		Module email</a>
 	</li>
 	
 </ul>
 
-									
-								</div>
-								
-							</div>
-							<div class="col-sm-8 col-xs-6">
-								<h1>frappe.model.utils.list_settings</h1>
-							</div>
-							<div class="col-sm-4 col-xs-6">
-								
-
-								
-							</div>
+							
 						</div>
+						
 					</div>
-					<div class="page_content">
-<!-- title: frappe.model.utils.list_settings --><div class="dev-header">
+					<div class="col-sm-8 col-xs-6">
+						<h1>Unhandled Email</h1>
+					</div>
+					<div class="col-sm-4 col-xs-6">
+						
+
+						
+					</div>
+				</div>
+			</div>
+			<div class="page_content">
+<!-- title: Unhandled Email -->
+
+
+
+
+
+<div class="dev-header">
 
 <a class="btn btn-default btn-sm" disabled style="margin-bottom: 10px;">
 	Version 7.x.x</a>
 
 
-	<a class="btn btn-default btn-sm" href="https://github.com/frappe/frappe/blob/develop/frappe/model/utils/list_settings.py"
+	<a class="btn btn-default btn-sm" href="https://github.com/frappe/frappe/tree/develop/frappe/email/doctype/unhandled_email"
 		target="_blank" style="margin-left: 10px; margin-bottom: 10px;"><i class="octicon octicon-mark-github"></i> Source</a>
 
 </div>
@@ -146,60 +152,132 @@
 
 
 
+    <p><b>Table Name:</b> <code>tabUnhandled Email</code></p>
+
+
+
+
+<h3>Fields</h3>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th style="width: 5%">Sr</th>
+            <th style="width: 25%">Fieldname</th>
+            <th style="width: 20%">Type</th>
+            <th style="width: 25%">Label</th>
+            <th style="width: 25%">Options</th>
+        </tr>
+    </thead>
+    <tbody>
+        
+        <tr >
+            <td>1</td>
+            <td ><code>email_account</code></td>
+            <td >
+                Link</td>
+            <td >
+                Email Account
+                
+            </td>
+            <td>
+                
+                
+
+
+<a href="https://frappe.github.io/frappe/current/models/email/email_account">Email Account</a>
+
+
+                
+            </td>
+        </tr>
+        
+        <tr >
+            <td>2</td>
+            <td ><code>uid</code></td>
+            <td >
+                Data</td>
+            <td >
+                uid
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>3</td>
+            <td ><code>reason</code></td>
+            <td >
+                Long Text</td>
+            <td >
+                Reason
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>4</td>
+            <td ><code>message_id</code></td>
+            <td >
+                Code</td>
+            <td >
+                Message-id
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>5</td>
+            <td ><code>raw</code></td>
+            <td >
+                Code</td>
+            <td >
+                Raw Email
+                
+            </td>
+            <td></td>
+        </tr>
+        
+    </tbody>
+</table>
+
+
+    <hr>
+    <h3>Controller</h3>
+    <h4>frappe.email.doctype.unhandled_email.unhandled_email</h4>
+
+    
+
+
+
 	
         
+	<h3 style="font-weight: normal;">Class <b>UnhandledEmail</b></h3>
     
+    <p style="padding-left: 30px;"><i>Inherits from frappe.model.document.Document</i></h4>
     
-	<p class="docs-attr-name">
-        <a name="frappe.model.utils.list_settings.get_list_settings" href="#frappe.model.utils.list_settings.get_list_settings" class="text-muted small">
-            <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.model.utils.list_settings.<b>get_list_settings</b>
-        <i class="text-muted">(doctype, for_update=False)</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+    <div class="docs-attr-desc"><p></p>
 </div>
-	<br>
-
-	
-
-	
+    <div style="padding-left: 30px;">
         
-    
-    
-	<p class="docs-attr-name">
-        <a name="frappe.model.utils.list_settings.sync_list_settings" href="#frappe.model.utils.list_settings.sync_list_settings" class="text-muted small">
-            <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.model.utils.list_settings.<b>sync_list_settings</b>
-        <i class="text-muted">()</i>
-    </p>
-	<div class="docs-attr-desc"><p>Sync from cache to database (called asynchronously via the browser)</p>
-</div>
-	<br>
+    </div>
+    <hr>
 
 	
 
-	
-        
+
     
     
-	<p class="docs-attr-name">
-        <a name="frappe.model.utils.list_settings.update_list_settings" href="#frappe.model.utils.list_settings.update_list_settings" class="text-muted small">
-            <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.model.utils.list_settings.<b>update_list_settings</b>
-        <i class="text-muted">(doctype, list_settings, for_update=False)</i>
-    </p>
-	<div class="docs-attr-desc"><p>update list settings in cache</p>
-</div>
-	<br>
-
-	
-
 
 
 <!-- autodoc -->
+<!-- jinja -->
+<!-- static -->
 </div>
-				</div>
-			</div>
+		</div>
+	</div>
 </div>
 
 				<!-- edit-link -->

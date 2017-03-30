@@ -25,8 +25,7 @@
 <body data-path="current/api/model/frappe.model.db_query">
 	<div class="main-section">
 		<div>
-				<header>
-	<nav class="navbar navbar-default navbar-main" role="navigation">
+					<nav class="navbar navbar-default navbar-main" role="navigation">
 		<div class="container">
 			<div class="navbar-header">
 				<a class="navbar-brand ellipsis"
@@ -57,6 +56,7 @@
 	Forum</a></li>
 
 <li class="divider"></li>
+
 <!-- post login tools -->
 
 </ul>
@@ -84,29 +84,29 @@
 		>
 	Forum</a></li>
 	
+	
 	<!-- post login tools -->
 
 </ul>
 				
 			</div>
 		</div>
-	</nav>
-</header><div class="hero-and-content">
+	</nav><div class="hero-and-content">
                 <div data-html-block="hero"></div>
                 <div class="container" data-html-block="content">
                 
 <div class="page-container" id="page-current/api/model/frappe.model.db_query" data-path="{{ pathname }}"
 	>
-			<div class="row ">
-				
-				<div class=" page-content col-sm-12 ">
-					<div class="page-content-wrapper">
-						<div class="row page-head">
-							<div class='col-sm-12'>
-								
-								<div class="page-breadcrumbs">
-									
-									
+	<div class="row ">
+		
+		<div class=" page-content col-sm-12 ">
+			<div class="page-content-wrapper">
+				<div class="row page-head">
+					<div class='col-sm-12'>
+						
+						<div class="page-breadcrumbs">
+							
+							
 <ul class="breadcrumb">
 	<li>
 		<span class="fa fa-angle-left"></span>
@@ -116,21 +116,21 @@
 	
 </ul>
 
-									
-								</div>
-								
-							</div>
-							<div class="col-sm-8 col-xs-6">
-								<h1>frappe.model.db_query</h1>
-							</div>
-							<div class="col-sm-4 col-xs-6">
-								
-
-								
-							</div>
+							
 						</div>
+						
 					</div>
-					<div class="page_content">
+					<div class="col-sm-8 col-xs-6">
+						<h1>frappe.model.db_query</h1>
+					</div>
+					<div class="col-sm-4 col-xs-6">
+						
+
+						
+					</div>
+				</div>
+			</div>
+			<div class="page_content">
 <!-- title: frappe.model.db_query --><div class="dev-header">
 
 <a class="btn btn-default btn-sm" disabled style="margin-bottom: 10px;">
@@ -286,24 +286,10 @@
     
     
 	<p class="docs-attr-name">
-        <a name="check_sort_by_table" href="#check_sort_by_table" class="text-muted small">
-            <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		<b>check_sort_by_table</b>
-        <i class="text-muted">(self, order_by)</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
-
-        
-        
-    
-    
-	<p class="docs-attr-name">
         <a name="execute" href="#execute" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		<b>execute</b>
-        <i class="text-muted">(self, query=None, fields=None, filters=None, or_filters=None, docstatus=None, group_by=None, order_by=None, limit_start=False, limit_page_length=None, as_list=False, with_childnames=False, debug=False, ignore_permissions=False, user=None, with_comment_count=False, join=left join, distinct=False, start=None, page_length=None, limit=None, ignore_ifnull=False, save_list_settings=False, save_list_settings_fields=False, update=None, add_total_row=None)</i>
+        <i class="text-muted">(self, query=None, fields=None, filters=None, or_filters=None, docstatus=None, group_by=None, order_by=None, limit_start=False, limit_page_length=None, as_list=False, with_childnames=False, debug=False, ignore_permissions=False, user=None, with_comment_count=False, join=left join, distinct=False, start=None, page_length=None, limit=None, ignore_ifnull=False, save_user_settings=False, save_user_settings_fields=False, update=None, add_total_row=None, user_settings=None)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
@@ -458,12 +444,26 @@
     
     
 	<p class="docs-attr-name">
-        <a name="update_list_settings" href="#update_list_settings" class="text-muted small">
+        <a name="update_user_settings" href="#update_user_settings" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		<b>update_list_settings</b>
+		<b>update_user_settings</b>
         <i class="text-muted">(self)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="validate_order_by_and_group_by" href="#validate_order_by_and_group_by" class="text-muted small">
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
+		<b>validate_order_by_and_group_by</b>
+        <i class="text-muted">(self, parameters)</i>
+    </p>
+	<div class="docs-attr-desc"><p>Check order by, group by so that atleast one column is selected and does not have subquery</p>
 </div>
 	<br>
 
@@ -473,12 +473,28 @@
 
 	
 
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.model.db_query.get_order_by" href="#frappe.model.db_query.get_order_by" class="text-muted small">
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
+		frappe.model.db_query.<b>get_order_by</b>
+        <i class="text-muted">(doctype, meta)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+	
+
 
 
 <!-- autodoc -->
 </div>
-				</div>
-			</div>
+		</div>
+	</div>
 </div>
 
 				<!-- edit-link -->

@@ -25,8 +25,7 @@
 <body data-path="current/models/website/web_form">
 	<div class="main-section">
 		<div>
-				<header>
-	<nav class="navbar navbar-default navbar-main" role="navigation">
+					<nav class="navbar navbar-default navbar-main" role="navigation">
 		<div class="container">
 			<div class="navbar-header">
 				<a class="navbar-brand ellipsis"
@@ -57,6 +56,7 @@
 	Forum</a></li>
 
 <li class="divider"></li>
+
 <!-- post login tools -->
 
 </ul>
@@ -84,29 +84,29 @@
 		>
 	Forum</a></li>
 	
+	
 	<!-- post login tools -->
 
 </ul>
 				
 			</div>
 		</div>
-	</nav>
-</header><div class="hero-and-content">
+	</nav><div class="hero-and-content">
                 <div data-html-block="hero"></div>
                 <div class="container" data-html-block="content">
                 
 <div class="page-container" id="page-current/models/website/web_form" data-path="{{ pathname }}"
 	>
-			<div class="row ">
-				
-				<div class=" page-content col-sm-12 ">
-					<div class="page-content-wrapper">
-						<div class="row page-head">
-							<div class='col-sm-12'>
-								
-								<div class="page-breadcrumbs">
-									
-									
+	<div class="row ">
+		
+		<div class=" page-content col-sm-12 ">
+			<div class="page-content-wrapper">
+				<div class="row page-head">
+					<div class='col-sm-12'>
+						
+						<div class="page-breadcrumbs">
+							
+							
 <ul class="breadcrumb">
 	<li>
 		<span class="fa fa-angle-left"></span>
@@ -116,21 +116,21 @@
 	
 </ul>
 
-									
-								</div>
-								
-							</div>
-							<div class="col-sm-8 col-xs-6">
-								<h1>Web Form</h1>
-							</div>
-							<div class="col-sm-4 col-xs-6">
-								
-
-								
-							</div>
+							
 						</div>
+						
 					</div>
-					<div class="page_content">
+					<div class="col-sm-8 col-xs-6">
+						<h1>Web Form</h1>
+					</div>
+					<div class="col-sm-4 col-xs-6">
+						
+
+						
+					</div>
+				</div>
+			</div>
+			<div class="page_content">
 <!-- title: Web Form -->
 
 
@@ -557,7 +557,7 @@
                 
 
 
-<a href="https://frappe.github.io/frappe/current/models/integration_broker/integration_service">Integration Service</a>
+<a href="https://frappe.github.io/frappe/current/models/core/payment_gateway">Payment Gateway</a>
 
 
                 
@@ -566,32 +566,23 @@
         
         <tr >
             <td>29</td>
-            <td ><code>currency</code></td>
+            <td ><code>payment_button_label</code></td>
             <td >
-                Link</td>
+                Data</td>
             <td >
-                Currency
+                Button Label
                 
             </td>
-            <td>
-                
-                
-
-
-<a href="https://frappe.github.io/frappe/current/models/geo/currency">Currency</a>
-
-
-                
-            </td>
+            <td></td>
         </tr>
         
         <tr >
             <td>30</td>
-            <td ><code>amount</code></td>
+            <td ><code>payment_button_help</code></td>
             <td >
-                Currency</td>
+                Text</td>
             <td >
-                Amount
+                Button Help
                 
             </td>
             <td></td>
@@ -611,11 +602,11 @@
         
         <tr >
             <td>32</td>
-            <td ><code>payment_button_label</code></td>
+            <td ><code>amount_based_on_field</code></td>
             <td >
-                Data</td>
+                Check</td>
             <td >
-                Button Label
+                Amount Based On Field
                 
             </td>
             <td></td>
@@ -623,18 +614,51 @@
         
         <tr >
             <td>33</td>
-            <td ><code>payment_button_help</code></td>
+            <td ><code>amount_field</code></td>
             <td >
-                Text</td>
+                Select</td>
             <td >
-                Button Help
+                Amount Field
                 
             </td>
             <td></td>
         </tr>
         
-        <tr class="info">
+        <tr >
             <td>34</td>
+            <td ><code>amount</code></td>
+            <td >
+                Currency</td>
+            <td >
+                Amount
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>35</td>
+            <td ><code>currency</code></td>
+            <td >
+                Link</td>
+            <td >
+                Currency
+                
+            </td>
+            <td>
+                
+                
+
+
+<a href="https://frappe.github.io/frappe/current/models/geo/currency">Currency</a>
+
+
+                
+            </td>
+        </tr>
+        
+        <tr class="info">
+            <td>36</td>
             <td ><code>advanced</code></td>
             <td >
                 Section Break</td>
@@ -646,7 +670,7 @@
         </tr>
         
         <tr >
-            <td>35</td>
+            <td>37</td>
             <td ><code>web_page_link_text</code></td>
             <td >
                 Data</td>
@@ -659,7 +683,7 @@
         </tr>
         
         <tr >
-            <td>36</td>
+            <td>38</td>
             <td ><code>breadcrumbs</code></td>
             <td >
                 Code</td>
@@ -867,6 +891,20 @@
     
     
 	<p class="docs-attr-name">
+        <a name="update_params_from_form_dict" href="#update_params_from_form_dict" class="text-muted small">
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
+		<b>update_params_from_form_dict</b>
+        <i class="text-muted">(self, context)</i>
+    </p>
+	<div class="docs-attr-desc"><p>Copy params from list view to new view</p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
         <a name="use_meta_fields" href="#use_meta_fields" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		<b>use_meta_fields</b>
@@ -915,6 +953,20 @@
         <i class="text-muted">(self, doc)</i>
     </p>
 	<div class="docs-attr-desc"><p>Validate mandatory web form fields</p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="validate_payment_amount" href="#validate_payment_amount" class="text-muted small">
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
+		<b>validate_payment_amount</b>
+        <i class="text-muted">(self)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
 	<br>
 
@@ -984,7 +1036,7 @@
         <a name="frappe.website.doctype.web_form.web_form.get_web_form_list" href="#frappe.website.doctype.web_form.web_form.get_web_form_list" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		frappe.website.doctype.web_form.web_form.<b>get_web_form_list</b>
-        <i class="text-muted">(doctype, txt, filters, limit_start, limit_page_length=20)</i>
+        <i class="text-muted">(doctype, txt, filters, limit_start, limit_page_length=20, order_by=None)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
@@ -1033,8 +1085,8 @@
 <!-- jinja -->
 <!-- static -->
 </div>
-				</div>
-			</div>
+		</div>
+	</div>
 </div>
 
 				<!-- edit-link -->

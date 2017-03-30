@@ -25,8 +25,7 @@
 <body data-path="current/models/integrations/dropbox_settings">
 	<div class="main-section">
 		<div>
-				<header>
-	<nav class="navbar navbar-default navbar-main" role="navigation">
+					<nav class="navbar navbar-default navbar-main" role="navigation">
 		<div class="container">
 			<div class="navbar-header">
 				<a class="navbar-brand ellipsis"
@@ -57,6 +56,7 @@
 	Forum</a></li>
 
 <li class="divider"></li>
+
 <!-- post login tools -->
 
 </ul>
@@ -84,29 +84,29 @@
 		>
 	Forum</a></li>
 	
+	
 	<!-- post login tools -->
 
 </ul>
 				
 			</div>
 		</div>
-	</nav>
-</header><div class="hero-and-content">
+	</nav><div class="hero-and-content">
                 <div data-html-block="hero"></div>
                 <div class="container" data-html-block="content">
                 
 <div class="page-container" id="page-current/models/integrations/dropbox_settings" data-path="{{ pathname }}"
 	>
-			<div class="row ">
-				
-				<div class=" page-content col-sm-12 ">
-					<div class="page-content-wrapper">
-						<div class="row page-head">
-							<div class='col-sm-12'>
-								
-								<div class="page-breadcrumbs">
-									
-									
+	<div class="row ">
+		
+		<div class=" page-content col-sm-12 ">
+			<div class="page-content-wrapper">
+				<div class="row page-head">
+					<div class='col-sm-12'>
+						
+						<div class="page-breadcrumbs">
+							
+							
 <ul class="breadcrumb">
 	<li>
 		<span class="fa fa-angle-left"></span>
@@ -116,21 +116,21 @@
 	
 </ul>
 
-									
-								</div>
-								
-							</div>
-							<div class="col-sm-8 col-xs-6">
-								<h1>Dropbox Settings</h1>
-							</div>
-							<div class="col-sm-4 col-xs-6">
-								
-
-								
-							</div>
+							
 						</div>
+						
 					</div>
-					<div class="page_content">
+					<div class="col-sm-8 col-xs-6">
+						<h1>Dropbox Settings</h1>
+					</div>
+					<div class="col-sm-4 col-xs-6">
+						
+
+						
+					</div>
+				</div>
+			</div>
+			<div class="page_content">
 <!-- title: Dropbox Settings -->
 
 
@@ -171,6 +171,18 @@
         
         <tr >
             <td>1</td>
+            <td ><code>enabled</code></td>
+            <td >
+                Check</td>
+            <td >
+                Enabled
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>2</td>
             <td class="danger" title="Mandatory"><code>send_notifications_to</code></td>
             <td >
                 Data</td>
@@ -182,7 +194,7 @@
         </tr>
         
         <tr >
-            <td>2</td>
+            <td>3</td>
             <td class="danger" title="Mandatory"><code>backup_frequency</code></td>
             <td >
                 Select</td>
@@ -198,8 +210,8 @@ Weekly</pre>
         </tr>
         
         <tr >
-            <td>3</td>
-            <td class="danger" title="Mandatory"><code>app_access_key</code></td>
+            <td>4</td>
+            <td ><code>app_access_key</code></td>
             <td >
                 Data</td>
             <td >
@@ -210,8 +222,8 @@ Weekly</pre>
         </tr>
         
         <tr >
-            <td>4</td>
-            <td class="danger" title="Mandatory"><code>app_secret_key</code></td>
+            <td>5</td>
+            <td ><code>app_secret_key</code></td>
             <td >
                 Password</td>
             <td >
@@ -222,7 +234,7 @@ Weekly</pre>
         </tr>
         
         <tr >
-            <td>5</td>
+            <td>6</td>
             <td ><code>allow_dropbox_access</code></td>
             <td >
                 Button</td>
@@ -234,7 +246,7 @@ Weekly</pre>
         </tr>
         
         <tr >
-            <td>6</td>
+            <td>7</td>
             <td ><code>dropbox_access_key</code></td>
             <td >
                 Password</td>
@@ -246,12 +258,24 @@ Weekly</pre>
         </tr>
         
         <tr >
-            <td>7</td>
+            <td>8</td>
             <td ><code>dropbox_access_secret</code></td>
             <td >
                 Password</td>
             <td class="text-muted" title="Hidden">
                 Dropbox Access Secret
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>9</td>
+            <td ><code>dropbox_setup_via_site_config</code></td>
+            <td >
+                Check</td>
+            <td class="text-muted" title="Hidden">
+                Dropbox Setup via Site Config
                 
             </td>
             <td></td>
@@ -273,25 +297,11 @@ Weekly</pre>
         
 	<h3 style="font-weight: normal;">Class <b>DropboxSettings</b></h3>
     
-    <p style="padding-left: 30px;"><i>Inherits from frappe.integration_broker.doctype.integration_service.integration_service.IntegrationService</i></h4>
+    <p style="padding-left: 30px;"><i>Inherits from frappe.model.document.Document</i></h4>
     
     <div class="docs-attr-desc"><p></p>
 </div>
     <div style="padding-left: 30px;">
-        
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="enable" href="#enable" class="text-muted small">
-            <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		<b>enable</b>
-        <i class="text-muted">(self)</i>
-    </p>
-	<div class="docs-attr-desc"><p>enable service </p>
-</div>
-	<br>
-
         
         
     
@@ -311,9 +321,9 @@ Weekly</pre>
     
     
 	<p class="docs-attr-name">
-        <a name="on_update" href="#on_update" class="text-muted small">
+        <a name="onload" href="#onload" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		<b>on_update</b>
+		<b>onload</b>
         <i class="text-muted">(self)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
@@ -415,24 +425,6 @@ Weekly</pre>
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		frappe.integrations.doctype.dropbox_settings.dropbox_settings.<b>get_dropbox_client</b>
         <i class="text-muted">(previous_dropbox_client=None)</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
-
-	
-
-	
-        
-    
-    <p><span class="label label-info">Public API</span>
-        <br><code>/api/method/frappe.integrations.doctype.dropbox_settings.dropbox_settings.get_service_details</code>
-    </p>
-	<p class="docs-attr-name">
-        <a name="frappe.integrations.doctype.dropbox_settings.dropbox_settings.get_service_details" href="#frappe.integrations.doctype.dropbox_settings.dropbox_settings.get_service_details" class="text-muted small">
-            <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.integrations.doctype.dropbox_settings.dropbox_settings.<b>get_service_details</b>
-        <i class="text-muted">()</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
@@ -579,8 +571,8 @@ Weekly</pre>
 <!-- jinja -->
 <!-- static -->
 </div>
-				</div>
-			</div>
+		</div>
+	</div>
 </div>
 
 				<!-- edit-link -->

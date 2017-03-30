@@ -4,7 +4,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>integration_broker</title>
+	<title>Email Queue Recipient</title>
 	<meta name="generator" content="frappe">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
@@ -22,11 +22,10 @@
     
 
 		</head>
-<body data-path="current/api/integration_broker">
+<body data-path="current/models/email/email_queue_recipient">
 	<div class="main-section">
 		<div>
-				<header>
-	<nav class="navbar navbar-default navbar-main" role="navigation">
+					<nav class="navbar navbar-default navbar-main" role="navigation">
 		<div class="container">
 			<div class="navbar-header">
 				<a class="navbar-brand ellipsis"
@@ -57,6 +56,7 @@
 	Forum</a></li>
 
 <li class="divider"></li>
+
 <!-- post login tools -->
 
 </ul>
@@ -84,54 +84,57 @@
 		>
 	Forum</a></li>
 	
+	
 	<!-- post login tools -->
 
 </ul>
 				
 			</div>
 		</div>
-	</nav>
-</header><div class="hero-and-content">
+	</nav><div class="hero-and-content">
                 <div data-html-block="hero"></div>
                 <div class="container" data-html-block="content">
                 
-<div class="page-container" id="page-current/api/integration_broker" data-path="{{ pathname }}"
+<div class="page-container" id="page-current/models/email/email_queue_recipient" data-path="{{ pathname }}"
 	>
-			<div class="row ">
-				
-				<div class=" page-content col-sm-12 ">
-					<div class="page-content-wrapper">
-						<div class="row page-head">
-							<div class='col-sm-12'>
-								
-								<div class="page-breadcrumbs">
-									
-									
+	<div class="row ">
+		
+		<div class=" page-content col-sm-12 ">
+			<div class="page-content-wrapper">
+				<div class="row page-head">
+					<div class='col-sm-12'>
+						
+						<div class="page-breadcrumbs">
+							
+							
 <ul class="breadcrumb">
 	<li>
 		<span class="fa fa-angle-left"></span>
-		<a href="https://frappe.github.io/frappe//current/api">
-		Frappe Framework API</a>
+		<a href="https://frappe.github.io/frappe//current/models/email">
+		Module email</a>
 	</li>
 	
 </ul>
 
-									
-								</div>
-								
-							</div>
-							<div class="col-sm-8 col-xs-6">
-								<h1>integration_broker</h1>
-							</div>
-							<div class="col-sm-4 col-xs-6">
-								
-
-								
-							</div>
+							
 						</div>
+						
 					</div>
-					<div class="page_content">
-<!-- title: integration_broker -->
+					<div class="col-sm-8 col-xs-6">
+						<h1>Email Queue Recipient</h1>
+					</div>
+					<div class="col-sm-4 col-xs-6">
+						
+
+						
+					</div>
+				</div>
+			</div>
+			<div class="page_content">
+<!-- title: Email Queue Recipient -->
+
+
+
 
 
 <div class="dev-header">
@@ -140,40 +143,105 @@
 	Version 7.x.x</a>
 
 
-	<a class="btn btn-default btn-sm" href="https://github.com/frappe/frappe/tree/develop/integration_broker"
+	<a class="btn btn-default btn-sm" href="https://github.com/frappe/frappe/tree/develop/frappe/email/doctype/email_queue_recipient"
 		target="_blank" style="margin-left: 10px; margin-bottom: 10px;"><i class="octicon octicon-mark-github"></i> Source</a>
 
 </div>
 
-<h3>Package Contents</h3>
+
+<span class="label label-info">Child Table</span>
+
+
+    <p><b>Table Name:</b> <code>tabEmail Queue Recipient</code></p>
 
 
 
 
-    <ol>
+<h3>Fields</h3>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th style="width: 5%">Sr</th>
+            <th style="width: 25%">Fieldname</th>
+            <th style="width: 20%">Type</th>
+            <th style="width: 25%">Label</th>
+            <th style="width: 25%">Options</th>
+        </tr>
+    </thead>
+    <tbody>
+        
+        <tr >
+            <td>1</td>
+            <td ><code>recipient</code></td>
+            <td >
+                Data</td>
+            <td >
+                Recipient
+                
+            </td>
+            <td>
+                <pre>Email</pre>
+            </td>
+        </tr>
+        
+        <tr >
+            <td>2</td>
+            <td ><code>status</code></td>
+            <td >
+                Select</td>
+            <td >
+                Status
+                
+            </td>
+            <td>
+                <pre>
+Not Sent
+Sending
+Sent
+Error
+Expired</pre>
+            </td>
+        </tr>
+        
+        <tr >
+            <td>3</td>
+            <td ><code>error</code></td>
+            <td >
+                Code</td>
+            <td >
+                Error
+                
+            </td>
+            <td></td>
+        </tr>
+        
+    </tbody>
+</table>
+
+
+    
+    
+    <h4>Child Table Of</h4>
+    <ul>
     
         <li>
-            <a href="https://frappe.github.io/frappe/current/api/integration_broker/frappe.integration_broker">frappe.integration_broker</a>
-            
-        </li>
+
+
+<a href="https://frappe.github.io/frappe/current/models/email/email_queue">Email Queue</a>
+
+</li>
     
-        <li>
-            <a href="https://frappe.github.io/frappe/current/api/integration_broker/frappe.integration_broker.integration_controller">frappe.integration_broker.integration_controller</a>
-            
-        </li>
+    </ul>
     
-        <li>
-            <a href="https://frappe.github.io/frappe/current/api/integration_broker/frappe.integration_broker.oauth2">frappe.integration_broker.oauth2</a>
-            
-        </li>
-    
-    </ol>
 
 
 <!-- autodoc -->
+<!-- jinja -->
+<!-- static -->
 </div>
-				</div>
-			</div>
+		</div>
+	</div>
 </div>
 
 				<!-- edit-link -->

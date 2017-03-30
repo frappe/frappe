@@ -4,7 +4,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>UserRole</title>
+	<title>Newsletter Email Group</title>
 	<meta name="generator" content="frappe">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
@@ -22,11 +22,10 @@
     
 
 		</head>
-<body data-path="current/models/core/userrole">
+<body data-path="current/models/email/newsletter_email_group">
 	<div class="main-section">
 		<div>
-				<header>
-	<nav class="navbar navbar-default navbar-main" role="navigation">
+					<nav class="navbar navbar-default navbar-main" role="navigation">
 		<div class="container">
 			<div class="navbar-header">
 				<a class="navbar-brand ellipsis"
@@ -57,6 +56,7 @@
 	Forum</a></li>
 
 <li class="divider"></li>
+
 <!-- post login tools -->
 
 </ul>
@@ -84,54 +84,54 @@
 		>
 	Forum</a></li>
 	
+	
 	<!-- post login tools -->
 
 </ul>
 				
 			</div>
 		</div>
-	</nav>
-</header><div class="hero-and-content">
+	</nav><div class="hero-and-content">
                 <div data-html-block="hero"></div>
                 <div class="container" data-html-block="content">
                 
-<div class="page-container" id="page-current/models/core/userrole" data-path="{{ pathname }}"
+<div class="page-container" id="page-current/models/email/newsletter_email_group" data-path="{{ pathname }}"
 	>
-			<div class="row ">
-				
-				<div class=" page-content col-sm-12 ">
-					<div class="page-content-wrapper">
-						<div class="row page-head">
-							<div class='col-sm-12'>
-								
-								<div class="page-breadcrumbs">
-									
-									
+	<div class="row ">
+		
+		<div class=" page-content col-sm-12 ">
+			<div class="page-content-wrapper">
+				<div class="row page-head">
+					<div class='col-sm-12'>
+						
+						<div class="page-breadcrumbs">
+							
+							
 <ul class="breadcrumb">
 	<li>
 		<span class="fa fa-angle-left"></span>
-		<a href="https://frappe.github.io/frappe//current/models/core">
-		Module core</a>
+		<a href="https://frappe.github.io/frappe//current/models/email">
+		Module email</a>
 	</li>
 	
 </ul>
 
-									
-								</div>
-								
-							</div>
-							<div class="col-sm-8 col-xs-6">
-								<h1>UserRole</h1>
-							</div>
-							<div class="col-sm-4 col-xs-6">
-								
-
-								
-							</div>
+							
 						</div>
+						
 					</div>
-					<div class="page_content">
-<!-- title: UserRole -->
+					<div class="col-sm-8 col-xs-6">
+						<h1>Newsletter Email Group</h1>
+					</div>
+					<div class="col-sm-4 col-xs-6">
+						
+
+						
+					</div>
+				</div>
+			</div>
+			<div class="page_content">
+<!-- title: Newsletter Email Group -->
 
 
 
@@ -143,7 +143,7 @@
 	Version 7.x.x</a>
 
 
-	<a class="btn btn-default btn-sm" href="https://github.com/frappe/frappe/tree/develop/frappe/core/doctype/userrole"
+	<a class="btn btn-default btn-sm" href="https://github.com/frappe/frappe/tree/develop/frappe/email/doctype/newsletter_email_group"
 		target="_blank" style="margin-left: 10px; margin-bottom: 10px;"><i class="octicon octicon-mark-github"></i> Source</a>
 
 </div>
@@ -152,7 +152,7 @@
 <span class="label label-info">Child Table</span>
 
 
-    <p><b>Table Name:</b> <code>tabUserRole</code></p>
+    <p><b>Table Name:</b> <code>tabNewsletter Email Group</code></p>
 
 
 
@@ -173,11 +173,11 @@
         
         <tr >
             <td>1</td>
-            <td class="danger" title="Mandatory"><code>role</code></td>
+            <td class="danger" title="Mandatory"><code>email_group</code></td>
             <td >
                 Link</td>
             <td >
-                Role
+                Email Group
                 
             </td>
             <td>
@@ -185,10 +185,24 @@
                 
 
 
-<a href="https://frappe.github.io/frappe/current/models/core/role">Role</a>
+<a href="https://frappe.github.io/frappe/current/models/email/email_group">Email Group</a>
 
 
                 
+            </td>
+        </tr>
+        
+        <tr >
+            <td>2</td>
+            <td ><code>total_subscribers</code></td>
+            <td >
+                Read Only</td>
+            <td >
+                Total Subscribers
+                
+            </td>
+            <td>
+                <pre>email_group.total_subscribers</pre>
             </td>
         </tr>
         
@@ -204,7 +218,7 @@
         <li>
 
 
-<a href="https://frappe.github.io/frappe/current/models/core/user">User</a>
+<a href="https://frappe.github.io/frappe/current/models/email/newsletter">Newsletter</a>
 
 </li>
     
@@ -216,8 +230,8 @@
 <!-- jinja -->
 <!-- static -->
 </div>
-				</div>
-			</div>
+		</div>
+	</div>
 </div>
 
 				<!-- edit-link -->

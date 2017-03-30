@@ -25,8 +25,7 @@
 <body data-path="current/api/email/frappe.email.queue">
 	<div class="main-section">
 		<div>
-				<header>
-	<nav class="navbar navbar-default navbar-main" role="navigation">
+					<nav class="navbar navbar-default navbar-main" role="navigation">
 		<div class="container">
 			<div class="navbar-header">
 				<a class="navbar-brand ellipsis"
@@ -57,6 +56,7 @@
 	Forum</a></li>
 
 <li class="divider"></li>
+
 <!-- post login tools -->
 
 </ul>
@@ -84,29 +84,29 @@
 		>
 	Forum</a></li>
 	
+	
 	<!-- post login tools -->
 
 </ul>
 				
 			</div>
 		</div>
-	</nav>
-</header><div class="hero-and-content">
+	</nav><div class="hero-and-content">
                 <div data-html-block="hero"></div>
                 <div class="container" data-html-block="content">
                 
 <div class="page-container" id="page-current/api/email/frappe.email.queue" data-path="{{ pathname }}"
 	>
-			<div class="row ">
-				
-				<div class=" page-content col-sm-12 ">
-					<div class="page-content-wrapper">
-						<div class="row page-head">
-							<div class='col-sm-12'>
-								
-								<div class="page-breadcrumbs">
-									
-									
+	<div class="row ">
+		
+		<div class=" page-content col-sm-12 ">
+			<div class="page-content-wrapper">
+				<div class="row page-head">
+					<div class='col-sm-12'>
+						
+						<div class="page-breadcrumbs">
+							
+							
 <ul class="breadcrumb">
 	<li>
 		<span class="fa fa-angle-left"></span>
@@ -116,21 +116,21 @@
 	
 </ul>
 
-									
-								</div>
-								
-							</div>
-							<div class="col-sm-8 col-xs-6">
-								<h1>frappe.email.queue</h1>
-							</div>
-							<div class="col-sm-4 col-xs-6">
-								
-
-								
-							</div>
+							
 						</div>
+						
 					</div>
-					<div class="page_content">
+					<div class="col-sm-8 col-xs-6">
+						<h1>frappe.email.queue</h1>
+					</div>
+					<div class="col-sm-4 col-xs-6">
+						
+
+						
+					</div>
+				</div>
+			</div>
+			<div class="page_content">
 <!-- title: frappe.email.queue --><div class="dev-header">
 
 <a class="btn btn-default btn-sm" disabled style="margin-bottom: 10px;">
@@ -169,7 +169,7 @@
         <a name="frappe.email.queue.add" href="#frappe.email.queue.add" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		frappe.email.queue.<b>add</b>
-        <i class="text-muted">(email, sender, subject, formatted, text_content=None, reference_doctype=None, reference_name=None, attachments=None, reply_to=None, cc=(), in_reply_to=None, send_after=None, send_priority=1, email_account=None, communication=None)</i>
+        <i class="text-muted">(recipients, sender, subject)</i>
     </p>
 	<div class="docs-attr-desc"><p>Add to Email Queue</p>
 </div>
@@ -233,6 +233,22 @@
     
     
 	<p class="docs-attr-name">
+        <a name="frappe.email.queue.get_email_queue" href="#frappe.email.queue.get_email_queue" class="text-muted small">
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
+		frappe.email.queue.<b>get_email_queue</b>
+        <i class="text-muted">(recipients, sender, subject)</i>
+    </p>
+	<div class="docs-attr-desc"><p>Make Email Queue object</p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
         <a name="frappe.email.queue.get_emails_sent_this_month" href="#frappe.email.queue.get_emails_sent_this_month" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		frappe.email.queue.<b>get_emails_sent_this_month</b>
@@ -265,10 +281,10 @@
     
     
 	<p class="docs-attr-name">
-        <a name="frappe.email.queue.get_unsubscribe_link" href="#frappe.email.queue.get_unsubscribe_link" class="text-muted small">
+        <a name="frappe.email.queue.get_unsubscribe_message" href="#frappe.email.queue.get_unsubscribe_message" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.email.queue.<b>get_unsubscribe_link</b>
-        <i class="text-muted">(reference_doctype, reference_name, email, recipients, expose_recipients, show_as_cc, unsubscribe_method, unsubscribe_params, unsubscribe_message)</i>
+		frappe.email.queue.<b>get_unsubscribe_message</b>
+        <i class="text-muted">(unsubscribe_message, expose_recipients)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
@@ -287,6 +303,22 @@
         <i class="text-muted">()</i>
     </p>
 	<div class="docs-attr-desc"><p>cache values in queue before sendign</p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.email.queue.prepare_message" href="#frappe.email.queue.prepare_message" class="text-muted small">
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
+		frappe.email.queue.<b>prepare_message</b>
+        <i class="text-muted">(email, recipient, recipients_list)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
 	<br>
 
@@ -316,7 +348,7 @@
         <a name="frappe.email.queue.send" href="#frappe.email.queue.send" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		frappe.email.queue.<b>send</b>
-        <i class="text-muted">(recipients=None, sender=None, subject=None, message=None, reference_doctype=None, reference_name=None, unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None, attachments=None, reply_to=None, cc=(), show_as_cc=(), in_reply_to=None, send_after=None, expose_recipients=False, send_priority=1, communication=None, now=False)</i>
+        <i class="text-muted">(recipients=None, sender=None, subject=None, message=None, reference_doctype=None, reference_name=None, unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None, attachments=None, reply_to=None, cc=[], message_id=None, in_reply_to=None, send_after=None, expose_recipients=None, send_priority=1, communication=None, now=False, read_receipt=None, queue_separately=False, is_notification=False, add_unsubscribe_link=1)</i>
     </p>
 	<div class="docs-attr-desc"><p>Add email to sending queue (Email Queue)</p>
 
@@ -338,6 +370,9 @@
 <li><strong><code>send_after</code></strong> -  Send this email after the given datetime. If value is in integer, then <code>send_after</code> will be the automatically set to no of days from current date.</li>
 <li><strong><code>communication</code></strong> -  Communication link to be set in Email Queue record</li>
 <li><strong><code>now</code></strong> -  Send immediately (don't send in the background)</li>
+<li><strong><code>queue_separately</code></strong> -  Queue each email separately</li>
+<li><strong><code>is_notification</code></strong> -  Marks email as notification so will not trigger notifications from system</li>
+<li><strong><code>add_unsubscribe_link</code></strong> -  Send unsubscribe link in the footer of the Email, default 1.</li>
 </ul>
 </div>
 	<br>
@@ -382,8 +417,8 @@
 
 <!-- autodoc -->
 </div>
-				</div>
-			</div>
+		</div>
+	</div>
 </div>
 
 				<!-- edit-link -->

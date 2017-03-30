@@ -25,8 +25,7 @@
 <body data-path="current/models/integrations/razorpay_settings">
 	<div class="main-section">
 		<div>
-				<header>
-	<nav class="navbar navbar-default navbar-main" role="navigation">
+					<nav class="navbar navbar-default navbar-main" role="navigation">
 		<div class="container">
 			<div class="navbar-header">
 				<a class="navbar-brand ellipsis"
@@ -57,6 +56,7 @@
 	Forum</a></li>
 
 <li class="divider"></li>
+
 <!-- post login tools -->
 
 </ul>
@@ -84,29 +84,29 @@
 		>
 	Forum</a></li>
 	
+	
 	<!-- post login tools -->
 
 </ul>
 				
 			</div>
 		</div>
-	</nav>
-</header><div class="hero-and-content">
+	</nav><div class="hero-and-content">
                 <div data-html-block="hero"></div>
                 <div class="container" data-html-block="content">
                 
 <div class="page-container" id="page-current/models/integrations/razorpay_settings" data-path="{{ pathname }}"
 	>
-			<div class="row ">
-				
-				<div class=" page-content col-sm-12 ">
-					<div class="page-content-wrapper">
-						<div class="row page-head">
-							<div class='col-sm-12'>
-								
-								<div class="page-breadcrumbs">
-									
-									
+	<div class="row ">
+		
+		<div class=" page-content col-sm-12 ">
+			<div class="page-content-wrapper">
+				<div class="row page-head">
+					<div class='col-sm-12'>
+						
+						<div class="page-breadcrumbs">
+							
+							
 <ul class="breadcrumb">
 	<li>
 		<span class="fa fa-angle-left"></span>
@@ -116,21 +116,21 @@
 	
 </ul>
 
-									
-								</div>
-								
-							</div>
-							<div class="col-sm-8 col-xs-6">
-								
-							</div>
-							<div class="col-sm-4 col-xs-6">
-								
-
-								
-							</div>
+							
 						</div>
+						
 					</div>
-					<div class="page_content">
+					<div class="col-sm-8 col-xs-6">
+						
+					</div>
+					<div class="col-sm-4 col-xs-6">
+						
+
+						
+					</div>
+				</div>
+			</div>
+			<div class="page_content">
 <!-- title: Razorpay Settings -->
 
 
@@ -222,9 +222,9 @@
 
 <p>Example:</p>
 
-<pre><code>from frappe.integration_broker.doctype.integration_service.integration_service import get_integration_controller
+<pre><code>from frappe.integrations.utils import get_payment_gateway_controller
 
-controller = get_integration_controller("Razorpay")
+controller = get_payment_gateway_controller("Razorpay")
 controller().validate_transaction_currency(currency)
 </code></pre>
 
@@ -241,7 +241,8 @@ controller().validate_transaction_currency(currency)
     "payer_email": "NuranVerkleij@example.com",
     "payer_name": "Nuran Verkleij",
     "order_id": "111",
-    "currency": "INR"
+    "currency": "INR",
+    "payment_gateway": "Razorpay"
 }
 
 # Redirect the user to this url
@@ -268,7 +269,7 @@ For razorpay payment status is Authorized</p>
         
 	<h3 style="font-weight: normal;">Class <b>RazorpaySettings</b></h3>
     
-    <p style="padding-left: 30px;"><i>Inherits from frappe.integration_broker.doctype.integration_service.integration_service.IntegrationService</i></h4>
+    <p style="padding-left: 30px;"><i>Inherits from frappe.model.document.Document</i></h4>
     
     <div class="docs-attr-desc"><p></p>
 </div>
@@ -309,20 +310,6 @@ For razorpay payment status is Authorized</p>
     
     
 	<p class="docs-attr-name">
-        <a name="enable" href="#enable" class="text-muted small">
-            <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		<b>enable</b>
-        <i class="text-muted">(self)</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
-
-        
-        
-    
-    
-	<p class="docs-attr-name">
         <a name="get_payment_url" href="#get_payment_url" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		<b>get_payment_url</b>
@@ -341,20 +328,6 @@ For razorpay payment status is Authorized</p>
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		<b>get_settings</b>
         <i class="text-muted">(self, data)</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
-
-        
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="on_update" href="#on_update" class="text-muted small">
-            <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		<b>on_update</b>
-        <i class="text-muted">(self)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
@@ -429,42 +402,6 @@ For razorpay payment status is Authorized</p>
 
 	
 
-	
-        
-    
-    <p><span class="label label-info">Public API</span>
-        <br><code>/api/method/frappe.integrations.doctype.razorpay_settings.razorpay_settings.get_checkout_url</code>
-    </p>
-	<p class="docs-attr-name">
-        <a name="frappe.integrations.doctype.razorpay_settings.razorpay_settings.get_checkout_url" href="#frappe.integrations.doctype.razorpay_settings.razorpay_settings.get_checkout_url" class="text-muted small">
-            <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.integrations.doctype.razorpay_settings.razorpay_settings.<b>get_checkout_url</b>
-        <i class="text-muted">()</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
-
-	
-
-	
-        
-    
-    <p><span class="label label-info">Public API</span>
-        <br><code>/api/method/frappe.integrations.doctype.razorpay_settings.razorpay_settings.get_service_details</code>
-    </p>
-	<p class="docs-attr-name">
-        <a name="frappe.integrations.doctype.razorpay_settings.razorpay_settings.get_service_details" href="#frappe.integrations.doctype.razorpay_settings.razorpay_settings.get_service_details" class="text-muted small">
-            <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.integrations.doctype.razorpay_settings.razorpay_settings.<b>get_service_details</b>
-        <i class="text-muted">()</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
-
-	
-
 
     
     
@@ -474,8 +411,8 @@ For razorpay payment status is Authorized</p>
 <!-- jinja -->
 <!-- static -->
 </div>
-				</div>
-			</div>
+		</div>
+	</div>
 </div>
 
 				<!-- edit-link -->

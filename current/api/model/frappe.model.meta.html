@@ -25,8 +25,7 @@
 <body data-path="current/api/model/frappe.model.meta">
 	<div class="main-section">
 		<div>
-				<header>
-	<nav class="navbar navbar-default navbar-main" role="navigation">
+					<nav class="navbar navbar-default navbar-main" role="navigation">
 		<div class="container">
 			<div class="navbar-header">
 				<a class="navbar-brand ellipsis"
@@ -57,6 +56,7 @@
 	Forum</a></li>
 
 <li class="divider"></li>
+
 <!-- post login tools -->
 
 </ul>
@@ -84,29 +84,29 @@
 		>
 	Forum</a></li>
 	
+	
 	<!-- post login tools -->
 
 </ul>
 				
 			</div>
 		</div>
-	</nav>
-</header><div class="hero-and-content">
+	</nav><div class="hero-and-content">
                 <div data-html-block="hero"></div>
                 <div class="container" data-html-block="content">
                 
 <div class="page-container" id="page-current/api/model/frappe.model.meta" data-path="{{ pathname }}"
 	>
-			<div class="row ">
-				
-				<div class=" page-content col-sm-12 ">
-					<div class="page-content-wrapper">
-						<div class="row page-head">
-							<div class='col-sm-12'>
-								
-								<div class="page-breadcrumbs">
-									
-									
+	<div class="row ">
+		
+		<div class=" page-content col-sm-12 ">
+			<div class="page-content-wrapper">
+				<div class="row page-head">
+					<div class='col-sm-12'>
+						
+						<div class="page-breadcrumbs">
+							
+							
 <ul class="breadcrumb">
 	<li>
 		<span class="fa fa-angle-left"></span>
@@ -116,21 +116,21 @@
 	
 </ul>
 
-									
-								</div>
-								
-							</div>
-							<div class="col-sm-8 col-xs-6">
-								<h1>frappe.model.meta</h1>
-							</div>
-							<div class="col-sm-4 col-xs-6">
-								
-
-								
-							</div>
+							
 						</div>
+						
 					</div>
-					<div class="page_content">
+					<div class="col-sm-8 col-xs-6">
+						<h1>frappe.model.meta</h1>
+					</div>
+					<div class="col-sm-4 col-xs-6">
+						
+
+						
+					</div>
+				</div>
+			</div>
+			<div class="page_content">
 <!-- title: frappe.model.meta --><div class="dev-header">
 
 <a class="btn btn-default btn-sm" disabled style="margin-bottom: 10px;">
@@ -232,7 +232,7 @@ if meta.has_field('first_name'):
 	<div class="docs-attr-desc"><p>Returns dashboard setup related to this doctype.</p>
 
 <pre><code>    This method will return the `data` property in the
-    `[doctype]<a href="http://_dashboard.py" rel="nofollow">_dashboard.py</a>` file in the doctype folder
+    `[doctype]<a href="http://_dashboard.py">_dashboard.py</a>` file in the doctype folder
 </code></pre>
 </div>
 	<br>
@@ -270,6 +270,20 @@ if meta.has_field('first_name'):
     
     
 	<p class="docs-attr-name">
+        <a name="get_fieldnames_with_value" href="#get_fieldnames_with_value" class="text-muted small">
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
+		<b>get_fieldnames_with_value</b>
+        <i class="text-muted">(self)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
         <a name="get_fields_to_check_permissions" href="#get_fields_to_check_permissions" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		<b>get_fields_to_check_permissions</b>
@@ -295,6 +309,20 @@ if meta.has_field('first_name'):
 <pre><code>    These fields are of type Data, Link, Text, Readonly and their
     options property is set as `link_fieldname`.`source_fieldname`
 </code></pre>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="get_global_search_fields" href="#get_global_search_fields" class="text-muted small">
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
+		<b>get_global_search_fields</b>
+        <i class="text-muted">(self)</i>
+    </p>
+	<div class="docs-attr-desc"><p>Returns list of fields with <code>in_global_search</code> set and <code>name</code> if set</p>
 </div>
 	<br>
 
@@ -387,6 +415,20 @@ if meta.has_field('first_name'):
     
     
 	<p class="docs-attr-name">
+        <a name="get_row_template" href="#get_row_template" class="text-muted small">
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
+		<b>get_row_template</b>
+        <i class="text-muted">(self)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
         <a name="get_search_fields" href="#get_search_fields" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		<b>get_search_fields</b>
@@ -448,7 +490,8 @@ if meta.has_field('first_name'):
 		<b>get_title_field</b>
         <i class="text-muted">(self)</i>
     </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+	<div class="docs-attr-desc"><p>Return the title field of this doctype,
+        explict via <code>title_field</code>, or <code>title</code> or <code>name</code></p>
 </div>
 	<br>
 
@@ -463,6 +506,20 @@ if meta.has_field('first_name'):
         <i class="text-muted">(self)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="get_web_template" href="#get_web_template" class="text-muted small">
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
+		<b>get_web_template</b>
+        <i class="text-muted">(self, suffix=)</i>
+    </p>
+	<div class="docs-attr-desc"><p>Returns the relative path of the row template for this doctype</p>
 </div>
 	<br>
 
@@ -505,6 +562,20 @@ if meta.has_field('first_name'):
         <i class="text-muted">(self)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="set_custom_permissions" href="#set_custom_permissions" class="text-muted small">
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
+		<b>set_custom_permissions</b>
+        <i class="text-muted">(self)</i>
+    </p>
+	<div class="docs-attr-desc"><p>Reset <code>permissions</code> with Custom DocPerm if exists</p>
 </div>
 	<br>
 
@@ -708,8 +779,8 @@ if meta.has_field('first_name'):
 
 <!-- autodoc -->
 </div>
-				</div>
-			</div>
+		</div>
+	</div>
 </div>
 
 				<!-- edit-link -->

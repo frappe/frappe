@@ -25,8 +25,7 @@
 <body data-path="current/models/core/report">
 	<div class="main-section">
 		<div>
-				<header>
-	<nav class="navbar navbar-default navbar-main" role="navigation">
+					<nav class="navbar navbar-default navbar-main" role="navigation">
 		<div class="container">
 			<div class="navbar-header">
 				<a class="navbar-brand ellipsis"
@@ -57,6 +56,7 @@
 	Forum</a></li>
 
 <li class="divider"></li>
+
 <!-- post login tools -->
 
 </ul>
@@ -84,29 +84,29 @@
 		>
 	Forum</a></li>
 	
+	
 	<!-- post login tools -->
 
 </ul>
 				
 			</div>
 		</div>
-	</nav>
-</header><div class="hero-and-content">
+	</nav><div class="hero-and-content">
                 <div data-html-block="hero"></div>
                 <div class="container" data-html-block="content">
                 
 <div class="page-container" id="page-current/models/core/report" data-path="{{ pathname }}"
 	>
-			<div class="row ">
-				
-				<div class=" page-content col-sm-12 ">
-					<div class="page-content-wrapper">
-						<div class="row page-head">
-							<div class='col-sm-12'>
-								
-								<div class="page-breadcrumbs">
-									
-									
+	<div class="row ">
+		
+		<div class=" page-content col-sm-12 ">
+			<div class="page-content-wrapper">
+				<div class="row page-head">
+					<div class='col-sm-12'>
+						
+						<div class="page-breadcrumbs">
+							
+							
 <ul class="breadcrumb">
 	<li>
 		<span class="fa fa-angle-left"></span>
@@ -116,21 +116,21 @@
 	
 </ul>
 
-									
-								</div>
-								
-							</div>
-							<div class="col-sm-8 col-xs-6">
-								<h1>Report</h1>
-							</div>
-							<div class="col-sm-4 col-xs-6">
-								
-
-								
-							</div>
+							
 						</div>
+						
 					</div>
-					<div class="page_content">
+					<div class="col-sm-8 col-xs-6">
+						<h1>Report</h1>
+					</div>
+					<div class="col-sm-4 col-xs-6">
+						
+
+						
+					</div>
+				</div>
+			</div>
+			<div class="page_content">
 <!-- title: Report -->
 
 
@@ -304,8 +304,29 @@ Script Report</pre>
             <td></td>
         </tr>
         
-        <tr class="info">
+        <tr >
             <td>10</td>
+            <td ><code>letter_head</code></td>
+            <td >
+                Link</td>
+            <td >
+                Letter Head
+                
+            </td>
+            <td>
+                
+                
+
+
+<a href="https://frappe.github.io/frappe/current/models/print/letter_head">Letter Head</a>
+
+
+                
+            </td>
+        </tr>
+        
+        <tr class="info">
+            <td>11</td>
             <td ><code>section_break_6</code></td>
             <td >
                 Section Break</td>
@@ -317,7 +338,7 @@ Script Report</pre>
         </tr>
         
         <tr >
-            <td>11</td>
+            <td>12</td>
             <td ><code>query</code></td>
             <td >
                 Code</td>
@@ -329,7 +350,7 @@ Script Report</pre>
         </tr>
         
         <tr >
-            <td>12</td>
+            <td>13</td>
             <td ><code>javascript</code></td>
             <td >
                 Code</td>
@@ -342,7 +363,7 @@ Script Report</pre>
         </tr>
         
         <tr >
-            <td>13</td>
+            <td>14</td>
             <td ><code>json</code></td>
             <td >
                 Code</td>
@@ -351,6 +372,39 @@ Script Report</pre>
                 
             </td>
             <td></td>
+        </tr>
+        
+        <tr class="info">
+            <td>15</td>
+            <td ><code>permission_rules</code></td>
+            <td >
+                Section Break</td>
+            <td >
+                
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>16</td>
+            <td ><code>roles</code></td>
+            <td >
+                Table</td>
+            <td >
+                Roles
+                
+            </td>
+            <td>
+                
+                
+
+
+<a href="https://frappe.github.io/frappe/current/models/core/has_role">Has Role</a>
+
+
+                
+            </td>
         </tr>
         
     </tbody>
@@ -410,7 +464,35 @@ Script Report</pre>
         <a name="get_data" href="#get_data" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		<b>get_data</b>
-        <i class="text-muted">(self, filters=None, limit=None, user=None)</i>
+        <i class="text-muted">(self, filters=None, limit=None, user=None, as_dict=False)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="is_permitted" href="#is_permitted" class="text-muted small">
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
+		<b>is_permitted</b>
+        <i class="text-muted">(self)</i>
+    </p>
+	<div class="docs-attr-desc"><p>Returns true if Has Role is not set or the user is allowed.</p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="on_trash" href="#on_trash" class="text-muted small">
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
+		<b>on_trash</b>
+        <i class="text-muted">(self)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
@@ -424,6 +506,20 @@ Script Report</pre>
         <a name="on_update" href="#on_update" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		<b>on_update</b>
+        <i class="text-muted">(self)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="set_doctype_roles" href="#set_doctype_roles" class="text-muted small">
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
+		<b>set_doctype_roles</b>
         <i class="text-muted">(self)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
@@ -493,6 +589,33 @@ Script Report</pre>
 </li>
 			
         
+			
+            <li>
+
+
+<a href="https://frappe.github.io/frappe/current/models/core/custom_role">Custom Role</a>
+
+</li>
+			
+        
+			
+            <li>
+
+
+<a href="https://frappe.github.io/frappe/current/models/core/role_permission_for_page_and_report">Role Permission for Page and Report</a>
+
+</li>
+			
+        
+			
+            <li>
+
+
+<a href="https://frappe.github.io/frappe/current/models/core/user_permission_for_page_and_report">User Permission for Page and Report</a>
+
+</li>
+			
+        
         </ul>
     
 
@@ -501,8 +624,8 @@ Script Report</pre>
 <!-- jinja -->
 <!-- static -->
 </div>
-				</div>
-			</div>
+		</div>
+	</div>
 </div>
 
 				<!-- edit-link -->

@@ -4,7 +4,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Integration Request</title>
+	<title>frappe.www.search</title>
 	<meta name="generator" content="frappe">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
@@ -22,11 +22,10 @@
     
 
 		</head>
-<body data-path="current/models/integration_broker/integration_request">
+<body data-path="current/api/www/frappe.www.search">
 	<div class="main-section">
 		<div>
-				<header>
-	<nav class="navbar navbar-default navbar-main" role="navigation">
+					<nav class="navbar navbar-default navbar-main" role="navigation">
 		<div class="container">
 			<div class="navbar-header">
 				<a class="navbar-brand ellipsis"
@@ -57,6 +56,7 @@
 	Forum</a></li>
 
 <li class="divider"></li>
+
 <!-- post login tools -->
 
 </ul>
@@ -84,66 +84,60 @@
 		>
 	Forum</a></li>
 	
+	
 	<!-- post login tools -->
 
 </ul>
 				
 			</div>
 		</div>
-	</nav>
-</header><div class="hero-and-content">
+	</nav><div class="hero-and-content">
                 <div data-html-block="hero"></div>
                 <div class="container" data-html-block="content">
                 
-<div class="page-container" id="page-current/models/integration_broker/integration_request" data-path="{{ pathname }}"
+<div class="page-container" id="page-current/api/www/frappe.www.search" data-path="{{ pathname }}"
 	>
-			<div class="row ">
-				
-				<div class=" page-content col-sm-12 ">
-					<div class="page-content-wrapper">
-						<div class="row page-head">
-							<div class='col-sm-12'>
-								
-								<div class="page-breadcrumbs">
-									
-									
+	<div class="row ">
+		
+		<div class=" page-content col-sm-12 ">
+			<div class="page-content-wrapper">
+				<div class="row page-head">
+					<div class='col-sm-12'>
+						
+						<div class="page-breadcrumbs">
+							
+							
 <ul class="breadcrumb">
 	<li>
 		<span class="fa fa-angle-left"></span>
-		<a href="https://frappe.github.io/frappe//current/models/integration_broker">
-		Module integration_broker</a>
+		<a href="https://frappe.github.io/frappe//current/api/www">
+		www</a>
 	</li>
 	
 </ul>
 
-									
-								</div>
-								
-							</div>
-							<div class="col-sm-8 col-xs-6">
-								<h1>Integration Request</h1>
-							</div>
-							<div class="col-sm-4 col-xs-6">
-								
-
-								
-							</div>
+							
 						</div>
+						
 					</div>
-					<div class="page_content">
-<!-- title: Integration Request -->
+					<div class="col-sm-8 col-xs-6">
+						<h1>frappe.www.search</h1>
+					</div>
+					<div class="col-sm-4 col-xs-6">
+						
 
-
-
-
-
-<div class="dev-header">
+						
+					</div>
+				</div>
+			</div>
+			<div class="page_content">
+<!-- title: frappe.www.search --><div class="dev-header">
 
 <a class="btn btn-default btn-sm" disabled style="margin-bottom: 10px;">
 	Version 7.x.x</a>
 
 
-	<a class="btn btn-default btn-sm" href="https://github.com/frappe/frappe/tree/develop/frappe/integration_broker/doctype/integration_request"
+	<a class="btn btn-default btn-sm" href="https://github.com/frappe/frappe/blob/develop/frappe/www/search.py"
 		target="_blank" style="margin-left: 10px; margin-bottom: 10px;"><i class="octicon octicon-mark-github"></i> Source</a>
 
 </div>
@@ -152,210 +146,46 @@
 
 
 
-    <p><b>Table Name:</b> <code>tabIntegration Request</code></p>
-
-
-
-
-<h3>Fields</h3>
-
-<table class="table table-bordered">
-    <thead>
-        <tr>
-            <th style="width: 5%">Sr</th>
-            <th style="width: 25%">Fieldname</th>
-            <th style="width: 20%">Type</th>
-            <th style="width: 25%">Label</th>
-            <th style="width: 25%">Options</th>
-        </tr>
-    </thead>
-    <tbody>
-        
-        <tr >
-            <td>1</td>
-            <td ><code>integration_type</code></td>
-            <td >
-                Select</td>
-            <td >
-                Integration Type
-                
-            </td>
-            <td>
-                <pre>
-Host
-Remote</pre>
-            </td>
-        </tr>
-        
-        <tr >
-            <td>2</td>
-            <td ><code>integration_request_service</code></td>
-            <td >
-                Data</td>
-            <td >
-                Integration Request Service
-                
-            </td>
-            <td></td>
-        </tr>
-        
-        <tr >
-            <td>3</td>
-            <td ><code>status</code></td>
-            <td >
-                Select</td>
-            <td >
-                Status
-                
-            </td>
-            <td>
-                <pre>
-Queued
-Authorized
-Completed
-Cancelled
-Failed
-</pre>
-            </td>
-        </tr>
-        
-        <tr >
-            <td>4</td>
-            <td ><code>data</code></td>
-            <td >
-                Code</td>
-            <td >
-                Data
-                
-            </td>
-            <td></td>
-        </tr>
-        
-        <tr >
-            <td>5</td>
-            <td ><code>output</code></td>
-            <td >
-                Code</td>
-            <td >
-                Output
-                
-            </td>
-            <td></td>
-        </tr>
-        
-        <tr >
-            <td>6</td>
-            <td ><code>error</code></td>
-            <td >
-                Code</td>
-            <td >
-                Error
-                
-            </td>
-            <td></td>
-        </tr>
-        
-        <tr >
-            <td>7</td>
-            <td ><code>reference_doctype</code></td>
-            <td >
-                Link</td>
-            <td >
-                Reference Doctype
-                
-            </td>
-            <td>
-                
-                
-
-
-<a href="https://frappe.github.io/frappe/current/models/core/doctype">DocType</a>
-
-
-                
-            </td>
-        </tr>
-        
-        <tr >
-            <td>8</td>
-            <td ><code>reference_docname</code></td>
-            <td >
-                Dynamic Link</td>
-            <td >
-                Reference Docname
-                
-            </td>
-            <td>
-                <pre>reference_doctype</pre>
-            </td>
-        </tr>
-        
-    </tbody>
-</table>
-
-
-    <hr>
-    <h3>Controller</h3>
-    <h4>frappe.integration_broker.doctype.integration_request.integration_request</h4>
-
-    
-
-
-
 	
-        
-	<h3 style="font-weight: normal;">Class <b>IntegrationRequest</b></h3>
-    
-    <p style="padding-left: 30px;"><i>Inherits from frappe.model.document.Document</i></h4>
-    
-    <div class="docs-attr-desc"><p></p>
-</div>
-    <div style="padding-left: 30px;">
-        
         
     
     
 	<p class="docs-attr-name">
-        <a name="autoname" href="#autoname" class="text-muted small">
+        <a name="frappe.www.search.get_context" href="#frappe.www.search.get_context" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		<b>autoname</b>
-        <i class="text-muted">(self)</i>
+		frappe.www.search.<b>get_context</b>
+        <i class="text-muted">(context)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
 	<br>
 
-        
+	
+
+	
         
     
-    
+    <p><span class="label label-info">Public API</span>
+        <br><code>/api/method/frappe.www.search.get_search_results</code>
+    </p>
 	<p class="docs-attr-name">
-        <a name="update_status" href="#update_status" class="text-muted small">
+        <a name="frappe.www.search.get_search_results" href="#frappe.www.search.get_search_results" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		<b>update_status</b>
-        <i class="text-muted">(self, params, status)</i>
+		frappe.www.search.<b>get_search_results</b>
+        <i class="text-muted">(text, start=0, as_html=False)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
 	<br>
 
-        
-    </div>
-    <hr>
-
 	
 
-
-    
-    
 
 
 <!-- autodoc -->
-<!-- jinja -->
-<!-- static -->
 </div>
-				</div>
-			</div>
+		</div>
+	</div>
 </div>
 
 				<!-- edit-link -->

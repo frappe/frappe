@@ -4,7 +4,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>frappe.desk.form.document_flow</title>
+	<title>Frappe Ajax Call</title>
 	<meta name="generator" content="frappe">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
@@ -22,11 +22,10 @@
     
 
 		</head>
-<body data-path="current/api/desk/form/frappe.desk.form.document_flow">
+<body data-path="user/en/guides/basics/frappe_ajax_call">
 	<div class="main-section">
 		<div>
-				<header>
-	<nav class="navbar navbar-default navbar-main" role="navigation">
+					<nav class="navbar navbar-default navbar-main" role="navigation">
 		<div class="container">
 			<div class="navbar-header">
 				<a class="navbar-brand ellipsis"
@@ -57,6 +56,7 @@
 	Forum</a></li>
 
 <li class="divider"></li>
+
 <!-- post login tools -->
 
 </ul>
@@ -84,111 +84,159 @@
 		>
 	Forum</a></li>
 	
+	
 	<!-- post login tools -->
 
 </ul>
 				
 			</div>
 		</div>
-	</nav>
-</header><div class="hero-and-content">
+	</nav><div class="hero-and-content">
                 <div data-html-block="hero"></div>
                 <div class="container" data-html-block="content">
                 
-<div class="page-container" id="page-current/api/desk/form/frappe.desk.form.document_flow" data-path="{{ pathname }}"
+<div class="page-container" id="page-user/en/guides/basics/frappe_ajax_call" data-path="{{ pathname }}"
 	>
-			<div class="row ">
-				
-				<div class=" page-content col-sm-12 ">
-					<div class="page-content-wrapper">
-						<div class="row page-head">
-							<div class='col-sm-12'>
-								
-								<div class="page-breadcrumbs">
-									
-									
+	<div class="row ">
+		
+		<div class=" page-content col-sm-12 ">
+			<div class="page-content-wrapper">
+				<div class="row page-head">
+					<div class='col-sm-12'>
+						
+						<div class="page-breadcrumbs">
+							
+							
 <ul class="breadcrumb">
 	<li>
 		<span class="fa fa-angle-left"></span>
-		<a href="https://frappe.github.io/frappe//current/api/desk/form">
-		form</a>
+		<a href="https://frappe.github.io/frappe//user/en/guides/basics">
+		Basics</a>
 	</li>
 	
 </ul>
 
-									
-								</div>
-								
-							</div>
-							<div class="col-sm-8 col-xs-6">
-								<h1>frappe.desk.form.document_flow</h1>
-							</div>
-							<div class="col-sm-4 col-xs-6">
-								
-
-								
-							</div>
+							
 						</div>
+						
 					</div>
-					<div class="page_content">
-<!-- title: frappe.desk.form.document_flow --><div class="dev-header">
+					<div class="col-sm-8 col-xs-6">
+						<h1>Frappe Ajax Call</h1>
+					</div>
+					<div class="col-sm-4 col-xs-6">
+						
 
-<a class="btn btn-default btn-sm" disabled style="margin-bottom: 10px;">
-	Version 7.x.x</a>
-
-
-	<a class="btn btn-default btn-sm" href="https://github.com/frappe/frappe/blob/develop/frappe/desk/form/document_flow.py"
-		target="_blank" style="margin-left: 10px; margin-bottom: 10px;"><i class="octicon octicon-mark-github"></i> Source</a>
-
-</div>
-
-
-
-
-
-	
-        
-    
-    <p><span class="label label-info">Public API</span>
-        <br><code>/api/method/frappe.desk.form.document_flow.get_document_completion_status</code>
-    </p>
-	<p class="docs-attr-name">
-        <a name="frappe.desk.form.document_flow.get_document_completion_status" href="#frappe.desk.form.document_flow.get_document_completion_status" class="text-muted small">
-            <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.desk.form.document_flow.<b>get_document_completion_status</b>
-        <i class="text-muted">(doctypes, frm_doctype, frm_docname)</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
-
-	
-
-	
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="frappe.desk.form.document_flow.make_condition" href="#frappe.desk.form.document_flow.make_condition" class="text-muted small">
-            <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.desk.form.document_flow.<b>make_condition</b>
-        <i class="text-muted">(filters=None)</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
-
-	
-
-
-
-<!-- autodoc -->
-</div>
+						
+					</div>
 				</div>
 			</div>
+			<div class="page_content">
+<p>In Frappe Framework, you can manage ajax calls via frappe.call. The frappe.call works in asynchronous manner ie. send requests and handle response via callback mechanism.</p>
+
+<h2>frappe.call Structure</h2>
+
+<pre><code>frappe.call({
+    type: opts.type || "POST",
+    args: args,
+    success: callback,
+    error: opts.error,
+    always: opts.always,
+    btn: opts.btn,
+    freeze: opts.freeze,
+    freeze_message: opts.freeze_message,
+    async: opts.async,
+    url: opts.url || frappe.request.url,
+})
+</code></pre>
+
+<h4>Parameter description :</h4>
+
+<ul>
+<li>type: String parameter, http request type "GET", "POST", "PUT", "DELETE". Default set to "POST".</li>
+<li>args: associative array, arguments that will pass with request.</li>
+<li>success: Function parameter, code snippet, will after successful execution of request</li>
+<li>error: Function parameter, code snippet, will execute after request failure</li>
+<li>always: Function parameter, code snipper, will execute in either case</li>
+<li>btn: Object parameter, triggering object</li>
+<li>freeze: Boolean parameter, if set freeze the instance util it receives response</li>
+<li>freeze_message: String parameter, message will populate to screen while screen is in freeze state.</li>
+<li>async: Boolean parameter, default set to true. So each frappe.call is asynchronous. To make call synchronous set parameter value as false</li>
+<li>url: String parameter, location from where hitting the request</li>
+</ul>
+
+<h2>How to use frappe.call ?</h2>
+
+<h3>Calling standard API</h3>
+
+<pre><code>frappe.call({
+    method: 'frappe.client.get_value',
+    args: {
+        'doctype': 'Item',
+        'filters': {'name': item_code},
+        'fieldname': [
+            'item_name',
+            'web_long_description',
+            'description',
+            'image',
+            'thumbnail'
+        ]
+    },
+    callback: function(r) {
+        if (!r.exc) {
+            // code snippet
+        }
+    }
+});
+</code></pre>
+
+<ul>
+<li>Param description:
+<ul>
+<li>doctype: name of doctype for which you want to pull information</li>
+<li>filters: condition specifier</li>
+<li>fieldname: you can specify fields in array that you want back in response</li>
+</ul></li>
+</ul>
+
+<h3>Calling whitelisted functions</h3>
+
+<ul>
+<li><p>Code client side</p>
+
+<pre><code>frappe.call({
+    method: "frappe.core.doctype.user.user.get_all_roles", //dotted path to server method
+    callback: function(r) {
+        // code snippet
+    }
+})
+</code></pre></li>
+<li><p>Code at server side</p>
+
+<pre><code>@frappe.whitelist()
+def get_all_roles():
+    // business logic
+    return value
+</code></pre></li>
+</ul>
+
+<p>Note: While accessing any server side method via frappe.call(), you need to whitelist server side method using decorator <code>@frappe.whitelist</code></p>
+
+</div>
+		</div>
+	</div>
 </div>
 
-				<!-- edit-link -->
+				
+<div class="page-container">
+	<div class="page-content">
+	<div class="edit-container text-center">
+		<i class="fa fa-smile"></i>
+		<a class="text-muted edit" href="https://github.com/frappe/frappe/blob/develop/frappe/docs/user/en/guides/basics/frappe_ajax_call.md">
+			Improve this page
+		</a>
+	</div>
+	</div>
+</div>
                 </div>
             </div>
 			<footer class="docs-footer">

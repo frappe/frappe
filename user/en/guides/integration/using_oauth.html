@@ -25,8 +25,7 @@
 <body data-path="user/en/guides/integration/using_oauth">
 	<div class="main-section">
 		<div>
-				<header>
-	<nav class="navbar navbar-default navbar-main" role="navigation">
+					<nav class="navbar navbar-default navbar-main" role="navigation">
 		<div class="container">
 			<div class="navbar-header">
 				<a class="navbar-brand ellipsis"
@@ -57,6 +56,7 @@
 	Forum</a></li>
 
 <li class="divider"></li>
+
 <!-- post login tools -->
 
 </ul>
@@ -84,29 +84,29 @@
 		>
 	Forum</a></li>
 	
+	
 	<!-- post login tools -->
 
 </ul>
 				
 			</div>
 		</div>
-	</nav>
-</header><div class="hero-and-content">
+	</nav><div class="hero-and-content">
                 <div data-html-block="hero"></div>
                 <div class="container" data-html-block="content">
                 
 <div class="page-container" id="page-user/en/guides/integration/using_oauth" data-path="{{ pathname }}"
 	>
-			<div class="row ">
-				
-				<div class=" page-content col-sm-12 ">
-					<div class="page-content-wrapper">
-						<div class="row page-head">
-							<div class='col-sm-12'>
-								
-								<div class="page-breadcrumbs">
-									
-									
+	<div class="row ">
+		
+		<div class=" page-content col-sm-12 ">
+			<div class="page-content-wrapper">
+				<div class="row page-head">
+					<div class='col-sm-12'>
+						
+						<div class="page-breadcrumbs">
+							
+							
 <ul class="breadcrumb">
 	<li>
 		<span class="fa fa-angle-left"></span>
@@ -116,21 +116,21 @@
 	
 </ul>
 
-									
-								</div>
-								
-							</div>
-							<div class="col-sm-8 col-xs-6">
-								
-							</div>
-							<div class="col-sm-4 col-xs-6">
-								
-
-								
-							</div>
+							
 						</div>
+						
 					</div>
-					<div class="page_content">
+					<div class="col-sm-8 col-xs-6">
+						
+					</div>
+					<div class="col-sm-4 col-xs-6">
+						
+
+						
+					</div>
+				</div>
+			</div>
+			<div class="page_content">
 <h1>Using OAuth</h1>
 
 <p>Once the client and provider settings are entered, following steps can be used to start using OAuth 2.0</p>
@@ -141,7 +141,7 @@
 
 <p>URL:
 <code>
-[GET] 0.0.0.0:8000/api/method/frappe.integration_broker.oauth2.authorize
+[GET] 0.0.0.0:8000/api/method/frappe.integrations.oauth2.authorize
 </code>
 Params:
 <code>
@@ -153,7 +153,7 @@ redirect_uri = &lt;redirect uri from OAuth Client&gt;
 
 <h4>Confirmation Dialog</h4>
 
-<p><img class="screenshot" src="assets/frappe/img/oauth_confirmation_page.png"></p>
+<p><img class="screenshot" src="https://frappe.github.io/frappe/assets/img/oauth_confirmation_page.png"></p>
 
 <p>Click 'Allow' to receive authorization code in redirect uri.</p>
 
@@ -171,7 +171,7 @@ http://localhost:3000/oauth_code?error=access_denied
 
 <p>URL:
 <code>
-[POST] 0.0.0.0:8000/api/method/frappe.integration_broker.oauth2.get_token
+[POST] 0.0.0.0:8000/api/method/frappe.integrations.oauth2.get_token
 </code>
 Params:
 <code>
@@ -195,7 +195,7 @@ Response:
 
 <p>URL:
 <code>
-[POST] 0.0.0.0:8000/api/method/frappe.integration_broker.oauth2.get_token
+[POST] 0.0.0.0:8000/api/method/frappe.integrations.oauth2.get_token
 </code>
 Params:
 <code>
@@ -219,7 +219,7 @@ Response:
 
 <p>URL:
 <code>
-[POST] 0.0.0.0:8000/api/method/frappe.integration_broker.oauth2.revoke_token
+[POST] 0.0.0.0:8000/api/method/frappe.integrations.oauth2.revoke_token
 </code>
 Params:
 <code>
@@ -243,8 +243,8 @@ status : 400</p>
 <p>Add header <code>Authorizaton: Bearer &lt;valid_bearer_token&gt;</code> to Frappe's REST API endpoints to access user's resource</p>
 
 </div>
-				</div>
-			</div>
+		</div>
+	</div>
 </div>
 
 				

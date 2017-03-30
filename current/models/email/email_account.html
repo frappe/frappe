@@ -25,8 +25,7 @@
 <body data-path="current/models/email/email_account">
 	<div class="main-section">
 		<div>
-				<header>
-	<nav class="navbar navbar-default navbar-main" role="navigation">
+					<nav class="navbar navbar-default navbar-main" role="navigation">
 		<div class="container">
 			<div class="navbar-header">
 				<a class="navbar-brand ellipsis"
@@ -57,6 +56,7 @@
 	Forum</a></li>
 
 <li class="divider"></li>
+
 <!-- post login tools -->
 
 </ul>
@@ -84,29 +84,29 @@
 		>
 	Forum</a></li>
 	
+	
 	<!-- post login tools -->
 
 </ul>
 				
 			</div>
 		</div>
-	</nav>
-</header><div class="hero-and-content">
+	</nav><div class="hero-and-content">
                 <div data-html-block="hero"></div>
                 <div class="container" data-html-block="content">
                 
 <div class="page-container" id="page-current/models/email/email_account" data-path="{{ pathname }}"
 	>
-			<div class="row ">
-				
-				<div class=" page-content col-sm-12 ">
-					<div class="page-content-wrapper">
-						<div class="row page-head">
-							<div class='col-sm-12'>
-								
-								<div class="page-breadcrumbs">
-									
-									
+	<div class="row ">
+		
+		<div class=" page-content col-sm-12 ">
+			<div class="page-content-wrapper">
+				<div class="row page-head">
+					<div class='col-sm-12'>
+						
+						<div class="page-breadcrumbs">
+							
+							
 <ul class="breadcrumb">
 	<li>
 		<span class="fa fa-angle-left"></span>
@@ -116,21 +116,21 @@
 	
 </ul>
 
-									
-								</div>
-								
-							</div>
-							<div class="col-sm-8 col-xs-6">
-								<h1>Email Account</h1>
-							</div>
-							<div class="col-sm-4 col-xs-6">
-								
-
-								
-							</div>
+							
 						</div>
+						
 					</div>
-					<div class="page_content">
+					<div class="col-sm-8 col-xs-6">
+						<h1>Email Account</h1>
+					</div>
+					<div class="col-sm-4 col-xs-6">
+						
+
+						
+					</div>
+				</div>
+			</div>
+			<div class="page_content">
 <!-- title: Email Account -->
 
 
@@ -171,8 +171,81 @@
     </thead>
     <tbody>
         
-        <tr class="info">
+        <tr >
             <td>1</td>
+            <td class="danger" title="Mandatory"><code>email_id</code></td>
+            <td >
+                Data</td>
+            <td >
+                Email Id
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>2</td>
+            <td ><code>login_id_is_different</code></td>
+            <td >
+                Check</td>
+            <td >
+                Login Id is Different
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>3</td>
+            <td ><code>login_id</code></td>
+            <td >
+                Data</td>
+            <td >
+                Email Address
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>4</td>
+            <td ><code>password</code></td>
+            <td >
+                Password</td>
+            <td >
+                Password
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>5</td>
+            <td ><code>awaiting_password</code></td>
+            <td >
+                Check</td>
+            <td >
+                Awaiting password
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>6</td>
+            <td ><code>email_account_name</code></td>
+            <td >
+                Data</td>
+            <td >
+                Email Account Name
+                <p class="text-muted small">
+                    e.g. "Support", "Sales", "Jerry Yang"</p>
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr class="info">
+            <td>7</td>
             <td ><code>email_settings</code></td>
             <td >
                 Section Break</td>
@@ -184,7 +257,28 @@
         </tr>
         
         <tr >
-            <td>2</td>
+            <td>8</td>
+            <td ><code>domain</code></td>
+            <td >
+                Link</td>
+            <td >
+                Domain
+                
+            </td>
+            <td>
+                
+                
+
+
+<a href="https://frappe.github.io/frappe/current/models/email/email_domain">Email Domain</a>
+
+
+                
+            </td>
+        </tr>
+        
+        <tr >
+            <td>9</td>
             <td ><code>service</code></td>
             <td >
                 Select</td>
@@ -203,71 +297,8 @@ Yandex.Mail</pre>
             </td>
         </tr>
         
-        <tr >
-            <td>3</td>
-            <td class="danger" title="Mandatory"><code>email_id</code></td>
-            <td >
-                Data</td>
-            <td >
-                Email Id
-                
-            </td>
-            <td>
-                <pre>Email</pre>
-            </td>
-        </tr>
-        
-        <tr >
-            <td>4</td>
-            <td ><code>login_id_is_different</code></td>
-            <td >
-                Check</td>
-            <td >
-                Login Id is Different
-                
-            </td>
-            <td></td>
-        </tr>
-        
-        <tr >
-            <td>5</td>
-            <td ><code>login_id</code></td>
-            <td >
-                Data</td>
-            <td >
-                Login Id
-                
-            </td>
-            <td></td>
-        </tr>
-        
-        <tr >
-            <td>6</td>
-            <td ><code>password</code></td>
-            <td >
-                Password</td>
-            <td >
-                Password
-                
-            </td>
-            <td></td>
-        </tr>
-        
-        <tr >
-            <td>7</td>
-            <td ><code>email_account_name</code></td>
-            <td >
-                Data</td>
-            <td >
-                Email Account Name
-                <p class="text-muted small">
-                    e.g. "Support", "Sales", "Jerry Yang"</p>
-            </td>
-            <td></td>
-        </tr>
-        
         <tr class="info">
-            <td>8</td>
+            <td>10</td>
             <td ><code>mailbox_settings</code></td>
             <td >
                 Section Break</td>
@@ -279,7 +310,7 @@ Yandex.Mail</pre>
         </tr>
         
         <tr >
-            <td>9</td>
+            <td>11</td>
             <td ><code>enable_incoming</code></td>
             <td >
                 Check</td>
@@ -292,7 +323,7 @@ Yandex.Mail</pre>
         </tr>
         
         <tr >
-            <td>10</td>
+            <td>12</td>
             <td ><code>use_imap</code></td>
             <td >
                 Check</td>
@@ -300,11 +331,13 @@ Yandex.Mail</pre>
                 Use IMAP
                 
             </td>
-            <td></td>
+            <td>
+                <pre>domain.use_imap</pre>
+            </td>
         </tr>
         
         <tr >
-            <td>11</td>
+            <td>13</td>
             <td ><code>email_server</code></td>
             <td >
                 Data</td>
@@ -313,11 +346,13 @@ Yandex.Mail</pre>
                 <p class="text-muted small">
                     e.g. pop.gmail.com / imap.gmail.com</p>
             </td>
-            <td></td>
+            <td>
+                <pre>domain.email_server</pre>
+            </td>
         </tr>
         
         <tr >
-            <td>12</td>
+            <td>14</td>
             <td ><code>use_ssl</code></td>
             <td >
                 Check</td>
@@ -325,11 +360,13 @@ Yandex.Mail</pre>
                 Use SSL
                 
             </td>
-            <td></td>
+            <td>
+                <pre>domain.use_ssl</pre>
+            </td>
         </tr>
         
         <tr >
-            <td>13</td>
+            <td>15</td>
             <td ><code>attachment_limit</code></td>
             <td >
                 Int</td>
@@ -338,11 +375,13 @@ Yandex.Mail</pre>
                 <p class="text-muted small">
                     Ignore attachments over this size</p>
             </td>
-            <td></td>
+            <td>
+                <pre>domain.attachment_limit</pre>
+            </td>
         </tr>
         
         <tr >
-            <td>14</td>
+            <td>16</td>
             <td ><code>append_to</code></td>
             <td >
                 Link</td>
@@ -364,7 +403,7 @@ Yandex.Mail</pre>
         </tr>
         
         <tr >
-            <td>15</td>
+            <td>17</td>
             <td ><code>default_incoming</code></td>
             <td >
                 Check</td>
@@ -376,8 +415,40 @@ Yandex.Mail</pre>
             <td></td>
         </tr>
         
+        <tr >
+            <td>18</td>
+            <td ><code>email_sync_option</code></td>
+            <td >
+                Select</td>
+            <td >
+                Email Sync Option
+                
+            </td>
+            <td>
+                <pre>ALL
+UNSEEN</pre>
+            </td>
+        </tr>
+        
+        <tr >
+            <td>19</td>
+            <td ><code>initial_sync_count</code></td>
+            <td >
+                Select</td>
+            <td >
+                Initial Sync Count
+                <p class="text-muted small">
+                    Total number of emails to sync in initial sync process </p>
+            </td>
+            <td>
+                <pre>100
+250
+500</pre>
+            </td>
+        </tr>
+        
         <tr class="info">
-            <td>16</td>
+            <td>20</td>
             <td ><code>section_break_13</code></td>
             <td >
                 Section Break</td>
@@ -389,7 +460,7 @@ Yandex.Mail</pre>
         </tr>
         
         <tr >
-            <td>17</td>
+            <td>21</td>
             <td ><code>notify_if_unreplied</code></td>
             <td >
                 Check</td>
@@ -401,7 +472,7 @@ Yandex.Mail</pre>
         </tr>
         
         <tr >
-            <td>18</td>
+            <td>22</td>
             <td ><code>unreplied_for_mins</code></td>
             <td >
                 Int</td>
@@ -413,20 +484,20 @@ Yandex.Mail</pre>
         </tr>
         
         <tr >
-            <td>19</td>
+            <td>23</td>
             <td ><code>send_notification_to</code></td>
             <td >
                 Small Text</td>
             <td >
                 Send Notification to
                 <p class="text-muted small">
-                    Email Ids</p>
+                    Email Addresses</p>
             </td>
             <td></td>
         </tr>
         
         <tr class="info">
-            <td>20</td>
+            <td>24</td>
             <td ><code>outgoing_mail_settings</code></td>
             <td >
                 Section Break</td>
@@ -438,7 +509,7 @@ Yandex.Mail</pre>
         </tr>
         
         <tr >
-            <td>21</td>
+            <td>25</td>
             <td ><code>enable_outgoing</code></td>
             <td >
                 Check</td>
@@ -451,7 +522,7 @@ Yandex.Mail</pre>
         </tr>
         
         <tr >
-            <td>22</td>
+            <td>26</td>
             <td ><code>smtp_server</code></td>
             <td >
                 Data</td>
@@ -460,11 +531,13 @@ Yandex.Mail</pre>
                 <p class="text-muted small">
                     e.g. smtp.gmail.com</p>
             </td>
-            <td></td>
+            <td>
+                <pre>domain.smtp_server</pre>
+            </td>
         </tr>
         
         <tr >
-            <td>23</td>
+            <td>27</td>
             <td ><code>use_tls</code></td>
             <td >
                 Check</td>
@@ -472,11 +545,13 @@ Yandex.Mail</pre>
                 Use TLS
                 
             </td>
-            <td></td>
+            <td>
+                <pre>domain.use_tls</pre>
+            </td>
         </tr>
         
         <tr >
-            <td>24</td>
+            <td>28</td>
             <td ><code>smtp_port</code></td>
             <td >
                 Data</td>
@@ -485,11 +560,13 @@ Yandex.Mail</pre>
                 <p class="text-muted small">
                     If non standard port (e.g. 587)</p>
             </td>
-            <td></td>
+            <td>
+                <pre>domain.smtp_port</pre>
+            </td>
         </tr>
         
         <tr >
-            <td>25</td>
+            <td>29</td>
             <td ><code>default_outgoing</code></td>
             <td >
                 Check</td>
@@ -502,20 +579,20 @@ Yandex.Mail</pre>
         </tr>
         
         <tr >
-            <td>26</td>
+            <td>30</td>
             <td ><code>always_use_account_email_id_as_sender</code></td>
             <td >
                 Check</td>
             <td >
-                Always use Account's Email ID as Sender
+                Always use Account's Email Address as Sender
                 <p class="text-muted small">
-                    Uses the Email ID mentioned in this Account as the Sender for all emails sent using this Account. </p>
+                    Uses the Email Address mentioned in this Account as the Sender for all emails sent using this Account. </p>
             </td>
             <td></td>
         </tr>
         
         <tr >
-            <td>27</td>
+            <td>31</td>
             <td ><code>send_unsubscribe_message</code></td>
             <td >
                 Check</td>
@@ -527,7 +604,7 @@ Yandex.Mail</pre>
         </tr>
         
         <tr class="info">
-            <td>28</td>
+            <td>32</td>
             <td ><code>signature_section</code></td>
             <td >
                 Section Break</td>
@@ -539,7 +616,7 @@ Yandex.Mail</pre>
         </tr>
         
         <tr >
-            <td>29</td>
+            <td>33</td>
             <td ><code>add_signature</code></td>
             <td >
                 Check</td>
@@ -551,7 +628,7 @@ Yandex.Mail</pre>
         </tr>
         
         <tr >
-            <td>30</td>
+            <td>34</td>
             <td ><code>signature</code></td>
             <td >
                 Text Editor</td>
@@ -563,7 +640,7 @@ Yandex.Mail</pre>
         </tr>
         
         <tr class="info">
-            <td>31</td>
+            <td>35</td>
             <td ><code>auto_reply</code></td>
             <td >
                 Section Break</td>
@@ -575,7 +652,7 @@ Yandex.Mail</pre>
         </tr>
         
         <tr >
-            <td>32</td>
+            <td>36</td>
             <td ><code>enable_auto_reply</code></td>
             <td >
                 Check</td>
@@ -587,7 +664,7 @@ Yandex.Mail</pre>
         </tr>
         
         <tr >
-            <td>33</td>
+            <td>37</td>
             <td ><code>auto_reply_message</code></td>
             <td >
                 Text Editor</td>
@@ -600,7 +677,7 @@ Yandex.Mail</pre>
         </tr>
         
         <tr class="info">
-            <td>34</td>
+            <td>38</td>
             <td ><code>set_footer</code></td>
             <td >
                 Section Break</td>
@@ -612,12 +689,60 @@ Yandex.Mail</pre>
         </tr>
         
         <tr >
-            <td>35</td>
+            <td>39</td>
             <td ><code>footer</code></td>
             <td >
                 Text Editor</td>
             <td >
                 Footer
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>40</td>
+            <td ><code>uidvalidity</code></td>
+            <td >
+                Data</td>
+            <td class="text-muted" title="Hidden">
+                UIDVALIDITY
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>41</td>
+            <td ><code>uidnext</code></td>
+            <td >
+                Int</td>
+            <td class="text-muted" title="Hidden">
+                UIDNEXT
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>42</td>
+            <td ><code>no_remaining</code></td>
+            <td >
+                Data</td>
+            <td class="text-muted" title="Hidden">
+                No of emails remaining to be synced
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>43</td>
+            <td ><code>no_failed</code></td>
+            <td >
+                Int</td>
+            <td class="text-muted" title="Hidden">
+                no failed attempts
                 
             </td>
             <td></td>
@@ -668,7 +793,21 @@ Yandex.Mail</pre>
 		<b>autoname</b>
         <i class="text-muted">(self)</i>
     </p>
-	<div class="docs-attr-desc"><p>Set name as <code>email_account_name</code> or make title from email id.</p>
+	<div class="docs-attr-desc"><p>Set name as <code>email_account_name</code> or make title from Email Address.</p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="build_email_sync_rule" href="#build_email_sync_rule" class="text-muted small">
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
+		<b>build_email_sync_rule</b>
+        <i class="text-muted">(self)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
 	<br>
 
@@ -736,6 +875,20 @@ Yandex.Mail</pre>
     
     
 	<p class="docs-attr-name">
+        <a name="get_domain" href="#get_domain" class="text-muted small">
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
+		<b>get_domain</b>
+        <i class="text-muted">(self, email_id)</i>
+    </p>
+	<div class="docs-attr-desc"><p>look-up the domain and then full</p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
         <a name="get_failed_attempts_count" href="#get_failed_attempts_count" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		<b>get_failed_attempts_count</b>
@@ -753,7 +906,7 @@ Yandex.Mail</pre>
         <a name="get_incoming_server" href="#get_incoming_server" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		<b>get_incoming_server</b>
-        <i class="text-muted">(self, in_receive=False)</i>
+        <i class="text-muted">(self, in_receive=False, email_sync_rule=UNSEEN)</i>
     </p>
 	<div class="docs-attr-desc"><p>Returns logged in POP3/IMAP connection object.</p>
 </div>
@@ -778,12 +931,26 @@ Yandex.Mail</pre>
     
     
 	<p class="docs-attr-name">
+        <a name="handle_bad_emails" href="#handle_bad_emails" class="text-muted small">
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
+		<b>handle_bad_emails</b>
+        <i class="text-muted">(self, email_server, uid, raw, reason)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
         <a name="handle_incoming_connect_error" href="#handle_incoming_connect_error" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		<b>handle_incoming_connect_error</b>
         <i class="text-muted">(self, description)</i>
     </p>
-	<div class="docs-attr-desc"><p>Disable email account if 3 failed attempts found</p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
 	<br>
 
@@ -795,9 +962,23 @@ Yandex.Mail</pre>
         <a name="insert_communication" href="#insert_communication" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		<b>insert_communication</b>
-        <i class="text-muted">(self, raw)</i>
+        <i class="text-muted">(self, msg, args={})</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="mark_emails_as_read_unread" href="#mark_emails_as_read_unread" class="text-muted small">
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
+		<b>mark_emails_as_read_unread</b>
+        <i class="text-muted">(self)</i>
+    </p>
+	<div class="docs-attr-desc"><p>mark Email Flag Queue of self.email_account mails as read</p>
 </div>
 	<br>
 
@@ -854,6 +1035,20 @@ Yandex.Mail</pre>
         <i class="text-muted">(self, communication, email)</i>
     </p>
 	<div class="docs-attr-desc"><p>Send auto reply if set.</p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="set_communication_seen_status" href="#set_communication_seen_status" class="text-muted small">
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
+		<b>set_communication_seen_status</b>
+        <i class="text-muted">(self, docnames, seen=0)</i>
+    </p>
+	<div class="docs-attr-desc"><p>mark Email Flag Queue of self.email_account mails as read</p>
 </div>
 	<br>
 
@@ -929,7 +1124,7 @@ Yandex.Mail</pre>
 		<b>validate</b>
         <i class="text-muted">(self)</i>
     </p>
-	<div class="docs-attr-desc"><p>Validate email id and check POP3/IMAP and SMTP connections is enabled.</p>
+	<div class="docs-attr-desc"><p>Validate Email Address and check POP3/IMAP and SMTP connections is enabled.</p>
 </div>
 	<br>
 
@@ -965,6 +1160,22 @@ Yandex.Mail</pre>
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		frappe.email.doctype.email_account.email_account.<b>get_append_to</b>
         <i class="text-muted">(doctype=None, txt=None, searchfield=None, start=None, page_len=None, filters=None)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.email.doctype.email_account.email_account.get_max_email_uid" href="#frappe.email.doctype.email_account.email_account.get_max_email_uid" class="text-muted small">
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
+		frappe.email.doctype.email_account.email_account.<b>get_max_email_uid</b>
+        <i class="text-muted">(email_account)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
@@ -1021,6 +1232,27 @@ Yandex.Mail</pre>
 
 	
 
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.email.doctype.email_account.email_account.test_internet" href="#frappe.email.doctype.email_account.email_account.test_internet" class="text-muted small">
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
+		frappe.email.doctype.email_account.email_account.<b>test_internet</b>
+        <i class="text-muted">(host=8.8.8.8, port=53, timeout=3)</i>
+    </p>
+	<div class="docs-attr-desc"><p>Returns True if internet is connected</p>
+
+<pre><code>Host: 8.8.8.8 (<a href="http://google-public-dns-a.google.com">google-public-dns-a.google.com</a>)
+OpenPort: 53/tcp
+Service: domain (DNS/TCP)
+</code></pre>
+</div>
+	<br>
+
+	
+
 
     
     
@@ -1036,6 +1268,24 @@ Yandex.Mail</pre>
 </li>
 			
         
+			
+            <li>
+
+
+<a href="https://frappe.github.io/frappe/current/models/email/unhandled_email">Unhandled Email</a>
+
+</li>
+			
+        
+			
+            <li>
+
+
+<a href="https://frappe.github.io/frappe/current/models/core/user_email">User Email</a>
+
+</li>
+			
+        
         </ul>
     
 
@@ -1044,8 +1294,8 @@ Yandex.Mail</pre>
 <!-- jinja -->
 <!-- static -->
 </div>
-				</div>
-			</div>
+		</div>
+	</div>
 </div>
 
 				<!-- edit-link -->

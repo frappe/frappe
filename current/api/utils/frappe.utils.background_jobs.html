@@ -25,8 +25,7 @@
 <body data-path="current/api/utils/frappe.utils.background_jobs">
 	<div class="main-section">
 		<div>
-				<header>
-	<nav class="navbar navbar-default navbar-main" role="navigation">
+					<nav class="navbar navbar-default navbar-main" role="navigation">
 		<div class="container">
 			<div class="navbar-header">
 				<a class="navbar-brand ellipsis"
@@ -57,6 +56,7 @@
 	Forum</a></li>
 
 <li class="divider"></li>
+
 <!-- post login tools -->
 
 </ul>
@@ -84,29 +84,29 @@
 		>
 	Forum</a></li>
 	
+	
 	<!-- post login tools -->
 
 </ul>
 				
 			</div>
 		</div>
-	</nav>
-</header><div class="hero-and-content">
+	</nav><div class="hero-and-content">
                 <div data-html-block="hero"></div>
                 <div class="container" data-html-block="content">
                 
 <div class="page-container" id="page-current/api/utils/frappe.utils.background_jobs" data-path="{{ pathname }}"
 	>
-			<div class="row ">
-				
-				<div class=" page-content col-sm-12 ">
-					<div class="page-content-wrapper">
-						<div class="row page-head">
-							<div class='col-sm-12'>
-								
-								<div class="page-breadcrumbs">
-									
-									
+	<div class="row ">
+		
+		<div class=" page-content col-sm-12 ">
+			<div class="page-content-wrapper">
+				<div class="row page-head">
+					<div class='col-sm-12'>
+						
+						<div class="page-breadcrumbs">
+							
+							
 <ul class="breadcrumb">
 	<li>
 		<span class="fa fa-angle-left"></span>
@@ -116,21 +116,21 @@
 	
 </ul>
 
-									
-								</div>
-								
-							</div>
-							<div class="col-sm-8 col-xs-6">
-								<h1>frappe.utils.background_jobs</h1>
-							</div>
-							<div class="col-sm-4 col-xs-6">
-								
-
-								
-							</div>
+							
 						</div>
+						
 					</div>
-					<div class="page_content">
+					<div class="col-sm-8 col-xs-6">
+						<h1>frappe.utils.background_jobs</h1>
+					</div>
+					<div class="col-sm-4 col-xs-6">
+						
+
+						
+					</div>
+				</div>
+			</div>
+			<div class="page_content">
 <!-- title: frappe.utils.background_jobs --><div class="dev-header">
 
 <a class="btn btn-default btn-sm" disabled style="margin-bottom: 10px;">
@@ -154,7 +154,7 @@
         <a name="frappe.utils.background_jobs.enqueue" href="#frappe.utils.background_jobs.enqueue" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		frappe.utils.background_jobs.<b>enqueue</b>
-        <i class="text-muted">(method, queue=default, timeout=300, event=None, async=True, job_name=None)</i>
+        <i class="text-muted">(method, queue=default, timeout=300, event=None, async=True, job_name=None, now=False)</i>
     </p>
 	<div class="docs-attr-desc"><pre><code>    Enqueue method to be executed using a background worker
 </code></pre>
@@ -168,6 +168,7 @@
 <li><strong><code>event</code></strong> -  this is passed to enable clearing of jobs from queues</li>
 <li><strong><code>async</code></strong> -  if async=False, the method is executed immediately, else via a worker</li>
 <li><strong><code>job_name</code></strong> -  can be used to name an enqueue call, which can be used to prevent duplicate calls</li>
+<li><strong><code>now</code></strong> -  if now=True, the method is executed via frappe.call</li>
 <li><strong><code>kwargs</code></strong> -  keyword arguments to be passed to the method</li>
 </ul>
 </div>
@@ -339,8 +340,8 @@
 
 <!-- autodoc -->
 </div>
-				</div>
-			</div>
+		</div>
+	</div>
 </div>
 
 				<!-- edit-link -->

@@ -25,8 +25,7 @@
 <body data-path="current/models/email/auto_email_report">
 	<div class="main-section">
 		<div>
-				<header>
-	<nav class="navbar navbar-default navbar-main" role="navigation">
+					<nav class="navbar navbar-default navbar-main" role="navigation">
 		<div class="container">
 			<div class="navbar-header">
 				<a class="navbar-brand ellipsis"
@@ -57,6 +56,7 @@
 	Forum</a></li>
 
 <li class="divider"></li>
+
 <!-- post login tools -->
 
 </ul>
@@ -84,29 +84,29 @@
 		>
 	Forum</a></li>
 	
+	
 	<!-- post login tools -->
 
 </ul>
 				
 			</div>
 		</div>
-	</nav>
-</header><div class="hero-and-content">
+	</nav><div class="hero-and-content">
                 <div data-html-block="hero"></div>
                 <div class="container" data-html-block="content">
                 
 <div class="page-container" id="page-current/models/email/auto_email_report" data-path="{{ pathname }}"
 	>
-			<div class="row ">
-				
-				<div class=" page-content col-sm-12 ">
-					<div class="page-content-wrapper">
-						<div class="row page-head">
-							<div class='col-sm-12'>
-								
-								<div class="page-breadcrumbs">
-									
-									
+	<div class="row ">
+		
+		<div class=" page-content col-sm-12 ">
+			<div class="page-content-wrapper">
+				<div class="row page-head">
+					<div class='col-sm-12'>
+						
+						<div class="page-breadcrumbs">
+							
+							
 <ul class="breadcrumb">
 	<li>
 		<span class="fa fa-angle-left"></span>
@@ -116,21 +116,21 @@
 	
 </ul>
 
-									
-								</div>
-								
-							</div>
-							<div class="col-sm-8 col-xs-6">
-								<h1>Auto Email Report</h1>
-							</div>
-							<div class="col-sm-4 col-xs-6">
-								
-
-								
-							</div>
+							
 						</div>
+						
 					</div>
-					<div class="page_content">
+					<div class="col-sm-8 col-xs-6">
+						<h1>Auto Email Report</h1>
+					</div>
+					<div class="col-sm-4 col-xs-6">
+						
+
+						
+					</div>
+				</div>
+			</div>
+			<div class="page_content">
 <!-- title: Auto Email Report -->
 
 
@@ -265,6 +265,18 @@
         
         <tr >
             <td>7</td>
+            <td ><code>data_modified_till</code></td>
+            <td >
+                Int</td>
+            <td >
+                Send Records Updated in Last X Hours
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>8</td>
             <td ><code>no_of_rows</code></td>
             <td >
                 Int</td>
@@ -276,7 +288,7 @@
         </tr>
         
         <tr class="info">
-            <td>8</td>
+            <td>9</td>
             <td ><code>report_filters</code></td>
             <td >
                 Section Break</td>
@@ -288,7 +300,7 @@
         </tr>
         
         <tr >
-            <td>9</td>
+            <td>10</td>
             <td ><code>filters_display</code></td>
             <td >
                 HTML</td>
@@ -300,7 +312,7 @@
         </tr>
         
         <tr >
-            <td>10</td>
+            <td>11</td>
             <td ><code>filters</code></td>
             <td >
                 Text</td>
@@ -311,8 +323,20 @@
             <td></td>
         </tr>
         
+        <tr >
+            <td>12</td>
+            <td ><code>filter_meta</code></td>
+            <td >
+                Text</td>
+            <td class="text-muted" title="Hidden">
+                Filter Meta
+                
+            </td>
+            <td></td>
+        </tr>
+        
         <tr class="info">
-            <td>11</td>
+            <td>13</td>
             <td ><code>email_settings</code></td>
             <td >
                 Section Break</td>
@@ -324,7 +348,7 @@
         </tr>
         
         <tr >
-            <td>12</td>
+            <td>14</td>
             <td class="danger" title="Mandatory"><code>email_to</code></td>
             <td >
                 Small Text</td>
@@ -336,7 +360,7 @@
         </tr>
         
         <tr >
-            <td>13</td>
+            <td>15</td>
             <td ><code>day_of_week</code></td>
             <td >
                 Select</td>
@@ -356,7 +380,7 @@ Sunday</pre>
         </tr>
         
         <tr >
-            <td>14</td>
+            <td>16</td>
             <td ><code>column_break_13</code></td>
             <td class="info">
                 Column Break</td>
@@ -368,7 +392,7 @@ Sunday</pre>
         </tr>
         
         <tr >
-            <td>15</td>
+            <td>17</td>
             <td class="danger" title="Mandatory"><code>frequency</code></td>
             <td >
                 Select</td>
@@ -384,7 +408,7 @@ Monthly</pre>
         </tr>
         
         <tr >
-            <td>16</td>
+            <td>18</td>
             <td class="danger" title="Mandatory"><code>format</code></td>
             <td >
                 Select</td>
@@ -400,7 +424,7 @@ CSV</pre>
         </tr>
         
         <tr class="info">
-            <td>17</td>
+            <td>19</td>
             <td ><code>section_break_15</code></td>
             <td >
                 Section Break</td>
@@ -412,7 +436,7 @@ CSV</pre>
         </tr>
         
         <tr >
-            <td>18</td>
+            <td>20</td>
             <td ><code>description</code></td>
             <td >
                 Text Editor</td>
@@ -463,6 +487,20 @@ CSV</pre>
     
     
 	<p class="docs-attr-name">
+        <a name="get_csv" href="#get_csv" class="text-muted small">
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
+		<b>get_csv</b>
+        <i class="text-muted">(self, columns, data)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
         <a name="get_file_name" href="#get_file_name" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		<b>get_file_name</b>
@@ -480,7 +518,7 @@ CSV</pre>
         <a name="get_html_table" href="#get_html_table" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		<b>get_html_table</b>
-        <i class="text-muted">(self, data)</i>
+        <i class="text-muted">(self, columns, data)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
@@ -497,6 +535,20 @@ CSV</pre>
         <i class="text-muted">(self)</i>
     </p>
 	<div class="docs-attr-desc"><p>Returns file in for the report in given format</p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="get_report_footer" href="#get_report_footer" class="text-muted small">
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
+		<b>get_report_footer</b>
+        <i class="text-muted">(self)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
 	<br>
 
@@ -553,6 +605,20 @@ CSV</pre>
         <i class="text-muted">(self)</i>
     </p>
 	<div class="docs-attr-desc"><p>check that there are only 3 enabled reports per user</p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="validate_report_format" href="#validate_report_format" class="text-muted small">
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
+		<b>validate_report_format</b>
+        <i class="text-muted">(self)</i>
+    </p>
+	<div class="docs-attr-desc"><p>check if user has select correct report format </p>
 </div>
 	<br>
 
@@ -639,8 +705,8 @@ CSV</pre>
 <!-- jinja -->
 <!-- static -->
 </div>
-				</div>
-			</div>
+		</div>
+	</div>
 </div>
 
 				<!-- edit-link -->

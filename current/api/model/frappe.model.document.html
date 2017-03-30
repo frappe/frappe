@@ -25,8 +25,7 @@
 <body data-path="current/api/model/frappe.model.document">
 	<div class="main-section">
 		<div>
-				<header>
-	<nav class="navbar navbar-default navbar-main" role="navigation">
+					<nav class="navbar navbar-default navbar-main" role="navigation">
 		<div class="container">
 			<div class="navbar-header">
 				<a class="navbar-brand ellipsis"
@@ -57,6 +56,7 @@
 	Forum</a></li>
 
 <li class="divider"></li>
+
 <!-- post login tools -->
 
 </ul>
@@ -84,29 +84,29 @@
 		>
 	Forum</a></li>
 	
+	
 	<!-- post login tools -->
 
 </ul>
 				
 			</div>
 		</div>
-	</nav>
-</header><div class="hero-and-content">
+	</nav><div class="hero-and-content">
                 <div data-html-block="hero"></div>
                 <div class="container" data-html-block="content">
                 
 <div class="page-container" id="page-current/api/model/frappe.model.document" data-path="{{ pathname }}"
 	>
-			<div class="row ">
-				
-				<div class=" page-content col-sm-12 ">
-					<div class="page-content-wrapper">
-						<div class="row page-head">
-							<div class='col-sm-12'>
-								
-								<div class="page-breadcrumbs">
-									
-									
+	<div class="row ">
+		
+		<div class=" page-content col-sm-12 ">
+			<div class="page-content-wrapper">
+				<div class="row page-head">
+					<div class='col-sm-12'>
+						
+						<div class="page-breadcrumbs">
+							
+							
 <ul class="breadcrumb">
 	<li>
 		<span class="fa fa-angle-left"></span>
@@ -116,21 +116,21 @@
 	
 </ul>
 
-									
-								</div>
-								
-							</div>
-							<div class="col-sm-8 col-xs-6">
-								<h1>frappe.model.document</h1>
-							</div>
-							<div class="col-sm-4 col-xs-6">
-								
-
-								
-							</div>
+							
 						</div>
+						
 					</div>
-					<div class="page_content">
+					<div class="col-sm-8 col-xs-6">
+						<h1>frappe.model.document</h1>
+					</div>
+					<div class="col-sm-4 col-xs-6">
+						
+
+						
+					</div>
+				</div>
+			</div>
+			<div class="page_content">
 <!-- title: frappe.model.document --><div class="dev-header">
 
 <a class="btn btn-default btn-sm" disabled style="margin-bottom: 10px;">
@@ -202,7 +202,7 @@ all values (including child documents) from the database.
         <a name="_save" href="#_save" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		<b>_save</b>
-        <i class="text-muted">(self, ignore_permissions=None)</i>
+        <i class="text-muted">(self, ignore_permissions=None, ignore_version=None)</i>
     </p>
 	<div class="docs-attr-desc"><p>Save the current document in the database in the <strong>DocType</strong>'s table or
         <code>tabSingles</code> (for single types).</p>
@@ -215,6 +215,7 @@ all values (including child documents) from the database.
 
 <ul>
 <li><strong><code>ignore_permissions</code></strong> -  Do not check permissions if True.</li>
+<li><strong><code>ignore_version</code></strong> -  Do not save version if True.</li>
 </ul>
 </div>
 	<br>
@@ -440,20 +441,6 @@ all values (including child documents) from the database.
     
     
 	<p class="docs-attr-name">
-        <a name="clear_linked_with_cache" href="#clear_linked_with_cache" class="text-muted small">
-            <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		<b>clear_linked_with_cache</b>
-        <i class="text-muted">(self)</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
-
-        
-        
-    
-    
-	<p class="docs-attr-name">
         <a name="copy_attachments_from_amended_from" href="#copy_attachments_from_amended_from" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		<b>copy_attachments_from_amended_from</b>
@@ -566,6 +553,20 @@ all values (including child documents) from the database.
     
     
 	<p class="docs-attr-name">
+        <a name="get_title" href="#get_title" class="text-muted small">
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
+		<b>get_title</b>
+        <i class="text-muted">(self)</i>
+    </p>
+	<div class="docs-attr-desc"><p>Get the document title based on title_field or <code>title</code> or <code>name</code></p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
         <a name="get_url" href="#get_url" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		<b>get_url</b>
@@ -618,7 +619,7 @@ all values (including child documents) from the database.
         <a name="insert" href="#insert" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		<b>insert</b>
-        <i class="text-muted">(self, ignore_permissions=None)</i>
+        <i class="text-muted">(self, ignore_permissions=None, ignore_if_duplicate=False, ignore_mandatory=None)</i>
     </p>
 	<div class="docs-attr-desc"><p>Insert the document in the database (as a new document).
         This will check for user permissions and execute <code>before_insert</code>,
@@ -869,6 +870,20 @@ all values (including child documents) from the database.
         <i class="text-muted">(self)</i>
     </p>
 	<div class="docs-attr-desc"><p>Wrapper for _save</p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="save_version" href="#save_version" class="text-muted small">
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
+		<b>save_version</b>
+        <i class="text-muted">(self)</i>
+    </p>
+	<div class="docs-attr-desc"><p>Save version info</p>
 </div>
 	<br>
 
@@ -1146,7 +1161,7 @@ user = get_doc("User", "test@example.com")
 user = get_doc({
     "doctype":"User"
     "email_id": "test@example.com",
-    "user_roles: [
+    "roles: [
         {"role": "System Manager"}
     ]
 })
@@ -1161,8 +1176,8 @@ user = get_doc({
 
 <!-- autodoc -->
 </div>
-				</div>
-			</div>
+		</div>
+	</div>
 </div>
 
 				<!-- edit-link -->

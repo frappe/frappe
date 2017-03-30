@@ -4,7 +4,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Integration Service</title>
+	<title>Address Template</title>
 	<meta name="generator" content="frappe">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
@@ -22,11 +22,10 @@
     
 
 		</head>
-<body data-path="current/models/integration_broker/integration_service">
+<body data-path="current/models/geo/address_template">
 	<div class="main-section">
 		<div>
-				<header>
-	<nav class="navbar navbar-default navbar-main" role="navigation">
+					<nav class="navbar navbar-default navbar-main" role="navigation">
 		<div class="container">
 			<div class="navbar-header">
 				<a class="navbar-brand ellipsis"
@@ -57,6 +56,7 @@
 	Forum</a></li>
 
 <li class="divider"></li>
+
 <!-- post login tools -->
 
 </ul>
@@ -84,54 +84,54 @@
 		>
 	Forum</a></li>
 	
+	
 	<!-- post login tools -->
 
 </ul>
 				
 			</div>
 		</div>
-	</nav>
-</header><div class="hero-and-content">
+	</nav><div class="hero-and-content">
                 <div data-html-block="hero"></div>
                 <div class="container" data-html-block="content">
                 
-<div class="page-container" id="page-current/models/integration_broker/integration_service" data-path="{{ pathname }}"
+<div class="page-container" id="page-current/models/geo/address_template" data-path="{{ pathname }}"
 	>
-			<div class="row ">
-				
-				<div class=" page-content col-sm-12 ">
-					<div class="page-content-wrapper">
-						<div class="row page-head">
-							<div class='col-sm-12'>
-								
-								<div class="page-breadcrumbs">
-									
-									
+	<div class="row ">
+		
+		<div class=" page-content col-sm-12 ">
+			<div class="page-content-wrapper">
+				<div class="row page-head">
+					<div class='col-sm-12'>
+						
+						<div class="page-breadcrumbs">
+							
+							
 <ul class="breadcrumb">
 	<li>
 		<span class="fa fa-angle-left"></span>
-		<a href="https://frappe.github.io/frappe//current/models/integration_broker">
-		Module integration_broker</a>
+		<a href="https://frappe.github.io/frappe//current/models/geo">
+		Module geo</a>
 	</li>
 	
 </ul>
 
-									
-								</div>
-								
-							</div>
-							<div class="col-sm-8 col-xs-6">
-								<h1>Integration Service</h1>
-							</div>
-							<div class="col-sm-4 col-xs-6">
-								
-
-								
-							</div>
+							
 						</div>
+						
 					</div>
-					<div class="page_content">
-<!-- title: Integration Service -->
+					<div class="col-sm-8 col-xs-6">
+						<h1>Address Template</h1>
+					</div>
+					<div class="col-sm-4 col-xs-6">
+						
+
+						
+					</div>
+				</div>
+			</div>
+			<div class="page_content">
+<!-- title: Address Template -->
 
 
 
@@ -143,7 +143,7 @@
 	Version 7.x.x</a>
 
 
-	<a class="btn btn-default btn-sm" href="https://github.com/frappe/frappe/tree/develop/frappe/integration_broker/doctype/integration_service"
+	<a class="btn btn-default btn-sm" href="https://github.com/frappe/frappe/tree/develop/frappe/geo/doctype/address_template"
 		target="_blank" style="margin-left: 10px; margin-bottom: 10px;"><i class="octicon octicon-mark-github"></i> Source</a>
 
 </div>
@@ -152,7 +152,7 @@
 
 
 
-    <p><b>Table Name:</b> <code>tabIntegration Service</code></p>
+    <p><b>Table Name:</b> <code>tabAddress Template</code></p>
 
 
 
@@ -173,72 +173,52 @@
         
         <tr >
             <td>1</td>
-            <td class="danger" title="Mandatory"><code>service</code></td>
+            <td class="danger" title="Mandatory"><code>country</code></td>
             <td >
-                Select</td>
+                Link</td>
             <td >
-                Service
+                Country
                 
             </td>
-            <td></td>
+            <td>
+                
+                
+
+
+<a href="https://frappe.github.io/frappe/current/models/geo/country">Country</a>
+
+
+                
+            </td>
         </tr>
         
         <tr >
             <td>2</td>
-            <td ><code>enabled</code></td>
+            <td ><code>is_default</code></td>
             <td >
                 Check</td>
             <td >
-                Enabled
-                
+                Is Default
+                <p class="text-muted small">
+                    This format is used if country specific format is not found</p>
             </td>
             <td></td>
         </tr>
         
-        <tr class="info">
+        <tr >
             <td>3</td>
-            <td ><code>section_break_3</code></td>
+            <td ><code>template</code></td>
             <td >
-                Section Break</td>
+                Code</td>
             <td >
-                
-                
-            </td>
-            <td></td>
-        </tr>
-        
-        <tr >
-            <td>4</td>
-            <td ><code>integration_service_help</code></td>
-            <td >
-                HTML</td>
-            <td >
-                
-                
-            </td>
-            <td></td>
-        </tr>
-        
-        <tr class="info">
-            <td>5</td>
-            <td ><code>background_events</code></td>
-            <td >
-                Section Break</td>
-            <td >
-                Background Events
-                
-            </td>
-            <td></td>
-        </tr>
-        
-        <tr >
-            <td>6</td>
-            <td ><code>scheduler_events_html</code></td>
-            <td >
-                HTML</td>
-            <td >
-                
-                
+                Template
+                <p class="text-muted small">
+                    <h4>Default Template</h4>
+<p>Uses <a href="http://jinja.pocoo.org/docs/templates/">Jinja Templating</a> and all the fields of Address (including Custom Fields if any) will be available</p>
+<pre><code>{{ address_line1 }}&lt;br&gt;
+{{ city }}&lt;br&gt;
+{{ country }}&lt;br&gt;
+</code></pre></p>
             </td>
             <td></td>
         </tr>
@@ -249,7 +229,7 @@
 
     <hr>
     <h3>Controller</h3>
-    <h4>frappe.integration_broker.doctype.integration_service.integration_service</h4>
+    <h4>frappe.geo.doctype.address_template.address_template</h4>
 
     
 
@@ -257,7 +237,7 @@
 
 	
         
-	<h3 style="font-weight: normal;">Class <b>IntegrationService</b></h3>
+	<h3 style="font-weight: normal;">Class <b>AddressTemplate</b></h3>
     
     <p style="padding-left: 30px;"><i>Inherits from frappe.model.document.Document</i></h4>
     
@@ -269,51 +249,9 @@
     
     
 	<p class="docs-attr-name">
-        <a name="create_request" href="#create_request" class="text-muted small">
+        <a name="on_trash" href="#on_trash" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		<b>create_request</b>
-        <i class="text-muted">(self, data, integration_type, service_name, name=None)</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
-
-        
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="enable_service" href="#enable_service" class="text-muted small">
-            <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		<b>enable_service</b>
-        <i class="text-muted">(self)</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
-
-        
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="get_request" href="#get_request" class="text-muted small">
-            <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		<b>get_request</b>
-        <i class="text-muted">(self, url, auth=None, data=None)</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
-
-        
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="install_fixtures" href="#install_fixtures" class="text-muted small">
-            <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		<b>install_fixtures</b>
+		<b>on_trash</b>
         <i class="text-muted">(self)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
@@ -339,24 +277,10 @@
     
     
 	<p class="docs-attr-name">
-        <a name="post_request" href="#post_request" class="text-muted small">
+        <a name="validate" href="#validate" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		<b>post_request</b>
-        <i class="text-muted">(self, url, auth=None, data=None)</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
-
-        
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="put_request" href="#put_request" class="text-muted small">
-            <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		<b>put_request</b>
-        <i class="text-muted">(url, auth=None, data=None)</i>
+		<b>validate</b>
+        <i class="text-muted">(self)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
@@ -371,48 +295,16 @@
 	
         
     
-    
-	<p class="docs-attr-name">
-        <a name="frappe.integration_broker.doctype.integration_service.integration_service.get_integration_controller" href="#frappe.integration_broker.doctype.integration_service.integration_service.get_integration_controller" class="text-muted small">
-            <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.integration_broker.doctype.integration_service.integration_service.<b>get_integration_controller</b>
-        <i class="text-muted">(service_name)</i>
-    </p>
-	<div class="docs-attr-desc"><p>Returns integration controller module from app_name.integrations.{service}</p>
-</div>
-	<br>
-
-	
-
-	
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="frappe.integration_broker.doctype.integration_service.integration_service.get_integration_service_events" href="#frappe.integration_broker.doctype.integration_service.integration_service.get_integration_service_events" class="text-muted small">
-            <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.integration_broker.doctype.integration_service.integration_service.<b>get_integration_service_events</b>
-        <i class="text-muted">()</i>
-    </p>
-	<div class="docs-attr-desc"><p>Get scheduler events for enabled integrations</p>
-</div>
-	<br>
-
-	
-
-	
-        
-    
     <p><span class="label label-info">Public API</span>
-        <br><code>/api/method/frappe.integration_broker.doctype.integration_service.integration_service.get_integration_services</code>
+        <br><code>/api/method/frappe.geo.doctype.address_template.address_template.get_default_address_template</code>
     </p>
 	<p class="docs-attr-name">
-        <a name="frappe.integration_broker.doctype.integration_service.integration_service.get_integration_services" href="#frappe.integration_broker.doctype.integration_service.integration_service.get_integration_services" class="text-muted small">
+        <a name="frappe.geo.doctype.address_template.address_template.get_default_address_template" href="#frappe.geo.doctype.address_template.address_template.get_default_address_template" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.integration_broker.doctype.integration_service.integration_service.<b>get_integration_services</b>
+		frappe.geo.doctype.address_template.address_template.<b>get_default_address_template</b>
         <i class="text-muted">()</i>
     </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+	<div class="docs-attr-desc"><p>Get default address template (translated)</p>
 </div>
 	<br>
 
@@ -420,20 +312,6 @@
 
 
     
-    
-        <h4>Linked In:</h4>
-        <ul>
-        
-			
-            <li>
-
-
-<a href="https://frappe.github.io/frappe/current/models/website/web_form">Web Form</a>
-
-</li>
-			
-        
-        </ul>
     
 
 
@@ -441,8 +319,8 @@
 <!-- jinja -->
 <!-- static -->
 </div>
-				</div>
-			</div>
+		</div>
+	</div>
 </div>
 
 				<!-- edit-link -->

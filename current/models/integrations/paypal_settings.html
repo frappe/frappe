@@ -25,8 +25,7 @@
 <body data-path="current/models/integrations/paypal_settings">
 	<div class="main-section">
 		<div>
-				<header>
-	<nav class="navbar navbar-default navbar-main" role="navigation">
+					<nav class="navbar navbar-default navbar-main" role="navigation">
 		<div class="container">
 			<div class="navbar-header">
 				<a class="navbar-brand ellipsis"
@@ -57,6 +56,7 @@
 	Forum</a></li>
 
 <li class="divider"></li>
+
 <!-- post login tools -->
 
 </ul>
@@ -84,29 +84,29 @@
 		>
 	Forum</a></li>
 	
+	
 	<!-- post login tools -->
 
 </ul>
 				
 			</div>
 		</div>
-	</nav>
-</header><div class="hero-and-content">
+	</nav><div class="hero-and-content">
                 <div data-html-block="hero"></div>
                 <div class="container" data-html-block="content">
                 
 <div class="page-container" id="page-current/models/integrations/paypal_settings" data-path="{{ pathname }}"
 	>
-			<div class="row ">
-				
-				<div class=" page-content col-sm-12 ">
-					<div class="page-content-wrapper">
-						<div class="row page-head">
-							<div class='col-sm-12'>
-								
-								<div class="page-breadcrumbs">
-									
-									
+	<div class="row ">
+		
+		<div class=" page-content col-sm-12 ">
+			<div class="page-content-wrapper">
+				<div class="row page-head">
+					<div class='col-sm-12'>
+						
+						<div class="page-breadcrumbs">
+							
+							
 <ul class="breadcrumb">
 	<li>
 		<span class="fa fa-angle-left"></span>
@@ -116,21 +116,21 @@
 	
 </ul>
 
-									
-								</div>
-								
-							</div>
-							<div class="col-sm-8 col-xs-6">
-								
-							</div>
-							<div class="col-sm-4 col-xs-6">
-								
-
-								
-							</div>
+							
 						</div>
+						
 					</div>
-					<div class="page_content">
+					<div class="col-sm-8 col-xs-6">
+						
+					</div>
+					<div class="col-sm-4 col-xs-6">
+						
+
+						
+					</div>
+				</div>
+			</div>
+			<div class="page_content">
 <!-- title: PayPal Settings -->
 
 
@@ -247,9 +247,9 @@
 
 <p>Example:</p>
 
-<pre><code>from frappe.integration_broker.doctype.integration_service.integration_service import get_integration_controller
+<pre><code>from frappe.integrations.utils import get_payment_gateway_controller
 
-controller = get_integration_controller("PayPal")
+controller = get_payment_gateway_controller("PayPal")
 controller().validate_transaction_currency(currency)
 </code></pre>
 
@@ -266,7 +266,8 @@ controller().validate_transaction_currency(currency)
     "payer_email": "NuranVerkleij@example.com",
     "payer_name": "Nuran Verkleij",
     "order_id": "111",
-    "currency": "USD"
+    "currency": "USD",
+    "payment_gateway": "Razorpay"
 }
 
 # redirect the user to this url
@@ -290,14 +291,14 @@ For paypal payment status parameter is one from: [Completed, Cancelled, Failed]<
 
 <p>More Details:</p>
 
-<div class="small">For details on how to get your API credentials, follow this link: <a href="https://developer.paypal.com/docs/classic/api/apiCredentials/" rel="nofollow" target="_blank">https://developer.paypal.com/docs/classic/api/apiCredentials/</a></div>
+<div class="small">For details on how to get your API credentials, follow this link: <a href="https://developer.paypal.com/docs/classic/api/apiCredentials/" target="_blank">https://developer.paypal.com/docs/classic/api/apiCredentials/</a></div>
 <br><br>
 
 	
         
 	<h3 style="font-weight: normal;">Class <b>PayPalSettings</b></h3>
     
-    <p style="padding-left: 30px;"><i>Inherits from frappe.integration_broker.doctype.integration_service.integration_service.IntegrationService</i></h4>
+    <p style="padding-left: 30px;"><i>Inherits from frappe.model.document.Document</i></h4>
     
     <div class="docs-attr-desc"><p></p>
 </div>
@@ -310,20 +311,6 @@ For paypal payment status parameter is one from: [Completed, Cancelled, Failed]<
         <a name="__setup__" href="#__setup__" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		<b>__setup__</b>
-        <i class="text-muted">(self)</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
-
-        
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="enable" href="#enable" class="text-muted small">
-            <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		<b>enable</b>
         <i class="text-muted">(self)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
@@ -470,24 +457,6 @@ For paypal payment status parameter is one from: [Completed, Cancelled, Failed]<
         
     
     <p><span class="label label-info">Public API</span>
-        <br><code>/api/method/frappe.integrations.doctype.paypal_settings.paypal_settings.get_checkout_url</code>
-    </p>
-	<p class="docs-attr-name">
-        <a name="frappe.integrations.doctype.paypal_settings.paypal_settings.get_checkout_url" href="#frappe.integrations.doctype.paypal_settings.paypal_settings.get_checkout_url" class="text-muted small">
-            <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.integrations.doctype.paypal_settings.paypal_settings.<b>get_checkout_url</b>
-        <i class="text-muted">()</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
-
-	
-
-	
-        
-    
-    <p><span class="label label-info">Public API</span>
         <br><code>/api/method/frappe.integrations.doctype.paypal_settings.paypal_settings.get_express_checkout_details</code>
     </p>
 	<p class="docs-attr-name">
@@ -495,24 +464,6 @@ For paypal payment status parameter is one from: [Completed, Cancelled, Failed]<
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		frappe.integrations.doctype.paypal_settings.paypal_settings.<b>get_express_checkout_details</b>
         <i class="text-muted">(token)</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
-
-	
-
-	
-        
-    
-    <p><span class="label label-info">Public API</span>
-        <br><code>/api/method/frappe.integrations.doctype.paypal_settings.paypal_settings.get_service_details</code>
-    </p>
-	<p class="docs-attr-name">
-        <a name="frappe.integrations.doctype.paypal_settings.paypal_settings.get_service_details" href="#frappe.integrations.doctype.paypal_settings.paypal_settings.get_service_details" class="text-muted small">
-            <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.integrations.doctype.paypal_settings.paypal_settings.<b>get_service_details</b>
-        <i class="text-muted">()</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
@@ -545,8 +496,8 @@ For paypal payment status parameter is one from: [Completed, Cancelled, Failed]<
 <!-- jinja -->
 <!-- static -->
 </div>
-				</div>
-			</div>
+		</div>
+	</div>
 </div>
 
 				<!-- edit-link -->

@@ -25,8 +25,7 @@
 <body data-path="current/models/email/email_queue">
 	<div class="main-section">
 		<div>
-				<header>
-	<nav class="navbar navbar-default navbar-main" role="navigation">
+					<nav class="navbar navbar-default navbar-main" role="navigation">
 		<div class="container">
 			<div class="navbar-header">
 				<a class="navbar-brand ellipsis"
@@ -57,6 +56,7 @@
 	Forum</a></li>
 
 <li class="divider"></li>
+
 <!-- post login tools -->
 
 </ul>
@@ -84,29 +84,29 @@
 		>
 	Forum</a></li>
 	
+	
 	<!-- post login tools -->
 
 </ul>
 				
 			</div>
 		</div>
-	</nav>
-</header><div class="hero-and-content">
+	</nav><div class="hero-and-content">
                 <div data-html-block="hero"></div>
                 <div class="container" data-html-block="content">
                 
 <div class="page-container" id="page-current/models/email/email_queue" data-path="{{ pathname }}"
 	>
-			<div class="row ">
-				
-				<div class=" page-content col-sm-12 ">
-					<div class="page-content-wrapper">
-						<div class="row page-head">
-							<div class='col-sm-12'>
-								
-								<div class="page-breadcrumbs">
-									
-									
+	<div class="row ">
+		
+		<div class=" page-content col-sm-12 ">
+			<div class="page-content-wrapper">
+				<div class="row page-head">
+					<div class='col-sm-12'>
+						
+						<div class="page-breadcrumbs">
+							
+							
 <ul class="breadcrumb">
 	<li>
 		<span class="fa fa-angle-left"></span>
@@ -116,21 +116,21 @@
 	
 </ul>
 
-									
-								</div>
-								
-							</div>
-							<div class="col-sm-8 col-xs-6">
-								<h1>Email Queue</h1>
-							</div>
-							<div class="col-sm-4 col-xs-6">
-								
-
-								
-							</div>
+							
 						</div>
+						
 					</div>
-					<div class="page_content">
+					<div class="col-sm-8 col-xs-6">
+						<h1>Email Queue</h1>
+					</div>
+					<div class="col-sm-4 col-xs-6">
+						
+
+						
+					</div>
+				</div>
+			</div>
+			<div class="page_content">
 <!-- title: Email Queue -->
 
 
@@ -187,20 +187,39 @@ Email Queue records.
         
         <tr >
             <td>2</td>
-            <td ><code>recipient</code></td>
+            <td ><code>recipients</code></td>
             <td >
-                Data</td>
+                Table</td>
             <td >
                 Recipient
                 
             </td>
             <td>
-                <pre>Email</pre>
+                
+                
+
+
+<a href="https://frappe.github.io/frappe/current/models/email/email_queue_recipient">Email Queue Recipient</a>
+
+
+                
             </td>
         </tr>
         
         <tr >
             <td>3</td>
+            <td ><code>show_as_cc</code></td>
+            <td >
+                Data</td>
+            <td >
+                Show as cc
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>4</td>
             <td ><code>message</code></td>
             <td >
                 Code</td>
@@ -212,7 +231,7 @@ Email Queue records.
         </tr>
         
         <tr >
-            <td>4</td>
+            <td>5</td>
             <td ><code>status</code></td>
             <td >
                 Select</td>
@@ -231,7 +250,7 @@ Expired</pre>
         </tr>
         
         <tr >
-            <td>5</td>
+            <td>6</td>
             <td ><code>error</code></td>
             <td >
                 Code</td>
@@ -243,7 +262,7 @@ Expired</pre>
         </tr>
         
         <tr >
-            <td>6</td>
+            <td>7</td>
             <td ><code>message_id</code></td>
             <td >
                 Data</td>
@@ -255,7 +274,7 @@ Expired</pre>
         </tr>
         
         <tr >
-            <td>7</td>
+            <td>8</td>
             <td ><code>reference_doctype</code></td>
             <td >
                 Link</td>
@@ -276,7 +295,7 @@ Expired</pre>
         </tr>
         
         <tr >
-            <td>8</td>
+            <td>9</td>
             <td ><code>reference_name</code></td>
             <td >
                 Data</td>
@@ -288,7 +307,7 @@ Expired</pre>
         </tr>
         
         <tr >
-            <td>9</td>
+            <td>10</td>
             <td ><code>communication</code></td>
             <td >
                 Link</td>
@@ -309,7 +328,7 @@ Expired</pre>
         </tr>
         
         <tr >
-            <td>10</td>
+            <td>11</td>
             <td ><code>send_after</code></td>
             <td >
                 Datetime</td>
@@ -321,12 +340,60 @@ Expired</pre>
         </tr>
         
         <tr >
-            <td>11</td>
+            <td>12</td>
             <td ><code>priority</code></td>
             <td >
                 Int</td>
             <td >
                 Priority
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>13</td>
+            <td ><code>add_unsubscribe_link</code></td>
+            <td >
+                Check</td>
+            <td >
+                Add Unsubscribe Link
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>14</td>
+            <td ><code>unsubscribe_param</code></td>
+            <td >
+                Data</td>
+            <td >
+                Unsubscribe Param
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>15</td>
+            <td ><code>unsubscribe_method</code></td>
+            <td >
+                Data</td>
+            <td >
+                Unsubscribe Method
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>16</td>
+            <td ><code>expose_recipients</code></td>
+            <td >
+                Data</td>
+            <td >
+                Expose Recipients
                 
             </td>
             <td></td>
@@ -358,6 +425,20 @@ Expired</pre>
     
     
 	<p class="docs-attr-name">
+        <a name="get_duplicate" href="#get_duplicate" class="text-muted small">
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
+		<b>get_duplicate</b>
+        <i class="text-muted">(self, recipients)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
         <a name="on_trash" href="#on_trash" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		<b>on_trash</b>
@@ -378,6 +459,20 @@ Expired</pre>
         <i class="text-muted">(self)</i>
     </p>
 	<div class="docs-attr-desc"><p>If email limit is set, don't allow users to delete Email Queue record</p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="set_recipients" href="#set_recipients" class="text-muted small">
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
+		<b>set_recipients</b>
+        <i class="text-muted">(self, recipients)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
 	<br>
 
@@ -448,8 +543,8 @@ Expired</pre>
 <!-- jinja -->
 <!-- static -->
 </div>
-				</div>
-			</div>
+		</div>
+	</div>
 </div>
 
 				<!-- edit-link -->

@@ -25,8 +25,7 @@
 <body data-path="user/pt/tutorial/web-views">
 	<div class="main-section">
 		<div>
-				<header>
-	<nav class="navbar navbar-default navbar-main" role="navigation">
+					<nav class="navbar navbar-default navbar-main" role="navigation">
 		<div class="container">
 			<div class="navbar-header">
 				<a class="navbar-brand ellipsis"
@@ -57,6 +56,7 @@
 	Forum</a></li>
 
 <li class="divider"></li>
+
 <!-- post login tools -->
 
 </ul>
@@ -84,29 +84,29 @@
 		>
 	Forum</a></li>
 	
+	
 	<!-- post login tools -->
 
 </ul>
 				
 			</div>
 		</div>
-	</nav>
-</header><div class="hero-and-content">
+	</nav><div class="hero-and-content">
                 <div data-html-block="hero"></div>
                 <div class="container" data-html-block="content">
                 
 <div class="page-container" id="page-user/pt/tutorial/web-views" data-path="{{ pathname }}"
 	>
-			<div class="row ">
-				
-				<div class=" page-content col-sm-12 ">
-					<div class="page-content-wrapper">
-						<div class="row page-head">
-							<div class='col-sm-12'>
-								
-								<div class="page-breadcrumbs">
-									
-									
+	<div class="row ">
+		
+		<div class=" page-content col-sm-12 ">
+			<div class="page-content-wrapper">
+				<div class="row page-head">
+					<div class='col-sm-12'>
+						
+						<div class="page-breadcrumbs">
+							
+							
 <ul class="breadcrumb">
 	<li>
 		<span class="fa fa-angle-left"></span>
@@ -116,21 +116,21 @@
 	
 </ul>
 
-									
-								</div>
-								
-							</div>
-							<div class="col-sm-8 col-xs-6">
-								
-							</div>
-							<div class="col-sm-4 col-xs-6">
-								
-
-								
-							</div>
+							
 						</div>
+						
 					</div>
-					<div class="page_content">
+					<div class="col-sm-8 col-xs-6">
+						
+					</div>
+					<div class="col-sm-4 col-xs-6">
+						
+
+						
+					</div>
+				</div>
+			</div>
+			<div class="page_content">
 <h1>Web Views</h1>
 
 <p>Frappe tem dois ambientes de usuário principais, o Desk e o Web. Desk é um ambiente UI controlado com uma rica aplicação AJAX e a web usa template HTML tradicional que serve para consumo público. Web Views também podem ser gerados para criar views mais controladas para os usuários que pode fazer o login mas ainda não têm acesso à Desk.</p>
@@ -153,13 +153,14 @@
 
 <p>Se você estiver logado como usuário de teste, vá para <code>/article</code> e você deverá ver a lista de artigos:</p>
 
-<p><img src="https://frappe.github.io/frappe/assets/img/guide/26-web-list.png" alt="Web List" /></p>
+<p><img class="screenshot" alt="web list" src="https://frappe.github.io/frappe/assets/img/web-list.png"></p>
 
 <p>Clique em um artigo e você vai ver uma Web View padrão</p>
 
-<p><img src="https://frappe.github.io/frappe/assets/img/guide/26-web-view.png" alt="Web List" /></p>
+<p><img class="screenshot" alt="web view" src="https://frappe.github.io/frappe/assets/img/web-view.png"></p>
 
-<p>Agora, se você quiser fazer uma List View melhor para o artigo, crie um arquivo chamado <code>list_item.html</code> na pasta <code>library_management/doctype/article</code>. Aqui está um exemplo de arquivo:</p>
+<p>Agora, se você quiser fazer uma List View melhor para o artigo, crie um arquivo chamado <code>row_template.html</code> na pasta
+<code>library_management/templates/includes/list/</code>. Aqui está um exemplo de arquivo:</p>
 
 <pre><code>&lt;div class="row"&gt;
     &lt;div class="col-sm-4"&gt;
@@ -182,7 +183,7 @@
 
 <p>A List View atualizada se parece com isso!</p>
 
-<p><img src="https://frappe.github.io/frappe/assets/img/guide/27-web-view-list.png" alt="Web List" /></p>
+<p><img class="screenshot" alt="new web list" src="https://frappe.github.io/frappe/assets/img/web-list-new.png"></p>
 
 <h4>Home Page</h4>
 
@@ -204,8 +205,8 @@
 <p><p class="btn-next-wrapper">Next: <a class="btn-next" href="https://frappe.github.io/frappe/user/pt/tutorial/single-doctypes">Single DocTypes</a></p></p>
 
 </div>
-				</div>
-			</div>
+		</div>
+	</div>
 </div>
 
 				

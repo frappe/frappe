@@ -25,8 +25,7 @@
 <body data-path="current/models/core/version">
 	<div class="main-section">
 		<div>
-				<header>
-	<nav class="navbar navbar-default navbar-main" role="navigation">
+					<nav class="navbar navbar-default navbar-main" role="navigation">
 		<div class="container">
 			<div class="navbar-header">
 				<a class="navbar-brand ellipsis"
@@ -57,6 +56,7 @@
 	Forum</a></li>
 
 <li class="divider"></li>
+
 <!-- post login tools -->
 
 </ul>
@@ -84,29 +84,29 @@
 		>
 	Forum</a></li>
 	
+	
 	<!-- post login tools -->
 
 </ul>
 				
 			</div>
 		</div>
-	</nav>
-</header><div class="hero-and-content">
+	</nav><div class="hero-and-content">
                 <div data-html-block="hero"></div>
                 <div class="container" data-html-block="content">
                 
 <div class="page-container" id="page-current/models/core/version" data-path="{{ pathname }}"
 	>
-			<div class="row ">
-				
-				<div class=" page-content col-sm-12 ">
-					<div class="page-content-wrapper">
-						<div class="row page-head">
-							<div class='col-sm-12'>
-								
-								<div class="page-breadcrumbs">
-									
-									
+	<div class="row ">
+		
+		<div class=" page-content col-sm-12 ">
+			<div class="page-content-wrapper">
+				<div class="row page-head">
+					<div class='col-sm-12'>
+						
+						<div class="page-breadcrumbs">
+							
+							
 <ul class="breadcrumb">
 	<li>
 		<span class="fa fa-angle-left"></span>
@@ -116,21 +116,21 @@
 	
 </ul>
 
-									
-								</div>
-								
-							</div>
-							<div class="col-sm-8 col-xs-6">
-								<h1>Version</h1>
-							</div>
-							<div class="col-sm-4 col-xs-6">
-								
-
-								
-							</div>
+							
 						</div>
+						
 					</div>
-					<div class="page_content">
+					<div class="col-sm-8 col-xs-6">
+						<h1>Version</h1>
+					</div>
+					<div class="col-sm-4 col-xs-6">
+						
+
+						
+					</div>
+				</div>
+			</div>
+			<div class="page_content">
 <!-- title: Version -->
 
 
@@ -177,7 +177,7 @@
             <td >
                 Link</td>
             <td >
-                Ref DocType
+                DocType
                 
             </td>
             <td>
@@ -194,11 +194,11 @@
         
         <tr >
             <td>2</td>
-            <td class="danger" title="Mandatory"><code>docname</code></td>
+            <td ><code>column_break_3</code></td>
+            <td class="info">
+                Column Break</td>
             <td >
-                Data</td>
-            <td >
-                Docname
+                
                 
             </td>
             <td></td>
@@ -206,11 +206,47 @@
         
         <tr >
             <td>3</td>
-            <td class="danger" title="Mandatory"><code>doclist_json</code></td>
+            <td class="danger" title="Mandatory"><code>docname</code></td>
+            <td >
+                Data</td>
+            <td >
+                Document Name
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>4</td>
+            <td ><code>data</code></td>
             <td >
                 Code</td>
+            <td class="text-muted" title="Hidden">
+                Data
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr class="info">
+            <td>5</td>
+            <td ><code>section_break_4</code></td>
             <td >
-                Doclist JSON
+                Section Break</td>
+            <td >
+                
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>6</td>
+            <td ><code>table_html</code></td>
+            <td >
+                HTML</td>
+            <td >
+                Table HTML
                 
             </td>
             <td></td>
@@ -238,6 +274,34 @@
 </div>
     <div style="padding-left: 30px;">
         
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="get_data" href="#get_data" class="text-muted small">
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
+		<b>get_data</b>
+        <i class="text-muted">(self)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="set_diff" href="#set_diff" class="text-muted small">
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
+		<b>set_diff</b>
+        <i class="text-muted">(self, old, new)</i>
+    </p>
+	<div class="docs-attr-desc"><p>Set the data property with the diff of the docs if present</p>
+</div>
+	<br>
+
+        
     </div>
     <hr>
 
@@ -246,16 +310,28 @@
 	
         
     
-    <p><span class="label label-info">Public API</span>
-        <br><code>/api/method/frappe.core.doctype.version.version.restore</code>
-    </p>
+    
 	<p class="docs-attr-name">
-        <a name="frappe.core.doctype.version.version.restore" href="#frappe.core.doctype.version.version.restore" class="text-muted small">
+        <a name="frappe.core.doctype.version.version.get_diff" href="#frappe.core.doctype.version.version.get_diff" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.core.doctype.version.version.<b>restore</b>
-        <i class="text-muted">(version)</i>
+		frappe.core.doctype.version.version.<b>get_diff</b>
+        <i class="text-muted">(old, new, for_child=False)</i>
     </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+	<div class="docs-attr-desc"><p>Get diff between 2 document objects</p>
+
+<pre><code>If there is a change, then returns a dict like:
+
+    {
+        "changed"    : [[fieldname1, old, new], [fieldname2, old, new]],
+        "added"      : [[table_fieldname1, {dict}], ],
+        "removed"    : [[table_fieldname1, {dict}], ],
+        "row_changed": [[table_fieldname1, row_name1, row_index,
+            [[child_fieldname1, old, new],
+            [child_fieldname2, old, new]], ]
+        ],
+
+    }
+</code></pre>
 </div>
 	<br>
 
@@ -270,8 +346,8 @@
 <!-- jinja -->
 <!-- static -->
 </div>
-				</div>
-			</div>
+		</div>
+	</div>
 </div>
 
 				<!-- edit-link -->
