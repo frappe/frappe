@@ -56,7 +56,7 @@ frappe.views.ListSidebar = Class.extend({
 			if(this.current_view === 'Kanban') {
 				this.kanban_board = route[3];
 			} else if (this.current_view === 'Inbox') {
-				this.email_account = route[3] || frappe.boot.all_accounts;
+				this.email_account = route[3];
 			}
 		}
 
@@ -279,7 +279,8 @@ frappe.views.ListSidebar = Class.extend({
 		accounts = frappe.boot.email_accounts;
 
 		accounts.forEach(function(account) {
-			var route = ["List", "Communication", "Inbox", account.email_account].join('/');
+			email_account = (account.email_id == "All Accounts")? "All Accounts": account.email_account;
+			var route = ["List", "Communication", "Inbox", email_account].join('/');
 			if(!divider) {
 				$('<li role="separator" class="divider"></li>').appendTo($dropdown);
 				divider = true;
