@@ -11,6 +11,7 @@ from frappe.model.document import Document
 from frappe.modules.export_file import export_to_files
 from frappe.modules import make_boilerplate
 from frappe.core.doctype.page.page import delete_custom_role
+from frappe.core.doctype.custom_role.custom_role import get_custom_allowed_roles
 
 class Report(Document):
 	def validate(self):
@@ -57,6 +58,9 @@ class Report(Document):
 
 		allowed = [d.role for d in frappe.get_all("Has Role", fields=["role"],
 			filters={"parent": self.name})]
+
+		custom_roles = get_custom_allowed_roles('report', self.name)
+		allowed.extend(custom_roles)
 
 		if not allowed:
 			return True

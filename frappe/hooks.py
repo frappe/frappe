@@ -132,7 +132,7 @@ scheduler_events = {
 	],
 	"hourly": [
 		"frappe.model.utils.link_count.update_link_count",
-		'frappe.model.utils.list_settings.sync_list_settings',
+		'frappe.model.utils.user_settings.sync_user_settings',
 		"frappe.utils.error.collect_error_snapshots",
 		"frappe.desk.page.backups.backups.delete_downloadable_backups",
 		"frappe.limits.update_space_usage"

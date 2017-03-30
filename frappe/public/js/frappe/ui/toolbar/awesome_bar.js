@@ -96,7 +96,7 @@ frappe.search.AwesomeBar = Class.extend({
 				me.options.forEach(function(option) {
 					if(option.route) {
 						if(option.route[0] === "List" && option.route[2]) {
-							option.route.splice(2, 1);
+							option.route.splice(2);
 						}
 						var str_route = (typeof option.route==='string') ?
 								option.route : option.route.join('/');

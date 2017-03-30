@@ -120,6 +120,7 @@ def get_user_page_or_report(parent):
 				has_role[p.name] = {"modified":p.modified, "title": p.title}
 				if parent == "Report":
 					has_role[p.name].update({'ref_doctype': p.ref_doctype})
+					has_role[p.name].update({'report_type': p.report_type})
 
 	# pages or reports where role is not set are also allowed
 	for p in frappe.db.sql("""select `tab{parent}`.name, `tab{parent}`.modified, {column}
@@ -130,13 +131,14 @@ def get_user_page_or_report(parent):
 				has_role[p.name] = {"modified":p.modified, "title": p.title}
 				if parent == "Report":
 					has_role[p.name].update({'ref_doctype': p.ref_doctype})
+					has_role[p.name].update({'report_type': p.report_type})
 
 	return has_role
 	
 def get_column(doctype):
 	column = "`tabPage`.title as title"
 	if doctype == "Report":
-		column = "`tabReport`.name as name, `tabReport`.ref_doctype"
+		column = "`tabReport`.name as name, `tabReport`.name as title, `tabReport`.ref_doctype, `tabReport`.report_type"
 
 	return column
 
