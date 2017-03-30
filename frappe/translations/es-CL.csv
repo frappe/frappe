@@ -21,5 +21,5 @@ DocType: Address Template,"<h4>Default Template</h4>
  {% if fax%} Fax: {{fax}} &amp; lt; br &amp; gt; {% endif -%} 
  {% if email_ID%} Email: {{email_ID}} &amp; lt; br &amp; gt ; {% endif -%} 
  <!-- code--> <!-- pre--></code></pre></h4>"
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +226,Permissions can be managed via Setup &gt; Role Permissions Manager,Los permisos se pueden gestionar a través de Configuración &gt; Administrador de permisos
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +228,Permissions can be managed via Setup &gt; Role Permissions Manager,Los permisos se pueden gestionar a través de Configuración &gt; Administrador de permisos
 DocType: Website Settings,&lt;head&gt; HTML,HTML
