@@ -19,12 +19,11 @@ def export_module_json(doc, is_standard, module):
 	if (not frappe.flags.in_import and getattr(frappe.get_conf(),'developer_mode', 0)
 		and is_standard):
 		from frappe.modules.export_file import export_to_files
-		from frappe.modules import get_module_path
 
 		# json
 		export_to_files(record_list=[[doc.doctype, doc.name]], record_module=module)
 
-		path = os.path.join(get_module_path(module), scrub(doc.doctype),
+		path = os.path.join(frappe.get_module_path(module), scrub(doc.doctype),
 			scrub(doc.name), scrub(doc.name))
 
 		return path
@@ -40,13 +39,13 @@ def get_doc_module(module, doctype, name):
 	return frappe.get_module(module_name)
 
 @frappe.whitelist()
-def export_customizations(module, doctype, sync_on_migrate=0):
+def export_customizations(module, doctype, sync_on_migrate=0, with_permissions=0):
 	"""Export Custom Field and Property Setter for the current document to the app folder.
 		This will be synced with bench migrate"""
 	if not frappe.get_conf().developer_mode:
 		raise 'Not developer mode'
 
-	custom = {'custom_fields': [], 'property_setters': [],
+	custom = {'custom_fields': [], 'property_setters': [], 'custom_perms': [],
 		'doctype': doctype, 'sync_on_migrate': 1}
 
 	def add(_doctype):
@@ -56,6 +55,10 @@ def export_customizations(module, doctype, sync_on_migrate=0):
 			fields='*', filters={'doc_type': _doctype})
 
 	add(doctype)
+
+	if with_permissions:
+		custom['custom_perms'] = frappe.get_all('Custom DocPerm',
+			fields='*', filters={'parent': doctype})
 
 	# add custom fields and property setters for all child tables
 	for d in frappe.get_meta(doctype).get_table_fields():
@@ -97,25 +100,33 @@ def sync_customizations_for_doctype(data):
 	from frappe.core.doctype.doctype.doctype import validate_fields_for_doctype
 
 	doctype = data['doctype']
-	if data['custom_fields']:
-		frappe.db.sql('delete from `tabCustom Field` where dt=%s', doctype)
+	update_schema = False
 
-		for d in data['custom_fields']:
-			d['doctype'] = 'Custom Field'
+	def sync(key, custom_doctype, doctype_fieldname):
+		frappe.db.sql('delete from `tab{0}` where `{1}`=%s'.format(custom_doctype, doctype_fieldname),
+			doctype)
+
+		for d in data[key]:
+			d['doctype'] = custom_doctype
 			doc = frappe.get_doc(d)
 			doc.db_insert()
+
+	if data['custom_fields']:
+		sync('custom_fields', 'Custom Field', 'dt')
+		update_schema = True
 
 	if data['property_setters']:
-		frappe.db.sql('delete from `tabProperty Setter` where doc_type=%s', doctype)
+		sync('property_setters', 'Property Setter', 'doc_type')
 
-		for d in data['property_setters']:
-			d['doctype'] = 'Property Setter'
-			doc = frappe.get_doc(d)
-			doc.db_insert()
+	if data.get('custom_perms'):
+		sync('custom_perms', 'Custom DocPerm', 'parent')
 
 	print 'Updating customizations for {0}'.format(doctype)
 	validate_fields_for_doctype(doctype)
 
+	if update_schema and not frappe.db.get_value('DocType', doctype, 'issingle'):
+		from frappe.model.db_schema import updatedb
+		updatedb(doctype)
 
 def scrub(txt):
 	return frappe.scrub(txt)
@@ -197,6 +208,8 @@ def make_boilerplate(template, doc, opts=None):
 	template_name = template.replace("controller", scrub(doc.name))
 	target_file_path = os.path.join(target_path, template_name)
 
+	if not doc: doc = {}
+
 	app_publisher = get_app_publisher(doc.module)
 
 	if not os.path.exists(target_file_path):
@@ -207,6 +220,9 @@ def make_boilerplate(template, doc, opts=None):
 			with open(os.path.join(get_module_path("core"), "doctype", scrub(doc.doctype),
 				"boilerplate", template), 'r') as source:
 				target.write(frappe.utils.encode(
-					frappe.utils.cstr(source.read()).format(app_publisher=app_publisher,
-						classname=doc.name.replace(" ", ""), doctype=doc.name, **opts)
+					frappe.utils.cstr(source.read()).format(
+						app_publisher=app_publisher,
+						year=frappe.utils.nowdate()[:4],
+						classname=doc.name.replace(" ", ""),
+						doctype=doc.name, **opts)
 				))

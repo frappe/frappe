@@ -169,7 +169,7 @@ def resolve_path(path):
 
 def resolve_from_map(path):
 	m = Map([Rule(r["from_route"], endpoint=r["to_route"], defaults=r.get("defaults"))
-		for r in frappe.get_hooks("website_route_rules")])
+		for r in get_website_rules()])
 	urls = m.bind_to_environ(frappe.local.request.environ)
 	try:
 		endpoint, args = urls.match("/" + path)
@@ -183,6 +183,18 @@ def resolve_from_map(path):
 		pass
 
 	return path
+
+def get_website_rules():
+	'''Get website route rules from hooks and DocType route'''
+	def _get():
+		rules = frappe.get_hooks("website_route_rules")
+		for d in frappe.get_all('DocType', 'name, route', dict(has_web_view=1)):
+			if d.route:
+				rules.append(dict(from_route = '/' + d.route.strip('/'), to_route=d.name))
+
+		return rules
+
+	return frappe.cache().get_value('website_route_rules', _get)
 
 def set_content_type(response, data, path):
 	if isinstance(data, dict):
@@ -204,26 +216,31 @@ def set_content_type(response, data, path):
 	return data
 
 def clear_cache(path=None):
+	'''Clear website caches
+
+	:param path: (optional) for the given path'''
 	frappe.cache().delete_value("website_generator_routes")
 	delete_page_cache(path)
+	frappe.cache().delete_value("website_404")
 	if not path:
 		clear_sitemap()
 		frappe.clear_cache("Guest")
-		frappe.cache().delete_value("website_404")
-		frappe.cache().delete_value("portal_menu_items")
-		frappe.cache().delete_value("home_page")
+		for key in ('portal_menu_items', 'home_page', 'website_route_rules',
+			'doctypes_with_web_view'):
+			frappe.cache().delete_value(key)
 
 	for method in frappe.get_hooks("website_clear_cache"):
 		frappe.get_attr(method)(path)
 
 def render_403(e, pathname):
-	path = "message"
-	frappe.local.message = """<p><strong>{error}</strong></p>
-	<p>
-		<a href="/login?redirect-to=/{pathname}" class="btn btn-primary">{login}</a>
-	</p>""".format(error=cstr(e.message), login=_("Login"), pathname=frappe.local.path)
+	frappe.local.message = cstr(e.message)
 	frappe.local.message_title = _("Not Permitted")
-	return render_page(path), e.http_status_code
+	frappe.local.response['context'] = dict(
+		indicator_color = 'red',
+		primary_action = '/login',
+		primary_label = _('Login')
+	)
+	return render_page("message"), e.http_status_code
 
 def get_doctype_from_path(path):
 	doctypes = frappe.db.sql_list("select name from tabDocType")

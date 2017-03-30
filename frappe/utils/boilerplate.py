@@ -53,10 +53,12 @@ def make_boilerplate(dest, app_name):
 	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "templates",
 		"pages"), with_init=True)
 	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "templates",
-		"generators"), with_init=True)
-	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "templates",
 		"includes"))
 	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "config"), with_init=True)
+	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "public",
+		"css"))
+	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "public",
+		"js"))
 
 	with open(os.path.join(dest, hooks.app_name, hooks.app_name, "__init__.py"), "w") as f:
 		f.write(encode(init_template))
@@ -146,6 +148,14 @@ app_license = "{app_license}"
 # include js, css files in header of web template
 # web_include_css = "/assets/{app_name}/css/{app_name}.css"
 # web_include_js = "/assets/{app_name}/js/{app_name}.js"
+
+# include js in page
+# page_js = {{"page" : "public/js/file.js"}}
+
+# include js in doctype views
+# doctype_js = {{"doctype" : "public/js/doctype.js"}}
+# doctype_list_js = {{"doctype" : "public/js/doctype_list.js"}}
+# doctype_tree_js = {{"doctype" : "public/js/doctype_tree.js"}}
 
 # Home Pages
 # ----------

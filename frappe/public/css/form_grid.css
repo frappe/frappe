@@ -38,6 +38,9 @@
 .form-grid .data-row.sortable-handle {
   cursor: move;
 }
+.form-column.col-sm-6 .form-grid .row-index > span {
+  display: none;
+}
 .form-grid .template-row {
   padding: 8px 15px;
 }
@@ -56,7 +59,7 @@
   max-height: 200px;
   border-right: 1px solid #d1d8dd;
 }
-.grid-static-col.bold {
+.editable-form .grid-static-col.bold {
   font-weight: bold;
   background-color: #fffdf4;
 }
@@ -85,6 +88,7 @@
 .grid-body .editable-row .checkbox {
   margin: 0px;
   text-align: center;
+  margin-top: 9px;
 }
 .grid-body .editable-row textarea {
   height: 38px !important;

@@ -2,17 +2,33 @@
 
 {% block title %}{{ title or _("Message") }}{% endblock %}
 
-{% block header %}
-	{% if header is defined -%}
-	<h1>{{ header }}</h1>
-	{%- endif %}
-{% endblock %}
-
 {% block page_content %}
 
-<div class="message-content" style="min-height: 200px;">
-	<div>
-		{{ message or _("No Message") }}
+<div class='page-card'>
+	<div class='page-card-head'>
+		<span class='indicator {{ indicator_color or "blue" }}'>
+			{{ title or _("Message") }}</span>
 	</div>
+	<p>{{ message or "" }}</p>
+	{% if primary_action %}
+	<div><a href='{{ primary_action or "/" }}' class='btn btn-primary btn-sm'>
+		{{ primary_label or _("Home") }}</a></div>
+	{% endif %}
 </div>
+{% if error_code %}
+<p class='text-muted text-center small' style='margin-top: -20px;'>{{ _("Status: {0}").format(error_code) }}</p>
+{% endif %}
+<style>
+.hero-and-content {
+	background-color: #f5f7fa;
+}
+{% if fullpage %}
+header, footer {
+	display: none;
+}
+html, body {
+	background-color: #f5f7fa;
+}
+{% endif %}
+</style>
 {% endblock %}

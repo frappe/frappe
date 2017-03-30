@@ -70,6 +70,7 @@ def get_notifications_for(notification_type, config, notification_count):
 
 				frappe.cache().hset("notification_count:" + m, frappe.session.user, open_count[m])
 		except frappe.PermissionError:
+			frappe.clear_messages()
 			pass
 			# frappe.msgprint("Permission Error in notifications for {0}".format(m))
 
@@ -90,11 +91,12 @@ def get_notifications_for_doctypes(config, notification_count):
 				try:
 					if isinstance(condition, dict):
 						result = len(frappe.get_list(d, fields=["name"],
-							filters=condition, limit_page_length = 21, as_list=True, ignore_ifnull=True))
+							filters=condition, limit_page_length = 100, as_list=True, ignore_ifnull=True))
 					else:
 						result = frappe.get_attr(condition)()
 
 				except frappe.PermissionError:
+					frappe.clear_messages()
 					pass
 					# frappe.msgprint("Permission Error in notifications for {0}".format(d))
 
@@ -206,11 +208,11 @@ def get_open_count(doctype, name):
 			# we only need open documents related to the current document
 			filters[fieldname] = name
 			total = len(frappe.get_all(d, fields='name',
-				filters=filters, limit=6, distinct=True, ignore_ifnull=True))
+				filters=filters, limit=100, distinct=True, ignore_ifnull=True))
 			data['open_count'] = total
 
 		total = len(frappe.get_all(d, fields='name',
-			filters={fieldname: name}, limit=10, distinct=True, ignore_ifnull=True))
+			filters={fieldname: name}, limit=100, distinct=True, ignore_ifnull=True))
 		data['count'] = total
 		out.append(data)
 

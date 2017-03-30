@@ -11,7 +11,8 @@ import frappe.permissions
 from frappe.utils import flt, cint, getdate, get_datetime, get_time, make_filter_tuple, get_filter, add_to_date
 from frappe import _
 from frappe.model import optional_fields
-from frappe.model.utils.list_settings import get_list_settings, update_list_settings
+from frappe.model.utils.user_settings import get_user_settings, update_user_settings
+from datetime import datetime
 
 class DatabaseQuery(object):
 	def __init__(self, doctype):
@@ -29,8 +30,8 @@ class DatabaseQuery(object):
 		limit_page_length=None, as_list=False, with_childnames=False, debug=False,
 		ignore_permissions=False, user=None, with_comment_count=False,
 		join='left join', distinct=False, start=None, page_length=None, limit=None,
-		ignore_ifnull=False, save_list_settings=False, save_list_settings_fields=False,
-		update=None, add_total_row=None):
+		ignore_ifnull=False, save_user_settings=False, save_user_settings_fields=False,
+		update=None, add_total_row=None, user_settings=None):
 		if not ignore_permissions and not frappe.has_permission(self.doctype, "read", user=user):
 			raise frappe.PermissionError, self.doctype
 
@@ -71,8 +72,10 @@ class DatabaseQuery(object):
 		self.flags.ignore_permissions = ignore_permissions
 		self.user = user or frappe.session.user
 		self.update = update
-		self.list_settings_fields = copy.deepcopy(self.fields)
+		self.user_settings_fields = copy.deepcopy(self.fields)
 		#self.debug = True
+		if user_settings:
+			self.user_settings = json.loads(user_settings)
 
 		if query:
 			result = self.run_custom_query(query)
@@ -82,9 +85,9 @@ class DatabaseQuery(object):
 		if with_comment_count and not as_list and self.doctype:
 			self.add_comment_count(result)
 
-		if save_list_settings:
-			self.save_list_settings_fields = save_list_settings_fields
-			self.update_list_settings()
+		if save_user_settings:
+			self.save_user_settings_fields = save_user_settings_fields
+			self.update_user_settings()
 
 		return result
 
@@ -299,11 +302,12 @@ class DatabaseQuery(object):
 					get_datetime(f.value[0]).strftime("%Y-%m-%d %H:%M:%S.%f"),
 					add_to_date(get_datetime(f.value[1]),days=1).strftime("%Y-%m-%d %H:%M:%S.%f"))
 				fallback = "'0000-00-00 00:00:00'"
+
 			elif df and df.fieldtype=="Date":
 				value = getdate(f.value).strftime("%Y-%m-%d")
 				fallback = "'0000-00-00'"
 
-			elif df and df.fieldtype=="Datetime":
+			elif (df and df.fieldtype=="Datetime") or isinstance(f.value, datetime):
 				value = get_datetime(f.value).strftime("%Y-%m-%d %H:%M:%S.%f")
 				fallback = "'0000-00-00 00:00:00'"
 
@@ -511,15 +515,38 @@ class DatabaseQuery(object):
 			if "_comments" in r:
 				r._comment_count = len(json.loads(r._comments or "[]"))
 
-	def update_list_settings(self):
-		# update list settings if new search
-		list_settings = json.loads(get_list_settings(self.doctype) or '{}')
-		list_settings['filters'] = self.filters
-		list_settings['limit'] = self.limit_page_length
-		list_settings['order_by'] = self.order_by
+	def update_user_settings(self):
+		# update user settings if new search
+		user_settings = json.loads(get_user_settings(self.doctype))
 
-		if self.save_list_settings_fields:
-			list_settings['fields'] = self.list_settings_fields
+		if hasattr(self, 'user_settings'):
+			user_settings.update(self.user_settings)
 
-		update_list_settings(self.doctype, list_settings)
+		if self.save_user_settings_fields:
+			user_settings['fields'] = self.user_settings_fields
 
+		update_user_settings(self.doctype, user_settings)
+
+def get_order_by(doctype, meta):
+	order_by = ""
+
+	sort_field = sort_order = None
+	if meta.sort_field and ',' in meta.sort_field:
+		# multiple sort given in doctype definition
+		# Example:
+		# `idx desc, modified desc`
+		# will covert to
+		# `tabItem`.`idx` desc, `tabItem`.`modified` desc
+		order_by = ', '.join(['`tab{0}`.`{1}` {2}'.format(doctype,
+			f.split()[0].strip(), f.split()[1].strip()) for f in meta.sort_field.split(',')])
+	else:
+		sort_field = meta.sort_field or 'modified'
+		sort_order = (meta.sort_field and meta.sort_order) or 'desc'
+
+		order_by = "`tab{0}`.`{1}` {2}".format(doctype, sort_field or "modified", sort_order or "desc")
+
+	# draft docs always on top
+	if meta.is_submittable:
+		order_by = "`tab{0}`.docstatus asc, {1}".format(doctype, order_by)
+
+	return order_by

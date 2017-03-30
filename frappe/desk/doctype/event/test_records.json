@@ -14,10 +14,7 @@
 	{
 		"doctype": "Event",
 		"starts_on": "2014-01-01",
-		"subject":"_Test Event 3",
-		"event_type": "Private",
-		"roles": [
-			{"role": "System Manager"}
-		]
+		"subject": "_Test Event 3",
+		"event_type": "Private"
 	}
 ]

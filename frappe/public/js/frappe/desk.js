@@ -82,8 +82,93 @@ frappe.Application = Class.extend({
 			});
 			dialog.get_close_btn().toggle(false);
 		});
+		if (sys_defaults.email_user_password){
+			var email_list =  sys_defaults.email_user_password.split(',');
+			for (u in email_list) {
+				if (email_list[u]===frappe.user.name){
+					this.set_password(email_list[u])
+				}
+			}
+		}
+
+	},
+	set_password: function (user) {
+		var me=this
+		frappe.call({
+			method: 'frappe.core.doctype.user.user.get_email_awaiting',
+			args: {
+				"user": user
+			},
+			callback: function (email_account) {
+				email_account = email_account["message"];
+				if (email_account) {
+					var i = 0;
+					if (i < email_account.length) {
+						me.email_password_prompt( email_account, user, i);
+					}
+				}
+			}
+		});
 	},
 
+	email_password_prompt: function(email_account,user,i) {
+		var me = this
+		var d = new frappe.ui.Dialog({
+			title: __('Email Account setup please enter your password for: '+email_account[i]["email_id"]),
+			fields: [
+				{	'fieldname': 'password',
+					'fieldtype': 'Password',
+					'label': 'Email Account Password',
+					'reqd': 1
+				},
+				{
+					"fieldtype": "Button",
+					"label": __("Submit")
+				}
+			]
+		});
+			d.get_input("submit").on("click", function() {
+				//setup spinner
+				d.hide();
+				var s = new frappe.ui.Dialog({
+						title: __("Checking one moment"),
+					fields: [{
+                    "fieldtype": "HTML",
+                    "fieldname": "checking"
+                }]
+					});
+				s.fields_dict.checking.$wrapper.html('<i class="fa fa-spinner fa-spin fa-4x"></i>')
+				s.show();
+				frappe.call({
+					method: 'frappe.core.doctype.user.user.set_email_password',
+					args: {
+						"email_account": email_account[i]["email_account"],
+						"user": user,
+						"password": d.get_value("password")
+					},
+					callback: function (passed)
+					{
+						s.hide();
+						d.hide();//hide waiting indication
+						if (!passed["message"])
+						{
+							show_alert("Login Failed please try again", 5);
+							me.email_password_prompt(email_account, user, i)
+						}
+						else
+						{
+							if (i + 1 < email_account.length)
+							{
+								i = i + 1;
+								me.email_password_prompt(email_account, user, i)
+							}
+						}
+
+					}
+				});
+			});
+			d.show();
+	},
 	load_bootinfo: function() {
 		if(frappe.boot) {
 			frappe.modules = {};
@@ -172,7 +257,7 @@ frappe.Application = Class.extend({
 		user = frappe.boot.user.name;
 		user_fullname = frappe.user_info(user).fullname;
 		user_defaults = frappe.boot.user.defaults;
-		user_roles = frappe.boot.user.roles;
+		roles = frappe.boot.user.roles;
 		user_email = frappe.boot.user.email;
 		sys_defaults = frappe.boot.sysdefaults;
 		frappe.ui.py_date_format = frappe.boot.sysdefaults.date_format.replace('dd', '%d').replace('mm', '%m').replace('yyyy', '%Y');
@@ -200,7 +285,7 @@ frappe.Application = Class.extend({
 		user = 'Guest';
 		user_fullname = 'Guest';
 		user_defaults = {};
-		user_roles = ['Guest'];
+		roles = ['Guest'];
 		user_email = '';
 		sys_defaults = {};
 	},
@@ -243,7 +328,7 @@ frappe.Application = Class.extend({
 	},
 
 	trigger_primary_action: function() {
-		if(cur_dialog) {
+		if(cur_dialog && cur_dialog.display) {
 			// trigger primary
 			cur_dialog.get_primary_btn().trigger("click");
 		} else if(cur_frm && cur_frm.page.btn_primary.is(':visible')) {
@@ -255,6 +340,10 @@ frappe.Application = Class.extend({
 
 	set_rtl: function () {
 		if (["ar", "he"].indexOf(frappe.boot.lang) >= 0) {
+			var ls = document.createElement('link');
+			ls.rel="stylesheet";
+			ls.href= "assets/css/frappe-rtl.css";
+			document.getElementsByTagName('head')[0].appendChild(ls);
 			$('body').addClass('frappe-rtl')
 		}
 	},
@@ -397,12 +486,12 @@ frappe.get_desktop_icons = function(show_hidden, show_global) {
 		}
 	}
 
-	if(user_roles.indexOf('System Manager')!=-1) {
+	if(roles.indexOf('System Manager')!=-1) {
 		var m = frappe.get_module('Setup');
 		if(show_module(m)) add_to_out(m)
 	}
 
-	if(user_roles.indexOf('Administrator')!=-1) {
+	if(roles.indexOf('Administrator')!=-1) {
 		var m = frappe.get_module('Core');
 		if(show_module(m)) add_to_out(m)
 	}

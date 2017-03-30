@@ -41,9 +41,10 @@ docfield_properties = {
 	'reqd': 'Check',
 	'unique': 'Check',
 	'ignore_user_permissions': 'Check',
-	'in_filter': 'Check',
 	'in_list_view': 'Check',
 	'in_standard_filter': 'Check',
+	'in_global_search': 'Check',
+	'bold': 'Check',
 	'hidden': 'Check',
 	'collapsible': 'Check',
 	'collapsible_depends_on': 'Data',
@@ -96,7 +97,7 @@ class CustomizeForm(Document):
 	def get_name_translation(self):
 		'''Get translation object if exists of current doctype name in the default language'''
 		return frappe.get_value('Translation',
-			{'source_name': self.doc_type, 'language_code': frappe.local.lang or 'en'},
+			{'source_name': self.doc_type, 'language': frappe.local.lang or 'en'},
 			['name', 'target_name'], as_dict=True)
 
 	def set_name_translation(self):
@@ -144,8 +145,8 @@ class CustomizeForm(Document):
 			from frappe.model.db_schema import updatedb
 			updatedb(self.doc_type)
 
-
-		frappe.msgprint(_("{0} updated").format(_(self.doc_type)))
+		if not hasattr(self, 'hide_success') or not self.hide_success:
+			frappe.msgprint(_("{0} updated").format(_(self.doc_type)))
 		frappe.clear_cache(doctype=self.doc_type)
 		self.fetch_to_customize()
 

@@ -14,8 +14,12 @@ frappe.messages.get_waiting_message = function(msg) {
 }
 
 frappe.throw = function(msg) {
+	if(typeof msg==='string') {
+		msg = {message: msg, title: __('Error')};
+	}
+	if(!msg.indicator) msg.indicator = 'red';
 	msgprint(msg);
-	throw new Error(msg);
+	throw new Error(msg.message);
 }
 
 frappe.confirm = function(message, ifyes, ifno) {
@@ -127,6 +131,10 @@ frappe.msgprint = function(msg, title) {
 		}
 
 		msg_dialog.indicator = msg_dialog.header.find('.indicator');
+	}
+
+	if(data.message==null) {
+		data.message = '';
 	}
 
 	if(data.message.search(/<br>|<p>|<li>/)==-1)

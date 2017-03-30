@@ -1135,11 +1135,15 @@
    "Asia/Pontianak"
   ]
  },
- "Iran, Islamic Republic of": {
+ "Iran": {
   "code": "ir",
   "currency": "IRR",
   "currency_name": "Iranian Rial",
-  "number_format": "#,###.##"
+  "currency_symbol": "\ufdfc",
+  "number_format": "#,###.##",
+  "timezones": [
+   "Asia/Tehran"
+  ]
  },
  "Iraq": {
   "code": "iq",
@@ -1432,7 +1436,7 @@
   "currency_name": "Pataca",
   "number_format": "#,###.##"
  },
- "Macedonia, Republic of": {
+ "Macedonia": {
   "code": "mk",
   "currency": "MKD",
   "currency_fraction": "Deni",
@@ -2149,7 +2153,7 @@
   "currency_symbol": "\u20ac",
   "number_format": "#,###.##",
   "timezones": [
-   "Europe/Prague"
+   "Europe/Bratislava"
   ]
  },
  "Slovenia": {
@@ -2303,7 +2307,7 @@
    "Europe/Zurich"
   ]
  },
- "Syrian Arab Republic": {
+ "Syria": {
   "code": "sy",
   "currency": "SYP",
   "currency_name": "Syrian Pound",
@@ -2325,7 +2329,7 @@
    "Asia/Dushanbe"
   ]
  },
- "Tanzania, United Republic of": {
+ "Tanzania": {
   "code": "tz",
   "currency": "TZS",
   "currency_name": "Tanzanian Shilling",

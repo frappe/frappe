@@ -4,6 +4,16 @@ from frappe import _
 def get_data():
 	return [
 		{
+			"module_name": 'Communication',
+			"label": _('Email Inbox'),
+			"_label": _('Email Inbox'),
+			"_id": 'Email Inbox',
+			"_doctype": 'Communication',
+			"icon": 'fa fa-envelope-o',
+			"color": '#589494',
+			"link": 'List/Communication/Inbox'
+		},
+		{
 			"module_name": "Desk",
 			"label": _("Tools"),
 			"color": "#FFF5A7",
@@ -23,6 +33,13 @@ def get_data():
 		},
 		{
 			"module_name": "Website",
+			"color": "#16a085",
+			"icon": "octicon octicon-globe",
+			"type": "module",
+			"hidden": 1
+		},
+		{
+			"module_name": "Integrations",
 			"color": "#16a085",
 			"icon": "octicon octicon-globe",
 			"type": "module",

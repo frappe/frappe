@@ -9,11 +9,6 @@ from frappe.website.utils import get_comment_list
 from frappe import _
 
 class HelpArticle(WebsiteGenerator):
-	website = frappe._dict(
-		condition_field = "published",
-		template = "templates/generators/help_article.html",
-	)
-
 	def validate(self):
 		self.set_route()
 
@@ -26,7 +21,6 @@ class HelpArticle(WebsiteGenerator):
 	def on_update(self):
 		self.update_category()
 		clear_cache()
-		super(HelpArticle, self).on_update()
 
 	def update_category(self):
 		cnt = frappe.db.sql("""select count(*) from `tabHelp Article`
@@ -59,7 +53,6 @@ def get_list_context(context=None):
 
 	list_context = frappe._dict(
 		title = category or _("Knowledge Base"),
-		row_template = "templates/includes/kb_row.html",
 		get_level_class = get_level_class,
 		show_sidebar = True,
 		sidebar_items = get_sidebar_items(),

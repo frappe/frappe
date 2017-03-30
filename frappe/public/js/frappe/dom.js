@@ -37,6 +37,15 @@ frappe.dom = {
 				elements[i].parentNode.removeChild(elements[i]);
 			}
 		});
+		
+		// remove links with rel="stylesheet"
+		var elements = div.getElementsByTagName('link');
+		var i = elements.length;
+		while (i--) {
+			if (elements[i].getAttribute("rel")=="stylesheet"){
+				elements[i].parentNode.removeChild(elements[i]);
+			}
+		}
 		return div.innerHTML;
 	},
 	is_element_in_viewport: function (el) {
@@ -172,43 +181,24 @@ frappe.dom = {
 	}
 }
 
+frappe.ellipsis = function(text, max) {
+	if(!max) max = 20;
+	text = cstr(text);
+	if(text.length > max) {
+		text = text.substr(0, max) + '...';
+	}
+	return text;
+};
+
 frappe.get_modal = function(title, content) {
 	return $(frappe.render_template("modal", {title:title, content:content})).appendTo(document.body);
 };
 
-var get_hex = function(i) {
-	i = Math.round(i);
-	if(i>255) return 'ff';
-	if(i<0) return '00';
-	i =i .toString(16);
-	if(i.length==1) i = '0'+i;
-	return i;
-}
-
-frappe.get_shade = function(color, factor) {
-	if(color.substr(0,3)=="rgb") {
-		var rgb = function(r,g,b) {
-			return get_hex(r) + get_hex(g) + get_hex(b);
-		}
-		color = eval(color);
-	}
-	if(color.substr(0,1)=="#") {
-		var color = color.substr(1);
-	}
-
-	var get_int = function(hex) {
-		return parseInt(hex,16);
-	}
-	return get_hex(get_int(color.substr(0,2)) + factor)
-		+ get_hex(get_int(color.substr(2,2)) + factor)
-		+ get_hex(get_int(color.substr(4,2)) + factor)
-}
-
-frappe.dom.set_box_shadow = function(ele, spread) {
-	$(ele).css('-moz-box-shadow', '0px 0px '+ spread +'px rgba(0,0,0,0.3);')
-	$(ele).css('-webkit-box-shadow', '0px 0px '+ spread +'px rgba(0,0,0,0.3);')
-	$(ele).css('-box-shadow', '0px 0px '+ spread +'px rgba(0,0,0,0.3);')
-
+frappe._in = function(source, target) {
+	// returns true if source is in target and both are not empty / falsy
+	if(!source) return false;
+	if(!target) return false;
+	return (target.indexOf(source) !== -1);
 };
 
 // add <option> list to <select>
@@ -292,4 +282,3 @@ frappe.dom.set_box_shadow = function(ele, spread) {
         return this;
     }
 })(jQuery);
-

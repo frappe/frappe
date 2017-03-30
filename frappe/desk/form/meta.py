@@ -11,7 +11,7 @@ from frappe.model.workflow import get_workflow_name
 from frappe.utils import get_html_format
 from frappe.translate import make_dict_from_messages, extract_messages_from_code
 from frappe.model.utils import render_include
-from frappe.build import html_to_js_template
+from frappe.build import scrub_html_template
 
 ######
 
@@ -41,12 +41,15 @@ class FormMeta(Meta):
 			self.load_workflows()
 			self.load_templates()
 			self.load_dashboard()
+			self.load_kanban_meta()
 
 	def as_dict(self, no_nulls=False):
 		d = super(FormMeta, self).as_dict(no_nulls=no_nulls)
 		for k in ("__js", "__css", "__list_js", "__calendar_js", "__map_js",
 			"__linked_with", "__messages", "__print_formats", "__workflow_docs",
-			"__form_grid_templates", "__listview_template", "__tree_js", '__dashboard'):
+			"__form_grid_templates", "__listview_template", "__tree_js",
+			"__dashboard", "__kanban_boards", "__kanban_column_fields", '__templates',
+			'__custom_js'):
 			d[k] = self.get(k)
 
 		for i, df in enumerate(d.get("fields")):
@@ -85,14 +88,13 @@ class FormMeta(Meta):
 	def add_html_templates(self, path):
 		if self.custom:
 			return
-		js = ""
+		templates = dict()
 		for fname in os.listdir(path):
 			if fname.endswith(".html"):
 				with open(os.path.join(path, fname), 'r') as f:
-					template = unicode(f.read(), "utf-8")
-					js += html_to_js_template(fname, template)
+					templates[fname.split('.')[0]] = scrub_html_template(unicode(f.read(), "utf-8"))
 
-		self.set("__js", (self.get("__js") or "") + js)
+		self.set("__templates", templates or None)
 
 	def add_code_via_hook(self, hook, fieldname):
 		for path in get_code_files_via_hooks(hook, self.name):
@@ -104,7 +106,7 @@ class FormMeta(Meta):
 		custom = frappe.db.get_value("Custom Script", {"dt": self.name,
 			"script_type": "Client"}, "script") or ""
 
-		self.set("__js", (self.get('__js') or '') + "\n\n/* Appending Custom Script */\n\n" + custom)
+		self.set("__custom_js", custom)
 
 	def add_search_fields(self):
 		"""add search fields found in the doctypes indicated by link fields' options"""
@@ -168,6 +170,24 @@ class FormMeta(Meta):
 
 	def load_dashboard(self):
 		self.set('__dashboard', self.get_dashboard_data())
+
+	def load_kanban_meta(self):
+		self.load_kanban_boards()
+		self.load_kanban_column_fields()
+
+	def load_kanban_boards(self):
+		kanban_boards = frappe.get_list(
+			'Kanban Board', fields=['name', 'filters', 'reference_doctype', 'private'], filters={'reference_doctype': self.name})
+		self.set("__kanban_boards", kanban_boards, as_value=True)
+
+	def load_kanban_column_fields(self):
+		values = frappe.get_list(
+			'Kanban Board', fields=['field_name'],
+			filters={'reference_doctype': self.name})
+
+		fields = [x['field_name'] for x in values]
+		fields = list(set(fields))
+		self.set("__kanban_column_fields", fields, as_value=True)
 
 def get_code_files_via_hooks(hook, name):
 	code_files = []

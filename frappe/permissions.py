@@ -177,13 +177,17 @@ def get_role_permissions(meta, user=None, verbose=False):
 	cache_key = (meta.name, user)
 
 	if not frappe.local.role_permissions.get(cache_key):
-		perms = frappe._dict({ "apply_user_permissions": {}, "user_permission_doctypes": {}, "if_owner": {} })
-		user_roles = frappe.get_roles(user)
+		perms = frappe._dict(
+			apply_user_permissions={},
+			user_permission_doctypes={},
+			if_owner={}
+		)
+		roles = frappe.get_roles(user)
 		dont_match = []
 		has_a_role_with_apply_user_permissions = False
 
 		for p in meta.permissions:
-			if cint(p.permlevel)==0 and (p.role in user_roles):
+			if cint(p.permlevel)==0 and (p.role in roles):
 				# apply only for level 0
 
 				for ptype in rights:
@@ -301,6 +305,64 @@ def has_controller_permissions(doc, ptype, user=None):
 	# controller permissions could not decide on True or False
 	return None
 
+def get_doctypes_with_read():
+	return list(set([p.parent for p in get_valid_perms()]))
+
+def get_valid_perms(doctype=None):
+	'''Get valid permissions for the current user from DocPerm and Custom DocPerm'''
+	roles = get_roles()
+
+	perms = get_perms_for(roles)
+	custom_perms = get_perms_for(roles, 'Custom DocPerm')
+
+	doctypes_with_custom_perms = list(set([d.parent for d in custom_perms]))
+	for p in perms:
+		if not p.parent in doctypes_with_custom_perms:
+			custom_perms.append(p)
+
+	if doctype:
+		return [p for p in custom_perms if p.parent == doctype]
+	else:
+		return custom_perms
+
+def get_all_perms(role):
+	'''Returns valid permissions for a given role'''
+	perms = frappe.get_all('DocPerm', fields='*', filters=dict(role=role))
+	custom_perms = frappe.get_all('Custom DocPerm', fields='*', filters=dict(role=role))
+	doctypes_with_custom_perms = list(set(p.parent for p in custom_perms))
+
+	for p in perms:
+		if p.parent not in doctypes_with_custom_perms:
+			custom_perms.append(p)
+	return custom_perms
+
+def get_roles(user=None, with_standard=True):
+	"""get roles of current user"""
+	if not user:
+		user = frappe.session.user
+
+	if user=='Guest':
+		return ['Guest']
+
+	def get():
+		return [r[0] for r in frappe.db.sql("""select role from `tabHas Role`
+			where parent=%s and role not in ('All', 'Guest')""", (user,))] + ['All', 'Guest']
+
+	roles = frappe.cache().hget("roles", user, get)
+
+	# filter standard if required
+	if not with_standard:
+		roles = filter(lambda x: x not in ['All', 'Guest', 'Administrator'], roles)
+
+	return roles
+
+def get_perms_for(roles, perm_doctype='DocPerm'):
+	'''Get perms for given roles'''
+	return frappe.db.sql("""select * from `tab{doctype}` where docstatus=0
+		and ifnull(permlevel,0)=0
+		and role in ({roles})""".format(doctype = perm_doctype,
+			roles=", ".join(["%s"]*len(roles))), tuple(roles), as_dict=1)
+
 def can_set_user_permissions(doctype, docname=None):
 	# System Manager can always set user permissions
 	if frappe.session.user == "Administrator" or "System Manager" in frappe.get_roles():
@@ -323,6 +385,7 @@ def set_user_permission_if_allowed(doctype, name, user, with_message=False):
 		add_user_permission(doctype, name, user, with_message)
 
 def add_user_permission(doctype, name, user, with_message=False):
+	'''Add user default'''
 	if name not in frappe.defaults.get_user_permissions(user).get(doctype, []):
 		if not frappe.db.exists(doctype, name):
 			frappe.throw(_("{0} {1} not found").format(_(doctype), name), frappe.DoesNotExistError)
@@ -387,14 +450,25 @@ def get_user_permission_doctypes(user_permission_doctypes, user_permissions):
 
 	return user_permission_doctypes
 
+def setup_custom_perms(parent):
+	'''if custom permssions are not setup for the current doctype, set them up'''
+	if not frappe.db.exists('Custom DocPerm', dict(parent=parent)):
+		copy_perms(parent)
+		return True
+
+def copy_perms(parent):
+	'''Copy all DocPerm in to Custom DocPerm for the given document'''
+	for d in frappe.get_all('DocPerm', fields='*', filters=dict(parent=parent)):
+		custom_perm = frappe.new_doc('Custom DocPerm')
+		custom_perm.update(d)
+		custom_perm.insert(ignore_permissions=True)
+
 def reset_perms(doctype):
 	"""Reset permissions for given doctype."""
 	from frappe.desk.notifications import delete_notification_count_for
 	delete_notification_count_for(doctype)
 
-	frappe.db.sql("""delete from tabDocPerm where parent=%s""", doctype)
-	frappe.reload_doc(frappe.db.get_value("DocType", doctype, "module"),
-		"DocType", doctype, force=True)
+	frappe.db.sql("""delete from `tabCustom DocPerm` where parent=%s""", doctype)
 
 def get_linked_doctypes(dt):
 	return list(set([dt] + [d.options for d in

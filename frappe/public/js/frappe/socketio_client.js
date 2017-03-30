@@ -1,6 +1,7 @@
 frappe.socket = {
 	open_tasks: {},
 	open_docs: [],
+	emit_queue: [],
 	init: function() {
 		if (frappe.boot.disable_async) {
 			return;
@@ -35,6 +36,9 @@ frappe.socket = {
 		});
 
 		frappe.socket.socket.on('progress', function(data) {
+			if(data.progress) {
+				data.percent = flt(data.progress[0]) / data.progress[1] * 100;
+			}
 			if(data.percent) {
 				if(data.percent==100) {
 					frappe.hide_progress();
@@ -48,6 +52,9 @@ frappe.socket = {
 		frappe.socket.setup_reconnect();
 
 		$(document).on('form-load form-rename', function(e, frm) {
+			if (frappe.flags.doc_subscribe) {
+				return;
+			}
 			if (frm.is_new()) {
 				return;
 			}
@@ -59,6 +66,11 @@ frappe.socket = {
 					return false;
 				}
 			}
+
+			frappe.flags.doc_subscribe = true;
+
+			// throttle to 1 per sec
+			setTimeout(function() { frappe.flags.doc_subscribe = false }, 1000);
 
 			frappe.socket.doc_subscribe(frm.doctype, frm.docname);
 		});
@@ -132,8 +144,12 @@ frappe.socket = {
 		})
 	},
 	doc_open: function(doctype, docname) {
-		// notify that the user has opened this doc
-		frappe.socket.socket.emit('doc_open', doctype, docname);
+		// notify that the user has opened this doc, if not already notified
+		if(!frappe.socket.last_doc
+			|| (frappe.socket.last_doc[0]!=doctype && frappe.socket.last_doc[0]!=docname)) {
+			frappe.socket.socket.emit('doc_open', doctype, docname);
+		}
+		frappe.socket.last_doc = [doctype, docname];
 	},
 	doc_close: function(doctype, docname) {
 		// notify that the user has closed this doc

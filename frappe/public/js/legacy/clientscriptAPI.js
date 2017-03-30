@@ -121,21 +121,6 @@ get_field_obj = function(fn) {
 	return cur_frm.fields_dict[fn];
 }
 
-// set missing values in given doc
-set_missing_values = function(doc, dict) {
-	// dict contains fieldname as key and "default value" as value
-	var fields_to_set = {};
-
-	for (var i in dict) {
-		var v = dict[i];
-		if (!doc[i]) {
-			fields_to_set[i] = v;
-		}
-	}
-
-	if (fields_to_set) { set_multiple(doc.doctype, doc.name, fields_to_set); }
-}
-
 _f.Frm.prototype.get_doc = function() {
 	return locals[this.doctype][this.docname];
 }
@@ -204,15 +189,15 @@ _f.Frm.prototype.get_docfield = function(fieldname1, fieldname2) {
 
 _f.Frm.prototype.set_df_property = function(fieldname, property, value, docname, table_field) {
 	if (!docname && !table_field){
-		var field = this.get_docfield(fieldname);
+		var df = this.get_docfield(fieldname);
 	} else {
 		var grid = cur_frm.fields_dict[table_field].grid,
 		fname = frappe.utils.filter_dict(grid.docfields, {'fieldname': fieldname});
 		if (fname && fname.length)
-			var field = frappe.meta.get_docfield(fname[0].parent, fieldname, docname);
+			var df = frappe.meta.get_docfield(fname[0].parent, fieldname, docname);
 	}
-	if(field) {
-		field[property] = value;
+	if(df && df[property] != value) {
+		df[property] = value;
 		refresh_field(fieldname, table_field);
 	};
 }
@@ -248,7 +233,9 @@ _f.Frm.prototype.set_query = function(fieldname, opt1, opt2) {
 	} else {
 		// on parent table
 		// set_query(fieldname, query)
-		this.fields_dict[fieldname].get_query = opt1;
+		if(this.fields_dict[fieldname]) {
+			this.fields_dict[fieldname].get_query = opt1;
+		}
 	}
 }
 
@@ -367,7 +354,7 @@ _f.Frm.prototype.set_read_only = function() {
 	var docperms = frappe.perm.get_perm(cur_frm.doc.doctype);
 	for (var i=0, l=docperms.length; i<l; i++) {
 		var p = docperms[i];
-		perm[p.permlevel || 0] = {read:1};
+		perm[p.permlevel || 0] = {read:1, print:1, cancel:1};
 	}
 	cur_frm.perm = perm;
 }
@@ -497,4 +484,14 @@ _f.Frm.prototype.make_new = function(doctype) {
 			frappe.set_route('Form', doctype, new_doc.name);
 		});
 	}
+}
+
+_f.Frm.prototype.update_in_all_rows = function(table_fieldname, fieldname, value) {
+	// update the child value in all tables where it is missing
+	if(!value) return;
+	var cl = doc[table_fieldname] || [];
+	for(var i = 0; i < cl.length; i++){
+		if(!cl[i][fieldname]) cl[i][fieldname] = value;
+	}
+	refresh_field("items");
 }

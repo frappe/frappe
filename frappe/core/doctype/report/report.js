@@ -50,3 +50,29 @@ cur_frm.cscript.refresh = function(doc) {
 
 	cur_frm.cscript.report_type(doc);
 }
+
+
+frappe.ui.form.on('Report', {
+	refresh: function(frm) {
+		if(!frappe.boot.developer_mode) {
+			// make the document read-only
+			frm.set_read_only();
+		}
+	},
+
+	ref_doctype: function(frm) {
+		if(frm.doc.ref_doctype) {
+			frm.trigger("set_doctype_roles")
+		}
+	},
+
+	set_doctype_roles: function(frm) {
+		return frappe.call({
+			method: "set_doctype_roles",
+			doc:frm.doc,
+			callback: function(r) {
+				refresh_field('roles')
+			}
+		})
+	}
+})

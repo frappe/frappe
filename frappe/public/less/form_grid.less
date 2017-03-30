@@ -50,6 +50,11 @@
 	}
 }
 
+// hide row index in 6 column child tables
+.form-column.col-sm-6 .form-grid .row-index > span {
+	display: none;
+}
+
 .form-grid .template-row {
 	padding: 8px 15px;
 }
@@ -70,7 +75,7 @@
 	border-right: 1px solid @border-color;
 }
 
-.grid-static-col.bold {
+.editable-form .grid-static-col.bold {
 	font-weight: bold;
 	background-color: @extra-light-yellow;
 }
@@ -114,6 +119,7 @@
 		.checkbox {
 			margin: 0px;
 			text-align: center;
+			margin-top: 9px;
 		}
 
 		textarea {

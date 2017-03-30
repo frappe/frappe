@@ -2,19 +2,20 @@
 	{% if comment_text %}
 	<div class="comment-header">{{ comment_text }}</div>
 	{% endif %}
-{% if not comment_list %}
-<div class="no-comment">
-	<p class="text-muted small">{{ _("No comments yet. Start a new discussion.") }}</p>
-</div>
-{% endif %}
+	{% if not comment_list %}
+	<div class="no-comment">
+		<p class="text-muted small">{{ _("No comments yet. Start a new discussion.") }}</p>
+	</div>
+	{% endif %}
 
-<div itemscope itemtype="http://schema.org/UserComments" id="comment-list">
-	{% for comment in comment_list %}
-	{% include "templates/includes/comments/comment.html" %}
-	{% endfor %}
-</div>
+	<div itemscope itemtype="http://schema.org/UserComments" id="comment-list">
+		{% for comment in comment_list %}
+		{% include "templates/includes/comments/comment.html" %}
+		{% endfor %}
+	</div>
 </div>
 
+{% if not is_communication %}
 <div class="add-comment-section">
 	<div class="text-muted hidden login-required">
 		<a href="/login?redirect-to={{ pathname }}">{{ _("Login to comment") }}</a>
@@ -35,7 +36,7 @@
 						</div>
 						<div class="col-sm-6">
 							<input class="form-control" name="comment_by"
-								placeholder="{{ _("Your Email Id") }}" type="email">
+								placeholder="{{ _("Your Email Address") }}" type="email">
 						</div>
 					</div>
 					<p><textarea class="form-control" name="comment" rows=10
@@ -47,6 +48,7 @@
 		</div>
 	</div>
 </div>
+{% endif %}
 <script>
 	frappe.ready(function() {
 		var login_required = {{ login_required and 1 or 0 }};

@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/frappe/frappe.png)](https://travis-ci.org/frappe/frappe)
 
-Full-stack web application framework that uses Python and MariaDB on the server side and a tightly integrated client side library. [Built for ERPNext](https://erpnext.com)
+Full-stack web application framework that uses Python and MariaDB on the server side and a tightly integrated client side library. Built for [ERPNext](https://erpnext.com)
 
 ### Installation
 

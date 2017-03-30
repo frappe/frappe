@@ -93,8 +93,8 @@ frappe.ui.form.quick_entry = function(doctype, success) {
 			}
 		});
 
-		var $link = $('<div class="text-muted small" style="padding-left: 10px; padding-top: 15px;">\
-			Ctrl+enter to save | <a class="edit-full">Edit in full page</a></div>').appendTo(dialog.body);
+		var $link = $('<div class="text-muted small" style="padding-left: 10px; padding-top: 15px;">' +
+			__("Ctrl+enter to save") + ' | <a class="edit-full">' + __("Edit in full page") + '</a></div>').appendTo(dialog.body);
 
 		$link.find('.edit-full').on('click', function() {
 			// edit in form
@@ -107,6 +107,8 @@ frappe.ui.form.quick_entry = function(doctype, success) {
 				if(!frappe.request.ajax_count) {
 					// not already working -- double entry
 					dialog.get_primary_btn().trigger("click");
+					e.preventDefault();
+					return false;
 				}
 			}
 		});

@@ -6,6 +6,7 @@
 // re-route map (for rename)
 frappe.re_route = {"#login": ""};
 frappe.route_titles = {};
+frappe.route_flags = {};
 frappe.route_history = [];
 frappe.view_factory = {};
 frappe.view_factories = [];
@@ -123,7 +124,8 @@ frappe.set_route = function() {
 			frappe.route_options = a;
 			return null;
 		} else {
-			return a ? encodeURIComponent(a) : null;
+			return a;
+			// return a ? encodeURIComponent(a) : null;
 		}
 	}).join('/');
 

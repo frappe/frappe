@@ -8,7 +8,7 @@ Once the client and provider settings are entered, following steps can be used t
 
 URL:
 ```
-[GET] 0.0.0.0:8000/api/method/frappe.integration_broker.oauth2.authorize
+[GET] 0.0.0.0:8000/api/method/frappe.integrations.oauth2.authorize
 ```
 Params:
 ```
@@ -20,7 +20,7 @@ redirect_uri = <redirect uri from OAuth Client>
 
 #### Confirmation Dialog
 
-<img class="screenshot" src="assets/frappe/img/oauth_confirmation_page.png">
+<img class="screenshot" src="{{docs_base_url}}/assets/img/oauth_confirmation_page.png">
 
 Click 'Allow' to receive authorization code in redirect uri.
 
@@ -38,7 +38,7 @@ http://localhost:3000/oauth_code?error=access_denied
 
 URL:
 ```
-[POST] 0.0.0.0:8000/api/method/frappe.integration_broker.oauth2.get_token
+[POST] 0.0.0.0:8000/api/method/frappe.integrations.oauth2.get_token
 ```
 Params:
 ```
@@ -62,7 +62,7 @@ Response:
 
 URL:
 ```
-[POST] 0.0.0.0:8000/api/method/frappe.integration_broker.oauth2.get_token
+[POST] 0.0.0.0:8000/api/method/frappe.integrations.oauth2.get_token
 ```
 Params:
 ```
@@ -85,7 +85,7 @@ Response:
 
 URL:
 ```
-[POST] 0.0.0.0:8000/api/method/frappe.integration_broker.oauth2.revoke_token
+[POST] 0.0.0.0:8000/api/method/frappe.integrations.oauth2.revoke_token
 ```
 Params:
 ```

@@ -3,31 +3,32 @@
 		<div class="container">
 			<div class="row">
 				<div class="col-sm-6 text-left">
-					<div class="row">
 					{% if footer_items -%}
-								<ul class="list-unstyled navbar-nav col-sm-12">
-									{% include "templates/includes/footer/footer_items.html" %}
-								</ul>
-					{% endif %}
+					<div class="row">
+						{% include "templates/includes/footer/footer_items.html" %}
 					</div>
+					{% endif %}
 				</div>
 
 				<div class="col-sm-6 text-right">
-					{% block extension %}{% include "templates/includes/footer/footer_extension.html" %}{% endblock %}
+					{% block extension %}
+						{% include "templates/includes/footer/footer_extension.html" %}
+					{% endblock %}
 				</div>
 			</div>
 			<div class="row footer-bottom-line">
-				<div class="text-muted small col-sm-6">
+				<div class="text-muted small col-sm-6 col-xs-12">
 					{% if copyright %}
 						&copy; {{ copyright }}
 					{% endif %}
-					<br>
 					{% if footer_address %}
+						{% if copyright %}<br>{% endif %}
 						{{ footer_address }}
 					{% endif %}
 				</div>
 				{# powered #}
-				<div class="text-muted small col-sm-6 text-right footer-powered">
+				<div class="text-muted small col-sm-6 col-xs-12
+					text-right footer-powered">
 					{% block powered %}
 						{% include "templates/includes/footer/footer_powered.html" %}
 					{% endblock %}

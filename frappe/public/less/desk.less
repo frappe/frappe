@@ -40,10 +40,6 @@ a[disabled="disabled"] {
 	}
 }
 
-.ui-autocomplete .link-option {
-	font-weight: normal;
-}
-
 .scroll-to-top {
 	background-color: @light-bg;
 	padding: 7px;
@@ -142,106 +138,114 @@ textarea.form-control {
 	border-bottom: 1px solid @light-border-color;
 }
 
-
-/* jquery ui */
-
-.ui-datepicker {
+.datepicker {
+	font-family: inherit;
 	z-index: 9999 !important;
-}
 
-.ui-datepicker .ui-datepicker-header {
-	border-radius: 0px !important;
-}
+	&--time-current-hours, &--time-current-minutes, &--time-current-seconds {
+		font-family: inherit;
+	}
 
-.ui-datepicker select.ui-datepicker-month, .ui-datepicker select.ui-datepicker-year {
-	display: inline;
-}
+	&--day-name {
+		color: @text-color;
+	}
 
-.ui-datepicker select.ui-datepicker-month {
-	margin-right: 3px;
-}
-.ui-datepicker .ui-datepicker-title {
-	line-height: inherit !important;
-	padding-bottom: 3px;
-}
+	&--cell {
+		&.-current- {
+			color: @brand-primary;
 
-.ui-datepicker-today .ui-state-default {
-	background-color: @light-border-color !important;
-}
+			&.-in-range- {
+				color: @brand-primary;
+			}
+		}
 
-.ui-state-default {
-	box-shadow: none !important;
+		&.-range-from-, &.-range-to- {
+			border: 1px solid fade(@brand-primary, 30%);
+			background: fade(@brand-primary, 10%);
+		}
+
+		&.-selected-, &.-current-.-selected- {
+			background: @brand-primary;
+		}
+
+		&.-in-range- {
+			background: fade(@brand-primary, 5%);
+		}
+
+		&.-in-range-.-focus- {
+			background: fade(@brand-primary, 10%);
+		}
+
+		&.-selected-.-focus- {
+			background: fade(@brand-primary, 90%);
+		}
+
+	}
 }
 
 .hidden-xs-inline, .hidden-xs-inline-block {
 	display: none;
 }
 
-.ui-autocomplete {
-	max-height: 200px;
-	overflow-y: auto;
-	overflow-x: hidden;
-	z-index: 1041;
-}
+.awesomplete {
+	width: 100%;
 
-.ui-autocomplete a {
-	transition: none;
-}
+	&> ul {
+		z-index: 1041;
+		transition: none;
+		background: #fff;
+		max-height: 200px;
+		overflow-y: auto;
+		overflow-x: hidden;
+		border-radius: 0px 0px 4px 4px;
+		box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.176);
+		border-color: @border-color;
 
-.ui-autocomplete .ui-menu-item a& {
-	&:hover,
-	&:focus,
-	&:active {
-		color: inherit;
+		&:before {
+			display: none;
+		}
+
+		li[aria-selected="true"] mark, mark {
+			padding: 0px;
+			background-color: inherit;
+		}
+
+		&> li {
+			font-size: 12px;
+			padding: 9px 11.8px;
+		}
+
+		&> li .link-option {
+			font-weight: normal;
+		}
+
+		&> li:hover, &> li[aria-selected=true] {
+			background-color: @btn-bg;
+			color: @text-color;
+			text-shadow: none;
+		}
+
+		a:hover {
+			text-decoration: none;
+		}
+
+		p {
+			margin: 3px 0;
+		}
 	}
-}
 
-.ui-datepicker,
-.ui-autocomplete {
-	// only rounded bottoms
-	border-radius: 0px 0px 4px 4px;
-	box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.176);
-	border-color: @border-color;
-	padding: 0px;
-
-	.ui-state-focus,
-	.ui-state-hover {
-		background-color: @btn-bg !important;
-		color: @text-color !important;
-		text-shadow: none !important;
-	}
-
-	.ui-state-active {
-		background-color: @btn-bg !important;
-		color: @text-color !important;
-		text-shadow: none !important;
-		border: none;
-
-		.small {
-			color: #555 !important;
+	@media (max-width: @screen-sm) {
+		&>ul {
+			top: 26px;
 		}
 	}
 }
-
-.ui-menu .ui-menu-item {
-	font-size: @text-medium;
-	.ui-menu-item-wrapper{
-		padding: 9px 11.8px !important;
-		text-decoration: none;
-		margin: 0;
-	}
-}
-
 
 @media (min-width: 768px) {
 	.video-modal {
 		width: 700px;
 	}
 }
-
-/* z-index hack */
-// .ui-datepicker { z-index: 9999999 !important; }
-// .ui-autocomplete { z-index: 9999999 !important; }
 
 @media (min-width: 768px) {
 	.hidden-xs-inline {
@@ -277,8 +281,6 @@ textarea.form-control {
 	margin-top: 5px;
 }
 
-// fixes datepicker z-index issue
-
 .form-control {
 	position: relative;
 
@@ -298,11 +300,6 @@ textarea.form-control {
 
 .link-field.ui-front {
 	z-index: inherit;
-}
-
-.modal .link-field .ui-autocomplete {
-	// so that it appears over the datepicker field
-	z-index: 1141;
 }
 
 .form-group {
@@ -508,4 +505,302 @@ textarea.form-control {
 
 .search-result {
 	margin-bottom: 24px;
+}
+
+// summernote editor
+.note-editor {
+	margin-top: 5px;
+
+	&.note-frame {
+		border-color: @border-color;
+	}
+
+	.btn {
+		outline: none !important;
+	}
+
+	.dropdown-style > li > a > * {
+		margin: 0;
+	}
+	.fa.fa-check {
+		color: @text-color !important;
+	}
+	.dropdown-menu {
+		z-index: 100;
+		max-height: 300px;
+		overflow: auto;
+	}
+}
+
+// hide some buttons in modal
+.modal .note-editor {
+	.note-btn-italic,
+	.note-btn-underline,
+	[data-original-title="Font Size"],
+	[data-original-title="Video"],
+	[data-original-title="Table"] {
+		display: none;
+	}
+}
+
+.search-dialog {
+	.modal-dialog {
+		width: 768px;
+		height: 500px;
+	}
+
+	.modal-body {
+		padding: 0px 15px;
+	}
+
+	input.form-control, .input-group-addon {
+		border: none;
+		border-left-style:none;
+	}
+
+	input.form-control:focus {
+		outline: none;
+		box-shadow: none;
+	}
+
+	.input-group-addon{
+    	background-color: #FFF;
+	}
+
+	.layout-side-section,
+	.layout-main-section {
+		height: 500px;
+		padding: 0px;
+		overflow-y: auto;
+	}
+
+	.layout-side-section {
+		.module-sidebar-nav {
+			margin-top: 0px;
+		}
+		.help-link {
+			padding-top: 20px;
+			text-transform: uppercase;
+		}
+
+		.nav {
+			li a {
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				padding-left: 20px;
+
+				i {
+					visibility: hidden;
+				}
+			}
+
+			.active i {
+				visibility: visible;
+			}
+		}
+	}
+
+	.results-area {
+		.search-intro-placeholder {
+			color: #d4d9dd;
+			height: inherit;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+
+			span {
+				text-align: center;
+
+				i {
+					font-size: 64px;
+					display: block;
+				}
+
+				p {
+					font-size: 15px;
+					display: block;
+				}
+			}
+		}
+
+		// a {
+		// 	color: #5E64FF;
+		// }
+
+		.single-link a {
+			color: #36414c;
+		}
+	}
+
+	.module-section {
+		.back-link {
+			margin-bottom: 20px;
+			margin-top: -10px;
+		}
+
+		.all-results-link:before {
+			font-family: 'Octicons';
+			content: '\f0a4';
+		}
+	}
+
+	.full-list {
+		.result {
+			margin-top: 15px;
+
+			.result-subtype {
+				float: right;
+				margin-left: 10px;
+			}
+		}
+
+		.result-with-subtype {
+			border-bottom: 1px solid #d1d8dd;
+			margin-top: 10px;
+		}
+
+		.section-head {
+			margin-bottom: 25px;
+		}
+	}
+
+	.dual-section {
+		.result-subtype{
+			display: none;
+		}
+	}
+
+	.result-status {
+		margin-top: 30px;
+		text-align: center;
+	}
+
+	.more-results {
+		display: none;
+	}
+
+	@media (max-width: @screen-xs) {
+		.modal-dialog {
+			width: auto;
+		}
+
+		.modal-content {
+			height: auto !important;
+		}
+	}
+
+	@media (max-width: @screen-sm) {
+		.module-body {
+			margin: 0px;
+			border-top: none;
+		}
+
+		.layout-side-section .sidebar-menu {
+			margin: 30px 0px;
+		}
+	}
+
+	@media (min-width: 600px) {
+		.results-area .back-link {
+			display: none;
+		}
+	}
+}
+
+.result {
+	p {
+		margin-top: 0.2em;
+	}
+}
+
+.search-result {
+  margin-bottom: 24px;
+}
+
+.note-editor.note-frame .note-editing-area .note-editable {
+	color: @text-color;
+}
+
+.c3 svg {
+	font-family: inherit;
+	font-size: 10px;
+	color: @text-color;
+}
+
+.c3-line {
+    stroke-width: 3px;
+}
+
+.c3-tooltip {
+  box-shadow: 3px 3px 3px rgba(0,0,0,0.1);
+  border-radius: 3px;
+  opacity: 1;
+}
+
+.c3-tooltip tr {
+  border: none;
+}
+
+.c3-tooltip th {
+	color: @text-muted;
+	background-color: #ffffff;
+	font-size: 12px;
+	font-weight: normal;
+	padding: 2px 5px;
+	text-align: left;
+	border: 1px solid @border-color;
+}
+
+.c3-tooltip td {
+	color: @text-color;
+	font-size: 11px;
+	padding: 3px 6px;
+	background-color: #fff;
+	border: 1px solid @border-color;
+}
+
+.c3-tooltip td > span {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 6px;
+}
+
+.c3-tooltip td.value {
+  text-align: right; }
+
+// custom font awesome checkbox
+input[type="checkbox"] {
+	visibility: hidden;
+	position: relative;
+
+	&:before {
+		position: absolute;
+		font-family: 'FontAwesome';
+		content: '\f096';
+		visibility: visible;
+		font-style: normal;
+		font-weight: normal;
+		font-variant: normal;
+		text-transform: none;
+		line-height: 14px;
+		display: inline-block;
+		font-size: 14px;
+		color: @text-extra-muted;
+		.transition(150ms color);
+	}
+
+	&:checked:before {
+		content: '\f14a';
+		font-size: 13px;
+		color: @checkbox-color;
+	}
+}
+// mozilla doesn't support
+// pseudo elements on checkbox
+@-moz-document url-prefix() {
+	input[type="checkbox"] {
+		visibility: visible;
+	}
 }

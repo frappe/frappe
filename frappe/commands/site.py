@@ -49,6 +49,7 @@ def _new_site(db_name, site, mariadb_root_username=None, mariadb_root_password=N
 
 	make_site_dirs()
 
+	installing = None
 	try:
 		installing = touch_file(get_site_path('locks', 'installing.lock'))
 
@@ -66,7 +67,7 @@ def _new_site(db_name, site, mariadb_root_username=None, mariadb_root_password=N
 		print "*** Scheduler is", scheduler_status, "***"
 
 	finally:
-		if os.path.exists(installing):
+		if installing and os.path.exists(installing):
 			os.remove(installing)
 
 		frappe.destroy()

@@ -322,15 +322,6 @@ body {
     margin-top: 10px;
     text-align: left;
   }
-  #page-setup-wizard .form-section:first-child .form-column:first-child .frappe-control:first-child {
-    border-top: 1px solid #d1d8dd;
-  }
-  #page-setup-wizard .form-section:last-child .form-column:last-child .frappe-control:last-child {
-    border-bottom: 1px solid #d1d8dd;
-  }
-  #page-setup-wizard .setup-wizard-slide .form {
-    border: none;
-  }
   body[data-route^="Form"] .page-head .sub-heading {
     right: 90px;
   }

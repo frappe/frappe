@@ -13,7 +13,7 @@
 
 frappe.ui.form.on('DocType', {
 	refresh: function(frm) {
-		if(frm.doc.__islocal && (user !== "Administrator" || !frappe.boot.developer_mode)) {
+		if(frm.is_new() && (user !== "Administrator" || !frappe.boot.developer_mode)) {
 			frm.set_value("custom", 1);
 			frm.toggle_enable("custom", 0);
 		}
@@ -23,9 +23,17 @@ frappe.ui.form.on('DocType', {
 			frm.set_read_only();
 		}
 
-		if(!frm.doc.__islocal) {
+		if(frm.is_new()) {
+			if (!(frm.doc.permissions && frm.doc.permissions.length)) {
+				frm.add_child('permissions', {role: 'System Manager'});
+			}
+		} else {
 			frm.toggle_enable("engine", 0);
 		}
+
+		// set label for "In List View" for child tables
+		frm.get_docfield('fields', 'in_list_view').label = frm.doc.istable ?
+			__('In Grid View') : __('In List View');
 	}
 })
 

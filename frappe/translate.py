@@ -109,6 +109,7 @@ def get_dict(fortype, name=None):
 			messages = get_messages_from_file(name)
 		elif fortype=="boot":
 			messages = get_messages_from_include_files()
+			messages += frappe.db.sql("select 'Print Format:', name from `tabPrint Format`")
 			messages += frappe.db.sql("select 'DocType:', name from tabDocType")
 			messages += frappe.db.sql("select 'Role:', name from tabRole")
 			messages += frappe.db.sql("select 'Module:', name from `tabModule Def`")
@@ -246,7 +247,7 @@ def get_user_translations(lang):
 	if out is None:
 		out = {}
 		for fields in frappe.get_all('Translation',
-			fields= ["source_name", "target_name"],filters={'language_code': lang}):
+			fields= ["source_name", "target_name"], filters={'language': lang}):
 				out.update({fields.source_name: fields.target_name})
 		frappe.cache().hset('lang_user_translations', lang, out)
 

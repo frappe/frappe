@@ -9,6 +9,7 @@ from frappe.build import html_to_js_template
 from frappe.model.utils import render_include
 from frappe import conf, _
 from frappe.desk.form.meta import get_code_files_via_hooks, get_js
+from frappe.core.doctype.custom_role.custom_role import get_custom_allowed_roles
 
 class Page(Document):
 	def autoname(self):
@@ -71,12 +72,18 @@ class Page(Document):
 			d[key] = self.get(key)
 		return d
 
+	def on_trash(self):
+		delete_custom_role('page', self.name)
+
 	def is_permitted(self):
-		"""Returns true if Page Role is not set or the user is allowed."""
+		"""Returns true if Has Role is not set or the user is allowed."""
 		from frappe.utils import has_common
 
-		allowed = [d.role for d in frappe.get_all("Page Role", fields=["role"],
+		allowed = [d.role for d in frappe.get_all("Has Role", fields=["role"],
 			filters={"parent": self.name})]
+
+		custom_roles = get_custom_allowed_roles('page', self.name)
+		allowed.extend(custom_roles)
 
 		if not allowed:
 			return True
@@ -140,4 +147,7 @@ class Page(Document):
 			if js:
 				self.script += "\n\n" + js
 
-
+def delete_custom_role(field, docname):
+	name = frappe.db.get_value('Custom Role', {field: docname}, "name")
+	if name:
+		frappe.delete_doc('Custom Role', name)

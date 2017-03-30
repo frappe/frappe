@@ -11,11 +11,11 @@ def import_files(module, dt=None, dn=None, force=False, pre_process=None, reset_
 	if type(module) is list:
 		out = []
 		for m in module:
-			out.append(import_file(m[0], m[1], m[2], force=force, pre_process=pre_process, 
+			out.append(import_file(m[0], m[1], m[2], force=force, pre_process=pre_process,
 				reset_permissions=reset_permissions))
 		return out
 	else:
-		return import_file(module, dt, dn, force=force, pre_process=pre_process, 
+		return import_file(module, dt, dn, force=force, pre_process=pre_process,
 			reset_permissions=reset_permissions)
 
 def import_file(module, dt, dn, force=False, pre_process=None, reset_permissions=False):
@@ -32,7 +32,8 @@ def get_file_path(module, dt, dn):
 
 	return path
 
-def import_file_by_path(path, force=False, data_import=False, pre_process=None, reset_permissions=False):
+def import_file_by_path(path, force=False, data_import=False, pre_process=None, ignore_version=None,
+		reset_permissions=False):
 	frappe.flags.in_import = True
 	try:
 		docs = read_doc_from_file(path)
@@ -53,8 +54,8 @@ def import_file_by_path(path, force=False, data_import=False, pre_process=None, 
 
 			original_modified = doc.get("modified")
 
-			import_doc(doc, data_import=data_import, pre_process=pre_process, 
-				reset_permissions=reset_permissions)
+			import_doc(doc, force=force, data_import=data_import, pre_process=pre_process,
+				ignore_version=ignore_version, reset_permissions=reset_permissions)
 
 			if original_modified:
 				# since there is a new timestamp on the file, update timestamp in
@@ -88,12 +89,15 @@ ignore_values = {
 	"Print Format": ["disabled"]
 }
 
-ignore_doctypes = ["Page Role", "DocPerm"]
+ignore_doctypes = [""]
 
-def import_doc(docdict, data_import=False, pre_process=None, reset_permissions=False):
+def import_doc(docdict, force=False, data_import=False, pre_process=None,
+		ignore_version=None, reset_permissions=False):
+
 	frappe.flags.in_import = True
 	docdict["__islocal"] = 1
 	doc = frappe.get_doc(docdict)
+	doc.flags.ignore_version = ignore_version
 	if pre_process:
 		pre_process(doc)
 
