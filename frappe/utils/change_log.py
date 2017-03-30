@@ -111,5 +111,8 @@ def get_versions():
 
 def get_app_branch(app):
 	'''Returns branch of an app'''
-	return subprocess.check_output('cd ../apps/{0} && git rev-parse --abbrev-ref HEAD'.format(app),
-		shell=True).strip()
+	try:
+		return subprocess.check_output('cd ../apps/{0} && git rev-parse --abbrev-ref HEAD'.format(app),
+			shell=True).strip()
+	except Exception as e:
+		return ''
