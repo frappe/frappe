@@ -11,7 +11,7 @@ class Reply(object):
 		self.helper = Helper()
 
 	def get_all_users(self, email):
-		return self.helper.get_list('User', self.helper.get_doctype_fields_from_bot_name('User'), get_all=True)
+		return self.helper.get_list('User', ["name", "email", "full_name", "last_active", "bio"], get_all=True)
 
 	def get_users_in_room(self, room):
 		chat_room = check_if_exists("Chat Room", {"room_name": str(room)})
@@ -22,7 +22,7 @@ class Reply(object):
 		return []
 	
 	def get_user_by_email(self, email):
-		return self.helper.get_list('User', self.helper.get_doctype_fields_from_bot_name('User'),
+		return self.helper.get_list('User', ["name", "email", "full_name", "last_active", "bio"],
 			filters={"email":email}, get_all=True)
 
 	def load_more(self, query):

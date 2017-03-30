@@ -45,7 +45,39 @@ class Base(object):
 
 	def get_dummy_list(self, bot_name):
 		return self.helper.get_dummy_list(bot_name)
-		
+	
+	def add_or_update_and_return(self, params, method_name):
+		doctype = params.doctype
+		obj = params.obj
+		item_id = params.item_id
+		user_id = obj.meta.user_id
+		filters = None
+		is_success = False
+		message = "Something went wrong, Please try in a little bit."
+		try:
+			item = obj.bot_data.info["items"][0]
+			editables = [key for key in item.keys() if item[key]["is_editable"] == 1]
+			if method_name == 'create_':
+				note_doc = frappe.get_doc(Helper().get_dict(doctype, editables, item))
+				note_doc.owner = user_id
+				note_doc.insert()
+				filters = {"name": note_doc.name, "owner": user_id}
+			else:
+				for key in editables:
+					frappe.set_value(doctype, item_id, key, item[key]["fieldvalue"])
+				filters = {"name": item_id, "owner": user_id}
+			frappe.db.commit()
+			is_success = True
+		except Exception, e:
+			print e
+			message = '{0}'.format(str(e))
+			filters = None
+			is_success = False
+		return frappe._dict({
+			"is_success" : is_success,
+			"filters": filters,
+			"message": message
+		})
 
 class Basic_Bot(Base):
 	def __init__(self, obj):
@@ -57,6 +89,7 @@ class Basic_Bot(Base):
 		self.item_id = obj.meta.item_id
 
 	def get_results(self):
+		print self.obj
 		method = self.get_method()
 		if method == 'error':
 			return self.get_message("Something went wrong, please try a diffrent query")
@@ -65,23 +98,22 @@ class Basic_Bot(Base):
 		else:
 			return getattr(self, method)()
 	
-	def call_lower_class_methods(self, method_name, params):
-		if self.doctype == "Note":
-			return getattr(Note(), method_name)(params)
-		elif self.doctype == "ToDo":
-			return getattr(ToDo(), method_name)(params)
+	# def call_lower_class_methods(self, method_name, params):
+	# 	if self.doctype == "Note":
+	# 		return getattr(Note(), method_name)(params)
+	# 	elif self.doctype == "ToDo":
+	# 		return getattr(ToDo(), method_name)(params)
 	
 	def get_method(self):
-		obj = self.obj
-		bot_data = obj.bot_data
-		base_action = bot_data.info.base_action
-		if obj.text.lower() == 'exit' or obj.text.lower() == 'cancel':
+		text = self.obj.text.lower()
+		base_action = self.obj.bot_data.info.base_action
+		if text == 'exit' or text == 'cancel':
 			return 'cancel'
-		if base_action == 'create_':
+		elif base_action == 'create_':
 			return 'create_'
 		elif base_action is not None and self.item_id is not None:
 			return base_action.lower()
-		return self.get_action_by_text(obj.text).lower()
+		return self.get_action_by_text(text).lower()
 	
 	def get_params(self):
 		return frappe._dict({
@@ -89,7 +121,8 @@ class Basic_Bot(Base):
 			"obj":self.obj,
 			"item_id" : self.item_id
 		})
-
+	
+	#when user ask for creating new doc, return dummy list with metadata
 	def create(self):
 		bot_data = self.get_bot_data(base_action='create_', button_text='create',
 			is_interactive_chat=True, items=self.get_dummy_list(self.bot_name))
@@ -101,23 +134,24 @@ class Basic_Bot(Base):
 			items=self.helper.get_mapped_list(self.bot_name, items))
 		return self.get_message(self.messages.get('get'), bot_data = bot_data)
 	
+	#when base_action is create_ then we actually create new doc in doctype
 	def create_(self):
-		data = self.call_lower_class_methods('create_', self.get_params())
+		data =  self.add_or_update_and_return(self.get_params(), 'create_')
 		if data.is_success:
 			items = self.get_list(self.doctype, self.fields, data.filters)
 			bot_data = self.get_bot_data(button_text='view info', is_interactive_chat=True, 
 				items=self.helper.get_mapped_list(self.bot_name, items))
 			return self.get_message(self.messages.get('create_'), bot_data = bot_data)
-		return self.get_message()
+		return self.get_message(msg = data.message)
 
 	def update_(self):
-		data =  self.call_lower_class_methods('update_', self.get_params())
+		data =  self.add_or_update_and_return(self.get_params(), 'update_')
 		if data.is_success:
 			items = self.get_list(self.doctype, self.fields, data.filters)
 			bot_data = self.get_bot_data(button_text='view info', is_interactive_chat=True, 
 				items=self.helper.get_mapped_list(self.bot_name, items))
 			return self.get_message(self.messages.get('update_'), bot_data = bot_data)
-		return self.get_message()
+		return self.get_message(msg = data.message)
 
 	def delete_(self):
 		filters = {"name": self.item_id, "owner": self.obj.meta.user_id}
@@ -133,103 +167,3 @@ class Basic_Bot(Base):
 		except Exception, e:
 			print e
 			return self.get_message()
-
-class Note(object):
-
-	def create_(self, params):
-		doctype = params.doctype
-		obj = params.obj
-		user_id = obj.meta.user_id
-		filters = None
-		is_success = False
-		try:
-			item = obj.bot_data.info["items"][0]
-			editables = [key for key in item.keys() if item[key]["is_editable"] == 1]
-			note_doc = frappe.get_doc(Helper().get_dict(doctype, editables, item))
-			note_doc.owner = user_id
-			note_doc.insert()
-			frappe.db.commit()
-			filters = {"name": note_doc.name, "owner": user_id}
-			is_success = True
-		except Exception, e:
-			print e
-			filters = None
-			is_success = False
-		return frappe._dict({
-			"is_success" : is_success,
-			"filters": filters
-		})
-
-	def update_(self, params):
-		doctype = params.doctype
-		obj = params.obj
-		item_id = params.item_id
-		user_id = obj.meta.user_id
-		filters = None
-		is_success = False
-		try:
-			item = frappe._dict(obj.bot_data.info["items"][0])
-			editables = [key for key in item.keys() if item[key]["is_editable"] == 1]
-			for key in editables:
-				frappe.set_value(doctype, item_id, key, item[key]["fieldvalue"])
-			frappe.db.commit()
-			filters = {"name": item_id, "owner": user_id}
-			is_success = True
-		except Exception, e:
-			print e
-			filters = None
-			is_success = False
-		return frappe._dict({
-			"is_success" : is_success,
-			"filters": filters
-		})
-
-class ToDo(object):
-
-	def create_(self, params):
-		doctype = params.doctype
-		obj = params.obj
-		user_id = obj.meta.user_id
-		filters = None
-		is_success = False
-		try:
-			item = obj.bot_data.info["items"][0]
-			editables = [key for key in item.keys() if item[key]["is_editable"] == 1]
-			todo_doc = frappe.get_doc(Helper().get_dict(doctype, editables, item))
-			todo_doc.owner = user_id
-			todo_doc.insert()
-			frappe.db.commit()
-			filters = {"name": todo_doc.name, "owner": user_id}
-			is_success = True
-		except Exception, e:
-			print e
-			filters = None
-			is_success = False
-		return frappe._dict({
-			"is_success" : is_success,
-			"filters": filters
-		})
-
-	def update_(self, params):
-		doctype = params.doctype
-		obj = params.obj
-		user_id = obj.meta.user_id
-		item_id = params.item_id
-		filters = None
-		is_success = False
-		try:
-			item = frappe._dict(obj.bot_data.info["items"][0])
-			editables = [key for key in item.keys() if item[key]["is_editable"] == 1]
-			for key in editables:
-				frappe.set_value(doctype, item_id, key, item[key]["fieldvalue"])
-			frappe.db.commit()
-			filters = {"name": item_id, "owner": user_id}
-			is_success = True
-		except Exception, e:
-			print e
-			filters = None
-			is_success = False
-		return frappe._dict({
-			"is_success" : is_success,
-			"filters": filters
-		})

@@ -6,7 +6,6 @@ import frappe.utils.kickapp.bot as Bot_Module
 
 class Engine(object):
 	def get_reply(self, obj):
-		print obj
 		reply = {}
 		try:
 			class_name = Helper().get_class_from_bot_name(obj.bot_data.bot_name)
@@ -14,13 +13,9 @@ class Engine(object):
 				reply = getattr(Bot_Module, 'Base')(obj).get_message()
 			else:
 				reply = getattr(Bot_Module, class_name)(obj).get_results()
-		except Exception, exce:
-			print exce
-			e = str(exce)
-			if e.find('No permission') > -1:
-				reply = getattr(Bot_Module, 'Base')(obj).get_message("You dont have permission to perform tasks.")
-			else:
-				reply = getattr(Bot_Module, 'Base')(obj).get_message()
+		except Exception, e:
+			print e
+			reply = getattr(Bot_Module, 'Base')(obj).get_message(msg=str(e))
 		return reply
 	
 	def load_more(self, query):
@@ -37,6 +32,6 @@ class Engine(object):
 					helper.get_list(class_name, fields, 
 						start, end, {"owner":email}))
 
-		except Exception, exce:
-			print exce
+		except Exception, e:
+			print e
 		return []

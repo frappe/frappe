@@ -22,13 +22,14 @@ class Constant(object):
 			}
 
 		self.doctype_category = {
-			'Basic_Bot':["todo", "note"]
+			'Basic_Bot':["todo", "note", "user"]
 			}
 
 		self.doctype_fields = {
 			'todo': ["name", "description", "creation", "priority", "status", "owner"],
 			'note': ["name", "title", "content", "creation", "owner"],
-			'user': ["name", "email", "full_name", "last_active", "bio"],
+			'user': ["name", "email", "full_name", "first_name", "last_name", 
+				"last_active", "new_password", "bio"],
 			'employee':["name", "full_name", "gender", "company","date_of_joining", 
 				"date_of_birth", "offer_date", "confirmation_date", "employment_status", 
 				"parmanent_address", "current_address"],
@@ -53,7 +54,7 @@ class Constant(object):
 		self.doctype_editable_fields = {
 			'todo': ["description"],
 			'note': ["title", "content"],
-			'user': ["full_name", "email", "password"],
+			'user': ["first_name", "last_name", "email", "new_password", "bio"]
 		}
 		
 		self.doctype_messages = {
@@ -64,25 +65,21 @@ class Constant(object):
 				'get':'Here is the list of todos. Click on todo to get information.',
 				'create_':'A new todo has been created. Click on button to view infomation.',
 				'update_':'Todo has been updated. Click on button to view infomation.',
-				'delete_':'Todo has been deleted. Click on button to view infomation.'
+				'delete_':'Todo has been deleted.'
 			},
 			'note': {
 				'create':'Alright, Click the button and enter details.',
-				'update':'Here is the list of notes. Click on note to update.',
-				'delete':'Here is the list of notes. Click on note to delete.',
 				'get':'Here is the list of notes. Click on note to get information.',
 				'create_':'A new note has been created. Click on button to view infomation.',
 				'update_':'Note has been updated. Click on button to view infomation.',
-				'delete_':'Note has been deleted. Click on button to view infomation.'
+				'delete_':'Note has been deleted.'
 			},
 			'user': {
 				'create':'Alright, Click the button and enter details.',
-				'update':'Here is the list of users. Click on user to update.',
-				'delete':'Here is the list of users. Click on user to delete.',
 				'get':'Here is the list of users. Click on to get information.',
 				'create_':'A new user has been created. Click on button to view infomation.',
 				'update_':'User has been updated. Click on button to view infomation.',
-				'delete_':'User has been deleted. Click on button to view infomation.'
+				'delete_':'User has been deleted.'
 			},
 			}
 
@@ -124,6 +121,7 @@ class Constant(object):
 					value = item[key]
 			else:
 				value = item[key]
+			
 			obj[key] = frappe._dict({
 				"fieldtype":self.get_field_type(bot_name, key),
 				"fieldvalue":value,

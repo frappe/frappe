@@ -32,7 +32,6 @@ class Helper(object):
 		obj["doctype"] = doctype
 		for key in keys:
 			obj[key] = item[key]["fieldvalue"]
-		print obj.doctype, obj
 		return obj
 	
 	def get_list(self, doctype, fields, limit_start=0, limit_page_length=20, filters=None, get_all=False):
