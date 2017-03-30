@@ -22,7 +22,9 @@ def get_info(show_failed=False):
 	jobs = []
 
 	def add_job(j, name):
-		if j.kwargs.get('site')==frappe.local.site or True:
+		# add `show_background_jobs_for_all_sites: true` in site_config.json to view all background
+		# jobs for all sites
+		if j.kwargs.get('site')==frappe.local.site or frappe.local.conf.get("show_background_jobs_for_all_sites"):
 			jobs.append({
 				'job_name': j.kwargs.get('kwargs', {}).get('playbook_method') \
 					or str(j.kwargs.get('job_name')),
@@ -46,6 +48,5 @@ def get_info(show_failed=False):
 		for q in queues:
 			if q.name == 'failed':
 				for j in q.get_jobs()[:10]: add_job(j, q.name)
-
 
 	return jobs
