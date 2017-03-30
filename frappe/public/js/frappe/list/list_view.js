@@ -246,6 +246,7 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 			route.push('List');
 		}
 
+		frappe.route_flags.has_sidebar = !this.page.single_column;
 		frappe.set_route(route);
 	},
 
