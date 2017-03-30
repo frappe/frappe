@@ -58,6 +58,11 @@ class Report(Document):
 		allowed = [d.role for d in frappe.get_all("Has Role", fields=["role"],
 			filters={"parent": self.name})]
 
+		custom_role = frappe.db.get_value('Custom Role', {'report': self.name}, 'name')
+		if custom_role:
+			custom_role_doc = frappe.get_doc('Custom Role', custom_role)
+			allowed.extend([d.role for d in custom_role_doc.roles])
+
 		if not allowed:
 			return True
 
