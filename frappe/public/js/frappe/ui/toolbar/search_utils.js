@@ -424,6 +424,9 @@ frappe.search.utils = {
         function sort_uniques(array) {
             var routes = [], out = [];
             array.forEach(function(d) {
+                if(result.route[0] === "List" && result.route[2]) {
+                    result.route.splice(2);
+                }
                 var route = d.route.join('/');
                 if(routes.indexOf(route) === -1) {
                     routes.push(route);

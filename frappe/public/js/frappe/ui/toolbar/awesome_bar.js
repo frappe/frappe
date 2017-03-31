@@ -30,7 +30,7 @@ frappe.search.AwesomeBar = Class.extend({
 			item: function(item, term) {
 				var d = this.get_item(item.value);
 				var name = d.prefix ? __(d.prefix + ' ' + (d.label || d.value)) :
-					__((d.label || d.value) + ' ' + (d.type || ''));
+					__(d.label || d.value);
 				var html = '<span>' + name + '</span>';
 				if(d.description && d.value!==d.description) {
 					html += '<br><span class="text-muted ellipsis">' + __(d.description) + '</span>';
@@ -41,7 +41,7 @@ frappe.search.AwesomeBar = Class.extend({
 					.get(0);
 			},
 			sort: function(a, b) {
-				return (a.label - b.label);
+				return (b.label - a.label);
 			}
 		});
 
@@ -50,8 +50,7 @@ frappe.search.AwesomeBar = Class.extend({
 			var txt = value.trim().replace(/\s\s+/g, ' ');
 			var last_space = txt.lastIndexOf(' ');
 			me.global_results = [];
-
-			// if(txt && txt.length > 2) {
+			// if(txt && txt.length > 1) {
 			// 	me.global.get_awesome_bar_options(txt.toLowerCase(), me);
 			// }
 
@@ -64,39 +63,16 @@ frappe.search.AwesomeBar = Class.extend({
 					if(last_space !== -1) {
 						me.set_specifics(txt.slice(0,last_space), txt.slice(last_space+1));
 					}
+					me.add_defaults(txt);
 					me.options = me.options.concat(me.build_options(txt));
-					me.build_defaults(txt);
 					me.options = me.options.concat(me.global_results);
+				} else {
+					me.options = me.options.concat(
+						me.deduplicate(frappe.search.utils.get_recent_pages(txt || "")));
 				}
-
-
-				me.make_calculator(txt);
-				me.options = me.options.concat(frappe.search.utils.get_recent_pages(txt || ""));
 				me.add_help();
 
-				// de-duplicate
-				var out = [], routes = [];
-				me.options.forEach(function(option) {
-					if(option.route) {
-						if(option.route[0] === "List" && option.route[2]) {
-							option.route.splice(2);
-						}
-						var str_route = (typeof option.route==='string') ?
-								option.route : option.route.join('/');
-						if(routes.indexOf(str_route)===-1) {
-							out.push(option);
-							routes.push(str_route);
-						} else {
-							var old = routes.indexOf(str_route);
-							if(out[old].index > option.index) {
-								out[old] = option;
-							}
-						}
-					} else {
-						out.push(option);
-					}
-				});
-				awesomplete.list = out;
+				awesomplete.list = me.options;
 			}, 100));
 
 		});
@@ -149,7 +125,7 @@ frappe.search.AwesomeBar = Class.extend({
 		this.options.push({
 			label: __("Help on Search"),
 			value: "Help on Search",
-			index: 100,
+			index: -10,
 			default: "Help",
 			onclick: function() {
 				var txt = '<table class="table table-bordered">\
@@ -163,62 +139,10 @@ frappe.search.AwesomeBar = Class.extend({
 						__("module name...")+'</td></tr>\
 					<tr><td>'+__("Calculate")+'</td><td>'+
 						__("e.g. (55 + 434) / 4 or =Math.sin(Math.PI/2)...")+'</td></tr>\
-				</table><input type="text" class="input-with-feedback form-control" value="help" disabled>'
+				</table>'
 				msgprint(txt, "Search Help");
 			}
 		});
-	},
-
-	fuzzy_search: function(_txt, _item) {
-		parsed_item = __(_item || '').replace(/-|_/g, " ");
-		item = parsed_item.toLowerCase();
-		txt = _txt.toLowerCase();
-
-		var ilen = item.length;
-		var tlen = txt.length;
-		var match_level = tlen/ilen;
-		var rendered_label = "";
-		var i, j, skips = 0, mismatches = 0;
-
-		if(tlen > ilen) {
-			return [];
-		}
-		if(parsed_item.indexOf(_txt) !== -1 && txt !== _txt) {
-			var regEx = new RegExp("("+ txt +")", "ig");
-			rendered_label = parsed_item.replace(regEx, '<b>$1</b>');
-			return [parsed_item, (ilen + 10), rendered_label];
-		}
-		if(item.indexOf(txt) !== -1) {
-			var regEx = new RegExp("("+ txt +")", "ig");
-			rendered_label = parsed_item.replace(regEx, '<b>$1</b>');
-			return [parsed_item, 20 + (ilen + 10), rendered_label];
-		}
-		outer: for (i = 0, j = 0; i < tlen; i++) {
-			var t_ch = txt.charCodeAt(i);
-			if(mismatches !== 0) skips++;
-			if(skips > 3) return [];
-			mismatches = 0;
-			while (j < ilen) {
-				var i_ch = item.charCodeAt(j);
-				if (i_ch === t_ch) {
-					var item_char =  parsed_item.charAt(j);
-					if(item_char === item_char.toLowerCase()){
-						rendered_label += '<b>' + txt.charAt(i) + '</b>';
-					} else {
-						rendered_label += '<b>' + txt.charAt(i).toUpperCase() + '</b>';
-					}
-					j++;
-					continue outer;
-				}
-				mismatches++;
-				if(mismatches > 2) return [];
-				rendered_label += parsed_item.charAt(j);
-				j++;
-			}
-			return [];
-		}
-		rendered_label += parsed_item.slice(j);
-		return [parsed_item, 40 + (ilen + 10), rendered_label];
 	},
 
 	set_specifics: function(txt, end_txt) {
@@ -231,19 +155,50 @@ frappe.search.AwesomeBar = Class.extend({
 		});
 	},
 
-	build_defaults: function(txt) {
+	add_defaults: function(txt) {
 		this.make_global_search(txt);
 		this.make_search_in_current(txt);
-		this.options = this.options.concat(this.make_search_in_list(txt));
+		this.make_calculator(txt);
 	},
 
 	build_options: function(txt) {
-		return this.make_new_doc(txt).concat(
-			this.get_doctypes(txt),
-			this.get_reports(txt),
-			this.get_pages(txt),
-			this.get_modules(txt)
+		var options = frappe.search.utils.get_creatables(txt).concat(
+			frappe.search.utils.get_search_in_list(txt),
+			frappe.search.utils.get_doctypes(txt),
+			frappe.search.utils.get_reports(txt),
+			frappe.search.utils.get_pages(txt),
+			frappe.search.utils.get_modules(txt),
+			frappe.search.utils.get_recent_pages(txt || "")
 		);
+		var out = this.deduplicate(options);
+		return out.sort(function(a, b) {
+			return b.index - a.index;
+		});
+	},
+
+	deduplicate: function(options) {
+		var out = [], routes = [];
+		options.forEach(function(option) {
+			if(option.route) {
+				if(option.route[0] === "List" && option.route[2]) {
+					option.route.splice(2);
+				}
+				var str_route = (typeof option.route==='string') ?
+						option.route : option.route.join('/');
+				if(routes.indexOf(str_route)===-1) {
+					out.push(option);
+					routes.push(str_route);
+				} else {
+					var old = routes.indexOf(str_route);
+					if(out[old].index > option.index) {
+						out[old] = option;
+					}
+				}
+			} else {
+				out.push(option);
+			}
+		});
+		return out;
 	},
 
 	set_global_results: function(global_results, txt){
@@ -256,7 +211,7 @@ frappe.search.AwesomeBar = Class.extend({
 			label: __("Search for '" + txt.bold() + "'"),
 			value: __("Search for '" + txt + "'"),
 			match: txt,
-			index: 1,
+			index: 100,
 			default: "Search",
 			onclick: function() {
 				frappe.searchdialog.search.init_search(txt, "global_search");
@@ -276,10 +231,10 @@ frappe.search.AwesomeBar = Class.extend({
 				label: __('Find {0} in {1}', [txt.bold(), route[1].bold()]),
 				value: __('Find {0} in {1}', [txt, route[1]]),
 				route_options: options,
-				index: 2,
 				onclick: function() {
 					cur_list.refresh();
 				},
+				index: 90,
 				default: "Current",
 				match: txt
 			});
@@ -299,7 +254,7 @@ frappe.search.AwesomeBar = Class.extend({
 					label: formatted_value,
 					value: __('{0} = {1}', [txt, val]),
 					match: val,
-					index: 3,
+					index: 80,
 					default: "Calculator",
 					onclick: function() {
 						msgprint(formatted_value, "Result");
@@ -309,215 +264,5 @@ frappe.search.AwesomeBar = Class.extend({
 				// pass
 			}
 		}
-	},
-
-	// remove
-	make_search_in_list: function(txt) {
-		var me = this;
-		var out = [];
-		if(in_list(txt.split(" "), "in") && (txt.slice(-2) !== "in")) {
-			parts = txt.split(" in ");
-			frappe.boot.user.can_read.forEach(function (item) {
-				var target = me.fuzzy_search(parts[1], item)[0];
-				if(target) {
-					out.push({
-						label: __('Find {0} in {1}', [__(parts[0]).bold(), __(target).bold()]),
-						value: __('Find {0} in {1}', [__(parts[0]), __(target)]),
-						route_options: {"name": ["like", "%" + parts[0] + "%"]},
-						index: 4,
-						default: "In List",
-						route: ["List", item]
-					});
-				}
-			});
-		}
-		return out;
-	},
-
-	// remove
-	make_new_doc: function(txt) {
-		var me = this;
-		var out = [];
-		if(txt.split(" ")[0]==="new") {
-			frappe.boot.user.can_create.forEach(function (item) {
-				var result = me.fuzzy_search(txt.substr(4), item);
-				var target = result[0];
-				var index = result[1];
-				var rendered_label = result[2];
-				if(target) {
-					out.push({
-						label: rendered_label,
-						value: __("New {0}", [target]),
-						index: index,
-						type: "New",
-						prefix: "New",
-						match: item,
-						onclick: function() { frappe.new_doc(item, true); }
-					});
-				}
-			});
-		}
-		return out;
-	},
-
-	// remove
-	get_doctypes: function(txt) {
-		var me = this;
-		var out = [];
-
-		var result, target, index, rendered_label;
-		var option = function(type, route, order) {
-			return {
-				label: rendered_label,
-				value: __(target + " " + type),
-				route: route,
-				index: index + order,
-				match: target,
-				type: type
-			}
-		};
-		frappe.boot.user.can_read.forEach(function (item) {
-			result = me.fuzzy_search(txt, item);
-			target = result[0];
-			index = result[1];
-			rendered_label = result[2];
-			if(target) {
-				// include 'making new' option
-				if(in_list(frappe.boot.user.can_create, item)) {
-					var match = item;
-					out.push({
-						label: rendered_label,
-						value: __("New {0}", [target]),
-						index: index + 0.4,
-						type: "New",
-						prefix: "New",
-						match: item,
-						onclick: function() { frappe.new_doc(match, true); }
-					});
-				}
-				if(in_list(frappe.boot.single_types, target)) {
-					out.push(option("", ["Form", target, target], 0));
-
-				} else if(in_list(frappe.boot.treeviews, target)) {
-					out.push(option("Tree", ["Tree", target], 0));
-
-				} else {
-					out.push(option("List", ["List", target], 0));
-					if(frappe.model.can_get_report(target)) {
-						out.push(option("Report", ["Report", target], 0.1));
-					}
-					if(frappe.boot.calendars.indexOf(target) !== -1) {
-						out.push(option("Calendar", ["List", target, "Calendar"], 0.2));
-						out.push(option("Gantt", ["List", target, "Gantt"], 0.3));
-					}
-				}
-			}
-		});
-		return out;
-	},
-
-	// remove
-	get_reports: function(txt) {
-		var me = this;
-		var out = [];
-		Object.keys(frappe.boot.user.all_reports).forEach(function(item) {
-			var result = me.fuzzy_search(txt, item);
-			var target = result[0];
-			var index = result[1];
-			var rendered_label = result[2];
-			if(target) {
-				var report = frappe.boot.user.all_reports[item];
-				var route = [];
-				if(report.report_type == "Report Builder")
-					route = ["Report", report.ref_doctype, item];
-				else
-					route = ["query-report",  item];
-
-				out.push({
-					label: rendered_label,
-					value: __("Report {0}" , [__(target)]),
-					match: txt,
-					index: index,
-					type: "Report",
-					prefix: "Report",
-					route: route
-				});
-			}
-		});
-		return out;
-	},
-
-	// remove
-	get_pages: function(txt) {
-		var me = this;
-		var out = [];
-		this.pages = {};
-		$.each(frappe.boot.page_info, function(name, p) {
-			me.pages[p.title] = p;
-			p.name = name;
-		});
-		Object.keys(this.pages).forEach(function(item) {
-			var result = me.fuzzy_search(txt, item);
-			var target = result[0];
-			var index = result[1];
-			var rendered_label = result[2];
-			if(target) {
-				var page = me.pages[item];
-				out.push({
-					label: rendered_label,
-					value: __("Open {0}", [__(target)]),
-					match: txt,
-					index: index,
-					type: "Page",
-					prefix: "Open",
-					route: [page.route || page.name]
-				});
-			}
-		});
-		// calendar
-		var target = 'Calendar';
-		if(__('calendar').indexOf(txt.toLowerCase()) === 0) {
-			out.push({
-				label: __(target),
-				value: __("Open {0}", [__(target)]),
-				route: [target, 'Event'],
-				index: 5,
-				type: "Calendar",
-				prefix: "Open",
-				match: target
-			});
-		}
-		return out;
-	},
-
-	// remove
-	get_modules: function(txt) {
-		var me = this;
-		var out = [];
-		Object.keys(frappe.modules).forEach(function(item) {
-			var result = me.fuzzy_search(txt, item);
-			var target = result[0];
-			var index = result[1];
-			var rendered_label = result[2];
-			if(target) {
-				var module = frappe.modules[item];
-				if(module._doctype) return;
-				ret = {
-					label: rendered_label,
-					value: __("Open {0}", [__(target)]),
-					match: txt,
-					index: index,
-					type: "Module",
-					prefix: "Open"
-				}
-				if(module.link) {
-					ret.route = [module.link];
-				} else {
-					ret.route = ["Module", item];
-				}
-				out.push(ret);
-			}
-		});
-		return out;
 	},
 });
