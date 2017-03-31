@@ -42,7 +42,7 @@ def clear_cache(user=None):
 		frappe.defaults.clear_cache(user)
 	else:
 		for name in groups:
-			cache.delete_key(name, user)
+			cache.delete_key(name)
 		clear_global_cache()
 		frappe.defaults.clear_cache()
 
