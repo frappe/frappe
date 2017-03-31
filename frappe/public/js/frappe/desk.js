@@ -452,7 +452,7 @@ frappe.get_desktop_icons = function(show_hidden, show_global) {
 		out.push(module);
 	}
 
-	var show_module = function(module) {
+	var show_module = function(m) {
 		var out = true;
 		if(m.type==="page") {
 			out = m.link in frappe.boot.page_info;
@@ -469,7 +469,7 @@ frappe.get_desktop_icons = function(show_hidden, show_global) {
 				out = frappe.boot.user.allow_modules.indexOf(m.module_name) !== -1
 			}
 		}
-		if(m.hidden&& !show_hidden) {
+		if(m.hidden && !show_hidden) {
 			out = false;
 		}
 		if(m.blocked && !show_global) {

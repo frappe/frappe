@@ -804,7 +804,8 @@ class Document(BaseDocument):
 		self.notify_update()
 
 		try:
-			frappe.enqueue('frappe.utils.global_search.update_global_search', now=frappe.flags.in_test, doc=self)
+			frappe.enqueue('frappe.utils.global_search.update_global_search',
+				now=frappe.flags.in_test or frappe.flags.in_install, doc=self)
 		except redis.exceptions.ConnectionError:
 			update_global_search(self)
 

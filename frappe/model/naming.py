@@ -187,11 +187,13 @@ def _set_amended_name(doc):
 	doc.name = am_prefix + '-' + str(am_id)
 	return doc.name
 
-def append_number_if_name_exists(doctype, name):
+def append_number_if_name_exists(doctype, name, fieldname='name'):
 	if frappe.db.exists(doctype, name):
-		last = frappe.db.sql("""select name from `tab{}`
-			where name regexp '^{}-[[:digit:]]+'
-			order by length(name) desc, name desc limit 1""".format(doctype, name))
+		last = frappe.db.sql("""select name from `tab{doctype}`
+			where {fieldname} regexp '^{name}-[[:digit:]]+'
+			order by length({fieldname}) desc,
+				{fieldname} desc limit 1""".format(doctype=doctype,
+					name=name, fieldname=fieldname))
 
 		if last:
 			count = str(cint(last[0][0].rsplit("-", 1)[1]) + 1)
@@ -199,17 +201,5 @@ def append_number_if_name_exists(doctype, name):
 			count = "1"
 
 		name = "{0}-{1}".format(name, count)
-
-	return name
-
-def de_duplicate(doctype, name):
-	original_name = name
-	count = 0
-	while True:
-		if frappe.db.exists(doctype, name):
-			count += 1
-			name = "{0}-{1}".format(original_name, count)
-		else:
-			break
 
 	return name
