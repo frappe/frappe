@@ -52,6 +52,10 @@ frappe.Application = Class.extend({
 
 		$(document).trigger('app_ready');
 
+		frappe.ready_events.forEach(function(fn) {
+			fn();
+		});
+
 		if (frappe.boot.messages) {
 			frappe.msgprint(frappe.boot.messages);
 		}
