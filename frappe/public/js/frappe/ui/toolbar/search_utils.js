@@ -402,47 +402,6 @@ frappe.search.utils = {
         });
     },
 
-    get_forum_results: function(keywords) {
-        var me = this;
-        function get_results_set(data) {
-            var result;
-            var set = {
-                title: "Forum",
-                results: []
-            }
-            data.forEach(function(d) {
-                // more properties
-                result = {
-                    label: me.unscrub_and_titlecase(d.topic_slug),
-                    value: "",
-                    description: d.blurb,
-                    route:[],
-                    url: "",
-                    onclick: function() {
-
-                    }
-                }
-                set.results.push(result);
-            });
-            return [set];
-        }
-        return new Promise(function(resolve, reject) {
-            frappe.call({
-                method: "frappe.utils.global_search.get_forum_results",
-                args: {
-                    text: keywords
-                },
-                callback: function(r) {
-                    if(r.message) {
-                        resolve(get_results_set(r.message));
-                    } else {
-                        resolve([]);
-                    }
-                }
-            });
-        });
-    },
-
     get_nav_results: function(keywords) {
         function sort_uniques(array) {
             var routes = [], out = [];

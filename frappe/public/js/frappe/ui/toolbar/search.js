@@ -45,7 +45,7 @@ frappe.search.SearchDialog = Class.extend({
 				'<i class="fa fa-square cover twinkle-one hide" style="left:0px;"></i>'+
 				'<i class="fa fa-square cover twinkle-two hide" style="left:12px; top:7px;"></i>'+
 				'<i class="fa fa-square cover twinkle-three hide" style="left:20px; top:-4px;"></i></i>'+
-				'<p>' + status_text + '</p></span></div>' +
+				'<p class="text-muted">' + status_text + '</p></span></div>' +
 			'</div>');
 		this.update($placeholder);
 	},
@@ -372,16 +372,16 @@ frappe.search.SearchDialog = Class.extend({
 			input_placeholder: __("Search Help"),
 			empty_state_text: __("Search the docs"),
 			no_results_status: (keyword) => __("No results found for '" + keyword +
-				"' in Help<br>Search <a class='text-muted switch-to-global-search'>globally</a>"),
+				"' in Help<br>Would you like to search <a class='switch-to-global-search' "+
+				"style='text-decoration: underline;'>globally</a>" +
+				" or the <a href='https://discuss.erpnext.com' class='forum-link' " +
+				"style='text-decoration: underline;'>forums</a> instead?"),
 
 			get_results: function(keywords, callback) {
 				var results = [];
 				frappe.search.utils.get_help_results(keywords)
 					.then(function(help_results) {
 						results = results.concat(help_results);
-						return frappe.search.utils.get_forum_results(keywords);
-					}).then(function(forum_results) {
-						results = results.concat(forum_results);
 						callback(results, keywords);
 					}, function (err) {
 						console.error(err);
