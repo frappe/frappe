@@ -386,6 +386,9 @@ fieldset[disabled] .form-control {
 .datepicker--cell.-selected-.-focus- {
   background: rgba(94, 100, 255, 0.9);
 }
+.datepicker--button {
+  color: #5E64FF;
+}
 .hidden-xs-inline,
 .hidden-xs-inline-block {
   display: none;

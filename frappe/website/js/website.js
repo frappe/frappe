@@ -250,17 +250,11 @@ $.extend(frappe, {
 	},
 
 	trigger_ready: function() {
-		var ready_functions = frappe.page_ready_events[location.pathname];
-		if (ready_functions && ready_functions.length) {
-			for (var i=0, l=ready_functions.length; i < l; i++) {
-				var ready = ready_functions[i];
-				ready && ready();
-			}
-		}
-
-		// remove them so that they aren't fired again and again!
-		delete frappe.page_ready_events[location.pathname];
+		frappe.ready_events.forEach(function(fn) {
+			fn();
+		});
 	},
+
 	highlight_code_blocks: function() {
 		if(hljs) {
 			$('pre code').each(function(i, block) {

@@ -235,6 +235,7 @@ frappe.provide("frappe.views");
 		var self = {};
 		self.wrapper = opts.wrapper;
 		self.cur_list = opts.cur_list;
+		self.board_name = opts.board_name;
 
 		self.update_cards = function(cards) {
 			fluxify.doAction('update_cards', cards);

@@ -50,7 +50,7 @@ frappe.views.ListRenderer = Class.extend({
 
 		this.order_by = this.user_settings.order_by || this.settings.order_by;
 		this.filters = this.user_settings.filters || this.settings.filters;
-		this.page_length = this.user_settings.page_length || this.settings.page_length;
+		this.page_length = this.settings.page_length;
 
 		// default filter for submittable doctype
 		if(frappe.model.is_submittable(this.doctype) && (!this.filters || !this.filters.length)) {

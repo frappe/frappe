@@ -300,7 +300,7 @@ frappe.views.QueryReport = Class.extend({
 
 				// run report on change
 				f.$input.on("change", function() {
-					if(!me.flags.filter_set) {
+					if(!me.flags.filters_set) {
 						// don't trigger change while setting filters
 						return;
 					}

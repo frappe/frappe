@@ -26,3 +26,4 @@ frappe.provide("frappe.utils");
 frappe.provide("frappe.ui");
 frappe.provide("frappe.modules");
 frappe.provide("frappe.templates");
+

@@ -441,10 +441,11 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 			different = true;
 		}
 
-		if (user_settings.page_length !== args.page_length) {
-			user_settings.page_length = args.page_length || 20
-			different = true;
-		}
+		// never save page_length in user_settings
+		// if (user_settings.page_length !== args.page_length) {
+		// 	user_settings.page_length = args.page_length || 20
+		// 	different = true;
+		// }
 
 		// save fields in list settings
 		if (args.save_user_settings_fields) {
