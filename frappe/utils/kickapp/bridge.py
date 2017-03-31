@@ -50,6 +50,10 @@ def get_all_bots():
 def get_user_by_email(email):
 	return get_response_from_method_name("get_user_by_email", email)
 
+@frappe.whitelist()
+def get_meta():
+	return frappe.get_meta('ToDo')
+
 def get_response_from_method_name(method_name, obj, is_return = True):
 	if is_return:
 		return getattr(Reply(), method_name)(obj)

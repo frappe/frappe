@@ -45,7 +45,9 @@ class Query(object):
 
 	def get_keywords(self):
 		doctype = self.bot_name
-		return ['get', 'list', '{0} {1}'.format('list', doctype), 
+		return ['get', 'list','list all',
+				'{0} {1} {2}'.format('list', 'all', doctype),
+				'{0} {1}'.format('list', doctype), 
 				'{0} {1}'.format('get', doctype),
 				'{0} {1}'.format('get all', doctype),
 				'{0} {1}'.format('get my', doctype),

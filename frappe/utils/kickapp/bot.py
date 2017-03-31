@@ -60,7 +60,17 @@ class Base(object):
 			if method_name == 'create_':
 				note_doc = frappe.get_doc(Helper().get_dict(doctype, editables, item))
 				note_doc.owner = user_id
-				note_doc.insert()
+				try:
+					note_doc.save()
+				except Exception, e:
+					ex = str(e)
+					if 'duplicate entry' in ex.lower():
+						message = 'Item already exists.'
+					return frappe._dict({
+							"is_success" : is_success,
+							"filters": filters,
+							"message": message
+						})
 				filters = {"name": note_doc.name, "owner": user_id}
 			else:
 				for key in editables:

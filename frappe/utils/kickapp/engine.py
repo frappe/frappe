@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 import datetime
 import frappe
-from frappe.utils.kickapp.helper import Helper
+from fraplispe.utils.kickapp.helper import Helper
 import frappe.utils.kickapp.bot as Bot_Module 
 
 class Engine(object):
@@ -17,7 +17,7 @@ class Engine(object):
 			print e
 			reply = getattr(Bot_Module, 'Base')(obj).get_message(msg=str(e))
 		return reply
-	
+
 	def load_more(self, query):
 		try:
 			helper = Helper() 
