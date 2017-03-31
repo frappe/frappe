@@ -14,7 +14,7 @@ from frappe.model.naming import revert_series_if_last
 from frappe.utils.global_search import delete_for_document 
 
 def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reload=False,
-	ignore_permissions=False, flags=None, ignore_on_trash=False):
+	ignore_permissions=False, flags=None, ignore_on_trash=False, trigger_feedback_on_delete=True):
 	"""
 		Deletes a doc(dt, dn) and validates if it is not submitted and not linked in a live record
 	"""
@@ -71,11 +71,11 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 
 				if not ignore_on_trash:
 					doc.run_method("on_trash")
-					doc.flags.in_delete = True
+					doc.flags.trigger_feedback_on_delete = trigger_feedback_on_delete
 					doc.run_method('on_change')
 
 				frappe.enqueue('frappe.model.delete_doc.delete_dynamic_links', doctype=doc.doctype, name=doc.name,
-					async=False if frappe.flags.in_test else True)
+					async=False if frappe.flags.in_test else True, now=frappe.flags.in_test)
 
 				# check if links exist
 				if not force:
