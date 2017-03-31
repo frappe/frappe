@@ -1683,6 +1683,7 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 		this.set_input('<div><br></div>');
 	},
 	setup_drag_drop: function() {
+		var me = this;
 		this.note_editor.on('dragenter dragover', false)
 			.on('drop', function(e) {
 				var dataTransfer = e.originalEvent.dataTransfer;
