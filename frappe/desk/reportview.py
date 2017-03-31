@@ -36,7 +36,8 @@ def get_form_params():
 		data["save_user_settings"] = json.loads(data["save_user_settings"])
 	else:
 		data["save_user_settings"] = True
-
+	
+	doctype = data["doctype"]
 	fields = data["fields"]
 
 	for field in fields:
