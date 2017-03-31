@@ -272,24 +272,48 @@ frappe.search.utils = {
 
             function make_description(content, doc_name) {
                 parts = content.split("|||");
-                containing_fields = [];
-                parts.forEach(function(part) {
+                content_length = 300;
+                fields = [];
+                current_length = 0;
+                var field_text = "";
+                for(var i = 0; i < parts.length; i++) {
+                    part = parts[i];
+                    if(part.toLowerCase().indexOf(keywords) !== -1) {
+                        if(part.indexOf('&&&') !== -1) {
+                            var colon_index = part.indexOf('&&&');
+                            var field_value = part.slice(colon_index + 3);
+                        } else {
+                            var colon_index = part.indexOf(':');
+                            var field_value = part.slice(colon_index + 1);
+                        }
+                        var field_name = part.slice(0, colon_index);
 
-                    if(part.toLowerCase().indexOf(keywords.toLowerCase()) !== -1) {
-                        var colon_index = part.indexOf(':');
-                        var field_name = part.slice(0, colon_index + 1);
-                        var field_value = part.slice(colon_index + 1)
-                        part = '<span class="field-name text-muted">' +
-                            me.bolden_match_part(field_name, keywords) + '</span>' +
-                            me.bolden_match_part(field_value, keywords);
-
-                        if(containing_fields.indexOf(part) === -1 && doc_name !== field_value) {
-
-                            containing_fields.push(part);
+                        var remaining_length = content_length - current_length;
+                        current_length += field_name.length + field_value.length + 2;
+                        if(current_length < content_length) {
+                            field_text = '<span class="field-name text-muted">' +
+                                me.bolden_match_part(field_name, keywords) + ':' + '</span>' +
+                                me.bolden_match_part(field_value, keywords);
+                            if(fields.indexOf(field_text) === -1 && doc_name !== field_value) {
+                                fields.push(field_text);
+                            }
+                        } else {
+                            if(field_name.length < remaining_length){
+                                remaining_length -= field_name.length;
+                                field_text = '<span class="field-name text-muted">' +
+                                    me.bolden_match_part(field_name, keywords) + ':' + '</span>';
+                                field_value = field_value.slice(0, remaining_length);
+                                field_value = field_value.slice(0, field_value.lastIndexOf(' ')) + ' ...';
+                                field_text += me.bolden_match_part(field_value, keywords);
+                                fields.push(field_text);
+                            } else {
+                                fields.push('...');
+                            }
+                            break;
                         }
                     }
-                });
-                return containing_fields.join(', ');
+                }
+                return fields.join(', ');
             }
 
             data.forEach(function(d) {
@@ -352,7 +376,6 @@ frappe.search.utils = {
                     label: d[0],
                     value: d[0],
                     description: d[1],
-                    route:[],
                     data_path: d[2],
                     onclick: function() {
 
@@ -390,7 +413,7 @@ frappe.search.utils = {
             data.forEach(function(d) {
                 // more properties
                 result = {
-                    label: me.reverse_scrub(d.topic_slug),
+                    label: me.unscrub_and_titlecase(d.topic_slug),
                     value: "",
                     description: d.blurb,
                     route:[],
@@ -424,12 +447,21 @@ frappe.search.utils = {
         function sort_uniques(array) {
             var routes = [], out = [];
             array.forEach(function(d) {
-                if(result.route[0] === "List" && result.route[2]) {
-                    result.route.splice(2);
-                }
-                var route = d.route.join('/');
-                if(routes.indexOf(route) === -1) {
-                    routes.push(route);
+                if(d.route) {
+                    if(d.route[0] === "List" && d.route[2]) {
+                        d.route.splice(2);
+                    }
+                    var str_route = d.route.join('/');
+                    if(routes.indexOf(str_route) === -1) {
+                        routes.push(str_route);
+                        out.push(d);
+                    } else {
+                        var old = routes.indexOf(str_route);
+                        if(out[old].index > d.index) {
+                            out[old] = d;
+                        }
+                    }
+                } else {
                     out.push(d);
                 }
             });

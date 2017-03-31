@@ -818,6 +818,9 @@ fieldset[disabled] .form-control {
   font-family: 'Octicons';
   content: '\f0a4';
 }
+.search-dialog .module-section .result {
+  margin-bottom: 5px;
+}
 .search-dialog .full-list .result {
   margin-top: 15px;
 }
@@ -843,7 +846,8 @@ fieldset[disabled] .form-control {
   display: none;
 }
 .search-dialog .result p {
-  margin-top: 0.2em;
+  margin-top: 5px;
+  margin-bottom: 5px;
 }
 .search-dialog .result .result-image {
   display: inline-block;

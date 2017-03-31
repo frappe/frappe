@@ -122,7 +122,7 @@ frappe.search.SearchDialog = Class.extend({
 		});
 
 		// Help results
-		// this.$modal_body.on('click', 'a[data-path]', frappe.help.show_results);
+		this.$modal_body.on('click', 'a[data-path]', frappe.help.show_results);
 		this.bind_keyboard_events();
 	},
 
@@ -177,8 +177,6 @@ frappe.search.SearchDialog = Class.extend({
 		} else {
 			this.$search_modal.find('.loading-state').removeClass('hide');
 		}
-		// var me = this;
-		// setTimeout(function() { me.search.get_results(keywords, me.parse_results.bind(me)); }, 4000);
 		this.search.get_results(keywords, this.parse_results.bind(this));
 	},
 
@@ -242,7 +240,13 @@ frappe.search.SearchDialog = Class.extend({
 
 	add_section_to_summary: function(type, results) {
 		var me = this;
-		var are_expansive = results[0]["description" || "image" || "subtypes"] || false;
+		var are_expansive = false;
+		for(var i = 0; i < results.length; i++) {
+			if(results[i]["description" || "image" || "subtypes"] || false) {
+				are_expansive = true;
+				break;
+			}
+		};
 		var [section_length, col_width] = are_expansive ? [3, "12"] : [4, "6"];
 
 		// check state of last summary section
@@ -280,11 +284,6 @@ frappe.search.SearchDialog = Class.extend({
 			return link;
 		}
 
-		function make_description(desc) {
-			// TO DO: process here or beforehand?
-			return desc;
-		}
-
 		if(result.image) {
 			$result.append('<div class="result-image"><img data-name="' + result.label + '" src="'+ result.image +'" alt="' + result.label + '"></div>');
 		} else if (result.image === null) {
@@ -295,7 +294,7 @@ frappe.search.SearchDialog = Class.extend({
 		var $result_text = $('<div style="display: inline-block;"></div>');
 		if(result.description) {
 			$result_text.append($('<b>' + title_html + '</b>'));
-			$result_text.append(make_description('<p class="small">'+ result.description +'</p>'));
+			$result_text.append('<p class="small">'+ result.description +'</p>');
 		} else {
 			$result_text.append($(title_html));
 			if(result.route_options) {
@@ -352,7 +351,7 @@ frappe.search.SearchDialog = Class.extend({
 		global_search: {
 			input_placeholder: __("Global Search"),
 			empty_state_text: __("Search for anything"),
-			no_results_status: (keyword) => __("No results found for '" + keyword + "'"),
+			no_results_status: (keyword) => __("No results found for '" + keyword + "' in Global Search"),
 
 			get_results: function(keywords, callback) {
 				var start = 0, limit = 100;
