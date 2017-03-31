@@ -4,7 +4,8 @@ from frappe import _
 def get_data():
 	return [
 		{
-			"module_name": 'Communication',
+			"module_name": 'Core',
+			"type": 'list',
 			"label": _('Email Inbox'),
 			"_label": _('Email Inbox'),
 			"_id": 'Email Inbox',
