@@ -22,8 +22,6 @@ def get_info(show_failed=False):
 	jobs = []
 
 	def add_job(j, name):
-		# add `show_background_jobs_for_all_sites: true` in site_config.json to view all background
-		# jobs for all sites
 		if j.kwargs.get('site')==frappe.local.site:
 			jobs.append({
 				'job_name': j.kwargs.get('kwargs', {}).get('playbook_method') \
