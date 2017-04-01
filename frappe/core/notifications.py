@@ -8,7 +8,7 @@ def get_notification_config():
 	return {
 		"for_doctype": {
 			"Error Log": {"seen": 0},
-			"Communication": {"status": "Open", "communication_type": "Communication"},
+			"Communication": "frappe.core.notifications.get_open_communications",
 			"ToDo": "frappe.core.notifications.get_things_todo",
 			"Event": "frappe.core.notifications.get_todays_events",
 			"Error Snapshot": {"seen": 0, "parent_error_snapshot": None},
@@ -19,6 +19,17 @@ def get_notification_config():
 			"Email": "frappe.core.notifications.get_unread_emails",
 		}
 	}
+
+def get_open_communications():
+	"""Returns open communications except email"""
+	return frappe.db.sql("""\
+		SELECT count(*)
+		FROM `tabCommunication`
+		WHERE communication_type='Communication'
+		AND status='Open'
+		AND communication_medium!="Email"
+		AND modified >= DATE_SUB(NOW(),INTERVAL 1 YEAR)
+		""")[0][0]
 
 def get_things_todo(as_list=False):
 	"""Returns a count of incomplete todos"""
