@@ -84,7 +84,7 @@ frappe.ui.form.on('User', {
 				}
 			}
 			if (!found){
-				frm.add_custom_button("Create User Email", function() {
+				frm.add_custom_button(__("Create User Email"), function() {
 					frm.events.create_user_email(frm)
 				})
 			}
