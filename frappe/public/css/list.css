@@ -152,14 +152,6 @@
 }
 .filterable {
   cursor: pointer;
-  display: inline-block;
-  text-overflow: ellipsis;
-}
-.col-sm-2:not(.list-row-right) .filterable,
-.col-sm-3:not(.list-row-right) .filterable {
-  max-width: 145px;
-  overflow: hidden;
-  width: 100%;
 }
 .doclist-row .label {
   margin-right: 8px;
@@ -391,4 +383,44 @@
 }
 .inbox-value {
   padding-top: 2px;
+}
+.list-items {
+  width: 100%;
+  font-size: 12px;
+}
+.list-item-container {
+  border-bottom: 1px solid #d1d8dd;
+}
+.list-item-container:last-child {
+  border-bottom: none;
+}
+.list-item {
+  display: flex;
+  align-items: center;
+  height: 40px;
+  padding-left: 15px;
+}
+.list-item__head {
+  background-color: #F7FAFC;
+  border-bottom: 1px solid #d1d8dd;
+}
+.list-item input[type=checkbox] {
+  margin: 0;
+}
+.list-item .liked-by,
+.list-item .liked-by-filter-button {
+  display: inline-block;
+  width: 20px;
+  margin-left: 5px;
+  margin-right: 10px;
+}
+.list-item--content {
+  flex: 1;
+  margin-right: 15px;
+}
+.list-item--content__flex-2 {
+  flex: 2;
+}
+.list-item--content:last-child {
+  margin-right: 5px;
 }
