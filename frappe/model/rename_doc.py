@@ -152,12 +152,17 @@ def update_child_docs(old, new, meta):
 def update_link_field_values(link_fields, old, new, doctype):
 	for field in link_fields:
 		if field['issingle']:
-			single_doc = frappe.get_doc(field['parent'])
-			if single_doc.get(field['fieldname'])==old:
-				single_doc.set(field['fieldname'], new)
-				# update single docs using ORM rather then query
-				# as single docs also sometimes sets defaults!
-				single_doc.save(ignore_permissions=True)
+			try:
+				single_doc = frappe.get_doc(field['parent'])
+				if single_doc.get(field['fieldname'])==old:
+					single_doc.set(field['fieldname'], new)
+					# update single docs using ORM rather then query
+					# as single docs also sometimes sets defaults!
+					single_doc.save(ignore_permissions=True)
+			except ImportError:
+				# fails in patches where the doctype has been renamed
+				# or no longer exists
+				pass
 		else:
 			# because the table hasn't been renamed yet!
 			parent = field['parent'] if field['parent']!=new else old
