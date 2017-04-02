@@ -1,6 +1,6 @@
-<div class="list-item--content ellipsis h6 text-muted
+<div class="list-item__content ellipsis text-muted
 	{% if(col.type==="Subject") { %}
-		list-item--content__flex-2
+		list-item__content--flex-2
 	{% } else { %}
 		hidden-xs
 	{% } %}
@@ -10,6 +10,6 @@
 	{% if (col.type==="Subject") { %}
 		{%= frappe.render_template("header_select_all_like_filter", { _checkbox: _checkbox }) %}
 	{% } %}
-	<span class="list-col-title">{{ __(col.title) || __(col.label) || "" }}</span>
+	<span class="list-col-title ellipsis">{{ __(col.title) || __(col.label) || "" }}</span>
 
 </div>

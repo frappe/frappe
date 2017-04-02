@@ -1,11 +1,11 @@
-<div class="list-item list-item__head" data-list-renderer="{{list.name}}">
+<div class="list-item list-item--head" data-list-renderer="{{list.name}}">
     <!-- title + columns -->
     {%= main %}
 
     <!-- id -->
     {% if(!list.settings.hide_name_column) { %}
-    <div class="list-item--content"></div>
+    <div class="list-item__content hidden-xs hidden-sm"></div>
     {% } %}
     <!-- comment -->
-    <div class="list-item--content hidden-xs text-right list-row-right"></div>
+    <div class="list-item__content list-item__content--activity hidden-xs text-right list-row-right"></div>
 </div>

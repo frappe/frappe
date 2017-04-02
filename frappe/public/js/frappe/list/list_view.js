@@ -250,9 +250,9 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 	},
 
 	init_headers: function () {
-		this.page.main.find('.list-headers > .list-row-head').hide();
+		this.page.main.find('.list-headers > .list-item--head').hide();
 		this.list_header = this.page.main.find('.list-headers > '
-				+ '.list-row-head[data-list-renderer="'
+				+ '.list-item--head[data-list-renderer="'
 				+ this.list_renderer.name +'"]');
 
 		if(this.list_header.length > 0) {

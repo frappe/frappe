@@ -341,7 +341,9 @@ frappe.provide("frappe.views");
 		function setup_restore_columns() {
 			var cur_list = store.getState().cur_list;
 			var columns = store.getState().columns;
-			var list_row_right = cur_list.$page.find(`.list-row-head[data-list-renderer='Kanban'] .list-row-right`);
+			var list_row_right =
+				cur_list.$page.find(`[data-list-renderer='Kanban'] .list-row-right`)
+				.css('margin-right', '15px');
 			list_row_right.empty();
 
 			var archived_columns = columns.filter(function (col) {
@@ -364,7 +366,7 @@ frappe.provide("frappe.views");
 				"<ul class='dropdown-menu'>" + options + "</ul>" +
 				"</div>")
 
-			list_row_right.css("margin-top", 0).html($dropdown);
+			list_row_right.html($dropdown);
 
 			$dropdown.find(".dropdown-menu").on("click", "button.restore-column", function (e) {
 				var column_title = $(this).data().column;
