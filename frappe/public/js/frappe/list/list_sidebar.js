@@ -122,8 +122,10 @@ frappe.views.ListSidebar = Class.extend({
 		var $dropdown = this.page.sidebar.find('.kanban-dropdown');
 		var divider = false;
 
-		var boards = frappe.get_meta(this.doctype).__kanban_boards;
+		var meta = frappe.get_meta(this.doctype);
+		var boards = meta && meta.__kanban_boards;
 		if (!boards) return;
+
 		boards.forEach(function(board) {
 			var route = ["List", board.reference_doctype, "Kanban", board.name].join('/');
 			if(!divider) {

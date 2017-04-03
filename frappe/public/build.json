@@ -251,7 +251,6 @@
 		"public/js/frappe/views/treeview.js",
 
 		"public/js/frappe/views/image/image_view_item_row.html",
-		"public/js/frappe/views/image/image_view_item_main_head.html",
 		"public/js/frappe/views/image/photoswipe_dom.html",
 
 		"public/js/frappe/views/inbox/inbox_no_result.html",
