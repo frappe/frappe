@@ -429,7 +429,7 @@ frappe.views.ListRenderer = Class.extend({
 		data._submittable = frappe.model.is_submittable(this.doctype);
 
 		var title_field = frappe.get_meta(this.doctype).title_field || 'name';
-		data._title = strip_html(data[title_field]) || data.name;
+		data._title = strip_html(data[title_field] || data.name);
 		data._full_title = data._title;
 
 		if (data._title.length > 35) {
