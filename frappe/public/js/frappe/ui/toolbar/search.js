@@ -43,9 +43,9 @@ frappe.search.SearchDialog = Class.extend({
 				'<div class="empty-state"><span style="margin-top: -100px">' +
 				'<i class="mega-octicon octicon-telescope status-icon">' +
 				'<i class="fa fa-square cover twinkle-one hide" style="left:0px;"></i>'+
-				'<i class="fa fa-square cover twinkle-two hide" style="left:12px; top:7px;"></i>'+
-				'<i class="fa fa-square cover twinkle-three hide" style="left:20px; top:-4px;"></i></i>'+
-				'<p class="text-muted">' + status_text + '</p></span></div>' +
+				'<i class="fa fa-square cover twinkle-two hide" style="left:8px; top:5px;"></i>'+
+				'<i class="fa fa-square cover twinkle-three hide" style="left:13px; top:-3px;"></i></i>'+
+				'<p>' + status_text + '</p></span></div>' +
 			'</div>');
 		this.update($placeholder);
 	},
@@ -241,12 +241,14 @@ frappe.search.SearchDialog = Class.extend({
 	add_section_to_summary: function(type, results) {
 		var me = this;
 		var are_expansive = false;
+		var margin_more = "10px";
 		for(var i = 0; i < results.length; i++) {
 			if(results[i]["description" || "image" || "subtypes"] || false) {
 				are_expansive = true;
 				break;
 			}
 		};
+		if(results[0].image) margin_more = "20px";
 		var [section_length, col_width] = are_expansive ? [3, "12"] : [4, "6"];
 
 		// check state of last summary section
@@ -254,16 +256,16 @@ frappe.search.SearchDialog = Class.extend({
 			|| are_expansive) {
 			this.full_lists['All Results'].append($('<div class="row module-section"></div>'));
 		}
-		var $results_col = $('<div class="col-sm-'+ col_width +' module-section-column" data-type="'+type+'">' +
-			'<div class="h4 section-head">'+type+'</div>' +
-			'<div class="section-body"></div>'+
-			'</div>');
+		var $results_col = $(`<div class="col-sm-${col_width} module-section-column" data-type="${type}">
+			<div class="h4 section-head">${type}</div>
+			<div class="section-body"></div>
+			</div>`);
 		results.slice(0, section_length).forEach(function(result) {
 			$results_col.append(me.render_result(type, result));
 		});
 		if(results.length > section_length) {
-			$results_col.append('<a class="section-more small" data-category="'
-				+ type + '" style="margin-top:10px">'+__("More...")+'</a>');
+			$results_col.append(`<div style="margin-top:${margin_more}"><a class="section-more small"
+				data-category="${type}">${__("More...")}</a></div>`);
 		}
 
 		this.full_lists['All Results'].find('.module-section').last().append($results_col);
@@ -351,7 +353,7 @@ frappe.search.SearchDialog = Class.extend({
 		global_search: {
 			input_placeholder: __("Global Search"),
 			empty_state_text: __("Search for anything"),
-			no_results_status: (keyword) => __("No results found for '" + keyword + "' in Global Search"),
+			no_results_status: (keyword) => __("<p>No results found for '" + keyword + "' in Global Search</p>"),
 
 			get_results: function(keywords, callback) {
 				var start = 0, limit = 100;
@@ -371,11 +373,11 @@ frappe.search.SearchDialog = Class.extend({
 		help: {
 			input_placeholder: __("Search Help"),
 			empty_state_text: __("Search the docs"),
-			no_results_status: (keyword) => __("No results found for '" + keyword +
-				"' in Help<br>Would you like to search <a class='switch-to-global-search' "+
+			no_results_status: (keyword) => __("<p>No results found for '" + keyword +
+				"' in Help</p><p>Would you like to search <a class='switch-to-global-search text-muted' "+
 				"style='text-decoration: underline;'>globally</a>" +
-				" or the <a href='https://discuss.erpnext.com' class='forum-link' " +
-				"style='text-decoration: underline;'>forums</a> instead?"),
+				" or the <a href='https://discuss.erpnext.com' class='forum-link text-muted' " +
+				"style='text-decoration: underline;'>forums</a> instead?</p>"),
 
 			get_results: function(keywords, callback) {
 				var results = [];

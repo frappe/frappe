@@ -695,8 +695,9 @@ fieldset[disabled] .form-control {
   text-align: center;
 }
 .search-dialog .empty-state .status-icon {
-  font-size: 64px;
+  font-size: 40px;
   position: relative;
+  margin-bottom: 10px;
 }
 .search-dialog .empty-state p {
   font-size: 15px;
@@ -704,7 +705,7 @@ fieldset[disabled] .form-control {
 }
 .search-dialog .empty-state .cover {
   color: white;
-  font-size: 10px;
+  font-size: 6px;
   position: absolute;
 }
 @keyframes twinkle {
