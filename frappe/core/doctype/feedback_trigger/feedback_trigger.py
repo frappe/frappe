@@ -70,7 +70,10 @@ def send_feedback_request(reference_doctype, reference_name, trigger="Manual", d
 def get_feedback_request_details(reference_doctype, reference_name, trigger="Manual", request=None):
 	feedback_url = ""
 
-	if not trigger and not request and not frappe.db.get_value("Feedback Trigger", { "document_type": reference_doctype }):
+	if not frappe.db.get_value(reference_doctype, reference_name):
+		# reference document is either deleted or renamed
+		return
+	elif not trigger and not request and not frappe.db.get_value("Feedback Trigger", { "document_type": reference_doctype }):
 		return
 	elif not trigger and request:
 		trigger = frappe.db.get_value("Feedback Request", request, "feedback_trigger")
@@ -81,8 +84,8 @@ def get_feedback_request_details(reference_doctype, reference_name, trigger="Man
 		return
 
 	feedback_trigger = frappe.get_doc("Feedback Trigger", trigger)
-	doc = frappe.get_doc(reference_doctype, reference_name)
 
+	doc = frappe.get_doc(reference_doctype, reference_name)
 	context = get_context(doc)
 
 	recipients = doc.get(feedback_trigger.email_fieldname, None)
