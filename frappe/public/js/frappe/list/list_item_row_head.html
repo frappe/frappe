@@ -3,7 +3,7 @@
     {%= main %}
 
     <!-- id -->
-    {% if(!list.settings.hide_name_column) { %}
+    {% if(list.meta.title_field && !list.settings.hide_name_column) { %}
     <div class="list-item__content hidden-xs hidden-sm"></div>
     {% } %}
     <!-- comment -->

@@ -189,15 +189,6 @@
 
 .filterable {
 	cursor: pointer;
-	// display: inline-block;
-	// text-overflow: ellipsis;
-}
-
-.col-sm-2:not(.list-row-right) .filterable,
-.col-sm-3:not(.list-row-right) .filterable {
-	// max-width: 145px;
-	// overflow: hidden;
-	// width: 100%;
 }
 
 
@@ -240,7 +231,6 @@
 }
 
 .like-action.octicon-heart {
-	// color: #ffdb4c;
 	color: @heart-color;
 }
 
@@ -479,7 +469,7 @@
 	padding-top: 2px;
 }
 
-// new refactor
+// list view
 
 .list-items {
 	width: 100%;
@@ -496,11 +486,16 @@
 .list-item {
 	display: flex;
 	align-items: center;
+	cursor: pointer;
 
 	height: 40px;
 	padding-left: 15px;
 
 	font-size: @text-medium;
+
+	&:hover {
+		background-color: @panel-bg;
+	}
 
 	@media (max-width: @screen-xs) {
 		height: 50px;
@@ -513,16 +508,17 @@
 	&--head {
 		background-color: @panel-bg;
 		border-bottom: 1px solid @border-color;
+		cursor: auto;
 	}
 
 	input[type=checkbox] {
 		margin: 0;
+		margin-right: 5px;
 	}
 
 	.liked-by, .liked-by-filter-button {
 		display: inline-block;
 		width: 20px;
-		margin-left: 5px;
 		margin-right: 10px;
 	}
 }

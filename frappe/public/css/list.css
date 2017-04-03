@@ -396,9 +396,13 @@
 .list-item {
   display: flex;
   align-items: center;
+  cursor: pointer;
   height: 40px;
   padding-left: 15px;
   font-size: 12px;
+}
+.list-item:hover {
+  background-color: #F7FAFC;
 }
 @media (max-width: 767px) {
   .list-item {
@@ -411,15 +415,16 @@
 .list-item--head {
   background-color: #F7FAFC;
   border-bottom: 1px solid #d1d8dd;
+  cursor: auto;
 }
 .list-item input[type=checkbox] {
   margin: 0;
+  margin-right: 5px;
 }
 .list-item .liked-by,
 .list-item .liked-by-filter-button {
   display: inline-block;
   width: 20px;
-  margin-left: 5px;
   margin-right: 10px;
 }
 .list-item__content {
