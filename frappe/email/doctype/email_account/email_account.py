@@ -247,6 +247,9 @@ class EmailAccount(Document):
 				email_sync_rule = self.build_email_sync_rule()
 
 				email_server = self.get_incoming_server(in_receive=True, email_sync_rule=email_sync_rule)
+				if not email_server:
+					return
+
 				emails = email_server.get_messages()
 
 				incoming_mails = emails.get("latest_messages")
@@ -595,6 +598,9 @@ class EmailAccount(Document):
 		uid_list = { flag.get("uid", None): flag.get("action", "Read") for flag in flags }
 		if flags and uid_list:
 			email_server = self.get_incoming_server()
+			if not email_server:
+				return
+
 			email_server.update_flag(uid_list=uid_list)
 
 			# mark communication as read
