@@ -15,7 +15,6 @@ frappe.ui.form.close_grid_form = function() {
 	}
 }
 
-
 frappe.ui.form.Grid = Class.extend({
 	init: function(opts) {
 		var me = this;

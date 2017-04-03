@@ -64,6 +64,7 @@ frappe.ui.form.LinkSelector = Class.extend({
 		}
 
 		frappe.link_search(this.doctype, args, function(r) {
+			console.log("me.target ", me.target);
 			var parent = me.dialog.fields_dict.results.$wrapper;
 			parent.empty();
 			if(r.values.length) {
