@@ -250,9 +250,9 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 	},
 
 	init_headers: function () {
-		this.page.main.find('.list-headers > .list-row-head').hide();
+		this.page.main.find('.list-headers > .list-item--head').hide();
 		this.list_header = this.page.main.find('.list-headers > '
-				+ '.list-row-head[data-list-renderer="'
+				+ '.list-item--head[data-list-renderer="'
 				+ this.list_renderer.name +'"]');
 
 		if(this.list_header.length > 0) {
@@ -760,9 +760,9 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 				// multi-select using shift key
 				var $this = $(this);
 				if (event.shiftKey && $this.prop('checked')) {
-					var $end_row = $this.parents('.list-row');
-					var $start_row = $end_row.prevAll('.list-row')
-						.find('.list-row-checkbox:checked').last().parents('.list-row');
+					var $end_row = $this.parents('.list-item-container');
+					var $start_row = $end_row.prevAll('.list-item-container')
+						.find('.list-row-checkbox:checked').last().parents('.list-item-container');
 					if ($start_row) {
 						$start_row.nextUntil($end_row).find('.list-row-checkbox').prop('checked', true);
 					}

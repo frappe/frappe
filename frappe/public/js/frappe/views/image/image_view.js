@@ -47,9 +47,8 @@ frappe.views.ImageView = frappe.views.ListRenderer.extend({
 		return null;
 	},
 	get_header_html: function () {
-		var main = frappe.render_template('image_view_item_main_head', {
-			columns: this.columns,
-			right_column: this.settings.right_column,
+		var main = frappe.render_template('list_item_main_head', {
+			col: { type: "Subject" },
 			_checkbox: ((frappe.model.can_delete(this.doctype) || this.settings.selectable)
 				&& !this.no_delete)
 		});

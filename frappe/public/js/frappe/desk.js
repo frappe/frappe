@@ -444,6 +444,10 @@ frappe.get_module = function(m, default_module) {
 
 frappe.get_desktop_icons = function(show_hidden, show_global) {
 	// filter valid icons
+
+	// hidden == hidden from desktop
+	// blocked == no view from modules either
+
 	var out = [];
 
 	var add_to_out = function(module) {

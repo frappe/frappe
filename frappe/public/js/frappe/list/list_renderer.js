@@ -221,6 +221,12 @@ frappe.views.ListRenderer = Class.extend({
 				return col;
 			});
 		}
+
+		// Remove duplicates
+		this.columns = this.columns.uniqBy(col => col.title);
+
+		// Limit number of columns to 4
+		this.columns = this.columns.slice(0, 4);
 	},
 	add_column: function (df) {
 		// field width
@@ -284,7 +290,7 @@ frappe.views.ListRenderer = Class.extend({
 				me.list_view.refresh(true);
 			}
 		});
-		this.wrapper.on('click', '.list-row-left', function (e) {
+		this.wrapper.on('click', '.list-item', function (e) {
 			// don't open in case of checkbox, like, filterable
 			if ($(e.target).hasClass('filterable')
 				|| $(e.target).hasClass('octicon-heart')
@@ -300,11 +306,18 @@ frappe.views.ListRenderer = Class.extend({
 
 	render_view: function (values) {
 		var me = this;
-		values.map(function (value) {
-			var row = $('<div class="list-row">')
-				.data("data", me.meta)
-				.appendTo(me.wrapper).get(0);
-			me.render_item(row, value);
+		var $list_items = $(`
+			<div class="list-items">
+			</div>
+		`);
+		me.wrapper.append($list_items);
+
+		values.map(value => {
+			const $item = $(this.get_item_html(value));
+			const $item_container = $('<div class="list-item-container">').append($item);
+
+			$list_items.append($item_container);
+			this.render_tags($item_container, value);
 		});
 
 		this.setup_filterable();
@@ -325,14 +338,16 @@ frappe.views.ListRenderer = Class.extend({
 	// returns html for a data item,
 	// usually based on a template
 	get_item_html: function (data) {
-		var main = frappe.render_template('list_item_main', {
-			data: data,
-			columns: this.columns,
-			formatters: this.settings.formatters,
-			subject: this.get_subject_html(data, true),
-			indicator: this.get_indicator_html(data),
-			right_column: this.settings.right_column
-		});
+		var main = this.columns.map(column =>
+			frappe.render_template('list_item_main', {
+				data: data,
+				col: column,
+				value: data[column.fieldname],
+				formatters: this.settings.formatters,
+				subject: this.get_subject_html(data, true),
+				indicator: this.get_indicator_html(data),
+			})
+		).join("");
 
 		return frappe.render_template('list_item_row', {
 			data: data,
@@ -340,17 +355,17 @@ frappe.views.ListRenderer = Class.extend({
 			settings: this.settings,
 			meta: this.meta,
 			indicator_dot: this.get_indicator_dot(data),
-			right_column: this.settings.right_column
 		})
 	},
 
 	get_header_html: function () {
-		var main = frappe.render_template('list_item_main_head', {
-			columns: this.columns,
-			right_column: this.settings.right_column,
-			_checkbox: ((frappe.model.can_delete(this.doctype) || this.settings.selectable)
-				&& !this.no_delete)
-		});
+		var main = this.columns.map(column =>
+			frappe.render_template('list_item_main_head', {
+				col: column,
+				_checkbox: ((frappe.model.can_delete(this.doctype) || this.settings.selectable)
+					&& !this.no_delete)
+			})
+		).join("");
 
 		return frappe.render_template('list_item_row_head', { main: main, list: this });
 	},
@@ -429,7 +444,7 @@ frappe.views.ListRenderer = Class.extend({
 		data._submittable = frappe.model.is_submittable(this.doctype);
 
 		var title_field = frappe.get_meta(this.doctype).title_field || 'name';
-		data._title = strip_html(data[title_field]) || data.name;
+		data._title = strip_html(data[title_field] || data.name);
 		data._full_title = data._title;
 
 		if (data._title.length > 35) {
