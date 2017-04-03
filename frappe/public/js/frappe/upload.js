@@ -54,8 +54,22 @@ frappe.upload = {
 				)
 				$upload.data('attached_files', file_array);
 
-				var file_pills = file_array
-					.map(file => frappe.upload.make_file_pill(file.name, !("is_private" in opts)))
+				// List of files in a grid
+				$uploaded_files_wrapper.append(`
+					<div class="list-item list-item--head">
+						<div class="list-item__content list-item__content--flex-2">
+							${__('Filename')}
+						</div>
+						<div class="list-item__content">
+							${__('Is Private')}
+						</div>
+						<div class="list-item__content list-item__content--activity">
+						</div>
+					</div>
+				`);
+				var file_pills = file_array.map(
+					file => frappe.upload.make_file_row(file.name, !("is_private" in opts))
+				);
 				$uploaded_files_wrapper.append(file_pills);
 			} else {
 				$upload.find(".uploaded-filename").addClass("hidden")
@@ -70,16 +84,14 @@ frappe.upload = {
 		}
 
 		// events
-		$uploaded_files_wrapper.on('click', 'button', function () {
-			var $btn = $(this);
-			var filename = $btn.attr('data-filename');
+		$uploaded_files_wrapper.on('click', '.list-item-container', function (e) {
+			var $item = $(this);
+			var filename = $item.attr('data-filename');
 			var attached_files = $upload.data('attached_files');
+			var $target = $(e.target);
 
-			if ($btn.hasClass('is-private')) {
-				$btn.find('.fa').toggleClass('fa-lock fa-unlock-alt');
-
-				var is_private = $btn.hasClass('fa-lock');
-				$btn.attr('title', is_private ? __('Private') : __('Public'));
+			if ($target.is(':checkbox')) {
+				var is_private = $target.is(':checked');
 
 				attached_files = attached_files.map(file => {
 					if (file.name === filename) {
@@ -89,13 +101,15 @@ frappe.upload = {
 				});
 				$upload.data('attached_files', attached_files);
 			}
-			else if ($btn.hasClass('uploaded-file-remove')) {
+			else if ($target.is('.uploaded-file-remove, .fa-remove')) {
 				// remove file from attached_files object
 				attached_files = attached_files.filter(file => file.name !== filename);
 				$upload.data('attached_files', attached_files);
 
-				// remove pill from dom
-				$uploaded_files_wrapper.find(`.btn-group[data-filename="${filename}"]`).remove();
+				// remove row from dom
+				$uploaded_files_wrapper
+					.find(`.list-item-container[data-filename="${filename}"]`)
+					.remove();
 			}
 		});
 
@@ -117,36 +131,40 @@ frappe.upload = {
 				opts.args.params = opts.get_params();
 			}
 
-			var file_url = $upload.find('[name="file_url"]:visible').val();
+			// Get file url if input is visible
+			var file_url = $upload.find('[name="file_url"]:visible');
+			file_url = file_url.length && file_url.get(0).value;
 
 			if(file_url) {
 				opts.args.file_url = file_url;
-				frappe.upload.upload_file(fileobj, opts.args, opts);
+				frappe.upload.upload_file(null, opts.args, opts);
 			} else {
 				var files = $upload.data('attached_files');
 				frappe.upload.upload_multiple_files(files, opts.args, opts);
 			}
 		});
 	},
-	make_file_pill: function(filename, show_private) {
-		var $file = $(`
-			<div class="btn-group" role="group" data-filename="${filename}">
-				${show_private
-				? `<button type="button" class="btn btn-default btn-sm
-					is-private" data-filename="${filename}" title="${__('Private')}">
-					<span class="fa fa-lock text-warning"></span></button>`
-				: ''}
-				<button type="button" class="btn btn-default btn-sm
-					ellipsis uploaded-filename-display">
-					${filename}
-				</button>
-				<button type="button" class="btn btn-default btn-sm
-					uploaded-file-remove" data-filename="${filename}">
-					<span class="octicon octicon-x" style="font-size: 12px">
-					</span>
-				</button>
-			</div>`);
-		return $file;
+	make_file_row: function(filename, show_private) {
+		var template = `
+			<div class="list-item-container" data-filename="${filename}">
+				<div class="list-item">
+					<div class="list-item__content list-item__content--flex-2 ellipsis">
+						${filename}
+					</div>
+					${show_private
+					? `<div class="list-item__content ellipsis">
+							<input type="checkbox" checked/>
+						</div>`
+					: ''}
+					<div class="list-item__content list-item__content--activity ellipsis">
+						<button class="btn btn-default btn-xs text-muted uploaded-file-remove">
+							<span class="fa fa-remove"></span>
+						</button>
+					</div>
+				</div>
+			</div>
+		`
+		return $(template);
 	},
 	upload_multiple_files: function(files /*FileData array*/, args, opts) {
 		var i = -1;
