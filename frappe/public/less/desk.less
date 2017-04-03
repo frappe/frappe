@@ -894,8 +894,16 @@ input[type="checkbox"] {
 	}
 }
 
+.multilink-empty-state{
+	min-height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+}
 
-// mozilla doesn't support pseudo elements on checkbox
+// mozilla doesn't support
+// pseudo elements on checkbox
 @-moz-document url-prefix() {
 	input[type="checkbox"] {
 		visibility: visible;
