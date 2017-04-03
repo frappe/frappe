@@ -11,31 +11,10 @@ frappe.socket = {
 			return;
 		}
 
-		frappe.socket.file_watcher = io.connect('http://erpnext.dev:6787');
-		frappe.socket.file_watcher.on('reload_css', function(filename) {
-			filename = "assets/" + filename;
-			var link = $(`link[href*="${filename}"]`);
-			console.log(filename, 'changed');
-			filename = filename.split('?')[0] + '?v=' + +moment();
-			link.attr('href', filename);
-		});
-		frappe.socket.file_watcher.on('reload_js', function(filename) {
-			// filename = "assets/" + filename;
-			// var link = $(`link[href*="${filename}"]`);
-			var msg = $(`
-				<span>${filename} changed, <a data-action="reload">reload</a></span>
-			`)
-			msg.find('a').click(function() {
-				return frappe.ui.toolbar.clear_cache();
-			});
-			// console.log(filename, 'changed');
-			frappe.show_alert({
-				indicator: 'orange',
-				message: msg
-			});
-			// filename = filename.split('?')[0] + '?v=' + +moment();
-			// link.attr('href', filename);
-		});
+		if (frappe.boot.developer_mode) {
+			// File watchers for development
+			frappe.socket.setup_file_watchers();
+		}
 
 		//Enable secure option when using HTTPS
 		if (window.location.protocol == "https:") {
@@ -147,7 +126,6 @@ frappe.socket = {
 			}
 			host = host + ":" + port;
 		}
-		console.log(host)
 		return host;
 	},
 	subscribe: function(task_id, opts) {
@@ -221,7 +199,34 @@ frappe.socket = {
 				}
 			}, 5000);
 		});
+	},
+	setup_file_watchers: function() {
+		var host = window.location.origin;
+		var port = '6787';
+		// remove the port number from string
+		host = host.split(':').slice(0, -1).join(":");
+		host = host + ':' + port;
 
+		frappe.socket.file_watcher = io.connect(host);
+		// css files auto reload
+		frappe.socket.file_watcher.on('reload_css', function(filename) {
+			filename = "assets/" + filename;
+			var link = $(`link[href*="${filename}"]`);
+			filename = filename.split('?')[0] + '?v=' + +moment();
+			link.attr('href', filename);
+		});
+		// js files show alert
+		frappe.socket.file_watcher.on('reload_js', function(filename) {
+			filename = "assets/" + filename;
+			var msg = $(`
+				<span>${filename} changed, <a data-action="reload">reload</a></span>
+			`)
+			msg.find('a').click(frappe.ui.toolbar.clear_cache);
+			frappe.show_alert({
+				indicator: 'orange',
+				message: msg
+			});
+		});
 	},
 	process_response: function(data, method) {
 		if(!data) {

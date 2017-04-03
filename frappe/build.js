@@ -165,6 +165,7 @@ function compile_less() {
 
 			const files = fs.readdirSync(less_path);
 			for (const file of files) {
+				if(file.includes('variables.less')) continue;
 				promises.push(compile_less_file(file, less_path, public_path))
 			}
 		}
@@ -184,7 +185,7 @@ function compile_less_file(file, less_path, public_path) {
 	return less.render(file_content, {
 		paths: [less_path],
 		filename: file,
-		sourceMap: { sourceMapFileInline: true, sourceMapBasePath: less_path }
+		sourceMap: false
 	}).then(output => {
 		const out_css = p(public_path, 'css', output_file);
 		fs.writeFileSync(out_css, output.css);
@@ -238,9 +239,6 @@ function watch_js(ondirty) {
 		var last_index = filename.lastIndexOf('/');
 		const js_path = filename.slice(0, last_index);
 		const public_path = p(js_path, '..');
-		// filename = filename.split('/').pop();
-
-		// console.log(filename);
 
 		// build the target js file for which this js/html file is input
 		for (const target in build_map) {

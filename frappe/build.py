@@ -29,14 +29,16 @@ def bundle(no_compress, make_copy=False, verbose=False):
 
 	make_asset_dirs(make_copy=make_copy)
 
-	# os.system('node ../apps/frappe/frappe/build.js --build')
+	os.system('node ../apps/frappe/frappe/build.js --build')
+	return
+
 	build(no_compress, verbose)
 
 def watch(no_compress):
 	"""watch and rebuild if necessary"""
 
-	# os.system('node ../apps/frappe/frappe/build.js --watch')
-	# return
+	os.system('node ../apps/frappe/frappe/build.js --watch')
+	return
 
 	setup()
 
