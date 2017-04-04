@@ -60,10 +60,10 @@ frappe.upload = {
 						<div class="list-item__content list-item__content--flex-2">
 							${__('Filename')}
 						</div>
-						<div class="list-item__content">
+						<div class="list-item__content" style="flex: 0 0 64px">
 							${__('Is Private')}
 						</div>
-						<div class="list-item__content list-item__content--activity">
+						<div class="list-item__content list-item__content--activity" style="flex: 0 0 32px">
 						</div>
 					</div>
 				`);
@@ -152,11 +152,11 @@ frappe.upload = {
 						${filename}
 					</div>
 					${show_private
-					? `<div class="list-item__content ellipsis">
+					? `<div class="list-item__content ellipsis" style="flex: 0 0 64px;">
 							<input type="checkbox" checked/>
 						</div>`
 					: ''}
-					<div class="list-item__content list-item__content--activity ellipsis">
+					<div class="list-item__content list-item__content--activity ellipsis" style="flex: 0 0 32px;">
 						<button class="btn btn-default btn-xs text-muted uploaded-file-remove">
 							<span class="fa fa-remove"></span>
 						</button>
