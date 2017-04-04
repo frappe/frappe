@@ -2375,7 +2375,7 @@ apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +21,Select A
 apps/frappe/frappe/config/setup.py +224,Custom Translations,ಕಸ್ಟಮ್ ಅನುವಾದಗಳು
 apps/frappe/frappe/public/js/frappe/form/linked_with.js +87,Not Linked to any record.,ಯಾವುದೇ ದಾಖಲೆ ಲಿಂಕ್ .
 apps/frappe/frappe/public/js/frappe/socketio_client.js +46,Progress,ಪ್ರೋಗ್ರೆಸ್
-apps/frappe/frappe/public/js/frappe/form/workflow.js +32, by Role ,
+apps/frappe/frappe/public/js/frappe/form/workflow.js +32, by Role ,ಪಾತ್ರ
 apps/frappe/frappe/public/js/frappe/form/save.js +148,Missing Fields,ಮಿಸ್ಸಿಂಗ್ ಫೀಲ್ಡ್ಸ್
 apps/frappe/frappe/core/doctype/doctype/doctype.py +173,Invalid fieldname '{0}' in autoname,autoname ನಲ್ಲಿ ಅಮಾನ್ಯ FIELDNAME &#39;{0}&#39;
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +177,Search in a document type,ಒಂದು ದಾಖಲೆ ಪ್ರಕಾರ ನಲ್ಲಿ ಹುಡುಕಾಟ
@@ -2487,7 +2487,7 @@ apps/frappe/frappe/print/page/print_format_builder/print_format_builder_sidebar.
 DocType: Workflow State,bold,ದಿಟ್ಟ
 DocType: Async Task,Status,ಅಂತಸ್ತು
 DocType: Company History,Year,ವರ್ಷ
-DocType: OAuth Client, Advanced Settings,ಸುಧಾರಿತ ಸೆಟ್ಟಿಂಗ್ಗಳು
+DocType: OAuth Client, Advanced Settings,ಮೇಲ್ಮಟ್ಟದ ಜೋಡಣೆ
 apps/frappe/frappe/website/doctype/website_settings/website_settings.py +34,{0} does not exist in row {1},{0} ಸತತವಾಗಿ ಅಸ್ತಿತ್ವದಲ್ಲಿಲ್ಲ {1}
 DocType: Event,Event Type,ಈವೆಂಟ್ ಕೌಟುಂಬಿಕತೆ
 DocType: User,Last Known Versions,ಕೊನೆಯ ತಿಳಿದಿರುವ ಆವೃತ್ತಿಗಳು
