@@ -447,9 +447,6 @@ frappe.views.ListRenderer = Class.extend({
 		data._title = strip_html(data[title_field] || data.name);
 		data._full_title = data._title;
 
-		if (data._title.length > 35) {
-			data._title = data._title.slice(0, 35) + '...';
-		}
 
 		data._workflow = null;
 		if (this.workflow_state_fieldname) {
