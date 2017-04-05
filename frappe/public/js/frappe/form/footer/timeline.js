@@ -141,6 +141,7 @@ frappe.ui.form.Timeline = Class.extend({
 			communication_type: "Comment",
 			sender: this.frm.doc.owner,
 			communication_date: this.frm.doc.creation,
+			creation: this.frm.doc.creation,
 			frm: this.frm
 		});
 
@@ -154,7 +155,6 @@ frappe.ui.form.Timeline = Class.extend({
 	render_timeline_item: function(c) {
 		var me = this;
 		this.prepare_timeline_item(c);
-
 		var $timeline_item = $(frappe.render_template("timeline_item", {data:c, frm:this.frm}))
 			.appendTo(me.list)
 			.on("click", ".close", function() {
