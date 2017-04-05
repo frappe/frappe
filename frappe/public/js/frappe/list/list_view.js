@@ -116,6 +116,8 @@ frappe.views.set_list_as_dirty = function (doctype) {
 	}
 }
 
+frappe.views.view_modes = ['List', 'Gantt', 'Kanban', 'Calendar', 'Image', 'Inbox'];
+
 frappe.views.ListView = frappe.ui.BaseList.extend({
 	init: function (opts) {
 		$.extend(this, opts);
@@ -453,7 +455,8 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 		}
 
 		// save last view
-		if (user_settings_common.last_view !== this.current_view) {
+		if (user_settings_common.last_view !== this.current_view
+			&& frappe.views.view_modes.includes(this.current_view)) {
 			user_settings_common.last_view = this.current_view;
 			different = true;
 		}
@@ -489,7 +492,7 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 
 		if (!this.list_renderer.settings.use_route) {
 			var route = frappe.get_route();
-			if (route[2] && !in_list(['List', 'Image', 'Gantt', 'Kanban', 'Calendar', 'Inbox'], route[2])) {
+			if (route[2] && !frappe.views.view_modes.includes(route[2])) {
 				$.each(frappe.utils.get_args_dict_from_url(route[2]), function (key, val) {
 					me.set_filter(key, val, true);
 				});
