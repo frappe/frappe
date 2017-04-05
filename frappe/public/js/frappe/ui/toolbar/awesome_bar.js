@@ -149,7 +149,7 @@ frappe.search.AwesomeBar = Class.extend({
 		var me = this;
 		var results = this.build_options(txt);
 		results.forEach(function(r) {
-			if((r.type).toLowerCase().indexOf(end_txt.toLowerCase()) === 0) {
+			if(r.type && (r.type).toLowerCase().indexOf(end_txt.toLowerCase()) === 0) {
 				me.options.push(r);
 			}
 		});
