@@ -14,6 +14,9 @@ class ValidationError(Exception):
 class AuthenticationError(Exception):
 	http_status_code = 401
 
+class SessionExpired(Exception):
+	http_status_code = 401
+
 class PermissionError(Exception):
 	http_status_code = 403
 

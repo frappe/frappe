@@ -134,6 +134,12 @@ def handle_exception(e):
 			# code 409 represents conflict
 			http_status_code = 508
 
+	if http_status_code==401:
+		frappe.respond_as_web_page(_("Session Expired"),
+			_("Your session has expired, please login again to continue."),
+			http_status_code=http_status_code,  indicator_color='red')
+		return_as_message = True
+
 	if http_status_code==403:
 		frappe.respond_as_web_page(_("Not Permitted"),
 			_("You do not have enough permissions to complete the action"),
