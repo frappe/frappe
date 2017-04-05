@@ -59,8 +59,11 @@ frappe.breadcrumbs = {
 					icon = module_info && module_info.icon,
 					label = module_info ? module_info.label : breadcrumbs.module;
 
+				var show = true;
+				if (breadcrumbs.module == "Setup" && !has_common(roles, ["Administrator", "System Manager"]))
+					show = false;
 
-				if(module_info && !module_info.blocked && !module_info.hidden) {
+				if(module_info && !module_info.blocked && show) {
 					$(repl('<li><a href="#modules/%(module)s">%(label)s</a></li>',
 						{ module: breadcrumbs.module, label: __(label) }))
 						.appendTo($breadcrumbs);
