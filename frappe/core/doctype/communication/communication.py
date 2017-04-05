@@ -5,7 +5,7 @@ from __future__ import unicode_literals, absolute_import
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import validate_email_add, get_fullname, strip_html, cstr
+from frappe.utils import validate_email_add, get_fullname, strip_html, cstr, strip_script
 from frappe.core.doctype.communication.comment import (notify_mentions,
 	update_comment_in_doc)
 from frappe.core.doctype.communication.email import (validate_email,
@@ -13,7 +13,7 @@ from frappe.core.doctype.communication.email import (validate_email,
 from frappe.utils.bot import BotReply
 from email.utils import parseaddr
 from collections import Counter
-
+from xml.sax import saxutils as su
 exclude_from_linked_with = True
 
 class Communication(Document):

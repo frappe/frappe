@@ -489,6 +489,10 @@ def escape_html(text):
 
 	return "".join(html_escape_table.get(c,c) for c in text)
 
+def strip_script(content):
+	pattern = r"(?is)<script[^>]*>(.*?)</script>"
+	return re.sub(pattern, '', content)
+
 def pretty_date(iso_datetime):
 	"""
 		Takes an ISO time and returns a string representing how
