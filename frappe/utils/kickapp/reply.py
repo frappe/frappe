@@ -20,14 +20,17 @@ class Reply(object):
 				fields=["title", "email"], 
 				filters={"chat_room": chat_room}, get_all=True)
 		return []
-	
+
 	def get_user_by_email(self, email):
 		return self.helper.get_list('User', ["name", "email", "full_name", "last_active", "bio"],
 			filters={"email":email}, get_all=True)
 
 	def load_more(self, query):
 		return Engine().load_more(query)
-	
+
+	def load_items(self, query):
+		return Engine().load_items(query)
+
 	def get_all_bots(self):
 		items = self.helper.get_list('Chat Bot', 
 			self.helper.get_doctype_fields_from_bot_name('Chat Bot'), get_all=True)

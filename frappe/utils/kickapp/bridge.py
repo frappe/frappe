@@ -28,6 +28,11 @@ def load_more(query):
 	return get_response_from_method_name("load_more", query)
 
 @frappe.whitelist()
+def load_items(query):
+	query = frappe._dict(json.loads(query))
+	return get_response_from_method_name("load_items", query)
+
+@frappe.whitelist()
 def remove_user_from_group(obj):
 	obj = frappe._dict(json.loads(obj))
 	return get_response_from_method_name("remove_user_from_group", obj)
@@ -51,8 +56,8 @@ def get_user_by_email(email):
 	return get_response_from_method_name("get_user_by_email", email)
 
 @frappe.whitelist()
-def get_meta():
-	return frappe.get_meta('ToDo')
+def get_meta(bot_name):
+	return frappe.get_meta(str(bot_name).strip())
 
 def get_response_from_method_name(method_name, obj, is_return = True):
 	if is_return:

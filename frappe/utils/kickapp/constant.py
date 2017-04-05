@@ -1,12 +1,14 @@
 from __future__ import unicode_literals
 import frappe
-
+from frappe.model import no_value_fields, display_fieldtypes
 
 class Constant(object):
 
 	def __init__(self):
 		self.all_doctype_basic_action = ["create", "update", "delete", "get"]
-
+		
+		self.default_fields = ["name","owner","creation","modified","modified_by"]
+		
 		self.doctype_name = {
 			'todo': 'ToDo',
 			'note': 'Note',
@@ -20,11 +22,11 @@ class Constant(object):
 			'chat message':'Chat Message',
 			'chat room' : 'Chat Room'
 			}
-
+		
 		self.doctype_category = {
 			'Basic_Bot':["todo", "note", "user"]
 			}
-
+		
 		self.doctype_fields = {
 			'todo': ["name", "description", "creation", "priority", "status", "owner"],
 			'note': ["name", "title", "content", "creation", "owner"],
@@ -50,7 +52,7 @@ class Constant(object):
 			'note': ["title", "creation"],
 			'user': ["full_name", "email"],
 		}
-
+		
 		self.doctype_editable_fields = {
 			'todo': ["description"],
 			'note': ["title", "content"],
@@ -94,7 +96,14 @@ class Constant(object):
 
 	def get_doctype_fields_from_bot_name(self, bot_name):
 		return self.doctype_fields.get(bot_name.lower(), [])
-
+	
+	def get_doctype_fields(self, doctype):
+		all_useless_fields = no_value_fields + display_fieldtypes
+		fields = [n.fieldname for n in 
+			filter(lambda x: x.fieldtype not in all_useless_fields, 
+			[i for i in frappe.get_meta(doctype).fields])]
+		return fields + self.default_fields
+		
 	def get_doctype_actions_from_bot_name(self, bot_name):
 		return self.doctype_actions.get(bot_name.lower(), [])
 

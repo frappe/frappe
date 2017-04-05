@@ -27,6 +27,9 @@ class Helper(object):
 	def get_dummy_list(self, bot_name):
 		return self.constant.get_dummy_list(bot_name)
 	
+	def get_doctype_fields(self, bot_name):
+		return self.constant.get_doctype_fields(bot_name)
+	
 	def get_dict(self, doctype, keys, item):
 		obj = frappe._dict({})
 		obj["doctype"] = doctype
