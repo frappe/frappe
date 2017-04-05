@@ -139,40 +139,40 @@ frappe.search.utils = {
 			}
 		};
 		frappe.boot.user.can_read.forEach(function(item) {
-            if(frappe.boot.user.can_search.includes(item)) {
                 level = me.fuzzy_search(keywords, item);
                 if(level) {
                     target = item;
-                    // include 'making new' option
-                    if(in_list(frappe.boot.user.can_create, item)) {
-                        var match = item;
-                        out.push({
-                            type: "New",
-                            label: __("New {0}", [__(me.bolden_match_part(item, keywords))]),
-                            value: __("New {0}", [__(item)]),
-                            index: level + 0.01,
-                            match: item,
-                            onclick: function() { frappe.new_doc(match, true); }
-                        });
-                    }
                     if(in_list(frappe.boot.single_types, item)) {
                         out.push(option("", ["Form", item, item], 0.05));
 
-                    } else if(in_list(frappe.boot.treeviews, item)) {
-                        out.push(option("Tree", ["Tree", item], 0.05));
-
-                    } else {
-                        out.push(option("List", ["List", item], 0.05));
-                        if(frappe.model.can_get_report(item)) {
-                            out.push(option("Report", ["Report", item], 0.04));
+                    } else if(frappe.boot.user.can_search.includes(item)) {
+                        // include 'making new' option
+                        if(in_list(frappe.boot.user.can_create, item)) {
+                            var match = item;
+                            out.push({
+                                type: "New",
+                                label: __("New {0}", [__(me.bolden_match_part(item, keywords))]),
+                                value: __("New {0}", [__(item)]),
+                                index: level + 0.01,
+                                match: item,
+                                onclick: function() { frappe.new_doc(match, true); }
+                            });
                         }
-                        if(frappe.boot.calendars.indexOf(item) !== -1) {
-                            out.push(option("Calendar", ["List", item, "Calendar"], 0.03));
-                            out.push(option("Gantt", ["List", item, "Gantt"], 0.02));
+                        if(in_list(frappe.boot.treeviews, item)) {
+                            out.push(option("Tree", ["Tree", item], 0.05));
+
+                        } else {
+                            out.push(option("List", ["List", item], 0.05));
+                            if(frappe.model.can_get_report(item)) {
+                                out.push(option("Report", ["Report", item], 0.04));
+                            }
+                            if(frappe.boot.calendars.indexOf(item) !== -1) {
+                                out.push(option("Calendar", ["List", item, "Calendar"], 0.03));
+                                out.push(option("Gantt", ["List", item, "Gantt"], 0.02));
+                            }
                         }
                     }
                 }
-            }
 		});
 		return out;
     },
@@ -216,7 +216,7 @@ frappe.search.utils = {
 				out.push({
 					type: "Page",
 					prefix: "Open ",
-					label: __(me.bolden_match_part(item, keywords)),
+					label: __(me.bolden_match_part(me.unscrub_and_titlecase(item), keywords)),
 					value: __("Open {0}", [__(item)]),
 					match: item,
 					index: level,
