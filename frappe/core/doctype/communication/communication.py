@@ -53,6 +53,9 @@ class Communication(Document):
 
 		if not self.user:
 			self.user = frappe.session.user
+		
+		if self.content:
+			self.content = strip_script(su.unescape(self.content))
 
 		if not self.subject:
 			self.subject = strip_html((self.content or "")[:141])
