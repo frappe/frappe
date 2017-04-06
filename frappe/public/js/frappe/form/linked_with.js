@@ -3,21 +3,26 @@
 
 frappe.provide("frappe.ui.form");
 
-frappe.ui.form.LinkedWith = Class.extend({
-	init: function(opts) {
+frappe.ui.form.LinkedWith = class LinkedWith {
+
+	constructor(opts) {
 		var me = this;
 		$.extend(this, opts);
-	},
-	show: function() {
+	}
+
+	show() {
 		if(!this.dialog)
 			this.make_dialog();
 
-		this.dialog.fields_dict.list.$wrapper.html('<div class="text-muted text-center" style="padding: 30px 0px">'
-			+ __("Loading") + '...</div>');
+		$(this.dialog.body).html(
+			`<div class="text-muted text-center" style="padding: 30px 0px">
+				${__("Loading")}...
+			</div>`);
 
 		this.dialog.show();
-	},
-	make_dialog: function() {
+	}
+
+	make_dialog() {
 		var me = this;
 
 		this.dialog = new frappe.ui.Dialog({
@@ -36,9 +41,9 @@ frappe.ui.form.LinkedWith = Class.extend({
 				.then(() => this.get_linked_docs())
 				.then(() => this.make_html())
 		}
-	},
+	}
 
-	make_html: function() {
+	make_html() {
 		const linked_docs = this.frm.__linked_docs;
 
 		let html;
@@ -57,9 +62,9 @@ frappe.ui.form.LinkedWith = Class.extend({
 		}
 
 		$(this.dialog.body).html(html);
-	},
+	}
 
-	load_doctypes: function() {
+	load_doctypes() {
 		const already_loaded = Object.keys(locals.DocType);
 		let doctypes_to_load = [];
 
@@ -81,9 +86,9 @@ frappe.ui.form.LinkedWith = Class.extend({
 		});
 
 		return Promise.all(promises);
-	},
+	}
 
-	links_not_permitted_or_missing: function() {
+	links_not_permitted_or_missing() {
 		var me = this;
 		let links = null;
 
@@ -105,9 +110,9 @@ frappe.ui.form.LinkedWith = Class.extend({
 		return new Promise(
 			(resolve, reject) => flag ? reject() : resolve()
 		);
-	},
+	}
 
-	get_linked_doctypes: function() {
+	get_linked_doctypes() {
 		return new Promise((resolve, reject) => {
 			if (this.frm.__linked_doctypes) {
 				resolve();
@@ -124,9 +129,9 @@ frappe.ui.form.LinkedWith = Class.extend({
 				}
 			});
 		});
-	},
+	}
 
-	get_linked_docs: function() {
+	get_linked_docs() {
 		return frappe.call({
 			method: "frappe.desk.form.linked_with.get_linked_docs",
 			args: {
@@ -139,14 +144,16 @@ frappe.ui.form.LinkedWith = Class.extend({
 				this.frm.__linked_docs = r.message || {};
 			}
 		});
-	},
-	make_doc_head: function(heading) {
+	}
+
+	make_doc_head(heading) {
 		return `<div class="list-item list-item--head">
 		<div class="list-item__content">
 			${heading}
 		</div></div>`;
-	},
-	make_doc_row: function(doc, doctype) {
+	}
+
+	make_doc_row(doc, doctype) {
 		return `<div class="list-item-container">
 			<div class="list-item">
 				<div class="list-item__content bold">
@@ -154,5 +161,5 @@ frappe.ui.form.LinkedWith = Class.extend({
 				</div>
 			</div>
 		</div>`;
-	},
-});
+	}
+}
