@@ -497,9 +497,32 @@ select.form-control {
   font-weight: bold;
   background-color: #fffdf4;
 }
+.signature-field {
+  min-height: 300px;
+  background: #fefefe;
+  border: 1px solid #ddd;
+  position: relative;
+}
+.signature-display {
+  margin: 7px 0px;
+  background: #f3f3f3;
+}
+.signature-btn-row {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+}
+.signature-img {
+  border: 1px solid #0d4488;
+  background: #e6e6e6;
+  border-radius: 5px;
+  margin: 5px 0;
+  width: 100%;
+  max-height: 300px;
+}
 .form-headline {
   padding: 0px 15px;
-  margin: 0px;
+  margin:s 0px;
 }
 .form-headline .alert {
   font-size: 12px;
