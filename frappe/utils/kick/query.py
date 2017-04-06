@@ -1,29 +1,38 @@
 from __future__ import unicode_literals
-import frappe, re, frappe.utils
-from frappe.desk.notifications import get_notifications
+import frappe
+import re
+import frappe.utils
 from frappe import _
+from frappe.utils.kick.constant import *
+
 
 class Query(object):
+
 	def __init__(self, query):
 		self.query = query
 		self.process_query()
-	
+
 	def starts_with(self, words):
+		words = self.convert_words_to_local_lang(words)
 		for w in words:
 			if self.query.startswith(w):
 				return True
 		return False
-	
+
 	def has(self, words):
+		words = self.convert_words_to_local_lang(words)
 		for w in words:
 			if w in self.query:
 				return True
 		return False
-	
+
+	def convert_words_to_local_lang(self, words):
+		return[_(x) for x in words]
+
 	def strip_words(self, words):
-		return (' '.join(filter(lambda x: x.lower() not in words, 
-				self.query.split()))).strip()
-	
+		return (' '.join(filter(lambda x: x.lower() not in words,
+								self.query.split()))).strip()
+
 	def process_query(self):
 		self.remove_startswith()
 		self.remove_endswith()
@@ -34,27 +43,40 @@ class Query(object):
 		self.query = self.query[:-1] if self.query.endswith(";") else self.query
 		self.query = self.query[:-1] if self.query.endswith(":") else self.query
 		self.query = self.query[:-1] if self.query.endswith('"') else self.query
-	
+
 	def remove_startswith(self):
 		self.query = self.query[:-1] if self.query.startswith("?") else self.query
 		self.query = self.query[:-1] if self.query.startswith(".") else self.query
 		self.query = self.query[:-1] if self.query.startswith(";") else self.query
 		self.query = self.query[:-1] if self.query.startswith(":") else self.query
 		self.query = self.query[:-1] if self.query.startswith('"') else self.query
-	
+
 	def append_open(self, doctype_names):
-		contains = filter(lambda x: doctype_names.get(x) is not None ,
-			[i for i in doctype_names]) 
+		contains = filter(lambda x: doctype_names.get(x) is not None, [i for i in doctype_names])
 		if len(contains) > 0:
 			self.query = 'open ' + self.query
-	
-	def get_simple_msg_reply(self):
-		reply_text = "Hi {0}".format(frappe.utils.get_fullname()) \
-			if self.starts_with(['hello', 'hi']) else None
-		reply_text = "I'm good {0}".format(frappe.utils.get_fullname()) \
-			if self.starts_with(['how are you doing', 'how are you']) else None
-		reply_text = "I'm kick bot {0}. I'll try to reply your simple queries".format(frappe.utils.get_fullname()) \
-			if self.starts_with(['who are you', 'what do you do', 'what you can do']) else None
-		reply_text = reply_text if reply_text is not None else \
-			"Hi there, something wrong. Try asking like how are you?"
-		return reply_text
+
+	def get_action_from_text(self, params):
+		action = None
+		
+		if params.info.action == actions.CREATE or self.starts_with(['add', 'create', 'new', 'post']):
+			action = actions.CREATE
+
+		elif params.info.action == actions.DELETE or self.starts_with(['remove', 'trash', 'delete', 'dump']):
+			action = actions.DELETE
+		
+		elif params.info.action == actions.SHOW or self.starts_with(['show', 'open', 'list', 'get', 'find']):
+			action = actions.SHOW
+		
+		elif params.info.action == actions.UPDATE or self.starts_with(['update', 'put', 'refresh']):
+			action = actions.UPDATE
+		
+		elif self.starts_with(['hello', 'hi', 'how', 'hey', 'yo', 'goodbye', 'how are you doing', 'whats', "what's", 'bye'
+			'how are you', 'who are you', 'what do you do', 'what you can do', 'tell a story']):
+			action = actions.BASIC
+		
+		elif self.starts_with(['how many', 'count']):
+			action = actions.COUNT
+		
+		else:
+			action = actions.DEFAULT
