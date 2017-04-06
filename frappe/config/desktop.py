@@ -64,4 +64,10 @@ def get_data():
 			"system_manager": 1,
 			"hidden": 1
 		},
+		{
+			"module_name": 'Contacts',
+			"type": 'module',
+			"icon": "octicon octicon-book",
+			"color": '#FFAEDB'
+		},
 	]
