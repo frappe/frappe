@@ -55,7 +55,7 @@ def get_context(context):
 		temp_doc = frappe.new_doc(self.document_type)
 		if self.condition:
 			try:
-				eval(self.condition, get_context(temp_doc))
+				frappe.safe_eval(self.condition, None, get_context(temp_doc))
 			except:
 				frappe.throw(_("The Condition '{0}' is invalid").format(self.condition))
 
@@ -81,7 +81,7 @@ def get_context(context):
 
 			doc = frappe.get_doc(self.document_type, name)
 
-			if self.condition and not eval(self.condition, get_context(doc)):
+			if self.condition and not frappe.safe_eval(self.condition, None, get_context(doc)):
 				continue
 
 			docs.append(doc)
@@ -95,7 +95,7 @@ def get_context(context):
 		recipients = []
 		for recipient in self.recipients:
 			if recipient.condition:
-				if not eval(recipient.condition, context):
+				if not frappe.safe_eval(recipient.condition, None, context):
 					continue
 			if recipient.email_by_document_field:
 				if validate_email_add(doc.get(recipient.email_by_document_field)):
@@ -189,16 +189,16 @@ def evaluate_alert(doc, alert, event):
 		context = get_context(doc)
 
 		if alert.condition:
-			if not eval(alert.condition, context):
+			if not frappe.safe_eval(alert.condition, None, context):
 				return
 
 		if event=="Value Change" and not doc.is_new():
 			db_value = frappe.db.get_value(doc.doctype, doc.name, alert.value_changed)
-			
+
 			# cast to string if not already for comparing to doc.get's value
 			if not isinstance(db_value, basestring):
 				db_value = str(frappe.db.get_value(doc.doctype, doc.name, alert.value_changed))
-			
+
 			if doc.get(alert.value_changed) == db_value:
 				return # value not changed
 

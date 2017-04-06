@@ -20,7 +20,7 @@ class FeedbackTrigger(Document):
 		temp_doc = frappe.new_doc(self.document_type)
 		if self.condition:
 			try:
-				eval(self.condition, get_context(temp_doc))
+				frappe.safe_eval(self.condition, None, get_context(temp_doc))
 			except:
 				frappe.throw(_("The condition '{0}' is invalid").format(self.condition))
 
@@ -101,7 +101,7 @@ def get_feedback_request_details(reference_doctype, reference_name, trigger="Man
 			frappe.msgprint(_("At least one reply is mandatory before requesting feedback"))
 			return None
 
-	if recipients and eval(feedback_trigger.condition, context):
+	if recipients and frappe.safe_eval(feedback_trigger.condition, None, context):
 		subject = feedback_trigger.subject
 		context.update({ "feedback_trigger": feedback_trigger })
 
@@ -132,7 +132,7 @@ def get_feedback_request_url(reference_doctype, reference_name, recipients, trig
 		"reference_doctype": reference_doctype,
 	}).insert(ignore_permissions=True)
 
-	feedback_url = "{base_url}/feedback?reference_doctype={doctype}&reference_name={docname}&email={email_id}&key={nonce}".format(	
+	feedback_url = "{base_url}/feedback?reference_doctype={doctype}&reference_name={docname}&email={email_id}&key={nonce}".format(
 		base_url=get_url(),
 		doctype=reference_doctype,
 		docname=reference_name,
@@ -143,7 +143,7 @@ def get_feedback_request_url(reference_doctype, reference_name, recipients, trig
 	return [ feedback_request.name, feedback_url ]
 
 def is_feedback_request_already_sent(reference_doctype, reference_name, is_manual=False):
-	""" 
+	"""
 		check if feedback request mail is already sent but feedback is not submitted
 		to avoid sending multiple feedback request mail
 	"""
