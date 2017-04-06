@@ -369,7 +369,7 @@ frappe.ready(function() {
 		// setup date
 		if($dates.length) {
 			$dates.datepicker({
-				language: "en",
+				language: lang,
 				autoClose: true,
 				dateFormat: frappe.datepicker_format
 			});
