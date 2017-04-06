@@ -6,7 +6,6 @@ frappe.provide("frappe.ui.form");
 frappe.ui.form.LinkedWith = class LinkedWith {
 
 	constructor(opts) {
-		var me = this;
 		$.extend(this, opts);
 	}
 
