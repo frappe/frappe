@@ -27,7 +27,7 @@ class FeedbackTrigger(Document):
 def trigger_feedback_request(doc, method):
 	""" trigger the feedback alert"""
 
-	if doc.flags.in_delete:
+	if doc.flags.trigger_feedback_on_delete:
 		frappe.enqueue('frappe.core.doctype.feedback_trigger.feedback_trigger.delete_feedback_request_and_feedback',
 			reference_doctype=doc.doctype, reference_name=doc.name, now=frappe.flags.in_test)
 	else:
