@@ -94,7 +94,6 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 {%- endmacro -%}
 
 {%- macro render_image(df, doc) -%}
-	{%- if df.label %}<label>{{ _(df.label) }}</label>{%- endif %}
 	{{ print_value(df, doc) }}
 {% endmacro %}
 

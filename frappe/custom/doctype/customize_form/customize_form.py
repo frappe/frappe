@@ -63,7 +63,7 @@ docfield_properties = {
 }
 
 allowed_fieldtype_change = (('Currency', 'Float', 'Percent'), ('Small Text', 'Data'),
-	('Text', 'Data'), ('Text', 'Text Editor', 'Code'), ('Data', 'Select'),
+	('Text', 'Data'), ('Text', 'Text Editor', 'Code', 'Signature'), ('Data', 'Select'),
 	('Text', 'Small Text'))
 
 class CustomizeForm(Document):
@@ -312,6 +312,7 @@ class CustomizeForm(Document):
 		for allowed_changes in allowed_fieldtype_change:
 			if (old_value in allowed_changes and new_value in allowed_changes):
 				allowed = True
+				break
 		if not allowed:
 			frappe.throw(_("Fieldtype cannot be changed from {0} to {1} in row {2}").format(old_value, new_value, df.idx))
 

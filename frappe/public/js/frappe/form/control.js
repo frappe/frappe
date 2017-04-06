@@ -1807,15 +1807,18 @@ frappe.ui.form.ControlSignature = frappe.ui.form.ControlData.extend({
 		    .jSignature({height:300, width: "100%", "lineWidth": 0.8})
 				.on('change', this.on_save_sign.bind(this));
 
-		this.img_wrapper = $('<div class="signature-display">\
-			<div class="missing-image attach-missing-image"><i class="octicon octicon-circle-slash"></i></div></div>')
+		this.img_wrapper = $(`<div class="signature-display">
+			<div class="missing-image attach-missing-image">
+				<i class="octicon octicon-circle-slash"></i>
+			</div></div>`)
 			.appendTo(this.wrapper);
 		this.img = $("<img class='img-responsive attach-image-display'>")
 			.appendTo(this.img_wrapper).toggle(false);
 
 
-		this.$btnWrapper = $('<div class="signature-btn-row">' +
-												'<a href="#" type="button" class="signature-reset btn btn-default"><i class="glyphicon glyphicon-repeat"></i></a>')
+		this.$btnWrapper = $(`<div class="signature-btn-row">
+			<a href="#" type="button" class="signature-reset btn btn-default">
+			<i class="glyphicon glyphicon-repeat"></i></a>`)
 			.appendTo(this.$pad)
 			.on("click", '.signature-reset', function() {
 				me.on_reset_sign();
