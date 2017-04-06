@@ -668,6 +668,9 @@ fieldset[disabled] .form-control {
   max-height: 300px;
   overflow: auto;
 }
+.note-editor .note-image-input {
+  height: auto;
+}
 .modal .note-editor .note-btn-italic,
 .modal .note-editor .note-btn-underline,
 .modal .note-editor [data-original-title="Font Size"],
