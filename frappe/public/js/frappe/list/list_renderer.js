@@ -317,22 +317,15 @@ frappe.views.ListRenderer = Class.extend({
 			const $item_container = $('<div class="list-item-container">').append($item);
 
 			$list_items.append($item_container);
+			
+			if (this.settings.post_render_item) {
+				this.settings.post_render_item(this, $item_container, value);
+			}
+			
 			this.render_tags($item_container, value);
 		});
 
 		this.setup_filterable();
-	},
-
-	// renders data(doc) in element
-	render_item: function (element, data) {
-
-		$(element).append(this.get_item_html(data));
-
-		if (this.settings.post_render_item) {
-			this.settings.post_render_item(this, element, data);
-		}
-
-		this.render_tags(element, data);
 	},
 
 	// returns html for a data item,

@@ -13,7 +13,7 @@ import os, sys, importlib, inspect, json
 from .exceptions import *
 from .utils.jinja import get_jenv, get_template, render_template
 
-__version__ = '8.0.6'
+__version__ = '8.0.7'
 __title__ = "Frappe Framework"
 
 local = Local()
@@ -1067,9 +1067,9 @@ def redirect_to_message(title, html, http_status_code=None, context=None, indica
 		'message': html
 	})
 
-	if indicator:
+	if indicator_color:
 		message['context'].update({
-			"indicator_color": indicator
+			"indicator_color": indicator_color
 		})
 
 	cache().set_value("message_id:{0}".format(message_id), message, expires_in_sec=60)

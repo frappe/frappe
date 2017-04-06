@@ -50,7 +50,7 @@ frappe.views.ListSidebar = Class.extend({
 
 		this.current_view = 'List';
 		var route = frappe.get_route();
-		if(route.length > 2 && in_list(['Gantt', 'Image', 'Kanban', 'Calendar', 'Inbox'], route[2])) {
+		if(route.length > 2 && frappe.views.view_modes.includes(route[2])) {
 			this.current_view = route[2];
 
 			if(this.current_view === 'Kanban') {
