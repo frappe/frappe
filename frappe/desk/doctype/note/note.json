@@ -103,7 +103,7 @@
    "bold": 1, 
    "collapsible": 0, 
    "columns": 0, 
-   "default": "1", 
+   "default": "0", 
    "depends_on": "notify_on_login", 
    "description": "If enabled, users will be notified every time they login. If not enabled, users will only be notified once.", 
    "fieldname": "notify_on_every_login", 
