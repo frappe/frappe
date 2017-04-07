@@ -170,11 +170,12 @@ login.login_handlers = (function() {
 					window.location.href = data.home_page;
 				}
 			} else if(window.location.hash === '#forgot') {
-				console.log(data.message);
 				if(data.message==='not found') {
 					login.set_indicator(__("Not a valid user"), 'red');
 				} else if (data.message=='not allowed') {
 					login.set_indicator(__("Not Allowed"), 'red');
+				} else {
+					login.set_indicator(__("Instructions Emailed"), 'green');
 				}
 
 
