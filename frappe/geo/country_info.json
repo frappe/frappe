@@ -847,6 +847,7 @@
   "currency_fraction_units": 100,
   "currency_symbol": "\u20ac",
   "number_format": "# ###,##",
+  "date_format": "dd/mm/yyyy",
   "timezones": [
    "Europe/Paris"
   ]
