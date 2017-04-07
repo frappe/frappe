@@ -1935,7 +1935,7 @@
     });
   });
 
-  var dialog = renderer.create('<div class="modal" aria-hidden="false" tabindex="-1"/>', function ($node, options) {
+  var dialog = renderer.create('<div class="modal fade in" aria-hidden="false" tabindex="-1"/>', function ($node, options) {
     if (options.fade) {
       $node.addClass('fade');
     }
@@ -1947,7 +1947,8 @@
       '      <div class="row"><div class="col-xs-7"><h4 class="modal-title" style="font-weight: bold;">' + options.title + '</h4></div>' +
       '      <div class="col-xs-5"><div class="text-right buttons"> <button type="button" class="btn btn-default btn-sm btn-modal-close" data-dismiss="modal">' +
       '         <i class="octicon octicon-x visible-xs" style="padding: 1px 0px;"></i> <span class="hidden-xs">Close</span></button>'+
-      '         <button type="button" class="btn btn-primary btn-sm ' + options.button_class + ' disabled" disabled>' + options.action + '</button>' +
+                (options.action && options.button_class ?
+                '     <button type="button" class="btn btn-primary btn-sm ' + options.button_class + ' disabled" disabled>' + options.action + '</button>' : '') +
       '      </div></div></div>' +
       '    </div>' : ''
       ),
@@ -5553,7 +5554,6 @@
         return ui.button({
           contents: ui.icon(options.icons.picture),
           tooltip: lang.image.image,
-          click: context.createInvokeHandler('imageDialog.show')
         }).render();
       });
 
@@ -5905,11 +5905,11 @@
       var $container = options.dialogsInBody ? $(document.body) : $editor;
 
       var body = '<div class="form-group">' +
-                   '<label>' + lang.link.textToDisplay + '</label>' +
+                   '<span>' + lang.link.textToDisplay + '</span>' +
                    '<input class="note-link-text form-control" type="text" />' +
                  '</div>' +
                  '<div class="form-group">' +
-                   '<label>' + lang.link.url + '</label>' +
+                   '<span>' + lang.link.url + '</span>' +
                    '<input class="note-link-url form-control" type="text" value="http://" />' +
                  '</div>' +
                  (!options.disableLinkTarget ?
@@ -6284,7 +6284,7 @@
       var $container = options.dialogsInBody ? $(document.body) : $editor;
 
       var body = '<div class="form-group row-fluid">' +
-          '<label>' + lang.video.url + ' <small class="text-muted">' + lang.video.providers + '</small></label>' +
+          '<span>' + lang.video.url + ' <small class="text-muted">' + lang.video.providers + '</small></span>' +
           '<input class="note-video-url form-control span12" type="text" />' +
           '</div>';
       var footer = '<button href="#" class="btn btn-primary note-video-btn disabled" disabled>' + lang.video.insert + '</button>';
