@@ -393,6 +393,10 @@
 .list-item-container:last-child {
   border-bottom: none;
 }
+.list-item-table {
+  border: 1px solid #d1d8dd;
+  border-radius: 3px;
+}
 .list-item {
   display: flex;
   align-items: center;
