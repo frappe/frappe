@@ -1196,7 +1196,8 @@
   "currency_fraction": "Cent",
   "currency_fraction_units": 100,
   "currency_symbol": "\u20ac",
-  "number_format": "#,###.##",
+  "number_format": "#.###,##",
+  "date_format": "dd/mm/yyyy",
   "timezones": [
    "Europe/Rome"
   ]
