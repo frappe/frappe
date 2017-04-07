@@ -1235,7 +1235,7 @@ apps/frappe/frappe/utils/password_strength.py +120,Avoid dates and years that ar
 DocType: Custom DocPerm,Amend,اصلاح کردن
 DocType: File,Is Attachments Folder,فایل های پیوست پوشه است
 apps/frappe/frappe/public/js/frappe/views/treeview.js +71,Expand All,بازکردن همه
-apps/frappe/frappe/templates/includes/login/login.js +49,Valid Login id required.,معتبر ورود شناسه مورد نیاز است.
+apps/frappe/frappe/templates/includes/login/login.js +49,Valid Login id required.,شناسه معتبر مورد نیاز است.
 apps/frappe/frappe/desk/doctype/todo/todo.js +30,Re-open,باز کردن مجدد
 apps/frappe/frappe/templates/pages/integrations/payment-cancel.html +10,You have cancelled the payment,شما را از پرداخت لغو کرده اند
 apps/frappe/frappe/model/rename_doc.py +350,Please select a valid csv file with data,لطفا یک فایل CSV معتبر با داده را انتخاب کنید
