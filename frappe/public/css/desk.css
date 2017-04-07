@@ -569,8 +569,19 @@ fieldset[disabled] .form-control {
   display: inline-block;
   vertical-align: middle;
 }
+.file-upload .input-upload {
+  vertical-align: top;
+}
+.file-upload .uploaded-filename {
+  border: 1px solid #d1d8dd;
+  border-radius: 3px;
+}
+.file-upload .uploaded-filename .btn-group {
+  margin-right: 5px;
+  margin-bottom: 5px;
+}
 .file-upload .uploaded-filename-display {
-  max-width: 194px;
+  max-width: 150px;
 }
 .frappe-rtl input,
 .frappe-rtl textarea {

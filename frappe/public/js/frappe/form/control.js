@@ -1000,6 +1000,7 @@ frappe.ui.form.ControlAttach = frappe.ui.form.ControlData.extend({
 		this.upload_options = {
 			parent: this.dialog.get_field("upload_area").$wrapper,
 			args: {},
+			allow_multiple: 0,
 			max_width: this.df.max_width,
 			max_height: this.df.max_height,
 			options: this.df.options,
