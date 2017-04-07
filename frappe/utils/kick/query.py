@@ -51,11 +51,6 @@ class Query(object):
 		self.query = self.query[:-1] if self.query.startswith(":") else self.query
 		self.query = self.query[:-1] if self.query.startswith('"') else self.query
 
-	def append_open(self, doctype_names):
-		contains = filter(lambda x: doctype_names.get(x) is not None, [i for i in doctype_names])
-		if len(contains) > 0:
-			self.query = 'open ' + self.query
-
 	def get_action_from_text(self, params):
 		action = None
 		
