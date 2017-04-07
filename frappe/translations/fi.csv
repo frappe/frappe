@@ -2194,7 +2194,7 @@ apps/frappe/frappe/email/queue.py +285,Emails are muted,sähköpostit on mykiste
 apps/frappe/frappe/public/js/frappe/form/templates/grid_form.html +25,Ctrl + Up,Ctrl + ylös
 DocType: Website Theme,Heading Style,otsikko tyyli
 apps/frappe/frappe/public/js/frappe/list/list_sidebar.js +181,A new Project with this name will be created,Uusi projekti Tämänniminen luodaan
-apps/frappe/frappe/utils/data.py +530,1 weeks ago,1 viikkoa sitten
+apps/frappe/frappe/utils/data.py +530,1 weeks ago,1 viikko sitten
 apps/frappe/frappe/desk/page/applications/applications.py +75,You cannot install this app,tätä sovellusta ei voi asentaa
 DocType: Communication,Error,virhe
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +89,Do not send Emails.,Älä lähetä sähköposteja.
@@ -2372,7 +2372,7 @@ apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +21,Select A
 apps/frappe/frappe/config/setup.py +224,Custom Translations,Custom käännökset
 apps/frappe/frappe/public/js/frappe/form/linked_with.js +87,Not Linked to any record.,ei linkitettynä mihinkään tietueeseen
 apps/frappe/frappe/public/js/frappe/socketio_client.js +46,Progress,Edistyminen
-apps/frappe/frappe/public/js/frappe/form/workflow.js +32, by Role ,Rooliin
+apps/frappe/frappe/public/js/frappe/form/workflow.js +32, by Role ,Rooli
 apps/frappe/frappe/public/js/frappe/form/save.js +148,Missing Fields,kenttiä puuttuu
 apps/frappe/frappe/core/doctype/doctype/doctype.py +173,Invalid fieldname '{0}' in autoname,Virheellinen fieldname &#39;{0}&#39; in autoname
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +177,Search in a document type,Haku asiakirjatyypit

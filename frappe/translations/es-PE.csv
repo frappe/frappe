@@ -3,7 +3,6 @@ DocType: DocField,Heading,Título
 apps/frappe/frappe/public/js/frappe/model/model.js +106,Unable to load: {0},No se puede cargar : {0}
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +26,Permissions at higher levels are Field Level permissions. All Fields have a Permission Level set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only for certain Roles.,Permisos en los niveles más altos son los permisos de nivel de campo. Todos los campos tienen un conjunto Nivel de permiso en su contra y las reglas definidas en el que los permisos se aplican al campo. Esto es útil en caso de que quiera ocultar o hacer cierto campo de sólo lectura para ciertas funciones.
 apps/frappe/frappe/print/page/print_format_builder/print_format_builder_field.html +32,Select Columns,Seleccionar columnas
-DocType: Email Account,Domain,Dominio
 DocType: DocType,DocType is a Table / Form in the application.,El DocType es una tabla / formulario en la aplicación.
 DocType: Workflow State,th,ª
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +213,Set the display label for the field,Ajuste la etiqueta de visualización para el campo
