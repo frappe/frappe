@@ -162,8 +162,8 @@ frappe.upload = {
 						</button>
 					</div>
 				</div>
-			</div>
-		`
+			</div>`
+
 		return $(template);
 	},
 	upload_multiple_files: function(files /*FileData array*/, args, opts) {
