@@ -27,7 +27,8 @@ doctype_properties = {
 	'quick_entry': 'Check',
 	'editable_grid': 'Check',
 	'max_attachments': 'Int',
-	'image_view': 'Check'
+	'image_view': 'Check',
+	'track_changes': 'Check',
 }
 
 docfield_properties = {
