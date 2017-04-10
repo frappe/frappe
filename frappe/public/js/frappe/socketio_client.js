@@ -53,14 +53,6 @@ frappe.socket = {
 			}
 		});
 
-		frappe.socket.socket.on('css_reload', function(filename) {
-			filename = "assets/" + filename;
-			var link = $(`link[href*="${filename}"]`);
-			console.log(filename, 'changed');
-			filename = filename.split('?')[0] + '?v=' + +moment();
-			link.attr('href', filename);
-		});
-
 		frappe.socket.setup_listeners();
 		frappe.socket.setup_reconnect();
 
