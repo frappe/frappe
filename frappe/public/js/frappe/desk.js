@@ -311,12 +311,60 @@ frappe.Application = Class.extend({
 			method:'logout',
 			callback: function(r) {
 				if(r.exc) {
-					console.log(r.exc);
 					return;
 				}
 				me.redirect_to_login();
 			}
 		})
+	},
+	handle_session_expired: function() {
+		if(!frappe.app.session_expired_dialog) {
+			var dialog = new frappe.ui.Dialog({
+				title: __('Session Expired'),
+				fields: [
+					{ fieldtype:'Password', fieldname:'password',
+						label: __('Please Enter Your Password to Continue') },
+				],
+				onhide: () => {
+					if (!dialog.logged_in) {
+						frappe.app.redirect_to_login();
+					}
+				}
+			});
+			dialog.set_primary_action(__('Login'), () => {
+				frappe.call({
+					method: 'login',
+					args: {
+						usr: frappe.session.user,
+						pwd: dialog.get_values().password
+					},
+					callback: (r) => {
+						if (r.message==='Logged In') {
+							dialog.logged_in = true;
+
+							// revert backdrop
+							$('.modal-backdrop').css({
+								'opacity': '',
+								'background-color': '#334143'
+							});
+						}
+						dialog.hide();
+					},
+					statusCode: () => {
+						dialog.hide();
+					}
+				});
+			});
+			frappe.app.session_expired_dialog = dialog;
+		}
+		if(!frappe.app.session_expired_dialog.display) {
+			frappe.app.session_expired_dialog.show();
+			// add backdrop
+			$('.modal-backdrop').css({
+				'opacity': 1,
+				'background-color': '#EBEFF2'
+			});
+		}
 	},
 	redirect_to_login: function() {
 		window.location.href = '/';
