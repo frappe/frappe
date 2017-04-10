@@ -461,7 +461,8 @@ def sanitize_email(emails):
 def parse_email(email_string):
 	email_regex = re.compile(r"([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)")
 	#get the first email adrress only
-	email_id = re.findall(email_regex, email_string)[0]
+	email_list = re.findall(email_regex, email_string)
+	email_id = email_list[0] if len(email_list) > 0 else parseaddr(email_string)[1]
 	name = filter(lambda x: len(x) > 0,
 		[x for x in parseaddr(email_string)])[0] or email_id
 	return (name, email_id)
