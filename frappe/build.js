@@ -23,22 +23,24 @@ const build_map = make_build_map();
 
 // command line args
 const action = process.argv[2] || '--build';
+
 if (!['--build', '--watch'].includes(action)) {
 	console.log('Invalid argument: ', action);
 	return;
 }
 
+const minify = process.argv[3] === '--minify' ? true : false;
 if (action === '--build') {
-	build();
+	build({ minify });
 }
 
 if (action === '--watch') {
 	watch();
 }
 
-function build() {
+function build({ minify }) {
 	for (const output_path in build_map) {
-		pack(output_path, build_map[output_path]);
+		pack(output_path, build_map[output_path], minify);
 	}
 }
 
@@ -72,7 +74,7 @@ function watch() {
 	});
 }
 
-function pack(output_path, inputs) {
+function pack(output_path, inputs, minify) {
 	const output_type = output_path.split('.').pop();
 
 	let output_txt = '';
@@ -89,12 +91,18 @@ function pack(output_path, inputs) {
 			file_content = html_to_js_template(file, file_content);
 		}
 
-		if (file.endsWith('.js') && !file.includes('/lib/') && output_type === 'js' && !file.endsWith('class.js')) {
-			file_content = babelify(file_content, file);
+		if(file.endsWith('class.js')) {
+			file_content = minify_js(file_content, file);
 		}
 
-		output_txt += `\n/*\n *\t${file}\n */`;
-		output_txt += '\n' + file_content + '\n';
+		if (file.endsWith('.js') && !file.includes('/lib/') && output_type === 'js' && !file.endsWith('class.js')) {
+			file_content = babelify(file_content, file, minify);
+		}
+
+		if(!minify) {
+			output_txt += `\n/*\n *\t${file}\n */\n`
+		}
+		output_txt += file_content;
 	}
 
 	const target = p(assets_path, output_path);
@@ -109,13 +117,30 @@ function pack(output_path, inputs) {
 	}
 }
 
-function babelify(content, path) {
+function babelify(content, path, minify) {
+	let presets = ['es2015', 'es2016'];
+	if(minify) {
+		presets.push('babili'); // new babel minifier
+	}
 	try {
 		return babel.transform(content, {
-			presets: ['es2015']
+			presets: presets,
+			comments: false
 		}).code;
 	} catch (e) {
 		console.log('Cannot babelify', path);
+		console.log(e);
+		return content;
+	}
+}
+
+function minify_js(content, path) {
+	try {
+		return babel.transform(content, {
+			comments: false
+		}).code;
+	} catch (e) {
+		console.log('Cannot minify', path);
 		console.log(e);
 		return content;
 	}

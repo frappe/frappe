@@ -210,22 +210,26 @@ frappe.socket = {
 		frappe.socket.file_watcher = io.connect(host);
 		// css files auto reload
 		frappe.socket.file_watcher.on('reload_css', function(filename) {
-			filename = "assets/" + filename;
-			var link = $(`link[href*="${filename}"]`);
-			filename = filename.split('?')[0] + '?v=' + +moment();
-			link.attr('href', filename);
+			let abs_file_path = "assets/" + filename;
+			const link = $(`link[href*="${abs_file_path}"]`);
+			abs_file_path = abs_file_path.split('?')[0] + '?v=' + +moment();
+			link.attr('href', abs_file_path);
+			frappe.show_alert({
+				indicator: 'orange',
+				message: filename + ' reloaded'
+			}, 5);
 		});
 		// js files show alert
 		frappe.socket.file_watcher.on('reload_js', function(filename) {
 			filename = "assets/" + filename;
 			var msg = $(`
-				<span>${filename} changed, <a data-action="reload">reload</a></span>
+				<span>${filename} changed <a data-action="reload">Click to Reload</a></span>
 			`)
 			msg.find('a').click(frappe.ui.toolbar.clear_cache);
 			frappe.show_alert({
 				indicator: 'orange',
 				message: msg
-			});
+			}, 5);
 		});
 	},
 	process_response: function(data, method) {
