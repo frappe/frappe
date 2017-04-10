@@ -216,7 +216,7 @@ frappe.search.utils = {
 				out.push({
 					type: "Page",
 					prefix: "Open ",
-					label: __(me.bolden_match_part(me.unscrub_and_titlecase(__(item)), keywords)),
+					label: __(me.bolden_match_part(__(item), keywords)),
 					value: __("Open {0}", [__(item)]),
 					match: item,
 					index: level,
