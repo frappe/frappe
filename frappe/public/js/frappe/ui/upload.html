@@ -1,9 +1,9 @@
 <div class="file-upload">
 	<div class="input-upload">
-		<input class="input-upload-file hidden" type="file" name="filedata" />
+		<input class="input-upload-file hidden" type="file" {{ opts.allow_multiple ? "multiple" : "" }} name="filedata" />
 		<button class="btn btn-primary btn-sm btn-browse">{%= __("Browse") %}</button>
 	</div>
-	<div class="uploaded-filename hidden" style="width: calc(100% - 80px);"></div>
+	<div class="uploaded-filename hidden" style="width: 100%; margin-top: 12px;"></div>
 	<div class="web-link-wrapper" style="width: calc(100% - 80px);">
 		<span class="text-muted file-upload-or">{%= __("or") %}</span>
 		<div class="input-link" style="width: calc(100% - 30px);">

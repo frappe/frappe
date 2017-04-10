@@ -275,8 +275,8 @@ def update_site_config(key, value, validate=True, site_config_path=None):
 		value = int(value)
 
 	# boolean
-	if value in ("false", "true"):
-		value = eval(value.title())
+	if value == 'false': value = False
+	if value == 'true': value = True
 
 	# remove key if value is None
 	if value == "None":

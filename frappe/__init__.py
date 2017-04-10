@@ -13,7 +13,7 @@ import os, sys, importlib, inspect, json
 from .exceptions import *
 from .utils.jinja import get_jenv, get_template, render_template
 
-__version__ = '8.0.7'
+__version__ = '8.0.8'
 __title__ = "Frappe Framework"
 
 local = Local()
@@ -1321,3 +1321,14 @@ def get_desk_link(doctype, name):
 
 def bold(text):
 	return '<b>{0}</b>'.format(text)
+
+def safe_eval(code, eval_globals=None, eval_locals=None):
+	'''A safer `eval`'''
+	if '__' in code:
+		throw('Illegal rule {0}. Cannot use "__"'.format(bold(code)))
+
+	if not eval_globals:
+		eval_globals = {}
+	eval_globals['__builtins__'] = {}
+
+	return eval(code, eval_globals, eval_locals)
