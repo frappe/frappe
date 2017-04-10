@@ -29,7 +29,11 @@ def bundle(no_compress, make_copy=False, verbose=False):
 
 	make_asset_dirs(make_copy=make_copy)
 
-	os.system('node ../apps/frappe/frappe/build.js --build')
+	command = 'node ../apps/frappe/frappe/build.js --build'
+	if not no_compress:
+		command += ' --minify'
+
+	os.system(command)
 	return
 
 	build(no_compress, verbose)
