@@ -29,8 +29,8 @@ if (!['--build', '--watch'].includes(action)) {
 	return;
 }
 
-const minify = process.argv[3] === '--minify' ? true : false;
 if (action === '--build') {
+	const minify = process.argv[3] === '--minify' ? true : false;
 	build({ minify });
 }
 
@@ -38,7 +38,7 @@ if (action === '--watch') {
 	watch();
 }
 
-function build({ minify }) {
+function build({ minify=false } = {}) {
 	for (const output_path in build_map) {
 		pack(output_path, build_map[output_path], minify);
 	}
