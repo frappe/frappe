@@ -246,6 +246,7 @@
 }
 .taggle_list li .awesomplete > ul {
   top: 15px;
+  z-index: 100;
 }
 .taggle_list .close {
   right: 5px;
