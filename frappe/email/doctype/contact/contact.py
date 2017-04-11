@@ -125,19 +125,19 @@ def contact_query(doctype, txt, searchfield, start, page_len, filters):
 		)
 
 	return frappe.db.sql("""select
-			contact.name, contact.first_name, contact.last_name
+			`tabContact`.name, `tabContact`.first_name, `tabContact`.last_name
 		from
-			tabContact as contact, `tabDynamic Link` as dl
+			`tabContact`, `tabDynamic Link`
 		where
-			dl.parent = contact.name and
-			dl.parenttype = 'Contact' and
-			dl.link_doctype = %(link_doctype)s and
-			dl.link_name = %(link_name)s and
-			contact.`{key}` like %(txt)s
+			`tabDynamic Link`.parent = `tabContact`.name and
+			`tabDynamic Link`.parenttype = 'Contact' and
+			`tabDynamic Link`.link_doctype = %(link_doctype)s and
+			`tabDynamic Link`.link_name = %(link_name)s and
+			`tabContact`.`{key}` like %(txt)s
 			{mcond}
 		order by
-			if(locate(%(_txt)s, contact.name), locate(%(_txt)s, contact.name), 99999),
-			contact.idx desc, contact.name
+			if(locate(%(_txt)s, `tabContact`.name), locate(%(_txt)s, `tabContact`.name), 99999),
+			`tabContact`.idx desc, `tabContact`.name
 		limit %(start)s, %(page_len)s """.format(
 			mcond=get_match_cond(doctype),
 			key=frappe.db.escape(searchfield)),
