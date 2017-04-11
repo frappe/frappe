@@ -116,3 +116,15 @@ frappe.ui.keys.key_map = {
 	18: 'alt',
 	27: 'escape'
 }
+
+// keyCode map
+frappe.ui.keyCode = {
+	ESCAPE: 27,
+	LEFT: 37,
+	RIGHT: 39,
+	UP: 38,
+	DOWN: 40,
+	ENTER: 13,
+	TAB: 9,
+	SPACE: 32
+}
