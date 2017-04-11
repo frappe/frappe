@@ -276,20 +276,30 @@ frappe.search.utils = {
             }
 
             function make_description(content, doc_name) {
-                parts = content.split(" ||| ");
-                content_length = 300;
-                fields = [];
-                current_length = 0;
+                var parts = content.split(" ||| ");
+                var content_length = 300;
+                var field_length = 120;
+                var fields = [];
+                var current_length = 0;
                 var field_text = "";
                 for(var i = 0; i < parts.length; i++) {
                     part = parts[i];
                     if(part.toLowerCase().indexOf(keywords) !== -1) {
                         if(part.indexOf(' &&& ') !== -1) {
                             var colon_index = part.indexOf(' &&& ');
-                            var field_value = part.slice(colon_index + 3);
+                            var field_value = part.slice(colon_index + 5);
                         } else {
                             var colon_index = part.indexOf(':');
                             var field_value = part.slice(colon_index + 1);
+                        }
+                        if(field_value.length > field_length) {
+                            var field_data = "";
+                            var index = field_value.indexOf(keywords);
+                            field_data += index < field_length/2 ? field_value.slice(0, index)
+                                : '...' + field_value.slice(index - field_length/2, index)
+                            field_data += field_value.slice(index, index + field_length/2);
+                            field_data += index + field_length/2 < field_value.length ? "..." : "";
+                            field_value = field_data;
                         }
                         var field_name = part.slice(0, colon_index);
 
@@ -297,7 +307,7 @@ frappe.search.utils = {
                         current_length += field_name.length + field_value.length + 2;
                         if(current_length < content_length) {
                             field_text = '<span class="field-name text-muted">' +
-                                me.bolden_match_part(field_name, keywords) + ':' + '</span>' +
+                                me.bolden_match_part(field_name, keywords) + ': </span> ' +
                                 me.bolden_match_part(field_value, keywords);
                             if(fields.indexOf(field_text) === -1 && doc_name !== field_value) {
                                 fields.push(field_text);
@@ -306,7 +316,7 @@ frappe.search.utils = {
                             if(field_name.length < remaining_length){
                                 remaining_length -= field_name.length;
                                 field_text = '<span class="field-name text-muted">' +
-                                    me.bolden_match_part(field_name, keywords) + ':' + '</span>';
+                                    me.bolden_match_part(field_name, keywords) + ': </span> ';
                                 field_value = field_value.slice(0, remaining_length);
                                 field_value = field_value.slice(0, field_value.lastIndexOf(' ')) + ' ...';
                                 field_text += me.bolden_match_part(field_value, keywords);
