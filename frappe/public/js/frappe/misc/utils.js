@@ -573,7 +573,16 @@ frappe.utils = {
 		});
 
 		return email_list;
-	}
+	},
+	supportsES6: function() {
+		try {
+			new Function("(a = 0) => a");
+			return true;
+		}
+		catch (err) {
+			return false;
+		}
+	}()
 };
 
 // String.prototype.includes polyfill
