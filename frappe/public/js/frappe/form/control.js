@@ -1418,7 +1418,8 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		});
 
 		this.$input.on("awesomplete-open", function(e) {
-			me.$wrapper.css({"z-index": 101});
+			me.$wrapper.css({"z-index": 100});
+			me.$wrapper.find('ul').css({"z-index": 100});
 			me.autocomplete_open = true;
 		});
 
