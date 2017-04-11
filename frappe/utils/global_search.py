@@ -52,9 +52,9 @@ def update_global_search(doc):
 				  	if d.parent == doc.name:
 				  		for field in d.meta.get_global_search_fields():
 				  			if d.get(field.fieldname):
-				  				content.append(field.label + "&&& " + strip_html_tags(unicode(d.get(field.fieldname))))
+								content.append(make_field(d, field))
 			else:
-				content.append(field.label + "&&& " + strip_html_tags(unicode(doc.get(field.fieldname))))
+				content.append(make_field(doc, field))
 
 	if content:
 		published = 0
@@ -62,8 +62,21 @@ def update_global_search(doc):
 			published = 1 if doc.is_website_published() else 0
 
 		frappe.flags.update_global_search.append(
-			dict(doctype=doc.doctype, name=doc.name, content='|||'.join(content or ''),
+			dict(doctype=doc.doctype, name=doc.name, content=' ||| '.join(content or ''),
 				published=published, title=doc.get_title(), route=doc.get('route')))
+
+def make_field(doc, field):
+	'''Prepare field from raw data'''
+	from HTMLParser import HTMLParser
+	from bs4 import BeautifulSoup
+
+	value = doc.get(field.fieldname)
+	h = HTMLParser()
+	value = h.unescape(value)
+	soup = BeautifulSoup(value, 'html.parser')
+	for node in soup.findAll(['script', 'style']):
+		node.extract()
+	return field.label + " &&& " + strip_html_tags(unicode(soup.get_text()))
 
 def sync_global_search():
 	'''Add values from `frappe.flags.update_global_search` to __global_search.

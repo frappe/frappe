@@ -87,8 +87,8 @@ frappe.search.utils = {
                     if(level) {
                         out.push({
                             type: "In List",
-                            prefix: __("Find '" + __(parts[0]).bold() + "' in "),
-                            label: __(me.bolden_match_part(__(item), parts[1])),
+                            prefix: __("Find {0} in ", [__(parts[0]).bold()]),
+                            label: me.bolden_match_part(__(item), parts[1]),
                             value: __('Find {0} in {1}', [__(parts[0]), __(item)]),
                             route_options: {"name": ["like", "%" + parts[0] + "%"]},
                             index: 1 + level,
@@ -111,7 +111,7 @@ frappe.search.utils = {
 					out.push({
 						type: "New",
 						prefix: "New ",
-						label: __(me.bolden_match_part(__(item), keywords.substr(4))),
+						label: me.bolden_match_part(__(item), keywords.substr(4)),
 						value: __("New {0}", [__(item)]),
 						index: 1 + level,
 						match: item,
@@ -131,7 +131,7 @@ frappe.search.utils = {
 		var option = function(type, route, order) {
 			return {
 				type: type,
-                label: __("{0}" + " " + type, [__(me.bolden_match_part(__(target), keywords))]),
+                label: __("{0}" + " " + type, [me.bolden_match_part(__(target), keywords)]),
 				value: __(__(target) + " " + type),
 				index: level + order,
 				match: target,
@@ -151,7 +151,7 @@ frappe.search.utils = {
                             var match = item;
                             out.push({
                                 type: "New",
-                                label: __("New {0}", [__(me.bolden_match_part(__(item), keywords))]),
+                                label: __("New {0}", [me.bolden_match_part(__(item), keywords)]),
                                 value: __("New {0}", [__(item)]),
                                 index: level + 0.01,
                                 match: item,
@@ -191,7 +191,7 @@ frappe.search.utils = {
 				out.push({
                     type: "Report",
                     prefix: "Report ",
-					label: __(me.bolden_match_part(__(item), keywords)),
+					label: me.bolden_match_part(__(item), keywords),
 					value: __("Report {0}" , [__(item)]),
 					index: level,
 					route: route
@@ -216,7 +216,7 @@ frappe.search.utils = {
 				out.push({
 					type: "Page",
 					prefix: "Open ",
-					label: __(me.bolden_match_part(__(item), keywords)),
+					label: me.bolden_match_part(__(item), keywords),
 					value: __("Open {0}", [__(item)]),
 					match: item,
 					index: level,
@@ -250,7 +250,7 @@ frappe.search.utils = {
 				ret = {
 					type: "Module",
 					prefix: "Open ",
-					label: __(me.bolden_match_part(__(item), keywords)),
+					label: me.bolden_match_part(__(item), keywords),
 					value: __("Open {0}", [__(item)]),
 					index: level,
 				}
@@ -276,7 +276,7 @@ frappe.search.utils = {
             }
 
             function make_description(content, doc_name) {
-                parts = content.split("|||");
+                parts = content.split(" ||| ");
                 content_length = 300;
                 fields = [];
                 current_length = 0;
@@ -284,8 +284,8 @@ frappe.search.utils = {
                 for(var i = 0; i < parts.length; i++) {
                     part = parts[i];
                     if(part.toLowerCase().indexOf(keywords) !== -1) {
-                        if(part.indexOf('&&&') !== -1) {
-                            var colon_index = part.indexOf('&&&');
+                        if(part.indexOf(' &&& ') !== -1) {
+                            var colon_index = part.indexOf(' &&& ');
                             var field_value = part.slice(colon_index + 3);
                         } else {
                             var colon_index = part.indexOf(':');
