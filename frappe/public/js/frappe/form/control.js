@@ -621,7 +621,7 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 		if(value
 			&& ((this.last_value && this.last_value !== this.value)
 				|| (!this.datepicker.selectedDates.length))) {
-			this.datepicker.selectDate(new Date(value));
+			this.datepicker.selectDate(frappe.datetime.str_to_obj(value));
 		}
 	},
 	set_date_options: function() {
