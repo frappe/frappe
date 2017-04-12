@@ -73,10 +73,14 @@ def make_field(doc, field):
 	value = doc.get(field.fieldname)
 	h = HTMLParser()
 	value = h.unescape(value)
-	soup = BeautifulSoup(value, 'html.parser')
-	for node in soup.findAll(['script', 'style']):
-		node.extract()
-	return field.label + " &&& " + strip_html_tags(unicode(soup.get_text()))
+	try:
+		soup = BeautifulSoup(value, 'html.parser')
+		for node in soup.findAll(['script', 'style']):
+			node.extract()
+		value = soup.get_text()
+	except Exception:
+		pass
+	return field.label + " &&& " + strip_html_tags(unicode(value))
 
 def sync_global_search():
 	'''Add values from `frappe.flags.update_global_search` to __global_search.
