@@ -47,7 +47,8 @@ frappe.ui.Dialog = frappe.ui.FieldGroup.extend({
 						cur_dialog = null;
 					}
 				}
-				me.onhide && me.onhide.apply(me);
+				me.onhide && me.onhide();
+				me.on_hide && me.on_hide();
 			})
 			.on("shown.bs.modal", function() {
 				// focus on first input

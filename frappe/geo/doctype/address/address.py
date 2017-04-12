@@ -198,19 +198,19 @@ def address_query(doctype, txt, searchfield, start, page_len, filters):
 		)
 
 	return frappe.db.sql("""select
-			address.name, address.city, address.country
+			`tabAddress`.name, `tabAddress`.city, `tabAddress`.country
 		from
-			tabAddress as address, `tabDynamic Link` as dl
+			`tabAddress`, `tabDynamic Link`
 		where
-			dl.parent = address.name and
-			dl.parenttype = 'Address' and
-			dl.link_doctype = %(link_doctype)s and
-			dl.link_name = %(link_name)s and
-			address.`{key}` like %(txt)s
+			`tabDynamic Link`.parent = `tabAddress`.name and
+			`tabDynamic Link`.parenttype = 'Address' and
+			`tabDynamic Link`.link_doctype = %(link_doctype)s and
+			`tabDynamic Link`.link_name = %(link_name)s and
+			`tabAddress`.`{key}` like %(txt)s
 			{mcond} {condition}
 		order by
-			if(locate(%(_txt)s, address.name), locate(%(_txt)s, address.name), 99999),
-			address.idx desc, address.name
+			if(locate(%(_txt)s, `tabAddress`.name), locate(%(_txt)s, `tabAddress`.name), 99999),
+			`tabAddress`.idx desc, `tabAddress`.name
 		limit %(start)s, %(page_len)s """.format(
 			mcond=get_match_cond(doctype),
 			key=frappe.db.escape(searchfield),

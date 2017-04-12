@@ -503,6 +503,8 @@ frappe.views.ListRenderer = Class.extend({
 		this.render_view = function (values) {
 			// prepare data before rendering view
 			values = values.map(me.prepare_data.bind(this));
+			// remove duplicates
+			values = values.uniqBy(value => value.name);
 
 			if (lib_exists) {
 				me.load_lib(function () {

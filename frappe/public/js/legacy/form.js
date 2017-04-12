@@ -145,12 +145,12 @@ _f.Frm.prototype.setup_drag_drop = function() {
 				throw "attach error";
 			}
 
-			frappe.upload.multifile_upload(dataTransfer.files, me.attachments.get_args(), {
+			frappe.upload.make({
+				args: me.attachments.get_args(),
+				files: dataTransfer.files,
 				callback: function(attachment, r) {
 					me.attachments.attachment_uploaded(attachment, r);
-				},
-
-				confirm_is_private: true
+				}
 			});
 		});
 }

@@ -148,9 +148,9 @@ def get_html(doc, name=None, print_format=None, meta=None,
 		"footer": letter_head.footer,
 		"print_settings": frappe.get_doc("Print Settings")
 	}
-
+	
 	html = template.render(args, filters={"len": len})
-
+	
 	if cint(trigger_print):
 		html += trigger_print_script
 

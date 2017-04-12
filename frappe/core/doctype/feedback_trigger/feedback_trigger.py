@@ -12,9 +12,13 @@ from frappe.utils.jinja import validate_template
 
 class FeedbackTrigger(Document):
 	def validate(self):
+		frappe.cache().delete_value('feedback_triggers')
 		validate_template(self.subject)
 		validate_template(self.message)
 		self.validate_condition()
+
+	def on_trash(self):
+		frappe.cache().delete_value('feedback_triggers')
 
 	def validate_condition(self):
 		temp_doc = frappe.new_doc(self.document_type)
@@ -25,16 +29,25 @@ class FeedbackTrigger(Document):
 				frappe.throw(_("The condition '{0}' is invalid").format(self.condition))
 
 def trigger_feedback_request(doc, method):
-	""" trigger the feedback alert"""
+	"""Trigger the feedback alert, or delete feedback requests on delete"""
 
-	if doc.flags.in_delete:
-		frappe.enqueue('frappe.core.doctype.feedback_trigger.feedback_trigger.delete_feedback_request_and_feedback',
-			reference_doctype=doc.doctype, reference_name=doc.name, now=frappe.flags.in_test)
-	else:
-		feedback_trigger = frappe.db.get_value("Feedback Trigger", { "enabled": 1, "document_type": doc.doctype })
-		if feedback_trigger:
+	def _get():
+		triggers = {}
+		if not frappe.flags.in_migrate:
+			for d in frappe.get_all('Feedback Trigger', dict(enabled=1), ['name', 'document_type']):
+				triggers[d.document_type] = d.name
+
+		return triggers
+
+	feedback_triggers = frappe.cache().get_value('feedback_triggers', _get)
+	if doc.doctype in feedback_triggers:
+		if doc.flags.in_delete:
+			frappe.enqueue('frappe.core.doctype.feedback_trigger.feedback_trigger.delete_feedback_request_and_feedback',
+				reference_doctype=doc.doctype, reference_name=doc.name, now=frappe.flags.in_test)
+		else:
 			frappe.enqueue('frappe.core.doctype.feedback_trigger.feedback_trigger.send_feedback_request',
-				trigger=feedback_trigger, reference_doctype=doc.doctype, reference_name=doc.name, now=frappe.flags.in_test)
+				trigger=feedback_triggers[doc.doctype], reference_doctype=doc.doctype,
+				reference_name=doc.name, now=frappe.flags.in_test)
 
 @frappe.whitelist()
 def send_feedback_request(reference_doctype, reference_name, trigger="Manual", details=None, is_manual=False):
@@ -68,8 +81,6 @@ def send_feedback_request(reference_doctype, reference_name, trigger="Manual", d
 
 @frappe.whitelist()
 def get_feedback_request_details(reference_doctype, reference_name, trigger="Manual", request=None):
-	feedback_url = ""
-
 	if not frappe.db.get_value(reference_doctype, reference_name):
 		# reference document is either deleted or renamed
 		return

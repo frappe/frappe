@@ -182,9 +182,6 @@ body {
   body[data-sidebar="0"] .navbar-home {
     margin-left: 15px !important;
   }
-  .linked-with-dialog {
-    width: 100% !important;
-  }
 }
 @media (max-width: 991px) and (max-width: 480px) {
   #navbar-breadcrumbs li a {

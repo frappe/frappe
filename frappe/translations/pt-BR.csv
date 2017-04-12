@@ -101,6 +101,7 @@ apps/frappe/frappe/core/doctype/communication/email.py +262,Unable to find attac
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +227,Assign a permission level to the field.,Atribuir um nível de permissão para o campo.
 apps/frappe/frappe/core/page/permission_manager/permission_manager.py +87,Cannot Remove,Não é Possível Remover
 apps/frappe/frappe/config/setup.py +44,Show / Hide Modules,Mostrar / Ocultar Módulos
+apps/frappe/frappe/core/doctype/communication/communication_list.js +13,Mark as Read,Marcar como lido
 apps/frappe/frappe/www/feedback.html +21,Detailed feedback,Feedback detalhado
 DocType: Report,JavaScript Format: frappe.query_reports['REPORTNAME'] = {},Formato JavaScript: frappe.query_reports [' REPORTNAME '] = {}
 DocType: Bulk Update,Bulk Update,Alteração em Massa
@@ -146,6 +147,7 @@ apps/frappe/frappe/__init__.py +883,App {0} is not installed,App {0} não está 
 DocType: Workflow State,Refresh,Atualizar
 apps/frappe/frappe/public/js/frappe/ui/listing.js +52,Nothing to show,Nada para mostrar
 apps/frappe/frappe/public/js/frappe/model/model.js +24,Liked By,Gostou por
+apps/frappe/frappe/public/js/frappe/toolbar.js +28,Email Support,Suporte via Email
 DocType: DocField,Print Hide If No Value,Ocultar Impressão se não Preenchido
 apps/frappe/frappe/public/js/frappe/form/footer/attachments.js +211,Upload Attachment,Upload de Anexos
 DocType: Block Module,Block Module,Módulo Bloco
@@ -293,6 +295,7 @@ apps/frappe/frappe/core/doctype/page/page.py +35,Not in Developer Mode,Não no m
 DocType: DocField,In Global Search,Na Busca Global
 DocType: Workflow State,indent-left,indentar à esquerda
 apps/frappe/frappe/utils/file_manager.py +290,It is risky to delete this file: {0}. Please contact your System Manager.,É arriscado excluir este arquivo: {0}. Entre em contato com o administrador do sistema.
+apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js +149,No Emails,Nennhum Email
 DocType: File,Content Hash,Hash do conteúdo
 DocType: Website Theme,Google Font (Text),Google Font (Texto)
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +31,{0} already unsubscribed for {1} {2},{0} já teve sua sua inscrição cancelada para {1} {2}
@@ -784,6 +787,7 @@ apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html +46,Attach 
 apps/frappe/frappe/templates/emails/password_update.html +1,Password Update Notification,Notificação de Atualização de Senha
 apps/frappe/frappe/public/js/frappe/form/footer/assign_to.js +59,Assignment Complete,Atribuição Concluída
 DocType: Custom DocPerm,User Permission DocTypes,Doctypes permissão de usuário
+DocType: Communication,Email Status,Satus do Email
 apps/frappe/frappe/public/js/frappe/form/footer/assign_to.js +112,Please save the document before removing assignment,"Por favor, salve o documento antes de remover a atribuição"
 apps/frappe/frappe/utils/password_strength.py +153,This is similar to a commonly used password.,Isso é parecido com uma senha comum.
 apps/frappe/frappe/public/js/frappe/model/indicator.js +19,Not Saved,Não Salvo
@@ -1029,6 +1033,7 @@ apps/frappe/frappe/email/queue.py +449,This email was sent to {0},Este email foi
 DocType: DocField,Remember Last Selected Value,Lembrar última seleção
 DocType: Email Account,Check this to pull emails from your mailbox,Marque para baixar os emails da sua caixa de emails
 apps/frappe/frappe/model/document.py +578,Cannot edit cancelled document,Não é possível editar documento cancelado
+DocType: Unhandled Email,Unhandled Email,Emails não trabalhados
 apps/frappe/frappe/utils/password_strength.py +81,Make use of longer keyboard patterns,Use uma combinação de letras e números mais longa
 apps/frappe/frappe/utils/nestedset.py +77,Nested set error. Please contact the Administrator.,Erro conjunto aninhado . Entre em contato com o administrador.
 DocType: Feedback Trigger,Email Field,Campo do Email
@@ -1098,6 +1103,7 @@ DocType: DocType,Image View,Ver Imagem
 DocType: DocType,Show Print First,Mostrar Impressão Primeiro
 apps/frappe/frappe/desk/page/chat/chat_main.html +12,Ctrl + Enter to post,Ctrl + Enter para adicionar
 apps/frappe/frappe/public/js/frappe/form/link_selector.js +105,Make a new {0},Fazer um(a) novo(a) {0}
+apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js +142,New Email Account,Nova conta de email
 apps/frappe/frappe/email/doctype/email_queue/email_queue_list.js +10,Resume Sending,Retomar Envio
 DocType: Contact,Purchase User,Usuário de Compras
 DocType: Workflow,"Different ""States"" this document can exist in. Like ""Open"", ""Pending Approval"" etc.","""Status"" diferentes em que esse documento pode existir. Como ""Aberto"", ""Aprovação Pendente"", etc"
@@ -1115,6 +1121,7 @@ apps/frappe/frappe/core/doctype/user/user.py +722,Password reset instructions ha
 DocType: Email Alert,Attach Print,Anexar cópia
 ,Modules,módulos
 apps/frappe/frappe/core/doctype/user/user.js +49,Set Desktop Icons,Definir Ícones do Desktop
+apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js +135,No {0} mail,Nenhum {0}
 DocType: OAuth Bearer Token,Revoked,Revogado
 DocType: Web Page,Sidebar and Comments,Menu Lateral e Comentários
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +18,"When you Amend a document after Cancel and save it, it will get a new number that is a version of the old number.","Quando você Corrigir um documento depois de Cancelar e salvá-lo, ele irá obter um novo número que é uma versão do número antigo."

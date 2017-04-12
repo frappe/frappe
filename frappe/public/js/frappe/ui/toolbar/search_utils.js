@@ -233,7 +233,7 @@ frappe.search.utils = {
 				value: __("Open {0}", [__(target)]),
 				index: me.fuzzy_search(keywords, 'Calendar'),
 				match: target,
-				route: [target, 'Event'],
+				route: ['List', 'Event', target],
 			});
 		}
 		return out;

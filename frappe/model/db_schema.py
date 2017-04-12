@@ -42,6 +42,7 @@ type_map = {
 	,'Read Only':	('varchar', varchar_len)
 	,'Attach':		('text', '')
 	,'Attach Image':('text', '')
+	,'Signature':	('longtext', '')
 }
 
 default_columns = ['name', 'creation', 'modified', 'modified_by', 'owner',

@@ -69,6 +69,7 @@
 		"public/js/lib/moment/moment-timezone-with-data.min.js",
 		"public/js/lib/socket.io.min.js",
 		"public/js/lib/markdown.js",
+		"public/js/lib/jSignature.min.js",
 		"public/js/frappe/translate.js",
 		"public/js/lib/datepicker/datepicker.min.js",
 		"public/js/lib/datepicker/locale-all.js"

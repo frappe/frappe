@@ -28,7 +28,7 @@ def enqueue(method, queue='default', timeout=300, event=None,
 		:param now: if now=True, the method is executed via frappe.call
 		:param kwargs: keyword arguments to be passed to the method
 	'''
-	if now:
+	if now or frappe.flags.in_migrate:
 		return frappe.call(method, **kwargs)
 
 	q = get_queue(queue, async=async)

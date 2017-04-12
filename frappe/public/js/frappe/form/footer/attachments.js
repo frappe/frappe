@@ -234,6 +234,7 @@ frappe.ui.get_upload_dialog = function(opts){
 			    }
 			},
 			callback: function(r){
+				if(!r.message) return;
 			    dialog.$wrapper.find('[name="file_url"]').val(r.message.file_url);
 				dialog.$wrapper.find('.private-file input').prop('checked', r.message.is_private);
 				opts.args.filename = r.message.file_name

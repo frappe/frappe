@@ -286,6 +286,7 @@ class Session:
 		"""get session record, or return the standard Guest Record"""
 		from frappe.auth import clear_cookies
 		r = self.get_session_data()
+
 		if not r:
 			frappe.response["session_expired"] = 1
 			clear_cookies()

@@ -169,7 +169,7 @@ DocType: Workflow State,gift,regalo
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +239,Reqd,Reqd
 apps/frappe/frappe/core/doctype/communication/email.py +262,Unable to find attachment {0},Impossibile trovare allegato {0}
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +227,Assign a permission level to the field.,Assegnare un livello di autorizzazione per il campo.
-apps/frappe/frappe/core/page/permission_manager/permission_manager.py +87,Cannot Remove,Non è possibile rimuovere
+apps/frappe/frappe/core/page/permission_manager/permission_manager.py +87,Cannot Remove,Impossibile rimuovere
 apps/frappe/frappe/public/js/frappe/request.js +75,The resource you are looking for is not available,La risorsa che si sta cercando non è disponibile
 apps/frappe/frappe/config/setup.py +44,Show / Hide Modules,Mostra / Nascondi Moduli
 apps/frappe/frappe/core/doctype/communication/communication_list.js +13,Mark as Read,Segna come letto
@@ -662,7 +662,7 @@ DocType: DocField,Length,Lunghezza
 DocType: Feedback Trigger,"To add dynamic subject, use jinja tags like
 
 <div><pre><code>{{ doc.name }} Delivered</code></pre></div>","Per aggiungere soggetto dinamico, utilizzare i tag Jinja come <div><pre> <code>{{ doc.name }} Delivered</code> </pre> </div>"
-apps/frappe/frappe/desk/page/applications/applications.py +103,App {0} removed,App {0} rimosso
+apps/frappe/frappe/desk/page/applications/applications.py +103,App {0} removed,App {0} rimossa
 DocType: Custom DocPerm,Apply User Permissions,Applica autorizzazioni utente
 DocType: User,Modules HTML,Moduli HTML
 apps/frappe/frappe/public/js/frappe/ui/field_group.js +79,Missing Values Required,Valori mancanti richiesti
@@ -803,7 +803,7 @@ apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +10
 apps/frappe/frappe/core/page/user_permissions/user_permissions.js +27,"These will also be set as default values for those links, if only one such permission record is defined.","Questi saranno anche essere impostati come valori predefiniti per questi link , se solo uno di questi record di autorizzazione è definito."
 DocType: Customize Form,Enter Form Type,Inserisci Tipo Modulo
 apps/frappe/frappe/public/js/frappe/list/list_sidebar_stat.html +5,No records tagged.,Nessun record marcato.
-apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +466,Remove Field,rimuovere campo
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +466,Remove Field,Eliminare campo
 DocType: User,Send Password Update Notification,Invia notifica aggiornamento password
 apps/frappe/frappe/public/js/legacy/form.js +63,"Allowing DocType, DocType. Be careful!","Permettere DocType , DocType . Fate attenzione !"
 apps/frappe/frappe/config/core.py +32,"Customized Formats for Printing, Email","Formati su misura per la stampa, e-mail"
@@ -1295,7 +1295,7 @@ DocType: Web Page,"Page to show on the website
 ",Pagina di mostrare sul sito
 DocType: Note,Seen By Table,Visto da Tavolo
 apps/frappe/frappe/public/js/frappe/request.js +70,You have been logged out,Sei stato disconnesso
-apps/frappe/frappe/core/page/user_permissions/user_permissions.py +59,Cannot remove permission for DocType: {0} and Name: {1},Impossibile rimuovere l'autorizzazione per DocType : {0} e nome : {1}
+apps/frappe/frappe/core/page/user_permissions/user_permissions.py +59,Cannot remove permission for DocType: {0} and Name: {1},Impossibile rimuovere l'autorizzazione per DocType : {0} e Nome : {1}
 apps/frappe/frappe/desk/page/activity/activity_row.html +13,Logged in,Collegato
 apps/frappe/frappe/integrations/doctype/ldap_settings/ldap_settings.py +103,Incorrect UserId or Password,UserId o password non corretta
 apps/frappe/frappe/core/page/desktop/desktop.js +38,Explore,Esplorare
@@ -1308,7 +1308,7 @@ DocType: DocField,Columns,colonne
 DocType: Async Task,Succeeded,Riuscito
 apps/frappe/frappe/public/js/frappe/form/save.js +141,Mandatory fields required in {0},I campi obbligatori richiesti in {0}
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +95,Reset Permissions for {0}?,Aggiorna Autorizzazioni per {0} ?
-apps/frappe/frappe/core/doctype/version/version_view.html +32,Rows Removed,Righe rimossi
+apps/frappe/frappe/core/doctype/version/version_view.html +32,Rows Removed,Righe rimosse
 apps/frappe/frappe/permissions.py +391,{0} {1} not found,{0} {1} non trovato
 DocType: Communication,Attachment Removed,Allegato Rimosso
 apps/frappe/frappe/utils/password_strength.py +110,Recent years are easy to guess.,Negli ultimi anni sono facili da indovinare.
@@ -2190,7 +2190,7 @@ apps/frappe/frappe/utils/oauth.py +232,Please ensure that your profile has an em
 apps/frappe/frappe/public/js/frappe/model/create_new.js +275,You have unsaved changes in this form. Please save before you continue.,Hai delle modifiche non salvate in questo modulo. Prego salvare prima di procedere.
 apps/frappe/frappe/core/doctype/doctype/doctype.py +431,Default for {0} must be an option,Predefinito per {0} deve essere un&#39;opzione
 DocType: Tag Doc Category,Tag Doc Category,Tag Doc Categoria
-DocType: User,User Image,Immagine Immagine
+DocType: User,User Image,Immagini Utente
 apps/frappe/frappe/email/queue.py +285,Emails are muted,Le E-mail sono disattivati
 apps/frappe/frappe/public/js/frappe/form/templates/grid_form.html +25,Ctrl + Up,Ctrl +
 DocType: Website Theme,Heading Style,Stile Intestazione
@@ -2294,7 +2294,7 @@ apps/frappe/frappe/utils/password_strength.py +169,All-uppercase is almost as ea
 DocType: Feedback Trigger,Email Fieldname,Email Fieldname
 DocType: Website Settings,Top Bar Items,Top Articoli Bar
 apps/frappe/frappe/email/doctype/email_account/email_account.py +53,"Email id must be unique, Email Account is already exist \
-				for {0}","Email id deve essere unico, account e-mail è già esistenti \ per {0}"
+				for {0}","Indirizzo e-mail deve essere univoco, account e-mail è già esistente \ per {0}"
 DocType: Print Settings,Print Settings,Impostazioni di stampa
 DocType: Page,Yes,Sì
 DocType: DocType,Max Attachments,Numero massimo allegati

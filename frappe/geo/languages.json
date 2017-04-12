@@ -52,6 +52,10 @@
   "name": "English"
  },
  {
+  "code": "en-GB",
+  "name": "English (United Kingdom)"
+ },
+ {
   "code": "en-US",
   "name": "English (United States)"
  },

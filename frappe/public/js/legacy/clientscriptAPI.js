@@ -489,7 +489,7 @@ _f.Frm.prototype.make_new = function(doctype) {
 _f.Frm.prototype.update_in_all_rows = function(table_fieldname, fieldname, value) {
 	// update the child value in all tables where it is missing
 	if(!value) return;
-	var cl = doc[table_fieldname] || [];
+	var cl = this.doc[table_fieldname] || [];
 	for(var i = 0; i < cl.length; i++){
 		if(!cl[i][fieldname]) cl[i][fieldname] = value;
 	}

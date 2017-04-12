@@ -1058,7 +1058,7 @@ DocType: DocType,Track Changes,Prati promjene
 DocType: Workflow State,Check,Provjeriti
 DocType: Razorpay Settings,API Key,API ključ
 DocType: Email Account,Send unsubscribe message in email,Pošalji odjaviti poruku e-pošte
-apps/frappe/frappe/public/js/frappe/form/toolbar.js +81,Edit Title,Title
+apps/frappe/frappe/public/js/frappe/form/toolbar.js +81,Edit Title,Uredi naslov
 apps/frappe/frappe/desk/page/modules/modules.js +24,Install Apps,Instalacija aplikacije
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +64,Fieldname which will be the DocType for this link field.,"Podataka, Naziv Polja koji će biti DOCTYPE za ovaj link području."
 apps/frappe/frappe/config/desk.py +14,Documents assigned to you and by you.,Dokumenti dodijeljeni vama i od vas.

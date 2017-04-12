@@ -10,6 +10,13 @@ frappe.start_app = function() {
 }
 
 $(document).ready(function() {
+	if(!frappe.utils.supportsES6) {
+		frappe.msgprint({
+			indicator: 'red',
+			title: __('Browser not supported'),
+			message: __('Some of the features might not work in your browser. Please update your browser to the latest version.')
+		});
+	}
 	frappe.start_app();
 });
 
@@ -133,9 +140,9 @@ frappe.Application = Class.extend({
 				var s = new frappe.ui.Dialog({
 						title: __("Checking one moment"),
 					fields: [{
-                    "fieldtype": "HTML",
-                    "fieldname": "checking"
-                }]
+					"fieldtype": "HTML",
+					"fieldname": "checking"
+				}]
 					});
 				s.fields_dict.checking.$wrapper.html('<i class="fa fa-spinner fa-spin fa-4x"></i>')
 				s.show();
@@ -311,12 +318,60 @@ frappe.Application = Class.extend({
 			method:'logout',
 			callback: function(r) {
 				if(r.exc) {
-					console.log(r.exc);
 					return;
 				}
 				me.redirect_to_login();
 			}
 		})
+	},
+	handle_session_expired: function() {
+		if(!frappe.app.session_expired_dialog) {
+			var dialog = new frappe.ui.Dialog({
+				title: __('Session Expired'),
+				fields: [
+					{ fieldtype:'Password', fieldname:'password',
+						label: __('Please Enter Your Password to Continue') },
+				],
+				onhide: () => {
+					if (!dialog.logged_in) {
+						frappe.app.redirect_to_login();
+					}
+				}
+			});
+			dialog.set_primary_action(__('Login'), () => {
+				frappe.call({
+					method: 'login',
+					args: {
+						usr: frappe.session.user,
+						pwd: dialog.get_values().password
+					},
+					callback: (r) => {
+						if (r.message==='Logged In') {
+							dialog.logged_in = true;
+
+							// revert backdrop
+							$('.modal-backdrop').css({
+								'opacity': '',
+								'background-color': '#334143'
+							});
+						}
+						dialog.hide();
+					},
+					statusCode: () => {
+						dialog.hide();
+					}
+				});
+			});
+			frappe.app.session_expired_dialog = dialog;
+		}
+		if(!frappe.app.session_expired_dialog.display) {
+			frappe.app.session_expired_dialog.show();
+			// add backdrop
+			$('.modal-backdrop').css({
+				'opacity': 1,
+				'background-color': '#EBEFF2'
+			});
+		}
 	},
 	redirect_to_login: function() {
 		window.location.href = '/';
@@ -367,10 +422,10 @@ frappe.Application = Class.extend({
 		if(window.mixpanel) {
 			window.mixpanel.identify(frappe.session.user);
 			window.mixpanel.people.set({
-			    "$first_name": frappe.boot.user.first_name,
-			    "$last_name": frappe.boot.user.last_name,
-			    "$created": frappe.boot.user.creation,
-			    "$email": frappe.session.user
+				"$first_name": frappe.boot.user.first_name,
+				"$last_name": frappe.boot.user.last_name,
+				"$created": frappe.boot.user.creation,
+				"$email": frappe.session.user
 			});
 		}
 	},

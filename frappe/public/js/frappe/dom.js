@@ -37,7 +37,7 @@ frappe.dom = {
 				elements[i].parentNode.removeChild(elements[i]);
 			}
 		});
-		
+
 		// remove links with rel="stylesheet"
 		var elements = div.getElementsByTagName('link');
 		var i = elements.length;
@@ -141,10 +141,7 @@ frappe.dom = {
 		if(!frappe.dom.freeze_count) return; // anything open?
 		frappe.dom.freeze_count--;
 		if(!frappe.dom.freeze_count) {
-			var freeze = $('#freeze').removeClass("in");
-			setTimeout(function() {
-				if(!frappe.dom.freeze_count) { freeze.remove(); }
-			}, 150);
+			var freeze = $('#freeze').removeClass("in").remove();
 		}
 	},
 	save_selection: function() {
