@@ -92,10 +92,8 @@ def validate_email_add(email_str, throw=False):
 				_valid = False
 			else:
 				matched = match.group(0)
-
 				if match:
 					match = matched==e.lower()
-
 		if not _valid:
 			if throw:
 				frappe.throw(frappe._("{0} is not a valid Email Address").format(e),
@@ -459,13 +457,24 @@ def sanitize_email(emails):
 	return ", ".join(sanitized)
 
 def parse_email(email_string):
-	email_regex = re.compile(r"([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)")
-	#get the first email adrress only
-	email_list = re.findall(email_regex, email_string)
-	email_id = email_list[0] if len(email_list) > 0 else parseaddr(email_string)[1]
-	name = filter(lambda x: len(x) > 0,
-		[x for x in parseaddr(email_string)])[0] or email_id
-	return (name, email_id)
+	"""Return email_id and user_name based on email string"""
+	
+	name, email = parseaddr(email_string)
+	if validate_email_id(email):
+		return (name, email)
+	else:
+		email_regex = re.compile(r"([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)")
+		email_list = re.findall(email_regex, email_string)
+		if len(email_list) > 0 and validate_email_id(email_list[0]):
+			#take only first email address
+			return (name, email_list[0])
+	frappe.throw(frappe._("{0} is not a valid Email Address").format(email_string),
+		frappe.InvalidEmailAddressError)
+
+def validate_email_id(email_id):
+	if ("@" in email_id) and (".com" in email_id) and (email_id.index("@") + 1 < email_id.index(".com")):
+		return True
+	return False
 
 
 def get_installed_apps_info():
