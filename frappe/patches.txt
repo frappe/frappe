@@ -176,3 +176,4 @@ frappe.patches.v8_0.newsletter_childtable_migrate
 execute:frappe.db.sql("delete from `tabDesktop Icon` where module_name='Communication'")
 execute:frappe.db.sql("update `tabDesktop Icon` set type='list' where _doctype='Communication'")
 frappe.patches.v8_0.fix_non_english_desktop_icons
+frappe.patches.v8_0.update_values_for_page_and_custom_role
