@@ -72,7 +72,7 @@ frappe.search.AwesomeBar = Class.extend({
 				}
 				me.add_help();
 
-				awesomplete.list = me.options;
+				awesomplete.list = me.deduplicate(me.options);
 			}, 100));
 
 		});

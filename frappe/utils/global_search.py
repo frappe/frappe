@@ -67,6 +67,10 @@ def update_global_search(doc):
 
 def make_field(doc, field):
 	'''Prepare field from raw data'''
+
+	# remove bs
+	# only for for relevant fields
+	# remove " &&& ", use colon proximity to |||
 	from HTMLParser import HTMLParser
 	from bs4 import BeautifulSoup
 

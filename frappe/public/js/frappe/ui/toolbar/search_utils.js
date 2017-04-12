@@ -236,6 +236,19 @@ frappe.search.utils = {
 				route: ['List', 'Event', target],
 			});
 		}
+        console.log("get_pages called");
+        if(__('email inbox').indexOf(keywords.toLowerCase()) === 0) {
+            console.log("Added inbox");
+			out.push({
+				type: "Inbox",
+				prefix: "Open ",
+				label: __('Email Inbox'),
+				value: __("Open {0}", [__('Email Inbox')]),
+				index: me.fuzzy_search(keywords, 'email inbox'),
+				match: target,
+				route: ['List', 'Communication', 'Inbox'],
+			});
+		}
 		return out;
     },
 
