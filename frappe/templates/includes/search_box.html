@@ -16,7 +16,7 @@
 frappe.ready(function() {
 	if(get_url_arg("search")) {
 		var txt = get_url_arg("search");
-		$(".item-search-results").html("{{ _('Search results for') }}: " + txt);
+		$(".item-search-results").html("{{ _('Search results for') }}: " + encodeURIComponent(txt));
 		$(".item-search").toggle(false);
 		$(".clear").toggle(true);
 	}
