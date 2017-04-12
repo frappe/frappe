@@ -18,6 +18,13 @@ class Query(object):
 			if self.query.startswith(w):
 				return True
 		return False
+	
+	def ends_with(self, words):
+		words = self.convert_words_to_local_lang(words)
+		for w in words:
+			if self.query.endswith(w):
+				return True
+			return False
 
 	def has(self, words):
 		words = self.convert_words_to_local_lang(words)
@@ -53,8 +60,11 @@ class Query(object):
 
 	def get_action_from_text(self, params):
 		action = None
+
+		if self.starts_with(['cancel', 'abort', 'dump']):
+			action = action.CANCEL
 		
-		if params.info.action == actions.CREATE or self.starts_with(['add', 'create', 'new', 'post']):
+		elif params.info.action == actions.CREATE or self.starts_with(['add', 'create', 'new', 'post']):
 			action = actions.CREATE
 
 		elif params.info.action == actions.DELETE or self.starts_with(['remove', 'trash', 'delete', 'dump']):
@@ -72,6 +82,6 @@ class Query(object):
 		
 		elif self.starts_with(['how many', 'count']):
 			action = actions.COUNT
-		
+
 		else:
 			action = actions.DEFAULT
