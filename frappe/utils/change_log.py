@@ -100,7 +100,7 @@ def get_versions():
 		if versions[app]['branch'] != 'master':
 			branch_version = app_hooks.get('{0}_version'.format(versions[app]['branch']))
 			if branch_version:
-				versions[app]['branch_version'] = branch_version[0]
+				versions[app]['branch_version'] = branch_version[0] + ' ({0})'.format(get_app_last_commit_ref(app))
 
 		try:
 			versions[app]["version"] = frappe.get_attr(app + ".__version__")
@@ -114,5 +114,12 @@ def get_app_branch(app):
 	try:
 		return subprocess.check_output('cd ../apps/{0} && git rev-parse --abbrev-ref HEAD'.format(app),
 			shell=True).strip()
+	except Exception as e:
+		return ''
+
+def get_app_last_commit_ref(app):
+	try:
+		return subprocess.check_output('cd ../apps/{0} && git rev-parse HEAD'.format(app),
+			shell=True).strip()[:7]
 	except Exception as e:
 		return ''

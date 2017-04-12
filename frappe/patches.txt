@@ -150,7 +150,7 @@ frappe.patches.v7_0.replace_upgrade_link_limit
 frappe.patches.v7_0.set_email_group
 frappe.patches.v7_1.setup_integration_services #2016-10-27
 frappe.patches.v7_1.rename_chinese_language_codes
-execute:frappe.core.doctype.language.language.update_language_names()
+execute:frappe.core.doctype.language.language.update_language_names() # 2017-04-12
 execute:frappe.db.set_value("Print Settings", "Print Settings", "add_draft_heading", 1)
 frappe.patches.v7_0.cleanup_list_settings
 execute:frappe.db.set_default('language', '')

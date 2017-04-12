@@ -68,6 +68,9 @@ class DocType(Document):
 		if not self.is_new():
 			self.setup_fields_to_fetch()
 
+		if self.default_print_format and not self.custom:
+			frappe.throw(_('Standard DocType cannot have default print format, use Customize Form'))
+
 	def check_developer_mode(self):
 		"""Throw exception if not developer mode or via patch"""
 		if frappe.flags.in_patch or frappe.flags.in_test:

@@ -33,6 +33,10 @@ frappe.breadcrumbs = {
 	update: function() {
 		var breadcrumbs = frappe.breadcrumbs.all[frappe.breadcrumbs.current_page()];
 
+		if(!frappe.visible_modules) {
+			frappe.visible_modules = $.map(frappe.get_desktop_icons(true), (m) => { return m.module_name; });
+		}
+
 		var $breadcrumbs = $("#navbar-breadcrumbs").empty();
 		if(!breadcrumbs) {
 			$("body").addClass("no-breadcrumbs");
@@ -50,8 +54,9 @@ frappe.breadcrumbs = {
 		}
 
 		if(breadcrumbs.module) {
-			if(in_list(["Core", "Email", "Custom", "Workflow", "Print"], breadcrumbs.module))
+			if(in_list(["Core", "Email", "Custom", "Workflow", "Print"], breadcrumbs.module)) {
 				breadcrumbs.module = "Setup";
+			}
 
 			if(frappe.get_module(breadcrumbs.module)) {
 				// if module access exists
@@ -60,7 +65,7 @@ frappe.breadcrumbs = {
 					label = module_info ? module_info.label : breadcrumbs.module;
 
 
-				if(module_info && !module_info.blocked) {
+				if(module_info && !module_info.blocked && frappe.visible_modules.includes(module_info.module_name)) {
 					$(repl('<li><a href="#modules/%(module)s">%(label)s</a></li>',
 						{ module: breadcrumbs.module, label: __(label) }))
 						.appendTo($breadcrumbs);
