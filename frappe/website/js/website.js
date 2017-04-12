@@ -62,7 +62,11 @@ $.extend(frappe, {
 
 			// executed before statusCode functions
 			if(data.responseText) {
-				data = JSON.parse(data.responseText);
+				try {
+					data = JSON.parse(data.responseText);
+				} catch (e) {
+					data = {};
+				}
 			}
 			frappe.process_response(opts, data);
 		});
