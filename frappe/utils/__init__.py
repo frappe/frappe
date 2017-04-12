@@ -458,7 +458,6 @@ def sanitize_email(emails):
 
 def parse_email(email_string):
 	"""Return email_id and user_name based on email string"""
-	
 	name, email = parseaddr(email_string)
 	if validate_email_id(email):
 		return (name, email)
@@ -472,6 +471,7 @@ def parse_email(email_string):
 		frappe.InvalidEmailAddressError)
 
 def validate_email_id(email_id):
+	"""Check if email_id is valid. ex:text@example.com"""
 	if ("@" in email_id) and (".com" in email_id) and (email_id.index("@") + 1 < email_id.index(".com")):
 		return True
 	return False
