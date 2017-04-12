@@ -174,7 +174,7 @@ def load_messages(language):
 def load_languages():
 	return {
 		"default_language": frappe.db.get_value('Language', frappe.local.lang, 'language_name') or frappe.local.lang,
-		"languages": sorted(frappe.db.sql_list('select language_name from tabLanguage'))
+		"languages": sorted(frappe.db.sql_list('select language_name from tabLanguage order by name'))
 	}
 
 
