@@ -5,7 +5,7 @@
  "doctype": "Page", 
  "icon": "fa fa-upload", 
  "idx": 1, 
- "modified": "2016-05-11 03:37:53.385693", 
+ "modified": "2017-04-12 16:39:51.997488", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "data-import-tool", 
@@ -15,5 +15,6 @@
  "script": null, 
  "standard": "Yes", 
  "style": null, 
+ "system_page": 1, 
  "title": "Data Import Tool"
 }

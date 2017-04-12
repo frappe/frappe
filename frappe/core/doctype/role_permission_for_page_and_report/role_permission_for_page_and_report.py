@@ -37,8 +37,11 @@ class RolePermissionforPageandReport(Document):
 
 		args.update({
 			'doctype': 'Custom Role',
-			'roles': self.get_roles()
+			'roles': self.get_roles(),
 		})
+
+		if self.report:
+			args.update({'ref_doctype': frappe.db.get_value('Report', self.report, 'ref_doctype')})
 
 		if name:
 			custom_role = frappe.get_doc("Custom Role", name)

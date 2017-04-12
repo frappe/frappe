@@ -114,8 +114,9 @@ def get_user_page_or_report(parent):
 			tab{parent}.name, tab{parent}.modified, {column}
 			from `tabHas Role`, `tab{parent}`
 			where `tabHas Role`.role in ({roles})
-			and `tabHas Role`.parent = `tab{parent}`.name
-		""".format(parent=parent, column=column, roles = ', '.join(['%s']*len(roles))), roles, as_dict=True):
+			and `tabHas Role`.parent = `tab{parent}`.name and tab{parent}.name not in
+			(select `tabCustom Role`.{field} from `tabCustom Role` where `tabCustom Role`.{field} is not null)
+		""".format(parent=parent, column=column, roles = ', '.join(['%s']*len(roles)), field=parent.lower()), roles, as_dict=True):
 			if p.name not in has_role:
 				has_role[p.name] = {"modified":p.modified, "title": p.title}
 				if parent == "Report":
@@ -134,7 +135,7 @@ def get_user_page_or_report(parent):
 					has_role[p.name].update({'report_type': p.report_type})
 
 	return has_role
-	
+
 def get_column(doctype):
 	column = "`tabPage`.title as title"
 	if doctype == "Report":
