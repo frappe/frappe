@@ -95,46 +95,70 @@ def get_allowed_pages():
 
 def get_allowed_reports():
 	return get_user_page_or_report('Report')
-	
+
 def get_user_page_or_report(parent):
 	roles = frappe.get_roles()
 	has_role = {}
 	column = get_column(parent)
-	
-	# get pages or reports set on custom role
-	for p in frappe.db.sql("""select `tabCustom Role`.{field} as name, `tabCustom Role`.modified, `tabCustom Role`.ref_doctype
-		from `tabCustom Role`, `tabHas Role` where
-			`tabHas Role`.parent = `tabCustom Role`.name and
-			`tabCustom Role`.{field} is not null and `tabHas Role`.role in ({roles})
-			""".format(field=parent.lower(), roles = ', '.join(['%s']*len(roles))), roles, as_dict=1):
 
+	# get pages or reports set on custom role
+	custom_roles = frappe.db.sql("""
+		select 
+			`tabCustom Role`.{field} as name, 
+			`tabCustom Role`.modified, 
+			`tabCustom Role`.ref_doctype 
+		from `tabCustom Role`, `tabHas Role` 
+		where
+			`tabHas Role`.parent = `tabCustom Role`.name 
+			and `tabCustom Role`.{field} is not null 
+			and `tabHas Role`.role in ({roles})
+	""".format(field=parent.lower(), roles = ', '.join(['%s']*len(roles))), roles, as_dict=1)
+				
+	for p in custom_roles:
 		has_role[p.name] = {"modified":p.modified, "title": p.name, "ref_doctype": p.ref_doctype}
 
-	for p in frappe.db.sql("""select distinct
-			tab{parent}.name, tab{parent}.modified, {column}
-			from `tabHas Role`, `tab{parent}`
-			where `tabHas Role`.role in ({roles})
-			and `tabHas Role`.parent = `tab{parent}`.name
-		""".format(parent=parent, column=column, roles = ', '.join(['%s']*len(roles))), roles, as_dict=True):
-			if p.name not in has_role:
-				has_role[p.name] = {"modified":p.modified, "title": p.title}
-				if parent == "Report":
-					has_role[p.name].update({'ref_doctype': p.ref_doctype})
-					has_role[p.name].update({'report_type': p.report_type})
+	standard_roles = frappe.db.sql("""
+		select distinct
+			tab{parent}.name, 
+			tab{parent}.modified, 
+			{column}
+		from `tabHas Role`, `tab{parent}`
+		where 
+			`tabHas Role`.role in ({roles})
+			and `tabHas Role`.parent = `tab{parent}`.name 
+			and tab{parent}.name not in (
+				select `tabCustom Role`.{field} from `tabCustom Role` 
+				where `tabCustom Role`.{field} is not null)
+		""".format(parent=parent, column=column, 
+			roles = ', '.join(['%s']*len(roles)), field=parent.lower()), roles, as_dict=True)
+		
+	for p in standard_roles:
+		if p.name not in has_role:
+			has_role[p.name] = {"modified":p.modified, "title": p.title}
+			if parent == "Report":
+				has_role[p.name].update({'ref_doctype': p.ref_doctype})
 
-	# pages or reports where role is not set are also allowed
-	for p in frappe.db.sql("""select `tab{parent}`.name, `tab{parent}`.modified, {column}
-			from `tab{parent}` where
-			(select count(*) from `tabHas Role`
-		where `tabHas Role`.parent=tab{parent}.name) = 0""".format(parent=parent, column=column), as_dict=1):
-			if p.name not in has_role:	
-				has_role[p.name] = {"modified":p.modified, "title": p.title}
-				if parent == "Report":
-					has_role[p.name].update({'ref_doctype': p.ref_doctype})
-					has_role[p.name].update({'report_type': p.report_type})
+	# pages with no role are allowed
+	if parent =="Page":
+		pages_with_no_roles = frappe.db.sql("""
+			select
+				`tab{parent}`.name, `tab{parent}`.modified, {column}
+			from `tab{parent}`
+			where
+				(select count(*) from `tabHas Role`
+				where `tabHas Role`.parent=tab{parent}.name) = 0
+		""".format(parent=parent, column=column), as_dict=1)
+		
+		for p in pages_with_no_roles:
+			if p.name not in has_role:
+				has_role[p.name] = {"modified": p.modified, "title": p.title}
+	
+	elif parent == "Report":
+		for report_name in has_role:
+			has_role[report_name]["report_type"] = frappe.db.get_value("Report", report_name, "report_type")
 
 	return has_role
-	
+
 def get_column(doctype):
 	column = "`tabPage`.title as title"
 	if doctype == "Report":

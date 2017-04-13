@@ -69,7 +69,6 @@ frappe.email_defaults_pop = {
 
 frappe.ui.form.on("Email Account", {
 	service: function(frm) {
-		console.log(frm.doc.service, frappe.email_defaults[frm.doc.service])
 		$.each(frappe.email_defaults[frm.doc.service], function(key, value) {
 			frm.set_value(key, value);
 		})
