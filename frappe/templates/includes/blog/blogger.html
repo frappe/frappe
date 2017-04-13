@@ -5,7 +5,7 @@
 		</div>
 	</div>
 	<div class="inline-block" style="width: calc(100% - 100px)">
-		<h2 class="blogger-name"><a href="/blog?by={{ blogger_info.name }}&by_name={{ blogger_info.full_name }}">{{ blogger_info.full_name }}</a></h2>
-		<p class="text-muted">{%if blogger_info.bio%}{{ blogger_info.bio }}{%endif%}</p>
+		<h2 class="blogger-name"><a href="/blog?blogger={{ blogger_info.name }}">{{ blogger_info.full_name }}</a></h2>
+		<p class="text-muted">{%if blogger_info.bio %}{{ blogger_info.bio }}{% endif %}</p>
 	</div>
 </div>
