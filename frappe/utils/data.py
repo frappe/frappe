@@ -348,12 +348,9 @@ def fmt_money(amount, precision=None, currency=None):
 	"""
 	Convert to string with commas for thousands, millions etc
 	"""
-	number_format = None
-	if currency:
-		number_format = frappe.db.get_value("Currency", currency, "number_format", cache=True)
-
-	if not number_format:
-		number_format = frappe.db.get_default("number_format") or "#,###.##"
+	number_format = frappe.db.get_default("number_format") or "#,###.##"
+	if precision is None:
+		precision = cint(frappe.db.get_default('currency_precision')) or None
 
 	decimal_str, comma_str, number_format_precision = get_number_format_info(number_format)
 
