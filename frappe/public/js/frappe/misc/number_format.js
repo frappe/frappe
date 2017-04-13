@@ -150,7 +150,6 @@ function get_currency_symbol(currency) {
 	}
 }
 
-var global_number_format = null;
 function get_number_format(currency) {
 	return (frappe.boot && frappe.boot.sysdefaults.number_format) || "#,###.##";
 }
