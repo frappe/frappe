@@ -3,7 +3,7 @@
 
 from __future__ import unicode_literals
 import frappe
-from frappe.core.doctype.custom_field.custom_field import create_custom_field
+from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 
 def execute():
 	if "match" in frappe.db.get_table_columns("DocPerm"):
