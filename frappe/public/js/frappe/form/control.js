@@ -1802,15 +1802,9 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 			}
 		} else {
 			this.upload_options.on_attach = function(fileobj, dataurl) {
+				me.editor.summernote('insertImage', dataurl);
 				me.image_dialog.hide();
-				me.fileobj = fileobj;
-				me.dataurl = dataurl;
-				if(me.on_attach) {
-					me.on_attach()
-				}
-				if(me.df.on_attach) {
-					me.df.on_attach(fileobj, dataurl);
-				}
+				frappe.hide_progress();
 			}
 		}
 	},
