@@ -181,7 +181,7 @@ class TestUser(unittest.TestCase):
 		user.new_password = 'testpassword'
 		user.save()
 
-		update_limits({'expiry': add_to_date(today(), days=-1)})
+		update_limits({'expiry': add_to_date(today(), days=-1), 'support_email': 'support@example.com'})
 		frappe.local.conf = _dict(frappe.get_site_config())
 
 		frappe.db.commit()
@@ -194,10 +194,10 @@ class TestUser(unittest.TestCase):
 
 		clear_limit("expiry")
 		frappe.local.conf = _dict(frappe.get_site_config())
-	
+
 	def test_deactivate_additional_users(self):
 		update_limits({'users': get_total_users()+1})
-		
+
 		if not frappe.db.exists("User", "test_deactivate_additional_users@example.com"):
 			user = frappe.new_doc('User')
 			user.email = 'test_deactivate_additional_users@example.com'
@@ -207,10 +207,10 @@ class TestUser(unittest.TestCase):
 		#update limits
 		update_limits({"users": get_total_users()-1})
 		self.assertEqual(frappe.db.get_value("User", "test_deactivate_additional_users@example.com", "enabled"), 0)
-		
+
 		if frappe.db.exists("User", "test_deactivate_additional_users@example.com"):
 			frappe.delete_doc('User', 'test_deactivate_additional_users@example.com')
 
 		# Clear the user limit
 		clear_limit('users')
-		
+
