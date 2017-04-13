@@ -978,8 +978,8 @@ input[type="checkbox"]:checked:before {
   font-size: 13px;
   color: #3b99fc;
 }
-.multilink-empty-state {
-  min-height: 200px;
+.multiselect-empty-state {
+  min-height: 400px;
   display: flex;
   align-items: center;
   justify-content: center;
