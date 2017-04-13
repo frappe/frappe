@@ -6,7 +6,7 @@ frappe.ui.form.on('Address Template', {
 		if(frm.is_new() && !frm.doc.template) {
 			// set default template via js so that it is translated
 			frappe.call({
-				method: 'frappe.geo.doctype.address_template.address_template.get_default_address_template',
+				method: 'frappe.contacts.doctype.address_template.address_template.get_default_address_template',
 				callback: function(r) {
 					frm.set_value('template', r.message);
 				}
