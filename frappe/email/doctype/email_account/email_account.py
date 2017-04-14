@@ -247,9 +247,14 @@ class EmailAccount(Document):
 				email_sync_rule = self.build_email_sync_rule()
 
 				email_server = self.get_incoming_server(in_receive=True, email_sync_rule=email_sync_rule)
-				emails = email_server.get_messages()
+				if not email_server:
+					return
 
-				incoming_mails = emails.get("latest_messages")
+				emails = email_server.get_messages()
+				if not emails:
+					return
+
+				incoming_mails = emails.get("latest_messages", [])
 				uid_list = emails.get("uid_list", [])
 				seen_status = emails.get("seen_status", [])
 				uid_reindexed = emails.get("uid_reindexed", False)
