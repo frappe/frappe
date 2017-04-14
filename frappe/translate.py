@@ -235,7 +235,7 @@ def get_translation_dict_from_file(path, lang, app):
 			elif len(item)==2:
 				cleaned[item[0]] = strip(item[1])
 
-			else:
+			elif item:
 				raise Exception("Bad translation in '{app}' for language '{lang}': {values}".format(
 					app=app, lang=lang, values=repr(item).encode("utf-8")
 				))

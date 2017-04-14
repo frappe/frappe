@@ -8,7 +8,7 @@ frappe.utils.full_name = function(fn, ln) {
 function fmt_money(v, format){
 	// deprecated!
 	// for backward compatibility
-	return format_number(v, format);
+	return format_currency(v, format);
 }
 
 
