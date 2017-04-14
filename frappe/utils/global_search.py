@@ -75,8 +75,9 @@ def make_field(doc, field):
 	if(getattr(field, 'fieldtype', None) in ["Data", "Text", "Text Editor", "Small Text", "Long Text", "Heading"]):
 		h = HTMLParser()
 		value = h.unescape(value)
-		value = (re.subn(r'<[\s]*(script|style).*?</\1>(?s)', '', value)[0])
-	return field.label + " : " + strip_html_tags(unicode(' '.join(value.split())))
+		value = (re.subn(r'<[\s]*(script|style).*?</\1>(?s)', '', unicode(value))[0])
+		value = ' '.join(value.split())
+	return field.label + " : " + strip_html_tags(unicode(value))
 
 def sync_global_search():
 	'''Add values from `frappe.flags.update_global_search` to __global_search.
