@@ -225,6 +225,9 @@ frappe.views.ListRenderer = Class.extend({
 		// Remove duplicates
 		this.columns = this.columns.uniqBy(col => col.title);
 
+		// Remove TextEditor field columns
+		this.columns = this.columns.filter(col => col.fieldtype !== 'Text Editor')
+
 		// Limit number of columns to 4
 		this.columns = this.columns.slice(0, 4);
 	},
