@@ -167,8 +167,23 @@ frappe.views.Calendar = Class.extend({
 
 				frappe.set_route("Form", me.doctype, event.name);
 			},
-			dayClick: function(date, allDay, jsEvent, view) {
-				jsEvent.day_clicked = true;
+			dayClick: function(date, jsEvent, view) {
+				if(view.name === 'month') {
+					const $date_cell = $('td[data-date=' + date.format('YYYY-MM-DD') + "]");
+
+					if($date_cell.hasClass('date-clicked')) {
+						me.$cal.fullCalendar('changeView', 'agendaDay');
+						me.$cal.fullCalendar('gotoDate', date);
+						me.$wrapper.find('.date-clicked').removeClass('date-clicked');
+
+						// update "active view" btn
+						me.$wrapper.find('.fc-month-button').removeClass('active');
+						me.$wrapper.find('.fc-agendaDay-button').addClass('active');
+					}
+
+					me.$wrapper.find('.date-clicked').removeClass('date-clicked');
+					$date_cell.addClass('date-clicked');
+				}
 				return false;
 			}
 		};
@@ -225,15 +240,15 @@ frappe.views.Calendar = Class.extend({
 			let color;
 			if(me.get_css_class) {
 				color = me.color_map[me.get_css_class(d)];
+				// if invalid, fallback to blue color
+				if(!Object.values(me.color_map).includes(color)) {
+					color = "blue";
+				}
 			} else {
 				// color field can be set in {doctype}_calendar.js
 				// see event_calendar.js
 				color = d.color;
 			}
-			// if invalid, fallback to blue color
-			if(!Object.values(me.color_map).includes(color)) {
-				color = "blue";
-			} 
 			d.className = "fc-bg-" + color;
 			return d;
 		});
