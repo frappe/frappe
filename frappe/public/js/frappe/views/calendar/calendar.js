@@ -225,15 +225,15 @@ frappe.views.Calendar = Class.extend({
 			let color;
 			if(me.get_css_class) {
 				color = me.color_map[me.get_css_class(d)];
+				// if invalid, fallback to blue color
+				if(!Object.values(me.color_map).includes(color)) {
+					color = "blue";
+				}
 			} else {
 				// color field can be set in {doctype}_calendar.js
 				// see event_calendar.js
 				color = d.color;
 			}
-			// if invalid, fallback to blue color
-			if(!Object.values(me.color_map).includes(color)) {
-				color = "blue";
-			} 
 			d.className = "fc-bg-" + color;
 			return d;
 		});
