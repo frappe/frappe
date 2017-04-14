@@ -167,8 +167,23 @@ frappe.views.Calendar = Class.extend({
 
 				frappe.set_route("Form", me.doctype, event.name);
 			},
-			dayClick: function(date, allDay, jsEvent, view) {
-				jsEvent.day_clicked = true;
+			dayClick: function(date, jsEvent, view) {
+				if(view.name === 'month') {
+					const $date_cell = $('td[data-date=' + date.format('YYYY-MM-DD') + "]");
+
+					if($date_cell.hasClass('date-clicked')) {
+						me.$cal.fullCalendar('changeView', 'agendaDay');
+						me.$cal.fullCalendar('gotoDate', date);
+						me.$wrapper.find('.date-clicked').removeClass('date-clicked');
+
+						// update "active view" btn
+						me.$wrapper.find('.fc-month-button').removeClass('active');
+						me.$wrapper.find('.fc-agendaDay-button').addClass('active');
+					}
+
+					me.$wrapper.find('.date-clicked').removeClass('date-clicked');
+					$date_cell.addClass('date-clicked');
+				}
 				return false;
 			}
 		};
