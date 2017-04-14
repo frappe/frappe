@@ -27,6 +27,23 @@ def reset():
 	'''Deletes all data in __global_search'''
 	frappe.db.sql('delete from __global_search')
 
+def get_doctypes_with_global_search():
+	'''Return doctypes with global search fields'''
+	def _get():
+		global_search_doctypes = []
+		for d in frappe.get_all('DocType', 'name, module'):
+			meta = frappe.get_meta(d.name)
+			if len(meta.get_global_search_fields()) > 0:
+				global_search_doctypes.append(d)
+
+		installed_apps = frappe.get_installed_apps()
+
+		doctypes = [d.name for d in global_search_doctypes
+			if frappe.local.module_app[frappe.scrub(d.module)] in installed_apps]
+		return doctypes
+
+	return frappe.cache().get_value('doctypes_with_global_search', _get)
+
 def update_global_search(doc):
 	'''Add values marked with `in_global_search` to
 		`frappe.flags.update_global_search` from given doc
