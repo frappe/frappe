@@ -236,7 +236,6 @@ frappe.search.utils = {
 				route: ['List', 'Event', target],
 			});
 		}
-        console.log("get_pages called");
         if(__('email inbox').indexOf(keywords.toLowerCase()) === 0) {
             console.log("Added inbox");
 			out.push({
@@ -302,8 +301,8 @@ frappe.search.utils = {
                             var colon_index = part.indexOf(' &&& ');
                             var field_value = part.slice(colon_index + 5);
                         } else {
-                            var colon_index = part.indexOf(':');
-                            var field_value = part.slice(colon_index + 1);
+                            var colon_index = part.indexOf(' : ');
+                            var field_value = part.slice(colon_index + 3);
                         }
                         if(field_value.length > field_length) {
                             var field_data = "";

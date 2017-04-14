@@ -4,6 +4,7 @@
 from __future__ import unicode_literals
 
 import frappe
+import re
 from frappe.utils import cint, strip_html_tags
 
 def setup_global_search_table():
@@ -68,23 +69,14 @@ def update_global_search(doc):
 def make_field(doc, field):
 	'''Prepare field from raw data'''
 
-	# remove bs
-	# only for for relevant fields
-	# remove " &&& ", use colon proximity to |||
 	from HTMLParser import HTMLParser
-	from bs4 import BeautifulSoup
 
 	value = doc.get(field.fieldname)
-	h = HTMLParser()
-	value = h.unescape(value)
-	try:
-		soup = BeautifulSoup(value, 'html.parser')
-		for node in soup.findAll(['script', 'style']):
-			node.extract()
-		value = soup.get_text()
-	except Exception:
-		pass
-	return field.label + " &&& " + strip_html_tags(unicode(value))
+	if(getattr(field, 'fieldtype', None) in ["Data", "Text", "Text Editor", "Small Text", "Long Text", "Heading"]):
+		h = HTMLParser()
+		value = h.unescape(value)
+		value = (re.subn(r'<[\s]*(script|style).*?</\1>(?s)', '', value)[0])
+	return field.label + " : " + strip_html_tags(unicode(' '.join(value.split())))
 
 def sync_global_search():
 	'''Add values from `frappe.flags.update_global_search` to __global_search.
