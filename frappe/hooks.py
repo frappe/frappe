@@ -52,6 +52,10 @@ website_route_rules = [
 	{"from_route": "/kb/<category>", "to_route": "Help Article"}
 ]
 
+website_context = {
+	"splash_image": "/assets/frappe/images/frappe-bird-thin.svg"
+}
+
 write_file_keys = ["file_url", "file_name"]
 
 notification_config = "frappe.core.notifications.get_notification_config"

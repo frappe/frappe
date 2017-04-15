@@ -39,7 +39,9 @@ def get_context(context):
 		"csrf_token": csrf_token,
 		"background_image": boot.user.background_image or boot.default_background_image,
 		"google_analytics_id": frappe.conf.get("google_analytics_id"),
-		"mixpanel_id": frappe.conf.get("mixpanel_id")
+		"mixpanel_id": frappe.conf.get("mixpanel_id"),
+		"splash_image": frappe.db.get_single_value("System Settings", "splash_screen_image") or 
+			frappe.get_hooks("website_context").get("splash_image")[-1]
 	}
 
 @frappe.whitelist()
