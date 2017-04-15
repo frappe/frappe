@@ -422,6 +422,7 @@ def accept(web_form, data, for_payment=False):
 				remove_file_by_url(f, doc.doctype, doc.name)
 
 	frappe.flags.web_form_doc = doc
+	frappe.db.commit()
 
 	if for_payment:
 		return web_form.get_payment_gateway_url(doc)
