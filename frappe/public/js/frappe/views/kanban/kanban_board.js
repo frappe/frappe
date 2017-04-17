@@ -178,21 +178,33 @@ frappe.provide("frappe.views");
 				});
 			},
 			update_order: function(updater, order) {
-				return frappe.call({
+				// cache original order
+				const _cards = this.cards.slice();
+				const _columns = this.columns.slice();
+				
+				frappe.call({
 					method: method_prefix + "update_order",
 					args: {
 						board_name: this.board.name,
 						order: order
+					},
+					callback: (r) => {
+						var state = this;
+						var board = r.message[0];
+						var updated_cards = r.message[1];
+						var cards = update_cards_column(updated_cards);
+						var columns = prepare_columns(board.columns);
+						updater.set({
+							cards: cards,
+							columns: columns
+						});
 					}
-				}).then(function(r) {
-					var state = this;
-					var board = r.message[0];
-					var updated_cards = r.message[1];
-					var cards = update_cards_column(updated_cards);
-					var columns = prepare_columns(board.columns);
+				})
+				.fail(function(e) {
+					// revert original order
 					updater.set({
-						cards: cards,
-						columns: columns
+						cards: _cards,
+						columns: _columns
 					});
 				});
 			},
