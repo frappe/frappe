@@ -5,7 +5,7 @@ frappe.views.KanbanView = frappe.views.ListRenderer.extend({
 	render_view: function(values) {
 		var board_name = this.get_board_name();
 		if(this.kanban && board_name === this.kanban.board_name) {
-			this.kanban.update_cards(values);
+			this.kanban.update(values);
 			return;
 		}
 
