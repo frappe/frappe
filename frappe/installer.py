@@ -39,6 +39,11 @@ def install_db(root_login="root", root_password=None, db_name=None, source_sql=N
 	frappe.connect(db_name=db_name)
 	check_if_ready_for_barracuda()
 	import_db_from_sql(source_sql, verbose)
+	if not 'tabDefaultValue' in frappe.db.get_tables():
+		print '''Database not installed, this can due to lack of permission, or that the database name exists.
+Check your mysql root password, or use --force to reinstall'''
+		sys.exit(1)
+
 	remove_missing_apps()
 
 	create_auth_table()
