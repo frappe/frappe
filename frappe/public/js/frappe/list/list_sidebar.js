@@ -90,7 +90,7 @@ frappe.views.ListSidebar = Class.extend({
 				if(!r.ref_doctype || r.ref_doctype==me.doctype) {
 					var report_type = r.report_type==='Report Builder'
 						? 'Report/' + r.ref_doctype : 'query-report';
-					var route = r.route || report_type + '/' + r.title;
+					var route = r.route || report_type + '/' + (r.title || r.name);
 
 					if(added.indexOf(route)===-1) {
 						// don't repeat
@@ -102,7 +102,7 @@ frappe.views.ListSidebar = Class.extend({
 						}
 
 						$('<li><a href="#'+ route + '">'
-							+ __(r.title)+'</a></li>').appendTo(dropdown);
+							+ __(r.title || r.name)+'</a></li>').appendTo(dropdown);
 					}
 				}
 			});
