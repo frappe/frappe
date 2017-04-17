@@ -53,12 +53,13 @@ def get_list(arg=None):
 			limit %(start)s, %(page_length)s""".format(fields),
 			frappe.local.form_dict, as_dict=1)
 	else:
-		return frappe.db.sql("""select * from `tabCommunication`
+		return frappe.db.sql("""select {0} from `tabCommunication`
 			where
 				communication_type in ('Chat', 'Notification')
+				and comment_type != 'Bot'
 				and reference_doctype ='User'
 				and ((owner=%(contact)s and reference_name=%(user)s)
-					or (owner=%(contact)s and reference_name=%(contact)s))
+					or (owner=%(user)s and reference_name=%(contact)s))
 			order by creation desc
 			limit %(start)s, %(page_length)s""".format(fields),
 			frappe.local.form_dict, as_dict=1)

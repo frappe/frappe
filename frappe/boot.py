@@ -233,7 +233,7 @@ def load_print_css(bootinfo, print_settings):
 	bootinfo.print_css = frappe.get_attr("frappe.www.print.get_print_style")(print_settings.print_style or "Modern", for_legacy=True)
 
 def get_unseen_notes():
-	return frappe.db.sql('''select name, title, content from tabNote where notify_on_login=1
+	return frappe.db.sql('''select name, title, content, notify_on_every_login from tabNote where notify_on_login=1
 		and expire_notification_on > %s and %s not in
 			(select user from `tabNote Seen By` nsb
 				where nsb.parent=tabNote.name)''', (frappe.utils.now(), frappe.session.user), as_dict=True)
