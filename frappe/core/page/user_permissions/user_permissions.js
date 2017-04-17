@@ -328,6 +328,10 @@ frappe.UserPermissions = Class.extend({
 				}
 
 				d.fields_dict["defvalue"].get_query = function(txt) {
+					if(!d.get_value("defkey")) {
+						frappe.throw(__("Please select Document Type"));
+					}
+
 					return {
 						doctype: d.get_value("defkey")
 					}
