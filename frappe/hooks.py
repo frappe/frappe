@@ -21,6 +21,8 @@ page_js = {
 	"setup-wizard": "public/js/frappe/setup_wizard.js"
 }
 
+welcome_email = "frappe.core.doctype.user.user.get_welcome_email"
+
 # website
 app_include_js = [
 	"assets/js/libs.min.js",
