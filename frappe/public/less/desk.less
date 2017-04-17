@@ -882,10 +882,19 @@ input[type="checkbox"] {
 		color: @checkbox-color;
 	}
 }
-// mozilla doesn't support
-// pseudo elements on checkbox
+
+
+// mozilla doesn't support pseudo elements on checkbox
 @-moz-document url-prefix() {
 	input[type="checkbox"] {
 		visibility: visible;
+	}
+}
+
+// edge doesn't support pseudo elements on checkbox
+//Microsoft Edge Browser 12+ (All)
+@supports (-ms-ime-align:auto) {
+	input[type="checkbox"] {
+		 visibility: visible;
 	}
 }
