@@ -70,9 +70,9 @@ def update_global_search(doc):
 				  	if d.parent == doc.name:
 				  		for field in d.meta.get_global_search_fields():
 				  			if d.get(field.fieldname):
-								content.append(make_field(d, field))
+								content.append(get_field_value(d, field))
 			else:
-				content.append(make_field(doc, field))
+				content.append(get_field_value(doc, field))
 
 	if content:
 		published = 0
@@ -83,7 +83,7 @@ def update_global_search(doc):
 			dict(doctype=doc.doctype, name=doc.name, content=' ||| '.join(content or ''),
 				published=published, title=doc.get_title(), route=doc.get('route')))
 
-def make_field(doc, field):
+def get_field_value(doc, field):
 	'''Prepare field from raw data'''
 
 	from HTMLParser import HTMLParser

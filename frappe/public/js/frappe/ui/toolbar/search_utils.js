@@ -237,7 +237,6 @@ frappe.search.utils = {
 			});
 		}
         if(__('email inbox').indexOf(keywords.toLowerCase()) === 0) {
-            console.log("Added inbox");
 			out.push({
 				type: "Inbox",
 				prefix: "Open ",
