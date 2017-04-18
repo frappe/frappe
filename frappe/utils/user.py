@@ -22,6 +22,7 @@ class UserPermissions:
 		self.all_read = []
 		self.can_create = []
 		self.can_read = []
+		self.can_be_listed_in_module = []
 		self.can_write = []
 		self.can_cancel = []
 		self.can_delete = []
@@ -114,6 +115,8 @@ class UserPermissions:
 						no_list_view_link.append(dt)
 					else:
 						self.can_read.append(dt)
+						if p.get('role') != 'All':
+							self.can_be_listed_in_module.append(dt)
 
 			if p.get('cancel'):
 				self.can_cancel.append(dt)
@@ -204,8 +207,7 @@ class UserPermissions:
 		for key in ("can_create", "can_write", "can_read", "can_cancel", "can_delete",
 			"can_get_report", "allow_modules", "all_read", "can_search",
 			"in_create", "can_export", "can_import", "can_print", "can_email",
-			"can_set_user_permissions"):
-
+			"can_set_user_permissions", 'can_be_listed_in_module'):
 			d[key] = list(set(getattr(self, key)))
 
 		d.all_reports = self.get_all_reports()

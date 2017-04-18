@@ -479,7 +479,7 @@ def get_timezones():
 def get_all_roles(arg=None):
 	"""return all roles"""
 	return [r[0] for r in frappe.db.sql("""select name from tabRole
-		where name not in ('Administrator', 'Guest', 'All') and not disabled and desk_access = '1' order by name""")]
+		where name not in ('Administrator', 'Guest', 'All') and not disabled order by name""")]
 
 @frappe.whitelist()
 def get_roles(arg=None):
@@ -565,7 +565,7 @@ def setup_user_email_inbox(email_account, awaiting_password, email_id, enable_ou
 	def add_user_email(user):
 		user = frappe.get_doc("User", user)
 		row = user.append("user_emails", {})
-		
+
 		row.email_id = email_id
 		row.email_account = email_account
 		row.awaiting_password = awaiting_password or 0
@@ -616,7 +616,7 @@ def remove_user_email_inbox(email_account):
 		return
 
 	users = frappe.get_all("User Email", filters={
-		"email_account": email_account 
+		"email_account": email_account
 	}, fields=["parent as name"])
 
 	for user in users:
@@ -674,7 +674,7 @@ def verify_password(password):
 def sign_up(email, full_name, redirect_to):
 	if not is_signup_enabled():
 		frappe.throw(_('Sign Up is disabled'), title='Not Allowed')
-		
+
 	user = frappe.db.get("User", {"email": email})
 	if user:
 		if user.disabled:
