@@ -30,10 +30,12 @@ frappe.dom = {
 	remove_script_and_style: function(txt) {
 		var div = document.createElement('div');
 		div.innerHTML = txt;
+		var found = false;
 		["script", "style", "noscript", "title", "meta", "base", "head"].forEach(function(e, i) {
 			var elements = div.getElementsByTagName(e);
 			var i = elements.length;
 			while (i--) {
+				found = true;
 				elements[i].parentNode.removeChild(elements[i]);
 			}
 		});
@@ -43,10 +45,16 @@ frappe.dom = {
 		var i = elements.length;
 		while (i--) {
 			if (elements[i].getAttribute("rel")=="stylesheet"){
+				found = true;
 				elements[i].parentNode.removeChild(elements[i]);
 			}
 		}
-		return div.innerHTML;
+		if(found) {
+			return div.innerHTML;
+		} else {
+			// don't disturb
+			return txt;
+		}
 	},
 	is_element_in_viewport: function (el) {
 
