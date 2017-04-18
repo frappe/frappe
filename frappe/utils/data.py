@@ -439,11 +439,21 @@ def money_in_words(number, main_currency = None, fraction_currency=None):
 	in_million = True
 	if number_format == "#,##,###.##": in_million = False
 
-	out = main_currency + ' ' + in_words(main, in_million).title()
-	if cint(fraction):
-		out = out + ' ' + _('and') + ' ' + in_words(fraction, in_million).title() + ' ' + fraction_currency
+	if main_currency == "PEN":
+		out = in_words(main, in_million).title()
+		if cint(fraction):
+			out = out + ' ' + _('and') + ' ' + fraction + '/100'
+		else:
+			out = out + ' ' + _('and') + ' 00/100'
 
-	return out + ' ' + _('only.')
+		return out + ' soles'
+
+	else:
+		out = main_currency + ' ' + in_words(main, in_million).title()
+		if cint(fraction):
+			out = out + ' ' + _('and') + ' ' + in_words(fraction, in_million).title() + ' ' + fraction_currency
+
+		return out + ' ' + _('only.')
 
 #
 # convert number to words
