@@ -6,6 +6,10 @@ globals attached to frappe module
 """
 from __future__ import unicode_literals
 
+import sys
+reload(sys)
+sys.setdefaultencoding('utf-8')
+
 from werkzeug.local import Local, release_local
 import os, sys, importlib, inspect, json
 
