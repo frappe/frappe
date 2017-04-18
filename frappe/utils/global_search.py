@@ -89,7 +89,7 @@ def get_field_value(doc, field):
 	from HTMLParser import HTMLParser
 
 	value = doc.get(field.fieldname)
-	if(getattr(field, 'fieldtype', None) in ["Data", "Text", "Text Editor", "Small Text", "Long Text", "Heading"]):
+	if(getattr(field, 'fieldtype', None) in ["Text", "Text Editor"]):
 		h = HTMLParser()
 		value = h.unescape(value)
 		value = (re.subn(r'<[\s]*(script|style).*?</\1>(?s)', '', unicode(value))[0])

@@ -288,14 +288,15 @@ frappe.search.utils = {
 
             function make_description(content, doc_name) {
                 var parts = content.split(" ||| ");
-                var content_length = 300;
+                var result_max_length = 300;
                 var field_length = 120;
                 var fields = [];
-                var current_length = 0;
+                var result_current_length = 0;
                 var field_text = "";
                 for(var i = 0; i < parts.length; i++) {
                     part = parts[i];
                     if(part.toLowerCase().indexOf(keywords) !== -1) {
+                        // If the field contains the keyword
                         if(part.indexOf(' &&& ') !== -1) {
                             var colon_index = part.indexOf(' &&& ');
                             var field_value = part.slice(colon_index + 5);
@@ -304,6 +305,9 @@ frappe.search.utils = {
                             var field_value = part.slice(colon_index + 3);
                         }
                         if(field_value.length > field_length) {
+                            // If field value exceeds field_length, find the keyword in it
+                            // and trim field value by half the field_length at both sides
+                            // ellipsify if necessary
                             var field_data = "";
                             var index = field_value.indexOf(keywords);
                             field_data += index < field_length/2 ? field_value.slice(0, index)
@@ -314,9 +318,11 @@ frappe.search.utils = {
                         }
                         var field_name = part.slice(0, colon_index);
 
-                        var remaining_length = content_length - current_length;
-                        current_length += field_name.length + field_value.length + 2;
-                        if(current_length < content_length) {
+                        // Find remaining result_length and add field length to result_current_length
+                        var remaining_length = result_max_length - result_current_length;
+                        result_current_length += field_name.length + field_value.length + 2;
+                        if(result_current_length < result_max_length) {
+                            // We have room, push the entire field
                             field_text = '<span class="field-name text-muted">' +
                                 me.bolden_match_part(field_name, keywords) + ': </span> ' +
                                 me.bolden_match_part(field_value, keywords);
@@ -324,7 +330,9 @@ frappe.search.utils = {
                                 fields.push(field_text);
                             }
                         } else {
+                            // Not enough room
                             if(field_name.length < remaining_length){
+                                // Ellipsify (trim at word end) and push
                                 remaining_length -= field_name.length;
                                 field_text = '<span class="field-name text-muted">' +
                                     me.bolden_match_part(field_name, keywords) + ': </span> ';
@@ -333,6 +341,7 @@ frappe.search.utils = {
                                 field_text += me.bolden_match_part(field_value, keywords);
                                 fields.push(field_text);
                             } else {
+                                // No room for even the field name, skip
                                 fields.push('...');
                             }
                             break;
