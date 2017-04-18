@@ -256,13 +256,11 @@ class Communication(Document):
 				frappe.db.commit()
 
 def on_doctype_update():
-	"""Add index in `tabCommunication` for `(reference_doctype, reference_name)`"""
+	"""Add indexes in `tabCommunication`"""
 	frappe.db.add_index("Communication", ["reference_doctype", "reference_name"])
 	frappe.db.add_index("Communication", ["timeline_doctype", "timeline_name"])
 	frappe.db.add_index("Communication", ["link_doctype", "link_name"])
 	frappe.db.add_index("Communication", ["status", "communication_type"])
-	frappe.db.add_index("Communication", ["communication_date"])
-	frappe.db.add_index("Communication", ["message_id(200)"])
 
 def has_permission(doc, ptype, user):
 	if ptype=="read":

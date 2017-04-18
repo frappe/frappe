@@ -307,13 +307,13 @@ class DbTable:
 			if not frappe.db.sql("show index from `%s` where key_name = %s" %
 					(self.name, '%s'), col.fieldname):
 				query.append("add index `{}`(`{}`)".format(col.fieldname, col.fieldname))
-
+		
 		for col in self.drop_index:
 			if col.fieldname != 'name': # primary key
 				# if index key exists
 				if frappe.db.sql("""show index from `{0}`
 					where key_name=%s
-					and Non_unique=%s""".format(self.name), (col.fieldname, 1 if col.unique else 0)):
+					and Non_unique=%s""".format(self.name), (col.fieldname, 0 if col.unique else 1)):
 					query.append("drop index `{}`".format(col.fieldname))
 
 		for col in self.set_default:
