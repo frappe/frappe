@@ -113,6 +113,19 @@ class User(Document):
 				"doctype": "Has Role",
 				"role": "System Manager"
 			})
+			
+		if self.name == 'Administrator':
+			# Administrator should always have System Manager Role
+			self.extend("user_roles", [
+				{
+					"doctype": "UserRole",
+					"role": "System Manager"
+				},
+				{
+					"doctype": "UserRole",
+					"role": "Administrator"
+				}			
+			])
 
 		if self.name == 'Administrator':
 			# Administrator should always have System Manager Role
