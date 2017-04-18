@@ -523,7 +523,7 @@ frappe.get_desktop_icons = function(show_hidden, show_global) {
 		}
 		else if(m._doctype) {
 			//out = frappe.model.can_read(m._doctype);
-			out = frappe.boot.user.can_be_listed_in_module.includes(m._doctype);
+			out = frappe.boot.user.can_read.includes(m._doctype);
 		} else {
 			if(m.module_name==='Learn') {
 				// no permissions necessary for learn
