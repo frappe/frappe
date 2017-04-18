@@ -9,8 +9,6 @@ Build the `public` folders and setup languages
 """
 
 import os, frappe, json, shutil, re
-# from cssmin import cssmin
-
 
 app_paths = None
 def setup():
@@ -147,7 +145,6 @@ def pack(target, sources, no_compress, verbose):
 
 	if not no_compress and outtype == 'css':
 		pass
-		#outtxt = cssmin(outtxt)
 
 	with open(target, 'w') as f:
 		f.write(outtxt.encode("utf-8"))
