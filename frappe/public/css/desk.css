@@ -975,3 +975,8 @@ input[type="checkbox"]:checked:before {
     visibility: visible;
   }
 }
+@supports (-ms-ime-align:auto) {
+  input[type="checkbox"] {
+    visibility: visible;
+  }
+}
