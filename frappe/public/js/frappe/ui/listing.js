@@ -246,7 +246,7 @@ frappe.ui.Listing = Class.extend({
 	save_list_settings_locally: function(args) {
 		if(this.opts.save_list_settings && this.doctype && !this.docname) {
 			// save list settings locally
-			list_settings = frappe.model.list_settings[this.doctype];
+			list_settings = frappe.model.list_settings[this.doctype] || {};
 
 			if(!list_settings) {
 				return
