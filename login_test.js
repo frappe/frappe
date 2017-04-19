@@ -12,7 +12,5 @@ test('Check login', async t => {
         .typeText(loginEmail, 'Administrator')
         .typeText('#login_password', 'admin')
         .click('.btn-login')
-        .click('.dropdown-navbar-user')
-        .click(my_settings)
-        .expect(my_email.innerText).eql('admin@example.com')
+        .click('[data-link="modules"]');
 });
