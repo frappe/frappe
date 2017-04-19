@@ -43,7 +43,7 @@ frappe.views.QueryReport = Class.extend({
 		this.wrapper = $("<div>").appendTo(this.page.main);
 		$('<div class="waiting-area" style="display: none;"></div>\
 		<div class="no-report-area msg-box no-border" style="display: none;"></div>\
-		<div class="chart_area" style="border-bottom: 1px solid #d1d8dd; padding-bottom: 10px"></div>\
+		<div class="chart_area" style="border-bottom: 1px solid #d1d8dd; padding-bottom: 1px"></div>\
 		<div class="results" style="display: none;">\
 			<div class="result-area" style="height:400px;"></div>\
 			<button class="btn btn-secondary btn-default btn-xs expand-all hidden" style="margin: 10px;">'+__('Expand All')+'</button>\
@@ -89,8 +89,9 @@ frappe.views.QueryReport = Class.extend({
 			}, me.report_doc.letter_head);
 		}, true);
 
-		this.page.add_menu_item(__('Export'), function() { me.make_export(); },
-			true);
+		this.page.add_menu_item(__('Export'), function() {
+			me.make_export();
+		}, true);
 
 		this.page.add_menu_item(__("Setup Auto Email"), function() {
 			frappe.set_route('List', 'Auto Email Report', {'report' : me.report_name});
@@ -299,7 +300,7 @@ frappe.views.QueryReport = Class.extend({
 
 				// run report on change
 				f.$input.on("change", function() {
-					if(!me.flags.filter_set) {
+					if(!me.flags.filters_set) {
 						// don't trigger change while setting filters
 						return;
 					}
@@ -411,7 +412,7 @@ frappe.views.QueryReport = Class.extend({
 			if(v) filters[f.df.fieldname] = v;
 		})
 		if(raise && mandatory_fields.length) {
-			this.chart_area.toggle(true);
+			this.chart_area.hide();
 			this.wrapper.find(".waiting-area").empty().toggle(false);
 			this.wrapper.find(".no-report-area").html(__("Please set filters")).toggle(true);
 			if(raise) {
@@ -821,8 +822,6 @@ frappe.views.QueryReport = Class.extend({
 				}
 
 				else if (data.file_format_type == "Excel") {
-
-					me.wrapper.find(".results").toggle(false);
 					try {
 						var filters = me.get_values(true);
 					} catch(e) {

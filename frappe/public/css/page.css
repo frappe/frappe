@@ -106,9 +106,6 @@
 .page-form .checkbox {
   margin-top: 2px;
 }
-.page-form .checkbox input {
-  margin-top: -3px;
-}
 select.input-sm {
   line-height: 1.2em !important;
 }

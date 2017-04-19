@@ -105,7 +105,7 @@ def get_list_context(context=None):
 		list_context.sub_title = _('Filtered by "{0}"').format(frappe.local.form_dict.txt)
 
 	if list_context.sub_title:
-		list_context.parents = [{'label': _('All Posts'), 'route': 'blog'}]
+		list_context.parents = [{'label': _('All Posts'), 'route': 'blog', 'title': list_context.title}]
 	else:
 		list_context.parents = []
 
@@ -170,6 +170,7 @@ def get_blog_list(doctype, txt=None, filters=None, limit_start=0, limit_page_len
 	posts = frappe.db.sql(query, as_dict=1)
 
 	for post in posts:
+		post.cover_image = find_first_image(post.content)
 		post.published = global_date_format(post.creation)
 		post.content = strip_html_tags(post.content[:340])
 		if not post.comments:

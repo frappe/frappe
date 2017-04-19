@@ -42,7 +42,7 @@ def clear_cache(user=None):
 		frappe.defaults.clear_cache(user)
 	else:
 		for name in groups:
-			cache.delete_key(name, user)
+			cache.delete_key(name)
 		clear_global_cache()
 		frappe.defaults.clear_cache()
 
@@ -286,6 +286,7 @@ class Session:
 		"""get session record, or return the standard Guest Record"""
 		from frappe.auth import clear_cookies
 		r = self.get_session_data()
+
 		if not r:
 			frappe.response["session_expired"] = 1
 			clear_cookies()

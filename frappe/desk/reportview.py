@@ -6,6 +6,7 @@ from __future__ import unicode_literals
 
 import frappe, json
 import frappe.permissions
+import MySQLdb
 from frappe.model.db_query import DatabaseQuery
 from frappe import _
 
@@ -36,6 +37,26 @@ def get_form_params():
 		data["save_user_settings"] = json.loads(data["save_user_settings"])
 	else:
 		data["save_user_settings"] = True
+	
+	doctype = data["doctype"]
+	fields = data["fields"]
+
+	for field in fields:
+		key = field.split(" as ")[0]
+
+		if "." in key:
+			parenttype, fieldname = key.split(".")[0][4:-1], key.split(".")[1].strip("`")
+		else:
+			parenttype = data.doctype
+			fieldname = fieldname.strip("`")
+
+		df = frappe.get_meta(parenttype).get_field(fieldname)
+		
+		report_hide = df.report_hide if df else None
+		
+		# remove the field from the query if the report hide flag is set
+		if report_hide:
+			fields.remove(field)
 
 
 	# queries must always be server side
@@ -101,6 +122,11 @@ def export_query():
 		del form_params["add_totals_row"]
 
 	frappe.permissions.can_export(doctype, raise_exception=True)
+
+	if 'selected_items' in form_params:
+		si = json.loads(frappe.form_dict.get('selected_items'))
+		form_params["filters"] = {"name": ("in", si)}
+		del form_params["selected_items"]
 
 	db_query = DatabaseQuery(doctype)
 	ret = db_query.execute(**form_params)
@@ -221,7 +247,7 @@ def get_stats(stats, doctype, filters=[]):
 
 			if tag=='_user_tags':
 				stats[tag] = scrub_user_tags(tagcount)
-				stats[tag].append(["No Tags", frappe.get_list(doctype,
+				stats[tag].append([_("No Tags"), frappe.get_list(doctype,
 					fields=[tag, "count(*)"],
 					filters=filters +["({0} = ',' or {0} is null)".format(tag)], as_list=True)[0][1]])
 			else:
@@ -229,6 +255,9 @@ def get_stats(stats, doctype, filters=[]):
 
 		except frappe.SQLError:
 			# does not work for child tables
+			pass
+		except MySQLdb.OperationalError:
+			# raised when _user_tags column is added on the fly
 			pass
 
 	return stats

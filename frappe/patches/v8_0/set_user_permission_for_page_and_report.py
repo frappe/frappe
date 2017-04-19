@@ -9,6 +9,15 @@ def execute():
 		frappe.reload_doc("core", 'doctype', "custom_role")
 		set_user_permission_for_page_and_report()
 
+	update_ref_doctype_in_custom_role()	
+
+def update_ref_doctype_in_custom_role():
+	frappe.reload_doc("core", 'doctype', "custom_role")
+	frappe.db.sql("""update `tabCustom Role` 
+				set 
+					ref_doctype = (select ref_doctype from tabReport where name = `tabCustom Role`.report) 
+				where report is not null""")
+
 def set_user_permission_for_page_and_report():
 	make_custom_roles_for_page_and_report()
 

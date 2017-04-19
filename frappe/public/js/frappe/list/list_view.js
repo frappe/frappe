@@ -116,6 +116,8 @@ frappe.views.set_list_as_dirty = function (doctype) {
 	}
 }
 
+frappe.views.view_modes = ['List', 'Gantt', 'Kanban', 'Calendar', 'Image', 'Inbox'];
+
 frappe.views.ListView = frappe.ui.BaseList.extend({
 	init: function (opts) {
 		$.extend(this, opts);
@@ -239,8 +241,9 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 				route.push(us['Kanban'].last_kanban_board);
 			}
 
-			if (us.last_view === 'Inbox')
+			if (us.last_view === 'Inbox') {
 				route.push(us['Inbox'].last_email_account)
+			}
 		} else {
 			route.push('List');
 		}
@@ -249,9 +252,9 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 	},
 
 	init_headers: function () {
-		this.page.main.find('.list-headers > .list-row-head').hide();
+		this.page.main.find('.list-headers > .list-item--head').hide();
 		this.list_header = this.page.main.find('.list-headers > '
-				+ '.list-row-head[data-list-renderer="'
+				+ '.list-item--head[data-list-renderer="'
 				+ this.list_renderer.name +'"]');
 
 		if(this.list_header.length > 0) {
@@ -440,10 +443,11 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 			different = true;
 		}
 
-		if (user_settings.page_length !== args.page_length) {
-			user_settings.page_length = args.page_length || 20
-			different = true;
-		}
+		// never save page_length in user_settings
+		// if (user_settings.page_length !== args.page_length) {
+		// 	user_settings.page_length = args.page_length || 20
+		// 	different = true;
+		// }
 
 		// save fields in list settings
 		if (args.save_user_settings_fields) {
@@ -451,7 +455,8 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 		}
 
 		// save last view
-		if (user_settings_common.last_view !== this.current_view) {
+		if (user_settings_common.last_view !== this.current_view
+			&& frappe.views.view_modes.includes(this.current_view)) {
 			user_settings_common.last_view = this.current_view;
 			different = true;
 		}
@@ -487,7 +492,7 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 
 		if (!this.list_renderer.settings.use_route) {
 			var route = frappe.get_route();
-			if (route[2] && !in_list(['List', 'Image', 'Gantt', 'Kanban', 'Calendar', 'Inbox'], route[2])) {
+			if (route[2] && !frappe.views.view_modes.includes(route[2])) {
 				$.each(frappe.utils.get_args_dict_from_url(route[2]), function (key, val) {
 					me.set_filter(key, val, true);
 				});
@@ -758,9 +763,9 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 				// multi-select using shift key
 				var $this = $(this);
 				if (event.shiftKey && $this.prop('checked')) {
-					var $end_row = $this.parents('.list-row');
-					var $start_row = $end_row.prevAll('.list-row')
-						.find('.list-row-checkbox:checked').last().parents('.list-row');
+					var $end_row = $this.parents('.list-item-container');
+					var $start_row = $end_row.prevAll('.list-item-container')
+						.find('.list-row-checkbox:checked').last().parents('.list-item-container');
 					if ($start_row) {
 						$start_row.nextUntil($end_row).find('.list-row-checkbox').prop('checked', true);
 					}
@@ -819,7 +824,7 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 
 	get_checked_items: function () {
 		var names = this.$page.find('.list-row-checkbox:checked').map(function (i, item) {
-			return $(item).data().name;
+			return cstr($(item).data().name);
 		}).toArray();
 
 		return this.data.filter(function (doc) {

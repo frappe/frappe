@@ -24,7 +24,7 @@ class Address(Document):
 				self.address_title = self.links[0].link_name
 
 		if self.address_title:
-			self.name = (cstr(self.address_title).strip() + "-" + cstr(self.address_type).strip())
+			self.name = (cstr(self.address_title).strip() + "-" + cstr(_(self.address_type)).strip())
 			if frappe.db.exists("Address", self.name):
 				self.name = make_autoname(cstr(self.address_title).strip() + "-" +
 					cstr(self.address_type).strip() + "-.#")
@@ -132,7 +132,7 @@ def get_list_context(context=None):
 		'no_breadcrumbs': True,
 	}
 
-def get_address_list(doctype, txt, filters, limit_start, limit_page_length=20):
+def get_address_list(doctype, txt, filters, limit_start, limit_page_length = 20, order_by = None):
 	from frappe.www.list import get_list
 	user = frappe.session.user
 	ignore_permissions = False
@@ -198,19 +198,19 @@ def address_query(doctype, txt, searchfield, start, page_len, filters):
 		)
 
 	return frappe.db.sql("""select
-			address.name, address.city, address.country
+			`tabAddress`.name, `tabAddress`.city, `tabAddress`.country
 		from
-			tabAddress as address, `tabDynamic Link` as dl
+			`tabAddress`, `tabDynamic Link`
 		where
-			dl.parent = address.name and
-			dl.parenttype = 'Address' and
-			dl.link_doctype = %(link_doctype)s and
-			dl.link_name = %(link_name)s and
-			address.`{key}` like %(txt)s
+			`tabDynamic Link`.parent = `tabAddress`.name and
+			`tabDynamic Link`.parenttype = 'Address' and
+			`tabDynamic Link`.link_doctype = %(link_doctype)s and
+			`tabDynamic Link`.link_name = %(link_name)s and
+			`tabAddress`.`{key}` like %(txt)s
 			{mcond} {condition}
 		order by
-			if(locate(%(_txt)s, address.name), locate(%(_txt)s, address.name), 99999),
-			address.idx desc, address.name
+			if(locate(%(_txt)s, `tabAddress`.name), locate(%(_txt)s, `tabAddress`.name), 99999),
+			`tabAddress`.idx desc, `tabAddress`.name
 		limit %(start)s, %(page_len)s """.format(
 			mcond=get_match_cond(doctype),
 			key=frappe.db.escape(searchfield),

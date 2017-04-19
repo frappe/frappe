@@ -119,6 +119,7 @@ frappe.DataImportTool = Class.extend({
 			args: {
 				method: 'frappe.core.page.data_import_tool.importer.upload',
 			},
+			allow_multiple: 0,
 			onerror: function(r) {
 				me.onerror(r);
 			},

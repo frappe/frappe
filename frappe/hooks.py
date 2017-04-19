@@ -80,7 +80,8 @@ permission_query_conditions = {
 	"Note": "frappe.desk.doctype.note.note.get_permission_query_conditions",
 	"Kanban Board": "frappe.desk.doctype.kanban_board.kanban_board.get_permission_query_conditions",
 	"Contact": "frappe.geo.address_and_contact.get_permission_query_conditions_for_contact",
-	"Address": "frappe.geo.address_and_contact.get_permission_query_conditions_for_address"
+	"Address": "frappe.geo.address_and_contact.get_permission_query_conditions_for_address",
+	"Communication": "frappe.core.doctype.communication.communication.get_permission_query_conditions_for_communication"
 }
 
 has_permission = {
@@ -95,7 +96,7 @@ has_permission = {
 }
 
 has_website_permission = {
-	"Address": "erpnext.utilities.doctype.address.address.has_website_permission"
+	"Address": "frappe.geo.doctype.address.address.has_website_permission"
 }
 
 standard_queries = {
@@ -131,8 +132,10 @@ scheduler_events = {
 	],
 	"hourly": [
 		"frappe.model.utils.link_count.update_link_count",
-		'frappe.model.utils.list_settings.sync_list_settings',
-		"frappe.utils.error.collect_error_snapshots"
+		'frappe.model.utils.user_settings.sync_user_settings',
+		"frappe.utils.error.collect_error_snapshots",
+		"frappe.desk.page.backups.backups.delete_downloadable_backups",
+		"frappe.limits.update_space_usage"
 	],
 	"daily": [
 		"frappe.email.queue.clear_outbox",
@@ -144,9 +147,7 @@ scheduler_events = {
 		"frappe.async.remove_old_task_logs",
 		"frappe.utils.scheduler.disable_scheduler_on_expiry",
 		"frappe.utils.scheduler.restrict_scheduler_events_if_dormant",
-		"frappe.limits.update_space_usage",
 		"frappe.email.doctype.auto_email_report.auto_email_report.send_daily",
-		"frappe.desk.page.backups.backups.delete_downloadable_backups",
 		"frappe.core.doctype.feedback_request.feedback_request.delete_feedback_request",
 		"frappe.core.doctype.authentication_log.authentication_log.clear_authentication_logs",
 		"frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backups_daily"

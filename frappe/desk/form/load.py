@@ -172,6 +172,9 @@ def get_communication_data(doctype, name, start=0, limit=20, after=None, fields=
 		# find after a particular date
 		conditions+= ' and creation > {0}'.format(after)
 
+	if doctype=='User':
+		conditions+= ' and not (reference_doctype="User" and communication_type="Communication")'
+
 	communications = frappe.db.sql("""select {fields}
 		from tabCommunication
 		where {conditions} {group_by}

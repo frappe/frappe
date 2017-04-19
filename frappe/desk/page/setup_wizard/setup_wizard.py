@@ -79,13 +79,14 @@ def update_system_settings(args):
 	system_settings.save()
 
 def update_user_name(args):
+	first_name, last_name = args.get('full_name'), ''
+	if ' ' in first_name:
+		first_name, last_name = first_name.split(' ', 1)
+
 	if args.get("email"):
 		args['name'] = args.get("email")
 
 		_mute_emails, frappe.flags.mute_emails = frappe.flags.mute_emails, True
-		first_name, last_name = args.get('full_name'), ''
-		if ' ' in first_name:
-			first_name, last_name = first_name.split(' ', 1)
 		doc = frappe.get_doc({
 			"doctype":"User",
 			"email": args.get("email"),
@@ -98,11 +99,12 @@ def update_user_name(args):
 		update_password(args.get("email"), args.get("password"))
 
 	else:
-		args['name'] = frappe.session.user
+		args.update({
+			"name": frappe.session.user,
+			"first_name": first_name,
+			"last_name": last_name
+		})
 
-		# Update User
-		if not args.get('last_name') or args.get('last_name')=='None':
-				args['last_name'] = None
 		frappe.db.sql("""update `tabUser` SET first_name=%(first_name)s,
 			last_name=%(last_name)s WHERE name=%(name)s""", args)
 
@@ -172,7 +174,7 @@ def load_messages(language):
 def load_languages():
 	return {
 		"default_language": frappe.db.get_value('Language', frappe.local.lang, 'language_name') or frappe.local.lang,
-		"languages": sorted(frappe.db.sql_list('select language_name from tabLanguage'))
+		"languages": sorted(frappe.db.sql_list('select language_name from tabLanguage order by name'))
 	}
 
 

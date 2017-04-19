@@ -86,18 +86,11 @@ class EmailAccount(Document):
 
 	def on_update(self):
 		"""Check there is only one default of each type."""
-		from frappe.core.doctype.user.user import ask_pass_update
+		from frappe.core.doctype.user.user import ask_pass_update, setup_user_email_inbox
 
 		self.there_must_be_only_one_default()
-		if self.awaiting_password:
-			# push values to user_emails
-			frappe.db.sql("""UPDATE `tabUser Email` SET awaiting_password = 1
-				WHERE email_account = %(account)s""", {"account": self.name})
-		else:
-			frappe.db.sql("""UPDATE `tabUser Email` SET awaiting_password = 0
-				WHERE email_account = %(account)s""", {"account": self.name})
-
-		ask_pass_update()
+		setup_user_email_inbox(email_account=self.name, awaiting_password=self.awaiting_password,
+			email_id=self.email_id, enable_outgoing=self.enable_outgoing)
 
 	def there_must_be_only_one_default(self):
 		"""If current Email Account is default, un-default all other accounts."""
@@ -254,6 +247,9 @@ class EmailAccount(Document):
 				email_sync_rule = self.build_email_sync_rule()
 
 				email_server = self.get_incoming_server(in_receive=True, email_sync_rule=email_sync_rule)
+				if not email_server:
+					return
+
 				emails = email_server.get_messages()
 
 				incoming_mails = emails.get("latest_messages")
@@ -570,7 +566,10 @@ class EmailAccount(Document):
 
 	def on_trash(self):
 		"""Clear communications where email account is linked"""
+		from frappe.core.doctype.user.user import remove_user_email_inbox
+
 		frappe.db.sql("update `tabCommunication` set email_account='' where email_account=%s", self.name)
+		remove_user_email_inbox(email_account=self.name)
 
 	def after_rename(self, old, new, merge=False):
 		frappe.db.set_value("Email Account", new, "email_account_name", new)
@@ -599,6 +598,9 @@ class EmailAccount(Document):
 		uid_list = { flag.get("uid", None): flag.get("action", "Read") for flag in flags }
 		if flags and uid_list:
 			email_server = self.get_incoming_server()
+			if not email_server:
+				return
+
 			email_server.update_flag(uid_list=uid_list)
 
 			# mark communication as read

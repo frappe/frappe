@@ -2,6 +2,10 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on('Role Permission for Page and Report', {
+	setup: function(frm) {
+		frm.trigger("set_queries")
+	},
+
 	refresh: function(frm) {
 		frm.disable_save();
 		frm.role_area.hide();
@@ -19,6 +23,16 @@ frappe.ui.form.on('Role Permission for Page and Report', {
 		}
 	},
 
+	set_queries: function(frm) {
+		frm.set_query("page", function() {
+			return {
+				filters: {
+					system_page: 0
+				}
+			}
+		});
+	},
+
 	set_role_for: function(frm) {
 		frm.trigger("clear_fields")
 		frm.toggle_display('roles_html', false)
@@ -30,11 +44,15 @@ frappe.ui.form.on('Role Permission for Page and Report', {
 	},
 
 	page: function(frm) {
-		frm.trigger("get_roles")
+		if(frm.doc.page) {
+			frm.trigger("get_roles")
+		}
 	},
 
 	report: function(frm){
-		frm.trigger("get_roles")
+		if(frm.doc.report) {
+			frm.trigger("get_roles")
+		}
 	},
 
 	get_roles: function(frm) {

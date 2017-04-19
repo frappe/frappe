@@ -107,7 +107,9 @@ frappe.views.GanttView = frappe.views.ListRenderer.extend({
 		var $dropdown = $(dropdown)
 		$dropdown.find(".dropdown-menu")
 				.append(dropdown_list);
-		me.list_view.$page.find(`.list-row-head[data-list-renderer='Gantt'] .list-row-right`).css("margin-top", 0).html($dropdown)
+		me.list_view.$page
+			.find(`[data-list-renderer='Gantt'] > .list-row-right`)
+			.css("margin-right", "15px").html($dropdown)
 		$dropdown.on("click", ".option", function() {
 			var mode = $(this).data('value');
 			me.gantt.change_view_mode(mode);

@@ -29,7 +29,8 @@ frappe.views.CalendarView = frappe.views.ListRenderer.extend({
 	},
 	required_libs: [
 		'assets/frappe/js/lib/fullcalendar/fullcalendar.min.css',
-		'assets/frappe/js/lib/fullcalendar/fullcalendar.min.js'
+		'assets/frappe/js/lib/fullcalendar/fullcalendar.min.js',
+		'assets/frappe/js/lib/fullcalendar/locale-all.js'
 	]
 })
 
@@ -95,31 +96,10 @@ frappe.views.Calendar = Class.extend({
 		"end": "end",
 		"allDay": "all_day",
 	},
-	styles: {
-		"standard": {
-			"color": "#F0F4F7"
-		},
-		"important": {
-			"color": "#FFDCDC"
-		},
-		"danger": {
-			"color": "#FFDCDC"
-		},
-		"warning": {
-			"color": "#FFE6BF",
-		},
-		"success": {
-			"color": "#E4FFC1",
-		},
-		"info": {
-			"color": "#E8DDFF"
-		},
-		"inverse": {
-			"color": "#D9F6FF"
-		},
-		"": {
-			"color": "#F0F4F7"
-		}
+	color_map: {
+		"danger": "red",
+		"success": "green",
+		"warning": "orange"
 	},
 	get_system_datetime: function(date) {
 		date._offset = moment.user_utc_offset;
@@ -128,6 +108,7 @@ frappe.views.Calendar = Class.extend({
 	setup_options: function() {
 		var me = this;
 		this.cal_options = {
+			locale: frappe.boot.user.language || "en",
 			header: {
 				left: 'title',
 				center: '',
@@ -144,7 +125,7 @@ frappe.views.Calendar = Class.extend({
 					args: me.get_args(start, end),
 					callback: function(r) {
 						var events = r.message;
-						me.prepare_events(events);
+						events = me.prepare_events(events);
 						callback(events);
 					}
 				})
@@ -166,7 +147,6 @@ frappe.views.Calendar = Class.extend({
 				if (view.name==="month" && (endDate - startDate)===86400000) {
 					// detect single day click in month view
 					return;
-
 				}
 
 				var event = frappe.model.get_new_doc(me.doctype);
@@ -187,8 +167,23 @@ frappe.views.Calendar = Class.extend({
 
 				frappe.set_route("Form", me.doctype, event.name);
 			},
-			dayClick: function(date, allDay, jsEvent, view) {
-				jsEvent.day_clicked = true;
+			dayClick: function(date, jsEvent, view) {
+				if(view.name === 'month') {
+					const $date_cell = $('td[data-date=' + date.format('YYYY-MM-DD') + "]");
+
+					if($date_cell.hasClass('date-clicked')) {
+						me.$cal.fullCalendar('changeView', 'agendaDay');
+						me.$cal.fullCalendar('gotoDate', date);
+						me.$wrapper.find('.date-clicked').removeClass('date-clicked');
+
+						// update "active view" btn
+						me.$wrapper.find('.fc-month-button').removeClass('active');
+						me.$wrapper.find('.fc-agendaDay-button').addClass('active');
+					}
+
+					me.$wrapper.find('.date-clicked').removeClass('date-clicked');
+					$date_cell.addClass('date-clicked');
+				}
 				return false;
 			}
 		};
@@ -219,7 +214,8 @@ frappe.views.Calendar = Class.extend({
 	},
 	prepare_events: function(events) {
 		var me = this;
-		$.each(events || [], function(i, d) {
+
+		return (events || []).map(d => {
 			d.id = d.name;
 			d.editable = frappe.model.can_write(d.doctype || me.doctype);
 
@@ -241,25 +237,21 @@ frappe.views.Calendar = Class.extend({
 
 			me.fix_end_date_for_event_render(d);
 
+			let color;
 			if(me.get_css_class) {
-				$.extend(d, me.styles[me.get_css_class(d)] || {});
-			} else if(me.style_map) {
-				$.extend(d, me.styles[me.style_map[d.status]] || {});
+				color = me.color_map[me.get_css_class(d)];
+				// if invalid, fallback to blue color
+				if(!Object.values(me.color_map).includes(color)) {
+					color = "blue";
+				}
 			} else {
-				$.extend(d, me.styles[frappe.utils.guess_style(d.status, "standard")]);
+				// color field can be set in {doctype}_calendar.js
+				// see event_calendar.js
+				color = d.color;
 			}
-			d["textColor"] = "#36414C";
-		})
-
-		var palette_colors = ['red', 'green', 'blue', 'yellow', 'skyblue', 'orange'];
-		var index = 0;
-
-		if(events) {
-			events = events.map(function(event) {
-				event.className = "fc-bg-" + palette_colors[index];
-				index = (index + 1) % palette_colors.length;
-			})
-		}
+			d.className = "fc-bg-" + color;
+			return d;
+		});
 	},
 	update_event: function(event, revertFunc) {
 		var me = this;

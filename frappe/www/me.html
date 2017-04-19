@@ -35,7 +35,7 @@
 <div class="col-xs-12 visible-xs" style="min-height: 400px; padding: 10px 0 0 0">
 	<ul class="list-group">
 		<a class="list-group-item" href="/profile">
-			Profile
+            {{ _("Profile") }}
 		</a>
 		{% for item in sidebar_items -%}
 			<a class="list-group-item" href="{{ item.route }}"

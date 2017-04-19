@@ -4,6 +4,11 @@ frappe.views.KanbanView = frappe.views.ListRenderer.extend({
 	name: 'Kanban',
 	render_view: function(values) {
 		var board_name = this.get_board_name();
+		if(this.kanban && board_name === this.kanban.board_name) {
+			this.kanban.update_cards(values);
+			return;
+		}
+
 		this.kanban = new frappe.views.KanbanBoard({
 			doctype: this.doctype,
 			board_name: board_name,

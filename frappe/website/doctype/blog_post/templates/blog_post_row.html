@@ -3,6 +3,11 @@
 	<div class="row">
 		<div class="col-xs-12">
 			<h1 class="blog-header"><a href="/{{ post.route }}">{{ post.title }}</a></h1>
+			{% if post.cover_image %}
+			<p style="height: 200px; overflow: hidden;">
+				<img src="{{ post.cover_image }}" alt="{{post.title}} - Cover Image" style="width: 60%;"/>
+			</p>
+			{% endif %}
 			<p class="post-description">{{ post.intro }}</p>
 			<p class="post-by text-muted small">
 				<a href="/blog?blogger={{ post.blogger }}"

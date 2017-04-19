@@ -43,8 +43,29 @@ frappe.provide("frappe.views");
 						});
 					});
 			},
+			update_cards: function (updater, cards) {
+				var state = this;
+				var _cards =
+					cards.map(card => {
+						return prepare_card(card, state);
+					})
+					.concat(this.cards)
+					.uniqBy(card => card.name);
+
+				updater.set({
+					cards: _cards
+				});
+			},
 			add_column: function (updater, col) {
-				fluxify.doAction('update_column', col, 'add');
+				if(frappe.model.can_create('Custom Field')) {
+					fluxify.doAction('update_column', col, 'add');
+				} else {
+					frappe.msgprint({
+						title: __('Not permitted'),
+						message: __('You are not allowed to create columns'),
+						indicator: 'red'
+					});
+				}
 			},
 			archive_column: function (updater, col) {
 				fluxify.doAction('update_column', col, 'archive');
@@ -214,6 +235,11 @@ frappe.provide("frappe.views");
 		var self = {};
 		self.wrapper = opts.wrapper;
 		self.cur_list = opts.cur_list;
+		self.board_name = opts.board_name;
+
+		self.update_cards = function(cards) {
+			fluxify.doAction('update_cards', cards);
+		}
 
 		function init() {
 			fluxify.doAction('init', opts)
@@ -315,7 +341,9 @@ frappe.provide("frappe.views");
 		function setup_restore_columns() {
 			var cur_list = store.getState().cur_list;
 			var columns = store.getState().columns;
-			var list_row_right = cur_list.$page.find(`.list-row-head[data-list-renderer='Kanban'] .list-row-right`);
+			var list_row_right =
+				cur_list.$page.find(`[data-list-renderer='Kanban'] .list-row-right`)
+				.css('margin-right', '15px');
 			list_row_right.empty();
 
 			var archived_columns = columns.filter(function (col) {
@@ -338,7 +366,7 @@ frappe.provide("frappe.views");
 				"<ul class='dropdown-menu'>" + options + "</ul>" +
 				"</div>")
 
-			list_row_right.css("margin-top", 0).html($dropdown);
+			list_row_right.html($dropdown);
 
 			$dropdown.find(".dropdown-menu").on("click", "button.restore-column", function (e) {
 				var column_title = $(this).data().column;
@@ -351,6 +379,8 @@ frappe.provide("frappe.views");
 		}
 
 		init();
+
+		return self;
 	}
 
 	frappe.views.KanbanBoardColumn = function (column, wrapper) {

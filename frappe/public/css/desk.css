@@ -112,6 +112,9 @@ a.badge-hover:focus .badge,
 a.badge-hover:active .badge {
   background-color: #D8DFE5;
 }
+.msgprint {
+  word-wrap: break-word;
+}
 .msgprint pre {
   text-align: left;
 }
@@ -383,6 +386,9 @@ fieldset[disabled] .form-control {
 .datepicker--cell.-selected-.-focus- {
   background: rgba(94, 100, 255, 0.9);
 }
+.datepicker--button {
+  color: #5E64FF;
+}
 .hidden-xs-inline,
 .hidden-xs-inline-block {
   display: none;
@@ -563,8 +569,19 @@ fieldset[disabled] .form-control {
   display: inline-block;
   vertical-align: middle;
 }
+.file-upload .input-upload {
+  vertical-align: top;
+}
+.file-upload .uploaded-filename {
+  border: 1px solid #d1d8dd;
+  border-radius: 3px;
+}
+.file-upload .uploaded-filename .btn-group {
+  margin-right: 5px;
+  margin-bottom: 5px;
+}
 .file-upload .uploaded-filename-display {
-  max-width: 194px;
+  max-width: 150px;
 }
 .frappe-rtl input,
 .frappe-rtl textarea {
@@ -662,6 +679,9 @@ fieldset[disabled] .form-control {
   max-height: 300px;
   overflow: auto;
 }
+.note-editor .note-image-input {
+  height: auto;
+}
 .modal .note-editor .note-btn-italic,
 .modal .note-editor .note-btn-underline,
 .modal .note-editor [data-original-title="Font Size"],
@@ -671,22 +691,106 @@ fieldset[disabled] .form-control {
 }
 .search-dialog .modal-dialog {
   width: 768px;
-  height: 500px;
+}
+.search-dialog .search-header {
+  display: flex;
+  align-items: center;
+  padding: 5px;
 }
 .search-dialog .modal-body {
   padding: 0px 15px;
 }
-.search-dialog input.form-control,
-.search-dialog .input-group-addon {
+.search-dialog .empty-state {
+  color: #d4d9dd;
+  height: 500px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+.search-dialog .empty-state .status-icon {
+  font-size: 40px;
+  position: relative;
+  margin-bottom: 10px;
+}
+.search-dialog .empty-state p {
+  font-size: 15px;
+  display: block;
+}
+.search-dialog .empty-state .cover {
+  color: white;
+  font-size: 6px;
+  position: absolute;
+}
+@keyframes twinkle {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+@-o-keyframes twinkle {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+@-moz-keyframes twinkle {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+@-webkit-keyframes twinkle {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+.search-dialog .twinkle-one {
+  -webkit-animation: twinkle 1.5s ease infinite;
+  -moz-animation: twinkle 1.5s ease infinite;
+  -o-animation: twinkle 1.5s ease infinite;
+  animation: twinkle 1.5s ease infinite;
+}
+.search-dialog .twinkle-two {
+  -webkit-animation: twinkle 1.5s ease infinite 0.5s;
+  -moz-animation: twinkle 1.5s ease infinite 0.5s;
+  -o-animation: twinkle 1.5s ease infinite 0.5s;
+  animation: twinkle 1.5s ease infinite 0.5s;
+}
+.search-dialog .twinkle-three {
+  -webkit-animation: twinkle 1.5s ease infinite 1s;
+  -moz-animation: twinkle 1.5s ease infinite 1s;
+  -o-animation: twinkle 1.5s ease infinite 1s;
+  animation: twinkle 1.5s ease infinite 1s;
+}
+.search-dialog input.form-control {
   border: none;
   border-left-style: none;
 }
 .search-dialog input.form-control:focus {
   outline: none;
   box-shadow: none;
-}
-.search-dialog .input-group-addon {
-  background-color: #FFF;
 }
 .search-dialog .layout-side-section,
 .search-dialog .layout-main-section {
@@ -706,6 +810,7 @@ fieldset[disabled] .form-control {
   align-items: center;
   justify-content: space-between;
   padding-left: 20px;
+  background-color: #ffffff;
 }
 .search-dialog .layout-side-section .nav li a i {
   visibility: hidden;
@@ -713,23 +818,9 @@ fieldset[disabled] .form-control {
 .search-dialog .layout-side-section .nav .active i {
   visibility: visible;
 }
-.search-dialog .results-area .search-intro-placeholder {
-  color: #d4d9dd;
-  height: inherit;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-.search-dialog .results-area .search-intro-placeholder span {
-  text-align: center;
-}
-.search-dialog .results-area .search-intro-placeholder span i {
-  font-size: 64px;
-  display: block;
-}
-.search-dialog .results-area .search-intro-placeholder span p {
-  font-size: 15px;
-  display: block;
+.search-dialog .layout-side-section .nav .select a,
+.search-dialog .layout-side-section .nav a:hover {
+  background-color: #f7fafc;
 }
 .search-dialog .results-area .single-link a {
   color: #36414c;
@@ -741,6 +832,9 @@ fieldset[disabled] .form-control {
 .search-dialog .module-section .all-results-link:before {
   font-family: 'Octicons';
   content: '\f0a4';
+}
+.search-dialog .module-section .result {
+  margin-bottom: 5px;
 }
 .search-dialog .full-list .result {
   margin-top: 15px;
@@ -766,6 +860,27 @@ fieldset[disabled] .form-control {
 .search-dialog .more-results {
   display: none;
 }
+.search-dialog .result p {
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+.search-dialog .result .result-image {
+  display: inline-block;
+  margin-right: 10px;
+  height: 60px;
+  width: 60px;
+  background-color: #fafbfc;
+}
+.search-dialog .result .result-image .flex-text {
+  display: flex;
+  height: 60px;
+  align-items: center;
+  justify-content: center;
+}
+.search-dialog .result .result-image span {
+  font-size: 30px;
+  color: #d1d8dd;
+}
 @media (max-width: 767px) {
   .search-dialog .modal-dialog {
     width: auto;
@@ -779,20 +894,11 @@ fieldset[disabled] .form-control {
     margin: 0px;
     border-top: none;
   }
-  .search-dialog .layout-side-section .sidebar-menu {
-    margin: 30px 0px;
-  }
 }
 @media (min-width: 600px) {
   .search-dialog .results-area .back-link {
     display: none;
   }
-}
-.result p {
-  margin-top: 0.2em;
-}
-.search-result {
-  margin-bottom: 24px;
 }
 .note-editor.note-frame .note-editing-area .note-editable {
   color: #36414C;
@@ -865,6 +971,11 @@ input[type="checkbox"]:checked:before {
   color: #3b99fc;
 }
 @-moz-document url-prefix() {
+  input[type="checkbox"] {
+    visibility: visible;
+  }
+}
+@supports (-ms-ime-align:auto) {
   input[type="checkbox"] {
     visibility: visible;
   }

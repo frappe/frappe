@@ -256,24 +256,6 @@ frappe.ui.FilterList = Class.extend({
 			var date_wrapper = $('<div>').appendTo($(this));
 			make_date("range");
 
-			var check = frappe.ui.form.make_control({
-				parent: this,
-				df: {
-					fieldtype: "Check",
-					fieldname: "is_date_range",
-					label: __("Date Range")
-				}
-			});
-			check.change = function() {
-				date.datepicker.clear();
-				date && date.wrapper.remove();
-				check.get_value() ?
-					make_date("range"):
-					make_date("single");
-			}
-			check.refresh();
-			check.set_input(1);
-
 			function make_date(mode) {
 				var fieldtype = mode==="range" ? "DateRange" : "Date";
 				var name = $(v).data("name");
@@ -298,8 +280,12 @@ frappe.ui.FilterList = Class.extend({
 						me.add_filter(me.doctype, name, '=', moment(dateObj).format('YYYY-MM-DD'));
 						me.base_list.run();
 					} else if(dateObj.length===2 && date.datepicker.opts.range===true) {
-						me.add_filter(me.doctype, name, 'Between',
-							[moment(dateObj[0]).format('YYYY-MM-DD'), moment(dateObj[1]).format('YYYY-MM-DD')]);
+						var [date1, date2] = [moment(dateObj[0]).format('YYYY-MM-DD'), moment(dateObj[1]).format('YYYY-MM-DD')];
+						if(date1==date2) {
+							me.add_filter(me.doctype, name, '=', date1);
+						} else {
+							me.add_filter(me.doctype, name, 'Between', [date1, date2]);
+						}
 						me.base_list.run();
 					}
 				});
@@ -843,7 +829,8 @@ frappe.ui.FieldSelect = Class.extend({
 		// main table
 		var main_table_fields = std_filters.concat(frappe.meta.docfield_list[me.doctype]);
 		$.each(frappe.utils.sort(main_table_fields, "label", "string"), function(i, df) {
-			if(frappe.perm.has_perm(me.doctype, df.permlevel, "read"))
+			// show fields where user has read access and if report hide flag is not set
+			if(frappe.perm.has_perm(me.doctype, df.permlevel, "read") && !df.report_hide)
 				me.add_field_option(df);
 		});
 
@@ -852,7 +839,8 @@ frappe.ui.FieldSelect = Class.extend({
 			if(table_df.options) {
 				var child_table_fields = [].concat(frappe.meta.docfield_list[table_df.options]);
 				$.each(frappe.utils.sort(child_table_fields, "label", "string"), function(i, df) {
-					if(frappe.perm.has_perm(me.doctype, df.permlevel, "read"))
+					// show fields where user has read access and if report hide flag is not set
+					if(frappe.perm.has_perm(me.doctype, df.permlevel, "read") && !df.report_hide)
 						me.add_field_option(df);
 				});
 			}

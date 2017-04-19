@@ -4,7 +4,8 @@
 from __future__ import unicode_literals
 
 import frappe
-from frappe.utils import cint
+import re
+from frappe.utils import cint, strip_html_tags
 
 def setup_global_search_table():
 	'''Creates __global_seach table'''
@@ -25,6 +26,23 @@ def setup_global_search_table():
 def reset():
 	'''Deletes all data in __global_search'''
 	frappe.db.sql('delete from __global_search')
+
+def get_doctypes_with_global_search():
+	'''Return doctypes with global search fields'''
+	def _get():
+		global_search_doctypes = []
+		for d in frappe.get_all('DocType', 'name, module'):
+			meta = frappe.get_meta(d.name)
+			if len(meta.get_global_search_fields()) > 0:
+				global_search_doctypes.append(d)
+
+		installed_apps = frappe.get_installed_apps()
+
+		doctypes = [d.name for d in global_search_doctypes
+			if frappe.local.module_app[frappe.scrub(d.module)] in installed_apps]
+		return doctypes
+
+	return frappe.cache().get_value('doctypes_with_global_search', _get)
 
 def update_global_search(doc):
 	'''Add values marked with `in_global_search` to
@@ -52,9 +70,9 @@ def update_global_search(doc):
 				  	if d.parent == doc.name:
 				  		for field in d.meta.get_global_search_fields():
 				  			if d.get(field.fieldname):
-				  				content.append(field.label + ": " + unicode(d.get(field.fieldname)))
+								content.append(get_field_value(d, field))
 			else:
-				content.append(field.label + ": " + unicode(doc.get(field.fieldname)))
+				content.append(get_field_value(doc, field))
 
 	if content:
 		published = 0
@@ -62,8 +80,21 @@ def update_global_search(doc):
 			published = 1 if doc.is_website_published() else 0
 
 		frappe.flags.update_global_search.append(
-			dict(doctype=doc.doctype, name=doc.name, content='|||'.join(content or ''),
+			dict(doctype=doc.doctype, name=doc.name, content=' ||| '.join(content or ''),
 				published=published, title=doc.get_title(), route=doc.get('route')))
+
+def get_field_value(doc, field):
+	'''Prepare field from raw data'''
+
+	from HTMLParser import HTMLParser
+
+	value = doc.get(field.fieldname)
+	if(getattr(field, 'fieldtype', None) in ["Text", "Text Editor"]):
+		h = HTMLParser()
+		value = h.unescape(value)
+		value = (re.subn(r'<[\s]*(script|style).*?</\1>(?s)', '', unicode(value))[0])
+		value = ' '.join(value.split())
+	return field.label + " : " + strip_html_tags(unicode(value))
 
 def sync_global_search():
 	'''Add values from `frappe.flags.update_global_search` to __global_search.
@@ -110,7 +141,7 @@ def delete_for_document(doc):
 			name = %s''', (doc.doctype, doc.name), as_dict=True)
 
 @frappe.whitelist()
-def search(text, start=0, limit=20):
+def search(text, start=0, limit=20, doctype=""):
 	'''Search for given text in __global_search
 	:param text: phrase to be searched
 	:param start: start results at, default 0
@@ -118,14 +149,31 @@ def search(text, start=0, limit=20):
 	:return: Array of result objects'''
 
 	text = "+" + text + "*"
-	results = frappe.db.sql('''
-		select
-			doctype, name, content
-		from
-			__global_search
-		where
-			match(content) against (%s IN BOOLEAN MODE)
-		limit {start}, {limit}'''.format(start=start, limit=limit), text, as_dict=True)
+	if not doctype:
+		results = frappe.db.sql('''
+			select
+				doctype, name, content
+			from
+				__global_search
+			where
+				match(content) against (%s IN BOOLEAN MODE)
+			limit {start}, {limit}'''.format(start=start, limit=limit), text+"*", as_dict=True)
+	else:
+		results = frappe.db.sql('''
+			select
+				doctype, name, content
+			from
+				__global_search
+			where
+				doctype = %s AND
+				match(content) against (%s IN BOOLEAN MODE)
+			limit {start}, {limit}'''.format(start=start, limit=limit), (doctype, text), as_dict=True)
+
+	for r in results:
+		if frappe.get_meta(r.doctype).image_field:
+			doc = frappe.get_doc(r.doctype, r.name)
+			r.image = doc.get(doc.meta.image_field)
+
 	return results
 
 @frappe.whitelist(allow_guest=True)
@@ -147,46 +195,4 @@ def web_search(text, start=0, limit=20):
 			match(content) against (%s IN BOOLEAN MODE)
 		limit {start}, {limit}'''.format(start=start, limit=limit),
 		text, as_dict=True)
-	return results
-
-@frappe.whitelist()
-def get_search_doctypes(text):
-	'''Search for all t
-	:param text: phrase to be searched
-	:return: Array of result objects'''
-
-	text = "+" + text + "*"
-	results = frappe.db.sql('''
-		select
-			doctype
-		from
-			__global_search
-		where
-			match(content) against (%s IN BOOLEAN MODE)
-		group by
-			doctype
-		order by
-			count(doctype) desc limit 0, 80''', text, as_dict=True)
-	return results
-
-@frappe.whitelist()
-def search_in_doctype(doctype, text, start, limit):
-	'''Search for given text in given doctype in __global_search
-	:param doctype: doctype to be searched in
-	:param text: phrase to be searched
-	:param start: start results at, default 0
-	:param limit: number of results to return, default 20
-	:return: Array of result objects'''
-
-	text = "+" + text + "*"
-	results = frappe.db.sql('''
-		select
-			doctype, name, content
-		from
-			__global_search
-		where
-			doctype = %s AND
-			match(content) against (%s IN BOOLEAN MODE)
-		limit {start}, {limit}'''.format(start=start, limit=limit), (doctype, text), as_dict=True)
-
 	return results

@@ -30,23 +30,31 @@ frappe.dom = {
 	remove_script_and_style: function(txt) {
 		var div = document.createElement('div');
 		div.innerHTML = txt;
+		var found = false;
 		["script", "style", "noscript", "title", "meta", "base", "head"].forEach(function(e, i) {
 			var elements = div.getElementsByTagName(e);
 			var i = elements.length;
 			while (i--) {
+				found = true;
 				elements[i].parentNode.removeChild(elements[i]);
 			}
 		});
-		
+
 		// remove links with rel="stylesheet"
 		var elements = div.getElementsByTagName('link');
 		var i = elements.length;
 		while (i--) {
 			if (elements[i].getAttribute("rel")=="stylesheet"){
+				found = true;
 				elements[i].parentNode.removeChild(elements[i]);
 			}
 		}
-		return div.innerHTML;
+		if(found) {
+			return div.innerHTML;
+		} else {
+			// don't disturb
+			return txt;
+		}
 	},
 	is_element_in_viewport: function (el) {
 
@@ -141,10 +149,7 @@ frappe.dom = {
 		if(!frappe.dom.freeze_count) return; // anything open?
 		frappe.dom.freeze_count--;
 		if(!frappe.dom.freeze_count) {
-			var freeze = $('#freeze').removeClass("in");
-			setTimeout(function() {
-				if(!frappe.dom.freeze_count) { freeze.remove(); }
-			}, 150);
+			var freeze = $('#freeze').removeClass("in").remove();
 		}
 	},
 	save_selection: function() {

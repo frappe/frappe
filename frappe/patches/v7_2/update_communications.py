@@ -6,10 +6,12 @@ def execute():
 		remove Guest None from sender full name
 		setup feedback request trigger's is_manual field
 	"""
-
+	frappe.reload_doc('core', 'doctype', 'dynamic_link')
+	frappe.reload_doc('email', 'doctype', 'contact')
+	
 	frappe.reload_doc("core", "doctype", "feedback_request")
 	frappe.reload_doc("core", "doctype", "communication")
-
+	
 	if frappe.db.has_column('Communication', 'feedback'):
 		frappe.db.sql("""update tabCommunication set content=ifnull(feedback, "feedback details not provided")
 			where communication_type="Feedback" and content is NULL""")

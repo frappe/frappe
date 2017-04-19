@@ -5,7 +5,7 @@
  "doctype": "Page", 
  "icon": "fa fa-cog", 
  "idx": 1, 
- "modified": "2016-02-26 00:21:05.501007", 
+ "modified": "2017-04-12 18:44:53.283640", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "modules_setup", 
@@ -15,5 +15,6 @@
  "script": null, 
  "standard": "Yes", 
  "style": null, 
+ "system_page": 1, 
  "title": "Modules Setup"
 }

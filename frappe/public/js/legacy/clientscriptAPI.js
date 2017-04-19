@@ -354,7 +354,7 @@ _f.Frm.prototype.set_read_only = function() {
 	var docperms = frappe.perm.get_perm(cur_frm.doc.doctype);
 	for (var i=0, l=docperms.length; i<l; i++) {
 		var p = docperms[i];
-		perm[p.permlevel || 0] = {read:1};
+		perm[p.permlevel || 0] = {read:1, print:1, cancel:1};
 	}
 	cur_frm.perm = perm;
 }
@@ -489,7 +489,7 @@ _f.Frm.prototype.make_new = function(doctype) {
 _f.Frm.prototype.update_in_all_rows = function(table_fieldname, fieldname, value) {
 	// update the child value in all tables where it is missing
 	if(!value) return;
-	var cl = doc[table_fieldname] || [];
+	var cl = this.doc[table_fieldname] || [];
 	for(var i = 0; i < cl.length; i++){
 		if(!cl[i][fieldname]) cl[i][fieldname] = value;
 	}

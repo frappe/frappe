@@ -1,9 +1,9 @@
 {% extends "templates/web.html" %}
 
-{% block title %}{{ title }}{% endblock %}
+{% block title %}{{ _(title) }}{% endblock %}
 
 {% block header %}
-<h1>{{ title }}</h1>
+<h1>{{ _(title) }}</h1>
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -158,7 +158,7 @@
 				{{ _doc.get(field.fieldname) }}
 			</a>
 			<br><button class="btn btn-small btn-default btn-xs
-				change-attach" style="margin-top: 5px;">Change</button>
+                        	change-attach" style="margin-top: 5px;">{{ _("Change") }}</button>
 		</p>
 		{%- endif %}
 		<p class="{{ value(field, _doc) and 'hide' or '' }} attach-input-wrap">
@@ -289,22 +289,22 @@
 					</div>
 					{% endfor %}
 			</div>
-			{% if last_page and accept_payment %}
-			<div class="well payment-details">
-				{% if not doc.paid %}
-					{% if payment_button_help %}
-					<div class='text-muted' style='padding-bottom: 15px;'>
-						{{ payment_button_help }}</div>
-					{% endif %}
-					<a class="btn btn-primary btn-payment">
-						{{ payment_button_label }}</a>
-				{% else %}
-					<div>{{ _("Payment Complete") }}</div>
-				{% endif %}
-			</div>
-			{% endif %}
 		</div>
 		{% endfor %}
+		{% if last_page and accept_payment %}
+		<div class="well payment-details">
+			{% if not doc.paid %}
+				{% if payment_button_help %}
+				<div class='text-muted' style='padding-bottom: 15px;'>
+					{{ payment_button_help }}</div>
+				{% endif %}
+				<a class="btn btn-primary btn-payment">
+					{{ payment_button_label or "Pay"}}</a>
+			{% else %}
+				<div>{{ _("Payment Complete") }}</div>
+			{% endif %}
+		</div>
+		{% endif %}
 		<!-- page footer buttons -->
 		<div>
 			{% if layout|len > 1 %}

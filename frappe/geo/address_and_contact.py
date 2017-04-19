@@ -41,22 +41,6 @@ def load_address_and_contact(doc, key):
 
 	doc.set_onload('contact_list', contact_list)
 
-def set_default_role(doc, method):
-	'''Set customer, supplier, student based on email'''
-	if frappe.flags.setting_role:
-		return
-	contact_name = frappe.get_value('Contact', dict(email_id=doc.email))
-	if contact_name:
-		contact = frappe.get_doc('Contact', contact_name)
-		for link in contact.links:
-			frappe.flags.setting_role = True
-			if link.link_doctype=='Customer':
-				doc.add_roles('Customer')
-			elif link.link_doctype=='Supplier':
-				doc.add_roles('Supplier')
-	elif frappe.get_value('Student', dict(student_email_id=doc.email)):
-		doc.add_roles('Student')
-
 def has_permission(doc, ptype, user):
 	links = get_permitted_and_not_permitted_links(doc.doctype)
 	if not links.get("not_permitted_links"):
@@ -155,7 +139,7 @@ def filter_dynamic_link_doctypes(doctype, txt, searchfield, start, page_len, fil
 
 	filters.pop("parent")
 	filters.update({
-		"dt": ("not in", [doctype[0] for doctype in doctypes]),
+		"dt": ("not in", [d[0] for d in doctypes]),
 		"dt": ("like", txt),
 	})
 

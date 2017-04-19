@@ -183,6 +183,10 @@ textarea.form-control {
 	}
 }
 
+.datepicker--button {
+	color: @brand-primary;
+}
+
 .hidden-xs-inline, .hidden-xs-inline-block {
 	display: none;
 }
@@ -405,8 +409,22 @@ textarea.form-control {
 		vertical-align: middle;
 	}
 
+	.input-upload {
+		vertical-align: top;
+	}
+
+	.uploaded-filename {
+		border: 1px solid @border-color;
+		border-radius: 3px;
+	}
+
+	.uploaded-filename .btn-group {
+		margin-right: 5px;
+		margin-bottom: 5px;
+	}
+
 	.uploaded-filename-display {
-		max-width: 194px;
+		max-width: 150px;
 	}
 }
 
@@ -530,6 +548,9 @@ textarea.form-control {
 		max-height: 300px;
 		overflow: auto;
 	}
+	.note-image-input {
+		height: auto;
+	}
 }
 
 // hide some buttons in modal
@@ -546,14 +567,85 @@ textarea.form-control {
 .search-dialog {
 	.modal-dialog {
 		width: 768px;
-		height: 500px;
+	}
+
+	.search-header {
+		display: flex;
+		align-items: center;
+		padding: 5px;
 	}
 
 	.modal-body {
 		padding: 0px 15px;
+
 	}
 
-	input.form-control, .input-group-addon {
+	.empty-state {
+		color: #d4d9dd;
+		height: 500px;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		text-align: center;
+
+		.status-icon {
+			font-size: 40px;
+			position: relative;
+			margin-bottom: 10px;
+		}
+
+		p {
+			font-size: 15px;
+			display: block;
+		}
+
+		.cover {
+			color: white;
+			font-size: 6px;
+			position: absolute;
+		}
+	}
+
+	@keyframes twinkle {
+		0%   { opacity:1; }
+		50%  { opacity:0; }
+		100% { opacity:1; }
+	}
+	@-o-keyframes twinkle {
+		0%   { opacity:1; }
+		50%  { opacity:0; }
+		100% { opacity:1; }
+	}
+	@-moz-keyframes twinkle {
+		0%   { opacity:1; }
+		50%  { opacity:0; }
+		100% { opacity:1; }
+	}
+	@-webkit-keyframes twinkle {
+		0%   { opacity:1; }
+		50%  { opacity:0; }
+		100% { opacity:1; }
+	}
+	.twinkle-one {
+		-webkit-animation: twinkle 1.5s ease infinite;
+		-moz-animation: twinkle 1.5s ease infinite;
+		-o-animation: twinkle 1.5s ease infinite;
+		animation: twinkle 1.5s ease infinite;
+	}
+	.twinkle-two {
+		-webkit-animation: twinkle 1.5s ease infinite 0.5s;
+		-moz-animation: twinkle 1.5s ease infinite 0.5s;
+		-o-animation: twinkle 1.5s ease infinite 0.5s;
+		animation: twinkle 1.5s ease infinite 0.5s;
+	}
+	.twinkle-three {
+		-webkit-animation: twinkle 1.5s ease infinite 1s;
+		-moz-animation: twinkle 1.5s ease infinite 1s;
+		-o-animation: twinkle 1.5s ease infinite 1s;
+		animation: twinkle 1.5s ease infinite 1s;
+	}
+
+	input.form-control {
 		border: none;
 		border-left-style:none;
 	}
@@ -561,10 +653,6 @@ textarea.form-control {
 	input.form-control:focus {
 		outline: none;
 		box-shadow: none;
-	}
-
-	.input-group-addon{
-    	background-color: #FFF;
 	}
 
 	.layout-side-section,
@@ -589,6 +677,7 @@ textarea.form-control {
 				align-items: center;
 				justify-content: space-between;
 				padding-left: 20px;
+				background-color: #ffffff;
 
 				i {
 					visibility: hidden;
@@ -598,36 +687,14 @@ textarea.form-control {
 			.active i {
 				visibility: visible;
 			}
+
+			.select a, a:hover {
+				background-color: #f7fafc;
+			}
 		}
 	}
 
 	.results-area {
-		.search-intro-placeholder {
-			color: #d4d9dd;
-			height: inherit;
-			display: flex;
-			justify-content: center;
-			align-items: center;
-
-			span {
-				text-align: center;
-
-				i {
-					font-size: 64px;
-					display: block;
-				}
-
-				p {
-					font-size: 15px;
-					display: block;
-				}
-			}
-		}
-
-		// a {
-		// 	color: #5E64FF;
-		// }
-
 		.single-link a {
 			color: #36414c;
 		}
@@ -642,6 +709,10 @@ textarea.form-control {
 		.all-results-link:before {
 			font-family: 'Octicons';
 			content: '\f0a4';
+		}
+
+		.result {
+			margin-bottom: 5px;
 		}
 	}
 
@@ -680,6 +751,34 @@ textarea.form-control {
 		display: none;
 	}
 
+	.result {
+		p {
+			margin-top: 5px;
+			margin-bottom: 5px;
+		}
+
+		.result-image {
+			display: inline-block;
+			margin-right: 10px;
+			height: 60px;
+			width: 60px;
+			background-color: #fafbfc;
+
+			.flex-text {
+				display: flex;
+				height: 60px;
+				align-items: center;
+				justify-content: center;
+			}
+
+			span {
+				font-size: 30px;
+				color: @text-extra-muted;
+			}
+		}
+
+	}
+
 	@media (max-width: @screen-xs) {
 		.modal-dialog {
 			width: auto;
@@ -695,10 +794,6 @@ textarea.form-control {
 			margin: 0px;
 			border-top: none;
 		}
-
-		.layout-side-section .sidebar-menu {
-			margin: 30px 0px;
-		}
 	}
 
 	@media (min-width: 600px) {
@@ -706,16 +801,6 @@ textarea.form-control {
 			display: none;
 		}
 	}
-}
-
-.result {
-	p {
-		margin-top: 0.2em;
-	}
-}
-
-.search-result {
-  margin-bottom: 24px;
 }
 
 .note-editor.note-frame .note-editing-area .note-editable {
@@ -797,10 +882,19 @@ input[type="checkbox"] {
 		color: @checkbox-color;
 	}
 }
-// mozilla doesn't support
-// pseudo elements on checkbox
+
+
+// mozilla doesn't support pseudo elements on checkbox
 @-moz-document url-prefix() {
 	input[type="checkbox"] {
 		visibility: visible;
+	}
+}
+
+// edge doesn't support pseudo elements on checkbox
+//Microsoft Edge Browser 12+ (All)
+@supports (-ms-ime-align:auto) {
+	input[type="checkbox"] {
+		 visibility: visible;
 	}
 }

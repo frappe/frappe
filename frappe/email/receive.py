@@ -198,18 +198,18 @@ class EmailServer:
 				uidnext=uidnext,
 				email_account=self.settings.email_account)
 			)
-			
+
 			# uid validity not found pulling emails for first time
 			if not uid_validity:
 				self.settings.email_sync_rule = "UNSEEN"
 				return
-		
+
 			sync_count = 100 if uid_validity else int(self.settings.initial_sync_count)
 			from_uid = 1 if uidnext < (sync_count + 1) or (uidnext - sync_count) < 1 else uidnext - sync_count
 			# sync last 100 email
 			self.settings.email_sync_rule = "UID {}:{}".format(from_uid, uidnext)
 			self.uid_reindexed = True
-		
+
 		elif uid_validity == current_uid_validity:
 			return
 
@@ -407,9 +407,9 @@ class Email:
 		self.from_real_name = email.utils.parseaddr(_from_email)[0] if "@" in _from_email else _from_email
 
 	def decode_email(self, email):
-		if not email: return 
+		if not email: return
 		decoded = ""
-		for part, encoding in decode_header(email):
+		for part, encoding in decode_header(frappe.as_unicode(email).replace("\""," ").replace("\'"," ")):
 			if encoding:
 				decoded += part.decode(encoding)
 			else:

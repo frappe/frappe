@@ -401,6 +401,7 @@ frappe.ready(function() {
 	var setup_text_editor = function() {
 		var editors = $('[data-fieldtype="Text Editor"]');
 		editors.each(function() {
+			if($(this).attr('disabled')) return;
 			summernotes[$(this).attr('data-fieldname')] = $(this).summernote({
 				minHeight: 400,
 				toolbar: [

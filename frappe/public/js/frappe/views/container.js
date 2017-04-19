@@ -21,11 +21,7 @@ frappe.views.Container = Class.extend({
 			// set data-route in body
 			var route_str = frappe.get_route_str();
 			$("body").attr("data-route", route_str);
-			var has_sidebar = false;
-			if(frappe.ui.pages[route_str] && !frappe.ui.pages[route_str].single_column) {
-				has_sidebar = true;
-			}
-			$("body").attr("data-sidebar", has_sidebar ? 1 : 0);
+			$("body").attr("data-sidebar", me.has_sidebar() ? 1 : 0);
 		});
 
 		$(document).bind('rename', function(event, dt, old_name, new_name) {
@@ -88,6 +84,21 @@ frappe.views.Container = Class.extend({
 		frappe.breadcrumbs.update();
 
 		return this.page;
+	},
+	has_sidebar: function() {
+		var flag = 0;
+		var route_str = frappe.get_route_str();
+		// check in frappe.ui.pages
+		flag = frappe.ui.pages[route_str] && !frappe.ui.pages[route_str].single_column;
+
+		// sometimes frappe.ui.pages is updated later,
+		// so check the dom directly
+		if(!flag) {
+			var page_route = route_str.split('/').slice(0, 2).join('/');
+			flag = $(`.page-container[data-page-route="${page_route}"] .layout-side-section`).length ? 1 : 0;
+		}
+
+		return flag;
 	},
 });
 

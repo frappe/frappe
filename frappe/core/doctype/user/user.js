@@ -64,6 +64,16 @@ frappe.ui.form.on('User', {
 
 				frm.toggle_display(['sb1', 'sb3', 'modules_access'], true);
 			}
+			
+			frm.add_custom_button(__("Reset Password"), function() {
+				frappe.call({
+					method: "frappe.core.doctype.user.user.reset_password",
+					args: {
+						"user": frm.doc.name
+					}
+				})
+			})
+
 			frm.trigger('enabled');
 
 			frm.roles_editor && frm.roles_editor.show();
@@ -84,7 +94,9 @@ frappe.ui.form.on('User', {
 				}
 			}
 			if (!found){
-				frm.add_custom_button("Create User Email",frm.events.create_user_email)
+				frm.add_custom_button(__("Create User Email"), function() {
+					frm.events.create_user_email(frm)
+				})
 			}
 		}
 
@@ -113,25 +125,29 @@ frappe.ui.form.on('User', {
 			frm.toggle_enable('email', doc.__islocal);
 		}
 	},
+
 	create_user_email:function(frm) {
 		frappe.call({
 			method: 'frappe.core.doctype.user.user.has_email_account',
-			args: {email:cur_frm.doc.email},
+			args: {
+				email: frm.doc.email
+			},
 			callback: function(r) {
-				if (r["message"]== undefined){
+				if (r.message == undefined) {
 					frappe.route_options = {
-						"email_id": cur_frm.doc.email,
-						"awaiting_password":1,
-						"enable_incoming":1
+						"email_id": frm.doc.email,
+						"awaiting_password": 1,
+						"enable_incoming": 1
 					};
 					frappe.model.with_doctype("Email Account", function (doc) {
 						var doc = frappe.model.get_new_doc("Email Account");
-					frappe.route_flags.create_user_account=cur_frm.doc.name;
-					frappe.set_route("Form", "Email Account", doc.name);
+						frappe.route_flags.linked_user = frm.doc.name;
+						frappe.route_flags.delete_user_from_locals = true;
+						frappe.set_route("Form", "Email Account", doc.name);
 					})
-				}else{
-					frappe.route_flags.create_user_account=cur_frm.doc.name;					
-					frappe.set_route("Form", "Email Account", r["message"][0]["name"]);
+				} else {
+					frappe.route_flags.create_user_account = frm.doc.name;					
+					frappe.set_route("Form", "Email Account", r.message[0]["name"]);
 				}
 			}
 		})

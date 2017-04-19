@@ -5,7 +5,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _
-from frappe.utils import cstr, cint
+from frappe.utils import cstr
 from frappe.model.document import Document
 
 class LDAPSettings(Document):
@@ -24,7 +24,7 @@ class LDAPSettings(Document):
 					Seems ldap is not installed on system.<br>
 					Guidelines to install ldap dependancies and python package,
 					<a href="https://discuss.erpnext.com/t/frappe-v-7-1-beta-ldap-dependancies/15841" target="_blank">Click here</a>,
-						
+
 				</div>
 			"""
 			frappe.throw(msg, title="LDAP Not Installed")
@@ -44,12 +44,12 @@ def get_ldap_settings():
 	except Exception:
 		# this will return blank settings
 		return frappe._dict()
-	
+
 @frappe.whitelist(allow_guest=True)
 def login():
 	#### LDAP LOGIN LOGIC #####
 	args = frappe.form_dict
-	user = authenticate_ldap_user(args.usr, args.pwd)
+	user = authenticate_ldap_user(frappe.as_unicode(args.usr), frappe.as_unicode(args.pwd))
 
 	frappe.local.login_manager.user = user.name
 	frappe.local.login_manager.post_login()
@@ -93,7 +93,7 @@ def authenticate_ldap_user(user=None, password=None):
 			params["first_name"] = cstr(r[settings.ldap_first_name_field][0])
 
 		if dn:
-			conn.simple_bind_s(dn, password)
+			conn.simple_bind_s(dn, frappe.as_unicode(password))
 			return create_user(params)
 		else:
 			frappe.throw(_("Not a valid LDAP user"))
@@ -105,7 +105,7 @@ def authenticate_ldap_user(user=None, password=None):
 def create_user(params):
 	if frappe.db.exists("User", params["email"]):
 		return frappe.get_doc("User", params["email"])
-	
+
 	else:
 		params.update({
 			"doctype": "User",
@@ -119,5 +119,5 @@ def create_user(params):
 
 		user = frappe.get_doc(params).insert(ignore_permissions=True)
 		frappe.db.commit()
-		
+
 		return user

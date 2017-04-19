@@ -1,845 +1,395 @@
 frappe.provide('frappe.search');
 
-frappe.search.UnifiedSearch = Class.extend({
-
-	setup: function() {
-		var d;
-		if(!frappe.search.dialog) {
-			d = new frappe.ui.Dialog();
-			frappe.search.dialog = d;
-		} else {
-			d = frappe.search.dialog;
-			$(d.body).empty();
-		}
-
-		$(frappe.render_template("search")).appendTo($(d.body));
-		$(d.header).html($(frappe.render_template("search_header")));
-
-		this.search_dialog = d;
-		this.search_modal = $(d.$wrapper);
-		this.search_modal.addClass('search-dialog');
-
-		this.input = this.search_modal.find(".search-input");
-		this.sidebar = this.search_modal.find(".search-sidebar");
-		this.results_area = this.search_modal.find(".results-area");
+frappe.search.SearchDialog = Class.extend({
+	init: function(opts) {
+		$.extend(this, opts);
+		this.make();
 	},
 
-	setup_search: function(init_keywords, search_objects) {
+	make: function() {
+		var d = new frappe.ui.Dialog();
+		$(d.header).html($(frappe.render_template("search_header")));
+		this.search_dialog = d;
+		this.$search_modal = $(d.$wrapper).addClass('search-dialog');
+		this.$modal_body = $(d.body);
+		this.$input = this.$search_modal.find(".search-input");
+		this.setup();
+	},
+
+	setup: function() {
+		this.modal_state = 0;
+		this.current_keyword = "";
+		this.more_count = 20;
+		this.full_lists = {};
+		this.nav_lists = {};
+		this.bind_input();
+		this.bind_events();
+	},
+
+	update: function($r) {
+		this.$search_modal.find('.loading-state').addClass('hide');
+		this.$modal_body.append($r);
+		if(this.$modal_body.find('.search-results').length > 1) {
+			this.$modal_body.find('.search-results').first().addClass("hide");
+			$r.removeClass("hide");
+			this.$modal_body.find('.search-results').first().remove();
+		} else {
+			$r.removeClass("hide");
+		}
+	},
+
+	put_placeholder: function(status_text) {
+		var $placeholder = $('<div class="row search-results hide">' +
+				'<div class="empty-state"><span style="margin-top: -100px">' +
+				'<i class="mega-octicon octicon-telescope status-icon">' +
+				'<i class="fa fa-square cover twinkle-one hide" style="left:0px;"></i>'+
+				'<i class="fa fa-square cover twinkle-two hide" style="left:8px; top:5px;"></i>'+
+				'<i class="fa fa-square cover twinkle-three hide" style="left:13px; top:-3px;"></i></i>'+
+				'<p>' + status_text + '</p></span></div>' +
+			'</div>');
+		this.update($placeholder);
+	},
+
+	bind_input: function() {
 		var me = this;
-		var keywords = init_keywords;
-		this.search_objects = search_objects;
-		this.search_types = search_objects.map(function(s) {
-			return s.search_type;
-		});
-		this.current_type = "All Results";
-		this.reset();
-		this.bind_keyboard_events();
-		this.input.val(keywords);
-		this.input.on("input", function() {
+		this.$input.on("input", function() {
 			var $this = $(this);
 			clearTimeout($this.data('timeout'));
-
 			$this.data('timeout', setTimeout(function() {
-				if(me.input.val() === keywords) return;
-				keywords = me.input.val();
-				me.reset();
-				if(keywords.length > 2) {
-					me.build_results(keywords);
+				if(me.$input.val() === me.current_keyword) return;
+				keywords = me.$input.val();
+				if(keywords.length > 1) {
+					me.get_results(keywords);
 				} else {
-					me.current_type = '';
+					me.current_keyword = "";
+					me.put_placeholder(me.search.empty_state_text);
 				}
 			}, 300));
 		});
-		this.build_results(keywords);
-		setTimeout(function() { me.input.select(); }, 500);
-	},
-
-	reset: function() {
-		this.sidebar.empty();
-		this.results_area.empty();
-		this.results_area.append($('<div class="search-intro-placeholder"><span>' +
-			'<i class="mega-octicon octicon-telescope"></i><p>'+__("Search for anything")+'</p></span></div>'));
-	},
-
-	bind_keyboard_events: function() {
-		var me = this;
-		this.search_modal.on('keydown', function(e) {
-			if(me.sidebar.find('.list-link').length > 1) {
-				var list_types = me.get_all_list_types();
-				var current_type_index = list_types.indexOf(me.current_type);
-				// DOWN and UP keys navigate sidebar
-				if(e.which === 40) {
-					if(current_type_index < list_types.length - 1) {
-						next_type = list_types[current_type_index + 1];
-						me.sidebar.find('*[data-category="'+ next_type +'"]').trigger('click');
-					}
-				} else if(e.which === 38) {
-					if(current_type_index > 0) {
-						last_type = list_types[current_type_index - 1];
-						me.sidebar.find('*[data-category="'+ last_type +'"]').trigger('click');
-					}
-				} else if (e.which === 9) {
-					// Tab key rolls back after the last result
-					if(me.results_area.find('a').last().is(":focus")) {
-						e.preventDefault();
-						me.results_area.find('.module-section-link').first().focus();
-					}
-				} else if(e.which === 8) {
-					// Backspace key focuses input
-					if(!me.input.is(":focus")) {
-						me.input.focus();
-					}
-				}
-			}
-		});
-		this.search_modal.on('keypress', function(e) {
-			if(!me.input.is(":focus")) {
-				me.input.focus();
-			}
-		});
-	},
-
-	build_results: function(keywords) {
-		var me = this;
-		this.summary = $('<div class="module-body summary"></div>');
-		this.sidelist = $('<ul class="module-sidebar-nav overlay-sidebar nav nav-pills nav-stacked search-sidelist"></ul>');
-		this.full_lists = {};
-		this.current = 0;
-		this.search_objects[me.current].build_results_object(me, keywords);
-	},
-
-	render_results: function(results_obj, keywords) {
-		var me = this;
-		if(this.current === 0) { this.reset() }
-		results_obj.sidelist.forEach(function(list_item) {
-			me.sidelist.append(list_item);
-		})
-		this.results_area.find('.results-status').remove();
-		results_obj.sections.forEach(function(section) {
-			me.summary.append(section);
-		});
-		this.full_lists = Object.assign(this.full_lists, results_obj.lists);
-		this.full_lists["All Results"] = this.summary;
-		this.render_next_search(keywords);
 	},
 
 	bind_events: function() {
 		var me = this;
-		this.sidebar.find('.list-link').on('click', function() {
-			me.set_sidebar_link_action($(this));
+
+		// Sidebar
+		this.$modal_body.on('click', '.list-link',  function() {
+			var link = $(this);
+			me.$modal_body.find('.search-sidebar').find(".list-link").removeClass("active select");
+			link.addClass("active select");
+			var type = link.attr('data-category');
+			me.$modal_body.find('.results-area').empty().html(me.full_lists[type]);
+			me.$modal_body.find('.module-section-link').first().focus();
+			me.current_type = type;
 		});
-		this.results_area.find('.section-more').on('click', function() {
+
+		// Summary more links
+		this.$modal_body.on('click', '.section-more', function() {
 			var type = $(this).attr('data-category');
-			me.sidebar.find('*[data-category="'+ type +'"]').trigger('click');
-			return false;
+			me.$modal_body.find('.search-sidebar').find('*[data-category="'+ type +'"]').trigger('click');
 		});
-		this.results_area.find('.Help-result a').on('click', frappe.help.show_results);
-	},
 
-	set_sidebar_link_action: function(link) {
-		var me = this;
-		this.sidebar.find(".list-link").removeClass("active");
-		link.addClass("active");
-		var type = link.attr('data-category');
-		this.results_area.empty().html(this.full_lists[type]);
-		me.results_area.find('.module-section-link').first().focus();
+		// Back-links (mobile-view)
+		this.$modal_body.on('click', '.all-results-link', function() {
+			me.$modal_body.find('.search-sidebar').find('*[data-category="All Results"]').trigger('click');
+		});
 
-		this.results_area.find('.section-more').on('click', function() {
+		// Full list more links
+		this.$modal_body.on('click', '.list-more', function() {
 			var type = $(this).attr('data-category');
-			me.sidebar.find('*[data-category="'+ type +'"]').trigger('click');
-			return false;
-		});
-
-		this.current_type = type;
-
-		this.set_back_link();
-		this.set_list_more_link(type);
-		this.results_area.find('.Help-result a').on('click', frappe.help.show_results);
-	},
-
-	set_back_link: function() {
-		var me = this;
-		var back_link = this.results_area.find('.all-results-link');
-		back_link.on('click', function() {
-			me.show_summary();
-		});
-	},
-
-	show_summary: function() {
-		this.current_type = '';
-		this.sidebar.find(".list-link").removeClass("active");
-		this.sidebar.find(".list-link").first().addClass("active");
-		this.results_area.empty().html(this.summary);
-		this.bind_events();
-	},
-
-	set_list_more_link: function(type) {
-		var me = this;
-		var more_link = this.results_area.find('.list-more');
-		more_link.on('click', function() {
-			var more_search_type = $(this).attr('data-search');
-			var s_obj = me.search_objects[me.search_types.indexOf(more_search_type)];
-			s_obj.get_more_results(type);
-		});
-	},
-
-	add_more_results: function(more_data) {
-		var me = this;
-		var more_results = more_data[0];
-		var more = more_data[1];
-		this.results_area.find('.module-section-link').last().addClass('.current-last');
-		this.results_area.find('.list-more').before(more_results);
-		setTimeout(function() { me.results_area.find('.more-results').last().find('.module-section-link').first().focus(); }, 200);
-		if(!more) {
-			this.results_area.find('.list-more').hide();
-			var no_of_results = this.results_area.find('.result').length;
-			var no_of_results_cue = $('<p class="results-status text-muted small">'+
-				no_of_results +' results found</p>');
-			this.results_area.find(".more-results:last").append(no_of_results_cue);
-		}
-		this.results_area.find('.more-results.last').slideDown(200, function() {
-			var height = me.results_area.find('.module-body').height() - 750;
-			if(me.results_area.find('.list-more').is(":visible")) {
-				me.results_area.animate({
-					scrollTop: height
-				}, 300);
-			}
-			$(this).removeClass('last');
-		});
-	},
-
-	render_next_search: function(keywords) {
-		this.current += 1;
-		if(this.current < this.search_objects.length){
-			// More searches to go
-			this.search_objects[this.current].build_results_object(this, keywords);
-		} else {
-			this.sidebar.append(this.sidelist);
-			// If there's only one link in sidebar, there's no summary (show its full list)
-			if(this.sidebar.find('.list-link').length === 1) {
-				this.bind_events();
-				this.sidebar.find('.list-link').trigger('click');
-				this.results_area.find('.all-results-link').hide();
-
-			} else if (this.sidebar.find('.list-link').length === 0) {
-				this.results_area.html('<p class="results-status text-muted" style="text-align: center;">'+
-					'No results found for: '+ "'"+ keywords +"'" +'</p>');
-			} else {
-				this.sidebar.find('.search-sidelist').prepend('<li class="module-sidebar-item list-link"' +
-					'data-category="All Results"><a><span>'+__("All Results")+'</span><i class="octicon octicon-chevron-right pull-right"' +
-					'></a></li>');
-				var list_types = this.get_all_list_types();
-				if(list_types.indexOf(this.current_type) === -1) {
-					this.current_type = "All Results";
-				}
-				this.bind_events();
-				this.sidebar.find('*[data-category="'+ this.current_type +'"]').trigger('click');
-				this.bind_events();
-			}
-		}
-	},
-
-	get_all_list_types: function() {
-		var types = [];
-		this.sidebar.find('.list-link').each(function() {
-			types.push($(this).attr('data-category'));
-		});
-		return types;
-	},
-
-});
-
-frappe.search.GlobalSearch = Class.extend({
-	init: function() {
-		this.search_type = 'Global Search';
-	},
-
-	setup: function() {
-		this.types = [];
-		this.sections = [];
-		this.lists = {};
-		this.more_length = 15;
-		this.start = {};
-		this.section_length = 3;
-
-		this.set_types();
-	},
-
-	set_types: function() {
-		var me = this;
-		this.current_type = 0;
-		frappe.call({
-			method: "frappe.utils.global_search.get_search_doctypes",
-			args: { text: me.keywords },
-			callback: function(r) {
-				if(r.message) {
-					r.message.forEach(function(d) {
-						me.types.push(d.doctype);
-						me.start[d.doctype] = 0;
+			var fetch_type = $(this).attr('data-search');
+			var current_count = me.$modal_body.find('.result').length;
+			if(fetch_type === "Global") {
+				frappe.search.utils.get_global_results(me.current_keyword,
+					current_count, me.more_count, type)
+					.then(function(doctype_results) {
+						 me.add_more_results(doctype_results);
+					}, function (err) {
+						console.error(err);
 					});
-					me.sidelist = me.make_sidelist();
-					me.get_result_set(me.types[me.current_type]);
-				} else {
-					me.render_object.render_next_search(me.keywords);
-				}
-			}
-		});
-	},
-
-	make_sidelist: function() {
-		var me = this;
-		var sidelist = [];
-		this.types.forEach(function(type) {
-			sidelist.push(me.make_sidelist_item(type));
-		});
-		return sidelist;
-	},
-
-	make_sidelist_item: function(type) {
-		var sidelist_item = '<li class="module-sidebar-item list-link" data-search="{0}"' +
-			'data-category="{1}"><a><span>{1}</span><i class="octicon octicon-chevron-right pull-right"' +
-			'></a></li>';
-		return $(__(sidelist_item, [this.search_type, type]));
-	},
-
-	get_result_set: function(doctype){
-		var me = this;
-		var more = true;
-		frappe.call({
-			method: "frappe.utils.global_search.search_in_doctype",
-			args: {
-				doctype: doctype,
-				text: me.keywords,
-				start: me.start[doctype],
-				limit: me.more_length,
-			},
-			callback: function(r) {
-				if(r.message) {
-					me.start[doctype] += me.more_length;
-					if(r.message.length < me.more_length) {
-						more = false;
-					}
-					me.make_type_results(doctype, r.message, more);
-				}
-			}
-		});
-	},
-
-	make_type_results: function(type, results, more) {
-		var last_type = (type == this.types.slice(-1));
-		this.sections.push(this.make_section(type, results));
-		this.lists[type] = this.make_full_list(type, results, more);
-		if(!last_type) {
-			this.current_type += 1;
-			this.get_result_set(this.types[this.current_type]);
-		} else {
-			this.render_results();
-		}
-	},
-
-	build_results_object: function(r, keywords) {
-		this.render_object = r;
-		this.keywords = keywords;
-		this.setup();
-	},
-
-	render_results: function() {
-		var me = this;
-		if(this.sections.length > 0) {
-			this.render_object.render_results({
-				sidelist: me.sidelist,
-				sections: me.sections,
-				lists: me.lists
-			}, me.keywords);
-		}
-	},
-
-	make_result_item: function(type, result) {
-		var link_html = '<div class="result '+ type +'-result">' +
-			'<b><a href="{0}" class="module-section-link small">{1}</a></b>' +
-			'<p class="small">{2}</p>' +
-			'</div>';
-		var formatted_result = this.format_result(result);
-		return $(__(link_html, formatted_result));
-	},
-
-	format_result: function(result) {
-		var name, route = '#Form/' + result.doctype + '/' + result.name;
-		var description = this.get_finds(result.content, this.keywords);
-		if(result.doctype === "Communication") {
-			if(description.indexOf(',') === -1) {
-				name = description.slice(description.indexOf(':') + 8);
 			} else {
-				name = description.slice(description.indexOf(':') + 8, description.indexOf(','));
+				results = me.nav_lists[type].slice(0, me.more_count);
+				me.nav_lists[type].splice(0, me.more_count);
+				me.add_more_results([{title: type, results: results}]);
 			}
+		});
+
+		// Switch to global search link
+		this.$modal_body.on('click', '.switch-to-global-search', function() {
+			me.search = me.searches['global_search'];
+			me.$input.attr("placeholder", me.search.input_placeholder);
+			me.put_placeholder(me.search.empty_state_text);
+			me.get_results(me.current_keyword);
+		});
+
+		// Help results
+		this.$modal_body.on('click', 'a[data-path]', frappe.help.show_results);
+		this.bind_keyboard_events();
+	},
+
+	bind_keyboard_events: function() {
+		var me = this;
+		this.$search_modal.on('keydown', function(e) {
+
+			if(me.$modal_body.find('.list-link').length > 1) {
+				if(me.modal_state === 0) {
+					// DOWN and UP keys navigate sidebar
+					if(e.which === DOWN_ARROW || e.which === TAB) {
+						e.preventDefault();
+						var $link = me.$modal_body.find('.list-link.select').next();
+						if($link.length > 0) {
+							// me.$modal_body.find('.list-link').removeClass('select');
+							// $link.addClass('select');
+							$link.trigger('click');
+						}
+					} else if(e.which === UP_ARROW) {
+						e.preventDefault();
+						var $link = me.$modal_body.find('.list-link.select').prev();
+						if($link.length > 0) {
+							$link.trigger('click');
+						}
+					}
+				}
+			}
+
+			if(!me.$input.is(":focus")) {
+				me.$input.focus();
+			}
+		});
+
+	},
+
+	init_search: function(keywords, search_type) {
+		var me = this;
+		this.search = this.searches[search_type];
+		this.$input.attr("placeholder", this.search.input_placeholder);
+		this.put_placeholder(this.search.empty_state_text);
+		this.get_results(keywords);
+		this.search_dialog.show();
+		this.$input.val(keywords);
+		setTimeout(function() { me.$input.select(); }, 500);
+	},
+
+	get_results: function(keywords) {
+		this.current_keyword = keywords;
+		if(this.$modal_body.find('.empty-state').length > 0) {
+			this.put_placeholder(__("Searching ..."));
+			this.$modal_body.find('.cover').removeClass('hide')
 		} else {
-			name = result.name;
+			this.$search_modal.find('.loading-state').removeClass('hide');
 		}
-		return [route, this.bold_keywords(name), description];
+		this.search.get_results(keywords, this.parse_results.bind(this));
 	},
 
-	get_finds: function(searchables, keywords) {
-		var me = this;
-		parts = searchables.split("|||");
-		content = [];
-		parts.forEach(function(part) {
-			if(part.toLowerCase().indexOf(keywords) !== -1) {
-				var colon_index = part.indexOf(':');
-				part = '<span class="field-name text-muted">' +
-					me.bold_keywords(part.slice(0, colon_index + 1), keywords) + '</span>' +
-					me.bold_keywords(part.slice(colon_index + 1), keywords);
-				if(content.indexOf(part) === -1) {
-					content.push(part);
-				}
-			}
-		});
-		return content.join(', ');
-	},
-
-	bold_keywords: function(str, keywords) {
-		var regEx = new RegExp("("+ keywords +")", "ig");
-		return str.replace(regEx, '<b>$1</b>');
-	},
-
-	make_section: function(type, results) {
-		var me = this;
-		var results_section = $('<div class="row module-section" data-type="'+type+'">'+
-			'<div class="col-sm-12 module-section-column">' +
-			'<div class="h4 section-head">'+type+'</div>' +
-			'<div class="section-body"></div>'+
-			'</div></div>');
-		var results_col = results_section.find('.module-section-column');
-		results.slice(0, this.section_length).forEach(function(result) {
-			results_col.append(me.make_result_item(type, result));
-		});
-		if(results.length > this.section_length) {
-			results_col.append('<a href="#" class="section-more small" data-category="'
-				+ type + '" style="margin-top:10px">'+__("More...")+'</a>');
-
+	parse_results: function(result_sets, keyword) {
+		result_sets = result_sets.filter(function(set) {
+			return set.results.length > 0;
+		})
+		if(result_sets.length > 0) {
+			this.render_data(result_sets);
+		} else {
+			this.put_placeholder(this.search.no_results_status(keyword));
 		}
-		return results_section;
 	},
 
-	make_result_subtypes_property: function(results) {
-		var compressed_results = [];
-		var labels = [];
-		results.forEach(function(r) {
-			if(labels.indexOf(r.label) === -1) {
-				labels.push(r.label);
-			}
-		});
-		labels.forEach(function(l) {
-			var item_group = {
-				title: l,
-				subtypes: []
-			};
-			results.forEach(function(r) {
-				if (r.label === l) {
-					item_group.subtypes.push(r);
-				}
-			});
-			compressed_results.push(item_group);
-		});
-		return compressed_results;
-	},
-
-	make_full_list: function(type, results, more) {
+	render_data: function(result_sets) {
 		var me = this;
-		var results_list = $(' <div class="module-body"><div class="row module-section full-list '+
+		var $search_results = $(frappe.render_template("search")).addClass('hide');
+		var $sidebar = $search_results.find(".search-sidebar").empty();
+		var sidebar_item_html = '<li class="module-sidebar-item list-link" data-category="{0}">' +
+			'<a><span class="ellipsis">{0}</span><i class="octicon octicon-chevron-right"' +
+			'></a></li>';
+
+		this.modal_state = 0;
+		this.full_lists = {	'All Results': $('<div class="module-body results-summary"></div>') };
+		this.nav_lists = {};
+
+		result_sets.forEach(function(set) {
+			$sidebar.append($(__(sidebar_item_html, [set.title])));
+			me.add_section_to_summary(set.title, set.results);
+			me.full_lists[set.title] = me.render_full_list(set.title, set.results, set.fetch_type);
+		});
+
+		if(result_sets.length > 1) {
+			$sidebar.prepend($(__(sidebar_item_html, ["All Results"])));
+		}
+
+		this.update($search_results.clone());
+		this.$modal_body.find('.list-link').first().trigger('click');
+	},
+
+	render_full_list: function(type, results, fetch_type) {
+		var me = this, max_length = 20;
+		var $results_list = $(' <div class="module-body"><div class="row module-section full-list '+
 			type+'-section">'+'<div class="col-sm-12 module-section-column">' +
 			'<div class="back-link"><a class="all-results-link small"> All Results</a></div>' +
 			'<div class="h4 section-head">'+type+'</div>' +
 			'<div class="section-body"></div></div></div></div>');
-		if(type === "Lists") {
-			results = this.make_result_subtypes_property(results);
+
+		var $results_col = $results_list.find('.module-section-column');
+		for(var i = 0; i < max_length && results.length > 0; i++) {
+			$results_col.append(me.render_result(type, results.shift()));
 		}
-		var results_col = results_list.find('.module-section-column');
-		results.forEach(function(result) {
-			results_col.append(me.make_result_item(type, result));
-		});
-		if(more) {
-			results_col.append('<a href="#" class="list-more small" data-search="'+ this.search_type +
-				'" data-category="'+ type + '" style="margin-top:10px">'+__("More...")+'</a>');
+		if(results.length > 0) {
+			if(fetch_type === "Nav") this.nav_lists[type] = results;
+			$results_col.append('<a class="list-more small" data-search="'+ fetch_type +
+				'" data-category="'+ type + '" data-count="' + max_length +
+				'" style="margin-top:10px">'+__("More...")+'</a>');
 		}
-		return results_list;
+		return $results_list;
 	},
 
-	get_more_results: function(doctype) {
+	add_section_to_summary: function(type, results) {
 		var me = this;
-		var more = true;
-		frappe.call({
-			method: "frappe.utils.global_search.search_in_doctype",
-			args: {
-				doctype: doctype,
-				text: me.keywords,
-				start: me.start[doctype],
-				limit: me.more_length,
-			},
-			callback: function(r) {
-				if(r.message) {
-					me.start[doctype] += me.more_length;
-					me.make_more_list(doctype, r.message, more);
-				}
-			}
-		});
-	},
-
-	make_more_list: function(type, results, more) {
-		var me = this;
-		if(results.length < this.more_length) { more = false; }
-
-		var more_results = $('<div class="more-results last"></div>');
-		results.forEach(function(result) {
-			more_results.append(me.make_result_item(type, result));
-		});
-		this.render_object.add_more_results([more_results, more]);
-	},
-
-	get_awesome_bar_options: function(keywords, ref) {
-		var me = this;
-		var doctypes = [];
-		var current = 0;
-		var results = [];
-
-		var get_doctypes = function(){
-			var me = this;
-			frappe.call({
-				method: "frappe.utils.global_search.get_search_doctypes",
-				args: { text: keywords },
-				callback: function(r) {
-					if(r.message) {
-						r.message.forEach(function(d) {
-							doctypes.push(d.doctype);
-						});
-						get_results();
-					}
-				}
-			});
-		};
-
-		var get_results = function() {
-			frappe.call({
-				method: "frappe.utils.global_search.search_in_doctype",
-				args: {
-					doctype: doctypes[current],
-					text: keywords,
-					start: 0,
-					limit: 4,
-				},
-				callback: function(r) {
-					if(r.message) {
-						r.message.forEach(function(d) {
-							results.push(make_option(d));
-						});
-						current += 1;
-						if(current < doctypes.length) {
-							get_results();
-						} else {
-							ref.set_global_results(results, keywords);
-						}
-					}
-				}
-			});
-		};
-
-		var make_option = function(data) {
-			return {
-				label: __("{0}: {1}", [__(data.doctype).bold(), data.name]),
-				value: __("{0}: {1}", [__(data.doctype), data.name]),
-				route: ["Form", data.doctype, data.name],
-				match: data.doctype,
-				index: 90,
-				default: "Global",
-				description: me.get_finds(data.content, keywords).slice(0,86) + '...'
+		var are_expansive = false;
+		var margin_more = "10px";
+		for(var i = 0; i < results.length; i++) {
+			if(results[i]["description" || "image" || "subtypes"] || false) {
+				are_expansive = true;
+				break;
 			}
 		};
+		if(results[0].image) margin_more = "20px";
+		var [section_length, col_width] = are_expansive ? [3, "12"] : [4, "6"];
 
-		get_doctypes();
-
-	}
-
-});
-
-frappe.search.NavSearch = frappe.search.GlobalSearch.extend({
-	init: function() {
-		this.search_type = 'Navigation';
-	},
-	set_types: function() {
-		var me = this;
-		this.section_length = 4;
-
-		this.set_nav_results(me.keywords);
-		var types = ["Lists", "Reports", "Modules", "Administration", "Setup"];
-		types.forEach(function(type) {
-			if(me.nav_results[type].length > 0) {
-				me.types.push(type);
-				me.start[type] = 0;
-			}
+		// check state of last summary section
+		if(this.full_lists['All Results'].find('.module-section').last().find('.col-sm-6').length !== 1
+			|| are_expansive) {
+			this.full_lists['All Results'].append($('<div class="row module-section"></div>'));
+		}
+		var $results_col = $(`<div class="col-sm-${col_width} module-section-column" data-type="${type}">
+			<div class="h4 section-head">${type}</div>
+			<div class="section-body"></div>
+			</div>`);
+		results.slice(0, section_length).forEach(function(result) {
+			$results_col.append(me.render_result(type, result));
 		});
-		if(this.types.length > 0) {
-			this.sidelist = this.make_sidelist();
-			this.get_results();
-		} else {
-			this.render_object.render_next_search(me.keywords);
+		if(results.length > section_length) {
+			$results_col.append(`<div style="margin-top:${margin_more}"><a class="section-more small"
+				data-category="${type}">${__("More...")}</a></div>`);
 		}
+
+		this.full_lists['All Results'].find('.module-section').last().append($results_col);
 	},
 
-	set_nav_results: function(keywords) {
-		var me = this, lists = [], setup = [];
-		this.awesome_bar = new frappe.search.AwesomeBar();
-		var compare = function(a, b) {
-			return a.index - b.index;
-		}
-		var all_doctypes = me.awesome_bar.get_doctypes(keywords);
-		all_doctypes.forEach(function(d) {
-			if(d.type === "") {
-				setup.push(d);
+	render_result: function(type, result) {
+		var $result = $('<div class="result '+ type +'-result"></div>');
+
+		function get_link(result) {
+			var link;
+			if(result.route) {
+				link = 'href="#'+result.route.join('/')+'" ';
+			} else if (result.data_path) {
+				link = 'data-path="'+result.data_path+'"';
 			} else {
-				lists.push(d);
+				link = "";
 			}
-		});
-		this.nav_results = {
-			"Lists": lists.sort(compare),
-			"Reports": me.awesome_bar.get_reports(keywords).sort(compare),
-			"Modules": me.awesome_bar.get_modules(keywords).sort(compare),
-			"Administration": me.awesome_bar.get_pages(keywords).sort(compare),
-			"Setup": setup.sort(compare)
-		}
-	},
-
-	get_results: function() {
-		var me = this;
-		this.types.forEach(function(type) {
-			me.get_result_set(type);
-		});
-	},
-
-	get_result_set: function(type) {
-		var last_type = (type == this.types.slice(-1));
-		var results = this.nav_results[type].slice(this.start[type], this.more_length);
-		this.start[type] += this.more_length;
-		var more = true;
-		if(results.slice(-1)[0] === this.nav_results[type].slice(-1)[0]) {
-			more = false;
-		}
-		this.make_type_results(type, results, more);
-		if(last_type) {
-			this.render_results();
-		}
-	},
-
-	make_type_results: function(type, results, more) {
-		this.sections.push(this.make_section(type, results));
-		this.lists[type] = this.make_full_list(type, results, more);
-	},
-
-	get_more_results: function(type) {
-		var results = this.nav_results[type].slice(this.start[type],
-			this.start[type]+this.more_length);
-		this.start[type] += this.more_length;
-		var more = true;
-		if(results.slice(-1)[0] === this.nav_results[type].slice(-1)[0]) {
-			more = false;
-		}
-		this.make_more_list(type, results, more)
-	},
-
-	make_path: function(route) {
-		path = '#';
-		route.forEach(function(r) {
-			path += r + '/';
-		});
-		return path.slice(0, -1);
-	},
-
-	make_result_item: function(type, result) {
-		var me = this;
-		if(!result.subtypes) {
-			var link_html = '<div class="result '+ type +'-result single-link">' +
-				'<a href="{0}" class="module-section-link small">{1}</a>' +
-				'<p class="small"></p></div>';
-			return this.make_result_link(type, result, link_html);
-
-		} else {
-			var result_div = $('<div class="result '+ type +'-result single-link result-with-subtype"></div>');
-			result.subtypes.forEach(function(s) {
-				if(["Gantt", "Report", "Calendar"].indexOf(s.type) !== -1) {
-					var button_html = '<button class="btn btn-default btn-xs result-subtype"'+
-						'><a class="text-muted" href="{0}">{1}</a></button>';
-					var button = $(__(button_html, [me.make_path(s.route), s.type]));
-					result_div.append(button);
-				} else if (s.type !== "New") {
-					title_link_html = '<a href="{0}" class="module-section-link small result-main">{1}</a>';
-					if(s.type === "List") {
-						var link = $(__(title_link_html, [me.make_path(s.route), result.title]));
-					} else {
-						var link = $(__(title_link_html, [me.make_path(s.route), result.title + ' ' + s.type]));
-					}
-					result_div.append(link);
-				}
-			})
-			result_div.append($('<p class="small"></p>'));
-			return result_div;
-		}
-
-	},
-
-	make_result_link: function(type, result, link_html) {
-		var me = this;
-		if(!result.onclick) {
-			var link = $(__(link_html, [me.make_path(result.route), result.label]));
-			link.on('click', function() {
-				if(result.route_options) {
-					frappe.route_options = result.route_options;
-				}
-				frappe.set_route(result.route);
-				return false;
-			});
-			return link;
-		} else {
-			var link = $(__(link_html, ['#', result.label]));
-			link.on('click', function() {
-				frappe.new_doc(result.match, true);
-				// result.onclick(result.match, true);
-			});
 			return link;
 		}
-	},
 
-	make_dual_sections: function() {
-		this.dual_sections = [];
-		for(var i = 0; i < this.sections.length; i++) {
-			var types;
-			if(i+1 < this.types.length) {
-				types = this.types[i] + ',' + this.types[i+1];
-			} else {
-				types = this.types[i];
+		if(result.image) {
+			$result.append('<div class="result-image"><img data-name="' + result.label + '" src="'+ result.image +'" alt="' + result.label + '"></div>');
+		} else if (result.image === null) {
+			$result.append('<div class="result-image"><div class="flex-text"><span>'+ frappe.get_abbr(result.label) +'</span></div></div>');
+		}
+
+		var title_html = '<a '+ get_link(result) +' class="module-section-link small">'+ result.label +'</a>';
+		var $result_text = $('<div style="display: inline-block;"></div>');
+		if(result.description) {
+			$result_text.append($('<b>' + title_html + '</b>'));
+			$result_text.append('<p class="small">'+ result.description +'</p>');
+		} else {
+			$result_text.append($(title_html));
+			if(result.route_options) {
+				frappe.route_options = result.route_options;
 			}
-			var results_section = $('<div class="row module-section dual-section" data-type="'+ types +'"></div>');
-			for(var j = 0; j < 2 && i < this.sections.length; j++, i++){
-				results_section.append(this.sections[i]);
-			}
-			i--;
-			this.dual_sections.push(results_section);
-		}
-	},
-
-	render_results: function() {
-		var me = this;
-		this.make_dual_sections();
-		if(this.dual_sections.length > 0) {
-			this.render_object.render_results({
-				sidelist: me.sidelist,
-				sections: me.dual_sections,
-				lists: me.lists
-			}, me.keywords);
-		}
-	},
-
-	make_section: function(type, results) {
-		var me = this;
-		var results_column = $('<div class="col-sm-6 module-section-column">' +
-			'<div class="h4 section-head">'+type+'</div>' +
-			'<div class="section-body"></div>'+
-			'</div>');
-		if(type === "Lists") {
-			results = this.make_result_subtypes_property(results);
-		}
-		results.slice(0, this.section_length).forEach(function(result) {
-			results_column.append(me.make_result_item(type, result));
-		});
-		if(results.length > this.section_length) {
-			results_column.append('<a href="#" class="section-more small" data-category="'
-				+ type + '" style="margin-top:10px">'+__("More...")+'</a>');
-		}
-		return results_column;
-	}
-});
-
-frappe.search.HelpSearch = frappe.search.GlobalSearch.extend({
-	init: function() {
-		this.search_type = 'Help';
-	},
-
-	set_types: function() {
-		this.section_length = 4;
-		this.types = [this.search_type];
-		this.sidelist = this.make_sidelist();
-		this.get_result_set(this.types[0]);
-	},
-
-	make_sidelist: function() {
-		var sidelist = [];
-		var sidelist_item = '<li class="module-sidebar-item list-link help-link" '+
-		'data-search="'+ this.search_type + '" data-category="'+ this.search_type + '"><a><span>'+
-			this.search_type +'</span><i class="octicon octicon-chevron-right pull-right"></a></li>';
-		sidelist.push(sidelist_item);
-		return sidelist;
-	},
-
-	get_result_set: function(type) {
-		var me = this;
-		frappe.call({
-			method: "frappe.utils.help.get_help",
-			args: {
-				text: me.keywords
-			},
-			callback: function(r) {
-				if(r.message) {
-					// Help search doesn't have a more button for full list
-					me.make_type_results(type, r.message, false);
-					me.render_results();
+			$result_text.on('click', (e) => {
+				this.search_dialog.hide();
+				if(result.onclick) {
+					result.onclick(result.match);
 				} else {
-					me.render_object.render_next_search(me.keywords);
+					var previous_hash = window.location.hash;
+					frappe.set_route(result.route);
+
+					// hashchange didn't fire!
+					if (window.location.hash == previous_hash) {
+						frappe.route();
+					}
 				}
-			}
-		});
-	},
-
-	make_type_results: function(type, results, more) {
-		this.sections.push(this.make_section(type, results));
-		this.lists[type] = this.make_full_list(type, results, more);
-	},
-
-	make_section: function(type, results) {
-		var me = this;
-		var results_section = $('<div class="row module-section" data-type="'+type+'">'+
-			'<div class="col-sm-12 module-section-column">' +
-			'<div class="h4 section-head">'+type+'</div>' +
-			'<div class="section-body"></div>'+
-			'</div></div>');
-		var results_col = results_section.find('.module-section-column');
-		results.slice(0, this.section_length).forEach(function(result) {
-			results_col.append(me.make_condensed_result_item(type, result));
-		});
-		if(results.length > this.section_length) {
-			results_col.append('<a href="#" class="section-more small" data-category="'
-				+ type + '" style="margin-top:10px">'+__("More...")+'</a>');
-
+			});
 		}
-		return results_section;
+
+		$result.append($result_text);
+
+		if(result.subtypes) {
+			result.subtypes.forEach(function(subtype) {
+				$result.append(subtype);
+			});
+		}
+
+		return $result;
 	},
 
-	make_condensed_result_item: function(type, result) {
+	add_more_results: function(results_set) {
 		var me = this;
-		var link_html = '<div class="result '+ type +'-result">' +
-			'<b><a href="#" data-path="{0}" class="module-section-link small">{1}</a></b>' +
-			'<p class="small"></p>' +
-			'</div>';
-		var link = $(__(link_html, [result[2], result[0]]));
-		return link;
+		var more_results = $('<div class="more-results last"></div>');
+		results_set[0].results.forEach(function(result) {
+			more_results.append(me.render_result(results_set[0].title, result));
+		});
+		this.$modal_body.find('.list-more').before(more_results);
+
+		if(results_set[0].results.length < this.more_count) {
+			// hide more button and add a result count
+			this.$modal_body.find('.list-more').hide();
+			var no_of_results = this.$modal_body.find('.result').length;
+			var no_of_results_cue = $('<p class="results-status text-muted small">'+
+				no_of_results +' results found</p>');
+			this.$modal_body.find(".more-results:last").append(no_of_results_cue);
+		}
+		this.$modal_body.find('.more-results.last').slideDown(200, function() {});
 	},
 
-	make_result_item: function(type, result) {
-		var me = this;
-		var regEx = new RegExp("{index}", "ig");
-		var content = result[1].replace(regEx, '');
-		var link_html = '<div class="result '+ type +'-result">' +
-			'<b><a href="#" data-path="{0}" class="module-section-link small">{1}</a></b>' +
-			'<p class="small">{2}</p>' +
-			'</div>';
-		var link = $(__(link_html, [result[2], result[0], content]));
-		return link;
+	// Search objects
+	searches: {
+		global_search: {
+			input_placeholder: __("Global Search"),
+			empty_state_text: __("Search for anything"),
+			no_results_status: (keyword) => __("<p>No results found for '" + keyword + "' in Global Search</p>"),
+
+			get_results: function(keywords, callback) {
+				var start = 0, limit = 100;
+				var results = frappe.search.utils.get_nav_results(keywords);
+				frappe.search.utils.get_global_results(keywords, start, limit)
+					.then(function(global_results) {
+						results = results.concat(global_results);
+						return frappe.search.utils.get_help_results(keywords);
+					}).then(function(help_results) {
+						results = results.concat(help_results);
+						callback(results, keywords);
+					}, function (err) {
+						console.error(err);
+					});
+			}
+		},
+		help: {
+			input_placeholder: __("Search Help"),
+			empty_state_text: __("Search the docs"),
+			no_results_status: (keyword) => __("<p>No results found for '" + keyword +
+				"' in Help</p><p>Would you like to search <a class='switch-to-global-search text-muted' "+
+				"style='text-decoration: underline;'>globally</a>" +
+				" or the <a href='https://discuss.erpnext.com' class='forum-link text-muted' " +
+				"style='text-decoration: underline;'>forums</a> instead?</p>"),
+
+			get_results: function(keywords, callback) {
+				var results = [];
+				frappe.search.utils.get_help_results(keywords)
+					.then(function(help_results) {
+						results = results.concat(help_results);
+						callback(results, keywords);
+					}, function (err) {
+						console.error(err);
+					});
+			}
+		}
 	},
 
 });

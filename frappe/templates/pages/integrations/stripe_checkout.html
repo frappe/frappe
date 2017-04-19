@@ -1,0 +1,28 @@
+{% extends "templates/web.html" %}
+
+{% block title %} Payment {% endblock %}
+
+{%- block header -%}{% endblock %}
+
+{% block script %}
+<script src="https://checkout.stripe.com/checkout.js"></script>
+<script>{% include "templates/includes/integrations/stripe_checkout.js" %}</script>
+{% endblock %}
+
+{%- block page_content -%}
+
+<p class='lead text-center centered'>
+	<span class='stripe-loading'>Loading Payment System</span>
+	<span class='stripe-confirming hidden'>Confirming Payment</span>
+</p>
+
+{% endblock %}
+
+{% block style %}
+<style>
+	header, footer {
+		display: none;
+	}
+
+</style>
+{% endblock %}

@@ -18,6 +18,11 @@ def check_if_expired():
 		return
 
 	limits = get_limits()
+	expiry = limits.get("expiry")
+
+	if not expiry:
+		return
+
 	expires_on = formatdate(limits.get("expiry"))
 	support_email = limits.get("support_email")
 
@@ -28,7 +33,8 @@ def check_if_expired():
 		message = _("""Your subscription expired on {0}. To renew, please send an email to {1}.""").format(expires_on, support_email)
 
 	else:
-		message = _("""Your subscription expired on {0}""").format(expires_on)
+		# no recourse just quit
+		return
 
 	frappe.throw(message, SiteExpiredError)
 

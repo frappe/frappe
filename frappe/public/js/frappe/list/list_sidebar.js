@@ -39,7 +39,7 @@ frappe.views.ListSidebar = Class.extend({
 		}
 		//show link for kanban view
 		this.sidebar.find('.list-link[data-view="Kanban"]').removeClass('hide');
-		if(this.doctype === "Communication"){
+		if(this.doctype === "Communication" && frappe.boot.email_accounts.length) {
 			this.sidebar.find('.list-link[data-view="Inbox"]').removeClass('hide');
 			show_list_link = true;
 		}
@@ -50,13 +50,13 @@ frappe.views.ListSidebar = Class.extend({
 
 		this.current_view = 'List';
 		var route = frappe.get_route();
-		if(route.length > 2 && in_list(['Gantt', 'Image', 'Kanban', 'Calendar', 'Inbox'], route[2])) {
+		if(route.length > 2 && frappe.views.view_modes.includes(route[2])) {
 			this.current_view = route[2];
 
 			if(this.current_view === 'Kanban') {
 				this.kanban_board = route[3];
 			} else if (this.current_view === 'Inbox') {
-				this.email_account = route[3] || frappe.boot.all_accounts;
+				this.email_account = route[3];
 			}
 		}
 
@@ -90,7 +90,7 @@ frappe.views.ListSidebar = Class.extend({
 				if(!r.ref_doctype || r.ref_doctype==me.doctype) {
 					var report_type = r.report_type==='Report Builder'
 						? 'Report/' + r.ref_doctype : 'query-report';
-					var route = r.route || report_type + '/' + r.name;
+					var route = r.route || report_type + '/' + (r.title || r.name);
 
 					if(added.indexOf(route)===-1) {
 						// don't repeat
@@ -102,7 +102,7 @@ frappe.views.ListSidebar = Class.extend({
 						}
 
 						$('<li><a href="#'+ route + '">'
-							+ __(r.name)+'</a></li>').appendTo(dropdown);
+							+ __(r.title || r.name)+'</a></li>').appendTo(dropdown);
 					}
 				}
 			});
@@ -122,8 +122,10 @@ frappe.views.ListSidebar = Class.extend({
 		var $dropdown = this.page.sidebar.find('.kanban-dropdown');
 		var divider = false;
 
-		var boards = frappe.get_meta(this.doctype).__kanban_boards;
+		var meta = frappe.get_meta(this.doctype);
+		var boards = meta && meta.__kanban_boards;
 		if (!boards) return;
+
 		boards.forEach(function(board) {
 			var route = ["List", board.reference_doctype, "Kanban", board.name].join('/');
 			if(!divider) {
@@ -181,7 +183,7 @@ frappe.views.ListSidebar = Class.extend({
 				fields[0].description = __('A new Project with this name will be created');
 			}
 
-			if(me.doctype === 'Note') {
+			if(['Note', 'ToDo'].includes(me.doctype)) {
 				fields[0].description = __('This Kanban Board will be private');
 			}
 
@@ -279,7 +281,8 @@ frappe.views.ListSidebar = Class.extend({
 		accounts = frappe.boot.email_accounts;
 
 		accounts.forEach(function(account) {
-			var route = ["List", "Communication", "Inbox", account.email_account].join('/');
+			email_account = (account.email_id == "All Accounts")? "All Accounts": account.email_account;
+			var route = ["List", "Communication", "Inbox", email_account].join('/');
 			if(!divider) {
 				$('<li role="separator" class="divider"></li>').appendTo($dropdown);
 				divider = true;

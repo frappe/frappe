@@ -1935,7 +1935,7 @@
     });
   });
 
-  var dialog = renderer.create('<div class="modal" aria-hidden="false" tabindex="-1"/>', function ($node, options) {
+  var dialog = renderer.create('<div class="modal fade in" aria-hidden="false" tabindex="-1"/>', function ($node, options) {
     if (options.fade) {
       $node.addClass('fade');
     }
@@ -1944,8 +1944,12 @@
       '  <div class="modal-content">',
       (options.title ?
       '    <div class="modal-header">' +
-      '      <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>' +
-      '      <h4 class="modal-title">' + options.title + '</h4>' +
+      '      <div class="row"><div class="col-xs-7"><h4 class="modal-title" style="font-weight: bold;">' + options.title + '</h4></div>' +
+      '      <div class="col-xs-5"><div class="text-right buttons"> <button type="button" class="btn btn-default btn-sm btn-modal-close" data-dismiss="modal">' +
+      '         <i class="octicon octicon-x visible-xs" style="padding: 1px 0px;"></i> <span class="hidden-xs">Close</span></button>'+
+                (options.action && options.button_class ?
+                '     <button type="button" class="btn btn-primary btn-sm ' + options.button_class + ' disabled" disabled>' + options.action + '</button>' : '') +
+      '      </div></div></div>' +
       '    </div>' : ''
       ),
       '    <div class="modal-body">' + options.body + '</div>',
@@ -2073,8 +2077,8 @@
         size: 'Font Size'
       },
       image: {
-        image: 'Picture',
-        insert: 'Insert Image',
+        image: 'Image',
+        insert: 'Insert',
         resizeFull: 'Resize Full',
         resizeHalf: 'Resize Half',
         resizeQuarter: 'Resize Quarter',
@@ -2096,13 +2100,13 @@
       video: {
         video: 'Video',
         videoLink: 'Video Link',
-        insert: 'Insert Video',
+        insert: 'Insert',
         url: 'Video URL?',
         providers: '(YouTube, Vimeo, Vine, Instagram, DailyMotion or Youku)'
       },
       link: {
         link: 'Link',
-        insert: 'Insert Link',
+        insert: 'Insert',
         unlink: 'Unlink',
         edit: 'Edit',
         textToDisplay: 'Text to display',
@@ -4771,6 +4775,15 @@
       $editor.addClass('codeview');
       $codable.focus();
 
+      $codable.on('keyup', function () {
+        var value = $codable.val();
+        var isChange = $editable.html() !== value;
+
+        if (isChange) {
+          context.triggerEvent('change', value, $editable);
+        }
+      });
+
       // activate CodeMirror as codable
       if (agent.hasCodeMirror) {
         var cmEditor = CodeMirror.fromTextArea($codable[0], options.codemirror);
@@ -5541,7 +5554,6 @@
         return ui.button({
           contents: ui.icon(options.icons.picture),
           tooltip: lang.image.image,
-          click: context.createInvokeHandler('imageDialog.show')
         }).render();
       });
 
@@ -5893,11 +5905,11 @@
       var $container = options.dialogsInBody ? $(document.body) : $editor;
 
       var body = '<div class="form-group">' +
-                   '<label>' + lang.link.textToDisplay + '</label>' +
+                   '<span>' + lang.link.textToDisplay + '</span>' +
                    '<input class="note-link-text form-control" type="text" />' +
                  '</div>' +
                  '<div class="form-group">' +
-                   '<label>' + lang.link.url + '</label>' +
+                   '<span>' + lang.link.url + '</span>' +
                    '<input class="note-link-url form-control" type="text" value="http://" />' +
                  '</div>' +
                  (!options.disableLinkTarget ?
@@ -5909,10 +5921,11 @@
 
       this.$dialog = ui.dialog({
         className: 'link-dialog',
-        title: lang.link.insert,
+        title: lang.link.link,
+        action: lang.link.insert,
+        button_class: 'note-link-btn',
         fade: options.dialogsFade,
         body: body,
-        footer: footer
       }).render().appendTo($container);
     };
 
@@ -6130,10 +6143,11 @@
       var footer = '<button href="#" class="btn btn-primary note-image-btn disabled" disabled>' + lang.image.insert + '</button>';
 
       this.$dialog = ui.dialog({
-        title: lang.image.insert,
+        title: lang.image.image,
+        action: lang.image.insert,
+        button_class: 'note-image-btn',
         fade: options.dialogsFade,
         body: body,
-        footer: footer
       }).render().appendTo($container);
     };
 
@@ -6270,16 +6284,17 @@
       var $container = options.dialogsInBody ? $(document.body) : $editor;
 
       var body = '<div class="form-group row-fluid">' +
-          '<label>' + lang.video.url + ' <small class="text-muted">' + lang.video.providers + '</small></label>' +
+          '<span>' + lang.video.url + ' <small class="text-muted">' + lang.video.providers + '</small></span>' +
           '<input class="note-video-url form-control span12" type="text" />' +
           '</div>';
       var footer = '<button href="#" class="btn btn-primary note-video-btn disabled" disabled>' + lang.video.insert + '</button>';
 
       this.$dialog = ui.dialog({
-        title: lang.video.insert,
+        title: lang.video.video,
+        action: lang.video.insert,
+        button_class: 'note-video-btn',
         fade: options.dialogsFade,
         body: body,
-        footer: footer
       }).render().appendTo($container);
     };
 

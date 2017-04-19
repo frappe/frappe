@@ -369,13 +369,13 @@ frappe.views.GridReport = Class.extend({
 		var me = this;
 
 		// chart wrapper
-		this.chart_area = $('<div class="chart"></div>').appendTo(this.wrapper);
+		this.chart_area = $('<div class="chart" style="padding-bottom: 1px"></div>').appendTo(this.wrapper);
 
 		this.page.add_menu_item(__("Export"), function() { return me.export(); }, true);
 
 		// grid wrapper
 		this.grid_wrapper = $("<div style='height: 500px; border: 1px solid #aaa; \
-			background-color: #eee; margin-top: 15px;'>")
+			background-color: #eee; '>")
 			.appendTo(this.wrapper);
 		this.id = frappe.dom.set_unique_id(this.grid_wrapper.get(0));
 

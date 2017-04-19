@@ -50,6 +50,7 @@ def upload():
 		"name": filedata.name,
 		"file_name": filedata.file_name,
 		"file_url": filedata.file_url,
+		"is_private": filedata.is_private,
 		"comment": comment.as_dict() if comment else {}
 	}
 

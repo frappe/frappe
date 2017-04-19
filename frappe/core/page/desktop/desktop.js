@@ -45,19 +45,6 @@ $.extend(frappe.desktop, {
 		explore_icon.app_icon = frappe.ui.app_icon.get_html(explore_icon);
 		all_icons.push(explore_icon);
 
-		var inbox_icon = {
-			module_name: 'Communication',
-			label: 'Email Inbox',
-			_label: __('Email Inbox'),
-			_id: 'Email Inbox',
-			_doctype: 'Communication',
-			icon: 'fa fa-envelope-o',
-			color: '#589494',
-			link: 'List/Communication/Inbox'
-		}
-		inbox_icon.app_icon = frappe.ui.app_icon.get_html(inbox_icon)
-		all_icons.push(inbox_icon);
-
 		frappe.desktop.wrapper.html(frappe.render_template(template, {
 			// all visible icons
 			desktop_items: all_icons,

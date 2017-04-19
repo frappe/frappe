@@ -13,7 +13,7 @@ import os, sys, importlib, inspect, json
 from .exceptions import *
 from .utils.jinja import get_jenv, get_template, render_template
 
-__version__ = '7.2.30'
+__version__ = '8.0.18'
 __title__ = "Frappe Framework"
 
 local = Local()
@@ -41,6 +41,9 @@ class _dict(dict):
 def _(msg, lang=None):
 	"""Returns translated string in current lang, if exists."""
 	from frappe.translate import get_full_dict
+
+	if not hasattr(local, 'lang'):
+		local.lang = lang or 'en'
 
 	if not lang:
 		lang = local.lang
@@ -1064,9 +1067,9 @@ def redirect_to_message(title, html, http_status_code=None, context=None, indica
 		'message': html
 	})
 
-	if indicator:
+	if indicator_color:
 		message['context'].update({
-			"indicator_color": indicator
+			"indicator_color": indicator_color
 		})
 
 	cache().set_value("message_id:{0}".format(message_id), message, expires_in_sec=60)
@@ -1318,3 +1321,14 @@ def get_desk_link(doctype, name):
 
 def bold(text):
 	return '<b>{0}</b>'.format(text)
+
+def safe_eval(code, eval_globals=None, eval_locals=None):
+	'''A safer `eval`'''
+	if '__' in code:
+		throw('Illegal rule {0}. Cannot use "__"'.format(bold(code)))
+
+	if not eval_globals:
+		eval_globals = {}
+	eval_globals['__builtins__'] = {}
+
+	return eval(code, eval_globals, eval_locals)

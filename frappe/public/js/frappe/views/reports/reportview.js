@@ -107,7 +107,7 @@ frappe.views.ReportView = frappe.ui.BaseList.extend({
 
 		// add to desktop
 		this.page.add_menu_item(__("Add to Desktop"), function() {
-			frappe.add_to_desktop(__('{0} Report', [me.doctype]), me.doctype);
+			frappe.add_to_desktop(me.docname || __('{0} Report', [me.doctype]), me.doctype);
 		}, true);
 
 	},
@@ -151,7 +151,8 @@ frappe.views.ReportView = frappe.ui.BaseList.extend({
 			var columns = [['name', this.doctype],];
 			$.each(frappe.meta.docfield_list[this.doctype], function(i, df) {
 				if((df.in_standard_filter || df.in_list_view) && df.fieldname!='naming_series'
-					&& !in_list(frappe.model.no_value_type, df.fieldtype)) {
+					&& !in_list(frappe.model.no_value_type, df.fieldtype)
+					&& !df.report_hide) {
 					columns.push([df.fieldname, df.parent]);
 				}
 			});
@@ -479,6 +480,10 @@ frappe.views.ReportView = frappe.ui.BaseList.extend({
 				columns.forEach(function(c) {
 					if(!c.docfield || c.docfield.parent!==me.doctype) {
 						var val = d[c.field];
+						// add child table row name for update
+						if(c.docfield && c.docfield.parent!==me.doctype) {
+							new_row[c.docfield.parent+":name"] = d[c.docfield.parent+":name"];
+						}
 					} else {
 						var val = '';
 					}
@@ -699,11 +704,10 @@ frappe.views.ReportView = frappe.ui.BaseList.extend({
 		}
 		var export_btn = this.page.add_menu_item(__('Export'), function() {
 			var args = me.get_args();
-
+			selected_items = me.get_checked_items()
 			frappe.prompt({fieldtype:"Select", label: __("Select File Type"), fieldname:"file_format_type",
 				options:"Excel\nCSV", default:"Excel", reqd: 1},
 				function(data) {
-
 					args.cmd = 'frappe.desk.reportview.export_query';
 					args.file_format_type = data.file_format_type;
 
@@ -711,6 +715,9 @@ frappe.views.ReportView = frappe.ui.BaseList.extend({
 						args.add_totals_row = 1;
 					}
 
+					if(selected_items.length >= 1) {
+						args.selected_items = $.map(selected_items, function(d) { return d.name; });
+					}
 					open_url_post(frappe.request.url, args);
 
 				}, __("Export Report: " + me.doctype), __("Download"));

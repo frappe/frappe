@@ -1,14 +1,14 @@
 <div class="item-search text-muted pull-right">
 	<div class='input-wrapper'>
 		<input type="text" class="item-search-input"
-			placeholder="Search" autocomplete="off">
+                        placeholder="{{ _("Search") }}" autocomplete="off">
 		<i class="octicon octicon-search pull-right" style='cursor: pointer;'></i>
 	</div>
 </div>
 <div class="clearfix pull-right" style="width:100%;">
 	<h5 class="item-search-results" style="margin-right: 30px;"></h5>
 	<p class="pull-right" style="margin-top: -28px;">
-		<a style="display: none;" href="javascript:history.back();" class="octicon octicon-x text-extra-muted clear" title="Clear Search" ></a>
+        <a style="display: none;" href="javascript:history.back();" class="octicon octicon-x text-extra-muted clear" title="{{ _("Clear Search") }}" ></a>
 	</p>
 </div>
 
@@ -16,7 +16,7 @@
 frappe.ready(function() {
 	if(get_url_arg("search")) {
 		var txt = get_url_arg("search");
-		$(".item-search-results").html("{{ _('Search results for') }}: " + txt);
+		$(".item-search-results").html("{{ _('Search results for') }}: " + encodeURIComponent(txt));
 		$(".item-search").toggle(false);
 		$(".clear").toggle(true);
 	}

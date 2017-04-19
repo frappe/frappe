@@ -55,7 +55,8 @@
 	],
 	"css/frappe-rtl.css": [
 		"public/css/bootstrap-rtl.css",
-		"public/css/desk-rtl.css"
+		"public/css/desk-rtl.css",
+		"public/css/report-rtl.css"
 	],
 	"js/libs.min.js": [
 		"public/js/lib/awesomplete/awesomplete.min.js",
@@ -63,16 +64,15 @@
 		"public/js/lib/taggle/taggle.min.js",
 		"public/js/lib/jquery/jquery.hotkeys.js",
 		"public/js/lib/summernote/summernote.js",
-		"public/js/lib/notify.js",
-		"public/js/lib/tag-it.min.js",
 		"public/js/lib/bootstrap.min.js",
 		"public/js/lib/moment/moment-with-locales.min.js",
 		"public/js/lib/moment/moment-timezone-with-data.min.js",
 		"public/js/lib/socket.io.min.js",
 		"public/js/lib/markdown.js",
+		"public/js/lib/jSignature.min.js",
 		"public/js/frappe/translate.js",
 		"public/js/lib/datepicker/datepicker.min.js",
-		"public/js/lib/datepicker/datepicker.en.js"
+		"public/js/lib/datepicker/locale-all.js"
 	],
 	"js/desk.min.js": [
 		"public/js/frappe/provide.js",
@@ -141,6 +141,7 @@
 		"public/js/frappe/ui/toolbar/search.js",
 		"public/js/frappe/ui/toolbar/search.html",
 		"public/js/frappe/ui/toolbar/search_header.html",
+		"public/js/frappe/ui/toolbar/search_utils.js",
 		"public/js/frappe/ui/toolbar/about.js",
 		"public/js/frappe/ui/toolbar/navbar.html",
 		"public/js/frappe/ui/toolbar/toolbar.js",
@@ -215,7 +216,7 @@
 	],
 	"js/list.min.js": [
 		"public/js/frappe/ui/listing.html",
-		
+
 		"public/js/frappe/ui/base_list.js",
 
 		"public/js/frappe/model/indicator.js",
@@ -240,7 +241,7 @@
 		"public/js/frappe/list/list_item_row_head.html",
 		"public/js/frappe/list/list_item_subject.html",
 		"public/js/frappe/list/list_permission_footer.html",
-		
+
 		"public/js/frappe/list/list_renderer.js",
 		"public/js/frappe/views/gantt/gantt_view.js",
 		"public/js/frappe/views/calendar/calendar.js",
@@ -253,14 +254,12 @@
 		"public/js/frappe/views/treeview.js",
 
 		"public/js/frappe/views/image/image_view_item_row.html",
-		"public/js/frappe/views/image/image_view_item_main_head.html",
 		"public/js/frappe/views/image/photoswipe_dom.html",
 
 		"public/js/frappe/views/inbox/inbox_no_result.html",
-		"public/js/frappe/views/inbox/select_email_inbox.html",
 		"public/js/frappe/views/inbox/inbox_view_item_row.html",
 		"public/js/frappe/views/inbox/inbox_view_item_main_head.html",
-		
+
 		"public/js/frappe/views/kanban/kanban_board.html",
 		"public/js/frappe/views/kanban/kanban_column.html",
 		"public/js/frappe/views/kanban/kanban_card.html"

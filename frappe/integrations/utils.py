@@ -8,15 +8,17 @@ import json, urlparse
 from frappe.utils import get_request_session
 from frappe import _
 
-def make_get_request(url, auth=None, data=None):
+def make_get_request(url, auth=None, headers=None, data=None):
 	if not auth:
 		auth = ''
 	if not data:
 		data = {}
+	if not headers:
+		headers = {}
 
 	try:
 		s = get_request_session()
-		frappe.flags.integration_request = s.get(url, data={}, auth=auth)
+		frappe.flags.integration_request = s.get(url, data={}, auth=auth, headers=headers)
 		frappe.flags.integration_request.raise_for_status()
 		return frappe.flags.integration_request.json()
 
@@ -24,20 +26,23 @@ def make_get_request(url, auth=None, data=None):
 		frappe.log_error(frappe.get_traceback())
 		raise exc
 
-def make_post_request(url, auth=None, data=None):
+def make_post_request(url, auth=None, headers=None, data=None):
 	if not auth:
 		auth = ''
 	if not data:
 		data = {}
+	if not headers:
+		headers = {}
+		
 	try:
 		s = get_request_session()
-		res = s.post(url, data=data, auth=auth)
-		res.raise_for_status()
+		frappe.flags.integration_request = s.post(url, data=data, auth=auth, headers=headers)
+		frappe.flags.integration_request.raise_for_status()
 
-		if res.headers.get("content-type") == "text/plain; charset=utf-8":
-			return urlparse.parse_qs(res.text)
+		if frappe.flags.integration_request.headers.get("content-type") == "text/plain; charset=utf-8":
+			return urlparse.parse_qs(frappe.flags.integration_request.text)
 
-		return res.json()
+		return frappe.flags.integration_request.json()
 	except Exception, exc:
 		frappe.log_error()
 		raise exc
