@@ -12,6 +12,7 @@ execute:frappe.reload_doc('core', 'doctype', 'docfield', force=True) #2017-03-03
 execute:frappe.reload_doc('core', 'doctype', 'docperm') #2017-03-03
 frappe.patches.v8_0.drop_is_custom_from_docperm
 frappe.patches.v8_0.drop_in_dialog
+frappe.patches.v8_0.update_records_in_global_search
 frappe.patches.v8_0.update_published_in_global_search
 execute:frappe.reload_doc('core', 'doctype', 'custom_docperm')
 execute:frappe.reload_doc('core', 'doctype', 'deleted_document')
