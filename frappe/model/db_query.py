@@ -22,6 +22,7 @@ class DatabaseQuery(object):
 		self.or_conditions = []
 		self.fields = None
 		self.user = None
+                self.limit = None
 		self.ignore_ifnull = False
 		self.flags = frappe._dict()
 
