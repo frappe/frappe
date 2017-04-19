@@ -5,11 +5,11 @@
 // will try and get from localStorge if latest are available
 // depends on frappe.versions to manage versioning
 
-frappe.require = function(items, callback) {
+frappe.require = function(items, callback, async) {
 	if(typeof items === "string") {
 		items = [items];
 	}
-	frappe.assets.execute(items, callback);
+	frappe.assets.execute(items, callback, async);
 };
 
 frappe.assets = {
@@ -59,7 +59,7 @@ frappe.assets = {
 	executed_ : [],
 
 	// pass on to the handler to set
-	execute: function(items, callback) {
+	execute: function(items, callback, async) {
 		var to_fetch = []
 		for(var i=0, l=items.length; i<l; i++) {
 			if(!frappe.assets.exists(items[i])) {
@@ -69,7 +69,7 @@ frappe.assets = {
 		if(to_fetch.length) {
 			frappe.assets.fetch(to_fetch, function() {
 				frappe.assets.eval_assets(items, callback);
-			});
+			}, async);
 		} else {
 			frappe.assets.eval_assets(items, callback);
 		}
@@ -105,13 +105,14 @@ frappe.assets = {
 	},
 
 	// load an asset via
-	fetch: function(items, callback) {
+	fetch: function(items, callback, async) {
 		// this is virtual page load, only get the the source
 		// *without* the template
 
 		frappe.call({
 			type: "GET",
 			method:"frappe.client.get_js",
+			async: async === false ? async: true,
 			args: {
 				"items": items
 			},
