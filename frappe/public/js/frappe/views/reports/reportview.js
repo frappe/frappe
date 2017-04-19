@@ -480,6 +480,10 @@ frappe.views.ReportView = frappe.ui.BaseList.extend({
 				columns.forEach(function(c) {
 					if(!c.docfield || c.docfield.parent!==me.doctype) {
 						var val = d[c.field];
+						// add child table row name for update
+						if(c.docfield && c.docfield.parent!==me.doctype) {
+							new_row[c.docfield.parent+":name"] = d[c.docfield.parent+":name"];
+						}
 					} else {
 						var val = '';
 					}
