@@ -394,7 +394,7 @@ def set_config(context, key, value, as_dict=False):
 def get_version():
 	"Show the versions of all the installed apps"
 	frappe.init('')
-	for m in sorted(frappe.get_all_apps()):
+	for m in frappe.get_all_apps():
 		module = frappe.get_module(m)
 		if hasattr(module, "__version__"):
 			print "{0} {1}".format(m, module.__version__)
