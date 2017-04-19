@@ -18,6 +18,7 @@ install:
   - wget https://raw.githubusercontent.com/frappe/bench/master/playbooks/install.py
   - sudo python install.py --develop --user travis --without-bench-setup
   - sudo pip install -e ~/bench
+  - npm install -g testcafe testcafe-browser-provider-nightmare
 
   - rm $TRAVIS_BUILD_DIR/.git/shallow
   - cd ~/ && bench init frappe-bench --frappe-path $TRAVIS_BUILD_DIR
@@ -31,6 +32,7 @@ script:
   - bench start &
   - sleep 10
   - bench --verbose run-tests --driver Firefox
+  - testcafe nightmare apps/frappe/login_test.js
 
 before_script:
   - mysql -u root -ptravis -e 'create database test_frappe'
