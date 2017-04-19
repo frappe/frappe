@@ -33,7 +33,7 @@ def trigger_feedback_request(doc, method):
 
 	def _get():
 		triggers = {}
-		if not frappe.flags.in_migrate:
+		if not (frappe.flags.in_migrate or frappe.flags.in_install):
 			for d in frappe.get_all('Feedback Trigger', dict(enabled=1), ['name', 'document_type']):
 				triggers[d.document_type] = d.name
 

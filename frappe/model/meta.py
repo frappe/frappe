@@ -304,7 +304,7 @@ class Meta(Document):
 
 	def set_custom_permissions(self):
 		'''Reset `permissions` with Custom DocPerm if exists'''
-		if frappe.flags.in_patch or frappe.flags.in_import:
+		if frappe.flags.in_patch or frappe.flags.in_import or frappe.flags.in_install:
 			return
 
 		if not self.istable and self.name not in ('DocType', 'DocField', 'DocPerm',
