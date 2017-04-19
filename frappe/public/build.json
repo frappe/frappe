@@ -6,6 +6,7 @@
 		"public/css/avatar.css"
 	],
 	"js/frappe-web.min.js": [
+		"public/js/frappe/class.js",
 		"public/js/lib/bootstrap.min.js",
 		"public/js/lib/md5.min.js",
 		"public/js/frappe/provide.js",
@@ -16,7 +17,6 @@
 		"public/js/frappe/misc/pretty_date.js",
 		"public/js/lib/moment/moment.min.js",
 		"public/js/lib/highlight.pack.js",
-		"public/js/frappe/class.js",
 		"public/js/lib/microtemplate.js",
 		"public/js/frappe/query_string.js",
 		"website/js/website.js",
@@ -75,8 +75,8 @@
 		"public/js/lib/datepicker/locale-all.js"
 	],
 	"js/desk.min.js": [
-		"public/js/frappe/provide.js",
 		"public/js/frappe/class.js",
+		"public/js/frappe/provide.js",
 		"public/js/frappe/assets.js",
 		"public/js/frappe/format.js",
 		"public/js/frappe/form/formatters.js",
