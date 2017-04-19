@@ -1,7 +1,7 @@
 import { Selector } from 'testcafe';
 
 fixture `Login Page`
-    .page `http://selenium.erpnext.com/`;
+    .page `http://localhost:8000/`;
 
 test('Check login', async t => {
     const loginEmail = Selector('#login_email');
@@ -9,10 +9,10 @@ test('Check login', async t => {
     const my_email = Selector('[data-fieldname="email"] .control-value');
 
     await t
-        .typeText(loginEmail, 'jane_do@mailtothis.com')
-        .typeText('#login_password', 'selenium')
+        .typeText(loginEmail, 'Administrator')
+        .typeText('#login_password', 'admin')
         .click('.btn-login')
         .click('.dropdown-navbar-user')
         .click(my_settings)
-        .expect(my_email.innerText).eql('jane_do@mailtothis.com')
+        .expect(my_email.innerText).eql('admin@example.com')
 });
