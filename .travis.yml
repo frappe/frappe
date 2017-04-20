@@ -31,8 +31,8 @@ script:
   - bench build
   - bench start &
   - sleep 10
-  - bench --verbose run-tests --driver Firefox
   - testcafe nightmare apps/frappe/login_test.js
+  - bench --verbose run-tests --driver Firefox
 
 before_script:
   - mysql -u root -ptravis -e 'create database test_frappe'
