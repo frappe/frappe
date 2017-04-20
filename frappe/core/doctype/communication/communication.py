@@ -20,6 +20,26 @@ class Communication(Document):
 	no_feed_on_delete = True
 
 	"""Communication represents an external communication like Email."""
+	def onload(self):
+		"""create email flag queue"""
+		if self.communication_type == "Communication" and self.communication_medium == "Email" \
+			and self.sent_or_received == "Received" and self.uid and self.uid != -1:
+			
+			flag = frappe.db.get_value("Email Flag Queue", {
+				"communication": self.name,
+				"is_completed": 0})
+			if flag:
+				return
+
+			frappe.get_doc({
+				"doctype": "Email Flag Queue",
+				"action": "Read",
+				"communication": self.name,
+				"flag": "(\\SEEN)",
+				"uid": self.uid,
+				"email_account": self.email_account
+			}).insert(ignore_permissions=True)
+			frappe.db.commit()
 
 	def validate(self):
 		if self.reference_doctype and self.reference_name:
@@ -38,6 +58,7 @@ class Communication(Document):
 			self.subject = strip_html((self.content or "")[:141])
 
 		if not self.sent_or_received:
+			self.seen = 1
 			self.sent_or_received = "Sent"
 
 		self.set_status()
@@ -48,6 +69,10 @@ class Communication(Document):
 	def after_insert(self):
 		if not (self.reference_doctype and self.reference_name):
 			return
+		
+		if self.reference_doctype == "Communication" and self.sent_or_received == "Sent":
+			frappe.db.set_value("Communication", self.reference_name, "status", "Replied")
+
 		if self.communication_type in ("Communication", "Comment"):
 			# send new comment to listening clients
 			frappe.publish_realtime('new_communication', self.as_dict(),
@@ -96,6 +121,13 @@ class Communication(Document):
 			self.status = "Open"
 		else:
 			self.status = "Closed"
+
+		# set email status to spam
+		email_rule = frappe.db.get_value("Email Rule", { "email_id": self.sender, "is_spam":1 })
+		if self.communication_type == "Communication" and self.communication_medium == "Email" \
+			and self.sent_or_received == "Sent" and email_rule:
+
+			self.email_status = "Spam"
 
 	def set_sender_full_name(self):
 		if not self.sender_full_name and self.sender:
@@ -196,6 +228,8 @@ class Communication(Document):
 		'''Look into the status of Email Queue linked to this Communication and set the Delivery Status of this Communication'''
 		delivery_status = None
 		status_counts = Counter(frappe.db.sql_list('''select status from `tabEmail Queue` where communication=%s''', self.name))
+		if self.sent_or_received == "Received":
+			return
 
 		if status_counts.get('Not Sent') or status_counts.get('Sending'):
 			delivery_status = 'Sending'
@@ -222,13 +256,11 @@ class Communication(Document):
 				frappe.db.commit()
 
 def on_doctype_update():
-	"""Add index in `tabCommunication` for `(reference_doctype, reference_name)`"""
+	"""Add indexes in `tabCommunication`"""
 	frappe.db.add_index("Communication", ["reference_doctype", "reference_name"])
 	frappe.db.add_index("Communication", ["timeline_doctype", "timeline_name"])
 	frappe.db.add_index("Communication", ["link_doctype", "link_name"])
 	frappe.db.add_index("Communication", ["status", "communication_type"])
-	frappe.db.add_index("Communication", ["communication_date"])
-	frappe.db.add_index("Communication", ["message_id(200)"])
 
 def has_permission(doc, ptype, user):
 	if ptype=="read":
@@ -238,3 +270,22 @@ def has_permission(doc, ptype, user):
 		if doc.timeline_doctype and doc.timeline_name:
 			if frappe.has_permission(doc.timeline_doctype, ptype="read", doc=doc.timeline_name):
 				return True
+
+def get_permission_query_conditions_for_communication(user):
+	from frappe.email.inbox import get_email_accounts
+
+	if not user: user = frappe.session.user
+
+	if "Super Email User" in frappe.get_roles(user):
+		return None
+	else:
+		accounts = frappe.get_all("User Email", filters={ "parent": user },
+			fields=["email_account"],
+			distinct=True, order_by="idx")
+
+		if not accounts:
+			return """tabCommunication.communication_medium!='Email'"""
+
+		email_accounts = [ '"%s"'%account.get("email_account") for account in accounts ]
+		return """tabCommunication.email_account in ({email_accounts})"""\
+			.format(email_accounts=','.join(email_accounts))

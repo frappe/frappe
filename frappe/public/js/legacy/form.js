@@ -34,6 +34,7 @@ _f.Frm = function(doctype, parent, in_form) {
 
 	var me = this;
 	this.opendocs = {};
+	this.custom_buttons = {};
 	this.sections = [];
 	this.grids = [];
 	this.cscript = new frappe.ui.form.Controller({frm:this});
@@ -84,6 +85,7 @@ _f.Frm.prototype.setup = function() {
 
 	// wrapper
 	this.wrapper = this.parent;
+	this.$wrapper = $(this.wrapper);
 	frappe.ui.make_app_page({
 		parent: this.wrapper,
 		single_column: this.meta.hide_toolbar
@@ -123,7 +125,7 @@ _f.Frm.prototype.setup = function() {
 
 _f.Frm.prototype.setup_drag_drop = function() {
 	var me = this;
-	$(this.wrapper).on('dragenter dragover', false)
+	this.$wrapper.on('dragenter dragover', false)
 		.on('drop', function (e) {
 			var dataTransfer = e.originalEvent.dataTransfer;
 			if (!(dataTransfer && dataTransfer.files && dataTransfer.files.length > 0)) {
@@ -143,12 +145,12 @@ _f.Frm.prototype.setup_drag_drop = function() {
 				throw "attach error";
 			}
 
-			frappe.upload.multifile_upload(dataTransfer.files, me.attachments.get_args(), {
+			frappe.upload.make({
+				args: me.attachments.get_args(),
+				files: dataTransfer.files,
 				callback: function(attachment, r) {
 					me.attachments.attachment_uploaded(attachment, r);
-				},
-
-				confirm_is_private: true
+				}
 			});
 		});
 }
@@ -470,6 +472,12 @@ _f.Frm.prototype.refresh = function(docname) {
 			}
 		}
 
+		// set status classes
+		this.$wrapper.removeClass('validated-form')
+			.toggleClass('editable-form', this.doc.docstatus===0)
+			.toggleClass('submitted-form', this.doc.docstatus===1)
+			.toggleClass('cancelled-form', this.doc.docstatus===2);
+
 		this.show_if_needs_refresh();
 	}
 }
@@ -520,10 +528,13 @@ _f.Frm.prototype.render_form = function(is_a_different_doc) {
 			this.script_manager.trigger("onload_post_render");
 		}
 
+		// update dashboard after refresh
+		this.dashboard.after_refresh();
+
 		// focus on first input
 
-		if(this.doc.docstatus==0) {
-			var first = this.form_wrapper.find('.form-layout :input:first');
+		if(this.is_new()) {
+			var first = this.form_wrapper.find('.form-layout input:first');
 			if(!in_list(["Date", "Datetime"], first.attr("data-fieldtype"))) {
 				first.focus();
 			}
@@ -532,7 +543,7 @@ _f.Frm.prototype.render_form = function(is_a_different_doc) {
 		this.refresh_header(is_a_different_doc);
 	}
 
-	$(this.wrapper).trigger('render_complete');
+	this.$wrapper.trigger('render_complete');
 
 	if(!this.hidden) {
 		this.layout.show_empty_form_message();
@@ -550,7 +561,7 @@ _f.Frm.prototype.refresh_field = function(fname) {
 
 _f.Frm.prototype.refresh_fields = function() {
 	this.layout.refresh(this.doc);
-	this.layout.primary_button = $(this.wrapper).find(".btn-primary");
+	this.layout.primary_button = this.$wrapper.find(".btn-primary");
 
 	// cleanup activities after refresh
 	this.cleanup_refresh(this);
@@ -837,7 +848,7 @@ _f.Frm.prototype.save_or_update = function() {
 
 _f.Frm.prototype.dirty = function() {
 	this.doc.__unsaved = 1;
-	$(this.wrapper).trigger('dirty');
+	this.$wrapper.trigger('dirty');
 }
 
 _f.Frm.prototype.get_docinfo = function() {
@@ -883,19 +894,22 @@ _f.Frm.prototype.set_intro = function(txt, append) {
 }
 
 _f.Frm.prototype.set_footnote = function(txt) {
-	frappe.utils.set_footnote(this, this.body, txt);
+	this.footnote_area = frappe.utils.set_footnote(this.footnote_area, this.body, txt);
 }
 
 
 _f.Frm.prototype.add_custom_button = function(label, fn, group) {
 	// temp! old parameter used to be icon
 	if(group && group.indexOf("fa fa-")!==-1) group = null;
-	return this.page.add_inner_button(label, fn, group);
+	var btn = this.page.add_inner_button(label, fn, group);
+	this.custom_buttons[label] = btn;
+	return btn;
 }
 
 _f.Frm.prototype.clear_custom_buttons = function() {
 	this.page.clear_inner_toolbar();
 	this.page.clear_user_actions();
+	this.custom_buttons = {};
 }
 
 _f.Frm.prototype.add_fetch = function(link_field, src_field, tar_field) {
@@ -925,11 +939,11 @@ _f.Frm.prototype.validate_form_action = function(action) {
 	var allowed_for_workflow = false;
 	var perms = frappe.perm.get_perm(this.doc.doctype)[0];
 
-	// Allow submit, write and create permissions for read only documents that are assigned by 
-	// workflows if the user already have those permissions. This is to allow for users to 
+	// Allow submit, write, cancel and create permissions for read only documents that are assigned by
+	// workflows if the user already have those permissions. This is to allow for users to
 	// continue through the workflow states and to allow execution of functions like Duplicate.
 	if (frappe.workflow.is_read_only(this.doctype, this.docname) && (perms["write"] ||
-		perms["create"] || perms["submit"])) {
+		perms["create"] || perms["submit"] || perms["cancel"])) {
 		var allowed_for_workflow = true;
 	}
 

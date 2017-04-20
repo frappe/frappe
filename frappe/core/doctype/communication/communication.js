@@ -53,6 +53,42 @@ frappe.ui.form.on("Communication", {
 		frm.add_custom_button(__("Relink"), function() {
 			frm.trigger('show_relink_dialog');
 		});
+
+		if(frm.doc.communication_type=="Communication" 
+			&& frm.doc.communication_medium == "Email"
+			&& frm.doc.sent_or_received == "Received") {
+
+			frm.add_custom_button(__("Reply"), function() {
+				frm.trigger('reply');
+			});
+
+			frm.add_custom_button(__("Reply All"), function() {
+				frm.trigger('reply_all');
+			}, "Actions");
+
+			frm.add_custom_button(__("Forward"), function() {
+				frm.trigger('forward_mail');
+			}, "Actions");
+
+			frm.add_custom_button(__("Mark as {0}", [frm.doc.seen? "Unread": "Read"]), function() {
+				frm.trigger('mark_as_read_unread');
+			}, "Actions");
+
+			frm.add_custom_button(__("Add Contact"), function() {
+				frm.trigger('add_to_contact');
+			}, "Actions");
+
+			if(frm.doc.email_status != "Spam")
+				frm.add_custom_button(__("Mark as Spam"), function() {
+					frm.trigger('mark_as_spam');
+				}, "Actions");
+
+			if(frm.doc.email_status != "Trash") {
+				frm.add_custom_button(__("Move To Trash"), function() {
+					frm.trigger('move_to_trash');
+				}, "Actions");
+			}
+		}
 	},
 	show_relink_dialog: function(frm){
 		var lib = "frappe.email";
@@ -100,5 +136,110 @@ frappe.ui.form.on("Communication", {
 			}
 		});
 		d.show();
+	},
+
+	mark_as_read_unread: function(frm) {
+		action = frm.doc.seen? "Unread": "Read";
+		flag = "(\\SEEN)";
+
+		return frappe.call({
+			method: "frappe.email.inbox.create_email_flag_queue",
+			args: {
+				'names': [frm.doc.name],
+				'action': action,
+				'flag': flag
+			},
+			freeze: true
+		});
+	},
+
+	reply: function(frm) {
+		args = frm.events.get_mail_args(frm);
+		$.extend(args, {
+			subject: __("Re: {0}", [frm.doc.subject]),
+			recipients: frm.doc.sender
+		})
+
+		new frappe.views.CommunicationComposer(args);
+	},
+
+	reply_all: function(frm) {
+		args = frm.events.get_mail_args(frm)
+		$.extend(args, {
+			subject: __("Re: {0}", [frm.doc.subject]),
+			recipients: frm.doc.sender,
+			cc: frm.doc.cc
+		})
+		new frappe.views.CommunicationComposer(args);
+	},
+
+	forward_mail: function(frm) {
+		args = frm.events.get_mail_args(frm)
+		$.extend(args, {		
+			forward: true,
+			subject: __("Fw: {0}", [frm.doc.subject]),
+		})
+
+		new frappe.views.CommunicationComposer(args);
+	},
+
+	get_mail_args: function(frm) {
+		sender_email_id = ""
+		$.each(frappe.boot.email_accounts, function(idx, account) {
+			if(account.email_account == frm.doc.email_account) {
+				sender_email_id = account.email_id
+				return
+			}
+		});
+
+		return {
+			doc: frm.doc,
+			last_email: frm.doc,
+			sender: sender_email_id,
+			attachments: frm.doc.attachments
+		}
+	},
+
+	add_to_contact: function(frm) {
+		var me = this;
+		fullname = frm.doc.sender_full_name || ""
+
+		names = fullname.split(" ")
+		first_name = names[0]
+		last_name = names.length >= 2? names[names.length - 1]: ""
+
+		frappe.route_options = {
+			"email_id": frm.doc.sender,
+			"first_name": first_name,
+			"last_name": last_name,
+		}
+		frappe.new_doc("Contact")
+	},
+
+	mark_as_spam: function(frm) {
+		frappe.call({
+			method: "frappe.email.inbox.mark_as_spam",
+			args: {
+				communication: frm.doc.name,
+				sender: frm.doc.sender
+			},
+			freeze: true,
+			callback: function(r) {
+				frappe.msgprint("Email has been marked as spam")
+			}
+		})
+	},
+
+	move_to_trash: function(frm) {
+		frappe.call({
+			method: "frappe.email.inbox.mark_as_trash",
+			args: {
+				communication: frm.doc.name
+			},
+			freeze: true,
+			callback: function(r) {
+				frappe.msgprint("Email has been moved to trash")
+			}
+		})
 	}
 });

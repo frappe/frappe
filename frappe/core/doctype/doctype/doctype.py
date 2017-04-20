@@ -3,7 +3,7 @@
 
 from __future__ import unicode_literals
 
-import re, copy
+import re, copy, os
 import MySQLdb
 import frappe
 from frappe import _
@@ -15,6 +15,7 @@ from frappe.custom.doctype.property_setter.property_setter import make_property_
 from frappe.desk.notifications import delete_notification_count_for
 from frappe.modules import make_boilerplate
 from frappe.model.db_schema import validate_column_name
+import frappe.website.render
 
 class InvalidFieldNameError(frappe.ValidationError): pass
 
@@ -33,7 +34,7 @@ class DocType(Document):
 		- Validate series
 		- Check fieldnames (duplication etc)
 		- Clear permission table for child tables
-		- Add `amended_from` and `ameneded_by` if Amendable"""
+		- Add `amended_from` and `amended_by` if Amendable"""
 		self.check_developer_mode()
 
 		self.validate_name()
@@ -45,6 +46,7 @@ class DocType(Document):
 
 		elif self.istable:
 			self.allow_import = 0
+			self.permissions = []
 
 		self.scrub_field_names()
 		self.validate_series()
@@ -59,8 +61,15 @@ class DocType(Document):
 
 		self.make_amendable()
 		self.validate_website()
+
+		if not self.is_new():
+			self.before_update = frappe.get_doc('DocType', self.name)
+
 		if not self.is_new():
 			self.setup_fields_to_fetch()
+
+		if self.default_print_format and not self.custom:
+			frappe.throw(_('Standard DocType cannot have default print format, use Customize Form'))
 
 	def check_developer_mode(self):
 		"""Throw exception if not developer mode or via patch"""
@@ -117,15 +126,13 @@ class DocType(Document):
 
 	def validate_website(self):
 		"""Ensure that website generator has field 'route'"""
-		from frappe.model.base_document import get_controller
-		try:
-			controller = get_controller(self.name)
-		except:
-			controller = None
-
-		if controller and getattr(controller, 'website', None):
+		if self.has_web_view:
+			# route field must be present
 			if not 'route' in [d.fieldname for d in self.fields]:
-				frappe.throw('Field "route" is mandatory for Website Generator pages', title='Missing Field')
+				frappe.throw('Field "route" is mandatory for Web Views', title='Missing Field')
+
+			# clear website cache
+			frappe.website.render.clear_cache()
 
 	def change_modified_of_parent(self):
 		"""Change the timestamp of parent DocType if the current one is a child to clear caches."""
@@ -139,7 +146,7 @@ class DocType(Document):
 	def scrub_field_names(self):
 		"""Sluggify fieldnames if not set from Label."""
 		restricted = ('name','parent','creation','modified','modified_by',
-			'parentfield','parenttype',"file_list")
+			'parentfield','parenttype','file_list', 'flags', 'docstatus')
 		for d in self.get("fields"):
 			if d.fieldtype:
 				if (not getattr(d, "fieldname", None)):
@@ -162,6 +169,7 @@ class DocType(Document):
 			self.autoname = "naming_series:"
 
 		# validate field name if autoname field:fieldname is used
+
 		if autoname and autoname.startswith('field:'):
 			field = autoname.split(":")[1]
 			if not field or field not in [ df.fieldname for df in self.fields ]:
@@ -192,6 +200,9 @@ class DocType(Document):
 			self.export_doc()
 			self.make_controller_template()
 
+			if self.has_web_view:
+				self.set_base_class_for_controller()
+
 		# update index
 		if not self.custom:
 			self.run_module_method("on_doctype_update")
@@ -201,12 +212,51 @@ class DocType(Document):
 		delete_notification_count_for(doctype=self.name)
 		frappe.clear_cache(doctype=self.name)
 
+		if not frappe.flags.in_install and hasattr(self, 'before_update'):
+			self.sync_global_search()
+
+	def sync_global_search(self):
+		'''If global search settings are changed, rebuild search properties for this table'''
+		global_search_fields_before_update = [d.fieldname for d in
+			self.before_update.fields if d.in_global_search]
+		if self.before_update.show_name_in_global_search:
+			global_search_fields_before_update.append('name')
+
+		global_search_fields_after_update = [d.fieldname for d in
+			self.fields if d.in_global_search]
+		if self.show_name_in_global_search:
+			global_search_fields_after_update.append('name')
+
+		if set(global_search_fields_before_update) != set(global_search_fields_after_update):
+			now = (not frappe.request) or frappe.flags.in_test or frappe.flags.in_install
+			frappe.enqueue('frappe.utils.global_search.rebuild_for_doctype',
+				now=now, doctype=self.name)
+
+	def set_base_class_for_controller(self):
+		'''Updates the controller class to subclass from `WebsiteGenertor`,
+		if it is a subclass of `Document`'''
+		controller_path = frappe.get_module_path(frappe.scrub(self.module),
+			'doctype', frappe.scrub(self.name), frappe.scrub(self.name) + '.py')
+
+		with open(controller_path, 'r') as f:
+			code = f.read()
+
+		class_string = '\nclass {0}(Document)'.format(self.name.replace(' ', ''))
+		if '\nfrom frappe.model.document import Document' in code and class_string in code:
+			code = code.replace('from frappe.model.document import Document',
+				'from frappe.website.website_generator import WebsiteGenerator')
+			code = code.replace('class {0}(Document)'.format(self.name.replace(' ', '')),
+				'class {0}(WebsiteGenerator)'.format(self.name.replace(' ', '')))
+
+		with open(controller_path, 'w') as f:
+			f.write(code)
+
+
 	def run_module_method(self, method):
 		from frappe.modules import load_doctype_module
 		module = load_doctype_module(self.name, self.module)
 		if hasattr(module, method):
 			getattr(module, method)()
-
 
 	def before_rename(self, old, new, merge=False):
 		"""Throw exception if merge. DocTypes cannot be merged."""
@@ -263,7 +313,7 @@ class DocType(Document):
 		import_from_files(record_list=[[self.module, 'doctype', self.name]])
 
 	def make_controller_template(self):
-		"""Make boilderplate controller template."""
+		"""Make boilerplate controller template."""
 		make_boilerplate("controller.py", self)
 
 		if not (self.istable or self.issingle):
@@ -271,6 +321,13 @@ class DocType(Document):
 
 		if not self.istable:
 			make_boilerplate("controller.js", self.as_dict())
+
+		if self.has_web_view:
+			templates_path = frappe.get_module_path(frappe.scrub(self.module), 'doctype', frappe.scrub(self.name), 'templates')
+			if not os.path.exists(templates_path):
+				os.makedirs(templates_path)
+			make_boilerplate('templates/controller.html', self.as_dict())
+			make_boilerplate('templates/controller_row.html', self.as_dict())
 
 	def make_amendable(self):
 		"""If is_submittable is set, add amended_from docfields."""
@@ -392,7 +449,8 @@ def validate_fields(meta):
 			if not d.get("__islocal"):
 				try:
 					has_non_unique_values = frappe.db.sql("""select `{fieldname}`, count(*)
-						from `tab{doctype}` group by `{fieldname}` having count(*) > 1 limit 1""".format(
+						from `tab{doctype}` where ifnull({fieldname}, '') != ''
+						group by `{fieldname}` having count(*) > 1 limit 1""".format(
 						doctype=d.parent, fieldname=d.fieldname))
 
 				except MySQLdb.OperationalError, e:
@@ -472,6 +530,12 @@ def validate_fields(meta):
 		if df[0].fieldtype != 'Attach Image':
 			frappe.throw(_("Image field must be of type Attach Image"), InvalidFieldNameError)
 
+	def check_is_published_field(meta):
+		if not meta.is_published_field:
+			return
+
+		if meta.is_published_field not in fieldname_list:
+			frappe.throw(_("Is Published Field must be a valid fieldname"), InvalidFieldNameError)
 
 	def check_timeline_field(meta):
 		if not meta.timeline_field:
@@ -501,6 +565,7 @@ def validate_fields(meta):
 	fieldname_list = [d.fieldname for d in fields]
 
 	not_allowed_in_list_view = list(copy.copy(no_value_fields))
+	not_allowed_in_list_view.append("Attach Image")
 	if meta.istable:
 		not_allowed_in_list_view.remove('Button')
 
@@ -523,22 +588,17 @@ def validate_fields(meta):
 	check_search_fields(meta)
 	check_title_field(meta)
 	check_timeline_field(meta)
+	check_is_published_field(meta)
 	check_sort_field(meta)
 
 def validate_permissions_for_doctype(doctype, for_remove=False):
 	"""Validates if permissions are set correctly."""
 	doctype = frappe.get_doc("DocType", doctype)
+	validate_permissions(doctype, for_remove)
 
-	if frappe.conf.developer_mode and not frappe.flags.in_test:
-		# save doctype
-		doctype.save()
-
-	else:
-		validate_permissions(doctype, for_remove)
-
-		# save permissions
-		for perm in doctype.get("permissions"):
-			perm.db_update()
+	# save permissions
+	for perm in doctype.get("permissions"):
+		perm.db_update()
 
 def validate_permissions(doctype, for_remove=False):
 	permissions = doctype.get("permissions")

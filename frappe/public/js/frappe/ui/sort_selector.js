@@ -14,6 +14,7 @@ frappe.ui.SortSelector = Class.extend({
 	},
 	make: function() {
 		this.prepare_args();
+		this.parent.find('.sort-selector').remove();
 		this.wrapper = $(frappe.render_template('sort_selector', this.args)).appendTo(this.parent);
 		this.bind_events();
 	},
@@ -46,6 +47,26 @@ frappe.ui.SortSelector = Class.extend({
 		if(!this.args) {
 			this.args = {};
 		}
+
+		// args as string
+		if(this.args && typeof this.args === 'string') {
+			var order_by = this.args;
+			this.args = {}
+
+			if (order_by.includes('`.`')) {
+				// scrub table name (separated by dot), like `tabTime Log`.`modified` desc`
+				order_by = order_by.split('.')[1];
+			}
+
+			var parts = order_by.split(' ');
+			if (parts.length === 2) {
+				var fieldname = strip(parts[0], '`');
+
+				this.args.sort_by = fieldname;
+				this.args.sort_order = parts[1];
+			}
+		}
+
 		if(this.args.options) {
 			this.args.options.forEach(function(o) {
 				me.labels[o.fieldname] = o.label;
@@ -114,13 +135,8 @@ frappe.ui.SortSelector = Class.extend({
 			_options.push({'fieldname': 'idx'});
 
 			// de-duplicate
-			var added = [];
-			this.args.options = [];
-			_options.forEach(function(o) {
-				if(added.indexOf(o.fieldname)===-1) {
-					me.args.options.push(o);
-					added.push(o.fieldname);
-				}
+			this.args.options = _options.uniqBy(function(obj) {
+				return obj.fieldname;
 			});
 
 			// add missing labels

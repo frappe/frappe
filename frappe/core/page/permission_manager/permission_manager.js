@@ -183,6 +183,7 @@ frappe.PermissionEngine = Class.extend({
 		});
 
 		$.each(perm_list, function(i, d) {
+			if(d.parent==="DocType") { return; }
 			if(!d.permlevel) d.permlevel = 0;
 			var row = $("<tr>").appendTo(me.table.find("tbody"));
 			me.add_cell(row, d, "parent");
@@ -379,8 +380,7 @@ frappe.PermissionEngine = Class.extend({
 							options:me.options.roles, reqd:1,fieldname:"role"},
 						{fieldtype:"Select", label:__("Permission Level"),
 							options:[0,1,2,3,4,5,6,7,8,9], reqd:1, fieldname: "permlevel",
-							description: __("Level 0 is for document level permissions, higher levels for field level permissions.")},
-						{fieldtype:"Button", label:__("Add"),fieldname:"add"},
+						description: __("Level 0 is for document level permissions, higher levels for field level permissions.")}
 					]
 				});
 				if(me.get_doctype()) {
@@ -392,7 +392,7 @@ frappe.PermissionEngine = Class.extend({
 					d.get_input("role").prop("disabled", true);
 				}
 				d.set_value("permlevel", "0");
-				d.get_input("add").click(function() {
+				d.set_primary_action(__('Add'), function() {
 					var args = d.get_values();
 					if(!args) {
 						return;

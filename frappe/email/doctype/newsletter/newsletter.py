@@ -13,11 +13,10 @@ from frappe.utils.background_jobs import enqueue
 from frappe.utils.scheduler import log
 from frappe.email.queue import send
 from frappe.email.doctype.email_group.email_group import add_subscribers
+from frappe.utils.file_manager import get_file
+
 
 class Newsletter(Document):
-	def autoname(self):
-		self.name = self.subject
-
 	def onload(self):
 		if self.email_sent:
 			self.get("__onload").status_count = dict(frappe.db.sql("""select status, count(name)
@@ -63,11 +62,24 @@ class Newsletter(Document):
 		if not frappe.flags.in_test:
 			frappe.db.auto_commit_on_many_writes = True
 
+		attachments = []
+		if self.send_attachements:
+			files = frappe.get_all("File", fields = ["name"], filters = {"attached_to_doctype": "Newsletter",
+				"attached_to_name":self.name}, order_by="creation desc")
+
+			for file in files:
+				try:
+					file = get_file(file.name)
+					attachments.append({"fname": file[0], "fcontent": file[1]})
+				except IOError:
+					frappe.throw(_("Unable to find attachment {0}").format(a))
+
 		send(recipients = self.recipients, sender = sender,
 			subject = self.subject, message = self.message,
 			reference_doctype = self.doctype, reference_name = self.name,
+			add_unsubscribe_link = self.send_unsubscribe_link, attachments=attachments,
 			unsubscribe_method = "/api/method/frappe.email.doctype.newsletter.newsletter.unsubscribe",
-			unsubscribe_params = {"name": self.email_group},
+			unsubscribe_params = {"name": self.name},
 			send_priority = 0, queue_separately=True)
 
 		if not frappe.flags.in_test:
@@ -75,8 +87,12 @@ class Newsletter(Document):
 
 	def get_recipients(self):
 		"""Get recipients from Email Group"""
-		return [d.email for d in frappe.db.get_all("Email Group Member", ["email"],
-			{"unsubscribed": 0, "email_group": self.email_group})]
+		recipients_list = []
+		for email_group in get_email_groups(self.name):
+			for d in frappe.db.get_all("Email Group Member", ["email"],
+				{"unsubscribed": 0, "email_group": email_group.email_group}):
+					recipients_list.append(d.email)
+		return list(set(recipients_list))
 
 	def validate_send(self):
 		if self.get("__islocal"):
@@ -84,24 +100,38 @@ class Newsletter(Document):
 		check_email_limit(self.recipients)
 
 
+def get_email_groups(name):
+	return frappe.db.get_all("Newsletter Email Group", ["email_group"],{"parent":name, "parenttype":"Newsletter"})
+
+
 @frappe.whitelist(allow_guest=True)
 def unsubscribe(email, name):
 	if not verify_request():
 		return
 
-	subs_id = frappe.db.get_value("Email Group Member", {"email": email, "email_group": name})
-	if subs_id:
-		subscriber = frappe.get_doc("Email Group Member", subs_id)
-		subscriber.unsubscribed = 1
-		subscriber.save(ignore_permissions=True)
+	primary_action = frappe.utils.get_url() + "/api/method/frappe.email.doctype.newsletter.newsletter.confirmed_unsubscribe"+\
+		"?" + get_signed_params({"email": email, "name":name})
+	return_confirmation_page(email, name, primary_action)
+
+
+@frappe.whitelist(allow_guest=True)
+def confirmed_unsubscribe(email, name):
+	if not verify_request():
+		return
+
+	for email_group in get_email_groups(name):
+		frappe.db.sql('''update `tabEmail Group Member` set unsubscribed=1 where email=%s and email_group=%s''',(email, email_group.email_group))
 
 	frappe.db.commit()
+	return_unsubscribed_page(email, name)
 
-	return_unsubscribed_page(email)
+def return_confirmation_page(email, name, primary_action):
+	frappe.respond_as_web_page(_("Unsubscribe from Newsletter"),_("Do you want to unsubscribe from this mailing list?"),
+		indicator_color="blue", primary_label = _("Unsubscribe"), primary_action=primary_action)
 
-def return_unsubscribed_page(email):
-	frappe.respond_as_web_page(_("Unsubscribed"),
-		_("{0} has been successfully unsubscribed from this list.").format(email), indicator_color='green')
+def return_unsubscribed_page(email, name):
+	frappe.respond_as_web_page(_("Unsubscribed from Newsletter"),
+		_("<b>{0}</b> has been successfully unsubscribed from this mailing list.").format(email, name), indicator_color='green')
 
 def create_lead(email_id):
 	"""create a lead if it does not exist"""

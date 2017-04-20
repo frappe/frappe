@@ -5,7 +5,7 @@
 		<div>{{ frappe.render_template(df.options, {"doc": doc}) or "" }}</div>
 	{%- elif df.fieldtype in ("Text", "Text Editor", "Code") -%}
 		{{ render_text_field(df, doc) }}
-	{%- elif df.fieldtype in ("Image", "Attach Image", "Attach")
+	{%- elif df.fieldtype in ("Image", "Attach Image", "Attach", "Signature")
 		and (guess_mimetype(doc[df.fieldname])[0] or "").startswith("image/")  -%}
 		{{ render_image(df, doc) }}
 	{%- else -%}
@@ -27,7 +27,7 @@
 			<table class="table table-bordered table-condensed">
 				<thead>
 					<tr>
-						<th style="width: 40px" class="table-sr">Sr</th>
+						<th style="width: 40px" class="table-sr">{{ _("Sr") }}</th>
 						{% for tdf in visible_columns %}
 						{% if (data and not data[0].flags.compact_item_print) or tdf.fieldname in doc.get(df.fieldname)[0].flags.compact_item_fields %}
 							<th style="width: {{ get_width(tdf) }};" class="{{ get_align_class(tdf) }}" {{ fieldmeta(df) }}>
@@ -94,7 +94,6 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 {%- endmacro -%}
 
 {%- macro render_image(df, doc) -%}
-	{%- if df.label %}<label>{{ _(df.label) }}</label>{%- endif %}
 	{{ print_value(df, doc) }}
 {% endmacro %}
 
@@ -108,6 +107,8 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 		<img src="{{ doc[doc.meta.get_field(df.fieldname).options] }}"
 			class="img-responsive"
 			{%- if df.print_width %} style="width: {{ get_width(df) }};"{% endif %}>
+	{% elif df.fieldtype=="Signature" %}
+		<img src="{{ doc[df.fieldname] }}" class="signature-img img-responsive">
 	{% elif df.fieldtype in ("Attach", "Attach Image") and doc[df.fieldname]
 		and (guess_mimetype(doc[df.fieldname])[0] or "").startswith("image/") %}
 		<img src="{{ doc[df.fieldname] }}" class="img-responsive"

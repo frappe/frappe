@@ -37,7 +37,7 @@ def after_install():
 	update_password("Administrator", get_admin_password())
 
 	# setup wizard now in frappe
-	frappe.db.set_default('desktop:home_page', 'setup-wizard');
+	frappe.db.set_default('desktop:home_page', 'setup-wizard')
 
 	frappe.db.commit()
 
@@ -46,11 +46,11 @@ def install_basic_docs():
 	install_docs = [
 		{'doctype':'User', 'name':'Administrator', 'first_name':'Administrator',
 			'email':'admin@example.com', 'enabled':1, "is_admin": 1,
-			'user_roles': [{'role': 'Administrator'}]
+			'roles': [{'role': 'Administrator'}]
 		},
 		{'doctype':'User', 'name':'Guest', 'first_name':'Guest',
 			'email':'guest@example.com', 'enabled':1, "is_guest": 1,
-			'user_roles': [{'role': 'Guest'}]
+			'roles': [{'role': 'Guest'}]
 		},
 		{'doctype': "Role", "role_name": "Report Manager"},
 		{'doctype': "Workflow State", "workflow_state_name": "Pending",

@@ -3,6 +3,9 @@
 
 frappe.ui.form.on('Page', {
 	refresh: function(frm) {
-
+		if(!frappe.boot.developer_mode) {
+			// make the document read-only
+			frm.set_read_only();
+		}
 	}
 });

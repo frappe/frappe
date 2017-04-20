@@ -7,7 +7,7 @@ import frappe, unittest
 class TestDocument(unittest.TestCase):
 	def test_get_return_empty_list_for_table_field_if_none(self):
 		d = frappe.get_doc({"doctype":"User"})
-		self.assertEquals(d.get("user_roles"), [])
+		self.assertEquals(d.get("roles"), [])
 
 	def test_load(self):
 		d = frappe.get_doc("DocType", "User")
@@ -45,20 +45,12 @@ class TestDocument(unittest.TestCase):
 			"doctype":"Event",
 			"subject":"test-doc-test-event 2",
 			"starts_on": "2014-01-01",
-			"event_type": "Public",
-			"roles": [
-				{
-					"role": "System Manager"
-				}
-			]
+			"event_type": "Public"
 		})
 		d.insert()
 		self.assertTrue(d.name.startswith("EV"))
 		self.assertEquals(frappe.db.get_value("Event", d.name, "subject"),
 			"test-doc-test-event 2")
-
-		d1 = frappe.get_doc("Event", d.name)
-		self.assertEquals(d1.roles[0].role, "System Manager")
 
 	def test_update(self):
 		d = self.test_insert()
@@ -114,7 +106,7 @@ class TestDocument(unittest.TestCase):
 			"doctype": "User",
 			"email": "test_link_validation@example.com",
 			"first_name": "Link Validation",
-			"user_roles": [
+			"roles": [
 				{
 					"role": "ABC"
 				}
@@ -122,8 +114,8 @@ class TestDocument(unittest.TestCase):
 		})
 		self.assertRaises(frappe.LinkValidationError, d.insert)
 
-		d.user_roles = []
-		d.append("user_roles", {
+		d.roles = []
+		d.append("roles", {
 			"role": "System Manager"
 		})
 		d.insert()

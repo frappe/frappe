@@ -46,6 +46,11 @@ def get_data():
 					"description": _("Show or hide modules globally.")
 				},
 				{
+					"type": "doctype",
+					"name": "Role Permission for Page and Report",
+					"description": _("Set custom roles for page and report")
+				},
+				{
 					"type": "report",
 					"is_query_report": True,
 					"doctype": "User",
@@ -200,39 +205,6 @@ def get_data():
 			]
 		},
 		{
-			"label": _("Integrations"),
-			"icon": "fa fa-star",
-			"items": [
-				{
-					"type": "page",
-					"name": "applications",
-					"label": _("Application Installer"),
-					"description": _("Install Applications."),
-					"icon": "fa fa-download"
-				},
-				{
-					"type": "doctype",
-					"name": "Social Login Keys",
-					"description": _("Enter keys to enable login via Facebook, Google, GitHub."),
-				},
-				{
-					"type": "doctype",
-					"name": "Integration Service",
-					"description": _("Centralize access to Integrations"),
-				},
-				{
-					"type": "doctype",
-					"name": "OAuth Client",
-					"description": _("Register OAuth Client App"),
-				},
-				{
-					"type": "doctype",
-					"name": "OAuth Provider Settings",
-					"description": _("Settings for OAuth Provider"),
-				},
-			]
-		},
-		{
 			"label": _("Customize"),
 			"icon": "fa fa-glass",
 			"items": [
@@ -272,6 +244,18 @@ def get_data():
 
 			]
 		},
+		{
+			"label": _("Applications"),
+			"items":[
+				{
+					"type": "page",
+					"name": "applications",
+					"label": _("Application Installer"),
+					"description": _("Install Applications."),
+					"icon": "fa fa-download"
+				},
+			]
+		}
 	]
 	add_setup_section(data, "frappe", "website", _("Website"), "fa fa-globe")
 	return data

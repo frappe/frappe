@@ -27,7 +27,7 @@ def sync_for(app_name, force=0, sync_everything = False, verbose=False, reset_pe
 
 	if app_name == "frappe":
 		# these need to go first at time of install
-		for d in (("core", "docfield"), ("core", "docperm"), ("core", "doctype"),
+		for d in (("core", "docfield"), ("core", "docperm"), ("core", "has_role"), ("core", "doctype"),
 			("core", "user"), ("core", "role"), ("custom", "custom_field"),
 			("custom", "property_setter"), ("website", "web_form"),
 			("website", "web_form_field"), ("website", "portal_menu_item")):

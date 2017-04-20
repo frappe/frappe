@@ -94,6 +94,8 @@ kbd {
   min-width: 200px;
   padding: 0px;
   font-size: 12px;
+  max-height: 400px;
+  overflow: auto;
   border-radius: 0px 0px 4px 4px;
 }
 .dropdown-menu .dropdown-header {
@@ -111,7 +113,7 @@ a.badge-hover:active .badge {
   background-color: #D8DFE5;
 }
 .msgprint {
-  margin: 15px 0px;
+  word-wrap: break-word;
 }
 .msgprint pre {
   text-align: left;
@@ -464,6 +466,17 @@ h6 a {
   border-right: none;
   border-top: none;
 }
+.navbar-search {
+  max-width: 400px;
+  display: inline-block;
+  margin: 10px;
+  margin-top: 9px;
+  padding: 2px 6px;
+  height: 26px;
+}
+.dropdown-menu .navbar-search {
+  max-width: 180px;
+}
 .social-icons i {
   font-size: 120%;
 }
@@ -741,7 +754,6 @@ textarea {
   }
 }
 .more-block {
-  margin: 0px -15px;
   padding-bottom: 30px;
 }
 .btn-more {
@@ -838,8 +850,12 @@ a.active {
 .footer-group-label {
   display: inline-block;
 }
-li .footer-child-item {
-  margin: 15px 0px !important;
+.footer-parent-item {
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+li.footer-child-item {
+  margin: 15px 0px;
 }
 .blog-info {
   text-align: center;

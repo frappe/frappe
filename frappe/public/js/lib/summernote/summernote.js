@@ -282,7 +282,7 @@
         return memo + fn(v);
       }, 0);
     };
-  
+
     /**
      * returns a copy of the collection with array type.
      * @param {Collection} collection - collection eg) node.childNodes, ...
@@ -301,7 +301,7 @@
     var isEmpty = function (array) {
       return !array || !array.length;
     };
-  
+
     /**
      * cluster elements by predicate function.
      *
@@ -322,7 +322,7 @@
         return memo;
       }, [[head(array)]]);
     };
-  
+
     /**
      * returns a copy of the array with all false values removed
      *
@@ -662,13 +662,13 @@
       if (isText(node)) {
         return node.nodeValue.length;
       }
-      
+
       if (node) {
         return node.childNodes.length;
       }
-      
+
       return 0;
-      
+
     };
 
     /**
@@ -1463,7 +1463,8 @@
       /** @property {String} blank */
       blank: blankHTML,
       /** @property {String} emptyPara */
-      emptyPara: '<p>' + blankHTML + '</p>',
+      emptyPara: '<div>' + blankHTML + '</div>',
+      // emptyPara: '<p>' + blankHTML + '</p>',
       makePredByNodeName: makePredByNodeName,
       isEditable: isEditable,
       isControlSizing: isControlSizing,
@@ -1934,7 +1935,7 @@
     });
   });
 
-  var dialog = renderer.create('<div class="modal" aria-hidden="false" tabindex="-1"/>', function ($node, options) {
+  var dialog = renderer.create('<div class="modal fade in" aria-hidden="false" tabindex="-1"/>', function ($node, options) {
     if (options.fade) {
       $node.addClass('fade');
     }
@@ -1943,8 +1944,12 @@
       '  <div class="modal-content">',
       (options.title ?
       '    <div class="modal-header">' +
-      '      <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>' +
-      '      <h4 class="modal-title">' + options.title + '</h4>' +
+      '      <div class="row"><div class="col-xs-7"><h4 class="modal-title" style="font-weight: bold;">' + options.title + '</h4></div>' +
+      '      <div class="col-xs-5"><div class="text-right buttons"> <button type="button" class="btn btn-default btn-sm btn-modal-close" data-dismiss="modal">' +
+      '         <i class="octicon octicon-x visible-xs" style="padding: 1px 0px;"></i> <span class="hidden-xs">Close</span></button>'+
+                (options.action && options.button_class ?
+                '     <button type="button" class="btn btn-primary btn-sm ' + options.button_class + ' disabled" disabled>' + options.action + '</button>' : '') +
+      '      </div></div></div>' +
       '    </div>' : ''
       ),
       '    <div class="modal-body">' + options.body + '</div>',
@@ -2072,8 +2077,8 @@
         size: 'Font Size'
       },
       image: {
-        image: 'Picture',
-        insert: 'Insert Image',
+        image: 'Image',
+        insert: 'Insert',
         resizeFull: 'Resize Full',
         resizeHalf: 'Resize Half',
         resizeQuarter: 'Resize Quarter',
@@ -2095,13 +2100,13 @@
       video: {
         video: 'Video',
         videoLink: 'Video Link',
-        insert: 'Insert Video',
+        insert: 'Insert',
         url: 'Video URL?',
         providers: '(YouTube, Vimeo, Vine, Instagram, DailyMotion or Youku)'
       },
       link: {
         link: 'Link',
-        insert: 'Insert Link',
+        insert: 'Insert',
         unlink: 'Unlink',
         edit: 'Edit',
         textToDisplay: 'Text to display',
@@ -2307,7 +2312,7 @@
      */
     var textRangeToPoint = function (textRange, isStart) {
       var container = textRange.parentElement(), offset;
-  
+
       var tester = document.body.createTextRange(), prevContainer;
       var childNodes = list.from(container.childNodes);
       for (offset = 0; offset < childNodes.length; offset++) {
@@ -2320,42 +2325,42 @@
         }
         prevContainer = childNodes[offset];
       }
-  
+
       if (offset !== 0 && dom.isText(childNodes[offset - 1])) {
         var textRangeStart = document.body.createTextRange(), curTextNode = null;
         textRangeStart.moveToElementText(prevContainer || container);
         textRangeStart.collapse(!prevContainer);
         curTextNode = prevContainer ? prevContainer.nextSibling : container.firstChild;
-  
+
         var pointTester = textRange.duplicate();
         pointTester.setEndPoint('StartToStart', textRangeStart);
         var textCount = pointTester.text.replace(/[\r\n]/g, '').length;
-  
+
         while (textCount > curTextNode.nodeValue.length && curTextNode.nextSibling) {
           textCount -= curTextNode.nodeValue.length;
           curTextNode = curTextNode.nextSibling;
         }
-  
+
         /* jshint ignore:start */
         var dummy = curTextNode.nodeValue; // enforce IE to re-reference curTextNode, hack
         /* jshint ignore:end */
-  
+
         if (isStart && curTextNode.nextSibling && dom.isText(curTextNode.nextSibling) &&
             textCount === curTextNode.nodeValue.length) {
           textCount -= curTextNode.nodeValue.length;
           curTextNode = curTextNode.nextSibling;
         }
-  
+
         container = curTextNode;
         offset = textCount;
       }
-  
+
       return {
         cont: container,
         offset: offset
       };
     };
-    
+
     /**
      * return TextRange from boundary point (inspired by google closure-library)
      * @param {BoundaryPoint} point
@@ -2364,7 +2369,7 @@
     var pointToTextRange = function (point) {
       var textRangeInfo = function (container, offset) {
         var node, isCollapseToStart;
-  
+
         if (dom.isText(container)) {
           var prevTextNodes = dom.listPrev(container, func.not(dom.isText));
           var prevContainer = list.last(prevTextNodes).previousSibling;
@@ -2376,27 +2381,27 @@
           if (dom.isText(node)) {
             return textRangeInfo(node, 0);
           }
-  
+
           offset = 0;
           isCollapseToStart = false;
         }
-  
+
         return {
           node: node,
           collapseToStart: isCollapseToStart,
           offset: offset
         };
       };
-  
+
       var textRange = document.body.createTextRange();
       var info = textRangeInfo(point.node, point.offset);
-  
+
       textRange.moveToElementText(info.node);
       textRange.collapse(info.collapseToStart);
       textRange.moveStart('character', info.offset);
       return textRange;
     };
-    
+
     /**
      * Wrapped Range
      *
@@ -2411,7 +2416,7 @@
       this.so = so;
       this.ec = ec;
       this.eo = eo;
-  
+
       // nativeRange: get nativeRange from sc, so, ec, eo
       var nativeRange = function () {
         if (agent.isW3CRangeSupport) {
@@ -2472,7 +2477,7 @@
         } else {
           nativeRng.select();
         }
-        
+
         return this;
       };
 
@@ -2517,7 +2522,7 @@
             if (dom.isVisiblePoint(point)) {
               return point;
             }
-            // reverse direction 
+            // reverse direction
             isLeftToRight = !isLeftToRight;
           }
 
@@ -2710,7 +2715,7 @@
           point.offset
         ).normalize();
       };
-      
+
       /**
        * makeIsOn: return isOn(pred) function
        */
@@ -2720,7 +2725,7 @@
           return !!ancestor && (ancestor === dom.ancestor(ec, pred));
         };
       };
-  
+
       // isOnEditable: judge whether range is on editable or not
       this.isOnEditable = makeIsOn(dom.isEditable);
       // isOnList: judge whether range is on list node or not
@@ -2791,7 +2796,7 @@
 
         // wrap with paragraph
         if (inlineSiblings.length) {
-          var para = dom.wrap(list.head(inlineSiblings), 'p');
+          var para = dom.wrap(list.head(inlineSiblings), 'div');
           dom.appendChildNodes(para, list.tail(inlineSiblings));
         }
 
@@ -2830,7 +2835,7 @@
           return rng.insertNode(childNode);
         }).reverse();
       };
-  
+
       /**
        * returns text in range
        *
@@ -2871,7 +2876,7 @@
           endPoint.offset
         );
       };
-  
+
       /**
        * create offsetPath bookmark
        *
@@ -3001,8 +3006,8 @@
       },
 
       /**
-       * @method 
-       * 
+       * @method
+       *
        * create WrappedRange from node
        *
        * @param {Node} node
@@ -3051,8 +3056,8 @@
       },
 
       /**
-       * @method 
-       * 
+       * @method
+       *
        * create WrappedRange from bookmark
        *
        * @param {Node} editable
@@ -3068,7 +3073,7 @@
       },
 
       /**
-       * @method 
+       * @method
        *
        * create WrappedRange from paraBookmark
        *
@@ -3117,7 +3122,7 @@
         }).readAsDataURL(file);
       }).promise();
     };
-  
+
     /**
      * @method createImage
      *
@@ -3593,7 +3598,7 @@
         // LI to P
         if (isEscapseToBody || !dom.isList(headList.parentNode)) {
           paras = paras.map(function (para) {
-            return dom.replace(para, 'P');
+            return dom.replace(para, 'div');
           });
         }
 
@@ -3687,7 +3692,7 @@
 
           // replace empty heading or pre with P tag
           if ((dom.isHeading(nextPara) || dom.isPre(nextPara)) && dom.isEmpty(nextPara)) {
-            nextPara = dom.replace(nextPara, 'p');
+            nextPara = dom.replace(nextPara, 'div');
           }
         }
       // no paragraph: insert empty paragraph
@@ -4770,6 +4775,15 @@
       $editor.addClass('codeview');
       $codable.focus();
 
+      $codable.on('keyup', function () {
+        var value = $codable.val();
+        var isChange = $editable.html() !== value;
+
+        if (isChange) {
+          context.triggerEvent('change', value, $editable);
+        }
+      });
+
       // activate CodeMirror as codable
       if (agent.hasCodeMirror) {
         var cmEditor = CodeMirror.fromTextArea($codable[0], options.codemirror);
@@ -5145,7 +5159,7 @@
       if (!options.shortcuts || !shortcut) {
         return '';
       }
-      
+
       if (agent.isMac) {
         shortcut = shortcut.replace('CMD', '⌘').replace('SHIFT', '⇧');
       }
@@ -5540,7 +5554,6 @@
         return ui.button({
           contents: ui.icon(options.icons.picture),
           tooltip: lang.image.image,
-          click: context.createInvokeHandler('imageDialog.show')
         }).render();
       });
 
@@ -5892,11 +5905,11 @@
       var $container = options.dialogsInBody ? $(document.body) : $editor;
 
       var body = '<div class="form-group">' +
-                   '<label>' + lang.link.textToDisplay + '</label>' +
+                   '<span>' + lang.link.textToDisplay + '</span>' +
                    '<input class="note-link-text form-control" type="text" />' +
                  '</div>' +
                  '<div class="form-group">' +
-                   '<label>' + lang.link.url + '</label>' +
+                   '<span>' + lang.link.url + '</span>' +
                    '<input class="note-link-url form-control" type="text" value="http://" />' +
                  '</div>' +
                  (!options.disableLinkTarget ?
@@ -5908,10 +5921,11 @@
 
       this.$dialog = ui.dialog({
         className: 'link-dialog',
-        title: lang.link.insert,
+        title: lang.link.link,
+        action: lang.link.insert,
+        button_class: 'note-link-btn',
         fade: options.dialogsFade,
         body: body,
-        footer: footer
       }).render().appendTo($container);
     };
 
@@ -6129,10 +6143,11 @@
       var footer = '<button href="#" class="btn btn-primary note-image-btn disabled" disabled>' + lang.image.insert + '</button>';
 
       this.$dialog = ui.dialog({
-        title: lang.image.insert,
+        title: lang.image.image,
+        action: lang.image.insert,
+        button_class: 'note-image-btn',
         fade: options.dialogsFade,
         body: body,
-        footer: footer
       }).render().appendTo($container);
     };
 
@@ -6269,16 +6284,17 @@
       var $container = options.dialogsInBody ? $(document.body) : $editor;
 
       var body = '<div class="form-group row-fluid">' +
-          '<label>' + lang.video.url + ' <small class="text-muted">' + lang.video.providers + '</small></label>' +
+          '<span>' + lang.video.url + ' <small class="text-muted">' + lang.video.providers + '</small></span>' +
           '<input class="note-video-url form-control span12" type="text" />' +
           '</div>';
       var footer = '<button href="#" class="btn btn-primary note-video-btn disabled" disabled>' + lang.video.insert + '</button>';
 
       this.$dialog = ui.dialog({
-        title: lang.video.insert,
+        title: lang.video.video,
+        action: lang.video.insert,
+        button_class: 'note-video-btn',
         fade: options.dialogsFade,
         body: body,
-        footer: footer
       }).render().appendTo($container);
     };
 
@@ -6839,7 +6855,7 @@
       },
 
       buttons: {},
-      
+
       lang: 'en-US',
 
       // toolbar

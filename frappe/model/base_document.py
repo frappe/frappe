@@ -381,6 +381,9 @@ class BaseDocument(object):
 			self.set("modified", now())
 			self.set("modified_by", frappe.session.user)
 
+		# to trigger email alert on value change
+		self.run_method('before_change')
+
 		frappe.db.set_value(self.doctype, self.name, fieldname, value,
 			self.modified, self.modified_by, update_modified=update_modified)
 

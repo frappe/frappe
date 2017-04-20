@@ -186,3 +186,73 @@ body[data-route=""] .navbar-set-desktop-icons,
 body[data-route="desktop"] .navbar-set-desktop-icons {
   display: block;
 }
+.help-message-wrapper {
+  position: fixed;
+  bottom: 30px;
+  width: 100%;
+  padding: 0px 10px;
+}
+.help-message-wrapper .help-message-container {
+  position: relative;
+  text-align: left;
+  margin: auto;
+  max-width: 500px;
+  background-color: #fff;
+  padding: 10px 15px 15px 15px;
+  border-radius: 3px;
+  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.15);
+}
+.help-message-wrapper h5 {
+  margin-top: 5px;
+}
+.help-message-wrapper .help-message-item {
+  font-size: 12px;
+}
+.help-message-wrapper .octicon {
+  color: #8D99A6;
+  cursor: pointer;
+  width: 20px;
+}
+.help-message-wrapper .octicon.disabled {
+  color: #d1d8dd;
+}
+.help-message-wrapper .octicon:hover {
+  color: #36414C;
+  text-decoration: none;
+}
+.help-message-wrapper .left-arrow {
+  position: absolute;
+  right: 30px;
+  bottom: 15px;
+  text-align: left;
+}
+.help-message-wrapper .right-arrow {
+  position: absolute;
+  right: 15px;
+  bottom: 15px;
+  text-align: right;
+}
+.help-message-wrapper .indicator {
+  color: #36414C;
+}
+.help-message-wrapper .help-progress {
+  display: inline-block;
+  margin-left: 10px;
+  height: 4px;
+  background-color: #fafbfc;
+}
+.help-message-wrapper .help-progress {
+  display: inline-block;
+  margin-left: 10px;
+  height: 4px;
+  width: 100px;
+  background-color: #f5f7fa;
+  border-radius: 2px;
+}
+.help-message-wrapper .help-progress-bar {
+  display: inline-block;
+  height: 4px;
+  background-color: #5E64FF;
+  float: left;
+  border-radius: 2px;
+}

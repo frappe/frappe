@@ -20,7 +20,7 @@ def send(recipients=None, sender=None, subject=None, message=None, reference_doc
 		reference_name=None, unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None,
 		attachments=None, reply_to=None, cc=[], message_id=None, in_reply_to=None, send_after=None,
 		expose_recipients=None, send_priority=1, communication=None, now=False, read_receipt=None,
-		queue_separately=False):
+		queue_separately=False, is_notification=False, add_unsubscribe_link=1):
 	"""Add email to sending queue (Email Queue)
 
 	:param recipients: List of recipients.
@@ -39,6 +39,8 @@ def send(recipients=None, sender=None, subject=None, message=None, reference_doc
 	:param communication: Communication link to be set in Email Queue record
 	:param now: Send immediately (don't send in the background)
 	:param queue_separately: Queue each email separately
+	:param is_notification: Marks email as notification so will not trigger notifications from system
+	:param add_unsubscribe_link: Send unsubscribe link in the footer of the Email, default 1.
 	"""
 	if not unsubscribe_method:
 		unsubscribe_method = "/api/method/frappe.email.queue.unsubscribe"
@@ -82,7 +84,7 @@ def send(recipients=None, sender=None, subject=None, message=None, reference_doc
 	email_content = formatted
 	email_text_context = text_content
 
-	if reference_doctype and (unsubscribe_message or reference_doctype=="Newsletter"):
+	if add_unsubscribe_link and reference_doctype and (unsubscribe_message or reference_doctype=="Newsletter") and add_unsubscribe_link==1:
 		unsubscribe_link = get_unsubscribe_message(unsubscribe_message, expose_recipients)
 		email_content = email_content.replace("<!--unsubscribe link here-->", unsubscribe_link.html)
 		email_text_context += unsubscribe_link.text
@@ -102,11 +104,13 @@ def send(recipients=None, sender=None, subject=None, message=None, reference_doc
 		send_priority=send_priority,
 		email_account=email_account,
 		communication=communication,
+		add_unsubscribe_link=add_unsubscribe_link,
 		unsubscribe_method=unsubscribe_method,
 		unsubscribe_params=unsubscribe_params,
 		expose_recipients=expose_recipients,
 		read_receipt=read_receipt,
 		queue_separately=queue_separately,
+		is_notification = is_notification,
 		now=now)
 
 
@@ -149,7 +153,7 @@ def get_email_queue(recipients, sender, subject, **kwargs):
 			email_account=kwargs.get('email_account'),
 			expose_recipients=kwargs.get('expose_recipients'))
 
-		mail.set_message_id(kwargs.get('message_id'))
+		mail.set_message_id(kwargs.get('message_id'),kwargs.get('is_notification'))
 		if kwargs.get('read_receipt'):
 			mail.msg_root["Disposition-Notification-To"] = sender
 		if kwargs.get('in_reply_to'):
@@ -167,6 +171,7 @@ def get_email_queue(recipients, sender, subject, **kwargs):
 	e.set_recipients(recipients + kwargs.get('cc', []))
 	e.reference_doctype = kwargs.get('reference_doctype')
 	e.reference_name = kwargs.get('reference_name')
+	e.add_unsubscribe_link = kwargs.get("add_unsubscribe_link")
 	e.unsubscribe_method = kwargs.get('unsubscribe_method')
 	e.unsubscribe_params = kwargs.get('unsubscribe_params')
 	e.expose_recipients = kwargs.get('expose_recipients')
@@ -322,7 +327,7 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False, from_test=Fals
 	email = frappe.db.sql('''select
 			name, status, communication, message, sender, reference_doctype,
 			reference_name, unsubscribe_param, unsubscribe_method, expose_recipients,
-			show_as_cc
+			show_as_cc, add_unsubscribe_link
 		from
 			`tabEmail Queue`
 		where
@@ -423,7 +428,7 @@ where name=%s""", (unicode(e), email.name), auto_commit=auto_commit)
 
 def prepare_message(email, recipient, recipients_list):
 	message = email.message
-	if email.reference_doctype: # is missing the check for unsubscribe message but will not add as there will be no unsubscribe url
+	if email.add_unsubscribe_link and email.reference_doctype: # is missing the check for unsubscribe message but will not add as there will be no unsubscribe url
 		unsubscribe_url = get_unsubcribed_url(email.reference_doctype, email.reference_name, recipient,
 		email.unsubscribe_method, email.unsubscribe_params)
 		message = message.replace("<!--unsubscribe url-->", quopri.encodestring(unsubscribe_url))

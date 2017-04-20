@@ -83,6 +83,7 @@ frappe.ui.notifications.config = {
 	"ToDo": { label: __("To Do") },
 	"Chat": { label: __("Chat"), route: "chat"},
 	"Event": { label: __("Calendar"), route: "List/Event/Calendar" },
+	"Email": { label: __("Email"), route: "List/Communication/Inbox" },
 	"Likes": {
 		label: __("Likes"),
 		click: function() {
@@ -109,7 +110,7 @@ frappe.views.show_open_count_list = function(element) {
 
 	var route = frappe.get_route();
 	if(route[0]==="List" && route[1]===doctype) {
-		frappe.pages["List/" + doctype].doclistview.refresh();
+		frappe.pages["List/" + doctype].list_view.refresh();
 	} else {
 		frappe.set_route("List", doctype);
 	}

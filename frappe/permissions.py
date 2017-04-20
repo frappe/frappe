@@ -182,12 +182,12 @@ def get_role_permissions(meta, user=None, verbose=False):
 			user_permission_doctypes={},
 			if_owner={}
 		)
-		user_roles = frappe.get_roles(user)
+		roles = frappe.get_roles(user)
 		dont_match = []
 		has_a_role_with_apply_user_permissions = False
 
 		for p in meta.permissions:
-			if cint(p.permlevel)==0 and (p.role in user_roles):
+			if cint(p.permlevel)==0 and (p.role in roles):
 				# apply only for level 0
 
 				for ptype in rights:
@@ -345,7 +345,7 @@ def get_roles(user=None, with_standard=True):
 		return ['Guest']
 
 	def get():
-		return [r[0] for r in frappe.db.sql("""select role from tabUserRole
+		return [r[0] for r in frappe.db.sql("""select role from `tabHas Role`
 			where parent=%s and role not in ('All', 'Guest')""", (user,))] + ['All', 'Guest']
 
 	roles = frappe.cache().hget("roles", user, get)

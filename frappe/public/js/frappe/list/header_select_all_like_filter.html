@@ -1,7 +1,8 @@
 {% if (_checkbox) { %}
-<input class="list-select-all" type="checkbox" style="margin-right: 7px; margin-top: 2px;"
+<input class="list-select-all hidden-xs" type="checkbox"
 	title="{%= __("Select All") %}">
 {% } %}
-
-<i class="fa-fw octicon octicon-heart text-extra-muted not-liked like-action list-liked-by-me"
-	title="{%= __("Likes") %}"></i>
+<span class="liked-by-filter-button">
+	<i class="fa-fw octicon octicon-heart text-extra-muted not-liked like-action list-liked-by-me"
+		title="{%= __("Likes") %}"></i>
+</span>

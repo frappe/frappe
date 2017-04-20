@@ -4,6 +4,7 @@
 from __future__ import unicode_literals
 import frappe
 import time
+import redis
 from frappe import _, msgprint
 from frappe.utils import flt, cstr, now, get_datetime_str, file_lock
 from frappe.utils.background_jobs import enqueue
@@ -13,7 +14,7 @@ from werkzeug.exceptions import NotFound, Forbidden
 import hashlib, json
 from frappe.model import optional_fields
 from frappe.utils.file_manager import save_url
-
+from frappe.utils.global_search import update_global_search
 
 # once_only validation
 # methods
@@ -33,7 +34,7 @@ def get_doc(arg1, arg2=None):
 		user = get_doc({
 			"doctype":"User"
 			"email_id": "test@example.com",
-			"user_roles: [
+			"roles: [
 				{"role": "System Manager"}
 			]
 		})
@@ -159,7 +160,7 @@ class Document(BaseDocument):
 		frappe.msgprint(msg)
 		raise frappe.PermissionError(msg)
 
-	def insert(self, ignore_permissions=None):
+	def insert(self, ignore_permissions=None, ignore_if_duplicate=False, ignore_mandatory=None):
 		"""Insert the document in the database (as a new document).
 		This will check for user permissions and execute `before_insert`,
 		`validate`, `on_update`, `after_insert` methods if they are written.
@@ -172,6 +173,9 @@ class Document(BaseDocument):
 
 		if ignore_permissions!=None:
 			self.flags.ignore_permissions = ignore_permissions
+
+		if ignore_mandatory!=None:
+			self.flags.ignore_mandatory = ignore_mandatory
 
 		self.set("__islocal", True)
 
@@ -197,7 +201,11 @@ class Document(BaseDocument):
 		if getattr(self.meta, "issingle", 0):
 			self.update_single(self.get_valid_dict())
 		else:
-			self.db_insert()
+			try:
+				self.db_insert()
+			except frappe.DuplicateEntryError, e:
+				if not ignore_if_duplicate:
+					raise  e
 
 		# children
 		for d in self.get_all_children():
@@ -328,6 +336,10 @@ class Document(BaseDocument):
 		for d in self.get_all_children():
 			set_new_name(d)
 
+	def get_title(self):
+		'''Get the document title based on title_field or `title` or `name`'''
+		return self.get(self.meta.get_title_field())
+
 	def set_title_field(self):
 		"""Set title field based on template"""
 		def get_values():
@@ -451,10 +463,10 @@ class Document(BaseDocument):
 
 	def get_permlevel_access(self, permission_type='write'):
 		if not hasattr(self, "_has_access_to"):
-			user_roles = frappe.get_roles()
+			roles = frappe.get_roles()
 			self._has_access_to = []
 			for perm in self.get_permissions():
-				if perm.role in user_roles and perm.permlevel > 0 and perm.get(permission_type):
+				if perm.role in roles and perm.permlevel > 0 and perm.get(permission_type):
 					if perm.permlevel not in self._has_access_to:
 						self._has_access_to.append(perm.permlevel)
 
@@ -685,6 +697,7 @@ class Document(BaseDocument):
 		def _evaluate_alert(alert):
 			if not alert.name in self.flags.email_alerts_executed:
 				evaluate_alert(self, alert.name, alert.event)
+				self.flags.email_alerts_executed.append(alert.name)
 
 		event_map = {
 			"on_update": "Save",
@@ -696,6 +709,7 @@ class Document(BaseDocument):
 		if not self.flags.in_insert:
 			# value change is not applicable in insert
 			event_map['validate'] = 'Value Change'
+			event_map['before_change'] = 'Value Change'
 
 		for alert in self.flags.email_alerts:
 			event = event_map.get(method, None)
@@ -788,6 +802,13 @@ class Document(BaseDocument):
 		self.update_timeline_doc()
 		self.clear_cache()
 		self.notify_update()
+
+		try:
+			frappe.enqueue('frappe.utils.global_search.update_global_search',
+				now=frappe.flags.in_test or frappe.flags.in_install or frappe.flags.in_migrate,
+				doc=self)
+		except redis.exceptions.ConnectionError:
+			update_global_search(self)
 
 		if self._doc_before_save and not self.flags.ignore_version:
 			self.save_version()

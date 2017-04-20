@@ -16,8 +16,9 @@ def get_contact_list(txt):
 		return filter(None, frappe.db.sql_list('select email from tabUser where email like %s',
 			('%' + txt + '%')))
 	try:
-		out = filter(None, frappe.db.sql_list("""select email_id from `tabContact`
-			where `email_id` like %(txt)s order by
+		out = filter(None, frappe.db.sql_list("""select distinct email_id from `tabContact` 
+			where email_id like %(txt)s or concat(first_name, " ", last_name) like %(txt)s order by
+			if (locate( %(_txt)s, concat(first_name, " ", last_name)), locate( %(_txt)s, concat(first_name, " ", last_name)), 99999),
 			if (locate( %(_txt)s, email_id), locate( %(_txt)s, email_id), 99999)""",
 		        {'txt': "%%%s%%" % frappe.db.escape(txt),
 	            '_txt': txt.replace("%", "")
@@ -35,7 +36,7 @@ def get_contact_list(txt):
 	return out
 
 def get_system_managers():
-	return frappe.db.sql_list("""select parent FROM tabUserRole
+	return frappe.db.sql_list("""select parent FROM `tabHas Role`
 		WHERE role='System Manager'
 		AND parent!='Administrator'
 		AND parent IN (SELECT email FROM tabUser WHERE enabled=1)""")

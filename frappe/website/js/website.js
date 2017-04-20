@@ -2,7 +2,7 @@
 // MIT License. See license.txt
 
 frappe.provide("website");
-frappe.provide("frappe.search_path");
+frappe.provide("frappe.awesome_bar_path");
 cur_frm = null;
 
 $.extend(frappe, {
@@ -62,7 +62,11 @@ $.extend(frappe, {
 
 			// executed before statusCode functions
 			if(data.responseText) {
-				data = JSON.parse(data.responseText);
+				try {
+					data = JSON.parse(data.responseText);
+				} catch (e) {
+					data = {};
+				}
 			}
 			frappe.process_response(opts, data);
 		});
@@ -250,17 +254,11 @@ $.extend(frappe, {
 	},
 
 	trigger_ready: function() {
-		var ready_functions = frappe.page_ready_events[location.pathname];
-		if (ready_functions && ready_functions.length) {
-			for (var i=0, l=ready_functions.length; i < l; i++) {
-				var ready = ready_functions[i];
-				ready && ready();
-			}
-		}
-
-		// remove them so that they aren't fired again and again!
-		delete frappe.page_ready_events[location.pathname];
+		frappe.ready_events.forEach(function(fn) {
+			fn();
+		});
 	},
+
 	highlight_code_blocks: function() {
 		if(hljs) {
 			$('pre code').each(function(i, block) {
@@ -303,13 +301,13 @@ $.extend(frappe, {
 		});
 	},
 	do_search: function(val) {
-		var path = (frappe.search_path && frappe.search_path[location.pathname]
+		var path = (frappe.awesome_bar_path && frappe.awesome_bar_path[location.pathname]
 			|| window.search_path || location.pathname);
 
 		window.location.href = path + "?txt=" + encodeURIComponent(val);
 	},
 	set_search_path: function(path) {
-		frappe.search_path[location.pathname] = path;
+		frappe.awesome_bar_path[location.pathname] = path;
 	},
 	make_navbar_active: function() {
 		var pathname = window.location.pathname;

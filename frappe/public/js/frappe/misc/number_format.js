@@ -12,7 +12,8 @@ function flt(v, decimals, number_format) {
 		// strip currency symbol if exists
 		if(v.indexOf(" ")!=-1) {
 			// using slice(1).join(" ") because space could also be a group separator
-			v = isNaN(parseFloat(v.split(" ")[0])) ? v.split(" ").slice(1).join(" ") : v;
+			parts = v.split(" ");
+			v = isNaN(parseFloat(parts[0])) ? parts.slice(parts.length - 1).join(" ") : v;
 		}
 
 		v = strip_number_groups(v, number_format);
@@ -58,16 +59,16 @@ function strip_number_groups(v, number_format) {
 
 
 frappe.number_format_info = {
-	"#,###.##": {decimal_str:".", group_sep:",", precision:2},
-	"#.###,##": {decimal_str:",", group_sep:".", precision:2},
-	"# ###.##": {decimal_str:".", group_sep:" ", precision:2},
-	"# ###,##": {decimal_str:",", group_sep:" ", precision:2},
-	"#'###.##": {decimal_str:".", group_sep:"'", precision:2},
-	"#, ###.##": {decimal_str:".", group_sep:", ", precision:2},
-	"#,##,###.##": {decimal_str:".", group_sep:",", precision:2},
-	"#,###.###": {decimal_str:".", group_sep:",", precision:3},
-	"#.###": {decimal_str:"", group_sep:".", precision:0},
-	"#,###": {decimal_str:"", group_sep:",", precision:0},
+	"#,###.##": {decimal_str:".", group_sep:","},
+	"#.###,##": {decimal_str:",", group_sep:"."},
+	"# ###.##": {decimal_str:".", group_sep:" "},
+	"# ###,##": {decimal_str:",", group_sep:" "},
+	"#'###.##": {decimal_str:".", group_sep:"'"},
+	"#, ###.##": {decimal_str:".", group_sep:", "},
+	"#,##,###.##": {decimal_str:".", group_sep:","},
+	"#,###.###": {decimal_str:".", group_sep:","},
+	"#.###": {decimal_str:"", group_sep:"."},
+	"#,###": {decimal_str:"", group_sep:","},
 }
 
 window.format_number = function(v, format, decimals){
@@ -126,6 +127,7 @@ window.format_number = function(v, format, decimals){
 function format_currency(v, currency, decimals) {
 	var format = get_number_format(currency);
 	var symbol = get_currency_symbol(currency);
+	var decimals = frappe.boot.sysdefaults.currency_precision || null;
 
 	if(symbol)
 		return symbol + " " + format_number(v, format, decimals);
@@ -148,31 +150,20 @@ function get_currency_symbol(currency) {
 	}
 }
 
-var global_number_format = null;
 function get_number_format(currency) {
-	if(!global_number_format) {
-		if (frappe.boot && frappe.boot.sysdefaults) {
-			global_number_format = frappe.boot.sysdefaults.number_format
-				|| frappe.model.get_value(":Currency", frappe.boot.sysdefaults.currency, "number_format");
-		}
-
-		global_number_format = global_number_format || "#,###.##";
-	}
-
-	var number_format;
-	if(currency && frappe.boot) {
-		number_format = frappe.model.get_value(":Currency", currency,
-			"number_format");
-	}
-
-	return number_format || global_number_format;
+	return (frappe.boot && frappe.boot.sysdefaults.number_format) || "#,###.##";
 }
 
 function get_number_format_info(format) {
 	var info = frappe.number_format_info[format];
+
 	if(!info) {
-		info = {decimal_str:".", group_sep:",", precision:2};
+		info = {decimal_str:".", group_sep:","};
 	}
+
+	// get the precision from the number format
+	info.precision = format.split(info.decimal_str).slice(1)[0].length;
+
 	return info;
 }
 

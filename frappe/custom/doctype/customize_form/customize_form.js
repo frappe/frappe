@@ -16,8 +16,8 @@ frappe.ui.form.on("Customize Form", {
 				filters: [
 					['DocType', 'issingle', '=', 0],
 					['DocType', 'custom', '=', 0],
-					['DocType', 'name', 'not in', 'DocType, DocField, DocPerm, User, Role, UserRole, \
-						 Page, Page Role, Module Def, Print Format, Report, Customize Form, \
+					['DocType', 'name', 'not in', 'DocType, DocField, DocPerm, User, Role, Has Role, \
+						 Page, Has Role, Module Def, Print Format, Report, Customize Form, \
 						 Customize Form Field']
 				]
 			};
@@ -45,6 +45,8 @@ frappe.ui.form.on("Customize Form", {
 					frm.trigger("setup_sortable");
 				}
 			});
+		} else {
+			frm.refresh();
 		}
 	},
 

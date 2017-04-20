@@ -89,6 +89,9 @@ frappe.ui.form.Toolbar = Class.extend({
 		return this.page.add_dropdown(label);
 	},
 	set_indicator: function() {
+		if(this.frm.save_disabled)
+			return;
+
 		var indicator = frappe.get_indicator(this.frm.doc);
 		if(indicator) {
 			this.page.set_indicator(indicator[0], indicator[1]);
@@ -156,7 +159,7 @@ frappe.ui.form.Toolbar = Class.extend({
 				me.frm.savetrash();}, true);
 		}
 
-		if(in_list(user_roles, "System Manager")) {
+		if(in_list(roles, "System Manager")) {
 			this.page.add_menu_item(__("Customize"), function() {
 				frappe.set_route("Form", "Customize Form", {
 					doc_type: me.frm.doctype
@@ -170,13 +173,13 @@ frappe.ui.form.Toolbar = Class.extend({
 				}, true);
 			}
 		}
-		
+
 		// feedback
 		if(!this.frm.doc.__unsaved) {
 			if(is_submittable && docstatus != 1)
 				return
 
-			this.page.add_menu_item(__("Ask a Feedback"), function() {
+			this.page.add_menu_item(__("Request Feedback"), function() {
 				feedback = new frappe.utils.Feedback();
 				feedback.manual_feedback_request(me.frm.doc);
 			}, true)
@@ -244,6 +247,7 @@ frappe.ui.form.Toolbar = Class.extend({
 			}
 		} else {
 			this.page.clear_actions();
+			this.current_status = null
 		}
 	},
 	get_action_status: function() {

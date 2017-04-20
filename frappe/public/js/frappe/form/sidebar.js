@@ -118,17 +118,17 @@ frappe.ui.form.Sidebar = Class.extend({
 	},
 	add_user_action: function(label, click) {
 		return $('<a>').html(label).appendTo($('<li class="user-action-row">')
-			.appendTo(this.user_actions.removeClass("hide"))).on("click", click);
+			.appendTo(this.user_actions.removeClass("hidden"))).on("click", click);
 	},
 	clear_user_actions: function() {
-		this.user_actions.addClass("hide")
+		this.user_actions.addClass("hidden")
 		this.user_actions.find(".user-action-row").remove();
 	},
 
 	make_like: function() {
 		this.like_wrapper = this.sidebar.find(".liked-by");
 		this.like_icon = this.sidebar.find(".liked-by .octicon-heart");
-		this.like_count = this.sidebar.find(".liked-by .like-count");
+		this.like_count = this.sidebar.find(".liked-by .likes-count");
 		frappe.ui.setup_like_popover(this.sidebar.find(".liked-by-parent"), ".liked-by");
 	},
 
@@ -152,7 +152,6 @@ frappe.ui.form.Sidebar = Class.extend({
 
 	setup_ratings: function() {
 		_ratings = this.frm.get_docinfo().rating || 0;
-
 
 		if(_ratings) {
 			this.ratings.removeClass("hide");

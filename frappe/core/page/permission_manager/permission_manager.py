@@ -29,9 +29,9 @@ def get_permissions(doctype=None, role=None):
 		if doctype:
 			out = [p for p in out if p.parent == doctype]
 	else:
-		out = frappe.get_all('Custom DocPerm', fields='*', filters=dict(parent = doctype))
+		out = frappe.get_all('Custom DocPerm', fields='*', filters=dict(parent = doctype), order_by="permlevel")
 		if not out:
-			out = frappe.get_all('DocPerm', fields='*', filters=dict(parent = doctype))
+			out = frappe.get_all('DocPerm', fields='*', filters=dict(parent = doctype), order_by="permlevel")
 
 	linked_doctypes = {}
 	for d in out:
@@ -102,20 +102,20 @@ def reset(doctype):
 def clear_doctype_cache(doctype):
 	frappe.clear_cache(doctype=doctype)
 	delete_notification_count_for(doctype)
-	for user in frappe.db.sql_list("""select distinct tabUserRole.parent from tabUserRole,
+	for user in frappe.db.sql_list("""select distinct `tabHas Role`.parent from `tabHas Role`,
 		tabDocPerm
 			where tabDocPerm.parent = %s
-			and tabDocPerm.role = tabUserRole.role""", doctype):
+			and tabDocPerm.role = `tabHas Role`.role""", doctype):
 		frappe.clear_cache(user=user)
 
 @frappe.whitelist()
 def get_users_with_role(role):
 	frappe.only_for("System Manager")
 	return [p[0] for p in frappe.db.sql("""select distinct tabUser.name
-		from tabUserRole, tabUser where
-			tabUserRole.role=%s
+		from `tabHas Role`, tabUser where
+			`tabHas Role`.role=%s
 			and tabUser.name != "Administrator"
-			and tabUserRole.parent = tabUser.name
+			and `tabHas Role`.parent = tabUser.name
 			and tabUser.enabled=1""", role)]
 
 @frappe.whitelist()

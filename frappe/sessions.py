@@ -18,6 +18,7 @@ import frappe.translate
 from frappe.utils.change_log import get_change_log
 import redis
 from urllib import unquote
+from frappe.desk.notifications import clear_notifications
 
 @frappe.whitelist()
 def clear(user=None):
@@ -30,7 +31,7 @@ def clear(user=None):
 def clear_cache(user=None):
 	cache = frappe.cache()
 
-	groups = ("bootinfo", "user_recent", "user_roles", "user_doc", "lang",
+	groups = ("bootinfo", "user_recent", "roles", "user_doc", "lang",
 		"defaults", "user_permissions", "roles", "home_page", "linked_with",
 		"desktop_icons", 'portal_menu_items')
 
@@ -41,9 +42,11 @@ def clear_cache(user=None):
 		frappe.defaults.clear_cache(user)
 	else:
 		for name in groups:
-			cache.delete_key(name, user)
+			cache.delete_key(name)
 		clear_global_cache()
 		frappe.defaults.clear_cache()
+
+	clear_notifications(user)
 
 def clear_global_cache():
 	frappe.model.meta.clear_cache()
@@ -283,6 +286,7 @@ class Session:
 		"""get session record, or return the standard Guest Record"""
 		from frappe.auth import clear_cookies
 		r = self.get_session_data()
+
 		if not r:
 			frappe.response["session_expired"] = 1
 			clear_cookies()

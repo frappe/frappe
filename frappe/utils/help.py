@@ -82,8 +82,8 @@ class HelpDatabase(object):
 	def search(self, words):
 		self.connect()
 		return self.db.sql('''
-			select title, intro, path from help where title like '%{term}%' union
-			select title, intro, path from help where match(content) against ('{term}') limit 10'''.format(term=words))
+			select title, intro, path from help where title like %s union
+			select title, intro, path from help where match(content) against (%s) limit 10''', ('%'+words+'%', words))
 
 	def get_content(self, path):
 		self.connect()
@@ -102,7 +102,9 @@ class HelpDatabase(object):
 	def sync_pages(self):
 		self.db.sql('truncate help')
 		doc_contents = '<ol>'
-		for app in os.listdir('../apps'):
+		apps = os.listdir('../apps') if self.global_help_setup else frappe.get_installed_apps()
+
+		for app in apps:
 			docs_folder = '../apps/{app}/{app}/docs/user'.format(app=app)
 			self.out_base_path = '../apps/{app}/{app}/docs'.format(app=app)
 			if os.path.exists(docs_folder):

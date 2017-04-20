@@ -40,33 +40,33 @@ Now you will see Frappe icon on the login page. Click on this icon to login with
 ### Part 1 : on Frappe Identity Provider (IDP)
 
 Login to IDP
-<img img class="screenshot" src="/assets/img/00-login-to-idp.png">
+<img class="screenshot" src="{{docs_base_url}}/assets/img/00-login-to-idp.png">
 
 Add OAuth Client on IDP
-<img img class="screenshot" src="/assets/img/01-add-oauth-client-on-idp.png">
+<img class="screenshot" src="{{docs_base_url}}/assets/img/01-add-oauth-client-on-idp.png">
 
 Set Server URL on IDP
-<img img class="screenshot" src="/assets/img/02-set-server-url-on-idp.png">
+<img class="screenshot" src="{{docs_base_url}}/assets/img/02-set-server-url-on-idp.png">
 
 ### Part 2 : on Frappe App Server
 
 Set `Frappe Client ID`  and `Frappe Client Secret` on App server (refer the client set on IDP)
-<img img class="screenshot" src="/assets/img/03-set-clientid-client-secret-server-on-app-server.png">
+<img class="screenshot" src="{{docs_base_url}}/assets/img/03-set-clientid-client-secret-server-on-app-server.png">
 
 **Note**: Frappe Server URL is the main server where identities from your organization are stored.
 
 Login Screen on App Server (login with frappe)
-<img img class="screenshot" src="/assets/img/04-login-screen-on-app-server.png">
+<img class="screenshot" src="{{docs_base_url}}/assets/img/04-login-screen-on-app-server.png">
 
 ### Part 3 : Redirected on IDP 
 
 login with user on IDP
-<img img class="screenshot" src="/assets/img/05-login-with-user-on-idp.png">
+<img class="screenshot" src="{{docs_base_url}}/assets/img/05-login-with-user-on-idp.png">
 
 Confirm Access on IDP
-<img img class="screenshot" src="/assets/img/06-confirm-grant-access-on-idp.png">
+<img class="screenshot" src="{{docs_base_url}}/assets/img/06-confirm-grant-access-on-idp.png">
 
 ### Part 4 : Back on App Server
 
 Logged in on app server with ID from IDP
-<img img class="screenshot" src="/assets/img/07-logged-in-as-website-user-with-id-from-idp.png">
+<img class="screenshot" src="{{docs_base_url}}/assets/img/07-logged-in-as-website-user-with-id-from-idp.png">

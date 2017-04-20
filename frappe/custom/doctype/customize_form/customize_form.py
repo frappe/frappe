@@ -27,7 +27,8 @@ doctype_properties = {
 	'quick_entry': 'Check',
 	'editable_grid': 'Check',
 	'max_attachments': 'Int',
-	'image_view': 'Check'
+	'image_view': 'Check',
+	'track_changes': 'Check',
 }
 
 docfield_properties = {
@@ -43,6 +44,8 @@ docfield_properties = {
 	'ignore_user_permissions': 'Check',
 	'in_list_view': 'Check',
 	'in_standard_filter': 'Check',
+	'in_global_search': 'Check',
+	'bold': 'Check',
 	'hidden': 'Check',
 	'collapsible': 'Check',
 	'collapsible_depends_on': 'Data',
@@ -61,7 +64,7 @@ docfield_properties = {
 }
 
 allowed_fieldtype_change = (('Currency', 'Float', 'Percent'), ('Small Text', 'Data'),
-	('Text', 'Data'), ('Text', 'Text Editor', 'Code'), ('Data', 'Select'),
+	('Text', 'Data'), ('Text', 'Text Editor', 'Code', 'Signature'), ('Data', 'Select'),
 	('Text', 'Small Text'))
 
 class CustomizeForm(Document):
@@ -175,7 +178,7 @@ class CustomizeForm(Document):
 							.format(df.idx))
 						continue
 					elif property == "in_list_view" and df.get(property) \
-						and df.fieldtype!="Image" and df.fieldtype in no_value_fields:
+						and df.fieldtype!="Attach Image" and df.fieldtype in no_value_fields:
 								frappe.msgprint(_("'In List View' not allowed for type {0} in row {1}")
 									.format(df.fieldtype, df.idx))
 								continue
@@ -310,6 +313,7 @@ class CustomizeForm(Document):
 		for allowed_changes in allowed_fieldtype_change:
 			if (old_value in allowed_changes and new_value in allowed_changes):
 				allowed = True
+				break
 		if not allowed:
 			frappe.throw(_("Fieldtype cannot be changed from {0} to {1} in row {2}").format(old_value, new_value, df.idx))
 

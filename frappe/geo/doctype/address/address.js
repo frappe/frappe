@@ -13,6 +13,15 @@ frappe.ui.form.on("Address", {
 				});
 			}
 		}
+		frm.set_query('link_doctype', "links", function() {
+			return {
+				query: "frappe.geo.address_and_contact.filter_dynamic_link_doctypes",
+				filters: {
+					fieldtype: "HTML",
+					fieldname: "address_html",
+				}
+			}
+		});
 	},
 	validate: function(frm) {
 		// clear linked customer / supplier / sales partner on saving...

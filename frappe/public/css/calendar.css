@@ -78,3 +78,45 @@ th.fc-day-header {
   margin: 5px 4px 0 !important;
   padding: 1px 5px !important;
 }
+.fc-bg-orange {
+  background-color: #FDD2C2 !important;
+  color: #A64F33 !important;
+}
+.fc-bg-orange.fc-start {
+  border-left: 3px solid #FDA688 !important;
+}
+.fc-bg-red {
+  background-color: #FEC3C5 !important;
+  color: #A63336 !important;
+}
+.fc-bg-red.fc-start {
+  border-left: 3px solid #FD8B8B !important;
+}
+.fc-bg-skyblue {
+  background-color: #D4F1FF !important;
+  color: #548DA8 !important;
+}
+.fc-bg-skyblue.fc-start {
+  border-left: 3px solid #AAE3FE !important;
+}
+.fc-bg-green {
+  background-color: #EBF7CF !important;
+  color: #7C9142 !important;
+}
+.fc-bg-green.fc-start {
+  border-left: 3px solid #D9F29E !important;
+}
+.fc-bg-blue {
+  background-color: #D1D3FC !important;
+  color: #4C51A2 !important;
+}
+.fc-bg-blue.fc-start {
+  border-left: 3px solid #A3A5FC !important;
+}
+.fc-bg-yellow {
+  background-color: #FEF9CF !important;
+  color: #A99E4C !important;
+}
+.fc-bg-yellow.fc-start {
+  border-left: 3px solid #FFF5A0 !important;
+}

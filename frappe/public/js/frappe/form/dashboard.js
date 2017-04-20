@@ -146,6 +146,16 @@ frappe.ui.form.Dashboard = Class.extend({
 		}
 	},
 
+	after_refresh: function() {
+		var me = this;
+		// show / hide new buttons (if allowed)
+		this.links_area.find('.btn-new').each(function() {
+			if(me.frm.can_create($(this).attr('data-doctype'))) {
+				$(this).removeClass('hidden');
+			}
+		});
+	},
+
 	init_data: function() {
 		this.data = this.frm.meta.__dashboard || {};
 		if(!this.data.transactions) this.data.transactions = [];
@@ -177,12 +187,16 @@ frappe.ui.form.Dashboard = Class.extend({
 	render_links: function() {
 		var me = this;
 		this.links_area.removeClass('hidden');
+		this.links_area.find('.btn-new').addClass('hidden');
 		if(this.data_rendered) {
 			return;
 		}
 
-		$(frappe.render_template('form_links',
-			{transactions: this.data.transactions}))
+		//this.transactions_area.empty();
+
+		this.data.frm = this.frm;
+
+		$(frappe.render_template('form_links', this.data))
 			.appendTo(this.transactions_area)
 
 		// bind links
@@ -193,6 +207,11 @@ frappe.ui.form.Dashboard = Class.extend({
 		// bind open notifications
 		this.transactions_area.find('.open-notification').on('click', function() {
 			me.open_document_list($(this).parent(), true);
+		});
+
+		// bind new
+		this.transactions_area.find('.btn-new').on('click', function() {
+			me.frm.make_new($(this).attr('data-doctype'));
 		});
 
 		this.data_rendered = true;

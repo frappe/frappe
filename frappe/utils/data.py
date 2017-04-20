@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 # IMPORTANT: only import safe functions as this module will be included in jinja environment
 import frappe
 import operator
-import re, urllib, datetime, math
+import re, urllib, datetime, math, time
 import babel.dates
 from babel.core import UnknownLocaleError
 from dateutil import parser
@@ -115,6 +115,9 @@ def time_diff_in_hours(string_ed_date, string_st_date):
 def now_datetime():
 	dt = convert_utc_to_user_timezone(datetime.datetime.utcnow())
 	return dt.replace(tzinfo=None)
+
+def get_timestamp(date):
+	return time.mktime(getdate(date).timetuple())
 
 def get_eta(from_time, percent_complete):
 	diff = time_diff(now_datetime(), from_time).total_seconds()
@@ -345,12 +348,9 @@ def fmt_money(amount, precision=None, currency=None):
 	"""
 	Convert to string with commas for thousands, millions etc
 	"""
-	number_format = None
-	if currency:
-		number_format = frappe.db.get_value("Currency", currency, "number_format", cache=True)
-
-	if not number_format:
-		number_format = frappe.db.get_default("number_format") or "#,###.##"
+	number_format = frappe.db.get_default("number_format") or "#,###.##"
+	if precision is None:
+		precision = cint(frappe.db.get_default('currency_precision')) or None
 
 	decimal_str, comma_str, number_format_precision = get_number_format_info(number_format)
 
@@ -711,8 +711,8 @@ def get_filter(doctype, f):
 		# if operator is missing
 		f.operator = "="
 
-	valid_operators = ("=", "!=", ">", "<", ">=", "<=", "like", "not like", "in", "not in", "Between")
-	if f.operator not in valid_operators:
+	valid_operators = ("=", "!=", ">", "<", ">=", "<=", "like", "not like", "in", "not in", "between")
+	if f.operator.lower() not in valid_operators:
 		frappe.throw("Operator must be one of {0}".format(", ".join(valid_operators)))
 
 

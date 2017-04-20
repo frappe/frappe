@@ -10,6 +10,8 @@ from frappe.utils import cint
 from frappe.model.document import Document
 from frappe.modules.export_file import export_to_files
 from frappe.modules import make_boilerplate
+from frappe.core.doctype.page.page import delete_custom_role
+from frappe.core.doctype.custom_role.custom_role import get_custom_allowed_roles
 
 class Report(Document):
 	def validate(self):
@@ -35,8 +37,38 @@ class Report(Document):
 		if self.report_type == "Report Builder":
 			self.update_report_json()
 
+		self.set_doctype_roles()
+
 	def on_update(self):
 		self.export_doc()
+
+	def on_trash(self):
+		delete_custom_role('report', self.name)
+
+	def set_doctype_roles(self):
+		if self.get('roles'): return
+
+		doc = frappe.get_meta(self.ref_doctype)
+		roles = [{'role': d.role} for d in doc.permissions if d.permlevel==0]
+		self.set('roles', roles)
+
+	def is_permitted(self):
+		"""Returns true if Has Role is not set or the user is allowed."""
+		from frappe.utils import has_common
+
+		allowed = [d.role for d in frappe.get_all("Has Role", fields=["role"],
+			filters={"parent": self.name})]
+
+		custom_roles = get_custom_allowed_roles('report', self.name)
+		allowed.extend(custom_roles)
+
+		if not allowed:
+			return True
+
+		roles = frappe.get_roles()
+
+		if has_common(roles, allowed):
+			return True
 
 	def update_report_json(self):
 		if self.json:

@@ -10,6 +10,13 @@ frappe.start_app = function() {
 }
 
 $(document).ready(function() {
+	if(!frappe.utils.supportsES6) {
+		frappe.msgprint({
+			indicator: 'red',
+			title: __('Browser not supported'),
+			message: __('Some of the features might not work in your browser. Please update your browser to the latest version.')
+		});
+	}
 	frappe.start_app();
 });
 
@@ -27,6 +34,7 @@ frappe.Application = Class.extend({
 		this.load_bootinfo();
 		this.make_nav_bar();
 		this.set_favicon();
+		this.setup_analytics();
 		frappe.ui.keys.setup();
 		this.set_rtl();
 
@@ -60,9 +68,6 @@ frappe.Application = Class.extend({
 		} else {
 			this.show_notes();
 		}
-
-		// ask to allow notifications
-		frappe.utils.if_notify_permitted();
 
 		// listen to csrf_update
 		frappe.realtime.on("csrf_generated", function(data) {
@@ -135,9 +140,9 @@ frappe.Application = Class.extend({
 				var s = new frappe.ui.Dialog({
 						title: __("Checking one moment"),
 					fields: [{
-                    "fieldtype": "HTML",
-                    "fieldname": "checking"
-                }]
+					"fieldtype": "HTML",
+					"fieldname": "checking"
+				}]
 					});
 				s.fields_dict.checking.$wrapper.html('<i class="fa fa-spinner fa-spin fa-4x"></i>')
 				s.show();
@@ -259,7 +264,7 @@ frappe.Application = Class.extend({
 		user = frappe.boot.user.name;
 		user_fullname = frappe.user_info(user).fullname;
 		user_defaults = frappe.boot.user.defaults;
-		user_roles = frappe.boot.user.roles;
+		roles = frappe.boot.user.roles;
 		user_email = frappe.boot.user.email;
 		sys_defaults = frappe.boot.sysdefaults;
 		frappe.ui.py_date_format = frappe.boot.sysdefaults.date_format.replace('dd', '%d').replace('mm', '%m').replace('yyyy', '%Y');
@@ -287,7 +292,7 @@ frappe.Application = Class.extend({
 		user = 'Guest';
 		user_fullname = 'Guest';
 		user_defaults = {};
-		user_roles = ['Guest'];
+		roles = ['Guest'];
 		user_email = '';
 		sys_defaults = {};
 	},
@@ -313,12 +318,60 @@ frappe.Application = Class.extend({
 			method:'logout',
 			callback: function(r) {
 				if(r.exc) {
-					console.log(r.exc);
 					return;
 				}
 				me.redirect_to_login();
 			}
 		})
+	},
+	handle_session_expired: function() {
+		if(!frappe.app.session_expired_dialog) {
+			var dialog = new frappe.ui.Dialog({
+				title: __('Session Expired'),
+				fields: [
+					{ fieldtype:'Password', fieldname:'password',
+						label: __('Please Enter Your Password to Continue') },
+				],
+				onhide: () => {
+					if (!dialog.logged_in) {
+						frappe.app.redirect_to_login();
+					}
+				}
+			});
+			dialog.set_primary_action(__('Login'), () => {
+				frappe.call({
+					method: 'login',
+					args: {
+						usr: frappe.session.user,
+						pwd: dialog.get_values().password
+					},
+					callback: (r) => {
+						if (r.message==='Logged In') {
+							dialog.logged_in = true;
+
+							// revert backdrop
+							$('.modal-backdrop').css({
+								'opacity': '',
+								'background-color': '#334143'
+							});
+						}
+						dialog.hide();
+					},
+					statusCode: () => {
+						dialog.hide();
+					}
+				});
+			});
+			frappe.app.session_expired_dialog = dialog;
+		}
+		if(!frappe.app.session_expired_dialog.display) {
+			frappe.app.session_expired_dialog.show();
+			// add backdrop
+			$('.modal-backdrop').css({
+				'opacity': 1,
+				'background-color': '#EBEFF2'
+			});
+		}
 	},
 	redirect_to_login: function() {
 		window.location.href = '/';
@@ -330,7 +383,7 @@ frappe.Application = Class.extend({
 	},
 
 	trigger_primary_action: function() {
-		if(cur_dialog) {
+		if(cur_dialog && cur_dialog.display) {
 			// trigger primary
 			cur_dialog.get_primary_btn().trigger("click");
 		} else if(cur_frm && cur_frm.page.btn_primary.is(':visible')) {
@@ -365,21 +418,38 @@ frappe.Application = Class.extend({
 		};
 	},
 
+	setup_analytics: function() {
+		if(window.mixpanel) {
+			window.mixpanel.identify(frappe.session.user);
+			window.mixpanel.people.set({
+				"$first_name": frappe.boot.user.first_name,
+				"$last_name": frappe.boot.user.last_name,
+				"$created": frappe.boot.user.creation,
+				"$email": frappe.session.user
+			});
+		}
+	},
+
 	show_notes: function() {
 		var me = this;
 		if(frappe.boot.notes.length) {
 			frappe.boot.notes.forEach(function(note) {
-				if(!note.seen) {
+				if(!note.seen || note.notify_on_every_login) {
 					var d = frappe.msgprint({message:note.content, title:note.title});
 					d.keep_open = true;
 					d.custom_onhide = function() {
 						note.seen = true;
-						frappe.call({
-							method: "frappe.desk.doctype.note.note.mark_as_seen",
-							args: {
-								note: note.name
-							}
-						});
+
+						// Mark note as read if the Notify On Every Login flag is not set
+						if (!note.notify_on_every_login) {
+							frappe.call({
+								method: "frappe.desk.doctype.note.note.mark_as_seen",
+								args: {
+									note: note.name
+								}
+							});
+						}
+
 						// next note
 						me.show_notes();
 
@@ -434,6 +504,10 @@ frappe.get_module = function(m, default_module) {
 
 frappe.get_desktop_icons = function(show_hidden, show_global) {
 	// filter valid icons
+
+	// hidden == hidden from desktop
+	// blocked == no view from modules either
+
 	var out = [];
 
 	var add_to_out = function(module) {
@@ -442,13 +516,14 @@ frappe.get_desktop_icons = function(show_hidden, show_global) {
 		out.push(module);
 	}
 
-	var show_module = function(module) {
+	var show_module = function(m) {
 		var out = true;
 		if(m.type==="page") {
 			out = m.link in frappe.boot.page_info;
 		}
 		else if(m._doctype) {
-			out = frappe.model.can_read(m._doctype);
+			//out = frappe.model.can_read(m._doctype);
+			out = frappe.boot.user.can_read.includes(m._doctype);
 		} else {
 			if(m.module_name==='Learn') {
 				// no permissions necessary for learn
@@ -459,7 +534,7 @@ frappe.get_desktop_icons = function(show_hidden, show_global) {
 				out = frappe.boot.user.allow_modules.indexOf(m.module_name) !== -1
 			}
 		}
-		if(m.hidden&& !show_hidden) {
+		if(m.hidden && !show_hidden) {
 			out = false;
 		}
 		if(m.blocked && !show_global) {
@@ -476,12 +551,12 @@ frappe.get_desktop_icons = function(show_hidden, show_global) {
 		}
 	}
 
-	if(user_roles.indexOf('System Manager')!=-1) {
+	if(roles.indexOf('System Manager')!=-1) {
 		var m = frappe.get_module('Setup');
 		if(show_module(m)) add_to_out(m)
 	}
 
-	if(user_roles.indexOf('Administrator')!=-1) {
+	if(roles.indexOf('Administrator')!=-1) {
 		var m = frappe.get_module('Core');
 		if(show_module(m)) add_to_out(m)
 	}

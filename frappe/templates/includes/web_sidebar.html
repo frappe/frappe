@@ -24,7 +24,7 @@
 			<li class="sidebar-item">
 				<a href="{{ item.route }}" class="text-muted {{ 'active' if pathname==item.route else '' }}"
 				{% if item.target %}target="{{ item.target }}"{% endif %}>
-				{{ _(item.title) }}
+				{{ _(item.title or item.label) }}
 				</a>
 			</li>
 			{%- endfor %}

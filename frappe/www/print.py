@@ -148,9 +148,9 @@ def get_html(doc, name=None, print_format=None, meta=None,
 		"footer": letter_head.footer,
 		"print_settings": frappe.get_doc("Print Settings")
 	}
-
+	
 	html = template.render(args, filters={"len": len})
-
+	
 	if cint(trigger_print):
 		html += trigger_print_script
 
@@ -433,6 +433,15 @@ def column_has_value(data, fieldname):
 
 trigger_print_script = """
 <script>
+//allow wrapping of long tr
+var elements = document.getElementsByTagName("tr");
+var i = elements.length;
+while (i--) {
+	if(elements[i].clientHeight>300){
+		elements[i].setAttribute("style", "page-break-inside: auto;");
+	}
+}
+
 window.print();
 
 // close the window after print

@@ -25,9 +25,10 @@ def enqueue(method, queue='default', timeout=300, event=None,
 		:param event: this is passed to enable clearing of jobs from queues
 		:param async: if async=False, the method is executed immediately, else via a worker
 		:param job_name: can be used to name an enqueue call, which can be used to prevent duplicate calls
+		:param now: if now=True, the method is executed via frappe.call
 		:param kwargs: keyword arguments to be passed to the method
 	'''
-	if now:
+	if now or frappe.flags.in_migrate:
 		return frappe.call(method, **kwargs)
 
 	q = get_queue(queue, async=async)

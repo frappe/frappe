@@ -27,7 +27,7 @@ class TestUser(unittest.TestCase):
 		self.assertEquals(new_user.user_type, 'System User')
 
 		# clear role
-		new_user.user_roles = []
+		new_user.roles = []
 		new_user.save()
 		self.assertEquals(new_user.user_type, 'Website User')
 
@@ -42,7 +42,7 @@ class TestUser(unittest.TestCase):
 	def test_delete(self):
 		frappe.get_doc("User", "test@example.com").add_roles("_Test Role 2")
 		self.assertRaises(frappe.LinkExistsError, delete_doc, "Role", "_Test Role 2")
-		frappe.db.sql("""delete from tabUserRole where role='_Test Role 2'""")
+		frappe.db.sql("""delete from `tabHas Role` where role='_Test Role 2'""")
 		delete_doc("Role","_Test Role 2")
 
 		if frappe.db.exists("User", "_test@example.com"):
@@ -86,7 +86,7 @@ class TestUser(unittest.TestCase):
 
 	def test_high_permlevel_validations(self):
 		user = frappe.get_meta("User")
-		self.assertTrue("user_roles" in [d.fieldname for d in user.get_high_permlevel_fields()])
+		self.assertTrue("roles" in [d.fieldname for d in user.get_high_permlevel_fields()])
 
 		me = frappe.get_doc("User", "testperm@example.com")
 		me.remove_roles("System Manager")
@@ -101,7 +101,7 @@ class TestUser(unittest.TestCase):
 		me = frappe.get_doc("User", "testperm@example.com")
 		me.add_roles("System Manager")
 
-		self.assertTrue("System Manager" in [d.role for d in me.get("user_roles")])
+		self.assertTrue("System Manager" in [d.role for d in me.get("roles")])
 
 	def test_user_limit_for_site(self):
 		update_limits({'users': get_total_users()})
@@ -181,7 +181,7 @@ class TestUser(unittest.TestCase):
 		user.new_password = 'testpassword'
 		user.save()
 
-		update_limits({'expiry': add_to_date(today(), days=-1)})
+		update_limits({'expiry': add_to_date(today(), days=-1), 'support_email': 'support@example.com'})
 		frappe.local.conf = _dict(frappe.get_site_config())
 
 		frappe.db.commit()
@@ -194,10 +194,10 @@ class TestUser(unittest.TestCase):
 
 		clear_limit("expiry")
 		frappe.local.conf = _dict(frappe.get_site_config())
-	
+
 	def test_deactivate_additional_users(self):
 		update_limits({'users': get_total_users()+1})
-		
+
 		if not frappe.db.exists("User", "test_deactivate_additional_users@example.com"):
 			user = frappe.new_doc('User')
 			user.email = 'test_deactivate_additional_users@example.com'
@@ -207,10 +207,10 @@ class TestUser(unittest.TestCase):
 		#update limits
 		update_limits({"users": get_total_users()-1})
 		self.assertEqual(frappe.db.get_value("User", "test_deactivate_additional_users@example.com", "enabled"), 0)
-		
+
 		if frappe.db.exists("User", "test_deactivate_additional_users@example.com"):
 			frappe.delete_doc('User', 'test_deactivate_additional_users@example.com')
 
 		# Clear the user limit
 		clear_limit('users')
-		
+

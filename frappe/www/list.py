@@ -45,13 +45,21 @@ def get(doctype, txt=None, limit_start=0, limit=20, **kwargs):
 
 	_get_list = list_context.get_list or get_list
 
-	raw_result = _get_list(doctype=doctype, txt=txt, filters=filters,
-		limit_start=limit_start, limit_page_length=limit_page_length)
+	kwargs = dict(doctype=doctype, txt=txt, filters=filters,
+		limit_start=limit_start, limit_page_length=limit_page_length + 1,
+		order_by = list_context.order_by or 'modified desc')
+
+	# allow guest if flag is set
+	if not list_context.get_list and (list_context.allow_guest or meta.allow_guest_to_view):
+		kwargs['ignore_permissions'] = True
+
+	raw_result = _get_list(**kwargs)
 
 	if not raw_result: return {"result": []}
 
-	show_more = (_get_list(doctype=doctype, txt=txt, filters=filters,
-		limit_start=next_start, limit_page_length=1) and True or False)
+	show_more = len(raw_result) > limit_page_length
+	if show_more:
+		raw_result = raw_result[:-1]
 
 	if txt:
 		list_context.default_subtitle = _('Filtered by "{0}"').format(txt)
@@ -64,6 +72,7 @@ def get(doctype, txt=None, limit_start=0, limit=20, **kwargs):
 
 		if not list_context.get_list and not isinstance(new_context.doc, Document):
 			new_context.doc = frappe.get_doc(doc.doctype, doc.name)
+			new_context.update(new_context.doc.as_dict())
 
 		if not frappe.flags.in_test:
 			new_context["pathname"] = frappe.local.request.path.strip("/ ")
@@ -113,10 +122,16 @@ def get_list_context(context, doctype):
 	from frappe.modules import load_doctype_module
 	from frappe.website.doctype.web_form.web_form import get_web_form_list
 
-	list_context = frappe._dict()
+	list_context = context or frappe._dict()
 	module = load_doctype_module(doctype)
 	if hasattr(module, "get_list_context"):
-		list_context = frappe._dict(module.get_list_context(context) or {})
+		out = frappe._dict(module.get_list_context(list_context) or {})
+		if out:
+			list_context = out
+
+	# get path from '/templates/' folder of the doctype
+	if not list_context.row_template:
+		list_context.row_template = frappe.get_meta(doctype).get_row_template()
 
 	# is web form, show the default web form filters
 	# which is only the owner

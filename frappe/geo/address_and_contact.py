@@ -21,10 +21,11 @@ def load_address_and_contact(doc, key):
 	address_list = sorted(address_list,
 		lambda a, b:
 			(int(a.is_primary_address - b.is_primary_address)) or
-			(1 if a.modified - b.modified else 0))
+			(1 if a.modified - b.modified else 0), reverse=True)
 
 	doc.set_onload('addr_list', address_list)
 
+	contact_list = []
 	if doc.doctype != "Lead":
 		filters = [
 			["Dynamic Link", "link_doctype", "=", doc.doctype],
@@ -36,25 +37,9 @@ def load_address_and_contact(doc, key):
 		contact_list = sorted(contact_list,
 			lambda a, b:
 				(int(a.is_primary_contact - b.is_primary_contact)) or
-				(1 if a.modified - b.modified else 0))
+				(1 if a.modified - b.modified else 0), reverse=True)
 
-		doc.set_onload('contact_list', contact_list)
-
-def set_default_role(doc, method):
-	'''Set customer, supplier, student based on email'''
-	if frappe.flags.setting_role:
-		return
-	contact_name = frappe.get_value('Contact', dict(email_id=doc.email))
-	if contact_name:
-		contact = frappe.get_doc('Contact', contact_name)
-		for link in contact.links:
-			frappe.flags.setting_role = True
-			if link.link_doctype=='Customer':
-				doc.add_roles('Customer')
-			elif link.link_doctype=='Supplier':
-				doc.add_roles('Supplier')
-	elif frappe.get_value('Student', dict(student_email_id=doc.email)):
-		doc.add_roles('Student')
+	doc.set_onload('contact_list', contact_list)
 
 def has_permission(doc, ptype, user):
 	links = get_permitted_and_not_permitted_links(doc.doctype)
@@ -138,3 +123,28 @@ def delete_contact_and_address(doctype, docname):
 			doc = frappe.get_doc(parenttype, name)
 			if len(doc.links)==1:
 				doc.delete()
+
+def filter_dynamic_link_doctypes(doctype, txt, searchfield, start, page_len, filters):
+	if not txt: txt = ""
+
+	txt = txt.lower()
+	txt = "%%%s%%" % (txt)
+
+	filters.update({
+		"parent": ("like", txt)
+	})
+
+	doctypes = frappe.db.get_all("DocField", filters=filters, fields=["parent"],
+		order_by="parent asc", distinct=True, as_list=True)
+
+	filters.pop("parent")
+	filters.update({
+		"dt": ("not in", [d[0] for d in doctypes]),
+		"dt": ("like", txt),
+	})
+
+	_doctypes = frappe.db.get_all("Custom Field", filters=filters, fields=["dt"],
+		order_by="dt asc", as_list=True)
+
+	all_doctypes = doctypes + _doctypes
+	return sorted(all_doctypes, key=lambda item: item[0])

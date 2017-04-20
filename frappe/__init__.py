@@ -13,7 +13,7 @@ import os, sys, importlib, inspect, json
 from .exceptions import *
 from .utils.jinja import get_jenv, get_template, render_template
 
-__version__ = '7.2.15'
+__version__ = '8.0.19'
 __title__ = "Frappe Framework"
 
 local = Local()
@@ -42,13 +42,17 @@ def _(msg, lang=None):
 	"""Returns translated string in current lang, if exists."""
 	from frappe.translate import get_full_dict
 
+	if not hasattr(local, 'lang'):
+		local.lang = lang or 'en'
+
 	if not lang:
 		lang = local.lang
 
 	# msg should always be unicode
 	msg = as_unicode(msg).strip()
 
-	return get_full_dict(local.lang).get(msg) or msg
+	# return lang_full_dict according to lang passed parameter
+	return get_full_dict(lang).get(msg) or msg
 
 def as_unicode(text, encoding='utf-8'):
 	'''Convert to unicode if required'''
@@ -372,7 +376,7 @@ def sendmail(recipients=[], sender="", subject="No Subject", message="No Message
 		unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None,
 		attachments=None, content=None, doctype=None, name=None, reply_to=None,
 		cc=[], message_id=None, in_reply_to=None, send_after=None, expose_recipients=None,
-		send_priority=1, communication=None, retry=1, now=None, read_receipt=None):
+		send_priority=1, communication=None, retry=1, now=None, read_receipt=None, is_notification=False):
 	"""Send email using user's default **Email Account** or global default **Email Account**.
 
 
@@ -411,7 +415,7 @@ def sendmail(recipients=[], sender="", subject="No Subject", message="No Message
 		unsubscribe_method=unsubscribe_method, unsubscribe_params=unsubscribe_params, unsubscribe_message=unsubscribe_message,
 		attachments=attachments, reply_to=reply_to, cc=cc, message_id=message_id, in_reply_to=in_reply_to,
 		send_after=send_after, expose_recipients=expose_recipients, send_priority=send_priority,
-		communication=communication, now=now, read_receipt=read_receipt)
+		communication=communication, now=now, read_receipt=read_receipt, is_notification=is_notification)
 
 whitelisted = []
 guest_methods = []
@@ -658,10 +662,10 @@ def reload_doc(module, dt=None, dn=None, force=False, reset_permissions=False):
 	import frappe.modules
 	return frappe.modules.reload_doc(module, dt, dn, force=force, reset_permissions=reset_permissions)
 
-def rename_doc(doctype, old, new, debug=0, force=False, merge=False, ignore_permissions=False):
+def rename_doc(*args, **kwargs):
 	"""Rename a document. Calls `frappe.model.rename_doc.rename_doc`"""
 	from frappe.model.rename_doc import rename_doc
-	return rename_doc(doctype, old, new, force=force, merge=merge, ignore_permissions=ignore_permissions)
+	return rename_doc(*args, **kwargs)
 
 def get_module(modulename):
 	"""Returns a module object for given Python module name using `importlib.import_module`."""
@@ -1039,7 +1043,7 @@ def respond_as_web_page(title, html, success=None, http_status_code=None,
 
 	local.response['context'] = context
 
-def redirect_to_message(title, html, http_status_code=None, context=None):
+def redirect_to_message(title, html, http_status_code=None, context=None, indicator_color=None):
 	"""Redirects to /message?id=random
 	Similar to respond_as_web_page, but used to 'redirect' and show message pages like success, failure, etc. with a detailed message
 
@@ -1062,6 +1066,11 @@ def redirect_to_message(title, html, http_status_code=None, context=None):
 		'title': title,
 		'message': html
 	})
+
+	if indicator_color:
+		message['context'].update({
+			"indicator_color": indicator_color
+		})
 
 	cache().set_value("message_id:{0}".format(message_id), message, expires_in_sec=60)
 	location = '/message?id={0}'.format(message_id)
@@ -1312,3 +1321,14 @@ def get_desk_link(doctype, name):
 
 def bold(text):
 	return '<b>{0}</b>'.format(text)
+
+def safe_eval(code, eval_globals=None, eval_locals=None):
+	'''A safer `eval`'''
+	if '__' in code:
+		throw('Illegal rule {0}. Cannot use "__"'.format(bold(code)))
+
+	if not eval_globals:
+		eval_globals = {}
+	eval_globals['__builtins__'] = {}
+
+	return eval(code, eval_globals, eval_locals)

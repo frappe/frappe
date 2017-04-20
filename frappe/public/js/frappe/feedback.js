@@ -34,7 +34,6 @@ frappe.utils.Feedback = Class.extend({
 			method: "frappe.core.doctype.feedback_trigger.feedback_trigger.get_feedback_request_details",
 			'args': args,
 			callback: function(r) {
-				console.log(r)
 				if(r.message) {
 					me.make_feedback_request_dialog(r.message, is_resend)
 				}
@@ -92,10 +91,10 @@ frappe.utils.Feedback = Class.extend({
 			'args': args,
 			freeze: true,
 			callback: function(r) {
-				docname = args.reference_name;
-				recipients = args.details.recipients || ""
-				frappe.msgprint(__("Feedback Request for {0} is sent to {1}",
-					[docname, recipients]));
+				if(r.message) {
+					frappe.msgprint(__("Feedback Request for {0} is sent to {1}",
+						[args.reference_name, args.details.recipients]));
+				}
 			}
 		});
 	}

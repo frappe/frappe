@@ -59,6 +59,7 @@ def get_allowed_functions_for_jenv():
 	from frappe.website.utils import get_shade
 	from frappe.modules import scrub
 	import mimetypes
+	from html2text import html2text
 
 	datautils = {}
 	if frappe.db:
@@ -78,6 +79,8 @@ def get_allowed_functions_for_jenv():
 	if "_" in getattr(frappe.local, 'form_dict', {}):
 		del frappe.local.form_dict["_"]
 
+	user = getattr(frappe.local, "session", None) and frappe.local.session.user or "Guest"
+
 	out = {
 		# make available limited methods of frappe
 		"frappe": {
@@ -95,11 +98,14 @@ def get_allowed_functions_for_jenv():
 			"get_list": frappe.get_list,
 			"get_all": frappe.get_all,
 			"utils": datautils,
-			"user": getattr(frappe.local, "session", None) and frappe.local.session.user or "Guest",
+			"user": user,
 			"get_fullname": frappe.utils.get_fullname,
 			"get_gravatar": frappe.utils.get_gravatar_url,
 			"full_name": getattr(frappe.local, "session", None) and frappe.local.session.data.full_name or "Guest",
-			"render_template": frappe.render_template
+			"render_template": frappe.render_template,
+			'session': {
+				'user': user
+			},
 		},
 		"autodoc": {
 			"get_version": get_version,
@@ -110,6 +116,7 @@ def get_allowed_functions_for_jenv():
 		"get_shade": get_shade,
 		"scrub": scrub,
 		"guess_mimetype": mimetypes.guess_type,
+		'html2text': html2text,
 		"dev_server": 1 if os.environ.get('DEV_SERVER', False) else 0
 	}
 

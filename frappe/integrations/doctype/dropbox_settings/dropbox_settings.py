@@ -10,33 +10,16 @@ from frappe.utils.backups import new_backup
 from frappe.utils.background_jobs import enqueue
 from frappe.utils import (cint, split_emails, get_request_site_address, cstr,
 	get_files_path, get_backups_path, encode)
-from frappe.integration_broker.doctype.integration_service.integration_service import IntegrationService
+from frappe.model.document import Document
 
 ignore_list = [".DS_Store"]
 
-class DropboxSettings(IntegrationService):
-	scheduler_events = {
-		"daily_long": [
-			"frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backups_daily"
-		],
-		"weekly_long": [
-			"frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backups_weekly"
-		]
-	}
-
+class DropboxSettings(Document):
 	def onload(self):
 		if not self.app_access_key and frappe.conf.dropbox_access_key:
 			self.dropbox_setup_via_site_config = 1
 
 	def validate(self):
-		if not self.flags.ignore_mandatory:
-			self.validate_dropbox_credentails()
-
-	def on_update(self):
-		pass
-
-	def enable(self):
-		""" enable service """
 		if not self.flags.ignore_mandatory:
 			self.validate_dropbox_credentails()
 
@@ -62,46 +45,6 @@ class DropboxSettings(IntegrationService):
 		sess = session.DropboxSession(app_access_key, app_secret_key, "app_folder")
 
 		return sess
-
-@frappe.whitelist()
-def get_service_details():
-	return """
-	<div>
-		Steps to enable dropbox backup service:
-		<ol>
-			<li> Create a dropbox app then get App Key and App Secret,
-				<a href="https://www.dropbox.com/developers/apps" target="_blank">
-					https://www.dropbox.com/developers/apps
-				</a>
-			</li>
-			<br>
-			<li> Setup credentials on Dropbox Settings doctype.
-				Click on
-				<button class="btn btn-default btn-xs disabled"> Dropbox Settings </button>
-				top right corner
-			</li>
-			<br>
-			<li> After settings up App key and App Secret, generate access token
-				<button class="btn btn-default btn-xs disabled"> Allow Dropbox Access </button>
-			</li>
-			<br>
-			<li>
-				After saving settings,
-					<label>
-						<span class="input-area">
-							<input type="checkbox" class="input-with-feedback" checked disabled>
-						</span>
-						<span class="label-area small">Enable</span>
-					</label>
-				Dropbox Integration Service and Save a document.
-			</li>
-		</ol>
-		<p>
-			After enabling service, system will take backup of files and database on daily or weekly basis
-			as per set on Dropbox Settings page and upload it to your dropbox.
-		</p>
-	</div>
-	"""
 
 #get auth token
 @frappe.whitelist()
@@ -179,7 +122,7 @@ def take_backups_if(freq):
 def take_backup_to_dropbox():
 	did_not_upload, error_log = [], []
 	try:
-		if cint(frappe.db.get_value("Integration Service", "Dropbox", "enabled")):
+		if cint(frappe.db.get_value("Dropbox Settings", None, "enabled")):
 			did_not_upload, error_log = backup_to_dropbox()
 			if did_not_upload: raise Exception
 

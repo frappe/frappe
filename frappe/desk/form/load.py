@@ -7,7 +7,7 @@ import frappe.utils
 import frappe.share
 import frappe.defaults
 import frappe.desk.form.meta
-from frappe.model.utils.list_settings import get_list_settings
+from frappe.model.utils.user_settings import get_user_settings
 from frappe.permissions import get_doc_permissions
 from frappe import _
 
@@ -70,7 +70,7 @@ def getdoctype(doctype, with_parent=False, cached_timestamp=None):
 		docs = get_meta_bundle(doctype)
 
 	frappe.response['user_permissions'] = get_user_permissions(docs)
-	frappe.response['list_settings'] = get_list_settings(parent_dt or doctype)
+	frappe.response['user_settings'] = get_user_settings(parent_dt or doctype)
 
 	if cached_timestamp and docs[0].modified==cached_timestamp:
 		return "use_cache"
@@ -152,7 +152,7 @@ def get_communication_data(doctype, name, start=0, limit=20, after=None, fields=
 			timeline_doctype, timeline_name,
 			reference_doctype, reference_name,
 			link_doctype, link_name,
-			rating, feedback, "Communication" as doctype'''
+			rating, "Communication" as doctype'''
 
 	conditions = '''communication_type in ("Communication", "Comment", "Feedback")
 			and (
@@ -171,6 +171,9 @@ def get_communication_data(doctype, name, start=0, limit=20, after=None, fields=
 	if after:
 		# find after a particular date
 		conditions+= ' and creation > {0}'.format(after)
+
+	if doctype=='User':
+		conditions+= ' and not (reference_doctype="User" and communication_type="Communication")'
 
 	communications = frappe.db.sql("""select {fields}
 		from tabCommunication

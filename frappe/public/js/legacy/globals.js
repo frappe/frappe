@@ -27,7 +27,7 @@ var DOWN_ARROW = 40;
 var user=null;
 var user=null;
 var user_defaults=null;
-var user_roles=null;
+var roles=null;
 var user_fullname=null;
 var user_email=null;
 var user_img = {};
@@ -39,7 +39,7 @@ var user_img = {};
 var _f = {};
 var _p = {};
 var _r = {};
-var FILTER_SEP = '\1';
+// var FILTER_SEP = '\1';
 
 // API globals
 var frms={};

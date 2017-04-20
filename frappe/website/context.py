@@ -6,6 +6,7 @@ import frappe, os, json
 
 from frappe.website.doctype.website_settings.website_settings import get_website_settings
 from frappe.website.router import get_page_context
+from frappe.model.document import Document
 
 def get_context(path, args=None):
 	if args and args.source:
@@ -27,8 +28,6 @@ def get_context(path, args=None):
 	# set using frappe.respond_as_web_page
 	if hasattr(frappe.local, 'response') and frappe.local.response.get('context'):
 		context.update(frappe.local.response.context)
-
-	# print frappe.as_json(context)
 
 	return context
 
@@ -52,7 +51,8 @@ def update_controller_context(context, controller):
 			except frappe.PermissionError:
 				raise
 			except:
-				frappe.errprint(frappe.utils.get_traceback())
+				if not frappe.flags.in_migrate:
+					frappe.errprint(frappe.utils.get_traceback())
 
 		if hasattr(module, "get_children"):
 			context.children = module.get_children(context)
@@ -75,7 +75,11 @@ def build_context(context):
 	# provide doc
 	if context.doc:
 		context.update(context.doc.as_dict())
-		context.update(context.doc.website)
+		context.update(context.doc.get_website_properties())
+
+		if not context.template:
+			context.template = context.doc.meta.get_web_template()
+
 		if hasattr(context.doc, "get_context"):
 			ret = context.doc.get_context(context)
 
@@ -132,16 +136,21 @@ def add_sidebar_data(context):
 			roles = frappe.get_roles()
 			portal_settings = frappe.get_doc('Portal Settings', 'Portal Settings')
 
-			def add_items(sidebar_items, menu_field):
-				for d in portal_settings.get(menu_field):
-					if d.enabled and ((not d.role) or d.role in roles):
-						sidebar_items.append(d.as_dict())
+			def add_items(sidebar_items, items):
+				for d in items:
+					if d.get('enabled') and ((not d.get('role')) or d.get('role') in roles):
+						sidebar_items.append(d.as_dict() if isinstance(d, Document) else d)
 
 			if not portal_settings.hide_standard_menu:
-				add_items(sidebar_items, 'menu')
+				add_items(sidebar_items, portal_settings.get('menu'))
 
 			if portal_settings.custom_menu:
-				add_items(sidebar_items, 'custom_menu')
+				add_items(sidebar_items, portal_settings.get('custom_menu'))
+
+			items_via_hooks = frappe.get_hooks('portal_menu_items')
+			if items_via_hooks:
+				for i in items_via_hooks: i['enabled'] = 1
+				add_items(sidebar_items, items_via_hooks)
 
 			frappe.cache().hset('portal_menu_items', frappe.session.user, sidebar_items)
 

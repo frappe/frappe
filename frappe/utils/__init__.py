@@ -6,9 +6,8 @@
 from __future__ import unicode_literals
 from werkzeug.test import Client
 import os, re, urllib, sys, json, md5, requests, traceback
-import bleach, bleach_whitelist
-from html5lib.sanitizer import HTMLSanitizer
 from markdown2 import markdown as _markdown
+from .html_utils import sanitize_html
 
 import frappe
 from frappe.utils.identicon import Identicon
@@ -408,7 +407,7 @@ def get_sites(sites_path=None):
 	return sorted(sites)
 
 def get_request_session(max_retries=3):
-	from requests.packages.urllib3.util import Retry
+	from urllib3.util import Retry
 	session = requests.Session()
 	session.mount("http://", requests.adapters.HTTPAdapter(max_retries=Retry(total=5, status_forcelist=[500])))
 	session.mount("https://", requests.adapters.HTTPAdapter(max_retries=Retry(total=5, status_forcelist=[500])))
@@ -440,51 +439,6 @@ def watch(path, handler=None, debug=True):
 	except KeyboardInterrupt:
 		observer.stop()
 	observer.join()
-
-def sanitize_html(html, linkify=False):
-	"""
-	Sanitize HTML tags, attributes and style to prevent XSS attacks
-	Based on bleach clean, bleach whitelist and HTML5lib's Sanitizer defaults
-
-	Does not sanitize JSON, as it could lead to future problems
-	"""
-	if not isinstance(html, basestring):
-		return html
-
-	elif is_json(html):
-		return html
-
-	tags = (HTMLSanitizer.acceptable_elements + HTMLSanitizer.svg_elements
-		+ ["html", "head", "meta", "link", "body", "iframe", "style", "o:p"])
-	attributes = {"*": HTMLSanitizer.acceptable_attributes, "svg": HTMLSanitizer.svg_attributes}
-	styles = bleach_whitelist.all_styles
-	strip_comments = False
-
-	# retuns html with escaped tags, escaped orphan >, <, etc.
-	escaped_html = bleach.clean(html, tags=tags, attributes=attributes, styles=styles, strip_comments=strip_comments)
-
-	if linkify:
-		# based on bleach.clean
-		class s(bleach.BleachSanitizer):
-			allowed_elements = tags
-			allowed_attributes = attributes
-			allowed_css_properties = styles
-			strip_disallowed_elements = False
-			strip_html_comments = strip_comments
-
-		escaped_html = bleach.linkify(escaped_html, tokenizer=s)
-
-	return escaped_html
-
-def is_json(text):
-	try:
-		json.loads(text)
-
-	except ValueError:
-		return False
-
-	else:
-		return True
 
 def markdown(text, sanitize=True, linkify=True):
 	html = _markdown(text)

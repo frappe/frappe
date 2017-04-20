@@ -9,16 +9,13 @@ from frappe.utils import cstr
 from frappe.utils.file_manager import save_file, remove_file_by_url
 from frappe.website.utils import get_comment_list
 from frappe.custom.doctype.customize_form.customize_form import docfield_properties
-from frappe.integration_broker.doctype.integration_service.integration_service import get_integration_controller
 from frappe.utils.file_manager import get_max_file_size
 from frappe.modules.utils import export_module_json, get_doc_module
 from urllib import urlencode
+from frappe.integrations.utils import get_payment_gateway_controller
 
 class WebForm(WebsiteGenerator):
 	website = frappe._dict(
-		template = "templates/generators/web_form.html",
-		condition_field = "published",
-		page_title_field = "title",
 		no_cache = 1
 	)
 
@@ -159,7 +156,7 @@ def get_context(context):
 		context.parents = self.get_parents(context)
 
 		if self.breadcrumbs:
-			context.parents = eval(self.breadcrumbs)
+			context.parents = frappe.safe_eval(self.breadcrumbs, { "_": _ })
 
 		context.has_header = ((frappe.form_dict.name or frappe.form_dict.new)
 			and (frappe.session.user!="Guest" or not self.login_required))
@@ -224,7 +221,7 @@ def get_context(context):
 
 	def get_payment_gateway_url(self, doc):
 		if self.accept_payment:
-			controller = get_integration_controller(self.payment_gateway)
+			controller = get_payment_gateway_controller(self.payment_gateway)
 
 			title = "Payment for {0} {1}".format(doc.doctype, doc.name)
 			amount = self.amount
@@ -465,14 +462,15 @@ def check_webform_perm(doctype, name):
 		if doc.has_webform_permission():
 			return True
 
-def get_web_form_list(doctype, txt, filters, limit_start, limit_page_length=20):
+def get_web_form_list(doctype, txt, filters, limit_start, limit_page_length=20, order_by=None):
 	from frappe.www.list import get_list
 	if not filters:
 		filters = {}
 
 	filters["owner"] = frappe.session.user
 
-	return get_list(doctype, txt, filters, limit_start, limit_page_length, ignore_permissions=True)
+	return get_list(doctype, txt, filters, limit_start, limit_page_length, order_by=order_by,
+		ignore_permissions=True)
 
 def make_route_string(parameters):
 	route_string = ""

@@ -234,3 +234,87 @@ body[data-route=""] .navbar-set-desktop-icons,
 body[data-route="desktop"] .navbar-set-desktop-icons {
 	display: block;
 }
+
+.help-message-wrapper {
+	position: fixed;
+	bottom: 30px;
+	width: 100%;
+	padding: 0px 10px;
+
+	.help-message-container {
+		position: relative;
+		text-align: left;
+	    margin: auto;
+	    max-width: 500px;
+	    background-color: #fff;
+	    padding: 10px 15px 15px 15px;
+	    border-radius: 3px;
+		box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.15);
+	}
+
+	h5 {
+		margin-top: 5px;
+	}
+
+	.help-message-item {
+		font-size: 12px;
+	}
+
+	.octicon {
+		color: @text-muted;
+		cursor: pointer;
+		width: 20px;
+	}
+
+	.octicon.disabled {
+		color: @text-extra-muted;
+	}
+
+	.octicon:hover {
+		color: @text-color;
+		text-decoration: none;
+	}
+
+	.left-arrow {
+		position: absolute;
+		right: 30px;
+		bottom: 15px;
+		text-align: left;
+		// margin-top: 2px;
+	}
+	.right-arrow {
+		position: absolute;
+		right: 15px;
+		bottom: 15px;
+		text-align: right;
+		// margin-top: -18px;
+	}
+
+	.indicator {
+		color: @text-color;
+	}
+
+	.help-progress {
+		display: inline-block;
+		margin-left: 10px;
+		height: 4px;
+		background-color: @light-bg;
+	}
+	.help-progress {
+		display: inline-block;
+		margin-left: 10px;
+		height: 4px;
+		width: 100px;
+		background-color: @navbar-bg;
+		border-radius: 2px;
+	}
+	.help-progress-bar {
+		display: inline-block;
+		height: 4px;
+		background-color: @brand-primary;
+		float: left;
+		border-radius: 2px;
+	}
+
+}
+

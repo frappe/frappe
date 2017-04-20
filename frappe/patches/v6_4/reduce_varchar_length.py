@@ -4,6 +4,8 @@ import frappe
 def execute():
 	for doctype in frappe.get_all("DocType", filters={"issingle": 0}):
 		doctype = doctype.name
+		if not frappe.db.table_exists(doctype):
+			continue
 
 		for column in frappe.db.sql("desc `tab{doctype}`".format(doctype=doctype), as_dict=True):
 			fieldname = column["Field"]

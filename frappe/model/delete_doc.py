@@ -11,6 +11,7 @@ from frappe.utils.file_manager import remove_all
 from frappe.utils.password import delete_all_passwords_for
 from frappe import _
 from frappe.model.naming import revert_series_if_last
+from frappe.utils.global_search import delete_for_document 
 
 def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reload=False,
 	ignore_permissions=False, flags=None, ignore_on_trash=False):
@@ -70,6 +71,7 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 
 				if not ignore_on_trash:
 					doc.run_method("on_trash")
+					doc.flags.in_delete = True
 					doc.run_method('on_change')
 
 				frappe.enqueue('frappe.model.delete_doc.delete_dynamic_links', doctype=doc.doctype, name=doc.name,
@@ -86,6 +88,9 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 
 			# delete attachments
 			remove_all(doctype, name, from_delete=True)
+
+		# delete global search entry
+		delete_for_document(doc)
 
 		if doc and not for_reload:
 			add_to_deleted_document(doc)

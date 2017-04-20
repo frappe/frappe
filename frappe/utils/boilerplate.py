@@ -53,10 +53,12 @@ def make_boilerplate(dest, app_name):
 	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "templates",
 		"pages"), with_init=True)
 	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "templates",
-		"generators"), with_init=True)
-	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "templates",
 		"includes"))
 	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "config"), with_init=True)
+	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "public",
+		"css"))
+	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "public",
+		"js"))
 
 	with open(os.path.join(dest, hooks.app_name, hooks.app_name, "__init__.py"), "w") as f:
 		f.write(encode(init_template))

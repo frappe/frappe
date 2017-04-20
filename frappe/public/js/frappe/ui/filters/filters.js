@@ -5,7 +5,7 @@ frappe.ui.FilterList = Class.extend({
 	init: function(opts) {
 		$.extend(this, opts);
 		this.filters = [];
-		this.wrapper = this.$parent;
+		this.wrapper = this.parent;
 		this.stats = [];
 		this.make();
 		this.set_events();
@@ -13,6 +13,20 @@ frappe.ui.FilterList = Class.extend({
 	make: function() {
 		var me = this;
 
+		this.wrapper.find('.show_filters').remove();
+		this.wrapper.append(`
+			<div class="show_filters">
+				<div class="set-filters">
+					<button
+						class="btn btn-default btn-xs show-filters text-muted"
+						style="margin-right: 10px;">
+							${__("Show Filters")}
+					</button>
+					<button style="margin-left: -5px;"
+						class="btn btn-default btn-xs new-filter text-muted">
+						<i class="octicon octicon-plus"></i></button>
+				</div>
+			</div>`);
 		$(frappe.render_template("filter_dashboard", {})).appendTo(this.wrapper.find('.show_filters'));
 
 		//show filter dashboard
@@ -85,7 +99,7 @@ frappe.ui.FilterList = Class.extend({
 			args: {
 				stats: me.stats,
 				doctype: me.doctype,
-				filters:me.default_filters
+				filters: me.default_filters
 			},
 			callback: function(r) {
 				// This gives a predictable stats order
@@ -163,9 +177,9 @@ frappe.ui.FilterList = Class.extend({
 					var noduplicate = true
 				}
 				if (label=="No Data"){
-					me.listobj.set_filter(fieldname, '', false, noduplicate);
+					me.base_list.set_filter(fieldname, '', false, noduplicate);
 				}else{
-					me.listobj.set_filter(fieldname, label, false, noduplicate);
+					me.base_list.set_filter(fieldname, label, false, noduplicate);
 				}
 				return false;
 			})
@@ -205,9 +219,9 @@ frappe.ui.FilterList = Class.extend({
 						var noduplicate = true
 					}
 					if (item.label == "No Data") {
-						me.listobj.set_filter(item.value, '', false, noduplicate);
+						me.base_list.set_filter(item.value, '', false, noduplicate);
 					} else {
-						me.listobj.set_filter(item.value, item.label, false, noduplicate);
+						me.base_list.set_filter(item.value, item.label, false, noduplicate);
 					}
 				}
 			});
@@ -220,11 +234,11 @@ frappe.ui.FilterList = Class.extend({
 			me.add_filter();
 		});
 
-
-		this.wrapper.find('.clear-filter').bind('click', function() {
+		this.wrapper.find('.clear-filters').bind('click', function() {
 			me.clear_filters();
 			$('.date-range-picker').val('')
-			me.listobj.run();
+			me.base_list.run();
+			$(this).addClass("hide");
 		});
 
 		//set sort filters
@@ -241,25 +255,6 @@ frappe.ui.FilterList = Class.extend({
 			var date;
 			var date_wrapper = $('<div>').appendTo($(this));
 			make_date("range");
-
-			var check = frappe.ui.form.make_control({
-				parent: this,
-				df: {
-					fieldtype: "Check",
-					fieldname: "is_date_range",
-					label: __("Date Range"),
-					input_css: { "margin-top": "-2px" }
-				}
-			});
-			check.change = function() {
-				date.datepicker.clear();
-				date && date.wrapper.remove();
-				check.get_value() ?
-					make_date("range"):
-					make_date("single");
-			}
-			check.refresh();
-			check.set_input(1);
 
 			function make_date(mode) {
 				var fieldtype = mode==="range" ? "DateRange" : "Date";
@@ -283,11 +278,15 @@ frappe.ui.FilterList = Class.extend({
 					filt && filt.remove(true);
 					if(!dateObj.length && dateObj && date.datepicker.opts.range===false) {
 						me.add_filter(me.doctype, name, '=', moment(dateObj).format('YYYY-MM-DD'));
-						me.listobj.run();
+						me.base_list.run();
 					} else if(dateObj.length===2 && date.datepicker.opts.range===true) {
-						me.add_filter(me.doctype, name, 'Between',
-							[moment(dateObj[0]).format('YYYY-MM-DD'), moment(dateObj[1]).format('YYYY-MM-DD')]);
-						me.listobj.run();
+						var [date1, date2] = [moment(dateObj[0]).format('YYYY-MM-DD'), moment(dateObj[1]).format('YYYY-MM-DD')];
+						if(date1==date2) {
+							me.add_filter(me.doctype, name, '=', date1);
+						} else {
+							me.add_filter(me.doctype, name, 'Between', [date1, date2]);
+						}
+						me.base_list.run();
 					}
 				});
 			}
@@ -329,6 +328,10 @@ frappe.ui.FilterList = Class.extend({
 		}
 
 		var filter = this.push_new_filter(doctype, fieldname, condition, value);
+
+		if(this.wrapper.find('.clear-filters').hasClass("hide")) {
+			this.wrapper.find('.clear-filters').removeClass("hide");
+		}
 
 		if (filter && is_new_filter) {
 			filter.wrapper.addClass("is-new-filter");
@@ -391,6 +394,9 @@ frappe.ui.FilterList = Class.extend({
 			if(f.field) fl.push(f);
 		})
 		this.filters = fl;
+		if(this.filters.length === 0) {
+			this.wrapper.find('.clear-filters').addClass("hide");
+		}
 	},
 
 	get_filter: function(fieldname) {
@@ -437,7 +443,7 @@ frappe.ui.Filter = Class.extend({
 
 		this.wrapper.find(".set-filter-and-run").on("click", function() {
 			me.wrapper.removeClass("is-new-filter");
-			me.flist.listobj.run();
+			me.flist.base_list.run();
 		});
 
 		// add help for "in" codition
@@ -475,9 +481,8 @@ frappe.ui.Filter = Class.extend({
 		this.flist.update_filters();
 
 		if(!dont_run) {
-			this.flist.listobj.dirty = true;
-			this.flist.listobj.clean_dash = true;
-			this.flist.listobj.refresh();
+			this.flist.base_list.clean_dash = true;
+			this.flist.base_list.refresh(true);
 		}
 	},
 
@@ -552,7 +557,7 @@ frappe.ui.Filter = Class.extend({
 		// run on enter
 		$(me.field.wrapper).find(':input').keydown(function(ev) {
 			if(ev.which==13) {
-				me.flist.listobj.run();
+				me.flist.base_list.run();
 			}
 		})
 	},
@@ -824,7 +829,8 @@ frappe.ui.FieldSelect = Class.extend({
 		// main table
 		var main_table_fields = std_filters.concat(frappe.meta.docfield_list[me.doctype]);
 		$.each(frappe.utils.sort(main_table_fields, "label", "string"), function(i, df) {
-			if(frappe.perm.has_perm(me.doctype, df.permlevel, "read"))
+			// show fields where user has read access and if report hide flag is not set
+			if(frappe.perm.has_perm(me.doctype, df.permlevel, "read") && !df.report_hide)
 				me.add_field_option(df);
 		});
 
@@ -833,7 +839,8 @@ frappe.ui.FieldSelect = Class.extend({
 			if(table_df.options) {
 				var child_table_fields = [].concat(frappe.meta.docfield_list[table_df.options]);
 				$.each(frappe.utils.sort(child_table_fields, "label", "string"), function(i, df) {
-					if(frappe.perm.has_perm(me.doctype, df.permlevel, "read"))
+					// show fields where user has read access and if report hide flag is not set
+					if(frappe.perm.has_perm(me.doctype, df.permlevel, "read") && !df.report_hide)
 						me.add_field_option(df);
 				});
 			}

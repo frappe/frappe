@@ -11,7 +11,7 @@ frappe.ui.form.Timeline = Class.extend({
 	make: function() {
 		var me = this;
 		this.wrapper = $(frappe.render_template("timeline",
-			{})).appendTo(this.parent);
+			{doctype: this.frm.doctype})).appendTo(this.parent);
 
 		this.list = this.wrapper.find(".timeline-items");
 		this.input = this.wrapper.find(".form-control");
@@ -35,15 +35,7 @@ frappe.ui.form.Timeline = Class.extend({
 			}
 		});
 
-		this.email_button = this.wrapper.find(".btn-new-email")
-			.on("click", function() {
-				new frappe.views.CommunicationComposer({
-					doc: me.frm.doc,
-					txt: frappe.markdown(me.input.val()),
-					frm: me.frm,
-					recipients: me.get_recipient()
-				})
-			});
+		this.setup_email_button();
 
 		this.list.on("click", ".toggle-blockquote", function() {
 			$(this).parent().siblings("blockquote").toggleClass("hidden");
@@ -82,6 +74,33 @@ frappe.ui.form.Timeline = Class.extend({
 
 	},
 
+	setup_email_button: function() {
+		var me = this;
+		selector = this.frm.doctype === "Communication"? ".btn-reply-email": ".btn-new-email"
+		this.email_button = this.wrapper.find(selector)
+			.on("click", function() {
+				args = {
+					doc: me.frm.doc,
+					frm: me.frm,
+					recipients: me.get_recipient()
+				}
+
+				if(me.frm.doctype === "Communication") {
+					$.extend(args, {
+						txt: "",
+						last_email: me.frm.doc,
+						recipients: me.frm.doc.sender,
+						subject: __("Re: {0}", [me.frm.doc.subject]),
+					});
+				} else {
+					$.extend(args, {
+						txt: frappe.markdown(me.input.val())
+					});
+				}
+				new frappe.views.CommunicationComposer(args)
+			});
+	},
+
 	refresh: function(scroll_to_end) {
 		var me = this;
 
@@ -98,7 +117,7 @@ frappe.ui.form.Timeline = Class.extend({
 
 		$.each(communications.sort(function(a, b) { return a.creation > b.creation ? -1 : 1 }),
 			function(i, c) {
-				if(c.content || c.feedback) {
+				if(c.content) {
 					c.frm = me.frm;
 					me.render_timeline_item(c);
 				}
@@ -122,6 +141,7 @@ frappe.ui.form.Timeline = Class.extend({
 			communication_type: "Comment",
 			sender: this.frm.doc.owner,
 			communication_date: this.frm.doc.creation,
+			creation: this.frm.doc.creation,
 			frm: this.frm
 		});
 
@@ -135,7 +155,6 @@ frappe.ui.form.Timeline = Class.extend({
 	render_timeline_item: function(c) {
 		var me = this;
 		this.prepare_timeline_item(c);
-
 		var $timeline_item = $(frappe.render_template("timeline_item", {data:c, frm:this.frm}))
 			.appendTo(me.list)
 			.on("click", ".close", function() {
@@ -264,10 +283,10 @@ frappe.ui.form.Timeline = Class.extend({
 				c.original_content = c.content;
 				c.content = frappe.utils.toggle_blockquote(c.content);
 			} else if (c.communication_type==="Feedback") {
-				c.content = frappe.utils.strip_original_content(c.feedback);
+				c.content = frappe.utils.strip_original_content(c.content);
 
-				c.original_content = c.feedback;
-				c.content = frappe.utils.toggle_blockquote(c.feedback);
+				c.original_content = c.content;
+				c.content = frappe.utils.toggle_blockquote(c.content);
 			}
 
 			if(!frappe.utils.is_html(c.content)) {
@@ -401,8 +420,10 @@ frappe.ui.form.Timeline = Class.extend({
 							out.push(me.get_version_comment(version, __('cancelled this document')));
 						}
 					} else {
+						
 						var df = frappe.meta.get_docfield(me.frm.doctype, p[0], me.frm.docname);
-						if(!df.hidden) {
+
+						if(df && !df.hidden) {
 							var field_display_status = frappe.perm.get_field_display_status(df, null,
 								me.frm.perm);
 							if(field_display_status === 'Read' || field_display_status === 'Write') {
@@ -429,7 +450,7 @@ frappe.ui.form.Timeline = Class.extend({
 						var df = frappe.meta.get_docfield(me.frm.fields_dict[row[0]].grid.doctype,
 							p[0], me.frm.docname);
 
-						if(!df.hidden) {
+						if(df && !df.hidden) {
 							field_display_status = frappe.perm.get_field_display_status(df,
 								null, me.frm.perm);
 
@@ -459,7 +480,7 @@ frappe.ui.form.Timeline = Class.extend({
 				if(data[key] && data[key].length) {
 					parts = (data[key] || []).map(function(p) {
 						var df = frappe.meta.get_docfield(me.frm.doctype, p[0], me.frm.docname);
-						if(!df.hidden) {
+						if(df && !df.hidden) {
 							var field_display_status = frappe.perm.get_field_display_status(df, null,
 								me.frm.perm);
 

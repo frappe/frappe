@@ -109,6 +109,7 @@ def get_dict(fortype, name=None):
 			messages = get_messages_from_file(name)
 		elif fortype=="boot":
 			messages = get_messages_from_include_files()
+			messages += frappe.db.sql("select 'Print Format:', name from `tabPrint Format`")
 			messages += frappe.db.sql("select 'DocType:', name from tabDocType")
 			messages += frappe.db.sql("select 'Role:', name from tabRole")
 			messages += frappe.db.sql("select 'Module:', name from `tabModule Def`")
@@ -179,7 +180,7 @@ def get_full_dict(lang):
 		return {}
 
 	# found in local, return!
-	if getattr(frappe.local, 'lang_full_dict', None) is not None:
+	if getattr(frappe.local, 'lang_full_dict', None) and frappe.local.lang_full_dict.get(lang, None):
 		return frappe.local.lang_full_dict
 
 	frappe.local.lang_full_dict = load_lang(lang)
@@ -234,7 +235,7 @@ def get_translation_dict_from_file(path, lang, app):
 			elif len(item)==2:
 				cleaned[item[0]] = strip(item[1])
 
-			else:
+			elif item:
 				raise Exception("Bad translation in '{app}' for language '{lang}': {values}".format(
 					app=app, lang=lang, values=repr(item).encode("utf-8")
 				))

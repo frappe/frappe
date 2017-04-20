@@ -187,8 +187,16 @@
 
 .form-links {
 	.document-link {
-		margin-bottom: 5px;
+		margin-bottom: 10px;
 		height: 22px;
+	}
+
+	.document-link:hover .badge-link {
+		text-decoration: underline;
+	}
+
+	.document-link:hover .badge-link[disabled='disabled'] {
+		text-decoration: none;
 	}
 
 	.count {
@@ -249,7 +257,7 @@ h6.uppercase, .h6.uppercase {
 }
 
 .shaded-section {
-	background-color: @light-bg;
+	//background-color: @light-bg;
 }
 
 .modal {
@@ -308,6 +316,10 @@ h6.uppercase, .h6.uppercase {
 
 	.btn-more {
 		margin-left: 65px;
+	}
+
+	.gmail_extra {
+		display: none;
 	}
 }
 
@@ -526,6 +538,39 @@ h6.uppercase, .h6.uppercase {
 	}
 }
 
+.signature-field {
+	min-height: 300px;
+	background: #fff;
+	border: 1px solid @border-color;
+	border-radius: 3px;
+	position: relative;
+	margin-top: -10px;
+}
+.signature-display {
+	margin: 7px 0px;
+	background: #fff;
+}
+.signature-btn-row {
+	position: absolute;
+	bottom: 12px;
+	right: 12px;
+}
+.signature-reset {
+	height: 30px;
+	width: 30px;
+	padding: 4px 0px;
+}
+
+.signature-img {
+	border: 1px solid @border-color;
+	background: #fff;
+	border-radius: 3px;
+	margin-top: 5px;
+	width: 100%;
+	max-height: 300px;
+}
+
+
 .timeline-new-email {
 	margin: 30px 0px;
 	padding-left: 70px;
@@ -556,6 +601,15 @@ h6.uppercase, .h6.uppercase {
 	border-radius: 3px;
 	min-height: 30px;
 	font-weight: bold;
+	background-color: @navbar-bg;
+	padding: 5px 10px;
+	border-radius: 3px;
+}
+
+.disabled-check {
+	color: @navbar-bg;
+	margin-right: 3px;
+	margin-bottom: -2px;
 }
 
 .like-disabled-input.for-description {
@@ -580,18 +634,6 @@ h6.uppercase, .h6.uppercase {
 
 .shared-user {
 	margin-bottom: 10px;
-}
-
-.linked-with-dialog {
-	width: 75%;
-
-	.panel-body {
-		padding: 0px;
-	}
-
-	.form-section {
-		padding-top: 15px;
-	}
 }
 
 .attach-missing-image,
@@ -754,4 +796,8 @@ select.form-control {
 		// 	text-indent: -2px;
 		// }
 	}
+}
+
+body[data-route^="Form/Communication"] textarea[data-fieldname="subject"] {
+	height: 80px !important;
 }

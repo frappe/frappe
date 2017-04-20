@@ -10,12 +10,15 @@ from frappe.model.dynamic_links import get_dynamic_link_map
 from frappe.utils.password import rename_password
 
 @frappe.whitelist()
-def rename_doc(doctype, old, new, force=False, merge=False, ignore_permissions=False):
+def rename_doc(doctype, old, new, force=False, merge=False, ignore_permissions=False, ignore_if_exists=False):
 	"""
 		Renames a doc(dt, old) to doc(dt, new) and
 		updates all linked fields of type "Link"
 	"""
 	if not frappe.db.exists(doctype, old):
+		return
+
+	if ignore_if_exists and frappe.db.exists(doctype, new):
 		return
 
 	force = cint(force)
@@ -149,12 +152,17 @@ def update_child_docs(old, new, meta):
 def update_link_field_values(link_fields, old, new, doctype):
 	for field in link_fields:
 		if field['issingle']:
-			single_doc = frappe.get_doc(field['parent'])
-			if single_doc.get(field['fieldname'])==old:
-				single_doc.set(field['fieldname'], new)
-				# update single docs using ORM rather then query
-				# as single docs also sometimes sets defaults!
-				single_doc.save(ignore_permissions=True)
+			try:
+				single_doc = frappe.get_doc(field['parent'])
+				if single_doc.get(field['fieldname'])==old:
+					single_doc.set(field['fieldname'], new)
+					# update single docs using ORM rather then query
+					# as single docs also sometimes sets defaults!
+					single_doc.save(ignore_permissions=True)
+			except ImportError:
+				# fails in patches where the doctype has been renamed
+				# or no longer exists
+				pass
 		else:
 			# because the table hasn't been renamed yet!
 			parent = field['parent'] if field['parent']!=new else old

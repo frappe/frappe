@@ -17,6 +17,7 @@ from frappe.utils.fixtures import sync_fixtures
 from frappe.website import render
 from frappe.desk.doctype.desktop_icon.desktop_icon import sync_from_app
 from frappe.utils.password import create_auth_table
+from frappe.utils.global_search import setup_global_search_table
 from frappe.modules.utils import sync_customizations
 
 def install_db(root_login="root", root_password=None, db_name=None, source_sql=None,
@@ -38,10 +39,16 @@ def install_db(root_login="root", root_password=None, db_name=None, source_sql=N
 	frappe.connect(db_name=db_name)
 	check_if_ready_for_barracuda()
 	import_db_from_sql(source_sql, verbose)
+	if not 'tabDefaultValue' in frappe.db.get_tables():
+		print '''Database not installed, this can due to lack of permission, or that the database name exists.
+Check your mysql root password, or use --force to reinstall'''
+		sys.exit(1)
+
 	remove_missing_apps()
 
 	create_auth_table()
-	create_list_settings_table()
+	setup_global_search_table()
+	create_user_settings_table()
 
 	frappe.flags.in_install_db = False
 
@@ -68,8 +75,8 @@ def create_database_and_user(force, verbose):
 	# close root connection
 	frappe.db.close()
 
-def create_list_settings_table():
-	frappe.db.sql_ddl("""create table if not exists __ListSettings (
+def create_user_settings_table():
+	frappe.db.sql_ddl("""create table if not exists __UserSettings (
 		`user` VARCHAR(180) NOT NULL,
 		`doctype` VARCHAR(180) NOT NULL,
 		`data` TEXT,
@@ -97,6 +104,7 @@ def get_root_connection(root_login='root', root_password=None):
 	return frappe.local.flags.root_connection
 
 def install_app(name, verbose=False, set_as_patched=True):
+	frappe.flags.in_install = name
 	frappe.clear_cache()
 	app_hooks = frappe.get_hooks(app_name=name)
 	installed_apps = frappe.get_installed_apps()
@@ -272,8 +280,8 @@ def update_site_config(key, value, validate=True, site_config_path=None):
 		value = int(value)
 
 	# boolean
-	if value in ("false", "true"):
-		value = eval(value.title())
+	if value == 'false': value = False
+	if value == 'true': value = True
 
 	# remove key if value is None
 	if value == "None":

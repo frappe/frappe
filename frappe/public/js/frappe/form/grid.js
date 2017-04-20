@@ -53,6 +53,8 @@ frappe.ui.form.Grid = Class.extend({
 			.appendTo(this.parent)
 			.attr("data-fieldname", this.df.fieldname);
 
+		this.form_grid = this.wrapper.find('.form-grid');
+
 		this.wrapper.find(".grid-add-row").click(function() {
 			me.add_new_row(null, null, true);
 			me.set_focus_on_row();
@@ -206,6 +208,9 @@ frappe.ui.form.Grid = Class.extend({
 			frappe.utils.scroll_to(_scroll_y);
 		}
 
+		// red if mandatory
+		this.form_grid.toggleClass('error', !!(this.df.reqd && !(data && data.length)));
+
 		this.refresh_remove_rows_button();
 	},
 	setup_toolbar: function() {
@@ -290,7 +295,7 @@ frappe.ui.form.Grid = Class.extend({
 
 		new Sortable($rows.get(0), {
 			group: {name: 'row'},
-			handle: ".sortable-handle",
+			handle: '.sortable-handle',
 			draggable: '.grid-row',
 			filter: 'li, a',
 			onUpdate: function(event, ui) {
@@ -628,7 +633,7 @@ frappe.ui.form.GridRow = Class.extend({
 		var me = this;
 
 		this.wrapper = $('<div class="grid-row"></div>').appendTo(this.parent).data("grid_row", this);
-		this.row = $('<div class="data-row row sortable-handle"></div>').appendTo(this.wrapper)
+		this.row = $('<div class="data-row row"></div>').appendTo(this.wrapper)
 			.on("click", function(e) {
 				if($(e.target).hasClass('grid-row-check') || $(e.target).hasClass('row-index') || $(e.target).parent().hasClass('row-index')) {
 					return;
@@ -750,7 +755,7 @@ frappe.ui.form.GridRow = Class.extend({
 		// index (1, 2, 3 etc)
 		if(!this.row_index) {
 			var txt = (this.doc ? this.doc.idx : "&nbsp;");
-			this.row_index = $('<div class="row-index col col-xs-1">' +
+			this.row_index = $('<div class="row-index sortable-handle col col-xs-1">' +
 				this.row_check_html +
 				 ' <span>' + txt + '</span></div>')
 				.appendTo(this.row)
@@ -787,7 +792,7 @@ frappe.ui.form.GridRow = Class.extend({
 			if(!this.open_form_button) {
 				this.open_form_button = $('<a class="close btn-open-row">\
 					<span class="octicon octicon-triangle-down"></span></a>')
-					.appendTo($('<div class="col col-xs-1"></div>').appendTo(this.row))
+					.appendTo($('<div class="col col-xs-1 sortable-handle"></div>').appendTo(this.row))
 					.on('click', function() { me.toggle_view(); return false; });
 
 				if(this.is_too_small()) {
@@ -821,6 +826,15 @@ frappe.ui.form.GridRow = Class.extend({
 				this.refresh_field(df.fieldname, txt);
 			}
 
+			// background color for cellz
+			if(this.doc) {
+				if(df.reqd && !txt) {
+					column.addClass('error');
+				}
+				if (df.reqd || df.bold) {
+					column.addClass('bold');
+				}
+			}
 		}
 
 	},
@@ -950,7 +964,7 @@ frappe.ui.form.GridRow = Class.extend({
 					return;
 				}
 
-				var values = me.get_data();
+				var values = me.grid.get_data();
 				var fieldname = $(this).attr('data-fieldname');
 				var fieldtype = $(this).attr('data-fieldtype');
 
@@ -970,10 +984,10 @@ frappe.ui.form.GridRow = Class.extend({
 				}
 
 				// TAB
-				if(e.which==TAB) {
+				if(e.which==TAB && !e.shiftKey) {
 					// last column
 					if($(this).attr('data-last-input') ||
-						me.grid.wrapper.find(':input:enabled:last').get(0)===this) {
+						me.grid.wrapper.find('.grid-row :input:enabled:last').get(0)===this) {
 						setTimeout(function() {
 							if(me.doc.idx === values.length) {
 								// last row
@@ -1085,8 +1099,9 @@ frappe.ui.form.GridRow = Class.extend({
 		}
 	},
 	refresh_field: function(fieldname, txt) {
+		var df = this.grid.get_docfield(fieldname);
 		if(txt===undefined) {
-			var txt = frappe.format(this.doc[fieldname], this.grid.get_docfield(fieldname),
+			var txt = frappe.format(this.doc[fieldname], df,
 				null, this.frm.doc);
 		}
 
@@ -1094,6 +1109,9 @@ frappe.ui.form.GridRow = Class.extend({
 		var column = this.columns[fieldname];
 		if(column) {
 			column.static_area.html(txt || "");
+			if(df.reqd) {
+				column.toggleClass('error', !!(txt===null || txt===''));
+			}
 		}
 
 		// reset field value

@@ -89,7 +89,7 @@ ignore_values = {
 	"Print Format": ["disabled"]
 }
 
-ignore_doctypes = ["Page Role"]
+ignore_doctypes = [""]
 
 def import_doc(docdict, force=False, data_import=False, pre_process=None,
 		ignore_version=None, reset_permissions=False):
