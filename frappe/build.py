@@ -3,6 +3,7 @@
 
 from __future__ import unicode_literals
 from frappe.utils.minify import JavascriptMinify
+import subprocess
 
 """
 Build the `public` folders and setup languages
@@ -22,16 +23,30 @@ def setup():
 		except ImportError: pass
 	app_paths = [os.path.dirname(pymodule.__file__) for pymodule in pymodules]
 
-def bundle(no_compress, make_copy=False, verbose=False):
+def bundle(no_compress, make_copy=False, verbose=False, experimental=False):
 	"""concat / minify js files"""
 	# build js files
 	setup()
 
 	make_asset_dirs(make_copy=make_copy)
+
+	if experimental:
+		command = 'node ../apps/frappe/frappe/build.js --build'
+		if not no_compress:
+			command += ' --minify'
+		subprocess.call(command.split(' '))
+		return
+
 	build(no_compress, verbose)
 
-def watch(no_compress):
+def watch(no_compress, experimental=False):
 	"""watch and rebuild if necessary"""
+
+	if experimental:
+		command = 'node ../apps/frappe/frappe/build.js --watch'
+		subprocess.Popen(command.split(' '))
+		return
+
 	setup()
 
 	import time
@@ -101,7 +116,6 @@ def get_build_maps():
 				except ValueError, e:
 					print path
 					print 'JSON syntax error {0}'.format(str(e))
-
 	return build_maps
 
 timestamps = {}

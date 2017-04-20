@@ -8,19 +8,21 @@ from frappe.commands import pass_context, get_site
 @click.command('build')
 @click.option('--make-copy', is_flag=True, default=False, help='Copy the files instead of symlinking')
 @click.option('--verbose', is_flag=True, default=False, help='Verbose')
-def build(make_copy=False, verbose=False):
+@click.option('--experimental', is_flag=True, default=False, help='Use the new NodeJS build system')
+def build(make_copy=False, verbose=False, experimental=False):
 	"Minify + concatenate JS and CSS files, build translations"
 	import frappe.build
 	import frappe
 	frappe.init('')
-	frappe.build.bundle(False, make_copy=make_copy, verbose=verbose)
+	frappe.build.bundle(False, make_copy=make_copy, verbose=verbose, experimental=experimental)
 
 @click.command('watch')
-def watch():
+@click.option('--experimental', is_flag=True, default=False, help='Use the new NodeJS build system')
+def watch(experimental=False):
 	"Watch and concatenate JS and CSS files as and when they change"
 	import frappe.build
 	frappe.init('')
-	frappe.build.watch(True)
+	frappe.build.watch(True, experimental=experimental)
 
 @click.command('clear-cache')
 @pass_context
