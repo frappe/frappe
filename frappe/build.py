@@ -23,14 +23,14 @@ def setup():
 		except ImportError: pass
 	app_paths = [os.path.dirname(pymodule.__file__) for pymodule in pymodules]
 
-def bundle(no_compress, make_copy=False, verbose=False, experimental=False):
+def bundle(no_compress, make_copy=False, verbose=False, beta=False):
 	"""concat / minify js files"""
 	# build js files
 	setup()
 
 	make_asset_dirs(make_copy=make_copy)
 
-	if experimental:
+	if beta:
 		command = 'node ../apps/frappe/frappe/build.js --build'
 		if not no_compress:
 			command += ' --minify'
@@ -39,10 +39,10 @@ def bundle(no_compress, make_copy=False, verbose=False, experimental=False):
 
 	build(no_compress, verbose)
 
-def watch(no_compress, experimental=False):
+def watch(no_compress, beta=False):
 	"""watch and rebuild if necessary"""
 
-	if experimental:
+	if beta:
 		command = 'node ../apps/frappe/frappe/build.js --watch'
 		subprocess.Popen(command.split(' '))
 		return
