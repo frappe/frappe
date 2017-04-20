@@ -397,7 +397,7 @@ def validate_fields(meta):
 	def check_link_table_options(d):
 		if d.fieldtype in ("Link", "Table"):
 			if not d.options:
-				frappe.throw(_("Options requried for Link or Table type field {0} in row {1}").format(d.label, d.idx))
+				frappe.throw(_("Options required for Link or Table type field {0} in row {1}").format(d.label, d.idx))
 			if d.options=="[Select]" or d.options==d.parent:
 				return
 			if d.options != d.parent:
