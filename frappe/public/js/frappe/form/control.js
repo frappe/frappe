@@ -1758,8 +1758,9 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 	set_input: function(value) {
 		if(value == null) value = "";
 		value = frappe.dom.remove_script_and_style(value);
-		if(value !== this.get_value())
+		if(value !== this.get_value()) {
 			this.editor.summernote('code', value);
+		}
 		this.last_value = value;
 	},
 	set_focus: function() {

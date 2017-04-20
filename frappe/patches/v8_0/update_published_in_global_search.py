@@ -4,4 +4,3 @@ def execute():
 
 	for doctype in get_doctypes_with_web_view():
 		rebuild_for_doctype(doctype)
-

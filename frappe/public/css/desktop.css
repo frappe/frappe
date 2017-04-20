@@ -190,12 +190,13 @@ body[data-route="desktop"] .navbar-set-desktop-icons {
   position: fixed;
   bottom: 30px;
   width: 100%;
+  padding: 0px 10px;
 }
 .help-message-wrapper .help-message-container {
   position: relative;
   text-align: left;
   margin: auto;
-  width: 500px;
+  max-width: 500px;
   background-color: #fff;
   padding: 10px 15px 15px 15px;
   border-radius: 3px;

@@ -123,6 +123,7 @@ $.extend(frappe.model, {
 	},
 
 	get_default_value: function(df, doc, parent_doc) {
+		var user_default = "";
 		var user_permissions = frappe.defaults.get_user_permissions();
 		var meta = frappe.get_meta(doc.doctype);
 		var has_user_permissions = (df.fieldtype==="Link" && user_permissions
@@ -137,13 +138,15 @@ $.extend(frappe.model, {
 				return user_permissions[df.options][0];
 			}
 
-			// 2 - look in user defaults
-			var user_default = frappe.defaults.get_user_default(df.options);
-			
+			if(!df.ignore_user_permissions) {
+				// 2 - look in user defaults
+				user_default = frappe.defaults.get_user_default(df.options);
+			}
+
 			if (!user_default) {
 				user_default = frappe.defaults.get_user_default(df.fieldname);
 			}
-			
+
 			if(!user_default && df.remember_last_selected_value && frappe.boot.user.last_selected_values) {
 				user_default = frappe.boot.user.last_selected_values[df.options];
 			}

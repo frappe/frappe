@@ -449,7 +449,7 @@ frappe.Application = Class.extend({
 								}
 							});
 						}
-						
+
 						// next note
 						me.show_notes();
 
@@ -522,7 +522,8 @@ frappe.get_desktop_icons = function(show_hidden, show_global) {
 			out = m.link in frappe.boot.page_info;
 		}
 		else if(m._doctype) {
-			out = frappe.model.can_read(m._doctype);
+			//out = frappe.model.can_read(m._doctype);
+			out = frappe.boot.user.can_read.includes(m._doctype);
 		} else {
 			if(m.module_name==='Learn') {
 				// no permissions necessary for learn

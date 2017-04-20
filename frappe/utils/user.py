@@ -205,7 +205,6 @@ class UserPermissions:
 			"can_get_report", "allow_modules", "all_read", "can_search",
 			"in_create", "can_export", "can_import", "can_print", "can_email",
 			"can_set_user_permissions"):
-
 			d[key] = list(set(getattr(self, key)))
 
 		d.all_reports = self.get_all_reports()

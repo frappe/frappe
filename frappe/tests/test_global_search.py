@@ -110,3 +110,68 @@ class TestGlobalSearch(unittest.TestCase):
 			doc.insert()
 
 		frappe.db.commit()
+
+	def test_get_field_value(self):
+		cases = [
+			{
+				"case_type": "generic",
+				"data": '''
+					<style type="text/css"> p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 14.0px 'Open Sans';
+					-webkit-text-stroke: #000000} span.s1 {font-kerning: none} </style>
+					<script>
+					var options = {
+						foo: "bar"
+					}
+					</script>
+					<p class="p1"><span class="s1">Contrary to popular belief, Lorem Ipsum is not simply random text. It has
+					roots in a piece of classical Latin literature from 45 BC, making it over 2000 years old. Richard McClintock,
+					a Latin professor at Hampden-Sydney College in Virginia, looked up one of the more obscure Latin words, consectetur,
+					from a Lorem Ipsum passage, and going through the cites of the word in classical literature, discovered the undoubtable source.
+					Lorem Ipsum comes from sections 1.10.32 and 1.10.33 of "de Finibus Bonorum et Malorum" (The Extremes of Good and Evil) by Cicero,
+					written in 45 BC. This book is a treatise on the theory of ethics, very popular during the Renaissance. The first line of Lorem Ipsum,
+					"Lorem ipsum dolor sit amet..", comes from a line in section 1.10.32.</span></p>
+					''',
+				"result": ('Description : Contrary to popular belief, Lorem Ipsum is not simply random text. It has roots in a piece of classical '
+					'Latin literature from 45 BC, making it over 2000 years old. Richard McClintock, a Latin professor at Hampden-Sydney College in Virginia, '
+					'looked up one of the more obscure Latin words, consectetur, from a Lorem Ipsum passage, and going through the cites of the word '
+					'in classical literature, discovered the undoubtable source. Lorem Ipsum comes from sections 1.10.32 and 1.10.33 of "de Finibus Bonorum '
+					'et Malorum" (The Extremes of Good and Evil) by Cicero, written in 45 BC. This book is a treatise on the theory of ethics, very popular '
+					'during the Renaissance. The first line of Lorem Ipsum, "Lorem ipsum dolor sit amet..", comes from a line in section 1.10.32.')
+
+			},
+			{
+				"case_type": "with_style",
+				"data": '''
+					<style type="text/css"> p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 14.0px 'Open Sans';
+					-webkit-text-stroke: #000000} span.s1 {font-kerning: none} </style>Lorem Ipsum Dolor Sit Amet
+					''',
+				"result": "Description : Lorem Ipsum Dolor Sit Amet"
+			},
+			{
+				"case_type": "with_script",
+				"data": '''
+					<script>
+					var options = {
+						foo: "bar"
+					}
+					</script>
+					Lorem Ipsum Dolor Sit Amet
+					''',
+				"result": "Description : Lorem Ipsum Dolor Sit Amet"
+			}
+		]
+
+		for case in cases:
+			doc = frappe.get_doc({
+				'doctype':'Event',
+				'subject': 'Lorem Ipsum',
+				'starts_on': frappe.utils.now_datetime(),
+				'description': case["data"]
+			})
+
+			field_as_text = ''
+			for field in doc.meta.fields:
+				if field.fieldname == 'description':
+					field_as_text = global_search.get_field_value(doc, field)
+
+			self.assertEquals(case["result"], field_as_text)

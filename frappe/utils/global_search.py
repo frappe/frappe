@@ -4,6 +4,7 @@
 from __future__ import unicode_literals
 
 import frappe
+import re
 from frappe.utils import cint, strip_html_tags
 
 def setup_global_search_table():
@@ -25,6 +26,23 @@ def setup_global_search_table():
 def reset():
 	'''Deletes all data in __global_search'''
 	frappe.db.sql('delete from __global_search')
+
+def get_doctypes_with_global_search():
+	'''Return doctypes with global search fields'''
+	def _get():
+		global_search_doctypes = []
+		for d in frappe.get_all('DocType', 'name, module'):
+			meta = frappe.get_meta(d.name)
+			if len(meta.get_global_search_fields()) > 0:
+				global_search_doctypes.append(d)
+
+		installed_apps = frappe.get_installed_apps()
+
+		doctypes = [d.name for d in global_search_doctypes
+			if frappe.local.module_app[frappe.scrub(d.module)] in installed_apps]
+		return doctypes
+
+	return frappe.cache().get_value('doctypes_with_global_search', _get)
 
 def update_global_search(doc):
 	'''Add values marked with `in_global_search` to
@@ -52,9 +70,9 @@ def update_global_search(doc):
 				  	if d.parent == doc.name:
 				  		for field in d.meta.get_global_search_fields():
 				  			if d.get(field.fieldname):
-				  				content.append(field.label + "&&& " + strip_html_tags(unicode(d.get(field.fieldname))))
+								content.append(get_field_value(d, field))
 			else:
-				content.append(field.label + "&&& " + strip_html_tags(unicode(doc.get(field.fieldname))))
+				content.append(get_field_value(doc, field))
 
 	if content:
 		published = 0
@@ -62,8 +80,21 @@ def update_global_search(doc):
 			published = 1 if doc.is_website_published() else 0
 
 		frappe.flags.update_global_search.append(
-			dict(doctype=doc.doctype, name=doc.name, content='|||'.join(content or ''),
+			dict(doctype=doc.doctype, name=doc.name, content=' ||| '.join(content or ''),
 				published=published, title=doc.get_title(), route=doc.get('route')))
+
+def get_field_value(doc, field):
+	'''Prepare field from raw data'''
+
+	from HTMLParser import HTMLParser
+
+	value = doc.get(field.fieldname)
+	if(getattr(field, 'fieldtype', None) in ["Text", "Text Editor"]):
+		h = HTMLParser()
+		value = h.unescape(value)
+		value = (re.subn(r'<[\s]*(script|style).*?</\1>(?s)', '', unicode(value))[0])
+		value = ' '.join(value.split())
+	return field.label + " : " + strip_html_tags(unicode(value))
 
 def sync_global_search():
 	'''Add values from `frappe.flags.update_global_search` to __global_search.
