@@ -816,7 +816,8 @@ a.active {
 }
 .page-head h1 {
   letter-spacing: 0.5px;
-  font-size: 24px;
+  font-size: 20px;
+  margin: auto;
 }
 .btn-next-wrapper {
   margin-top: 60px;
