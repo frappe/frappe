@@ -571,6 +571,7 @@ def validate_fields(meta):
 
 	for d in fields:
 		if not d.permlevel: d.permlevel = 0
+		if d.fieldtype != "Table": d.allow_bulk_edit = 0
 		if not d.fieldname:
 			frappe.throw(_("Fieldname is required in row {0}").format(d.idx))
 		d.fieldname = d.fieldname.lower()
