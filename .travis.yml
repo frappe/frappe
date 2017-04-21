@@ -25,8 +25,8 @@ install:
   - cp -r $TRAVIS_BUILD_DIR/test_sites/test_site ~/frappe-bench/sites/
 
 script:
+  - bench --verbose run-tests --driver Firefox
   - testcafe nightmare apps/frappe/login_test.js
-  # - bench --verbose run-tests --driver Firefox
 
 before_script:
   - mysql -u root -ptravis -e 'create database test_frappe'
