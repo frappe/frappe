@@ -10,5 +10,5 @@ test('Check login', async t => {
         .typeText('#login_email', 'Administrator')
         .typeText('#login_password', 'admin')
         .click('.btn-login')
-		.expect(wizardHeading.innerText).eql("Welcome");
+	.expect(wizardHeading.innerText).eql("Welcome");
 });
