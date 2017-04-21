@@ -25,12 +25,6 @@ install:
   - cp -r $TRAVIS_BUILD_DIR/test_sites/test_site ~/frappe-bench/sites/
 
 script:
-  - cd ~/frappe-bench
-  - bench use test_site
-  - bench reinstall --yes
-  - bench build
-  - bench start &
-  - sleep 10
   - testcafe nightmare apps/frappe/login_test.js
   - bench --verbose run-tests --driver Firefox
 
@@ -38,3 +32,9 @@ before_script:
   - mysql -u root -ptravis -e 'create database test_frappe'
   - echo "USE mysql;\nCREATE USER 'test_frappe'@'localhost' IDENTIFIED BY 'test_frappe';\nFLUSH PRIVILEGES;\n" | mysql -u root -ptravis
   - echo "USE mysql;\nGRANT ALL PRIVILEGES ON \`test_frappe\`.* TO 'test_frappe'@'localhost';\n" | mysql -u root -ptravis
+  - cd ~/frappe-bench
+  - bench use test_site
+  - bench reinstall --yes
+  - bench build
+  - bench start &
+  - sleep 10
