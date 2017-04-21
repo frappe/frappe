@@ -10,6 +10,6 @@ test('Check login', async t => {
         .typeText('#login_email', 'Administrator')
         .typeText('#login_password', 'admin')
         .click('.btn-login')
-        .navigateTo('/desk#setup-wizard')
+        // .navigateTo('/desk#setup-wizard')
 		.expect(wizardHeading.innerText).eql("Welcome");
 });
