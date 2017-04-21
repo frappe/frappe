@@ -1,7 +1,7 @@
 import { Selector } from 'testcafe';
 
 fixture `Login Page`
-    .page `http://localhost:8000/desk`;
+    .page `http://localhost:8000/login`;
 
 test('Check login', async t => {
     const loginEmail = Selector('#login_email');

@@ -222,5 +222,8 @@ def serve(port=8000, profile=False, site=None, sites_path='.'):
 		'SERVER_NAME': 'localhost:8000'
 	}
 
-	run_simple('0.0.0.0', int(port), application, use_reloader=True,
-		use_debugger=True, use_evalex=True, threaded=True)
+	run_simple('0.0.0.0', int(port), application, 
+		use_reloader=not os.environ.get('TRAVIS'),
+		use_debugger=not os.environ.get('TRAVIS'), 
+		use_evalex=not os.environ.get('TRAVIS'), 
+		threaded=True)
