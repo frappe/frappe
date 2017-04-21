@@ -399,6 +399,7 @@ class Document(BaseDocument):
 	def _validate(self):
 		self._validate_mandatory()
 		self._validate_links()
+		self._validate_readonly_fields()
 		self._validate_selects()
 		self._validate_constants()
 		self._validate_length()
@@ -639,6 +640,19 @@ class Document(BaseDocument):
 			msg = ", ".join((each[2] for each in cancelled_links))
 			frappe.throw(_("Cannot link cancelled document: {0}").format(msg),
 				frappe.CancelledLinkError)
+
+	def _validate_readonly_fields(self):
+		if self.flags.ignore_readonly:
+			return
+
+		for df in self.meta.get("fields", {"fieldtype": "Read Only", "options": ["not in", ""]}):
+			if self.get(df.fieldname) in (None, ""):
+				link_fieldname, source_fieldname = df.options.split('.')
+				docname = self.get(link_fieldname)
+				doctype = self.meta.get_link_doctype(link_fieldname)
+				linked_doc = frappe.get_doc(doctype, docname)
+				value = linked_doc.get(source_fieldname)
+				self.set(df.fieldname, value)
 
 	def get_all_children(self, parenttype=None):
 		"""Returns all children documents from **Table** type field in a list."""
