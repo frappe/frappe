@@ -10,6 +10,10 @@ frappe.upload = {
 			opts.allow_multiple = 1
 		}
 
+		if(opts.is_private === undefined) {
+			opts.is_private = 1
+		}
+
 		var d = null;
 		// create new dialog if no parent given
 		if(!opts.parent) {
@@ -60,15 +64,19 @@ frappe.upload = {
 						<div class="list-item__content list-item__content--flex-2">
 							${__('Filename')}
 						</div>
-						<div class="list-item__content" style="flex: 0 0 64px">
-							${__('Is Private')}
-						</div>
-						<div class="list-item__content list-item__content--activity" style="flex: 0 0 32px">
-						</div>
+						${opts.is_private
+						? `<div class="list-item__content" style="flex: 0 0 64px">
+							${__('Private')}
+							</div>`
+						: ''}
+						${opts.allow_multiple
+						? `<div class="list-item__content list-item__content--activity" style="flex: 0 0 32px">
+							</div>`
+						: ''}
 					</div>
 				`);
 				var file_pills = file_array.map(
-					file => frappe.upload.make_file_row(file.name, !("is_private" in opts))
+					file => frappe.upload.make_file_row(file.name, opts.is_private, opts.allow_multiple)
 				);
 				$uploaded_files_wrapper.append(file_pills);
 			} else {
@@ -144,7 +152,7 @@ frappe.upload = {
 			}
 		});
 	},
-	make_file_row: function(filename, show_private) {
+	make_file_row: function(filename, show_private, allow_multiple) {
 		var template = `
 			<div class="list-item-container" data-filename="${filename}">
 				<div class="list-item">
@@ -156,11 +164,13 @@ frappe.upload = {
 							<input type="checkbox" checked/>
 						</div>`
 					: ''}
-					<div class="list-item__content list-item__content--activity ellipsis" style="flex: 0 0 32px;">
+					${allow_multiple
+					? `<div class="list-item__content list-item__content--activity ellipsis" style="flex: 0 0 32px;">
 						<button class="btn btn-default btn-xs text-muted uploaded-file-remove">
 							<span class="fa fa-remove"></span>
 						</button>
-					</div>
+					</div>`
+					: ''}
 				</div>
 			</div>`;
 
