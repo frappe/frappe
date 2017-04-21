@@ -318,12 +318,12 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 	},
 
 	set_disp_area: function() {
-		let value = ""
-		if(inList(["Currency", "Int", "Float"], this.df.fieldtype) && (this.value === 0 || this.get_value() === 0)) {
+		let value = this.get_value();
+		if(inList(["Currency", "Int", "Float"], this.df.fieldtype) && (this.value === 0 || value === 0)) {
 			// to set the 0 value in readonly for currency, int, float field
-			value = 0
+			value = 0;
 		} else {
-			value = this.value || this.get_value()
+			value = this.value || value;
 		}
 		this.disp_area && $(this.disp_area)
 			.html(frappe.format(value, this.df, {no_icon:true, inline:true},
