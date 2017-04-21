@@ -204,7 +204,7 @@ frappe.socket = {
 		frappe.socket.file_watcher.on('reload_css', function(filename) {
 			let abs_file_path = "assets/" + filename;
 			const link = $(`link[href*="${abs_file_path}"]`);
-			abs_file_path = abs_file_path.split('?')[0] + '?v=' + +moment();
+			abs_file_path = abs_file_path.split('?')[0] + '?v='+ moment();
 			link.attr('href', abs_file_path);
 			frappe.show_alert({
 				indicator: 'orange',
