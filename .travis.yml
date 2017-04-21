@@ -26,9 +26,9 @@ install:
 
 script:
   - testcafe nightmare apps/frappe/login_test.js
-  #- bench --verbose run-tests --driver Firefox
+  # - bench --verbose run-tests --driver Firefox
 
-before_script:asdf1234
+before_script:
   - mysql -u root -ptravis -e 'create database test_frappe'
   - echo "USE mysql;\nCREATE USER 'test_frappe'@'localhost' IDENTIFIED BY 'test_frappe';\nFLUSH PRIVILEGES;\n" | mysql -u root -ptravis
   - echo "USE mysql;\nGRANT ALL PRIVILEGES ON \`test_frappe\`.* TO 'test_frappe'@'localhost';\n" | mysql -u root -ptravis
