@@ -38,7 +38,9 @@ def install_db(root_login="root", root_password=None, db_name=None, source_sql=N
 
 	frappe.connect(db_name=db_name)
 	check_if_ready_for_barracuda()
+	frappe.db.close()
 	import_db_from_sql(source_sql, verbose)
+	frappe.connect(db_name=db_name) #previous step creates own connection and can cause db timeout
 	remove_missing_apps()
 
 	create_auth_table()
