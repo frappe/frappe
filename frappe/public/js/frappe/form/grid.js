@@ -348,6 +348,10 @@ frappe.ui.form.Grid = Class.extend({
 		this.get_docfield(fieldname).read_only = enable ? 0 : 1;;
 		this.refresh();
 	},
+	toggle_display: function(fieldname, show) {
+		this.get_docfield(fieldname).hidden = show ? 0 : 1;;
+		this.refresh();
+	},
 	get_docfield: function(fieldname) {
 		return frappe.meta.get_docfield(this.doctype, fieldname, this.frm ? this.frm.docname : null);
 	},

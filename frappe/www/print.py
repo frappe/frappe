@@ -433,6 +433,15 @@ def column_has_value(data, fieldname):
 
 trigger_print_script = """
 <script>
+//allow wrapping of long tr
+var elements = document.getElementsByTagName("tr");
+var i = elements.length;
+while (i--) {
+	if(elements[i].clientHeight>300){
+		elements[i].setAttribute("style", "page-break-inside: auto;");
+	}
+}
+
 window.print();
 
 // close the window after print

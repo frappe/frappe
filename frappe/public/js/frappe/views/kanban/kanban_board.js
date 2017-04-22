@@ -178,21 +178,33 @@ frappe.provide("frappe.views");
 				});
 			},
 			update_order: function(updater, order) {
-				return frappe.call({
+				// cache original order
+				const _cards = this.cards.slice();
+				const _columns = this.columns.slice();
+				
+				frappe.call({
 					method: method_prefix + "update_order",
 					args: {
 						board_name: this.board.name,
 						order: order
+					},
+					callback: (r) => {
+						var state = this;
+						var board = r.message[0];
+						var updated_cards = r.message[1];
+						var cards = update_cards_column(updated_cards);
+						var columns = prepare_columns(board.columns);
+						updater.set({
+							cards: cards,
+							columns: columns
+						});
 					}
-				}).then(function(r) {
-					var state = this;
-					var board = r.message[0];
-					var updated_cards = r.message[1];
-					var cards = update_cards_column(updated_cards);
-					var columns = prepare_columns(board.columns);
+				})
+				.fail(function(e) {
+					// revert original order
 					updater.set({
-						cards: cards,
-						columns: columns
+						cards: _cards,
+						columns: _columns
 					});
 				});
 			},
@@ -237,8 +249,12 @@ frappe.provide("frappe.views");
 		self.cur_list = opts.cur_list;
 		self.board_name = opts.board_name;
 
-		self.update_cards = function(cards) {
-			fluxify.doAction('update_cards', cards);
+		self.update = function(cards) {
+			if(self.wrapper.find('.kanban').length > 0) {
+				fluxify.doAction('update_cards', cards);
+			} else {
+				init();
+			}
 		}
 
 		function init() {
@@ -250,8 +266,13 @@ frappe.provide("frappe.views");
 		}
 
 		function prepare() {
-			self.$kanban_board = $(frappe.render_template("kanban_board"));
-			self.$kanban_board.appendTo(self.wrapper);
+			self.$kanban_board = self.wrapper.find('.kanban');
+
+			if(self.$kanban_board.length === 0) {
+				self.$kanban_board = $(frappe.render_template("kanban_board"));
+				self.$kanban_board.appendTo(self.wrapper);
+			}
+
 			self.$filter_area = self.cur_list.$page.find('.set-filters');
 			bind_events();
 			setup_sortable();

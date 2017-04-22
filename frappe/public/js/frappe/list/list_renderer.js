@@ -320,11 +320,11 @@ frappe.views.ListRenderer = Class.extend({
 			const $item_container = $('<div class="list-item-container">').append($item);
 
 			$list_items.append($item_container);
-			
+
 			if (this.settings.post_render_item) {
 				this.settings.post_render_item(this, $item_container, value);
 			}
-			
+
 			this.render_tags($item_container, value);
 		});
 
@@ -541,7 +541,7 @@ frappe.views.ListRenderer = Class.extend({
 		var new_button = frappe.boot.user.can_create.includes(this.doctype)
 			? (`<p><button class='btn btn-primary btn-sm'
 				list_view_doc='${this.doctype}'>
-					${__('Make a new ' + __(this.doctype))}
+					${__('Make a new {0}', [__(this.doctype)])}
 				</button></p>`)
 			: '';
 		var no_result_message =
