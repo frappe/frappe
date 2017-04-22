@@ -356,11 +356,12 @@ def check_if_ready_for_barracuda():
 		}.items():
 
 		if mariadb_variables.get(key) != value:
-			print "="*80
-			print "Please add this to MariaDB's my.cnf and restart MariaDB before proceeding"
-			print
-			print expected_config_for_barracuda
-			print "="*80
+			#app = frappe.get_installed_apps()[-1]
+			msg = (
+				"Please add this to MariaDB's my.cnf and restart MariaDB before proceeding {sep}"
+			).format(sep="\n"*2)
+
+			print_db_config(msg, expected_config_for_barracuda)
 			sys.exit(1)
 			# raise Exception, "MariaDB needs to be configured!"
 
