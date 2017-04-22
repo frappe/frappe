@@ -364,6 +364,14 @@ def check_if_ready_for_barracuda():
 			sys.exit(1)
 			# raise Exception, "MariaDB needs to be configured!"
 
+
+def print_db_config(explanation, config_text):
+	print ("="*80)
+	print (explanation)
+	print (config_text)
+	print ("="*80)
+
+
 def extract_sql_gzip(sql_gz_path):
 	try:
 		subprocess.check_call(['gzip', '-d', '-v', '-f', sql_gz_path])
