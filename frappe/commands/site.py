@@ -2,6 +2,7 @@ from __future__ import unicode_literals, absolute_import
 import click
 import hashlib, os, sys
 import frappe
+from _mysql_exceptions import ProgrammingError
 from frappe.commands import pass_context, get_site
 from frappe.commands.scheduler import _is_scheduler_enabled
 from frappe.limits import update_limits, get_limits
@@ -331,7 +332,14 @@ def drop_site(site, root_login='root', root_password=None, archived_sites_path=N
 
 	frappe.init(site=site)
 	frappe.connect()
-	scheduled_backup(ignore_files=False, force=True)
+
+	try:
+		scheduled_backup(ignore_files=False, force=True)
+	except ProgrammingError as err:
+		if err[0] == 1146:
+			# ProgrammingError(1146) is thrown when there is a missing table.
+			# We want to delete all tables so its safe to ignore the Error.
+			pass
 
 	db_name = frappe.local.conf.db_name
 	frappe.local.db = get_root_connection(root_login, root_password)
