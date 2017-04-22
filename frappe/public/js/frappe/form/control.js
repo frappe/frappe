@@ -2001,6 +2001,17 @@ frappe.ui.form.ControlSignature = frappe.ui.form.ControlData.extend({
 	}
 });
 
+frappe.ui.form.ControlList = frappe.ui.form.Control.extend({
+	// Listing with empty state(Graphics and button), checks, clear all, close buttons
+
+	// with_checkboxes:
+	// with_delete_close:
+	// with_placeholder:
+
+	// Whining ...
+	// After hub layout ... groans
+});
+
 frappe.ui.form.fieldtype_icons = {
 	"Date": "fa fa-calendar",
 	"Time": "fa fa-time",

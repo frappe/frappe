@@ -979,7 +979,7 @@ input[type="checkbox"]:checked:before {
   color: #3b99fc;
 }
 .multiselect-empty-state {
-  min-height: 400px;
+  min-height: 300px;
   display: flex;
   align-items: center;
   justify-content: center;
