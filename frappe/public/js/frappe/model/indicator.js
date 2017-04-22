@@ -67,7 +67,7 @@ frappe.get_indicator = function(doc, doctype) {
 	}
 
 	// based on status
-	if(doc.status) {
+	if(doc.status && doc.status.indexOf !== undefined) {
 		return [__(doc.status), frappe.utils.guess_colour(doc.status)];
 	}
 
