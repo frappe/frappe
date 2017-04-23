@@ -26,7 +26,7 @@ def make_mapped_doc(method, source_name, selected_children=None):
 	return method(source_name)
 
 
-def get_mapped_doc(from_doctype, from_docname, table_maps, target_doc=None,
+def get_mapped_doc(from_doctype, from_docname, table_maps, target_doc=None, fields=None,
 		postprocess=None, ignore_permissions=False, ignore_child_tables=False):
 
 	# main
@@ -46,8 +46,7 @@ def get_mapped_doc(from_doctype, from_docname, table_maps, target_doc=None,
 			if not source_doc.has_permission("read"):
 				source_doc.raise_no_permission_to("read")
 
-		if len(from_docnames) == 1:
-			map_doc(source_doc, target_doc, table_maps[source_doc.doctype])
+		map_doc(source_doc, target_doc, table_maps[source_doc.doctype])
 
 		row_exists_for_parentfield = {}
 
@@ -97,9 +96,14 @@ def get_mapped_doc(from_doctype, from_docname, table_maps, target_doc=None,
 
 						map_child_doc(source_d, target_doc, table_map, source_doc)
 
-	if postprocess:
-		if len(from_docnames) == 1:
+		if postprocess:
 			postprocess(source_doc, target_doc)
+
+	# Map fields if any
+	if fields:
+		for field, val in json.loads(fields).items():
+			print field, val
+			target_doc.set(field, val)
 
 	target_doc.set_onload("load_after_mapping", True)
 	return target_doc

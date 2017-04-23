@@ -47,7 +47,7 @@ frappe.ui.form.MultiSelect = Class.extend({
 			fields: fields,
 			primary_action_label: __("Get Items"),
 			primary_action: function() {
-				me.action(me.selections);
+				me.action(me.selections, me.args);
 			}
 		});
 
@@ -62,6 +62,7 @@ frappe.ui.form.MultiSelect = Class.extend({
 			placeholder="" value="">Make a new ${this.doctype}</button></span> </div>`);
 
 		this.selections = [];
+		this.args = {};
 
 		this.bind_events();
 		this.get_results();
@@ -98,7 +99,7 @@ frappe.ui.form.MultiSelect = Class.extend({
 			}
 		});
 
-		this.$parent.find('input').on('change', function(e) {
+		this.$parent.find('.input-with-feedback').on('change', function(e) {
 			me.get_results();
 		});
 		this.$parent.on('click', '.btn[data-fieldname="make_new"]', function(e) {
@@ -166,6 +167,7 @@ frappe.ui.form.MultiSelect = Class.extend({
 		let filters = this.get_query().filters;
 		Object.keys(this.setters).forEach(function(setter) {
 			filters[setter] = me.dialog.fields_dict[setter].get_value() || undefined;
+			me.args[setter] = filters[setter];
 		});
 
 		let args = {
