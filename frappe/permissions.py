@@ -86,6 +86,19 @@ def has_permission(doctype, ptype="read", doc=None, verbose=False, user=None):
 			user_perm = user_has_permission(doc, verbose=verbose, user=user,
 				user_permission_doctypes=role_permissions.get("user_permission_doctypes", {}).get(ptype) or [])
 
+			# Verify if the user has no perm to write in the next state, but has perm to write in the active state
+			# It only will works in case of "Workflows"
+			if not user_perm and ptype == 'write' and \
+			 	frappe.db.exists('Workflow', {'document_type': doctype, 'is_active': 1}):
+
+				prev_doc = frappe.get_doc(doc.doctype, doc.name)
+				
+				# Checks the perm based on the record from db
+				# If the user has permission in the last state and the permission type is 'write',
+				# allow the write to ensure the workflow transition
+				user_perm = user_has_permission(prev_doc, verbose=verbose, user=user,
+					user_permission_doctypes=role_permissions.get("user_permission_doctypes", {}).get(ptype) or [])
+
 			if verbose: print "User permission: {0}".format(user_perm)
 
 		if not owner_perm and not user_perm:
