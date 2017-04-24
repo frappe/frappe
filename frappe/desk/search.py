@@ -3,7 +3,7 @@
 
 # Search
 from __future__ import unicode_literals
-import frappe
+import frappe, json
 from frappe.utils import cstr, unique
 
 # this is called by the Link Field
@@ -79,7 +79,7 @@ def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 			# format a list of fields combining search fields and filter fields
 			fields = get_std_fields_list(meta, searchfield or "name")
 			if filter_fields:
-				fields = list(set(fields + filter_fields.split(',')))
+				fields = list(set(fields + json.loads(filter_fields)))
 			formatted_fields = ['`tab%s`.`%s`' % (meta.name, f.strip()) for f in fields]
 
 			# find relevance as location of search term from the beginning of string `name`. used for sorting results.
