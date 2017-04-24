@@ -1760,7 +1760,7 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 		}
 	},
 	get_value: function() {
-		return this.editor.summernote('code');
+		return this.editor? this.editor.summernote('code'): '';
 	},
 	set_input: function(value) {
 		if(value == null) value = "";
