@@ -3,7 +3,7 @@
 	<h5 style="margin-top: 25px; margin-bottom: 5px;">{{ doctype.name }}</h5>
 	<div class="row">
 		{% for f in doctype.fields %}
-		{% if (frappe.model.no_value_type.indexOf(f.fieldtype)===-1) %}
+		{% if (frappe.model.no_value_type.indexOf(f.fieldtype)===-1 && !f.hidden) %}
 		{% doctype.reqd||(f.reqd=0);%}		
 		<div class="col-sm-4">
             <div class="checkbox" style="margin: 5px 0px;">

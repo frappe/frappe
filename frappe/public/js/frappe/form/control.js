@@ -1648,6 +1648,7 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 				}
 			},
 			prettifyHtml: true,
+			dialogsInBody: true,
 			callbacks: {
 				onChange: function(value) {
 					me.parse_validate_and_set_in_model(value);
@@ -1760,7 +1761,7 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 		}
 	},
 	get_value: function() {
-		return this.editor.summernote('code');
+		return this.editor? this.editor.summernote('code'): '';
 	},
 	set_input: function(value) {
 		if(value == null) value = "";

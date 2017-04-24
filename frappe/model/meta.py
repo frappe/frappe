@@ -465,9 +465,13 @@ def get_default_df(fieldname):
 				fieldtype = "Data"
 			)
 
-def trim_tables():
+def trim_tables(doctype=None):
 	"""Use this to remove columns that don't exist in meta"""
 	ignore_fields = default_fields + optional_fields
+	
+	filters={ "issingle": 0 }
+	if doctype:
+		filters["name"] = doctype
 
 	for doctype in frappe.db.get_all("DocType", filters={"issingle": 0}):
 		doctype = doctype.name
