@@ -237,13 +237,8 @@ class User(Document):
 
 		link = self.reset_password()
 
-		app_title = [t for t in frappe.get_hooks('app_title') if t != 'Frappe Framework']
-		if app_title:
-			subject = _("Welcome to {0}").format(app_title[0])
-		else:
-			subject = _("Complete Registration")
-
-		self.send_login_mail(subject, "templates/emails/new_user.html",
+		email_content = frappe.get_attr(frappe.get_hooks("welcome_email")[-1])()
+		self.send_login_mail(email_content.get("subject"), email_content.get("template"),
 				dict(
 					link=link,
 					site_url=get_url(),
@@ -837,3 +832,9 @@ def extract_mentions(txt):
 	"""Find all instances of @username in the string.
 	The mentions will be separated by non-word characters or may appear at the start of the string"""
 	return re.findall(r'(?:[^\w]|^)@([\w]*)', txt)
+
+def get_welcome_email():
+	return {
+		"subject": _("Complete Registration"),
+		"template": "templates/emails/new_user.html"
+	}
