@@ -537,6 +537,10 @@ a.active {
 .page-head h1 {
 	letter-spacing: 0.5px;
 	font-size: 24px;
+
+	@media (max-width: @screen-xs) {
+		font-size: 16px;
+	}
 }
 
 .btn-next-wrapper {
@@ -628,10 +632,21 @@ li.footer-child-item {
 		padding: 7px;
 		padding-left: 0px;
 		width: 100%;
+
+		@media (max-width: @screen-xs) {
+			padding: 0;
+		}
 	}
+
 	i {
 		margin-right: -30px;
 		margin-top: -25px;
+
+		@media (max-width: @screen-xs) {
+			margin-right: -25px;
+			margin-top: -18px;
+			font-size: 12px;
+		}
 	}
 }
 
