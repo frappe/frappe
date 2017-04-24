@@ -223,7 +223,7 @@ frappe.ui.form.PrintPreview = Class.extend({
 frappe.ui.get_print_settings = function(pdf, callback, letter_head) {
 	var print_settings = locals[":Print Settings"]["Print Settings"];
 
-	var default_letter_head = locals[":Company"]
+	var default_letter_head = locals[":Company"] && frappe.defaults.get_default('company')
 		? locals[":Company"][frappe.defaults.get_default('company')]["default_letter_head"]
 		: '';
 
