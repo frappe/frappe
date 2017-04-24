@@ -174,7 +174,7 @@ frappe.ui.form.MultiSelect = Class.extend({
 			doctype: me.doctype,
 			txt: '',
 			filters: filters,
-			filter_fields: Object.keys(me.setters).join(',')
+			filter_fields: Object.keys(me.setters)
 		}
 		frappe.call({
 			type: "GET",

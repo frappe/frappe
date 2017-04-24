@@ -26,7 +26,7 @@ def make_mapped_doc(method, source_name, selected_children=None):
 	return method(source_name)
 
 
-def get_mapped_doc(from_doctype, from_docname, table_maps, target_doc=None, fields=None,
+def get_mapped_doc(from_doctype, from_docnames, table_maps, target_doc=None, fields=None,
 		postprocess=None, ignore_permissions=False, ignore_child_tables=False):
 
 	# main
@@ -38,9 +38,8 @@ def get_mapped_doc(from_doctype, from_docname, table_maps, target_doc=None, fiel
 	if not ignore_permissions and not target_doc.has_permission("create"):
 		target_doc.raise_no_permission_to("create")
 
-	from_docnames = from_docname.split(',')
-	for from_doc in from_docnames:
-		source_doc = frappe.get_doc(from_doctype, from_doc)
+	for from_docname in json.loads(from_docnames):
+		source_doc = frappe.get_doc(from_doctype, from_docname)
 
 		if not ignore_permissions:
 			if not source_doc.has_permission("read"):
