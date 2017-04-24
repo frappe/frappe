@@ -164,13 +164,12 @@ frappe.upload = {
 							class="fa fa-fw text-warning ${file.is_private ? 'fa-lock': 'fa-unlock-alt'}">
 						</span>
 					</div>
-					${show_private
-					? `<div class="list-item__content file-public-column ellipsis">
-							<input type="checkbox" ${!file.is_private ? 'checked' : ''}/>
-						</div>`
+					${show_private?
+						`<div class="list-item__content file-public-column ellipsis">
+							<input type="checkbox" ${!file.is_private ? 'checked' : ''}/></div>`
 					: ''}
 					<div class="list-item__content list-item__content--activity ellipsis" style="flex: 0 0 32px;">
-						<button class="btn btn-default btn-xs text-muted uploaded-file-remove">
+					<button class="btn btn-default btn-xs text-muted uploaded-file-remove">
 							<span class="fa fa-remove"></span>
 						</button>
 					</div>
@@ -348,7 +347,6 @@ frappe.upload = {
 		}
 	},
 	multifile_upload:function(fileobjs, args, opts) {
-
 		//loop through filenames and checkboxes then append to list
 		var fields = [];
 		for (var i =0,j = fileobjs.length;i<j;i++) {
@@ -363,20 +361,18 @@ frappe.upload = {
 				primary_action: function(){
 					var i =0,j = fileobjs.length;
 					d.hide();
-				opts.loopcallback = function (){
-				   if (i < j) {
-				   	   args.is_private = d.fields_dict[fileobjs[i].name + "_is_private"].get_value()
-					   frappe.upload.upload_file(fileobjs[i], args, opts);
-					   i++;
-				   }
-				}
+					opts.loopcallback = function (){
+						if (i < j) {
+							args.is_private = d.fields_dict[fileobjs[i].name + "_is_private"].get_value()
+							frappe.upload.upload_file(fileobjs[i], args, opts);
+							i++;
+						}
+					}
 
-				opts.loopcallback();
-
+					opts.loopcallback();
 				}
 			});
 			d.show();
 			opts.confirm_is_private =  0;
 	}
-
 }
