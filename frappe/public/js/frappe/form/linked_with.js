@@ -71,7 +71,6 @@ frappe.ui.form.LinkedWith = class LinkedWith {
 				</div>`;
 			});
 		}
-
 		$(this.dialog.body).html(html);
 	}
 
