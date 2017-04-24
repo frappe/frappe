@@ -10,6 +10,9 @@ frappe.upload = {
 			opts.allow_multiple = 1
 		}
 
+		// whether to show public/private checkbox or not
+		opts.show_private = !("is_private" in opts);
+
 		var d = null;
 		// create new dialog if no parent given
 		if(!opts.parent) {
@@ -50,7 +53,7 @@ frappe.upload = {
 				$uploaded_files_wrapper.removeClass('hidden').empty();
 
 				file_array = file_array.map(
-					file => Object.assign(file, {is_private: 1})
+					file => Object.assign(file, {is_private: opts.is_private || 0})
 				)
 				$upload.data('attached_files', file_array);
 
@@ -60,22 +63,21 @@ frappe.upload = {
 						<div class="list-item__content list-item__content--flex-2">
 							${__('Filename')}
 						</div>
-						<div class="list-item__content" style="flex: 0 0 64px">
-							${__('Is Private')}
-						</div>
+						${opts.show_private
+						? `<div class="list-item__content file-public-column">
+							${__('Public')}
+							</div>`
+						: ''}
 						<div class="list-item__content list-item__content--activity" style="flex: 0 0 32px">
 						</div>
 					</div>
 				`);
 				var file_pills = file_array.map(
-					file => frappe.upload.make_file_row(file.name, !("is_private" in opts))
+					file => frappe.upload.make_file_row(file, opts)
 				);
 				$uploaded_files_wrapper.append(file_pills);
 			} else {
-				$upload.find(".uploaded-filename").addClass("hidden")
-				$upload.find(".web-link-wrapper").removeClass("hidden");
-				$upload.find(".private-file").addClass("hidden");
-				$upload.find(".btn-browse").removeClass("btn-default").addClass("btn-primary");
+				frappe.upload.show_empty_state($upload);
 			}
 		});
 
@@ -91,7 +93,7 @@ frappe.upload = {
 			var $target = $(e.target);
 
 			if ($target.is(':checkbox')) {
-				var is_private = $target.is(':checked');
+				var is_private = !$target.is(':checked');
 
 				attached_files = attached_files.map(file => {
 					if (file.name === filename) {
@@ -99,6 +101,10 @@ frappe.upload = {
 					}
 					return file;
 				});
+				$uploaded_files_wrapper
+					.find(`.list-item-container[data-filename="${filename}"] .fa.fa-fw`)
+					.toggleClass('fa-lock fa-unlock-alt');
+
 				$upload.data('attached_files', attached_files);
 			}
 			else if ($target.is('.uploaded-file-remove, .fa-remove')) {
@@ -110,6 +116,10 @@ frappe.upload = {
 				$uploaded_files_wrapper
 					.find(`.list-item-container[data-filename="${filename}"]`)
 					.remove();
+
+				if(attached_files.length === 0) {
+					frappe.upload.show_empty_state($upload);
+				}
 			}
 		});
 
@@ -144,16 +154,19 @@ frappe.upload = {
 			}
 		});
 	},
-	make_file_row: function(filename, show_private) {
+	make_file_row: function(file, { show_private } = {}) {
 		var template = `
-			<div class="list-item-container" data-filename="${filename}">
+			<div class="list-item-container" data-filename="${file.name}">
 				<div class="list-item">
 					<div class="list-item__content list-item__content--flex-2 ellipsis">
-						${filename}
+						<span>${file.name}</span>
+						<span style="margin-top: 1px; margin-left: 5px;"
+							class="fa fa-fw text-warning ${file.is_private ? 'fa-lock': 'fa-unlock-alt'}">
+						</span>
 					</div>
 					${show_private
-					? `<div class="list-item__content ellipsis" style="flex: 0 0 64px;">
-							<input type="checkbox" checked/>
+					? `<div class="list-item__content file-public-column ellipsis">
+							<input type="checkbox" ${!file.is_private ? 'checked' : ''}/>
 						</div>`
 					: ''}
 					<div class="list-item__content list-item__content--activity ellipsis" style="flex: 0 0 32px;">
@@ -165,6 +178,12 @@ frappe.upload = {
 			</div>`;
 
 		return $(template);
+	},
+	show_empty_state: function($upload) {
+		$upload.find(".uploaded-filename").addClass("hidden");
+		$upload.find(".web-link-wrapper").removeClass("hidden");
+		$upload.find(".private-file").addClass("hidden");
+		$upload.find(".btn-browse").removeClass("btn-default").addClass("btn-primary");
 	},
 	upload_multiple_files: function(files /*FileData array*/, args, opts) {
 		var i = -1;
