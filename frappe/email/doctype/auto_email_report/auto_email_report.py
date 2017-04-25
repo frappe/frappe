@@ -59,7 +59,7 @@ class AutoEmailReport(Document):
 		columns, data = report.get_data(limit=self.no_of_rows or 100, user = self.user,
 			filters = self.filters, as_dict=True)
 
-		if len(data)==1 and self.send_if_data:
+		if len(data)==0 and self.send_if_data:
 			return None
 
 		if self.format == 'HTML':
