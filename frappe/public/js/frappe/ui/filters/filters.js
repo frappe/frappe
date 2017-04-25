@@ -116,7 +116,8 @@ frappe.ui.FilterList = Class.extend({
 		if (['Date', 'Datetime'].indexOf(field.type)!=-1) {
 			return
 		}
-    var field_label = __(field.label).replace(/'/g, "\\'");
+
+		var field_label = __(field.label).replace(/'/g, "\\'");
 		var active = this.wrapper.find(".filter-sort-active[data-name='"+ field_label +"']");
 
 		// sort filters
