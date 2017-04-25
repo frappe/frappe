@@ -40,7 +40,7 @@ class AutoEmailReport(Document):
 		count = frappe.db.sql('select count(*) from `tabAuto Email Report` where user=%s and enabled=1', self.user)[0][0]
 		if count > max_reports_per_user + (-1 if self.flags.in_insert else 0):
 			frappe.throw(_('Only {0} emailed reports are allowed per user').format(max_reports_per_user))
-	
+
 	def validate_report_format(self):
 		""" check if user has select correct report format """
 		valid_report_formats = ["HTML", "XLS", "CSV"]
@@ -58,6 +58,11 @@ class AutoEmailReport(Document):
 
 		columns, data = report.get_data(limit=self.no_of_rows or 100, user = self.user,
 			filters = self.filters, as_dict=True)
+
+		# add serial numbers
+		columns.insert(0, frappe._dict(fieldname='idx', label='', width='30px'))
+		for i in range(len(data)):
+			data[i]['idx'] = i+1
 
 		if len(data)==0 and self.send_if_data:
 			return None
@@ -77,7 +82,7 @@ class AutoEmailReport(Document):
 	def get_html_table(self, columns, data):
 		return frappe.render_template('frappe/templates/includes/print_table.html', {
 			'columns': columns,
-			'data': data[1:]
+			'data': data
 		})
 
 	def get_csv(self, columns, data):
@@ -96,7 +101,7 @@ class AutoEmailReport(Document):
 	def send(self):
 		if self.filter_meta and not self.filters:
 			frappe.throw(_("Please set filters value in Report Filter table."))
-		
+
 		data = self.get_report_content()
 		if not data:
 			return
@@ -135,7 +140,7 @@ class AutoEmailReport(Document):
 	def get_report_footer(self):
 		return """<hr style="margin: 30px 0px 15px 0px;">
 		<p style="font-size: 9px;">
-			View report in your browser: 
+			View report in your browser:
 			<a href= {{report_url}} target="_blank">{{report_name}}</a><br><br>
 			Edit Auto Email Report Settings: {{edit_report_settings}}
 		</p>"""

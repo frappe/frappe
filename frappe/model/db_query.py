@@ -73,7 +73,7 @@ class DatabaseQuery(object):
 		self.user = user or frappe.session.user
 		self.update = update
 		self.user_settings_fields = copy.deepcopy(self.fields)
-		# self.debug = True
+		#self.debug = True
 
 		if user_settings:
 			self.user_settings = json.loads(user_settings)
