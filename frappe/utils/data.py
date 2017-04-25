@@ -473,7 +473,8 @@ def is_html(text):
 _striptags_re = re.compile(r'(<!--.*?-->|<[^>]*>)')
 def strip_html(text):
 	"""removes anything enclosed in and including <>"""
-	return _striptags_re.sub("", text)
+
+	return _striptags_re.sub(" ", text)
 
 def escape_html(text):
 	html_escape_table = {
@@ -485,6 +486,10 @@ def escape_html(text):
 	}
 
 	return "".join(html_escape_table.get(c,c) for c in text)
+
+def strip_script(content):
+	pattern = r"(?is)(<script[^>]*>)(.*?)(</script>)"
+	return re.sub(pattern, '', content)
 
 def pretty_date(iso_datetime):
 	"""

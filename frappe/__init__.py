@@ -22,6 +22,8 @@ class _dict(dict):
 	"""dict like object that exposes keys as attributes"""
 	def __getattr__(self, key):
 		ret = self.get(key)
+		if isinstance(ret, dict) and ret:
+			ret = _dict(ret)
 		if not ret and key.startswith("__"):
 			raise AttributeError()
 		return ret
