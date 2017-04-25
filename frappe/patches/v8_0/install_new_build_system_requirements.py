@@ -5,11 +5,11 @@ def execute():
     p = Popen(['which', 'brew'], stdout=PIPE, stderr=PIPE)
     output, err = p.communicate()
     if output:
-        subprocess.call(['brew', 'upgrade', 'node'])
+        call(['brew', 'upgrade', 'node'])
     else:
         print 'Please update your NodeJS version'
 
-    subprocess.call([
+    call([
         'npm', 'install',
         'babel-core',
         'less',
