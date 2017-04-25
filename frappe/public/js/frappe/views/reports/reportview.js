@@ -324,7 +324,7 @@ frappe.views.ReportView = frappe.ui.BaseList.extend({
 			}
 			if(!docfield) return;
 
-			coldef = {
+			let coldef = {
 				id: c[0],
 				field: c[0],
 				docfield: docfield,

@@ -131,8 +131,13 @@ class Report(Document):
 			if params.get('sort_by_next'):
 				order_by += ', ' + _format(params.get('sort_by_next').split('.')) + ' ' + params.get('sort_order_next')
 
-			result = frappe.get_list(self.ref_doctype, fields = [_format([c[1], c[0]]) for c in columns],
-				filters=_filters, order_by = order_by, as_list=True, limit=limit, user=user)
+			result = frappe.get_list(self.ref_doctype,
+				fields = [_format([c[1], c[0]]) for c in columns],
+				filters=_filters,
+				order_by = order_by,
+				as_list=True,
+				limit=limit,
+				user=user)
 
 			meta = frappe.get_meta(self.ref_doctype)
 
