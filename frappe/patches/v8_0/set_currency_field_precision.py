@@ -17,5 +17,6 @@ def execute():
 			
 		ss = frappe.get_doc("System Settings")
 		ss.currency_precision = precision
+		ss.flags.ignore_mandatory = True
 		ss.save()
 		
