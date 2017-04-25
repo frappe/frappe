@@ -4,20 +4,36 @@ frappe.ui.SimpleList = class SimpleList {
 		parent = null,
 		columns = [],
 		values = [],
-		with_checkbox = 0
+		with_checkbox = 0,
+		with_remove = 0,
+
+		placeholder = {}	// height, icon, btn-action?
+
 	} = {}) {
 
 		this.columns = columns;
 		this.values = values;
 		this.with_checkbox = with_checkbox;
-		debugger;
+		this.with_remove = with_remove;
+		this.placeholder = placeholder;
+
+		if(this.with_checkbox && this.with_remove) {
+			throw "List cannot have both checkbox and remove button"
+		}
+
 		this.prepare_columns();
 
 		this.$wrapper = $(this.get_html());
-
 		$(this.$wrapper).appendTo(parent);
+		values.map(value => this.insert_row(value));
 
-		this.values.map(value => this.insert_row(value));
+		this.bind_events();
+
+	}
+
+	refresh(values) {
+		this.$wrapper = $(this.get_html());
+		values.map(value => this.insert_row(value));
 	}
 
 	get_html() {
@@ -27,7 +43,7 @@ frappe.ui.SimpleList = class SimpleList {
 					col => `<div
 					class="list-item__content ${col.is_subject ? "list-item__content--flex-2" : ""}"
 					style="order: ${col.order}; justify-content: ${col.alignment}">
-						${col.title}
+						${ this.with_checkbox && col.is_subject ? this.get_checkbox_html() + col.title : col.title}
 					</div>`
 			)}
 			</div>
@@ -56,32 +72,37 @@ frappe.ui.SimpleList = class SimpleList {
 				col.alignment = 'flex-end';
 			}
 
-			// checkboxes
-			if (this.with_checkbox && col.is_subject) {
-				col.title = this.get_checkbox_html() + col.title;
-			}
 			return col;
 		});
 	}
 
 	prepare_values() {
-		// this.values = this.values.map((value, i) => {
-		// 	if ()
-		// })
+		// Can do stuff like linkifying here
 	}
 
 	get_checkbox_html() {
 		return '<input class="list-row-check" type="checkbox"/>';
 	}
 
+	get_remove_button_html() {
+		return `<button class="btn btn-default btn-xs text-muted item-remove">
+					<span class="fa fa-remove"></span>
+				</button>`;
+	}
+
 	get_row_html(value) {
-		return `<div class="list-item-container">
+		let subject_col = this.columns.filter(col => { return col.is_subject })[0];
+		// TO DO: last_col value
+		let last_col = subject_col;
+		return `<div class="list-item-container" data-item-name="${value[subject_col.fieldname]}">
 			<div class="list-item">
 				${this.columns.map(
 					col => `<div
 					class="list-item__content ${col.is_subject ? "list-item__content--flex-2" : ""}"
 					style="order: ${col.order}; justify-content: ${col.alignment}">
-						${value[col.fieldname]}
+						${ this.with_checkbox && col.is_subject
+							? this.get_checkbox_html() + value[col.fieldname] : value[col.fieldname]}
+						${ col === last_col ? this.get_remove_button_html() : "" }
 					</div>`
 				)}
 			</div>
@@ -91,4 +112,44 @@ frappe.ui.SimpleList = class SimpleList {
 	insert_row(value) {
 		this.$wrapper.append(this.get_row_html(value));
 	}
+
+	remove_row(item_name) {
+		this.$wrapper.find(`[data-item-name="${item_name}"]`).remove();
+	}
+
+	bind_events() {
+		this.$wrapper.on('click', '.list-item-container', function (e) {
+			var $item = $(this);
+			var item_name = $item.attr('data-item-name');
+			var $target = $(e.target);
+
+			if ($target.is('.item-remove, .fa-remove')) {
+				$item.remove();
+			}
+		});
+
+		this.$wrapper.on('click', '.list-item--head .list-row-check', (e) => {
+			this.$wrapper.find('.list-item-container :checkbox').prop("checked", ($(e.target).is(':checked')));
+		});
+
+	}
+
+	get_values() {
+		return this.$wrapper.find('.list-item-container').map(function() {
+			$(this).attr('data-item-name');
+		}).get();
+	}
+
+	get_checked_values() {
+		return this.$wrapper.find('.list-item-container').map(function() {
+			if ($(this).find('.list-row-check:checkbox:checked').length > 0 ) {
+				return $(this).attr('data-item-name');
+			}
+		}).get();
+	}
+
+	remove_checked_rows() {
+		this.get_checked_values().map(item_name => this.remove_row(item_name));
+	}
+
 }
