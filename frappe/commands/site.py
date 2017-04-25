@@ -342,7 +342,7 @@ def drop_site(site, root_login='root', root_password=None, archived_sites_path=N
 					"{reason}{sep}{sep}"
 				).format(dec = "="*80, s=site, sep="\n", reason=err[1])
 
-			print("\n"*80)
+			print("="*80)
 			print(msg)
 
 			# Python 3 compatibility. Can this project incorporate six?
