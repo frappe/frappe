@@ -73,7 +73,8 @@ class DatabaseQuery(object):
 		self.user = user or frappe.session.user
 		self.update = update
 		self.user_settings_fields = copy.deepcopy(self.fields)
-		#self.debug = True
+		# self.debug = True
+
 		if user_settings:
 			self.user_settings = json.loads(user_settings)
 
@@ -139,9 +140,9 @@ class DatabaseQuery(object):
 		self.set_field_tables()
 
 		args.fields = ', '.join(self.fields)
-		
+
 		self.set_order_by(args)
-		
+
 		self.validate_order_by_and_group_by(args.order_by)
 		args.order_by = args.order_by and (" order by " + args.order_by) or ""
 
@@ -449,7 +450,7 @@ class DatabaseQuery(object):
 
 	def set_order_by(self, args):
 		meta = frappe.get_meta(self.doctype)
-		
+
 		if self.order_by:
 			args.order_by = self.order_by
 		else:
@@ -490,7 +491,7 @@ class DatabaseQuery(object):
 		_lower = parameters.lower()
 		if 'select' in _lower and ' from ' in _lower:
 			frappe.throw(_('Cannot use sub-query in order by'))
-		
+
 
 		for field in parameters.split(","):
 			if "." in field and field.strip().startswith("`tab"):
