@@ -360,7 +360,7 @@ def check_if_ready_for_barracuda():
 			msg = ("Creation of your site - {x} failed because MariaDB is not properly {sep}"
 			       "configured to use the Barracuda storage engine. {sep}"
 			       "Please add the settings below to MariaDB's my.cnf, restart MariaDB then {sep}"
-			       "run `bench new-site site17.local` again.{sep2}"
+			       "run `bench new-site {x}` again.{sep2}"
 			       "").format(x=site, sep2="\n"*2, sep="\n")
 
 			print_db_config(msg, expected_config_for_barracuda)
