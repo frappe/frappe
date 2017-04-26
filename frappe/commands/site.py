@@ -2,6 +2,7 @@ from __future__ import unicode_literals, absolute_import
 import click
 import hashlib, os, sys
 import frappe
+from _mysql_exceptions import ProgrammingError
 from frappe.commands import pass_context, get_site
 from frappe.commands.scheduler import _is_scheduler_enabled
 from frappe.limits import update_limits, get_limits
@@ -331,7 +332,38 @@ def drop_site(site, root_login='root', root_password=None, archived_sites_path=N
 
 	frappe.init(site=site)
 	frappe.connect()
-	scheduled_backup(ignore_files=False, force=True)
+
+	try:
+		scheduled_backup(ignore_files=False, force=True)
+	except ProgrammingError as err:
+		if err[0] == 1146:
+			msg = (
+					"Backup of the {s}'s database failed. The reason is:{sep}"
+					"{reason}{sep}{sep}"
+				).format(dec = "="*80, s=site, sep="\n", reason=err[1])
+
+			print("="*80)
+			print(msg)
+
+			# Python 3 compatibility. Can this project incorporate six?
+			py3 = sys.version_info[0] > 2
+			kontinue = ""
+
+			while kontinue not in ['y', 'Y', 'n', 'N']:
+				if py3:
+					kontinue = input("Do you want to continue with the drop-site operation?: (y/N)")
+				else:
+					kontinue = raw_input("Do you want to continue with the drop-site operation?: (y/N)")
+
+			if kontinue.lower() == 'y':
+				pass
+			else:
+				msg = (
+						"{s} has not been removed. Please rectify the problem then run the {sep}"
+						"drop-site command again"
+					).format(s=site, sep="\n")
+				print(msg)
+				sys.exit(1)
 
 	db_name = frappe.local.conf.db_name
 	frappe.local.db = get_root_connection(root_login, root_password)
