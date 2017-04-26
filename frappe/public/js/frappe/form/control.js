@@ -1343,10 +1343,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 				};
 			},
 			filter: function(item, input) {
-				var d = this.get_item(item.value);
-				return Awesomplete.FILTER_CONTAINS(d.value, '__link_option') ||
-					Awesomplete.FILTER_CONTAINS(d.value, input) ||
-					Awesomplete.FILTER_CONTAINS(d.description, input);
+				return true;
 			},
 			item: function (item, input) {
 				d = this.get_item(item.value);
