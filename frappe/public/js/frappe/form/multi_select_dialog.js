@@ -3,7 +3,7 @@
 
 frappe.ui.form.MultiSelectDialog = Class.extend({
 	init: function(opts) {
-		/* help: Options: doctype, get_query, target */
+		/* Options: doctype, target, setters, get_query, action */
 		$.extend(this, opts);
 
 		var me = this;
