@@ -91,7 +91,6 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 			}
 		});
 		this.$results.on('click', '.list-item--head :checkbox', function (e) {
-			// TO DO: more complex than it seems, think of uncheck case
 			if ($(e.target).is(':checked')) {
 				me.$results.find('.list-item-container :checkbox:not(:checked)').trigger('click');
 			} else {
@@ -129,7 +128,7 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 								head ? __(frappe.model.unscrub(column))
 
 								: (column !== "name" ? __(result[column])
-									: `<a href=${"#Form/"+ me.doctype + "/" + result[column]} class="list-id">
+									: `<a href="${"#Form/"+ me.doctype + "/" + result[column]}" class="list-id">
 										${__(result[column])}</a>`)
 							}
 						</div>`;
