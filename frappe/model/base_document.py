@@ -49,6 +49,7 @@ class BaseDocument(object):
 	ignore_in_getter = ("doctype", "_meta", "meta", "_table_fields", "_valid_columns")
 
 	def __init__(self, d):
+		self._parent = None
 		self.update(d)
 		self.dont_update_if_missing = []
 
@@ -441,16 +442,19 @@ class BaseDocument(object):
 
 		return missing
 
-	def get_invalid_links(self, is_submittable=False):
+	def _validate_links(self):
 		'''Returns list of invalid links and also updates fetch values if not set'''
+		if self.flags.ignore_links:
+			return
+
+		is_submittable = (self._parent.meta.is_submittable if self._parent
+			else self.meta.is_submittable)
+
 		def get_msg(df, docname):
 			if self.parentfield:
 				return "{} #{}: {}: {}".format(_("Row"), self.idx, _(df.label), docname)
 			else:
 				return "{}: {}".format(_(df.label), docname)
-
-		invalid_links = []
-		cancelled_links = []
 
 		for df in (self.meta.get_link_fields()
 				 + self.meta.get("fields", {"fieldtype":"Dynamic Link"})):
@@ -488,7 +492,9 @@ class BaseDocument(object):
 					values = frappe.db.get_value(doctype, docname,
 						values_to_fetch, as_dict=True)
 
-				if frappe.get_meta(doctype).issingle:
+				link_meta = frappe.get_meta(doctype)
+
+				if link_meta.issingle:
 					values.name = doctype
 
 				setattr(self, df.fieldname, values.name)
@@ -499,15 +505,16 @@ class BaseDocument(object):
 				notify_link_count(doctype, docname)
 
 				if not values.name:
-					invalid_links.append((df.fieldname, docname, get_msg(df, docname)))
+					self.flags.invalid_links.append((df.fieldname, docname,
+						get_msg(df, docname)))
 
 				elif (df.fieldname != "amended_from"
-					and (is_submittable or self.meta.is_submittable) and frappe.get_meta(doctype).is_submittable
+					and is_submittable
+					and link_meta.is_submittable
 					and cint(frappe.db.get_value(doctype, docname, "docstatus"))==2):
 
-					cancelled_links.append((df.fieldname, docname, get_msg(df, docname)))
-
-		return invalid_links, cancelled_links
+					self.flags.cancelled_links.append((df.fieldname, docname,
+						get_msg(df, docname)))
 
 	def _validate_selects(self):
 		if frappe.flags.in_import:

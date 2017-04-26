@@ -68,7 +68,7 @@ frappe.ui.form.on("Customize Form", {
 			frappe.customize_form.set_primary_action(frm);
 
 			frm.add_custom_button(__('Refresh Form'), function() {
-				frm.script_manager.trigger("doc_type");
+				frm.trigger("doc_type");
 			}, "fa fa-refresh", "btn-default");
 
 			frm.add_custom_button(__('Reset to defaults'), function() {
@@ -193,7 +193,7 @@ frappe.customize_form.clear_locals_and_refresh = function(frm) {
 }
 
 frappe.customize_form.add_fields_help = function(frm) {
-	$(frm.grids[0].parent).before(
+	$(frm.layout.grids[0].parent).before(
 		'<div style="padding: 10px">\
 			<a id="fields_help" class="link_type">' + __("Help") + '</a>\
 		</div>');

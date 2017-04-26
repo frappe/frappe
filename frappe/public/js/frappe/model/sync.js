@@ -40,12 +40,16 @@ $.extend(frappe.model, {
 					// update docinfo to new dict keys
 					if(i===0) {
 						frappe.model.docinfo[d.doctype][d.name] = frappe.model.docinfo[d.doctype][d.localname];
-						frappe.model.docinfo[d.doctype][d.localname] = undefined;
+						if(d.name !== d.localname) {
+							frappe.model.docinfo[d.doctype][d.localname] = undefined;
+						}
 					}
 				}
-			}
 
-			if(cur_frm && dirty.indexOf(cur_frm.doctype)!==-1) cur_frm.dirty();
+				if(!d.parent) {
+					frappe.ui.form.set_dirty(d.doctype, d.name);
+				}
+			}
 
 		}
 
@@ -75,25 +79,25 @@ $.extend(frappe.model, {
 
 			doc.name = frappe.model.get_new_name(doc.doctype);
 
-			if(!doc.parentfield) frappe.provide("frappe.model.docinfo." + doc.doctype + "." + doc.name);
+			if(!doc.parentfield) {
+				frappe.provide("frappe.model.docinfo." + doc.doctype + "." + doc.name);
+			}
 		}
 
 		locals[doc.doctype][doc.name] = doc;
 
 		// add child docs to locals
-		if(!doc.parentfield) {
-			for(var i in doc) {
-				var value = doc[i];
+		for(var i in doc) {
+			var value = doc[i];
 
-				if($.isArray(value)) {
-					for (var x=0, y=value.length; x < y; x++) {
-						var d = value[x];
+			if($.isArray(value)) {
+				for (var x=0, y=value.length; x < y; x++) {
+					var d = value[x];
 
-						if(!d.parent)
-							d.parent = doc.name;
+					if(!d.parent)
+						d.parent = doc.name;
 
-						frappe.model.add_to_locals(d);
-					}
+					frappe.model.add_to_locals(d);
 				}
 			}
 		}

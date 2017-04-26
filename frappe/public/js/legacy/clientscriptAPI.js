@@ -359,8 +359,8 @@ _f.Frm.prototype.set_read_only = function() {
 	cur_frm.perm = perm;
 }
 
-_f.Frm.prototype.trigger = function(event) {
-	this.script_manager.trigger(event);
+_f.Frm.prototype.trigger = function(event, doctype, name, callback) {
+	return this.get_parent_frm().script_manager.trigger(event, doctype, name, callback);
 };
 
 _f.Frm.prototype.get_formatted = function(fieldname) {

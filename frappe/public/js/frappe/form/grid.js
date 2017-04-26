@@ -1,13 +1,17 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-frappe.ui.form.get_open_grid_form = function() {
-	return $(".grid-row-open").data("grid_row");
+frappe.ui.form.get_open_grid_form = function(parent) {
+	if(!parent) parent = $('body');
+	return parent.find(".grid-row-open").data("grid_row");
 }
 
-frappe.ui.form.close_grid_form = function() {
-	var open_form = frappe.ui.form.get_open_grid_form();
-	open_form && open_form.hide_form();
+frappe.ui.form.close_all_grid_forms = function() {
+	// hide all open grid forms (child in a child)
+	$('.grid-row-open').each(function() {
+		var open_form = $(this).data("grid_row");
+		open_form && open_form.hide_form();
+	});
 
 	// hide editable row too
 	if(frappe.ui.form.editable_row) {
@@ -35,6 +39,9 @@ frappe.ui.form.Grid = Class.extend({
 		}
 
 		this.is_grid = true;
+
+		// update grid of parent doctypes
+		frappe.ui.form.parent_doctypes[this.frm.get_parent_frm().doctype] = this.doctype;
 	},
 
 	allow_on_grid_editing: function() {
@@ -137,7 +144,8 @@ frappe.ui.form.Grid = Class.extend({
 		this.setup_fields();
 
 		if(this.frm) {
-			this.display_status = frappe.perm.get_field_display_status(this.df, this.frm.doc,
+			this.display_status = frappe.perm.get_field_display_status(this.df,
+				this.frm.parent_doc || this.frm.doc,
 				this.perm);
 		} else {
 			// not in form
@@ -209,7 +217,8 @@ frappe.ui.form.Grid = Class.extend({
 		}
 
 		// red if mandatory
-		this.form_grid.toggleClass('error', !!(this.df.reqd && !(data && data.length)));
+		this.form_grid.toggleClass('error', !!(this.df.reqd
+		 	&& !(data && data.length)));
 
 		this.refresh_remove_rows_button();
 	},
@@ -249,10 +258,10 @@ frappe.ui.form.Grid = Class.extend({
 	setup_fields: function() {
 		var me = this;
 		// reset docfield
-		if (this.frm && this.frm.docname) {
+		if (this.frm && this.frm.doc.name) {
 			// use doc specific docfield object
 			this.df = frappe.meta.get_docfield(this.frm.doctype, this.df.fieldname,
-					this.frm.docname);
+					this.frm.doc.name);
 		} else {
 			// use non-doc specific docfield
 			if(this.df.options) {
@@ -261,8 +270,9 @@ frappe.ui.form.Grid = Class.extend({
 		}
 
 		if(this.doctype) {
-			this.docfields = frappe.meta.get_docfields(this.doctype, this.frm.docname);
-		} else {
+			this.docfields = frappe.meta.get_docfields(this.doctype,
+				this.frm && this.frm.docname);
+		} else if(this.df.fields) {
 			// fields given in docfield
 			this.docfields = this.df.fields;
 		}
@@ -311,10 +321,10 @@ frappe.ui.form.Grid = Class.extend({
 				me.frm.doc[me.df.fieldname].forEach(function(d) {
 					me.grid_rows.push(me.grid_rows_by_docname[d.name]);
 				});
-				me.frm.script_manager.trigger(me.df.fieldname + "_move", me.df.options, me.frm.doc[me.df.fieldname][event.newIndex].name);
+				me.frm.trigger(me.df.fieldname + "_move", me.df.options, me.frm.doc[me.df.fieldname][event.newIndex].name);
 				me.refresh();
 
-				me.frm.dirty();
+				frappe.ui.form.set_dirty(me.doctype);
 			}
 		});
 
@@ -370,11 +380,14 @@ frappe.ui.form.Grid = Class.extend({
 			this.grid_rows_by_docname[doc.name].refresh_field(fieldname);
 		}
 	},
+	get_frm: function() {
+		return this.frm.parent_frm || this.frm;
+	},
 	add_new_row: function(idx, callback, show) {
 		if(this.is_editable()) {
 			var d = frappe.model.add_child(this.frm.doc, this.df.options, this.df.fieldname, idx);
 			d.__unedited = true;
-			this.frm.script_manager.trigger(this.df.fieldname + "_add", d.doctype, d.name);
+			this.frm.trigger(this.df.fieldname + "_add", d.doctype, d.name);
 			this.refresh();
 
 			if(show) {
@@ -513,7 +526,8 @@ frappe.ui.form.Grid = Class.extend({
 	},
 	setup_allow_bulk_edit: function() {
 		var me = this;
-		if(this.frm && this.frm.get_docfield(this.df.fieldname).allow_bulk_edit) {
+		if(this.frm && frappe.meta.get_docfield(this.frm.doctype,
+			this.df.fieldname).allow_bulk_edit) {
 			// download
 			me.setup_download();
 
@@ -639,7 +653,9 @@ frappe.ui.form.GridRow = Class.extend({
 		this.wrapper = $('<div class="grid-row"></div>').appendTo(this.parent).data("grid_row", this);
 		this.row = $('<div class="data-row row"></div>').appendTo(this.wrapper)
 			.on("click", function(e) {
-				if($(e.target).hasClass('grid-row-check') || $(e.target).hasClass('row-index') || $(e.target).parent().hasClass('row-index')) {
+				if($(e.target).hasClass('grid-row-check')
+					|| $(e.target).hasClass('row-index')
+					|| $(e.target).parent().hasClass('row-index')) {
 					return;
 				}
 				if(me.grid.allow_on_grid_editing() && me.grid.is_editable()) {
@@ -687,19 +703,19 @@ frappe.ui.form.GridRow = Class.extend({
 	},
 	remove: function() {
 		if(this.grid.is_editable()) {
-			if(this.get_open_form()) {
+			if(this.get_open_form(this.frm.layout.wrapper)) {
 				this.hide_form();
 			}
 
-			this.frm.script_manager.trigger("before_" + this.grid.df.fieldname + "_remove",
+			this.frm.trigger("before_" + this.grid.df.fieldname + "_remove",
 				this.doc.doctype, this.doc.name);
 
 			//this.wrapper.toggle(false);
 			frappe.model.clear_doc(this.doc.doctype, this.doc.name);
 
-			this.frm.script_manager.trigger(this.grid.df.fieldname + "_remove",
+			this.frm.trigger(this.grid.df.fieldname + "_remove",
 				this.doc.doctype, this.doc.name);
-			this.frm.dirty();
+			frappe.ui.form.set_dirty(this.doc.doctype);
 			this.grid.refresh();
 		}
 	},
@@ -914,6 +930,7 @@ frappe.ui.form.GridRow = Class.extend({
 	},
 
 	make_control: function(column) {
+		// make control for on-grid editing
 		if(column.field) return;
 
 		var me = this,
@@ -926,7 +943,7 @@ frappe.ui.form.GridRow = Class.extend({
 			df.fieldtype = 'Text';
 		}
 
-		var field = frappe.ui.form.make_control({
+		var args = {
 			df: df,
 			parent: parent,
 			only_input: true,
@@ -936,7 +953,9 @@ frappe.ui.form.GridRow = Class.extend({
 			docname: this.doc.name,
 			frm: this.grid.frm,
 			value: this.doc[df.fieldname]
-		});
+		}
+
+		var field = frappe.ui.form.make_control(args);
 
 		// sync get_query
 		field.get_query = this.grid.get_field(df.fieldname).get_query;
@@ -1020,8 +1039,8 @@ frappe.ui.form.GridRow = Class.extend({
 		}
 	},
 
-	get_open_form: function() {
-		return frappe.ui.form.get_open_grid_form();
+	get_open_form: function(parent) {
+		return frappe.ui.form.get_open_grid_form(parent);
 	},
 
 	toggle_view: function(show, callback) {
@@ -1035,8 +1054,9 @@ frappe.ui.form.GridRow = Class.extend({
 		}
 
 		// hide other
-		var open_row = this.get_open_form();
+		var open_row = this.get_open_form(this.frm.layout.wrapper);
 
+		// if toggle, decide to show or not.
 		if (show===undefined) show = !!!open_row;
 
 		// call blur
@@ -1070,8 +1090,13 @@ frappe.ui.form.GridRow = Class.extend({
 		}
 		this.grid_form.render();
 		this.row.toggle(false);
+		this.grid_form.wrapper.removeClass('hidden');
 		// this.form_panel.toggle(true);
-		frappe.dom.freeze("", "dark");
+
+		if(!this.frm.is_child_frm) {
+			frappe.dom.freeze("", "dark");
+			this.frozen_background = true;
+		}
 		cur_frm.cur_grid = this;
 		this.wrapper.addClass("grid-row-open");
 		if(!frappe.dom.is_element_in_viewport(this.wrapper)) {
@@ -1079,15 +1104,23 @@ frappe.ui.form.GridRow = Class.extend({
 		}
 
 		if(this.frm) {
-			this.frm.script_manager.trigger(this.doc.parentfield + "_on_form_rendered");
-			this.frm.script_manager.trigger("form_render", this.doc.doctype, this.doc.name);
+			this.frm.trigger(this.doc.parentfield + "_on_form_rendered");
+			this.frm.trigger("form_render", this.doc.doctype, this.doc.name);
 		}
 	},
 	hide_form: function() {
-		frappe.dom.unfreeze();
+		if(this.frozen_background) {
+			frappe.dom.unfreeze();
+			cur_frm.cur_grid = null;
+		} else {
+			this.grid_form.wrapper.addClass('hidden');
+		}
+
+		// show the grid row
 		this.row.toggle(true);
 		this.refresh();
-		cur_frm.cur_grid = null;
+
+		// remove class on grid;
 		this.wrapper.removeClass("grid-row-open");
 	},
 	open_prev: function() {
@@ -1182,12 +1215,17 @@ frappe.ui.form.GridRowForm = Class.extend({
 		this.make_form();
 		this.form_area.empty();
 
-		this.layout = new frappe.ui.form.Layout({
+		var args = {
 			fields: this.row.docfields,
 			body: this.form_area,
 			no_submit_on_enter: true,
 			frm: this.row.frm,
-		});
+			is_child_table: true,
+			doctype: this.row.grid.doctype,
+			doc: this.row.doc
+		};
+
+		this.layout = new frappe.ui.form.Layout(args);
 		this.layout.make();
 
 		this.fields = this.layout.fields;

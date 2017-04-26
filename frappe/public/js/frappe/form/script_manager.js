@@ -56,7 +56,7 @@ frappe.ui.form.off = function(doctype, fieldname, handler) {
 
 
 frappe.ui.form.trigger = function(doctype, fieldname, callback) {
-	cur_frm.script_manager.trigger(fieldname, doctype, null, callback);
+	cur_frm.trigger(fieldname, doctype, null, callback);
 }
 
 frappe.ui.form.ScriptManager = Class.extend({

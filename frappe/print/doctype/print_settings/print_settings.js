@@ -7,5 +7,5 @@ frappe.ui.form.on("Print Settings", "print_style", function (frm) {
 });
 
 frappe.ui.form.on("Print Settings", "onload", function (frm) {
-	frm.script_manager.trigger("print_style");
+	frm.trigger("print_style");
 });

@@ -275,14 +275,20 @@ def _bulk_rename(context, doctype, path):
 
 	frappe.destroy()
 
-@click.command('mysql')
+@click.command('mariadb')
 @pass_context
-def mysql(context):
+def mariadb(context):
 	"Start Mariadb console for a site"
 	site = get_site(context)
 	frappe.init(site=site)
 	msq = find_executable('mysql')
 	os.execv(msq, [msq, '-u', frappe.conf.db_name, '-p'+frappe.conf.db_password, frappe.conf.db_name, '-h', frappe.conf.db_host or "localhost", "-A"])
+
+@click.command('mysql')
+@pass_context
+def mysql(context):
+	"Start Mariadb console for a site"
+	print 'Did you mean bench --site [sitename] mariadb ?'
 
 @click.command('console')
 @pass_context
@@ -457,6 +463,7 @@ commands = [
 	import_csv,
 	import_doc,
 	make_app,
+	mariadb,
 	mysql,
 	request,
 	reset_perms,

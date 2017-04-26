@@ -116,6 +116,14 @@ class Document(BaseDocument):
 
 			super(Document, self).__init__(d)
 
+		self.load_children()
+
+		# sometimes __setup__ can depend on child values, hence calling again at the end
+		if hasattr(self, "__setup__"):
+			self.__setup__()
+
+	def load_children(self):
+		'''load the records of the child table'''
 		if self.name=="DocType" and self.doctype=="DocType":
 			from frappe.model.meta import doctype_table_fields
 			table_fields = doctype_table_fields
@@ -128,12 +136,17 @@ class Document(BaseDocument):
 				"*", as_dict=True, order_by="idx asc")
 			if children:
 				self.set(df.fieldname, children)
+
+				if self.doctype=='DocType': continue
+
+				# check if any child table has grand children!
+				child_meta = frappe.get_meta('DocType', df.options)
+				if child_meta.get_table_fields():
+					# load grand children
+					for d in self.get(df.fieldname, []):
+						d.load_children()
 			else:
 				self.set(df.fieldname, [])
-
-		# sometimes __setup__ can depend on child values, hence calling again at the end
-		if hasattr(self, "__setup__"):
-			self.__setup__()
 
 	def get_latest(self):
 		if not getattr(self, "latest", None):
@@ -169,8 +182,6 @@ class Document(BaseDocument):
 		if self.flags.in_print:
 			return
 
-		self.flags.email_alerts_executed = []
-
 		if ignore_permissions!=None:
 			self.flags.ignore_permissions = ignore_permissions
 
@@ -178,30 +189,40 @@ class Document(BaseDocument):
 			self.flags.ignore_mandatory = ignore_mandatory
 
 		self.set("__islocal", True)
-
-		self.check_permission("create")
-		self._set_defaults()
-		self.set_user_and_timestamp()
+		self._doc_before_save = None
 		self.set_docstatus()
-		self.check_if_latest()
-		self.run_method("before_insert")
-		self.set_new_name()
-		self.set_parent_in_children()
+		self.setup_flags()
+
+		self._action = "save"
+		if not self.meta.istable:
+			self.check_permission("create")
+
+		self._set_defaults()
+
+		if not self.meta.istable:
+			self.set_user_and_timestamp()
+			self.check_if_latest()
+			self.run_method("before_insert")
+		else:
+			self.update_from_parent()
+
+		set_new_name(self)
+
 		self.validate_higher_perm_levels()
 
 		self.flags.in_insert = True
-		self.run_before_save_methods()
-		self._validate()
-		self.set_docstatus()
-		self.flags.in_insert = False
 
-		# run validate, on update etc.
+		if not self.meta.istable:
+			self.run_before_save_methods()
+
+		self._validate()
 
 		# parent
 		if getattr(self.meta, "issingle", 0):
 			self.update_single(self.get_valid_dict())
 		else:
 			try:
+				# db_insert, since this is already insert!
 				self.db_insert()
 			except frappe.DuplicateEntryError, e:
 				if not ignore_if_duplicate:
@@ -209,15 +230,21 @@ class Document(BaseDocument):
 
 		# children
 		for d in self.get_all_children():
-			d.db_insert()
+			d._parent = self
+			d.flags = self.flags
+			d.insert()
 
-		self.run_method("after_insert")
-		self.flags.in_insert = True
+		if not self.meta.istable:
+			self.raise_for_links()
 
-		if self.get("amended_from"):
-			self.copy_attachments_from_amended_from()
+		if not self.meta.istable:
+			self.run_method("after_insert")
 
-		self.run_post_save_methods()
+			if self.get("amended_from"):
+				self.copy_attachments_from_amended_from()
+
+			self.run_post_save_methods()
+
 		self.flags.in_insert = False
 
 		# delete __islocal
@@ -254,22 +281,29 @@ class Document(BaseDocument):
 			self.insert()
 			return
 
-		self.check_permission("write", "save")
-
-		self.set_user_and_timestamp()
 		self.set_docstatus()
-		self.check_if_latest()
-		self.set_parent_in_children()
+		self.setup_flags()
+		self._action = "save"
+		self._doc_before_save = None
+
+		if not self.meta.istable:
+			self.check_permission("write", "save")
+
+			self.set_user_and_timestamp()
+			self.check_if_latest()
+		else:
+			self.update_from_parent()
+
 		self.validate_higher_perm_levels()
-		self.run_before_save_methods()
+
+		if not self.meta.istable:
+			self.run_before_save_methods()
 
 		if self._action != "cancel":
 			self._validate()
 
-		if self._action == "update_after_submit":
+		if self._action == "update_after_submit" and not self.meta.issingle:
 			self.validate_update_after_submit()
-
-		self.set_docstatus()
 
 		# parent
 		if self.meta.issingle:
@@ -278,9 +312,19 @@ class Document(BaseDocument):
 			self.db_update()
 
 		self.update_children()
-		self.run_post_save_methods()
+
+		if not self.meta.istable:
+			self.run_post_save_methods()
 
 		return self
+
+	def setup_flags(self):
+		'''Initialize lists for flags on parent tables'''
+		if not self.meta.istable:
+			self.flags.email_alerts_executed = []
+			self.flags.invalid_links = []
+			self.flags.cancelled_links = []
+
 
 	def copy_attachments_from_amended_from(self):
 		'''Copy attachments from `amended_from`'''
@@ -304,13 +348,10 @@ class Document(BaseDocument):
 			df = self.meta.get_field(fieldname)
 
 		for d in self.get(df.fieldname):
-			d.db_update()
+			d._parent = self
+			d.flags = self.flags
+			d._save()
 			rows.append(d.name)
-
-		if df.options in (self.flags.ignore_children_type or []):
-			# do not delete rows for this because of flags
-			# hack for docperm :(
-			return
 
 		if rows:
 			# select rows that do not match the ones in the document
@@ -328,13 +369,6 @@ class Document(BaseDocument):
 			frappe.db.sql("""delete from `tab{0}` where parent=%s
 				and parenttype=%s and parentfield=%s""".format(df.options),
 				(self.name, self.doctype, fieldname))
-
-	def set_new_name(self):
-		"""Calls `frappe.naming.se_new_name` for parent and child docs."""
-		set_new_name(self)
-		# set name for children
-		for d in self.get_all_children():
-			set_new_name(d)
 
 	def get_title(self):
 		'''Get the document title based on title_field or `title` or `name`'''
@@ -370,6 +404,23 @@ class Document(BaseDocument):
 		if self.doctype in frappe.db.value_cache:
 			del frappe.db.value_cache[self.doctype]
 
+	def update_from_parent(self):
+		'''Update docstatus, modified, modified_by, owner, creation from parent'''
+		if not self._parent:
+			return
+
+		self._action = self._parent._action
+
+		self.parent = self._parent.name
+		self.parenttype = self._parent.doctype
+		self.docstatus = self._parent.docstatus
+		self.modified = self._parent.modified
+		self.modified_by = self._parent.modified_by
+		if not self.owner:
+			self.owner = self._parent.owner
+		if not self.creation:
+			self.creation = self._parent.creation
+
 	def set_user_and_timestamp(self):
 		self._original_modified = self.modified
 		self.modified = now()
@@ -379,22 +430,11 @@ class Document(BaseDocument):
 		if not self.owner:
 			self.owner = self.modified_by
 
-		for d in self.get_all_children():
-			d.modified = self.modified
-			d.modified_by = self.modified_by
-			if not d.owner:
-				d.owner = self.owner
-			if not d.creation:
-				d.creation = self.creation
-
 		frappe.flags.currently_saving.append((self.doctype, self.name))
 
 	def set_docstatus(self):
 		if self.docstatus==None:
 			self.docstatus=0
-
-		for d in self.get_all_children():
-			d.docstatus = self.docstatus
 
 	def _validate(self):
 		self._validate_mandatory()
@@ -405,15 +445,6 @@ class Document(BaseDocument):
 		self._extract_images_from_text_editor()
 		self._sanitize_content()
 		self._save_passwords()
-
-		children = self.get_all_children()
-		for d in children:
-			d._validate_selects()
-			d._validate_constants()
-			d._validate_length()
-			d._extract_images_from_text_editor()
-			d._sanitize_content()
-			d._save_passwords()
 
 		if self.is_new():
 			# don't set fields like _assign, _comments for new doc
@@ -454,13 +485,6 @@ class Document(BaseDocument):
 		if high_permlevel_fields:
 			self.reset_values_if_no_permlevel_access(has_access_to, high_permlevel_fields)
 
-		# check for child tables
-		for df in self.meta.get_table_fields():
-			high_permlevel_fields = frappe.get_meta(df.options).meta.get_high_permlevel_fields()
-			if high_permlevel_fields:
-				for d in self.get(df.fieldname):
-					d.reset_values_if_no_permlevel_access(has_access_to, high_permlevel_fields)
-
 	def get_permlevel_access(self, permission_type='write'):
 		if not hasattr(self, "_has_access_to"):
 			roles = frappe.get_roles()
@@ -494,14 +518,6 @@ class Document(BaseDocument):
 		new_doc = frappe.new_doc(self.doctype, as_dict=True)
 		self.update_if_missing(new_doc)
 
-		# children
-		for df in self.meta.get_table_fields():
-			new_doc = frappe.new_doc(df.options, as_dict=True)
-			value = self.get(df.fieldname)
-			if isinstance(value, list):
-				for d in value:
-					d.update_if_missing(new_doc)
-
 	def check_if_latest(self):
 		"""Checks if `modified` timestamp provided by document being updated is same as the
 		`modified` timestamp in the database. If there is a different, the document has been
@@ -511,7 +527,6 @@ class Document(BaseDocument):
 		Will also validate document transitions (Save > Submit > Cancel) calling
 		`self.check_docstatus_transition`."""
 		conflict = False
-		self._action = "save"
 		if not self.get('__islocal'):
 			if self.meta.issingle:
 				modified = frappe.db.sql('''select value from tabSingles
@@ -577,12 +592,6 @@ class Document(BaseDocument):
 		elif docstatus==2:
 			raise frappe.ValidationError, _("Cannot edit cancelled document")
 
-	def set_parent_in_children(self):
-		"""Updates `parent` and `parenttype` property in all children."""
-		for d in self.get_all_children():
-			d.parent = self.name
-			d.parenttype = self.doctype
-
 	def validate_update_after_submit(self):
 		if self.flags.ignore_validate_update_after_submit:
 			return
@@ -602,41 +611,31 @@ class Document(BaseDocument):
 			return
 
 		missing = self._get_missing_mandatory_fields()
-		for d in self.get_all_children():
-			missing.extend(d._get_missing_mandatory_fields())
 
-		if not missing:
-			return
+		if missing:
+			for fieldname, label in missing:
+				frappe.msgprint(label)
 
-		for fieldname, msg in missing:
-			msgprint(msg)
+			if frappe.flags.print_messages:
+				print self.as_json().encode("utf-8")
 
-		if frappe.flags.print_messages:
-			print self.as_json().encode("utf-8")
+			raise frappe.MandatoryError('[{doctype}, {name}]: {fields}'.format(
+				fields=", ".join((f[0] for f in missing)),
+				doctype=self.doctype,
+				name=self.name))
 
-		raise frappe.MandatoryError('[{doctype}, {name}]: {fields}'.format(
-			fields=", ".join((each[0] for each in missing)),
-			doctype=self.doctype,
-			name=self.name))
-
-	def _validate_links(self):
+	def raise_for_links(self):
+		'''Show message and raise exception for invalid links'''
 		if self.flags.ignore_links:
 			return
 
-		invalid_links, cancelled_links = self.get_invalid_links()
-
-		for d in self.get_all_children():
-			result = d.get_invalid_links(is_submittable=self.meta.is_submittable)
-			invalid_links.extend(result[0])
-			cancelled_links.extend(result[1])
-
-		if invalid_links:
-			msg = ", ".join((each[2] for each in invalid_links))
+		if self.flags.invalid_links:
+			msg = ", ".join((each[2] for each in self.flags.invalid_links))
 			frappe.throw(_("Could not find {0}").format(msg),
 				frappe.LinkValidationError)
 
-		if cancelled_links:
-			msg = ", ".join((each[2] for each in cancelled_links))
+		if self.flags.cancelled_links:
+			msg = ", ".join((each[2] for each in self.flags.cancelled_links))
 			frappe.throw(_("Cannot link cancelled document: {0}").format(msg),
 				frappe.CancelledLinkError)
 
@@ -761,7 +760,6 @@ class Document(BaseDocument):
 		self.set_title_field()
 		self.reset_seen()
 
-		self._doc_before_save = None
 		if not self.is_new() and getattr(self.meta, 'track_changes', False):
 			self._doc_before_save = frappe.get_doc(self.doctype, self.name)
 

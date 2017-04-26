@@ -89,8 +89,6 @@ ignore_values = {
 	"Print Format": ["disabled"]
 }
 
-ignore_doctypes = [""]
-
 def import_doc(docdict, force=False, data_import=False, pre_process=None,
 		ignore_version=None, reset_permissions=False):
 
@@ -101,8 +99,6 @@ def import_doc(docdict, force=False, data_import=False, pre_process=None,
 	if pre_process:
 		pre_process(doc)
 
-	ignore = []
-
 	if frappe.db.exists(doc.doctype, doc.name):
 		old_doc = frappe.get_doc(doc.doctype, doc.name)
 
@@ -111,16 +107,9 @@ def import_doc(docdict, force=False, data_import=False, pre_process=None,
 			for key in ignore_values.get(doc.doctype) or []:
 				doc.set(key, old_doc.get(key))
 
-		# update ignored docs into new doc
-		for df in doc.meta.get_table_fields():
-			if df.options in ignore_doctypes and not reset_permissions:
-				doc.set(df.fieldname, [])
-				ignore.append(df.options)
-
 		# delete old
-		frappe.delete_doc(doc.doctype, doc.name, force=1, ignore_doctypes=ignore, for_reload=True)
+		frappe.delete_doc(doc.doctype, doc.name, force=1, for_reload=True)
 
-	doc.flags.ignore_children_type = ignore
 	doc.flags.ignore_links = True
 	if not data_import:
 		doc.flags.ignore_validate = True

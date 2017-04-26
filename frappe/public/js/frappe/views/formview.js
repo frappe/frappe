@@ -22,7 +22,7 @@ frappe.views.FormFactory = frappe.views.Factory.extend({
 
 		if(!this.initialized) {
 			$(document).on("page-change", function() {
-				frappe.ui.form.close_grid_form();
+				frappe.ui.form.close_all_grid_forms();
 			});
 
 			frappe.realtime.on("new_communication", function(data) {

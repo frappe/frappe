@@ -15,6 +15,7 @@ frappe.ui.form.Layout = Class.extend({
 		this.sections = [];
 		this.fields_list = [];
 		this.fields_dict = {};
+		this.grids = [];
 
 		$.extend(this, opts);
 	},
@@ -71,15 +72,52 @@ frappe.ui.form.Layout = Class.extend({
 
 	},
 	make_field: function(df, colspan) {
+		var me = this;
 		!this.section && this.make_section();
 		!this.column && this.make_column();
 
-		var fieldobj = frappe.ui.form.make_control({
+		var args = {
 			df: df,
 			doctype: this.doctype,
 			parent: this.column.wrapper.get(0),
 			frm: this.frm
-		});
+		};
+
+		if(this.is_child_table && df.fieldtype=='Table') {
+			// fake frm object when rendering grand children and below
+			args.frm = {
+				is_child_frm: true,
+				layout: this,
+				doctype: this.doctype,
+				doc: this.doc,
+				dirty: function() {
+					me.frm.dirty();
+				},
+				parent_doc: this.frm.parent_doc || this.frm.doc,
+				parent_frm: this.frm.parent_frm || this.frm,
+				meta: frappe.get_meta(this.doctype),
+				get_parent_frm: function() {
+					return me.frm.get_parent_frm();
+				},
+				get_perm: function() {
+					var frm = me.frm.get_parent_frm();
+					return frm.get_perm.apply(frm, arguments);
+				},
+				trigger: function(event, doctype, name, callback) {
+					return me.frm.trigger(event, doctype, name, callback);
+				},
+				perm: this.frm.perm
+			}
+			df.get_data = function() {
+				// returns rows of the grand children
+				return [{
+					batch_no: '1111',
+					qty: 111
+				}];
+			}
+		}
+
+		var fieldobj = frappe.ui.form.make_control(args);
 
 		fieldobj.layout = this;
 		this.fields_list.push(fieldobj);
@@ -348,7 +386,7 @@ frappe.ui.form.Layout = Class.extend({
 		}
 	},
 	get_open_grid_row: function() {
-		return $(".grid-row-open").data("grid_row");
+		return this.wrapper.find(".grid-row-open:first").data("grid_row");
 	},
 	refresh_dependency: function() {
 		// Resolve "depends_on" and show / hide accordingly
@@ -410,7 +448,7 @@ frappe.ui.form.Layout = Class.extend({
 		if(expression.substr(0,5)=='eval:') {
 			out = eval(expression.substr(5));
 		} else if(expression.substr(0,3)=='fn:' && me.frm) {
-			out = this.frm.script_manager.trigger(expression.substr(3), this.doctype, this.docname);
+			out = this.frm.trigger(expression.substr(3), this.doctype, this.docname);
 		} else {
 			var value = doc[expression];
 			if($.isArray(value)) {

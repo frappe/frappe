@@ -235,7 +235,7 @@ $.extend(frappe.model, {
 			}
 		}
 
-		if (cur_frm && cur_frm.doc == parent_doc) cur_frm.dirty();
+		frappe.ui.form.set_dirty(parent_doc.doctype, parent_doc.name);
 
 		return child;
 	},
