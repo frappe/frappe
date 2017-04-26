@@ -117,7 +117,7 @@ frappe.ui.FilterList = Class.extend({
 			return
 		}
 
-		var active = this.wrapper.find(".filter-sort-active[data-name='"+__(field.label)+"']");
+		var active = this.wrapper.find(".filter-sort-active[data-name='"+__(field.name)+"']");
 
 		// sort filters
 		if(active.attr('data-sort-by')==='alphabet') {
@@ -168,7 +168,7 @@ frappe.ui.FilterList = Class.extend({
 			label: __(field.label),
 			labels:labels
 		};
-		var dashboard_filter = this.wrapper.find(".filter-stat[data-name='" + __(field.label) + "']")
+		var dashboard_filter = this.wrapper.find(".filter-stat[data-name='" + __(field.name) + "']")
 		dashboard_filter.html(frappe.render_template("filter_dashboard_value", context))
 			.on("click", ".filter-stat-link", function() {
 				var fieldname = $(this).attr('data-field');
