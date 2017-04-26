@@ -1,7 +1,7 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-frappe.ui.form.MultiSelect = Class.extend({
+frappe.ui.form.MultiSelectDialog = Class.extend({
 	init: function(opts) {
 		/* help: Options: doctype, get_query, target */
 		$.extend(this, opts);
