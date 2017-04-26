@@ -15,6 +15,7 @@ frappe.ui.form.close_grid_form = function() {
 	}
 }
 
+
 frappe.ui.form.Grid = Class.extend({
 	init: function(opts) {
 		var me = this;
@@ -650,9 +651,9 @@ frappe.ui.form.GridRow = Class.extend({
 			});
 
 		// no checkboxes if too small
-		// if(this.is_too_small()) {
-		// 	this.row_check_html = '';
-		// }
+		if(this.is_too_small()) {
+			this.row_check_html = '';
+		}
 
 		if(this.grid.template && !this.grid.meta.editable_grid) {
 			this.render_template();
