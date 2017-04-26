@@ -324,7 +324,8 @@ def uninstall(context, app, dry_run=False, yes=False):
 @click.option('--root-login', default='root')
 @click.option('--root-password')
 @click.option('--archived-sites-path')
-def drop_site(site, root_login='root', root_password=None, archived_sites_path=None):
+@click.option('--force', help='Force restore if site/database already exists', is_flag=True, default=False)
+def drop_site(site, root_login='root', root_password=None, archived_sites_path=None, force=False):
 	"Remove site from database and filesystem"
 	from frappe.installer import get_root_connection
 	from frappe.model.db_schema import DbManager
