@@ -338,9 +338,17 @@ def drop_site(site, root_login='root', root_password=None, archived_sites_path=N
 		scheduled_backup(ignore_files=False, force=True)
 	except ProgrammingError as err:
 		if err[0] == 1146:
-			# ProgrammingError(1146) is thrown when there is a missing table.
-			# We want to delete all tables so its safe to ignore the Error.
-			pass
+			if force:
+				pass
+			else:
+				click.echo("="*80)
+				click.echo("Error: The operation has stopped because backup of {s}'s database failed.".format(s=site))
+				click.echo("Reason: {reason}{sep}".format(reason=err[1], sep="\n"))
+				click.echo("Fix the issue and try again.")
+				click.echo(
+					"Hint: Use 'bench drop-site {s} --force' to force the removal of {s}".format(sep="\n", tab="\t", s=site)
+				)
+				sys.exit(1)
 
 	db_name = frappe.local.conf.db_name
 	frappe.local.db = get_root_connection(root_login, root_password)
