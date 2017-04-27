@@ -328,6 +328,7 @@ frappe.Application = Class.extend({
 		if(!frappe.app.session_expired_dialog) {
 			var dialog = new frappe.ui.Dialog({
 				title: __('Session Expired'),
+				keep_open: true,
 				fields: [
 					{ fieldtype:'Password', fieldname:'password',
 						label: __('Please Enter Your Password to Continue') },
@@ -369,7 +370,7 @@ frappe.Application = Class.extend({
 			// add backdrop
 			$('.modal-backdrop').css({
 				'opacity': 1,
-				'background-color': '#EBEFF2'
+				'background-color': '#4B4C9D'
 			});
 		}
 	},
