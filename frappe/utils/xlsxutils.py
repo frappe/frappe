@@ -8,7 +8,7 @@ from frappe.utils import encode, cstr, cint, flt, comma_or
 import openpyxl
 from cStringIO import StringIO
 from openpyxl.styles import Font
-
+import re
 # return xlsx file object
 def make_xlsx(data, sheet_name):
 
@@ -19,7 +19,11 @@ def make_xlsx(data, sheet_name):
 	row1.font = Font(name='Calibri',bold=True)
 
 	for row in data:
-		ws.append(row)
+		clean_row = []
+		for item in row:
+			cleaner = re.compile('<.*?>')
+			clean_row.append(re.sub(cleaner, '', item))
+		ws.append(clean_row)
 
 	xlsx_file = StringIO()
 	wb.save(xlsx_file)
