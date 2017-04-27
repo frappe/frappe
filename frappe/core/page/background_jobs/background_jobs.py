@@ -11,7 +11,8 @@ from frappe.utils import format_datetime, cint
 colors = {
 	'queued': 'orange',
 	'failed': 'red',
-	'started': 'green'
+	'started': 'blue',
+	'finished': 'green'
 }
 
 @frappe.whitelist()
