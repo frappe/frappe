@@ -5,7 +5,7 @@ import frappe
 
 # select doctypes that are accessed by the user (not read_only) first, so that the 
 # the validation message shows the user-facing doctype first. 
-# For example Journal Entry should be validated GL Entry (which is an internal doctype)
+# For example Journal Entry should be validated before GL Entry (which is an internal doctype)
 
 dynamic_link_queries =  [
 	"""select parent,
