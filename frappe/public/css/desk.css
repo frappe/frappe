@@ -572,10 +572,6 @@ fieldset[disabled] .form-control {
 .file-upload .input-upload {
   vertical-align: top;
 }
-.file-upload .uploaded-filename {
-  border: 1px solid #d1d8dd;
-  border-radius: 3px;
-}
 .file-upload .uploaded-filename .btn-group {
   margin-right: 5px;
   margin-bottom: 5px;

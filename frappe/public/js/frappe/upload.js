@@ -58,24 +58,42 @@ frappe.upload = {
 				$upload.data('attached_files', file_array);
 
 				// List of files in a grid
-				$uploaded_files_wrapper.append(`
-					<div class="list-item list-item--head">
-						<div class="list-item__content list-item__content--flex-2">
-							${__('Filename')}
-						</div>
-						${opts.show_private
-						? `<div class="list-item__content file-public-column">
-							${__('Public')}
-							</div>`
-						: ''}
-						<div class="list-item__content list-item__content--activity" style="flex: 0 0 32px">
-						</div>
-					</div>
-				`);
-				var file_pills = file_array.map(
-					file => frappe.upload.make_file_row(file, opts)
-				);
-				$uploaded_files_wrapper.append(file_pills);
+				// $uploaded_files_wrapper.append(`
+				// 	<div class="list-item list-item--head">
+				// 		<div class="list-item__content list-item__content--flex-2">
+				// 			${__('Filename')}
+				// 		</div>
+				// 		${opts.show_private
+				// 		? `<div class="list-item__content file-public-column">
+				// 			${__('Public')}
+				// 			</div>`
+				// 		: ''}
+				// 		<div class="list-item__content list-item__content--activity" style="flex: 0 0 32px">
+				// 		</div>
+				// 	</div>
+				// `);
+				// var file_pills = file_array.map(
+				// 	file => frappe.upload.make_file_row(file, opts)
+				// );
+				// $uploaded_files_wrapper.append(file_pills);
+				const file_grid = new frappe.ui.SimpleList({
+					parent: $uploaded_files_wrapper,
+					columns: [
+						{ 
+							title: 'Filename',
+							fieldname: 'name'
+						},
+						{
+							title: 'Public',
+							fieldname: 'is_private',
+							fieldtype: 'Checkbox',
+							order: -1,
+							flex: '0 0 32px'
+						}
+					],
+					values: file_array,
+					with_remove: 1
+				})
 			} else {
 				frappe.upload.show_empty_state($upload);
 			}
