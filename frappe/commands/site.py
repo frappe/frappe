@@ -2,6 +2,7 @@ from __future__ import unicode_literals, absolute_import
 import click
 import hashlib, os, sys
 import frappe
+from _mysql_exceptions import ProgrammingError
 from frappe.commands import pass_context, get_site
 from frappe.commands.scheduler import _is_scheduler_enabled
 from frappe.limits import update_limits, get_limits
@@ -323,7 +324,8 @@ def uninstall(context, app, dry_run=False, yes=False):
 @click.option('--root-login', default='root')
 @click.option('--root-password')
 @click.option('--archived-sites-path')
-def drop_site(site, root_login='root', root_password=None, archived_sites_path=None):
+@click.option('--force', help='Force drop-site even if an error is encountered', is_flag=True, default=False)
+def drop_site(site, root_login='root', root_password=None, archived_sites_path=None, force=False):
 	"Remove site from database and filesystem"
 	from frappe.installer import get_root_connection
 	from frappe.model.db_schema import DbManager
@@ -331,7 +333,22 @@ def drop_site(site, root_login='root', root_password=None, archived_sites_path=N
 
 	frappe.init(site=site)
 	frappe.connect()
-	scheduled_backup(ignore_files=False, force=True)
+
+	try:
+		scheduled_backup(ignore_files=False, force=True)
+	except ProgrammingError as err:
+		if err[0] == 1146:
+			if force:
+				pass
+			else:
+				click.echo("="*80)
+				click.echo("Error: The operation has stopped because backup of {s}'s database failed.".format(s=site))
+				click.echo("Reason: {reason}{sep}".format(reason=err[1], sep="\n"))
+				click.echo("Fix the issue and try again.")
+				click.echo(
+					"Hint: Use 'bench drop-site {s} --force' to force the removal of {s}".format(sep="\n", tab="\t", s=site)
+				)
+				sys.exit(1)
 
 	db_name = frappe.local.conf.db_name
 	frappe.local.db = get_root_connection(root_login, root_password)
