@@ -91,6 +91,23 @@ def get_context(context):
 
 	def send(self, doc):
 		'''Build recipients and send email alert'''
+
+		def get_attachment(doc):
+			""" check print settings are attach the pdf """
+			if not self.attach_print:
+				return None
+
+			print_settings = frappe.get_doc("Print Settings", "Print Settings")
+			if (doc.docstatus == 0 and not print_settings.allow_print_for_draft) or \
+				(doc.docstatus == 2 and not print_settings.allow_print_for_cancelled):
+
+				# ignoring attachment as draft and cancelled documents are not allowed to print
+				status = "Draft" if doc.docstatus == 0 else "Cancelled"
+				frappe.throw(_("""Not allowed to attach {0} document,
+					please enable Allow Print For {0} in Print Settings""".format(status)))
+			else:
+				return [frappe.attach_print(doc.doctype, doc.name)]
+
 		context = get_context(doc)
 
 		recipients = []
@@ -133,11 +150,13 @@ def get_context(context):
 		if "{" in subject:
 			subject = frappe.render_template(self.subject, context)
 
+		attachments = get_attachment(doc)
+
 		frappe.sendmail(recipients=recipients, subject=subject,
 			message= frappe.render_template(self.message, context),
 			reference_doctype = doc.doctype,
 			reference_name = doc.name,
-			attachments = [frappe.attach_print(doc.doctype, doc.name)] if self.attach_print else None)
+			attachments = attachments)
 
 	def load_standard_properties(self, context):
 		module = get_doc_module(self.module, self.doctype, self.name)
