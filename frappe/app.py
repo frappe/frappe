@@ -11,7 +11,6 @@ from werkzeug.local import LocalManager
 from werkzeug.exceptions import HTTPException, NotFound
 from werkzeug.contrib.profiler import ProfilerMiddleware
 from werkzeug.wsgi import SharedDataMiddleware
-from werkzeug.serving import run_with_reloader
 
 import frappe
 import frappe.handler
@@ -20,7 +19,7 @@ import frappe.api
 import frappe.async
 import frappe.utils.response
 import frappe.website.render
-from frappe.utils import get_site_name, get_site_path
+from frappe.utils import get_site_name
 from frappe.middlewares import StaticDataMiddleware
 from frappe.utils.error import make_error_snapshot
 from frappe.core.doctype.communication.comment import update_comments_in_parent_after_request
@@ -222,5 +221,9 @@ def serve(port=8000, profile=False, site=None, sites_path='.'):
 		'SERVER_NAME': 'localhost:8000'
 	}
 
-	run_simple('0.0.0.0', int(port), application, use_reloader=True,
-		use_debugger=True, use_evalex=True, threaded=True)
+	in_test_env = os.environ.get('CI')
+	run_simple('0.0.0.0', int(port), application,
+		use_reloader=not in_test_env,
+		use_debugger=not in_test_env,
+		use_evalex=not in_test_env,
+		threaded=True)
