@@ -80,6 +80,11 @@ frappe.ui.form.AssignTo = Class.extend({
 	add: function() {
 		var me = this;
 
+		if(this.frm.is_new()) {
+			frappe.throw(__("Please save the document before assignment"));
+			return;
+		}
+
 		if(!me.dialog) {
 			me.dialog = new frappe.ui.form.AssignToDialog({
 				obj: me,
@@ -101,6 +106,11 @@ frappe.ui.form.AssignTo = Class.extend({
 	},
 	remove: function(owner) {
 		var me = this;
+
+		if(this.frm.is_new()) {
+			frappe.throw(__("Please save the document before removing assignment"));
+			return;
+		}
 
 		frappe.call({
 			method:'frappe.desk.form.assign_to.remove',
