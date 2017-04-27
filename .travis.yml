@@ -18,21 +18,23 @@ install:
   - wget https://raw.githubusercontent.com/frappe/bench/master/playbooks/install.py
   - sudo python install.py --develop --user travis --without-bench-setup
   - sudo pip install -e ~/bench
+  - npm install -g testcafe testcafe-browser-provider-nightmare
 
   - rm $TRAVIS_BUILD_DIR/.git/shallow
   - cd ~/ && bench init frappe-bench --frappe-path $TRAVIS_BUILD_DIR
   - cp -r $TRAVIS_BUILD_DIR/test_sites/test_site ~/frappe-bench/sites/
 
 script:
+  - bench --verbose run-tests --driver Firefox
+  - testcafe nightmare apps/frappe/frappe/tests/testcafe/login_test.js
+
+before_script:
+  - mysql -u root -ptravis -e 'create database test_frappe'
+  - echo "USE mysql;\nCREATE USER 'test_frappe'@'localhost' IDENTIFIED BY 'test_frappe';\nFLUSH PRIVILEGES;\n" | mysql -u root -ptravis
+  - echo "USE mysql;\nGRANT ALL PRIVILEGES ON \`test_frappe\`.* TO 'test_frappe'@'localhost';\n" | mysql -u root -ptravis
   - cd ~/frappe-bench
   - bench use test_site
   - bench reinstall --yes
   - bench build
   - bench start &
   - sleep 10
-  - bench --verbose run-tests --driver Firefox
-
-before_script:
-  - mysql -u root -ptravis -e 'create database test_frappe'
-  - echo "USE mysql;\nCREATE USER 'test_frappe'@'localhost' IDENTIFIED BY 'test_frappe';\nFLUSH PRIVILEGES;\n" | mysql -u root -ptravis
-  - echo "USE mysql;\nGRANT ALL PRIVILEGES ON \`test_frappe\`.* TO 'test_frappe'@'localhost';\n" | mysql -u root -ptravis
