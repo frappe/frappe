@@ -76,10 +76,10 @@ def get_html(doc, name=None, print_format=None, meta=None,
 		validate_print_permission(doc)
 
 	if doc.meta.is_submittable:
-		if doc.docstatus==0 and not print_settings.allow_print_for_draft:
+		if doc.docstatus==0 and not cint(print_settings.allow_print_for_draft):
 			frappe.throw(_("Not allowed to print draft documents"), frappe.PermissionError)
 
-		if doc.docstatus==2 and not print_settings.allow_print_for_cancelled:
+		if doc.docstatus==2 and not cint(print_settings.allow_print_for_cancelled):
 			frappe.throw(_("Not allowed to print cancelled documents"), frappe.PermissionError)
 
 	if hasattr(doc, "before_print"):
