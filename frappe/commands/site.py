@@ -67,6 +67,9 @@ def _new_site(db_name, site, mariadb_root_username=None, mariadb_root_password=N
 		scheduler_status = "disabled" if frappe.utils.scheduler.is_scheduler_disabled() else "enabled"
 		print "*** Scheduler is", scheduler_status, "***"
 
+	except frappe.exceptions.ImproperDBConfigurationError:
+		_drop_site(site, mariadb_root_username, mariadb_root_password, force=True)
+
 	finally:
 		if installing and os.path.exists(installing):
 			os.remove(installing)
