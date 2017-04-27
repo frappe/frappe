@@ -4,10 +4,19 @@
 import frappe
 
 dynamic_link_queries =  [
-	"""select parent, (select read_only from `tabDocType` where name=tabDocField.parent) as read_only,
-		fieldname, options from tabDocField where fieldtype='Dynamic Link' order by read_only""",
-	"""select dt as parent, (select read_only from `tabDocType` where name=`tabCustom Field`.dt) as read_only,
-		fieldname, options from `tabCustom Field` where fieldtype='Dynamic Link' order by read_only""",
+	"""select parent,
+		(select read_only from `tabDocType` where name=tabDocField.parent) as read_only,
+		fieldname, options 
+	from tabDocField 
+	where fieldtype='Dynamic Link' 
+	order by read_only""",
+
+	"""select dt as parent,
+		(select read_only from `tabDocType` where name=`tabCustom Field`.dt) as read_only,
+		fieldname, options 
+	from `tabCustom Field` 
+	where fieldtype='Dynamic Link' 
+	order by read_only""",
 ]
 
 def get_dynamic_link_map(for_delete=False):
