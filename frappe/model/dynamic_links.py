@@ -4,8 +4,10 @@
 import frappe
 
 dynamic_link_queries =  [
-	"""select parent, fieldname, options from tabDocField where fieldtype='Dynamic Link'""",
-	"""select dt as parent, fieldname, options from `tabCustom Field` where fieldtype='Dynamic Link'""",
+	"""select parent, (select read_only from `tabDocType` where name=tabDocField.parent) as read_only,
+		fieldname, options from tabDocField where fieldtype='Dynamic Link' order by read_only""",
+	"""select dt as parent, (select read_only from `tabDocType` where name=`tabCustom Field`.dt) as read_only,
+		fieldname, options from `tabCustom Field` where fieldtype='Dynamic Link' order by read_only""",
 ]
 
 def get_dynamic_link_map(for_delete=False):
@@ -20,18 +22,15 @@ def get_dynamic_link_map(for_delete=False):
 		dynamic_link_map = {}
 		for df in get_dynamic_links():
 			meta = frappe.get_meta(df.parent)
-			# Ignore dynamic link validation for the doctype, in which field User Cannot Search has been enabled
-			if not meta.read_only:
-				if meta.issingle:
-					# always check in Single DocTypes
-					dynamic_link_map.setdefault(meta.name, []).append(df)
-				else:
-					links = frappe.db.sql_list("""select distinct {options} from `tab{parent}`""".format(**df))
-					for doctype in links:
-						dynamic_link_map.setdefault(doctype, []).append(df)
+			if meta.issingle:
+				# always check in Single DocTypes
+				dynamic_link_map.setdefault(meta.name, []).append(df)
+			else:
+				links = frappe.db.sql_list("""select distinct {options} from `tab{parent}`""".format(**df))
+				for doctype in links:
+					dynamic_link_map.setdefault(doctype, []).append(df)
 
 		frappe.local.dynamic_link_map = dynamic_link_map
-
 	return frappe.local.dynamic_link_map
 
 def get_dynamic_links():

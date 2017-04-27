@@ -62,10 +62,7 @@ class TestDynamicLinks(unittest.TestCase):
 			'test_ref_name': unsub.name
 		}).insert()
 
-		try:
-			self.assertRaises(frappe.LinkExistsError, unsub.delete)
-		except:
-			self.assertTrue(False)
+		self.assertRaises(frappe.LinkExistsError, unsub.delete)
 
 		event.test_ref_doc = None
 		event.test_ref_name = None
