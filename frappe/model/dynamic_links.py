@@ -20,13 +20,15 @@ def get_dynamic_link_map(for_delete=False):
 		dynamic_link_map = {}
 		for df in get_dynamic_links():
 			meta = frappe.get_meta(df.parent)
-			if meta.issingle:
-				# always check in Single DocTypes
-				dynamic_link_map.setdefault(meta.name, []).append(df)
-			else:
-				links = frappe.db.sql_list("""select distinct {options} from `tab{parent}`""".format(**df))
-				for doctype in links:
-					dynamic_link_map.setdefault(doctype, []).append(df)
+			# Ignore dynamic link validation for the doctype, in which field User Cannot Search has been enabled
+			if not meta.read_only:
+				if meta.issingle:
+					# always check in Single DocTypes
+					dynamic_link_map.setdefault(meta.name, []).append(df)
+				else:
+					links = frappe.db.sql_list("""select distinct {options} from `tab{parent}`""".format(**df))
+					for doctype in links:
+						dynamic_link_map.setdefault(doctype, []).append(df)
 
 		frappe.local.dynamic_link_map = dynamic_link_map
 
