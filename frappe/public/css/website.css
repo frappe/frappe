@@ -22,13 +22,13 @@ p {
   margin: 10px 0px;
 }
 .text-color {
-  color: #36414C !important;
+  color: #36414C;
 }
 .text-muted {
-  color: #8D99A6 !important;
+  color: #8D99A6;
 }
 .text-extra-muted {
-  color: #d1d8dd !important;
+  color: #d1d8dd;
 }
 a,
 .badge {
