@@ -3,7 +3,7 @@
 
 # util __init__.py
 
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 from werkzeug.test import Client
 import os, re, urllib, sys, json, md5, requests, traceback
 from markdown2 import markdown as _markdown
@@ -278,8 +278,8 @@ def execute_in_shell(cmd, verbose=0):
 			err = stderr.read()
 
 	if verbose:
-		if err: print err
-		if out: print out
+		if err: print(err)
+		if out: print(out)
 
 	return err, out
 
@@ -421,10 +421,10 @@ def watch(path, handler=None, debug=True):
 	class Handler(FileSystemEventHandler):
 		def on_any_event(self, event):
 			if debug:
-				print "File {0}: {1}".format(event.event_type, event.src_path)
+				print("File {0}: {1}".format(event.event_type, event.src_path))
 
 			if not handler:
-				print "No handler specified"
+				print("No handler specified")
 				return
 
 			handler(event.src_path, event.event_type)
