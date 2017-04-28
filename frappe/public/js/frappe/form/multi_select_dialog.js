@@ -47,7 +47,7 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 			fields: fields,
 			primary_action_label: __("Get Items"),
 			primary_action: function() {
-				me.action(me.selections, me.args);
+				me.action(me.get_checked_values(), me.args);
 			}
 		});
 
@@ -56,12 +56,16 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 			style="border: 1px solid #d1d8dd; border-radius: 3px; height: 300px; overflow: auto;"></div>`);
 		this.$results = this.$wrapper.find('.results');
 		this.$make_new_btn = this.dialog.fields_dict.make_new.$wrapper;
-		this.$placeholder = $(`<div class="multiselect-empty-state"> <span class="text-center" style="margin-top: -40px;">
-			<i class="fa fa-2x fa-tags text-extra-muted"></i> <p class="text-extra-muted">No ${this.doctype} found</p>
-			<button class="btn btn-default btn-xs text-muted" data-fieldtype="Button" data-fieldname="make_new"
-			placeholder="" value="">Make a new ${this.doctype}</button></span> </div>`);
 
-		this.selections = [];
+		this.$placeholder = $(`<div class="multiselect-empty-state">
+					<span class="text-center" style="margin-top: -40px;">
+						<i class="fa fa-2x fa-tags text-extra-muted"></i>
+						<p class="text-extra-muted">No ${this.doctype} found</p>
+						<button class="btn btn-default btn-xs text-muted" data-fieldtype="Button"
+							data-fieldname="make_new" placeholder="" value="">Make a new ${this.doctype}</button>
+					</span>
+				</div>`);
+
 		this.args = {};
 
 		this.bind_events();
@@ -71,43 +75,34 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 
 	bind_events: function() {
 		let me = this;
-
-		this.$results.on('change', '.list-item-container :checkbox', function (e) {
-			var $item = $(this).closest('.list-item-container');
-			var filename = $item.attr('data-filename');
-			var $target = $(e.target);
-
-			var checked = $target.is(':checked');
-			if (checked){
-				me.selections.push(filename);
-			} else {
-				var index = me.selections.indexOf(filename);
-				if (index > -1) me.selections.splice(index, 1);
-			}
-		});
 		this.$results.on('click', '.list-item-container', function (e) {
 			if (!$(e.target).is(':checkbox') && !$(e.target).is('a')) {
 				$(this).find(':checkbox').trigger('click');
 			}
 		});
-		this.$results.on('click', '.list-item--head :checkbox', function (e) {
-			if ($(e.target).is(':checked')) {
-				me.$results.find('.list-item-container :checkbox:not(:checked)').trigger('click');
-			} else {
-				me.$results.find('.list-item-container :checkbox(:checked)').trigger('click');
-			}
+		this.$results.on('click', '.list-item--head :checkbox', (e) => {
+			this.$results.find('.list-item-container .list-row-check')
+				.prop("checked", ($(e.target).is(':checked')));
 		});
 
-		this.$parent.find('.input-with-feedback').on('change', function(e) {
-			me.get_results();
+		this.$parent.find('.input-with-feedback').on('change', (e) => {
+			this.get_results();
 		});
-		this.$parent.on('click', '.btn[data-fieldname="make_new"]', function(e) {
+		this.$parent.on('click', '.btn[data-fieldname="make_new"]', (e) => {
 			frappe.route_options = {};
-			Object.keys(me.setters).forEach(function(setter) {
-				frappe.route_options[setter] = me.dialog.fields_dict[setter].get_value() || undefined;
+			Object.keys(this.setters).forEach(function(setter) {
+				frappe.route_options[setter] = this.dialog.fields_dict[setter].get_value() || undefined;
 			});
-			frappe.new_doc(me.doctype, true);
+			frappe.new_doc(this.doctype, true);
 		});
+	},
+
+	get_checked_values: function() {
+		return this.$results.find('.list-item-container').map(function() {
+			if ($(this).find('.list-row-check:checkbox:checked').length > 0 ) {
+				return $(this).attr('data-item-name');
+			}
+		}).get();
 	},
 
 	make_list_row: function(result={}) {
@@ -115,10 +110,10 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 		// Make a head row by default (if result not passed)
 		let head = Object.keys(result).length === 0;
 
-		let columns = ["name"].concat(Object.keys(this.setters));
+		let columns = (["name"].concat(Object.keys(this.setters))).concat([this.date_field]);
 		let $row = $(`<div class="list-item">
 			<div class="list-item__content ellipsis" style="flex: 0 0 10px;">
-				<input type="checkbox"/>
+				<input type="checkbox" class="list-row-check" ${result.checked ? 'checked' : ''}/>
 			</div>
 			${	(() => {
 					let contents = ``;
@@ -140,7 +135,7 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 		</div>`);
 
 		head ? $row.addClass('list-item--head')
-			: $row = $(`<div class="list-item-container" data-filename="${result.name}"></div>`).append($row);
+			: $row = $(`<div class="list-item-container" data-item-name="${result.name}"></div>`).append($row);
 		return $row;
 	},
 
@@ -173,7 +168,7 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 			doctype: me.doctype,
 			txt: '',
 			filters: filters,
-			filter_fields: Object.keys(me.setters)
+			filter_fields: Object.keys(me.setters).concat([me.date_field])
 		}
 		frappe.call({
 			type: "GET",
@@ -188,8 +183,17 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 						value_list.forEach(function(value, index){
 							result[r.fields[index]] = value;
 						});
+						result.checked = 0;
+						result.parsed_date = Date.parse(result[me.date_field]);
 						results.push(result);
 					});
+					let min_date = Math.min.apply( Math, results.map((result) => result.parsed_date) );
+
+					results.map( (result) => {
+						if(result.parsed_date === min_date) {
+							result.checked = 1;
+						}
+					})
 					me.render_result_list(results);
 				}
 			}
