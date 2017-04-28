@@ -1,7 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: GNU General Public License v3. See license.txt
 
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 
 import frappe
 import hashlib
@@ -16,7 +16,7 @@ import jinja2.exceptions
 
 def sync():
 	# make table
-	print 'Syncing help database...'
+	print('Syncing help database...')
 	help_db = HelpDatabase()
 	help_db.make_database()
 	help_db.connect()
@@ -131,7 +131,7 @@ class HelpDatabase(object):
 									self.db.sql('''insert into help(path, content, title, intro, full_path)
 										values (%s, %s, %s, %s, %s)''', (relpath, content, title, intro, fpath))
 								except jinja2.exceptions.TemplateSyntaxError:
-									print "Invalid Jinja Template for {0}. Skipping".format(fpath)
+									print("Invalid Jinja Template for {0}. Skipping".format(fpath))
 
 		doc_contents += "</ol>"
 		self.db.sql('''insert into help(path, content, title, intro, full_path) values (%s, %s, %s, %s, %s)''',
