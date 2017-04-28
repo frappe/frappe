@@ -1,3 +1,4 @@
+from __future__ import print_function
 from subprocess import Popen, call, PIPE
 
 def execute():
@@ -7,7 +8,7 @@ def execute():
     if output:
         call(['brew', 'upgrade', 'node'])
     else:
-        print 'Please update your NodeJS version'
+        print('Please update your NodeJS version')
 
     call([
         'npm', 'install',
