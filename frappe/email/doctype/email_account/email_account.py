@@ -1,7 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 import frappe
 import imaplib
 import re
@@ -642,7 +642,7 @@ def test_internet(host="8.8.8.8", port=53, timeout=3):
 		socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect((host, port))
 		return True
 	except Exception as ex:
-		print ex.message
+		print(ex.message)
 		return False
 
 def notify_unreplied():
