@@ -483,7 +483,7 @@ class EmailAccount(Document):
 		parent = frappe.new_doc(self.append_to)
 
 		if self.subject_field:
-			parent.set(self.subject_field, frappe.as_unicode(email.subject))
+			parent.set(self.subject_field, frappe.as_unicode(email.subject)[:140])
 
 		if self.sender_field:
 			parent.set(self.sender_field, frappe.as_unicode(email.from_email))
