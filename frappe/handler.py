@@ -15,6 +15,7 @@ from werkzeug.wrappers import Response
 def handle():
 	"""handle request"""
 	cmd = frappe.local.form_dict.cmd
+	data = None
 
 	if cmd!='login':
 		data = execute_cmd(cmd)
