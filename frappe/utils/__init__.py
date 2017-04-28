@@ -5,7 +5,7 @@
 
 from __future__ import unicode_literals, print_function
 from werkzeug.test import Client
-import os, re, urllib, sys, json, md5, requests, traceback
+import os, re, urllib, sys, json, hashlib, requests, traceback
 from markdown2 import markdown as _markdown
 from .html_utils import sanitize_html
 
@@ -142,7 +142,7 @@ def has_gravatar(email):
 		# since querying gravatar for every item will be slow
 		return ''
 
-	hexdigest = md5.md5(frappe.as_unicode(email).encode('utf-8')).hexdigest()
+	hexdigest = hashlib.md5(frappe.as_unicode(email).encode('utf-8')).hexdigest()
 
 	gravatar_url = "https://secure.gravatar.com/avatar/{hash}?d=404&s=200".format(hash=hexdigest)
 	try:
@@ -155,7 +155,7 @@ def has_gravatar(email):
 		return ''
 
 def get_gravatar_url(email):
-	return "https://secure.gravatar.com/avatar/{hash}?d=mm&s=200".format(hash=md5.md5(email).hexdigest())
+	return "https://secure.gravatar.com/avatar/{hash}?d=mm&s=200".format(hash=hashlib.md5(email).hexdigest())
 
 def get_gravatar(email):
 	gravatar_url = has_gravatar(email)
