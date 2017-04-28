@@ -58,7 +58,7 @@ def rebuild_for_doctype(doctype):
 			filters.enabled = 1
 		if meta.has_field("disabled"):
 			filters.disabled = 0
-			
+
 		return filters
 
 	meta = frappe.get_meta(doctype)
@@ -69,36 +69,36 @@ def rebuild_for_doctype(doctype):
 		})
 		for p in parent_doctypes:
 			rebuild_for_doctype(p.parent)
-			
+
 		return
-	
+
 	# Delete records
 	delete_global_search_records_for_doctype(doctype)
 
 	parent_search_fields = meta.get_global_search_fields()
 	fieldnames = get_selected_fields(meta, parent_search_fields)
-	
+
 	# Get all records from parent doctype table
 	all_records = frappe.get_all(doctype, fields=fieldnames, filters=_get_filters())
-	
+
 	# Children data
-	all_children, child_search_fields = get_children_data(doctype, meta)			
+	all_children, child_search_fields = get_children_data(doctype, meta)
 	all_contents = []
-	
+
 	for doc in all_records:
 		content = []
 		for field in parent_search_fields:
 			value = doc.get(field.fieldname)
 			if value:
 				content.append(get_formatted_value(value, field))
-				
+
 		# get children data
 		for child_doctype, records in all_children.get(doc.name, {}).items():
 			for field in child_search_fields.get(child_doctype):
 				for r in records:
 					if r.get(field.fieldname):
 						content.append(get_formatted_value(r.get(field.fieldname), field))
-				
+
 		if content:
 			# if doctype published in website, push title, route etc.
 			published = 0
@@ -108,9 +108,9 @@ def rebuild_for_doctype(doctype):
 				published = 1 if d.is_website_published() else 0
 				title = d.get_title()
 				route = d.get("route")
-				
+
 			all_contents.append({
-				"doctype": doctype,
+				"doctype": frappe.db.escape(doctype),
 				"name": frappe.db.escape(doc.name),
 				"content": frappe.db.escape(' ||| '.join(content or '')),
 				"published": published,
@@ -119,30 +119,30 @@ def rebuild_for_doctype(doctype):
 			})
 	if all_contents:
 		insert_values_for_multiple_docs(all_contents)
-		
+
 def delete_global_search_records_for_doctype(doctype):
 	frappe.db.sql('''
 		delete
 			from __global_search
 		where
 			doctype = %s''', doctype, as_dict=True)
-		
+
 def get_selected_fields(meta, global_search_fields):
 	fieldnames = [df.fieldname for df in global_search_fields]
 	if meta.istable==1:
 		fieldnames.append("parent")
 	elif "name" not in fieldnames:
 		fieldnames.append("name")
-	
+
 	if meta.has_field("is_website_published"):
 		fieldnames.append("is_website_published")
-		
+
 	return fieldnames
-		
+
 def get_children_data(doctype, meta):
 	"""
 		Get all records from all the child tables of a doctype
-		
+
 		all_children = {
 			"parent1": {
 				"child_doctype1": [
@@ -153,41 +153,41 @@ def get_children_data(doctype, meta):
 				]
 			}
 		}
-	
+
 	"""
 	all_children = frappe._dict()
 	child_search_fields = frappe._dict()
-	
+
 	for child in meta.get_table_fields():
 		child_meta = frappe.get_meta(child.options)
 		search_fields = child_meta.get_global_search_fields()
 		if search_fields:
 			child_search_fields.setdefault(child.options, search_fields)
 			child_fieldnames = get_selected_fields(child_meta, search_fields)
-			child_records = frappe.get_all(child.options, fields=child_fieldnames, filters={ 
+			child_records = frappe.get_all(child.options, fields=child_fieldnames, filters={
 				"docstatus": ["!=", 1],
 				"parenttype": doctype
 			})
-		
+
 			for record in child_records:
 				all_children.setdefault(record.parent, frappe._dict())\
 					.setdefault(child.options, []).append(record)
-					
+
 	return all_children, child_search_fields
-			
+
 def insert_values_for_multiple_docs(all_contents):
 	values = []
 	for content in all_contents:
 		values.append("( '{doctype}', '{name}', '{content}', '{published}', '{title}', '{route}')"
 			.format(**content))
-		
+
 	frappe.db.sql('''
 		insert into __global_search
 			(doctype, name, content, published, title, route)
 		values
 			{0}
 		'''.format(", ".join(values)))
-		
+
 
 def update_global_search(doc):
 	'''Add values marked with `in_global_search` to
@@ -205,7 +205,7 @@ def update_global_search(doc):
 	for field in doc.meta.get_global_search_fields():
 		if doc.get(field.fieldname) and field.fieldtype != "Table":
 			content.append(get_formatted_value(doc.get(field.fieldname), field))
-				
+
 	# Get children
 	for child in doc.meta.get_table_fields():
 		for d in doc.get(child.fieldname):
