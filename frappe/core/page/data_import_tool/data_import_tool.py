@@ -1,7 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 
 import frappe, os
 from frappe import _
@@ -29,7 +29,7 @@ def get_doctype_options():
 def import_file_by_path(path, ignore_links=False, overwrite=False, submit=False, pre_process=None, no_email=True):
 	from frappe.utils.csvutils import read_csv_content
 	from frappe.core.page.data_import_tool.importer import upload
-	print "Importing " + path
+	print("Importing " + path)
 	with open(path, "r") as infile:
 		upload(rows = read_csv_content(infile.read()), ignore_links=ignore_links, no_email=no_email, overwrite=overwrite,
             submit_after_import=submit, pre_process=pre_process)
