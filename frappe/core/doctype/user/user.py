@@ -414,10 +414,7 @@ class User(Document):
 			result = test_password_strength(self.__new_password, '', None, user_data)
 
 			if not result['feedback']['password_policy_validation_passed']:
-				suggestions = result['feedback']['suggestions'][0] if result['feedback']['suggestions'] else ''
-				warning = result['feedback']['warning'] if 'warning' in result['feedback'] else ''
-				suggestions += "<br/>Try including Underscores, Numbers and Capital Letters in the password<br/>Eg: Eastern_43A"
-				frappe.throw(_('Invalid Password: ' + ' '.join([warning, suggestions])))
+				handle_password_test_fail(result)
 
 	def suggest_username(self):
 		def _check_suggestion(suggestion):
@@ -506,6 +503,11 @@ def get_perm_info(role):
 
 @frappe.whitelist(allow_guest=True)
 def update_password(new_password, key=None, old_password=None):
+	result = test_password_strength(new_password, key, old_password)
+
+	if not result['feedback']['password_policy_validation_passed']:
+		handle_password_test_fail(result)
+
 	res = _get_user_for_update_password(key, old_password)
 	if res.get('message'):
 		return res['message']
@@ -861,3 +863,10 @@ def extract_mentions(txt):
 	"""Find all instances of @username in the string.
 	The mentions will be separated by non-word characters or may appear at the start of the string"""
 	return re.findall(r'(?:[^\w]|^)@([\w]*)', txt)
+
+
+def handle_password_test_fail(self, result):
+	suggestions = result['feedback']['suggestions'][0] if result['feedback']['suggestions'] else ''
+	warning = result['feedback']['warning'] if 'warning' in result['feedback'] else ''
+	suggestions += "<br/>Hint : Include Underscores, Numbers and Capital Letters in the password<br/>Eg: Eastern_43A"
+	frappe.throw(_('Invalid Password: ' + ' '.join([warning, suggestions])))
