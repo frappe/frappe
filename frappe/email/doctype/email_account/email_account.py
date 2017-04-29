@@ -251,8 +251,10 @@ class EmailAccount(Document):
 					return
 
 				emails = email_server.get_messages()
+				if not emails:
+					return
 
-				incoming_mails = emails.get("latest_messages")
+				incoming_mails = emails.get("latest_messages", [])
 				uid_list = emails.get("uid_list", [])
 				seen_status = emails.get("seen_status", [])
 				uid_reindexed = emails.get("uid_reindexed", False)
