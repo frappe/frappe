@@ -865,7 +865,7 @@ def extract_mentions(txt):
 	return re.findall(r'(?:[^\w]|^)@([\w]*)', txt)
 
 
-def handle_password_test_fail(self, result):
+def handle_password_test_fail(result):
 	suggestions = result['feedback']['suggestions'][0] if result['feedback']['suggestions'] else ''
 	warning = result['feedback']['warning'] if 'warning' in result['feedback'] else ''
 	suggestions += "<br/>Hint : Include Underscores, Numbers and Capital Letters in the password<br/>Eg: Eastern_43A"
