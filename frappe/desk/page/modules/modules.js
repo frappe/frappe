@@ -133,9 +133,9 @@ frappe.pages['modules'].on_page_load = function(wrapper) {
 						return encodeURIComponent(key) + "=" + encodeURIComponent(value) }).join('&')
 				}
 
-				if(item.type==="page" || item.type==="help" ||
-					(item.doctype && frappe.model.can_read(item.doctype))) {
-						item.shown = true;
+				if(item.type==="page" || item.type==="help" || item.type==="report" ||
+				(item.doctype && frappe.model.can_read(item.doctype))) {
+					item.shown = true;
 				}
 			});
 		});
