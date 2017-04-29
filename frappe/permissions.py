@@ -1,7 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 import frappe, copy, json
 from frappe import _, msgprint
 from frappe.utils import cint
@@ -25,21 +25,21 @@ def has_permission(doctype, ptype="read", doc=None, verbose=False, user=None):
 	if not user: user = frappe.session.user
 
 	if frappe.is_table(doctype):
-		if verbose: print "Table type, always true"
+		if verbose: print("Table type, always true")
 		return True
 
 	meta = frappe.get_meta(doctype)
 
 	if ptype=="submit" and not cint(meta.is_submittable):
-		if verbose: print "Not submittable"
+		if verbose: print("Not submittable")
 		return False
 
 	if ptype=="import" and not cint(meta.allow_import):
-		if verbose: print "Not importable"
+		if verbose: print("Not importable")
 		return False
 
 	if user=="Administrator":
-		if verbose: print "Administrator"
+		if verbose: print("Administrator")
 		return True
 
 	def false_if_not_shared():
@@ -50,18 +50,18 @@ def has_permission(doctype, ptype="read", doc=None, verbose=False, user=None):
 			if doc:
 				doc_name = doc if isinstance(doc, basestring) else doc.name
 				if doc_name in shared:
-					if verbose: print "Shared"
+					if verbose: print("Shared")
 					if ptype in ("read", "write", "share") or meta.permissions[0].get(ptype):
-						if verbose: print "Is shared"
+						if verbose: print("Is shared")
 						return True
 
 			elif shared:
 				# if atleast one shared doc of that type, then return True
 				# this is used in db_query to check if permission on DocType
-				if verbose: print "Has a shared document"
+				if verbose: print("Has a shared document")
 				return True
 
-		if verbose: print "Not Shared"
+		if verbose: print("Not Shared")
 		return False
 
 	role_permissions = get_role_permissions(meta, user=user, verbose=verbose)
@@ -79,19 +79,19 @@ def has_permission(doctype, ptype="read", doc=None, verbose=False, user=None):
 
 		if role_permissions["if_owner"].get(ptype) and ptype!="create":
 			owner_perm = doc.owner == frappe.session.user
-			if verbose: print "Owner permission: {0}".format(owner_perm)
+			if verbose: print("Owner permission: {0}".format(owner_perm))
 
 		# check if user permission
 		if not owner_perm and role_permissions["apply_user_permissions"].get(ptype):
 			user_perm = user_has_permission(doc, verbose=verbose, user=user,
 				user_permission_doctypes=role_permissions.get("user_permission_doctypes", {}).get(ptype) or [])
 
-			if verbose: print "User permission: {0}".format(user_perm)
+			if verbose: print("User permission: {0}".format(user_perm))
 
 		if not owner_perm and not user_perm:
 			controller_perm = has_controller_permissions(doc, ptype, user=user)
 
-			if verbose: print "Controller permission: {0}".format(controller_perm)
+			if verbose: print("Controller permission: {0}".format(controller_perm))
 
 		# permission true if any one condition is explicitly True or all permissions are undefined (None)
 		perm = any([owner_perm, user_perm, controller_perm]) or \
@@ -100,7 +100,7 @@ def has_permission(doctype, ptype="read", doc=None, verbose=False, user=None):
 		if not perm:
 			perm = false_if_not_shared()
 
-	if verbose: print "Final Permission: {0}".format(perm)
+	if verbose: print("Final Permission: {0}".format(perm))
 
 	return perm
 
