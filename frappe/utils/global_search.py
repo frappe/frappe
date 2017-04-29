@@ -13,7 +13,7 @@ def setup_global_search_table():
 	if not '__global_search' in frappe.db.get_tables():
 		frappe.db.sql('''create table __global_search(
 			doctype varchar(100),
-			name varchar(255),
+			name varchar(140),
 			title varchar(140),
 			content text,
 			fulltext(content),
