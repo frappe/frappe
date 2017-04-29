@@ -49,6 +49,7 @@ class User(Document):
 		self.__new_password = self.new_password
 		self.new_password = ""
 
+		self.password_strength_test()
 		if self.name not in STANDARD_USERS:
 			self.validate_email_type(self.email)
 			self.validate_email_type(self.name)
@@ -407,6 +408,17 @@ class User(Document):
 			frappe.msgprint(_("Username should not contain any special characters other than letters, numbers and underscore"))
 			self.username = ""
 
+	def password_strength_test(self):
+		if self.__new_password:
+			user_data = (self.first_name, self.middle_name, self.last_name, self.email, self.birth_date)
+			result = test_password_strength(self.__new_password, '', None, user_data)
+
+			if not result['feedback']['password_policy_validation_passed']:
+				suggestions = result['feedback']['suggestions'][0] if result['feedback']['suggestions'] else ''
+				warning = result['feedback']['warning'] if 'warning' in result['feedback'] else ''
+				suggestions += "<br/>Try including Underscores, Numbers and Capital Letters in the password<br/>Eg: Eastern_43A"
+				frappe.throw(_('Invalid Password: ' + ' '.join([warning, suggestions])))
+
 	def suggest_username(self):
 		def _check_suggestion(suggestion):
 			if self.username != suggestion and not self.username_exists(suggestion):
@@ -519,13 +531,25 @@ def update_password(new_password, key=None, old_password=None):
 		return redirect_url if redirect_url else "/"
 
 @frappe.whitelist(allow_guest=True)
-def test_password_strength(new_password, key=None, old_password=None):
+def test_password_strength(new_password, key=None, old_password=None, user_data=[]):
 	from frappe.utils.password_strength import test_password_strength as _test_password_strength
 
-	user_data = frappe.db.get_value('User', frappe.session.user, ['first_name', 'middle_name', 'last_name', 'email', 'birth_date'])
+	if not user_data:
+		user_data = frappe.db.get_value('User', frappe.session.user, ['first_name', 'middle_name', 'last_name', 'email', 'birth_date'])
 
 	if new_password:
-		return _test_password_strength(new_password, user_inputs=user_data)
+		result = _test_password_strength(new_password, user_inputs=user_data)
+
+		enable_password_policy = cint(frappe.db.get_single_value("System Settings", "enable_password_policy")) and True or False
+		minimum_password_score = cint(frappe.db.get_single_value("System Settings", "minimum_password_score")) or 0
+
+		password_policy_validation_passed = True
+		if enable_password_policy and result['score'] < minimum_password_score:
+			password_policy_validation_passed = False
+
+		result['feedback']['password_policy_validation_passed'] = password_policy_validation_passed
+
+		return result
 
 #for login
 @frappe.whitelist()
