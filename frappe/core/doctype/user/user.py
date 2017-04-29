@@ -868,5 +868,5 @@ def extract_mentions(txt):
 def handle_password_test_fail(result):
 	suggestions = result['feedback']['suggestions'][0] if result['feedback']['suggestions'] else ''
 	warning = result['feedback']['warning'] if 'warning' in result['feedback'] else ''
-	suggestions += "<br/>Hint : Include Underscores, Numbers and Capital Letters in the password<br/>Eg: Eastern_43A"
+	suggestions += "<br/>Hint : Include Underscores, Numbers and Capital Letters in the password<br/>Eg: Eastern_43A1W"
 	frappe.throw(_('Invalid Password: ' + ' '.join([warning, suggestions])))
