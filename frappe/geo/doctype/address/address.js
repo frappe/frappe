@@ -19,6 +19,7 @@ frappe.ui.form.on("Address", {
 				filters: {
 					fieldtype: "HTML",
 					fieldname: "address_html",
+					is_your_company_address: frm.doc.is_your_company_address
 				}
 			}
 		});

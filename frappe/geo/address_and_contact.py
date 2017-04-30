@@ -130,6 +130,13 @@ def filter_dynamic_link_doctypes(doctype, txt, searchfield, start, page_len, fil
 	txt = txt.lower()
 	txt = "%%%s%%" % (txt)
 
+	is_your_company_address = filters.get("is_your_company_address", None)
+	if is_your_company_address:
+		return (("Company",),)
+
+	elif "is_your_company_address" in filters:
+		filters.pop("is_your_company_address")
+
 	filters.update({
 		"parent": ("like", txt)
 	})
