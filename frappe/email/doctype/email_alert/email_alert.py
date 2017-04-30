@@ -8,6 +8,7 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.core.doctype.role.role import get_emails_from_role
 from frappe.utils import validate_email_add, nowdate
+from frappe.utils.data import parse_val
 from frappe.utils.jinja import validate_template
 from frappe.modules.utils import export_module_json, get_doc_module
 from markdown2 import markdown
@@ -194,7 +195,7 @@ def evaluate_alert(doc, alert, event):
 
 		if event=="Value Change" and not doc.is_new():
 			db_value = frappe.db.get_value(doc.doctype, doc.name, alert.value_changed)
-
+			db_value = parse_val(db_value)
 			if (doc.get(alert.value_changed) == db_value) or \
 				(not db_value and not doc.get(alert.value_changed)):
 
