@@ -8,7 +8,9 @@ from frappe.utils import encode, cstr, cint, flt, comma_or
 import openpyxl
 from cStringIO import StringIO
 from openpyxl.styles import Font
-import re
+
+import html2text
+
 # return xlsx file object
 def make_xlsx(data, sheet_name):
 
@@ -21,9 +23,14 @@ def make_xlsx(data, sheet_name):
 	for row in data:
 		clean_row = []
 		for item in row:
-			cleaner = re.compile('<.*?>')
-			clean_row.append(re.sub(cleaner, '', item))
+			obj = html2text.HTML2Text()
+			obj.ignore_links = True
+			obj.body_width = 0
+			obj = obj.handle(item)
+			obj = obj.rsplit('\n', 1)
+			clean_row.append(obj[0])
 		ws.append(clean_row)
+
 
 	xlsx_file = StringIO()
 	wb.save(xlsx_file)
