@@ -13,18 +13,10 @@ frappe.ui.form.on("System Settings", "refresh", function(frm) {
 	});
 });
 
-frappe.ui.form.on("System Settings", "validate", function(frm) {
-    if(frm.doc.enable_password_policy == 1 && frm.doc.minimum_password_score == ""){
-        validated = false;
-        msgprint("Please select Minimum Password Score");
-    }
-});
-
 frappe.ui.form.on("System Settings", "enable_password_policy", function(frm) {
     if(frm.doc.enable_password_policy == 0){
         frm.set_value("minimum_password_score", "");
-        frm.set_df_property("minimum_password_score", "disabled", true);
     }else{
-        frm.set_df_property("minimum_password_score", "disabled", false);
+        frm.set_value("minimum_password_score", "2");
     }
 });

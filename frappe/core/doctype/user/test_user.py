@@ -11,7 +11,7 @@ from frappe import _dict
 from frappe.limits import update_limits, clear_limit
 from frappe.utils import get_url
 from frappe.core.doctype.user.user import get_total_users
-from frappe.core.doctype.user.user import MaxUsersReachedError
+from frappe.core.doctype.user.user import MaxUsersReachedError, test_password_strength
 
 test_records = frappe.get_test_records('User')
 
@@ -214,3 +214,23 @@ class TestUser(unittest.TestCase):
 		# Clear the user limit
 		clear_limit('users')
 
+	def test_password_strength(self):
+		#Test Password without Password Strenth Policy
+		frappe.db.set_value("System Settings", "System Settings", "enable_password_policy", 0)
+		frappe.db.set_value("System Settings", "System Settings", "minimum_password_score", "")
+
+		# Should pass password strength test
+		result = test_password_strength("test_password")
+		self.assertEqual(result['feedback']['password_policy_validation_passed'], True)
+
+		# Test Password with Password Strenth Policy Set
+		frappe.db.set_value("System Settings", "System Settings", "enable_password_policy", 1)
+		frappe.db.set_value("System Settings", "System Settings", "minimum_password_score", 2)
+
+		#Should fail password strength test
+		result = test_password_strength("test_password")
+		self.assertEqual(result['feedback']['password_policy_validation_passed'], False)
+
+		# Should pass password strength test
+		result = test_password_strength("Eastern_43A1W")
+		self.assertEqual(result['feedback']['password_policy_validation_passed'], True)
