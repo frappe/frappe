@@ -104,59 +104,63 @@ def get_context(context):
 				# ignoring attachment as draft and cancelled documents are not allowed to print
 				status = "Draft" if doc.docstatus == 0 else "Cancelled"
 				frappe.throw(_("""Not allowed to attach {0} document,
-					please enable Allow Print For {0} in Print Settings""".format(status)))
+					please enable Allow Print For {0} in Print Settings""".format(status)),
+					title=_("Error in Email Alert"))
 			else:
 				return [frappe.attach_print(doc.doctype, doc.name)]
 
 		context = get_context(doc)
-
 		recipients = []
-		for recipient in self.recipients:
-			if recipient.condition:
-				if not frappe.safe_eval(recipient.condition, None, context):
-					continue
-			if recipient.email_by_document_field:
-				if validate_email_add(doc.get(recipient.email_by_document_field)):
-					recipient.email_by_document_field = doc.get(recipient.email_by_document_field).replace(",", "\n")
-					recipients = recipients + recipient.email_by_document_field.split("\n")
 
-				# else:
-				# 	print "invalid email"
-			if recipient.cc:
-				recipient.cc = recipient.cc.replace(",", "\n")
-				recipients = recipients + recipient.cc.split("\n")
+		try:
+			for recipient in self.recipients:
+				if recipient.condition:
+					if not frappe.safe_eval(recipient.condition, None, context):
+						continue
+				if recipient.email_by_document_field:
+					if validate_email_add(doc.get(recipient.email_by_document_field)):
+						recipient.email_by_document_field = doc.get(recipient.email_by_document_field).replace(",", "\n")
+						recipients = recipients + recipient.email_by_document_field.split("\n")
 
-			#For sending emails to specified role
-			if recipient.email_by_role:
-				emails = get_emails_from_role(recipient.email_by_role)
+					# else:
+					# 	print "invalid email"
+				if recipient.cc:
+					recipient.cc = recipient.cc.replace(",", "\n")
+					recipients = recipients + recipient.cc.split("\n")
 
-				for email in emails:
-					recipients = recipients + email.split("\n")
+				#For sending emails to specified role
+				if recipient.email_by_role:
+					emails = get_emails_from_role(recipient.email_by_role)
 
-		if not recipients:
-			return
+					for email in emails:
+						recipients = recipients + email.split("\n")
 
-		recipients = list(set(recipients))
-		subject = self.subject
+			if not recipients:
+				return
 
-		context = {"doc": doc, "alert": self, "comments": None}
+			recipients = list(set(recipients))
+			subject = self.subject
 
-		if self.is_standard:
-			self.load_standard_properties(context)
+			context = {"doc": doc, "alert": self, "comments": None}
 
-		if doc.get("_comments"):
-			context["comments"] = json.loads(doc.get("_comments"))
+			if self.is_standard:
+				self.load_standard_properties(context)
 
-		if "{" in subject:
-			subject = frappe.render_template(self.subject, context)
+			if doc.get("_comments"):
+				context["comments"] = json.loads(doc.get("_comments"))
 
-		attachments = get_attachment(doc)
+			if "{" in subject:
+				subject = frappe.render_template(self.subject, context)
 
-		frappe.sendmail(recipients=recipients, subject=subject,
-			message= frappe.render_template(self.message, context),
-			reference_doctype = doc.doctype,
-			reference_name = doc.name,
-			attachments = attachments)
+			attachments = get_attachment(doc)
+
+			frappe.sendmail(recipients=recipients, subject=subject,
+				message= frappe.render_template(self.message, context),
+				reference_doctype = doc.doctype,
+				reference_name = doc.name,
+				attachments = attachments)
+		except Exception:
+			frappe.throw("Error in Email Alert")
 
 	def load_standard_properties(self, context):
 		module = get_doc_module(self.module, self.doctype, self.name)
