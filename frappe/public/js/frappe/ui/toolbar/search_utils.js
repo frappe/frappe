@@ -180,6 +180,7 @@ frappe.search.utils = {
     get_reports: function(keywords) {
         var me = this;
 		var out = [];
+        var route;
 		Object.keys(frappe.boot.user.all_reports).forEach(function(item) {
 			var level = me.fuzzy_search(keywords, item);
 			if(level > 0) {

@@ -32,7 +32,7 @@ frappe.route = function() {
 
 	frappe._cur_route = window.location.hash;
 
-	route = frappe.get_route();
+	var route = frappe.get_route();
 	if (route === false) {
 		return;
 	}
