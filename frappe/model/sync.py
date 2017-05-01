@@ -1,7 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 """
 	Sync's doctype and docfields from txt files to database
 	perms will get synced only if none exist
@@ -50,7 +50,7 @@ def sync_for(app_name, force=0, sync_everything = False, verbose=False, reset_pe
 			# show progress bar
 			update_progress_bar("Updating DocTypes for {0}".format(app_name), i, l)
 
-		print ""
+		print()
 
 
 def get_doc_files(files, start_path, force=0, sync_everything = False, verbose=False):

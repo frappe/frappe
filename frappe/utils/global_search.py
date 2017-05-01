@@ -19,7 +19,7 @@ def setup_global_search_table():
 			fulltext(content),
 			route varchar(140),
 			published int(1) not null default 0,
-			unique (doctype, name))
+			unique `doctype_name` (doctype, name))
 			COLLATE=utf8mb4_unicode_ci
 			ENGINE=MyISAM
 			CHARACTER SET=utf8mb4''')
@@ -181,8 +181,9 @@ def insert_values_for_multiple_docs(all_contents):
 		values.append("( '{doctype}', '{name}', '{content}', '{published}', '{title}', '{route}')"
 			.format(**content))
 
+	# ignoring duplicate keys for doctype_name
 	frappe.db.sql('''
-		insert into __global_search
+		insert ignore into __global_search
 			(doctype, name, content, published, title, route)
 		values
 			{0}

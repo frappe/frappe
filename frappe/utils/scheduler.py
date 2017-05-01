@@ -8,7 +8,7 @@ Events:
 	weekly
 """
 
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 
 import frappe
 import json
@@ -48,7 +48,7 @@ def enqueue_events_for_all_sites():
 			enqueue_events_for_site(site=site, queued_jobs=jobs_per_site[site])
 		except:
 			# it should try to enqueue other sites
-			print frappe.get_traceback()
+			print(frappe.get_traceback())
 
 def enqueue_events_for_site(site, queued_jobs):
 	try:

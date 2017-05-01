@@ -100,7 +100,7 @@ class EmailServer:
 		frappe.db.commit()
 
 		if not self.connect():
-			return []
+			return
 
 		uid_list = []
 

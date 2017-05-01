@@ -1,7 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 
 import frappe, json
 import frappe.permissions
@@ -210,7 +210,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 
 	def log(msg):
 		if via_console:
-			print msg.encode('utf-8')
+			print(msg.encode('utf-8'))
 		else:
 			ret.append(msg)
 

@@ -962,6 +962,8 @@ frappe.provide("frappe.views");
 	function modify_column_field_in_c11n(doc, board, title, action) {
 		doc.fields.forEach(function (df) {
 			if (df.fieldname === board.field_name && df.fieldtype === "Select") {
+				if(!df.options) df.options = "";
+
 				if (action === "add") {
 					//add column_name to Select field's option field
 					if(!df.options.includes(title))

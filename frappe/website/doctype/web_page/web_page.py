@@ -1,7 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 import frappe, re
 import requests, requests.exceptions
 from frappe.utils import strip_html
@@ -136,14 +136,14 @@ def check_broken_links():
 					res = frappe._dict({"status_code": "Connection Error"})
 
 				if res.status_code!=200:
-					print "[{0}] {1}: {2}".format(res.status_code, p.name, link)
+					print("[{0}] {1}: {2}".format(res.status_code, p.name, link))
 					cnt += 1
 			else:
 				link = link[1:] # remove leading /
 				link = link.split("#")[0]
 
 				if not resolve_route(link):
-					print p.name + ":" + link
+					print(p.name + ":" + link)
 					cnt += 1
 
-	print "{0} links broken".format(cnt)
+	print("{0} links broken".format(cnt))
