@@ -126,30 +126,27 @@ frappe.provide("frappe.views");
 				var board = this.board;
 				var state = this;
 
-				if (field && !quick_entry) {
-					var doc_fields = {};
-					doc_fields[field.fieldname] = card_title;
-					doc_fields[this.board.field_name] = column_title;
-					this.board.filters_array.forEach(function (f) {
-						if (f[2] !== "=") return;
-						doc_fields[f[1]] = f[3];
-					});
+				var doc_fields = {};
+				doc_fields[field.fieldname] = card_title;
+				doc_fields[this.board.field_name] = column_title;
+				this.board.filters_array.forEach(function (f) {
+					if (f[2] !== "=") return;
+					doc_fields[f[1]] = f[3];
+				});
 
-					if (quick_entry) {
-						frappe.route_options = {};
-						$.extend(frappe.route_options, doc_fields);
-						frappe.new_doc(this.doctype, doc);
-					} else {
-						$.extend(doc, doc_fields);
-						return insert_doc(doc)
-							.then(function (r) {
-								var doc = r.message;
-								var card = prepare_card(doc, state, doc);
-								var cards = state.cards.slice();
-								cards.push(card);
-								updater.set({ cards: cards });
-							});
-					}
+				$.extend(doc, doc_fields);
+
+				if (field && !quick_entry) {
+					return insert_doc(doc)
+						.then(function (r) {
+							var doc = r.message;
+							var card = prepare_card(doc, state, doc);
+							var cards = state.cards.slice();
+							cards.push(card);
+							updater.set({ cards: cards });
+						});
+				} else {
+					frappe.new_doc(this.doctype, doc);
 				}
 			},
 			update_card: function (updater, card) {
