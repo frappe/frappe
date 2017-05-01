@@ -103,35 +103,35 @@ def get_user_page_or_report(parent):
 
 	# get pages or reports set on custom role
 	custom_roles = frappe.db.sql("""
-		select 
-			`tabCustom Role`.{field} as name, 
-			`tabCustom Role`.modified, 
-			`tabCustom Role`.ref_doctype 
-		from `tabCustom Role`, `tabHas Role` 
+		select
+			`tabCustom Role`.{field} as name,
+			`tabCustom Role`.modified,
+			`tabCustom Role`.ref_doctype
+		from `tabCustom Role`, `tabHas Role`
 		where
-			`tabHas Role`.parent = `tabCustom Role`.name 
-			and `tabCustom Role`.{field} is not null 
+			`tabHas Role`.parent = `tabCustom Role`.name
+			and `tabCustom Role`.{field} is not null
 			and `tabHas Role`.role in ({roles})
 	""".format(field=parent.lower(), roles = ', '.join(['%s']*len(roles))), roles, as_dict=1)
-				
+
 	for p in custom_roles:
 		has_role[p.name] = {"modified":p.modified, "title": p.name, "ref_doctype": p.ref_doctype}
 
 	standard_roles = frappe.db.sql("""
 		select distinct
-			tab{parent}.name, 
-			tab{parent}.modified, 
+			tab{parent}.name,
+			tab{parent}.modified,
 			{column}
 		from `tabHas Role`, `tab{parent}`
-		where 
+		where
 			`tabHas Role`.role in ({roles})
-			and `tabHas Role`.parent = `tab{parent}`.name 
+			and `tabHas Role`.parent = `tab{parent}`.name
 			and tab{parent}.name not in (
-				select `tabCustom Role`.{field} from `tabCustom Role` 
+				select `tabCustom Role`.{field} from `tabCustom Role`
 				where `tabCustom Role`.{field} is not null)
-		""".format(parent=parent, column=column, 
+		""".format(parent=parent, column=column,
 			roles = ', '.join(['%s']*len(roles)), field=parent.lower()), roles, as_dict=True)
-		
+
 	for p in standard_roles:
 		if p.name not in has_role:
 			has_role[p.name] = {"modified":p.modified, "title": p.title}
@@ -148,11 +148,11 @@ def get_user_page_or_report(parent):
 				(select count(*) from `tabHas Role`
 				where `tabHas Role`.parent=tab{parent}.name) = 0
 		""".format(parent=parent, column=column), as_dict=1)
-		
+
 		for p in pages_with_no_roles:
 			if p.name not in has_role:
 				has_role[p.name] = {"modified": p.modified, "title": p.title}
-	
+
 	elif parent == "Report":
 		for report_name in has_role:
 			has_role[report_name]["report_type"] = frappe.db.get_value("Report", report_name, "report_type")
@@ -230,7 +230,8 @@ def load_print(bootinfo, doclist):
 	load_print_css(bootinfo, print_settings)
 
 def load_print_css(bootinfo, print_settings):
-	bootinfo.print_css = frappe.get_attr("frappe.www.print.get_print_style")(print_settings.print_style or "Modern", for_legacy=True)
+	import frappe.www.printview
+	bootinfo.print_css = frappe.www.printview.get_print_style(print_settings.print_style or "Modern", for_legacy=True)
 
 def get_unseen_notes():
 	return frappe.db.sql('''select name, title, content, notify_on_every_login from tabNote where notify_on_login=1
