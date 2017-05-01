@@ -34,7 +34,7 @@
 	{% endif %}
 	{%- if allow_print and not is_list and not _login_required -%}
 	<div class='text-right'>
-		<a class='text-muted small' href='/print?doctype={{ doc.doctype}}&name={{ doc.name }}
+		<a class='text-muted small' href='/printview?doctype={{ doc.doctype}}&name={{ doc.name }}
 			{%- if print_format -%}&format={{ print_format }}{%- endif -%}' target="_blank">
 			<i class='fa fa-print'></i> {{ _("Print") }}</a>
 	</div>

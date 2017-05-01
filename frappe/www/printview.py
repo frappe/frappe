@@ -14,7 +14,7 @@ from markdown2 import markdown
 no_cache = 1
 no_sitemap = 1
 
-base_template_path = "templates/www/print.html"
+base_template_path = "templates/www/printview.html"
 standard_format = "templates/print_formats/standard.html"
 
 def get_context(context):
@@ -148,9 +148,9 @@ def get_html(doc, name=None, print_format=None, meta=None,
 		"footer": letter_head.footer,
 		"print_settings": frappe.get_doc("Print Settings")
 	}
-	
+
 	html = template.render(args, filters={"len": len})
-	
+
 	if cint(trigger_print):
 		html += trigger_print_script
 
