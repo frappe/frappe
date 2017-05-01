@@ -1324,11 +1324,19 @@ def bold(text):
 
 def safe_eval(code, eval_globals=None, eval_locals=None):
 	'''A safer `eval`'''
+	whitelisted_globals = {
+		"int": int,
+		"float": float,
+		"long": long
+	}
+	
 	if '__' in code:
 		throw('Illegal rule {0}. Cannot use "__"'.format(bold(code)))
 
 	if not eval_globals:
 		eval_globals = {}
 	eval_globals['__builtins__'] = {}
+
+	eval_globals.update(whitelisted_globals)
 
 	return eval(code, eval_globals, eval_locals)
