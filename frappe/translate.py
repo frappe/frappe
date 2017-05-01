@@ -1,7 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 
 """
 	frappe.translate
@@ -584,7 +584,7 @@ def get_untranslated(lang, untranslated_file, get_all=False):
 				.replace("\n", "|||"))
 
 	if get_all:
-		print str(len(messages)) + " messages"
+		print(str(len(messages)) + " messages")
 		with open(untranslated_file, "w") as f:
 			for m in messages:
 				# replace \n with ||| so that internal linebreaks don't get split
@@ -597,13 +597,13 @@ def get_untranslated(lang, untranslated_file, get_all=False):
 				untranslated.append(m[1])
 
 		if untranslated:
-			print str(len(untranslated)) + " missing translations of " + str(len(messages))
+			print(str(len(untranslated)) + " missing translations of " + str(len(messages)))
 			with open(untranslated_file, "w") as f:
 				for m in untranslated:
 					# replace \n with ||| so that internal linebreaks don't get split
 					f.write((escape_newlines(m) + os.linesep).encode("utf-8"))
 		else:
-			print "all translated!"
+			print("all translated!")
 
 def update_translations(lang, untranslated_file, translated_file):
 	"""Update translations from a source and target file for a given language.

@@ -1,4 +1,4 @@
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 import frappe
 
 def execute():
@@ -20,8 +20,10 @@ def execute():
 			max_length = max_length[0][0] if max_length else None
 
 			if max_length and 140 < max_length <= 255:
-				print "setting length of '{fieldname}' in '{doctype}' as {length}".format(
+				print(
+					"setting length of '{fieldname}' in '{doctype}' as {length}".format(
 					fieldname=fieldname, doctype=doctype, length=max_length)
+				)
 
 				# create property setter for length
 				frappe.make_property_setter({

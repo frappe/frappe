@@ -1,14 +1,14 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 
 import frappe, os, re
 from frappe.utils import touch_file, encode, cstr
 
 def make_boilerplate(dest, app_name):
 	if not os.path.exists(dest):
-		print "Destination directory does not exist"
+		print("Destination directory does not exist")
 		return
 
 	# app_name should be in snake_case
@@ -38,10 +38,10 @@ def make_boilerplate(dest, app_name):
 					hook_val = defaults[hook_key]
 
 			if hook_key=="app_name" and hook_val.lower().replace(" ", "_") != hook_val:
-				print "App Name must be all lowercase and without spaces"
+				print("App Name must be all lowercase and without spaces")
   				hook_val = ""
 			elif hook_key=="app_title" and not re.match("^(?![\W])[^\d_\s][\w -]+$", hook_val, re.UNICODE):
-				print "App Title should start with a letter and it can only consist of letters, numbers, spaces and underscores"
+				print("App Title should start with a letter and it can only consist of letters, numbers, spaces and underscores")
 				hook_val = ""
 
 		hooks[hook_key] = hook_val
@@ -96,7 +96,7 @@ def make_boilerplate(dest, app_name):
 	with open(os.path.join(dest, hooks.app_name, hooks.app_name, "config", "docs.py"), "w") as f:
 		f.write(encode(docs_template.format(**hooks)))
 
-	print "'{app}' created at {path}".format(app=app_name, path=os.path.join(dest, app_name))
+	print("'{app}' created at {path}".format(app=app_name, path=os.path.join(dest, app_name)))
 
 
 manifest_template = """include MANIFEST.in
