@@ -66,7 +66,7 @@ def get_linked_docs(doctype, name, linkinfo=None, for_doctype=None):
 					if link.get("doctype_fieldname"):
 						filters.append([link.get('child_doctype'), link.get("doctype_fieldname"), "=", doctype])
 
-					ret = frappe.get_list(doctype=dt, fields=fields, filters=filters)
+					ret = frappe.get_list(doctype=dt, fields=fields, filters=filters, distinct=True)
 
 				else:
 					if link.get("fieldname"):
