@@ -406,7 +406,7 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False, from_test=Fals
 		# no need to attempt further
 		return
 
-	except Exception, e:
+	except Exception as e:
 		frappe.db.rollback()
 
 		if any("Sent" == s.status for s in recipients_list):
