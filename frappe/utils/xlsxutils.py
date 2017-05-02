@@ -23,14 +23,19 @@ def make_xlsx(data, sheet_name):
 	for row in data:
 		clean_row = []
 		for item in row:
-			obj = html2text.HTML2Text()
-			obj.ignore_links = True
-			obj.body_width = 0
-			obj = obj.handle(item)
-			obj = obj.rsplit('\n', 1)
-			clean_row.append(obj[0])
-		ws.append(clean_row)
+			if isinstance(item, basestring):
+				obj = html2text.HTML2Text()
+				obj.ignore_links = True
+				obj.body_width = 0
+				obj = obj.handle(unicode(item or ""))
+				obj = obj.rsplit('\n', 1)
+				value = obj[0]
+			else:
+				value = item
 
+			clean_row.append(value)
+
+		ws.append(clean_row)
 
 	xlsx_file = StringIO()
 	wb.save(xlsx_file)
