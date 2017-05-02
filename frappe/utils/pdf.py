@@ -21,7 +21,7 @@ def get_pdf(html, options=None, output = None):
 			with open(fname, "rb") as fileobj:
 				filedata = fileobj.read()
 
-	except IOError, e:
+	except IOError as e:
 		if ("ContentNotFoundError" in e.message
 			or "ContentOperationNotPermittedError" in e.message
 			or "UnknownContentError" in e.message
