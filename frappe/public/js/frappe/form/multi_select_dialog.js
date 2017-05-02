@@ -20,6 +20,9 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 
 		let fields = [];
 		let count = 0;
+		if(!this.date_field) {
+			this.date_field = "transaction_date";
+		}
 		Object.keys(this.setters).forEach(function(setter) {
 			fields.push({
 				fieldtype: me.target.fields_dict[setter].df.fieldtype,

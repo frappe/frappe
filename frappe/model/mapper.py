@@ -27,6 +27,8 @@ def make_mapped_doc(method, source_name, selected_children=None):
 
 @frappe.whitelist()
 def map_docs(method, source_names, target_doc):
+	'''Returns the mapped document calling the given mapper method
+	with each of the given source docs on the target doc'''
 	method = frappe.get_attr(method)
 	if method not in frappe.whitelisted:
 		raise frappe.PermissionError
