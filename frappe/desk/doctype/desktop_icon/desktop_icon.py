@@ -141,7 +141,7 @@ def add_user_icon(_doctype, label=None, link=None, type='link', standard=0):
 
 			icon_name = new_icon.name
 
-		except Exception, e:
+		except Exception as e:
 			raise e
 
 	return icon_name
@@ -190,7 +190,7 @@ def set_desktop_icons(visible_list, ignore_duplicate=True):
 			if frappe.db.exists('DocType', module_name):
 				try:
 					add_user_icon(module_name, standard=1)
-				except frappe.UniqueValidationError, e:
+				except frappe.UniqueValidationError as e:
 					if not ignore_duplicate:
 						raise e
 					else:
