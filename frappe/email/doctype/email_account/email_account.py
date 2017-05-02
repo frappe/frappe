@@ -161,7 +161,7 @@ class EmailAccount(Document):
 		email_server = EmailServer(frappe._dict(args))
 		try:
 			email_server.connect()
-		except (error_proto, imaplib.IMAP4.error), e:
+		except (error_proto, imaplib.IMAP4.error) as e:
 			message = e.message.lower().replace(" ","")
 			if in_receive and any(map(lambda t: t in message, ['authenticationfail', 'loginviayourwebbrowser', #abbreviated to work with both failure and failed
 				'loginfailed', 'err[auth]', 'errtemporaryerror'])): #temporary error to deal with godaddy
@@ -291,7 +291,7 @@ class EmailAccount(Document):
 				frappe.publish_realtime('new_email', {"account":self.email_account_name, "number":len(incoming_mails)})
 
 			if exceptions:
-				raise Exception, frappe.as_json(exceptions)
+				raise Exception(frappe.as_json(exceptions))
 
 	def handle_bad_emails(self, email_server, uid, raw, reason):
 		if cint(email_server.settings.use_imap):
