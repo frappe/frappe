@@ -58,7 +58,7 @@ class EmailServer:
 			frappe.msgprint(_('Invalid Mail Server. Please rectify and try again.'))
 			raise
 
-		except Exception, e:
+		except Exception as e:
 			frappe.msgprint(_('Cannot connect: {0}').format(str(e)))
 			raise
 
@@ -84,7 +84,7 @@ class EmailServer:
 			frappe.msgprint(_('Invalid Mail Server. Please rectify and try again.'))
 			raise
 
-		except poplib.error_proto, e:
+		except poplib.error_proto as e:
 			if self.is_temporary_system_problem(e):
 				return False
 
@@ -143,7 +143,7 @@ class EmailServer:
 					for m in xrange(101, num+1):
 						self.pop.dele(m)
 
-		except Exception, e:
+		except Exception as e:
 			if self.has_login_limit_exceeded(e):
 				pass
 
@@ -246,10 +246,10 @@ class EmailServer:
 			self.errors = True
 			raise
 
-		except Exception, e:
+		except Exception as e:
 			if self.has_login_limit_exceeded(e):
 				self.errors = True
-				raise LoginLimitExceeded, e
+				raise LoginLimitExceeded(e)
 
 			else:
 				# log performs rollback and logs error in Error Log
