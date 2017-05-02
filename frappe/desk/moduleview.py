@@ -196,7 +196,7 @@ def get_last_modified(doctype):
 	def _get():
 		try:
 			last_modified = frappe.get_all(doctype, fields=["max(modified)"], as_list=True, limit_page_length=1)[0][0]
-		except Exception, e:
+		except Exception as e:
 			if e.args[0]==1146:
 				last_modified = None
 			else:
