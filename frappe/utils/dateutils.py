@@ -29,8 +29,8 @@ def user_to_str(date, date_format=None):
 	try:
 		return datetime.datetime.strptime(date,
 			dateformats[date_format]).strftime('%Y-%m-%d')
-	except ValueError, e:
-		raise ValueError, "Date %s must be in format %s" % (date, date_format)
+	except ValueError as e:
+		raise ValueError("Date %s must be in format %s" % (date, date_format))
 
 def parse_date(date):
 	"""tries to parse given date to system's format i.e. yyyy-mm-dd. returns a string"""
@@ -49,13 +49,13 @@ def parse_date(date):
 			parsed_date = user_to_str(date, f)
 			if parsed_date:
 				break
-		except ValueError, e:
+		except ValueError as e:
 			pass
 
 	if not parsed_date:
-		raise Exception, """Cannot understand date - '%s'.
+		raise Exception("""Cannot understand date - '%s'.
 			Try formatting it like your default format - '%s'""" % \
-			(date, get_user_date_format())
+		                (date, get_user_date_format()))
 
 	return parsed_date
 
