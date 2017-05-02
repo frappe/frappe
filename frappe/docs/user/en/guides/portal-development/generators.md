@@ -86,3 +86,5 @@ If you add a method `get_list_view` in the controller file (job_opening.py), you
 	def get_list_context(context):
 		context.title = _("Jobs")
 		context.introduction = _('Current Job Openings')
+
+{next}

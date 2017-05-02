@@ -1,7 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 from frappe.utils.minify import JavascriptMinify
 import subprocess
 
@@ -114,8 +114,8 @@ def get_build_maps():
 
 						build_maps[target] = source_paths
 				except ValueError, e:
-					print path
-					print 'JSON syntax error {0}'.format(str(e))
+					print(path)
+					print('JSON syntax error {0}'.format(str(e)))
 	return build_maps
 
 timestamps = {}
@@ -130,7 +130,7 @@ def pack(target, sources, no_compress, verbose):
 		suffix = None
 		if ':' in f: f, suffix = f.split(':')
 		if not os.path.exists(f) or os.path.isdir(f):
-			print "did not find " + f
+			print("did not find " + f)
 			continue
 		timestamps[f] = os.path.getmtime(f)
 		try:
@@ -147,7 +147,7 @@ def pack(target, sources, no_compress, verbose):
 					outtxt += unicode(minified or '', 'utf-8').strip('\n') + ';'
 
 				if verbose:
-					print "{0}: {1}k".format(f, int(len(minified) / 1024))
+					print("{0}: {1}k".format(f, int(len(minified) / 1024)))
 			elif outtype=="js" and extn=="html":
 				# add to frappe.templates
 				outtxt += html_to_js_template(f, data)
@@ -156,8 +156,8 @@ def pack(target, sources, no_compress, verbose):
 				outtxt += '\n' + data + '\n'
 
 		except Exception:
-			print "--Error in:" + f + "--"
-			print frappe.get_traceback()
+			print("--Error in:" + f + "--")
+			print(frappe.get_traceback())
 
 	if not no_compress and outtype == 'css':
 		pass
@@ -166,7 +166,7 @@ def pack(target, sources, no_compress, verbose):
 	with open(target, 'w') as f:
 		f.write(outtxt.encode("utf-8"))
 
-	print "Wrote %s - %sk" % (target, str(int(os.path.getsize(target)/1024)))
+	print("Wrote %s - %sk" % (target, str(int(os.path.getsize(target)/1024))))
 
 def html_to_js_template(path, content):
 	'''returns HTML template content as Javascript code, adding it to `frappe.templates`'''
@@ -189,7 +189,7 @@ def files_dirty():
 			if ':' in f: f, suffix = f.split(':')
 			if not os.path.exists(f) or os.path.isdir(f): continue
 			if os.path.getmtime(f) != timestamps.get(f):
-				print f + ' dirty'
+				print(f + ' dirty')
 				return True
 	else:
 		return False
@@ -211,7 +211,7 @@ def compile_less():
 
 					timestamps[fpath] = mtime
 
-					print "compiling {0}".format(fpath)
+					print("compiling {0}".format(fpath))
 
 					css_path = os.path.join(path, "public", "css", fname.rsplit(".", 1)[0] + ".css")
 					os.system("lessc {0} > {1}".format(fpath, css_path))

@@ -3,9 +3,9 @@
 
 # util __init__.py
 
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 from werkzeug.test import Client
-import os, re, urllib, sys, json, md5, requests, traceback
+import os, re, urllib, sys, json, hashlib, requests, traceback
 from markdown2 import markdown as _markdown
 from .html_utils import sanitize_html
 
@@ -142,7 +142,7 @@ def has_gravatar(email):
 		# since querying gravatar for every item will be slow
 		return ''
 
-	hexdigest = md5.md5(frappe.as_unicode(email).encode('utf-8')).hexdigest()
+	hexdigest = hashlib.md5(frappe.as_unicode(email).encode('utf-8')).hexdigest()
 
 	gravatar_url = "https://secure.gravatar.com/avatar/{hash}?d=404&s=200".format(hash=hexdigest)
 	try:
@@ -155,7 +155,7 @@ def has_gravatar(email):
 		return ''
 
 def get_gravatar_url(email):
-	return "https://secure.gravatar.com/avatar/{hash}?d=mm&s=200".format(hash=md5.md5(email).hexdigest())
+	return "https://secure.gravatar.com/avatar/{hash}?d=mm&s=200".format(hash=hashlib.md5(email).hexdigest())
 
 def get_gravatar(email):
 	gravatar_url = has_gravatar(email)
@@ -278,8 +278,8 @@ def execute_in_shell(cmd, verbose=0):
 			err = stderr.read()
 
 	if verbose:
-		if err: print err
-		if out: print out
+		if err: print(err)
+		if out: print(out)
 
 	return err, out
 
@@ -421,10 +421,10 @@ def watch(path, handler=None, debug=True):
 	class Handler(FileSystemEventHandler):
 		def on_any_event(self, event):
 			if debug:
-				print "File {0}: {1}".format(event.event_type, event.src_path)
+				print("File {0}: {1}".format(event.event_type, event.src_path))
 
 			if not handler:
-				print "No handler specified"
+				print("No handler specified")
 				return
 
 			handler(event.src_path, event.event_type)

@@ -38,3 +38,48 @@ class TestReportview(unittest.TestCase):
 		self.assertTrue({"fieldtype":"Table", "fieldname":"fields"} in data)
 		self.assertTrue({"fieldtype":"Select", "fieldname":"document_type"} in data)
 		self.assertFalse({"fieldtype":"Check", "fieldname":"issingle"} in data)
+
+	def test_between_filters(self):
+		""" test case to check between filter for date fields """
+		frappe.db.sql("delete from tabEvent")
+
+		# create events to test the between operator filter
+		todays_event = create_event()
+		event = create_event(starts_on="2016-07-06 12:00:00")
+
+		# if the values are not passed in filters then todays event should be return
+		data = DatabaseQuery("Event").execute(
+			filters={"starts_on": ["between", None]}, fields=["name"])
+
+		self.assertTrue({ "name": todays_event.name } in data)
+		self.assertTrue({ "name": event.name } not in data)
+
+		# if both from and to_date values are passed
+		data = DatabaseQuery("Event").execute(
+			filters={"starts_on": ["between", ["2016-07-05 12:00:00", "2016-07-07 12:00:00"]]},
+			fields=["name"])
+
+		self.assertTrue({ "name": event.name } in data)
+		self.assertTrue({ "name": todays_event.name } not in data)
+
+		# if only one value is passed in the filter
+		data = DatabaseQuery("Event").execute(
+			filters={"starts_on": ["between", ["2016-07-05 12:00:00"]]},
+			fields=["name"])
+
+		self.assertTrue({ "name": todays_event.name } in data)
+		self.assertTrue({ "name": event.name } in data)
+
+def create_event(subject="_Test Event", starts_on=None):
+	""" create a test event """
+
+	from frappe.utils import get_datetime
+
+	event = frappe.get_doc({
+		"doctype": "Event",
+		"subject": subject,
+		"event_type": "Public",
+		"starts_on": get_datetime(starts_on),
+	}).insert(ignore_permissions=True)
+
+	return event

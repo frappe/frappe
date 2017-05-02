@@ -1,7 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 
 from selenium.webdriver.common.keys import Keys
 from selenium import webdriver
@@ -47,7 +47,7 @@ def start_test_server(verbose):
 	while not pipe.stderr.readline():
 		time.sleep(0.5)
 	if verbose:
-		print "Test server started"
+		print("Test server started")
 
 def get(url):
 	_driver.get(url)

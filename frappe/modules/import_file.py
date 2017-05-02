@@ -1,7 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 
 import frappe, os, json
 from frappe.modules import get_module_path, scrub_dt_dn
@@ -38,7 +38,7 @@ def import_file_by_path(path, force=False, data_import=False, pre_process=None, 
 	try:
 		docs = read_doc_from_file(path)
 	except IOError:
-		print path + " missing"
+		print (path + " missing")
 		return
 
 	if docs:
@@ -77,7 +77,7 @@ def read_doc_from_file(path):
 			try:
 				doc = json.loads(f.read())
 			except ValueError:
-				print "bad json: {0}".format(path)
+				print("bad json: {0}".format(path))
 				raise
 	else:
 		raise IOError, '%s missing' % path

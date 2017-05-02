@@ -1,7 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 
 import frappe, os
 from frappe.core.page.data_import_tool.data_import_tool import import_doc, export_json
@@ -60,7 +60,7 @@ def export_fixtures():
 				filters = fixture.get("filters")
 				or_filters = fixture.get("or_filters")
 				fixture = fixture.get("doctype") or fixture.get("dt")
-			print "Exporting {0} app {1} filters {2}".format(fixture, app, (filters if filters else or_filters))
+			print("Exporting {0} app {1} filters {2}".format(fixture, app, (filters if filters else or_filters)))
 			if not os.path.exists(frappe.get_app_path(app, "fixtures")):
 				os.mkdir(frappe.get_app_path(app, "fixtures"))
 

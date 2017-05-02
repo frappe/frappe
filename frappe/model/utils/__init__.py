@@ -1,7 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 import frappe
 from frappe.utils import cstr
 from frappe.build import html_to_js_template
@@ -29,7 +29,7 @@ def set_field_property(filters, key, value):
 	for d in docs:
 		d.get('fields', filters)[0].set(key, value)
 		d.save()
-		print 'Updated {0}'.format(d.name)
+		print('Updated {0}'.format(d.name))
 
 	frappe.db.commit()
 

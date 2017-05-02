@@ -1,5 +1,5 @@
 language: python
-dist: trusty
+dist: xenial
 
 python:
   - "2.7"
@@ -8,31 +8,33 @@ services:
   - mysql
 
 before_install:
-  - "export DISPLAY=:99.0"
-  - "sh -e /etc/init.d/xvfb start"
+  - export CHROME_BIN=chromium-browser
+  - export DISPLAY=:99.0
+  - sh -e /etc/init.d/xvfb start
 
 install:
   - sudo apt-get purge -y mysql-common mysql-server mysql-client
-  # - wget https://raw.githubusercontent.com/frappe/bench/master/install_scripts/setup_frappe.sh
-  # - sudo bash setup_frappe.sh --skip-setup-bench --mysql-root-password travis --bench-branch develop
   - wget https://raw.githubusercontent.com/frappe/bench/master/playbooks/install.py
   - sudo python install.py --develop --user travis --without-bench-setup
   - sudo pip install -e ~/bench
+  - npm install -g testcafe
 
   - rm $TRAVIS_BUILD_DIR/.git/shallow
   - cd ~/ && bench init frappe-bench --frappe-path $TRAVIS_BUILD_DIR
   - cp -r $TRAVIS_BUILD_DIR/test_sites/test_site ~/frappe-bench/sites/
 
 script:
-  - cd ~/frappe-bench
-  - bench use test_site
+  - bench --verbose run-tests
   - bench reinstall --yes
-  - bench build
-  - bench start &
-  - sleep 10
-  - bench --verbose run-tests --driver Firefox
+  - testcafe chrome apps/frappe/frappe/tests/testcafe/
 
 before_script:
   - mysql -u root -ptravis -e 'create database test_frappe'
   - echo "USE mysql;\nCREATE USER 'test_frappe'@'localhost' IDENTIFIED BY 'test_frappe';\nFLUSH PRIVILEGES;\n" | mysql -u root -ptravis
   - echo "USE mysql;\nGRANT ALL PRIVILEGES ON \`test_frappe\`.* TO 'test_frappe'@'localhost';\n" | mysql -u root -ptravis
+  
+  - cd ~/frappe-bench
+  - bench use test_site
+  - bench reinstall --yes
+  - bench start &
+  - sleep 10
