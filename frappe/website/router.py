@@ -112,7 +112,7 @@ def get_page_info_from_doctypes(path=None):
 				# just want one path, return it!
 				if path:
 					return routes[r.route]
-		except Exception, e:
+		except Exception as e:
 			if e.args[0]!=1054: raise e
 
 	return routes
