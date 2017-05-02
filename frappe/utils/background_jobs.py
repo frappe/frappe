@@ -64,7 +64,7 @@ def execute_job(site, method, event, job_name, kwargs, user=None, async=True, re
 	try:
 		method(**kwargs)
 
-	except (MySQLdb.OperationalError, frappe.RetryBackgroundJobError), e:
+	except (MySQLdb.OperationalError, frappe.RetryBackgroundJobError) as e:
 		frappe.db.rollback()
 
 		if (retry < 5 and
