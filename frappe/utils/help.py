@@ -51,7 +51,7 @@ class HelpDatabase(object):
 		if not self.help_db_name in dbman.get_database_list():
 			try:
 				dbman.create_user(self.help_db_name, self.help_db_name)
-			except Exception, e:
+			except Exception as e:
 				# user already exists
 				if e.args[0] != 1396: raise
 			dbman.create_database(self.help_db_name)
