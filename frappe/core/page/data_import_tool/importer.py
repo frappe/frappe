@@ -268,7 +268,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 				if submit_after_import:
 					doc.submit()
 					log('Submitted row (#%d) %s' % (row_idx + 1, as_link(doc.doctype, doc.name)))
-		except Exception, e:
+		except Exception as e:
 			error = True
 			if doc:
 				frappe.errprint(doc if isinstance(doc, dict) else doc.as_dict())
