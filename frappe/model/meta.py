@@ -230,7 +230,7 @@ class Meta(Document):
 			self.extend("fields", frappe.db.sql("""SELECT * FROM `tabCustom Field`
 				WHERE dt = %s AND docstatus < 2""", (self.name,), as_dict=1,
 				update={"is_custom_field": 1}))
-		except Exception, e:
+		except Exception as e:
 			if e.args[0]==1146:
 				return
 			else:
@@ -385,7 +385,7 @@ def is_single(doctype):
 	try:
 		return frappe.db.get_value("DocType", doctype, "issingle")
 	except IndexError:
-		raise Exception, 'Cannot determine whether %s is single' % doctype
+		raise Exception('Cannot determine whether %s is single' % doctype)
 
 def get_parent_dt(dt):
 	parent_dt = frappe.db.sql("""select parent from tabDocField
