@@ -32,26 +32,47 @@ def get_desktop_icons(user=None):
 		fields = ['module_name', 'hidden', 'label', 'link', 'type', 'icon', 'color',
 			'_doctype', '_report', 'idx', 'force_show', 'reverse', 'custom', 'standard', 'blocked']
 
+		domain = frappe.db.get_value("Domain Settings", "Domain Settings", "domain")
+		query = """
+			SELECT 
+				name
+			FROM
+				`tabDocType`
+			WHERE
+				ifnull(`tabDocType`.restrict_to_domain, '')!='{domain}' and ifnull(`tabDocType`.restrict_to_domain, '')!=''
+		"""
+
+		blocked_doctypes = frappe.db.sql(query.format(
+			domain=domain,
+		), as_dict=True)
+
+		blocked_doctypes = [ d.get("name") for d in blocked_doctypes ]
+
 		standard_icons = frappe.db.get_all('Desktop Icon',
 			fields=fields, filters={'standard': 1})
 
 		standard_map = {}
 		for icon in standard_icons:
+			if icon._doctype in blocked_doctypes:
+				icon.blocked = 1
 			standard_map[icon.module_name] = icon
 
 		user_icons = frappe.db.get_all('Desktop Icon', fields=fields,
 			filters={'standard': 0, 'owner': user})
 
-
 		# update hidden property
 		for icon in user_icons:
 			standard_icon = standard_map.get(icon.module_name, None)
+
+			if icon._doctype in blocked_doctypes:
+				icon.blocked = 1
 
 			# override properties from standard icon
 			if standard_icon:
 				for key in ('route', 'label', 'color', 'icon', 'link'):
 					if standard_icon.get(key):
 						icon[key] = standard_icon.get(key)
+
 
 				if standard_icon.blocked:
 					icon.hidden = 1

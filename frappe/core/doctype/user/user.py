@@ -490,8 +490,10 @@ def get_timezones():
 @frappe.whitelist()
 def get_all_roles(arg=None):
 	"""return all roles"""
+	domain = frappe.db.get_value("Domain Settings", "Domain Settings", "domain")
 	return [r[0] for r in frappe.db.sql("""select name from tabRole
-		where name not in ('Administrator', 'Guest', 'All') and not disabled order by name""")]
+		where name not in ('Administrator', 'Guest', 'All') and 
+		ifnull(restrict_to_domain, '') in ('', %s) and not disabled order by name""", domain)]
 
 @frappe.whitelist()
 def get_roles(arg=None):

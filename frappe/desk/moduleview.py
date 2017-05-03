@@ -55,6 +55,27 @@ def build_config_from_file(module):
 		except ImportError:
 			pass
 
+	return filter_by_restrict_to_domain(data)
+
+def filter_by_restrict_to_domain(data):
+	result = {}
+
+	mapper = {
+		"page": "Page",
+		"doctype": "DocType"
+	}
+	domain = frappe.db.get_value("Domain Settings", "Domain Settings", "domain")
+	for d in data:
+		_items = []
+		for item in d.get("items", []):
+			doctype = mapper.get(item.get("type"))
+
+			doctype_domain = frappe.db.get_value(doctype, item.get("name"), "restrict_to_domain")
+			if not doctype_domain or (doctype_domain == domain):
+				_items.append(item)
+
+		d.update({ "items": _items })
+
 	return data
 
 def build_standard_config(module, doctype_info):
@@ -95,11 +116,13 @@ def add_custom_doctypes(data, doctype_info):
 
 def get_doctype_info(module):
 	"""Returns list of non child DocTypes for given module."""
+	domain = frappe.db.get_value("Domain Settings", "Domain Settings", "domain")
 	doctype_info = frappe.db.sql("""select "doctype" as type, name, description,
 		ifnull(document_type, "") as document_type, custom as custom,
 		issingle as issingle
-		from `tabDocType` where module=%s and istable=0
-		order by custom asc, document_type desc, name asc""", module, as_dict=True)
+		from `tabDocType` where module=%s and istable=0 and
+		ifnull(restrict_to_domain, '') in ('', %s)
+		order by custom asc, document_type desc, name asc""", (module, domain), as_dict=True)
 
 	for d in doctype_info:
 		d.description = _(d.description or "")

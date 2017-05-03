@@ -14,11 +14,15 @@ from frappe import _
 def get_roles_and_doctypes():
 	frappe.only_for("System Manager")
 	send_translations(frappe.get_lang_dict("doctype", "DocPerm"))
+
+	restrict_to_domain = frappe.db.get_value("Domain Settings", "Domain Settings", "domain")
 	return {
 		"doctypes": [d[0] for d in frappe.db.sql("""select name from `tabDocType` dt where
-			istable=0 and name not in ('DocType')""")],
+			istable=0 and name not in ('DocType') and ifnull(restrict_to_domain, '') in ('', %s)""",
+			(restrict_to_domain))],
 		"roles": [d[0] for d in frappe.db.sql("""select name from tabRole where
-			name != 'Administrator' and disabled=0""")]
+			name != 'Administrator' and disabled=0 and ifnull(restrict_to_domain, '') in ('', %s)""",
+			(restrict_to_domain))]
 	}
 
 @frappe.whitelist()
