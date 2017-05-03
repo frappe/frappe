@@ -5,5 +5,5 @@ Email
 Custom
 Geo
 Desk
-Print
 Integrations
+Printing
