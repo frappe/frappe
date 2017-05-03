@@ -2,7 +2,7 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
-
+from six import reraise as raise_
 import frappe
 import smtplib
 import email.utils
@@ -190,13 +190,13 @@ class SMTPServer:
 		except _socket.error as e:
 			# Invalid mail server -- due to refusing connection
 			frappe.msgprint(_('Invalid Outgoing Mail Server or Port'))
-
-			raise frappe.ValidationError(e).with_traceback()
+			traceback = sys.exc_info()[2]
+			raise_(frappe.ValidationError, e, traceback)
 
 		except smtplib.SMTPAuthenticationError as e:
 			frappe.msgprint(_("Invalid login or password"))
-
-			raise frappe.ValidationError(e).with_traceback()
+			traceback = sys.exc_info()[2]
+			raise_(frappe.ValidationError, e, traceback)
 
 		except smtplib.SMTPException:
 			frappe.msgprint(_('Unable to send emails at this time'))

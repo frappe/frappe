@@ -2,6 +2,7 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
+from six import reraise as raise_
 import frappe, sys
 from frappe import _
 from frappe.utils import (cint, flt, now, cstr, strip_html, getdate, get_datetime, to_timedelta,
@@ -306,7 +307,8 @@ class BaseDocument(object):
 						return
 
 					frappe.msgprint(_("Duplicate name {0} {1}").format(self.doctype, self.name))
-					raise frappe.DuplicateEntryError((self.doctype, self.name, e)).with_traceback()
+					traceback = sys.exc_info()[2]
+					raise_(frappe.DuplicateEntryError, (self.doctype, self.name, e), traceback)
 
 				elif "Duplicate" in cstr(e.args[1]):
 					# unique constraint
@@ -359,7 +361,7 @@ class BaseDocument(object):
 		frappe.msgprint(_("{0} must be unique".format(label or fieldname)))
 
 		# this is used to preserve traceback
-		raise frappe.UniqueValidationError((self.doctype, self.name, e)).with_traceback(traceback)
+		raise_(frappe.UniqueValidationError, (self.doctype, self.name, e), traceback)
 
 	def db_set(self, fieldname, value=None, update_modified=True):
 		'''Set a value in the document object, update the timestamp and update the database.
