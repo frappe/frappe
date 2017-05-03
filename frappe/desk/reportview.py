@@ -158,7 +158,18 @@ def export_query():
 	elif file_format_type == "Excel":
 
 		from frappe.utils.xlsxutils import make_xlsx
-		xlsx_file = make_xlsx(data, doctype)
+		filters = []
+		for d in form_params["filters"]:
+			tmp_filter = frappe.unscrub(d[1]) + " " + d[2] + " "
+			if d[2] == "Between":
+				tmp_filter += " to ".join(d[3])
+			elif d[2] in ["In", "Not In"] or isinstance(d[3], list):
+				tmp_filter += " , ".join(d[3])
+			elif isinstance(d[3], basestring):
+				tmp_filter += d[3]
+			filters.append(tmp_filter)
+
+		xlsx_file = make_xlsx(data=data, file_type="Reportview", sheet_name=doctype, filters=filters)
 
 		frappe.response['filename'] = doctype + '.xlsx'
 		frappe.response['filecontent'] = xlsx_file.getvalue()
