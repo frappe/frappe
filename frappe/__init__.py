@@ -13,7 +13,7 @@ import os, sys, importlib, inspect, json
 from .exceptions import *
 from .utils.jinja import get_jenv, get_template, render_template
 
-__version__ = '8.0.32'
+__version__ = '8.0.33'
 __title__ = "Frappe Framework"
 
 local = Local()
@@ -1204,7 +1204,7 @@ def get_print(doctype=None, name=None, print_format=None, style=None, html=None,
 	local.form_dict.doc = doc
 
 	if not html:
-		html = build_page("print")
+		html = build_page("printview")
 
 	if as_pdf:
 		return get_pdf(html, output = output)
@@ -1327,9 +1327,10 @@ def safe_eval(code, eval_globals=None, eval_locals=None):
 	whitelisted_globals = {
 		"int": int,
 		"float": float,
-		"long": long
+		"long": long,
+		"round": round
 	}
-	
+
 	if '__' in code:
 		throw('Illegal rule {0}. Cannot use "__"'.format(bold(code)))
 

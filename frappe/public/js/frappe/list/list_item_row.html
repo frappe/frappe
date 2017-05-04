@@ -14,6 +14,7 @@
     {% } %}
 
     <!-- comment -->
+    {% if (!data._hide_activity) { %}
     <div class="list-item__content list-item__content--activity hidden-xs">
         <!-- comments count and assigned to section -->
         {%= frappe.render_template("item_assigned_to_comment_count", { data: data }) %}
@@ -21,4 +22,5 @@
     <div class="list-item__content list-item__content--indicator visible-xs text-right">
         {%= indicator_dot %}
     </div>
+    {% } %}
 </div>

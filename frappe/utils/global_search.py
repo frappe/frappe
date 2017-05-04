@@ -32,6 +32,7 @@ def get_doctypes_with_global_search(with_child_tables=True):
 	'''Return doctypes with global search fields'''
 	def _get():
 		global_search_doctypes = []
+		filters = {}
 		if not with_child_tables:
 			filters = {"istable": ["!=", 1]}
 		for d in frappe.get_all('DocType', fields=['name', 'module'], filters=filters):

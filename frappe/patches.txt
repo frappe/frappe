@@ -181,3 +181,4 @@ frappe.patches.v8_0.fix_non_english_desktop_icons # 2017-04-12
 frappe.patches.v8_0.set_doctype_values_in_custom_role
 frappe.patches.v8_0.install_new_build_system_requirements
 frappe.patches.v8_0.set_currency_field_precision
+frappe.patches.v8_0.rename_print_to_printing

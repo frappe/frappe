@@ -1,6 +1,7 @@
 {% if (_checkbox) { %}
 <input class="list-row-checkbox hidden-xs" type="checkbox" data-name="{{name}}">
 {% } %}
+{% if (!_hide_activity) { %}
 <span class="liked-by" data-liked-by=\'{{ JSON.stringify(_liked_by) }}\'>
 	<i class="octicon octicon-heart
 	    {% if (_liked_by.indexOf(_user)===-1) { %}
@@ -11,6 +12,7 @@
 	</i>
 	<span class="likes-count">{{ (_liked_by.length > 99 ? "99+" : _liked_by.length) || "" }}</span>
 </span>
+{% } %}
 <a class="grey list-id {{ css_seen }} ellipsis"
 	data-name="{{ _name }}"
 	href="#Form/{{ _doctype_encoded }}/{{ _name_encoded }}"

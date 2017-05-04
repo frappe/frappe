@@ -60,6 +60,7 @@ def get_allowed_functions_for_jenv():
 	from frappe.modules import scrub
 	import mimetypes
 	from html2text import html2text
+	from frappe.www.printview import get_visible_columns
 
 	datautils = {}
 	if frappe.db:
@@ -121,7 +122,7 @@ def get_allowed_functions_for_jenv():
 	}
 
 	if not frappe.flags.in_setup_help:
-		out['get_visible_columns'] = frappe.get_attr("frappe.www.print.get_visible_columns")
+		out['get_visible_columns'] = get_visible_columns
 		out['frappe']['date_format'] = date_format
 		out['frappe']["db"] = {
 			"get_value": frappe.db.get_value,
