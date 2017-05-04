@@ -15,7 +15,7 @@ class AuthenticationError(Exception):
 	http_status_code = 401
 
 class SessionExpired(Exception):
-	http_status_code = 401
+	http_status_code = 440
 
 class PermissionError(Exception):
 	http_status_code = 403
