@@ -1,4 +1,4 @@
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 import redis
 from rq import Connection, Queue, Worker
 from frappe.utils import cstr
@@ -135,7 +135,7 @@ def get_jobs(site=None, queue=None, key='method'):
 					jobs_per_site[site].append(job.kwargs[key])
 
 			else:
-				print 'No site found in job', job.__dict__
+				print('No site found in job', job.__dict__)
 
 	return jobs_per_site
 
@@ -181,5 +181,5 @@ def enqueue_test_job():
 
 def test_job(s):
 	import time
-	print 'sleeping...'
+	print('sleeping...')
 	time.sleep(s)

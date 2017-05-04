@@ -55,7 +55,7 @@ frappe.ui.set_user_background = function(src, selector, style) {
 frappe.provide('frappe.user');
 
 $.extend(frappe.user, {
-	name: (frappe.boot ? frappe.boot.user.name : 'Guest'),
+	name: 'Guest',
 	full_name: function(uid) {
 		return uid===user ?
 			__("You") :

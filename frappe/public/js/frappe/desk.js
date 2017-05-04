@@ -31,6 +31,16 @@ frappe.Application = Class.extend({
 	startup: function() {
 		frappe.socket.init();
 		frappe.model.init();
+
+		if(frappe.boot.status==='failed') {
+			frappe.msgprint({
+				message: frappe.boot.error,
+				title: __('Session Start Failed'),
+				indicator: 'red',
+			})
+			throw 'boot failed';
+		}
+
 		this.load_bootinfo();
 		this.make_nav_bar();
 		this.set_favicon();
@@ -193,6 +203,7 @@ frappe.Application = Class.extend({
 			if(frappe.boot.print_css) {
 				frappe.dom.set_style(frappe.boot.print_css)
 			}
+			frappe.user.name = frappe.boot.user.name;
 		} else {
 			this.set_as_guest();
 		}

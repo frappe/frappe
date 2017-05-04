@@ -1,3 +1,6 @@
+// Copyright (c) 2017, Frappe Technologies and contributors
+// For license information, please see license.txt
+
 frappe.ui.form.on("Print Format", "onload", function(frm) {
 	frm.add_fetch("doc_type", "module", "module");
 });
@@ -30,7 +33,7 @@ frappe.ui.form.on("Print Format", {
 			}
 			frm.add_custom_button(__("Make Default"), function() {
 				frappe.call({
-					method: "frappe.print.doctype.print_format.print_format.make_default",
+					method: "frappe.printing.doctype.print_format.print_format.make_default",
 					args: {
 						name: frm.doc.name
 					}

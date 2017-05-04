@@ -19,7 +19,7 @@ def setup_global_search_table():
 			fulltext(content),
 			route varchar(140),
 			published int(1) not null default 0,
-			unique (doctype, name))
+			unique `doctype_name` (doctype, name))
 			COLLATE=utf8mb4_unicode_ci
 			ENGINE=MyISAM
 			CHARACTER SET=utf8mb4''')
@@ -32,6 +32,7 @@ def get_doctypes_with_global_search(with_child_tables=True):
 	'''Return doctypes with global search fields'''
 	def _get():
 		global_search_doctypes = []
+		filters = {}
 		if not with_child_tables:
 			filters = {"istable": ["!=", 1]}
 		for d in frappe.get_all('DocType', fields=['name', 'module'], filters=filters):
@@ -181,8 +182,9 @@ def insert_values_for_multiple_docs(all_contents):
 		values.append("( '{doctype}', '{name}', '{content}', '{published}', '{title}', '{route}')"
 			.format(**content))
 
+	# ignoring duplicate keys for doctype_name
 	frappe.db.sql('''
-		insert into __global_search
+		insert ignore into __global_search
 			(doctype, name, content, published, title, route)
 		values
 			{0}

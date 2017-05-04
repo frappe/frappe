@@ -15,7 +15,7 @@ Example:
 
 '''
 
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 import frappe, json, os
 from frappe.utils import cstr, cint
 from frappe.model import default_fields, no_value_fields, optional_fields
@@ -97,7 +97,7 @@ class Meta(Document):
 
 	def get_global_search_fields(self):
 		'''Returns list of fields with `in_global_search` set and `name` if set'''
-		fields = self.get("fields", {"in_global_search": 1 })
+		fields = self.get("fields", {"in_global_search": 1, "fieldtype": ["not in", no_value_fields]})
 		if getattr(self, 'show_name_in_global_search', None):
 			fields.append(frappe._dict(fieldtype='Data', fieldname='name', label='Name'))
 
@@ -480,7 +480,7 @@ def trim_tables(doctype=None):
 		columns_to_remove = [f for f in list(set(columns) - set(fields)) if f not in ignore_fields
 			and not f.startswith("_")]
 		if columns_to_remove:
-			print doctype, "columns removed:", columns_to_remove
+			print(doctype, "columns removed:", columns_to_remove)
 			columns_to_remove = ", ".join(["drop `{0}`".format(c) for c in columns_to_remove])
 			query = """alter table `tab{doctype}` {columns}""".format(
 				doctype=doctype, columns=columns_to_remove)

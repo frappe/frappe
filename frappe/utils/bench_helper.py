@@ -1,4 +1,4 @@
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 import click
 import frappe
 import os
@@ -66,11 +66,11 @@ def get_app_commands(app):
 
 @click.command('get-frappe-commands')
 def get_frappe_commands():
-	print json.dumps(get_app_commands('frappe').keys())
+	print(json.dumps(get_app_commands('frappe').keys()))
 
 @click.command('get-frappe-help')
 def get_frappe_help():
-	print click.Context(get_app_group('frappe')).get_help()
+	print(click.Context(get_app_group('frappe')).get_help())
 
 def get_apps():
 	return frappe.get_all_apps(with_internal_apps=False, sites_path='.')

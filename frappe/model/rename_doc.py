@@ -1,7 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 import frappe
 from frappe import _
 from frappe.utils import cint
@@ -374,7 +374,7 @@ def bulk_rename(doctype, rows=None, via_console = False):
 				frappe.db.rollback()
 
 			if via_console:
-				print msg
+				print(msg)
 			else:
 				rename_log.append(msg)
 

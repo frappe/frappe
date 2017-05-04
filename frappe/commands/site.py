@@ -1,4 +1,4 @@
-from __future__ import unicode_literals, absolute_import
+from __future__ import unicode_literals, absolute_import, print_function
 import click
 import hashlib, os, sys
 import frappe
@@ -65,7 +65,7 @@ def _new_site(db_name, site, mariadb_root_username=None, mariadb_root_password=N
 		frappe.db.commit()
 
 		scheduler_status = "disabled" if frappe.utils.scheduler.is_scheduler_disabled() else "enabled"
-		print "*** Scheduler is", scheduler_status, "***"
+		print("*** Scheduler is", scheduler_status, "***")
 
 	finally:
 		if installing and os.path.exists(installing):
@@ -91,7 +91,7 @@ def restore(context, sql_file_path, mariadb_root_username=None, mariadb_root_pas
 	if not os.path.exists(sql_file_path):
 		sql_file_path = '../' + sql_file_path
 		if not os.path.exists(sql_file_path):
-			print 'Invalid path {0}' + sql_file_path[3:]
+			print('Invalid path {0}' + sql_file_path[3:])
 			sys.exit(1)
 
 	if sql_file_path.endswith('sql.gz'):
@@ -162,7 +162,7 @@ def list_apps(context):
 	site = get_site(context)
 	frappe.init(site=site)
 	frappe.connect()
-	print "\n".join(frappe.get_installed_apps())
+	print("\n".join(frappe.get_installed_apps()))
 	frappe.destroy()
 
 @click.command('add-system-manager')
@@ -204,7 +204,7 @@ def migrate(context, rebuild_website=False):
 	from frappe.migrate import migrate
 
 	for site in context.sites:
-		print 'Migrating', site
+		print('Migrating', site)
 		frappe.init(site=site)
 		frappe.connect()
 		try:
@@ -281,10 +281,10 @@ def backup(context, with_files=False, backup_path_db=None, backup_path_files=Non
 		odb = scheduled_backup(ignore_files=not with_files, backup_path_db=backup_path_db, backup_path_files=backup_path_files, backup_path_private_files=backup_path_private_files, force=True)
 		if verbose:
 			from frappe.utils import now
-			print "database backup taken -", odb.backup_path_db, "- on", now()
+			print("database backup taken -", odb.backup_path_db, "- on", now())
 			if with_files:
-				print "files backup taken -", odb.backup_path_files, "- on", now()
-				print "private files backup taken -", odb.backup_path_private_files, "- on", now()
+				print("files backup taken -", odb.backup_path_files, "- on", now())
+				print("private files backup taken -", odb.backup_path_private_files, "- on", now())
 
 		frappe.destroy()
 

@@ -90,7 +90,7 @@ def get_list_context(context=None):
 		get_list = get_blog_list,
 		hide_filters = True,
 		children = get_children(),
-		show_search = True,
+		# show_search = True,
 		title = _('Blog')
 	)
 

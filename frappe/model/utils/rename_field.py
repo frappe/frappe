@@ -1,7 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 
 import frappe
 import json
@@ -14,7 +14,7 @@ def rename_field(doctype, old_fieldname, new_fieldname):
 	meta = frappe.get_meta(doctype, cached=False)
 	new_field = meta.get_field(new_fieldname)
 	if not new_field:
-		print "rename_field: " + (new_fieldname) + " not found in " + doctype
+		print("rename_field: " + (new_fieldname) + " not found in " + doctype)
 		return
 
 	if new_field.fieldtype == "Table":

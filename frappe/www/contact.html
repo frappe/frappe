@@ -27,13 +27,13 @@
 			</div>
 			<div class="form-group">
 				<input class="form-control" name="email" type="text"
-				placeholder="Your Email Address" />
+				placeholder="{{ _('Your email address') }}" />
 			</div>
 			<div class="form-group">
 				<textarea rows="10" name="message" class="form-control"></textarea>
 			</div>
 			<div class="form-group">
-				<button class="btn btn-primary btn-send">Send</button>
+				<button class="btn btn-primary btn-send">{{ _("Send") }}</button>
 			</div>
 		</div>
 		{% if address_title %}
