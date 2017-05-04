@@ -1341,3 +1341,16 @@ def safe_eval(code, eval_globals=None, eval_locals=None):
 	eval_globals.update(whitelisted_globals)
 
 	return eval(code, eval_globals, eval_locals)
+
+def get_active_domains():
+	""" get the domains set in the Domain Settings as active domain """
+
+	active_domains = cache().hget("domains", "active_domains") or []
+	if not active_domains:
+		domains = get_all("Has Domain", filters={ "parent": "Domain Settings" },
+			fields=["domain"], distinct=True)
+
+		active_domains = [ row.get("domain") for row in domains ]
+		cache().hset("domains", "active_domains", active_domains or [])
+
+	return active_domains

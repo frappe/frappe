@@ -15,14 +15,24 @@ def get_roles_and_doctypes():
 	frappe.only_for("System Manager")
 	send_translations(frappe.get_lang_dict("doctype", "DocPerm"))
 
-	restrict_to_domain = frappe.db.get_value("Domain Settings", "Domain Settings", "domain")
+	active_domains = frappe.get_active_domains()
+	active_domains.append('')
+
+	doctypes = frappe.get_all("DocType", filters={
+		"istable": 0,
+		"name": ("not in", "DocType"),
+		"ifnull(restrict_to_domain, '')": ("in", ",".join(active_domains))
+	}, fields=["name"])
+
+	roles = frappe.get_all("Role", filters={
+		"name": ("not in", "Administrator"),
+		"disabled": 0,
+		"ifnull(restrict_to_domain, '')": ("in", ",".join(active_domains))
+	})
+
 	return {
-		"doctypes": [d[0] for d in frappe.db.sql("""select name from `tabDocType` dt where
-			istable=0 and name not in ('DocType') and ifnull(restrict_to_domain, '') in ('', %s)""",
-			(restrict_to_domain))],
-		"roles": [d[0] for d in frappe.db.sql("""select name from tabRole where
-			name != 'Administrator' and disabled=0 and ifnull(restrict_to_domain, '') in ('', %s)""",
-			(restrict_to_domain))]
+		"doctypes": [d.get("name") for d in doctypes],
+		"roles": [d.get("name") for d in roles]
 	}
 
 @frappe.whitelist()

@@ -32,19 +32,12 @@ def get_desktop_icons(user=None):
 		fields = ['module_name', 'hidden', 'label', 'link', 'type', 'icon', 'color',
 			'_doctype', '_report', 'idx', 'force_show', 'reverse', 'custom', 'standard', 'blocked']
 
-		domain = frappe.db.get_value("Domain Settings", "Domain Settings", "domain")
-		query = """
-			SELECT 
-				name
-			FROM
-				`tabDocType`
-			WHERE
-				ifnull(`tabDocType`.restrict_to_domain, '')!='{domain}' and ifnull(`tabDocType`.restrict_to_domain, '')!=''
-		"""
+		active_domains = frappe.get_active_domains()
+		active_domains.append('')
 
-		blocked_doctypes = frappe.db.sql(query.format(
-			domain=domain,
-		), as_dict=True)
+		blocked_doctypes = frappe.get_all("DocType", filters={
+			"ifnull(restrict_to_domain, '')": ("not in", ",".join(active_domains))
+		}, fields=["name"])
 
 		blocked_doctypes = [ d.get("name") for d in blocked_doctypes ]
 
