@@ -189,10 +189,11 @@ frappe.ui.form.save = function(frm, action, callback, btn) {
 			},
 			always: function(r) {
 				frappe.ui.form.is_saving = false;
-
-				var doc = r.docs && r.docs[0];
-				if(doc) {
-					frappe.ui.form.update_calling_link(doc);
+				if(r) {
+					var doc = r.docs && r.docs[0];
+					if(doc) {
+						frappe.ui.form.update_calling_link(doc);
+					}					
 				}
 			}
 		})
