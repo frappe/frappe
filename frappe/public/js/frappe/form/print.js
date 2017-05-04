@@ -130,7 +130,7 @@ frappe.ui.form.PrintPreview = Class.extend({
 	},
 	new_page_preview: function(printit) {
 		var me = this;
-		var w = window.open(frappe.urllib.get_full_url("/print?"
+		var w = window.open(frappe.urllib.get_full_url("/printview?"
 			+"doctype="+encodeURIComponent(me.frm.doc.doctype)
 			+"&name="+encodeURIComponent(me.frm.doc.name)
 			+(printit ? "&trigger_print=1" : "")
@@ -218,4 +218,46 @@ frappe.ui.form.PrintPreview = Class.extend({
 	set_style: function(style) {
 		frappe.dom.set_style(style || frappe.boot.print_css, "print-style");
 	}
-})
+});
+
+frappe.ui.get_print_settings = function(pdf, callback, letter_head) {
+	var print_settings = locals[":Print Settings"]["Print Settings"];
+
+	var default_letter_head = locals[":Company"] && frappe.defaults.get_default('company')
+		? locals[":Company"][frappe.defaults.get_default('company')]["default_letter_head"]
+		: '';
+
+	columns = [{
+		fieldtype: "Check",
+		fieldname: "with_letter_head",
+		label: __("With Letter head")
+	},{
+		fieldtype: "Select",
+		fieldname: "letter_head",
+		label: __("Letter Head"),
+		depends_on: "with_letter_head",
+		options: $.map(frappe.boot.letter_heads, function(i,d){ return d }),
+		default: letter_head || default_letter_head
+	}];
+
+	if(pdf) {
+		columns.push({
+			fieldtype: "Select",
+			fieldname: "orientation",
+			label: __("Orientation"),
+			options: "Landscape\nPortrait",
+			default: "Landscape"
+		})
+	}
+
+	frappe.prompt(columns, function(data) {
+		var data = $.extend(print_settings, data);
+		if(!data.with_letter_head) {
+			data.letter_head = null;
+		}
+		if(data.letter_head) {
+			data.letter_head = frappe.boot.letter_heads[print_settings.letter_head];
+		}
+		callback(data);
+	}, __("Print Settings"));
+}

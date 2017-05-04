@@ -15,6 +15,7 @@ frappe.ui.form.Share = Class.extend({
 		this.parent.empty();
 
 		var shared = this.shared || this.frm.get_docinfo().shared;
+		shared = shared.filter(function(d) { return d });
 		var users = [];
 		for (var i=0, l=shared.length; i < l; i++) {
 			var s = shared[i];

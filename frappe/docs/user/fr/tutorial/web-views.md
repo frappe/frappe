@@ -1,4 +1,4 @@
-# es vues web
+# Les vues web
 
 Frappe a deux principaux environnements, le **bureau** et **le web**. Le **bureau** est un environnement riche AJAX alors
 que **le web** est une collection plus traditionnelle de fichers HTML pour la consultation publique. Les vues web peuvent
@@ -16,18 +16,18 @@ y a 2 principaux types de templates.
 
 > Cette fonctionnalité est encore en développement.
 
-Jettons un oeuil aux vues standards:
+Jettons un oeil aux vues standards:
 
 Si vous êtes connecté avec votre utilisateur de test, rendez-vous sur`/article` et vous devriez voir la liste des articles:
 
-![Web List]({{docs_base_url}}/assets/img/guide/26-web-list.png)
+<img class="screenshot" alt="web list" src="{{docs_base_url}}/assets/img/web-list.png">
 
 Cliquez sur un article et vous devriez voir une vue par défaut.
 
-![Web List]({{docs_base_url}}/assets/img/guide/26-web-view.png)
+<img class="screenshot" alt="web view" src="{{docs_base_url}}/assets/img/web-view.png">
 
-Maintenant, si vous voulez une meilleur liste pour vos articles, créez un fichier appelé `list_item.html` dans le 
-repertoire `library_management/doctype/article`. Voici un exemple du contenu de ce fichier:
+Maintenant, si vous voulez une meilleur liste pour vos articles, créez un fichier appelé `row_template.html` dans le
+repertoire `library_management/templates/includes/list/`. Voici un exemple du contenu de ce fichier:
 
 	{% raw %}<div class="row">
 		<div class="col-sm-4">
@@ -50,17 +50,17 @@ Ici, vous aurez toutes les propriétés d'un article dans l'object `doc`.
 
 La mise à jour de la liste ressemble à ca !
 
-![Web List]({{docs_base_url}}/assets/img/guide/27-web-view-list.png)
+<img class="screenshot" alt="new web list" src="{{docs_base_url}}/assets/img/web-list-new.png">
 
 #### La page d'accueil
 
 Frappe permet l'inscription et inclut les inscriptions via Google, Facebook et Github. Quand un utilisateur s'inscrit via
 le web, il n'a pas accès à l'interface du desk par defaut.
 
-> Pour autoriser les utilisateurs à accéder au Desk, ouvrez la configuration de l'utilisateur (Setup > User) et définissez
+> Pour autoriser les utilisateurs à accéder au `Desk`, ouvrez la configuration de l'utilisateur (Setup > User) et définissez
  le type d'utilisatuer à "System User".
 
-Pour les utilisateurs qui n'ont pas accès au desk, nous pouvons définir une page d'accueil ou ils peuvent se connecter via
+Pour les utilisateurs qui n'ont pas accès au `Desk`, nous pouvons définir une page d'accueil ou ils peuvent se connecter via
 `hooks.py` le tout en respectant les rôles.
 
 Quand un membre de la librairie se connecte, il doit être redirigé vers la page `article` donc ouvrez le fichier `library_management/hooks.py` et ajoutez:
@@ -69,4 +69,4 @@ Quand un membre de la librairie se connecte, il doit être redirigé vers la pag
 		"Library Member": "article"
 	}
 
-{suite}
+{next}

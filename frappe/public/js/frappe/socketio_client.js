@@ -1,6 +1,7 @@
 frappe.socket = {
 	open_tasks: {},
 	open_docs: [],
+	emit_queue: [],
 	init: function() {
 		if (frappe.boot.disable_async) {
 			return;
@@ -8,6 +9,11 @@ frappe.socket = {
 
 		if (frappe.socket.socket) {
 			return;
+		}
+
+		if (frappe.boot.developer_mode) {
+			// File watchers for development
+			frappe.socket.setup_file_watchers();
 		}
 
 		//Enable secure option when using HTTPS
@@ -35,6 +41,9 @@ frappe.socket = {
 		});
 
 		frappe.socket.socket.on('progress', function(data) {
+			if(data.progress) {
+				data.percent = flt(data.progress[0]) / data.progress[1] * 100;
+			}
 			if(data.percent) {
 				if(data.percent==100) {
 					frappe.hide_progress();
@@ -118,6 +127,16 @@ frappe.socket = {
 		frappe.socket.socket.emit('task_unsubscribe', task_id);
 	},
 	doc_subscribe: function(doctype, docname) {
+		if (frappe.flags.doc_subscribe) {
+			console.log('throttled');
+			return;
+		}
+
+		frappe.flags.doc_subscribe = true;
+
+		// throttle to 1 per sec
+		setTimeout(function() { frappe.flags.doc_subscribe = false }, 1000);
+
 		frappe.socket.socket.emit('doc_subscribe', doctype, docname);
 		frappe.socket.open_docs.push({doctype: doctype, docname: docname});
 	},
@@ -132,8 +151,12 @@ frappe.socket = {
 		})
 	},
 	doc_open: function(doctype, docname) {
-		// notify that the user has opened this doc
-		frappe.socket.socket.emit('doc_open', doctype, docname);
+		// notify that the user has opened this doc, if not already notified
+		if(!frappe.socket.last_doc
+			|| (frappe.socket.last_doc[0]!=doctype && frappe.socket.last_doc[0]!=docname)) {
+			frappe.socket.socket.emit('doc_open', doctype, docname);
+		}
+		frappe.socket.last_doc = [doctype, docname];
 	},
 	doc_close: function(doctype, docname) {
 		// notify that the user has closed this doc
@@ -170,7 +193,38 @@ frappe.socket = {
 				}
 			}, 5000);
 		});
+	},
+	setup_file_watchers: function() {
+		var host = window.location.origin;
+		var port = '6787';
+		// remove the port number from string
+		host = host.split(':').slice(0, -1).join(":");
+		host = host + ':' + port;
 
+		frappe.socket.file_watcher = io.connect(host);
+		// css files auto reload
+		frappe.socket.file_watcher.on('reload_css', function(filename) {
+			let abs_file_path = "assets/" + filename;
+			const link = $(`link[href*="${abs_file_path}"]`);
+			abs_file_path = abs_file_path.split('?')[0] + '?v='+ moment();
+			link.attr('href', abs_file_path);
+			frappe.show_alert({
+				indicator: 'orange',
+				message: filename + ' reloaded'
+			}, 5);
+		});
+		// js files show alert
+		frappe.socket.file_watcher.on('reload_js', function(filename) {
+			filename = "assets/" + filename;
+			var msg = $(`
+				<span>${filename} changed <a data-action="reload">Click to Reload</a></span>
+			`)
+			msg.find('a').click(frappe.ui.toolbar.clear_cache);
+			frappe.show_alert({
+				indicator: 'orange',
+				message: msg
+			}, 5);
+		});
 	},
 	process_response: function(data, method) {
 		if(!data) {

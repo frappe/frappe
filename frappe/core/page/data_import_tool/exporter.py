@@ -40,11 +40,9 @@ def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data
 	column_start_end = {}
 
 	if all_doctypes:
-		doctype_parentfield = {}
 		child_doctypes = []
 		for df in frappe.get_meta(doctype).get_table_fields():
-			child_doctypes.append(df.options)
-			doctype_parentfield[df.options] = df.fieldname
+			child_doctypes.append(dict(doctype=df.options, parentfield=df.fieldname))
 
 	def get_data_keys_definition():
 		return get_data_keys()
@@ -71,7 +69,7 @@ def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data
 			w.writerow([_('"Parent" signifies the parent table in which this row must be added')])
 			w.writerow([_('If you are updating, please select "Overwrite" else existing rows will not be deleted.')])
 
-	def build_field_columns(dt):
+	def build_field_columns(dt, parentfield=None):
 		meta = frappe.get_meta(dt)
 
 		# build list of valid docfields
@@ -83,10 +81,12 @@ def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data
 
 		tablecolumns.sort(lambda a, b: int(a.idx - b.idx))
 
+		_column_start_end = frappe._dict(start=0)
+
 		if dt==doctype:
-			column_start_end[dt] = frappe._dict({"start": 0})
+			_column_start_end = frappe._dict(start=0)
 		else:
-			column_start_end[dt] = frappe._dict({"start": len(columns)})
+			_column_start_end = frappe._dict(start=len(columns))
 
 			append_field_column(frappe._dict({
 				"fieldname": "name",
@@ -106,16 +106,18 @@ def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data
 			append_field_column(docfield, False)
 
 		# if there is one column, add a blank column (?)
-		if len(columns)-column_start_end[dt].start == 1:
+		if len(columns)-_column_start_end.start == 1:
 			append_empty_field_column()
 
 		# append DocType name
-		tablerow[column_start_end[dt].start + 1] = dt
+		tablerow[_column_start_end.start + 1] = dt
 
-		if dt!=doctype:
-			tablerow[column_start_end[dt].start + 2] = doctype_parentfield[dt]
+		if parentfield:
+			tablerow[_column_start_end.start + 2] = parentfield
 
-		column_start_end[dt].end = len(columns) + 1
+		_column_start_end.end = len(columns) + 1
+
+		column_start_end[(dt, parentfield)] = _column_start_end
 
 	def append_field_column(docfield, for_mandatory):
 		if not docfield:
@@ -176,7 +178,7 @@ def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data
 		w.writerow([get_data_keys_definition().data_separator])
 
 	def add_data():
-		def add_data_row(row_group, dt, doc, rowidx):
+		def add_data_row(row_group, dt, parentfield, doc, rowidx):
 			d = doc.copy()
 			meta = frappe.get_meta(dt)
 			if all_doctypes:
@@ -185,8 +187,11 @@ def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data
 			if len(row_group) < rowidx + 1:
 				row_group.append([""] * (len(columns) + 1))
 			row = row_group[rowidx]
-			if column_start_end.get(dt):
-				for i, c in enumerate(columns[column_start_end[dt].start:column_start_end[dt].end]):
+
+			_column_start_end = column_start_end.get((dt, parentfield))
+
+			if _column_start_end:
+				for i, c in enumerate(columns[_column_start_end.start:_column_start_end.end]):
 					df = meta.get_field(c)
 					fieldtype = df.fieldtype if df else "Data"
 					value = d.get(c, "")
@@ -196,7 +201,7 @@ def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data
 						elif fieldtype == "Datetime":
 							value = format_datetime(value)
 
-					row[column_start_end[dt].start + i + 1] = value
+					row[_column_start_end.start + i + 1] = value
 
 		if with_data=='Yes':
 			frappe.permissions.can_export(parent_doctype, raise_exception=True)
@@ -236,14 +241,15 @@ def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data
 				# add main table
 				row_group = []
 
-				add_data_row(row_group, doctype, doc, 0)
+				add_data_row(row_group, doctype, None, doc, 0)
 
 				if all_doctypes:
 					# add child tables
-					for child_doctype in child_doctypes:
-						for ci, child in enumerate(frappe.db.sql("""select * from `tab%s`
-							where parent=%s order by idx""" % (child_doctype, "%s"), doc.name, as_dict=1)):
-							add_data_row(row_group, child_doctype, child, ci)
+					for c in child_doctypes:
+						for ci, child in enumerate(frappe.db.sql("""select * from `tab{0}`
+							where parent=%s and parentfield=%s order by idx""".format(c['doctype']),
+							(doc.name, c['parentfield']), as_dict=1)):
+							add_data_row(row_group, c['doctype'], c['parentfield'], child, ci)
 
 				for row in row_group:
 					w.writerow(row)
@@ -262,15 +268,14 @@ def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data
 	inforow = [_('Info:'), '']
 	columns = [key]
 
-
-
 	build_field_columns(doctype)
+
 	if all_doctypes:
 		for d in child_doctypes:
 			append_empty_field_column()
-			if (select_columns and select_columns.get(d, None)) or not select_columns:
+			if (select_columns and select_columns.get(d['doctype'], None)) or not select_columns:
 				# if atleast one column is selected for this doctype
-				build_field_columns(d)
+				build_field_columns(d['doctype'], d['parentfield'])
 
 	add_field_headings()
 	add_data()

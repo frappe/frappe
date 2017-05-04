@@ -5,7 +5,6 @@ from __future__ import unicode_literals
 
 import frappe, json, os
 from frappe.utils import strip, cint
-from frappe import _
 from frappe.translate import (set_default_language, get_dict, send_translations)
 from frappe.geo.country_info import get_country_info
 from frappe.utils.file_manager import save_file
@@ -80,6 +79,10 @@ def update_system_settings(args):
 	system_settings.save()
 
 def update_user_name(args):
+	first_name, last_name = args.get('full_name'), ''
+	if ' ' in first_name:
+		first_name, last_name = first_name.split(' ', 1)
+
 	if args.get("email"):
 		args['name'] = args.get("email")
 
@@ -87,8 +90,8 @@ def update_user_name(args):
 		doc = frappe.get_doc({
 			"doctype":"User",
 			"email": args.get("email"),
-			"first_name": args.get("first_name"),
-			"last_name": args.get("last_name")
+			"first_name": first_name,
+			"last_name": last_name
 		})
 		doc.flags.no_welcome_mail = True
 		doc.insert()
@@ -96,11 +99,12 @@ def update_user_name(args):
 		update_password(args.get("email"), args.get("password"))
 
 	else:
-		args['name'] = frappe.session.user
+		args.update({
+			"name": frappe.session.user,
+			"first_name": first_name,
+			"last_name": last_name
+		})
 
-		# Update User
-		if not args.get('last_name') or args.get('last_name')=='None':
-				args['last_name'] = None
 		frappe.db.sql("""update `tabUser` SET first_name=%(first_name)s,
 			last_name=%(last_name)s WHERE name=%(name)s""", args)
 
@@ -132,7 +136,7 @@ def add_all_roles_to(name):
 	user = frappe.get_doc("User", name)
 	for role in frappe.db.sql("""select name from tabRole"""):
 		if role[0] not in ["Administrator", "Guest", "All", "Customer", "Supplier", "Partner", "Employee"]:
-			d = user.append("user_roles")
+			d = user.append("roles")
 			d.role = role[0]
 	user.save()
 
@@ -170,7 +174,7 @@ def load_messages(language):
 def load_languages():
 	return {
 		"default_language": frappe.db.get_value('Language', frappe.local.lang, 'language_name') or frappe.local.lang,
-		"languages": sorted(frappe.db.sql_list('select language_name from tabLanguage'))
+		"languages": sorted(frappe.db.sql_list('select language_name from tabLanguage order by name'))
 	}
 
 

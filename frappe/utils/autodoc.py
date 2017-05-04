@@ -8,7 +8,7 @@ frappe.utils.autodoc
 Inspect elements of a given module and return its objects
 """
 
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 
 import inspect, importlib, re, frappe
 from frappe.model.document import get_controller
@@ -49,7 +49,7 @@ def automodule(name):
 
 installed = None
 def get_version(name):
-	print name
+	print(name)
 	global installed
 
 	if not installed:

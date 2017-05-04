@@ -8,7 +8,7 @@ Events:
 	weekly
 """
 
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 
 import frappe
 import json
@@ -23,7 +23,6 @@ from frappe.limits import has_expired
 from frappe.utils.data import get_datetime, now_datetime
 from frappe.core.doctype.user.user import STANDARD_USERS
 from frappe.installer import update_site_config
-from frappe.integration_broker.doctype.integration_service.integration_service import get_integration_service_events
 
 DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 
@@ -49,7 +48,7 @@ def enqueue_events_for_all_sites():
 			enqueue_events_for_site(site=site, queued_jobs=jobs_per_site[site])
 		except:
 			# it should try to enqueue other sites
-			print frappe.get_traceback()
+			print(frappe.get_traceback())
 
 def enqueue_events_for_site(site, queued_jobs):
 	try:
@@ -144,6 +143,9 @@ def trigger(site, event, queued_jobs=(), now=False):
 	if not queued_jobs and not now:
 		queued_jobs = get_jobs(site=site, queue=queue)
 
+	if frappe.flags.in_test:
+		frappe.flags.ran_schedulers.append(event)
+
 	events = get_scheduler_events(event)
 	if not events:
 		return
@@ -155,22 +157,14 @@ def trigger(site, event, queued_jobs=(), now=False):
 		else:
 			scheduler_task(site=site, event=event, handler=handler, now=True)
 
-	if frappe.flags.in_test:
-		frappe.flags.ran_schedulers.append(event)
-
 def get_scheduler_events(event):
 	'''Get scheduler events from hooks and integrations'''
 	scheduler_events = frappe.cache().get_value('scheduler_events')
 	if not scheduler_events:
 		scheduler_events = frappe.get_hooks("scheduler_events")
-		integration_events = get_integration_service_events()
-		for key, handlers in integration_events.items():
-			scheduler_events.setdefault(key, []).extend(handlers)
 		frappe.cache().set_value('scheduler_events', scheduler_events)
 
 	return scheduler_events.get(event) or []
-
-
 
 def log(method, message=None):
 	"""log error in patch_log"""
@@ -193,6 +187,9 @@ def log(method, message=None):
 	return message
 
 def get_enabled_scheduler_events():
+	if 'enabled_events' in frappe.flags:
+		return frappe.flags.enabled_events
+
 	enabled_events = frappe.db.get_global("enabled_scheduler_events")
 	if enabled_events:
 		if isinstance(enabled_events, basestring):

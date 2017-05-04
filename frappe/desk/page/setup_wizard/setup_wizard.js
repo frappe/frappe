@@ -366,7 +366,7 @@ function load_frappe_slides() {
 		name: "welcome",
 		domains: ["all"],
 		title: __("Welcome"),
-		icon: "icon-world",
+		icon: "fa fa-world",
 		help: __("Let's prepare the system for first use."),
 
 		fields: [
@@ -435,7 +435,7 @@ function load_frappe_slides() {
 	frappe.wiz.region = {
 		domains: ["all"],
 		title: __("Region"),
-		icon: "icon-flag",
+		icon: "fa fa-flag",
 		help: __("Select your Country, Time Zone and Currency"),
 		fields: [
 			{ fieldname: "country", label: __("Country"), reqd:1,
@@ -546,13 +546,12 @@ function load_frappe_slides() {
 	frappe.wiz.user = {
 		domains: ["all"],
 		title: __("The First User: You"),
-		icon: "icon-user",
+		icon: "fa fa-user",
 		fields: [
-			{"fieldname": "first_name", "label": __("First Name"), "fieldtype": "Data",
+			{"fieldname": "full_name", "label": __("Full Name"), "fieldtype": "Data",
 				reqd:1},
-			{"fieldname": "last_name", "label": __("Last Name"), "fieldtype": "Data"},
 			{"fieldname": "email", "label": __("Email Address"), "fieldtype": "Data",
-				reqd:1, "description": __("You will use it to Login"), "options":"Email"},
+				reqd:1, "description": __("Login id"), "options":"Email"},
 			{"fieldname": "password", "label": __("Password"), "fieldtype": "Password",
 				reqd:1},
 			{fieldtype:"Attach Image", fieldname:"attach_user",
@@ -563,8 +562,10 @@ function load_frappe_slides() {
 			if(user!=="Administrator") {
 				slide.form.fields_dict.password.$wrapper.toggle(false);
 				slide.form.fields_dict.email.$wrapper.toggle(false);
-				slide.form.fields_dict.first_name.set_input(frappe.boot.user.first_name);
-				slide.form.fields_dict.last_name.set_input(frappe.boot.user.last_name);
+				if(frappe.boot.user.first_name || frappe.boot.user.last_name) {
+					slide.form.fields_dict.full_name.set_input(
+						[frappe.boot.user.first_name, frappe.boot.user.last_name].join(' ').trim());
+				}
 
 				var user_image = frappe.get_cookie("user_image");
 				if(user_image) {

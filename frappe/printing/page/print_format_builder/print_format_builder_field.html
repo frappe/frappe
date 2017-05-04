@@ -1,0 +1,35 @@
+<div class="print-format-builder-field"
+    {% if(field.print_hide) { %}style="background-color: #F7FAFC; color: #8D99A6;"
+        title="{{ __("Hidden") }}"{% } %}
+    data-fieldname="{%= field.fieldname %}"
+    data-label="{{ field.label }}"
+
+	{% if field.align %}data-align="{{ field.align }}"{% endif %}
+    data-fieldtype="{%= field.fieldtype %}"
+    {% if(field.fieldtype==="Table") { %}
+        data-columns="{%= me.get_visible_columns_string(field) %}"
+        data-doctype="{%= field.options %}"
+    {% } %}>
+	{% if !in_list(["Table", "HTML", "Custom HTML"], field.fieldtype) %}
+    <a class="field-settings pull-right
+        btn-default btn-xs" style="padding-top: 3px">
+        <span class="octicon octicon-gear text-muted"></span></a>
+	{% endif %}
+    {% if(field.fieldtype==="Custom HTML") { %}
+        <div class="text-right">
+            <a class="edit-html btn btn-default btn-xs">
+                {%= __("Edit HTML") %}</a>
+        </div>
+        <div class="html-content"
+			{% if field.custom_html_id!==undefined %}
+				data-custom-html-id={{ field.custom_html_id }}{% endif %}>
+			{{ field.options || me.get_no_content() }}</div>
+    {% } else { %}
+        <span class="field-label">{{ field.label }}</span>
+        {% if(field.fieldtype==="Table") { %}
+            <span> ({%= __("Table") %})</span>
+            <a class="pull-right select-columns btn btn-default btn-xs">
+                {%= __("Select Columns") %}</a>
+        {% } %}
+    {% } %}
+</div>

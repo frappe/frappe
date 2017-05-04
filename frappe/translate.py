@@ -1,7 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 
 """
 	frappe.translate
@@ -109,6 +109,7 @@ def get_dict(fortype, name=None):
 			messages = get_messages_from_file(name)
 		elif fortype=="boot":
 			messages = get_messages_from_include_files()
+			messages += frappe.db.sql("select 'Print Format:', name from `tabPrint Format`")
 			messages += frappe.db.sql("select 'DocType:', name from tabDocType")
 			messages += frappe.db.sql("select 'Role:', name from tabRole")
 			messages += frappe.db.sql("select 'Module:', name from `tabModule Def`")
@@ -179,7 +180,7 @@ def get_full_dict(lang):
 		return {}
 
 	# found in local, return!
-	if getattr(frappe.local, 'lang_full_dict', None) is not None:
+	if getattr(frappe.local, 'lang_full_dict', None) and frappe.local.lang_full_dict.get(lang, None):
 		return frappe.local.lang_full_dict
 
 	frappe.local.lang_full_dict = load_lang(lang)
@@ -234,7 +235,7 @@ def get_translation_dict_from_file(path, lang, app):
 			elif len(item)==2:
 				cleaned[item[0]] = strip(item[1])
 
-			else:
+			elif item:
 				raise Exception("Bad translation in '{app}' for language '{lang}': {values}".format(
 					app=app, lang=lang, values=repr(item).encode("utf-8")
 				))
@@ -246,7 +247,7 @@ def get_user_translations(lang):
 	if out is None:
 		out = {}
 		for fields in frappe.get_all('Translation',
-			fields= ["source_name", "target_name"],filters={'language_code': lang}):
+			fields= ["source_name", "target_name"], filters={'language': lang}):
 				out.update({fields.source_name: fields.target_name})
 		frappe.cache().hset('lang_user_translations', lang, out)
 
@@ -392,7 +393,7 @@ def get_messages_from_custom_fields(app_name):
 
 	for fixture in fixtures:
 		if isinstance(fixture, basestring) and fixture == 'Custom Field':
-			custom_fields = frappe.get_all('Custom Field')
+			custom_fields = frappe.get_all('Custom Field', fields=['name','label', 'description', 'fieldtype', 'options'])
 			break
 		elif isinstance(fixture, dict) and fixture.get('dt', fixture.get('doctype')) == 'Custom Field':
 			custom_fields.extend(frappe.get_all('Custom Field', filters=fixture.get('filters'),
@@ -513,7 +514,7 @@ def extract_messages_from_code(code, is_py=False):
 	return pos_to_line_no(messages, code)
 
 def is_translatable(m):
-	if re.search("[a-zA-Z]", m) and not m.startswith("icon-") and not m.endswith("px") and not m.startswith("eval:"):
+	if re.search("[a-zA-Z]", m) and not m.startswith("fa fa-") and not m.endswith("px") and not m.startswith("eval:"):
 		return True
 	return False
 
@@ -583,7 +584,7 @@ def get_untranslated(lang, untranslated_file, get_all=False):
 				.replace("\n", "|||"))
 
 	if get_all:
-		print str(len(messages)) + " messages"
+		print(str(len(messages)) + " messages")
 		with open(untranslated_file, "w") as f:
 			for m in messages:
 				# replace \n with ||| so that internal linebreaks don't get split
@@ -596,13 +597,13 @@ def get_untranslated(lang, untranslated_file, get_all=False):
 				untranslated.append(m[1])
 
 		if untranslated:
-			print str(len(untranslated)) + " missing translations of " + str(len(messages))
+			print(str(len(untranslated)) + " missing translations of " + str(len(messages)))
 			with open(untranslated_file, "w") as f:
 				for m in untranslated:
 					# replace \n with ||| so that internal linebreaks don't get split
 					f.write((escape_newlines(m) + os.linesep).encode("utf-8"))
 		else:
-			print "all translated!"
+			print("all translated!")
 
 def update_translations(lang, untranslated_file, translated_file):
 	"""Update translations from a source and target file for a given language.

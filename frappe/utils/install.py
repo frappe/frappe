@@ -1,7 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 
 import frappe
 import getpass
@@ -37,7 +37,7 @@ def after_install():
 	update_password("Administrator", get_admin_password())
 
 	# setup wizard now in frappe
-	frappe.db.set_default('desktop:home_page', 'setup-wizard');
+	frappe.db.set_default('desktop:home_page', 'setup-wizard')
 
 	frappe.db.commit()
 
@@ -46,11 +46,11 @@ def install_basic_docs():
 	install_docs = [
 		{'doctype':'User', 'name':'Administrator', 'first_name':'Administrator',
 			'email':'admin@example.com', 'enabled':1, "is_admin": 1,
-			'user_roles': [{'role': 'Administrator'}]
+			'roles': [{'role': 'Administrator'}]
 		},
 		{'doctype':'User', 'name':'Guest', 'first_name':'Guest',
 			'email':'guest@example.com', 'enabled':1, "is_guest": 1,
-			'user_roles': [{'role': 'Guest'}]
+			'roles': [{'role': 'Guest'}]
 		},
 		{'doctype': "Role", "role_name": "Report Manager"},
 		{'doctype': "Workflow State", "workflow_state_name": "Pending",
@@ -62,8 +62,9 @@ def install_basic_docs():
 		{'doctype': "Workflow Action", "workflow_action_name": "Approve"},
 		{'doctype': "Workflow Action", "workflow_action_name": "Reject"},
 		{'doctype': "Workflow Action", "workflow_action_name": "Review"},
-		{'doctype': "Email Account", "email_id": "notifications@example.com", "default_outgoing": 1},
-		{'doctype': "Email Account", "email_id": "replies@example.com", "default_incoming": 1}
+		{'doctype': "Email Domain", "domain_name":"example.com", "email_id": "account@example.com", "password": "pass", "email_server": "imap.example.com","use_imap": 1, "smtp_server": "smtp.example.com"},
+		{'doctype': "Email Account", "domain":"example.com", "email_id": "notifications@example.com", "default_outgoing": 1},
+		{'doctype': "Email Account", "domain":"example.com", "email_id": "replies@example.com", "default_incoming": 1}
 	]
 
 	for d in install_docs:
@@ -77,7 +78,7 @@ def get_admin_password():
 		admin_password = getpass.getpass("Set Administrator password: ")
 		admin_password2 = getpass.getpass("Re-enter Administrator password: ")
 		if not admin_password == admin_password2:
-			print "\nPasswords do not match"
+			print("\nPasswords do not match")
 			return ask_admin_password()
 		return admin_password
 

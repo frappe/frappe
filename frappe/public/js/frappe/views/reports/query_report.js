@@ -25,6 +25,7 @@ frappe.standard_pages["query-report"] = function() {
 frappe.views.QueryReport = Class.extend({
 	init: function(opts) {
 		$.extend(this, opts);
+		this.flags = {};
 		// globalify for slickgrid
 		this.page = this.parent.page;
 		this.parent.query_report = this;
@@ -38,21 +39,28 @@ frappe.views.QueryReport = Class.extend({
 	    multiColumnSort: true
 	},
 	make: function() {
+		var me = this;
 		this.wrapper = $("<div>").appendTo(this.page.main);
 		$('<div class="waiting-area" style="display: none;"></div>\
 		<div class="no-report-area msg-box no-border" style="display: none;"></div>\
-		<div class="chart_area" style="border-bottom: 1px solid #d1d8dd; padding-bottom: 10px"></div>\
+		<div class="chart_area" style="border-bottom: 1px solid #d1d8dd; padding-bottom: 1px"></div>\
 		<div class="results" style="display: none;">\
 			<div class="result-area" style="height:400px;"></div>\
+			<button class="btn btn-secondary btn-default btn-xs expand-all hidden" style="margin: 10px;">'+__('Expand All')+'</button>\
+			<button class="btn btn-secondary btn-default btn-xs collapse-all hidden" style="margin: 10px; margin-left: 0px;">'+__('Collapse All')+'</button>\
 			<p class="help-msg alert alert-warning text-center" style="margin: 15px; margin-top: 0px;"></p>\
 			<p class="msg-box small">\
 				'+__('For comparative filters, start with')+' ">" or "<" or "!", e.g. >5 or >01-02-2012 or !0\
 				<br>'+__('For ranges')+' ('+__('values and dates')+') use ":", \
 					e.g. "5:10"  (' + __("to filter values between 5 & 10") + ')</p>\
 		</div>').appendTo(this.wrapper);
-
+		this.wrapper.find(".expand-all").on("click", function() { me.toggle_all(false);});
+		this.wrapper.find(".collapse-all").on("click", function() { me.toggle_all(true);});
 		this.chart_area = this.wrapper.find(".chart_area");
 		this.make_toolbar();
+	},
+	toggle_expand_collapse_buttons: function(show) {
+		this.wrapper.find(".expand-all, .collapse-all").toggleClass('hidden', !!!show);
 	},
 	make_toolbar: function() {
 		var me = this;
@@ -67,12 +75,23 @@ frappe.views.QueryReport = Class.extend({
 			frappe.set_route("Form", "Report", me.report_name);
 		}, true);
 
-		this.page.add_menu_item(__("Print"), function() { me.print_report(); }, true);
+		this.page.add_menu_item(__("Print"), function() {
+			frappe.ui.get_print_settings(false, function(print_settings) {
+				me.print_settings = print_settings;
+				me.print_report();
+			}, me.report_doc.letter_head);
+		}, true);
 
-		this.page.add_menu_item(__("PDF"), function() { me.pdf_report(); }, true);
+		this.page.add_menu_item(__("PDF"), function() {
+			frappe.ui.get_print_settings(true, function(print_settings) {
+				me.print_settings = print_settings;
+				me.pdf_report();
+			}, me.report_doc.letter_head);
+		}, true);
 
-		this.page.add_menu_item(__('Export'), function() { me.export_report(); },
-			true);
+		this.page.add_menu_item(__('Export'), function() {
+			me.make_export();
+		}, true);
 
 		this.page.add_menu_item(__("Setup Auto Email"), function() {
 			frappe.set_route('List', 'Auto Email Report', {'report' : me.report_name});
@@ -146,6 +165,8 @@ frappe.views.QueryReport = Class.extend({
 		this.page.clear_inner_toolbar();
 		this.setup_filters();
 		this.chart_area.toggle(false);
+		this.toggle_expand_collapse_buttons(false);
+		this.is_tree_report = false;
 
 		var report_settings = frappe.query_reports[this.report_name];
 
@@ -156,8 +177,7 @@ frappe.views.QueryReport = Class.extend({
 
 		}()).then(function() {
 			me.refresh();
-		})
-
+		});
 	},
 	print_report: function() {
 		if(!frappe.model.can_print(this.report_doc.ref_doctype)) {
@@ -166,16 +186,28 @@ frappe.views.QueryReport = Class.extend({
 		}
 
 		if(this.html_format) {
-			var content = frappe.render(this.html_format,
-				{data: frappe.slickgrid_tools.get_filtered_items(this.dataView), filters:this.get_values(), report:this});
+			var content = frappe.render(this.html_format, {
+				data: frappe.slickgrid_tools.get_filtered_items(this.dataView),
+				filters:this.get_values(),
+				report:this});
 
-			frappe.render_grid({content:content, title:__(this.report_name)});
+			frappe.render_grid({
+				content:content,
+				title:__(this.report_name),
+				print_settings: this.print_settings,
+			});
 		} else {
-			frappe.render_grid({grid:this.grid, report: this, title:__(this.report_name)});
+			frappe.render_grid({
+				grid:this.grid,
+				report: this,
+				title:__(this.report_name),
+				print_settings: this.print_settings,
+			});
 		}
 	},
 	pdf_report: function() {
-		base_url = frappe.urllib.get_base_url(); 
+		var me = this;
+		base_url = frappe.urllib.get_base_url();
 		print_css = frappe.boot.print_css;
 
 		if(!frappe.model.can_print(this.report_doc.ref_doctype)) {
@@ -188,23 +220,42 @@ frappe.views.QueryReport = Class.extend({
 				{data: frappe.slickgrid_tools.get_filtered_items(this.dataView), filters:this.get_values(), report:this});
 
 			//Render Report in HTML
-			var html = frappe.render_template("print_template",
-				{content:content, title:__(this.report_name), base_url: base_url, print_css: print_css});
+				var html = frappe.render_template("print_template", {
+					content:content,
+					title:__(this.report_name),
+					base_url: base_url,
+					print_css: print_css,
+					print_settings: this.print_settings
+				});
 		} else {
 			var columns = this.grid.getColumns();
 			var data = this.grid.getData().getItems();
-			var content = frappe.render_template("print_grid", {columns:columns, data:data, title:__(this.report_name)})
+			var content = frappe.render_template("print_grid", {
+				columns:columns,
+				data:data,
+				title:__(this.report_name)
+			})
 
 			//Render Report in HTML
-			var html = frappe.render_template("print_template",
-				{content:content, title:__(this.report_name), base_url: base_url, print_css: print_css});
+			var html = frappe.render_template("print_template",{
+				content:content,
+				title:__(this.report_name),
+				base_url: base_url,
+				print_css: print_css,
+				print_settings: this.print_settings
+			});
 		}
 
+		orientation = this.print_settings.orientation;
+		this.open_pdf_report(html, orientation)
+	},
+	open_pdf_report: function(html, orientation) {
 		//Create a form to place the HTML content
 		var formData = new FormData();
 
 		//Push the HTML content into an element
 		formData.append("html", html);
+		formData.append("orientation", orientation);
 		var blob = new Blob([], { type: "text/xml"});
 		//formData.append("webmasterfile", blob);
 		formData.append("blob", blob);
@@ -226,6 +277,8 @@ frappe.views.QueryReport = Class.extend({
 		xhr.send(formData);
 	},
 	setup_filters: function() {
+		if(this.setting_filters) return;
+
 		this.clear_filters();
 		var me = this;
 		$.each(frappe.query_reports[this.report_name].filters || [], function(i, df) {
@@ -247,6 +300,10 @@ frappe.views.QueryReport = Class.extend({
 
 				// run report on change
 				f.$input.on("change", function() {
+					if(!me.flags.filters_set) {
+						// don't trigger change while setting filters
+						return;
+					}
 					f.$input.blur();
 					if (f.on_change) {
 						f.on_change(me);
@@ -262,8 +319,12 @@ frappe.views.QueryReport = Class.extend({
 		var $filters = $(this.parent).find('.page-form .filters');
 		$(this.parent).find('.page-form').toggle($filters.length ? true : false);
 
-		this.set_route_filters()
+		this.setting_filters = true;
+		this.set_route_filters();
+		this.setting_filters = false;
+
 		this.set_filters_by_name();
+		this.flags.filters_set = true;
 	},
 	clear_filters: function() {
 		this.filters = [];
@@ -351,6 +412,7 @@ frappe.views.QueryReport = Class.extend({
 			if(v) filters[f.df.fieldname] = v;
 		})
 		if(raise && mandatory_fields.length) {
+			this.chart_area.hide();
 			this.wrapper.find(".waiting-area").empty().toggle(false);
 			this.wrapper.find(".no-report-area").html(__("Please set filters")).toggle(true);
 			if(raise) {
@@ -397,6 +459,8 @@ frappe.views.QueryReport = Class.extend({
 
 		this.set_message(res.message);
 		this.setup_chart(res);
+
+		this.toggle_expand_collapse_buttons(this.is_tree_report);
 	},
 
 	make_columns: function(columns) {
@@ -550,6 +614,15 @@ frappe.views.QueryReport = Class.extend({
 				item._collapsed = true;
 			}
 		}
+
+	},
+	toggle_all: function(collapse) {
+		var me = this;
+		for(var i=0, l=this.data.length; i<l; i++) {
+			var item = this.data[i];
+			item._collapsed = collapse;
+			me.dataView.updateItem(item.id, item);
+		}
 	},
 	tree_filter: function(item) {
 		var me = frappe.query_report;
@@ -576,6 +649,7 @@ frappe.views.QueryReport = Class.extend({
 	},
 	tree_formatter: function(row, cell, value, columnDef, dataContext) {
 		var me = frappe.query_report;
+		me.is_tree_report = true;
 		var $span = $("<span></span>")
 			.css("padding-left", (cint(dataContext.indent) * 21) + "px")
 			.html(value);
@@ -723,18 +797,47 @@ frappe.views.QueryReport = Class.extend({
 			}
 		});
 	},
-	export_report: function() {
+
+	make_export: function() {
+
+		var me = this;
+		this.title = this.report_name;
+
 		if(!frappe.model.can_export(this.report_doc.ref_doctype)) {
 			msgprint(__("You are not allowed to export this report"));
 			return false;
 		}
 
-		var result = $.map(frappe.slickgrid_tools.get_view_data(this.columns, this.dataView),
-		 	function(row) {
-				return [row.splice(1)];
-		});
-		this.title = this.report_name;
-		frappe.tools.downloadify(result, null, this.title);
+		frappe.prompt({fieldtype:"Select", label: __("Select File Type"), fieldname:"file_format_type",
+			options:"Excel\nCSV", default:"Excel", reqd: 1},
+			function(data) {
+
+				if (data.file_format_type == "CSV") {
+
+					var result = $.map(frappe.slickgrid_tools.get_view_data(me.columns, me.dataView),
+					 	function(row) {
+							return [row.splice(1)];
+					});
+					frappe.tools.downloadify(result, null, me.title);
+				}
+
+				else if (data.file_format_type == "Excel") {
+					try {
+						var filters = me.get_values(true);
+					} catch(e) {
+						return;
+					}
+					var args = {
+						cmd: 'frappe.desk.query_report.export_query',
+						report_name: me.report_name,
+						file_format_type: data.file_format_type,
+						filters: filters
+					};
+
+					open_url_post(frappe.request.url, args);
+				}
+			}, __("Export Report: "+ me.title), __("Download"));
+
 		return false;
 	},
 
@@ -762,7 +865,7 @@ frappe.views.QueryReport = Class.extend({
 		});
 
 		this.chart = new frappe.ui.Chart(opts);
-		if(this.chart) {
+		if(this.chart && opts.data && opts.data.rows && opts.data.rows.length) {
 			this.chart_area.toggle(true);
 		}
 	}

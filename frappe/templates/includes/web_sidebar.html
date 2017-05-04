@@ -24,13 +24,13 @@
 			<li class="sidebar-item">
 				<a href="{{ item.route }}" class="text-muted {{ 'active' if pathname==item.route else '' }}"
 				{% if item.target %}target="{{ item.target }}"{% endif %}>
-				{{ _(item.title) }}
+				{{ _(item.title or item.label) }}
 				</a>
 			</li>
 			{%- endfor %}
 			{% if frappe.user != 'Guest' %}
 			<li class="sidebar-item">
-				<a href="/me">My Account</a>
+				<a href="/me">{{ _("My Account") }}</a>
 			</li>
 			{% endif %}
 		</ul>

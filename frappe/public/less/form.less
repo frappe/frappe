@@ -187,8 +187,16 @@
 
 .form-links {
 	.document-link {
-		margin-bottom: 5px;
+		margin-bottom: 10px;
 		height: 22px;
+	}
+
+	.document-link:hover .badge-link {
+		text-decoration: underline;
+	}
+
+	.document-link:hover .badge-link[disabled='disabled'] {
+		text-decoration: none;
 	}
 
 	.count {
@@ -210,6 +218,10 @@ h6.uppercase, .h6.uppercase {
 	margin: 0px;
 	padding: 15px;
 
+
+	.form-section-description {
+		margin-bottom: 10px;
+	}
 
 	.form-section-heading {
 		margin: 10px 0px;
@@ -245,7 +257,7 @@ h6.uppercase, .h6.uppercase {
 }
 
 .shaded-section {
-	background-color: @light-bg;
+	//background-color: @light-bg;
 }
 
 .modal {
@@ -253,8 +265,12 @@ h6.uppercase, .h6.uppercase {
 		margin: -15px;
 	}
 
+	.form-grid .form-layout {
+		margin: 0px;
+	}
+
 	.form-section {
-		padding: 7px;
+		padding: 15px 7px;
 	}
 }
 
@@ -290,12 +306,20 @@ h6.uppercase, .h6.uppercase {
 .timeline-item {
 	margin-top: 0px;
 
+	b {
+		color: @text-color !important;
+	}
+
 	blockquote {
 		font-size: inherit;
 	}
 
 	.btn-more {
 		margin-left: 65px;
+	}
+
+	.gmail_extra {
+		display: none;
 	}
 }
 
@@ -314,7 +338,11 @@ h6.uppercase, .h6.uppercase {
 	top: 0px;
 	bottom: -124px;
 	left: 43px;
-	z-index: -1;
+	z-index: 0;
+}
+
+.timeline.in-dialog::before {
+	bottom: 0px;
 }
 
 @media(max-width: @screen-sm) {
@@ -324,7 +352,7 @@ h6.uppercase, .h6.uppercase {
 }
 
 .timeline-item.user-content {
-	margin: 30px 0px 30px 30px;
+	margin: 30px 0px 30px 27px;
 
 	.media-body {
 		border: 1px solid @border-color;
@@ -336,9 +364,15 @@ h6.uppercase, .h6.uppercase {
 		overflow: visible;
 	}
 
+	.avatar-medium {
+		margin-right: 10px;
+		height: 45px;
+		width: 45px;
+	}
+
 	.comment-header {
 		background-color: @light-bg;
-		padding: 7px 15px;
+		padding: 10px 15px 10px 13px;
 		margin: 0px;
 		color: @text-muted;
 		border-bottom: 1px solid @light-border-color;
@@ -350,7 +384,7 @@ h6.uppercase, .h6.uppercase {
 	}
 
 	.reply {
-		padding: 10px 15px;
+		padding: 15px;
 
 		& > div > p:first-child {
 			margin-top: 0px;
@@ -359,10 +393,32 @@ h6.uppercase, .h6.uppercase {
 		& > div > p:last-child {
 			margin-bottom: 0px;
 		}
+
+		hr {
+			margin: 10px 0px;
+		}
 	}
 
 	.close-btn-container {
-		padding: 2px 15px;
+		padding: 4px 10px 2px 5px;
+	}
+
+	.edit-btn-container {
+		padding: 4px 5px;
+
+		.edit {
+			color: inherit;
+			font-size: 21px;
+			line-height: 1;
+
+			.octicon-check {
+				font-size: 1em;
+			}
+
+			&:hover, &:focus {
+				color: #000;
+			}
+		}
 	}
 
 	.comment-likes {
@@ -382,15 +438,15 @@ h6.uppercase, .h6.uppercase {
 
 	.media-body:after {
 		border-color: rgba(136, 183, 213, 0);
-	    border-right-color: #fafbfc;
-	    border-width: 6px;
-	    margin-top: -6px;
+		border-right-color: #fafbfc;
+		border-width: 6px;
+		margin-top: -6px;
 	}
 	.media-body:before {
 		border-color: rgba(194, 225, 245, 0);
-	    border-right-color: @border-color;
-	    border-width: 7px;
-	    margin-top: -7px;
+		border-right-color: @border-color;
+		border-width: 7px;
+		margin-top: -7px;
 	}
 }
 
@@ -404,8 +460,16 @@ h6.uppercase, .h6.uppercase {
 		color: @text-muted;
 	}
 
-	.icon-fixed-width {
+	.fa-fw {
 		margin-left: 36px;
+	}
+
+	div.small {
+		padding-left: 40px;
+
+		.fa-fw {
+			margin-left: 0px;
+		}
 	}
 
 	.octicon-heart {
@@ -414,20 +478,20 @@ h6.uppercase, .h6.uppercase {
 }
 
 .timeline-indicator() {
-    content: " ";
-    width: 7px;
-    height: 7px;
-    background-color: @border-color;
+	content: " ";
+	width: 7px;
+	height: 7px;
+	background-color: @border-color;
 	// background-color: white;
 	// border: 1px solid @border-color;
-    position: absolute;
-    left: 40px;
-    border-radius: 50%;
-    top: 5px;
+	position: absolute;
+	left: 40px;
+	border-radius: 50%;
+	top: 5px;
 }
 
 .timeline-item.notification-content::before {
-    .timeline-indicator();
+	.timeline-indicator();
 }
 
 .timeline-item .reply-link {
@@ -439,6 +503,8 @@ h6.uppercase, .h6.uppercase {
 	// padding: 15px 30px;
 	border: 1px solid @border-color;
 	border-radius: 2px;
+	position: relative;
+	z-index: 1;
 
 	.comment-input-header {
 		background-color: @light-bg;
@@ -448,6 +514,10 @@ h6.uppercase, .h6.uppercase {
 
 	.comment-input-container {
 		padding: 15px;
+
+		.awesomplete > ul {
+			min-width: 200px;
+		}
 	}
 
 	.comment-input {
@@ -468,9 +538,42 @@ h6.uppercase, .h6.uppercase {
 	}
 }
 
+.signature-field {
+	min-height: 300px;
+	background: #fff;
+	border: 1px solid @border-color;
+	border-radius: 3px;
+	position: relative;
+	margin-top: -10px;
+}
+.signature-display {
+	margin: 7px 0px;
+	background: #fff;
+}
+.signature-btn-row {
+	position: absolute;
+	bottom: 12px;
+	right: 12px;
+}
+.signature-reset {
+	height: 30px;
+	width: 30px;
+	padding: 4px 0px;
+}
+
+.signature-img {
+	border: 1px solid @border-color;
+	background: #fff;
+	border-radius: 3px;
+	margin-top: 5px;
+	width: 100%;
+	max-height: 300px;
+}
+
+
 .timeline-new-email {
 	margin: 30px 0px;
-	padding: 0px 65px;
+	padding-left: 70px;
 	position: relative;
 }
 
@@ -498,13 +601,22 @@ h6.uppercase, .h6.uppercase {
 	border-radius: 3px;
 	min-height: 30px;
 	font-weight: bold;
+	background-color: @navbar-bg;
+	padding: 5px 10px;
+	border-radius: 3px;
+}
+
+.disabled-check {
+	color: @navbar-bg;
+	margin-right: 3px;
+	margin-bottom: -2px;
 }
 
 .like-disabled-input.for-description {
 	font-weight: normal;
 }
 
-.frappe-control {
+.frappe-control& {
 	margin-bottom: 10px;
 
 	.help-box {
@@ -513,6 +625,10 @@ h6.uppercase, .h6.uppercase {
 
 	pre {
 		white-space: pre-wrap;
+		background-color: inherit;
+		border: none;
+		padding: 0px;
+		margin: 0px;
 	}
 }
 
@@ -522,18 +638,6 @@ h6.uppercase, .h6.uppercase {
 
 .shared-user {
 	margin-bottom: 10px;
-}
-
-.linked-with-dialog {
-	width: 75%;
-
-	.panel-body {
-		padding: 0px;
-	}
-
-	.form-section {
-		padding-top: 15px;
-	}
 }
 
 .attach-missing-image,
@@ -639,7 +743,7 @@ select.form-control {
 			padding: 0px 15px;
 		}
 
-		.frappe-control {
+		.frappe-control& {
 			padding: 7px 15px;
 			border-bottom: 1px solid @light-border-color;
 			margin: 0px -15px;
@@ -650,6 +754,10 @@ select.form-control {
 
 			.like-disabled-input {
 				min-height: 0px !important;
+			}
+
+			&:last-child {
+				margin-bottom: 0px;
 			}
 		}
 
@@ -692,4 +800,8 @@ select.form-control {
 		// 	text-indent: -2px;
 		// }
 	}
+}
+
+body[data-route^="Form/Communication"] textarea[data-fieldname="subject"] {
+	height: 80px !important;
 }

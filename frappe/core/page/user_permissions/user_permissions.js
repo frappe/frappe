@@ -2,7 +2,7 @@ frappe.pages['user-permissions'].on_page_load = function(wrapper) {
 	var page = frappe.ui.make_app_page({
 		parent: wrapper,
 		title: __("User Permissions Manager"),
-		icon: "icon-shield",
+		icon: "fa fa-shield",
 		single_column: true
 	});
 
@@ -82,19 +82,19 @@ frappe.UserPermissions = Class.extend({
 					options: "[Select]"
 				});
 
-				if(user_roles.indexOf("System Manager")!==-1) {
+				if(roles.indexOf("System Manager")!==-1) {
 					me.download = me.wrapper.page.add_field({
 						fieldname: "download",
 						label: __("Download"),
 						fieldtype: "Button",
-						icon: "icon-download"
+						icon: "fa fa-download"
 					});
 
 					me.upload = me.wrapper.page.add_field({
 						fieldname: "upload",
 						label: __("Upload"),
 						fieldtype: "Button",
-						icon: "icon-upload"
+						icon: "fa fa-upload"
 					});
 				}
 
@@ -269,7 +269,7 @@ frappe.UserPermissions = Class.extend({
 	},
 	add_delete_button: function(row, d) {
 		var me = this;
-		$("<button class='btn btn-sm btn-default'><i class='icon-remove'></i></button>")
+		$("<button class='btn btn-sm btn-default'><i class='fa fa-remove'></i></button>")
 			.appendTo($("<td>").appendTo(row))
 			.attr("data-name", d.name)
 			.attr("data-user", d.parent)
@@ -328,6 +328,10 @@ frappe.UserPermissions = Class.extend({
 				}
 
 				d.fields_dict["defvalue"].get_query = function(txt) {
+					if(!d.get_value("defkey")) {
+						frappe.throw(__("Please select Document Type"));
+					}
+
 					return {
 						doctype: d.get_value("defkey")
 					}

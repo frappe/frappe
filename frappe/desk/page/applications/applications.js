@@ -150,6 +150,10 @@ frappe.applications.Installer = Class.extend({
 			me.install_app($(this).attr("data-app"), $(this).attr("data-title"), this);
 		});
 
+		this.wrapper.find(".btn-remove").on("click", function() {
+			me.remove_app($(this).attr("data-app"), $(this).attr("data-title"), this);
+		});
+
 	},
 
 	update_no_result: function() {
@@ -162,13 +166,18 @@ frappe.applications.Installer = Class.extend({
 				method: "frappe.desk.page.applications.applications.install_app",
 				args: { name: app_name },
 				freeze: true,
-				btn: btn,
-				callback: function(r) {
-					if(!r.exc) {
-						frappe.update_msgprint(__("Refreshing..."));
-						setTimeout(function() { window.location.reload() }, 2000)
-					}
-				}
+				btn: btn
+			});
+		});
+	},
+
+	remove_app: function(app_name, app_title, btn) {
+		frappe.confirm(__("Remove {0} and delete all data?", [app_title]), function() {
+			frappe.call({
+				method: "frappe.desk.page.applications.applications.remove_app",
+				args: { name: app_name },
+				freeze: true,
+				btn: btn
 			});
 		});
 	},
@@ -180,7 +189,7 @@ frappe.applications.Installer = Class.extend({
 		frappe.ui.make_app_page({
 			parent: this.parent,
 			title: __('App Installer'),
-			icon: "icon-download",
+			icon: "fa fa-download",
 			single_column: true
 		});
 
@@ -193,7 +202,6 @@ frappe.applications.Installer = Class.extend({
 		frappe.realtime.on("install_app_progress", function(data) {
 			if(data.status) {
 				frappe.update_msgprint(data.status);
-				msg_dialog.show_loading();
 			}
 		})
 	}

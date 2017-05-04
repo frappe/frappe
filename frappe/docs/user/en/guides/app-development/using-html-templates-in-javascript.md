@@ -15,7 +15,7 @@ To render a template,
 From `erpnext/public/js/templates/address_list.js`
 
 	{% raw %}<p><button class="btn btn-sm btn-default btn-address">
-	    <i class="icon-plus"></i> New Address</button></p>
+	    <i class="fa fa-plus"></i> New Address</button></p>
 	{% for(var i=0, l=addr_list.length; i<l; i++) { %}
 	    <hr>
 	    <a href="#Form/Address/{%= addr_list[i].name %}" class="btn btn-sm btn-default pull-right">

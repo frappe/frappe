@@ -25,7 +25,7 @@ def get_context(context):
 
 	files = [('/backups/' + _file,
 		get_time(os.path.join(path, _file)),
-		get_size(os.path.join(path, _file))) for _file in files]
+		get_size(os.path.join(path, _file))) for _file in files if _file.endswith('sql.gz')]
 	files.sort(key=lambda x: x[1], reverse=True)
 
 	return {"files": files}
@@ -37,8 +37,9 @@ def get_scheduled_backup_limit():
 def cleanup_old_backups(site_path, files, limit):
 	backup_paths = []
 	for f in files:
-		_path = os.path.abspath(os.path.join(site_path, f))
-		backup_paths.append(_path)
+		if f.endswith('sql.gz'):
+			_path = os.path.abspath(os.path.join(site_path, f))
+			backup_paths.append(_path)
 
 	backup_paths = sorted(backup_paths, key=os.path.getctime)
 	files_to_delete = len(backup_paths) - limit

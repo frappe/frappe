@@ -1,3 +1,4 @@
+from __future__ import print_function
 import frappe, urllib
 
 from frappe import _
@@ -34,6 +35,7 @@ class WebApplicationServer(AuthorizationEndpoint, TokenEndpoint, ResourceEndpoin
 		:param kwargs: Extra parameters to pass to authorization-,
 					   token-, resource-, and revocation-endpoint constructors.
 		"""
+		implicit_grant = ImplicitGrant(request_validator)
 		auth_grant = AuthorizationCodeGrant(request_validator)
 		refresh_grant = RefreshTokenGrant(request_validator)
 		openid_connect_auth = OpenIDConnectAuthCode(request_validator)
@@ -48,6 +50,7 @@ class WebApplicationServer(AuthorizationEndpoint, TokenEndpoint, ResourceEndpoin
 											'code token': openid_connect_auth,
 											'code id_token': openid_connect_auth,
 											'code token id_token': openid_connect_auth,
+											'token': implicit_grant
 										},
 									   default_token_type=bearer)
 		TokenEndpoint.__init__(self, default_grant_type='authorization_code',
@@ -153,7 +156,7 @@ class OAuthWebRequestValidator(RequestValidator):
 		try:
 			request.client = request.client or oc.as_dict()
 		except Exception, e:
-			print "Failed body authentication: Application %s does not exist".format(cid=request.client_id)
+			print("Failed body authentication: Application %s does not exist".format(cid=request.client_id))
 
 		return frappe.session.user == urllib.unquote(cookie_dict.get('user_id', "Guest"))
 
@@ -202,10 +205,10 @@ class OAuthWebRequestValidator(RequestValidator):
 
 		otoken = frappe.new_doc("OAuth Bearer Token")
 		otoken.client = request.client['name']
-		otoken.user = request.user
+		otoken.user = request.user if request.user else frappe.db.get_value("OAuth Bearer Token", {"refresh_token":request.body.get("refresh_token")}, "user")
 		otoken.scopes = get_url_delimiter().join(request.scopes)
 		otoken.access_token = token['access_token']
-		otoken.refresh_token = token['refresh_token']
+		otoken.refresh_token = token.get('refresh_token')
 		otoken.expires_in = token['expires_in']
 		otoken.save(ignore_permissions=True)
 		frappe.db.commit()

@@ -6,13 +6,13 @@ from __future__ import unicode_literals
 # IMPORTANT: only import safe functions as this module will be included in jinja environment
 import frappe
 import operator
-import re, urllib, datetime, math
+import re, urllib, datetime, math, time
 import babel.dates
+from babel.core import UnknownLocaleError
 from dateutil import parser
 from num2words import num2words
 import HTMLParser
 from html2text import html2text
-
 
 DATE_FORMAT = "%Y-%m-%d"
 TIME_FORMAT = "%H:%M:%S.%f"
@@ -116,6 +116,9 @@ def now_datetime():
 	dt = convert_utc_to_user_timezone(datetime.datetime.utcnow())
 	return dt.replace(tzinfo=None)
 
+def get_timestamp(date):
+	return time.mktime(getdate(date).timetuple())
+
 def get_eta(from_time, percent_complete):
 	diff = time_diff(now_datetime(), from_time).total_seconds()
 	return str(datetime.timedelta(seconds=(100 - percent_complete) / percent_complete * diff))
@@ -214,10 +217,18 @@ def formatdate(string_date=None, format_string=None):
 	if not format_string:
 		format_string = get_user_format().replace("mm", "MM")
 
-	return babel.dates.format_date(date, format_string, locale=(frappe.local.lang or "").replace("-", "_"))
+	try:
+		formatted_date = babel.dates.format_date(date, format_string, locale=(frappe.local.lang or "").replace("-", "_"))
+	except UnknownLocaleError:
+		formatted_date = date.strftime("%Y-%m-%d")
+	return formatted_date
 
 def format_time(txt):
-	return babel.dates.format_time(get_time(txt), locale=(frappe.local.lang or "").replace("-", "_"))
+	try:
+		formatted_time = babel.dates.format_time(get_time(txt), locale=(frappe.local.lang or "").replace("-", "_"))
+	except UnknownLocaleError:
+		formatted_time = get_time(txt).strftime("%H:%M:%S")
+	return formatted_time
 
 def format_datetime(datetime_string, format_string=None):
 	if not datetime_string:
@@ -227,7 +238,11 @@ def format_datetime(datetime_string, format_string=None):
 	if not format_string:
 		format_string = get_user_format().replace("mm", "MM") + " HH:mm:ss"
 
-	return babel.dates.format_datetime(datetime, format_string, locale=(frappe.local.lang or "").replace("-", "_"))
+	try:
+		formatted_datetime = babel.dates.format_datetime(datetime, format_string, locale=(frappe.local.lang or "").replace("-", "_"))
+	except UnknownLocaleError:
+		formatted_datetime = datetime.strftime('%Y-%m-%d %H:%M:%S')
+	return formatted_datetime
 
 def global_date_format(date):
 	"""returns date as 1 January 2012"""
@@ -258,15 +273,8 @@ def cint(s):
 	except: num = 0
 	return num
 
-def cstr(s):
-	if isinstance(s, unicode):
-		return s
-	elif s==None:
-		return ''
-	elif isinstance(s, basestring):
-		return unicode(s, 'utf-8')
-	else:
-		return unicode(s)
+def cstr(s, encoding='utf-8'):
+	return frappe.as_unicode(s, encoding)
 
 def rounded(num, precision=0):
 	"""round method for round halfs to nearest even algorithm aka banker's rounding - compatible with python3"""
@@ -340,12 +348,9 @@ def fmt_money(amount, precision=None, currency=None):
 	"""
 	Convert to string with commas for thousands, millions etc
 	"""
-	number_format = None
-	if currency:
-		number_format = frappe.db.get_value("Currency", currency, "number_format", cache=True)
-
-	if not number_format:
-		number_format = frappe.db.get_default("number_format") or "#,###.##"
+	number_format = frappe.db.get_default("number_format") or "#,###.##"
+	if precision is None:
+		precision = cint(frappe.db.get_default('currency_precision')) or None
 
 	decimal_str, comma_str, number_format_precision = get_number_format_info(number_format)
 
@@ -487,6 +492,7 @@ def pretty_date(iso_datetime):
 		long ago the date represents.
 		Ported from PrettyDate by John Resig
 	"""
+	from frappe import _
 	if not iso_datetime: return ''
 	import math
 
@@ -504,25 +510,31 @@ def pretty_date(iso_datetime):
 
 	# differnt cases
 	if dt_diff_seconds < 60.0:
-		return 'just now'
+		return _('just now')
 	elif dt_diff_seconds < 120.0:
-		return '1 minute ago'
+		return _('1 minute ago')
 	elif dt_diff_seconds < 3600.0:
-		return '%s minutes ago' % cint(math.floor(dt_diff_seconds / 60.0))
+		return _('{0} minutes ago').format(cint(math.floor(dt_diff_seconds / 60.0)))
 	elif dt_diff_seconds < 7200.0:
-		return '1 hour ago'
+		return _('1 hour ago')
 	elif dt_diff_seconds < 86400.0:
-		return '%s hours ago' % cint(math.floor(dt_diff_seconds / 3600.0))
+		return _('{0} hours ago').format(cint(math.floor(dt_diff_seconds / 3600.0)))
 	elif dt_diff_days == 1.0:
-		return 'Yesterday'
+		return _('Yesterday')
 	elif dt_diff_days < 7.0:
-		return '%s days ago' % cint(dt_diff_days)
+		return _('{0} days ago').format(cint(dt_diff_days))
+	elif dt_diff_days < 12:
+		return _('1 weeks ago')
 	elif dt_diff_days < 31.0:
-		return '%s week(s) ago' % cint(math.ceil(dt_diff_days / 7.0))
+		return _('{0} weeks ago').format(cint(math.ceil(dt_diff_days / 7.0)))
+	elif dt_diff_days < 46:
+		return _('1 month ago')
 	elif dt_diff_days < 365.0:
-		return '%s months ago' % cint(math.ceil(dt_diff_days / 30.0))
+		return _('{0} months ago').format(cint(math.ceil(dt_diff_days / 30.0)))
+	elif dt_diff_days < 550.0:
+		return _('1 year ago')
 	else:
-		return 'more than %s year(s) ago' % cint(math.floor(dt_diff_days / 365.0))
+		return '{0} years ago'.format(cint(math.floor(dt_diff_days / 365.0)))
 
 def comma_or(some_list):
 	return comma_sep(some_list, frappe._("{0} or {1}"))
@@ -619,6 +631,12 @@ def get_url_to_form(doctype, name):
 def get_url_to_list(doctype):
 	return get_url(uri = "desk#List/{0}".format(quoted(doctype)))
 
+def get_url_to_report(name, report_type = None, doctype = None):
+	if report_type == "Report Builder":
+		return get_url(uri = "desk#Report/{0}/{1}".format(quoted(doctype), quoted(name)))
+	else:
+		return get_url(uri = "desk#query-report/{0}".format(quoted(name)))
+
 operator_map = {
 	# startswith
 	"^": lambda (a, b): (a or "").startswith(b),
@@ -693,8 +711,8 @@ def get_filter(doctype, f):
 		# if operator is missing
 		f.operator = "="
 
-	valid_operators = ("=", "!=", ">", "<", ">=", "<=", "like", "not like", "in", "not in")
-	if f.operator not in valid_operators:
+	valid_operators = ("=", "!=", ">", "<", ">=", "<=", "like", "not like", "in", "not in", "between")
+	if f.operator.lower() not in valid_operators:
 		frappe.throw("Operator must be one of {0}".format(", ".join(valid_operators)))
 
 

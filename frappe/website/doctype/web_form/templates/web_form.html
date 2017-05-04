@@ -1,0 +1,382 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ _(title) }}{% endblock %}
+
+{% block header %}
+<h1>{{ _(title) }}</h1>
+{% endblock %}
+
+{% block breadcrumbs %}
+{% if has_header and login_required %}
+{% include "templates/includes/breadcrumbs.html" %}
+{% endif %}
+{% endblock %}
+
+{% block header_actions %}
+	{% if not read_only and has_header %}
+	<div style="padding-bottom: 15px;">
+	    {% if login_required -%}
+		<a href="{{ cancel_url or pathname }}" class="btn btn-default btn-sm">
+	    	{{ _("Cancel") }}</a>
+		{%- endif %}
+		{% if not is_list %}
+	    <button type="submit" class="btn btn-primary btn-sm btn-form-submit">
+	    		{{ _("Save") }}</button>
+		{% endif %}
+	</div>
+	{% endif %}
+	{% if is_list %}
+	<div style="padding-bottom: 15px;">
+	    <a href="/{{ pathname }}{{ delimeter }}new=1{{ params_from_form_dict}}" class="btn btn-primary btn-new btn-sm">
+	    {{ _("New") }}
+	    </a>
+	</div>
+	{% endif %}
+	{%- if allow_print and not is_list and not _login_required -%}
+	<div class='text-right'>
+		<a class='text-muted small' href='/printview?doctype={{ doc.doctype}}&name={{ doc.name }}
+			{%- if print_format -%}&format={{ print_format }}{%- endif -%}' target="_blank">
+			<i class='fa fa-print'></i> {{ _("Print") }}</a>
+	</div>
+	{%- endif -%}
+{% endblock %}
+
+{% block page_content %}
+<div class="introduction">
+	{% if introduction_text %}
+	<p class="text-muted">{{ _(introduction_text) }}</p>
+	{% endif %}
+</div>
+<div class="form-message hide"></div>
+{% if _login_required %}
+<div class="login-required">
+	<div class="text-muted">
+		{{ _("Please sign-up or login to begin") }}
+	</div>
+	<p>
+		<a href="/login?redirect-to=/{{ pathname }}" class="btn btn-primary">
+			{{ _("Login") }}
+		</a>
+	</p>
+</div>
+{% elif is_list %}
+	{% include "templates/includes/list/list.html" %}
+	<script>{% include "templates/includes/list/list.js" %}</script>
+{% else %}
+<br>
+
+{%- macro properties(field) %}
+		name="{{ field.fieldname }}" data-fieldname="{{ field.fieldname }}"
+		{% if field.placeholder -%} placeholder="{{ _(field.placeholder) }}" {%- endif %}
+		data-label="{{ _(field.label) }}" data-fieldtype="{{ field.fieldtype }}"
+		data-doctype="{{ field.parent }}" data-default="{{ field.default or "" }}"
+		{{ field.reqd and "data-reqd=1" or "" }}
+		{{ (read_only or field.read_only) and "disabled" or "" }}
+{% endmacro -%}
+
+{%- macro value(field, _doc) -%}
+	{%- if _doc -%}
+		{%- set _value = _doc.get(field.fieldname) or frappe.form_dict.get(field.fieldname) -%}
+	{%- else -%}
+		{%- set _value = frappe.form_dict.get(field.fieldname) or field.default -%}
+	{%- endif -%}
+	{{ "" if _value==None else _value }}
+{%- endmacro -%}
+
+{%- macro help(field) -%}
+		{% if field.description -%}
+		<span class="help-block small text-muted">{{ _(field.description) }}</span>
+		{%- endif -%}
+{%- endmacro %}
+
+{% macro label(field) %}
+		<label for="{{ field.fieldname }}" class="control-label text-muted small">
+				{{ _(field.label) }}</label>
+{% endmacro %}
+
+{% macro render_field(field, _doc=None, with_label=True) %}
+	{% if field.hidden %}
+	<input type="hidden" data-doctype="{{ field.parent }}"
+		name="{{ field.fieldname }}" value="{{ value(field, _doc) }}">
+	{% elif field.fieldtype == "HTML" and field.options %}
+	<div class="form-group">
+		{{ field.options }}
+	</div>
+	{% elif field.fieldtype in ("Data", "Date", "Datetime", "Int", "Float") %}
+	<div class="form-group{% if field.reqd %} has-error{% endif %}">
+		{% if with_label %}{{ label(field) }}{% endif %}
+		<input type={{ "number" if field.fieldtype in ("Int", "Float") else "text" }}
+			class="form-control" {{ properties(field) }}
+			value="{{ value(field, _doc) }}"
+			{%- if field.fieldtype=="Int" %} pattern="[0-9]*"{% endif %}
+			{%- if field.max_length %} maxlength={{ field.max_length }}{% endif %}>
+		{{ help(field) }}
+	</div>
+	{% elif field.fieldtype=="Link" %}
+	<div class="form-group{% if field.reqd %} has-error{% endif %}">
+		{% if with_label %}{{ label(field) }}{% endif %}
+		<select class="form-control" {{ properties(field) }}>
+			{% for option in ([{"name":""}] + frappe.get_all(field.options)) -%}
+			<option value="{{ option.name }}"
+				{{ 'selected="selected"' if value(field, _doc)==option.name else '' }}>
+				{{ option.name }}</option>
+			{%- endfor %}
+		</select>
+		{{ help(field) }}
+	</div>
+	{% elif field.fieldtype=="Select" %}
+	<div class="form-group{% if field.reqd %} has-error{% endif %}">
+		{% if with_label %}{{ label(field) }}{% endif %}
+		<select class="form-control" {{ properties(field) }}>
+			{% for option in field.options.split("\n") -%}
+			<option value="{{ option }}"
+				{{ 'selected="selected"' if value(field, _doc)==option else '' }}>
+				{{ _(option) }}</option>
+			{%- endfor %}
+		</select>
+		{{ help(field) }}
+	</div>
+	{% elif field.fieldtype in ("Text", "Small Text") %}
+	<div class="form-group{% if field.reqd %} has-error{% endif %}">
+		{% if with_label %}{{ label(field) }}{% endif %}
+		{{ help(field) }}
+		<textarea class="form-control" style="height: {% if field.fieldtype=="Small Text" %}150px{% else %}300px;{% endif %}"
+		{{ properties(field) }}>{{ value(field, _doc) }}</textarea>
+	</div>
+	{% elif field.fieldtype == "Text Editor" %}
+	<div class="form-group{% if field.reqd %} has-error{% endif %}">
+		{% if with_label %}{{ label(field) }}{% endif %}
+		{{ help(field) }}
+		<div {{ properties(field) }}>{{ value(field, _doc) }}</div>
+	</div>
+	{% elif field.fieldtype=="Attach" %}
+	<div class="form-group">
+		{% if with_label %}{{ label(field) }}{% endif %}
+		{% if value(field, _doc) -%}
+		<p class="small">
+			<a href="{{ doc.get(field.fieldname) }}" target="blank">
+				{{ _doc.get(field.fieldname) }}
+			</a>
+			<br><button class="btn btn-small btn-default btn-xs
+                        	change-attach" style="margin-top: 5px;">{{ _("Change") }}</button>
+		</p>
+		{%- endif %}
+		<p class="{{ value(field, _doc) and 'hide' or '' }} attach-input-wrap">
+			<input type="file" style="margin-top: 7px;"
+				{{ properties(field) }}
+				{%- if value(field, _doc) -%} data-value="{{ value(field, _doc) }}"{%- endif -%}>
+			<p class='text-muted small' style='margin-bottom: 20px;'>
+				{{ _("Max attachment size is {0}MB").format(max_attachment_size) }}
+			</p>
+		</p>
+		{{ help(field) }}
+	</div>
+	{% elif field.fieldtype=="Check" %}
+	<div class="form-group">
+		<div class="checkbox">
+			{% if with_label %}
+			<label class='text-muted'>
+				<input type="checkbox" id="{{ field.fieldname }}"
+					{{ properties(field) }}
+					name="{{ field.fieldname }}" data-doctype="{{ field.parent }}"
+					{{ _doc and _doc.get(field.fieldname) and 'checked' or '' }}>
+					{{ _(field.label) }}
+			</label>
+			{% endif %}
+			{{ help(field) }}
+		</div>
+	</div>
+	{% endif %}
+{% endmacro %}
+
+{% macro render_row(field, d=None, hidden=False) %}
+<tr class="web-form-grid-row {% if hidden %}hidden{% endif %}"
+	{% if d != None %}data-name="{{ d.name or "" }}" data-child-row=1{% endif %}>
+	{% for df in frappe.get_meta(field.options).fields %}
+		{% if df.in_list_view %}
+		<{{ 'th' if d==None else 'td' }} style="width: {{ (df.columns or 2) * 8.3333 }}%;">
+			{% if d!=None %}
+				{{ render_field(df, d, False) }}
+			{% else %}
+				<span class='text-muted small'>{{ _(df.label) }}</span>
+			{% endif %}
+		</{{ 'th' if d.name==None else 'td' }}>
+		{% endif %}
+	{% endfor %}
+	<td style="width: 8.3333%">
+	{% if d!=None %}
+		<button class='btn btn-default btn-sm btn-remove'><i class='fa fa-remove'></i></button>
+	{% endif %}
+	</td>
+</tr>
+{% endmacro %}
+
+{% macro render_table(field) %}
+	{{ label(field) }}
+	<div class='web-form-grid'
+		data-fieldname='{{ field.fieldname }}' data-doctype='{{ field.options }}'>
+		<table class='table table-bordered'>
+			<thead>
+				{{ render_row(field) }}
+			</thead>
+			<tbody>
+				{{ render_row(field, {}, True) }}
+				{% if doc and doc.get(field.fieldname) %}
+					{% for d in doc.get(field.fieldname) %}
+						{{ render_row(field, d) }}
+					{% endfor %}
+				{% endif %}
+			</tbody>
+		</table>
+	</div>
+	<p><button class='btn btn-default btn-sm btn-add-row'
+		data-fieldname='{{ field.fieldname }}'>{{ _("Add Row") }}</button></p>
+{% endmacro %}
+
+<!-- pagination -->
+{% if not frappe.form_dict.new and layout|len > 1 %}
+<div class="text-center slide-progress text-extra-muted">
+	{% for page in layout %}
+	<i data-idx="{{ loop.index }}" data-toggle="tooltip" data-placement="top"
+		title="{{ page.label or _("Page {0}").format(loop.index) }}" class="fa-fw
+		{% if loop.index==1 %}fa fa-circle{% else %}fa fa-circle-o{% endif %}"></i>
+	{% endfor %}
+</div>
+{% endif %}
+
+<form role="form"
+	data-web-form="{{ name }}" data-owner="{{ doc.owner }}">
+	{% if frappe.form_dict.name and web_page_link_text %}
+	<div class="row">
+		<div class="col-sm-9">
+			<p class="text-muted">
+				<a class="btn btn-default btn-sm" href="{{ doc.route }}" target="_blank">
+					{{ web_page_link_text }}</a>
+			</p>
+		</div>
+	</div>
+	{% endif %}
+
+	{% for page in layout %}
+	{% set last_page = True if loop.index == layout|len else False %}
+	<div class="web-form-page{% if loop.index > 1 %} hidden{% endif %}"
+		data-idx="{{ loop.index }}"
+		data-label="{{ page.label or _("Page {0}").format(loop.index) }}">
+		{% if page.label %}
+			<h2 class='text-center'>{{ page.label }}</h2>
+		{% endif %}
+		{% if page.description %}
+			<p class='text-center text-muted small'>{{ page.description }}</p>
+			<br>
+		{% endif %}
+
+		{% for section in page.sections %}
+		<div class="section">
+			{% if section.label %}
+			<h5 class='uppercase'>{{ _(section.label) }}</h5>
+			<span class="help-block small text-muted">{{ _(section.description) }}</span>
+			{% endif %}
+			<div class="row">
+					{% for column in section.columns %}
+					<div class="col-sm-{{ (12 / (section.columns|len))|int }}">
+							{% for field in column %}
+								{% if field.fieldtype=='Table' %}
+									{{ render_table(field) }}
+								{% else %}
+									{{ render_field(field, doc) }}
+								{% endif %}
+							{% endfor %}
+					</div>
+					{% endfor %}
+			</div>
+		</div>
+		{% endfor %}
+		{% if last_page and accept_payment %}
+		<div class="well payment-details">
+			{% if not doc.paid %}
+				{% if payment_button_help %}
+				<div class='text-muted' style='padding-bottom: 15px;'>
+					{{ payment_button_help }}</div>
+				{% endif %}
+				<a class="btn btn-primary btn-payment">
+					{{ payment_button_label or "Pay"}}</a>
+			{% else %}
+				<div>{{ _("Payment Complete") }}</div>
+			{% endif %}
+		</div>
+		{% endif %}
+		<!-- page footer buttons -->
+		<div>
+			{% if layout|len > 1 %}
+			<p class='text-muted small text-center'>
+				{{ _("Page {0} of {1}").format(loop.index, layout|len) }}</p>
+			{% endif %}
+			<br>
+			<p class='text-right'>
+				{%- if loop.index > 1 -%}
+				<button class='btn btn-sm btn-default btn-change-section'
+					data-idx="{{ loop.index - 1 }}">
+					{{ _("Previous") }}</button>
+				{%- endif -%}
+				<!-- save/next button -->
+				{% if (loop.index == layout|len or frappe.form_dict.new) %}
+					{% if not read_only %}
+				    <button type="submit" class="btn btn-primary btn-sm btn-form-submit">
+				    	{{ _("Save") }}</button>
+					{% endif %}
+				{% elif layout|len > 1 %}
+				    <button class="btn btn-primary btn-sm btn-change-section"
+						data-idx="{{ loop.index + 1 }}">
+				    	{{ _("Next") }}</button>
+				{% endif %}
+			</p>
+		</div>
+	</div>
+	{% endfor %}
+
+</form>
+
+{% if allow_comments and not frappe.form_dict.new -%}
+<div class="comments">
+	<br><br>
+	<h3>{{ _("Comments") }}</h3>
+	{% include 'templates/includes/comments/comments.html' %}
+</div>
+{%- endif %}
+{% endif %}
+<div class="padding"></div>
+{% endblock %}
+
+{% block script %}
+
+<script>
+window.web_form_settings = {
+	allow_incomplete: 	{{ allow_incomplete or 0 }},
+	success_link: 		'<p>{{ success_message or _("Your information has been submitted") }}</p><p><a href="{{ success_url or "/" }}" class="btn btn-sm btn-default">{{ _("Continue") }}</a></p>',
+	datepicker_format: 	"{{ frappe.date_format }}",
+	web_form_doctype: 	"{{ doc_type }}",
+	web_form_name: 		"{{ name }}",
+	is_new: 			{{ 1 if frappe.form_dict.new else 0 }},
+	is_read_only: 		{{ 1 if read_only else 0 }},
+	doc_name: 			"{{ frappe.form_dict.name or "" }}",
+	login_required: 	{{ 1 if login_required else 0 }},
+	max_attachment_size:{{ max_attachment_size }},
+	moment_date_format: "{{ frappe.date_format.upper() }}"
+}
+{% if row_template %}web_form_settings.web_form_row_template = "{{ row_template }}";{% endif %}
+</script>
+
+<script type="text/javascript" src="/assets/js/web_form.min.js"></script>
+<script>
+{% if script is defined %}
+{{ script.decode('utf-8') }}
+{% endif %}
+</script>
+{% endblock %}
+
+{% block style %}
+<link type="text/css" rel="stylesheet" href="/assets/css/web_form.css">
+<style>
+{% if style is defined %}{{ style }}{% endif %}
+</style>
+{% endblock %}

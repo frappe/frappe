@@ -53,7 +53,20 @@ $.extend(frappe.meta, {
 	},
 
 	get_field: function(doctype, fieldname, name) {
-		return frappe.meta.get_docfield(doctype, fieldname, name);
+		var out = frappe.meta.get_docfield(doctype, fieldname, name);
+
+		// search in standard fields
+		if (!out) {
+			frappe.model.std_fields.every(function(d) {
+				if(d.fieldname===fieldname) {
+					out = d;
+					return false;
+				} else {
+					return true;
+				}
+			});
+		}
+		return out;
 	},
 
 	get_docfield: function(doctype, fieldname, name) {
@@ -237,14 +250,18 @@ $.extend(frappe.meta, {
 	},
 
 	get_field_precision: function(df, doc) {
-		var precision = cint(frappe.defaults.get_default("float_precision")) || 3;
+		var precision = null;
 		if (df && cint(df.precision)) {
 			precision = cint(df.precision);
 		} else if(df && df.fieldtype === "Currency") {
-			var currency = this.get_field_currency(df, doc);
-			var number_format = get_number_format(currency);
-			var number_format_info = get_number_format_info(number_format);
-			precision = number_format_info.precision;
+			precision = cint(frappe.defaults.get_default("currency_precision"));
+			if(!precision) {
+				var number_format = get_number_format();
+				var number_format_info = get_number_format_info(number_format);
+				precision = number_format_info.precision;
+			}
+		} else {
+			precision = cint(frappe.defaults.get_default("float_precision")) || 3;
 		}
 		return precision;
 	},

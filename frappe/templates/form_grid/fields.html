@@ -9,10 +9,10 @@
 				{% if (doc.reqd) { %}<span class="text-danger">{% } %}
 				{% if (doc.bold) { %}<b>{% } %}
 				{% if (doc.hidden) { %}
-					<span class="text-muted"><i class="icon-eye-close"></i>{% } %}
-					{% if(doc.fieldtype==="Link") { %}<i class="icon-link"></i>{% } %}
-                    {% if(doc.in_list_view) { %} <i class="icon-list"></i>{% } %}
-					{% if(doc.fieldtype==="Table") { %}<i class="icon-th"></i>{% } %}
+					<span class="text-muted"><i class="fa fa-eye-close"></i>{% } %}
+					{% if(doc.fieldtype==="Link") { %}<i class="fa fa-link"></i>{% } %}
+                    {% if(doc.in_list_view) { %} <i class="fa fa-list"></i>{% } %}
+					{% if(doc.fieldtype==="Table") { %}<i class="fa fa-th"></i>{% } %}
 					{%= doc.label %}
 				{% if (doc.hidden) { %}</span>{% } %}
 				{% if (doc.reqd) { %}</span>{% } %}

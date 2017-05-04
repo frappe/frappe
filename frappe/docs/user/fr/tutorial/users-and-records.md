@@ -1,11 +1,11 @@
 # Créer des utilisateurs et des enregistrements
 
-Maintenant que nous avons définis des modèles, nous pouvons créér des enregistrements directemnt depuis l'interface. Vous
-n'avez pas à créer des vues ! Les vues dans Frappe sont automatiquements créees à partir des propriétés de vos **DocTypes**.
+Maintenant que nous avons définis des modèles, nous pouvons créér des enregistrements directement depuis l'interface. Vous
+n'avez pas à créer des vues ! Les vues dans Frappe sont automatiquements créées à partir des propriétés de vos **DocTypes**.
 
 ### 4.1 Créer des utilisateurs
 
-Afin de créer des enregistreents, nous avons tout d'abord besoin de créer un utilisateur. Rendez-vous sur:
+Afin de créer des enregistrements, nous avons tout d'abord besoin de créer un utilisateur. Rendez-vous sur:
 
 > Setup > Users > User > New
 
@@ -14,11 +14,11 @@ Saisissez un nom, un prénom ainsi qu'un mot de passe à votre utilisateur pour 
 
 <img class="screenshot" alt="Add User Roles" src="{{docs_base_url}}/assets/img/add_user_roles.png">
 
-Maintenant deconnectez-vous puis connectez vous avec l'utilisateur que vous venez de créer.
+Maintenant déconnectez-vous puis connectez-vous avec l'utilisateur que vous venez de créer.
 
 ### 4.2 Créer des enregistrements
 
-Vous allez désormais voirs une icones pour notre module de gestion de librairie. Cliquez sur cette icone et vous apercevrez
+Vous allez désormais voir une icone pour notre module de gestion de librairie. Cliquez sur cette icone et vous apercevrez
 la page du module:
 
 <img class="screenshot" alt="Library Management Module" src="{{docs_base_url}}/assets/img/lib_management_module.png">
@@ -29,7 +29,7 @@ Définissons un nouvel Article:
 
 <img class="screenshot" alt="New Article" src="{{docs_base_url}}/assets/img/new_article_blank.png">
 
-Le **DocType** que vous avons déinis est transformé en formulaire. Les règles de valdiation seront appliquées selons nos
+Le **DocType** que vous avons définis est transformé en formulaire. Les règles de validation seront appliquées selon nos
 définitions. Remplissons le formulaire pour créer notre premier article.
 
 <img class="screenshot" alt="New Article" src="{{docs_base_url}}/assets/img/new_article.png">

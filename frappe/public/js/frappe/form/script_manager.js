@@ -101,8 +101,21 @@ frappe.ui.form.ScriptManager = Class.extend({
 			var tmp = eval(cs);
 		}
 
+		if(doctype.__custom_js) {
+			try {
+				eval(doctype.__custom_js)
+			} catch(e) {
+				frappe.msgprint({
+					title: __('Error in Custom Script'),
+					indicator: 'orange',
+					message: '<pre class="small"><code>' + e.stack  + '</code></pre>'
+				});
+			}
+		}
+
 		function setup_add_fetch(df) {
-			if((df.fieldtype==="Read Only" || df.read_only==1)
+			if((in_list(['Data', 'Read Only', 'Text', 'Small Text',
+					'Text Editor', 'Code'], df.fieldtype) || df.read_only==1)
 				&& df.options && df.options.indexOf(".")!=-1) {
 				var parts = df.options.split(".");
 				me.frm.add_fetch(parts[0], parts[1], df.fieldname);

@@ -19,7 +19,7 @@ In this file you will have to write the `get_data` method that will return a dic
 		return {
 			"To Do": {
 				"color": "#f1c40f",
-				"icon": "icon-check",
+				"icon": "fa fa-check",
 				"icon": "octicon octicon-check",
 				"label": _("To Do"),
 				"link": "List/ToDo",

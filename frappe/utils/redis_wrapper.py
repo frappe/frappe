@@ -108,11 +108,11 @@ class RedisWrapper(redis.Redis):
 			keys = (keys, )
 
 		for key in keys:
-			if key in frappe.local.cache:
-				del frappe.local.cache[key]
-
 			if make_keys:
 				key = self.make_key(key, shared=shared)
+
+			if key in frappe.local.cache:
+				del frappe.local.cache[key]
 
 			try:
 				self.delete(key)
@@ -132,11 +132,16 @@ class RedisWrapper(redis.Redis):
 		return super(redis.Redis, self).llen(self.make_key(key))
 
 	def hset(self, name, key, value, shared=False):
-		if not name in frappe.local.cache:
-			frappe.local.cache[name] = {}
-		frappe.local.cache[name][key] = value
+		_name = self.make_key(name, shared=shared)
+
+		# set in local
+		if not _name in frappe.local.cache:
+			frappe.local.cache[_name] = {}
+		frappe.local.cache[_name][key] = value
+
+		# set in redis
 		try:
-			super(redis.Redis, self).hset(self.make_key(name, shared=shared),
+			super(redis.Redis, self).hset(_name,
 				key, pickle.dumps(value))
 		except redis.exceptions.ConnectionError:
 			pass
@@ -146,20 +151,22 @@ class RedisWrapper(redis.Redis):
 			super(redis.Redis, self).hgetall(self.make_key(name)).iteritems()}
 
 	def hget(self, name, key, generator=None, shared=False):
-		if not name in frappe.local.cache:
-			frappe.local.cache[name] = {}
-		if key in frappe.local.cache[name]:
-			return frappe.local.cache[name][key]
+		_name = self.make_key(name, shared=shared)
+		if not _name in frappe.local.cache:
+			frappe.local.cache[_name] = {}
+
+		if key in frappe.local.cache[_name]:
+			return frappe.local.cache[_name][key]
 
 		value = None
 		try:
-			value = super(redis.Redis, self).hget(self.make_key(name, shared=shared), key)
+			value = super(redis.Redis, self).hget(_name, key)
 		except redis.exceptions.ConnectionError:
 			pass
 
 		if value:
 			value = pickle.loads(value)
-			frappe.local.cache[name][key] = value
+			frappe.local.cache[_name][key] = value
 		elif generator:
 			value = generator()
 			try:
@@ -169,11 +176,13 @@ class RedisWrapper(redis.Redis):
 		return value
 
 	def hdel(self, name, key, shared=False):
-		if name in frappe.local.cache:
-			if key in frappe.local.cache[name]:
-				del frappe.local.cache[name][key]
+		_name = self.make_key(name, shared=shared)
+
+		if _name in frappe.local.cache:
+			if key in frappe.local.cache[_name]:
+				del frappe.local.cache[_name][key]
 		try:
-			super(redis.Redis, self).hdel(self.make_key(name, shared=shared), key)
+			super(redis.Redis, self).hdel(_name, key)
 		except redis.exceptions.ConnectionError:
 			pass
 

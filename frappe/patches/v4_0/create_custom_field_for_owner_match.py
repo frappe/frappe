@@ -1,9 +1,9 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 import frappe
-from frappe.core.doctype.custom_field.custom_field import create_custom_field
+from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 
 def execute():
 	if "match" in frappe.db.get_table_columns("DocPerm"):
@@ -18,7 +18,7 @@ def create_custom_field_for_owner_match():
 		# a link field pointing to User already exists
 		if (frappe.db.get_value("DocField", {"parent": dt, "fieldtype": "Link", "options": "User", "default": "__user"})
 			or frappe.db.get_value("Custom Field", {"dt": dt, "fieldtype": "Link", "options": "User", "default": "__user"})):
-			print "User link field already exists for", dt
+			print("User link field already exists for", dt)
 			continue
 
 		fieldname = "{}_owner".format(frappe.scrub(dt))

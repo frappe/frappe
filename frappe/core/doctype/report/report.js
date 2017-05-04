@@ -31,7 +31,7 @@ cur_frm.cscript.refresh = function(doc) {
 				frappe.set_route("query-report", doc.name);
 				break;
 		}
-	}, "icon-table");
+	}, "fa fa-table");
 
 	if (doc.is_standard === "Yes") {
 		cur_frm.add_custom_button(doc.disabled ? __("Enable Report") : __("Disable Report"), function() {
@@ -45,8 +45,34 @@ cur_frm.cscript.refresh = function(doc) {
 			}).always(function() {
 				cur_frm.reload_doc();
 			});
-		}, doc.disabled ? "icon-ok" : "icon-off");
+		}, doc.disabled ? "fa fa-check" : "fa fa-off");
 	}
 
 	cur_frm.cscript.report_type(doc);
 }
+
+
+frappe.ui.form.on('Report', {
+	refresh: function(frm) {
+		if(!frappe.boot.developer_mode) {
+			// make the document read-only
+			frm.set_read_only();
+		}
+	},
+
+	ref_doctype: function(frm) {
+		if(frm.doc.ref_doctype) {
+			frm.trigger("set_doctype_roles")
+		}
+	},
+
+	set_doctype_roles: function(frm) {
+		return frappe.call({
+			method: "set_doctype_roles",
+			doc:frm.doc,
+			callback: function(r) {
+				refresh_field('roles')
+			}
+		})
+	}
+})

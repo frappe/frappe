@@ -4,7 +4,7 @@
 frappe.ui.form.on('Auto Email Report', {
 	refresh: function(frm) {
 		if(frm.doc.report_type !== 'Report Builder') {
-			if(frm.script_setup_for !== frm.doc.report) {
+			if(frm.script_setup_for !== frm.doc.report && !frm.doc.__islocal) {
 				frappe.call({
 					method:"frappe.desk.query_report.get_script",
 					args: {
@@ -48,6 +48,9 @@ frappe.ui.form.on('Auto Email Report', {
 			}
 		}
 	},
+	report: function(frm) {
+		frm.set_value('filters', '');
+	},
 	show_filters: function(frm) {
 		var wrapper = $(frm.get_field('filters_display').wrapper);
 		wrapper.empty();
@@ -63,6 +66,7 @@ frappe.ui.form.on('Auto Email Report', {
 
 			var filters = JSON.parse(frm.doc.filters || '{}');
 			var report_filters = frappe.query_reports[frm.doc.report].filters;
+			frm.set_value('filter_meta', JSON.stringify(report_filters));
 
 			report_filters_list = []
 			$.each(report_filters, function(key, val){

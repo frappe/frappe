@@ -11,15 +11,7 @@ from frappe.utils import cint
 from frappe import _
 
 def send(email, append_to=None, retry=1):
-	"""send the message or add it to Outbox Email"""
-	if frappe.flags.in_test:
-		frappe.flags.sent_mail = email.as_string()
-		return
-
-	if frappe.are_emails_muted():
-		frappe.msgprint(_("Emails are muted"))
-		return
-
+	"""Deprecated: Send the message or add it to Outbox Email"""
 	def _send(retry):
 		try:
 			smtpserver = SMTPServer(append_to=append_to)
@@ -67,7 +59,10 @@ def get_outgoing_email_account(raise_exception_not_set=True, append_to=None):
 
 		if email_account:
 			if email_account.enable_outgoing and not getattr(email_account, 'from_site_config', False):
-				email_account.password = email_account.get_password()
+				raise_exception = True
+				if email_account.smtp_server in ['localhost','127.0.0.1']:
+					raise_exception = False
+				email_account.password = email_account.get_password(raise_exception=raise_exception)
 			email_account.default_sender = email.utils.formataddr((email_account.name, email_account.get("email_id")))
 
 		frappe.local.outgoing_email_account[append_to or "default"] = email_account
@@ -79,7 +74,7 @@ def get_default_outgoing_email_account(raise_exception_not_set=True):
 		{
 		 "mail_server": "smtp.example.com",
 		 "mail_port": 587,
-		 "use_ssl": 1,
+		 "use_tls": 1,
 		 "mail_login": "emails@example.com",
 		 "mail_password": "Super.Secret.Password",
 		 "auto_email_id": "emails@example.com",
@@ -89,7 +84,7 @@ def get_default_outgoing_email_account(raise_exception_not_set=True):
 	'''
 	email_account = _get_email_account({"enable_outgoing": 1, "default_outgoing": 1})
 	if email_account:
-		email_account.password = email_account.get_password()
+		email_account.password = email_account.get_password(raise_exception=False)
 
 	if not email_account and frappe.conf.get("mail_server"):
 		# from site_config.json
@@ -97,7 +92,9 @@ def get_default_outgoing_email_account(raise_exception_not_set=True):
 		email_account.update({
 			"smtp_server": frappe.conf.get("mail_server"),
 			"smtp_port": frappe.conf.get("mail_port"),
-			"use_tls": cint(frappe.conf.get("use_ssl") or 0),
+
+			# legacy: use_ssl was used in site_config instead of use_tls, but meant the same thing
+			"use_tls": cint(frappe.conf.get("use_tls") or 0) or cint(frappe.conf.get("use_ssl") or 0),
 			"login_id": frappe.conf.get("mail_login"),
 			"email_id": frappe.conf.get("auto_email_id") or frappe.conf.get("mail_login") or 'notifications@example.com',
 			"password": frappe.conf.get("mail_password"),
@@ -123,7 +120,7 @@ def _get_email_account(filters):
 	return frappe.get_doc("Email Account", name) if name else None
 
 class SMTPServer:
-	def __init__(self, login=None, password=None, server=None, port=None, use_ssl=None, append_to=None):
+	def __init__(self, login=None, password=None, server=None, port=None, use_tls=None, append_to=None):
 		# get defaults from mail settings
 
 		self._sess = None
@@ -132,7 +129,7 @@ class SMTPServer:
 		if server:
 			self.server = server
 			self.port = port
-			self.use_ssl = cint(use_ssl)
+			self.use_tls = cint(use_tls)
 			self.login = login
 			self.password = password
 
@@ -146,7 +143,7 @@ class SMTPServer:
 			self.login = getattr(self.email_account, "login_id", None) or self.email_account.email_id
 			self.password = self.email_account.password
 			self.port = self.email_account.smtp_port
-			self.use_ssl = self.email_account.use_tls
+			self.use_tls = self.email_account.use_tls
 			self.sender = self.email_account.email_id
 			self.always_use_account_email_id_as_sender = cint(self.email_account.get("always_use_account_email_id_as_sender"))
 
@@ -163,7 +160,7 @@ class SMTPServer:
 			raise frappe.OutgoingEmailError, err_msg
 
 		try:
-			if self.use_ssl and not self.port:
+			if self.use_tls and not self.port:
 				self.port = 587
 
 			self._sess = smtplib.SMTP((self.server or "").encode('utf-8'),
@@ -174,7 +171,7 @@ class SMTPServer:
 				frappe.msgprint(err_msg)
 				raise frappe.OutgoingEmailError, err_msg
 
-			if self.use_ssl:
+			if self.use_tls:
 				self._sess.ehlo()
 				self._sess.starttls()
 				self._sess.ehlo()

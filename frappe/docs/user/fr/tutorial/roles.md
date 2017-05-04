@@ -12,4 +12,4 @@ Pour créer un nouveau rôle, se rendre sur:
 
 <img class="screenshot" alt="Adding Roles" src="{{docs_base_url}}/assets/img/roles_creation.png">
 
-{suite}
+{next}

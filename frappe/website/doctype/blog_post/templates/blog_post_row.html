@@ -1,0 +1,23 @@
+{%- set post = doc -%}
+<div class="web-list-item blog-list-item">
+	<div class="row">
+		<div class="col-xs-12">
+			<h1 class="blog-header"><a href="/{{ post.route }}">{{ post.title }}</a></h1>
+			{% if post.cover_image %}
+			<p style="height: 200px; overflow: hidden;">
+				<img src="{{ post.cover_image }}" alt="{{post.title}} - Cover Image" style="width: 60%;"/>
+			</p>
+			{% endif %}
+			<p class="post-description">{{ post.intro }}</p>
+			<p class="post-by text-muted small">
+				<a href="/blog?blogger={{ post.blogger }}"
+					class="no-decoration">By {{ post.full_name }}</a>
+				<i class="blog-dot"></i> {{ frappe.format_date(post.published_on) }}
+				<i class="blog-dot"></i>
+				<a href="/blog?blog_category={{ post.blog_category }}"
+					class="no-decoration">{{ post.category.title }}</a>
+				<i class="blog-dot"></i> {{ post.comment_text }}
+			</p>
+		</div>
+	</div>
+</div>

@@ -49,8 +49,7 @@ p {
 
 // transition
 a,
-.badge,
-.ui-menu .ui-menu-item {
+.badge {
 	.transition(.2s);
 }
 
@@ -95,7 +94,7 @@ kbd {
 	background-color: @btn-bg;
 }
 
-.btn [class^="icon-"], .nav [class^="icon-"], .btn [class*=" icon-"], .nav [class*=" icon-"] {
+.btn [class^="fa fa-"], .nav [class^="fa fa-"], .btn [class*="fa fa-"], .nav [class*="fa fa-"] {
 	display: inline-block;
 }
 
@@ -108,6 +107,8 @@ kbd {
 	min-width: 200px;
 	padding: 0px;
 	font-size: @text-medium;
+	max-height: 400px;
+	overflow: auto;
 
 	// only rounded bottoms
 	border-radius: 0px 0px 4px 4px;
@@ -134,8 +135,9 @@ a.badge-hover& {
 }
 
 .msgprint {
-	margin: 15px 0px;
+	// margin: 15px 0px;
 	// text-align: center;
+	word-wrap: break-word;
 
 	pre {
 		text-align: left;

@@ -6,6 +6,10 @@
 	border-radius: 3px;
 }
 
+.form-grid.error {
+	border-color: @indicator-red;
+}
+
 .grid-heading-row {
 	border-bottom: 1px solid @border-color;
 	background-color: @panel-bg;
@@ -46,6 +50,11 @@
 	}
 }
 
+// hide row index in 6 column child tables
+.form-column.col-sm-6 .form-grid .row-index > span {
+	display: none;
+}
+
 .form-grid .template-row {
 	padding: 8px 15px;
 }
@@ -64,7 +73,15 @@
 	padding: 10px 15px;
 	max-height: 200px;
 	border-right: 1px solid @border-color;
-	margin-bottom: -1px;
+}
+
+.editable-form .grid-static-col.bold {
+	font-weight: bold;
+	background-color: @extra-light-yellow;
+}
+
+.validated-form .grid-static-col.error {
+	background-color: @label-danger-bg;
 }
 
 .grid-static-col {
@@ -102,6 +119,7 @@
 		.checkbox {
 			margin: 0px;
 			text-align: center;
+			margin-top: 9px;
 		}
 
 		textarea {

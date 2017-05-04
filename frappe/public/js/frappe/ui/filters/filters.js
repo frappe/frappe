@@ -5,7 +5,7 @@ frappe.ui.FilterList = Class.extend({
 	init: function(opts) {
 		$.extend(this, opts);
 		this.filters = [];
-		this.wrapper = this.$parent;
+		this.wrapper = this.parent;
 		this.stats = [];
 		this.make();
 		this.set_events();
@@ -13,6 +13,20 @@ frappe.ui.FilterList = Class.extend({
 	make: function() {
 		var me = this;
 
+		this.wrapper.find('.show_filters').remove();
+		this.wrapper.append(`
+			<div class="show_filters">
+				<div class="set-filters">
+					<button
+						class="btn btn-default btn-xs show-filters text-muted"
+						style="margin-right: 10px;">
+							${__("Show Filters")}
+					</button>
+					<button style="margin-left: -5px;"
+						class="btn btn-default btn-xs new-filter text-muted">
+						<i class="octicon octicon-plus"></i></button>
+				</div>
+			</div>`);
 		$(frappe.render_template("filter_dashboard", {})).appendTo(this.wrapper.find('.show_filters'));
 
 		//show filter dashboard
@@ -85,7 +99,7 @@ frappe.ui.FilterList = Class.extend({
 			args: {
 				stats: me.stats,
 				doctype: me.doctype,
-				filters:me.default_filters
+				filters: me.default_filters
 			},
 			callback: function(r) {
 				// This gives a predictable stats order
@@ -103,7 +117,7 @@ frappe.ui.FilterList = Class.extend({
 			return
 		}
 
-		var active = this.wrapper.find(".filter-sort-active[data-name='"+__(field.label)+"']");
+		var active = this.wrapper.find(".filter-sort-active[data-name='"+__(field.name)+"']");
 
 		// sort filters
 		if(active.attr('data-sort-by')==='alphabet') {
@@ -154,17 +168,18 @@ frappe.ui.FilterList = Class.extend({
 			label: __(field.label),
 			labels:labels
 		};
-		var dashboard_filter = this.wrapper.find(".filter-stat[data-name='" + __(field.label) + "']")
-		dashboard_filter.html(frappe.render_template("filter_dashboard_value", context)).on("click", ".filter-stat-link", function() {
+		var dashboard_filter = this.wrapper.find(".filter-stat[data-name='" + __(field.name) + "']")
+		dashboard_filter.html(frappe.render_template("filter_dashboard_value", context))
+			.on("click", ".filter-stat-link", function() {
 				var fieldname = $(this).attr('data-field');
 				var label = $(this).attr('data-label');
 				if ((df && df.fieldtype=='Check' )|| field.name=="docstatus") {
 					var noduplicate = true
 				}
 				if (label=="No Data"){
-					me.listobj.set_filter(fieldname, '', false, noduplicate);
+					me.base_list.set_filter(fieldname, '', false, noduplicate);
 				}else{
-					me.listobj.set_filter(fieldname, label, false, noduplicate);
+					me.base_list.set_filter(fieldname, label, false, noduplicate);
 				}
 				return false;
 			})
@@ -177,46 +192,53 @@ frappe.ui.FilterList = Class.extend({
 
 			var search_input = dashboard_filter.parent().find(".search-dashboard");
 
-			dashboard_filter.parent().find(".search-dropdown").removeClass("hide").on("shown.bs.dropdown", function (event) {
-				search_input.focus();
-				search_input.val("")
+			dashboard_filter.parent().find(".search-dropdown")
+				.removeClass("hide")
+				.on("shown.bs.dropdown", function (event) {
+					search_input.focus();
+					search_input.val("")
+				});
+
+			new Awesomplete(search_input.get(0), {
+				minChars: 0,
+				maxItems: 99,
+				autoFirst: true,
+				list: autolist,
+				item: function(item, input) {
+					return $("<li>").text(item.label).get(0);
+				},
+				replace: function(text) {
+					this.input.value = '';
+				}
 			});
 
-			search_input.autocomplete({
-				source: autolist,
-				select: function (ev, ui) {
-					if (ui.item) {
-						if (df && df.fieldtype == 'Check') {
-							var noduplicate = true
-						}
-						if (ui.item.label == "No Data") {
-							me.listobj.set_filter(ui.item.value, '', false, noduplicate);
-						} else {
-							me.listobj.set_filter(ui.item.value, ui.item.label, false, noduplicate);
-						}
-						search_input.val('');
-						return false;
+			search_input.on("awesomplete-select", function(e) {
+				var item = e.originalEvent.text;
+				if (item) {
+					if (df && df.fieldtype == 'Check') {
+						var noduplicate = true
 					}
-				},
-				focus: function (event, ui) {
-					search_input.val(ui.item.label);
-					return false;
+					if (item.label == "No Data") {
+						me.base_list.set_filter(item.value, '', false, noduplicate);
+					} else {
+						me.base_list.set_filter(item.value, item.label, false, noduplicate);
+					}
 				}
-			})
+			});
 		}
 	},
 	set_events: function() {
 		var me = this;
 		// show filters
 		this.wrapper.find('.new-filter').bind('click', function() {
-			me.add_filter(me.doctype, 'name');
+			me.add_filter();
 		});
 
-
-		this.wrapper.find('.clear-filter').bind('click', function() {
+		this.wrapper.find('.clear-filters').bind('click', function() {
 			me.clear_filters();
 			$('.date-range-picker').val('')
-			me.listobj.run();
+			me.base_list.run();
+			$(this).addClass("hide");
 		});
 
 		//set sort filters
@@ -228,58 +250,46 @@ frappe.ui.FilterList = Class.extend({
 		});
 
 		//setup date-time range pickers
-		$(".date-range-picker").each(function(i,v) {
-			var picker = this;
-			var lab = $(v).data("name");
-			$(v).daterangepicker({
-				"autoApply": true,
-				"showDropdowns": true,
-				"ranges": {
-					'Today': [moment(), moment()],
-					'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
-					'Last Week': [moment().subtract(1, 'week').startOf('week'), moment().subtract(1, 'week').endOf('week')],
-					'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-					'Last 30 Days': [moment().subtract(29, 'days'), moment()],
-					'This Month': [moment().startOf('month'), moment().endOf('month')],
-					'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')],
-					'Last 3 Months': [moment().subtract(3, 'month').startOf('month'), moment().endOf('month')],
-					'Financial Year': [moment(frappe.defaults.get_default("year_start_date"), "YYYY-MM-DD"), moment(frappe.defaults.get_default("year_end_date"), "YYYY-MM-DD")],
-					'Last Financial Year': [moment(frappe.defaults.get_default("year_start_date"), "YYYY-MM-DD").subtract(1, 'year'), moment(frappe.defaults.get_default("year_end_date"), "YYYY-MM-DD").subtract(1, 'year')]
-				},
-				"locale": {
-					"format": "DD-MM-YYYY",
-					"firstDay": 1,
-					"cancelLabel": "Clear"
-				},
-				"linkedCalendars": false,
-				"alwaysShowCalendars": true,
-				"cancelClass": "date-range-picker-cancel "+lab,
-				"autoUpdateInput": false
-			}).on('apply.daterangepicker',function(ev,picker){
-				$(this).val(picker.startDate.format('DD-MM-YYYY') + ' - ' + picker.endDate.format('DD-MM-YYYY'));
-				var filt = me.get_filter(lab);
-				if (filt) {
-					filt.remove(true)
+		this.wrapper.find(".filter-input-date").each(function(i,v) {
+			var self = this;
+			var date;
+			var date_wrapper = $('<div>').appendTo($(this));
+			make_date("range");
+
+			function make_date(mode) {
+				var fieldtype = mode==="range" ? "DateRange" : "Date";
+				var name = $(v).data("name");
+				if(date) {
+					//cleanup old datepicker
+					date.datepicker.destroy();
 				}
-				var filt = me.get_filter(lab);
-				if (filt) {
-					filt.remove(true)
-				}
-				me.add_filter(me.doctype, lab, '<=', picker.endDate);
-				me.add_filter(me.doctype, lab, '>=', picker.startDate);
-				me.listobj.run();
-			}).on('cancel.daterangepicker', function(ev, picker) {
-      			$(this).val('');
-				var filt = me.get_filter(lab);
-				if (filt) {
-					filt.remove(true)
-				}
-				var filt = me.get_filter(lab);
-				if (filt) {
-					filt.remove()
-				}
-			});
-			$(".date-range-picker-cancel." + lab ).removeClass("hide")
+				date = frappe.ui.form.make_control({
+					df: {
+						fieldtype: fieldtype,
+						fieldname: name,
+					},
+					parent: date_wrapper,
+					only_input: true
+				});
+				date.refresh();
+
+				date.datepicker.update("onSelect", function(fd, dateObj) {
+					var filt = me.get_filter(name);
+					filt && filt.remove(true);
+					if(!dateObj.length && dateObj && date.datepicker.opts.range===false) {
+						me.add_filter(me.doctype, name, '=', moment(dateObj).format('YYYY-MM-DD'));
+						me.base_list.run();
+					} else if(dateObj.length===2 && date.datepicker.opts.range===true) {
+						var [date1, date2] = [moment(dateObj[0]).format('YYYY-MM-DD'), moment(dateObj[1]).format('YYYY-MM-DD')];
+						if(date1==date2) {
+							me.add_filter(me.doctype, name, '=', date1);
+						} else {
+							me.add_filter(me.doctype, name, 'Between', [date1, date2]);
+						}
+						me.base_list.run();
+					}
+				});
+			}
 		})
 	},
 
@@ -319,6 +329,10 @@ frappe.ui.FilterList = Class.extend({
 
 		var filter = this.push_new_filter(doctype, fieldname, condition, value);
 
+		if(this.wrapper.find('.clear-filters').hasClass("hide")) {
+			this.wrapper.find('.clear-filters').removeClass("hide");
+		}
+
 		if (filter && is_new_filter) {
 			filter.wrapper.addClass("is-new-filter");
 		}
@@ -338,7 +352,7 @@ frappe.ui.FilterList = Class.extend({
 			_doctype: doctype,
 			fieldname: fieldname,
 			condition: condition,
-			value: value,
+			value: value
         });
 
 		this.filters.push(filter);
@@ -347,15 +361,18 @@ frappe.ui.FilterList = Class.extend({
 	},
 
 	filter_exists: function(doctype, fieldname, condition, value) {
+		var flag = false;
 		for(var i in this.filters) {
 			if(this.filters[i].field) {
 				var f = this.filters[i].get_value();
-				if(f[0]==doctype && f[1]==fieldname && f[2]==condition
-					&& f[3]==value) return true;
-
+				if(f[0]==doctype && f[1]==fieldname && f[2]==condition && f[3]==value) {
+					flag = true;
+				} else if($.isArray(value) && frappe.utils.arrays_equal(value, f[3])) {
+					flag = true;
+				}
 			}
 		}
-		return false;
+		return flag;
 	},
 
 	get_filters: function() {
@@ -377,6 +394,9 @@ frappe.ui.FilterList = Class.extend({
 			if(f.field) fl.push(f);
 		})
 		this.filters = fl;
+		if(this.filters.length === 0) {
+			this.wrapper.find('.clear-filters').addClass("hide");
+		}
 	},
 
 	get_filter: function(fieldname) {
@@ -423,7 +443,7 @@ frappe.ui.Filter = Class.extend({
 
 		this.wrapper.find(".set-filter-and-run").on("click", function() {
 			me.wrapper.removeClass("is-new-filter");
-			me.flist.listobj.run();
+			me.flist.base_list.run();
 		});
 
 		// add help for "in" codition
@@ -461,9 +481,8 @@ frappe.ui.Filter = Class.extend({
 		this.flist.update_filters();
 
 		if(!dont_run) {
-			this.flist.listobj.dirty = true;
-			this.flist.listobj.clean_dash = true;
-			this.flist.listobj.refresh();
+			this.flist.base_list.clean_dash = true;
+			this.flist.base_list.refresh(true);
 		}
 	},
 
@@ -503,6 +522,7 @@ frappe.ui.Filter = Class.extend({
 		df.read_only = 0;
 		df.hidden = 0;
 
+		if(!condition) this.set_default_condition(df, fieldtype);
 		this.set_fieldtype(df, fieldtype);
 
 		// called when condition is changed,
@@ -534,12 +554,10 @@ frappe.ui.Filter = Class.extend({
 		if(old_text && me.field.df.fieldtype===cur.fieldtype)
 			me.field.set_input(old_text);
 
-		if(!condition) this.set_default_condition(df, fieldtype);
-
 		// run on enter
 		$(me.field.wrapper).find(':input').keydown(function(ev) {
 			if(ev.which==13) {
-				me.flist.listobj.run();
+				me.flist.base_list.run();
 			}
 		})
 	},
@@ -565,10 +583,7 @@ frappe.ui.Filter = Class.extend({
 			df.options=[
 				{value:0, label:__("Draft")},
 				{value:1, label:__("Submitted")},
-				{value:2, label:__("Cancelled")},
-				{value:3, label:__("Queued for saving")},
-				{value:4, label:__("Queued for submission")},
-				{value:5, label:__("Queued for cancellation")},
+				{value:2, label:__("Cancelled")}
 			]
 		} else if(df.fieldtype=='Check') {
 			df.fieldtype='Select';
@@ -582,14 +597,19 @@ frappe.ui.Filter = Class.extend({
 		if(df.fieldtype==="Data" && (df.options || "").toLowerCase()==="email") {
 			df.options = null;
 		}
+		if(this.wrapper.find('.condition').val()== "Between" && (df.fieldtype == 'Date' || df.fieldtype == 'Datetime')){
+			df.fieldtype = 'DateRange';
+		}
 	},
 
 	set_default_condition: function(df, fieldtype) {
 		if(!fieldtype) {
 			// set as "like" for data fields
-			if(df.fieldtype=='Data') {
+			if (df.fieldtype == 'Data') {
 				this.wrapper.find('.condition').val('like');
-			} else {
+			} else if (df.fieldtype == 'Date' || df.fieldtype == 'Datetime'){
+				this.wrapper.find('.condition').val('Between');
+			}else{
 				this.wrapper.find('.condition').val('=');
 			}
 		}
@@ -652,7 +672,7 @@ frappe.ui.Filter = Class.extend({
 			</button>\
 			<button class="btn btn-default btn-xs remove-filter"\
 				title="'+__("Remove Filter")+'">\
-				<i class="icon-remove text-muted"></i>\
+				<i class="fa fa-remove text-muted"></i>\
 			</button></div>')
 			.insertAfter(this.flist.wrapper.find(".set-filters .show-filters"));
 
@@ -705,28 +725,33 @@ frappe.ui.FieldSelect = Class.extend({
 		this.options = [];
 		this.$select = $('<input class="form-control">')
 			.appendTo(this.parent)
-			.on("click", function () { $(this).select(); })
-			.autocomplete({
-				source: me.options,
-				minLength: 0,
-				autoFocus: true,
-				focus: function(event, ui) {
-					event.preventDefault();
-				},
-				select: function(event, ui) {
-					me.selected_doctype = ui.item.doctype;
-					me.selected_fieldname = ui.item.fieldname;
-					me.$select.val(ui.item.label);
-					if(me.select) me.select(ui.item.doctype, ui.item.fieldname);
-					return false;
-				}
-			});
-
-		this.$select.data('ui-autocomplete')._renderItem = function(ul, item) {
-			return $(repl('<li class="filter-field-select"><p>%(label)s</p></li>', item))
+			.on("click", function () { $(this).select(); });
+		this.select_input = this.$select.get(0);
+		this.awesomplete = new Awesomplete(this.select_input, {
+			minChars: 0,
+			maxItems: 99,
+			autoFirst: true,
+			list: me.options,
+			item: function(item, input) {
+				return $(repl('<li class="filter-field-select"><p>%(label)s</p></li>', item))
 				.data("item.autocomplete", item)
-				.appendTo(ul);
-		}
+				.get(0);
+			}
+		});
+		this.$select.on("awesomplete-select", function(e) {
+			var o = e.originalEvent;
+			var value = o.text.value;
+			var item = me.awesomplete.get_item(value);
+			me.selected_doctype = item.doctype;
+			me.selected_fieldname = item.fieldname;
+			if(me.select) me.select(item.doctype, item.fieldname);
+		});
+		this.$select.on("awesomplete-selectcomplete", function(e) {
+			var o = e.originalEvent;
+			var value = o.text.value;
+			var item = me.awesomplete.get_item(value);
+			me.$select.val(item.label);
+		});
 
 		if(this.filter_fields) {
 			for(var i in this.filter_fields)
@@ -804,7 +829,8 @@ frappe.ui.FieldSelect = Class.extend({
 		// main table
 		var main_table_fields = std_filters.concat(frappe.meta.docfield_list[me.doctype]);
 		$.each(frappe.utils.sort(main_table_fields, "label", "string"), function(i, df) {
-			if(frappe.perm.has_perm(me.doctype, df.permlevel, "read"))
+			// show fields where user has read access and if report hide flag is not set
+			if(frappe.perm.has_perm(me.doctype, df.permlevel, "read") && !df.report_hide)
 				me.add_field_option(df);
 		});
 
@@ -813,7 +839,8 @@ frappe.ui.FieldSelect = Class.extend({
 			if(table_df.options) {
 				var child_table_fields = [].concat(frappe.meta.docfield_list[table_df.options]);
 				$.each(frappe.utils.sort(child_table_fields, "label", "string"), function(i, df) {
-					if(frappe.perm.has_perm(me.doctype, df.permlevel, "read"))
+					// show fields where user has read access and if report hide flag is not set
+					if(frappe.perm.has_perm(me.doctype, df.permlevel, "read") && !df.report_hide)
 						me.add_field_option(df);
 				});
 			}

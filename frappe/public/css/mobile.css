@@ -182,9 +182,6 @@ body {
   body[data-sidebar="0"] .navbar-home {
     margin-left: 15px !important;
   }
-  .linked-with-dialog {
-    width: 100% !important;
-  }
 }
 @media (max-width: 991px) and (max-width: 480px) {
   #navbar-breadcrumbs li a {
@@ -321,15 +318,6 @@ body {
   #page-chat .message-row-right {
     margin-top: 10px;
     text-align: left;
-  }
-  #page-setup-wizard .form-section:first-child .form-column:first-child .frappe-control:first-child {
-    border-top: 1px solid #d1d8dd;
-  }
-  #page-setup-wizard .form-section:last-child .form-column:last-child .frappe-control:last-child {
-    border-bottom: 1px solid #d1d8dd;
-  }
-  #page-setup-wizard .setup-wizard-slide .form {
-    border: none;
   }
   body[data-route^="Form"] .page-head .sub-heading {
     right: 90px;

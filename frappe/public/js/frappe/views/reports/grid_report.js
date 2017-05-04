@@ -203,12 +203,13 @@ frappe.views.GridReport = Class.extend({
 	},
 	set_autocomplete: function($filter, list) {
 		var me = this;
-		$filter.autocomplete({
-			source: list,
-			select: function(event, ui) {
-				$filter.val(ui.item.value);
-				me.refresh();
-			}
+		new Awesomplete($filter.get(0), {
+			list: list
+		});
+		$filter.on("awesomplete-select", function(e) {
+			var value = e.originalEvent.text.value;
+			$filter.val(value);
+			me.refresh();
 		});
 	},
 	init_filter_values: function() {
@@ -251,8 +252,8 @@ frappe.views.GridReport = Class.extend({
 				input = me.page.add_select(v.label, v.options || [v.default_value]);
 			} else if(v.fieldtype=="Link") {
 				input = me.page.add_data(v.label);
-				input.autocomplete({
-					source: v.list || [],
+				new Awesomplete(input.get(0), {
+					list: v.list || []
 				});
 			} else if(v.fieldtype==='Button' && v.label===__("Refresh")) {
 				input = me.page.set_primary_action(v.label, null, v.icon);
@@ -368,13 +369,13 @@ frappe.views.GridReport = Class.extend({
 		var me = this;
 
 		// chart wrapper
-		this.chart_area = $('<div class="chart"></div>').appendTo(this.wrapper);
+		this.chart_area = $('<div class="chart" style="padding-bottom: 1px"></div>').appendTo(this.wrapper);
 
 		this.page.add_menu_item(__("Export"), function() { return me.export(); }, true);
 
 		// grid wrapper
 		this.grid_wrapper = $("<div style='height: 500px; border: 1px solid #aaa; \
-			background-color: #eee; margin-top: 15px;'>")
+			background-color: #eee; '>")
 			.appendTo(this.wrapper);
 		this.id = frappe.dom.set_unique_id(this.grid_wrapper.get(0));
 
@@ -572,7 +573,7 @@ frappe.views.GridReport = Class.extend({
 	},
 	get_link_open_icon: function(doctype, name) {
 		return repl(' <a href="#Form/%(doctype)s/%(name)s">\
-			<i class="icon icon-share" style="cursor: pointer;"></i></a>', {
+			<i class="fa fa-share" style="cursor: pointer;"></i></a>', {
 			doctype: doctype,
 			name: encodeURIComponent(name)
 		});
@@ -670,7 +671,8 @@ frappe.views.GridReportWithPlot = frappe.views.GridReport.extend({
 
 		this.chart = new frappe.ui.Chart({
 			wrapper: this.chart_area,
-			data: chart_data
+			data: chart_data,
+			x_type: 'timeseries'
 		});
 	},
 

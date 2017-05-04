@@ -6,6 +6,9 @@ from __future__ import unicode_literals
 import frappe, json
 from frappe import _dict
 import frappe.share
+from frappe.utils import cint
+from frappe.boot import get_allowed_reports
+from frappe.permissions import get_roles, get_valid_perms
 
 class UserPermissions:
 	"""
@@ -68,10 +71,7 @@ class UserPermissions:
 	def build_perm_map(self):
 		"""build map of permissions at level 0"""
 		self.perm_map = {}
-		roles = self.get_roles()
-		for r in frappe.db.sql("""select * from tabDocPerm where docstatus=0
-			and ifnull(permlevel,0)=0
-			and role in ({roles})""".format(roles=", ".join(["%s"]*len(roles))), tuple(roles), as_dict=1):
+		for r in get_valid_perms():
 			dt = r['parent']
 
 			if not dt in  self.perm_map:
@@ -90,6 +90,7 @@ class UserPermissions:
 		self.build_doctype_map()
 		self.build_perm_map()
 		user_shared = frappe.share.get_shared_doctypes()
+		no_list_view_link = []
 
 		for dt in self.doctype_map:
 			dtp = self.doctype_map[dt]
@@ -108,7 +109,9 @@ class UserPermissions:
 					self.can_write.append(dt)
 				elif p.get('read'):
 					if dtp.get('read_only'):
+						# read_only = "User Cannot Search"
 						self.all_read.append(dt)
+						no_list_view_link.append(dt)
 					else:
 						self.can_read.append(dt)
 
@@ -141,9 +144,13 @@ class UserPermissions:
 
 		self.all_read += self.can_read
 
-		if "System Manager" in self.roles:
-			self.can_import = frappe.db.sql_list("""select name from `tabDocType`
-				where allow_import = 1""")
+		for dt in no_list_view_link:
+			if dt in self.can_read:
+				self.can_read.remove(dt)
+
+		if "System Manager" in self.get_roles():
+			self.can_import = filter(lambda d: d in self.can_create,
+				frappe.db.sql_list("""select name from `tabDocType` where allow_import = 1"""))
 
 	def get_defaults(self):
 		import frappe.defaults
@@ -181,7 +188,7 @@ class UserPermissions:
 		return self.can_read
 
 	def load_user(self):
-		d = frappe.db.sql("""select email, first_name, last_name,
+		d = frappe.db.sql("""select email, first_name, last_name, creation,
 			email_signature, user_type, language, background_image, background_style, mute_sounds
 			from tabUser where name = %s""", (self.name,), as_dict=1)[0]
 
@@ -198,17 +205,13 @@ class UserPermissions:
 			"can_get_report", "allow_modules", "all_read", "can_search",
 			"in_create", "can_export", "can_import", "can_print", "can_email",
 			"can_set_user_permissions"):
-
 			d[key] = list(set(getattr(self, key)))
 
 		d.all_reports = self.get_all_reports()
 		return d
 
 	def get_all_reports(self):
-		reports =  frappe.db.sql("""select name, report_type, ref_doctype, disabled from tabReport
-		    where ref_doctype in ('{0}')""".format("', '".join(self.can_get_report)), as_dict=1)
-
-		return frappe._dict((d.name, d) for d in reports)
+		return get_allowed_reports()
 
 def get_user_fullname(user):
 	fullname = frappe.db.sql("SELECT CONCAT_WS(' ', first_name, last_name) FROM `tabUser` WHERE name=%s", (user,))
@@ -232,8 +235,9 @@ def get_system_managers(only_name=False):
 		as fullname from tabUser p
 		where docstatus < 2 and enabled = 1
 		and name not in ({})
-		and exists (select * from tabUserRole ur
-			where ur.parent = p.name and ur.role="System Manager")""".format(", ".join(["%s"]*len(STANDARD_USERS))),
+		and exists (select * from `tabHas Role` ur
+			where ur.parent = p.name and ur.role="System Manager")
+		order by creation desc""".format(", ".join(["%s"]*len(STANDARD_USERS))),
 			STANDARD_USERS, as_dict=True)
 
 	if only_name:
@@ -256,32 +260,13 @@ def add_system_manager(email, first_name=None, last_name=None, send_welcome_emai
 		"user_type": "System User",
 		"send_welcome_email": 1 if send_welcome_email else 0
 	})
+
 	user.insert()
 
 	# add roles
 	roles = frappe.db.sql_list("""select name from `tabRole`
 		where name not in ("Administrator", "Guest", "All")""")
 	user.add_roles(*roles)
-
-def get_roles(user=None, with_standard=True):
-	"""get roles of current user"""
-	if not user:
-		user = frappe.session.user
-
-	if user=='Guest':
-		return ['Guest']
-
-	def get():
-		return [r[0] for r in frappe.db.sql("""select role from tabUserRole
-			where parent=%s and role not in ('All', 'Guest')""", (user,))] + ['All', 'Guest']
-
-	roles = frappe.cache().hget("roles", user, get)
-
-	# filter standard if required
-	if not with_standard:
-		roles = filter(lambda x: x not in ['All', 'Guest', 'Administrator'], roles)
-
-	return roles
 
 def get_enabled_system_users():
 	return frappe.db.sql("""select * from tabUser where
@@ -309,3 +294,45 @@ def get_users():
 def set_last_active_to_now(user):
 	from frappe.utils import now_datetime
 	frappe.db.set_value("User", user, "last_active", now_datetime())
+
+def disable_users(limits=None):
+	if not limits:
+		return
+
+	if limits.get('users'):
+		system_manager = get_system_managers(only_name=True)[-1]
+
+		#exclude system manager from active user list
+		active_users =  frappe.db.sql_list("""select name from tabUser
+			where name not in ('Administrator', 'Guest', %s) and user_type = 'System User' and enabled=1
+			order by creation desc""", system_manager)
+
+		user_limit = cint(limits.get('users')) - 1
+
+		if len(active_users) > user_limit:
+
+			# if allowed user limit 1 then deactivate all additional users
+			# else extract additional user from active user list and deactivate them
+			if cint(limits.get('users')) != 1:
+				active_users = active_users[:-1 * user_limit]
+
+			for user in active_users:
+				frappe.db.set_value("User", user, 'enabled', 0)
+
+		from frappe.core.doctype.user.user import get_total_users
+
+		if get_total_users() > cint(limits.get('users')):
+			reset_simultaneous_sessions(cint(limits.get('users')))
+
+	frappe.db.commit()
+
+def reset_simultaneous_sessions(user_limit):
+	for user in frappe.db.sql("""select name, simultaneous_sessions from tabUser
+		where name not in ('Administrator', 'Guest') and user_type = 'System User' and enabled=1
+		order by creation desc""", as_dict=1):
+		if user.simultaneous_sessions < user_limit:
+			user_limit = user_limit - user.simultaneous_sessions
+		else:
+			frappe.db.set_value("User", user.name, "simultaneous_sessions", 1)
+			user_limit = user_limit - 1
+

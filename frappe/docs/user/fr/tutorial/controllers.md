@@ -1,6 +1,6 @@
 # Les controleurs
 
-La prochaine étape est d'ajouter quelques méthodes et évéements à nos modèles. Dans l'application, nous devons nous 
+La prochaine étape est d'ajouter quelques méthodes et événements à nos modèles. Dans l'application, nous devons nous 
 assurer que si une opération est faite, l'article concerné doit être disponible en stock et que le membre qui souhaite
 faire le prêt à un abonnement valide.
 
@@ -15,7 +15,7 @@ Ce fichier est le controleur qui gère les opérations de la librairie, vous pou
 1. `on_cancel`
 1. `on_trash` (avant qu'il ne soit sur le point d'être supprimé)
 
-Vous pouvez écrire des méthodes pour ces événement et elles seront appelées par le framework au bon moment.
+Vous pouvez écrire des méthodes pour ces événements et elles seront appelées par le framework au bon moment.
 
 Voici pour finir le controleur:
 
@@ -42,13 +42,13 @@ Voici pour finir le controleur:
 				if not last_transaction or last_transaction[0].transaction_type!="Issue":
 					frappe.throw(_("Cannot return article not issued"))
 
-Dans ce scrit:
+Dans ce script:
 
 1. Nous récuperons la dernière opération, avant la date de l'opération en cours en utilisant la méthode `frappe.get_list`
 1. Si la dernière opération est quelque chose qui n'est pas attendu, alors nous levons une exception en utilisant `frappe.throw`
 1. Nous utilisons la méthode  `_("text")` pour identifier une chaine traduisible.
 
-Verifiez vos validations en créant de nouveux enregistrements.
+Vérifiez vos validations en créant de nouveaux enregistrements.
 
 <img class="screenshot" alt="Transaction" src="{{docs_base_url}}/assets/img/lib_trans.png">
 
@@ -56,6 +56,6 @@ Verifiez vos validations en créant de nouveux enregistrements.
 
 Pour debugger, gardez toujours votre console JS ouverte, vérifier les erreurs à la fois de Javascript mais aussi du serveur.
 
-Regardez aussi votre fenêtre de terminal pour les esceptions. Chaque **erreur 500 pour des problèmes internes** seront affichées dans le terminal du serveur en cours d'utilisation.
+Regardez aussi votre fenêtre de terminal pour les exceptions. Chaque **erreur 500 pour des problèmes internes** seront affichées dans le terminal du serveur en cours d'utilisation.
 
-{suite}
+{next}

@@ -14,6 +14,9 @@ class ValidationError(Exception):
 class AuthenticationError(Exception):
 	http_status_code = 401
 
+class SessionExpired(Exception):
+	http_status_code = 401
+
 class PermissionError(Exception):
 	http_status_code = 403
 
@@ -62,3 +65,4 @@ class AppNotInstalledError(ValidationError): pass
 class IncorrectSitePath(NotFound): pass
 class ImplicitCommitError(ValidationError): pass
 class RetryBackgroundJobError(Exception): pass
+class DocumentLockedError(ValidationError): pass

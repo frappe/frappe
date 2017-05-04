@@ -24,7 +24,7 @@
     function handleKeyDown(e, args) {
       var ranges;
       if (!_grid.getEditorLock().isActive()) {
-        if (e.which == $.ui.keyCode.ESCAPE) {
+        if (e.which == frappe.ui.keyCode.ESCAPE) {
           if (_copiedRanges) {
             e.preventDefault();
             clearCopySelection();

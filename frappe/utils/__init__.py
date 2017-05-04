@@ -3,12 +3,11 @@
 
 # util __init__.py
 
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 from werkzeug.test import Client
-import os, re, urllib, sys, json, md5, requests, traceback
-import bleach, bleach_whitelist
-from html5lib.sanitizer import HTMLSanitizer
+import os, re, urllib, sys, json, hashlib, requests, traceback
 from markdown2 import markdown as _markdown
+from .html_utils import sanitize_html
 
 import frappe
 from frappe.utils.identicon import Identicon
@@ -54,7 +53,7 @@ def get_fullname(user=None):
 	return frappe.local.fullnames.get(user)
 
 def get_formatted_email(user):
-	"""get email id of user formatted as: `John Doe <johndoe@example.com>`"""
+	"""get Email Address of user formatted as: `John Doe <johndoe@example.com>`"""
 	if user == "Administrator":
 		return user
 	from email.utils import formataddr
@@ -62,7 +61,7 @@ def get_formatted_email(user):
 	return formataddr((fullname, user))
 
 def extract_email_id(email):
-	"""fetch only the email part of the email id"""
+	"""fetch only the email part of the Email Address"""
 	from email.utils import parseaddr
 	fullname, email_id = parseaddr(email)
 	if isinstance(email_id, basestring) and not isinstance(email_id, unicode):
@@ -71,41 +70,56 @@ def extract_email_id(email):
 
 def validate_email_add(email_str, throw=False):
 	"""Validates the email string"""
-	email_str = (email_str or "").strip()
+	email = email_str = (email_str or "").strip()
 
-	if not email_str:
-		return False
+	valid = True
 
-	elif " " in email_str and "<" not in email_str:
-		# example: "test@example.com test2@example.com" will return "test@example.comtest2" after parseaddr!!!
-		return False
+	def _check(e):
+		_valid = True
+		if not e:
+			_valid = False
 
-	email = extract_email_id(email_str.strip())
-	match = re.match("[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?", email.lower())
-
-	if not match:
-		if throw:
-			frappe.throw(frappe._("{0} is not a valid email id").format(email),
-				frappe.InvalidEmailAddressError)
-		else:
+		if 'undisclosed-recipient' in e:
 			return False
 
-	matched = match.group(0)
+		elif " " in e and "<" not in e:
+			# example: "test@example.com test2@example.com" will return "test@example.comtest2" after parseaddr!!!
+			_valid = False
 
-	if match:
-		match = matched==email.lower()
+		else:
+			e = extract_email_id(e)
+			match = re.match("[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?", e.lower())
 
-	if not match and throw:
-		frappe.throw(frappe._("{0} is not a valid email id").format(email),
-			frappe.InvalidEmailAddressError)
+			if not match:
+				_valid = False
+			else:
+				matched = match.group(0)
 
-	return matched
+				if match:
+					match = matched==e.lower()
+
+		if not _valid:
+			if throw:
+				frappe.throw(frappe._("{0} is not a valid Email Address").format(e),
+					frappe.InvalidEmailAddressError)
+			return None
+		else:
+			return matched
+
+	out = []
+	for e in email_str.split(','):
+		email = _check(e.strip())
+		if email:
+			out.append(email)
+
+	return ', '.join(out)
 
 def split_emails(txt):
 	email_list = []
 
 	# emails can be separated by comma or newline
-	for email in re.split('''[,\\n](?=(?:[^"]|"[^"]*")*$)''', cstr(txt)):
+	s = re.sub(r'[\t\n\r]', ' ', cstr(txt))
+	for email in re.split('''[,\\n](?=(?:[^"]|"[^"]*")*$)''', s):
 		email = strip(cstr(email))
 		if email:
 			email_list.append(email)
@@ -118,6 +132,7 @@ def random_string(length):
 	from random import choice
 	return ''.join([choice(string.letters + string.digits) for i in range(length)])
 
+
 def has_gravatar(email):
 	'''Returns gravatar url if user has set an avatar at gravatar.com'''
 	if (frappe.flags.in_import
@@ -127,10 +142,7 @@ def has_gravatar(email):
 		# since querying gravatar for every item will be slow
 		return ''
 
-	if not isinstance(email, unicode):
-		email = unicode(email, 'utf-8')
-
-	hexdigest = md5.md5(email).hexdigest()
+	hexdigest = hashlib.md5(frappe.as_unicode(email).encode('utf-8')).hexdigest()
 
 	gravatar_url = "https://secure.gravatar.com/avatar/{hash}?d=404&s=200".format(hash=hexdigest)
 	try:
@@ -143,7 +155,7 @@ def has_gravatar(email):
 		return ''
 
 def get_gravatar_url(email):
-	return "https://secure.gravatar.com/avatar/{hash}?d=mm&s=200".format(hash=md5.md5(email).hexdigest())
+	return "https://secure.gravatar.com/avatar/{hash}?d=mm&s=200".format(hash=hashlib.md5(email).hexdigest())
 
 def get_gravatar(email):
 	gravatar_url = has_gravatar(email)
@@ -266,8 +278,8 @@ def execute_in_shell(cmd, verbose=0):
 			err = stderr.read()
 
 	if verbose:
-		if err: print err
-		if out: print out
+		if err: print(err)
+		if out: print(out)
 
 	return err, out
 
@@ -395,7 +407,7 @@ def get_sites(sites_path=None):
 	return sorted(sites)
 
 def get_request_session(max_retries=3):
-	from requests.packages.urllib3.util import Retry
+	from urllib3.util import Retry
 	session = requests.Session()
 	session.mount("http://", requests.adapters.HTTPAdapter(max_retries=Retry(total=5, status_forcelist=[500])))
 	session.mount("https://", requests.adapters.HTTPAdapter(max_retries=Retry(total=5, status_forcelist=[500])))
@@ -409,10 +421,10 @@ def watch(path, handler=None, debug=True):
 	class Handler(FileSystemEventHandler):
 		def on_any_event(self, event):
 			if debug:
-				print "File {0}: {1}".format(event.event_type, event.src_path)
+				print("File {0}: {1}".format(event.event_type, event.src_path))
 
 			if not handler:
-				print "No handler specified"
+				print("No handler specified")
 				return
 
 			handler(event.src_path, event.event_type)
@@ -427,51 +439,6 @@ def watch(path, handler=None, debug=True):
 	except KeyboardInterrupt:
 		observer.stop()
 	observer.join()
-
-def sanitize_html(html, linkify=False):
-	"""
-	Sanitize HTML tags, attributes and style to prevent XSS attacks
-	Based on bleach clean, bleach whitelist and HTML5lib's Sanitizer defaults
-
-	Does not sanitize JSON, as it could lead to future problems
-	"""
-	if not isinstance(html, basestring):
-		return html
-
-	elif is_json(html):
-		return html
-
-	tags = (HTMLSanitizer.acceptable_elements + HTMLSanitizer.svg_elements
-		+ ["html", "head", "meta", "link", "body", "iframe", "style", "o:p"])
-	attributes = {"*": HTMLSanitizer.acceptable_attributes, "svg": HTMLSanitizer.svg_attributes}
-	styles = bleach_whitelist.all_styles
-	strip_comments = False
-
-	# retuns html with escaped tags, escaped orphan >, <, etc.
-	escaped_html = bleach.clean(html, tags=tags, attributes=attributes, styles=styles, strip_comments=strip_comments)
-
-	if linkify:
-		# based on bleach.clean
-		class s(bleach.BleachSanitizer):
-			allowed_elements = tags
-			allowed_attributes = attributes
-			allowed_css_properties = styles
-			strip_disallowed_elements = False
-			strip_html_comments = strip_comments
-
-		escaped_html = bleach.linkify(escaped_html, tokenizer=s)
-
-	return escaped_html
-
-def is_json(text):
-	try:
-		json.loads(text)
-
-	except ValueError:
-		return False
-
-	else:
-		return True
 
 def markdown(text, sanitize=True, linkify=True):
 	html = _markdown(text)

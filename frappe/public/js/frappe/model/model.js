@@ -33,7 +33,7 @@ $.extend(frappe.model, {
 
 	new_names: {},
 	events: {},
-	list_settings: {},
+	user_settings: {},
 
 	init: function() {
 		// setup refresh if the document is updated somewhere else
@@ -105,7 +105,6 @@ $.extend(frappe.model, {
 					if(r.exc) {
 						msgprint(__("Unable to load: {0}", [__(doctype)]));
 						throw "No doctype";
-						return;
 					}
 					if(r.message=="use_cache") {
 						frappe.model.sync(cached_doc);
@@ -115,10 +114,10 @@ $.extend(frappe.model, {
 					frappe.model.init_doctype(doctype);
 					frappe.defaults.set_user_permissions(r.user_permissions);
 
-					if(r.list_settings) {
+					if(r.user_settings) {
 						// remember filters and other settings from last view
-						frappe.model.list_settings[doctype] = JSON.parse(r.list_settings);
-						frappe.model.list_settings[doctype].updated_on = moment().toString();
+						frappe.model.user_settings[doctype] = JSON.parse(r.user_settings);
+						frappe.model.user_settings[doctype].updated_on = moment().toString();
 					}
 					callback && callback(r);
 				}
@@ -139,6 +138,9 @@ $.extend(frappe.model, {
 		}
 		if(meta.__tree_js) {
 			eval(meta.__tree_js);
+		}
+		if(meta.__templates) {
+			$.extend(frappe.templates, meta.__templates);
 		}
 	},
 
@@ -228,7 +230,7 @@ $.extend(frappe.model, {
 
 	can_import: function(doctype, frm) {
 		// system manager can always import
-		if(user_roles.indexOf("System Manager")!==-1) return true;
+		if(roles.indexOf("System Manager")!==-1) return true;
 
 		if(frm) return frm.perm[0].import===1;
 		return frappe.boot.user.can_import.indexOf(doctype)!==-1;
@@ -236,7 +238,7 @@ $.extend(frappe.model, {
 
 	can_export: function(doctype, frm) {
 		// system manager can always export
-		if(user_roles.indexOf("System Manager")!==-1) return true;
+		if(roles.indexOf("System Manager")!==-1) return true;
 
 		if(frm) return frm.perm[0].export===1;
 		return frappe.boot.user.can_export.indexOf(doctype)!==-1;
@@ -261,7 +263,7 @@ $.extend(frappe.model, {
 
 	can_set_user_permissions: function(doctype, frm) {
 		// system manager can always set user permissions
-		if(user_roles.indexOf("System Manager")!==-1) return true;
+		if(roles.indexOf("System Manager")!==-1) return true;
 
 		if(frm) return frm.perm[0].set_user_permissions===1;
 		return frappe.boot.user.can_set_user_permissions.indexOf(doctype)!==-1;
@@ -322,21 +324,28 @@ $.extend(frappe.model, {
 		/* help: Set a value locally (if changed) and execute triggers */
 		var doc = locals[doctype] && locals[doctype][docname];
 
-		if(doc && doc[fieldname] !== value) {
-			if(doc.__unedited && !(!doc[fieldname] && !value)) {
-				// unset unedited flag for virgin rows
-				doc.__unedited = false;
-			}
-
-			doc[fieldname] = value;
-			frappe.model.trigger(fieldname, value, doc);
-			return true;
-		} else {
-			// execute link triggers (want to reselect to execute triggers)
-			if(fieldtype=="Link" && doc) {
-				frappe.model.trigger(fieldname, value, doc);
-			}
+		var to_update = fieldname;
+		if(!$.isPlainObject(to_update)) {
+			to_update = {};
+			to_update[fieldname] = value;
 		}
+
+		$.each(to_update, function(key, value) {
+			if(doc && doc[key] !== value) {
+				if(doc.__unedited && !(!doc[key] && !value)) {
+					// unset unedited flag for virgin rows
+					doc.__unedited = false;
+				}
+
+				doc[key] = value;
+				frappe.model.trigger(key, value, doc);
+			} else {
+				// execute link triggers (want to reselect to execute triggers)
+				if(fieldtype=="Link" && doc) {
+					frappe.model.trigger(key, value, doc);
+				}
+			}
+		});
 	},
 
 	on: function(doctype, fieldname, fn) {
@@ -438,9 +447,6 @@ $.extend(frappe.model, {
 				parent_doc[parentfield] = newlist;
 			});
 		}
-
-		if(frappe.ui.toolbar.recent)
-			frappe.ui.toolbar.recent.remove(doctype, docname);
 	},
 
 	get_no_copy_list: function(doctype) {

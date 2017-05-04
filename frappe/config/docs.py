@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+
+from __future__ import unicode_literals
+
+docs_version = "7.x.x"
 
 source_link = "https://github.com/frappe/frappe"
 docs_base_url = "https://frappe.github.io/frappe"
@@ -22,10 +27,13 @@ ERP for managing small and medium sized businesses.
 
 [Get started with the Tutorial](https://frappe.github.io/frappe/user/)
 """
-docs_version = "7.x.x"
+google_analytics_id = 'UA-8911157-23'
 
 def get_context(context):
+	context.brand_html = ('<img class="brand-logo" src="'+context.docs_base_url
+		+'/assets/img/frappe-bird-white.png"> Frappé Framework</img>')
 	context.top_bar_items = [
-		{"label": "Developer Tutorials", "url": context.docs_base_url + "/user", "right": 1},
-		{"label": "API Documentation", "url": context.docs_base_url + "/current", "right": 1}
+		{"label": "Tutorials", "url": context.docs_base_url + "/user", "right": 1},
+		{"label": "API", "url": context.docs_base_url + "/current", "right": 1},
+		{"label": "Forum", "url": 'https://discuss.erpnext.com', "right": 1}
 	]

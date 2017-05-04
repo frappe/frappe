@@ -132,14 +132,22 @@
 .navbar-new-comments-true {
   background-color: #ff5858;
 }
-#navbar-search {
+.navbar-form .awesomplete {
   width: 300px;
-  background-color: rgba(255, 255, 255, 0.9);
+}
+@media (max-width: 1199px) {
+  .navbar-form .awesomplete {
+    width: 280px;
+  }
 }
 @media (max-width: 991px) {
-  #navbar-search {
+  .navbar-form .awesomplete {
     width: 250px;
   }
+}
+#navbar-search {
+  width: 100%;
+  background-color: rgba(255, 255, 255, 0.9);
 }
 .navbar .navbar-search-icon {
   color: #6C7680;
@@ -197,11 +205,8 @@
   }
 }
 .toolbar-user-fullname {
-  max-width: 200px;
+  max-width: 150px;
   display: inline-block;
-}
-.navbar-brand {
-  padding: 10px;
 }
 .navbar-brand > img {
   display: inline-block;

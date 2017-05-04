@@ -86,7 +86,10 @@ def set_value(doctype, name, fieldname, value=None):
 	if not value:
 		values = fieldname
 		if isinstance(fieldname, basestring):
-			values = json.loads(fieldname)
+			try:
+				values = json.loads(fieldname)
+			except ValueError:
+				values = {fieldname: ''}
 	else:
 		values = {fieldname: value}
 
@@ -271,7 +274,7 @@ def get_js(items):
 	for src in items:
 		src = src.strip("/").split("/")
 
-		if ".." in src:
+		if ".." in src or src[0] != "assets":
 			frappe.throw(_("Invalid file path: {0}").format("/".join(src)))
 
 		contentpath = os.path.join(frappe.local.sites_path, *src)

@@ -5,15 +5,15 @@
   "enabled": 1,
   "first_name": "_Test",
   "new_password": "testpassword",
-  "user_roles": [
+  "roles": [
    {
-    "doctype": "UserRole",
-    "parentfield": "user_roles",
+    "doctype": "Has Role",
+    "parentfield": "roles",
     "role": "_Test Role"
    },
    {
-    "doctype": "UserRole",
-    "parentfield": "user_roles",
+    "doctype": "Has Role",
+    "parentfield": "roles",
     "role": "System Manager"
    }
   ]
@@ -44,15 +44,15 @@
   "enabled": 1,
   "first_name": "_Test",
   "new_password": "testpassword",
-  "user_roles": [
+  "roles": [
    {
-    "doctype": "UserRole",
-    "parentfield": "user_roles",
+    "doctype": "Has Role",
+    "parentfield": "roles",
     "role": "_Test Role 2"
    },
    {
-    "doctype": "UserRole",
-    "parentfield": "user_roles",
+    "doctype": "Has Role",
+    "parentfield": "roles",
     "role": "System Manager"
    }
   ]

@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _
-from frappe.boot import get_allowed_pages
+from frappe.boot import get_allowed_pages, get_allowed_reports
 from frappe.desk.doctype.desktop_icon.desktop_icon import set_hidden, clear_desktop_icons_cache
 
 @frappe.whitelist()
@@ -34,7 +34,7 @@ def get_data(module):
 	else:
 		add_custom_doctypes(data, doctype_info)
 
-	add_section(data, _("Custom Reports"), "icon-list-alt",
+	add_section(data, _("Custom Reports"), "fa fa-list-alt",
 		get_report_list(module))
 
 	data = combine_common_sections(data)
@@ -64,13 +64,13 @@ def build_standard_config(module, doctype_info):
 
 	data = []
 
-	add_section(data, _("Documents"), "icon-star",
+	add_section(data, _("Documents"), "fa fa-star",
 		[d for d in doctype_info if d.document_type in ("Document", "Transaction")])
 
-	add_section(data, _("Setup"), "icon-cog",
+	add_section(data, _("Setup"), "fa fa-cog",
 		[d for d in doctype_info if d.document_type in ("Master", "Setup", "")])
 
-	add_section(data, _("Standard Reports"), "icon-list",
+	add_section(data, _("Standard Reports"), "fa fa-list",
 		get_report_list(module, is_standard="Yes"))
 
 	return data
@@ -87,10 +87,10 @@ def add_section(data, label, icon, items):
 
 def add_custom_doctypes(data, doctype_info):
 	"""Adds Custom DocTypes to modules setup via `config/desktop.py`."""
-	add_section(data, _("Documents"), "icon-star",
+	add_section(data, _("Documents"), "fa fa-star",
 		[d for d in doctype_info if (d.custom and d.document_type in ("Document", "Transaction"))])
 
-	add_section(data, _("Setup"), "icon-cog",
+	add_section(data, _("Setup"), "fa fa-cog",
 		[d for d in doctype_info if (d.custom and d.document_type in ("Setup", "Master", ""))])
 
 def get_doctype_info(module):
@@ -126,6 +126,7 @@ def apply_permissions(data):
 	user.build_permissions()
 
 	allowed_pages = get_allowed_pages()
+	allowed_reports = get_allowed_reports()
 
 	new_data = []
 	for section in data:
@@ -139,7 +140,7 @@ def apply_permissions(data):
 
 			if ((item.type=="doctype" and item.name in user.can_read)
 				or (item.type=="page" and item.name in allowed_pages)
-				or (item.type=="report" and item.doctype in user.can_get_report)
+				or (item.type=="report" and item.name in allowed_reports)
 				or item.type=="help"):
 
 				new_items.append(item)
@@ -158,6 +159,9 @@ def get_config(app, module):
 
 	for section in config:
 		for item in section["items"]:
+			if item["type"]=="report" and frappe.db.get_value("Report", item["name"], "disabled")==1:
+				section["items"].remove(item)
+				continue
 			if not "label" in item:
 				item["label"] = _(item["name"])
 	return config

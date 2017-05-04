@@ -22,7 +22,7 @@ def get_data():
 					"type": "doctype",
 					"name": "Event",
 					"label": _("Calendar"),
-					"link": "Calendar/Event",
+					"link": "List/Event/Calendar",
 					"description": _("Event and other calendars."),
 				},
 				{
@@ -42,6 +42,21 @@ def get_data():
 					"label": _("Activity"),
 					"name": "activity",
 					"description": _("Activity log of all users."),
+				},
+			]
+		},
+		{
+			'label': _('Email'),
+			'items': [
+				{
+					"type": "doctype",
+					"name": "Newsletter",
+					"description": _("Newsletters to contacts, leads."),
+				},
+				{
+					"type": "doctype",
+					"name": "Email Group",
+					"description": _("Email Group List"),
 				},
 			]
 		}

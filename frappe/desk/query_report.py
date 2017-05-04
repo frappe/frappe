@@ -15,7 +15,7 @@ from frappe.permissions import get_role_permissions
 
 def get_report_doc(report_name):
 	doc = frappe.get_doc("Report", report_name)
-	if not doc.has_permission("read"):
+	if not doc.is_permitted():
 		frappe.throw(_("You don't have access to Report: {0}").format(report_name), frappe.PermissionError)
 
 	if not frappe.has_permission(doc.ref_doctype, "report"):
@@ -61,6 +61,7 @@ def get_script(report_name):
 
 @frappe.whitelist()
 def run(report_name, filters=None, user=None):
+
 	report = get_report_doc(report_name)
 	if not user:
 		user = frappe.session.user
@@ -75,7 +76,7 @@ def run(report_name, filters=None, user=None):
 		frappe.msgprint(_("Must have report permission to access this report."),
 			raise_exception=True)
 
-	columns, result, message, chart = [], [], None, {}
+	columns, result, message, chart = [], [], None, None
 	if report.report_type=="Query Report":
 		if not report.query:
 			frappe.msgprint(_("Must specify a Query to run"), raise_exception=True)
@@ -111,21 +112,74 @@ def run(report_name, filters=None, user=None):
 		"chart": chart
 	}
 
+
+@frappe.whitelist()
+def export_query():
+	"""export from query reports"""
+
+	data = frappe._dict(frappe.local.form_dict)
+
+	del data["cmd"]
+
+	if isinstance(data.get("filters"), basestring):
+		filters = json.loads(data["filters"])
+	if isinstance(data.get("report_name"), basestring):
+		report_name = data["report_name"]
+	if isinstance(data.get("file_format_type"), basestring):
+		file_format_type = data["file_format_type"]
+
+	if file_format_type == "Excel":
+
+		data = run(report_name, filters)
+		data = frappe._dict(data)
+		columns = get_columns_dict(data.columns)
+
+		result = [[]]
+
+		# add column headings
+		for idx in range(len(data.columns)):
+			result[0].append(columns[idx]["label"])
+			
+		# build table from dict
+		if isinstance(data.result[0], dict):
+			for row in data.result:
+				if row:
+					row_list = []
+					for idx in range(len(data.columns)):
+						row_list.append(row.get(columns[idx]["fieldname"],""))
+					result.append(row_list)
+		else:
+			result = result + data.result
+
+		from frappe.utils.xlsxutils import make_xlsx
+		xlsx_file = make_xlsx(result, "Query Report")
+
+		frappe.response['filename'] = report_name + '.xlsx'
+		frappe.response['filecontent'] = xlsx_file.getvalue()
+		frappe.response['type'] = 'binary'
+
+
 def get_report_module_dotted_path(module, report_name):
 	return frappe.local.module_app[scrub(module)] + "." + scrub(module) \
 		+ ".report." + scrub(report_name) + "." + scrub(report_name)
 
-def add_total_row(result, columns):
+def add_total_row(result, columns, meta = None):
 	total_row = [""]*len(columns)
 	has_percent = []
 	for i, col in enumerate(columns):
 		fieldtype, options = None, None
 		if isinstance(col, basestring):
-			col = col.split(":")
-			if len(col) > 1:
-				fieldtype = col[1]
-				if "/" in fieldtype:
-					fieldtype, options = fieldtype.split("/")
+			if meta:
+				# get fieldtype from the meta
+				field = meta.get_field(col)
+				if field:
+					fieldtype = meta.get_field(col).fieldtype
+			else:
+				col = col.split(":")
+				if len(col) > 1:
+					fieldtype = col[1]
+					if "/" in fieldtype:
+						fieldtype, options = fieldtype.split("/")
 		else:
 			fieldtype = col.get("fieldtype")
 			options = col.get("options")
@@ -160,6 +214,7 @@ def add_total_row(result, columns):
 	result.append(total_row)
 	return result
 
+
 def get_filtered_data(ref_doctype, columns, data, user):
 	result = []
 	linked_doctypes = get_linked_doctypes(columns, data)
@@ -182,6 +237,7 @@ def get_filtered_data(ref_doctype, columns, data, user):
 		result = list(data)
 
 	return result
+
 
 def has_match(row, linked_doctypes, doctype_match_filters, ref_doctype, if_owner, columns_dict, user):
 	"""Returns True if after evaluating permissions for each linked doctype
@@ -278,9 +334,9 @@ def get_columns_dict(columns):
 		The keys for the dict are both idx and fieldname,
 		so either index or fieldname can be used to search for a column's docfield properties
 	"""
-	columns_dict = {}
+	columns_dict = frappe._dict()
 	for idx, col in enumerate(columns):
-		col_dict = {}
+		col_dict = frappe._dict()
 
 		# string
 		if isinstance(col, basestring):
@@ -291,6 +347,7 @@ def get_columns_dict(columns):
 				else:
 					col_dict["fieldtype"] = col[1]
 
+			col_dict["label"] = col[0]
 			col_dict["fieldname"] = frappe.scrub(col[0])
 
 		# dict

@@ -17,12 +17,25 @@ frappe.breadcrumbs = {
 	},
 
 	add: function(module, doctype, type) {
-		frappe.breadcrumbs.all[frappe.get_route_str()] = {module:module, doctype:doctype, type:type};
+		frappe.breadcrumbs.all[frappe.breadcrumbs.current_page()] = {module:module, doctype:doctype, type:type};
 		frappe.breadcrumbs.update();
 	},
 
+	current_page: function() {
+		var route = frappe.get_route();
+		// for List/DocType/{?} return List/DocType
+		if (route[0] === 'List') {
+			route = route.slice(0, 2);
+		}
+		return route.join("/");
+	},
+
 	update: function() {
-		var breadcrumbs = frappe.breadcrumbs.all[frappe.get_route_str()];
+		var breadcrumbs = frappe.breadcrumbs.all[frappe.breadcrumbs.current_page()];
+
+		if(!frappe.visible_modules) {
+			frappe.visible_modules = $.map(frappe.get_desktop_icons(true), (m) => { return m.module_name; });
+		}
 
 		var $breadcrumbs = $("#navbar-breadcrumbs").empty();
 		if(!breadcrumbs) {
@@ -41,8 +54,9 @@ frappe.breadcrumbs = {
 		}
 
 		if(breadcrumbs.module) {
-			if(in_list(["Core", "Email", "Custom", "Workflow", "Print"], breadcrumbs.module))
+			if(in_list(["Core", "Email", "Custom", "Workflow", "Print"], breadcrumbs.module)) {
 				breadcrumbs.module = "Setup";
+			}
 
 			if(frappe.get_module(breadcrumbs.module)) {
 				// if module access exists
@@ -51,7 +65,7 @@ frappe.breadcrumbs = {
 					label = module_info ? module_info.label : breadcrumbs.module;
 
 
-				if(module_info) {
+				if(module_info && !module_info.blocked && frappe.visible_modules.includes(module_info.module_name)) {
 					$(repl('<li><a href="#modules/%(module)s">%(label)s</a></li>',
 						{ module: breadcrumbs.module, label: __(label) }))
 						.appendTo($breadcrumbs);
@@ -64,6 +78,7 @@ frappe.breadcrumbs = {
 				|| frappe.get_doc('DocType', breadcrumbs.doctype).issingle) {
 				// no user listview for non-system managers and single doctypes
 			} else {
+				var route;
 				if(frappe.boot.treeviews.indexOf(breadcrumbs.doctype) !== -1) {
 					route = 'Tree/' + breadcrumbs.doctype;
 				} else {

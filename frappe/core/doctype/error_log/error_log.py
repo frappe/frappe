@@ -9,7 +9,7 @@ from frappe.model.document import Document
 class ErrorLog(Document):
 	def onload(self):
 		if not self.seen:
-			self.db_set('seen', 1)
+			self.db_set('seen', 1, update_modified=0)
 			frappe.db.commit()
 
 def set_old_logs_as_seen():
@@ -19,3 +19,9 @@ def set_old_logs_as_seen():
 
 	# clear old logs
 	frappe.db.sql("""delete from `tabError Log` where datediff(curdate(), creation) > 30""")
+
+@frappe.whitelist()
+def clear_error_logs():
+	'''Flush all Error Logs'''
+	frappe.only_for('System Manager')
+	frappe.db.sql('''delete from `tabError Log`''')

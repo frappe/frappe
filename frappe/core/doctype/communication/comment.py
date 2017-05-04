@@ -11,14 +11,6 @@ from frappe.website.render import clear_cache
 from frappe.model.db_schema import add_column
 from frappe.exceptions import ImplicitCommitError
 
-def validate_comment(doc):
-	"""Raise exception for more than 50 comments."""
-	if not (doc.communication_type=='Comment' and doc.reference_doctype and doc.reference_name):
-		return
-
-	if doc.comment_type=="Comment" and "<!-- markdown -->" not in doc.content:
-		doc.content += '\n<!-- markdown -->'
-
 def on_trash(doc):
 	if doc.communication_type != "Comment":
 		return

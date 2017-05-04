@@ -3,7 +3,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _
-from frappe.utils import flt
+from frappe.utils import flt, cint
 import json
 
 no_cache = 1
@@ -30,8 +30,7 @@ def get_context(context):
 
 def get_api_key():
 	api_key = frappe.db.get_value("Razorpay Settings", None, "api_key")
-
-	if frappe.form_dict.get("use_sandbox"):
+	if cint(frappe.form_dict.get("use_sandbox")):
 		api_key = frappe.conf.sandbox_api_key
 
 	return api_key

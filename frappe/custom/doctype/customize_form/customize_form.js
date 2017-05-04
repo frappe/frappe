@@ -4,9 +4,6 @@
 frappe.provide("frappe.customize_form");
 
 frappe.ui.form.on("Customize Form", {
-	setup: function(frm) {
-		frm.get_docfield("fields").allow_bulk_edit = 1;
-	},
 	onload: function(frm) {
 		frappe.customize_form.add_fields_help(frm);
 
@@ -16,8 +13,8 @@ frappe.ui.form.on("Customize Form", {
 				filters: [
 					['DocType', 'issingle', '=', 0],
 					['DocType', 'custom', '=', 0],
-					['DocType', 'name', 'not in', 'DocType, DocField, DocPerm, User, Role, UserRole, \
-						 Page, Page Role, Module Def, Print Format, Report, Customize Form, \
+					['DocType', 'name', 'not in', 'DocType, DocField, DocPerm, User, Role, Has Role, \
+						 Page, Has Role, Module Def, Print Format, Report, Customize Form, \
 						 Customize Form Field']
 				]
 			};
@@ -45,6 +42,8 @@ frappe.ui.form.on("Customize Form", {
 					frm.trigger("setup_sortable");
 				}
 			});
+		} else {
+			frm.refresh();
 		}
 	},
 
@@ -70,11 +69,15 @@ frappe.ui.form.on("Customize Form", {
 
 			frm.add_custom_button(__('Refresh Form'), function() {
 				frm.script_manager.trigger("doc_type");
-			}, "icon-refresh", "btn-default");
+			}, "fa fa-refresh", "btn-default");
 
 			frm.add_custom_button(__('Reset to defaults'), function() {
 				frappe.customize_form.confirm(__('Remove all customizations?'), frm);
-			}, "icon-eraser", "btn-default");
+			}, "fa fa-eraser", "btn-default");
+
+			frm.add_custom_button(__('Set Permissions'), function() {
+				frappe.set_route('permission-manager', frm.doc.doc_type);
+			}, "fa fa-lock", "btn-default");
 
 			if(frappe.boot.developer_mode) {
 				frm.add_custom_button(__('Export Customizations'), function() {
@@ -84,6 +87,8 @@ frappe.ui.form.on("Customize Form", {
 								label: __('Module to Export')},
 							{fieldtype:'Check', fieldname:'sync_on_migrate',
 								label: __('Sync on Migrate'), 'default': 1},
+							{fieldtype:'Check', fieldname:'with_permissions',
+								label: __('Export Custom Permissions'), 'default': 1},
 						],
 						function(data) {
 							frappe.call({
@@ -91,7 +96,8 @@ frappe.ui.form.on("Customize Form", {
 								args: {
 									doctype: frm.doc.doc_type,
 									module: data.module,
-									sync_on_migrate: data.sync_on_migrate
+									sync_on_migrate: data.sync_on_migrate,
+									with_permissions: data.with_permissions
 								}
 							});
 						},

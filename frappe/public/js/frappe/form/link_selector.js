@@ -99,11 +99,11 @@ frappe.ui.form.LinkSelector = Class.extend({
 					})
 				})
 			} else {
-				$('<div class="alert alert-info">' + __("No Results")
-					+ (frappe.model.can_read(me.doctype) ?
-						('. <a class="new-doc">'
-						+ __("Make a new") + " " + __(me.doctype) + "</a>") : '')
-					+ '</div>').appendTo(parent).find(".new-doc").click(function() {
+				$('<p><br><span class="text-muted">' + __("No Results") + '</span>'
+					+ (frappe.model.can_create(me.doctype) ?
+						('<br><br><a class="new-doc btn btn-default btn-sm">'
+						+ __("Make a new {0}", [__(me.doctype)]) + "</a>") : '')
+					+ '</p>').appendTo(parent).find(".new-doc").click(function() {
 						me.target.new_doc();
 					});
 			}
@@ -144,7 +144,7 @@ frappe.ui.form.LinkSelector = Class.extend({
 
 frappe.link_search = function(doctype, args, callback, btn) {
 	if(!args) {
-		args: {
+		args = {
 			txt: ''
 		}
 	}

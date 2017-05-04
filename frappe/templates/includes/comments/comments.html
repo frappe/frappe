@@ -1,39 +1,42 @@
 <div class="comment-view">
-	<div class="comment-header">{{ comment_text or "" }}</div>
-{% if not comment_list %}
-<div class="no-comment">
-	<p class="text-muted">{{ _("Start a new discussion.") }}</p>
-    <br>
-</div>
-{% endif %}
+	{% if comment_text %}
+	<div class="comment-header">{{ comment_text }}</div>
+	{% endif %}
+	{% if not comment_list %}
+	<div class="no-comment">
+		<p class="text-muted small">{{ _("No comments yet. Start a new discussion.") }}</p>
+	</div>
+	{% endif %}
 
-<div itemscope itemtype="http://schema.org/UserComments" id="comment-list">
-	{% for comment in comment_list %}
-	{% include "templates/includes/comments/comment.html" %}
-	{% endfor %}
-</div>
+	<div itemscope itemtype="http://schema.org/UserComments" id="comment-list">
+		{% for comment in comment_list %}
+		{% include "templates/includes/comments/comment.html" %}
+		{% endfor %}
+	</div>
 </div>
 
+{% if not is_communication %}
 <div class="add-comment-section">
 	<div class="text-muted hidden login-required">
 		<a href="/login?redirect-to={{ pathname }}">{{ _("Login to comment") }}</a>
 	</div>
 
 	<div class="comment-form-wrapper">
-		<a class="add-comment btn btn-default btn-sm">{{ _("Add Comment") }}</a>
+		<a class="add-comment btn btn-default btn-xs">{{ _("Add Comment") }}</a>
 			<div style="display: none;" id="comment-form">
 			<p>{{ _("Leave a Comment") }}</p>
 			<div class="alert" style="display:none;"></div>
 			<form>
 				<fieldset>
-					<div class="row {% if login_required %}hide{% endif %}">
+					<div class="row {% if _login_required %}hide{% endif %}"
+						style="margin-bottom: 15px;">
 						<div class="col-sm-6">
-							<p><input class="form-control" name="comment_by_fullname" placeholder="{{ _("Your Name") }}"
-								type="text"></p>
+							<input class="form-control" name="comment_by_fullname"
+								placeholder="{{ _("Your Name") }}" type="text">
 						</div>
 						<div class="col-sm-6">
-							<p><input class="form-control" name="comment_by"
-								placeholder="{{ _("Your Email Id") }}" type="email"></p>
+							<input class="form-control" name="comment_by"
+								placeholder="{{ _("Your Email Address") }}" type="email">
 						</div>
 					</div>
 					<p><textarea class="form-control" name="comment" rows=10
@@ -45,6 +48,7 @@
 		</div>
 	</div>
 </div>
+{% endif %}
 <script>
 	frappe.ready(function() {
 		var login_required = {{ login_required and 1 or 0 }};
@@ -93,7 +97,7 @@
 				return false;
 			}
 
-			if (!valid_email(args.comment_by)) {
+			if (args.comment_by!=='Administrator' && !valid_email(args.comment_by)) {
 				frappe.msgprint("Please enter a valid email address.");
 				return false;
 			}

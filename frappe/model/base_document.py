@@ -360,13 +360,29 @@ class BaseDocument(object):
 		# this is used to preserve traceback
 		raise frappe.UniqueValidationError, (self.doctype, self.name, e), traceback
 
-	def db_set(self, fieldname, value, update_modified=True):
-		self.set(fieldname, value)
+	def db_set(self, fieldname, value=None, update_modified=True):
+		'''Set a value in the document object, update the timestamp and update the database.
+
+		WARNING: This method does not trigger controller validations and should
+		be used very carefully.
+
+		:param fieldname: fieldname of the property to be updated, or a {"field":"value"} dictionary
+		:param value: value of the property to be updated
+		:param update_modified: default True. updates the `modified` and `modified_by` properties
+		'''
+		if isinstance(fieldname, dict):
+			self.update(fieldname)
+		else:
+			self.set(fieldname, value)
+
 		if update_modified and (self.doctype, self.name) not in frappe.flags.currently_saving:
 			# don't update modified timestamp if called from post save methods
 			# like on_update or on_submit
 			self.set("modified", now())
 			self.set("modified_by", frappe.session.user)
+
+		# to trigger email alert on value change
+		self.run_method('before_change')
 
 		frappe.db.set_value(self.doctype, self.name, fieldname, value,
 			self.modified, self.modified_by, update_modified=update_modified)
@@ -426,6 +442,7 @@ class BaseDocument(object):
 		return missing
 
 	def get_invalid_links(self, is_submittable=False):
+		'''Returns list of invalid links and also updates fetch values if not set'''
 		def get_msg(df, docname):
 			if self.parentfield:
 				return "{} #{}: {}: {}".format(_("Row"), self.idx, _(df.label), docname)
@@ -434,6 +451,7 @@ class BaseDocument(object):
 
 		invalid_links = []
 		cancelled_links = []
+
 		for df in (self.meta.get_link_fields()
 				 + self.meta.get("fields", {"fieldtype":"Dynamic Link"})):
 			docname = self.get(df.fieldname)
@@ -449,15 +467,38 @@ class BaseDocument(object):
 						frappe.throw(_("{0} must be set first").format(self.meta.get_label(df.options)))
 
 				# MySQL is case insensitive. Preserve case of the original docname in the Link Field.
-				value = frappe.db.get_value(doctype, docname, "name", cache=True)
-				if frappe.get_meta(doctype).issingle:
-					value = doctype
 
-				setattr(self, df.fieldname, value)
+				# get a map of values ot fetch along with this link query
+				# that are mapped as link_fieldname.source_fieldname in Options of
+				# Readonly or Data or Text type fields
+				fields_to_fetch = [
+					_df for _df in self.meta.get_fields_to_fetch(df.fieldname)
+						 if not self.get(_df.fieldname)
+				]
+
+				if not fields_to_fetch:
+					# cache a single value type
+					values = frappe._dict(name=frappe.db.get_value(doctype, docname,
+						'name', cache=True))
+				else:
+					values_to_fetch = ['name'] + [_df.options.split('.')[-1]
+						for _df in fields_to_fetch]
+
+					# don't cache if fetching other values too
+					values = frappe.db.get_value(doctype, docname,
+						values_to_fetch, as_dict=True)
+
+				if frappe.get_meta(doctype).issingle:
+					values.name = doctype
+
+				setattr(self, df.fieldname, values.name)
+
+				for _df in fields_to_fetch:
+					setattr(self, _df.fieldname, values[_df.options.split('.')[-1]])
 
 				notify_link_count(doctype, docname)
 
-				if not value:
+				if not values.name:
 					invalid_links.append((df.fieldname, docname, get_msg(df, docname)))
 
 				elif (df.fieldname != "amended_from"
@@ -504,7 +545,16 @@ class BaseDocument(object):
 			values = frappe.db.get_value(self.doctype, self.name, constants, as_dict=True)
 
 		for fieldname in constants:
-			if self.get(fieldname) != values.get(fieldname):
+			df = self.meta.get_field(fieldname)
+
+			# This conversion to string only when fieldtype is Date
+			if df.fieldtype == 'Date' or df.fieldtype == 'Datetime':
+				value = str(values.get(fieldname))
+
+			else:
+				value  = values.get(fieldname)
+
+			if self.get(fieldname) != value:
 				frappe.throw(_("Value cannot be changed for {0}").format(self.meta.get_label(fieldname)),
 					frappe.CannotChangeConstantError)
 
@@ -561,7 +611,7 @@ class BaseDocument(object):
 			if not value or not isinstance(value, basestring):
 				continue
 
-			elif ("<" not in value and ">" not in value):
+			elif (u"<" not in value and u">" not in value):
 				# doesn't look like html so no need
 				continue
 

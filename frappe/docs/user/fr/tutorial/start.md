@@ -29,4 +29,4 @@ Une fois connecté, vous devriez voir le `Desk`, c'est à dire la page d'accueil
 Comme vous pouvez le voir, Frappe fournit quelques applications comme un To Do, un gestionnaire de fichiers etc. Ces applications
 peuvent être intégrées par la suite.
 
-{suite}
+{next}

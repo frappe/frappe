@@ -1,7 +1,7 @@
 # Copyright (c) 2015, Web Notes Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals, absolute_import
+from __future__ import unicode_literals, absolute_import, print_function
 import sys
 import click
 import cProfile
@@ -29,7 +29,7 @@ def pass_context(f):
 			ps = pstats.Stats(pr, stream=s)\
 				.sort_stats('cumtime', 'tottime', 'ncalls')
 			ps.print_stats()
-			print s.getvalue()
+			print(s.getvalue())
 
 		return ret
 
@@ -40,7 +40,7 @@ def get_site(context):
 		site = context.sites[0]
 		return site
 	except (IndexError, TypeError):
-		print 'Please specify --site sitename'
+		print('Please specify --site sitename')
 		sys.exit(1)
 
 def call_command(cmd, context):

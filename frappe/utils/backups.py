@@ -3,7 +3,7 @@
 
 """This module handles the On Demand Backup utility"""
 
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 
 #Imports
 from frappe import _
@@ -103,7 +103,7 @@ class BackupGenerator:
 			cmd_string = """tar -cf %s %s""" % (backup_path, files_path)
 			err, out = frappe.utils.execute_in_shell(cmd_string)
 
-			print 'Backed up files', os.path.abspath(backup_path)
+			print('Backed up files', os.path.abspath(backup_path))
 
 	def take_dump(self):
 		import frappe.utils
@@ -118,7 +118,7 @@ class BackupGenerator:
 		"""
 			Sends the link to backup file located at erpnext/backups
 		"""
-		from frappe.email import sendmail, get_system_managers
+		from frappe.email import get_system_managers
 
 		recipient_list = get_system_managers()
 		db_backup_url = get_url(os.path.join('backups', os.path.basename(self.backup_path_db)))
@@ -140,7 +140,7 @@ download only after 24 hours.""" % {
 		datetime_str = datetime.fromtimestamp(os.stat(self.backup_path_db).st_ctime)
 		subject = datetime_str.strftime("%d/%m/%Y %H:%M:%S") + """ - Backup ready to be downloaded"""
 
-		sendmail(recipients=recipient_list, msg=msg, subject=subject)
+		frappe.sendmail(recipients=recipient_list, msg=msg, subject=subject)
 		return recipient_list
 
 
@@ -198,13 +198,13 @@ def is_file_old(db_file_name, older_than=24):
 			file_datetime = datetime.fromtimestamp\
 						(os.stat(db_file_name).st_ctime)
 			if datetime.today() - file_datetime >= timedelta(hours = older_than):
-				if verbose: print "File is old"
+				if verbose: print("File is old")
 				return True
 			else:
-				if verbose: print "File is recent"
+				if verbose: print("File is recent")
 				return False
 		else:
-			if verbose: print "File does not exist"
+			if verbose: print("File does not exist")
 			return True
 
 def get_backup_path():

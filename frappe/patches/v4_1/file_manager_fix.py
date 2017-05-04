@@ -1,7 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 
 import frappe
 import os
@@ -37,7 +37,7 @@ def execute():
 			_file_name, content = get_file(name)
 			b.content_hash = get_content_hash(content)
 		except IOError:
-			print 'Warning: Error processing ', name
+			print('Warning: Error processing ', name)
 			b.content_hash = None
 		b.flags.ignore_duplicate_entry_error = True
 		b.save()
@@ -62,18 +62,18 @@ def rename_replacing_files():
 			f.write(('\n'.join(missing_files) + '\n').encode('utf-8'))
 
 	for file_name, file_datas in replaced_files:
-		print 'processing ' + file_name
+		print ('processing ' + file_name)
 		content_hash = frappe.db.get_value('File', file_datas[0], 'content_hash')
 		if not content_hash:
 			continue
 		new_file_name = get_file_name(file_name, content_hash)
 		if os.path.exists(get_files_path(new_file_name)):
 			continue
-			print 'skipping ' + file_name
+			print('skipping ' + file_name)
 		try:
 			os.rename(get_files_path(file_name), get_files_path(new_file_name))
 		except OSError:
-			print 'Error renaming ', file_name
+			print('Error renaming ', file_name)
 		for name in file_datas:
 			f = frappe.get_doc('File', name)
 			f.file_name = new_file_name

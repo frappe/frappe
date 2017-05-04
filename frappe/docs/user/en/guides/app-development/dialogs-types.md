@@ -2,9 +2,9 @@ Frappe provide a group of standard dialogs that are very usefull while coding.
 
 ## Alert Dialog
 
-![Alert](/files/show_alert.png)
+<img class="screenshot" src="{{docs_base_url}}/assets/img/app-development/show_alert.png">
 
-Is helpfull for show a non-obstrutive message.
+Is helpfull for show a non-obstructive message.
 
 This dialog have 2 parameters `txt`that is the message and `seconds` that is the time that the message will be showed for the user, the standard is `3 seconds`.
 
@@ -16,7 +16,7 @@ This dialog have 2 parameters `txt`that is the message and `seconds` that is the
 
 ## Prompt Dialog
 
-![Prompt](/files/promp_dialog.png)
+<img class="screenshot" src="{{docs_base_url}}/assets/img/app-development/prompt.png">
 
 Is helpful for ask a value for the user
 
@@ -42,7 +42,7 @@ This dialog have 4 parameters, they are:
 ---
 ## Confirm Dialog
 
-![Confirm](/files/confirm_dialog.png)
+<img class="screenshot" src="{{docs_base_url}}/assets/img/app-development/confirm-dialog.png">
 
 Usefull to get a confirmation from the user before do an action
 
@@ -68,7 +68,7 @@ This dialog have 3 arguments, they are:
 
 ## Message Print
 
-![MSGPrint](/files/msgprint_dialog.png)
+<img class="screenshot" src="{{docs_base_url}}/assets/img/app-development/msgprint.png">
 
 Is helpfull for show a informational dialog for the user;
 
@@ -91,7 +91,7 @@ This dialog have 2 arguments, they are:
 
 ### Custom Dialog
 
-![Class](/files/dialog_constructor.png)
+<img class="screenshot" src="{{docs_base_url}}/assets/img/app-development/dialog.png">
 
 Frappé provide too a `Class` that you can extend and build your own custom dialogs
 

@@ -2,15 +2,6 @@
 # Copyright (c) 2015, Frappe Technologies and contributors
 # For license information, please see license.txt
 
-from __future__ import unicode_literals
-import frappe
-import json
-from frappe import _
-from frappe.utils import get_url, call_hook_method
-from urllib import urlencode
-from frappe.integration_broker.doctype.integration_service.integration_service import IntegrationService
-import urllib
-
 """
 # Integrating PayPal
 
@@ -18,9 +9,9 @@ import urllib
 
 Example:
 
-	from frappe.integration_broker.doctype.integration_service.integration_service import get_integration_controller
+	from frappe.integrations.utils import get_payment_gateway_controller
 
-	controller = get_integration_controller("PayPal")
+	controller = get_payment_gateway_controller("PayPal")
 	controller().validate_transaction_currency(currency)
 
 ### 2. Redirect for payment
@@ -36,7 +27,8 @@ Example:
 		"payer_email": "NuranVerkleij@example.com",
 		"payer_name": "Nuran Verkleij",
 		"order_id": "111",
-		"currency": "USD"
+		"currency": "USD",
+		"payment_gateway": "Razorpay"
 	}
 
 	# redirect the user to this url
@@ -63,9 +55,17 @@ More Details:
 
 """
 
-class PayPalSettings(IntegrationService):
-	service_name = "PayPal"
-	
+from __future__ import unicode_literals
+import frappe
+import json
+from frappe import _
+from frappe.utils import get_url, call_hook_method, cint
+from urllib import urlencode
+from frappe.model.document import Document
+import urllib
+from frappe.integrations.utils import create_request_log, make_post_request, create_payment_gateway
+
+class PayPalSettings(Document):
 	supported_currencies = ["AUD", "BRL", "CAD", "CZK", "DKK", "EUR", "HKD", "HUF", "ILS", "JPY", "MYR", "MXN",
 		"TWD", "NZD", "NOK", "PHP", "PLN", "GBP", "RUB", "SGD", "SEK", "CHF", "THB", "TRY", "USD"]
 
@@ -74,24 +74,21 @@ class PayPalSettings(IntegrationService):
 
 	def setup_sandbox_env(self, token):
 		data = json.loads(frappe.db.get_value("Integration Request", token, "data"))
-		setattr(self, "use_sandbox", frappe._dict(data).use_sandbox or 0)
+		setattr(self, "use_sandbox", cint(frappe._dict(data).use_sandbox) or 0)
 
 	def validate(self):
+		create_payment_gateway("PayPal")
+		call_hook_method('payment_gateway_enabled', gateway="PayPal")
 		if not self.flags.ignore_mandatory:
 			self.validate_paypal_credentails()
-	
+
 	def on_update(self):
 		pass
-	
-	def enable(self):
-		call_hook_method('payment_gateway_enabled', gateway=self.service_name)
-		if not self.flags.ignore_mandatory:
-			self.validate_paypal_credentails()
-		
+
 	def validate_transaction_currency(self, currency):
 		if currency not in self.supported_currencies:
-			frappe.throw(_("Please select another payment method. {0} does not support transactions in currency '{1}'").format(self.service_name, currency))
-	
+			frappe.throw(_("Please select another payment method. PayPal does not support transactions in currency '{0}'").format(currency))
+
 	def get_paypal_params_and_url(self):
 		params = {
 			"USER": self.api_username,
@@ -117,16 +114,16 @@ class PayPalSettings(IntegrationService):
 		params = urlencode(params)
 
 		try:
-			res = self.post_request(url=url, data=params.encode("utf-8"))
+			res = make_post_request(url=url, data=params.encode("utf-8"))
 
 			if res["ACK"][0] == "Failure":
 				raise Exception
 
 		except Exception:
 			frappe.throw(_("Invalid payment gateway credentials"))
-	
+
 	def get_payment_url(self, **kwargs):
-		setattr(self, "use_sandbox", kwargs.get("use_sandbox", 0))
+		setattr(self, "use_sandbox", cint(kwargs.get("use_sandbox", 0)))
 
 		response = self.execute_set_express_checkout(kwargs["amount"], kwargs["currency"])
 
@@ -140,7 +137,7 @@ class PayPalSettings(IntegrationService):
 			"correlation_id": response.get("CORRELATIONID")[0]
 		})
 
-		self.integration_request = self.create_request(kwargs, "Remote", self.service_name, response.get("TOKEN")[0])
+		self.integration_request = create_request_log(kwargs, "Remote", "PayPal", response.get("TOKEN")[0])
 
 		return return_url.format(kwargs["token"])
 
@@ -157,48 +154,11 @@ class PayPalSettings(IntegrationService):
 
 		params = urlencode(params)
 
-		response = self.post_request(url, data=params.encode("utf-8"))
+		response = make_post_request(url, data=params.encode("utf-8"))
 		if response.get("ACK")[0] != "Success":
 			frappe.throw("Looks like something is wrong with this site's Paypal configuration.")
 
 		return response
-
-@frappe.whitelist()
-def get_service_details():
-	return """
-		<div>
-			<p> Steps to configure Service
-			<ol>
-				<li> Get PayPal api credentials from link: 
-					<a href="https://developer.paypal.com/docs/classic/api/apiCredentials/" target="_blank">
-						https://developer.paypal.com/docs/classic/api/apiCredentials/
-					</a>
-				</li>
-				<br>
-				<li> Setup credentials on PayPal settings doctype. 
-					Click on
-					<button class="btn btn-default btn-xs disabled"> PayPal Settings </button>
-					top right corner
-				</li>
-				<br>
-				<li>
-					After saving settings,
-						<label>
-							<span class="input-area">
-								<input type="checkbox" class="input-with-feedback" checked disabled>
-							</span>
-							<span class="label-area small">Enabled</span>
-						</label>
-					PayPal Integration Service and Save a document.
-				</li>
-				<br>
-				<li>
-					To view PayPal payment logs,
-					<button class="btn btn-default btn-xs disabled"> Show Log </button>
-				</li>
-			</ol>
-		</div>
-	"""
 
 @frappe.whitelist(allow_guest=True, xss_safe=True)
 def get_express_checkout_details(token):
@@ -212,12 +172,12 @@ def get_express_checkout_details(token):
 			"TOKEN": token
 		})
 
-		response = doc.post_request(url, data=params)
+		response = make_post_request(url, data=params)
 
 		if response.get("ACK")[0] != "Success":
 			frappe.respond_as_web_page(_("Something went wrong"),
 				_("Looks like something went wrong during the transaction. Since we haven't confirmed the payment, Paypal will automatically refund you this amount. If it doesn't, please send us an email and mention the Correlation ID: {0}.").format(response.get("CORRELATIONID", [None])[0]),
-				success=False,
+				indicator_color='red',
 				http_status_code=frappe.ValidationError.http_status_code)
 
 			return
@@ -259,7 +219,7 @@ def confirm_payment(token):
 			"PAYMENTREQUEST_0_CURRENCYCODE": data.get("currency").upper()
 		})
 
-		response = doc.post_request(url, data=params)
+		response = make_post_request(url, data=params)
 
 		if response.get("ACK")[0] == "Success":
 			update_integration_request_status(token, {
@@ -291,14 +251,3 @@ def confirm_payment(token):
 
 def update_integration_request_status(token, data, status, error=False):
 	frappe.get_doc("Integration Request", token).update_status(data, status)
-
-@frappe.whitelist(allow_guest=True, xss_safe=True)
-def get_checkout_url(**kwargs):
-	try:
-		doc = frappe.get_doc("PayPal Settings")
-		return doc.get_payment_url(**kwargs)
-	except Exception:
-		frappe.respond_as_web_page(_("Something went wrong"),
-			_("Looks like something is wrong with this site's Paypal configuration. Don't worry! No payment has been made from your Paypal account."),
-			success=False,
-			http_status_code=frappe.ValidationError.http_status_code)
