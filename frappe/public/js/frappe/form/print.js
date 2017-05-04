@@ -143,7 +143,7 @@ frappe.ui.form.PrintPreview = Class.extend({
 	},
 	get_print_html: function(callback) {
 		frappe.call({
-			method: "frappe.www.print.get_html_and_style",
+			method: "frappe.www.printview.get_html_and_style",
 			args: {
 				doc: this.frm.doc,
 				print_format: this.selected_format(),
