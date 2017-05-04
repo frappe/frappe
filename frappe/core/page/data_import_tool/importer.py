@@ -3,6 +3,7 @@
 
 from __future__ import unicode_literals, print_function
 
+import requests
 import frappe, json
 import frappe.permissions
 import frappe.async
@@ -11,8 +12,9 @@ from frappe import _
 
 from frappe.utils.csvutils import getlink
 from frappe.utils.dateutils import parse_date
+from frappe.utils.file_manager import save_url
 
-from frappe.utils import cint, cstr, flt, getdate, get_datetime
+from frappe.utils import cint, cstr, flt, getdate, get_datetime, get_url
 from frappe.core.page.data_import_tool.data_import_tool import get_data_keys
 
 @frappe.whitelist()
@@ -126,6 +128,10 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 										d[fieldname] = get_datetime(_date + " " + _time)
 									else:
 										d[fieldname] = None
+
+								elif fieldtype in ("Image", "Attach Image", "Attach"):
+									# added file to attachments list
+									attachments.append(d[fieldname])
 							except IndexError:
 								pass
 
@@ -164,6 +170,40 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 		if not doc.modified_by in users:
 			doc.modified_by = frappe.session.user
 
+	def is_valid_url(url):
+		is_valid = False
+		if url.startswith("/files") or url.startswith("/private/files"):
+			url = get_url(url)
+
+		try:
+			r = requests.get(url)
+			is_valid = True if r.status_code == 200 else False
+		except Exception:
+			pass
+
+		return is_valid
+
+	def attach_file_to_doc(doctype, docname, file_url):
+		# check if attachment is already available
+		# check if the attachement link is relative or not
+		if not file_url:
+			return
+		if not is_valid_url(file_url):
+			return
+
+		files = frappe.db.sql("""Select name from `tabFile` where attached_to_doctype='{doctype}' and
+			attached_to_name='{docname}' and (file_url='{file_url}' or thumbnail_url='{file_url}')""".format(
+				doctype=doctype,
+				docname=docname,
+				file_url=file_url
+			))
+
+		if files:
+			# file is already attached
+			return
+
+		file = save_url(file_url, None, doctype, docname, "Home/Attachments", 0)
+
 	# header
 	if not rows:
 		rows = read_csv_content_from_uploaded_file(ignore_encoding_errors)
@@ -175,6 +215,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 	doctypes = []
 	column_idx_to_fieldname = {}
 	column_idx_to_fieldtype = {}
+	attachments = []
 
 	if submit_after_import and not cint(frappe.db.get_value("DocType",
 			doctype, "is_submittable")):
@@ -265,6 +306,10 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 						log('Inserted row (#%d) %s' % (row_idx + 1, as_link(doc.doctype, doc.name)))
 					else:
 						log('Ignored row (#%d) %s' % (row_idx + 1, row[1]))
+				if attachments:
+					# check file url and create a File document
+					for file_url in attachments:
+						attach_file_to_doc(doc.doctype, doc.name, file_url)
 				if submit_after_import:
 					doc.submit()
 					log('Submitted row (#%d) %s' % (row_idx + 1, as_link(doc.doctype, doc.name)))
