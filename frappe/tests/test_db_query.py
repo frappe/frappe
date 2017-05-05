@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import frappe, unittest
 
 from frappe.model.db_query import DatabaseQuery
+from frappe.desk.reportview import get_filters_cond
 
 class TestReportview(unittest.TestCase):
 	def test_basic(self):
@@ -69,6 +70,12 @@ class TestReportview(unittest.TestCase):
 
 		self.assertTrue({ "name": todays_event.name } in data)
 		self.assertTrue({ "name": event.name } in data)
+
+	def test_ignore_permissions_for_get_filters_cond(self):
+		frappe.set_user('test1@example.com')
+		self.assertRaises(frappe.PermissionError, get_filters_cond, 'DocType', dict(istable=1), [])
+		self.assertTrue(get_filters_cond('DocType', dict(istable=1), [], ignore_permissions=True))
+		frappe.set_user('Administrator')
 
 def create_event(subject="_Test Event", starts_on=None):
 	""" create a test event """
