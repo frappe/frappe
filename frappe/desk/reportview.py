@@ -37,7 +37,7 @@ def get_form_params():
 		data["save_user_settings"] = json.loads(data["save_user_settings"])
 	else:
 		data["save_user_settings"] = True
-	
+
 	doctype = data["doctype"]
 	fields = data["fields"]
 
@@ -51,9 +51,9 @@ def get_form_params():
 			fieldname = fieldname.strip("`")
 
 		df = frappe.get_meta(parenttype).get_field(fieldname)
-		
+
 		report_hide = df.report_hide if df else None
-		
+
 		# remove the field from the query if the report hide flag is set
 		if report_hide:
 			fields.remove(field)
@@ -331,7 +331,7 @@ def build_match_conditions(doctype, as_condition=True):
 	else:
 		return match_conditions
 
-def get_filters_cond(doctype, filters, conditions):
+def get_filters_cond(doctype, filters, conditions, ignore_permissions=None):
 	if filters:
 		flt = filters
 		if isinstance(filters, dict):
@@ -347,7 +347,7 @@ def get_filters_cond(doctype, filters, conditions):
 		query = DatabaseQuery(doctype)
 		query.filters = flt
 		query.conditions = conditions
-		query.build_filter_conditions(flt, conditions)
+		query.build_filter_conditions(flt, conditions, ignore_permissions)
 
 		cond = ' and ' + ' and '.join(query.conditions)
 	else:
