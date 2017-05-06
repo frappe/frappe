@@ -46,17 +46,24 @@ def get_children():
 
 @frappe.whitelist()
 def add_node():
-	doctype = frappe.form_dict.get('doctype')
-	parent_field = 'parent_' + doctype.lower().replace(' ', '_')
-	name_field = doctype.lower().replace(' ', '_') + '_name'
+	args = make_tree_args(**frappe.form_dict)
+	doc = frappe.get_doc(args)
 
-	doc = frappe.new_doc(doctype)
-	doc.update({
-		name_field: frappe.form_dict[name_field],
-		parent_field: frappe.form_dict['parent'],
-		"is_group": frappe.form_dict['is_group']
-	})
-	if doctype == "Sales Person":
+	if args.doctype == "Sales Person":
 		doc.employee = frappe.form_dict.get('employee')
 
 	doc.save()
+
+def make_tree_args(**kwarg):
+	del kwarg['cmd']
+	
+	doctype = kwarg['doctype']
+	parent_field = 'parent_' + doctype.lower().replace(' ', '_')
+	name_field = doctype.lower().replace(' ', '_') + '_name'
+	
+	kwarg.update({
+		name_field: kwarg[name_field],
+		parent_field: kwarg.get("parent") or kwarg.get(parent_field)
+	})
+	
+	return frappe._dict(kwarg)

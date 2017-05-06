@@ -33,36 +33,39 @@
 		{%- block style %}{%- endblock -%}
 	{%- endblock -%}
     <script>
-    window.frappe = {
-    	page_ready_events: {},
-    	ready: function(fn) {
-    		if (!frappe.page_ready_events[location.pathname]) {
-    			frappe.page_ready_events[location.pathname] = []
-    		}
-    		frappe.page_ready_events[location.pathname].push(fn);
-    	}
-    }
-    window.dev_server = {{ dev_server }};
+		window.frappe = {};
+		frappe.ready_events = [];
+		frappe.ready = function(fn) {
+			frappe.ready_events.push(fn);
+		}
+		window.dev_server = {{ dev_server }};
     </script>
 </head>
 <body data-path="{{ path }}">
 	<div class="main-section">
 		<div>
+			<header>
 			{%- block banner -%}
-			{% include "templates/includes/banner_extension.html" ignore missing %}
+				{% include "templates/includes/banner_extension.html" ignore missing %}
 				{% if banner_html -%}
-				<header class="container">{{ banner_html or "" }}</header>
+				<div class="container">
+					<div class='banner'>
+						{{ banner_html or "" }}
+					</div>
+				</div>
 				{%- endif %}
 			{%- endblock -%}
 
 			{%- block navbar -%}
                 {% include "templates/includes/navbar/navbar.html" %}
             {%- endblock -%}
+			</header>
+
             <div class="hero-and-content">
                 <div data-html-block="hero">
 				{%- block hero -%}{%- endblock -%}
                 </div>
-                <div class="container" data-html-block="content">
+                <div class="container">
                 {% block content %}{% endblock %}
                 </div>
             </div>

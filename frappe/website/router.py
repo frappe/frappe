@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 import frappe, os
 
-from frappe.website.utils import can_cache, delete_page_cache
+from frappe.website.utils import can_cache, delete_page_cache, extract_title
 from frappe.model.document import get_controller
 from frappe import _
 
@@ -46,7 +46,10 @@ def make_page_context(path):
 		raise frappe.DoesNotExistError
 
 	context.doctype = context.ref_doctype
-	context.title = context.page_title
+
+	if context.page_title:
+		context.title = context.page_title
+
 	context.pathname = frappe.local.path
 
 	return context
@@ -87,19 +90,21 @@ def get_all_page_context_from_doctypes():
 
 def get_page_info_from_doctypes(path=None):
 	routes = {}
-	for app in frappe.get_installed_apps():
-		for doctype in frappe.get_hooks("website_generators", app_name = app):
-			condition = ""
-			values = []
-			controller = get_controller(doctype)
+	for doctype in get_doctypes_with_web_view():
+		condition = ""
+		values = []
+		controller = get_controller(doctype)
+		meta = frappe.get_meta(doctype)
+		condition_field = meta.is_published_field or controller.website.condition_field
 
-			if controller.website.condition_field:
-				condition ="where {0}=1".format(controller.website.condition_field)
+		if condition_field:
+			condition ="where {0}=1".format(condition_field)
 
-			if path:
-				condition += ' {0} `route`=%s limit 1'.format('and' if 'where' in condition else 'where')
-				values.append(path)
+		if path:
+			condition += ' {0} `route`=%s limit 1'.format('and' if 'where' in condition else 'where')
+			values.append(path)
 
+		try:
 			for r in frappe.db.sql("""select route, name, modified from `tab{0}`
 					{1}""".format(doctype, condition), values=values, as_dict=True):
 				routes[r.route] = {"doctype": doctype, "name": r.name, "modified": r.modified}
@@ -107,6 +112,8 @@ def get_page_info_from_doctypes(path=None):
 				# just want one path, return it!
 				if path:
 					return routes[r.route]
+		except Exception, e:
+			if e.args[0]!=1054: raise e
 
 	return routes
 
@@ -214,27 +221,25 @@ def setup_source(page_info):
 	if page_info.template.endswith('.html') or page_info.template.endswith('.md'):
 		if ('</body>' not in source) and ('{% block' not in source):
 			page_info.only_content = True
-			js, css = '', ''
-
-			js_path = os.path.join(page_info.basepath, page_info.basename + '.js')
-			if os.path.exists(js_path):
-				js = unicode(open(js_path, 'r').read(), 'utf-8')
-
-			css_path = os.path.join(page_info.basepath, page_info.basename + '.css')
-			if os.path.exists(css_path):
-				css = unicode(open(css_path, 'r').read(), 'utf-8')
-
 			html = '{% extends "templates/web.html" %}'
-
-			if css:
-				html += '\n{% block style %}\n<style>\n' + css + '\n</style>\n{% endblock %}'
-
 			html += '\n{% block page_content %}\n' + source + '\n{% endblock %}'
-
-			if js:
-				html += '\n{% block script %}<script>' + js + '\n</script>\n{% endblock %}'
 		else:
 			html = source
+
+		# load css/js files
+		js, css = '', ''
+
+		js_path = os.path.join(page_info.basepath, (page_info.basename or 'index') + '.js')
+		if os.path.exists(js_path):
+			if not '{% block script %}' in html:
+				js = unicode(open(js_path, 'r').read(), 'utf-8')
+				html += '\n{% block script %}<script>' + js + '\n</script>\n{% endblock %}'
+
+		css_path = os.path.join(page_info.basepath, (page_info.basename or 'index') + '.css')
+		if os.path.exists(css_path):
+			if not '{% block style %}' in html:
+				css = unicode(open(css_path, 'r').read(), 'utf-8')
+				html += '\n{% block style %}\n<style>\n' + css + '\n</style>\n{% endblock %}'
 
 	page_info.source = html
 
@@ -286,20 +291,11 @@ def make_toc(context, out, app=None):
 
 def load_properties(page_info):
 	'''Load properties like no_cache, title from raw'''
-	import re
-
 	if not page_info.title:
-		if "<!-- title:" in page_info.source:
-			page_info.title = re.findall('<!-- title:([^>]*) -->', page_info.source)[0].strip()
-		elif "<h1>" in page_info.source:
-			match = re.findall('<h1>([^>]*)</h1>', page_info.source)
-			if match:
-				page_info.title = match[0].strip()
-		else:
-			page_info.title = os.path.basename(page_info.name).replace('_', ' ').replace('-', ' ').title()
+		page_info.title = extract_title(page_info.source, page_info.name)
 
 	if page_info.title and not '{% block title %}' in page_info.source:
-		page_info.source += '\n{% block title %}' + page_info.title + '{% endblock %}'
+		page_info.source += '\n{% block title %}{{ title }}{% endblock %}'
 
 	if "<!-- no-breadcrumbs -->" in page_info.source:
 		page_info.no_breadcrumbs = 1
@@ -313,23 +309,67 @@ def load_properties(page_info):
 		# every page needs a header
 		# add missing header if there is no <h1> tag
 		if (not '{% block header %}' in page_info.source) and (not '<h1' in page_info.source):
-			page_info.source += '\n{% block header %}<h1>' + page_info.title + '</h1>{% endblock %}'
+			page_info.source += '\n{% block header %}<h1>{{ title }}</h1>{% endblock %}'
 
 	if "<!-- no-cache -->" in page_info.source:
 		page_info.no_cache = 1
 
-def process_generators(func):
-	for app in frappe.get_installed_apps():
-		for doctype in frappe.get_hooks("website_generators", app_name = app):
-			order_by = "name asc"
-			condition_field = None
-			controller = get_controller(doctype)
+	if "<!-- no-sitemap -->" in page_info.source:
+		page_info.no_cache = 1
 
-			if hasattr(controller, "condition_field"):
-				condition_field = controller.condition_field
-			if hasattr(controller, "order_by"):
-				order_by = controller.order_by
+def get_doctypes_with_web_view():
+	'''Return doctypes with Has Web View or set via hooks'''
+	def _get():
+		installed_apps = frappe.get_installed_apps()
+		doctypes = frappe.get_hooks("website_generators")
+		doctypes += [d.name for d in frappe.get_all('DocType', 'name, module',
+			dict(has_web_view=1)) if frappe.local.module_app[frappe.scrub(d.module)] in installed_apps]
+		return doctypes
 
-			val = func(doctype, condition_field, order_by)
-			if val:
-				return val
+	return frappe.cache().get_value('doctypes_with_web_view', _get)
+
+def sync_global_search():
+	'''Sync page content in global search'''
+	from frappe.website.render import render_page
+	from frappe.utils.global_search import sync_global_search
+	from bs4 import BeautifulSoup
+
+	if frappe.flags.update_global_search:
+		sync_global_search()
+	frappe.flags.update_global_search = []
+	frappe.session.user = 'Guest'
+	frappe.local.no_cache = True
+
+	frappe.db.sql('delete from __global_search where doctype="Static Web Page"')
+
+	for app in frappe.get_installed_apps(frappe_last=True):
+		app_path = frappe.get_app_path(app)
+
+		folders = frappe.local.flags.web_pages_folders or ('www', 'templates/pages')
+
+		for start in folders:
+			for basepath, folders, files in os.walk(os.path.join(app_path, start)):
+				for f in files:
+					if f.endswith('.html') or f.endswith('.md'):
+						path = os.path.join(basepath, f.rsplit('.', 1)[0])
+						try:
+							content = render_page(path)
+							soup = BeautifulSoup(content, 'html.parser')
+							text = ''
+							route = os.path.relpath(path, os.path.join(app_path, start))
+							for div in soup.findAll("div", {'class':'page-content'}):
+								text += div.text
+
+							frappe.flags.update_global_search.append(
+								dict(doctype='Static Web Page',
+									name=route,
+									content=frappe.unicode(text),
+									published=1,
+									title=soup.title.string,
+									route=route))
+
+						except Exception:
+							pass
+
+		sync_global_search()
+

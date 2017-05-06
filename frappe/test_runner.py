@@ -1,7 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 
 import frappe
 import unittest, json, sys
@@ -48,7 +48,7 @@ def main(app=None, module=None, doctype=None, verbose=False, tests=(), force=Fal
 		set_test_email_config()
 
 		if verbose:
-			print 'Running "before_tests" hooks'
+			print('Running "before_tests" hooks')
 		for fn in frappe.get_hooks("before_tests", app_name=app):
 			frappe.get_attr(fn)()
 
@@ -110,14 +110,14 @@ def run_all_tests(app=None, verbose=False, profile=False):
 		s = StringIO.StringIO()
 		ps = pstats.Stats(pr, stream=s).sort_stats('cumulative')
 		ps.print_stats()
-		print s.getvalue()
+		print(s.getvalue())
 
 	return out
 
 def run_tests_for_doctype(doctype, verbose=False, tests=(), force=False, profile=False):
 	module = frappe.db.get_value("DocType", doctype, "module")
 	if not module:
-		print 'Invalid doctype {0}'.format(doctype)
+		print('Invalid doctype {0}'.format(doctype))
 		sys.exit(1)
 
 	test_module = get_module_name(doctype, module, "test_")
@@ -158,7 +158,7 @@ def _run_unittest(module, verbose=False, tests=(), profile=False):
 		s = StringIO.StringIO()
 		ps = pstats.Stats(pr, stream=s).sort_stats('cumulative')
 		ps.print_stats()
-		print s.getvalue()
+		print(s.getvalue())
 
 	return out
 
@@ -205,7 +205,7 @@ def make_test_records(doctype, verbose=0, force=False):
 
 		if not options in frappe.local.test_objects:
 			if options in frappe.local.test_objects:
-				print "No test records or circular reference for {0}".format(options)
+				print("No test records or circular reference for {0}".format(options))
 			frappe.local.test_objects[options] = []
 			make_test_records(options, verbose, force)
 			make_test_records_for_doctype(options, verbose, force)
@@ -247,7 +247,7 @@ def make_test_records_for_doctype(doctype, verbose=0, force=False):
 	module, test_module = get_modules(doctype)
 
 	if verbose:
-		print "Making for " + doctype
+		print("Making for " + doctype)
 
 	if hasattr(test_module, "_make_test_records"):
 		frappe.local.test_objects[doctype] += test_module._make_test_records(verbose)
@@ -264,17 +264,12 @@ def make_test_records_for_doctype(doctype, verbose=0, force=False):
 			print_mandatory_fields(doctype)
 
 
-def make_test_objects(doctype, test_records, verbose=None):
+def make_test_objects(doctype, test_records=None, verbose=None, reset=False):
+	'''Make test objects from given list of `test_records` or from `test_records.json`'''
 	records = []
 
-	# if not frappe.get_meta(doctype).issingle:
-	# 	existing = frappe.get_all(doctype, filters={"name":("like", "_T-" + doctype + "-%")})
-	# 	if existing:
-	# 		return [d.name for d in existing]
-	#
-	# 	existing = frappe.get_all(doctype, filters={"name":("like", "_Test " + doctype + "%")})
-	# 	if existing:
-	# 		return [d.name for d in existing]
+	if test_records is None:
+		test_records = frappe.get_test_records(doctype)
 
 	for doc in test_records:
 		if not doc.get("doctype"):
@@ -285,7 +280,7 @@ def make_test_objects(doctype, test_records, verbose=None):
 		if doc.get('name'):
 			d.name = doc.get('name')
 
-		if frappe.local.test_objects.get(d.doctype):
+		if frappe.local.test_objects.get(d.doctype) and not reset:
 			# do not create test records, if already exists
 			return []
 
@@ -322,11 +317,11 @@ def make_test_objects(doctype, test_records, verbose=None):
 	return records
 
 def print_mandatory_fields(doctype):
-	print "Please setup make_test_records for: " + doctype
-	print "-" * 60
+	print("Please setup make_test_records for: " + doctype)
+	print("-" * 60)
 	meta = frappe.get_meta(doctype)
-	print "Autoname: " + (meta.autoname or "")
-	print "Mandatory Fields: "
+	print("Autoname: " + (meta.autoname or ""))
+	print("Mandatory Fields: ")
 	for d in meta.get("fields", {"reqd":1}):
-		print d.parent + ":" + d.fieldname + " | " + d.fieldtype + " | " + (d.options or "")
-	print
+		print(d.parent + ":" + d.fieldname + " | " + d.fieldtype + " | " + (d.options or ""))
+	print()

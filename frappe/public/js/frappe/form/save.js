@@ -19,6 +19,7 @@ frappe.ui.form.save = function(frm, action, callback, btn) {
 
 	var save = function() {
 		check_name(function() {
+			$(frm.wrapper).addClass('validated-form');
 			if(check_mandatory()) {
 				_call({
 					method: "frappe.desk.form.save.savedocs",
@@ -132,10 +133,21 @@ frappe.ui.form.save = function(frm, action, callback, btn) {
 
 				}
 			});
-			if(error_fields.length)
-				msgprint(__('Mandatory fields required in {0}', [(doc.parenttype
-					? (__(frappe.meta.docfield_map[doc.parenttype][doc.parentfield].label) + ' ('+ __("Table") + ')')
-					: __(doc.doctype))]) + '<br> <ul><li>' + error_fields.join('</li><li>') + "</ul>");
+			if(error_fields.length) {
+				if(doc.parenttype) {
+					var message = __('Mandatory fields required in table {0}, Row {1}',
+						[__(frappe.meta.docfield_map[doc.parenttype][doc.parentfield].label).bold(), doc.idx]);
+				} else {
+					var message = __('Mandatory fields required in {0}', [__(doc.doctype)]);
+
+				}
+				message = message + '<br><br><ul><li>' + error_fields.join('</li><li>') + "</ul>";
+				msgprint({
+					message: message,
+					indicator: 'red',
+					title: __('Missing Fields')
+				});
+			}
 		});
 
 		return !has_errors;
@@ -177,10 +189,11 @@ frappe.ui.form.save = function(frm, action, callback, btn) {
 			},
 			always: function(r) {
 				frappe.ui.form.is_saving = false;
-
-				var doc = r.docs && r.docs[0];
-				if(doc) {
-					frappe.ui.form.update_calling_link(doc.name);
+				if(r) {
+					var doc = r.docs && r.docs[0];
+					if(doc) {
+						frappe.ui.form.update_calling_link(doc);
+					}					
 				}
 			}
 		})
@@ -193,18 +206,18 @@ frappe.ui.form.save = function(frm, action, callback, btn) {
 	}
 }
 
-frappe.ui.form.update_calling_link = function(name) {
-	if(frappe._from_link) {
+frappe.ui.form.update_calling_link = function(newdoc) {
+	if(frappe._from_link && newdoc.doctype===frappe._from_link.df.options) {
 		var doc = frappe.get_doc(frappe._from_link.doctype, frappe._from_link.docname);
 		// set value
 		if (doc && doc.parentfield){
 			//update values for child table
 			$.each(frappe._from_link.frm.fields_dict[doc.parentfield].grid.grid_rows, function(index, field) {
 				if(field.doc && field.doc.name===frappe._from_link.docname){
-					frappe._from_link.set_value(name);
+					frappe._from_link.set_value(newdoc.name);
 			}});
 		} else {
-			frappe._from_link.set_value(name);
+			frappe._from_link.set_value(newdoc.name);
 	    }
 
 		// refresh field

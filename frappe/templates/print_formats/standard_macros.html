@@ -5,7 +5,7 @@
 		<div>{{ frappe.render_template(df.options, {"doc": doc}) or "" }}</div>
 	{%- elif df.fieldtype in ("Text", "Text Editor", "Code") -%}
 		{{ render_text_field(df, doc) }}
-	{%- elif df.fieldtype in ("Image", "Attach Image", "Attach")
+	{%- elif df.fieldtype in ("Image", "Attach Image", "Attach", "Signature")
 		and (guess_mimetype(doc[df.fieldname])[0] or "").startswith("image/")  -%}
 		{{ render_image(df, doc) }}
 	{%- else -%}
@@ -27,10 +27,12 @@
 			<table class="table table-bordered table-condensed">
 				<thead>
 					<tr>
-						<th style="width: 40px" class="table-sr">Sr</th>
+						<th style="width: 40px" class="table-sr">{{ _("Sr") }}</th>
 						{% for tdf in visible_columns %}
+						{% if (data and not data[0].flags.compact_item_print) or tdf.fieldname in doc.get(df.fieldname)[0].flags.compact_item_fields %}
 							<th style="width: {{ get_width(tdf) }};" class="{{ get_align_class(tdf) }}" {{ fieldmeta(df) }}>
 								{{ _(tdf.label) }}</th>
+						{% endif %}
 						{% endfor %}
 					</tr>
 				</thead>
@@ -39,8 +41,10 @@
 					<tr>
 						<td class="table-sr">{{ d.idx }}</td>
 						{% for tdf in visible_columns %}
+						{% if not d.flags.compact_item_print or tdf.fieldname in doc.get(df.fieldname)[0].flags.compact_item_fields %}
 							<td class="{{ get_align_class(tdf) }}" {{ fieldmeta(df) }}>
-                                <div class="value">{{ print_value(tdf, d, doc) }}</div></td>
+                                <div class="value">{{ print_value(tdf, d, doc, visible_columns) }}</div></td>
+						{% endif %}
 						{% endfor %}
 					</tr>
 					{% endfor %}
@@ -90,11 +94,10 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 {%- endmacro -%}
 
 {%- macro render_image(df, doc) -%}
-	{%- if df.label %}<label>{{ _(df.label) }}</label>{%- endif %}
 	{{ print_value(df, doc) }}
 {% endmacro %}
 
-{%- macro print_value(df, doc, parent_doc=None) -%}
+{%- macro print_value(df, doc, parent_doc=None, visible_columns=None) -%}
     {% if doc.print_templates and
 			doc.print_templates.get(df.fieldname) %}
         {% include doc.print_templates[df.fieldname] %}
@@ -104,6 +107,8 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 		<img src="{{ doc[doc.meta.get_field(df.fieldname).options] }}"
 			class="img-responsive"
 			{%- if df.print_width %} style="width: {{ get_width(df) }};"{% endif %}>
+	{% elif df.fieldtype=="Signature" %}
+		<img src="{{ doc[df.fieldname] }}" class="signature-img img-responsive">
 	{% elif df.fieldtype in ("Attach", "Attach Image") and doc[df.fieldname]
 		and (guess_mimetype(doc[df.fieldname])[0] or "").startswith("image/") %}
 		<img src="{{ doc[df.fieldname] }}" class="img-responsive"

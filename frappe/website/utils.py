@@ -218,3 +218,15 @@ def get_full_index(route=None, app=None):
 		frappe.local.flags.children_map = children_map
 
 	return frappe.local.flags.children_map
+
+def extract_title(source, path):
+	'''Returns title from `&lt;!-- title --&gt;` or &lt;h1&gt; or path'''
+	if "<!-- title:" in source:
+		title = re.findall('<!-- title:([^>]*) -->', source)[0].strip()
+	elif "<h1>" in source:
+		match = re.findall('<h1>([^<]*)', source)
+		title = match[0].strip()[:300]
+	else:
+		title = os.path.basename(path).replace('_', ' ').replace('-', ' ').title()
+
+	return title

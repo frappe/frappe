@@ -299,7 +299,7 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 0, 
- "modified": "2016-12-15 14:55:45.761422", 
+ "modified": "2016-12-29 14:39:50.172883", 
  "modified_by": "Administrator", 
  "module": "Custom", 
  "name": "Property Setter", 
@@ -353,5 +353,6 @@
  "read_only_onload": 0, 
  "search_fields": "doc_type,property", 
  "sort_order": "DESC", 
+ "track_changes": 1, 
  "track_seen": 0
 }

@@ -1,31 +1,26 @@
-<div class="row doclist-row {% if (data._checkbox) { %} has-checkbox {% } %}">
-    <div class="col-xs-10
-		{% if (list.meta.title_field && !list.settings.hide_name_column) { %}
-            col-sm-8
-        {% } else { %}
-            col-sm-10
-        {% } %} list-row-left">
-        <!-- title + columns -->
-        {%= main %}
-    </div>
+<div class="list-item">
+    {%= main %}
 
     <!-- id -->
-    {% if (list.meta.title_field && !list.settings.hide_name_column) {
-		var is_different = data.name !== data[list.meta.title_field];
-	%}
-    <div class="list-col col-sm-2 hidden-xs text-right ellipsis list-row-id">
-		{% if (is_different) { %}
-        <a class="text-muted list-value" href="#Form/{%= data._doctype_encoded %}/{%= data._name_encoded %}">
+    {% if (meta.title_field && !settings.hide_name_column) {
+        var is_different = data.name !== data[meta.title_field];
+    %}
+    <div class="list-item__content list-item__content--id hidden-xs hidden-sm ellipsis">
+        {% if (is_different) { %}
+        <a class="text-muted ellipsis" href="#Form/{%= data._doctype_encoded %}/{%= data._name_encoded %}">
             {%= data.name %}</a>
-		{% } %}
+        {% } %}
     </div>
     {% } %}
 
     <!-- comment -->
-    <div class="list-col col-sm-2 col-xs-2
-		text-right list-row-right" style="padding-left:0px">
-		<div class="visible-xs list-row-indicator">{%= list.get_indicator_dot(data) %}</div>
-		<!-- comments count and assigned to section -->
-		{%= frappe.render_template("item_assigned_to_comment_count", { data: data }) %}
+    {% if (!data._hide_activity) { %}
+    <div class="list-item__content list-item__content--activity hidden-xs">
+        <!-- comments count and assigned to section -->
+        {%= frappe.render_template("item_assigned_to_comment_count", { data: data }) %}
     </div>
+    <div class="list-item__content list-item__content--indicator visible-xs text-right">
+        {%= indicator_dot %}
+    </div>
+    {% } %}
 </div>

@@ -24,13 +24,16 @@ frappe.ui.Tree = Class.extend({
 		});
 		this.rootnode.toggle();
 	},
+	refresh: function() {
+		this.selected_node.reload_parent();
+	},
 	get_selected_node: function() {
 		return this.selected_node;
 	},
 	toggle: function() {
 		this.get_selected_node().toggle();
 	}
-})
+});
 
 frappe.ui.TreeNode = Class.extend({
 	init: function(args) {
@@ -50,19 +53,20 @@ frappe.ui.TreeNode = Class.extend({
 	},
 	make: function() {
 		var me = this;
-		this.$a = $('<span class="tree-link">')
+		this.tree_link = $('<span class="tree-link">')
 			.click(function(event) {
 				me.tree.selected_node = me;
 				me.tree.wrapper.find(".tree-link.active").removeClass("active");
-				me.$a.addClass("active");
+				me.tree_link.addClass("active");
 				if(me.tree.toolbar) {
 					me.show_toolbar();
 				}
-				if(me.toggle_on_click) {
-					me.toggle();
-				}
-				if(me.tree.click)
+				if(me.tree.click) {
 					me.tree.click(this);
+				}
+				if(me.tree.onclick) {
+					me.tree.onclick(me);
+				}
 			})
 			.data('label', this.label)
 			.data('node', this)
@@ -82,10 +86,14 @@ frappe.ui.TreeNode = Class.extend({
 			icon_html = '<i class="fa fa-fw fa-folder text-muted" style="font-size: 14px;"></i>';
 		}
 		$(icon_html + ' <a class="tree-label grey h6">' + this.get_label() + "</a>").
-			appendTo(this.$a);
+			appendTo(this.tree_link);
 
-		this.$a.find('i, a').click(function() {
+		this.tree_link.find('i').click(function() {
 			setTimeout(function() { me.toolbar.find(".btn-expand").click(); }, 100);
+		});
+
+		this.tree_link.find('a').click(function() {
+			if(!me.expanded) setTimeout(function() { me.toolbar.find(".btn-expand").click(); }, 100);
 		});
 	},
 	get_label: function() {
@@ -113,7 +121,7 @@ frappe.ui.TreeNode = Class.extend({
 	},
 	make_toolbar: function() {
 		var me = this;
-		this.toolbar = $('<span class="tree-node-toolbar btn-group"></span>').insertAfter(this.$a);
+		this.toolbar = $('<span class="tree-node-toolbar btn-group"></span>').insertAfter(this.tree_link);
 
 		$.each(this.tree.toolbar, function(i, item) {
 			if(item.toggle_btn) {
@@ -179,20 +187,20 @@ frappe.ui.TreeNode = Class.extend({
 			}
 
 			// open close icon
-			this.$a.find('i').removeClass();
+			this.tree_link.find('i').removeClass();
 			if(!this.expanded) {
-				this.$a.find('i').addClass('fa fa-fw fa-folder-open text-muted');
+				this.tree_link.find('i').addClass('fa fa-fw fa-folder-open text-muted');
 			} else {
-				this.$a.find('i').addClass('fa fa-fw fa-folder text-muted');
+				this.tree_link.find('i').addClass('fa fa-fw fa-folder text-muted');
 			}
 		}
 
 		// select this link
 		this.tree.wrapper.find('.selected')
 			.removeClass('selected');
-		this.$a.toggleClass('selected');
+		this.tree_link.toggleClass('selected');
 		this.expanded = !this.expanded;
-		
+
 		this.expanded ?
 			this.parent.addClass('opened') :
 			this.parent.removeClass('opened');
@@ -202,7 +210,7 @@ frappe.ui.TreeNode = Class.extend({
 		this.load();
 	},
 	reload_parent: function() {
-		this.parent_node.load();
+		this.parent_node.load_all();
 	},
 	load_all: function(callback) {
 		var  me = this;
@@ -240,7 +248,7 @@ frappe.ui.TreeNode = Class.extend({
 		if (data) {
 			$.each(data, function(i, v) {
 				var child_node = node.addnode(v);
-				child_node.$a
+				child_node.tree_link
 					.data('node-data', v)
 					.data('node', child_node);
 			});

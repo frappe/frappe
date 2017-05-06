@@ -73,7 +73,7 @@ frappe.ui.form.States = Class.extend({
 		}
 
 		$.each(frappe.workflow.get_transitions(this.frm.doctype, state), function(i, d) {
-			if(in_list(user_roles, d.allowed)) {
+			if(in_list(roles, d.allowed)) {
 				added = true;
 				me.frm.page.add_action_item(__(d.action), function() {
 					var action = d.action;

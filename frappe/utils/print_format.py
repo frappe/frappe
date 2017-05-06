@@ -12,7 +12,7 @@ from pyPdf import PdfFileWriter, PdfFileReader
 no_cache = 1
 no_sitemap = 1
 
-base_template_path = "templates/www/print.html"
+base_template_path = "templates/www/printview.html"
 standard_format = "templates/print_formats/standard.html"
 
 @frappe.whitelist()

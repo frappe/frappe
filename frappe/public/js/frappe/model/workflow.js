@@ -58,7 +58,7 @@ frappe.workflow = {
 
 			var allow_edit = state ? frappe.workflow.get_document_state(doctype, state).allow_edit : null;
 
-			if(user_roles.indexOf(allow_edit)==-1) {
+			if(roles.indexOf(allow_edit)==-1) {
 				return true;
 			}
 		}

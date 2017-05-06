@@ -160,13 +160,21 @@
 	background-color: @indicator-red;
 }
 
-#navbar-search {
+.navbar-form .awesomplete {
 	width: 300px;
-	background-color: rgba(255, 255, 255, 0.9);
+
+	@media (max-width: @screen-md) {
+		width: 280px;
+	}
 
 	@media (max-width: @screen-sm) {
 		width: 250px;
 	}
+}
+
+#navbar-search {
+	width: 100%;
+	background-color: rgba(255, 255, 255, 0.9);
 }
 
 .navbar .navbar-search-icon {
@@ -220,12 +228,8 @@
 }
 
 .toolbar-user-fullname {
-	max-width: 200px;
+	max-width: 150px;
 	display: inline-block;
-}
-
-.navbar-brand {
-	padding: 10px;
 }
 
 .navbar-brand > img {

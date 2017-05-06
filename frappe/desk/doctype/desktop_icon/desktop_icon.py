@@ -94,7 +94,7 @@ def get_desktop_icons(user=None):
 def add_user_icon(_doctype, label=None, link=None, type='link', standard=0):
 	'''Add a new user desktop icon to the desktop'''
 
-	if not label: label = frappe._(_doctype)
+	if not label: label = _doctype
 	if not link: link = 'List/{0}'.format(_doctype)
 
 	# find if a standard icon exists

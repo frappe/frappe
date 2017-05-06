@@ -6,7 +6,9 @@ import frappe
 import json, os
 from frappe import _
 from frappe.model.document import Document
+from frappe.core.doctype.role.role import get_emails_from_role
 from frappe.utils import validate_email_add, nowdate
+from frappe.utils.data import parse_val
 from frappe.utils.jinja import validate_template
 from frappe.modules.utils import export_module_json, get_doc_module
 from markdown2 import markdown
@@ -54,7 +56,7 @@ def get_context(context):
 		temp_doc = frappe.new_doc(self.document_type)
 		if self.condition:
 			try:
-				eval(self.condition, get_context(temp_doc))
+				frappe.safe_eval(self.condition, None, get_context(temp_doc))
 			except:
 				frappe.throw(_("The Condition '{0}' is invalid").format(self.condition))
 
@@ -80,7 +82,7 @@ def get_context(context):
 
 			doc = frappe.get_doc(self.document_type, name)
 
-			if self.condition and not eval(self.condition, get_context(doc)):
+			if self.condition and not frappe.safe_eval(self.condition, None, get_context(doc)):
 				continue
 
 			docs.append(doc)
@@ -89,43 +91,76 @@ def get_context(context):
 
 	def send(self, doc):
 		'''Build recipients and send email alert'''
+
+		def get_attachment(doc):
+			""" check print settings are attach the pdf """
+			if not self.attach_print:
+				return None
+
+			print_settings = frappe.get_doc("Print Settings", "Print Settings")
+			if (doc.docstatus == 0 and not print_settings.allow_print_for_draft) or \
+				(doc.docstatus == 2 and not print_settings.allow_print_for_cancelled):
+
+				# ignoring attachment as draft and cancelled documents are not allowed to print
+				status = "Draft" if doc.docstatus == 0 else "Cancelled"
+				frappe.throw(_("""Not allowed to attach {0} document,
+					please enable Allow Print For {0} in Print Settings""".format(status)),
+					title=_("Error in Email Alert"))
+			else:
+				return [frappe.attach_print(doc.doctype, doc.name)]
+
 		context = get_context(doc)
+		recipients = []
 
-		for recipient in self.recipients:
-			recipients = []
-			if recipient.condition:
-				if not eval(recipient.condition, context):
-					continue
-			if recipient.email_by_document_field:
-				if validate_email_add(doc.get(recipient.email_by_document_field)):
-					recipients.append(doc.get(recipient.email_by_document_field))
-				# else:
-				# 	print "invalid email"
-			if recipient.cc:
-				recipient.cc = recipient.cc.replace(",", "\n")
-				recipients = recipients + recipient.cc.split("\n")
+		try:
+			for recipient in self.recipients:
+				if recipient.condition:
+					if not frappe.safe_eval(recipient.condition, None, context):
+						continue
+				if recipient.email_by_document_field:
+					if validate_email_add(doc.get(recipient.email_by_document_field)):
+						recipient.email_by_document_field = doc.get(recipient.email_by_document_field).replace(",", "\n")
+						recipients = recipients + recipient.email_by_document_field.split("\n")
 
-		if not recipients:
-			return
+					# else:
+					# 	print "invalid email"
+				if recipient.cc:
+					recipient.cc = recipient.cc.replace(",", "\n")
+					recipients = recipients + recipient.cc.split("\n")
 
-		subject = self.subject
+				#For sending emails to specified role
+				if recipient.email_by_role:
+					emails = get_emails_from_role(recipient.email_by_role)
 
-		context = {"doc": doc, "alert": self, "comments": None}
+					for email in emails:
+						recipients = recipients + email.split("\n")
 
-		if self.is_standard:
-			self.load_standard_properties(context)
+			if not recipients:
+				return
 
-		if doc.get("_comments"):
-			context["comments"] = json.loads(doc.get("_comments"))
+			recipients = list(set(recipients))
+			subject = self.subject
 
-		if "{" in subject:
-			subject = frappe.render_template(self.subject, context)
+			context = {"doc": doc, "alert": self, "comments": None}
 
-		frappe.sendmail(recipients=recipients, subject=subject,
-			message= frappe.render_template(self.message, context),
-			reference_doctype = doc.doctype,
-			reference_name = doc.name,
-			attachments = [frappe.attach_print(doc.doctype, doc.name)] if self.attach_print else None)
+			if self.is_standard:
+				self.load_standard_properties(context)
+
+			if doc.get("_comments"):
+				context["comments"] = json.loads(doc.get("_comments"))
+
+			if "{" in subject:
+				subject = frappe.render_template(self.subject, context)
+
+			attachments = get_attachment(doc)
+
+			frappe.sendmail(recipients=recipients, subject=subject,
+				message= frappe.render_template(self.message, context),
+				reference_doctype = doc.doctype,
+				reference_name = doc.name,
+				attachments = attachments)
+		except Exception:
+			frappe.throw("Error in Email Alert")
 
 	def load_standard_properties(self, context):
 		module = get_doc_module(self.module, self.doctype, self.name)
@@ -178,12 +213,15 @@ def evaluate_alert(doc, alert, event):
 		context = get_context(doc)
 
 		if alert.condition:
-			if not eval(alert.condition, context):
+			if not frappe.safe_eval(alert.condition, None, context):
 				return
 
 		if event=="Value Change" and not doc.is_new():
-			if doc.get(alert.value_changed) == frappe.db.get_value(doc.doctype,
-				doc.name, alert.value_changed):
+			db_value = frappe.db.get_value(doc.doctype, doc.name, alert.value_changed)
+			db_value = parse_val(db_value)
+			if (doc.get(alert.value_changed) == db_value) or \
+				(not db_value and not doc.get(alert.value_changed)):
+
 				return # value not changed
 
 		if event != "Value Change" and not doc.is_new():
@@ -196,5 +234,4 @@ def evaluate_alert(doc, alert, event):
 		frappe.throw(_("Error while evaluating Email Alert {0}. Please fix your template.").format(alert))
 
 def get_context(doc):
-	return {"doc": doc, "nowdate": nowdate}
-
+	return {"doc": doc, "nowdate": nowdate, "frappe.utils": frappe.utils}

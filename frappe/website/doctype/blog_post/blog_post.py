@@ -11,12 +11,8 @@ from frappe.utils import today, cint, global_date_format, get_fullname, strip_ht
 from frappe.website.utils import find_first_image, get_comment_list
 
 class BlogPost(WebsiteGenerator):
-	save_versions = True
 	website = frappe._dict(
-		condition_field = "published",
-		template = "templates/generators/blog_post.html",
-		order_by = "published_on desc",
-		page_title_field = "title"
+		order_by = "published_on desc"
 	)
 
 	def make_route(self):
@@ -46,7 +42,6 @@ class BlogPost(WebsiteGenerator):
 			where name=%s""", (self.blogger,))
 
 	def on_update(self):
-		WebsiteGenerator.on_update(self)
 		clear_cache("writers")
 
 	def get_context(self, context):
@@ -92,11 +87,10 @@ class BlogPost(WebsiteGenerator):
 def get_list_context(context=None):
 	list_context = frappe._dict(
 		template = "templates/includes/blog/blog.html",
-		row_template = "templates/includes/blog/blog_row.html",
 		get_list = get_blog_list,
 		hide_filters = True,
 		children = get_children(),
-		show_search = True,
+		# show_search = True,
 		title = _('Blog')
 	)
 
@@ -111,7 +105,7 @@ def get_list_context(context=None):
 		list_context.sub_title = _('Filtered by "{0}"').format(frappe.local.form_dict.txt)
 
 	if list_context.sub_title:
-		list_context.parents = [{'label': _('All Posts'), 'route': 'blog'}]
+		list_context.parents = [{'label': _('All Posts'), 'route': 'blog', 'title': list_context.title}]
 	else:
 		list_context.parents = []
 
@@ -136,7 +130,7 @@ def clear_blog_cache():
 def get_blog_category(route):
 	return frappe.db.get_value("Blog Category", {"route": route }) or route
 
-def get_blog_list(doctype, txt=None, filters=None, limit_start=0, limit_page_length=20):
+def get_blog_list(doctype, txt=None, filters=None, limit_start=0, limit_page_length=20, order_by=None):
 	conditions = []
 	if filters:
 		if filters.blogger:
@@ -176,6 +170,7 @@ def get_blog_list(doctype, txt=None, filters=None, limit_start=0, limit_page_len
 	posts = frappe.db.sql(query, as_dict=1)
 
 	for post in posts:
+		post.cover_image = find_first_image(post.content)
 		post.published = global_date_format(post.creation)
 		post.content = strip_html_tags(post.content[:340])
 		if not post.comments:

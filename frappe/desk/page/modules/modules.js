@@ -28,7 +28,8 @@ frappe.pages['modules'].on_page_load = function(wrapper) {
 
 	// render sidebar
 	page.sidebar.html(frappe.render_template('modules_sidebar',
-		{modules: frappe.get_desktop_icons(true)}));
+		{modules: frappe.get_desktop_icons(true).sort(
+			function(a, b){ return (a._label > b._label) ? 1 : -1 })}));
 
 	// help click
 	page.main.on("click", '.module-section-link[data-type="help"]', function(event) {
@@ -132,9 +133,9 @@ frappe.pages['modules'].on_page_load = function(wrapper) {
 						return encodeURIComponent(key) + "=" + encodeURIComponent(value) }).join('&')
 				}
 
-				if(item.type==="page" || item.type==="help" ||
-					(item.doctype && frappe.model.can_read(item.doctype))) {
-						item.shown = true;
+				if(item.type==="page" || item.type==="help" || item.type==="report" ||
+				(item.doctype && frappe.model.can_read(item.doctype))) {
+					item.shown = true;
 				}
 			});
 		});

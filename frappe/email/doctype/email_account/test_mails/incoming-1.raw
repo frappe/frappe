@@ -36,7 +36,7 @@ Received: from [192.168.0.100] ([27.106.4.70])
         Mon, 15 Sep 2014 03:35:04 -0700 (PDT)
 From: Rushabh Mehta <test_sender@example.com>
 Content-Type: multipart/alternative; boundary="Apple-Mail=_57F71261-5C3A-43F6-918B-4438B96F61AA"
-Subject: test mail
+Subject: test mail 🦄🌈😎
 Message-Id: <9143999C-8456-4399-9CF1-4A2DA9DD7711@gmail.com>
 Date: Mon, 15 Sep 2014 16:04:57 +0530
 To: Rushabh Mehta <test_receiver@example.com>

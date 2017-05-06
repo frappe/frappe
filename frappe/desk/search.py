@@ -82,11 +82,17 @@ def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 			fields.append("""locate("{_txt}", `tab{doctype}`.`name`) as `_relevance`""".format(
 				_txt=frappe.db.escape((txt or "").replace("%", "")), doctype=frappe.db.escape(doctype)))
 
+			
+			# In order_by, `idx` gets second priority, because it stores link count
+			from frappe.model.db_query import get_order_by
+			order_by_based_on_meta = get_order_by(doctype, meta)
+			order_by = "if(_relevance, _relevance, 99999), idx desc, {0}".format(order_by_based_on_meta)
+			
 			values = frappe.get_list(doctype,
 				filters=filters, fields=fields,
 				or_filters = or_filters, limit_start = start,
 				limit_page_length=page_len,
-				order_by="if(_relevance, _relevance, 99999), idx desc, modified desc".format(doctype),
+				order_by=order_by,
 				ignore_permissions = True if doctype == "DocType" else False, # for dynamic links
 				as_list=not as_dict)
 
@@ -106,7 +112,7 @@ def get_std_fields_list(meta, key):
 def build_for_autosuggest(res):
 	results = []
 	for r in res:
-		out = {"value": r[0], "description": ", ".join(unique(cstr(d) for d in r)[1:])}
+		out = {"value": r[0], "description": ", ".join(unique(cstr(d) for d in r if d)[1:])}
 		results.append(out)
 	return results
 

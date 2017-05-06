@@ -381,6 +381,9 @@ class BaseDocument(object):
 			self.set("modified", now())
 			self.set("modified_by", frappe.session.user)
 
+		# to trigger email alert on value change
+		self.run_method('before_change')
+
 		frappe.db.set_value(self.doctype, self.name, fieldname, value,
 			self.modified, self.modified_by, update_modified=update_modified)
 
@@ -544,8 +547,8 @@ class BaseDocument(object):
 		for fieldname in constants:
 			df = self.meta.get_field(fieldname)
 
-			# This conversion to string only when fieldtype is Date 
-			if df.fieldtype == 'Date':
+			# This conversion to string only when fieldtype is Date
+			if df.fieldtype == 'Date' or df.fieldtype == 'Datetime':
 				value = str(values.get(fieldname))
 
 			else:
@@ -608,7 +611,7 @@ class BaseDocument(object):
 			if not value or not isinstance(value, basestring):
 				continue
 
-			elif ("<" not in value and ">" not in value):
+			elif (u"<" not in value and u">" not in value):
 				# doesn't look like html so no need
 				continue
 

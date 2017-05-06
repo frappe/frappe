@@ -18,6 +18,7 @@ import frappe.model.meta
 from frappe.utils import now, get_datetime, cstr
 from frappe import _
 from types import StringType, UnicodeType
+from frappe.utils.global_search import sync_global_search
 
 class Database:
 	"""
@@ -49,7 +50,7 @@ class Database:
 		"""Connects to a database as set in `site_config.json`."""
 		warnings.filterwarnings('ignore', category=MySQLdb.Warning)
 		self._conn = MySQLdb.connect(user=self.user, host=self.host, passwd=self.password,
-			use_unicode=True, charset='utf8')
+			use_unicode=True, charset='utf8mb4')
 		self._conn.converter[246]=float
 		self._conn.converter[12]=get_datetime
 		self._conn.encoders[UnicodeWithAttrs] = self._conn.encoders[UnicodeType]
@@ -408,7 +409,8 @@ class Database:
 			frappe.db.get_value("System Settings", None, "date_format")
 		"""
 
-		ret = self.get_values(doctype, filters, fieldname, ignore, as_dict, debug, order_by, cache=cache)
+		ret = self.get_values(doctype, filters, fieldname, ignore, as_dict, debug,
+			order_by, cache=cache)
 
 		return ((len(ret[0]) > 1 or as_dict) and ret[0] or ret[0][0]) if ret else None
 
@@ -436,6 +438,8 @@ class Database:
 		if cache and isinstance(filters, basestring) and \
 			(doctype, filters, fieldname) in self.value_cache:
 			return self.value_cache[(doctype, filters, fieldname)]
+
+		if not order_by: order_by = 'modified desc'
 
 		if isinstance(filters, list):
 			out = self._get_value_for_many_names(doctype, filters, fieldname, debug=debug)
@@ -719,13 +723,14 @@ class Database:
 		self.sql("commit")
 		frappe.local.rollback_observers = []
 		self.flush_realtime_log()
+		if frappe.flags.update_global_search:
+			sync_global_search()
 
 	def flush_realtime_log(self):
 		for args in frappe.local.realtime_log:
 			frappe.async.emit_via_redis(*args)
 
 		frappe.local.realtime_log = []
-
 
 	def rollback(self):
 		"""`ROLLBACK` current transaction."""
@@ -794,9 +799,13 @@ class Database:
 			where creation >= %s""".format(doctype=doctype),
 			now_datetime() - relativedelta(minutes=minutes))[0][0]
 
+	def get_db_table_columns(self, table):
+		"""Returns list of column names from given table."""
+		return [r[0] for r in self.sql("DESC `%s`" % table)]
+
 	def get_table_columns(self, doctype):
 		"""Returns list of column names from given doctype."""
-		return [r[0] for r in self.sql("DESC `tab%s`" % doctype)]
+		return self.get_db_table_columns('tab' + doctype)
 
 	def has_column(self, doctype, column):
 		"""Returns True if column exists in database."""

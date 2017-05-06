@@ -42,6 +42,7 @@ type_map = {
 	,'Read Only':	('varchar', varchar_len)
 	,'Attach':		('text', '')
 	,'Attach Image':('text', '')
+	,'Signature':	('longtext', '')
 }
 
 default_columns = ['name', 'creation', 'modified', 'modified_by', 'owner',
@@ -254,7 +255,7 @@ class DbTable:
 	def get_columns_from_db(self):
 		self.show_columns = frappe.db.sql("desc `%s`" % self.name)
 		for c in self.show_columns:
-			self.current_columns[c[0]] = {'name': c[0],
+			self.current_columns[c[0].lower()] = {'name': c[0],
 				'type':c[1], 'index':c[3]=="MUL", 'default':c[4], "unique":c[3]=="UNI"}
 
 	# GET foreign keys
@@ -290,7 +291,7 @@ class DbTable:
 
 	def alter(self):
 		for col in self.columns.values():
-			col.build_for_alter_table(self.current_columns.get(col.fieldname, None))
+			col.build_for_alter_table(self.current_columns.get(col.fieldname.lower(), None))
 
 		query = []
 
@@ -298,20 +299,21 @@ class DbTable:
 			query.append("add column `{}` {}".format(col.fieldname, col.get_definition()))
 
 		for col in self.change_type:
-			query.append("change `{}` `{}` {}".format(col.fieldname, col.fieldname, col.get_definition()))
+			current_def = self.current_columns.get(col.fieldname.lower(), None)
+			query.append("change `{}` `{}` {}".format(current_def["name"], col.fieldname, col.get_definition()))
 
 		for col in self.add_index:
 			# if index key not exists
 			if not frappe.db.sql("show index from `%s` where key_name = %s" %
 					(self.name, '%s'), col.fieldname):
 				query.append("add index `{}`(`{}`)".format(col.fieldname, col.fieldname))
-
+		
 		for col in self.drop_index:
 			if col.fieldname != 'name': # primary key
 				# if index key exists
 				if frappe.db.sql("""show index from `{0}`
 					where key_name=%s
-					and Non_unique=%s""".format(self.name), (col.fieldname, 1 if col.unique else 0)):
+					and Non_unique=%s""".format(self.name), (col.fieldname, 0 if col.unique else 1)):
 					query.append("drop index `{}`".format(col.fieldname))
 
 		for col in self.set_default:
@@ -395,7 +397,8 @@ class DbColumn:
 			return
 
 		# type
-		if (current_def['type'] != column_def) or \
+		if (current_def['type'] != column_def) or\
+			self.fieldname != current_def['name'] or\
 			((self.unique and not current_def['unique']) and column_def not in ('text', 'longtext')):
 			self.table.change_type.append(self)
 

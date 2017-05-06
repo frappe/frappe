@@ -11,7 +11,11 @@ frappe.views.Factory = Class.extend({
 	show: function() {
 		var page_name = frappe.get_route_str(),
 			me = this;
-		if(frappe.pages[page_name] && page_name.indexOf("Form/")===-1) {
+		if(page_name.substr(0, 4) === 'List') {
+			page_name = frappe.get_route().slice(0, 2).join('/');
+		}
+
+		if(frappe.pages[page_name] && !page_name.includes("Form/")) {
 			frappe.container.change_to(frappe.pages[page_name]);
 			if(me.on_show) {
 				me.on_show();

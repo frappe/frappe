@@ -9,6 +9,16 @@ import unittest
 # test_records = frappe.get_test_records('ToDo')
 
 class TestToDo(unittest.TestCase):
+	def test_delete(self):
+		todo = frappe.get_doc(dict(doctype='ToDo', description='test todo',
+			assigned_by='Administrator')).insert()
+
+		frappe.db.sql('delete from `tabDeleted Document`')
+		todo.delete()
+
+		deleted = frappe.get_doc('Deleted Document', dict(deleted_doctype=todo.doctype, deleted_name=todo.name))
+		self.assertEquals(todo.as_json(), deleted.data)
+
 	def test_fetch(self):
 		todo = frappe.get_doc(dict(doctype='ToDo', description='test todo',
 			assigned_by='Administrator')).insert()

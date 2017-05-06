@@ -73,8 +73,8 @@ def get_oauth2_providers():
 		out['frappe'] = {
 			"flow_params": {
 				"name": "frappe",
-				"authorize_url": frappe_server_url + "/api/method/frappe.integration_broker.oauth2.authorize",
-				"access_token_url": frappe_server_url + "/api/method/frappe.integration_broker.oauth2.get_token",
+				"authorize_url": frappe_server_url + "/api/method/frappe.integrations.oauth2.authorize",
+				"access_token_url": frappe_server_url + "/api/method/frappe.integrations.oauth2.get_token",
 				"base_url": frappe_server_url
 			},
 
@@ -86,7 +86,7 @@ def get_oauth2_providers():
 			},
 
 			# relative to base_url
-			"api_endpoint": "/api/method/frappe.integration_broker.oauth2.openid_profile"
+			"api_endpoint": "/api/method/frappe.integrations.oauth2.openid_profile"
 		}
 
 	return out

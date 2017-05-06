@@ -133,7 +133,7 @@ def validate_oauth():
 	form_dict = frappe.local.form_dict
 	authorization_header = frappe.get_request_header("Authorization").split(" ") if frappe.get_request_header("Authorization") else None
 	if authorization_header and authorization_header[0].lower() == "bearer":
-		from frappe.integration_broker.oauth2 import get_oauth_server
+		from frappe.integrations.oauth2 import get_oauth_server
 		token = authorization_header[1]
 		r = frappe.request
 		parsed_url = urlparse(r.url)

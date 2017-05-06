@@ -43,7 +43,6 @@ $.extend(frappe.desktop, {
 			link: 'modules'
 		};
 		explore_icon.app_icon = frappe.ui.app_icon.get_html(explore_icon);
-
 		all_icons.push(explore_icon);
 
 		frappe.desktop.wrapper.html(frappe.render_template(template, {
@@ -51,6 +50,7 @@ $.extend(frappe.desktop, {
 			desktop_items: all_icons,
 		}));
 
+		frappe.desktop.setup_help_messages();
 		frappe.desktop.setup_module_click();
 
 		// notifications
@@ -60,6 +60,77 @@ $.extend(frappe.desktop, {
 		});
 
 		$(document).trigger("desktop-render");
+
+	},
+
+	setup_help_messages: function() {
+		// 	{
+		// 		title: 'Sign up for a Premium Plan',
+		// 		description: 'Sign up for a premium plan and add users, get more disk space and priority support',
+		// 		action: 'Select Plan',
+		// 		route: 'usage-info'
+		// 	}
+
+		if(!frappe.user.has_role('System Manager')) {
+			return;
+		}
+
+		frappe.call({
+			method: 'frappe.core.page.desktop.desktop.get_help_messages',
+			callback: function(r) {
+				frappe.desktop.render_help_messages(r.message);
+			}
+		});
+
+	},
+
+	render_help_messages: function(help_messages) {
+		var wrapper = frappe.desktop.wrapper.find('.help-message-wrapper');
+		var $help_messages = wrapper.find('.help-messages');
+
+		set_current_message = function(idx) {
+			idx = cint(idx);
+			wrapper.current_message_idx = idx;
+			wrapper.find('.left-arrow, .right-arrow').addClass('disabled');
+			wrapper.find('.help-message-item').addClass('hidden');
+			wrapper.find('[data-message-idx="'+idx+'"]').removeClass('hidden');
+			if(idx > 0) {
+				wrapper.find('.left-arrow').removeClass('disabled');
+			}
+			if(idx < help_messages.length - 1) {
+				wrapper.find('.right-arrow').removeClass('disabled');
+			}
+		}
+
+		if(help_messages) {
+			wrapper.removeClass('hidden');
+			help_messages.forEach(function(message, i) {
+				var $message = $('<div class="help-message-item hidden"></div>')
+					.attr('data-message-idx', i)
+					.html(frappe.render_template('desktop_help_message', message))
+					.appendTo($help_messages);
+
+			});
+
+			set_current_message(0);
+
+			wrapper.find('.close').on('click', function() {
+				wrapper.addClass('hidden');
+			});
+		}
+
+		wrapper.find('.left-arrow').on('click', function() {
+			if(wrapper.current_message_idx) {
+				set_current_message(wrapper.current_message_idx - 1);
+			}
+		})
+
+		wrapper.find('.right-arrow').on('click', function() {
+			if(help_messages.length > wrapper.current_message_idx + 1) {
+				set_current_message(wrapper.current_message_idx + 1);
+			}
+		});
+
 	},
 
 	setup_module_click: function() {

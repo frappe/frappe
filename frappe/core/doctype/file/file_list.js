@@ -38,12 +38,11 @@ frappe.listview_settings['File'] = {
 
 		doclist.breadcrumb = $('<ol class="breadcrumb for-file-list"></ol>')
 			.insertBefore(doclist.filter_area);
+		doclist.list_renderer.settings.setup_menu(doclist);
+		doclist.list_renderer.settings.setup_dragdrop(doclist);
 
-		doclist.listview.settings.setup_menu(doclist);
-		doclist.listview.settings.setup_dragdrop(doclist);
-
-		doclist.$page.on("click", ".list-delete", function(event) {
-				doclist.listview.settings.add_menu_item_copy(doclist);
+		doclist.$page.on("click", ".list-row-checkbox", function(event) {
+				doclist.list_renderer.settings.add_menu_item_copy(doclist);
 		})
 	},
 	list_view_doc:function(doclist){
@@ -106,7 +105,7 @@ frappe.listview_settings['File'] = {
 				},
 			});
 		});
- 	},
+	},
 	setup_dragdrop: function(doclist) {
 		$(doclist.$page).on('dragenter dragover', false)
 			.on('drop', function (e) {
@@ -116,7 +115,7 @@ frappe.listview_settings['File'] = {
 				}
 				e.stopPropagation();
 				e.preventDefault();
-				frappe.upload.upload_file(dataTransfer.files[0], {
+				frappe.upload.multifile_upload(dataTransfer.files, {
 					"folder": doclist.current_folder,
 					"from_form": 1
 				}, {
@@ -127,10 +126,10 @@ frappe.listview_settings['File'] = {
 	add_menu_item_copy: function(doclist){
 		if (!doclist.copy) {
 			var copy_menu = doclist.page.add_menu_item(__("Copy"), function() {
-				if(doclist.$page.find(".list-delete:checked").length){
+				if(doclist.$page.find(".list-row-checkbox:checked").length){
 					doclist.selected_files = doclist.get_checked_items();
 					doclist.old_parent = doclist.current_folder;
-					doclist.listview.settings.add_menu_item_paste(doclist);
+					doclist.list_renderer.settings.add_menu_item_paste(doclist);
 				}
 				else{
 					frappe.throw("Please select file to copy");
@@ -148,7 +147,7 @@ frappe.listview_settings['File'] = {
 					"new_parent": doclist.current_folder,
 					"old_parent": doclist.old_parent
 				},
-				callback:function(r) {
+				callback:function(r){
 					doclist.paste = false;
 					frappe.msgprint(__(r.message));
 					doclist.selected_files = [];
@@ -183,7 +182,7 @@ frappe.listview_settings['File'] = {
 			doclist.current_folder_name = route.slice(-1)[0];
 		}
 
-		if(!doclist.current_folder) {
+		if(!doclist.current_folder || doclist.current_folder=="List") {
 			doclist.current_folder = frappe.boot.home_folder;
 			doclist.current_folder_name = __("Home");
 		}

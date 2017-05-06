@@ -14,8 +14,12 @@ frappe.messages.get_waiting_message = function(msg) {
 }
 
 frappe.throw = function(msg) {
+	if(typeof msg==='string') {
+		msg = {message: msg, title: __('Error')};
+	}
+	if(!msg.indicator) msg.indicator = 'red';
 	msgprint(msg);
-	throw new Error(msg);
+	throw new Error(msg.message);
 }
 
 frappe.confirm = function(message, ifyes, ifno) {
@@ -127,6 +131,10 @@ frappe.msgprint = function(msg, title) {
 		}
 
 		msg_dialog.indicator = msg_dialog.header.find('.indicator');
+	}
+
+	if(data.message==null) {
+		data.message = '';
 	}
 
 	if(data.message.search(/<br>|<p>|<li>/)==-1)
@@ -242,7 +250,7 @@ frappe.hide_progress = function() {
 }
 
 // Floating Message
-frappe.show_alert = function(message, seconds) {
+frappe.show_alert = function(message, seconds=7) {
 	if(typeof message==='string') {
 		message = {
 			message: message
@@ -253,14 +261,19 @@ frappe.show_alert = function(message, seconds) {
 	}
 
 	if(message.indicator) {
-		message_html = '<span class="indicator ' + message.indicator + '">' + message.message + '</span>';
+		message_html = $('<span class="indicator ' + message.indicator + '"></span>').append(message.message);
 	} else {
 		message_html = message.message;
 	}
 
-	var div = $(repl('<div class="alert desk-alert" style="display: none;">'
-			+ '<span class="alert-message">%(txt)s</span><a class="close">&times;</a>'
-		+ '</div>', {txt: message_html}))
+	var div = $(`
+		<div class="alert desk-alert">
+			<span class="alert-message"></span><a class="close">&times;</a>
+		</div>`);
+
+	div.find('.alert-message').append(message_html);
+
+	div.hide()
 		.appendTo("#alert-container")
 		.fadeIn(300);
 
@@ -269,7 +282,7 @@ frappe.show_alert = function(message, seconds) {
 		return false;
 	});
 
-	div.delay(seconds ? seconds * 1000 : 7000).fadeOut(300);
+	div.delay(seconds * 1000).fadeOut(300);
 	return div;
 }
 

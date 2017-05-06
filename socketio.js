@@ -204,6 +204,7 @@ function get_url(socket, path) {
 
 function can_subscribe_doc(args) {
 	if(!args) return;
+	if(!args.doctype || !args.docname) return;
 	request.get(get_url(args.socket, '/api/method/frappe.async.can_subscribe_doc'))
 		.type('form')
 		.query({
@@ -293,3 +294,5 @@ function get_conf() {
 
 	return conf;
 }
+
+

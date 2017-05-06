@@ -2,6 +2,21 @@
 
 Vamos criar um novo site e chamá-lo de `library`.
 
+*Nota: Antes de criar um novo site, é necessário ativar o mecanismo de armazenamento Barracuda na instalação do MariaDB.*
+*Copie as seguintes configurações de banco de dados ERPNext padrão para o arquivo `my.cnf`.*
+
+    [mysqld]
+    innodb-file-format=barracuda
+    innodb-file-per-table=1
+    innodb-large-prefix=1
+    character-set-client-handshake = FALSE
+    character-set-server = utf8mb4
+    collation-server = utf8mb4_unicode_ci
+
+    [mysql]
+    default-character-set = utf8mb4
+
+
 Você pode instalar um novo site, pelo comando `bench new-site library`
 
 Isto irá criar uma nova pasta para o site e um banco de dados e instalar o `frappe` (que também é uma aplicação!) No novo site. A aplicação `frappe` tem dois módulos embutidos **Core** e **WebSite**. O módulo de Core contém os modelos básicos para a aplicação. Frappe é uma estrutura como as pilhas e vem com um monte de modelos internos. Estes modelos são chamados doctypes **Mais sobre isso mais tarde**.

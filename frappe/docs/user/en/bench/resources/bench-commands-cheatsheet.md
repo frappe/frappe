@@ -53,7 +53,7 @@
 * `bench get-app [repo-link]` - Downloads an app from a git repository and installs it
 * `bench install-app [app-name]` Installs existing app
 * `bench remove-from-installed-apps [app-name]` Remove app from the list of apps
-* `bench uninstall-app [app-name]` Delete app and everything linked to the app
+* `bench uninstall-app [app-name]` Delete app and everything linked to the app (Bench needs to be running)
 * `bench remove-app [app-name]` Remove app from the bench entirely
 * `bench --site [sitename] --force reinstall ` Reinstall with fresh database (Caution: Will wipe out old database) 
 * `bench new-site [sitename]` - Creates a new site
@@ -69,6 +69,7 @@
 * `bench drop-site` Removes site from disk and database completely
   * `--root-login` 
   * `--root-password`
+* `bench set-config [key] [value]`   Adds a key-value pair to site's config file 
 * `bench console`   Opens a IPython console in the bench venv
 * `bench execute`   Execute a method inside any app.
   * Eg : `bench execute frappe.utils.scheduler.enqueue_scheduler_events`

@@ -61,7 +61,7 @@ $.extend(frappe.model, {
 		if(frappe.route_options && !doc.parent) {
 			$.each(frappe.route_options, function(fieldname, value) {
 				var df = frappe.meta.has_field(doctype, fieldname);
-				if(df && in_list(['Link', 'Select'], df.fieldtype) && !df.no_copy) {
+				if(df && in_list(['Link', 'Data', 'Select'], df.fieldtype) && !df.no_copy) {
 					doc[fieldname]=value;
 				}
 			});
@@ -123,6 +123,7 @@ $.extend(frappe.model, {
 	},
 
 	get_default_value: function(df, doc, parent_doc) {
+		var user_default = "";
 		var user_permissions = frappe.defaults.get_user_permissions();
 		var meta = frappe.get_meta(doc.doctype);
 		var has_user_permissions = (df.fieldtype==="Link" && user_permissions
@@ -137,8 +138,15 @@ $.extend(frappe.model, {
 				return user_permissions[df.options][0];
 			}
 
-			// 2 - look in user defaults
-			var user_default = frappe.defaults.get_user_default(df.fieldname);
+			if(!df.ignore_user_permissions) {
+				// 2 - look in user defaults
+				user_default = frappe.defaults.get_user_default(df.options);
+			}
+
+			if (!user_default) {
+				user_default = frappe.defaults.get_user_default(df.fieldname);
+			}
+
 			if(!user_default && df.remember_last_selected_value && frappe.boot.user.last_selected_values) {
 				user_default = frappe.boot.user.last_selected_values[df.options];
 			}
@@ -297,6 +305,7 @@ $.extend(frappe.model, {
 
 frappe.create_routes = {};
 frappe.new_doc = function (doctype, opts) {
+	if(opts && $.isPlainObject(opts)) { frappe.route_options = opts; };
 	frappe.model.with_doctype(doctype, function() {
 		if(frappe.create_routes[doctype]) {
 			frappe.set_route(frappe.create_routes[doctype]);

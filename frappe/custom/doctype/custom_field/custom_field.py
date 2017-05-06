@@ -3,6 +3,7 @@
 
 from __future__ import unicode_literals
 import frappe
+import json
 from frappe.utils import cstr
 from frappe import _
 from frappe.model.document import Document
@@ -95,5 +96,11 @@ def create_custom_field(doctype, df):
 			"fieldtype": df.fieldtype,
 			"options": df.options,
 			"insert_after": df.insert_after,
-			"print_hide": df.print_hide
+			"print_hide": df.print_hide,
+			"hidden": df.hidden or 0
 		}).insert()
+
+@frappe.whitelist()
+def add_custom_field(doctype, df):
+	df = json.loads(df)
+	return create_custom_field(doctype, df)

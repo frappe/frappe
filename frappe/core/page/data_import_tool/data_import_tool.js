@@ -112,12 +112,14 @@ frappe.DataImportTool = Class.extend({
 					submit_after_import: me.page.main.find('[name="submit_after_import"]').prop("checked"),
 					ignore_encoding_errors: me.page.main.find('[name="ignore_encoding_errors"]').prop("checked"),
 					overwrite: !me.page.main.find('[name="always_insert"]').prop("checked"),
+					update_only: me.page.main.find('[name="update_only"]').prop("checked"),
 					no_email: me.page.main.find('[name="no_email"]').prop("checked")
 				}
 			},
 			args: {
 				method: 'frappe.core.page.data_import_tool.importer.upload',
 			},
+			allow_multiple: 0,
 			onerror: function(r) {
 				me.onerror(r);
 			},
@@ -185,6 +187,8 @@ frappe.DataImportTool = Class.extend({
 			} else if(v.substr(0,7)=='Updated') {
 				$p.css('color', 'green');
 			} else if(v.substr(0,5)=='Valid') {
+				$p.css('color', '#777');
+			} else if(v.substr(0,7)=='Ignored') {
 				$p.css('color', '#777');
 			}
 		}

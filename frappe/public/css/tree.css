@@ -43,11 +43,12 @@ ul.tree-children {
 .tree-node:last-child::after {
   content: '';
   position: absolute;
-  top: 17px;
+  top: 16px;
   left: 8px;
   height: calc(100% - 26px);
   width: 1px;
   background: #d1d8dd;
+  z-index: -1;
 }
 .tree:last-child::after,
 .tree-node:last-child::after {
@@ -61,14 +62,18 @@ ul.tree-children {
 .tree-node.opened > .tree-children > .tree-node > .tree-link::before {
   content: '';
   position: absolute;
-  width: 12px;
+  width: 15px;
   height: 1px;
   top: 10px;
   left: -11px;
+  z-index: -1;
   background: #d1d8dd;
 }
 .tree.opened::before {
   left: 23px;
   top: 33px;
   height: calc(100% - 67px);
+}
+.tree-link.active ~ .balance-area {
+  color: #36414C !important;
 }

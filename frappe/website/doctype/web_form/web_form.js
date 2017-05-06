@@ -13,7 +13,7 @@ frappe.web_form = {
                     }
                 })
                 var currency_fields = $.map(frappe.get_doc("DocType", frm.doc.doc_type).fields, function(d) {
-                    if (d.fieldtype === 'Currency') {
+                    if (d.fieldtype === 'Currency' || d.fieldtype === 'Float') {
                         return { label: d.label, value: d.fieldname }
                     } else {
                         return null;

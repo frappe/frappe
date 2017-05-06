@@ -159,7 +159,7 @@ class EMail:
 		self.add_attachment(name, get_pdf(html, options), 'application/octet-stream')
 
 	def validate(self):
-		"""validate the email ids"""
+		"""validate the Email Addresses"""
 		from frappe.utils import validate_email_add
 
 		if not self.sender:
@@ -183,12 +183,14 @@ class EMail:
 			sender_name, sender_email = email.utils.parseaddr(self.sender)
 			self.sender = email.utils.formataddr((sender_name or self.email_account.name, self.email_account.email_id))
 
-	def set_message_id(self, message_id):
+	def set_message_id(self, message_id, is_notification=False):
 		if message_id:
-			self.msg_root["Message-Id"] = message_id
+			self.msg_root["Message-Id"] = '<' + message_id + '>'
 		else:
 			self.msg_root["Message-Id"] = get_message_id()
-			self.msg_root["References"] = '<notification>'
+			self.msg_root["isnotification"] = '<notification>'
+		if is_notification:
+			self.msg_root["isnotification"] = '<notification>'
 
 	def set_in_reply_to(self, in_reply_to):
 		"""Used to send the Message-Id of a received email back as In-Reply-To"""

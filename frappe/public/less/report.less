@@ -28,7 +28,6 @@
 
 		.column-list-item {
 			padding: 10px;
-			cursor: move;
 			border-bottom: 1px solid @border-color;
 		}
 
@@ -36,10 +35,18 @@
 			border-bottom: none;
 		}
 
-		.drag-handle {
+		.sortable-handle {
+			cursor: move;
+		}
+
+		.sortable-chosen {
+			background-color: @light-yellow;
+		}
+
+		.fa-sort {
 			margin: 0px 7px;
-			position: relative;
-			top: -1px;
+			margin-top: 9px;
+			margin-right: -15px;
 		}
 
 		.form-control {

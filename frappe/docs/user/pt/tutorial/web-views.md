@@ -16,13 +16,14 @@ Vamos dar uma olhada na standard Web Views:
 
 Se você estiver logado como usuário de teste, vá para `/article` e você deverá ver a lista de artigos:
 
-![Web List]({{docs_base_url}}/assets/img/guide/26-web-list.png)
+<img class="screenshot" alt="web list" src="{{docs_base_url}}/assets/img/web-list.png">
 
 Clique em um artigo e você vai ver uma Web View padrão
 
-![Web List]({{docs_base_url}}/assets/img/guide/26-web-view.png)
+<img class="screenshot" alt="web view" src="{{docs_base_url}}/assets/img/web-view.png">
 
-Agora, se você quiser fazer uma List View melhor para o artigo, crie um arquivo chamado `list_item.html` na pasta `library_management/doctype/article`. Aqui está um exemplo de arquivo:
+Agora, se você quiser fazer uma List View melhor para o artigo, crie um arquivo chamado `row_template.html` na pasta
+`library_management/templates/includes/list/`. Aqui está um exemplo de arquivo:
 
 	{% raw %}<div class="row">
 		<div class="col-sm-4">
@@ -45,7 +46,7 @@ Aqui, você vai ter todas as propriedades do artigo no objeto `doc`.
 
 A List View atualizada se parece com isso!
 
-![Web List]({{docs_base_url}}/assets/img/guide/27-web-view-list.png)
+<img class="screenshot" alt="new web list" src="{{docs_base_url}}/assets/img/web-list-new.png">
 
 #### Home Page
 

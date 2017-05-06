@@ -80,7 +80,7 @@ frappe.ui.form.AssignTo = Class.extend({
 	add: function() {
 		var me = this;
 
-		if(this.frm.doc.__unsaved == 1) {
+		if(this.frm.is_new()) {
 			frappe.throw(__("Please save the document before assignment"));
 			return;
 		}
@@ -93,7 +93,6 @@ frappe.ui.form.AssignTo = Class.extend({
 				docname: me.frm.docname,
 				callback: function(r) {
 					me.render(r.message);
-					me.frm.reload_doc();
 				}
 			});
 		}
@@ -108,7 +107,7 @@ frappe.ui.form.AssignTo = Class.extend({
 	remove: function(owner) {
 		var me = this;
 
-		if(this.frm.doc.__unsaved == 1) {
+		if(this.frm.is_new()) {
 			frappe.throw(__("Please save the document before removing assignment"));
 			return;
 		}
@@ -122,7 +121,6 @@ frappe.ui.form.AssignTo = Class.extend({
 			},
 			callback:function(r,rt) {
 				me.render(r.message);
-				me.frm.reload_doc();
 			}
 		});
 	}
@@ -132,7 +130,7 @@ frappe.ui.form.AssignTo = Class.extend({
 frappe.ui.form.AssignToDialog = Class.extend({
 	init: function(opts){
 		var me = this
-		$.extend(me,new frappe.ui.Dialog({
+		$.extend(me, new frappe.ui.Dialog({
 			title: __('Add to To Do'),
 			fields: [
 				{fieldtype: 'Link', fieldname:'assign_to', options:'User',
@@ -152,7 +150,7 @@ frappe.ui.form.AssignToDialog = Class.extend({
 						{value:'High', label:__('High')}],
 					'default':'Medium'},
 			],
-			primary_action: function() { frappe.ui.add_assignment(opts, me); },
+			primary_action: function() { frappe.ui.add_assignment(opts, me) },
 			primary_action_label: __("Add")
 		}));
 
@@ -198,7 +196,7 @@ frappe.ui.add_assignment = function(opts, dialog) {
 					if(opts.callback){
 						opts.callback(r);
 					}
-					dialog.hide();
+					dialog && dialog.hide();
 				}
 			},
 			btn: this

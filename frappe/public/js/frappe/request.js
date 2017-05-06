@@ -67,15 +67,22 @@ frappe.request.call = function(opts) {
 			opts.success_callback && opts.success_callback(data, xhr.responseText);
 		},
 		401: function(xhr) {
-			msgprint({message:__("You have been logged out"), indicator: 'red'});
-			frappe.app.logout();
+			if(frappe.app.session_expired_dialog && frappe.app.session_expired_dialog.display) {
+				frappe.app.redirect_to_login();
+			} else {
+				frappe.app.handle_session_expired();
+			};
 		},
 		404: function(xhr) {
 			msgprint({title:__("Not found"), indicator:'red',
 				message: __('The resource you are looking for is not available')});
 		},
 		403: function(xhr) {
-			if (xhr.responseJSON && xhr.responseJSON._server_messages) {
+			if (frappe.get_cookie('sid')==='Guest') {
+				// session expired
+				frappe.app.handle_session_expired();
+			}
+			else if (xhr.responseJSON && xhr.responseJSON._server_messages) {
 				var _server_messages = JSON.parse(xhr.responseJSON._server_messages);
 
 				// avoid double messages
@@ -83,10 +90,13 @@ frappe.request.call = function(opts) {
 					return;
 				}
 			}
+			else {
+				frappe.msgprint({
+					title:__("Not permitted"), indicator:'red',
+					message: __('You do not have enough permissions to access this resource. Please contact your manager to get access.')});
+			}
 
-			frappe.utils.play_sound("error");
-			msgprint({title:__("Not permitted"), indicator:'red',
-				message: __('You do not have enough permissions to access this resource. Please contact your manager to get access.')});
+
 		},
 		508: function(xhr) {
 			frappe.utils.play_sound("error");
@@ -158,12 +168,17 @@ frappe.request.call = function(opts) {
 			}
 		})
 		.always(function(data, textStatus, xhr) {
-			if(typeof data==="string") {
-				data = JSON.parse(data);
-			}
-			if(data.responseText) {
-				var xhr = data;
-				data = JSON.parse(data.responseText);
+			try {
+				if(typeof data==="string") {
+					data = JSON.parse(data);
+				}
+				if(data.responseText) {
+					var xhr = data;
+					data = JSON.parse(data.responseText);
+				}
+			} catch(e) {
+				data = null;
+				// pass
 			}
 			frappe.request.cleanup(opts, data);
 			if(opts.always) {
@@ -222,13 +237,13 @@ frappe.request.cleanup = function(opts, r) {
 	// un-freeze page
 	if(opts.freeze) frappe.dom.unfreeze();
 
+	if(!r) {
+		return;
+	}
+
 	// session expired? - Guest has no business here!
 	if(r.session_expired || frappe.get_cookie("sid")==="Guest") {
-		if(!frappe.app.logged_out) {
-			localStorage.setItem("session_last_route", location.hash);
-			msgprint(__('Session Expired. Logging you out'));
-			frappe.app.logout();
-		}
+		frappe.app.handle_session_expired();
 		return;
 	}
 

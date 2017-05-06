@@ -1,9 +1,10 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 import frappe
 import time
+import redis
 from frappe import _, msgprint
 from frappe.utils import flt, cstr, now, get_datetime_str, file_lock
 from frappe.utils.background_jobs import enqueue
@@ -13,7 +14,7 @@ from werkzeug.exceptions import NotFound, Forbidden
 import hashlib, json
 from frappe.model import optional_fields
 from frappe.utils.file_manager import save_url
-
+from frappe.utils.global_search import update_global_search
 
 # once_only validation
 # methods
@@ -33,7 +34,7 @@ def get_doc(arg1, arg2=None):
 		user = get_doc({
 			"doctype":"User"
 			"email_id": "test@example.com",
-			"user_roles: [
+			"roles: [
 				{"role": "System Manager"}
 			]
 		})
@@ -159,7 +160,7 @@ class Document(BaseDocument):
 		frappe.msgprint(msg)
 		raise frappe.PermissionError(msg)
 
-	def insert(self, ignore_permissions=None):
+	def insert(self, ignore_permissions=None, ignore_if_duplicate=False, ignore_mandatory=None):
 		"""Insert the document in the database (as a new document).
 		This will check for user permissions and execute `before_insert`,
 		`validate`, `on_update`, `after_insert` methods if they are written.
@@ -172,6 +173,9 @@ class Document(BaseDocument):
 
 		if ignore_permissions!=None:
 			self.flags.ignore_permissions = ignore_permissions
+
+		if ignore_mandatory!=None:
+			self.flags.ignore_mandatory = ignore_mandatory
 
 		self.set("__islocal", True)
 
@@ -197,7 +201,11 @@ class Document(BaseDocument):
 		if getattr(self.meta, "issingle", 0):
 			self.update_single(self.get_valid_dict())
 		else:
-			self.db_insert()
+			try:
+				self.db_insert()
+			except frappe.DuplicateEntryError, e:
+				if not ignore_if_duplicate:
+					raise  e
 
 		# children
 		for d in self.get_all_children():
@@ -205,7 +213,7 @@ class Document(BaseDocument):
 
 		self.run_method("after_insert")
 		self.flags.in_insert = True
-		
+
 		if self.get("amended_from"):
 			self.copy_attachments_from_amended_from()
 
@@ -222,14 +230,15 @@ class Document(BaseDocument):
 		"""Wrapper for _save"""
 		return self._save(*args, **kwargs)
 
-	def _save(self, ignore_permissions=None):
+	def _save(self, ignore_permissions=None, ignore_version=None):
 		"""Save the current document in the database in the **DocType**'s table or
 		`tabSingles` (for single types).
 
 		This will check for user permissions and execute
 		`validate` before updating, `on_update` after updating triggers.
 
-		:param ignore_permissions: Do not check permissions if True."""
+		:param ignore_permissions: Do not check permissions if True.
+		:param ignore_version: Do not save version if True."""
 		if self.flags.in_print:
 			return
 
@@ -237,6 +246,9 @@ class Document(BaseDocument):
 
 		if ignore_permissions!=None:
 			self.flags.ignore_permissions = ignore_permissions
+
+		if ignore_version!=None:
+			self.flags.ignore_version = ignore_version
 
 		if self.get("__islocal") or not self.get("name"):
 			self.insert()
@@ -273,13 +285,13 @@ class Document(BaseDocument):
 	def copy_attachments_from_amended_from(self):
 		'''Copy attachments from `amended_from`'''
 		from frappe.desk.form.load import get_attachments
-				
+
 		#loop through attachments
 		for attach_item in get_attachments(self.doctype, self.amended_from):
-			
+
 			#save attachments to new doc
-			save_url(attach_item.file_url, attach_item.file_name, self.doctype, self.name, "Home/Attachments")
-	
+			save_url(attach_item.file_url, attach_item.file_name, self.doctype, self.name, "Home/Attachments", attach_item.is_private)
+
 	def update_children(self):
 		'''update child tables'''
 		for df in self.meta.get_table_fields():
@@ -323,6 +335,10 @@ class Document(BaseDocument):
 		# set name for children
 		for d in self.get_all_children():
 			set_new_name(d)
+
+	def get_title(self):
+		'''Get the document title based on title_field or `title` or `name`'''
+		return self.get(self.meta.get_title_field())
 
 	def set_title_field(self):
 		"""Set title field based on template"""
@@ -447,10 +463,10 @@ class Document(BaseDocument):
 
 	def get_permlevel_access(self, permission_type='write'):
 		if not hasattr(self, "_has_access_to"):
-			user_roles = frappe.get_roles()
+			roles = frappe.get_roles()
 			self._has_access_to = []
 			for perm in self.get_permissions():
-				if perm.role in user_roles and perm.permlevel > 0 and perm.get(permission_type):
+				if perm.role in roles and perm.permlevel > 0 and perm.get(permission_type):
 					if perm.permlevel not in self._has_access_to:
 						self._has_access_to.append(perm.permlevel)
 
@@ -596,7 +612,7 @@ class Document(BaseDocument):
 			msgprint(msg)
 
 		if frappe.flags.print_messages:
-			print self.as_json().encode("utf-8")
+			print(self.as_json().encode("utf-8"))
 
 		raise frappe.MandatoryError('[{doctype}, {name}]: {fields}'.format(
 			fields=", ".join((each[0] for each in missing)),
@@ -681,6 +697,7 @@ class Document(BaseDocument):
 		def _evaluate_alert(alert):
 			if not alert.name in self.flags.email_alerts_executed:
 				evaluate_alert(self, alert.name, alert.event)
+				self.flags.email_alerts_executed.append(alert.name)
 
 		event_map = {
 			"on_update": "Save",
@@ -692,6 +709,7 @@ class Document(BaseDocument):
 		if not self.flags.in_insert:
 			# value change is not applicable in insert
 			event_map['validate'] = 'Value Change'
+			event_map['before_change'] = 'Value Change'
 
 		for alert in self.flags.email_alerts:
 			event = event_map.get(method, None)
@@ -743,6 +761,10 @@ class Document(BaseDocument):
 		self.set_title_field()
 		self.reset_seen()
 
+		self._doc_before_save = None
+		if not self.is_new() and getattr(self.meta, 'track_changes', False):
+			self._doc_before_save = frappe.get_doc(self.doctype, self.name)
+
 		if self.flags.ignore_validate:
 			return
 
@@ -769,13 +791,9 @@ class Document(BaseDocument):
 		elif self._action=="submit":
 			self.run_method("on_update")
 			self.run_method("on_submit")
-			if not self.flags.ignore_submit_comment:
-				self.add_comment("Submitted")
 		elif self._action=="cancel":
 			self.run_method("on_cancel")
 			self.check_no_back_links_exist()
-			if not self.flags.ignore_submit_comment:
-				self.add_comment("Cancelled")
 		elif self._action=="update_after_submit":
 			self.run_method("on_update_after_submit")
 
@@ -785,6 +803,16 @@ class Document(BaseDocument):
 		self.clear_cache()
 		self.notify_update()
 
+		try:
+			frappe.enqueue('frappe.utils.global_search.update_global_search',
+				now=frappe.flags.in_test or frappe.flags.in_install or frappe.flags.in_migrate,
+				doc=self)
+		except redis.exceptions.ConnectionError:
+			update_global_search(self)
+
+		if self._doc_before_save and not self.flags.ignore_version:
+			self.save_version()
+
 		if (self.doctype, self.name) in frappe.flags.currently_saving:
 			frappe.flags.currently_saving.remove((self.doctype, self.name))
 
@@ -792,27 +820,6 @@ class Document(BaseDocument):
 
 	def clear_cache(self):
 		frappe.cache().hdel("last_modified", self.doctype)
-		self.clear_linked_with_cache()
-
-	def clear_linked_with_cache(self):
-		cache = frappe.cache()
-		def _clear_cache(d):
-			for df in (d.meta.get_link_fields() + d.meta.get_dynamic_link_fields()):
-				if d.get(df.fieldname):
-					doctype = df.options if df.fieldtype=="Link" else d.get(df.options)
-					name = d.get(df.fieldname)
-
-					if df.fieldtype=="Dynamic Link":
-						# clear linked doctypes list
-						cache.hdel("linked_doctypes", doctype)
-
-					# for all users, delete linked with cache and per doctype linked with cache
-					cache.delete_value("user:*:linked_with:{doctype}:{name}".format(doctype=doctype, name=name))
-					cache.delete_value("user:*:linked_with:{doctype}:{name}:*".format(doctype=doctype, name=name))
-
-		_clear_cache(self)
-		for d in self.get_all_children():
-			_clear_cache(d)
 
 	def reset_seen(self):
 		'''Clear _seen property and set current user as seen'''
@@ -835,6 +842,12 @@ class Document(BaseDocument):
 		if not self.flags.ignore_links:
 			check_if_doc_is_linked(self, method="Cancel")
 			check_if_doc_is_dynamically_linked(self, method="Cancel")
+
+	def save_version(self):
+		'''Save version info'''
+		version = frappe.new_doc('Version')
+		if version.set_diff(self._doc_before_save, self):
+			version.insert(ignore_permissions=True)
 
 	@staticmethod
 	def whitelist(f):
@@ -942,18 +955,29 @@ class Document(BaseDocument):
 
 		:param comment_type: e.g. `Comment`. See Communication for more info."""
 
-		comment = frappe.get_doc({
-			"doctype":"Communication",
-			"communication_type": "Comment",
-			"sender": comment_by or frappe.session.user,
-			"comment_type": comment_type,
-			"reference_doctype": self.doctype,
-			"reference_name": self.name,
-			"content": text or comment_type,
-			"link_doctype": link_doctype,
-			"link_name": link_name
-		}).insert(ignore_permissions=True)
-		return comment
+		if comment_type=='Comment':
+			out = frappe.get_doc({
+				"doctype":"Communication",
+				"communication_type": "Comment",
+				"sender": comment_by or frappe.session.user,
+				"comment_type": comment_type,
+				"reference_doctype": self.doctype,
+				"reference_name": self.name,
+				"content": text or comment_type,
+				"link_doctype": link_doctype,
+				"link_name": link_name
+			}).insert(ignore_permissions=True)
+		else:
+			out = frappe.get_doc(dict(
+				doctype='Version',
+				ref_doctype= self.doctype,
+				docname= self.name,
+				data = frappe.as_json(dict(comment_type=comment_type, comment=text))
+			))
+			if comment_by:
+				out.owner = comment_by
+			out.insert(ignore_permissions=True)
+		return out
 
 	def add_seen(self, user=None):
 		'''add the given/current user to list of users who have seen this document (_seen)'''

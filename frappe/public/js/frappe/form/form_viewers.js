@@ -14,7 +14,7 @@ frappe.ui.form.Viewers = Class.extend({
 		var new_users = [];
 		for (var i=0, l=(viewers.current || []).length; i < l; i++) {
 			var username = viewers.current[i];
-			if (username===user) {
+			if (username===frappe.session.user) {
 				// current user
 				continue;
 			}

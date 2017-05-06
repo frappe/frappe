@@ -36,7 +36,8 @@ def build_response(response_type=None):
 		'download': as_raw,
 		'json': as_json,
 		'page': as_page,
-		'redirect': redirect
+		'redirect': redirect,
+		'binary': as_binary
 	}
 
 	return response_type_map[frappe.response.get('type') or response_type]()
@@ -66,6 +67,13 @@ def as_json():
 	response.mimetype = 'application/json'
 	response.charset = 'utf-8'
 	response.data = json.dumps(frappe.local.response, default=json_handler, separators=(',',':'))
+	return response
+
+def as_binary():
+	response = Response()
+	response.mimetype = 'application/octet-stream'
+	response.headers[b"Content-Disposition"] = ("filename=\"%s\"" % frappe.response['filename'].replace(' ', '_')).encode("utf-8")
+	response.data = frappe.response['filecontent']
 	return response
 
 def make_logs(response = None):
@@ -157,14 +165,7 @@ def send_private_file(path):
 	return response
 
 def handle_session_stopped():
-	response = Response("""<html>
-							<body style="background-color: #EEE;">
-									<h3 style="width: 900px; background-color: #FFF; border: 2px solid #AAA; padding: 20px; font-family: Arial; margin: 20px auto">
-											Updating.
-											We will be back in a few moments...
-									</h3>
-							</body>
-					</html>""")
-	response.status_code = 503
-	response.content_type = 'text/html'
-	return response
+	frappe.respond_as_web_page(_("Updating"),
+		_("Your system is being updated. Please refresh again after a few moments"),
+		http_status_code=503, indicator_color='orange', fullpage = True, primary_action=None)
+	return frappe.website.render.render("message", http_status_code=503)
