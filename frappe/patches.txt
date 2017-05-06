@@ -157,7 +157,6 @@ frappe.patches.v7_0.cleanup_list_settings
 execute:frappe.db.set_default('language', '')
 frappe.patches.v7_1.refactor_integration_broker
 frappe.patches.v7_1.set_backup_limit
-frappe.patches.v7_1.disabled_print_settings_for_custom_print_format
 frappe.patches.v7_2.set_doctype_engine
 frappe.patches.v7_2.merge_knowledge_base
 frappe.patches.v7_0.update_report_builder_json
@@ -182,3 +181,4 @@ frappe.patches.v8_0.set_doctype_values_in_custom_role
 frappe.patches.v8_0.install_new_build_system_requirements
 frappe.patches.v8_0.set_currency_field_precision
 frappe.patches.v8_0.rename_print_to_printing
+frappe.patches.v7_1.disabled_print_settings_for_custom_print_format
