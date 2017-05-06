@@ -250,8 +250,11 @@ class DatabaseQuery(object):
 			if match_conditions:
 				self.conditions.append("(" + match_conditions + ")")
 
-	def build_filter_conditions(self, filters, conditions):
+	def build_filter_conditions(self, filters, conditions, ignore_permissions=None):
 		"""build conditions from user filters"""
+		if ignore_permissions is not None:
+			self.flags.ignore_permissions = ignore_permissions
+
 		if isinstance(filters, dict):
 			filters = [filters]
 
