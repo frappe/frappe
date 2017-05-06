@@ -256,7 +256,7 @@ frappe.Application = Class.extend({
 	},
 
 	set_rtl: function () {
-		if (["ar", "he"].indexOf(frappe.boot.lang) >= 0) {
+		if (["ar", "he","fa"].indexOf(frappe.boot.lang) >= 0) {
 			$('body').addClass('frappe-rtl')
 		}
 	},
