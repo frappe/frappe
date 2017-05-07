@@ -16,6 +16,7 @@ Example:
 '''
 
 from __future__ import unicode_literals, print_function
+from six.moves import range
 import frappe, json, os
 from frappe.utils import cstr, cint
 from frappe.model import default_fields, no_value_fields, optional_fields
@@ -281,7 +282,7 @@ class Meta(Document):
 			newlist += [df for df in self.get('fields') if not df.get('is_custom_field')]
 
 			newlist_fieldnames = [df.fieldname for df in newlist]
-			for i in xrange(2):
+			for i in range(2):
 				for df in list(custom_fields):
 					if df.insert_after in newlist_fieldnames:
 						cf = custom_fields.pop(custom_fields.index(df))
