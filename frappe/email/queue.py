@@ -2,6 +2,7 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
+from six.moves import range
 import frappe
 import HTMLParser
 import smtplib, quopri
@@ -289,7 +290,7 @@ def flush(from_test=False):
 
 	make_cache_queue()
 
-	for i in xrange(cache.llen('cache_email_queue')):
+	for i in range(cache.llen('cache_email_queue')):
 		email = cache.lpop('cache_email_queue')
 
 		if cint(frappe.defaults.get_defaults().get("hold_queue"))==1:
