@@ -2,6 +2,7 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals, absolute_import
+from six.moves import range
 import frappe
 import json
 from email.utils import formataddr, parseaddr
@@ -417,7 +418,7 @@ def sendmail(communication_name, print_html=None, print_format=None, attachments
 			frappe.local.session.update(session)
 
 		# upto 3 retries
-		for i in xrange(3):
+		for i in range(3):
 			try:
 				communication = frappe.get_doc("Communication", communication_name)
 				communication._notify(print_html=print_html, print_format=print_format, attachments=attachments,
