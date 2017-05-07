@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 # BEWARE don't put anything in this file except exceptions
 
 from werkzeug.exceptions import NotFound
-from MySQLdb import ProgrammingError as SQLError
+from pymysql import ProgrammingError as SQLError
 
 class ValidationError(Exception):
 	http_status_code = 417

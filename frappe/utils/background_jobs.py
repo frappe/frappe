@@ -4,7 +4,7 @@ from rq import Connection, Queue, Worker
 from frappe.utils import cstr
 from collections import defaultdict
 import frappe
-import MySQLdb
+import pymysql
 import os, socket, time
 
 default_timeout = 300
@@ -64,7 +64,7 @@ def execute_job(site, method, event, job_name, kwargs, user=None, async=True, re
 	try:
 		method(**kwargs)
 
-	except (MySQLdb.OperationalError, frappe.RetryBackgroundJobError), e:
+	except (pymysql.OperationalError, frappe.RetryBackgroundJobError), e:
 		frappe.db.rollback()
 
 		if (retry < 5 and
