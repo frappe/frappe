@@ -2,6 +2,7 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
+from six.moves import range
 import frappe
 
 from frappe.utils import (getdate, cint, add_months, date_diff, add_days,
@@ -141,7 +142,7 @@ def get_events(start, end, user=None, for_reminder=False):
 					date = date[0] + "-" + str(cint(date[1]) - 1) + "-" + date[2]
 
 				start_from = date
-				for i in xrange(int(date_diff(end, start) / 30) + 3):
+				for i in range(int(date_diff(end, start) / 30) + 3):
 					if getdate(date) >= getdate(start) and getdate(date) <= getdate(end) \
 						and getdate(date) <= getdate(repeat) and getdate(date) >= getdate(event_start):
 						add_event(e, date)
@@ -157,7 +158,7 @@ def get_events(start, end, user=None, for_reminder=False):
 				# start from nearest weeday after last monday
 				date = add_days(start, weekday - start_weekday)
 
-				for cnt in xrange(int(date_diff(end, start) / 7) + 3):
+				for cnt in range(int(date_diff(end, start) / 7) + 3):
 					if getdate(date) >= getdate(start) and getdate(date) <= getdate(end) \
 						and getdate(date) <= getdate(repeat) and getdate(date) >= getdate(event_start):
 						add_event(e, date)
@@ -167,7 +168,7 @@ def get_events(start, end, user=None, for_reminder=False):
 				remove_events.append(e)
 
 			if e.repeat_on=="Every Day":
-				for cnt in xrange(date_diff(end, start) + 1):
+				for cnt in range(date_diff(end, start) + 1):
 					date = add_days(start, cnt)
 					if getdate(date) >= getdate(event_start) and getdate(date) <= getdate(end) \
 						and getdate(date) <= getdate(repeat) and e[weekdays[getdate(date).weekday()]]:
