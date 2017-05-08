@@ -6,7 +6,7 @@
 
 from __future__ import unicode_literals
 import pymysql
-from pymysql.times import DateTimeDeltaType
+from pymysql.times import TimeDelta
 from markdown2 import UnicodeWithAttrs
 import warnings
 import datetime
@@ -54,7 +54,7 @@ class Database:
 		self._conn.converter[246]=float
 		self._conn.converter[12]=get_datetime
 		self._conn.encoders[UnicodeWithAttrs] = self._conn.encoders[UnicodeType]
-		self._conn.encoders[DateTimeDeltaType] = self._conn.encoders[StringType]
+		self._conn.encoders[TimeDelta] = self._conn.encoders[StringType]
 
 		MYSQL_OPTION_MULTI_STATEMENTS_OFF = 1
 		self._conn.set_server_option(MYSQL_OPTION_MULTI_STATEMENTS_OFF)
