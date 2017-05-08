@@ -3,6 +3,7 @@
 
 from __future__ import unicode_literals
 import frappe
+from frappe.utils import cstr
 
 def execute():
 	""" update the desktop icons """
@@ -13,8 +14,8 @@ def execute():
 
 	for icon in icons:
 		# check if report exists
-
-		parts = icon.get("link", "").split("/")
+		icon_link = icon.get("link", "") or ""
+		parts = icon_link.split("/")
 		if not parts:
 			continue
 
