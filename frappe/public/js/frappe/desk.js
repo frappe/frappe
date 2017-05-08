@@ -532,8 +532,9 @@ frappe.get_desktop_icons = function(show_hidden, show_global) {
 		var out = true;
 		if(m.type==="page") {
 			out = m.link in frappe.boot.page_info;
-		}
-		else if(m._doctype) {
+		} else if(m._report) {
+			out = m._report in frappe.boot.user.all_reports
+		} else if(m._doctype) {
 			//out = frappe.model.can_read(m._doctype);
 			out = frappe.boot.user.can_read.includes(m._doctype);
 		} else {
@@ -576,14 +577,15 @@ frappe.get_desktop_icons = function(show_hidden, show_global) {
 	return out;
 };
 
-frappe.add_to_desktop = function(label, doctype) {
+frappe.add_to_desktop = function(label, doctype, report) {
 	frappe.call({
 		method: 'frappe.desk.doctype.desktop_icon.desktop_icon.add_user_icon',
 		args: {
-			link: frappe.get_route_str(),
-			label: label,
-			type: 'link',
-			_doctype: doctype
+			'link': frappe.get_route_str(),
+			'label': label,
+			'type': 'link',
+			'_doctype': doctype,
+			'_report': report
 		},
 		callback: function(r) {
 			if(r.message) {
