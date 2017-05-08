@@ -109,7 +109,7 @@ frappe.views.QueryReport = Class.extend({
 
 		// add to desktop
 		this.page.add_menu_item(__("Add to Desktop"), function() {
-			frappe.add_to_desktop(me.report_name, me.report_doc.ref_doctype);
+			frappe.add_to_desktop(me.report_name, null, me.report_name);
 		}, true);
 	},
 	load: function() {

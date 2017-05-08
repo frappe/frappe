@@ -182,3 +182,4 @@ frappe.patches.v8_0.install_new_build_system_requirements
 frappe.patches.v8_0.set_currency_field_precision
 frappe.patches.v8_0.rename_print_to_printing
 frappe.patches.v7_1.disabled_print_settings_for_custom_print_format
+frappe.patches.v8_0.update_desktop_icons
