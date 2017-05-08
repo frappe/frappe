@@ -112,12 +112,14 @@ frappe.wiz.Wizard = Class.extend({
 		}
 	},
 	get_values: function() {
+		console.log("this.slide_dict", this.slide_dict);
 		var values = {};
 		$.each(this.slide_dict, function(id, slide) {
 			if(slide.values) {
 				$.extend(values, slide.values);
 			}
 		});
+		console.log("values", values);
 		return values;
 	},
 	working_html: function() {
@@ -235,12 +237,75 @@ frappe.wiz.WizardSlide = Class.extend({
 				step: this.id + 1,
 				name: this.name,
 				css_class: this.css_class || "",
-				slides_count: this.wiz.slides.length
+				slides_count: this.wiz.slides.length,
+				names: this.wiz.slides.map((slide) => slide.title)
 			})).appendTo(this.$wrapper);
+
+		this.$body.on('mouseover', '.setup-wizard-progress i', function(e) {
+			let $item = $(this).parent().parent().find(".slide-name-tooltip");
+			me.$body.find(".setup-wizard-progress .slide-name-tooltip").addClass('hide');
+			$item.removeClass("hide");
+		});
 
 		this.body = this.$body.find(".form")[0];
 
-		if(this.fields) {
+		if(this.add_multiple) {
+			this.added_values = {};
+			let empty_state = (`<div class="slide-empty-state"><p class="text-muted">${this.help}</p>
+				<button class="add-more-btn btn btn-default btn-sm">${__("Add a ") + __(this.name)}</button></div></div>`);
+			$(this.body).html(empty_state);
+
+
+			function make_dialog(title, index, fields) {
+				// TODO: Reuse
+				let d = new frappe.ui.Dialog({
+					title: title,
+					index: index,
+					fields: fields,
+				});
+				d.set_primary_action(__('Add'), () => {
+					var values = d.get_values();
+					me.added_values[''+d.index] = values;
+					if(d.index === 0) {
+						$(me.body).html(`<div class="entry-list-wrapper" style="margin: 20px;">
+							<div class="entry-list"></div><button class="add-more-btn btn btn-default btn-xs" style="margin: 20px">${__("Add more")}</button></div>`);
+						me.$entry_list = $(me.body).find('.entry-list');
+					}
+					me.$entry_list.append(me.get_value_list_item(values, ''+d.index));
+					d.hide();
+				})
+
+				return d;
+			}
+
+			// this.dialog.set_primary_action(__('Add'), () => {
+			// 	var values = this.dialog.get_values();
+			// 	this.added_values[''+this.dialog.index] = values;
+			// 	if(this.dialog.index === 0) {
+			// 		$(this.body).html(`<div class="entry-list-wrapper" style="margin: 20px;">
+			// 			<ul class="entry-list"></ul><button class="add-more-btn btn btn-default btn-sm">${__("Add more")}</button></div>`);
+			// 		this.$entry_list = $(this.body).find('.entry-list');
+			// 	}
+			// 	this.$entry_list.append(this.get_value_list_item(values, ''+this.dialog.index));
+			// 	this.dialog.hide();
+			// })
+
+			$(this.body).on('click', '.add-more-btn', (e) => {
+				index = Object.keys(this.added_values).length;
+				var d = make_dialog(__("Add a ")+ this.name, index, this.get_entry_fields(index));
+				d.show();
+			});
+
+			$(this.body).on('click', '.edit-entry-btn', function(e) {
+				let entryindex = $(this).attr('data-entryindex');
+				title =  __("Edit ") + __(me.name) + " " + __(entryindex);
+				index = Number(entryindex);
+				fields = me.get_entry_fields(entryindex);
+				var d = make_dialog(title, index, fields);
+				d.show();
+			});
+
+		} else if(this.fields) {
 			this.form = new frappe.ui.FieldGroup({
 				fields: this.fields,
 				body: this.body,
@@ -274,7 +339,11 @@ frappe.wiz.WizardSlide = Class.extend({
 	},
 
 	set_values: function() {
-		this.values = this.form.get_values();
+		if(this.form) {
+			this.values = this.form.get_values();
+		} else {
+
+		}
 		if(this.values===null) {
 			return false;
 		}
@@ -347,6 +416,9 @@ frappe.wiz.WizardSlide = Class.extend({
 		frappe.set_route(this.wiz.page_name, this.id-1 + "");
 	},
 	get_input: function(fn) {
+		// console.log("get_input");
+		// console.log("this.form", this.form);
+		// console.log("fn", fn);
 		return this.form.get_input(fn);
 	},
 	get_field: function(fn) {
@@ -371,7 +443,7 @@ function load_frappe_slides() {
 
 		fields: [
 			{ fieldname: "language", label: __("Select Your Language"), reqd:1,
-				fieldtype: "Select", "default": "english" },
+				fieldtype: "Data", "default": "english" },
 		],
 
 		onload: function(slide) {
@@ -406,9 +478,11 @@ function load_frappe_slides() {
 		},
 
 		setup_fields: function(slide) {
-			var select = slide.get_field("language");
-			select.df.options = frappe.wiz.welcome.data.languages;
-			select.refresh();
+			var language_field = slide.get_field("language");
+			// console.log("select", select);
+			frappe.wiz.welcome.setup_awesomplete(slide, "language", frappe.wiz.welcome.data.languages);
+			// select.df.options = frappe.wiz.welcome.data.languages;
+			language_field.refresh();
 			frappe.wiz.welcome.bind_events(slide);
 		},
 
@@ -428,7 +502,33 @@ function load_frappe_slides() {
 					}
 				});
 			});
-		}
+		},
+		setup_awesomplete: function(slide, fn, list) {
+			var me = this;
+			this.input_field = slide.get_field(fn);
+			var $input = this.input_field.$input;
+			var input = $input.get(0);
+			this.awesomplete = new Awesomplete(input, {
+				minChars: 0,
+				maxItems: 99,
+				list: list
+			});
+			$input.on("awesomplete-open", function(e){
+				$input.attr('state', 'open');
+			});
+			$input.on("awesomplete-close", function(e){
+				$input.attr('state', 'closed');
+			});
+			$input.on("input", function(e) {
+				var value = e.target.value;
+				// me.awesomplete.list = frappe.wiz.welcome.data.languages;
+			});
+			$input.on("focus", function(e) {
+				if($input.attr('state') != 'open') {
+					$input.trigger("input");
+				}
+			});
+		},
 	},
 
 	// region selection
@@ -437,6 +537,7 @@ function load_frappe_slides() {
 		title: __("Region"),
 		icon: "fa fa-flag",
 		help: __("Select your Country, Time Zone and Currency"),
+		// html: "<h1>WEEEEEEEEEEE!</h1>",
 		fields: [
 			{ fieldname: "country", label: __("Country"), reqd:1,
 				fieldtype: "Select" },
@@ -581,6 +682,10 @@ function load_frappe_slides() {
 		css_class: "single-column"
 	};
 };
+
+frappe.wiz.setup_awesomplete = (slide, fn, list) => {
+
+}
 
 frappe.wiz.on("before_load", function() {
 	load_frappe_slides();

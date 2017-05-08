@@ -28,8 +28,14 @@
 	padding: 30px;
 }
 
+.setup-wizard-slide .slide-empty-state {
+	padding: 30px;
+	text-align: center;
+}
+
 .setup-wizard-progress {
     padding: 15px;
+	margin-bottom: 25px;
 }
 
 .setup-wizard-slide .fa-fw {
