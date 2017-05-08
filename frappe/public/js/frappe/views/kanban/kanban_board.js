@@ -247,6 +247,9 @@ frappe.provide("frappe.views");
 		self.board_name = opts.board_name;
 
 		self.update = function(cards) {
+			// update cards internally
+			opts.cards = cards;
+
 			if(self.wrapper.find('.kanban').length > 0) {
 				fluxify.doAction('update_cards', cards);
 			} else {
@@ -255,7 +258,7 @@ frappe.provide("frappe.views");
 		}
 
 		function init() {
-			fluxify.doAction('init', opts)
+			fluxify.doAction('init', opts);
 			store.on('change:columns', make_columns);
 			prepare();
 			store.on('change:cur_list', setup_restore_columns);
