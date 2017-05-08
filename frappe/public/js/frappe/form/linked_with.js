@@ -162,14 +162,4 @@ frappe.ui.form.LinkedWith = class LinkedWith {
 			${heading}
 		</div></div>`;
 	}
-
-	make_doc_row(doc, doctype) {
-		return `<div class="list-item-container">
-			<div class="list-item">
-				<div class="list-item__content bold">
-					<a href="#Form/${doctype}/${doc.name}">${doc.name}</a>
-				</div>
-			</div>
-		</div>`;
-	}
 }

@@ -398,6 +398,11 @@
   border: 1px solid #d1d8dd;
   border-radius: 3px;
 }
+.list-item-table .empty-state {
+  min-height: 100px;
+  text-align: center;
+  line-height: 100px;
+}
 .list-item {
   display: flex;
   align-items: center;
@@ -424,7 +429,6 @@
 }
 .list-item input[type=checkbox] {
   margin: 0;
-  margin-right: 5px;
   flex: 0 0 12px;
 }
 .list-item .liked-by,
