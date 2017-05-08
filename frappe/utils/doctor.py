@@ -1,4 +1,4 @@
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 import frappe.utils
 from collections import defaultdict
 from rq import Worker, Connection
@@ -97,7 +97,7 @@ def doctor(site=None):
 		workers_online = check_number_of_workers()
 		jobs_per_queue, job_count = get_jobs_by_queue(site)
 
-	print "-----Checking scheduler status-----"
+	print("-----Checking scheduler status-----")
 	if site:
 		sites = [site]
 	else:
@@ -107,28 +107,28 @@ def doctor(site=None):
 		frappe.init(s)
 		frappe.connect()
 		if is_scheduler_disabled():
-			print "Scheduler disabled for", s
+			print("Scheduler disabled for", s)
 		frappe.destroy()
 
 	# TODO improve this
-	print "Workers online:", workers_online
-	print "-----{0} Jobs-----".format(site)
+	print("Workers online:", workers_online)
+	print("-----{0} Jobs-----".format(site))
 	for queue in get_queue_list():
 		if jobs_per_queue[queue]:
-			print "Queue:", queue
-			print "Number of Jobs: ", job_count[queue]
-			print "Methods:"
+			print("Queue:", queue)
+			print("Number of Jobs: ", job_count[queue])
+			print("Methods:")
 			for method, count in jobs_per_queue[queue].iteritems():
-				print "{0} : {1}".format(method, count)
-			print "------------"
+				print("{0} : {1}".format(method, count))
+			print("------------")
 
 	return True
 
 def pending_jobs(site=None):
-	print "-----Pending Jobs-----"
+	print("-----Pending Jobs-----")
 	pending_jobs = get_pending_jobs(site)
 	for queue in get_queue_list():
 		if(pending_jobs[queue]):
-			print "-----Queue :{0}-----".format(queue)
-			print "\n".join(pending_jobs[queue])
+			print("-----Queue :{0}-----".format(queue))
+			print("\n".join(pending_jobs[queue]))
 

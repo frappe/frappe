@@ -318,8 +318,15 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 	},
 
 	set_disp_area: function() {
+		let value = this.get_value();
+		if(inList(["Currency", "Int", "Float"], this.df.fieldtype) && (this.value === 0 || value === 0)) {
+			// to set the 0 value in readonly for currency, int, float field
+			value = 0;
+		} else {
+			value = this.value || value;
+		}
 		this.disp_area && $(this.disp_area)
-			.html(frappe.format(this.value || this.get_value(), this.df, {no_icon:true, inline:true},
+			.html(frappe.format(value, this.df, {no_icon:true, inline:true},
 					this.doc || (this.frm && this.frm.doc)));
 	},
 
@@ -1336,10 +1343,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 				};
 			},
 			filter: function(item, input) {
-				var d = this.get_item(item.value);
-				return Awesomplete.FILTER_CONTAINS(d.value, '__link_option') ||
-					Awesomplete.FILTER_CONTAINS(d.value, input) ||
-					Awesomplete.FILTER_CONTAINS(d.description, input);
+				return true;
 			},
 			item: function (item, input) {
 				d = this.get_item(item.value);
@@ -1641,6 +1645,7 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 				}
 			},
 			prettifyHtml: true,
+			dialogsInBody: true,
 			callbacks: {
 				onChange: function(value) {
 					me.parse_validate_and_set_in_model(value);
@@ -1753,7 +1758,7 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 		}
 	},
 	get_value: function() {
-		return this.editor.summernote('code');
+		return this.editor? this.editor.summernote('code'): '';
 	},
 	set_input: function(value) {
 		if(value == null) value = "";

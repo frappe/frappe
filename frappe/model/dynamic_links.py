@@ -3,9 +3,24 @@
 
 import frappe
 
+# select doctypes that are accessed by the user (not read_only) first, so that the 
+# the validation message shows the user-facing doctype first. 
+# For example Journal Entry should be validated before GL Entry (which is an internal doctype)
+
 dynamic_link_queries =  [
-	"""select parent, fieldname, options from tabDocField where fieldtype='Dynamic Link'""",
-	"""select dt as parent, fieldname, options from `tabCustom Field` where fieldtype='Dynamic Link'""",
+	"""select parent,
+		(select read_only from `tabDocType` where name=tabDocField.parent) as read_only,
+		fieldname, options 
+	from tabDocField 
+	where fieldtype='Dynamic Link' 
+	order by read_only""",
+
+	"""select dt as parent,
+		(select read_only from `tabDocType` where name=`tabCustom Field`.dt) as read_only,
+		fieldname, options 
+	from `tabCustom Field` 
+	where fieldtype='Dynamic Link' 
+	order by read_only""",
 ]
 
 def get_dynamic_link_map(for_delete=False):
@@ -29,7 +44,6 @@ def get_dynamic_link_map(for_delete=False):
 					dynamic_link_map.setdefault(doctype, []).append(df)
 
 		frappe.local.dynamic_link_map = dynamic_link_map
-
 	return frappe.local.dynamic_link_map
 
 def get_dynamic_links():

@@ -166,6 +166,7 @@ frappe.views.CommunicationComposer = Class.extend({
 				var content_field = me.dialog.fields_dict.content;
 				var subject_field = me.dialog.fields_dict.subject;
 				var content = content_field.get_value() || "";
+				var subject = subject_field.get_value() || "";
 
 				parts = content.split('<!-- salutation-ends -->');
 
@@ -176,7 +177,9 @@ frappe.views.CommunicationComposer = Class.extend({
 				}
 
 				content_field.set_input(content.join(''));
-				subject_field.set_input(reply.subject);
+				if(subject === "") {
+					subject_field.set_input(reply.subject);
+				}
 
 				me.reply_added = standard_reply;
 			}

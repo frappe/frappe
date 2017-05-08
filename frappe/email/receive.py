@@ -100,7 +100,7 @@ class EmailServer:
 		frappe.db.commit()
 
 		if not self.connect():
-			return []
+			return
 
 		uid_list = []
 
@@ -112,6 +112,10 @@ class EmailServer:
 			self.uid_reindexed = False
 
 			uid_list = email_list = self.get_new_mails()
+
+			if not email_list:
+				return
+
 			num = num_copy = len(email_list)
 
 			# WARNING: Hard coded max no. of messages to be popped
@@ -166,11 +170,13 @@ class EmailServer:
 	def get_new_mails(self):
 		"""Return list of new mails"""
 		if cint(self.settings.use_imap):
+			email_list = []
 			self.check_imap_uidvalidity()
 
 			self.imap.select("Inbox", readonly=True)
 			response, message = self.imap.uid('search', None, self.settings.email_sync_rule)
-			email_list =  message[0].split()
+			if message[0]:
+				email_list =  message[0].split()
 		else:
 			email_list = self.pop.list()[1]
 

@@ -1,4 +1,4 @@
-from __future__ import unicode_literals, absolute_import
+from __future__ import unicode_literals, absolute_import, print_function
 import click
 import json, os, sys
 from distutils.spawn import find_executable
@@ -8,21 +8,21 @@ from frappe.commands import pass_context, get_site
 @click.command('build')
 @click.option('--make-copy', is_flag=True, default=False, help='Copy the files instead of symlinking')
 @click.option('--verbose', is_flag=True, default=False, help='Verbose')
-@click.option('--experimental', is_flag=True, default=False, help='Use the new NodeJS build system')
-def build(make_copy=False, verbose=False, experimental=False):
+@click.option('--beta', is_flag=True, default=False, help='Use the new NodeJS build system')
+def build(make_copy=False, verbose=False, beta=False):
 	"Minify + concatenate JS and CSS files, build translations"
 	import frappe.build
 	import frappe
 	frappe.init('')
-	frappe.build.bundle(False, make_copy=make_copy, verbose=verbose, experimental=experimental)
+	frappe.build.bundle(False, make_copy=make_copy, verbose=verbose, beta=beta)
 
 @click.command('watch')
-@click.option('--experimental', is_flag=True, default=False, help='Use the new NodeJS build system')
-def watch(experimental=False):
+@click.option('--beta', is_flag=True, default=False, help='Use the new NodeJS build system')
+def watch(beta=False):
 	"Watch and concatenate JS and CSS files as and when they change"
 	import frappe.build
 	frappe.init('')
-	frappe.build.watch(True, experimental=experimental)
+	frappe.build.watch(True, beta=beta)
 
 @click.command('clear-cache')
 @pass_context
@@ -117,7 +117,7 @@ def execute(context, method, args=None, kwargs=None):
 		finally:
 			frappe.destroy()
 		if ret:
-			print json.dumps(ret)
+			print(json.dumps(ret))
 
 
 @click.command('add-to-email-queue')
@@ -207,7 +207,7 @@ def import_doc(context, path, force=False):
 	if not os.path.exists(path):
 		path = os.path.join('..', path)
 	if not os.path.exists(path):
-		print 'Invalid path {0}'.format(path)
+		print('Invalid path {0}'.format(path))
 		sys.exit(1)
 
 	for site in context.sites:
@@ -235,7 +235,7 @@ def import_csv(context, path, only_insert=False, submit_after_import=False, igno
 	if not os.path.exists(path):
 		path = os.path.join('..', path)
 	if not os.path.exists(path):
-		print 'Invalid path {0}'.format(path)
+		print('Invalid path {0}'.format(path))
 		sys.exit(1)
 
 	with open(path, 'r') as csvfile:
@@ -250,7 +250,7 @@ def import_csv(context, path, only_insert=False, submit_after_import=False, igno
 			via_console=True)
 		frappe.db.commit()
 	except Exception:
-		print frappe.get_traceback()
+		print(frappe.get_traceback())
 
 	frappe.destroy()
 
@@ -364,7 +364,7 @@ def request(context, args):
 
 			frappe.handler.execute_cmd(frappe.form_dict.cmd)
 
-			print frappe.response
+			print(frappe.response)
 		finally:
 			frappe.destroy()
 
@@ -399,7 +399,7 @@ def get_version():
 	for m in sorted(frappe.get_all_apps()):
 		module = frappe.get_module(m)
 		if hasattr(module, "__version__"):
-			print "{0} {1}".format(m, module.__version__)
+			print("{0} {1}".format(m, module.__version__))
 
 
 

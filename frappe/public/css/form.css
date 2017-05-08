@@ -497,6 +497,10 @@ h6.uppercase,
 }
 .frappe-control pre {
   white-space: pre-wrap;
+  background-color: inherit;
+  border: none;
+  padding: 0px;
+  margin: 0px;
 }
 .hide-control {
   display: none !important;

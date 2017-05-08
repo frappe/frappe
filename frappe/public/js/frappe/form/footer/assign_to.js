@@ -80,7 +80,7 @@ frappe.ui.form.AssignTo = Class.extend({
 	add: function() {
 		var me = this;
 
-		if(this.frm.doc.__unsaved == 1) {
+		if(this.frm.is_new()) {
 			frappe.throw(__("Please save the document before assignment"));
 			return;
 		}
@@ -93,7 +93,6 @@ frappe.ui.form.AssignTo = Class.extend({
 				docname: me.frm.docname,
 				callback: function(r) {
 					me.render(r.message);
-					me.frm.reload_doc();
 				}
 			});
 		}
@@ -108,7 +107,7 @@ frappe.ui.form.AssignTo = Class.extend({
 	remove: function(owner) {
 		var me = this;
 
-		if(this.frm.doc.__unsaved == 1) {
+		if(this.frm.is_new()) {
 			frappe.throw(__("Please save the document before removing assignment"));
 			return;
 		}
@@ -122,7 +121,6 @@ frappe.ui.form.AssignTo = Class.extend({
 			},
 			callback:function(r,rt) {
 				me.render(r.message);
-				me.frm.reload_doc();
 			}
 		});
 	}

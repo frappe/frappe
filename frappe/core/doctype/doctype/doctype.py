@@ -397,7 +397,7 @@ def validate_fields(meta):
 	def check_link_table_options(d):
 		if d.fieldtype in ("Link", "Table"):
 			if not d.options:
-				frappe.throw(_("Options requried for Link or Table type field {0} in row {1}").format(d.label, d.idx))
+				frappe.throw(_("Options required for Link or Table type field {0} in row {1}").format(d.label, d.idx))
 			if d.options=="[Select]" or d.options==d.parent:
 				return
 			if d.options != d.parent:
@@ -419,6 +419,11 @@ def validate_fields(meta):
 	def check_in_list_view(d):
 		if d.in_list_view and (d.fieldtype in not_allowed_in_list_view):
 			frappe.throw(_("'In List View' not allowed for type {0} in row {1}").format(d.fieldtype, d.idx))
+			
+	def check_in_global_search(d):
+		if d.in_global_search and d.fieldtype in no_value_fields:
+			frappe.throw(_("'In Global Search' not allowed for type {0} in row {1}")
+				.format(d.fieldtype, d.idx))
 
 	def check_dynamic_link_options(d):
 		if d.fieldtype=="Dynamic Link":
@@ -571,6 +576,7 @@ def validate_fields(meta):
 
 	for d in fields:
 		if not d.permlevel: d.permlevel = 0
+		if d.fieldtype != "Table": d.allow_bulk_edit = 0
 		if not d.fieldname:
 			frappe.throw(_("Fieldname is required in row {0}").format(d.idx))
 		d.fieldname = d.fieldname.lower()
@@ -581,6 +587,7 @@ def validate_fields(meta):
 		check_dynamic_link_options(d)
 		check_hidden_and_mandatory(d)
 		check_in_list_view(d)
+		check_in_global_search(d)
 		check_illegal_default(d)
 		check_unique_and_text(d)
 

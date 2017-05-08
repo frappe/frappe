@@ -146,7 +146,7 @@ def export_query():
 				if row:
 					row_list = []
 					for idx in range(len(data.columns)):
-						row_list.append(row[columns[idx]["fieldname"]])
+						row_list.append(row.get(columns[idx]["fieldname"],""))
 					result.append(row_list)
 		else:
 			result = result + data.result

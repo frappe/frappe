@@ -333,7 +333,7 @@ frappe.ui.form.Dashboard = Class.extend({
 		if(!this.heatmap) {
 			this.heatmap = new CalHeatMap();
 			this.heatmap.init({
-				itemSelector: "#heatmap-" + this.frm.doctype,
+				itemSelector: "#heatmap-" + frappe.model.scrub(this.frm.doctype),
 				domain: "month",
 				subDomain: "day",
 				start: moment().subtract(1, 'year').add(1, 'month').toDate(),

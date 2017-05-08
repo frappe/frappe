@@ -18,7 +18,11 @@ def get_context(context):
 		frappe.throw(_("You are not permitted to access this page."), frappe.PermissionError)
 
 	hooks = frappe.get_hooks()
-	boot = frappe.sessions.get()
+	try:
+		boot = frappe.sessions.get()
+	except Exception as e:
+		boot = frappe._dict(status='failed', error = str(e))
+		print frappe.get_traceback()
 
 	# this needs commit
 	csrf_token = frappe.sessions.get_csrf_token()
@@ -37,7 +41,8 @@ def get_context(context):
 		"sounds": hooks["sounds"],
 		"boot": boot if context.get("for_mobile") else boot_json,
 		"csrf_token": csrf_token,
-		"background_image": boot.user.background_image or boot.default_background_image,
+		"background_image": (boot.status != 'failed' and
+			(boot.user.background_image or boot.default_background_image) or None),
 		"google_analytics_id": frappe.conf.get("google_analytics_id"),
 		"mixpanel_id": frappe.conf.get("mixpanel_id")
 	}

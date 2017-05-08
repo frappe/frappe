@@ -172,6 +172,6 @@ class TestGlobalSearch(unittest.TestCase):
 			field_as_text = ''
 			for field in doc.meta.fields:
 				if field.fieldname == 'description':
-					field_as_text = global_search.get_field_value(doc, field)
+					field_as_text = global_search.get_formatted_value(doc.description, field)
 
 			self.assertEquals(case["result"], field_as_text)

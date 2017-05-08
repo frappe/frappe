@@ -264,6 +264,10 @@ def on_doctype_update():
 
 def has_permission(doc, ptype, user):
 	if ptype=="read":
+		if (doc.reference_doctype == "Communication" and doc.reference_name == doc.name) \
+			or (doc.timeline_doctype == "Communication" and doc.timeline_name == doc.name):
+				return
+				
 		if doc.reference_doctype and doc.reference_name:
 			if frappe.has_permission(doc.reference_doctype, ptype="read", doc=doc.reference_name):
 				return True

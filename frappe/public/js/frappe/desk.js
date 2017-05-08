@@ -31,6 +31,16 @@ frappe.Application = Class.extend({
 	startup: function() {
 		frappe.socket.init();
 		frappe.model.init();
+
+		if(frappe.boot.status==='failed') {
+			frappe.msgprint({
+				message: frappe.boot.error,
+				title: __('Session Start Failed'),
+				indicator: 'red',
+			})
+			throw 'boot failed';
+		}
+
 		this.load_bootinfo();
 		this.make_nav_bar();
 		this.set_favicon();
@@ -193,6 +203,7 @@ frappe.Application = Class.extend({
 			if(frappe.boot.print_css) {
 				frappe.dom.set_style(frappe.boot.print_css)
 			}
+			frappe.user.name = frappe.boot.user.name;
 		} else {
 			this.set_as_guest();
 		}
@@ -328,6 +339,7 @@ frappe.Application = Class.extend({
 		if(!frappe.app.session_expired_dialog) {
 			var dialog = new frappe.ui.Dialog({
 				title: __('Session Expired'),
+				keep_open: true,
 				fields: [
 					{ fieldtype:'Password', fieldname:'password',
 						label: __('Please Enter Your Password to Continue') },
@@ -369,7 +381,7 @@ frappe.Application = Class.extend({
 			// add backdrop
 			$('.modal-backdrop').css({
 				'opacity': 1,
-				'background-color': '#EBEFF2'
+				'background-color': '#4B4C9D'
 			});
 		}
 	},
