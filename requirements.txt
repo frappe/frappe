@@ -6,6 +6,7 @@ httplib2
 jinja2
 markdown2
 markupsafe
+PyMySQL
 python-geoip
 python-geoip-geolite2
 python-dateutil
