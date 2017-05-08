@@ -6,6 +6,7 @@
 
 from __future__ import unicode_literals
 import pymysql
+from pymysql.constants import FIELD_TYPE
 from pymysql.times import TimeDelta
 from markdown2 import UnicodeWithAttrs
 import warnings
@@ -51,13 +52,17 @@ class Database:
 		warnings.filterwarnings('ignore', category=pymysql.Warning)
 		self._conn = pymysql.connect(user=self.user, host=self.host, passwd=self.password,
 			use_unicode=True, charset='utf8mb4')
-		self._conn.converter[246]=float
-		self._conn.converter[12]=get_datetime
+		self._conn.decoders[FIELD_TYPE.NEWDECIMAL] = float
+		self._conn.decoders[FIELD_TYPE.DATETIME] = get_datetime
+		# self._conn.converter[246]=float
+		# self._conn.converter[12]=get_datetime
 		self._conn.encoders[UnicodeWithAttrs] = self._conn.encoders[UnicodeType]
 		self._conn.encoders[TimeDelta] = self._conn.encoders[StringType]
 
 		MYSQL_OPTION_MULTI_STATEMENTS_OFF = 1
-		self._conn.set_server_option(MYSQL_OPTION_MULTI_STATEMENTS_OFF)
+		# self._conn.set_server_option(MYSQL_OPTION_MULTI_STATEMENTS_OFF)
+		# TODO: how do I set MYSQL_OPTION_MULTI_STATEMENTS_OFF with pymysql???
+
 
 		self._cursor = self._conn.cursor()
 		if self.user != 'root':
