@@ -42,4 +42,4 @@ oauthlib
 PyJWT
 pypdf
 openpyxl
-PyMySQL
+pymsql
