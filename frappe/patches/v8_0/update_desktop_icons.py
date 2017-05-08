@@ -7,7 +7,7 @@ import frappe
 def execute():
 	""" update the desktop icons """
 
-	frappe.reload_doc('desk', 'doctype', 'doctype_icon')
+	frappe.reload_doc('desk', 'doctype', 'desktop_icon')
 
 	icons = frappe.get_all("Desktop Icon", filters={ "type": "link" }, fields=["link", "name"])
 
@@ -20,5 +20,5 @@ def execute():
 
 		report_name = parts[-1]
 		if "report" in parts[0] and frappe.db.get_value("Report", report_name):
-			frappe.db.sql(""" update `tabDesktop Icon` set _report={report_name}
-				where name={name}""".format(report_name=report_name, name=icon.get("name")))
+			frappe.db.sql(""" update `tabDesktop Icon` set _report='{report_name}'
+				where name='{name}'""".format(report_name=report_name, name=icon.get("name")))

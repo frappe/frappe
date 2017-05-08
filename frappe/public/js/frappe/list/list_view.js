@@ -623,7 +623,7 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 
 		// add to desktop
 		this.page.add_menu_item(__('Add to Desktop'), function () {
-			frappe.add_to_desktop(me.doctype, me.doctype, null, "list");
+			frappe.add_to_desktop(me.doctype, me.doctype);
 		}, true);
 
 		if (roles.includes('System Manager') && frappe.boot.developer_mode === 1) {

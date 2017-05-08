@@ -107,7 +107,6 @@ frappe.views.ReportView = frappe.ui.BaseList.extend({
 
 		// add to desktop
 		this.page.add_menu_item(__("Add to Desktop"), function() {
-			
 			frappe.add_to_desktop(me.docname || __('{0} Report', [me.doctype]), me.doctype, me.docname);
 		}, true);
 
