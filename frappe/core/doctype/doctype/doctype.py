@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 
 import re, copy, os
-import MySQLdb
+import pymysql
 import frappe
 from frappe import _
 
@@ -458,7 +458,7 @@ def validate_fields(meta):
 						group by `{fieldname}` having count(*) > 1 limit 1""".format(
 						doctype=d.parent, fieldname=d.fieldname))
 
-				except MySQLdb.OperationalError, e:
+				except pymysql.OperationalError, e:
 					if e.args and e.args[0]==1054:
 						# ignore if missing column, else raise
 						# this happens in case of Custom Field

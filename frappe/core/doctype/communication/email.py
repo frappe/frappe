@@ -12,7 +12,7 @@ from frappe.email.queue import check_email_limit
 from frappe.utils.scheduler import log
 from frappe.email.email_body import get_message_id
 import frappe.email.smtp
-import MySQLdb
+import pymysql
 import time
 from frappe import _
 from frappe.utils.background_jobs import enqueue
@@ -423,7 +423,7 @@ def sendmail(communication_name, print_html=None, print_format=None, attachments
 				communication._notify(print_html=print_html, print_format=print_format, attachments=attachments,
 					recipients=recipients, cc=cc)
 
-			except MySQLdb.OperationalError, e:
+			except pymysql.OperationalError, e:
 				# deadlock, try again
 				if e.args[0]==1213:
 					frappe.db.rollback()
