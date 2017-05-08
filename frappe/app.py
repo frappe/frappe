@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 
 import os
-import pymysql
+import MySQLdb
 
 from werkzeug.wrappers import Request
 from werkzeug.local import LocalManager
@@ -126,7 +126,7 @@ def handle_exception(e):
 	return_as_message = False
 
 	if (http_status_code==500
-		and isinstance(e, pymysql.OperationalError)
+		and isinstance(e, MySQLdb.OperationalError)
 		and e.args[0] in (1205, 1213)):
 			# 1205 = lock wait timeout
 			# 1213 = deadlock

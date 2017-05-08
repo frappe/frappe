@@ -5,8 +5,8 @@
 # --------------------
 
 from __future__ import unicode_literals
-import pymysql
-from pymysql.times import DateTimeDeltaType
+import MySQLdb
+from MySQLdb.times import DateTimeDeltaType
 from markdown2 import UnicodeWithAttrs
 import warnings
 import datetime
@@ -48,8 +48,8 @@ class Database:
 
 	def connect(self):
 		"""Connects to a database as set in `site_config.json`."""
-		warnings.filterwarnings('ignore', category=pymysql.Warning)
-		self._conn = pymysql.connect(user=self.user, host=self.host, passwd=self.password,
+		warnings.filterwarnings('ignore', category=MySQLdb.Warning)
+		self._conn = MySQLdb.connect(user=self.user, host=self.host, passwd=self.password,
 			use_unicode=True, charset='utf8mb4')
 		self._conn.converter[246]=float
 		self._conn.converter[12]=get_datetime
@@ -856,7 +856,7 @@ class Database:
 		if isinstance(s, unicode):
 			s = (s or "").encode("utf-8")
 
-		s = unicode(pymysql.escape_string(s), "utf-8").replace("`", "\\`")
+		s = unicode(MySQLdb.escape_string(s), "utf-8").replace("`", "\\`")
 
 		# NOTE separating % escape, because % escape should only be done when using LIKE operator
 		# or when you use python format string to generate query that already has a %s

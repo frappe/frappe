@@ -79,12 +79,12 @@ def add_match_conditions(q, tl):
 
 def guess_type(m):
 	"""
-		Returns fieldtype depending on the pymysql Description
+		Returns fieldtype depending on the MySQLdb Description
 	"""
-	import pymysql
-	if m in pymysql.NUMBER:
+	import MySQLdb
+	if m in MySQLdb.NUMBER:
 		return 'Currency'
-	elif m in pymysql.DATE:
+	elif m in MySQLdb.DATE:
 		return 'Date'
 	else:
 		return 'Data'
