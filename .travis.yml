@@ -13,6 +13,7 @@ before_install:
   - sh -e /etc/init.d/xvfb start
 
 install:
+  - sudo pip install -r requirements.txt
   - sudo apt-get purge -y mysql-common mysql-server mysql-client
   - wget https://raw.githubusercontent.com/frappe/bench/master/playbooks/install.py
   - sudo python install.py --develop --user travis --without-bench-setup
