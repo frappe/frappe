@@ -12,6 +12,13 @@ from frappe.utils.momentjs import get_all_timezones
 
 class SystemSettings(Document):
 	def validate(self):
+		enable_password_policy = cint(self.enable_password_policy) and True or False
+		minimum_password_score = cint(self.minimum_password_score) or 0
+		if enable_password_policy and minimum_password_score <= 0:
+			frappe.throw(_("Please select Minimum Password Score"))
+		elif not enable_password_policy:
+			self.minimum_password_score = ""
+
 		for key in ("session_expiry", "session_expiry_mobile"):
 			if self.get(key):
 				parts = self.get(key).split(":")

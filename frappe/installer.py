@@ -364,8 +364,9 @@ def check_if_ready_for_barracuda():
 			       "").format(x=site, sep2="\n"*2, sep="\n")
 
 			print_db_config(msg, expected_config_for_barracuda)
-			sys.exit(1)
-			# raise Exception, "MariaDB needs to be configured!"
+			raise frappe.exceptions.ImproperDBConfigurationError(
+				reason="MariaDB default file format is not Barracuda"
+			)
 
 
 def print_db_config(explanation, config_text):
