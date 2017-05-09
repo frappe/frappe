@@ -6,6 +6,7 @@ import frappe
 from frappe.utils import get_number_format_info
 
 def execute():
+	frappe.reload_doc('core', 'doctype', 'system_settings')
 	if not frappe.db.get_value("System Settings", None, "currency_precision"):
 		default_currency = frappe.db.get_default("currency")
 		number_format = frappe.db.get_value("Currency", default_currency, "number_format") \
