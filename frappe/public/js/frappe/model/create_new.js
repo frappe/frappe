@@ -140,7 +140,11 @@ $.extend(frappe.model, {
 
 			if(!df.ignore_user_permissions) {
 				// 2 - look in user defaults
-				user_default = frappe.defaults.get_user_default(df.options);
+				user_defaults = frappe.defaults.get_user_defaults(df.options);
+				if (user_defaults && user_defaults.length===1) {
+					// Use User Permission value when only when it has a single value
+					user_default = user_defaults[0];
+				}
 			}
 
 			if (!user_default) {

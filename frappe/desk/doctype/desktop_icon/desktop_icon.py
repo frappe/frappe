@@ -30,7 +30,7 @@ def get_desktop_icons(user=None):
 
 	if not user_icons:
 		fields = ['module_name', 'hidden', 'label', 'link', 'type', 'icon', 'color',
-			'_doctype', 'idx', 'force_show', 'reverse', 'custom', 'standard', 'blocked']
+			'_doctype', '_report', 'idx', 'force_show', 'reverse', 'custom', 'standard', 'blocked']
 
 		standard_icons = frappe.db.get_all('Desktop Icon',
 			fields=fields, filters={'standard': 1})
@@ -91,10 +91,10 @@ def get_desktop_icons(user=None):
 	return user_icons
 
 @frappe.whitelist()
-def add_user_icon(_doctype, label=None, link=None, type='link', standard=0):
+def add_user_icon(_doctype, _report=None, label=None, link=None, type='link', standard=0):
 	'''Add a new user desktop icon to the desktop'''
 
-	if not label: label = _doctype
+	if not label: label = _doctype or _report
 	if not link: link = 'List/{0}'.format(_doctype)
 
 	# find if a standard icon exists
@@ -116,6 +116,9 @@ def add_user_icon(_doctype, label=None, link=None, type='link', standard=0):
 		module_icon = frappe.get_value('Desktop Icon', {'standard':1, 'module_name':module},
 			['name', 'icon', 'color', 'reverse'], as_dict=True)
 
+		if not frappe.db.get_value("Report", _report):
+			_report = None
+
 		if not module_icon:
 			module_icon = frappe._dict()
 			opts = random.choice(palette)
@@ -130,6 +133,7 @@ def add_user_icon(_doctype, label=None, link=None, type='link', standard=0):
 				'link': link,
 				'type': type,
 				'_doctype': _doctype,
+				'_report': _report,
 				'icon': module_icon.icon,
 				'color': module_icon.color,
 				'reverse': module_icon.reverse,
