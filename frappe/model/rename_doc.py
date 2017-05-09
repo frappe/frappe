@@ -21,6 +21,10 @@ def rename_doc(doctype, old, new, force=False, merge=False, ignore_permissions=F
 	if ignore_if_exists and frappe.db.exists(doctype, new):
 		return
 
+	if old==new:
+		frappe.msgprint(_('Please select a new name to rename'))
+		return
+
 	force = cint(force)
 	merge = cint(merge)
 

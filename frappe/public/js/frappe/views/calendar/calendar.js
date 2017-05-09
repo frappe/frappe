@@ -130,6 +130,9 @@ frappe.views.Calendar = Class.extend({
 					}
 				})
 			},
+			eventRender: function(event, element) {
+				element.attr('title', event.tooltip);
+			},
 			eventClick: function(event, jsEvent, view) {
 				// edit event description or delete
 				var doctype = event.doctype || me.doctype;
