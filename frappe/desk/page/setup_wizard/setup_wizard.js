@@ -1,9 +1,15 @@
 frappe.provide("frappe.wiz");
 frappe.provide("frappe.wiz.events");
 
+// frappe.wiz.slide_config.welcome (user, password etc)
+// frappe.wiz.utils.regional (lang etc.)
+
 frappe.wiz = {
 	slides: [],
 	events: {},
+	data: {},
+	utils: {},
+
 	remove_app_slides: [],
 	on: function(event, fn) {
 		if(!frappe.wiz.events[event]) {
@@ -25,7 +31,11 @@ frappe.wiz = {
 frappe.pages['setup-wizard'].on_page_load = function(wrapper) {
 	// setup page ui
 	$(".navbar:first").toggle(false);
-	$("body").css({"padding-top":"30px"});
+	// /assets/frappe_theme/img/erp-icon.svg\
+
+	$('header').append(`<div class="setup-wizard-brand"">
+		<img src="/assets/frappe_theme/img/erp-icon.svg" class="brand-icon"
+		style="width:36px;"><span class="brand-name">ERPNext</span></div>`);
 
 	var requires = ["/assets/frappe/css/animate.min.css"].concat(frappe.boot.setup_wizard_requires || []);
 
@@ -229,14 +239,14 @@ frappe.wiz.WizardSlide = Class.extend({
 		}
 
 		this.$body = $(frappe.render_template("setup_wizard_page", {
-			help: __(this.help),
-			title:__(this.title),
-			main_title:__(this.wiz.title),
-			step: this.id + 1,
-			name: this.name,
-			css_class: this.css_class || "",
-			slides_count: this.wiz.slides.length
-		})).appendTo(this.$wrapper);
+				help: __(this.help),
+				title:__(this.title),
+				main_title:__(this.wiz.title),
+				step: this.id + 1,
+				name: this.name,
+				css_class: "single-column",
+				slides_count: this.wiz.slides.length
+			})).appendTo(this.$wrapper);
 
 		this.body = this.$body.find(".form")[0];
 
@@ -360,190 +370,112 @@ frappe.wiz.WizardSlide = Class.extend({
 	},
 });
 
-function load_frappe_slides() {
-	// language selection
-	frappe.wiz.welcome = {
+slides = [
+	{
+		// Welcome (language) slide
 		name: "welcome",
 		domains: ["all"],
-		title: __("Welcome"),
+		title: __("Hello!"),
 		icon: "fa fa-world",
 		help: __("Let's prepare the system for first use."),
 
 		fields: [
-			{ fieldname: "language", label: __("Select Your Language"), reqd:1,
-				fieldtype: "Select", "default": "english" },
+			{ fieldname: "language", label: __("Your Language"),
+				fieldtype: "Data", "default": "English" }
 		],
 
 		onload: function(slide) {
-			if (!frappe.wiz.welcome.data) {
-				frappe.wiz.welcome.load_languages(slide);
+			if (frappe.wiz.data.lang) {
+				this.setup_fields(slide);
 			} else {
-				frappe.wiz.welcome.setup_fields(slide);
+				frappe.wiz.utils.load_languages(slide, this.setup_fields);
 			}
-		},
 
-		css_class: "single-column",
-		load_languages: function(slide) {
-			frappe.call({
-				method: "frappe.desk.page.setup_wizard.setup_wizard.load_languages",
-				freeze: true,
-				callback: function(r) {
-					frappe.wiz.welcome.data = r.message;
-					frappe.wiz.welcome.setup_fields(slide);
-
-					var language_field = slide.get_field("language");
-					language_field.set_input(frappe.wiz.welcome.data.default_language || "english");
-
-					if (!frappe.wiz._from_load_messages) {
-						language_field.$input.trigger("change");
-					}
-
-					delete frappe.wiz._from_load_messages;
-
-					moment.locale("en");
-				}
-			});
+			// frappe.wiz.welcome.setup_fields(slide);
+			console.log("lang: ", navigator.language || navigator.userLanguage);
 		},
 
 		setup_fields: function(slide) {
-			var select = slide.get_field("language");
-			select.df.options = frappe.wiz.welcome.data.languages;
-			select.refresh();
-			frappe.wiz.welcome.bind_events(slide);
+			frappe.wiz.utils.setup_language_field(slide);
+			frappe.wiz.utils.bind_language_events(slide);
 		},
 
-		bind_events: function(slide) {
-			slide.get_input("language").unbind("change").on("change", function() {
-				var lang = $(this).val() || "english";
-				frappe._messages = {};
-				frappe.call({
-					method: "frappe.desk.page.setup_wizard.setup_wizard.load_messages",
-					freeze: true,
-					args: {
-						language: lang
-					},
-					callback: function(r) {
-						frappe.wiz._from_load_messages = true;
-						frappe.wizard.refresh_slides();
-					}
-				});
+		setup_awesomplete: function(slide) {
+			var me = this;
+			var languauge_field = slide.get_field("language");
+			// this.awesomplete = frappe.wiz.setup_awesomplete(this, slide, "language", frappe.wiz.data.lang.languages);
+
+			var fn = "language";
+			var list = frappe.wiz.data.lang.languages;
+
+			var input_field = slide.get_field(fn);
+			var $input = input_field.$input;
+			var input = $input.get(0);
+			var awesomplete = new Awesomplete(input, {
+				minChars: 0,
+				maxItems: 99,
+				list: list
 			});
+			$input.on("awesomplete-select", function(e) {
+				var o = e.originalEvent;
+				var value = o.text.value;
+				var item = awesomplete.get_item(value);
+			});
+			$input.on("input", function(e) {
+				var value = e.target.value;
+				awesomplete.list = list;
+			});
+			$input.on("focus", function(e) {
+				$input.trigger("input");
+			});
+
+			$input.on("blur", function(e) {
+				if(!list.includes($input.val())) {
+					$input.val("");
+					}
+			});
+
+			this.awesomplete = awesomplete;
+			language_field.refresh();
+
 		}
 	},
 
-	// region selection
-	frappe.wiz.region = {
+	{
+		// Region slide
+		name: 'region',
 		domains: ["all"],
-		title: __("Region"),
+		title: __("Select Your Region"),
 		icon: "fa fa-flag",
 		help: __("Select your Country, Time Zone and Currency"),
 		fields: [
-			{ fieldname: "country", label: __("Country"), reqd:1,
+			{ fieldname: "country", label: __("Your Country"),
 				fieldtype: "Select" },
-			{ fieldname: "timezone", label: __("Time Zone"), reqd:1,
+			{ fieldtype: "Section Break" },
+			{ fieldname: "timezone", label: __("Time Zone"),
 				fieldtype: "Select" },
-			{ fieldname: "currency", label: __("Currency"), reqd:1,
-				fieldtype: "Select" },
+			{ fieldtype: "Column Break" },
+			{ fieldname: "currency", label: __("Currency"),
+				fieldtype: "Select" }
 		],
 
 		onload: function(slide) {
-			var _setup = function() {
-				frappe.wiz.region.setup_fields(slide);
-				frappe.wiz.region.bind_events(slide);
-			};
-
-			if(frappe.wiz.regional_data) {
-				_setup();
+			if(frappe.wiz.data.regional_data) {
+				this.setup_fields(slide);
 			} else {
-				frappe.call({
-					method:"frappe.geo.country_info.get_country_timezone_info",
-					callback: function(data) {
-						frappe.wiz.regional_data = data.message;
-						_setup();
-					}
-				});
+				frappe.wiz.utils.load_regional_data(slide, this.setup_fields);
 			}
 		},
-		css_class: "single-column",
+
 		setup_fields: function(slide) {
-			var data = frappe.wiz.regional_data;
-
-			slide.get_input("country").empty()
-				.add_options([""].concat(Object.keys(data.country_info).sort()));
-
-
-			slide.get_input("currency").empty()
-				.add_options(frappe.utils.unique([""].concat($.map(data.country_info,
-					function(opts, country) { return opts.currency; }))).sort());
-
-			slide.get_input("timezone").empty()
-				.add_options([""].concat(data.all_timezones));
-
-			// set values if present
-			if(frappe.wizard.values.country) {
-				slide.get_field("country").set_input(frappe.wizard.values.country);
-			} else if (data.default_country) {
-				slide.get_field("country").set_input(data.default_country);
-			}
-
-			if(frappe.wizard.values.currency) {
-				slide.get_field("currency").set_input(frappe.wizard.values.currency);
-			}
-
-			if(frappe.wizard.values.timezone) {
-				slide.get_field("timezone").set_input(frappe.wizard.values.timezone);
-			}
-
-		},
-
-		bind_events: function(slide) {
-			slide.get_input("country").on("change", function() {
-				var country = slide.get_input("country").val();
-				var $timezone = slide.get_input("timezone");
-				var data = frappe.wiz.regional_data;
-
-				$timezone.empty();
-
-				// add country specific timezones first
-				if(country) {
-					var timezone_list = data.country_info[country].timezones || [];
-					$timezone.add_options(timezone_list.sort());
-					slide.get_field("currency").set_input(data.country_info[country].currency);
-					slide.get_field("currency").$input.trigger("change");
-				}
-
-				// add all timezones at the end, so that user has the option to change it to any timezone
-				$timezone.add_options([""].concat(data.all_timezones));
-
-				slide.get_field("timezone").set_input($timezone.val());
-
-				// temporarily set date format
-				frappe.boot.sysdefaults.date_format = (data.country_info[country].date_format
-					|| "dd-mm-yyyy");
-			});
-
-			slide.get_input("currency").on("change", function() {
-				var currency = slide.get_input("currency").val();
-				if (!currency) return;
-				frappe.model.with_doc("Currency", currency, function() {
-					frappe.provide("locals.:Currency." + currency);
-					var currency_doc = frappe.model.get_doc("Currency", currency);
-					var number_format = currency_doc.number_format;
-					if (number_format==="#.###") {
-						number_format = "#.###,##";
-					} else if (number_format==="#,###") {
-						number_format = "#,###.##"
-					}
-
-					frappe.boot.sysdefaults.number_format = number_format;
-					locals[":Currency"][currency] = $.extend({}, currency_doc);
-				});
-			});
+			frappe.wiz.utils.setup_region_fields(slide);
+			frappe.wiz.utils.bind_region_events(slide);
 		}
 	},
 
-
-	frappe.wiz.user = {
+	{
+		// Profile slide
+		name: 'user',
 		domains: ["all"],
 		title: __("The First User: You"),
 		icon: "fa fa-user",
@@ -552,8 +484,6 @@ function load_frappe_slides() {
 				reqd:1},
 			{"fieldname": "email", "label": __("Email Address"), "fieldtype": "Data",
 				reqd:1, "description": __("Login id"), "options":"Email"},
-			{"fieldname": "password", "label": __("Password"), "fieldtype": "Password",
-				reqd:1},
 			{fieldtype:"Attach Image", fieldname:"attach_user",
 				label: __("Attach Your Picture"), is_private: 0},
 		],
@@ -578,15 +508,196 @@ function load_frappe_slides() {
 				delete slide.form.fields_dict.password;
 			}
 		},
-		css_class: "single-column"
-	};
+	},
+
+	{
+		// Password slide
+		name: 'password',
+		domains: ["all"],
+		title: __("Set Your Password"),
+		icon: "fa fa-lock",
+		help: __("Set a password"),
+		fields: [
+			{"fieldname": "password", "label": __("Password"), "fieldtype": "Password",
+				reqd:1},
+		],
+
+		onload: function(slide) {
+			if(user!=="Administrator") {
+				slide.form.fields_dict.password.$wrapper.toggle(false);
+				delete slide.form.fields_dict.password;
+			}
+		}
+	}
+]
+
+frappe.wiz.utils = {
+	load_languages: function(slide, callback) {
+		frappe.call({
+			method: "frappe.desk.page.setup_wizard.setup_wizard.load_languages",
+			freeze: true,
+			callback: function(r) {
+				frappe.wiz.data.lang = r.message;
+				callback(slide);
+
+				var language_field = slide.get_field("language");
+				language_field.set_input(frappe.wiz.data.default_language || "English");
+
+				if (!frappe.wiz._from_load_messages) {
+					language_field.$input.trigger("change");
+				}
+				delete frappe.wiz._from_load_messages;
+				moment.locale("en");
+			}
+		});
+	},
+
+	load_regional_data: function(slide, callback) {
+		frappe.call({
+			method:"frappe.geo.country_info.get_country_timezone_info",
+			callback: function(data) {
+				frappe.wiz.data.regional_data = data.message;
+				callback(slide);
+			}
+		});
+	},
+
+	setup_language_field: function(slide) {
+		slide.get_field("language").refresh();
+	},
+
+	setup_region_fields: function(slide) {
+		/*
+			Set a slide's country, timezone and currency fields
+		*/
+		var data = frappe.wiz.data.regional_data;
+
+		slide.get_input("country").empty()
+			.add_options([""].concat(keys(data.country_info).sort()));
+
+		slide.get_input("currency").empty()
+			.add_options(frappe.utils.unique([""].concat($.map(data.country_info,
+				function(opts, country) { return opts.currency; }))).sort());
+
+		slide.get_input("timezone").empty()
+			.add_options([""].concat(data.all_timezones));
+
+		// set values if present
+		if(frappe.wizard.values.country) {
+			slide.get_field("country").set_input(frappe.wizard.values.country);
+		} else if (data.default_country) {
+			slide.get_field("country").set_input(data.default_country);
+		}
+
+		if(frappe.wizard.values.currency) {
+			slide.get_field("currency").set_input(frappe.wizard.values.currency);
+		}
+
+		if(frappe.wizard.values.timezone) {
+			slide.get_field("timezone").set_input(frappe.wizard.values.timezone);
+		}
+	},
+
+	bind_language_events: function(slide) {
+		slide.get_input("language").unbind("change").on("change", function() {
+			// console.log("value:", $(this).val());
+			var lang = $(this).val() || "english";
+			frappe._messages = {};
+			frappe.call({
+				method: "frappe.desk.page.setup_wizard.setup_wizard.load_messages",
+				freeze: true,
+				args: {
+					language: lang
+				},
+				callback: function(r) {
+					frappe.wiz._from_load_messages = true;
+					frappe.wizard.refresh_slides();
+				}
+			});
+		});
+	},
+
+	bind_region_events: function(slide) {
+		/*
+			Bind a slide's country, timezone and currency fields
+		*/
+		slide.get_input("country").on("change", function() {
+			var country = slide.get_input("country").val();
+			var $timezone = slide.get_input("timezone");
+			var data = frappe.wiz.data.regional_data;
+
+			$timezone.empty();
+
+			// add country specific timezones first
+			if(country) {
+				var timezone_list = data.country_info[country].timezones || [];
+				$timezone.add_options(timezone_list.sort());
+				slide.get_field("currency").set_input(data.country_info[country].currency);
+				slide.get_field("currency").$input.trigger("change");
+			}
+
+			// add all timezones at the end, so that user has the option to change it to any timezone
+			$timezone.add_options([""].concat(data.all_timezones));
+
+			slide.get_field("timezone").set_input($timezone.val());
+
+			// temporarily set date format
+			frappe.boot.sysdefaults.date_format = (data.country_info[country].date_format
+				|| "dd-mm-yyyy");
+		});
+
+		slide.get_input("currency").on("change", function() {
+			var currency = slide.get_input("currency").val();
+			if (!currency) return;
+			frappe.model.with_doc("Currency", currency, function() {
+				frappe.provide("locals.:Currency." + currency);
+				var currency_doc = frappe.model.get_doc("Currency", currency);
+				var number_format = currency_doc.number_format;
+				if (number_format==="#.###") {
+					number_format = "#.###,##";
+				} else if (number_format==="#,###") {
+					number_format = "#,###.##"
+				}
+
+				frappe.boot.sysdefaults.number_format = number_format;
+				locals[":Currency"][currency] = $.extend({}, currency_doc);
+			});
+		});
+	},
+
+	setup_awesomplete: (context, slide, fn, list) => {
+		console.log("hello");
+		var input_field = slide.get_field(fn);
+		var $input = input_field.$input;
+		var input = $input.get(0);
+		var awesomplete = new Awesomplete(input, {
+			minChars: 0,
+			maxItems: 99,
+			list: list
+		});
+		$input.on("awesomplete-open", function(e){
+			$input.attr('state', 'open');
+		});
+		$input.on("awesomplete-close", function(e){
+			$input.attr('state', 'closed');
+		});
+		$input.on("input", function(e) {
+			var value = e.target.value;
+		});
+		$input.on("focus", function(e) {
+			if($input.attr('state') != 'open') {
+				$input.trigger("input");
+			}
+		});
+
+		return awesomplete;
+	}
+
 }
 
 frappe.wiz.on("before_load", function() {
-	load_frappe_slides();
-
-	// add welcome slide
-	frappe.wiz.add_slide(frappe.wiz.welcome);
-	frappe.wiz.add_slide(frappe.wiz.region);
-	frappe.wiz.add_slide(frappe.wiz.user);
+	// load slides
+	slides.map(slide => {
+		frappe.wiz.add_slide(slide);
+	})
 });

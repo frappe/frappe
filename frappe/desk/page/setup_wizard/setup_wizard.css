@@ -1,3 +1,22 @@
+.setup-wizard-brand {
+	margin: 40px;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center
+}
+
+.setup-wizard-brand .brand-icon {
+	width: 36px;
+	height: 36px;
+}
+
+.setup-wizard-brand .brand-name {
+	font-size: 20px;
+    margin-left: 8px;
+    color: #36414C;
+}
+
 .setup-wizard-slide {
 	padding-left: 0px;
 	padding-right: 0px;
@@ -14,18 +33,51 @@
 }
 
 .setup-wizard-slide .lead {
-	margin-bottom: 10px;
+    margin: 40px;
+	color: #777777;
+	text-align: center;
+	font-size: 30px;
+}
+
+.setup-wizard-slide .col-sm-12 {
+	padding: 0px;
+}
+
+.setup-wizard-slide .section-body .col-sm-6:first-child {
+    padding-left: 0px;
+}
+
+.setup-wizard-slide .section-body .col-sm-6:last-child {
+    padding-right: 0px;
+}
+
+.setup-wizard-slide .form-control {
+	height: 35px;
 	font-weight: 500;
+}
+
+.setup-wizard-slide .has-error .control-label {
+	color: #ffa00a;
+}
+
+.setup-wizard-slide .has-error .form-control{
+	border-color: #ffa00a;
 }
 
 .setup-wizard-slide.with-form {
 	margin: 40px auto;
+	padding: 10px 50px;
 	border: 1px solid #d1d8dd;
 	box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.1);
 }
 
 .setup-wizard-slide .footer {
-	padding: 30px;
+	padding: 30px 0px;
+}
+
+.setup-wizard-slide a.next-btn {
+    font-size: 14px;
+    padding: 7px 25px;
 }
 
 .setup-wizard-progress {
