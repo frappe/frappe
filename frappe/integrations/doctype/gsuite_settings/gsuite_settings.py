@@ -9,7 +9,7 @@ from frappe.model.document import Document
 from frappe.utils import get_request_site_address
 import os
 import requests
-from json import dumps, load, loads
+from json import dumps
 from frappe.utils.response import json_handler
 
 SCOPES = 'https://www.googleapis.com/auth/drive'
@@ -66,9 +66,7 @@ def run_gsuite_script(option, filename = None, template_id = None, destination_i
 			'vars' : json_data
 		}
 		headers = {'Authorization': 'Bearer {}'.format( gdoc.get_access_token() )}
-		#print(dumps(data, default=json_handler, separators=(',',':')))
 		r = requests.post(gdoc.script_url, headers=headers, data=dumps(data, default=json_handler, separators=(',',':')))
-		print(r.text)
 		return r.json()
 	else:
 		frappe.throw(_('Please set script URL on Gsuite Settings'))
