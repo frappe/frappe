@@ -3,11 +3,13 @@
 
 from __future__ import unicode_literals
 import frappe
+import json
 
 from frappe.utils import (getdate, cint, add_months, date_diff, add_days,
 	nowdate, get_datetime_str, cstr, get_datetime, now_datetime)
 from frappe.model.document import Document
 from frappe.utils.user import get_enabled_system_users
+from frappe.desk.reportview import get_filters_cond
 
 weekdays = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
 
@@ -61,9 +63,11 @@ def send_event_digest():
 				content = text)
 
 @frappe.whitelist()
-def get_events(start, end, user=None, for_reminder=False):
+def get_events(start, end, user=None, for_reminder=False, filters=None):
 	if not user:
 		user = frappe.session.user
+	if isinstance(filters, basestring):
+		filters = json.loads(filters)
 	roles = frappe.get_roles(user)
 	events = frappe.db.sql("""select name, subject, description, color,
 		starts_on, ends_on, owner, all_day, event_type, repeat_this_event, repeat_on,repeat_till,
@@ -77,11 +81,13 @@ def get_events(start, end, user=None, for_reminder=False):
 			ifnull(repeat_till, "3000-01-01") > date(%(start)s)
 		))
 		{reminder_condition}
+		{filter_condition}
 		and (event_type='Public' or owner=%(user)s
 		or exists(select name from `tabDocShare` where
 			tabDocShare.share_doctype="Event" and `tabDocShare`.share_name=tabEvent.name
 			and tabDocShare.user=%(user)s))
 		order by starts_on""".format(
+			filter_condition=get_filters_cond('Event', filters, []),
 			reminder_condition="and ifnull(send_reminder,0)=1" if for_reminder else "",
 			roles=", ".join('"{}"'.format(frappe.db.escape(r)) for r in roles)
 		), {

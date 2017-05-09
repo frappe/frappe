@@ -1,5 +1,5 @@
 language: python
-dist: xenial
+dist: trusty
 
 python:
   - "2.7"
