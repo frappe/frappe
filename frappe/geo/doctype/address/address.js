@@ -18,8 +18,7 @@ frappe.ui.form.on("Address", {
 				query: "frappe.geo.address_and_contact.filter_dynamic_link_doctypes",
 				filters: {
 					fieldtype: "HTML",
-					fieldname: "address_html",
-					is_your_company_address: frm.doc.is_your_company_address
+					fieldname: "address_html"
 				}
 			}
 		});

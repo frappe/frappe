@@ -125,17 +125,12 @@ def delete_contact_and_address(doctype, docname):
 				doc.delete()
 
 def filter_dynamic_link_doctypes(doctype, txt, searchfield, start, page_len, filters):
+	""" filters and returns list of doctype containing the field `address_html` """
+
 	if not txt: txt = ""
 
 	txt = txt.lower()
 	txt = "%%%s%%" % (txt)
-
-	is_your_company_address = filters.get("is_your_company_address", None)
-	if is_your_company_address:
-		return (("Company",),)
-
-	elif "is_your_company_address" in filters:
-		filters.pop("is_your_company_address")
 
 	filters.update({
 		"parent": ("like", txt)
