@@ -66,8 +66,19 @@ def run_gsuite_script(option, filename = None, template_id = None, destination_i
 			'vars' : json_data
 		}
 		headers = {'Authorization': 'Bearer {}'.format( gdoc.get_access_token() )}
-		r = requests.post(gdoc.script_url, headers=headers, data=dumps(data, default=json_handler, separators=(',',':')))
-		return r.json()
+
+		try:
+			r = requests.post(gdoc.script_url, headers=headers, data=dumps(data, default=json_handler, separators=(',',':')))
+		except Exception, e:
+			frappe.throw(e.message)
+
+		try:
+			r = r.json()
+		except:
+			# if request doesn't return json show HTML ask permissions or to identify the error on google side
+			frappe.throw(r.text)
+
+		return r
 	else:
 		frappe.throw(_('Please set script URL on Gsuite Settings'))
 
