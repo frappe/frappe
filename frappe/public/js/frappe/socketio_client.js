@@ -73,7 +73,7 @@ frappe.socket = {
 		});
 
 		$(document).on("form_refresh", function(e, frm) {
-			if (frm.is_new()) {
+			if (cur_frm.is_new()) {
 				return;
 			}
 
