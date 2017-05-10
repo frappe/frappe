@@ -173,7 +173,7 @@ class EmailServer:
 			email_list = []
 			self.check_imap_uidvalidity()
 
-			self.imap.select("Inbox", readonly=True)
+			self.imap.select("Inbox", readonly=False)
 			response, message = self.imap.uid('search', None, self.settings.email_sync_rule)
 			if message[0]:
 				email_list =  message[0].split()
