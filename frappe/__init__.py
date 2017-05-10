@@ -1345,12 +1345,13 @@ def safe_eval(code, eval_globals=None, eval_locals=None):
 def get_active_domains():
 	""" get the domains set in the Domain Settings as active domain """
 
-	active_domains = cache().hget("domains", "active_domains") or []
-	if not active_domains:
+	active_domains = cache().hget("domains", "active_domains") or None
+	if active_domains is None:
 		domains = get_all("Has Domain", filters={ "parent": "Domain Settings" },
 			fields=["domain"], distinct=True)
 
 		active_domains = [ row.get("domain") for row in domains ]
-		cache().hset("domains", "active_domains", active_domains or [])
+		active_domains.append("")
+		cache().hset("domains", "active_domains", active_domains)
 
 	return active_domains

@@ -29,3 +29,19 @@ class TestDocType(unittest.TestCase):
 
 			doc = self.new_doctype(name).insert()
 			doc.delete()
+
+	def test_domainification(self):
+		domain = frappe.new_doc({
+			"doctype": "Domain",
+			"domain": "_Test Domain"
+		}).insert()
+
+		# add domain in active domains
+		domain_settings = frappe.get_doc("Domain Settings", "Domain Settings")
+		row = domain_settings.append("active_domains", {})
+		row.domain = domain.name
+		domain_settings.save()
+
+		doc = self.new_doctype("_Test Domainification")
+		doc.restrict_to_domain = domain.name
+		doc.insert()

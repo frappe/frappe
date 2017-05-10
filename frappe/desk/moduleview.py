@@ -58,6 +58,7 @@ def build_config_from_file(module):
 	return filter_by_restrict_to_domain(data)
 
 def filter_by_restrict_to_domain(data):
+	""" filter Pages and DocType depending on the Active Module(s) """
 	result = {}
 
 	mapper = {

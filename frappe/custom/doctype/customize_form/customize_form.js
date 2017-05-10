@@ -16,6 +16,7 @@ frappe.ui.form.on("Customize Form", {
 					['DocType', 'name', 'not in', 'DocType, DocField, DocPerm, User, Role, Has Role, \
 						Page, Has Role, Module Def, Print Format, Report, Customize Form, \
 						Customize Form Field']
+					['DocType', 'restrict_to_domain', 'in', frappe.boot.active_domains]
 				]
 			};
 		});
