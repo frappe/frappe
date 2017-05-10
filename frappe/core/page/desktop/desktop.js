@@ -152,6 +152,13 @@ $.extend(frappe.desktop, {
 	},
 
 	open_module: function(parent) {
+		if (parent.attr("data-name")=="Hub Node") {
+			frappe.db.get_value('Hub Settings','Hub Settings', 'enabled', function(r) {
+				if(r.enabled==0){
+					frappe.set_route('Form', 'Hub Settings', 'Hub Settings');
+				}
+			})
+		}
 		var link = parent.attr("data-link");
 		if(link) {
 			if(link.indexOf('javascript:')===0) {
