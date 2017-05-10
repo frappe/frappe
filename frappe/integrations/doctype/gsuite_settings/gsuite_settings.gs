@@ -1,3 +1,7 @@
+function doGet(e){
+  return ContentService.createTextOutput('ok');
+}
+
 function doPost(e) {
   var p = JSON.parse(e.postData.contents);
 
