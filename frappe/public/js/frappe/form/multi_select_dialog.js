@@ -94,7 +94,7 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 		this.$parent.on('click', '.btn[data-fieldname="make_new"]', (e) => {
 			frappe.route_options = {};
 			Object.keys(this.setters).forEach(function(setter) {
-				frappe.route_options[setter] = this.dialog.fields_dict[setter].get_value() || undefined;
+				frappe.route_options[setter] = me.dialog.fields_dict[setter].get_value() || undefined;
 			});
 			frappe.new_doc(this.doctype, true);
 		});
