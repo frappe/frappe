@@ -431,7 +431,7 @@ textarea.form-control {
 		flex: 0 0 36px;
 		order: -1;
 		justify-content: flex-end;
-		
+
 		input[type="checkbox"] {
 			margin-right: 0;
 		}
@@ -894,8 +894,17 @@ input[type="checkbox"] {
 	}
 }
 
+// Will not be required after commonifying lists with empty state
+.multiselect-empty-state{
+	min-height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+}
 
-// mozilla doesn't support pseudo elements on checkbox
+// mozilla doesn't support
+// pseudo elements on checkbox
 @-moz-document url-prefix() {
 	input[type="checkbox"] {
 		visibility: visible;
