@@ -611,7 +611,9 @@ class BaseDocument(object):
 			if not value or not isinstance(value, basestring):
 				continue
 
-			elif (u"<" not in value and u">" not in value):
+			value = frappe.as_unicode(value)
+
+			if (u"<" not in value and u">" not in value):
 				# doesn't look like html so no need
 				continue
 
