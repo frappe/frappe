@@ -174,7 +174,7 @@ def check_if_doc_is_linked(doc, method="Delete"):
 	link_fields = [[lf['parent'], lf['fieldname'], lf['issingle']] for lf in link_fields]
 
 	for link_dt, link_field, issingle in link_fields:
-		if not issingle:
+		if not issingle and not frappe.db.get_value('DocType', link_dt, 'system_doctype'):
 			for item in frappe.db.get_values(link_dt, {link_field:doc.name},
 				["name", "parent", "parenttype", "docstatus"], as_dict=True):
 				if item and ((item.parent or item.name) != doc.name) \
@@ -189,8 +189,8 @@ def check_if_doc_is_linked(doc, method="Delete"):
 def check_if_doc_is_dynamically_linked(doc, method="Delete"):
 	'''Raise `frappe.LinkExistsError` if the document is dynamically linked'''
 	for df in get_dynamic_link_map().get(doc.doctype, []):
-		if df.parent in ("Communication", "ToDo", "DocShare", "Email Unsubscribe", 'File', 'Version'):
-			# don't check for communication and todo!
+		if frappe.db.get_value('DocType', df.parent, 'system_doctype'):
+			# don't check for system doctype like communication and todo!
 			continue
 
 		meta = frappe.get_meta(df.parent)
