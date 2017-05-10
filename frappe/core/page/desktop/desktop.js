@@ -71,6 +71,9 @@ $.extend(frappe.desktop, {
 		// 		route: 'usage-info'
 		// 	}
 
+		// TEMP: test activiation without this message.
+		return;
+
 		if(!frappe.user.has_role('System Manager')) {
 			return;
 		}
