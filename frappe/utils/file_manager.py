@@ -236,7 +236,7 @@ def remove_all(dt, dn, from_delete=False):
 		for fid in frappe.db.sql_list("""select name from `tabFile` where
 			attached_to_doctype=%s and attached_to_name=%s""", (dt, dn)):
 			remove_file(fid, dt, dn, from_delete)
-	except Exception, e:
+	except Exception as e:
 		if e.args[0]!=1054: raise # (temp till for patched)
 
 def remove_file_by_url(file_url, doctype=None, name=None):

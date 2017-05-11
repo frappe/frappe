@@ -103,7 +103,7 @@ def get_comments_from_parent(doc):
 	try:
 		_comments = frappe.db.get_value(doc.reference_doctype, doc.reference_name, "_comments") or "[]"
 
-	except Exception, e:
+	except Exception as e:
 		if e.args[0] in (1146, 1054):
 			# 1146 = no table
 			# 1054 = missing column
@@ -129,7 +129,7 @@ def update_comments_in_parent(reference_doctype, reference_name, _comments):
 		frappe.db.sql("""update `tab%s` set `_comments`=%s where name=%s""" % (reference_doctype,
 			"%s", "%s"), (json.dumps(_comments), reference_name))
 
-	except Exception, e:
+	except Exception as e:
 		if e.args[0] == 1054 and getattr(frappe.local, 'request', None):
 			# missing column and in request, add column and update after commit
 			frappe.local._comments = (getattr(frappe.local, "_comments", [])

@@ -2,6 +2,7 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
+from six.moves import range
 import time, _socket, poplib, imaplib, email, email.utils, datetime, chardet, re, hashlib
 from email_reply_parser import EmailReplyParser
 from email.header import decode_header
@@ -58,7 +59,7 @@ class EmailServer:
 			frappe.msgprint(_('Invalid Mail Server. Please rectify and try again.'))
 			raise
 
-		except Exception, e:
+		except Exception as e:
 			frappe.msgprint(_('Cannot connect: {0}').format(str(e)))
 			raise
 
@@ -84,7 +85,7 @@ class EmailServer:
 			frappe.msgprint(_('Invalid Mail Server. Please rectify and try again.'))
 			raise
 
-		except poplib.error_proto, e:
+		except poplib.error_proto as e:
 			if self.is_temporary_system_problem(e):
 				return False
 
@@ -140,10 +141,10 @@ class EmailServer:
 			num = num_copy
 			if not cint(self.settings.use_imap):
 				if num > 100 and not self.errors:
-					for m in xrange(101, num+1):
+					for m in range(101, num+1):
 						self.pop.dele(m)
 
-		except Exception, e:
+		except Exception as e:
 			if self.has_login_limit_exceeded(e):
 				pass
 
@@ -173,7 +174,7 @@ class EmailServer:
 			email_list = []
 			self.check_imap_uidvalidity()
 
-			self.imap.select("Inbox", readonly=False)
+			self.imap.select("Inbox", readonly=True)
 			response, message = self.imap.uid('search', None, self.settings.email_sync_rule)
 			if message[0]:
 				email_list =  message[0].split()
@@ -246,10 +247,10 @@ class EmailServer:
 			self.errors = True
 			raise
 
-		except Exception, e:
+		except Exception as e:
 			if self.has_login_limit_exceeded(e):
 				self.errors = True
-				raise LoginLimitExceeded, e
+				raise LoginLimitExceeded(e)
 
 			else:
 				# log performs rollback and logs error in Error Log

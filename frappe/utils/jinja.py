@@ -30,7 +30,7 @@ def validate_template(html):
 	jenv = get_jenv()
 	try:
 		jenv.from_string(html)
-	except TemplateSyntaxError, e:
+	except TemplateSyntaxError as e:
  		frappe.msgprint('Line {}: {}'.format(e.lineno, e.message))
 		frappe.throw(frappe._("Syntax error in template"))
 

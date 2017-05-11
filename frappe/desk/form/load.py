@@ -33,6 +33,7 @@ def getdoc(doctype, name, user=None):
 		run_onload(doc)
 
 		if not doc.has_permission("read"):
+			frappe.flags.error_message = _('Insufficient Permission for {0}').format(frappe.bold(doctype + ' ' + name))
 			raise frappe.PermissionError, ("read", doctype, name)
 
 		doc.apply_fieldlevel_read_permissions()
