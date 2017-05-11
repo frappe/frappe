@@ -16,6 +16,8 @@ frappe.ui.form.LinkSelector = Class.extend({
 		}
 	},
 	make: function() {
+		var me = this;
+
 		this.dialog = new frappe.ui.Dialog({
 			title: __("Select {0}", [(this.doctype=='[Select]') ? __("value") : __(this.doctype)]),
 			fields: [
@@ -32,7 +34,6 @@ frappe.ui.form.LinkSelector = Class.extend({
 				me.search();
 			}
 		});
-		me = this;
 
 		if(this.txt)
 			this.dialog.fields_dict.txt.set_input(this.txt);
@@ -118,7 +119,7 @@ frappe.ui.form.LinkSelector = Class.extend({
 				$.each(me.target.frm.doc[me.target.df.fieldname] || [], function(i, d) {
 					if(d[me.fieldname]===value) {
 						frappe.model.set_value(d.doctype, d.name, me.qty_fieldname, data.qty);
-						show_alert(__("Added {0} ({1})", [value, d[me.qty_fieldname]]));
+						frappe.show_alert(__("Added {0} ({1})", [value, d[me.qty_fieldname]]));
 						updated = true;
 						return false;
 					}
@@ -129,7 +130,7 @@ frappe.ui.form.LinkSelector = Class.extend({
 					frappe.after_ajax(function() {
 						setTimeout(function() {
 							frappe.model.set_value(d.doctype, d.name, me.qty_fieldname, data.qty);
-							show_alert(__("Added {0} ({1})", [value, data.qty]));
+							frappe.show_alert(__("Added {0} ({1})", [value, data.qty]));
 						}, 100);
 					});
 				}
@@ -137,7 +138,7 @@ frappe.ui.form.LinkSelector = Class.extend({
 		} else {
 			var d = me.target.add_new_row();
 			frappe.model.set_value(d.doctype, d.name, me.fieldname, value);
-			show_alert(__("{0} added", [value]));
+			frappe.show_alert(__("{0} added", [value]));
 		}
 	}
 });

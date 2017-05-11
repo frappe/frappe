@@ -5,8 +5,8 @@ function prettyDate(time, mini){
 		time = new Date();
 	}
 	if(moment) {
-		if(window.sys_defaults && sys_defaults.time_zone) {
-			var ret = moment.tz(time, sys_defaults.time_zone).locale(frappe.boot.lang).fromNow(mini);
+		if(frappe.sys_defaults && frappe.sys_defaults.time_zone) {
+			var ret = moment.tz(time, frappe.sys_defaults.time_zone).locale(frappe.boot.lang).fromNow(mini);
 		} else {
 			var ret = moment(time).locale(frappe.boot.lang).fromNow(mini);
 		}
@@ -41,7 +41,7 @@ function prettyDate(time, mini){
 		if ( isNaN(day_diff) || day_diff < 0 )
 			return '';
 
-		return when = day_diff == 0 && (
+		var when = day_diff == 0 && (
 				diff < 60 && __("just now") ||
 				diff < 120 && __("1 minute ago") ||
 				diff < 3600 && __("{0} minutes ago", [Math.floor( diff / 60 )]) ||
@@ -52,6 +52,8 @@ function prettyDate(time, mini){
 			day_diff < 31 && __("{0} weeks ago", [Math.ceil( day_diff / 7 )]) ||
 			day_diff < 365 && __("{0} months ago", [Math.ceil( day_diff / 30)]) ||
 			__("> {0} year(s) ago", [Math.floor( day_diff / 365 )]);
+
+		return when;
 	}
 }
 

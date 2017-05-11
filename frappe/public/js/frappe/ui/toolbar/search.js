@@ -57,7 +57,7 @@ frappe.search.SearchDialog = Class.extend({
 			clearTimeout($this.data('timeout'));
 			$this.data('timeout', setTimeout(function() {
 				if(me.$input.val() === me.current_keyword) return;
-				keywords = me.$input.val();
+				var keywords = me.$input.val();
 				if(keywords.length > 1) {
 					me.get_results(keywords);
 				} else {
@@ -102,12 +102,12 @@ frappe.search.SearchDialog = Class.extend({
 				frappe.search.utils.get_global_results(me.current_keyword,
 					current_count, me.more_count, type)
 					.then(function(doctype_results) {
-						 me.add_more_results(doctype_results);
+						me.add_more_results(doctype_results);
 					}, function (err) {
 						console.error(err);
 					});
 			} else {
-				results = me.nav_lists[type].slice(0, me.more_count);
+				var results = me.nav_lists[type].slice(0, me.more_count);
 				me.nav_lists[type].splice(0, me.more_count);
 				me.add_more_results([{title: type, results: results}]);
 			}
@@ -133,6 +133,7 @@ frappe.search.SearchDialog = Class.extend({
 			if(me.$modal_body.find('.list-link').length > 1) {
 				if(me.modal_state === 0) {
 					// DOWN and UP keys navigate sidebar
+					var { UP_ARROW, DOWN_ARROW, TAB } = frappe.ui.keyCode;
 					if(e.which === DOWN_ARROW || e.which === TAB) {
 						e.preventDefault();
 						var $link = me.$modal_body.find('.list-link.select').next();
@@ -247,7 +248,7 @@ frappe.search.SearchDialog = Class.extend({
 				are_expansive = true;
 				break;
 			}
-		};
+		}
 		if(results[0].image) margin_more = "20px";
 		var [section_length, col_width] = are_expansive ? [3, "12"] : [4, "6"];
 

@@ -298,7 +298,7 @@ frappe.PermissionEngine = Class.extend({
 						r.message = $.map(r.message, function(p) {
 							return $.format('<a href="#Form/User/{0}">{1}</a>', [p, p]);
 						})
-						msgprint(__("Users with role {0}:", [__(role)])
+						frappe.msgprint(__("Users with role {0}:", [__(role)])
 							+ "<br>" + r.message.join("<br>"));
 					}
 				})
@@ -324,7 +324,7 @@ frappe.PermissionEngine = Class.extend({
 					},
 					callback: function(r) {
 						if(r.exc) {
-							msgprint(__("Did not remove"));
+							frappe.msgprint(__("Did not remove"));
 						} else {
 							me.refresh();
 						}
@@ -404,7 +404,7 @@ frappe.PermissionEngine = Class.extend({
 						args: args,
 						callback: function(r) {
 							if(r.exc) {
-								msgprint(__("Did not add"));
+								frappe.msgprint(__("Did not add"));
 							} else {
 								me.refresh();
 							}
@@ -476,9 +476,9 @@ frappe.PermissionEngine = Class.extend({
 					},
 					callback: function(r) {
 						if(r.exc) {
-							msgprint(__("Did not set"));
+							frappe.msgprint(__("Did not set"));
 						} else {
-							var msg = msgprint(__("Saved!"));
+							var msg =	frappe.msgprint(__("Saved!"));
 							setTimeout(function() { msg.hide(); }, 3000);
 							d.user_permission_doctypes = user_permission_doctypes;
 							dialog.hide();

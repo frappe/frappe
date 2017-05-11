@@ -70,9 +70,10 @@ frappe.ui.form.PrintPreview = Class.extend({
 					+"&name="+encodeURIComponent(me.frm.doc.name)
 					+"&format="+me.selected_format()
 					+"&no_letterhead="+(me.with_letterhead() ? "0" : "1")
-					+(me.lang_code ? ("&_lang="+me.lang_code) : "")));
+					+(me.lang_code ? ("&_lang="+me.lang_code) : ""))
+				);
 				if(!w) {
-					msgprint(__("Please enable pop-ups")); return;
+					frappe.msgprint(__("Please enable pop-ups")); return;
 				}
 			}
 		});
@@ -138,7 +139,7 @@ frappe.ui.form.PrintPreview = Class.extend({
 			+"&no_letterhead="+(me.with_letterhead() ? "0" : "1")
 			+(me.lang_code ? ("&_lang="+me.lang_code) : "")));
 		if(!w) {
-			msgprint(__("Please enable pop-ups")); return;
+			frappe.msgprint(__("Please enable pop-ups")); return;
 		}
 	},
 	get_print_html: function(callback) {
@@ -227,7 +228,7 @@ frappe.ui.get_print_settings = function(pdf, callback, letter_head) {
 		? locals[":Company"][frappe.defaults.get_default('company')]["default_letter_head"]
 		: '';
 
-	columns = [{
+	var columns = [{
 		fieldtype: "Check",
 		fieldname: "with_letter_head",
 		label: __("With Letter head")

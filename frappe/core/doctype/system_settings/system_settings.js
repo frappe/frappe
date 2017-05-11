@@ -7,7 +7,7 @@ frappe.ui.form.on("System Settings", "refresh", function(frm) {
 
 			$.each(data.message.defaults, function(key, val) {
 				frm.set_value(key, val);
-				sys_defaults[key] = val;
+				frappe.sys_defaults[key] = val;
 			})
 		}
 	});

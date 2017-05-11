@@ -5,7 +5,7 @@ frappe.provide("frappe.tools");
 
 frappe.tools.downloadify = function(data, roles, title) {
 	if(roles && roles.length && !has_common(roles, roles)) {
-		msgprint(__("Export not allowed. You need {0} role to export.", [frappe.utils.comma_or(roles)]));
+		frappe.msgprint(__("Export not allowed. You need {0} role to export.", [frappe.utils.comma_or(roles)]));
 		return;
 	}
 
