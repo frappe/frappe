@@ -17,6 +17,11 @@ def get_data():
 					"name": "Razorpay Settings",
 					"description": _("Razorpay Payment gateway settings"),
 				},
+				{
+					"type": "doctype",
+					"name": "Stripe Settings",
+					"description": _("Stripe payment gateway settings"),
+				},
 			]
 		},
 		{
