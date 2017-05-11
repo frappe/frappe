@@ -2,6 +2,7 @@
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
+from six.moves import range
 import frappe
 
 
@@ -66,7 +67,7 @@ def get_party_addresses_and_contact(party_type, party):
 			contacts = map(list, contacts)
 
 			max_length = max(len(addresses), len(contacts))
-			for idx in xrange(0, max_length):
+			for idx in range(0, max_length):
 				result = list(party_detail)
 
 				address = addresses[idx] if idx < len(addresses) else [ "" for field in field_map.get("Address", []) ]

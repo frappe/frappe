@@ -2,6 +2,7 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
+from six.moves import range
 import time, _socket, poplib, imaplib, email, email.utils, datetime, chardet, re, hashlib
 from email_reply_parser import EmailReplyParser
 from email.header import decode_header
@@ -140,7 +141,7 @@ class EmailServer:
 			num = num_copy
 			if not cint(self.settings.use_imap):
 				if num > 100 and not self.errors:
-					for m in xrange(101, num+1):
+					for m in range(101, num+1):
 						self.pop.dele(m)
 
 		except Exception as e:
