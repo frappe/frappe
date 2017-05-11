@@ -113,28 +113,25 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 		// Make a head row by default (if result not passed)
 		let head = Object.keys(result).length === 0;
 
-		let columns = (["name"].concat(Object.keys(this.setters))).concat([this.date_field]);
+		let contents = ``;
+		let columns = (["name"].concat(Object.keys(this.setters))).concat("Date");
+		columns.forEach(function(column) {
+			contents += `<div class="list-item__content ellipsis">
+				${
+					head ? __(frappe.model.unscrub(column))
+
+					: (column !== "name" ? __(result[column])
+						: `<a href="${"#Form/"+ me.doctype + "/" + result[column]}" class="list-id">
+							${__(result[column])}</a>`)
+				}
+			</div>`;
+		})
+
 		let $row = $(`<div class="list-item">
 			<div class="list-item__content ellipsis" style="flex: 0 0 10px;">
 				<input type="checkbox" class="list-row-check" ${result.checked ? 'checked' : ''}/>
 			</div>
-			${	(() => {
-					let contents = ``;
-					columns.forEach(function(column) {
-						contents += `<div class="list-item__content ellipsis">
-							${
-								head ? __(frappe.model.unscrub(column))
-
-								: (column !== "name" ? __(result[column])
-									: `<a href="${"#Form/"+ me.doctype + "/" + result[column]}" class="list-id">
-										${__(result[column])}</a>`)
-							}
-						</div>`;
-
-					})
-					return contents;
-				})()
-			}
+			${contents}
 		</div>`);
 
 		head ? $row.addClass('list-item--head')
@@ -184,15 +181,20 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 					r.values.forEach(function(value_list) {
 						let result = {};
 						value_list.forEach(function(value, index){
-							result[r.fields[index]] = value;
+							if(r.fields[index] === me.date_field) {
+								result["Date"] = value;
+							} else {
+								result[r.fields[index]] = value;
+							}
 						});
 						result.checked = 0;
-						result.parsed_date = Date.parse(result[me.date_field]);
+						result.parsed_date = Date.parse(result["Date"]);
 						results.push(result);
 					});
 					let min_date = Math.min.apply( Math, results.map((result) => result.parsed_date) );
 
 					results.map( (result) => {
+						result["Date"] = frappe.format(result["Date"], {"fieldtype":"Date"});
 						if(result.parsed_date === min_date) {
 							result.checked = 1;
 						}
