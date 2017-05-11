@@ -282,9 +282,9 @@ class EmailAccount(Document):
 
 				else:
 					frappe.db.commit()
-					attachments = [d.file_name for d in communication._attachments]
-
-					communication.notify(attachments=attachments, fetched_from_email_account=True)
+					if communication:
+						attachments = [d.file_name for d in communication._attachments]
+						communication.notify(attachments=attachments, fetched_from_email_account=True)
 
 			#notify if user is linked to account
 			if len(incoming_mails)>0 and not frappe.local.flags.in_test:
@@ -342,12 +342,8 @@ class EmailAccount(Document):
 			if names:
 				name = names[0].get("name")
 				# email is already available update communication uid instead
-				communication = frappe.get_doc("Communication", name)
-				communication.uid = uid
-				communication.save(ignore_permissions=True)
-				communication._attachments = []
-
-				return communication
+				frappe.db.set_value("Communication", name, "uid", uid)
+				return
 
 		communication = frappe.get_doc({
 			"doctype": "Communication",
