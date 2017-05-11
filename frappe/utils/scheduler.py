@@ -207,11 +207,7 @@ def is_scheduler_disabled():
 	return not frappe.utils.cint(frappe.db.get_single_value("System Settings", "enable_scheduler"))
 
 def toggle_scheduler(enable):
-	ss = frappe.get_doc("System Settings")
-	ss.enable_scheduler = 1 if enable else 0
-	ss.flags.ignore_mandatory = True
-	ss.flags.ignore_permissions = True
-	ss.save()
+	frappe.db.set_value("System Settings", None, "enable_scheduler", 1 if enable else 0)
 
 def enable_scheduler():
 	toggle_scheduler(True)
