@@ -144,8 +144,9 @@ frappe.upload = {
 			// Get file url if input is visible
 			var file_url = $upload.find('[name="file_url"]:visible');
 			file_url = file_url.length && file_url.get(0).value;
-
-			if(file_url) {
+			if(opts.args.gs_template) {
+				frappe.upload.create_gsuite_file(opts.args,opts);
+			} else if(file_url) {
 				opts.args.file_url = file_url;
 				frappe.upload.upload_file(null, opts.args, opts);
 			} else {
@@ -378,5 +379,16 @@ frappe.upload = {
 		});
 		d.show();
 		opts.confirm_is_private =  0;
+	},
+	create_gsuite_file: function(args, opts) {
+		return frappe.call({
+			type:'POST',
+			method: 'frappe.integrations.doctype.gsuite_templates.gsuite_templates.create_gsuite_doc',
+			args: args,
+			callback: function(r) {
+				var attachment = r.message;
+				opts.callback && opts.callback(attachment, r);
+			}
+		});
 	}
 }

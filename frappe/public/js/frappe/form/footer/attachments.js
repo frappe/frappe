@@ -13,9 +13,6 @@ frappe.ui.form.Attachments = Class.extend({
 		this.parent.find(".add-attachment").click(function() {
 			me.new_attachment();
 		});
-		this.parent.find(".add-gsuite").click(function() {
-			me.new_gsuite();
-		});
 		this.add_attachment_wrapper = this.parent.find(".add_attachment").parent();
 		this.attachments_label = this.parent.find(".attachments-label");
 	},
@@ -163,21 +160,6 @@ frappe.ui.form.Attachments = Class.extend({
 			"max_height": me.frm.cscript ? me.frm.cscript.attachment_max_height : null
 		});
 	},
-	new_gsuite: function(fieldname) {
-		var me = this;
-		if (this.dialog) {
-			// remove upload dialog
-			this.dialog.$wrapper.remove();
-		}
-
-		// make upload dialog
-		this.dialog = frappe.ui.get_gsuite_dialog({
-			"args": me.get_args(),
-			"callback": function(attachment, r) { me.attachment_uploaded(attachment, r) },
-			"max_width": me.frm.cscript ? me.frm.cscript.attachment_max_width : null,
-			"max_height": me.frm.cscript ? me.frm.cscript.attachment_max_height : null
-		});
-	},
 	get_args: function() {
 		return {
 			from_form: 1,
@@ -229,8 +211,10 @@ frappe.ui.get_upload_dialog = function(opts){
 		title: __('Upload Attachment'),
 		no_focus: true,
 		fields: [
-			{fieldtype: "Section Break"},
+			{"fieldtype": "Section Break"},
 			{"fieldtype": "Link" , "fieldname": "file" , "label": __("Select uploaded file"), "options": "File"},
+			{"fieldtype": "Section Break", "label": __("Gsuite Document")},
+			{"fieldtype": "Link" ,"fieldname": "gs_template" ,"label": __("Select template"), "options": "GSuite Templates", reqd : false, filters: {'related_doctype': cur_frm.doctype}},
 		],
 	});
 
@@ -241,6 +225,11 @@ frappe.ui.get_upload_dialog = function(opts){
 	var upload_area = $('<div style="padding-bottom: 25px;"></div>').prependTo(dialog.body);
 
 	var fd = dialog.fields_dict;
+
+	$(fd.gs_template.input).change(function() {
+		opts.args.gs_template = fd.gs_template.get_value()
+	});
+
 	$(fd.file.input).change(function() {
 		frappe.call({
 			'method': 'frappe.client.get_value',
@@ -279,44 +268,5 @@ frappe.ui.get_upload_dialog = function(opts){
 		max_height: opts.max_height,
 	});
 
-	return dialog;
-}
-
-frappe.ui.get_gsuite_dialog = function(opts){
-	var me = this
-	var dialog = new frappe.ui.Dialog({
-	    title: __('Create GSuite Document'),
-			no_focus: true,
-		  fields: [
-				{	"fieldtype": "Link" ,
-				 	"fieldname": "template" ,
-				 	"label": __("Select template"),
-				 	"options": "GSuite Templates",
-				 	reqd : true,
-				 	filters: {'related_doctype': cur_frm.doctype}
-			  },
-		  ],
-			primary_action_label : __("Create"),
-			primary_action : function(){
-				var template = dialog.fields_dict.template.get_value()
-				return frappe.call({
-					type:'POST',
-					method: 'frappe.integrations.doctype.gsuite_templates.gsuite_templates.create_gsuite_doc',
-					args: {
-						'doctype': cur_frm.doctype,
-						'name': cur_frm.docname,
-						'template': template
-					},
-					callback: function(r) {
-						if(opts.callback){
-							opts.callback(r.message,r);
-						}
-						dialog.hide();
-    			}
-				})
-			}
-		});
-
-	dialog.show();
 	return dialog;
 }
