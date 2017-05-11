@@ -2,6 +2,7 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
+from six import reraise as raise_
 import frappe, sys
 from frappe import _
 from frappe.utils import (cint, flt, now, cstr, strip_html, getdate, get_datetime, to_timedelta,
@@ -38,9 +39,9 @@ def get_controller(doctype):
 				if issubclass(_class, BaseDocument):
 					_class = getattr(module, classname)
 				else:
-					raise ImportError, doctype
+					raise ImportError(doctype)
 			else:
-				raise ImportError, doctype
+				raise ImportError(doctype)
 		_classes[doctype] = _class
 
 	return _classes[doctype]
@@ -140,7 +141,9 @@ class BaseDocument(object):
 			value.parent_doc = self
 			return value
 		else:
-			raise ValueError, "Document attached to child table must be a dict or BaseDocument, not " + str(type(value))[1:-1]
+			raise ValueError(
+				"Document attached to child table must be a dict or BaseDocument, not " + str(type(value))[1:-1]
+			)
 
 	def extend(self, key, value):
 		if isinstance(value, list):
@@ -159,7 +162,7 @@ class BaseDocument(object):
 			if "doctype" not in value:
 				value["doctype"] = self.get_table_field_doctype(key)
 				if not value["doctype"]:
-					raise AttributeError, key
+					raise AttributeError(key)
 			value = get_controller(value["doctype"])(value)
 			value.init_valid_columns()
 
@@ -294,7 +297,7 @@ class BaseDocument(object):
 					columns = ", ".join(["`"+c+"`" for c in columns]),
 					values = ", ".join(["%s"] * len(columns))
 				), d.values())
-		except Exception, e:
+		except Exception as e:
 			if e.args[0]==1062:
 				if "PRIMARY" in cstr(e.args[1]):
 					if self.meta.autoname=="hash":
@@ -303,9 +306,9 @@ class BaseDocument(object):
 						self.db_insert()
 						return
 
-					type, value, traceback = sys.exc_info()
 					frappe.msgprint(_("Duplicate name {0} {1}").format(self.doctype, self.name))
-					raise frappe.DuplicateEntryError, (self.doctype, self.name, e), traceback
+					traceback = sys.exc_info()[2]
+					raise_(frappe.DuplicateEntryError, (self.doctype, self.name, e), traceback)
 
 				elif "Duplicate" in cstr(e.args[1]):
 					# unique constraint
@@ -336,7 +339,7 @@ class BaseDocument(object):
 					doctype = self.doctype,
 					values = ", ".join(["`"+c+"`=%s" for c in columns])
 				), d.values() + [name])
-		except Exception, e:
+		except Exception as e:
 			if e.args[0]==1062 and "Duplicate" in cstr(e.args[1]):
 				self.show_unique_validation_message(e)
 			else:
@@ -358,7 +361,7 @@ class BaseDocument(object):
 		frappe.msgprint(_("{0} must be unique".format(label or fieldname)))
 
 		# this is used to preserve traceback
-		raise frappe.UniqueValidationError, (self.doctype, self.name, e), traceback
+		raise_(frappe.UniqueValidationError, (self.doctype, self.name, e), traceback)
 
 	def db_set(self, fieldname, value=None, update_modified=True):
 		'''Set a value in the document object, update the timestamp and update the database.
@@ -611,7 +614,9 @@ class BaseDocument(object):
 			if not value or not isinstance(value, basestring):
 				continue
 
-			elif (u"<" not in value and u">" not in value):
+			value = frappe.as_unicode(value)
+
+			if (u"<" not in value and u">" not in value):
 				# doesn't look like html so no need
 				continue
 

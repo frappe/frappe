@@ -50,7 +50,7 @@ def get_doc(arg1, arg2=None):
 	if controller:
 		return controller(arg1, arg2)
 
-	raise ImportError, arg1
+	raise ImportError(arg1)
 
 class Document(BaseDocument):
 	"""All controllers inherit from `Document`."""
@@ -203,9 +203,9 @@ class Document(BaseDocument):
 		else:
 			try:
 				self.db_insert()
-			except frappe.DuplicateEntryError, e:
+			except frappe.DuplicateEntryError as e:
 				if not ignore_if_duplicate:
-					raise  e
+					raise e
 
 		# children
 		for d in self.get_all_children():
@@ -562,7 +562,7 @@ class Document(BaseDocument):
 				self._action = "submit"
 				self.check_permission("submit")
 			else:
-				raise frappe.DocstatusTransitionError, _("Cannot change docstatus from 0 to 2")
+				raise frappe.DocstatusTransitionError(_("Cannot change docstatus from 0 to 2"))
 
 		elif docstatus==1:
 			if self.docstatus==1:
@@ -572,10 +572,10 @@ class Document(BaseDocument):
 				self._action = "cancel"
 				self.check_permission("cancel")
 			else:
-				raise frappe.DocstatusTransitionError, _("Cannot change docstatus from 1 to 0")
+				raise frappe.DocstatusTransitionError(_("Cannot change docstatus from 1 to 0"))
 
 		elif docstatus==2:
-			raise frappe.ValidationError, _("Cannot edit cancelled document")
+			raise frappe.ValidationError(_("Cannot edit cancelled document"))
 
 	def set_parent_in_children(self):
 		"""Updates `parent` and `parenttype` property in all children."""

@@ -7,6 +7,7 @@ var redis = require("redis");
 var request = require('superagent');
 
 var conf = get_conf();
+var flags = {};
 var subscriber = redis.createClient(conf.redis_socketio || conf.redis_async_broker_port);
 
 // serve socketio
@@ -30,6 +31,14 @@ io.on('connection', function(socket){
 	if(!sid) {
 		return;
 	}
+
+	if(flags[sid]) {
+		// throttle this function
+		return;
+	}
+
+	flags[sid] = sid;
+	setTimeout(function() { flags[sid] = null; }, 10000);
 
 	socket.user = cookie.parse(socket.request.headers.cookie).user_id;
 

@@ -16,6 +16,11 @@ from frappe.core.doctype.user.user import MaxUsersReachedError, test_password_st
 test_records = frappe.get_test_records('User')
 
 class TestUser(unittest.TestCase):
+	def tearDown(self):
+		# disable password strength test
+		frappe.db.set_value("System Settings", "System Settings", "enable_password_policy", 0)
+		frappe.db.set_value("System Settings", "System Settings", "minimum_password_score", "")
+
 	def test_user_type(self):
 		new_user = frappe.get_doc(dict(doctype='User', email='test-for-type@example.com',
 			first_name='Tester')).insert()

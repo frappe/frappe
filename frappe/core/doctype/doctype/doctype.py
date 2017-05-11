@@ -458,7 +458,7 @@ def validate_fields(meta):
 						group by `{fieldname}` having count(*) > 1 limit 1""".format(
 						doctype=d.parent, fieldname=d.fieldname))
 
-				except pymysql.OperationalError, e:
+				except pymysql.OperationalError as e:
 					if e.args and e.args[0]==1054:
 						# ignore if missing column, else raise
 						# this happens in case of Custom Field
@@ -723,9 +723,9 @@ def make_module_and_roles(doc, perm_fieldname="permissions"):
 				r = frappe.get_doc(dict(doctype= "Role", role_name=role, desk_access=1))
 				r.flags.ignore_mandatory = r.flags.ignore_permissions = True
 				r.insert()
-	except frappe.DoesNotExistError, e:
+	except frappe.DoesNotExistError as e:
 		pass
-	except frappe.SQLError, e:
+	except frappe.SQLError as e:
 		if e.args[0]==1146:
 			pass
 		else:

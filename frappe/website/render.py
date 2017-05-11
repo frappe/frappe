@@ -30,7 +30,7 @@ def render(path=None, http_status_code=None):
 	else:
 		try:
 			data = render_page_by_language(path)
-		except frappe.DoesNotExistError, e:
+		except frappe.DoesNotExistError as e:
 			doctype, name = get_doctype_from_path(path)
 			if doctype and name:
 				path = "print"
@@ -48,13 +48,13 @@ def render(path=None, http_status_code=None):
 			if not data:
 				try:
 					data = render_page(path)
-				except frappe.PermissionError, e:
+				except frappe.PermissionError as e:
 					data, http_status_code = render_403(e, path)
 
-		except frappe.PermissionError, e:
+		except frappe.PermissionError as e:
 			data, http_status_code = render_403(e, path)
 
-		except frappe.Redirect, e:
+		except frappe.Redirect as e:
 			return build_response(path, "", 301, {
 				"Location": frappe.flags.redirect_location or (frappe.local.response or {}).get('location'),
 				"Cache-Control": "no-store, no-cache, must-revalidate"
