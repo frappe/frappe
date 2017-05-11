@@ -55,8 +55,8 @@ def application(request):
 			response = frappe.handler.handle()
 
 		elif frappe.request.path.startswith("/api/"):
-                	if frappe.local.form_dict.data is None:
-                        	frappe.local.form_dict.data = request.get_data()
+			if frappe.local.form_dict.data is None:
+					frappe.local.form_dict.data = request.get_data()
 			response = frappe.api.handle()
 
 		elif frappe.request.path.startswith('/backups'):
@@ -71,13 +71,13 @@ def application(request):
 		else:
 			raise NotFound
 
-	except HTTPException, e:
+	except HTTPException as e:
 		return e
 
-	except frappe.SessionStopped, e:
+	except frappe.SessionStopped as e:
 		response = frappe.utils.response.handle_session_stopped()
 
-	except Exception, e:
+	except Exception as e:
 		response = handle_exception(e)
 
 	else:

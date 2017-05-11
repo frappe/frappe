@@ -100,7 +100,7 @@ def get_notifications_for_doctypes(config, notification_count):
 					pass
 					# frappe.msgprint("Permission Error in notifications for {0}".format(d))
 
-				except Exception, e:
+				except Exception as e:
 					# OperationalError: (1412, 'Table definition has changed, please retry transaction')
 					if e.args[0]!=1412:
 						raise

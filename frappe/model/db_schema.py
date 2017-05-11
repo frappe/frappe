@@ -60,7 +60,7 @@ def updatedb(dt, meta=None):
 	"""
 	res = frappe.db.sql("select issingle from tabDocType where name=%s", (dt,))
 	if not res:
-		raise Exception, 'Wrong doctype "%s" in updatedb' % dt
+		raise Exception('Wrong doctype "%s" in updatedb' % dt)
 
 	if not res[0][0]:
 		tab = DbTable(dt, 'tab', meta)
@@ -118,7 +118,7 @@ class DbTable:
 					max_length = frappe.db.sql("""select max(char_length(`{fieldname}`)) from `tab{doctype}`"""\
 						.format(fieldname=col.fieldname, doctype=self.doctype))
 
-				except MySQLdb.OperationalError, e:
+				except MySQLdb.OperationalError as e:
 					if e.args[0]==1054:
 						# Unknown column 'column_name' in 'field list'
 						continue
@@ -337,7 +337,7 @@ class DbTable:
 		if query:
 			try:
 				frappe.db.sql("alter table `{}` {}".format(self.name, ", ".join(query)))
-			except Exception, e:
+			except Exception as e:
 				# sanitize
 				if e.args[0]==1060:
 					frappe.throw(str(e))
@@ -504,7 +504,7 @@ class DbManager:
 			host = self.get_current_host()
 		try:
 			self.db.sql("DROP USER '%s'@'%s';" % (target, host))
-		except Exception, e:
+		except Exception as e:
 			if e.args[0]==1396:
 				pass
 			else:
@@ -570,7 +570,7 @@ def remove_all_foreign_keys():
 		dbtab = DbTable(t[0])
 		try:
 			fklist = dbtab.get_foreign_keys()
-		except Exception, e:
+		except Exception as e:
 			if e.args[0]==1146:
 				fklist = []
 			else:

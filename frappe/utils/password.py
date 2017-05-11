@@ -60,7 +60,7 @@ def delete_all_passwords_for(doctype, name):
 	try:
 		frappe.db.sql("""delete from __Auth where doctype=%(doctype)s and name=%(name)s""",
 			{ 'doctype': doctype, 'name': name })
-	except Exception, e:
+	except Exception as e:
 		if e.args[0]!=1054:
 			raise
 
