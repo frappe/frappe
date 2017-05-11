@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 import frappe
 
-def load_address_and_contact(doc, key):
+def load_address_and_contact(doc, key=None):
 	"""Loads address list and contact list in `__onload`"""
 	from frappe.geo.doctype.address.address import get_address_display
 

@@ -64,7 +64,7 @@ frappe.ui.form.on('User', {
 
 				frm.toggle_display(['sb1', 'sb3', 'modules_access'], true);
 			}
-			
+
 			frm.add_custom_button(__("Reset Password"), function() {
 				frappe.call({
 					method: "frappe.core.doctype.user.user.reset_password",
@@ -125,7 +125,6 @@ frappe.ui.form.on('User', {
 			frm.toggle_enable('email', doc.__islocal);
 		}
 	},
-
 	create_user_email:function(frm) {
 		frappe.call({
 			method: 'frappe.core.doctype.user.user.has_email_account',
@@ -146,7 +145,7 @@ frappe.ui.form.on('User', {
 						frappe.set_route("Form", "Email Account", doc.name);
 					})
 				} else {
-					frappe.route_flags.create_user_account = frm.doc.name;					
+					frappe.route_flags.create_user_account = frm.doc.name;
 					frappe.set_route("Form", "Email Account", r.message[0]["name"]);
 				}
 			}

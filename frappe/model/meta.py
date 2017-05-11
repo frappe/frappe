@@ -16,6 +16,7 @@ Example:
 '''
 
 from __future__ import unicode_literals, print_function
+from six.moves import range
 import frappe, json, os
 from frappe.utils import cstr, cint
 from frappe.model import default_fields, no_value_fields, optional_fields
@@ -230,7 +231,7 @@ class Meta(Document):
 			self.extend("fields", frappe.db.sql("""SELECT * FROM `tabCustom Field`
 				WHERE dt = %s AND docstatus < 2""", (self.name,), as_dict=1,
 				update={"is_custom_field": 1}))
-		except Exception, e:
+		except Exception as e:
 			if e.args[0]==1146:
 				return
 			else:
@@ -281,7 +282,7 @@ class Meta(Document):
 			newlist += [df for df in self.get('fields') if not df.get('is_custom_field')]
 
 			newlist_fieldnames = [df.fieldname for df in newlist]
-			for i in xrange(2):
+			for i in range(2):
 				for df in list(custom_fields):
 					if df.insert_after in newlist_fieldnames:
 						cf = custom_fields.pop(custom_fields.index(df))
@@ -385,7 +386,7 @@ def is_single(doctype):
 	try:
 		return frappe.db.get_value("DocType", doctype, "issingle")
 	except IndexError:
-		raise Exception, 'Cannot determine whether %s is single' % doctype
+		raise Exception('Cannot determine whether %s is single' % doctype)
 
 def get_parent_dt(dt):
 	parent_dt = frappe.db.sql("""select parent from tabDocField

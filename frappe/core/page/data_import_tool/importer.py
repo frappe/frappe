@@ -3,6 +3,7 @@
 
 from __future__ import unicode_literals, print_function
 
+from six.moves import range
 import requests
 import frappe, json
 import frappe.permissions
@@ -102,7 +103,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 	def get_doc(start_idx):
 		if doctypes:
 			doc = {}
-			for idx in xrange(start_idx, len(rows)):
+			for idx in range(start_idx, len(rows)):
 				if (not doc) or main_doc_empty(rows[idx]):
 					for dt, parentfield in doctypes:
 						d = {}
@@ -313,7 +314,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 				if submit_after_import:
 					doc.submit()
 					log('Submitted row (#%d) %s' % (row_idx + 1, as_link(doc.doctype, doc.name)))
-		except Exception, e:
+		except Exception as e:
 			error = True
 			if doc:
 				frappe.errprint(doc if isinstance(doc, dict) else doc.as_dict())

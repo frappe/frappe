@@ -31,7 +31,7 @@ def check_user_tags(dt):
 	"if the user does not have a tags column, then it creates one"
 	try:
 		frappe.db.sql("select `_user_tags` from `tab%s` limit 1" % dt)
-	except Exception, e:
+	except Exception as e:
 		if e.args[0] == 1054:
 			DocTags(dt).setup()
 
@@ -57,7 +57,7 @@ def get_tags(doctype, txt, cat_tags):
 			where _user_tags like '%{1}%'
 			limit 50""".format(frappe.db.escape(doctype), frappe.db.escape(txt))):
 			tags.extend(_user_tags[1:].split(","))
-	except Exception, e:
+	except Exception as e:
 		if e.args[0]!=1054: raise
 	return sorted(filter(lambda t: t and txt.lower() in t.lower(), list(set(tags))))
 
@@ -102,7 +102,7 @@ class DocTags:
 		try:
 			frappe.db.sql("update `tab%s` set _user_tags=%s where name=%s" % \
 				(self.dt,'%s','%s'), (tags , dn))
-		except Exception, e:
+		except Exception as e:
 			if e.args[0]==1054:
 				if not tags:
 					# no tags, nothing to do

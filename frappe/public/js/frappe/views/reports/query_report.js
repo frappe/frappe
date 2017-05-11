@@ -109,7 +109,7 @@ frappe.views.QueryReport = Class.extend({
 
 		// add to desktop
 		this.page.add_menu_item(__("Add to Desktop"), function() {
-			frappe.add_to_desktop(me.report_name, me.report_doc.ref_doctype);
+			frappe.add_to_desktop(me.report_name, null, me.report_name);
 		}, true);
 	},
 	load: function() {
@@ -207,8 +207,8 @@ frappe.views.QueryReport = Class.extend({
 	},
 	pdf_report: function() {
 		var me = this;
-		base_url = frappe.urllib.get_base_url();
-		print_css = frappe.boot.print_css;
+		var base_url = frappe.urllib.get_base_url();
+		var print_css = frappe.boot.print_css;
 
 		if(!frappe.model.can_print(this.report_doc.ref_doctype)) {
 			msgprint(__("You are not allowed to make PDF for this report"));
@@ -246,7 +246,7 @@ frappe.views.QueryReport = Class.extend({
 			});
 		}
 
-		orientation = this.print_settings.orientation;
+		var orientation = this.print_settings.orientation;
 		this.open_pdf_report(html, orientation)
 	},
 	open_pdf_report: function(html, orientation) {
@@ -407,6 +407,8 @@ frappe.views.QueryReport = Class.extend({
 		var mandatory_fields = [];
 		$.each(this.filters || [], function(i, f) {
 			var v = f.get_parsed_value();
+			// TODO: hidden fields dont have $input
+			if(f.df.hidden) v = f.value;
 			if(v === '%') v = null;
 			if(f.df.reqd && !v) mandatory_fields.push(f.df.label);
 			if(v) filters[f.df.fieldname] = v;

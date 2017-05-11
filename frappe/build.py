@@ -113,7 +113,7 @@ def get_build_maps():
 							source_paths.append(s)
 
 						build_maps[target] = source_paths
-				except ValueError, e:
+				except ValueError as e:
 					print(path)
 					print('JSON syntax error {0}'.format(str(e)))
 	return build_maps

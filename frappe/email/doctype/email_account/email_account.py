@@ -161,7 +161,7 @@ class EmailAccount(Document):
 		email_server = EmailServer(frappe._dict(args))
 		try:
 			email_server.connect()
-		except (error_proto, imaplib.IMAP4.error), e:
+		except (error_proto, imaplib.IMAP4.error) as e:
 			message = e.message.lower().replace(" ","")
 			if in_receive and any(map(lambda t: t in message, ['authenticationfail', 'loginviayourwebbrowser', #abbreviated to work with both failure and failed
 				'loginfailed', 'err[auth]', 'errtemporaryerror'])): #temporary error to deal with godaddy
@@ -282,16 +282,16 @@ class EmailAccount(Document):
 
 				else:
 					frappe.db.commit()
-					attachments = [d.file_name for d in communication._attachments]
-
-					communication.notify(attachments=attachments, fetched_from_email_account=True)
+					if communication:
+						attachments = [d.file_name for d in communication._attachments]
+						communication.notify(attachments=attachments, fetched_from_email_account=True)
 
 			#notify if user is linked to account
 			if len(incoming_mails)>0 and not frappe.local.flags.in_test:
 				frappe.publish_realtime('new_email', {"account":self.email_account_name, "number":len(incoming_mails)})
 
 			if exceptions:
-				raise Exception, frappe.as_json(exceptions)
+				raise Exception(frappe.as_json(exceptions))
 
 	def handle_bad_emails(self, email_server, uid, raw, reason):
 		if cint(email_server.settings.use_imap):
@@ -342,12 +342,8 @@ class EmailAccount(Document):
 			if names:
 				name = names[0].get("name")
 				# email is already available update communication uid instead
-				communication = frappe.get_doc("Communication", name)
-				communication.uid = uid
-				communication.save(ignore_permissions=True)
-				communication._attachments = []
-
-				return communication
+				frappe.db.set_value("Communication", name, "uid", uid)
+				return
 
 		communication = frappe.get_doc({
 			"doctype": "Communication",

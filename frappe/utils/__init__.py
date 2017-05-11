@@ -227,7 +227,7 @@ def get_file_timestamp(fn):
 
 	try:
 		return str(cint(os.stat(fn).st_mtime))
-	except OSError, e:
+	except OSError as e:
 		if e.args[0]!=2:
 			raise
 		else:
