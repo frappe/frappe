@@ -72,7 +72,7 @@ frappe.ui.form.Grid = Class.extend({
 	setup_check: function() {
 		var me = this;
 		this.wrapper.on('click', '.grid-row-check', function(e) {
-			$check = $(this);
+			var $check = $(this);
 			if($check.parents('.grid-heading-row:first').length!==0) {
 				// select all?
 				var checked = $check.prop('checked');
@@ -102,7 +102,7 @@ frappe.ui.form.Grid = Class.extend({
 		});
 	},
 	select_row: function(name) {
-		me.grid_rows_by_docname[name].select();
+		this.grid_rows_by_docname[name].select();
 	},
 	refresh_remove_rows_button: function() {
 		this.remove_rows_button.toggleClass('hide',
@@ -345,11 +345,11 @@ frappe.ui.form.Grid = Class.extend({
 		this.refresh();
 	},
 	toggle_enable: function(fieldname, enable) {
-		this.get_docfield(fieldname).read_only = enable ? 0 : 1;;
+		this.get_docfield(fieldname).read_only = enable ? 0 : 1;
 		this.refresh();
 	},
 	toggle_display: function(fieldname, show) {
-		this.get_docfield(fieldname).hidden = show ? 0 : 1;;
+		this.get_docfield(fieldname).hidden = show ? 0 : 1;
 		this.refresh();
 	},
 	get_docfield: function(fieldname) {
@@ -586,7 +586,7 @@ frappe.ui.form.Grid = Class.extend({
 
 			// add data
 			$.each(me.frm.doc[me.df.fieldname] || [], function(i, d) {
-				row = [];
+				var row = [];
 				$.each(data[2], function(i, fieldname) {
 					var value = d[fieldname];
 
@@ -759,9 +759,10 @@ frappe.ui.form.GridRow = Class.extend({
 		// index (1, 2, 3 etc)
 		if(!this.row_index) {
 			var txt = (this.doc ? this.doc.idx : "&nbsp;");
-			this.row_index = $('<div class="row-index sortable-handle col col-xs-1">' +
-				this.row_check_html +
-				 ' <span>' + txt + '</span></div>')
+			this.row_index = $(
+				`<div class="row-index sortable-handle col col-xs-1">
+					${this.row_check_html}
+				<span>${txt}</span></div>`)
 				.appendTo(this.row)
 				.on('click', function(e) {
 					if(!$(e.target).hasClass('grid-row-check')) {
@@ -852,7 +853,7 @@ frappe.ui.form.GridRow = Class.extend({
 		add_class += (["Check"].indexOf(df.fieldtype)!==-1) ?
 			" text-center": "";
 
-		$col = $('<div class="col grid-static-col col-xs-'+colsize+' '+add_class+'"></div>')
+		var $col = $('<div class="col grid-static-col col-xs-'+colsize+' '+add_class+'"></div>')
 			.attr("data-fieldname", df.fieldname)
 			.attr("data-fieldtype", df.fieldtype)
 			.data("df", df)
@@ -861,7 +862,7 @@ frappe.ui.form.GridRow = Class.extend({
 				if(frappe.ui.form.editable_row===me) {
 					return;
 				}
-				out = me.toggle_editable_row();
+				var out = me.toggle_editable_row();
 				var col = this;
 				setTimeout(function() {
 					$(col).find('input[type="Text"]:first').focus();
@@ -890,7 +891,7 @@ frappe.ui.form.GridRow = Class.extend({
 			if(frappe.ui.form.editable_row
 				&& frappe.ui.form.editable_row !== this) {
 				frappe.ui.form.editable_row.toggle_editable_row(false);
-			};
+			}
 
 			this.row.toggleClass('editable-row', true);
 
@@ -964,6 +965,7 @@ frappe.ui.form.GridRow = Class.extend({
 		var me = this;
 		if(field.$input) {
 			field.$input.on('keydown', function(e) {
+				var { TAB, UP_ARROW, DOWN_ARROW } = frappe.ui.keyCode;
 				if(!in_list([TAB, UP_ARROW, DOWN_ARROW], e.which)) {
 					return;
 				}

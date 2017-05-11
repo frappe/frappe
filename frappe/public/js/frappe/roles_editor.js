@@ -155,7 +155,7 @@ frappe.RoleEditor = Class.extend({
 					var perm = r.message[i];
 
 					// if permission -> icon
-					for(key in perm) {
+					for(var key in perm) {
 						if(key!='parent' && key!='permlevel') {
 							if(perm[key]) {
 								perm[key] = '<i class="fa fa-check"></i>';

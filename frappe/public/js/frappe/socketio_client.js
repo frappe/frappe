@@ -18,7 +18,7 @@ frappe.socket = {
 
 		//Enable secure option when using HTTPS
 		if (window.location.protocol == "https:") {
-   			frappe.socket.socket = io.connect(frappe.socket.get_host(), {secure: true});
+			frappe.socket.socket = io.connect(frappe.socket.get_host(), {secure: true});
 		}
 		else if (window.location.protocol == "http:") {
 			frappe.socket.socket = io.connect(frappe.socket.get_host());

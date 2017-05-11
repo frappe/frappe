@@ -129,7 +129,7 @@ frappe.ui.form.on("Customize Form Field", {
 	before_fields_remove: function(frm, doctype, name) {
 		var row = frappe.get_doc(doctype, name);
 		if(!(row.is_custom_field || row.__islocal)) {
-			msgprint(__("Cannot delete standard field. You can hide it if you want"));
+			frappe.msgprint(__("Cannot delete standard field. You can hide it if you want"));
 			throw "cannot delete custom field";
 		}
 	},
@@ -170,7 +170,7 @@ frappe.customize_form.confirm = function(msg, frm) {
 				method: "reset_to_defaults",
 				callback: function(r) {
 					if(r.exc) {
-						msgprint(r.exc);
+						frappe.msgprintr.exc);
 					} else {
 						d.hide();
 						frappe.customize_form.clear_locals_and_refresh(frm);

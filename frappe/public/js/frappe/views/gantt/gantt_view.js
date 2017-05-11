@@ -175,7 +175,7 @@ frappe.views.GanttView = frappe.views.ListRenderer.extend({
 			},
 			callback: function() {
 				me.gantt.updating_task = false;
-				show_alert({message:__("Saved"), indicator: 'green'}, 1);
+				frappe.show_alert({message:__("Saved"), indicator: 'green'}, 1);
 			}
 		});
 	},
@@ -192,7 +192,7 @@ frappe.views.GanttView = frappe.views.ListRenderer.extend({
 		} else {
 			// reset gantt state
 			this.gantt.change_view_mode(this.gantt_view_mode);
-			show_alert({message: __("Not permitted"), indicator: 'red'}, 1);
+			frappe.show_alert({message: __("Not permitted"), indicator: 'red'}, 1);
 			return false;
 		}
 	},

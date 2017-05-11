@@ -126,12 +126,12 @@ frappe.DataImportTool = Class.extend({
 			queued: function() {
 				// async, show queued
 				msg_dialog.clear();
-				msgprint(__("Import Request Queued. This may take a few moments, please be patient."));
+				frappe.msgprint(__("Import Request Queued. This may take a few moments, please be patient."));
 			},
 			running: function() {
 				// update async status as running
 				msg_dialog.clear();
-				msgprint(__("Importing..."));
+				frappe.msgprint(__("Importing..."));
 				me.write_messages([__("Importing")]);
 				me.has_progress = false;
 			},

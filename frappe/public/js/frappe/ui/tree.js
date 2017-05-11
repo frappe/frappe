@@ -231,7 +231,7 @@ frappe.ui.TreeNode = Class.extend({
 	},
 	load: function(callback) {
 		var node = this;
-		args = $.extend(this.tree.args || {}, {
+		var args = $.extend(this.tree.args || {}, {
 			parent: this.data.value
 		});
 

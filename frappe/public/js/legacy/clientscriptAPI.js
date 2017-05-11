@@ -161,7 +161,7 @@ _f.Frm.prototype.set_currency_labels = function(fields_list, currency, parentfie
 _f.Frm.prototype.field_map = function(fnames, fn) {
 	if(typeof fnames==='string') {
 		if(fnames == '*') {
-			fnames = keys(this.fields_dict);
+			fnames = Object.keys(this.fields_dict);
 		} else {
 			fnames = [fnames];
 		}
@@ -172,7 +172,7 @@ _f.Frm.prototype.field_map = function(fnames, fn) {
 		if(field) {
 			fn(field);
 			cur_frm.refresh_field(fieldname);
-		};
+		}
 	}
 }
 
@@ -199,7 +199,7 @@ _f.Frm.prototype.set_df_property = function(fieldname, property, value, docname,
 	if(df && df[property] != value) {
 		df[property] = value;
 		refresh_field(fieldname, table_field);
-	};
+	}
 }
 
 _f.Frm.prototype.toggle_enable = function(fnames, enable) {
@@ -279,7 +279,7 @@ _f.Frm.prototype.set_value = function(field, value, if_missing) {
 				}
 			}
 		} else {
-			msgprint("Field " + f + " not found.");
+			frappe.msgprint("Field " + f + " not found.");
 			throw "frm.set_value";
 		}
 	}
@@ -318,7 +318,7 @@ _f.Frm.prototype.call = function(opts, args, callback) {
 					opts.child = locals[opts.child.doctype][opts.child.name];
 
 					var std_field_list = ["doctype"].concat(frappe.model.std_fields_list);
-					for (key in r.message) {
+					for (var key in r.message) {
 						if (std_field_list.indexOf(key)===-1) {
 							opts.child[key] = r.message[key];
 						}
@@ -409,6 +409,7 @@ _f.Frm.prototype.has_mapper = function() {
 
 _f.Frm.prototype.set_indicator_formatter = function(fieldname, get_color, get_text) {
 	// get doctype from parent
+	var doctype;
 	if(frappe.meta.docfield_map[this.doctype][fieldname]) {
 		doctype = this.doctype;
 	} else {
@@ -472,7 +473,7 @@ _f.Frm.prototype.make_new = function(doctype) {
 		this.custom_buttons[this.custom_make_buttons[doctype]].trigger('click');
 	} else {
 		frappe.model.with_doctype(doctype, function() {
-			new_doc = frappe.model.get_new_doc(doctype);
+			var new_doc = frappe.model.get_new_doc(doctype);
 
 			// set link fields (if found)
 			frappe.get_meta(doctype).fields.forEach(function(df) {

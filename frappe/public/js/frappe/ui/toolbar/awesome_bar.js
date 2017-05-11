@@ -140,7 +140,7 @@ frappe.search.AwesomeBar = Class.extend({
 					<tr><td>'+__("Calculate")+'</td><td>'+
 						__("e.g. (55 + 434) / 4 or =Math.sin(Math.PI/2)...")+'</td></tr>\
 				</table>'
-				msgprint(txt, "Search Help");
+				frappe.msgprint(txt, "Search Help");
 			}
 		});
 	},
@@ -257,7 +257,7 @@ frappe.search.AwesomeBar = Class.extend({
 					index: 80,
 					default: "Calculator",
 					onclick: function() {
-						msgprint(formatted_value, "Result");
+						frappe.msgprint(formatted_value, "Result");
 					}
 				});
 			} catch(e) {

@@ -114,7 +114,7 @@ frappe.ui.form.Toolbar = Class.extend({
 		// Print
 		if(!is_submittable || docstatus == 1  ||
 			(allow_print_for_cancelled && docstatus == 2)||
-	 		(allow_print_for_draft && docstatus == 0)) {
+			(allow_print_for_draft && docstatus == 0)) {
 			if(frappe.model.can_print(null, me.frm)) {
 				this.page.add_menu_item(__("Print"), function() {
 					me.frm.print_doc();}, true);
@@ -159,7 +159,7 @@ frappe.ui.form.Toolbar = Class.extend({
 				me.frm.savetrash();}, true);
 		}
 
-		if(in_list(roles, "System Manager")) {
+		if(frappe.user_roles.includes("System Manager")) {
 			this.page.add_menu_item(__("Customize"), function() {
 				frappe.set_route("Form", "Customize Form", {
 					doc_type: me.frm.doctype
@@ -178,7 +178,7 @@ frappe.ui.form.Toolbar = Class.extend({
 		if(!this.frm.doc.__unsaved) {
 			if(is_submittable && docstatus == 1) {
 				this.page.add_menu_item(__("Request Feedback"), function() {
-					feedback = new frappe.utils.Feedback();
+					var feedback = new frappe.utils.Feedback();
 					feedback.manual_feedback_request(me.frm.doc);
 				}, true)
 			}

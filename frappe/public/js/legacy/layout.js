@@ -89,7 +89,7 @@ function LayoutCell(layout, layoutRow, width) {
 	if(width) { // add '%' if user has forgotten
 		var w = width + '';
 		if(w.substr(w.length-2, 2) != 'px') {
-			if(w.substr(w.length-1, 1) != "%") {width = width + '%'};
+			if(w.substr(w.length-1, 1) != "%") {width = width + '%'}
 		}
 	}
 

@@ -5,7 +5,7 @@
 
 frappe.user_info = function(uid) {
 	if(!uid)
-		uid = user;
+		uid = frappe.session.user;
 
 	if(uid.toLowerCase()==="bot") {
 		return {
@@ -57,7 +57,7 @@ frappe.provide('frappe.user');
 $.extend(frappe.user, {
 	name: 'Guest',
 	full_name: function(uid) {
-		return uid===user ?
+		return uid === frappe.session.user ?
 			__("You") :
 			frappe.user_info(uid).fullname;
 	},
@@ -77,7 +77,7 @@ $.extend(frappe.user, {
 	},
 	get_desktop_items: function() {
 		// hide based on permission
-		modules_list = $.map(frappe.boot.desktop_icons, function(icon) {
+		var modules_list = $.map(frappe.boot.desktop_icons, function(icon) {
 			var m = icon.module_name;
 			var type = frappe.modules[m] && frappe.modules[m].type;
 
