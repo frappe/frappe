@@ -38,6 +38,7 @@ def get_bootinfo():
 	load_desktop_icons(bootinfo)
 	bootinfo.letter_heads = get_letter_heads()
 	bootinfo.active_domains = frappe.get_active_domains()
+	bootinfo.all_domains = [d.get("name") for d in frappe.get_all("Domain")]
 
 	bootinfo.module_app = frappe.local.module_app
 	bootinfo.single_types = frappe.db.sql_list("""select name from tabDocType

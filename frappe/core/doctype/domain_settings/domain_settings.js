@@ -2,7 +2,54 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on('Domain Settings', {
-	refresh: function(frm) {
+	onload: function(frm) {
+		let domains = $('<div style="min-height: 300px">')
+			.appendTo(frm.fields_dict.domains_html.wrapper);
 
-	}
+		frm.domain_editor = new frappe.DomainsEditor(domains, frm);
+		frm.domain_editor.show();
+	},
+
+	validate: function(frm) {
+		if(frm.domain_editor) {
+			frm.domain_editor.set_items_in_table()
+		}
+	},
+});
+
+frappe.DomainsEditor = frappe.CheckboxEditor.extend({
+	init: function(wrapper, frm) {
+		opts = {}
+		$.extend(opts, {
+			wrapper: wrapper,
+			frm: frm,
+			field_mapper: {
+				child_table_field: "active_domains",
+				item_field: "domain",
+				cdt: "Has Domain"
+			},
+			attribute: 'data-domain',
+			add_btn_label: 'Add all domains',
+			remove_btn_label: 'Remove all domains',
+			get_items: this.get_all_domains,
+			editor_template: this.get_template()
+		});
+
+		this._super(opts);
+	},
+
+	get_template: function() {
+		return `
+			<div class="user-role" data-domain="{{item}}">
+				<input type="checkbox" style="margin-top:0px;">
+				{{__(item)}}
+			</div>
+		`;
+	},
+
+	get_all_domains: function() {
+		// return all the domains available in the system
+		this.items = frappe.boot.all_domains;
+		this.render_items();
+	},
 });
