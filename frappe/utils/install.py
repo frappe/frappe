@@ -105,7 +105,7 @@ def import_country_and_currency():
 		country = frappe._dict(data[name])
 		add_country_and_currency(name, country)
 
-	print
+	print()
 
 	# enable frequently used currencies
 	for currency in ("INR", "USD", "GBP", "EUR", "AED", "AUD", "JPY", "CNY", "CHF"):
