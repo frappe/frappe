@@ -118,7 +118,6 @@ def export_query():
 	"""export from query reports"""
 
 	data = frappe._dict(frappe.local.form_dict)
-
 	del data["cmd"]
 
 	if isinstance(data.get("filters"), basestring):
@@ -152,7 +151,7 @@ def export_query():
 			result = result + data.result
 
 		from frappe.utils.xlsxutils import make_xlsx
-		xlsx_file = make_xlsx(result, "Query Report")
+		xlsx_file = make_xlsx(data=result, file_type="Query Report", sheet_name=report_name, filters=filters)
 
 		frappe.response['filename'] = report_name + '.xlsx'
 		frappe.response['filecontent'] = xlsx_file.getvalue()
