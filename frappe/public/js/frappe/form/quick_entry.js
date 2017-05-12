@@ -31,7 +31,7 @@ frappe.ui.form.quick_entry = function(doctype, success) {
 		}
 
 		var dialog = new frappe.ui.Dialog({
-			title: __("New {0}", [doctype]),
+			title: __("New {0}", [__(doctype)]),
 			fields: mandatory,
 		});
 
