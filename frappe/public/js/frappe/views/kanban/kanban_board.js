@@ -41,6 +41,12 @@ frappe.provide("frappe.views");
 							columns: columns,
 							cur_list: opts.cur_list
 						});
+					})
+					.fail(function() {
+						// redirect back to List
+						setTimeout(() => {
+							frappe.set_route('List', opts.doctype, 'List');
+						}, 2000);
 					});
 			},
 			update_cards: function (updater, cards) {
@@ -1038,6 +1044,9 @@ frappe.provide("frappe.views");
 	function is_filters_modified(board, cur_list) {
 		return new Promise(function(resolve, reject) {
 			setTimeout(function() {
+				// sometimes the filter_list is not initiated, so early return
+				if(!cur_list.filter_list) resolve(false);
+
 				var list_filters = JSON.stringify(cur_list.filter_list.get_filters());
 				resolve(list_filters !== board.filters);
 			}, 2000);

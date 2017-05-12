@@ -144,7 +144,7 @@ frappe.views.ListRenderer = Class.extend({
 		}
 		// kanban column fields
 		if (me.meta.__kanban_column_fields) {
-			me.fields = me.fields.concat(me.meta.__kanban_column_fields);
+			me.meta.__kanban_column_fields.map(add_field);
 		}
 	},
 	set_columns: function () {
