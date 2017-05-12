@@ -57,7 +57,7 @@ These Templates could use variables from Doctype that will be automatically fill
 	- Template Name (Example: Employee Contract)
 	- Related DocType (Example: Employee)
 	- Template ID is the Document ID you get from your Google Docs (Example: 1Y2_btbwSqPIILLcJstHnSm1u5dgYE0QJspcZBImZQso)
-	- Document name is the name of the new files. You can use field from DocType (Example: Employee Contract of %(name)s)
+	- Document name is the name of the new files. You can use field from DocType (Example: Employee Contract of {name})
 	- Destination ID is the folder ID of your files created from this Template. (Example: 0BxmFzZZUHbgyQzVJNzY5eG5jbmc)
 
 ## Create Documents
