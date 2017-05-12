@@ -213,7 +213,7 @@ frappe.ui.get_upload_dialog = function(opts){
 		fields: [
 			{"fieldtype": "Section Break"},
 			{"fieldtype": "Link" , "fieldname": "file" , "label": __("Select uploaded file"), "options": "File"},
-			{"fieldtype": "Section Break", "label": __("Gsuite Document")},
+			{"hidden": !frappe.boot.gsuite_enabled ,"fieldtype": "Section Break", "label": __("Gsuite Document")},
 			{"fieldtype": "Link" ,"fieldname": "gs_template" ,"label": __("Select template"), "options": "GSuite Templates", reqd : false, filters: {'related_doctype': cur_frm.doctype}},
 		],
 	});
