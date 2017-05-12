@@ -9,7 +9,6 @@ import openpyxl
 from cStringIO import StringIO
 from openpyxl.styles import Font
 
-import html2text
 
 # return xlsx file object
 def make_xlsx(data, sheet_name):
@@ -24,15 +23,9 @@ def make_xlsx(data, sheet_name):
 		clean_row = []
 		for item in row:
 			if isinstance(item, basestring):
-				obj = html2text.HTML2Text()
-				obj.ignore_links = True
-				obj.body_width = 0
-				obj = obj.handle(unicode(item or ""))
-				obj = obj.rsplit('\n', 1)
-				value = obj[0]
+				value = handle_html(item)
 			else:
 				value = item
-
 			clean_row.append(value)
 
 		ws.append(clean_row)
@@ -40,3 +33,23 @@ def make_xlsx(data, sheet_name):
 	xlsx_file = StringIO()
 	wb.save(xlsx_file)
 	return xlsx_file
+
+
+def handle_html(data):
+	# import html2text
+	from html2text import unescape, HTML2Text
+
+	h = HTML2Text()
+	h.unicode_snob = True
+	h = h.unescape(data or "")
+
+	obj = HTML2Text()
+	obj.ignore_links = True
+	obj.body_width = 0
+	value = obj.handle(h)
+	value = value.split('\n', 1)
+	value = value[0].split('# ',1)
+	if len(value) < 2:
+		return value[0]
+	else:
+		return value[1]
