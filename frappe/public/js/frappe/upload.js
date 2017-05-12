@@ -145,7 +145,7 @@ frappe.upload = {
 			var file_url = $upload.find('[name="file_url"]:visible');
 			file_url = file_url.length && file_url.get(0).value;
 			if(opts.args.gs_template) {
-				frappe.upload.create_gsuite_file(opts.args,opts);
+				frappe.integration_service.gsuite.create_gsuite_file(opts.args,opts);
 			} else if(file_url) {
 				opts.args.file_url = file_url;
 				frappe.upload.upload_file(null, opts.args, opts);
@@ -372,7 +372,7 @@ frappe.upload = {
 						frappe.upload.upload_file(fileobjs[i], args, opts);
 						i++;
 					}
-				}
+				};
 
 				opts.loopcallback();
 			}
