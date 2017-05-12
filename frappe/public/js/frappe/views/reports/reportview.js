@@ -227,7 +227,7 @@ frappe.views.ReportView = frappe.ui.BaseList.extend({
 
 	set_route_filters: function(first_load) {
 		var me = this;
-		if(frappe.route_options && !this.user_settings.filters) {
+		if(frappe.route_options) {
 			this.set_filters_from_route_options();
 			return true;
 		} else if(this.user_settings
