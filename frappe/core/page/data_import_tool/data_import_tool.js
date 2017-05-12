@@ -100,7 +100,7 @@ frappe.DataImportTool = Class.extend({
 			select_columns: JSON.stringify(columns),
 			with_data: with_data ? 'Yes' : 'No',
 			all_doctypes: 'Yes',
-			from_di_page: 'Yes',
+			from_data_import: 'Yes',
 			excel_format: this.page.main.find(".excel-check").is(":checked") ? 'Yes' : 'No'
 		}
 	},
@@ -116,7 +116,7 @@ frappe.DataImportTool = Class.extend({
 					overwrite: !me.page.main.find('[name="always_insert"]').prop("checked"),
 					update_only: me.page.main.find('[name="update_only"]').prop("checked"),
 					no_email: me.page.main.find('[name="no_email"]').prop("checked"),
-					from_di_page: 'Yes'
+					from_data_import: 'Yes'
 				}
 			},
 			args: {

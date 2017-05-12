@@ -20,7 +20,7 @@ from frappe.core.page.data_import_tool.data_import_tool import get_data_keys
 
 @frappe.whitelist()
 def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, no_email=True, overwrite=None,
-	update_only = None, ignore_links=False, pre_process=None, via_console=False, from_di_page="No"):
+	update_only = None, ignore_links=False, pre_process=None, via_console=False, from_data_import="No"):
 	"""upload data"""
 
 	frappe.flags.in_import = True
@@ -37,8 +37,8 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 		no_email = False
 	if params.get('update_only'):
 		update_only = True
-	if params.get('from_di_page'):
-		from_di_page = params.get('from_di_page')
+	if params.get('from_data_import'):
+		from_data_import = params.get('from_data_import')
 
 	frappe.flags.mute_emails = no_email
 
@@ -211,9 +211,9 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 		file_doc = save_uploaded(dt=None, dn="Data Import", folder='Home', is_private=1)
 		filename, file_extension = os.path.splitext(file_doc.file_name)
 
-		if file_extension == '.xlsx' and from_di_page == 'Yes':
+		if file_extension == '.xlsx' and from_data_import == 'Yes':
 			from frappe.utils.xlsxutils import read_xlsx_file_from_attached_fie
-			rows = read_xlsx_file_from_attached_fie(file_doc.name)
+			rows = read_xlsx_file_from_attached_fie(file_id=file_doc.name)
 
 		elif file_extension == '.csv':
 			from frappe.utils.file_manager import get_file

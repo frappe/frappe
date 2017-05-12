@@ -23,7 +23,7 @@ reflags = {
 
 @frappe.whitelist()
 def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data="No", select_columns=None,
-	from_di_page="No", excel_format="No"):
+	from_data_import="No", excel_format="No"):
 	all_doctypes = all_doctypes=="Yes"
 	if select_columns:
 		select_columns = json.loads(select_columns);
@@ -281,7 +281,7 @@ def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data
 	add_field_headings()
 	add_data()
 
-	if from_di_page == "Yes" and excel_format == "Yes":
+	if from_data_import == "Yes" and excel_format == "Yes":
 		filename = frappe.generate_hash("", 10)
 		with open(filename, 'wb') as f:
 		    f.write(cstr(w.getvalue()).encode("utf-8"))
