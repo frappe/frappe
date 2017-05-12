@@ -76,10 +76,10 @@ frappe.ui.form.Timeline = Class.extend({
 
 	setup_email_button: function() {
 		var me = this;
-		selector = this.frm.doctype === "Communication"? ".btn-reply-email": ".btn-new-email"
+		var selector = this.frm.doctype === "Communication"? ".btn-reply-email": ".btn-new-email"
 		this.email_button = this.wrapper.find(selector)
 			.on("click", function() {
-				args = {
+				var args = {
 					doc: me.frm.doc,
 					frm: me.frm,
 					recipients: me.get_recipient()
@@ -308,7 +308,7 @@ frappe.ui.form.Timeline = Class.extend({
 					c._liked_by = JSON.parse(c._liked_by || "[]");
 				}
 
-				c.liked_by_user = c._liked_by.indexOf(user)!==-1;
+				c.liked_by_user = c._liked_by.indexOf(frappe.session.user)!==-1;
 			}
 		}
 
@@ -452,7 +452,7 @@ frappe.ui.form.Timeline = Class.extend({
 								p[0], me.frm.docname);
 
 						if(df && !df.hidden) {
-							field_display_status = frappe.perm.get_field_display_status(df,
+							var field_display_status = frappe.perm.get_field_display_status(df,
 								null, me.frm.perm);
 
 							if(field_display_status === 'Read' || field_display_status === 'Write') {
@@ -534,7 +534,7 @@ frappe.ui.form.Timeline = Class.extend({
 					reference_doctype: this.frm.doctype,
 					reference_name: this.frm.docname,
 					content: comment,
-					sender: user
+					sender: frappe.session.user
 				}
 			},
 			btn: btn,

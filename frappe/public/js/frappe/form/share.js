@@ -117,7 +117,7 @@ frappe.ui.form.Share = Class.extend({
 				options: "User",
 				filters: {
 					"user_type": "System User",
-					"name": ["!=", user]
+					"name": ["!=", frappe.session.user]
 				}
 			},
 			only_input: true,
@@ -164,7 +164,7 @@ frappe.ui.form.Share = Class.extend({
 			var user = $(this).parents(".shared-user:first").attr("data-user") || "",
 				value = $(this).prop("checked") ? 1 : 0,
 				property = $(this).attr("name")
-				everyone = cint($(this).parents(".shared-user:first").attr("data-everyone"));
+				var everyone = cint($(this).parents(".shared-user:first").attr("data-everyone"));
 
 			frappe.call({
 				method: "frappe.share.set_permission",

@@ -17,7 +17,7 @@ function toTitle(str){
 	var word_in = str.split(" ");
 	var word_out = [];
 
-	for(w in word_in){
+	for(var w in word_in){
 		word_out[w] = word_in[w].charAt(0).toUpperCase() + word_in[w].slice(1);
 	}
 
@@ -100,7 +100,6 @@ function has_common(list1, list2) {
 	return false;
 }
 
-var inList = in_list; // bc
 function add_lists(l1, l2) {
 	return [].concat(l1).concat(l2);
 }

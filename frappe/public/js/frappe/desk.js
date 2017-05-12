@@ -99,9 +99,9 @@ frappe.Application = Class.extend({
 			});
 			dialog.get_close_btn().toggle(false);
 		});
-		if (sys_defaults.email_user_password){
-			var email_list =  sys_defaults.email_user_password.split(',');
-			for (u in email_list) {
+		if (frappe.sys_defaults.email_user_password){
+			var email_list =  frappe.sys_defaults.email_user_password.split(',');
+			for (var u in email_list) {
 				if (email_list[u]===frappe.user.name){
 					this.set_password(email_list[u])
 				}
@@ -169,7 +169,7 @@ frappe.Application = Class.extend({
 						d.hide();//hide waiting indication
 						if (!passed["message"])
 						{
-							show_alert("Login Failed please try again", 5);
+							frappe.show_alert("Login Failed please try again", 5);
 							me.email_password_prompt(email_account, user, i)
 						}
 						else
@@ -269,15 +269,13 @@ frappe.Application = Class.extend({
 	},
 
 	set_globals: function() {
-		// for backward compatibility
 		frappe.session.user = frappe.boot.user.name;
-		frappe.session.user_fullname = frappe.boot.user.name;
-		user = frappe.boot.user.name;
-		user_fullname = frappe.user_info(user).fullname;
-		user_defaults = frappe.boot.user.defaults;
-		roles = frappe.boot.user.roles;
-		user_email = frappe.boot.user.email;
-		sys_defaults = frappe.boot.sysdefaults;
+		frappe.session.user_email = frappe.boot.user.email;
+		frappe.session.user_fullname = frappe.user_info().fullname;
+
+		frappe.user_defaults = frappe.boot.user.defaults;
+		frappe.user_roles = frappe.boot.user.roles;
+		frappe.sys_defaults = frappe.boot.sysdefaults;
 		frappe.ui.py_date_format = frappe.boot.sysdefaults.date_format.replace('dd', '%d').replace('mm', '%m').replace('yyyy', '%Y');
 		frappe.boot.user.last_selected_values = {};
 	},
@@ -285,7 +283,7 @@ frappe.Application = Class.extend({
 		// clear cached pages if timestamp is not found
 		if(localStorage["page_info"]) {
 			frappe.boot.allowed_pages = [];
-			page_info = JSON.parse(localStorage["page_info"]);
+			var page_info = JSON.parse(localStorage["page_info"]);
 			$.each(frappe.boot.page_info, function(name, p) {
 				if(!page_info[name] || (page_info[name].modified != p.modified)) {
 					delete localStorage["_page:" + name];
@@ -293,19 +291,18 @@ frappe.Application = Class.extend({
 				frappe.boot.allowed_pages.push(name);
 			});
 		} else {
-			frappe.boot.allowed_pages = keys(frappe.boot.page_info);
+			frappe.boot.allowed_pages = Object.keys(frappe.boot.page_info);
 		}
 		localStorage["page_info"] = JSON.stringify(frappe.boot.page_info);
 	},
 	set_as_guest: function() {
 		// for backward compatibility
-		user = {name:'Guest'};
-		user = 'Guest';
-		user_fullname = 'Guest';
-		user_defaults = {};
-		roles = ['Guest'];
-		user_email = '';
-		sys_defaults = {};
+		frappe.session.user = 'Guest';
+		frappe.session.user_fullname = 'Guest';
+		frappe.user_defaults = {};
+		frappe.user_roles = ['Guest'];
+		frappe.session.user_email = '';
+		frappe.sys_defaults = {};
 	},
 	make_page_container: function() {
 		if($("#body_div").length) {
@@ -564,12 +561,12 @@ frappe.get_desktop_icons = function(show_hidden, show_global) {
 		}
 	}
 
-	if(roles.indexOf('System Manager')!=-1) {
+	if(frappe.user_roles.includes('System Manager')) {
 		var m = frappe.get_module('Setup');
 		if(show_module(m)) add_to_out(m)
 	}
 
-	if(roles.indexOf('Administrator')!=-1) {
+	if(frappe.user_roles.includes('Administrator')) {
 		var m = frappe.get_module('Core');
 		if(show_module(m)) add_to_out(m)
 	}
@@ -589,7 +586,7 @@ frappe.add_to_desktop = function(label, doctype, report) {
 		},
 		callback: function(r) {
 			if(r.message) {
-				show_alert(__("Added"));
+				frappe.show_alert(__("Added"));
 			}
 		}
 	});

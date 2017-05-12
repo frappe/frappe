@@ -70,9 +70,9 @@ frappe.ui.form.on("Email Alert", {
 					},
 					callback: function(r) {
 						if(r.message) {
-							msgprint(r.message);
+							frappe.msgprint(r.message);
 						} else {
-							msgprint(__('No alerts for today'));
+							frappe.msgprint(__('No alerts for today'));
 						}
 					}
 				});

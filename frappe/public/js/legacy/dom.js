@@ -66,7 +66,7 @@ function $bg(e,w) { if(e && e.style && w)e.style.backgroundColor = w; }
 function $y(ele, s) {
 	if(ele && s) {
 		for(var i in s) ele.style[i]=s[i];
-	};
+	}
 	return ele;
 }
 
@@ -86,7 +86,7 @@ function make_table(parent, nr, nc, table_width, widths, cell_style, table_style
 				c.style.width = widths[ci];
 			}
 			if(cell_style) {
-			  for(var s in cell_style) c.style[s] = cell_style[s];
+				for(var s in cell_style) c.style[s] = cell_style[s];
 			}
 		}
 	}

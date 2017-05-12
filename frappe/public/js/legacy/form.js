@@ -60,17 +60,17 @@ _f.Frm = function(doctype, parent, in_form) {
 _f.Frm.prototype.check_doctype_conflict = function(docname) {
 	var me = this;
 	if(this.doctype=='DocType' && docname=='DocType') {
-		msgprint(__('Allowing DocType, DocType. Be careful!'))
+		frappe.msgprint(__('Allowing DocType, DocType. Be careful!'))
 	} else if(this.doctype=='DocType') {
 		if (frappe.views.formview[docname] || frappe.pages['List/'+docname]) {
 			window.location.reload();
-			// msgprint(__("Cannot open {0} when its instance is open", ['DocType']))
+			//	frappe.msgprint(__("Cannot open {0} when its instance is open", ['DocType']))
 			// throw 'doctype open conflict'
 		}
 	} else {
 		if (frappe.views.formview.DocType && frappe.views.formview.DocType.frm.opendocs[this.doctype]) {
 			window.location.reload();
-			// msgprint(__("Cannot open instance when its {0} is open", ['DocType']))
+			//	frappe.msgprint(__("Cannot open instance when its {0} is open", ['DocType']))
 			// throw 'doctype open conflict'
 		}
 	}
@@ -136,12 +136,12 @@ _f.Frm.prototype.setup_drag_drop = function() {
 			e.preventDefault();
 
 			if(me.doc.__islocal) {
-				msgprint(__("Please save before attaching."));
+				frappe.msgprint(__("Please save before attaching."));
 				throw "attach error";
 			}
 
 			if(me.attachments.max_reached()) {
-				msgprint(__("Maximum Attachment Limit for this record reached."));
+				frappe.msgprint(__("Maximum Attachment Limit for this record reached."));
 				throw "attach error";
 			}
 
@@ -173,7 +173,7 @@ _f.Frm.prototype.print_doc = function() {
 		return;
 	}
 	if(!frappe.model.can_print(this.doc.doctype, this)) {
-		msgprint(__("You are not allowed to print this document"));
+		frappe.msgprint(__("You are not allowed to print this document"));
 		return;
 	}
 
@@ -189,7 +189,7 @@ _f.Frm.prototype.set_hidden = function(status) {
 	form_page.toggleClass('hidden', this.hidden);
 	this.toolbar.refresh();
 	if(status===true) {
-		msg = __('Edit {0} properties', [__(this.doctype)]);
+		var msg = __('Edit {0} properties', [__(this.doctype)]);
 		this.layout.show_message('<div style="padding-left: 15px; padding-right: 15px;">\
 			<a class="text-muted" onclick="cur_frm.set_hidden(false)">' + msg + '</a></div>');
 	} else {
@@ -815,12 +815,12 @@ _f.Frm.prototype.amend_doc = function() {
 	}
 	this.validate_form_action("Amend");
 	var me = this;
-    var fn = function(newdoc) {
-      newdoc.amended_from = me.docname;
-      if(me.fields_dict && me.fields_dict['amendment_date'])
-	      newdoc.amendment_date = dateutil.obj_to_str(new Date());
-    }
-    this.copy_doc(fn, 1);
+	var fn = function(newdoc) {
+		newdoc.amended_from = me.docname;
+		if(me.fields_dict && me.fields_dict['amendment_date'])
+			newdoc.amendment_date = frappe.datetime.obj_to_str(new Date());
+	}
+	this.copy_doc(fn, 1);
 	frappe.utils.play_sound("click");
 }
 

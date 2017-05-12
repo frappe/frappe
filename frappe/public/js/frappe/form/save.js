@@ -76,7 +76,7 @@ frappe.ui.form.save = function(frm, action, callback, btn) {
 				if(newname) {
 					doc.__newname = strip(newname);
 				} else {
-					msgprint(__("Name is required"));
+					frappe.msgprint(__("Name is required"));
 					throw "name required";
 				}
 
@@ -142,7 +142,7 @@ frappe.ui.form.save = function(frm, action, callback, btn) {
 
 				}
 				message = message + '<br><br><ul><li>' + error_fields.join('</li><li>') + "</ul>";
-				msgprint({
+				frappe.msgprint({
 					message: message,
 					indicator: 'red',
 					title: __('Missing Fields')
@@ -218,7 +218,7 @@ frappe.ui.form.update_calling_link = function(newdoc) {
 			}});
 		} else {
 			frappe._from_link.set_value(newdoc.name);
-	    }
+		}
 
 		// refresh field
 		frappe._from_link.refresh();

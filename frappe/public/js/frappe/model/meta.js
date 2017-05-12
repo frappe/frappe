@@ -173,7 +173,7 @@ $.extend(frappe.meta, {
 
 	get_parentfield: function(parent_dt, child_dt) {
 		var df = (frappe.get_doc("DocType", parent_dt).fields || []).filter(function(d)
-			{ return d.fieldtype==="Table" && options===child_dt })
+			{ return d.fieldtype==="Table" && d.options===child_dt })
 		if(!df.length)
 			throw "parentfield not found for " + parent_dt + ", " + child_dt;
 		return df[0].fieldname;

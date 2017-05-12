@@ -12,7 +12,7 @@ frappe.views.ReportViewPage = Class.extend({
 		if(!frappe.model.can_get_report(doctype)) {
 			frappe.show_not_permitted(frappe.get_route_str());
 			return;
-		};
+		}
 
 		this.doctype = doctype;
 		this.docname = docname;
@@ -146,7 +146,7 @@ frappe.views.ReportView = frappe.ui.BaseList.extend({
 					columns.push(coldef);
 				}
 			});
-		};
+		}
 		if(!columns.length) {
 			var columns = [['name', this.doctype],];
 			$.each(frappe.meta.docfield_list[this.doctype], function(i, df) {
@@ -549,8 +549,8 @@ frappe.views.ReportView = frappe.ui.BaseList.extend({
 								// find the document of the current updated record
 								// from locals (which is synced in the response)
 								if(item[d.doctype + ":name"]===d.name) {
-									for(k in d) {
-										v = d[k];
+									for(var k in d) {
+										var v = d[k];
 										if(frappe.model.std_fields_list.indexOf(k)===-1
 											&& item[k]!==undefined) {
 											new_item[k] = v;
@@ -704,7 +704,7 @@ frappe.views.ReportView = frappe.ui.BaseList.extend({
 		}
 		var export_btn = this.page.add_menu_item(__('Export'), function() {
 			var args = me.get_args();
-			selected_items = me.get_checked_items()
+			var selected_items = me.get_checked_items()
 			frappe.prompt({fieldtype:"Select", label: __("Select File Type"), fieldname:"file_format_type",
 				options:"Excel\nCSV", default:"Excel", reqd: 1},
 				function(data) {
@@ -757,7 +757,7 @@ frappe.views.ReportView = frappe.ui.BaseList.extend({
 				},
 				callback: function(r) {
 					if(r.exc) {
-						msgprint(__("Report was not saved (there were errors)"));
+						frappe.msgprint(__("Report was not saved (there were errors)"));
 						return;
 					}
 					if(r.message != me.docname)
@@ -786,7 +786,7 @@ frappe.views.ReportView = frappe.ui.BaseList.extend({
 			});
 
 			this.page.add_menu_item(__("Delete"), function() {
-				delete_list = $.map(me.get_checked_items(), function(d) { return d.name; });
+				var delete_list = $.map(me.get_checked_items(), function(d) { return d.name; });
 				if(!delete_list.length)
 					return;
 				if(frappe.confirm(__("This is PERMANENT action and you cannot undo. Continue?"),

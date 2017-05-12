@@ -259,7 +259,7 @@ frappe.ui.form.Dashboard = Class.extend({
 			group.items.forEach(function(item) { items.push(item); });
 		});
 
-		method = this.data.method || 'frappe.desk.notifications.get_open_count';
+		var method = this.data.method || 'frappe.desk.notifications.get_open_count';
 
 		frappe.call({
 			type: "GET",
@@ -359,7 +359,7 @@ frappe.ui.form.Dashboard = Class.extend({
 			} else {
 				heatmap_message.addClass('hidden');
 			}
- 		}
+		}
 	},
 
 	add_indicator: function(label, color) {
@@ -370,6 +370,7 @@ frappe.ui.form.Dashboard = Class.extend({
 		// set colspan
 		var indicators = this.stats_area_row.find('.indicator-column');
 		var n_indicators = indicators.length + 1;
+		var colspan;
 		if(n_indicators > 4) { colspan = 3 }
 		else { colspan = 12 / n_indicators; }
 

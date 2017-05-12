@@ -18,7 +18,7 @@ frappe.throw = function(msg) {
 		msg = {message: msg, title: __('Error')};
 	}
 	if(!msg.indicator) msg.indicator = 'red';
-	msgprint(msg);
+	frappe.msgprint(msg);
 	throw new Error(msg.message);
 }
 
@@ -260,6 +260,7 @@ frappe.show_alert = function(message, seconds=7) {
 		$('<div id="dialog-container"><div id="alert-container"></div></div>').appendTo('body');
 	}
 
+	var message_html;
 	if(message.indicator) {
 		message_html = $('<span class="indicator ' + message.indicator + '"></span>').append(message.message);
 	} else {
@@ -286,5 +287,3 @@ frappe.show_alert = function(message, seconds=7) {
 	return div;
 }
 
-// for backward compatibility
-var show_alert = frappe.show_alert;

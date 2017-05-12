@@ -94,7 +94,7 @@ frappe.ui.SortSelector = Class.extend({
 		if(!this.args.sort_by) {
 			if(meta.sort_field) {
 				if(meta.sort_field.indexOf(',')!==-1) {
-					parts = meta.sort_field.split(',')[0].split(' ');
+					var parts = meta.sort_field.split(',')[0].split(' ');
 					this.args.sort_by = parts[0];
 					this.args.sort_order = parts[1];
 				} else {

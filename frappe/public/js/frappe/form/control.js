@@ -319,7 +319,7 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 
 	set_disp_area: function() {
 		let value = this.get_value();
-		if(inList(["Currency", "Int", "Float"], this.df.fieldtype) && (this.value === 0 || value === 0)) {
+		if(in_list(["Currency", "Int", "Float"], this.df.fieldtype) && (this.value === 0 || value === 0)) {
 			// to set the 0 value in readonly for currency, int, float field
 			value = 0;
 		} else {
@@ -476,7 +476,7 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 				callback("");
 				return;
 			}
-			v1 = ''
+			var v1 = ''
 			// phone may start with + and must only have numbers later, '-' and ' ' are stripped
 			v = v.replace(/ /g, '').replace(/-/g, '').replace(/\(/g, '').replace(/\)/g, '');
 
@@ -507,7 +507,7 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 				var invalid_email = false;
 				email_list.forEach(function(email) {
 					if (!validate_email(email)) {
-						msgprint(__("Invalid Email: {0}", [email]));
+						frappe.msgprint(__("Invalid Email: {0}", [email]));
 						invalid_email = true;
 					}
 				});
@@ -671,18 +671,18 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 	},
 	parse: function(value) {
 		if(value) {
-			return dateutil.user_to_str(value);
+			return frappe.datetime.user_to_str(value);
 		}
 	},
 	format_for_input: function(value) {
 		if(value) {
-			return dateutil.str_to_user(value);
+			return frappe.datetime.str_to_user(value);
 		}
 		return "";
 	},
 	validate: function(value, callback) {
-		if(value && !dateutil.validate(value)) {
-			msgprint (__("Date must be in format: {0}", [sys_defaults.date_format || "yyyy-mm-dd"]));
+		if(value && !frappe.datetime.validate(value)) {
+			frappe.msgprint(__("Date must be in format: {0}", [frappe.sys_defaults.date_format || "yyyy-mm-dd"]));
 			callback("");
 			return;
 		}
@@ -733,14 +733,14 @@ frappe.ui.form.ControlDatetime = frappe.ui.form.ControlDate.extend({
 	parse: function(value) {
 		if(value) {
 			// parse and convert
-			value = dateutil.convert_to_system_tz(dateutil.user_to_str(value));
+			value = frappe.datetime.convert_to_system_tz(frappe.datetime.user_to_str(value));
 		}
 		return value;
 	},
 	format_for_input: function(value) {
 		if(value) {
 			// convert and format
-			value = dateutil.str_to_user(dateutil.convert_to_user_tz(value));
+			value = frappe.datetime.str_to_user(frappe.datetime.convert_to_user_tz(value));
 		}
 		return value || "";
 	}
@@ -789,16 +789,16 @@ frappe.ui.form.ControlDateRange = frappe.ui.form.ControlData.extend({
 	},
 	parse: function(value) {
 		if(value && (value.indexOf(',') !== -1 || value.indexOf('to') !== -1)) {
-			vals = value.split(/[( to )(,)]/)
-			from_date = moment(dateutil.user_to_obj(vals[0])).format('YYYY-MM-DD');
-			to_date = moment(dateutil.user_to_obj(vals[vals.length-1])).format('YYYY-MM-DD');
+			var vals = value.split(/[( to )(,)]/)
+			var from_date = moment(frappe.datetime.user_to_obj(vals[0])).format('YYYY-MM-DD');
+			var to_date = moment(frappe.datetime.user_to_obj(vals[vals.length-1])).format('YYYY-MM-DD');
 			return [from_date, to_date];
 		}
 	},
 	format_for_input: function(value,value2) {
 		if(value && value2) {
-			value = dateutil.str_to_user(value);
-			value2 = dateutil.str_to_user(value2);
+			value = frappe.datetime.str_to_user(value);
+			value2 = frappe.datetime.str_to_user(value2);
 			return value + " to " + value2
 		}
 		return "";
@@ -1025,7 +1025,7 @@ frappe.ui.form.ControlAttach = frappe.ui.form.ControlData.extend({
 					me.dialog.hide();
 					me.frm.save();
 				} else {
-					msgprint(__("Please attach a file or set a URL"));
+					frappe.msgprint(__("Please attach a file or set a URL"));
 				}
 			},
 			callback: function(attachment, r) {
@@ -1346,7 +1346,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 				return true;
 			},
 			item: function (item, input) {
-				d = this.get_item(item.value);
+				var d = this.get_item(item.value);
 				if(!d.label) {	d.label = d.value; }
 
 				var _label = (me.translate_values) ? __(d.label) : d.label;
@@ -1408,7 +1408,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 								value: "create_new__link_option",
 								action: me.new_doc
 							})
-						};
+						}
 						// advanced search
 						r.results.push({
 							label: "<span class='text-primary link-option'>"
@@ -1591,7 +1591,7 @@ frappe.ui.form.ControlDynamicLink = frappe.ui.form.ControlLink.extend({
 		}
 		var options = frappe.model.get_value(this.df.parent, this.docname, this.df.options);
 		// if(!options) {
-		// 	msgprint(__("Please set {0} first",
+		// 	frappe.msgprint(__("Please set {0} first",
 		// 		[frappe.meta.get_docfield(this.df.parent, this.df.options, this.docname).label]));
 		// }
 		return options;
@@ -1788,7 +1788,7 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 					me.editor.summernote('insertImage', selected);
 					me.image_dialog.hide();
 				} else {
-					msgprint(__("Please attach a file or set a URL"));
+					frappe.msgprint(__("Please attach a file or set a URL"));
 				}
 			},
 			callback: function(attachment, r) {
@@ -1899,9 +1899,9 @@ frappe.ui.form.ControlSignature = frappe.ui.form.ControlData.extend({
 
 		// make jSignature field
 		this.$pad = $('<div class="signature-field"></div>')
-		    .appendTo(me.wrapper)
-		    .jSignature({height:300, width: "100%", "lineWidth": 0.8})
-				.on('change', this.on_save_sign.bind(this));
+			.appendTo(me.wrapper)
+			.jSignature({height:300, width: "100%", "lineWidth": 0.8})
+			.on('change', this.on_save_sign.bind(this));
 
 		this.img_wrapper = $(`<div class="signature-display">
 			<div class="missing-image attach-missing-image">

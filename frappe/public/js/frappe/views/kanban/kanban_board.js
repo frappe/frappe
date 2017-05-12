@@ -119,7 +119,7 @@ frappe.provide("frappe.views");
 				}).then(function(r) {
 					saving_filters = false;
 					updater.set({ filters_modified: false });
-					show_alert({
+					frappe.show_alert({
 						message: __('Filters saved'),
 						indicator: 'green'
 					}, 0.5);
@@ -817,37 +817,6 @@ frappe.provide("frappe.views");
 			})
 		}
 
-		function edit_card_title_old() {
-
-			self.$card.find('.kanban-card-edit').on('click', function (e) {
-				e.stopPropagation();
-				$edit_card_area.show();
-				$kanban_card_area.hide();
-				$textarea.focus();
-			});
-
-			$textarea.on('blur', function () {
-				$edit_card_area.hide();
-				$kanban_card_area.show();
-			});
-
-			$textarea.keydown(function (e) {
-				if (e.which === 13) {
-					e.preventDefault();
-					var new_title = $textarea.val();
-					if (card.title === new_title) {
-						return;
-					}
-					get_doc().then(function () {
-						var tf = store.getState().card_meta.title_field.fieldname;
-						var doc = card.doc;
-						doc[tf] = new_title;
-						fluxify.doAction('update_doc', doc, card);
-					})
-				}
-			})
-		}
-
 		init();
 	}
 
@@ -1018,7 +987,7 @@ frappe.provide("frappe.views");
 			},
 			callback: function (r) {
 				frappe.model.clear_doc(doc.doctype, doc.name);
-				show_alert({ message: __("Saved"), indicator: 'green' }, 1);
+				frappe.show_alert({ message: __("Saved"), indicator: 'green' }, 1);
 			}
 		});
 	}

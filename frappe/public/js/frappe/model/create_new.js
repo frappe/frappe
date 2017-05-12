@@ -15,7 +15,7 @@ $.extend(frappe.model, {
 			name: frappe.model.get_new_name(doctype),
 			__islocal: 1,
 			__unsaved: 1,
-			owner: user
+			owner: frappe.session.user
 		};
 		frappe.model.set_default_values(doc, parent_doc);
 
@@ -140,7 +140,7 @@ $.extend(frappe.model, {
 
 			if(!df.ignore_user_permissions) {
 				// 2 - look in user defaults
-				user_defaults = frappe.defaults.get_user_defaults(df.options);
+				var user_defaults = frappe.defaults.get_user_defaults(df.options);
 				if (user_defaults && user_defaults.length===1) {
 					// Use User Permission value when only when it has a single value
 					user_default = user_defaults[0];
@@ -171,13 +171,13 @@ $.extend(frappe.model, {
 				return frappe.session.user;
 
 			} else if (df["default"] == "user_fullname") {
-				return user_fullname;
+				return frappe.session.user_fullname;
 
 			} else if (df["default"] == "Today") {
-				return dateutil.get_today();
+				return frappe.datetime.get_today();
 
 			} else if ((df["default"] || "").toLowerCase() === "now") {
-				return dateutil.now_datetime();
+				return frappe.datetime.now_datetime();
 
 			} else if (df["default"][0]===":") {
 				var boot_doc = frappe.model.get_default_from_boot_docs(df, doc, parent_doc);
@@ -198,7 +198,7 @@ $.extend(frappe.model, {
 			}
 
 		} else if (df.fieldtype=="Time") {
-			return dateutil.now_time();
+			return frappe.datetime.now_time();
 		}
 	},
 
@@ -267,6 +267,8 @@ $.extend(frappe.model, {
 			}
 		}
 
+		var user = frappe.session.user;
+
 		newdoc.__islocal = 1;
 		newdoc.docstatus = 0;
 		newdoc.owner = user;
@@ -309,7 +311,7 @@ $.extend(frappe.model, {
 
 frappe.create_routes = {};
 frappe.new_doc = function (doctype, opts) {
-	if(opts && $.isPlainObject(opts)) { frappe.route_options = opts; };
+	if(opts && $.isPlainObject(opts)) { frappe.route_options = opts; }
 	frappe.model.with_doctype(doctype, function() {
 		if(frappe.create_routes[doctype]) {
 			frappe.set_route(frappe.create_routes[doctype]);

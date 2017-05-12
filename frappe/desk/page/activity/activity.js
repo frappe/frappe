@@ -80,7 +80,7 @@ frappe.pages['activity'].on_page_load = function(wrapper) {
 
 	this.page.add_menu_item(__('Authentication Log'), function() {
 		frappe.route_options = {
-			"user": user
+			"user": frappe.session.user
 		}
 
 		frappe.set_route('Report', "Authentication Log");
@@ -147,17 +147,18 @@ frappe.activity.Feed = Class.extend({
 		data.feed_type = data.comment_type || data.communication_medium;
 	},
 	add_date_separator: function(row, data) {
-		var date = dateutil.str_to_obj(data.creation);
+		var date = frappe.datetime.str_to_obj(data.creation);
 		var last = frappe.activity.last_feed_date;
 
-		if((last && dateutil.obj_to_str(last) != dateutil.obj_to_str(date)) || (!last)) {
-			var diff = dateutil.get_day_diff(dateutil.get_today(), dateutil.obj_to_str(date));
+		if((last && frappe.datetime.obj_to_str(last) != frappe.datetime.obj_to_str(date)) || (!last)) {
+			var diff = frappe.datetime.get_day_diff(frappe.datetime.get_today(), frappe.datetime.obj_to_str(date));
+			var pdate;
 			if(diff < 1) {
 				pdate = 'Today';
 			} else if(diff < 2) {
 				pdate = 'Yesterday';
 			} else {
-				pdate = dateutil.global_date_format(date);
+				pdate = frappe.datetime.global_date_format(date);
 			}
 			data.date_sep = pdate;
 			data.date_class = pdate=='Today' ? "date-indicator blue" : "date-indicator";
@@ -182,7 +183,7 @@ frappe.activity.render_heatmap = function(page) {
 				var legend = [];
 				var max = Math.max.apply(this, $.map(r.message, function(v) { return v }));
 				var legend = [cint(max/5), cint(max*2/5), cint(max*3/5), cint(max*4/5)];
-				heatmap = new CalHeatMap();
+				var heatmap = new CalHeatMap();
 				heatmap.init({
 					itemSelector: ".heatmap",
 					domain: "month",
