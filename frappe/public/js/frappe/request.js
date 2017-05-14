@@ -82,6 +82,14 @@ frappe.request.call = function(opts) {
 				// session expired
 				frappe.app.handle_session_expired();
 			}
+			else if(xhr.responseJSON && xhr.responseJSON._error_message) {
+				frappe.msgprint({
+					title:__("Not permitted"), indicator:'red',
+					message: xhr.responseJSON._error_message
+				});
+
+				xhr.responseJSON._server_messages = null;
+			}
 			else if (xhr.responseJSON && xhr.responseJSON._server_messages) {
 				var _server_messages = JSON.parse(xhr.responseJSON._server_messages);
 
@@ -314,7 +322,8 @@ frappe.request.report_error = function(xhr, request_opts) {
 	if (exc) {
 		var error_report_email = (frappe.boot.error_report_email || []).join(", ");
 		var error_message = '<div>\
-			<pre style="max-height: 300px; margin-top: 7px;">' + exc + '</pre>'
+			<pre style="max-height: 300px; margin-top: 7px;">'
+				+ exc.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</pre>'
 			+'<p class="text-right"><a class="btn btn-primary btn-sm report-btn">'
 			+ __("Report this issue") + '</a></p>'
 			+'</div>';

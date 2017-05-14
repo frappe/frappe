@@ -54,7 +54,7 @@ def rebuild_for_doctype(doctype):
 	:param doctype: Doctype '''
 
 	def _get_filters():
-		filters = frappe._dict({ "docstatus": ["!=", 1] })
+		filters = frappe._dict({ "docstatus": ["!=", 2] })
 		if meta.has_field("enabled"):
 			filters.enabled = 1
 		if meta.has_field("disabled"):

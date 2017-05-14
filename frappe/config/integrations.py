@@ -9,6 +9,11 @@ def get_data():
 			"items": [
 				{
 					"type": "doctype",
+					"name": "Stripe Settings",
+					"description": _("Stripe payment gateway settings"),
+				},
+				{
+					"type": "doctype",
 					"name": "PayPal Settings",
 					"description": _("PayPal payment gateway settings"),
 				},
