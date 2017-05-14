@@ -2,7 +2,7 @@ from __future__ import unicode_literals, absolute_import, print_function
 import click
 import hashlib, os, sys
 import frappe
-from _mysql_exceptions import ProgrammingError
+from pymysql import ProgrammingError
 from frappe.commands import pass_context, get_site
 from frappe.commands.scheduler import _is_scheduler_enabled
 from frappe.limits import update_limits, get_limits
