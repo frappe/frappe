@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 
 import os
 import pymysql
+from pymysql.constants import ER
 
 from werkzeug.wrappers import Request
 from werkzeug.local import LocalManager
@@ -131,8 +132,8 @@ def handle_exception(e):
 		response = frappe.utils.response.report_error(http_status_code)
 
 	elif (http_status_code==500
-		and isinstance(e, MySQLdb.OperationalError)
-		and e.args[0] in (1205, 1213)):
+		and isinstance(e, pymysql.InternalError)
+		and e.args[0] in (ER.LOCK_WAIT_TIMEOUT, ER.LOCK_DEADLOCK)):
 			# 1205 = lock wait timeout
 			# 1213 = deadlock
 			# code 409 represents conflict
