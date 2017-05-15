@@ -257,7 +257,8 @@ def get_stats(stats, doctype, filters=[]):
 		except frappe.SQLError:
 			# does not work for child tables
 			pass
-		except pymysql.OperationalError:
+		except pymysql.InternalError:
+			# TODO: any specifics as OperationalError in mysqldb is different from in pymysql?
 			# raised when _user_tags column is added on the fly
 			pass
 
