@@ -68,11 +68,11 @@ frappe.ui.keys.on('ctrl+b', function(e) {
 });
 
 frappe.ui.keys.on('escape', function(e) {
-	close_open_grid_and_dialog();
+	close_grid_and_dialog();
 });
 
 frappe.ui.keys.on('esc', function(e) {
-	close_open_grid_and_dialog();
+	close_grid_and_dialog();
 });
 
 frappe.ui.keys.on('Enter', function(e) {
@@ -118,7 +118,7 @@ frappe.ui.keyCode = {
 	SPACE: 32
 }
 
-function close_open_grid_and_dialog() {
+function close_grid_and_dialog() {
 	// close open grid row
 	var open_row = $(".grid-row-open");
 	if (open_row.length) {
