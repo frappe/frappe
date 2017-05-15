@@ -1350,7 +1350,7 @@ def get_active_domains():
 		domains = get_all("Has Domain", filters={ "parent": "Domain Settings" },
 			fields=["domain"], distinct=True)
 
-		active_domains = [ row.get("domain") for row in domains ]
+		active_domains = [row.get("domain") for row in domains]
 		active_domains.append("")
 		cache().hset("domains", "active_domains", active_domains)
 

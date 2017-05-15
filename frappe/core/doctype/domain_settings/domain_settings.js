@@ -3,10 +3,13 @@
 
 frappe.ui.form.on('Domain Settings', {
 	onload: function(frm) {
-		let domains = $('<div style="min-height: 300px">')
+		let domains = $('<div class="domain-editor">')
 			.appendTo(frm.fields_dict.domains_html.wrapper);
 
-		frm.domain_editor = new frappe.DomainsEditor(domains, frm);
+		if(!frm.domain_editor) {
+			frm.domain_editor = new frappe.DomainsEditor(domains, frm);
+		}
+
 		frm.domain_editor.show();
 	},
 
@@ -29,8 +32,7 @@ frappe.DomainsEditor = frappe.CheckboxEditor.extend({
 				cdt: "Has Domain"
 			},
 			attribute: 'data-domain',
-			add_btn_label: 'Add all domains',
-			remove_btn_label: 'Remove all domains',
+			checkbox_selector: false,
 			get_items: this.get_all_domains,
 			editor_template: this.get_template()
 		});

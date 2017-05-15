@@ -31,28 +31,31 @@ frappe.CheckboxEditor = Class.extend({
 	render_items: function(callback) {
 		let me = this;
 		$(this.wrapper).empty();
-		let toolbar = $('<p><button class="btn btn-default btn-add btn-sm" style="margin-right: 5px;"></button>\
-			<button class="btn btn-sm btn-default btn-remove"></button></p>').appendTo($(this.wrapper));
 
-		toolbar.find(".btn-add")
-			.html(__(this.add_btn_label))
-			.on("click", function() {
-			$(me.wrapper).find('input[type="checkbox"]').each(function(i, check) {
-				if(!$(check).is(":checked")) {
-					check.checked = true;
-				}
-			});
-		});
+		if(this.checkbox_selector) {
+			let toolbar = $('<p><button class="btn btn-default btn-add btn-sm" style="margin-right: 5px;"></button>\
+				<button class="btn btn-sm btn-default btn-remove"></button></p>').appendTo($(this.wrapper));
 
-		toolbar.find(".btn-remove")
-			.html(__(this.remove_btn_label))
-			.on("click", function() {
-			$(me.wrapper).find('input[type="checkbox"]').each(function(i, check) {
-				if($(check).is(":checked")) {
-					check.checked = false;
-				}
+			toolbar.find(".btn-add")
+				.html(__(this.add_btn_label))
+				.on("click", function() {
+				$(me.wrapper).find('input[type="checkbox"]').each(function(i, check) {
+					if(!$(check).is(":checked")) {
+						check.checked = true;
+					}
+				});
 			});
-		});
+
+			toolbar.find(".btn-remove")
+				.html(__(this.remove_btn_label))
+				.on("click", function() {
+				$(me.wrapper).find('input[type="checkbox"]').each(function(i, check) {
+					if($(check).is(":checked")) {
+						check.checked = false;
+					}
+				});
+			});
+		}
 
 		$.each(this.items, function(i, item) {
 			$(me.wrapper).append(frappe.render(me.editor_template, {'item': item}))
