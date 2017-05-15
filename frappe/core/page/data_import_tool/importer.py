@@ -212,8 +212,8 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 		filename, file_extension = os.path.splitext(file_doc.file_name)
 
 		if file_extension == '.xlsx' and from_data_import == 'Yes':
-			from frappe.utils.xlsxutils import read_xlsx_file_from_attached_fie
-			rows = read_xlsx_file_from_attached_fie(file_id=file_doc.name)
+			from frappe.utils.xlsxutils import read_xlsx_file_from_attached_file
+			rows = read_xlsx_file_from_attached_file(file_id=file_doc.name)
 
 		elif file_extension == '.csv':
 			from frappe.utils.file_manager import get_file
