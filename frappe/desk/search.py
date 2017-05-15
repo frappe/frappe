@@ -3,7 +3,7 @@
 
 # Search
 from __future__ import unicode_literals
-import frappe
+import frappe, json
 from frappe.utils import cstr, unique
 
 # this is called by the Link Field
@@ -16,7 +16,7 @@ def search_link(doctype, txt, query=None, filters=None, page_len=20, searchfield
 # this is called by the search box
 @frappe.whitelist()
 def search_widget(doctype, txt, query=None, searchfield=None, start=0,
-	page_len=10, filters=None, as_dict=False):
+	page_len=10, filters=None, filter_fields=None, as_dict=False):
 	if isinstance(filters, basestring):
 		import json
 		filters = json.loads(filters)
@@ -76,20 +76,24 @@ def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 			if meta.get("fields", {"fieldname":"disabled", "fieldtype":"Check"}):
 				filters.append([doctype, "disabled", "!=", 1])
 
+			# format a list of fields combining search fields and filter fields
 			fields = get_std_fields_list(meta, searchfield or "name")
+			if filter_fields:
+				fields = list(set(fields + json.loads(filter_fields)))
+			formatted_fields = ['`tab%s`.`%s`' % (meta.name, f.strip()) for f in fields]
 
 			# find relevance as location of search term from the beginning of string `name`. used for sorting results.
-			fields.append("""locate("{_txt}", `tab{doctype}`.`name`) as `_relevance`""".format(
+			formatted_fields.append("""locate("{_txt}", `tab{doctype}`.`name`) as `_relevance`""".format(
 				_txt=frappe.db.escape((txt or "").replace("%", "")), doctype=frappe.db.escape(doctype)))
 
-			
+
 			# In order_by, `idx` gets second priority, because it stores link count
 			from frappe.model.db_query import get_order_by
 			order_by_based_on_meta = get_order_by(doctype, meta)
 			order_by = "if(_relevance, _relevance, 99999), idx desc, {0}".format(order_by_based_on_meta)
-			
+
 			values = frappe.get_list(doctype,
-				filters=filters, fields=fields,
+				filters=filters, fields=formatted_fields,
 				or_filters = or_filters, limit_start = start,
 				limit_page_length=page_len,
 				order_by=order_by,
@@ -97,6 +101,7 @@ def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 				as_list=not as_dict)
 
 			# remove _relevance from results
+			frappe.response["fields"] = fields
 			frappe.response["values"] = [r[:-1] for r in values]
 
 def get_std_fields_list(meta, key):
@@ -107,7 +112,7 @@ def get_std_fields_list(meta, key):
 	if not key in sflist:
 		sflist = sflist + [key]
 
-	return ['`tab%s`.`%s`' % (meta.name, f.strip()) for f in sflist]
+	return sflist
 
 def build_for_autosuggest(res):
 	results = []
