@@ -129,7 +129,7 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 
 		let $row = $(`<div class="list-item">
 			<div class="list-item__content ellipsis" style="flex: 0 0 10px;">
-				<input type="checkbox" class="list-row-check" ${result.checked ? 'checked' : ''}/>
+				<input type="checkbox" class="list-row-check" ${result.checked ? 'checked' : ''}>
 			</div>
 			${contents}
 		</div>`);
@@ -191,14 +191,18 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 						result.parsed_date = Date.parse(result["Date"]);
 						results.push(result);
 					});
-					let min_date = Math.min.apply( Math, results.map((result) => result.parsed_date) );
 
 					results.map( (result) => {
 						result["Date"] = frappe.format(result["Date"], {"fieldtype":"Date"});
-						if(result.parsed_date === min_date) {
-							result.checked = 1;
-						}
 					})
+
+					results.sort((a, b) => {
+						return a.parsed_date - b.parsed_date;
+					});
+
+					// Preselect oldest entry
+					results[0].checked = 1
+
 					me.render_result_list(results);
 				}
 			}
