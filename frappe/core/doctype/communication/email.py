@@ -2,6 +2,8 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals, absolute_import
+
+from pymysql.constants import ER
 from six.moves import range
 import frappe
 import json
@@ -424,9 +426,9 @@ def sendmail(communication_name, print_html=None, print_format=None, attachments
 				communication._notify(print_html=print_html, print_format=print_format, attachments=attachments,
 					recipients=recipients, cc=cc)
 
-			except pymysql.OperationalError as e:
+			except pymysql.InternalError as e:
 				# deadlock, try again
-				if e.args[0]==1213:
+				if e.args[0] == ER.LOCK_DEADLOCK:
 					frappe.db.rollback()
 					time.sleep(1)
 					continue
