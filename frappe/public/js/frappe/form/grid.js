@@ -67,6 +67,9 @@ frappe.ui.form.Grid = Class.extend({
 
 		this.setup_allow_bulk_edit();
 		this.setup_check();
+		if(this.df.bind_events) {
+			this.df.bind_events(this);
+		}
 
 	},
 	setup_check: function() {
@@ -232,6 +235,7 @@ frappe.ui.form.Grid = Class.extend({
 			}
 
 		} else {
+			// TODO
 			// this.wrapper.find(".grid-footer").toggle(false);
 		}
 
@@ -378,13 +382,11 @@ frappe.ui.form.Grid = Class.extend({
 				this.frm.script_manager.trigger(this.df.fieldname + "_add", d.doctype, d.name);
 				this.refresh();
 			} else {
-				// length = this.df.data.length;
-				// incorporate idx?
-				// set for last first
 				if(!idx) {
-					this.df.data.push({name: "batch " + ++this.df.data_length, idx: this.df.data.length+1});
+					this.df.data.push({name: "batch " + (this.df.data.length+1), idx: this.df.data.length+1});
 				} else {
-
+					// TODO
+					this.df.data.push({name: "batch " + (this.df.data.length+1), idx: this.df.data.length+1})
 				}
 				this.refresh();
 			}
@@ -500,6 +502,7 @@ frappe.ui.form.Grid = Class.extend({
 
 
 	is_editable: function() {
+		// TODO
 		// return this.display_status=="Write" && !this.static_rows;
 		return true;
 	},
@@ -821,6 +824,7 @@ frappe.ui.form.GridRow = Class.extend({
 	},
 
 	is_too_small: function() {
+		// TODO
 		// return this.row.width() < 400;
 		return false;
 	},
@@ -987,6 +991,7 @@ frappe.ui.form.GridRow = Class.extend({
 			}
 			field.$input.on('change', function(e) {
 				field.$input.trigger('blur');
+				console.log("field: ", field.get_value());
 				me.doc[df.fieldname] = field.get_value();
 				me.grid.set_value(df.fieldname, me.doc[df.fieldname], me.doc);
 			});
