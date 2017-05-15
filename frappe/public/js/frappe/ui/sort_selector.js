@@ -127,7 +127,7 @@ frappe.ui.SortSelector = Class.extend({
 			});
 
 			// meta sort field
-			_options.push({ 'fieldname': meta_sort_field })
+			if(meta_sort_field) _options.push({ 'fieldname': meta_sort_field });
 			
 			// more default options
 			_options.push(
@@ -155,7 +155,7 @@ frappe.ui.SortSelector = Class.extend({
 	},
 	get_meta_sort_field: function() {
 		var meta = frappe.get_meta(this.doctype);
-		if(meta.sort_field.includes(',')) {
+		if(meta.sort_field && meta.sort_field.includes(',')) {
 			var parts = meta.sort_field.split(',')[0].split(' ');
 			return {
 				meta_sort_field: parts[0],
