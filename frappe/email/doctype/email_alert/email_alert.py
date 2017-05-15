@@ -217,7 +217,14 @@ def evaluate_alert(doc, alert, event):
 				return
 
 		if event=="Value Change" and not doc.is_new():
-			db_value = frappe.db.get_value(doc.doctype, doc.name, alert.value_changed)
+			try:
+				db_value = frappe.db.get_value(doc.doctype, doc.name, alert.value_changed)
+			except frappe.DatabaseOperationalError as e:
+				if e.args[0]==1054:
+					alert.db_set('enabled', 0)
+					frappe.log_error('Email Alert {0} has been disabled due to missing field'.format(alert.name))
+					return
+
 			db_value = parse_val(db_value)
 			if (doc.get(alert.value_changed) == db_value) or \
 				(not db_value and not doc.get(alert.value_changed)):
