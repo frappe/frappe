@@ -102,7 +102,7 @@
 		<div class=" page-content col-sm-12 ">
 			<div class="page-content-wrapper">
 				<div class="row page-head">
-					<div class='col-sm-12'>
+					<div class='col-sm-12 hidden-xs'>
 						
 						<div class="page-breadcrumbs">
 							
@@ -172,24 +172,106 @@
 	
         
     
-    <p><span class="label label-info">Public API</span>
-        <br><code>/api/method/frappe.utils.global_search.get_search_doctypes</code>
-    </p>
+    
 	<p class="docs-attr-name">
-        <a name="frappe.utils.global_search.get_search_doctypes" href="#frappe.utils.global_search.get_search_doctypes" class="text-muted small">
+        <a name="frappe.utils.global_search.delete_global_search_records_for_doctype" href="#frappe.utils.global_search.delete_global_search_records_for_doctype" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.utils.global_search.<b>get_search_doctypes</b>
-        <i class="text-muted">(text)</i>
+		frappe.utils.global_search.<b>delete_global_search_records_for_doctype</b>
+        <i class="text-muted">(doctype)</i>
     </p>
-	<div class="docs-attr-desc"><p>Search for all t</p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
 
-<p><strong>Parameters:</strong></p>
+	
 
-<ul>
-<li><p><strong><code>text</code></strong> -  phrase to be searched</p>
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.utils.global_search.get_children_data" href="#frappe.utils.global_search.get_children_data" class="text-muted small">
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
+		frappe.utils.global_search.<b>get_children_data</b>
+        <i class="text-muted">(doctype, meta)</i>
+    </p>
+	<div class="docs-attr-desc"><pre><code>    Get all records from all the child tables of a doctype
 
-<p>:return: Array of result objects</p></li>
-</ul>
+    all_children = {
+        "parent1": {
+            "child_doctype1": [
+                {
+                    "field1": val1,
+                    "field2": val2
+                }
+            ]
+        }
+    }
+</code></pre>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.utils.global_search.get_doctypes_with_global_search" href="#frappe.utils.global_search.get_doctypes_with_global_search" class="text-muted small">
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
+		frappe.utils.global_search.<b>get_doctypes_with_global_search</b>
+        <i class="text-muted">(with_child_tables=True)</i>
+    </p>
+	<div class="docs-attr-desc"><p>Return doctypes with global search fields</p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.utils.global_search.get_formatted_value" href="#frappe.utils.global_search.get_formatted_value" class="text-muted small">
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
+		frappe.utils.global_search.<b>get_formatted_value</b>
+        <i class="text-muted">(value, field)</i>
+    </p>
+	<div class="docs-attr-desc"><p>Prepare field from raw data</p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.utils.global_search.get_selected_fields" href="#frappe.utils.global_search.get_selected_fields" class="text-muted small">
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
+		frappe.utils.global_search.<b>get_selected_fields</b>
+        <i class="text-muted">(meta, global_search_fields)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.utils.global_search.insert_values_for_multiple_docs" href="#frappe.utils.global_search.insert_values_for_multiple_docs" class="text-muted small">
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
+		frappe.utils.global_search.<b>insert_values_for_multiple_docs</b>
+        <i class="text-muted">(all_contents)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
 	<br>
 
@@ -244,42 +326,13 @@
         <a name="frappe.utils.global_search.search" href="#frappe.utils.global_search.search" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		frappe.utils.global_search.<b>search</b>
-        <i class="text-muted">(text, start=0, limit=20)</i>
+        <i class="text-muted">(text, start=0, limit=20, doctype=)</i>
     </p>
 	<div class="docs-attr-desc"><p>Search for given text in <em>_global</em>search</p>
 
 <p><strong>Parameters:</strong></p>
 
 <ul>
-<li><strong><code>text</code></strong> -  phrase to be searched</li>
-<li><strong><code>start</code></strong> -  start results at, default 0</li>
-<li><p><strong><code>limit</code></strong> -  number of results to return, default 20</p>
-
-<p>:return: Array of result objects</p></li>
-</ul>
-</div>
-	<br>
-
-	
-
-	
-        
-    
-    <p><span class="label label-info">Public API</span>
-        <br><code>/api/method/frappe.utils.global_search.search_in_doctype</code>
-    </p>
-	<p class="docs-attr-name">
-        <a name="frappe.utils.global_search.search_in_doctype" href="#frappe.utils.global_search.search_in_doctype" class="text-muted small">
-            <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.utils.global_search.<b>search_in_doctype</b>
-        <i class="text-muted">(doctype, text, start, limit)</i>
-    </p>
-	<div class="docs-attr-desc"><p>Search for given text in given doctype in <em>_global</em>search</p>
-
-<p><strong>Parameters:</strong></p>
-
-<ul>
-<li><strong><code>doctype</code></strong> -  doctype to be searched in</li>
 <li><strong><code>text</code></strong> -  phrase to be searched</li>
 <li><strong><code>start</code></strong> -  start results at, default 0</li>
 <li><p><strong><code>limit</code></strong> -  number of results to return, default 20</p>

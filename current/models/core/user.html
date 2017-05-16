@@ -102,7 +102,7 @@
 		<div class=" page-content col-sm-12 ">
 			<div class="page-content-wrapper">
 				<div class="row page-head">
-					<div class='col-sm-12'>
+					<div class='col-sm-12 hidden-xs'>
 						
 						<div class="page-breadcrumbs">
 							
@@ -1342,6 +1342,20 @@ Website User</pre>
     
     
 	<p class="docs-attr-name">
+        <a name="password_strength_test" href="#password_strength_test" class="text-muted small">
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
+		<b>password_strength_test</b>
+        <i class="text-muted">(self)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
         <a name="password_update_mail" href="#password_update_mail" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		<b>password_update_mail</b>
@@ -1877,6 +1891,22 @@ Website User</pre>
 	
         
     
+    
+	<p class="docs-attr-name">
+        <a name="frappe.core.doctype.user.user.handle_password_test_fail" href="#frappe.core.doctype.user.user.handle_password_test_fail" class="text-muted small">
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
+		frappe.core.doctype.user.user.<b>handle_password_test_fail</b>
+        <i class="text-muted">(result)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
     <p><span class="label label-info">Public API</span>
         <br><code>/api/method/frappe.core.doctype.user.user.has_email_account</code>
     </p>
@@ -2036,7 +2066,7 @@ Website User</pre>
         <a name="frappe.core.doctype.user.user.test_password_strength" href="#frappe.core.doctype.user.user.test_password_strength" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		frappe.core.doctype.user.user.<b>test_password_strength</b>
-        <i class="text-muted">(new_password, key=None, old_password=None)</i>
+        <i class="text-muted">(new_password, key=None, old_password=None, user_data=[])</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
