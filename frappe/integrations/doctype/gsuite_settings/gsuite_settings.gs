@@ -1,3 +1,6 @@
+// ERPNEXT GSuite integration
+//
+
 function doGet(e){
   return ContentService.createTextOutput('ok');
 }
@@ -11,7 +14,7 @@ function doPost(e) {
       result = { 'url': url };
       break;
     case 'test':
-      result = { 'test':'ping'}
+      result = { 'test':'ping' , 'version':'1.0'}
   }
   return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
 }
