@@ -438,11 +438,13 @@ frappe.provide("frappe.views");
 			var cards = store.getState().cards;
 			var board = store.getState().board;
 			filtered_cards = get_cards_for_column(cards, column);
+			var filtered_cards_names = filtered_cards.map(card => card.name);
 
 			var order = column.order;
 			if(order) {
 				order = JSON.parse(order);
 				order.forEach(function(name) {
+					if (!filtered_cards_names.includes(name)) return;
 					frappe.views.KanbanBoardCard(get_card(name), self.$kanban_cards);
 				});
 				// new cards
