@@ -213,11 +213,10 @@ frappe.ui.get_upload_dialog = function(opts){
 		fields: [
 			{"fieldtype": "Section Break"},
 			{"fieldtype": "Link" , "fieldname": "file" , "label": __("Select uploaded file"), "options": "File"},
-			{"hidden": !frappe.boot.gsuite_enabled ,"fieldtype": "Section Break", "label": __("GSuite Document")},
-			{"fieldtype": "Link" ,"fieldname": "gs_template" ,"label": __("Select template"), "options": "GSuite Templates", reqd : false, filters: {'related_doctype': cur_frm.doctype}},
+			{"hidden": !opts.args.doctype || !frappe.boot.gsuite_enabled,"fieldtype": "Section Break", "label": __("GSuite Document")},
+			{"fieldtype": "Link" ,"fieldname": "gs_template" ,"label": __("Select template"), "options": "GSuite Templates", reqd : false, filters: {'related_doctype': opts.args.doctype}},
 		],
 	});
-
 	var btn = dialog.set_primary_action(__("Attach"));
 	btn.removeClass("btn-primary").addClass("btn-default");
 
