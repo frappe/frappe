@@ -7,7 +7,7 @@ from __future__ import unicode_literals
 import frappe, json
 from six.moves import range
 import frappe.permissions
-import MySQLdb
+import pymysql
 from frappe.model.db_query import DatabaseQuery
 from frappe import _
 
@@ -257,7 +257,8 @@ def get_stats(stats, doctype, filters=[]):
 		except frappe.SQLError:
 			# does not work for child tables
 			pass
-		except MySQLdb.OperationalError:
+		except pymysql.InternalError:
+			# TODO: any specifics as OperationalError in mysqldb is different from in pymysql?
 			# raised when _user_tags column is added on the fly
 			pass
 

@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 
 import re, copy, os
-import MySQLdb
+import pymysql
 import frappe
 from frappe import _
 
@@ -16,6 +16,8 @@ from frappe.desk.notifications import delete_notification_count_for
 from frappe.modules import make_boilerplate
 from frappe.model.db_schema import validate_column_name
 import frappe.website.render
+from pymysql.constants import ER
+
 
 class InvalidFieldNameError(frappe.ValidationError): pass
 
@@ -458,8 +460,8 @@ def validate_fields(meta):
 						group by `{fieldname}` having count(*) > 1 limit 1""".format(
 						doctype=d.parent, fieldname=d.fieldname))
 
-				except MySQLdb.OperationalError as e:
-					if e.args and e.args[0]==1054:
+				except pymysql.InternalError as e:
+					if e.args and e.args[0] == ER.BAD_FIELD_ERROR:
 						# ignore if missing column, else raise
 						# this happens in case of Custom Field
 						pass

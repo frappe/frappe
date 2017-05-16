@@ -1,10 +1,11 @@
 from __future__ import unicode_literals, print_function
 import redis
+from pymysql.constants import ER
 from rq import Connection, Queue, Worker
 from frappe.utils import cstr
 from collections import defaultdict
 import frappe
-import MySQLdb
+import pymysql
 import os, socket, time
 
 default_timeout = 300
@@ -64,11 +65,11 @@ def execute_job(site, method, event, job_name, kwargs, user=None, async=True, re
 	try:
 		method(**kwargs)
 
-	except (MySQLdb.OperationalError, frappe.RetryBackgroundJobError) as e:
+	except (pymysql.InternalError, frappe.RetryBackgroundJobError) as e:
 		frappe.db.rollback()
 
 		if (retry < 5 and
-			(isinstance(e, frappe.RetryBackgroundJobError) or e.args[0] in (1213, 1205))):
+			(isinstance(e, frappe.RetryBackgroundJobError) or e.args[0] in (ER.LOCK_DEADLOCK, ER.LOCK_WAIT_TIMEOUT))):
 			# retry the job if
 			# 1213 = deadlock
 			# 1205 = lock wait timeout

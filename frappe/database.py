@@ -5,8 +5,9 @@
 # --------------------
 
 from __future__ import unicode_literals
-import MySQLdb
-from MySQLdb.times import DateTimeDeltaType
+import pymysql
+from pymysql.constants import FIELD_TYPE
+from pymysql.times import TimeDelta
 from markdown2 import UnicodeWithAttrs
 import warnings
 import datetime
@@ -48,16 +49,20 @@ class Database:
 
 	def connect(self):
 		"""Connects to a database as set in `site_config.json`."""
-		warnings.filterwarnings('ignore', category=MySQLdb.Warning)
-		self._conn = MySQLdb.connect(user=self.user, host=self.host, passwd=self.password,
+		warnings.filterwarnings('ignore', category=pymysql.Warning)
+		self._conn = pymysql.connect(user=self.user, host=self.host, passwd=self.password,
 			use_unicode=True, charset='utf8mb4')
-		self._conn.converter[246]=float
-		self._conn.converter[12]=get_datetime
+		self._conn.decoders[FIELD_TYPE.NEWDECIMAL] = float
+		self._conn.decoders[FIELD_TYPE.DATETIME] = get_datetime
+		# self._conn.converter[246]=float
+		# self._conn.converter[12]=get_datetime
 		self._conn.encoders[UnicodeWithAttrs] = self._conn.encoders[UnicodeType]
-		self._conn.encoders[DateTimeDeltaType] = self._conn.encoders[StringType]
+		self._conn.encoders[TimeDelta] = self._conn.encoders[StringType]
 
 		MYSQL_OPTION_MULTI_STATEMENTS_OFF = 1
-		self._conn.set_server_option(MYSQL_OPTION_MULTI_STATEMENTS_OFF)
+		# self._conn.set_server_option(MYSQL_OPTION_MULTI_STATEMENTS_OFF)
+		# TODO: how do I set MYSQL_OPTION_MULTI_STATEMENTS_OFF with pymysql???
+
 
 		self._cursor = self._conn.cursor()
 		if self.user != 'root':
@@ -856,7 +861,7 @@ class Database:
 		if isinstance(s, unicode):
 			s = (s or "").encode("utf-8")
 
-		s = unicode(MySQLdb.escape_string(s), "utf-8").replace("`", "\\`")
+		s = unicode(pymysql.escape_string(s), "utf-8").replace("`", "\\`")
 
 		# NOTE separating % escape, because % escape should only be done when using LIKE operator
 		# or when you use python format string to generate query that already has a %s
