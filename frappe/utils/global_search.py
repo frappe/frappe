@@ -34,7 +34,7 @@ def get_doctypes_with_global_search(with_child_tables=True):
 		global_search_doctypes = []
 		filters = {}
 		if not with_child_tables:
-			filters = {"istable": ["!=", 1]}
+			filters = {"istable": ["!=", 1], "issingle": ["!=", 1]}
 		for d in frappe.get_all('DocType', fields=['name', 'module'], filters=filters):
 			meta = frappe.get_meta(d.name)
 			if len(meta.get_global_search_fields()) > 0:
