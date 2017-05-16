@@ -4,7 +4,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>frappe.www.print</title>
+	<title>Stripe Settings</title>
 	<meta name="generator" content="frappe">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
@@ -22,7 +22,7 @@
     
 
 		</head>
-<body data-path="current/api/www/frappe.www.print">
+<body data-path="current/models/integrations/stripe_settings">
 	<div class="main-section">
 		<div>
 					<nav class="navbar navbar-default navbar-main" role="navigation">
@@ -95,14 +95,14 @@
                 <div data-html-block="hero"></div>
                 <div class="container" data-html-block="content">
                 
-<div class="page-container" id="page-current/api/www/frappe.www.print" data-path="{{ pathname }}"
+<div class="page-container" id="page-current/models/integrations/stripe_settings" data-path="{{ pathname }}"
 	>
 	<div class="row ">
 		
 		<div class=" page-content col-sm-12 ">
 			<div class="page-content-wrapper">
 				<div class="row page-head">
-					<div class='col-sm-12'>
+					<div class='col-sm-12 hidden-xs'>
 						
 						<div class="page-breadcrumbs">
 							
@@ -110,8 +110,8 @@
 <ul class="breadcrumb">
 	<li>
 		<span class="fa fa-angle-left"></span>
-		<a href="https://frappe.github.io/frappe//current/api/www">
-		www</a>
+		<a href="https://frappe.github.io/frappe//current/models/integrations">
+		Module integrations</a>
 	</li>
 	
 </ul>
@@ -121,7 +121,7 @@
 						
 					</div>
 					<div class="col-sm-8 col-xs-6">
-						<h1>frappe.www.print</h1>
+						<h1>Stripe Settings</h1>
 					</div>
 					<div class="col-sm-4 col-xs-6">
 						
@@ -131,275 +131,187 @@
 				</div>
 			</div>
 			<div class="page_content">
-<!-- title: frappe.www.print --><div class="dev-header">
+<!-- title: Stripe Settings -->
+
+
+
+
+
+<div class="dev-header">
 
 <a class="btn btn-default btn-sm" disabled style="margin-bottom: 10px;">
 	Version 7.x.x</a>
 
 
-	<a class="btn btn-default btn-sm" href="https://github.com/frappe/frappe/blob/develop/frappe/www/print.py"
+	<a class="btn btn-default btn-sm" href="https://github.com/frappe/frappe/tree/develop/frappe/integrations/doctype/stripe_settings"
 		target="_blank" style="margin-left: 10px; margin-bottom: 10px;"><i class="octicon octicon-mark-github"></i> Source</a>
 
 </div>
 
+<span class="label label-info">Single</span>
 
+
+
+
+
+
+<h3>Fields</h3>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th style="width: 5%">Sr</th>
+            <th style="width: 25%">Fieldname</th>
+            <th style="width: 20%">Type</th>
+            <th style="width: 25%">Label</th>
+            <th style="width: 25%">Options</th>
+        </tr>
+    </thead>
+    <tbody>
+        
+        <tr >
+            <td>1</td>
+            <td class="danger" title="Mandatory"><code>publishable_key</code></td>
+            <td >
+                Data</td>
+            <td >
+                Publishable Key
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>2</td>
+            <td class="danger" title="Mandatory"><code>secret_key</code></td>
+            <td >
+                Password</td>
+            <td >
+                Secret Key
+                
+            </td>
+            <td></td>
+        </tr>
+        
+    </tbody>
+</table>
+
+
+    <hr>
+    <h3>Controller</h3>
+    <h4>frappe.integrations.doctype.stripe_settings.stripe_settings</h4>
+
+    
 
 
 
 	
         
+	<h3 style="font-weight: normal;">Class <b>StripeSettings</b></h3>
     
+    <p style="padding-left: 30px;"><i>Inherits from frappe.model.document.Document</i></h4>
     
-	<p class="docs-attr-name">
-        <a name="frappe.www.print.column_has_value" href="#frappe.www.print.column_has_value" class="text-muted small">
-            <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.www.print.<b>column_has_value</b>
-        <i class="text-muted">(data, fieldname)</i>
-    </p>
-	<div class="docs-attr-desc"><p>Check if at least one cell in column has non-zero and non-blank value</p>
+    <div class="docs-attr-desc"><p></p>
 </div>
-	<br>
-
-	
-
-	
+    <div style="padding-left: 30px;">
+        
         
     
     
 	<p class="docs-attr-name">
-        <a name="frappe.www.print.convert_markdown" href="#frappe.www.print.convert_markdown" class="text-muted small">
+        <a name="create_charge_on_stripe" href="#create_charge_on_stripe" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.www.print.<b>convert_markdown</b>
-        <i class="text-muted">(doc, meta)</i>
-    </p>
-	<div class="docs-attr-desc"><p>Convert text field values to markdown if necessary</p>
-</div>
-	<br>
-
-	
-
-	
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="frappe.www.print.get_context" href="#frappe.www.print.get_context" class="text-muted small">
-            <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.www.print.<b>get_context</b>
-        <i class="text-muted">(context)</i>
-    </p>
-	<div class="docs-attr-desc"><p>Build context for print</p>
-</div>
-	<br>
-
-	
-
-	
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="frappe.www.print.get_font" href="#frappe.www.print.get_font" class="text-muted small">
-            <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.www.print.<b>get_font</b>
-        <i class="text-muted">(print_settings, print_format=None, for_legacy=False)</i>
+		<b>create_charge_on_stripe</b>
+        <i class="text-muted">(self)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
 	<br>
 
-	
-
-	
+        
         
     
     
 	<p class="docs-attr-name">
-        <a name="frappe.www.print.get_html" href="#frappe.www.print.get_html" class="text-muted small">
+        <a name="create_request" href="#create_request" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.www.print.<b>get_html</b>
-        <i class="text-muted">(doc, name=None, print_format=None, meta=None, no_letterhead=None, trigger_print=False)</i>
+		<b>create_request</b>
+        <i class="text-muted">(self, data)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
 	<br>
 
-	
-
-	
         
-    
-    <p><span class="label label-info">Public API</span>
-        <br><code>/api/method/frappe.www.print.get_html_and_style</code>
-    </p>
-	<p class="docs-attr-name">
-        <a name="frappe.www.print.get_html_and_style" href="#frappe.www.print.get_html_and_style" class="text-muted small">
-            <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.www.print.<b>get_html_and_style</b>
-        <i class="text-muted">(doc, name=None, print_format=None, meta=None, no_letterhead=None, trigger_print=False)</i>
-    </p>
-	<div class="docs-attr-desc"><p>Returns <code>html</code> and <code>style</code> of print format, used in PDF etc</p>
-</div>
-	<br>
-
-	
-
-	
         
     
     
 	<p class="docs-attr-name">
-        <a name="frappe.www.print.get_letter_head" href="#frappe.www.print.get_letter_head" class="text-muted small">
+        <a name="get_payment_url" href="#get_payment_url" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.www.print.<b>get_letter_head</b>
-        <i class="text-muted">(doc, no_letterhead)</i>
+		<b>get_payment_url</b>
+        <i class="text-muted">(self)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
 	<br>
 
-	
-
-	
+        
         
     
     
 	<p class="docs-attr-name">
-        <a name="frappe.www.print.get_print_format" href="#frappe.www.print.get_print_format" class="text-muted small">
+        <a name="validate" href="#validate" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.www.print.<b>get_print_format</b>
-        <i class="text-muted">(doctype, print_format)</i>
+		<b>validate</b>
+        <i class="text-muted">(self)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
 	<br>
 
-	
-
-	
+        
         
     
     
 	<p class="docs-attr-name">
-        <a name="frappe.www.print.get_print_format_doc" href="#frappe.www.print.get_print_format_doc" class="text-muted small">
+        <a name="validate_stripe_credentails" href="#validate_stripe_credentails" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.www.print.<b>get_print_format_doc</b>
-        <i class="text-muted">(print_format_name, meta)</i>
-    </p>
-	<div class="docs-attr-desc"><p>Returns print format document</p>
-</div>
-	<br>
-
-	
-
-	
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="frappe.www.print.get_print_style" href="#frappe.www.print.get_print_style" class="text-muted small">
-            <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.www.print.<b>get_print_style</b>
-        <i class="text-muted">(style=None, print_format=None, for_legacy=False)</i>
+		<b>validate_stripe_credentails</b>
+        <i class="text-muted">(self)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
 	<br>
 
-	
-
-	
+        
         
     
     
 	<p class="docs-attr-name">
-        <a name="frappe.www.print.get_visible_columns" href="#frappe.www.print.get_visible_columns" class="text-muted small">
+        <a name="validate_transaction_currency" href="#validate_transaction_currency" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.www.print.<b>get_visible_columns</b>
-        <i class="text-muted">(data, table_meta, df)</i>
-    </p>
-	<div class="docs-attr-desc"><p>Returns list of visible columns based on print_hide and if all columns have value.</p>
-</div>
-	<br>
-
-	
-
-	
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="frappe.www.print.has_value" href="#frappe.www.print.has_value" class="text-muted small">
-            <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.www.print.<b>has_value</b>
-        <i class="text-muted">(df, doc)</i>
+		<b>validate_transaction_currency</b>
+        <i class="text-muted">(self, currency)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
 	<br>
 
-	
-
-	
         
-    
-    
-	<p class="docs-attr-name">
-        <a name="frappe.www.print.is_visible" href="#frappe.www.print.is_visible" class="text-muted small">
-            <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.www.print.<b>is_visible</b>
-        <i class="text-muted">(df, doc)</i>
-    </p>
-	<div class="docs-attr-desc"><p>Returns True if docfield is visible in print layout and does not have print_hide set.</p>
-</div>
-	<br>
+    </div>
+    <hr>
 
 	
 
-	
-        
+
     
     
-	<p class="docs-attr-name">
-        <a name="frappe.www.print.make_layout" href="#frappe.www.print.make_layout" class="text-muted small">
-            <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.www.print.<b>make_layout</b>
-        <i class="text-muted">(doc, meta, format_data=None)</i>
-    </p>
-	<div class="docs-attr-desc"><p>Builds a hierarchical layout object from the fields list to be rendered
-    by <code>standard.html</code></p>
-
-<p><strong>Parameters:</strong></p>
-
-<ul>
-<li><strong><code>doc</code></strong> -  Document to be rendered.</li>
-<li><strong><code>meta</code></strong> -  Document meta object (doctype).</li>
-<li><strong><code>format_data</code></strong> -  Fields sequence and properties defined by Print Format Builder.</li>
-</ul>
-</div>
-	<br>
-
-	
-
-	
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="frappe.www.print.validate_print_permission" href="#frappe.www.print.validate_print_permission" class="text-muted small">
-            <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.www.print.<b>validate_print_permission</b>
-        <i class="text-muted">(doc)</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
-
-	
-
 
 
 <!-- autodoc -->
+<!-- jinja -->
+<!-- static -->
 </div>
 		</div>
 	</div>

@@ -102,7 +102,7 @@
 		<div class=" page-content col-sm-12 ">
 			<div class="page-content-wrapper">
 				<div class="row page-head">
-					<div class='col-sm-12'>
+					<div class='col-sm-12 hidden-xs'>
 						
 						<div class="page-breadcrumbs">
 							
@@ -340,12 +340,39 @@ mm-dd-yyyy</pre>
 3
 4
 5
-6</pre>
+6
+7
+8
+9</pre>
+            </td>
+        </tr>
+        
+        <tr >
+            <td>12</td>
+            <td ><code>currency_precision</code></td>
+            <td >
+                Select</td>
+            <td >
+                Currency Precision
+                <p class="text-muted small">
+                    If not set, the currency precision will depend on number format</p>
+            </td>
+            <td>
+                <pre>
+1
+2
+3
+4
+5
+6
+7
+8
+9</pre>
             </td>
         </tr>
         
         <tr class="info">
-            <td>12</td>
+            <td>13</td>
             <td ><code>sec_backup_limit</code></td>
             <td >
                 Section Break</td>
@@ -357,7 +384,7 @@ mm-dd-yyyy</pre>
         </tr>
         
         <tr >
-            <td>13</td>
+            <td>14</td>
             <td ><code>backup_limit</code></td>
             <td >
                 Int</td>
@@ -370,7 +397,7 @@ mm-dd-yyyy</pre>
         </tr>
         
         <tr class="info">
-            <td>14</td>
+            <td>15</td>
             <td ><code>background_workers</code></td>
             <td >
                 Section Break</td>
@@ -382,11 +409,11 @@ mm-dd-yyyy</pre>
         </tr>
         
         <tr >
-            <td>15</td>
+            <td>16</td>
             <td ><code>enable_scheduler</code></td>
             <td >
                 Check</td>
-            <td >
+            <td class="text-muted" title="Hidden">
                 Enable Scheduled Jobs
                 <p class="text-muted small">
                     Run scheduled jobs only if checked</p>
@@ -395,7 +422,7 @@ mm-dd-yyyy</pre>
         </tr>
         
         <tr >
-            <td>16</td>
+            <td>17</td>
             <td ><code>scheduler_last_event</code></td>
             <td >
                 Data</td>
@@ -407,7 +434,7 @@ mm-dd-yyyy</pre>
         </tr>
         
         <tr class="info">
-            <td>17</td>
+            <td>18</td>
             <td ><code>security</code></td>
             <td >
                 Section Break</td>
@@ -419,7 +446,7 @@ mm-dd-yyyy</pre>
         </tr>
         
         <tr >
-            <td>18</td>
+            <td>19</td>
             <td ><code>session_expiry</code></td>
             <td >
                 Data</td>
@@ -432,7 +459,7 @@ mm-dd-yyyy</pre>
         </tr>
         
         <tr >
-            <td>19</td>
+            <td>20</td>
             <td ><code>session_expiry_mobile</code></td>
             <td >
                 Data</td>
@@ -445,7 +472,35 @@ mm-dd-yyyy</pre>
         </tr>
         
         <tr >
-            <td>20</td>
+            <td>21</td>
+            <td ><code>enable_password_policy</code></td>
+            <td >
+                Check</td>
+            <td >
+                Enable Password Policy
+                <p class="text-muted small">
+                    If enabled, the password strength will be enforced based on the Minimum Password Score value. A value of 2 being medium strong and 4 being very strong.</p>
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>22</td>
+            <td ><code>minimum_password_score</code></td>
+            <td >
+                Select</td>
+            <td >
+                Minimum Password Score
+                
+            </td>
+            <td>
+                <pre>2
+4</pre>
+            </td>
+        </tr>
+        
+        <tr >
+            <td>23</td>
             <td ><code>column_break_13</code></td>
             <td class="info">
                 Column Break</td>
@@ -457,7 +512,7 @@ mm-dd-yyyy</pre>
         </tr>
         
         <tr >
-            <td>21</td>
+            <td>24</td>
             <td ><code>deny_multiple_sessions</code></td>
             <td >
                 Check</td>
@@ -470,7 +525,7 @@ mm-dd-yyyy</pre>
         </tr>
         
         <tr >
-            <td>22</td>
+            <td>25</td>
             <td ><code>ignore_user_permissions_if_missing</code></td>
             <td >
                 Check</td>
@@ -483,7 +538,7 @@ mm-dd-yyyy</pre>
         </tr>
         
         <tr class="info">
-            <td>23</td>
+            <td>26</td>
             <td ><code>email</code></td>
             <td >
                 Section Break</td>
@@ -495,7 +550,7 @@ mm-dd-yyyy</pre>
         </tr>
         
         <tr >
-            <td>24</td>
+            <td>27</td>
             <td ><code>email_footer_address</code></td>
             <td >
                 Small Text</td>
@@ -508,7 +563,7 @@ mm-dd-yyyy</pre>
         </tr>
         
         <tr >
-            <td>25</td>
+            <td>28</td>
             <td ><code>column_break_18</code></td>
             <td class="info">
                 Column Break</td>
@@ -520,7 +575,7 @@ mm-dd-yyyy</pre>
         </tr>
         
         <tr >
-            <td>26</td>
+            <td>29</td>
             <td ><code>disable_standard_email_footer</code></td>
             <td >
                 Check</td>

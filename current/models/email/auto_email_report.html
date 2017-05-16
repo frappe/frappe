@@ -102,7 +102,7 @@
 		<div class=" page-content col-sm-12 ">
 			<div class="page-content-wrapper">
 				<div class="row page-head">
-					<div class='col-sm-12'>
+					<div class='col-sm-12 hidden-xs'>
 						
 						<div class="page-breadcrumbs">
 							
@@ -227,18 +227,6 @@
         
         <tr >
             <td>4</td>
-            <td ><code>send_if_data</code></td>
-            <td >
-                Check</td>
-            <td >
-                Send only if there is any data
-                
-            </td>
-            <td></td>
-        </tr>
-        
-        <tr >
-            <td>5</td>
             <td ><code>column_break_4</code></td>
             <td class="info">
                 Column Break</td>
@@ -250,7 +238,7 @@
         </tr>
         
         <tr >
-            <td>6</td>
+            <td>5</td>
             <td ><code>report_type</code></td>
             <td >
                 Read Only</td>
@@ -263,13 +251,25 @@
             </td>
         </tr>
         
+        <tr class="info">
+            <td>6</td>
+            <td ><code>filter_data</code></td>
+            <td >
+                Section Break</td>
+            <td >
+                Filter Data
+                
+            </td>
+            <td></td>
+        </tr>
+        
         <tr >
             <td>7</td>
-            <td ><code>data_modified_till</code></td>
+            <td ><code>send_if_data</code></td>
             <td >
-                Int</td>
+                Check</td>
             <td >
-                Send Records Updated in Last X Hours
+                Send only if there is any data
                 
             </td>
             <td></td>
@@ -277,6 +277,19 @@
         
         <tr >
             <td>8</td>
+            <td ><code>data_modified_till</code></td>
+            <td >
+                Int</td>
+            <td >
+                Only Send Records Updated in Last X Hours
+                <p class="text-muted small">
+                    Zero means send records updated at anytime</p>
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>9</td>
             <td ><code>no_of_rows</code></td>
             <td >
                 Int</td>
@@ -288,7 +301,7 @@
         </tr>
         
         <tr class="info">
-            <td>9</td>
+            <td>10</td>
             <td ><code>report_filters</code></td>
             <td >
                 Section Break</td>
@@ -300,7 +313,7 @@
         </tr>
         
         <tr >
-            <td>10</td>
+            <td>11</td>
             <td ><code>filters_display</code></td>
             <td >
                 HTML</td>
@@ -312,7 +325,7 @@
         </tr>
         
         <tr >
-            <td>11</td>
+            <td>12</td>
             <td ><code>filters</code></td>
             <td >
                 Text</td>
@@ -324,7 +337,7 @@
         </tr>
         
         <tr >
-            <td>12</td>
+            <td>13</td>
             <td ><code>filter_meta</code></td>
             <td >
                 Text</td>
@@ -336,7 +349,7 @@
         </tr>
         
         <tr class="info">
-            <td>13</td>
+            <td>14</td>
             <td ><code>email_settings</code></td>
             <td >
                 Section Break</td>
@@ -348,7 +361,7 @@
         </tr>
         
         <tr >
-            <td>14</td>
+            <td>15</td>
             <td class="danger" title="Mandatory"><code>email_to</code></td>
             <td >
                 Small Text</td>
@@ -360,7 +373,7 @@
         </tr>
         
         <tr >
-            <td>15</td>
+            <td>16</td>
             <td ><code>day_of_week</code></td>
             <td >
                 Select</td>
@@ -380,7 +393,7 @@ Sunday</pre>
         </tr>
         
         <tr >
-            <td>16</td>
+            <td>17</td>
             <td ><code>column_break_13</code></td>
             <td class="info">
                 Column Break</td>
@@ -392,7 +405,7 @@ Sunday</pre>
         </tr>
         
         <tr >
-            <td>17</td>
+            <td>18</td>
             <td class="danger" title="Mandatory"><code>frequency</code></td>
             <td >
                 Select</td>
@@ -408,7 +421,7 @@ Monthly</pre>
         </tr>
         
         <tr >
-            <td>18</td>
+            <td>19</td>
             <td class="danger" title="Mandatory"><code>format</code></td>
             <td >
                 Select</td>
@@ -417,14 +430,14 @@ Monthly</pre>
                 
             </td>
             <td>
-                <pre>XLS
-HTML
+                <pre>HTML
+XLS
 CSV</pre>
             </td>
         </tr>
         
         <tr class="info">
-            <td>19</td>
+            <td>20</td>
             <td ><code>section_break_15</code></td>
             <td >
                 Section Break</td>
@@ -436,7 +449,7 @@ CSV</pre>
         </tr>
         
         <tr >
-            <td>20</td>
+            <td>21</td>
             <td ><code>description</code></td>
             <td >
                 Text Editor</td>
