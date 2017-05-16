@@ -102,7 +102,7 @@
 		<div class=" page-content col-sm-12 ">
 			<div class="page-content-wrapper">
 				<div class="row page-head">
-					<div class='col-sm-12'>
+					<div class='col-sm-12 hidden-xs'>
 						
 						<div class="page-breadcrumbs">
 							
@@ -170,23 +170,7 @@
         <a name="frappe.model.naming.append_number_if_name_exists" href="#frappe.model.naming.append_number_if_name_exists" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		frappe.model.naming.<b>append_number_if_name_exists</b>
-        <i class="text-muted">(doctype, name)</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
-
-	
-
-	
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="frappe.model.naming.de_duplicate" href="#frappe.model.naming.de_duplicate" class="text-muted small">
-            <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.model.naming.<b>de_duplicate</b>
-        <i class="text-muted">(doctype, name)</i>
+        <i class="text-muted">(doctype, name, fieldname=name, separator=-)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
@@ -252,6 +236,22 @@
 <pre><code>     * DE/./.YY./.MM./.##### will create a series like
        DE/09/01/0001 where 09 is the year, 01 is the month and 0001 is the series
 </code></pre>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.model.naming.parse_naming_series" href="#frappe.model.naming.parse_naming_series" class="text-muted small">
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
+		frappe.model.naming.<b>parse_naming_series</b>
+        <i class="text-muted">(parts, doctype=, doc=)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
 	<br>
 
