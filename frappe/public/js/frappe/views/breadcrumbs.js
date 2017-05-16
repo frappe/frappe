@@ -80,7 +80,11 @@ frappe.breadcrumbs = {
 			} else {
 				var route;
 				if(frappe.boot.treeviews.indexOf(breadcrumbs.doctype) !== -1) {
-					route = 'Tree/' + breadcrumbs.doctype;
+					var view = 'Tree';
+					if(frappe.model.user_settings[breadcrumbs.doctype].last_view) {
+						view = frappe.model.user_settings[breadcrumbs.doctype].last_view;
+					}
+					route = view + '/' + breadcrumbs.doctype;
 				} else {
 					route = 'List/' + breadcrumbs.doctype;
 				}
