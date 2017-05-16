@@ -24,6 +24,7 @@ install:
   - cp -r $TRAVIS_BUILD_DIR/test_sites/test_site ~/frappe-bench/sites/
 
 script:
+  - set -e
   - bench --verbose run-tests
   - bench reinstall --yes
   - testcafe chrome apps/frappe/frappe/tests/testcafe/

@@ -330,7 +330,8 @@ def get_all_perms(role):
 	'''Returns valid permissions for a given role'''
 	perms = frappe.get_all('DocPerm', fields='*', filters=dict(role=role))
 	custom_perms = frappe.get_all('Custom DocPerm', fields='*', filters=dict(role=role))
-	doctypes_with_custom_perms = list(set(p.parent for p in custom_perms))
+	doctypes_with_custom_perms = frappe.db.sql_list("""select distinct parent 
+		from `tabCustom DocPerm`""")
 
 	for p in perms:
 		if p.parent not in doctypes_with_custom_perms:

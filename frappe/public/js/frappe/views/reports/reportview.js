@@ -227,7 +227,7 @@ frappe.views.ReportView = frappe.ui.BaseList.extend({
 
 	set_route_filters: function(first_load) {
 		var me = this;
-		if(frappe.route_options && !this.user_settings.filters) {
+		if(frappe.route_options) {
 			this.set_filters_from_route_options();
 			return true;
 		} else if(this.user_settings
@@ -548,9 +548,12 @@ frappe.views.ReportView = frappe.ui.BaseList.extend({
 							$.each(frappe.model.get_all_docs(doc), function(i, d) {
 								// find the document of the current updated record
 								// from locals (which is synced in the response)
-								if(item[d.doctype + ":name"]===d.name) {
-									for(k in d) {
-										v = d[k];
+								var name = item[d.doctype + ":name"];
+								if(!name) name = item.name;
+
+								if(name===d.name) {
+									for(var k in d) {
+										var v = d[k];
 										if(frappe.model.std_fields_list.indexOf(k)===-1
 											&& item[k]!==undefined) {
 											new_item[k] = v;
