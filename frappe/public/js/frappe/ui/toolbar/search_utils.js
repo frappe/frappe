@@ -567,9 +567,4 @@ frappe.search.utils = {
         }
 
     },
-
-    unscrub_and_titlecase: function(str) {
-        return __(str || '').replace(/-|_/g, " ").replace(/\w*/g,
-            function(keywords){return keywords.charAt(0).toUpperCase() + keywords.substr(1).toLowerCase();});
-    },
 }
