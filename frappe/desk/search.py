@@ -101,8 +101,12 @@ def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 				as_list=not as_dict)
 
 			# remove _relevance from results
-			frappe.response["fields"] = fields
-			frappe.response["values"] = [r[:-1] for r in values]
+			if as_dict:
+				for r in values:
+					r.pop("_relevance")
+				frappe.response["values"] = values
+			else:
+				frappe.response["values"] = [r[:-1] for r in values]
 
 def get_std_fields_list(meta, key):
 	# get additional search fields

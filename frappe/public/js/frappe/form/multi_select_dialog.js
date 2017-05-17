@@ -169,7 +169,9 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 			txt: '',
 			filters: filters,
 			filter_fields: Object.keys(me.setters).concat([me.date_field]),
-			page_len: null
+			page_len: null,
+			query: this.get_query().query,
+			as_dict: 1
 		}
 		frappe.call({
 			type: "GET",
@@ -177,22 +179,16 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 			no_spinner: true,
 			args: args,
 			callback: function(r) {
-				if(r.values) {
-					let results = [];
-					r.values.forEach(function(value_list) {
-						let result = {};
-						value_list.forEach(function(value, index){
-							if(r.fields[index] === me.date_field) {
-								result["Date"] = value;
-							} else {
-								result[r.fields[index]] = value;
-							}
-						});
+				let results = [];
+				if(r.values.length) {
+					r.values.forEach(function(result) {
+						if(me.date_field in result) {
+							result["Date"] = result[me.date_field]
+						}
 						result.checked = 0;
 						result.parsed_date = Date.parse(result["Date"]);
 						results.push(result);
 					});
-
 					results.map( (result) => {
 						result["Date"] = frappe.format(result["Date"], {"fieldtype":"Date"});
 					})
@@ -203,9 +199,8 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 
 					// Preselect oldest entry
 					results[0].checked = 1
-
-					me.render_result_list(results);
 				}
+				me.render_result_list(results);
 			}
 		});
 	},
