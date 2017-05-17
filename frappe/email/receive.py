@@ -197,13 +197,13 @@ class EmailServer:
 
 		if not uid_validity or uid_validity != current_uid_validity:
 			# uidvalidity changed & all email uids are reindexed by server
-			frappe.db.sql("""update `tabCommunication` set uid=-1 where communication_medium='Email'
-				and email_account='{email_account}'""".format(email_account=self.settings.email_account))
-			frappe.db.sql("""update `tabEmail Account` set uidvalidity='{uidvalidity}', uidnext={uidnext} where
-				name='{email_account}'""".format(
-				uidvalidity=current_uid_validity,
-				uidnext=uidnext,
-				email_account=self.settings.email_account)
+			frappe.db.sql(
+				"""update `tabCommunication` set uid=-1 where communication_medium='Email'
+				and email_account='%s'""", (self.settings.email_account,)
+			)
+			frappe.db.sql(
+				"""update `tabEmail Account` set uidvalidity='%s', uidnext=%s where
+				name='%s'""", (current_uid_validity, uidnext, self.settings.email_account)
 			)
 
 			# uid validity not found pulling emails for first time
