@@ -64,4 +64,13 @@ def get_data():
 			"system_manager": 1,
 			"hidden": 1
 		},
+		{
+			"module_name": "Address Book",
+			"label": "Address Book",
+			"color": "#ffa00a",
+			"icon": "octicon octicon-person",
+			"type": "page",
+			"link": "address-book",
+			"_label": _("Address Book")
+		}
 	]

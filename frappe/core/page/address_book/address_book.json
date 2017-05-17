@@ -1,0 +1,23 @@
+{
+ "content": null, 
+ "creation": "2017-03-04 23:29:09.413394", 
+ "docstatus": 0, 
+ "doctype": "Page", 
+ "icon": "mention", 
+ "idx": 0, 
+ "modified": "2017-03-05 00:25:56.250046", 
+ "modified_by": "Administrator", 
+ "module": "Core", 
+ "name": "address-book", 
+ "owner": "Administrator", 
+ "page_name": "Address Book", 
+ "roles": [
+  {
+   "role": "System Manager"
+  }
+ ], 
+ "script": null, 
+ "standard": "Yes", 
+ "style": null, 
+ "title": "Address Book"
+}
