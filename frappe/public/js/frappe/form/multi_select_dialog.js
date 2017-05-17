@@ -168,7 +168,8 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 			doctype: me.doctype,
 			txt: '',
 			filters: filters,
-			filter_fields: Object.keys(me.setters).concat([me.date_field])
+			filter_fields: Object.keys(me.setters).concat([me.date_field]),
+			page_len: null
 		}
 		frappe.call({
 			type: "GET",
