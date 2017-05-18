@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.utils import cstr, encode
-from cryptography.fernet import Fernet
+from cryptography.fernet import Fernet, InvalidToken 
 
 def get_decrypted_password(doctype, name, fieldname='password', raise_exception=True):
 	auth = frappe.db.sql('''select `password` from `__Auth`
@@ -97,9 +97,13 @@ def encrypt(pwd):
 	return cipher_text
 
 def decrypt(pwd):
-	cipher_suite = Fernet(encode(get_encryption_key()))
-	plain_text = cstr(cipher_suite.decrypt(encode(pwd)))
-	return plain_text
+	try:
+		cipher_suite = Fernet(encode(get_encryption_key()))
+		plain_text = cstr(cipher_suite.decrypt(encode(pwd)))
+		return plain_text
+	except InvalidToken:
+		# encryption_key in site_config is changed and not valid
+		frappe.throw(_('Encryption key is invalid, Please check site_config.json'))
 
 def get_encryption_key():
 	from frappe.installer import update_site_config

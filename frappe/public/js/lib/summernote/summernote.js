@@ -3833,6 +3833,13 @@
         context.triggerEvent('focusout', event);
       });
 
+      // hack
+      $editable.on('blur', function (event) {
+        setTimeout(function() {
+          $('.note-popover, .note-control-selection').hide();
+        }, 500);
+      });
+
       if (!options.airMode) {
         if (options.width) {
           $editor.outerWidth(options.width);

@@ -8,6 +8,7 @@ from frappe.utils import encode, cstr, cint, flt, comma_or
 import openpyxl
 from cStringIO import StringIO
 from openpyxl.styles import Font
+from openpyxl import load_workbook
 
 
 # return xlsx file object
@@ -22,7 +23,7 @@ def make_xlsx(data, sheet_name):
 	for row in data:
 		clean_row = []
 		for item in row:
-			if isinstance(item, basestring):
+			if isinstance(item, basestring) and sheet_name != "Data Import Template":
 				value = handle_html(item)
 			else:
 				value = item
@@ -36,7 +37,12 @@ def make_xlsx(data, sheet_name):
 
 
 def handle_html(data):
-	# import html2text
+	# return if no html tags found
+	if '<' not in data:
+		return data
+	if '>' not in data:
+		return data
+
 	from html2text import unescape, HTML2Text
 
 	h = HTML2Text()
@@ -53,3 +59,24 @@ def handle_html(data):
 		return value[0]
 	else:
 		return value[1]
+
+
+def read_xlsx_file_from_attached_file(file_id=None, fcontent=None):
+	if file_id:
+		from frappe.utils.file_manager import get_file_path
+		filename = get_file_path(file_id)
+	elif fcontent:
+		from io import BytesIO
+		filename = BytesIO(fcontent)
+	else:
+		return
+
+	rows = []
+	wb1 = load_workbook(filename=filename, read_only=True)
+	ws1 = wb1.active
+	for row in ws1.iter_rows():
+		tmp_list = []
+		for cell in row:
+			tmp_list.append(cell.value)
+		rows.append(tmp_list)
+	return rows

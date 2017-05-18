@@ -112,6 +112,7 @@ frappe.ui.form.Timeline = Class.extend({
 		}
 		this.wrapper.toggle(true);
 		this.list.empty();
+		this.input.val('');
 
 		var communications = this.get_communications(true);
 
