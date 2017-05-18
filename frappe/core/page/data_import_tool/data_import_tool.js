@@ -99,7 +99,9 @@ frappe.DataImportTool = Class.extend({
 			parent_doctype: doctype,
 			select_columns: JSON.stringify(columns),
 			with_data: with_data ? 'Yes' : 'No',
-			all_doctypes: 'Yes'
+			all_doctypes: 'Yes',
+			from_data_import: 'Yes',
+			excel_format: this.page.main.find(".excel-check").is(":checked") ? 'Yes' : 'No'
 		}
 	},
 	make_upload: function() {
@@ -113,7 +115,8 @@ frappe.DataImportTool = Class.extend({
 					ignore_encoding_errors: me.page.main.find('[name="ignore_encoding_errors"]').prop("checked"),
 					overwrite: !me.page.main.find('[name="always_insert"]').prop("checked"),
 					update_only: me.page.main.find('[name="update_only"]').prop("checked"),
-					no_email: me.page.main.find('[name="no_email"]').prop("checked")
+					no_email: me.page.main.find('[name="no_email"]').prop("checked"),
+					from_data_import: 'Yes'
 				}
 			},
 			args: {

@@ -182,13 +182,16 @@ def insert_values_for_multiple_docs(all_contents):
 		values.append("( '{doctype}', '{name}', '{content}', '{published}', '{title}', '{route}')"
 			.format(**content))
 
-	# ignoring duplicate keys for doctype_name
-	frappe.db.sql('''
-		insert ignore into __global_search
-			(doctype, name, content, published, title, route)
-		values
-			{0}
-		'''.format(", ".join(values)))
+	batch_size = 50000
+	for i in range(0, len(values), batch_size):
+		batch_values = values[i:i + batch_size]
+		# ignoring duplicate keys for doctype_name
+		frappe.db.sql('''
+			insert ignore into __global_search
+				(doctype, name, content, published, title, route)
+			values
+				{0}
+			'''.format(", ".join(batch_values)))
 
 
 def update_global_search(doc):
