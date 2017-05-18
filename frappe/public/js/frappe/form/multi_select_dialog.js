@@ -18,7 +18,7 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 	make: function() {
 		let me = this;
 
-		this.pagination = 20;
+		this.page_len = 20;
 
 		let fields = [
 			{
@@ -42,13 +42,12 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 				options: me.target.fields_dict[setter].df.options,
 				default: me.setters[setter]
 			});
-			if (count++ < Object.keys(me.setters).length - 1) {
+			if (count++ < Object.keys(me.setters).length) {
 				fields.push({fieldtype: "Column Break"});
 			}
 		});
 
 		fields = fields.concat([
-			{ fieldtype: "Section Break" },
 			{
 				"fieldname":"date_range",
 				"label": __("Date Range"),
@@ -148,17 +147,17 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 		columns.forEach(function(column) {
 			contents += `<div class="list-item__content ellipsis">
 				${
-					head ? __(frappe.model.unscrub(column))
+					head ? `<span class="ellipsis">${__(frappe.model.unscrub(column))}</span>`
 
-					: (column !== "name" ? __(result[column])
-						: `<a href="${"#Form/"+ me.doctype + "/" + result[column]}" class="list-id">
+					: (column !== "name" ? `<span class="ellipsis">${__(result[column])}</span>`
+						: `<a href="${"#Form/"+ me.doctype + "/" + result[column]}" class="list-id ellipsis">
 							${__(result[column])}</a>`)
 				}
 			</div>`;
 		})
 
 		let $row = $(`<div class="list-item">
-			<div class="list-item__content ellipsis" style="flex: 0 0 10px;">
+			<div class="list-item__content" style="flex: 0 0 10px;">
 				<input type="checkbox" class="list-row-check" ${result.checked ? 'checked' : ''}>
 			</div>
 			${contents}
@@ -184,7 +183,7 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 			me.$results.append(me.make_list_row(result));
 		})
 		if (more) {
-			let message = `Only ${this.pagination} entries shown. Please filter for more specific results.`;
+			let message = __("Only {0} entries shown. Please filter for more specific results.", [this.page_len]);
 			me.$results.append($(`<div class="text-muted small" style="text-align: center;
 				margin: 10px;">${message}</div>`));
 		}
@@ -209,7 +208,7 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 			txt: me.dialog.fields_dict["search_term"].get_value(),
 			filters: filters,
 			filter_fields: Object.keys(me.setters).concat([me.date_field]),
-			page_len: this.pagination + 1,
+			page_len: this.page_len + 1,
 			query: this.get_query().query,
 			as_dict: 1
 		}
@@ -221,7 +220,7 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 			callback: function(r) {
 				let results = [], more = 0;
 				if(r.values.length) {
-					if(r.values.length > me.pagination){
+					if(r.values.length > me.page_len){
 						r.values.pop();
 						more = 1;
 					}
