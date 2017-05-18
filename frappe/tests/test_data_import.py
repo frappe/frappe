@@ -85,3 +85,14 @@ class TestDataImport(unittest.TestCase):
 		importer.upload(content)
 
 		ev = frappe.get_doc("Event", {"subject":"__Test Event with children"})
+
+	def test_excel_import(self):
+		if frappe.db.exists("Event", "EV00001"):
+			frappe.delete_doc("Event", "EV00001")
+
+		exporter.get_template("Event", all_doctypes="No", with_data="No", from_data_import="Yes", excel_format="Yes")
+		from frappe.utils.xlsxutils import read_xlsx_file_from_attached_file
+		content = read_xlsx_file_from_attached_file(fcontent=frappe.response.filecontent)
+		content.append(["", "EV00001", "_test", "Private", "05-11-2017 13:51:48", "0", "0", "", "1", "blue"])
+		importer.upload(content)
+		self.assertTrue(frappe.db.get_value("Event", "EV00001", "subject"), "_test")

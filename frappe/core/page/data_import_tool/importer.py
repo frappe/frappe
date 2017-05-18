@@ -5,7 +5,7 @@ from __future__ import unicode_literals, print_function
 
 from six.moves import range
 import requests
-import frappe, json
+import frappe, json, os
 import frappe.permissions
 import frappe.async
 
@@ -20,7 +20,7 @@ from frappe.core.page.data_import_tool.data_import_tool import get_data_keys
 
 @frappe.whitelist()
 def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, no_email=True, overwrite=None,
-	update_only = None, ignore_links=False, pre_process=None, via_console=False):
+	update_only = None, ignore_links=False, pre_process=None, via_console=False, from_data_import="No"):
 	"""upload data"""
 
 	frappe.flags.in_import = True
@@ -37,10 +37,10 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 		no_email = False
 	if params.get('update_only'):
 		update_only = True
+	if params.get('from_data_import'):
+		from_data_import = params.get('from_data_import')
 
 	frappe.flags.mute_emails = no_email
-
-	from frappe.utils.csvutils import read_csv_content_from_uploaded_file
 
 	def get_data_keys_definition():
 		return get_data_keys()
@@ -207,7 +207,23 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 
 	# header
 	if not rows:
-		rows = read_csv_content_from_uploaded_file(ignore_encoding_errors)
+		from frappe.utils.file_manager import save_uploaded
+		file_doc = save_uploaded(dt=None, dn="Data Import", folder='Home', is_private=1)
+		filename, file_extension = os.path.splitext(file_doc.file_name)
+
+		if file_extension == '.xlsx' and from_data_import == 'Yes':
+			from frappe.utils.xlsxutils import read_xlsx_file_from_attached_file
+			rows = read_xlsx_file_from_attached_file(file_id=file_doc.name)
+
+		elif file_extension == '.csv':
+			from frappe.utils.file_manager import get_file
+			from frappe.utils.csvutils import read_csv_content
+			fname, fcontent = get_file(file_doc.names)
+			rows = read_csv_content(fcontent, ignore_encoding_errors)
+
+		else:
+			frappe.throw(_("Unsupported File Format"))
+
 	start_row = get_start_row()
 	header = rows[:start_row]
 	data = rows[start_row:]

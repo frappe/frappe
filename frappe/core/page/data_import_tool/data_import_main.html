@@ -46,11 +46,21 @@
                 <h6 class="text-muted">{%= __("Recommended bulk editing records via import, or understanding the import format.") %}</h6>
             </div>
         </div>
+        <div class="row">
+            <div class="col-sm-4">
+                <div class="checkbox" style="margin: 5px 0px;">
+                    <label>
+                        <input type="checkbox" class="excel-check" data-fieldname="excel_check" checked>
+                            <small>{%= __("Download in Excel File Format") %}</small>
+                    </label>
+                </div>
+            </div>
+        </div>
     </div>
     <div>
         <hr style="margin-top: 50px;">
         <h3>{%= __("Import") %}</h3>
-        <p class="text-muted">{%= __("Update the template and save in CSV (Comma Separate Values) format before attaching.") %}</p>
+        <p class="text-muted">{%= __("Update the template and save in downloaded format before attaching.") %}</p>
         <div class="row">
             <div class="col-md-6">
 				<br>
