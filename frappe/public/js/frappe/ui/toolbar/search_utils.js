@@ -129,8 +129,8 @@ frappe.search.utils = {
 		var option = function(type, route, order) {
 			return {
 				type: type,
-                label: __("{0}" + " " + type, [me.bolden_match_part(__(target), keywords)]),
-				value: __(__(target) + " " + type),
+				label: me.bolden_match_part(__(target), keywords) + " " + __(type),
+				value: __(target) + " " + __(type),
 				index: level + order,
 				match: target,
 				route: route,
