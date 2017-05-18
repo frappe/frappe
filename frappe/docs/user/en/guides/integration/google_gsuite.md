@@ -3,23 +3,26 @@
 You can create and attach Google GSuite Docs to your Documents using your predefined GSuite Templates.
 These Templates could use variables from Doctype that will be automatically filled.
 
-## Enable integration with Google Gsuite
+## 1. Enable integration with Google Gsuite
 
-### Publish Google apps script
+### 1.1 Publish Google apps script
 
+*If you will use the default script you can pass to 1.2*
 
 1. Go to [https://script.google.com](https://script.google.com)
 1. Create a new Project. Click on **File > New > Project**
-1. With your text editor open the file ***<bench dir>/apps/frappe/integrations/doctype/gsuite_settings/gsuite_settings.gs***, select all text and copy to clipboard
+1. With your text editor open the file ***apps/frappe/integrations/doctype/gsuite_settings/gsuite_settings.gs***, select all text and copy to clipboard
 1. Paste to Code.gs in script.google.com
 1. Save the Project. Click on **File > Save > Enter new project name**
 1. Deploy the app. Click on **Publish > Deploy as web app**
 1. Copy "Current web app URL" into **Desk > Explore > Integrations > GSuite Settings > Script URL**
 1. Click on OK but don't close the script
 
-### Get Google access
+### 1.2
 
-1. Go to your project console. **Resources > Cloud Platform project.. > View API console**
+### 1.2 Get Google access
+
+1. Go to your Google project console and select your project or create a new. [https://console.developers.google.com](https://console.developers.google.com)
 1. In Library click on **Google Drive API** and **Enable**
 1. Click on **Credentials > Create Credentials > OAuth Client ID**
 1. Fill the form with:
@@ -28,14 +31,14 @@ These Templates could use variables from Doctype that will be automatically fill
 1. Copy the Client ID and Client Secret into **Desk > Explore > Integrations > GSuite Settings > Client ID and Client Secret**
 1. Save GSuite Settings
 
-### Test Script
+### 1.3 Test Script
 
 1. Click on **Allow GSuite Access** and you will be redirected to select the user and give access. If you have any error please verify you are using the correct Authorized redirect URI.
 1. Click on **Run Script test**. You should be asked to give permission.
 
-## GSuite Templates
+## 2. GSuite Templates
 
-### Google Document as Template
+### 2.1 Google Document as Template
 
 1. Create a new Document or use one you already have. Set variables as you need. Variables are defined with ***{{VARIABLE}}*** with ***VARIABLE*** is the field of your Doctype
 
@@ -52,7 +55,7 @@ These Templates could use variables from Doctype that will be automatically fill
 	For example: in this folder url the ID is in bold
 	https://drive.google.com/drive/u/0/folders/**0BxmFzZZUHbgyQzVJNzY5eG5jbmc**
 
-### Associate the Template to a Doctype
+### 2.2 Associate the Template to a Doctype
 
 1. Go to **Desk > Explore > Integrations > GSuite Templates > New**
 1. Fill the form with:
@@ -62,7 +65,7 @@ These Templates could use variables from Doctype that will be automatically fill
 	- Document name is the name of the new files. You can use field from DocType (Example: Employee Contract of {name})
 	- Destination ID is the folder ID of your files created from this Template. (Example: 0BxmFzZZUHbgyQzVJNzY5eG5jbmc)
 
-## Create Documents
+## 3. Create Documents
 
 1. Go to a Document you already have a Template (Example: Employee > John Doe)
 2. Click on **Attach File**
