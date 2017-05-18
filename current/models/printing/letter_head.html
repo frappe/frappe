@@ -4,7 +4,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>frappe.print</title>
+	<title>Letter Head</title>
 	<meta name="generator" content="frappe">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
@@ -22,7 +22,7 @@
     
 
 		</head>
-<body data-path="current/api/print/frappe.print">
+<body data-path="current/models/printing/letter_head">
 	<div class="main-section">
 		<div>
 					<nav class="navbar navbar-default navbar-main" role="navigation">
@@ -95,14 +95,14 @@
                 <div data-html-block="hero"></div>
                 <div class="container" data-html-block="content">
                 
-<div class="page-container" id="page-current/api/print/frappe.print" data-path="{{ pathname }}"
+<div class="page-container" id="page-current/models/printing/letter_head" data-path="{{ pathname }}"
 	>
 	<div class="row ">
 		
 		<div class=" page-content col-sm-12 ">
 			<div class="page-content-wrapper">
 				<div class="row page-head">
-					<div class='col-sm-12'>
+					<div class='col-sm-12 hidden-xs'>
 						
 						<div class="page-breadcrumbs">
 							
@@ -110,8 +110,8 @@
 <ul class="breadcrumb">
 	<li>
 		<span class="fa fa-angle-left"></span>
-		<a href="https://frappe.github.io/frappe//current/api/print">
-		print</a>
+		<a href="https://frappe.github.io/frappe//current/models/printing">
+		Module printing</a>
 	</li>
 	
 </ul>
@@ -121,7 +121,7 @@
 						
 					</div>
 					<div class="col-sm-8 col-xs-6">
-						<h1>frappe.print</h1>
+						<h1>Letter Head</h1>
 					</div>
 					<div class="col-sm-4 col-xs-6">
 						
@@ -131,13 +131,19 @@
 				</div>
 			</div>
 			<div class="page_content">
-<!-- title: frappe.print --><div class="dev-header">
+<!-- title: Letter Head -->
+
+
+
+
+
+<div class="dev-header">
 
 <a class="btn btn-default btn-sm" disabled style="margin-bottom: 10px;">
 	Version 7.x.x</a>
 
 
-	<a class="btn btn-default btn-sm" href="https://github.com/frappe/frappe/blob/develop/frappe/print/__init__.py"
+	<a class="btn btn-default btn-sm" href="https://github.com/frappe/frappe/tree/develop/frappe/printing/doctype/letter_head"
 		target="_blank" style="margin-left: 10px; margin-bottom: 10px;"><i class="octicon octicon-mark-github"></i> Source</a>
 
 </div>
@@ -146,9 +152,216 @@
 
 
 
+    <p><b>Table Name:</b> <code>tabLetter Head</code></p>
+
+
+
+
+<h3>Fields</h3>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th style="width: 5%">Sr</th>
+            <th style="width: 25%">Fieldname</th>
+            <th style="width: 20%">Type</th>
+            <th style="width: 25%">Label</th>
+            <th style="width: 25%">Options</th>
+        </tr>
+    </thead>
+    <tbody>
+        
+        <tr >
+            <td>1</td>
+            <td class="danger" title="Mandatory"><code>letter_head_name</code></td>
+            <td >
+                Data</td>
+            <td >
+                Letter Head Name
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>2</td>
+            <td ><code>disabled</code></td>
+            <td >
+                Check</td>
+            <td >
+                Disabled
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>3</td>
+            <td ><code>is_default</code></td>
+            <td >
+                Check</td>
+            <td >
+                Is Default
+                <p class="text-muted small">
+                    Check this to make this the default letter head in all prints</p>
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>4</td>
+            <td ><code>content</code></td>
+            <td >
+                Text Editor</td>
+            <td >
+                Content
+                <p class="text-muted small">
+                    Letter Head in HTML</p>
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>5</td>
+            <td ><code>footer</code></td>
+            <td >
+                Text Editor</td>
+            <td >
+                Footer
+                
+            </td>
+            <td></td>
+        </tr>
+        
+    </tbody>
+</table>
+
+
+    <hr>
+    <h3>Controller</h3>
+    <h4>frappe.printing.doctype.letter_head.letter_head</h4>
+
+    
+
+
+
+	
+        
+	<h3 style="font-weight: normal;">Class <b>LetterHead</b></h3>
+    
+    <p style="padding-left: 30px;"><i>Inherits from frappe.model.document.Document</i></h4>
+    
+    <div class="docs-attr-desc"><p></p>
+</div>
+    <div style="padding-left: 30px;">
+        
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="on_update" href="#on_update" class="text-muted small">
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
+		<b>on_update</b>
+        <i class="text-muted">(self)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="set_as_default" href="#set_as_default" class="text-muted small">
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
+		<b>set_as_default</b>
+        <i class="text-muted">(self)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+        
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="validate" href="#validate" class="text-muted small">
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
+		<b>validate</b>
+        <i class="text-muted">(self)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+        
+    </div>
+    <hr>
+
+	
+
+
+    
+    
+        <h4>Linked In:</h4>
+        <ul>
+        
+			
+        
+			
+        
+			
+        
+			
+        
+			
+        
+			
+        
+			
+        
+			
+        
+			
+        
+			
+        
+			
+        
+			
+        
+			
+            <li>
+
+
+<a href="https://frappe.github.io/frappe/current/models/core/report">Report</a>
+
+</li>
+			
+        
+			
+        
+			
+        
+			
+        
+			
+        
+			
+        
+			
+        
+			
+        
+        </ul>
+    
 
 
 <!-- autodoc -->
+<!-- jinja -->
+<!-- static -->
 </div>
 		</div>
 	</div>
