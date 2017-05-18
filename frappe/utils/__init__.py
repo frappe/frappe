@@ -61,8 +61,8 @@ def get_formatted_email(user):
 
 def extract_email_id(email):
 	"""fetch only the email part of the Email Address"""
-	full_name, email_id = parse_email(email)
-	if isinstance(email_id, basestring) and not isinstance(email_id, unicode):
+	full_name, email_id = parse_addr(email)
+	if email_id and isinstance(email_id, basestring) and not isinstance(email_id, unicode):
 		email_id = email_id.decode("utf-8", "ignore")
 	return email_id
 
@@ -86,16 +86,17 @@ def validate_email_add(email_str, throw=False):
 
 		else:
 			e = extract_email_id(e)
-			match = re.match("[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?", e.lower())
+			match = re.match("[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?", e.lower()) if e else None
 
-			if not match:
-				_valid = False
-			else:
+			if match:
 				matched = match.group(0)
 				if match:
 					match = matched==e.lower()
+			else:
+				_valid = False
+
 		if not _valid:
-			if throw:
+			if throw is True:
 				frappe.throw(frappe._("{0} is not a valid Email Address").format(e),
 					frappe.InvalidEmailAddressError)
 			return None
@@ -451,31 +452,41 @@ def sanitize_email(emails):
 		if not validate_email_add(e):
 			continue
 
-		full_name, email_id = parse_email(e)
+		full_name, email_id = parse_addr(e)
 		sanitized.append(formataddr((full_name, email_id)))
 
 	return ", ".join(sanitized)
 
-def parse_email(email_string):
-	"""Return email_id and user_name based on email string"""
+def parse_addr(email_string):
+	"""
+	Return email_id and user_name based on email string
+	Raise error if email string is not valid
+	"""
 	name, email = parseaddr(email_string)
-	if validate_email_id(email):
+	if check_format(email):
 		return (name, email)
 	else:
 		email_regex = re.compile(r"([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)")
 		email_list = re.findall(email_regex, email_string)
-		if len(email_list) > 0 and validate_email_id(email_list[0]):
+		if len(email_list) > 0 and check_format(email_list[0]):
 			#take only first email address
 			return (name, email_list[0])
-	frappe.throw(frappe._("{0} is not a valid Email Address").format(email_string),
-		frappe.InvalidEmailAddressError)
+	return (None, email)
 
-def validate_email_id(email_id):
-	"""Check if email_id is valid. ex:text@example.com"""
-	if ("@" in email_id) and (".com" in email_id) and (email_id.index("@") + 1 < email_id.index(".com")):
-		return True
-	return False
-
+def check_format(email_id):
+	"""
+	Check if email_id is valid. valid email:text@example.com
+	String check ensures that email_id contains both '.' and 
+	'@' and index of '@' is less than '.' 
+	"""
+	is_valid = False 
+	try:
+		pos = email_id.rindex("@")
+		is_valid = pos > 0 and (email_id.rindex(".") > pos) and (len(email_id) - pos > 4)
+	except Exception, e:
+		#print(e)
+		pass
+	return is_valid
 
 def get_installed_apps_info():
 	out = []

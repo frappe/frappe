@@ -14,7 +14,7 @@ from frappe.utils.scheduler import log
 from frappe.email.queue import send
 from frappe.email.doctype.email_group.email_group import add_subscribers
 from frappe.utils.file_manager import get_file
-from frappe.utils import parse_email
+from frappe.utils import parse_addr
 
 
 class Newsletter(Document):
@@ -137,7 +137,7 @@ def return_unsubscribed_page(email, name):
 def create_lead(email_id):
 	"""create a lead if it does not exist"""
 	from frappe.model.naming import get_default_naming_series
-	full_name, email_id = parse_email(email_id)
+	full_name, email_id = parse_addr(email_id)
 	if frappe.db.get_value("Lead", {"email_id": email_id}):
 		return
 
