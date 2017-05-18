@@ -26,7 +26,7 @@ frappe.views.ReportViewPage = Class.extend({
 
 				frappe.model.with_doc('Report', me.docname, function(r) {
 					me.parent.reportview.set_columns_and_filters(
-						JSON.parse(frappe.get_doc("Report", me.docname).json));
+						JSON.parse(frappe.get_doc("Report", me.docname).json || '{}'));
 					me.parent.reportview.set_route_filters();
 					me.parent.reportview.run();
 				});
