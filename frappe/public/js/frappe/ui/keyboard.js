@@ -18,12 +18,9 @@ frappe.ui.keys.setup = function() {
 }
 
 frappe.ui.keys.get_key = function(e) {
-	var key = e.key;
-	//safari doesn't have key property
-	if(!key) {
-		var keycode = e.keyCode || e.which;
-		key = frappe.ui.keys.key_map[keycode] || String.fromCharCode(keycode);
-	}
+	var keycode = e.keyCode || e.which;
+	var key = frappe.ui.keys.key_map[keycode] || String.fromCharCode(keycode);
+
 	if(key.substr(0, 5) === 'Arrow') {
 		// ArrowDown -> down
 		key = key.substr(5).toLowerCase();
