@@ -37,6 +37,12 @@ def make_xlsx(data, sheet_name):
 
 
 def handle_html(data):
+	# return if no html tags found
+	if '<' not in data:
+		return data
+	if '>' not in data:
+		return data
+
 	from html2text import unescape, HTML2Text
 
 	h = HTML2Text()
