@@ -66,7 +66,7 @@ def get_page_context_from_template(path):
 			options = (search_path, search_path + '.html', search_path + '.md',
 				search_path + '/index.html', search_path + '/index.md')
 			for o in options:
-				option = unicode(o)
+				option = frappe.as_unicode(o)
 				if os.path.exists(option) and not os.path.isdir(option):
 					return get_page_info(option, app, app_path=app_path)
 
