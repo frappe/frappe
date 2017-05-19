@@ -15,10 +15,12 @@ class TestCommunication(unittest.TestCase):
 		'"Full Name with quotes and <weird@chars.com>" <weird@example.com>', 
 		'foo@bar@google.com', 'Surname, Name <name.surname@domain.com>', 
 		'Purchase@ABC <purchase@abc.com>', 'xyz@abc2.com <xyz@abc.com>',
-		'Name [something else] <name@domain.com>']
+		'Name [something else] <name@domain.com>',
+		'.com@test@yahoo.com']
 
 		invalid_email_list = ['[invalid!email]', 'invalid-email',
-		'tes2', 'e', 'rrrrrrrr', 'manas','[[[sample]]]']
+		'tes2', 'e', 'rrrrrrrr', 'manas','[[[sample]]]',
+		'[invalid!email].com']
 
 		for x in valid_email_list:
 			self.assertTrue(frappe.utils.parse_addr(x))
