@@ -18,7 +18,7 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 	make: function() {
 		let me = this;
 
-		this.page_len = 20;
+		this.page_length = 20;
 
 		let fields = [
 			{
@@ -183,7 +183,7 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 			me.$results.append(me.make_list_row(result));
 		})
 		if (more) {
-			let message = __("Only {0} entries shown. Please filter for more specific results.", [this.page_len]);
+			let message = __("Only {0} entries shown. Please filter for more specific results.", [this.page_length]);
 			me.$results.append($(`<div class="text-muted small" style="text-align: center;
 				margin: 10px;">${message}</div>`));
 		}
@@ -208,7 +208,7 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 			txt: me.dialog.fields_dict["search_term"].get_value(),
 			filters: filters,
 			filter_fields: Object.keys(me.setters).concat([me.date_field]),
-			page_len: this.page_len + 1,
+			page_length: this.page_length + 1,
 			query: this.get_query().query,
 			as_dict: 1
 		}
@@ -220,7 +220,7 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 			callback: function(r) {
 				let results = [], more = 0;
 				if(r.values.length) {
-					if(r.values.length > me.page_len){
+					if(r.values.length > me.page_length){
 						r.values.pop();
 						more = 1;
 					}
