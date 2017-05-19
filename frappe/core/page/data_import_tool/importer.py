@@ -218,7 +218,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 		elif file_extension == '.csv':
 			from frappe.utils.file_manager import get_file
 			from frappe.utils.csvutils import read_csv_content
-			fname, fcontent = get_file(file_doc.names)
+			fname, fcontent = get_file(file_doc.name)
 			rows = read_csv_content(fcontent, ignore_encoding_errors)
 
 		else:
