@@ -7,12 +7,11 @@ These Templates could use variables from Doctype that will be automatically fill
 
 ### 1.1 Publish Google apps script
 
-*If you will use the default script you can pass to 1.2*
+*If you will use the default script you can go to 1.2*
 
 1. Go to [https://script.google.com](https://script.google.com)
 1. Create a new Project. Click on **File > New > Project**
-1. With your text editor open the file ***apps/frappe/integrations/doctype/gsuite_settings/gsuite_settings.gs***, select all text and copy to clipboard
-1. Paste to Code.gs in script.google.com
+1. Copy the code of **Desk > Explore > Integrations > GSuite Settings > Google Apps Script** to clipboard and paste to an empty Code.gs in script.google.com
 1. Save the Project. Click on **File > Save > Enter new project name**
 1. Deploy the app. Click on **Publish > Deploy as web app**
 1. Copy "Current web app URL" into **Desk > Explore > Integrations > GSuite Settings > Script URL**
