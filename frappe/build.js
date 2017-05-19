@@ -31,14 +31,14 @@ if (!['--build', '--watch'].includes(action)) {
 
 if (action === '--build') {
 	const minify = process.argv[3] === '--minify' ? true : false;
-	build({ minify });
+	build(minify);
 }
 
 if (action === '--watch') {
 	watch();
 }
 
-function build({ minify=false } = {}) {
+function build(minify) {
 	for (const output_path in build_map) {
 		pack(output_path, build_map[output_path], minify);
 	}
