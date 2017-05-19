@@ -1206,7 +1206,7 @@ DocType: Workflow State,wrench,izmežģījums
 apps/frappe/frappe/desk/page/applications/applications.js +45,Not Set,Not Set
 DocType: Authentication Log,Date,Datums
 DocType: Website Settings,Disable Signup,Atslēgt Reģistrācija
-apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +127,Sit tight while your system is being setup. This may take a few moments.,Sēdēt saspringts kamēr jūsu sistēma tiek uzstādīšana. Tas var aizņemt pāris mirkļus.
+apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +127,Sit tight while your system is being setup. This may take a few moments.,"Lūdzu, uzgaidiet, kamēr jūsu sistēma tiek uzstādīta. Tas var aizņemt pāris mirkļus."
 DocType: Email Queue,Email Queue,Email rinda
 apps/frappe/frappe/core/page/desktop/desktop.py +12,Add Employees to Manage Them,Pievienot Darbinieki Pārvaldīt Them
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +7,Roles can be set for users from their User page.,Lomas var iestatīt lietotājiem no savas lietotāja lapā.
@@ -1450,7 +1450,7 @@ apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +25,Unselect
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +197,You cannot unset 'Read Only' for field {0},Jūs nevarat iestatīta &quot;Tikai lasāms&quot; uz lauka {0}
 DocType: Auto Email Report,Zero means send records updated at anytime,Nulle nozīmē nosūtīt ierakstus atjaunināts jebkurā laikā
 DocType: Auto Email Report,Zero means send records updated at anytime,Nulle nozīmē nosūtīt ierakstus atjaunināts jebkurā laikā
-apps/frappe/frappe/desk/page/setup_wizard/setup_wizard_page.html +18,Complete Setup,Complete Setup
+apps/frappe/frappe/desk/page/setup_wizard/setup_wizard_page.html +18,Complete Setup,Pabeigt Uzstādīšanu
 DocType: Workflow State,asterisk,zvaigznīte
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +61,Please do not change the template headings.,"Lūdzu, nemainiet veidni pozīcijas."
 DocType: Communication,Linked,Saistīts
@@ -2361,7 +2361,7 @@ DocType: Email Account,Add Signature,Pievienot parakstu
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +38,Left this conversation,Kreisais šo sarunu
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +479,Did not set,Nenoteica
 ,Background Jobs,fona Jobs
-DocType: ToDo,ToDo,ToDo
+DocType: ToDo,ToDo,Jadāra
 DocType: DocField,No Copy,Nē Copy
 DocType: Workflow State,qrcode,QRCode
 apps/frappe/frappe/www/login.html +29,Login with LDAP,Pieteikties ar LDAP
