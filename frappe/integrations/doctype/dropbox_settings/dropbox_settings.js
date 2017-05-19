@@ -14,7 +14,9 @@ frappe.ui.form.on('Dropbox Settings', {
 				freeze: true,
 				callback: function(r) {
 					if(!r.exc) {
-						frm.save();
+						frm.set_value('dropbox_access_key', r.message.dropbox_access_key)
+						frm.set_value('dropbox_access_secret', r.message.dropbox_access_secret)
+						frm.save()
 						window.open(r.message.url);
 					}
 				}
