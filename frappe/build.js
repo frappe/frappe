@@ -103,6 +103,8 @@ function pack(output_path, inputs, minify) {
 			output_txt += `\n/*\n *\t${file}\n */\n`
 		}
 		output_txt += file_content;
+
+		output_txt = output_txt.replace(/['"]use strict['"];/, '');
 	}
 
 	const target = p(assets_path, output_path);
