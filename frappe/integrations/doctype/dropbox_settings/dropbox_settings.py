@@ -58,8 +58,6 @@ def get_dropbox_authorize_url():
 		"dropbox_access_secret": request_token.secret
 	})
 
-	doc.save(ignore_permissions=False)
-
 	return_address = get_request_site_address(True) \
 		+ "?cmd=frappe.integrations.doctype.dropbox_settings.dropbox_settings.dropbox_callback"
 

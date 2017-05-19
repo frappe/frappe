@@ -18,7 +18,18 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 	make: function() {
 		let me = this;
 
-		let fields = [];
+		this.page_length = 20;
+
+		let fields = [
+			{
+				fieldtype: "Data",
+				label: __("Search term"),
+				fieldname: "search_term"
+			},
+			{
+				fieldtype: "Column Break"
+			}
+		];
 		let count = 0;
 		if(!this.date_field) {
 			this.date_field = "transaction_date";
@@ -31,12 +42,17 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 				options: me.target.fields_dict[setter].df.options,
 				default: me.setters[setter]
 			});
-			if (count++ < Object.keys(me.setters).length - 1) {
+			if (count++ < Object.keys(me.setters).length) {
 				fields.push({fieldtype: "Column Break"});
 			}
 		});
 
 		fields = fields.concat([
+			{
+				"fieldname":"date_range",
+				"label": __("Date Range"),
+				"fieldtype": "DateRange",
+			},
 			{ fieldtype: "Section Break" },
 			{ fieldtype: "HTML", fieldname: "results_area" },
 			{ fieldtype: "Button", fieldname: "make_new", label: __("Make a new " + me.doctype) }
@@ -91,6 +107,19 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 		this.$parent.find('.input-with-feedback').on('change', (e) => {
 			this.get_results();
 		});
+
+		this.$parent.find('[data-fieldname="date_range"]').on('blur', (e) => {
+			this.get_results();
+		});
+
+		this.$parent.find('[data-fieldname="search_term"]').on('input', (e) => {
+			var $this = $(this);
+			clearTimeout($this.data('timeout'));
+			$this.data('timeout', setTimeout(function() {
+				me.get_results();
+			}, 300));
+		});
+
 		this.$parent.on('click', '.btn[data-fieldname="make_new"]', (e) => {
 			frappe.route_options = {};
 			Object.keys(this.setters).forEach(function(setter) {
@@ -118,17 +147,17 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 		columns.forEach(function(column) {
 			contents += `<div class="list-item__content ellipsis">
 				${
-					head ? __(frappe.model.unscrub(column))
+					head ? `<span class="ellipsis">${__(frappe.model.unscrub(column))}</span>`
 
-					: (column !== "name" ? __(result[column])
-						: `<a href="${"#Form/"+ me.doctype + "/" + result[column]}" class="list-id">
+					: (column !== "name" ? `<span class="ellipsis">${__(result[column])}</span>`
+						: `<a href="${"#Form/"+ me.doctype + "/" + result[column]}" class="list-id ellipsis">
 							${__(result[column])}</a>`)
 				}
 			</div>`;
 		})
 
 		let $row = $(`<div class="list-item">
-			<div class="list-item__content ellipsis" style="flex: 0 0 10px;">
+			<div class="list-item__content" style="flex: 0 0 10px;">
 				<input type="checkbox" class="list-row-check" ${result.checked ? 'checked' : ''}>
 			</div>
 			${contents}
@@ -139,7 +168,7 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 		return $row;
 	},
 
-	render_result_list: function(results) {
+	render_result_list: function(results, more = 0) {
 		var me = this;
 		this.$results.empty();
 		if(results.length === 0) {
@@ -153,6 +182,11 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 		results.forEach((result) => {
 			me.$results.append(me.make_list_row(result));
 		})
+		if (more) {
+			let message = __("Only {0} entries shown. Please filter for more specific results.", [this.page_length]);
+			me.$results.append($(`<div class="text-muted small" style="text-align: center;
+				margin: 10px;">${message}</div>`));
+		}
 	},
 
 	get_results: function() {
@@ -164,12 +198,17 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 			me.args[setter] = filters[setter];
 		});
 
+		let date_val = this.dialog.fields_dict["date_range"].get_value();
+		if(date_val) {
+			filters[this.date_field] = ['Between', me.dialog.fields_dict["date_range"].parse(date_val)];
+		}
+
 		let args = {
 			doctype: me.doctype,
-			txt: '',
+			txt: me.dialog.fields_dict["search_term"].get_value(),
 			filters: filters,
 			filter_fields: Object.keys(me.setters).concat([me.date_field]),
-			page_len: null,
+			page_length: this.page_length + 1,
 			query: this.get_query().query,
 			as_dict: 1
 		}
@@ -179,8 +218,12 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 			no_spinner: true,
 			args: args,
 			callback: function(r) {
-				let results = [];
+				let results = [], more = 0;
 				if(r.values.length) {
+					if(r.values.length > me.page_length){
+						r.values.pop();
+						more = 1;
+					}
 					r.values.forEach(function(result) {
 						if(me.date_field in result) {
 							result["Date"] = result[me.date_field]
@@ -200,7 +243,7 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 					// Preselect oldest entry
 					results[0].checked = 1
 				}
-				me.render_result_list(results);
+				me.render_result_list(results, more);
 			}
 		});
 	},

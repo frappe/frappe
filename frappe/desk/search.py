@@ -8,15 +8,15 @@ from frappe.utils import cstr, unique
 
 # this is called by the Link Field
 @frappe.whitelist()
-def search_link(doctype, txt, query=None, filters=None, page_len=20, searchfield=None):
-	search_widget(doctype, txt, query, searchfield=searchfield, page_len=page_len, filters=filters)
+def search_link(doctype, txt, query=None, filters=None, page_length=20, searchfield=None):
+	search_widget(doctype, txt, query, searchfield=searchfield, page_length=page_length, filters=filters)
 	frappe.response['results'] = build_for_autosuggest(frappe.response["values"])
 	del frappe.response["values"]
 
 # this is called by the search box
 @frappe.whitelist()
 def search_widget(doctype, txt, query=None, searchfield=None, start=0,
-	page_len=10, filters=None, filter_fields=None, as_dict=False):
+	page_length=10, filters=None, filter_fields=None, as_dict=False):
 	if isinstance(filters, basestring):
 		import json
 		filters = json.loads(filters)
@@ -31,11 +31,11 @@ def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 	if query and query.split()[0].lower()!="select":
 		# by method
 		frappe.response["values"] = frappe.call(query, doctype, txt,
-			searchfield, start, page_len, filters, as_dict=as_dict)
+			searchfield, start, page_length, filters, as_dict=as_dict)
 	elif not query and doctype in standard_queries:
 		# from standard queries
 		search_widget(doctype, txt, standard_queries[doctype][0],
-			searchfield, start, page_len, filters)
+			searchfield, start, page_length, filters)
 	else:
 		if query:
 			frappe.throw("This query style is discontinued")
@@ -95,7 +95,7 @@ def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 			values = frappe.get_list(doctype,
 				filters=filters, fields=formatted_fields,
 				or_filters = or_filters, limit_start = start,
-				limit_page_length=page_len,
+				limit_page_length=page_length,
 				order_by=order_by,
 				ignore_permissions = True if doctype == "DocType" else False, # for dynamic links
 				as_list=not as_dict)
