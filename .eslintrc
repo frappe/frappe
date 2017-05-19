@@ -14,18 +14,17 @@
 			"unix"
 		],
 		"quotes": [
-			"off",
-			"double"
+			"off"
 		],
 		"semi": [
-			"off",
+			"warn",
 			"always"
 		],
 		"no-unused-vars": [
-			"off"
+			"warn"
 		],
 		"no-redeclare": [
-			"off"
+			"warn"
 		],
 		"no-console": [
 			"off"
@@ -62,6 +61,7 @@
 		"cur_page": true,
 		"cur_list": true,
 		"cur_tree": true,
+		"msg_dialog": true,
 		"is_null": true,
 		"in_list": true,
 		"has_common": true,
@@ -88,6 +88,10 @@
 		"get_number_format_info": true,
 		
 		"$c": true,
+		"$a": true,
+		"$i": true,
+		"$bg": true,
+		"$y": true,
 		"$c_obj": true,
 		"refresh_many": true,
 		"refresh_field": true,

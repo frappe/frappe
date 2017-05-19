@@ -1,2 +1,3 @@
 frappe/public/js/lib/*
 frappe/public/js/frappe/misc/tests/*
+frappe/public/js/frappe/class.js
