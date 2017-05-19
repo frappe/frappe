@@ -44,7 +44,7 @@ function build(minify) {
 	}
 }
 
-let socket_connection = false;
+var socket_connection = false;
 
 function watch() {
 	http.listen(file_watcher_port, function () {
