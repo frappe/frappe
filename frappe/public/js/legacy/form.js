@@ -690,7 +690,7 @@ _f.Frm.prototype.reload_doc = function() {
 	}
 }
 
-var validated;
+frappe.validated = 0;
 _f.Frm.prototype.save = function(save_action, callback, btn, on_error) {
 	btn && $(btn).prop("disabled", true);
 	$(document.activeElement).blur();
@@ -727,12 +727,12 @@ _f.Frm.prototype._save = function(save_action, callback, btn, on_error) {
 
 	if(save_action != "Update") {
 		// validate
-		validated = true;
+		frappe.validated = true;
 		$.when(this.script_manager.trigger("validate"), this.script_manager.trigger("before_save"))
 			.done(function() {
 				// done is called after all ajaxes in validate & before_save are completed :)
 
-				if(!validated) {
+				if(!frappe.validated) {
 					btn && $(btn).prop("disabled", false);
 					if(on_error) {
 						on_error();
@@ -753,9 +753,9 @@ _f.Frm.prototype.savesubmit = function(btn, callback, on_error) {
 	var me = this;
 	this.validate_form_action("Submit");
 	frappe.confirm(__("Permanently Submit {0}?", [this.docname]), function() {
-		validated = true;
+		frappe.validated = true;
 		me.script_manager.trigger("before_submit").done(function() {
-			if(!validated) {
+			if(!frappe.validated) {
 				if(on_error)
 					on_error();
 				return;
@@ -776,9 +776,9 @@ _f.Frm.prototype.savecancel = function(btn, callback, on_error) {
 	var me = this;
 	this.validate_form_action('Cancel');
 	frappe.confirm(__("Permanently Cancel {0}?", [this.docname]), function() {
-		validated = true;
+		frappe.validated = true;
 		me.script_manager.trigger("before_cancel").done(function() {
-			if(!validated) {
+			if(!frappe.validated) {
 				if(on_error)
 					on_error();
 				return;

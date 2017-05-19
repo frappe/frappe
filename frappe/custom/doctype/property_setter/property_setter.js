@@ -5,7 +5,7 @@ $.extend(cur_frm.cscript, {
 	validate: function(doc) {
 		if(doc.property_type=='Check' && !in_list(['0','1'], doc.value)) {
 			frappe.msgprint(__('Value for a check field can be either 0 or 1'));
-			validated = false;
+			frappe.validated = false;
 		}
 	}
 })
