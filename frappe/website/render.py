@@ -33,7 +33,7 @@ def render(path=None, http_status_code=None):
 		except frappe.DoesNotExistError as e:
 			doctype, name = get_doctype_from_path(path)
 			if doctype and name:
-				path = "print"
+				path = "printview"
 				frappe.local.form_dict.doctype = doctype
 				frappe.local.form_dict.name = name
 			elif doctype:
