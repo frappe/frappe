@@ -1213,7 +1213,7 @@ apps/frappe/frappe/core/page/data_import_tool/data_import_tool.js +129,"Import R
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +162,No Permissions set for this criteria.,Aucune Autorisations définies pour ce critère.
 DocType: Auto Email Report,Auto Email Report,Rapport par Email Automatique
 apps/frappe/frappe/core/page/usage_info/usage_info.html +51,Max Emails,Nombre Max d'E-mails
-apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +574,Delete comment?,Supprimer le commentaire ?
+apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +574,Delete comment?,Supprimer le commentaire ?
 DocType: Address Template,This format is used if country specific format is not found,Ce format est utilisé si un format spécifique au pays n'est pas trouvé
 apps/frappe/frappe/public/js/frappe/request.js +104,You do not have enough permissions to access this resource. Please contact your manager to get access.,Vous ne disposez pas de suffisamment d'autorisations pour accéder à cette ressource. Veuillez contacter votre responsable pour obtenir l'accès.
 DocType: Custom Field,Custom,Personnaliser
@@ -2130,7 +2130,7 @@ apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +4
 apps/frappe/frappe/www/update-password.html +14,Old Password,Ancien Mot De Passe
 apps/frappe/frappe/website/doctype/blog_post/blog_post.py +102,Posts by {0},Messages de {0}
 apps/frappe/frappe/core/doctype/report/report.js +9,"To format columns, give column labels in the query.","Pour formater des colonnes, donnez des étiquettes de colonne dans la requête."
-apps/frappe/frappe/www/login.html +67,Don't have an account? Sign up,Vous n’avez pas encore de compte ? Inscrivez-vous
+apps/frappe/frappe/www/login.html +67,Don't have an account? Sign up,Vous n’avez pas encore de compte ? Inscrivez-vous
 apps/frappe/frappe/core/doctype/doctype/doctype.py +691,{0}: Cannot set Assign Amend if not Submittable,{0} : Impossible de définir ‘Assigner Modifier’ si non Soumissible
 apps/frappe/frappe/core/page/user_permissions/user_permissions.js +14,Edit Role Permissions,Modifier les Autorisations de Rôle
 DocType: Communication,Link DocType,DocType du Lien
@@ -2525,7 +2525,7 @@ apps/frappe/frappe/email/doctype/email_alert/email_alert.py +106,"Not allowed to
 apps/frappe/frappe/www/contact.py +54,New Message from Website Contact Page,Nouveau Message depuis la Page Contact du Site Web
 DocType: Email Alert,Reference Date,Date de Référence
 apps/frappe/frappe/public/js/frappe/desk.js +17,Some of the features might not work in your browser. Please update your browser to the latest version.,Certaines des fonctionnalités peuvent ne pas fonctionner dans votre navigateur. Veuillez mettre à jour votre navigateur vers la dernière version.
-apps/frappe/frappe/utils/bot.py +185,"Don't know, ask 'help'","Vous ne savez pas, demandez de l’ ‘aide’"
+apps/frappe/frappe/utils/bot.py +185,"Don't know, ask 'help'","Vous ne savez pas, demandez de l’ ‘aide’"
 DocType: DocType,Comments and Communications will be associated with this linked document,Commentaires et Communications seront associés à ce document lié
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder_sidebar.html +3,Filter...,Filtre ...
 DocType: Workflow State,bold,gras
