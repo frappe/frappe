@@ -128,7 +128,7 @@ frappe.ui.SortSelector = Class.extend({
 
 			// meta sort field
 			if(meta_sort_field) _options.push({ 'fieldname': meta_sort_field });
-			
+
 			// more default options
 			_options.push(
 				{'fieldname': 'name'},
@@ -163,8 +163,8 @@ frappe.ui.SortSelector = Class.extend({
 			}
 		} else {
 			return {
-				meta_sort_field: meta.sort_field,
-				meta_sort_order: meta.sort_order.toLowerCase()
+				meta_sort_field: meta.sort_field || 'modified',
+				meta_sort_order: meta.sort_order ? meta.sort_order.toLowerCase() : ''
 			}
 		}
 	},
