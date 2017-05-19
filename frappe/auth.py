@@ -185,6 +185,7 @@ class LoginManager:
 		if not (user and pwd):
 			self.fail('Incomplete login details', user=user)
 
+		user = frappe.db.get_value("User", filters={"mobile_no": user}, fieldname="name") or user
 		self.check_if_enabled(user)
 		self.user = self.check_password(user, pwd)
 
