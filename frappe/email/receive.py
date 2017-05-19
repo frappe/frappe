@@ -9,7 +9,7 @@ from email.header import decode_header
 import frappe
 from frappe import _
 from frappe.utils import (extract_email_id, convert_utc_to_user_timezone, now,
-	cint, cstr, strip, markdown)
+	cint, cstr, strip, markdown, parse_email)
 from frappe.utils.scheduler import log
 from frappe.utils.file_manager import get_random_filename, save_file, MaxFileSizeReachedError
 import re
@@ -411,7 +411,7 @@ class Email:
 		if self.from_email:
 			self.from_email = self.from_email.lower()
 
-		self.from_real_name = email.utils.parseaddr(_from_email)[0] if "@" in _from_email else _from_email
+		self.from_real_name = parse_email(_from_email)[0] if "@" in _from_email else _from_email
 
 	def decode_email(self, email):
 		if not email: return

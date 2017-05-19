@@ -8,10 +8,9 @@ from werkzeug.test import Client
 import os, re, urllib, sys, json, hashlib, requests, traceback
 from markdown2 import markdown as _markdown
 from .html_utils import sanitize_html
-
 import frappe
 from frappe.utils.identicon import Identicon
-
+from email.utils import parseaddr, formataddr
 # utility functions like cint, int, flt, etc.
 from frappe.utils.data import *
 
@@ -62,8 +61,7 @@ def get_formatted_email(user):
 
 def extract_email_id(email):
 	"""fetch only the email part of the Email Address"""
-	from email.utils import parseaddr
-	fullname, email_id = parseaddr(email)
+	full_name, email_id = parse_email(email)
 	if isinstance(email_id, basestring) and not isinstance(email_id, unicode):
 		email_id = email_id.decode("utf-8", "ignore")
 	return email_id
@@ -450,17 +448,25 @@ def markdown(text, sanitize=True, linkify=True):
 	return html
 
 def sanitize_email(emails):
-	from email.utils import parseaddr, formataddr
-
 	sanitized = []
 	for e in split_emails(emails):
 		if not validate_email_add(e):
 			continue
 
-		fullname, email_id = parseaddr(e)
-		sanitized.append(formataddr((fullname, email_id)))
+		full_name, email_id = parse_email(e)
+		sanitized.append(formataddr((full_name, email_id)))
 
 	return ", ".join(sanitized)
+
+def parse_email(email_string):
+	email_regex = re.compile(r"([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)")
+	#get the first email adrress only
+	email_list = re.findall(email_regex, email_string)
+	email_id = email_list[0] if len(email_list) > 0 else parseaddr(email_string)[1]
+	name = filter(lambda x: len(x) > 0,
+		[x for x in parseaddr(email_string)])[0] or email_id
+	return (name, email_id)
+
 
 def get_installed_apps_info():
 	out = []
