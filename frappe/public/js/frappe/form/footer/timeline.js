@@ -116,13 +116,13 @@ frappe.ui.form.Timeline = Class.extend({
 
 		var communications = this.get_communications(true);
 
-		$.each(communications.sort(function(a, b) { return a.creation > b.creation ? -1 : 1 }),
-			function(i, c) {
-				if(c.content) {
-					c.frm = me.frm;
-					me.render_timeline_item(c);
-				}
-		});
+		communications
+			.sort((a, b) => a.creation > b.creation ? -1 : 1)
+			.filter(c => c.content)
+			.forEach(c => {
+				c.frm = me.frm;
+				me.render_timeline_item(c);
+			});
 
 		// more btn
 		if (this.more===undefined && communications.length===20) {

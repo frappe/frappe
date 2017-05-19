@@ -325,7 +325,7 @@ frappe.views.Calendar = Class.extend({
 			$.each(this.filters, function(i, df) {
 				if(df.options===value)
 					me.page.fields_dict[df.fieldname].set_input(value);
-					return false;
+				return false;
 			});
 		}
 	},

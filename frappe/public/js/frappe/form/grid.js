@@ -31,7 +31,7 @@ frappe.ui.form.Grid = Class.extend({
 		this.multiple_set = false;
 		if(this.frm && this.frm.meta.__form_grid_templates
 			&& this.frm.meta.__form_grid_templates[this.df.fieldname]) {
-				this.template = this.frm.meta.__form_grid_templates[this.df.fieldname];
+			this.template = this.frm.meta.__form_grid_templates[this.df.fieldname];
 		}
 
 		this.is_grid = true;
@@ -428,27 +428,25 @@ frappe.ui.form.Grid = Class.extend({
 				&& (this.editable_fields || df.in_list_view)
 				&& (this.frm && this.frm.get_perm(df.permlevel, "read") || !this.frm)
 				&& !in_list(frappe.model.layout_fields, df.fieldtype)) {
-					if(df.columns) {
-						df.colsize=df.columns;
-					}
-					else {
-						var colsize=2;
-						switch(df.fieldtype){
-							case"Text":
-							case"Small Text":
-								colsize=3;
-								break;
-							case"Check":
-								colsize=1
-							}
-							df.colsize=colsize
-					}
 
-					total_colsize += df.colsize
-					if(total_colsize > 11)
-						return false;
-					this.visible_columns.push([df, df.colsize]);
+				if(df.columns) {
+					df.colsize=df.columns;
 				}
+				else {
+					var colsize = 2;
+					switch(df.fieldtype) {
+					case "Text":
+					case "Small Text": colsize = 3; break;
+					case"Check": colsize = 1
+					}
+					df.colsize = colsize
+				}
+
+				total_colsize += df.colsize
+				if(total_colsize > 11)
+					return false;
+				this.visible_columns.push([df, df.colsize]);
+			}
 		}
 
 		// redistribute if total-col size is less than 12
@@ -943,15 +941,15 @@ frappe.ui.form.GridRow = Class.extend({
 		field.get_query = this.grid.get_field(df.fieldname).get_query;
 		field.refresh();
 		if(field.$input) {
-			field.$input.addClass('input-sm');
 			field.$input
+				.addClass('input-sm')
 				.attr('data-col-idx', column.column_index)
 				.attr('placeholder', __(df.label));
 
-				// flag list input
-				if (this.columns_list && this.columns_list.slice(-1)[0]===column) {
-					field.$input.attr('data-last-input', 1);
-				}
+			// flag list input
+			if (this.columns_list && this.columns_list.slice(-1)[0]===column) {
+				field.$input.attr('data-last-input', 1);
+			}
 		}
 
 		this.set_arrow_keys(field);

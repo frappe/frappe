@@ -102,11 +102,10 @@ frappe.ui.form.on('User', {
 
 		if (frappe.route_flags.unsaved===1){
 			delete frappe.route_flags.unsaved;
-			for ( var i=0;i<frm.doc.user_emails.length;i++){
+			for ( var i=0;i<frm.doc.user_emails.length;i++) {
 				frm.doc.user_emails[i].idx=frm.doc.user_emails[i].idx+1;
 			}
-			frm.doc.email_account
-		cur_frm.dirty();
+			cur_frm.dirty();
 		}
 	},
 	validate: function(frm) {

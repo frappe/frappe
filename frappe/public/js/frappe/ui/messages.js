@@ -233,8 +233,8 @@ frappe.show_progress = function(title, count, total) {
 		});
 		dialog.progress = $('<div class="progress"><div class="progress-bar"></div></div>')
 			.appendTo(dialog.body);
-			dialog.progress_bar = dialog.progress.css({"margin-top": "10px"})
-				.find(".progress-bar");
+		dialog.progress_bar = dialog.progress.css({"margin-top": "10px"})
+			.find(".progress-bar");
 		dialog.$wrapper.removeClass("fade");
 		dialog.show();
 		frappe.cur_progress = dialog;

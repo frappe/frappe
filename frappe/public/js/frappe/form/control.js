@@ -18,7 +18,7 @@ frappe.ui.form.Control = Class.extend({
 		// if developer_mode=1, show fieldname as tooltip
 		if(frappe.boot.user && frappe.boot.user.name==="Administrator" &&
 			frappe.boot.developer_mode===1 && this.$wrapper) {
-				this.$wrapper.attr("title", __(this.df.fieldname));
+			this.$wrapper.attr("title", __(this.df.fieldname));
 		}
 
 		if(this.render_input) {
@@ -75,8 +75,9 @@ frappe.ui.form.Control = Class.extend({
 		if (this.doctype && status==="Read" && !this.only_input
 			&& is_null(frappe.model.get_value(this.doctype, this.docname, this.df.fieldname))
 			&& !in_list(["HTML", "Image"], this.df.fieldtype)) {
-				if(explain) console.log("By Hide Read-only, null fields: None");
-				status = "None";
+
+			if(explain) console.log("By Hide Read-only, null fields: None");
+			status = "None";
 		}
 
 		return status;
@@ -189,19 +190,19 @@ frappe.ui.form.ControlImage = frappe.ui.form.Control.extend({
 		this.$body = $("<div></div>").appendTo(this.$wrapper)
 			.css({"margin-bottom": "10px"})
 		this.$wrapper.on("refresh", function() {
-				var doc = null;
-				me.$body.empty();
+			var doc = null;
+			me.$body.empty();
 
-				var doc = me.get_doc();
-				if(doc && me.df.options && doc[me.df.options]) {
-					me.$img = $("<img src='"+doc[me.df.options]+"' class='img-responsive'>")
-						.appendTo(me.$body);
-				} else {
-					me.$buffer = $("<div class='missing-image'><i class='octicon octicon-circle-slash'></i></div>")
-						.appendTo(me.$body)
-				}
-				return false;
-			});
+			var doc = me.get_doc();
+			if(doc && me.df.options && doc[me.df.options]) {
+				me.$img = $("<img src='"+doc[me.df.options]+"' class='img-responsive'>")
+					.appendTo(me.$body);
+			} else {
+				me.$buffer = $("<div class='missing-image'><i class='octicon octicon-circle-slash'></i></div>")
+					.appendTo(me.$body)
+			}
+			return false;
+		});
 		$('<div class="clearfix"></div>').appendTo(this.$wrapper);
 	}
 });
@@ -430,7 +431,7 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 
 		if (in_list(['Data', 'Link', 'Dynamic Link', 'Password', 'Select', 'Read Only', 'Attach', 'Attach Image'],
 			this.df.fieldtype)) {
-				this.$input.attr("maxlength", this.df.length || 140);
+			this.$input.attr("maxlength", this.df.length || 140);
 		}
 
 		this.set_input_attributes();
@@ -1938,7 +1939,7 @@ frappe.ui.form.ControlSignature = frappe.ui.form.ControlData.extend({
 		this.set_editable(this.get_status()=="Write");
 		this.load_pad();
 		if(this.get_status()=="Read") {
-				$(this.disp_area).toggle(false);
+			$(this.disp_area).toggle(false);
 		}
 	},
 	set_image: function(value) {
@@ -1976,15 +1977,15 @@ frappe.ui.form.ControlSignature = frappe.ui.form.ControlData.extend({
 		}
 	},
 	set_editable: function(editable) {
-			this.$pad.toggle(editable);
-			this.img_wrapper.toggle(!editable);
-			this.$btnWrapper.toggle(editable);
-			if (editable) {
-					this.$btnWrapper.addClass('editing');
-			}
-			else {
-					this.$btnWrapper.removeClass('editing');
-			}
+		this.$pad.toggle(editable);
+		this.img_wrapper.toggle(!editable);
+		this.$btnWrapper.toggle(editable);
+		if (editable) {
+			this.$btnWrapper.addClass('editing');
+		}
+		else {
+			this.$btnWrapper.removeClass('editing');
+		}
 	},
 	set_my_value: function(value) {
 		if (this.saving || this.loading) return;

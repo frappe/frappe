@@ -334,7 +334,7 @@ frappe.views.CommunicationComposer = Class.extend({
 				<p class='add-more-attachments'>\
 				<a class='text-muted small'><i class='octicon octicon-plus' style='font-size: 12px'></i> "
 				+__("Add Attachment")+"</a></p>").appendTo(attach.empty())
-			attach.find(".add-more-attachments a").on('click',this,function() {
+		attach.find(".add-more-attachments a").on('click',this,function() {
 			me.upload = frappe.ui.get_upload_dialog(args);
 		})
 		me.render_attach()
@@ -397,10 +397,12 @@ frappe.views.CommunicationComposer = Class.extend({
 		var form_values = this.get_values();
 		if(!form_values) return;
 
-		var selected_attachments = $.map($(me.dialog.wrapper)
-			.find("[data-file-name]:checked"), function(element) {
+		var selected_attachments =
+			$.map($(me.dialog.wrapper)
+			.find("[data-file-name]:checked"), function (element) {
 				return $(element).attr("data-file-name");
-			})
+			});
+
 
 		if(form_values.attach_document_print) {
 			if (cur_frm.print_preview.is_old_style(form_values.select_print_format || "")) {
@@ -496,7 +498,7 @@ frappe.views.CommunicationComposer = Class.extend({
 					me.dialog.hide();
 
 					if ((frappe.last_edited_communication[me.doc] || {})[me.key]) {
-							delete frappe.last_edited_communication[me.doc][me.key];
+						delete frappe.last_edited_communication[me.doc][me.key];
 					}
 					if (cur_frm) {
 						// clear input
@@ -553,11 +555,12 @@ frappe.views.CommunicationComposer = Class.extend({
 	},
 	setup_awesomplete: function() {
 		var me = this;
-		[this.dialog.fields_dict.recipients.input,
-		this.dialog.fields_dict.cc.input]
-			.map(function(input) {
-				me.setup_awesomplete_for_input(input);
-			});
+		[
+			this.dialog.fields_dict.recipients.input,
+			this.dialog.fields_dict.cc.input
+		].map(function(input) {
+			me.setup_awesomplete_for_input(input);
+		});
 	},
 	setup_awesomplete_for_input: function(input) {
 		function split(val) {

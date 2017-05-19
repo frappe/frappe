@@ -164,5 +164,5 @@ frappe.urllib = {
 	}
 }
 
-get_url_arg = frappe.urllib.get_arg;
-get_url_dict = frappe.urllib.get_dict;
+window.get_url_arg = frappe.urllib.get_arg;
+window.get_url_dict = frappe.urllib.get_dict;

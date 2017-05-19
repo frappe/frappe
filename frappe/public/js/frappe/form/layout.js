@@ -54,18 +54,14 @@ frappe.ui.form.Layout = Class.extend({
 			this.make_section();
 		}
 		$.each(this.fields, function(i, df) {
-			switch(df.fieldtype) {
-				case "Fold":
-					me.make_page(df);
-					break;
-				case "Section Break":
-					me.make_section(df);
-					break;
-				case "Column Break":
-					me.make_column(df);
-					break;
-				default:
-					me.make_field(df);
+			if(df.fieldtype === "Fold") {
+				me.make_page(df);
+			} else if (df.fieldtype === "Section Break") {
+				me.make_section(df);
+			} else if (df.fieldtype === "Column Break") {
+				me.make_column(df);
+			} else {
+				me.make_field(df);
 			}
 		});
 

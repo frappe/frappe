@@ -222,14 +222,14 @@ frappe.views.QueryReport = Class.extend({
 				{data: frappe.slickgrid_tools.get_filtered_items(this.dataView), filters:this.get_values(), report:this});
 
 			//Render Report in HTML
-				var html = frappe.render_template("print_template", {
-					content:content,
-					title:__(this.report_name),
-					base_url: base_url,
-					print_css: print_css,
-					print_settings: this.print_settings,
-					landscape: landscape
-				});
+			var html = frappe.render_template("print_template", {
+				content:content,
+				title:__(this.report_name),
+				base_url: base_url,
+				print_css: print_css,
+				print_settings: this.print_settings,
+				landscape: landscape
+			});
 		} else {
 			// rows filtered by inline_filter of slickgrid
 			var visible_idx = frappe.slickgrid_tools
@@ -519,7 +519,7 @@ frappe.views.QueryReport = Class.extend({
 				col.name = col.id = col.label = df.label;
 
 				return col
-		}));
+			}));
 	},
 	filter_hidden_columns: function() {
 		this.columns = $.map(this.columns, function(c, i) {

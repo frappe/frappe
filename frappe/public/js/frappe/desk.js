@@ -144,47 +144,47 @@ frappe.Application = Class.extend({
 				}
 			]
 		});
-			d.get_input("submit").on("click", function() {
-				//setup spinner
-				d.hide();
-				var s = new frappe.ui.Dialog({
-						title: __("Checking one moment"),
-					fields: [{
+		d.get_input("submit").on("click", function() {
+			//setup spinner
+			d.hide();
+			var s = new frappe.ui.Dialog({
+				title: __("Checking one moment"),
+				fields: [{
 					"fieldtype": "HTML",
 					"fieldname": "checking"
 				}]
-					});
-				s.fields_dict.checking.$wrapper.html('<i class="fa fa-spinner fa-spin fa-4x"></i>')
-				s.show();
-				frappe.call({
-					method: 'frappe.core.doctype.user.user.set_email_password',
-					args: {
-						"email_account": email_account[i]["email_account"],
-						"user": user,
-						"password": d.get_value("password")
-					},
-					callback: function (passed)
+			});
+			s.fields_dict.checking.$wrapper.html('<i class="fa fa-spinner fa-spin fa-4x"></i>')
+			s.show();
+			frappe.call({
+				method: 'frappe.core.doctype.user.user.set_email_password',
+				args: {
+					"email_account": email_account[i]["email_account"],
+					"user": user,
+					"password": d.get_value("password")
+				},
+				callback: function (passed)
+				{
+					s.hide();
+					d.hide();//hide waiting indication
+					if (!passed["message"])
 					{
-						s.hide();
-						d.hide();//hide waiting indication
-						if (!passed["message"])
+						frappe.show_alert("Login Failed please try again", 5);
+						me.email_password_prompt(email_account, user, i)
+					}
+					else
+					{
+						if (i + 1 < email_account.length)
 						{
-							frappe.show_alert("Login Failed please try again", 5);
+							i = i + 1;
 							me.email_password_prompt(email_account, user, i)
 						}
-						else
-						{
-							if (i + 1 < email_account.length)
-							{
-								i = i + 1;
-								me.email_password_prompt(email_account, user, i)
-							}
-						}
-
 					}
-				});
+
+				}
 			});
-			d.show();
+		});
+		d.show();
 	},
 	load_bootinfo: function() {
 		if(frappe.boot) {
@@ -555,20 +555,19 @@ frappe.get_desktop_icons = function(show_hidden, show_global) {
 
 	for (var i=0, l=frappe.boot.desktop_icons.length; i < l; i++) {
 		var m = frappe.boot.desktop_icons[i];
-		if ((['Setup', 'Core'].indexOf(m.module_name) === -1)
-			&& show_module(m)) {
-				add_to_out(m)
+		if ((['Setup', 'Core'].indexOf(m.module_name) === -1) && show_module(m)) {
+			add_to_out(m);
 		}
 	}
 
 	if(frappe.user_roles.includes('System Manager')) {
 		var m = frappe.get_module('Setup');
-		if(show_module(m)) add_to_out(m)
+		if(show_module(m)) add_to_out(m);
 	}
 
 	if(frappe.user_roles.includes('Administrator')) {
 		var m = frappe.get_module('Core');
-		if(show_module(m)) add_to_out(m)
+		if(show_module(m)) add_to_out(m);
 	}
 
 	return out;

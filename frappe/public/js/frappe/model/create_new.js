@@ -103,7 +103,8 @@ $.extend(frappe.model, {
 					updated.push(f.fieldname);
 				} else if(f.fieldtype == "Select" && f.options && typeof f.options === 'string'
 					&& !in_list(["[Select]", "Loading..."], f.options)) {
-						doc[f.fieldname] = f.options.split("\n")[0];
+
+					doc[f.fieldname] = f.options.split("\n")[0];
 				}
 			}
 		}
@@ -252,18 +253,19 @@ $.extend(frappe.model, {
 			// dont copy name and blank fields
 			var df = frappe.meta.get_docfield(doc.doctype, key);
 
-			if(df && key.substr(0,2)!='__'
+			if (df && key.substr(0, 2) != '__'
 				&& !in_list(no_copy_list, key)
-				&& !(df && (!from_amend && cint(df.no_copy)==1))) {
-					var value = doc[key] || [];
-					if(df.fieldtype==="Table") {
-						for(var i=0, j=value.length; i<j; i++) {
-							var d = value[i];
-							frappe.model.copy_doc(d, from_amend, newdoc, df.fieldname);
-						}
-					} else {
-						newdoc[key] = doc[key];
+				&& !(df && (!from_amend && cint(df.no_copy) == 1))) {
+
+				var value = doc[key] || [];
+				if (df.fieldtype === "Table") {
+					for (var i = 0, j = value.length; i < j; i++) {
+						var d = value[i];
+						frappe.model.copy_doc(d, from_amend, newdoc, df.fieldname);
 					}
+				} else {
+					newdoc[key] = doc[key];
+				}
 			}
 		}
 

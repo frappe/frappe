@@ -84,28 +84,22 @@ $.extend(frappe.user, {
 			if(frappe.boot.user.allow_modules.indexOf(m) === -1) return null;
 
 			var ret = null;
-			switch(type) {
-				case "module":
-					if(frappe.boot.user.allow_modules.indexOf(m)!=-1 || frappe.modules[m].is_help)
-						ret = m;
-					break;
-				case "page":
-					if(frappe.boot.allowed_pages.indexOf(frappe.modules[m].link)!=-1)
-						ret = m;
-					break;
-				case "list":
-					if(frappe.model.can_read(frappe.modules[m]._doctype))
-						ret = m;
-					break;
-				case "view":
+			if (type === "module") {
+				if(frappe.boot.user.allow_modules.indexOf(m)!=-1 || frappe.modules[m].is_help)
 					ret = m;
-					break;
-				case "setup":
-					if(frappe.user.has_role("System Manager") || frappe.user.has_role("Administrator"))
-						ret = m;
-					break;
-				default:
+			} else if (type === "page") {
+				if(frappe.boot.allowed_pages.indexOf(frappe.modules[m].link)!=-1)
 					ret = m;
+			} else if (type === "list") {
+				if(frappe.model.can_read(frappe.modules[m]._doctype))
+					ret = m;
+			} else if (type === "view") {
+				ret = m;
+			} else if (type === "setup") {
+				if(frappe.user.has_role("System Manager") || frappe.user.has_role("Administrator"))
+					ret = m;
+			} else {
+				ret = m;
 			}
 
 			return ret;

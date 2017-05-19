@@ -171,7 +171,7 @@ frappe.customize_form.confirm = function(msg, frm) {
 				method: "reset_to_defaults",
 				callback: function(r) {
 					if(r.exc) {
-						frappe.msgprintr.exc);
+						frappe.msgprint(r.exc);
 					} else {
 						d.hide();
 						frappe.customize_form.clear_locals_and_refresh(frm);

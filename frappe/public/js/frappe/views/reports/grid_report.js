@@ -577,9 +577,9 @@ frappe.views.GridReport = Class.extend({
 	get_link_open_icon: function(doctype, name) {
 		return repl(' <a href="#Form/%(doctype)s/%(name)s">\
 			<i class="fa fa-share" style="cursor: pointer;"></i></a>', {
-			doctype: doctype,
-			name: encodeURIComponent(name)
-		});
+				doctype: doctype,
+				name: encodeURIComponent(name)
+			});
 	},
 	make_date_range_columns: function() {
 		this.columns = [];
@@ -640,8 +640,8 @@ frappe.views.GridReport = Class.extend({
 			build_columns(function(date) {
 				if(!me.last_date) return true;
 				return $.map(frappe.report_dump.data['Fiscal Year'], function(v) {
-						return date==v.year_start_date ? true : null;
-					}).length;
+					return date==v.year_start_date ? true : null;
+				}).length;
 			});
 
 		}
@@ -874,7 +874,7 @@ frappe.views.TreeGridReport = frappe.views.GridReportWithPlot.extend({
 					}
 
 					return false;
-			});
+				});
 
 			frappe.tools.downloadify(data, ["Report Manager", "System Manager"], me.title);
 			return false;

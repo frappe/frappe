@@ -609,7 +609,7 @@ $.extend(_p, {
 		return html;
 	},
 
-	add_layout: function(doctype) {v
+	add_layout: function(doctype) {
 		var layout = new Layout();
 		layout.addrow();
 

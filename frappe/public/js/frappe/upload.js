@@ -357,26 +357,26 @@ frappe.upload = {
 			var filename = fileobjs[i].name;
 			fields.push({'fieldname': 'label1', 'fieldtype': 'Heading', 'label': filename});
 			fields.push({'fieldname':  filename+'_is_private', 'fieldtype': 'Check', 'label': 'Private', 'default': 1});
-			}
+		}
 
-			var d = new frappe.ui.Dialog({
-				'title': __('Make file(s) private or public?'),
-				'fields': fields,
-				primary_action: function(){
-					var i =0,j = fileobjs.length;
-					d.hide();
-					opts.loopcallback = function (){
-						if (i < j) {
-							args.is_private = d.fields_dict[fileobjs[i].name + "_is_private"].get_value()
-							frappe.upload.upload_file(fileobjs[i], args, opts);
-							i++;
-						}
+		var d = new frappe.ui.Dialog({
+			'title': __('Make file(s) private or public?'),
+			'fields': fields,
+			primary_action: function(){
+				var i =0,j = fileobjs.length;
+				d.hide();
+				opts.loopcallback = function (){
+					if (i < j) {
+						args.is_private = d.fields_dict[fileobjs[i].name + "_is_private"].get_value()
+						frappe.upload.upload_file(fileobjs[i], args, opts);
+						i++;
 					}
-
-					opts.loopcallback();
 				}
-			});
-			d.show();
-			opts.confirm_is_private =  0;
+
+				opts.loopcallback();
+			}
+		});
+		d.show();
+		opts.confirm_is_private =  0;
 	}
 }

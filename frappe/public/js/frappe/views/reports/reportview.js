@@ -500,9 +500,9 @@ frappe.views.ReportView = frappe.ui.BaseList.extend({
 	},
 
 	edit_cell: function(row, docfield) {
-		if(!docfield || docfield.fieldname !== "idx" &&
-			frappe.model.std_fields_list.indexOf(docfield.fieldname)!==-1) {
-				return;
+		if(!docfield || docfield.fieldname !== "idx"
+			&& frappe.model.std_fields_list.indexOf(docfield.fieldname)!==-1) {
+			return;
 		} else if(frappe.boot.user.can_write.indexOf(this.doctype)===-1) {
 			frappe.throw({message:__("No permission to edit"), title:__('Not Permitted')});
 		}
@@ -581,13 +581,13 @@ frappe.views.ReportView = frappe.ui.BaseList.extend({
 		if(this.can_delete) {
 			std_columns = std_columns.concat([{
 				id:'_check', field:'_check', name: "", width: 30, maxWidth: 30,
-					formatter: function(row, cell, value, columnDef, dataContext) {
-						return repl("<input type='checkbox' \
-							data-row='%(row)s' %(checked)s>", {
-								row: row,
-								checked: (dataContext.selected ? "checked=\"checked\"" : "")
-							});
-					}
+				formatter: function(row, cell, value, columnDef, dataContext) {
+					return repl("<input type='checkbox' \
+						data-row='%(row)s' %(checked)s>", {
+							row: row,
+							checked: (dataContext.selected ? "checked=\"checked\"" : "")
+						});
+				}
 			}]);
 		}
 		return std_columns.concat(this.build_columns());

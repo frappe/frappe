@@ -393,12 +393,11 @@ _f.Frm.prototype.refresh = function(docname) {
 
 	if(docname) {
 		// record switch
-		if(this.docname != docname && (!this.meta.in_dialog || this.in_form) &&
-			!this.meta.istable) {
-				frappe.utils.scroll_to(0);
-				this.hide_print();
-			}
-			frappe.ui.form.close_grid_form();
+		if(this.docname != docname && (!this.meta.in_dialog || this.in_form) && !this.meta.istable) {
+			frappe.utils.scroll_to(0);
+			this.hide_print();
+		}
+		frappe.ui.form.close_grid_form();
 		this.docname = docname;
 	}
 

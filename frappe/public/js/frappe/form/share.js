@@ -163,8 +163,8 @@ frappe.ui.form.Share = Class.extend({
 		$(d.body).find(".edit-share").on("click", function() {
 			var user = $(this).parents(".shared-user:first").attr("data-user") || "",
 				value = $(this).prop("checked") ? 1 : 0,
-				property = $(this).attr("name")
-				var everyone = cint($(this).parents(".shared-user:first").attr("data-everyone"));
+				property = $(this).attr("name"),
+				everyone = cint($(this).parents(".shared-user:first").attr("data-everyone"));
 
 			frappe.call({
 				method: "frappe.share.set_permission",

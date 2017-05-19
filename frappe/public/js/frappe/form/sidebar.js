@@ -58,10 +58,10 @@ frappe.ui.form.Sidebar = Class.extend({
 			this.frm.tags && this.frm.tags.refresh(this.frm.doc._user_tags);
 			this.sidebar.find(".modified-by").html(__("{0} edited this {1}",
 				["<strong>" + frappe.user.full_name(this.frm.doc.modified_by) + "</strong>",
-				"<br>" + comment_when(this.frm.doc.modified)]));
+					"<br>" + comment_when(this.frm.doc.modified)]));
 			this.sidebar.find(".created-by").html(__("{0} created this {1}",
 				["<strong>" + frappe.user.full_name(this.frm.doc.owner) + "</strong>",
-				"<br>" + comment_when(this.frm.doc.creation)]));
+					"<br>" + comment_when(this.frm.doc.creation)]));
 
 			this.refresh_like();
 			this.setup_ratings();

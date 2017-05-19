@@ -2,7 +2,7 @@
  * frappe.views.EmailInboxView
  */
 
- frappe.provide("frappe.views");
+frappe.provide("frappe.views");
 
 frappe.views.InboxView = frappe.views.ListRenderer.extend({
 	name: 'Inbox',

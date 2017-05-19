@@ -18,8 +18,8 @@ frappe.ui.Chart = Class.extend({
 
 		if(this.opts.data && ((this.opts.data.columns && this.opts.data.columns.length >= 1)
 			|| (this.opts.data.rows && this.opts.data.rows.length >= 1))) {
-				this.chart = this.render_chart();
-				this.show_chart(true);
+			this.chart = this.render_chart();
+			this.show_chart(true);
 		}
 
 		return this.chart;

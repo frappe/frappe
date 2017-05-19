@@ -105,7 +105,7 @@ frappe.ui.FilterList = Class.extend({
 				// This gives a predictable stats order
 				me.wrapper.find(".filter-stat").empty();
 				$.each(me.stats, function (i, v) {
-						me.render_filters(v, (r.message|| {})[v.name]);
+					me.render_filters(v, (r.message|| {})[v.name]);
 				});
 			}
 		});
@@ -353,7 +353,7 @@ frappe.ui.FilterList = Class.extend({
 			fieldname: fieldname,
 			condition: condition,
 			value: value
-        });
+		});
 
 		this.filters.push(filter);
 
