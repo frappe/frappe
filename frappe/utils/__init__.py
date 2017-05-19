@@ -88,12 +88,12 @@ def validate_email_add(email_str, throw=False):
 			e = extract_email_id(e)
 			match = re.match("[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?", e.lower()) if e else None
 
-			if match:
+			if not match:
+				_valid = False
+			else:
 				matched = match.group(0)
 				if match:
 					match = matched==e.lower()
-			else:
-				_valid = False
 
 		if not _valid:
 			if throw:
