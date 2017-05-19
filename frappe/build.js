@@ -121,9 +121,9 @@ function pack(output_path, inputs, minify) {
 
 function babelify(content, path, minify) {
 	let presets = ['es2015', 'es2016'];
-	if(minify) {
-		presets.push('babili'); // new babel minifier
-	}
+	// if(minify) {
+	// 	presets.push('babili'); // new babel minifier
+	// }
 	try {
 		return babel.transform(content, {
 			presets: presets,
