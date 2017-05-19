@@ -31,7 +31,7 @@ def bundle(no_compress, make_copy=False, verbose=False):
 	make_asset_dirs(make_copy=make_copy)
 
 	# new nodejs build system
-	command = 'node ../apps/frappe/frappe/build.js --build'
+	command = 'node --use_strict ../apps/frappe/frappe/build.js --build'
 	if not no_compress:
 		command += ' --minify'
 	subprocess.call(command.split(' '))
@@ -42,7 +42,7 @@ def watch(no_compress):
 	"""watch and rebuild if necessary"""
 
 	# new nodejs file watcher
-	command = 'node ../apps/frappe/frappe/build.js --watch'
+	command = 'node --use_strict ../apps/frappe/frappe/build.js --watch'
 	subprocess.call(command.split(' '))
 
 	# setup()
