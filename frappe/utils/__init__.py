@@ -8,10 +8,9 @@ from werkzeug.test import Client
 import os, re, urllib, sys, json, hashlib, requests, traceback
 from markdown2 import markdown as _markdown
 from .html_utils import sanitize_html
-
 import frappe
 from frappe.utils.identicon import Identicon
-
+from email.utils import parseaddr, formataddr
 # utility functions like cint, int, flt, etc.
 from frappe.utils.data import *
 
@@ -62,9 +61,8 @@ def get_formatted_email(user):
 
 def extract_email_id(email):
 	"""fetch only the email part of the Email Address"""
-	from email.utils import parseaddr
-	fullname, email_id = parseaddr(email)
-	if isinstance(email_id, basestring) and not isinstance(email_id, unicode):
+	full_name, email_id = parse_addr(email)
+	if email_id and isinstance(email_id, basestring) and not isinstance(email_id, unicode):
 		email_id = email_id.decode("utf-8", "ignore")
 	return email_id
 
@@ -88,13 +86,12 @@ def validate_email_add(email_str, throw=False):
 
 		else:
 			e = extract_email_id(e)
-			match = re.match("[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?", e.lower())
+			match = re.match("[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?", e.lower()) if e else None
 
 			if not match:
 				_valid = False
 			else:
 				matched = match.group(0)
-
 				if match:
 					match = matched==e.lower()
 
@@ -450,17 +447,46 @@ def markdown(text, sanitize=True, linkify=True):
 	return html
 
 def sanitize_email(emails):
-	from email.utils import parseaddr, formataddr
-
 	sanitized = []
 	for e in split_emails(emails):
 		if not validate_email_add(e):
 			continue
 
-		fullname, email_id = parseaddr(e)
-		sanitized.append(formataddr((fullname, email_id)))
+		full_name, email_id = parse_addr(e)
+		sanitized.append(formataddr((full_name, email_id)))
 
 	return ", ".join(sanitized)
+
+def parse_addr(email_string):
+	"""
+	Return email_id and user_name based on email string
+	Raise error if email string is not valid
+	"""
+	name, email = parseaddr(email_string)
+	if check_format(email):
+		return (name, email)
+	else:
+		email_regex = re.compile(r"([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)")
+		email_list = re.findall(email_regex, email_string)
+		if len(email_list) > 0 and check_format(email_list[0]):
+			#take only first email address
+			return (name, email_list[0])
+	return (None, email)
+
+def check_format(email_id):
+	"""
+	Check if email_id is valid. valid email:text@example.com
+	String check ensures that email_id contains both '.' and 
+	'@' and index of '@' is less than '.' 
+	"""
+	is_valid = False 
+	try:
+		pos = email_id.rindex("@")
+		is_valid = pos > 0 and (email_id.rindex(".") > pos) and (len(email_id) - pos > 4)
+	except Exception, e:
+		#print(e)
+		pass
+	return is_valid
 
 def get_installed_apps_info():
 	out = []
