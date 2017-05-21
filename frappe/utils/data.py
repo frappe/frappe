@@ -419,6 +419,9 @@ def money_in_words(number, main_currency = None, fraction_currency=None):
 	from frappe.utils import get_defaults
 	_ = frappe._
 
+	if not isinstance(number, float) and not isinstance(number, int):
+		return ""
+
 	if flt(number) < 0:
 		return ""
 

@@ -39,12 +39,12 @@ class TestMoney(unittest.TestCase):
 	def test_money_in_words(self):
 		nums_bhd = [
 			(5000, "BHD Five Thousand only."), (5000.0, "BHD Five Thousand only."),
-			(0.1, "One Hundred Fils only."), (0, "BHD Zero only.")
+			(0.1, "One Hundred Fils only."), (0, "BHD Zero only."), ("Fail", "")
 		]
 
 		nums_ngn = [
 			(5000, "NGN Five Thousand only."), (5000.0, "NGN Five Thousand only."),
-			(0.1, "Ten Kobo only."), (0, "NGN Zero only.")
+			(0.1, "Ten Kobo only."), (0, "NGN Zero only."), ("Fail", "")
 		]
 
 		for num in nums_bhd:
