@@ -24,7 +24,7 @@ const build_map = make_build_map();
 // command line args
 const action = process.argv[2] || '--build';
 
-if (!['--build', '--watch'].includes(action)) {
+if (!['--build', '--watch'].indexOf(action) !== -1) {
 	console.log('Invalid argument: ', action);
 	return;
 }
