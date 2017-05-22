@@ -67,8 +67,8 @@ frappe.ui.form.Grid = Class.extend({
 
 		this.setup_allow_bulk_edit();
 		this.setup_check();
-		if(this.df.bind_events) {
-			this.df.bind_events(this);
+		if(this.df.on_setup) {
+			this.df.on_setup(this);
 		}
 
 	},
@@ -217,7 +217,7 @@ frappe.ui.form.Grid = Class.extend({
 		this.refresh_remove_rows_button();
 	},
 	setup_toolbar: function() {
-		if(this.frm && this.is_editable()) {
+		if(this.is_editable()) {
 			this.wrapper.find(".grid-footer").toggle(true);
 
 			// show, hide buttons to add rows
@@ -235,8 +235,7 @@ frappe.ui.form.Grid = Class.extend({
 			}
 
 		} else {
-			// TODO
-			// this.wrapper.find(".grid-footer").toggle(false);
+			this.wrapper.find(".grid-footer").toggle(false);
 		}
 
 	},
@@ -382,12 +381,7 @@ frappe.ui.form.Grid = Class.extend({
 				this.frm.script_manager.trigger(this.df.fieldname + "_add", d.doctype, d.name);
 				this.refresh();
 			} else {
-				if(!idx) {
-					this.df.data.push({name: "batch " + (this.df.data.length+1), idx: this.df.data.length+1});
-				} else {
-					// TODO
-					this.df.data.push({name: "batch " + (this.df.data.length+1), idx: this.df.data.length+1})
-				}
+				this.df.data.push({name: "batch " + (this.df.data.length+1), idx: this.df.data.length+1});
 				this.refresh();
 			}
 
@@ -502,9 +496,7 @@ frappe.ui.form.Grid = Class.extend({
 
 
 	is_editable: function() {
-		// TODO
-		// return this.display_status=="Write" && !this.static_rows;
-		return true;
+		return this.display_status=="Write" && !this.static_rows;
 	},
 	is_sortable: function() {
 		return this.sortable_status || this.is_editable();
@@ -824,9 +816,7 @@ frappe.ui.form.GridRow = Class.extend({
 	},
 
 	is_too_small: function() {
-		// TODO
-		// return this.row.width() < 400;
-		return false;
+		return this.row.width() < 300;
 	},
 
 	add_open_form_button: function() {
