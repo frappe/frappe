@@ -491,12 +491,13 @@ def get_timezones():
 def get_all_roles(arg=None):
 	"""return all roles"""
 	active_domains = frappe.get_active_domains()
-	active_domains.append('')
 
 	roles = frappe.get_all("Role", filters={
 		"name": ("not in", "Administrator,Guest,All"),
-		"ifnull(restrict_to_domain, '')": ("in", ",".join(active_domains)),
 		"disabled": 0
+	}, or_filters={
+		"ifnull(restrict_to_domain, '')": "",
+		"restrict_to_domain": ("in", active_domains)
 	}, order_by="name")
 
 	return [ role.get("name") for role in roles ]

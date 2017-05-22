@@ -66,14 +66,13 @@ def filter_by_restrict_to_domain(data):
 		"doctype": "DocType"
 	}
 	active_domains = frappe.get_active_domains()
-	active_domains.append('')
 
 	for d in data:
 		_items = []
 		for item in d.get("items", []):
 			doctype = mapper.get(item.get("type"))
 
-			doctype_domain = frappe.db.get_value(doctype, item.get("name"), "restrict_to_domain")
+			doctype_domain = frappe.db.get_value(doctype, item.get("name"), "restrict_to_domain") or ''
 			if not doctype_domain or (doctype_domain in active_domains):
 				_items.append(item)
 
@@ -120,16 +119,15 @@ def add_custom_doctypes(data, doctype_info):
 def get_doctype_info(module):
 	"""Returns list of non child DocTypes for given module."""
 	active_domains = frappe.get_active_domains()
-	active_domains.append('')
 
 	doctype_info = frappe.get_all("DocType", filters={
 		"module": module,
-		"istable": 0,
-		"ifnull(restrict_to_domain, '')": ("in", ",".join(active_domains))
-	}, fields=[
-		"'doctype' as type", "name", "description", "ifnull(document_type, '') as document_type",
-		"custom", "issingle"
-	], order_by="custom asc, document_type desc, name asc")
+		"istable": 0
+	}, or_filters={
+		"ifnull(restrict_to_domain, '')": "",
+		"restrict_to_domain": ("in", active_domains)
+	}, fields=["'doctype' as type", "name", "description", "ifnull(document_type, '') as document_type",
+		"custom", "issingle"], order_by="custom asc, document_type desc, name asc")
 
 	for d in doctype_info:
 		d.description = _(d.description or "")

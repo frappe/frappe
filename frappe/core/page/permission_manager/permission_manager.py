@@ -16,19 +16,22 @@ def get_roles_and_doctypes():
 	send_translations(frappe.get_lang_dict("doctype", "DocPerm"))
 
 	active_domains = frappe.get_active_domains()
-	active_domains.append('')
 
 	doctypes = frappe.get_all("DocType", filters={
 		"istable": 0,
 		"name": ("not in", "DocType"),
-		"ifnull(restrict_to_domain, '')": ("in", ",".join(active_domains))
+	}, or_filters={
+		"ifnull(restrict_to_domain, '')": "",
+		"restrict_to_domain": ("in", active_domains)
 	}, fields=["name"])
 
 	roles = frappe.get_all("Role", filters={
 		"name": ("not in", "Administrator"),
 		"disabled": 0,
-		"ifnull(restrict_to_domain, '')": ("in", ",".join(active_domains))
-	})
+	}, or_filters={
+		"ifnull(restrict_to_domain, '')": "",
+		"restrict_to_domain": ("in", active_domains)
+	}, fields=["name"])
 
 	return {
 		"doctypes": [d.get("name") for d in doctypes],
