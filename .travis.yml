@@ -35,6 +35,7 @@ before_script:
   - echo "USE mysql;\nGRANT ALL PRIVILEGES ON \`test_frappe\`.* TO 'test_frappe'@'localhost';\n" | mysql -u root -ptravis
   
   - cd ~/frappe-bench
+  - npm install babel-core less chokidar babel-preset-es2015 babel-preset-es2016 babel-preset-es2017 babel-preset-babili
   - bench use test_site
   - bench reinstall --yes
   - bench start &
