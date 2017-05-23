@@ -1647,6 +1647,15 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 			prettifyHtml: true,
 			dialogsInBody: true,
 			callbacks: {
+				onInit: function() {
+				    // firefox hack that puts the caret in the wrong position
+				    // when div is empty. To fix, seed with a <br>.
+				    // See https://bugzilla.mozilla.org/show_bug.cgi?id=550434
+				    $(".note-editable[contenteditable='true']").on('focus', function(){
+                        var $this = $(this);
+                        $this.html( $this.html() + '<br>' );
+                    });
+				},
 				onChange: function(value) {
 					me.parse_validate_and_set_in_model(value);
 				},
