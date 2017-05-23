@@ -29,7 +29,11 @@
 			</div>
 		  {% endif %}
 
-		  <div class="print-format">
+		  <div class="print-format {% if landscape %} landscape {% endif %}"
+				{% if columns.length > 20 %}
+					style="font-size: 4.0pt"
+				{% endif %}
+			>
 			  {% if print_settings.letter_head %}
 			  <div {% if print_settings.repeat_header_footer %} id="header-html" class="hidden-pdf" {% endif %}>
 				  <div class="letter-head">{{ print_settings.letter_head.header }}</div>

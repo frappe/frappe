@@ -149,6 +149,7 @@ frappe.customize_form.set_primary_action = function(frm) {
 				callback: function(r) {
 					if(!r.exc) {
 						frappe.customize_form.clear_locals_and_refresh(frm);
+						frm.script_manager.trigger("doc_type");
 					}
 				}
 			});

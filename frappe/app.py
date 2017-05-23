@@ -65,7 +65,7 @@ def application(request):
 		elif frappe.request.path.startswith('/private/files/'):
 			response = frappe.utils.response.download_private_file(request.path)
 
-		elif frappe.local.request.method in ('GET', 'HEAD'):
+		elif frappe.local.request.method in ('GET', 'HEAD', 'POST'):
 			response = frappe.website.render.render()
 
 		else:
@@ -122,6 +122,7 @@ def make_form_dict(request):
 		frappe.local.form_dict.pop("_")
 
 def handle_exception(e):
+	response = None
 	http_status_code = getattr(e, "http_status_code", 500)
 	return_as_message = False
 

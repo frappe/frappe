@@ -87,8 +87,7 @@ frappe.search.utils = {
                     if(level) {
                         out.push({
                             type: "In List",
-                            prefix: __("Find {0} in ", [__(parts[0]).bold()]),
-                            label: me.bolden_match_part(__(item), parts[1]),
+                            label: __('Find {0} in {1}', [__(parts[0]), me.bolden_match_part(__(item), parts[1])]),
                             value: __('Find {0} in {1}', [__(parts[0]), __(item)]),
                             route_options: {"name": ["like", "%" + parts[0] + "%"]},
                             index: 1 + level,
@@ -110,8 +109,7 @@ frappe.search.utils = {
 				if(level) {
 					out.push({
 						type: "New",
-						prefix: "New ",
-						label: me.bolden_match_part(__(item), keywords.substr(4)),
+						label: __("New {0}", [me.bolden_match_part(__(item), keywords.substr(4))]),
 						value: __("New {0}", [__(item)]),
 						index: 1 + level,
 						match: item,
@@ -131,8 +129,8 @@ frappe.search.utils = {
 		var option = function(type, route, order) {
 			return {
 				type: type,
-                label: __("{0}" + " " + type, [me.bolden_match_part(__(target), keywords)]),
-				value: __(__(target) + " " + type),
+				label: me.bolden_match_part(__(target), keywords) + " " + __(type),
+				value: __(target) + " " + __(type),
 				index: level + order,
 				match: target,
 				route: route,
@@ -191,8 +189,7 @@ frappe.search.utils = {
 					route = ["query-report",  item];
 				out.push({
                     type: "Report",
-                    prefix: "Report ",
-					label: me.bolden_match_part(__(item), keywords),
+					label: __("Report {0}" , [me.bolden_match_part(__(item), keywords)]),
 					value: __("Report {0}" , [__(item)]),
 					index: level,
 					route: route
@@ -216,8 +213,7 @@ frappe.search.utils = {
 				var page = me.pages[item];
 				out.push({
 					type: "Page",
-					prefix: "Open ",
-					label: me.bolden_match_part(__(item), keywords),
+					label: __("Open {0}", [me.bolden_match_part(__(item), keywords)]),
 					value: __("Open {0}", [__(item)]),
 					match: item,
 					index: level,
@@ -229,8 +225,6 @@ frappe.search.utils = {
         if(__('calendar').indexOf(keywords.toLowerCase()) === 0) {
 			out.push({
 				type: "Calendar",
-				prefix: "Open ",
-				label: __('Calendar'),
 				value: __("Open {0}", [__(target)]),
 				index: me.fuzzy_search(keywords, 'Calendar'),
 				match: target,
@@ -240,8 +234,6 @@ frappe.search.utils = {
         if(__('email inbox').indexOf(keywords.toLowerCase()) === 0) {
 			out.push({
 				type: "Inbox",
-				prefix: "Open ",
-				label: __('Email Inbox'),
 				value: __("Open {0}", [__('Email Inbox')]),
 				index: me.fuzzy_search(keywords, 'email inbox'),
 				match: target,
@@ -261,8 +253,7 @@ frappe.search.utils = {
 				if(module._doctype) return;
 				ret = {
 					type: "Module",
-					prefix: "Open ",
-					label: me.bolden_match_part(__(item), keywords),
+					label: __("Open {0}", [me.bolden_match_part(__(item), keywords)]),
 					value: __("Open {0}", [__(item)]),
 					index: level,
 				}
@@ -575,6 +566,5 @@ frappe.search.utils = {
             return rendered;
         }
 
-    }
-
+    },
 }

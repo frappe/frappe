@@ -5,9 +5,9 @@ from __future__ import unicode_literals, absolute_import
 from six.moves import range
 import frappe
 import json
-from email.utils import formataddr, parseaddr
+from email.utils import formataddr
 from frappe.utils import (get_url, get_formatted_email, cint,
-	validate_email_add, split_emails, time_diff_in_seconds)
+	validate_email_add, split_emails, time_diff_in_seconds, parse_addr)
 from frappe.utils.file_manager import get_file
 from frappe.email.queue import check_email_limit
 from frappe.utils.scheduler import log
@@ -321,11 +321,11 @@ def get_cc(doc, recipients=None, fetched_from_email_account=False):
 		# exclude unfollows, recipients and unsubscribes
 		exclude = [] #added to remove account check
 		exclude += [d[0] for d in frappe.db.get_all("User", ["name"], {"thread_notify": 0}, as_list=True)]
-		exclude += [(parseaddr(email)[1] or "").lower() for email in recipients]
+		exclude += [(parse_addr(email)[1] or "").lower() for email in recipients]
 
 		if fetched_from_email_account:
 			# exclude sender when pulling email
-			exclude += [parseaddr(doc.sender)[1]]
+			exclude += [parse_addr(doc.sender)[1]]
 
 		if doc.reference_doctype and doc.reference_name:
 			exclude += [d[0] for d in frappe.db.get_all("Email Unsubscribe", ["email"],
@@ -356,7 +356,7 @@ def filter_email_list(doc, email_list, exclude, is_cc=False):
 	email_address_list = []
 
 	for email in list(set(email_list)):
-		email_address = (parseaddr(email)[1] or "").lower()
+		email_address = (parse_addr(email)[1] or "").lower()
 		if not email_address:
 			continue
 

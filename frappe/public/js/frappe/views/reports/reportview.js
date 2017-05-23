@@ -77,7 +77,8 @@ frappe.views.ReportView = frappe.ui.BaseList.extend({
 		this.add_totals_row = 0;
 		this.page = this.parent.page;
 		this._body = $('<div>').appendTo(this.page.main);
-		this.page_title = __('Report')+ ': ' + __(this.docname ? (this.doctype + ' - ' + this.docname) : this.doctype);
+		this.page_title = __('Report')+ ': ' + (this.docname ?  
+			__(this.doctype) + ' - ' + __(this.docname) : __(this.doctype));
 		this.page.set_title(this.page_title);
 		this.init_user_settings();
 		this.make({
@@ -723,7 +724,7 @@ frappe.views.ReportView = frappe.ui.BaseList.extend({
 					}
 					open_url_post(frappe.request.url, args);
 
-				}, __("Export Report: " + me.doctype), __("Download"));
+				}, __("Export Report: {0}",[__(me.doctype)]), __("Download"));
 
 		}, true);
 	},

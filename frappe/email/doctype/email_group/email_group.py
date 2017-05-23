@@ -7,7 +7,7 @@ import frappe
 from frappe import _
 from frappe.utils import validate_email_add
 from frappe.model.document import Document
-from email.utils import parseaddr
+from frappe.utils import parse_addr
 
 class EmailGroup(Document):
 	def onload(self):
@@ -26,7 +26,7 @@ class EmailGroup(Document):
 
 		for user in frappe.db.get_all(doctype, [email_field, unsubscribed_field or "name"]):
 			try:
-				email = parseaddr(user.get(email_field))[1]
+				email = parse_addr(user.get(email_field))[1]
 				if email:
 					frappe.get_doc({
 						"doctype": "Email Group Member",

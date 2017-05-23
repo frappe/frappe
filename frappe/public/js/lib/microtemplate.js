@@ -95,6 +95,11 @@ frappe.render_grid = function(opts) {
 		}
 	}
 
+	// show landscape view if columns more than 10
+	if(opts.columns.length > 10) {
+		opts.landscape = true;
+	}
+
 	// render content
 	if(!opts.content) {
 		opts.content = frappe.render_template("print_grid", opts);
@@ -106,6 +111,11 @@ frappe.render_grid = function(opts) {
 	var html = frappe.render_template("print_template", opts);
 
 	var w = window.open();
+
+	if(!w) {
+		frappe.msgprint(__("Please enable pop-ups in your browser"))
+	}
+
 	w.document.write(html);
 	w.document.close();
 }
