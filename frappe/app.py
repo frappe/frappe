@@ -122,6 +122,7 @@ def make_form_dict(request):
 		frappe.local.form_dict.pop("_")
 
 def handle_exception(e):
+	response = None
 	http_status_code = getattr(e, "http_status_code", 500)
 	return_as_message = False
 
