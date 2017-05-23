@@ -20,7 +20,7 @@ execute:frappe.reload_doc('core', 'doctype', 'version') #2017-04-01
 frappe.patches.v8_0.rename_page_role_to_has_role #2017-03-16
 frappe.patches.v7_2.setup_custom_perms #2017-01-19
 frappe.patches.v8_0.set_user_permission_for_page_and_report #2017-03-20
-execute:frappe.reload_doc('core', 'doctype', 'role')
+execute:frappe.reload_doc('core', 'doctype', 'role') #2017-05-23
 execute:frappe.reload_doc('core', 'doctype', 'user')
 execute:frappe.reload_doc('custom', 'doctype', 'custom_field') #2015-10-19
 execute:frappe.reload_doc('core', 'doctype', 'page') #2013-13-26
