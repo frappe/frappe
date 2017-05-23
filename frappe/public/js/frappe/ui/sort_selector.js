@@ -90,6 +90,7 @@ frappe.ui.SortSelector = Class.extend({
 	setup_from_doctype: function() {
 		var me = this;
 		var meta = frappe.get_meta(this.doctype);
+		if (!meta) return;
 
 		var { meta_sort_field, meta_sort_order } = this.get_meta_sort_field();
 
