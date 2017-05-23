@@ -22,8 +22,6 @@ class TestCommunication(unittest.TestCase):
 		'tes2', 'e', 'rrrrrrrr', 'manas','[[[sample]]]',
 		'[invalid!email].com']
 
-		print([frappe.utils.parse_addr(x) for x in valid_email_list + invalid_email_list])
-
 		for x in valid_email_list:
 			self.assertTrue(frappe.utils.parse_addr(x))
 
