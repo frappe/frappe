@@ -155,6 +155,14 @@ frappe.ui.SortSelector = Class.extend({
 	},
 	get_meta_sort_field: function() {
 		var meta = frappe.get_meta(this.doctype);
+
+		if (!meta) {
+			return {
+				meta_sort_field: null,
+				meta_sort_order: null
+			}
+		}
+
 		if(meta.sort_field && meta.sort_field.includes(',')) {
 			var parts = meta.sort_field.split(',')[0].split(' ');
 			return {
