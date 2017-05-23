@@ -102,7 +102,7 @@
 		<div class=" page-content col-sm-12 ">
 			<div class="page-content-wrapper">
 				<div class="row page-head">
-					<div class='col-sm-12'>
+					<div class='col-sm-12 hidden-xs'>
 						
 						<div class="page-breadcrumbs">
 							
@@ -135,7 +135,22 @@
 
 <p>Let us create a new site and call it <code>library</code>.</p>
 
-<p>You can install a new site, by the command <code>bench new-site library</code></p>
+<p><em>Note: Before you create any new site, you need to activate the Barracuda storage engine on your MariaDB installation.</em>
+<em>Copy the following default ERPNext database settings into your <code>my.cnf</code> file.</em></p>
+
+<pre><code>[mysqld]
+innodb-file-format=barracuda
+innodb-file-per-table=1
+innodb-large-prefix=1
+character-set-client-handshake = FALSE
+character-set-server = utf8mb4
+collation-server = utf8mb4_unicode_ci
+
+[mysql]
+default-character-set = utf8mb4
+</code></pre>
+
+<p>You can then install a new site, by the command <code>bench new-site library</code>.</p>
 
 <p>This will create a new database and site folder and install <code>frappe</code> (which is also an application!) in the new site. The <code>frappe</code> application has two built-in modules <strong>Core</strong> and <strong>Website</strong>. The Core module contains the basic models for the application. Frappe is a batteries included framework and comes with a lot of built-in models. These models are called <strong>DocTypes</strong>. More on that later.</p>
 
