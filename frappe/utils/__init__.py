@@ -464,11 +464,13 @@ def parse_addr(email_string):
 	"""
 	name, email = parseaddr(email_string)
 	if check_format(email):
+		name = clean_name(email_string, email, name)
 		return (name, email)
 	else:
 		email_regex = re.compile(r"([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)")
 		email_list = re.findall(email_regex, email_string)
 		if len(email_list) > 0 and check_format(email_list[0]):
+			name = clean_name(email_string, email_list[0], name)
 			#take only first email address
 			return (name, email_list[0])
 	return (None, email)
@@ -487,6 +489,11 @@ def check_format(email_id):
 		#print(e)
 		pass
 	return is_valid
+
+def clean_name(email_string, email_id, name):
+	name = email_string.replace(email_id, '')
+	name = re.sub('[^A-Za-z0-9 ]+', '', name).strip()
+	return name
 
 def get_installed_apps_info():
 	out = []
