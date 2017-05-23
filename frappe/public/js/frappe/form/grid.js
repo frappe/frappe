@@ -215,6 +215,8 @@ frappe.ui.form.Grid = Class.extend({
 		this.form_grid.toggleClass('error', !!(this.df.reqd && !(data && data.length)));
 
 		this.refresh_remove_rows_button();
+
+		this.wrapper.trigger('change');
 	},
 	setup_toolbar: function() {
 		if(this.is_editable()) {
@@ -669,9 +671,9 @@ frappe.ui.form.GridRow = Class.extend({
 			});
 
 		// no checkboxes if too small
-		if(this.is_too_small()) {
-			this.row_check_html = '';
-		}
+		// if(this.is_too_small()) {
+		// 	this.row_check_html = '';
+		// }
 
 		if(this.grid.template && !this.grid.meta.editable_grid) {
 			this.render_template();
@@ -816,12 +818,12 @@ frappe.ui.form.GridRow = Class.extend({
 	},
 
 	is_too_small: function() {
-		return this.row.width() < 300;
+		return this.row.width() ? this.row.width() < 300 : false;
 	},
 
 	add_open_form_button: function() {
 		var me = this;
-		if(this.doc) {
+		if(this.doc && !this.grid.df.in_place_edit) {
 			// remove row
 			if(!this.open_form_button) {
 				this.open_form_button = $('<a class="close btn-open-row">\
@@ -981,7 +983,6 @@ frappe.ui.form.GridRow = Class.extend({
 			}
 			field.$input.on('change', function(e) {
 				field.$input.trigger('blur');
-				console.log("field: ", field.get_value());
 				me.doc[df.fieldname] = field.get_value();
 				me.grid.set_value(df.fieldname, me.doc[df.fieldname], me.doc);
 			});
