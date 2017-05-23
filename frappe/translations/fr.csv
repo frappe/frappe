@@ -1447,7 +1447,7 @@ apps/frappe/frappe/model/naming.py +95,Invalid naming series (. missing),Série 
 apps/frappe/frappe/core/page/usage_info/usage_info.html +20,Current Users,Utilisateurs Actuels
 DocType: Language,Language,Langue
 apps/frappe/frappe/public/js/frappe/ui/filters/filter_dashboard_head.html +27,Numerically Descending,Numériquement Descendant
-apps/frappe/frappe/public/js/frappe/desk.js +16,Browser not supported,Le navigateur n&#39;est pas pris en charge
+apps/frappe/frappe/public/js/frappe/desk.js +16,Browser not supported,Navigateur non pris en charge
 apps/frappe/frappe/templates/pages/integrations/stripe_checkout.py +27,Some information is missing,Certaines informations sont manquantes
 DocType: Custom DocPerm,Cancel,Annuler
 apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +109,Add to Desktop,Ajouter au Bureau
@@ -2279,7 +2279,7 @@ apps/frappe/frappe/config/desk.py +38,Private and public Notes.,Remarques Privé
 DocType: DocField,Datetime,Date/Heure
 apps/frappe/frappe/templates/includes/login/login.js +174,Not a valid user,N’est pas un utilisateur valide
 DocType: Workflow State,arrow-right,flèche-droite
-apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +54,&gt; {0} year(s) ago,&gt; {0} année (s) depuis
+apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +54,&gt; {0} year(s) ago,&gt; {0} an(s)
 DocType: Workflow State,Workflow state represents the current state of a document.,L'état du flux de travail représente l'état actuel d'un document.
 apps/frappe/frappe/utils/oauth.py +221,Token is missing,Le Jeton est manquant
 apps/frappe/frappe/utils/file_manager.py +269,Removed {0},{0} Suprimé
@@ -2634,7 +2634,7 @@ DocType: DocField,Perm Level,Niveau d'Autorisation
 apps/frappe/frappe/desk/doctype/event/event.py +54,Events In Today's Calendar,Événements dans le Calendrier d'Aujourd'hui
 DocType: Web Page,Web Page,Page Web
 DocType: Blog Category,Blogger,Blogueur
-apps/frappe/frappe/core/doctype/doctype/doctype.py +425,'In Global Search' not allowed for type {0} in row {1},&#39;In Global Search&#39; n&#39;est pas autorisé pour le type {0} dans la ligne {1}
+apps/frappe/frappe/core/doctype/doctype/doctype.py +425,'In Global Search' not allowed for type {0} in row {1},'Dans la Recherche Globale' n'est pas autorisé pour le type {0} dans la ligne {1}
 apps/frappe/frappe/public/js/frappe/views/treeview.js +297,View List,Voir La Liste
 apps/frappe/frappe/public/js/frappe/form/control.js +685,Date must be in format: {0},Les Dates doivent être au format: {0}
 DocType: Workflow,Don't Override Status,Ne pas Remplacer le Statut

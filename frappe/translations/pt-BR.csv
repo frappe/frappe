@@ -302,7 +302,6 @@ DocType: Website Theme,Google Font (Text),Google Font (Texto)
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +31,{0} already unsubscribed for {1} {2},{0} já teve sua sua inscrição cancelada para {1} {2}
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +327,Did not remove,Não removido
 apps/frappe/frappe/desk/like.py +89,Liked,Gostou
-apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.js +33,Send Now,Enviar agora
 apps/frappe/frappe/core/doctype/doctype/doctype.py +421,'In List View' not allowed for type {0} in row {1},'Visualização em Lista' não pode ser utilizado para o tipo {0} na linha {1}
 DocType: Custom Field,Select the label after which you want to insert new field.,Selecione a etiqueta após a qual você deseja inserir um novo campo.
 ,Document Share Report,Relatório de Documentos Compartilhados
@@ -1538,7 +1537,6 @@ DocType: System Settings,Number Format,Formato de número
 DocType: Custom Field,Insert After,Inserir Após
 DocType: Social Login Keys,GitHub Client Secret,GitHub Cliente Secreto
 DocType: Desktop Icon,Reverse Icon Color,Inverta Ícone Cor
-DocType: Email Alert,Save,Salvar
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +405,Section Heading,Cabeçalho da Seção
 DocType: Website Settings,Title Prefix,Prefixo do Título
 DocType: Email Account,Notifications and bulk mails will be sent from this outgoing server.,Notificações e emails em massa serão enviados por este servidor de saída.

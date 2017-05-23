@@ -532,7 +532,7 @@ DocType: DocType,MyISAM,MyISAM
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +31,{0} already unsubscribed for {1} {2},{0} já foi cancelado por {1} {2}
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +327,Did not remove,Não removeu
 apps/frappe/frappe/desk/like.py +89,Liked,Curtido
-apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.js +33,Send Now,Nu verzenden
+apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.js +33,Send Now,Enviar agora
 apps/frappe/frappe/core/doctype/doctype/doctype.py +72,"Standard DocType cannot have default print format, use Customize Form","DocType padrão não pode ter o formato de impressão padrão, use Personalizar formulário"
 DocType: Report,Query,Consulta
 DocType: DocType,Sort Order,Ordem de classificação
@@ -1898,7 +1898,7 @@ DocType: Email Flag Queue,Unread,Não lida
 DocType: Bulk Update,Desk,Secretária
 apps/frappe/frappe/core/doctype/report/report.js +8,Write a SELECT query. Note result is not paged (all data is sent in one go).,Escreva uma consulta SELECT. Nota resultado não é paginada (todos os dados são enviados de uma só vez).
 DocType: Email Account,Attachment Limit (MB),Limite de Anexo (MB)
-apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +129,Setup Auto Email,Setup Auto Email
+apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +129,Setup Auto Email,Configure email automático
 apps/frappe/frappe/public/js/frappe/form/templates/grid_form.html +25,Ctrl + Down,Ctrl + Para Baixo
 apps/frappe/frappe/utils/password_strength.py +147,This is a top-10 common password.,Esta é uma senha comum top-10.
 DocType: User,User Defaults,Padrões de Perfil
@@ -2311,8 +2311,8 @@ apps/frappe/frappe/config/desk.py +38,Private and public Notes.,Notas Privadas e
 DocType: DocField,Datetime,Data e Hora
 apps/frappe/frappe/templates/includes/login/login.js +174,Not a valid user,Não é um utilizador válido
 DocType: Workflow State,arrow-right,seta-para-a-direita
-apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +54,&gt; {0} year(s) ago,&gt; {0} ano (s) atrás
-apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +54,&gt; {0} year(s) ago,&gt; {0} ano (s) atrás
+apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +54,&gt; {0} year(s) ago,&gt; {0} ano(s) atrás
+apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +54,&gt; {0} year(s) ago,&gt; {0} ano(s) atrás
 DocType: Workflow State,Workflow state represents the current state of a document.,Estado de fluxo de trabalho representa o estado atual de um documento.
 apps/frappe/frappe/utils/oauth.py +221,Token is missing,Token está ausente
 apps/frappe/frappe/utils/file_manager.py +269,Removed {0},{0} Foi Removido
@@ -2783,7 +2783,7 @@ DocType: Custom Field,Insert After,Inserir Depois
 DocType: Social Login Keys,GitHub Client Secret,Senha de Cliente GitHub
 DocType: Report,Report Name,Nome do Relatório
 DocType: Desktop Icon,Reverse Icon Color,Inverter Cor de Ícone
-DocType: Email Alert,Save,salvar
+DocType: Email Alert,Save,Salvar
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +405,Section Heading,cabeçalho da seção
 DocType: Website Settings,Title Prefix,Prefixo título
 DocType: Email Account,Notifications and bulk mails will be sent from this outgoing server.,As notificações e emails em massa serão enviadas a partir deste servidor de saída.
