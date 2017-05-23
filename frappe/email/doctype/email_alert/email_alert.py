@@ -200,6 +200,7 @@ def trigger_email_alerts(doc, method=None):
 			alert = frappe.get_doc("Email Alert", alert)
 			for doc in alert.get_documents_for_today():
 				evaluate_alert(doc, alert, alert.event)
+				frappe.db.commit()
 
 def evaluate_alert(doc, alert, event):
 	from jinja2 import TemplateError
