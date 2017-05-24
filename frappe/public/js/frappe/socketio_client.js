@@ -200,7 +200,7 @@ frappe.socket = {
 			return;
 		}
 
-		var port = '6787';
+		var port = frappe.boot.file_watcher_port || 6787;
 		var parts = host.split(":");
 		// remove the port number from string if exists
 		if (parts.length > 2) {

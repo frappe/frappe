@@ -3,23 +3,22 @@ const fs = require('fs');
 const babel = require('babel-core');
 const less = require('less');
 const chokidar = require('chokidar');
+const path_join = path.resolve;
 
 // for file watcher
 const app = require('express')();
 const http = require('http').Server(app);
 const io = require('socket.io')(http);
-const file_watcher_port = 6787;
-
-const p = path.resolve;
 
 // basic setup
-const sites_path = p(__dirname, '..', '..', '..', 'sites');
-const apps_path = p(__dirname, '..', '..', '..', 'apps'); // the apps folder
-const apps_contents = fs.readFileSync(p(sites_path, 'apps.txt'), 'utf8');
+const sites_path = path_join(__dirname, '..', '..', '..', 'sites');
+const apps_path = path_join(__dirname, '..', '..', '..', 'apps'); // the apps folder
+const apps_contents = fs.readFileSync(path_join(sites_path, 'apps.txt'), 'utf8');
 const apps = apps_contents.split('\n');
-const app_paths = apps.map(app => p(apps_path, app, app)) // base_path of each app
-const assets_path = p(sites_path, 'assets');
+const app_paths = apps.map(app => path_join(apps_path, app, app)) // base_path of each app
+const assets_path = path_join(sites_path, 'assets');
 const build_map = make_build_map();
+const file_watcher_port = get_conf().file_watcher_port;
 
 // command line args
 const action = process.argv[2] || '--build';
@@ -107,7 +106,7 @@ function pack(output_path, inputs, minify) {
 		output_txt = output_txt.replace(/['"]use strict['"];/, '');
 	}
 
-	const target = p(assets_path, output_path);
+	const target = path_join(assets_path, output_path);
 
 	try {
 		fs.writeFileSync(target, output_txt);
@@ -151,7 +150,7 @@ function minify_js(content, path) {
 function make_build_map() {
 	const build_map = {};
 	for (const app_path of app_paths) {
-		const build_json_path = p(app_path, 'public', 'build.json');
+		const build_json_path = path_join(app_path, 'public', 'build.json');
 		if (!fs.existsSync(build_json_path)) continue;
 
 		let build_json = fs.readFileSync(build_json_path);
@@ -167,7 +166,7 @@ function make_build_map() {
 
 			const new_sources = [];
 			for (const source of sources) {
-				const s = p(app_path, source);
+				const s = path_join(app_path, source);
 				new_sources.push(s);
 			}
 
@@ -186,8 +185,8 @@ function compile_less() {
 	return new Promise(function (resolve) {
 		const promises = [];
 		for (const app_path of app_paths) {
-			const public_path = p(app_path, 'public');
-			const less_path = p(public_path, 'less');
+			const public_path = path_join(app_path, 'public');
+			const less_path = path_join(public_path, 'less');
 			if (!fs.existsSync(less_path)) continue;
 
 			const files = fs.readdirSync(less_path);
@@ -205,7 +204,7 @@ function compile_less() {
 }
 
 function compile_less_file(file, less_path, public_path) {
-	const file_content = fs.readFileSync(p(less_path, file), 'utf8');
+	const file_content = fs.readFileSync(path_join(less_path, file), 'utf8');
 	const output_file = file.split('.')[0] + '.css';
 	console.log('compiling', file);
 
@@ -214,7 +213,7 @@ function compile_less_file(file, less_path, public_path) {
 		filename: file,
 		sourceMap: false
 	}).then(output => {
-		const out_css = p(public_path, 'css', output_file);
+		const out_css = path_join(public_path, 'css', output_file);
 		fs.writeFileSync(out_css, output.css);
 		return out_css;
 	}).catch(e => {
@@ -224,7 +223,7 @@ function compile_less_file(file, less_path, public_path) {
 }
 
 function watch_less(ondirty) {
-	const less_paths = app_paths.map(path => p(path, 'public', 'less'));
+	const less_paths = app_paths.map(path => path_join(path, 'public', 'less'));
 
 	const to_watch = [];
 	for (const less_path of less_paths) {
@@ -235,7 +234,7 @@ function watch_less(ondirty) {
 		console.log(filename, 'dirty');
 		var last_index = filename.lastIndexOf('/');
 		const less_path = filename.slice(0, last_index);
-		const public_path = p(less_path, '..');
+		const public_path = path_join(less_path, '..');
 		filename = filename.split('/').pop();
 
 		compile_less_file(filename, less_path, public_path)
@@ -254,7 +253,7 @@ function watch_less(ondirty) {
 }
 
 function watch_js(ondirty) {
-	const js_paths = app_paths.map(path => p(path, 'public', 'js'));
+	const js_paths = app_paths.map(path => path_join(path, 'public', 'js'));
 
 	const to_watch = [];
 	for (const js_path of js_paths) {
@@ -265,7 +264,7 @@ function watch_js(ondirty) {
 		console.log(filename, 'dirty');
 		var last_index = filename.lastIndexOf('/');
 		const js_path = filename.slice(0, last_index);
-		const public_path = p(js_path, '..');
+		const public_path = path_join(js_path, '..');
 
 		// build the target js file for which this js/html file is input
 		for (const target in build_map) {
@@ -300,4 +299,24 @@ function get_file_size(filepath) {
 	// convert it to humanly readable format.
 	const i = Math.floor(Math.log(size) / Math.log(1024));
 	return (size / Math.pow(1024, i)).toFixed(2) * 1 + ' ' + ['B', 'KB', 'MB', 'GB', 'TB'][i];
+}
+
+function get_conf() {
+	// defaults
+	var conf = {
+		file_watcher_port: 6787
+	};
+
+	var read_config = function(path) {
+		if (!fs.existsSync(path)) return;
+		var bench_config = JSON.parse(fs.readFileSync(path));
+		for (var key in bench_config) {
+			if (bench_config[key]) {
+				conf[key] = bench_config[key];
+			}
+		}
+	}
+
+	read_config(path_join(sites_path, 'common_site_config.json'));
+	return conf;
 }
