@@ -18,7 +18,7 @@ const apps = apps_contents.split('\n');
 const app_paths = apps.map(app => path_join(apps_path, app, app)) // base_path of each app
 const assets_path = path_join(sites_path, 'assets');
 const build_map = make_build_map();
-const { file_watcher_port } = get_conf();
+const file_watcher_port = get_conf().file_watcher_port;
 
 // command line args
 const action = process.argv[2] || '--build';
