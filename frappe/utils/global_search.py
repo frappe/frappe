@@ -104,11 +104,15 @@ def rebuild_for_doctype(doctype):
 			# if doctype published in website, push title, route etc.
 			published = 0
 			title, route = "", ""
-			if hasattr(get_controller(doctype), "is_website_published") and meta.allow_guest_to_view:
-				d = frappe.get_doc(doctype, doc.name)
-				published = 1 if d.is_website_published() else 0
-				title = d.get_title()
-				route = d.get("route")
+			try:
+				if hasattr(get_controller(doctype), "is_website_published") and meta.allow_guest_to_view:
+					d = frappe.get_doc(doctype, doc.name)
+					published = 1 if d.is_website_published() else 0
+					title = d.get_title()
+					route = d.get("route")
+			except ImportError:
+				# some doctypes has been deleted via future patch, hence controller does not exists
+				pass
 
 			all_contents.append({
 				"doctype": frappe.db.escape(doctype),
