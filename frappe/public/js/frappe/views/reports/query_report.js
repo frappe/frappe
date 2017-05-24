@@ -821,7 +821,7 @@ frappe.views.QueryReport = Class.extend({
 			options:"Excel\nCSV", default:"Excel", reqd: 1},
 			function(data) {
 				var view_data = frappe.slickgrid_tools.get_view_data(me.columns, me.dataView);
-				var result = view_data.map(row => [row.splice(1)]);
+				var result = view_data.map(row => row.splice(1));
 
 				// rows filtered by inline_filter of slickgrid
 				var visible_idx = view_data.map(row => row[0]).filter(sr_no => sr_no !== 'Sr No');
