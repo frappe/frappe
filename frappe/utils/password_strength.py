@@ -132,7 +132,9 @@ def get_match_feedback(match, is_sole_match):
 		"date": fun_date,
 		"year": fun_date
 	}
-	return(patterns[match['pattern']]())
+	pattern_fn = patterns.get(match['pattern'])
+	if pattern_fn:
+		return(pattern_fn())
 
 def get_dictionary_match_feedback(match, is_sole_match):
 	"""
