@@ -32,7 +32,7 @@ frappe.pages['activity'].on_page_load = function(wrapper) {
 			},
 			show_filters: true,
 			doctype: "Communication",
- 			get_args: function() {
+			get_args: function() {
 				if (frappe.route_options && frappe.route_options.show_likes) {
 					delete frappe.route_options.show_likes;
 					return {

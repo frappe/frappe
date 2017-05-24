@@ -1,13 +1,15 @@
 {
 	"env": {
 		"browser": true,
+		"node": true,
 		"es6": true
 	},
 	"extends": "eslint:recommended",
 	"rules": {
 		"indent": [
 			"error",
-			"tab"
+			"tab",
+			{ "SwitchCase": 1 }
 		],
 		"linebreak-style": [
 			"error",
@@ -27,9 +29,16 @@
 			"warn"
 		],
 		"no-console": [
+			"warn"
+		],
+		"no-extra-boolean-cast": [
+			"off"
+		],
+		"no-control-regex": [
 			"off"
 		]
 	},
+	"root": true,
 	"globals": {
 		"frappe": true,
 		"$": true,
@@ -86,7 +95,9 @@
 		"CANCEL": true,
 		"copy_dict": true,
 		"get_number_format_info": true,
-		
+		"print_table": true,
+		"Layout": true,
+		"web_form_settings": true,
 		"$c": true,
 		"$a": true,
 		"$i": true,
@@ -99,6 +110,10 @@
 		"get_field_obj": true,
 		"get_query_params": true,
 		"unhide_field": true,
-		"hide_field": true
+		"hide_field": true,
+		"set_field_options": true,
+		"getCookie": true,
+		"getCookies": true,
+		"get_url_arg": true
 	}
 }

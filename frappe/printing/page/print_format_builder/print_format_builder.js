@@ -622,7 +622,7 @@ frappe.PrintFormatBuilder = Class.extend({
 			$.each(doc_fields, function(j, f) {
 				if (f && !in_list(column_names, f.fieldname)
 					&& !in_list(["Section Break", "Column Break"], f.fieldtype) && f.label) {
-						fields.push(f);
+					fields.push(f);
 				}
 			})
 			// render checkboxes
@@ -683,23 +683,23 @@ frappe.PrintFormatBuilder = Class.extend({
 	get_edit_html_dialog: function(title, label, $content) {
 		var me = this;
 		var d = new frappe.ui.Dialog({
-				title: title,
-				fields: [
-					{
-						fieldname: "content",
-						fieldtype: "Code",
-						label: label
-					},
-					{
-						fieldname: "help",
-						fieldtype: "HTML",
-						options: '<p>'
-							+ __("You can add dynamic properties from the document by using Jinja templating.")
-							+ __("For example: If you want to include the document ID, use {0}", ["<code>{{ doc.name }}</code>"])
-						+ '</p>'
-					}
-				]
-			});
+			title: title,
+			fields: [
+				{
+					fieldname: "content",
+					fieldtype: "Code",
+					label: label
+				},
+				{
+					fieldname: "help",
+					fieldtype: "HTML",
+					options: '<p>'
+						+ __("You can add dynamic properties from the document by using Jinja templating.")
+						+ __("For example: If you want to include the document ID, use {0}", ["<code>{{ doc.name }}</code>"])
+					+ '</p>'
+				}
+			]
+		});
 
 		// set existing content in input
 		var content = $content.data('content') || "";
@@ -791,4 +791,4 @@ frappe.PrintFormatBuilder = Class.extend({
 			}
 		});
 	}
- });
+});

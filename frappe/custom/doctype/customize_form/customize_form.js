@@ -14,8 +14,8 @@ frappe.ui.form.on("Customize Form", {
 					['DocType', 'issingle', '=', 0],
 					['DocType', 'custom', '=', 0],
 					['DocType', 'name', 'not in', 'DocType, DocField, DocPerm, User, Role, Has Role, \
-						 Page, Has Role, Module Def, Print Format, Report, Customize Form, \
-						 Customize Form Field']
+						Page, Has Role, Module Def, Print Format, Report, Customize Form, \
+						Customize Form Field']
 				]
 			};
 		});
@@ -262,7 +262,7 @@ frappe.customize_form.add_fields_help = function(frm) {
 					<td>\
 						Show field if a condition is met<br />\
 						Example: <code>eval:doc.status=='Cancelled'</code>\
-						 on a field like \"reason_for_cancellation\" will reveal \
+						on a field like \"reason_for_cancellation\" will reveal \
 						\"Reason for Cancellation\" only if the record is Cancelled.\
 					</td>\
 				</tr>\

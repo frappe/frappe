@@ -4,8 +4,8 @@
 frappe.ui.form.on("Event", {
 	onload: function(frm) {
 		frm.set_query("ref_type", function(txt) {
-	        return {
-	            "filters": {
+			return {
+				"filters": {
 					"issingle": 0,
 				}
 			};
@@ -20,8 +20,8 @@ frappe.ui.form.on("Event", {
 	},
 	repeat_on: function(frm) {
 		if(frm.doc.repeat_on==="Every Day") {
-			$.each(["monday", "tuesday", "wednesday", "thursday", "friday",
-				"saturday", "sunday"], function(i,v) {
+			["monday", "tuesday", "wednesday", "thursday",
+				"friday", "saturday", "sunday"].map(function(v) {
 					frm.set_value(v, 1);
 				});
 		}

@@ -435,14 +435,14 @@ frappe.ui.form.Grid = Class.extend({
 				else {
 					var colsize = 2;
 					switch(df.fieldtype) {
-					case "Text":
-					case "Small Text": colsize = 3; break;
-					case"Check": colsize = 1
+						case "Text":
+						case "Small Text": colsize = 3; break;
+						case"Check": colsize = 1;
 					}
-					df.colsize = colsize
+					df.colsize = colsize;
 				}
 
-				total_colsize += df.colsize
+				total_colsize += df.colsize;
 				if(total_colsize > 11)
 					return false;
 				this.visible_columns.push([df, df.colsize]);

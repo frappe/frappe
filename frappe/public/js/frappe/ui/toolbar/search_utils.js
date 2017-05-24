@@ -533,7 +533,6 @@ frappe.search.utils = {
 
 	bolden_match_part: function(str, subseq) {
 		var rendered = "";
-<<<<<<< HEAD
 		if(this.fuzzy_search(subseq, str) === 0) {
 			return str;
 		} else if(this.fuzzy_search(subseq, str) > 6) {
@@ -569,45 +568,3 @@ frappe.search.utils = {
 
 	},
 }
-=======
-		if(this.fuzzy_search(subseq, str) === 0) {
-			return str;
-		} else if(this.fuzzy_search(subseq, str) > 6) {
-			var regEx = new RegExp("("+ subseq +")", "ig");
-			return str.replace(regEx, '<b>$1</b>');
-		} else {
-			var str_orig = str;
-			var str = str.toLowerCase();
-			var str_len = str.length;
-			var subseq = subseq.toLowerCase();
-
-			outer: for(var i = 0, j = 0; i < subseq.length; i++) {
-				var sub_ch = subseq.charCodeAt(i);
-				while(j < str_len) {
-					if(str.charCodeAt(j) === sub_ch) {
-						var str_char = str_orig.charAt(j);
-						if(str_char === str_char.toLowerCase()) {
-							rendered += '<b>' + subseq.charAt(i) + '</b>';
-						} else {
-							rendered += '<b>' + subseq.charAt(i).toUpperCase() + '</b>';
-						}
-						j++;
-						continue outer;
-					}
-					rendered += str_orig.charAt(j);
-					j++;
-				}
-				return str_orig;
-			}
-			rendered += str_orig.slice(j);
-			return rendered;
-		}
-
-	},
-
-	unscrub_and_titlecase: function(str) {
-		return __(str || '').replace(/-|_/g, " ").replace(/\w*/g,
-			function(keywords){return keywords.charAt(0).toUpperCase() + keywords.substr(1).toLowerCase();});
-	},
-}
->>>>>>> Remove all implicit global variables

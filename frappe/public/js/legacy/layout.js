@@ -43,6 +43,7 @@ Layout.prototype.addcell = function(width) {
 	return this.cur_row.addCell(width);
 }
 
+// eslint-disable-next-line
 Layout.prototype.setcolour = function(col) { $bg(cc,col); }
 
 Layout.prototype.show = function() { $(this.wrapper).toggle(false); }

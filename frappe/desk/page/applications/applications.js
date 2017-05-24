@@ -21,7 +21,7 @@ frappe.applications.Installer = Class.extend({
 				me.make_page();
 
 				// no apps
-				if(!keys(apps).length) {
+				if(!Object.keys(apps).length) {
 					me.wrapper.html('<div class="text-muted app-listing padding">' + __("No Apps Installed") + '</div>');
 					return;
 				}

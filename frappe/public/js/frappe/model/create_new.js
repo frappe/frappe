@@ -335,7 +335,4 @@ frappe.new_doc = function (doctype, opts) {
 	});
 }
 
-// globals for backward compatibility
-window.new_doc = frappe.new_doc;
-
 

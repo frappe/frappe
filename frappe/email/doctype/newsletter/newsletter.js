@@ -1,5 +1,6 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // License: GNU General Public License v3. See license.txt
+/* globals erpnext */
 
 cur_frm.cscript.refresh = function(doc) {
 	if(window.erpnext) erpnext.toggle_naming_series();

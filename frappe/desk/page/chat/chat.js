@@ -220,7 +220,7 @@ frappe.Chat = Class.extend({
 		if(data.owner==data.reference_name
 			&& data.communication_type!=="Notification"
 			&& data.comment_type!=="Bot") {
-				data.is_public = true;
+			data.is_public = true;
 		}
 
 		if(data.owner==data.reference_name && data.communication_type !== "Bot") {

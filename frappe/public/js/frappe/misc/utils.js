@@ -462,7 +462,7 @@ frappe.utils = {
 
 		// Keep looping over the regular expression matches
 		// until we can no longer find a match.
-		while (arrMatches = objPattern.exec( strData )){
+		while ((arrMatches = objPattern.exec( strData ))){
 
 			// Get the delimiter that was found.
 			var strMatchedDelimiter = arrMatches[ 1 ];

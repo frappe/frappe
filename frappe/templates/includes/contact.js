@@ -14,10 +14,10 @@ frappe.ready(function() {
 		}
 
 		if(!validate_email(email)) {
-				frappe.msgprint(__("You seem to have written your name instead of your email. \
-					Please enter a valid email address so that we can get back."));
-				$('[name="email"]').focus();
-				return false;
+			frappe.msgprint(__("You seem to have written your name instead of your email. \
+				Please enter a valid email address so that we can get back."));
+			$('[name="email"]').focus();
+			return false;
 		}
 
 		$("#contact-alert").toggle(false);
@@ -35,7 +35,7 @@ frappe.ready(function() {
 				$(':input').val('');
 			}
 		}, this);
-	return false;
+		return false;
 	});
 
 });

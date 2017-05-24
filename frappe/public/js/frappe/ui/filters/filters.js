@@ -856,14 +856,14 @@ frappe.ui.FieldSelect = Class.extend({
 			var label = __(df.label) + ' (' + __(df.parent) + ')';
 			var table = df.parent;
 		}
-		if(frappe.model.no_value_type.indexOf(df.fieldtype)==-1 &&
+		if(frappe.model.no_value_type.indexOf(df.fieldtype) == -1 &&
 			!(me.fields_by_name[df.parent] && me.fields_by_name[df.parent][df.fieldname])) {
-				this.options.push({
-					label: label,
-					value: table + "." + df.fieldname,
-					fieldname: df.fieldname,
-					doctype: df.parent
-				})
+			this.options.push({
+				label: label,
+				value: table + "." + df.fieldname,
+				fieldname: df.fieldname,
+				doctype: df.parent
+			});
 			if(!me.fields_by_name[df.parent]) me.fields_by_name[df.parent] = {};
 			me.fields_by_name[df.parent][df.fieldname] = df;
 		}
