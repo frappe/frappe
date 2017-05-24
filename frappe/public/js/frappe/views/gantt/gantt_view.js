@@ -137,7 +137,7 @@ frappe.views.GanttView = frappe.views.ListRenderer.extend({
 				var label = item[field_map.title];
 			}
 
-			r = {
+			var r = {
 				start: item[field_map.start],
 				end: item[field_map.end],
 				name: label,
