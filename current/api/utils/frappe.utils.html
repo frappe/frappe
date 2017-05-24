@@ -167,6 +167,25 @@
     
     
 	<p class="docs-attr-name">
+        <a name="frappe.utils.check_format" href="#frappe.utils.check_format" class="text-muted small">
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
+		frappe.utils.<b>check_format</b>
+        <i class="text-muted">(email_id)</i>
+    </p>
+	<div class="docs-attr-desc"><pre><code>Check if email_id is valid. valid email:text@example.com
+String check ensures that email_id contains both '.' and 
+'@' and index of '@' is less than '.'
+</code></pre>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
         <a name="frappe.utils.decode_dict" href="#frappe.utils.decode_dict" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		frappe.utils.<b>decode_dict</b>
@@ -727,6 +746,24 @@
         <i class="text-muted">(text, sanitize=True, linkify=True)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.utils.parse_addr" href="#frappe.utils.parse_addr" class="text-muted small">
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
+		frappe.utils.<b>parse_addr</b>
+        <i class="text-muted">(email_string)</i>
+    </p>
+	<div class="docs-attr-desc"><pre><code>Return email_id and user_name based on email string
+Raise error if email string is not valid
+</code></pre>
 </div>
 	<br>
 
