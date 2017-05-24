@@ -693,7 +693,7 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 			});
 
 			if (invalid_docs.length >= 1) {
-				frappe.msgprint('You selected Draft or Cancelled documents')
+				frappe.msgprint(__('You selected Draft or Cancelled documents'))
 				return;
 			}
 
