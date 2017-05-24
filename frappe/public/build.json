@@ -214,7 +214,8 @@
 		"public/css/list.css",
 		"public/css/calendar.css",
 		"public/css/role_editor.css",
-		"public/css/filter_dashboard.css"
+		"public/css/filter_dashboard.css",
+		"public/css/gantt.css"
 	],
 	"js/list.min.js": [
 		"public/js/frappe/ui/listing.html",
