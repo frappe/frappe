@@ -470,9 +470,10 @@ def parse_addr(email_string):
 		email_regex = re.compile(r"([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)")
 		email_list = re.findall(email_regex, email_string)
 		if len(email_list) > 0 and check_format(email_list[0]):
-			name = get_name_from_email_string(email_string, email_list[0], name)
 			#take only first email address
-			return (name, email_list[0])
+			email = email_list[0]
+			name = get_name_from_email_string(email_string, email, name)
+			return (name, email)
 	return (None, email)
 
 def check_format(email_id):
