@@ -141,7 +141,7 @@ frappe.UserPermissions = Class.extend({
 				primary_action: function() {
 					var filedata = d.fields_dict.attach.get_value();
 					if(!filedata) {
-						msgprint(_("Please attach a file"));
+						msgprint(__("Please attach a file"));
 						return;
 					}
 					frappe.call({

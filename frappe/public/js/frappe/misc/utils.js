@@ -515,7 +515,7 @@ frappe.utils = {
     },
 
 	warn_page_name_change: function(frm) {
-		frappe.msgprint("Note: Changing the Page Name will break previous URL to this page.");
+		frappe.msgprint(__("Note: Changing the Page Name will break previous URL to this page."));
 	},
 
 	notify: function(subject, body, route, onclick) {
