@@ -279,7 +279,7 @@ _f.Frm.prototype.set_value = function(field, value, if_missing) {
 				}
 			}
 		} else {
-			msgprint(__("Field ") + f + __(" not found."));
+			frappe.msgprint(__("Field {0} not found.", [f]));
 			throw "frm.set_value";
 		}
 	}
