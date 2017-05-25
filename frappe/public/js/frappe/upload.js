@@ -262,7 +262,7 @@ frappe.upload = {
 		var freader = new FileReader();
 
 		freader.onload = function() {
-			args.filename = fileobj.name;
+			args.filename = fileobj.name.split(' ').join('_');
 			if(opts.options && opts.options.toLowerCase()=="image") {
 				if(!frappe.utils.is_image_file(args.filename)) {
 					msgprint(__("Only image extensions (.gif, .jpg, .jpeg, .tiff, .png, .svg) allowed"));
