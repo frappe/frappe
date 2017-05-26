@@ -198,7 +198,9 @@ frappe.upload = {
 				i += 1;
 				var file = files[i];
 				args.is_private = file.is_private;
-				frappe.show_progress(__('Uploading'), i+1, files.length);
+				if(!opts.progress) {
+					frappe.show_progress(__('Uploading'), i+1, files.length);
+				}
 			}
 			frappe.upload.upload_file(file, args, opts);
 		}
