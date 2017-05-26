@@ -215,6 +215,8 @@ frappe.views.QueryReport = Class.extend({
 			return false;
 		}
 
+		var orientation = this.print_settings.orientation;
+		var landscape = orientation == "Landscape" ? true: false
 		if(this.html_format) {
 			var content = frappe.render(this.html_format,
 				{data: frappe.slickgrid_tools.get_filtered_items(this.dataView), filters:this.get_values(), report:this});
@@ -225,7 +227,8 @@ frappe.views.QueryReport = Class.extend({
 					title:__(this.report_name),
 					base_url: base_url,
 					print_css: print_css,
-					print_settings: this.print_settings
+					print_settings: this.print_settings,
+					landscape: landscape
 				});
 		} else {
 			// rows filtered by inline_filter of slickgrid
@@ -249,7 +252,8 @@ frappe.views.QueryReport = Class.extend({
 				title:__(this.report_name),
 				base_url: base_url,
 				print_css: print_css,
-				print_settings: this.print_settings
+				print_settings: this.print_settings,
+				landscape: landscape
 			});
 		}
 
