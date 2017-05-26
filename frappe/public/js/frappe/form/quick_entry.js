@@ -1,27 +1,31 @@
 frappe.provide('frappe.ui.form');
 
-frappe.ui.form.quick_entry = function(doctype, success) {
+frappe.ui.form.quick_entry = function(doctype, success, fields_map={}) {
 	frappe.model.with_doctype(doctype, function() {
-		var mandatory = $.map(frappe.get_meta(doctype).fields,
-			function(d) { return (d.reqd || d.bold && !d.read_only) ? d : null });
-		var meta = frappe.get_meta(doctype);
+		var mandatory = [];
 
+		if (!fields_map == {}) {
+			$.each(fields_map, function(k,v) {
+				doc_field = frappe.meta.get_docfield(doctype, k)
+				mandatory.push(doc_field);
+			});
+		} else {
+			mandatory = $.map(frappe.get_meta(doctype).fields,
+			function(d) { return (d.reqd || d.bold && !d.read_only) ? d : null });
+		}
+
+		var meta = frappe.get_meta(doctype);
 		var doc = frappe.model.get_new_doc(doctype, null, null, true);
 
-		if(meta.quick_entry != 1) {
-			frappe.set_route('Form', doctype, doc.name);
-			return;
-		}
+		if(meta.quick_entry != 1 || mandatory.length > 7 || $.map(mandatory, function(d) { return d.fieldtype==='Table' ? d : null }).length) {
+			var d = frappe.model.make_new_doc_and_get_name(doctype);
+			d = locals[doctype][d];
 
-		if(mandatory.length > 7) {
-			// too many fields, show form
-			frappe.set_route('Form', doctype, doc.name);
-			return;
-		}
+			$.each(fields_map, function(fieldname, fieldvalue) {
+				d[fieldname] = fieldvalue;
+			});
 
-		if($.map(mandatory, function(d) { return d.fieldtype==='Table' ? d : null }).length) {
-			// has mandatory table, quit!
-			frappe.set_route('Form', doctype, doc.name);
+			frappe.set_route('Form', doctype, d.name);
 			return;
 		}
 
@@ -115,15 +119,20 @@ frappe.ui.form.quick_entry = function(doctype, success) {
 
 		dialog.show();
 
-		// set defaults
-		$.each(dialog.fields_dict, function(fieldname, field) {
-			field.doctype = doc.doctype;
-			field.docname = doc.name;
-
-			if(!is_null(doc[fieldname])) {
-				field.set_input(doc[fieldname]);
-			}
-		});
-
+		//Set value and visibility if field map exists.
+		if (fields_map != {}) {
+			$.each(dialog.fields_dict, function(fieldname, field) {
+				field.set_input(fields_map[fieldname]);
+			});
+		} else {
+			// set defaults
+			$.each(dialog.fields_dict, function(fieldname, field) {
+				field.doctype = doc.doctype;
+				field.docname = doc.name;
+				if(!is_null(doc[fieldname])) {
+					field.set_input(doc[fieldname]);
+				}
+			});
+		}
 	});
 }
