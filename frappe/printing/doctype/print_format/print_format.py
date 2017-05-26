@@ -77,4 +77,7 @@ def make_default(name):
 			'value': name,
 		})
 
-	frappe.msgprint(frappe._("Done"))
+	frappe.msgprint(frappe._("{0} is now default print format for {1} doctype").format(
+		frappe.bold(name),
+		frappe.bold(print_format.doc_type)
+	))

@@ -208,8 +208,8 @@ $.extend(frappe.meta, {
 		});
 
 		if(default_print_format && default_print_format != "Standard") {
-			var index = print_format_list.indexOf(default_print_format) - 1;
-			print_format_list.sort().splice(index, 1);
+			var index = print_format_list.indexOf(default_print_format);
+			print_format_list.splice(index, 1).sort();
 			print_format_list.unshift(default_print_format);
 		}
 
