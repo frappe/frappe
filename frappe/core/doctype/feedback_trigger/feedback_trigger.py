@@ -13,6 +13,9 @@ from frappe.utils.jinja import validate_template
 class FeedbackTrigger(Document):
 	def validate(self):
 		frappe.cache().delete_value('feedback_triggers')
+		if not self.message:
+			frappe.throw("Please insert MESSAGE field")
+
 		validate_template(self.subject)
 		validate_template(self.message)
 		self.validate_condition()
