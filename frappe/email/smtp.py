@@ -162,9 +162,12 @@ class SMTPServer:
 		try:
 			if self.use_tls and not self.port:
 				self.port = 587
-
-			self._sess = smtplib.SMTP((self.server or "").encode('utf-8'),
-				cint(self.port) or None)
+			if int(self.port) == 465:
+				self._sess = smtplib.SMTP_SSL((self.server or "").encode('utf-8'),
+					cint(self.port) or None)
+			else:
+				self._sess = smtplib.SMTP((self.server or "").encode('utf-8'),
+					cint(self.port) or None)
 
 			if not self._sess:
 				err_msg = _('Could not connect to outgoing email server')
