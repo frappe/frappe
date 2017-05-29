@@ -174,7 +174,7 @@ class SMTPServer:
 				frappe.msgprint(err_msg)
 				raise frappe.OutgoingEmailError, err_msg
 
-			if self.use_tls:
+			if self.use_tls and (int(self.port) != 465):
 				self._sess.ehlo()
 				self._sess.starttls()
 				self._sess.ehlo()
