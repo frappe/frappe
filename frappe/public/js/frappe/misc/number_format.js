@@ -127,7 +127,9 @@ window.format_number = function(v, format, decimals){
 function format_currency(v, currency, decimals) {
 	var format = get_number_format(currency);
 	var symbol = get_currency_symbol(currency);
-	var decimals = frappe.boot.sysdefaults.currency_precision || null;
+	if(decimals === undefined) {
+		decimals = frappe.boot.sysdefaults.currency_precision || null;
+	}
 
 	if(symbol)
 		return symbol + " " + format_number(v, format, decimals);
