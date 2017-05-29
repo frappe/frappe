@@ -167,7 +167,7 @@ def get_data():
 			"items": [
 				{
 					"type": "page",
-					"label": "Print Format Builder",
+					"label": _("Print Format Builder"),
 					"name": "print-format-builder",
 					"description": _("Drag and Drop tool to build and customize Print Formats.")
 				},
