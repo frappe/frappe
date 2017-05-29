@@ -137,7 +137,7 @@ frappe.views.GanttView = frappe.views.ListRenderer.extend({
 				var label = item[field_map.title];
 			}
 
-			return {
+			var r = {
 				start: item[field_map.start],
 				end: item[field_map.end],
 				name: label,
@@ -146,6 +146,12 @@ frappe.views.GanttView = frappe.views.ListRenderer.extend({
 				progress: progress,
 				dependencies: item.depends_on_tasks || ""
 			};
+
+			if(item.is_milestone) {
+				r['custom_class'] = 'bar-milestone';
+			};
+
+			return r
 		});
 	},
 	get_item: function(name) {

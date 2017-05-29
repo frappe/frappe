@@ -1,0 +1,6 @@
+.gantt .bar-milestone .bar {
+  fill: #FD8B8B;
+}
+.gantt .bar-milestone .bar-progress {
+  fill: #FC4F51;
+}
