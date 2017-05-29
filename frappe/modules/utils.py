@@ -1,7 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 """
 	Utilities for using modules
 """
@@ -121,7 +121,7 @@ def sync_customizations_for_doctype(data):
 	if data.get('custom_perms'):
 		sync('custom_perms', 'Custom DocPerm', 'parent')
 
-	print 'Updating customizations for {0}'.format(doctype)
+	print('Updating customizations for {0}'.format(doctype))
 	validate_fields_for_doctype(doctype)
 
 	if update_schema and not frappe.db.get_value('DocType', doctype, 'issingle'):
@@ -154,7 +154,7 @@ def reload_doc(module, dt=None, dn=None, force=False, reset_permissions=False):
 def export_doc(doctype, name, module=None):
 	"""Write a doc to standard path."""
 	from frappe.modules.export_file import write_document_file
-	print doctype, name
+	print(doctype, name)
 
 	if not module: module = frappe.db.get_value('DocType', name, 'module')
 	write_document_file(frappe.get_doc(doctype, name), module)

@@ -187,6 +187,11 @@ $.extend(frappe.model, {
 		return txt.replace(/ /g, "_").toLowerCase();
 	},
 
+	unscrub: function(txt) {
+		return __(txt || '').replace(/-|_/g, " ").replace(/\w*/g,
+            function(keywords){return keywords.charAt(0).toUpperCase() + keywords.substr(1).toLowerCase();});
+	},
+
 	can_create: function(doctype) {
 		return frappe.boot.user.can_create.indexOf(doctype)!==-1;
 	},

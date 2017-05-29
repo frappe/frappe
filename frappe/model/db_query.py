@@ -33,6 +33,7 @@ class DatabaseQuery(object):
 		ignore_ifnull=False, save_user_settings=False, save_user_settings_fields=False,
 		update=None, add_total_row=None, user_settings=None):
 		if not ignore_permissions and not frappe.has_permission(self.doctype, "read", user=user):
+			frappe.flags.error_message = _('Insufficient Permission for {0}').format(frappe.bold(self.doctype))
 			raise frappe.PermissionError, self.doctype
 
 		# fitlers and fields swappable
@@ -74,6 +75,7 @@ class DatabaseQuery(object):
 		self.update = update
 		self.user_settings_fields = copy.deepcopy(self.fields)
 		#self.debug = True
+
 		if user_settings:
 			self.user_settings = json.loads(user_settings)
 
@@ -139,9 +141,9 @@ class DatabaseQuery(object):
 		self.set_field_tables()
 
 		args.fields = ', '.join(self.fields)
-		
+
 		self.set_order_by(args)
-		
+
 		self.validate_order_by_and_group_by(args.order_by)
 		args.order_by = args.order_by and (" order by " + args.order_by) or ""
 
@@ -197,6 +199,7 @@ class DatabaseQuery(object):
 		self.tables.append(table_name)
 		doctype = table_name[4:-1]
 		if (not self.flags.ignore_permissions) and (not frappe.has_permission(doctype)):
+			frappe.flags.error_message = _('Insufficient Permission for {0}').format(frappe.bold(doctype))
 			raise frappe.PermissionError, doctype
 
 	def set_field_tables(self):
@@ -249,8 +252,11 @@ class DatabaseQuery(object):
 			if match_conditions:
 				self.conditions.append("(" + match_conditions + ")")
 
-	def build_filter_conditions(self, filters, conditions):
+	def build_filter_conditions(self, filters, conditions, ignore_permissions=None):
 		"""build conditions from user filters"""
+		if ignore_permissions is not None:
+			self.flags.ignore_permissions = ignore_permissions
+
 		if isinstance(filters, dict):
 			filters = [filters]
 
@@ -298,9 +304,16 @@ class DatabaseQuery(object):
 
 			if f.operator.lower() == 'between' and \
 				(f.fieldname in ('creation', 'modified') or (df and (df.fieldtype=="Date" or df.fieldtype=="Datetime"))):
+
+				from_date = None
+				to_date = None
+				if f.value and isinstance(f.value, (list, tuple)):
+					if len(f.value) >= 1: from_date = f.value[0]
+					if len(f.value) >= 2: to_date = f.value[1]
+
 				value = "'%s' AND '%s'" % (
-					get_datetime(f.value[0]).strftime("%Y-%m-%d %H:%M:%S.%f"),
-					add_to_date(get_datetime(f.value[1]),days=1).strftime("%Y-%m-%d %H:%M:%S.%f"))
+					add_to_date(get_datetime(from_date),days=-1).strftime("%Y-%m-%d %H:%M:%S.%f"),
+					get_datetime(to_date).strftime("%Y-%m-%d %H:%M:%S.%f"))
 				fallback = "'0000-00-00 00:00:00'"
 
 			elif df and df.fieldtype=="Date":
@@ -449,7 +462,7 @@ class DatabaseQuery(object):
 
 	def set_order_by(self, args):
 		meta = frappe.get_meta(self.doctype)
-		
+
 		if self.order_by:
 			args.order_by = self.order_by
 		else:
@@ -490,7 +503,7 @@ class DatabaseQuery(object):
 		_lower = parameters.lower()
 		if 'select' in _lower and ' from ' in _lower:
 			frappe.throw(_('Cannot use sub-query in order by'))
-		
+
 
 		for field in parameters.split(","):
 			if "." in field and field.strip().startswith("`tab"):

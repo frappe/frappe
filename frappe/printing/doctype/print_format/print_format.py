@@ -1,5 +1,6 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# -*- coding: utf-8 -*-
+# Copyright (c) 2017, Frappe Technologies and contributors
+# For license information, please see license.txt
 
 from __future__ import unicode_literals
 import frappe
@@ -76,4 +77,7 @@ def make_default(name):
 			'value': name,
 		})
 
-	frappe.msgprint(frappe._("Done"))
+	frappe.msgprint(frappe._("{0} is now default print format for {1} doctype").format(
+		frappe.bold(name),
+		frappe.bold(print_format.doc_type)
+	))

@@ -4,7 +4,7 @@
 # called from wnf.py
 # lib/wnf.py --install [rootpassword] [dbname] [source]
 
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 
 import os, json, sys, subprocess, shutil
 import frappe
@@ -40,8 +40,8 @@ def install_db(root_login="root", root_password=None, db_name=None, source_sql=N
 	check_if_ready_for_barracuda()
 	import_db_from_sql(source_sql, verbose)
 	if not 'tabDefaultValue' in frappe.db.get_tables():
-		print '''Database not installed, this can due to lack of permission, or that the database name exists.
-Check your mysql root password, or use --force to reinstall'''
+		print('''Database not installed, this can due to lack of permission, or that the database name exists.
+Check your mysql root password, or use --force to reinstall''')
 		sys.exit(1)
 
 	remove_missing_apps()
@@ -63,14 +63,14 @@ def create_database_and_user(force, verbose):
 		raise Exception("Database %s already exists" % (db_name,))
 
 	dbman.create_user(db_name, frappe.conf.db_password)
-	if verbose: print "Created user %s" % db_name
+	if verbose: print("Created user %s" % db_name)
 
 	dbman.create_database(db_name)
-	if verbose: print "Created database %s" % db_name
+	if verbose: print("Created database %s" % db_name)
 
 	dbman.grant_all_privileges(db_name, db_name)
 	dbman.flush_privileges()
-	if verbose: print "Granted privileges to user %s and database %s" % (db_name, db_name)
+	if verbose: print("Granted privileges to user %s and database %s" % (db_name, db_name))
 
 	# close root connection
 	frappe.db.close()
@@ -84,12 +84,12 @@ def create_user_settings_table():
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8""")
 
 def import_db_from_sql(source_sql, verbose):
-	if verbose: print "Starting database import..."
+	if verbose: print("Starting database import...")
 	db_name = frappe.conf.db_name
 	if not source_sql:
 		source_sql = os.path.join(os.path.dirname(frappe.__file__), 'data', 'Framework.sql')
 	DbManager(frappe.local.db).restore_database(db_name, source_sql, db_name, frappe.conf.db_password)
-	if verbose: print "Imported from database %s" % source_sql
+	if verbose: print("Imported from database %s" % source_sql)
 
 def get_root_connection(root_login='root', root_password=None):
 	if not frappe.local.flags.root_connection:
@@ -124,7 +124,7 @@ def install_app(name, verbose=False, set_as_patched=True):
 		frappe.msgprint("App {0} already installed".format(name))
 		return
 
-	print "Installing {0}...".format(name)
+	print("Installing {0}...".format(name))
 
 	if name != "frappe":
 		frappe.only_for("System Manager")
@@ -182,7 +182,7 @@ def remove_app(app_name, dry_run=False, yes=False):
 			return
 
 	from frappe.utils.backups import scheduled_backup
-	print "Backing up..."
+	print("Backing up...")
 	scheduled_backup(ignore_files=True)
 
 	drop_doctypes = []
@@ -191,7 +191,7 @@ def remove_app(app_name, dry_run=False, yes=False):
 	for module_name in frappe.get_module_list(app_name):
 		for doctype in frappe.get_list("DocType", filters={"module": module_name},
 			fields=["name", "issingle"]):
-			print "removing DocType {0}...".format(doctype.name)
+			print("removing DocType {0}...".format(doctype.name))
 
 			if not dry_run:
 				frappe.delete_doc("DocType", doctype.name)
@@ -202,11 +202,11 @@ def remove_app(app_name, dry_run=False, yes=False):
 		# remove reports, pages and web forms
 		for doctype in ("Report", "Page", "Web Form"):
 			for record in frappe.get_list(doctype, filters={"module": module_name}):
-				print "removing {0} {1}...".format(doctype, record.name)
+				print("removing {0} {1}...".format(doctype, record.name))
 				if not dry_run:
 					frappe.delete_doc(doctype, record.name)
 
-		print "removing Module {0}...".format(module_name)
+		print("removing Module {0}...".format(module_name))
 		if not dry_run:
 			frappe.delete_doc("Module Def", module_name)
 
@@ -356,13 +356,25 @@ def check_if_ready_for_barracuda():
 		}.items():
 
 		if mariadb_variables.get(key) != value:
-			print "="*80
-			print "Please add this to MariaDB's my.cnf and restart MariaDB before proceeding"
-			print
-			print expected_config_for_barracuda
-			print "="*80
-			sys.exit(1)
-			# raise Exception, "MariaDB needs to be configured!"
+			site = frappe.local.site
+			msg = ("Creation of your site - {x} failed because MariaDB is not properly {sep}"
+			       "configured to use the Barracuda storage engine. {sep}"
+			       "Please add the settings below to MariaDB's my.cnf, restart MariaDB then {sep}"
+			       "run `bench new-site {x}` again.{sep2}"
+			       "").format(x=site, sep2="\n"*2, sep="\n")
+
+			print_db_config(msg, expected_config_for_barracuda)
+			raise frappe.exceptions.ImproperDBConfigurationError(
+				reason="MariaDB default file format is not Barracuda"
+			)
+
+
+def print_db_config(explanation, config_text):
+	print("="*80)
+	print(explanation)
+	print(config_text)
+	print("="*80)
+
 
 def extract_sql_gzip(sql_gz_path):
 	try:

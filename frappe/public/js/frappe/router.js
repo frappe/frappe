@@ -32,7 +32,7 @@ frappe.route = function() {
 
 	frappe._cur_route = window.location.hash;
 
-	route = frappe.get_route();
+	var route = frappe.get_route();
 	if (route === false) {
 		return;
 	}
@@ -153,8 +153,9 @@ $(window).on('hashchange', function() {
 		return;
 
 	// hide open dialog
-	if(cur_dialog && cur_dialog.hide_on_page_refresh)
+	if(cur_dialog && cur_dialog.hide_on_page_refresh) {
 		cur_dialog.hide();
+	}
 
 	frappe.route();
 

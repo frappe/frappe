@@ -4,9 +4,6 @@
 frappe.provide("frappe.customize_form");
 
 frappe.ui.form.on("Customize Form", {
-	setup: function(frm) {
-		frm.get_docfield("fields").allow_bulk_edit = 1;
-	},
 	onload: function(frm) {
 		frappe.customize_form.add_fields_help(frm);
 
@@ -152,6 +149,7 @@ frappe.customize_form.set_primary_action = function(frm) {
 				callback: function(r) {
 					if(!r.exc) {
 						frappe.customize_form.clear_locals_and_refresh(frm);
+						frm.script_manager.trigger("doc_type");
 					}
 				}
 			});

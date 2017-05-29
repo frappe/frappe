@@ -8,7 +8,7 @@ Events:
 	weekly
 """
 
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 
 import frappe
 import json
@@ -48,7 +48,7 @@ def enqueue_events_for_all_sites():
 			enqueue_events_for_site(site=site, queued_jobs=jobs_per_site[site])
 		except:
 			# it should try to enqueue other sites
-			print frappe.get_traceback()
+			print(frappe.get_traceback())
 
 def enqueue_events_for_site(site, queued_jobs):
 	try:
@@ -207,11 +207,7 @@ def is_scheduler_disabled():
 	return not frappe.utils.cint(frappe.db.get_single_value("System Settings", "enable_scheduler"))
 
 def toggle_scheduler(enable):
-	ss = frappe.get_doc("System Settings")
-	ss.enable_scheduler = 1 if enable else 0
-	ss.flags.ignore_mandatory = True
-	ss.flags.ignore_permissions = True
-	ss.save()
+	frappe.db.set_value("System Settings", None, "enable_scheduler", 1 if enable else 0)
 
 def enable_scheduler():
 	toggle_scheduler(True)
@@ -270,7 +266,7 @@ def reset_enabled_scheduler_events(login_manager):
 	if login_manager.info.user_type == "System User":
 		try:
 			frappe.db.set_global('enabled_scheduler_events', None)
-		except MySQLdb.OperationalError, e:
+		except MySQLdb.OperationalError as e:
 			if e.args[0]==1205:
 				frappe.log_error(frappe.get_traceback(), "Error in reset_enabled_scheduler_events")
 			else:

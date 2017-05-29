@@ -60,7 +60,8 @@ docfield_properties = {
 	'read_only': 'Check',
 	'length': 'Int',
 	'columns': 'Int',
-	'remember_last_selected_value': 'Check'
+	'remember_last_selected_value': 'Check',
+	'allow_bulk_edit': 'Check',
 }
 
 allowed_fieldtype_change = (('Currency', 'Float', 'Percent'), ('Small Text', 'Data'),
@@ -300,7 +301,7 @@ class CustomizeForm(Document):
 		else:
 			try:
 				property_value = frappe.db.get_value("DocType", self.doc_type, property_name)
-			except Exception, e:
+			except Exception as e:
 				if e.args[0]==1054:
 					property_value = None
 				else:

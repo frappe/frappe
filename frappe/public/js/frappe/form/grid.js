@@ -348,6 +348,10 @@ frappe.ui.form.Grid = Class.extend({
 		this.get_docfield(fieldname).read_only = enable ? 0 : 1;;
 		this.refresh();
 	},
+	toggle_display: function(fieldname, show) {
+		this.get_docfield(fieldname).hidden = show ? 0 : 1;;
+		this.refresh();
+	},
 	get_docfield: function(fieldname) {
 		return frappe.meta.get_docfield(this.doctype, fieldname, this.frm ? this.frm.docname : null);
 	},
@@ -740,7 +744,7 @@ frappe.ui.form.GridRow = Class.extend({
 			this.row_index.find('span').html(this.doc.idx);
 		}
 
-		this.row_display = $('<div class="row-data template-row">'+
+		this.row_display = $('<div class="row-data sortable-handle template-row">'+
 			+'</div>').appendTo(this.row)
 			.html(frappe.render(this.grid.template, {
 				doc: this.doc ? frappe.get_format_helper(this.doc) : null,

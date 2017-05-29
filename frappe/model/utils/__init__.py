@@ -1,7 +1,8 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
+from six.moves import range
 import frappe
 from frappe.utils import cstr
 from frappe.build import html_to_js_template
@@ -29,7 +30,7 @@ def set_field_property(filters, key, value):
 	for d in docs:
 		d.get('fields', filters)[0].set(key, value)
 		d.save()
-		print 'Updated {0}'.format(d.name)
+		print('Updated {0}'.format(d.name))
 
 	frappe.db.commit()
 
@@ -41,7 +42,7 @@ def render_include(content):
 	content = cstr(content)
 
 	# try 5 levels of includes
-	for i in xrange(5):
+	for i in range(5):
 		if "{% include" in content:
 			paths = re.findall(r'''{% include\s['"](.*)['"]\s%}''', content)
 			if not paths:

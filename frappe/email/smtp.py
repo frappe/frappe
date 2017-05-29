@@ -2,7 +2,7 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
-
+from six import reraise as raise_
 import frappe
 import smtplib
 import email.utils
@@ -59,7 +59,10 @@ def get_outgoing_email_account(raise_exception_not_set=True, append_to=None):
 
 		if email_account:
 			if email_account.enable_outgoing and not getattr(email_account, 'from_site_config', False):
-				email_account.password = email_account.get_password()
+				raise_exception = True
+				if email_account.smtp_server in ['localhost','127.0.0.1']:
+					raise_exception = False
+				email_account.password = email_account.get_password(raise_exception=raise_exception)
 			email_account.default_sender = email.utils.formataddr((email_account.name, email_account.get("email_id")))
 
 		frappe.local.outgoing_email_account[append_to or "default"] = email_account
@@ -180,22 +183,20 @@ class SMTPServer:
 				# check if logged correctly
 				if ret[0]!=235:
 					frappe.msgprint(ret[1])
-					raise frappe.OutgoingEmailError, ret[1]
+					raise frappe.OutgoingEmailError(ret[1])
 
 			return self._sess
 
-		except _socket.error, e:
+		except _socket.error as e:
 			# Invalid mail server -- due to refusing connection
 			frappe.msgprint(_('Invalid Outgoing Mail Server or Port'))
+			traceback = sys.exc_info()[2]
+			raise_(frappe.ValidationError, e, traceback)
 
-			type, value, traceback = sys.exc_info()
-			raise frappe.ValidationError, e, traceback
-
-		except smtplib.SMTPAuthenticationError, e:
+		except smtplib.SMTPAuthenticationError as e:
 			frappe.msgprint(_("Invalid login or password"))
-
-			type, value, traceback = sys.exc_info()
-			raise frappe.ValidationError, e, traceback
+			traceback = sys.exc_info()[2]
+			raise_(frappe.ValidationError, e, traceback)
 
 		except smtplib.SMTPException:
 			frappe.msgprint(_('Unable to send emails at this time'))

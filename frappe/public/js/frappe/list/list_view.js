@@ -234,7 +234,7 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 		var us = frappe.get_user_settings(this.doctype);
 		var route = ['List', this.doctype];
 
-		if (us.last_view) {
+		if (us.last_view && frappe.views.view_modes.includes(us.last_view)) {
 			route.push(us.last_view);
 
 			if (us.last_view === 'Kanban') {
@@ -555,7 +555,8 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 		var order_by = '';
 		if(this.sort_selector) {
 			// get order_by from sort_selector
-			order_by = this.sort_selector.sort_by + ' ' + this.sort_selector.sort_order;
+			order_by = $.format('`tab{0}`.`{1}` {2}', 
+				[this.doctype, this.sort_selector.sort_by,  this.sort_selector.sort_order]);
 		} else {
 			order_by = this.list_renderer.order_by;
 		}

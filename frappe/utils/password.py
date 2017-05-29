@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.utils import cstr, encode
-from cryptography.fernet import Fernet
+from cryptography.fernet import Fernet, InvalidToken 
 
 def get_decrypted_password(doctype, name, fieldname='password', raise_exception=True):
 	auth = frappe.db.sql('''select `password` from `__Auth`
@@ -60,7 +60,7 @@ def delete_all_passwords_for(doctype, name):
 	try:
 		frappe.db.sql("""delete from __Auth where doctype=%(doctype)s and name=%(name)s""",
 			{ 'doctype': doctype, 'name': name })
-	except Exception, e:
+	except Exception as e:
 		if e.args[0]!=1054:
 			raise
 
@@ -97,9 +97,13 @@ def encrypt(pwd):
 	return cipher_text
 
 def decrypt(pwd):
-	cipher_suite = Fernet(encode(get_encryption_key()))
-	plain_text = cstr(cipher_suite.decrypt(encode(pwd)))
-	return plain_text
+	try:
+		cipher_suite = Fernet(encode(get_encryption_key()))
+		plain_text = cstr(cipher_suite.decrypt(encode(pwd)))
+		return plain_text
+	except InvalidToken:
+		# encryption_key in site_config is changed and not valid
+		frappe.throw(_('Encryption key is invalid, Please check site_config.json'))
 
 def get_encryption_key():
 	from frappe.installer import update_site_config

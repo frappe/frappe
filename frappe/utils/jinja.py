@@ -30,7 +30,7 @@ def validate_template(html):
 	jenv = get_jenv()
 	try:
 		jenv.from_string(html)
-	except TemplateSyntaxError, e:
+	except TemplateSyntaxError as e:
  		frappe.msgprint('Line {}: {}'.format(e.lineno, e.message))
 		frappe.throw(frappe._("Syntax error in template"))
 
@@ -60,6 +60,7 @@ def get_allowed_functions_for_jenv():
 	from frappe.modules import scrub
 	import mimetypes
 	from html2text import html2text
+	from frappe.www.printview import get_visible_columns
 
 	datautils = {}
 	if frappe.db:
@@ -101,10 +102,11 @@ def get_allowed_functions_for_jenv():
 			"user": user,
 			"get_fullname": frappe.utils.get_fullname,
 			"get_gravatar": frappe.utils.get_gravatar_url,
-			"full_name": getattr(frappe.local, "session", None) and frappe.local.session.data.full_name or "Guest",
+			"full_name": frappe.local.session.data.full_name if getattr(frappe.local, "session", None) else "Guest",
 			"render_template": frappe.render_template,
 			'session': {
-				'user': user
+				'user': user,
+				'csrf_token': frappe.local.session.data.csrf_token if getattr(frappe.local, "session", None) else ''
 			},
 		},
 		"autodoc": {
@@ -121,7 +123,7 @@ def get_allowed_functions_for_jenv():
 	}
 
 	if not frappe.flags.in_setup_help:
-		out['get_visible_columns'] = frappe.get_attr("frappe.www.print.get_visible_columns")
+		out['get_visible_columns'] = get_visible_columns
 		out['frappe']['date_format'] = date_format
 		out['frappe']["db"] = {
 			"get_value": frappe.db.get_value,

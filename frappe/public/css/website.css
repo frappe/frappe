@@ -818,6 +818,11 @@ a.active {
   letter-spacing: 0.5px;
   font-size: 24px;
 }
+@media (max-width: 767px) {
+  .page-head h1 {
+    font-size: 16px;
+  }
+}
 .btn-next-wrapper {
   margin-top: 60px;
 }
@@ -893,9 +898,21 @@ li.footer-child-item {
   padding-left: 0px;
   width: 100%;
 }
+@media (max-width: 767px) {
+  .item-search .item-search-input {
+    padding: 0;
+  }
+}
 .item-search i {
   margin-right: -30px;
   margin-top: -25px;
+}
+@media (max-width: 767px) {
+  .item-search i {
+    margin-right: -25px;
+    margin-top: -18px;
+    font-size: 12px;
+  }
 }
 .vert-line {
   overflow: hidden;

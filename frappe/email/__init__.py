@@ -26,7 +26,7 @@ def get_contact_list(txt):
 		)
 		if not out:
 			out = get_users()
-	except Exception, e:
+	except Exception as e:
 		if e.args[0]==1146:
 			# no Contact, use User
 			out = get_users()

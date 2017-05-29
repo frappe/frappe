@@ -31,6 +31,16 @@ frappe.Application = Class.extend({
 	startup: function() {
 		frappe.socket.init();
 		frappe.model.init();
+
+		if(frappe.boot.status==='failed') {
+			frappe.msgprint({
+				message: frappe.boot.error,
+				title: __('Session Start Failed'),
+				indicator: 'red',
+			})
+			throw 'boot failed';
+		}
+
 		this.load_bootinfo();
 		this.make_nav_bar();
 		this.set_favicon();
@@ -193,6 +203,7 @@ frappe.Application = Class.extend({
 			if(frappe.boot.print_css) {
 				frappe.dom.set_style(frappe.boot.print_css)
 			}
+			frappe.user.name = frappe.boot.user.name;
 		} else {
 			this.set_as_guest();
 		}
@@ -328,6 +339,7 @@ frappe.Application = Class.extend({
 		if(!frappe.app.session_expired_dialog) {
 			var dialog = new frappe.ui.Dialog({
 				title: __('Session Expired'),
+				keep_open: true,
 				fields: [
 					{ fieldtype:'Password', fieldname:'password',
 						label: __('Please Enter Your Password to Continue') },
@@ -369,7 +381,7 @@ frappe.Application = Class.extend({
 			// add backdrop
 			$('.modal-backdrop').css({
 				'opacity': 1,
-				'background-color': '#EBEFF2'
+				'background-color': '#4B4C9D'
 			});
 		}
 	},
@@ -394,7 +406,7 @@ frappe.Application = Class.extend({
 	},
 
 	set_rtl: function () {
-		if (["ar", "he"].indexOf(frappe.boot.lang) >= 0) {
+		if (["ar", "he","fa"].indexOf(frappe.boot.lang) >= 0) {
 			var ls = document.createElement('link');
 			ls.rel="stylesheet";
 			ls.href= "assets/css/frappe-rtl.css";
@@ -520,8 +532,9 @@ frappe.get_desktop_icons = function(show_hidden, show_global) {
 		var out = true;
 		if(m.type==="page") {
 			out = m.link in frappe.boot.page_info;
-		}
-		else if(m._doctype) {
+		} else if(m._report) {
+			out = m._report in frappe.boot.user.all_reports
+		} else if(m._doctype) {
 			//out = frappe.model.can_read(m._doctype);
 			out = frappe.boot.user.can_read.includes(m._doctype);
 		} else {
@@ -564,14 +577,15 @@ frappe.get_desktop_icons = function(show_hidden, show_global) {
 	return out;
 };
 
-frappe.add_to_desktop = function(label, doctype) {
+frappe.add_to_desktop = function(label, doctype, report) {
 	frappe.call({
 		method: 'frappe.desk.doctype.desktop_icon.desktop_icon.add_user_icon',
 		args: {
-			link: frappe.get_route_str(),
-			label: label,
-			type: 'link',
-			_doctype: doctype
+			'link': frappe.get_route_str(),
+			'label': label,
+			'type': 'link',
+			'_doctype': doctype,
+			'_report': report
 		},
 		callback: function(r) {
 			if(r.message) {

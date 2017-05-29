@@ -5,7 +5,7 @@ Call from command line:
 	bench setup-docs app path
 
 """
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 
 import os, json, frappe, shutil, re
 from frappe.website.context import get_context
@@ -65,7 +65,7 @@ class setup_docs(object):
 		self.app_title = self.hooks.get("app_title")[0]
 		self.app_path = frappe.get_app_path(self.app)
 
-		print "Deleting current..."
+		print("Deleting current...")
 		shutil.rmtree(self.path, ignore_errors = True)
 		os.makedirs(self.path)
 
@@ -208,7 +208,7 @@ class setup_docs(object):
 				self.make_folder(basepath)
 
 				if not os.path.exists(module_doc_path):
-					print "Writing " + module_doc_path
+					print("Writing " + module_doc_path)
 					with open(module_doc_path, "w") as f:
 						context = {"name": self.app + "." + module_name}
 						context.update(self.app_context)
@@ -226,7 +226,7 @@ class setup_docs(object):
 			os.makedirs(path)
 
 			index_txt_path = os.path.join(path, "index.txt")
-			print "Writing " + index_txt_path
+			print("Writing " + index_txt_path)
 			with open(index_txt_path, "w") as f:
 				f.write("")
 
@@ -239,7 +239,7 @@ class setup_docs(object):
 					"title": name
 				}
 			context.update(self.app_context)
-			print "Writing " + index_html_path
+			print("Writing " + index_html_path)
 			with open(index_html_path, "w") as f:
 				f.write(frappe.render_template(template, context))
 
@@ -255,7 +255,7 @@ class setup_docs(object):
 				index_parts = filter(None, f.read().splitlines())
 
 		if not set(pages).issubset(set(index_parts)):
-			print "Updating " + index_txt_path
+			print("Updating " + index_txt_path)
 			with open(index_txt_path, "w") as f:
 				f.write("\n".join(pages))
 
@@ -268,7 +268,7 @@ class setup_docs(object):
 				with open(model_json_path, "r") as j:
 					doctype_real_name = json.loads(j.read()).get("name")
 
-				print "Writing " + model_path
+				print("Writing " + model_path)
 
 				with open(model_path, "w") as f:
 					context = {"doctype": doctype_real_name}
@@ -295,7 +295,7 @@ class setup_docs(object):
 
 		cnt = 0
 		for path, context in pages.iteritems():
-			print "Writing {0}".format(path)
+			print("Writing {0}".format(path))
 
 			# set this for get_context / website libs
 			frappe.local.path = path
@@ -371,13 +371,13 @@ class setup_docs(object):
 
 				cnt += 1
 
-		print "Wrote {0} files".format(cnt)
+		print("Wrote {0} files".format(cnt))
 
 
 	def copy_assets(self):
 		"""Copy jquery, bootstrap and other assets to files"""
 
-		print "Copying assets..."
+		print("Copying assets...")
 		assets_path = os.path.join(self.target, "assets")
 
 		# copy assets from docs

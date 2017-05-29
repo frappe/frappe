@@ -26,7 +26,7 @@ class DropboxSettings(Document):
 	def validate_dropbox_credentails(self):
 		try:
 			self.get_dropbox_session()
-		except Exception, e:
+		except Exception as e:
 			frappe.throw(e.message)
 
 	def get_dropbox_session(self):
@@ -57,8 +57,6 @@ def get_dropbox_authorize_url():
 		"dropbox_access_key": request_token.key,
 		"dropbox_access_secret": request_token.secret
 	})
-
-	doc.save(ignore_permissions=False)
 
 	return_address = get_request_site_address(True) \
 		+ "?cmd=frappe.integrations.doctype.dropbox_settings.dropbox_settings.dropbox_callback"
@@ -213,7 +211,7 @@ def upload_file_to_dropbox(filename, folder, dropbox_client):
 					uploader.upload_chunked()
 					uploader.finish(folder + "/" + os.path.basename(filename), overwrite=True)
 
-				except rest.ErrorResponse, e:
+				except rest.ErrorResponse as e:
 					# if "[401] u'Access token not found.'",
 					# it means that the user needs to again allow dropbox backup from the UI
 					# so re-raise
@@ -242,9 +240,9 @@ def upload_from_folder(path, dropbox_folder, dropbox_client, did_not_upload, err
 
 	try:
 		response = dropbox_client.metadata(dropbox_folder)
-	except dropbox.rest.ErrorResponse, e:
+	except dropbox.rest.ErrorResponse as e:
 		# folder not found
-		if e.status==404:
+		if e.status == 404:
 			response = {"contents": []}
 		else:
 			raise

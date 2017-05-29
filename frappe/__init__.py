@@ -4,7 +4,7 @@
 globals attached to frappe module
 + some utility functions that should probably be moved
 """
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 
 from werkzeug.local import Local, release_local
 import os, sys, importlib, inspect, json
@@ -13,7 +13,7 @@ import os, sys, importlib, inspect, json
 from .exceptions import *
 from .utils.jinja import get_jenv, get_template, render_template
 
-__version__ = '8.0.19'
+__version__ = '8.0.60'
 __title__ = "Frappe Framework"
 
 local = Local()
@@ -185,7 +185,7 @@ def get_site_config(sites_path=None, site_path=None):
 		if os.path.exists(site_config):
 			config.update(get_file_json(site_config))
 		elif local.site and not local.flags.new_site:
-			print "{0} does not exist".format(local.site)
+			print("{0} does not exist".format(local.site))
 			sys.exit(1)
 			#raise IncorrectSitePath, "{0} does not exist".format(site_config)
 
@@ -241,7 +241,7 @@ def errprint(msg):
 	:param msg: Message."""
 	msg = as_unicode(msg)
 	if not request or (not "cmd" in local.form_dict) or conf.developer_mode:
-		print msg.encode('utf-8')
+		print(msg.encode('utf-8'))
 
 	error_log.append(msg)
 
@@ -251,7 +251,7 @@ def log(msg):
 	:param msg: Message."""
 	if not request:
 		if conf.get("logging") or False:
-			print repr(msg)
+			print(repr(msg))
 
 	debug_log.append(as_unicode(msg))
 
@@ -288,7 +288,7 @@ def msgprint(msg, title=None, raise_exception=0, as_table=False, indicator=None,
 		out.msg = '<table border="1px" style="border-collapse: collapse" cellpadding="2px">' + ''.join(['<tr>'+''.join(['<td>%s</td>' % c for c in r])+'</tr>' for r in msg]) + '</table>'
 
 	if flags.print_messages and out.msg:
-		print "Message: " + repr(out.msg).encode("utf-8")
+		print("Message: " + repr(out.msg).encode("utf-8"))
 
 	if title:
 		out.title = title
@@ -784,7 +784,7 @@ def get_hooks(hook=None, default=None, app_name=None):
 					# if app is not installed while restoring
 					# ignore it
 					pass
-				print 'Could not find app "{0}"'.format(app_name)
+				print('Could not find app "{0}"'.format(app_name))
 				if not request:
 					sys.exit(1)
 				raise
@@ -1204,7 +1204,7 @@ def get_print(doctype=None, name=None, print_format=None, style=None, html=None,
 	local.form_dict.doc = doc
 
 	if not html:
-		html = build_page("print")
+		html = build_page("printview")
 
 	if as_pdf:
 		return get_pdf(html, output = output)
@@ -1324,11 +1324,20 @@ def bold(text):
 
 def safe_eval(code, eval_globals=None, eval_locals=None):
 	'''A safer `eval`'''
+	whitelisted_globals = {
+		"int": int,
+		"float": float,
+		"long": long,
+		"round": round
+	}
+
 	if '__' in code:
 		throw('Illegal rule {0}. Cannot use "__"'.format(bold(code)))
 
 	if not eval_globals:
 		eval_globals = {}
 	eval_globals['__builtins__'] = {}
+
+	eval_globals.update(whitelisted_globals)
 
 	return eval(code, eval_globals, eval_locals)

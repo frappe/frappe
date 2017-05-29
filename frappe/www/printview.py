@@ -14,7 +14,7 @@ from markdown2 import markdown
 no_cache = 1
 no_sitemap = 1
 
-base_template_path = "templates/www/print.html"
+base_template_path = "templates/www/printview.html"
 standard_format = "templates/print_formats/standard.html"
 
 def get_context(context):
@@ -76,10 +76,10 @@ def get_html(doc, name=None, print_format=None, meta=None,
 		validate_print_permission(doc)
 
 	if doc.meta.is_submittable:
-		if doc.docstatus==0 and not print_settings.allow_print_for_draft:
+		if doc.docstatus==0 and not cint(print_settings.allow_print_for_draft):
 			frappe.throw(_("Not allowed to print draft documents"), frappe.PermissionError)
 
-		if doc.docstatus==2 and not print_settings.allow_print_for_cancelled:
+		if doc.docstatus==2 and not cint(print_settings.allow_print_for_cancelled):
 			frappe.throw(_("Not allowed to print cancelled documents"), frappe.PermissionError)
 
 	if hasattr(doc, "before_print"):
@@ -148,9 +148,9 @@ def get_html(doc, name=None, print_format=None, meta=None,
 		"footer": letter_head.footer,
 		"print_settings": frappe.get_doc("Print Settings")
 	}
-	
+
 	html = template.render(args, filters={"len": len})
-	
+
 	if cint(trigger_print):
 		html += trigger_print_script
 

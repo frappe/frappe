@@ -583,6 +583,14 @@ fieldset[disabled] .form-control {
 .file-upload .uploaded-filename-display {
   max-width: 150px;
 }
+.file-upload .file-public-column {
+  flex: 0 0 36px;
+  order: -1;
+  justify-content: flex-end;
+}
+.file-upload .file-public-column input[type="checkbox"] {
+  margin-right: 0;
+}
 .frappe-rtl input,
 .frappe-rtl textarea {
   direction: rtl;
@@ -969,6 +977,13 @@ input[type="checkbox"]:checked:before {
   content: '\f14a';
   font-size: 13px;
   color: #3b99fc;
+}
+.multiselect-empty-state {
+  min-height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
 }
 @-moz-document url-prefix() {
   input[type="checkbox"] {

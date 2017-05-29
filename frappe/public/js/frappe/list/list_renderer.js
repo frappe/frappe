@@ -71,7 +71,7 @@ frappe.views.ListRenderer = Class.extend({
 		return this.list_view.current_view !== this.list_view.last_view;
 	},
 	set_wrapper: function () {
-		this.wrapper = this.list_view.wrapper.find('.result-list');
+		this.wrapper = this.list_view.wrapper && this.list_view.wrapper.find('.result-list');
 	},
 	set_fields: function () {
 		var me = this;
@@ -144,7 +144,7 @@ frappe.views.ListRenderer = Class.extend({
 		}
 		// kanban column fields
 		if (me.meta.__kanban_column_fields) {
-			me.fields = me.fields.concat(me.meta.__kanban_column_fields);
+			me.meta.__kanban_column_fields.map(add_field);
 		}
 	},
 	set_columns: function () {
@@ -439,7 +439,7 @@ frappe.views.ListRenderer = Class.extend({
 		data._name_encoded = encodeURIComponent(data.name);
 		data._submittable = frappe.model.is_submittable(this.doctype);
 
-		var title_field = frappe.get_meta(this.doctype).title_field || 'name';
+		var title_field = this.meta.title_field || 'name';
 		data._title = strip_html(data[title_field] || data.name);
 		data._full_title = data._title;
 
@@ -455,6 +455,8 @@ frappe.views.ListRenderer = Class.extend({
 
 		data._user = frappe.session.user;
 
+		if(!data._user_tags) data._user_tags = "";
+
 		data._tags = data._user_tags.split(',').filter(function (v) {
 			// filter falsy values
 			return v;
@@ -467,6 +469,9 @@ frappe.views.ListRenderer = Class.extend({
 				data.css_seen = 'seen'
 			}
 		}
+
+		// whether to hide likes/comments/assignees
+		data._hide_activity = 0;
 
 		data._assign_list = JSON.parse(data._assign || '[]');
 
@@ -541,7 +546,7 @@ frappe.views.ListRenderer = Class.extend({
 		var new_button = frappe.boot.user.can_create.includes(this.doctype)
 			? (`<p><button class='btn btn-primary btn-sm'
 				list_view_doc='${this.doctype}'>
-					${__('Make a new {0}'), [__(this.doctype)])}
+					${__('Make a new {0}', [__(this.doctype)])}
 				</button></p>`)
 			: '';
 		var no_result_message =

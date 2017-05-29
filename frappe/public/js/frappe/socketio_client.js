@@ -57,9 +57,6 @@ frappe.socket = {
 		frappe.socket.setup_reconnect();
 
 		$(document).on('form-load form-rename', function(e, frm) {
-			if (frappe.flags.doc_subscribe) {
-				return;
-			}
 			if (frm.is_new()) {
 				return;
 			}
@@ -71,11 +68,6 @@ frappe.socket = {
 					return false;
 				}
 			}
-
-			frappe.flags.doc_subscribe = true;
-
-			// throttle to 1 per sec
-			setTimeout(function() { frappe.flags.doc_subscribe = false }, 1000);
 
 			frappe.socket.doc_subscribe(frm.doctype, frm.docname);
 		});
@@ -135,6 +127,16 @@ frappe.socket = {
 		frappe.socket.socket.emit('task_unsubscribe', task_id);
 	},
 	doc_subscribe: function(doctype, docname) {
+		if (frappe.flags.doc_subscribe) {
+			console.log('throttled');
+			return;
+		}
+
+		frappe.flags.doc_subscribe = true;
+
+		// throttle to 1 per sec
+		setTimeout(function() { frappe.flags.doc_subscribe = false }, 1000);
+
 		frappe.socket.socket.emit('doc_subscribe', doctype, docname);
 		frappe.socket.open_docs.push({doctype: doctype, docname: docname});
 	},
@@ -194,9 +196,16 @@ frappe.socket = {
 	},
 	setup_file_watchers: function() {
 		var host = window.location.origin;
-		var port = '6787';
-		// remove the port number from string
-		host = host.split(':').slice(0, -1).join(":");
+		if(!window.dev_server) {
+			return;
+		}
+
+		var port = frappe.boot.file_watcher_port || 6787;
+		var parts = host.split(":");
+		// remove the port number from string if exists
+		if (parts.length > 2) {
+			host = host.split(':').slice(0, -1).join(":");
+		}
 		host = host + ':' + port;
 
 		frappe.socket.file_watcher = io.connect(host);
@@ -204,7 +213,7 @@ frappe.socket = {
 		frappe.socket.file_watcher.on('reload_css', function(filename) {
 			let abs_file_path = "assets/" + filename;
 			const link = $(`link[href*="${abs_file_path}"]`);
-			abs_file_path = abs_file_path.split('?')[0] + '?v=' + +moment();
+			abs_file_path = abs_file_path.split('?')[0] + '?v='+ moment();
 			link.attr('href', abs_file_path);
 			frappe.show_alert({
 				indicator: 'orange',

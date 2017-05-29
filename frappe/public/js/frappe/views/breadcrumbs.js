@@ -78,8 +78,10 @@ frappe.breadcrumbs = {
 				|| frappe.get_doc('DocType', breadcrumbs.doctype).issingle) {
 				// no user listview for non-system managers and single doctypes
 			} else {
+				var route;
 				if(frappe.boot.treeviews.indexOf(breadcrumbs.doctype) !== -1) {
-					route = 'Tree/' + breadcrumbs.doctype;
+					var view = frappe.model.user_settings[breadcrumbs.doctype].last_view || 'Tree';
+					route = view + '/' + breadcrumbs.doctype;
 				} else {
 					route = 'List/' + breadcrumbs.doctype;
 				}

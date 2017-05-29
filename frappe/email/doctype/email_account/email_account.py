@@ -1,7 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 import frappe
 import imaplib
 import re
@@ -61,7 +61,7 @@ class EmailAccount(Document):
 
 		if (not self.awaiting_password and not frappe.local.flags.in_install
 			and not frappe.local.flags.in_patch):
-			if self.password:
+			if self.password or self.smtp_server in ('127.0.0.1', 'localhost'):
 				if self.enable_incoming:
 					self.get_incoming_server()
 					self.no_failed = 0
@@ -161,7 +161,7 @@ class EmailAccount(Document):
 		email_server = EmailServer(frappe._dict(args))
 		try:
 			email_server.connect()
-		except (error_proto, imaplib.IMAP4.error), e:
+		except (error_proto, imaplib.IMAP4.error) as e:
 			message = e.message.lower().replace(" ","")
 			if in_receive and any(map(lambda t: t in message, ['authenticationfail', 'loginviayourwebbrowser', #abbreviated to work with both failure and failed
 				'loginfailed', 'err[auth]', 'errtemporaryerror'])): #temporary error to deal with godaddy
@@ -251,8 +251,10 @@ class EmailAccount(Document):
 					return
 
 				emails = email_server.get_messages()
+				if not emails:
+					return
 
-				incoming_mails = emails.get("latest_messages")
+				incoming_mails = emails.get("latest_messages", [])
 				uid_list = emails.get("uid_list", [])
 				seen_status = emails.get("seen_status", [])
 				uid_reindexed = emails.get("uid_reindexed", False)
@@ -280,16 +282,16 @@ class EmailAccount(Document):
 
 				else:
 					frappe.db.commit()
-					attachments = [d.file_name for d in communication._attachments]
-
-					communication.notify(attachments=attachments, fetched_from_email_account=True)
+					if communication:
+						attachments = [d.file_name for d in communication._attachments]
+						communication.notify(attachments=attachments, fetched_from_email_account=True)
 
 			#notify if user is linked to account
 			if len(incoming_mails)>0 and not frappe.local.flags.in_test:
 				frappe.publish_realtime('new_email', {"account":self.email_account_name, "number":len(incoming_mails)})
 
 			if exceptions:
-				raise Exception, frappe.as_json(exceptions)
+				raise Exception(frappe.as_json(exceptions))
 
 	def handle_bad_emails(self, email_server, uid, raw, reason):
 		if cint(email_server.settings.use_imap):
@@ -331,7 +333,7 @@ class EmailAccount(Document):
 			raise SentEmailInInbox
 
 		if email.message_id:
-			names = frappe.db.sql("""select distinct name from tabCommunication 
+			names = frappe.db.sql("""select distinct name from tabCommunication
 				where message_id='{message_id}'
 				order by creation desc limit 1""".format(
 					message_id=email.message_id
@@ -340,12 +342,8 @@ class EmailAccount(Document):
 			if names:
 				name = names[0].get("name")
 				# email is already available update communication uid instead
-				communication = frappe.get_doc("Communication", name)
-				communication.uid = uid
-				communication.save(ignore_permissions=True)
-				communication._attachments = []
-
-				return communication
+				frappe.db.set_value("Communication", name, "uid", uid)
+				return
 
 		communication = frappe.get_doc({
 			"doctype": "Communication",
@@ -483,7 +481,7 @@ class EmailAccount(Document):
 		parent = frappe.new_doc(self.append_to)
 
 		if self.subject_field:
-			parent.set(self.subject_field, frappe.as_unicode(email.subject))
+			parent.set(self.subject_field, frappe.as_unicode(email.subject)[:140])
 
 		if self.sender_field:
 			parent.set(self.sender_field, frappe.as_unicode(email.from_email))
@@ -591,7 +589,7 @@ class EmailAccount(Document):
 		if not self.use_imap:
 			return
 
-		flags = frappe.db.sql("""select name, communication, uid, action from 
+		flags = frappe.db.sql("""select name, communication, uid, action from
 			`tabEmail Flag Queue` where is_completed=0 and email_account='{email_account}'
 			""".format(email_account=self.name), as_dict=True)
 
@@ -614,7 +612,7 @@ class EmailAccount(Document):
 			self.set_communication_seen_status(docnames, seen=0)
 
 			docnames = ",".join([ "'%s'"%flag.get("name") for flag in flags ])
-			frappe.db.sql(""" update `tabEmail Flag Queue` set is_completed=1 
+			frappe.db.sql(""" update `tabEmail Flag Queue` set is_completed=1
 				where name in ({docnames})""".format(docnames=docnames))
 
 	def set_communication_seen_status(self, docnames, seen=0):
@@ -622,7 +620,7 @@ class EmailAccount(Document):
 		if not docnames:
 			return
 
-		frappe.db.sql(""" update `tabCommunication` set seen={seen} 
+		frappe.db.sql(""" update `tabCommunication` set seen={seen}
 			where name in ({docnames})""".format(docnames=docnames, seen=seen))
 
 @frappe.whitelist()
@@ -642,7 +640,7 @@ def test_internet(host="8.8.8.8", port=53, timeout=3):
 		socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect((host, port))
 		return True
 	except Exception as ex:
-		print ex.message
+		print(ex.message)
 		return False
 
 def notify_unreplied():

@@ -1,7 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 
 import frappe
 import getpass
@@ -78,7 +78,7 @@ def get_admin_password():
 		admin_password = getpass.getpass("Set Administrator password: ")
 		admin_password2 = getpass.getpass("Re-enter Administrator password: ")
 		if not admin_password == admin_password2:
-			print "\nPasswords do not match"
+			print("\nPasswords do not match")
 			return ask_admin_password()
 		return admin_password
 
@@ -105,7 +105,7 @@ def import_country_and_currency():
 		country = frappe._dict(data[name])
 		add_country_and_currency(name, country)
 
-	print
+	print()
 
 	# enable frequently used currencies
 	for currency in ("INR", "USD", "GBP", "EUR", "AED", "AUD", "JPY", "CNY", "CHF"):

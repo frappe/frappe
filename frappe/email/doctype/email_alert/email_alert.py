@@ -8,6 +8,7 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.core.doctype.role.role import get_emails_from_role
 from frappe.utils import validate_email_add, nowdate
+from frappe.utils.data import parse_val
 from frappe.utils.jinja import validate_template
 from frappe.modules.utils import export_module_json, get_doc_module
 from markdown2 import markdown
@@ -90,9 +91,27 @@ def get_context(context):
 
 	def send(self, doc):
 		'''Build recipients and send email alert'''
-		context = get_context(doc)
 
+		def get_attachment(doc):
+			""" check print settings are attach the pdf """
+			if not self.attach_print:
+				return None
+
+			print_settings = frappe.get_doc("Print Settings", "Print Settings")
+			if (doc.docstatus == 0 and not print_settings.allow_print_for_draft) or \
+				(doc.docstatus == 2 and not print_settings.allow_print_for_cancelled):
+
+				# ignoring attachment as draft and cancelled documents are not allowed to print
+				status = "Draft" if doc.docstatus == 0 else "Cancelled"
+				frappe.throw(_("""Not allowed to attach {0} document,
+					please enable Allow Print For {0} in Print Settings""".format(status)),
+					title=_("Error in Email Alert"))
+			else:
+				return [frappe.attach_print(doc.doctype, doc.name)]
+
+		context = get_context(doc)
 		recipients = []
+
 		for recipient in self.recipients:
 			if recipient.condition:
 				if not frappe.safe_eval(recipient.condition, None, context):
@@ -132,11 +151,13 @@ def get_context(context):
 		if "{" in subject:
 			subject = frappe.render_template(self.subject, context)
 
+		attachments = get_attachment(doc)
+
 		frappe.sendmail(recipients=recipients, subject=subject,
 			message= frappe.render_template(self.message, context),
 			reference_doctype = doc.doctype,
 			reference_name = doc.name,
-			attachments = [frappe.attach_print(doc.doctype, doc.name)] if self.attach_print else None)
+			attachments = attachments)
 
 	def load_standard_properties(self, context):
 		module = get_doc_module(self.module, self.doctype, self.name)
@@ -179,6 +200,7 @@ def trigger_email_alerts(doc, method=None):
 			alert = frappe.get_doc("Email Alert", alert)
 			for doc in alert.get_documents_for_today():
 				evaluate_alert(doc, alert, alert.event)
+				frappe.db.commit()
 
 def evaluate_alert(doc, alert, event):
 	from jinja2 import TemplateError
@@ -193,13 +215,18 @@ def evaluate_alert(doc, alert, event):
 				return
 
 		if event=="Value Change" and not doc.is_new():
-			db_value = frappe.db.get_value(doc.doctype, doc.name, alert.value_changed)
+			try:
+				db_value = frappe.db.get_value(doc.doctype, doc.name, alert.value_changed)
+			except frappe.DatabaseOperationalError as e:
+				if e.args[0]==1054:
+					alert.db_set('enabled', 0)
+					frappe.log_error('Email Alert {0} has been disabled due to missing field'.format(alert.name))
+					return
 
-			# cast to string if not already for comparing to doc.get's value
-			if not isinstance(db_value, basestring):
-				db_value = str(frappe.db.get_value(doc.doctype, doc.name, alert.value_changed))
+			db_value = parse_val(db_value)
+			if (doc.get(alert.value_changed) == db_value) or \
+				(not db_value and not doc.get(alert.value_changed)):
 
-			if doc.get(alert.value_changed) == db_value:
 				return # value not changed
 
 		if event != "Value Change" and not doc.is_new():
@@ -210,6 +237,9 @@ def evaluate_alert(doc, alert, event):
 		alert.send(doc)
 	except TemplateError:
 		frappe.throw(_("Error while evaluating Email Alert {0}. Please fix your template.").format(alert))
+	except Exception, e:
+		frappe.log_error(message=frappe.get_traceback(), title=e)
+		frappe.throw("Error in Email Alert")
 
 def get_context(doc):
 	return {"doc": doc, "nowdate": nowdate, "frappe.utils": frappe.utils}

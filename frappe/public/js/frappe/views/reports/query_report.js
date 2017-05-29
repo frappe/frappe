@@ -109,7 +109,7 @@ frappe.views.QueryReport = Class.extend({
 
 		// add to desktop
 		this.page.add_menu_item(__("Add to Desktop"), function() {
-			frappe.add_to_desktop(me.report_name, me.report_doc.ref_doctype);
+			frappe.add_to_desktop(me.report_name, null, me.report_name);
 		}, true);
 	},
 	load: function() {
@@ -207,14 +207,16 @@ frappe.views.QueryReport = Class.extend({
 	},
 	pdf_report: function() {
 		var me = this;
-		base_url = frappe.urllib.get_base_url();
-		print_css = frappe.boot.print_css;
+		var base_url = frappe.urllib.get_base_url();
+		var print_css = frappe.boot.print_css;
 
 		if(!frappe.model.can_print(this.report_doc.ref_doctype)) {
 			msgprint(__("You are not allowed to make PDF for this report"));
 			return false;
 		}
 
+		var orientation = this.print_settings.orientation;
+		var landscape = orientation == "Landscape" ? true: false
 		if(this.html_format) {
 			var content = frappe.render(this.html_format,
 				{data: frappe.slickgrid_tools.get_filtered_items(this.dataView), filters:this.get_values(), report:this});
@@ -225,11 +227,19 @@ frappe.views.QueryReport = Class.extend({
 					title:__(this.report_name),
 					base_url: base_url,
 					print_css: print_css,
-					print_settings: this.print_settings
+					print_settings: this.print_settings,
+					landscape: landscape
 				});
 		} else {
+			// rows filtered by inline_filter of slickgrid
+			var visible_idx = frappe.slickgrid_tools
+				.get_view_data(this.columns, this.dataView)
+				.map(row => row[0]).filter(idx => idx !== 'Sr No');
+
 			var columns = this.grid.getColumns();
 			var data = this.grid.getData().getItems();
+			data = data.filter(d => visible_idx.includes(d._id));
+
 			var content = frappe.render_template("print_grid", {
 				columns:columns,
 				data:data,
@@ -242,11 +252,12 @@ frappe.views.QueryReport = Class.extend({
 				title:__(this.report_name),
 				base_url: base_url,
 				print_css: print_css,
-				print_settings: this.print_settings
+				print_settings: this.print_settings,
+				landscape: landscape
 			});
 		}
 
-		orientation = this.print_settings.orientation;
+		var orientation = this.print_settings.orientation;
 		this.open_pdf_report(html, orientation)
 	},
 	open_pdf_report: function(html, orientation) {
@@ -407,6 +418,8 @@ frappe.views.QueryReport = Class.extend({
 		var mandatory_fields = [];
 		$.each(this.filters || [], function(i, f) {
 			var v = f.get_parsed_value();
+			// TODO: hidden fields dont have $input
+			if(f.df.hidden) v = f.value;
 			if(v === '%') v = null;
 			if(f.df.reqd && !v) mandatory_fields.push(f.df.label);
 			if(v) filters[f.df.fieldname] = v;
@@ -811,13 +824,13 @@ frappe.views.QueryReport = Class.extend({
 		frappe.prompt({fieldtype:"Select", label: __("Select File Type"), fieldname:"file_format_type",
 			options:"Excel\nCSV", default:"Excel", reqd: 1},
 			function(data) {
+				var view_data = frappe.slickgrid_tools.get_view_data(me.columns, me.dataView);
+				var result = view_data.map(row => row.splice(1));
+
+				// rows filtered by inline_filter of slickgrid
+				var visible_idx = view_data.map(row => row[0]).filter(sr_no => sr_no !== 'Sr No');
 
 				if (data.file_format_type == "CSV") {
-
-					var result = $.map(frappe.slickgrid_tools.get_view_data(me.columns, me.dataView),
-					 	function(row) {
-							return [row.splice(1)];
-					});
 					frappe.tools.downloadify(result, null, me.title);
 				}
 
@@ -831,8 +844,9 @@ frappe.views.QueryReport = Class.extend({
 						cmd: 'frappe.desk.query_report.export_query',
 						report_name: me.report_name,
 						file_format_type: data.file_format_type,
-						filters: filters
-					};
+						filters: filters,
+						visible_idx: visible_idx,
+					}
 
 					open_url_post(frappe.request.url, args);
 				}

@@ -1,12 +1,10 @@
+from __future__ import print_function
 import requests
 import json
 import frappe
 
 '''
 FrappeClient is a library that helps you connect with other frappe systems
-
-
-
 '''
 
 class AuthError(Exception):
@@ -165,8 +163,8 @@ class FrappeClient(object):
 		params = {}
 		if filters:
 			params["filters"] = json.dumps(filters)
-			if fields:
-				params["fields"] = json.dumps(fields)
+		if fields:
+			params["fields"] = json.dumps(fields)
 
 		res = self.session.get(self.url + "/api/resource/" + doctype + "/" + name,
 			params=params, verify=self.verify)
@@ -192,11 +190,11 @@ class FrappeClient(object):
 		meta = frappe.get_meta(doctype)
 		tables = {}
 		for df in meta.get_table_fields():
-			if verbose: print "getting " + df.options
+			if verbose: print("getting " + df.options)
 			tables[df.fieldname] = self.get_list(df.options, limit_page_length=999999)
 
 		# get links
-		if verbose: print "getting " + doctype
+		if verbose: print("getting " + doctype)
 		docs = self.get_list(doctype, limit_page_length=999999, filters=filters)
 
 		# build - attach children to parents
@@ -210,7 +208,7 @@ class FrappeClient(object):
 					if child.parent in docs_map:
 						docs_map[child.parent].setdefault(fieldname, []).append(child)
 
-		if verbose: print "inserting " + doctype
+		if verbose: print("inserting " + doctype)
 		for doc in docs:
 			if exclude and doc["name"] in exclude:
 				continue
@@ -281,7 +279,7 @@ class FrappeClient(object):
 		try:
 			rjson = response.json()
 		except ValueError:
-			print response.text
+			print(response.text)
 			raise
 
 		if rjson and ("exc" in rjson) and rjson["exc"]:

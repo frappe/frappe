@@ -2,13 +2,14 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
+from six.moves import range
 import time, _socket, poplib, imaplib, email, email.utils, datetime, chardet, re, hashlib
 from email_reply_parser import EmailReplyParser
 from email.header import decode_header
 import frappe
 from frappe import _
 from frappe.utils import (extract_email_id, convert_utc_to_user_timezone, now,
-	cint, cstr, strip, markdown)
+	cint, cstr, strip, markdown, parse_addr)
 from frappe.utils.scheduler import log
 from frappe.utils.file_manager import get_random_filename, save_file, MaxFileSizeReachedError
 import re
@@ -58,7 +59,7 @@ class EmailServer:
 			frappe.msgprint(_('Invalid Mail Server. Please rectify and try again.'))
 			raise
 
-		except Exception, e:
+		except Exception as e:
 			frappe.msgprint(_('Cannot connect: {0}').format(str(e)))
 			raise
 
@@ -84,7 +85,7 @@ class EmailServer:
 			frappe.msgprint(_('Invalid Mail Server. Please rectify and try again.'))
 			raise
 
-		except poplib.error_proto, e:
+		except poplib.error_proto as e:
 			if self.is_temporary_system_problem(e):
 				return False
 
@@ -100,7 +101,7 @@ class EmailServer:
 		frappe.db.commit()
 
 		if not self.connect():
-			return []
+			return
 
 		uid_list = []
 
@@ -112,6 +113,10 @@ class EmailServer:
 			self.uid_reindexed = False
 
 			uid_list = email_list = self.get_new_mails()
+
+			if not email_list:
+				return
+
 			num = num_copy = len(email_list)
 
 			# WARNING: Hard coded max no. of messages to be popped
@@ -136,10 +141,10 @@ class EmailServer:
 			num = num_copy
 			if not cint(self.settings.use_imap):
 				if num > 100 and not self.errors:
-					for m in xrange(101, num+1):
+					for m in range(101, num+1):
 						self.pop.dele(m)
 
-		except Exception, e:
+		except Exception as e:
 			if self.has_login_limit_exceeded(e):
 				pass
 
@@ -166,11 +171,13 @@ class EmailServer:
 	def get_new_mails(self):
 		"""Return list of new mails"""
 		if cint(self.settings.use_imap):
+			email_list = []
 			self.check_imap_uidvalidity()
 
 			self.imap.select("Inbox", readonly=True)
 			response, message = self.imap.uid('search', None, self.settings.email_sync_rule)
-			email_list =  message[0].split()
+			if message[0]:
+				email_list =  message[0].split()
 		else:
 			email_list = self.pop.list()[1]
 
@@ -190,13 +197,13 @@ class EmailServer:
 
 		if not uid_validity or uid_validity != current_uid_validity:
 			# uidvalidity changed & all email uids are reindexed by server
-			frappe.db.sql("""update `tabCommunication` set uid=-1 where communication_medium='Email'
-				and email_account='{email_account}'""".format(email_account=self.settings.email_account))
-			frappe.db.sql("""update `tabEmail Account` set uidvalidity='{uidvalidity}', uidnext={uidnext} where
-				name='{email_account}'""".format(
-				uidvalidity=current_uid_validity,
-				uidnext=uidnext,
-				email_account=self.settings.email_account)
+			frappe.db.sql(
+				"""update `tabCommunication` set uid=-1 where communication_medium='Email'
+				and email_account=%s""", (self.settings.email_account,)
+			)
+			frappe.db.sql(
+				"""update `tabEmail Account` set uidvalidity=%s, uidnext=%s where
+				name=%s""", (current_uid_validity, uidnext, self.settings.email_account)
 			)
 
 			# uid validity not found pulling emails for first time
@@ -240,10 +247,10 @@ class EmailServer:
 			self.errors = True
 			raise
 
-		except Exception, e:
+		except Exception as e:
 			if self.has_login_limit_exceeded(e):
 				self.errors = True
-				raise LoginLimitExceeded, e
+				raise LoginLimitExceeded(e)
 
 			else:
 				# log performs rollback and logs error in Error Log
@@ -404,7 +411,7 @@ class Email:
 		if self.from_email:
 			self.from_email = self.from_email.lower()
 
-		self.from_real_name = email.utils.parseaddr(_from_email)[0] if "@" in _from_email else _from_email
+		self.from_real_name = parse_addr(_from_email)[0] if "@" in _from_email else _from_email
 
 	def decode_email(self, email):
 		if not email: return

@@ -497,6 +497,10 @@ h6.uppercase,
 }
 .frappe-control pre {
   white-space: pre-wrap;
+  background-color: inherit;
+  border: none;
+  padding: 0px;
+  margin: 0px;
 }
 .hide-control {
   display: none !important;
@@ -561,8 +565,14 @@ select.form-control {
   .form-section .section-head {
     padding: 15px 15px 15px 0px;
   }
+  .form-section .section-body .form-column:first-child .radio,
+  .form-section .section-body .form-column:first-child .checkbox {
+    margin-top: 0;
+  }
   .form-column {
     border-bottom: 1px solid #EBEFF2;
+    padding-top: 15px;
+    padding-bottom: 15px;
   }
   .form-column:last-child {
     border-bottom: 0px;
@@ -608,6 +618,7 @@ select.form-control {
   }
   .form-page .form-control {
     border: none;
+    border-bottom: 1px solid #d1d8dd;
     box-shadow: none;
     background-color: inherit;
     height: auto;

@@ -127,6 +127,8 @@ def export_query():
 		report_name = data["report_name"]
 	if isinstance(data.get("file_format_type"), basestring):
 		file_format_type = data["file_format_type"]
+	if isinstance(data.get("visible_idx"), basestring):
+		visible_idx = json.loads(data.get("visible_idx"))
 
 	if file_format_type == "Excel":
 
@@ -146,10 +148,13 @@ def export_query():
 				if row:
 					row_list = []
 					for idx in range(len(data.columns)):
-						row_list.append(row[columns[idx]["fieldname"]])
+						row_list.append(row.get(columns[idx]["fieldname"],""))
 					result.append(row_list)
 		else:
 			result = result + data.result
+		
+		# filter rows by slickgrid's inline filter
+		result = [x for idx, x in enumerate(result) if idx == 0 or idx in visible_idx]
 
 		from frappe.utils.xlsxutils import make_xlsx
 		xlsx_file = make_xlsx(result, "Query Report")

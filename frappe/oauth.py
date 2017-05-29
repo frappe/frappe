@@ -1,3 +1,4 @@
+from __future__ import print_function
 import frappe, urllib
 
 from frappe import _
@@ -154,8 +155,8 @@ class OAuthWebRequestValidator(RequestValidator):
 				oc = frappe.get_doc("OAuth Client", frappe.db.get_value("OAuth Bearer Token", frappe.get_request_header("Authorization").split(" ")[1], 'client'))
 		try:
 			request.client = request.client or oc.as_dict()
-		except Exception, e:
-			print "Failed body authentication: Application %s does not exist".format(cid=request.client_id)
+		except Exception as e:
+			print("Failed body authentication: Application %s does not exist".format(cid=request.client_id))
 
 		return frappe.session.user == urllib.unquote(cookie_dict.get('user_id', "Guest"))
 

@@ -20,7 +20,10 @@ from frappe.core.doctype.file.file import check_file_permission
 from frappe.website.render import render
 
 def report_error(status_code):
-	if (status_code!=404 or frappe.conf.logging) and not frappe.local.flags.disable_traceback:
+	'''Build error. Show traceback in developer mode'''
+	if (frappe.conf.developer_mode
+		and (status_code!=404 or frappe.conf.logging)
+		and not frappe.local.flags.disable_traceback):
 		frappe.errprint(frappe.utils.get_traceback())
 
 	response = build_response("json")
@@ -91,6 +94,9 @@ def make_logs(response = None):
 
 	if frappe.debug_log and frappe.conf.get("logging") or False:
 		response['_debug_messages'] = json.dumps(frappe.local.debug_log)
+
+	if frappe.flags.error_message:
+		response['_error_message'] = frappe.flags.error_message
 
 def json_handler(obj):
 	"""serialize non-serializable data for json"""

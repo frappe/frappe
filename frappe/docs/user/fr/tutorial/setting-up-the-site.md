@@ -2,6 +2,21 @@
 
 Créons un site et appelons le `library`.
 
+*Remarque: Avant de créer un nouveau site, vous devez activer le moteur de stockage Barracuda sur votre installation MariaDB.*
+*Copiez les paramètres de base de données ERPNext par défaut suivants dans votre fichier `my.cnf`.*
+
+    [mysqld]
+    innodb-file-format=barracuda
+    innodb-file-per-table=1
+    innodb-large-prefix=1
+    character-set-client-handshake = FALSE
+    character-set-server = utf8mb4
+    collation-server = utf8mb4_unicode_ci
+
+    [mysql]
+    default-character-set = utf8mb4
+
+
 Vous pouvez installer un nouveau site avec la commande `bench new-site library`
 
 Cette commande va créer une nouvelle base de données, un repertoire et installer `frappe` (qui est aussi une application!) 
