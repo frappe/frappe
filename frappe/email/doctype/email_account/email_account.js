@@ -36,7 +36,7 @@ frappe.email_defaults = {
 		"use_ssl": 1,
 		"enable_outgoing": 1,
 		"smtp_server": "smtp.mail.yahoo.com",
-		"smtp_port": 465,
+		"smtp_port": 587,
 		"use_tls": 1,
 		"use_imap": 1
 	},
