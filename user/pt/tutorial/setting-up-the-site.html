@@ -102,7 +102,7 @@
 		<div class=" page-content col-sm-12 ">
 			<div class="page-content-wrapper">
 				<div class="row page-head">
-					<div class='col-sm-12'>
+					<div class='col-sm-12 hidden-xs'>
 						
 						<div class="page-breadcrumbs">
 							
@@ -134,6 +134,21 @@
 <h1>Configurando o site</h1>
 
 <p>Vamos criar um novo site e chamá-lo de <code>library</code>.</p>
+
+<p><em>Nota: Antes de criar um novo site, é necessário ativar o mecanismo de armazenamento Barracuda na instalação do MariaDB.</em>
+<em>Copie as seguintes configurações de banco de dados ERPNext padrão para o arquivo <code>my.cnf</code>.</em></p>
+
+<pre><code>[mysqld]
+innodb-file-format=barracuda
+innodb-file-per-table=1
+innodb-large-prefix=1
+character-set-client-handshake = FALSE
+character-set-server = utf8mb4
+collation-server = utf8mb4_unicode_ci
+
+[mysql]
+default-character-set = utf8mb4
+</code></pre>
 
 <p>Você pode instalar um novo site, pelo comando <code>bench new-site library</code></p>
 
