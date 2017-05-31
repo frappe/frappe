@@ -716,6 +716,7 @@ class Document(BaseDocument):
 				_evaluate_alert(alert)
 			elif alert.event=='Method' and method == alert.method:
 				_evaluate_alert(alert)
+			self.flags.email_alerts_executed.append(alert.name)
 
 	@staticmethod
 	def whitelist(f):
