@@ -287,7 +287,7 @@ def has_match(row, linked_doctypes, doctype_match_filters, ref_doctype, if_owner
 					if dt=="User" and columns_dict[idx]==columns_dict.get("owner"):
 						continue
 
-					if dt in match_filters and row[idx] not in match_filters[dt]:
+					if dt in match_filters and row[idx] not in match_filters[dt] and frappe.db.exists(dt, row[idx]):
 						match = False
 						break
 
