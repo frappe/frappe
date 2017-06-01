@@ -169,7 +169,7 @@ frappe.views.GalleryView = Class.extend({
 			freeze_message: __("Fetching Images..")
 		}).then(function(r) {
 			if (!r.message) {
-				msgprint(__("No Images found"))
+				frappe.msgprint(__("No Images found"))
 			} else {
 				// filter image files from other
 				var images = r.message.filter(function(image) {
