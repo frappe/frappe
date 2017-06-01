@@ -150,7 +150,7 @@ apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +134,Search in a d
 DocType: Print Format,Server,Servidor
 DocType: Custom DocPerm,Apply User Permissions,Aplicar permisos de usuario
 DocType: Website Settings,Set Banner from Image,Establecer Banner de imagen
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +479,Sr No,No.
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +483,Sr No,No.
 DocType: DocType,Is Single,Es Individual
 apps/frappe/frappe/templates/includes/list/filters.html +19,clear,claro
 DocType: Email Alert,Send alert if this field's value changes,Enviar alerta si cambia el valor de este campo
@@ -265,7 +265,7 @@ DocType: Web Form,Text to be displayed for Link to Web Page if this form has a w
 DocType: Print Settings,Send Email Print Attachments as PDF (Recommended),Enviar Emails con adjuntos en formato PDF (recomendado)
 apps/frappe/frappe/public/js/frappe/ui/filters/filters.js +515,Field {0} is not selectable.,El campo {0} no se puede seleccionar .
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +851,Select To Download:,Seleccione la descarga :
-apps/frappe/frappe/public/js/frappe/upload.js +218,Please attach a file or set a URL,"Por favor, adjuntar un archivo o defina una URL"
+apps/frappe/frappe/public/js/frappe/upload.js +222,Please attach a file or set a URL,"Por favor, adjuntar un archivo o defina una URL"
 DocType: Contact,Is Primary Contact,Es Contacto principal
 ,Permitted Documents For User,Documentos permitidos para los usuarios
 apps/frappe/frappe/templates/includes/contact.js +17,"You seem to have written your name instead of your email. \
@@ -303,8 +303,8 @@ apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +8
 DocType: Contact,Sales Master Manager,Gerente de Ventas
 apps/frappe/frappe/public/js/frappe/form/link_selector.js +24,You can use wildcard %,Puede utilizar caracteres comodín%
 apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +764,Report was not saved (there were errors),Informe no se guardó ( hubo errores )
-apps/frappe/frappe/public/js/frappe/upload.js +291,Uploading...,Subiendo ...
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +816,You are not allowed to export this report,No se le permite exportar este reporte
+apps/frappe/frappe/public/js/frappe/upload.js +295,Uploading...,Subiendo ...
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +820,You are not allowed to export this report,No se le permite exportar este reporte
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +24,"Permissions at level 0 are Document Level permissions, i.e. they are primary for access to the document.","Los permisos del nivel 0 son los permisos a nivel de documentos, es decir, que tienen permiso especial para los documentos."
 apps/frappe/frappe/config/setup.py +214,"Change field properties (hide, readonly, permission etc.)","Cambiar las propiedades de campo (ocultar, sólo lectura, permisos, etc)"
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +108,Select a DocType to make a new format,Seleccione un tipo de documento para hacer un nuevo formato
@@ -438,7 +438,7 @@ apps/frappe/frappe/model/naming.py +67,Naming Series mandatory,Las secuencias so
 DocType: Event,Ref Type,Tipo Ref
 DocType: DocType,Sort Order,Orden de Clasificación
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +127,Sit tight while your system is being setup. This may take a few moments.,Tome asiento mientras el sistema está siendo configurado. Esto puede tomar un momento.
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +653,"Unable to display this tree report, due to missing data. Most likely, it is being filtered out due to permissions.","No se puede mostrar este informe árbol, debido a los datos faltantes. Lo más probable es que se está filtrando a cabo debido a los permisos."
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +657,"Unable to display this tree report, due to missing data. Most likely, it is being filtered out due to permissions.","No se puede mostrar este informe árbol, debido a los datos faltantes. Lo más probable es que se está filtrando a cabo debido a los permisos."
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +246,Hide field in form,Ocultar campo en forma
 DocType: Newsletter,Email Sent?,Enviar Email ?
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +271,Show a description below the field,Mostrar una descripción debajo del campo
@@ -528,7 +528,6 @@ apps/frappe/frappe/utils/response.py +133,You need to be logged in and have Syst
 DocType: Website Settings,Title Prefix,Prefijo del Título
 DocType: DocField,Section Break,Salto de sección
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +4,"To import or update records, you must first download the template for importing.","Para importar o actualizar registros, primero debe descargar la plantilla para la importación."
-apps/frappe/frappe/printing/doctype/print_format/print_format.py +80,Done,Confirmar
 DocType: Print Settings,PDF Settings,Configuración de PDF
 apps/frappe/frappe/templates/includes/login/login.js +193,Oops! Something went wrong,Oups! Algo salió mal
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +54,For ranges,Por rangos
