@@ -141,6 +141,19 @@ $.extend(frappe.user, {
 				quote: quote
 			});
 		}
+	},
+
+	/* Normally frappe.user is an object
+	 * having properties and methods.
+	 * But in the following case
+	 * 
+	 * if (frappe.user === 'Administrator')
+	 * 
+	 * frappe.user will cast to a string
+	 * returning frappe.user.name
+	 */
+	toString: function() {
+		return this.name;
 	}
 });
 
