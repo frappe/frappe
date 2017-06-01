@@ -43,7 +43,7 @@ def login_via_github(code, state):
 
 @frappe.whitelist(allow_guest=True)
 def login_via_facebook(code, state):
-	login_via_oauth2("facebook", code, state)
+	login_via_oauth2("facebook", code, state, decoder=json.loads)
 
 @frappe.whitelist(allow_guest=True)
 def login_via_frappe(code, state):
