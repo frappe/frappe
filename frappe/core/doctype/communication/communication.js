@@ -225,7 +225,7 @@ frappe.ui.form.on("Communication", {
 			},
 			freeze: true,
 			callback: function(r) {
-				frappe.msgprint("Email has been marked as spam")
+				frappe.msgprint(__("Email has been marked as spam"))
 			}
 		})
 	},
@@ -238,7 +238,7 @@ frappe.ui.form.on("Communication", {
 			},
 			freeze: true,
 			callback: function(r) {
-				frappe.msgprint("Email has been moved to trash")
+				frappe.msgprint(__("Email has been moved to trash"))
 			}
 		})
 	}
