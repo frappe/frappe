@@ -76,7 +76,7 @@ frappe.ui.BaseList = Class.extend({
 			this.opts.no_result_message = __('Nothing to show');
 		}
 		if (!this.opts.page_length) {
-			this.opts.page_length = this.user_settings && this.user_settings.limit || 20;
+			this.opts.page_length = this.user_settings && this.user_settings.limit || frappe.boot.sysdefaults.page_length || 20;
 		}
 		this.opts._more = __('More');
 	},
