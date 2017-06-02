@@ -456,10 +456,22 @@ def prepare_message(email, recipient, recipients_list):
 
 def clear_outbox():
 	"""Remove low priority older than 31 days in Outbox and expire mails not sent for 7 days.
-
-	Called daily via scheduler."""
-	frappe.db.sql("""delete q, r from `tabEmail Queue` as q, `tabEmail Queue Recipient` as r where q.name = r.parent and q.priority=0 and
-		datediff(now(), q.modified) > 31""")
-
-	frappe.db.sql("""update `tabEmail Queue` as q, `tabEmail Queue Recipient` as r set q.status='Expired', r.status='Expired'
-		where q.name = r.parent and datediff(curdate(), q.modified) > 7 and q.status='Not Sent' and r.status='Not Sent'""")
+	Called daily via scheduler.
+	Note: Used separate query to avoid deadlock
+	"""
+	
+	email_queues = frappe.db.sql_list("""select name from `tabEmail Queue` 
+		where priority=0 and datediff(now(), modified) > 31""")
+	
+	if email_queues:
+		frappe.db.sql("""delete from `tabEmail Queue` where name in (%s)""" 
+			% ','.join(['%s']*len(email_queues)), tuple(email_queues))
+	
+		frappe.db.sql("""delete from `tabEmail Queue Recipient` where parent in (%s)""" 
+			% ','.join(['%s']*len(email_queues)), tuple(email_queues))
+		
+	for dt in ("Email Queue", "Email Queue Recipient"):
+		frappe.db.sql("""
+			update `tab{0}` 
+			set status='Expired'
+			where datediff(curdate(), modified) > 7 and status='Not Sent'""".format(dt))
