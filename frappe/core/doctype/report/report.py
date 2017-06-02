@@ -100,12 +100,18 @@ class Report(Document):
 			data = frappe.desk.query_report.run(self.name, filters=filters, user=user)
 			for d in data.get('columns'):
 				if isinstance(d, dict):
-					columns.append(frappe._dict(d))
+					col = frappe._dict(d)
+					if not col.fieldname:
+						col.fieldname = col.label
+					columns.append(col)
 				else:
+					fieldtype, options = "Data", None
 					parts = d.split(':')
-					fieldtype, options = parts[1], None
-					if fieldtype and '/' in fieldtype:
-						fieldtype, options = fieldtype.split('/')
+					if len(parts) > 1:
+						if parts[1]:
+							fieldtype, options = parts[1], None
+							if fieldtype and '/' in fieldtype:
+								fieldtype, options = fieldtype.split('/')
 
 					columns.append(frappe._dict(label=parts[0], fieldtype=fieldtype, fieldname=parts[0]))
 
@@ -145,7 +151,7 @@ class Report(Document):
 				for c in columns]
 
 			out = out + [list(d) for d in result]
-
+			
 		if as_dict:
 			data = []
 			for row in out:
@@ -155,7 +161,6 @@ class Report(Document):
 					_row[columns[i].get('fieldname')] = val
 		else:
 			data = out
-
 		return columns, data
 
 

@@ -124,9 +124,9 @@ class AutoEmailReport(Document):
 
 		report_doctype = frappe.db.get_value('Report', self.report, 'ref_doctype')
 		report_footer = frappe.render_template(self.get_report_footer(),
-						dict(report_url = frappe.utils.get_url_to_report(self.report, self.report_type, report_doctype),
-							report_name = self.report,
-							edit_report_settings = frappe.utils.get_link_to_form('Auto Email Report', self.name)))
+			dict(report_url = frappe.utils.get_url_to_report(self.report, self.report_type, report_doctype),
+			report_name = self.report,
+			edit_report_settings = frappe.utils.get_link_to_form('Auto Email Report', self.name)))
 
 		message += report_footer
 

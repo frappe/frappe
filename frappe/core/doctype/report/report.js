@@ -54,7 +54,7 @@ cur_frm.cscript.refresh = function(doc) {
 
 frappe.ui.form.on('Report', {
 	refresh: function(frm) {
-		if(!frappe.boot.developer_mode) {
+		if(!frappe.boot.developer_mode && user != 'Administrator') {
 			// make the document read-only
 			frm.set_read_only();
 		}
