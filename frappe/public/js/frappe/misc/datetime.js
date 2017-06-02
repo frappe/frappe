@@ -155,6 +155,4 @@ $.extend(frappe.datetime, {
 
 });
 
-// globals (deprecate)
-// var date = dateutil = frappe.datetime;
-// var get_today = frappe.datetime.get_today;
+console.warn('The globals `dateutil` and `get_today` are deprecated. Please use `frappe.datetime` instead.')

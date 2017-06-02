@@ -690,6 +690,7 @@ _f.Frm.prototype.reload_doc = function() {
 	}
 }
 
+console.warn('The global `validated` has been deprecated. Please use `frappe.validated` instead.');
 frappe.validated = 0;
 _f.Frm.prototype.save = function(save_action, callback, btn, on_error) {
 	btn && $(btn).prop("disabled", true);

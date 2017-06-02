@@ -77,6 +77,7 @@ frappe.prompt = function(fields, callback, title, primary_label) {
 	return d;
 }
 
+console.warn('The globals `msgprint` and `show_alert` has been deprecated. Please use `frappe.msgprint` and `frappe.show_alert` instead.');
 var msg_dialog=null;
 frappe.msgprint = function(msg, title) {
 	if(!msg) return;
@@ -220,8 +221,6 @@ frappe.verify_password = function(callback) {
 		});
 	}, __("Verify Password"), __("Verify"))
 }
-
-var msgprint = frappe.msgprint;
 
 frappe.show_progress = function(title, count, total) {
 	if(frappe.cur_progress && frappe.cur_progress.title === title

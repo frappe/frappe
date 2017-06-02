@@ -75,12 +75,7 @@ var crop = function(s, len) {
 		return s;
 }
 
-
-function keys(obj) {
-	var mykeys=[];
-	for (var key in obj) mykeys[mykeys.length]=key;
-	return mykeys;
-}
+console.warn('The global `keys` has been deprecated. Please use `Object.keys` instead');
 
 function has_words(list, item) {
 	if(!item) return true;

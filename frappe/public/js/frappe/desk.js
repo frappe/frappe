@@ -269,13 +269,18 @@ frappe.Application = Class.extend({
 	},
 
 	set_globals: function() {
+		console.warn('The global `user` has been deprecated. Please use `frappe.session.user` instead.');
 		frappe.session.user = frappe.boot.user.name;
 		frappe.session.user_email = frappe.boot.user.email;
 		frappe.session.user_fullname = frappe.user_info().fullname;
 
+		console.warn('The global `user_defaults` has been deprecated. Please use `frappe.user_roles` instead.');
 		frappe.user_defaults = frappe.boot.user.defaults;
+		console.warn('The global `roles` has been deprecated. Please use `frappe.user_roles` instead.');
 		frappe.user_roles = frappe.boot.user.roles;
+		console.warn('The global `sys_defaults` has been deprecated. Please use `frappe.sys_defaults` instead.');
 		frappe.sys_defaults = frappe.boot.sysdefaults;
+
 		frappe.ui.py_date_format = frappe.boot.sysdefaults.date_format.replace('dd', '%d').replace('mm', '%m').replace('yyyy', '%Y');
 		frappe.boot.user.last_selected_values = {};
 	},
@@ -296,12 +301,12 @@ frappe.Application = Class.extend({
 		localStorage["page_info"] = JSON.stringify(frappe.boot.page_info);
 	},
 	set_as_guest: function() {
-		// for backward compatibility
 		frappe.session.user = 'Guest';
+		frappe.session.user_email = '';
 		frappe.session.user_fullname = 'Guest';
+
 		frappe.user_defaults = {};
 		frappe.user_roles = ['Guest'];
-		frappe.session.user_email = '';
 		frappe.sys_defaults = {};
 	},
 	make_page_container: function() {
