@@ -30,7 +30,9 @@ class SocialLoginKeys(Document):
 			except:
 				frappe.throw(_("Check Frappe Server URL"))
 
-			if socket.gethostname() != frappe_server_hostname:
+			if socket.gethostname() != frappe_server_hostname or \
+				(frappe.local.conf.domains is not None) and \
+				(frappe_server_hostname not in frappe.local.conf.domains):
 				try:
 					r = requests.get(self.frappe_server_url + "/api/method/frappe.handler.version", timeout=5)
 				except:
