@@ -1,9 +1,6 @@
 frappe.provide("frappe.wiz");
 frappe.provide("frappe.wiz.events");
 
-// frappe.wiz.slide_config.welcome (user, password etc)
-// frappe.wiz.utils.regional (lang etc.)
-
 frappe.wiz = {
 	slides: [],
 	events: {},
@@ -74,7 +71,8 @@ frappe.wiz.Wizard = Class.extend({
 		this.slide_dict = {};
 		this.values = {};
 		this.welcomed = true;
-		frappe.set_route("setup-wizard/0");
+		// CHANGE: revert
+		frappe.set_route("setup-wizard/2");
 	},
 	make: function() {
 		this.parent = $('<div class="setup-wizard-wrapper">').appendTo(this.parent);
@@ -321,7 +319,7 @@ frappe.wiz.WizardSlide = Class.extend({
 				.click(this.next_or_complete.bind(this));
 		}
 
-		//setup mousefree navigation
+		// setup mousefree navigation
 		this.$body.on('keypress', function(e) {
 			if(e.which === 13) {
 				var $target = $(e.target);
@@ -400,42 +398,10 @@ slides = [
 			frappe.wiz.utils.bind_language_events(slide);
 		},
 
-		setup_awesomplete: function(slide) {
+		setup_values: function(slide) {
 			var me = this;
 			var languauge_field = slide.get_field("language");
-			// this.awesomplete = frappe.wiz.setup_awesomplete(this, slide, "language", frappe.wiz.data.lang.languages);
 
-			var fn = "language";
-			var list = frappe.wiz.data.lang.languages;
-
-			var input_field = slide.get_field(fn);
-			var $input = input_field.$input;
-			var input = $input.get(0);
-			var awesomplete = new Awesomplete(input, {
-				minChars: 0,
-				maxItems: 99,
-				list: list
-			});
-			$input.on("awesomplete-select", function(e) {
-				var o = e.originalEvent;
-				var value = o.text.value;
-				var item = awesomplete.get_item(value);
-			});
-			$input.on("input", function(e) {
-				var value = e.target.value;
-				awesomplete.list = list;
-			});
-			$input.on("focus", function(e) {
-				$input.trigger("input");
-			});
-
-			$input.on("blur", function(e) {
-				if(!list.includes($input.val())) {
-					$input.val("");
-					}
-			});
-
-			this.awesomplete = awesomplete;
 			language_field.refresh();
 
 		}
@@ -480,12 +446,12 @@ slides = [
 		title: __("The First User: You"),
 		icon: "fa fa-user",
 		fields: [
-			{"fieldname": "full_name", "label": __("Full Name"), "fieldtype": "Data",
-				reqd:1},
-			{"fieldname": "email", "label": __("Email Address"), "fieldtype": "Data",
-				reqd:1, "description": __("Login id"), "options":"Email"},
-			{fieldtype:"Attach Image", fieldname:"attach_user",
+			{ "fieldtype":"Attach Image", "fieldname":"attach_user",
 				label: __("Attach Your Picture"), is_private: 0},
+			{ "fieldname": "full_name", "label": __("Full Name"), "fieldtype": "Data",
+				reqd:1},
+			{ "fieldname": "email", "label": __("Email Address"), "fieldtype": "Data",
+				reqd:1, "description": __("Login id"), "options":"Email"},
 		],
 		help: __('The first user will become the System Manager (you can change this later).'),
 		onload: function(slide) {
@@ -664,34 +630,6 @@ frappe.wiz.utils = {
 			});
 		});
 	},
-
-	setup_awesomplete: (context, slide, fn, list) => {
-		console.log("hello");
-		var input_field = slide.get_field(fn);
-		var $input = input_field.$input;
-		var input = $input.get(0);
-		var awesomplete = new Awesomplete(input, {
-			minChars: 0,
-			maxItems: 99,
-			list: list
-		});
-		$input.on("awesomplete-open", function(e){
-			$input.attr('state', 'open');
-		});
-		$input.on("awesomplete-close", function(e){
-			$input.attr('state', 'closed');
-		});
-		$input.on("input", function(e) {
-			var value = e.target.value;
-		});
-		$input.on("focus", function(e) {
-			if($input.attr('state') != 'open') {
-				$input.trigger("input");
-			}
-		});
-
-		return awesomplete;
-	}
 
 }
 
