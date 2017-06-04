@@ -179,11 +179,23 @@ def load_messages(language):
 
 @frappe.whitelist()
 def load_languages():
+	language_codes = frappe.db.sql('select language_code, language_name from tabLanguage order by name', as_dict=True);
+	codes_to_names = {}
+	for d in language_codes:
+		codes_to_names[d.language_code] = d.language_name
 	return {
 		"default_language": frappe.db.get_value('Language', frappe.local.lang, 'language_name') or frappe.local.lang,
-		"languages": sorted(frappe.db.sql_list('select language_name from tabLanguage order by name'))
+		"languages": sorted(frappe.db.sql_list('select language_name from tabLanguage order by name')),
+		"codes_to_names": codes_to_names
 	}
 
+@frappe.whitelist()
+def load_country():
+	import requests
+	response = requests.get("http://freegeoip.net/json/")
+	response.raise_for_status()
+	country = response.json()["country_name"]
+	return country
 
 def prettify_args(args):
 	# remove attachments

@@ -107,9 +107,13 @@
 	/*to change as per removing heading*/
 	height: 180px;
 	text-align: center;
+
+	/*Temp for gravatar demo*/
+	margin-left: 33%;
 }
 
-.setup-wizard-slide .frappe-control[data-fieldtype="Attach Image"] .form-control {
+.setup-wizard-slide .frappe-control[data-fieldtype="Attach Image"] .form-group,
+.setup-wizard-slide .frappe-control[data-fieldtype="Attach Image"] .clearfix {
 	display: none;
 }
 
