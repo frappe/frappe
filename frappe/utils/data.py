@@ -246,7 +246,8 @@ def format_datetime(datetime_string, format_string=None):
 
 def global_date_format(date):
 	"""returns date as 1 January 2012"""
-	formatted_date = getdate(date).strftime("%d %B %Y")
+	date = getdate(date)
+	formatted_date = babel.dates.format_date(date, locale=(frappe.local.lang or "").replace("-", "_"), format="long")
 	return formatted_date.startswith("0") and formatted_date[1:] or formatted_date
 
 def has_common(l1, l2):
