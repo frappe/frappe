@@ -5,8 +5,8 @@ from frappe.translate import rename_language
 
 def execute():
 	language_map = {
-		"中国（简体）": "簡體中文",
-		"中國（繁體）": "正體中文"
+		"中国（简体）": "简体中文",
+		"中國（繁體）": "繁体中文"
 	}
 
 	for old_name, new_name in language_map.items():
