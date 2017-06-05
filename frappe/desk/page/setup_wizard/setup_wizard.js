@@ -29,7 +29,6 @@ frappe.wiz = {
 frappe.pages['setup-wizard'].on_page_load = function(wrapper) {
 	// setup page ui
 	$(".navbar:first").toggle(false);
-	// /assets/frappe_theme/img/erp-icon.svg\
 
 	$('header').append(`<div class="setup-wizard-brand"">
 		<img src="/assets/frappe_theme/img/erp-icon.svg" class="brand-icon"
@@ -73,7 +72,7 @@ frappe.wiz.Wizard = Class.extend({
 		this.values = {};
 		this.welcomed = true;
 		// CHANGE: revert
-		frappe.set_route("setup-wizard/2");
+		frappe.set_route("setup-wizard/3");
 	},
 	make: function() {
 		this.parent = $('<div class="setup-wizard-wrapper">').appendTo(this.parent);
@@ -260,14 +259,29 @@ frappe.wiz.WizardSlide = Class.extend({
 			$(this.body).html(this.html);
 		}
 
+		this.set_reqd_fields();
 		this.set_init_values();
 		this.make_prev_next_buttons();
+
+		var $primary_btn = this.$next ? this.$next : this.$complete;
+
+		this.bind_fields_to_next($primary_btn);
 
 		if(this.onload) {
 			this.onload(this);
 		}
+		this.reset_next($primary_btn);
 		this.focus_first_input();
 
+	},
+	set_reqd_fields: function() {
+		var dict = this.form.fields_dict;
+		this.reqd_fields = [];
+		Object.keys(dict).map(key => {
+			if(dict[key].df.reqd) {
+				this.reqd_fields.push(dict[key]);
+			}
+		});
 	},
 	set_init_values: function() {
 		var me = this;
@@ -335,6 +349,14 @@ frappe.wiz.WizardSlide = Class.extend({
 			}
 		});
 	},
+	bind_fields_to_next: function($primary_btn) {
+		var me = this;
+		this.reqd_fields.map((field) => {
+			field.$wrapper.on('change input', (e) => {
+				me.reset_next($primary_btn);
+			});
+		});
+	},
 	next_or_complete: function() {
 		if(this.set_values()) {
 			if(this.id+1 < this.wiz.slides.length) {
@@ -342,6 +364,17 @@ frappe.wiz.WizardSlide = Class.extend({
 			} else {
 				this.wiz.on_complete(this.wiz);
 			}
+		}
+	},
+	reset_next: function($primary_btn) {
+		var empty_fields = this.reqd_fields.filter((field) => {
+			return !field.get_value();
+		})
+
+		if(empty_fields.length) {
+			$primary_btn.addClass('disabled');
+		} else {
+			$primary_btn.removeClass('disabled');
 		}
 	},
 	focus_first_input: function() {
@@ -405,13 +438,13 @@ slides = [
 		icon: "fa fa-flag",
 		help: __("Select your Country, Time Zone and Currency"),
 		fields: [
-			{ fieldname: "country", label: __("Your Country"),
+			{ fieldname: "country", label: __("Your Country"), reqd:1,
 				fieldtype: "Select" },
 			{ fieldtype: "Section Break" },
-			{ fieldname: "timezone", label: __("Time Zone"),
+			{ fieldname: "timezone", label: __("Time Zone"), reqd:1,
 				fieldtype: "Select" },
 			{ fieldtype: "Column Break" },
-			{ fieldname: "currency", label: __("Currency"),
+			{ fieldname: "currency", label: __("Currency"), reqd:1,
 				fieldtype: "Select" }
 		],
 
@@ -440,8 +473,8 @@ slides = [
 			// 	label: __("Attach Your Picture"), is_private: 0},
 			{ "fieldname": "full_name", "label": __("Full Name"), "fieldtype": "Data",
 				reqd:1},
-			{ "fieldname": "email", "label": __("Email Address"), "fieldtype": "Data",
-				reqd:1, "description": __("Login id"), "options":"Email"},
+			{ "fieldname": "email", "label": __("Email Address") + ' <i>(' + __("Will be your login ID") + ')</i>',
+				"fieldtype": "Data", reqd:1, "options":"Email"}
 		],
 		help: __('The first user will become the System Manager (you can change this later).'),
 		onload: function(slide) {
@@ -496,8 +529,7 @@ slides = [
 		icon: "fa fa-lock",
 		help: __("Set a password"),
 		fields: [
-			{"fieldname": "password", "label": __("Password"), "fieldtype": "Password",
-				reqd:1},
+			{"fieldname": "password", "label": __("Password"), "fieldtype": "Password", reqd:1},
 		],
 
 		onload: function(slide) {

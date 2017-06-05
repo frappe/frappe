@@ -64,6 +64,10 @@
 	border-color: #ffa00a;
 }
 
+.setup-wizard-slide .form-control.bold {
+	background-color: #fff;
+}
+
 .setup-wizard-slide.with-form {
 	margin: 40px auto;
 	padding: 10px 50px;
@@ -75,9 +79,17 @@
 	padding: 30px 0px;
 }
 
-.setup-wizard-slide a.next-btn {
+.setup-wizard-slide a.next-btn,
+.setup-wizard-slide a.complete-btn {
     font-size: 14px;
     padding: 7px 25px;
+}
+
+.setup-wizard-slide a.next-btn.disabled,
+.setup-wizard-slide a.complete-btn.disabled {
+    background-color: #b1bdca;
+    color: #fff;
+    border-color: #b1bdca;
 }
 
 .setup-wizard-progress {
