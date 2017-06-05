@@ -1,7 +1,13 @@
 <div class="container setup-wizard-slide {%= css_class %} with-form" data-slide-name="{%= name %}">
-	<div class="text-center setup-wizard-progress text-extra-muted">
+	<div class="text-center setup-wizard-progress">
 		{% for (var i=0; i < slides_count; i++) { %}
-		<i class="fa fa-fw fa-circle{% if (i+1<=step) { %} active {% } %}"></i>
+		<span style="position: relative;">
+			<a href="#setup-wizard/{%= i %}" class="text-extra-muted">
+				<i class="fa fa-fw fa-circle{% if (i+1<=step) { %} active {% } %}"></i></a>
+			<span class="slide-name-tooltip text-extra-muted hide" style="position: absolute; margin-top: 20px;">
+				<span style="position: relative; left:-65%;">{%= names[i] %}</span>
+			</span>
+		</span>
 		{% } %}
 	</div>
     <p class="text-center lead">{%= title %}</p>

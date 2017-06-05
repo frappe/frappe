@@ -204,37 +204,37 @@ def email_setup_wizard_exception(traceback, args):
 		user_agent = frappe._dict()
 
 	message = """
-#### Basic Information
+		#### Basic Information
 
-- **Site:** {site}
-- **User:** {user}
-- **Browser:** {user_agent.platform} {user_agent.browser} version: {user_agent.version} language: {user_agent.language}
-- **Browser Languages**: `{accept_languages}`
+		- **Site:** {site}
+		- **User:** {user}
+		- **Browser:** {user_agent.platform} {user_agent.browser} version: {user_agent.version} language: {user_agent.language}
+		- **Browser Languages**: `{accept_languages}`
 
----
+		---
 
-#### Traceback
+		#### Traceback
 
-<pre>{traceback}</pre>
+		<pre>{traceback}</pre>
 
----
+		---
 
-#### Setup Wizard Arguments
+		#### Setup Wizard Arguments
 
-<pre>{args}</pre>
+		<pre>{args}</pre>
 
----
+		---
 
-#### Request Headers
+		#### Request Headers
 
-<pre>{headers}</pre>""".format(
-		site=frappe.local.site,
-		traceback=traceback,
-		args="\n".join(pretty_args),
-		user=frappe.session.user,
-		user_agent=user_agent,
-		headers=frappe.local.request.headers,
-		accept_languages=", ".join(frappe.local.request.accept_languages.values()))
+		<pre>{headers}</pre>""".format(
+			site=frappe.local.site,
+			traceback=traceback,
+			args="\n".join(pretty_args),
+			user=frappe.session.user,
+			user_agent=user_agent,
+			headers=frappe.local.request.headers,
+			accept_languages=", ".join(frappe.local.request.accept_languages.values()))
 
 	frappe.sendmail(recipients=frappe.local.conf.setup_wizard_exception_email,
 		sender=frappe.session.user,
