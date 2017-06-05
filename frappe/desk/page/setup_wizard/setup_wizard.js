@@ -71,7 +71,7 @@ frappe.setup.Wizard = Class.extend({
 		this.values = {};
 		this.welcomed = true;
 		// CHANGE: revert
-		frappe.set_route("setup-wizard/3");
+		frappe.set_route("setup-wizard/0");
 	},
 	make: function() {
 		this.parent = $('<div class="setup-wizard-wrapper">').appendTo(this.parent);
@@ -473,11 +473,15 @@ var frappe_slides = [
 			{ "fieldname": "full_name", "label": __("Full Name"), "fieldtype": "Data",
 				reqd:1},
 			{ "fieldname": "email", "label": __("Email Address") + ' <i>(' + __("Will be your login ID") + ')</i>',
-				"fieldtype": "Data", reqd:1, "options":"Email"}
+				"fieldtype": "Data", reqd:1, "options":"Email"},
+			{ "fieldname": "password", "label": __("Password"), "fieldtype": "Password", reqd:1 }
 		],
 		help: __('The first user will become the System Manager (you can change this later).'),
 		onload: function(slide) {
 			if(user!=="Administrator") {
+				// remove password field
+				delete slide.form.fields_dict.password;
+
 				slide.form.fields_dict.email.$wrapper.toggle(false);
 				if(frappe.boot.user.first_name || frappe.boot.user.last_name) {
 					slide.form.fields_dict.full_name.set_input(
@@ -517,27 +521,6 @@ var frappe_slides = [
 			}
 		},
 	},
-
-	{
-		// Password slide
-		// dependent on user being Administrator
-		name: 'password',
-		domains: ["all"],
-		condition: (user==="Administrator"),
-		title: __("Set Your Password"),
-		icon: "fa fa-lock",
-		help: __("Set a password"),
-		fields: [
-			{"fieldname": "password", "label": __("Password"), "fieldtype": "Password", reqd:1},
-		],
-
-		onload: function(slide) {
-			if(user!=="Administrator") {
-				slide.form.fields_dict.password.$wrapper.toggle(false);
-				delete slide.form.fields_dict.password;
-			}
-		}
-	}
 ]
 
 var utils = {
@@ -551,11 +534,7 @@ var utils = {
 
 				var language_field = slide.get_field("language");
 
-				// non-foolproof
-				var browser_lang_code = navigator.language || navigator.userLanguage;
-				var browser_lang = frappe.setup.data.lang.codes_to_names[browser_lang_code];
-
-				language_field.set_input(browser_lang || frappe.setup.data.default_language || "English");
+				language_field.set_input(frappe.setup.data.default_language || "English");
 
 				if (!frappe.setup._from_load_messages) {
 					language_field.$input.trigger("change");
@@ -588,6 +567,8 @@ var utils = {
 		*/
 		var data = frappe.setup.data.regional_data;
 
+		var country_field = slide.get_field('country');
+
 		slide.get_input("country").empty()
 			.add_options([""].concat(keys(data.country_info).sort()));
 
@@ -600,9 +581,9 @@ var utils = {
 
 		// set values if present
 		if(frappe.wizard.values.country) {
-			slide.get_field("country").set_input(frappe.wizard.values.country);
+			country_field.set_input(frappe.wizard.values.country);
 		} else if (data.default_country) {
-			slide.get_field("country").set_input(data.default_country);
+			country_field.set_input(data.default_country);
 		}
 
 		if(frappe.wizard.values.currency) {
@@ -613,6 +594,8 @@ var utils = {
 			slide.get_field("timezone").set_input(frappe.wizard.values.timezone);
 		}
 
+		country_field.df.description = 'fetching country...';
+		country_field.set_description();
 		// get location from IP (unreliable)
 		frappe.call({
 			method:"frappe.desk.page.setup_wizard.setup_wizard.load_country",
@@ -620,6 +603,9 @@ var utils = {
 				if(r.message) {
 					slide.get_field("country").set_input(r.message);
 					slide.get_input("country").trigger('change');
+
+					country_field.df.description = '';
+					country_field.set_description();
 				}
 			}
 		});

@@ -517,7 +517,6 @@ frappe.ui.form.ControlReadOnly = frappe.ui.form.ControlData.extend({
 	},
 });
 
-
 frappe.ui.form.ControlPassword = frappe.ui.form.ControlData.extend({
 	input_type: "password",
 	make: function() {
@@ -555,44 +554,19 @@ frappe.ui.form.ControlPassword = frappe.ui.form.ControlData.extend({
 						feedback = r.message.feedback;
 
 					feedback.crack_time_display = r.message.crack_time_display;
-					feedback.score = score;
 
-					if(feedback.password_policy_validation_passed){
-						me.set_strength_indicator('green', feedback);
-					} else {
-						me.set_strength_indicator('red', feedback);
-					}
+					var indicators = ['grey', 'red', 'orange', 'yellow', 'green'];
+					me.set_strength_indicator(indicators[score]);
+
 				}
 			}
 
 		});
 	},
-	set_strength_indicator: function(color, feedback) {
-		var message = [];
-		feedback.help_msg = "";
-		if(!feedback.password_policy_validation_passed){
-			feedback.help_msg = "<br>" + __("Hint: Include symbols, numbers and capital letters in the password");
-		}
-		if (feedback) {
-			if(!feedback.password_policy_validation_passed){
-				if (feedback.suggestions && feedback.suggestions.length) {
-					feedback.suggestions = feedback.suggestions + ' ' + feedback.help_msg;
-					message = message.concat(feedback.suggestions);
-				} else if (feedback.warning) {
-					feedback.warning = feedback.warning + ' ' + feedback.help_msg;
-					message.push(feedback.warning);
-				}
-
-				if (!message.length) {
-					message.push(feedback.help_msg);
-				}
-			}else{
-				message.push(__('Success! You are good to go 👍'));
-			}
-		}
-
+	set_strength_indicator: function(color) {
+		var message = __("Include symbols, numbers and capital letters in the password");
 		this.indicator.removeClass().addClass('password-strength-indicator indicator ' + color);
-		this.message.html(message.join(' ') || '').removeClass('hidden');
+		this.message.html(message).removeClass('hidden');
 	}
 });
 
