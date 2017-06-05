@@ -245,10 +245,10 @@ def format_datetime(datetime_string, format_string=None):
 	return formatted_datetime
 
 def global_date_format(date):
-	"""returns date as 1 January 2012"""
+	"""returns localized date in the form of January 1, 2012"""
 	date = getdate(date)
-	formatted_date = babel.dates.format_date(date, locale=(frappe.local.lang or "").replace("-", "_"), format="long")
-	return formatted_date.startswith("0") and formatted_date[1:] or formatted_date
+	formatted_date = babel.dates.format_date(date, locale=(frappe.local.lang or "en").replace("-", "_"), format="long")
+	return formatted_date
 
 def has_common(l1, l2):
 	"""Returns truthy value if there are common elements in lists l1 and l2"""
