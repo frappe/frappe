@@ -141,7 +141,7 @@ frappe.UserPermissions = Class.extend({
 				primary_action: function() {
 					var filedata = d.fields_dict.attach.get_value();
 					if(!filedata) {
-						msgprint(_("Please attach a file"));
+						frappe.msgprint(__("Please attach a file"));
 						return;
 					}
 					frappe.call({
@@ -151,7 +151,7 @@ frappe.UserPermissions = Class.extend({
 						},
 						callback: function(r) {
 							if(!r.exc) {
-								msgprint(__("Permissions Updated"));
+								frappe.msgprint(__("Permissions Updated"));
 								d.hide();
 							}
 						}
@@ -288,7 +288,7 @@ frappe.UserPermissions = Class.extend({
 					},
 					callback: function(r) {
 						if(r.exc) {
-							msgprint(__("Did not remove"));
+							frappe.msgprint(__("Did not remove"));
 						} else {
 							me.refresh();
 						}
@@ -349,7 +349,7 @@ frappe.UserPermissions = Class.extend({
 						args: args,
 						callback: function(r) {
 							if(r.exc) {
-								msgprint(__("Did not add"));
+								frappe.msgprint(__("Did not add"));
 							} else {
 								me.refresh();
 							}
