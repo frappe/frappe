@@ -709,6 +709,7 @@ class Document(BaseDocument):
 			# value change is not applicable in insert
 			event_map['validate'] = 'Value Change'
 			event_map['before_change'] = 'Value Change'
+			event_map['before_update_after_submit'] = 'Value Change'
 
 		for alert in self.flags.email_alerts:
 			event = event_map.get(method, None)
