@@ -21,10 +21,8 @@ class LDAPSettings(Document):
 		except ImportError:
 			msg = """
 				<div>
-					{{_(Seems ldap is not installed on system.<br>
-					Guidelines to install ldap dependancies and python package)}},
-					<a href="https://discuss.erpnext.com/t/frappe-v-7-1-beta-ldap-dependancies/15841" target="_blank">{{_(Click here)}}</a>,
-
+					{{_("Seems ldap is not installed on system.<br>Guidelines to install ldap dependancies and python package")}},
+					<a href="https://discuss.erpnext.com/t/frappe-v-7-1-beta-ldap-dependancies/15841" target="_blank">{{_("Click here")}}</a>,
 				</div>
 			"""
 			frappe.throw(msg, title=_("LDAP Not Installed"))
