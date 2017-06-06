@@ -49,7 +49,9 @@ class User(Document):
 		self.__new_password = self.new_password
 		self.new_password = ""
 
-		self.password_strength_test()
+		if not frappe.flags.in_test:
+			self.password_strength_test()
+
 		if self.name not in STANDARD_USERS:
 			self.validate_email_type(self.email)
 			self.validate_email_type(self.name)

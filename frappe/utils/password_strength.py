@@ -2,8 +2,10 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
-from frappe import _
+
 import zxcvbn
+import frappe
+from frappe import _
 
 def test_password_strength(password, user_inputs=None):
 	'''Wrapper around zxcvbn.password_strength'''
