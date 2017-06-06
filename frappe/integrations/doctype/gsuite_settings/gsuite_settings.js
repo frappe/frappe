@@ -3,7 +3,7 @@
 
 frappe.ui.form.on('GSuite Settings', {
 	refresh: function(frm) {
-				frm.clear_custom_buttons();
+		frm.clear_custom_buttons();
 	},
 
 	allow_gsuite_access: function(frm) {
@@ -16,7 +16,7 @@ frappe.ui.form.on('GSuite Settings', {
 						window.open(r.message.url);
 					}
 				}
-			})
+			});
 		}
 		else {
 			frappe.msgprint(__("Please enter values for GSuite Access Key and GSuite Access Secret"))
@@ -29,14 +29,14 @@ frappe.ui.form.on('GSuite Settings', {
 				callback: function(r) {
 					if(!r.exc) {
 						if (r.message == 'ping') {
-							msgprint(__('GSuite test executed with success. GSuite integration is correctly configured'),__('GSuite script test'))
+							frappe.msgprint(__('GSuite test executed with success. GSuite integration is correctly configured'),__('GSuite script test'));
 						}
 					}
 				}
-			})
+			});
 		}
 		else {
-			frappe.msgprint(__("Please enter values for GSuite Access Key and GSuite Access Secret"))
+			frappe.msgprint(__("Please enter values for GSuite Access Key and GSuite Access Secret"));
 		}
 	}
 });

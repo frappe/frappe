@@ -226,7 +226,7 @@ frappe.ui.get_upload_dialog = function(opts){
 	var fd = dialog.fields_dict;
 
 	$(fd.gs_template.input).change(function() {
-		opts.args.gs_template = fd.gs_template.get_value()
+		opts.args.gs_template = fd.gs_template.get_value();
 	});
 
 	$(fd.file.input).change(function() {

@@ -1,4 +1,4 @@
-frappe.provide("frappe.integration_service")
+frappe.provide("frappe.integration_service");
 
 frappe.integration_service.gsuite = {
 	create_gsuite_file: function(args, opts) {
@@ -10,6 +10,6 @@ frappe.integration_service.gsuite = {
 				var attachment = r.message;
 				opts.callback && opts.callback(attachment, r);
 			}
-		})
+		});
 	}
-}
+};

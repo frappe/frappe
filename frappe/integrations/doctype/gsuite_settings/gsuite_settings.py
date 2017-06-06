@@ -7,7 +7,6 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.utils import get_request_site_address
-import os
 import requests
 from json import dumps
 from frappe.utils.response import json_handler
@@ -28,7 +27,7 @@ class GSuiteSettings(Document):
 		}
 		try:
 			r = requests.post('https://www.googleapis.com/oauth2/v4/token', data=data).json()
-		except requests.exceptions.HTTPError as e:
+		except requests.exceptions.HTTPError:
 			frappe.throw(_("Something went wrong during the token generation. Please request again an authorization code."))
 		return r.get('access_token')
 
