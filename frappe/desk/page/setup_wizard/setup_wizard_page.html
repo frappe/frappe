@@ -1,7 +1,7 @@
 <div class="container setup-wizard-slide single-column with-form" data-slide-name="{%= name %}">
 	<div class="text-center setup-wizard-progress text-extra-muted">
 		{% for (var i=0; i < slides_count; i++) { %}
-		<i class="fa fa-fw fa-circle{% if (i+1<=step) { %} active {% } %}"></i>
+		<a href="http://erpnext.domainify:8000/desk#setup-wizard/{%= i %}"><i class="fa fa-fw fa-circle{% if (i+1<=step) { %} active {% } %}"></a></i>
 		{% } %}
 	</div>
     <p class="lead">{%= title %}</p>
@@ -9,6 +9,7 @@
 		<div class="setup-wizard-body col-sm-12">
 			<!-- {% if (help) { %} <p class="text-center">{%= help %}</p> {% } %} -->
 			<div class="form"></div>
+			<a class="more-btn hide btn btn-default btn-sm">{%= __("More") %}</a>
 		</div>
 	</div>
 	<div class="footer text-right">

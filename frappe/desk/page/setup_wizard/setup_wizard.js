@@ -231,6 +231,11 @@ frappe.setup.WizardSlide = Class.extend({
 		var me = this;
 		if(this.$body) this.$body.remove();
 
+		if(this.add_more) {
+			this.item_count = 1;
+			this.field_set = this.fields;
+		}
+
 		if(this.before_load) {
 			this.before_load(this);
 		}
@@ -261,6 +266,7 @@ frappe.setup.WizardSlide = Class.extend({
 		this.set_reqd_fields();
 		this.set_init_values();
 		this.make_prev_next_buttons();
+		if(this.add_more) this.bind_more_button();
 
 		var $primary_btn = this.$next ? this.$next : this.$complete;
 
@@ -271,7 +277,6 @@ frappe.setup.WizardSlide = Class.extend({
 		}
 		this.reset_next($primary_btn);
 		this.focus_first_input();
-
 	},
 	set_reqd_fields: function() {
 		var dict = this.form.fields_dict;
@@ -304,6 +309,15 @@ frappe.setup.WizardSlide = Class.extend({
 			return false;
 		}
 		return true;
+	},
+
+	bind_more_button: function() {
+		this.$more = this.$body.find('.more-btn')
+			.removeClass('hide')
+			.on('click', () => {
+				this.item_count++;
+				this.form.add_fields(this.fields);
+			});
 	},
 
 	make_prev_next_buttons: function() {
@@ -347,6 +361,9 @@ frappe.setup.WizardSlide = Class.extend({
 				}
 			}
 		});
+	},
+	bind_add_more: function() {
+
 	},
 	bind_fields_to_next: function($primary_btn) {
 		var me = this;

@@ -41,6 +41,10 @@ frappe.ui.FieldGroup = frappe.ui.form.Layout.extend({
 			})
 		}
 	},
+	add_fields: function(fields) {
+		this.render(fields);
+		this.refresh_fields();
+	},
 	first_button: false,
 	catch_enter_as_submit: function() {
 		var me = this;
@@ -112,5 +116,5 @@ frappe.ui.FieldGroup = frappe.ui.form.Layout.extend({
 				f.set_input(f.df['default'] || '');
 			}
 		}
-	}
+	},
 });
