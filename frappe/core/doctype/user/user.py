@@ -409,7 +409,8 @@ class User(Document):
 			self.username = ""
 
 	def password_strength_test(self):
-		if self.__new_password:
+		""" test password strength """
+		if frappe.db.get_single_value("System Settings", "enable_password_policy") and self.__new_password:
 			user_data = (self.first_name, self.middle_name, self.last_name, self.email, self.birth_date)
 			result = test_password_strength(self.__new_password, '', None, user_data)
 

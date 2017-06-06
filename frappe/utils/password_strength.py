@@ -35,12 +35,14 @@ def get_feedback (score, sequence):
 	"""
 	Returns the feedback dictionary consisting of ("warning","suggestions") for the given sequences.
 	"""
+	minimum_password_score = frappe.db.get_single_value("System Settings", "minimum_password_score")
+
 	global default_feedback
 	# Starting feedback
 	if len(sequence) == 0:
 		return default_feedback
 	# No feedback if score is good or great
-	if score > 2:
+	if score > minimum_password_score:
 		return dict({"warning": "","suggestions": []})
 	# Tie feedback to the longest match for longer sequences
 	longest_match = max(sequence, key=lambda x: len(x['token']))
