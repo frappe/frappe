@@ -22,6 +22,9 @@
 			"warn",
 			"always"
 		],
+		"camelcase": [
+			"off"
+		],
 		"no-unused-vars": [
 			"warn"
 		],
