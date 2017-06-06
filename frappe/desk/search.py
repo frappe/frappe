@@ -19,7 +19,6 @@ def search_link(doctype, txt, query=None, filters=None, page_length=20, searchfi
 def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 	page_length=10, filters=None, filter_fields=None, as_dict=False):
 	if isinstance(filters, basestring):
-		import json
 		filters = json.loads(filters)
 
 	meta = frappe.get_meta(doctype)

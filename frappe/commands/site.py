@@ -46,7 +46,7 @@ def _new_site(db_name, site, mariadb_root_username=None, mariadb_root_password=N
 	try:
 		# enable scheduler post install?
 		enable_scheduler = _is_scheduler_enabled()
-	except:
+	except Exception:
 		enable_scheduler = False
 
 	make_site_dirs()
@@ -374,7 +374,6 @@ def _drop_site(site, root_login='root', root_password=None, archived_sites_path=
 
 
 def move(dest_dir, site):
-	import os
 	if not os.path.isdir(dest_dir):
 		raise Exception, "destination is not a directory or does not exist"
 
@@ -496,7 +495,7 @@ def set_last_active_for_user(context, user=None):
 
 	from frappe.core.doctype.user.user import get_system_users
 	from frappe.utils.user import set_last_active_to_now
-	
+
 	site = get_site(context)
 
 	with frappe.init_site(site):

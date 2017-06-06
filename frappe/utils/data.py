@@ -494,7 +494,6 @@ def pretty_date(iso_datetime):
 		long ago the date represents.
 		Ported from PrettyDate by John Resig
 	"""
-	from frappe import _
 	if not iso_datetime: return ''
 	import math
 

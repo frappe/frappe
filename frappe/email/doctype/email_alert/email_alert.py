@@ -57,7 +57,7 @@ def get_context(context):
 		if self.condition:
 			try:
 				frappe.safe_eval(self.condition, None, get_context(temp_doc))
-			except:
+			except Exception:
 				frappe.throw(_("The Condition '{0}' is invalid").format(self.condition))
 
 	def validate_forbidden_types(self):
