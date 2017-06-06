@@ -60,7 +60,8 @@ def rename_doc(doctype, old, new, force=False, merge=False, ignore_permissions=F
 
 	# copy any flags if required
 	new_doc._local = getattr(old_doc, "_local", None)
-
+	if(old==new):
+		frappe.throw("DocType Old Name: "+old+" equails new name :"+new)
 	new_doc.run_method("after_rename", old, new, merge)
 
 	rename_versions(doctype, old, new)
