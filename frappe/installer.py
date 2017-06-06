@@ -11,6 +11,7 @@ import frappe
 import frappe.database
 import getpass
 import importlib
+from frappe import _
 from frappe.model.db_schema import DbManager
 from frappe.model.sync import sync_for
 from frappe.utils.fixtures import sync_fixtures
@@ -121,7 +122,7 @@ def install_app(name, verbose=False, set_as_patched=True):
 		raise Exception("App not in apps.txt")
 
 	if name in installed_apps:
-		frappe.msgprint("App {0} already installed".format(name))
+		frappe.msgprint(_("App {0} already installed").format(name))
 		return
 
 	print("Installing {0}...".format(name))
