@@ -5,6 +5,7 @@
 from __future__ import unicode_literals
 import frappe, json
 from frappe.utils import cstr, unique
+from frappe import _
 
 # this is called by the Link Field
 @frappe.whitelist()
@@ -38,7 +39,7 @@ def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 			searchfield, start, page_length, filters)
 	else:
 		if query:
-			frappe.throw("This query style is discontinued")
+			frappe.throw(_("This query style is discontinued"))
 			# custom query
 			# frappe.response["values"] = frappe.db.sql(scrub_custom_query(query, searchfield, txt))
 		else:

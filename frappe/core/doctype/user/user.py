@@ -3,6 +3,7 @@
 
 from __future__ import unicode_literals
 import frappe
+from frappe import _
 from frappe.model.document import Document
 from frappe.utils import cint, has_gravatar, format_datetime, now_datetime, get_formatted_email
 from frappe import throw, msgprint, _
@@ -85,7 +86,7 @@ class User(Document):
 
 	def check_demo(self):
 		if frappe.session.user == 'demo@erpnext.com':
-			frappe.throw('Cannot change user details in demo. Please signup for a new account at https://erpnext.com', title='Not Allowed')
+			frappe.throw(_('Cannot change user details in demo. Please signup for a new account at https://erpnext.com'), title=_('Not Allowed'))
 
 	def set_full_name(self):
 		self.full_name = " ".join(filter(None, [self.first_name, self.last_name]))

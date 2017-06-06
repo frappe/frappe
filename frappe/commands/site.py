@@ -2,6 +2,7 @@ from __future__ import unicode_literals, absolute_import, print_function
 import click
 import hashlib, os, sys
 import frappe
+from frappe import _
 from _mysql_exceptions import ProgrammingError
 from frappe.commands import pass_context, get_site
 from frappe.commands.scheduler import _is_scheduler_enabled
@@ -447,7 +448,7 @@ def _set_limits(context, site, limits):
 		for limit, value in limits:
 			if limit not in ('emails', 'space', 'users', 'email_group',
 				'expiry', 'support_email', 'support_chat', 'upgrade_url'):
-				frappe.throw('Invalid limit {0}'.format(limit))
+				frappe.throw(_('Invalid limit {0}').format(limit))
 
 			if limit=='expiry' and value:
 				try:
