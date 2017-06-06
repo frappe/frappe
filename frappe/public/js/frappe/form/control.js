@@ -401,6 +401,9 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 		}
 		this._description = this.df.description;
 	},
+	set_new_description: function(description) {
+		this.$wrapper.find(".help-box").html(description);
+	},
 	set_empty_description: function() {
 		this.$wrapper.find(".help-box").html("");
 	},
