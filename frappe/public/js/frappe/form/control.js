@@ -1652,9 +1652,10 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 					// firefox hack that puts the caret in the wrong position
 					// when div is empty. To fix, seed with a <br>.
 					// See https://bugzilla.mozilla.org/show_bug.cgi?id=550434
-					$(".note-editable[contenteditable='true']").on('focus', function(){
+					// this function is executed only once
+					$(".note-editable[contenteditable='true']").one('focus', function() {
 						var $this = $(this);
-						$this.html( $this.html() + '<br>' );
+						$this.html($this.html() + '<br>');
 					});
 				},
 				onChange: function(value) {
