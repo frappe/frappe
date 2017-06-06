@@ -264,7 +264,7 @@ frappe.views.Calendar = Class.extend({
 			args: me.get_update_args(event),
 			callback: function(r) {
 				if(r.exc) {
-					show_alert(__("Unable to update event"));
+					frappe.show_alert(__("Unable to update event"));
 					revertFunc();
 				}
 			},
@@ -325,7 +325,7 @@ frappe.views.Calendar = Class.extend({
 			$.each(this.filters, function(i, df) {
 				if(df.options===value)
 					me.page.fields_dict[df.fieldname].set_input(value);
-					return false;
+				return false;
 			});
 		}
 	},
@@ -346,7 +346,7 @@ frappe.views.Calendar = Class.extend({
 			$.each(frappe.route_options, function(k, value) {
 				if(me.page.fields_dict[k]) {
 					me.page.fields_dict[k].set_input(value);
-				};
+				}
 			})
 			frappe.route_options = null;
 			me.refresh();

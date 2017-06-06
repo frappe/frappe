@@ -3,7 +3,7 @@
 
 frappe.ui.form.on('Feedback Request', {
 	refresh: function(frm) {
-		rating_icons = frappe.render_template("rating_icons", {rating: frm.doc.rating, show_label: false});
+		var rating_icons = frappe.render_template("rating_icons", {rating: frm.doc.rating, show_label: false});
 		$(frm.fields_dict.feedback_rating.wrapper).html(rating_icons);
 
 		if(frm.doc.reference_doctype && frm.doc.reference_name) {

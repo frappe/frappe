@@ -2,7 +2,7 @@
  * frappe.views.EmailInboxView
  */
 
- frappe.provide("frappe.views");
+frappe.provide("frappe.views");
 
 frappe.views.InboxView = frappe.views.ListRenderer.extend({
 	name: 'Inbox',
@@ -20,7 +20,7 @@ frappe.views.InboxView = frappe.views.ListRenderer.extend({
 	render_inbox_view: function() {
 		var html = ""
 
-		email_account = this.get_current_email_account()
+		var email_account = this.get_current_email_account()
 		if(email_account)
 			html = this.emails.map(this.render_email_row.bind(this)).join("");
 		else
@@ -78,7 +78,7 @@ frappe.views.InboxView = frappe.views.ListRenderer.extend({
 				["Communication", "email_status", "not in", "Spam,Trash", true],
 			])
 		}
-		else if (inList(["Spam", "Trash"], email_account)) {
+		else if (in_list(["Spam", "Trash"], email_account)) {
 			filters = default_filters.concat([
 				["Communication", "email_status", "=", email_account, true],
 				["Communication", "email_account", "in", frappe.boot.all_accounts, true]
@@ -115,6 +115,7 @@ frappe.views.InboxView = frappe.views.ListRenderer.extend({
 	get_current_email_account: function() {
 		var route = frappe.get_route();
 		if(!route[3] && frappe.boot.email_accounts.length) {
+			var email_account;
 			if(frappe.boot.email_accounts[0].email_id == "All Accounts") {
 				email_account = "All Accounts"
 			} else {
@@ -130,8 +131,9 @@ frappe.views.InboxView = frappe.views.ListRenderer.extend({
 	},
 	make_no_result: function () {
 		var no_result_message = ""
-		email_account = this.get_current_email_account();
-		if (inList(["Spam", "Trash"], email_account)) {
+		var email_account = this.get_current_email_account();
+		var args;
+		if (in_list(["Spam", "Trash"], email_account)) {
 			return __("No {0} mail", [email_account])
 		} else if(!email_account && !frappe.boot.email_accounts.length) {
 			// email account is not configured
@@ -159,7 +161,7 @@ frappe.views.InboxView = frappe.views.ListRenderer.extend({
 				doc: {}
 			})
 		} else {
-			frappe.route_options = { 'email_id': user_email }
+			frappe.route_options = { 'email_id': frappe.session.user_email }
 			frappe.new_doc(this.no_result_doctype)
 		}
 	}

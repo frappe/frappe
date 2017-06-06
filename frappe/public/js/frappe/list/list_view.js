@@ -302,7 +302,7 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 	set_filters: function (filters) {
 		var me = this;
 		$.each(filters, function (i, f) {
-			hidden = false
+			var hidden = false
 			if (f.length === 3) {
 				f = [me.doctype, f[0], f[1], f[2]]
 			} else if (f.length === 5) {
@@ -377,7 +377,7 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 		if (this.list_renderer.settings.list_view_doc) {
 			this.list_renderer.settings.list_view_doc(this);
 		} else {
-			doctype = this.list_renderer.no_result_doctype? this.list_renderer.no_result_doctype: this.doctype
+			var doctype = this.list_renderer.no_result_doctype? this.list_renderer.no_result_doctype: this.doctype
 			$(this.wrapper).on('click', `button[list_view_doc='${doctype}']`, function () {
 				if (me.list_renderer.make_new_doc)
 					me.list_renderer.make_new_doc()
@@ -563,18 +563,18 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 		return order_by;
 	},
 	assigned_to_me: function () {
-		this.filter_list.add_filter(this.doctype, '_assign', 'like', '%' + user + '%');
+		this.filter_list.add_filter(this.doctype, '_assign', 'like', '%' + frappe.session.user + '%');
 		this.run();
 	},
 	liked_by_me: function () {
-		this.filter_list.add_filter(this.doctype, '_liked_by', 'like', '%' + user + '%');
+		this.filter_list.add_filter(this.doctype, '_liked_by', 'like', '%' + frappe.session.user + '%');
 		this.run();
 	},
 	remove_liked_by_me: function () {
 		this.filter_list.get_filter('_liked_by').remove();
 	},
 	is_star_filtered: function () {
-		return this.filter_list.filter_exists(this.doctype, '_liked_by', 'like', '%' + user + '%');
+		return this.filter_list.filter_exists(this.doctype, '_liked_by', 'like', '%' + frappe.session.user + '%');
 	},
 	init_menu: function () {
 		var me = this;
@@ -606,7 +606,7 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 				});
 			}, true);
 		}
-		if (roles.includes('System Manager')) {
+		if (frappe.user_roles.includes('System Manager')) {
 			this.page.add_menu_item(__('Role Permissions Manager'), function () {
 				frappe.set_route('permission-manager', {
 					doctype: me.doctype
@@ -627,7 +627,7 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 			frappe.add_to_desktop(me.doctype, me.doctype);
 		}, true);
 
-		if (roles.includes('System Manager') && frappe.boot.developer_mode === 1) {
+		if (frappe.user_roles.includes('System Manager') && frappe.boot.developer_mode === 1) {
 			// edit doctype
 			this.page.add_menu_item(__('Edit DocType'), function () {
 				frappe.set_route('Form', 'DocType', me.doctype);
@@ -683,7 +683,7 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 					return !is_submittable || doc.docstatus === 1 ||
 						(allow_print_for_cancelled && doc.docstatus == 2) ||
 						(allow_print_for_draft && doc.docstatus == 0) ||
-						roles.includes('Administrator')
+						frappe.user_roles.includes('Administrator')
 				}).map(function (doc) {
 					return doc.name
 				});
@@ -708,11 +708,11 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 				});
 
 				dialog.set_primary_action(__('Print'), function () {
-					args = dialog.get_values();
+					var args = dialog.get_values();
 					if (!args) return;
 					var default_print_format = locals.DocType[me.doctype].default_print_format;
-					with_letterhead = args.with_letterhead ? 1 : 0;
-					print_format = args.print_sel ? args.print_sel : default_print_format;
+					var with_letterhead = args.with_letterhead ? 1 : 0;
+					var print_format = args.print_sel ? args.print_sel : default_print_format;
 
 					var json_string = JSON.stringify(valid_docs);
 					var w = window.open('/api/method/frappe.utils.print_format.download_multi_pdf?'
@@ -725,7 +725,7 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 					}
 				});
 
-				print_formats = frappe.meta.get_print_formats(me.doctype);
+				var print_formats = frappe.meta.get_print_formats(me.doctype);
 				dialog.fields_dict.print_sel.$input.empty().add_options(print_formats);
 
 				dialog.show();

@@ -20,7 +20,7 @@ function $c_obj(doc, method, arg, callback, no_spinner, freeze_msg, btn) {
 
 	if(arg && typeof arg!='string') arg = JSON.stringify(arg);
 
-	args = {
+	var args = {
 		cmd:'runserverobj',
 		args: arg,
 		method: method

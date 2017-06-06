@@ -42,12 +42,12 @@ frappe.listview_settings['File'] = {
 		doclist.list_renderer.settings.setup_dragdrop(doclist);
 
 		doclist.$page.on("click", ".list-row-checkbox", function(event) {
-				doclist.list_renderer.settings.add_menu_item_copy(doclist);
+			doclist.list_renderer.settings.add_menu_item_copy(doclist);
 		})
 	},
 	list_view_doc:function(doclist){
-		$(doclist.wrapper).on("click", 'button[list_view_doc="'+doclist.doctype+'"]', function(){
-			dialog = frappe.ui.get_upload_dialog({
+		$(doclist.wrapper).on("click", 'button[list_view_doc="'+doclist.doctype+'"]', function() {
+			frappe.ui.get_upload_dialog({
 				"args": {
 					"folder": doclist.current_folder,
 					"from_form": 1
@@ -83,7 +83,7 @@ frappe.listview_settings['File'] = {
 
 		doclist.page.add_menu_item(__("Import .zip"), function() {
 			// make upload dialog
-			dialog = frappe.ui.get_upload_dialog({
+			frappe.ui.get_upload_dialog({
 				args: {
 					folder: doclist.current_folder,
 					from_form: 1
@@ -197,7 +197,7 @@ frappe.listview_settings['File'] = {
 	set_primary_action:function(doclist){
 		doclist.page.clear_primary_action();
 		doclist.page.set_primary_action(__("New"), function() {
-			dialog = frappe.ui.get_upload_dialog({
+			frappe.ui.get_upload_dialog({
 				"args": {
 					"folder": doclist.current_folder,
 					"from_form": 1

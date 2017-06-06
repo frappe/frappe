@@ -80,7 +80,7 @@ frappe.ui.Listing = Class.extend({
 			return this.page.add_menu_item(label, click, icon)
 		} else {
 			this.wrapper.find('.list-toolbar-wrapper').removeClass("hide");
-			$button = $('<button class="btn btn-default"></button>')
+			var $button = $('<button class="btn btn-default"></button>')
 				.appendTo(this.wrapper.find('.list-toolbar'))
 				.html((icon ? ("<i class='"+icon+"'></i> ") : "") + label)
 				.click(click);
@@ -166,7 +166,7 @@ frappe.ui.Listing = Class.extend({
 		});
 		if(frappe.model.is_submittable(this.doctype)) {
 			this.filter_list.add_filter(this.doctype, "docstatus", "!=", 2);
-		};
+		}
 	},
 
 	clear: function() {
@@ -246,7 +246,7 @@ frappe.ui.Listing = Class.extend({
 	save_list_settings_locally: function(args) {
 		if(this.opts.save_list_settings && this.doctype && !this.docname) {
 			// save list settings locally
-			list_settings = frappe.model.list_settings[this.doctype];
+			var list_settings = frappe.model.list_settings[this.doctype];
 
 			if(!list_settings) {
 				return
@@ -409,7 +409,7 @@ frappe.ui.Listing = Class.extend({
 	},
 	set_filter: function(fieldname, label, no_run, no_duplicate, parent) {
 		var filter = this.filter_list.get_filter(fieldname);
-		doctype = parent && this.doctype != parent? parent: this.doctype
+		var doctype = parent && this.doctype != parent? parent: this.doctype
 
 		if(filter) {
 			var v = cstr(filter.field.get_parsed_value());

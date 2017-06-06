@@ -99,9 +99,9 @@ frappe.Application = Class.extend({
 			});
 			dialog.get_close_btn().toggle(false);
 		});
-		if (sys_defaults.email_user_password){
-			var email_list =  sys_defaults.email_user_password.split(',');
-			for (u in email_list) {
+		if (frappe.sys_defaults.email_user_password){
+			var email_list =  frappe.sys_defaults.email_user_password.split(',');
+			for (var u in email_list) {
 				if (email_list[u]===frappe.user.name){
 					this.set_password(email_list[u])
 				}
@@ -144,47 +144,47 @@ frappe.Application = Class.extend({
 				}
 			]
 		});
-			d.get_input("submit").on("click", function() {
-				//setup spinner
-				d.hide();
-				var s = new frappe.ui.Dialog({
-						title: __("Checking one moment"),
-					fields: [{
+		d.get_input("submit").on("click", function() {
+			//setup spinner
+			d.hide();
+			var s = new frappe.ui.Dialog({
+				title: __("Checking one moment"),
+				fields: [{
 					"fieldtype": "HTML",
 					"fieldname": "checking"
 				}]
-					});
-				s.fields_dict.checking.$wrapper.html('<i class="fa fa-spinner fa-spin fa-4x"></i>')
-				s.show();
-				frappe.call({
-					method: 'frappe.core.doctype.user.user.set_email_password',
-					args: {
-						"email_account": email_account[i]["email_account"],
-						"user": user,
-						"password": d.get_value("password")
-					},
-					callback: function (passed)
+			});
+			s.fields_dict.checking.$wrapper.html('<i class="fa fa-spinner fa-spin fa-4x"></i>')
+			s.show();
+			frappe.call({
+				method: 'frappe.core.doctype.user.user.set_email_password',
+				args: {
+					"email_account": email_account[i]["email_account"],
+					"user": user,
+					"password": d.get_value("password")
+				},
+				callback: function (passed)
+				{
+					s.hide();
+					d.hide();//hide waiting indication
+					if (!passed["message"])
 					{
-						s.hide();
-						d.hide();//hide waiting indication
-						if (!passed["message"])
+						frappe.show_alert("Login Failed please try again", 5);
+						me.email_password_prompt(email_account, user, i)
+					}
+					else
+					{
+						if (i + 1 < email_account.length)
 						{
-							show_alert("Login Failed please try again", 5);
+							i = i + 1;
 							me.email_password_prompt(email_account, user, i)
 						}
-						else
-						{
-							if (i + 1 < email_account.length)
-							{
-								i = i + 1;
-								me.email_password_prompt(email_account, user, i)
-							}
-						}
-
 					}
-				});
+
+				}
 			});
-			d.show();
+		});
+		d.show();
 	},
 	load_bootinfo: function() {
 		if(frappe.boot) {
@@ -269,15 +269,18 @@ frappe.Application = Class.extend({
 	},
 
 	set_globals: function() {
-		// for backward compatibility
+		console.warn('The global `user` has been deprecated. Please use `frappe.session.user` instead.');
 		frappe.session.user = frappe.boot.user.name;
-		frappe.session.user_fullname = frappe.boot.user.name;
-		user = frappe.boot.user.name;
-		user_fullname = frappe.user_info(user).fullname;
-		user_defaults = frappe.boot.user.defaults;
-		roles = frappe.boot.user.roles;
-		user_email = frappe.boot.user.email;
-		sys_defaults = frappe.boot.sysdefaults;
+		frappe.session.user_email = frappe.boot.user.email;
+		frappe.session.user_fullname = frappe.user_info().fullname;
+
+		console.warn('The global `user_defaults` has been deprecated. Please use `frappe.user_roles` instead.');
+		frappe.user_defaults = frappe.boot.user.defaults;
+		console.warn('The global `roles` has been deprecated. Please use `frappe.user_roles` instead.');
+		frappe.user_roles = frappe.boot.user.roles;
+		console.warn('The global `sys_defaults` has been deprecated. Please use `frappe.sys_defaults` instead.');
+		frappe.sys_defaults = frappe.boot.sysdefaults;
+
 		frappe.ui.py_date_format = frappe.boot.sysdefaults.date_format.replace('dd', '%d').replace('mm', '%m').replace('yyyy', '%Y');
 		frappe.boot.user.last_selected_values = {};
 	},
@@ -285,7 +288,7 @@ frappe.Application = Class.extend({
 		// clear cached pages if timestamp is not found
 		if(localStorage["page_info"]) {
 			frappe.boot.allowed_pages = [];
-			page_info = JSON.parse(localStorage["page_info"]);
+			var page_info = JSON.parse(localStorage["page_info"]);
 			$.each(frappe.boot.page_info, function(name, p) {
 				if(!page_info[name] || (page_info[name].modified != p.modified)) {
 					delete localStorage["_page:" + name];
@@ -293,19 +296,18 @@ frappe.Application = Class.extend({
 				frappe.boot.allowed_pages.push(name);
 			});
 		} else {
-			frappe.boot.allowed_pages = keys(frappe.boot.page_info);
+			frappe.boot.allowed_pages = Object.keys(frappe.boot.page_info);
 		}
 		localStorage["page_info"] = JSON.stringify(frappe.boot.page_info);
 	},
 	set_as_guest: function() {
-		// for backward compatibility
-		user = {name:'Guest'};
-		user = 'Guest';
-		user_fullname = 'Guest';
-		user_defaults = {};
-		roles = ['Guest'];
-		user_email = '';
-		sys_defaults = {};
+		frappe.session.user = 'Guest';
+		frappe.session.user_email = '';
+		frappe.session.user_fullname = 'Guest';
+
+		frappe.user_defaults = {};
+		frappe.user_roles = ['Guest'];
+		frappe.sys_defaults = {};
 	},
 	make_page_container: function() {
 		if($("#body_div").length) {
@@ -558,20 +560,19 @@ frappe.get_desktop_icons = function(show_hidden, show_global) {
 
 	for (var i=0, l=frappe.boot.desktop_icons.length; i < l; i++) {
 		var m = frappe.boot.desktop_icons[i];
-		if ((['Setup', 'Core'].indexOf(m.module_name) === -1)
-			&& show_module(m)) {
-				add_to_out(m)
+		if ((['Setup', 'Core'].indexOf(m.module_name) === -1) && show_module(m)) {
+			add_to_out(m);
 		}
 	}
 
-	if(roles.indexOf('System Manager')!=-1) {
+	if(frappe.user_roles.includes('System Manager')) {
 		var m = frappe.get_module('Setup');
-		if(show_module(m)) add_to_out(m)
+		if(show_module(m)) add_to_out(m);
 	}
 
-	if(roles.indexOf('Administrator')!=-1) {
+	if(frappe.user_roles.includes('Administrator')) {
 		var m = frappe.get_module('Core');
-		if(show_module(m)) add_to_out(m)
+		if(show_module(m)) add_to_out(m);
 	}
 
 	return out;
@@ -589,7 +590,7 @@ frappe.add_to_desktop = function(label, doctype, report) {
 		},
 		callback: function(r) {
 			if(r.message) {
-				show_alert(__("Added"));
+				frappe.show_alert(__("Added"));
 			}
 		}
 	});

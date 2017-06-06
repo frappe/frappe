@@ -33,10 +33,10 @@ frappe.views.QueryReport = Class.extend({
 	},
 	slickgrid_options: {
 		enableColumnReorder: false,
-	    showHeaderRow: true,
-	    headerRowHeight: 30,
-	    explicitInitialization: true,
-	    multiColumnSort: true
+		showHeaderRow: true,
+		headerRowHeight: 30,
+		explicitInitialization: true,
+		multiColumnSort: true
 	},
 	make: function() {
 		var me = this;
@@ -69,7 +69,7 @@ frappe.views.QueryReport = Class.extend({
 		// Edit
 		this.page.add_menu_item(__('Edit'), function() {
 			if(!frappe.user.is_report_manager()) {
-				msgprint(__("You are not allowed to create / edit reports"));
+				frappe.msgprint(__("You are not allowed to create / edit reports"));
 				return false;
 			}
 			frappe.set_route("Form", "Report", me.report_name);
@@ -181,7 +181,7 @@ frappe.views.QueryReport = Class.extend({
 	},
 	print_report: function() {
 		if(!frappe.model.can_print(this.report_doc.ref_doctype)) {
-			msgprint(__("You are not allowed to print this report"));
+			frappe.msgprint(__("You are not allowed to print this report"));
 			return false;
 		}
 
@@ -211,7 +211,7 @@ frappe.views.QueryReport = Class.extend({
 		var print_css = frappe.boot.print_css;
 
 		if(!frappe.model.can_print(this.report_doc.ref_doctype)) {
-			msgprint(__("You are not allowed to make PDF for this report"));
+			frappe.msgprint(__("You are not allowed to make PDF for this report"));
 			return false;
 		}
 
@@ -222,14 +222,14 @@ frappe.views.QueryReport = Class.extend({
 				{data: frappe.slickgrid_tools.get_filtered_items(this.dataView), filters:this.get_values(), report:this});
 
 			//Render Report in HTML
-				var html = frappe.render_template("print_template", {
-					content:content,
-					title:__(this.report_name),
-					base_url: base_url,
-					print_css: print_css,
-					print_settings: this.print_settings,
-					landscape: landscape
-				});
+			var html = frappe.render_template("print_template", {
+				content:content,
+				title:__(this.report_name),
+				base_url: base_url,
+				print_css: print_css,
+				print_settings: this.print_settings,
+				landscape: landscape
+			});
 		} else {
 			// rows filtered by inline_filter of slickgrid
 			var visible_idx = frappe.slickgrid_tools
@@ -277,13 +277,13 @@ frappe.views.QueryReport = Class.extend({
 		xhr.responseType = "arraybuffer";
 
 		xhr.onload = function(success) {
-		    if (this.status === 200) {
-		        var blob = new Blob([success.currentTarget.response], {type: "application/pdf"});
-		        var objectUrl = URL.createObjectURL(blob);
+			if (this.status === 200) {
+				var blob = new Blob([success.currentTarget.response], {type: "application/pdf"});
+				var objectUrl = URL.createObjectURL(blob);
 
-		        //Open report in a new window
-		        window.open(objectUrl);
-		    }
+				//Open report in a new window
+				window.open(objectUrl);
+			}
 		};
 		xhr.send(formData);
 	},
@@ -519,7 +519,7 @@ frappe.views.QueryReport = Class.extend({
 				col.name = col.id = col.label = df.label;
 
 				return col
-		}));
+			}));
 	},
 	filter_hidden_columns: function() {
 		this.columns = $.map(this.columns, function(c, i) {
@@ -563,7 +563,7 @@ frappe.views.QueryReport = Class.extend({
 				var newrow = {};
 				for(var i=1, j=this.columns.length; i<j; i++) {
 					newrow[this.columns[i].field] = row[i-1];
-				};
+				}
 			}
 			newrow._id = row_idx + 1;
 			newrow.id = newrow.name ? newrow.name : ("_" + newrow._id);
@@ -654,7 +654,7 @@ frappe.views.QueryReport = Class.extend({
 			return true;
 		} catch (e) {
 			if (e.message.indexOf("[parent_name] is undefined")!==-1) {
-				msgprint(__("Unable to display this tree report, due to missing data. Most likely, it is being filtered out due to permissions."));
+				frappe.msgprint(__("Unable to display this tree report, due to missing data. Most likely, it is being filtered out due to permissions."));
 			}
 
 			throw e;
@@ -704,7 +704,7 @@ frappe.views.QueryReport = Class.extend({
 			// non strings
 			if(filter.indexOf(":")==-1) {
 				if(columnDef.df.fieldtype=="Date") {
-					filter = dateutil.user_to_str(filter);
+					filter = frappe.datetime.user_to_str(filter);
 				}
 
 				if(in_list(["Float", "Currency", "Int"], columnDef.df.fieldtype)) {
@@ -717,8 +717,8 @@ frappe.views.QueryReport = Class.extend({
 				// range
 				filter = filter.split(":");
 				if(columnDef.df.fieldtype=="Date") {
-					filter[0] = dateutil.user_to_str(filter[0]);
-					filter[1] = dateutil.user_to_str(filter[1]);
+					filter[0] = frappe.datetime.user_to_str(filter[0]);
+					filter[1] = frappe.datetime.user_to_str(filter[1]);
 				}
 
 				if(in_list(["Float", "Currency", "Int"], columnDef.df.fieldtype)) {
@@ -782,7 +782,7 @@ frappe.views.QueryReport = Class.extend({
 			me.dataView.setItems(me.data);
 			me.dataView.endUpdate();
 			me.dataView.refresh();
-	    });
+		});
 	},
 	setup_tree: function() {
 		// set these in frappe.query_reports[report_name]
@@ -817,7 +817,7 @@ frappe.views.QueryReport = Class.extend({
 		this.title = this.report_name;
 
 		if(!frappe.model.can_export(this.report_doc.ref_doctype)) {
-			msgprint(__("You are not allowed to export this report"));
+			frappe.msgprint(__("You are not allowed to export this report"));
 			return false;
 		}
 

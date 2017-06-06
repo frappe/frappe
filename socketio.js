@@ -11,13 +11,13 @@ var flags = {};
 var subscriber = redis.createClient(conf.redis_socketio || conf.redis_async_broker_port);
 
 // serve socketio
-http.listen(conf.socketio_port, function(){
-  console.log('listening on *:', conf.socketio_port);
+http.listen(conf.socketio_port, function() {
+  console.log('listening on *:', conf.socketio_port); //eslint-disable-line
 });
 
 // test route
-app.get('/', function(req, res){
-  res.sendfile('index.html');
+app.get('/', function(req, res) {
+	res.sendfile('index.html');
 });
 
 // on socket connection
@@ -199,8 +199,8 @@ function get_site_name(socket) {
 function get_hostname(url) {
 	if (!url) return undefined;
 	if (url.indexOf("://") > -1) {
-        url = url.split('/')[2];
-    }
+		url = url.split('/')[2];
+	}
 	return ( url.match(/:/g) ) ? url.slice( 0, url.indexOf(":") ) : url
 }
 
