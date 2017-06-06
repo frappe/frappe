@@ -233,24 +233,17 @@ frappe.ui.get_upload_dialog = function(opts){
 		frappe.call({
 			'method': 'frappe.client.get_value',
 			'args': {
-<<<<<<< HEAD
 				'doctype': 'File',
 				'fieldname': ['file_url','file_name','is_private'],
 				'filters': {
 					'name': dialog.get_value("file")
-=======
-			'doctype': 'File',
-			'fieldname': ['file_url','file_name','is_private'],
-			  'filters': {
-				  'name': dialog.get_value("file")
->>>>>>> move webapp to html fied
 				}
 			},
 			callback: function(r){
 				if(!r.message) return;
 				dialog.$wrapper.find('[name="file_url"]').val(r.message.file_url);
 				dialog.$wrapper.find('.private-file input').prop('checked', r.message.is_private);
-				opts.args.filename = r.message.file_name
+				opts.args.filename = r.message.file_name;
 			}
 		});
 	});
