@@ -118,10 +118,13 @@ def update_order(board_name, order):
 def quick_kanban_board(doctype, board_name, field_name):
 	'''Create new KanbanBoard quickly with default options'''
 	doc = frappe.new_doc('Kanban Board')
-	options = frappe.get_value('DocField', dict(
-            parent=doctype,
-            fieldname=field_name
-        ), 'options')
+
+	meta = frappe.get_meta(doctype)
+
+	options = ''
+	for field in meta.fields:
+		if field.fieldname == field_name:
+			options = field.options
 
 	columns = []
 	if options:
@@ -198,4 +201,4 @@ def set_indicator(board_name, column_name, indicator):
 def save_filters(board_name, filters):
 	'''Save filters silently'''
 	frappe.db.set_value('Kanban Board', board_name, 'filters',
-	                    filters, update_modified=False)
+						filters, update_modified=False)

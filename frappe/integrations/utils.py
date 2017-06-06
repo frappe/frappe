@@ -22,7 +22,7 @@ def make_get_request(url, auth=None, headers=None, data=None):
 		frappe.flags.integration_request.raise_for_status()
 		return frappe.flags.integration_request.json()
 
-	except Exception, exc:
+	except Exception as exc:
 		frappe.log_error(frappe.get_traceback())
 		raise exc
 
@@ -43,7 +43,7 @@ def make_post_request(url, auth=None, headers=None, data=None):
 			return urlparse.parse_qs(frappe.flags.integration_request.text)
 
 		return frappe.flags.integration_request.json()
-	except Exception, exc:
+	except Exception as exc:
 		frappe.log_error()
 		raise exc
 

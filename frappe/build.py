@@ -23,42 +23,40 @@ def setup():
 		except ImportError: pass
 	app_paths = [os.path.dirname(pymodule.__file__) for pymodule in pymodules]
 
-def bundle(no_compress, make_copy=False, verbose=False, beta=False):
+def bundle(no_compress, make_copy=False, verbose=False):
 	"""concat / minify js files"""
 	# build js files
 	setup()
 
 	make_asset_dirs(make_copy=make_copy)
 
-	if beta:
-		command = 'node ../apps/frappe/frappe/build.js --build'
-		if not no_compress:
-			command += ' --minify'
-		subprocess.call(command.split(' '))
-		return
+	# new nodejs build system
+	command = 'node --use_strict ../apps/frappe/frappe/build.js --build'
+	if not no_compress:
+		command += ' --minify'
+	subprocess.call(command.split(' '))
 
-	build(no_compress, verbose)
+	# build(no_compress, verbose)
 
-def watch(no_compress, beta=False):
+def watch(no_compress):
 	"""watch and rebuild if necessary"""
 
-	if beta:
-		command = 'node ../apps/frappe/frappe/build.js --watch'
-		subprocess.Popen(command.split(' '))
-		return
+	# new nodejs file watcher
+	command = 'node --use_strict ../apps/frappe/frappe/build.js --watch'
+	subprocess.call(command.split(' '))
 
-	setup()
+	# setup()
 
-	import time
-	compile_less()
-	build(no_compress=True)
+	# import time
+	# compile_less()
+	# build(no_compress=True)
 
-	while True:
-		compile_less()
-		if files_dirty():
-			build(no_compress=True)
+	# while True:
+	# 	compile_less()
+	# 	if files_dirty():
+	# 		build(no_compress=True)
 
-		time.sleep(3)
+	# 	time.sleep(3)
 
 def make_asset_dirs(make_copy=False):
 	assets_path = os.path.join(frappe.local.sites_path, "assets")
@@ -113,7 +111,7 @@ def get_build_maps():
 							source_paths.append(s)
 
 						build_maps[target] = source_paths
-				except ValueError, e:
+				except ValueError as e:
 					print(path)
 					print('JSON syntax error {0}'.format(str(e)))
 	return build_maps

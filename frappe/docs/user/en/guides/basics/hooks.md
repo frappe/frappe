@@ -226,6 +226,9 @@ The hook function will be passed the doc in concern as the only argument.
 * `on_submit`
 * `on_cancel`
 * `on_update_after_submit`
+* `on_change`
+* `on_trash`
+* `after_delete`
 
 
 Eg, 

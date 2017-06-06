@@ -112,55 +112,52 @@ def get_context(context):
 		context = get_context(doc)
 		recipients = []
 
-		try:
-			for recipient in self.recipients:
-				if recipient.condition:
-					if not frappe.safe_eval(recipient.condition, None, context):
-						continue
-				if recipient.email_by_document_field:
-					if validate_email_add(doc.get(recipient.email_by_document_field)):
-						recipient.email_by_document_field = doc.get(recipient.email_by_document_field).replace(",", "\n")
-						recipients = recipients + recipient.email_by_document_field.split("\n")
+		for recipient in self.recipients:
+			if recipient.condition:
+				if not frappe.safe_eval(recipient.condition, None, context):
+					continue
+			if recipient.email_by_document_field:
+				if validate_email_add(doc.get(recipient.email_by_document_field)):
+					recipient.email_by_document_field = doc.get(recipient.email_by_document_field).replace(",", "\n")
+					recipients = recipients + recipient.email_by_document_field.split("\n")
 
-					# else:
-					# 	print "invalid email"
-				if recipient.cc:
-					recipient.cc = recipient.cc.replace(",", "\n")
-					recipients = recipients + recipient.cc.split("\n")
+				# else:
+				# 	print "invalid email"
+			if recipient.cc:
+				recipient.cc = recipient.cc.replace(",", "\n")
+				recipients = recipients + recipient.cc.split("\n")
 
-				#For sending emails to specified role
-				if recipient.email_by_role:
-					emails = get_emails_from_role(recipient.email_by_role)
+			#For sending emails to specified role
+			if recipient.email_by_role:
+				emails = get_emails_from_role(recipient.email_by_role)
 
-					for email in emails:
-						recipients = recipients + email.split("\n")
+				for email in emails:
+					recipients = recipients + email.split("\n")
 
-			if not recipients:
-				return
+		if not recipients:
+			return
 
-			recipients = list(set(recipients))
-			subject = self.subject
+		recipients = list(set(recipients))
+		subject = self.subject
 
-			context = {"doc": doc, "alert": self, "comments": None}
+		context = {"doc": doc, "alert": self, "comments": None}
 
-			if self.is_standard:
-				self.load_standard_properties(context)
+		if self.is_standard:
+			self.load_standard_properties(context)
 
-			if doc.get("_comments"):
-				context["comments"] = json.loads(doc.get("_comments"))
+		if doc.get("_comments"):
+			context["comments"] = json.loads(doc.get("_comments"))
 
-			if "{" in subject:
-				subject = frappe.render_template(self.subject, context)
+		if "{" in subject:
+			subject = frappe.render_template(self.subject, context)
 
-			attachments = get_attachment(doc)
+		attachments = get_attachment(doc)
 
-			frappe.sendmail(recipients=recipients, subject=subject,
-				message= frappe.render_template(self.message, context),
-				reference_doctype = doc.doctype,
-				reference_name = doc.name,
-				attachments = attachments)
-		except Exception:
-			frappe.throw("Error in Email Alert")
+		frappe.sendmail(recipients=recipients, subject=subject,
+			message= frappe.render_template(self.message, context),
+			reference_doctype = doc.doctype,
+			reference_name = doc.name,
+			attachments = attachments)
 
 	def load_standard_properties(self, context):
 		module = get_doc_module(self.module, self.doctype, self.name)
@@ -203,6 +200,7 @@ def trigger_email_alerts(doc, method=None):
 			alert = frappe.get_doc("Email Alert", alert)
 			for doc in alert.get_documents_for_today():
 				evaluate_alert(doc, alert, alert.event)
+				frappe.db.commit()
 
 def evaluate_alert(doc, alert, event):
 	from jinja2 import TemplateError
@@ -217,7 +215,14 @@ def evaluate_alert(doc, alert, event):
 				return
 
 		if event=="Value Change" and not doc.is_new():
-			db_value = frappe.db.get_value(doc.doctype, doc.name, alert.value_changed)
+			try:
+				db_value = frappe.db.get_value(doc.doctype, doc.name, alert.value_changed)
+			except frappe.DatabaseOperationalError as e:
+				if e.args[0]==1054:
+					alert.db_set('enabled', 0)
+					frappe.log_error('Email Alert {0} has been disabled due to missing field'.format(alert.name))
+					return
+
 			db_value = parse_val(db_value)
 			if (doc.get(alert.value_changed) == db_value) or \
 				(not db_value and not doc.get(alert.value_changed)):
@@ -232,6 +237,9 @@ def evaluate_alert(doc, alert, event):
 		alert.send(doc)
 	except TemplateError:
 		frappe.throw(_("Error while evaluating Email Alert {0}. Please fix your template.").format(alert))
+	except Exception, e:
+		frappe.log_error(message=frappe.get_traceback(), title=e)
+		frappe.throw("Error in Email Alert")
 
 def get_context(doc):
 	return {"doc": doc, "nowdate": nowdate, "frappe.utils": frappe.utils}

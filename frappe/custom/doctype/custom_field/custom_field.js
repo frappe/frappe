@@ -13,7 +13,9 @@ frappe.ui.form.on('Custom Field', {
 			if(user!=="Administrator") {
 				filters.push(['DocType', 'module', '!=', 'Core'])
 			}
-			return filters
+			return {
+				"filters": filters
+			}
 		});
 	},
 	refresh: function(frm) {

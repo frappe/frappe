@@ -14,7 +14,9 @@ frappe.ui.form.on('Dropbox Settings', {
 				freeze: true,
 				callback: function(r) {
 					if(!r.exc) {
-						frm.save();
+						frm.set_value('dropbox_access_key', r.message.dropbox_access_key)
+						frm.set_value('dropbox_access_secret', r.message.dropbox_access_secret)
+						frm.save()
 						window.open(r.message.url);
 					}
 				}
@@ -26,13 +28,15 @@ frappe.ui.form.on('Dropbox Settings', {
 	},
 
 	take_backup: function(frm) {
-		if (frm.doc.app_access_key && frm.doc.app_secret_key && frm.doc.dropbox_access_key && frm.doc.dropbox_access_secret) {
-			frm.add_custom_button(__("Take Backup Now"), function(frm){
-				frappe.call({
-					method: "frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backup",
-					freeze: true
-				})
-			}).addClass("btn-primary")
+		if ((frm.doc.app_access_key && frm.doc.app_secret_key) || frm.doc.dropbox_setup_via_site_config){
+			if (frm.doc.dropbox_access_key && frm.doc.dropbox_access_secret) {
+				frm.add_custom_button(__("Take Backup Now"), function(frm){
+					frappe.call({
+						method: "frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backup",
+						freeze: true
+					})
+				}).addClass("btn-primary")
+			}
 		}
 	}
 });

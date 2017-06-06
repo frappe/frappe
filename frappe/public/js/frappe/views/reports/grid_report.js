@@ -174,7 +174,10 @@ frappe.views.GridReport = Class.extend({
 		}
 
 		this.page.add_menu_item(__("Print"), function() {
-			frappe.render_grid({grid: me.grid, title: me.page.title })
+			frappe.ui.get_print_settings(false, function(print_settings) {
+				frappe.render_grid({grid: me.grid, title: me.page.title, print_settings: print_settings });
+			});
+			
 		}, true);
 
 		// range

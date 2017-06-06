@@ -40,7 +40,13 @@ class WebsiteGenerator(Document):
 			self.route = self.route.strip('/.')[:139]
 
 	def make_route(self):
-		return self.scrubbed_title()
+		'''Returns the default route. If `route` is specified in DocType it will be
+		route/title'''
+		from_title = self.scrubbed_title()
+		if self.meta.route:
+			return self.meta.route + '/' + from_title
+		else:
+			return from_title
 
 	def scrubbed_title(self):
 		return self.scrub(self.get(self.get_title_field()))

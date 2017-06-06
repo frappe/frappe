@@ -67,6 +67,9 @@ def _new_site(db_name, site, mariadb_root_username=None, mariadb_root_password=N
 		scheduler_status = "disabled" if frappe.utils.scheduler.is_scheduler_disabled() else "enabled"
 		print("*** Scheduler is", scheduler_status, "***")
 
+	except frappe.exceptions.ImproperDBConfigurationError:
+		_drop_site(site, mariadb_root_username, mariadb_root_password, force=True)
+
 	finally:
 		if installing and os.path.exists(installing):
 			os.remove(installing)
@@ -326,6 +329,10 @@ def uninstall(context, app, dry_run=False, yes=False):
 @click.option('--archived-sites-path')
 @click.option('--force', help='Force drop-site even if an error is encountered', is_flag=True, default=False)
 def drop_site(site, root_login='root', root_password=None, archived_sites_path=None, force=False):
+	_drop_site(site, root_login, root_password, archived_sites_path, force)
+
+
+def _drop_site(site, root_login='root', root_password=None, archived_sites_path=None, force=False):
 	"Remove site from database and filesystem"
 	from frappe.installer import get_root_connection
 	from frappe.model.db_schema import DbManager
@@ -363,6 +370,7 @@ def drop_site(site, root_login='root', root_password=None, archived_sites_path=N
 		os.mkdir(archived_sites_path)
 
 	move(archived_sites_path, site)
+
 
 def move(dest_dir, site):
 	import os

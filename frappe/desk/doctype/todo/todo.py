@@ -65,7 +65,7 @@ class ToDo(Document):
 			frappe.db.set_value(self.reference_type, self.reference_name,
 				"_assign", json.dumps(assignments), update_modified=False)
 
-		except Exception, e:
+		except Exception as e:
 			if e.args[0] == 1146 and frappe.flags.in_install:
 				# no table
 				return

@@ -19,7 +19,7 @@ frappe.ui.form.on("Contact", {
 		if(!frm.doc.user && !frm.is_new() && frm.perm[0].write) {
 			frm.add_custom_button(__("Invite as User"), function() {
 				frappe.call({
-					method: "erpnext.utilities.doctype.contact.contact.invite_user",
+					method: "frappe.email.doctype.contact.contact.invite_user",
 					args: {
 						contact: frm.doc.name
 					},

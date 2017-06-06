@@ -713,10 +713,17 @@ select.form-control {
 		.section-head {
 			padding: 15px 15px 15px 0px;
 		}
+		.section-body .form-column:first-child{
+			.radio, .checkbox{
+				margin-top: 0;
+			}
+		}
 	}
 
 	.form-column {
 		border-bottom: 1px solid @light-border-color;
+		padding-top: 15px;
+		padding-bottom: 15px;
 	}
 
 	.form-column:last-child {
@@ -781,6 +788,7 @@ select.form-control {
 
 		.form-control {
 			border: none;
+			border-bottom: 1px solid @border-color;
 			box-shadow: none;
 			background-color: inherit;
 			height: auto;

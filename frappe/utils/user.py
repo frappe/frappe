@@ -43,7 +43,7 @@ class UserPermissions:
 				user = frappe.get_doc("User", self.name).as_dict()
 			except frappe.DoesNotExistError:
 				pass
-			except Exception, e:
+			except Exception as e:
 				# install boo-boo
 				if e.args[0] != 1146: raise
 

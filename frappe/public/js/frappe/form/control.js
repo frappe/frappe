@@ -319,7 +319,7 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 
 	set_disp_area: function() {
 		let value = this.get_value();
-		if(inList(["Currency", "Int", "Float"], this.df.fieldtype) && (this.value === 0 || value === 0)) {
+		if(in_list(["Currency", "Int", "Float"], this.df.fieldtype) && (this.value === 0 || value === 0)) {
 			// to set the 0 value in readonly for currency, int, float field
 			value = 0;
 		} else {
@@ -1647,6 +1647,15 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 			prettifyHtml: true,
 			dialogsInBody: true,
 			callbacks: {
+				onInit: function() {
+					// firefox hack that puts the caret in the wrong position
+					// when div is empty. To fix, seed with a <br>.
+					// See https://bugzilla.mozilla.org/show_bug.cgi?id=550434
+					$(".note-editable[contenteditable='true']").on('focus', function(){
+						var $this = $(this);
+						$this.html( $this.html() + '<br>' );
+					});
+				},
 				onChange: function(value) {
 					me.parse_validate_and_set_in_model(value);
 				},

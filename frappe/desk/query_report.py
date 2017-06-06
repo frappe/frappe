@@ -104,7 +104,7 @@ def run(report_name, filters=None, user=None):
 
 	if cint(report.add_total_row) and result:
 		result = add_total_row(result, columns)
-
+		
 	return {
 		"result": result,
 		"columns": columns,
@@ -127,6 +127,10 @@ def export_query():
 		report_name = data["report_name"]
 	if isinstance(data.get("file_format_type"), basestring):
 		file_format_type = data["file_format_type"]
+	if isinstance(data.get("visible_idx"), basestring):
+		visible_idx = json.loads(data.get("visible_idx"))
+	else:
+		visible_idx = None
 
 	if file_format_type == "Excel":
 
@@ -150,6 +154,10 @@ def export_query():
 					result.append(row_list)
 		else:
 			result = result + data.result
+		
+		# filter rows by slickgrid's inline filter
+		if visible_idx:
+			result = [x for idx, x in enumerate(result) if idx == 0 or idx in visible_idx]
 
 		from frappe.utils.xlsxutils import make_xlsx
 		xlsx_file = make_xlsx(result, "Query Report")
@@ -177,9 +185,12 @@ def add_total_row(result, columns, meta = None):
 			else:
 				col = col.split(":")
 				if len(col) > 1:
-					fieldtype = col[1]
-					if "/" in fieldtype:
-						fieldtype, options = fieldtype.split("/")
+					if col[1]:
+						fieldtype = col[1]
+						if "/" in fieldtype:
+							fieldtype, options = fieldtype.split("/")
+					else:
+						fieldtype = "Data"
 		else:
 			fieldtype = col.get("fieldtype")
 			options = col.get("options")
@@ -205,7 +216,7 @@ def add_total_row(result, columns, meta = None):
 	else:
 		first_col_fieldtype = columns[0].get("fieldtype")
 
-	if first_col_fieldtype not in ["Currency", "Int", "Float", "Percent"]:
+	if first_col_fieldtype not in ["Currency", "Int", "Float", "Percent", "Date"]:
 		if first_col_fieldtype == "Link":
 			total_row[0] = "'" + _("Total") + "'"
 		else:
@@ -276,7 +287,7 @@ def has_match(row, linked_doctypes, doctype_match_filters, ref_doctype, if_owner
 					if dt=="User" and columns_dict[idx]==columns_dict.get("owner"):
 						continue
 
-					if dt in match_filters and row[idx] not in match_filters[dt]:
+					if dt in match_filters and row[idx] not in match_filters[dt] and frappe.db.exists(dt, row[idx]):
 						match = False
 						break
 

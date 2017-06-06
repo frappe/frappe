@@ -194,15 +194,19 @@ frappe.upload = {
 		$(document).on('upload_complete', on_upload);
 
 		function upload_next() {
-			i += 1;
-			var file = files[i];
-			args.is_private = file.is_private;
+			if(files) {
+				i += 1;
+				var file = files[i];
+				args.is_private = file.is_private;
+				if(!opts.progress) {
+					frappe.show_progress(__('Uploading'), i+1, files.length);
+				}
+			}
 			frappe.upload.upload_file(file, args, opts);
-			frappe.show_progress(__('Uploading'), i+1, files.length);
 		}
 
 		function on_upload(e, attachment) {
-			if (i === files.length - 1) {
+			if (!files || i === files.length - 1) {
 				$(document).off('upload_complete', on_upload);
 				frappe.hide_progress();
 				return;
@@ -260,7 +264,7 @@ frappe.upload = {
 		var freader = new FileReader();
 
 		freader.onload = function() {
-			args.filename = fileobj.name;
+			args.filename = fileobj.name.split(' ').join('_');
 			if(opts.options && opts.options.toLowerCase()=="image") {
 				if(!frappe.utils.is_image_file(args.filename)) {
 					msgprint(__("Only image extensions (.gif, .jpg, .jpeg, .tiff, .png, .svg) allowed"));

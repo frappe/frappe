@@ -301,7 +301,7 @@ class CustomizeForm(Document):
 		else:
 			try:
 				property_value = frappe.db.get_value("DocType", self.doc_type, property_name)
-			except Exception, e:
+			except Exception as e:
 				if e.args[0]==1054:
 					property_value = None
 				else:

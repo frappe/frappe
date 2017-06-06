@@ -29,8 +29,7 @@ frappe.search.AwesomeBar = Class.extend({
 			},
 			item: function(item, term) {
 				var d = this.get_item(item.value);
-				var name = d.prefix ? __(d.prefix + ' ' + (d.label || d.value)) :
-					__(d.label || d.value);
+				var name = __(d.label || d.value);
 				var html = '<span>' + name + '</span>';
 				if(d.description && d.value!==d.description) {
 					html += '<br><span class="text-muted ellipsis">' + __(d.description) + '</span>';
@@ -123,8 +122,7 @@ frappe.search.AwesomeBar = Class.extend({
 
 	add_help: function() {
 		this.options.push({
-			label: __("Help on Search"),
-			value: "Help on Search",
+			value: __("Help on Search"),
 			index: -10,
 			default: "Help",
 			onclick: function() {
@@ -140,7 +138,7 @@ frappe.search.AwesomeBar = Class.extend({
 					<tr><td>'+__("Calculate")+'</td><td>'+
 						__("e.g. (55 + 434) / 4 or =Math.sin(Math.PI/2)...")+'</td></tr>\
 				</table>'
-				msgprint(txt, "Search Help");
+				msgprint(txt, __("Search Help"));
 			}
 		});
 	},
@@ -208,8 +206,8 @@ frappe.search.AwesomeBar = Class.extend({
 	make_global_search: function(txt) {
 		var me = this;
 		this.options.push({
-			label: __("Search for '" + txt.bold() + "'"),
-			value: __("Search for '" + txt + "'"),
+			label: __("Search for '{0}'", [txt.bold()]),
+			value: __("Search for '{0}'", [txt]),
 			match: txt,
 			index: 100,
 			default: "Search",

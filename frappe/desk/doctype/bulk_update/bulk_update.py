@@ -32,7 +32,7 @@ def update(doctype, field, value, condition='', limit=500):
 
 		try:
 			doc.save()
-		except Exception, e:
+		except Exception as e:
 			frappe.msgprint(_("Validation failed for {0}").format(frappe.bold(doc.name)))
 			raise e
 

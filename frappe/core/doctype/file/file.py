@@ -363,12 +363,12 @@ def get_local_image(file_url):
 	return image, filename, extn
 
 def get_web_image(file_url):
-	# downlaod
+	# download
 	file_url = frappe.utils.get_url(file_url)
 	r = requests.get(file_url, stream=True)
 	try:
 		r.raise_for_status()
-	except requests.exceptions.HTTPError, e:
+	except requests.exceptions.HTTPError as e:
 		if "404" in e.args[0]:
 			frappe.msgprint(_("File '{0}' not found").format(file_url))
 		else:

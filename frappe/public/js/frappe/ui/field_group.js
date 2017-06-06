@@ -67,7 +67,6 @@ frappe.ui.FieldGroup = frappe.ui.form.Layout.extend({
 			var f = this.fields_dict[key];
 			if(f.get_parsed_value) {
 				var v = f.get_parsed_value();
-
 				if(f.df.reqd && is_null(v))
 					errors.push(__(f.df.label));
 

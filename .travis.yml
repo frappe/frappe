@@ -14,6 +14,7 @@ before_install:
 
 install:
   - sudo apt-get purge -y mysql-common mysql-server mysql-client
+  - nvm install v7.10.0
   - wget https://raw.githubusercontent.com/frappe/bench/master/playbooks/install.py
   - sudo python install.py --develop --user travis --without-bench-setup
   - sudo pip install -e ~/bench
@@ -24,6 +25,7 @@ install:
   - cp -r $TRAVIS_BUILD_DIR/test_sites/test_site ~/frappe-bench/sites/
 
 script:
+  - set -e
   - bench --verbose run-tests
   - bench reinstall --yes
   - testcafe chrome apps/frappe/frappe/tests/testcafe/
@@ -34,6 +36,7 @@ before_script:
   - echo "USE mysql;\nGRANT ALL PRIVILEGES ON \`test_frappe\`.* TO 'test_frappe'@'localhost';\n" | mysql -u root -ptravis
   
   - cd ~/frappe-bench
+  - npm install babel-core less chokidar babel-preset-es2015 babel-preset-es2016 babel-preset-es2017 babel-preset-babili
   - bench use test_site
   - bench reinstall --yes
   - bench start &

@@ -30,6 +30,7 @@
 		"public/js/frappe/ui/field_group.js",
 		"public/js/frappe/form/control.js",
 		"public/js/frappe/form/link_selector.js",
+		"public/js/frappe/form/multi_select_dialog.js",
 		"public/js/frappe/ui/dialog.js"
 	],
 	"css/desk.min.css": [
@@ -104,6 +105,7 @@
 		"public/js/frappe/ui/field_group.js",
 		"public/js/frappe/form/control.js",
 		"public/js/frappe/form/link_selector.js",
+		"public/js/frappe/form/multi_select_dialog.js",
 		"public/js/frappe/ui/dialog.js",
 		"public/js/frappe/ui/app_icon.js",
 
@@ -212,7 +214,8 @@
 		"public/css/list.css",
 		"public/css/calendar.css",
 		"public/css/role_editor.css",
-		"public/css/filter_dashboard.css"
+		"public/css/filter_dashboard.css",
+		"public/css/gantt.css"
 	],
 	"js/list.min.js": [
 		"public/js/frappe/ui/listing.html",
