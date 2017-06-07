@@ -15,17 +15,16 @@
 
 frappe.CheckboxEditor = Class.extend({
 	init: function(opts) {
-		let me = this;
-		$.extend(this, opts)
+		$.extend(this, opts);
 
 		this.doctype = this.field_mapper.cdt;
-		this.fieldname = this.field_mapper.child_table_field
-		this.item_fieldname = this.field_mapper.item_field
+		this.fieldname = this.field_mapper.child_table_field;
+		this.item_fieldname = this.field_mapper.item_field;
 		
-		$(this.wrapper).html('<div class="help">' + __("Loading") + '...</div>')
+		$(this.wrapper).html('<div class="help">' + __("Loading") + '...</div>');
 
 		if(this.get_items) {
-			this.get_items()
+			this.get_items();
 		}
 	},
 	render_items: function(callback) {
@@ -58,7 +57,7 @@ frappe.CheckboxEditor = Class.extend({
 		}
 
 		$.each(this.items, function(i, item) {
-			$(me.wrapper).append(frappe.render(me.editor_template, {'item': item}))
+			$(me.wrapper).append(frappe.render(me.editor_template, {'item': item}));
 		});
 
 		$(this.wrapper).find('input[type="checkbox"]').change(function() {
@@ -82,7 +81,7 @@ frappe.CheckboxEditor = Class.extend({
 			let selector = repl('[%(attribute)s="%(value)s"] input[type="checkbox"]', {
 				attribute: me.attribute,
 				value: row[me.item_fieldname]
-			})
+			});
 
 			let checkbox = $(me.wrapper)
 				.find(selector).get(0);
@@ -117,9 +116,9 @@ frappe.CheckboxEditor = Class.extend({
 		let me = this;
 
 		$.each(me.frm.doc[this.fieldname] || [], function(i, row) {
-				existing_items_map[row[me.item_fieldname]] = row.name;
-				existing_items_list.push(row[me.item_fieldname]);
-			});
+			existing_items_map[row[me.item_fieldname]] = row.name;
+			existing_items_list.push(row[me.item_fieldname]);
+		});
 
 		// remove unchecked items
 		$.each(opts.unchecked_items, function(i, item) {

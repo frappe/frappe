@@ -15,14 +15,14 @@ frappe.ui.form.on('Domain Settings', {
 
 	validate: function(frm) {
 		if(frm.domain_editor) {
-			frm.domain_editor.set_items_in_table()
+			frm.domain_editor.set_items_in_table();
 		}
 	},
 });
 
 frappe.DomainsEditor = frappe.CheckboxEditor.extend({
 	init: function(wrapper, frm) {
-		opts = {}
+		var opts = {};
 		$.extend(opts, {
 			wrapper: wrapper,
 			frm: frm,

@@ -75,7 +75,7 @@ class TestDomainification(unittest.TestCase):
 		self.assertTrue("_Test Domain 1" not in frappe.get_active_domains())
 
 	def test_doctype_and_role_domainification(self):
-		""" 
+		"""
 			test if doctype is hidden if the doctype's restrict to domain is not included
 			in active domains
 		"""
