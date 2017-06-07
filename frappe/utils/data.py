@@ -8,7 +8,6 @@ import frappe
 import operator
 import re, urllib, datetime, math, time
 import babel.dates
-from frappe import _
 from babel.core import UnknownLocaleError
 from dateutil import parser
 from num2words import num2words
@@ -494,6 +493,7 @@ def pretty_date(iso_datetime):
 		long ago the date represents.
 		Ported from PrettyDate by John Resig
 	"""
+	from frappe import _
 	if not iso_datetime: return ''
 	import math
 
@@ -701,13 +701,13 @@ def get_filter(doctype, f):
 		f = make_filter_tuple(doctype, key, value)
 
 	if not isinstance(f, (list, tuple)):
-		frappe.throw(_("Filter must be a tuple or list (in a list)"))
+		frappe.throw(frappe._("Filter must be a tuple or list (in a list)"))
 
 	if len(f) == 3:
 		f = (doctype, f[0], f[1], f[2])
 
 	elif len(f) != 4:
-		frappe.throw(_("Filter must have 4 values (doctype, fieldname, operator, value): {0}").format(str(f)))
+		frappe.throw(frappe._("Filter must have 4 values (doctype, fieldname, operator, value): {0}").format(str(f)))
 
 	f = frappe._dict(doctype=f[0], fieldname=f[1], operator=f[2], value=f[3])
 
@@ -717,7 +717,7 @@ def get_filter(doctype, f):
 
 	valid_operators = ("=", "!=", ">", "<", ">=", "<=", "like", "not like", "in", "not in", "between")
 	if f.operator.lower() not in valid_operators:
-		frappe.throw(_("Operator must be one of {0}").format(", ".join(valid_operators)))
+		frappe.throw(frappe._("Operator must be one of {0}").format(", ".join(valid_operators)))
 
 
 	if f.doctype and (f.fieldname not in default_fields + optional_fields):
