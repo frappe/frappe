@@ -5,7 +5,7 @@ from __future__ import unicode_literals, absolute_import
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import validate_email_add, get_fullname, strip_html, cstr
+from frappe.utils import validate_email_add, get_fullname, strip_html, cstr, strip_script, unescape_html
 from frappe.core.doctype.communication.comment import (notify_mentions,
 	update_comment_in_doc)
 from frappe.core.doctype.communication.email import (validate_email,
@@ -14,7 +14,6 @@ from frappe.utils.bot import BotReply
 from frappe.utils import parse_addr
 
 from collections import Counter
-
 exclude_from_linked_with = True
 
 class Communication(Document):
@@ -54,6 +53,9 @@ class Communication(Document):
 
 		if not self.user:
 			self.user = frappe.session.user
+		
+		if self.content:
+			self.content = strip_script(unescape_html(self.content))
 
 		if not self.subject:
 			self.subject = strip_html((self.content or "")[:141])

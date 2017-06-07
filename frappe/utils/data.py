@@ -487,6 +487,23 @@ def escape_html(text):
 
 	return "".join(html_escape_table.get(c,c) for c in text)
 
+def unescape_html(text, html_unescape_dict = None):
+	text = text.replace("&lt;", "<")
+	text = text.replace("&gt;", ">")
+	if html_unescape_dict:
+		text = __dict_replace(text, html_unescape_dict)
+	# must do ampersand last
+	return text.replace("&amp;", "&")
+
+def __dict_replace(s, d):
+	for k, v in d.items():
+		s = s.replace(k, v)
+	return s
+
+def strip_script(content):
+	pattern = r"(?is)<script[^>]*>(.*?)</script>"
+	return re.sub(pattern, '', content)
+
 def pretty_date(iso_datetime):
 	"""
 		Takes an ISO time and returns a string representing how
