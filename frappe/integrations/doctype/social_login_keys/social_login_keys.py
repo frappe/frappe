@@ -34,6 +34,6 @@ class SocialLoginKeys(Document):
 				(frappe.local.conf.domains is not None) and \
 				(frappe_server_hostname not in frappe.local.conf.domains):
 				try:
-					r = requests.get(self.frappe_server_url + "/api/method/frappe.handler.version", timeout=5)
+					requests.get(self.frappe_server_url + "/api/method/frappe.handler.version", timeout=5)
 				except:
 					frappe.throw(_("Unable to make request to the Frappe Server URL"))
