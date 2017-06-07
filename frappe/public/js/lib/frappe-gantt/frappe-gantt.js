@@ -661,7 +661,9 @@ return /******/ (function(modules) { // webpackBootstrap
 						);
 						self.element_groups.arrow.add(arrow.element);
 						return arrow; // eslint-disable-line
-					});
+					}).filter(function (arr) {
+						return arr;
+					}); // filter falsy values
 					self._arrows = self._arrows.concat(arrows);
 				};
 	
