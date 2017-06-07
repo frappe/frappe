@@ -23,7 +23,7 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 		let fields = [
 			{
 				fieldtype: "Data",
-				label: __("Search term"),
+				label: __("Search Term"),
 				fieldname: "search_term"
 			},
 			{
