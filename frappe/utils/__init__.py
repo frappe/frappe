@@ -482,7 +482,7 @@ def check_format(email_id):
 	try:
 		pos = email_id.rindex("@")
 		is_valid = pos > 0 and (email_id.rindex(".") > pos) and (len(email_id) - pos > 4)
-	except:
+	except Exception:
 		#print(e)
 		pass
 	return is_valid
