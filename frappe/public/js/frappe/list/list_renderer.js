@@ -38,7 +38,7 @@ frappe.views.ListRenderer = Class.extend({
 		// default settings
 		this.order_by = this.order_by || 'modified desc';
 		this.filters = this.filters || [];
-		this.page_length = this.page_length || 20;
+		this.page_length = this.page_length || frappe.boot.sysdefaults.page_length || 20;
 	},
 	setup_cache: function () {
 		frappe.provide('frappe.views.list_renderers.' + this.doctype);
