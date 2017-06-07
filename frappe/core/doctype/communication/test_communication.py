@@ -10,9 +10,9 @@ test_records = frappe.get_test_records('Communication')
 class TestCommunication(unittest.TestCase):
 
 	def test_email(self):
-		valid_email_list = ["Full Name <full@example.com>", 
-		'"Full Name with quotes and <weird@chars.com>" <weird@example.com>', 
-		"Surname, Name <name.surname@domain.com>", 
+		valid_email_list = ["Full Name <full@example.com>",
+		'"Full Name with quotes and <weird@chars.com>" <weird@example.com>',
+		"Surname, Name <name.surname@domain.com>",
 		"Purchase@ABC <purchase@abc.com>", "xyz@abc2.com <xyz@abc.com>",
 		"Name [something else] <name@domain.com>"]
 
@@ -27,9 +27,9 @@ class TestCommunication(unittest.TestCase):
 			self.assertFalse(frappe.utils.parse_addr(x)[0])
 
 	def test_name(self):
-		valid_email_list = ["Full Name <full@example.com>", 
-		'"Full Name with quotes and <weird@chars.com>" <weird@example.com>', 
-		"Surname, Name <name.surname@domain.com>", 
+		valid_email_list = ["Full Name <full@example.com>",
+		'"Full Name with quotes and <weird@chars.com>" <weird@example.com>',
+		"Surname, Name <name.surname@domain.com>",
 		"Purchase@ABC <purchase@abc.com>", "xyz@abc2.com <xyz@abc.com>",
 		"Name [something else] <name@domain.com>"]
 
