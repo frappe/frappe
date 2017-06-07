@@ -70,7 +70,6 @@ frappe.setup.Wizard = Class.extend({
 		this.slide_dict = {};
 		this.values = {};
 		this.welcomed = true;
-		// CHANGE: revert
 		frappe.set_route("setup-wizard/0");
 	},
 	make: function() {
@@ -204,6 +203,7 @@ frappe.setup.Wizard = Class.extend({
 				new_slides.push(slide);
 			}
 		})
+
 		frappe.setup.slides = new_slides;
 
 		this.slides = frappe.setup.slides;
@@ -231,9 +231,15 @@ frappe.setup.WizardSlide = Class.extend({
 		var me = this;
 		if(this.$body) this.$body.remove();
 
+		var fields = JSON.parse(JSON.stringify(this.fields));
+
 		if(this.add_more) {
-			this.item_count = 1;
-			this.field_set = this.fields;
+			this.count = 1;
+			fields = fields.map(field => {
+				if(field.fieldname) field.fieldname += '_1';
+				if(field.label) field.label += ' 1';
+				return field;
+			});
 		}
 
 		if(this.before_load) {
@@ -246,7 +252,6 @@ frappe.setup.WizardSlide = Class.extend({
 				main_title:__(this.wiz.title),
 				step: this.id + 1,
 				name: this.name,
-				css_class: "single-column",
 				slides_count: this.wiz.slides.length
 			})).appendTo(this.$wrapper);
 
@@ -254,7 +259,7 @@ frappe.setup.WizardSlide = Class.extend({
 
 		if(this.fields) {
 			this.form = new frappe.ui.FieldGroup({
-				fields: this.fields,
+				fields: fields,
 				body: this.body,
 				no_submit_on_enter: true
 			});
@@ -312,11 +317,19 @@ frappe.setup.WizardSlide = Class.extend({
 	},
 
 	bind_more_button: function() {
-		this.$more = this.$body.find('.more-btn')
-			.removeClass('hide')
+		this.$more = this.$body.find('.more-btn');
+		this.$more.removeClass('hide')
 			.on('click', () => {
-				this.item_count++;
-				this.form.add_fields(this.fields);
+				this.count++;
+				var fields = JSON.parse(JSON.stringify(this.fields));
+				this.form.add_fields(fields.map(field => {
+					if(field.fieldname) field.fieldname += '_' + this.count;
+					if(field.label) field.label += ' ' + this.count;
+					return field;
+				}));
+				if(this.count === this.max_count) {
+					this.$more.addClass('hide');
+				}
 			});
 	},
 
@@ -361,9 +374,6 @@ frappe.setup.WizardSlide = Class.extend({
 				}
 			}
 		});
-	},
-	bind_add_more: function() {
-
 	},
 	bind_fields_to_next: function($primary_btn) {
 		var me = this;
@@ -587,7 +597,7 @@ var utils = {
 		var country_field = slide.get_field('country');
 
 		slide.get_input("country").empty()
-			.add_options([""].concat(keys(data.country_info).sort()));
+			.add_options([""].concat(Object.keys(data.country_info).sort()));
 
 		slide.get_input("currency").empty()
 			.add_options(frappe.utils.unique([""].concat($.map(data.country_info,
