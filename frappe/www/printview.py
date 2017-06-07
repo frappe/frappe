@@ -144,8 +144,8 @@ def get_html(doc, name=None, print_format=None, meta=None,
 		"layout": make_layout(doc, meta, format_data),
 		"no_letterhead": no_letterhead,
 		"trigger_print": cint(trigger_print),
-		"letter_head": letter_head.content,
-		"footer": letter_head.footer,
+		"letter_head": frappe.utils.jinja.render_template(letter_head.content, {"doc": vars(doc)}),
+		"footer": frappe.utils.jinja.render_template(letter_head.footer, {"doc": vars(doc)}),
 		"print_settings": frappe.get_doc("Print Settings")
 	}
 
