@@ -44,7 +44,7 @@ def get_feedback (score, sequence):
 	if len(sequence) == 0:
 		return default_feedback
 	# No feedback if score is good or great
-	if score > minimum_password_score:
+	if score >= minimum_password_score:
 		return dict({"warning": "","suggestions": []})
 	# Tie feedback to the longest match for longer sequences
 	longest_match = max(sequence, key=lambda x: len(x['token']))
