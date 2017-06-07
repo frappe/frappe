@@ -132,7 +132,7 @@ frappe.ui.form.Grid = Class.extend({
 			});
 		}
 	},
-	refresh: function(force) {
+	refresh: function(force, soft) {
 		!this.wrapper && this.make();
 		var me = this,
 			$rows = $(me.parent).find(".rows"),
@@ -150,14 +150,16 @@ frappe.ui.form.Grid = Class.extend({
 
 		if(this.display_status==="None") return;
 
-		if(!force && this.data_rows_are_same(data)) {
+		if(soft || !force && this.data_rows_are_same(data)) {
 			// soft refresh
+			console.log('soft');
 			this.header_row && this.header_row.refresh();
 			for(var i in this.grid_rows) {
 				this.grid_rows[i].refresh();
 			}
 		} else {
 			// redraw
+			console.log('hard');
 			var _scroll_y = $(document).scrollTop();
 
 			this.make_head();
@@ -1146,6 +1148,7 @@ frappe.ui.form.GridRow = Class.extend({
 			df = this.grid.visible_columns.find((set) => {
 				return set[0].fieldname === fieldname;
 			})[0];
+			console.log(this.doc);
 			var txt = frappe.format(this.doc[fieldname], df, null, this.doc);
 		}
 
