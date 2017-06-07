@@ -49,7 +49,9 @@ class User(Document):
 		self.__new_password = self.new_password
 		self.new_password = ""
 
-		self.password_strength_test()
+		if not frappe.flags.in_test:
+			self.password_strength_test()
+
 		if self.name not in STANDARD_USERS:
 			self.validate_email_type(self.email)
 			self.validate_email_type(self.name)
@@ -409,7 +411,8 @@ class User(Document):
 			self.username = ""
 
 	def password_strength_test(self):
-		if self.__new_password:
+		""" test password strength """
+		if frappe.db.get_single_value("System Settings", "enable_password_policy") and self.__new_password:
 			user_data = (self.first_name, self.middle_name, self.last_name, self.email, self.birth_date)
 			result = test_password_strength(self.__new_password, '', None, user_data)
 
