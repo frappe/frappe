@@ -21,7 +21,7 @@
 		{% include doc.print_templates[df.fieldname] %}
 	{%- else -%}
 		{%- if data -%}
-		{%- set visible_columns = get_visible_columns(doc.get(df.fieldname),
+		{%- set visible_columns = frappe.get_visible_columns(doc.get(df.fieldname),
 			table_meta, df) -%}
 		<div {{ fieldmeta(df) }}>
 			<table class="table table-bordered table-condensed">
