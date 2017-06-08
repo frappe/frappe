@@ -53,76 +53,54 @@ frappe.upload = {
 				$uploaded_files_wrapper.removeClass('hidden').empty();
 
 				file_array = file_array.map(
-					file => Object.assign(file, {is_private: opts.is_private || 0})
+					file => Object.assign(file, {is_private: opts.is_private || 1})
 				)
 				$upload.data('attached_files', file_array);
 
-				// List of files in a grid
-				$uploaded_files_wrapper.append(`
-					<div class="list-item list-item--head">
-						<div class="list-item__content list-item__content--flex-2">
-							${__('Filename')}
-						</div>
-						${opts.show_private
-						? `<div class="list-item__content file-public-column">
-							${__('Public')}
-							</div>`
-						: ''}
-						<div class="list-item__content list-item__content--activity" style="flex: 0 0 32px">
-						</div>
-					</div>
-				`);
-				var file_pills = file_array.map(
-					file => frappe.upload.make_file_row(file, opts)
-				);
-				$uploaded_files_wrapper.append(file_pills);
-			} else {
-				frappe.upload.show_empty_state($upload);
+				const columns = [{
+					title: 'Filename',
+					fieldname: 'name'
+				}];
+
+				if (opts.show_private) {
+					columns.push({
+						title: 'Public',
+						fieldname: 'is_public',
+						fieldtype: 'Checkbox',
+						order: -1,
+						flex: '0 0 36px',
+						alignment: 'right'
+					});
+				}
+				const file_list = new frappe.ui.SimpleList({
+					parent: $uploaded_files_wrapper,
+					columns: columns,
+					values: file_array,
+					with_checkbox: 1,
+					// with_remove: 1,
+					on_change: {
+						is_public: function(filename, is_public) {
+							let attached_files = $upload.data('attached_files');
+							// update is_private key
+							attached_files = attached_files.map(file => {
+								if (file.name === filename) {
+									file.is_private = is_public ? 0 : 1;
+								}
+								return file;
+							});
+							$upload.data('attached_files', attached_files);
+						}
+					},
+					empty_state: () => {
+						frappe.upload.show_empty_state($upload);
+					}
+				});
 			}
 		});
 
 		if(opts.files && opts.files.length > 0) {
 			$file_input.trigger('change');
 		}
-
-		// events
-		$uploaded_files_wrapper.on('click', '.list-item-container', function (e) {
-			var $item = $(this);
-			var filename = $item.attr('data-filename');
-			var attached_files = $upload.data('attached_files');
-			var $target = $(e.target);
-
-			if ($target.is(':checkbox')) {
-				var is_private = !$target.is(':checked');
-
-				attached_files = attached_files.map(file => {
-					if (file.name === filename) {
-						file.is_private = is_private ? 1 : 0;
-					}
-					return file;
-				});
-				$uploaded_files_wrapper
-					.find(`.list-item-container[data-filename="${filename}"] .fa.fa-fw`)
-					.toggleClass('fa-lock fa-unlock-alt');
-
-				$upload.data('attached_files', attached_files);
-			}
-			else if ($target.is('.uploaded-file-remove, .fa-remove')) {
-				// remove file from attached_files object
-				attached_files = attached_files.filter(file => file.name !== filename);
-				$upload.data('attached_files', attached_files);
-
-				// remove row from dom
-				$uploaded_files_wrapper
-					.find(`.list-item-container[data-filename="${filename}"]`)
-					.remove();
-
-				if(attached_files.length === 0) {
-					frappe.upload.show_empty_state($upload);
-				}
-			}
-		});
-
 
 		if(!opts.btn) {
 			opts.btn = $('<button class="btn btn-default btn-sm">' + __("Attach")

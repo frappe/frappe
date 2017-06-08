@@ -207,7 +207,9 @@
 		"public/js/frappe/form/footer/attachments.js",
 		"public/js/frappe/form/footer/timeline.js",
 		"public/js/frappe/form/footer/assign_to.js",
-		"public/js/frappe/form/quick_entry.js"
+		"public/js/frappe/form/quick_entry.js",
+
+		"public/js/frappe/ui/simple_list.js"
 	],
 	"css/list.min.css": [
 		"public/js/lib/taggle/taggle.min.css",
