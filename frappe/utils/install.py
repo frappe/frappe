@@ -134,3 +134,5 @@ def add_country_and_currency(name, country):
 			"docstatus": 0
 		}).db_insert()
 
+	elif country.currency and frappe.db.exists("Currency", country.currency):
+		frappe.db.set_value("Currency", country.currency, "number_format", "")
