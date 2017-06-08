@@ -144,7 +144,9 @@ def add_user_icon(_doctype, _report=None, label=None, link=None, type='link', st
 			clear_desktop_icons_cache()
 
 			icon_name = new_icon.name
-
+		
+		except frappe.UniqueValidationError as e:
+			frappe.throw(_('Desktop Icon already exists'))
 		except Exception as e:
 			raise e
 
