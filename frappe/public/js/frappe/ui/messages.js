@@ -77,7 +77,6 @@ frappe.prompt = function(fields, callback, title, primary_label) {
 	return d;
 }
 
-console.warn('The globals `msgprint` and `show_alert` has been deprecated. Please use `frappe.msgprint` and `frappe.show_alert` instead.');
 var msg_dialog=null;
 frappe.msgprint = function(msg, title) {
 	if(!msg) return;
@@ -175,6 +174,14 @@ frappe.msgprint = function(msg, title) {
 
 	return msg_dialog;
 }
+
+// Proxy for frappe.msgprint
+Object.defineProperty(window, 'msgprint', {
+	get: function() {
+		console.warn('Please use `frappe.msgprint` instead of `msgprint`. It will be deprecated soon.');
+		return frappe.msgprint;
+	}
+});
 
 frappe.hide_msgprint = function(instant) {
 	// clear msgprint
@@ -286,3 +293,10 @@ frappe.show_alert = function(message, seconds=7) {
 	return div;
 }
 
+// Proxy for frappe.show_alert
+Object.defineProperty(window, 'show_alert', {
+	get: function() {
+		console.warn('Please use `frappe.show_alert` instead of `show_alert`. It will be deprecated soon.');
+		return frappe.show_alert;
+	}
+});

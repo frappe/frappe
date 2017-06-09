@@ -269,20 +269,56 @@ frappe.Application = Class.extend({
 	},
 
 	set_globals: function() {
-		console.warn('The global `user` has been deprecated. Please use `frappe.session.user` instead.');
 		frappe.session.user = frappe.boot.user.name;
 		frappe.session.user_email = frappe.boot.user.email;
 		frappe.session.user_fullname = frappe.user_info().fullname;
 
-		console.warn('The global `user_defaults` has been deprecated. Please use `frappe.user_roles` instead.');
 		frappe.user_defaults = frappe.boot.user.defaults;
-		console.warn('The global `roles` has been deprecated. Please use `frappe.user_roles` instead.');
 		frappe.user_roles = frappe.boot.user.roles;
-		console.warn('The global `sys_defaults` has been deprecated. Please use `frappe.sys_defaults` instead.');
 		frappe.sys_defaults = frappe.boot.sysdefaults;
 
 		frappe.ui.py_date_format = frappe.boot.sysdefaults.date_format.replace('dd', '%d').replace('mm', '%m').replace('yyyy', '%Y');
 		frappe.boot.user.last_selected_values = {};
+
+		// Proxy for user globals
+		Object.defineProperties(window, {
+			'user': {
+				get: function() {
+					console.warn('Please use `frappe.session.user` instead of `user`. It will be deprecated soon.');
+					return frappe.session.user;
+				}
+			},
+			'user_fullname': {
+				get: function() {
+					console.warn('Please use `frappe.session.user_fullname` instead of `user_fullname`. It will be deprecated soon.');
+					return frappe.session.user;
+				}
+			},
+			'user_email': {
+				get: function() {
+					console.warn('Please use `frappe.session.user_email` instead of `user_email`. It will be deprecated soon.');
+					return frappe.session.user_email;
+				}
+			},
+			'user_defaults': {
+				get: function() {
+					console.warn('Please use `frappe.user_defaults` instead of `user_defaults`. It will be deprecated soon.');
+					return frappe.user_defaults;
+				}
+			},
+			'roles': {
+				get: function() {
+					console.warn('Please use `frappe.user_roles` instead of `roles`. It will be deprecated soon.');
+					return frappe.user_roles;
+				}
+			},
+			'sys_defaults': {
+				get: function() {
+					console.warn('Please use `frappe.sys_defaults` instead of `sys_defaults`. It will be deprecated soon.');
+					return frappe.user_roles;
+				}
+			}
+		});
 	},
 	sync_pages: function() {
 		// clear cached pages if timestamp is not found

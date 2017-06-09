@@ -155,4 +155,18 @@ $.extend(frappe.datetime, {
 
 });
 
-console.warn('The globals `dateutil` and `get_today` are deprecated. Please use `frappe.datetime` instead.')
+// Proxy for dateutil and get_today
+Object.defineProperties(window, {
+	'dateutil': {
+		get: function() {
+			console.warn('Please use `frappe.datetime` instead of `dateutil`. It will be deprecated soon.');
+			return frappe.datetime;
+		}
+	},
+	'get_today': {
+		get: function() {
+			console.warn('Please use `frappe.datetime.get_today` instead of `get_today`. It will be deprecated soon.');
+			return frappe.datetime.get_today;
+		}
+	}
+});
