@@ -204,6 +204,14 @@ function in_list(list, item) {
 	return false;
 }
 
+// Proxy for in_list
+Object.defineProperty(window, 'inList', {
+	get: function() {
+		console.warn('Please use `in_list` instead of `inList`. It will be deprecated soon.');
+		return in_list;
+	}
+});
+
 function remainder(numerator, denominator, precision) {
 	precision = cint(precision);
 	var multiplier = Math.pow(10, precision);
