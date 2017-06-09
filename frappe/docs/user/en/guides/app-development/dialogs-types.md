@@ -85,7 +85,7 @@ This dialog have 2 arguments, they are:
     			+ "<li><b>28%</b> Memory</li>"
     			+ "<li><b>12%</b> Processor</li>"
     			+ "<li><b>0.3%</b> Disk</li>"
-		"</ul>", 'Server Info')
+		+ "</ul>", 'Server Info')
 
 ---
 
