@@ -244,11 +244,13 @@ def get_formatted_value(value, field):
 		value = ' '.join(value.split())
 	return field.label + " : " + strip_html_tags(unicode(value))
 
-def sync_global_search():
-	'''Add values from `frappe.flags.update_global_search` to __global_search.
+def sync_global_search(flags):
+	'''Add values from `flags` (frappe.flags.update_global_search) to __global_search.
 		This is called internally at the end of the request.'''
 
-	for value in frappe.flags.update_global_search:
+	# As frappe.flags.update_global_search isn't reliable at a later time,
+	# when syncing is enqueued
+	for value in flags:
 		frappe.db.sql('''
 			insert into __global_search
 				(doctype, name, content, published, title, route)
@@ -256,8 +258,6 @@ def sync_global_search():
 				(%(doctype)s, %(name)s, %(content)s, %(published)s, %(title)s, %(route)s)
 			on duplicate key update
 				content = %(content)s''', value)
-
-	frappe.flags.update_global_search = []
 
 def delete_for_document(doc):
 	'''Delete the __global_search entry of a document that has

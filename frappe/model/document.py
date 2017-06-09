@@ -803,12 +803,7 @@ class Document(BaseDocument):
 		self.clear_cache()
 		self.notify_update()
 
-		try:
-			frappe.enqueue('frappe.utils.global_search.update_global_search',
-				now=frappe.flags.in_test or frappe.flags.in_install or frappe.flags.in_migrate,
-				doc=self)
-		except redis.exceptions.ConnectionError:
-			update_global_search(self)
+		update_global_search(self)
 
 		if self._doc_before_save and not self.flags.ignore_version:
 			self.save_version()
