@@ -122,11 +122,12 @@ def restore(context, sql_file_path, mariadb_root_username=None, mariadb_root_pas
 @pass_context
 def reinstall(context, admin_password=None, yes=False):
 	"Reinstall site ie. wipe all data and start over"
+	site = get_site(context)
+	_reinstall(site, admin_password, yes, verbose=context.verbose)
 
+def _reinstall(site, admin_password=None, yes=False, verbose=False):
 	if not yes:
 		click.confirm('This will wipe your database. Are you sure you want to reinstall?', abort=True)
-
-	site = get_site(context)
 	try:
 		frappe.init(site=site)
 		frappe.connect()
@@ -141,7 +142,7 @@ def reinstall(context, admin_password=None, yes=False):
 		frappe.destroy()
 
 	frappe.init(site=site)
-	_new_site(frappe.conf.db_name, site, verbose=context.verbose, force=True, reinstall=True,
+	_new_site(frappe.conf.db_name, site, verbose=verbose, force=True, reinstall=True,
 		install_apps=installed, admin_password=admin_password)
 
 @click.command('install-app')
@@ -495,7 +496,7 @@ def set_last_active_for_user(context, user=None):
 
 	from frappe.core.doctype.user.user import get_system_users
 	from frappe.utils.user import set_last_active_to_now
-	
+
 	site = get_site(context)
 
 	with frappe.init_site(site):
