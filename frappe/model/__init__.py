@@ -13,6 +13,7 @@ display_fieldtypes = ('Section Break', 'Column Break', 'HTML', 'Button', 'Image'
 default_fields = ('doctype','name','owner','creation','modified','modified_by',
 	'parent','parentfield','parenttype','idx','docstatus')
 optional_fields = ("_user_tags", "_comments", "_assign", "_liked_by", "_seen")
+default_set_only_once_field = ('naming_series',)
 
 def copytables(srctype, src, srcfield, tartype, tar, tarfield, srcfields, tarfields=[]):
 	if not tarfields:
