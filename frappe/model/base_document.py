@@ -7,7 +7,7 @@ import frappe, sys
 from frappe import _
 from frappe.utils import (cint, flt, now, cstr, strip_html, getdate, get_datetime, to_timedelta,
 	sanitize_html, sanitize_email)
-from frappe.model import default_fields
+from frappe.model import default_fields, optional_fields, default_set_only_once_field
 from frappe.model.naming import set_new_name
 from frappe.model.utils.link_count import notify_link_count
 from frappe.modules import load_doctype_module
@@ -330,6 +330,10 @@ class BaseDocument(object):
 		# don't update name, as case might've been changed
 		name = d['name']
 		del d['name']
+
+		# don't update fields that are meant to be set only once
+		for key in default_set_only_once_field:
+			d.pop(key, None)
 
 		columns = d.keys()
 
