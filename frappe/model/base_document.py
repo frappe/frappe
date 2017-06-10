@@ -331,9 +331,16 @@ class BaseDocument(object):
 		name = d['name']
 		del d['name']
 
-		# don't update fields that are meant to be set only once
+		# Simply ignoring the field can cause confusing bugs so it's better to raise exception here e.g
+		# d = frappe.new_doc('Sales Invoice', ....)
+		# d.save() --> Default naming series = 'SINV-'
+		# d.naming_series = 'TEST-'
+		# d.save() --> `naming_series` field is not touched in the database but...
+		# d.naming_series == 'SINV' -> False
 		for key in default_set_only_once_field:
-			d.pop(key, None)
+			set_only_once_value = d.pop(key, None)
+			if set_only_once_value:
+				self._validate_set_only_once_fields(key, set_only_once_value)
 
 		columns = d.keys()
 
@@ -817,6 +824,12 @@ class BaseDocument(object):
 		if self.doctype != "DocType":
 			for df in self.meta.get("fields", {"fieldtype":"Text Editor"}):
 				extract_images_from_doc(self, df.fieldname)
+
+	def _validate_set_only_once_fields(self, fieldname, value):
+		default_value = frappe.db.get_value(self.doctype, self.name, fieldname)
+		if getattr(self, fieldname) != default_value:
+			frappe.throw("Cannot change {0} field as it can only be set once".format(fieldname))
+
 
 def _filter(data, filters, limit=None):
 	"""pass filters as:
