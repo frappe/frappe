@@ -35,8 +35,7 @@ def get_script(report_name):
 	module_path = get_module_path(module)
 	report_folder = os.path.join(module_path, "report", scrub(report.name))
 	script_path = os.path.join(report_folder, scrub(report.name) + ".js")
-	print_path = os.path.join(report_folder, scrub(report.name) + ".html")
-
+	print_path = get_template_path_from_hook(report_name) or os.path.join(report_folder, scrub(report.name) + ".html")	
 	script = None
 	if os.path.exists(script_path):
 		with open(script_path, "r") as f:
@@ -170,6 +169,20 @@ def export_query():
 def get_report_module_dotted_path(module, report_name):
 	return frappe.local.module_app[scrub(module)] + "." + scrub(module) \
 		+ ".report." + scrub(report_name) + "." + scrub(report_name)
+		
+
+def get_template_path_from_hook(report_name):
+	for app_name in frappe.get_installed_apps():
+		print_hook = frappe.get_hooks('report_print_templates', default={}, app_name=app_name)
+		if not print_hook:
+			continue
+		
+		path = print_hook.get(report_name, [])
+		if path:
+			return frappe.get_app_path(app_name, *path[0].strip("/").split("/"))
+			
+	return None	
+		
 
 def add_total_row(result, columns, meta = None):
 	total_row = [""]*len(columns)
