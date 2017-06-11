@@ -136,6 +136,8 @@ def get_html(doc, name=None, print_format=None, meta=None,
 
 	letter_head = frappe._dict(get_letter_head(doc, no_letterhead) or {})
 	
+	convert_markdown(doc, meta)
+	
 	args = {
 		"doc": doc,
 		"meta": frappe.get_meta(doc.doctype),
