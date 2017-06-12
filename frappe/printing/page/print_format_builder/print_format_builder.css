@@ -73,6 +73,7 @@
 	top: 110px;
 	bottom: 0px;
 	overflow-y: auto;
+	left: 0px;
 }
 
 .print-format-builder-main {
