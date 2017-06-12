@@ -83,6 +83,9 @@ def set_value(doctype, name, fieldname, value=None):
 	if fieldname!="idx" and fieldname in frappe.model.default_fields:
 		frappe.throw(_("Cannot edit standard fields"))
 
+	if fieldname in frappe.model.default_set_only_once_field:
+		frappe.throw(_("{0} field can be set only once".format(fieldname)))
+
 	if not value:
 		values = fieldname
 		if isinstance(fieldname, basestring):
