@@ -244,9 +244,12 @@ def get_formatted_value(value, field):
 		value = ' '.join(value.split())
 	return field.label + " : " + strip_html_tags(unicode(value))
 
-def sync_global_search(flags = frappe.flags.update_global_search):
+def sync_global_search(flags=None):
 	'''Add values from `flags` (frappe.flags.update_global_search) to __global_search.
 		This is called internally at the end of the request.'''
+
+	if not flags:
+		flags = frappe.flags.update_global_search
 
 	# Can pass flags manually as frappe.flags.update_global_search isn't reliable at a later time,
 	# when syncing is enqueued
