@@ -14,7 +14,7 @@ DocType: System Settings,Note: Multiple sessions will be allowed in case of mobi
 apps/frappe/frappe/core/doctype/user/user.py +633,Enabled email inbox for user {users},casella di posta abilitata per l&#39;utente {} utenti
 apps/frappe/frappe/email/queue.py +207,Cannot send this email. You have crossed the sending limit of {0} emails for this month.,Impossibile inviare questa e-mail. Hai oltrepassato il limite di invio di {0} mail per questo mese.
 apps/frappe/frappe/public/js/legacy/form.js +756,Permanently Submit {0}?,Conferma Definitivamente {0} ?
-DocType: Address,County,contea
+DocType: Address,County,Contea
 DocType: Workflow,If Checked workflow status will not override status in list view,Se lo stato del flusso di lavoro Controllato non sovrascriverà stato in vista elenco
 apps/frappe/frappe/client.py +278,Invalid file path: {0},Non valido percorso del file: {0}
 DocType: Workflow State,eye-open,occhio-apertura
@@ -267,7 +267,7 @@ apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +507,No permissi
 apps/frappe/frappe/public/js/frappe/views/kanban/kanban_board.html +4,Add a column,Aggiungi colonna
 apps/frappe/frappe/www/contact.html +30,Your email address,Il tuo indirizzo email
 DocType: Desktop Icon,Module,Modulo
-DocType: Email Alert,Send Alert On,Invia avviso in
+DocType: Email Alert,Send Alert On,Invia Avviso su
 DocType: Customize Form,"Customize Label, Print Hide, Default etc.","Personalizzare Etichetta,Nascondere Stampa, predefinito etc."
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder_start.html +16,Create a New Format,Creare un nuovo formato
 DocType: Customize Form,Is Table,è Tabella
@@ -1671,7 +1671,7 @@ apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +608,Show Totals
 DocType: Error Snapshot,Relapses,Le ricadute
 DocType: Address,Preferred Shipping Address,Preferito Indirizzo spedizione
 DocType: Social Login Keys,Frappe Server URL,URL Frappe Server
-apps/frappe/frappe/public/js/frappe/form/print.js +236,With Letter head,Con la testa Lettera
+apps/frappe/frappe/public/js/frappe/form/print.js +236,With Letter head,Con carta intestata
 apps/frappe/frappe/public/js/frappe/form/sidebar.js +62,{0} created this {1},{0} ha creato questo {1}
 apps/frappe/frappe/public/js/frappe/form/workflow.js +36,Document is only editable by users of role,Documento è modificabile solo dagli utenti del ruolo
 apps/frappe/frappe/desk/form/assign_to.py +143,"The task {0}, that you assigned to {1}, has been closed by {2}.","Il compito {0}, che è stato assegnato a {1}, è stato chiuso da {2}."
@@ -2606,7 +2606,7 @@ DocType: Workflow State,road,stradale
 DocType: LDAP Settings,Organizational Unit,Unità organizzativa
 DocType: User,Timezone,Fuso orario
 apps/frappe/frappe/public/js/frappe/model/model.js +106,Unable to load: {0},Impossibile caricare: {0}
-apps/frappe/frappe/config/integrations.py +28,Backup,di riserva
+apps/frappe/frappe/config/integrations.py +28,Backup,Backup
 apps/frappe/frappe/core/page/usage_info/usage_info.html +3,Expires in {0} days,Scade tra {0} giorni
 DocType: DocField,Read Only,Solo lettura
 apps/frappe/frappe/email/doctype/email_group/email_group.js +45,New Newsletter,Nuova Newsletter

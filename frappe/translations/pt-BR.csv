@@ -657,7 +657,7 @@ DocType: Workflow State,Tag,Tag
 DocType: Custom Script,Script,Script
 apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html +28,My Settings,Minhas Configurações
 DocType: Desktop Icon,Force Show,Forçar Exibição
-apps/frappe/frappe/auth.py +78,Invalid Request,Pedido inválido
+apps/frappe/frappe/auth.py +78,Invalid Request,Requisição Inválida
 apps/frappe/frappe/public/js/frappe/form/layout.js +33,This form does not have any input,Este formulário não tem nenhum campo a ser preenchido
 DocType: Footer Item,"Select target = ""_blank"" to open in a new page.","Select target = "" _blank"" para abrir em uma nova página."
 apps/frappe/frappe/public/js/frappe/model/model.js +470,Permanently delete {0}?,Excluir Permanentemente {0} ?

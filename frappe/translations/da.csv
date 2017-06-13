@@ -744,7 +744,7 @@ apps/frappe/frappe/core/doctype/user/user_list.js +12,Active,Aktiv
 apps/frappe/frappe/public/js/frappe/form/templates/grid_form.html +13,Insert Below,Indsæt nedenfor
 DocType: Event,Blue,Blå
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +166,All customizations will be removed. Please confirm.,Alle tilpasninger vil blive fjernet. Bekræft venligst.
-apps/frappe/frappe/www/login.html +20,Email address or Mobile number,E-mail-adresse eller Mobilnummer
+apps/frappe/frappe/www/login.html +20,Email address or Mobile number,E-mail-adresse eller mobilnummer
 DocType: Page,Page HTML,Side HTML
 apps/frappe/frappe/public/js/frappe/ui/filters/filter_dashboard_head.html +21,Alphabetically Ascending,Alfabetisk stigende
 apps/frappe/frappe/public/js/frappe/views/treeview.js +262,Further nodes can be only created under 'Group' type nodes,Yderligere noder kan kun oprettes under &#39;koncernens typen noder
@@ -1715,7 +1715,7 @@ DocType: Workflow State,pencil,blyant
 apps/frappe/frappe/config/desk.py +32,Chat messages and other notifications.,Chat beskeder og andre meddelelser.
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.py +72,Insert After cannot be set as {0},Indsæt Efter kan ikke indstilles som {0}
 apps/frappe/frappe/public/js/frappe/form/share.js +57,Share {0} with,Del {0} med
-apps/frappe/frappe/public/js/frappe/desk.js +134,Email Account setup please enter your password for: ,Konto setup Email skal du indtaste din adgangskode til:
+apps/frappe/frappe/public/js/frappe/desk.js +134,Email Account setup please enter your password for: ,For opsætning af e-mailkonti skal du indtaste din adgangskode:
 DocType: Workflow State,hand-up,hånd-up
 DocType: Blog Settings,Writers Introduction,Writers Introduktion
 DocType: Communication,Phone,Telefonnr.

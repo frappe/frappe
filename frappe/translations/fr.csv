@@ -123,7 +123,7 @@ DocType: Workflow Action,Workflow Action Name,Nom de l'Action du Flux de Travail
 apps/frappe/frappe/core/doctype/doctype/doctype.py +271,DocType can not be merged,DocType ne peut pas être fusionné
 DocType: Web Form Field,Fieldtype,Type de Champ
 apps/frappe/frappe/core/doctype/file/file.py +245,Not a zip file,Pas un fichier zip
-apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +54,&gt; {0} year(s) ago,&gt; {0} année (s) depuis
+apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +54,&gt; {0} year(s) ago,&gt; {0} ans
 apps/frappe/frappe/public/js/frappe/form/save.js +138,"Mandatory fields required in table {0}, Row {1}","Champs Obligatoires Requis dans la table {0}, Ligne {1}"
 apps/frappe/frappe/utils/password_strength.py +169,Capitalization doesn't help very much.,La capitalisation ne contribue pas beaucoup.
 DocType: Error Snapshot,Friendly Title,Titre Convivial
@@ -341,7 +341,7 @@ apps/frappe/frappe/www/search.html +28,No matching records. Search something new
 DocType: Currency,Fraction Units,Fractions d’Unités
 apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +431,{0} from {1} to {2},{0} de {1} à {2}
 DocType: Communication,Type,Type
-apps/frappe/frappe/email/smtp.py +57,Please setup default Email Account from Setup &gt; Email &gt; Email Account,Veuillez configurer le compte de messagerie par défaut à partir de la configuration&gt; Courriel&gt; Compte de messagerie
+apps/frappe/frappe/email/smtp.py +57,Please setup default Email Account from Setup &gt; Email &gt; Email Account,Veuillez configurer le compte Email par défaut depuis Configuration&gt; Email&gt; Compte Email
 DocType: Authentication Log,Subject,Sujet
 DocType: Web Form,Amount Based On Field,Montant Basé sur le Champ
 apps/frappe/frappe/core/doctype/docshare/docshare.py +34,User is mandatory for Share,L&#39;utilisateur est obligatoire pour Partager
@@ -368,7 +368,7 @@ apps/frappe/frappe/public/js/frappe/ui/toolbar/toolbar.js +231,"Your download is
 apps/frappe/frappe/www/feedback.html +23,Your rating: ,Votre note :
 apps/frappe/frappe/utils/data.py +544,{0} and {1},{0} et {1}
 DocType: Print Settings,"Always add ""Draft"" Heading for printing draft documents","Toujours ajouter ""Brouillon"" pour l'impression des documents brouillons"
-apps/frappe/frappe/core/doctype/communication/communication.js +228,Email has been marked as spam,Le courrier électronique a été marqué comme spam
+apps/frappe/frappe/core/doctype/communication/communication.js +228,Email has been marked as spam,L'Email a été marqué comme étant un spam
 DocType: About Us Settings,Website Manager,Responsable du Site Web
 apps/frappe/frappe/model/document.py +1048,Document Queued,Document en Attente
 DocType: Desktop Icon,List,Liste
@@ -926,7 +926,7 @@ apps/frappe/frappe/email/doctype/newsletter/newsletter.py +49,Scheduled to send 
 apps/frappe/frappe/model/rename_doc.py +79,renamed from {0} to {1},renommé de {0} à {1}
 DocType: Currency,**Currency** Master,Données de Base **Devise**
 DocType: Email Account,No of emails remaining to be synced,Nb d’emails restants à être synchronisés
-apps/frappe/frappe/public/js/frappe/upload.js +202,Uploading,Téléchargement
+apps/frappe/frappe/public/js/frappe/upload.js +202,Uploading,Chargement
 apps/frappe/frappe/public/js/frappe/form/footer/assign_to.js +84,Please save the document before assignment,Veuillez enregistrer le document avant l'affectation
 DocType: Website Settings,Address and other legal information you may want to put in the footer.,Adresse et autres informations juridiques que vous voudriez mettre dans le pied de page.
 DocType: Website Sidebar Item,Website Sidebar Item,Objet de la Barre Latérale du Site Web
@@ -1508,7 +1508,7 @@ apps/frappe/frappe/integrations/doctype/stripe_settings/stripe_settings.py +38,S
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +3,Quick Help for Setting Permissions,Aide Rapide pour Définir les Autorisations
 DocType: Tag Doc Category,Doctype to Assign Tags,Doctype pour Affecter des Étiquettes
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot.js +9,Show Relapses,Afficher les Rechutes
-apps/frappe/frappe/core/doctype/communication/communication.js +241,Email has been moved to trash,Le courrier électronique a été déplacé vers la poubelle
+apps/frappe/frappe/core/doctype/communication/communication.js +241,Email has been moved to trash,L'Email a été déplacé dans la corbeille
 DocType: Report,Report Builder,Éditeur de Rapports
 DocType: Async Task,Task Name,Nom de la Tâche
 apps/frappe/frappe/app.py +144,"Your session has expired, please login again to continue.","Votre session a expiré, connectez-vous à nouveau pour continuer."
@@ -1599,7 +1599,7 @@ DocType: Workflow State,tint,teinte
 DocType: Web Page,Style,Style
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +63,e.g.:,e.g. :
 apps/frappe/frappe/website/doctype/blog_post/blog_post.py +80,{0} comments,{0} commentaires
-apps/frappe/frappe/email/smtp.py +158,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,Compte de messagerie non configuré. Créez un nouveau compte de messagerie à partir de la configuration&gt; Courriel&gt; Compte de messagerie
+apps/frappe/frappe/email/smtp.py +158,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,Compte Email non configuré. Veuillez Créer un nouveau Compte Email depuis Configuration&gt; Email&gt; Compte Email
 apps/frappe/frappe/desk/page/applications/applications.js +44,Select Category...,Sélectionner une Catégorie...
 DocType: Customize Form Field,Label and Type,Étiquette et Type
 DocType: Workflow State,forward,avant
@@ -1617,8 +1617,8 @@ apps/frappe/frappe/desk/doctype/event/event.py +61,Daily Event Digest is sent fo
 apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html +32,View Website,Voir Le Site Web
 DocType: Workflow State,remove,retirer
 DocType: Email Account,If non standard port (e.g. 587),Si port non standard (e.g. 587)
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +33,Setup &gt; User Permissions Manager,Configuration&gt; Gestionnaire des autorisations utilisateur
-apps/frappe/frappe/geo/doctype/address/address.py +168,No default Address Template found. Please create a new one from Setup &gt; Printing and Branding &gt; Address Template.,Aucun modèle d&#39;adresse par défaut n&#39;a été trouvé. Créez une nouvelle version de Configuration&gt; Impression et Marquage&gt; Modèle d&#39;adresse.
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +33,Setup &gt; User Permissions Manager,Configuration&gt; Gestionnaire des Autorisations des Utilisateurs
+apps/frappe/frappe/geo/doctype/address/address.py +168,No default Address Template found. Please create a new one from Setup &gt; Printing and Branding &gt; Address Template.,Aucun modèle d'adresse par défaut n'a été trouvé. Veuillez créer un nouveau modèle depuis Configuration&gt; Impression et Marque&gt; Modèle d'Adresse.
 apps/frappe/frappe/public/js/frappe/form/toolbar.js +152,Reload,Recharger
 apps/frappe/frappe/config/setup.py +242,Add your own Tag Categories,Ajoutez vos propres Catégories d'Étiquettes
 apps/frappe/frappe/core/page/usage_info/usage_info.html +103,Total,Total
@@ -1916,7 +1916,7 @@ apps/frappe/frappe/public/js/frappe/ui/tags.js +20,Add a tag,Ajouter un tag
 apps/frappe/frappe/public/js/frappe/form/control.js +1207,Please attach a file first.,Veuillez d’abord joindre un fichier.
 apps/frappe/frappe/model/naming.py +169,"There were some errors setting the name, please contact the administrator","Il y a eu des erreurs lors de la configuration du nom, veuillez contacter l'administrateur"
 apps/frappe/frappe/templates/includes/contact.js +17,"You seem to have written your name instead of your email. \
-				Please enter a valid email address so that we can get back.",Vous semblez avoir écrit votre nom au lieu de votre courrier électronique. \ Veuillez entrer une adresse email valide afin que nous puissions revenir.
+				Please enter a valid email address so that we can get back.",Vous semblez avoir écrit votre nom au lieu de votre email. \ Veuillez entrer une adresse email valide afin que nous puissions revenir vers vous.
 DocType: Website Slideshow Item,Website Slideshow Item,Objet du Diaporama du Site Web
 DocType: Portal Settings,Default Role at Time of Signup,Rôle au Moment de l’Inscription par Défaut
 DocType: DocType,Title Case,Casse du Titre
@@ -2014,7 +2014,7 @@ DocType: Blog Post,Blog Post,Article de Blog
 apps/frappe/frappe/public/js/frappe/form/control.js +1417,Advanced Search,Recherche Avancée
 apps/frappe/frappe/core/doctype/user/user.py +748,Password reset instructions have been sent to your email,Les Instructions de réinitialisation du mot de passe ont été envoyés à votre adresse Email
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +383,"Level 0 is for document level permissions, \
-								higher levels for field level permissions.","Le niveau 0 est pour les autorisations de niveau de document, \ niveaux supérieurs pour les autorisations de niveau de champ."
+								higher levels for field level permissions.","Le niveau 0 est pour les autorisations au niveau du document, \ les niveaux supérieurs pour les autorisations au niveau des champs."
 apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +654,Sort By,Trier par
 DocType: Workflow,States,États
 DocType: Email Alert,Attach Print,Joindre l'Impression
@@ -2458,7 +2458,7 @@ apps/frappe/frappe/public/js/frappe/views/communication.js +68,Send Read Receipt
 DocType: Stripe Settings,Stripe Settings,Paramètres Stripe
 DocType: Dropbox Settings,Dropbox Setup via Site Config,Paramétrage Dropbox via les Paramètrages du Site
 apps/frappe/frappe/www/login.py +64,Invalid Login Token,Jeton de Connexion invalide
-apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +48,1 hour ago,Il ya 1 heure
+apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +48,1 hour ago,Il y a 1 heure
 DocType: Social Login Keys,Frappe Client ID,ID Client Frappe
 DocType: Website Settings,Home Page,Page d’Accueil
 DocType: Error Snapshot,Parent Error Snapshot,Instantané d'Erreur Parent
