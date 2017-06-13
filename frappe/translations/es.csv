@@ -340,7 +340,7 @@ apps/frappe/frappe/www/search.html +28,No matching records. Search something new
 DocType: Currency,Fraction Units,Fracción de unidades
 apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +431,{0} from {1} to {2},{0} de {1} a {2}
 DocType: Communication,Type,Tipo
-apps/frappe/frappe/email/smtp.py +57,Please setup default Email Account from Setup &gt; Email &gt; Email Account,Configure por defecto la cuenta de correo electrónico predeterminada desde Configuración&gt; Correo electrónico&gt; Cuenta de correo electrónico
+apps/frappe/frappe/email/smtp.py +57,Please setup default Email Account from Setup &gt; Email &gt; Email Account,Configure la cuenta de correo electrónico predeterminada desde Configuración &gt; Correo electrónico &gt; Cuenta de correo electrónico
 DocType: Authentication Log,Subject,Asunto
 DocType: Web Form,Amount Based On Field,Cantidad basada en el Campo
 apps/frappe/frappe/core/doctype/docshare/docshare.py +34,User is mandatory for Share,El usuario es obligatorio para compartir
@@ -650,7 +650,7 @@ apps/frappe/frappe/public/js/frappe/misc/rating_icons.html +2,Rating: ,Clasifica
 apps/frappe/frappe/email/receive.py +195,Can not find UIDVALIDITY in imap status response,No se puede encontrar UIDVALIDITY en respuesta de estado IMAP
 ,Data Import Tool,Herramienta de importación de datos
 apps/frappe/frappe/website/js/web_form.js +259,Uploading files please wait for a few seconds.,Subiendo archivos favor espere durante unos segundos.
-apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +558,Attach Your Picture,Adjunte su fotografía
+apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +558,Attach Your Picture,Adjunte su Fotografía
 apps/frappe/frappe/core/doctype/version/version_view.html +69,Row Values Changed,Valores de Fila Modificados
 DocType: Workflow State,Stop,Detener
 DocType: Footer Item,Link to the page you want to open. Leave blank if you want to make it a group parent.,Enlace a la página que desea abrir. Dejar en blanco si desea que sea un grupo principal.
@@ -711,7 +711,7 @@ apps/frappe/frappe/public/js/frappe/request.js +136,Server Error: Please check y
 apps/frappe/frappe/core/doctype/user/user.py +185,Welcome email sent,Correo electrónico de bienvenida enviado
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +370,Let's prepare the system for first use.,Se esta preparando el sistema para el primer uso.
 apps/frappe/frappe/desk/page/applications/applications.js +129,Featured,Destacado
-apps/frappe/frappe/core/doctype/user/user.py +709,Already Registered,Ya está registrado
+apps/frappe/frappe/core/doctype/user/user.py +709,Already Registered,Ya está Registrado
 DocType: System Settings,Float Precision,Factor de Redondeo
 apps/frappe/frappe/core/doctype/page/page.py +40,Only Administrator can edit,Sólo el administrador puede editar
 apps/frappe/frappe/public/js/frappe/upload.js +64,Filename,Nombre de Archivo
@@ -806,7 +806,7 @@ apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +6
 apps/frappe/frappe/public/js/frappe/views/communication.js +80,Select Languages,Seleccione Idiomas
 apps/frappe/frappe/__init__.py +503,No permission for {0},Sin permiso para {0}
 DocType: DocType,Advanced,Anticipado
-apps/frappe/frappe/integrations/doctype/razorpay_settings/razorpay_settings.py +78,Seems API Key or API Secret is wrong !!!,Parece clave de API o API secreto está mal !!!
+apps/frappe/frappe/integrations/doctype/razorpay_settings/razorpay_settings.py +78,Seems API Key or API Secret is wrong !!!,Parece que la  clave de API o  clave secreta de API secreto está mal !!!
 apps/frappe/frappe/templates/emails/auto_reply.html +3,Reference: {0} {1},Referencia: {0} {1}
 DocType: File,Attached To Name,Asociado A Nombre
 DocType: Address,Address Type,Tipo de dirección
@@ -1400,7 +1400,7 @@ DocType: Page,Standard,Estándar
 apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html +46,Attach File,Adjuntar Archivo
 apps/frappe/frappe/templates/emails/password_update.html +1,Password Update Notification,Notificación de actualización de contraseña
 apps/frappe/frappe/desk/page/backups/backups.html +13,Size,Tamaño
-apps/frappe/frappe/public/js/frappe/form/footer/assign_to.js +59,Assignment Complete,Asignación completa
+apps/frappe/frappe/public/js/frappe/form/footer/assign_to.js +59,Assignment Complete,Asignación Completa
 DocType: Custom DocPerm,User Permission DocTypes,'DocType' para permisos de usuarios
 DocType: Desktop Icon,Idx,indice
 DocType: Deleted Document,New Name,Nuevo Nombre
@@ -1572,7 +1572,7 @@ DocType: Standard Reply,Standard Reply Help,Ayuda de Respuesta Estándar
 DocType: Blogger,Avatar,Avatar
 DocType: Blogger,Posts,Entradas
 DocType: DocType,Has Web View,Tiene vista Web
-apps/frappe/frappe/core/doctype/doctype/doctype.py +361,"DocType's name should start with a letter and it can only consist of letters, numbers, spaces and underscores","El nombre del tipo de documento debe comenzar con una letra y sólo puede consistir en letras, números, espacios y guiones bajos"
+apps/frappe/frappe/core/doctype/doctype/doctype.py +361,"DocType's name should start with a letter and it can only consist of letters, numbers, spaces and underscores","El nombre del DocType debe comenzar con una letra y sólo puede consistir en letras, números, espacios y guiones bajos"
 DocType: Communication,Spam,Correo no deseado
 DocType: Integration Request,Integration Request,Solicitud de integración
 apps/frappe/frappe/public/js/frappe/views/communication.js +533,Dear,Estimado
@@ -1596,7 +1596,7 @@ DocType: Workflow State,tint,tinte
 DocType: Web Page,Style,Estilo.
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +63,e.g.:,por ejemplo:
 apps/frappe/frappe/website/doctype/blog_post/blog_post.py +80,{0} comments,{0} comentarios
-apps/frappe/frappe/email/smtp.py +158,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,Cuenta de correo electrónico no configurada. Crea una nueva cuenta de correo electrónico desde Configuración&gt; Correo electrónico&gt; Cuenta de correo electrónico
+apps/frappe/frappe/email/smtp.py +158,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,Cuenta de correo electrónico no configurada. Crea una nueva cuenta de correo electrónico desde Configuración &gt; Correo electrónico &gt; Cuenta de correo electrónico
 apps/frappe/frappe/desk/page/applications/applications.js +44,Select Category...,Selecciona una categoría...
 DocType: Customize Form Field,Label and Type,Etiqueta y Tipo
 DocType: Workflow State,forward,Adelante
@@ -1614,8 +1614,8 @@ apps/frappe/frappe/desk/doctype/event/event.py +61,Daily Event Digest is sent fo
 apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html +32,View Website,Ver Sitio Web
 DocType: Workflow State,remove,remover
 DocType: Email Account,If non standard port (e.g. 587),Si el puerto no es estándar (por ejemplo 587 )
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +33,Setup &gt; User Permissions Manager,Configuración&gt; Administrador de permisos de usuario
-apps/frappe/frappe/geo/doctype/address/address.py +168,No default Address Template found. Please create a new one from Setup &gt; Printing and Branding &gt; Address Template.,"No se encontró una plantilla de dirección predeterminada. Por favor, cree uno nuevo en Configuración&gt; Impresión y marca&gt; Plantilla de dirección."
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +33,Setup &gt; User Permissions Manager,Configuración &gt; Administrador de Permisos de Usuario
+apps/frappe/frappe/geo/doctype/address/address.py +168,No default Address Template found. Please create a new one from Setup &gt; Printing and Branding &gt; Address Template.,"No se encontró una plantilla de dirección predeterminada. Por favor, cree uno nuevo en Configuración &gt; Impresión y marca &gt; Plantilla de dirección."
 apps/frappe/frappe/public/js/frappe/form/toolbar.js +152,Reload,Recargar
 apps/frappe/frappe/config/setup.py +242,Add your own Tag Categories,Añadir sus propias categorias de etiquetas
 apps/frappe/frappe/core/page/usage_info/usage_info.html +103,Total,Total
@@ -1638,7 +1638,7 @@ apps/frappe/frappe/public/js/frappe/ui/messages.js +222,Verify Password,Verifica
 apps/frappe/frappe/public/js/frappe/form/footer/attachments.js +138,There were errors,Hubo errores
 apps/frappe/frappe/core/doctype/communication/communication.js +42,Close,Cerrar
 apps/frappe/frappe/model/document.py +564,Cannot change docstatus from 0 to 2,No se puede cambiar docstatus de 0 a 2
-DocType: User Permission for Page and Report,Roles Permission,funciones de permisos
+DocType: User Permission for Page and Report,Roles Permission,Permisos de Roles
 apps/frappe/frappe/core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.js +14,Update,Actualizar
 DocType: Error Snapshot,Snapshot View,Vista Instantánea
 apps/frappe/frappe/email/doctype/newsletter/newsletter.py +100,Please save the Newsletter before sending,"Por favor, guarde el boletín antes de enviarlo"
@@ -1795,7 +1795,7 @@ DocType: System Settings,System Settings,Configuración del sistema
 apps/frappe/frappe/public/js/frappe/desk.js +38,Session Start Failed,Error de inicio de sesión
 apps/frappe/frappe/email/queue.py +449,This email was sent to {0} and copied to {1},Este correo electrónico fue enviado a {0} y copiado a {1}
 DocType: Workflow State,th,th
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +8,Setup &gt; User,Configuración&gt; Usuario
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +8,Setup &gt; User,Configuración &gt; Usuario
 apps/frappe/frappe/public/js/frappe/form/control.js +1407,Create a new {0},Crear: {0}
 DocType: Email Rule,Is Spam,es spam
 apps/frappe/frappe/public/js/frappe/ui/toolbar/search_utils.js +192,Report {0},Informe {0}
@@ -1959,7 +1959,7 @@ DocType: Custom DocPerm,Create,Crear
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +204,Invalid Filter: {0},Filtro no válido: {0}
 DocType: Email Account,no failed attempts,Número de intentos fallidos
 DocType: Dropbox Settings,App Access Key,Clave de Acceso de Aplicación
-DocType: OAuth Bearer Token,Access Token,Token de acceso
+DocType: OAuth Bearer Token,Access Token,Token de Acceso
 DocType: About Us Settings,Org History,Historia de la organización
 DocType: Workflow,Workflow Name,Nombre de flujo de trabajo
 apps/frappe/frappe/public/js/frappe/form/footer/assign_to.js +144,Notify by Email,Notificar por Email
@@ -1992,7 +1992,7 @@ apps/frappe/frappe/utils/verified_command.py +43,This link is invalid or expired
 apps/frappe/frappe/email/doctype/newsletter/newsletter.py +135,<b>{0}</b> has been successfully unsubscribed from this mailing list.,<b>{0}</b> ha sido cancelado su suscripción con éxito de esta lista de correo.
 DocType: Web Page,Slideshow,Presentación
 apps/frappe/frappe/geo/doctype/address_template/address_template.py +31,Default Address Template cannot be deleted,La plantilla de direcciones por defecto no puede ser eliminada
-DocType: Contact,Maintenance Manager,Gerente de mantenimiento
+DocType: Contact,Maintenance Manager,Gerente de Mantenimiento
 DocType: Workflow State,Search,Buscar
 apps/frappe/frappe/integrations/doctype/stripe_settings/stripe_settings.py +42,Please select another payment method. Stripe does not support transactions in currency '{0}',Seleccione otro método de pago. Stripe no admite transacciones en moneda &#39;{0}&#39;
 apps/frappe/frappe/core/doctype/communication/communication.js +87,Move To Trash,Mover a la papelera
@@ -2485,7 +2485,7 @@ DocType: Address Template,"<h4>Default Template</h4>
  </ code> </ pre>"
 DocType: Role,Role Name,Nombre del rol
 apps/frappe/frappe/website/js/website.js +376,Switch To Desk,Pasar a Escritorio
-apps/frappe/frappe/config/core.py +27,Script or Query reports,Script o consulta informes
+apps/frappe/frappe/config/core.py +27,Script or Query reports,Script o Reporte de Consulta
 DocType: Workflow Document State,Workflow Document State,Estado de los Documentos del Flujo de Trabajo
 apps/frappe/frappe/public/js/frappe/request.js +115,File too big,El archivo es demasiado grande
 apps/frappe/frappe/core/doctype/user/user.py +478,Email Account added multiple times,Cuenta de correo electrónico añadida varias veces

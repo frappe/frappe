@@ -97,7 +97,7 @@ apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +4,"To impor
 DocType: DocType,Default Print Format,Mặc định In Định dạng
 DocType: Workflow State,Tags,tags
 apps/frappe/frappe/public/js/frappe/form/workflow.js +33,None: End of Workflow,Không: Kết thúc quy trình làm việc
-apps/frappe/frappe/model/db_schema.py +346,"{0} field cannot be set as unique in {1}, as there are non-unique existing values","{0} trường không thể thiết lập là duy nhất trong {1}, vì có những giá trị không phải duy nhất đang có"
+apps/frappe/frappe/model/db_schema.py +346,"{0} field cannot be set as unique in {1}, as there are non-unique existing values","trường {0} không thể thiết lập là duy nhất trong {1}, vì đang chứa những giá trị không phải duy nhất"
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +47,Document Types,Các loại tài liệu
 DocType: Workflow,Workflow State Field,Công việc nhà nước Dòng
 apps/frappe/frappe/website/doctype/web_form/templates/web_form.html +54,Please sign-up or login to begin,Vui lòng đăng ký hoặc đăng nhập để bắt đầu
@@ -351,7 +351,7 @@ DocType: Web Form,Amount Based On Field,Số tiền Dựa Trên Dòng
 apps/frappe/frappe/core/doctype/docshare/docshare.py +34,User is mandatory for Share,Người sử dụng là bắt buộc đối với Share
 DocType: DocField,Hidden,giấu
 DocType: Web Form,Allow Incomplete Forms,Cho phép hình thức không đầy đủ
-apps/frappe/frappe/model/base_document.py +470,{0} must be set first,{0} phải được thiết lập đầu tiên
+apps/frappe/frappe/model/base_document.py +470,{0} must be set first,{0} phải được thiết lập trước
 apps/frappe/frappe/utils/password_strength.py +29,"Use a few words, avoid common phrases.","Sử dụng một vài từ, tránh cụm từ phổ biến."
 DocType: Workflow State,plane,phi cơ
 apps/frappe/frappe/templates/pages/integrations/payment-failed.html +10,Oops. Your payment has failed.,Rất tiếc. thanh toán của bạn đã thất bại.
@@ -612,7 +612,7 @@ apps/frappe/frappe/printing/page/print_format_builder/print_format_builder_field
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +504,Restore Original Permissions,Restore Original Quyền
 DocType: Address,Shop,Cửa hàng
 DocType: DocField,Button,Nút
-apps/frappe/frappe/printing/doctype/print_format/print_format.py +80,{0} is now default print format for {1} doctype,{0} bây giờ là định dạng in mặc định cho {1} loại tài liệu
+apps/frappe/frappe/printing/doctype/print_format/print_format.py +80,{0} is now default print format for {1} doctype,{0} giờ là định dạng in mặc định cho loại tài liệu {1}
 apps/frappe/frappe/public/js/frappe/views/kanban/kanban_board.js +392,Archived Columns,Cột lưu trữ
 DocType: Email Account,Default Outgoing,Mặc định Outgoing
 DocType: Workflow State,play,chơi
@@ -2666,7 +2666,7 @@ apps/frappe/frappe/core/doctype/doctype/doctype.py +400,Options required for Lin
 apps/frappe/frappe/core/doctype/doctype/doctype.py +400,Options required for Link or Table type field {0} in row {1},Tùy chọn bắt buộc cho trường Loại liên kết hoặc Loại bảng {0} trong hàng {1}
 DocType: Auto Email Report,Send only if there is any data,Chỉ gửi nếu có bất kỳ dữ liệu
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +170,Reset Filters,Thiết lập lại bộ lọc
-apps/frappe/frappe/core/doctype/doctype/doctype.py +654,{0}: Permission at level 0 must be set before higher levels are set,{0}: Quyền ở mức 0 phải được thiết lập trước khi cấp độ cao hơn được thiết lập
+apps/frappe/frappe/core/doctype/doctype/doctype.py +654,{0}: Permission at level 0 must be set before higher levels are set,{0}: Quyền ở mức 0 phải được thiết lập trước khi thiết lập cấp độ cao hơn
 apps/frappe/frappe/desk/doctype/todo/todo.py +28,Assignment closed by {0},Chuyển nhượng đóng cửa bởi {0}
 DocType: Integration Request,Remote,Xa
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +138,Calculate,Tính toán
@@ -2675,7 +2675,7 @@ apps/frappe/frappe/email/doctype/newsletter/newsletter.py +173,Confirm Your Emai
 apps/frappe/frappe/www/login.html +42,Or login with,Hoặc đăng nhập với
 DocType: Error Snapshot,Locals,Người dân địa phương
 apps/frappe/frappe/desk/page/activity/activity_row.html +19,Communicated via {0} on {1}: {2},Thông qua {0} trên {1}: {2}
-apps/frappe/frappe/core/doctype/communication/comment.py +85,{0} mentioned you in a comment in {1},{0} nhắc đến bạn trong một bình luận trong {1}
+apps/frappe/frappe/core/doctype/communication/comment.py +85,{0} mentioned you in a comment in {1},{0} nhắc đến bạn trong một bình luận {1}
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +139,e.g. (55 + 434) / 4 or =Math.sin(Math.PI/2)...,ví dụ: (55 + 434) / 4 hoặc = Math.sin (Math.PI / 2) ...
 apps/frappe/frappe/model/naming.py +45,{0} is required,{0} phải có
 DocType: Integration Request,Integration Type,Loại tích hợp
@@ -2686,8 +2686,8 @@ DocType: DocField,Perm Level,Perm Cấp
 apps/frappe/frappe/desk/doctype/event/event.py +54,Events In Today's Calendar,Sự kiện Trong Hôm nay của Lịch
 DocType: Web Page,Web Page,Trang web
 DocType: Blog Category,Blogger,Blogger
-apps/frappe/frappe/core/doctype/doctype/doctype.py +425,'In Global Search' not allowed for type {0} in row {1},&#39;Trong Tìm kiếm Toàn cầu&#39; không được phép cho loại {0} trong hàng {1}
-apps/frappe/frappe/core/doctype/doctype/doctype.py +425,'In Global Search' not allowed for type {0} in row {1},&#39;Trong Tìm kiếm Toàn cầu&#39; không được phép cho loại {0} trong hàng {1}
+apps/frappe/frappe/core/doctype/doctype/doctype.py +425,'In Global Search' not allowed for type {0} in row {1},'Trong Tìm kiếm Toàn bộ' không cho phép loại {0} trong hàng {1}
+apps/frappe/frappe/core/doctype/doctype/doctype.py +425,'In Global Search' not allowed for type {0} in row {1},'Trong Tìm kiếm Toàn bộ' không cho phép loại {0} trong hàng {1}
 apps/frappe/frappe/public/js/frappe/views/treeview.js +297,View List,Xem danh sách
 apps/frappe/frappe/public/js/frappe/form/control.js +686,Date must be in format: {0},Ngày phải có định dạng: {0}
 DocType: Workflow,Don't Override Status,Đừng Override Status

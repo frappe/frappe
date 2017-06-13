@@ -123,7 +123,7 @@ DocType: Workflow Action,Workflow Action Name,Workflow-Aktionsname
 apps/frappe/frappe/core/doctype/doctype/doctype.py +271,DocType can not be merged,DocType kann nicht zusammengeführt werden
 DocType: Web Form Field,Fieldtype,Feldtyp
 apps/frappe/frappe/core/doctype/file/file.py +245,Not a zip file,Nicht eine Zip-Datei
-apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +54,&gt; {0} year(s) ago,&gt; {0} Jahr (e) vor
+apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +54,&gt; {0} year(s) ago,&gt; {0} Jahr(e) her
 apps/frappe/frappe/public/js/frappe/form/save.js +138,"Mandatory fields required in table {0}, Row {1}","Pflichtfelder in der Tabelle erforderlich {0}, Reihe {1}"
 apps/frappe/frappe/utils/password_strength.py +169,Capitalization doesn't help very much.,Großschreibung hilft nicht besonders viel.
 DocType: Error Snapshot,Friendly Title,Freundliche Anrede
@@ -786,7 +786,7 @@ apps/frappe/frappe/templates/emails/password_update.html +3,Your password has be
 DocType: Email Account,Auto Reply Message,Automatische Rückantwort
 DocType: Feedback Trigger,Condition,Zustand
 apps/frappe/frappe/utils/data.py +522,{0} hours ago,{0} Stunden
-apps/frappe/frappe/utils/data.py +532,1 month ago,Vor 1 Monat
+apps/frappe/frappe/utils/data.py +532,1 month ago,vor 1 Monat
 DocType: Contact,User ID,Benutzer-ID
 DocType: Communication,Sent,Gesendet
 DocType: File,Lft,lft
@@ -2028,7 +2028,7 @@ apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +18
 DocType: Stripe Settings,Publishable Key,Veröffentlichender Schlüssel
 DocType: Workflow State,circle-arrow-left,Kreis-Pfeil-nach-links
 apps/frappe/frappe/sessions.py +156,Redis cache server not running. Please contact Administrator / Tech support,Redis Cache-Server läuft nicht. Bitte  Administrator/Technischen Support kontaktieren
-apps/frappe/frappe/geo/report/addresses_and_contacts/addresses_and_contacts.js +23,Party Name,Party-Namen
+apps/frappe/frappe/geo/report/addresses_and_contacts/addresses_and_contacts.js +23,Party Name,Name
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +130,Make a new record,Einen neuen Datensatz erstellen
 apps/frappe/frappe/public/js/frappe/ui/toolbar/search_header.html +4,Searching,Suchen
 DocType: Currency,Fraction,Teil
@@ -2242,7 +2242,7 @@ apps/frappe/frappe/email/queue.py +286,Emails are muted,E-Mails sind stumm gesch
 apps/frappe/frappe/public/js/frappe/form/templates/grid_form.html +25,Ctrl + Up,Strg + Auf
 DocType: Website Theme,Heading Style,Gestaltung der Überschrift
 apps/frappe/frappe/public/js/frappe/list/list_sidebar.js +183,A new Project with this name will be created,Ein neues Projekt mit diesem Namen wird erstellt
-apps/frappe/frappe/utils/data.py +528,1 weeks ago,Vor 1 Wochen
+apps/frappe/frappe/utils/data.py +528,1 weeks ago,vor 1 Woche
 apps/frappe/frappe/desk/page/applications/applications.py +75,You cannot install this app,Sie können diese App nicht installieren
 DocType: Communication,Error,Fehler
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +99,Do not send Emails.,Keine E-Mails senden.
