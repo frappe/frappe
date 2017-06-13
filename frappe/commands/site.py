@@ -2,6 +2,7 @@ from __future__ import unicode_literals, absolute_import, print_function
 import click
 import hashlib, os, sys
 import frappe
+from frappe import _
 from _mysql_exceptions import ProgrammingError
 from frappe.commands import pass_context, get_site
 from frappe.commands.scheduler import _is_scheduler_enabled
@@ -45,7 +46,7 @@ def _new_site(db_name, site, mariadb_root_username=None, mariadb_root_password=N
 	try:
 		# enable scheduler post install?
 		enable_scheduler = _is_scheduler_enabled()
-	except:
+	except Exception:
 		enable_scheduler = False
 
 	make_site_dirs()
@@ -374,7 +375,6 @@ def _drop_site(site, root_login='root', root_password=None, archived_sites_path=
 
 
 def move(dest_dir, site):
-	import os
 	if not os.path.isdir(dest_dir):
 		raise Exception, "destination is not a directory or does not exist"
 
@@ -448,7 +448,7 @@ def _set_limits(context, site, limits):
 		for limit, value in limits:
 			if limit not in ('emails', 'space', 'users', 'email_group',
 				'expiry', 'support_email', 'support_chat', 'upgrade_url'):
-				frappe.throw('Invalid limit {0}'.format(limit))
+				frappe.throw(_('Invalid limit {0}').format(limit))
 
 			if limit=='expiry' and value:
 				try:

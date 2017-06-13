@@ -156,7 +156,7 @@ class PayPalSettings(Document):
 
 		response = make_post_request(url, data=params.encode("utf-8"))
 		if response.get("ACK")[0] != "Success":
-			frappe.throw("Looks like something is wrong with this site's Paypal configuration.")
+			frappe.throw(_("Looks like something is wrong with this site's Paypal configuration."))
 
 		return response
 

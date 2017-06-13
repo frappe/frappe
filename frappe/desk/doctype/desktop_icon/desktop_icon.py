@@ -277,7 +277,7 @@ def make_user_copy(module_name, user):
 	standard_name = frappe.db.get_value('Desktop Icon', {'module_name': module_name, 'standard': 1})
 
 	if not standard_name:
-		frappe.throw('{0} not found'.format(module_name), frappe.DoesNotExistError)
+		frappe.throw(_('{0} not found').format(module_name), frappe.DoesNotExistError)
 
 	original = frappe.get_doc('Desktop Icon', standard_name)
 

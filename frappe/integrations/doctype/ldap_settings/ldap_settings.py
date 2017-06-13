@@ -21,17 +21,15 @@ class LDAPSettings(Document):
 		except ImportError:
 			msg = """
 				<div>
-					Seems ldap is not installed on system.<br>
-					Guidelines to install ldap dependancies and python package,
-					<a href="https://discuss.erpnext.com/t/frappe-v-7-1-beta-ldap-dependancies/15841" target="_blank">Click here</a>,
-
+					{{_("Seems ldap is not installed on system.<br>Guidelines to install ldap dependancies and python package")}},
+					<a href="https://discuss.erpnext.com/t/frappe-v-7-1-beta-ldap-dependancies/15841" target="_blank">{{_("Click here")}}</a>,
 				</div>
 			"""
-			frappe.throw(msg, title="LDAP Not Installed")
+			frappe.throw(msg, title=_("LDAP Not Installed"))
 
 		except ldap.LDAPError:
 			conn.unbind_s()
-			frappe.throw("Incorrect UserId or Password")
+			frappe.throw(_("Incorrect UserId or Password"))
 
 def get_ldap_settings():
 	try:
@@ -67,12 +65,12 @@ def authenticate_ldap_user(user=None, password=None):
 	except:
 		msg = """
 			<div>
-				{{_("Seems ldap is not installed on system")}}.<br>
-				<a href"https://discuss.erpnext.com/t/frappe-v-7-1-beta-ldap-dependancies/15841">Click here</a>,
+				{{_("Seems ldap is not installed on system.")}}<br>
+				<a href"https://discuss.erpnext.com/t/frappe-v-7-1-beta-ldap-dependancies/15841">{{_("Click here")}}</a>,
 					{{_("Guidelines to install ldap dependancies and python")}}
 			</div>
 		"""
-		frappe.throw(msg, title="LDAP Not Installed")
+		frappe.throw(msg, title=_("LDAP Not Installed"))
 
 	conn = ldap.initialize(settings.ldap_server_url)
 
