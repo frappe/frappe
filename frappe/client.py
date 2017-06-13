@@ -38,7 +38,7 @@ def get(doctype, name=None, filters=None):
 	if filters and not name:
 		name = frappe.db.get_value(doctype, json.loads(filters))
 		if not name:
-			raise Exception, "No document found for given filters"
+			frappe.throw(_("No document found for given filters"))
 
 	doc = frappe.get_doc(doctype, name)
 	if not doc.has_permission("read"):
