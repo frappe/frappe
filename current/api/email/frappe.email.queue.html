@@ -203,10 +203,9 @@
 		frappe.email.queue.<b>clear_outbox</b>
         <i class="text-muted">()</i>
     </p>
-	<div class="docs-attr-desc"><p>Remove low priority older than 31 days in Outbox and expire mails not sent for 7 days.</p>
-
-<pre><code>Called daily via scheduler.
-</code></pre>
+	<div class="docs-attr-desc"><p>Remove low priority older than 31 days in Outbox and expire mails not sent for 7 days.
+    Called daily via scheduler.
+    Note: Used separate query to avoid deadlock</p>
 </div>
 	<br>
 
