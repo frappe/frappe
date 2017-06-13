@@ -8,4 +8,7 @@ def execute():
 	frappe.db.set_value("DocType", "Contact", "module", "Contacts")
 	frappe.db.set_value("DocType", "Address", "module", "Contacts")
 	frappe.db.set_value("DocType", "Address Template", "module", "Contacts")
+	frappe.reload_doc('contacts', 'doctype', 'gender')
+	frappe.reload_doc('contacts', 'doctype', 'salutation')
+
 	update_genders_and_salutations()
