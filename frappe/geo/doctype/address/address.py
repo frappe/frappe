@@ -3,7 +3,7 @@
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
-import frappe
+import frappe, re
 
 from frappe import throw, _
 from frappe.utils import cstr
@@ -35,6 +35,7 @@ class Address(Document):
 		self.link_address()
 		self.validate_reference()
 		deduplicate_dynamic_links(self)
+		self.validate_gstin()
 
 	def link_address(self):
 		"""Link address based on owner"""
@@ -54,8 +55,8 @@ class Address(Document):
 				frappe.throw(_("Company is mandatory, as it is your company address"))
 
 			# removing other links
-			to_remove = [row for row in self.links if row.link_doctype != "Company"]
-			[ self.remove(row) for row in to_remove ]
+			for row in [row for row in self.links if row.link_doctype not in ("Company", "Warehouse")]:
+				self.remove(row)
 
 	def get_display(self):
 		return get_address_display(self.as_dict())
@@ -72,6 +73,13 @@ class Address(Document):
 				return True
 
 		return False
+		
+	def validate_gstin(self):
+		if self.country == "India" and self.gstin:
+			if not self.state:
+				frappe.throw(_("State is mandatory"))
+
+			validate_gstin(self.gstin, self.state)
 
 def get_default_address(doctype, name, sort_key='is_primary_address'):
 	'''Returns default Address name for the given doctype, name'''
@@ -223,3 +231,15 @@ def address_query(doctype, txt, searchfield, start, page_len, filters):
 			'link_name': link_name,
 			'link_doctype': link_doctype
 		})
+
+@frappe.whitelist()
+def validate_gstin(gstin, state=None):
+	# Regex taken from developer.gstsystem.co.in
+	p = re.compile("[0-9]{2}[a-zA-Z]{5}[0-9]{4}[a-zA-Z]{1}[1-9A-Za-z]{1}[Z]{1}[0-9a-zA-Z]{1}")
+	if not p.match(gstin):
+		frappe.throw("Invalid GSTIN")
+					
+	if state:
+		state_number = frappe.db.get_value("State", state, "state_number")
+		if state_number != gstin[:2]:
+			frappe.throw(_("First 2 digits of GSTIN should match with State number"))

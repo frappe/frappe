@@ -22,6 +22,16 @@ frappe.ui.form.on("Address", {
 				}
 			}
 		});
+		
+		frm.set_query('state', function() {
+			if (frm.doc.country) {
+				return {
+					filters: {
+						country: ["in", ["", frm.doc.country]]
+					}
+				}
+			}
+		});
 	},
 	validate: function(frm) {
 		// clear linked customer / supplier / sales partner on saving...
