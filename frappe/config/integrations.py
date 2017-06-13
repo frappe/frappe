@@ -58,5 +58,20 @@ def get_data():
 					"description": _("Settings for OAuth Provider"),
 				},
 			]
+		},
+		{
+			"label": _("External Documents"),
+			"items": [
+				{
+					"type": "doctype",
+					"name": "GSuite Settings",
+					"description": _("Enter keys to enable integration with Google GSuite"),
+				},
+				{
+					"type": "doctype",
+					"name": "GSuite Templates",
+					"description": _("Google GSuite Templates to integration with DocTypes"),
+				},
+			]
 		}
 	]
