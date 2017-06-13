@@ -62,7 +62,7 @@ frappe.listview_settings['File'] = {
 		doclist.page.add_menu_item(__("New Folder"), function() {
 			var d = frappe.prompt(__("Name"), function(values) {
 				if((values.value.indexOf("/") > -1)){
-					frappe.throw(__("Folder name should not include / !!!"));
+					frappe.throw(__("Folder name should not include '/' (slash)"));
 					return;
 				}
 				var data =  {
@@ -98,7 +98,7 @@ frappe.listview_settings['File'] = {
 							if(!r.exc) {
 								//doclist.refresh();
 							} else {
-								frappe.msgprint(__("Error in uploading files." + r.exc));
+								frappe.msgprint(__("Error in uploading files" + r.exc));
 							}
 						}
 					});
