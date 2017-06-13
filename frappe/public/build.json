@@ -90,6 +90,7 @@
 		"public/js/frappe/socketio_client.js",
 		"public/js/frappe/router.js",
 		"public/js/frappe/defaults.js",
+		"public/js/frappe/checkbox_editor.js",
 		"public/js/frappe/roles_editor.js",
 		"public/js/lib/microtemplate.js",
 
