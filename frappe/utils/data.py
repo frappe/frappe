@@ -420,7 +420,14 @@ def money_in_words(number, main_currency = None, fraction_currency=None):
 	from frappe.utils import get_defaults
 	_ = frappe._
 
-	if not number or flt(number) < 0:
+	try:
+		# note: `flt` returns 0 for invalid input and we don't want that
+		number = float(number)
+	except ValueError:
+		return ""
+
+	number = flt(number)
+	if number < 0:
 		return ""
 
 	d = get_defaults()
@@ -429,20 +436,30 @@ def money_in_words(number, main_currency = None, fraction_currency=None):
 	if not fraction_currency:
 		fraction_currency = frappe.db.get_value("Currency", main_currency, "fraction") or _("Cent")
 
-	n = "%.2f" % flt(number)
-	main, fraction = n.split('.')
-	if len(fraction)==1: fraction += '0'
-
-
 	number_format = frappe.db.get_value("Currency", main_currency, "number_format", cache=True) or \
 		frappe.db.get_default("number_format") or "#,###.##"
+
+	fraction_length = len(number_format.rsplit('.', 1)[-1])
+	n = "%.{0}f".format(fraction_length) % number
+	main, fraction = n.split('.')
+
+	if len(fraction) < fraction_length:
+		zeros = '0' * (fraction_length - len(fraction))
+		fraction += zeros
 
 	in_million = True
 	if number_format == "#,##,###.##": in_million = False
 
-	out = main_currency + ' ' + in_words(main, in_million).title()
-	if cint(fraction):
-		out = out + ' ' + _('and') + ' ' + in_words(fraction, in_million).title() + ' ' + fraction_currency
+	# 0.00
+	if main == '0' and fraction in ['00', '000']:
+		out = "{0} {1}".format(main_currency, _('Zero'))
+	# 0.XX
+	elif main == '0':
+		out = _(in_words(fraction, in_million).title()) + ' ' + fraction_currency
+	else:
+		out = main_currency + ' ' + _(in_words(main, in_million).title())
+		if cint(fraction):
+			out = out + ' ' + _('and') + ' ' + _(in_words(fraction, in_million).title()) + ' ' + fraction_currency
 
 	return out + ' ' + _('only.')
 
