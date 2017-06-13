@@ -1,6 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 from __future__ import unicode_literals
+from frappe import _
 
 def get_jenv():
 	import frappe
@@ -31,8 +32,8 @@ def validate_template(html):
 	try:
 		jenv.from_string(html)
 	except TemplateSyntaxError as e:
- 		frappe.msgprint('Line {}: {}'.format(e.lineno, e.message))
-		frappe.throw(frappe._("Syntax error in template"))
+		frappe.msgprint(_('Line {}: {}').format(e.lineno, e.message))
+		frappe.throw(_("Syntax error in template"))
 
 def render_template(template, context, is_path=None):
 	'''Render a template using Jinja
