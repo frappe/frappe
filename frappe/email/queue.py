@@ -429,11 +429,13 @@ where name=%s""", (unicode(e), email.name), auto_commit=auto_commit)
 
 def prepare_message(email, recipient, recipients_list):
 	message = email.message
+	if not message:
+		return ""
+		
 	if email.add_unsubscribe_link and email.reference_doctype: # is missing the check for unsubscribe message but will not add as there will be no unsubscribe url
 		unsubscribe_url = get_unsubcribed_url(email.reference_doctype, email.reference_name, recipient,
 		email.unsubscribe_method, email.unsubscribe_params)
-		if message:
-			message = message.replace("<!--unsubscribe url-->", quopri.encodestring(unsubscribe_url))
+		message = message.replace("<!--unsubscribe url-->", quopri.encodestring(unsubscribe_url))
 
 	if email.expose_recipients == "header":
 		pass
