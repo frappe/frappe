@@ -217,12 +217,17 @@ frappe.views.QueryReport = Class.extend({
 
 		var orientation = this.print_settings.orientation;
 		var landscape = orientation == "Landscape" ? true: false
+		var columns = this.grid.getColumns();
 		if(this.html_format) {
-			var content = frappe.render(this.html_format,
-				{data: frappe.slickgrid_tools.get_filtered_items(this.dataView), filters:this.get_values(), report:this});
+			var content = frappe.render(this.html_format, {
+				data: frappe.slickgrid_tools.get_filtered_items(this.dataView),
+				filters:this.get_values(),
+				report:this
+			});
 
 			//Render Report in HTML
 			var html = frappe.render_template("print_template", {
+				columns:columns,
 				content:content,
 				title:__(this.report_name),
 				base_url: base_url,
@@ -236,7 +241,6 @@ frappe.views.QueryReport = Class.extend({
 				.get_view_data(this.columns, this.dataView)
 				.map(row => row[0]).filter(idx => idx !== 'Sr No');
 
-			var columns = this.grid.getColumns();
 			var data = this.grid.getData().getItems();
 			data = data.filter(d => visible_idx.includes(d._id));
 
