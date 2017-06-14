@@ -10,7 +10,6 @@ from frappe.geo.country_info import get_country_info
 from frappe.utils.file_manager import save_file
 from frappe.utils.password import update_password
 from werkzeug.useragents import UserAgent
-import install_fixtures
 
 @frappe.whitelist()
 def setup_complete(args):
@@ -54,7 +53,6 @@ def setup_complete(args):
 	else:
 		for hook in frappe.get_hooks("setup_wizard_success"):
 			frappe.get_attr(hook)(args)
-		install_fixtures.install()
 
 
 def update_system_settings(args):

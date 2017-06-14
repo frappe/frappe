@@ -183,4 +183,3 @@ frappe.patches.v8_0.set_currency_field_precision	# 2017-05-09
 frappe.patches.v8_0.rename_print_to_printing
 frappe.patches.v7_1.disabled_print_settings_for_custom_print_format
 frappe.patches.v8_0.update_desktop_icons
-frappe.patches.v8_0.update_gender_and_salutation

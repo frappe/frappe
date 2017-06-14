@@ -31,7 +31,7 @@ frappe.ui.form.on("Contact", {
 		}
 		frm.set_query('link_doctype', "links", function() {
 			return {
-				query: "frappe.contacts.address_and_contact.filter_dynamic_link_doctypes",
+				query: "frappe.geo.address_and_contact.filter_dynamic_link_doctypes",
 				filters: {
 					fieldtype: "HTML",
 					fieldname: "contact_html",

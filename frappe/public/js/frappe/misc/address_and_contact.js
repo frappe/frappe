@@ -1,6 +1,6 @@
-frappe.provide('frappe.contacts')
+frappe.provide('frappe.geo')
 
-$.extend(frappe.contacts, {
+$.extend(frappe.geo, {
 	clear_address_and_contact: function(frm) {
 		$(frm.fields_dict['address_html'].wrapper).html("");
 		frm.fields_dict['contact_html'] && $(frm.fields_dict['contact_html'].wrapper).html("");

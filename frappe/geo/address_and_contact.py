@@ -6,7 +6,7 @@ import frappe
 
 def load_address_and_contact(doc, key=None):
 	"""Loads address list and contact list in `__onload`"""
-	from frappe.contacts.doctype.address.address import get_address_display
+	from frappe.geo.doctype.address.address import get_address_display
 
 	filters = [
 		["Dynamic Link", "link_doctype", "=", doc.doctype],

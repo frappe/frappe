@@ -7,4 +7,3 @@ Geo
 Desk
 Integrations
 Printing
-Contacts

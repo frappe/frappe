@@ -79,8 +79,8 @@ permission_query_conditions = {
 	"User": "frappe.core.doctype.user.user.get_permission_query_conditions",
 	"Note": "frappe.desk.doctype.note.note.get_permission_query_conditions",
 	"Kanban Board": "frappe.desk.doctype.kanban_board.kanban_board.get_permission_query_conditions",
-	"Contact": "frappe.contacts.address_and_contact.get_permission_query_conditions_for_contact",
-	"Address": "frappe.contacts.address_and_contact.get_permission_query_conditions_for_address",
+	"Contact": "frappe.geo.address_and_contact.get_permission_query_conditions_for_contact",
+	"Address": "frappe.geo.address_and_contact.get_permission_query_conditions_for_address",
 	"Communication": "frappe.core.doctype.communication.communication.get_permission_query_conditions_for_communication"
 }
 
@@ -90,8 +90,8 @@ has_permission = {
 	"User": "frappe.core.doctype.user.user.has_permission",
 	"Note": "frappe.desk.doctype.note.note.has_permission",
 	"Kanban Board": "frappe.desk.doctype.kanban_board.kanban_board.has_permission",
-	"Contact": "frappe.contacts.address_and_contact.has_permission",
-	"Address": "frappe.contacts.address_and_contact.has_permission",
+	"Contact": "frappe.geo.address_and_contact.has_permission",
+	"Address": "frappe.geo.address_and_contact.has_permission",
 	"Communication": "frappe.core.doctype.communication.communication.has_permission",
 }
 
