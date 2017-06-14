@@ -34,6 +34,7 @@ frappe.email_alert = {
 				// set first option as blank to allow email alert not to be defaulted to the owner
 				frm.doc.name).options = [""].concat(["owner"].concat(email_fields));
 
+			frm.fields_dict.recipients.grid.refresh();
 		});
 	}
 }
