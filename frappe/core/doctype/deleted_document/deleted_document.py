@@ -23,6 +23,6 @@ def restore(name):
 
 	deleted.new_name = doc.name
 	deleted.restored = 1
-	deleted.save()
+	deleted.db_update()
 
 	frappe.msgprint('Document Restored')

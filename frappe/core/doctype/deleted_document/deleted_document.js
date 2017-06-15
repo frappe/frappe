@@ -13,7 +13,7 @@ frappe.ui.form.on('Deleted Document', {
 					method: 'frappe.core.doctype.deleted_document.deleted_document.restore',
 					args: {name: frm.doc.name},
 					callback: function(r) {
-						//
+						frm.reload_doc();
 					}
 				});
 			});
