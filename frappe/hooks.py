@@ -96,7 +96,7 @@ has_permission = {
 }
 
 has_website_permission = {
-	"Address": "frappe.geo.doctype.address.address.has_website_permission"
+	"Address": "frappe.contacts.doctype.address.address.has_website_permission"
 }
 
 standard_queries = {
