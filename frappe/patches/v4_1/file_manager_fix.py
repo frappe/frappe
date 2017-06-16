@@ -19,6 +19,8 @@ from frappe.utils import get_files_path, get_site_path
 #   a backup from a time before version 3 migration
 #
 # * Patch remaining unpatched File records.
+from six import iteritems
+
 
 def execute():
 	frappe.db.auto_commit_on_many_writes = True
@@ -49,7 +51,7 @@ def get_replaced_files():
 	old_files = dict(frappe.db.sql("select name, file_name from `tabFile` where ifnull(content_hash, '')=''"))
 	invfiles = invert_dict(new_files)
 
-	for nname, nfilename in new_files.iteritems():
+	for nname, nfilename in iteritems(new_files):
 		if 'files/' + nfilename in old_files.values():
 			ret.append((nfilename, invfiles[nfilename]))
 	return ret
@@ -82,7 +84,7 @@ def rename_replacing_files():
 
 def invert_dict(ddict):
 	ret = {}
-	for k,v in ddict.iteritems():
+	for k,v in iteritems(ddict):
 		if not ret.get(v):
 			ret[v] = [k]
 		else:
