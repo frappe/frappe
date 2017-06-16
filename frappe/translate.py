@@ -3,6 +3,8 @@
 
 from __future__ import unicode_literals, print_function
 
+from six import iteritems
+
 """
 	frappe.translate
 	~~~~~~~~~~~~~~~~
@@ -120,7 +122,7 @@ def get_dict(fortype, name=None):
 		message_dict.update(get_dict_from_hooks(fortype, name))
 
 		# remove untranslated
-		message_dict = {k:v for k, v in message_dict.iteritems() if k!=v}
+		message_dict = {k:v for k, v in iteritems(message_dict) if k!=v}
 
 		translation_assets[asset_key] = message_dict
 
