@@ -136,10 +136,10 @@ def get_html(doc, name=None, print_format=None, meta=None,
 
 	letter_head = frappe._dict(get_letter_head(doc, no_letterhead) or {})
 
-	if 'content' in letter_head:
+	if letter_head.content:
 		letter_head.content = frappe.utils.jinja.render_template(letter_head.content, {"doc": doc.as_dict()})
 		
-	if 'footer' in letter_head:
+	if letter_head.footer:
 		letter_head.footer = frappe.utils.jinja.render_template(letter_head.footer, {"doc": doc.as_dict()})
 	
 	convert_markdown(doc, meta)
