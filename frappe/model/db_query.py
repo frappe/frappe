@@ -431,12 +431,14 @@ class DatabaseQuery(object):
 			for df in meta.get_fields_to_check_permissions(doctypes):
 				user_permission_values = user_permissions.get(df.options, [])
 
-				condition = 'ifnull(`tab{doctype}`.`{fieldname}`, "")=""'.format(doctype=self.doctype, fieldname=df.fieldname)
 				if user_permission_values:
-					condition += """ or `tab{doctype}`.`{fieldname}` in ({values})""".format(
+					condition = """`tab{doctype}`.`{fieldname}` in ({values})""".format(
 						doctype=self.doctype, fieldname=df.fieldname,
 						values=", ".join([('"'+frappe.db.escape(v, percent=False)+'"') for v in user_permission_values])
 					)
+				else:
+					condition = 'ifnull(`tab{doctype}`.`{fieldname}`, "")=""'.format(doctype=self.doctype, fieldname=df.fieldname)
+
 				match_conditions.append("({condition})".format(condition=condition))
 
 				match_filters[df.options] = user_permission_values
