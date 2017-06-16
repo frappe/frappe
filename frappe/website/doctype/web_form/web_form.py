@@ -13,6 +13,8 @@ from frappe.utils.file_manager import get_max_file_size
 from frappe.modules.utils import export_module_json, get_doc_module
 from urllib import urlencode
 from frappe.integrations.utils import get_payment_gateway_controller
+from six import iteritems
+
 
 class WebForm(WebsiteGenerator):
 	website = frappe._dict(
@@ -206,7 +208,7 @@ def get_context(context):
 		context.params_from_form_dict = ''
 
 		params = {}
-		for key, value in frappe.form_dict.iteritems():
+		for key, value in iteritems(frappe.form_dict):
 			if frappe.get_meta(self.doc_type).get_field(key):
 				params[key] = value
 
@@ -365,7 +367,7 @@ def accept(web_form, data, for_payment=False):
 		doc = frappe.new_doc(data.doctype)
 
 	# set values
-	for fieldname, value in data.iteritems():
+	for fieldname, value in iteritems(data):
 		if value and isinstance(value, dict):
 			try:
 				if "__file_attachment" in value:
