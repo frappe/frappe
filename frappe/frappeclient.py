@@ -37,6 +37,7 @@ class FrappeClient(object):
 		if r.status_code==200 and r.json().get('message') == "Logged In":
 			return r.json()
 		else:
+			print(r.text)
 			raise AuthError
 
 	def logout(self):
