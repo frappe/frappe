@@ -7,6 +7,7 @@ import frappe
 import json
 from frappe import _
 from frappe.model.document import Document
+from six import iteritems
 
 
 class KanbanBoard(Document):
@@ -91,7 +92,7 @@ def update_order(board_name, order):
 	order_dict = json.loads(order)
 
 	updated_cards = []
-	for col_name, cards in order_dict.iteritems():
+	for col_name, cards in iteritems(order_dict):
 		order_list = []
 		for card in cards:
 			column = frappe.get_value(
