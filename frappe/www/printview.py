@@ -135,6 +135,12 @@ def get_html(doc, name=None, print_format=None, meta=None,
 		template = jenv.get_template(standard_format)
 
 	letter_head = frappe._dict(get_letter_head(doc, no_letterhead) or {})
+
+	if 'content' in letter_head:
+		letter_head.content = frappe.utils.jinja.render_template(letter_head.content, {"doc": doc.as_dict()})
+		
+	if 'footer' in letter_head:
+		letter_head.footer = frappe.utils.jinja.render_template(letter_head.footer, {"doc": doc.as_dict()})
 	
 	convert_markdown(doc, meta)
 	
@@ -144,8 +150,8 @@ def get_html(doc, name=None, print_format=None, meta=None,
 		"layout": make_layout(doc, meta, format_data),
 		"no_letterhead": no_letterhead,
 		"trigger_print": cint(trigger_print),
-		"letter_head": frappe.utils.jinja.render_template(letter_head.content, {"doc": doc.as_dict()}),
-		"footer": frappe.utils.jinja.render_template(letter_head.footer, {"doc": doc.as_dict()}),
+		"letter_head": letter_head.content,
+		"footer": letter_head.footer,
 		"print_settings": frappe.get_doc("Print Settings")
 	}
 
