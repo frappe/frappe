@@ -14,6 +14,7 @@ import frappe
 import frappe.defaults
 import frappe.async
 import re
+import redis
 import frappe.model.meta
 from frappe.utils import now, get_datetime, cstr
 from frappe import _
@@ -723,8 +724,16 @@ class Database:
 		self.sql("commit")
 		frappe.local.rollback_observers = []
 		self.flush_realtime_log()
+
 		if frappe.flags.update_global_search:
-			sync_global_search()
+			try:
+				frappe.enqueue('frappe.utils.global_search.sync_global_search',
+					now=frappe.flags.in_test or frappe.flags.in_install or frappe.flags.in_migrate,
+					flags=frappe.flags.update_global_search)
+			except redis.exceptions.ConnectionError:
+				sync_global_search()
+
+			frappe.flags.update_global_search = []
 
 	def flush_realtime_log(self):
 		for args in frappe.local.realtime_log:
