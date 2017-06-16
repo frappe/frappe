@@ -7,6 +7,8 @@ from frappe.utils import cstr, has_gravatar
 from frappe import _
 from frappe.model.document import Document
 from frappe.core.doctype.dynamic_link.dynamic_link import deduplicate_dynamic_links
+from six import iteritems
+
 
 class Contact(Document):
 	def autoname(self):
@@ -118,7 +120,7 @@ def contact_query(doctype, txt, searchfield, start, page_len, filters):
 	link_name = filters.pop('link_name')
 
 	condition = ""
-	for fieldname, value in filters.iteritems():
+	for fieldname, value in iteritems(filters):
 		condition += " and {field}={value}".format(
 			field=fieldname,
 			value=value
