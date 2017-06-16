@@ -28,7 +28,9 @@ from frappe import _
 
 def get_meta(doctype, cached=True):
 	if cached:
-		return frappe.cache().hget("meta", doctype, lambda: Meta(doctype))
+		if not doctype in frappe.local.meta_cache:
+			frappe.local.meta_cache[doctype] = frappe.cache().hget("meta", doctype, lambda: Meta(doctype))
+		return frappe.local.meta_cache[doctype]
 	else:
 		return Meta(doctype)
 
@@ -469,7 +471,7 @@ def get_default_df(fieldname):
 def trim_tables(doctype=None):
 	"""Use this to remove columns that don't exist in meta"""
 	ignore_fields = default_fields + optional_fields
-	
+
 	filters={ "issingle": 0 }
 	if doctype:
 		filters["name"] = doctype

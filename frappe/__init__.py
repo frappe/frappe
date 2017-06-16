@@ -149,6 +149,7 @@ def init(site, sites_path=None, new_site=False):
 	local.jenv = None
 	local.jloader =None
 	local.cache = {}
+	local.meta_cache = {}
 	local.form_dict = _dict()
 	local.session = _dict()
 
