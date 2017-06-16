@@ -401,6 +401,9 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 		}
 		this._description = this.df.description;
 	},
+	set_new_description: function(description) {
+		this.$wrapper.find(".help-box").html(description);
+	},
 	set_empty_description: function() {
 		this.$wrapper.find(".help-box").html("");
 	},
@@ -1315,20 +1318,6 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 	},
 	setup_awesomeplete: function() {
 		var me = this;
-		this.$input.on("blur", function() {
-			if(me.selected) {
-				me.selected = false;
-				return;
-			}
-			var value = me.get_value();
-			if(me.doctype && me.docname) {
-				if(value!==me.last_value) {
-					me.parse_validate_and_set_in_model(value);
-				}
-			} else {
-				me.set_mandatory(value);
-			}
-		});
 
 		this.$input.cache = {};
 
@@ -1424,6 +1413,31 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 					me.awesomplete.list = me.$input.cache[doctype][term];
 				}
 			});
+		});
+
+		this.$input.on("blur", function() {
+			if(me.selected) {
+				me.selected = false;
+				return;
+			}
+			var value = me.get_value();
+			if(me.doctype && me.docname) {
+				if(value!==me.last_value) {
+					me.parse_validate_and_set_in_model(value);
+				}
+			} else {
+				var cache_list = me.$input.cache[me.get_options()];
+				if (cache_list && cache_list[""]) {
+					var docs = cache_list[""].map(item => item.label);
+					if(docs.includes(value)) {
+						me.set_mandatory(value);
+					} else {
+						me.$input.val("");
+					}
+				} else {
+					me.$input.val(value);
+				}
+			}
 		});
 
 		this.$input.on("awesomplete-open", function(e) {
