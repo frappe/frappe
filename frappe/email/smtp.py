@@ -157,7 +157,7 @@ class SMTPServer:
 		if not getattr(self, 'server'):
 			err_msg = _('Email Account not setup. Please create a new Email Account from Setup > Email > Email Account')
 			frappe.msgprint(err_msg)
-			raise frappe.OutgoingEmailError, err_msg
+			raise frappe.OutgoingEmailError(err_msg)
 
 		try:
 			if self.use_tls and not self.port:
@@ -169,7 +169,7 @@ class SMTPServer:
 			if not self._sess:
 				err_msg = _('Could not connect to outgoing email server')
 				frappe.msgprint(err_msg)
-				raise frappe.OutgoingEmailError, err_msg
+				raise frappe.OutgoingEmailError(err_msg)
 
 			if self.use_tls:
 				self._sess.ehlo()
