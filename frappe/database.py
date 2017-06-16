@@ -20,6 +20,8 @@ from frappe.utils import now, get_datetime, cstr
 from frappe import _
 from types import StringType, UnicodeType
 from frappe.utils.global_search import sync_global_search
+from six import iteritems
+
 
 class Database:
 	"""
@@ -655,7 +657,7 @@ class Database:
 				where field in ({0}) and
 					doctype=%s'''.format(', '.join(['%s']*len(keys))),
 					keys + [dt], debug=debug)
-			for key, value in to_update.iteritems():
+			for key, value in iteritems(to_update):
 				self.sql('''insert into tabSingles(doctype, field, value) values (%s, %s, %s)''',
 					(dt, key, value), debug=debug)
 
