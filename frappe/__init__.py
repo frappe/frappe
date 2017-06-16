@@ -6,6 +6,7 @@ globals attached to frappe module
 """
 from __future__ import unicode_literals, print_function
 
+from six import iteritems
 from werkzeug.local import Local, release_local
 import os, sys, importlib, inspect, json
 
@@ -756,7 +757,7 @@ def get_doc_hooks():
 	if not hasattr(local, 'doc_events_hooks'):
 		hooks = get_hooks('doc_events', {})
 		out = {}
-		for key, value in hooks.iteritems():
+		for key, value in iteritems(hooks):
 			if isinstance(key, tuple):
 				for doctype in key:
 					append_hook(out, doctype, value)
