@@ -8,6 +8,8 @@ import frappe.model
 import frappe.utils
 import json, os
 
+from six import iteritems
+
 '''
 Handle RESTful requests that are mapped to the `/api/resource` route.
 
@@ -228,7 +230,7 @@ def bulk_update(docs):
 	failed_docs = []
 	for doc in docs:
 		try:
-			ddoc = {key: val for key, val in doc.iteritems() if key not in ['doctype', 'docname']}
+			ddoc = {key: val for key, val in iteritems(doc) if key not in ['doctype', 'docname']}
 			doctype = doc['doctype']
 			docname = doc['docname']
 			doc = frappe.get_doc(doctype, docname)
