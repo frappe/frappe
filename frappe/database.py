@@ -14,6 +14,7 @@ import frappe
 import frappe.defaults
 import frappe.async
 import re
+import redis
 import frappe.model.meta
 from frappe.utils import now, get_datetime, cstr
 from frappe import _
@@ -148,7 +149,7 @@ class Database:
 
 				self._cursor.execute(query)
 
-		except Exception, e:
+		except Exception as e:
 			# ignore data definition errors
 			if ignore_ddl and e.args[0] in (1146,1054,1091):
 				pass
@@ -217,7 +218,7 @@ class Database:
 		could cause the system to hang."""
 		if self.transaction_writes and \
 			query and query.strip().split()[0].lower() in ['start', 'alter', 'drop', 'create', "begin", "truncate"]:
-			raise Exception, 'This statement can cause implicit commit'
+			raise Exception('This statement can cause implicit commit')
 
 		if query and query.strip().lower() in ('commit', 'rollback'):
 			self.transaction_writes = 0
@@ -455,7 +456,7 @@ class Database:
 			if (filters is not None) and (filters!=doctype or doctype=="DocType"):
 				try:
 					out = self._get_values_from_table(fields, filters, doctype, as_dict, debug, order_by, update)
-				except Exception, e:
+				except Exception as e:
 					if ignore and e.args[0] in (1146, 1054):
 						# table or column not found, return None
 						out = None
@@ -723,8 +724,16 @@ class Database:
 		self.sql("commit")
 		frappe.local.rollback_observers = []
 		self.flush_realtime_log()
+
 		if frappe.flags.update_global_search:
-			sync_global_search()
+			try:
+				frappe.enqueue('frappe.utils.global_search.sync_global_search',
+					now=frappe.flags.in_test or frappe.flags.in_install or frappe.flags.in_migrate,
+					flags=frappe.flags.update_global_search)
+			except redis.exceptions.ConnectionError:
+				sync_global_search()
+
+			frappe.flags.update_global_search = []
 
 	def flush_realtime_log(self):
 		for args in frappe.local.realtime_log:

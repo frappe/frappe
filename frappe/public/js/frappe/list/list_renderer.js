@@ -108,8 +108,8 @@ frappe.views.ListRenderer = Class.extend({
 		}
 
 		// enabled / disabled
-		if (frappe.meta.has_field(this.doctype, 'enabled')) { add_field('enabled'); };
-		if (frappe.meta.has_field(this.doctype, 'disabled')) { add_field('disabled'); };
+		if (frappe.meta.has_field(this.doctype, 'enabled')) { add_field('enabled'); }
+		if (frappe.meta.has_field(this.doctype, 'disabled')) { add_field('disabled'); }
 
 		// add workflow field (as priority)
 		this.workflow_state_fieldname = frappe.workflow.get_state_fieldname(this.doctype);
@@ -133,7 +133,7 @@ frappe.views.ListRenderer = Class.extend({
 						add_field(df.options.split(':')[1]);
 					} else {
 						add_field(df.options);
-					};
+					}
 				}
 			}
 		});
@@ -144,7 +144,7 @@ frappe.views.ListRenderer = Class.extend({
 		}
 		// kanban column fields
 		if (me.meta.__kanban_column_fields) {
-			me.fields = me.fields.concat(me.meta.__kanban_column_fields);
+			me.meta.__kanban_column_fields.map(add_field);
 		}
 	},
 	set_columns: function () {
@@ -424,7 +424,7 @@ frappe.views.ListRenderer = Class.extend({
 			this.prepare_when(data, data.modified);
 
 		// nulls as strings
-		for (key in data) {
+		for (var key in data) {
 			if (data[key] == null) {
 				data[key] = '';
 			}
@@ -485,8 +485,8 @@ frappe.views.ListRenderer = Class.extend({
 	prepare_when: function (data, date_str) {
 		if (!date_str) date_str = data.modified;
 		// when
-		data.when = (dateutil.str_to_user(date_str)).split(' ')[0];
-		var diff = dateutil.get_diff(dateutil.get_today(), date_str.split(' ')[0]);
+		data.when = (frappe.datetime.str_to_user(date_str)).split(' ')[0];
+		var diff = frappe.datetime.get_diff(frappe.datetime.get_today(), date_str.split(' ')[0]);
 		if (diff === 0) {
 			data.when = comment_when(date_str);
 		}

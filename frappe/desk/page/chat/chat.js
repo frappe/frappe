@@ -40,10 +40,10 @@ frappe.Chat = Class.extend({
 	setup_realtime: function() {
 		var me = this;
 		frappe.realtime.on('new_message', function(comment) {
-			if(comment.modified_by !== user || comment.communication_type === 'Bot') {
+			if(comment.modified_by !== frappe.session.user || comment.communication_type === 'Bot') {
 				if(frappe.get_route()[0] === 'chat') {
 					var current_contact = $(cur_page.page).find('[data-contact]').data('contact');
-					var on_broadcast_page = current_contact === user;
+					var on_broadcast_page = current_contact === frappe.session.user;
 					if ((current_contact == comment.owner)
 						|| (on_broadcast_page && comment.broadcast)
 						|| current_contact === 'Bot' && comment.communication_type === 'Bot') {
@@ -220,7 +220,7 @@ frappe.Chat = Class.extend({
 		if(data.owner==data.reference_name
 			&& data.communication_type!=="Notification"
 			&& data.comment_type!=="Bot") {
-				data.is_public = true;
+			data.is_public = true;
 		}
 
 		if(data.owner==data.reference_name && data.communication_type !== "Bot") {

@@ -72,7 +72,7 @@ def export_customizations(module, doctype, sync_on_migrate=0, with_permissions=0
 	with open(path, 'w') as f:
 		f.write(frappe.as_json(custom))
 
-	frappe.msgprint('Customizations exported to {0}'.format(path))
+	frappe.msgprint(_('Customizations exported to {0}').format(path))
 
 def sync_customizations(app=None):
 	'''Sync custom fields and property setters from custom folder in each app module'''

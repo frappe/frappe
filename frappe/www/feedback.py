@@ -1,4 +1,5 @@
 import frappe
+from frappe import _
 from frappe.core.doctype.feedback_request.feedback_request import is_valid_feedback_request
 
 no_cache = True
@@ -35,13 +36,13 @@ def accept(key, sender, reference_doctype, reference_name, feedback, rating, ful
 	if not reference_doctype and not reference_name or \
 		not frappe.db.get_value(reference_doctype, reference_name):
 
-		frappe.throw("Invalid reference doctype and reference name")
+		frappe.throw(_("Invalid Reference"))
 
-	if not rating or not feedback:
-		frappe.throw("Please give both Rating and Detailed Feedback")
+	if not rating:
+		frappe.throw(_("Please add a rating"))
 
 	if not is_valid_feedback_request(key):
-		frappe.throw("Link is expired")
+		frappe.throw(_("Expired link"))
 
 	try:
 		feedback_request = frappe.db.get_value("Feedback Request", {"key": key})
@@ -49,7 +50,7 @@ def accept(key, sender, reference_doctype, reference_name, feedback, rating, ful
 		communication = frappe.get_doc({
 			"rating": rating,
 			"status": "Closed",
-			"content": feedback,
+			"content": feedback or "",
 			"doctype": "Communication",
 			"sender": sender or "Guest",
 			"sent_or_received": "Received",
@@ -67,5 +68,6 @@ def accept(key, sender, reference_doctype, reference_name, feedback, rating, ful
 		doc.reference_communication = communication.name
 		doc.save(ignore_permissions=True)
 		return True
-	except Exception as e:
-		frappe.throw("Can not submit feedback, Please try again later")
+	except Exception:
+		frappe.log_error()
+		frappe.throw(_("Cannot submit feedback, please try again later"))

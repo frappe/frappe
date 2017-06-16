@@ -2,6 +2,7 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
+from six.moves import range
 import frappe
 import HTMLParser
 import smtplib, quopri
@@ -289,7 +290,7 @@ def flush(from_test=False):
 
 	make_cache_queue()
 
-	for i in xrange(cache.llen('cache_email_queue')):
+	for i in range(cache.llen('cache_email_queue')):
 		email = cache.lpop('cache_email_queue')
 
 		if cint(frappe.defaults.get_defaults().get("hold_queue"))==1:
@@ -406,7 +407,7 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False, from_test=Fals
 		# no need to attempt further
 		return
 
-	except Exception, e:
+	except Exception as e:
 		frappe.db.rollback()
 
 		if any("Sent" == s.status for s in recipients_list):
@@ -428,6 +429,9 @@ where name=%s""", (unicode(e), email.name), auto_commit=auto_commit)
 
 def prepare_message(email, recipient, recipients_list):
 	message = email.message
+	if not message:
+		return ""
+		
 	if email.add_unsubscribe_link and email.reference_doctype: # is missing the check for unsubscribe message but will not add as there will be no unsubscribe url
 		unsubscribe_url = get_unsubcribed_url(email.reference_doctype, email.reference_name, recipient,
 		email.unsubscribe_method, email.unsubscribe_params)
@@ -454,10 +458,22 @@ def prepare_message(email, recipient, recipients_list):
 
 def clear_outbox():
 	"""Remove low priority older than 31 days in Outbox and expire mails not sent for 7 days.
-
-	Called daily via scheduler."""
-	frappe.db.sql("""delete q, r from `tabEmail Queue` as q, `tabEmail Queue Recipient` as r where q.name = r.parent and q.priority=0 and
-		datediff(now(), q.modified) > 31""")
-
-	frappe.db.sql("""update `tabEmail Queue` as q, `tabEmail Queue Recipient` as r set q.status='Expired', r.status='Expired'
-		where q.name = r.parent and datediff(curdate(), q.modified) > 7 and q.status='Not Sent' and r.status='Not Sent'""")
+	Called daily via scheduler.
+	Note: Used separate query to avoid deadlock
+	"""
+	
+	email_queues = frappe.db.sql_list("""select name from `tabEmail Queue` 
+		where priority=0 and datediff(now(), modified) > 31""")
+	
+	if email_queues:
+		frappe.db.sql("""delete from `tabEmail Queue` where name in (%s)""" 
+			% ','.join(['%s']*len(email_queues)), tuple(email_queues))
+	
+		frappe.db.sql("""delete from `tabEmail Queue Recipient` where parent in (%s)""" 
+			% ','.join(['%s']*len(email_queues)), tuple(email_queues))
+		
+	for dt in ("Email Queue", "Email Queue Recipient"):
+		frappe.db.sql("""
+			update `tab{0}` 
+			set status='Expired'
+			where datediff(curdate(), modified) > 7 and status='Not Sent'""".format(dt))

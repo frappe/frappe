@@ -93,6 +93,15 @@ frappe.render_grid = function(opts) {
 		} else if(opts.grid) {
 			opts.data = opts.grid.getData().getItems();
 		}
+	} else {
+		opts.columns = [];
+	}
+
+	// show landscape view if columns more than 10
+	if (opts.columns && opts.columns.length > 10) {
+		opts.landscape = true;
+	} else {
+		opts.landscape = false;
 	}
 
 	// render content
@@ -106,6 +115,11 @@ frappe.render_grid = function(opts) {
 	var html = frappe.render_template("print_template", opts);
 
 	var w = window.open();
+
+	if(!w) {
+		frappe.msgprint(__("Please enable pop-ups in your browser"))
+	}
+
 	w.document.write(html);
 	w.document.close();
 }

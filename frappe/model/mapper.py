@@ -25,15 +25,20 @@ def make_mapped_doc(method, source_name, selected_children=None):
 
 	return method(source_name)
 
+@frappe.whitelist()
+def map_docs(method, source_names, target_doc):
+	'''Returns the mapped document calling the given mapper method
+	with each of the given source docs on the target doc'''
+	method = frappe.get_attr(method)
+	if method not in frappe.whitelisted:
+		raise frappe.PermissionError
+
+	for src in json.loads(source_names):
+		target_doc = method(src, target_doc)
+	return target_doc
 
 def get_mapped_doc(from_doctype, from_docname, table_maps, target_doc=None,
 		postprocess=None, ignore_permissions=False, ignore_child_tables=False):
-
-	source_doc = frappe.get_doc(from_doctype, from_docname)
-
-	if not ignore_permissions:
-		if not source_doc.has_permission("read"):
-			source_doc.raise_no_permission_to("read")
 
 	# main
 	if not target_doc:
@@ -43,6 +48,12 @@ def get_mapped_doc(from_doctype, from_docname, table_maps, target_doc=None,
 
 	if not ignore_permissions and not target_doc.has_permission("create"):
 		target_doc.raise_no_permission_to("create")
+
+	source_doc = frappe.get_doc(from_doctype, from_docname)
+
+	if not ignore_permissions:
+		if not source_doc.has_permission("read"):
+			source_doc.raise_no_permission_to("read")
 
 	map_doc(source_doc, target_doc, table_maps[source_doc.doctype])
 

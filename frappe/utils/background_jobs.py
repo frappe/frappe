@@ -6,6 +6,7 @@ from collections import defaultdict
 import frappe
 import MySQLdb
 import os, socket, time
+from frappe import _
 
 default_timeout = 300
 queue_timeout = {
@@ -64,7 +65,7 @@ def execute_job(site, method, event, job_name, kwargs, user=None, async=True, re
 	try:
 		method(**kwargs)
 
-	except (MySQLdb.OperationalError, frappe.RetryBackgroundJobError), e:
+	except (MySQLdb.OperationalError, frappe.RetryBackgroundJobError) as e:
 		frappe.db.rollback()
 
 		if (retry < 5 and
@@ -165,7 +166,7 @@ def validate_queue(queue, default_queue_list=None):
 		default_queue_list = queue_timeout.keys()
 
 	if queue not in default_queue_list:
-		frappe.throw("Queue should be one of {0}".format(', '.join(default_queue_list)))
+		frappe.throw(_("Queue should be one of {0}").format(', '.join(default_queue_list)))
 
 def get_redis_conn():
 	if not hasattr(frappe.local, 'conf'):

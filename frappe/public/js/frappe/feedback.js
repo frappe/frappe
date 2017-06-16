@@ -3,7 +3,7 @@ frappe.provide("frappe.utils")
 frappe.utils.Feedback = Class.extend({
 	resend_feedback_request: function(doc) {
 		/* resend the feedback request email */
-		args = {
+		var args = {
 			reference_name: doc.reference_name,
 			reference_doctype: doc.reference_doctype,
 			request: doc.feedback_request,
@@ -14,12 +14,12 @@ frappe.utils.Feedback = Class.extend({
 	manual_feedback_request: function(doc) {
 		var me = this;
 
-		args = {
+		var args = {
 			reference_doctype: doc.doctype,
 			reference_name: doc.name
 		}
 		if(frappe.boot.feedback_triggers[doc.doctype]) {
-			feedback_trigger = frappe.boot.feedback_triggers[doc.doctype]
+			var feedback_trigger = frappe.boot.feedback_triggers[doc.doctype]
 			$.extend(args, { trigger: feedback_trigger })
 			me.get_feedback_request_details(args, false)
 		} else{
@@ -43,7 +43,7 @@ frappe.utils.Feedback = Class.extend({
 
 	make_feedback_request_dialog: function(args, is_resend) {
 		var me = this;
-		dialog = new frappe.ui.Dialog({
+		var dialog = new frappe.ui.Dialog({
 			title: __("{0} Feedback Request", [ is_resend? "Resend": "Send" ]),
 			fields: [
 				{

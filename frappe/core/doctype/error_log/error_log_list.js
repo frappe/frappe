@@ -1,9 +1,9 @@
 frappe.listview_settings['Error Log'] = {
 	add_fields: ["seen"],
 	get_indicator: function(doc) {
-        if(cint(doc.seen)) {
+		if(cint(doc.seen)) {
 			return [__("Seen"), "green", "seen,=,1"];
-        } else {
+		} else {
 			return [__("Not Seen"), "red", "seen,=,0"];
 		}
 	},

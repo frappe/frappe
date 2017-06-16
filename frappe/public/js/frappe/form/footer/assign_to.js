@@ -55,13 +55,13 @@ frappe.ui.form.AssignTo = Class.extend({
 				</li>', info))
 					.insertBefore(this.parent.find('.add-assignment'));
 
-				if(d[i].owner===user) {
+				if(d[i].owner===frappe.session.user) {
 					me.primary_action = this.frm.page.add_menu_item(__("Assignment Complete"), function() {
-						me.remove(user);
+						me.remove(frappe.session.user);
 					}, "fa fa-check", "btn-success")
 				}
 
-				if(!(d[i].owner === user || me.frm.perm[0].write)) {
+				if(!(d[i].owner === frappe.session.user || me.frm.perm[0].write)) {
 					me.parent.find('a.close').remove();
 				}
 			}
@@ -164,7 +164,7 @@ frappe.ui.form.AssignToDialog = Class.extend({
 	toggle_myself: function(myself) {
 		var me = this;
 		if($(myself).prop("checked")) {
-			me.set_value("assign_to", user);
+			me.set_value("assign_to", frappe.session.user);
 			me.set_value("notify", 0);
 			me.get_field("notify").$wrapper.toggle(false);
 			me.get_field("assign_to").$wrapper.toggle(false);

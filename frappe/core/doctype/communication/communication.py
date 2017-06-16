@@ -11,7 +11,8 @@ from frappe.core.doctype.communication.comment import (notify_mentions,
 from frappe.core.doctype.communication.email import (validate_email,
 	notify, _notify, update_parent_status)
 from frappe.utils.bot import BotReply
-from email.utils import parseaddr
+from frappe.utils import parse_addr
+
 from collections import Counter
 
 exclude_from_linked_with = True
@@ -140,14 +141,9 @@ class Communication(Document):
 			else:
 				if self.sent_or_received=='Sent':
 					validate_email_add(self.sender, throw=True)
-
-				sender_name, sender_email = parseaddr(self.sender)
-
-				if not sender_name:
-					sender_name = get_fullname(sender_email)
-					if sender_name == sender_email:
-						sender_name = None
-
+				sender_name, sender_email = parse_addr(self.sender)
+				if sender_name == sender_email:
+					sender_name = None
 				self.sender = sender_email
 				self.sender_full_name = sender_name or get_fullname(frappe.session.user) if frappe.session.user!='Administrator' else None
 

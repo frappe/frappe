@@ -144,8 +144,9 @@ frappe.upload = {
 			// Get file url if input is visible
 			var file_url = $upload.find('[name="file_url"]:visible');
 			file_url = file_url.length && file_url.get(0).value;
-
-			if(file_url) {
+			if(opts.args.gs_template) {
+				frappe.integration_service.gsuite.create_gsuite_file(opts.args,opts);
+			} else if(file_url) {
 				opts.args.file_url = file_url;
 				frappe.upload.upload_file(null, opts.args, opts);
 			} else {
@@ -194,15 +195,19 @@ frappe.upload = {
 		$(document).on('upload_complete', on_upload);
 
 		function upload_next() {
-			i += 1;
-			var file = files[i];
-			args.is_private = file.is_private;
+			if(files) {
+				i += 1;
+				var file = files[i];
+				args.is_private = file.is_private;
+				if(!opts.progress) {
+					frappe.show_progress(__('Uploading'), i+1, files.length);
+				}
+			}
 			frappe.upload.upload_file(file, args, opts);
-			frappe.show_progress(__('Uploading'), i+1, files.length);
 		}
 
 		function on_upload(e, attachment) {
-			if (i === files.length - 1) {
+			if (!files || i === files.length - 1) {
 				$(document).off('upload_complete', on_upload);
 				frappe.hide_progress();
 				return;
@@ -215,7 +220,7 @@ frappe.upload = {
 			if(opts.on_no_attach) {
 				opts.on_no_attach();
 			} else {
-				msgprint(__("Please attach a file or set a URL"));
+				frappe.msgprint(__("Please attach a file or set a URL"));
 			}
 			return;
 		}
@@ -260,24 +265,24 @@ frappe.upload = {
 		var freader = new FileReader();
 
 		freader.onload = function() {
-			args.filename = fileobj.name;
+			args.filename = fileobj.name.split(' ').join('_');
 			if(opts.options && opts.options.toLowerCase()=="image") {
 				if(!frappe.utils.is_image_file(args.filename)) {
-					msgprint(__("Only image extensions (.gif, .jpg, .jpeg, .tiff, .png, .svg) allowed"));
+					frappe.msgprint(__("Only image extensions (.gif, .jpg, .jpeg, .tiff, .png, .svg) allowed"));
 					return;
 				}
 			}
 
 			if((opts.max_width || opts.max_height) && frappe.utils.is_image_file(args.filename)) {
 				frappe.utils.resize_image(freader, function(_dataurl) {
-					dataurl = _dataurl;
+					var dataurl = _dataurl;
 					args.filedata = _dataurl.split(",")[1];
 					args.file_size = Math.round(args.filedata.length * 3 / 4);
 					console.log("resized!")
 					frappe.upload._upload_file(fileobj, args, opts, dataurl);
 				})
 			} else {
-				dataurl = freader.result;
+				var dataurl = freader.result;
 				args.filedata = freader.result.split(",")[1];
 				args.file_size = fileobj.size;
 				frappe.upload._upload_file(fileobj, args, opts, dataurl);
@@ -288,11 +293,11 @@ frappe.upload = {
 	},
 
 	upload_to_server: function(fileobj, args, opts, dataurl) {
-		// var msgbox = msgprint(__("Uploading..."));
+		// var msgbox =	frappe.msgprint(__("Uploading..."));
 		if(opts.start) {
 			opts.start();
 		}
-		ajax_args = {
+		var ajax_args = {
 			"method": "uploadfile",
 			args: args,
 			callback: function(r) {
@@ -353,26 +358,37 @@ frappe.upload = {
 			var filename = fileobjs[i].name;
 			fields.push({'fieldname': 'label1', 'fieldtype': 'Heading', 'label': filename});
 			fields.push({'fieldname':  filename+'_is_private', 'fieldtype': 'Check', 'label': 'Private', 'default': 1});
-			}
+		}
 
-			var d = new frappe.ui.Dialog({
-				'title': __('Make file(s) private or public?'),
-				'fields': fields,
-				primary_action: function(){
-					var i =0,j = fileobjs.length;
-					d.hide();
-					opts.loopcallback = function (){
-						if (i < j) {
-							args.is_private = d.fields_dict[fileobjs[i].name + "_is_private"].get_value()
-							frappe.upload.upload_file(fileobjs[i], args, opts);
-							i++;
-						}
+		var d = new frappe.ui.Dialog({
+			'title': __('Make file(s) private or public?'),
+			'fields': fields,
+			primary_action: function(){
+				var i =0,j = fileobjs.length;
+				d.hide();
+				opts.loopcallback = function (){
+					if (i < j) {
+						args.is_private = d.fields_dict[fileobjs[i].name + "_is_private"].get_value()
+						frappe.upload.upload_file(fileobjs[i], args, opts);
+						i++;
 					}
+				};
 
-					opts.loopcallback();
-				}
-			});
-			d.show();
-			opts.confirm_is_private =  0;
+				opts.loopcallback();
+			}
+		});
+		d.show();
+		opts.confirm_is_private =  0;
+	},
+	create_gsuite_file: function(args, opts) {
+		return frappe.call({
+			type:'POST',
+			method: 'frappe.integrations.doctype.gsuite_templates.gsuite_templates.create_gsuite_doc',
+			args: args,
+			callback: function(r) {
+				var attachment = r.message;
+				opts.callback && opts.callback(attachment, r);
+			}
+		});
 	}
 }

@@ -18,8 +18,8 @@ frappe.ui.Chart = Class.extend({
 
 		if(this.opts.data && ((this.opts.data.columns && this.opts.data.columns.length >= 1)
 			|| (this.opts.data.rows && this.opts.data.rows.length >= 1))) {
-				this.chart = this.render_chart();
-				this.show_chart(true);
+			this.chart = this.render_chart();
+			this.show_chart(true);
 		}
 
 		return this.chart;
@@ -28,11 +28,11 @@ frappe.ui.Chart = Class.extend({
 	render_chart: function() {
 		var chart_dict = {
 			bindto: '#' + this.opts.bind_to,
-		    data: {},
+			data: {},
 			axis: {
-		        x: {
-		            type: this.opts.x_type || 'category' // this needed to load string x value
-		        },
+				x: {
+					type: this.opts.x_type || 'category' // this needed to load string x value
+				},
 				y: {
 					padding: { bottom: 10 }
 				}
@@ -62,11 +62,11 @@ frappe.ui.Chart = Class.extend({
 			chart_dict.axis.x.tick.culling = {max: 15};
 			chart_dict.axis.x.tick.format = frappe.boot.sysdefaults.date_format
 				.replace('yyyy', '%Y').replace('mm', '%m').replace('dd', '%d');
-		};
+		}
 
 		// set color
 		if(!chart_dict.data.colors && chart_dict.data.columns) {
-			colors = ['#4E50A6', '#7679FB', '#A3A5FC', '#925191', '#5D3EA4', '#8D5FFA',
+			var colors = ['#4E50A6', '#7679FB', '#A3A5FC', '#925191', '#5D3EA4', '#8D5FFA',
 				'#5E3AA8', '#7B933D', '#4F8EA8'];
 			chart_dict.data.colors = {};
 			chart_dict.data.columns.forEach(function(d, i) {

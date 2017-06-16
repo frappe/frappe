@@ -9,7 +9,7 @@
 	<div class="blog-info">
 	<h1 itemprop="headline" class="blog-header">{{ title }}</h1>
 	<p class="post-by text-muted">
-		<a href="/blog?blogger={{ blogger }}" class="no-decoration">By {{ blogger_info and blogger_info.full_name or full_name }}</a>
+		<a href="/blog?blogger={{ blogger }}" class="no-decoration">{{ _("By") }} {{ blogger_info and blogger_info.full_name or full_name }}</a>
 		<i class="blog-dot"></i> {{ frappe.format_date(published_on) }}
 		<i class="blog-dot"></i> <a href="/blog?blog_category={{ blog_category }}" class="no-decoration">{{ category.title }}</a>
 		<i class="blog-dot"></i> {{ comment_text }}

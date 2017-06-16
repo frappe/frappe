@@ -303,7 +303,7 @@ def make_test_objects(doctype, test_records=None, verbose=None, reset=False):
 		except frappe.NameError:
 			pass
 
-		except Exception, e:
+		except Exception as e:
 			if d.flags.ignore_these_exceptions_in_test and e.__class__ in d.flags.ignore_these_exceptions_in_test:
 				pass
 

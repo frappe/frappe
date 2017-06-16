@@ -70,7 +70,7 @@ frappe.ui.form.ScriptManager = Class.extend({
 		var me = this;
 		doctype = doctype || this.frm.doctype;
 		name = name || this.frm.docname;
-		handlers = this.get_handlers(event_name, doctype, name, callback);
+		var handlers = this.get_handlers(event_name, doctype, name, callback);
 		if(callback) handlers.push(callback);
 
 		return $.when.apply($, $.map(handlers, function(fn) { return fn(); }));
@@ -114,8 +114,8 @@ frappe.ui.form.ScriptManager = Class.extend({
 		}
 
 		function setup_add_fetch(df) {
-			if((in_list(['Data', 'Read Only', 'Text', 'Small Text',
-					'Text Editor', 'Code'], df.fieldtype) || df.read_only==1)
+			if((['Data', 'Read Only', 'Text', 'Small Text',
+				'Text Editor', 'Code'].includes(df.fieldtype) || df.read_only==1)
 				&& df.options && df.options.indexOf(".")!=-1) {
 				var parts = df.options.split(".");
 				me.frm.add_fetch(parts[0], parts[1], df.fieldname);
@@ -138,7 +138,7 @@ frappe.ui.form.ScriptManager = Class.extend({
 		this.trigger('setup');
 	},
 	log_error: function(caller, e) {
-		show_alert("Error in Client Script.");
+		frappe.show_alert("Error in Client Script.");
 		console.group && console.group();
 		console.log("----- error in client script -----");
 		console.log("method: " + caller);

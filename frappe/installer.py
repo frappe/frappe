@@ -11,6 +11,7 @@ import frappe
 import frappe.database
 import getpass
 import importlib
+from frappe import _
 from frappe.model.db_schema import DbManager
 from frappe.model.sync import sync_for
 from frappe.utils.fixtures import sync_fixtures
@@ -121,7 +122,7 @@ def install_app(name, verbose=False, set_as_patched=True):
 		raise Exception("App not in apps.txt")
 
 	if name in installed_apps:
-		frappe.msgprint("App {0} already installed".format(name))
+		frappe.msgprint(_("App {0} already installed").format(name))
 		return
 
 	print("Installing {0}...".format(name))
@@ -364,8 +365,9 @@ def check_if_ready_for_barracuda():
 			       "").format(x=site, sep2="\n"*2, sep="\n")
 
 			print_db_config(msg, expected_config_for_barracuda)
-			sys.exit(1)
-			# raise Exception, "MariaDB needs to be configured!"
+			raise frappe.exceptions.ImproperDBConfigurationError(
+				reason="MariaDB default file format is not Barracuda"
+			)
 
 
 def print_db_config(explanation, config_text):

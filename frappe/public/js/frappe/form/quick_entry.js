@@ -31,7 +31,7 @@ frappe.ui.form.quick_entry = function(doctype, success) {
 		}
 
 		var dialog = new frappe.ui.Dialog({
-			title: __("New {0}", [doctype]),
+			title: __("New {0}", [__(doctype)]),
 			fields: mandatory,
 		});
 
@@ -66,7 +66,7 @@ frappe.ui.form.quick_entry = function(doctype, success) {
 
 			if(data) {
 				dialog.working = true;
-				values = update_doc();
+				var values = update_doc();
 				frappe.call({
 					method: "frappe.client.insert",
 					args: {

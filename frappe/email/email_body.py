@@ -8,6 +8,7 @@ from frappe.email.smtp import get_outgoing_email_account
 from frappe.utils import (get_url, scrub_urls, strip, expand_relative_urls, cint,
 	split_emails, to_markdown, markdown, encode, random_string)
 import email.utils
+from frappe.utils import parse_addr
 
 def get_email(recipients, sender='', msg='', subject='[No Subject]',
 	text_content = None, footer=None, print_html=None, formatted=None, attachments=None,
@@ -179,8 +180,7 @@ class EMail:
 	def replace_sender(self):
 		if cint(self.email_account.always_use_account_email_id_as_sender):
 			self.set_header('X-Original-From', self.sender)
-
-			sender_name, sender_email = email.utils.parseaddr(self.sender)
+			sender_name, sender_email = parse_addr(self.sender)
 			self.sender = email.utils.formataddr((sender_name or self.email_account.name, self.email_account.email_id))
 
 	def set_message_id(self, message_id, is_notification=False):

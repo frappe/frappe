@@ -55,8 +55,8 @@ def application(request):
 			response = frappe.handler.handle()
 
 		elif frappe.request.path.startswith("/api/"):
-                	if frappe.local.form_dict.data is None:
-                        	frappe.local.form_dict.data = request.get_data()
+			if frappe.local.form_dict.data is None:
+					frappe.local.form_dict.data = request.get_data()
 			response = frappe.api.handle()
 
 		elif frappe.request.path.startswith('/backups'):
@@ -65,19 +65,19 @@ def application(request):
 		elif frappe.request.path.startswith('/private/files/'):
 			response = frappe.utils.response.download_private_file(request.path)
 
-		elif frappe.local.request.method in ('GET', 'HEAD'):
+		elif frappe.local.request.method in ('GET', 'HEAD', 'POST'):
 			response = frappe.website.render.render()
 
 		else:
 			raise NotFound
 
-	except HTTPException, e:
+	except HTTPException as e:
 		return e
 
-	except frappe.SessionStopped, e:
+	except frappe.SessionStopped as e:
 		response = frappe.utils.response.handle_session_stopped()
 
-	except Exception, e:
+	except Exception as e:
 		response = handle_exception(e)
 
 	else:
@@ -122,10 +122,16 @@ def make_form_dict(request):
 		frappe.local.form_dict.pop("_")
 
 def handle_exception(e):
+	response = None
 	http_status_code = getattr(e, "http_status_code", 500)
 	return_as_message = False
 
-	if (http_status_code==500
+	if frappe.local.is_ajax or 'application/json' in frappe.local.request.headers.get('Accept', ''):
+		# handle ajax responses first
+		# if the request is ajax, send back the trace or error message
+		response = frappe.utils.response.report_error(http_status_code)
+
+	elif (http_status_code==500
 		and isinstance(e, MySQLdb.OperationalError)
 		and e.args[0] in (1205, 1213)):
 			# 1205 = lock wait timeout
@@ -133,13 +139,13 @@ def handle_exception(e):
 			# code 409 represents conflict
 			http_status_code = 508
 
-	if http_status_code==401:
+	elif http_status_code==401:
 		frappe.respond_as_web_page(_("Session Expired"),
 			_("Your session has expired, please login again to continue."),
 			http_status_code=http_status_code,  indicator_color='red')
 		return_as_message = True
 
-	if http_status_code==403:
+	elif http_status_code==403:
 		frappe.respond_as_web_page(_("Not Permitted"),
 			_("You do not have enough permissions to complete the action"),
 			http_status_code=http_status_code,  indicator_color='red')
@@ -150,10 +156,6 @@ def handle_exception(e):
 			_("The resource you are looking for is not available"),
 			http_status_code=http_status_code,  indicator_color='red')
 		return_as_message = True
-
-
-	elif frappe.local.is_ajax or 'application/json' in frappe.local.request.headers.get('Accept', ''):
-		response = frappe.utils.response.report_error(http_status_code)
 
 	else:
 		traceback = "<pre>"+frappe.get_traceback()+"</pre>"

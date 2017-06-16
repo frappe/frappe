@@ -14,8 +14,9 @@ frappe.ui.form.on("Customize Form", {
 					['DocType', 'issingle', '=', 0],
 					['DocType', 'custom', '=', 0],
 					['DocType', 'name', 'not in', 'DocType, DocField, DocPerm, User, Role, Has Role, \
-						 Page, Has Role, Module Def, Print Format, Report, Customize Form, \
-						 Customize Form Field']
+						Page, Has Role, Module Def, Print Format, Report, Customize Form, \
+						Customize Form Field'],
+					['DocType', 'restrict_to_domain', 'in', frappe.boot.active_domains]
 				]
 			};
 		});
@@ -129,7 +130,7 @@ frappe.ui.form.on("Customize Form Field", {
 	before_fields_remove: function(frm, doctype, name) {
 		var row = frappe.get_doc(doctype, name);
 		if(!(row.is_custom_field || row.__islocal)) {
-			msgprint(__("Cannot delete standard field. You can hide it if you want"));
+			frappe.msgprint(__("Cannot delete standard field. You can hide it if you want"));
 			throw "cannot delete custom field";
 		}
 	},
@@ -149,6 +150,7 @@ frappe.customize_form.set_primary_action = function(frm) {
 				callback: function(r) {
 					if(!r.exc) {
 						frappe.customize_form.clear_locals_and_refresh(frm);
+						frm.script_manager.trigger("doc_type");
 					}
 				}
 			});
@@ -170,7 +172,7 @@ frappe.customize_form.confirm = function(msg, frm) {
 				method: "reset_to_defaults",
 				callback: function(r) {
 					if(r.exc) {
-						msgprint(r.exc);
+						frappe.msgprint(r.exc);
 					} else {
 						d.hide();
 						frappe.customize_form.clear_locals_and_refresh(frm);
@@ -261,7 +263,7 @@ frappe.customize_form.add_fields_help = function(frm) {
 					<td>\
 						Show field if a condition is met<br />\
 						Example: <code>eval:doc.status=='Cancelled'</code>\
-						 on a field like \"reason_for_cancellation\" will reveal \
+						on a field like \"reason_for_cancellation\" will reveal \
 						\"Reason for Cancellation\" only if the record is Cancelled.\
 					</td>\
 				</tr>\

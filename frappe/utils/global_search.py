@@ -34,7 +34,7 @@ def get_doctypes_with_global_search(with_child_tables=True):
 		global_search_doctypes = []
 		filters = {}
 		if not with_child_tables:
-			filters = {"istable": ["!=", 1]}
+			filters = {"istable": ["!=", 1], "issingle": ["!=", 1]}
 		for d in frappe.get_all('DocType', fields=['name', 'module'], filters=filters):
 			meta = frappe.get_meta(d.name)
 			if len(meta.get_global_search_fields()) > 0:
@@ -54,7 +54,7 @@ def rebuild_for_doctype(doctype):
 	:param doctype: Doctype '''
 
 	def _get_filters():
-		filters = frappe._dict({ "docstatus": ["!=", 1] })
+		filters = frappe._dict({ "docstatus": ["!=", 2] })
 		if meta.has_field("enabled"):
 			filters.enabled = 1
 		if meta.has_field("disabled"):
@@ -104,11 +104,15 @@ def rebuild_for_doctype(doctype):
 			# if doctype published in website, push title, route etc.
 			published = 0
 			title, route = "", ""
-			if hasattr(get_controller(doctype), "is_website_published") and meta.allow_guest_to_view:
-				d = frappe.get_doc(doctype, doc.name)
-				published = 1 if d.is_website_published() else 0
-				title = d.get_title()
-				route = d.get("route")
+			try:
+				if hasattr(get_controller(doctype), "is_website_published") and meta.allow_guest_to_view:
+					d = frappe.get_doc(doctype, doc.name)
+					published = 1 if d.is_website_published() else 0
+					title = d.get_title()
+					route = d.get("route")
+			except ImportError:
+				# some doctypes has been deleted via future patch, hence controller does not exists
+				pass
 
 			all_contents.append({
 				"doctype": frappe.db.escape(doctype),
@@ -182,13 +186,16 @@ def insert_values_for_multiple_docs(all_contents):
 		values.append("( '{doctype}', '{name}', '{content}', '{published}', '{title}', '{route}')"
 			.format(**content))
 
-	# ignoring duplicate keys for doctype_name
-	frappe.db.sql('''
-		insert ignore into __global_search
-			(doctype, name, content, published, title, route)
-		values
-			{0}
-		'''.format(", ".join(values)))
+	batch_size = 50000
+	for i in range(0, len(values), batch_size):
+		batch_values = values[i:i + batch_size]
+		# ignoring duplicate keys for doctype_name
+		frappe.db.sql('''
+			insert ignore into __global_search
+				(doctype, name, content, published, title, route)
+			values
+				{0}
+			'''.format(", ".join(batch_values)))
 
 
 def update_global_search(doc):
@@ -237,11 +244,16 @@ def get_formatted_value(value, field):
 		value = ' '.join(value.split())
 	return field.label + " : " + strip_html_tags(unicode(value))
 
-def sync_global_search():
-	'''Add values from `frappe.flags.update_global_search` to __global_search.
+def sync_global_search(flags=None):
+	'''Add values from `flags` (frappe.flags.update_global_search) to __global_search.
 		This is called internally at the end of the request.'''
 
-	for value in frappe.flags.update_global_search:
+	if not flags:
+		flags = frappe.flags.update_global_search
+
+	# Can pass flags manually as frappe.flags.update_global_search isn't reliable at a later time,
+	# when syncing is enqueued
+	for value in flags:
 		frappe.db.sql('''
 			insert into __global_search
 				(doctype, name, content, published, title, route)

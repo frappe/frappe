@@ -50,9 +50,9 @@ frappe.UserPermissions = Class.extend({
 		var me = this;
 
 		$(this.wrapper).find(".view-role-permissions").on("click", function() {
-				frappe.route_options = { doctype: me.get_doctype() || "" };
-				frappe.set_route("permission-manager");
-			})
+			frappe.route_options = { doctype: me.get_doctype() || "" };
+			frappe.set_route("permission-manager");
+		})
 
 		return frappe.call({
 			module:"frappe.core",
@@ -82,7 +82,7 @@ frappe.UserPermissions = Class.extend({
 					options: "[Select]"
 				});
 
-				if(roles.indexOf("System Manager")!==-1) {
+				if(frappe.user_roles.includes("System Manager")) {
 					me.download = me.wrapper.page.add_field({
 						fieldname: "download",
 						label: __("Download"),
@@ -141,7 +141,7 @@ frappe.UserPermissions = Class.extend({
 				primary_action: function() {
 					var filedata = d.fields_dict.attach.get_value();
 					if(!filedata) {
-						msgprint(_("Please attach a file"));
+						frappe.msgprint(__("Please attach a file"));
 						return;
 					}
 					frappe.call({
@@ -151,7 +151,7 @@ frappe.UserPermissions = Class.extend({
 						},
 						callback: function(r) {
 							if(!r.exc) {
-								msgprint(__("Permissions Updated"));
+								frappe.msgprint(__("Permissions Updated"));
 								d.hide();
 							}
 						}
@@ -250,9 +250,11 @@ frappe.UserPermissions = Class.extend({
 
 		$.each([[__("Allow User"), 150], [__("If Document Type"), 150], [__("Is"),150], ["", 50]],
 			function(i, col) {
-			$("<th>").html(col[0]).css("width", col[1]+"px")
-				.appendTo(me.table.find("thead tr"));
-		});
+				$("<th>")
+					.html(col[0])
+					.css("width", col[1]+"px")
+					.appendTo(me.table.find("thead tr"));
+			});
 
 
 		$.each(this.prop_list, function(i, d) {
@@ -288,7 +290,7 @@ frappe.UserPermissions = Class.extend({
 					},
 					callback: function(r) {
 						if(r.exc) {
-							msgprint(__("Did not remove"));
+							frappe.msgprint(__("Did not remove"));
 						} else {
 							me.refresh();
 						}
@@ -349,7 +351,7 @@ frappe.UserPermissions = Class.extend({
 						args: args,
 						callback: function(r) {
 							if(r.exc) {
-								msgprint(__("Did not add"));
+								frappe.msgprint(__("Did not add"));
 							} else {
 								me.refresh();
 							}

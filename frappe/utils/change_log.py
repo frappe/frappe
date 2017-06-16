@@ -2,6 +2,7 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
+from six.moves import range
 import json, subprocess, os
 from semantic_version import Version
 import frappe
@@ -53,7 +54,7 @@ def get_change_log_for_app(app, from_version, to_version):
 	# remove pre-release part
 	to_version.prerelease = None
 
-	major_version_folders = ["v{0}".format(i) for i in xrange(from_version.major, to_version.major + 1)]
+	major_version_folders = ["v{0}".format(i) for i in range(from_version.major, to_version.major + 1)]
 	app_change_log = []
 
 	for folder in os.listdir(change_log_folder):

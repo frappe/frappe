@@ -9,6 +9,11 @@ def get_data():
 			"items": [
 				{
 					"type": "doctype",
+					"name": "Stripe Settings",
+					"description": _("Stripe payment gateway settings"),
+				},
+				{
+					"type": "doctype",
 					"name": "PayPal Settings",
 					"description": _("PayPal payment gateway settings"),
 				},
@@ -51,6 +56,21 @@ def get_data():
 					"type": "doctype",
 					"name": "OAuth Provider Settings",
 					"description": _("Settings for OAuth Provider"),
+				},
+			]
+		},
+		{
+			"label": _("External Documents"),
+			"items": [
+				{
+					"type": "doctype",
+					"name": "GSuite Settings",
+					"description": _("Enter keys to enable integration with Google GSuite"),
+				},
+				{
+					"type": "doctype",
+					"name": "GSuite Templates",
+					"description": _("Google GSuite Templates to integration with DocTypes"),
 				},
 			]
 		}

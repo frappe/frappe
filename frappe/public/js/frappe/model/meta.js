@@ -173,7 +173,7 @@ $.extend(frappe.meta, {
 
 	get_parentfield: function(parent_dt, child_dt) {
 		var df = (frappe.get_doc("DocType", parent_dt).fields || []).filter(function(d)
-			{ return d.fieldtype==="Table" && options===child_dt })
+			{ return d.fieldtype==="Table" && d.options===child_dt })
 		if(!df.length)
 			throw "parentfield not found for " + parent_dt + ", " + child_dt;
 		return df[0].fieldname;
@@ -208,8 +208,8 @@ $.extend(frappe.meta, {
 		});
 
 		if(default_print_format && default_print_format != "Standard") {
-			var index = print_format_list.indexOf(default_print_format) - 1;
-			print_format_list.sort().splice(index, 1);
+			var index = print_format_list.indexOf(default_print_format);
+			print_format_list.splice(index, 1).sort();
 			print_format_list.unshift(default_print_format);
 		}
 

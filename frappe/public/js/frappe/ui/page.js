@@ -317,7 +317,7 @@ frappe.ui.Page = Class.extend({
 		return this.$title_area.find(".title-icon")
 			.html('<i class="'+icon+' fa-fw"></i> ')
 			.toggle(true);
-		},
+	},
 
 	add_help_button: function(txt) {
 		//
@@ -369,6 +369,10 @@ frappe.ui.Page = Class.extend({
 		$(f.wrapper)
 			.addClass('col-md-2')
 			.attr("title", __(df.label)).tooltip();
+
+		// hidden fields dont have $input
+		if(!f.$input) f.make_input();
+
 		f.$input.addClass("input-sm").attr("placeholder", __(df.label));
 
 		if(df.fieldtype==="Check") {

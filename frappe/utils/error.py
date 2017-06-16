@@ -40,7 +40,7 @@ def make_error_snapshot(exception):
 
 		logger.error('New Exception collected with id: {}'.format(error_id))
 
-	except Exception, e:
+	except Exception as e:
 		logger.error('Could not take error snapshot: {0}'.format(e), exc_info=True)
 
 def get_snapshot(exception, context=10):

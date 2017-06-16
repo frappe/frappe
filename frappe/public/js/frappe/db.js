@@ -10,7 +10,7 @@ frappe.db = {
 				fieldname: fieldname,
 				filters: filters
 			},
-			callback: function(r, rt) {
+			callback: function(r) {
 				callback && callback(r.message);
 			}
 		});

@@ -10,8 +10,8 @@ frappe.provide("frappe.datetime");
 $.extend(frappe.datetime, {
 	convert_to_user_tz: function(date, format) {
 		// format defaults to true
-		if(sys_defaults.time_zone) {
-			var date_obj = moment.tz(date, sys_defaults.time_zone).local();
+		if(frappe.sys_defaults.time_zone) {
+			var date_obj = moment.tz(date, frappe.sys_defaults.time_zone).local();
 		} else {
 			var date_obj = moment(date);
 		}
@@ -22,8 +22,8 @@ $.extend(frappe.datetime, {
 	convert_to_system_tz: function(date, format) {
 		// format defaults to true
 
-		if(sys_defaults.time_zone) {
-			var date_obj = moment(date).tz(sys_defaults.time_zone);
+		if(frappe.sys_defaults.time_zone) {
+			var date_obj = moment(date).tz(frappe.sys_defaults.time_zone);
 		} else {
 			var date_obj = moment(date);
 		}
@@ -32,8 +32,8 @@ $.extend(frappe.datetime, {
 	},
 
 	is_timezone_same: function() {
-		if(sys_defaults.time_zone) {
-			return moment().tz(sys_defaults.time_zone).utcOffset() === moment().utcOffset();
+		if(frappe.sys_defaults.time_zone) {
+			return moment().tz(frappe.sys_defaults.time_zone).utcOffset() === moment().utcOffset();
 		} else {
 			return true;
 		}
@@ -48,7 +48,7 @@ $.extend(frappe.datetime, {
 	},
 
 	obj_to_user: function(d) {
-		return moment(d).format(dateutil.get_user_fmt().toUpperCase());
+		return moment(d).format(frappe.datetime.get_user_fmt().toUpperCase());
 	},
 
 	get_diff: function(d1, d2) {
@@ -88,12 +88,12 @@ $.extend(frappe.datetime, {
 	},
 
 	get_user_fmt: function() {
-		return sys_defaults.date_format || "yyyy-mm-dd";
+		return frappe.sys_defaults.date_format || "yyyy-mm-dd";
 	},
 
 	str_to_user: function(val, no_time_str) {
 		if(!val) return "";
-		var user_fmt = dateutil.get_user_fmt().toUpperCase();
+		var user_fmt = frappe.datetime.get_user_fmt().toUpperCase();
 		if(typeof val !== "string" || val.indexOf(" ")===-1) {
 			return moment(val).format(user_fmt);
 		} else {
@@ -110,7 +110,7 @@ $.extend(frappe.datetime, {
 	},
 
 	user_to_str: function(val, no_time_str) {
-		var user_fmt = dateutil.get_user_fmt().toUpperCase();
+		var user_fmt = frappe.datetime.get_user_fmt().toUpperCase();
 		var system_fmt = "YYYY-MM-DD";
 
 		if(val.indexOf(" ")!==-1) {
@@ -124,7 +124,7 @@ $.extend(frappe.datetime, {
 	},
 
 	user_to_obj: function(d) {
-		return dateutil.str_to_obj(dateutil.user_to_str(d));
+		return frappe.datetime.str_to_obj(frappe.datetime.user_to_str(d));
 	},
 
 	global_date_format: function(d) {
@@ -155,6 +155,18 @@ $.extend(frappe.datetime, {
 
 });
 
-// globals (deprecate)
-var date = dateutil = frappe.datetime;
-var get_today = frappe.datetime.get_today;
+// Proxy for dateutil and get_today
+Object.defineProperties(window, {
+	'dateutil': {
+		get: function() {
+			console.warn('Please use `frappe.datetime` instead of `dateutil`. It will be deprecated soon.');
+			return frappe.datetime;
+		}
+	},
+	'get_today': {
+		get: function() {
+			console.warn('Please use `frappe.datetime.get_today` instead of `get_today`. It will be deprecated soon.');
+			return frappe.datetime.get_today;
+		}
+	}
+});

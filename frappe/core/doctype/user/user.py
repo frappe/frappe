@@ -49,6 +49,9 @@ class User(Document):
 		self.__new_password = self.new_password
 		self.new_password = ""
 
+		if not frappe.flags.in_test:
+			self.password_strength_test()
+
 		if self.name not in STANDARD_USERS:
 			self.validate_email_type(self.email)
 			self.validate_email_type(self.name)
@@ -84,7 +87,7 @@ class User(Document):
 
 	def check_demo(self):
 		if frappe.session.user == 'demo@erpnext.com':
-			frappe.throw('Cannot change user details in demo. Please signup for a new account at https://erpnext.com', title='Not Allowed')
+			frappe.throw(_('Cannot change user details in demo. Please signup for a new account at https://erpnext.com'), title=_('Not Allowed'))
 
 	def set_full_name(self):
 		self.full_name = " ".join(filter(None, [self.first_name, self.last_name]))
@@ -407,6 +410,15 @@ class User(Document):
 			frappe.msgprint(_("Username should not contain any special characters other than letters, numbers and underscore"))
 			self.username = ""
 
+	def password_strength_test(self):
+		""" test password strength """
+		if frappe.db.get_single_value("System Settings", "enable_password_policy") and self.__new_password:
+			user_data = (self.first_name, self.middle_name, self.last_name, self.email, self.birth_date)
+			result = test_password_strength(self.__new_password, '', None, user_data)
+
+			if not result['feedback']['password_policy_validation_passed']:
+				handle_password_test_fail(result)
+
 	def suggest_username(self):
 		def _check_suggestion(suggestion):
 			if self.username != suggestion and not self.username_exists(suggestion):
@@ -478,8 +490,17 @@ def get_timezones():
 @frappe.whitelist()
 def get_all_roles(arg=None):
 	"""return all roles"""
-	return [r[0] for r in frappe.db.sql("""select name from tabRole
-		where name not in ('Administrator', 'Guest', 'All') and not disabled order by name""")]
+	active_domains = frappe.get_active_domains()
+
+	roles = frappe.get_all("Role", filters={
+		"name": ("not in", "Administrator,Guest,All"),
+		"disabled": 0
+	}, or_filters={
+		"ifnull(restrict_to_domain, '')": "",
+		"restrict_to_domain": ("in", active_domains)
+	}, order_by="name")
+
+	return [ role.get("name") for role in roles ]
 
 @frappe.whitelist()
 def get_roles(arg=None):
@@ -494,6 +515,11 @@ def get_perm_info(role):
 
 @frappe.whitelist(allow_guest=True)
 def update_password(new_password, key=None, old_password=None):
+	result = test_password_strength(new_password, key, old_password)
+
+	if not result['feedback']['password_policy_validation_passed']:
+		handle_password_test_fail(result)
+
 	res = _get_user_for_update_password(key, old_password)
 	if res.get('message'):
 		return res['message']
@@ -519,13 +545,25 @@ def update_password(new_password, key=None, old_password=None):
 		return redirect_url if redirect_url else "/"
 
 @frappe.whitelist(allow_guest=True)
-def test_password_strength(new_password, key=None, old_password=None):
+def test_password_strength(new_password, key=None, old_password=None, user_data=[]):
 	from frappe.utils.password_strength import test_password_strength as _test_password_strength
 
-	user_data = frappe.db.get_value('User', frappe.session.user, ['first_name', 'middle_name', 'last_name', 'email', 'birth_date'])
+	if not user_data:
+		user_data = frappe.db.get_value('User', frappe.session.user, ['first_name', 'middle_name', 'last_name', 'email', 'birth_date'])
 
 	if new_password:
-		return _test_password_strength(new_password, user_inputs=user_data)
+		result = _test_password_strength(new_password, user_inputs=user_data)
+
+		enable_password_policy = cint(frappe.db.get_single_value("System Settings", "enable_password_policy")) and True or False
+		minimum_password_score = cint(frappe.db.get_single_value("System Settings", "minimum_password_score")) or 0
+
+		password_policy_validation_passed = False
+		if result['score'] > minimum_password_score:
+			password_policy_validation_passed = True
+
+		result['feedback']['password_policy_validation_passed'] = password_policy_validation_passed
+
+		return result
 
 #for login
 @frappe.whitelist()
@@ -837,3 +875,10 @@ def extract_mentions(txt):
 	"""Find all instances of @username in the string.
 	The mentions will be separated by non-word characters or may appear at the start of the string"""
 	return re.findall(r'(?:[^\w]|^)@([\w]*)', txt)
+
+
+def handle_password_test_fail(result):
+	suggestions = result['feedback']['suggestions'][0] if result['feedback']['suggestions'] else ''
+	warning = result['feedback']['warning'] if 'warning' in result['feedback'] else ''
+	suggestions += "<br>" + _("Hint: Include symbols, numbers and capital letters in the password") + '<br>'
+	frappe.throw(_('Invalid Password: ' + ' '.join([warning, suggestions])))

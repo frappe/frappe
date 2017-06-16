@@ -37,6 +37,8 @@ def get_bootinfo():
 	bootinfo.module_list = []
 	load_desktop_icons(bootinfo)
 	bootinfo.letter_heads = get_letter_heads()
+	bootinfo.active_domains = frappe.get_active_domains()
+	bootinfo.all_domains = [d.get("name") for d in frappe.get_all("Domain")]
 
 	bootinfo.module_app = frappe.local.module_app
 	bootinfo.single_types = frappe.db.sql_list("""select name from tabDocType
@@ -69,6 +71,7 @@ def get_bootinfo():
 	bootinfo.treeviews = frappe.get_hooks("treeviews") or []
 	bootinfo.lang_dict = get_lang_dict()
 	bootinfo.feedback_triggers = get_enabled_feedback_trigger()
+	bootinfo.gsuite_enabled = get_gsuite_status()
 	bootinfo.update(get_email_accounts(user=frappe.session.user))
 
 	return bootinfo
@@ -83,7 +86,7 @@ def get_letter_heads():
 def load_conf_settings(bootinfo):
 	from frappe import conf
 	bootinfo.max_file_size = conf.get('max_file_size') or 10485760
-	for key in ('developer_mode', 'socketio_port'):
+	for key in ('developer_mode', 'socketio_port', 'file_watcher_port'):
 		if key in conf: bootinfo[key] = conf.get(key)
 
 def load_desktop_icons(bootinfo):
@@ -238,3 +241,6 @@ def get_unseen_notes():
 		and expire_notification_on > %s and %s not in
 			(select user from `tabNote Seen By` nsb
 				where nsb.parent=tabNote.name)''', (frappe.utils.now(), frappe.session.user), as_dict=True)
+
+def get_gsuite_status():
+	return (frappe.get_value('Gsuite Settings', None, 'enable') == '1')

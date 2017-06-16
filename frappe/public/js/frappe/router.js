@@ -120,7 +120,7 @@ frappe.set_route = function() {
 	if(params.length===1 && $.isArray(params[0])) {
 		params = params[0];
 	}
-	route = $.map(params, function(a) {
+	var route = $.map(params, function(a) {
 		if($.isPlainObject(a)) {
 			frappe.route_options = a;
 			return null;

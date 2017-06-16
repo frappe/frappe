@@ -12,6 +12,11 @@
 	    margin: auto;
 	}
 
+	.print-format.landscape {
+		max-width: 11.69in;
+		padding: 0.2in;
+	}
+
 	.page-break {
 		padding: 30px 0px;
 		border-bottom: 1px dashed #888;
@@ -47,6 +52,10 @@
 .data-field {
 	margin-top: 5px;
 	margin-bottom: 5px;
+}
+
+.data-field .value {
+	word-wrap: break-word;
 }
 
 .important .value {

@@ -21,6 +21,10 @@ def rename_doc(doctype, old, new, force=False, merge=False, ignore_permissions=F
 	if ignore_if_exists and frappe.db.exists(doctype, new):
 		return
 
+	if old==new:
+		frappe.msgprint(_('Please select a new name to rename'))
+		return
+
 	force = cint(force)
 	merge = cint(merge)
 
@@ -81,7 +85,7 @@ def update_attachments(doctype, old, new):
 		if old != "File Data" and doctype != "DocType":
 			frappe.db.sql("""update `tabFile` set attached_to_name=%s
 				where attached_to_name=%s and attached_to_doctype=%s""", (new, old, doctype))
-	except Exception, e:
+	except Exception as e:
 		if e.args[0]!=1054: # in patch?
 			raise
 
@@ -369,7 +373,7 @@ def bulk_rename(doctype, rows=None, via_console = False):
 					frappe.db.commit()
 				else:
 					msg = _("Ignored: {0} to {1}").format(row[0], row[1])
-			except Exception, e:
+			except Exception as e:
 				msg = _("** Failed: {0} to {1}: {2}").format(row[0], row[1], repr(e))
 				frappe.db.rollback()
 
