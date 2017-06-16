@@ -13,6 +13,7 @@ from dateutil import parser
 from num2words import num2words
 import HTMLParser
 from html2text import html2text
+from six import iteritems
 
 DATE_FORMAT = "%Y-%m-%d"
 TIME_FORMAT = "%H:%M:%S.%f"
@@ -683,7 +684,7 @@ operator_map = {
 def evaluate_filters(doc, filters):
 	'''Returns true if doc matches filters'''
 	if isinstance(filters, dict):
-		for key, value in filters.iteritems():
+		for key, value in iteritems(filters):
 			f = get_filter(None, {key:value})
 			if not compare(doc.get(f.fieldname), f.operator, f.value):
 				return False
