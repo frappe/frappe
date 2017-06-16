@@ -163,7 +163,7 @@ def clear_default(key=None, value=None, parent=None, name=None, parenttype=None)
 		clear_cache("__global")
 
 	if not conditions:
-		raise Exception, "[clear_default] No key specified."
+		raise Exception("[clear_default] No key specified.")
 
 	frappe.db.sql("""delete from tabDefaultValue where {0}""".format(" and ".join(conditions)),
 		tuple(values))
