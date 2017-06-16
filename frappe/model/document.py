@@ -10,6 +10,7 @@ from frappe.utils import flt, cstr, now, get_datetime_str, file_lock
 from frappe.utils.background_jobs import enqueue
 from frappe.model.base_document import BaseDocument, get_controller
 from frappe.model.naming import set_new_name
+from six import iteritems
 from werkzeug.exceptions import NotFound, Forbidden
 import hashlib, json
 from frappe.model import optional_fields
@@ -344,7 +345,7 @@ class Document(BaseDocument):
 		def get_values():
 			values = self.as_dict()
 			# format values
-			for key, value in values.iteritems():
+			for key, value in iteritems(values):
 				if value==None:
 					values[key] = ""
 			return values
@@ -361,7 +362,7 @@ class Document(BaseDocument):
 	def update_single(self, d):
 		"""Updates values for Single type Document in `tabSingles`."""
 		frappe.db.sql("""delete from tabSingles where doctype=%s""", self.doctype)
-		for field, value in d.iteritems():
+		for field, value in iteritems(d):
 			if field != "doctype":
 				frappe.db.sql("""insert into tabSingles(doctype, field, value)
 					values (%s, %s, %s)""", (self.doctype, field, value))
