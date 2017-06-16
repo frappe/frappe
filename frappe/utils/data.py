@@ -442,7 +442,9 @@ def money_in_words(number, main_currency = None, fraction_currency=None):
 	fraction_length = get_number_format_info(number_format)[2]
 
 	n = "%.{0}f".format(fraction_length) % number
-	main, fraction = n.split('.')
+
+	numbers = n.split('.')
+	main, fraction =  numbers if len(numbers) > 1 else [n, '00']
 
 	if len(fraction) < fraction_length:
 		zeros = '0' * (fraction_length - len(fraction))
