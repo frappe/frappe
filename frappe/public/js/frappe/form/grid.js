@@ -1143,11 +1143,13 @@ frappe.ui.form.GridRow = Class.extend({
 
 		// format values if no frm
 		if(!df) {
-			df = this.grid.visible_columns.find((set) => {
-				return set[0].fieldname === fieldname;
-			})[0];
-
-			if(this.doc) var txt = frappe.format(this.doc[fieldname], df, null, this.doc);
+			df = this.grid.visible_columns.find((col) => {
+				return col[0].fieldname === fieldname;
+			});
+			if(df && this.doc) {
+				var txt = frappe.format(this.doc[fieldname], df[0],
+					null, this.doc);
+			}
 		}
 
 		if(txt===undefined && this.frm) {
