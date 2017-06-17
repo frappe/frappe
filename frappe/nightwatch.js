@@ -19,12 +19,18 @@ if(site_name) {
 	site_url = 'http://' + site_name + ':' + get_port();
 }
 
+let page_objects_path = ['apps/frappe/frappe/tests/nightwatch_page_objects'];
+
+if(app_name !== 'frappe') {
+	page_objects_path.push(`apps/${app_name}/${app_name}/tests/nightwatch_page_objects`);
+}
 
 const config = {
 	"src_folders": [
 		`apps/${app_name}/${app_name}/tests/ui`
 	],
 	"globals_path" : 'apps/frappe/frappe/nightwatch.global.js',
+	"page_objects_path": page_objects_path,
 	"selenium": {
 		"start_process": false
 	},

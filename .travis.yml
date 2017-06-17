@@ -44,6 +44,6 @@ before_script:
   - sleep 10
 
 script:
-  # - set -e
-  # - bench --verbose run-tests
+  - set -e
+  - bench --verbose run-tests
   - nightwatch --config apps/frappe/frappe/nightwatch.js --env ci_server --app frappe

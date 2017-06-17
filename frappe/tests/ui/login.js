@@ -12,8 +12,7 @@ module.exports = {
 			.setValue("#login_email", "Administrator")
 			.setValue("#login_password", "admin")
 			.click(".btn-login")
-			.waitForElementVisible("#body_div", 15000)
-			.assert.title('Frappe Desk')
+			.waitForElementVisible("#body_div", 15000);
 	},
 	after: browser => {
 		browser.end();
