@@ -1,6 +1,5 @@
 module.exports = {
 	beforeEach: browser => {
-		console.log(browser.launch_url);
 		browser
 			.url(browser.launch_url + '/login')
 			.waitForElementVisible('body', 5000)
