@@ -2,8 +2,8 @@ const fs = require('fs');
 
 const ci_mode = get_cli_arg('env') === 'ci_server';
 const site_name = get_cli_arg('site');
+let app_name = get_cli_arg('app');
 
-const app_name = get_cli_arg('app');
 if(!app_name) {
 	console.log('Please specify app to run tests');
 	return;
@@ -14,29 +14,46 @@ if(!ci_mode && !site_name) {
 	return;
 }
 
+// site url
 let site_url;
 if(site_name) {
 	site_url = 'http://' + site_name + ':' + get_port();
 }
 
-let page_objects_path = ['apps/frappe/frappe/tests/nightwatch_page_objects'];
+// multiple apps
+if(app_name.includes(',')) {
+	app_name = app_name.split(',');
+} else {
+	app_name = [app_name];
+}
 
-if(app_name !== 'frappe') {
-	page_objects_path.push(`apps/${app_name}/${app_name}/tests/nightwatch_page_objects`);
+let test_folders = [];
+let page_objects = [];
+for(const app of app_name) {
+	const test_folder = `apps/${app}/${app}/tests/ui`;
+	const page_object = test_folder + '/page_objects';
+
+	if(!fs.existsSync(test_folder)) {
+		console.log(`No test folder found for "${app}"`);
+		continue;
+	}
+	test_folders.push(test_folder);
+
+	if(fs.existsSync(page_object)) {
+		page_objects.push();
+	}
 }
 
 const config = {
-	"src_folders": [
-		`apps/${app_name}/${app_name}/tests/ui`
-	],
+	"src_folders": test_folders,
 	"globals_path" : 'apps/frappe/frappe/nightwatch.global.js',
-	"page_objects_path": page_objects_path,
+	"page_objects_path": page_objects,
 	"selenium": {
 		"start_process": false
 	},
 	"test_settings": {
 		"default": {
-			"launch_url": site_url || 'http://localhost:8000',
+			"launch_url": site_url,
 			"selenium_port": 9515,
 			"selenium_host": "127.0.0.1",
 			"default_path_prefix": "",
