@@ -151,8 +151,8 @@ frappe.provide("frappe.views");
 				if (field && !quick_entry) {
 					return insert_doc(doc)
 						.then(function (r) {
-							var doc = r.message;
-							var card = prepare_card(doc, state, doc);
+							var updated_doc = r.message;
+							var card = prepare_card(doc, state, updated_doc);
 							var cards = state.cards.slice();
 							cards.push(card);
 							updater.set({ cards: cards });
@@ -532,10 +532,12 @@ frappe.provide("frappe.views");
 						// not already working -- double entry
 						e.preventDefault();
 						var card_title = $textarea.val();
-						fluxify.doAction('add_card', card_title, column.title);
-						$btn_add.show();
-						$new_card_area.hide();
-						$textarea.val('');
+						fluxify.doAction('add_card', card_title, column.title)
+							.then(() => {
+								$btn_add.show();
+								$new_card_area.hide();
+								$textarea.val('');
+							});
 					}
 				}
 			});
