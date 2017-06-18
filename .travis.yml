@@ -35,9 +35,6 @@ before_script:
   - echo "USE mysql;\nGRANT ALL PRIVILEGES ON \`test_frappe\`.* TO 'test_frappe'@'localhost';\n" | mysql -u root -ptravis
   
   - cd ~/frappe-bench
-  - npm install babel-core less chokidar babel-preset-es2015 babel-preset-es2016 babel-preset-es2017 babel-preset-babili chromedriver telebot
-  - npm install -g nightwatch
-  # - node apps/frappe/frappe/nightwatch.js
   - bench use test_site
   - bench reinstall --yes
   - bench start &
@@ -46,4 +43,4 @@ before_script:
 script:
   - set -e
   - bench --verbose run-tests
-  - nightwatch --config apps/frappe/frappe/nightwatch.js --env ci_server --app frappe
+  - bench run-ui-tests --ci
