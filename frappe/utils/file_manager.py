@@ -361,6 +361,9 @@ def download_file(file_url):
 	Endpoint : frappe.utils.file_manager.download_file
 	URL Params : file_name = /path/to/file relative to site path
 	"""
+	file_doc = frappe.get_doc("File", {"file_url":file_url}) 
+	file_doc.check_permission("read")
+
 	with open(getattr(frappe.local, "site_path", None) + file_url, "rb") as fileobj:
 		filedata = fileobj.read()
 	frappe.local.response.filename = file_url[file_url.rfind("/")+1:]
