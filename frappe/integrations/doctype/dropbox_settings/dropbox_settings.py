@@ -10,8 +10,9 @@ from frappe.model.document import Document
 import dropbox
 from frappe.utils.backups import new_backup
 from frappe.utils.background_jobs import enqueue
+from urlparse import urlparse, parse_qs
 from frappe.utils import (cint, split_emails, get_request_site_address, cstr,
-	get_files_path, get_backups_path, encode)
+	get_files_path, get_backups_path, encode, get_url)
 
 ignore_list = [".DS_Store"]
 
@@ -180,13 +181,20 @@ def get_dropbox_settings(redirect_uri=False):
 		app_details.update({
 			'rediret_uri': get_request_site_address(True) \
 				+ '/api/method/frappe.integrations.doctype.dropbox_settings.dropbox_settings.dropbox_auth_finish' \
-				if settings.app_secret_key else frappe.conf.dropbox_rediret_uri,
+				if settings.app_secret_key else frappe.conf.dropbox_broker_site\
+				+ '/api/method/dropbox_erpnext_broker.www.setup_dropbox.generate_dropbox_access_token',
 		})
 
 	if not app_details['app_key'] or not app_details['app_secret']:
 		raise Exception(_("Please set Dropbox access keys in your site config"))
 
 	return app_details
+
+@frappe.whitelist()
+def get_redirect_url():
+	return {
+		"redirect_to": "{0}/setup_dropbox?site={1}".format(frappe.conf.dropbox_broker_site, get_url())
+	}
 
 @frappe.whitelist()
 def get_dropbox_authorize_url():
@@ -200,10 +208,14 @@ def get_dropbox_authorize_url():
 	)
 
 	auth_url = dropbox_oauth_flow.start()
-	return {"auth_url": auth_url}
+
+	return {
+		"auth_url": auth_url,
+		"args": parse_qs(urlparse(auth_url).query)
+	}
 
 @frappe.whitelist()
-def dropbox_auth_finish():
+def dropbox_auth_finish(return_access_token=False):
 	app_details = get_dropbox_settings(redirect_uri=True)
 	callback = frappe.form_dict
 	close = '<p class="text-muted">' + _('Please close this window') + '</p>'
@@ -218,8 +230,10 @@ def dropbox_auth_finish():
 
 	if callback.state or callback.code:
 		token = dropbox_oauth_flow.finish({'state': callback.state, 'code': callback.code})
-		frappe.db.set_value("Dropbox Settings", None, 'dropbox_access_token', token.access_token)
-		frappe.db.commit()
+		if return_access_token and token.access_token:
+			return token.access_token, callback.state
+
+		set_dropbox_access_token(token.access_token)
 	else:
 		frappe.respond_as_web_page(_("Dropbox Setup"),
 			_("Illegal Access Token. Please try again") + close,
@@ -229,3 +243,8 @@ def dropbox_auth_finish():
 	frappe.respond_as_web_page(_("Dropbox Setup"),
 		_("Dropbox access is approved!") + close,
 		indicator_color='green')
+
+@frappe.whitelist(allow_guest=True)
+def set_dropbox_access_token(access_token):
+	frappe.db.set_value("Dropbox Settings", None, 'dropbox_access_token', access_token)
+	frappe.db.commit()

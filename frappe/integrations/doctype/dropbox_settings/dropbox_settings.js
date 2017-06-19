@@ -8,13 +8,24 @@ frappe.ui.form.on('Dropbox Settings', {
 	},
 
 	allow_dropbox_access: function(frm) {
-		if ((frm.doc.app_access_key && frm.doc.app_secret_key) || frm.doc.dropbox_setup_via_site_config) {
+		if (frm.doc.app_access_key && frm.doc.app_secret_key) {
 			frappe.call({
 				method: "frappe.integrations.doctype.dropbox_settings.dropbox_settings.get_dropbox_authorize_url",
 				freeze: true,
 				callback: function(r) {
 					if(!r.exc) {
 						window.open(r.message.auth_url);
+					}
+				}
+			})
+		}
+		else if (frm.doc.dropbox_setup_via_site_config) {
+			frappe.call({
+				method: "frappe.integrations.doctype.dropbox_settings.dropbox_settings.get_redirect_url",
+				freeze: true,
+				callback: function(r) {
+					if(!r.exc) {
+						window.open(r.message.redirect_to);
 					}
 				}
 			})
