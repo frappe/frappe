@@ -80,7 +80,7 @@ def read_doc_from_file(path):
 				print("bad json: {0}".format(path))
 				raise
 	else:
-		raise IOError, '%s missing' % path
+		raise IOError('%s missing' % path)
 
 	return doc
 

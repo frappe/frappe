@@ -58,10 +58,10 @@ frappe.ui.form.Sidebar = Class.extend({
 			this.frm.tags && this.frm.tags.refresh(this.frm.doc._user_tags);
 			this.sidebar.find(".modified-by").html(__("{0} edited this {1}",
 				["<strong>" + frappe.user.full_name(this.frm.doc.modified_by) + "</strong>",
-				"<br>" + comment_when(this.frm.doc.modified)]));
+					"<br>" + comment_when(this.frm.doc.modified)]));
 			this.sidebar.find(".created-by").html(__("{0} created this {1}",
 				["<strong>" + frappe.user.full_name(this.frm.doc.owner) + "</strong>",
-				"<br>" + comment_when(this.frm.doc.creation)]));
+					"<br>" + comment_when(this.frm.doc.creation)]));
 
 			this.refresh_like();
 			this.setup_ratings();
@@ -151,11 +151,11 @@ frappe.ui.form.Sidebar = Class.extend({
 	},
 
 	setup_ratings: function() {
-		_ratings = this.frm.get_docinfo().rating || 0;
+		var _ratings = this.frm.get_docinfo().rating || 0;
 
 		if(_ratings) {
 			this.ratings.removeClass("hide");
-			rating_icons = frappe.render_template("rating_icons", {rating: _ratings, show_label: false});
+			var rating_icons = frappe.render_template("rating_icons", {rating: _ratings, show_label: false});
 			this.ratings.find(".rating-icons").html(rating_icons);
 		}
 	}

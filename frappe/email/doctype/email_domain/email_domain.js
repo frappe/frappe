@@ -9,8 +9,8 @@ frappe.ui.form.on("Email Domain", {
 			frm.set_value("domain_name",frm.doc.email_id.split("@")[1])
 		}
 
-        if (frm.doc.__islocal != 1 && frappe.route_flags.return_to_email_account) {
-            var route = frappe.get_prev_route()
+		if (frm.doc.__islocal != 1 && frappe.route_flags.return_to_email_account) {
+			var route = frappe.get_prev_route();
 			delete frappe.route_flags.return_to_email_account;
 			frappe.route_flags.set_domain_values = true
 

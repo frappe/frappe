@@ -158,7 +158,7 @@ def runquery(q='', ret=0, from_export=0):
 	if frappe.form_dict.get('simple_query') or frappe.form_dict.get('is_simple'):
 		if not q: q = frappe.form_dict.get('simple_query') or frappe.form_dict.get('query')
 		if q.split()[0].lower() != 'select':
-			raise Exception, 'Query must be a SELECT'
+			raise Exception('Query must be a SELECT')
 
 		as_dict = cint(frappe.form_dict.get('as_dict'))
 		res = frappe.db.sql(q, as_dict = as_dict, as_list = not as_dict, formatted=formatted)
@@ -209,7 +209,7 @@ def runquery(q='', ret=0, from_export=0):
 	qm = frappe.form_dict.get('query_max') or ''
 	if qm and qm.strip():
 		if qm.split()[0].lower() != 'select':
-			raise Exception, 'Query (Max) must be a SELECT'
+			raise Exception('Query (Max) must be a SELECT')
 		if not frappe.form_dict.get('simple_query'):
 			qm = add_match_conditions(qm, tl)
 

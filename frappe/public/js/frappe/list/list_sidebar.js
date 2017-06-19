@@ -212,7 +212,7 @@ frappe.views.ListSidebar = Class.extend({
 						.then(function() {
 							d.hide();
 						}, function(err) {
-							msgprint(err);
+							frappe.msgprint(err);
 						});
 				}
 			});
@@ -273,15 +273,15 @@ frappe.views.ListSidebar = Class.extend({
 		var $dropdown = this.page.sidebar.find('.email-account-dropdown');
 		var divider = false;
 
-		if(has_common(roles, ["System Manager", "Administrator"])) {
+		if(has_common(frappe.user_roles, ["System Manager", "Administrator"])) {
 			$('<li class="new-email-account"><a>'+ __("New Email Account") +'</a></li>')
 				.appendTo($dropdown)
 		}
 
-		accounts = frappe.boot.email_accounts;
+		var accounts = frappe.boot.email_accounts;
 
 		accounts.forEach(function(account) {
-			email_account = (account.email_id == "All Accounts")? "All Accounts": account.email_account;
+			var email_account = (account.email_id == "All Accounts")? "All Accounts": account.email_account;
 			var route = ["List", "Communication", "Inbox", email_account].join('/');
 			if(!divider) {
 				$('<li role="separator" class="divider"></li>').appendTo($dropdown);
@@ -318,9 +318,9 @@ frappe.views.ListSidebar = Class.extend({
 				me.defined_category = r.message;
 				if (r.message.defined_cat ){
 					me.defined_category = r.message.defined_cat
-					 me.cats = {};
+					me.cats = {};
 					//structure the tag categories
-					for (i in me.defined_category){
+					for (var i in me.defined_category){
 						if (me.cats[me.defined_category[i].category]===undefined){
 							me.cats[me.defined_category[i].category]=[me.defined_category[i].tag];
 						}else{

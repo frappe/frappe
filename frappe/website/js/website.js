@@ -159,12 +159,9 @@ $.extend(frappe, {
 			.html('<div class="content"><i class="'+icon+' text-muted"></i><br>'
 				+text+'</div>').appendTo(document.body);
 	},
-	hide_message: function(text) {
-		$('.message-overlay').remove();
-	},
 	get_sid: function() {
 		var sid = getCookie("sid");
-		return sid && sid!=="Guest";
+		return sid && sid !== "Guest";
 	},
 	get_modal: function(title, body_html) {
 		var modal = $('<div class="modal" style="overflow: auto;" tabindex="-1">\
@@ -366,7 +363,7 @@ function ask_to_login() {
 // check if logged in?
 $(document).ready(function() {
 	window.full_name = getCookie("full_name");
-	window.logged_in = getCookie("sid") && getCookie("sid")!=="Guest";
+	var logged_in = getCookie("sid") && getCookie("sid") !== "Guest";
 	$("#website-login").toggleClass("hide", logged_in ? true : false);
 	$("#website-post-login").toggleClass("hide", logged_in ? false : true);
 	$(".logged-in").toggleClass("hide", logged_in ? false : true);

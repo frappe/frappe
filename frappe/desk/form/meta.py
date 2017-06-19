@@ -14,6 +14,8 @@ from frappe.model.utils import render_include
 from frappe.build import scrub_html_template
 
 ######
+from six import iteritems
+
 
 def get_meta(doctype, cached=True):
 	if cached and not frappe.conf.developer_mode:
@@ -153,7 +155,7 @@ class FormMeta(Meta):
 			app = module.__name__.split(".")[0]
 			templates = {}
 			if hasattr(module, "form_grid_templates"):
-				for key, path in module.form_grid_templates.iteritems():
+				for key, path in iteritems(module.form_grid_templates):
 					templates[key] = get_html_format(frappe.get_app_path(app, path))
 
 				self.set("__form_grid_templates", templates)

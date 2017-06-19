@@ -78,7 +78,7 @@ def go_to_module(module_name, item=None):
 		page = "List/" + module_name
 		m = find('#page-desktop [data-link="{0}"] .app-icon'.format(page))
 	if not m:
-		raise Exception, "Module {0} not found".format(module_name)
+		raise Exception("Module {0} not found".format(module_name))
 
 	m[0].click()
 	wait_for_page(page)

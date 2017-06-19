@@ -68,7 +68,7 @@ def install_app(name):
 			reload(site)
 		else:
 			# will only come via direct API
-			frappe.throw("Listing app not allowed")
+			frappe.throw(_("Listing app not allowed"))
 
 	app_hooks = frappe.get_hooks(app_name=name)
 	if app_hooks.get('hide_in_installer'):

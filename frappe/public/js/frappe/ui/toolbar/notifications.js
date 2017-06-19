@@ -2,9 +2,9 @@ frappe.provide("frappe.ui.notifications")
 
 frappe.ui.notifications.update_notifications = function() {
 	frappe.ui.notifications.total = 0;
-	var doctypes = keys(frappe.boot.notification_info.open_count_doctype).sort();
-	var modules = keys(frappe.boot.notification_info.open_count_module).sort();
-	var other = keys(frappe.boot.notification_info.open_count_other).sort();
+	var doctypes = Object.keys(frappe.boot.notification_info.open_count_doctype).sort();
+	var modules = Object.keys(frappe.boot.notification_info.open_count_module).sort();
+	var other = Object.keys(frappe.boot.notification_info.open_count_other).sort();
 
 	// clear toolbar / sidebar notifications
 	frappe.ui.notifications.dropdown_notification = $("#dropdown-notification").empty();

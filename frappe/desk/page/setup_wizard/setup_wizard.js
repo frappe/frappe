@@ -155,7 +155,7 @@ frappe.wiz.Wizard = Class.extend({
 				}, 2000);
 			},
 			error: function(r) {
-				var d = msgprint(__("There were errors."));
+				var d = frappe.msgprint(__("There were errors."));
 				d.custom_onhide = function() {
 					frappe.set_route(me.page_name, me.slides.length - 1);
 				};
@@ -229,14 +229,14 @@ frappe.wiz.WizardSlide = Class.extend({
 		}
 
 		this.$body = $(frappe.render_template("setup_wizard_page", {
-				help: __(this.help),
-				title:__(this.title),
-				main_title:__(this.wiz.title),
-				step: this.id + 1,
-				name: this.name,
-				css_class: this.css_class || "",
-				slides_count: this.wiz.slides.length
-			})).appendTo(this.$wrapper);
+			help: __(this.help),
+			title:__(this.title),
+			main_title:__(this.wiz.title),
+			step: this.id + 1,
+			name: this.name,
+			css_class: this.css_class || "",
+			slides_count: this.wiz.slides.length
+		})).appendTo(this.$wrapper);
 
 		this.body = this.$body.find(".form")[0];
 
@@ -314,7 +314,7 @@ frappe.wiz.WizardSlide = Class.extend({
 		//setup mousefree navigation
 		this.$body.on('keypress', function(e) {
 			if(e.which === 13) {
-				$target = $(e.target);
+				var $target = $(e.target);
 				if($target.hasClass('prev-btn')) {
 					me.prev();
 				} else if($target.hasClass('btn-attach')) {
@@ -469,7 +469,7 @@ function load_frappe_slides() {
 			var data = frappe.wiz.regional_data;
 
 			slide.get_input("country").empty()
-				.add_options([""].concat(keys(data.country_info).sort()));
+				.add_options([""].concat(Object.keys(data.country_info).sort()));
 
 
 			slide.get_input("currency").empty()
@@ -559,7 +559,7 @@ function load_frappe_slides() {
 		],
 		help: __('The first user will become the System Manager (you can change this later).'),
 		onload: function(slide) {
-			if(user!=="Administrator") {
+			if(frappe.session.user!=="Administrator") {
 				slide.form.fields_dict.password.$wrapper.toggle(false);
 				slide.form.fields_dict.email.$wrapper.toggle(false);
 				if(frappe.boot.user.first_name || frappe.boot.user.last_name) {
@@ -580,7 +580,7 @@ function load_frappe_slides() {
 		},
 		css_class: "single-column"
 	};
-};
+}
 
 frappe.wiz.on("before_load", function() {
 	load_frappe_slides();

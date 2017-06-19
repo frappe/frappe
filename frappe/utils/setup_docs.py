@@ -10,6 +10,8 @@ from __future__ import unicode_literals, print_function
 import os, json, frappe, shutil, re
 from frappe.website.context import get_context
 from frappe.utils import markdown
+from six import iteritems
+
 
 class setup_docs(object):
 	def __init__(self, app):
@@ -294,7 +296,7 @@ class setup_docs(object):
 				return '{% raw %}' + matchobj.group(0) + '{% endraw %}'
 
 		cnt = 0
-		for path, context in pages.iteritems():
+		for path, context in iteritems(pages):
 			print("Writing {0}".format(path))
 
 			# set this for get_context / website libs
@@ -420,7 +422,7 @@ class setup_docs(object):
 			"images/up.png": "img/up.png"
 		}
 
-		for source, target in copy_files.iteritems():
+		for source, target in iteritems(copy_files):
 			source_path = frappe.get_app_path("frappe", "public", source)
 			if os.path.isdir(source_path):
 				if not os.path.exists(os.path.join(assets_path, target)):

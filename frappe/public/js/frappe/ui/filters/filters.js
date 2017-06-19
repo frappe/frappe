@@ -105,7 +105,7 @@ frappe.ui.FilterList = Class.extend({
 				// This gives a predictable stats order
 				me.wrapper.find(".filter-stat").empty();
 				$.each(me.stats, function (i, v) {
-						me.render_filters(v, (r.message|| {})[v.name]);
+					me.render_filters(v, (r.message|| {})[v.name]);
 				});
 			}
 		});
@@ -149,8 +149,8 @@ frappe.ui.FilterList = Class.extend({
 		}
 
 		if(options.length>0) {
-			for (i in stat) {
-				for (o in options) {
+			for (var i in stat) {
+				for (var o in options) {
 					if (stat[i][0] == options[o].value) {
 						if (field.name=="docstatus") {
 							labels[i] = options[o].label
@@ -353,7 +353,7 @@ frappe.ui.FilterList = Class.extend({
 			fieldname: fieldname,
 			condition: condition,
 			value: value
-        });
+		});
 
 		this.filters.push(filter);
 
@@ -460,8 +460,7 @@ frappe.ui.Filter = Class.extend({
 					? __("values separated by commas")
 					: __("use % as wildcard"))+'</div>');
 			} else {
-				me.set_field(me.field.df.parent, me.field.df.fieldname, null,
-					 condition);
+				me.set_field(me.field.df.parent, me.field.df.fieldname, null, condition);
 			}
 		});
 
@@ -512,7 +511,7 @@ frappe.ui.Filter = Class.extend({
 
 		var original_docfield = me.fieldselect.fields_by_name[doctype][fieldname];
 		if(!original_docfield) {
-			msgprint(__("Field {0} is not selectable.", [fieldname]));
+			frappe.msgprint(__("Field {0} is not selectable.", [fieldname]));
 			return;
 		}
 
@@ -784,7 +783,7 @@ frappe.ui.FieldSelect = Class.extend({
 
 		// old style
 		if(doctype.indexOf(".")!==-1) {
-			parts = doctype.split(".");
+			var parts = doctype.split(".");
 			doctype = parts[0];
 			fieldname = parts[1];
 		}
@@ -857,14 +856,14 @@ frappe.ui.FieldSelect = Class.extend({
 			var label = __(df.label) + ' (' + __(df.parent) + ')';
 			var table = df.parent;
 		}
-		if(frappe.model.no_value_type.indexOf(df.fieldtype)==-1 &&
+		if(frappe.model.no_value_type.indexOf(df.fieldtype) == -1 &&
 			!(me.fields_by_name[df.parent] && me.fields_by_name[df.parent][df.fieldname])) {
-				this.options.push({
-					label: label,
-					value: table + "." + df.fieldname,
-					fieldname: df.fieldname,
-					doctype: df.parent
-				})
+			this.options.push({
+				label: label,
+				value: table + "." + df.fieldname,
+				fieldname: df.fieldname,
+				doctype: df.parent
+			});
 			if(!me.fields_by_name[df.parent]) me.fields_by_name[df.parent] = {};
 			me.fields_by_name[df.parent][df.fieldname] = df;
 		}

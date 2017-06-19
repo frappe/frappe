@@ -20,8 +20,8 @@ def get(name):
 		return docs
 	else:
 		frappe.response['403'] = 1
-		raise frappe.PermissionError, 'No read permission for Page %s' % \
-			(page.title or name)
+		raise frappe.PermissionError('No read permission for Page %s' %(page.title or name))
+
 
 @frappe.whitelist(allow_guest=True)
 def getpage():

@@ -26,12 +26,12 @@ frappe.defaults = {
 		return d;
 	},
 	get_global_default: function(key) {
-		var d = sys_defaults[key];
+		var d = frappe.sys_defaults[key];
 		if($.isArray(d)) d = d[0];
 		return d;
 	},
 	get_global_defaults: function(key) {
-		var d = sys_defaults[key];
+		var d = frappe.sys_defaults[key];
 		if(!$.isArray(d)) d = [d];
 		return d;
 	},

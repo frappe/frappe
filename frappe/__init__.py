@@ -6,6 +6,7 @@ globals attached to frappe module
 """
 from __future__ import unicode_literals, print_function
 
+from six import iteritems
 from werkzeug.local import Local, release_local
 import os, sys, importlib, inspect, json
 
@@ -149,6 +150,7 @@ def init(site, sites_path=None, new_site=False):
 	local.jenv = None
 	local.jloader =None
 	local.cache = {}
+	local.meta_cache = {}
 	local.form_dict = _dict()
 	local.session = _dict()
 
@@ -276,9 +278,9 @@ def msgprint(msg, title=None, raise_exception=0, as_table=False, indicator=None,
 			import inspect
 
 			if inspect.isclass(raise_exception) and issubclass(raise_exception, Exception):
-				raise raise_exception, encode(msg)
+				raise raise_exception(encode(msg))
 			else:
-				raise ValidationError, encode(msg)
+				raise ValidationError(encode(msg))
 
 	if flags.mute_messages:
 		_raise_exception()
@@ -756,7 +758,7 @@ def get_doc_hooks():
 	if not hasattr(local, 'doc_events_hooks'):
 		hooks = get_hooks('doc_events', {})
 		out = {}
-		for key, value in hooks.iteritems():
+		for key, value in iteritems(hooks):
 			if isinstance(key, tuple):
 				for doctype in key:
 					append_hook(out, doctype, value)
@@ -1341,3 +1343,17 @@ def safe_eval(code, eval_globals=None, eval_locals=None):
 	eval_globals.update(whitelisted_globals)
 
 	return eval(code, eval_globals, eval_locals)
+
+def get_active_domains():
+	""" get the domains set in the Domain Settings as active domain """
+
+	active_domains = cache().hget("domains", "active_domains") or None
+	if active_domains is None:
+		domains = get_all("Has Domain", filters={ "parent": "Domain Settings" },
+			fields=["domain"], distinct=True)
+
+		active_domains = [row.get("domain") for row in domains]
+		active_domains.append("")
+		cache().hset("domains", "active_domains", active_domains)
+
+	return active_domains

@@ -7,3 +7,5 @@ Geo
 Desk
 Integrations
 Printing
+Contacts
+TestModule
