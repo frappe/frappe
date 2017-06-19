@@ -104,7 +104,7 @@ frappe.search.utils = {
 		var me = this;
 		var out = [];
 		var firstKeyword = keywords.split(" ")[0];
-		if(firstKeyword.toLowerCase() === "new") {
+		if(firstKeyword.toLowerCase() === __("new")) {
 			frappe.boot.user.can_create.forEach(function (item) {
 				var level = me.fuzzy_search(keywords.substr(4), item);
 				if(level) {
