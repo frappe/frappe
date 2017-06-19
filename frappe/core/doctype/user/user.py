@@ -240,9 +240,9 @@ class User(Document):
 
 		link = self.reset_password()
 
-		app_title = [t for t in frappe.get_hooks('app_title') if t != 'Frappe Framework']
+		app_title = [t for t in frappe.get_hooks('app_title') if t == 'ERPNext']
 		if app_title:
-			subject = _("Welcome to {0}").format(app_title[0])
+			subject = _("Welcome to {0}").format(frappe.db.get_default('company'))
 		else:
 			subject = _("Complete Registration")
 
@@ -403,11 +403,6 @@ class User(Document):
 				frappe.msgprint(_("Username {0} already exists").format(self.username))
 				self.suggest_username()
 
-			self.username = ""
-
-		# should be made up of characters, numbers and underscore only
-		if self.username and not re.match(r"^[\w]+$", self.username):
-			frappe.msgprint(_("Username should not contain any special characters other than letters, numbers and underscore"))
 			self.username = ""
 
 	def password_strength_test(self):
