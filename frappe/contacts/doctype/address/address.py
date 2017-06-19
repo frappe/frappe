@@ -13,6 +13,8 @@ from jinja2 import TemplateSyntaxError
 from frappe.utils.user import is_website_user
 from frappe.model.naming import make_autoname
 from frappe.core.doctype.dynamic_link.dynamic_link import deduplicate_dynamic_links
+from six import iteritems
+
 
 class Address(Document):
 	def __setup__(self):
@@ -191,7 +193,7 @@ def address_query(doctype, txt, searchfield, start, page_len, filters):
 	link_name = filters.pop('link_name')
 
 	condition = ""
-	for fieldname, value in filters.iteritems():
+	for fieldname, value in iteritems(filters):
 		condition += " and {field}={value}".format(
 			field=fieldname,
 			value=value

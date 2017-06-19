@@ -9,6 +9,8 @@ from frappe.utils import (get_url, scrub_urls, strip, expand_relative_urls, cint
 	split_emails, to_markdown, markdown, encode, random_string)
 import email.utils
 from frappe.utils import parse_addr
+from six import iteritems
+
 
 def get_email(recipients, sender='', msg='', subject='[No Subject]',
 	text_content = None, footer=None, print_html=None, formatted=None, attachments=None,
@@ -209,7 +211,7 @@ class EMail:
 		}
 
 		# reset headers as values may be changed.
-		for key, val in headers.iteritems():
+		for key, val in iteritems(headers):
 			self.set_header(key, val)
 
 		# call hook to enable apps to modify msg_root before sending

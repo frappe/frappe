@@ -2,6 +2,8 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
+
+from six import iteritems
 from six.moves import range
 import time, _socket, poplib, imaplib, email, email.utils, datetime, chardet, re, hashlib
 from email_reply_parser import EmailReplyParser
@@ -343,7 +345,7 @@ class EmailServer:
 			return
 
 		self.imap.select("Inbox")
-		for uid, operation in uid_list.iteritems():
+		for uid, operation in iteritems(uid_list):
 			if not uid: continue
 
 			op = "+FLAGS" if operation == "Read" else "-FLAGS"

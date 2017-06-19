@@ -2,6 +2,9 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
+
+from six import iteritems
+
 """
 bootstrap client session
 """
@@ -179,7 +182,7 @@ def load_translations(bootinfo):
 		messages[name] = frappe._(name)
 
 	# only untranslated
-	messages = {k:v for k, v in messages.iteritems() if k!=v}
+	messages = {k:v for k, v in iteritems(messages) if k!=v}
 
 	bootinfo["__messages"] = messages
 
