@@ -43,4 +43,5 @@ before_script:
 script:
   - set -e
   - bench --verbose run-tests
+  - bench reinstall --yes
   - bench run-ui-tests --ci
