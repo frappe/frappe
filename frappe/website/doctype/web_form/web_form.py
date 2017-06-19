@@ -436,7 +436,7 @@ def delete(web_form, name):
 	if frappe.session.user == owner and web_form.allow_delete:
 		frappe.delete_doc(web_form.doc_type, name, ignore_permissions=True)
 	else:
-		raise frappe.PermissionError, "Not Allowed"
+		raise frappe.PermissionError("Not Allowed")
 
 def has_web_form_permission(doctype, name, ptype='read'):
 	if frappe.session.user=="Guest":

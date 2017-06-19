@@ -117,8 +117,8 @@ def json_handler(obj):
 		return repr(obj)
 
 	else:
-		raise TypeError, """Object of type %s with value of %s is not JSON serializable""" % \
-			(type(obj), repr(obj))
+		raise TypeError("""Object of type %s with value of %s is not JSON serializable""" % \
+						(type(obj), repr(obj)))
 
 def as_page():
 	"""print web page"""
