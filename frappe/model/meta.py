@@ -492,7 +492,7 @@ def trim_tables(doctype=None):
 def clear_cache(doctype=None):
 	cache = frappe.cache()
 
-	if doctype in frappe.local.meta_cache:
+	if getattr(frappe.local, 'meta_cache') and (doctype in frappe.local.meta_cache):
 		del frappe.local.meta_cache[doctype]
 
 	for key in ('is_table', 'doctype_modules'):
