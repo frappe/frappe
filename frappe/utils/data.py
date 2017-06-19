@@ -55,7 +55,10 @@ def get_datetime(datetime_str=None):
 	if not datetime_str or (datetime_str or "").startswith("0000-00-00"):
 		return None
 
-	return parser.parse(datetime_str)
+	try:
+		return datetime.datetime.strptime(datetime_str, DATETIME_FORMAT)
+	except ValueError:
+		return parser.parse(datetime_str)
 
 def to_timedelta(time_str):
 	if isinstance(time_str, basestring):
@@ -438,7 +441,7 @@ def money_in_words(number, main_currency = None, fraction_currency=None):
 
 	number_format = frappe.db.get_value("Currency", main_currency, "number_format", cache=True) or \
 		frappe.db.get_default("number_format") or "#,###.##"
-		
+
 	fraction_length = get_number_format_info(number_format)[2]
 
 	n = "%.{0}f".format(fraction_length) % number
