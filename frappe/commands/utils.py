@@ -326,6 +326,33 @@ def run_tests(context, app=None, module=None, doctype=None, test=(), driver=None
 
 	sys.exit(ret)
 
+@click.command('run-ui-tests')
+@click.option('--app', help="App to run tests on, leave blank for all apps")
+@click.option('--ci', is_flag=True, default=False, help="Run in CI environment")
+@pass_context
+def run_ui_tests(context, app=None, ci=False):
+	"Run UI tests"
+	import subprocess
+
+	site = get_site(context)
+	frappe.init(site=site)
+
+	if app is None:
+		app = ",".join(frappe.get_installed_apps())
+
+	cmd = [
+		'./node_modules/.bin/nightwatch',
+		'--config', './apps/frappe/frappe/nightwatch.js',
+		'--app', app,
+		'--site', site
+	]
+
+	if ci:
+		cmd.extend(['--env', 'ci_server'])
+
+	bench_path = frappe.utils.get_bench_path()
+	subprocess.call(cmd, cwd=bench_path)
+
 @click.command('serve')
 @click.option('--port', default=8000)
 @click.option('--profile', is_flag=True, default=False)
@@ -459,6 +486,7 @@ commands = [
 	request,
 	reset_perms,
 	run_tests,
+	run_ui_tests,
 	serve,
 	set_config,
 	watch,
