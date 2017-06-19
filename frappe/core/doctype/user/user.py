@@ -549,7 +549,7 @@ def test_password_strength(new_password, key=None, old_password=None, user_data=
 		minimum_password_score = cint(frappe.db.get_single_value("System Settings", "minimum_password_score")) or 0
 
 		password_policy_validation_passed = False
-		if result['score'] > minimum_password_score:
+		if result['score'] >= minimum_password_score:
 			password_policy_validation_passed = True
 
 		result['feedback']['password_policy_validation_passed'] = password_policy_validation_passed
