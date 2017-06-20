@@ -192,10 +192,11 @@ class TestDocument(unittest.TestCase):
 		d.ref_type = doctype
 		d.ref_name = name
 
+		d.save()
+
 		link_count = frappe.cache().get_value('_link_count') or {}
 		old_count = link_count.get((doctype, name)) or 0
 
-		d.save()
 		frappe.db.commit()
 
 		link_count = frappe.cache().get_value('_link_count') or {}
