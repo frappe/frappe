@@ -29,7 +29,8 @@ from frappe import _
 def get_meta(doctype, cached=True):
 	if cached:
 		if not frappe.local.meta_cache.get(doctype):
-			frappe.local.meta_cache[doctype] = frappe.cache().hget("meta", doctype, lambda: Meta(doctype))
+			frappe.local.meta_cache[doctype] = frappe.cache().hget("meta", doctype,
+				lambda: Meta(doctype))
 		return frappe.local.meta_cache[doctype]
 	else:
 		return Meta(doctype)

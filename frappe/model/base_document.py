@@ -432,7 +432,7 @@ class BaseDocument(object):
 
 		missing = []
 
-		for df in self.meta.get("fields", {"reqd": 1}):
+		for df in self.meta.get("fields", {"reqd": ('=', 1)}):
 			if self.get(df.fieldname) in (None, []) or not strip_html(cstr(self.get(df.fieldname))).strip():
 				missing.append((df.fieldname, get_msg(df)))
 
@@ -456,7 +456,7 @@ class BaseDocument(object):
 		cancelled_links = []
 
 		for df in (self.meta.get_link_fields()
-				 + self.meta.get("fields", {"fieldtype":"Dynamic Link"})):
+				 + self.meta.get("fields", {"fieldtype": ('=', "Dynamic Link")})):
 			docname = self.get(df.fieldname)
 
 			if docname:
@@ -543,7 +543,7 @@ class BaseDocument(object):
 		if frappe.flags.in_import or self.is_new() or self.flags.ignore_validate_constants:
 			return
 
-		constants = [d.fieldname for d in self.meta.get("fields", {"set_only_once": 1})]
+		constants = [d.fieldname for d in self.meta.get("fields", {"set_only_once": ('=',1)})]
 		if constants:
 			values = frappe.db.get_value(self.doctype, self.name, constants, as_dict=True)
 
@@ -649,7 +649,7 @@ class BaseDocument(object):
 		if self.flags.ignore_save_passwords:
 			return
 
-		for df in self.meta.get('fields', {'fieldtype': 'Password'}):
+		for df in self.meta.get('fields', {'fieldtype': ('=', 'Password')}):
 			new_password = self.get(df.fieldname)
 			if new_password and not self.is_dummy_password(new_password):
 				# is not a dummy password like '*****'
@@ -811,7 +811,7 @@ class BaseDocument(object):
 	def _extract_images_from_text_editor(self):
 		from frappe.utils.file_manager import extract_images_from_doc
 		if self.doctype != "DocType":
-			for df in self.meta.get("fields", {"fieldtype":"Text Editor"}):
+			for df in self.meta.get("fields", {"fieldtype": ('=', "Text Editor")}):
 				extract_images_from_doc(self, df.fieldname)
 
 def _filter(data, filters, limit=None):
@@ -820,23 +820,28 @@ def _filter(data, filters, limit=None):
 		"key": ["in", "val"], "key": ["not in", "val"], "key": "^val",
 		"key" : True (exists), "key": False (does not exist) }"""
 
-	out = []
+	out, _filters = [], {}
 
-	for d in data:
-		add = True
+	# setup filters as tuples
+	if filters:
 		for f in filters:
 			fval = filters[f]
 
-			if fval is True:
-				fval = ("not None", fval)
-			elif fval is False:
-				fval = ("None", fval)
-			elif not isinstance(fval, (tuple, list)):
-				if isinstance(fval, basestring) and fval.startswith("^"):
+			if not isinstance(fval, (tuple, list)):
+				if fval is True:
+					fval = ("not None", fval)
+				elif fval is False:
+					fval = ("None", fval)
+				elif isinstance(fval, basestring) and fval.startswith("^"):
 					fval = ("^", fval[1:])
 				else:
 					fval = ("=", fval)
 
+			_filters[f] = fval
+
+	for d in data:
+		add = True
+		for f, fval in iteritems(_filters):
 			if not frappe.compare(getattr(d, f, None), fval[0], fval[1]):
 				add = False
 				break

@@ -11,14 +11,26 @@ ignore_doctypes = ("DocType", "Print Format", "Role", "Module Def", "Communicati
 
 def notify_link_count(doctype, name):
 	'''updates link count for given document'''
+	if hasattr(frappe.local, 'link_count'):
+		if (doctype, name) in frappe.local.link_count:
+			frappe.local.link_count[(doctype, name)] += 1
+		else:
+			frappe.local.link_count[(doctype, name)] = 1
+
+def flush_local_link_count():
+	'''flush from local before ending request'''
+	if not getattr(frappe.local, 'link_count', None):
+		return
+
 	link_count = frappe.cache().get_value('_link_count')
 	if not link_count:
 		link_count = {}
 
-	if not (doctype, name) in link_count:
-		link_count[(doctype, name)] = 1
-	else:
-		link_count[(doctype, name)] += 1
+		for key, value in frappe.local.link_count.items():
+			if key in link_count:
+				link_count[key] += frappe.local.link_count[key]
+			else:
+				link_count[key] = frappe.local.link_count[key]
 
 	frappe.cache().set_value('_link_count', link_count)
 

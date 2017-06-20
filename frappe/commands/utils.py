@@ -305,26 +305,18 @@ def console(context):
 def run_tests(context, app=None, module=None, doctype=None, test=(), driver=None, profile=False, junit_xml_output=False):
 	"Run tests"
 	import frappe.test_runner
-	from frappe.utils import sel
 	tests = test
 
 	site = get_site(context)
 	frappe.init(site=site)
 
-	if frappe.conf.run_selenium_tests and False:
-		sel.start(context.verbose, driver)
+	ret = frappe.test_runner.main(app, module, doctype, context.verbose, tests=tests,
+		force=context.force, profile=profile, junit_xml_output=junit_xml_output)
+	if len(ret.failures) == 0 and len(ret.errors) == 0:
+		ret = 0
 
-	try:
-		ret = frappe.test_runner.main(app, module, doctype, context.verbose, tests=tests,
-			force=context.force, profile=profile, junit_xml_output=junit_xml_output)
-		if len(ret.failures) == 0 and len(ret.errors) == 0:
-			ret = 0
-	finally:
-		pass
-		if frappe.conf.run_selenium_tests:
-			sel.close()
-
-	sys.exit(ret)
+	if os.environ.get('CI'):
+		sys.exit(ret)
 
 @click.command('run-ui-tests')
 @click.option('--app', help="App to run tests on, leave blank for all apps")

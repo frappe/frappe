@@ -20,6 +20,7 @@ from frappe.utils import now, get_datetime, cstr
 from frappe import _
 from types import StringType, UnicodeType
 from frappe.utils.global_search import sync_global_search
+from frappe.model.utils.link_count import flush_local_link_count
 from six import iteritems
 
 
@@ -726,7 +727,10 @@ class Database:
 		self.sql("commit")
 		frappe.local.rollback_observers = []
 		self.flush_realtime_log()
+		self.enqueue_global_search()
+		flush_local_link_count()
 
+	def enqueue_global_search(self):
 		if frappe.flags.update_global_search:
 			try:
 				frappe.enqueue('frappe.utils.global_search.sync_global_search',

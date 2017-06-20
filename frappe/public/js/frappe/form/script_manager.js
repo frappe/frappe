@@ -73,6 +73,8 @@ frappe.ui.form.ScriptManager = Class.extend({
 		var handlers = this.get_handlers(event_name, doctype, name, callback);
 		if(callback) handlers.push(callback);
 
+		this.frm.selected_doc = frappe.get_doc(doctype, name);
+
 		return $.when.apply($, $.map(handlers, function(fn) { return fn(); }));
 	},
 	get_handlers: function(event_name, doctype, name, callback) {
@@ -187,11 +189,16 @@ frappe.ui.form.ScriptManager = Class.extend({
 		}
 	},
 	copy_from_first_row: function(parentfield, current_row, fieldnames) {
-		var doclist = this.frm.doc[parentfield];
-		if(doclist.length===1 || doclist[0]===current_row) return;
+		var data = this.frm.doc[parentfield];
+		if(data.length===1 || data[0]===current_row) return;
+
+		if(typeof fieldnames==='string') {
+			fieldnames = [fieldnames];
+		}
 
 		$.each(fieldnames, function(i, fieldname) {
-			current_row[fieldname] = doclist[0][fieldname];
+			frappe.model.set_value(current_row.doctype, current_row.name, fieldname,
+				data[0][fieldname]);
 		});
 	}
 });

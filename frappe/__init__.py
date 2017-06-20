@@ -146,6 +146,7 @@ def init(site, sites_path=None, new_site=False):
 	local.role_permissions = {}
 	local.valid_columns = {}
 	local.new_doc_templates = {}
+	local.link_count = {}
 
 	local.jenv = None
 	local.jloader =None
