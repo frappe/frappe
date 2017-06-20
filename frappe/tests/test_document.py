@@ -196,13 +196,13 @@ class TestDocument(unittest.TestCase):
 		old_count = link_count.get((doctype, name)) or 0
 
 		d.save()
+		frappe.db.commit()
 
 		link_count = frappe.cache().get_value('_link_count') or {}
 		new_count = link_count.get((doctype, name)) or 0
 
 		self.assertEquals(old_count + 1, new_count)
 
-		frappe.db.commit()
 		before_update = frappe.db.get_value(doctype, name, 'idx')
 
 		update_link_count()
