@@ -1079,7 +1079,7 @@ apps/frappe/frappe/permissions.py +274,Row,Zeile
 DocType: DocType,Track Changes,Änderungen verfolgen
 DocType: Workflow State,Check,Überprüfen
 DocType: Razorpay Settings,API Key,API-Schlüssel
-DocType: Email Account,Send unsubscribe message in email,Senden Abmelden Nachricht per E-Mail
+DocType: Email Account,Send unsubscribe message in email,Abmelden-Link in der E-Mail-Nachricht senden
 apps/frappe/frappe/public/js/frappe/form/toolbar.js +81,Edit Title,Titel bearbeiten
 apps/frappe/frappe/desk/page/modules/modules.js +24,Install Apps,Apps installieren
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +66,Fieldname which will be the DocType for this link field.,"Feldname, der der DocType für dieses Verknüpfungsfeld sein wird."
