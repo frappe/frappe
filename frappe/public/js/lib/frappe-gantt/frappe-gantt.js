@@ -154,6 +154,11 @@ return /******/ (function(modules) { // webpackBootstrap
 				task._start = moment(task.start, self.config.date_format);
 				task._end = moment(task.end, self.config.date_format);
 	
+				// make task invalid if duration too large
+				if (task._end.diff(task._start, 'years') > 10) {
+					task.end = null;
+				}
+	
 				// cache index
 				task._index = i;
 	
