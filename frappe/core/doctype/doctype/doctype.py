@@ -50,6 +50,7 @@ class DocType(Document):
 			self.permissions = []
 
 		self.scrub_field_names()
+		self.set_default_in_list_view()
 		self.validate_series()
 		self.validate_document_type()
 		validate_fields(self)
@@ -71,6 +72,16 @@ class DocType(Document):
 
 		if self.default_print_format and not self.custom:
 			frappe.throw(_('Standard DocType cannot have default print format, use Customize Form'))
+
+	def set_default_in_list_view(self):
+		'''Set default in-list-view for first 4 mandatory fields'''
+		if not [d.fieldname for d in self.fields if d.in_list_view]:
+			cnt = 0
+			for d in self.fields:
+				if d.reqd and not d.hidden:
+					d.in_list_view = 1
+					cnt += 1
+					if cnt == 4: break
 
 	def check_developer_mode(self):
 		"""Throw exception if not developer mode or via patch"""
