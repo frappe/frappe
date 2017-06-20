@@ -7,10 +7,11 @@ import frappe
 import os
 from frappe import _
 from frappe.model.document import Document
-import dropbox
+import dropbox, json
 from frappe.utils.backups import new_backup
 from frappe.utils.background_jobs import enqueue
 from urlparse import urlparse, parse_qs
+from frappe.integrations.utils import make_post_request
 from frappe.utils import (cint, split_emails, get_request_site_address, cstr,
 	get_files_path, get_backups_path, encode, get_url)
 
@@ -80,8 +81,16 @@ def backup_to_dropbox():
 
 	# upload database
 	dropbox_settings = get_dropbox_settings()
+
 	if not dropbox_settings['access_token']:
-		return
+		access_token = generate_oauth2_access_token_from_oauth1_token(dropbox_settings)
+
+		if not access_token.get('oauth2_token'):
+			return
+
+		dropbox_settings['access_token'] = access_token['oauth2_token']
+		set_dropbox_access_token(access_token['oauth2_token'])
+
 
 	dropbox_client = dropbox.Dropbox(dropbox_settings['access_token'])
 	backup = new_backup(ignore_files=True)
@@ -174,7 +183,9 @@ def get_dropbox_settings(redirect_uri=False):
 		"app_secret": settings.get_password(fieldname="app_secret_key", raise_exception=False)
 			if settings.app_secret_key else frappe.conf.dropbox_secret_key,
 		'access_token': settings.get_password('dropbox_access_token', raise_exception=False)
-			if settings.dropbox_access_token else ''
+			if settings.dropbox_access_token else '',
+		'access_key': settings.get_password('dropbox_access_key', raise_exception=False),
+		'access_secret': settings.get_password('dropbox_access_secret', raise_exception=False)
 	}
 
 	if redirect_uri:
@@ -248,3 +259,14 @@ def dropbox_auth_finish(return_access_token=False):
 def set_dropbox_access_token(access_token):
 	frappe.db.set_value("Dropbox Settings", None, 'dropbox_access_token', access_token)
 	frappe.db.commit()
+
+def generate_oauth2_access_token_from_oauth1_token(dropbox_settings=None):
+	url = "https://api.dropboxapi.com/2/auth/token/from_oauth1"
+	headers = {"Content-Type": "application/json"}
+	auth = (dropbox_settings["app_key"], dropbox_settings["app_secret"])
+	data = {
+		"oauth1_token": dropbox_settings["access_key"],
+		"oauth1_token_secret": dropbox_settings["access_secret"]
+	}
+
+	return make_post_request(url, auth=auth, headers=headers, data=json.dumps(data))
