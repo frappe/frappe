@@ -25,7 +25,7 @@ frappe.ui.form.on('Dropbox Settings', {
 				freeze: true,
 				callback: function(r) {
 					if(!r.exc) {
-						window.open(r.message.redirect_to);
+						window.open(r.message.auth_url);
 					}
 				}
 			})

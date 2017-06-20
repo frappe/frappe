@@ -203,9 +203,18 @@ def get_dropbox_settings(redirect_uri=False):
 
 @frappe.whitelist()
 def get_redirect_url():
-	return {
-		"redirect_to": "{0}/setup_dropbox?site={1}".format(frappe.conf.dropbox_broker_site, get_url())
-	}
+	url = "{0}/api/method/dropbox_erpnext_broker.www.setup_dropbox.get_authotize_url".format(frappe.conf.dropbox_broker_site)
+
+	try:
+		response = make_post_request(url, data={"site": get_url()})
+		if response.get("message"):
+			return response["message"]
+
+	except Exception as e:
+		frappe.log_error()
+		frappe.throw(
+			_("Something went wrong while generating dropbox access token. Please check error log for more details.")
+		)
 
 @frappe.whitelist()
 def get_dropbox_authorize_url():
@@ -235,7 +244,9 @@ def dropbox_auth_finish(return_access_token=False):
 		app_details["app_key"],
 		app_details["app_secret"],
 		app_details["rediret_uri"],
-		{'dropbox-auth-csrf-token': callback.state},
+		{
+			'dropbox-auth-csrf-token': callback.state
+		},
 		"dropbox-auth-csrf-token"
 	)
 
