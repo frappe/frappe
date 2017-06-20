@@ -318,7 +318,14 @@ frappe.new_doc = function (doctype, opts) {
 		if(frappe.create_routes[doctype]) {
 			frappe.set_route(frappe.create_routes[doctype]);
 		} else {
-			frappe.ui.form.quick_entry(doctype, function(doc) {
+			var trimmed_doctype = doctype.replace(/ /g, '');
+			var controller_name = "QuickEntryController";
+
+			if(frappe.ui.form[trimmed_doctype + "QuickEntry"]){
+				controller_name = trimmed_doctype + "QuickEntry";
+			}
+
+			new frappe.ui.form[controller_name](doctype, function(doc) {
 				//frappe.set_route('List', doctype);
 				var title = doc.name;
 				var title_field = frappe.get_meta(doc.doctype).title_field;
