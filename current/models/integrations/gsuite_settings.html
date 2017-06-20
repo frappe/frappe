@@ -4,7 +4,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>frappe.boot</title>
+	<title>GSuite Settings</title>
 	<meta name="generator" content="frappe">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
@@ -22,7 +22,7 @@
     
 
 		</head>
-<body data-path="current/api/frappe.boot">
+<body data-path="current/models/integrations/gsuite_settings">
 	<div class="main-section">
 		<div>
 					<nav class="navbar navbar-default navbar-main" role="navigation">
@@ -95,7 +95,7 @@
                 <div data-html-block="hero"></div>
                 <div class="container" data-html-block="content">
                 
-<div class="page-container" id="page-current/api/frappe.boot" data-path="{{ pathname }}"
+<div class="page-container" id="page-current/models/integrations/gsuite_settings" data-path="{{ pathname }}"
 	>
 	<div class="row ">
 		
@@ -110,8 +110,8 @@
 <ul class="breadcrumb">
 	<li>
 		<span class="fa fa-angle-left"></span>
-		<a href="https://frappe.github.io/frappe//current/api">
-		Frappe Framework API</a>
+		<a href="https://frappe.github.io/frappe//current/models/integrations">
+		Module integrations</a>
 	</li>
 	
 </ul>
@@ -121,7 +121,7 @@
 						
 					</div>
 					<div class="col-sm-8 col-xs-6">
-						<h1>frappe.boot</h1>
+						<h1>GSuite Settings</h1>
 					</div>
 					<div class="col-sm-4 col-xs-6">
 						
@@ -131,46 +131,230 @@
 				</div>
 			</div>
 			<div class="page_content">
-<!-- title: frappe.boot --><div class="dev-header">
+<!-- title: GSuite Settings -->
+
+
+
+
+
+<div class="dev-header">
 
 <a class="btn btn-default btn-sm" disabled style="margin-bottom: 10px;">
 	Version 7.x.x</a>
 
 
-	<a class="btn btn-default btn-sm" href="https://github.com/frappe/frappe/blob/develop/frappe/boot.py"
+	<a class="btn btn-default btn-sm" href="https://github.com/frappe/frappe/tree/develop/frappe/integrations/doctype/gsuite_settings"
 		target="_blank" style="margin-left: 10px; margin-bottom: 10px;"><i class="octicon octicon-mark-github"></i> Source</a>
 
 </div>
 
+<span class="label label-info">Single</span>
 
+
+
+
+
+
+<h3>Fields</h3>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th style="width: 5%">Sr</th>
+            <th style="width: 25%">Fieldname</th>
+            <th style="width: 20%">Type</th>
+            <th style="width: 25%">Label</th>
+            <th style="width: 25%">Options</th>
+        </tr>
+    </thead>
+    <tbody>
+        
+        <tr >
+            <td>1</td>
+            <td ><code>enable</code></td>
+            <td >
+                Check</td>
+            <td >
+                Enable
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr class="info">
+            <td>2</td>
+            <td ><code>google_credentials</code></td>
+            <td >
+                Section Break</td>
+            <td >
+                Google Credentials
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>3</td>
+            <td ><code>client_id</code></td>
+            <td >
+                Data</td>
+            <td >
+                Client ID
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>4</td>
+            <td ><code>client_secret</code></td>
+            <td >
+                Password</td>
+            <td >
+                Client Secret
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>5</td>
+            <td ><code>allow_gsuite_access</code></td>
+            <td >
+                Button</td>
+            <td >
+                Allow GSuite access
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr class="info">
+            <td>6</td>
+            <td ><code>google_apps_script</code></td>
+            <td >
+                Section Break</td>
+            <td >
+                Google Apps Script
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>7</td>
+            <td ><code>script_url</code></td>
+            <td >
+                Data</td>
+            <td >
+                Script URL
+                <p class="text-muted small">
+                    If you aren't using own publish Google Apps Script webapp you can use the default https://script.google.com/macros/s/AKfycbxIFOx3301xwtF2IFPJ4pUQGqkNF3hBiBebppWkeKn6fKZRQvk/exec </p>
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>8</td>
+            <td ><code>script_code</code></td>
+            <td >
+                HTML</td>
+            <td >
+                Script Code
+                <p class="text-muted small">
+                    Copy and paste this code into and empty Code.gs in your project at script.google.com</p>
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>9</td>
+            <td ><code>run_script_test</code></td>
+            <td >
+                Button</td>
+            <td >
+                Run Script Test
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>10</td>
+            <td ><code>refresh_token</code></td>
+            <td >
+                Password</td>
+            <td class="text-muted" title="Hidden">
+                refresh_token
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>11</td>
+            <td ><code>authorization_code</code></td>
+            <td >
+                Password</td>
+            <td class="text-muted" title="Hidden">
+                Authorization Code
+                
+            </td>
+            <td></td>
+        </tr>
+        
+    </tbody>
+</table>
+
+
+    <hr>
+    <h3>Controller</h3>
+    <h4>frappe.integrations.doctype.gsuite_settings.gsuite_settings</h4>
+
+    
 
 
 
 	
         
+	<h3 style="font-weight: normal;">Class <b>GSuiteSettings</b></h3>
+    
+    <p style="padding-left: 30px;"><i>Inherits from frappe.model.document.Document</i></h4>
+    
+    <div class="docs-attr-desc"><p></p>
+</div>
+    <div style="padding-left: 30px;">
+        
+        
     
     
 	<p class="docs-attr-name">
-        <a name="frappe.boot.add_home_page" href="#frappe.boot.add_home_page" class="text-muted small">
+        <a name="get_access_token" href="#get_access_token" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.boot.<b>add_home_page</b>
-        <i class="text-muted">(bootinfo, docs)</i>
+		<b>get_access_token</b>
+        <i class="text-muted">(self)</i>
     </p>
-	<div class="docs-attr-desc"><p>load home page</p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
 	<br>
 
+        
+    </div>
+    <hr>
+
 	
 
 	
         
     
-    
+    <p><span class="label label-info">Public API</span>
+        <br><code>/api/method/frappe.integrations.doctype.gsuite_settings.gsuite_settings.gsuite_callback</code>
+    </p>
 	<p class="docs-attr-name">
-        <a name="frappe.boot.add_timezone_info" href="#frappe.boot.add_timezone_info" class="text-muted small">
+        <a name="frappe.integrations.doctype.gsuite_settings.gsuite_settings.gsuite_callback" href="#frappe.integrations.doctype.gsuite_settings.gsuite_settings.gsuite_callback" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.boot.<b>add_timezone_info</b>
-        <i class="text-muted">(bootinfo)</i>
+		frappe.integrations.doctype.gsuite_settings.gsuite_settings.<b>gsuite_callback</b>
+        <i class="text-muted">(code=None)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
@@ -183,9 +367,27 @@
     
     
 	<p class="docs-attr-name">
-        <a name="frappe.boot.get_allowed_pages" href="#frappe.boot.get_allowed_pages" class="text-muted small">
+        <a name="frappe.integrations.doctype.gsuite_settings.gsuite_settings.run_gsuite_script" href="#frappe.integrations.doctype.gsuite_settings.gsuite_settings.run_gsuite_script" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.boot.<b>get_allowed_pages</b>
+		frappe.integrations.doctype.gsuite_settings.gsuite_settings.<b>run_gsuite_script</b>
+        <i class="text-muted">(option, filename=None, template_id=None, destination_id=None, json_data=None)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    <p><span class="label label-info">Public API</span>
+        <br><code>/api/method/frappe.integrations.doctype.gsuite_settings.gsuite_settings.run_script_test</code>
+    </p>
+	<p class="docs-attr-name">
+        <a name="frappe.integrations.doctype.gsuite_settings.gsuite_settings.run_script_test" href="#frappe.integrations.doctype.gsuite_settings.gsuite_settings.run_script_test" class="text-muted small">
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
+		frappe.integrations.doctype.gsuite_settings.gsuite_settings.<b>run_script_test</b>
         <i class="text-muted">()</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
@@ -194,233 +396,14 @@
 
 	
 
-	
-        
+
     
     
-	<p class="docs-attr-name">
-        <a name="frappe.boot.get_allowed_reports" href="#frappe.boot.get_allowed_reports" class="text-muted small">
-            <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.boot.<b>get_allowed_reports</b>
-        <i class="text-muted">()</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
-
-	
-
-	
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="frappe.boot.get_bootinfo" href="#frappe.boot.get_bootinfo" class="text-muted small">
-            <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.boot.<b>get_bootinfo</b>
-        <i class="text-muted">()</i>
-    </p>
-	<div class="docs-attr-desc"><p>build and return boot info</p>
-</div>
-	<br>
-
-	
-
-	
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="frappe.boot.get_column" href="#frappe.boot.get_column" class="text-muted small">
-            <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.boot.<b>get_column</b>
-        <i class="text-muted">(doctype)</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
-
-	
-
-	
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="frappe.boot.get_fullnames" href="#frappe.boot.get_fullnames" class="text-muted small">
-            <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.boot.<b>get_fullnames</b>
-        <i class="text-muted">()</i>
-    </p>
-	<div class="docs-attr-desc"><p>map of user fullnames</p>
-</div>
-	<br>
-
-	
-
-	
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="frappe.boot.get_gsuite_status" href="#frappe.boot.get_gsuite_status" class="text-muted small">
-            <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.boot.<b>get_gsuite_status</b>
-        <i class="text-muted">()</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
-
-	
-
-	
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="frappe.boot.get_letter_heads" href="#frappe.boot.get_letter_heads" class="text-muted small">
-            <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.boot.<b>get_letter_heads</b>
-        <i class="text-muted">()</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
-
-	
-
-	
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="frappe.boot.get_unseen_notes" href="#frappe.boot.get_unseen_notes" class="text-muted small">
-            <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.boot.<b>get_unseen_notes</b>
-        <i class="text-muted">()</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
-
-	
-
-	
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="frappe.boot.get_user" href="#frappe.boot.get_user" class="text-muted small">
-            <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.boot.<b>get_user</b>
-        <i class="text-muted">(bootinfo)</i>
-    </p>
-	<div class="docs-attr-desc"><p>get user info</p>
-</div>
-	<br>
-
-	
-
-	
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="frappe.boot.get_user_page_or_report" href="#frappe.boot.get_user_page_or_report" class="text-muted small">
-            <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.boot.<b>get_user_page_or_report</b>
-        <i class="text-muted">(parent)</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
-
-	
-
-	
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="frappe.boot.load_conf_settings" href="#frappe.boot.load_conf_settings" class="text-muted small">
-            <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.boot.<b>load_conf_settings</b>
-        <i class="text-muted">(bootinfo)</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
-
-	
-
-	
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="frappe.boot.load_desktop_icons" href="#frappe.boot.load_desktop_icons" class="text-muted small">
-            <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.boot.<b>load_desktop_icons</b>
-        <i class="text-muted">(bootinfo)</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
-
-	
-
-	
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="frappe.boot.load_print" href="#frappe.boot.load_print" class="text-muted small">
-            <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.boot.<b>load_print</b>
-        <i class="text-muted">(bootinfo, doclist)</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
-
-	
-
-	
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="frappe.boot.load_print_css" href="#frappe.boot.load_print_css" class="text-muted small">
-            <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.boot.<b>load_print_css</b>
-        <i class="text-muted">(bootinfo, print_settings)</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
-
-	
-
-	
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="frappe.boot.load_translations" href="#frappe.boot.load_translations" class="text-muted small">
-            <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.boot.<b>load_translations</b>
-        <i class="text-muted">(bootinfo)</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
-
-	
-
 
 
 <!-- autodoc -->
+<!-- jinja -->
+<!-- static -->
 </div>
 		</div>
 	</div>
