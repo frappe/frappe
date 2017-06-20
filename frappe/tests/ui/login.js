@@ -9,9 +9,9 @@ module.exports = {
 			.assert.title('Login')
 			.assert.visible('#login_email', 'Check if login box is visible')
 			.setValue("#login_email", "Administrator")
-			.setValue("#login_password", "admin")
+			.setValue("#login_password", "frappe")
 			.click(".btn-login")
-			.waitForElementVisible("#body_div", 15000);
+			.waitForElementVisible("#body_div", 20000);
 	},
 	after: browser => {
 		browser.end();
