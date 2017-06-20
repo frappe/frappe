@@ -47,7 +47,7 @@ class BlogPost(WebsiteGenerator):
 	def get_context(self, context):
 		# this is for double precaution. usually it wont reach this code if not published
 		if not cint(self.published):
-			raise Exception, "This blog has not been published yet!"
+			raise Exception("This blog has not been published yet!")
 
 		# temp fields
 		context.full_name = get_fullname(self.owner)

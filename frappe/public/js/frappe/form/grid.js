@@ -981,11 +981,6 @@ frappe.ui.form.GridRow = Class.extend({
 			if (this.columns_list && this.columns_list.slice(-1)[0]===column) {
 				field.$input.attr('data-last-input', 1);
 			}
-			field.$input.on('change', function(e) {
-				field.$input.trigger('blur');
-				me.doc[df.fieldname] = field.get_value();
-				me.grid.set_value(df.fieldname, me.doc[df.fieldname], me.doc);
-			});
 		}
 
 		this.set_arrow_keys(field);
@@ -1143,11 +1138,13 @@ frappe.ui.form.GridRow = Class.extend({
 
 		// format values if no frm
 		if(!df) {
-			df = this.grid.visible_columns.find((set) => {
-				return set[0].fieldname === fieldname;
-			})[0];
-
-			if(this.doc) var txt = frappe.format(this.doc[fieldname], df, null, this.doc);
+			df = this.grid.visible_columns.find((col) => {
+				return col[0].fieldname === fieldname;
+			});
+			if(df && this.doc) {
+				var txt = frappe.format(this.doc[fieldname], df[0],
+					null, this.doc);
+			}
 		}
 
 		if(txt===undefined && this.frm) {

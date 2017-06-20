@@ -78,4 +78,6 @@ ul.tree-children {
   left: auto !important;
   right: 23px;
 }
-
+.results {
+  direction: ltr;
+}

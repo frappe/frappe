@@ -68,6 +68,7 @@ def get_data():
 			"module_name": 'Contacts',
 			"type": 'module',
 			"icon": "octicon octicon-book",
-			"color": '#FFAEDB'
+			"color": '#FFAEDB',
+			"hidden": 1,
 		},
 	]

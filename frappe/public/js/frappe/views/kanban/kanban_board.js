@@ -14,10 +14,15 @@ frappe.provide("frappe.views");
 			cards: [],
 			columns: [],
 			filters_modified: false,
-			cur_list: {}
+			cur_list: {},
+			empty_state: true
 		},
 		actionCallbacks: {
 			init: function (updater, opts) {
+				updater.set({
+					empty_state: true
+				});
+
 				get_board(opts.board_name)
 					.then(function (board) {
 						var card_meta = get_card_meta(opts);
@@ -39,7 +44,8 @@ frappe.provide("frappe.views");
 							card_meta: card_meta,
 							cards: cards,
 							columns: columns,
-							cur_list: opts.cur_list
+							cur_list: opts.cur_list,
+							empty_state: false
 						});
 					})
 					.fail(function() {
@@ -145,8 +151,8 @@ frappe.provide("frappe.views");
 				if (field && !quick_entry) {
 					return insert_doc(doc)
 						.then(function (r) {
-							var doc = r.message;
-							var card = prepare_card(doc, state, doc);
+							var updated_doc = r.message;
+							var card = prepare_card(doc, state, updated_doc);
 							var cards = state.cards.slice();
 							cards.push(card);
 							updater.set({ cards: cards });
@@ -269,6 +275,7 @@ frappe.provide("frappe.views");
 			prepare();
 			store.on('change:cur_list', setup_restore_columns);
 			store.on('change:columns', setup_restore_columns);
+			store.on('change:empty_state', show_empty_state);
 		}
 
 		function prepare() {
@@ -405,6 +412,18 @@ frappe.provide("frappe.views");
 			});
 		}
 
+		function show_empty_state() {
+			var empty_state = store.getState().empty_state;
+
+			if(empty_state) {
+				self.$kanban_board.find('.kanban-column').hide();
+				self.$kanban_board.find('.kanban-empty-state').show();
+			} else {
+				self.$kanban_board.find('.kanban-column').show();
+				self.$kanban_board.find('.kanban-empty-state').hide();
+			}
+		}
+
 		init();
 
 		return self;
@@ -513,10 +532,12 @@ frappe.provide("frappe.views");
 						// not already working -- double entry
 						e.preventDefault();
 						var card_title = $textarea.val();
-						fluxify.doAction('add_card', card_title, column.title);
-						$btn_add.show();
-						$new_card_area.hide();
-						$textarea.val('');
+						fluxify.doAction('add_card', card_title, column.title)
+							.then(() => {
+								$btn_add.show();
+								$new_card_area.hide();
+								$textarea.val('');
+							});
 					}
 				}
 			});

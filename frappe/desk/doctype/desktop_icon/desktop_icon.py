@@ -9,6 +9,8 @@ from frappe import _
 import json
 import random
 from frappe.model.document import Document
+from six import iteritems
+
 
 class DesktopIcon(Document):
 	def validate(self):
@@ -323,7 +325,7 @@ def sync_from_app(app):
 
 	if isinstance(modules, dict):
 		modules_list = []
-		for m, desktop_icon in modules.iteritems():
+		for m, desktop_icon in iteritems(modules):
 			desktop_icon['module_name'] = m
 			modules_list.append(desktop_icon)
 	else:

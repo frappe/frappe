@@ -35,6 +35,7 @@ class DocType(Document):
 		- Check fieldnames (duplication etc)
 		- Clear permission table for child tables
 		- Add `amended_from` and `amended_by` if Amendable"""
+
 		self.check_developer_mode()
 
 		self.validate_name()
@@ -214,6 +215,10 @@ class DocType(Document):
 
 		if not frappe.flags.in_install and hasattr(self, 'before_update'):
 			self.sync_global_search()
+
+		# clear from local cache
+		if self.name in frappe.local.meta_cache:
+			del frappe.local.meta_cache[self.name]
 
 	def sync_global_search(self):
 		'''If global search settings are changed, rebuild search properties for this table'''
@@ -419,7 +424,7 @@ def validate_fields(meta):
 	def check_in_list_view(d):
 		if d.in_list_view and (d.fieldtype in not_allowed_in_list_view):
 			frappe.throw(_("'In List View' not allowed for type {0} in row {1}").format(d.fieldtype, d.idx))
-			
+
 	def check_in_global_search(d):
 		if d.in_global_search and d.fieldtype in no_value_fields:
 			frappe.throw(_("'In Global Search' not allowed for type {0} in row {1}")

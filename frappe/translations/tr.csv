@@ -2265,14 +2265,14 @@ DocType: Website Settings,Subdomain,Subdomain
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +437,Region,Bölge
 apps/frappe/frappe/config/integrations.py +58,Settings for OAuth Provider,OAuth Sağlayıcısı Ayarları
 apps/frappe/frappe/public/js/frappe/form/workflow.js +35,Current status,Şu anki durum
-DocType: Web Form,Allow Delete,Sil izin ver
+DocType: Web Form,Allow Delete,Silmeye izin ver
 DocType: Email Alert,Message Examples,Mesaj Örnekleri
 DocType: Web Form,Login Required,Giriş Gerekli
 apps/frappe/frappe/config/website.py +42,Write titles and introductions to your blog.,Blogunuza başlıklar ve tanıtımları yazın.
 DocType: Email Account,Email Login ID,E-posta Giriş Kimliği
 DocType: Email Account,Email Login ID,E-posta Giriş Kimliği
 apps/frappe/frappe/templates/pages/integrations/payment-cancel.html +3,Payment Cancelled,Ödeme İptal Edildi
-,Addresses And Contacts,Adresleri Ve İletişim
+,Addresses And Contacts,Adresler Ve İletişim
 apps/frappe/frappe/core/doctype/error_log/error_log_list.js +12,Clear Error Logs,Net hata Günlükleri
 apps/frappe/frappe/templates/emails/feedback_request_url.html +2,Please select a rating,Lütfen bir derecelendirme seçin
 DocType: Email Account,Notify if unreplied for (in mins),(Dakika olarak) için okunmayan eğer bildir
@@ -2665,7 +2665,7 @@ apps/frappe/frappe/core/doctype/user/user.py +478,Email Account added multiple t
 DocType: Payment Gateway,Payment Gateway,Ödeme Gateway
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +32,"To give acess to a role for only specific records, check the Apply User Permissions. User Permissions are used to limit users with such role to specific records.","Kullanıcı İzinlerini Uygula onay, sadece belirli kayıtlar için bir rol çağındaki vermek. Kullanıcı İzinleri belirli kayıtlara böyle role sahip kullanıcılara sınırlamak için kullanılır."
 DocType: Portal Settings,Hide Standard Menu,Standart Menü gizle
-apps/frappe/frappe/config/setup.py +145,Add / Manage Email Domains.,Ekle/Yönet Email Domains
+apps/frappe/frappe/config/setup.py +145,Add / Manage Email Domains.,Ekle/Yönet E-posta alan-adları
 apps/frappe/frappe/workflow/doctype/workflow/workflow.py +70,Cannot cancel before submitting. See Transition {0},Göndermeden önce iptal edilemiyor. Bkz Geçiş {0}
 apps/frappe/frappe/www/printview.py +205,Print Format {0} is disabled,Baskı Biçimi {0} devre dışı
 DocType: Email Alert,Send days before or after the reference date,Önce veya referans tarihinden sonra gün Gönder
@@ -3050,7 +3050,7 @@ DocType: Unhandled Email,Message-id,İleti kimliği
 DocType: Patch Log,Patch,Yama
 DocType: Async Task,Failed,Başarısız
 apps/frappe/frappe/core/page/data_import_tool/importer.py +54,No data found,Veri bulunamadı
-DocType: Web Form,Allow Comments,Yorumlar izin ver
+DocType: Web Form,Allow Comments,Yorumlara izin ver
 DocType: User,Background Style,Arkaplan Stili
 apps/frappe/frappe/model/rename_doc.py +77,merged {0} into {1},içine {0} birleştirilmiş {1}
 DocType: System Settings,mm-dd-yyyy,mm-dd-yyyy
