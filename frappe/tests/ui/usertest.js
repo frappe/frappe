@@ -29,6 +29,17 @@ module.exports = {
       .assert.visible('a[data-name="test@test.com"]', 'Test User Created Successfully');
   },
 
+  // 'Check User Status': browser => {
+  //   browser
+  //     .assert.visible('div.result-list > div > div:nth-child(1) > div.list-item > div.list-item__content.ellipsis.list-item__content--flex-2 > a[data-name="test@test.com"]','Test User Exists')
+  //     .assert.visible('div.result-list > div > div:nth-child(1) > div.list-item > div[title="User Type: Website User"]', 'Test user is website user')
+  //     .click('a[data-name="test@test.com"]')
+  //     .pause(pageLoad)
+  //     .assert.title('testUser - test@test.com')
+  //     .click('div#page-Form/User button.btn.btn-default.btn-add.btn-sm')
+  //     .pause(pageLoad)
+  // },
+
   'Set User Password': browser =>{
     browser
       .waitForElementVisible('body' ,pageLoad)
