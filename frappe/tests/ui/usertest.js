@@ -26,7 +26,7 @@ module.exports = {
       .click('div.modal.fade.in > div.modal-dialog > div > div.modal-header > div > div.col-xs-5 > div > button[type="button"].btn.btn-primary.btn-sm')
       .url(browser.launch_url + '/desk#List/User/List')
       .pause(pageLoad)
-      .assert.visible('a[data-name="test@test.com"]', 'New User Created');
+      .assert.visible('a[data-name="test@test.com"]', 'Test User Created Successfully');
   },
 
   'Delete User': browser =>{
@@ -36,8 +36,12 @@ module.exports = {
       .pause(pageLoad)
       .assert.title('testUser - test@test.com')
       .click('[data-page-route="Form/User"] .menu-btn-group')
-      .click('div#page-Form\2f User li:nth-child(13) > a')
+      .click('ul[class="dropdown-menu"][role="menu"] > li:nth-child(13) > a')
+      .waitForElementVisible('div.modal.fade.in > div.modal-dialog > div > div.modal-header', pageLoad)
+      .click('div.modal.fade.in > div.modal-dialog > div > div.modal-header > div > div.col-xs-5 > div > button[type="button"].btn.btn-primary.btn-sm')
       .pause(pageLoad)
+      .assert.title('User')
+      .assert.elementNotPresent('a[data-name="test@test.com"]','Test User Deleted Successfully');
   },
 
   after: browser => browser.end()
