@@ -29,6 +29,20 @@ module.exports = {
       .assert.visible('a[data-name="test@test.com"]', 'Test User Created Successfully');
   },
 
+  'Set User Password': browser =>{
+    browser
+      .waitForElementVisible('body' ,pageLoad)
+      .click('a[data-name="test@test.com"]')
+      .pause(pageLoad)
+      .assert.title('testUser - test@test.com')
+      .click('div[data-page-route="Form/User"] div:nth-child(5) > div.section-head.collapsed > a')
+      .assert.visible('div.control-input input[type=Password]','PasswordField Visible')
+      .setValue('div.control-input input[type=Password]','testpass')
+      .click('div[data-page-route="Form/User"] button.btn.btn-primary.btn-sm.primary-action')
+      .waitForElementVisible('div[data-page-route="Form/User"] h1 > span.indicator.green', pageLoad, 'Password Set Successfully')
+      .pause(pageLoad)
+  },
+
   'Delete User': browser =>{
     browser
       .waitForElementVisible('body' ,pageLoad)
