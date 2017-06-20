@@ -4,7 +4,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Address Template</title>
+	<title>contacts</title>
 	<meta name="generator" content="frappe">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
@@ -22,7 +22,7 @@
     
 
 		</head>
-<body data-path="current/models/geo/address_template">
+<body data-path="current/api/contacts">
 	<div class="main-section">
 		<div>
 					<nav class="navbar navbar-default navbar-main" role="navigation">
@@ -95,7 +95,7 @@
                 <div data-html-block="hero"></div>
                 <div class="container" data-html-block="content">
                 
-<div class="page-container" id="page-current/models/geo/address_template" data-path="{{ pathname }}"
+<div class="page-container" id="page-current/api/contacts" data-path="{{ pathname }}"
 	>
 	<div class="row ">
 		
@@ -110,8 +110,8 @@
 <ul class="breadcrumb">
 	<li>
 		<span class="fa fa-angle-left"></span>
-		<a href="https://frappe.github.io/frappe//current/models/geo">
-		Module geo</a>
+		<a href="https://frappe.github.io/frappe//current/api">
+		Frappe Framework API</a>
 	</li>
 	
 </ul>
@@ -121,7 +121,7 @@
 						
 					</div>
 					<div class="col-sm-8 col-xs-6">
-						<h1>Address Template</h1>
+						<h1>contacts</h1>
 					</div>
 					<div class="col-sm-4 col-xs-6">
 						
@@ -131,10 +131,7 @@
 				</div>
 			</div>
 			<div class="page_content">
-<!-- title: Address Template -->
-
-
-
+<!-- title: contacts -->
 
 
 <div class="dev-header">
@@ -143,181 +140,32 @@
 	Version 7.x.x</a>
 
 
-	<a class="btn btn-default btn-sm" href="https://github.com/frappe/frappe/tree/develop/frappe/geo/doctype/address_template"
+	<a class="btn btn-default btn-sm" href="https://github.com/frappe/frappe/tree/develop/contacts"
 		target="_blank" style="margin-left: 10px; margin-bottom: 10px;"><i class="octicon octicon-mark-github"></i> Source</a>
 
 </div>
 
+<h3>Package Contents</h3>
 
 
 
 
-    <p><b>Table Name:</b> <code>tabAddress Template</code></p>
-
-
-
-
-<h3>Fields</h3>
-
-<table class="table table-bordered">
-    <thead>
-        <tr>
-            <th style="width: 5%">Sr</th>
-            <th style="width: 25%">Fieldname</th>
-            <th style="width: 20%">Type</th>
-            <th style="width: 25%">Label</th>
-            <th style="width: 25%">Options</th>
-        </tr>
-    </thead>
-    <tbody>
-        
-        <tr >
-            <td>1</td>
-            <td class="danger" title="Mandatory"><code>country</code></td>
-            <td >
-                Link</td>
-            <td >
-                Country
-                
-            </td>
-            <td>
-                
-                
-
-
-<a href="https://frappe.github.io/frappe/current/models/geo/country">Country</a>
-
-
-                
-            </td>
-        </tr>
-        
-        <tr >
-            <td>2</td>
-            <td ><code>is_default</code></td>
-            <td >
-                Check</td>
-            <td >
-                Is Default
-                <p class="text-muted small">
-                    This format is used if country specific format is not found</p>
-            </td>
-            <td></td>
-        </tr>
-        
-        <tr >
-            <td>3</td>
-            <td ><code>template</code></td>
-            <td >
-                Code</td>
-            <td >
-                Template
-                <p class="text-muted small">
-                    <h4>Default Template</h4>
-<p>Uses <a href="http://jinja.pocoo.org/docs/templates/">Jinja Templating</a> and all the fields of Address (including Custom Fields if any) will be available</p>
-<pre><code>{{ address_line1 }}&lt;br&gt;
-{{ city }}&lt;br&gt;
-{{ country }}&lt;br&gt;
-</code></pre></p>
-            </td>
-            <td></td>
-        </tr>
-        
-    </tbody>
-</table>
-
-
-    <hr>
-    <h3>Controller</h3>
-    <h4>frappe.geo.doctype.address_template.address_template</h4>
-
+    <ol>
     
-
-
-
-	
-        
-	<h3 style="font-weight: normal;">Class <b>AddressTemplate</b></h3>
+        <li>
+            <a href="https://frappe.github.io/frappe/current/api/contacts/frappe.contacts.address_and_contact">frappe.contacts.address_and_contact</a>
+            
+        </li>
     
-    <p style="padding-left: 30px;"><i>Inherits from frappe.model.document.Document</i></h4>
+        <li>
+            <a href="https://frappe.github.io/frappe/current/api/contacts/frappe.contacts">frappe.contacts</a>
+            
+        </li>
     
-    <div class="docs-attr-desc"><p></p>
-</div>
-    <div style="padding-left: 30px;">
-        
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="on_trash" href="#on_trash" class="text-muted small">
-            <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		<b>on_trash</b>
-        <i class="text-muted">(self)</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
-
-        
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="on_update" href="#on_update" class="text-muted small">
-            <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		<b>on_update</b>
-        <i class="text-muted">(self)</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
-
-        
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="validate" href="#validate" class="text-muted small">
-            <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		<b>validate</b>
-        <i class="text-muted">(self)</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
-
-        
-    </div>
-    <hr>
-
-	
-
-	
-        
-    
-    <p><span class="label label-info">Public API</span>
-        <br><code>/api/method/frappe.geo.doctype.address_template.address_template.get_default_address_template</code>
-    </p>
-	<p class="docs-attr-name">
-        <a name="frappe.geo.doctype.address_template.address_template.get_default_address_template" href="#frappe.geo.doctype.address_template.address_template.get_default_address_template" class="text-muted small">
-            <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.geo.doctype.address_template.address_template.<b>get_default_address_template</b>
-        <i class="text-muted">()</i>
-    </p>
-	<div class="docs-attr-desc"><p>Get default address template (translated)</p>
-</div>
-	<br>
-
-	
-
-
-    
-    
+    </ol>
 
 
 <!-- autodoc -->
-<!-- jinja -->
-<!-- static -->
 </div>
 		</div>
 	</div>

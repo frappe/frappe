@@ -4,7 +4,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>frappe.geo.address_and_contact</title>
+	<title>GSuite Templates</title>
 	<meta name="generator" content="frappe">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
@@ -22,7 +22,7 @@
     
 
 		</head>
-<body data-path="current/api/geo/frappe.geo.address_and_contact">
+<body data-path="current/models/integrations/gsuite_templates">
 	<div class="main-section">
 		<div>
 					<nav class="navbar navbar-default navbar-main" role="navigation">
@@ -95,7 +95,7 @@
                 <div data-html-block="hero"></div>
                 <div class="container" data-html-block="content">
                 
-<div class="page-container" id="page-current/api/geo/frappe.geo.address_and_contact" data-path="{{ pathname }}"
+<div class="page-container" id="page-current/models/integrations/gsuite_templates" data-path="{{ pathname }}"
 	>
 	<div class="row ">
 		
@@ -110,8 +110,8 @@
 <ul class="breadcrumb">
 	<li>
 		<span class="fa fa-angle-left"></span>
-		<a href="https://frappe.github.io/frappe//current/api/geo">
-		geo</a>
+		<a href="https://frappe.github.io/frappe//current/models/integrations">
+		Module integrations</a>
 	</li>
 	
 </ul>
@@ -121,7 +121,7 @@
 						
 					</div>
 					<div class="col-sm-8 col-xs-6">
-						<h1>frappe.geo.address_and_contact</h1>
+						<h1>GSuite Templates</h1>
 					</div>
 					<div class="col-sm-4 col-xs-6">
 						
@@ -131,13 +131,19 @@
 				</div>
 			</div>
 			<div class="page_content">
-<!-- title: frappe.geo.address_and_contact --><div class="dev-header">
+<!-- title: GSuite Templates -->
+
+
+
+
+
+<div class="dev-header">
 
 <a class="btn btn-default btn-sm" disabled style="margin-bottom: 10px;">
 	Version 7.x.x</a>
 
 
-	<a class="btn btn-default btn-sm" href="https://github.com/frappe/frappe/blob/develop/frappe/geo/address_and_contact.py"
+	<a class="btn btn-default btn-sm" href="https://github.com/frappe/frappe/tree/develop/frappe/integrations/doctype/gsuite_templates"
 		target="_blank" style="margin-left: 10px; margin-bottom: 10px;"><i class="octicon octicon-mark-github"></i> Source</a>
 
 </div>
@@ -146,15 +152,132 @@
 
 
 
+    <p><b>Table Name:</b> <code>tabGSuite Templates</code></p>
+
+
+
+
+<h3>Fields</h3>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th style="width: 5%">Sr</th>
+            <th style="width: 25%">Fieldname</th>
+            <th style="width: 20%">Type</th>
+            <th style="width: 25%">Label</th>
+            <th style="width: 25%">Options</th>
+        </tr>
+    </thead>
+    <tbody>
+        
+        <tr >
+            <td>1</td>
+            <td class="danger" title="Mandatory"><code>template_name</code></td>
+            <td >
+                Data</td>
+            <td >
+                Template Name
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>2</td>
+            <td ><code>related_doctype</code></td>
+            <td >
+                Link</td>
+            <td >
+                Related DocType
+                
+            </td>
+            <td>
+                
+                
+
+
+<a href="https://frappe.github.io/frappe/current/models/core/doctype">DocType</a>
+
+
+                
+            </td>
+        </tr>
+        
+        <tr >
+            <td>3</td>
+            <td class="danger" title="Mandatory"><code>template_id</code></td>
+            <td >
+                Data</td>
+            <td >
+                Template ID
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>4</td>
+            <td class="danger" title="Mandatory"><code>document_name</code></td>
+            <td >
+                Data</td>
+            <td >
+                Document Name
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>5</td>
+            <td ><code>destination_id</code></td>
+            <td >
+                Data</td>
+            <td >
+                Destination ID
+                
+            </td>
+            <td></td>
+        </tr>
+        
+    </tbody>
+</table>
+
+
+    <hr>
+    <h3>Controller</h3>
+    <h4>frappe.integrations.doctype.gsuite_templates.gsuite_templates</h4>
+
+    
+
+
+
+	
+        
+	<h3 style="font-weight: normal;">Class <b>GSuiteTemplates</b></h3>
+    
+    <p style="padding-left: 30px;"><i>Inherits from frappe.model.document.Document</i></h4>
+    
+    <div class="docs-attr-desc"><p></p>
+</div>
+    <div style="padding-left: 30px;">
+        
+    </div>
+    <hr>
+
+	
+
 	
         
     
-    
+    <p><span class="label label-info">Public API</span>
+        <br><code>/api/method/frappe.integrations.doctype.gsuite_templates.gsuite_templates.create_gsuite_doc</code>
+    </p>
 	<p class="docs-attr-name">
-        <a name="frappe.geo.address_and_contact.delete_contact_and_address" href="#frappe.geo.address_and_contact.delete_contact_and_address" class="text-muted small">
+        <a name="frappe.integrations.doctype.gsuite_templates.gsuite_templates.create_gsuite_doc" href="#frappe.integrations.doctype.gsuite_templates.gsuite_templates.create_gsuite_doc" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.geo.address_and_contact.<b>delete_contact_and_address</b>
-        <i class="text-muted">(doctype, docname)</i>
+		frappe.integrations.doctype.gsuite_templates.gsuite_templates.<b>create_gsuite_doc</b>
+        <i class="text-muted">(doctype, docname, gs_template=None)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
@@ -162,121 +285,14 @@
 
 	
 
-	
-        
+
     
     
-	<p class="docs-attr-name">
-        <a name="frappe.geo.address_and_contact.filter_dynamic_link_doctypes" href="#frappe.geo.address_and_contact.filter_dynamic_link_doctypes" class="text-muted small">
-            <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.geo.address_and_contact.<b>filter_dynamic_link_doctypes</b>
-        <i class="text-muted">(doctype, txt, searchfield, start, page_len, filters)</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
-
-	
-
-	
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="frappe.geo.address_and_contact.get_permission_query_conditions" href="#frappe.geo.address_and_contact.get_permission_query_conditions" class="text-muted small">
-            <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.geo.address_and_contact.<b>get_permission_query_conditions</b>
-        <i class="text-muted">(doctype)</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
-
-	
-
-	
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="frappe.geo.address_and_contact.get_permission_query_conditions_for_address" href="#frappe.geo.address_and_contact.get_permission_query_conditions_for_address" class="text-muted small">
-            <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.geo.address_and_contact.<b>get_permission_query_conditions_for_address</b>
-        <i class="text-muted">(user)</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
-
-	
-
-	
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="frappe.geo.address_and_contact.get_permission_query_conditions_for_contact" href="#frappe.geo.address_and_contact.get_permission_query_conditions_for_contact" class="text-muted small">
-            <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.geo.address_and_contact.<b>get_permission_query_conditions_for_contact</b>
-        <i class="text-muted">(user)</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
-
-	
-
-	
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="frappe.geo.address_and_contact.get_permitted_and_not_permitted_links" href="#frappe.geo.address_and_contact.get_permitted_and_not_permitted_links" class="text-muted small">
-            <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.geo.address_and_contact.<b>get_permitted_and_not_permitted_links</b>
-        <i class="text-muted">(doctype)</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
-
-	
-
-	
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="frappe.geo.address_and_contact.has_permission" href="#frappe.geo.address_and_contact.has_permission" class="text-muted small">
-            <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.geo.address_and_contact.<b>has_permission</b>
-        <i class="text-muted">(doc, ptype, user)</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
-
-	
-
-	
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="frappe.geo.address_and_contact.load_address_and_contact" href="#frappe.geo.address_and_contact.load_address_and_contact" class="text-muted small">
-            <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.geo.address_and_contact.<b>load_address_and_contact</b>
-        <i class="text-muted">(doc, key=None)</i>
-    </p>
-	<div class="docs-attr-desc"><p>Loads address list and contact list in <code>__onload</code></p>
-</div>
-	<br>
-
-	
-
 
 
 <!-- autodoc -->
+<!-- jinja -->
+<!-- static -->
 </div>
 		</div>
 	</div>

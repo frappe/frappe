@@ -4,7 +4,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Module email</title>
+	<title>Google GSuite</title>
 	<meta name="generator" content="frappe">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
@@ -22,7 +22,7 @@
     
 
 		</head>
-<body data-path="current/models/email">
+<body data-path="user/en/guides/integration/google_gsuite">
 	<div class="main-section">
 		<div>
 					<nav class="navbar navbar-default navbar-main" role="navigation">
@@ -95,7 +95,7 @@
                 <div data-html-block="hero"></div>
                 <div class="container" data-html-block="content">
                 
-<div class="page-container" id="page-current/models/email" data-path="{{ pathname }}"
+<div class="page-container" id="page-user/en/guides/integration/google_gsuite" data-path="{{ pathname }}"
 	>
 	<div class="row ">
 		
@@ -110,8 +110,8 @@
 <ul class="breadcrumb">
 	<li>
 		<span class="fa fa-angle-left"></span>
-		<a href="https://frappe.github.io/frappe//current/models">
-		Frappe Framework: Models (DocTypes)</a>
+		<a href="https://frappe.github.io/frappe//user/en/guides/integration">
+		Integrations</a>
 	</li>
 	
 </ul>
@@ -121,7 +121,7 @@
 						
 					</div>
 					<div class="col-sm-8 col-xs-6">
-						<h1>Module email</h1>
+						
 					</div>
 					<div class="col-sm-4 col-xs-6">
 						
@@ -131,117 +131,109 @@
 				</div>
 			</div>
 			<div class="page_content">
-<!-- title: Module email -->
+<h1>Google GSuite</h1>
 
+<p>You can create and attach Google GSuite Docs to your Documents using your predefined GSuite Templates.
+These Templates could use variables from Doctype that will be automatically filled.</p>
 
-<div class="dev-header">
+<h2>1. Enable integration with Google Gsuite</h2>
 
-<a class="btn btn-default btn-sm" disabled style="margin-bottom: 10px;">
-	Version 7.x.x</a>
+<h3>1.1 Publish Google apps script</h3>
 
+<p><em>If you will use the default script you can go to 1.2</em></p>
 
-	<a class="btn btn-default btn-sm" href="https://github.com/frappe/frappe/tree/develop/frappe/email"
-		target="_blank" style="margin-left: 10px; margin-bottom: 10px;"><i class="octicon octicon-mark-github"></i> Source</a>
+<ol>
+<li>Go to <a href="https://script.google.com">https://script.google.com</a></li>
+<li>Create a new Project. Click on <strong>File &gt; New &gt; Project</strong></li>
+<li>Copy the code of <strong>Desk &gt; Explore &gt; Integrations &gt; GSuite Settings &gt; Google Apps Script</strong> to clipboard and paste to an empty Code.gs in script.google.com</li>
+<li>Save the Project. Click on <strong>File &gt; Save &gt; Enter new project name</strong></li>
+<li>Deploy the app. Click on <strong>Publish &gt; Deploy as web app</strong></li>
+<li>Copy "Current web app URL" into <strong>Desk &gt; Explore &gt; Integrations &gt; GSuite Settings &gt; Script URL</strong></li>
+<li>Click on OK but don't close the script</li>
+</ol>
 
-</div>
+<h3>1.2</h3>
 
-<h3>DocTypes for email</h3>
+<h3>1.2 Get Google access</h3>
 
+<ol>
+<li>Go to your Google project console and select your project or create a new. <a href="https://console.developers.google.com">https://console.developers.google.com</a></li>
+<li>In Library click on <strong>Google Drive API</strong> and <strong>Enable</strong></li>
+<li>Click on <strong>Credentials &gt; Create Credentials &gt; OAuth Client ID</strong></li>
+<li>Fill the form with:
+<ul>
+<li>Web Application</li>
+<li>Authorized redirect URI as  <strong>http://{{ yoursite }}/?cmd=frappe.integrations.doctype.gsuite<em>settings.gsuite</em>settings.gsuite_callback</strong></li>
+</ul></li>
+<li>Copy the Client ID and Client Secret into <strong>Desk &gt; Explore &gt; Integrations &gt; GSuite Settings &gt; Client ID and Client Secret</strong></li>
+<li>Save GSuite Settings</li>
+</ol>
 
+<h3>1.3 Test Script</h3>
 
+<ol>
+<li>Click on <strong>Allow GSuite Access</strong> and you will be redirected to select the user and give access. If you have any error please verify you are using the correct Authorized redirect URI.</li>
+<li>Click on <strong>Run Script test</strong>. You should be asked to give permission.</li>
+</ol>
 
-    <ol>
-    
-        <li>
-            <a href="https://frappe.github.io/frappe/current/models/email/standard_reply">Standard Reply</a>
-            
-        </li>
-    
-        <li>
-            <a href="https://frappe.github.io/frappe/current/models/email/email_group">Email Group</a>
-            
-        </li>
-    
-        <li>
-            <a href="https://frappe.github.io/frappe/current/models/email/auto_email_report">Auto Email Report</a>
-            
-        </li>
-    
-        <li>
-            <a href="https://frappe.github.io/frappe/current/models/email/email_group_member">Email Group Member</a>
-            
-        </li>
-    
-        <li>
-            <a href="https://frappe.github.io/frappe/current/models/email/email_account">Email Account</a>
-            
-        </li>
-    
-        <li>
-            <a href="https://frappe.github.io/frappe/current/models/email/newsletter">Newsletter</a>
-            
-        </li>
-    
-        <li>
-            <a href="https://frappe.github.io/frappe/current/models/email/email_rule">Email Rule</a>
-            
-        </li>
-    
-        <li>
-            <a href="https://frappe.github.io/frappe/current/models/email/email_queue">Email Queue</a>
-            
-        </li>
-    
-        <li>
-            <a href="https://frappe.github.io/frappe/current/models/email/email_alert_recipient">Email Alert Recipient</a>
-            
-        </li>
-    
-        <li>
-            <a href="https://frappe.github.io/frappe/current/models/email/email_alert">Email Alert</a>
-            
-        </li>
-    
-        <li>
-            <a href="https://frappe.github.io/frappe/current/models/email/email_domain">Email Domain</a>
-            
-        </li>
-    
-        <li>
-            <a href="https://frappe.github.io/frappe/current/models/email/email_queue_recipient">Email Queue Recipient</a>
-            
-        </li>
-    
-        <li>
-            <a href="https://frappe.github.io/frappe/current/models/email/email_flag_queue">Email Flag Queue</a>
-            
-        </li>
-    
-        <li>
-            <a href="https://frappe.github.io/frappe/current/models/email/unhandled_email">Unhandled Email</a>
-            
-        </li>
-    
-        <li>
-            <a href="https://frappe.github.io/frappe/current/models/email/email_unsubscribe">Email Unsubscribe</a>
-            
-        </li>
-    
-        <li>
-            <a href="https://frappe.github.io/frappe/current/models/email/newsletter_email_group">Newsletter Email Group</a>
-            
-        </li>
-    
-    </ol>
+<h2>2. GSuite Templates</h2>
 
+<h3>2.1 Google Document as Template</h3>
 
-<!-- autodoc -->
+<ol>
+<li><p>Create a new Document or use one you already have. Set variables as you need. Variables are defined with <strong><em>{{ VARIABLE }}</em></strong> with <strong><em>VARIABLE</em></strong> is the field of your Doctype</p>
+
+<p>For Example,
+    If this document will be used to employee and the Doctype has the field <strong><em>name</em></strong> then you can use it in Google Docs ad user/en/guides/integration/google_gsuite</p></li>
+<li><p>Get the ID of that Document from url of your document</p>
+
+<p>For example: in this address the ID is in bold
+https://docs.google.com/document/d/<strong>1Y2_btbwSqPIILLcJstHnSm1u5dgYE0QJspcZBImZQso</strong>/edit</p></li>
+<li><p>Get the ID of the folder where you want to place the generated documents. (You can step this point if you want to place the generated documents in Google Drive root. )</p>
+
+<p>For example: in this folder url the ID is in bold
+https://drive.google.com/drive/u/0/folders/<strong>0BxmFzZZUHbgyQzVJNzY5eG5jbmc</strong></p></li>
+</ol>
+
+<h3>2.2 Associate the Template to a Doctype</h3>
+
+<ol>
+<li>Go to <strong>Desk &gt; Explore &gt; Integrations &gt; GSuite Templates &gt; New</strong></li>
+<li>Fill the form with:
+<ul>
+<li>Template Name (Example: Employee Contract)</li>
+<li>Related DocType (Example: Employee)</li>
+<li>Template ID is the Document ID you get from your Google Docs (Example: 1Y2_btbwSqPIILLcJstHnSm1u5dgYE0QJspcZBImZQso)</li>
+<li>Document name is the name of the new files. You can use field from DocType (Example: Employee Contract of {name})</li>
+<li>Destination ID is the folder ID of your files created from this Template. (Example: 0BxmFzZZUHbgyQzVJNzY5eG5jbmc)</li>
+</ul></li>
+</ol>
+
+<h2>3. Create Documents</h2>
+
+<ol>
+<li>Go to a Document you already have a Template (Example: Employee &gt; John Doe)</li>
+<li>Click on <strong>Attach File</strong></li>
+<li>O <strong>GSuite Document</strong> section select the Template and click <strong>Attach</strong></li>
+<li>You should see the generated document is already created and attached</li>
+</ol>
+
 </div>
 		</div>
 	</div>
 </div>
 
-				<!-- edit-link -->
+				
+<div class="page-container">
+	<div class="page-content">
+	<div class="edit-container text-center">
+		<i class="fa fa-smile"></i>
+		<a class="text-muted edit" href="https://github.com/frappe/frappe/blob/develop/frappe/docs/user/en/guides/integration/google_gsuite.md">
+			Improve this page
+		</a>
+	</div>
+	</div>
+</div>
                 </div>
             </div>
 			<footer class="docs-footer">

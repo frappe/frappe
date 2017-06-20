@@ -4,7 +4,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Module email</title>
+	<title>Gender</title>
 	<meta name="generator" content="frappe">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
@@ -22,7 +22,7 @@
     
 
 		</head>
-<body data-path="current/models/email">
+<body data-path="current/models/contacts/gender">
 	<div class="main-section">
 		<div>
 					<nav class="navbar navbar-default navbar-main" role="navigation">
@@ -95,7 +95,7 @@
                 <div data-html-block="hero"></div>
                 <div class="container" data-html-block="content">
                 
-<div class="page-container" id="page-current/models/email" data-path="{{ pathname }}"
+<div class="page-container" id="page-current/models/contacts/gender" data-path="{{ pathname }}"
 	>
 	<div class="row ">
 		
@@ -110,8 +110,8 @@
 <ul class="breadcrumb">
 	<li>
 		<span class="fa fa-angle-left"></span>
-		<a href="https://frappe.github.io/frappe//current/models">
-		Frappe Framework: Models (DocTypes)</a>
+		<a href="https://frappe.github.io/frappe//current/models/contacts">
+		Module contacts</a>
 	</li>
 	
 </ul>
@@ -121,7 +121,7 @@
 						
 					</div>
 					<div class="col-sm-8 col-xs-6">
-						<h1>Module email</h1>
+						<h1>Gender</h1>
 					</div>
 					<div class="col-sm-4 col-xs-6">
 						
@@ -131,7 +131,10 @@
 				</div>
 			</div>
 			<div class="page_content">
-<!-- title: Module email -->
+<!-- title: Gender -->
+
+
+
 
 
 <div class="dev-header">
@@ -140,102 +143,101 @@
 	Version 7.x.x</a>
 
 
-	<a class="btn btn-default btn-sm" href="https://github.com/frappe/frappe/tree/develop/frappe/email"
+	<a class="btn btn-default btn-sm" href="https://github.com/frappe/frappe/tree/develop/frappe/contacts/doctype/gender"
 		target="_blank" style="margin-left: 10px; margin-bottom: 10px;"><i class="octicon octicon-mark-github"></i> Source</a>
 
 </div>
 
-<h3>DocTypes for email</h3>
 
 
 
 
-    <ol>
+    <p><b>Table Name:</b> <code>tabGender</code></p>
+
+
+
+
+<h3>Fields</h3>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th style="width: 5%">Sr</th>
+            <th style="width: 25%">Fieldname</th>
+            <th style="width: 20%">Type</th>
+            <th style="width: 25%">Label</th>
+            <th style="width: 25%">Options</th>
+        </tr>
+    </thead>
+    <tbody>
+        
+        <tr >
+            <td>1</td>
+            <td ><code>gender</code></td>
+            <td >
+                Data</td>
+            <td >
+                Gender
+                
+            </td>
+            <td></td>
+        </tr>
+        
+    </tbody>
+</table>
+
+
+    <hr>
+    <h3>Controller</h3>
+    <h4>frappe.contacts.doctype.gender.gender</h4>
+
     
-        <li>
-            <a href="https://frappe.github.io/frappe/current/models/email/standard_reply">Standard Reply</a>
-            
-        </li>
+
+
+
+	
+        
+	<h3 style="font-weight: normal;">Class <b>Gender</b></h3>
     
-        <li>
-            <a href="https://frappe.github.io/frappe/current/models/email/email_group">Email Group</a>
-            
-        </li>
+    <p style="padding-left: 30px;"><i>Inherits from frappe.model.document.Document</i></h4>
     
-        <li>
-            <a href="https://frappe.github.io/frappe/current/models/email/auto_email_report">Auto Email Report</a>
-            
-        </li>
+    <div class="docs-attr-desc"><p></p>
+</div>
+    <div style="padding-left: 30px;">
+        
+    </div>
+    <hr>
+
+	
+
+
     
-        <li>
-            <a href="https://frappe.github.io/frappe/current/models/email/email_group_member">Email Group Member</a>
-            
-        </li>
     
-        <li>
-            <a href="https://frappe.github.io/frappe/current/models/email/email_account">Email Account</a>
-            
-        </li>
+        <h4>Linked In:</h4>
+        <ul>
+        
+			
+            <li>
+
+
+<a href="https://frappe.github.io/frappe/current/models/contacts/contact">Contact</a>
+
+</li>
+			
+        
+			
+        
+			
+        
+			
+        
+        </ul>
     
-        <li>
-            <a href="https://frappe.github.io/frappe/current/models/email/newsletter">Newsletter</a>
-            
-        </li>
-    
-        <li>
-            <a href="https://frappe.github.io/frappe/current/models/email/email_rule">Email Rule</a>
-            
-        </li>
-    
-        <li>
-            <a href="https://frappe.github.io/frappe/current/models/email/email_queue">Email Queue</a>
-            
-        </li>
-    
-        <li>
-            <a href="https://frappe.github.io/frappe/current/models/email/email_alert_recipient">Email Alert Recipient</a>
-            
-        </li>
-    
-        <li>
-            <a href="https://frappe.github.io/frappe/current/models/email/email_alert">Email Alert</a>
-            
-        </li>
-    
-        <li>
-            <a href="https://frappe.github.io/frappe/current/models/email/email_domain">Email Domain</a>
-            
-        </li>
-    
-        <li>
-            <a href="https://frappe.github.io/frappe/current/models/email/email_queue_recipient">Email Queue Recipient</a>
-            
-        </li>
-    
-        <li>
-            <a href="https://frappe.github.io/frappe/current/models/email/email_flag_queue">Email Flag Queue</a>
-            
-        </li>
-    
-        <li>
-            <a href="https://frappe.github.io/frappe/current/models/email/unhandled_email">Unhandled Email</a>
-            
-        </li>
-    
-        <li>
-            <a href="https://frappe.github.io/frappe/current/models/email/email_unsubscribe">Email Unsubscribe</a>
-            
-        </li>
-    
-        <li>
-            <a href="https://frappe.github.io/frappe/current/models/email/newsletter_email_group">Newsletter Email Group</a>
-            
-        </li>
-    
-    </ol>
 
 
 <!-- autodoc -->
+<!-- jinja -->
+<!-- static -->
 </div>
 		</div>
 	</div>
