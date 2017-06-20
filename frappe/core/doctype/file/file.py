@@ -184,18 +184,15 @@ class File(NestedSet):
 				except (requests.exceptions.HTTPError, requests.exceptions.SSLError, IOError):
 					return
 
-			thumbnail = ImageOps.fit(
-				image,
-				(300, 300),
-				Image.ANTIALIAS
-			)
+			size = 300, 300
+			image.thumbnail(size)
 
 			thumbnail_url = filename + "_small." + extn
 
 			path = os.path.abspath(frappe.get_site_path("public", thumbnail_url.lstrip("/")))
 
 			try:
-				thumbnail.save(path)
+				image.save(path)
 				self.db_set("thumbnail_url", thumbnail_url)
 			except IOError:
 				frappe.msgprint(_("Unable to write file format for {0}").format(path))
