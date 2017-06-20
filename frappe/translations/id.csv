@@ -1017,7 +1017,7 @@ DocType: Website Theme,Style using CSS,Style menggunakan CSS
 apps/frappe/frappe/core/doctype/communication/communication.js +100,Reference DocType,Referensi DocType
 DocType: User,System User,Sistem Pengguna
 DocType: Report,Is Standard,Adalah Standard
-DocType: Desktop Icon,_report,_melaporkan
+DocType: Desktop Icon,_report,_laporan
 DocType: DocField,"Don't HTML Encode HTML tags like &lt;script&gt; or just characters like &lt; or &gt;, as they could be intentionally used in this field","Jangan tag HTML Encode HTML seperti &lt;script&gt; atau hanya karakter seperti &lt;atau&gt;, karena mereka dapat sengaja digunakan dalam bidang ini"
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +275,Specify a default value,Tentukan nilai default
 DocType: Website Settings,FavIcon,FavIcon
