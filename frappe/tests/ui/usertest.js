@@ -51,7 +51,7 @@ module.exports = {
       .setValue('div.control-input input[type=Password]','testpass')
       .click('div[data-page-route="Form/User"] button.btn.btn-primary.btn-sm.primary-action')
       .waitForElementVisible('div[data-page-route="Form/User"] h1 > span.indicator.green', pageLoad, 'Password Set Successfully')
-      .pause(pageLoad)
+      //.pause(pageLoad)
   },
 
   'Delete User': browser =>{
