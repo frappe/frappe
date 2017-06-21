@@ -218,12 +218,15 @@ $.extend(frappe.ui.toolbar, {
 
 frappe.ui.toolbar.clear_cache = function() {
 	frappe.assets.clear_local_storage();
-	$c('frappe.sessions.clear',{},function(r,rt){
-		if(!r.exc) {
-			frappe.show_alert(r.message);
-			location.reload(true);
+	frappe.call({
+		method: 'frappe.sessions.clear',
+		callback: function(r) {
+			if(!r.exc) {
+				frappe.show_alert({message:r.message, indicator:'green'});
+				location.reload(true);
+			}
 		}
-	});
+	})
 	return false;
 }
 

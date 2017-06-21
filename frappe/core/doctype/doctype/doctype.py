@@ -623,10 +623,24 @@ def validate_permissions_for_doctype(doctype, for_remove=False):
 	for perm in doctype.get("permissions"):
 		perm.db_update()
 
+	clear_permissions_cache(doctype.name)
+
+def clear_permissions_cache(doctype):
+	frappe.clear_cache(doctype=doctype)
+	delete_notification_count_for(doctype)
+	for user in frappe.db.sql_list("""select
+			distinct `tabHas Role`.parent
+		from
+			`tabHas Role`,
+		tabDocPerm
+			where tabDocPerm.parent = %s
+			and tabDocPerm.role = `tabHas Role`.role""", doctype):
+		frappe.clear_cache(user=user)
+
 def validate_permissions(doctype, for_remove=False):
 	permissions = doctype.get("permissions")
 	if not permissions:
-		frappe.throw(_('Enter at least one permission row'), frappe.MandatoryError)
+		frappe.msgprint(_('No Permissions Specified'), alert=True, indicator='orange')
 	issingle = issubmittable = isimportable = False
 	if doctype:
 		issingle = cint(doctype.issingle)
