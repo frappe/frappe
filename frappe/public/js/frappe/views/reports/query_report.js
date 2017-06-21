@@ -834,7 +834,7 @@ frappe.views.QueryReport = Class.extend({
 				var view_data = frappe.slickgrid_tools.get_view_data(me.columns, me.dataView);
 				var result = view_data.map(row => row.splice(1));
 
-				// rows filtered by inline_filter of slickgrid
+				// to download only visible rows
 				var visible_idx = view_data.map(row => row[0]).filter(sr_no => sr_no !== 'Sr No');
 
 				if (data.file_format_type == "CSV") {
