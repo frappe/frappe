@@ -146,18 +146,17 @@ def export_query():
 			
 		# build table from dict
 		if isinstance(data.result[0], dict):
-			for row in data.result:
-				if row:
+			for i,row in enumerate(data.result):
+				# only rows which are visible in the report
+				if row and (i+1 in visible_idx):
 					row_list = []
 					for idx in range(len(data.columns)):
 						row_list.append(row.get(columns[idx]["fieldname"],""))
 					result.append(row_list)
+				elif not row:
+					result.append([])
 		else:
 			result = result + data.result
-		
-		# filter rows by slickgrid's inline filter
-		if visible_idx:
-			result = [x for idx, x in enumerate(result) if idx == 0 or idx in visible_idx]
 
 		from frappe.utils.xlsxutils import make_xlsx
 		xlsx_file = make_xlsx(result, "Query Report")
