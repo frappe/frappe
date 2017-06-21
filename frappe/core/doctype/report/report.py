@@ -49,9 +49,10 @@ class Report(Document):
 		delete_custom_role('report', self.name)
 
 	def set_doctype_roles(self):
-		doc = frappe.get_meta(self.ref_doctype)
-		roles = [{'role': d.role} for d in doc.permissions if d.permlevel==0]
-		self.set('roles', roles)
+		if not self.roles:
+			meta = frappe.get_meta(self.ref_doctype)
+			roles = [{'role': d.role} for d in meta.permissions if d.permlevel==0]
+			self.set('roles', roles)
 
 	def is_permitted(self):
 		"""Returns true if Has Role is not set or the user is allowed."""
