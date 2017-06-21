@@ -235,10 +235,16 @@ class User(Document):
 		from frappe.utils import get_url
 
 		link = self.reset_password()
+		app_title = None
 
-		app_title = [t for t in frappe.get_hooks('app_title') if t != 'Frappe Framework']
+		method = frappe.get_hooks('get_site_info')
+		if method:
+			get_site_info = frappe.get_attr(method[0])
+			site_info = get_site_info({})
+			app_title = site_info.get('company', None)
+
 		if app_title:
-			subject = _("Welcome to {0}").format(app_title[0])
+			subject = _("Welcome to {0}").format(app_title)
 		else:
 			subject = _("Complete Registration")
 
@@ -399,11 +405,6 @@ class User(Document):
 				frappe.msgprint(_("Username {0} already exists").format(self.username))
 				self.suggest_username()
 
-			self.username = ""
-
-		# should be made up of characters, numbers and underscore only
-		if self.username and not re.match(r"^[\w]+$", self.username):
-			frappe.msgprint(_("Username should not contain any special characters other than letters, numbers and underscore"))
 			self.username = ""
 
 	def password_strength_test(self):
