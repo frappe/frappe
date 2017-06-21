@@ -39,6 +39,7 @@ class Report(Document):
 		if self.report_type == "Report Builder":
 			self.update_report_json()
 
+	def before_insert(self):
 		self.set_doctype_roles()
 
 	def on_update(self):
@@ -48,8 +49,6 @@ class Report(Document):
 		delete_custom_role('report', self.name)
 
 	def set_doctype_roles(self):
-		if self.get('roles'): return
-
 		doc = frappe.get_meta(self.ref_doctype)
 		roles = [{'role': d.role} for d in doc.permissions if d.permlevel==0]
 		self.set('roles', roles)
@@ -153,7 +152,7 @@ class Report(Document):
 				for c in columns]
 
 			out = out + [list(d) for d in result]
-			
+
 		if as_dict:
 			data = []
 			for row in out:
