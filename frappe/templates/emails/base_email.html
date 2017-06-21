@@ -1,0 +1,18 @@
+{% include 'frappe/templates/emails/header_template.html' %}
+
+<!-- End of header block -->
+    <!-- Email Content -->
+
+    <tr>
+        <td colspan="3" style="height:20px;"></td>
+    </tr>
+    <tr>
+        <td style="width:20px;"></td>
+
+        <td>{{content}}</td>
+        <td style="width:20px;"></td>
+    </tr>
+    <!-- End of content -->
+<!-- Footer block -->
+{% include 'frappe/templates/emails/footer_template.html' %}
+<!-- End Footer block -->
