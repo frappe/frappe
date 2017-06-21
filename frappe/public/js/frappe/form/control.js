@@ -1293,7 +1293,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		var controller_name = "QuickEntryController";
 
 		if(frappe.ui.form[trimmed_doctype + "QuickEntry"]){
-			var controller_name = trimmed_doctype + "QuickEntry";
+			controller_name = trimmed_doctype + "QuickEntry";
 		}
 
 		new frappe.ui.form[controller_name](doctype, function(doc) {
