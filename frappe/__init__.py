@@ -8,6 +8,7 @@ from __future__ import unicode_literals, print_function
 
 from werkzeug.local import Local, release_local
 import os, sys, importlib, inspect, json
+from premailer import transform
 
 # public
 from .exceptions import *
@@ -408,6 +409,9 @@ def sendmail(recipients=[], sender="", subject="No Subject", message="No Message
 	email_html = render_template("templates/emails/base_email.html", {
 		'content': message
 	})
+
+	# convert style tags to inline css
+	email_html = transform(email_html)
 
 	if not delayed:
 		now = True

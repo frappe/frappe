@@ -1,62 +1,62 @@
 <tr>
-	<td style="width: 20px; vertical-align: top"></td>
-	<td style="vertical-align: top;">
+	<td class="v-spacer"></td>
+	<td>
 		<table width="100%" border="0" cellpadding="0" cellspacing="0">
             <tr>
                 <td style="height: 30px;"></td>
             </tr>
             <tr>
             	<td>
-					{% if title %}<h3 style="font-size: 14px; font-family: 'Verdana', 'Geneva', sans-serif; color: #6c7680;margin:0; padding:0; text-align: left;">{{ title }}</h3>{% endif %}
+					{% if title %}<h3>{{ title }}</h3>{% endif %}
 				</td>
 			</tr>
 			<tr>
-				<td style="height: 20px;"></td>
+				<td class="h-spacer"></td>
 			</tr>
 			<tr>
                 <td>
-                	<p style="font-size: 12px; font-family: 'Verdana', 'Geneva', sans-serif; color: #6c7680;margin:0 0 15px; padding:0;text-align: left ">{{_("Dear")}} {{ first_name }}{% if last_name %} {{ last_name}}{% endif %},</p>
+                	<p>{{_("Dear")}} {{ first_name }}{% if last_name %} {{ last_name}}{% endif %},</p>
                 </td>
 			</tr>
 			<tr>
                 <td>
-					<p style="font-size: 12px; font-family: 'Verdana', 'Geneva', sans-serif; color: #6c7680;margin:0 0 15px; padding:0; text-align: left;">{{_("A new account has been created for you at {0}").format(site_url)}}.</p>
+					<p>{{_("A new account has been created for you at {0}").format(site_url)}}.</p>
                 </td>
 			</tr>
 			<tr>
-                <td style="height:10px;">
-					<p style="font-size: 12px; font-family: 'Verdana', 'Geneva', sans-serif; color: #6c7680;margin:0 0 15px; padding:0; text-align: left;">{{_("Your login id is")}}: <b>{{ user }}</b></p>
+                <td>
+					<p>{{_("Your login id is")}}: <b>{{ user }}</b></p>
                 </td>
 			</tr>
 			<tr>
-                <td style="height:10px;">
-					<p style="font-size: 12px; font-family: 'Verdana', 'Geneva', sans-serif; color: #6c7680;margin:0 0 15px; padding:0; text-align: left;">{{_("Click on the link below to complete your registration and set a new password")}}.</p>
+                <td>
+					<p>{{_("Click on the link below to complete your registration and set a new password")}}.</p>
                 </td>
 			</tr>
 			<tr>
 				<td>
-					<p style="margin: 30px 0px;">
-						<a href="{{ link }}" rel="nofollow" style="padding: 8px 20px; background-color: #7575ff; color: #fff; border-radius: 4px; text-decoration: none; line-height: 1; border-bottom: 3px solid rgba(0, 0, 0, 0.2); font-size: 14px; outline:none; font-weight: 200;">{{ _("Complete Registration") }}</a>
+					<p>
+						<a href="{{ link }}" rel="nofollow"  class="primary-btn">{{ _("Complete Registration") }}</a>
 					</p>
 				</td>
 			</tr>
 			<tr>
 				<td>
 					{% if user_fullname != "Administrator" %}
-						<p style="font-size: 12px; font-family: 'Verdana', 'Geneva', sans-serif; color: #6c7680;margin:0 0 15px; padding:0; text-align: left;">{{_("Thank you")}},<br>
+						<p>{{_("Thank you")}},<br>
 						{{ user_fullname }}</p>
 					{% endif %}
 				</td>
 			</tr>
 			<tr>
-                <td style="height:10px;"></td>
+                <td class="h-spacer"></td>
 			</tr>
 			<tr>
                 <td>
-					<p style="font-size: 14px;  font-family: 'Verdana', 'Geneva', sans-serif; color: #6c7680;margin:0; padding:0; text-align: left;">{{_("You can also copy-paste this link in your browser")}} <a style="color: #7575ff;text-decoration: none;" href="{{ link }}">{{ link }}</a></p>
+					<p>{{_("You can also copy-paste this link in your browser")}} <a style="color: #7575ff;text-decoration: none;" href="{{ link }}">{{ link }}</a></p>
                 </td>
             </tr>
 		</table>
 	</td>
-	<td style="width: 20px; vertical-align: top;"></td>
+	<td class="v-spacer"></td>
 </tr>
