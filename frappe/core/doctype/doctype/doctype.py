@@ -585,7 +585,6 @@ def validate_fields(meta):
 					frappe.throw(_("Sort field {0} must be a valid fieldname").format(fieldname),
 						InvalidFieldNameError)
 
-
 	fields = meta.get("fields")
 	fieldname_list = [d.fieldname for d in fields]
 
@@ -771,3 +770,11 @@ def init_list(doctype):
 	doc = frappe.get_meta(doctype)
 	make_boilerplate("controller_list.js", doc)
 	make_boilerplate("controller_list.html", doc)
+
+def check_if_fieldname_conflicts_with_methods(doctype, fieldname):
+	doc = frappe.get_doc({"doctype": doctype})
+	method_list = [method for method in dir(doc) if callable(getattr(doc, method))]
+
+	if fieldname in method_list:
+		frappe.throw(_("Fieldname {0} conflicting with meta object").format(fieldname))
+
