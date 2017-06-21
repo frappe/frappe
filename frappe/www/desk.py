@@ -56,8 +56,15 @@ def get_desk_assets(build_version):
 	if build_version != data["build_version"]:
 		# new build, send assets
 		for path in data["include_js"]:
-			with open(os.path.join(frappe.local.sites_path, path) ,"r") as f:
-				assets[0]["data"] = assets[0]["data"] + "\n" + unicode(f.read(), "utf-8")
+			# assets path shouldn't start with /
+			# as it points to different location altogether
+			if path.startswith('/assets/'):
+				path = path.replace('/assets/', 'assets/')
+			try:
+				with open(os.path.join(frappe.local.sites_path, path) ,"r") as f:
+					assets[0]["data"] = assets[0]["data"] + "\n" + unicode(f.read(), "utf-8")
+			except IOError as e:
+				pass
 
 		for path in data["include_css"]:
 			with open(os.path.join(frappe.local.sites_path, path) ,"r") as f:
