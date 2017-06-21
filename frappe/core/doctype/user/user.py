@@ -412,11 +412,12 @@ class User(Document):
 
 	def password_strength_test(self):
 		""" test password strength """
-		if frappe.db.get_single_value("System Settings", "enable_password_policy") and self.__new_password:
+		if self.__new_password:
 			user_data = (self.first_name, self.middle_name, self.last_name, self.email, self.birth_date)
 			result = test_password_strength(self.__new_password, '', None, user_data)
+			feedback = result.get("feedback", None)
 
-			if not result['feedback']['password_policy_validation_passed']:
+			if feedback and not feedback.get('password_policy_validation_passed', False):
 				handle_password_test_fail(result)
 
 	def suggest_username(self):
@@ -507,8 +508,9 @@ def get_perm_info(role):
 @frappe.whitelist(allow_guest=True)
 def update_password(new_password, key=None, old_password=None):
 	result = test_password_strength(new_password, key, old_password)
+	feedback = result.get("feedback", None)
 
-	if not result['feedback']['password_policy_validation_passed']:
+	if feedback and not feedback.get('password_policy_validation_passed', False):
 		handle_password_test_fail(result)
 
 	res = _get_user_for_update_password(key, old_password)
@@ -539,21 +541,28 @@ def update_password(new_password, key=None, old_password=None):
 def test_password_strength(new_password, key=None, old_password=None, user_data=[]):
 	from frappe.utils.password_strength import test_password_strength as _test_password_strength
 
+	password_policy = frappe.db.get_value("System Settings", None, 
+		["enable_password_policy", "minimum_password_score"], as_dict=True)
+
+	enable_password_policy = cint(password_policy.get("enable_password_policy", 0))
+	minimum_password_score = cint(password_policy.get("minimum_password_score", 0))
+
+	if not enable_password_policy:
+		return {}
+
 	if not user_data:
-		user_data = frappe.db.get_value('User', frappe.session.user, ['first_name', 'middle_name', 'last_name', 'email', 'birth_date'])
+		user_data = frappe.db.get_value('User', frappe.session.user, 
+			['first_name', 'middle_name', 'last_name', 'email', 'birth_date'])
 
 	if new_password:
 		result = _test_password_strength(new_password, user_inputs=user_data)
-
-		enable_password_policy = cint(frappe.db.get_single_value("System Settings", "enable_password_policy")) and True or False
-		minimum_password_score = cint(frappe.db.get_single_value("System Settings", "minimum_password_score")) or 0
-
 		password_policy_validation_passed = False
-		if result['score'] > minimum_password_score:
+
+		# score should be greater than 0 and minimum_password_score
+		if result.get('score') and result.get('score') >= minimum_password_score:
 			password_policy_validation_passed = True
 
 		result['feedback']['password_policy_validation_passed'] = password_policy_validation_passed
-
 		return result
 
 #for login

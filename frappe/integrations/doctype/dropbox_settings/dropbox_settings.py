@@ -104,7 +104,7 @@ def dropbox_callback(oauth_token=None, not_approved=False):
 @frappe.whitelist()
 def take_backup():
 	"Enqueue longjob for taking backup to dropbox"
-	enqueue("frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backup_to_dropbox", queue='long')
+	enqueue("frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backup_to_dropbox", queue='long', timeout=1500)
 	frappe.msgprint(_("Queued for backup. It may take a few minutes to an hour."))
 
 def take_backups_daily():
