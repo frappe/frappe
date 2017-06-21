@@ -104,7 +104,7 @@ def run(report_name, filters=None, user=None):
 
 	if cint(report.add_total_row) and result:
 		result = add_total_row(result, columns)
-		
+
 	return {
 		"result": result,
 		"columns": columns,
@@ -143,7 +143,7 @@ def export_query():
 		# add column headings
 		for idx in range(len(data.columns)):
 			result[0].append(columns[idx]["label"])
-			
+
 		# build table from dict
 		if isinstance(data.result[0], dict):
 			for i,row in enumerate(data.result):
