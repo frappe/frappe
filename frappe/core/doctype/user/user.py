@@ -236,9 +236,11 @@ class User(Document):
 
 		link = self.reset_password()
 
-		app_title = [t for t in frappe.get_hooks('app_title') if t == 'ERPNext']
-		if app_title:
-			subject = _("Welcome to {0}").format(frappe.db.get_default('company'))
+		method = frappe.get_hooks('get_site_info')
+		if method:
+			get_site_info = frappe.get_attr(method[0])
+			info = get_site_info({})
+			subject = _("Welcome to {0}").format(info.get('company'))
 		else:
 			subject = _("Complete Registration")
 
