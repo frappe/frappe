@@ -14,7 +14,7 @@ from frappe.model.document import Document
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 from frappe.desk.notifications import delete_notification_count_for
 from frappe.modules import make_boilerplate
-from frappe.model.db_schema import validate_column_name
+from frappe.model.db_schema import validate_column_name, validate_column_length
 import frappe.website.render
 
 class InvalidFieldNameError(frappe.ValidationError): pass
@@ -385,9 +385,10 @@ def validate_fields(meta):
 
 	1. There are no illegal characters in fieldnames
 	2. If fieldnames are unique.
-	3. Fields that do have database columns are not mandatory.
-	4. `Link` and `Table` options are valid.
-	5. **Hidden** and **Mandatory** are not set simultaneously.
+	3. Validate column length.
+	4. Fields that do have database columns are not mandatory.
+	5. `Link` and `Table` options are valid.
+	6. **Hidden** and **Mandatory** are not set simultaneously.
 	7. `Check` type field has default as 0 or 1.
 	8. `Dynamic Links` are correctly defined.
 	9. Precision is set in numeric fields and is between 1 & 6.
@@ -405,6 +406,9 @@ def validate_fields(meta):
 		duplicates = filter(None, map(lambda df: df.fieldname==fieldname and str(df.idx) or None, fields))
 		if len(duplicates) > 1:
 			frappe.throw(_("Fieldname {0} appears multiple times in rows {1}").format(fieldname, ", ".join(duplicates)))
+
+	def check_fieldname_length(fieldname):
+		validate_column_length(fieldname)
 
 	def check_illegal_mandatory(d):
 		if (d.fieldtype in no_value_fields) and d.fieldtype!="Table" and d.reqd:
@@ -598,6 +602,7 @@ def validate_fields(meta):
 		d.fieldname = d.fieldname.lower()
 		check_illegal_characters(d.fieldname)
 		check_unique_fieldname(d.fieldname)
+		check_fieldname_length(d.fieldname)
 		check_illegal_mandatory(d)
 		check_link_table_options(d)
 		check_dynamic_link_options(d)
