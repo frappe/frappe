@@ -525,19 +525,16 @@ var frappe_slides = [
 				delete slide.form.fields_dict.email;
 
 			} else {
-				this.setup_fields(slide);
+				utils.load_user_details(slide, this.setup_fields);
 			}
 		},
 
 		setup_fields: function(slide) {
-			// sample data:
-			var name = 'Prateeksha Singh';
-			var email = 'prateeksha@erpnext.com';
-
-			if(name) {
-				slide.form.fields_dict.full_name.set_input(name);
+			if(frappe.setup.data.full_name) {
+				slide.form.fields_dict.full_name.set_input(frappe.setup.data.full_name);
 			}
-			if(email) {
+			if(frappe.setup.data.email) {
+				email = frappe.setup.data.email;
 				slide.form.fields_dict.email.set_input(email);
 				if (frappe.get_gravatar(email, 200)) {
 					var $attach_user_image = slide.form.fields_dict.attach_user_image.$wrapper;
@@ -580,6 +577,18 @@ var utils = {
 				callback(slide);
 			}
 		});
+	},
+
+	load_user_details: function(slide, callback) {
+		frappe.call({
+			method: "frappe.desk.page.setup_wizard.setup_wizard.load_user_details",
+			freeze: true,
+			callback: function(r) {
+				frappe.setup.data.full_name = r.message.full_name;
+				frappe.setup.data.email = r.message.email;
+				callback(slide);
+			}
+		})
 	},
 
 	setup_language_field: function(slide) {
@@ -712,3 +721,5 @@ frappe.setup.on("before_load", function() {
 	frappe_slides.map(frappe.setup.add_slide);
 	// console.log(frappe.setup.slides);
 });
+
+

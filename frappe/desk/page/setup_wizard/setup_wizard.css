@@ -119,8 +119,6 @@
 	/*to change as per removing heading*/
 	height: 180px;
 	text-align: center;
-
-	/*Temp for gravatar demo*/
 	margin-left: 33%;
 }
 
@@ -149,7 +147,6 @@
 	-webkit-transform: translate(0px, -50%);
 }
 
-/*commonify container and overlay*/
 
 .setup-wizard-slide .img-container {
 	height: 100%;
@@ -181,7 +178,6 @@
 	cursor: pointer;
 }
 
-/*=================================*/
 
 .setup-wizard-message-image {
 	margin: 15px auto;

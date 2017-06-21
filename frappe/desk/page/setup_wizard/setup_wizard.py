@@ -197,6 +197,13 @@ def load_country():
 	country = response.json()["country_name"]
 	return country
 
+@frappe.whitelist()
+def load_user_details():
+	return {
+		"full_name": frappe.cache().hget("full_name", "signup")
+		"email": frappe.cache().hget("email", "signup")
+	}
+
 def prettify_args(args):
 	# remove attachments
 	for key, val in args.items():

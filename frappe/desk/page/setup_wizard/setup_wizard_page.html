@@ -2,9 +2,9 @@
 	<div class="text-center setup-wizard-progress text-extra-muted">
 		{% for (var i=0; i < slides_count; i++) { %}
 		<!--dev_mode: link element-->
-		<!--<a href="http://erpnext.domainify:8000/desk#setup-wizard/{%= i %}">-->
+		<a href="http://erpnext.domainify:8000/desk#setup-wizard/{%= i %}">
 			<i class="fa fa-fw fa-circle{% if (i+1<=step) { %} active {% } %}"></i>
-		<!--</a>-->
+		</a>
 		{% } %}
 	</div>
     <p class="lead">{%= title %}</p>
