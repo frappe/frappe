@@ -24,21 +24,24 @@ module.exports = {
       .setValue('div.control-input input[data-fieldname="email"]','test@test.com')
       .setValue('div.control-input input[data-fieldname="first_name"]','testUser')
       .click('div.modal.fade.in > div.modal-dialog > div > div.modal-header > div > div.col-xs-5 > div > button[type="button"].btn.btn-primary.btn-sm')
-      .url(browser.launch_url + '/desk#List/User/List')
+      .refresh()
       .pause(pageLoad)
       .assert.visible('a[data-name="test@test.com"]', 'Test User Created Successfully');
   },
 
-  // 'Check User Status': browser => {
-  //   browser
-  //     .assert.visible('div.result-list > div > div:nth-child(1) > div.list-item > div.list-item__content.ellipsis.list-item__content--flex-2 > a[data-name="test@test.com"]','Test User Exists')
-  //     .assert.visible('div.result-list > div > div:nth-child(1) > div.list-item > div[title="User Type: Website User"]', 'Test user is website user')
-  //     .click('a[data-name="test@test.com"]')
-  //     .pause(pageLoad)
-  //     .assert.title('testUser - test@test.com')
-  //     .click('div#page-Form/User button.btn.btn-default.btn-add.btn-sm')
-  //     .pause(pageLoad)
-  // },
+  'Check User Status': browser => {
+    browser
+      .assert.visible('div.result-list > div > div:nth-child(1) > div.list-item > div.list-item__content.ellipsis.list-item__content--flex-2 > a[data-name="test@test.com"]','Test User Exists')
+      .assert.visible('div.result-list > div > div:nth-child(1) > div.list-item > div[title="User Type: Website User"]', 'Test user is website user')
+      .click('a[data-name="test@test.com"]')
+      .pause(pageLoad)
+      .assert.title('testUser - test@test.com')
+			.click('div[data-fieldname="roles_html"] > div > p > button.btn.btn.btn-default.btn-add.btn-sm')
+			.click('div[data-page-route="Form/User"] button.btn.btn-primary.btn-sm.primary-action')
+			.url(browser.launch_url + '/desk#List/User/List')
+			.pause(pageLoad)
+			.assert.visible('div.result-list > div > div:nth-child(1) > div.list-item > div[title="User Type: System User"]', 'Test user is System user')
+  },
 
   'Set User Password': browser =>{
     browser
