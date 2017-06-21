@@ -53,7 +53,7 @@ frappe.upload = {
 				$uploaded_files_wrapper.removeClass('hidden').empty();
 
 				file_array = file_array.map(
-					file => Object.assign(file, {is_private: opts.is_private || 0})
+					file => Object.assign(file, {is_private: opts.is_private || 1})
 				)
 				$upload.data('attached_files', file_array);
 
