@@ -943,6 +943,7 @@ def make_property_setter(args, ignore_validate=False, validate_fields_for_doctyp
 		})
 		ps.flags.ignore_validate = ignore_validate
 		ps.flags.validate_fields_for_doctype = validate_fields_for_doctype
+		ps.validate_fieldtype_change()
 		ps.insert()
 
 def import_doc(path, ignore_links=False, ignore_insert=False, insert=False):
