@@ -1,0 +1,9 @@
+frappe/public/js/lib/*
+frappe/public/js/frappe/misc/tests/*
+frappe/public/js/frappe/views/test_runner.js
+frappe/core/doctype/doctype/boilerplate/*
+frappe/core/doctype/report/boilerplate/*
+frappe/public/js/frappe/class.js
+frappe/templates/includes/*
+frappe/tests/testcafe/*
+frappe/www/website_script.js

@@ -1,7 +1,6 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
-
-
+/* globals jscolor */
 frappe.provide("frappe.website_theme");
 $.extend(frappe.website_theme, {
 	color_variables: ["background_color", "top_bar_color", "top_bar_text_color",

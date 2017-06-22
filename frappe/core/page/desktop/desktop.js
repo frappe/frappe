@@ -74,16 +74,16 @@ $.extend(frappe.desktop, {
 		// TEMP: test activiation without this message.
 		return;
 
-		if(!frappe.user.has_role('System Manager')) {
-			return;
-		}
+		// if(!frappe.user.has_role('System Manager')) {
+		// 	return;
+		// }
 
-		frappe.call({
-			method: 'frappe.core.page.desktop.desktop.get_help_messages',
-			callback: function(r) {
-				frappe.desktop.render_help_messages(r.message);
-			}
-		});
+		// frappe.call({
+		// 	method: 'frappe.core.page.desktop.desktop.get_help_messages',
+		// 	callback: function(r) {
+		// 		frappe.desktop.render_help_messages(r.message);
+		// 	}
+		// });
 
 	},
 
@@ -91,7 +91,7 @@ $.extend(frappe.desktop, {
 		var wrapper = frappe.desktop.wrapper.find('.help-message-wrapper');
 		var $help_messages = wrapper.find('.help-messages');
 
-		set_current_message = function(idx) {
+		var set_current_message = function(idx) {
 			idx = cint(idx);
 			wrapper.current_message_idx = idx;
 			wrapper.find('.left-arrow, .right-arrow').addClass('disabled');
@@ -166,7 +166,7 @@ $.extend(frappe.desktop, {
 			}
 			return false;
 		} else {
-			module = frappe.get_module(parent.attr("data-name"));
+			var module = frappe.get_module(parent.attr("data-name"));
 			if (module && module.onclick) {
 				module.onclick();
 				return false;
@@ -181,7 +181,7 @@ $.extend(frappe.desktop, {
 
 		new Sortable($("#icon-grid").get(0), {
 			onUpdate: function(event) {
-				new_order = [];
+				var new_order = [];
 				$("#icon-grid .case-wrapper").each(function(i, e) {
 					new_order.push($(this).attr("data-name"));
 				});

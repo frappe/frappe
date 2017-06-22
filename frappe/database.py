@@ -14,11 +14,15 @@ import frappe
 import frappe.defaults
 import frappe.async
 import re
+import redis
 import frappe.model.meta
 from frappe.utils import now, get_datetime, cstr
 from frappe import _
 from types import StringType, UnicodeType
 from frappe.utils.global_search import sync_global_search
+from frappe.model.utils.link_count import flush_local_link_count
+from six import iteritems
+
 
 class Database:
 	"""
@@ -654,7 +658,7 @@ class Database:
 				where field in ({0}) and
 					doctype=%s'''.format(', '.join(['%s']*len(keys))),
 					keys + [dt], debug=debug)
-			for key, value in to_update.iteritems():
+			for key, value in iteritems(to_update):
 				self.sql('''insert into tabSingles(doctype, field, value) values (%s, %s, %s)''',
 					(dt, key, value), debug=debug)
 
@@ -723,8 +727,19 @@ class Database:
 		self.sql("commit")
 		frappe.local.rollback_observers = []
 		self.flush_realtime_log()
+		self.enqueue_global_search()
+		flush_local_link_count()
+
+	def enqueue_global_search(self):
 		if frappe.flags.update_global_search:
-			sync_global_search()
+			try:
+				frappe.enqueue('frappe.utils.global_search.sync_global_search',
+					now=frappe.flags.in_test or frappe.flags.in_install or frappe.flags.in_migrate,
+					flags=frappe.flags.update_global_search)
+			except redis.exceptions.ConnectionError:
+				sync_global_search()
+
+			frappe.flags.update_global_search = []
 
 	def flush_realtime_log(self):
 		for args in frappe.local.realtime_log:

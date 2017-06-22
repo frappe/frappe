@@ -25,4 +25,4 @@ def restore(name):
 	deleted.restored = 1
 	deleted.db_update()
 
-	frappe.msgprint('Document Restored')
+	frappe.msgprint(_('Document Restored'))

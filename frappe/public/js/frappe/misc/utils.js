@@ -5,13 +5,13 @@ frappe.provide('frappe.utils');
 
 frappe.utils = {
 	get_random: function(len) {
-	    var text = "";
-	    var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+		var text = "";
+		var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
-	    for( var i=0; i < len; i++ )
-	        text += possible.charAt(Math.floor(Math.random() * possible.length));
+		for( var i=0; i < len; i++ )
+			text += possible.charAt(Math.floor(Math.random() * possible.length));
 
-	    return text;
+		return text;
 	},
 	get_file_link: function(filename) {
 		filename = cstr(filename);
@@ -122,7 +122,7 @@ frappe.utils = {
 			return [dict[filters]]
 		}
 		$.each(dict, function(i, d) {
-			for(key in filters) {
+			for(var key in filters) {
 				if($.isArray(filters[key])) {
 					if(filters[key][0]=="in") {
 						if(filters[key][1].indexOf(d[key])==-1)
@@ -242,7 +242,6 @@ frappe.utils = {
 				break;
 			default:
 				return false;
-				break;
 		}
 
 		// test regExp if not null
@@ -288,7 +287,7 @@ frappe.utils = {
 		};
 
 		if(!compare_type)
-		 	compare_type = typeof list[0][key]==="string" ? "string" : "number";
+			compare_type = typeof list[0][key]==="string" ? "string" : "number";
 
 		list.sort(sort_fn[compare_type]);
 
@@ -349,20 +348,20 @@ frappe.utils = {
 		if (!arr1 || !arr2) {
 			return false;
 		}
-	    if (arr1.length != arr2.length) {
+		if (arr1.length != arr2.length) {
 			return false;
 		}
-	    for (var i = 0; i < arr1.length; i++) {
-	        if ($.isArray(arr1[i])) {
-	            if (!frappe.utils.arrays_equal(arr1[i], arr2[i])) {
+		for (var i = 0; i < arr1.length; i++) {
+			if ($.isArray(arr1[i])) {
+				if (!frappe.utils.arrays_equal(arr1[i], arr2[i])) {
 					return false;
 				}
-	        }
-	        else if (arr1[i] !== arr2[i]) {
+			}
+			else if (arr1[i] !== arr2[i]) {
 				return false;
 			}
-	    }
-	    return true;
+		}
+		return true;
 	},
 
 	intersection: function(a, b) {
@@ -411,13 +410,13 @@ frappe.utils = {
 			var tempH = tempImg.height;
 			if (tempW > tempH) {
 				if (tempW > max_width) {
-				   tempH *= max_width / tempW;
-				   tempW = max_width;
+					tempH *= max_width / tempW;
+					tempW = max_width;
 				}
 			} else {
 				if (tempH > max_height) {
-				   tempW *= max_height / tempH;
-				   tempH = max_height;
+					tempW *= max_height / tempH;
+					tempH = max_height;
 				}
 			}
 
@@ -431,91 +430,91 @@ frappe.utils = {
 		}
 	},
 
-    csv_to_array: function (strData, strDelimiter) {
-        // Check to see if the delimiter is defined. If not,
-        // then default to comma.
-        strDelimiter = (strDelimiter || ",");
+	csv_to_array: function (strData, strDelimiter) {
+		// Check to see if the delimiter is defined. If not,
+		// then default to comma.
+		strDelimiter = (strDelimiter || ",");
 
-        // Create a regular expression to parse the CSV values.
-        var objPattern = new RegExp(
-            (
-                // Delimiters.
-                "(\\" + strDelimiter + "|\\r?\\n|\\r|^)" +
+		// Create a regular expression to parse the CSV values.
+		var objPattern = new RegExp(
+			(
+				// Delimiters.
+				"(\\" + strDelimiter + "|\\r?\\n|\\r|^)" +
 
-                // Quoted fields.
-                "(?:\"([^\"]*(?:\"\"[^\"]*)*)\"|" +
+				// Quoted fields.
+				"(?:\"([^\"]*(?:\"\"[^\"]*)*)\"|" +
 
-                // Standard fields.
-                "([^\"\\" + strDelimiter + "\\r\\n]*))"
-            ),
-            "gi"
-            );
-
-
-        // Create an array to hold our data. Give the array
-        // a default empty first row.
-        var arrData = [[]];
-
-        // Create an array to hold our individual pattern
-        // matching groups.
-        var arrMatches = null;
+				// Standard fields.
+				"([^\"\\" + strDelimiter + "\\r\\n]*))"
+			),
+			"gi"
+			);
 
 
-        // Keep looping over the regular expression matches
-        // until we can no longer find a match.
-        while (arrMatches = objPattern.exec( strData )){
+		// Create an array to hold our data. Give the array
+		// a default empty first row.
+		var arrData = [[]];
 
-            // Get the delimiter that was found.
-            var strMatchedDelimiter = arrMatches[ 1 ];
-
-            // Check to see if the given delimiter has a length
-            // (is not the start of string) and if it matches
-            // field delimiter. If id does not, then we know
-            // that this delimiter is a row delimiter.
-            if (
-                strMatchedDelimiter.length &&
-                strMatchedDelimiter !== strDelimiter
-                ){
-
-                // Since we have reached a new row of data,
-                // add an empty row to our data array.
-                arrData.push( [] );
-
-            }
-
-            var strMatchedValue;
-
-            // Now that we have our delimiter out of the way,
-            // let's check to see which kind of value we
-            // captured (quoted or unquoted).
-            if (arrMatches[ 2 ]){
-
-                // We found a quoted value. When we capture
-                // this value, unescape any double quotes.
-                strMatchedValue = arrMatches[ 2 ].replace(
-                    new RegExp( "\"\"", "g" ),
-                    "\""
-                    );
-
-            } else {
-
-                // We found a non-quoted value.
-                strMatchedValue = arrMatches[ 3 ];
-
-            }
+		// Create an array to hold our individual pattern
+		// matching groups.
+		var arrMatches = null;
 
 
-            // Now that we have our value string, let's add
-            // it to the data array.
-            arrData[ arrData.length - 1 ].push( strMatchedValue );
-        }
+		// Keep looping over the regular expression matches
+		// until we can no longer find a match.
+		while ((arrMatches = objPattern.exec( strData ))){
 
-        // Return the parsed data.
-        return( arrData );
-    },
+			// Get the delimiter that was found.
+			var strMatchedDelimiter = arrMatches[ 1 ];
+
+			// Check to see if the given delimiter has a length
+			// (is not the start of string) and if it matches
+			// field delimiter. If id does not, then we know
+			// that this delimiter is a row delimiter.
+			if (
+				strMatchedDelimiter.length &&
+				strMatchedDelimiter !== strDelimiter
+				){
+
+				// Since we have reached a new row of data,
+				// add an empty row to our data array.
+				arrData.push( [] );
+
+			}
+
+			var strMatchedValue;
+
+			// Now that we have our delimiter out of the way,
+			// let's check to see which kind of value we
+			// captured (quoted or unquoted).
+			if (arrMatches[ 2 ]){
+
+				// We found a quoted value. When we capture
+				// this value, unescape any double quotes.
+				strMatchedValue = arrMatches[ 2 ].replace(
+					new RegExp( "\"\"", "g" ),
+					"\""
+					);
+
+			} else {
+
+				// We found a non-quoted value.
+				strMatchedValue = arrMatches[ 3 ];
+
+			}
+
+
+			// Now that we have our value string, let's add
+			// it to the data array.
+			arrData[ arrData.length - 1 ].push( strMatchedValue );
+		}
+
+		// Return the parsed data.
+		return( arrData );
+	},
 
 	warn_page_name_change: function(frm) {
-		frappe.msgprint("Note: Changing the Page Name will break previous URL to this page.");
+		frappe.msgprint(__("Note: Changing the Page Name will break previous URL to this page."));
 	},
 
 	notify: function(subject, body, route, onclick) {
@@ -588,42 +587,42 @@ frappe.utils = {
 // String.prototype.includes polyfill
 // https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/String/includes
 if (!String.prototype.includes) {
-  String.prototype.includes = function(search, start) {
-    'use strict';
-    if (typeof start !== 'number') {
-      start = 0;
-    }
-    if (start + search.length > this.length) {
-      return false;
-    } else {
-      return this.indexOf(search, start) !== -1;
-    }
-  };
+	String.prototype.includes = function (search, start) {
+		'use strict';
+		if (typeof start !== 'number') {
+			start = 0;
+		}
+		if (start + search.length > this.length) {
+			return false;
+		} else {
+			return this.indexOf(search, start) !== -1;
+		}
+	};
 }
 // Array.prototype.includes polyfill
 // https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Array/includes
 if (!Array.prototype.includes) {
-  Object.defineProperty(Array.prototype, 'includes', {
-    value: function(searchElement, fromIndex) {
-      if (this == null) {
-        throw new TypeError('"this" is null or not defined');
-      }
-      var o = Object(this);
-      var len = o.length >>> 0;
-      if (len === 0) {
-        return false;
-      }
-      var n = fromIndex | 0;
-      var k = Math.max(n >= 0 ? n : len - Math.abs(n), 0);
-      while (k < len) {
-        if (o[k] === searchElement) {
-          return true;
-        }
-        k++;
-      }
-      return false;
-    }
-  });
+	Object.defineProperty(Array.prototype, 'includes', {
+		value: function(searchElement, fromIndex) {
+			if (this == null) {
+				throw new TypeError('"this" is null or not defined');
+			}
+			var o = Object(this);
+			var len = o.length >>> 0;
+			if (len === 0) {
+				return false;
+			}
+			var n = fromIndex | 0;
+			var k = Math.max(n >= 0 ? n : len - Math.abs(n), 0);
+			while (k < len) {
+				if (o[k] === searchElement) {
+					return true;
+				}
+				k++;
+			}
+			return false;
+		}
+	});
 }
 // Array de duplicate
 if (!Array.prototype.uniqBy) {

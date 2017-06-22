@@ -43,7 +43,6 @@
   margin-left: 13px;
 }
 .list-id {
-  margin-right: -8px !important;
   margin-left: 7px !important;
 }
 .avatar-small {
@@ -57,4 +56,28 @@
 .list-comment-count {
   text-align: right;
 }
-
+ul.tree-children {
+  padding-right: 20px;
+  padding-left: inherit !important;
+}
+.balance-area {
+  float: left !important;
+}
+.tree.opened::before, .tree-node.opened::before, .tree:last-child::after, .tree-node:last-child::after {
+  left: inherit !important;
+  right: 8px;
+}
+.tree.opened > .tree-children > .tree-node > .tree-link::before, .tree-node.opened > .tree-children > .tree-node > .tree-link::before {
+  left: inherit !important;
+  right: -11px;
+}
+.tree:last-child::after, .tree-node:last-child::after {
+  right: -13px !important;
+}
+.tree.opened::before {
+  left: auto !important;
+  right: 23px;
+}
+.results {
+  direction: ltr;
+}

@@ -5,7 +5,7 @@ frappe.pages['backups'].on_page_load = function(wrapper) {
 		single_column: true
 	});
 
-  page.add_inner_button(__("Set Number of Backups"), function() {
+	page.add_inner_button(__("Set Number of Backups"), function () {
 		frappe.set_route('Form', 'System Settings');
 	});
 
