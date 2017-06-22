@@ -22,7 +22,7 @@ install:
   - sudo apt-get purge -y mysql-common mysql-server mysql-client
   - nvm install v7.10.0
   - wget https://raw.githubusercontent.com/frappe/bench/master/playbooks/install.py
-  - sudo python install.py --develop --user travis --without-bench-setup
+  - travis_retry sudo python install.py --develop --user travis --without-bench-setup
   - sudo pip install -e ~/bench
 
   - rm $TRAVIS_BUILD_DIR/.git/shallow
