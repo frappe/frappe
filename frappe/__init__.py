@@ -13,7 +13,7 @@ import os, sys, importlib, inspect, json
 from .exceptions import *
 from .utils.jinja import get_jenv, get_template, render_template
 
-__version__ = '8.0.70'
+__version__ = '8.0.71'
 __title__ = "Frappe Framework"
 
 local = Local()
