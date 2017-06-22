@@ -1,6 +1,6 @@
 chardet
 cssmin
-dropbox
+dropbox==7.3.1
 gunicorn
 httplib2
 jinja2
