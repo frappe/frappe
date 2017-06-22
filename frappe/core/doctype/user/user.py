@@ -548,7 +548,7 @@ def test_password_strength(new_password, key=None, old_password=None, user_data=
 	from frappe.utils.password_strength import test_password_strength as _test_password_strength
 
 	password_policy = frappe.db.get_value("System Settings", None, 
-		["enable_password_policy", "minimum_password_score"], as_dict=True)
+		["enable_password_policy", "minimum_password_score"], as_dict=True) or {}
 
 	enable_password_policy = cint(password_policy.get("enable_password_policy", 0))
 	minimum_password_score = cint(password_policy.get("minimum_password_score", 0))
