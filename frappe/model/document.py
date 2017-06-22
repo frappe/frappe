@@ -4,7 +4,6 @@
 from __future__ import unicode_literals, print_function
 import frappe
 import time
-import redis
 from frappe import _, msgprint
 from frappe.utils import flt, cstr, now, get_datetime_str, file_lock
 from frappe.utils.background_jobs import enqueue
