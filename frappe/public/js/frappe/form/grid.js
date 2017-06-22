@@ -169,7 +169,7 @@ frappe.ui.form.Grid = Class.extend({
 			this.truncate_rows(data);
 			this.grid_rows_by_docname = {};
 
-			for(var ri=0;ri < data.length; ri++) {
+			for(var ri=0; ri < data.length; ri++) {
 				var d = data[ri];
 
 				if(d.idx===undefined) {
@@ -951,7 +951,6 @@ frappe.ui.form.GridRow = Class.extend({
 			parent = column.field_area,
 			df = column.df;
 
-
 		// no text editor in grid
 		if (df.fieldtype=='Text Editor') {
 			df.fieldtype = 'Text';
@@ -966,6 +965,8 @@ frappe.ui.form.GridRow = Class.extend({
 			doctype: this.doc.doctype,
 			docname: this.doc.name,
 			frm: this.grid.frm,
+			grid: this.grid,
+			grid_row: this,
 			value: this.doc[df.fieldname]
 		});
 
