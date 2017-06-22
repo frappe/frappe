@@ -9,6 +9,7 @@ import os, json
 from frappe import _
 from frappe.modules import scrub, get_module_path
 from frappe.utils import flt, cint, get_html_format, cstr
+from frappe.model.utils import render_include
 from frappe.translate import send_translations
 import frappe.desk.reportview
 from frappe.permissions import get_role_permissions
@@ -55,7 +56,7 @@ def get_script(report_name):
 		send_translations(frappe.get_lang_dict("report", report_name))
 
 	return {
-		"script": script,
+		"script": render_include(script),
 		"html_format": html_format
 	}
 
