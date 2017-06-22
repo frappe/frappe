@@ -37,10 +37,12 @@ h2 {
 h3 {
   font-size: 18px;
   color: #36414C;
+  margin-bottom: 20px;
 }
 h4 {
   font-size: 16px;
   color: #36414C;
+  margin-bottom: 20px;
 }
 h5 {
   font-size: 14px;
@@ -52,7 +54,12 @@ p,
 blockquote {
     color: #6c7680;
     font-size: 14px;
-    margin: 0 0 10px;
+    margin: 0;
+    line-height: 2;
+}
+p.font-12 {
+    font-size: 12px;
+    line-height: 1.5
 }
 p.small {
     font-size: 10px;
@@ -61,18 +68,24 @@ p.italic {
     font-style: italic;
 }
 a {
-    color: #6c7680;
+    color: #7575ff;
     outline: none;
     text-decoration: none;
 }
 .brand-name {
-    font-size: 14px;
+    font-size: 16px;
 }
 a.grey {
     color: #6c7680;
 }
 .header p {
     margin: 0;
+}
+td.h-spacer-sm{
+    font-size: 0;
+    line-height: 0;
+    height: 20px;
+    vertical-align: top;
 }
 .footer {
     color: #8d99a6;
@@ -100,13 +113,13 @@ td {
 td.v-spacer {
     font-size: 0;
     line-height: 0;
-    width: 20px;
+    width: 50px;
     vertical-align: top;
 }
 td.h-spacer {
     font-size: 0;
     line-height: 0;
-    height: 20px;
+    height: 30px;
     vertical-align: top;
 }
 .h-spacer-lg {
@@ -119,8 +132,9 @@ table.inner {
     width: 100%;
     max-width: 600px;
     border: 0;
-    border: 1px solid #d1d8dd;
+    /*border: 1px solid #d1d8dd;*/
     background-color: #fff; 
+    box-shadow: 3px 0 0 #ccc;
 }
 table.wrapper {
     background: #fafbfc;
@@ -134,12 +148,13 @@ table.wrapper {
     padding: 8px 20px; 
     background-color: #7575ff; 
     color: #fff; 
-    border-radius: 4px; 
+    border-radius: 3px; 
     text-decoration: none; 
     line-height: 1; 
-    border-bottom: 3px solid rgba(0, 0, 0, 0.2); 
     font-size: 14px; 
-    outline:none; font-weight: 200;
+    outline:none; 
+    font-weight: 200;
+    text-transform: capitalize;
 }
 .rating {
     font-size: 20px; 
@@ -150,7 +165,7 @@ table.wrapper {
 <center>
     <table class="wrapper" align="center" width="100%" border="0" cellpadding="0" cellspacing="0">
         <tr>
-            <td class="h-spacer"></td>
+            <td class="h-spacer-sm"></td>
         </tr>
         <tr>
             <td>
@@ -172,31 +187,22 @@ table.wrapper {
                     </tr>
 
                     <tr>
-                        <td style="width:20px;"></td>
+                        <td class="v-spacer"></td>
 
                         <td valign="top">{{content}}</td>
 
-                        <td style="width:20px;"></td>
+                        <td class="v-spacer"></td>
                     </tr>
                     <!-- End of content -->
                     <tr>
-                        <td colspan=3 class="h-spacer-lg"></td>
-                    </tr>
-                    <tr>
-                        <td class="h-spacer"></td>
-                        <td>
-                            <p>ERPNext is an Open Source with all features you need to run a small or medium sized business. <a href="https://erpnext.com/">Learn More</a></p>
-                        </td>
-                        <td style="width: 20px; vertical-align: top"></td>
-                    </tr>
-                    <tr>
-                        <td colspan=3 style="height:20px;"></td>
+                        <td colspan=3 class="h-spacer"></td>
                     </tr>
                 </table>
             </td>
         </tr>
 <!-- Footer block -->
-{% include 'frappe/templates/emails/footer_template.html' %}
+<!-- Footer template is commented. working on configuarable settings. -->
+{# {% include 'frappe/templates/emails/footer_template.html' %} #}
 <!-- End Footer block -->
         <tr><td class="h-spacer"></td></tr>
     </table>
