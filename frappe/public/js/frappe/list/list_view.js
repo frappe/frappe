@@ -502,7 +502,6 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 
 		this.last_updated_on = new Date();
 		this.dirty = false;
-		this.clean_dash = false;
 		// set a fresh so that multiple refreshes do not happen
 		// at the same time. This is true when deleting.
 		// AJAX response will try to refresh and list_update notification
