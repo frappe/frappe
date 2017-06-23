@@ -103,7 +103,8 @@ frappe.search.utils = {
 	get_creatables: function(keywords) {
 		var me = this;
 		var out = [];
-		if(keywords.split(" ")[0]==="new") {
+		var firstKeyword = keywords.split(" ")[0];
+		if(firstKeyword.toLowerCase() === __("new")) {
 			frappe.boot.user.can_create.forEach(function (item) {
 				var level = me.fuzzy_search(keywords.substr(4), item);
 				if(level) {

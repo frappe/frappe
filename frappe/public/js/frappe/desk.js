@@ -444,7 +444,7 @@ frappe.Application = Class.extend({
 	},
 
 	set_rtl: function () {
-		if (["ar", "he","fa"].indexOf(frappe.boot.lang) >= 0) {
+		if (["ar", "he", "fa"].indexOf(frappe.boot.lang) >= 0) {
 			var ls = document.createElement('link');
 			ls.rel="stylesheet";
 			ls.href= "assets/css/frappe-rtl.css";

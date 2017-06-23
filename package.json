@@ -20,9 +20,11 @@
     "babel-preset-es2016": "^6.24.1",
     "babel-preset-es2017": "^6.24.1",
     "chokidar": "^1.7.0",
+    "chromedriver": "^2.30.1",
     "cookie": "^0.3.1",
     "express": "^4.15.3",
     "less": "^2.7.2",
+    "nightwatch": "^0.9.16",
     "redis": "^2.7.1",
     "socket.io": "^2.0.1",
     "superagent": "^3.5.2"

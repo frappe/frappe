@@ -376,7 +376,7 @@ def _drop_site(site, root_login='root', root_password=None, archived_sites_path=
 
 def move(dest_dir, site):
 	if not os.path.isdir(dest_dir):
-		raise Exception, "destination is not a directory or does not exist"
+		raise Exception("destination is not a directory or does not exist")
 
 	frappe.init(site)
 	old_path = frappe.utils.get_site_path()

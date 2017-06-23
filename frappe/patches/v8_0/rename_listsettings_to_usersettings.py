@@ -1,6 +1,8 @@
 from frappe.installer import create_user_settings_table
 from frappe.model.utils.user_settings import update_user_settings
 import frappe, json
+from six import iteritems
+
 
 def execute():
 	if frappe.db.table_exists("__ListSettings"):
@@ -32,7 +34,7 @@ def execute():
 
 		for user in frappe.db.get_all('User', {'user_type': 'System User'}):
 			defaults = frappe.defaults.get_defaults_for(user.name)
-			for key, value in defaults.iteritems():
+			for key, value in iteritems(defaults):
 				if key.startswith('_list_settings:'):
 					doctype = key.replace('_list_settings:', '')
 					columns = ['`tab{1}`.`{0}`'.format(*c) for c in json.loads(value)]

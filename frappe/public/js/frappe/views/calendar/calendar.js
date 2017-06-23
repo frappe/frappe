@@ -252,6 +252,8 @@ frappe.views.Calendar = Class.extend({
 				// see event_calendar.js
 				color = d.color;
 			}
+
+			if(!color) color = "blue";
 			d.className = "fc-bg-" + color;
 			return d;
 		});

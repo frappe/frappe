@@ -359,7 +359,7 @@ apps/frappe/frappe/core/doctype/user/user.py +734,Please check your email for ve
 apps/frappe/frappe/core/doctype/doctype/doctype.py +489,Fold can not be at the end of the form,Fold kan ikke være i slutningen af formularen
 DocType: Communication,Bounced,Afviste
 DocType: Deleted Document,Deleted Name,slettet Navn
-apps/frappe/frappe/config/setup.py +14,System and Website Users,System- og Websitebrugere
+apps/frappe/frappe/config/setup.py +14,System and Website Users,System- og hjemmesidebrugere
 DocType: Workflow Document State,Doc Status,Doc status
 DocType: Auto Email Report,No of Rows (Max 500),Antal rækker (Max 500)
 DocType: Language,Language Code,Sprogkode
@@ -1704,7 +1704,7 @@ DocType: Auto Email Report,Only Send Records Updated in Last X Hours,"Send kun p
 DocType: Communication,Feedback,Feedback
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +72,You are not allowed to create / edit reports,Du har ikke lov til at oprette / redigere rapporter
 DocType: Workflow State,Icon will appear on the button,Ikon vises på knappen
-DocType: Website Settings,Website Settings,Website Settings
+DocType: Website Settings,Website Settings,Opsætning af hjemmeside
 apps/frappe/frappe/core/page/user_permissions/user_permissions.py +106,Please upload using the same template as download.,Upload ved hjælp af den samme skabelon som downloades.
 apps/frappe/frappe/public/js/frappe/views/gantt/gantt_view.js +98,Month,Måned
 DocType: Email Account,ProTip: Add <code>Reference: {{ reference_doctype }} {{ reference_name }}</code> to send document reference,Protip: Tilføj <code>Reference: {{ reference_doctype }} {{ reference_name }}</code> at sende dokumenthenvisning
@@ -1855,7 +1855,7 @@ apps/frappe/frappe/core/doctype/docshare/docshare.py +49,{0} shared this documen
 DocType: Website Settings,Brand Image,Varemærkelogo
 DocType: Print Settings,A4,A4
 apps/frappe/frappe/config/website.py +58,"Setup of top navigation bar, footer and logo.","Opsætning af øverste navigationslinje, sidefod og logo."
-DocType: Web Form Field,Max Value,Max Value
+DocType: Web Form Field,Max Value,Maksimal værdi
 apps/frappe/frappe/core/doctype/doctype/doctype.py +621,For {0} at level {1} in {2} in row {3},For {0} på niveau {1} i {2} i række {3}
 DocType: Authentication Log,All,Alle
 DocType: Email Queue,Recipient,Modtager
@@ -2503,7 +2503,7 @@ apps/frappe/frappe/templates/print_formats/standard_macros.html +30,Sr,Sr
 DocType: DocField,Float,Float
 apps/frappe/frappe/www/update-password.html +71,Invalid Password,Forkert adgangskode
 DocType: Contact,Purchase Master Manager,Indkøb Master manager
-DocType: Module Def,Module Name,Modul Navn
+DocType: Module Def,Module Name,Modulnavn
 DocType: DocType,DocType is a Table / Form in the application.,DocType er en tabel / formular i ansøgningen.
 DocType: Email Account,GMail,GMail
 apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +111,{0} Report,{0} Rapport

@@ -59,7 +59,6 @@ class User(Document):
 		self.set_system_user()
 		self.set_full_name()
 		self.check_enable_disable()
-		self.update_gravatar()
 		self.ensure_unique_roles()
 		self.remove_all_roles_for_guest()
 		self.validate_username()
@@ -80,6 +79,8 @@ class User(Document):
 		clear_notifications(user=self.name)
 		frappe.clear_cache(user=self.name)
 		self.send_password_notification(self.__new_password)
+		if self.name not in ('Administrator', 'Guest') and not self.user_image:
+			frappe.enqueue('frappe.core.doctype.user.user.update_gravatar', name=self.name)
 
 	def has_website_permission(self, ptype, verbose=False):
 		"""Returns true if current user is the session user"""
@@ -193,11 +194,6 @@ class User(Document):
 			print frappe.get_traceback()
 			pass # email server not set, don't send email
 
-
-	def update_gravatar(self):
-		if not self.user_image:
-			self.user_image = has_gravatar(self.name)
-
 	@Document.hook
 	def validate_reset_password(self):
 		pass
@@ -239,10 +235,16 @@ class User(Document):
 		from frappe.utils import get_url
 
 		link = self.reset_password()
+		app_title = None
 
-		app_title = [t for t in frappe.get_hooks('app_title') if t != 'Frappe Framework']
+		method = frappe.get_hooks('get_site_info')
+		if method:
+			get_site_info = frappe.get_attr(method[0])
+			site_info = get_site_info({})
+			app_title = site_info.get('company', None)
+
 		if app_title:
-			subject = _("Welcome to {0}").format(app_title[0])
+			subject = _("Welcome to {0}").format(app_title)
 		else:
 			subject = _("Complete Registration")
 
@@ -405,18 +407,14 @@ class User(Document):
 
 			self.username = ""
 
-		# should be made up of characters, numbers and underscore only
-		if self.username and not re.match(r"^[\w]+$", self.username):
-			frappe.msgprint(_("Username should not contain any special characters other than letters, numbers and underscore"))
-			self.username = ""
-
 	def password_strength_test(self):
 		""" test password strength """
-		if frappe.db.get_single_value("System Settings", "enable_password_policy") and self.__new_password:
+		if self.__new_password:
 			user_data = (self.first_name, self.middle_name, self.last_name, self.email, self.birth_date)
 			result = test_password_strength(self.__new_password, '', None, user_data)
+			feedback = result.get("feedback", None)
 
-			if not result['feedback']['password_policy_validation_passed']:
+			if feedback and not feedback.get('password_policy_validation_passed', False):
 				handle_password_test_fail(result)
 
 	def suggest_username(self):
@@ -516,8 +514,9 @@ def get_perm_info(role):
 @frappe.whitelist(allow_guest=True)
 def update_password(new_password, key=None, old_password=None):
 	result = test_password_strength(new_password, key, old_password)
+	feedback = result.get("feedback", None)
 
-	if not result['feedback']['password_policy_validation_passed']:
+	if feedback and not feedback.get('password_policy_validation_passed', False):
 		handle_password_test_fail(result)
 
 	res = _get_user_for_update_password(key, old_password)
@@ -548,21 +547,28 @@ def update_password(new_password, key=None, old_password=None):
 def test_password_strength(new_password, key=None, old_password=None, user_data=[]):
 	from frappe.utils.password_strength import test_password_strength as _test_password_strength
 
+	password_policy = frappe.db.get_value("System Settings", None, 
+		["enable_password_policy", "minimum_password_score"], as_dict=True) or {}
+
+	enable_password_policy = cint(password_policy.get("enable_password_policy", 0))
+	minimum_password_score = cint(password_policy.get("minimum_password_score", 0))
+
+	if not enable_password_policy:
+		return {}
+
 	if not user_data:
-		user_data = frappe.db.get_value('User', frappe.session.user, ['first_name', 'middle_name', 'last_name', 'email', 'birth_date'])
+		user_data = frappe.db.get_value('User', frappe.session.user, 
+			['first_name', 'middle_name', 'last_name', 'email', 'birth_date'])
 
 	if new_password:
 		result = _test_password_strength(new_password, user_inputs=user_data)
-
-		enable_password_policy = cint(frappe.db.get_single_value("System Settings", "enable_password_policy")) and True or False
-		minimum_password_score = cint(frappe.db.get_single_value("System Settings", "minimum_password_score")) or 0
-
 		password_policy_validation_passed = False
-		if result['score'] > minimum_password_score:
+
+		# score should be greater than 0 and minimum_password_score
+		if result.get('score') and result.get('score') >= minimum_password_score:
 			password_policy_validation_passed = True
 
 		result['feedback']['password_policy_validation_passed'] = password_policy_validation_passed
-
 		return result
 
 #for login
@@ -620,16 +626,16 @@ def setup_user_email_inbox(email_account, awaiting_password, email_id, enable_ou
 		return
 
 	for user in user_names:
-		user = user.get("name")
+		user_name = user.get("name")
 
 		# check if inbox is alreay configured
 		user_inbox = frappe.db.get_value("User Email", {
 			"email_account": email_account,
-			"parent": user
+			"parent": user_name
 		}, ["name"]) or None
 
 		if not user_inbox:
-			add_user_email(user)
+			add_user_email(user_name)
 		else:
 			# update awaiting password for email account
 			udpate_user_email_settings = True
@@ -882,3 +888,8 @@ def handle_password_test_fail(result):
 	warning = result['feedback']['warning'] if 'warning' in result['feedback'] else ''
 	suggestions += "<br>" + _("Hint: Include symbols, numbers and capital letters in the password") + '<br>'
 	frappe.throw(_('Invalid Password: ' + ' '.join([warning, suggestions])))
+
+def update_gravatar(name):
+	gravatar = has_gravatar(name)
+	if gravatar:
+		frappe.db.set_value('User', name, 'user_image', gravatar)

@@ -23,7 +23,6 @@ frappe.views.ReportViewPage = Class.extend({
 		frappe.model.with_doctype(this.doctype, function() {
 			me.make_report_view();
 			if(me.docname) {
-
 				frappe.model.with_doc('Report', me.docname, function(r) {
 					me.parent.reportview.set_columns_and_filters(
 						JSON.parse(frappe.get_doc("Report", me.docname).json || '{}'));
@@ -31,7 +30,7 @@ frappe.views.ReportViewPage = Class.extend({
 					me.parent.reportview.run();
 				});
 			} else {
-				me.parent.reportview.set_route_filters(true);
+				me.parent.reportview.set_route_filters();
 				me.parent.reportview.run();
 			}
 		});
@@ -45,8 +44,9 @@ frappe.views.ReportViewPage = Class.extend({
 		frappe.container.change_to(this.page_name);
 
 		$(this.parent).on('show', function(){
-			if(me.parent.reportview.set_route_filters())
+			if(me.parent.reportview.set_route_filters()) {
 				me.parent.reportview.run();
+			}
 		});
 	},
 	make_report_view: function() {
@@ -77,7 +77,7 @@ frappe.views.ReportView = frappe.ui.BaseList.extend({
 		this.add_totals_row = 0;
 		this.page = this.parent.page;
 		this._body = $('<div>').appendTo(this.page.main);
-		this.page_title = __('Report')+ ': ' + (this.docname ?  
+		this.page_title = __('Report')+ ': ' + (this.docname ?
 			__(this.doctype) + ' - ' + __(this.docname) : __(this.doctype));
 		this.page.set_title(this.page_title);
 		this.init_user_settings();
@@ -226,10 +226,10 @@ frappe.views.ReportView = frappe.ui.BaseList.extend({
 		this.add_totals_row = cint(opts.add_totals_row);
 	},
 
-	set_route_filters: function(first_load) {
+	set_route_filters: function() {
 		var me = this;
 		if(frappe.route_options) {
-			this.set_filters_from_route_options();
+			this.set_filters_from_route_options({clear_filters: this.docname ? false : true});
 			return true;
 		} else if(this.user_settings
 			&& this.user_settings.filters

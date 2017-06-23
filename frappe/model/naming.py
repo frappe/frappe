@@ -43,7 +43,7 @@ def set_new_name(doc):
 			doc.name = (doc.get(fieldname) or "").strip()
 			if not doc.name:
 				frappe.throw(_("{0} is required").format(doc.meta.get_label(fieldname)))
-				raise Exception, 'Name is required'
+				raise Exception('Name is required')
 		if autoname.startswith("naming_series:"):
 			set_name_by_naming_series(doc)
 		elif "#" in autoname:

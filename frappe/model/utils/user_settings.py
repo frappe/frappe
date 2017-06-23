@@ -2,6 +2,8 @@
 # such as page_limit, filters, last_view
 
 import frappe, json
+from six import iteritems
+
 
 def get_user_settings(doctype, for_update=False):
 	user_settings = frappe.cache().hget('_user_settings',
@@ -36,7 +38,7 @@ def update_user_settings(doctype, user_settings, for_update=False):
 
 def sync_user_settings():
 	'''Sync from cache to database (called asynchronously via the browser)'''
-	for key, data in frappe.cache().hgetall('_user_settings').iteritems():
+	for key, data in iteritems(frappe.cache().hgetall('_user_settings')):
 		doctype, user = key.split('::')
 		frappe.db.sql('''insert into __UserSettings (user, doctype, data) values (%s, %s, %s)
 			on duplicate key update data=%s''', (user, doctype, data, data))

@@ -12,6 +12,8 @@ from frappe.modules.export_file import export_to_files
 from frappe.modules import make_boilerplate
 from frappe.core.doctype.page.page import delete_custom_role
 from frappe.core.doctype.custom_role.custom_role import get_custom_allowed_roles
+from six import iteritems
+
 
 class Report(Document):
 	def validate(self):
@@ -123,7 +125,7 @@ class Report(Document):
 			_filters = params.get('filters') or []
 
 			if filters:
-				for key, value in filters.iteritems():
+				for key, value in iteritems(filters):
 					condition, _value = '=', value
 					if isinstance(value, (list, tuple)):
 						condition, _value = value

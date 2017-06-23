@@ -401,6 +401,9 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 		}
 		this._description = this.df.description;
 	},
+	set_new_description: function(description) {
+		this.$wrapper.find(".help-box").html(description);
+	},
 	set_empty_description: function() {
 		this.$wrapper.find(".help-box").html("");
 	},
@@ -461,9 +464,12 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 	set_input: function(value) {
 		this.last_value = this.value;
 		this.value = value;
-		this.$input && this.$input.val(this.format_for_input(value));
+		this.set_formatted_input(value);
 		this.set_disp_area();
 		this.set_mandatory && this.set_mandatory(value);
+	},
+	set_formatted_input: function(value) {
+		this.$input && this.$input.val(this.format_for_input(value));
 	},
 	get_value: function() {
 		return this.$input ? this.$input.val() : undefined;
@@ -628,10 +634,9 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 		this.set_datepicker();
 		this.set_t_for_today();
 	},
-	set_input: function(value) {
-		this._super(value);
+	set_formatted_input: function(value) {
 		if(value
-			&& ((this.last_value && this.last_value !== this.value)
+			&& ((this.last_value && this.last_value !== value)
 				|| (!this.datepicker.selectedDates.length))) {
 			this.datepicker.selectDate(frappe.datetime.str_to_obj(value));
 		}
@@ -648,8 +653,6 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 			todayButton: new Date(),
 			dateFormat: (frappe.boot.sysdefaults.date_format || 'yyyy-mm-dd'),
 			onSelect: function(dateStr) {
-				if(me.setting_date_flag) return;
-				me.set_value(me.get_value());
 				me.$input.trigger('change');
 			},
 			onShow: function() {
@@ -665,7 +668,16 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 		var me = this;
 		this.$input.on("keydown", function(e) {
 			if(e.which===84) { // 84 === t
-				me.set_value(frappe.datetime.str_to_user(frappe.datetime.nowdate()));
+				if(me.df.fieldtype=='Date') {
+					me.set_value(frappe.datetime.str_to_user(
+						frappe.datetime.nowdate()));
+				} if(me.df.fieldtype=='Datetime') {
+					me.set_value(frappe.datetime.str_to_user(
+						frappe.datetime.now_datetime()));
+				} if(me.df.fieldtype=='Time') {
+					me.set_value(frappe.datetime.str_to_user(
+						frappe.datetime.now_time()));
+				}
 				return false;
 			}
 		});
@@ -701,7 +713,7 @@ frappe.ui.form.ControlTime = frappe.ui.form.ControlData.extend({
 			onlyTimepicker: true,
 			timeFormat: "hh:ii:ss",
 			onSelect: function(dateObj) {
-				me.set_value(dateObj);
+				me.$input.trigger('change');
 			},
 			onShow: function() {
 				$('.datepicker--button:visible').text(__('Now'));
@@ -1315,20 +1327,6 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 	},
 	setup_awesomeplete: function() {
 		var me = this;
-		this.$input.on("blur", function() {
-			if(me.selected) {
-				me.selected = false;
-				return;
-			}
-			var value = me.get_value();
-			if(me.doctype && me.docname) {
-				if(value!==me.last_value) {
-					me.parse_validate_and_set_in_model(value);
-				}
-			} else {
-				me.set_mandatory(value);
-			}
-		});
 
 		this.$input.cache = {};
 
@@ -1424,6 +1422,31 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 					me.awesomplete.list = me.$input.cache[doctype][term];
 				}
 			});
+		});
+
+		this.$input.on("blur", function() {
+			if(me.selected) {
+				me.selected = false;
+				return;
+			}
+			var value = me.get_value();
+			if(me.doctype && me.docname) {
+				if(value!==me.last_value) {
+					me.parse_validate_and_set_in_model(value);
+				}
+			} else {
+				var cache_list = me.$input.cache[me.get_options()];
+				if (cache_list && cache_list[""]) {
+					var docs = cache_list[""].map(item => item.label);
+					if(docs.includes(value)) {
+						me.set_mandatory(value);
+					} else {
+						me.$input.val("");
+					}
+				} else {
+					me.$input.val(value);
+				}
+			}
 		});
 
 		this.$input.on("awesomplete-open", function(e) {

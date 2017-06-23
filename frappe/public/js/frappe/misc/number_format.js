@@ -153,7 +153,7 @@ function get_currency_symbol(currency) {
 }
 
 function get_number_format(currency) {
-	return (frappe.boot && frappe.boot.sysdefaults.number_format) || "#,###.##";
+	return (frappe.boot && frappe.boot.sysdefaults && frappe.boot.sysdefaults.number_format) || "#,###.##";
 }
 
 function get_number_format_info(format) {

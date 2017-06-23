@@ -6,6 +6,7 @@ globals attached to frappe module
 """
 from __future__ import unicode_literals, print_function
 
+from six import iteritems
 from werkzeug.local import Local, release_local
 import os, sys, importlib, inspect, json
 from premailer import transform
@@ -14,7 +15,7 @@ from premailer import transform
 from .exceptions import *
 from .utils.jinja import get_jenv, get_template, render_template
 
-__version__ = '8.0.66'
+__version__ = '8.1.1'
 __title__ = "Frappe Framework"
 
 local = Local()
@@ -146,10 +147,12 @@ def init(site, sites_path=None, new_site=False):
 	local.role_permissions = {}
 	local.valid_columns = {}
 	local.new_doc_templates = {}
+	local.link_count = {}
 
 	local.jenv = None
 	local.jloader =None
 	local.cache = {}
+	local.meta_cache = {}
 	local.form_dict = _dict()
 	local.session = _dict()
 
@@ -277,9 +280,9 @@ def msgprint(msg, title=None, raise_exception=0, as_table=False, indicator=None,
 			import inspect
 
 			if inspect.isclass(raise_exception) and issubclass(raise_exception, Exception):
-				raise raise_exception, encode(msg)
+				raise raise_exception(encode(msg))
 			else:
-				raise ValidationError, encode(msg)
+				raise ValidationError(encode(msg))
 
 	if flags.mute_messages:
 		_raise_exception()
@@ -377,7 +380,8 @@ def sendmail(recipients=[], sender="", subject="No Subject", message="No Message
 		unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None,
 		attachments=None, content=None, doctype=None, name=None, reply_to=None,
 		cc=[], message_id=None, in_reply_to=None, send_after=None, expose_recipients=None,
-		send_priority=1, communication=None, retry=1, now=None, read_receipt=None, is_notification=False):
+		send_priority=1, communication=None, retry=1, now=None, read_receipt=None, is_notification=False,
+		inline_images=None):
 	"""Send email using user's default **Email Account** or global default **Email Account**.
 
 
@@ -399,6 +403,7 @@ def sendmail(recipients=[], sender="", subject="No Subject", message="No Message
 	:param send_after: Send after the given datetime.
 	:param expose_recipients: Display all recipients in the footer message - "This email was sent to"
 	:param communication: Communication link to be set in Email Queue record
+	:param inline_images: List of inline images as {"filename", "filecontent"}. All src properties will be replaced with random Content-Id
 	"""
 	message = content or message
 
@@ -423,7 +428,8 @@ def sendmail(recipients=[], sender="", subject="No Subject", message="No Message
 		unsubscribe_method=unsubscribe_method, unsubscribe_params=unsubscribe_params, unsubscribe_message=unsubscribe_message,
 		attachments=attachments, reply_to=reply_to, cc=cc, message_id=message_id, in_reply_to=in_reply_to,
 		send_after=send_after, expose_recipients=expose_recipients, send_priority=send_priority,
-		communication=communication, now=now, read_receipt=read_receipt, is_notification=is_notification)
+		communication=communication, now=now, read_receipt=read_receipt, is_notification=is_notification,
+		inline_images=inline_images)
 
 whitelisted = []
 guest_methods = []
@@ -764,7 +770,7 @@ def get_doc_hooks():
 	if not hasattr(local, 'doc_events_hooks'):
 		hooks = get_hooks('doc_events', {})
 		out = {}
-		for key, value in hooks.iteritems():
+		for key, value in iteritems(hooks):
 			if isinstance(key, tuple):
 				for doctype in key:
 					append_hook(out, doctype, value)
