@@ -16,7 +16,6 @@ from frappe.build import scrub_html_template
 ######
 from six import iteritems
 
-
 def get_meta(doctype, cached=True):
 	if cached and not frappe.conf.developer_mode:
 		meta = frappe.cache().hget("form_meta", doctype, lambda: FormMeta(doctype))
@@ -44,6 +43,7 @@ class FormMeta(Meta):
 			self.load_templates()
 			self.load_dashboard()
 			self.load_kanban_meta()
+			self.load_goals()
 
 	def as_dict(self, no_nulls=False):
 		d = super(FormMeta, self).as_dict(no_nulls=no_nulls)
@@ -190,6 +190,13 @@ class FormMeta(Meta):
 		fields = [x['field_name'] for x in values]
 		fields = list(set(fields))
 		self.set("__kanban_column_fields", fields, as_value=True)
+
+	def load_goals(self):
+		print self.name
+		print "===================================="
+		goals = frappe.get_list(
+			'Goal', fields=['source_filter', 'type_of_aggregation', 'based_on'], filters={'source': self.name})
+		self.set("__goals", goals, as_value=True)
 
 def get_code_files_via_hooks(hook, name):
 	code_files = []
