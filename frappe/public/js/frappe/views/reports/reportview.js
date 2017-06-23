@@ -76,6 +76,7 @@ frappe.views.ReportView = frappe.ui.BaseList.extend({
 
 		this.add_totals_row = 0;
 		this.page = this.parent.page;
+		this.meta = frappe.get_meta(this.doctype);
 		this._body = $('<div>').appendTo(this.page.main);
 		this.page_title = __('Report')+ ': ' + (this.docname ?
 			__(this.doctype) + ' - ' + __(this.docname) : __(this.doctype));
@@ -258,13 +259,15 @@ frappe.views.ReportView = frappe.ui.BaseList.extend({
 
 	// build args for query
 	get_args: function() {
-		var me = this;
+		let me = this;
+		let filters = this.filter_list.get_filters();
+
 		return {
 			doctype: this.doctype,
 			fields: $.map(this.columns, function(v) { return me.get_full_column_name(v) }),
 			order_by: this.get_order_by(),
 			add_total_row: this.add_total_row,
-			filters: this.filter_list.get_filters(),
+			filters: filters,
 			save_user_settings_fields: 1,
 			with_childnames: 1,
 			file_format_type: this.file_format_type

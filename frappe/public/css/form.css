@@ -194,7 +194,7 @@ h6.uppercase,
 }
 .form-section:not(:last-child),
 .form-inner-toolbar {
-  border-bottom: 1px solid #EBEFF2;
+  border-bottom: 1px solid #d1d8dd;
 }
 .empty-section {
   display: none !important;

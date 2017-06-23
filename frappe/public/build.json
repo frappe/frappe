@@ -216,7 +216,6 @@
 		"public/css/list.css",
 		"public/css/calendar.css",
 		"public/css/role_editor.css",
-		"public/css/filter_dashboard.css",
 		"public/css/gantt.css"
 	],
 	"js/list.min.js": [
@@ -227,9 +226,6 @@
 		"public/js/frappe/model/indicator.js",
 		"public/js/frappe/ui/filters/filters.js",
 		"public/js/frappe/ui/filters/edit_filter.html",
-		"public/js/frappe/ui/filters/filter_dashboard.html",
-		"public/js/frappe/ui/filters/filter_dashboard_value.html",
-		"public/js/frappe/ui/filters/filter_dashboard_head.html",
 		"public/js/frappe/ui/tags.js",
 		"public/js/frappe/ui/like.js",
 		"public/js/frappe/ui/liked_by.html",

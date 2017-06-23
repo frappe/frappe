@@ -41,7 +41,7 @@
   color: #8D99A6;
 }
 .filter-box {
-  border-top: 1px solid #d1d8dd;
+  border-bottom: 1px solid #d1d8dd;
   padding: 10px 15px 3px;
 }
 .filter-box .remove-filter {
@@ -252,6 +252,9 @@
   right: 5px;
   color: #36414C;
   font-size: 11px;
+}
+.page-form .awesomplete > ul {
+  min-width: 300px;
 }
 .taggle_input {
   padding: 0;
