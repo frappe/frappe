@@ -30,5 +30,11 @@ frappe.ui.form.on("Address", {
 				frappe.model.remove_from_locals(d.link_doctype, d.link_name);
 			});
 		}
+	},
+	after_save: function(frm) {
+		if(frappe.route_flags.return_to_previous_doctype===1) {
+			delete frappe.route_flags.return_to_previous_doctype;
+			frappe.set_route("Form", frm.doc.links[0].link_doctype, frm.doc.links[0].link_name);
+		}
 	}
 });
