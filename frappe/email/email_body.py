@@ -2,19 +2,20 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
-import frappe
+import frappe, re
 from frappe.utils.pdf import get_pdf
 from frappe.email.smtp import get_outgoing_email_account
 from frappe.utils import (get_url, scrub_urls, strip, expand_relative_urls, cint,
-	split_emails, to_markdown, markdown, encode, random_string)
+	split_emails, to_markdown, markdown, encode, random_string, parse_addr)
 import email.utils
-from frappe.utils import parse_addr
 from six import iteritems
+from email.mime.multipart import MIMEMultipart
 
 
 def get_email(recipients, sender='', msg='', subject='[No Subject]',
 	text_content = None, footer=None, print_html=None, formatted=None, attachments=None,
-	content=None, reply_to=None, cc=[], email_account=None, expose_recipients=None):
+	content=None, reply_to=None, cc=[], email_account=None, expose_recipients=None,
+	inline_images=[]):
 	"""send an html email as multipart with attachments and all"""
 	content = content or msg
 	emailobj = EMail(sender, recipients, subject, reply_to=reply_to, cc=cc, email_account=email_account, expose_recipients=expose_recipients)
@@ -22,7 +23,8 @@ def get_email(recipients, sender='', msg='', subject='[No Subject]',
 	if not content.strip().startswith("<"):
 		content = markdown(content)
 
-	emailobj.set_html(content, text_content, footer=footer, print_html=print_html, formatted=formatted)
+	emailobj.set_html(content, text_content, footer=footer,
+		print_html=print_html, formatted=formatted, inline_images=inline_images)
 
 	if isinstance(attachments, dict):
 		attachments = [attachments]
@@ -39,7 +41,6 @@ class EMail:
 	Also sets all messages as multipart/alternative for cleaner reading in text-only clients
 	"""
 	def __init__(self, sender='', recipients=(), subject='', alternative=0, reply_to=None, cc=(), email_account=None, expose_recipients=None):
-		from email.mime.multipart import MIMEMultipart
 		from email import Charset
 		Charset.add_charset('utf-8', Charset.QP, Charset.QP, 'utf-8')
 
@@ -64,7 +65,8 @@ class EMail:
 
 		self.email_account = email_account or get_outgoing_email_account()
 
-	def set_html(self, message, text_content = None, footer=None, print_html=None, formatted=None):
+	def set_html(self, message, text_content = None, footer=None, print_html=None,
+		formatted=None, inline_images=None):
 		"""Attach message in the html portion of multipart/alternative"""
 		if not formatted:
 			formatted = get_formatted_html(self.subject, message, footer, print_html, email_account=self.email_account)
@@ -77,7 +79,7 @@ class EMail:
 			else:
 				self.set_html_as_text(expand_relative_urls(formatted))
 
-		self.set_part_html(formatted)
+		self.set_part_html(formatted, inline_images)
 		self.html_set = True
 
 	def set_text(self, message):
@@ -88,10 +90,28 @@ class EMail:
 		part = MIMEText(message, 'plain', 'utf-8')
 		self.msg_multipart.attach(part)
 
-	def set_part_html(self, message):
+	def set_part_html(self, message, inline_images):
 		from email.mime.text import MIMEText
-		part = MIMEText(message, 'html', 'utf-8')
-		self.msg_multipart.attach(part)
+		if inline_images:
+			related = MIMEMultipart('related')
+
+			for image in inline_images:
+				# images in dict like {filename:'', filecontent:'raw'}
+				content_id = random_string(10)
+
+				# replace filename in message with CID
+				message = re.sub('''src=['"]{0}['"]'''.format(image.get('filename')),
+					'src="cid:{0}"'.format(content_id), message)
+
+				self.add_attachment(image.get('filename'), image.get('filecontent'),
+					None, content_id=content_id, parent=related)
+
+			html_part = MIMEText(message, 'html', 'utf-8')
+			related.attach(html_part)
+
+			self.msg_multipart.attach(related)
+		else:
+			self.msg_multipart.attach(MIMEText(message, 'html', 'utf-8'))
 
 	def set_html_as_text(self, html):
 		"""return html2text"""
@@ -118,7 +138,8 @@ class EMail:
 
 		self.add_attachment(res[0], res[1])
 
-	def add_attachment(self, fname, fcontent, content_type=None):
+	def add_attachment(self, fname, fcontent, content_type=None,
+		parent=None, content_id=None):
 		"""add attachment"""
 		from email.mime.audio import MIMEAudio
 		from email.mime.base import MIMEBase
@@ -155,8 +176,13 @@ class EMail:
 		if fname:
 			part.add_header(b'Content-Disposition',
 				("attachment; filename=\"%s\"" % fname).encode('utf-8'))
+		if content_id:
+			part.add_header(b'Content-ID', '<{0}>'.format(content_id))
 
-		self.msg_root.attach(part)
+		if not parent:
+			parent = self.msg_root
+
+		parent.attach(part)
 
 	def add_pdf_attachment(self, name, html, options=None):
 		self.add_attachment(name, get_pdf(html, options), 'application/octet-stream')
