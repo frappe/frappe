@@ -32,9 +32,7 @@ frappe.ui.form.on("Address", {
 		}
 	},
 	after_save: function(frm) {
-		if(frappe.route_flags.return_to_previous_doctype===1) {
-			delete frappe.route_flags.return_to_previous_doctype;
-			frappe.set_route("Form", frm.doc.links[0].link_doctype, frm.doc.links[0].link_name);
-		}
+		var last_route = frappe.route_history.slice(-2, -1)[0];
+		frappe.set_route(last_route[0], last_route[1], last_route[2]);
 	}
 });
