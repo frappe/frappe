@@ -17,20 +17,20 @@ frappe.listview_settings['File'] = {
 	},
 	prepare_data: function(data) {
 		// set image icons
-		var icon = ""
+		var icon = "";
 
 		if(data.is_folder) {
 			icon += '<i class="fa fa-folder-close-alt fa-fw"></i> ';
 		} else if(frappe.utils.is_image_file(data.file_name)) {
 			icon += '<i class="fa fa-picture fa-fw"></i> ';
 		} else {
-			icon += '<i class="fa fa-file-alt fa-fw"></i> '
+			icon += '<i class="fa fa-file-alt fa-fw"></i> ';
 		}
 
-		data._title = icon + (data.file_name ? data.file_name : data.file_url)
+		data._title = icon + (data.file_name ? data.file_name : data.file_url);
 
 		if (data.is_private) {
-			data._title += ' <i class="fa fa-lock fa-fw text-warning"></i>'
+			data._title += ' <i class="fa fa-lock fa-fw text-warning"></i>';
 		}
 	},
 	onload: function(doclist) {
@@ -43,7 +43,7 @@ frappe.listview_settings['File'] = {
 
 		doclist.$page.on("click", ".list-row-checkbox", function(event) {
 			doclist.list_renderer.settings.add_menu_item_copy(doclist);
-		})
+		});
 	},
 	list_view_doc:function(doclist){
 		$(doclist.wrapper).on("click", 'button[list_view_doc="'+doclist.doctype+'"]', function() {
@@ -73,7 +73,7 @@ frappe.listview_settings['File'] = {
 					method: "frappe.core.doctype.file.file.create_new_folder",
 					args: data,
 					callback: function(r) { }
-				})
+				});
 			}, __('Enter folder name'), __("Create"));
 		});
 
@@ -134,7 +134,7 @@ frappe.listview_settings['File'] = {
 				else{
 					frappe.throw(__("Please select file to copy"));
 				}
-			})
+			});
 			doclist.copy = true;
 		}
 	},
@@ -235,5 +235,5 @@ frappe.listview_settings['File'] = {
 					.appendTo(doclist.breadcrumb);
 			}
 		});
-	};
+	},
 };
