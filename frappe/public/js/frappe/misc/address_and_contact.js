@@ -14,6 +14,7 @@ $.extend(frappe.contacts, {
 					cur_frm.doc.__onload))
 				.find(".btn-address").on("click", function() {
 					frappe.new_doc("Address");
+					frappe.route_flags.return_to_previous_doctype = 1;
 				});
 		}
 
