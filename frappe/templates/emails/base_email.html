@@ -1,0 +1,209 @@
+<style type="text/css">
+h1,
+h2,
+h3,
+h4, 
+h5, 
+h6,
+p,
+span,
+div,
+li,
+blockquote {
+    font-family: -apple-system, BlinkMacSystemFont,
+        "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell",
+        "Fira Sans", "Droid Sans", "Helvetica Neue",
+        sans-serif;
+        padding: 0;
+        margin: 0;
+}
+h1,
+h2,
+h3,
+h4,
+h5,
+h6, {
+    color: #6c7680;
+    margin: 0;
+    padding: 0;
+}
+
+h1 {
+  font-size: 24px;
+}
+h2 {
+  font-size: 20px;
+}
+h3 {
+  font-size: 18px;
+  color: #36414C;
+  margin-bottom: 20px;
+}
+h4 {
+  font-size: 16px;
+  color: #36414C;
+  margin-bottom: 20px;
+}
+h5 {
+  font-size: 14px;
+}
+h6 {
+  font-size: 12px;
+}
+p,
+blockquote {
+    color: #6c7680;
+    font-size: 14px;
+    margin: 0;
+    line-height: 2;
+}
+p.font-12 {
+    font-size: 12px;
+    line-height: 1.5
+}
+p.small {
+    font-size: 10px;
+}
+p.italic {
+    font-style: italic;
+}
+a {
+    color: #7575ff;
+    outline: none;
+    text-decoration: none;
+}
+.brand-name {
+    font-size: 16px;
+}
+a.grey {
+    color: #6c7680;
+}
+.header p {
+    margin: 0;
+}
+td.h-spacer-sm{
+    font-size: 0;
+    line-height: 0;
+    height: 20px;
+    vertical-align: top;
+}
+.footer {
+    color: #8d99a6;
+}
+.footer a {
+    color: #8d99a6;
+}
+.footer h6,
+.footer p {
+    font-size: 10px;
+    text-align: center;
+    margin-top: 10px;
+    padding: 0;
+}
+.center-align {
+    text-align: center;
+}
+img {
+    border: 0;
+    outline: none;
+}
+td {
+    font-size: 14px;
+}
+td.v-spacer {
+    font-size: 0;
+    line-height: 0;
+    width: 50px;
+    vertical-align: top;
+}
+td.h-spacer {
+    font-size: 0;
+    line-height: 0;
+    height: 30px;
+    vertical-align: top;
+}
+.h-spacer-lg {
+    height: 50px;
+}
+th {
+    font-size: 14px;
+}
+table.inner {
+    width: 100%;
+    max-width: 600px;
+    border: 0;
+    /*border: 1px solid #d1d8dd;*/
+    background-color: #fff; 
+    box-shadow: 3px 0 0 #ccc;
+}
+table.wrapper {
+    background: #fafbfc;
+    width: 100%;
+}
+.bordered-vspace {
+    height: 20px;
+    border-bottom: 1px solid #d1d8dd;
+}
+.primary-btn {
+    padding: 8px 20px; 
+    background-color: #7575ff; 
+    color: #fff; 
+    border-radius: 3px; 
+    text-decoration: none; 
+    line-height: 1; 
+    font-size: 14px; 
+    outline:none; 
+    font-weight: 200;
+    text-transform: capitalize;
+}
+.rating {
+    font-size: 20px; 
+    text-decoration: none; 
+    color: grey; 
+}
+</style>
+<center>
+    <table class="wrapper" align="center" width="100%" border="0" cellpadding="0" cellspacing="0">
+        <tr>
+            <td class="h-spacer"></td>
+        </tr>
+        <tr>
+            <td>
+                <table class="inner" width="100%" align="center" border="0" cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td colspan="3" class="h-spacer-sm"></td>
+                    </tr>
+                    {% include 'frappe/templates/emails/header_template.html' %}
+
+                    <!-- End of header block -->
+
+                    <tr>
+                        <td colspan="3" class="bordered-vspace"></td> <!-- Vertical space td -->
+                    </tr>
+                    <!-- Email Content -->
+
+                    <tr>
+                        <td colspan="3" class="h-spacer"></td> <!-- Vertical space td -->
+                    </tr>
+
+                    <tr>
+                        <td class="v-spacer"></td>
+
+                        <td valign="top">{{content}}</td>
+
+                        <td class="v-spacer"></td>
+                    </tr>
+                    <!-- End of content -->
+                    <tr>
+                        <td colspan=3 class="h-spacer"></td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+<!-- Footer block -->
+<!-- Footer template is commented. working on configuarable settings. -->
+{# {% include 'frappe/templates/emails/footer_template.html' %} #}
+<!-- End Footer block -->
+        <tr><td class="h-spacer"></td></tr>
+    </table>
+</center>
