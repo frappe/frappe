@@ -31,7 +31,7 @@ frappe.ui.form.on("Address", {
 			});
 		}
 	},
-	after_save: function(frm) {
+	after_save: function() {
 		var last_route = frappe.route_history.slice(-2, -1)[0];
 		frappe.set_route(last_route[0], last_route[1], last_route[2]);
 	}
