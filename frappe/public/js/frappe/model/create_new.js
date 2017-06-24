@@ -319,10 +319,10 @@ frappe.new_doc = function (doctype, opts) {
 			frappe.set_route(frappe.create_routes[doctype]);
 		} else {
 			var trimmed_doctype = doctype.replace(/ /g, '');
-			var controller_name = "QuickEntryController";
+			var controller_name = "QuickEntryForm";
 
-			if(frappe.ui.form[trimmed_doctype + "QuickEntry"]){
-				controller_name = trimmed_doctype + "QuickEntry";
+			if(frappe.ui.form[trimmed_doctype + "QuickEntryForm"]){
+				controller_name = trimmed_doctype + "QuickEntryForm";
 			}
 
 			new frappe.ui.form[controller_name](doctype, function(doc) {

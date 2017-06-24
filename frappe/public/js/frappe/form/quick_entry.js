@@ -1,6 +1,6 @@
 frappe.provide('frappe.ui.form');
 
-frappe.ui.form.QuickEntryController = Class.extend({
+frappe.ui.form.QuickEntryForm = Class.extend({
 	init: function(doctype, success_function){
 		this.doctype = doctype;
 		this.success_function = success_function;
