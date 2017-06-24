@@ -14,6 +14,7 @@ frappe.ui.SortSelector = Class.extend({
 	},
 	make: function() {
 		this.prepare_args();
+		this.parent.find('.sort-selector').remove();
 		this.wrapper = $(frappe.render_template('sort_selector', this.args)).appendTo(this.parent);
 		this.bind_events();
 	},
@@ -46,6 +47,26 @@ frappe.ui.SortSelector = Class.extend({
 		if(!this.args) {
 			this.args = {};
 		}
+
+		// args as string
+		if(this.args && typeof this.args === 'string') {
+			var order_by = this.args;
+			this.args = {}
+
+			if (order_by.includes('`.`')) {
+				// scrub table name (separated by dot), like `tabTime Log`.`modified` desc`
+				order_by = order_by.split('.')[1];
+			}
+
+			var parts = order_by.split(' ');
+			if (parts.length === 2) {
+				var fieldname = strip(parts[0], '`');
+
+				this.args.sort_by = fieldname;
+				this.args.sort_order = parts[1];
+			}
+		}
+
 		if(this.args.options) {
 			this.args.options.forEach(function(o) {
 				me.labels[o.fieldname] = o.label;
@@ -69,17 +90,14 @@ frappe.ui.SortSelector = Class.extend({
 	setup_from_doctype: function() {
 		var me = this;
 		var meta = frappe.get_meta(this.doctype);
+		if (!meta) return;
+
+		var { meta_sort_field, meta_sort_order } = this.get_meta_sort_field();
 
 		if(!this.args.sort_by) {
-			if(meta.sort_field) {
-				if(meta.sort_field.indexOf(',')!==-1) {
-					parts = meta.sort_field.split(',')[0].split(' ');
-					this.args.sort_by = parts[0];
-					this.args.sort_order = parts[1];
-				} else {
-					this.args.sort_by = meta.sort_field;
-					this.args.sort_order = meta.sort_order.toLowerCase();
-				}
+			if(meta_sort_field) {
+				this.args.sort_by = meta_sort_field;
+				this.args.sort_order = meta_sort_order;
 			} else {
 				// default
 				this.args.sort_by = 'modified';
@@ -94,7 +112,7 @@ frappe.ui.SortSelector = Class.extend({
 		if(!this.args.options) {
 			// default options
 			var _options = [
-				{'fieldname': 'modified'},
+				{'fieldname': 'modified'}
 			]
 
 			// title field
@@ -109,18 +127,19 @@ frappe.ui.SortSelector = Class.extend({
 				}
 			});
 
-			_options.push({'fieldname': 'name'});
-			_options.push({'fieldname': 'creation'});
-			_options.push({'fieldname': 'idx'});
+			// meta sort field
+			if(meta_sort_field) _options.push({ 'fieldname': meta_sort_field });
+
+			// more default options
+			_options.push(
+				{'fieldname': 'name'},
+				{'fieldname': 'creation'},
+				{'fieldname': 'idx'}
+			)
 
 			// de-duplicate
-			var added = [];
-			this.args.options = [];
-			_options.forEach(function(o) {
-				if(added.indexOf(o.fieldname)===-1) {
-					me.args.options.push(o);
-					added.push(o.fieldname);
-				}
+			this.args.options = _options.uniqBy(function(obj) {
+				return obj.fieldname;
 			});
 
 			// add missing labels
@@ -134,6 +153,29 @@ frappe.ui.SortSelector = Class.extend({
 		// set default
 		this.sort_by = this.args.sort_by;
 		this.sort_order = this.args.sort_order;
+	},
+	get_meta_sort_field: function() {
+		var meta = frappe.get_meta(this.doctype);
+
+		if (!meta) {
+			return {
+				meta_sort_field: null,
+				meta_sort_order: null
+			}
+		}
+
+		if(meta.sort_field && meta.sort_field.includes(',')) {
+			var parts = meta.sort_field.split(',')[0].split(' ');
+			return {
+				meta_sort_field: parts[0],
+				meta_sort_order: parts[1]
+			}
+		} else {
+			return {
+				meta_sort_field: meta.sort_field || 'modified',
+				meta_sort_order: meta.sort_order ? meta.sort_order.toLowerCase() : ''
+			}
+		}
 	},
 	get_label: function(fieldname) {
 		if(fieldname==='idx') {

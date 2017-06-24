@@ -2,9 +2,9 @@ frappe.provide("frappe.ui.notifications")
 
 frappe.ui.notifications.update_notifications = function() {
 	frappe.ui.notifications.total = 0;
-	var doctypes = keys(frappe.boot.notification_info.open_count_doctype).sort();
-	var modules = keys(frappe.boot.notification_info.open_count_module).sort();
-	var other = keys(frappe.boot.notification_info.open_count_other).sort();
+	var doctypes = Object.keys(frappe.boot.notification_info.open_count_doctype).sort();
+	var modules = Object.keys(frappe.boot.notification_info.open_count_module).sort();
+	var other = Object.keys(frappe.boot.notification_info.open_count_other).sort();
 
 	// clear toolbar / sidebar notifications
 	frappe.ui.notifications.dropdown_notification = $("#dropdown-notification").empty();
@@ -46,10 +46,11 @@ frappe.ui.notifications.update_notifications = function() {
 		}
 	});
 
-	// switch colour on the navbar
+	// switch colour on the navbar and disable if no notifications
 	$(".navbar-new-comments")
 		.html(frappe.ui.notifications.total > 20 ? '20+' : frappe.ui.notifications.total)
-		.toggleClass("navbar-new-comments-true", frappe.ui.notifications.total ? true : false);
+		.toggleClass("navbar-new-comments-true", frappe.ui.notifications.total ? true : false)
+		.parent().toggleClass("disabled", frappe.ui.notifications.total ? false : true);
 
 }
 
@@ -81,7 +82,8 @@ frappe.ui.notifications.add_notification = function(doctype, notifications_map) 
 frappe.ui.notifications.config = {
 	"ToDo": { label: __("To Do") },
 	"Chat": { label: __("Chat"), route: "chat"},
-	"Event": { label: __("Calendar"), route: "Calendar/Event" },
+	"Event": { label: __("Calendar"), route: "List/Event/Calendar" },
+	"Email": { label: __("Email"), route: "List/Communication/Inbox" },
 	"Likes": {
 		label: __("Likes"),
 		click: function() {
@@ -108,7 +110,7 @@ frappe.views.show_open_count_list = function(element) {
 
 	var route = frappe.get_route();
 	if(route[0]==="List" && route[1]===doctype) {
-		frappe.pages["List/" + doctype].doclistview.refresh();
+		frappe.pages["List/" + doctype].list_view.refresh();
 	} else {
 		frappe.set_route("List", doctype);
 	}

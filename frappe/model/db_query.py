@@ -2,16 +2,20 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
+
+from six import iteritems
+
 """build query for doclistview and return results"""
 
 import frappe, json, copy
 import frappe.defaults
 import frappe.share
 import frappe.permissions
-from frappe.utils import flt, cint, getdate, get_datetime, get_time, make_filter_tuple, get_filter
+from frappe.utils import flt, cint, getdate, get_datetime, get_time, make_filter_tuple, get_filter, add_to_date
 from frappe import _
 from frappe.model import optional_fields
-from frappe.model.utils.list_settings import get_list_settings, update_list_settings
+from frappe.model.utils.user_settings import get_user_settings, update_user_settings
+from datetime import datetime
 
 class DatabaseQuery(object):
 	def __init__(self, doctype):
@@ -29,9 +33,10 @@ class DatabaseQuery(object):
 		limit_page_length=None, as_list=False, with_childnames=False, debug=False,
 		ignore_permissions=False, user=None, with_comment_count=False,
 		join='left join', distinct=False, start=None, page_length=None, limit=None,
-		ignore_ifnull=False, save_list_settings=False, save_list_settings_fields=False,
-		update=None):
+		ignore_ifnull=False, save_user_settings=False, save_user_settings_fields=False,
+		update=None, add_total_row=None, user_settings=None):
 		if not ignore_permissions and not frappe.has_permission(self.doctype, "read", user=user):
+			frappe.flags.error_message = _('Insufficient Permission for {0}').format(frappe.bold(self.doctype))
 			raise frappe.PermissionError, self.doctype
 
 		# fitlers and fields swappable
@@ -71,8 +76,11 @@ class DatabaseQuery(object):
 		self.flags.ignore_permissions = ignore_permissions
 		self.user = user or frappe.session.user
 		self.update = update
-		self.list_settings_fields = copy.deepcopy(self.fields)
+		self.user_settings_fields = copy.deepcopy(self.fields)
 		#self.debug = True
+
+		if user_settings:
+			self.user_settings = json.loads(user_settings)
 
 		if query:
 			result = self.run_custom_query(query)
@@ -82,9 +90,9 @@ class DatabaseQuery(object):
 		if with_comment_count and not as_list and self.doctype:
 			self.add_comment_count(result)
 
-		if save_list_settings:
-			self.save_list_settings_fields = save_list_settings_fields
-			self.update_list_settings()
+		if save_user_settings:
+			self.save_user_settings_fields = save_user_settings_fields
+			self.update_user_settings()
 
 		return result
 
@@ -138,9 +146,11 @@ class DatabaseQuery(object):
 		args.fields = ', '.join(self.fields)
 
 		self.set_order_by(args)
-		self.check_sort_by_table(args.order_by)
+
+		self.validate_order_by_and_group_by(args.order_by)
 		args.order_by = args.order_by and (" order by " + args.order_by) or ""
 
+		self.validate_order_by_and_group_by(self.group_by)
 		args.group_by = self.group_by and (" group by " + self.group_by) or ""
 
 		return args
@@ -164,7 +174,7 @@ class DatabaseQuery(object):
 			if isinstance(filters, dict):
 				fdict = filters
 				filters = []
-				for key, value in fdict.iteritems():
+				for key, value in iteritems(fdict):
 					filters.append(make_filter_tuple(self.doctype, key, value))
 			setattr(self, filter_name, filters)
 
@@ -192,6 +202,7 @@ class DatabaseQuery(object):
 		self.tables.append(table_name)
 		doctype = table_name[4:-1]
 		if (not self.flags.ignore_permissions) and (not frappe.has_permission(doctype)):
+			frappe.flags.error_message = _('Insufficient Permission for {0}').format(frappe.bold(doctype))
 			raise frappe.PermissionError, doctype
 
 	def set_field_tables(self):
@@ -244,8 +255,11 @@ class DatabaseQuery(object):
 			if match_conditions:
 				self.conditions.append("(" + match_conditions + ")")
 
-	def build_filter_conditions(self, filters, conditions):
+	def build_filter_conditions(self, filters, conditions, ignore_permissions=None):
 		"""build conditions from user filters"""
+		if ignore_permissions is not None:
+			self.flags.ignore_permissions = ignore_permissions
+
 		if isinstance(filters, dict):
 			filters = [filters]
 
@@ -267,13 +281,16 @@ class DatabaseQuery(object):
 		if not tname in self.tables:
 			self.append_table(tname)
 
-		column_name = '{tname}.{fname}'.format(tname=tname,
-			fname=f.fieldname)
+		if 'ifnull(' in f.fieldname:
+			column_name = f.fieldname
+		else:
+			column_name = '{tname}.{fname}'.format(tname=tname,
+				fname=f.fieldname)
 
 		can_be_null = True
 
 		# prepare in condition
-		if f.operator in ('in', 'not in'):
+		if f.operator.lower() in ('in', 'not in'):
 			values = f.value
 			if not isinstance(values, (list, tuple)):
 				values = values.split(",")
@@ -288,11 +305,25 @@ class DatabaseQuery(object):
 			if df and df.fieldtype in ("Check", "Float", "Int", "Currency", "Percent"):
 				can_be_null = False
 
-			if df and df.fieldtype=="Date":
+			if f.operator.lower() == 'between' and \
+				(f.fieldname in ('creation', 'modified') or (df and (df.fieldtype=="Date" or df.fieldtype=="Datetime"))):
+
+				from_date = None
+				to_date = None
+				if f.value and isinstance(f.value, (list, tuple)):
+					if len(f.value) >= 1: from_date = f.value[0]
+					if len(f.value) >= 2: to_date = f.value[1]
+
+				value = "'%s' AND '%s'" % (
+					add_to_date(get_datetime(from_date),days=-1).strftime("%Y-%m-%d %H:%M:%S.%f"),
+					get_datetime(to_date).strftime("%Y-%m-%d %H:%M:%S.%f"))
+				fallback = "'0000-00-00 00:00:00'"
+
+			elif df and df.fieldtype=="Date":
 				value = getdate(f.value).strftime("%Y-%m-%d")
 				fallback = "'0000-00-00'"
 
-			elif df and df.fieldtype=="Datetime":
+			elif (df and df.fieldtype=="Datetime") or isinstance(f.value, datetime):
 				value = get_datetime(f.value).strftime("%Y-%m-%d %H:%M:%S.%f")
 				fallback = "'0000-00-00 00:00:00'"
 
@@ -300,12 +331,12 @@ class DatabaseQuery(object):
 				value = get_time(f.value).strftime("%H:%M:%S.%f")
 				fallback = "'00:00:00'"
 
-			elif f.operator in ("like", "not like") or (isinstance(f.value, basestring) and
+			elif f.operator.lower() in ("like", "not like") or (isinstance(f.value, basestring) and
 				(not df or df.fieldtype not in ["Float", "Int", "Currency", "Percent", "Check"])):
 					value = "" if f.value==None else f.value
 					fallback = '""'
 
-					if f.operator in ("like", "not like") and isinstance(value, basestring):
+					if f.operator.lower() in ("like", "not like") and isinstance(value, basestring):
 						# because "like" uses backslash (\) for escaping
 						value = value.replace("\\", "\\\\").replace("%", "%%")
 
@@ -314,11 +345,13 @@ class DatabaseQuery(object):
 				fallback = 0
 
 			# put it inside double quotes
-			if isinstance(value, basestring):
+			if isinstance(value, basestring) and not f.operator.lower() == 'between':
 				value = '"{0}"'.format(frappe.db.escape(value, percent=False))
 
-		if (self.ignore_ifnull or not can_be_null
-			or (f.value and f.operator in ('=', 'like')) or 'ifnull(' in column_name.lower()):
+		if (self.ignore_ifnull
+			or not can_be_null
+			or (f.value and f.operator.lower() in ('=', 'like'))
+			or 'ifnull(' in column_name.lower()):
 			condition = '{column_name} {operator} {value}'.format(
 				column_name=column_name, operator=f.operator,
 				value=value)
@@ -432,6 +465,7 @@ class DatabaseQuery(object):
 
 	def set_order_by(self, args):
 		meta = frappe.get_meta(self.doctype)
+
 		if self.order_by:
 			args.order_by = self.order_by
 		else:
@@ -464,13 +498,23 @@ class DatabaseQuery(object):
 				if meta.is_submittable:
 					args.order_by = "`tab{0}`.docstatus asc, {1}".format(self.doctype, args.order_by)
 
-	def check_sort_by_table(self, order_by):
-		if "." in order_by:
-			tbl = order_by.split('.')[0]
-			if tbl not in self.tables:
-				if tbl.startswith('`'):
-					tbl = tbl[4:-1]
-				frappe.throw(_("Please select atleast 1 column from {0} to sort").format(tbl))
+	def validate_order_by_and_group_by(self, parameters):
+		"""Check order by, group by so that atleast one column is selected and does not have subquery"""
+		if not parameters:
+			return
+
+		_lower = parameters.lower()
+		if 'select' in _lower and ' from ' in _lower:
+			frappe.throw(_('Cannot use sub-query in order by'))
+
+
+		for field in parameters.split(","):
+			if "." in field and field.strip().startswith("`tab"):
+				tbl = field.strip().split('.')[0]
+				if tbl not in self.tables:
+					if tbl.startswith('`'):
+						tbl = tbl[4:-1]
+					frappe.throw(_("Please select atleast 1 column from {0} to sort/group").format(tbl))
 
 	def add_limit(self):
 		if self.limit_page_length:
@@ -487,15 +531,38 @@ class DatabaseQuery(object):
 			if "_comments" in r:
 				r._comment_count = len(json.loads(r._comments or "[]"))
 
-	def update_list_settings(self):
-		# update list settings if new search
-		list_settings = json.loads(get_list_settings(self.doctype) or '{}')
-		list_settings['filters'] = self.filters
-		list_settings['limit'] = self.limit_page_length
-		list_settings['order_by'] = self.order_by
+	def update_user_settings(self):
+		# update user settings if new search
+		user_settings = json.loads(get_user_settings(self.doctype))
 
-		if self.save_list_settings_fields:
-			list_settings['fields'] = self.list_settings_fields
+		if hasattr(self, 'user_settings'):
+			user_settings.update(self.user_settings)
 
-		update_list_settings(self.doctype, list_settings)
+		if self.save_user_settings_fields:
+			user_settings['fields'] = self.user_settings_fields
 
+		update_user_settings(self.doctype, user_settings)
+
+def get_order_by(doctype, meta):
+	order_by = ""
+
+	sort_field = sort_order = None
+	if meta.sort_field and ',' in meta.sort_field:
+		# multiple sort given in doctype definition
+		# Example:
+		# `idx desc, modified desc`
+		# will covert to
+		# `tabItem`.`idx` desc, `tabItem`.`modified` desc
+		order_by = ', '.join(['`tab{0}`.`{1}` {2}'.format(doctype,
+			f.split()[0].strip(), f.split()[1].strip()) for f in meta.sort_field.split(',')])
+	else:
+		sort_field = meta.sort_field or 'modified'
+		sort_order = (meta.sort_field and meta.sort_order) or 'desc'
+
+		order_by = "`tab{0}`.`{1}` {2}".format(doctype, sort_field or "modified", sort_order or "desc")
+
+	# draft docs always on top
+	if meta.is_submittable:
+		order_by = "`tab{0}`.docstatus asc, {1}".format(doctype, order_by)
+
+	return order_by

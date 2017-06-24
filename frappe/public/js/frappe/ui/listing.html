@@ -1,12 +1,5 @@
 <div class="frappe-list">
 	<div class="list-filters" style="display: none;">
-		<div class="show_filters">
-			<div class="set-filters">
-				<button class="btn btn-default btn-xs new-filter text-muted" style="margin-right: 10px;">
-					{%= __("Add Filter") %}</button>
-			</div>
-			<div class="filter_area"></div>
-		</div>
 	</div>
 
 	<div style="margin-bottom:9px" class="list-toolbar-wrapper hide">
@@ -27,14 +20,14 @@
 	<div class="list-paging-area">
 		<div class="row">
 			<div class="col-xs-6">
-				<button class="btn btn-default btn-more btn-sm">{%= _more %}...</button>
-			</div>
-			<div class="col-xs-6">
-				<div class="btn-group pull-right btn-group-paging">
+				<div class="btn-group btn-group-paging">
 					<button type="button" class="btn btn-default btn-sm btn-info" data-value="20">20</button>
 					<button type="button" class="btn btn-default btn-sm" data-value="100">100</button>
 					<button type="button" class="btn btn-default btn-sm" data-value="500">500</button>
 				</div>
+			</div>
+			<div class="col-xs-6 text-right">
+				<button class="btn btn-default btn-more btn-sm">{%= _more %}...</button>
 			</div>
 		</div>
 	</div>

@@ -74,16 +74,16 @@ def get_website_settings():
 		'top_bar_items': get_items('top_bar_items'),
 		'footer_items': get_items('footer_items'),
 		"post_login": [
-			{"label": "My Account", "url": "/me"},
+			{"label": _("My Account"), "url": "/me"},
 #			{"class": "divider"},
-			{"label": "Logout", "url": "/?cmd=web_logout"}
+			{"label": _("Logout"), "url": "/?cmd=web_logout"}
 		]
 	})
 
 	settings = frappe.get_doc("Website Settings", "Website Settings")
 	for k in ["banner_html", "brand_html", "copyright", "twitter_share_via",
 		"facebook_share", "google_plus_one", "twitter_share", "linked_in_share",
-		"disable_signup", "hide_footer_signup", "head_html"]:
+		"disable_signup", "hide_footer_signup", "head_html", "title_prefix"]:
 		if hasattr(settings, k):
 			context[k] = settings.get(k)
 
@@ -111,7 +111,7 @@ def get_website_settings():
 		context[key] = via_hooks[key]
 		if key not in ("top_bar_items", "footer_items", "post_login") \
 			and isinstance(context[key], (list, tuple)):
-			context[key] = context[key][0]
+			context[key] = context[key][-1]
 
 	add_website_theme(context)
 

@@ -28,7 +28,22 @@ frappe.pages['modules'].on_page_load = function(wrapper) {
 
 	// render sidebar
 	page.sidebar.html(frappe.render_template('modules_sidebar',
-		{modules: frappe.get_desktop_icons(true)}));
+		{modules: frappe.get_desktop_icons(true).sort(
+			function(a, b){ return (a._label > b._label) ? 1 : -1 })}));
+
+	// help click
+	page.main.on("click", '.module-section-link[data-type="help"]', function(event) {
+		frappe.help.show_video($(this).attr("data-youtube-id"));
+		return false;
+	});
+
+	// notifications click
+	page.main.on("click", '.open-notification', function(event) {
+		var doctype = $(this).attr('data-doctype');
+		if(doctype) {
+			frappe.set_route('List', doctype, frappe.ui.notifications.get_filters(doctype));
+		}
+	});
 
 	page.activate_link = function(link) {
 		page.last_link = link;
@@ -48,7 +63,7 @@ frappe.pages['modules'].on_page_load = function(wrapper) {
 					module: module_name
 				},
 				callback: function(r) {
-					m = frappe.get_module(module_name);
+					var m = frappe.get_module(module_name);
 					m.data = r.message.data;
 					process_data(module_name, m.data);
 					page.section_data[module_name] = m;
@@ -73,21 +88,6 @@ frappe.pages['modules'].on_page_load = function(wrapper) {
 
 		//setup_section_toggle();
 		frappe.app.update_notification_count_in_modules();
-
-		// notifications click
-		page.main.on("click", '.open-notification', function(event) {
-			var doctype = $(this).attr('data-doctype');
-			if(doctype) {
-				frappe.set_route('List', doctype, frappe.ui.notifications.get_filters(doctype));
-			}
-		});
-
-		// help click
-		page.main.on("click", '.module-section-link[data-type="help"]', function(event) {
-			frappe.help.show_video($(this).attr("data-youtube-id"));
-			return false;
-		});
-
 	}
 
 	var process_data = function(module_name, data) {
@@ -133,9 +133,9 @@ frappe.pages['modules'].on_page_load = function(wrapper) {
 						return encodeURIComponent(key) + "=" + encodeURIComponent(value) }).join('&')
 				}
 
-				if(item.type==="page" || item.type==="help" ||
-					(item.doctype && frappe.model.can_read(item.doctype))) {
-						item.shown = true;
+				if(item.type==="page" || item.type==="help" || item.type==="report" ||
+				(item.doctype && frappe.model.can_read(item.doctype))) {
+					item.shown = true;
 				}
 			});
 		});

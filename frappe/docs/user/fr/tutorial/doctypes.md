@@ -1,6 +1,6 @@
 # DocType
 
-Après avoir créé les ^oles, créons des **DocTypes**
+Après avoir créé les roles, créons des **DocTypes**
 
 Pour créer un nouveau **DocType**, rendez-vous sur:
 
@@ -50,7 +50,7 @@ sur chacune des lignes comme ci-dessous
 #### Ajouter des permissins
 
 Après avoir ajouté les champs, validez et ajoutez un nouveau rôle dans la section des règles de permissions. Pour le moment
-ajoutons les droits le lecture, ecriture, création et suppression au modèle **Librarian**. Frappe à une gestion fine des 
+ajoutons les droits le lecture, écriture, création et suppression au modèle **Librarian**. Frappe à une gestion fine des 
 permissions sur les modèles. Vous pouvez aussi changer les permissions plus tard en utilisant le gestionnaire de permissions
 dans la configuration.
 
@@ -101,5 +101,5 @@ Maintenant, connectez vous à MySQL et vérifiez la base de données créée:
 Comme vous pouvez le voir, en plus de nos **DocFields**, d'autres colonnes ont été ajoutées dans notre table. Notez les 
 changement, la clé primaire sur, `name`, `owner`(l'utilisateur quia créer l'enregistrement), `creation` et `modified` (des timestamps pour enregistrer les dates de creation et de modification).
 
-{suite}
+{next}
 

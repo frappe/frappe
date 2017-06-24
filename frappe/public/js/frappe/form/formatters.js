@@ -52,14 +52,15 @@ frappe.form.formatters = {
 	},
 	Currency: function(value, docfield, options, doc) {
 		var currency = frappe.meta.get_field_currency(docfield, doc);
+		var precision = docfield.precision || cint(frappe.boot.sysdefaults.currency_precision) || 2;
 		return frappe.form.formatters._right((value==null || value==="")
-			? "" : format_currency(value, currency, docfield.precision || null), options);
+			? "" : format_currency(value, currency, precision), options);
 	},
 	Check: function(value) {
 		if(value) {
 			return '<i class="octicon octicon-check" style="margin-right: 3px;"></i>';
 		} else {
-			return '<i class="icon-ban-circle text-extra-muted" style="margin-right: 3px;"></i>';
+			return '<i class="fa fa-square disabled-check"></i>';
 		}
 	},
 	Link: function(value, docfield, options, doc) {
@@ -80,6 +81,9 @@ frappe.form.formatters = {
 		if(!value) {
 			return "";
 		}
+		if(value[0] == "'" && value[value.length -1] == "'") {
+			return value.substring(1, value.length - 1);
+		}
 		if(docfield && docfield.link_onclick) {
 			return repl('<a onclick="%(onclick)s">%(value)s</a>',
 				{onclick: docfield.link_onclick.replace(/"/g, '&quot;'), value:value});
@@ -95,7 +99,7 @@ frappe.form.formatters = {
 	},
 	Date: function(value) {
 		if (value) {
-			value = dateutil.str_to_user(value);
+			value = frappe.datetime.str_to_user(value);
 			// handle invalid date
 			if (value==="Invalid date") {
 				value = null;
@@ -106,11 +110,11 @@ frappe.form.formatters = {
 	},
 	Datetime: function(value) {
 		if(value) {
-			var m = moment(dateutil.convert_to_user_tz(value));
+			var m = moment(frappe.datetime.convert_to_user_tz(value));
 			if(frappe.boot.sysdefaults.time_zone) {
 				m = m.tz(frappe.boot.sysdefaults.time_zone);
 			}
-			return m.format('MMMM Do YYYY, h:mm a z');
+			return m.format(frappe.boot.sysdefaults.date_format.toUpperCase() + ', h:mm a z');
 		} else {
 			return "";
 		}
@@ -178,12 +182,12 @@ frappe.form.formatters = {
 		return "<pre>" + (value==null ? "" : $("<div>").text(value).html()) + "</pre>"
 	},
 	WorkflowState: function(value) {
-		workflow_state = frappe.get_doc("Workflow State", value);
+		var workflow_state = frappe.get_doc("Workflow State", value);
 		if(workflow_state) {
 			return repl("<span class='label label-%(style)s' \
 				data-workflow-state='%(value)s'\
 				style='padding-bottom: 4px; cursor: pointer;'>\
-				<i class='icon-small icon-white icon-%(icon)s'></i> %(value)s</span>", {
+				<i class='fa fa-small fa-white fa-%(icon)s'></i> %(value)s</span>", {
 					value: value,
 					style: workflow_state.style.toLowerCase(),
 					icon: workflow_state.icon
@@ -213,7 +217,7 @@ frappe.format = function(value, df, options, doc) {
 		df._options = doc ? doc[df.options] : null;
 	}
 
-	formatter = df.formatter || frappe.form.get_formatter(fieldtype);
+	var formatter = df.formatter || frappe.form.get_formatter(fieldtype);
 
 	var formatted = formatter(value, df, options, doc);
 
@@ -227,7 +231,7 @@ frappe.get_format_helper = function(doc) {
 	var helper = {
 		get_formatted: function(fieldname) {
 			var df = frappe.meta.get_docfield(doc.doctype, fieldname);
-			if(!df) { console.log("fieldname not found: " + fieldname); };
+			if(!df) { console.log("fieldname not found: " + fieldname); }
 			return frappe.format(doc[fieldname], df, {inline:1}, doc);
 		}
 	};

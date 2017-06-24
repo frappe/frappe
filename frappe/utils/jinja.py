@@ -30,8 +30,8 @@ def validate_template(html):
 	jenv = get_jenv()
 	try:
 		jenv.from_string(html)
-	except TemplateSyntaxError, e:
-		frappe.msgprint('Line {}: {}'.format(e.lineno, e.message))
+	except TemplateSyntaxError as e:
+ 		frappe.msgprint('Line {}: {}'.format(e.lineno, e.message))
 		frappe.throw(frappe._("Syntax error in template"))
 
 def render_template(template, context, is_path=None):
@@ -59,8 +59,15 @@ def get_allowed_functions_for_jenv():
 	from frappe.website.utils import get_shade
 	from frappe.modules import scrub
 	import mimetypes
+	from html2text import html2text
+	from frappe.www.printview import get_visible_columns
 
 	datautils = {}
+	if frappe.db:
+		date_format = frappe.db.get_default("date_format") or "yyyy-mm-dd"
+	else:
+		date_format = 'yyyy-mm-dd'
+
 	for key, obj in frappe.utils.data.__dict__.items():
 		if key.startswith("_"):
 			# ignore
@@ -73,6 +80,8 @@ def get_allowed_functions_for_jenv():
 	if "_" in getattr(frappe.local, 'form_dict', {}):
 		del frappe.local.form_dict["_"]
 
+	user = getattr(frappe.local, "session", None) and frappe.local.session.user or "Guest"
+
 	out = {
 		# make available limited methods of frappe
 		"frappe": {
@@ -80,6 +89,7 @@ def get_allowed_functions_for_jenv():
 			"get_url": frappe.utils.get_url,
 			'format': frappe.format_value,
 			"format_value": frappe.format_value,
+			'date_format': date_format,
 			"format_date": frappe.utils.data.global_date_format,
 			"form_dict": getattr(frappe.local, 'form_dict', {}),
 			"local": frappe.local,
@@ -89,11 +99,15 @@ def get_allowed_functions_for_jenv():
 			"get_list": frappe.get_list,
 			"get_all": frappe.get_all,
 			"utils": datautils,
-			"user": getattr(frappe.local, "session", None) and frappe.local.session.user or "Guest",
+			"user": user,
 			"get_fullname": frappe.utils.get_fullname,
 			"get_gravatar": frappe.utils.get_gravatar_url,
-			"full_name": getattr(frappe.local, "session", None) and frappe.local.session.data.full_name or "Guest",
-			"render_template": frappe.render_template
+			"full_name": frappe.local.session.data.full_name if getattr(frappe.local, "session", None) else "Guest",
+			"render_template": frappe.render_template,
+			'session': {
+				'user': user,
+				'csrf_token': frappe.local.session.data.csrf_token if getattr(frappe.local, "session", None) else ''
+			},
 		},
 		"autodoc": {
 			"get_version": get_version,
@@ -104,12 +118,13 @@ def get_allowed_functions_for_jenv():
 		"get_shade": get_shade,
 		"scrub": scrub,
 		"guess_mimetype": mimetypes.guess_type,
+		'html2text': html2text,
 		"dev_server": 1 if os.environ.get('DEV_SERVER', False) else 0
 	}
 
 	if not frappe.flags.in_setup_help:
-		out['get_visible_columns'] = frappe.get_attr("frappe.www.print.get_visible_columns")
-		out['frappe']['date_format'] = frappe.db.get_default("date_format") or "yyyy-mm-dd"
+		out['get_visible_columns'] = get_visible_columns
+		out['frappe']['date_format'] = date_format
 		out['frappe']["db"] = {
 			"get_value": frappe.db.get_value,
 			"get_default": frappe.db.get_default,

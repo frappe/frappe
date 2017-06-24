@@ -4,13 +4,13 @@ You can create tabulated reports using server side scripts by creating a new Rep
 
 > Note: You will need Administrator Permissions for this.
 
-Since these reports give you unrestricted access via Python scripts, they can only be created by Administrators. The script part of the report becomes a part of the repository of the application. If you have not created an app, [read this](/developers/guide).
+Since these reports give you unrestricted access via Python scripts, they can only be created by Administrators. The script part of the report becomes a part of the repository of the application. If you have not created an app, [read this](https://frappe.github.io/frappe/user/en/guides/app-development/).
 
-> Note: You must be in [Developer Mode](/developers/how-to/enable-developer-mode) to do this
+> Note: You must be in [Developer Mode](https://frappe.github.io/frappe/user/en/guides/app-development/how-enable-developer-mode-in-frappe) to do this
 
 ### 1. Create a new Report
 
-![Query Report](/assets/frappe_io/images/how-to/script-report.png)
+<img class="screenshot" alt="Script Report" src="{{docs_base_url}}/assets/img/script-report.png">
 
 1. Set Report Type as "Script Report"
 1. Set "Is Standard" as "Yes"

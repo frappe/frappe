@@ -7,7 +7,7 @@ $.extend(frappe.report_dump, {
 	data: {},
 	last_modified: {},
 	with_data: function(doctypes, callback) {
-		var pre_loaded = keys(frappe.report_dump.last_modified);
+		var pre_loaded = Object.keys(frappe.report_dump.last_modified);
 		return frappe.call({
 			method: "frappe.desk.report_dump.get_data",
 			type: "GET",
@@ -148,10 +148,10 @@ frappe.views.GridReport = Class.extend({
 		var me = this;
 		$.each(me.filter_inputs, function(i, v) {
 			var opts = v.get(0).opts;
-			if(opts.fieldtype == "Select" && inList(me.doctypes, opts.link)) {
+			if(opts.fieldtype == "Select" && in_list(me.doctypes, opts.link)) {
 				$(v).add_options($.map(frappe.report_dump.data[opts.link],
 					function(d) { return d.name; }));
-			} else if(opts.fieldtype == "Link" && inList(me.doctypes, opts.link)) {
+			} else if(opts.fieldtype == "Link" && in_list(me.doctypes, opts.link)) {
 				opts.list = $.map(frappe.report_dump.data[opts.link],
 					function(d) { return d.name; });
 				me.set_autocomplete(v, opts.list);
@@ -174,7 +174,10 @@ frappe.views.GridReport = Class.extend({
 		}
 
 		this.page.add_menu_item(__("Print"), function() {
-			frappe.render_grid({grid: me.grid, title: me.page.title })
+			frappe.ui.get_print_settings(false, function(print_settings) {
+				frappe.render_grid({grid: me.grid, title: me.page.title, print_settings: print_settings });
+			});
+			
 		}, true);
 
 		// range
@@ -198,25 +201,26 @@ frappe.views.GridReport = Class.extend({
 				filters.val(value);
 			}
 		} else {
-			msgprint(__("Invalid Filter: {0}", [key]))
+			frappe.msgprint(__("Invalid Filter: {0}", [key]))
 		}
 	},
 	set_autocomplete: function($filter, list) {
 		var me = this;
-		$filter.autocomplete({
-			source: list,
-			select: function(event, ui) {
-				$filter.val(ui.item.value);
-				me.refresh();
-			}
+		new Awesomplete($filter.get(0), {
+			list: list
+		});
+		$filter.on("awesomplete-select", function(e) {
+			var value = e.originalEvent.text.value;
+			$filter.val(value);
+			me.refresh();
 		});
 	},
 	init_filter_values: function() {
 		var me = this;
 		$.each(this.filter_inputs, function(key, filter) {
 			var opts = filter.get(0).opts;
-			if(sys_defaults[key]) {
-				filter.val(sys_defaults[key]);
+			if(frappe.sys_defaults[key]) {
+				filter.val(frappe.sys_defaults[key]);
 			} else if(opts.fieldtype=='Select') {
 				filter.get(0).selectedIndex = 0;
 			} else if(opts.fieldtype=='Data') {
@@ -231,8 +235,8 @@ frappe.views.GridReport = Class.extend({
 
 	set_default_values: function() {
 		var values = {
-			from_date: dateutil.str_to_user(sys_defaults.year_start_date),
-			to_date: dateutil.str_to_user(sys_defaults.year_end_date)
+			from_date: frappe.datetime.str_to_user(frappe.sys_defaults.year_start_date),
+			to_date: frappe.datetime.str_to_user(frappe.sys_defaults.year_end_date)
 		}
 
 		var me = this;
@@ -251,8 +255,8 @@ frappe.views.GridReport = Class.extend({
 				input = me.page.add_select(v.label, v.options || [v.default_value]);
 			} else if(v.fieldtype=="Link") {
 				input = me.page.add_data(v.label);
-				input.autocomplete({
-					source: v.list || [],
+				new Awesomplete(input.get(0), {
+					list: v.list || []
 				});
 			} else if(v.fieldtype==='Button' && v.label===__("Refresh")) {
 				input = me.page.set_primary_action(v.label, null, v.icon);
@@ -294,7 +298,7 @@ frappe.views.GridReport = Class.extend({
 			} else if(opts.fieldtype!='Button') {
 				me[opts.fieldname] = f.val();
 				if(opts.fieldtype=="Date") {
-					me[opts.fieldname] = dateutil.user_to_str(me[opts.fieldname]);
+					me[opts.fieldname] = frappe.datetime.user_to_str(me[opts.fieldname]);
 				} else if (opts.fieldtype == "Select") {
 					me[opts.fieldname+'_default'] = opts.default_value;
 				}
@@ -302,7 +306,7 @@ frappe.views.GridReport = Class.extend({
 		});
 
 		if(this.filter_inputs.from_date && this.filter_inputs.to_date && (this.to_date < this.from_date)) {
-			msgprint(__("From Date must be before To Date"));
+			frappe.msgprint(__("From Date must be before To Date"));
 			return;
 		}
 
@@ -355,7 +359,7 @@ frappe.views.GridReport = Class.extend({
 		this.round_off_data();
 		this.prepare_data_view();
 		// chart might need prepared data
-		show_alert("Updated", 2);
+		frappe.show_alert("Updated", 2);
 		this.render();
 		this.setup_chart && this.setup_chart();
 	},
@@ -368,13 +372,13 @@ frappe.views.GridReport = Class.extend({
 		var me = this;
 
 		// chart wrapper
-		this.chart_area = $('<div class="chart"></div>').appendTo(this.wrapper);
+		this.chart_area = $('<div class="chart" style="padding-bottom: 1px"></div>').appendTo(this.wrapper);
 
 		this.page.add_menu_item(__("Export"), function() { return me.export(); }, true);
 
 		// grid wrapper
 		this.grid_wrapper = $("<div style='height: 500px; border: 1px solid #aaa; \
-			background-color: #eee; margin-top: 15px;'>")
+			background-color: #eee; '>")
 			.appendTo(this.wrapper);
 		this.id = frappe.dom.set_unique_id(this.grid_wrapper.get(0));
 
@@ -454,7 +458,7 @@ frappe.views.GridReport = Class.extend({
 		var filters = this.filter_inputs;
 		if(item._show) return true;
 
-		for (i in filters) {
+		for (var i in filters) {
 			if(!this.apply_filter(item, i)) {
 				return false;
 			}
@@ -498,7 +502,7 @@ frappe.views.GridReport = Class.extend({
 		return this[fieldname]==this[fieldname + "_default"];
 	},
 	date_formatter: function(row, cell, value, columnDef, dataContext) {
-		return dateutil.str_to_user(value);
+		return frappe.datetime.str_to_user(value);
 	},
 	currency_formatter: function(row, cell, value, columnDef, dataContext) {
 		return repl('<div style="text-align: right; %(_style)s">%(value)s</div>', {
@@ -572,19 +576,19 @@ frappe.views.GridReport = Class.extend({
 	},
 	get_link_open_icon: function(doctype, name) {
 		return repl(' <a href="#Form/%(doctype)s/%(name)s">\
-			<i class="icon icon-share" style="cursor: pointer;"></i></a>', {
-			doctype: doctype,
-			name: encodeURIComponent(name)
-		});
+			<i class="fa fa-share" style="cursor: pointer;"></i></a>', {
+				doctype: doctype,
+				name: encodeURIComponent(name)
+			});
 	},
 	make_date_range_columns: function() {
 		this.columns = [];
 
 		var me = this;
 		var range = this.filter_inputs.range.val();
-		this.from_date = dateutil.user_to_str(this.filter_inputs.from_date.val());
-		this.to_date = dateutil.user_to_str(this.filter_inputs.to_date.val());
-		var date_diff = dateutil.get_diff(this.to_date, this.from_date);
+		this.from_date = frappe.datetime.user_to_str(this.filter_inputs.from_date.val());
+		this.to_date = frappe.datetime.user_to_str(this.filter_inputs.to_date.val());
+		var date_diff = frappe.datetime.get_diff(this.to_date, this.from_date);
 
 		me.column_map = {};
 		me.last_date = null;
@@ -592,7 +596,7 @@ frappe.views.GridReport = Class.extend({
 		var add_column = function(date) {
 			me.columns.push({
 				id: date,
-				name: dateutil.str_to_user(date),
+				name: frappe.datetime.str_to_user(date),
 				field: date,
 				formatter: me.currency_formatter,
 				width: 100
@@ -602,7 +606,7 @@ frappe.views.GridReport = Class.extend({
 		var build_columns = function(condition) {
 			// add column for each date range
 			for(var i=0; i <= date_diff; i++) {
-				var date = dateutil.add_days(me.from_date, i);
+				var date = frappe.datetime.add_days(me.from_date, i);
 				if(!condition) condition = function() { return true; }
 
 				if(condition(date)) add_column(date);
@@ -620,24 +624,24 @@ frappe.views.GridReport = Class.extend({
 		} else if(range=='Weekly') {
 			build_columns(function(date) {
 				if(!me.last_date) return true;
-				return !(dateutil.get_diff(date, me.from_date) % 7)
+				return !(frappe.datetime.get_diff(date, me.from_date) % 7)
 			});
 		} else if(range=='Monthly') {
 			build_columns(function(date) {
 				if(!me.last_date) return true;
-				return dateutil.str_to_obj(me.last_date).getMonth() != dateutil.str_to_obj(date).getMonth()
+				return frappe.datetime.str_to_obj(me.last_date).getMonth() != frappe.datetime.str_to_obj(date).getMonth()
 			});
 		} else if(range=='Quarterly') {
 			build_columns(function(date) {
 				if(!me.last_date) return true;
-				return dateutil.str_to_obj(date).getDate()==1 && in_list([0,3,6,9], dateutil.str_to_obj(date).getMonth())
+				return frappe.datetime.str_to_obj(date).getDate()==1 && in_list([0,3,6,9], frappe.datetime.str_to_obj(date).getMonth())
 			});
 		} else if(range=='Yearly') {
 			build_columns(function(date) {
 				if(!me.last_date) return true;
 				return $.map(frappe.report_dump.data['Fiscal Year'], function(v) {
-						return date==v.year_start_date ? true : null;
-					}).length;
+					return date==v.year_start_date ? true : null;
+				}).length;
 			});
 
 		}
@@ -645,8 +649,8 @@ frappe.views.GridReport = Class.extend({
 		// set label as last date of period
 		$.each(this.columns, function(i, col) {
 			col.name = me.columns[i+1]
-				? dateutil.str_to_user(dateutil.add_days(me.columns[i+1].id, -1))
-				: dateutil.str_to_user(me.to_date);
+				? frappe.datetime.str_to_user(frappe.datetime.add_days(me.columns[i+1].id, -1))
+				: frappe.datetime.str_to_user(me.to_date);
 		});
 	},
 	trigger_refresh_on_change: function(filters) {
@@ -670,7 +674,8 @@ frappe.views.GridReportWithPlot = frappe.views.GridReport.extend({
 
 		this.chart = new frappe.ui.Chart({
 			wrapper: this.chart_area,
-			data: chart_data
+			data: chart_data,
+			x_type: 'timeseries'
 		});
 	},
 
@@ -810,7 +815,7 @@ frappe.views.TreeGridReport = frappe.views.GridReportWithPlot.extend({
 			if(group_ids.indexOf(item.name)==-1) {
 				item_group_map[parent].push(item);
 			} else {
-				msgprint(__("Ignoring Item {0}, because a group exists with the same name!", [item.name.bold()]));
+				frappe.msgprint(__("Ignoring Item {0}, because a group exists with the same name!", [item.name.bold()]));
 			}
 		});
 
@@ -839,7 +844,7 @@ frappe.views.TreeGridReport = frappe.views.GridReportWithPlot.extend({
 	},
 
 	export: function() {
-		var msgbox = msgprint($.format('<p>{0}</p>\
+		var msgbox =	frappe.msgprint($.format('<p>{0}</p>\
 			<p><input type="checkbox" name="with_groups" checked="checked"> {1}</p>\
 			<p><input type="checkbox" name="with_ledgers" checked="checked"> {2}</p>\
 			<p><button class="btn btn-primary"> {3}</button>', [
@@ -869,7 +874,7 @@ frappe.views.TreeGridReport = frappe.views.GridReportWithPlot.extend({
 					}
 
 					return false;
-			});
+				});
 
 			frappe.tools.downloadify(data, ["Report Manager", "System Manager"], me.title);
 			return false;

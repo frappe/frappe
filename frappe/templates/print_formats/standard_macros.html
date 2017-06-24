@@ -5,6 +5,9 @@
 		<div>{{ frappe.render_template(df.options, {"doc": doc}) or "" }}</div>
 	{%- elif df.fieldtype in ("Text", "Text Editor", "Code") -%}
 		{{ render_text_field(df, doc) }}
+	{%- elif df.fieldtype in ("Image", "Attach Image", "Attach", "Signature")
+		and (guess_mimetype(doc[df.fieldname])[0] or "").startswith("image/")  -%}
+		{{ render_image(df, doc) }}
 	{%- else -%}
 		{{ render_field_with_label(df, doc) }}
 	{%- endif -%}
@@ -24,10 +27,12 @@
 			<table class="table table-bordered table-condensed">
 				<thead>
 					<tr>
-						<th style="width: 40px" class="table-sr">Sr</th>
+						<th style="width: 40px" class="table-sr">{{ _("Sr") }}</th>
 						{% for tdf in visible_columns %}
-							<th style="width: {{ get_width(tdf) }}px;" class="{{ get_align_class(tdf.fieldtype) }}" {{ fieldmeta(df) }}>
+						{% if (data and not data[0].flags.compact_item_print) or tdf.fieldname in doc.get(df.fieldname)[0].flags.compact_item_fields %}
+							<th style="width: {{ get_width(tdf) }};" class="{{ get_align_class(tdf) }}" {{ fieldmeta(df) }}>
 								{{ _(tdf.label) }}</th>
+						{% endif %}
 						{% endfor %}
 					</tr>
 				</thead>
@@ -36,8 +41,10 @@
 					<tr>
 						<td class="table-sr">{{ d.idx }}</td>
 						{% for tdf in visible_columns %}
-							<td class="{{ get_align_class(tdf.fieldtype) }}" {{ fieldmeta(df) }}>
-                                <div class="value">{{ print_value(tdf, d, table_meta, doc) }}</div></td>
+						{% if not d.flags.compact_item_print or tdf.fieldname in doc.get(df.fieldname)[0].flags.compact_item_fields %}
+							<td class="{{ get_align_class(tdf) }}" {{ fieldmeta(df) }}>
+                                <div class="value">{{ print_value(tdf, d, doc, visible_columns) }}</div></td>
+						{% endif %}
 						{% endfor %}
 					</tr>
 					{% endfor %}
@@ -54,13 +61,19 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 
 {%- macro render_field_with_label(df, doc) -%}
 		<div class="row {% if df.bold %}important{% endif %} data-field" {{ fieldmeta(df) }}>
-			<div class="col-xs-5 text-right">
-				{% if df.fieldtype not in ("Image","HTML") and
+			<div class="col-xs-{{ "9" if df.fieldtype=="Check" else "5" }}
+				{%- if not doc._align_labels_left %} text-right{%- endif -%}">
+				{% if df.fieldtype not in ("Image","HTML","Check") and
 					doc.get(df.fieldname) != None %}
 				<label>{{ _(df.label) }}</label>
 				{% endif %}
+				{% if df.fieldtype == "Check" and
+				doc.get(df.fieldname) != 0 %}
+				<label>{{ _(df.label) }}</label>
+				{% endif %}
 			</div>
-			<div class="col-xs-7 {{ get_align_class(df.fieldtype) }} value">
+			<div class="col-xs-{{ "3" if df.fieldtype=="Check" else "7" }}
+			{{ get_align_class(df) }} value">
 				{% if doc.get(df.fieldname) != None -%}
 					{{ print_value(df, doc) }}{% endif %}
 			</div>
@@ -80,17 +93,26 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 {%- endif -%}
 {%- endmacro -%}
 
-{%- macro print_value(df, doc, meta, parent_doc=None) -%}
+{%- macro render_image(df, doc) -%}
+	{{ print_value(df, doc) }}
+{% endmacro %}
+
+{%- macro print_value(df, doc, parent_doc=None, visible_columns=None) -%}
     {% if doc.print_templates and
 			doc.print_templates.get(df.fieldname) %}
         {% include doc.print_templates[df.fieldname] %}
 	{% elif df.fieldtype=="Check" %}
-		<i class="{{ 'icon-check' if doc[df.fieldname] else 'icon-check-empty' }}"></i>
+		<i class="{{ 'fa fa-check' if doc[df.fieldname] }}"></i>
 	{% elif df.fieldtype=="Image" %}
-		<img src="{{ doc[doc.meta.get_field(df.fieldname).options] }}" class="img-responsive">
+		<img src="{{ doc[doc.meta.get_field(df.fieldname).options] }}"
+			class="img-responsive"
+			{%- if df.print_width %} style="width: {{ get_width(df) }};"{% endif %}>
+	{% elif df.fieldtype=="Signature" %}
+		<img src="{{ doc[df.fieldname] }}" class="signature-img img-responsive">
 	{% elif df.fieldtype in ("Attach", "Attach Image") and doc[df.fieldname]
 		and (guess_mimetype(doc[df.fieldname])[0] or "").startswith("image/") %}
-		<img src="{{ doc[df.fieldname] }}" class="img-responsive">
+		<img src="{{ doc[df.fieldname] }}" class="img-responsive"
+			{%- if df.print_width %} style="width: {{ get_width(df) }};"{% endif %}>
     {% elif df.fieldtype=="HTML" %}
         {{ frappe.render_template(df.options, {"doc":doc}) }}
 	{% else %}
@@ -99,13 +121,14 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 {%- endmacro %}
 
 {% macro get_width(df) -%}
-	{%- if df.print_width -%}{{ (df.print_width|str).replace("px", "") }}
-	{%- elif df.fieldtype in ("Int", "Check", "Float", "Currency") -%}{{ 80 }}
-	{%- else -%}{{ 150 }}{% endif -%}
+	{%- if df.print_width -%}{{ (df.print_width|str).replace("px", "") }}px
+	{%- elif df.fieldtype in ("Int", "Check", "Float", "Currency") -%}{{ 80 }}px
+	{%- else -%}{{ 150 }}px{% endif -%}
 {%- endmacro %}
 
-{% macro get_align_class(fieldtype) %}
-	{%- if fieldtype in ("Int", "Float", "Currency") -%}{{ "text-right" }}
+{% macro get_align_class(df) %}
+	{%- if df.align -%}{{ "text-" + df.align }}
+	{%- elif df.fieldtype in ("Int", "Float", "Currency", "Check") -%}{{ "text-right" }}
 	{%- else -%}{{ "" }}
 	{%- endif -%}
 {% endmacro %}

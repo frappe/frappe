@@ -18,7 +18,7 @@ frappe.ui.form.Control = Class.extend({
 		// if developer_mode=1, show fieldname as tooltip
 		if(frappe.boot.user && frappe.boot.user.name==="Administrator" &&
 			frappe.boot.developer_mode===1 && this.$wrapper) {
-				this.$wrapper.attr("title", __(this.df.fieldname));
+			this.$wrapper.attr("title", __(this.df.fieldname));
 		}
 
 		if(this.render_input) {
@@ -75,8 +75,9 @@ frappe.ui.form.Control = Class.extend({
 		if (this.doctype && status==="Read" && !this.only_input
 			&& is_null(frappe.model.get_value(this.doctype, this.docname, this.df.fieldname))
 			&& !in_list(["HTML", "Image"], this.df.fieldtype)) {
-				if(explain) console.log("By Hide Read-only, null fields: None");
-				status = "None";
+
+			if(explain) console.log("By Hide Read-only, null fields: None");
+			status = "None";
 		}
 
 		return status;
@@ -99,7 +100,7 @@ frappe.ui.form.Control = Class.extend({
 	set_value: function(value) {
 		this.parse_validate_and_set_in_model(value);
 	},
-	parse_validate_and_set_in_model: function(value) {
+	parse_validate_and_set_in_model: function(value, e) {
 		var me = this;
 		if(this.inside_change_event) return;
 		this.inside_change_event = true;
@@ -109,6 +110,11 @@ frappe.ui.form.Control = Class.extend({
 			me.set_model_value(value);
 			me.inside_change_event = false;
 			me.set_mandatory && me.set_mandatory(value);
+
+			if(me.df.change || me.df.onchange) {
+				// onchange event specified in df
+				(me.df.change || me.df.onchange).apply(me, [e]);
+			}
 		}
 
 		this.validate ? this.validate(value, set) : set(value);
@@ -132,6 +138,9 @@ frappe.ui.form.Control = Class.extend({
 				this.last_value = value;
 			}
 		} else {
+			if(this.doc) {
+				this.doc[this.df.fieldname] = value;
+			}
 			this.set_input(value);
 		}
 	},
@@ -186,19 +195,19 @@ frappe.ui.form.ControlImage = frappe.ui.form.Control.extend({
 		this.$body = $("<div></div>").appendTo(this.$wrapper)
 			.css({"margin-bottom": "10px"})
 		this.$wrapper.on("refresh", function() {
-				var doc = null;
-				me.$body.empty();
+			var doc = null;
+			me.$body.empty();
 
-				var doc = me.get_doc();
-				if(doc && me.df.options && doc[me.df.options]) {
-					me.$img = $("<img src='"+doc[me.df.options]+"' class='img-responsive'>")
-						.appendTo(me.$body);
-				} else {
-					me.$buffer = $("<div class='missing-image'><i class='octicon octicon-circle-slash'></i></div>")
-						.appendTo(me.$body)
-				}
-				return false;
-			});
+			var doc = me.get_doc();
+			if(doc && me.df.options && doc[me.df.options]) {
+				me.$img = $("<img src='"+doc[me.df.options]+"' class='img-responsive'>")
+					.appendTo(me.$body);
+			} else {
+				me.$buffer = $("<div class='missing-image'><i class='octicon octicon-circle-slash'></i></div>")
+					.appendTo(me.$body)
+			}
+			return false;
+		});
 		$('<div class="clearfix"></div>').appendTo(this.$wrapper);
 	}
 });
@@ -288,14 +297,13 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 				if(me.disp_status=="Write") {
 					me.disp_area && $(me.disp_area).toggle(false);
 					$(me.input_area).toggle(true);
-					$(me.input_area).find("input").prop("disabled", false);
+					me.$input && me.$input.prop("disabled", false);
 					make_input();
 					update_input();
 				} else {
 					if(me.only_input) {
 						make_input();
 						update_input();
-						me.$input && me.$input.prop("disabled", true);
 					} else {
 						$(me.input_area).toggle(false);
 						if (me.disp_area) {
@@ -303,6 +311,7 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 							$(me.disp_area).toggle(true);
 						}
 					}
+					me.$input && me.$input.prop("disabled", true);
 				}
 
 				me.set_description();
@@ -315,39 +324,22 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 	},
 
 	set_disp_area: function() {
+		let value = this.get_value();
+		if(in_list(["Currency", "Int", "Float"], this.df.fieldtype) && (this.value === 0 || value === 0)) {
+			// to set the 0 value in readonly for currency, int, float field
+			value = 0;
+		} else {
+			value = this.value || value;
+		}
 		this.disp_area && $(this.disp_area)
-			.html(frappe.format(this.value || this.get_value(), this.df, {no_icon:true, inline:true},
+			.html(frappe.format(value, this.df, {no_icon:true, inline:true},
 					this.doc || (this.frm && this.frm.doc)));
 	},
 
 	bind_change_event: function() {
 		var me = this;
 		this.$input && this.$input.on("change", this.change || function(e) {
-			if(me.df.change || me.df.onchange) {
-				// onchange event specified in df
-				(me.df.change || me.df.onchange).apply(this, e);
-				return;
-			}
-			if(me.doctype && me.docname && me.get_value) {
-				me.parse_validate_and_set_in_model(me.get_value());
-			} else {
-				// inline
-				var value = me.get_value();
-				var parsed = me.parse ? me.parse(value) : value;
-				var set_input = function(before, after) {
-					if(before !== after) {
-						me.set_input(after);
-					}
-					me.set_mandatory && me.set_mandatory(after);
-				}
-				if(me.validate) {
-					me.validate(parsed, function(validated) {
-						set_input(value, validated);
-					});
-				} else {
-					set_input(value, parsed);
-				}
-			}
+			me.parse_validate_and_set_in_model(me.get_value(), e);
 		});
 	},
 	bind_focusout: function() {
@@ -383,6 +375,9 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 		}
 		this._description = this.df.description;
 	},
+	set_new_description: function(description) {
+		this.$wrapper.find(".help-box").html(description);
+	},
 	set_empty_description: function() {
 		this.$wrapper.find(".help-box").html("");
 	},
@@ -391,10 +386,10 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 	},
 	set_bold: function() {
 		if(this.$input) {
-			this.$input.toggleClass("bold", !!this.df.bold);
+			this.$input.toggleClass("bold", !!(this.df.bold || this.df.reqd));
 		}
 		if(this.disp_area) {
-			$(this.disp_area).toggleClass("bold", !!this.df.bold);
+			$(this.disp_area).toggleClass("bold", !!(this.df.bold || this.df.reqd));
 		}
 	}
 });
@@ -413,7 +408,7 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 
 		if (in_list(['Data', 'Link', 'Dynamic Link', 'Password', 'Select', 'Read Only', 'Attach', 'Attach Image'],
 			this.df.fieldtype)) {
-				this.$input.attr("maxlength", this.df.length || 140);
+			this.$input.attr("maxlength", this.df.length || 140);
 		}
 
 		this.set_input_attributes();
@@ -441,11 +436,14 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 		}
 	},
 	set_input: function(value) {
+		this.last_value = this.value;
 		this.value = value;
-		this.$input && this.$input.val(this.format_for_input(value));
+		this.set_formatted_input(value);
 		this.set_disp_area();
-		this.last_value = value;
 		this.set_mandatory && this.set_mandatory(value);
+	},
+	set_formatted_input: function(value) {
+		this.$input && this.$input.val(this.format_for_input(value));
 	},
 	get_value: function() {
 		return this.$input ? this.$input.val() : undefined;
@@ -459,7 +457,7 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 				callback("");
 				return;
 			}
-			v1 = ''
+			var v1 = ''
 			// phone may start with + and must only have numbers later, '-' and ' ' are stripped
 			v = v.replace(/ /g, '').replace(/-/g, '').replace(/\(/g, '').replace(/\)/g, '');
 
@@ -490,7 +488,7 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 				var invalid_email = false;
 				email_list.forEach(function(email) {
 					if (!validate_email(email)) {
-						msgprint(__("Invalid Email: {0}", [email]));
+						frappe.msgprint(__("Invalid Email: {0}", [email]));
 						invalid_email = true;
 					}
 				});
@@ -590,7 +588,11 @@ frappe.ui.form.ControlCurrency = frappe.ui.form.ControlFloat.extend({
 		// always round based on field precision or currency's precision
 		// this method is also called in this.parse()
 		if (!this.df.precision) {
-			this.df.precision = get_number_format_info(this.get_number_format()).precision;
+			if(frappe.boot.sysdefaults.currency_precision) {
+				this.df.precision = frappe.boot.sysdefaults.currency_precision;
+			} else {
+				this.df.precision = get_number_format_info(this.get_number_format()).precision;
+			}
 		}
 
 		return this.df.precision;
@@ -600,114 +602,197 @@ frappe.ui.form.ControlCurrency = frappe.ui.form.ControlFloat.extend({
 frappe.ui.form.ControlPercent = frappe.ui.form.ControlFloat;
 
 frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
-	datepicker_options: {
-		altFormat:'yy-mm-dd',
-		changeYear: true,
-		changeMonth: true,
-		yearRange: "-70Y:+10Y",
-	},
 	make_input: function() {
 		this._super();
-		this.set_t_for_today();
+		this.set_date_options();
 		this.set_datepicker();
+		this.set_t_for_today();
+	},
+	set_formatted_input: function(value) {
+		if(value
+			&& ((this.last_value && this.last_value !== value)
+				|| (!this.datepicker.selectedDates.length))) {
+			this.datepicker.selectDate(frappe.datetime.str_to_obj(value));
+		}
+	},
+	set_date_options: function() {
+		var me = this;
+		var lang = frappe.boot.user.language;
+		if(!$.fn.datepicker.language[lang]) {
+			lang = 'en'
+		}
+		this.datepicker_options = {
+			language: lang,
+			autoClose: true,
+			todayButton: new Date(),
+			dateFormat: (frappe.boot.sysdefaults.date_format || 'yyyy-mm-dd'),
+			onSelect: function(dateStr) {
+				me.$input.trigger('change');
+			},
+			onShow: function() {
+				$('.datepicker--button:visible').text(__('Today'));
+			},
+		};
 	},
 	set_datepicker: function() {
-		this.datepicker_options.dateFormat =
-			(frappe.boot.sysdefaults.date_format || 'yyyy-mm-dd').replace("yyyy", "yy")
 		this.$input.datepicker(this.datepicker_options);
+		this.datepicker = this.$input.data('datepicker');
 	},
 	set_t_for_today: function() {
 		var me = this;
 		this.$input.on("keydown", function(e) {
 			if(e.which===84) { // 84 === t
-				me.set_value(frappe.datetime.str_to_user(frappe.datetime.nowdate()));
+				if(me.df.fieldtype=='Date') {
+					me.set_value(frappe.datetime.str_to_user(
+						frappe.datetime.nowdate()));
+				} if(me.df.fieldtype=='Datetime') {
+					me.set_value(frappe.datetime.str_to_user(
+						frappe.datetime.now_datetime()));
+				} if(me.df.fieldtype=='Time') {
+					me.set_value(frappe.datetime.str_to_user(
+						frappe.datetime.now_time()));
+				}
 				return false;
 			}
 		});
 	},
 	parse: function(value) {
 		if(value) {
-			value = dateutil.user_to_str(value);
+			return frappe.datetime.user_to_str(value);
 		}
-		return value;
 	},
 	format_for_input: function(value) {
 		if(value) {
-			value = dateutil.str_to_user(value);
+			return frappe.datetime.str_to_user(value);
 		}
-		return value || "";
+		return "";
 	},
 	validate: function(value, callback) {
-		if(!dateutil.validate(value)) {
-			if(value) {
-				msgprint (__("Date must be in format: {0}", [sys_defaults.date_format || "yyyy-mm-dd"]));
-			}
+		if(value && !frappe.datetime.validate(value)) {
+			frappe.msgprint(__("Date must be in format: {0}", [frappe.sys_defaults.date_format || "yyyy-mm-dd"]));
 			callback("");
 			return;
 		}
 		return callback(value);
 	}
-})
-
-import_timepicker = function(callback) {
-	frappe.require([
-		"assets/frappe/js/lib/jquery/jquery.ui.slider.min.js",
-		"assets/frappe/js/lib/jquery/jquery.ui.sliderAccess.js",
-		"assets/frappe/js/lib/jquery/jquery.ui.timepicker-addon.css",
-		"assets/frappe/js/lib/jquery/jquery.ui.timepicker-addon.js"
-	], callback);
-}
+});
 
 frappe.ui.form.ControlTime = frappe.ui.form.ControlData.extend({
 	make_input: function() {
 		var me = this;
-		var _super = this._super;
-		import_timepicker(function() {
-			_super.apply(me);
-			me.$input.timepicker({
-				timeFormat: 'HH:mm:ss',
-			});
-			me.refresh();
+		this._super();
+		this.$input.datepicker({
+			language: "en",
+			timepicker: true,
+			onlyTimepicker: true,
+			timeFormat: "hh:ii:ss",
+			onSelect: function(dateObj) {
+				me.$input.trigger('change');
+			},
+			onShow: function() {
+				$('.datepicker--button:visible').text(__('Now'));
+			},
+			todayButton: new Date()
 		});
-	}
+		this.datepicker = this.$input.data('datepicker');
+		this.refresh();
+	},
+	set_input: function(value) {
+		this._super(value);
+		if(value
+			&& ((this.last_value && this.last_value !== this.value)
+				|| (!this.datepicker.selectedDates.length))) {
+
+			this.datepicker.selectDate(moment(value, 'hh:mm:ss')._d);
+		}
+	},
 });
 
 frappe.ui.form.ControlDatetime = frappe.ui.form.ControlDate.extend({
-	set_datepicker: function() {
-		var now = new Date();
-		$.extend(this.datepicker_options, {
-			"timeFormat": "HH:mm:ss",
-			"dateFormat": (frappe.boot.sysdefaults.date_format || 'yy-mm-dd').replace('yyyy','yy'),
-			"hour": now.getHours(),
-			"minute": now.getMinutes()
-		});
-
-		this.$input.datetimepicker(this.datepicker_options);
-	},
-	make_input: function() {
-		var me = this;
-		var _super = this._super;
-		import_timepicker(function() {
-			_super.apply(me);
-			me.refresh();
-		})
+	set_date_options: function() {
+		this._super();
+		this.datepicker_options.timepicker = true;
+		this.datepicker_options.timeFormat = "hh:ii:ss";
+		this.datepicker_options.onShow = function() {
+			$('.datepicker--button:visible').text(__('Now'));
+		};
 	},
 	parse: function(value) {
 		if(value) {
 			// parse and convert
-			value = dateutil.convert_to_system_tz(dateutil.user_to_str(value));
+			value = frappe.datetime.convert_to_system_tz(frappe.datetime.user_to_str(value));
 		}
 		return value;
 	},
 	format_for_input: function(value) {
 		if(value) {
 			// convert and format
-			value = dateutil.str_to_user(dateutil.convert_to_user_tz(value));
-
+			value = frappe.datetime.str_to_user(frappe.datetime.convert_to_user_tz(value));
 		}
 		return value || "";
-	},
+	}
+});
 
+frappe.ui.form.ControlDateRange = frappe.ui.form.ControlData.extend({
+	make_input: function() {
+		var me = this;
+		this._super();
+		this.set_date_options();
+		this.set_datepicker();
+		this.refresh();
+	},
+	set_date_options: function() {
+		var me = this;
+		this.datepicker_options = {
+			language: "en",
+			range: true,
+			autoClose: true,
+			toggleSelected: false
+		}
+		this.datepicker_options.dateFormat =
+			(frappe.boot.sysdefaults.date_format || 'yyyy-mm-dd');
+		this.datepicker_options.onSelect = function(dateObj) {
+			me.set_value(dateObj);
+		}
+	},
+	set_datepicker: function() {
+		this.$input.datepicker(this.datepicker_options);
+		this.datepicker = this.$input.data('datepicker');
+	},
+	set_input: function(value, value2) {
+		this.last_value = this.value;
+		if (value && value2) {
+			this.value = [value, value2];
+		} else {
+			this.value = value
+		}
+		if (this.value) {
+			this.$input && this.$input.val(this.format_for_input(this.value[0], this.value[1]));
+		} else {
+			this.$input && this.$input.val("")
+		}
+		this.set_disp_area();
+		this.set_mandatory && this.set_mandatory(value);
+	},
+	parse: function(value) {
+		if(value && (value.indexOf(',') !== -1 || value.indexOf('to') !== -1)) {
+			var vals = value.split(/[( to )(,)]/)
+			var from_date = moment(frappe.datetime.user_to_obj(vals[0])).format('YYYY-MM-DD');
+			var to_date = moment(frappe.datetime.user_to_obj(vals[vals.length-1])).format('YYYY-MM-DD');
+			return [from_date, to_date];
+		}
+	},
+	format_for_input: function(value,value2) {
+		if(value && value2) {
+			value = frappe.datetime.str_to_user(value);
+			value2 = frappe.datetime.str_to_user(value2);
+			return value + " to " + value2
+		}
+		return "";
+	},
+	validate: function(value, callback) {
+		return callback(value);
+	}
 });
 
 frappe.ui.form.ControlText = frappe.ui.form.ControlData.extend({
@@ -716,11 +801,20 @@ frappe.ui.form.ControlText = frappe.ui.form.ControlData.extend({
 	make_wrapper: function() {
 		this._super();
 		this.$wrapper.find(".like-disabled-input").addClass("for-description");
+	},
+	make_input: function() {
+		this._super();
+		this.$input.css({'height': '300px'})
 	}
 });
 
 frappe.ui.form.ControlLongText = frappe.ui.form.ControlText;
-frappe.ui.form.ControlSmallText = frappe.ui.form.ControlText;
+frappe.ui.form.ControlSmallText = frappe.ui.form.ControlText.extend({
+	make_input: function() {
+		this._super();
+		this.$input.css({'height': '150px'})
+	}
+});
 
 frappe.ui.form.ControlCheck = frappe.ui.form.ControlData.extend({
 	input_type: "checkbox",
@@ -803,7 +897,7 @@ frappe.ui.form.ControlButton = frappe.ui.form.ControlData.extend({
 	set_label: function() {
 		$(this.label_span).html("&nbsp;");
 		this.$input && this.$input.html((this.df.icon ?
-			('<i class="'+this.df.icon+' icon-fixed-width"></i> ') : "") + __(this.df.label));
+			('<i class="'+this.df.icon+' fa-fw"></i> ') : "") + __(this.df.label));
 	}
 });
 
@@ -817,8 +911,8 @@ frappe.ui.form.ControlAttach = frappe.ui.form.ControlData.extend({
 				me.onclick();
 			});
 		this.$value = $('<div style="margin-top: 5px;">\
-			<div class="text-ellipsis" style="display: inline-block; width: 90%;">\
-				<i class="icon-paper-clip"></i> \
+			<div class="ellipsis" style="display: inline-block; width: 90%;">\
+				<i class="fa fa-paper-clip"></i> \
 				<a class="attached-file" target="_blank"></a>\
 			</div>\
 			<a class="close">&times;</a></div>')
@@ -904,6 +998,7 @@ frappe.ui.form.ControlAttach = frappe.ui.form.ControlData.extend({
 		this.upload_options = {
 			parent: this.dialog.get_field("upload_area").$wrapper,
 			args: {},
+			allow_multiple: 0,
 			max_width: this.df.max_width,
 			max_height: this.df.max_height,
 			options: this.df.options,
@@ -917,7 +1012,7 @@ frappe.ui.form.ControlAttach = frappe.ui.form.ControlData.extend({
 					me.dialog.hide();
 					me.frm.save();
 				} else {
-					msgprint(__("Please attach a file or set a URL"));
+					frappe.msgprint(__("Please attach a file or set a URL"));
 				}
 			},
 			callback: function(attachment, r) {
@@ -1068,9 +1163,6 @@ frappe.ui.form.ControlSelect = frappe.ui.form.ControlData.extend({
 		if(typeof this.df.options==="string") {
 			options = this.df.options.split("\n");
 		}
-		if(this.in_filter && options[0] != "") {
-			options = add_lists([''], options);
-		}
 
 		// nothing changed
 		if(options.toString() === this.last_options) {
@@ -1113,8 +1205,9 @@ frappe.ui.form.ControlSelect = frappe.ui.form.ControlData.extend({
 frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 	make_input: function() {
 		var me = this;
-		$('<div class="link-field ui-front" style="position: relative;">\
-			<input type="text" class="input-with-feedback form-control" autocomplete="off">\
+		// line-height: 1 is for Mozilla 51, shows extra padding otherwise
+		$('<div class="link-field ui-front" style="position: relative; line-height: 1;">\
+			<input type="text" class="input-with-feedback form-control">\
 			<span class="link-btn">\
 				<a class="btn-open no-decoration" title="' + __("Open Link") + '">\
 					<i class="octicon octicon-arrow-right"></i></a>\
@@ -1133,7 +1226,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 				}
 
 				if(!me.$input.val()) {
-					me.$input.autocomplete("search", "");
+					me.$input.val("").trigger("input");
 				}
 			}, 500);
 		});
@@ -1146,9 +1239,10 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		});
 		this.input = this.$input.get(0);
 		this.has_input = true;
+		this.translate_values = true;
 		var me = this;
 		this.setup_buttons();
-		this.setup_autocomplete();
+		this.setup_awesomeplete();
 		if(this.df.change) {
 			this.$input.on("change", function() {
 				me.df.change.apply(this);
@@ -1205,149 +1299,163 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 
 		return false;
 	},
-	setup_autocomplete: function() {
+	setup_awesomeplete: function() {
 		var me = this;
+
+		this.$input.cache = {};
+
+		this.awesomplete = new Awesomplete(me.input, {
+			minChars: 0,
+			maxItems: 99,
+			autoFirst: true,
+			list: [],
+			data: function (item, input) {
+				return {
+					label: item.label || item.value,
+					value: item.value
+				};
+			},
+			filter: function(item, input) {
+				return true;
+			},
+			item: function (item, input) {
+				var d = this.get_item(item.value);
+				if(!d.label) {	d.label = d.value; }
+
+				var _label = (me.translate_values) ? __(d.label) : d.label;
+				var html = "<strong>" + _label + "</strong>";
+				if(d.description && d.value!==d.description) {
+					html += '<br><span class="small">' + __(d.description) + '</span>';
+				}
+				return $('<li></li>')
+					.data('item.autocomplete', d)
+					.prop('aria-selected', 'false')
+					.html('<a><p>' + html + '</p></a>')
+					.get(0);
+			},
+			sort: function(a, b) {
+				return 0;
+			}
+		});
+
+		this.$input.on("input", function(e) {
+			var doctype = me.get_options();
+			if(!doctype) return;
+			if (!me.$input.cache[doctype]) {
+				me.$input.cache[doctype] = {};
+			}
+
+			var term = e.target.value;
+
+			if (me.$input.cache[doctype][term]!=null) {
+				// immediately show from cache
+				me.awesomplete.list = me.$input.cache[doctype][term];
+			}
+
+			var args = {
+				'txt': term,
+				'doctype': doctype,
+			};
+
+			me.set_custom_query(args);
+
+			frappe.call({
+				type: "GET",
+				method:'frappe.desk.search.search_link',
+				no_spinner: true,
+				args: args,
+				callback: function(r) {
+					if(!me.$input.is(":focus")) {
+						return;
+					}
+
+					if(!me.df.only_select) {
+						if(frappe.model.can_create(doctype)
+							&& me.df.fieldtype !== "Dynamic Link") {
+							// new item
+							r.results.push({
+								label: "<span class='text-primary link-option'>"
+									+ "<i class='fa fa-plus' style='margin-right: 5px;'></i> "
+									+ __("Create a new {0}", [__(me.df.options)])
+									+ "</span>",
+								value: "create_new__link_option",
+								action: me.new_doc
+							})
+						}
+						// advanced search
+						r.results.push({
+							label: "<span class='text-primary link-option'>"
+								+ "<i class='fa fa-search' style='margin-right: 5px;'></i> "
+								+ __("Advanced Search")
+								+ "</span>",
+							value: "advanced_search__link_option",
+							action: me.open_advanced_search
+						})
+					}
+					me.$input.cache[doctype][term] = r.results;
+					me.awesomplete.list = me.$input.cache[doctype][term];
+				}
+			});
+		});
+
 		this.$input.on("blur", function() {
 			if(me.selected) {
 				me.selected = false;
 				return;
 			}
 			var value = me.get_value();
-			if(me.doctype && me.docname) {
-				if(value!==me.last_value) {
-					me.parse_validate_and_set_in_model(value);
-				}
-			} else {
-				me.set_mandatory(value);
+			if(value!==me.last_value) {
+				me.parse_validate_and_set_in_model(value);
 			}
 		});
 
-		this.$input.cache = {};
-		this.$input.autocomplete({
-			minLength: 0,
-			autoFocus: true,
-			source: function(request, response) {
-				var doctype = me.get_options();
-				if(!doctype) return;
-				if (!me.$input.cache[doctype]) {
-					me.$input.cache[doctype] = {};
-				}
+		this.$input.on("awesomplete-open", function(e) {
+			me.$wrapper.css({"z-index": 100});
+			me.$wrapper.find('ul').css({"z-index": 100});
+			me.autocomplete_open = true;
+		});
 
-				if (me.$input.cache[doctype][request.term]!=null) {
-					// immediately show from cache
-					response(me.$input.cache[doctype][request.term]);
-				}
+		this.$input.on("awesomplete-close", function(e) {
+			me.$wrapper.css({"z-index": 1});
+			me.autocomplete_open = false;
+		});
 
-				var args = {
-					'txt': request.term,
-					'doctype': doctype,
-				};
+		this.$input.on("awesomplete-select", function(e) {
+			var o = e.originalEvent;
+			var item = me.awesomplete.get_item(o.text.value);
 
-				me.set_custom_query(args);
+			me.autocomplete_open = false;
 
-				return frappe.call({
-					type: "GET",
-					method:'frappe.desk.search.search_link',
-					no_spinner: true,
-					args: args,
-					callback: function(r) {
-						if(!me.$input.is(":focus")) {
-							return;
-						}
-
-						if(!me.df.only_select) {
-							if(frappe.model.can_create(doctype)
-								&& me.df.fieldtype !== "Dynamic Link") {
-								// new item
-								r.results.push({
-									value: "<span class='text-primary link-option'>"
-										+ "<i class='icon-plus' style='margin-right: 5px;'></i> "
-										+ __("Create a new {0}", [__(me.df.options)])
-										+ "</span>",
-									action: me.new_doc
-								});
-							};
-							// advanced search
-							r.results.push({
-								value: "<span class='text-primary link-option'>"
-									+ "<i class='icon-search' style='margin-right: 5px;'></i> "
-									+ __("Advanced Search")
-									+ "</span>",
-								action: me.open_advanced_search
-							});
-						}
-
-						me.$input.cache[doctype][request.term] = r.results;
-						response(r.results);
-					},
-				});
-			},
-			open: function(event, ui) {
-				me.$wrapper.css({"z-index": 101});
-				me.autocomplete_open = true;
-			},
-			close: function(event, ui) {
-				me.$wrapper.css({"z-index": 1});
-				me.autocomplete_open = false;
-			},
-			focus: function( event, ui ) {
-				event.preventDefault();
-				if(ui.item.action) {
-					return false;
-				}
-			},
-			select: function(event, ui) {
-				me.autocomplete_open = false;
-
-				// prevent selection on tab
-				var TABKEY = 9;
-				if(event.keyCode === TABKEY) {
-					event.preventDefault();
-					me.$input.autocomplete("close");
-					return false;
-				}
-
-				if(ui.item.action) {
-					ui.item.value = "";
-					ui.item.action.apply(me);
-				}
-
-				// if remember_selected hook is set, add this value
-				// to defaults so you do not need to set it again
-				// unless it is changed.
-				if(frappe.boot.remember_selected
-						&& frappe.boot.remember_selected.indexOf(me.df.options)!==-1) {
-					frappe.boot.user.last_selected_values[me.df.options] = ui.item.value;
-				}
-
-				if(me.frm && me.frm.doc) {
-					me.selected = true;
-					me.parse_validate_and_set_in_model(ui.item.value);
-					setTimeout(function() {
-						me.selected = false;
-					}, 100);
-				} else {
-					me.$input.val(ui.item.value);
-					me.$input.trigger("change");
-					me.set_mandatory(ui.item.value);
-				}
+			// prevent selection on tab
+			var TABKEY = 9;
+			if(e.keyCode === TABKEY) {
+				e.preventDefault();
+				me.awesomplete.close();
+				return false;
 			}
-		})
-		.on("blur", function() {
-			$(this).autocomplete("close");
-		})
-		.data('ui-autocomplete')._renderItem = function(ul, d) {
-			var html = "<strong>" + __(d.value) + "</strong>";
-			if(d.description && d.value!==d.description) {
-				html += '<br><span class="small">' + __(d.description) + '</span>';
+
+			if(item.action) {
+				item.value = "";
+				item.action.apply(me);
 			}
-			return $('<li></li>')
-				.data('item.autocomplete', d)
-				.html('<a><p>' + html + '</p></a>')
-				.appendTo(ul);
-		};
-		// remove accessibility span (for now)
-		this.$wrapper.find(".ui-helper-hidden-accessible").remove();
+
+			// if remember_last_selected is checked in the doctype against the field,
+			// then add this value
+			// to defaults so you do not need to set it again
+			// unless it is changed.
+			if(me.df.remember_last_selected_value) {
+				frappe.boot.user.last_selected_values[me.df.options] = item.value;
+			}
+
+			me.parse_validate_and_set_in_model(item.value);
+		});
+
+		this.$input.on("awesomplete-selectcomplete", function(e) {
+			var o = e.originalEvent;
+			if(o.text.value.indexOf("__link_option") !== -1) {
+				me.$input.val("");
+			}
+		});
 	},
 	set_custom_query: function(args) {
 		var set_nulls = function(obj) {
@@ -1361,24 +1469,49 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		if(this.get_query || this.df.get_query) {
 			var get_query = this.get_query || this.df.get_query;
 			if($.isPlainObject(get_query)) {
-				var filters = set_nulls(get_query);
+				var filters = null;
+				if(get_query.filters) {
+					// passed as {'filters': {'key':'value'}}
+					filters = get_query.filters;
+				} else if(get_query.query) {
 
-				// extend args for custom functions
-				$.extend(args, filters);
+					// passed as {'query': 'path.to.method'}
+					args.query = get_query;
+				} else {
 
-				// add "filters" for standard query (search.py)
-				args.filters = filters;
+					// dict is filters
+					filters = get_query;
+				}
+
+				if (filters) {
+					var filters = set_nulls(filters);
+
+					// extend args for custom functions
+					$.extend(args, filters);
+
+					// add "filters" for standard query (search.py)
+					args.filters = filters;
+				}
 			} else if(typeof(get_query)==="string") {
 				args.query = get_query;
 			} else {
-				var q = (get_query)(this.frm && this.frm.doc, this.doctype, this.docname);
+				// get_query by function
+				var q = (get_query)(this.frm && this.frm.doc || this.doc, this.doctype, this.docname);
 
 				if (typeof(q)==="string") {
+					// returns a string
 					args.query = q;
 				} else if($.isPlainObject(q)) {
+					// returns a plain object with filters
 					if(q.filters) {
 						set_nulls(q.filters);
 					}
+
+					// turn off value translation
+					if(q.translate_values !== undefined) {
+						this.translate_values = q.translate_values;
+					}
+
 					// extend args for custom functions
 					$.extend(args, q);
 
@@ -1402,12 +1535,58 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 			return;
 		}
 
-		if(this.frm) {
-			this.frm.script_manager.validate_link_and_fetch(this.df, this.get_options(),
-				this.docname, value, callback);
+		this.validate_link_and_fetch(this.df, this.get_options(),
+			this.docname, value, callback);
+	},
+	validate_link_and_fetch: function(df, doctype, docname, value, callback) {
+		var me = this;
+
+		if(value) {
+			var fetch = '';
+
+			if(this.frm && this.frm.fetch_dict[df.fieldname]) {
+				fetch = this.frm.fetch_dict[df.fieldname].columns.join(', ');
+			}
+
+			return frappe.call({
+				method:'frappe.desk.form.utils.validate_link',
+				type: "GET",
+				args: {
+					'value': value,
+					'options': doctype,
+					'fetch': fetch
+				},
+				no_spinner: true,
+				callback: function(r) {
+					if(r.message=='Ok') {
+						if(r.fetch_values && docname) {
+							me.set_fetch_values(df, docname, r.fetch_values);
+						}
+						if(callback) callback(r.valid_value);
+					} else {
+						if(callback) callback("");
+					}
+				}
+			});
+		} else if(callback) {
+			callback(value);
 		}
 	},
+	set_fetch_values: function(df, docname, fetch_values) {
+		var fl = this.frm.fetch_dict[df.fieldname].fields;
+		for(var i=0; i < fl.length; i++) {
+			frappe.model.set_value(df.parent, docname, fl[i], fetch_values[i], df.fieldtype);
+		}
+	}
 });
+
+if(Awesomplete) {
+	Awesomplete.prototype.get_item = function(value) {
+		return this._list.find(function(item) {
+			return item.value === value;
+		});
+	}
+}
 
 frappe.ui.form.ControlDynamicLink = frappe.ui.form.ControlLink.extend({
 	get_options: function() {
@@ -1424,7 +1603,7 @@ frappe.ui.form.ControlDynamicLink = frappe.ui.form.ControlLink.extend({
 		}
 		var options = frappe.model.get_value(this.df.parent, this.docname, this.df.options);
 		// if(!options) {
-		// 	msgprint(__("Please set {0} first",
+		// 	frappe.msgprint(__("Please set {0} first",
 		// 		[frappe.meta.get_docfield(this.df.parent, this.df.options, this.docname).label]));
 		// }
 		return options;
@@ -1441,130 +1620,261 @@ frappe.ui.form.ControlCode = frappe.ui.form.ControlText.extend({
 });
 
 frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
-	editor_name: "bsEditor",
-	horizontal: false,
 	make_input: function() {
-		//$(this.input_area).css({"min-height":"360px"});
 		this.has_input = true;
-		this.make_rich_text_editor();
-		this.make_markdown_editor();
-		this.make_switcher();
+		this.make_editor();
+		this.hide_elements_on_mobile();
+		this.setup_drag_drop();
+		this.setup_image_dialog();
 	},
-	make_rich_text_editor: function() {
+	make_editor: function() {
 		var me = this;
-		this.editor_wrapper = $("<div>").appendTo(this.input_area);
-		var onchange = function(value) {
-			me.md_editor.val(value);
-			me.parse_validate_and_set_in_model(value);
-		}
-		this.editor = new (frappe.provide(this.editor_name))({
-			parent: this.editor_wrapper,
-			change: onchange,
-			field: this
-		});
-		this.editor.editor.on("blur", function() {
-			onchange(me.editor.clean_html());
-		});
-		this.editor.editor.keypress("ctrl+s meta+s", function() {
-			me.frm.save_or_update();
-		});
-	},
-	make_markdown_editor: function() {
-		var me = this;
-		this.md_editor_wrapper = $("<div class='hide'>")
-			.appendTo(this.input_area);
-		this.md_editor = $("<textarea class='form-control markdown-text-editor'>")
-		.appendTo(this.md_editor_wrapper)
-		.allowTabs()
-		.on("change", function() {
-			var value = $(this).val();
-			me.editor.set_input(value);
-			me.parse_validate_and_set_in_model(value);
-		});
+		this.editor = $("<div>").appendTo(this.input_area);
 
-		$('<div class="text-muted small">Add &lt;!-- markdown --&gt; \
-			to always interpret as markdown</div>')
-			.appendTo(this.md_editor_wrapper);
+		// Note: while updating summernote, please make sure all 'p' blocks
+		// in the summernote source code are replaced by 'div' blocks.
+		// by default summernote, adds <p> blocks for new paragraphs, which adds
+		// unexpected whitespaces, esp for email replies.
+
+		this.editor.summernote({
+			minHeight: 400,
+			toolbar: [
+				['magic', ['style']],
+				['style', ['bold', 'italic', 'underline', 'clear']],
+				['fontsize', ['fontsize']],
+				['color', ['color']],
+				['para', ['ul', 'ol', 'paragraph', 'hr']],
+				//['height', ['height']],
+				['media', ['link', 'picture', 'video', 'table']],
+				['misc', ['fullscreen', 'codeview']]
+			],
+			keyMap: {
+				pc: {
+					'CTRL+ENTER': ''
+				},
+				mac: {
+					'CMD+ENTER': ''
+				}
+			},
+			prettifyHtml: true,
+			dialogsInBody: true,
+			callbacks: {
+				onInit: function() {
+					// firefox hack that puts the caret in the wrong position
+					// when div is empty. To fix, seed with a <br>.
+					// See https://bugzilla.mozilla.org/show_bug.cgi?id=550434
+					// this function is executed only once
+					$(".note-editable[contenteditable='true']").one('focus', function() {
+						var $this = $(this);
+						$this.html($this.html() + '<br>');
+					});
+				},
+				onChange: function(value) {
+					me.parse_validate_and_set_in_model(value);
+				},
+				onKeydown: function(e) {
+					var key = frappe.ui.keys.get_key(e);
+					// prevent 'New DocType (Ctrl + B)' shortcut in editor
+					if(['ctrl+b', 'meta+b'].indexOf(key) !== -1) {
+						e.stopPropagation();
+					}
+					if(key.indexOf('escape') !== -1) {
+						if(me.note_editor.hasClass('fullscreen')) {
+							// exit fullscreen on escape key
+							me.note_editor
+								.find('.note-btn.btn-fullscreen')
+								.trigger('click');
+						}
+					}
+				},
+			},
+			icons: {
+				'align': 'fa fa-align',
+				'alignCenter': 'fa fa-align-center',
+				'alignJustify': 'fa fa-align-justify',
+				'alignLeft': 'fa fa-align-left',
+				'alignRight': 'fa fa-align-right',
+				'indent': 'fa fa-indent',
+				'outdent': 'fa fa-outdent',
+				'arrowsAlt': 'fa fa-arrows-alt',
+				'bold': 'fa fa-bold',
+				'caret': 'caret',
+				'circle': 'fa fa-circle',
+				'close': 'fa fa-close',
+				'code': 'fa fa-code',
+				'eraser': 'fa fa-eraser',
+				'font': 'fa fa-font',
+				'frame': 'fa fa-frame',
+				'italic': 'fa fa-italic',
+				'link': 'fa fa-link',
+				'unlink': 'fa fa-chain-broken',
+				'magic': 'fa fa-magic',
+				'menuCheck': 'fa fa-check',
+				'minus': 'fa fa-minus',
+				'orderedlist': 'fa fa-list-ol',
+				'pencil': 'fa fa-pencil',
+				'picture': 'fa fa-image',
+				'question': 'fa fa-question',
+				'redo': 'fa fa-redo',
+				'square': 'fa fa-square',
+				'strikethrough': 'fa fa-strikethrough',
+				'subscript': 'fa fa-subscript',
+				'superscript': 'fa fa-superscript',
+				'table': 'fa fa-table',
+				'textHeight': 'fa fa-text-height',
+				'trash': 'fa fa-trash',
+				'underline': 'fa fa-underline',
+				'undo': 'fa fa-undo',
+				'unorderedlist': 'fa fa-list-ul',
+				'video': 'fa fa-video-camera'
+			}
+		});
+		this.note_editor = $(this.input_area).find('.note-editor');
+		// to fix <p> on enter
+		this.set_input('<div><br></div>');
 	},
-	make_switcher: function() {
+	setup_drag_drop: function() {
 		var me = this;
-		this.current_editor = this.editor;
-		this.switcher = $('<p class="text-right small">\
-			<a href="#" class="switcher"></a></p>')
-			.appendTo(this.input_area)
-			.find("a")
-			.click(function() {
-				me.switch();
-				return false;
+		this.note_editor.on('dragenter dragover', false)
+			.on('drop', function(e) {
+				var dataTransfer = e.originalEvent.dataTransfer;
+
+				if (dataTransfer && dataTransfer.files && dataTransfer.files.length) {
+					me.note_editor.focus();
+
+					var files = [].slice.call(dataTransfer.files);
+
+					files.forEach(file => {
+						me.get_image(file, (url) => {
+							me.editor.summernote('insertImage', url, file.name);
+						});
+					});
+				}
+				e.preventDefault();
+				e.stopPropagation();
 			});
-		this.render_switcher();
 	},
-	switch: function() {
-		if(this.current_editor===this.editor) {
-			// switch to md
-			var value = this.editor.get_value();
-			this.editor_wrapper.addClass("hide");
-			this.md_editor_wrapper.removeClass("hide");
-			this.current_editor = this.md_editor;
-			this.add_type_marker("markdown");
-		} else {
-			// switch to html
-			var value = this.md_editor.val();
-			this.md_editor_wrapper.addClass("hide");
-			this.editor_wrapper.removeClass("hide");
-			this.current_editor = this.editor;
-			this.add_type_marker("html");
+	get_image: function (fileobj, callback) {
+		var freader = new FileReader(),
+			me = this;
+
+		freader.onload = function() {
+			var dataurl = freader.result;
+			// add filename to dataurl
+			var parts = dataurl.split(",");
+			parts[0] += ";filename=" + fileobj.name;
+			dataurl = parts[0] + ',' + parts[1];
+			callback(dataurl);
 		}
-		this.render_switcher();
+		freader.readAsDataURL(fileobj);
 	},
-	add_type_marker: function(marker) {
-		var opp_marker = marker==="html" ? "markdown" : "html";
-		if(!this.value) this.value = "";
-		if(this.value.indexOf("<!-- " + opp_marker + " -->")!==-1) {
-			// replace opposite marker
-			this.set_value(this.value.split("<!-- " + opp_marker + " -->").join("<!-- " + marker + " -->"));
-		} else if(this.value.indexOf("<!-- " + marker + " -->")===-1) {
-			// add marker (marker missing)
-			this.set_value(this.value + "\n\n\n<!-- " + marker + " -->");
+	hide_elements_on_mobile: function() {
+		this.note_editor.find('.note-btn-underline,\
+			.note-btn-italic, .note-fontsize,\
+			.note-color, .note-height, .btn-codeview')
+			.addClass('hidden-xs');
+		if($('.toggle-sidebar').is(':visible')) {
+			// disable tooltips on mobile
+			this.note_editor.find('.note-btn')
+				.attr('data-original-title', '');
 		}
-	},
-	render_switcher: function() {
-		this.switcher.html(__("Edit as {0}", [this.current_editor == this.editor ?
-			__("Markdown") : __("Rich Text")]));
 	},
 	get_value: function() {
-		return this.current_editor === this.editor
-			? this.editor.get_value()
-			: this.md_editor.val();
+		return this.editor? this.editor.summernote('code'): '';
 	},
 	set_input: function(value) {
-		this._set_input(value);
-
-		// guess editor type
-		var is_markdown = false;
-		if(value) {
-			if(value.indexOf("<!-- markdown -->") !== -1) {
-				var is_markdown = true;
-			}
-			if((is_markdown && this.current_editor===this.editor)
-				|| (!is_markdown && this.current_editor===this.md_editor)) {
-				this.switch();
-			}
-		}
-	},
-	_set_input: function(value) {
 		if(value == null) value = "";
 		value = frappe.dom.remove_script_and_style(value);
-		this.editor.set_input(value);
-		this.md_editor.val(value);
+		if(value !== this.get_value()) {
+			this.editor.summernote('code', value);
+		}
 		this.last_value = value;
 	},
 	set_focus: function() {
-		var editor = this.$wrapper.find('.text-editor');
-		if(editor) {
-			editor.focus();
-			return true;
+		return this.editor.summernote('focus');
+	},
+	set_upload_options: function() {
+		var me = this;
+		this.upload_options = {
+			parent: this.image_dialog.get_field("upload_area").$wrapper,
+			args: {},
+			max_width: this.df.max_width,
+			max_height: this.df.max_height,
+			options: "Image",
+			btn: this.image_dialog.set_primary_action(__("Insert")),
+			on_no_attach: function() {
+				// if no attachmemts,
+				// check if something is selected
+				var selected = me.image_dialog.get_field("select").get_value();
+				if(selected) {
+					me.editor.summernote('insertImage', selected);
+					me.image_dialog.hide();
+				} else {
+					frappe.msgprint(__("Please attach a file or set a URL"));
+				}
+			},
+			callback: function(attachment, r) {
+				me.editor.summernote('insertImage', attachment.file_url, attachment.file_name);
+				me.image_dialog.hide();
+			},
+			onerror: function() {
+				me.image_dialog.hide();
+			}
 		}
+
+		if ("is_private" in this.df) {
+			this.upload_options.is_private = this.df.is_private;
+		}
+
+		if(this.frm) {
+			this.upload_options.args = {
+				from_form: 1,
+				doctype: this.frm.doctype,
+				docname: this.frm.docname
+			}
+		} else {
+			this.upload_options.on_attach = function(fileobj, dataurl) {
+				me.editor.summernote('insertImage', dataurl);
+				me.image_dialog.hide();
+				frappe.hide_progress();
+			}
+		}
+	},
+
+	setup_image_dialog: function() {
+		this.note_editor.find('[data-original-title="Image"]').on('click', (e) => {
+			if(!this.image_dialog) {
+				this.image_dialog = new frappe.ui.Dialog({
+					title: __("Image"),
+					fields: [
+						{fieldtype:"HTML", fieldname:"upload_area"},
+						{fieldtype:"HTML", fieldname:"or_attach", options: __("Or")},
+						{fieldtype:"Select", fieldname:"select", label:__("Select from existing attachments") },
+					]
+				});
+			}
+
+			this.image_dialog.show();
+			this.image_dialog.get_field("upload_area").$wrapper.empty();
+
+			// select from existing attachments
+			var attachments = this.frm && this.frm.attachments.get_attachments() || [];
+			var select = this.image_dialog.get_field("select");
+			if(attachments.length) {
+				attachments = $.map(attachments, function(o) { return o.file_url; })
+				select.df.options = [""].concat(attachments);
+				select.toggle(true);
+				this.image_dialog.get_field("or_attach").toggle(true);
+				select.refresh();
+			} else {
+				this.image_dialog.get_field("or_attach").toggle(false);
+				select.toggle(false);
+			}
+			select.$input.val("");
+
+			this.set_upload_options();
+			frappe.upload.make(this.upload_options);
+		});
 	}
 });
 
@@ -1576,11 +1886,12 @@ frappe.ui.form.ControlTable = frappe.ui.form.Control.extend({
 		this.grid = new frappe.ui.form.Grid({
 			frm: this.frm,
 			df: this.df,
-			perm: this.perm || this.frm.perm,
+			perm: this.perm || (this.frm && this.frm.perm) || this.df.perm,
 			parent: this.wrapper
 		})
-		if(this.frm)
+		if(this.frm) {
 			this.frm.grids[this.frm.grids.length] = this;
+		}
 
 		// description
 		if(this.df.description) {
@@ -1593,13 +1904,129 @@ frappe.ui.form.ControlTable = frappe.ui.form.Control.extend({
 			me.grid.refresh();
 			return false;
 		});
+	},
+	get_parsed_value: function() {
+		if(this.grid) {
+			return this.grid.get_data();
+		}
 	}
-})
+});
+
+frappe.ui.form.ControlSignature = frappe.ui.form.ControlData.extend({
+	saving: false,
+	loading: false,
+	make: function() {
+		var me = this;
+		this._super();
+
+		// make jSignature field
+		this.$pad = $('<div class="signature-field"></div>')
+			.appendTo(me.wrapper)
+			.jSignature({height:300, width: "100%", "lineWidth": 0.8})
+			.on('change', this.on_save_sign.bind(this));
+
+		this.img_wrapper = $(`<div class="signature-display">
+			<div class="missing-image attach-missing-image">
+				<i class="octicon octicon-circle-slash"></i>
+			</div></div>`)
+			.appendTo(this.wrapper);
+		this.img = $("<img class='img-responsive attach-image-display'>")
+			.appendTo(this.img_wrapper).toggle(false);
+
+
+		this.$btnWrapper = $(`<div class="signature-btn-row">
+			<a href="#" type="button" class="signature-reset btn btn-default">
+			<i class="glyphicon glyphicon-repeat"></i></a>`)
+			.appendTo(this.$pad)
+			.on("click", '.signature-reset', function() {
+				me.on_reset_sign();
+				return false;
+			});
+		// handle refresh by reloading the pad
+		this.$wrapper.on("refresh", this.on_refresh.bind(this));
+	},
+	on_refresh: function(e) {
+		// prevent to load the second time
+		this.$wrapper.find(".control-input").toggle(false);
+		this.set_editable(this.get_status()=="Write");
+		this.load_pad();
+		if(this.get_status()=="Read") {
+			$(this.disp_area).toggle(false);
+		}
+	},
+	set_image: function(value) {
+		if(value) {
+			$(this.img_wrapper).find(".missing-image").toggle(false);
+			this.img.attr("src", value).toggle(true);
+		} else {
+			$(this.img_wrapper).find(".missing-image").toggle(true);
+			this.img.toggle(false);
+		}
+	},
+	load_pad: function() {
+		// make sure not triggered during saving
+		if (this.saving) return;
+		// get value
+		var value = this.get_value();
+		// import data for pad
+		if (this.$pad) {
+			this.loading = true;
+			// reset in all cases
+			this.$pad.jSignature('reset');
+			if (value) {
+				// load the image to find out the size, because scaling will affect
+				// stroke width
+				try {
+					this.$pad.jSignature('setData', value);
+					this.set_image(value);
+				}
+				catch (e){
+					console.log("Cannot set data for signature", value, e);
+				}
+			}
+
+			this.loading = false;
+		}
+	},
+	set_editable: function(editable) {
+		this.$pad.toggle(editable);
+		this.img_wrapper.toggle(!editable);
+		this.$btnWrapper.toggle(editable);
+		if (editable) {
+			this.$btnWrapper.addClass('editing');
+		}
+		else {
+			this.$btnWrapper.removeClass('editing');
+		}
+	},
+	set_my_value: function(value) {
+		if (this.saving || this.loading) return;
+		this.saving = true;
+		this.set_value(value);
+		this.value = value;
+		this.saving = false;
+	},
+	get_value: function() {
+		return this.value? this.value: this.get_model_value();
+	},
+	// reset signature canvas
+	on_reset_sign: function() {
+		this.$pad.jSignature("reset");
+		this.set_my_value("");
+	},
+	// save signature value to model and display
+	on_save_sign: function() {
+		if (this.saving || this.loading) return;
+		var base64_img = this.$pad.jSignature("getData");
+		this.set_my_value(base64_img);
+		this.set_image(this.get_value());
+	}
+});
 
 frappe.ui.form.fieldtype_icons = {
-	"Date": "icon-calendar",
-	"Time": "icon-time",
-	"Datetime": "icon-time",
-	"Code": "icon-code",
-	"Select": "icon-flag"
+	"Date": "fa fa-calendar",
+	"Time": "fa fa-time",
+	"Datetime": "fa fa-time",
+	"Code": "fa fa-code",
+	"Select": "fa fa-flag"
 };

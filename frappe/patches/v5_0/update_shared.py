@@ -13,7 +13,7 @@ def execute():
 	users = frappe.get_all("User", filters={"user_type": "System User"})
 	usernames = [user.name for user in users]
 	for user in usernames:
-		frappe.share.add("User", user, user, share=1)
+		frappe.share.add("User", user, user, write=1, share=1)
 
 	# move event user to shared
 	if frappe.db.exists("DocType", "Event User"):

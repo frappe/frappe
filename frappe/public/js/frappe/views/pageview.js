@@ -6,7 +6,7 @@ frappe.provide("frappe.standard_pages");
 
 frappe.views.pageview = {
 	with_page: function(name, callback) {
-		if(in_list(keys(frappe.standard_pages), name)) {
+		if(in_list(Object.keys(frappe.standard_pages), name)) {
 			if(!frappe.pages[name]) {
 				frappe.standard_pages[name]();
 			}
@@ -27,7 +27,9 @@ frappe.views.pageview = {
 				method: 'frappe.desk.desk_page.getpage',
 				args: {'name':name },
 				callback: function(r) {
-					localStorage["_page:" + name] = JSON.stringify(r.docs);
+					if(!r.docs._dynamic_page) {
+						localStorage["_page:" + name] = JSON.stringify(r.docs);
+					}
 					callback();
 				},
 				freeze: true,

@@ -38,6 +38,7 @@ frappe.ui.form.AssignTo = Class.extend({
 		if(d && d.length) {
 			for(var i=0; i<d.length; i++) {
 				var info = frappe.user_info(d[i].owner);
+				info.assign_to_name = d[i].name
 				info.owner = d[i].owner;
 				info.avatar = frappe.avatar(d[i].owner);
 				info.description = d[i].description || "";
@@ -50,17 +51,17 @@ frappe.ui.form.AssignTo = Class.extend({
 				$(repl('<li class="assignment-row">\
 					<a class="close" data-owner="%(owner)s">&times;</a>\
 					%(avatar)s\
-					<span>%(_fullname)s</span>\
+					<span><a href="#Form/ToDo/%(assign_to_name)s">%(_fullname)s</a></span>\
 				</li>', info))
 					.insertBefore(this.parent.find('.add-assignment'));
 
-				if(d[i].owner===user) {
+				if(d[i].owner===frappe.session.user) {
 					me.primary_action = this.frm.page.add_menu_item(__("Assignment Complete"), function() {
-						me.remove(user);
-					}, "icon-ok", "btn-success")
+						me.remove(frappe.session.user);
+					}, "fa fa-check", "btn-success")
 				}
 
-				if(!(d[i].owner === user || me.frm.perm[0].write)) {
+				if(!(d[i].owner === frappe.session.user || me.frm.perm[0].write)) {
 					me.parent.find('a.close').remove();
 				}
 			}
@@ -79,20 +80,19 @@ frappe.ui.form.AssignTo = Class.extend({
 	add: function() {
 		var me = this;
 
-		if(this.frm.doc.__unsaved == 1) {
+		if(this.frm.is_new()) {
 			frappe.throw(__("Please save the document before assignment"));
 			return;
 		}
 
 		if(!me.dialog) {
-			me.dialog = frappe.ui.to_do_dialog({
+			me.dialog = new frappe.ui.form.AssignToDialog({
 				obj: me,
 				method: 'frappe.desk.form.assign_to.add',
 				doctype: me.frm.doctype,
 				docname: me.frm.docname,
 				callback: function(r) {
 					me.render(r.message);
-					me.frm.reload_doc();
 				}
 			});
 		}
@@ -103,32 +103,11 @@ frappe.ui.form.AssignTo = Class.extend({
 		}
 
 		me.dialog.show();
-
-		var myself = me.dialog.get_input("myself").on("click", function() {
-			me.toggle_myself(this);
-		});
-		me.toggle_myself(myself);
 	},
-
-	toggle_myself: function(myself) {
-		var me = this;
-		if($(myself).prop("checked")) {
-			me.dialog.set_value("assign_to", user);
-			me.dialog.set_value("notify", 0);
-			me.dialog.get_field("notify").$wrapper.toggle(false);
-			me.dialog.get_field("assign_to").$wrapper.toggle(false);
-		} else {
-			me.dialog.set_value("assign_to", "");
-			me.dialog.set_value("notify", 1);
-			me.dialog.get_field("notify").$wrapper.toggle(true);
-			me.dialog.get_field("assign_to").$wrapper.toggle(true);
-		}
-	},
-
 	remove: function(owner) {
 		var me = this;
 
-		if(this.frm.doc.__unsaved == 1) {
+		if(this.frm.is_new()) {
 			frappe.throw(__("Please save the document before removing assignment"));
 			return;
 		}
@@ -142,43 +121,62 @@ frappe.ui.form.AssignTo = Class.extend({
 			},
 			callback:function(r,rt) {
 				me.render(r.message);
-				me.frm.reload_doc();
 			}
 		});
 	}
 });
 
 
-frappe.ui.to_do_dialog = function(opts){
-	var dialog = new frappe.ui.Dialog({
-		title: __('Add to To Do'),
-		fields: [
-			{fieldtype:'Check', fieldname:'myself', label:__("Assign to me"), "default":0},
-			{fieldtype: 'Section Break'},
-			{fieldtype: 'Link', fieldname:'assign_to', options:'User',
-				label:__("Assign To"), reqd:true, filters: {'user_type': 'System User'}},
-			{fieldtype:'Small Text', fieldname:'description', label:__("Comment"), reqd:true},
-			{fieldtype: 'Section Break'},
-			{fieldtype: 'Column Break'},
-			{fieldtype:'Date', fieldname:'date', label: __("Complete By")},
-			{fieldtype:'Check', fieldname:'notify',
-				label:__("Notify by Email"), "default":1},
-			{fieldtype: 'Column Break'},
-			{fieldtype:'Select', fieldname:'priority', label: __("Priority"),
-				options:[
-					{value: 'Low', label: __('Low')},
-					{value:'Medium', label: __('Medium')},
-					{value: 'High', label: __('High')}],
-				'default':'Medium'},
-		],
-		primary_action: function() { frappe.ui.add_assignment(opts, dialog); },
-		primary_action_label: __("Add")
-	});
+frappe.ui.form.AssignToDialog = Class.extend({
+	init: function(opts){
+		var me = this
+		$.extend(me, new frappe.ui.Dialog({
+			title: __('Add to To Do'),
+			fields: [
+				{fieldtype: 'Link', fieldname:'assign_to', options:'User',
+					label:__("Assign To"), reqd:true, filters: {'user_type': 'System User'}},
+				{fieldtype:'Check', fieldname:'myself', label:__("Assign to me"), "default":0},
+				{fieldtype:'Small Text', fieldname:'description', label:__("Comment"), reqd:true},
+				{fieldtype: 'Section Break'},
+				{fieldtype: 'Column Break'},
+				{fieldtype:'Date', fieldname:'date', label: __("Complete By")},
+				{fieldtype:'Check', fieldname:'notify',
+					label:__("Notify by Email"), "default":1},
+				{fieldtype: 'Column Break'},
+				{fieldtype:'Select', fieldname:'priority', label: __("Priority"),
+					options:[
+						{value:'Low', label:__('Low')},
+						{value:'Medium', label:__('Medium')},
+						{value:'High', label:__('High')}],
+					'default':'Medium'},
+			],
+			primary_action: function() { frappe.ui.add_assignment(opts, me) },
+			primary_action_label: __("Add")
+		}));
 
-	dialog.fields_dict.assign_to.get_query = "frappe.core.doctype.user.user.user_query";
+		me.fields_dict.assign_to.get_query = "frappe.core.doctype.user.user.user_query";
 
-	return dialog
-}
+		var myself = me.get_input("myself").on("click", function() {
+			me.toggle_myself(this);
+		});
+		me.toggle_myself(myself);
+	},
+	toggle_myself: function(myself) {
+		var me = this;
+		if($(myself).prop("checked")) {
+			me.set_value("assign_to", frappe.session.user);
+			me.set_value("notify", 0);
+			me.get_field("notify").$wrapper.toggle(false);
+			me.get_field("assign_to").$wrapper.toggle(false);
+		} else {
+			me.set_value("assign_to", "");
+			me.set_value("notify", 1);
+			me.get_field("notify").$wrapper.toggle(true);
+			me.get_field("assign_to").$wrapper.toggle(true);
+		}
+	},
+
+});
 
 frappe.ui.add_assignment = function(opts, dialog) {
 	var assign_to = opts.obj.dialog.fields_dict.assign_to.get_value();
@@ -198,7 +196,7 @@ frappe.ui.add_assignment = function(opts, dialog) {
 					if(opts.callback){
 						opts.callback(r);
 					}
-					dialog.hide();
+					dialog && dialog.hide();
 				}
 			},
 			btn: this

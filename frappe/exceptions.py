@@ -6,12 +6,17 @@ from __future__ import unicode_literals
 # BEWARE don't put anything in this file except exceptions
 
 from werkzeug.exceptions import NotFound
-from MySQLdb import ProgrammingError as SQLError
+from MySQLdb import ProgrammingError as SQLError, Error
+from MySQLdb import OperationalError as DatabaseOperationalError
+
 
 class ValidationError(Exception):
 	http_status_code = 417
 
 class AuthenticationError(Exception):
+	http_status_code = 401
+
+class SessionExpired(Exception):
 	http_status_code = 401
 
 class PermissionError(Exception):
@@ -38,6 +43,19 @@ class Redirect(Exception):
 class CSRFTokenError(Exception):
 	http_status_code = 400
 
+
+class ImproperDBConfigurationError(Error):
+	"""
+	Used when frappe detects that database or tables are not properly
+	configured
+	"""
+	def __init__(self, reason, msg=None):
+		if not msg:
+			msg = "MariaDb is not properly configured"
+		super(ImproperDBConfigurationError, self).__init__(msg)
+		self.reason = reason
+
+
 class DuplicateEntryError(NameError):pass
 class DataError(ValidationError): pass
 class UnknownDomainError(Exception): pass
@@ -62,3 +80,4 @@ class AppNotInstalledError(ValidationError): pass
 class IncorrectSitePath(NotFound): pass
 class ImplicitCommitError(ValidationError): pass
 class RetryBackgroundJobError(Exception): pass
+class DocumentLockedError(ValidationError): pass

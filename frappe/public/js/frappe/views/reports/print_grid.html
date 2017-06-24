@@ -2,7 +2,7 @@
 {% if title %}
 <h2>{{ __(title) }}</h2>
 <hr>
-{{ endif }}
+{% endif %}
 <table class="table table-bordered">
     <!-- heading -->
     <thead>
@@ -27,7 +27,7 @@
 					{% var value = col.fieldname ? row[col.fieldname] : row[col.id]; %}
 
                 	<td>{{ col.formatter
-	                        ? col.formatter(i, c, value, col, row, true)
+	                        ? col.formatter(row._index, col._index, value, col, row, true)
 	                        : value }}</td>
                 {% endif %}
             {% endfor %}

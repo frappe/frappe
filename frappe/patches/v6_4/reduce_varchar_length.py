@@ -1,9 +1,11 @@
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 import frappe
 
 def execute():
 	for doctype in frappe.get_all("DocType", filters={"issingle": 0}):
 		doctype = doctype.name
+		if not frappe.db.table_exists(doctype):
+			continue
 
 		for column in frappe.db.sql("desc `tab{doctype}`".format(doctype=doctype), as_dict=True):
 			fieldname = column["Field"]
@@ -18,8 +20,10 @@ def execute():
 			max_length = max_length[0][0] if max_length else None
 
 			if max_length and 140 < max_length <= 255:
-				print "setting length of '{fieldname}' in '{doctype}' as {length}".format(
+				print(
+					"setting length of '{fieldname}' in '{doctype}' as {length}".format(
 					fieldname=fieldname, doctype=doctype, length=max_length)
+				)
 
 				# create property setter for length
 				frappe.make_property_setter({

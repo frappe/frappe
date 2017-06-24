@@ -19,7 +19,7 @@
 	{%- endfor -%}
 </head>
 <body>
-	<div class="centered splash" style="width: 200px; height: 200px;">
+	<div class="centered splash" style="width: 100px; height: 100px;">
         <img src="{{ splash_image or "/assets/frappe/images/frappe-bird-thin.svg" }}">
     </div>
 	<div class="main-section">
@@ -52,7 +52,8 @@
 	{% for include in include_js %}
 	<script type="text/javascript" src="{{ include }}"></script>
 	{% endfor %}
-    {% include "templates/includes/google_analytics.html" %}
+    {% include "templates/includes/app_analytics/google_analytics.html" %}
+    {% include "templates/includes/app_analytics/mixpanel_analytics.html" %}
 
 	{% for sound in (sounds or []) %}
 	<audio preload="auto" id="sound-{{ sound.name }}" volume={{ sound.volume or 1 }}>

@@ -16,6 +16,7 @@ Example:
 
 - `db_name`: Database Name.
 - `db_password`: Database password.
+- `encryption_key`: encryption_key for stored non user passwords.
 
 ### Optional Settings
 

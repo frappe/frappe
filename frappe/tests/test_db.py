@@ -15,10 +15,10 @@ class TestDB(unittest.TestCase):
 		self.assertEquals(frappe.db.get_value("User", {"name": ["<", "B"]}), "Administrator")
 		self.assertEquals(frappe.db.get_value("User", {"name": ["<=", "Administrator"]}), "Administrator")
 
-		self.assertEquals(frappe.db.sql("""select name from `tabUser` where name > "s" """)[0][0],
+		self.assertEquals(frappe.db.sql("""select name from `tabUser` where name > "s" order by modified desc""")[0][0],
 			frappe.db.get_value("User", {"name": [">", "s"]}))
 
-		self.assertEquals(frappe.db.sql("""select name from `tabUser` where name >= "t" """)[0][0],
+		self.assertEquals(frappe.db.sql("""select name from `tabUser` where name >= "t" order by modified desc""")[0][0],
 			frappe.db.get_value("User", {"name": [">=", "t"]}))
 
 	def test_escape(self):

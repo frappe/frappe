@@ -89,6 +89,9 @@ frappe.ui.form.Toolbar = Class.extend({
 		return this.page.add_dropdown(label);
 	},
 	set_indicator: function() {
+		if(this.frm.save_disabled)
+			return;
+
 		var indicator = frappe.get_indicator(this.frm.doc);
 		if(indicator) {
 			this.page.set_indicator(indicator[0], indicator[1]);
@@ -111,11 +114,11 @@ frappe.ui.form.Toolbar = Class.extend({
 		// Print
 		if(!is_submittable || docstatus == 1  ||
 			(allow_print_for_cancelled && docstatus == 2)||
-	 		(allow_print_for_draft && docstatus == 0)) {
+			(allow_print_for_draft && docstatus == 0)) {
 			if(frappe.model.can_print(null, me.frm)) {
 				this.page.add_menu_item(__("Print"), function() {
 					me.frm.print_doc();}, true);
-				this.print_icon = this.page.add_action_icon("icon-print", function() {
+				this.print_icon = this.page.add_action_icon("fa fa-print", function() {
 					me.frm.print_doc();});
 			}
 		}
@@ -156,7 +159,7 @@ frappe.ui.form.Toolbar = Class.extend({
 				me.frm.savetrash();}, true);
 		}
 
-		if(in_list(user_roles, "System Manager")) {
+		if(frappe.user_roles.includes("System Manager")) {
 			this.page.add_menu_item(__("Customize"), function() {
 				frappe.set_route("Form", "Customize Form", {
 					doc_type: me.frm.doctype
@@ -171,12 +174,21 @@ frappe.ui.form.Toolbar = Class.extend({
 			}
 		}
 
+		// feedback
+		if(!this.frm.doc.__unsaved) {
+			if(is_submittable && docstatus == 1) {
+				this.page.add_menu_item(__("Request Feedback"), function() {
+					var feedback = new frappe.utils.Feedback();
+					feedback.manual_feedback_request(me.frm.doc);
+				}, true)
+			}
+		}
+
 		// New
 		if(p[CREATE] && !this.frm.meta.issingle) {
 			this.page.add_menu_item(__("New {0} (Ctrl+B)", [__(me.frm.doctype)]), function() {
 				frappe.new_doc(me.frm.doctype, true);}, true);
 		}
-
 	},
 	can_save: function() {
 		return this.get_docstatus()===0;
@@ -234,6 +246,7 @@ frappe.ui.form.Toolbar = Class.extend({
 			}
 		} else {
 			this.page.clear_actions();
+			this.current_status = null
 		}
 	},
 	get_action_status: function() {
@@ -313,10 +326,10 @@ frappe.ui.form.Toolbar = Class.extend({
 			return;
 		} else if(docstatus==1 && p[CANCEL]) {
 			this.page.set_secondary_action(__('Cancel'), function() {
-				me.frm.savecancel(this) }, 'icon-ban-circle');
+				me.frm.savecancel(this) }, 'fa fa-ban-circle');
 		} else if(docstatus==2 && p[AMEND]) {
 			this.page.set_secondary_action(__('Amend'), function() {
-				me.frm.amend_doc() }, 'icon-pencil', true);
+				me.frm.amend_doc() }, 'fa fa-pencil', true);
 		}
 	},
 	add_update_button_on_dirty: function() {

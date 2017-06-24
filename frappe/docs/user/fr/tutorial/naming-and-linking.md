@@ -2,7 +2,7 @@
 
 Définissons un nouveau **DocType**:
 
-1. Library Member (First Name, Last Name, Email ID, Phone, Address)
+1. Library Member (First Name, Last Name, Email Address, Phone, Address)
 
 <img class="screenshot" alt="Doctype Saved" src="{{docs_base_url}}/assets/img/naming_doctype.png">
 
@@ -16,7 +16,7 @@ Les **DocTypes** peuvent être nommés de différentes facons:
 1. Par le controlleur (code)
 1. Par la console
 
-Cela peut être configuré par le champs **Autoname**. Pour le controlerur, laissez vide.
+Cela peut être configuré par le champs **Autoname**. Pour le controleur, laissez vide.
 
 > **Search Fields**: Un **DocType** peut être nommé sur la base d'une serie mais nous devons toujours pouvoir le chercher par un nom. 
 Dans notre cas, l'arcicle peut etre cherché par un titre ou par l'auteur. Remplissons donc le champs **Search Fields**.
@@ -54,7 +54,7 @@ définir `library_member.first_name`
 
 <img class="screenshot" alt="Fetch values" src="{{docs_base_url}}/assets/img/fetch.png">
 
-### Completeter les Modeles
+### Completer les Modeles
 
 De la même facon, vous pouvez compléter les autres modèles pour qu'au final le résultat soit:
 
@@ -74,6 +74,6 @@ De la même facon, vous pouvez compléter les autres modèles pour qu'au final l
 
 <img class="screenshot" alt="Library Transaction" src="{{docs_base_url}}/assets/img/doctype_lib_trans.png">
 
-> Vérifiez que le modèles **Librarian** ait les permissions sur chaque **DocType**.
+> Vérifiez que le modèles **Librarian** aient les permissions sur chaque **DocType**.
 
-{suite}
+{next}

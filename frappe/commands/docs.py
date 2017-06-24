@@ -52,7 +52,7 @@ def build_docs(context, app, docs_version="current", target=None, local=False, w
 					or "docs.py" in source_path):
 					_build_docs_once(site, app, docs_version, target, local, only_content_updated=True)
 
-			apps_path = frappe.get_app_path("frappe", "..", "..")
+			apps_path = frappe.get_app_path(app, "..", "..")
 			start_watch(apps_path, handler=trigger_make)
 
 def _build_docs_once(site, app, docs_version, target, local, only_content_updated=False):

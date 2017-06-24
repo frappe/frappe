@@ -1,6 +1,12 @@
+from __future__ import print_function
 import requests
 import json
 import frappe
+from six import iteritems
+
+'''
+FrappeClient is a library that helps you connect with other frappe systems
+'''
 
 class AuthError(Exception):
 	pass
@@ -13,7 +19,7 @@ class FrappeClient(object):
 		self.verify = verify
 		self.session = requests.session()
 		self.url = url
-		self.login(username, password)
+		self._login(username, password)
 
 	def __enter__(self):
 		return self
@@ -21,7 +27,8 @@ class FrappeClient(object):
 	def __exit__(self, *args, **kwargs):
 		self.logout()
 
-	def login(self, username, password):
+	def _login(self, username, password):
+		'''Login/start a sesion. Called internally on init'''
 		r = self.session.post(self.url, data={
 			'cmd': 'login',
 			'usr': username,
@@ -31,9 +38,11 @@ class FrappeClient(object):
 		if r.status_code==200 and r.json().get('message') == "Logged In":
 			return r.json()
 		else:
+			print(r.text)
 			raise AuthError
 
 	def logout(self):
+		'''Logout session'''
 		self.session.get(self.url, params={
 			'cmd': 'logout',
 		}, verify=self.verify)
@@ -54,41 +63,65 @@ class FrappeClient(object):
 		return self.post_process(res)
 
 	def insert(self, doc):
+		'''Insert a document to the remote server
+
+		:param doc: A dict or Document object to be inserted remotely'''
 		res = self.session.post(self.url + "/api/resource/" + doc.get("doctype"),
 			data={"data":frappe.as_json(doc)}, verify=self.verify)
 		return self.post_process(res)
 
 	def insert_many(self, docs):
+		'''Insert multiple documents to the remote server
+
+		:param docs: List of dict or Document objects to be inserted in one request'''
 		return self.post_request({
 			"cmd": "frappe.client.insert_many",
 			"docs": frappe.as_json(docs)
 		})
 
 	def update(self, doc):
+		'''Update a remote document
+
+		:param doc: dict or Document object to be updated remotely. `name` is mandatory for this'''
 		url = self.url + "/api/resource/" + doc.get("doctype") + "/" + doc.get("name")
 		res = self.session.put(url, data={"data":frappe.as_json(doc)}, verify=self.verify)
 		return self.post_process(res)
 
 	def bulk_update(self, docs):
+		'''Bulk update documents remotely
+
+		:param docs: List of dict or Document objects to be updated remotely (by `name`)'''
 		return self.post_request({
 			"cmd": "frappe.client.bulk_update",
 			"docs": frappe.as_json(docs)
 		})
 
 	def delete(self, doctype, name):
+		'''Delete remote document by name
+
+		:param doctype: `doctype` to be deleted
+		:param name: `name` of document to be deleted'''
 		return self.post_request({
 			"cmd": "frappe.model.delete_doc",
 			"doctype": doctype,
 			"name": name
 		})
 
-	def submit(self, doclist):
+	def submit(self, doc):
+		'''Submit remote document
+
+		:param doc: dict or Document object to be submitted remotely'''
 		return self.post_request({
 			"cmd": "frappe.client.submit",
-			"doclist": frappe.as_json(doclist)
+			"doc": frappe.as_json(doc)
 		})
 
 	def get_value(self, doctype, fieldname=None, filters=None):
+		'''Returns a value form a document
+
+		:param doctype: DocType to be queried
+		:param fieldname: Field to be returned (default `name`)
+		:param filters: dict or string for identifying the record'''
 		return self.get_request({
 			"cmd": "frappe.client.get_value",
 			"doctype": doctype,
@@ -97,6 +130,12 @@ class FrappeClient(object):
 		})
 
 	def set_value(self, doctype, docname, fieldname, value):
+		'''Set a value in a remote document
+
+		:param doctype: DocType of the document to be updated
+		:param docname: name of the document to be updated
+		:param fieldname: fieldname of the document to be updated
+		:param value: value to be updated'''
 		return self.post_request({
 			"cmd": "frappe.client.set_value",
 			"doctype": doctype,
@@ -106,6 +145,10 @@ class FrappeClient(object):
 		})
 
 	def cancel(self, doctype, name):
+		'''Cancel a remote document
+
+		:param doctype: DocType of the document to be cancelled
+		:param name: name of the document to be cancelled'''
 		return self.post_request({
 			"cmd": "frappe.client.cancel",
 			"doctype": doctype,
@@ -113,11 +156,17 @@ class FrappeClient(object):
 		})
 
 	def get_doc(self, doctype, name="", filters=None, fields=None):
+		'''Returns a single remote document
+
+		:param doctype: DocType of the document to be returned
+		:param name: (optional) `name` of the document to be returned
+		:param filters: (optional) Filter by this dict if name is not set
+		:param fields: (optional) Fields to be returned, will return everythign if not set'''
 		params = {}
 		if filters:
 			params["filters"] = json.dumps(filters)
-			if fields:
-				params["fields"] = json.dumps(fields)
+		if fields:
+			params["fields"] = json.dumps(fields)
 
 		res = self.session.get(self.url + "/api/resource/" + doctype + "/" + name,
 			params=params, verify=self.verify)
@@ -125,6 +174,11 @@ class FrappeClient(object):
 		return self.post_process(res)
 
 	def rename_doc(self, doctype, old_name, new_name):
+		'''Rename remote document
+
+		:param doctype: DocType of the document to be renamed
+		:param old_name: Current `name` of the document to be renamed
+		:param new_name: New `name` to be set'''
 		params = {
 			"cmd": "frappe.client.rename_doc",
 			"doctype": doctype,
@@ -138,11 +192,11 @@ class FrappeClient(object):
 		meta = frappe.get_meta(doctype)
 		tables = {}
 		for df in meta.get_table_fields():
-			if verbose: print "getting " + df.options
+			if verbose: print("getting " + df.options)
 			tables[df.fieldname] = self.get_list(df.options, limit_page_length=999999)
 
 		# get links
-		if verbose: print "getting " + doctype
+		if verbose: print("getting " + doctype)
 		docs = self.get_list(doctype, limit_page_length=999999, filters=filters)
 
 		# build - attach children to parents
@@ -156,7 +210,7 @@ class FrappeClient(object):
 					if child.parent in docs_map:
 						docs_map[child.parent].setdefault(fieldname, []).append(child)
 
-		if verbose: print "inserting " + doctype
+		if verbose: print("inserting " + doctype)
 		for doc in docs:
 			if exclude and doc["name"] in exclude:
 				continue
@@ -217,7 +271,7 @@ class FrappeClient(object):
 
 	def preprocess(self, params):
 		"""convert dicts, lists to json"""
-		for key, value in params.iteritems():
+		for key, value in iteritems(params):
 			if isinstance(value, (dict, list)):
 				params[key] = json.dumps(value)
 
@@ -227,7 +281,7 @@ class FrappeClient(object):
 		try:
 			rjson = response.json()
 		except ValueError:
-			print response.text
+			print(response.text)
 			raise
 
 		if rjson and ("exc" in rjson) and rjson["exc"]:

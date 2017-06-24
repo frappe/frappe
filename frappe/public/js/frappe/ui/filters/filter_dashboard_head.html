@@ -1,0 +1,41 @@
+<div class="filter-dash-item">
+	<div class="filter-header">
+		<h6 class="h6 filter-label" data-name="{{ field }}">{{ label }}</h6>
+		{% if (type!=="Date" && type!=="Datetime" && type!=="DateRange") { %}
+		<div class="dropdown search-dropdown hide pull-right">
+			<i class="dropdown-toggle octicon octicon-search text-muted"
+				data-toggle="dropdown"></i>
+			<div class="dropdown-menu">
+				<form >
+				<input class="search-dashboard" type="text" autocomplete="off" class="input-with-feedback form-control" />
+				</form>
+			</div>
+		</div>
+		<div class="dropdown sort-dropdown pull-right">
+			<i class="pull-right dropdown-toggle
+				filter-sort-active octicon octicon-gear text-muted"
+				data-name="{{ field }}" data-sort-by="number" data-order="desc"
+				data-toggle="dropdown"/>
+			<ul class="dropdown-menu">
+				<li class="filter-sort-item" data-sort-by="alphabet" data-order="asc">
+					<a>{%= __("Alphabetically Ascending") %}</a></li>
+				<li class="filter-sort-item" data-sort-by="alphabet" data-order="desc">
+					<a>{%= __("Alphabetically Descending") %}</a></li>
+				<li class="filter-sort-item" data-sort-by="number" data-order="asc">
+					<a>{%= __("Numerically Ascending") %}</a></li>
+				<li class="filter-sort-item" data-sort-by="number" data-order="desc">
+					<a>{%= __("Numerically Descending") %}</a></li>
+			</ul>
+		</div>
+	{% } %}
+	</div>
+
+	{%  if(type==="Date" || type==="Datetime" || type==="DateRange") { %}
+	<div class="filter-input filter-input-date" data-name="{{ field }}">
+	</div>
+	{% } else { %}
+	<ul class="list-unstyled sidebar-menu filter-stat" data-name="{{ field }}">
+
+	</ul>
+	{% } %}
+</div>

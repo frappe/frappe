@@ -38,9 +38,6 @@ frappe.ui.Dialog = frappe.ui.FieldGroup.extend({
 		var me = this;
 		this.$wrapper
 			.on("hide.bs.modal", function() {
-				if(me.body_hidden) {
-					$("#body_div").toggle(true);
-				}
 				me.display = false;
 				if(frappe.ui.open_dialogs[frappe.ui.open_dialogs.length-1]===me) {
 					frappe.ui.open_dialogs.pop();
@@ -50,19 +47,23 @@ frappe.ui.Dialog = frappe.ui.FieldGroup.extend({
 						cur_dialog = null;
 					}
 				}
-				me.onhide && me.onhide.apply(me);
+				me.onhide && me.onhide();
+				me.on_hide && me.on_hide();
 			})
 			.on("shown.bs.modal", function() {
 				// focus on first input
-				if(frappe.is_mobile()) {
-					$("#body_div").toggle(false);
-					me.body_hidden = true;
-				}
 				me.display = true;
 				cur_dialog = me;
 				frappe.ui.open_dialogs.push(me);
 				me.focus_on_first_input();
 				me.on_page_show && me.on_page_show();
+			})
+			.on('scroll', function() {
+				var $input = $('input:focus');
+				if($input.length && ['Date', 'Datetime',
+					'Time'].includes($input.attr('data-fieldtype'))) {
+					$input.blur();
+				}
 			});
 
 	},
@@ -86,7 +87,12 @@ frappe.ui.Dialog = frappe.ui.FieldGroup.extend({
 			.html(label)
 			.click(function() {
 				me.primary_action_fulfilled = true;
-				click.apply(me);
+				// get values and send it
+				// as first parameter to click callback
+				// if no values then return
+				var values = me.get_values();
+				if(!values) return;
+				click.apply(me, [values]);
 			});
 	},
 	make_head: function() {

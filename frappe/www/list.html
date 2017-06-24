@@ -20,7 +20,10 @@
 {% endif %}
 {% endblock %}
 
-{% block page_content %}{% include "templates/includes/list/list.html" %}{% endblock %}
+{% block page_content %}
+{% if introduction %}<p>{{ introduction }}</p>{% endif %}
+{% include "templates/includes/list/list.html" %}
+{% endblock %}
 
 {% block script %}
 <script>{% include "templates/includes/list/list.js" %}</script>

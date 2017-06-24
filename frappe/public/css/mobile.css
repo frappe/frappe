@@ -1,3 +1,4 @@
+/* the element that this class is applied to, should have a max width for this to work*/
 html {
   min-height: 100%;
 }
@@ -64,11 +65,6 @@ body {
     margin: 0px;
     display: inline-block;
   }
-  #navbar-breadcrumbs li {
-    max-width: 150px;
-    white-space: nowrap;
-    overflow: hidden;
-  }
   #navbar-breadcrumbs > li,
   #navbar-breadcrumbs > li > a {
     display: inline-block;
@@ -84,6 +80,7 @@ body {
   }
   .navbar-nav {
     margin: 0px;
+    margin-right: -15px;
   }
   .sidebar .form-group {
     margin-bottom: 0px;
@@ -185,8 +182,13 @@ body {
   body[data-sidebar="0"] .navbar-home {
     margin-left: 15px !important;
   }
-  .linked-with-dialog {
-    width: 100% !important;
+}
+@media (max-width: 991px) and (max-width: 480px) {
+  #navbar-breadcrumbs li a {
+    width: 100px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
   }
 }
 @media (max-width: 767px) {
@@ -194,19 +196,11 @@ body {
     margin: 0px;
     padding: 0px;
     width: 100%;
-    height: 100%;
-    position: fixed;
-    top: 0px;
-    bottom: 0px;
-    left: 0px;
-    right: 0px;
-    overflow-y: auto;
     background-color: #fff;
   }
   .modal .modal-content {
     border-radius: 0px;
     border: none;
-    box-shadow: none;
     height: 100%;
   }
   .modal .modal-body .form-layout {
@@ -324,15 +318,6 @@ body {
   #page-chat .message-row-right {
     margin-top: 10px;
     text-align: left;
-  }
-  #page-setup-wizard .form-section:first-child .form-column:first-child .frappe-control:first-child {
-    border-top: 1px solid #d1d8dd;
-  }
-  #page-setup-wizard .form-section:last-child .form-column:last-child .frappe-control:last-child {
-    border-bottom: 1px solid #d1d8dd;
-  }
-  #page-setup-wizard .setup-wizard-slide .form {
-    border: none;
   }
   body[data-route^="Form"] .page-head .sub-heading {
     right: 90px;

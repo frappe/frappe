@@ -5,7 +5,8 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 import frappe.defaults
-import frappe.permissions
+from frappe.permissions import (can_set_user_permissions, add_user_permission,
+	remove_user_permission, get_valid_perms)
 from frappe.core.doctype.user.user import get_system_users
 from frappe.utils.csvutils import UnicodeWriter, read_csv_content_from_uploaded_file
 from frappe.defaults import clear_default
@@ -19,7 +20,7 @@ def get_users_and_links():
 
 @frappe.whitelist()
 def get_permissions(parent=None, defkey=None, defvalue=None):
-	if defkey and not frappe.permissions.can_set_user_permissions(defkey, defvalue):
+	if defkey and not can_set_user_permissions(defkey, defvalue):
 		raise frappe.PermissionError
 
 	conditions, values = _build_conditions(locals())
@@ -54,33 +55,33 @@ def _build_conditions(filters):
 
 @frappe.whitelist()
 def remove(user, name, defkey, defvalue):
-	if not frappe.permissions.can_set_user_permissions(defkey, defvalue):
+	if not can_set_user_permissions(defkey, defvalue):
 		frappe.throw(_("Cannot remove permission for DocType: {0} and Name: {1}").format(
 			defkey, defvalue), frappe.PermissionError)
 
-	frappe.permissions.remove_user_permission(defkey, defvalue, user, name)
+	remove_user_permission(defkey, defvalue, user, name)
 
 @frappe.whitelist()
 def add(user, defkey, defvalue):
-	if not frappe.permissions.can_set_user_permissions(defkey, defvalue):
+	if not can_set_user_permissions(defkey, defvalue):
 		frappe.throw(_("Cannot set permission for DocType: {0} and Name: {1}").format(
 			defkey, defvalue), frappe.PermissionError)
 
-	frappe.permissions.add_user_permission(defkey, defvalue, user, with_message=True)
+	add_user_permission(defkey, defvalue, user, with_message=True)
 
 def get_doctypes_for_user_permissions():
+	'''Get doctypes for the current user where user permissions are applicable'''
 	user_roles = frappe.get_roles()
-	condition = ""
-	values = []
-	if "System Manager" not in user_roles:
-		condition = """and exists(select `tabDocPerm`.name from `tabDocPerm`
-			where `tabDocPerm`.parent=`tabDocType`.name and `tabDocPerm`.`set_user_permissions`=1
-			and `tabDocPerm`.role in ({roles}))""".format(roles=", ".join(["%s"]*len(user_roles)))
-		values = user_roles
 
-	return frappe.db.sql_list("""select name from tabDocType
-		where issingle=0 and istable=0 {condition}""".format(condition=condition),
-		tuple(values))
+	if "System Manager" in user_roles:
+		doctypes = set([p.parent for p in get_valid_perms()])
+	else:
+		doctypes = set([p.parent for p in get_valid_perms() if p.set_user_permissions])
+		
+	single_doctypes = set([d.name for d in frappe.get_all("DocType", {"issingle": 1})])
+	
+	return sorted(doctypes.difference(single_doctypes))
+
 
 @frappe.whitelist()
 def get_user_permissions_csv():
@@ -105,4 +106,4 @@ def import_user_permissions():
 		frappe.throw(frappe._("Please upload using the same template as download."))
 
 	for row in rows[2:]:
-		frappe.permissions.add_user_permission(row[1], row[2], row[0])
+		add_user_permission(row[1], row[2], row[0])

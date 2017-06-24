@@ -42,6 +42,7 @@ type_map = {
 	,'Read Only':	('varchar', varchar_len)
 	,'Attach':		('text', '')
 	,'Attach Image':('text', '')
+	,'Signature':	('longtext', '')
 }
 
 default_columns = ['name', 'creation', 'modified', 'modified_by', 'owner',
@@ -59,7 +60,7 @@ def updatedb(dt, meta=None):
 	"""
 	res = frappe.db.sql("select issingle from tabDocType where name=%s", (dt,))
 	if not res:
-		raise Exception, 'Wrong doctype "%s" in updatedb' % dt
+		raise Exception('Wrong doctype "%s" in updatedb' % dt)
 
 	if not res[0][0]:
 		tab = DbTable(dt, 'tab', meta)
@@ -102,19 +103,22 @@ class DbTable:
 		columns += self.columns.values()
 
 		for col in columns:
+			if len(col.fieldname) >= 64:
+				frappe.throw(_("Fieldname is limited to 64 characters ({0})").format(frappe.bold(col.fieldname)))
+
 			if col.fieldtype in type_map and type_map[col.fieldtype][0]=="varchar":
 
 				# validate length range
 				new_length = cint(col.length) or cint(varchar_len)
-				if not (1 <= new_length <= 255):
-					frappe.throw(_("Length of {0} should be between 1 and 255").format(col.fieldname))
+				if not (1 <= new_length <= 1000):
+					frappe.throw(_("Length of {0} should be between 1 and 1000").format(col.fieldname))
 
 				try:
 					# check for truncation
 					max_length = frappe.db.sql("""select max(char_length(`{fieldname}`)) from `tab{doctype}`"""\
 						.format(fieldname=col.fieldname, doctype=self.doctype))
 
-				except MySQLdb.OperationalError, e:
+				except MySQLdb.OperationalError as e:
 					if e.args[0]==1054:
 						# Unknown column 'column_name' in 'field list'
 						continue
@@ -171,10 +175,11 @@ class DbTable:
 			parenttype varchar({varchar_len}),
 			idx int(8) not null default '0',
 			%sindex parent(parent))
-			ENGINE=InnoDB
+			ENGINE={engine}
 			ROW_FORMAT=COMPRESSED
 			CHARACTER SET=utf8mb4
-			COLLATE=utf8mb4_unicode_ci""".format(varchar_len=varchar_len) % (self.name, add_text))
+			COLLATE=utf8mb4_unicode_ci""".format(varchar_len=varchar_len,
+				engine=self.meta.get("engine") or 'InnoDB') % (self.name, add_text))
 
 	def get_column_definitions(self):
 		column_list = [] + default_columns
@@ -250,7 +255,7 @@ class DbTable:
 	def get_columns_from_db(self):
 		self.show_columns = frappe.db.sql("desc `%s`" % self.name)
 		for c in self.show_columns:
-			self.current_columns[c[0]] = {'name': c[0],
+			self.current_columns[c[0].lower()] = {'name': c[0],
 				'type':c[1], 'index':c[3]=="MUL", 'default':c[4], "unique":c[3]=="UNI"}
 
 	# GET foreign keys
@@ -286,7 +291,7 @@ class DbTable:
 
 	def alter(self):
 		for col in self.columns.values():
-			col.build_for_alter_table(self.current_columns.get(col.fieldname, None))
+			col.build_for_alter_table(self.current_columns.get(col.fieldname.lower(), None))
 
 		query = []
 
@@ -294,20 +299,21 @@ class DbTable:
 			query.append("add column `{}` {}".format(col.fieldname, col.get_definition()))
 
 		for col in self.change_type:
-			query.append("change `{}` `{}` {}".format(col.fieldname, col.fieldname, col.get_definition()))
+			current_def = self.current_columns.get(col.fieldname.lower(), None)
+			query.append("change `{}` `{}` {}".format(current_def["name"], col.fieldname, col.get_definition()))
 
 		for col in self.add_index:
 			# if index key not exists
 			if not frappe.db.sql("show index from `%s` where key_name = %s" %
 					(self.name, '%s'), col.fieldname):
 				query.append("add index `{}`(`{}`)".format(col.fieldname, col.fieldname))
-
+		
 		for col in self.drop_index:
 			if col.fieldname != 'name': # primary key
 				# if index key exists
 				if frappe.db.sql("""show index from `{0}`
 					where key_name=%s
-					and Non_unique=%s""".format(self.name), (col.fieldname, 1 if col.unique else 0)):
+					and Non_unique=%s""".format(self.name), (col.fieldname, 0 if col.unique else 1)):
 					query.append("drop index `{}`".format(col.fieldname))
 
 		for col in self.set_default:
@@ -331,7 +337,7 @@ class DbTable:
 		if query:
 			try:
 				frappe.db.sql("alter table `{}` {}".format(self.name, ", ".join(query)))
-			except Exception, e:
+			except Exception as e:
 				# sanitize
 				if e.args[0]==1060:
 					frappe.throw(str(e))
@@ -391,7 +397,8 @@ class DbColumn:
 			return
 
 		# type
-		if (current_def['type'] != column_def) or \
+		if (current_def['type'] != column_def) or\
+			self.fieldname != current_def['name'] or\
 			((self.unique and not current_def['unique']) and column_def not in ('text', 'longtext')):
 			self.table.change_type.append(self)
 
@@ -497,7 +504,7 @@ class DbManager:
 			host = self.get_current_host()
 		try:
 			self.db.sql("DROP USER '%s'@'%s';" % (target, host))
-		except Exception, e:
+		except Exception as e:
 			if e.args[0]==1396:
 				pass
 			else:
@@ -563,7 +570,7 @@ def remove_all_foreign_keys():
 		dbtab = DbTable(t[0])
 		try:
 			fklist = dbtab.get_foreign_keys()
-		except Exception, e:
+		except Exception as e:
 			if e.args[0]==1146:
 				fklist = []
 			else:

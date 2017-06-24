@@ -143,8 +143,8 @@ pre {
   }
 
 .navbar {
-	//background-color: @navbar-bg !important;
-	//background-color: @text-color !important;
+	// background-color: @navbar-bg !important;
+	background-color: @text-color !important;
 	// border-bottom: 3px solid @border-color !important;
  // position: absolute;
  // top:0;
@@ -153,14 +153,24 @@ pre {
  // max-width:870px;
  // margin:0 auto;
 
- max-width: 870px;
  margin-left: auto;
  margin-right: auto;
+
+ .container {
+	 max-width: 870px;
+ }
+
+ .brand-logo {
+	 width: 30px;
+	 margin-top: -4px;
+	 margin-right: 7px;
+ }
 }
+
 .navbar a {
 	font-size: 16px;
 	font-weight: normal;
-	//color: #fff !important;
+	color: #fff !important;
  &.navbar-brand{
   font-weight: bold;
  }
@@ -395,3 +405,11 @@ a.edit, a.edit:hover, a.edit:focus, a.edit:visited, .edit-container .icon {
 		display: none;
 	}
 }
+
+.screenshot {
+	border: 2px solid @border-color;
+	box-shadow: 1px 1px 7px rgba(0,0,0,0.15);
+	margin: 15px 0px;
+	max-width: 100%;
+}
+

@@ -1,3 +1,4 @@
+/* the element that this class is applied to, should have a max width for this to work*/
 .page-container {
   margin-top: 40px;
 }
@@ -47,7 +48,7 @@
   width: 46px;
   height: 0;
   padding: 23px 0;
-  background-size: cover;
+  background-size: contain;
   background-repeat: no-repeat;
   background-position: center center;
   border-radius: 4px;
@@ -104,9 +105,6 @@
 }
 .page-form .checkbox {
   margin-top: 2px;
-}
-.page-form .checkbox input {
-  margin-top: -3px;
 }
 select.input-sm {
   line-height: 1.2em !important;

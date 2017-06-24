@@ -4,11 +4,11 @@ from frappe import _
 from frappe.utils import now_datetime, getdate, flt, cint, get_fullname
 from frappe.installer import update_site_config
 from frappe.utils.data import formatdate
-from frappe.utils.user import get_enabled_system_users, get_system_managers
+from frappe.utils.user import get_enabled_system_users, disable_users
 import os, subprocess, urlparse, urllib
 
 class SiteExpiredError(frappe.ValidationError):
-	pass
+	http_status_code = 417
 
 EXPIRY_WARNING_DAYS = 10
 
@@ -18,6 +18,11 @@ def check_if_expired():
 		return
 
 	limits = get_limits()
+	expiry = limits.get("expiry")
+
+	if not expiry:
+		return
+
 	expires_on = formatdate(limits.get("expiry"))
 	support_email = limits.get("support_email")
 
@@ -28,7 +33,8 @@ def check_if_expired():
 		message = _("""Your subscription expired on {0}. To renew, please send an email to {1}.""").format(expires_on, support_email)
 
 	else:
-		message = _("""Your subscription expired on {0}""").format(expires_on)
+		# no recourse just quit
+		return
 
 	frappe.throw(message, SiteExpiredError)
 
@@ -149,6 +155,7 @@ def update_limits(limits_dict):
 	limits = get_limits()
 	limits.update(limits_dict)
 	update_site_config("limits", limits, validate=False)
+	disable_users(limits)
 	frappe.local.conf.limits = limits
 
 def clear_limit(key):

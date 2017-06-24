@@ -5,10 +5,13 @@ Call from command line:
 	bench setup-docs app path
 
 """
+from __future__ import unicode_literals, print_function
 
 import os, json, frappe, shutil, re
 from frappe.website.context import get_context
 from frappe.utils import markdown
+from six import iteritems
+
 
 class setup_docs(object):
 	def __init__(self, app):
@@ -17,8 +20,9 @@ class setup_docs(object):
 		"""
 		self.app = app
 
-		frappe.local.flags.web_pages_folders = ['docs',]
-		frappe.local.flags.web_pages_apps = [self.app,]
+
+		frappe.flags.web_pages_folders = ['docs',]
+		frappe.flags.web_pages_apps = [self.app,]
 
 		self.hooks = frappe.get_hooks(app_name = self.app)
 		self.app_title = self.hooks.get("app_title")[0]
@@ -37,6 +41,7 @@ class setup_docs(object):
 				"icon": self.hooks.get("app_icon")[0],
 				"email": self.hooks.get("app_email")[0],
 				"headline": self.docs_config.headline,
+				"brand_html": getattr(self.docs_config, 'brand_html', None),
 				"sub_heading": self.docs_config.sub_heading,
 				"source_link": self.docs_config.source_link,
 				"hide_install": getattr(self.docs_config, "hide_install", False),
@@ -44,7 +49,8 @@ class setup_docs(object):
 				"long_description": markdown(getattr(self.docs_config, "long_description", "")),
 				"license": self.hooks.get("app_license")[0],
 				"branch": getattr(self.docs_config, "branch", None) or "develop",
-				"style": getattr(self.docs_config, "style", "")
+				"style": getattr(self.docs_config, "style", ""),
+				"google_analytics_id": getattr(self.docs_config, "google_analytics_id", "")
 			}),
 			"metatags": {
 				"description": self.hooks.get("app_description")[0],
@@ -61,7 +67,7 @@ class setup_docs(object):
 		self.app_title = self.hooks.get("app_title")[0]
 		self.app_path = frappe.get_app_path(self.app)
 
-		print "Deleting current..."
+		print("Deleting current...")
 		shutil.rmtree(self.path, ignore_errors = True)
 		os.makedirs(self.path)
 
@@ -160,6 +166,8 @@ class setup_docs(object):
 		self.target = target
 		self.local = local
 
+		frappe.flags.local_docs = local
+
 		if self.local:
 			self.docs_base_url = ""
 		else:
@@ -191,8 +199,10 @@ class setup_docs(object):
 
 		for f in files:
 			if f.endswith(".py"):
-				module_name = os.path.relpath(os.path.join(basepath, f),
-					self.app_path)[:-3].replace("/", ".").replace(".__init__", "")
+				full_module_name = os.path.relpath(os.path.join(basepath, f),
+					self.app_path)[:-3].replace("/", ".")
+
+				module_name = full_module_name.replace(".__init__", "")
 
 				module_doc_path = os.path.join(module_folder,
 					self.app + "." + module_name + ".html")
@@ -200,12 +210,13 @@ class setup_docs(object):
 				self.make_folder(basepath)
 
 				if not os.path.exists(module_doc_path):
-					print "Writing " + module_doc_path
+					print("Writing " + module_doc_path)
 					with open(module_doc_path, "w") as f:
 						context = {"name": self.app + "." + module_name}
 						context.update(self.app_context)
+						context['full_module_name'] = self.app + '.' + full_module_name
 						f.write(frappe.render_template("templates/autodoc/pymodule.html",
-							context))
+							context).encode('utf-8'))
 
 		self.update_index_txt(module_folder)
 
@@ -217,7 +228,7 @@ class setup_docs(object):
 			os.makedirs(path)
 
 			index_txt_path = os.path.join(path, "index.txt")
-			print "Writing " + index_txt_path
+			print("Writing " + index_txt_path)
 			with open(index_txt_path, "w") as f:
 				f.write("")
 
@@ -230,7 +241,7 @@ class setup_docs(object):
 					"title": name
 				}
 			context.update(self.app_context)
-			print "Writing " + index_html_path
+			print("Writing " + index_html_path)
 			with open(index_html_path, "w") as f:
 				f.write(frappe.render_template(template, context))
 
@@ -246,7 +257,7 @@ class setup_docs(object):
 				index_parts = filter(None, f.read().splitlines())
 
 		if not set(pages).issubset(set(index_parts)):
-			print "Updating " + index_txt_path
+			print("Updating " + index_txt_path)
 			with open(index_txt_path, "w") as f:
 				f.write("\n".join(pages))
 
@@ -259,7 +270,7 @@ class setup_docs(object):
 				with open(model_json_path, "r") as j:
 					doctype_real_name = json.loads(j.read()).get("name")
 
-				print "Writing " + model_path
+				print("Writing " + model_path)
 
 				with open(model_path, "w") as f:
 					context = {"doctype": doctype_real_name}
@@ -269,18 +280,24 @@ class setup_docs(object):
 
 	def write_files(self):
 		"""render templates and write files to target folder"""
-		frappe.local.flags.home_page = "index"
+		frappe.flags.home_page = "index"
 
 		from frappe.website.router import get_pages, make_toc
-		pages = get_pages()
+		pages = get_pages(self.app)
 
 		# clear the user, current folder in target
 		shutil.rmtree(os.path.join(self.target, "user"), ignore_errors=True)
 		shutil.rmtree(os.path.join(self.target, "current"), ignore_errors=True)
 
+		def raw_replacer(matchobj):
+			if '{% raw %}' in matchobj.group(0):
+				return matchobj.group(0)
+			else:
+				return '{% raw %}' + matchobj.group(0) + '{% endraw %}'
+
 		cnt = 0
-		for path, context in pages.iteritems():
-			print "Writing {0}".format(path)
+		for path, context in iteritems(pages):
+			print("Writing {0}".format(path))
 
 			# set this for get_context / website libs
 			frappe.local.path = path
@@ -304,7 +321,8 @@ class setup_docs(object):
 
 			target_filename = os.path.join(self.target, target_path_fragment.strip('/'))
 
-			context.brand_html = context.top_bar_items = context.favicon = None
+			context.brand_html = context.app.brand_html
+			context.top_bar_items = context.favicon = None
 
 			self.docs_config.get_context(context)
 
@@ -329,18 +347,15 @@ class setup_docs(object):
 			if pages[parent_route]:
 				context.parents = [pages[parent_route]]
 
-			if not context.favicon:
-				context.favicon = "/assets/img/favicon.ico"
-
 			context.only_static = True
 			context.base_template_path = "templates/autodoc/base_template.html"
 
 			if '<code>' in context.source:
-				context.source = re.sub('\<code\>(.*)\</code\>', '<code>{% raw %}\g<1>{% endraw %}</code>', context.source)
+				context.source = re.sub('\<code\>(.*)\</code\>', raw_replacer, context.source)
 
 			html = frappe.render_template(context.source, context)
 
-			html = make_toc(context, html)
+			html = make_toc(context, html, self.app)
 
 			if not "<!-- autodoc -->" in html:
 				html = html.replace('<!-- edit-link -->',
@@ -358,13 +373,13 @@ class setup_docs(object):
 
 				cnt += 1
 
-		print "Wrote {0} files".format(cnt)
+		print("Wrote {0} files".format(cnt))
 
 
 	def copy_assets(self):
 		"""Copy jquery, bootstrap and other assets to files"""
 
-		print "Copying assets..."
+		print("Copying assets...")
 		assets_path = os.path.join(self.target, "assets")
 
 		# copy assets from docs
@@ -396,17 +411,18 @@ class setup_docs(object):
 			"css/font-awesome.css": "css/font-awesome.css",
 			"css/docs.css": "css/docs.css",
 			"css/hljs.css": "css/hljs.css",
-			"css/font": "css/font",
+			"css/fonts": "css/fonts",
 			"css/octicons": "css/octicons",
 			# always overwrite octicons.css to fix the path
 			"css/octicons/octicons.css": "css/octicons/octicons.css",
 			"images/frappe-bird-grey.svg": "img/frappe-bird-grey.svg",
+			"images/favicon.png": "img/favicon.png",
 			"images/background.png": "img/background.png",
 			"images/smiley.png": "img/smiley.png",
 			"images/up.png": "img/up.png"
 		}
 
-		for source, target in copy_files.iteritems():
+		for source, target in iteritems(copy_files):
 			source_path = frappe.get_app_path("frappe", "public", source)
 			if os.path.isdir(source_path):
 				if not os.path.exists(os.path.join(assets_path, target)):
@@ -423,20 +439,20 @@ class setup_docs(object):
 
 		for path in files:
 			with open(path, "r") as css_file:
-				text = css_file.read()
+				text = unicode(css_file.read(), 'utf-8')
 			with open(path, "w") as css_file:
 				if "docs.css" in path:
 					css_file.write(text.replace("/assets/img/",
-						self.docs_base_url + '/assets/img/'))
+						self.docs_base_url + '/assets/img/').encode('utf-8'))
 				else:
-					css_file.write(text.replace("/assets/frappe/", self.docs_base_url + '/assets/'))
+					css_file.write(text.replace("/assets/frappe/", self.docs_base_url + '/assets/').encode('utf-8'))
 
 
 edit_link = '''
 <div class="page-container">
 	<div class="page-content">
 	<div class="edit-container text-center">
-		<i class="icon icon-smile"></i>
+		<i class="fa fa-smile"></i>
 		<a class="text-muted edit" href="{source_link}/blob/{branch}/{app_name}/{target}">
 			Improve this page
 		</a>

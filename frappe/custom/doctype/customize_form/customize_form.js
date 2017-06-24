@@ -9,12 +9,14 @@ frappe.ui.form.on("Customize Form", {
 
 		frm.set_query("doc_type", function() {
 			return {
+				translate_values: false,
 				filters: [
 					['DocType', 'issingle', '=', 0],
 					['DocType', 'custom', '=', 0],
-					['DocType', 'name', 'not in', 'DocType, DocField, DocPerm, User, Role, UserRole, \
-						 Page, Page Role, Module Def, Print Format, Report, Customize Form, \
-						 Customize Form Field']
+					['DocType', 'name', 'not in', 'DocType, DocField, DocPerm, User, Role, Has Role, \
+						Page, Has Role, Module Def, Print Format, Report, Customize Form, \
+						Customize Form Field'],
+					['DocType', 'restrict_to_domain', 'in', frappe.boot.active_domains]
 				]
 			};
 		});
@@ -41,6 +43,8 @@ frappe.ui.form.on("Customize Form", {
 					frm.trigger("setup_sortable");
 				}
 			});
+		} else {
+			frm.refresh();
 		}
 	},
 
@@ -66,11 +70,41 @@ frappe.ui.form.on("Customize Form", {
 
 			frm.add_custom_button(__('Refresh Form'), function() {
 				frm.script_manager.trigger("doc_type");
-			}, "icon-refresh", "btn-default");
+			}, "fa fa-refresh", "btn-default");
 
 			frm.add_custom_button(__('Reset to defaults'), function() {
 				frappe.customize_form.confirm(__('Remove all customizations?'), frm);
-			}, "icon-eraser", "btn-default");
+			}, "fa fa-eraser", "btn-default");
+
+			frm.add_custom_button(__('Set Permissions'), function() {
+				frappe.set_route('permission-manager', frm.doc.doc_type);
+			}, "fa fa-lock", "btn-default");
+
+			if(frappe.boot.developer_mode) {
+				frm.add_custom_button(__('Export Customizations'), function() {
+					frappe.prompt(
+						[
+							{fieldtype:'Link', fieldname:'module', options:'Module Def',
+								label: __('Module to Export')},
+							{fieldtype:'Check', fieldname:'sync_on_migrate',
+								label: __('Sync on Migrate'), 'default': 1},
+							{fieldtype:'Check', fieldname:'with_permissions',
+								label: __('Export Custom Permissions'), 'default': 1},
+						],
+						function(data) {
+							frappe.call({
+								method: 'frappe.modules.utils.export_customizations',
+								args: {
+									doctype: frm.doc.doc_type,
+									module: data.module,
+									sync_on_migrate: data.sync_on_migrate,
+									with_permissions: data.with_permissions
+								}
+							});
+						},
+						__("Select Module"));
+				});
+			}
 		}
 
 		// sort order select
@@ -96,7 +130,7 @@ frappe.ui.form.on("Customize Form Field", {
 	before_fields_remove: function(frm, doctype, name) {
 		var row = frappe.get_doc(doctype, name);
 		if(!(row.is_custom_field || row.__islocal)) {
-			msgprint(__("Cannot delete standard field. You can hide it if you want"));
+			frappe.msgprint(__("Cannot delete standard field. You can hide it if you want"));
 			throw "cannot delete custom field";
 		}
 	},
@@ -116,6 +150,7 @@ frappe.customize_form.set_primary_action = function(frm) {
 				callback: function(r) {
 					if(!r.exc) {
 						frappe.customize_form.clear_locals_and_refresh(frm);
+						frm.script_manager.trigger("doc_type");
 					}
 				}
 			});
@@ -137,7 +172,7 @@ frappe.customize_form.confirm = function(msg, frm) {
 				method: "reset_to_defaults",
 				callback: function(r) {
 					if(r.exc) {
-						msgprint(r.exc);
+						frappe.msgprint(r.exc);
 					} else {
 						d.hide();
 						frappe.customize_form.clear_locals_and_refresh(frm);
@@ -228,7 +263,7 @@ frappe.customize_form.add_fields_help = function(frm) {
 					<td>\
 						Show field if a condition is met<br />\
 						Example: <code>eval:doc.status=='Cancelled'</code>\
-						 on a field like \"reason_for_cancellation\" will reveal \
+						on a field like \"reason_for_cancellation\" will reveal \
 						\"Reason for Cancellation\" only if the record is Cancelled.\
 					</td>\
 				</tr>\

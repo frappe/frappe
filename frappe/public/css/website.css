@@ -1,3 +1,4 @@
+/* the element that this class is applied to, should have a max width for this to work*/
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
 }
@@ -30,8 +31,7 @@ p {
   color: #d1d8dd !important;
 }
 a,
-.badge,
-.ui-menu .ui-menu-item {
+.badge {
   -webkit-transition: 0.2s;
   -o-transition: 0.2s;
   transition: 0.2s;
@@ -67,14 +67,8 @@ a.text-muted,
 a.text-extra-muted {
   text-decoration: none;
 }
-/* the element that this class is applied to, should have a max width for this to work*/
-.text-ellipsis,
-.ellipsis {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
-  vertical-align: middle;
+.underline {
+  text-decoration: underline;
 }
 .inline-block {
   display: inline-block;
@@ -87,10 +81,10 @@ kbd {
   color: inherit;
   background-color: #F0F4F7;
 }
-.btn [class^="icon-"],
-.nav [class^="icon-"],
-.btn [class*=" icon-"],
-.nav [class*=" icon-"] {
+.btn [class^="fa fa-"],
+.nav [class^="fa fa-"],
+.btn [class*="fa fa-"],
+.nav [class*="fa fa-"] {
   display: inline-block;
 }
 .dropdown-menu > li > a {
@@ -100,6 +94,8 @@ kbd {
   min-width: 200px;
   padding: 0px;
   font-size: 12px;
+  max-height: 400px;
+  overflow: auto;
   border-radius: 0px 0px 4px 4px;
 }
 .dropdown-menu .dropdown-header {
@@ -117,7 +113,7 @@ a.badge-hover:active .badge {
   background-color: #D8DFE5;
 }
 .msgprint {
-  margin: 15px 0px;
+  word-wrap: break-word;
 }
 .msgprint pre {
   text-align: left;
@@ -234,6 +230,13 @@ a.no-decoration:active {
   font-size: 12px;
   letter-spacing: 0.4px;
   color: #8D99A6;
+}
+.ellipsis {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  vertical-align: middle;
 }
 .avatar {
   display: inline-block;
@@ -380,6 +383,10 @@ a.no-decoration:active {
 .indicator-right.light-blue::after {
   background: #7CD6FD;
 }
+.indicator.lightblue::before,
+.indicator-right.lightblue::after {
+  background: #7CD6FD;
+}
 .modal-header .indicator {
   float: left;
   margin-top: 7.5px;
@@ -434,8 +441,10 @@ h6 a {
   max-width: 100%;
 }
 .banner {
-  margin-top: 20px;
-  padding: 0px 20px;
+  padding: 10px 0px;
+}
+.banner img {
+  max-height: 50px;
 }
 .no-border {
   border: none !important;
@@ -456,6 +465,17 @@ h6 a {
   border-left: none;
   border-right: none;
   border-top: none;
+}
+.navbar-search {
+  max-width: 400px;
+  display: inline-block;
+  margin: 10px;
+  margin-top: 9px;
+  padding: 2px 6px;
+  height: 26px;
+}
+.dropdown-menu .navbar-search {
+  max-width: 180px;
 }
 .social-icons i {
   font-size: 120%;
@@ -592,6 +612,7 @@ fieldset {
   font-weight: 500 !important;
 }
 .web-sidebar .sidebar-items {
+  margin-top: -10px;
   margin-bottom: 30px;
 }
 .web-sidebar .sidebar-items .title {
@@ -633,7 +654,8 @@ fieldset {
   margin-top: 15px;
 }
 .web-list-item {
-  padding: 15px 0px;
+  padding-top: 10px;
+  padding-bottom: 10px;
   border-bottom: 1px solid #EBEFF2;
 }
 .web-list-item h1,
@@ -732,8 +754,7 @@ textarea {
   }
 }
 .more-block {
-  margin: 0px -15px;
-  padding: 0px 15px 30px;
+  padding-bottom: 30px;
 }
 .btn-more {
   margin: 25px 0px;
@@ -797,6 +818,11 @@ a.active {
   letter-spacing: 0.5px;
   font-size: 24px;
 }
+@media (max-width: 767px) {
+  .page-head h1 {
+    font-size: 16px;
+  }
+}
 .btn-next-wrapper {
   margin-top: 60px;
 }
@@ -810,7 +836,6 @@ a.active {
 }
 .page-content.with-sidebar {
   padding-left: 50px;
-  padding-right: 50px;
 }
 @media screen and (max-width: 480px) {
   .page-content {
@@ -824,12 +849,18 @@ a.active {
 .content-header {
   padding-bottom: 20px;
 }
+.footer-group {
+  margin-bottom: 1em;
+}
 .footer-group-label {
   display: inline-block;
-  font-size: 11px;
 }
-li .footer-child-item {
-  margin: 15px 0px !important;
+.footer-parent-item {
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+li.footer-child-item {
+  margin: 15px 0px;
 }
 .blog-info {
   text-align: center;
@@ -844,10 +875,6 @@ li .footer-child-item {
 .blog-text p {
   margin-bottom: 30px;
 }
-.blogger-name {
-  margin-bottom: 0px;
-  margin-top: 0px;
-}
 .comment-view {
   padding-bottom: 30px;
 }
@@ -859,6 +886,9 @@ li .footer-child-item {
   border-bottom: 1px solid #d1d8dd;
   width: 100%;
 }
+.item-search .input-wrapper {
+  margin-right: 30px;
+}
 .item-search .item-search-input {
   position: relative;
   outline: none;
@@ -866,10 +896,23 @@ li .footer-child-item {
   margin-right: 5px;
   padding: 7px;
   padding-left: 0px;
-  width: 80px;
+  width: 100%;
+}
+@media (max-width: 767px) {
+  .item-search .item-search-input {
+    padding: 0;
+  }
 }
 .item-search i {
-  padding: 10px 10px 10px 0;
+  margin-right: -30px;
+  margin-top: -25px;
+}
+@media (max-width: 767px) {
+  .item-search i {
+    margin-right: -25px;
+    margin-top: -18px;
+    font-size: 12px;
+  }
 }
 .vert-line {
   overflow: hidden;
@@ -887,10 +930,14 @@ li .footer-child-item {
   padding-right: 15px;
   border-right: 1px solid #d1d8dd;
 }
+.shopping-cart .cart-icon .dropdown-toggle {
+  text-decoration: none !important;
+}
 .badge-wrapper {
-  min-height: 17px;
-  min-width: 17px;
   display: inline-block;
+  margin-left: 7px;
+  margin-top: -3px;
+  padding: 2px 7px;
   border: 1px solid #d1d8dd;
   border-radius: 3px;
   color: #7575ff;
@@ -907,4 +954,29 @@ li .footer-child-item {
   font-weight: 500;
   margin-top: -10px;
   margin-right: -8px;
+}
+.page-card {
+  max-width: 360px;
+  padding: 15px;
+  margin: 70px auto;
+  border: 1px solid #d1d8dd;
+  border-radius: 4px;
+  background-color: #fff;
+  box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.1);
+}
+.page-card .page-card-head {
+  padding: 10px 15px;
+  margin: -15px;
+  margin-bottom: 15px;
+  border-bottom: 1px solid #d1d8dd;
+}
+.page-card .page-card-head .indicator {
+  color: #36414C;
+  font-size: 14px;
+}
+.page-card .page-card-head .indicator::before {
+  margin: 0 6px 0.5px 0px;
+}
+.page-card .btn {
+  margin-top: 30px;
 }

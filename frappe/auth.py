@@ -15,6 +15,7 @@ from frappe.sessions import Session, clear_sessions, delete_session
 from frappe.modules.patch_handler import check_session_stopped
 from frappe.translate import get_lang_code
 from frappe.utils.password import check_password
+from frappe.core.doctype.authentication_log.authentication_log import add_authentication_log
 
 from urllib import quote
 
@@ -59,10 +60,6 @@ class HTTPRequest:
 		# check status
 		check_session_stopped()
 
-		# run login triggers
-		if frappe.form_dict.get('cmd')=='login':
-			frappe.local.login_manager.run_trigger('on_session_creation')
-
 	def validate_csrf_token(self):
 		if frappe.local.request and frappe.local.request.method=="POST":
 			if not frappe.local.session.data.csrf_token \
@@ -103,6 +100,9 @@ class LoginManager:
 		if frappe.local.form_dict.get('cmd')=='login' or frappe.local.request.path=="/api/method/login":
 			self.login()
 			self.resume = False
+
+			# run login triggers
+			self.run_trigger('on_session_creation')
 		else:
 			try:
 				self.resume = True
@@ -150,6 +150,13 @@ class LoginManager:
 		if not resume:
 			frappe.response["full_name"] = self.full_name
 
+		# redirect information
+		redirect_to = frappe.cache().hget('redirect_after_login', self.user)
+		if redirect_to:
+			frappe.local.response["redirect_to"] = redirect_to
+			frappe.cache().hdel('redirect_after_login', self.user)
+
+
 		frappe.local.cookie_manager.set_cookie("full_name", self.full_name)
 		frappe.local.cookie_manager.set_cookie("user_id", self.user)
 		frappe.local.cookie_manager.set_cookie("user_image", self.info.user_image or "")
@@ -176,7 +183,10 @@ class LoginManager:
 		if not (user and pwd):
 			user, pwd = frappe.form_dict.get('usr'), frappe.form_dict.get('pwd')
 		if not (user and pwd):
-			self.fail('Incomplete login details')
+			self.fail('Incomplete login details', user=user)
+
+		if cint(frappe.db.get_value("System Settings", "System Settings", "allow_login_using_mobile_number")):
+			user = frappe.db.get_value("User", filters={"mobile_no": user}, fieldname="name") or user
 
 		self.check_if_enabled(user)
 		self.user = self.check_password(user, pwd)
@@ -185,7 +195,7 @@ class LoginManager:
 		"""raise exception if user not enabled"""
 		if user=='Administrator': return
 		if not cint(frappe.db.get_value('User', user, 'enabled')):
-			self.fail('User disabled or missing')
+			self.fail('User disabled or missing', user=user)
 
 	def check_password(self, user, pwd):
 		"""check password"""
@@ -193,10 +203,12 @@ class LoginManager:
 			# returns user in correct case
 			return check_password(user, pwd)
 		except frappe.AuthenticationError:
-			self.fail('Incorrect password')
+			self.fail('Incorrect password', user=user)
 
-	def fail(self, message):
+	def fail(self, message, user="NA"):
 		frappe.local.response['message'] = message
+		add_authentication_log(message, user, status="Failed")
+		frappe.db.commit()
 		raise frappe.AuthenticationError
 
 	def run_trigger(self, event='on_login'):
@@ -248,7 +260,7 @@ class LoginManager:
 		self.run_trigger('on_logout')
 
 		if user == frappe.session.user:
-			delete_session(frappe.session.sid)
+			delete_session(frappe.session.sid, user=user, reason="User Manually Logged Out")
 			self.clear_cookies()
 		else:
 			clear_sessions(user)

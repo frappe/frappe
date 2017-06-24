@@ -58,9 +58,9 @@ class TestTranslation(unittest.TestCase):
 		self.assertTrue(_(data[1][0]), data[1][1])
 
 def get_translation_data():
-	html_source_data = """ <font color="#848484" face="arial, tahoma, verdana, sans-serif">
-							<span style="font-size: 11px; line-height: 16.9px;">Test Data</span></font> """
-	html_translated_data = """ <font color="#848484" face="arial, tahoma, verdana, sans-serif">
+	html_source_data = """<font color="#848484" face="arial, tahoma, verdana, sans-serif">
+							<span style="font-size: 11px; line-height: 16.9px;">Test Data</span></font>"""
+	html_translated_data = """<font color="#848484" face="arial, tahoma, verdana, sans-serif">
 							<span style="font-size: 11px; line-height: 16.9px;"> testituloksia </span></font>"""
 
 	return {'hr': ['Test data', 'Testdaten'],
@@ -72,7 +72,7 @@ def get_translation_data():
 
 def create_translation(key, val):
 	translation = frappe.new_doc('Translation')
-	translation.language_code = key
+	translation.language = key
 	translation.source_name = val[0]
 	translation.target_name = val[1]
 	translation.save()

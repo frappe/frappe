@@ -260,7 +260,7 @@ def update_for_dynamically_linked_docs(timeline_doctype):
 		try:
 			docs = frappe.get_all(reference_doctype, fields=["name", df.fieldname],
 				filters={ df.options: timeline_doctype })
-		except frappe.SQLError, e:
+		except frappe.SQLError as e:
 			if e.args and e.args[0]==1146:
 				# single
 				continue

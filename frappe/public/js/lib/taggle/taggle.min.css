@@ -1,0 +1,103 @@
+.taggle_list {
+    float: left;
+    width: 100%;
+}
+
+.taggle_input {
+    border: none;
+    outline: none;
+    font-size: 16px;
+    font-weight: 300;
+}
+
+.taggle_list li {
+    float: left;
+    display: inline-block;
+    white-space: nowrap;
+    font-weight: 500;
+    margin-bottom: 5px;
+}
+
+.taggle_list .taggle {
+    margin-right: 8px;
+    background: #E2E1DF;
+    padding: 5px 10px;
+    border-radius: 3px;
+    position: relative;
+    cursor: pointer;
+    transition: all .3s;
+    animation-duration: 1s;
+    animation-fill-mode: both;
+}
+
+.taggle_list .taggle_hot {
+    background: #cac8c4;
+}
+
+.taggle_list .taggle .close {
+    font-size: 1.1rem;
+    position: absolute;
+    top: 5px;
+    right: 3px;
+    text-decoration: none;
+    padding-left: 2px;
+    padding-top: 3px;
+    line-height: 0.5;
+    color: #ccc;
+    color: rgba(0, 0, 0, 0.2);
+    padding-bottom: 4px;
+    display: none;
+    border: 0;
+    background: none;
+    cursor: pointer;
+}
+
+.taggle_list .taggle:hover {
+    padding: 5px;
+    padding-right: 15px;
+    background: #ccc;
+    transition: all .3s;
+}
+
+.taggle_list .taggle:hover > .close {
+    display: block;
+}
+
+.taggle_list .taggle .close:hover {
+    color: #333;
+}
+
+.taggle_placeholder {
+    position: absolute;
+    color: #CCC;
+    top: 12px;
+    left: 8px;
+    transition: opacity, .25s;
+    user-select: none;
+}
+
+.taggle_input {
+    padding: 8px;
+    padding-left: 0;
+    float: left;
+    margin-top: -5px;
+    background: none;
+    width: 100%;
+    max-width: 100%;
+}
+
+.taggle_sizer {
+    padding: 0;
+    margin: 0;
+    position: absolute;
+    top: -500px;
+    z-index: -1;
+    visibility: hidden;
+}
+
+.clearfix:before, .clearfix:after {
+  display: block;
+  content: "";
+  line-height: 0;
+  clear: both; 
+}

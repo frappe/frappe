@@ -5,28 +5,18 @@ $(document).ready(function(){
 			"amount": cint({{ amount }} * 100), // 2000 paise = INR 20
 			"name": "{{ title }}",
 			"description": "{{ description }}",
-			"image": "{{ brand_image }}",
 			"handler": function (response){
 				razorpay.make_payment_log(response, options, "{{ reference_doctype }}", "{{ reference_docname }}");
 			},
 			"prefill": {
 				"name": "{{ payer_name }}",
-				"email": "saurabh@erpnext.com",
-				"order_id": "{{ order_id }}",
-				"phone": "9773595372"
+				"email": "{{ payer_email }}",
+				"order_id": "{{ order_id }}"
 			},
-			"notes": {
-				"doctype": "{{ doctype }}",
-				"name": "{{ name }}",
-				"payment_request": "{{ name }}" // backward compatibility
-			},
-			"theme": {
-				"color": "#4B4C9D"
-			}
+			"notes": {{ frappe.form_dict|json }}
 		};
 
 		var rzp = new Razorpay(options);
-		console.log(options)
 		rzp.open();
 		//	e.preventDefault();
 	})();
@@ -39,7 +29,7 @@ razorpay.make_payment_log = function(response, options, doctype, docname){
 	$('.razorpay-confirming').removeClass('hidden');
 
 	frappe.call({
-		method:"frappe.templates.pages.razorpay_checkout.make_payment",
+		method:"frappe.templates.pages.integrations.razorpay_checkout.make_payment",
 		freeze:true,
 		headers: {"X-Requested-With": "XMLHttpRequest"},
 		args: {

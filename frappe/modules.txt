@@ -5,6 +5,6 @@ Email
 Custom
 Geo
 Desk
-Print
 Integrations
-Integration Broker
+Printing
+Contacts

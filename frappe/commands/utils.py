@@ -1,4 +1,4 @@
-from __future__ import unicode_literals, absolute_import
+from __future__ import unicode_literals, absolute_import, print_function
 import click
 import json, os, sys
 from distutils.spawn import find_executable
@@ -52,15 +52,16 @@ def clear_website_cache(context):
 			frappe.destroy()
 
 @click.command('destroy-all-sessions')
+@click.option('--reason')
 @pass_context
-def destroy_all_sessions(context):
+def destroy_all_sessions(context, reason=None):
 	"Clear sessions of all users (logs them out)"
 	import frappe.sessions
 	for site in context.sites:
 		try:
 			frappe.init(site=site)
 			frappe.connect()
-			frappe.sessions.clear_all_sessions()
+			frappe.sessions.clear_all_sessions(reason)
 			frappe.db.commit()
 		finally:
 			frappe.destroy()
@@ -114,7 +115,7 @@ def execute(context, method, args=None, kwargs=None):
 		finally:
 			frappe.destroy()
 		if ret:
-			print json.dumps(ret)
+			print(json.dumps(ret))
 
 
 @click.command('add-to-email-queue')
@@ -200,6 +201,13 @@ def export_fixtures(context):
 def import_doc(context, path, force=False):
 	"Import (insert/update) doclist. If the argument is a directory, all files ending with .json are imported"
 	from frappe.core.page.data_import_tool import data_import_tool
+
+	if not os.path.exists(path):
+		path = os.path.join('..', path)
+	if not os.path.exists(path):
+		print('Invalid path {0}'.format(path))
+		sys.exit(1)
+
 	for site in context.sites:
 		try:
 			frappe.init(site=site)
@@ -222,6 +230,12 @@ def import_csv(context, path, only_insert=False, submit_after_import=False, igno
 	from frappe.utils.csvutils import read_csv_content
 	site = get_site(context)
 
+	if not os.path.exists(path):
+		path = os.path.join('..', path)
+	if not os.path.exists(path):
+		print('Invalid path {0}'.format(path))
+		sys.exit(1)
+
 	with open(path, 'r') as csvfile:
 		content = read_csv_content(csvfile.read())
 
@@ -234,7 +248,7 @@ def import_csv(context, path, only_insert=False, submit_after_import=False, igno
 			via_console=True)
 		frappe.db.commit()
 	except Exception:
-		print frappe.get_traceback()
+		print(frappe.get_traceback())
 
 	frappe.destroy()
 
@@ -291,26 +305,45 @@ def console(context):
 def run_tests(context, app=None, module=None, doctype=None, test=(), driver=None, profile=False, junit_xml_output=False):
 	"Run tests"
 	import frappe.test_runner
-	from frappe.utils import sel
 	tests = test
 
 	site = get_site(context)
 	frappe.init(site=site)
 
-	if frappe.conf.run_selenium_tests and False:
-		sel.start(context.verbose, driver)
+	ret = frappe.test_runner.main(app, module, doctype, context.verbose, tests=tests,
+		force=context.force, profile=profile, junit_xml_output=junit_xml_output)
+	if len(ret.failures) == 0 and len(ret.errors) == 0:
+		ret = 0
 
-	try:
-		ret = frappe.test_runner.main(app, module, doctype, context.verbose, tests=tests,
-			force=context.force, profile=profile, junit_xml_output=junit_xml_output)
-		if len(ret.failures) == 0 and len(ret.errors) == 0:
-			ret = 0
-	finally:
-		pass
-		if frappe.conf.run_selenium_tests:
-			sel.close()
+	if os.environ.get('CI'):
+		sys.exit(ret)
 
-	sys.exit(ret)
+@click.command('run-ui-tests')
+@click.option('--app', help="App to run tests on, leave blank for all apps")
+@click.option('--ci', is_flag=True, default=False, help="Run in CI environment")
+@pass_context
+def run_ui_tests(context, app=None, ci=False):
+	"Run UI tests"
+	import subprocess
+
+	site = get_site(context)
+	frappe.init(site=site)
+
+	if app is None:
+		app = ",".join(frappe.get_installed_apps())
+
+	cmd = [
+		'./node_modules/.bin/nightwatch',
+		'--config', './apps/frappe/frappe/nightwatch.js',
+		'--app', app,
+		'--site', site
+	]
+
+	if ci:
+		cmd.extend(['--env', 'ci_server'])
+
+	bench_path = frappe.utils.get_bench_path()
+	subprocess.call(cmd, cwd=bench_path)
 
 @click.command('serve')
 @click.option('--port', default=8000)
@@ -348,7 +381,7 @@ def request(context, args):
 
 			frappe.handler.execute_cmd(frappe.form_dict.cmd)
 
-			print frappe.response
+			print(frappe.response)
 		finally:
 			frappe.destroy()
 
@@ -383,7 +416,7 @@ def get_version():
 	for m in sorted(frappe.get_all_apps()):
 		module = frappe.get_module(m)
 		if hasattr(module, "__version__"):
-			print "{0} {1}".format(m, module.__version__)
+			print("{0} {1}".format(m, module.__version__))
 
 
 
@@ -445,6 +478,7 @@ commands = [
 	request,
 	reset_perms,
 	run_tests,
+	run_ui_tests,
 	serve,
 	set_config,
 	watch,

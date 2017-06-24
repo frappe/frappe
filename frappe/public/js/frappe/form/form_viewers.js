@@ -14,7 +14,7 @@ frappe.ui.form.Viewers = Class.extend({
 		var new_users = [];
 		for (var i=0, l=(viewers.current || []).length; i < l; i++) {
 			var username = viewers.current[i];
-			if (username===user) {
+			if (username===frappe.session.user) {
 				// current user
 				continue;
 			}
@@ -43,9 +43,9 @@ frappe.ui.form.Viewers = Class.extend({
 		if (data_updated && new_users.length) {
 			// new user viewing this document, who wasn't viewing in the past
 			if (new_users.length===1) {
-				show_alert(__("{0} is currently viewing this document", [new_users[0]]));
+				frappe.show_alert(__("{0} is currently viewing this document", [new_users[0]]));
 			} else {
-				show_alert(__("{0} are currently viewing this document", [frappe.utils.comma_and(new_users)]));
+				frappe.show_alert(__("{0} are currently viewing this document", [frappe.utils.comma_and(new_users)]));
 			}
 
 		}
@@ -56,15 +56,9 @@ frappe.ui.form.set_viewers = function(data) {
 	var doctype = data.doctype;
 	var docname = data.docname;
 	var past_viewers = (frappe.model.get_docinfo(doctype, docname).viewers || {}).past || [];
-	var new_viewers = [];
 	var viewers = data.viewers || [];
 
-	for (i=0, l=viewers.length; i < l; i++) {
-		var username = viewers[i];
-		if (past_viewers.indexOf(username)===-1) {
-			new_viewers.push(username);
-		}
-	}
+	var new_viewers = viewers.filter(viewer => !past_viewers.includes(viewer));
 
 	frappe.model.set_docinfo(doctype, docname, "viewers", {
 		past: past_viewers.concat(new_viewers),

@@ -1,4 +1,4 @@
-from __future__ import unicode_literals, absolute_import
+from __future__ import unicode_literals, absolute_import, print_function
 import click
 import json, sys
 import frappe
@@ -27,7 +27,7 @@ def trigger_scheduler_event(context, event):
 		try:
 			frappe.init(site=site)
 			frappe.connect()
-			frappe.utils.scheduler.trigger(site, event, now=context.force)
+			frappe.utils.scheduler.trigger(site, event, now=True)
 		finally:
 			frappe.destroy()
 
@@ -42,7 +42,7 @@ def enable_scheduler(context):
 			frappe.connect()
 			frappe.utils.scheduler.enable_scheduler()
 			frappe.db.commit()
-			print "Enabled for", site
+			print("Enabled for", site)
 		finally:
 			frappe.destroy()
 
@@ -57,7 +57,7 @@ def disable_scheduler(context):
 			frappe.connect()
 			frappe.utils.scheduler.disable_scheduler()
 			frappe.db.commit()
-			print "Disabled for", site
+			print("Disabled for", site)
 		finally:
 			frappe.destroy()
 
@@ -90,7 +90,7 @@ def scheduler(context, state, site=None):
 			frappe.utils.scheduler.enable_scheduler()
 			frappe.db.commit()
 
-		print 'Scheduler {0}d for site {1}'.format(state, site)
+		print('Scheduler {0}d for site {1}'.format(state, site))
 
 	finally:
 		frappe.destroy()
@@ -143,16 +143,7 @@ def purge_jobs(site=None, queue=None, event=None):
 	from frappe.utils.doctor import purge_pending_jobs
 	frappe.init(site or '')
 	count = purge_pending_jobs(event=event, site=site, queue=queue)
-	print "Purged {} jobs".format(count)
-
-@click.command('dump-queue-status')
-def dump_queue_status():
-	"Dump detailed diagnostic infomation for task queues in JSON format"
-	frappe.init('')
-	from frappe.utils.doctor import dump_queue_status as _dump_queue_status, inspect_queue
-	print json.dumps(_dump_queue_status(), indent=1)
-	inspect_queue()
-
+	print("Purged {} jobs".format(count))
 
 @click.command('schedule')
 def start_scheduler():
@@ -179,11 +170,11 @@ def ready_for_migration(context, site=None):
 		pending_jobs = get_pending_jobs(site=site)
 
 		if pending_jobs:
-			print 'NOT READY for migration: site {0} has pending background jobs'.format(site)
+			print('NOT READY for migration: site {0} has pending background jobs'.format(site))
 			sys.exit(1)
 
 		else:
-			print 'READY for migration: site {0} does not have any background jobs'.format(site)
+			print('READY for migration: site {0} does not have any background jobs'.format(site))
 			return 0
 
 	finally:
@@ -192,7 +183,6 @@ def ready_for_migration(context, site=None):
 commands = [
 	disable_scheduler,
 	doctor,
-	dump_queue_status,
 	enable_scheduler,
 	purge_jobs,
 	ready_for_migration,

@@ -10,7 +10,7 @@ from frappe import _
 class SignupDisabledError(frappe.PermissionError): pass
 
 def get_oauth2_providers():
-	return {
+	out = {
 		"google": {
 			"flow_params": {
 				"name": "google",
@@ -64,9 +64,32 @@ def get_oauth2_providers():
 			"api_endpoint": "/v2.5/me",
 			"api_endpoint_args": {
 				"fields": "first_name,last_name,email,gender,location,verified,picture"
-			}
+			},
 		}
 	}
+
+	frappe_server_url = frappe.db.get_value("Social Login Keys", None, "frappe_server_url")
+	if frappe_server_url:
+		out['frappe'] = {
+			"flow_params": {
+				"name": "frappe",
+				"authorize_url": frappe_server_url + "/api/method/frappe.integrations.oauth2.authorize",
+				"access_token_url": frappe_server_url + "/api/method/frappe.integrations.oauth2.get_token",
+				"base_url": frappe_server_url
+			},
+
+			"redirect_uri": "/api/method/frappe.www.login.login_via_frappe",
+
+			"auth_url_data": {
+				"response_type": "code",
+				"scope": "openid"
+			},
+
+			# relative to base_url
+			"api_endpoint": "/api/method/frappe.integrations.oauth2.openid_profile"
+		}
+
+	return out
 
 def get_oauth_keys(provider):
 	"""get client_id and client_secret from database or conf"""
@@ -281,6 +304,10 @@ def update_oauth_user(user, data, provider):
 		save = True
 		user.github_userid = data["id"]
 		user.github_username = data["login"]
+
+	elif provider=="frappe" and not user.get("frappe_userid"):
+		save = True
+		user.frappe_userid = data["sub"]
 
 	if save:
 		user.flags.ignore_permissions = True

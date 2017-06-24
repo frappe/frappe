@@ -1,6 +1,10 @@
+/* the element that this class is applied to, should have a max width for this to work*/
 .form-grid {
   border: 1px solid #d1d8dd;
   border-radius: 3px;
+}
+.form-grid.error {
+  border-color: #ff5858;
 }
 .grid-heading-row {
   border-bottom: 1px solid #d1d8dd;
@@ -34,6 +38,9 @@
 .form-grid .data-row.sortable-handle {
   cursor: move;
 }
+.form-column.col-sm-6 .form-grid .row-index > span {
+  display: none;
+}
 .form-grid .template-row {
   padding: 8px 15px;
 }
@@ -51,7 +58,13 @@
   padding: 10px 15px;
   max-height: 200px;
   border-right: 1px solid #d1d8dd;
-  margin-bottom: -1px;
+}
+.editable-form .grid-static-col.bold {
+  font-weight: bold;
+  background-color: #fffdf4;
+}
+.validated-form .grid-static-col.error {
+  background-color: #FFDCDC;
 }
 .grid-static-col input[type="checkbox"] {
   margin-left: -16px !important;
@@ -75,6 +88,7 @@
 .grid-body .editable-row .checkbox {
   margin: 0px;
   text-align: center;
+  margin-top: 9px;
 }
 .grid-body .editable-row textarea {
   height: 38px !important;
@@ -121,6 +135,9 @@
   background: none;
   border: none;
 }
+.grid-body .grid-static-col[data-fieldtype="Text Editor"] {
+  overflow: hidden;
+}
 @media (max-width: 767px) {
   .grid-body .btn-open-row {
     margin-top: 0px;
@@ -144,6 +161,7 @@
 }
 .grid-row .frappe-control {
   margin-bottom: 0px;
+  position: relative;
 }
 .grid-row .col-sm-6 .editor-toolbar-text-group,
 .grid-row .col-sm-6 .editor-toolbar-align-group {

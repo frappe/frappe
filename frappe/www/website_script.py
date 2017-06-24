@@ -10,7 +10,7 @@ no_sitemap = 1
 base_template_path = "templates/www/website_script.js"
 
 def get_context(context):
-	context.javascript = frappe.db.get_single_value('Website Script', 'javascript')
+	context.javascript = frappe.db.get_single_value('Website Script', 'javascript') or ""
 
 	theme = get_active_theme()
 	js = strip(theme and theme.js or "")
@@ -18,6 +18,5 @@ def get_context(context):
 		context.javascript += "\n" + js
 
 	if not frappe.conf.developer_mode:
-		context["google_analytics_id"] = frappe.conf.get("google_analytics_id") \
-			or frappe.db.get_single_value("Website Settings", "google_analytics_id")
-
+		context["google_analytics_id"] = (frappe.db.get_single_value("Website Settings", "google_analytics_id")
+			or frappe.conf.get("google_analytics_id"))

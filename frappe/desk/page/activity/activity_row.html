@@ -30,6 +30,8 @@
 			{%= __("{0} {1}", ["<strong>" + __(feed_type) + "</strong>", feed_type==="Deleted" ? subject : link ]) %}
 		{% } else if (feed_type==="Updated") { %}
 			{%= __("Updated {0}: {1}", [link, "<strong>" + subject + "</strong>"]) %}
+		{% } else if (feed_type==="Relinked") { %}
+            		 {%= __("{0} {1} to {2}", [by, content,link]) %}
 		{% } else if (reference_doctype && reference_name) { %}
 			{%= __("{0}: {1}", [link, "<strong>" + content + "</strong>"]) %}
 		{% } else { %}

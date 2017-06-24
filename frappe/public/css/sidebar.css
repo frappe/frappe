@@ -1,3 +1,4 @@
+/* the element that this class is applied to, should have a max width for this to work*/
 html {
   min-height: 100%;
 }
@@ -119,6 +120,9 @@ body[data-route^="Module"] .main-menu .form-sidebar {
 .form-sidebar .form-shared .shared-with-everyone .octicon,
 .form-sidebar .form-viewers .shared-with-everyone .octicon {
   color: #36414C !important;
+}
+.form-sidebar .liked-by {
+  margin-left: -4px;
 }
 .form-sidebar .liked-by .octicon-heart {
   font-size: 16px;
@@ -304,4 +308,7 @@ a.close:focus {
 }
 .layout-side-section .module-sidebar-nav {
   margin-top: 15px;
+}
+.assignment-row {
+  margin-bottom: 5px;
 }

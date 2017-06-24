@@ -1,4 +1,7 @@
 .print-heading {
+	text-align: right;
+	text-transform: uppercase;
+	color: #666;
 	padding-bottom: 20px;
 	margin-bottom: 20px;
 	border-bottom: 1px solid #d1d8dd;

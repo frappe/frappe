@@ -6,7 +6,7 @@ def get_data():
 	data = [
 		{
 			"label": _("Users"),
-			"icon": "icon-group",
+			"icon": "fa fa-group",
 			"items": [
 				{
 					"type": "doctype",
@@ -22,41 +22,46 @@ def get_data():
 		},
 		{
 			"label": _("Permissions"),
-			"icon": "icon-lock",
+			"icon": "fa fa-lock",
 			"items": [
 				{
 					"type": "page",
 					"name": "permission-manager",
 					"label": _("Role Permissions Manager"),
-					"icon": "icon-lock",
+					"icon": "fa fa-lock",
 					"description": _("Set Permissions on Document Types and Roles")
 				},
 				{
 					"type": "page",
 					"name": "user-permissions",
 					"label": _("User Permissions Manager"),
-					"icon": "icon-shield",
+					"icon": "fa fa-shield",
 					"description": _("Set Permissions per User")
 				},
 				{
 					"type": "page",
 					"name": "modules_setup",
 					"label": _("Show / Hide Modules"),
-					"icon": "icon-upload",
+					"icon": "fa fa-upload",
 					"description": _("Show or hide modules globally.")
+				},
+				{
+					"type": "doctype",
+					"name": "Role Permission for Page and Report",
+					"description": _("Set custom roles for page and report")
 				},
 				{
 					"type": "report",
 					"is_query_report": True,
 					"doctype": "User",
-					"icon": "icon-eye-open",
+					"icon": "fa fa-eye-open",
 					"name": "Permitted Documents For User",
 					"description": _("Check which Documents are readable by a User")
 				},
 				{
 					"type": "report",
 					"doctype": "DocShare",
-					"icon": "icon-share",
+					"icon": "fa fa-share",
 					"name": "Document Share Report",
 					"description": _("Report of all document shares")
 				}
@@ -64,7 +69,7 @@ def get_data():
 		},
 		{
 			"label": _("Settings"),
-			"icon": "icon-wrench",
+			"icon": "fa fa-wrench",
 			"items": [
 				{
 					"type": "doctype",
@@ -75,7 +80,7 @@ def get_data():
 				},
 				{
 					"type": "doctype",
-					"name": "Scheduler Log",
+					"name": "Error Log",
 					"description": _("Log of error on automated events (scheduler).")
 				},
 				{
@@ -87,13 +92,13 @@ def get_data():
 		},
 		{
 			"label": _("Data"),
-			"icon": "icon-th",
+			"icon": "fa fa-th",
 			"items": [
 				{
 					"type": "page",
 					"name": "data-import-tool",
 					"label": _("Import / Export Data"),
-					"icon": "icon-upload",
+					"icon": "fa fa-upload",
 					"description": _("Import / Export Data from .csv files.")
 				},
 				{
@@ -121,18 +126,29 @@ def get_data():
 					"name": "backups",
 					"label": _("Download Backups"),
 					"description": _("List of backups available for download"),
-					"icon": "icon-download"
+					"icon": "fa fa-download"
+				},
+				{
+					"type": "doctype",
+					"name": "Deleted Document",
+					"label": _("Deleted Documents"),					
+					"description": _("Restore or permanently delete a document.")
 				},
 			]
 		},
 		{
 			"label": _("Email"),
-			"icon": "icon-envelope",
+			"icon": "fa fa-envelope",
 			"items": [
 				{
 					"type": "doctype",
 					"name": "Email Account",
 					"description": _("Add / Manage Email Accounts.")
+				},
+				{
+					"type": "doctype",
+					"name": "Email Domain",
+					"description": _("Add / Manage Email Domains.")
 				},
 				{
 					"type": "doctype",
@@ -146,28 +162,18 @@ def get_data():
 				},
 				{
 					"type": "doctype",
-					"name": "Newsletter",
-					"description": _("Newsletters to contacts, leads."),
-				},
-				{
-					"type": "doctype",
-					"name": "Email Group",
-					"description": _("Email Group List"),
-				},
-				{
-					"type": "doctype",
-					"name": "Email Group Member",
-					"description": _("Email Group Member List"),
+					"name": "Auto Email Report",
+					"description": _("Setup Reports to be emailed at regular intervals"),
 				},
 			]
 		},
 		{
 			"label": _("Printing"),
-			"icon": "icon-print",
+			"icon": "fa fa-print",
 			"items": [
 				{
 					"type": "page",
-					"label": "Print Format Builder",
+					"label": _("Print Format Builder"),
 					"name": "print-format-builder",
 					"description": _("Drag and Drop tool to build and customize Print Formats.")
 				},
@@ -185,7 +191,7 @@ def get_data():
 		},
 		{
 			"label": _("Workflow"),
-			"icon": "icon-random",
+			"icon": "fa fa-random",
 			"items": [
 				{
 					"type": "doctype",
@@ -205,32 +211,8 @@ def get_data():
 			]
 		},
 		{
-			"label": _("Integrations"),
-			"icon": "icon-star",
-			"items": [
-				{
-					"type": "page",
-					"name": "applications",
-					"label": _("Application Installer"),
-					"description": _("Install Applications."),
-					"icon": "icon-download"
-				},
-				{
-					"type": "doctype",
-					"name": "Social Login Keys",
-					"description": _("Enter keys to enable login via Facebook, Google, GitHub."),
-				},
-				{
-					"type": "doctype",
-					"name": "Dropbox Backup",
-					"description": _("Manage cloud backups on Dropbox"),
-					"hide_count": True
-				}
-			]
-		},
-		{
 			"label": _("Customize"),
-			"icon": "icon-glass",
+			"icon": "fa fa-glass",
 			"items": [
 				{
 					"type": "doctype",
@@ -258,10 +240,28 @@ def get_data():
 					"type": "doctype",
 					"name": "DocType",
 					"description": _("Add custom forms.")
+				},
+				{
+					"type": "doctype",
+					"label": _("Custom Tags"),
+					"name": "Tag Category",
+					"description": _("Add your own Tag Categories")
 				}
 
 			]
 		},
+		{
+			"label": _("Applications"),
+			"items":[
+				{
+					"type": "page",
+					"name": "applications",
+					"label": _("Application Installer"),
+					"description": _("Install Applications."),
+					"icon": "fa fa-download"
+				},
+			]
+		}
 	]
-	add_setup_section(data, "frappe", "website", _("Website"), "icon-globe")
+	add_setup_section(data, "frappe", "website", _("Website"), "fa fa-globe")
 	return data

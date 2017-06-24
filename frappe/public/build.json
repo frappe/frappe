@@ -6,6 +6,7 @@
 		"public/css/avatar.css"
 	],
 	"js/frappe-web.min.js": [
+		"public/js/frappe/class.js",
 		"public/js/lib/bootstrap.min.js",
 		"public/js/lib/md5.min.js",
 		"public/js/frappe/provide.js",
@@ -16,16 +17,10 @@
 		"public/js/frappe/misc/pretty_date.js",
 		"public/js/lib/moment/moment.min.js",
 		"public/js/lib/highlight.pack.js",
-		"public/js/frappe/class.js",
 		"public/js/lib/microtemplate.js",
 		"public/js/frappe/query_string.js",
-		"website/js/website.js"
-	],
-	"js/editor.min.js": [
-		"public/js/lib/jquery/jquery.hotkeys.js",
-		"public/js/lib/beautify-html.js",
-		"public/js/frappe/ui/editor.html",
-		"public/js/frappe/ui/editor.js"
+		"website/js/website.js",
+		"public/js/frappe/misc/rating_icons.html"
 	],
 	"js/dialog.min.js": [
 		"public/js/frappe/dom.js",
@@ -35,10 +30,13 @@
 		"public/js/frappe/ui/field_group.js",
 		"public/js/frappe/form/control.js",
 		"public/js/frappe/form/link_selector.js",
+		"public/js/frappe/form/multi_select_dialog.js",
 		"public/js/frappe/ui/dialog.js"
 	],
 	"css/desk.min.css": [
-		"public/js/lib/jquery/bootstrap_theme/jquery-ui.selected.css",
+		"public/js/lib/datepicker/datepicker.min.css",
+		"public/js/lib/awesomplete/awesomplete.css",
+		"public/js/lib/summernote/summernote.css",
 		"public/css/bootstrap.css",
 		"public/css/font-awesome.css",
 		"public/css/octicons/octicons.css",
@@ -53,26 +51,36 @@
 		"public/css/tree.css",
 		"public/css/desktop.css",
 		"public/css/form.css",
-		"public/css/mobile.css"
+		"public/css/mobile.css",
+		"public/css/kanban.css"
+	],
+	"css/frappe-rtl.css": [
+		"public/css/bootstrap-rtl.css",
+		"public/css/desk-rtl.css",
+		"public/css/report-rtl.css"
 	],
 	"js/libs.min.js": [
-		"public/js/lib/jquery/jquery-ui.min.js",
+		"public/js/lib/awesomplete/awesomplete.min.js",
 		"public/js/lib/Sortable.min.js",
-		"public/js/lib/tag-it.min.js",
-		"public/js/lib/notify.js",
+		"public/js/lib/taggle/taggle.min.js",
+		"public/js/lib/jquery/jquery.hotkeys.js",
+		"public/js/lib/summernote/summernote.js",
 		"public/js/lib/bootstrap.min.js",
 		"public/js/lib/moment/moment-with-locales.min.js",
 		"public/js/lib/moment/moment-timezone-with-data.min.js",
 		"public/js/lib/socket.io.min.js",
-		"public/js/lib/markdown.js"
+		"public/js/lib/markdown.js",
+		"public/js/lib/jSignature.min.js",
+		"public/js/frappe/translate.js",
+		"public/js/lib/datepicker/datepicker.min.js",
+		"public/js/lib/datepicker/locale-all.js"
 	],
 	"js/desk.min.js": [
-		"public/js/frappe/provide.js",
 		"public/js/frappe/class.js",
+		"public/js/frappe/provide.js",
 		"public/js/frappe/assets.js",
 		"public/js/frappe/format.js",
 		"public/js/frappe/form/formatters.js",
-		"public/js/frappe/translate.js",
 		"public/js/frappe/ui/modal.html",
 		"public/js/frappe/dom.js",
 		"public/js/frappe/ui/messages.js",
@@ -82,6 +90,8 @@
 		"public/js/frappe/socketio_client.js",
 		"public/js/frappe/router.js",
 		"public/js/frappe/defaults.js",
+		"public/js/frappe/checkbox_editor.js",
+		"public/js/frappe/roles_editor.js",
 		"public/js/lib/microtemplate.js",
 
 		"public/js/legacy/globals.js",
@@ -96,6 +106,7 @@
 		"public/js/frappe/ui/field_group.js",
 		"public/js/frappe/form/control.js",
 		"public/js/frappe/form/link_selector.js",
+		"public/js/frappe/form/multi_select_dialog.js",
 		"public/js/frappe/ui/dialog.js",
 		"public/js/frappe/ui/app_icon.js",
 
@@ -106,6 +117,7 @@
 		"public/js/frappe/model/create_new.js",
 		"public/js/frappe/model/perm.js",
 		"public/js/frappe/model/workflow.js",
+		"public/js/frappe/model/user_settings.js",
 
 		"public/js/lib/md5.min.js",
 		"public/js/frappe/misc/user.js",
@@ -117,9 +129,11 @@
 		"public/js/frappe/misc/number_format.js",
 		"public/js/frappe/misc/help.js",
 		"public/js/frappe/misc/help_links.js",
+		"public/js/frappe/misc/address_and_contact.js",
 
 		"public/js/frappe/ui/upload.html",
 		"public/js/frappe/upload.js",
+		"public/js/integrations/gsuite.js",
 		"public/js/frappe/ui/tree.js",
 
 		"public/js/frappe/views/container.js",
@@ -128,6 +142,10 @@
 		"public/js/frappe/views/pageview.js",
 
 		"public/js/frappe/ui/toolbar/awesome_bar.js",
+		"public/js/frappe/ui/toolbar/search.js",
+		"public/js/frappe/ui/toolbar/search.html",
+		"public/js/frappe/ui/toolbar/search_header.html",
+		"public/js/frappe/ui/toolbar/search_utils.js",
 		"public/js/frappe/ui/toolbar/about.js",
 		"public/js/frappe/ui/toolbar/navbar.html",
 		"public/js/frappe/ui/toolbar/toolbar.js",
@@ -141,7 +159,10 @@
 		"public/js/frappe/desk.js",
 		"public/js/frappe/query_string.js",
 
-		"public/js/frappe/ui/charts.js"
+		"public/js/frappe/ui/charts.js",
+		"public/js/frappe/misc/rating_icons.html",
+
+		"public/js/frappe/feedback.js"
 	],
 	"js/d3.min.js": [
 		"public/js/lib/d3.min.js",
@@ -191,22 +212,31 @@
 		"public/js/frappe/form/quick_entry.js"
 	],
 	"css/list.min.css": [
+		"public/js/lib/taggle/taggle.min.css",
 		"public/css/list.css",
-		"public/css/tag-it.css",
 		"public/css/calendar.css",
+		"public/css/role_editor.css",
+		"public/css/filter_dashboard.css",
 		"public/css/gantt.css"
 	],
 	"js/list.min.js": [
 		"public/js/frappe/ui/listing.html",
-		"public/js/frappe/ui/listing.js",
+
+		"public/js/frappe/ui/base_list.js",
+
 		"public/js/frappe/model/indicator.js",
 		"public/js/frappe/ui/filters/filters.js",
 		"public/js/frappe/ui/filters/edit_filter.html",
+		"public/js/frappe/ui/filters/filter_dashboard.html",
+		"public/js/frappe/ui/filters/filter_dashboard_value.html",
+		"public/js/frappe/ui/filters/filter_dashboard_head.html",
 		"public/js/frappe/ui/tags.js",
 		"public/js/frappe/ui/like.js",
 		"public/js/frappe/ui/liked_by.html",
 		"public/html/print_template.html",
-		"public/js/frappe/list/doclistview.js",
+
+		"public/js/frappe/list/list_view.js",
+
 		"public/js/frappe/list/list_sidebar.js",
 		"public/js/frappe/list/list_sidebar.html",
 		"public/js/frappe/list/list_sidebar_stat.html",
@@ -216,16 +246,28 @@
 		"public/js/frappe/list/list_item_row_head.html",
 		"public/js/frappe/list/list_item_subject.html",
 		"public/js/frappe/list/list_permission_footer.html",
-		"public/js/frappe/list/listview.js",
-		"public/js/frappe/views/calendar_base.js",
-		"public/js/frappe/views/calendar.js",
-		"public/js/frappe/views/ganttview.js",
-		"public/js/frappe/list/blueimp-gallery.html",
-		"public/js/frappe/list/image_view_item_row.html",
-		"public/js/frappe/list/image_view_item_main_head.html",
+
+		"public/js/frappe/list/list_renderer.js",
+		"public/js/frappe/views/gantt/gantt_view.js",
+		"public/js/frappe/views/calendar/calendar.js",
+		"public/js/frappe/views/image/image_view.js",
+		"public/js/frappe/views/kanban/kanban_view.js",
+		"public/js/frappe/views/inbox/inbox_view.js",
+
 		"public/js/frappe/list/header_select_all_like_filter.html",
 		"public/js/frappe/list/item_assigned_to_comment_count.html",
-		"public/js/frappe/views/treeview.js"
+		"public/js/frappe/views/treeview.js",
+
+		"public/js/frappe/views/image/image_view_item_row.html",
+		"public/js/frappe/views/image/photoswipe_dom.html",
+
+		"public/js/frappe/views/inbox/inbox_no_result.html",
+		"public/js/frappe/views/inbox/inbox_view_item_row.html",
+		"public/js/frappe/views/inbox/inbox_view_item_main_head.html",
+
+		"public/js/frappe/views/kanban/kanban_board.html",
+		"public/js/frappe/views/kanban/kanban_column.html",
+		"public/js/frappe/views/kanban/kanban_card.html"
 	],
 	"css/report.min.css": [
 		"public/css/report.css",
@@ -237,6 +279,7 @@
 	],
 	"js/report.min.js": [
 		"public/js/frappe/views/reports/reportview.js",
+		"public/js/frappe/views/reports/reportview_footer.html",
 		"public/js/frappe/views/reports/query_report.js",
 		"public/js/frappe/views/reports/grid_report.js",
 		"public/js/frappe/views/reports/print_grid.html",
@@ -249,6 +292,17 @@
 		"public/js/lib/slickgrid/slick.core.js",
 		"public/js/lib/slickgrid/slick.grid.js",
 		"public/js/lib/slickgrid/slick.dataview.js"
+	],
+	"js/web_form.min.js": [
+		"website/js/web_form.js",
+		"public/js/lib/summernote/summernote.js",
+		"public/js/lib/datepicker/datepicker.min.js",
+		"public/js/lib/datepicker/datepicker.en.js"
+	],
+	"css/web_form.css": [
+		"website/css/web_form.css",
+		"public/js/lib/summernote/summernote.css",
+		"public/js/lib/datepicker/datepicker.min.css"
 	],
 	"js/print_format_v3.min.js": [
 		"public/js/legacy/layout.js",

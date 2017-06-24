@@ -18,7 +18,7 @@
 					<li><a href="/update-password">
 						<h6 class="text-muted">{{ _("Reset Password") }}</h6>
 					</a></li>
-					<li><a href="/edit-profile">
+						<li><a href="/update-profile?name={{ user }}">
 						<h6 class="text-muted">{{ _("Edit Profile") }}</h6>
 					</a></li>
 
@@ -35,15 +35,14 @@
 <div class="col-xs-12 visible-xs" style="min-height: 400px; padding: 10px 0 0 0">
 	<ul class="list-group">
 		<a class="list-group-item" href="/profile">
-			Profile
+            {{ _("Profile") }}
 		</a>
 		{% for item in sidebar_items -%}
 			<a class="list-group-item" href="{{ item.route }}"
 				{% if item.target %}target="{{ item.target }}"{% endif %}>
-				{{ _(item.title) }}
+				{{ _(item.title or item.label) }}
 			</a>
 		{%- endfor %}
 	</ul>
 </div>
 {% endblock %}
-
