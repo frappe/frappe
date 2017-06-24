@@ -120,6 +120,8 @@ def export_query():
 	data = frappe._dict(frappe.local.form_dict)
 
 	del data["cmd"]
+	if "csrf_token" in data:
+		del data["csrf_token"]
 
 	if isinstance(data.get("filters"), basestring):
 		filters = json.loads(data["filters"])

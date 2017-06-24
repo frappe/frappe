@@ -21,7 +21,7 @@ def send(recipients=None, sender=None, subject=None, message=None, reference_doc
 		reference_name=None, unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None,
 		attachments=None, reply_to=None, cc=[], message_id=None, in_reply_to=None, send_after=None,
 		expose_recipients=None, send_priority=1, communication=None, now=False, read_receipt=None,
-		queue_separately=False, is_notification=False, add_unsubscribe_link=1):
+		queue_separately=False, is_notification=False, add_unsubscribe_link=1, inline_images=None):
 	"""Add email to sending queue (Email Queue)
 
 	:param recipients: List of recipients.
@@ -42,6 +42,7 @@ def send(recipients=None, sender=None, subject=None, message=None, reference_doc
 	:param queue_separately: Queue each email separately
 	:param is_notification: Marks email as notification so will not trigger notifications from system
 	:param add_unsubscribe_link: Send unsubscribe link in the footer of the Email, default 1.
+	:param inline_images: List of inline images as {"filename", "filecontent"}. All src properties will be replaced with random Content-Id
 	"""
 	if not unsubscribe_method:
 		unsubscribe_method = "/api/method/frappe.email.queue.unsubscribe"
@@ -112,6 +113,7 @@ def send(recipients=None, sender=None, subject=None, message=None, reference_doc
 		read_receipt=read_receipt,
 		queue_separately=queue_separately,
 		is_notification = is_notification,
+		inline_images = inline_images,
 		now=now)
 
 
@@ -152,7 +154,8 @@ def get_email_queue(recipients, sender, subject, **kwargs):
 			reply_to=kwargs.get('reply_to'),
 			cc=kwargs.get('cc'),
 			email_account=kwargs.get('email_account'),
-			expose_recipients=kwargs.get('expose_recipients'))
+			expose_recipients=kwargs.get('expose_recipients'),
+			inline_images=kwargs.get('inline_images'))
 
 		mail.set_message_id(kwargs.get('message_id'),kwargs.get('is_notification'))
 		if kwargs.get('read_receipt'):
@@ -431,7 +434,7 @@ def prepare_message(email, recipient, recipients_list):
 	message = email.message
 	if not message:
 		return ""
-		
+
 	if email.add_unsubscribe_link and email.reference_doctype: # is missing the check for unsubscribe message but will not add as there will be no unsubscribe url
 		unsubscribe_url = get_unsubcribed_url(email.reference_doctype, email.reference_name, recipient,
 		email.unsubscribe_method, email.unsubscribe_params)
@@ -461,19 +464,19 @@ def clear_outbox():
 	Called daily via scheduler.
 	Note: Used separate query to avoid deadlock
 	"""
-	
-	email_queues = frappe.db.sql_list("""select name from `tabEmail Queue` 
+
+	email_queues = frappe.db.sql_list("""select name from `tabEmail Queue`
 		where priority=0 and datediff(now(), modified) > 31""")
-	
+
 	if email_queues:
-		frappe.db.sql("""delete from `tabEmail Queue` where name in (%s)""" 
+		frappe.db.sql("""delete from `tabEmail Queue` where name in (%s)"""
 			% ','.join(['%s']*len(email_queues)), tuple(email_queues))
-	
-		frappe.db.sql("""delete from `tabEmail Queue Recipient` where parent in (%s)""" 
+
+		frappe.db.sql("""delete from `tabEmail Queue Recipient` where parent in (%s)"""
 			% ','.join(['%s']*len(email_queues)), tuple(email_queues))
-		
+
 	for dt in ("Email Queue", "Email Queue Recipient"):
 		frappe.db.sql("""
-			update `tab{0}` 
+			update `tab{0}`
 			set status='Expired'
 			where datediff(curdate(), modified) > 7 and status='Not Sent'""".format(dt))

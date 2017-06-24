@@ -150,44 +150,6 @@ frappe.ui.form.ScriptManager = Class.extend({
 		console.log("----- end of error message -----");
 		console.group && console.groupEnd();
 	},
-	validate_link_and_fetch: function(df, doctype, docname, value, callback) {
-		var me = this;
-
-		if(value) {
-			var fetch = '';
-
-			if(this.frm && this.frm.fetch_dict[df.fieldname])
-				fetch = this.frm.fetch_dict[df.fieldname].columns.join(', ');
-
-			return frappe.call({
-				method:'frappe.desk.form.utils.validate_link',
-				type: "GET",
-				args: {
-					'value': value,
-					'options': doctype,
-					'fetch': fetch
-				},
-				no_spinner: true,
-				callback: function(r) {
-					if(r.message=='Ok') {
-						if(r.fetch_values)
-							me.set_fetch_values(df, docname, r.fetch_values);
-						if(callback) callback(r.valid_value);
-					} else {
-						if(callback) callback("");
-					}
-				}
-			});
-		} else if(callback) {
-			callback(value);
-		}
-	},
-	set_fetch_values: function(df, docname, fetch_values) {
-		var fl = this.frm.fetch_dict[df.fieldname].fields;
-		for(var i=0; i < fl.length; i++) {
-			frappe.model.set_value(df.parent, docname, fl[i], fetch_values[i], df.fieldtype);
-		}
-	},
 	copy_from_first_row: function(parentfield, current_row, fieldnames) {
 		var data = this.frm.doc[parentfield];
 		if(data.length===1 || data[0]===current_row) return;
