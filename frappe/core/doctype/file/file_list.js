@@ -235,5 +235,5 @@ frappe.listview_settings['File'] = {
 					.appendTo(doclist.breadcrumb);
 			}
 		});
-	};
+	}
 };
