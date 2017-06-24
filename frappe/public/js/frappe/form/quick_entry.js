@@ -20,7 +20,7 @@ frappe.ui.form.QuickEntryForm = Class.extend({
 
 	set_meta_and_mandatory_fields: function(){
 		this.mandatory = $.map(frappe.get_meta(this.doctype).fields,
-		function(d) { return (d.reqd || d.bold && !d.read_only) ? d : null; });
+			function(d) { return (d.reqd || d.bold && !d.read_only) ? d : null; });
 		this.meta = frappe.get_meta(this.doctype);
 		this.doc = frappe.model.get_new_doc(this.doctype, null, null, true);
 	},
