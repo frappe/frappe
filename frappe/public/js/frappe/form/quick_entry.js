@@ -20,7 +20,7 @@ frappe.ui.form.QuickEntryForm = Class.extend({
 
 	set_meta_and_mandatory_fields: function(){
 		this.mandatory = $.map(frappe.get_meta(this.doctype).fields,
-				function(d) { return (d.reqd || d.bold && !d.read_only) ? d : null });
+		function(d) { return (d.reqd || d.bold && !d.read_only) ? d : null; });
 		this.meta = frappe.get_meta(this.doctype);
 		this.doc = frappe.model.get_new_doc(this.doctype, null, null, true);
 	},
@@ -48,7 +48,7 @@ frappe.ui.form.QuickEntryForm = Class.extend({
 	},
 
 	validate_for_child_table: function(){
-		if($.map(this.mandatory, function(d) { return d.fieldtype==='Table' ? d : null }).length) {
+		if($.map(this.mandatory, function(d) { return d.fieldtype==='Table' ? d : null; }).length) {
 			// has mandatory table, quit!
 			frappe.set_route('Form', this.doctype, this.doc.name);
 			return true;
