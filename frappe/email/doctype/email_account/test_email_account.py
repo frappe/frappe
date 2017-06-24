@@ -54,8 +54,8 @@ class TestEmailAccount(unittest.TestCase):
 		frappe.delete_doc("File", existing_file.name)
 		delete_file_from_filesystem(existing_file)
 
-		with open(os.path.join(os.path.dirname(__file__), "test_mails", "incoming-2.raw"), "r") as f:
-			test_mails = [f.read()]
+		with open(os.path.join(os.path.dirname(__file__), "test_mails", "incoming-2.raw"), "r") as testfile:
+			test_mails = [testfile.read()]
 
 		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
 		email_account.receive(test_mails=test_mails)
@@ -129,7 +129,7 @@ class TestEmailAccount(unittest.TestCase):
 
 		# send
 		sent_name = make(subject = "Test", content="test content",
-			recipients="test_receiver@example.com", sender="test@example.com",
+			recipients="test_receiver@example.com", sender="test@example.com",doctype="ToDo",name=frappe.get_last_doc("ToDo").name,
 			send_email=True)["name"]
 
 		sent_mail = email.message_from_string(frappe.get_last_doc("Email Queue").message)
@@ -146,8 +146,8 @@ class TestEmailAccount(unittest.TestCase):
 		sent = frappe.get_doc("Communication", sent_name)
 
 		comm = frappe.get_doc("Communication", {"sender": "test_sender@example.com"})
-		self.assertEquals(comm.reference_doctype, sent.doctype)
-		self.assertEquals(comm.reference_name, sent.name)
+		self.assertEquals(comm.reference_doctype, sent.reference_doctype)
+		self.assertEquals(comm.reference_name, sent.reference_name)
 
 	def test_threading_by_subject(self):
 		frappe.db.sql("""delete from tabCommunication
@@ -170,5 +170,30 @@ class TestEmailAccount(unittest.TestCase):
 		self.assertEquals(comm_list[0].reference_doctype, comm_list[1].reference_doctype)
 		self.assertEquals(comm_list[0].reference_name, comm_list[1].reference_name)
 
+	def test_threading_by_message_id(self):
+		frappe.db.sql("""delete from tabCommunication""")
+		frappe.db.sql("""delete from `tabEmail Queue`""")
 
+		# reference document for testing
+		event = frappe.get_doc(dict(doctype='Event', subject='test-message')).insert()
 
+		# send a mail against this
+		frappe.sendmail(recipients='test@example.com', subject='test message for threading',
+			message='testing', reference_doctype=event.doctype, reference_name=event.name)
+
+		last_mail = frappe.get_doc('Email Queue', dict(reference_name=event.name))
+
+		# get test mail with message-id as in-reply-to
+		with open(os.path.join(os.path.dirname(__file__), "test_mails", "reply-4.raw"), "r") as f:
+			test_mails = [f.read().replace('{{ message_id }}', last_mail.message_id)]
+
+		# pull the mail
+		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		email_account.receive(test_mails=test_mails)
+
+		comm_list = frappe.get_all("Communication", filters={"sender":"test_sender@example.com"},
+			fields=["name", "reference_doctype", "reference_name"])
+
+		# check if threaded correctly
+		self.assertEquals(comm_list[0].reference_doctype, event.doctype)
+		self.assertEquals(comm_list[0].reference_name, event.name)

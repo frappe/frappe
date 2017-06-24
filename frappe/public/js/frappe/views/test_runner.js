@@ -14,7 +14,7 @@ frappe.standard_pages["test-runner"] = function() {
 
 	var route = frappe.get_route();
 	if(route.length < 2) {
-		msgprint(__("To run a test add the module name in the route after '{0}'. For example, {1}", ['test-runner/', '#test-runner/lib/js/frappe/test_app.js']));
+		frappe.msgprint(__("To run a test add the module name in the route after '{0}'. For example, {1}", ['test-runner/', '#test-runner/lib/js/frappe/test_app.js']));
 		return;
 	}
 

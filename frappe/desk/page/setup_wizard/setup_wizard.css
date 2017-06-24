@@ -15,26 +15,30 @@
 
 .setup-wizard-slide .lead {
 	margin-bottom: 10px;
+	font-weight: 500;
 }
 
-.setup-wizard-slide .form {
-	margin-top: 20px;
+.setup-wizard-slide.with-form {
+	margin: 40px auto;
 	border: 1px solid #d1d8dd;
 	box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.1);
 }
 
 .setup-wizard-slide .footer {
-	margin: 20px auto;
+	padding: 30px;
 }
 
 .setup-wizard-progress {
-    border-bottom: 1px solid #d1d8dd;
-    padding-bottom: 15px;
-    margin: -20px auto 20px;
+    padding: 15px;
 }
 
-.setup-wizard-slide .icon-fixed-width {
+.setup-wizard-slide .fa-fw {
 	vertical-align: middle;
+	font-size: 10px;
+}
+
+.setup-wizard-slide .fa-fw.active {
+	color: #5e64ff;
 }
 
 .setup-wizard-slide .icon-circle-blank {

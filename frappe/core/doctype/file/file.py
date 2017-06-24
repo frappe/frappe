@@ -12,6 +12,7 @@ import frappe
 import json
 import urllib
 import os
+import shutil
 import requests
 import requests.exceptions
 import StringIO
@@ -22,6 +23,7 @@ from frappe import _
 from frappe.utils.nestedset import NestedSet
 from frappe.utils import strip, get_files_path
 from PIL import Image, ImageOps
+import zipfile
 
 class FolderNotEmpty(frappe.ValidationError): pass
 
@@ -72,6 +74,23 @@ class File(NestedSet):
 
 		self.set_folder_size()
 
+		if frappe.db.exists('File', {'name': self.name, 'is_folder': 0}):
+			if not self.is_folder and (self.is_private != self.db_get('is_private')):
+				private_files = frappe.get_site_path('private', 'files')
+				public_files = frappe.get_site_path('public', 'files')
+
+				if not self.is_private:
+					shutil.move(os.path.join(private_files, self.file_name),
+						os.path.join(public_files, self.file_name))
+
+					self.file_url = "/files/{0}".format(self.file_name)
+
+				else:
+					shutil.move(os.path.join(public_files, self.file_name),
+						os.path.join(private_files, self.file_name))
+
+					self.file_url = "/private/files/{0}".format(self.file_name)
+
 	def set_folder_size(self):
 		"""Set folder size if folder"""
 		if self.is_folder and not self.is_new():
@@ -113,7 +132,7 @@ class File(NestedSet):
 			if not self.file_name:
 				self.file_name = self.file_url.split("/files/")[-1]
 
-			if not os.path.exists(get_files_path(self.file_name.lstrip("/"))):
+			if not os.path.exists(get_files_path(frappe.as_unicode(self.file_name.lstrip("/")))):
 				frappe.throw(_("File {0} does not exist").format(self.file_url), IOError)
 
 	def validate_duplicate_entry(self):
@@ -165,21 +184,18 @@ class File(NestedSet):
 				except (requests.exceptions.HTTPError, requests.exceptions.SSLError, IOError):
 					return
 
-			thumbnail = ImageOps.fit(
-				image,
-				(300, 300),
-				Image.ANTIALIAS
-			)
+			size = 300, 300
+			image.thumbnail(size)
 
 			thumbnail_url = filename + "_small." + extn
 
 			path = os.path.abspath(frappe.get_site_path("public", thumbnail_url.lstrip("/")))
 
 			try:
-				thumbnail.save(path)
+				image.save(path)
 				self.db_set("thumbnail_url", thumbnail_url)
 			except IOError:
-				frappe.msgprint("Unable to write file format for {0}".format(path))
+				frappe.msgprint(_("Unable to write file format for {0}").format(path))
 				return
 
 			return thumbnail_url
@@ -219,6 +235,35 @@ class File(NestedSet):
 	def on_rollback(self):
 		self.flags.on_rollback = True
 		self.on_trash()
+
+	def unzip(self):
+		'''Unzip current file and replace it by its children'''
+		if not ".zip" in self.file_name:
+			frappe.msgprint(_("Not a zip file"))
+			return
+
+		zip_path = frappe.get_site_path(self.file_url.strip('/'))
+		base_url = os.path.dirname(self.file_url)
+		with zipfile.ZipFile(zip_path) as zf:
+			zf.extractall(os.path.dirname(zip_path))
+			for info in zf.infolist():
+				if not info.filename.startswith('__MACOSX'):
+					file_url = file_url = base_url + '/' + info.filename
+					file_name = frappe.db.get_value('File', dict(file_url=file_url))
+					if file_name:
+						file_doc = frappe.get_doc('File', file_name)
+					else:
+						file_doc = frappe.new_doc("File")
+					file_doc.file_name = info.filename
+					file_doc.file_size = info.file_size
+					file_doc.folder = self.folder
+					file_doc.is_private = self.is_private
+					file_doc.file_url = file_url
+					file_doc.attached_to_doctype = self.attached_to_doctype
+					file_doc.attached_to_name = self.attached_to_name
+					file_doc.save()
+
+		frappe.delete_doc('File', self.name)
 
 def on_doctype_update():
 	frappe.db.add_index("File", ["attached_to_doctype", "attached_to_name"])
@@ -295,7 +340,7 @@ def get_local_image(file_url):
 	try:
 		image = Image.open(file_path)
 	except IOError:
-		frappe.msgprint("Unable to read file format for {0}".format(file_url))
+		frappe.msgprint(_("Unable to read file format for {0}").format(file_url))
 		raise
 
 	content = None
@@ -315,16 +360,16 @@ def get_local_image(file_url):
 	return image, filename, extn
 
 def get_web_image(file_url):
-	# downlaod
+	# download
 	file_url = frappe.utils.get_url(file_url)
 	r = requests.get(file_url, stream=True)
 	try:
 		r.raise_for_status()
-	except requests.exceptions.HTTPError, e:
+	except requests.exceptions.HTTPError as e:
 		if "404" in e.args[0]:
 			frappe.msgprint(_("File '{0}' not found").format(file_url))
 		else:
-			frappe.msgprint("Unable to read file format for {0}".format(file_url))
+			frappe.msgprint(_("Unable to read file format for {0}").format(file_url))
 		raise
 
 	image = Image.open(StringIO.StringIO(r.content))
@@ -351,3 +396,8 @@ def check_file_permission(file_url):
 
 	raise frappe.PermissionError
 
+@frappe.whitelist()
+def unzip_file(name):
+	'''Unzip the given file and make file records for each of the extracted files'''
+	file_obj = frappe.get_doc('File', name)
+	file_obj.unzip()

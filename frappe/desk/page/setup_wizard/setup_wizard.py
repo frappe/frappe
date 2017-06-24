@@ -5,13 +5,12 @@ from __future__ import unicode_literals
 
 import frappe, json, os
 from frappe.utils import strip, cint
-from frappe import _
-from frappe.translate import (set_default_language, get_dict,
-	get_lang_dict, send_translations, get_language_from_code)
+from frappe.translate import (set_default_language, get_dict, send_translations)
 from frappe.geo.country_info import get_country_info
 from frappe.utils.file_manager import save_file
 from frappe.utils.password import update_password
 from werkzeug.useragents import UserAgent
+import install_fixtures
 
 @frappe.whitelist()
 def setup_complete(args):
@@ -19,13 +18,16 @@ def setup_complete(args):
 	and clears cache. If wizard breaks, calls `setup_wizard_exception` hook"""
 
 	if cint(frappe.db.get_single_value('System Settings', 'setup_complete')):
-		frappe.throw(_('Setup already complete'))
+		# do not throw an exception if setup is already complete
+		# let the user continue to desk
+		return
+		#frappe.throw(_('Setup already complete'))
 
 	args = process_args(args)
 
 	try:
 		if args.language and args.language != "english":
-			set_default_language(args.language)
+			set_default_language(get_language_code(args.lang))
 
 		frappe.clear_cache()
 
@@ -52,6 +54,7 @@ def setup_complete(args):
 	else:
 		for hook in frappe.get_hooks("setup_wizard_success"):
 			frappe.get_attr(hook)(args)
+		install_fixtures.install()
 
 
 def update_system_settings(args):
@@ -67,16 +70,21 @@ def update_system_settings(args):
 	system_settings = frappe.get_doc("System Settings", "System Settings")
 	system_settings.update({
 		"country": args.get("country"),
-		"language": args.get("language"),
+		"language": get_language_code(args.get("language")),
 		"time_zone": args.get("timezone"),
 		"float_precision": 3,
 		'date_format': frappe.db.get_value("Country", args.get("country"), "date_format"),
 		'number_format': number_format,
 		'enable_scheduler': 1 if not frappe.flags.in_test else 0,
+		'backup_limit': 3 # Default for downloadable backups
 	})
 	system_settings.save()
 
 def update_user_name(args):
+	first_name, last_name = args.get('full_name'), ''
+	if ' ' in first_name:
+		first_name, last_name = first_name.split(' ', 1)
+
 	if args.get("email"):
 		args['name'] = args.get("email")
 
@@ -84,8 +92,8 @@ def update_user_name(args):
 		doc = frappe.get_doc({
 			"doctype":"User",
 			"email": args.get("email"),
-			"first_name": args.get("first_name"),
-			"last_name": args.get("last_name")
+			"first_name": first_name,
+			"last_name": last_name
 		})
 		doc.flags.no_welcome_mail = True
 		doc.insert()
@@ -93,11 +101,12 @@ def update_user_name(args):
 		update_password(args.get("email"), args.get("password"))
 
 	else:
-		args['name'] = frappe.session.user
+		args.update({
+			"name": frappe.session.user,
+			"first_name": first_name,
+			"last_name": last_name
+		})
 
-		# Update User
-		if not args.get('last_name') or args.get('last_name')=='None':
-				args['last_name'] = None
 		frappe.db.sql("""update `tabUser` SET first_name=%(first_name)s,
 			last_name=%(last_name)s WHERE name=%(name)s""", args)
 
@@ -129,7 +138,7 @@ def add_all_roles_to(name):
 	user = frappe.get_doc("User", name)
 	for role in frappe.db.sql("""select name from tabRole"""):
 		if role[0] not in ["Administrator", "Guest", "All", "Customer", "Supplier", "Partner", "Employee"]:
-			d = user.append("user_roles")
+			d = user.append("roles")
 			d.role = role[0]
 	user.save()
 
@@ -151,7 +160,7 @@ def load_messages(language):
 	"""Load translation messages for given language from all `setup_wizard_requires`
 	javascript files"""
 	frappe.clear_cache()
-	set_default_language(language)
+	set_default_language(get_language_code(language))
 	m = get_dict("page", "setup-wizard")
 
 	for path in frappe.get_hooks("setup_wizard_requires"):
@@ -166,8 +175,8 @@ def load_messages(language):
 @frappe.whitelist()
 def load_languages():
 	return {
-		"default_language": get_language_from_code(frappe.local.lang),
-		"languages": sorted(get_lang_dict().keys())
+		"default_language": frappe.db.get_value('Language', frappe.local.lang, 'language_name') or frappe.local.lang,
+		"languages": sorted(frappe.db.sql_list('select language_name from tabLanguage order by name'))
 	}
 
 
@@ -235,4 +244,5 @@ def email_setup_wizard_exception(traceback, args):
 		message=message,
 		delayed=False)
 
-
+def get_language_code(lang):
+	return frappe.db.get_value('Language', {'language_name':lang})

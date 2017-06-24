@@ -6,7 +6,7 @@ frappe.ui.form.on("File", "refresh", function(frm) {
 				file_url = file_url.replace(/#/g, '%23');
 			}
 			window.open(file_url);
-		}, "icon-download");
+		}, "fa fa-download");
 	}
 
 	var wrapper = frm.get_field("preview_html").$wrapper;
@@ -21,5 +21,19 @@ frappe.ui.form.on("File", "refresh", function(frm) {
 			</div>');
 	} else {
 		wrapper.empty();
+	}
+
+	if(frm.doc.file_name && frm.doc.file_name.split('.').splice(-1)[0]==='zip') {
+		frm.add_custom_button(__('Unzip'), function() {
+			frappe.call({
+				method: "frappe.core.doctype.file.file.unzip_file",
+				args: {
+					name: frm.doc.name,
+				},
+				callback: function() {
+					frappe.set_route('List', 'File');
+				}
+			});
+		});
 	}
 });

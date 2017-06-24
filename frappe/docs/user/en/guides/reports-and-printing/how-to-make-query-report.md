@@ -6,7 +6,7 @@ To create a new Query Report:
 
 ### 1. Create a new Report
 
-![Query Report](/assets/frappe_io/images/how-to/query-report.png)
+<img class="screenshot" alt="Query Report" src="{{docs_base_url}}/assets/img/query-report.png">
 
 1. Set type as "Query Report"
 1. Set the reference DocType - Users that have access to the reference DocType will have access to the report
@@ -35,11 +35,11 @@ You can define complex queries such as:
 
 ### 3. Check the Report
 
-![Query Report](/assets/frappe_io/images/how-to/query-report-out.png)
+<img class="screenshot" alt="Query Report" src="{{docs_base_url}}/assets/img/query-report-out.png">
 
 ### 4. Advanced (adding filters)
 
-If you are making a standard report, you can add filters in your query report just like [script reports](https://frappe.io/kb/reports/how-to-make-script-reports) by adding a `.js` file in your query report folder. To include filters in your query, use `%(filter_key)s` where your filter value will be shown.
+If you are making a standard report, you can add filters in your query report just like [script reports](https://frappe.github.io/frappe/user/en/guides/reports-and-printing/how-to-make-script-reports) by adding a `.js` file in your query report folder. To include filters in your query, use `%(filter_key)s` where your filter value will be shown.
 
 For example
 

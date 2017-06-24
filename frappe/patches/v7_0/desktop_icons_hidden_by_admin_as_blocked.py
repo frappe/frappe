@@ -6,4 +6,6 @@ def execute():
 
 	# in 7.0, icons may be hidden by default, but still can be shown to the user
 	# e.g. Accounts, Stock etc, so we need a new property for blocked
-	frappe.db.sql('update `tabDesktop Icon` set blocked = 1 where standard=1 and hidden=1')
+
+	if frappe.db.table_exists('Desktop Icon'):
+		frappe.db.sql('update `tabDesktop Icon` set blocked = 1 where standard=1 and hidden=1')

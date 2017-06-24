@@ -10,13 +10,23 @@ import frappe.sessions
 import frappe.utils.file_manager
 import frappe.desk.form.run_method
 from frappe.utils.response import build_response
+from werkzeug.wrappers import Response
 
 def handle():
 	"""handle request"""
 	cmd = frappe.local.form_dict.cmd
+	data = None
 
 	if cmd!='login':
-		execute_cmd(cmd)
+		data = execute_cmd(cmd)
+
+	if data:
+		if isinstance(data, Response):
+			# method returns a response object, pass it on
+			return data
+
+		# add the response to `message` label
+		frappe.response['message'] = data
 
 	return build_response("json")
 
@@ -27,17 +37,20 @@ def execute_cmd(cmd, from_async=False):
 		cmd = hook
 		break
 
-	method = get_attr(cmd)
+	try:
+		method = get_attr(cmd)
+	except:
+		frappe.respond_as_web_page(title='Invalid Method', html='Method not found',
+			indicator_color='red', http_status_code=404)
+		return
+
 	if from_async:
 		method = method.queue
 
 	is_whitelisted(method)
 
-	ret = frappe.call(method, **frappe.form_dict)
+	return frappe.call(method, **frappe.form_dict)
 
-	# returns with a message
-	if ret:
-		frappe.response['message'] = ret
 
 def is_whitelisted(method):
 	# check if whitelisted
@@ -75,7 +88,8 @@ def logout():
 def web_logout():
 	frappe.local.login_manager.logout()
 	frappe.db.commit()
-	frappe.respond_as_web_page("Logged Out", """<p><a href="/index" class="text-muted">Back to Home</a></p>""")
+	frappe.respond_as_web_page(_("Logged Out"), _("You have been successfully logged out"),
+		indicator_color='green')
 
 @frappe.whitelist(allow_guest=True)
 def run_custom_method(doctype, name, custom_method):

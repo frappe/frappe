@@ -63,7 +63,7 @@ Presently, it is limited only to backups.
 
 ### Site Config
 
-[See configuration options for `site_config.json`](/docs/user-guide/site_config.md)
+[See configuration options for `site_config.json`](/frappe/user/en/guides/basics/site_config)
 
 ### Site Resolution
 
@@ -79,4 +79,4 @@ starting it with the following command.
 
 ### Adding a new site
 
-`frappe new-site SITENAME`
+`bench new-site SITENAME`

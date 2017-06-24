@@ -8,6 +8,7 @@ from frappe.utils.oauth import get_oauth2_authorize_url, get_oauth_keys, login_v
 import json
 from frappe import _
 from frappe.auth import LoginManager
+from frappe.integrations.doctype.ldap_settings.ldap_settings import get_ldap_settings
 
 no_cache = True
 
@@ -22,10 +23,13 @@ def get_context(context):
 	context["title"] = "Login"
 	context["disable_signup"] = frappe.utils.cint(frappe.db.get_value("Website Settings", "Website Settings", "disable_signup"))
 
-	for provider in ("google", "github", "facebook"):
+	for provider in ("google", "github", "facebook", "frappe"):
 		if get_oauth_keys(provider):
 			context["{provider}_login".format(provider=provider)] = get_oauth2_authorize_url(provider)
 			context["social_login"] = True
+
+	ldap_settings = get_ldap_settings()
+	context["ldap_settings"] = ldap_settings
 
 	return context
 
@@ -39,7 +43,11 @@ def login_via_github(code, state):
 
 @frappe.whitelist(allow_guest=True)
 def login_via_facebook(code, state):
-	login_via_oauth2("facebook", code, state)
+	login_via_oauth2("facebook", code, state, decoder=json.loads)
+
+@frappe.whitelist(allow_guest=True)
+def login_via_frappe(code, state):
+	login_via_oauth2("frappe", code, state, decoder=json.loads)
 
 @frappe.whitelist(allow_guest=True)
 def login_oauth_user(data=None, provider=None, state=None, email_id=None, key=None, generate_login_token=False):

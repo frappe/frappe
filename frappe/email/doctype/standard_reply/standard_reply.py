@@ -4,9 +4,11 @@
 from __future__ import unicode_literals
 import frappe, json
 from frappe.model.document import Document
+from frappe.utils.jinja import validate_template
 
 class StandardReply(Document):
-	pass
+	def validate(self):
+		validate_template(self.response)
 
 @frappe.whitelist()
 def get_standard_reply(template_name, doc):
@@ -15,4 +17,5 @@ def get_standard_reply(template_name, doc):
 		doc = json.loads(doc)
 
 	standard_reply = frappe.get_doc("Standard Reply", template_name)
-	return frappe.render_template(standard_reply.response, doc)
+	return {"subject" : frappe.render_template(standard_reply.subject, doc), 
+			"message" : frappe.render_template(standard_reply.response, doc)}

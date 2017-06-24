@@ -26,11 +26,9 @@ frappe.ui.form.on("Note", {
 		// hide all other fields
 		$.each(frm.fields_dict, function(fieldname, field) {
 
-			if(fieldname !== "content"
-				&& !in_list(["Section Break", "Column Break"], field.df.fieldtype)) {
-					frm.set_df_property(fieldname, "hidden", editable ? 0: 1);
-				}
-
+			if(fieldname !== "content") {
+				frm.set_df_property(fieldname, "hidden", editable ? 0: 1);
+			}
 		})
 
 		// no label, description for content either

@@ -26,8 +26,7 @@ class TestScheduler(TestCase):
 		self.assertTrue("all" in frappe.flags.ran_schedulers)
 
 	def test_enabled_events(self):
-		val = json.dumps(["hourly", "hourly_long", "daily", "daily_long", "weekly", "weekly_long", "monthly", "monthly_long"])
-		frappe.db.set_global('enabled_scheduler_events', val)
+		frappe.flags.enabled_events = ["hourly", "hourly_long", "daily", "daily_long", "weekly", "weekly_long", "monthly", "monthly_long"]
 
 		# maintain last_event and next_event on the same day
 		last_event = now_datetime().replace(hour=0, minute=0, second=0, microsecond=0)
@@ -44,8 +43,7 @@ class TestScheduler(TestCase):
 		self.assertTrue("all" in frappe.flags.ran_schedulers)
 		self.assertTrue("hourly" in frappe.flags.ran_schedulers)
 
-		frappe.db.set_global('enabled_scheduler_events', "")
-
+		del frappe.flags['enabled_events']
 
 	def test_enabled_events_day_change(self):
 		val = json.dumps(["daily", "daily_long", "weekly", "weekly_long", "monthly", "monthly_long"])

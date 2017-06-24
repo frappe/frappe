@@ -25,9 +25,9 @@
 
 ###Config
 * `bench config` - Change bench configuration
-  * `auto_update [on/off]`                   Enable/Disable auto update for bench
-  * `dns_multitenant [on/off]`               Enable/Disable DNS Multitenancy
-  * `http_timeout [?]`                  Set http timeout
+  * `auto_update [on/off]`          Enable/Disable auto update for bench
+  * `dns_multitenant [on/off]`      Enable/Disable DNS Multitenancy
+  * `http_timeout`                  Set http timeout
   * `restart_supervisor_on_update`  Enable/Disable auto restart of supervisor
   * `serve_default_site`            Configure nginx to serve the default site on
   * `update_bench_on_update`        Enable/Disable bench updates on running bench...
@@ -44,6 +44,8 @@
   * `sudoers    `  Add commands to sudoers list for execution...
   * `supervisor `  generate config for supervisor
   * `add-domain `  add custom domain for site
+  * `firewall `    setup firewall and block all ports except 22, 80 and 443
+  * `ssh-port `    change the default ssh connection port
 
 
 ###Development
@@ -51,8 +53,9 @@
 * `bench get-app [repo-link]` - Downloads an app from a git repository and installs it
 * `bench install-app [app-name]` Installs existing app
 * `bench remove-from-installed-apps [app-name]` Remove app from the list of apps
-* `bench uninstall-app [app-name]` Delete app and everything linked to the app
+* `bench uninstall-app [app-name]` Delete app and everything linked to the app (Bench needs to be running)
 * `bench remove-app [app-name]` Remove app from the bench entirely
+* `bench --site [sitename] --force reinstall ` Reinstall with fresh database (Caution: Will wipe out old database) 
 * `bench new-site [sitename]` - Creates a new site
   * `--db-name`                Database name
   * `--mariadb-root-username`  Root username for MariaDB
@@ -63,20 +66,21 @@
   * `--source_sql`             Initiate database with a SQL file
   * `--install-app`            Install app after installation`
 * `bench use [site]` Sets a default site
-* `bench drop-site` - Removes site from disk and database completely
+* `bench drop-site` Removes site from disk and database completely
   * `--root-login` 
   * `--root-password`
-* `bench console` - Opens a IPython console in the bench venv
-* `bench execute` - Execute a method inside any app.
+* `bench set-config [key] [value]`   Adds a key-value pair to site's config file 
+* `bench console`   Opens a IPython console in the bench venv
+* `bench execute`   Execute a method inside any app.
   * Eg : `bench execute frappe.utils.scheduler.enqueue_scheduler_events`
-* `bench mysql` - Opens SQL Console 
-* `bench run-tests` - Run tests
+* `bench mysql`  Opens SQL Console 
+* `bench run-tests`  Run tests
   * `--app` App Name
   * `--doctype` DocType to run tests for
   * `--test` Specific Test
   * `--module` Run a particular module that has tests 
   * `--profile` Runs a Python profiler on the test
-* `bench disable-production` - Disables production environment
+* `bench disable-production`  Disables production environment
 
 
 ###Scheduler 

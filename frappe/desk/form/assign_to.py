@@ -66,10 +66,7 @@ def add(args=None):
 	notify_assignment(d.assigned_by, d.owner, d.reference_type, d.reference_name, action='ASSIGN',\
 			 description=args.get("description"), notify=args.get('notify'))
 
-	if not args.get("bulk_assign"):
-		return get(args)
-	else:
-		return {}
+	return get(args)
 
 @frappe.whitelist()
 def add_multiple(args=None):

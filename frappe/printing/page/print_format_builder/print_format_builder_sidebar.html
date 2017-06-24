@@ -1,0 +1,18 @@
+<div class="panel-bg" style="padding: 10px; margin-bottom: 10px;">
+    <input type="text" class="form-control input-sm filter-fields" name="filter-fields"
+        placeholder="{%= __("Filter...") %}">
+</div>
+<div class="print-format-builder-fields">
+    {% for (var i=0, l=fields.length; i < l; i++) { var f = fields[i]; %}
+        {% if(!in_list(["Section Break", "Column Break", "Fold"], f.fieldtype)) { %}
+        <div class="print-format-builder-field-placeholder ellipsis"
+            data-fieldname="{%= f.fieldname %}">
+            <span class="btn btn-xs field-label
+                {%= (f.fieldtype==="Custom HTML") ? "btn-info" : "btn-default" %}"
+                style="cursor: grab; display: inline-block">
+                {%= f.label %}
+            </span>
+        </div>
+        {% } %}
+    {% } %}
+</div>

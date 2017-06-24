@@ -14,10 +14,15 @@ import frappe
 import frappe.defaults
 import frappe.async
 import re
+import redis
 import frappe.model.meta
 from frappe.utils import now, get_datetime, cstr
 from frappe import _
 from types import StringType, UnicodeType
+from frappe.utils.global_search import sync_global_search
+from frappe.model.utils.link_count import flush_local_link_count
+from six import iteritems
+
 
 class Database:
 	"""
@@ -49,7 +54,7 @@ class Database:
 		"""Connects to a database as set in `site_config.json`."""
 		warnings.filterwarnings('ignore', category=MySQLdb.Warning)
 		self._conn = MySQLdb.connect(user=self.user, host=self.host, passwd=self.password,
-			use_unicode=True, charset='utf8')
+			use_unicode=True, charset='utf8mb4')
 		self._conn.converter[246]=float
 		self._conn.converter[12]=get_datetime
 		self._conn.encoders[UnicodeWithAttrs] = self._conn.encoders[UnicodeType]
@@ -147,7 +152,7 @@ class Database:
 
 				self._cursor.execute(query)
 
-		except Exception, e:
+		except Exception as e:
 			# ignore data definition errors
 			if ignore_ddl and e.args[0] in (1146,1054,1091):
 				pass
@@ -216,7 +221,7 @@ class Database:
 		could cause the system to hang."""
 		if self.transaction_writes and \
 			query and query.strip().split()[0].lower() in ['start', 'alter', 'drop', 'create', "begin", "truncate"]:
-			raise Exception, 'This statement can cause implicit commit'
+			raise Exception('This statement can cause implicit commit')
 
 		if query and query.strip().lower() in ('commit', 'rollback'):
 			self.transaction_writes = 0
@@ -382,7 +387,7 @@ class Database:
 		return self.get_value(doctype, filters, "*", as_dict=as_dict, cache=cache)
 
 	def get_value(self, doctype, filters=None, fieldname="name", ignore=None, as_dict=False,
-		debug=False, cache=False):
+		debug=False, order_by=None, cache=False):
 		"""Returns a document property or list of properties.
 
 		:param doctype: DocType name.
@@ -391,6 +396,7 @@ class Database:
 		:param ignore: Don't raise exception if table, column is missing.
 		:param as_dict: Return values as dict.
 		:param debug: Print query in error log.
+		:param order_by: Column to order by
 
 		Example:
 
@@ -407,7 +413,8 @@ class Database:
 			frappe.db.get_value("System Settings", None, "date_format")
 		"""
 
-		ret = self.get_values(doctype, filters, fieldname, ignore, as_dict, debug, cache=cache)
+		ret = self.get_values(doctype, filters, fieldname, ignore, as_dict, debug,
+			order_by, cache=cache)
 
 		return ((len(ret[0]) > 1 or as_dict) and ret[0] or ret[0][0]) if ret else None
 
@@ -421,6 +428,7 @@ class Database:
 		:param ignore: Don't raise exception if table, column is missing.
 		:param as_dict: Return values as dict.
 		:param debug: Print query in error log.
+		:param order_by: Column to order by
 
 		Example:
 
@@ -434,6 +442,8 @@ class Database:
 		if cache and isinstance(filters, basestring) and \
 			(doctype, filters, fieldname) in self.value_cache:
 			return self.value_cache[(doctype, filters, fieldname)]
+
+		if not order_by: order_by = 'modified desc'
 
 		if isinstance(filters, list):
 			out = self._get_value_for_many_names(doctype, filters, fieldname, debug=debug)
@@ -449,7 +459,7 @@ class Database:
 			if (filters is not None) and (filters!=doctype or doctype=="DocType"):
 				try:
 					out = self._get_values_from_table(fields, filters, doctype, as_dict, debug, order_by, update)
-				except Exception, e:
+				except Exception as e:
 					if ignore and e.args[0] in (1146, 1054):
 						# table or column not found, return None
 						out = None
@@ -509,7 +519,16 @@ class Database:
 				return r and [[i[1] for i in r]] or []
 
 	def get_singles_dict(self, doctype):
-		"""Get Single DocType as dict."""
+		"""Get Single DocType as dict.
+
+		:param doctype: DocType of the single object whose value is requested
+
+		Example:
+
+			# Get coulmn and value of the single doctype Accounts Settings
+			account_settings = frappe.db.get_singles_dict("Accounts Settings")
+		"""
+
 		return frappe._dict(self.sql("""select field, value from
 			tabSingles where doctype=%s""", doctype))
 
@@ -520,7 +539,17 @@ class Database:
 		return frappe.get_list(*args, **kwargs)
 
 	def get_single_value(self, doctype, fieldname, cache=False):
-		"""Get property of Single DocType. Cache locally by default"""
+		"""Get property of Single DocType. Cache locally by default
+
+		:param doctype: DocType of the single object whose value is requested
+		:param fieldname: `fieldname` of the property whose value is requested
+
+		Example:
+
+			# Get the default value of the company from the Global Defaults doctype.
+			company = frappe.db.get_single_value('Global Defaults', 'default_company')
+		"""
+
 		value = self.value_cache.setdefault(doctype, {}).get(fieldname)
 		if value:
 			return value
@@ -586,7 +615,7 @@ class Database:
 
 		:param dt: DocType name.
 		:param dn: Document name.
-		:param field: Property / field name.
+		:param field: Property / field name or dictionary of values to be updated
 		:param value: Value to be updated.
 		:param modified: Use this as the `modified` timestamp.
 		:param modified_by: Set this user as `modified_by`.
@@ -598,28 +627,40 @@ class Database:
 		if not modified_by:
 			modified_by = frappe.session.user
 
+		to_update = {}
+		if update_modified:
+			to_update = {"modified": modified, "modified_by": modified_by}
+
+		if isinstance(field, dict):
+			to_update.update(field)
+		else:
+			to_update.update({field: val})
+
 		if dn and dt!=dn:
+			# with table
 			conditions, values = self.build_conditions(dn)
 
-			values.update({"val": val, "modified": modified, "modified_by": modified_by})
+			values.update(to_update)
 
-			if update_modified:
-				self.sql("""update `tab{0}` set `{1}`=%(val)s, modified=%(modified)s, modified_by=%(modified_by)s where
-					{2}""".format(dt, field, conditions), values, debug=debug)
-			else:
-				self.sql("""update `tab{0}` set `{1}`=%(val)s where
-					{2}""".format(dt, field, conditions), values, debug=debug)
+			set_values = []
+			for key in to_update:
+				set_values.append('`{0}`=%({0})s'.format(key))
 
+			self.sql("""update `tab{0}`
+				set {1} where {2}""".format(dt, ', '.join(set_values), conditions),
+				values, debug=debug)
 
 		else:
-			self.sql("delete from tabSingles where field=%s and doctype=%s", (field, dt))
-			self.sql("insert into tabSingles(doctype, field, value) values (%s, %s, %s)",
-				(dt, field, val), debug=debug)
-
-			if update_modified and (field not in ("modified", "modified_by")):
-				self.set_value(dt, dn, "modified", modified)
-				self.set_value(dt, dn, "modified_by", modified_by)
-
+			# for singles
+			keys = to_update.keys()
+			self.sql('''
+				delete from tabSingles
+				where field in ({0}) and
+					doctype=%s'''.format(', '.join(['%s']*len(keys))),
+					keys + [dt], debug=debug)
+			for key, value in iteritems(to_update):
+				self.sql('''insert into tabSingles(doctype, field, value) values (%s, %s, %s)''',
+					(dt, key, value), debug=debug)
 
 		if dt in self.value_cache:
 			del self.value_cache[dt]
@@ -679,21 +720,32 @@ class Database:
 			return frappe.defaults.get_defaults(parent)
 
 	def begin(self):
-		pass
-		#self.sql("start transaction")
+		self.sql("start transaction")
 
 	def commit(self):
 		"""Commit current transaction. Calls SQL `COMMIT`."""
 		self.sql("commit")
 		frappe.local.rollback_observers = []
 		self.flush_realtime_log()
+		self.enqueue_global_search()
+		flush_local_link_count()
+
+	def enqueue_global_search(self):
+		if frappe.flags.update_global_search:
+			try:
+				frappe.enqueue('frappe.utils.global_search.sync_global_search',
+					now=frappe.flags.in_test or frappe.flags.in_install or frappe.flags.in_migrate,
+					flags=frappe.flags.update_global_search)
+			except redis.exceptions.ConnectionError:
+				sync_global_search()
+
+			frappe.flags.update_global_search = []
 
 	def flush_realtime_log(self):
 		for args in frappe.local.realtime_log:
 			frappe.async.emit_via_redis(*args)
 
 		frappe.local.realtime_log = []
-
 
 	def rollback(self):
 		"""`ROLLBACK` current transaction."""
@@ -762,9 +814,13 @@ class Database:
 			where creation >= %s""".format(doctype=doctype),
 			now_datetime() - relativedelta(minutes=minutes))[0][0]
 
+	def get_db_table_columns(self, table):
+		"""Returns list of column names from given table."""
+		return [r[0] for r in self.sql("DESC `%s`" % table)]
+
 	def get_table_columns(self, doctype):
 		"""Returns list of column names from given doctype."""
-		return [r[0] for r in self.sql("DESC `tab%s`" % doctype)]
+		return self.get_db_table_columns('tab' + doctype)
 
 	def has_column(self, doctype, column):
 		"""Returns True if column exists in database."""

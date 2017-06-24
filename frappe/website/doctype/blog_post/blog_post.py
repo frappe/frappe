@@ -11,12 +11,8 @@ from frappe.utils import today, cint, global_date_format, get_fullname, strip_ht
 from frappe.website.utils import find_first_image, get_comment_list
 
 class BlogPost(WebsiteGenerator):
-	save_versions = True
 	website = frappe._dict(
-		condition_field = "published",
-		template = "templates/generators/blog_post.html",
-		order_by = "published_on desc",
-		page_title_field = "title"
+		order_by = "published_on desc"
 	)
 
 	def make_route(self):
@@ -46,13 +42,12 @@ class BlogPost(WebsiteGenerator):
 			where name=%s""", (self.blogger,))
 
 	def on_update(self):
-		WebsiteGenerator.on_update(self)
 		clear_cache("writers")
 
 	def get_context(self, context):
 		# this is for double precaution. usually it wont reach this code if not published
 		if not cint(self.published):
-			raise Exception, "This blog has not been published yet!"
+			raise Exception("This blog has not been published yet!")
 
 		# temp fields
 		context.full_name = get_fullname(self.owner)
@@ -92,22 +87,27 @@ class BlogPost(WebsiteGenerator):
 def get_list_context(context=None):
 	list_context = frappe._dict(
 		template = "templates/includes/blog/blog.html",
-		row_template = "templates/includes/blog/blog_row.html",
 		get_list = get_blog_list,
 		hide_filters = True,
 		children = get_children(),
-		show_search = True
+		# show_search = True,
+		title = _('Blog')
 	)
 
-	if frappe.local.form_dict.category:
-		list_context.blog_subtitle = _("Posts filed under {0}").format(get_blog_category(frappe.local.form_dict.category))
+	if frappe.local.form_dict.blog_category:
+		list_context.sub_title = _("Posts filed under {0}").format(get_blog_category(frappe.local.form_dict.blog_category))
 
-	elif frappe.local.form_dict.by:
-		blogger = frappe.db.get_value("Blogger", {"name": frappe.local.form_dict.by}, "full_name")
-		list_context.blog_subtitle = _("Posts by {0}").format(blogger)
+	elif frappe.local.form_dict.blogger:
+		blogger = frappe.db.get_value("Blogger", {"name": frappe.local.form_dict.blogger}, "full_name")
+		list_context.sub_title = _("Posts by {0}").format(blogger)
 
 	elif frappe.local.form_dict.txt:
-		list_context.blog_subtitle = _('Filtered by "{0}"').format(frappe.local.form_dict.txt)
+		list_context.sub_title = _('Filtered by "{0}"').format(frappe.local.form_dict.txt)
+
+	if list_context.sub_title:
+		list_context.parents = [{'label': _('All Posts'), 'route': 'blog', 'title': list_context.title}]
+	else:
+		list_context.parents = []
 
 	list_context.update(frappe.get_doc("Blog Settings", "Blog Settings").as_dict(no_default_fields=True))
 	return list_context
@@ -130,16 +130,16 @@ def clear_blog_cache():
 def get_blog_category(route):
 	return frappe.db.get_value("Blog Category", {"route": route }) or route
 
-def get_blog_list(doctype, txt=None, filters=None, limit_start=0, limit_page_length=20):
+def get_blog_list(doctype, txt=None, filters=None, limit_start=0, limit_page_length=20, order_by=None):
 	conditions = []
 	if filters:
-		if filters.by:
-			conditions.append('t1.blogger="%s"' % frappe.db.escape(filters.by))
-		if filters.category:
-			conditions.append('t1.blog_category="%s"' % frappe.db.escape(get_blog_category(filters.category)))
+		if filters.blogger:
+			conditions.append('t1.blogger="%s"' % frappe.db.escape(filters.blogger))
+		if filters.blog_category:
+			conditions.append('t1.blog_category="%s"' % frappe.db.escape(filters.blog_category))
 
 	if txt:
-		conditions.append('t1.content like "%{0}%"'.format(frappe.db.escape(txt)))
+		conditions.append('(t1.content like "%{0}%" or t1.title like "%{0}%")'.format(frappe.db.escape(txt)))
 
 	if conditions:
 		frappe.local.no_cache = 1
@@ -170,6 +170,7 @@ def get_blog_list(doctype, txt=None, filters=None, limit_start=0, limit_page_len
 	posts = frappe.db.sql(query, as_dict=1)
 
 	for post in posts:
+		post.cover_image = find_first_image(post.content)
 		post.published = global_date_format(post.creation)
 		post.content = strip_html_tags(post.content[:340])
 		if not post.comments:

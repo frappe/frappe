@@ -7,16 +7,17 @@ var redis = require("redis");
 var request = require('superagent');
 
 var conf = get_conf();
+var flags = {};
 var subscriber = redis.createClient(conf.redis_socketio || conf.redis_async_broker_port);
 
 // serve socketio
-http.listen(conf.socketio_port, function(){
-  console.log('listening on *:', conf.socketio_port);
+http.listen(conf.socketio_port, function() {
+  console.log('listening on *:', conf.socketio_port); //eslint-disable-line
 });
 
 // test route
-app.get('/', function(req, res){
-  res.sendfile('index.html');
+app.get('/', function(req, res) {
+	res.sendfile('index.html');
 });
 
 // on socket connection
@@ -30,6 +31,14 @@ io.on('connection', function(socket){
 	if(!sid) {
 		return;
 	}
+
+	if(flags[sid]) {
+		// throttle this function
+		return;
+	}
+
+	flags[sid] = sid;
+	setTimeout(function() { flags[sid] = null; }, 10000);
 
 	socket.user = cookie.parse(socket.request.headers.cookie).user_id;
 
@@ -190,8 +199,8 @@ function get_site_name(socket) {
 function get_hostname(url) {
 	if (!url) return undefined;
 	if (url.indexOf("://") > -1) {
-        url = url.split('/')[2];
-    }
+		url = url.split('/')[2];
+	}
 	return ( url.match(/:/g) ) ? url.slice( 0, url.indexOf(":") ) : url
 }
 
@@ -204,6 +213,7 @@ function get_url(socket, path) {
 
 function can_subscribe_doc(args) {
 	if(!args) return;
+	if(!args.doctype || !args.docname) return;
 	request.get(get_url(args.socket, '/api/method/frappe.async.can_subscribe_doc'))
 		.type('form')
 		.query({
@@ -293,3 +303,5 @@ function get_conf() {
 
 	return conf;
 }
+
+

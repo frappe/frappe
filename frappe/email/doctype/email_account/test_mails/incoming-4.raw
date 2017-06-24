@@ -8,7 +8,7 @@ Received: from 23-59-23-10.perm.iinet.net.au ([23.59.23.10]:56280)
 	for test_receiver@example.com; Tue, 09 Feb 2016 14:53:22 +0800
 From: <test_sender@example.com>
 To: <test_receiver@example.com>
-Subject: test email 
+Subject: test email
 Date: Tue, 9 Feb 2016 14:53:13 +0800
 Message-ID: <000001d16306$8b9e5c60$a2db1520$@ia-group.com.au>
 MIME-Version: 1.0
@@ -30,7 +30,7 @@ Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-4th test email 
+4th test email
 
 
 ------=_NextPart_001_0006_01D16349.99C37120

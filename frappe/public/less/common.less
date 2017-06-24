@@ -49,8 +49,7 @@ p {
 
 // transition
 a,
-.badge,
-.ui-menu .ui-menu-item {
+.badge {
 	.transition(.2s);
 }
 
@@ -77,14 +76,8 @@ a.text-muted, a.text-extra-muted {
 	text-decoration: none;
 }
 
-/* the element that this class is applied to, should have a max width for this to work*/
-.text-ellipsis,
-.ellipsis {
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	max-width: 100%;
-	vertical-align: middle;
+.underline {
+	text-decoration: underline;
 }
 
 .inline-block {
@@ -101,7 +94,7 @@ kbd {
 	background-color: @btn-bg;
 }
 
-.btn [class^="icon-"], .nav [class^="icon-"], .btn [class*=" icon-"], .nav [class*=" icon-"] {
+.btn [class^="fa fa-"], .nav [class^="fa fa-"], .btn [class*="fa fa-"], .nav [class*="fa fa-"] {
 	display: inline-block;
 }
 
@@ -114,9 +107,19 @@ kbd {
 	min-width: 200px;
 	padding: 0px;
 	font-size: @text-medium;
+	max-height: 400px;
+	overflow: auto;
 
 	// only rounded bottoms
 	border-radius: 0px 0px 4px 4px;
+
+}
+
+.dropdown-menu .dropdown-header {
+	padding: 3px 14px;
+	font-size: 11px;
+	font-weight: 200;
+	padding-top: 12px;
 }
 
 .dropdown-menu .divider {
@@ -132,8 +135,9 @@ a.badge-hover& {
 }
 
 .msgprint {
-	margin: 15px 0px;
+	// margin: 15px 0px;
 	// text-align: center;
+	word-wrap: break-word;
 
 	pre {
 		text-align: left;
@@ -255,3 +259,12 @@ a.no-decoration& {
 	-webkit-filter: grayscale(100%);
 	filter: grayscale(100%);
 }
+
+.uppercase {
+	.text-uppercase();
+}
+
+.ellipsis {
+	.text-ellipsis();
+}
+

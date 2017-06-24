@@ -1,4 +1,4 @@
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 import redis
 from rq import Connection, Queue, Worker
 from frappe.utils import cstr
@@ -6,6 +6,7 @@ from collections import defaultdict
 import frappe
 import MySQLdb
 import os, socket, time
+from frappe import _
 
 default_timeout = 300
 queue_timeout = {
@@ -15,7 +16,7 @@ queue_timeout = {
 }
 
 def enqueue(method, queue='default', timeout=300, event=None,
-	async=True, job_name=None, **kwargs):
+	async=True, job_name=None, now=False, **kwargs):
 	'''
 		Enqueue method to be executed using a background worker
 
@@ -25,8 +26,12 @@ def enqueue(method, queue='default', timeout=300, event=None,
 		:param event: this is passed to enable clearing of jobs from queues
 		:param async: if async=False, the method is executed immediately, else via a worker
 		:param job_name: can be used to name an enqueue call, which can be used to prevent duplicate calls
+		:param now: if now=True, the method is executed via frappe.call
 		:param kwargs: keyword arguments to be passed to the method
 	'''
+	if now or frappe.flags.in_migrate:
+		return frappe.call(method, **kwargs)
+
 	q = get_queue(queue, async=async)
 	if not timeout:
 		timeout = queue_timeout.get(queue) or 300
@@ -60,7 +65,7 @@ def execute_job(site, method, event, job_name, kwargs, user=None, async=True, re
 	try:
 		method(**kwargs)
 
-	except (MySQLdb.OperationalError, frappe.RetryBackgroundJobError), e:
+	except (MySQLdb.OperationalError, frappe.RetryBackgroundJobError) as e:
 		frappe.db.rollback()
 
 		if (retry < 5 and
@@ -131,7 +136,7 @@ def get_jobs(site=None, queue=None, key='method'):
 					jobs_per_site[site].append(job.kwargs[key])
 
 			else:
-				print 'No site found in job', job.__dict__
+				print('No site found in job', job.__dict__)
 
 	return jobs_per_site
 
@@ -161,7 +166,7 @@ def validate_queue(queue, default_queue_list=None):
 		default_queue_list = queue_timeout.keys()
 
 	if queue not in default_queue_list:
-		frappe.throw("Queue should be one of {0}".format(', '.join(default_queue_list)))
+		frappe.throw(_("Queue should be one of {0}").format(', '.join(default_queue_list)))
 
 def get_redis_conn():
 	if not hasattr(frappe.local, 'conf'):
@@ -172,3 +177,10 @@ def get_redis_conn():
 
 	return redis.from_url(frappe.local.conf.redis_queue)
 
+def enqueue_test_job():
+	enqueue('frappe.utils.background_jobs.test_job', s=100)
+
+def test_job(s):
+	import time
+	print('sleeping...')
+	time.sleep(s)

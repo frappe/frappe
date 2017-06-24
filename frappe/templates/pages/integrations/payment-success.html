@@ -1,0 +1,13 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ _("Payment Success") }}{% endblock %}
+
+{%- block header -%}
+<h2>{{ _("Payment Success") }}</h2>
+{% endblock %}
+
+{%- block page_content -%}
+<p class="lead">{{ _("Your payment was successfully accepted") }}</p>
+<p><a href="{{ frappe.form_dict.redirect_to or "/" }}"
+	class="btn btn-primary">{{ frappe.form_dict.redirect_message or _("Continue") }}</a></p>
+{% endblock %}

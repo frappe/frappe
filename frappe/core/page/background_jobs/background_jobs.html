@@ -1,0 +1,40 @@
+<div class="list-jobs">
+	{% if jobs.length %}
+	<table class="table table-bordered" style="table-layout: fixed;">
+		<thead>
+			<tr>
+				<th style="width: 20%">Queue / Worker</th>
+				<th>Job</th>
+				<th style="width: 15%">Created</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for j in jobs %}
+			<tr>
+				<td><span class="indicator {{ j.color }}" title="{{ j.status }}">{{ j.queue.split(".").slice(-1)[0] }}</span></td>
+				<td style="overflow: auto;">
+					<div>
+						{{ frappe.utils.encode_tags(j.job_name) }}
+					</div>
+					{% if j.exc_info %}
+					<div>
+						<pre>{{ frappe.utils.encode_tags(j.exc_info) }}</pre>
+					</div>
+					{% endif %}
+				</td>
+				<td class="small">{{ j.creation }}</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+	<p>
+		<span class="indicator blue" style="margin-right: 20px;">Started</span>
+		<span class="indicator orange" style="margin-right: 20px;">Queued</span>
+		<span class="indicator red" style="margin-right: 20px;">Failed</span>
+		<span class="indicator green">Finished</span>
+	</p>
+	{% else %}
+	<p class="text-muted">No pending or current jobs for this site</p>
+	{% endif %}
+	<p class="text-muted" style="margin-top: 30px;">Last refreshed {{ frappe.datetime.now_datetime() }}</p>
+</div>

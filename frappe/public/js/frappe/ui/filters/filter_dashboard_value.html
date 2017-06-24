@@ -1,0 +1,19 @@
+	<li class="divider" style="margin-bottom: 10px"></li>
+	{% if(!stat.length) { %}
+	<li class="stat-no-records text-muted small">{%= __("No records.") %}</li>
+	{% } else {
+		for (var i=0, l=stat.length; i < l; i++) {
+			var stat_label = stat[i][0];
+			var stat_count = stat[i][1];
+	%}
+			<li class="filter-item-value">
+				<a class="filter-stat-link badge-hover small" data-label="{%= stat_label %}" data-field="{%= field %}" title="{%= stat_label %} ">
+					<span class="stat">{%= __(labels.length>0? labels[i] : stat_label) %}</span>
+					<span class="badge">{%= stat_count %}</span>
+
+
+				</a>
+			</li>
+		{% }
+	} %}
+

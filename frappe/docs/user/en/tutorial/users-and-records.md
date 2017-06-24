@@ -28,7 +28,7 @@ First let us create a new Article:
 
 <img class="screenshot" alt="New Article" src="{{docs_base_url}}/assets/img/new_article_blank.png">
 
-Here you will see that the the DocType you had created has been rendered as a form. The validations and other rules will also apply as designed. Let us fill out one Article.
+Here you will see that the DocType you had created has been rendered as a form. The validations and other rules will also apply as designed. Let us fill out one Article.
 
 <img class="screenshot" alt="New Article" src="{{docs_base_url}}/assets/img/new_article.png">
 

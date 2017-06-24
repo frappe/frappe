@@ -1,0 +1,6 @@
+{% for d in results %}
+<div class='search-result-item'>
+	<h4><a href="{{ d.route }}">{{ d.title }}</a></h4>
+	<p>{{ d.preview }}</p>
+</div>
+{% endfor %}

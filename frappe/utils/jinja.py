@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 def get_jenv():
 	import frappe
 
-	if not frappe.local.jenv:
+	if not getattr(frappe.local, 'jenv', None):
 		from jinja2 import Environment, DebugUndefined
 
 		# frappe will be loaded last, so app templates will get precedence
@@ -30,8 +30,8 @@ def validate_template(html):
 	jenv = get_jenv()
 	try:
 		jenv.from_string(html)
-	except TemplateSyntaxError, e:
-		frappe.msgprint('Line {}: {}'.format(e.lineno, e.message))
+	except TemplateSyntaxError as e:
+ 		frappe.msgprint('Line {}: {}'.format(e.lineno, e.message))
 		frappe.throw(frappe._("Syntax error in template"))
 
 def render_template(template, context, is_path=None):
@@ -59,8 +59,15 @@ def get_allowed_functions_for_jenv():
 	from frappe.website.utils import get_shade
 	from frappe.modules import scrub
 	import mimetypes
+	from html2text import html2text
+	from frappe.www.printview import get_visible_columns
 
 	datautils = {}
+	if frappe.db:
+		date_format = frappe.db.get_default("date_format") or "yyyy-mm-dd"
+	else:
+		date_format = 'yyyy-mm-dd'
+
 	for key, obj in frappe.utils.data.__dict__.items():
 		if key.startswith("_"):
 			# ignore
@@ -70,56 +77,71 @@ def get_allowed_functions_for_jenv():
 			# only allow functions
 			datautils[key] = obj
 
-	if "_" in frappe.local.form_dict:
+	if "_" in getattr(frappe.local, 'form_dict', {}):
 		del frappe.local.form_dict["_"]
 
-	return {
+	user = getattr(frappe.local, "session", None) and frappe.local.session.user or "Guest"
+
+	out = {
 		# make available limited methods of frappe
 		"frappe": {
 			"_": frappe._,
 			"get_url": frappe.utils.get_url,
+			'format': frappe.format_value,
 			"format_value": frappe.format_value,
+			'date_format': date_format,
 			"format_date": frappe.utils.data.global_date_format,
-			"form_dict": frappe.local.form_dict,
+			"form_dict": getattr(frappe.local, 'form_dict', {}),
 			"local": frappe.local,
 			"get_hooks": frappe.get_hooks,
 			"get_meta": frappe.get_meta,
 			"get_doc": frappe.get_doc,
-			"db": {
-				"get_value": frappe.db.get_value,
-				"get_default": frappe.db.get_default,
-			},
 			"get_list": frappe.get_list,
 			"get_all": frappe.get_all,
 			"utils": datautils,
-			"user": getattr(frappe.local, "session", None) and frappe.local.session.user or "Guest",
-			"date_format": frappe.db.get_default("date_format") or "yyyy-mm-dd",
+			"user": user,
 			"get_fullname": frappe.utils.get_fullname,
 			"get_gravatar": frappe.utils.get_gravatar_url,
-			"full_name": getattr(frappe.local, "session", None) and frappe.local.session.data.full_name or "Guest",
-			"render_template": frappe.render_template
+			"full_name": frappe.local.session.data.full_name if getattr(frappe.local, "session", None) else "Guest",
+			"render_template": frappe.render_template,
+			'session': {
+				'user': user,
+				'csrf_token': frappe.local.session.data.csrf_token if getattr(frappe.local, "session", None) else ''
+			},
 		},
 		"autodoc": {
 			"get_version": get_version,
 			"automodule": automodule,
 			"get_controller": get_controller
 		},
-		"get_visible_columns": \
-			frappe.get_attr("frappe.www.print.get_visible_columns"),
 		"_": frappe._,
 		"get_shade": get_shade,
 		"scrub": scrub,
 		"guess_mimetype": mimetypes.guess_type,
+		'html2text': html2text,
 		"dev_server": 1 if os.environ.get('DEV_SERVER', False) else 0
 	}
 
+	if not frappe.flags.in_setup_help:
+		out['get_visible_columns'] = get_visible_columns
+		out['frappe']['date_format'] = date_format
+		out['frappe']["db"] = {
+			"get_value": frappe.db.get_value,
+			"get_default": frappe.db.get_default,
+		}
+
+	return out
+
 def get_jloader():
 	import frappe
-	if not frappe.local.jloader:
+	if not getattr(frappe.local, 'jloader', None):
 		from jinja2 import ChoiceLoader, PackageLoader, PrefixLoader
 
-		apps = frappe.local.flags.web_pages_apps or frappe.get_installed_apps(sort=True)
-		apps.reverse()
+		if frappe.local.flags.in_setup_help:
+			apps = ['frappe']
+		else:
+			apps = frappe.local.flags.web_pages_apps or frappe.get_installed_apps(sort=True)
+			apps.reverse()
 
 		if not "frappe" in apps:
 			apps.append('frappe')
@@ -150,6 +172,8 @@ def set_filters(jenv):
 	jenv.filters["str"] = cstr
 	jenv.filters["flt"] = flt
 	jenv.filters["abs_url"] = abs_url
+
+	if frappe.flags.in_setup_help: return
 
 	# load jenv_filters from hooks.py
 	for app in frappe.get_installed_apps():

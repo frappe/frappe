@@ -1,6 +1,7 @@
 {
  "Afghanistan": {
   "code": "af",
+  "currency": "AFN",
   "currency_fraction": "Pul",
   "currency_fraction_units": 100,
   "currency_symbol": "\u060b",
@@ -845,7 +846,8 @@
   "currency_fraction": "Cent",
   "currency_fraction_units": 100,
   "currency_symbol": "\u20ac",
-  "number_format": "#,###.##",
+  "number_format": "# ###,##",
+  "date_format": "dd/mm/yyyy",
   "timezones": [
    "Europe/Paris"
   ]
@@ -1134,11 +1136,15 @@
    "Asia/Pontianak"
   ]
  },
- "Iran, Islamic Republic of": {
+ "Iran": {
   "code": "ir",
   "currency": "IRR",
   "currency_name": "Iranian Rial",
-  "number_format": "#,###.##"
+  "currency_symbol": "\ufdfc",
+  "number_format": "#,###.##",
+  "timezones": [
+   "Asia/Tehran"
+  ]
  },
  "Iraq": {
   "code": "iq",
@@ -1191,7 +1197,8 @@
   "currency_fraction": "Cent",
   "currency_fraction_units": 100,
   "currency_symbol": "\u20ac",
-  "number_format": "#,###.##",
+  "number_format": "#.###,##",
+  "date_format": "dd/mm/yyyy",
   "timezones": [
    "Europe/Rome"
   ]
@@ -1431,7 +1438,7 @@
   "currency_name": "Pataca",
   "number_format": "#,###.##"
  },
- "Macedonia, Republic of": {
+ "Macedonia": {
   "code": "mk",
   "currency": "MKD",
   "currency_fraction": "Deni",
@@ -2148,7 +2155,7 @@
   "currency_symbol": "\u20ac",
   "number_format": "#,###.##",
   "timezones": [
-   "Europe/Prague"
+   "Europe/Bratislava"
   ]
  },
  "Slovenia": {
@@ -2302,7 +2309,7 @@
    "Europe/Zurich"
   ]
  },
- "Syrian Arab Republic": {
+ "Syria": {
   "code": "sy",
   "currency": "SYP",
   "currency_name": "Syrian Pound",
@@ -2324,7 +2331,7 @@
    "Asia/Dushanbe"
   ]
  },
- "Tanzania, United Republic of": {
+ "Tanzania": {
   "code": "tz",
   "currency": "TZS",
   "currency_name": "Tanzanian Shilling",
@@ -2453,8 +2460,10 @@
  },
  "Ukraine": {
   "code": "ua",
+  "currency": "UAH",
   "currency_fraction": "Kopiyka",
   "currency_fraction_units": 100,
+  "currency_name": "Ukrainian Hryvnia",
   "currency_symbol": "\u20b4",
   "number_format": "#,###.##",
   "timezones": [
@@ -2620,7 +2629,7 @@
  },
  "Zambia": {
   "code": "zm",
-  "currency": "ZMK",
+  "currency": "ZMW",
   "currency_fraction": "Ngwee",
   "currency_fraction_units": 100,
   "currency_name": "Zambian Kwacha",

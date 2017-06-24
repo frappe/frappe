@@ -626,7 +626,7 @@
               accumulatorInfo.body +
           "}"
       );
-      fn.displayName = fn.name = "compiledAccumulatorLoop";
+      fn.displayName = "compiledAccumulatorLoop";
       return fn;
     }
 
@@ -658,7 +658,7 @@
       tpl = tpl.replace(/\$args\$/gi, filterInfo.params[1]);
 
       var fn = new Function("_items,_args", tpl);
-      fn.displayName = fn.name = "compiledFilter";
+      fn.displayName = "compiledFilter";
       return fn;
     }
 
@@ -694,7 +694,7 @@
       tpl = tpl.replace(/\$args\$/gi, filterInfo.params[1]);
 
       var fn = new Function("_items,_args,_cache", tpl);
-      fn.displayName = fn.name = "compiledFilterWithCaching";
+      fn.displayName = "compiledFilterWithCaching";
       return fn;
     }
 

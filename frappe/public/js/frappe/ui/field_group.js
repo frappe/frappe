@@ -12,6 +12,9 @@ frappe.ui.FieldGroup = frappe.ui.form.Layout.extend({
 				f.fieldname = f.label.replace(/ /g, "_").toLowerCase();
 			}
 		})
+		if(this.values) {
+			this.set_values(this.values);
+		}
 	},
 	make: function() {
 		var me = this;
@@ -32,7 +35,7 @@ frappe.ui.FieldGroup = frappe.ui.form.Layout.extend({
 			$(this.body).find('input').on('change', function() {
 				me.refresh_dependency();
 			})
-						
+
 			$(this.body).find('select').on("change", function() {
 				me.refresh_dependency();
 			})
@@ -64,7 +67,6 @@ frappe.ui.FieldGroup = frappe.ui.form.Layout.extend({
 			var f = this.fields_dict[key];
 			if(f.get_parsed_value) {
 				var v = f.get_parsed_value();
-
 				if(f.df.reqd && is_null(v))
 					errors.push(__(f.df.label));
 
@@ -72,8 +74,12 @@ frappe.ui.FieldGroup = frappe.ui.form.Layout.extend({
 			}
 		}
 		if(errors.length && !ignore_errors) {
-			msgprint('<b>' + __('Missing Values Required') + "</b><br>"
-				+ errors.join('<br>'));
+			frappe.msgprint({
+				title: __('Missing Values Required'),
+				message: __('Following fields have missing values:') +
+					'<br><br><ul><li>' + errors.join('<li>') + '</ul>',
+				indicator: 'orange'
+			});
 			return null;
 		}
 		return ret;
@@ -100,7 +106,7 @@ frappe.ui.FieldGroup = frappe.ui.form.Layout.extend({
 		}
 	},
 	clear: function() {
-		for(key in this.fields_dict) {
+		for(var key in this.fields_dict) {
 			var f = this.fields_dict[key];
 			if(f && f.set_input) {
 				f.set_input(f.df['default'] || '');

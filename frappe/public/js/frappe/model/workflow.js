@@ -44,7 +44,7 @@ frappe.workflow = {
 		return frappe.get_children(frappe.workflow.workflows[doctype], "transitions", {
 			state:state, action:action})[0].next_state;
 	},
- 	is_read_only: function(doctype, name) {
+	is_read_only: function(doctype, name) {
 		var state_fieldname = frappe.workflow.get_state_fieldname(doctype);
 		if(state_fieldname) {
 			var doc = locals[doctype][name];
@@ -58,7 +58,7 @@ frappe.workflow = {
 
 			var allow_edit = state ? frappe.workflow.get_document_state(doctype, state).allow_edit : null;
 
-			if(user_roles.indexOf(allow_edit)==-1) {
+			if(!frappe.user_roles.includes(allow_edit)) {
 				return true;
 			}
 		}

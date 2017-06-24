@@ -1,7 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 """
 	Sync's doctype and docfields from txt files to database
 	perms will get synced only if none exist
@@ -12,24 +12,25 @@ from frappe.modules.import_file import import_file_by_path
 from frappe.modules.patch_handler import block_user
 from frappe.utils import update_progress_bar
 
-def sync_all(force=0, verbose=False):
+def sync_all(force=0, verbose=False, reset_permissions=False):
 	block_user(True)
 
 	for app in frappe.get_installed_apps():
-		sync_for(app, force, verbose=verbose)
+		sync_for(app, force, verbose=verbose, reset_permissions=reset_permissions)
 
 	block_user(False)
 
 	frappe.clear_cache()
 
-def sync_for(app_name, force=0, sync_everything = False, verbose=False):
+def sync_for(app_name, force=0, sync_everything = False, verbose=False, reset_permissions=False):
 	files = []
 
 	if app_name == "frappe":
 		# these need to go first at time of install
-		for d in (("core", "docfield"), ("core", "docperm"), ("core", "doctype"),
+		for d in (("core", "docfield"), ("core", "docperm"), ("core", "has_role"), ("core", "doctype"),
 			("core", "user"), ("core", "role"), ("custom", "custom_field"),
-			("custom", "property_setter")):
+			("custom", "property_setter"), ("website", "web_form"),
+			("website", "web_form_field"), ("website", "portal_menu_item")):
 			files.append(os.path.join(frappe.get_app_path("frappe"), d[0],
 				"doctype", d[1], d[1] + ".json"))
 
@@ -40,21 +41,22 @@ def sync_for(app_name, force=0, sync_everything = False, verbose=False):
 	l = len(files)
 	if l:
 		for i, doc_path in enumerate(files):
-			import_file_by_path(doc_path, force=force)
+			import_file_by_path(doc_path, force=force, ignore_version=True,
+				reset_permissions=reset_permissions)
 			#print module_name + ' | ' + doctype + ' | ' + name
 
 			frappe.db.commit()
 
 			# show progress bar
-			update_progress_bar("Updating {0}".format(app_name), i, l)
+			update_progress_bar("Updating DocTypes for {0}".format(app_name), i, l)
 
-		print ""
+		print()
 
 
 def get_doc_files(files, start_path, force=0, sync_everything = False, verbose=False):
 	"""walk and sync all doctypes and pages"""
 
-	document_type = ['doctype', 'page', 'report', 'print_format', 'website_theme', 'web_form']
+	document_type = ['doctype', 'page', 'report', 'print_format', 'website_theme', 'web_form', 'email_alert']
 	for doctype in document_type:
 		doctype_path = os.path.join(start_path, doctype)
 		if os.path.exists(doctype_path):

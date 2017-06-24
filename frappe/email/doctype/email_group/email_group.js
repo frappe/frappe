@@ -5,12 +5,13 @@ frappe.ui.form.on("Email Group", "refresh", function(frm) {
 	if(!frm.is_new()) {
 		frm.add_custom_button(__("View Subscribers"), function() {
 			frappe.route_options = {"email_group": frm.doc.name};
-			frappe.set_route("Report", "Email Group Member");
+			frappe.set_route("List", "Email Group Member");
 		}, __("View"));
 
 		frm.add_custom_button(__("Import Subscribers"), function() {
 			frappe.prompt({fieldtype:"Select", options: frm.doc.__onload.import_types,
-				label:__("Import Email From"), fieldname:"doctype", reqd:1}, function(data) {
+				label:__("Import Email From"), fieldname:"doctype", reqd:1},
+				function(data) {
 					frappe.call({
 						method: "frappe.email.doctype.email_group.email_group.import_from",
 						args: {
@@ -26,7 +27,8 @@ frappe.ui.form.on("Email Group", "refresh", function(frm) {
 
 		frm.add_custom_button(__("Add Subscribers"), function() {
 			frappe.prompt({fieldtype:"Text",
-				label:__("Email Ids"), fieldname:"email_list", reqd:1}, function(data) {
+				label:__("Email Addresses"), fieldname:"email_list", reqd:1},
+				function(data) {
 					frappe.call({
 						method: "frappe.email.doctype.email_group.email_group.add_subscribers",
 						args: {

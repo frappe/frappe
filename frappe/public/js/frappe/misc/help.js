@@ -9,10 +9,6 @@ frappe.help.has_help = function(doctype) {
 	return frappe.help.youtube_id[doctype];
 }
 
-frappe.help.show_link = function() {
-
-}
-
 frappe.help.show = function(doctype) {
 	if(frappe.help.youtube_id[doctype]) {
 		frappe.help.show_video(frappe.help.youtube_id[doctype]);
@@ -27,7 +23,7 @@ frappe.help.show_video = function(youtube_id, title) {
 	}
 	var dialog = frappe.msgprint('<iframe width="'+size[0]+'" height="'+size[1]+'" \
 		src="https://www.youtube.com/embed/'+ youtube_id +'" \
-		frameborder="0" allowfullscreen></iframe>' + (frappe.help_feedback_link || ""), 
+		frameborder="0" allowfullscreen></iframe>' + (frappe.help_feedback_link || ""),
 		title || __("Help"));
 
 	dialog.$wrapper.find(".modal-content").addClass("video-modal");

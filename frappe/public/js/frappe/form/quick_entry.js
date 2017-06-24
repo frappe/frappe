@@ -31,7 +31,7 @@ frappe.ui.form.quick_entry = function(doctype, success) {
 		}
 
 		var dialog = new frappe.ui.Dialog({
-			title: __("New {0}", [doctype]),
+			title: __("New {0}", [__(doctype)]),
 			fields: mandatory,
 		});
 
@@ -66,7 +66,7 @@ frappe.ui.form.quick_entry = function(doctype, success) {
 
 			if(data) {
 				dialog.working = true;
-				values = update_doc();
+				var values = update_doc();
 				frappe.call({
 					method: "frappe.client.insert",
 					args: {
@@ -93,8 +93,8 @@ frappe.ui.form.quick_entry = function(doctype, success) {
 			}
 		});
 
-		var $link = $('<div class="text-muted small" style="padding-left: 10px; padding-top: 15px;">\
-			Ctrl+enter to save | <a class="edit-full">Edit in full page</a></div>').appendTo(dialog.body);
+		var $link = $('<div class="text-muted small" style="padding-left: 10px; padding-top: 15px;">' +
+			__("Ctrl+enter to save") + ' | <a class="edit-full">' + __("Edit in full page") + '</a></div>').appendTo(dialog.body);
 
 		$link.find('.edit-full').on('click', function() {
 			// edit in form
@@ -102,10 +102,14 @@ frappe.ui.form.quick_entry = function(doctype, success) {
 		});
 
 		// ctrl+enter to save
-		dialog.wrapper.keydown("meta+return ctrl+return", function(e) {
-			if(!frappe.request.ajax_count) {
-				// not already working -- double entry
-				dialog.get_primary_btn().trigger("click");
+		dialog.wrapper.keydown(function(e) {
+			if((e.ctrlKey || e.metaKey) && e.which==13) {
+				if(!frappe.request.ajax_count) {
+					// not already working -- double entry
+					dialog.get_primary_btn().trigger("click");
+					e.preventDefault();
+					return false;
+				}
 			}
 		});
 

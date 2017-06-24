@@ -4,4 +4,4 @@ Vous pouvez aussi cliquer sur le texte "Rapports" dans la barre latérale de gau
 
 <img class="screenshot" alt="Report" src="{{docs_base_url}}/assets/img/report.png">
 
-{suite}
+{next}

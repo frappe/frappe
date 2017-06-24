@@ -4,19 +4,24 @@
 frappe.ui.form.on('Bulk Update', {
 	refresh: function(frm) {
 		frm.page.set_primary_action(__('Update'), function() {
-			frappe.call({
-				method: 'frappe.desk.doctype.bulk_update.bulk_update.update',
-				args: {
-					doctype: frm.doc.document_type,
-					field: frm.doc.field,
-					value: frm.doc.update_value,
-					condition: frm.doc.condition,
-					limit: frm.doc.limit
-				},
-				callback: function() {
-					frappe.hide_progress();
-				}
-			});
+			if(!frm.doc.update_value){
+				frappe.throw(__('Field "value" is mandatory. Please specify value to be updated'));
+			}
+			else{
+				frappe.call({
+					method: 'frappe.desk.doctype.bulk_update.bulk_update.update',
+					args: {
+						doctype: frm.doc.document_type,
+						field: frm.doc.field,
+						value: frm.doc.update_value,
+						condition: frm.doc.condition,
+						limit: frm.doc.limit
+					},
+					callback: function() {
+						frappe.hide_progress();
+					}
+				});
+			}
 		});
 	},
 	document_type: function(frm) {

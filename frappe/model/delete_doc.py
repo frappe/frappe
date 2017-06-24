@@ -11,6 +11,7 @@ from frappe.utils.file_manager import remove_all
 from frappe.utils.password import delete_all_passwords_for
 from frappe import _
 from frappe.model.naming import revert_series_if_last
+from frappe.utils.global_search import delete_for_document 
 
 def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reload=False,
 	ignore_permissions=False, flags=None, ignore_on_trash=False):
@@ -33,9 +34,6 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 		# already deleted..?
 		if not frappe.db.exists(doctype, name):
 			return
-
-		# delete attachments
-		remove_all(doctype, name)
 
 		# delete passwords
 		delete_all_passwords_for(doctype, name)
@@ -73,20 +71,11 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 
 				if not ignore_on_trash:
 					doc.run_method("on_trash")
+					doc.flags.in_delete = True
 					doc.run_method('on_change')
 
-				dynamic_linked_doctypes = [df.parent for df in get_dynamic_link_map().get(doc.doctype, [])]
-				if "ToDo" in dynamic_linked_doctypes:
-					delete_linked_todos(doc)
-
-				if "Communication" in dynamic_linked_doctypes:
-					delete_linked_communications(doc)
-
-				if "DocShare" in dynamic_linked_doctypes:
-					delete_shared(doc)
-
-				if "Email Unsubscribe" in dynamic_linked_doctypes:
-					delete_email_subscribe(doc)
+				frappe.enqueue('frappe.model.delete_doc.delete_dynamic_links', doctype=doc.doctype, name=doc.name,
+					async=False if frappe.flags.in_test else True)
 
 				# check if links exist
 				if not force:
@@ -97,15 +86,33 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 			delete_from_table(doctype, name, ignore_doctypes, doc)
 			doc.run_method("after_delete")
 
-		if doc and not frappe.flags.in_patch:
-			try:
-				doc.notify_update()
-				insert_feed(doc)
-			except ImportError:
-				pass
+			# delete attachments
+			remove_all(doctype, name, from_delete=True)
 
-		# delete user_permissions
-		frappe.defaults.clear_default(parenttype="User Permission", key=doctype, value=name)
+		# delete global search entry
+		delete_for_document(doc)
+
+		if doc and not for_reload:
+			add_to_deleted_document(doc)
+			if not frappe.flags.in_patch:
+				try:
+					doc.notify_update()
+					insert_feed(doc)
+				except ImportError:
+					pass
+
+			# delete user_permissions
+			frappe.defaults.clear_default(parenttype="User Permission", key=doctype, value=name)
+
+def add_to_deleted_document(doc):
+	'''Add this document to Deleted Document table. Called after delete'''
+	if doc.doctype != 'Deleted Document' and frappe.flags.in_install != 'frappe':
+		frappe.get_doc(dict(
+			doctype='Deleted Document',
+			deleted_doctype=doc.doctype,
+			deleted_name=doc.name,
+			data=doc.as_json()
+		)).db_insert()
 
 def update_naming_series(doc):
 	if doc.meta.autoname:
@@ -168,21 +175,21 @@ def check_if_doc_is_linked(doc, method="Delete"):
 
 	for link_dt, link_field, issingle in link_fields:
 		if not issingle:
-			item = frappe.db.get_value(link_dt, {link_field:doc.name},
-				["name", "parent", "parenttype", "docstatus"], as_dict=True)
-			if item and ((item.parent or item.name) != doc.name) \
-					and ((method=="Delete" and item.docstatus<2) or (method=="Cancel" and item.docstatus==1)):
-				# raise exception only if
-				# linked to an non-cancelled doc when deleting
-				# or linked to a submitted doc when cancelling
-				frappe.throw(_("Cannot delete or cancel because {0} {1} is linked with {2} {3}")
-					.format(doc.doctype, doc.name, item.parenttype if item.parent else link_dt,
-					item.parent or item.name), frappe.LinkExistsError)
+			for item in frappe.db.get_values(link_dt, {link_field:doc.name},
+				["name", "parent", "parenttype", "docstatus"], as_dict=True):
+				if item and ((item.parent or item.name) != doc.name) \
+						and ((method=="Delete" and item.docstatus<2) or (method=="Cancel" and item.docstatus==1)):
+					# raise exception only if
+					# linked to an non-cancelled doc when deleting
+					# or linked to a submitted doc when cancelling
+					frappe.throw(_('Cannot delete or cancel because {0} <a href="#Form/{0}/{1}">{1}</a> is linked with {2} <a href="#Form/{2}/{3}">{3}</a>')
+						.format(doc.doctype, doc.name, item.parenttype if item.parent else link_dt,
+						item.parent or item.name), frappe.LinkExistsError)
 
 def check_if_doc_is_dynamically_linked(doc, method="Delete"):
 	'''Raise `frappe.LinkExistsError` if the document is dynamically linked'''
 	for df in get_dynamic_link_map().get(doc.doctype, []):
-		if df.parent in ("Communication", "ToDo", "DocShare", "Email Unsubscribe"):
+		if df.parent in ("Communication", "ToDo", "DocShare", "Email Unsubscribe", 'File', 'Version'):
 			# don't check for communication and todo!
 			continue
 
@@ -198,52 +205,61 @@ def check_if_doc_is_dynamically_linked(doc, method="Delete"):
 				# raise exception only if
 				# linked to an non-cancelled doc when deleting
 				# or linked to a submitted doc when cancelling
-				frappe.throw(_("Cannot delete or cancel because {0} {1} is linked with {2} {3}").format(doc.doctype,
+				frappe.throw(_('Cannot delete or cancel because {0} <a href="#Form/{0}/{1}">{1}</a> is linked with {2} <a href="#Form/{2}/{3}">{3}</a>').format(doc.doctype,
 					doc.name, df.parent, ""), frappe.LinkExistsError)
 		else:
 			# dynamic link in table
-			for refdoc in frappe.db.sql("""select name, docstatus from `tab{parent}` where
+			df["table"] = ", parent, parenttype, idx" if meta.istable else ""
+			for refdoc in frappe.db.sql("""select name, docstatus{table} from `tab{parent}` where
 				{options}=%s and {fieldname}=%s""".format(**df), (doc.doctype, doc.name), as_dict=True):
 
 				if ((method=="Delete" and refdoc.docstatus < 2) or (method=="Cancel" and refdoc.docstatus==1)):
 					# raise exception only if
 					# linked to an non-cancelled doc when deleting
 					# or linked to a submitted doc when cancelling
-					frappe.throw(_("Cannot delete or cancel because {0} {1} is linked with {2} {3}")\
-						.format(doc.doctype, doc.name, df.parent, refdoc.name), frappe.LinkExistsError)
+					frappe.throw(_('Cannot delete or cancel because {0} <a href="#Form/{0}/{1}">{1}</a> is linked with {2} <a href="#Form/{2}/{3}">{3}</a> {4}')\
+						.format(doc.doctype, doc.name, refdoc.parenttype if meta.istable else df.parent,
+					    refdoc.parent if meta.istable else refdoc.name,"Row: {0}".format(refdoc.idx) if meta.istable else ""), frappe.LinkExistsError)
 
-def delete_linked_todos(doc):
+def delete_dynamic_links(doctype, name):
 	delete_doc("ToDo", frappe.db.sql_list("""select name from `tabToDo`
-		where reference_type=%s and reference_name=%s""", (doc.doctype, doc.name)),
-		ignore_permissions=True)
+		where reference_type=%s and reference_name=%s""", (doctype, name)),
+		ignore_permissions=True, force=True)
 
-def delete_email_subscribe(doc):
 	frappe.db.sql('''delete from `tabEmail Unsubscribe`
-		where reference_doctype=%s and reference_name=%s''', (doc.doctype, doc.name))
+		where reference_doctype=%s and reference_name=%s''', (doctype, name))
 
-def delete_linked_communications(doc):
 	# delete comments
 	frappe.db.sql("""delete from `tabCommunication`
 		where
 			communication_type = 'Comment'
-			and reference_doctype=%s and reference_name=%s""", (doc.doctype, doc.name))
+			and reference_doctype=%s and reference_name=%s""", (doctype, name))
 
-	# make communications orphans
+	# unlink communications
 	frappe.db.sql("""update `tabCommunication`
 		set reference_doctype=null, reference_name=null
 		where
 			communication_type = 'Communication'
 			and reference_doctype=%s
-			and reference_name=%s""", (doc.doctype, doc.name))
+			and reference_name=%s""", (doctype, name))
 
-	# make secondary references orphans
+	# unlink secondary references
 	frappe.db.sql("""update `tabCommunication`
 		set link_doctype=null, link_name=null
-		where link_doctype=%s and link_name=%s""", (doc.doctype, doc.name))
+		where link_doctype=%s and link_name=%s""", (doctype, name))
 
+	# unlink feed
 	frappe.db.sql("""update `tabCommunication`
 		set timeline_doctype=null, timeline_name=null
-		where timeline_doctype=%s and timeline_name=%s""", (doc.doctype, doc.name))
+		where timeline_doctype=%s and timeline_name=%s""", (doctype, name))
+
+	# delete shares
+	delete_doc("DocShare", frappe.db.sql_list("""select name from `tabDocShare`
+		where share_doctype=%s and share_name=%s""", (doctype, name)),
+		ignore_on_trash=True, force=True)
+
+	# delete versions
+	frappe.db.sql('delete from tabVersion where ref_doctype=%s and docname=%s', (doctype, name))
 
 def insert_feed(doc):
 	from frappe.utils import get_fullname
@@ -260,6 +276,3 @@ def insert_feed(doc):
 		"full_name": get_fullname(doc.owner)
 	}).insert(ignore_permissions=True)
 
-def delete_shared(doc):
-	delete_doc("DocShare", frappe.db.sql_list("""select name from `tabDocShare`
-		where share_doctype=%s and share_name=%s""", (doc.doctype, doc.name)), ignore_on_trash=True)

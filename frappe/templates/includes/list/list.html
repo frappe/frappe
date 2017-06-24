@@ -1,3 +1,6 @@
+{% if sub_title %}
+<p class="lead">{{ sub_title }}</p>
+{% endif %}
 {% if not result -%}
     <div class="text-muted no-results" style="min-height: 300px;">
 				<i class="mega-octicon octicon-telescope"></i>
@@ -9,9 +12,6 @@
         <!-- {% if not hide_filters -%}
             {% include "templates/includes/list/filters.html" %}
         {%- endif %} -->
-
-		{% if introduction %}<p class='lead'>{{ introduction }}{% endif %}
-
 		{% if result_heading_template %}{% include result_heading_template %}{% endif %}
 
     	<div class="result">

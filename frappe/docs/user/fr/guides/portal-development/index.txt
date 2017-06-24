@@ -1,5 +1,0 @@
-adding-pages
-ordering
-contents
-context
-building

@@ -12,6 +12,7 @@ frappe.ui.form.Dashboard = Class.extend({
 		this.heatmap_area = this.wrapper.find('.form-heatmap');
 		this.chart_area = this.wrapper.find('.form-chart');
 		this.stats_area = this.wrapper.find('.form-stats');
+		this.stats_area_row = this.stats_area.find('.row');
 		this.links_area = this.wrapper.find('.form-links');
 		this.transactions_area = this.links_area.find('.transactions');
 
@@ -28,7 +29,8 @@ frappe.ui.form.Dashboard = Class.extend({
 		this.links_area.find('.count, .open-notification').addClass('hidden');
 
 		// clear stats
-		this.stats_area.empty().addClass('hidden');
+		this.stats_area.addClass('hidden')
+		this.stats_area_row.empty();
 
 		// clear custom
 		this.wrapper.find('.custom').remove();
@@ -144,6 +146,16 @@ frappe.ui.form.Dashboard = Class.extend({
 		}
 	},
 
+	after_refresh: function() {
+		var me = this;
+		// show / hide new buttons (if allowed)
+		this.links_area.find('.btn-new').each(function() {
+			if(me.frm.can_create($(this).attr('data-doctype'))) {
+				$(this).removeClass('hidden');
+			}
+		});
+	},
+
 	init_data: function() {
 		this.data = this.frm.meta.__dashboard || {};
 		if(!this.data.transactions) this.data.transactions = [];
@@ -175,12 +187,16 @@ frappe.ui.form.Dashboard = Class.extend({
 	render_links: function() {
 		var me = this;
 		this.links_area.removeClass('hidden');
+		this.links_area.find('.btn-new').addClass('hidden');
 		if(this.data_rendered) {
 			return;
 		}
 
-		$(frappe.render_template('form_links',
-			{transactions: this.data.transactions}))
+		//this.transactions_area.empty();
+
+		this.data.frm = this.frm;
+
+		$(frappe.render_template('form_links', this.data))
 			.appendTo(this.transactions_area)
 
 		// bind links
@@ -191,6 +207,11 @@ frappe.ui.form.Dashboard = Class.extend({
 		// bind open notifications
 		this.transactions_area.find('.open-notification').on('click', function() {
 			me.open_document_list($(this).parent(), true);
+		});
+
+		// bind new
+		this.transactions_area.find('.btn-new').on('click', function() {
+			me.frm.make_new($(this).attr('data-doctype'));
 		});
 
 		this.data_rendered = true;
@@ -238,7 +259,7 @@ frappe.ui.form.Dashboard = Class.extend({
 			group.items.forEach(function(item) { items.push(item); });
 		});
 
-		method = this.data.method || 'frappe.desk.notifications.get_open_count';
+		var method = this.data.method || 'frappe.desk.notifications.get_open_count';
 
 		frappe.call({
 			type: "GET",
@@ -283,13 +304,13 @@ frappe.ui.form.Dashboard = Class.extend({
 		if(open_count) {
 			$link.find('.open-notification')
 				.removeClass('hidden')
-				.html((open_count > 5) ? '5+' : open_count);
+				.html((open_count > 99) ? '99+' : open_count);
 		}
 
 		if(count) {
 			$link.find('.count')
 				.removeClass('hidden')
-				.html((count > 9) ? '9+' : count);
+				.html((count > 99) ? '99+' : count);
 		}
 
 		if(this.data.internal_links[doctype]) {
@@ -312,7 +333,7 @@ frappe.ui.form.Dashboard = Class.extend({
 		if(!this.heatmap) {
 			this.heatmap = new CalHeatMap();
 			this.heatmap.init({
-				itemSelector: "#heatmap-" + this.frm.doctype,
+				itemSelector: "#heatmap-" + frappe.model.scrub(this.frm.doctype),
 				domain: "month",
 				subDomain: "day",
 				start: moment().subtract(1, 'year').add(1, 'month').toDate(),
@@ -338,13 +359,30 @@ frappe.ui.form.Dashboard = Class.extend({
 			} else {
 				heatmap_message.addClass('hidden');
 			}
- 		}
+		}
 	},
 
-	// stats
-	add_stats: function(html) {
-		this.stats_area.html(html).removeClass('hidden');
+	add_indicator: function(label, color) {
 		this.show();
+		this.stats_area.removeClass('hidden');
+
+
+		// set colspan
+		var indicators = this.stats_area_row.find('.indicator-column');
+		var n_indicators = indicators.length + 1;
+		var colspan;
+		if(n_indicators > 4) { colspan = 3 }
+		else { colspan = 12 / n_indicators; }
+
+		// reset classes in existing indicators
+		if(indicators.length) {
+			indicators.removeClass().addClass('col-sm-'+colspan).addClass('indicator-column');
+		}
+
+		var indicator = $('<div class="col-sm-'+colspan+' indicator-column"><span class="indicator '+color+'">'
+			+label+'</span></div>').appendTo(this.stats_area_row);
+
+		return indicator;
 	},
 
 	//graphs
@@ -354,8 +392,7 @@ frappe.ui.form.Dashboard = Class.extend({
 		this.chart_area.removeClass('hidden');
 
 		$.extend(opts, {
-			wrapper: me.wrapper,
-			bind_to: ".form-chart",
+			wrapper: me.wrapper.find('.form-chart'),
 			padding: {
 				right: 30,
 				bottom: 30

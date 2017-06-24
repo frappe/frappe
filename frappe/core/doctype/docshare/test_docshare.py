@@ -34,7 +34,7 @@ class TestDocShare(unittest.TestCase):
 		self.assertTrue(self.event.has_permission())
 
 	def test_share_permission(self):
-		frappe.share.add("Event", self.event.name, self.user, share=1)
+		frappe.share.add("Event", self.event.name, self.user, write=1, share=1)
 
 		frappe.set_user(self.user)
 		self.assertTrue(self.event.has_permission("share"))
@@ -60,14 +60,14 @@ class TestDocShare(unittest.TestCase):
 		self.assertRaises(frappe.PermissionError, frappe.share.add, "Event", self.event.name, self.user)
 
 		frappe.set_user("Administrator")
-		frappe.share.add("Event", self.event.name, self.user, share=1)
+		frappe.share.add("Event", self.event.name, self.user, write=1, share=1)
 
 		# test not raises
 		frappe.set_user(self.user)
-		frappe.share.add("Event", self.event.name, "test1@example.com", share=1)
+		frappe.share.add("Event", self.event.name, "test1@example.com", write=1, share=1)
 
 	def test_remove_share(self):
-		frappe.share.add("Event", self.event.name, self.user, share=1)
+		frappe.share.add("Event", self.event.name, self.user, write=1, share=1)
 
 		frappe.set_user(self.user)
 		self.assertTrue(self.event.has_permission("share"))

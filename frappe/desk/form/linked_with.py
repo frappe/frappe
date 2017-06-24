@@ -10,21 +10,10 @@ import frappe.desk.form.load
 
 @frappe.whitelist()
 def get_linked_docs(doctype, name, linkinfo=None, for_doctype=None):
-	key = "linked_with:{doctype}:{name}".format(doctype=doctype, name=name)
-
 	if isinstance(linkinfo, basestring):
 		# additional fields are added in linkinfo
 		linkinfo = json.loads(linkinfo)
 
-	if for_doctype:
-		key = "{key}:{for_doctype}".format(key=key, for_doctype=for_doctype)
-
-	results = frappe.cache().get_value(key, user=True)
-
-	if results:
-		return results
-
-	meta = frappe.desk.form.meta.get_meta(doctype)
 	results = {}
 
 	if not linkinfo:
@@ -58,7 +47,7 @@ def get_linked_docs(doctype, name, linkinfo=None, for_doctype=None):
 
 			fields = ["`tab{dt}`.`{fn}`".format(dt=dt, fn=sf.strip()) for sf in fields if sf
 				and "`tab" not in sf]
-				
+
 			try:
 				if link.get("filters"):
 					ret = frappe.get_list(doctype=dt, fields=fields, filters=link.get("filters"))
@@ -76,9 +65,9 @@ def get_linked_docs(doctype, name, linkinfo=None, for_doctype=None):
 					# dynamic link
 					if link.get("doctype_fieldname"):
 						filters.append([link.get('child_doctype'), link.get("doctype_fieldname"), "=", doctype])
-						
-					ret = frappe.get_list(doctype=dt, fields=fields, filters=filters)
-					
+
+					ret = frappe.get_list(doctype=dt, fields=fields, filters=filters, distinct=True)
+
 				else:
 					if link.get("fieldname"):
 						filters = [[dt, link.get("fieldname"), '=', name]]
@@ -98,8 +87,7 @@ def get_linked_docs(doctype, name, linkinfo=None, for_doctype=None):
 
 			if ret:
 				results[dt] = ret
-			
-	frappe.cache().set_value(key, results, user=True)
+
 	return results
 
 @frappe.whitelist()

@@ -8,7 +8,7 @@ frappe._ = function(txt, replace) {
 		return txt;
 	if(typeof(txt) != "string")
 		return txt;
-	ret = frappe._messages[txt.replace(/\n/g, "")] || txt;
+	var ret = frappe._messages[txt.replace(/\n/g, "")] || txt;
 	if(replace && typeof(replace) === "object") {
 		ret = $.format(ret, replace);
 	}
@@ -26,9 +26,3 @@ frappe.get_languages = function() {
 	}
 	return frappe.languages;
 };
-
-frappe.setup_language_field = function(frm, fieldname) {
-	if (!fieldname) fieldname = 'language';
-	frm.set_df_property(fieldname, "options", [''].concat(frappe.get_languages()) || ["", "english"]);
-	frm.get_field(fieldname).set_input(frm.doc[fieldname] || '');
-}

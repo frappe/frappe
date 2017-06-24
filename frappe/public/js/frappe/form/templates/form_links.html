@@ -1,5 +1,5 @@
 <div class="form-documents">
-	<h5 style="margin: 5px 0px;">Related Documents</h5>
+	<h5 style="margin: 5px 0px;">{{__("Related Documents")}}</h5>
 	{% for (var i=0; i < transactions.length; i++) { %}
 		{% if((i % 2)===0) { %}<div class="row">{% } %}
 		<div class="col-xs-6">
@@ -10,7 +10,13 @@
 				data-doctype="{{ doctype }}">
 				<a class="badge-link small">{{ __(doctype) }}</a>
 				<span class="text-muted small count"></span>
-				<span class="open-notification hidden" title="{{ __("Open {0}", [__(doctype)])}}"></span>
+				<span class="open-notification hidden"
+					title="{{ __("Open {0}", [__(doctype)])}}"></span>
+				{% if !internal_links[doctype] %}
+					<button class="btn btn-new btn-default btn-xs hidden"
+						data-doctype="{{ doctype }}">
+							<i class="octicon octicon-plus" style="font-size: 12px;"></i></button>
+				{% endif %}
 			</div>
 			{% } %}
 		</div>

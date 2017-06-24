@@ -8,4 +8,4 @@ from frappe.installer import make_site_dirs
 def execute():
 	make_site_dirs()
 	if frappe.local.conf.backup_path and frappe.local.conf.backup_path.startswith("public"):
-		raise Exception, "Backups path in conf set to public directory"
+		raise Exception("Backups path in conf set to public directory")

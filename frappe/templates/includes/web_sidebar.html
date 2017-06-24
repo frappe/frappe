@@ -16,22 +16,23 @@
 	<div class="sidebar-items">
 		<ul class="list-unstyled">
 			{% if sidebar_title %}
-				<li class="title">
-					{{ sidebar_title }}
-				</li>
-			{% else %}
-			<li class="sidebar-item">
-				<a href="/me">My Account</a>
+			<li class="title">
+				{{ sidebar_title }}
 			</li>
 			{% endif %}
-		{% for item in sidebar_items -%}
+			{% for item in sidebar_items -%}
 			<li class="sidebar-item">
 				<a href="{{ item.route }}" class="text-muted {{ 'active' if pathname==item.route else '' }}"
 				{% if item.target %}target="{{ item.target }}"{% endif %}>
-				{{ _(item.title) }}
+				{{ _(item.title or item.label) }}
 				</a>
 			</li>
-		{%- endfor %}
+			{%- endfor %}
+			{% if frappe.user != 'Guest' %}
+			<li class="sidebar-item">
+				<a href="/me">{{ _("My Account") }}</a>
+			</li>
+			{% endif %}
 		</ul>
 		</div>
 </div>

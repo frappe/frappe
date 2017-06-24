@@ -1,0 +1,26 @@
+{% macro get_align(col) %}
+{%- if col.fieldtype in ('Int', 'Float', 'Currency', 'Check') %} style='text-align: right'{% endif -%}
+{% endmacro %}
+
+<table cellpadding=2px cellspacing=0 border=1px style='width:100%; border-collapse:collapse;'>
+	<thead>
+		<tr>
+			{% for col in columns %}
+			<th {{- get_align(col) }}>
+				{{- col.label -}}
+			</th>
+			{% endfor %}
+		</tr>
+	</thead>
+	<tbody>
+		{% for row in data %}
+		<tr>
+			{% for col in columns %}
+			<td {{- get_align(col) }}>
+				{{- frappe.format(row[col.fieldname], col, row) -}}
+			</td>
+			{% endfor %}
+		</td>
+		{% endfor %}
+	</tbody>
+</table>
