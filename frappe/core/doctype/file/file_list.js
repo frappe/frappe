@@ -42,12 +42,12 @@ frappe.listview_settings['File'] = {
 		doclist.list_renderer.settings.setup_dragdrop(doclist);
 
 		doclist.$page.on("click", ".list-row-checkbox", function(event) {
-				doclist.list_renderer.settings.add_menu_item_copy(doclist);
+			doclist.list_renderer.settings.add_menu_item_copy(doclist);
 		})
 	},
 	list_view_doc:function(doclist){
-		$(doclist.wrapper).on("click", 'button[list_view_doc="'+doclist.doctype+'"]', function(){
-			dialog = frappe.ui.get_upload_dialog({
+		$(doclist.wrapper).on("click", 'button[list_view_doc="'+doclist.doctype+'"]', function() {
+			frappe.ui.get_upload_dialog({
 				"args": {
 					"folder": doclist.current_folder,
 					"from_form": 1
@@ -62,7 +62,7 @@ frappe.listview_settings['File'] = {
 		doclist.page.add_menu_item(__("New Folder"), function() {
 			var d = frappe.prompt(__("Name"), function(values) {
 				if((values.value.indexOf("/") > -1)){
-					frappe.throw("Folder name should not include / !!!");
+					frappe.throw(__("Folder name should not include '/' (slash)"));
 					return;
 				}
 				var data =  {
@@ -83,7 +83,7 @@ frappe.listview_settings['File'] = {
 
 		doclist.page.add_menu_item(__("Import .zip"), function() {
 			// make upload dialog
-			dialog = frappe.ui.get_upload_dialog({
+			frappe.ui.get_upload_dialog({
 				args: {
 					folder: doclist.current_folder,
 					from_form: 1
@@ -98,7 +98,7 @@ frappe.listview_settings['File'] = {
 							if(!r.exc) {
 								//doclist.refresh();
 							} else {
-								frappe.msgprint(__("Error in uploading files." + r.exc));
+								frappe.msgprint(__("Error in uploading files" + r.exc));
 							}
 						}
 					});
@@ -132,7 +132,7 @@ frappe.listview_settings['File'] = {
 					doclist.list_renderer.settings.add_menu_item_paste(doclist);
 				}
 				else{
-					frappe.throw("Please select file to copy");
+					frappe.throw(__("Please select file to copy"));
 				}
 			})
 			doclist.copy = true;
@@ -153,8 +153,8 @@ frappe.listview_settings['File'] = {
 					doclist.selected_files = [];
 					$(paste_menu).remove();
 				}
-			})
-		})
+			});
+		});
 	},
 	before_run: function(doclist) {
 		var name_filter = doclist.filter_list.get_filter("file_name");
@@ -197,7 +197,7 @@ frappe.listview_settings['File'] = {
 	set_primary_action:function(doclist){
 		doclist.page.clear_primary_action();
 		doclist.page.set_primary_action(__("New"), function() {
-			dialog = frappe.ui.get_upload_dialog({
+			frappe.ui.get_upload_dialog({
 				"args": {
 					"folder": doclist.current_folder,
 					"from_form": 1
@@ -236,4 +236,4 @@ frappe.listview_settings['File'] = {
 			}
 		});
 	}
-}
+};

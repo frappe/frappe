@@ -30,7 +30,7 @@ frappe.avatar = function(user, css_class, title) {
 
 		return repl('<span class="avatar %(css_class)s" title="%(title)s">\
 			<span class="avatar-frame" style="background-image: url(%(image)s)"\
-			 title="%(title)s"></span></span>', {
+			title="%(title)s"></span></span>', {
 				image: image,
 				title: title,
 				abbr: user_info.abbr,
@@ -93,7 +93,7 @@ frappe.get_gravatar = function(email_id) {
 
 function repl(s, dict) {
 	if(s==null)return '';
-	for(key in dict) {
+	for(var key in dict) {
 		s = s.split("%("+key+")s").join(dict[key]);
 	}
 	return s;
@@ -162,8 +162,8 @@ function getCookies() {
 		c.match(/(?:^|\s+)([!#$%&'*+\-.0-9A-Z^`a-z|~]+)=([!#$%&'*+\-.0-9A-Z^`a-z|~]*|"(?:[\x20-\x7E\x80\xFF]|\\[\x00-\x7F])*")(?=\s*[,;]|$)/g).map(function($0, $1) {
 			var name = $0,
 				value = $1.charAt(0) === '"'
-						  ? $1.substr(1, -1).replace(/\\(.)/g, "$1")
-						  : $1;
+						? $1.substr(1, -1).replace(/\\(.)/g, "$1")
+						: $1;
 			cookies[name] = value;
 		});
 	}

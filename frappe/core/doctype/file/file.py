@@ -184,21 +184,18 @@ class File(NestedSet):
 				except (requests.exceptions.HTTPError, requests.exceptions.SSLError, IOError):
 					return
 
-			thumbnail = ImageOps.fit(
-				image,
-				(300, 300),
-				Image.ANTIALIAS
-			)
+			size = 300, 300
+			image.thumbnail(size)
 
 			thumbnail_url = filename + "_small." + extn
 
 			path = os.path.abspath(frappe.get_site_path("public", thumbnail_url.lstrip("/")))
 
 			try:
-				thumbnail.save(path)
+				image.save(path)
 				self.db_set("thumbnail_url", thumbnail_url)
 			except IOError:
-				frappe.msgprint("Unable to write file format for {0}".format(path))
+				frappe.msgprint(_("Unable to write file format for {0}").format(path))
 				return
 
 			return thumbnail_url
@@ -343,7 +340,7 @@ def get_local_image(file_url):
 	try:
 		image = Image.open(file_path)
 	except IOError:
-		frappe.msgprint("Unable to read file format for {0}".format(file_url))
+		frappe.msgprint(_("Unable to read file format for {0}").format(file_url))
 		raise
 
 	content = None
@@ -372,7 +369,7 @@ def get_web_image(file_url):
 		if "404" in e.args[0]:
 			frappe.msgprint(_("File '{0}' not found").format(file_url))
 		else:
-			frappe.msgprint("Unable to read file format for {0}".format(file_url))
+			frappe.msgprint(_("Unable to read file format for {0}").format(file_url))
 		raise
 
 	image = Image.open(StringIO.StringIO(r.content))

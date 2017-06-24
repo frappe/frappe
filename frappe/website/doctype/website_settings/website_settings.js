@@ -14,7 +14,7 @@
 // 						doctype:"Website Settings"
 // 					},
 // 					callback: function(r) {
-// 						if(!r.exc) { msgprint(__("Exported")); }
+// 						if(!r.exc) {	frappe.msgprint(__("Exported")); }
 // 					}
 // 				})
 // 			})
@@ -81,7 +81,7 @@ $.extend(cur_frm.cscript, {
 
 cur_frm.cscript.set_banner_from_image = function(doc) {
 	if(!doc.banner_image) {
-		msgprint(__("Select a Brand Image first."));
+		frappe.msgprint(__("Select a Brand Image first."));
 	}
 	var src = doc.banner_image;
 	cur_frm.set_value("brand_html", "<img src='"+ src

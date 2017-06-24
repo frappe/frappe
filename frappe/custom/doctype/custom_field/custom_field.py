@@ -25,14 +25,14 @@ class CustomField(Document):
 		self.fieldname = self.fieldname.lower()
 
 	def validate(self):
-		meta = frappe.get_meta(self.dt)
+		meta = frappe.get_meta(self.dt, cached=False)
 		fieldnames = [df.fieldname for df in meta.get("fields")]
+
+		if self.insert_after=='append':
+			self.insert_after = fieldnames[-1]
 
 		if self.insert_after and self.insert_after in fieldnames:
 			self.idx = fieldnames.index(self.insert_after) + 1
-
-		if not self.idx:
-			self.idx = len(fieldnames) + 1
 
 		self._old_fieldtype = self.db_get('fieldtype')
 
@@ -83,17 +83,18 @@ def create_custom_field_if_values_exist(doctype, df):
 
 		create_custom_field(doctype, df)
 
-
 def create_custom_field(doctype, df):
 	df = frappe._dict(df)
+	if not df.fieldname and df.label:
+		df.fieldname = frappe.scrub(df.label)
 	if not frappe.db.get_value("Custom Field", {"dt": doctype, "fieldname": df.fieldname}):
 		frappe.get_doc({
 			"doctype":"Custom Field",
 			"dt": doctype,
 			"permlevel": df.permlevel or 0,
 			"label": df.label,
-			"fieldname": df.fieldname or df.label.lower().replace(' ', '_'),
-			"fieldtype": df.fieldtype,
+			"fieldname": df.fieldname,
+			"fieldtype": df.fieldtype or 'Data',
 			"options": df.options,
 			"insert_after": df.insert_after,
 			"print_hide": df.print_hide,

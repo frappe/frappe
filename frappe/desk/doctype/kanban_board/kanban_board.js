@@ -35,7 +35,7 @@ frappe.ui.form.on('Kanban Board', {
 		field.options && field.options.split('\n').forEach(function(o, i) {
 			o = o.trim();
 			if(!o) return;
-			d = frm.add_child('columns');
+			var d = frm.add_child('columns');
 			d.column_name = o;
 		});
 		frm.refresh();

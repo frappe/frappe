@@ -54,6 +54,10 @@
 	margin-bottom: 5px;
 }
 
+.data-field .value {
+	word-wrap: break-word;
+}
+
 .important .value {
 	font-size: 120%;
 	font-weight: bold;

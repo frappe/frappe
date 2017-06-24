@@ -55,13 +55,12 @@ def get_formatted_email(user):
 	"""get Email Address of user formatted as: `John Doe <johndoe@example.com>`"""
 	if user == "Administrator":
 		return user
-	from email.utils import formataddr
 	fullname = get_fullname(user)
 	return formataddr((fullname, user))
 
 def extract_email_id(email):
 	"""fetch only the email part of the Email Address"""
-	full_name, email_id = parse_addr(email)
+	email_id = parse_addr(email)[1]
 	if email_id and isinstance(email_id, basestring) and not isinstance(email_id, unicode):
 		email_id = email_id.decode("utf-8", "ignore")
 	return email_id
@@ -69,8 +68,6 @@ def extract_email_id(email):
 def validate_email_add(email_str, throw=False):
 	"""Validates the email string"""
 	email = email_str = (email_str or "").strip()
-
-	valid = True
 
 	def _check(e):
 		_valid = True
@@ -387,7 +384,6 @@ def is_markdown(text):
 		return not re.search("<p[\s]*>|<br[\s]*>", text)
 
 def get_sites(sites_path=None):
-	import os
 	if not sites_path:
 		sites_path = getattr(frappe.local, 'sites_path', None) or '.'
 
@@ -464,29 +460,37 @@ def parse_addr(email_string):
 	"""
 	name, email = parseaddr(email_string)
 	if check_format(email):
+		name = get_name_from_email_string(email_string, email, name)
 		return (name, email)
 	else:
 		email_regex = re.compile(r"([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)")
 		email_list = re.findall(email_regex, email_string)
 		if len(email_list) > 0 and check_format(email_list[0]):
 			#take only first email address
-			return (name, email_list[0])
+			email = email_list[0]
+			name = get_name_from_email_string(email_string, email, name)
+			return (name, email)
 	return (None, email)
 
 def check_format(email_id):
 	"""
 	Check if email_id is valid. valid email:text@example.com
-	String check ensures that email_id contains both '.' and 
-	'@' and index of '@' is less than '.' 
+	String check ensures that email_id contains both '.' and
+	'@' and index of '@' is less than '.'
 	"""
-	is_valid = False 
+	is_valid = False
 	try:
 		pos = email_id.rindex("@")
 		is_valid = pos > 0 and (email_id.rindex(".") > pos) and (len(email_id) - pos > 4)
-	except Exception, e:
+	except Exception:
 		#print(e)
 		pass
 	return is_valid
+
+def get_name_from_email_string(email_string, email_id, name):
+	name = email_string.replace(email_id, '')
+	name = re.sub('[^A-Za-z0-9 ]+', '', name).strip()
+	return name
 
 def get_installed_apps_info():
 	out = []

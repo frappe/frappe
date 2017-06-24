@@ -5,6 +5,8 @@ from __future__ import unicode_literals
 import redis, frappe, re
 import cPickle as pickle
 from frappe.utils import cstr
+from six import iteritems
+
 
 class RedisWrapper(redis.Redis):
 	"""Redis client that will automatically prefix conf.db_name"""
@@ -148,7 +150,7 @@ class RedisWrapper(redis.Redis):
 
 	def hgetall(self, name):
 		return {key: pickle.loads(value) for key, value in
-			super(redis.Redis, self).hgetall(self.make_key(name)).iteritems()}
+			iteritems(super(redis.Redis, self).hgetall(self.make_key(name)))}
 
 	def hget(self, name, key, generator=None, shared=False):
 		_name = self.make_key(name, shared=shared)

@@ -13,6 +13,7 @@ from dateutil import parser
 from num2words import num2words
 import HTMLParser
 from html2text import html2text
+from six import iteritems
 
 DATE_FORMAT = "%Y-%m-%d"
 TIME_FORMAT = "%H:%M:%S.%f"
@@ -55,7 +56,10 @@ def get_datetime(datetime_str=None):
 	if not datetime_str or (datetime_str or "").startswith("0000-00-00"):
 		return None
 
-	return parser.parse(datetime_str)
+	try:
+		return datetime.datetime.strptime(datetime_str, DATETIME_FORMAT)
+	except ValueError:
+		return parser.parse(datetime_str)
 
 def to_timedelta(time_str):
 	if isinstance(time_str, basestring):
@@ -245,9 +249,10 @@ def format_datetime(datetime_string, format_string=None):
 	return formatted_datetime
 
 def global_date_format(date):
-	"""returns date as 1 January 2012"""
-	formatted_date = getdate(date).strftime("%d %B %Y")
-	return formatted_date.startswith("0") and formatted_date[1:] or formatted_date
+	"""returns localized date in the form of January 1, 2012"""
+	date = getdate(date)
+	formatted_date = babel.dates.format_date(date, locale=(frappe.local.lang or "en").replace("-", "_"), format="long")
+	return formatted_date
 
 def has_common(l1, l2):
 	"""Returns truthy value if there are common elements in lists l1 and l2"""
@@ -437,7 +442,7 @@ def money_in_words(number, main_currency = None, fraction_currency=None):
 
 	number_format = frappe.db.get_value("Currency", main_currency, "number_format", cache=True) or \
 		frappe.db.get_default("number_format") or "#,###.##"
-		
+
 	fraction_length = get_number_format_info(number_format)[2]
 
 	n = "%.{0}f".format(fraction_length) % number
@@ -682,7 +687,7 @@ operator_map = {
 def evaluate_filters(doc, filters):
 	'''Returns true if doc matches filters'''
 	if isinstance(filters, dict):
-		for key, value in filters.iteritems():
+		for key, value in iteritems(filters):
 			f = get_filter(None, {key:value})
 			if not compare(doc.get(f.fieldname), f.operator, f.value):
 				return False
@@ -720,13 +725,13 @@ def get_filter(doctype, f):
 		f = make_filter_tuple(doctype, key, value)
 
 	if not isinstance(f, (list, tuple)):
-		frappe.throw("Filter must be a tuple or list (in a list)")
+		frappe.throw(frappe._("Filter must be a tuple or list (in a list)"))
 
 	if len(f) == 3:
 		f = (doctype, f[0], f[1], f[2])
 
 	elif len(f) != 4:
-		frappe.throw("Filter must have 4 values (doctype, fieldname, operator, value): {0}".format(str(f)))
+		frappe.throw(frappe._("Filter must have 4 values (doctype, fieldname, operator, value): {0}").format(str(f)))
 
 	f = frappe._dict(doctype=f[0], fieldname=f[1], operator=f[2], value=f[3])
 
@@ -736,7 +741,7 @@ def get_filter(doctype, f):
 
 	valid_operators = ("=", "!=", ">", "<", ">=", "<=", "like", "not like", "in", "not in", "between")
 	if f.operator.lower() not in valid_operators:
-		frappe.throw("Operator must be one of {0}".format(", ".join(valid_operators)))
+		frappe.throw(frappe._("Operator must be one of {0}").format(", ".join(valid_operators)))
 
 
 	if f.doctype and (f.fieldname not in default_fields + optional_fields):

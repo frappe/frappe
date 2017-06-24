@@ -41,7 +41,7 @@
 				</span>
 				<span class="text-muted" style="font-weight: normal;">
 					&ndash; {%= data.comment_on %}</span>
-					{% if(inList(["Communication", "Feedback"], data.communication_type)) { %}
+					{% if(in_list(["Communication", "Feedback"], data.communication_type)) { %}
 						{% if (frappe.model.can_read(\'Communication\')) { %}
 						<a href="#Form/{%= data.doctype %}/{%= data.name %}"
 							class="text-muted">

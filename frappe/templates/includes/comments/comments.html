@@ -93,12 +93,12 @@
 			}
 
 			if(!args.comment_by_fullname || !args.comment_by || !args.comment) {
-				frappe.msgprint("All fields are necessary to submit the comment.")
+				frappe.msgprint("{{ _("All fields are necessary to submit the comment.") }}");
 				return false;
 			}
 
 			if (args.comment_by!=='Administrator' && !valid_email(args.comment_by)) {
-				frappe.msgprint("Please enter a valid email address.");
+				frappe.msgprint("{{ _("Please enter a valid email address.") }}");
 				return false;
 			}
 

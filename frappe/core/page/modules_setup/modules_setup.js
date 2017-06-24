@@ -59,7 +59,7 @@ frappe.pages['modules_setup'].on_page_load = function(wrapper) {
 	};
 
 	// application installer
-	if(frappe.boot.user.roles.indexOf('System Manager')!==-1) {
+	if(frappe.user_roles.includes('System Manager')) {
 		page.add_inner_button('Install Apps', function() {
 			frappe.set_route('applications');
 		});

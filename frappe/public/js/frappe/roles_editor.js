@@ -26,23 +26,23 @@ frappe.RoleEditor = Class.extend({
 
 		role_toolbar.find(".btn-add")
 			.html(__('Add all roles'))
-			.on("click", function() {
-			$(me.wrapper).find('input[type="checkbox"]').each(function(i, check) {
-				if(!$(check).is(":checked")) {
-					check.checked = true;
-				}
+			.on("click", function () {
+				$(me.wrapper).find('input[type="checkbox"]').each(function (i, check) {
+					if (!$(check).is(":checked")) {
+						check.checked = true;
+					}
+				});
 			});
-		});
 
 		role_toolbar.find(".btn-remove")
 			.html(__('Clear all roles'))
 			.on("click", function() {
-			$(me.wrapper).find('input[type="checkbox"]').each(function(i, check) {
-				if($(check).is(":checked")) {
-					check.checked = false;
-				}
+				$(me.wrapper).find('input[type="checkbox"]').each(function(i, check) {
+					if($(check).is(":checked")) {
+						check.checked = false;
+					}
+				});
 			});
-		});
 
 		$.each(this.roles, function(i, role) {
 			$(me.wrapper).append(repl('<div class="user-role" \
@@ -70,10 +70,10 @@ frappe.RoleEditor = Class.extend({
 
 		// set user roles as checked
 		$.each((me.frm.doc.roles || []), function(i, user_role) {
-				var checkbox = $(me.wrapper)
-					.find('[data-user-role="'+user_role.role+'"] input[type="checkbox"]').get(0);
-				if(checkbox) checkbox.checked = true;
-			});
+			var checkbox = $(me.wrapper)
+				.find('[data-user-role="'+user_role.role+'"] input[type="checkbox"]').get(0);
+			if(checkbox) checkbox.checked = true;
+		});
 	},
 	set_roles_in_table: function() {
 		var opts = this.get_roles();
@@ -82,9 +82,9 @@ frappe.RoleEditor = Class.extend({
 		var me = this;
 
 		$.each((me.frm.doc.roles || []), function(i, user_role) {
-				existing_roles_map[user_role.role] = user_role.name;
-				existing_roles_list.push(user_role.role);
-			});
+			existing_roles_map[user_role.role] = user_role.name;
+			existing_roles_list.push(user_role.role);
+		});
 
 		// remove unchecked roles
 		$.each(opts.unchecked_roles, function(i, role) {
@@ -155,7 +155,7 @@ frappe.RoleEditor = Class.extend({
 					var perm = r.message[i];
 
 					// if permission -> icon
-					for(key in perm) {
+					for(var key in perm) {
 						if(key!='parent' && key!='permlevel') {
 							if(perm[key]) {
 								perm[key] = '<i class="fa fa-check"></i>';

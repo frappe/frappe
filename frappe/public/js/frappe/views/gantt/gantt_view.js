@@ -137,7 +137,7 @@ frappe.views.GanttView = frappe.views.ListRenderer.extend({
 				var label = item[field_map.title];
 			}
 
-			return {
+			var r = {
 				start: item[field_map.start],
 				end: item[field_map.end],
 				name: label,
@@ -146,6 +146,12 @@ frappe.views.GanttView = frappe.views.ListRenderer.extend({
 				progress: progress,
 				dependencies: item.depends_on_tasks || ""
 			};
+
+			if(item.is_milestone) {
+				r['custom_class'] = 'bar-milestone';
+			};
+
+			return r
 		});
 	},
 	get_item: function(name) {
@@ -175,7 +181,7 @@ frappe.views.GanttView = frappe.views.ListRenderer.extend({
 			},
 			callback: function() {
 				me.gantt.updating_task = false;
-				show_alert({message:__("Saved"), indicator: 'green'}, 1);
+				frappe.show_alert({message:__("Saved"), indicator: 'green'}, 1);
 			}
 		});
 	},
@@ -192,7 +198,7 @@ frappe.views.GanttView = frappe.views.ListRenderer.extend({
 		} else {
 			// reset gantt state
 			this.gantt.change_view_mode(this.gantt_view_mode);
-			show_alert({message: __("Not permitted"), indicator: 'red'}, 1);
+			frappe.show_alert({message: __("Not permitted"), indicator: 'red'}, 1);
 			return false;
 		}
 	},
