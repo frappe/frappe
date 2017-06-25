@@ -92,25 +92,31 @@ frappe.get_prev_route = function() {
 	}
 }
 
-frappe.get_route_str = function(route) {
+frappe._decode_str = function(r) {
+	try {
+		return decodeURIComponent(r);
+	} catch(e) {
+		if (e instanceof URIError) {
+			return r;
+		} else {
+			throw e;
+		}
+	}
+}
+
+frappe.get_raw_route_str = function(route) {
 	if(!route)
 		route = window.location.hash;
 
 	if(route.substr(0,1)=='#') route = route.substr(1);
 	if(route.substr(0,1)=='!') route = route.substr(1);
 
-	route = $.map(route.split('/'), function(r) {
-		try {
-			return decodeURIComponent(r);
-		} catch(e) {
-			if (e instanceof URIError) {
-				return r;
-			} else {
-				throw e;
-			}
-		}
+	return route;
+}
 
-	}).join('/');
+frappe.get_route_str = function(route) {
+	var rawRoute = frappe.get_raw_route_str()
+	route = $.map(rawRoute.split('/'), frappe._decode_str).join('/');
 
 	return route;
 }
