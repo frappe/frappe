@@ -233,25 +233,13 @@ frappe.views.ListRenderer = Class.extend({
 	},
 	add_column: function (df) {
 		// field width
-		var colspan = 3;
-		if (in_list(['Int', 'Percent'], df.fieldtype)) {
-			colspan = 2;
-		} else if (in_list(['Check', 'Image'], df.fieldtype)) {
-			colspan = 1;
-		} else if (in_list(['name', 'subject', 'title'], df.fieldname)) {
-			// subjects are longer
-			colspan = 4;
-		} else if (df.fieldtype == 'Text Editor' || df.fieldtype == 'Text') {
-			colspan = 4;
-		}
-
+		var colspan = 2;
 		if (df.columns && df.columns > 0) {
 			colspan = df.columns;
 		} else if (this.settings.column_colspan && this.settings.column_colspan[df.fieldname]) {
 			colspan = this.settings.column_colspan[df.fieldname];
-		} else {
-			colspan = 2;
 		}
+
 		this.total_colspans += parseInt(colspan);
 		var col = {
 			colspan: colspan,
