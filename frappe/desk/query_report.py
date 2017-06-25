@@ -56,8 +56,8 @@ def get_script(report_name):
 
 	print_formats = frappe.db.get_list("Print Format", filters={"type": "Report", "report": report.name}, \
 											fields="*")
-	for format in print_formats:
-		format.doctype = "Print Format"
+	for print_format in print_formats:
+		print_format.doctype = "Print Format"
 
 	return {
 		"script": script,

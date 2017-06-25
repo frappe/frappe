@@ -3,7 +3,7 @@ frappe.provide("frappe.ui.form");
 frappe.ui.form.PrintPreview = Class.extend({
 	init: function (opts) {
 		$.extend(this, opts);
-		this.type = this.frm ? "DocType" : "Report"
+		this.type = this.frm ? "DocType" : "Report";
 		this.page = this.frm ? this.frm.page : this.report.page;
 		this.make();
 		this.bind_events();
@@ -144,11 +144,11 @@ frappe.ui.form.PrintPreview = Class.extend({
 		if (this.type == "DocType") {
 			var me = this;
 			var w = window.open(frappe.urllib.get_full_url("/printview?"
-				+ "doctype=" + encodeURIComponent(me.frm.doc.doctype)
+				+ (printit ? "trigger_print=1" : "")
+				+ "&doctype=" + encodeURIComponent(me.frm.doc.doctype)
 				+ "&name=" + encodeURIComponent(me.frm.doc.name)
-				+ (printit ? "&trigger_print=1" : "")
-				+ "&format=" + me.selected_format()
 				+ "&no_letterhead=" + (me.with_letterhead() ? "0" : "1")
+				+ "&format=" + me.selected_format()
 				+ (me.lang_code ? ("&_lang=" + me.lang_code) : "")));
 			if (!w) {
 				frappe.msgprint(__("Please enable pop-ups")); return;
@@ -159,16 +159,17 @@ frappe.ui.form.PrintPreview = Class.extend({
 			// to reuse the print-preview already shown
 			var html = this.get_print_template_html();
 
-			var w = window.open();
-			if(!w) {
-				frappe.msgprint(__("Please enable pop-ups in your browser"))
+			var wnd = window.open();
+			if(!wnd) {
+				frappe.msgprint(__("Please enable pop-ups in your browser"));
+				return;
 			}
-			w.document.write(html);
-			w.document.close();
+			wnd.document.write(html);
+			wnd.document.close();
 
 			if (printit) {
 				// trigger print script
-				var elements = w.document.getElementsByTagName("tr");
+				var elements = wnd.document.getElementsByTagName("tr");
 				var i = elements.length;
 				while (i--) {
 					if(elements[i].clientHeight>300){
@@ -177,9 +178,9 @@ frappe.ui.form.PrintPreview = Class.extend({
 				}
 
 				setTimeout(function() {
-					w.focus();
-					w.print();
-					w.close();
+					wnd.focus();
+					wnd.print();
+					wnd.close();
 				}, 500);
 			}
 		}
@@ -202,7 +203,6 @@ frappe.ui.form.PrintPreview = Class.extend({
 			});
 		} else {
 			// Client side print
-			var me = this;
 			this.print_css = frappe.boot.print_css;
 			var selected_format = this.selected_format();
 
@@ -214,8 +214,6 @@ frappe.ui.form.PrintPreview = Class.extend({
 			if (!this.print_settings.with_letter_head)
 				this.print_settings.letter_head = null;
 
-			var default_letter_head = locals[":Company"] && frappe.defaults.get_default('company')
-			? locals[":Company"][frappe.defaults.get_default('company')]["default_letter_head"]	: '';
 
 			if (selected_format === "Standard" && !this.report.html_format) {
 				// rows filtered by inline_filter of slickgrid
@@ -225,26 +223,25 @@ frappe.ui.form.PrintPreview = Class.extend({
 
 				var data = this.report.grid.getData().getItems();
 				data = data.filter(d => visible_idx.includes(d._id));
-
 				var content = frappe.render_template("print_grid", {
-					columns:columns,
+					title:__(this.report.report_name),
 					data:data,
-					title:__(this.report.report_name)
+					columns:columns
 				});
 			} else {
 				var html_format = this.report.html_format;
 				if (selected_format != "Standard") {
-					var format = this.get_print_format(selected_format)
+					var format = this.get_print_format(selected_format);
 					html_format = format && format.html;
 					this.print_css += format && format.css;
 				}
-				var content = frappe.render(html_format, {
+				content = frappe.render(html_format, {
 					data: frappe.slickgrid_tools.get_filtered_items(this.report.dataView),
 					filters:this.report.get_values(),
 					report:this.report
 				});
 			}
-			callback({html: content, style: this.print_css})
+			callback({html: content, style: this.print_css});
 		}
 	},
 	get_print_template_html: function() {
