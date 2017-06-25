@@ -165,7 +165,23 @@ frappe.ui.form.PrintPreview = Class.extend({
 			}
 			w.document.write(html);
 			w.document.close();
-			w.print();
+
+			if (printit) {
+				// trigger print script
+				var elements = w.document.getElementsByTagName("tr");
+				var i = elements.length;
+				while (i--) {
+					if(elements[i].clientHeight>300){
+						elements[i].setAttribute("style", "page-break-inside: auto;");
+					}
+				}
+
+				setTimeout(function() {
+					w.focus();
+					w.print();
+					w.close();
+				}, 500);
+			}
 		}
 	},
 	get_preview_html: function (callback) {
@@ -194,7 +210,7 @@ frappe.ui.form.PrintPreview = Class.extend({
 
 			this.print_settings = locals[":Print Settings"]["Print Settings"];
 			this.print_settings.with_letter_head = this.with_letterhead();
-			this.print_settings.landscape = columns.length > 10; // microtemplate.js #110
+			this.print_settings.landscape = this.report.html_format ? false : columns.length > 10; // microtemplate.js #110
 			if (!this.print_settings.with_letter_head)
 				this.print_settings.letter_head = null;
 
