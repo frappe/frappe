@@ -196,11 +196,13 @@ $.extend(frappe.meta, {
 		}
 	},
 
-	get_print_formats: function(doctype) {
+	get_print_formats: function(name, type="DocType") {
 		var print_format_list = ["Standard"];
-		var default_print_format = locals.DocType[doctype].default_print_format;
+		if (type == "DocType")
+			var default_print_format = locals.DocType[name].default_print_format;
 
-		var print_formats = frappe.get_list("Print Format", {doc_type: doctype})
+		var print_formats = frappe.get_list("Print Format",
+			type == "DocType" ? {type: type, doc_type: name}  : {type: type, report: name})
 			.sort(function(a, b) { return (a > b) ? 1 : -1; });
 		$.each(print_formats, function(i, d) {
 			if(!in_list(print_format_list, d.name) && in_list(['Server', 'Client'], d.print_format_type))

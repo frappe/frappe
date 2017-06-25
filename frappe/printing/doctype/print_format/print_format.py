@@ -20,14 +20,19 @@ class PrintFormat(Document):
 
 		# old_doc_type is required for clearing item cache
 		self.old_doc_type = frappe.db.get_value('Print Format',
-				self.name, 'doc_type')
+				self.name, 'doc_type' if self.type == "DocType" else "report")
+
+		if self.type == "DocType":
+			self.report = None
+		else:
+			self.doc_type = None
 
 		self.extract_images()
 
 		if not self.module:
 			self.module = frappe.db.get_value('DocType', self.doc_type, 'module')
 
-		if self.html:
+		if self.html and self.type == "DocType":
 			validate_template(self.html)
 
 	def extract_images(self):
@@ -40,10 +45,11 @@ class PrintFormat(Document):
 			self.format_data = json.dumps(data)
 
 	def on_update(self):
-		if hasattr(self, 'old_doc_type') and self.old_doc_type:
-			frappe.clear_cache(doctype=self.old_doc_type)
-		if self.doc_type:
-			frappe.clear_cache(doctype=self.doc_type)
+		if self.type == "DocType":
+			if hasattr(self, 'old_doc_type') and self.old_doc_type:
+				frappe.clear_cache(doctype=self.old_doc_type)
+			if self.doc_type:
+				frappe.clear_cache(doctype=self.doc_type)
 
 		self.export_doc()
 
