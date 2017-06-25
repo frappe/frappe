@@ -3,8 +3,6 @@
 
 $(document).on("toolbar_setup", function() {
 	var help_links = [];
-	var support_link = "#upgrade";
-	var chat_link = "#upgrade";
 	var limits = frappe.boot.limits;
 
 	if(frappe.boot.expiry_message) {
@@ -24,7 +22,7 @@ $(document).on("toolbar_setup", function() {
 	}
 
 	if(limits.support_email) {
-		support_link = 'mailto:'+frappe.boot.limits.support_email;
+		var support_link = 'mailto:'+frappe.boot.limits.support_email;
 		help_links.push('<li><a href="'+support_link+'">' + frappe._('Email Support') + '</a></li>');
 	}
 
