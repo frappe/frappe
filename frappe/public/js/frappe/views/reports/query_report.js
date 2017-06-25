@@ -228,7 +228,6 @@ frappe.views.QueryReport = Class.extend({
 
 			//Render Report in HTML
 			var html = frappe.render_template("print_template", {
-				columns:columns,
 				content:content,
 				title:__(this.report_name),
 				base_url: base_url,
