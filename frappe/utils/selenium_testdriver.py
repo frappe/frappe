@@ -10,6 +10,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 #from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
 import time
 import signal
@@ -27,8 +28,12 @@ class TestDriver(object):
 		else:
 			self.host = frappe.local.site
 
+		# enable browser logging
+		d = DesiredCapabilities.CHROME
+		d['loggingPrefs'] = { 'browser':'ALL' }
+
 		chrome_options.add_argument('--no-sandbox')
-		self.driver = webdriver.Chrome(chrome_options=chrome_options)
+		self.driver = webdriver.Chrome(chrome_options=chrome_options, desired_capabilities=d)
 
 		self.driver.set_window_size(1080,800)
 		self.cur_route = None
@@ -92,8 +97,12 @@ class TestDriver(object):
 			_by = By.XPATH
 			selector = xpath
 
-		elem = self.get_wait(timeout).until(
-			EC.presence_of_element_located((_by, selector)))
+		try:
+			elem = self.get_wait(timeout).until(
+				EC.presence_of_element_located((_by, selector)))
+		except Exception:
+			for entry in self.driver.get_log('browser'):
+				print(entry)
 		return elem
 
 	def get_wait(self, timeout=20):
