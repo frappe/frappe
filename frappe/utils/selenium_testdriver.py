@@ -29,7 +29,6 @@ class TestDriver(object):
 			self.host = frappe.local.site
 
 		chrome_options.add_argument('--no-sandbox')
-		chrome_options.add_argument('--headless')
 		self.driver = webdriver.Chrome(chrome_options=chrome_options)
 
 		self.driver.set_window_size(1080,800)
