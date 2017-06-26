@@ -5,7 +5,7 @@ class TestLogin(unittest.TestCase):
 	def setUp(self):
 		self.driver = TestDriver()
 
-	def test_login(self):
+	def test_test_runner(self):
 		self.driver.login()
 		self.driver.set_route('Form', 'Test Runner')
 		self.driver.click_primary_action()
