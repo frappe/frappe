@@ -27,6 +27,8 @@ def get_form_params():
 	data = frappe._dict(frappe.local.form_dict)
 
 	del data["cmd"]
+	if "csrf_token" in data:
+		del data["csrf_token"]
 
 	if isinstance(data.get("filters"), basestring):
 		data["filters"] = json.loads(data["filters"])
