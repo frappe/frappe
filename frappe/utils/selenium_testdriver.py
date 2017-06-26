@@ -18,15 +18,21 @@ import frappe
 class TestDriver(object):
 	def __init__(self, host=None, port='8000'):
 		self.host = host
+		if not self.host:
+			if os.environ.get('CI'):
+				self.host = 'localhost'
+			else:
+				self.host = frappe.local.site
+
 		self.port = port
-		self.driver = webdriver.Firefox()
+		self.driver = webdriver.Chrome()
 		self.driver.set_window_size(1080,800)
 		self.cur_route = None
 		self.logged_in = False
 
 	@property
 	def localhost(self):
-		return "http://{host}:{port}".format(host=frappe.local.site, port=self.port)
+		return "http://{host}:{port}".format(host=self.host, port=self.port)
 
 	def get(self, url):
 		return self.driver.get(os.path.join(self.localhost, url))
