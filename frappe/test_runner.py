@@ -95,7 +95,8 @@ def run_all_tests(app=None, verbose=False, profile=False):
 			# print path
 			for filename in files:
 				filename = cstr(filename)
-				if filename.startswith("test_") and filename.endswith(".py"):
+				if filename.startswith("test_") and filename.endswith(".py")\
+					and filename != 'test_runner.py':
 					# print filename[:-3]
 					_add_test(app, path, filename, verbose, test_suite=test_suite)
 
