@@ -50,6 +50,14 @@
 .avatar-large .standard-image {
   font-size: 36px;
 }
+.avatar-xl {
+  margin-right: 10px;
+  width: 108px;
+  height: 108px;
+}
+.avatar-xl .standard-image {
+  font-size: 72px;
+}
 .avatar-xs {
   margin-right: 3px;
   margin-top: -2px;
