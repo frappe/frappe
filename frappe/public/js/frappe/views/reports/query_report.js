@@ -142,6 +142,8 @@ frappe.views.QueryReport = Class.extend({
 									frappe.after_ajax(function() {
 										var report_settings = frappe.query_reports[me.report_name];
 										me.html_format = r.message.html_format;
+										// update locals
+										frappe.model.sync(r.message.print_formats);
 										report_settings["html_format"] = r.message.html_format;
 
 										me.setup_report();
@@ -164,6 +166,7 @@ frappe.views.QueryReport = Class.extend({
 		this.page.set_title(__(this.report_name));
 		this.page.clear_inner_toolbar();
 		this.setup_filters();
+		this.setup_print_preview();
 		this.chart_area.toggle(false);
 		this.toggle_expand_collapse_buttons(false);
 		this.is_tree_report = false;
@@ -340,6 +343,35 @@ frappe.views.QueryReport = Class.extend({
 
 		this.set_filters_by_name();
 		this.flags.filters_set = true;
+	},
+	setup_print_preview: function() {
+		if (this.print_preview)
+		{
+			this.page.set_view("main");
+			return;
+		}
+		var me = this;
+		this.print_preview = new frappe.ui.form.PrintPreview({report: this});
+		if(frappe.model.can_print(this.report_doc.ref_doctype)) {
+			/*this.page.add_menu_item(__("Print"), function() {
+				me.preview_report();}, true);*/
+			this.print_icon = this.page.add_action_icon("fa fa-print", function() {
+				me.preview_report();});
+		}
+	},
+	preview_report: function() {
+		if(this.print_preview.wrapper.is(":visible")) {
+			this.page.set_view("main");
+			return;
+		}
+		if(!frappe.model.can_print(this.report_doc.ref_doctype)) {
+			frappe.msgprint(__("You are not allowed to print this report"));
+			return;
+		}
+
+		this.print_preview.refresh_print_options().trigger("change");
+		this.page.set_view("print");
+		this.print_preview.preview();
 	},
 	clear_filters: function() {
 		this.filters = [];

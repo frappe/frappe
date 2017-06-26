@@ -54,9 +54,15 @@ def get_script(report_name):
 	if frappe.lang != "en":
 		send_translations(frappe.get_lang_dict("report", report_name))
 
+	print_formats = frappe.db.get_list("Print Format", filters={"type": "Report", "report": report.name}, \
+											fields="*")
+	for print_format in print_formats:
+		print_format.doctype = "Print Format"
+
 	return {
 		"script": script,
-		"html_format": html_format
+		"html_format": html_format,
+		"print_formats": print_formats
 	}
 
 @frappe.whitelist()
