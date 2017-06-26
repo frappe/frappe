@@ -24,13 +24,13 @@ class TestDriver(object):
 		if not self.host:
 			if os.environ.get('CI'):
 				self.host = 'localhost'
-				self.driver = webdriver.PhantomJS()
 			else:
 				self.host = frappe.local.site
-				chrome_options = Options()
-				chrome_options.add_argument("--no-sandbox")
-				chrome_options.add_argument("--start-maximized")
-				self.driver = webdriver.Chrome(chrome_options=chrome_options)
+
+			chrome_options = Options()
+			chrome_options.add_argument("--no-sandbox")
+			chrome_options.add_argument("--start-maximized")
+			self.driver = webdriver.Chrome(chrome_options=chrome_options)
 
 		self.driver.set_window_size(1080,800)
 		self.cur_route = None
