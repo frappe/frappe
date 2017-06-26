@@ -18,8 +18,10 @@ frappe.standard_pages["test-runner"] = function() {
 		return;
 	}
 
-	var requires = ["assets/frappe/js/lib/jquery/qunit.js",
-		"assets/frappe/js/lib/jquery/qunit.css"].concat(route.splice(1).join("/"));
+	var requires = [
+		"assets/frappe/js/lib/jquery/qunit.js",
+		"assets/frappe/js/lib/jquery/qunit.css"
+	].concat(route.splice(1).join("/"));
 
 	frappe.require(requires, function() {
 		QUnit.load();

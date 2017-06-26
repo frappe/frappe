@@ -226,8 +226,11 @@ frappe.ui.form.update_calling_link = function (newdoc) {
 
 		// if from form, switch
 		if (frappe._from_link.frm) {
-			frappe.set_route("Form", frappe._from_link.frm.doctype, frappe._from_link.frm.docname);
-			setTimeout(function () { frappe.utils.scroll_to(frappe._from_link_scrollY); }, 100);
+			frappe.set_route("Form",
+				frappe._from_link.frm.doctype, frappe._from_link.frm.docname)
+				.then(() => {
+					frappe.utils.scroll_to(frappe._from_link_scrollY);
+				});
 		}
 
 		frappe._from_link = null;

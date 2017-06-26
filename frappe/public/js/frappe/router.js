@@ -123,24 +123,31 @@ frappe.get_route_str = function(route) {
 }
 
 frappe.set_route = function() {
-	var params = arguments;
-	if(params.length===1 && $.isArray(params[0])) {
-		params = params[0];
-	}
-	var route = $.map(params, function(a) {
-		if($.isPlainObject(a)) {
-			frappe.route_options = a;
-			return null;
-		} else {
-			return a;
-			// return a ? encodeURIComponent(a) : null;
+	return new Promise((resolve) => {
+		var params = arguments;
+		if(params.length===1 && $.isArray(params[0])) {
+			params = params[0];
 		}
-	}).join('/');
+		var route = $.map(params, function(a) {
+			if($.isPlainObject(a)) {
+				frappe.route_options = a;
+				return null;
+			} else {
+				return a;
+				// return a ? encodeURIComponent(a) : null;
+			}
+		}).join('/');
 
-	window.location.hash = route;
+		window.location.hash = route;
 
-	// Set favicon (app.js)
-	frappe.app.set_favicon && frappe.app.set_favicon();
+		// Set favicon (app.js)
+		frappe.app.set_favicon && frappe.app.set_favicon();
+		setTimeout(() => {
+			frappe.after_ajax(() => {
+				resolve();
+			});
+		}, 100);
+	});
 }
 
 frappe.set_re_route = function() {

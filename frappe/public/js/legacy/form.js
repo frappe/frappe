@@ -705,17 +705,21 @@ Object.defineProperty(window, 'validated', {
 });
 
 _f.Frm.prototype.save = function(save_action, callback, btn, on_error) {
-	btn && $(btn).prop("disabled", true);
-	$(document.activeElement).blur();
+	let me = this;
+	return new Promise((resolve) => {
+		btn && $(btn).prop("disabled", true);
+		$(document.activeElement).blur();
 
-	frappe.ui.form.close_grid_form();
+		frappe.ui.form.close_grid_form();
 
-	// let any pending js process finish
-	var me = this;
-	setTimeout(function() { me._save(save_action, callback, btn, on_error) }, 100);
+		// let any pending js process finish
+		setTimeout(function() {
+			me._save(save_action, callback, btn, on_error, resolve);
+		}, 100);
+	});
 }
 
-_f.Frm.prototype._save = function(save_action, callback, btn, on_error) {
+_f.Frm.prototype._save = function(save_action, callback, btn, on_error, resolve) {
 	var me = this;
 	if(!save_action) save_action = "Save";
 	this.validate_form_action(save_action);
@@ -736,6 +740,7 @@ _f.Frm.prototype._save = function(save_action, callback, btn, on_error) {
 				on_error();
 		}
 		callback && callback(r);
+		resolve();
 	}
 
 	if(save_action != "Update") {
@@ -750,6 +755,7 @@ _f.Frm.prototype._save = function(save_action, callback, btn, on_error) {
 					if(on_error) {
 						on_error();
 					}
+					resolve();
 					return;
 				}
 

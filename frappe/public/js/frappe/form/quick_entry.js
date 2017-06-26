@@ -1,20 +1,37 @@
 frappe.provide('frappe.ui.form');
 
+frappe.ui.form.make_quick_entry = (doctype) => {
+	return new Promise((resolve) => {
+		var trimmed_doctype = doctype.replace(/ /g, '');
+		var controller_name = "QuickEntryForm";
+
+		if(frappe.ui.form[trimmed_doctype + "QuickEntryForm"]){
+			controller_name = trimmed_doctype + "QuickEntryForm";
+		}
+
+		frappe.quick_entry = new frappe.ui.form[controller_name](doctype)
+		frappe.quick_entry.setup()
+			.then((frm) => { resolve(frm); });
+	});
+}
+
 frappe.ui.form.QuickEntryForm = Class.extend({
-	init: function(doctype, success_function){
+	init: function(doctype, after_insert){
 		this.doctype = doctype;
-		this.success_function = success_function;
-		this.setup();
+		this.after_insert = after_insert;
 	},
 
-	setup: function(){
-		var me = this;
-		frappe.model.with_doctype(this.doctype, function() {
-			me.set_meta_and_mandatory_fields();
-			var validate_flag = me.validate_quick_entry();
-			if(!validate_flag){
-				me.render_dialog();
-			}
+	setup: function(resolve) {
+		let me = this;
+		return new Promise((resolve) => {
+			frappe.model.with_doctype(this.doctype, function() {
+				me.set_meta_and_mandatory_fields();
+				var validate_flag = me.validate_quick_entry();
+				if(!validate_flag){
+					me.render_dialog();
+				}
+				resolve(me);
+			});
 		});
 	},
 
@@ -93,42 +110,60 @@ frappe.ui.form.QuickEntryForm = Class.extend({
 	register_primary_action: function(){
 		var me = this;
 		this.dialog.set_primary_action(__('Save'), function() {
-			if(me.dialog.working) return;
+			if(me.dialog.working) {
+				return;
+			}
 			var data = me.dialog.get_values();
 
 			if(data) {
 				me.dialog.working = true;
-				var values = me.update_doc();
-				me.insert_document(values);
+				me.insert(values);
 			}
 		});
 	},
 
-	insert_document: function(values){
-		var me = this;
-		frappe.call({
-			method: "frappe.client.insert",
-			args: {
-				doc: values
-			},
-			callback: function(r) {
-				me.dialog.hide();
-				// delete the old doc
-				frappe.model.clear_doc(me.dialog.doc.doctype, me.dialog.doc.name);
-				var doc = r.message;
-				if(me.success_function) {
-					me.success_function(doc);
-				}
-				frappe.ui.form.update_calling_link(doc.name);
-			},
-			error: function() {
-				me.open_doc();
-			},
-			always: function() {
-				me.dialog.working = false;
-			},
-			freeze: true
+	insert: function(values){
+		let me = this;
+		return new Promise((resolve) => {
+			me.update_doc();
+			frappe.call({
+				method: "frappe.client.insert",
+				args: {
+					doc: me.dialog.doc
+				},
+				callback: function(r) {
+					me.dialog.hide();
+					// delete the old doc
+					frappe.model.clear_doc(me.dialog.doc.doctype, me.dialog.doc.name);
+					me.dialog.doc = r.message;
+					if(frappe._from_link) {
+						frappe.ui.form.update_calling_link(me.dialog.doc.name);
+					} else {
+						if(me.after_insert) {
+							me.after_insert(me.dialig.doc);
+						} else {
+							me.open_from_if_not_list();
+						}
+					}
+				},
+				error: function() {
+					me.open_doc();
+				},
+				always: function() {
+					me.dialog.working = false;
+					resolve(me.dialog.doc);
+				},
+				freeze: true
+			});
 		});
+	},
+
+	open_from_if_not_list: function() {
+		let route = frappe.get_route();
+		let doc = this.dialog.doc;
+		if(route && !(route[0]==='List' && route[1]===doc.doctype)) {
+			frappe.set_route('Form', doc.doctype, doc.name)
+		}
 	},
 
 	update_doc: function(){

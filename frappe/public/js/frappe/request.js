@@ -10,51 +10,55 @@ frappe.request.waiting_for_ajax = [];
 
 // generic server call (call page, object)
 frappe.call = function(opts) {
-	if(opts.quiet)
-		opts.no_spinner = true;
-	var args = $.extend({}, opts.args);
+	return new Promise((resolve) => {
+		if(opts.quiet) {
+			opts.no_spinner = true;
+		}
+		var args = $.extend({}, opts.args);
 
-	// cmd
-	if(opts.module && opts.page) {
-		args.cmd = opts.module+'.page.'+opts.page+'.'+opts.page+'.'+opts.method;
-	} else if(opts.doc) {
-		$.extend(args, {
-			cmd: "runserverobj",
-			docs: frappe.get_doc(opts.doc.doctype, opts.doc.name),
-			method: opts.method,
-			args: opts.args,
-		});
-	} else if(opts.method) {
-		args.cmd = opts.method;
-	}
+		// cmd
+		if(opts.module && opts.page) {
+			args.cmd = opts.module+'.page.'+opts.page+'.'+opts.page+'.'+opts.method;
+		} else if(opts.doc) {
+			$.extend(args, {
+				cmd: "runserverobj",
+				docs: frappe.get_doc(opts.doc.doctype, opts.doc.name),
+				method: opts.method,
+				args: opts.args,
+			});
+		} else if(opts.method) {
+			args.cmd = opts.method;
+		}
 
-	var callback = function(data, response_text) {
-		if(data.task_id) {
-			// async call, subscribe
-			frappe.socket.subscribe(data.task_id, opts);
+		var callback = function(data, response_text) {
+			if(data.task_id) {
+				// async call, subscribe
+				frappe.socket.subscribe(data.task_id, opts);
 
-			if(opts.queued) {
-				opts.queued(data);
+				if(opts.queued) {
+					opts.queued(data);
+				}
 			}
+			else if (opts.callback) {
+				// ajax
+				return opts.callback(data, response_text);
+			}
+			resolve(data);
 		}
-		else if (opts.callback) {
-			// ajax
-			return opts.callback(data, response_text);
-		}
-	}
 
-	return frappe.request.call({
-		type: opts.type || "POST",
-		args: args,
-		success: callback,
-		error: opts.error,
-		always: opts.always,
-		btn: opts.btn,
-		freeze: opts.freeze,
-		freeze_message: opts.freeze_message,
-		// show_spinner: !opts.no_spinner,
-		async: opts.async,
-		url: opts.url || frappe.request.url,
+		return frappe.request.call({
+			type: opts.type || "POST",
+			args: args,
+			success: callback,
+			error: opts.error,
+			always: opts.always,
+			btn: opts.btn,
+			freeze: opts.freeze,
+			freeze_message: opts.freeze_message,
+			// show_spinner: !opts.no_spinner,
+			async: opts.async,
+			url: opts.url || frappe.request.url,
+		});
 	});
 }
 
