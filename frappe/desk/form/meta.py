@@ -50,8 +50,8 @@ class FormMeta(Meta):
 		for k in ("__js", "__css", "__list_js", "__calendar_js", "__map_js",
 			"__linked_with", "__messages", "__print_formats", "__workflow_docs",
 			"__form_grid_templates", "__listview_template", "__tree_js",
-			"__dashboard", "__kanban_boards", "__kanban_column_fields", '__templates',
-			'__custom_js'):
+			"__dashboard", "__kanban_boards", "__kanban_column_fields", "__goals",
+			'__templates', '__custom_js'):
 			d[k] = self.get(k)
 
 		for i, df in enumerate(d.get("fields")):
@@ -195,7 +195,8 @@ class FormMeta(Meta):
 		print self.name
 		print "===================================="
 		goals = frappe.get_list(
-			'Goal', fields=['source_filter', 'type_of_aggregation', 'based_on'], filters={'source': self.name})
+			'Goal', fields=['source_filter', 'frequency', 'type_of_aggregation',
+				'based_on', 'target'], filters={'source': self.name})
 		self.set("__goals", goals, as_value=True)
 
 def get_code_files_via_hooks(hook, name):

@@ -90,6 +90,12 @@ class Meta(Document):
 		return self.get("fields", {"fieldtype": "Select", "options":["not in",
 			["[Select]", "Loading..."]]})
 
+	def get_numeric_fields(self):
+		return self.get("fields", {"fieldtype": ("in", ["Int", "Float"])})
+
+	def get_currency_fields(self):
+		return self.get("fields", {"fieldtype": "Currency"})
+
 	def get_table_fields(self):
 		if not hasattr(self, "_table_fields"):
 			if self.name!="DocType":
