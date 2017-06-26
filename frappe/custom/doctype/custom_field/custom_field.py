@@ -39,6 +39,14 @@ class CustomField(Document):
 		if not self.fieldname:
 			frappe.throw(_("Fieldname not set for Custom Field"))
 
+		self.validate_fieldname()
+
+	def validate_fieldname(self):
+		#Don't create the custom field with name same as method name
+		doc = frappe.new_doc(self.dt)
+		if hasattr(doc, self.fieldname) and callable(getattr(doc, self.fieldname)):
+			frappe.throw(_("The system method is exist with the same fieldname, kindly change the label and save it again"))
+
 	def on_update(self):
 		frappe.clear_cache(doctype=self.dt)
 		if not self.flags.ignore_validate:
