@@ -1,6 +1,7 @@
 language: python
 dist: trusty
-group: deprecated-2017Q
+group: deprecated-2017Q2
+
 addons:
   chrome: stable
 
