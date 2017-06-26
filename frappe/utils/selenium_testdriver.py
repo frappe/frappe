@@ -109,7 +109,7 @@ class TestDriver(object):
 		self.wait_for(xpath='//div[@data-page-route="{0}"]'.format('/'.join(args)), timeout=4)
 
 	def click(self, css_selector, xpath=None):
-		self.wait_till_clickable(css_selector).click()
+		self.wait_till_clickable(css_selector, xpath).click()
 
 	def click_primary_action(self):
 		selector = ".page-actions .primary-action"
@@ -121,7 +121,7 @@ class TestDriver(object):
 		if self.cur_route:
 			selector = self.cur_route + " " + selector
 
-		By.CSS_SELECTOR
+		by = By.CSS_SELECTOR
 		if xpath:
 			by = By.XPATH
 			selector = xpath
