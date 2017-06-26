@@ -1289,7 +1289,14 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		frappe._from_link = this;
 		frappe._from_link_scrollY = $(document).scrollTop();
 
-		frappe.ui.form.quick_entry(doctype, function(doc) {
+		var trimmed_doctype = doctype.replace(/ /g, '');
+		var controller_name = "QuickEntryForm";
+
+		if(frappe.ui.form[trimmed_doctype + "QuickEntryForm"]){
+			controller_name = trimmed_doctype + "QuickEntryForm";
+		}
+
+		new frappe.ui.form[controller_name](doctype, function(doc) {
 			if(me.frm) {
 				me.parse_validate_and_set_in_model(doc.name);
 			} else {
