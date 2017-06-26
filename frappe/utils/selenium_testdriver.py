@@ -18,19 +18,19 @@ import os, sys
 import frappe
 
 class TestDriver(object):
-	def __init__(self, host=None, port='8000'):
-		self.host = host
+	def __init__(self, port='8000'):
 		self.port = port
-		if not self.host:
-			if os.environ.get('CI'):
-				self.host = 'localhost'
-			else:
-				self.host = frappe.local.site
 
-			chrome_options = Options()
-			chrome_options.add_argument("--no-sandbox")
-			chrome_options.add_argument("--start-maximized")
-			self.driver = webdriver.Chrome(chrome_options=chrome_options)
+		chrome_options = Options()
+
+		if os.environ.get('CI'):
+			self.host = 'localhost'
+		else:
+			self.host = frappe.local.site
+
+		chrome_options.add_argument('--no-sandbox')
+		chrome_options.add_argument('--headless')
+		self.driver = webdriver.Chrome(chrome_options=chrome_options)
 
 		self.driver.set_window_size(1080,800)
 		self.cur_route = None
