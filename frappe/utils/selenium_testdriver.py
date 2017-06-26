@@ -10,6 +10,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 #from selenium.webdriver.support.select import Select
 from selenium.webdriver.support import expected_conditions as EC
 #from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.chrome.options import Options
+
 import time
 import signal
 import os, sys
@@ -25,7 +27,11 @@ class TestDriver(object):
 				self.host = frappe.local.site
 
 		self.port = port
-		self.driver = webdriver.Chrome()
+
+		chrome_options = Options()
+		chrome_options.add_argument("--no-sandbox")
+		chrome_options.add_argument("--start-maximized")
+		self.driver = webdriver.Chrome(chrome_options=chrome_options)
 		self.driver.set_window_size(1080,800)
 		self.cur_route = None
 		self.logged_in = False
