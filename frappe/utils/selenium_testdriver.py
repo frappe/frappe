@@ -3,7 +3,6 @@
 
 from __future__ import unicode_literals, print_function
 
-from selenium.webdriver.common.keys import Keys
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -59,7 +58,8 @@ class TestDriver(object):
 		self.get('login')
 		self.wait_for("#login_email")
 		self.set_input("#login_email", "Administrator")
-		self.set_input("#login_password", "admin", key=Keys.RETURN)
+		self.set_input("#login_password", "admin")
+		self.click('.btn-login')
 		self.wait_for(wait_for_id)
 		self.logged_in = True
 
@@ -108,17 +108,26 @@ class TestDriver(object):
 
 		self.wait_for(xpath='//div[@data-page-route="{0}"]'.format('/'.join(args)), timeout=4)
 
+	def click(self, css_selector, xpath=None):
+		self.wait_till_clickable(css_selector).click()
+
 	def click_primary_action(self):
 		selector = ".page-actions .primary-action"
 		self.scroll_to(selector)
 		self.wait_till_clickable(selector).click()
 		self.wait_for_ajax()
 
-	def wait_till_clickable(self, selector):
+	def wait_till_clickable(self, selector=None, xpath=None):
 		if self.cur_route:
 			selector = self.cur_route + " " + selector
+
+		By.CSS_SELECTOR
+		if xpath:
+			by = By.XPATH
+			selector = xpath
+
 		return self.get_wait().until(EC.element_to_be_clickable(
-			(By.CSS_SELECTOR, selector)))
+			(by, selector)))
 
 	def execute_script(self, js):
 		self.driver.execute_script(js)
