@@ -19,14 +19,14 @@ class TestDriver(object):
 	def __init__(self, host=None, port='8000'):
 		self.host = host
 		self.port = port
-		self.driver = webdriver.Chrome()
+		self.driver = webdriver.Firefox()
 		self.driver.set_window_size(1080,800)
 		self.cur_route = None
 		self.logged_in = False
 
 	@property
 	def localhost(self):
-		return "{host}:{port}".format(host=frappe.local.site, port=self.port)
+		return "http://{host}:{port}".format(host=frappe.local.site, port=self.port)
 
 	def get(self, url):
 		return self.driver.get(os.path.join(self.localhost, url))
