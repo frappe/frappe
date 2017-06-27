@@ -68,7 +68,8 @@ class FormMeta(Meta):
 		system_country = frappe.get_system_country()
 
 		self._add_code(_get_path(self.name + '.js'), '__js')
-		self._add_code(_get_path(os.path.join('regional', system_country + '.js')), '__js')
+		if system_country:
+			self._add_code(_get_path(os.path.join('regional', system_country + '.js')), '__js')
 		self._add_code(_get_path(self.name + '.css'), "__css")
 		self._add_code(_get_path(self.name + '_list.js'), '__list_js')
 		self._add_code(_get_path(self.name + '_calendar.js'), '__calendar_js')

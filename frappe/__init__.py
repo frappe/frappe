@@ -1364,6 +1364,6 @@ def get_active_domains():
 	return active_domains
 
 def get_system_country():
-	if not local.system_country:
-		local.system_country = db.get_single_value('System Settings', 'country')
+	if local.system_country is None:
+		local.system_country = db.get_single_value('System Settings', 'country') or ''
 	return local.system_country
