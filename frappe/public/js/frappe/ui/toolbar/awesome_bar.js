@@ -18,7 +18,6 @@ frappe.search.AwesomeBar = Class.extend({
 			autoFirst: true,
 			list: [],
 			filter: function (text, term) {
-				this.get_item(text.value).boo = "foo";
 				return true;
 			},
 			data: function (item, input) {
@@ -194,6 +193,7 @@ frappe.search.AwesomeBar = Class.extend({
 				}
 			} else {
 				out.push(option);
+				routes.push("");
 			}
 		});
 		return out;
