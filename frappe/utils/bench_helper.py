@@ -78,7 +78,7 @@ def get_frappe_commands():
 		if app_commands:
 			commands.extend(app_commands.keys())
 
-	print(json.dumps(get_app_commands('frappe').keys()))
+	print(json.dumps(commands))
 
 @click.command('get-frappe-help')
 def get_frappe_help():
