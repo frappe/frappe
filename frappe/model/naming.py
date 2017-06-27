@@ -8,17 +8,16 @@ from frappe.utils import now_datetime, cint
 import re
 
 def set_new_name(doc):
-	"""Sets the `name`` property for the document based on various rules.
+	"""
+	Sets the `name` property for the document based on various rules.
 
-	1. If amened doc, set suffix.
-	3. If `autoname` method is declared, then call it.
-	4. If `autoname` property is set in the DocType (`meta`), then build it using the `autoname` property.
-	2. If `name` is already defined, use that name
-	5. If no rule defined, use hash.
+	1. If amended doc, set suffix.
+	2. If `autoname` method is declared, then call it.
+	3. If `autoname` property is set in the DocType (`meta`), then build it using the `autoname` property.
+	4. If no rule defined, use hash.
 
-	#### Note:
-
-	:param doc: Document to be named."""
+	:param doc: Document to be named.
+	"""
 
 	doc.run_method("before_naming")
 
