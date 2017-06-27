@@ -271,6 +271,18 @@ Weekly</pre>
         
         <tr >
             <td>9</td>
+            <td ><code>dropbox_access_token</code></td>
+            <td >
+                Password</td>
+            <td class="text-muted" title="Hidden">
+                Dropbox Access Token
+                
+            </td>
+            <td></td>
+        </tr>
+        
+        <tr >
+            <td>10</td>
             <td ><code>dropbox_setup_via_site_config</code></td>
             <td >
                 Check</td>
@@ -307,51 +319,9 @@ Weekly</pre>
     
     
 	<p class="docs-attr-name">
-        <a name="get_dropbox_session" href="#get_dropbox_session" class="text-muted small">
-            <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		<b>get_dropbox_session</b>
-        <i class="text-muted">(self)</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
-
-        
-        
-    
-    
-	<p class="docs-attr-name">
         <a name="onload" href="#onload" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		<b>onload</b>
-        <i class="text-muted">(self)</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
-
-        
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="validate" href="#validate" class="text-muted small">
-            <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		<b>validate</b>
-        <i class="text-muted">(self)</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
-
-        
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="validate_dropbox_credentails" href="#validate_dropbox_credentails" class="text-muted small">
-            <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		<b>validate_dropbox_credentails</b>
         <i class="text-muted">(self)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
@@ -383,14 +353,46 @@ Weekly</pre>
 	
         
     
+    
+	<p class="docs-attr-name">
+        <a name="frappe.integrations.doctype.dropbox_settings.dropbox_settings.create_folder_if_not_exists" href="#frappe.integrations.doctype.dropbox_settings.dropbox_settings.create_folder_if_not_exists" class="text-muted small">
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
+		frappe.integrations.doctype.dropbox_settings.dropbox_settings.<b>create_folder_if_not_exists</b>
+        <i class="text-muted">(folder, dropbox_client)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
     <p><span class="label label-info">Public API</span>
-        <br><code>/api/method/frappe.integrations.doctype.dropbox_settings.dropbox_settings.dropbox_callback</code>
+        <br><code>/api/method/frappe.integrations.doctype.dropbox_settings.dropbox_settings.dropbox_auth_finish</code>
     </p>
 	<p class="docs-attr-name">
-        <a name="frappe.integrations.doctype.dropbox_settings.dropbox_settings.dropbox_callback" href="#frappe.integrations.doctype.dropbox_settings.dropbox_settings.dropbox_callback" class="text-muted small">
+        <a name="frappe.integrations.doctype.dropbox_settings.dropbox_settings.dropbox_auth_finish" href="#frappe.integrations.doctype.dropbox_settings.dropbox_settings.dropbox_auth_finish" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.integrations.doctype.dropbox_settings.dropbox_settings.<b>dropbox_callback</b>
-        <i class="text-muted">(oauth_token=None, not_approved=False)</i>
+		frappe.integrations.doctype.dropbox_settings.dropbox_settings.<b>dropbox_auth_finish</b>
+        <i class="text-muted">(return_access_token=False)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.integrations.doctype.dropbox_settings.dropbox_settings.generate_oauth2_access_token_from_oauth1_token" href="#frappe.integrations.doctype.dropbox_settings.dropbox_settings.generate_oauth2_access_token_from_oauth1_token" class="text-muted small">
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
+		frappe.integrations.doctype.dropbox_settings.dropbox_settings.<b>generate_oauth2_access_token_from_oauth1_token</b>
+        <i class="text-muted">(dropbox_settings=None)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
@@ -421,10 +423,28 @@ Weekly</pre>
     
     
 	<p class="docs-attr-name">
-        <a name="frappe.integrations.doctype.dropbox_settings.dropbox_settings.get_dropbox_client" href="#frappe.integrations.doctype.dropbox_settings.dropbox_settings.get_dropbox_client" class="text-muted small">
+        <a name="frappe.integrations.doctype.dropbox_settings.dropbox_settings.get_dropbox_settings" href="#frappe.integrations.doctype.dropbox_settings.dropbox_settings.get_dropbox_settings" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.integrations.doctype.dropbox_settings.dropbox_settings.<b>get_dropbox_client</b>
-        <i class="text-muted">(previous_dropbox_client=None)</i>
+		frappe.integrations.doctype.dropbox_settings.dropbox_settings.<b>get_dropbox_settings</b>
+        <i class="text-muted">(redirect_uri=False)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    <p><span class="label label-info">Public API</span>
+        <br><code>/api/method/frappe.integrations.doctype.dropbox_settings.dropbox_settings.get_redirect_url</code>
+    </p>
+	<p class="docs-attr-name">
+        <a name="frappe.integrations.doctype.dropbox_settings.dropbox_settings.get_redirect_url" href="#frappe.integrations.doctype.dropbox_settings.dropbox_settings.get_redirect_url" class="text-muted small">
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
+		frappe.integrations.doctype.dropbox_settings.dropbox_settings.<b>get_redirect_url</b>
+        <i class="text-muted">()</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
@@ -441,6 +461,24 @@ Weekly</pre>
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		frappe.integrations.doctype.dropbox_settings.dropbox_settings.<b>send_email</b>
         <i class="text-muted">(success, service_name, error_status=None)</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    <p><span class="label label-info">Public API</span>
+        <br><code>/api/method/frappe.integrations.doctype.dropbox_settings.dropbox_settings.set_dropbox_access_token</code>
+    </p>
+	<p class="docs-attr-name">
+        <a name="frappe.integrations.doctype.dropbox_settings.dropbox_settings.set_dropbox_access_token" href="#frappe.integrations.doctype.dropbox_settings.dropbox_settings.set_dropbox_access_token" class="text-muted small">
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
+		frappe.integrations.doctype.dropbox_settings.dropbox_settings.<b>set_dropbox_access_token</b>
+        <i class="text-muted">(access_token)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
