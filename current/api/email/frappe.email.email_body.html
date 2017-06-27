@@ -178,7 +178,7 @@ Also sets all messages as multipart/alternative for cleaner reading in text-only
         <a name="add_attachment" href="#add_attachment" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		<b>add_attachment</b>
-        <i class="text-muted">(self, fname, fcontent, content_type=None)</i>
+        <i class="text-muted">(self, fname, fcontent, content_type=None, parent=None, content_id=None)</i>
     </p>
 	<div class="docs-attr-desc"><p>add attachment</p>
 </div>
@@ -276,7 +276,7 @@ Also sets all messages as multipart/alternative for cleaner reading in text-only
         <a name="set_html" href="#set_html" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		<b>set_html</b>
-        <i class="text-muted">(self, message, text_content=None, footer=None, print_html=None, formatted=None)</i>
+        <i class="text-muted">(self, message, text_content=None, footer=None, print_html=None, formatted=None, inline_images=None)</i>
     </p>
 	<div class="docs-attr-desc"><p>Attach message in the html portion of multipart/alternative</p>
 </div>
@@ -346,7 +346,7 @@ Also sets all messages as multipart/alternative for cleaner reading in text-only
         <a name="set_part_html" href="#set_part_html" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		<b>set_part_html</b>
-        <i class="text-muted">(self, message)</i>
+        <i class="text-muted">(self, message, inline_images)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
@@ -395,7 +395,7 @@ Also sets all messages as multipart/alternative for cleaner reading in text-only
         <a name="frappe.email.email_body.get_email" href="#frappe.email.email_body.get_email" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		frappe.email.email_body.<b>get_email</b>
-        <i class="text-muted">(recipients, sender=, msg=, subject=[No Subject], text_content=None, footer=None, print_html=None, formatted=None, attachments=None, content=None, reply_to=None, cc=[], email_account=None, expose_recipients=None)</i>
+        <i class="text-muted">(recipients, sender=, msg=, subject=[No Subject], text_content=None, footer=None, print_html=None, formatted=None, attachments=None, content=None, reply_to=None, cc=[], email_account=None, expose_recipients=None, inline_images=[])</i>
     </p>
 	<div class="docs-attr-desc"><p>send an html email as multipart with attachments and all</p>
 </div>
