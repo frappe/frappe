@@ -306,6 +306,7 @@ frappe.views.QueryReport = Class.extend({
 				var f = me.page.add_field(df);
 				$(f.wrapper).addClass("filters pull-left");
 				me.filters.push(f);
+
 				if(df["default"]) {
 					f.set_input(df["default"]);
 				}
@@ -327,6 +328,7 @@ frappe.views.QueryReport = Class.extend({
 					}
 					f.set_mandatory && f.set_mandatory(f.$input.val());
 				}
+				df.ignore_link_validation = true;
 			}
 		});
 

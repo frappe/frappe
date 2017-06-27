@@ -1537,7 +1537,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		// validate the value just entered
 		var me = this;
 
-		if(this.df.options=="[Select]") {
+		if(this.df.options=="[Select]" || this.df.ignore_link_validation) {
 			callback(value);
 			return;
 		}
