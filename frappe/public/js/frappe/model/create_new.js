@@ -323,7 +323,7 @@ frappe.new_doc = function (doctype, opts) {
 					.then(() => { resolve(); });
 			} else {
 				frappe.ui.form.make_quick_entry(doctype)
-					.then(() => { resolve(); })
+					.then(() => { resolve(); });
 			}
 		});
 

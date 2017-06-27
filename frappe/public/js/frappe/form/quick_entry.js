@@ -9,11 +9,11 @@ frappe.ui.form.make_quick_entry = (doctype) => {
 			controller_name = trimmed_doctype + "QuickEntryForm";
 		}
 
-		frappe.quick_entry = new frappe.ui.form[controller_name](doctype)
+		frappe.quick_entry = new frappe.ui.form[controller_name](doctype);
 		frappe.quick_entry.setup()
 			.then((frm) => { resolve(frm); });
 	});
-}
+};
 
 frappe.ui.form.QuickEntryForm = Class.extend({
 	init: function(doctype, after_insert){
@@ -162,7 +162,7 @@ frappe.ui.form.QuickEntryForm = Class.extend({
 		let route = frappe.get_route();
 		let doc = this.dialog.doc;
 		if(route && !(route[0]==='List' && route[1]===doc.doctype)) {
-			frappe.set_route('Form', doc.doctype, doc.name)
+			frappe.set_route('Form', doc.doctype, doc.name);
 		}
 	},
 

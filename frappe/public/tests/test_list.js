@@ -23,7 +23,7 @@ QUnit.test( "test quick entry", function( assert ) {
 
 QUnit.test( "test list values", function( assert ) {
 	assert.expect(2);
-	done = assert.async();
+	let done = assert.async();
 	frappe.set_route('List', 'DocType')
 		.then(() => {
 			assert.deepEqual(['List', 'DocType', 'List'], frappe.get_route());
