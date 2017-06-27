@@ -21,7 +21,7 @@ frappe.ui.form.QuickEntryForm = Class.extend({
 		this.after_insert = after_insert;
 	},
 
-	setup: function(resolve) {
+	setup: function() {
 		let me = this;
 		return new Promise((resolve) => {
 			frappe.model.with_doctype(this.doctype, function() {
@@ -117,12 +117,12 @@ frappe.ui.form.QuickEntryForm = Class.extend({
 
 			if(data) {
 				me.dialog.working = true;
-				me.insert(values);
+				me.insert();
 			}
 		});
 	},
 
-	insert: function(values){
+	insert: function() {
 		let me = this;
 		return new Promise((resolve) => {
 			me.update_doc();

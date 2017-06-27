@@ -13,7 +13,7 @@ class TestRunner(Document):
 def get_all_tests():
 	tests = []
 	for app in frappe.get_installed_apps():
-		tests_path = frappe.get_app_path(app, 'public', 'tests', 'ui')
+		tests_path = frappe.get_app_path(app, 'public', 'tests')
 		if os.path.exists(tests_path):
 			for fname in os.listdir(tests_path):
 				if fname.startswith('test') and fname.endswith('.js'):
