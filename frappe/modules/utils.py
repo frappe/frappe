@@ -180,8 +180,8 @@ def load_doctype_module(doctype, module=None, prefix="", suffix=""):
 	try:
 		if key not in doctype_python_modules:
 			doctype_python_modules[key] = frappe.get_module(module_name)
-	except ImportError:
-		raise ImportError('Module import failed for {0} ({1})'.format(doctype, module_name))
+	except ImportError, e:
+		raise ImportError('Module import failed for {0} ({1})'.format(doctype, module_name + ' Error: ' + str(e)))
 
 	return doctype_python_modules[key]
 
