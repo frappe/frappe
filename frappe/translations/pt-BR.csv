@@ -141,7 +141,6 @@ DocType: Kanban Board Column,purple,roxo
 apps/frappe/frappe/public/js/frappe/upload.js +222,Please attach a file or set a URL,"Por favor, anexar um arquivo ou definir uma URL"
 DocType: Async Task,System Manager,Administrador do Sistema
 DocType: Dropbox Settings,Allow Dropbox Access,Permitir Acesso Dropbox
-apps/frappe/frappe/core/doctype/deleted_document/deleted_document.js +11,Restore,Restarurar
 DocType: Workflow State,plus-sign,sinal de mais
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.py +23,Setup already complete,Configuração já está concluída
 apps/frappe/frappe/__init__.py +883,App {0} is not installed,App {0} não está instalado
@@ -511,6 +510,7 @@ DocType: System Settings,Date and Number Format,Data e Formato de número
 apps/frappe/frappe/model/document.py +906,one of,Um dos
 apps/frappe/frappe/public/js/frappe/desk.js +151,Checking one moment,"Checando, um momento"
 apps/frappe/frappe/public/js/frappe/list/list_sidebar.js +353,Show Tags,Mostrar Tags
+DocType: Address,Billing,Faturamento
 DocType: Email Queue,Not Sent,Não Enviados
 DocType: Workflow State,align-justify,Justificar
 apps/frappe/frappe/public/js/frappe/ui/field_group.js +79,Following fields have missing values:,Os campos a seguir estão em branco:
