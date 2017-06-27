@@ -86,6 +86,11 @@ def update_user_name(args):
 		first_name, last_name = first_name.split(' ', 1)
 
 	if args.get("email"):
+		if frappe.db.exists('User', args.get('email')):
+			# running again
+			return
+
+
 		args['name'] = args.get("email")
 
 		_mute_emails, frappe.flags.mute_emails = frappe.flags.mute_emails, True

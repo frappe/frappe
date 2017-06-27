@@ -7,7 +7,9 @@ import frappe
 from frappe.model.document import Document
 
 class CustomRole(Document):
-	pass
+	def validate(self):
+		if self.report and not self.ref_doctype:
+			self.ref_doctype = frappe.db.get_value('Report', self.report, 'ref_doctype')
 
 def get_custom_allowed_roles(field, name):
 	allowed_roles = []
