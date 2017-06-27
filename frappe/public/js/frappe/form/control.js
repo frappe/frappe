@@ -609,6 +609,7 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 		this.set_t_for_today();
 	},
 	set_formatted_input: function(value) {
+		this._super(value);
 		if(value
 			&& ((this.last_value && this.last_value !== value)
 				|| (!this.datepicker.selectedDates.length))) {
