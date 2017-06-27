@@ -761,7 +761,7 @@ DocType: DocField,Section Break,Interruzione di sezione
 DocType: Address,Warehouse,Deposito
 ,Messages,Messaggi
 apps/frappe/frappe/desk/page/applications/applications.js +49,Portal,Portale
-DocType: Email Account,Use Different Email Login ID,Utilizzare diversi ID di accesso di posta elettronica
+DocType: Email Account,Use Different Email Login ID,Utilizzare un diverso ID di accesso alla posta elettronica
 apps/frappe/frappe/desk/query_report.py +82,Must specify a Query to run,Necessario specificare una query per eseguire
 apps/frappe/frappe/config/setup.py +78,"Language, Date and Time settings","Impostazioni di lingua , data e ora"
 DocType: User Email,User Email,user-mail
@@ -1134,7 +1134,7 @@ DocType: Customize Form Field,Number of columns for a field in a Grid (Total Col
 DocType: DocType,System,Sistema
 DocType: Web Form,Max Attachment Size (in MB),Dimensione Max Allegato (in MB)
 apps/frappe/frappe/www/login.html +93,Have an account? Login,Hai un account? Accedi
-apps/frappe/frappe/public/js/legacy/print_format.js +148,Unknown Print Format: {0},Formato Stampa Sconosciuto: {0}
+apps/frappe/frappe/public/js/legacy/print_format.js +148,Unknown Print Format: {0},Formato di Stampa Sconosciuto: {0}
 DocType: Workflow State,arrow-down,freccia verso il basso
 apps/frappe/frappe/public/js/frappe/ui/tree.js +130,Collapse,Collassa
 apps/frappe/frappe/model/delete_doc.py +161,User not allowed to delete {0}: {1},L'utente non ha permesso di eliminare {0}: {1}
@@ -2325,7 +2325,7 @@ DocType: Email Account,Add Signature,Aggiungi Firma
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +38,Left this conversation,Lasciato questa conversazione
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +481,Did not set,Non impostato
 ,Background Jobs,Processi in background
-DocType: ToDo,ToDo,Cose da fare
+DocType: ToDo,ToDo,Da Fare
 DocType: DocField,No Copy,Copia Assente
 DocType: Workflow State,qrcode,QRCode
 apps/frappe/frappe/www/login.html +34,Login with LDAP,Accesso con LDAP
