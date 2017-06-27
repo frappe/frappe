@@ -329,3 +329,5 @@ def print_mandatory_fields(doctype):
 	for d in meta.get("fields", {"reqd":1}):
 		print(d.parent + ":" + d.fieldname + " | " + d.fieldtype + " | " + (d.options or ""))
 	print()
+
+

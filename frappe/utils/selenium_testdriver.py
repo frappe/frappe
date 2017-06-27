@@ -110,8 +110,8 @@ class TestDriver(object):
 				EC.presence_of_element_located((_by, selector)))
 			return elem
 		except Exception, e:
-			body = self.driver.find_element_by_id('body_div')
-			print(body.get_attribute('innerHTML'))
+			# body = self.driver.find_element_by_id('body_div')
+			# print(body.get_attribute('innerHTML'))
 			for entry in self.driver.get_log('browser'):
 				print(entry)
 
