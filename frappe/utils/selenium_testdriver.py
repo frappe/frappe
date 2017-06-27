@@ -33,6 +33,7 @@ class TestDriver(object):
 		d['loggingPrefs'] = { 'browser':'ALL' }
 
 		chrome_options.add_argument('--no-sandbox')
+		chrome_options.add_argument('--start-maximized')
 		self.driver = webdriver.Chrome(chrome_options=chrome_options, desired_capabilities=d)
 
 		self.driver.set_window_size(1080,800)
@@ -100,10 +101,12 @@ class TestDriver(object):
 		try:
 			elem = self.get_wait(timeout).until(
 				EC.presence_of_element_located((_by, selector)))
+			return elem
 		except Exception:
 			for entry in self.driver.get_log('browser'):
 				print(entry)
-		return elem
+
+			return None
 
 	def get_wait(self, timeout=20):
 		return WebDriverWait(self.driver, timeout)
