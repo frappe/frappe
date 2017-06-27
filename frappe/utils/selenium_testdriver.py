@@ -22,20 +22,26 @@ class TestDriver(object):
 		self.port = port
 
 		chrome_options = Options()
+		capabilities = DesiredCapabilities.CHROME
 
 		if os.environ.get('CI'):
 			self.host = 'localhost'
+
+			# username = os.environ["SAUCE_USERNAME"]
+			# access_key = os.environ["SAUCE_ACCESS_KEY"]
+			# capabilities["tunnel-identifier"] = os.environ["TRAVIS_JOB_NUMBER"]
+			# hub_url = "%s:%s@localhost:4445" % (username, access_key)
+			# self.driver = webdriver.Remote(desired_capabilities=capabilities, command_executor="https://%s/wd/hub" % hub_url)
 		else:
 			self.host = frappe.local.site
 
 		# enable browser logging
-		d = DesiredCapabilities.CHROME
-		d['loggingPrefs'] = { 'browser':'ALL' }
+		capabilities['loggingPrefs'] = { 'browser':'ALL' }
 
 		chrome_options.add_argument('--no-sandbox')
 		chrome_options.add_argument('--start-maximized')
 		self.driver = webdriver.Chrome(chrome_options=chrome_options,
-			desired_capabilities=d)
+			desired_capabilities=capabilities, port=9515)
 
 		self.driver.set_window_size(1080,800)
 		self.cur_route = None

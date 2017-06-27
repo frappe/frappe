@@ -8,6 +8,9 @@ addons:
       - google-chrome
     packages:
       - google-chrome-stable
+  sauce_connect:
+    username: "rmehta1"
+    access_key: "a80640ec-24c8-44ad-9398-1b6f123ae4a1"
 
 python:
   - "2.7"
