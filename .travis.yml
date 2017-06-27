@@ -48,5 +48,5 @@ before_script:
 
 script:
   - set -e
-  - bench --verbose run-tests
-  - bench reinstall --yes
+  - bench --verbose run-tests --module frappe.tests.ui.test_login
+  #- bench --verbose run-tests
