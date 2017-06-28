@@ -1,9 +1,9 @@
 .setup-wizard-brand {
 	margin: 40px;
-    text-align: center;
-    display: flex;
-    justify-content: center;
-    align-items: center
+	text-align: center;
+	display: flex;
+	justify-content: center;
+	align-items: center
 }
 
 .setup-wizard-brand .brand-icon {
@@ -13,8 +13,8 @@
 
 .setup-wizard-brand .brand-name {
 	font-size: 20px;
-    margin-left: 8px;
-    color: #36414C;
+	margin-left: 8px;
+	color: #36414C;
 }
 
 .setup-wizard-slide {
@@ -33,7 +33,7 @@
 }
 
 .setup-wizard-slide .lead {
-    margin: 40px;
+	margin: 40px;
 	color: #777777;
 	text-align: center;
 	font-size: 30px;
@@ -44,11 +44,11 @@
 }
 
 .setup-wizard-slide .section-body .col-sm-6:first-child {
-    padding-left: 0px;
+	padding-left: 0px;
 }
 
 .setup-wizard-slide .section-body .col-sm-6:last-child {
-    padding-right: 0px;
+	padding-right: 0px;
 }
 
 .setup-wizard-slide .form-control {
@@ -81,19 +81,19 @@
 
 .setup-wizard-slide a.next-btn,
 .setup-wizard-slide a.complete-btn {
-    font-size: 14px;
-    padding: 7px 25px;
+	font-size: 14px;
+	padding: 7px 25px;
 }
 
 .setup-wizard-slide a.next-btn.disabled,
 .setup-wizard-slide a.complete-btn.disabled {
-    background-color: #b1bdca;
-    color: #fff;
-    border-color: #b1bdca;
+	background-color: #b1bdca;
+	color: #fff;
+	border-color: #b1bdca;
 }
 
 .setup-wizard-progress {
-    padding: 15px;
+	padding: 15px;
 }
 
 .setup-wizard-slide .fa-fw {
@@ -134,8 +134,8 @@
 
 .setup-wizard-slide .missing-image {
 	border: 1px solid #d1d8dd;
-    border-radius: 6px;
-    box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
+	border-radius: 6px;
+	box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
 }
 
 .setup-wizard-slide .missing-image .octicon {
@@ -148,21 +148,21 @@
 
 .setup-wizard-slide .img-container {
 	height: 100%;
-    width: 100%;
-    padding: 2px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
+	width: 100%;
+	padding: 2px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	position: relative;
 	border: 1px solid #d1d8dd;
-    border-radius: 6px;
+	border-radius: 6px;
 	box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
 }
 
 .setup-wizard-slide .img-overlay {
 	display: flex;
-    align-items: center;
-    justify-content: center;
+	align-items: center;
+	justify-content: center;
 	position: absolute;
 	width: 100%;
 	height: 100%;

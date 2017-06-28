@@ -179,7 +179,7 @@ def load_messages(language):
 
 @frappe.whitelist()
 def load_languages():
-	language_codes = frappe.db.sql('select language_code, language_name from tabLanguage order by name', as_dict=True);
+	language_codes = frappe.db.sql('select language_code, language_name from tabLanguage order by name', as_dict=True)
 	codes_to_names = {}
 	for d in language_codes:
 		codes_to_names[d.language_code] = d.language_name
@@ -191,11 +191,8 @@ def load_languages():
 
 @frappe.whitelist()
 def load_country():
-	import requests
-	response = requests.get("http://freegeoip.net/json/")
-	response.raise_for_status()
-	country = response.json()["country_name"]
-	return country
+	from frappe.sessions import get_geo_ip_country
+	return get_geo_ip_country(frappe.local.request_ip) if frappe.local.request_ip else None
 
 @frappe.whitelist()
 def load_user_details():

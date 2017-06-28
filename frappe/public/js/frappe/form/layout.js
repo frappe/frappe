@@ -44,10 +44,10 @@ frappe.ui.form.Layout = Class.extend({
 			this.message.empty().addClass('hidden');
 		}
 	},
-	render: function(fields) {
+	render: function(new_fields) {
 		var me = this;
 
-		var fields = fields || this.fields;
+		var fields = new_fields || this.fields;
 		this.section = null;
 		this.column = null;
 		if((fields[0] && fields[0].fieldtype!="Section Break") || !fields.length) {
@@ -232,7 +232,7 @@ frappe.ui.form.Layout = Class.extend({
 	},
 
 	refresh_fields: function(fields) {
-		fieldnames = fields.map((field) => {
+		let fieldnames = fields.map((field) => {
 			if(field.label) return field.label;
 		});
 

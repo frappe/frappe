@@ -1,10 +1,10 @@
-var login = require("./login.js")['Login']
+var login = require("./login.js")['Login'];
 
 module.exports = {
 	before: browser => {
 		browser
 			.url(browser.launch_url + '/login')
-			.waitForElementVisible('body', 5000)
+			.waitForElementVisible('body', 5000);
 	},
 	'Login': login,
 	'Welcome': browser => {

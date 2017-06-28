@@ -531,7 +531,7 @@ frappe.ui.form.ControlPassword = frappe.ui.form.ControlData.extend({
 		this.indicator = this.$wrapper.find('.password-strength-indicator');
 		this.message = this.$wrapper.find('.help-box');
 
-		this.$input.on('input', (e) => {
+		this.$input.on('input', () => {
 			var $this = $(this);
 			clearTimeout($this.data('timeout'));
 			$this.data('timeout', setTimeout(() => {

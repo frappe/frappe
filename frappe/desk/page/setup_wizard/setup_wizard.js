@@ -29,14 +29,11 @@ frappe.pages['setup-wizard'].on_page_load = function(wrapper) {
 	// setup page ui
 	$(".navbar:first").toggle(false);
 
-	$('header').append(`<div class="setup-wizard-brand"">
-		<img src="/assets/frappe_theme/img/erp-icon.svg" class="brand-icon"
-		style="width:36px;"><span class="brand-name">ERPNext</span></div>`);
-
 	var requires = ["/assets/frappe/css/animate.min.css"].concat(frappe.boot.setup_wizard_requires || []);
 
 	frappe.require(requires, function() {
 		frappe.setup.run_event("before_load");
+
 		var wizard_settings = {
 			page_name: "setup-wizard",
 			parent: wrapper,
@@ -81,6 +78,7 @@ frappe.setup.Wizard = Class.extend({
 		</div>', {html:html}))
 	},
 	show_working: function() {
+		$('header').find('.setup-wizard-brand').hide();
 		this.hide_current_slide();
 		frappe.set_route(this.page_name);
 		this.current_slide = {"$wrapper": this.get_message(this.working_html()).appendTo(this.parent)};
@@ -247,13 +245,13 @@ frappe.setup.WizardSlide = Class.extend({
 		}
 
 		this.$body = $(frappe.render_template("setup_wizard_page", {
-				help: __(this.help),
-				title:__(this.title),
-				main_title:__(this.wiz.title),
-				step: this.id + 1,
-				name: this.name,
-				slides_count: this.wiz.slides.length
-			})).appendTo(this.$wrapper);
+			help: __(this.help),
+			title:__(this.title),
+			main_title:__(this.wiz.title),
+			step: this.id + 1,
+			name: this.name,
+			slides_count: this.wiz.slides.length
+		})).appendTo(this.$wrapper);
 
 		this.body = this.$body.find(".form")[0];
 
@@ -378,7 +376,7 @@ frappe.setup.WizardSlide = Class.extend({
 	bind_fields_to_next: function($primary_btn) {
 		var me = this;
 		this.reqd_fields.map((field) => {
-			field.$wrapper.on('change input', (e) => {
+			field.$wrapper.on('change input', () => {
 				me.reset_next($primary_btn);
 			});
 		});
@@ -505,7 +503,7 @@ var frappe_slides = [
 		],
 		help: __('The first user will become the System Manager (you can change this later).'),
 		onload: function(slide) {
-			if(user!=="Administrator") {
+			if(frappe.session.user!=="Administrator") {
 				// remove password field
 				delete slide.form.fields_dict.password;
 
@@ -534,7 +532,7 @@ var frappe_slides = [
 				slide.form.fields_dict.full_name.set_input(frappe.setup.data.full_name);
 			}
 			if(frappe.setup.data.email) {
-				email = frappe.setup.data.email;
+				let email = frappe.setup.data.email;
 				slide.form.fields_dict.email.set_input(email);
 				if (frappe.get_gravatar(email, 200)) {
 					var $attach_user_image = slide.form.fields_dict.attach_user_image.$wrapper;
@@ -545,7 +543,7 @@ var frappe_slides = [
 			}
 		},
 	},
-]
+];
 
 var utils = {
 	load_languages: function(slide, callback) {
@@ -632,6 +630,7 @@ var utils = {
 
 		country_field.df.description = 'fetching country...';
 		country_field.set_description();
+
 		// get location from IP (unreliable)
 		frappe.call({
 			method:"frappe.desk.page.setup_wizard.setup_wizard.load_country",
@@ -639,13 +638,11 @@ var utils = {
 				if(r.message) {
 					slide.get_field("country").set_input(r.message);
 					slide.get_input("country").trigger('change');
-
-					country_field.df.description = '';
-					country_field.set_description();
 				}
+				country_field.df.description = '';
+				country_field.set_description();
 			}
 		});
-
 	},
 
 	bind_language_events: function(slide) {
@@ -719,7 +716,12 @@ var utils = {
 frappe.setup.on("before_load", function() {
 	// load slides
 	frappe_slides.map(frappe.setup.add_slide);
-	// console.log(frappe.setup.slides);
+
+	// set header image
+	let $icon = $('header .setup-wizard-brand');
+	if($icon.length === 0) {
+		$('header').append(`<div class="setup-wizard-brand"">
+			<img src="/assets/frappe/images/frappe-bird-grey.svg"
+			class="brand-icon frappe-icon" style="width:36px;"></div>`);
+	}
 });
-
-
