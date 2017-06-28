@@ -95,8 +95,14 @@ def add_to_date(date, years=0, months=0, days=0, hours=0, as_string=False, as_da
 	else:
 		return date
 
+def add_hours(date, hours):
+	return add_to_date(date, hours=hours)
+
 def add_days(date, days):
 	return add_to_date(date, days=days)
+
+def add_weeks(date, weeks):
+	return add_to_date(date, days=(weeks*7))
 
 def add_months(date, months):
 	return add_to_date(date, months=months)

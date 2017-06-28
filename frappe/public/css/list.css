@@ -367,7 +367,7 @@
 .goals-view-container .frequency-section {
   background-color: #fafbfc;
   border-bottom: 1px solid #d1d8dd;
-  height: 150px;
+  min-height: 150px;
   padding: 15px;
 }
 .goals-view-container .frequency-section .frequency-title {
@@ -383,8 +383,12 @@
   border-radius: 2px;
   padding: 10px;
   margin-top: 10px;
-  width: 250px;
-  height: 85px;
+  margin-right: 10px;
+  width: 255px;
+}
+.goals-view-container .goal-container .goal-graphics {
+  margin-top: 10px;
+  padding: 10px 0px;
 }
 .goals-view-container .goal-container .goal-graphics .inline-graph-count {
   font-size: 20px;

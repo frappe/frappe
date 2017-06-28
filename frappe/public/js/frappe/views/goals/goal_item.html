@@ -1,20 +1,30 @@
 <div class="goal-container">
     <div class="goal-title">{%= title %}</div>
     <div class="goal-graphics">
-        <span class="inline-graph">
-            <span class="inline-graph-half" title="Completed">
-                <span class="inline-graph-count">{%= completed %}</span>
-                <span class="inline-graph-bar">
-                    <span class="inline-graph-bar-inner" style="width: 25%"></span>
+        <div>
+            <span class="inline-graph" style="margin-left: calc(-50px + {%= completed_percent/2 %}%)">
+                <span class="inline-graph-half" title="Completed">
+                    <span class="inline-graph-count">{%= completed %}</span>
+                    <span class="inline-graph-bar">
+                        <span class="inline-graph-bar-inner" style="width: {{ completed_percent }}%"></span>
+                    </span>
                 </span>
-            </span>
 
-            <span class="inline-graph-half" title="Actual Qty 12 / Waiting Qty 0">
-                <span class="inline-graph-count">{%= remaining %} <span style="font-size: 16px;"> to go</span></span>
-                <span class="inline-graph-bar">
-                    <span class="inline-graph-bar-inner dark" style="width: 100%"></span>
+                <span class="inline-graph-half" title="Actual Qty 12 / Waiting Qty 0">
+                    <span class="inline-graph-count">{%= remaining %} <span style="font-size: 16px;"> to go</span></span>
+                    <span class="inline-graph-bar">
+                        <span class="inline-graph-bar-inner dark" style="width: {{ remaining_percent }}%"></span>
+                    </span>
                 </span>
             </span>
-        </span>
+        </div>
+        <div class="break-up">
+            <span>{%= break_up_freq %}: </span><br><span>{%= break_up %}</span>
+        </div>
+        {% if(average) { %}
+            <div class="values">
+                <span>Count: {%= doc_count %}</span><br><span>Average: {%= average %}</span>
+            </div>
+        {% } %}
     </div>
 </div>
