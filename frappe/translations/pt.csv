@@ -920,7 +920,7 @@ apps/frappe/frappe/website/doctype/web_form/templates/web_form.html +169,Max att
 apps/frappe/frappe/model/document.py +906,one of,um dos
 apps/frappe/frappe/public/js/frappe/desk.js +151,Checking one moment,Verificando um momento
 apps/frappe/frappe/public/js/frappe/list/list_sidebar.js +353,Show Tags,Mostrar as tags
-DocType: Address,Billing,Faturamento
+DocType: Address,Billing,Faturação
 DocType: Email Queue,Not Sent,Não Enviado
 DocType: Web Form,Actions,Ações
 DocType: Workflow State,align-justify,alinhar justificado
@@ -2220,7 +2220,7 @@ DocType: Async Task,Core,Núcleo
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +78,Set Permissions,Definir permissões
 DocType: DocField,Set non-standard precision for a Float or Currency field,Definir precisão não-padrão para um campo Float ou Moeda
 DocType: Email Account,Ignore attachments over this size,Ignorar anexos acima deste tamanho
-DocType: Address,Preferred Billing Address,Endereço de Faturamento Preferido
+DocType: Address,Preferred Billing Address,Endereço de Faturação Preferido
 apps/frappe/frappe/database.py +231,Too many writes in one request. Please send smaller requests,"Muitos escreve em um pedido. Por favor, enviar pedidos de menores"
 apps/frappe/frappe/core/doctype/version/version_view.html +8,Values Changed,Os valores alterados
 DocType: Workflow State,arrow-up,seta-para-cima

@@ -248,7 +248,17 @@ _f.Frm.prototype.clear_table = function(fieldname) {
 _f.Frm.prototype.add_child = function(fieldname, values) {
 	var doc = frappe.model.add_child(this.doc, frappe.meta.get_docfield(this.doctype, fieldname).options, fieldname);
 	if(values) {
-		$.extend(doc, values);
+		// Values of unique keys should not be overridden
+		var d = {};
+		var unique_keys = ["idx", "name"];
+
+		Object.keys(values).map((key) => {
+			if(!unique_keys.includes(key)) {
+				d[key] = values[key];
+			}
+		});
+
+		$.extend(doc, d);
 	}
 	return doc;
 }

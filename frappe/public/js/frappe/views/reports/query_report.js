@@ -306,6 +306,7 @@ frappe.views.QueryReport = Class.extend({
 				var f = me.page.add_field(df);
 				$(f.wrapper).addClass("filters pull-left");
 				me.filters.push(f);
+
 				if(df["default"]) {
 					f.set_input(df["default"]);
 				}
@@ -315,21 +316,19 @@ frappe.views.QueryReport = Class.extend({
 
 				if(df.get_query) f.get_query = df.get_query;
 				if(df.on_change) f.on_change = df.on_change;
-
-				// run report on change
-				f.$input.on("change", function() {
+				df.onchange = () => {
 					if(!me.flags.filters_set) {
 						// don't trigger change while setting filters
 						return;
 					}
-					f.$input.blur();
 					if (f.on_change) {
 						f.on_change(me);
 					} else {
 						me.trigger_refresh();
 					}
 					f.set_mandatory && f.set_mandatory(f.$input.val());
-				});
+				}
+				df.ignore_link_validation = true;
 			}
 		});
 
@@ -416,6 +415,7 @@ frappe.views.QueryReport = Class.extend({
 				return;
 			}
 		});
+
 		if (!missing) {
 			me.refresh();
 		}

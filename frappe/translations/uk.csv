@@ -1179,7 +1179,7 @@ apps/frappe/frappe/public/js/frappe/model/meta.js +189,Last Modified By,Оста
 DocType: Workflow State,hand-down,виносити
 apps/frappe/frappe/core/doctype/doctype/doctype.py +661,{0}: Cannot set Cancel without Submit,{0}: Неможливо встановити Скасувати без Проведення
 DocType: Website Theme,Theme,Тема
-apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +158,There were errors.,Були помилки.
+apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +158,There were errors.,Трапились помилки.
 DocType: OAuth Authorization Code,Redirect URI Bound To Auth Code,"Перенаправлення URI, пов&#39;язаного з Auth кодексу"
 DocType: DocType,Is Submittable,Є Submittable
 apps/frappe/frappe/custom/doctype/property_setter/property_setter.js +7,Value for a check field can be either 0 or 1,"Значення для поля реєстрації може бути або 0, або 1"
@@ -1296,7 +1296,7 @@ apps/frappe/frappe/model/document.py +526,Record does not exist,Запис не 
 apps/frappe/frappe/core/doctype/version/version_view.html +13,Original Value,первісна вартість
 DocType: Help Category,Help Category,Довідка з категорій
 apps/frappe/frappe/utils/oauth.py +288,User {0} is disabled,Користувач {0} відключена
-apps/frappe/frappe/www/404.html +8,Page missing or moved,Сторінка відсутній або переїхав
+apps/frappe/frappe/www/404.html +8,Page missing or moved,Сторінка відсутня або її було переміщено
 apps/frappe/frappe/public/js/legacy/form.js +192,Edit {0} properties,Зміна {0} властивості
 DocType: DocType,Route,маршрут
 apps/frappe/frappe/config/integrations.py +23,Razorpay Payment gateway settings,Налаштування шлюзу оплати Razorpay
@@ -1414,7 +1414,7 @@ apps/frappe/frappe/email/doctype/email_group/email_group.js +13,Import Email Fro
 apps/frappe/frappe/email/doctype/contact/contact.js +20,Invite as User,Запросити стати користувачем
 apps/frappe/frappe/public/js/frappe/views/communication.js +83,Select Attachments,Виберіть Вкладення
 apps/frappe/frappe/model/naming.py +95, for {0},для {0}
-apps/frappe/frappe/website/js/web_form.js +301,There were errors. Please report this.,"Були помилки. Будь ласка, повідомте про це."
+apps/frappe/frappe/website/js/web_form.js +301,There were errors. Please report this.,"Трапились помилки. Будь ласка, повідомте про це."
 apps/frappe/frappe/public/js/legacy/form.js +176,You are not allowed to print this document,Ви не можете надрукувати цей документ
 apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.py +103,Please set filters value in Report Filter table.,"Будь ласка, встановіть значення фільтрів в Report Filter таблиці."
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +375,Loading Report,Завантаження звіту
@@ -2192,7 +2192,7 @@ apps/frappe/frappe/public/js/frappe/form/save.js +15,Cancelling,Скасуван
 DocType: DocType,Allow Rename,Дозволити Перейменувати
 DocType: Authentication Log,Full Name,Повне ім&#39;я
 DocType: DocType,Child Tables are shown as a Grid in other DocTypes.,Дитячі Столики показані у вигляді сітки в інших DOCTYPES.
-apps/frappe/frappe/www/404.html +10,The page you are looking for is missing. This could be because it is moved or there is a typo in the link.,"Сторінка, яку ви шукаєте, відсутній. Це може бути тому, що вона переміщається або є помилка в засланні."
+apps/frappe/frappe/www/404.html +10,The page you are looking for is missing. This could be because it is moved or there is a typo in the link.,"Сторінка, яку ви шукаєте, відсутня. Можливо, вона була переміщена або у посиланні є помилка."
 apps/frappe/frappe/www/404.html +13,Error Code: {0},Код помилки: {0}
 DocType: Blog Post,"Description for listing page, in plain text, only a couple of lines. (max 140 characters)","Опис для перерахування сторінку, у вигляді звичайного тексту, тільки пару рядків. (макс 140 знаків)"
 apps/frappe/frappe/core/page/user_permissions/user_permissions.js +304,Add A User Restriction,Додати A Обмеження користувача

@@ -251,12 +251,22 @@ frappe.ui.Page = Class.extend({
 	},
 
 	add_inner_button: function(label, action, group) {
+		let _action = function() {
+			let btn = $(this);
+			let promise = action();
+			if (promise && promise.then) {
+				btn.attr('disabled', true);
+				promise.then(() => {
+					btn.attr('disabled', false);
+				})
+			}
+		}
 		if(group) {
 			var $group = this.get_inner_group_button(group);
-			return $('<li><a>'+label+'</a></li>').on('click', action).appendTo($group.find(".dropdown-menu"));
+			return $('<li><a>'+label+'</a></li>').on('click', _action).appendTo($group.find(".dropdown-menu"));
 		} else {
 			return $('<button class="btn btn-default btn-xs" style="margin-left: 10px;">'+__(label)+'</btn>')
-				.on("click", action).appendTo(this.inner_toolbar.removeClass("hide"))
+				.on("click", _action).appendTo(this.inner_toolbar.removeClass("hide"))
 		}
 	},
 

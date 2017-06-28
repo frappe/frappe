@@ -6,7 +6,7 @@ httplib2
 jinja2
 markdown2
 markupsafe
-mysqlclient==1.3.8
+mysqlclient==1.3.10
 python-geoip
 python-geoip-geolite2
 python-dateutil

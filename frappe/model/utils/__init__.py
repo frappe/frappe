@@ -61,3 +61,20 @@ def render_include(content):
 			break
 
 	return content
+
+def get_fetch_values(doctype, fieldname, value):
+	'''Returns fetch value dict for the given object
+
+	:param doctype: Target doctype
+	:param fieldname: Link fieldname selected
+	:param value: Value selected
+	'''
+	out = {}
+	meta = frappe.get_meta(doctype)
+	link_df = meta.get_field(fieldname)
+	for df in meta.get_fields_to_fetch(fieldname):
+		# example shipping_address.gistin
+		link_field, source_fieldname = df.options.split('.', 1)
+		out[df.fieldname] = frappe.db.get_value(link_df.options, value, source_fieldname)
+
+	return out
