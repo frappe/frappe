@@ -34,7 +34,7 @@ class TestToDo(unittest.TestCase):
 
 		print(first_element_text)
 
-		self.assertEqual('hello' in first_element_text)
+		self.assertTrue('hello' in first_element_text)
 
 	def tearDown(self):
 		self.driver.close()
