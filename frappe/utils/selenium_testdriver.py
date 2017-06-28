@@ -71,8 +71,8 @@ class TestDriver(object):
 		self.wait_for(wait_for_id)
 		self.logged_in = True
 
-	def set_input(self, selector, text, key=None):
-		elem = self.find(selector)[0]
+	def set_input(self, selector, text, key=None, xpath=None):
+		elem = self.find(selector, xpath=xpath)[0]
 		elem.clear()
 		elem.send_keys(text)
 		if key:
@@ -80,9 +80,17 @@ class TestDriver(object):
 			elem.send_keys(key)
 			time.sleep(0.2)
 
-	def find(self, selector, everywhere=False, xpath=None):
+	def set_field(self, fieldname, text):
+		elem = self.find(xpath='//input[@data-fieldname="{0}"]'.format(fieldname))
+		elem[0].send_keys(text)
+
+	def set_text_editor(self, fieldname, text):
+		elem = self.find(xpath='//div[@data-fieldname="{0}"]//div[@contenteditable="true"]'.format(fieldname))
+		elem[0].send_keys(text)
+
+	def find(self, selector=None, everywhere=False, xpath=None):
 		if xpath:
-			return self.driver.find_elements_by_x_path(xpath)
+			return self.driver.find_elements_by_xpath(xpath)
 		else:
 			if self.cur_route and not everywhere:
 				selector = self.cur_route + " " + selector
@@ -139,9 +147,20 @@ class TestDriver(object):
 
 	def click_primary_action(self):
 		selector = ".page-actions .primary-action"
-		self.scroll_to(selector)
+		#self.scroll_to(selector)
 		self.wait_till_clickable(selector).click()
 		self.wait_for_ajax()
+
+	def click_modal_primary_action(self):
+		self.get_visible_modal().find_element_by_css_selector('.btn-primary').click()
+
+	def get_visible_modal(self):
+		return self.get_visible_element('.modal-content')
+
+	def get_visible_element(self, selector=None, xpath=None):
+		for elem in self.find(selector=selector, xpath=xpath):
+			if elem.is_displayed():
+				return elem
 
 	def wait_till_clickable(self, selector=None, xpath=None):
 		if self.cur_route:
