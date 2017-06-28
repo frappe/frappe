@@ -215,7 +215,8 @@ frappe.ui.Filter = Class.extend({
 					? __("values separated by commas")
 					: __("use % as wildcard"))+'</div>');
 			} else {
-				me.set_field(me.field.df.parent, me.field.df.fieldname, null, condition);
+				//if condition selected after refresh
+				me.set_field(me.field.df.parent, me.field.df.fieldname, me.field.df.fieldtype, condition);
 			}
 		});
 
