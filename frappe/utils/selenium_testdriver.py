@@ -26,17 +26,11 @@ class TestDriver(object):
 
 		if os.environ.get('CI'):
 			self.host = 'localhost'
-
-			# username = os.environ["SAUCE_USERNAME"]
-			# access_key = os.environ["SAUCE_ACCESS_KEY"]
-			# capabilities["tunnel-identifier"] = os.environ["TRAVIS_JOB_NUMBER"]
-			# hub_url = "%s:%s@localhost:4445" % (username, access_key)
-			# self.driver = webdriver.Remote(desired_capabilities=capabilities, command_executor="https://%s/wd/hub" % hub_url)
 		else:
 			self.host = frappe.local.site
 
 		# enable browser logging
-		capabilities['loggingPrefs'] = { 'browser':'ALL' }
+		capabilities['loggingPrefs'] = {'browser':'ALL'}
 
 		chrome_options.add_argument('--no-sandbox')
 		chrome_options.add_argument('--start-maximized')
@@ -112,10 +106,20 @@ class TestDriver(object):
 		except Exception, e:
 			# body = self.driver.find_element_by_id('body_div')
 			# print(body.get_attribute('innerHTML'))
-			for entry in self.driver.get_log('browser'):
-				print(entry)
-
+			self.print_console()
 			raise e
+
+	def print_console(self):
+		for entry in self.driver.get_log('browser'):
+			source, line_no, message = entry.get('message').split(' ', 2)
+
+			if message[0] in ('"', "'"):
+				# message is a quoted/escaped string
+				message = eval(message)
+
+			print(source + ' ' + line_no)
+			print(message)
+			print('-'*40)
 
 	def get_wait(self, timeout=20):
 		return WebDriverWait(self.driver, timeout)

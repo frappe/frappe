@@ -1,4 +1,4 @@
-QUnit.test( "test quick entry", function( assert ) {
+QUnit.test("test quick entry", function(assert) {
 	assert.expect(2);
 	let done = assert.async();
 	let random = frappe.utils.get_random(10);
@@ -21,7 +21,7 @@ QUnit.test( "test quick entry", function( assert ) {
 		});
 });
 
-QUnit.test( "test list values", function( assert ) {
+QUnit.test("test list values", function(assert) {
 	assert.expect(2);
 	let done = assert.async();
 	frappe.set_route('List', 'DocType')
