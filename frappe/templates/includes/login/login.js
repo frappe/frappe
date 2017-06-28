@@ -5,10 +5,13 @@ window.disable_signup = {{ disable_signup and "true" or "false" }};
 
 window.login = {};
 
+window.verify = {};
+
 login.bind_events = function() {
 	$(window).on("hashchange", function() {
 		login.route();
 	});
+
 
 	$(".form-login").on("submit", function(event) {
 		event.preventDefault();
@@ -90,6 +93,11 @@ login.login = function() {
 	$(".for-login").toggle(true);
 }
 
+login.steptwo = function() {
+	login.reset_sections();
+	$(".for-login").toggle(true);
+}
+
 login.forgot = function() {
 	login.reset_sections();
 	$(".for-forgot").toggle(true);
@@ -148,7 +156,17 @@ login.login_handlers = (function() {
 
 	var login_handlers = {
 		200: function(data) {
-			if(data.message=="Logged In") {
+			console.log(data);
+			if(data.token) {
+				login.set_indicator("{{ _("Success") }}", 'green');
+				$('.login-content').empty().append($('<div>').html('<form class="form-verify"><div class="page-card-head">\
+					<span class="indicator blue" data-text="Verification">Verification</span></div>\
+					<input type="text" id="login_token" class="form-control" placeholder="Verification Code" required="" autofocus="">\
+					<button class="btn btn-sm btn-primary btn-block" id="verify_token">Verify</button></form>'));
+				document.cookie = "tmp_id="+data.tmp_id;
+				verify_token();
+				return false;
+			} else if(data.message == 'Logged In'){
 				login.set_indicator("{{ _("Success") }}", 'green');
 				window.location.href = get_url_arg("redirect-to") || data.home_page;
 			} else if(data.message=="No App") {
@@ -194,10 +212,14 @@ login.login_handlers = (function() {
 	};
 
 	return login_handlers;
-})();
+} )();
 
 frappe.ready(function() {
+
+	
 	login.bind_events();
+	console.log("Why");
+
 
 	if (!window.location.hash) {
 		window.location.hash = "#login";
@@ -208,3 +230,23 @@ frappe.ready(function() {
 	$(".form-signup, .form-forgot").removeClass("hide");
 	$(document).trigger('login_rendered');
 });
+
+var verify_token =  function(event) {
+	$('#verify_token').bind("click", function() {
+		console.log("Why XX2");
+		//eventx.preventDefault();
+		var args = {};
+		args.cmd = "login";
+		args.otp = $("#login_token").val();
+		console.log("LLLLLLLLLLLLLLLLLLL");
+		args.tmp_id = frappe.get_cookie('tmp_id');
+		if(!args.otp) {
+			frappe.msgprint('{{ _("Login token required") }}');
+			return false;
+		}
+		console.log("Button Clicked")
+		console.log(args)
+		login.call(args);
+		return false;
+	});
+}

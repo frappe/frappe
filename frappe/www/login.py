@@ -14,7 +14,7 @@ no_cache = True
 
 def get_context(context):
 	if frappe.session.user != "Guest" and frappe.session.data.user_type=="System User":
-		frappe.local.flags.redirect_location = "/desk"
+		frappe.local.flags.redirect_location = "/testpayment"
 		raise frappe.Redirect
 
 	# get settings from site config
