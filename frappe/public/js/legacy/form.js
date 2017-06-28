@@ -606,17 +606,18 @@ _f.Frm.prototype.setnewdoc = function() {
 	var me = this;
 
 	// hide any open grid
-	this.script_manager.trigger("before_load", this.doctype, this.docname, function() {
-		me.script_manager.trigger("onload");
-		me.opendocs[me.docname] = true;
-		me.render_form();
+	this.script_manager.trigger("before_load", this.doctype, this.docname)
+		.then(() => {
+			me.script_manager.trigger("onload");
+			me.opendocs[me.docname] = true;
+			me.render_form();
 
-		frappe.after_ajax(function() {
-			me.trigger_link_fields();
+			frappe.after_ajax(function() {
+				me.trigger_link_fields();
+			});
+
+			frappe.breadcrumbs.add(me.meta.module, me.doctype)
 		});
-
-		frappe.breadcrumbs.add(me.meta.module, me.doctype)
-	});
 
 	// update seen
 	if(this.meta.track_seen) {
@@ -746,22 +747,23 @@ _f.Frm.prototype._save = function(save_action, callback, btn, on_error, resolve)
 	if(save_action != "Update") {
 		// validate
 		frappe.validated = true;
-		$.when(this.script_manager.trigger("validate"), this.script_manager.trigger("before_save"))
-			.done(function() {
-				// done is called after all ajaxes in validate & before_save are completed :)
+		Promise.all([
+			this.script_manager.trigger("validate"),
+			this.script_manager.trigger("before_save")
+		]).then(() => {
+			// done is called after all ajaxes in validate & before_save are completed :)
 
-				if(!frappe.validated) {
-					btn && $(btn).prop("disabled", false);
-					if(on_error) {
-						on_error();
-					}
-					resolve();
-					return;
+			if(!frappe.validated) {
+				btn && $(btn).prop("disabled", false);
+				if(on_error) {
+					on_error();
 				}
+				resolve();
+				return;
+			}
 
-				frappe.ui.form.save(me, save_action, after_save, btn);
-			});
-
+			frappe.ui.form.save(me, save_action, after_save, btn);
+		});
 	} else {
 		frappe.ui.form.save(me, save_action, after_save, btn);
 	}
@@ -969,10 +971,6 @@ _f.Frm.prototype.validate_form_action = function(action) {
 		frappe.throw (__("No permission to '{0}' {1}", [__(action), __(this.doc.doctype)]));
 	}
 };
-
-_f.Frm.prototype.get_handlers = function(fieldname, doctype, docname) {
-	return this.script_manager.get_handlers(fieldname, doctype || this.doctype, docname || this.docname)
-}
 
 _f.Frm.prototype.has_perm = function(ptype) {
 	return frappe.perm.has_perm(this.doctype, 0, ptype, this.doc);

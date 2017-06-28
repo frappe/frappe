@@ -368,7 +368,7 @@ _f.Frm.prototype.set_read_only = function() {
 }
 
 _f.Frm.prototype.trigger = function(event) {
-	this.script_manager.trigger(event);
+	return this.script_manager.trigger(event);
 };
 
 _f.Frm.prototype.get_formatted = function(fieldname) {

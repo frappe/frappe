@@ -257,7 +257,7 @@ frappe.ui.form.Grid = Class.extend({
 		if (this.frm && this.frm.docname) {
 			// use doc specific docfield object
 			this.df = frappe.meta.get_docfield(this.frm.doctype, this.df.fieldname,
-					this.frm.docname);
+				this.frm.docname);
 		} else {
 			// use non-doc specific docfield
 			if(this.df.options) {
@@ -360,8 +360,15 @@ frappe.ui.form.Grid = Class.extend({
 	get_docfield: function(fieldname) {
 		return frappe.meta.get_docfield(this.doctype, fieldname, this.frm ? this.frm.docname : null);
 	},
-	get_grid_row: function(docname) {
-		return this.grid_rows_by_docname[docname];
+	get_row: function(key) {
+		if(typeof key == 'number') {
+			return this.grid_rows[key];
+		} else {
+			return this.grid_rows_by_docname[key];
+		}
+	},
+	get_grid_row: function(key) {
+		return this.get_row(key);
 	},
 	get_field: function(fieldname) {
 		// Note: workaround for get_query
@@ -435,21 +442,21 @@ frappe.ui.form.Grid = Class.extend({
 				&& (this.frm && this.frm.get_perm(df.permlevel, "read") || !this.frm)
 				&& !in_list(frappe.model.layout_fields, df.fieldtype)) {
 
-					if(df.columns) {
-						df.colsize=df.columns;
+				if(df.columns) {
+					df.colsize=df.columns;
+				}
+				else {
+					var colsize=2;
+					switch(df.fieldtype) {
+						case"Text":
+						case"Small Text":
+							colsize=3;
+							break;
+						case"Check":
+							colsize=1
 					}
-					else {
-						var colsize=2;
-						switch(df.fieldtype){
-							case"Text":
-							case"Small Text":
-								colsize=3;
-								break;
-							case"Check":
-								colsize=1
-							}
-							df.colsize=colsize
-					}
+					df.colsize=colsize;
+				}
 
 				if(df.columns) {
 					df.colsize=df.columns;
@@ -911,6 +918,11 @@ frappe.ui.form.GridRow = Class.extend({
 		return $col;
 	},
 
+	activate: function() {
+		this.toggle_editable_row(true);
+		return this;
+	},
+
 	toggle_editable_row: function(show) {
 		var me = this;
 		// show static for field based on
@@ -1174,6 +1186,17 @@ frappe.ui.form.GridRow = Class.extend({
 			this.grid_form.refresh_field(fieldname);
 		}
 	},
+	get_field: function(fieldname) {
+		let field = this.on_grid_fields_dict[fieldname];
+		if (field) {
+			return field;
+		} else if(this.grid_form) {
+			return this.grid_form.fields_dict[fieldname];
+		} else {
+			throw `fieldname ${fieldname} not found`;
+		}
+	},
+
 	get_visible_columns: function(blacklist) {
 		var me = this;
 		var visible_columns = $.map(this.docfields, function(df) {
