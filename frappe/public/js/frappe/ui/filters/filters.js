@@ -18,214 +18,12 @@ frappe.ui.FilterList = Class.extend({
 			<div class="show_filters">
 				<div class="set-filters">
 					<button
-						class="btn btn-default btn-xs show-filters text-muted"
-						style="margin-right: 10px;">
-							${__("Show Filters")}
-					</button>
-					<button style="margin-left: -5px;"
+						style="margin-right: 10px;"
 						class="btn btn-default btn-xs new-filter text-muted">
-						<i class="octicon octicon-plus"></i></button>
+						${__("Add Filter")}</button>
 				</div>
-			</div>`);
-		$(frappe.render_template("filter_dashboard", {})).appendTo(this.wrapper.find('.show_filters'));
-
-		//show filter dashboard
-		this.filters_visible = false;
-		this.wrapper.find('.show-filters').click(function() {
-			var wrapper = $(me.wrapper).find('.filter-dashboard-wrapper');
-			if(!me.filters_visible) {
-				wrapper.toggle(true);
-				$(this).text(__("Hide Filters"));
-				me.filters_visible = true;
-			} else {
-				wrapper.toggle(false);
-				$(this).text(__("Show Filters"));
-				me.filters_visible = false;
-			}
-		});
-
-		//add stats
-		$.each(frappe.meta.docfield_map[this.doctype], function(i,d) {
-			if (d.in_standard_filter && frappe.perm.has_perm(me.doctype, d.permlevel, "read")) {
-				if (d.fieldtype != 'Table') {
-					me.stats.push({name:d.fieldname,label:d.label,type:d.fieldtype});
-				}
-			}
-		});
-
-		me.stats = me.stats.concat([
-			{name:'creation', label:'Created On', type:'Datetime'},
-			{name:'modified', label:'Last Modified On', type:'Datetime'},
-			{name:'owner', label:'Created By', type:'Data'},
-			{name:'modified_by', label:'Last Modified By', type:'Data'},
-		]);
-
-		if(frappe.model.is_submittable(me.doctype)) {
-			me.stats.push({name:'docstatus', label:'Document Status', type:'Data'});
-		}
-
-		$.each(me.stats, function (i, v) {
-			me.render_dashboard_headers(v);
-		});
-
-		me.reload_stats()
-	},
-	render_dashboard_headers: function(field){
-		var me = this;
-		var context = {
-			field: field.name,
-			label: __(field.label),
-			type:field.type
-		};
-		var sidebar_stat = $(frappe.render_template("filter_dashboard_head", context))
-			.appendTo(this.wrapper.find(".filter-dashboard-items"));
-	},
-	reload_stats: function(){
-		if(this.fresh) {
-			return;
-		}
-		// set a fresh so that multiple refreshes do not happen
-		// at the same time.
-		this.fresh = true;
-		setTimeout(function() {
-			me.fresh = false;
-		}, 1000);
-
-		//get stats
-		var me = this
-		return frappe.call({
-			type: "GET",
-			method: 'frappe.desk.reportview.get_filter_dashboard_data',
-			args: {
-				stats: me.stats,
-				doctype: me.doctype,
-				filters: me.default_filters
-			},
-			callback: function(r) {
-				// This gives a predictable stats order
-				me.wrapper.find(".filter-stat").empty();
-				$.each(me.stats, function (i, v) {
-					me.render_filters(v, (r.message|| {})[v.name]);
-				});
-			}
-		});
-	},
-	render_filters: function(field, stat){
-		var me = this;
-		var sum = 0;
-		if (['Date', 'Datetime'].indexOf(field.type)!=-1) {
-			return
-		}
-
-		var active = this.wrapper.find(".filter-sort-active[data-name='"+__(field.name)+"']");
-
-		// sort filters
-		if(active.attr('data-sort-by')==='alphabet') {
-			stat = (stat || []).sort(function(a, b) {return a[0].toString().toLowerCase().localeCompare(b[0].toString().toLowerCase());});
-		} else {
-			stat = (stat || []).sort(function(a, b) { return a[1] - b[1] });
-		}
-
-		if(active.attr('data-order')==='desc') {
-			stat = stat.reverse();
-		}
-
-		//check formatting
-		var options = []
-		var df = frappe.meta.has_field(me.doctype,field.name)
-		var labels =[]
-		if(df && df.fieldtype=='Check') {
-			options = [
-				{value: 0, label: 'No'},
-				{value: 1, label: 'Yes'}
-			];
-		} else if(field.name=="docstatus") {
-			labels.length = stat.length;
-			options = [
-				{value: 0, label: "Draft"},
-				{value: 1, label: "Submitted"},
-				{value: 2, label: "Cancelled"}
-			];
-		}
-
-		if(options.length>0) {
-			for (var i in stat) {
-				for (var o in options) {
-					if (stat[i][0] == options[o].value) {
-						if (field.name=="docstatus") {
-							labels[i] = options[o].label
-						}else{
-							stat[i][0] = options[o].label
-						}
-					}
-				}
-			}
-		}
-		var context = {
-			field: field.name,
-			stat: stat,
-			sum: sum,
-			label: __(field.label),
-			labels:labels
-		};
-		var dashboard_filter = this.wrapper.find(".filter-stat[data-name='" + __(field.name) + "']")
-		dashboard_filter.html(frappe.render_template("filter_dashboard_value", context))
-			.on("click", ".filter-stat-link", function() {
-				var fieldname = $(this).attr('data-field');
-				var label = $(this).attr('data-label');
-				if ((df && df.fieldtype=='Check' )|| field.name=="docstatus") {
-					var noduplicate = true
-				}
-				if (label=="No Data"){
-					me.base_list.set_filter(fieldname, '', false, noduplicate);
-				}else{
-					me.base_list.set_filter(fieldname, label, false, noduplicate);
-				}
-				return false;
-			})
-		if (stat.length>5) {
-			//list for autocomplete
-			var autolist = []
-			for (var i = 0; i < stat.length; i++) {
-				autolist.push({label: stat[i][0], value: field.name});
-			}
-
-			var search_input = dashboard_filter.parent().find(".search-dashboard");
-
-			dashboard_filter.parent().find(".search-dropdown")
-				.removeClass("hide")
-				.on("shown.bs.dropdown", function (event) {
-					search_input.focus();
-					search_input.val("")
-				});
-
-			new Awesomplete(search_input.get(0), {
-				minChars: 0,
-				maxItems: 99,
-				autoFirst: true,
-				list: autolist,
-				item: function(item, input) {
-					return $("<li>").text(item.label).get(0);
-				},
-				replace: function(text) {
-					this.input.value = '';
-				}
-			});
-
-			search_input.on("awesomplete-select", function(e) {
-				var item = e.originalEvent.text;
-				if (item) {
-					if (df && df.fieldtype == 'Check') {
-						var noduplicate = true
-					}
-					if (item.label == "No Data") {
-						me.base_list.set_filter(item.value, '', false, noduplicate);
-					} else {
-						me.base_list.set_filter(item.value, item.label, false, noduplicate);
-					}
-				}
-			});
-		}
+			</div>
+			<div class="filter_area"></div>`);
 	},
 	set_events: function() {
 		var me = this;
@@ -240,57 +38,6 @@ frappe.ui.FilterList = Class.extend({
 			me.base_list.run();
 			$(this).addClass("hide");
 		});
-
-		//set sort filters
-		this.wrapper.on("click", ".filter-sort-item", function() {
-			var active = $(this).closest(".filter-dash-item").find(".filter-sort-active");
-			active.attr('data-sort-by', $(this).attr('data-sort-by'));
-			active.attr('data-order', $(this).attr('data-order'));
-			me.reload_stats();
-		});
-
-		//setup date-time range pickers
-		this.wrapper.find(".filter-input-date").each(function(i,v) {
-			var self = this;
-			var date;
-			var date_wrapper = $('<div>').appendTo($(this));
-			make_date("range");
-
-			function make_date(mode) {
-				var fieldtype = mode==="range" ? "DateRange" : "Date";
-				var name = $(v).data("name");
-				if(date) {
-					//cleanup old datepicker
-					date.datepicker.destroy();
-				}
-				date = frappe.ui.form.make_control({
-					df: {
-						fieldtype: fieldtype,
-						fieldname: name,
-					},
-					parent: date_wrapper,
-					only_input: true
-				});
-				date.refresh();
-
-				date.datepicker.update("onSelect", function(fd, dateObj) {
-					var filt = me.get_filter(name);
-					filt && filt.remove(true);
-					if(!dateObj.length && dateObj && date.datepicker.opts.range===false) {
-						me.add_filter(me.doctype, name, '=', moment(dateObj).format('YYYY-MM-DD'));
-						me.base_list.run();
-					} else if(dateObj.length===2 && date.datepicker.opts.range===true) {
-						var [date1, date2] = [moment(dateObj[0]).format('YYYY-MM-DD'), moment(dateObj[1]).format('YYYY-MM-DD')];
-						if(date1==date2) {
-							me.add_filter(me.doctype, name, '=', date1);
-						} else {
-							me.add_filter(me.doctype, name, 'Between', [date1, date2]);
-						}
-						me.base_list.run();
-					}
-				});
-			}
-		})
 	},
 
 	show_filters: function() {
@@ -307,6 +54,13 @@ frappe.ui.FilterList = Class.extend({
 	},
 
 	add_filter: function(doctype, fieldname, condition, value, hidden) {
+		if (this.base_list.page.fields_dict[fieldname]
+			&& ['=', 'like'].includes(condition)) {
+			// if filter exists in base_list, then exit
+			this.base_list.page.fields_dict[fieldname].set_input(value);
+			return;
+		}
+
 		if(doctype && fieldname
 			&& !frappe.meta.has_field(doctype, fieldname)
 			&& !in_list(frappe.model.std_fields_list, fieldname)) {
@@ -317,7 +71,6 @@ frappe.ui.FilterList = Class.extend({
 			});
 			return;
 		}
-
 
 		this.wrapper.find('.show_filters').toggle(true);
 		var is_new_filter = arguments.length===0;
@@ -384,6 +137,8 @@ frappe.ui.FilterList = Class.extend({
 				values.push(filter.get_value());
 			}
 		});
+		this.base_list.update_standard_filters(values);
+
 		return values;
 	},
 
@@ -480,7 +235,6 @@ frappe.ui.Filter = Class.extend({
 		this.flist.update_filters();
 
 		if(!dont_run) {
-			this.flist.base_list.clean_dash = true;
 			this.flist.base_list.refresh(true);
 		}
 	},
@@ -673,7 +427,7 @@ frappe.ui.Filter = Class.extend({
 				title="'+__("Remove Filter")+'">\
 				<i class="fa fa-remove text-muted"></i>\
 			</button></div>')
-			.insertAfter(this.flist.wrapper.find(".set-filters .show-filters"));
+			.insertAfter(this.flist.wrapper.find(".set-filters .new-filter"));
 
 		this.set_filter_button_text();
 
