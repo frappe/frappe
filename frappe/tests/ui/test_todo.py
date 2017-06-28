@@ -26,7 +26,7 @@ class TestToDo(unittest.TestCase):
 		# save
 		self.driver.click_modal_primary_action()
 
-		time.sleep(3)
+		time.sleep(4)
 
 		first_element_text = (self.driver.get_visible_element('.result-list')
 			.find_element_by_css_selector('.list-item')

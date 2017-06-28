@@ -113,21 +113,23 @@ frappe.ui.form.Control = Class.extend({
 			}
 
 			var set = function(value) {
-				me.set_model_value(value);
 				me.inside_change_event = false;
-				me.set_mandatory && me.set_mandatory(value);
+				me.set_model_value(value)
+					.then(() => {
+						me.set_mandatory && me.set_mandatory(value);
 
-				if(me.df.change || me.df.onchange) {
-					// onchange event specified in df
-					let _promise = (me.df.change || me.df.onchange).apply(me, [e]);
-					if(_promise && _promise.then) {
-						_promise.then(() => { resolve(); });
-					} else {
-						resolve();
-					}
-				} else {
-					resolve();
-				}
+						if(me.df.change || me.df.onchange) {
+							// onchange event specified in df
+							let _promise = (me.df.change || me.df.onchange).apply(me, [e]);
+							if(_promise && _promise.then) {
+								_promise.then(() => { resolve(); });
+							} else {
+								resolve();
+							}
+						} else {
+							resolve();
+						}
+					});
 			}
 
 			this.validate ? this.validate(value, set) : set(value);
