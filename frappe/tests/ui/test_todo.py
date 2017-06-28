@@ -28,11 +28,11 @@ class TestToDo(unittest.TestCase):
 
 		time.sleep(3)
 
-		first_element_text = self.driver.get_visible_element('.result-list')
+		first_element_text = (self.driver.get_visible_element('.result-list')
 			.find_element_by_css_selector('.list-item')
-			.find_element_by_css_selector('.list-id').text
+			.find_element_by_css_selector('.list-id').text)
 
-		print first_element_text
+		print(first_element_text)
 
 		self.assertEqual('hello' in first_element_text)
 
