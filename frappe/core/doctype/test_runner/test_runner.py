@@ -15,7 +15,7 @@ def get_all_tests():
 	for app in frappe.get_installed_apps():
 		tests_path = frappe.get_app_path(app, 'tests', 'ui')
 		if os.path.exists(tests_path):
-			for basepath, folder, files in os.walk(tests_path):
+			for basepath, folders, files in os.walk(tests_path): # pylint: disable=unused-variable
 				for fname in files:
 					if fname.startswith('test') and fname.endswith('.js'):
 						path = os.path.join(basepath, fname)

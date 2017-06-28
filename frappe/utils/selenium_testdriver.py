@@ -16,6 +16,7 @@ import time
 import signal
 import os, sys
 import frappe
+from ast import literal_eval
 
 class TestDriver(object):
 	def __init__(self, port='8000'):
@@ -115,7 +116,7 @@ class TestDriver(object):
 
 			if message[0] in ('"', "'"):
 				# message is a quoted/escaped string
-				message = eval(message)
+				message = literal_eval(message)
 
 			print(source + ' ' + line_no)
 			print(message)

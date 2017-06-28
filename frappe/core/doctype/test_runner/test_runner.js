@@ -22,12 +22,11 @@ frappe.ui.form.on('Test Runner', {
 						resolve();
 					});
 				}
-			})
+			});
 		});
 
 	},
 	run_tests: function(frm, files) {
-
 		let require_list = [
 			"assets/frappe/js/lib/jquery/qunit.js",
 			"assets/frappe/js/lib/jquery/qunit.css"
@@ -36,7 +35,7 @@ frappe.ui.form.on('Test Runner', {
 		frappe.require(require_list, () => {
 			files.forEach((f) => {
 				frappe.dom.eval(f.script);
-			})
+			});
 
 			QUnit.testDone(function(details) {
 				var result = {
@@ -52,9 +51,9 @@ frappe.ui.form.on('Test Runner', {
 					"Runtime": details.runtime
 				};
 
+				// eslint-disable-next-line
 				console.log(JSON.stringify(result, null, 2));
-				}
-			);
+			});
 			QUnit.load();
 			QUnit.done(() => {
 				frappe.set_route('Form', 'Test Runner', 'Test Runner');
