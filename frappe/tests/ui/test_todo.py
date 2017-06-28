@@ -26,11 +26,15 @@ class TestToDo(unittest.TestCase):
 		# save
 		self.driver.click_modal_primary_action()
 
-		time.sleep(2)
+		time.sleep(3)
 
-		self.assertTrue(self.driver.get_visible_element('.result-list')
+		first_element_text = self.driver.get_visible_element('.result-list')
 			.find_element_by_css_selector('.list-item')
-			.find_element_by_css_selector('.list-id').text=='hello')
+			.find_element_by_css_selector('.list-id').text
+
+		print first_element_text
+
+		self.assertEqual('hello' in first_element_text)
 
 	def tearDown(self):
 		self.driver.close()
