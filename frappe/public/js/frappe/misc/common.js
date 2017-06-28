@@ -4,7 +4,6 @@ frappe.avatar = function(user, css_class, title) {
 	if(user) {
 		// desk
 		var user_info = frappe.user_info(user);
-		var image = frappe.utils.get_file_link(user_info.image);
 	} else {
 		// website
 		user_info = {

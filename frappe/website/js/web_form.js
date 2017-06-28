@@ -166,7 +166,7 @@ frappe.ready(function() {
 			$(this).find('[data-child-row=1]').each(function() {
 				if(!$(this).hasClass('hidden')) {
 					frappe.mandatory_missing_in_last_doc = [];
-					var d = get_data_for_doctype($(this), doctype, true);
+					var d = get_data_for_doctype($(this), doctype);
 
 					// set name of child record (if set)
 					var name = $(this).attr('data-name');
