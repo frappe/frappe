@@ -2,11 +2,11 @@
 	<td class="v-spacer"></td>
 	<td>
 		<table width="100%" border="0" cellpadding="0" cellspacing="0">
-            <tr>
-                <td style="height: 30px;"></td>
-            </tr>
-            <tr>
-            	<td>
+			<tr>
+				<td style="height: 30px;"></td>
+			</tr>
+			<tr>
+				<td>
 					{% if title %}<h3>{{ title }}</h3>{% endif %}
 				</td>
 			</tr>
@@ -14,24 +14,24 @@
 				<td class="h-spacer"></td>
 			</tr>
 			<tr>
-                <td>
-                	<p>{{_("Dear")}} {{ first_name }}{% if last_name %} {{ last_name}}{% endif %},</p>
-                </td>
+				<td>
+					<p>{{_("Dear")}} {{ first_name }}{% if last_name %} {{ last_name}}{% endif %},</p>
+				</td>
 			</tr>
 			<tr>
-                <td>
+				<td>
 					<p>{{_("A new account has been created for you at {0}").format(site_url)}}.</p>
-                </td>
+				</td>
 			</tr>
 			<tr>
-                <td>
+				<td>
 					<p>{{_("Your login id is")}}: <b>{{ user }}</b></p>
-                </td>
+				</td>
 			</tr>
 			<tr>
-                <td>
+				<td>
 					<p>{{_("Click on the link below to complete your registration and set a new password")}}.</p>
-                </td>
+				</td>
 			</tr>
 			<tr>
 				<td>
@@ -49,13 +49,13 @@
 				</td>
 			</tr>
 			<tr>
-                <td class="h-spacer"></td>
+				<td class="h-spacer"></td>
 			</tr>
 			<tr>
-                <td>
+				<td>
 					<p>{{_("You can also copy-paste this link in your browser")}} <a style="color: #7575ff;text-decoration: none;" href="{{ link }}">{{ link }}</a></p>
-                </td>
-            </tr>
+				</td>
+			</tr>
 		</table>
 	</td>
 	<td class="v-spacer"></td>
