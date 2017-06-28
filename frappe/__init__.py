@@ -14,7 +14,7 @@ import os, sys, importlib, inspect, json
 from .exceptions import *
 from .utils.jinja import get_jenv, get_template, render_template
 
-__version__ = '8.1.2'
+__version__ = '8.1.3'
 __title__ = "Frappe Framework"
 
 local = Local()
@@ -139,6 +139,7 @@ def init(site, sites_path=None, new_site=False):
 	local.module_app = None
 	local.app_modules = None
 	local.system_settings = None
+	local.system_country = None
 
 	local.user = None
 	local.user_perms = None
@@ -946,6 +947,7 @@ def make_property_setter(args, ignore_validate=False, validate_fields_for_doctyp
 		})
 		ps.flags.ignore_validate = ignore_validate
 		ps.flags.validate_fields_for_doctype = validate_fields_for_doctype
+		ps.validate_fieldtype_change()
 		ps.insert()
 
 def import_doc(path, ignore_links=False, ignore_insert=False, insert=False):
@@ -1361,3 +1363,8 @@ def get_active_domains():
 		cache().hset("domains", "active_domains", active_domains)
 
 	return active_domains
+
+def get_system_country():
+	if local.system_country is None:
+		local.system_country = db.get_single_value('System Settings', 'country') or ''
+	return local.system_country

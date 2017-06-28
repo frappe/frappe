@@ -32,4 +32,3 @@ def execute(filters=None):
 				todo.owner, todo.assigned_by, todo.reference])
 
 	return columns, result
-

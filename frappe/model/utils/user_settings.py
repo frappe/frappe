@@ -16,7 +16,7 @@ def get_user_settings(doctype, for_update=False):
 
 		if not for_update:
 			update_user_settings(doctype, user_settings, True)
-	
+
 	return user_settings or '{}'
 
 def update_user_settings(doctype, user_settings, for_update=False):

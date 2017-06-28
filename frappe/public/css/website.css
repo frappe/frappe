@@ -290,6 +290,14 @@ a.no-decoration:active {
 .avatar-large .standard-image {
   font-size: 36px;
 }
+.avatar-xl {
+  margin-right: 10px;
+  width: 108px;
+  height: 108px;
+}
+.avatar-xl .standard-image {
+  font-size: 72px;
+}
 .avatar-xs {
   margin-right: 3px;
   margin-top: -2px;
@@ -979,4 +987,9 @@ li.footer-child-item {
 }
 .page-card .btn {
   margin-top: 30px;
+}
+.bordered {
+  border: 1px solid #d1d8dd;
+  padding: 10px;
+  border-radius: 4px;
 }
