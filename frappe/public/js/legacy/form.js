@@ -775,7 +775,7 @@ _f.Frm.prototype.savesubmit = function(btn, callback, on_error) {
 	this.validate_form_action("Submit");
 	frappe.confirm(__("Permanently Submit {0}?", [this.docname]), function() {
 		frappe.validated = true;
-		me.script_manager.trigger("before_submit").done(function() {
+		me.script_manager.trigger("before_submit").then(function() {
 			if(!frappe.validated) {
 				if(on_error)
 					on_error();

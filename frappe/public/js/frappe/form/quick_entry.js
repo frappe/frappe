@@ -1,6 +1,6 @@
 frappe.provide('frappe.ui.form');
 
-frappe.ui.form.make_quick_entry = (doctype) => {
+frappe.ui.form.make_quick_entry = (doctype, after_insert) => {
 	return new Promise((resolve) => {
 		var trimmed_doctype = doctype.replace(/ /g, '');
 		var controller_name = "QuickEntryForm";
@@ -9,7 +9,7 @@ frappe.ui.form.make_quick_entry = (doctype) => {
 			controller_name = trimmed_doctype + "QuickEntryForm";
 		}
 
-		frappe.quick_entry = new frappe.ui.form[controller_name](doctype);
+		frappe.quick_entry = new frappe.ui.form[controller_name](doctype, after_insert);
 		frappe.quick_entry.setup()
 			.then((frm) => { resolve(frm); });
 	});

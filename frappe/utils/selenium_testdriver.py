@@ -151,6 +151,12 @@ class TestDriver(object):
 		self.wait_till_clickable(selector).click()
 		self.wait_for_ajax()
 
+	def click_secondary_action(self):
+		selector = ".page-actions .btn-secondary"
+		#self.scroll_to(selector)
+		self.wait_till_clickable(selector).click()
+		self.wait_for_ajax()
+
 	def click_modal_primary_action(self):
 		self.get_visible_modal().find_element_by_css_selector('.btn-primary').click()
 
