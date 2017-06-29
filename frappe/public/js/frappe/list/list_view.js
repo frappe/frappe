@@ -290,6 +290,7 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 	},
 
 	init_filters: function () {
+		this.make_standard_filters();
 		this.filter_list = new frappe.ui.FilterList({
 			base_list: this,
 			parent: this.wrapper.find('.list-filters').show(),
@@ -412,9 +413,6 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 	execute_run: function () {
 		if (this.dirty) {
 			this.run();
-			if (this.clean_dash != true) {
-				this.filter_list.reload_stats();
-			}
 		} else {
 			if (new Date() - (this.last_updated_on || 0) > 30000) {
 				// older than 5 mins, refresh
@@ -504,7 +502,6 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 
 		this.last_updated_on = new Date();
 		this.dirty = false;
-		this.clean_dash = false;
 		// set a fresh so that multiple refreshes do not happen
 		// at the same time. This is true when deleting.
 		// AJAX response will try to refresh and list_update notification
@@ -555,7 +552,7 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 		var order_by = '';
 		if(this.sort_selector) {
 			// get order_by from sort_selector
-			order_by = $.format('`tab{0}`.`{1}` {2}', 
+			order_by = $.format('`tab{0}`.`{1}` {2}',
 				[this.doctype, this.sort_selector.sort_by,  this.sort_selector.sort_order]);
 		} else {
 			order_by = this.list_renderer.order_by;
