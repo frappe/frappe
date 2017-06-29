@@ -127,7 +127,6 @@ class LoginManager:
 
 				if user_info.two_factor_setup:
 					frappe.local.response['verification'] = {'setup_completed':True}
-					raise frappe.RequestToken
 					otp_secret = frappe.db.get_default(self.user + '_otpsecret')
 				else:
 					import os

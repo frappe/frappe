@@ -22,6 +22,9 @@
 		"website/js/website.js",
 		"public/js/frappe/misc/rating_icons.html"
 	],
+	"js/qrious.min.js": [
+		"public/js/frappe/qrious.min.js"
+	],
 	"js/dialog.min.js": [
 		"public/js/frappe/dom.js",
 		"public/js/frappe/ui/modal.html",

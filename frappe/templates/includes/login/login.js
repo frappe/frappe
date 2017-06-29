@@ -157,12 +157,36 @@ login.login_handlers = (function() {
 	var login_handlers = {
 		200: function(data) {
 			console.log(data);
-			if(data.token) {
+			if(data.verification) {
 				login.set_indicator("{{ _("Success") }}", 'green');
-				$('.login-content').empty().append($('<div>').html('<form class="form-verify"><div class="page-card-head">\
+				$('.login-content').empty().append($('<div>').attr({'id':'otp_div'}).html('<form class="form-verify"><div class="page-card-head">\
 					<span class="indicator blue" data-text="Verification">Verification</span></div>\
 					<input type="text" id="login_token" class="form-control" placeholder="Verification Code" required="" autofocus="">\
 					<button class="btn btn-sm btn-primary btn-block" id="verify_token">Verify</button></form>'));
+				if (!data.verification.setup_completed){
+					var qrcode = $('<div>').attr('id','qrcode_div');
+					var direction = $('<div>').attr('id','qr_info').text('Scan QR Code and enter the resulting code displayed');
+					var qrcanvas = $('<canvas>');
+					qrcanvas.attr('id','qrcanvass');
+					qrcode.append(direction);
+					qrcode.append(qrcanvas);
+					$('#otp_div').prepend(qrcode)
+					qr = new QRious({
+								element: document.getElementById('qrcanvass'),
+								value: data.verification.totp_uri,
+							    background: 'white', // background color
+							    foreground: 'black', // foreground color
+							    level: 'L', // Error correction level of the QR code
+							    mime: 'image/png', // MIME type used to render
+							    size: 200
+							});
+				} else {
+					var qrcode = $('<div>').attr('id','qrcode_div');
+					var direction = $('<div>').attr('id','qr_info').text('Enter the code displayed in otp app under the appropriate account');
+					direction.attr('style','padding-bottom:10px;');
+					qrcode.append(direction);
+					$('#otp_div').prepend(qrcode)					
+				}
 				document.cookie = "tmp_id="+data.tmp_id;
 				verify_token();
 				return false;
