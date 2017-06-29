@@ -163,6 +163,12 @@ Object.defineProperties(window, {
 			return frappe.datetime;
 		}
 	},
+	'date': {
+		get: function() {
+			console.warn('Please use `frappe.datetime` instead of `date`. It will be deprecated soon.');
+			return frappe.datetime;
+		}
+	},
 	'get_today': {
 		get: function() {
 			console.warn('Please use `frappe.datetime.get_today` instead of `get_today`. It will be deprecated soon.');
