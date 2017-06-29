@@ -26,13 +26,14 @@ class TestToDo(unittest.TestCase):
 		# save
 		self.driver.click_modal_primary_action()
 
-		time.sleep(4)
+		time.sleep(3)
 
-		first_element_text = (self.driver.get_visible_element('.result-list')
+		result_list = self.driver.get_visible_element('.result-list')
+		first_element_text = (result_list
 			.find_element_by_css_selector('.list-item')
 			.find_element_by_css_selector('.list-id').text)
 
-		print(first_element_text)
+		print(result_list.get_attribute('innerHTML'))
 
 		self.assertTrue('hello' in first_element_text)
 
