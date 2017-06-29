@@ -5,23 +5,18 @@ frappe.ui.form.on('Test Runner', {
 	refresh: (frm) => {
 		frm.disable_save();
 		frm.page.set_primary_action(__("Run Tests"), () => {
-			return new Promise((resolve) => {
+			return new Promise(resolve => {
 				let wrapper = $(frm.fields_dict.output.wrapper).empty();
-				$("<div id='qunit'></div>").appendTo(wrapper);
+				$("<p>Loading...</p>").appendTo(wrapper);
 
-				if(frm.doc.module_path) {
-					// specific test
-					frm.events.run_tests(frm, [frm.doc.module_path]);
+				// all tests
+				frappe.call({
+					method: 'frappe.core.doctype.test_runner.test_runner.get_all_tests'
+				}).always((data) => {
+					$("<div id='qunit'></div>").appendTo(wrapper.empty());
+					frm.events.run_tests(frm, data.message);
 					resolve();
-				} else {
-					// all tests
-					frappe.call({
-						method: 'frappe.core.doctype.test_runner.test_runner.get_all_tests'
-					}).always((data) => {
-						frm.events.run_tests(frm, data.message);
-						resolve();
-					});
-				}
+				});
 			});
 		});
 
@@ -36,6 +31,10 @@ frappe.ui.form.on('Test Runner', {
 			files.forEach((f) => {
 				frappe.dom.eval(f.script);
 			});
+
+			// if(frm.doc.module_name) {
+			// 	QUnit.module.only(frm.doc.module_name);
+			// }
 
 			QUnit.testDone(function(details) {
 				var result = {

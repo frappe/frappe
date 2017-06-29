@@ -313,17 +313,17 @@ $.extend(frappe.model, {
 
 frappe.create_routes = {};
 frappe.new_doc = function (doctype, opts) {
-	return new Promise((resolve) => {
+	return new Promise(resolve => {
 		if(opts && $.isPlainObject(opts)) {
 			frappe.route_options = opts;
 		}
 		frappe.model.with_doctype(doctype, function() {
 			if(frappe.create_routes[doctype]) {
 				frappe.set_route(frappe.create_routes[doctype])
-					.then(() => { resolve(); });
+					.then(() => resolve());
 			} else {
 				frappe.ui.form.make_quick_entry(doctype)
-					.then(() => { resolve(); });
+					.then(() => resolve());
 			}
 		});
 

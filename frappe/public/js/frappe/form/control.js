@@ -102,7 +102,7 @@ frappe.ui.form.Control = Class.extend({
 	},
 	parse_validate_and_set_in_model: function(value, e) {
 		var me = this;
-		return new Promise((resolve) => {
+		return new Promise(resolve => {
 			if(this.inside_change_event) {
 				resolve();
 				return;
@@ -136,7 +136,6 @@ frappe.ui.form.Control = Class.extend({
 		})
 	},
 	get_parsed_value: function() {
-		var me = this;
 		if(this.get_status()==='Write') {
 			return this.get_value ?
 				(this.parse ? this.parse(this.get_value()) : this.get_value()) :
@@ -148,13 +147,11 @@ frappe.ui.form.Control = Class.extend({
 		}
 	},
 	set_model_value: function(value) {
-		return new Promise((resolve) => {
+		return new Promise(resolve => {
 			if(this.doctype && this.docname) {
 				frappe.model.set_value(this.doctype, this.docname, this.df.fieldname,
 					value, this.df.fieldtype)
-					.then(() => {
-						resolve();
-					});
+					.then(() => resolve());
 				this.last_value = value;
 			} else {
 				if(this.doc) {

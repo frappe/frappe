@@ -305,7 +305,7 @@ frappe.request.cleanup = function(opts, r) {
 
 frappe.after_server_call = () => {
 	if(frappe.request.ajax_count) {
-		return new Promise((resolve) => {
+		return new Promise(resolve => {
 			frappe.request.waiting_for_ajax.push(() => {
 				resolve();
 			});
@@ -316,7 +316,7 @@ frappe.after_server_call = () => {
 };
 
 frappe.after_ajax = function(fn) {
-	return new Promise((resolve) => {
+	return new Promise(resolve => {
 		if(frappe.request.ajax_count) {
 			frappe.request.waiting_for_ajax.push(() => {
 				if(fn) fn();

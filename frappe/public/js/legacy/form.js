@@ -707,7 +707,7 @@ Object.defineProperty(window, 'validated', {
 
 _f.Frm.prototype.save = function(save_action, callback, btn, on_error) {
 	let me = this;
-	return new Promise((resolve) => {
+	return new Promise(resolve => {
 		btn && $(btn).prop("disabled", true);
 		$(document.activeElement).blur();
 

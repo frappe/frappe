@@ -89,11 +89,18 @@ frappe.ui.FieldGroup = frappe.ui.form.Layout.extend({
 		return f && (f.get_parsed_value ? f.get_parsed_value() : null);
 	},
 	set_value: function(key, val){
-		var f = this.fields_dict[key];
-		if(f) {
-			f.set_input(val);
-			this.refresh_dependency();
-		}
+		return new Promise(resolve => {
+			var f = this.fields_dict[key];
+			if(f) {
+				f.set_value(val).then(() => {
+					f.set_input(val);
+					this.refresh_dependency();
+					resolve();
+				});
+			} else {
+				resolve();
+			}
+		});
 	},
 	set_input: function(key, val) {
 		return this.set_value(key, val);

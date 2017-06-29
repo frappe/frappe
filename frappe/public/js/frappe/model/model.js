@@ -328,35 +328,33 @@ $.extend(frappe.model, {
 	set_value: function(doctype, docname, fieldname, value, fieldtype) {
 		/* help: Set a value locally (if changed) and execute triggers */
 
-		return new Promise((resolve) => {
-			var doc = locals[doctype] && locals[doctype][docname];
+		var doc = locals[doctype] && locals[doctype][docname];
 
-			var to_update = fieldname;
-			let promises = [];
-			if(!$.isPlainObject(to_update)) {
-				to_update = {};
-				to_update[fieldname] = value;
-			}
+		var to_update = fieldname;
+		let tasks = [];
+		if(!$.isPlainObject(to_update)) {
+			to_update = {};
+			to_update[fieldname] = value;
+		}
 
-			$.each(to_update, function(key, value) {
-				if(doc && doc[key] !== value) {
-					if(doc.__unedited && !(!doc[key] && !value)) {
-						// unset unedited flag for virgin rows
-						doc.__unedited = false;
-					}
-
-					doc[key] = value;
-					promises.push(frappe.model.trigger(key, value, doc));
-				} else {
-					// execute link triggers (want to reselect to execute triggers)
-					if(fieldtype=="Link" && doc) {
-						promises.push(frappe.model.trigger(key, value, doc));
-					}
+		$.each(to_update, function(key, value) {
+			if(doc && doc[key] !== value) {
+				if(doc.__unedited && !(!doc[key] && !value)) {
+					// unset unedited flag for virgin rows
+					doc.__unedited = false;
 				}
-			});
 
-			Promise.all(promises).then(() => { resolve(); });
+				doc[key] = value;
+				tasks.push(() => frappe.model.trigger(key, value, doc));
+			} else {
+				// execute link triggers (want to reselect to execute triggers)
+				if(fieldtype=="Link" && doc) {
+					tasks.push(() => frappe.model.trigger(key, value, doc));
+				}
+			}
 		});
+
+		return frappe.run_serially(tasks);
 	},
 
 	on: function(doctype, fieldname, fn) {
@@ -377,35 +375,34 @@ $.extend(frappe.model, {
 	},
 
 	trigger: function(fieldname, value, doc) {
-		return new Promise((resolve) => {
-			let promises = [];
-			var run = function(events, event_doc) {
-				$.each(events || [], function(i, fn) {
-					if(fn) {
-						let _promise = fn(fieldname, value, event_doc || doc);
+		let tasks = [];
+		var runner = function(events, event_doc) {
+			$.each(events || [], function(i, fn) {
+				if(fn) {
+					let _promise = fn(fieldname, value, event_doc || doc);
 
-						// if the trigger returns a promise, add to promises,
-						// or use the default promise frappe.after_ajax
-						if (_promise && _promise.then) {
-							promises.push(_promise);
-						} else {
-							promises.push(frappe.after_server_call());
-						}
+					// if the trigger returns a promise, return it,
+					// or use the default promise frappe.after_ajax
+					if (_promise && _promise.then) {
+						return _promise;
+					} else {
+						return frappe.after_server_call();
 					}
-				});
-			};
+				}
+			});
+		};
 
-			if(frappe.model.events[doc.doctype]) {
+		if(frappe.model.events[doc.doctype]) {
+			tasks.push(() => {
+				return runner(frappe.model.events[doc.doctype][fieldname]);
+			});
 
-				// field-level
-				run(frappe.model.events[doc.doctype][fieldname]);
+			tasks.push(() => {
+				runner(frappe.model.events[doc.doctype]['*']);
+			});
+		}
 
-				// doctype-level
-				run(frappe.model.events[doc.doctype]['*']);
-			}
-
-			Promise.all(promises).then(() => { resolve(); });
-		});
+		frappe.run_serially(tasks);
 	},
 
 	get_doc: function(doctype, name) {

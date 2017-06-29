@@ -123,7 +123,7 @@ frappe.get_route_str = function(route) {
 }
 
 frappe.set_route = function() {
-	return new Promise((resolve) => {
+	return new Promise(resolve => {
 		var params = arguments;
 		if(params.length===1 && $.isArray(params[0])) {
 			params = params[0];

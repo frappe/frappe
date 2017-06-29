@@ -71,11 +71,11 @@ frappe.ui.form.ScriptManager = Class.extend({
 		// trigger all the form level events that
 		// are bound to this event_name
 		let me = this;
-		return new Promise((resolve) => {
+		return new Promise(resolve => {
 			doctype = doctype || this.frm.doctype;
 			name = name || this.frm.docname;
 
-			let promises = [];
+			let tasks = [];
 			let handlers = this.get_handlers(event_name, doctype);
 
 			// helper for child table
@@ -91,25 +91,26 @@ frappe.ui.form.ScriptManager = Class.extend({
 					_promise = _function(me.frm, doctype, name);
 				}
 
-				// if the trigger returns a promise, add to promises,
+				// if the trigger returns a promise, return it,
 				// or use the default promise frappe.after_ajax
 				if (_promise && _promise.then) {
-					promises.push(_promise);
+					return _promise;
 				} else {
-					promises.push(frappe.after_server_call());
+					return frappe.after_server_call();
 				}
 			};
 
-			// run all handlers
+			// make list of functions to be run serially
 			handlers.new_style.forEach((_function) => {
-				runner(_function, false);
+				tasks.push(() => runner(_function, false));
 			});
 
 			handlers.old_style.forEach((_function) => {
-				runner(_function, true);
+				tasks.push(() => runner(_function, true));
 			});
 
-			Promise.all(promises).then(resolve());
+			// run them serially
+			frappe.run_serially(tasks).then(resolve());
 		});
 	},
 	has_handlers: function(event_name, doctype) {

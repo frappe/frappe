@@ -1,3 +1,5 @@
+QUnit.module('views');
+
 QUnit.test("test quick entry", function(assert) {
 	assert.expect(2);
 	let done = assert.async();
