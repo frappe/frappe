@@ -1,6 +1,5 @@
 language: python
 dist: trusty
-group: deprecated-2017Q2
 
 python:
   - "2.7"
@@ -20,6 +19,7 @@ before_install:
   - sh -e /etc/init.d/xvfb start
 
 install:
+  - sudo rm /etc/apt/sources.list.d/docker.list
   - sudo apt-get purge -y mysql-common mysql-server mysql-client
   - nvm install v7.10.0
   - wget https://raw.githubusercontent.com/frappe/bench/master/playbooks/install.py
