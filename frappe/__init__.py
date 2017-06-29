@@ -9,6 +9,7 @@ from __future__ import unicode_literals, print_function
 from six import iteritems
 from werkzeug.local import Local, release_local
 import os, sys, importlib, inspect, json
+from premailer import transform
 
 # public
 from .exceptions import *
@@ -411,12 +412,19 @@ def sendmail(recipients=[], sender="", subject="No Subject", message="No Message
 		from markdown2 import markdown
 		message = markdown(message)
 
+	email_html = render_template("templates/emails/base_email.html", {
+		'content': message
+	})
+
+	# convert style tags to inline css
+	email_html = transform(email_html)
+
 	if not delayed:
 		now = True
 
 	import email.queue
 	email.queue.send(recipients=recipients, sender=sender,
-		subject=subject, message=message,
+		subject=subject, message=email_html,
 		reference_doctype = doctype or reference_doctype, reference_name = name or reference_name,
 		unsubscribe_method=unsubscribe_method, unsubscribe_params=unsubscribe_params, unsubscribe_message=unsubscribe_message,
 		attachments=attachments, reply_to=reply_to, cc=cc, message_id=message_id, in_reply_to=in_reply_to,

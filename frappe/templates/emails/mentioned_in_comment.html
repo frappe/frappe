@@ -1,7 +1,28 @@
-<p>
-	{{ _("{0} mentioned you in a comment in {1}").format(sender_fullname, link) }}
-</p>
-<blockquote
-	style="border-left: 3px solid #d1d8dd; padding: 7px 15px; margin-left: 0px;">
-	{{ comment.content | markdown }}
-</blockquote>
+
+<tr>
+	<td class="v-spacer"></td>
+	<td>
+		<table width="100%" border="0" cellpadding="0" cellspacing="0">
+			<tr>
+				<td style="height: 20px;">
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<h3>{{_("Mentioned in a comment")}}</h3>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<p>{{ _("{0} mentioned you in a comment in {1}").format(sender_fullname, link) }}</p>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<blockquote>{{ comment.content | markdown }}</blockquote>
+				</td>
+			</tr>
+		</table>
+	</td>
+	<td class="v-spacer"></td>
+</tr>
