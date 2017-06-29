@@ -497,8 +497,10 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 			}
 		}
 
-		this.list_header.find('.list-liked-by-me')
-			.toggleClass('text-extra-muted not-liked', !this.is_star_filtered());
+		if(this.list_header) {
+			this.list_header.find('.list-liked-by-me')
+				.toggleClass('text-extra-muted not-liked', !this.is_star_filtered());
+		}
 
 		this.last_updated_on = new Date();
 		this.dirty = false;

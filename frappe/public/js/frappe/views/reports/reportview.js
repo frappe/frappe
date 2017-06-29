@@ -260,7 +260,7 @@ frappe.views.ReportView = frappe.ui.BaseList.extend({
 	// build args for query
 	get_args: function() {
 		let me = this;
-		let filters = this.filter_list.get_filters();
+		let filters = this.filter_list? this.filter_list.get_filters(): [];
 
 		return {
 			doctype: this.doctype,
@@ -284,7 +284,7 @@ frappe.views.ReportView = frappe.ui.BaseList.extend({
 		}
 
 		// second
-		if(this.sort_by_next_select.val()) {
+		if(this.sort_by_next_select && this.sort_by_next_select.val()) {
 			order_by.push(this.get_selected_table_and_column(this.sort_by_next_select)
 				+ ' ' + this.sort_order_next_select.val());
 		}
@@ -293,6 +293,10 @@ frappe.views.ReportView = frappe.ui.BaseList.extend({
 	},
 
 	get_selected_table_and_column: function(select) {
+		if(!select) {
+			return
+		}
+
 		return select.selected_doctype ?
 			this.get_full_column_name([select.selected_fieldname, select.selected_doctype]) : "";
 	},
