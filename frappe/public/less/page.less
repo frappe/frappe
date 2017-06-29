@@ -177,3 +177,69 @@ select.input-sm {
 		font-size: 18px;
 	}
 }
+
+/* goals */
+
+.goals-page-container {
+	background-color: #fafbfc;
+	padding-top: 1px;
+
+	.bar-graph {
+
+		.axis {
+			font-size: 10px;
+			fill: #6a737d;
+
+			line {
+				stroke: rgba(27,31,35,0.1);
+			}
+		}
+
+		g.mini {
+			fill: #98d85b;
+		}
+	}
+
+	.goal-container {
+		background-color: #fff;
+		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+		border-radius: 2px;
+		padding: 10px;
+		margin: 10px;
+
+		.graphics {
+			margin-top: 10px;
+			padding: 10px 0px;
+		}
+
+		.goal-title {
+			font-size: 20px;
+			padding-left: 5px;
+			padding-top: 5px;
+		}
+
+		.stats-container {
+			display: flex;
+			justify-content: space-around;
+
+			.stats {
+				padding-bottom: 15px;
+			}
+
+			.stats-title {
+				color: #8D99A6;
+			}
+			.stats-value {
+				font-size: 25px;
+				font-weight: 300;
+			}
+			.stats-description {
+				font-size: 12px;
+				color: #8D99A6;
+			}
+			.total, .completed {
+				color: #98d85b;
+			}
+		}
+	}
+}

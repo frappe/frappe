@@ -1,0 +1,70 @@
+<div class="goal-container">
+    <div class="goal-title">{%= title %}</div>
+    <div class="graphics">
+
+        <div class="bar-graph">
+            <svg width="880" height="140" class="viz">
+                <g transform="translate(30,10)">
+
+                    <g class="y axis">
+                        {% for point in y_axis %}
+                        <g class="tick" transform="translate(0,{%= 100 - (100/y_axis.length * y_axis.indexOf(point)) %})">
+                            <line x2="880" y2="0"></line>
+                            <text x="-3" y="0" dy=".32em" style="text-anchor: end;">{%= point %}</text>
+                        </g>
+                        {% endfor %}
+                    <g>
+
+                    {% for(var i=0, l=break_up_list.length; i<l; i++) { %}
+                    <g class="bar mini" transform="translate({%= 40 + i * 45 %}, 0)">
+                        <rect width="40" height="{%= 100/(upper_graph_bound/break_up_list[i]) %}" y="{%= (100 - 100/(upper_graph_bound/break_up_list[i])) %}"></rect>
+                    </g>
+
+                    {% } %}
+
+                    {% for(var i=0, l=break_up_dates.length; i<l; i++) { %}
+                    <g class="x axis" transform="translate(0,100)">
+                        <g class="tick" transform="translate({%= 60 + i * 45 %},0)" style="display: block;">
+                            <line y2="6" x2="0"></line>
+                            <text y="9" x="0" dy=".71em" style="text-anchor: middle;">{%= break_up_dates[i] %}</text>
+                        </g>
+                    </g>
+                    {% } %}
+
+                    {% if(average) { %}
+                    <g class="tick" transform="translate(0,{%= (100 - 100/(upper_graph_bound/average)) %})">
+                        <line x2="800" y2="0" style="stroke-dasharray: 5,3;"></line>
+                        <text x="800" y="0" dy=".32em" style="text-anchor: start;">AVERAGE</text>
+                    </g>
+                    {% } %}
+
+                </g>
+            </svg>
+        </div>
+
+    </div>
+
+    <div class="stats-container">
+        <div class="stats sum-stats">
+            <span class="stats-title">Total</span>
+            <span class="stats-value total">{%= completed %}</span>
+        </div>
+        {% if(average) { %}
+        <div class="stats average-stats">
+            <span class="stats-title">Count</span>
+            <span class="stats-value">{%= doc_count %}</span>
+            <br>
+            <span class="stats-description">{%= average %} avg. value</span>
+        </div>
+        {% } %}
+        <div class="stats target-stats">
+            <span class="stats-title">Goal</span>
+            <span class="stats-value">{%= target %}</span>
+        </div>
+        <div class="stats achieved-stats">
+            <span class="stats-title">Completed</span>
+            <span class="stats-value completed">{%= completed_percent %}%</span>
+        </div>
+    </div>
+
+</div>

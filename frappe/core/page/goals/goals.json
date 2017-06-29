@@ -1,0 +1,20 @@
+{
+ "content": null, 
+ "creation": "2017-06-29 15:13:14.726611", 
+ "docstatus": 0, 
+ "doctype": "Page", 
+ "icon": "octicon octicon-rocket", 
+ "idx": 0, 
+ "modified": "2017-06-29 15:13:39.409811", 
+ "modified_by": "Administrator", 
+ "module": "Core", 
+ "name": "goals", 
+ "owner": "Administrator", 
+ "page_name": "goals", 
+ "roles": [], 
+ "script": null, 
+ "standard": "Yes", 
+ "style": null, 
+ "system_page": 0, 
+ "title": "Goals"
+}

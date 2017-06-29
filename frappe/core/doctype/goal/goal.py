@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
 from frappe.desk.form.meta import get_meta
-from frappe.utils import add_to_date, add_hours, add_days, add_weeks, add_months, add_years
+from frappe.utils import add_to_date, add_hours, add_days, add_weeks, add_months, add_years, formatdate
 
 class Goal(Document):
     def fetch_fields(self):
@@ -15,7 +15,6 @@ class Goal(Document):
 
         meta = frappe.get_meta(self.source)
 
-        # print meta.get("fields")
         return {
             "source_filter": meta.get_list_fields(),
             "based_on": [d.fieldname for d in meta.get_numeric_fields() +
@@ -30,7 +29,6 @@ class Goal(Document):
         form_meta = get_meta(self.source)
         form_meta.load_goals()
 
-@frappe.whitelist()
 def get_doc_count(doctype, filters = {}, time_slot = []):
     if filters is None:
         filters = {}
@@ -38,7 +36,6 @@ def get_doc_count(doctype, filters = {}, time_slot = []):
         filters["creation"] = ('between', time_slot)
     return len(frappe.get_list(doctype, filters=filters))
 
-@frappe.whitelist()
 def get_value_aggregation(doctype, field, filters = {}, time_slot = []):
     if filters is None:
         filters = {}
@@ -46,33 +43,23 @@ def get_value_aggregation(doctype, field, filters = {}, time_slot = []):
         filters["creation"] = ('between', time_slot)
     field_value_list = [d[field] for d in frappe.get_list(doctype,
         fields = [field], filters=filters)]
-    # sum = sum(field_value_list)
-    # average = sum / len(field_value_list)
-
-    # return {
-    #     "value_list": field_value_list,
-    #     "sum": sum,
-    #     "average": average
-    # }
 
     return sum(field_value_list)
 
-@frappe.whitelist()
 def get_count_summary(doctype, frequency, count, filters = {}):
     summaries = []
     for t in get_time_slots(frequency, int(count)):
         summaries.append({
-            "time_slot": t,
+            "day": formatdate((t[1]), "dd/M"),
             "value": get_doc_count(doctype, filters, t)
         })
     return summaries
 
-@frappe.whitelist()
 def get_aggregation_summary(doctype, field, frequency, count, filters = {}):
     summaries = []
     for t in get_time_slots(frequency, int(count)):
         summaries.append({
-            "time_slot": t,
+            "day": formatdate((t[1]), "dd/M"),
             "value": get_value_aggregation(doctype, field, filters, t)
         })
     return summaries
@@ -111,7 +98,6 @@ def get_time_slots(frequency, count, start = ""):
 
     return time_slots
 
-@frappe.whitelist()
 def get_goals(doctype):
     # Arrange fetched goals as:
     # goal_summaries = {
@@ -160,10 +146,9 @@ def get_goals(doctype):
 
     frequency_map = {
         "Daily": {"break_up": "Hourly", "break_up_count": 24},
-        "Weekly": {"break_up": "Daily", "break_up_count": 7},
+        "Weekly": {"break_up": "Daily", "break_up_count": 17},
         "Monthly": {"break_up": "Daily", "break_up_count": 30},
         "Annually": {"break_up": "Monthly", "break_up_count": 12},
-
     }
     frequencies = frequency_map.keys()
 
@@ -183,11 +168,8 @@ def get_goals(doctype):
         doc_count = get_count_summary(doctype, freq, 1,
                 filters)[0]["value"]
 
-        # print "===========doc_count============="
-        # print freq
-        # print get_count_summary(doctype, freq, 1, filters)
-
         goal = {
+            "doctype": doctype,
             "frequency": freq,
             "break_up_freq": break_up_freq,
             "type": g["type_of_aggregation"],
@@ -200,16 +182,31 @@ def get_goals(doctype):
             goal["current_value"] = goal["doc_count"]
             goal["break_up"] = get_count_summary(doctype, break_up_freq,
                 break_up_count, filters)
+            goal["history"] = get_count_summary(doctype, freq,
+                20, filters)
             goal_summaries[g["frequency"]]["count"].append(goal)
         else:
             sum_value = get_aggregation_summary(doctype,
                 g["based_on"], freq, 1, filters)[0]["value"]
 
-            goal["based_on"] = g["based_on"]
+            goal["based_on"] = frappe.unscrub(g["based_on"])
             goal["current_value"] = sum_value
             goal["break_up"] = get_aggregation_summary(doctype, g["based_on"],
                 break_up_freq, break_up_count, filters)
+            goal["history"] = get_aggregation_summary(doctype, g["based_on"], freq,
+                20, filters)
             goal["average"] = sum_value / doc_count
             goal_summaries[g["frequency"]]["aggregation"].append(goal)
 
     return goal_summaries
+
+@frappe.whitelist()
+def get_doctype_goals():
+
+    # To cache
+    doctypes = list(set([d.source for d in frappe.get_list("Goal", fields=["source"])]))
+    all_goals = {}
+    for d in doctypes:
+        all_goals[d] = get_goals(d)
+
+    return all_goals
