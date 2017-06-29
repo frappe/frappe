@@ -300,6 +300,7 @@ def get_footer(email_account, footer=None):
 	if company_address:
 		company_address = company_address.splitlines(True)
 		footer += '<table width="100%" border=0>'
+		footer += '<tr><td height=20></td></tr>'
 		for x in company_address:
 			footer += '<tr style="margin: 15px auto; text-align: center; color: #8d99a6"><td>{0}</td></tr>'\
 				.format(x)
