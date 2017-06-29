@@ -204,7 +204,7 @@ frappe.ui.BaseList = Class.extend({
 				me.page.add_field({
 					fieldtype: df.fieldtype,
 					label: __(df.label),
-					options: df.options,
+					options: options,
 					fieldname: df.fieldname,
 					onchange: () => { me.refresh(true); }
 				});

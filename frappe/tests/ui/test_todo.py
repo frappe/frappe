@@ -28,12 +28,12 @@ class TestToDo(unittest.TestCase):
 
 		time.sleep(3)
 
+		self.driver.print_console()
+
 		result_list = self.driver.get_visible_element('.result-list')
 		first_element_text = (result_list
 			.find_element_by_css_selector('.list-item')
 			.find_element_by_css_selector('.list-id').text)
-
-		print(result_list.get_attribute('innerHTML'))
 
 		self.assertTrue('hello' in first_element_text)
 
