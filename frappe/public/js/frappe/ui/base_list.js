@@ -189,16 +189,25 @@ frappe.ui.BaseList = Class.extend({
 			options:this.doctype,
 			label:'ID',
 			fieldname:'name',
+			onchange: () => { me.refresh(true); }
 		});
 
 		var has_standard_filters = false;
 		this.meta.fields.forEach(function(df) {
 			if(df.in_standard_filter) {
+				if(df.fieldtype == "Select") {
+					var options = df.options.split("\n")
+					if(options.length > 0 && options[0] != ""){
+						options.unshift("");
+						df.options = options.join("\n");
+					}
+				}
 				me.page.add_field({
 					fieldtype: df.fieldtype,
 					label: __(df.label),
 					options: df.options,
-					fieldname: df.fieldname
+					fieldname: df.fieldname,
+					onchange: () => {me.refresh(true);}
 				});
 			}
 		});
