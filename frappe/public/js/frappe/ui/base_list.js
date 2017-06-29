@@ -195,7 +195,7 @@ frappe.ui.BaseList = Class.extend({
 		var has_standard_filters = false;
 		this.meta.fields.forEach(function(df) {
 			if(df.in_standard_filter) {
-				if(df.fieldtype == "Select") {
+				if(df.fieldtype == "Select" && df.options) {
 					var options = df.options.split("\n")
 					if(options.length > 0 && options[0] != ""){
 						options.unshift("");
@@ -249,7 +249,7 @@ frappe.ui.BaseList = Class.extend({
 
 	set_filters_from_route_options: function ({clear_filters=true} = {}) {
 		var me = this;
-		if(clear_filters) {
+		if(this.filter_list && clear_filters) {
 			this.filter_list.clear_filters();
 		}
 
@@ -272,7 +272,7 @@ frappe.ui.BaseList = Class.extend({
 				doctype = frappe.meta.get_doctype_for_field(me.doctype, field);
 			}
 
-			if (doctype) {
+			if (doctype && me.filter_list) {
 				if ($.isArray(value)) {
 					me.filter_list.add_filter(doctype, field, value[0], value[1]);
 				} else {
