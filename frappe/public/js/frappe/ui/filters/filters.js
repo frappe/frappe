@@ -216,7 +216,7 @@ frappe.ui.Filter = Class.extend({
 					: __("use % as wildcard"))+'</div>');
 			} else {
 				//if condition selected after refresh
-				me.set_field(me.field.df.parent, me.field.df.fieldname, me.field.df.fieldtype, condition);
+				me.set_field(me.field.df.parent, me.field.df.fieldname, null, condition);
 			}
 		});
 
@@ -345,7 +345,7 @@ frappe.ui.Filter = Class.extend({
 		} else if(['Text','Small Text','Text Editor','Code','Tag','Comments',
 			'Dynamic Link','Read Only','Assign'].indexOf(df.fieldtype)!=-1) {
 			df.fieldtype = 'Data';
-		} else if(df.fieldtype=='Link' && this.wrapper.find('.condition').val()!="=") {
+		} else if(df.fieldtype=='Link' && ['=', '!='].indexOf(this.wrapper.find('.condition').val())==-1) {
 			df.fieldtype = 'Data';
 		}
 		if(df.fieldtype==="Data" && (df.options || "").toLowerCase()==="email") {
