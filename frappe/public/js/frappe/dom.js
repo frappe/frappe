@@ -199,7 +199,7 @@ frappe.run_serially = function(tasks) {
 	var result = Promise.resolve();
 	tasks.forEach(task => {
 		if(task) {
-			result = result.then(() => task()) || new Promise((resolve) => { resolve(); });
+			result = result.then ? result.then(task) : Promise.resolve();
 		}
 	});
 	return result;
