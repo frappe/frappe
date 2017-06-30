@@ -192,8 +192,6 @@ class FormMeta(Meta):
 		self.set("__kanban_column_fields", fields, as_value=True)
 
 	def load_goals(self):
-		print self.name
-		print "===================================="
 		goals = frappe.get_list(
 			'Goal', fields=['source_filter', 'frequency', 'type_of_aggregation',
 				'based_on', 'target'], filters={'source': self.name})

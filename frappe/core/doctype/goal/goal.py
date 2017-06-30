@@ -146,7 +146,7 @@ def get_goals(doctype):
 
     frequency_map = {
         "Daily": {"break_up": "Hourly", "break_up_count": 24},
-        "Weekly": {"break_up": "Daily", "break_up_count": 17},
+        "Weekly": {"break_up": "Daily", "break_up_count": 8},
         "Monthly": {"break_up": "Daily", "break_up_count": 30},
         "Annually": {"break_up": "Monthly", "break_up_count": 12},
     }

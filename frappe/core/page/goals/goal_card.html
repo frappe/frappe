@@ -1,5 +1,6 @@
 <div class="goal-container">
     <div class="goal-title">{%= title %}</div>
+    <div class="text-uppercase text-muted" style="margin-left: 5px;">{%= frequency %}</div>
     <div class="graphics">
 
         <div class="bar-graph">
@@ -16,15 +17,15 @@
                     <g>
 
                     {% for(var i=0, l=break_up_list.length; i<l; i++) { %}
-                    <g class="bar mini" transform="translate({%= 40 + i * 45 %}, 0)">
-                        <rect width="40" height="{%= 100/(upper_graph_bound/break_up_list[i]) %}" y="{%= (100 - 100/(upper_graph_bound/break_up_list[i])) %}"></rect>
+                    <g class="bar mini" transform="translate({%= 60 + i * 65 %}, 0)">
+                        <rect width="60" height="{%= 100/(upper_graph_bound/break_up_list[i]) %}" y="{%= (100 - 100/(upper_graph_bound/break_up_list[i])) %}"></rect>
                     </g>
 
                     {% } %}
 
                     {% for(var i=0, l=break_up_dates.length; i<l; i++) { %}
                     <g class="x axis" transform="translate(0,100)">
-                        <g class="tick" transform="translate({%= 60 + i * 45 %},0)" style="display: block;">
+                        <g class="tick" transform="translate({%= 90 + i * 65 %},0)" style="display: block;">
                             <line y2="6" x2="0"></line>
                             <text y="9" x="0" dy=".71em" style="text-anchor: middle;">{%= break_up_dates[i] %}</text>
                         </g>

@@ -83,7 +83,7 @@ frappe.GoalCard = class GoalCard {
         this.goal = goal;
         this.parent = parent;
 
-		this.parent.append(this.render_goal(this.goal));
+        this.parent.append(this.render_goal(this.goal));
 
     }
 
@@ -92,7 +92,7 @@ frappe.GoalCard = class GoalCard {
         let current_value = parseInt(goal.current_value);
         let goal_target = parseInt(goal.target);
 
-		let break_up_list = goal.break_up.map(b => b.value).reverse();
+        let break_up_list = goal.break_up.map(b => b.value).reverse();
         let break_up_dates = goal.break_up.map(b => b.day).reverse();
         let break_up_string = break_up_list.join(' | ');
 
@@ -118,16 +118,32 @@ frappe.GoalCard = class GoalCard {
             return y_axis;
         }
 
+        function get_duration_name(frequency){
+            switch(frequency) {
+                case "Daily":
+                    return "Today";
+                case "Weekly":
+                    return "This Week";
+                case "Monthly":
+                    return "This Month";
+                case "Annually":
+                    return "This Year";
+                default:
+                    return "";
+            }
+        }
+
         console.log("goal", current_value, goal, goal_target);
 
         let $goal_card = frappe.render_template('goal_card',
             {
                 title: title,
+                frequency: get_duration_name(goal.frequency),
                 target: goal_target,
                 completed: current_value + "",
                 remaining: (goal_target - current_value) + "",
 
-				break_up_list: break_up_list,
+                break_up_list: break_up_list,
                 break_up_dates: break_up_dates,
                 break_up_freq: goal.break_up_freq,
                 break_up: break_up_string,

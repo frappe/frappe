@@ -37,15 +37,12 @@ frappe.views.ListSidebar = Class.extend({
 			this.sidebar.find('.list-link[data-view="Gantt"]').removeClass('hide');
 			show_list_link = true;
 		}
-		// show link for kanban view
+		//show link for kanban view
 		this.sidebar.find('.list-link[data-view="Kanban"]').removeClass('hide');
 		if(this.doctype === "Communication" && frappe.boot.email_accounts.length) {
 			this.sidebar.find('.list-link[data-view="Inbox"]').removeClass('hide');
 			show_list_link = true;
 		}
-
-		// show link for goals view
-		this.sidebar.find('.list-link[data-view="Goals"]').removeClass('hide');
 
 		if(frappe.treeview_settings[this.doctype]) {
 			this.sidebar.find(".tree-link").removeClass("hide");
@@ -267,10 +264,6 @@ frappe.views.ListSidebar = Class.extend({
 				);
 			}
 		});
-	},
-	make_new_goal: function() {
-		// here in the sidebar? suppose if we want to delete existing goal as well?
-		// probably better in view itself
 	},
 	setup_email_inbox: function() {
 		// get active email account for the user and add in dropdown

@@ -116,7 +116,7 @@ frappe.views.set_list_as_dirty = function (doctype) {
 	}
 }
 
-frappe.views.view_modes = ['List', 'Gantt', 'Kanban', 'Calendar', 'Image', 'Goals', 'Inbox'];
+frappe.views.view_modes = ['List', 'Gantt', 'Kanban', 'Calendar', 'Image', 'Inbox'];
 
 frappe.views.ListView = frappe.ui.BaseList.extend({
 	init: function (opts) {
@@ -215,8 +215,6 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 			this.list_renderer = new frappe.views.KanbanView(opts);
 		} else if (this.current_view === 'Inbox') {
 			this.list_renderer = new frappe.views.InboxView(opts)
-		} else if (this.current_view === 'Goals') {
-			this.list_renderer = new frappe.views.GoalsView(opts)
 		}
 	},
 
