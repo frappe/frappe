@@ -154,6 +154,8 @@ class User(Document):
 				and name in ({0}) limit 1""".format(', '.join(['%s'] * len(self.roles))),
 				[d.role for d in self.roles]))):
 			self.two_factor_auth = 1
+		else:
+			self.two_factor_auth = 0
 
 	def has_desk_access(self):
 		'''Return true if any of the set roles has desk access'''

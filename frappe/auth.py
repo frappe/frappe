@@ -118,48 +118,51 @@ class LoginManager:
 	def login(self):
 		# clear cache
 		frappe.clear_cache(user = frappe.form_dict.get('usr'))
-		otp = frappe.form_dict.get('otp')
-		if not otp:
+
+		if frappe.db.get_value('System Settings', 'System Settings', 'enable_two_factor_auth') == unicode(0):
 			self.authenticate()
-			# after authenticate, self.user is set (from check_password() call)
-			user_info = frappe.db.get_value('User', self.user, ['two_factor_auth','two_factor_setup'], as_dict=1)
-			if user_info.two_factor_auth:
+			self.post_login(no_two_auth=True)
+		else:
+			otp = frappe.form_dict.get('otp')
+			if not otp:
+				self.authenticate()
+				# after authenticate, self.user is set (from check_password() call)
+				user_info = frappe.db.get_value('User', self.user, ['two_factor_auth','two_factor_setup'], as_dict=1)
+				if user_info.two_factor_auth == 1:
 
-				if user_info.two_factor_setup:
-					frappe.local.response['verification'] = {'setup_completed':True}
-					otp_secret = frappe.db.get_default(self.user + '_otpsecret')
+					if user_info.two_factor_setup:
+						frappe.local.response['verification'] = {'setup_completed':True}
+						otp_secret = frappe.db.get_default(self.user + '_otpsecret')
+					else:
+						import os
+						import base64
+						otp_secret = base64.b32encode(os.urandom(10)).decode('utf-8')
+						frappe.db.set_default(self.user + '_otpsecret', otp_secret)
+						frappe.db.commit()
+						totp_uri = pyotp.totp.TOTP(otp_secret).provisioning_uri(self.user, issuer_name="Estate Manager")
+						frappe.local.response['verification'] = {'setup_completed':False, 'totp_uri':totp_uri}
+
+					tmp_id = frappe.generate_hash(length=8)
+					usr = frappe.form_dict.get('usr')
+					pwd = frappe.form_dict.get('pwd')
+					frappe.cache().hset('token',tmp_id,{'usr':usr,'pwd':pwd,'otp_secret':otp_secret})
+					frappe.local.response['tmp_id'] = tmp_id
+
+					raise frappe.RequestToken
+
 				else:
-					import os
-					import base64
-					otp_secret = base64.b32encode(os.urandom(10)).decode('utf-8')
-					frappe.db.set_default(self.user + '_otpsecret', otp_secret)
-					# set two_factor_setup as 1 meaning user has copied otpsecret
-					frappe.db.set_value("User", self.user, 'two_factor_setup', 1)
-					frappe.db.commit()
-					totp_uri = pyotp.totp.TOTP(otp_secret).provisioning_uri(self.user, issuer_name="Estate Manager")
-					frappe.local.response['verification'] = {'setup_completed':False, 'totp_uri':totp_uri}
-
-				tmp_id = frappe.generate_hash(length=8)
-				usr = frappe.form_dict.get('usr')
-				pwd = frappe.form_dict.get('pwd')
-				frappe.cache().hset('token',tmp_id,{'usr':usr,'pwd':pwd,'otp_secret':otp_secret})
-				frappe.local.response['tmp_id'] = tmp_id
-
-				raise frappe.RequestToken
+					self.post_login(no_two_auth=True)
 
 			else:
-				self.post_login(no_two_auth=True)
-
-		else:
-			try:
-				tmp_info = frappe.cache().hget('token', frappe.form_dict.get('tmp_id'))
-				self.authenticate(user=tmp_info['usr'], pwd=tmp_info['pwd'])
-			except:
-				frappe.log_error(frappe.get_traceback(),"AUTHENTICATION PROBLEM")
-			#frappe.respond_as_web_page("Logged Out", """<p>You have been logged out.</p><p><a href='index'>Back to Home</a></p>""")
-			#frappe.throw("+++++ YOUR LOGIN WAS SUCCESSFUL, CONGRATS +++++")
-			#frappe.website.render('/404.html')
-			self.post_login()
+				try:
+					tmp_info = frappe.cache().hget('token', frappe.form_dict.get('tmp_id'))
+					self.authenticate(user=tmp_info['usr'], pwd=tmp_info['pwd'])
+				except:
+					frappe.log_error(frappe.get_traceback(),"AUTHENTICATION PROBLEM")
+				#frappe.respond_as_web_page("Logged Out", """<p>You have been logged out.</p><p><a href='index'>Back to Home</a></p>""")
+				#frappe.throw("+++++ YOUR LOGIN WAS SUCCESSFUL, CONGRATS +++++")
+				#frappe.website.render('/404.html')
+				self.post_login()
 
 	def post_login(self,no_two_auth=False):
 		self.run_trigger('on_login')
@@ -181,6 +184,9 @@ class LoginManager:
 		totp = pyotp.TOTP(otp_secret)
 		if totp.verify(otp):
 			frappe.cache().hdel('token', tmp_id)
+			# show qr code only once
+			frappe.db.set_value("User", self.user, 'two_factor_setup', 1)
+			frappe.db.commit()
 			return True
 		else:
 			self.fail('Incorrect Verification code', user=frappe.cache().hget('token',tmp_id).get('usr'))
