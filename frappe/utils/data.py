@@ -13,6 +13,7 @@ from dateutil import parser
 from num2words import num2words
 import HTMLParser
 from html2text import html2text
+from six import iteritems
 
 DATE_FORMAT = "%Y-%m-%d"
 TIME_FORMAT = "%H:%M:%S.%f"
@@ -55,7 +56,10 @@ def get_datetime(datetime_str=None):
 	if not datetime_str or (datetime_str or "").startswith("0000-00-00"):
 		return None
 
-	return parser.parse(datetime_str)
+	try:
+		return datetime.datetime.strptime(datetime_str, DATETIME_FORMAT)
+	except ValueError:
+		return parser.parse(datetime_str)
 
 def to_timedelta(time_str):
 	if isinstance(time_str, basestring):
@@ -420,7 +424,14 @@ def money_in_words(number, main_currency = None, fraction_currency=None):
 	from frappe.utils import get_defaults
 	_ = frappe._
 
-	if not number or flt(number) < 0:
+	try:
+		# note: `flt` returns 0 for invalid input and we don't want that
+		number = float(number)
+	except ValueError:
+		return ""
+
+	number = flt(number)
+	if number < 0:
 		return ""
 
 	d = get_defaults()
@@ -429,20 +440,33 @@ def money_in_words(number, main_currency = None, fraction_currency=None):
 	if not fraction_currency:
 		fraction_currency = frappe.db.get_value("Currency", main_currency, "fraction") or _("Cent")
 
-	n = "%.2f" % flt(number)
-	main, fraction = n.split('.')
-	if len(fraction)==1: fraction += '0'
-
-
 	number_format = frappe.db.get_value("Currency", main_currency, "number_format", cache=True) or \
 		frappe.db.get_default("number_format") or "#,###.##"
+
+	fraction_length = get_number_format_info(number_format)[2]
+
+	n = "%.{0}f".format(fraction_length) % number
+
+	numbers = n.split('.')
+	main, fraction =  numbers if len(numbers) > 1 else [n, '00']
+
+	if len(fraction) < fraction_length:
+		zeros = '0' * (fraction_length - len(fraction))
+		fraction += zeros
 
 	in_million = True
 	if number_format == "#,##,###.##": in_million = False
 
-	out = main_currency + ' ' + in_words(main, in_million).title()
-	if cint(fraction):
-		out = out + ' ' + _('and') + ' ' + in_words(fraction, in_million).title() + ' ' + fraction_currency
+	# 0.00
+	if main == '0' and fraction in ['00', '000']:
+		out = "{0} {1}".format(main_currency, _('Zero'))
+	# 0.XX
+	elif main == '0':
+		out = _(in_words(fraction, in_million).title()) + ' ' + fraction_currency
+	else:
+		out = main_currency + ' ' + _(in_words(main, in_million).title())
+		if cint(fraction):
+			out = out + ' ' + _('and') + ' ' + _(in_words(fraction, in_million).title()) + ' ' + fraction_currency
 
 	return out + ' ' + _('only.')
 
@@ -663,7 +687,7 @@ operator_map = {
 def evaluate_filters(doc, filters):
 	'''Returns true if doc matches filters'''
 	if isinstance(filters, dict):
-		for key, value in filters.iteritems():
+		for key, value in iteritems(filters):
 			f = get_filter(None, {key:value})
 			if not compare(doc.get(f.fieldname), f.operator, f.value):
 				return False
@@ -701,13 +725,13 @@ def get_filter(doctype, f):
 		f = make_filter_tuple(doctype, key, value)
 
 	if not isinstance(f, (list, tuple)):
-		frappe.throw("Filter must be a tuple or list (in a list)")
+		frappe.throw(frappe._("Filter must be a tuple or list (in a list)"))
 
 	if len(f) == 3:
 		f = (doctype, f[0], f[1], f[2])
 
 	elif len(f) != 4:
-		frappe.throw("Filter must have 4 values (doctype, fieldname, operator, value): {0}".format(str(f)))
+		frappe.throw(frappe._("Filter must have 4 values (doctype, fieldname, operator, value): {0}").format(str(f)))
 
 	f = frappe._dict(doctype=f[0], fieldname=f[1], operator=f[2], value=f[3])
 
@@ -717,7 +741,7 @@ def get_filter(doctype, f):
 
 	valid_operators = ("=", "!=", ">", "<", ">=", "<=", "like", "not like", "in", "not in", "between")
 	if f.operator.lower() not in valid_operators:
-		frappe.throw("Operator must be one of {0}".format(", ".join(valid_operators)))
+		frappe.throw(frappe._("Operator must be one of {0}").format(", ".join(valid_operators)))
 
 
 	if f.doctype and (f.fieldname not in default_fields + optional_fields):

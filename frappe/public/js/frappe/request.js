@@ -71,10 +71,10 @@ frappe.request.call = function(opts) {
 				frappe.app.redirect_to_login();
 			} else {
 				frappe.app.handle_session_expired();
-			};
+			}
 		},
 		404: function(xhr) {
-			msgprint({title:__("Not found"), indicator:'red',
+			frappe.msgprint({title:__("Not found"), indicator:'red',
 				message: __('The resource you are looking for is not available')});
 		},
 		403: function(xhr) {
@@ -108,11 +108,11 @@ frappe.request.call = function(opts) {
 		},
 		508: function(xhr) {
 			frappe.utils.play_sound("error");
-			msgprint({title:__('Please try again'), indicator:'red',
+			frappe.msgprint({title:__('Please try again'), indicator:'red',
 				message:__("Another transaction is blocking this one. Please try again in a few seconds.")});
 		},
 		413: function(data, xhr) {
-			msgprint({indicator:'red', title:__('File too big'), message:__("File size exceeded the maximum allowed size of {0} MB",
+			frappe.msgprint({indicator:'red', title:__('File too big'), message:__("File size exceeded the maximum allowed size of {0} MB",
 				[(frappe.boot.max_file_size || 5242880) / 1048576])});
 		},
 		417: function(xhr) {
@@ -133,12 +133,12 @@ frappe.request.call = function(opts) {
 		},
 		500: function(xhr) {
 			frappe.utils.play_sound("error");
-			msgprint({message:__("Server Error: Please check your server logs or contact tech support."), title:__('Something went wrong'), indicator: 'red'});
+			frappe.msgprint({message:__("Server Error: Please check your server logs or contact tech support."), title:__('Something went wrong'), indicator: 'red'});
 			opts.error_callback && opts.error_callback();
 			frappe.request.report_error(xhr, opts);
 		},
 		504: function(xhr) {
-			msgprint(__("Request Timed Out"))
+			frappe.msgprint(__("Request Timed Out"))
 			opts.error_callback && opts.error_callback();
 		}
 	};
@@ -217,7 +217,7 @@ frappe.request.prepare = function(opts) {
 	if(opts.freeze) frappe.dom.freeze(opts.freeze_message);
 
 	// stringify args if required
-	for(key in opts.args) {
+	for(var key in opts.args) {
 		if(opts.args[key] && ($.isPlainObject(opts.args[key]) || $.isArray(opts.args[key]))) {
 			opts.args[key] = JSON.stringify(opts.args[key]);
 		}
@@ -274,7 +274,7 @@ frappe.request.cleanup = function(opts, r) {
 		} else {
 			console.log(r.exc);
 		}
-	};
+	}
 
 	// debug messages
 	if(r._debug_messages) {
@@ -330,7 +330,7 @@ frappe.request.report_error = function(xhr, request_opts) {
 
 		request_opts = frappe.request.cleanup_request_opts(request_opts);
 
-		var msg_dialog = msgprint({message:error_message, indicator:'red'});
+		msg_dialog = frappe.msgprint({message:error_message, indicator:'red'});
 
 		msg_dialog.msg_area.find(".report-btn")
 			.toggle(error_report_email ? true : false)
@@ -361,7 +361,7 @@ frappe.request.report_error = function(xhr, request_opts) {
 					message: error_report_message,
 					doc: {
 						doctype: "User",
-						name: user
+						name: frappe.session.user
 					}
 				});
 				communication_composer.dialog.$wrapper.css("z-index", cint(msg_dialog.$wrapper.css("z-index")) + 1);

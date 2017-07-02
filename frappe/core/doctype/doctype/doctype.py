@@ -35,6 +35,7 @@ class DocType(Document):
 		- Check fieldnames (duplication etc)
 		- Clear permission table for child tables
 		- Add `amended_from` and `amended_by` if Amendable"""
+
 		self.check_developer_mode()
 
 		self.validate_name()
@@ -49,6 +50,7 @@ class DocType(Document):
 			self.permissions = []
 
 		self.scrub_field_names()
+		self.set_default_in_list_view()
 		self.validate_series()
 		self.validate_document_type()
 		validate_fields(self)
@@ -70,6 +72,16 @@ class DocType(Document):
 
 		if self.default_print_format and not self.custom:
 			frappe.throw(_('Standard DocType cannot have default print format, use Customize Form'))
+
+	def set_default_in_list_view(self):
+		'''Set default in-list-view for first 4 mandatory fields'''
+		if not [d.fieldname for d in self.fields if d.in_list_view]:
+			cnt = 0
+			for d in self.fields:
+				if d.reqd and not d.hidden:
+					d.in_list_view = 1
+					cnt += 1
+					if cnt == 4: break
 
 	def check_developer_mode(self):
 		"""Throw exception if not developer mode or via patch"""
@@ -214,6 +226,10 @@ class DocType(Document):
 
 		if not frappe.flags.in_install and hasattr(self, 'before_update'):
 			self.sync_global_search()
+
+		# clear from local cache
+		if self.name in frappe.local.meta_cache:
+			del frappe.local.meta_cache[self.name]
 
 	def sync_global_search(self):
 		'''If global search settings are changed, rebuild search properties for this table'''
@@ -419,7 +435,7 @@ def validate_fields(meta):
 	def check_in_list_view(d):
 		if d.in_list_view and (d.fieldtype in not_allowed_in_list_view):
 			frappe.throw(_("'In List View' not allowed for type {0} in row {1}").format(d.fieldtype, d.idx))
-			
+
 	def check_in_global_search(d):
 		if d.in_global_search and d.fieldtype in no_value_fields:
 			frappe.throw(_("'In Global Search' not allowed for type {0} in row {1}")
@@ -607,10 +623,24 @@ def validate_permissions_for_doctype(doctype, for_remove=False):
 	for perm in doctype.get("permissions"):
 		perm.db_update()
 
+	clear_permissions_cache(doctype.name)
+
+def clear_permissions_cache(doctype):
+	frappe.clear_cache(doctype=doctype)
+	delete_notification_count_for(doctype)
+	for user in frappe.db.sql_list("""select
+			distinct `tabHas Role`.parent
+		from
+			`tabHas Role`,
+		tabDocPerm
+			where tabDocPerm.parent = %s
+			and tabDocPerm.role = `tabHas Role`.role""", doctype):
+		frappe.clear_cache(user=user)
+
 def validate_permissions(doctype, for_remove=False):
 	permissions = doctype.get("permissions")
 	if not permissions:
-		frappe.throw(_('Enter at least one permission row'), frappe.MandatoryError)
+		frappe.msgprint(_('No Permissions Specified'), alert=True, indicator='orange')
 	issingle = issubmittable = isimportable = False
 	if doctype:
 		issingle = cint(doctype.issingle)

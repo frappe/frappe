@@ -6,6 +6,7 @@ globals attached to frappe module
 """
 from __future__ import unicode_literals, print_function
 
+from six import iteritems
 from werkzeug.local import Local, release_local
 import os, sys, importlib, inspect, json
 
@@ -13,7 +14,7 @@ import os, sys, importlib, inspect, json
 from .exceptions import *
 from .utils.jinja import get_jenv, get_template, render_template
 
-__version__ = '8.0.64'
+__version__ = '8.2.3'
 __title__ = "Frappe Framework"
 
 local = Local()
@@ -138,6 +139,7 @@ def init(site, sites_path=None, new_site=False):
 	local.module_app = None
 	local.app_modules = None
 	local.system_settings = None
+	local.system_country = None
 
 	local.user = None
 	local.user_perms = None
@@ -145,10 +147,12 @@ def init(site, sites_path=None, new_site=False):
 	local.role_permissions = {}
 	local.valid_columns = {}
 	local.new_doc_templates = {}
+	local.link_count = {}
 
 	local.jenv = None
 	local.jloader =None
 	local.cache = {}
+	local.meta_cache = {}
 	local.form_dict = _dict()
 	local.session = _dict()
 
@@ -276,9 +280,9 @@ def msgprint(msg, title=None, raise_exception=0, as_table=False, indicator=None,
 			import inspect
 
 			if inspect.isclass(raise_exception) and issubclass(raise_exception, Exception):
-				raise raise_exception, encode(msg)
+				raise raise_exception(encode(msg))
 			else:
-				raise ValidationError, encode(msg)
+				raise ValidationError(encode(msg))
 
 	if flags.mute_messages:
 		_raise_exception()
@@ -376,7 +380,8 @@ def sendmail(recipients=[], sender="", subject="No Subject", message="No Message
 		unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None,
 		attachments=None, content=None, doctype=None, name=None, reply_to=None,
 		cc=[], message_id=None, in_reply_to=None, send_after=None, expose_recipients=None,
-		send_priority=1, communication=None, retry=1, now=None, read_receipt=None, is_notification=False):
+		send_priority=1, communication=None, retry=1, now=None, read_receipt=None, is_notification=False,
+		inline_images=None):
 	"""Send email using user's default **Email Account** or global default **Email Account**.
 
 
@@ -398,6 +403,7 @@ def sendmail(recipients=[], sender="", subject="No Subject", message="No Message
 	:param send_after: Send after the given datetime.
 	:param expose_recipients: Display all recipients in the footer message - "This email was sent to"
 	:param communication: Communication link to be set in Email Queue record
+	:param inline_images: List of inline images as {"filename", "filecontent"}. All src properties will be replaced with random Content-Id
 	"""
 	message = content or message
 
@@ -415,7 +421,8 @@ def sendmail(recipients=[], sender="", subject="No Subject", message="No Message
 		unsubscribe_method=unsubscribe_method, unsubscribe_params=unsubscribe_params, unsubscribe_message=unsubscribe_message,
 		attachments=attachments, reply_to=reply_to, cc=cc, message_id=message_id, in_reply_to=in_reply_to,
 		send_after=send_after, expose_recipients=expose_recipients, send_priority=send_priority,
-		communication=communication, now=now, read_receipt=read_receipt, is_notification=is_notification)
+		communication=communication, now=now, read_receipt=read_receipt, is_notification=is_notification,
+		inline_images=inline_images)
 
 whitelisted = []
 guest_methods = []
@@ -756,7 +763,7 @@ def get_doc_hooks():
 	if not hasattr(local, 'doc_events_hooks'):
 		hooks = get_hooks('doc_events', {})
 		out = {}
-		for key, value in hooks.iteritems():
+		for key, value in iteritems(hooks):
 			if isinstance(key, tuple):
 				for doctype in key:
 					append_hook(out, doctype, value)
@@ -940,6 +947,7 @@ def make_property_setter(args, ignore_validate=False, validate_fields_for_doctyp
 		})
 		ps.flags.ignore_validate = ignore_validate
 		ps.flags.validate_fields_for_doctype = validate_fields_for_doctype
+		ps.validate_fieldtype_change()
 		ps.insert()
 
 def import_doc(path, ignore_links=False, ignore_insert=False, insert=False):
@@ -1341,3 +1349,22 @@ def safe_eval(code, eval_globals=None, eval_locals=None):
 	eval_globals.update(whitelisted_globals)
 
 	return eval(code, eval_globals, eval_locals)
+
+def get_active_domains():
+	""" get the domains set in the Domain Settings as active domain """
+
+	active_domains = cache().hget("domains", "active_domains") or None
+	if active_domains is None:
+		domains = get_all("Has Domain", filters={ "parent": "Domain Settings" },
+			fields=["domain"], distinct=True)
+
+		active_domains = [row.get("domain") for row in domains]
+		active_domains.append("")
+		cache().hset("domains", "active_domains", active_domains)
+
+	return active_domains
+
+def get_system_country():
+	if local.system_country is None:
+		local.system_country = db.get_single_value('System Settings', 'country') or ''
+	return local.system_country

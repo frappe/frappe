@@ -29,7 +29,10 @@ def pass_context(f):
 			ps = pstats.Stats(pr, stream=s)\
 				.sort_stats('cumtime', 'tottime', 'ncalls')
 			ps.print_stats()
-			print(s.getvalue())
+
+			# print the top-100
+			for line in s.getvalue().splitlines()[:100]:
+				print(line)
 
 		return ret
 

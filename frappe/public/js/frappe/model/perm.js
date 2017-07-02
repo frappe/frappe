@@ -45,7 +45,7 @@ $.extend(frappe.perm, {
 			return perm;
 		}
 
-		if (user==="Administrator" || roles.indexOf("Administrator")!==-1) {
+		if (frappe.session.user === "Administrator" || frappe.user_roles.includes("Administrator")) {
 			perm[0].read = 1;
 		}
 
@@ -62,7 +62,7 @@ $.extend(frappe.perm, {
 
 			// if owner
 			if(!$.isEmptyObject(perm[0].if_owner)) {
-				if(doc.owner===user) {
+				if(doc.owner === frappe.session.user) {
 					$.extend(perm[0], perm[0].if_owner);
 				} else {
 					// not owner, remove permissions
@@ -78,7 +78,7 @@ $.extend(frappe.perm, {
 			if(docinfo && docinfo.shared) {
 				for(var i=0; i<docinfo.shared.length; i++) {
 					var s = docinfo.shared[i];
-					if(s.user===user) {
+					if(s.user === frappe.session.user) {
 						perm[0]["read"] = perm[0]["read"] || s.read;
 						perm[0]["write"] = perm[0]["write"] || s.write;
 						perm[0]["share"] = perm[0]["share"] || s.share;
@@ -109,7 +109,7 @@ $.extend(frappe.perm, {
 
 		$.each(meta.permissions || [], function(i, p) {
 			// if user has this role
-			if(roles.indexOf(p.role)!==-1) {
+			if(frappe.user_roles.includes(p.role)) {
 				var permlevel = cint(p.permlevel);
 				if(!perm[permlevel]) {
 					perm[permlevel] = {};
@@ -198,7 +198,7 @@ $.extend(frappe.perm, {
 		}
 
 		if (perm[0].if_owner && perm[0].read) {
-			match_rules.push({"Owner": user});
+			match_rules.push({"Owner": frappe.session.user});
 		}
 
 		return match_rules;

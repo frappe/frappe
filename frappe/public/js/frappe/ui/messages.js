@@ -18,7 +18,7 @@ frappe.throw = function(msg) {
 		msg = {message: msg, title: __('Error')};
 	}
 	if(!msg.indicator) msg.indicator = 'red';
-	msgprint(msg);
+	frappe.msgprint(msg);
 	throw new Error(msg.message);
 }
 
@@ -175,6 +175,14 @@ frappe.msgprint = function(msg, title) {
 	return msg_dialog;
 }
 
+// Proxy for frappe.msgprint
+Object.defineProperty(window, 'msgprint', {
+	get: function() {
+		console.warn('Please use `frappe.msgprint` instead of `msgprint`. It will be deprecated soon.');
+		return frappe.msgprint;
+	}
+});
+
 frappe.hide_msgprint = function(instant) {
 	// clear msgprint
 	if(msg_dialog && msg_dialog.msg_area) {
@@ -221,8 +229,6 @@ frappe.verify_password = function(callback) {
 	}, __("Verify Password"), __("Verify"))
 }
 
-var msgprint = frappe.msgprint;
-
 frappe.show_progress = function(title, count, total) {
 	if(frappe.cur_progress && frappe.cur_progress.title === title
 			&& frappe.cur_progress.$wrapper.is(":visible")) {
@@ -233,8 +239,8 @@ frappe.show_progress = function(title, count, total) {
 		});
 		dialog.progress = $('<div class="progress"><div class="progress-bar"></div></div>')
 			.appendTo(dialog.body);
-			dialog.progress_bar = dialog.progress.css({"margin-top": "10px"})
-				.find(".progress-bar");
+		dialog.progress_bar = dialog.progress.css({"margin-top": "10px"})
+			.find(".progress-bar");
 		dialog.$wrapper.removeClass("fade");
 		dialog.show();
 		frappe.cur_progress = dialog;
@@ -260,6 +266,7 @@ frappe.show_alert = function(message, seconds=7) {
 		$('<div id="dialog-container"><div id="alert-container"></div></div>').appendTo('body');
 	}
 
+	var message_html;
 	if(message.indicator) {
 		message_html = $('<span class="indicator ' + message.indicator + '"></span>').append(message.message);
 	} else {
@@ -286,5 +293,10 @@ frappe.show_alert = function(message, seconds=7) {
 	return div;
 }
 
-// for backward compatibility
-var show_alert = frappe.show_alert;
+// Proxy for frappe.show_alert
+Object.defineProperty(window, 'show_alert', {
+	get: function() {
+		console.warn('Please use `frappe.show_alert` instead of `show_alert`. It will be deprecated soon.');
+		return frappe.show_alert;
+	}
+});

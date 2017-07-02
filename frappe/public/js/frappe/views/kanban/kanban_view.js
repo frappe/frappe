@@ -71,7 +71,7 @@ frappe.views.KanbanView = frappe.views.ListRenderer.extend({
 		return frappe.render_template('list_item_row_head', { main: '', list: this });
 	},
 	required_libs: [
-		'assets/frappe/js/frappe/views/kanban/fluxify.min.js',
+		'assets/frappe/js/lib/fluxify.min.js',
 		'assets/frappe/js/frappe/views/kanban/kanban_board.js'
 	]
 });

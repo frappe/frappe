@@ -18,7 +18,6 @@ frappe.search.AwesomeBar = Class.extend({
 			autoFirst: true,
 			list: [],
 			filter: function (text, term) {
-				this.get_item(text.value).boo = "foo";
 				return true;
 			},
 			data: function (item, input) {
@@ -138,7 +137,7 @@ frappe.search.AwesomeBar = Class.extend({
 					<tr><td>'+__("Calculate")+'</td><td>'+
 						__("e.g. (55 + 434) / 4 or =Math.sin(Math.PI/2)...")+'</td></tr>\
 				</table>'
-				msgprint(txt, __("Search Help"));
+				frappe.msgprint(txt, __("Search Help"));
 			}
 		});
 	},
@@ -194,6 +193,7 @@ frappe.search.AwesomeBar = Class.extend({
 				}
 			} else {
 				out.push(option);
+				routes.push("");
 			}
 		});
 		return out;
@@ -255,7 +255,7 @@ frappe.search.AwesomeBar = Class.extend({
 					index: 80,
 					default: "Calculator",
 					onclick: function() {
-						msgprint(formatted_value, "Result");
+						frappe.msgprint(formatted_value, "Result");
 					}
 				});
 			} catch(e) {

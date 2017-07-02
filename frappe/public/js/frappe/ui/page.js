@@ -251,12 +251,22 @@ frappe.ui.Page = Class.extend({
 	},
 
 	add_inner_button: function(label, action, group) {
+		let _action = function() {
+			let btn = $(this);
+			let promise = action();
+			if (promise && promise.then) {
+				btn.attr('disabled', true);
+				promise.then(() => {
+					btn.attr('disabled', false);
+				})
+			}
+		}
 		if(group) {
 			var $group = this.get_inner_group_button(group);
-			return $('<li><a>'+label+'</a></li>').on('click', action).appendTo($group.find(".dropdown-menu"));
+			return $('<li><a>'+label+'</a></li>').on('click', _action).appendTo($group.find(".dropdown-menu"));
 		} else {
 			return $('<button class="btn btn-default btn-xs" style="margin-left: 10px;">'+__(label)+'</btn>')
-				.on("click", action).appendTo(this.inner_toolbar.removeClass("hide"))
+				.on("click", _action).appendTo(this.inner_toolbar.removeClass("hide"))
 		}
 	},
 
@@ -317,7 +327,7 @@ frappe.ui.Page = Class.extend({
 		return this.$title_area.find(".title-icon")
 			.html('<i class="'+icon+' fa-fw"></i> ')
 			.toggle(true);
-		},
+	},
 
 	add_help_button: function(txt) {
 		//
@@ -392,6 +402,13 @@ frappe.ui.Page = Class.extend({
 	},
 	show_form: function() {
 		this.page_form.removeClass("hide");
+	},
+	get_form_values: function() {
+		var values = {};
+		this.page_form.fields_dict.forEach(function(field, key) {
+			values[key] = field.get_value();
+		});
+		return values;
 	},
 	add_view: function(name, html) {
 		this.views[name] = $(html).appendTo($(this.wrapper).find(".page-content"));

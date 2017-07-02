@@ -27,7 +27,7 @@ frappe.ui.form.on('Auto Email Report', {
 						"/api/method/frappe.email.doctype.auto_email_report.auto_email_report.download?"
 						+"name="+encodeURIComponent(frm.doc.name)));
 				if(!w) {
-					msgprint(__("Please enable pop-ups")); return;
+					frappe.msgprint(__("Please enable pop-ups")); return;
 				}
 			});
 			frm.add_custom_button(__('Send Now'), function() {
@@ -35,7 +35,7 @@ frappe.ui.form.on('Auto Email Report', {
 					method: 'frappe.email.doctype.auto_email_report.auto_email_report.send_now',
 					args: {name: frm.doc.name},
 					callback: function() {
-						msgprint(__('Scheduled to send'));
+						frappe.msgprint(__('Scheduled to send'));
 					}
 				});
 			});
@@ -62,13 +62,15 @@ frappe.ui.form.on('Auto Email Report', {
 			var table = $('<table class="table table-bordered" style="cursor:pointer; margin:0px;"><thead>\
 				<tr><th style="width: 50%">'+__('Filter')+'</th><th>'+__('Value')+'</th></tr>\
 				</thead><tbody></tbody></table>').appendTo(wrapper);
-				$('<p class="text-muted small">' + __("Click table to edit") + '</p>').appendTo(wrapper);
+			$('<p class="text-muted small">' + __("Click table to edit") + '</p>').appendTo(wrapper);
 
 			var filters = JSON.parse(frm.doc.filters || '{}');
 			var report_filters = frappe.query_reports[frm.doc.report].filters;
-			frm.set_value('filter_meta', JSON.stringify(report_filters));
+			if(report_filters && report_filters.length > 0) {
+				frm.set_value('filter_meta', JSON.stringify(report_filters));
+			}
 
-			report_filters_list = []
+			var report_filters_list = []
 			$.each(report_filters, function(key, val){
 				// Remove break fieldtype from the filters
 				if(val.fieldtype != 'Break') {

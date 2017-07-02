@@ -24,7 +24,7 @@
 				<ul class="dropdown-menu" id="toolbar-user" role="menu">
 					<li class="navbar-set-desktop-icons"><a href="#modules_setup">
 					    {%= __("Set Desktop Icons") %}</a></li>
-					<li><a href="#Form/User/{%= encodeURIComponent(user) %}">
+					<li><a href="#Form/User/{%= encodeURIComponent(frappe.session.user) %}">
 					    {%= __("My Settings") %}</a></li>
 					<li><a href="#" onclick="return frappe.ui.toolbar.clear_cache();">
 					    {%= __("Reload") %}</a></li>

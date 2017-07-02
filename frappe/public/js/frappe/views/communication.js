@@ -85,8 +85,8 @@ frappe.views.CommunicationComposer = Class.extend({
 		];
 
 		// add from if user has access to multiple email accounts
-		email_accounts = frappe.boot.email_accounts.filter(function(account, idx){
-			return !inList(["All Accounts", "Sent", "Spam", "Trash"], account.email_account) &&
+		var email_accounts = frappe.boot.email_accounts.filter(function(account, idx){
+			return !in_list(["All Accounts", "Sent", "Spam", "Trash"], account.email_account) &&
 				account.enable_outgoing
 		})
 		if(frappe.boot.email_accounts && email_accounts.length > 1) {
@@ -168,7 +168,7 @@ frappe.views.CommunicationComposer = Class.extend({
 				var content = content_field.get_value() || "";
 				var subject = subject_field.get_value() || "";
 
-				parts = content.split('<!-- salutation-ends -->');
+				var parts = content.split('<!-- salutation-ends -->');
 
 				if(parts.length===2) {
 					content = [reply.message, "<br>", parts[1]];
@@ -318,8 +318,8 @@ frappe.views.CommunicationComposer = Class.extend({
 		if(me.frm) {
 			args = {
 				args: (me.frm.attachments.get_args
-				 	? me.frm.attachments.get_args()
-				 	: { from_form: 1,folder:"Home/Attachments" }),
+					? me.frm.attachments.get_args()
+					: { from_form: 1,folder:"Home/Attachments" }),
 				callback: function (attachment, r) {
 					me.frm.attachments.attachment_uploaded(attachment, r)
 				},
@@ -334,7 +334,7 @@ frappe.views.CommunicationComposer = Class.extend({
 				<p class='add-more-attachments'>\
 				<a class='text-muted small'><i class='octicon octicon-plus' style='font-size: 12px'></i> "
 				+__("Add Attachment")+"</a></p>").appendTo(attach.empty())
-			attach.find(".add-more-attachments a").on('click',this,function() {
+		attach.find(".add-more-attachments a").on('click',this,function() {
 			me.upload = frappe.ui.get_upload_dialog(args);
 		})
 		me.render_attach()
@@ -397,10 +397,12 @@ frappe.views.CommunicationComposer = Class.extend({
 		var form_values = this.get_values();
 		if(!form_values) return;
 
-		var selected_attachments = $.map($(me.dialog.wrapper)
-			.find("[data-file-name]:checked"), function(element) {
+		var selected_attachments =
+			$.map($(me.dialog.wrapper)
+			.find("[data-file-name]:checked"), function (element) {
 				return $(element).attr("data-file-name");
-			})
+			});
+
 
 		if(form_values.attach_document_print) {
 			if (cur_frm.print_preview.is_old_style(form_values.select_print_format || "")) {
@@ -442,10 +444,10 @@ frappe.views.CommunicationComposer = Class.extend({
 	send_email: function(btn, form_values, selected_attachments, print_html, print_format) {
 		var me = this;
 
-		if((form_values.send_email || form_values.communication_medium === "Email") && !form_values.recipients){
-        		msgprint(__("Enter Email Recipient(s)"));
-            		return;
-        	}
+		if((form_values.send_email || form_values.communication_medium === "Email") && !form_values.recipients) {
+			frappe.msgprint(__("Enter Email Recipient(s)"));
+			return;
+		}
 
 		if(!form_values.attach_document_print) {
 			print_html = null;
@@ -454,13 +456,13 @@ frappe.views.CommunicationComposer = Class.extend({
 
 		if(form_values.send_email) {
 			if(cur_frm && !frappe.model.can_email(me.doc.doctype, cur_frm)) {
-				msgprint(__("You are not allowed to send emails related to this document"));
+				frappe.msgprint(__("You are not allowed to send emails related to this document"));
 				return;
 			}
 
 			form_values.communication_medium = "Email";
 			form_values.sent_or_received = "Sent";
-		};
+		}
 
 		return frappe.call({
 			method:"frappe.core.doctype.communication.email.make",
@@ -489,14 +491,14 @@ frappe.views.CommunicationComposer = Class.extend({
 					frappe.utils.play_sound("email");
 
 					if(form_values.send_email && r.message["emails_not_sent_to"]) {
-						msgprint( __("Email not sent to {0} (unsubscribed / disabled)",
+						frappe.msgprint(__("Email not sent to {0} (unsubscribed / disabled)",
 							[ frappe.utils.escape_html(r.message["emails_not_sent_to"]) ]) );
 					}
 
 					me.dialog.hide();
 
 					if ((frappe.last_edited_communication[me.doc] || {})[me.key]) {
-							delete frappe.last_edited_communication[me.doc][me.key];
+						delete frappe.last_edited_communication[me.doc][me.key];
 					}
 					if (cur_frm) {
 						// clear input
@@ -504,7 +506,7 @@ frappe.views.CommunicationComposer = Class.extend({
 						cur_frm.reload_doc();
 					}
 				} else {
-					msgprint(__("There were errors while sending email. Please try again."));
+					frappe.msgprint(__("There were errors while sending email. Please try again."));
 				}
 			}
 		});
@@ -553,11 +555,12 @@ frappe.views.CommunicationComposer = Class.extend({
 	},
 	setup_awesomplete: function() {
 		var me = this;
-		[this.dialog.fields_dict.recipients.input,
-		 this.dialog.fields_dict.cc.input]
-			.map(function(input) {
-				me.setup_awesomplete_for_input(input);
-			});
+		[
+			this.dialog.fields_dict.recipients.input,
+			this.dialog.fields_dict.cc.input
+		].map(function(input) {
+			me.setup_awesomplete_for_input(input);
+		});
 	},
 	setup_awesomplete_for_input: function(input) {
 		function split(val) {

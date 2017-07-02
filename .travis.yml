@@ -1,14 +1,21 @@
 language: python
 dist: trusty
+group: deprecated-2017Q2
 
 python:
   - "2.7"
+
+addons:
+  apt:
+    sources:
+      - google-chrome
+    packages:
+      - google-chrome-stable
 
 services:
   - mysql
 
 before_install:
-  - export CHROME_BIN=chromium-browser
   - export DISPLAY=:99.0
   - sh -e /etc/init.d/xvfb start
 
@@ -18,17 +25,10 @@ install:
   - wget https://raw.githubusercontent.com/frappe/bench/master/playbooks/install.py
   - sudo python install.py --develop --user travis --without-bench-setup
   - sudo pip install -e ~/bench
-  - npm install -g testcafe
 
   - rm $TRAVIS_BUILD_DIR/.git/shallow
   - cd ~/ && bench init frappe-bench --frappe-path $TRAVIS_BUILD_DIR
   - cp -r $TRAVIS_BUILD_DIR/test_sites/test_site ~/frappe-bench/sites/
-
-script:
-  - set -e
-  - bench --verbose run-tests
-  - bench reinstall --yes
-  - testcafe chrome apps/frappe/frappe/tests/testcafe/
 
 before_script:
   - mysql -u root -ptravis -e 'create database test_frappe'
@@ -36,8 +36,13 @@ before_script:
   - echo "USE mysql;\nGRANT ALL PRIVILEGES ON \`test_frappe\`.* TO 'test_frappe'@'localhost';\n" | mysql -u root -ptravis
   
   - cd ~/frappe-bench
-  - npm install babel-core less chokidar babel-preset-es2015 babel-preset-es2016 babel-preset-es2017 babel-preset-babili
   - bench use test_site
   - bench reinstall --yes
   - bench start &
   - sleep 10
+
+script:
+  - set -e
+  - bench --verbose run-tests
+  - bench reinstall --yes
+  - bench run-ui-tests --ci

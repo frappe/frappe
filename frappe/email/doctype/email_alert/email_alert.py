@@ -57,7 +57,7 @@ def get_context(context):
 		if self.condition:
 			try:
 				frappe.safe_eval(self.condition, None, get_context(temp_doc))
-			except:
+			except Exception:
 				frappe.throw(_("The Condition '{0}' is invalid").format(self.condition))
 
 	def validate_forbidden_types(self):
@@ -239,7 +239,7 @@ def evaluate_alert(doc, alert, event):
 		frappe.throw(_("Error while evaluating Email Alert {0}. Please fix your template.").format(alert))
 	except Exception, e:
 		frappe.log_error(message=frappe.get_traceback(), title=e)
-		frappe.throw("Error in Email Alert")
+		frappe.throw(_("Error in Email Alert"))
 
 def get_context(doc):
 	return {"doc": doc, "nowdate": nowdate, "frappe.utils": frappe.utils}

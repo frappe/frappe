@@ -70,8 +70,10 @@ frappe.ui.form.ScriptManager = Class.extend({
 		var me = this;
 		doctype = doctype || this.frm.doctype;
 		name = name || this.frm.docname;
-		handlers = this.get_handlers(event_name, doctype, name, callback);
+		var handlers = this.get_handlers(event_name, doctype, name, callback);
 		if(callback) handlers.push(callback);
+
+		this.frm.selected_doc = frappe.get_doc(doctype, name);
 
 		return $.when.apply($, $.map(handlers, function(fn) { return fn(); }));
 	},
@@ -114,8 +116,8 @@ frappe.ui.form.ScriptManager = Class.extend({
 		}
 
 		function setup_add_fetch(df) {
-			if((in_list(['Data', 'Read Only', 'Text', 'Small Text',
-					'Text Editor', 'Code'], df.fieldtype) || df.read_only==1)
+			if((['Data', 'Read Only', 'Text', 'Small Text',
+				'Text Editor', 'Code'].includes(df.fieldtype) || df.read_only==1)
 				&& df.options && df.options.indexOf(".")!=-1) {
 				var parts = df.options.split(".");
 				me.frm.add_fetch(parts[0], parts[1], df.fieldname);
@@ -138,7 +140,7 @@ frappe.ui.form.ScriptManager = Class.extend({
 		this.trigger('setup');
 	},
 	log_error: function(caller, e) {
-		show_alert("Error in Client Script.");
+		frappe.show_alert("Error in Client Script.");
 		console.group && console.group();
 		console.log("----- error in client script -----");
 		console.log("method: " + caller);
@@ -148,50 +150,17 @@ frappe.ui.form.ScriptManager = Class.extend({
 		console.log("----- end of error message -----");
 		console.group && console.groupEnd();
 	},
-	validate_link_and_fetch: function(df, doctype, docname, value, callback) {
-		var me = this;
-
-		if(value) {
-			var fetch = '';
-
-			if(this.frm && this.frm.fetch_dict[df.fieldname])
-				fetch = this.frm.fetch_dict[df.fieldname].columns.join(', ');
-
-			return frappe.call({
-				method:'frappe.desk.form.utils.validate_link',
-				type: "GET",
-				args: {
-					'value': value,
-					'options': doctype,
-					'fetch': fetch
-				},
-				no_spinner: true,
-				callback: function(r) {
-					if(r.message=='Ok') {
-						if(r.fetch_values)
-							me.set_fetch_values(df, docname, r.fetch_values);
-						if(callback) callback(r.valid_value);
-					} else {
-						if(callback) callback("");
-					}
-				}
-			});
-		} else if(callback) {
-			callback(value);
-		}
-	},
-	set_fetch_values: function(df, docname, fetch_values) {
-		var fl = this.frm.fetch_dict[df.fieldname].fields;
-		for(var i=0; i < fl.length; i++) {
-			frappe.model.set_value(df.parent, docname, fl[i], fetch_values[i], df.fieldtype);
-		}
-	},
 	copy_from_first_row: function(parentfield, current_row, fieldnames) {
-		var doclist = this.frm.doc[parentfield];
-		if(doclist.length===1 || doclist[0]===current_row) return;
+		var data = this.frm.doc[parentfield];
+		if(data.length===1 || data[0]===current_row) return;
+
+		if(typeof fieldnames==='string') {
+			fieldnames = [fieldnames];
+		}
 
 		$.each(fieldnames, function(i, fieldname) {
-			current_row[fieldname] = doclist[0][fieldname];
+			frappe.model.set_value(current_row.doctype, current_row.name, fieldname,
+				data[0][fieldname]);
 		});
 	}
 });

@@ -33,7 +33,7 @@ frappe.ui.form.on("Communication", {
 
 		if(frm.doc.communication_type == "Feedback") {
 			frm.add_custom_button(__("Resend"), function() {
-				feedback = new frappe.utils.Feedback();
+				var feedback = new frappe.utils.Feedback();
 				feedback.resend_feedback_request(frm.doc);
 			});
 		}
@@ -111,7 +111,7 @@ frappe.ui.form.on("Communication", {
 		d.set_value("reference_doctype", frm.doc.reference_doctype);
 		d.set_value("reference_name", frm.doc.reference_name);
 		d.set_primary_action(__("Relink"), function () {
-			values = d.get_values();
+			var values = d.get_values();
 			if (values) {
 				frappe.confirm(
 					__('Are you sure you want to relink this communication to {0}?', [values["reference_name"]]),
@@ -130,7 +130,7 @@ frappe.ui.form.on("Communication", {
 						});
 					},
 					function () {
-						show_alert('Document not Relinked')
+						frappe.show_alert('Document not Relinked')
 					}
 				);
 			}
@@ -139,8 +139,8 @@ frappe.ui.form.on("Communication", {
 	},
 
 	mark_as_read_unread: function(frm) {
-		action = frm.doc.seen? "Unread": "Read";
-		flag = "(\\SEEN)";
+		var action = frm.doc.seen? "Unread": "Read";
+		var flag = "(\\SEEN)";
 
 		return frappe.call({
 			method: "frappe.email.inbox.create_email_flag_queue",
@@ -154,7 +154,7 @@ frappe.ui.form.on("Communication", {
 	},
 
 	reply: function(frm) {
-		args = frm.events.get_mail_args(frm);
+		var args = frm.events.get_mail_args(frm);
 		$.extend(args, {
 			subject: __("Re: {0}", [frm.doc.subject]),
 			recipients: frm.doc.sender
@@ -164,7 +164,7 @@ frappe.ui.form.on("Communication", {
 	},
 
 	reply_all: function(frm) {
-		args = frm.events.get_mail_args(frm)
+		var args = frm.events.get_mail_args(frm)
 		$.extend(args, {
 			subject: __("Re: {0}", [frm.doc.subject]),
 			recipients: frm.doc.sender,
@@ -174,7 +174,7 @@ frappe.ui.form.on("Communication", {
 	},
 
 	forward_mail: function(frm) {
-		args = frm.events.get_mail_args(frm)
+		var args = frm.events.get_mail_args(frm)
 		$.extend(args, {		
 			forward: true,
 			subject: __("Fw: {0}", [frm.doc.subject]),
@@ -184,7 +184,7 @@ frappe.ui.form.on("Communication", {
 	},
 
 	get_mail_args: function(frm) {
-		sender_email_id = ""
+		var sender_email_id = ""
 		$.each(frappe.boot.email_accounts, function(idx, account) {
 			if(account.email_account == frm.doc.email_account) {
 				sender_email_id = account.email_id
@@ -202,11 +202,11 @@ frappe.ui.form.on("Communication", {
 
 	add_to_contact: function(frm) {
 		var me = this;
-		fullname = frm.doc.sender_full_name || ""
+		var fullname = frm.doc.sender_full_name || ""
 
-		names = fullname.split(" ")
-		first_name = names[0]
-		last_name = names.length >= 2? names[names.length - 1]: ""
+		var names = fullname.split(" ")
+		var first_name = names[0]
+		var last_name = names.length >= 2? names[names.length - 1]: ""
 
 		frappe.route_options = {
 			"email_id": frm.doc.sender,

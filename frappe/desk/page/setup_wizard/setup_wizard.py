@@ -10,6 +10,7 @@ from frappe.geo.country_info import get_country_info
 from frappe.utils.file_manager import save_file
 from frappe.utils.password import update_password
 from werkzeug.useragents import UserAgent
+import install_fixtures
 
 @frappe.whitelist()
 def setup_complete(args):
@@ -53,6 +54,7 @@ def setup_complete(args):
 	else:
 		for hook in frappe.get_hooks("setup_wizard_success"):
 			frappe.get_attr(hook)(args)
+		install_fixtures.install()
 
 
 def update_system_settings(args):
@@ -84,6 +86,11 @@ def update_user_name(args):
 		first_name, last_name = first_name.split(' ', 1)
 
 	if args.get("email"):
+		if frappe.db.exists('User', args.get('email')):
+			# running again
+			return
+
+
 		args['name'] = args.get("email")
 
 		_mute_emails, frappe.flags.mute_emails = frappe.flags.mute_emails, True

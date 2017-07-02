@@ -9,12 +9,12 @@ frappe.ui.form.on("Print Format", {
 	refresh: function(frm) {
 		frm.set_intro("");
 		frm.toggle_enable(["html", "doc_type", "module"], false);
-		if (user==="Administrator" || frm.doc.standard==="No") {
+		if (frappe.session.user==="Administrator" || frm.doc.standard==="No") {
 			frm.toggle_enable(["html", "doc_type", "module"], true);
 			frm.enable_save();
 		}
 
-		if(frm.doc.standard==="Yes" && user !== "Administrator") {
+		if(frm.doc.standard==="Yes" && frappe.session.user !== "Administrator") {
 			frm.set_intro(__("Please duplicate this to make changes"));
 		}
 		frm.trigger('render_buttons');
@@ -25,7 +25,7 @@ frappe.ui.form.on("Print Format", {
 			if(!frm.doc.custom_format) {
 				frm.add_custom_button(__("Edit Format"), function() {
 					if(!frm.doc.doc_type) {
-						msgprint(__("Please select DocType first"));
+						frappe.msgprint(__("Please select DocType first"));
 						return;
 					}
 					frappe.set_route("print-format-builder", frm.doc.name);
@@ -42,7 +42,7 @@ frappe.ui.form.on("Print Format", {
 		}
 	},
 	custom_format: function(frm) {
-		value = frm.doc.custom_format ? 0:1;
+		var value = frm.doc.custom_format ? 0:1;
 		frm.set_value('align_labels_left', value);
 		frm.set_value('show_section_headings', value);
 		frm.set_value('line_breaks', value);
