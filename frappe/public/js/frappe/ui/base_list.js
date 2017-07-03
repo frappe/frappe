@@ -192,9 +192,8 @@ frappe.ui.BaseList = Class.extend({
 			onchange: () => { me.refresh(true); }
 		});
 
-		var has_standard_filters = false;
 		this.meta.fields.forEach(function(df) {
-			if(df.in_standard_filter) {
+			if(df.in_standard_filter && !frappe.model.no_value_type.includes(df.fieldtype)) {
 				if(df.fieldtype == "Select" && df.options) {
 					var options = df.options.split("\n")
 					if(options.length > 0 && options[0] != ""){
