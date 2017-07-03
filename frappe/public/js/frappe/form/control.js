@@ -535,9 +535,57 @@ frappe.ui.form.ControlReadOnly = frappe.ui.form.ControlData.extend({
 	},
 });
 
-
 frappe.ui.form.ControlPassword = frappe.ui.form.ControlData.extend({
-	input_type: "password"
+	input_type: "password",
+	make: function() {
+		this._super();
+	},
+	make_input: function() {
+		var me = this;
+		this._super();
+		this.$input.parent().append($('<span class="password-strength-indicator indicator"></span>'));
+		this.$wrapper.find('.control-input-wrapper').append($('<p class="password-strength-message text-muted small hidden"></p>'));
+
+		this.indicator = this.$wrapper.find('.password-strength-indicator');
+		this.message = this.$wrapper.find('.help-box');
+
+		this.$input.on('input', () => {
+			var $this = $(this);
+			clearTimeout($this.data('timeout'));
+			$this.data('timeout', setTimeout(() => {
+				var txt = me.$input.val();
+				me.get_password_strength(txt);
+			}), 300);
+		});
+	},
+	get_password_strength: function(value) {
+		var me = this;
+		frappe.call({
+			type: 'GET',
+			method: 'frappe.core.doctype.user.user.test_password_strength',
+			args: {
+				new_password: value || ''
+			},
+			callback: function(r) {
+				if (r.message && r.message.entropy) {
+					var score = r.message.score,
+						feedback = r.message.feedback;
+
+					feedback.crack_time_display = r.message.crack_time_display;
+
+					var indicators = ['grey', 'red', 'orange', 'yellow', 'green'];
+					me.set_strength_indicator(indicators[score]);
+
+				}
+			}
+
+		});
+	},
+	set_strength_indicator: function(color) {
+		var message = __("Include symbols, numbers and capital letters in the password");
+		this.indicator.removeClass().addClass('password-strength-indicator indicator ' + color);
+		this.message.html(message).removeClass('hidden');
+	}
 });
 
 frappe.ui.form.ControlInt = frappe.ui.form.ControlData.extend({
@@ -1112,31 +1160,55 @@ frappe.ui.form.ControlAttachImage = frappe.ui.form.ControlAttach.extend({
 	make: function() {
 		var me = this;
 		this._super();
-		this.img_wrapper = $('<div style="margin: 7px 0px;">\
-			<div class="missing-image attach-missing-image"><i class="octicon octicon-circle-slash"></i></div></div>')
+		this.img_wrapper = $('<div style="width: 100%; height: calc(100% - 40px); position: relative;">\
+			<div class="missing-image attach-missing-image"><i class="octicon octicon-device-camera"></i></div></div>')
 			.appendTo(this.wrapper);
-		this.img = $("<img class='img-responsive attach-image-display'>")
-			.appendTo(this.img_wrapper).toggle(false);
+
+		this.img_container = $(`<div class='img-container'></div>`);
+		this.img = $(`<img class='img-responsive attach-image-display'>`)
+			.appendTo(this.img_container);
+
+		this.img_overlay = $(`<div class='img-overlay'>
+				<span class="overlay-text">Change</span>
+			</div>`).appendTo(this.img_container);
+
+		this.remove_image_link = $('<a style="font-size: 12px;color: #8D99A6;">Remove</a>');
+
+		this.img_wrapper.append(this.img_container).append(this.remove_image_link);
+		// this.img.toggle(false);
+		// this.img_overlay.toggle(false);
+		this.img_container.toggle(false);
+		this.remove_image_link.toggle(false);
 
 		// propagate click to Attach button
 		this.img_wrapper.find(".missing-image").on("click", function() { me.$input.click(); });
-		this.img.on("click", function() { me.$input.click(); });
+		this.img_container.on("click", function() { me.$input.click(); });
+		this.remove_image_link.on("click", function() { me.$value.find(".close").click(); });
 
 		this.$wrapper.on("refresh", function() {
+			$(me.wrapper).find('.btn-attach').addClass('hidden');
 			me.set_image();
 			if(me.get_status()=="Read") {
 				$(me.disp_area).toggle(false);
 			}
 		});
+
 		this.set_image();
 	},
 	set_image: function() {
 		if(this.get_value()) {
 			$(this.img_wrapper).find(".missing-image").toggle(false);
-			this.img.attr("src", this.dataurl ? this.dataurl : this.value).toggle(true);
+			// this.img.attr("src", this.dataurl ? this.dataurl : this.value).toggle(true);
+			// this.img_overlay.toggle(true);
+			this.img.attr("src", this.dataurl ? this.dataurl : this.value);
+			this.img_container.toggle(true);
+			this.remove_image_link.toggle(true);
 		} else {
 			$(this.img_wrapper).find(".missing-image").toggle(true);
-			this.img.toggle(false);
+			// this.img.toggle(false);
+			// this.img_overlay.toggle(false);
+			this.img_container.toggle(false);
+			this.remove_image_link.toggle(false);
 		}
 	}
 });

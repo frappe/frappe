@@ -1,14 +1,18 @@
-<div class="container setup-wizard-slide {%= css_class %} with-form" data-slide-name="{%= name %}">
+<div class="container setup-wizard-slide single-column with-form" data-slide-name="{%= name %}">
 	<div class="text-center setup-wizard-progress text-extra-muted">
 		{% for (var i=0; i < slides_count; i++) { %}
-		<i class="fa fa-fw fa-circle{% if (i+1<=step) { %} active {% } %}"></i>
+		<!--dev_mode: link progress bubbles-->
+		<!--<a href="http://erpnext.domainify:8000/desk#setup-wizard/{%= i %}">-->
+			<i class="fa fa-fw fa-circle{% if (i+1<=step) { %} active {% } %}"></i>
+		<!--</a>-->
 		{% } %}
 	</div>
-    <p class="text-center lead">{%= title %}</p>
+    <p class="lead">{%= title %}</p>
 	<div class="row">
-		<div class="col-sm-12">
+		<div class="setup-wizard-body col-sm-12">
 			<!-- {% if (help) { %} <p class="text-center">{%= help %}</p> {% } %} -->
 			<div class="form"></div>
+			<a class="more-btn hide btn btn-default btn-sm" style="margin-left: 41%;">{%= __("Add More") %}</a>
 		</div>
 	</div>
 	<div class="footer text-right">
