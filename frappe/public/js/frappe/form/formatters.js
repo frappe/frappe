@@ -53,6 +53,17 @@ frappe.form.formatters = {
 	Currency: function(value, docfield, options, doc) {
 		var currency = frappe.meta.get_field_currency(docfield, doc);
 		var precision = docfield.precision || cint(frappe.boot.sysdefaults.currency_precision) || 2;
+		if (precision > 2) {
+			let parts = cstr(value).split('.');
+			let decimals = parts.length > 1 ? parts[1] : '';
+			if (decimals.length < 3) {
+				// min precision 2
+				precision = 2;
+			} else if (decimals.length < precision) {
+				// or min decimals
+				precision = decimals.length;
+			}
+		}
 		return frappe.form.formatters._right((value==null || value==="")
 			? "" : format_currency(value, currency, precision), options);
 	},
