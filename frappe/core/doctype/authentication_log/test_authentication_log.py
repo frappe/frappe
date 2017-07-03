@@ -37,7 +37,7 @@ class TestAuthenticationLog(unittest.TestCase):
 		auth_log = self.get_auth_log()
 		self.assertEquals(auth_log.status, 'Failed')
 
-		frappe.local.form_dict = _dict()
+		frappe.local.form_dict = frappe._dict()
 
 	def get_auth_log(self, operation='Login'):
 		names = frappe.db.sql_list("""select name from `tabAuthentication Log`
