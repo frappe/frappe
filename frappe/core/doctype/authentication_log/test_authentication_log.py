@@ -13,9 +13,8 @@ class TestAuthenticationLog(unittest.TestCase):
 		from frappe.auth import LoginManager, CookieManager
 
 		# test user login log
-		frappe.local.form_dict = frappe._dict(cmd='login')
-
-		frappe.form_dict = frappe._dict({
+		frappe.local.form_dict = frappe._dict({
+			'cmd': 'login'
 			'sid': 'Guest',
 			'pwd': 'admin',
 			'usr': 'Administrator'
@@ -37,6 +36,8 @@ class TestAuthenticationLog(unittest.TestCase):
 		self.assertRaises(frappe.AuthenticationError, LoginManager)
 		auth_log = self.get_auth_log()
 		self.assertEquals(auth_log.status, 'Failed')
+
+		frappe.local.form_dict = _dict()
 
 	def get_auth_log(self, operation='Login'):
 		names = frappe.db.sql_list("""select name from `tabAuthentication Log`
