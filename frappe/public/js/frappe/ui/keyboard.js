@@ -100,7 +100,12 @@ frappe.ui.keys.key_map = {
 	17: 'ctrl',
 	91: 'meta',
 	18: 'alt',
-	27: 'escape'
+	27: 'escape',
+	37: 'left',
+	39: 'right',
+	38: 'up',
+	40: 'down',
+	32: 'space'
 }
 
 // keyCode map
