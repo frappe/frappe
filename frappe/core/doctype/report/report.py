@@ -49,8 +49,7 @@ class Report(Document):
 		delete_custom_role('report', self.name)
 
 	def set_doctype_roles(self):
-		if not self.get('roles') and \
-			(frappe.conf.get("developer_mode") or self.is_standard == 'No'):
+		if not self.get('roles') and self.is_standard == 'No':
 			meta = frappe.get_meta(self.ref_doctype)
 			roles = [{'role': d.role} for d in meta.permissions if d.permlevel==0]
 			self.set('roles', roles)
