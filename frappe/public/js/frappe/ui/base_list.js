@@ -184,33 +184,35 @@ frappe.ui.BaseList = Class.extend({
 			return;
 		}
 
-		this.page.add_field({
-			fieldtype:'Link',
-			options:this.doctype,
-			label:'ID',
-			fieldname:'name',
-			onchange: () => { me.refresh(true); }
-		});
+		if(this.meta) {
+			this.page.add_field({
+				fieldtype:'Link',
+				options:this.doctype,
+				label:'ID',
+				fieldname:'name',
+				onchange: () => { me.refresh(true); }
+			});
 
-		this.meta.fields.forEach(function(df) {
-			if(df.in_standard_filter && !frappe.model.no_value_type.includes(df.fieldtype)) {
-				let options = df.options;
-				if(df.fieldtype == "Select" && df.options) {
-					options = df.options.split("\n")
-					if(options.length > 0 && options[0] != ""){
-						options.unshift("");
-						df.options = options.join("\n");
+			this.meta.fields.forEach(function(df) {
+				if(df.in_standard_filter && !frappe.model.no_value_type.includes(df.fieldtype)) {
+					let options = df.options;
+					if(df.fieldtype == "Select" && df.options) {
+						options = df.options.split("\n")
+						if(options.length > 0 && options[0] != ""){
+							options.unshift("");
+							df.options = options.join("\n");
+						}
 					}
+					me.page.add_field({
+						fieldtype: df.fieldtype,
+						label: __(df.label),
+						options: df.options,
+						fieldname: df.fieldname,
+						onchange: () => {me.refresh(true);}
+					});
 				}
-				me.page.add_field({
-					fieldtype: df.fieldtype,
-					label: __(df.label),
-					options: df.options,
-					fieldname: df.fieldname,
-					onchange: () => {me.refresh(true);}
-				});
-			}
-		});
+			});
+		}
 
 		this.page.page_form.on('change', ':input', function() {
 			me.refresh(true);
