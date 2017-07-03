@@ -313,6 +313,10 @@ class TestPermissions(unittest.TestCase):
 		frappe.set_user("test3@example.com")
 		self.assertTrue(len(frappe.get_list("Contact")),1)
 
+		frappe.set_user("Administrator")
+		self.set_strict_user_permissions(0)
+
+
 def set_user_permission_doctypes(doctype, role, apply_user_permissions, user_permission_doctypes):
 	user_permission_doctypes = None if not user_permission_doctypes else json.dumps(user_permission_doctypes)
 

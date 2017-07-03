@@ -432,7 +432,7 @@ class DatabaseQuery(object):
 
 				cond = 'ifnull(`tab{doctype}`.`{fieldname}`, "")=""'.format(doctype=self.doctype, fieldname=df.fieldname)
 				if user_permission_values:
-					if not cint(frappe.db.get_single_value("System Settings", "apply_strict_user_permissions")):
+					if not cint(frappe.get_system_settings("apply_strict_user_permissions")):
 						condition = cond + " or "
 					else:
 						condition = ""

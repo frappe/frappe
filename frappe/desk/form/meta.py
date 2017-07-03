@@ -65,7 +65,7 @@ class FormMeta(Meta):
 		def _get_path(fname):
 			return os.path.join(path, scrub(fname))
 
-		system_country = frappe.get_system_country()
+		system_country = frappe.get_system_settings("country")
 
 		self._add_code(_get_path(self.name + '.js'), '__js')
 		if system_country:
