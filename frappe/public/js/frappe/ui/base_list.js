@@ -192,7 +192,6 @@ frappe.ui.BaseList = Class.extend({
 			onchange: () => { me.refresh(true); }
 		});
 
-		var has_standard_filters = false;
 		this.meta.fields.forEach(function(df) {
 			if(df.in_standard_filter) {
 				if(df.fieldtype == "Select" && df.options) {
@@ -205,15 +204,11 @@ frappe.ui.BaseList = Class.extend({
 				me.page.add_field({
 					fieldtype: df.fieldtype,
 					label: __(df.label),
-					options: df.options,
+					options: options,
 					fieldname: df.fieldname,
-					onchange: () => {me.refresh(true);}
+					onchange: () => { me.refresh(true); }
 				});
 			}
-		});
-
-		this.page.page_form.on('change', ':input', function() {
-			me.refresh(true);
 		});
 
 		this.standard_filters_added = true;

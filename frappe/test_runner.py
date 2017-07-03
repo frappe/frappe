@@ -22,7 +22,8 @@ def xmlrunner_wrapper(output):
 		return xmlrunner.XMLTestRunner(*args, **kwargs)
 	return _runner
 
-def main(app=None, module=None, doctype=None, verbose=False, tests=(), force=False, profile=False, junit_xml_output=None):
+def main(app=None, module=None, doctype=None, verbose=False, tests=(),
+	force=False, profile=False, junit_xml_output=None, ui_tests=False):
 	global unittest_runner
 
 	xmloutput_fh = None
@@ -57,7 +58,7 @@ def main(app=None, module=None, doctype=None, verbose=False, tests=(), force=Fal
 		elif module:
 			ret = run_tests_for_module(module, verbose, tests, profile)
 		else:
-			ret = run_all_tests(app, verbose, profile)
+			ret = run_all_tests(app, verbose, profile, ui_tests)
 
 		frappe.db.commit()
 
@@ -80,7 +81,7 @@ def set_test_email_config():
 		"admin_password": "admin"
 	})
 
-def run_all_tests(app=None, verbose=False, profile=False):
+def run_all_tests(app=None, verbose=False, profile=False, ui_tests=False):
 	import os
 
 	apps = [app] if app else frappe.get_installed_apps()
@@ -95,9 +96,11 @@ def run_all_tests(app=None, verbose=False, profile=False):
 			# print path
 			for filename in files:
 				filename = cstr(filename)
-				if filename.startswith("test_") and filename.endswith(".py"):
+				if filename.startswith("test_") and filename.endswith(".py")\
+					and filename != 'test_runner.py':
 					# print filename[:-3]
-					_add_test(app, path, filename, verbose, test_suite=test_suite)
+					_add_test(app, path, filename, verbose,
+						test_suite, ui_tests)
 
 	if profile:
 		pr = cProfile.Profile()
@@ -163,7 +166,7 @@ def _run_unittest(module, verbose=False, tests=(), profile=False):
 	return out
 
 
-def _add_test(app, path, filename, verbose, test_suite=None):
+def _add_test(app, path, filename, verbose, test_suite=None, ui_tests=False):
 	import os
 
 	if os.path.sep.join(["doctype", "doctype", "boilerplate"]) in path:
@@ -179,8 +182,9 @@ def _add_test(app, path, filename, verbose, test_suite=None):
 			relative_path=relative_path.replace('/', '.'), module_name=filename[:-3])
 
 	module = frappe.get_module(module_name)
+	is_ui_test = True if hasattr(module, 'TestDriver') else False
 
-	if getattr(module, "selenium_tests", False) and not frappe.conf.run_selenium_tests:
+	if is_ui_test != ui_tests:
 		return
 
 	if not test_suite:
@@ -325,3 +329,5 @@ def print_mandatory_fields(doctype):
 	for d in meta.get("fields", {"reqd":1}):
 		print(d.parent + ":" + d.fieldname + " | " + d.fieldtype + " | " + (d.options or ""))
 	print()
+
+

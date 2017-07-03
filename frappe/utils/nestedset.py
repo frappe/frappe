@@ -186,7 +186,7 @@ class NestedSet(Document):
 		self.validate_ledger()
 
 	def on_trash(self):
-		if not self.nsm_parent_field:
+		if not getattr(self, 'nsm_parent_field', None):
 			self.nsm_parent_field = frappe.scrub(self.doctype) + "_parent"
 
 		parent = self.get(self.nsm_parent_field)
