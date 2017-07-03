@@ -34,7 +34,7 @@ frappe.ui.form.on("Address", {
 	after_save: function() {
 		var last_route = frappe.route_history.slice(-2, -1)[0];
 		if(frappe.dynamic_link && frappe.dynamic_link.doc
-					&& frappe.dynamic_link.doc.name == last_route[2]){
+			&& frappe.dynamic_link.doc.name == last_route[2]){
 			frappe.set_route(last_route[0], last_route[1], last_route[2]);
 		}
 	}
