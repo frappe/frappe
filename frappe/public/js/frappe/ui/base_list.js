@@ -195,7 +195,7 @@ frappe.ui.BaseList = Class.extend({
 
 			this.meta.fields.forEach(function(df) {
 				if(df.in_standard_filter && !frappe.model.no_value_type.includes(df.fieldtype)) {
-          let options = df.options;
+					let options = df.options;
 					if(df.fieldtype == "Select" && df.options) {
 						options = df.options.split("\n")
 						if(options.length > 0 && options[0] != ""){
