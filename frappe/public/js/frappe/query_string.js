@@ -23,7 +23,7 @@ function get_query_params(query_string) {
 		}
 
 		if (key in query_params) {
-			if (typeof query_params[key] === undefined) {
+			if (typeof query_params[key] === "undefined") {
 				query_params[key] = [];
 			} else if (typeof query_params[key] === "string") {
 				query_params[key] = [query_params[key]];

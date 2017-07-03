@@ -5,7 +5,7 @@
 	<div class="media">
 		<div class="pull-right app-buttons">
 			<a class="btn btn-default btn-xs"
-                href="{{ app.app_url }}" target="_blank">{{ __("Website") }}</a>
+                href="{{ app.app_url }}" target="_blank" rel="noopener noreferrer">{{ __("Website") }}</a>
 			{% if (app.installed) { %}
 			<button class="btn btn-danger btn-xs btn-remove"
                 data-title="{{ app.app_title }}"

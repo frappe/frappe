@@ -110,7 +110,7 @@
 					{% $.each(data.attachments, function(i, a) { %}
 					<div class="ellipsis">
 						<a href="{%= encodeURI(a.file_url).replace(/#/g, \'%23\') %}"
-							class="text-muted small" target="_blank">
+							class="text-muted small" target="_blank" rel="noopener noreferrer">
 							<i class="fa fa-paperclip"></i>
 							{%= a.file_url.split("/").slice(-1)[0] %}
 							{% if (a.is_private) { %}
