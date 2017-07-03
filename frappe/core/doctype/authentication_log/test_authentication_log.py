@@ -14,7 +14,7 @@ class TestAuthenticationLog(unittest.TestCase):
 
 		# test user login log
 		frappe.local.form_dict = frappe._dict({
-			'cmd': 'login'
+			'cmd': 'login',
 			'sid': 'Guest',
 			'pwd': 'admin',
 			'usr': 'Administrator'
