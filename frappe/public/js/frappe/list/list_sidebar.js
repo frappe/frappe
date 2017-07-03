@@ -195,7 +195,7 @@ frappe.views.ListSidebar = Class.extend({
 
 					var custom_column = values.custom_column !== undefined ?
 						values.custom_column : 1;
-					
+
 					if(custom_column) {
 						var field_name = 'kanban_column';
 					} else {
