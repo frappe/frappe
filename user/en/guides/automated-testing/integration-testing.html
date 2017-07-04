@@ -4,7 +4,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>frappe.utils.xlsutils</title>
+	<title>UI Integration Testing</title>
 	<meta name="generator" content="frappe">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
@@ -22,7 +22,7 @@
     
 
 		</head>
-<body data-path="current/api/utils/frappe.utils.xlsutils">
+<body data-path="user/en/guides/automated-testing/integration-testing">
 	<div class="main-section">
 		<div>
 					<nav class="navbar navbar-default navbar-main" role="navigation">
@@ -95,7 +95,7 @@
                 <div data-html-block="hero"></div>
                 <div class="container" data-html-block="content">
                 
-<div class="page-container" id="page-current/api/utils/frappe.utils.xlsutils" data-path="{{ pathname }}"
+<div class="page-container" id="page-user/en/guides/automated-testing/integration-testing" data-path="{{ pathname }}"
 	>
 	<div class="row ">
 		
@@ -107,13 +107,11 @@
 						<div class="page-breadcrumbs">
 							
 							
-<ul class="breadcrumb">
-	<li>
-		<span class="fa fa-angle-left"></span>
-		<a href="https://frappe.github.io/frappe//current/api/utils">
-		utils</a>
-	</li>
+<ul class="breadcrumb" itemscope itemtype="http://data-vocabulary.org/Breadcrumb">
 	
+		<li><a href="/user/en/guides/automated-testing" itemprop="url"><span itemprop="title">user/en/guides/automated-testing</span></a></li>
+	
+	<li class="active"><span itemprop="title">UI Integration Testing</span></li>
 </ul>
 
 							
@@ -121,7 +119,7 @@
 						
 					</div>
 					<div class="col-sm-8 col-xs-6">
-						<h1>frappe.utils.xlsutils</h1>
+						
 					</div>
 					<div class="col-sm-4 col-xs-6">
 						
@@ -131,46 +129,72 @@
 				</div>
 			</div>
 			<div class="page_content">
-<!-- title: frappe.utils.xlsutils --><div class="dev-header">
+<h1>UI Integration Testing</h1>
 
-<a class="btn btn-default btn-sm" disabled style="margin-bottom: 10px;">
-	Version 7.x.x</a>
+<p>You can write integration tests using the Selenium Driver. <code>frappe.utils.selenium_driver</code> gives you a friendly API to write selenium based tests</p>
 
+<p>To write integration tests, create a standard test case by creating a python file starting with <code>test_</code></p>
 
-	<a class="btn btn-default btn-sm" href="https://github.com/frappe/frappe/blob/develop/frappe/utils/xlsutils.py"
-		target="_blank" style="margin-left: 10px; margin-bottom: 10px;"><i class="octicon octicon-mark-github"></i> Source</a>
+<p>All integration tests will be run at the end of the unittests.</p>
 
-</div>
+<h3>Example</h3>
 
+<p>Here is an example of an integration test to check insertion of a To Do</p>
 
+<pre><code>from __future__ import print_function
+from frappe.utils.selenium_testdriver import TestDriver
+import unittest
+import time
 
+class TestToDo(unittest.TestCase):
+    def setUp(self):
+        self.driver = TestDriver()
 
+    def test_todo(self):
+        self.driver.login()
 
-	
-        
-    
-    
-	<p class="docs-attr-name">
-        <a name="frappe.utils.xlsutils.get_xls" href="#frappe.utils.xlsutils.get_xls" class="text-muted small">
-            <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.utils.xlsutils.<b>get_xls</b>
-        <i class="text-muted">(columns, data)</i>
-    </p>
-	<div class="docs-attr-desc"><p>Convert data to xls</p>
-</div>
-	<br>
+        # list view
+        self.driver.set_route('List', 'ToDo')
 
-	
+        time.sleep(2)
 
+        # new
+        self.driver.click_primary_action()
 
+        time.sleep(2)
 
-<!-- autodoc -->
+        # set input
+        self.driver.set_text_editor('description', 'hello')
+
+        # save
+        self.driver.click_modal_primary_action()
+
+        time.sleep(2)
+
+        self.assertTrue(self.driver.get_visible_element('.result-list')
+            .find_element_by_css_selector('.list-item')
+            .find_element_by_css_selector('.list-id').text=='hello')
+
+    def tearDown(self):
+        self.driver.close()
+</code></pre>
+
 </div>
 		</div>
 	</div>
 </div>
 
-				<!-- edit-link -->
+				
+<div class="page-container">
+	<div class="page-content">
+	<div class="edit-container text-center">
+		<i class="fa fa-smile"></i>
+		<a class="text-muted edit" href="https://github.com/frappe/frappe/blob/develop/frappe/docs/user/en/guides/automated-testing/integration-testing.md">
+			Improve this page
+		</a>
+	</div>
+	</div>
+</div>
                 </div>
             </div>
 			<footer class="docs-footer">

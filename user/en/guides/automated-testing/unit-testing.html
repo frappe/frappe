@@ -4,7 +4,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Writing Tests Guide</title>
+	<title>Unit Testing</title>
 	<meta name="generator" content="frappe">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
@@ -22,7 +22,7 @@
     
 
 		</head>
-<body data-path="user/en/guides/basics/writing-tests">
+<body data-path="user/en/guides/automated-testing/unit-testing">
 	<div class="main-section">
 		<div>
 					<nav class="navbar navbar-default navbar-main" role="navigation">
@@ -95,7 +95,7 @@
                 <div data-html-block="hero"></div>
                 <div class="container" data-html-block="content">
                 
-<div class="page-container" id="page-user/en/guides/basics/writing-tests" data-path="{{ pathname }}"
+<div class="page-container" id="page-user/en/guides/automated-testing/unit-testing" data-path="{{ pathname }}"
 	>
 	<div class="row ">
 		
@@ -107,13 +107,11 @@
 						<div class="page-breadcrumbs">
 							
 							
-<ul class="breadcrumb">
-	<li>
-		<span class="fa fa-angle-left"></span>
-		<a href="https://frappe.github.io/frappe//user/en/guides/basics">
-		Basics</a>
-	</li>
+<ul class="breadcrumb" itemscope itemtype="http://data-vocabulary.org/Breadcrumb">
 	
+		<li><a href="/user/en/guides/automated-testing" itemprop="url"><span itemprop="title">user/en/guides/automated-testing</span></a></li>
+	
+	<li class="active"><span itemprop="title">Unit Testing</span></li>
 </ul>
 
 							
@@ -131,7 +129,7 @@
 				</div>
 			</div>
 			<div class="page_content">
-<h1>Writing Tests Guide</h1>
+<h1>Unit Testing</h1>
 
 <h2>1.Introduction</h2>
 
@@ -171,7 +169,7 @@ You should run tests from "frappe_bench" folder. Without options all tests will 
 
 <h4>2.1. Example for app:</h4>
 
-<p>All applications are located in folder: "~/frappe-bench/apps". 
+<p>All applications are located in folder: "~/frappe-bench/apps".
 We can run tests for each application.</p>
 
 <pre><code>- frappe-bench/apps/erpnext/
@@ -268,7 +266,7 @@ OK
 <h4>Jenkins configuration support:</h4>
 
 <ol>
-<li>You should install xUnit plugin - https://wiki.jenkins-ci.org/display/JENKINS/xUnit+Plugin </li>
+<li>You should install xUnit plugin - https://wiki.jenkins-ci.org/display/JENKINS/xUnit+Plugin</li>
 <li>After installation open Jenkins job configuration, click the box named “Publish JUnit test result report” under the "Post-build Actions" and enter path to XML report:
 (Example: <em>reports/*.xml</em>)</li>
 </ol>
@@ -351,12 +349,6 @@ class TestEvent(unittest.TestCase):
         self.assertFalse("_Test Event 2" in subjects)
 </code></pre>
 
-<h2>4. Client Side Testing (Using Selenium)</h2>
-
-<p>This feature is still under development.</p>
-
-<p>For an example see, <a href="https://github.com/frappe/erpnext/blob/develop/erpnext/tests/sel_tests.py">https://github.com/frappe/erpnext/blob/develop/erpnext/tests/sel_tests.py</a></p>
-
 </div>
 		</div>
 	</div>
@@ -367,7 +359,7 @@ class TestEvent(unittest.TestCase):
 	<div class="page-content">
 	<div class="edit-container text-center">
 		<i class="fa fa-smile"></i>
-		<a class="text-muted edit" href="https://github.com/frappe/frappe/blob/develop/frappe/docs/user/en/guides/basics/writing-tests.md">
+		<a class="text-muted edit" href="https://github.com/frappe/frappe/blob/develop/frappe/docs/user/en/guides/automated-testing/unit-testing.md">
 			Improve this page
 		</a>
 	</div>
