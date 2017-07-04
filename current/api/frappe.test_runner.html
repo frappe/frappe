@@ -107,13 +107,11 @@
 						<div class="page-breadcrumbs">
 							
 							
-<ul class="breadcrumb">
-	<li>
-		<span class="fa fa-angle-left"></span>
-		<a href="https://frappe.github.io/frappe//current/api">
-		Frappe Framework API</a>
-	</li>
+<ul class="breadcrumb" itemscope itemtype="http://data-vocabulary.org/Breadcrumb">
 	
+		<li><a href="/current/api" itemprop="url"><span itemprop="title">current/api</span></a></li>
+	
+	<li class="active"><span itemprop="title">frappe.test_runner</span></li>
 </ul>
 
 							
@@ -154,7 +152,7 @@
         <a name="frappe.test_runner._add_test" href="#frappe.test_runner._add_test" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		frappe.test_runner.<b>_add_test</b>
-        <i class="text-muted">(app, path, filename, verbose, test_suite=None)</i>
+        <i class="text-muted">(app, path, filename, verbose, test_suite=None, ui_tests=False)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
@@ -218,7 +216,7 @@
         <a name="frappe.test_runner.main" href="#frappe.test_runner.main" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		frappe.test_runner.<b>main</b>
-        <i class="text-muted">(app=None, module=None, doctype=None, verbose=False, tests=(), force=False, profile=False, junit_xml_output=None)</i>
+        <i class="text-muted">(app=None, module=None, doctype=None, verbose=False, tests=(), force=False, profile=False, junit_xml_output=None, ui_tests=False)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
@@ -298,7 +296,7 @@
         <a name="frappe.test_runner.run_all_tests" href="#frappe.test_runner.run_all_tests" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		frappe.test_runner.<b>run_all_tests</b>
-        <i class="text-muted">(app=None, verbose=False, profile=False)</i>
+        <i class="text-muted">(app=None, verbose=False, profile=False, ui_tests=False)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>

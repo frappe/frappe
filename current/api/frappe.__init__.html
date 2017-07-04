@@ -107,13 +107,11 @@
 						<div class="page-breadcrumbs">
 							
 							
-<ul class="breadcrumb">
-	<li>
-		<span class="fa fa-angle-left"></span>
-		<a href="https://frappe.github.io/frappe//current/api">
-		Frappe Framework API</a>
-	</li>
+<ul class="breadcrumb" itemscope itemtype="http://data-vocabulary.org/Breadcrumb">
 	
+		<li><a href="/current/api" itemprop="url"><span itemprop="title">current/api</span></a></li>
+	
+	<li class="active"><span itemprop="title">frappe.__init__</span></li>
 </ul>
 
 							
@@ -1331,6 +1329,22 @@ frappe.get_list("ToDo", fields="*", filters = {"description": ("like", "test%")}
 <ul>
 <li><strong><code>*joins</code></strong> -  Join additional path elements using <code>os.path.join</code>.</li>
 </ul>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.get_system_country" href="#frappe.get_system_country" class="text-muted small">
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
+		frappe.<b>get_system_country</b>
+        <i class="text-muted">()</i>
+    </p>
+	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
 	<br>
 

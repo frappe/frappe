@@ -107,13 +107,11 @@
 						<div class="page-breadcrumbs">
 							
 							
-<ul class="breadcrumb">
-	<li>
-		<span class="fa fa-angle-left"></span>
-		<a href="https://frappe.github.io/frappe//current/api/model">
-		model</a>
-	</li>
+<ul class="breadcrumb" itemscope itemtype="http://data-vocabulary.org/Breadcrumb">
 	
+		<li><a href="/current/api/model" itemprop="url"><span itemprop="title">current/api/model</span></a></li>
+	
+	<li class="active"><span itemprop="title">frappe.model.naming</span></li>
 </ul>
 
 							
@@ -299,15 +297,12 @@
 		frappe.model.naming.<b>set_new_name</b>
         <i class="text-muted">(doc)</i>
     </p>
-	<div class="docs-attr-desc"><p>Sets the `name`` property for the document based on various rules.</p>
+	<div class="docs-attr-desc"><pre><code>Sets the `name` property for the document based on various rules.
 
-<pre><code>1. If amened doc, set suffix.
-3. If `autoname` method is declared, then call it.
-4. If `autoname` property is set in the DocType (`meta`), then build it using the `autoname` property.
-2. If `name` is already defined, use that name
-5. If no rule defined, use hash.
-
-#### Note:
+1. If amended doc, set suffix.
+2. If `autoname` method is declared, then call it.
+3. If `autoname` property is set in the DocType (`meta`), then build it using the `autoname` property.
+4. If no rule defined, use hash.
 </code></pre>
 
 <p><strong>Parameters:</strong></p>

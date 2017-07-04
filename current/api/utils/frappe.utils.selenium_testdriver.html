@@ -4,7 +4,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>frappe.utils.sel</title>
+	<title>frappe.utils.selenium_testdriver</title>
 	<meta name="generator" content="frappe">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
@@ -22,7 +22,7 @@
     
 
 		</head>
-<body data-path="current/api/utils/frappe.utils.sel">
+<body data-path="current/api/utils/frappe.utils.selenium_testdriver">
 	<div class="main-section">
 		<div>
 					<nav class="navbar navbar-default navbar-main" role="navigation">
@@ -95,7 +95,7 @@
                 <div data-html-block="hero"></div>
                 <div class="container" data-html-block="content">
                 
-<div class="page-container" id="page-current/api/utils/frappe.utils.sel" data-path="{{ pathname }}"
+<div class="page-container" id="page-current/api/utils/frappe.utils.selenium_testdriver" data-path="{{ pathname }}"
 	>
 	<div class="row ">
 		
@@ -107,13 +107,11 @@
 						<div class="page-breadcrumbs">
 							
 							
-<ul class="breadcrumb">
-	<li>
-		<span class="fa fa-angle-left"></span>
-		<a href="https://frappe.github.io/frappe//current/api/utils">
-		utils</a>
-	</li>
+<ul class="breadcrumb" itemscope itemtype="http://data-vocabulary.org/Breadcrumb">
 	
+		<li><a href="/current/api/utils" itemprop="url"><span itemprop="title">current/api/utils</span></a></li>
+	
+	<li class="active"><span itemprop="title">frappe.utils.selenium_testdriver</span></li>
 </ul>
 
 							
@@ -121,7 +119,7 @@
 						
 					</div>
 					<div class="col-sm-8 col-xs-6">
-						<h1>frappe.utils.sel</h1>
+						<h1>frappe.utils.selenium_testdriver</h1>
 					</div>
 					<div class="col-sm-4 col-xs-6">
 						
@@ -131,13 +129,13 @@
 				</div>
 			</div>
 			<div class="page_content">
-<!-- title: frappe.utils.sel --><div class="dev-header">
+<!-- title: frappe.utils.selenium_testdriver --><div class="dev-header">
 
 <a class="btn btn-default btn-sm" disabled style="margin-bottom: 10px;">
 	Version 7.x.x</a>
 
 
-	<a class="btn btn-default btn-sm" href="https://github.com/frappe/frappe/blob/develop/frappe/utils/sel.py"
+	<a class="btn btn-default btn-sm" href="https://github.com/frappe/frappe/blob/develop/frappe/utils/selenium_testdriver.py"
 		target="_blank" style="margin-left: 10px; margin-bottom: 10px;"><i class="octicon octicon-mark-github"></i> Source</a>
 
 </div>
@@ -148,401 +146,338 @@
 
 	
         
+	<h3 style="font-weight: normal;">Class <b>TestDriver</b></h3>
     
+    <p style="padding-left: 30px;"><i>Inherits from __builtin__.object</i></h4>
     
-	<p class="docs-attr-name">
-        <a name="frappe.utils.sel.add_child" href="#frappe.utils.sel.add_child" class="text-muted small">
-            <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.utils.sel.<b>add_child</b>
-        <i class="text-muted">(fieldname)</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+    <div class="docs-attr-desc"><p></p>
 </div>
-	<br>
-
-	
-
-	
+    <div style="padding-left: 30px;">
+        
         
     
     
 	<p class="docs-attr-name">
-        <a name="frappe.utils.sel.close" href="#frappe.utils.sel.close" class="text-muted small">
+        <a name="__init__" href="#__init__" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.utils.sel.<b>close</b>
-        <i class="text-muted">()</i>
+		<b>__init__</b>
+        <i class="text-muted">(self, port=8000)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
 	<br>
 
-	
-
-	
+        
         
     
     
 	<p class="docs-attr-name">
-        <a name="frappe.utils.sel.done_add_child" href="#frappe.utils.sel.done_add_child" class="text-muted small">
+        <a name="click" href="#click" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.utils.sel.<b>done_add_child</b>
-        <i class="text-muted">(fieldname)</i>
+		<b>click</b>
+        <i class="text-muted">(self, css_selector, xpath=None)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
 	<br>
 
-	
-
-	
+        
         
     
     
 	<p class="docs-attr-name">
-        <a name="frappe.utils.sel.execute_script" href="#frappe.utils.sel.execute_script" class="text-muted small">
+        <a name="click_modal_primary_action" href="#click_modal_primary_action" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.utils.sel.<b>execute_script</b>
-        <i class="text-muted">(js)</i>
+		<b>click_modal_primary_action</b>
+        <i class="text-muted">(self)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
 	<br>
 
-	
-
-	
+        
         
     
     
 	<p class="docs-attr-name">
-        <a name="frappe.utils.sel.find" href="#frappe.utils.sel.find" class="text-muted small">
+        <a name="click_primary_action" href="#click_primary_action" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.utils.sel.<b>find</b>
-        <i class="text-muted">(selector, everywhere=False)</i>
+		<b>click_primary_action</b>
+        <i class="text-muted">(self)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
 	<br>
 
-	
-
-	
+        
         
     
     
 	<p class="docs-attr-name">
-        <a name="frappe.utils.sel.get" href="#frappe.utils.sel.get" class="text-muted small">
+        <a name="click_secondary_action" href="#click_secondary_action" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.utils.sel.<b>get</b>
-        <i class="text-muted">(url)</i>
+		<b>click_secondary_action</b>
+        <i class="text-muted">(self)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
 	<br>
 
-	
-
-	
+        
         
     
     
 	<p class="docs-attr-name">
-        <a name="frappe.utils.sel.get_localhost" href="#frappe.utils.sel.get_localhost" class="text-muted small">
+        <a name="close" href="#close" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.utils.sel.<b>get_localhost</b>
-        <i class="text-muted">()</i>
+		<b>close</b>
+        <i class="text-muted">(self)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
 	<br>
 
-	
-
-	
+        
         
     
     
 	<p class="docs-attr-name">
-        <a name="frappe.utils.sel.get_wait" href="#frappe.utils.sel.get_wait" class="text-muted small">
+        <a name="execute_script" href="#execute_script" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.utils.sel.<b>get_wait</b>
-        <i class="text-muted">()</i>
+		<b>execute_script</b>
+        <i class="text-muted">(self, js)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
 	<br>
 
-	
-
-	
+        
         
     
     
 	<p class="docs-attr-name">
-        <a name="frappe.utils.sel.go_to_module" href="#frappe.utils.sel.go_to_module" class="text-muted small">
+        <a name="find" href="#find" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.utils.sel.<b>go_to_module</b>
-        <i class="text-muted">(module_name, item=None)</i>
+		<b>find</b>
+        <i class="text-muted">(self, selector=None, everywhere=False, xpath=None)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
 	<br>
 
-	
-
-	
+        
         
     
     
 	<p class="docs-attr-name">
-        <a name="frappe.utils.sel.login" href="#frappe.utils.sel.login" class="text-muted small">
+        <a name="get" href="#get" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.utils.sel.<b>login</b>
-        <i class="text-muted">(wait_for_id=#page-desktop)</i>
+		<b>get</b>
+        <i class="text-muted">(self, url)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
 	<br>
 
-	
-
-	
+        
         
     
     
 	<p class="docs-attr-name">
-        <a name="frappe.utils.sel.new_doc" href="#frappe.utils.sel.new_doc" class="text-muted small">
+        <a name="get_visible_element" href="#get_visible_element" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.utils.sel.<b>new_doc</b>
-        <i class="text-muted">(module, doctype)</i>
+		<b>get_visible_element</b>
+        <i class="text-muted">(self, selector=None, xpath=None)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
 	<br>
 
-	
-
-	
+        
         
     
     
 	<p class="docs-attr-name">
-        <a name="frappe.utils.sel.primary_action" href="#frappe.utils.sel.primary_action" class="text-muted small">
+        <a name="get_visible_modal" href="#get_visible_modal" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.utils.sel.<b>primary_action</b>
-        <i class="text-muted">()</i>
+		<b>get_visible_modal</b>
+        <i class="text-muted">(self)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
 	<br>
 
-	
-
-	
+        
         
     
     
 	<p class="docs-attr-name">
-        <a name="frappe.utils.sel.scroll_to" href="#frappe.utils.sel.scroll_to" class="text-muted small">
+        <a name="get_wait" href="#get_wait" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.utils.sel.<b>scroll_to</b>
-        <i class="text-muted">(selector)</i>
+		<b>get_wait</b>
+        <i class="text-muted">(self, timeout=20)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
 	<br>
 
-	
-
-	
+        
         
     
     
 	<p class="docs-attr-name">
-        <a name="frappe.utils.sel.set_field" href="#frappe.utils.sel.set_field" class="text-muted small">
+        <a name="login" href="#login" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.utils.sel.<b>set_field</b>
-        <i class="text-muted">(fieldname, value, fieldtype=input)</i>
+		<b>login</b>
+        <i class="text-muted">(self, wait_for_id=#page-desktop)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
 	<br>
 
-	
-
-	
+        
         
     
     
 	<p class="docs-attr-name">
-        <a name="frappe.utils.sel.set_input" href="#frappe.utils.sel.set_input" class="text-muted small">
+        <a name="print_console" href="#print_console" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.utils.sel.<b>set_input</b>
-        <i class="text-muted">(selector, text, key=None)</i>
+		<b>print_console</b>
+        <i class="text-muted">(self)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
 	<br>
 
-	
-
-	
+        
         
     
     
 	<p class="docs-attr-name">
-        <a name="frappe.utils.sel.set_select" href="#frappe.utils.sel.set_select" class="text-muted small">
+        <a name="scroll_to" href="#scroll_to" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.utils.sel.<b>set_select</b>
-        <i class="text-muted">(fieldname, value)</i>
+		<b>scroll_to</b>
+        <i class="text-muted">(self, selector)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
 	<br>
 
-	
-
-	
+        
         
     
     
 	<p class="docs-attr-name">
-        <a name="frappe.utils.sel.signal_handler" href="#frappe.utils.sel.signal_handler" class="text-muted small">
+        <a name="set_field" href="#set_field" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.utils.sel.<b>signal_handler</b>
-        <i class="text-muted">(signal, frame)</i>
+		<b>set_field</b>
+        <i class="text-muted">(self, fieldname, text)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
 	<br>
 
-	
-
-	
+        
         
     
     
 	<p class="docs-attr-name">
-        <a name="frappe.utils.sel.start" href="#frappe.utils.sel.start" class="text-muted small">
+        <a name="set_input" href="#set_input" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.utils.sel.<b>start</b>
-        <i class="text-muted">(verbose=None, driver=None)</i>
+		<b>set_input</b>
+        <i class="text-muted">(self, selector, text, key=None, xpath=None)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
 	<br>
 
-	
-
-	
+        
         
     
     
 	<p class="docs-attr-name">
-        <a name="frappe.utils.sel.start_test_server" href="#frappe.utils.sel.start_test_server" class="text-muted small">
+        <a name="set_route" href="#set_route" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.utils.sel.<b>start_test_server</b>
-        <i class="text-muted">(verbose)</i>
+		<b>set_route</b>
+        <i class="text-muted">(self)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
 	<br>
 
-	
-
-	
+        
         
     
     
 	<p class="docs-attr-name">
-        <a name="frappe.utils.sel.wait" href="#frappe.utils.sel.wait" class="text-muted small">
+        <a name="set_text_editor" href="#set_text_editor" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.utils.sel.<b>wait</b>
-        <i class="text-muted">(selector, everywhere=False)</i>
+		<b>set_text_editor</b>
+        <i class="text-muted">(self, fieldname, text)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
 	<br>
 
-	
-
-	
+        
         
     
     
 	<p class="docs-attr-name">
-        <a name="frappe.utils.sel.wait_for_ajax" href="#frappe.utils.sel.wait_for_ajax" class="text-muted small">
+        <a name="start" href="#start" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.utils.sel.<b>wait_for_ajax</b>
-        <i class="text-muted">()</i>
+		<b>start</b>
+        <i class="text-muted">(self)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
 	<br>
 
-	
-
-	
+        
         
     
     
 	<p class="docs-attr-name">
-        <a name="frappe.utils.sel.wait_for_page" href="#frappe.utils.sel.wait_for_page" class="text-muted small">
+        <a name="wait_for" href="#wait_for" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.utils.sel.<b>wait_for_page</b>
-        <i class="text-muted">(name)</i>
+		<b>wait_for</b>
+        <i class="text-muted">(self, selector=None, everywhere=False, timeout=20, xpath=None)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
 	<br>
 
-	
-
-	
+        
         
     
     
 	<p class="docs-attr-name">
-        <a name="frappe.utils.sel.wait_for_state" href="#frappe.utils.sel.wait_for_state" class="text-muted small">
+        <a name="wait_for_ajax" href="#wait_for_ajax" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.utils.sel.<b>wait_for_state</b>
-        <i class="text-muted">(state)</i>
+		<b>wait_for_ajax</b>
+        <i class="text-muted">(self)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
 	<br>
 
-	
-
-	
+        
         
     
     
 	<p class="docs-attr-name">
-        <a name="frappe.utils.sel.wait_till_clickable" href="#frappe.utils.sel.wait_till_clickable" class="text-muted small">
+        <a name="wait_till_clickable" href="#wait_till_clickable" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.utils.sel.<b>wait_till_clickable</b>
-        <i class="text-muted">(selector)</i>
+		<b>wait_till_clickable</b>
+        <i class="text-muted">(self, selector=None, xpath=None)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
 	<br>
 
-	
-
-	
         
-    
-    
-	<p class="docs-attr-name">
-        <a name="frappe.utils.sel.wait_till_visible" href="#frappe.utils.sel.wait_till_visible" class="text-muted small">
-            <i class="fa fa-link small" style="color: #ccc;"></i></a>
-		frappe.utils.sel.<b>wait_till_visible</b>
-        <i class="text-muted">(selector)</i>
-    </p>
-	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
-</div>
-	<br>
+    </div>
+    <hr>
 
 	
 
