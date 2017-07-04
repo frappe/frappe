@@ -38,6 +38,6 @@ def get_default_address_template():
 {% if state %}{{ state }}<br>{% endif -%}
 {% if pincode %}{{ pincode }}<br>{% endif -%}
 {{ country }}<br>
-{% if phone %}'''+_('Phone')+''': {{ phone }}<br>{% endif -%}
-{% if fax %}'''+_('Fax')+''': {{ fax }}<br>{% endif -%}
-{% if email_id %}'''+_('Email')+''': {{ email_id }}<br>{% endif -%}'''
+{% if phone %}_('Phone'): {{ phone }}<br>{% endif -%}
+{% if fax %}_('Fax'): {{ fax }}<br>{% endif -%}
+{% if email_id %}_('Email'): {{ email_id }}<br>{% endif -%}'''
