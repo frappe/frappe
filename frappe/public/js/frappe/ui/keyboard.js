@@ -21,10 +21,6 @@ frappe.ui.keys.get_key = function(e) {
 	var keycode = e.keyCode || e.which;
 	var key = frappe.ui.keys.key_map[keycode] || String.fromCharCode(keycode);
 
-	if(key.substr(0, 5) === 'Arrow') {
-		// ArrowDown -> down
-		key = key.substr(5).toLowerCase();
-	}
 	if(e.ctrlKey || e.metaKey) {
 		// add ctrl+ the key
 		key = 'ctrl+' + key;
