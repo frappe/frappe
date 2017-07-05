@@ -1885,7 +1885,7 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 	set_in_editor: function(value) {
 		// set value after user has stopped editing
 		let interval = setInterval(() => {
-			if(moment() - moment(this._last_change_on) < 3000) {
+			if(moment() - moment(this._last_change_on) > 3000) {
 				this.editor.summernote('code', value);
 				clearInterval(interval);
 			}
