@@ -187,7 +187,7 @@ frappe.search.AwesomeBar = Class.extend({
 					routes.push(str_route);
 				} else {
 					var old = routes.indexOf(str_route);
-					if(out[old].index > option.index) {
+					if(out[old].index < option.index) {
 						out[old] = option;
 					}
 				}
