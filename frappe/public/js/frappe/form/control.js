@@ -1887,12 +1887,15 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 		if(!this._last_change_on || (moment() - moment(this._last_change_on) > 3000)) {
 			this.editor.summernote('code', value);
 		} else {
-			var interval = setInterval(() => {
-				if(moment() - moment(this._last_change_on) > 3000) {
-					this.editor.summernote('code', value);
-					clearInterval(interval);
-				}
-			}, 1000);
+			if(!this._setting_value) {
+				this._setting_value = setInterval(() => {
+					if(moment() - moment(this._last_change_on) > 3000) {
+						this.editor.summernote('code', this.last_value);
+						clearInterval(this._setting_value);
+						this._setting_value = null;
+					}
+				}, 1000);
+			}
 		}
 	},
 	set_focus: function() {
