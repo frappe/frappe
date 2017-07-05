@@ -496,6 +496,7 @@ h6.uppercase,
 }
 .like-disabled-input.for-description {
   font-weight: normal;
+  font-size: 12px;
 }
 .frappe-control {
   margin-bottom: 10px;
