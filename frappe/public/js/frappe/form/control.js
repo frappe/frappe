@@ -712,14 +712,11 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 		this.$input.on("keydown", function(e) {
 			if(e.which===84) { // 84 === t
 				if(me.df.fieldtype=='Date') {
-					me.set_value(frappe.datetime.str_to_user(
-						frappe.datetime.nowdate()));
+					me.set_value(frappe.datetime.nowdate());
 				} if(me.df.fieldtype=='Datetime') {
-					me.set_value(frappe.datetime.str_to_user(
-						frappe.datetime.now_datetime()));
+					me.set_value(frappe.datetime.now_datetime());
 				} if(me.df.fieldtype=='Time') {
-					me.set_value(frappe.datetime.str_to_user(
-						frappe.datetime.now_time()));
+					me.set_value(frappe.datetime.now_time());
 				}
 				return false;
 			}
