@@ -1761,10 +1761,10 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 					});
 				},
 				onChange: function(value) {
-					me._last_change_on = new Date();
 					me.parse_validate_and_set_in_model(value);
 				},
 				onKeydown: function(e) {
+					this._last_change_on = new Date();
 					var key = frappe.ui.keys.get_key(e);
 					// prevent 'New DocType (Ctrl + B)' shortcut in editor
 					if(['ctrl+b', 'meta+b'].indexOf(key) !== -1) {
