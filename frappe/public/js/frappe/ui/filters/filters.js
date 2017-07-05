@@ -88,10 +88,11 @@ frappe.ui.FilterList = Class.extend({
 
 		if (filter && is_new_filter) {
 			filter.wrapper.addClass("is-new-filter");
+		} else {
+			filter.freeze();
 		}
 
-		if (filter && hidden) {
-			filter.freeze();
+		if (hidden) {
 			filter.$btn_group.addClass("hide");
 		}
 
