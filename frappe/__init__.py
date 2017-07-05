@@ -380,7 +380,7 @@ def sendmail(recipients=[], sender="", subject="No Subject", message="No Message
 		attachments=None, content=None, doctype=None, name=None, reply_to=None,
 		cc=[], message_id=None, in_reply_to=None, send_after=None, expose_recipients=None,
 		send_priority=1, communication=None, retry=1, now=None, read_receipt=None, is_notification=False,
-		inline_images=None):
+		inline_images=None, template=None, args=None):
 	"""Send email using user's default **Email Account** or global default **Email Account**.
 
 
@@ -403,7 +403,26 @@ def sendmail(recipients=[], sender="", subject="No Subject", message="No Message
 	:param expose_recipients: Display all recipients in the footer message - "This email was sent to"
 	:param communication: Communication link to be set in Email Queue record
 	:param inline_images: List of inline images as {"filename", "filecontent"}. All src properties will be replaced with random Content-Id
+	:param template: Name of html template from templates/email folder
+	:param args: Arguments for rendering the "template"
 	"""
+	from jinja2 import TemplateNotFound
+
+	text_content = None
+	if template:
+		args = args or {}
+		message = get_template('templates/emails/' + template + '.html').render(args)
+		try:
+			text_content = get_template('templates/emails/' + template + '.txt').render(args)
+		except TemplateNotFound as e:
+			pass
+
+	img_path = frappe.get_site_path('public', 'files', 'erp-logo.jpg')
+	inline_images = [{
+		"filename": "erp-logo.jpg",
+		"filecontent": open(img_path, 'rb').read()
+	}]
+
 	message = content or message
 
 	if as_markdown:
@@ -415,7 +434,7 @@ def sendmail(recipients=[], sender="", subject="No Subject", message="No Message
 
 	import email.queue
 	email.queue.send(recipients=recipients, sender=sender,
-		subject=subject, message=message,
+		subject=subject, message=message, text_content=text_content,
 		reference_doctype = doctype or reference_doctype, reference_name = name or reference_name,
 		unsubscribe_method=unsubscribe_method, unsubscribe_params=unsubscribe_params, unsubscribe_message=unsubscribe_message,
 		attachments=attachments, reply_to=reply_to, cc=cc, message_id=message_id, in_reply_to=in_reply_to,
