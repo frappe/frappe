@@ -1761,6 +1761,7 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 					});
 				},
 				onChange: function(value) {
+					me._last_change_on = new Date();
 					me.parse_validate_and_set_in_model(value);
 				},
 				onKeydown: function(e) {
@@ -1877,9 +1878,18 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 		if(value == null) value = "";
 		value = frappe.dom.remove_script_and_style(value);
 		if(value !== this.get_value()) {
-			this.editor.summernote('code', value);
+			this.set_in_editor(value);
 		}
 		this.last_value = value;
+	},
+	set_in_editor: function(value) {
+		// set value after user has stopped editing
+		let interval = setInterval(() => {
+			if(moment() - moment(this._last_change_on) < 3000) {
+				this.editor.summernote('code', value);
+				clearInterval(interval);
+			}
+		}, 1000);
 	},
 	set_focus: function() {
 		return this.editor.summernote('focus');
