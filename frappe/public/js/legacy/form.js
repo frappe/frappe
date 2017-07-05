@@ -798,7 +798,7 @@ _f.Frm.prototype.savecancel = function(btn, callback, on_error) {
 	this.validate_form_action('Cancel');
 	frappe.confirm(__("Permanently Cancel {0}?", [this.docname]), function() {
 		frappe.validated = true;
-		me.script_manager.trigger("before_cancel").done(function() {
+		me.script_manager.trigger("before_cancel").then(function() {
 			if(!frappe.validated) {
 				if(on_error)
 					on_error();
