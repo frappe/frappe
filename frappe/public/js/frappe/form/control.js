@@ -98,9 +98,15 @@ frappe.ui.form.Control = Class.extend({
 		}
 	},
 	set_value: function(value) {
-		return this.parse_validate_and_set_in_model(value);
+		return this.validate_and_set_in_model(value);
 	},
 	parse_validate_and_set_in_model: function(value, e) {
+		if(this.parse) {
+			value = this.parse(value);
+		}
+		return this.validate_and_set_in_model(value, e);
+	},
+	validate_and_set_in_model: function(value, e) {
 		var me = this;
 		return new Promise(resolve => {
 			if(this.inside_change_event) {
@@ -108,10 +114,6 @@ frappe.ui.form.Control = Class.extend({
 				return;
 			}
 			this.inside_change_event = true;
-			if(this.parse) {
-				value = this.parse(value);
-			}
-
 			var set = function(value) {
 				me.inside_change_event = false;
 				me.set_model_value(value)
@@ -133,7 +135,7 @@ frappe.ui.form.Control = Class.extend({
 			}
 
 			this.validate ? this.validate(value, set) : set(value);
-		})
+		});
 	},
 	get_parsed_value: function() {
 		if(this.get_status()==='Write') {
