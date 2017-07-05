@@ -1884,12 +1884,16 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 	},
 	set_in_editor: function(value) {
 		// set value after user has stopped editing
-		let interval = setInterval(() => {
-			if(moment() - moment(this._last_change_on) > 3000) {
-				this.editor.summernote('code', value);
-				clearInterval(interval);
-			}
-		}, 1000);
+		if(!this._last_change_on || (moment() - moment(this._last_change_on) > 3000)) {
+			this.editor.summernote('code', value);
+		} else {
+			var interval = setInterval(() => {
+				if(moment() - moment(this._last_change_on) > 3000) {
+					this.editor.summernote('code', value);
+					clearInterval(interval);
+				}
+			}, 1000);
+		}
 	},
 	set_focus: function() {
 		return this.editor.summernote('focus');
