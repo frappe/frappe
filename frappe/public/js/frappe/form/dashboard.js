@@ -62,7 +62,7 @@ frappe.ui.form.Dashboard = Class.extend({
 			indicator_color = 'orange';
 		}
 		if(text) {
-			this.set_headline(`<span class="indicator ${indicator_color}">${text}</span>`);
+			this.set_headline(`<div><span class="indicator ${indicator_color}">${text}</span></div>`);
 		} else {
 			this.clear_headline();
 		}
