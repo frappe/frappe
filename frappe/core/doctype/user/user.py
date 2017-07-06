@@ -489,6 +489,38 @@ class User(Document):
 		if len(email_accounts) != len(set(email_accounts)):
 			frappe.throw(_("Email Account added multiple times"))
 
+	def get_2fa_params(self, twoFA_method=None,user=None):
+		show_method_field = frappe.db.get_value('System Settings', 'System Settings', 'enable_two_factor_auth') == unicode(1)
+		try:
+			two_factor_auth_user = len(frappe.db.sql("""select name from `tabRole` where two_factor_auth=1
+											and name in ({0}) limit 1""".format(', '.join(['%s'] * len(self.roles))),
+											[d.role for d in self.roles]))
+		except Exception as e:
+			return {'show_method_field' : False}
+
+		restrict_method = frappe.db.get_value('System Settings', None, 'fix_2fa_method')
+		if int(restrict_method):
+			try:
+				a = frappe.db.sql('''SELECT DEFAULT(two_factor_method) AS 'default_method' FROM
+								(SELECT 1) AS dummy LEFT JOIN tabUser on True LIMIT 1;''', as_dict=1)
+				restrict_method = a[0].default_method
+			except OperationalError:
+				a = [frappe._dict()]
+				restrict_method = False
+		else:
+			restrict_method = False
+
+		return {'show_method_field' : (two_factor_auth_user == 1) and show_method_field, 'restrict_method': restrict_method}
+		#if not twoFA_method:
+		#else:
+		#	if twoFA_method == 'Email':
+		#		if not self.email:
+		#			frappe.throw(_('No User Email Found'))
+		#	elif twoFA_method == 'SMS':
+		#		#user_no = frappe.db.get_values('User', user, ['mobile_no', 'phone'], as_dict=1)
+		#		if not (self.phone or self.mobile_no):
+		#			frappe.throw(_('No User Phone Number Found'))
+
 @frappe.whitelist()
 def get_timezones():
 	import pytz
@@ -904,3 +936,68 @@ def update_gravatar(name):
 	gravatar = has_gravatar(name)
 	if gravatar:
 		frappe.db.set_value('User', name, 'user_image', gravatar)
+
+@frappe.whitelist(allow_guest=True)
+def send_token_via_sms(tmp_id,phone_no=None,user=None):
+	from erpnext.setup.doctype.sms_settings.sms_settings import send_request
+
+	if not frappe.cache().ttl(tmp_id + '_token'):
+		return False
+
+	token = frappe.cache().get(tmp_id + '_token')
+
+	ss = frappe.get_doc('SMS Settings', 'SMS Settings')
+	if not ss.sms_gateway_url:
+		return False
+
+	args = {ss.message_parameter: 'verification code is {}'.format(token)}
+
+	for d in ss.get("parameters"):
+		args[d.parameter] = d.value
+
+	if user:
+		user_phone = frappe.db.get_value('User', user, ['phone','mobile_no'], as_dict=1)
+		usr_phone = user_phone.mobile_no or user_phone.phone
+		if not usr_phone:
+			return False
+	else:
+		if phone_no:
+			usr_phone = phone_no
+		else:
+			return False
+
+	args[ss.receiver_parameter] = usr_phone
+
+	status = send_request(ss.sms_gateway_url, args)
+
+	if 200 <= status < 300:
+		frappe.cache().delete(tmp_id + '_token')
+		return True
+	else:
+		return False
+
+@frappe.whitelist(allow_guest=True)
+def send_token_via_email(tmp_id,token=None):
+	import pyotp
+
+	user = frappe.cache().get(tmp_id + '_user')
+	count = token or frappe.cache().get(tmp_id + '_token')
+	if ((not user) or (user == 'None') or (not count)):
+		return False
+
+	otpsecret = frappe.cache().get(tmp_id + '_otp_secret')
+	hotp = pyotp.HOTP(otpsecret)
+	user_email = frappe.db.get_value('User',user, 'email')
+	if not user_email:
+		return False
+	frappe.sendmail(recipients=user_email, sender=None, subject='Verification Code',
+		message='<p>Your verification code is {0}</p>'.format(hotp.at(int(count))),delayed=False, retry=3)
+	return True
+
+@frappe.whitelist(allow_guest=True)
+def set_verification_method(tmp_id,method=None):
+	user = frappe.cache().get(tmp_id + '_user')
+	if ((not user) or (user == 'None') or (not method)):
+		return False
+	frappe.db.set_value('User', user, 'two_factor_method', method)
+	frappe.db.commit()

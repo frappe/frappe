@@ -17,6 +17,8 @@ from frappe.translate import get_lang_code
 from frappe.utils.password import check_password
 from frappe.core.doctype.authentication_log.authentication_log import add_authentication_log
 
+from erpnext.setup.doctype.sms_settings.sms_settings import send_request
+
 from urllib import quote
 
 import pyotp
@@ -127,25 +129,90 @@ class LoginManager:
 			if not otp:
 				self.authenticate()
 				# after authenticate, self.user is set (from check_password() call)
-				user_info = frappe.db.get_value('User', self.user, ['two_factor_auth','two_factor_setup'], as_dict=1)
-				if user_info.two_factor_auth == 1:
+				user_obj = frappe.get_doc('User', self.user)
+				two_factor_auth_user = len(frappe.db.sql("""select name from `tabRole` where two_factor_auth=1
+													and name in ({0}) limit 1""".format(', '.join(['%s'] * len(user_obj.roles))),
+													[d.role for d in user_obj.roles]))
+				if two_factor_auth_user == 1:
 
-					if user_info.two_factor_setup:
-						frappe.local.response['verification'] = {'setup_completed':True}
-						otp_secret = frappe.db.get_default(self.user + '_otpsecret')
+					otp_secret = frappe.db.get_default(self.user + '_otpsecret')
+
+					restrict_method = frappe.db.get_value('System Settings', None, 'fix_2fa_method')
+					verification_meth = frappe.db.get_value('User', self.user, 'two_factor_method')
+
+					if restrict_method:
+						try:
+							fixed_method = frappe.db.sql('''SELECT DEFAULT(two_factor_method) AS 'default_method' FROM
+											(SELECT 1) AS dummy LEFT JOIN tabUser on True LIMIT 1;''', as_dict=1)
+						except OperationalError:
+							fixed_method = [frappe._dict()]
+
+					if not verification_meth:
+						verification_method = fixed_method[0].default_method or 'OTP App'
+					else:
+						verification_method = fixed_method[0].default_method or verification_meth
+
+					if otp_secret:
+						
+
+						token = int(pyotp.TOTP(otp_secret).now())
+
+						if verification_method == 'SMS':
+							user_phone = frappe.db.get_value('User', self.user, ['phone','mobile_no'], as_dict=1)
+							usr_phone = user_phone.mobile_no or user_phone.phone
+							status = self.send_token_via_sms(token=token, phone_no=usr_phone, otpsecret=otp_secret)
+							verification_obj = {'token_delivery': status,
+												'prompt': status and 'Enter verification code sent to {}'.format(usr_phone[:4] + '******' + usr_phone[-3:]),
+												'method': 'SMS'}
+						elif verification_method == 'OTP App':
+							totp_uri = False
+
+							if frappe.db.get_default(self.user + '_otpsecret', otp_secret):
+								totp_uri = pyotp.TOTP(otp_secret).provisioning_uri(self.user, issuer_name="Estate Manager")
+
+							verification_obj = {'token_delivery': True,
+												'prompt': False,
+												'totp_uri': totp_uri,
+												'method': 'OTP App'}
+						elif verification_method == 'Email':
+							status = self.send_token_via_email(token=token,otpsecret=otp_secret)
+							verification_obj = {'token_delivery': status,
+												'prompt': status and 'Enter verification code sent to your registered email address',
+												'method': 'Email'}
+						frappe.local.response['verification'] = verification_obj
 					else:
 						import os
 						import base64
 						otp_secret = base64.b32encode(os.urandom(10)).decode('utf-8')
-						frappe.db.set_default(self.user + '_otpsecret', otp_secret)
-						frappe.db.commit()
 						totp_uri = pyotp.totp.TOTP(otp_secret).provisioning_uri(self.user, issuer_name="Estate Manager")
-						frappe.local.response['verification'] = {'setup_completed':False, 'totp_uri':totp_uri}
+
+						# not actual token but counter ( hotp.at(counter) gives token)
+						token = int(pyotp.TOTP(otp_secret).now())
+
+						frappe.local.response['verification'] = {
+																	'method_first_time': True,
+																	'token_delivery': True,
+																	'prompt': False,
+																	'totp_uri': totp_uri,
+																	'restrict_method': fixed_method[0].default_method or 'OTP App'
+															}
 
 					tmp_id = frappe.generate_hash(length=8)
 					usr = frappe.form_dict.get('usr')
 					pwd = frappe.form_dict.get('pwd')
-					frappe.cache().hset('token',tmp_id,{'usr':usr,'pwd':pwd,'otp_secret':otp_secret})
+
+					if verification_method in ['SMS', 'Email']:
+						frappe.cache().set(tmp_id + '_token',token)
+						frappe.cache().expire(tmp_id + '_token',300)
+
+					frappe.cache().set(tmp_id + '_usr', usr)
+					frappe.cache().set(tmp_id + '_pwd', pwd)
+					frappe.cache().set(tmp_id + '_otp_secret', otp_secret)
+					frappe.cache().set(tmp_id + '_user', self.user)
+
+					for field in [tmp_id + nm for nm in ['_usr', '_pwd', '_otp_secret', '_user']]:
+						frappe.cache().expire(field,120)
+
 					frappe.local.response['tmp_id'] = tmp_id
 
 					raise frappe.RequestToken
@@ -155,13 +222,14 @@ class LoginManager:
 
 			else:
 				try:
-					tmp_info = frappe.cache().hget('token', frappe.form_dict.get('tmp_id'))
+					tmp_info = {
+									'usr': frappe.cache().get(frappe.form_dict.get('tmp_id')+'_usr'),
+									'pwd': frappe.cache().get(frappe.form_dict.get('tmp_id')+'_pwd')
+								}
 					self.authenticate(user=tmp_info['usr'], pwd=tmp_info['pwd'])
 				except:
 					frappe.log_error(frappe.get_traceback(),"AUTHENTICATION PROBLEM")
-				#frappe.respond_as_web_page("Logged Out", """<p>You have been logged out.</p><p><a href='index'>Back to Home</a></p>""")
-				#frappe.throw("+++++ YOUR LOGIN WAS SUCCESSFUL, CONGRATS +++++")
-				#frappe.website.render('/404.html')
+
 				self.post_login()
 
 	def post_login(self,no_two_auth=False):
@@ -169,27 +237,42 @@ class LoginManager:
 		self.validate_ip_address()
 		self.validate_hour()
 		if frappe.form_dict.get('otp') and not no_two_auth:
-			self.confirm_token(otp=frappe.form_dict.get('otp'), tmp_id=frappe.form_dict.get('tmp_id'))
+			hotp_token = frappe.cache().get(frappe.form_dict.get('tmp_id') + '_token')
+			self.confirm_token(otp=frappe.form_dict.get('otp'), tmp_id=frappe.form_dict.get('tmp_id'), hotp_token=hotp_token)
 			self.make_session()
 			self.set_user_info()
 		else:
 			self.make_session()
 			self.set_user_info()
 
-	def confirm_token(self,otp=None, tmp_id=None):
+	def confirm_token(self,otp=None, tmp_id=None, hotp_token=False):
 		try:
-			otp_secret = frappe.cache().hget('token',tmp_id).get('otp_secret')
+			otp_secret = frappe.cache().get(tmp_id + '_otp_secret') or frappe.db.get_default(self.user + '_otpsecret')
+			if not otp_secret:
+				return False
 		except AttributeError:
 			return False
+
+		if hotp_token:
+			u_hotp = pyotp.HOTP(otp_secret)
+			if u_hotp.verify(otp, int(hotp_token)):
+				if not frappe.db.get_default(self.user + '_otpsecret'):
+					frappe.db.set_default(self.user + '_otpsecret', otp_secret)
+
+				frappe.cache().delete(tmp_id + '_token')
+				return True
+			else:
+				self.fail('Incorrect Verification code', self.user)
+
 		totp = pyotp.TOTP(otp_secret)
 		if totp.verify(otp):
-			frappe.cache().hdel('token', tmp_id)
 			# show qr code only once
-			frappe.db.set_value("User", self.user, 'two_factor_setup', 1)
-			frappe.db.commit()
+			if not frappe.db.get_default(self.user + '_otpsecret'):
+				frappe.db.set_default(self.user + '_otpsecret', otp_secret)
+				frappe.db.set_default(self.user + '_otplogin', 1)
 			return True
 		else:
-			self.fail('Incorrect Verification code', user=frappe.cache().hget('token',tmp_id).get('usr'))
+			self.fail('Incorrect Verification code', self.user)
 
 	def set_user_info(self, resume=False):
 		# set sid again
@@ -333,6 +416,35 @@ class LoginManager:
 	def clear_cookies(self):
 		clear_cookies()
 
+	def send_token_via_sms(self,otpsecret,token=None,phone_no=None):
+		ss = frappe.get_doc('SMS Settings', 'SMS Settings')
+		if not ss.sms_gateway_url:
+			return False
+		hotp = pyotp.HOTP(otpsecret)
+		args = {ss.message_parameter: 'verification code is {}'.format(hotp.at(int(token)))}
+		for d in ss.get("parameters"):
+			args[d.parameter] = d.value
+
+		if not phone_no:
+			return False
+		args[ss.receiver_parameter] = phone_no
+
+		status = send_request(ss.sms_gateway_url, args)
+
+		if 200 <= status < 300:
+			return True
+		else:
+			return False
+
+	def send_token_via_email(self,token,otpsecret):
+		user_email = frappe.db.get_value('User',self.user, 'email')
+		if not user_email:
+			return False
+		hotp = pyotp.HOTP(otpsecret)
+		frappe.sendmail(recipients=user_email, sender=None, subject='Verification Code',
+			message='<p>Your verification code is {}</p>'.format(hotp.at(int(token))),delayed=False, retry=3)
+		return True
+
 class CookieManager:
 	def __init__(self):
 		self.cookies = {}
@@ -366,6 +478,7 @@ class CookieManager:
 		expires = datetime.datetime.now() + datetime.timedelta(days=-1)
 		for key in set(self.to_delete):
 			response.set_cookie(key, "", expires=expires)
+
 
 @frappe.whitelist()
 def get_logged_user():
