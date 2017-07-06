@@ -407,6 +407,7 @@ def sendmail(recipients=[], sender="", subject="No Subject", message="No Message
 	:param args: Arguments for rendering the template
 	"""
 
+	text_content = None
 	if template:
 		message, text_content = get_email_from_template(template, args)
 
