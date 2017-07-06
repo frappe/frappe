@@ -225,11 +225,11 @@ class User(Document):
 
 	def password_reset_mail(self, link):
 		self.send_login_mail(_("Password Reset"),
-			"templates/emails/password_reset.html", {"link": link}, now=True)
+			"password_reset", {"link": link}, now=True)
 
 	def password_update_mail(self, password):
 		self.send_login_mail(_("Password Update"),
-			"templates/emails/password_update.html", {"new_password": password}, now=True)
+			"password_update", {"new_password": password}, now=True)
 
 	def send_welcome_mail_to_user(self):
 		from frappe.utils import get_url
@@ -248,7 +248,7 @@ class User(Document):
 		else:
 			subject = _("Complete Registration")
 
-		self.send_login_mail(subject, "templates/emails/new_user.html",
+		self.send_login_mail(subject, "new_user",
 				dict(
 					link=link,
 					site_url=get_url(),
@@ -279,7 +279,7 @@ class User(Document):
 		sender = frappe.session.user not in STANDARD_USERS and get_formatted_email(frappe.session.user) or None
 
 		frappe.sendmail(recipients=self.email, sender=sender, subject=subject,
-			message=frappe.get_template(template).render(args),
+			template=template, args=args,
 			delayed=(not now) if now!=None else self.flags.delay_emails, retry=3)
 
 	def a_system_manager_should_exist(self):
@@ -547,7 +547,7 @@ def update_password(new_password, key=None, old_password=None):
 def test_password_strength(new_password, key=None, old_password=None, user_data=[]):
 	from frappe.utils.password_strength import test_password_strength as _test_password_strength
 
-	password_policy = frappe.db.get_value("System Settings", None, 
+	password_policy = frappe.db.get_value("System Settings", None,
 		["enable_password_policy", "minimum_password_score"], as_dict=True) or {}
 
 	enable_password_policy = cint(password_policy.get("enable_password_policy", 0))
@@ -557,7 +557,7 @@ def test_password_strength(new_password, key=None, old_password=None, user_data=
 		return {}
 
 	if not user_data:
-		user_data = frappe.db.get_value('User', frappe.session.user, 
+		user_data = frappe.db.get_value('User', frappe.session.user,
 			['first_name', 'middle_name', 'last_name', 'email', 'birth_date'])
 
 	if new_password:
