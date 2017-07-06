@@ -12,7 +12,7 @@ import os, sys, importlib, inspect, json
 
 # public
 from .exceptions import *
-from .utils.jinja import get_jenv, get_template, render_template
+from .utils.jinja import get_jenv, get_template, render_template, get_email_from_template
 
 __version__ = '8.2.7'
 __title__ = "Frappe Framework"
@@ -407,16 +407,9 @@ def sendmail(recipients=[], sender="", subject="No Subject", message="No Message
 	:param template: Name of html template from templates/emails folder
 	:param args: Arguments for rendering the template
 	"""
-	from jinja2 import TemplateNotFound
 
-	text_content = None
 	if template:
-		args = args or {}
-		try:
-			message = get_template('templates/emails/' + template + '.html').render(args)
-			text_content = get_template('templates/emails/' + template + '.txt').render(args)
-		except TemplateNotFound as e:
-			pass
+		message, text_content = get_email_from_template(template, args)
 
 	message = content or message
 
