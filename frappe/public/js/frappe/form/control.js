@@ -904,7 +904,7 @@ frappe.ui.form.ControlCheck = frappe.ui.form.ControlData.extend({
 		this._super();
 		this.$input.removeClass("form-control");
 	},
-	parse: function(value) {
+	get_input_value: function() {
 		return this.input.checked ? 1 : 0;
 	},
 	validate: function(value, callback) {
