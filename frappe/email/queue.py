@@ -478,4 +478,4 @@ def clear_outbox():
 	frappe.db.sql("""
 		update `tabEmail Queue`
 		set status='Expired'
-		where datediff(curdate(), modified) > 7 and status='Not Sent' and send_after < %(now)s""", { 'now': now_datetime() })
+		where datediff(curdate(), modified) > 7 and status='Not Sent' and (send_after is null or send_after < %(now)s)""", { 'now': now_datetime() })
