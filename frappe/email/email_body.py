@@ -38,6 +38,8 @@ def get_email(recipients, sender='', msg='', subject='[No Subject]',
 		attachments = [attachments]
 
 	for attach in (attachments or []):
+		# cannot attach if no filecontent
+		if attach.get('fcontent') is None: continue
 		emailobj.add_attachment(**attach)
 
 	return emailobj
@@ -159,48 +161,11 @@ class EMail:
 	def add_attachment(self, fname, fcontent, content_type=None,
 		parent=None, content_id=None, inline=False):
 		"""add attachment"""
-		from email.mime.audio import MIMEAudio
-		from email.mime.base import MIMEBase
-		from email.mime.image import MIMEImage
-		from email.mime.text import MIMEText
-
-		import mimetypes
-		if not content_type:
-			content_type, encoding = mimetypes.guess_type(fname)
-
-		if content_type is None:
-			# No guess could be made, or the file is encoded (compressed), so
-			# use a generic bag-of-bits type.
-			content_type = 'application/octet-stream'
-
-		maintype, subtype = content_type.split('/', 1)
-		if maintype == 'text':
-			# Note: we should handle calculating the charset
-			if isinstance(fcontent, unicode):
-				fcontent = fcontent.encode("utf-8")
-			part = MIMEText(fcontent, _subtype=subtype, _charset="utf-8")
-		elif maintype == 'image':
-			part = MIMEImage(fcontent, _subtype=subtype)
-		elif maintype == 'audio':
-			part = MIMEAudio(fcontent, _subtype=subtype)
-		else:
-			part = MIMEBase(maintype, subtype)
-			part.set_payload(fcontent)
-			# Encode the payload using Base64
-			from email import encoders
-			encoders.encode_base64(part)
-
-		# Set the filename parameter
-		if fname:
-			attachment_type = 'inline' if inline else 'attachment'
-			part.add_header(b'Content-Disposition', attachment_type, filename=fname.encode('utf=8'))
-		if content_id:
-			part.add_header(b'Content-ID', '<{0}>'.format(content_id))
 
 		if not parent:
 			parent = self.msg_root
 
-		parent.attach(part)
+		add_attachment(fname, fcontent, content_type, parent, content_id, inline)
 
 	def add_pdf_attachment(self, name, html, options=None):
 		self.add_attachment(name, get_pdf(html, options), 'application/octet-stream')
@@ -291,6 +256,52 @@ def get_formatted_html(subject, message, footer=None, print_html=None, email_acc
 	})
 
 	return scrub_urls(rendered_email)
+
+def add_attachment(fname, fcontent, content_type=None,
+	parent=None, content_id=None, inline=False):
+	"""Add attachment to parent which must an email object"""
+	from email.mime.audio import MIMEAudio
+	from email.mime.base import MIMEBase
+	from email.mime.image import MIMEImage
+	from email.mime.text import MIMEText
+
+	import mimetypes
+	if not content_type:
+		content_type, encoding = mimetypes.guess_type(fname)
+
+	if not parent:
+		return
+
+	if content_type is None:
+		# No guess could be made, or the file is encoded (compressed), so
+		# use a generic bag-of-bits type.
+		content_type = 'application/octet-stream'
+
+	maintype, subtype = content_type.split('/', 1)
+	if maintype == 'text':
+		# Note: we should handle calculating the charset
+		if isinstance(fcontent, unicode):
+			fcontent = fcontent.encode("utf-8")
+		part = MIMEText(fcontent, _subtype=subtype, _charset="utf-8")
+	elif maintype == 'image':
+		part = MIMEImage(fcontent, _subtype=subtype)
+	elif maintype == 'audio':
+		part = MIMEAudio(fcontent, _subtype=subtype)
+	else:
+		part = MIMEBase(maintype, subtype)
+		part.set_payload(fcontent)
+		# Encode the payload using Base64
+		from email import encoders
+		encoders.encode_base64(part)
+
+	# Set the filename parameter
+	if fname:
+		attachment_type = 'inline' if inline else 'attachment'
+		part.add_header(b'Content-Disposition', attachment_type, filename=fname.encode('utf=8'))
+	if content_id:
+		part.add_header(b'Content-ID', '<{0}>'.format(content_id))
+
+	parent.attach(part)
 
 def get_message_id():
 	'''Returns Message ID created from doctype and name'''
