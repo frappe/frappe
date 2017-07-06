@@ -35,7 +35,8 @@ def setup_complete(args):
 		update_system_settings(args)
 		update_user_name(args)
 
-		for method in frappe.get_hooks("setup_wizard_complete"):
+		app = "frappe" if frappe.flags.in_test else None
+		for method in frappe.get_hooks("setup_wizard_complete", app_name=app):
 			frappe.get_attr(method)(args)
 
 		disable_future_access()
