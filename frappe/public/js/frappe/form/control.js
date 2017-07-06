@@ -660,19 +660,18 @@ frappe.ui.form.ControlColor = frappe.ui.form.ControlData.extend({
 	make_color_input: function() {
 		var me = this
 		this.$input.addClass("color-input")
-		var color = ["#FFC4C4", "#ffe8cd", "#ffd2c2", "#ff8989", "#ffd19c", "#ffa685", "#ff4d4d", "#ffb868", "#ff7846", "#a83333", "#a87945", "#a84f2e", "#d2d2ff", "#f8d4f8", "#dac7ff", "#a3a3ff", "#f3aaf0", "#b592ff", "#7575ff", "#ec7dea", "#8e58ff", "#4d4da8", "#934f92", "#5e3aa8", "#ebf8cc", "#ffd7d7", "#d2f8ed", "#d9f399", "#ffb1b1", "#a4f3dd", "#c5ec63", "#ff8989", "#77ecca", "#7b933d", "#a85b5b", "#49937e", "#fffacd", "#d2f1ff", "#cef6d1", "#fff69c", "#a6e4ff", "#9deca2", "#fff168", "#78d6ff", "#6be273", "#a89f45", "#4f8ea8", "#428b46"];
-		console.log("parentS", ($(this).parents()));
+		var color = ["#ffc4c4", "#ff8989", "#ff4d4d", "#a83333", "#ffe8cd", "#ffd19c", "#ffb868", "#a87945", "#ffd2c2", "#ffa685", "#ff7846", "#a85b5b", "#ffd7d7", "#ffb1b1", "#ff8989", "#a84f2e", "#fffacd", "#fff168", "#fff69c", "#a89f45", "#ebf8cc", "#d9f399", "#c5ec63", "#7b933d", "#cef6d1", "#9deca2", "#6be273", "#428b46", "#d2f8ed", "#a4f3dd", "#77ecca", "#49937e", "#d2f1ff", "#a6e4ff", "#78d6ff", "#4f8ea8", "#d2d2ff", "#a3a3ff", "#7575ff", "#4d4da8", "#dac7ff", "#b592ff", "#8e58ff", "#5e3aa8", "#f8d4f8", "#f3aaf0", "#ec7dea", "#934f92"];
 		this.$input.parents(".control-input-wrapper").append(`<div class="color-picker"><div class="color-picker-pallet"></div></div>`)
 			color.forEach(function(entry) {
 				$(".color-picker-pallet").append('<div class="color-box" data-color='+ entry + ' style="background-color:' + entry +'"></div>');
 			});
-		this.color_picker();
+		this.bind_events();
 
 	},
 	get_color_box: function (hex) {
 		return `<div data-color="${hex}" style="background-color: ${hex}"></div>`
 	},
-	color_picker: function () {
+	bind_events: function () {
 		var me = this;
 		this.$input.on("click", function () {
 			if($(".color-picker-pallet").is(":visible")){
@@ -681,7 +680,14 @@ frappe.ui.form.ControlColor = frappe.ui.form.ControlData.extend({
 			else {
 				$(".color-picker-pallet").show();
 			}
-		})
+		});
+		$(document).on('click', function(e) { // Hides the div by clicking any where in the screen
+	        if ( $(e.target).closest('.color-input').length ) {
+	            $(".color-picker-pallet").show();
+	        }else if ( ! $(e.target).closest('.color-picker').length ) {
+	            $('.color-picker-pallet').hide();
+	        }
+	    });
 	},
 	set_input: function(value) {
 		var me = this;
