@@ -11,6 +11,7 @@
  "doctype": "DocType", 
  "document_type": "Setup", 
  "editable_grid": 0, 
+ "engine": "InnoDB", 
  "fields": [
   {
    "allow_bulk_edit": 0, 
@@ -1160,7 +1161,7 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 0, 
- "modified": "2017-07-05 14:21:20.509237", 
+ "modified": "2017-07-06 17:23:43.835189", 
  "modified_by": "Administrator", 
  "module": "Custom", 
  "name": "Custom Field", 

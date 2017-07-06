@@ -1011,14 +1011,6 @@ input[type="checkbox"]:checked:before {
   top: 0;
   left: 0;
 }
-.color-picker .color-box {
-  cursor: pointer;
-  display: inline-block;
-  width: 20px;
-  height: 20px;
-  margin: 0px 0 0 4px;
-  border: 1px solid rgba(0, 0, 0, 0.25);
-}
 .color-picker .color-picker-pallet:after,
 .color-picker .color-picker-pallet:before {
   border: solid transparent;
@@ -1033,12 +1025,20 @@ input[type="checkbox"]:checked:before {
 .color-picker .color-picker-pallet:after {
   border-color: rgba(255, 255, 255, 0);
   border-bottom-color: #fff;
-  border-width: 10px;
-  margin-left: -10px;
+  border-width: 8px;
+  margin-left: -8px;
 }
 .color-picker .color-picker-pallet:before {
   border-color: rgba(221, 221, 221, 0);
   border-bottom-color: #d1d8dd;
-  border-width: 11px;
-  margin-left: -11px;
+  border-width: 9px;
+  margin-left: -9px;
+}
+.color-picker .color-box {
+  cursor: pointer;
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  margin: 0px 0 0 4px;
+  border: 1px solid rgba(0, 0, 0, 0.25);
 }

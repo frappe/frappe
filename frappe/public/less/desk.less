@@ -934,6 +934,29 @@ input[type="checkbox"] {
 		position: absolute;
 		top: 0;
 		left: 0;
+		&:after,
+		&:before {
+			border: solid transparent;
+			content: " ";
+			height: 0;
+			width: 0;
+			pointer-events: none;
+			position: absolute;
+			bottom: 100%;
+			left: 30px;
+		}
+		&:after {
+			border-color: rgba(255, 255, 255, 0);
+			border-bottom-color: #fff;
+			border-width: 8px;
+			margin-left: -8px;
+		}
+		&:before {
+			border-color: rgba(221, 221, 221, 0);
+			border-bottom-color: @border-color;
+			border-width: 9px;
+			margin-left: -9px;
+		}
 	}
 	.color-box {
 		cursor: pointer;
@@ -943,29 +966,5 @@ input[type="checkbox"] {
 		margin: 0px 0 0 4px;
 		border: 1px solid rgba(0,0,0, 0.25);
 
-	}
-	.color-picker-pallet:after,
-	.color-picker-pallet:before {
-		border: solid transparent;
-		content: " ";
-		height: 0;
-		width: 0;
-		pointer-events: none;
-		position: absolute;
-		bottom: 100%;
-		left: 30px;
-	}
-
-	.color-picker-pallet:after {
-		border-color: rgba(255, 255, 255, 0);
-		border-bottom-color: #fff;
-		border-width: 10px;
-		margin-left: -10px;
-	}
-	.color-picker-pallet:before {
-		border-color: rgba(221, 221, 221, 0);
-		border-bottom-color: @border-color;
-		border-width: 11px;
-		margin-left: -11px;
 	}
 }
