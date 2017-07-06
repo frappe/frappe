@@ -403,25 +403,19 @@ def sendmail(recipients=[], sender="", subject="No Subject", message="No Message
 	:param expose_recipients: Display all recipients in the footer message - "This email was sent to"
 	:param communication: Communication link to be set in Email Queue record
 	:param inline_images: List of inline images as {"filename", "filecontent"}. All src properties will be replaced with random Content-Id
-	:param template: Name of html template from templates/email folder
-	:param args: Arguments for rendering the "template"
+	:param template: Name of html template from templates/emails folder
+	:param args: Arguments for rendering the template
 	"""
 	from jinja2 import TemplateNotFound
 
 	text_content = None
 	if template:
 		args = args or {}
-		message = get_template('templates/emails/' + template + '.html').render(args)
 		try:
+			message = get_template('templates/emails/' + template + '.html').render(args)
 			text_content = get_template('templates/emails/' + template + '.txt').render(args)
 		except TemplateNotFound as e:
 			pass
-
-	img_path = frappe.get_site_path('public', 'files', 'erp-logo.jpg')
-	inline_images = [{
-		"filename": "erp-logo.jpg",
-		"filecontent": open(img_path, 'rb').read()
-	}]
 
 	message = content or message
 
