@@ -89,5 +89,32 @@ frappe.tests = {
 
 				return frappe.run_serially(tasks);
 			});
+	},
+	click_navbar_user: () => {
+		return frappe.run_serially([
+			() => $(".dropdown-navbar-user .dropdown-toggle:visible").click(),
+			() => frappe.timeout(0.3)
+		]);
+	},
+	click_navbar_help: () => {
+		return frappe.run_serially([
+			() => $(".dropdown-help .dropdown-toggle:visible").click(),
+			() => frappe.timeout(0.3)
+		]);
+	},
+	click_menu_button: () => {
+		return frappe.run_serially([
+			() => $('.menu-btn-group .dropdown-toggle').click(),
+			() => frappe.timeout(0.3)
+		]);
+	},
+	clickText: (text, tag='a') => {
+		return frappe.run_serially([
+			() => $(tag+":contains("+text+"):visible")[0].click(),
+			() => frappe.timeout(0.3)
+		]);
+	},
+	isVisible: (text, tag='a') => {
+		return $(tag+":contains("+text+")").is(':visible');
 	}
 };
