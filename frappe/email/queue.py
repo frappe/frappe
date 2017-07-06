@@ -5,13 +5,14 @@ from __future__ import unicode_literals
 from six.moves import range
 import frappe
 import HTMLParser
-import smtplib, quopri
+import smtplib, quopri, json
 from frappe import msgprint, throw, _
 from frappe.email.smtp import SMTPServer, get_outgoing_email_account
-from frappe.email.email_body import get_email, get_formatted_html
+from frappe.email.email_body import get_email, get_formatted_html, add_attachment
 from frappe.utils.verified_command import get_signed_params, verify_request
 from html2text import html2text
 from frappe.utils import get_url, nowdate, encode, now_datetime, add_days, split_emails, cstr, cint
+from frappe.utils.file_manager import get_file
 from rq.timeouts import JobTimeoutException
 from frappe.utils.scheduler import log
 
@@ -145,6 +146,7 @@ def get_email_queue(recipients, sender, subject, **kwargs):
 	'''Make Email Queue object'''
 	e = frappe.new_doc('Email Queue')
 	e.priority = kwargs.get('send_priority')
+	e.attachments = json.dumps(kwargs.get('attachments'))
 
 	try:
 		mail = get_email(recipients,
@@ -333,7 +335,7 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False, from_test=Fals
 	email = frappe.db.sql('''select
 			name, status, communication, message, sender, reference_doctype,
 			reference_name, unsubscribe_param, unsubscribe_method, expose_recipients,
-			show_as_cc, add_unsubscribe_link
+			show_as_cc, add_unsubscribe_link, attachments
 		from
 			`tabEmail Queue`
 		where
@@ -459,7 +461,27 @@ def prepare_message(email, recipient, recipients_list):
 			message = message.replace("<!--cc message-->", quopri.encodestring(email_sent_message))
 
 		message = message.replace("<!--recipient-->", recipient)
-	return message
+
+	# On-demand attachments
+	from email.parser import Parser
+
+	msg_obj = Parser().parsestr(message)
+
+	for attachment in json.loads(email.attachments):
+		if attachment.get('fcontent'): continue
+
+		fid = attachment.get('fid')
+		if not fid: continue
+
+		fname, fcontent = get_file(fid)
+		attachment.update({
+			'fname', fname,
+			'fcontent': fcontent,
+			'parent': msg_obj
+		})
+		add_attachment(**attachment)
+
+	return msg_obj.as_string()
 
 def clear_outbox():
 	"""Remove low priority older than 31 days in Outbox and expire mails not sent for 7 days.
