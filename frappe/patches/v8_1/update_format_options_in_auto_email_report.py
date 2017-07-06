@@ -11,6 +11,4 @@ def execute():
 
 	auto_email_list = frappe.get_all("Auto Email Report", filters={"format": "XLS"})
 	for auto_email in auto_email_list:
-		doc = frappe.get_doc("Auto Email Report", auto_email.name)
-		doc.format = "XLSX"
-		doc.save()
+		frappe.db.set_value("Auto Email Report", auto_email.name, "format", "XLSX")
