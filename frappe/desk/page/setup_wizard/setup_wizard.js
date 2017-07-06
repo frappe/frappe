@@ -108,6 +108,10 @@ frappe.setup.Wizard = Class.extend({
 
 		this.current_slide = this.slide_dict[id];
 		this.current_slide.$wrapper.removeClass("hidden");
+
+		if(this.current_slide.refresh) {
+			this.current_slide.refresh(this.current_slide);
+		}
 	},
 	hide_current_slide: function() {
 		if(this.current_slide) {
