@@ -1,44 +1,5 @@
 QUnit.module('views');
 
-QUnit.test("Check if all desk icons are visible", function(assert) {
-	assert.expect(1);
-	let done = assert.async();
-	let random = frappe.utils.get_random(10);
-	let iconLength;
-	let deskIconLength;
-
-	frappe.run_serially([
-		() => frappe.set_route('modules_setup'),
-		() => {
-			iconLength = $('#page-modules_setup > div.container.page-body > div.page-wrapper > div > div.row.layout-main > div > div.layout-main-section > div.padding.modules-setup-icons').children('div').length;
-			for (var i=1; i<=iconLength; i++){
-				if (!($('#page-modules_setup > div.container.page-body > div.page-wrapper > div > div.row.layout-main > div > div.layout-main-section > div.padding.modules-setup-icons > div:nth-child('+i+') > div > label > input').is(':checked'))){
-					$('#page-modules_setup > div.container.page-body > div.page-wrapper > div > div.row.layout-main > div > div.layout-main-section > div.padding.modules-setup-icons > div:nth-child('+i+') > div > label > input').click();
-				}
-			}
-		},
-		() => {$('div#page-modules_setup button.btn.btn-primary.btn-sm.primary-action').click();},
-		() => frappe.set_route(),
-		() => {
-			// todo Refresh coupled with code doesn't work
-			// $('span.avatar.avatar-small > div').click()
-			// $('ul#toolbar-user li:nth-child(3) > a').click()
-			// setTimeout(frappe.timeout(4),2000);
-			// window.setTimeout(frappe.timeout(4), 4000);
-			// console.log('howdy')
-		},
-		() => {
-			deskIconLength = $('#icon-grid').children('div').length;
-		},
-		() => {
-			assert.ok(iconLength+1 == deskIconLength);
-			return done();
-		}
-		// () => {return done();}
-
-	]);
-});
-
 QUnit.test("Desktop icon link verification", function(assert) {
 	assert.expect(1);
 	let done = assert.async();
@@ -47,14 +8,54 @@ QUnit.test("Desktop icon link verification", function(assert) {
 		() => frappe.set_route(),
 		() => {
 
-			var deskIconLength = $('#icon-grid').children('div').length;                                 //total icon on desktop
-			var i = Math.floor(Math.random() * (deskIconLength) + 1);                                    //random i between 1 to total no. of icon
-			var iconname = document.querySelector(".case-wrapper:nth-child("+i+") > div > span").innerHTML;      //title of icon clicked
-			$('#icon-grid > div:nth-child('+i+') > div.app-icon').click();
-			frappe.timeout(1);
+			//total icon on desktop
+			var deskIconLength = $('#icon-grid').children('div').length;
+			//random number between 1 to total no. of icon
+			var random = Math.floor(Math.random() * (deskIconLength) + 1);
+			//title of icon clicked
+			var iconname = document.querySelector(".case-wrapper:nth-child("+random+") > div > span").innerHTML;
+			$('#icon-grid > div:nth-child('+random+') > div.app-icon').click();
 			var route = frappe.get_route();
-			assert.deepEqual(route[1], iconname);                                                        //find icon name in route
-			return done();
-		}
+			//find icon name in route
+			assert.deepEqual(route[1], iconname);
+		},
+		() => done()
+	]);
+});
+
+QUnit.test("test navbar notifications", function(assert) {
+	assert.expect(2);
+	let done = assert.async();
+	let elementcontent;
+	function elementchoose(x){
+		return ('ul#dropdown-notification li:nth-child('+x+') > a');
+	};
+
+	frappe.run_serially([
+		() => frappe.set_route(),
+		() => {
+			//add new todo if notifications are zero
+			if (document.querySelector('.navbar-new-comments-true').innerHTML == 0)
+				frappe.tests.setup_doctype('ToDo');
+		},
+		() => $('.navbar-new-comments-true').click(),
+		() => {
+			var count = $('#dropdown-notification').children('li').length;
+			//choose random element from notification list
+			var i = Math.floor(Math.random() * (count) + 1);
+			if (document.querySelector(elementchoose(1)).innerText.replace(/[^a-z]/gi, '')=='ToDo' && i==2)
+				i+=1;
+			//get content of that element
+			elementcontent = document.querySelector(elementchoose(i)).innerText;
+			$(elementchoose(i)).click();
+		},
+		() => frappe.timeout(1),
+		() => {
+			//check route
+			assert.deepEqual(elementcontent.replace(/[^a-z]/gi, ''), frappe.get_route()[1].replace(/[^a-z]/gi, ''));
+			//check number of elements
+			assert.ok(cur_list.data.length == elementcontent.replace(/[^0-9]/gi, ''));
+		},
+		() => done()
 	]);
 });

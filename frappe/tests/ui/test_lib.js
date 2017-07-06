@@ -8,8 +8,13 @@ frappe.tests = {
 			() => frappe.set_route('List', doctype),
 			() => frappe.new_doc(doctype),
 			() => {
-				let frm = frappe.quick_entry ? frappe.quick_entry.dialog : cur_frm;
-				return frappe.tests.set_form_values(frm, data);
+				if (frappe.quick_entry) {
+					frappe.quick_entry.dialog.$wrapper.find('.edit-full').click();
+					return frappe.timeout(1);
+				}
+			},
+			() => {
+				return frappe.tests.set_form_values(cur_frm, data);
 			},
 			() => frappe.timeout(1),
 			() => (frappe.quick_entry ? frappe.quick_entry.insert() : cur_frm.save())
