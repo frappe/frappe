@@ -152,7 +152,7 @@ frappe.search.utils = {
 							type: "New",
 							label: __("New {0}", [me.bolden_match_part(__(item), keywords)]),
 							value: __("New {0}", [__(item)]),
-							index: level + 0.01,
+							index: level + 0.015,
 							match: item,
 							onclick: function () { frappe.new_doc(match, true); }
 						});
