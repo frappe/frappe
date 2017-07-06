@@ -228,7 +228,6 @@ frappe.views.QueryReport = Class.extend({
 
 			//Render Report in HTML
 			var html = frappe.render_template("print_template", {
-				columns:columns,
 				content:content,
 				title:__(this.report_name),
 				base_url: base_url,
@@ -424,7 +423,7 @@ frappe.views.QueryReport = Class.extend({
 		var filters = {};
 		var mandatory_fields = [];
 		$.each(this.filters || [], function(i, f) {
-			var v = f.get_parsed_value();
+			var v = f.get_value();
 			// TODO: hidden fields dont have $input
 			if(f.df.hidden) v = f.value;
 			if(v === '%') v = null;

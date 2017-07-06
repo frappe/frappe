@@ -39,6 +39,10 @@ class CustomField(Document):
 		if not self.fieldname:
 			frappe.throw(_("Fieldname not set for Custom Field"))
 
+		if not self.flags.ignore_validate:
+			from frappe.core.doctype.doctype.doctype import check_if_fieldname_conflicts_with_methods
+			check_if_fieldname_conflicts_with_methods(self.dt, self.fieldname)
+
 	def on_update(self):
 		frappe.clear_cache(doctype=self.dt)
 		if not self.flags.ignore_validate:

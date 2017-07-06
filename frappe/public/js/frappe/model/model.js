@@ -327,9 +327,11 @@ $.extend(frappe.model, {
 
 	set_value: function(doctype, docname, fieldname, value, fieldtype) {
 		/* help: Set a value locally (if changed) and execute triggers */
+
 		var doc = locals[doctype] && locals[doctype][docname];
 
 		var to_update = fieldname;
+		let tasks = [];
 		if(!$.isPlainObject(to_update)) {
 			to_update = {};
 			to_update[fieldname] = value;
@@ -343,14 +345,16 @@ $.extend(frappe.model, {
 				}
 
 				doc[key] = value;
-				frappe.model.trigger(key, value, doc);
+				tasks.push(() => frappe.model.trigger(key, value, doc));
 			} else {
 				// execute link triggers (want to reselect to execute triggers)
 				if(fieldtype=="Link" && doc) {
-					frappe.model.trigger(key, value, doc);
+					tasks.push(() => frappe.model.trigger(key, value, doc));
 				}
 			}
 		});
+
+		return frappe.run_serially(tasks);
 	},
 
 	on: function(doctype, fieldname, fn) {
@@ -371,21 +375,34 @@ $.extend(frappe.model, {
 	},
 
 	trigger: function(fieldname, value, doc) {
-
-		var run = function(events, event_doc) {
+		let tasks = [];
+		var runner = function(events, event_doc) {
 			$.each(events || [], function(i, fn) {
-				fn && fn(fieldname, value, event_doc || doc);
+				if(fn) {
+					let _promise = fn(fieldname, value, event_doc || doc);
+
+					// if the trigger returns a promise, return it,
+					// or use the default promise frappe.after_ajax
+					if (_promise && _promise.then) {
+						return _promise;
+					} else {
+						return frappe.after_server_call();
+					}
+				}
 			});
 		};
 
 		if(frappe.model.events[doc.doctype]) {
+			tasks.push(() => {
+				return runner(frappe.model.events[doc.doctype][fieldname]);
+			});
 
-			// field-level
-			run(frappe.model.events[doc.doctype][fieldname]);
-
-			// doctype-level
-			run(frappe.model.events[doc.doctype]['*']);
+			tasks.push(() => {
+				runner(frappe.model.events[doc.doctype]['*']);
+			});
 		}
+
+		frappe.run_serially(tasks);
 	},
 
 	get_doc: function(doctype, name) {

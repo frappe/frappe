@@ -89,8 +89,28 @@ def get_admin_password():
 
 
 def before_tests():
+	if len(frappe.get_installed_apps()) > 1:
+		# don't run before tests if any other app is installed
+		return
+
 	frappe.db.sql("delete from `tabCustom Field`")
 	frappe.db.sql("delete from `tabEvent`")
+	frappe.db.commit()
+	frappe.clear_cache()
+
+	# complete setup if missing
+	from frappe.desk.page.setup_wizard.setup_wizard import setup_complete
+	if not int(frappe.db.get_single_value('System Settings', 'setup_complete') or 0):
+		setup_complete({
+			"language"			:"english",
+			"email"				:"test@erpnext.com",
+			"full_name"			:"Test User",
+			"password"			:"test",
+			"country"			:"United States",
+			"timezone"			:"America/New_York",
+			"currency"			:"USD"
+		})
+
 	frappe.db.commit()
 	frappe.clear_cache()
 

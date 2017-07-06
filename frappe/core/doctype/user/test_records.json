@@ -33,6 +33,13 @@
  },
  {
   "doctype": "User",
+  "email": "test3@example.com",
+  "first_name": "_Test3",
+  "new_password": "Eastern_43A1W",
+  "enabled": 1
+ },
+ {
+  "doctype": "User",
   "email": "testperm@example.com",
   "first_name": "_Test Perm",
   "new_password": "Eastern_43A1W",

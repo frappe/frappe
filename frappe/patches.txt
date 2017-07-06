@@ -186,3 +186,4 @@ frappe.patches.v8_0.update_desktop_icons
 frappe.patches.v8_0.update_gender_and_salutation
 execute:frappe.db.sql('update tabReport set module="Desk" where name="ToDo"')
 frappe.patches.v8_1.enable_allow_error_traceback_in_system_settings
+frappe.patches.v8_1.update_format_options_in_auto_email_report

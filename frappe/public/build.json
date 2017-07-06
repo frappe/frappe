@@ -101,6 +101,7 @@
 
 		"public/js/frappe/ui/page.html",
 		"public/js/frappe/ui/page.js",
+		"public/js/frappe/ui/find.js",
 		"public/js/frappe/ui/iconbar.js",
 		"public/js/frappe/form/layout.js",
 		"public/js/frappe/ui/field_group.js",
@@ -194,6 +195,8 @@
 		"public/js/frappe/form/save.js",
 		"public/js/frappe/form/script_manager.js",
 		"public/js/frappe/form/grid.js",
+		"public/js/frappe/form/grid_row.js",
+		"public/js/frappe/form/grid_row_form.js",
 		"public/js/frappe/form/linked_with.js",
 		"public/js/frappe/form/workflow.js",
 		"public/js/frappe/form/print.js",

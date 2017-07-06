@@ -298,8 +298,13 @@ def get_footer(email_account, footer=None):
 	company_address = frappe.db.get_default("email_footer_address")
 
 	if company_address:
-		footer += '<div style="margin: 15px auto; text-align: center; color: #8d99a6">{0}</div>'\
-			.format(company_address.replace("\n", "<br>"))
+		company_address = company_address.splitlines(True)
+		footer += '<table width="100%" border=0>'
+		footer += '<tr><td height=20></td></tr>'
+		for x in company_address:
+			footer += '<tr style="margin: 15px auto; text-align: center; color: #8d99a6"><td>{0}</td></tr>'\
+				.format(x)
+		footer += "</table>"
 
 	if not cint(frappe.db.get_default("disable_standard_email_footer")):
 		for default_mail_footer in frappe.get_hooks("default_mail_footer"):

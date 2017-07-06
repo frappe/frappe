@@ -98,32 +98,49 @@ frappe.ui.form.Control = Class.extend({
 		}
 	},
 	set_value: function(value) {
-		this.parse_validate_and_set_in_model(value);
+		return this.validate_and_set_in_model(value);
 	},
 	parse_validate_and_set_in_model: function(value, e) {
-		var me = this;
-		if(this.inside_change_event) return;
-		this.inside_change_event = true;
-		if(this.parse) value = this.parse(value);
-
-		var set = function(value) {
-			me.set_model_value(value);
-			me.inside_change_event = false;
-			me.set_mandatory && me.set_mandatory(value);
-
-			if(me.df.change || me.df.onchange) {
-				// onchange event specified in df
-				(me.df.change || me.df.onchange).apply(me, [e]);
-			}
+		if(this.parse) {
+			value = this.parse(value);
 		}
-
-		this.validate ? this.validate(value, set) : set(value);
+		return this.validate_and_set_in_model(value, e);
 	},
-	get_parsed_value: function() {
+	validate_and_set_in_model: function(value, e) {
 		var me = this;
+		return new Promise(resolve => {
+			if(this.inside_change_event) {
+				resolve();
+				return;
+			}
+			this.inside_change_event = true;
+			var set = function(value) {
+				me.inside_change_event = false;
+				me.set_model_value(value)
+					.then(() => {
+						me.set_mandatory && me.set_mandatory(value);
+
+						if(me.df.change || me.df.onchange) {
+							// onchange event specified in df
+							let _promise = (me.df.change || me.df.onchange).apply(me, [e]);
+							if(_promise && _promise.then) {
+								_promise.then(() => { resolve(); });
+							} else {
+								resolve();
+							}
+						} else {
+							resolve();
+						}
+					});
+			}
+
+			this.validate ? this.validate(value, set) : set(value);
+		});
+	},
+	get_value: function() {
 		if(this.get_status()==='Write') {
-			return this.get_value ?
-				(this.parse ? this.parse(this.get_value()) : this.get_value()) :
+			return this.get_input_value ?
+				(this.parse ? this.parse(this.get_input_value()) : this.get_input_value()) :
 				undefined;
 		} else if(this.get_status()==='Read') {
 			return this.value || undefined;
@@ -132,17 +149,20 @@ frappe.ui.form.Control = Class.extend({
 		}
 	},
 	set_model_value: function(value) {
-		if(this.doctype && this.docname) {
-			if(frappe.model.set_value(this.doctype, this.docname, this.df.fieldname,
-				value, this.df.fieldtype)) {
+		return new Promise(resolve => {
+			if(this.doctype && this.docname) {
+				frappe.model.set_value(this.doctype, this.docname, this.df.fieldname,
+					value, this.df.fieldtype)
+					.then(() => resolve());
 				this.last_value = value;
+			} else {
+				if(this.doc) {
+					this.doc[this.df.fieldname] = value;
+				}
+				this.set_input(value);
+				resolve();
 			}
-		} else {
-			if(this.doc) {
-				this.doc[this.df.fieldname] = value;
-			}
-			this.set_input(value);
-		}
+		});
 	},
 	set_focus: function() {
 		if(this.$input) {
@@ -195,7 +215,6 @@ frappe.ui.form.ControlImage = frappe.ui.form.Control.extend({
 		this.$body = $("<div></div>").appendTo(this.$wrapper)
 			.css({"margin-bottom": "10px"})
 		this.$wrapper.on("refresh", function() {
-			var doc = null;
 			me.$body.empty();
 
 			var doc = me.get_doc();
@@ -324,7 +343,7 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 	},
 
 	set_disp_area: function() {
-		let value = this.get_value();
+		let value = this.get_input_value();
 		if(in_list(["Currency", "Int", "Float"], this.df.fieldtype) && (this.value === 0 || value === 0)) {
 			// to set the 0 value in readonly for currency, int, float field
 			value = 0;
@@ -333,13 +352,13 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 		}
 		this.disp_area && $(this.disp_area)
 			.html(frappe.format(value, this.df, {no_icon:true, inline:true},
-					this.doc || (this.frm && this.frm.doc)));
+				this.doc || (this.frm && this.frm.doc)));
 	},
 
 	bind_change_event: function() {
 		var me = this;
 		this.$input && this.$input.on("change", this.change || function(e) {
-			me.parse_validate_and_set_in_model(me.get_value(), e);
+			me.parse_validate_and_set_in_model(me.get_input_value(), e);
 		});
 	},
 	bind_focusout: function() {
@@ -445,7 +464,7 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 	set_formatted_input: function(value) {
 		this.$input && this.$input.val(this.format_for_input(value));
 	},
-	get_value: function() {
+	get_input_value: function() {
 		return this.$input ? this.$input.val() : undefined;
 	},
 	format_for_input: function(val) {
@@ -517,9 +536,57 @@ frappe.ui.form.ControlReadOnly = frappe.ui.form.ControlData.extend({
 	},
 });
 
-
 frappe.ui.form.ControlPassword = frappe.ui.form.ControlData.extend({
-	input_type: "password"
+	input_type: "password",
+	make: function() {
+		this._super();
+	},
+	make_input: function() {
+		var me = this;
+		this._super();
+		this.$input.parent().append($('<span class="password-strength-indicator indicator"></span>'));
+		this.$wrapper.find('.control-input-wrapper').append($('<p class="password-strength-message text-muted small hidden"></p>'));
+
+		this.indicator = this.$wrapper.find('.password-strength-indicator');
+		this.message = this.$wrapper.find('.help-box');
+
+		this.$input.on('input', () => {
+			var $this = $(this);
+			clearTimeout($this.data('timeout'));
+			$this.data('timeout', setTimeout(() => {
+				var txt = me.$input.val();
+				me.get_password_strength(txt);
+			}), 300);
+		});
+	},
+	get_password_strength: function(value) {
+		var me = this;
+		frappe.call({
+			type: 'GET',
+			method: 'frappe.core.doctype.user.user.test_password_strength',
+			args: {
+				new_password: value || ''
+			},
+			callback: function(r) {
+				if (r.message && r.message.entropy) {
+					var score = r.message.score,
+						feedback = r.message.feedback;
+
+					feedback.crack_time_display = r.message.crack_time_display;
+
+					var indicators = ['grey', 'red', 'orange', 'yellow', 'green'];
+					me.set_strength_indicator(indicators[score]);
+
+				}
+			}
+
+		});
+	},
+	set_strength_indicator: function(color) {
+		var message = __("Include symbols, numbers and capital letters in the password");
+		this.indicator.removeClass().addClass('password-strength-indicator indicator ' + color);
+		this.message.html(message).removeClass('hidden');
+	}
 });
 
 frappe.ui.form.ControlInt = frappe.ui.form.ControlData.extend({
@@ -644,14 +711,11 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 		this.$input.on("keydown", function(e) {
 			if(e.which===84) { // 84 === t
 				if(me.df.fieldtype=='Date') {
-					me.set_value(frappe.datetime.str_to_user(
-						frappe.datetime.nowdate()));
+					me.set_value(frappe.datetime.nowdate());
 				} if(me.df.fieldtype=='Datetime') {
-					me.set_value(frappe.datetime.str_to_user(
-						frappe.datetime.now_datetime()));
+					me.set_value(frappe.datetime.now_datetime());
 				} if(me.df.fieldtype=='Time') {
-					me.set_value(frappe.datetime.str_to_user(
-						frappe.datetime.now_time()));
+					me.set_value(frappe.datetime.now_time());
 				}
 				return false;
 			}
@@ -840,7 +904,7 @@ frappe.ui.form.ControlCheck = frappe.ui.form.ControlData.extend({
 		this._super();
 		this.$input.removeClass("form-control");
 	},
-	parse: function(value) {
+	get_input_value: function() {
 		return this.input.checked ? 1 : 0;
 	},
 	validate: function(value, callback) {
@@ -854,7 +918,7 @@ frappe.ui.form.ControlCheck = frappe.ui.form.ControlData.extend({
 		this.set_mandatory(value);
 		this.set_disp_area();
 	},
-	get_value: function() {
+	get_input_value: function() {
 		if (!this.$input) {
 			return;
 		}
@@ -878,7 +942,7 @@ frappe.ui.form.ControlButton = frappe.ui.form.ControlData.extend({
 	},
 	onclick: function() {
 		if(this.frm && this.frm.doc) {
-			if(this.frm.script_manager.get_handlers(this.df.fieldname, this.doctype, this.docname).length) {
+			if(this.frm.script_manager.has_handlers(this.df.fieldname, this.doctype)) {
 				this.frm.script_manager.trigger(this.df.fieldname, this.doctype, this.docname);
 			} else {
 				this.frm.runscript(this.df.options, this);
@@ -1094,31 +1158,55 @@ frappe.ui.form.ControlAttachImage = frappe.ui.form.ControlAttach.extend({
 	make: function() {
 		var me = this;
 		this._super();
-		this.img_wrapper = $('<div style="margin: 7px 0px;">\
-			<div class="missing-image attach-missing-image"><i class="octicon octicon-circle-slash"></i></div></div>')
+		this.img_wrapper = $('<div style="width: 100%; height: calc(100% - 40px); position: relative;">\
+			<div class="missing-image attach-missing-image"><i class="octicon octicon-device-camera"></i></div></div>')
 			.appendTo(this.wrapper);
-		this.img = $("<img class='img-responsive attach-image-display'>")
-			.appendTo(this.img_wrapper).toggle(false);
+
+		this.img_container = $(`<div class='img-container'></div>`);
+		this.img = $(`<img class='img-responsive attach-image-display'>`)
+			.appendTo(this.img_container);
+
+		this.img_overlay = $(`<div class='img-overlay'>
+				<span class="overlay-text">Change</span>
+			</div>`).appendTo(this.img_container);
+
+		this.remove_image_link = $('<a style="font-size: 12px;color: #8D99A6;">Remove</a>');
+
+		this.img_wrapper.append(this.img_container).append(this.remove_image_link);
+		// this.img.toggle(false);
+		// this.img_overlay.toggle(false);
+		this.img_container.toggle(false);
+		this.remove_image_link.toggle(false);
 
 		// propagate click to Attach button
 		this.img_wrapper.find(".missing-image").on("click", function() { me.$input.click(); });
-		this.img.on("click", function() { me.$input.click(); });
+		this.img_container.on("click", function() { me.$input.click(); });
+		this.remove_image_link.on("click", function() { me.$value.find(".close").click(); });
 
 		this.$wrapper.on("refresh", function() {
+			$(me.wrapper).find('.btn-attach').addClass('hidden');
 			me.set_image();
 			if(me.get_status()=="Read") {
 				$(me.disp_area).toggle(false);
 			}
 		});
+
 		this.set_image();
 	},
 	set_image: function() {
 		if(this.get_value()) {
 			$(this.img_wrapper).find(".missing-image").toggle(false);
-			this.img.attr("src", this.dataurl ? this.dataurl : this.value).toggle(true);
+			// this.img.attr("src", this.dataurl ? this.dataurl : this.value).toggle(true);
+			// this.img_overlay.toggle(true);
+			this.img.attr("src", this.dataurl ? this.dataurl : this.value);
+			this.img_container.toggle(true);
+			this.remove_image_link.toggle(true);
 		} else {
 			$(this.img_wrapper).find(".missing-image").toggle(true);
-			this.img.toggle(false);
+			// this.img.toggle(false);
+			// this.img_overlay.toggle(false);
+			this.img_container.toggle(false);
+			this.remove_image_link.toggle(false);
 		}
 	}
 });
@@ -1266,7 +1354,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		new frappe.ui.form.LinkSelector({
 			doctype: doctype,
 			target: this,
-			txt: this.get_value()
+			txt: this.get_input_value()
 		});
 		return false;
 	},
@@ -1290,14 +1378,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		frappe._from_link = this;
 		frappe._from_link_scrollY = $(document).scrollTop();
 
-		var trimmed_doctype = doctype.replace(/ /g, '');
-		var controller_name = "QuickEntryForm";
-
-		if(frappe.ui.form[trimmed_doctype + "QuickEntryForm"]){
-			controller_name = trimmed_doctype + "QuickEntryForm";
-		}
-
-		new frappe.ui.form[controller_name](doctype, function(doc) {
+		frappe.ui.form.make_quick_entry(doctype, (doc) => {
 			if(me.frm) {
 				me.parse_validate_and_set_in_model(doc.name);
 			} else {
@@ -1411,7 +1492,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 				me.selected = false;
 				return;
 			}
-			var value = me.get_value();
+			var value = me.get_input_value();
 			if(value!==me.last_value) {
 				me.parse_validate_and_set_in_model(value);
 			}
@@ -1681,6 +1762,7 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 					me.parse_validate_and_set_in_model(value);
 				},
 				onKeydown: function(e) {
+					this._last_change_on = new Date();
 					var key = frappe.ui.keys.get_key(e);
 					// prevent 'New DocType (Ctrl + B)' shortcut in editor
 					if(['ctrl+b', 'meta+b'].indexOf(key) !== -1) {
@@ -1787,16 +1869,32 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 				.attr('data-original-title', '');
 		}
 	},
-	get_value: function() {
+	get_input_value: function() {
 		return this.editor? this.editor.summernote('code'): '';
 	},
 	set_input: function(value) {
 		if(value == null) value = "";
 		value = frappe.dom.remove_script_and_style(value);
-		if(value !== this.get_value()) {
-			this.editor.summernote('code', value);
+		if(value !== this.get_input_value()) {
+			this.set_in_editor(value);
 		}
 		this.last_value = value;
+	},
+	set_in_editor: function(value) {
+		// set value after user has stopped editing
+		if(!this._last_change_on || (moment() - moment(this._last_change_on) > 3000)) {
+			this.editor.summernote('code', value);
+		} else {
+			if(!this._setting_value) {
+				this._setting_value = setInterval(() => {
+					if(moment() - moment(this._last_change_on) > 3000) {
+						this.editor.summernote('code', this.last_value);
+						clearInterval(this._setting_value);
+						this._setting_value = null;
+					}
+				}, 1000);
+			}
+		}
 	},
 	set_focus: function() {
 		return this.editor.summernote('focus');
@@ -1913,7 +2011,7 @@ frappe.ui.form.ControlTable = frappe.ui.form.Control.extend({
 			return false;
 		});
 	},
-	get_parsed_value: function() {
+	get_value: function() {
 		if(this.grid) {
 			return this.grid.get_data();
 		}

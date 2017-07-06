@@ -563,6 +563,13 @@ def validate_column_name(n):
 		frappe.throw(_("Fieldname {0} cannot have special characters like {1}").format(cstr(n), special_characters), InvalidColumnName)
 	return n
 
+def validate_column_length(fieldname):
+	""" In MySQL maximum column length is 64 characters,
+		ref: https://dev.mysql.com/doc/refman/5.5/en/identifiers.html"""
+
+	if len(fieldname) > 64:
+		frappe.throw(_("Fieldname is limited to 64 characters ({0})").format(fieldname))
+
 def remove_all_foreign_keys():
 	frappe.db.sql("set foreign_key_checks = 0")
 	frappe.db.commit()

@@ -11,7 +11,7 @@ frappe.ui.form.on('Custom Field', {
 				['DocType', 'issingle', '=', 0],
 			];
 			if(frappe.session.user!=="Administrator") {
-				filters.push(['DocType', 'module', '!=', 'Core'])
+				filters.push(['DocType', 'module', 'not in', ['Core', 'Custom']])
 			}
 			return {
 				"filters": filters

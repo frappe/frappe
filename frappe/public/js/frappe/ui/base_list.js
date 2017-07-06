@@ -221,15 +221,10 @@ frappe.ui.BaseList = Class.extend({
 			});
 		}
 
-		this.page.page_form.on('change', ':input', function() {
-			me.refresh(true);
-		});
-
 		this.standard_filters_added = true;
 	},
 
 	update_standard_filters: function(filters) {
-		let values = {};
 		let me = this;
 		for(let key in this.page.fields_dict) {
 			let field = this.page.fields_dict[key];
@@ -466,7 +461,7 @@ frappe.ui.BaseList = Class.extend({
 	set_filter: function (fieldname, label, no_run, no_duplicate) {
 		var filter = this.filter_list.get_filter(fieldname);
 		if (filter) {
-			var value = cstr(filter.field.get_parsed_value());
+			var value = cstr(filter.field.get_value());
 			if (value.includes(label)) {
 				// already set
 				return false
