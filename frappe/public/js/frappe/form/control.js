@@ -1215,39 +1215,31 @@ frappe.ui.form.ControlAttachImage = frappe.ui.form.ControlAttach.extend({
 frappe.ui.form.ControlSelect = frappe.ui.form.ControlData.extend({
 	html_element: "select",
 	make_input: function() {
-		var me = this;
 		this._super();
 		this.set_options();
 	},
-	set_input: function(value) {
+	set_formatted_input: function(value) {
 		// refresh options first - (new ones??)
-		this.set_options(value || "");
+		if(value==null) value = '';
+		this.set_options(value);
 
-		var input_value = null;
-		if(this.$input) {
-			var input_value = this.$input.val();
-		}
-
-		// not a possible option, repair
-		if(this.doctype && this.docname) {
-			// model value is not an option,
-			// set the default option (displayed)
-			var model_value = frappe.model.get_value(this.doctype, this.docname, this.df.fieldname);
-			if(model_value == null && (input_value || "") != (model_value || "")) {
-				this.set_model_value(input_value);
-			} else {
-				this.last_value = value;
-			}
-		} else {
-			if(value !== input_value) {
-				this.set_value(input_value);
-			}
-		}
-
+		// set in the input element
 		this._super(value);
 
+		// check if the value to be set is selected
+		var input_value = null;
+		if(this.$input) {
+			input_value = this.$input.val();
+		}
+
+		if(value !== input_value) {
+			// trying to set a non-existant value
+			// model value must be same as whatever the input is
+			this.set_model_value(input_value);
+		}
 	},
 	set_options: function(value) {
+		// reset options, if something new is set
 		var options = this.df.options || [];
 		if(typeof this.df.options==="string") {
 			options = this.df.options.split("\n");
