@@ -69,8 +69,8 @@ frappe.ui.FieldGroup = frappe.ui.form.Layout.extend({
 		var errors = [];
 		for(var key in this.fields_dict) {
 			var f = this.fields_dict[key];
-			if(f.get_parsed_value) {
-				var v = f.get_parsed_value();
+			if(f.get_value) {
+				var v = f.get_value();
 				if(f.df.reqd && is_null(v))
 					errors.push(__(f.df.label));
 
@@ -90,7 +90,7 @@ frappe.ui.FieldGroup = frappe.ui.form.Layout.extend({
 	},
 	get_value: function(key) {
 		var f = this.fields_dict[key];
-		return f && (f.get_parsed_value ? f.get_parsed_value() : null);
+		return f && (f.get_value ? f.get_value() : null);
 	},
 	set_value: function(key, val){
 		return new Promise(resolve => {
