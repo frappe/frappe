@@ -344,7 +344,8 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 
 	set_disp_area: function() {
 		let value = this.get_input_value();
-		if(in_list(["Currency", "Int", "Float"], this.df.fieldtype) && (this.value === 0 || value === 0)) {
+		if(in_list(["Currency", "Int", "Float"], this.df.fieldtype)
+			&& (this.value === 0 || value === 0)) {
 			// to set the 0 value in readonly for currency, int, float field
 			value = 0;
 		} else {
@@ -1227,12 +1228,12 @@ frappe.ui.form.ControlSelect = frappe.ui.form.ControlData.extend({
 		this._super(value);
 
 		// check if the value to be set is selected
-		var input_value = null;
+		var input_value = '';
 		if(this.$input) {
 			input_value = this.$input.val();
 		}
 
-		if(value !== input_value) {
+		if(value && input_value && value !== input_value) {
 			// trying to set a non-existant value
 			// model value must be same as whatever the input is
 			this.set_model_value(input_value);
