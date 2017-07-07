@@ -42,11 +42,6 @@ class WebPage(WebsiteGenerator):
 		if not self.show_title:
 			context["no_header"] = 1
 
-		if self.show_sidebar and self.website_sidebar:
-			context.sidebar_items = frappe.get_all('Website Sidebar Item',
-				filters=dict(parent=self.website_sidebar), fields=['title', 'route', '`group`'],
-				order_by='idx asc')
-
 		self.set_metatags(context)
 		self.set_breadcrumbs(context)
 		self.set_title_and_header(context)

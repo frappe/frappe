@@ -86,7 +86,8 @@ frappe.ui.form.Control = Class.extend({
 		this.disp_status = this.get_status();
 		this.$wrapper
 			&& this.$wrapper.toggleClass("hide-control", this.disp_status=="None")
-			&& this.$wrapper.trigger("refresh");
+			&& this.refresh_input
+			&& this.refresh_input();
 	},
 	get_doc: function() {
 		return this.doctype && this.docname
@@ -108,34 +109,33 @@ frappe.ui.form.Control = Class.extend({
 	},
 	validate_and_set_in_model: function(value, e) {
 		var me = this;
-		return new Promise(resolve => {
-			if(this.inside_change_event) {
-				resolve();
-				return;
-			}
-			this.inside_change_event = true;
-			var set = function(value) {
-				me.inside_change_event = false;
-				me.set_model_value(value)
-					.then(() => {
-						me.set_mandatory && me.set_mandatory(value);
+		if(this.inside_change_event) {
+			return new Promise.resolve();
+		}
+		this.inside_change_event = true;
+		var set = function(value) {
+			me.inside_change_event = false;
+			return frappe.run_serially([
+				() => me.set_model_value(value),
+				() => {
+					me.set_mandatory && me.set_mandatory(value);
 
-						if(me.df.change || me.df.onchange) {
-							// onchange event specified in df
-							let _promise = (me.df.change || me.df.onchange).apply(me, [e]);
-							if(_promise && _promise.then) {
-								_promise.then(() => { resolve(); });
-							} else {
-								resolve();
-							}
-						} else {
-							resolve();
-						}
-					});
-			}
+					if(me.df.change || me.df.onchange) {
+						// onchange event specified in df
+						return (me.df.change || me.df.onchange).apply(me, [e]);
+					}
+				}
+			]);
+		};
 
-			this.validate ? this.validate(value, set) : set(value);
-		});
+		value = this.validate(value);
+		if (value.then) {
+			// got a promise
+			return value.then((value) => set(value));
+		} else {
+			// all clear
+			return set(value);
+		}
 	},
 	get_value: function() {
 		if(this.get_status()==='Write') {
@@ -149,20 +149,17 @@ frappe.ui.form.Control = Class.extend({
 		}
 	},
 	set_model_value: function(value) {
-		return new Promise(resolve => {
-			if(this.doctype && this.docname) {
-				frappe.model.set_value(this.doctype, this.docname, this.df.fieldname,
-					value, this.df.fieldtype)
-					.then(() => resolve());
-				this.last_value = value;
-			} else {
-				if(this.doc) {
-					this.doc[this.df.fieldname] = value;
-				}
-				this.set_input(value);
-				resolve();
+		if(this.doctype && this.docname) {
+			this.last_value = value;
+			return frappe.model.set_value(this.doctype, this.docname, this.df.fieldname,
+				value, this.df.fieldtype);
+		} else {
+			if(this.doc) {
+				this.doc[this.df.fieldname] = value;
 			}
-		});
+			this.set_input(value);
+			return Promise.resolve();
+		}
 	},
 	set_focus: function() {
 		if(this.$input) {
@@ -175,13 +172,11 @@ frappe.ui.form.Control = Class.extend({
 frappe.ui.form.ControlHTML = frappe.ui.form.Control.extend({
 	make: function() {
 		this._super();
-		var me = this;
 		this.disp_area = this.wrapper;
-		this.$wrapper.on("refresh", function() {
-			var content = me.get_content();
-			if(content) me.$wrapper.html(content);
-			return false;
-		});
+	},
+	refresh_input: function() {
+		var content = this.get_content();
+		if(content) this.$wrapper.html(content);
 	},
 	get_content: function() {
 		return this.df.options || "";
@@ -214,20 +209,20 @@ frappe.ui.form.ControlImage = frappe.ui.form.Control.extend({
 		this.$wrapper.css({"margin": "0px"});
 		this.$body = $("<div></div>").appendTo(this.$wrapper)
 			.css({"margin-bottom": "10px"})
-		this.$wrapper.on("refresh", function() {
-			me.$body.empty();
-
-			var doc = me.get_doc();
-			if(doc && me.df.options && doc[me.df.options]) {
-				me.$img = $("<img src='"+doc[me.df.options]+"' class='img-responsive'>")
-					.appendTo(me.$body);
-			} else {
-				me.$buffer = $("<div class='missing-image'><i class='octicon octicon-circle-slash'></i></div>")
-					.appendTo(me.$body)
-			}
-			return false;
-		});
 		$('<div class="clearfix"></div>').appendTo(this.$wrapper);
+	},
+	refresh_input: function() {
+		this.$body.empty();
+
+		var doc = this.get_doc();
+		if(doc && this.df.options && doc[this.df.options]) {
+			this.$img = $("<img src='"+doc[this.df.options]+"' class='img-responsive'>")
+				.appendTo(this.$body);
+		} else {
+			this.$buffer = $("<div class='missing-image'><i class='octicon octicon-circle-slash'></i></div>")
+				.appendTo(this.$body)
+		}
+		return false;
 	}
 });
 
@@ -240,7 +235,6 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 
 		// set description
 		this.set_max_width();
-		this.setup_update_on_refresh();
 	},
 	make_wrapper: function() {
 		if(this.only_input) {
@@ -286,7 +280,7 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 	// update input value, label, description
 	// display (show/hide/read-only),
 	// mandatory style on refresh
-	setup_update_on_refresh: function() {
+	refresh_input: function() {
 		var me = this;
 
 		var make_input = function() {
@@ -306,40 +300,37 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 			}
 		}
 
-		this.$wrapper.on("refresh", function() {
-			if(me.disp_status != "None") {
-				// refresh value
-				if(me.doctype && me.docname) {
-					me.value = frappe.model.get_value(me.doctype, me.docname, me.df.fieldname);
-				}
+		if(me.disp_status != "None") {
+			// refresh value
+			if(me.doctype && me.docname) {
+				me.value = frappe.model.get_value(me.doctype, me.docname, me.df.fieldname);
+			}
 
-				if(me.disp_status=="Write") {
-					me.disp_area && $(me.disp_area).toggle(false);
-					$(me.input_area).toggle(true);
-					me.$input && me.$input.prop("disabled", false);
+			if(me.disp_status=="Write") {
+				me.disp_area && $(me.disp_area).toggle(false);
+				$(me.input_area).toggle(true);
+				me.$input && me.$input.prop("disabled", false);
+				make_input();
+				update_input();
+			} else {
+				if(me.only_input) {
 					make_input();
 					update_input();
 				} else {
-					if(me.only_input) {
-						make_input();
-						update_input();
-					} else {
-						$(me.input_area).toggle(false);
-						if (me.disp_area) {
-							me.set_disp_area();
-							$(me.disp_area).toggle(true);
-						}
+					$(me.input_area).toggle(false);
+					if (me.disp_area) {
+						me.set_disp_area();
+						$(me.disp_area).toggle(true);
 					}
-					me.$input && me.$input.prop("disabled", true);
 				}
-
-				me.set_description();
-				me.set_label();
-				me.set_mandatory(me.value);
-				me.set_bold();
+				me.$input && me.$input.prop("disabled", true);
 			}
-			return false;
-		});
+
+			me.set_description();
+			me.set_label();
+			me.set_mandatory(me.value);
+			me.set_bold();
+		}
 	},
 
 	set_disp_area: function() {
@@ -471,11 +462,10 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 	format_for_input: function(val) {
 		return val==null ? "" : val;
 	},
-	validate: function(v, callback) {
+	validate: function(v) {
 		if(this.df.options == 'Phone') {
 			if(v+''=='') {
-				callback("");
-				return;
+				return '';
 			}
 			var v1 = ''
 			// phone may start with + and must only have numbers later, '-' and ' ' are stripped
@@ -492,18 +482,16 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 				v1 += '0'; v = v.substr(1);
 			}
 			v1 += cint(v) + '';
-			callback(v1);
+			return v1;
 		} else if(this.df.options == 'Email') {
 			if(v+''=='') {
-				callback("");
-				return;
+				return '';
 			}
 
 			var email_list = frappe.utils.split_emails(v);
 			if (!email_list) {
 				// invalid email
-				callback("");
-
+				return '';
 			} else {
 				var invalid_email = false;
 				email_list.forEach(function(email) {
@@ -515,15 +503,15 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 
 				if (invalid_email) {
 					// at least 1 invalid email
-					callback("");
+					return '';
 				} else {
 					// all good
-					callback(v);
+					return v;
 				}
 			}
 
 		} else {
-			callback(v);
+			return v;
 		}
 	}
 });
@@ -604,19 +592,15 @@ frappe.ui.form.ControlInt = frappe.ui.form.ControlData.extend({
 			.on("focus", function() {
 				setTimeout(function() {
 					if(!document.activeElement) return;
-					me.validate(document.activeElement.value, function(val) {
-						document.activeElement.value = val;
-					});
-					document.activeElement.select()
+					document.activeElement.value
+						= me.validate(document.activeElement.value);
+					document.activeElement.select();
 				}, 100);
 				return false;
-			})
+			});
 	},
 	parse: function(value) {
 		return cint(value, null);
-	},
-	validate: function(value, callback) {
-		return callback(value);
 	}
 });
 
@@ -733,13 +717,12 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 		}
 		return "";
 	},
-	validate: function(value, callback) {
+	validate: function(value) {
 		if(value && !frappe.datetime.validate(value)) {
 			frappe.msgprint(__("Date must be in format: {0}", [frappe.sys_defaults.date_format || "yyyy-mm-dd"]));
-			callback("");
-			return;
+			return '';
 		}
-		return callback(value);
+		return value;
 	}
 });
 
@@ -855,9 +838,6 @@ frappe.ui.form.ControlDateRange = frappe.ui.form.ControlData.extend({
 			return value + " to " + value2
 		}
 		return "";
-	},
-	validate: function(value, callback) {
-		return callback(value);
 	}
 });
 
@@ -908,8 +888,8 @@ frappe.ui.form.ControlCheck = frappe.ui.form.ControlData.extend({
 	get_input_value: function() {
 		return this.input.checked ? 1 : 0;
 	},
-	validate: function(value, callback) {
-		return callback(cint(value));
+	validate: function(value) {
+		return cint(value);
 	},
 	set_input: function(value) {
 		if(this.input) {
@@ -1184,15 +1164,14 @@ frappe.ui.form.ControlAttachImage = frappe.ui.form.ControlAttach.extend({
 		this.img_container.on("click", function() { me.$input.click(); });
 		this.remove_image_link.on("click", function() { me.$value.find(".close").click(); });
 
-		this.$wrapper.on("refresh", function() {
-			$(me.wrapper).find('.btn-attach').addClass('hidden');
-			me.set_image();
-			if(me.get_status()=="Read") {
-				$(me.disp_area).toggle(false);
-			}
-		});
-
 		this.set_image();
+	},
+	refresh_input: function() {
+		$(this.wrapper).find('.btn-attach').addClass('hidden');
+		this.set_image();
+		if(this.get_status()=="Read") {
+			$(this.disp_area).toggle(false);
+		}
 	},
 	set_image: function() {
 		if(this.get_value()) {
@@ -1608,50 +1587,47 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 			$.extend(args.filters, this.df.filters);
 		}
 	},
-	validate: function(value, callback) {
+	validate: function(value) {
 		// validate the value just entered
-		var me = this;
-
 		if(this.df.options=="[Select]" || this.df.ignore_link_validation) {
-			callback(value);
 			return;
 		}
 
-		this.validate_link_and_fetch(this.df, this.get_options(),
-			this.docname, value, callback);
+		return this.validate_link_and_fetch(this.df, this.get_options(),
+			this.docname, value);
 	},
-	validate_link_and_fetch: function(df, doctype, docname, value, callback) {
+	validate_link_and_fetch: function(df, doctype, docname, value) {
 		var me = this;
 
 		if(value) {
-			var fetch = '';
+			return new Promise((resolve) => {
+				var fetch = '';
 
-			if(this.frm && this.frm.fetch_dict[df.fieldname]) {
-				fetch = this.frm.fetch_dict[df.fieldname].columns.join(', ');
-			}
-
-			return frappe.call({
-				method:'frappe.desk.form.utils.validate_link',
-				type: "GET",
-				args: {
-					'value': value,
-					'options': doctype,
-					'fetch': fetch
-				},
-				no_spinner: true,
-				callback: function(r) {
-					if(r.message=='Ok') {
-						if(r.fetch_values && docname) {
-							me.set_fetch_values(df, docname, r.fetch_values);
-						}
-						if(callback) callback(r.valid_value);
-					} else {
-						if(callback) callback("");
-					}
+				if(this.frm && this.frm.fetch_dict[df.fieldname]) {
+					fetch = this.frm.fetch_dict[df.fieldname].columns.join(', ');
 				}
+
+				return frappe.call({
+					method:'frappe.desk.form.utils.validate_link',
+					type: "GET",
+					args: {
+						'value': value,
+						'options': doctype,
+						'fetch': fetch
+					},
+					no_spinner: true,
+					callback: function(r) {
+						if(r.message=='Ok') {
+							if(r.fetch_values && docname) {
+								me.set_fetch_values(df, docname, r.fetch_values);
+							}
+							resolve(r.valid_value);
+						} else {
+							resolve("");
+						}
+					}
+				});
 			});
-		} else if(callback) {
-			callback(value);
 		}
 	},
 	set_fetch_values: function(df, docname, fetch_values) {
@@ -1997,12 +1973,9 @@ frappe.ui.form.ControlTable = frappe.ui.form.Control.extend({
 			$('<p class="text-muted small">' + __(this.df.description) + '</p>')
 				.appendTo(this.wrapper);
 		}
-
-		var me = this;
-		this.$wrapper.on("refresh", function() {
-			me.grid.refresh();
-			return false;
-		});
+	},
+	refresh_input: function() {
+		this.grid.refresh();
 	},
 	get_value: function() {
 		if(this.grid) {
@@ -2041,10 +2014,8 @@ frappe.ui.form.ControlSignature = frappe.ui.form.ControlData.extend({
 				me.on_reset_sign();
 				return false;
 			});
-		// handle refresh by reloading the pad
-		this.$wrapper.on("refresh", this.on_refresh.bind(this));
 	},
-	on_refresh: function(e) {
+	refresh_input: function(e) {
 		// prevent to load the second time
 		this.$wrapper.find(".control-input").toggle(false);
 		this.set_editable(this.get_status()=="Write");
