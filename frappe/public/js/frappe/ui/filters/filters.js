@@ -88,10 +88,11 @@ frappe.ui.FilterList = Class.extend({
 
 		if (filter && is_new_filter) {
 			filter.wrapper.addClass("is-new-filter");
+		} else {
+			filter.freeze();
 		}
 
-		if (filter && hidden) {
-			filter.freeze();
+		if (hidden) {
 			filter.$btn_group.addClass("hide");
 		}
 
@@ -250,8 +251,12 @@ frappe.ui.Filter = Class.extend({
 			else if(value==1) value = 'Yes';
 		}
 
-		if(condition) this.wrapper.find('.condition').val(condition).change();
-		if(value!=null) this.field.set_input(value);
+		if(condition) {
+			this.wrapper.find('.condition').val(condition).change();
+		}
+		if(value!=null) {
+			this.field.set_value(value);
+		}
 	},
 
 	set_field: function(doctype, fieldname, fieldtype, condition) {
@@ -293,7 +298,7 @@ frappe.ui.Filter = Class.extend({
 		// save old text
 		var old_text = null;
 		if(me.field) {
-			old_text = me.field.get_parsed_value();
+			old_text = me.field.get_value();
 		}
 
 		var field_area = me.wrapper.find('.filter_field').empty().get(0);
@@ -375,7 +380,7 @@ frappe.ui.Filter = Class.extend({
 	},
 
 	get_selected_value: function() {
-		var val = this.field.get_parsed_value();
+		var val = this.field.get_value();
 
 		if(typeof val==='string') {
 			val = strip(val);
@@ -450,8 +455,6 @@ frappe.ui.Filter = Class.extend({
 			value = {0:"Draft", 1:"Submitted", 2:"Cancelled"}[value] || value;
 		} else if(this.field.df.original_type==="Check") {
 			value = {0:"No", 1:"Yes"}[cint(value)];
-		} else if (in_list(["Date", "Datetime"], this.field.df.fieldtype)) {
-			value = frappe.datetime.str_to_user(value);
 		} else {
 			value = this.field.get_value();
 		}

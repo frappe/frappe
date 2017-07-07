@@ -282,7 +282,6 @@ frappe.ui.form.Toolbar = Class.extend({
 		if(status === "Edit") {
 			this.page.set_primary_action(__("Edit"), function() {
 				me.frm.page.set_view('main');
-				me.frm.set_hidden(false);
 			}, 'octicon octicon-pencil');
 		} else if(status === "Cancel") {
 			this.page.set_secondary_action(__(status), function() {
