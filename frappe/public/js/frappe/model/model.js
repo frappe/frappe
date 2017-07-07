@@ -398,7 +398,7 @@ $.extend(frappe.model, {
 			});
 
 			tasks.push(() => {
-				runner(frappe.model.events[doc.doctype]['*']);
+				return runner(frappe.model.events[doc.doctype]['*']);
 			});
 		}
 
