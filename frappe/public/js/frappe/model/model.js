@@ -402,7 +402,7 @@ $.extend(frappe.model, {
 			});
 		}
 
-		frappe.run_serially(tasks);
+		return frappe.run_serially(tasks);
 	},
 
 	get_doc: function(doctype, name) {
