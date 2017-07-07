@@ -137,21 +137,22 @@ class LoginManager:
 
 					otp_secret = frappe.db.get_default(self.user + '_otpsecret')
 
-					restrict_method = frappe.db.get_value('System Settings', None, 'fix_2fa_method')
-					verification_meth = frappe.db.get_value('User', self.user, 'two_factor_method')
-					fixed_method = [frappe._dict()]
+					#restrict_method = frappe.db.get_value('System Settings', None, 'fix_2fa_method')
+					#verification_meth = frappe.db.get_value('User', self.user, 'two_factor_method')
+					#fixed_method = [frappe._dict()]
 
-					if int(restrict_method):
-						try:
-							fixed_method = frappe.db.sql('''SELECT DEFAULT(two_factor_method) AS 'default_method' FROM
-											(SELECT 1) AS dummy LEFT JOIN tabUser on True LIMIT 1;''', as_dict=1)
-						except OperationalError:
-							pass
+					#if int(restrict_method):
+					#	try:
+					#		fixed_method = frappe.db.sql('''SELECT DEFAULT(two_factor_method) AS 'default_method' FROM
+					#						(SELECT 1) AS dummy LEFT JOIN tabUser on True LIMIT 1;''', as_dict=1)
+					#	except OperationalError:
+					#		pass
 
-					if not verification_meth:
-						verification_method = fixed_method[0].default_method or 'OTP App'
-					else:
-						verification_method = fixed_method[0].default_method or verification_meth
+					#if not verification_meth:
+					#	verification_method = fixed_method[0].default_method or 'OTP App'
+					#else:
+					#	verification_method = fixed_method[0].default_method or verification_meth
+					verification_method = frappe.db.get_value('System Settings', None, 'two_factor_method')
 
 					if otp_secret:
 						
@@ -192,10 +193,11 @@ class LoginManager:
 
 						frappe.local.response['verification'] = {
 																	'method_first_time': True,
+																	'method': verification_method,
 																	'token_delivery': True,
 																	'prompt': False,
 																	'totp_uri': totp_uri,
-																	'restrict_method': int(restrict_method) and (fixed_method[0].default_method or 'OTP App')
+																	#'restrict_method': int(restrict_method) and (fixed_method[0].default_method or 'OTP App')
 															}
 
 					tmp_id = frappe.generate_hash(length=8)

@@ -162,10 +162,14 @@ login.login_handlers = (function() {
 
 				var continue_otp = function(setup_completed,method_prompt){
 
-					$('.login-content').empty().append($('<div>').attr({'id':'otp_div'}).html('<form class="form-verify"><div class="page-card-head">\
-					<span class="indicator blue" data-text="Verification">Verification</span></div>\
-					<input type="text" id="login_token" class="form-control" placeholder="Verification Code" required="" autocomplete="off" autofocus="">\
-					<button class="btn btn-sm btn-primary btn-block" id="verify_token">Verify</button></form>'));
+					$('.login-content').empty().append($('<div>').attr({'id':'otp_div'}).html(
+						'<form class="form-verify">\
+							<div class="page-card-head">\
+								<span class="indicator blue" data-text="Verification">Verification</span>\
+							</div>\
+							<input type="text" id="login_token" class="form-control" placeholder="Verification Code" required autocomplete="off" autofocus="">\
+							<button type="submit" class="btn btn-sm btn-primary btn-block" id="verify_token">Verify</button>\
+						</form>'));
 
 					verify_token();
 
@@ -299,55 +303,54 @@ login.login_handlers = (function() {
 				}
 
 				if (data.verification.method_first_time){
-					$('.login-content').empty().append('<div id="verification_method">\
-						<div>\
-							<p class="lead">Select verification Method <br>\
-							<small><small><small class="text-muted">method may be changed later in settings</small></small></small></p>\
-						</div>\
-						<div class="form-check">\
-						  <label class="form-check-label">\
-						    <input class="form-check-input" type="radio" name="method" value="OTP App" checked>\
-						    OTP App\
-						  </label>\
-						</div>\
-						<div class="form-check">\
-						  <label class="form-check-label">\
-						    <input class="form-check-input" type="radio" name="method" value="SMS">\
-						    SMS\
-						  </label>\
-						</div>\
-						<div class="form-check disabled">\
-						  <label class="form-check-label">\
-						    <input class="form-check-input" type="radio" name="method" value="Email">\
-						    Email\
-						  </label>\
-						</div>\
-						<button id="submit_method" class="btn btn-sm btn-primary">Continue</button>\
-					</div>')
+				//	$('.login-content').empty().append('<div id="verification_method">\
+				//		<div>\
+				//			<p class="lead">Select verification Method <br>\
+				//			<small><small><small class="text-muted">method may be changed later in settings</small></small></small></p>\
+				//		</div>\
+				//		<div class="form-check">\
+				//		  <label class="form-check-label">\
+				//		    <input class="form-check-input" type="radio" name="method" value="OTP App" checked>\
+				//		    OTP App\
+				//		  </label>\
+				//		</div>\
+				//		<div class="form-check">\
+				//		  <label class="form-check-label">\
+				//		    <input class="form-check-input" type="radio" name="method" value="SMS">\
+				//		    SMS\
+				//		  </label>\
+				//		</div>\
+				//		<div class="form-check disabled">\
+				//		  <label class="form-check-label">\
+				//		    <input class="form-check-input" type="radio" name="method" value="Email">\
+				//		    Email\
+				//		  </label>\
+				//		</div>\
+				//		<button id="submit_method" class="btn btn-sm btn-primary">Continue</button>\
+				//	</div>')
 
-					if (data.verification.restrict_method){
-						$('input[name=method]').each(function(){
-							if ($(this).val() != data.verification.restrict_method){
-								$(this).attr('disabled',true)
-							}
-						})
+				//	if (data.verification.restrict_method){
+				//		$('input[name=method]').each(function(){
+				//			if ($(this).val() != data.verification.restrict_method){
+				//				$(this).attr('disabled',true)
+				//			}
+				//		})
+				//	}
+				//	$('#submit_method').on('click',function(event){
+					if (data.verification.method == 'OTP App'){
+						continue_otp(setup_completed=false);
+					} else if (data.verification.method == 'SMS'){
+						continue_sms(setup_completed=false);
+					} else if (data.verification.method == 'Email'){
+						continue_email(setup_completed=false);
 					}
-					$('#submit_method').on('click',function(event){
-						if ($('input[name=method]:checked').val() == 'OTP App'){
-							continue_otp(setup_completed=false);
-						} else if ($('input[name=method]:checked').val() == 'SMS'){
-							continue_sms(setup_completed=false);
-							console.log('SMS');
-						} else if ($('input[name=method]:checked').val() == 'Email'){
-							continue_email(setup_completed=false);
-						}
 
-						frappe.call({
-							method: "frappe.core.doctype.user.user.set_verification_method",
-							args: {'tmp_id':data.tmp_id, 'method': $('input[name=method]:checked').val()},
-							callback: function(r) { }
-						});
-					});
+				//		frappe.call({
+				//			method: "frappe.core.doctype.user.user.set_verification_method",
+				//			args: {'tmp_id':data.tmp_id, 'method': $('input[name=method]:checked').val()},
+				//			callback: function(r) { }
+				//		});
+				//	});
 				} else {
 					if (data.verification.method == 'OTP App'){
 						console.log(data.verification.totp_uri)
@@ -430,20 +433,16 @@ frappe.ready(function() {
 });
 
 var verify_token =  function(event) {
-	$('#verify_token').bind("click", function() {
-		console.log("Why XX2");
-		//eventx.preventDefault();
+	$(".form-verify").on("submit", function(eventx) {
+		eventx.preventDefault();
 		var args = {};
 		args.cmd = "login";
 		args.otp = $("#login_token").val();
-		console.log("LLLLLLLLLLLLLLLLLLL");
 		args.tmp_id = frappe.get_cookie('tmp_id');
 		if(!args.otp) {
 			frappe.msgprint('{{ _("Login token required") }}');
 			return false;
 		}
-		console.log("Button Clicked")
-		console.log(args)
 		login.call(args);
 		return false;
 	});

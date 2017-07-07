@@ -478,28 +478,28 @@ class User(Document):
 		if len(email_accounts) != len(set(email_accounts)):
 			frappe.throw(_("Email Account added multiple times"))
 
-	def get_2fa_params(self, twoFA_method=None,user=None):
-		show_method_field = frappe.db.get_value('System Settings', 'System Settings', 'enable_two_factor_auth') == unicode(1)
-		try:
-			two_factor_auth_user = len(frappe.db.sql("""select name from `tabRole` where two_factor_auth=1
-											and name in ({0}) limit 1""".format(', '.join(['%s'] * len(self.roles))),
-											[d.role for d in self.roles]))
-		except Exception as e:
-			return {'show_method_field' : False}
-
-		restrict_method = frappe.db.get_value('System Settings', None, 'fix_2fa_method')
-		if int(restrict_method):
-			try:
-				a = frappe.db.sql('''SELECT DEFAULT(two_factor_method) AS 'default_method' FROM
-								(SELECT 1) AS dummy LEFT JOIN tabUser on True LIMIT 1;''', as_dict=1)
-				restrict_method = a[0].default_method
-			except OperationalError:
-				a = [frappe._dict()]
-				restrict_method = False
-		else:
-			restrict_method = False
-
-		return {'show_method_field' : (two_factor_auth_user == 1) and show_method_field, 'restrict_method': restrict_method}
+#	def get_2fa_params(self, twoFA_method=None,user=None):
+#		show_method_field = frappe.db.get_value('System Settings', 'System Settings', 'enable_two_factor_auth') == unicode(1)
+#		try:
+#			two_factor_auth_user = len(frappe.db.sql("""select name from `tabRole` where two_factor_auth=1
+#											and name in ({0}) limit 1""".format(', '.join(['%s'] * len(self.roles))),
+#											[d.role for d in self.roles]))
+#		except Exception as e:
+#			return {'show_method_field' : False}
+#
+#		restrict_method = frappe.db.get_value('System Settings', None, 'fix_2fa_method')
+#		if int(restrict_method):
+#			try:
+#				a = frappe.db.sql('''SELECT DEFAULT(two_factor_method) AS 'default_method' FROM
+#								(SELECT 1) AS dummy LEFT JOIN tabUser on True LIMIT 1;''', as_dict=1)
+#				restrict_method = a[0].default_method
+#			except OperationalError:
+#				a = [frappe._dict()]
+#				restrict_method = False
+#		else:
+#			restrict_method = False
+#
+#		return {'show_method_field' : (two_factor_auth_user == 1) and show_method_field, 'restrict_method': restrict_method}
 		#if not twoFA_method:
 		#else:
 		#	if twoFA_method == 'Email':
@@ -983,10 +983,10 @@ def send_token_via_email(tmp_id,token=None):
 		message='<p>Your verification code is {0}</p>'.format(hotp.at(int(count))),delayed=False, retry=3)
 	return True
 
-@frappe.whitelist(allow_guest=True)
-def set_verification_method(tmp_id,method=None):
-	user = frappe.cache().get(tmp_id + '_user')
-	if ((not user) or (user == 'None') or (not method)):
-		return False
-	frappe.db.set_value('User', user, 'two_factor_method', method)
-	frappe.db.commit()
+#@frappe.whitelist(allow_guest=True)
+#def set_verification_method(tmp_id,method=None):
+#	user = frappe.cache().get(tmp_id + '_user')
+#	if ((not user) or (user == 'None') or (not method)):
+#		return False
+#	frappe.db.set_value('User', user, 'two_factor_method', method)
+#	frappe.db.commit()
