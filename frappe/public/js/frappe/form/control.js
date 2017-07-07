@@ -282,7 +282,6 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 	// mandatory style on refresh
 	refresh_input: function() {
 		var me = this;
-
 		var make_input = function() {
 			if(!me.has_input) {
 				me.make_input();
@@ -1724,6 +1723,7 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 					});
 				},
 				onChange: function(value) {
+					if(this._setting_value) return;
 					me.parse_validate_and_set_in_model(value);
 				},
 				onKeydown: function(e) {
@@ -1847,18 +1847,23 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 	},
 	set_in_editor: function(value) {
 		// set value after user has stopped editing
+		if(this.__setting_value) {
+			// we don't understand how the internal triggers work,
+			// so quit
+			return;
+		}
+
 		if(!this._last_change_on || (moment() - moment(this._last_change_on) > 3000)) {
+			this.__setting_value = setTimeout(() => this.__setting_value = null, 500);
 			this.editor.summernote('code', value);
 		} else {
-			if(!this._setting_value) {
-				this._setting_value = setInterval(() => {
-					if(moment() - moment(this._last_change_on) > 3000) {
-						this.editor.summernote('code', this.last_value);
-						clearInterval(this._setting_value);
-						this._setting_value = null;
-					}
-				}, 1000);
-			}
+			this._setting_value = setInterval(() => {
+				if(moment() - moment(this._last_change_on) > 3000) {
+					this.editor.summernote('code', this.last_value);
+					clearInterval(this._setting_value);
+					this._setting_value = null;
+				}
+			}, 1000);
 		}
 	},
 	set_focus: function() {
