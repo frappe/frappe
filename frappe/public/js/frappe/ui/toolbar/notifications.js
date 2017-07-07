@@ -5,6 +5,7 @@ frappe.ui.notifications.update_notifications = function() {
 	var doctypes = Object.keys(frappe.boot.notification_info.open_count_doctype).sort();
 	var modules = Object.keys(frappe.boot.notification_info.open_count_module).sort();
 	var other = Object.keys(frappe.boot.notification_info.open_count_other).sort();
+	var targets = Object.keys(frappe.boot.notification_info.targets).sort();
 
 	// clear toolbar / sidebar notifications
 	frappe.ui.notifications.dropdown_notification = $("#dropdown-notification").empty();
@@ -19,6 +20,16 @@ frappe.ui.notifications.update_notifications = function() {
 		frappe.ui.notifications.add_notification(name, frappe.boot.notification_info.open_count_other);
 	});
 
+	// add a divider
+	if(frappe.ui.notifications.total) {
+		var divider = '<li class="divider"></li>';
+		frappe.ui.notifications.dropdown_notification.append($(divider));
+	}
+
+	// add to toolbar and sidebar
+	$.each(targets, function(i, doc) {
+		frappe.ui.notifications.add_notification(doc, frappe.boot.notification_info.targets, true);
+	});
 
 	// add a divider
 	if(frappe.ui.notifications.total) {
@@ -54,27 +65,34 @@ frappe.ui.notifications.update_notifications = function() {
 
 }
 
-frappe.ui.notifications.add_notification = function(doctype, notifications_map) {
-	if(!notifications_map) {
-		notifications_map = frappe.boot.notification_info.open_count_doctype;
+frappe.ui.notifications.add_notification = function(d, map, target = false) {
+	if(!map) {
+		map = frappe.boot.notification_info.open_count_doctype;
 	}
 
-	var count = notifications_map[doctype];
-	if(count) {
-		var config = frappe.ui.notifications.config[doctype] || {};
-		var label = config.label || doctype;
+	var count = map[d];
+	if(parseInt(count) > 0) {
+		var config = frappe.ui.notifications.config[d] || {};
+		var label = config.label || d;
 		var notification_row = repl('<li><a class="badge-hover" data-doctype="%(data_doctype)s">\
 			<span class="badge pull-right">\
 				%(count)s</span> \
 			%(label)s </a></li>', {
 				label: __(label),
 				count: count > 20 ? '20+' : count,
-				data_doctype: doctype
+				data_doctype: d
 			});
 
 		frappe.ui.notifications.dropdown_notification.append($(notification_row));
 
 		frappe.ui.notifications.total += count;
+	} else if(target) {
+		// targets
+		Object.keys(map[d]).map(doc => {
+			list_item = $(`<li><a class="badge-hover" data-doc="${doc}">
+				${doc}<div class="progress-chart" title="Boo"><div class="progress"><div class="progress-bar " style="width: ${map[d][doc]}%" title="Boo"></div></div></div></a></li>`);
+			frappe.ui.notifications.dropdown_notification.append(list_item);
+		});
 	}
 }
 
