@@ -1351,11 +1351,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		frappe._from_link_scrollY = $(document).scrollTop();
 
 		frappe.ui.form.make_quick_entry(doctype, (doc) => {
-			if(me.frm) {
-				me.parse_validate_and_set_in_model(doc.name);
-			} else {
-				me.set_value(doc.name);
-			}
+			return me.set_value(doc.name);
 		});
 
 		return false;
@@ -1590,7 +1586,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 	validate: function(value) {
 		// validate the value just entered
 		if(this.df.options=="[Select]" || this.df.ignore_link_validation) {
-			return;
+			return value;
 		}
 
 		return this.validate_link_and_fetch(this.df, this.get_options(),

@@ -112,7 +112,7 @@ frappe.ui.form.ScriptManager = Class.extend({
 		handlers.old_style.forEach((_function) => {
 			if(event_name==='setup') {
 				// setup must be called immediately
-				runner(_function, false);
+				runner(_function, true);
 			} else {
 				tasks.push(() => runner(_function, true));
 			}
