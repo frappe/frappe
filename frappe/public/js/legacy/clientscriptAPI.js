@@ -296,8 +296,8 @@ _f.Frm.prototype.set_value = function(field, value, if_missing) {
 		return _set(field, value)
 	} else if($.isPlainObject(field)) {
 		let tasks = [];
-		for (var f in field) {
-			var v = field[f];
+		for (let f in field) {
+			let v = field[f];
 			if(me.get_field(f)) {
 				tasks.push(() => _set(f, v));
 			}
