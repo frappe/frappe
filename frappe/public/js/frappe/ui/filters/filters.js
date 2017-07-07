@@ -408,7 +408,9 @@ frappe.ui.Filter = Class.extend({
 				}
 			}
 		} else if(in_list(["in", "not in"], this.get_condition())) {
-			val = $.map(val.split(","), function(v) { return strip(v); });
+			if(val) {
+				val = $.map(val.split(","), function(v) { return strip(v); });
+			}
 		} if(val === '%') {
 			val = "";
 		}
