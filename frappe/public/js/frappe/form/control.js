@@ -172,13 +172,11 @@ frappe.ui.form.Control = Class.extend({
 frappe.ui.form.ControlHTML = frappe.ui.form.Control.extend({
 	make: function() {
 		this._super();
-		var me = this;
 		this.disp_area = this.wrapper;
-		this.$wrapper.on("refresh", function() {
-			var content = me.get_content();
-			if(content) me.$wrapper.html(content);
-			return false;
-		});
+	},
+	refresh_input: function() {
+		var content = this.get_content();
+		if(content) this.$wrapper.html(content);
 	},
 	get_content: function() {
 		return this.df.options || "";
@@ -211,20 +209,20 @@ frappe.ui.form.ControlImage = frappe.ui.form.Control.extend({
 		this.$wrapper.css({"margin": "0px"});
 		this.$body = $("<div></div>").appendTo(this.$wrapper)
 			.css({"margin-bottom": "10px"})
-		this.$wrapper.on("refresh", function() {
-			me.$body.empty();
-
-			var doc = me.get_doc();
-			if(doc && me.df.options && doc[me.df.options]) {
-				me.$img = $("<img src='"+doc[me.df.options]+"' class='img-responsive'>")
-					.appendTo(me.$body);
-			} else {
-				me.$buffer = $("<div class='missing-image'><i class='octicon octicon-circle-slash'></i></div>")
-					.appendTo(me.$body)
-			}
-			return false;
-		});
 		$('<div class="clearfix"></div>').appendTo(this.$wrapper);
+	},
+	refresh_input: function() {
+		this.$body.empty();
+
+		var doc = this.get_doc();
+		if(doc && this.df.options && doc[this.df.options]) {
+			this.$img = $("<img src='"+doc[this.df.options]+"' class='img-responsive'>")
+				.appendTo(this.$body);
+		} else {
+			this.$buffer = $("<div class='missing-image'><i class='octicon octicon-circle-slash'></i></div>")
+				.appendTo(this.$body)
+		}
+		return false;
 	}
 });
 
@@ -1166,15 +1164,14 @@ frappe.ui.form.ControlAttachImage = frappe.ui.form.ControlAttach.extend({
 		this.img_container.on("click", function() { me.$input.click(); });
 		this.remove_image_link.on("click", function() { me.$value.find(".close").click(); });
 
-		this.$wrapper.on("refresh", function() {
-			$(me.wrapper).find('.btn-attach').addClass('hidden');
-			me.set_image();
-			if(me.get_status()=="Read") {
-				$(me.disp_area).toggle(false);
-			}
-		});
-
 		this.set_image();
+	},
+	refresh_input: function() {
+		$(this.wrapper).find('.btn-attach').addClass('hidden');
+		this.set_image();
+		if(this.get_status()=="Read") {
+			$(this.disp_area).toggle(false);
+		}
 	},
 	set_image: function() {
 		if(this.get_value()) {
@@ -1976,12 +1973,9 @@ frappe.ui.form.ControlTable = frappe.ui.form.Control.extend({
 			$('<p class="text-muted small">' + __(this.df.description) + '</p>')
 				.appendTo(this.wrapper);
 		}
-
-		var me = this;
-		this.$wrapper.on("refresh", function() {
-			me.grid.refresh();
-			return false;
-		});
+	},
+	refresh_input: function() {
+		this.grid.refresh();
 	},
 	get_value: function() {
 		if(this.grid) {
@@ -2020,10 +2014,8 @@ frappe.ui.form.ControlSignature = frappe.ui.form.ControlData.extend({
 				me.on_reset_sign();
 				return false;
 			});
-		// handle refresh by reloading the pad
-		this.$wrapper.on("refresh", this.on_refresh.bind(this));
 	},
-	on_refresh: function(e) {
+	refresh_input: function(e) {
 		// prevent to load the second time
 		this.$wrapper.find(".control-input").toggle(false);
 		this.set_editable(this.get_status()=="Write");
