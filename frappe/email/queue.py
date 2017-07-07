@@ -475,7 +475,7 @@ def prepare_message(email, recipient, recipients_list):
 
 		fname, fcontent = get_file(fid)
 		attachment.update({
-			'fname', fname,
+			'fname': fname,
 			'fcontent': fcontent,
 			'parent': msg_obj
 		})
