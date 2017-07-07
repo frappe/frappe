@@ -498,16 +498,18 @@ var frappe_slides = [
 			{ "fieldname": "full_name", "label": __("Full Name"), "fieldtype": "Data",
 				reqd:1},
 			{ "fieldname": "email", "label": __("Email Address") + ' <i>(' + __("Will be your login ID") + ')</i>',
-				"fieldtype": "Data", reqd:1, "options":"Email"},
-			{ "fieldname": "password", "label": __("Password"), "fieldtype": "Password", reqd:1 }
+				"fieldtype": "Data", "options":"Email"},
+			{ "fieldname": "password", "label": __("Password"), "fieldtype": "Password" }
 		],
 		help: __('The first user will become the System Manager (you can change this later).'),
 		onload: function(slide) {
 			if(frappe.session.user!=="Administrator") {
+				slide.form.fields_dict.email.$wrapper.toggle(false);
+				slide.form.fields_dict.password.$wrapper.toggle(false);
+
 				// remove password field
 				delete slide.form.fields_dict.password;
 
-				slide.form.fields_dict.email.$wrapper.toggle(false);
 				if(frappe.boot.user.first_name || frappe.boot.user.last_name) {
 					slide.form.fields_dict.full_name.set_input(
 						[frappe.boot.user.first_name, frappe.boot.user.last_name].join(' ').trim());
@@ -518,11 +520,17 @@ var frappe_slides = [
 
 				if(user_image) {
 					$attach_user_image.find(".missing-image").toggle(false);
-					$attach_user_image.find("img").attr("src", decodeURIComponent(user_image)).toggle(true);
+					$attach_user_image.find("img").attr("src", decodeURIComponent(user_image));
+					$attach_user_image.find(".img-container").toggle(true);
 				}
 				delete slide.form.fields_dict.email;
 
 			} else {
+				slide.form.fields_dict.email.df.reqd = 1;
+				slide.form.fields_dict.email.refresh();
+				slide.form.fields_dict.password.df.reqd = 1;
+				slide.form.fields_dict.password.refresh();
+
 				utils.load_user_details(slide, this.setup_fields);
 			}
 		},
