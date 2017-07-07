@@ -669,48 +669,53 @@ frappe.ui.form.ControlPercent = frappe.ui.form.ControlFloat;
 
 frappe.ui.form.ControlColor = frappe.ui.form.ControlData.extend({
 	make_input: function () {
+		var me = this;
 		this._super();
+		this.colors = [
+			"#ffc4c4", "#ff8989", "#ff4d4d", "#a83333",
+			"#ffe8cd", "#ffd19c", "#ffb868", "#a87945",
+			"#ffd2c2", "#ffa685", "#ff7846", "#a85b5b",
+			"#ffd7d7", "#ffb1b1", "#ff8989", "#a84f2e",
+			"#fffacd", "#fff168", "#fff69c", "#a89f45",
+			"#ebf8cc", "#d9f399", "#c5ec63", "#7b933d",
+			"#cef6d1", "#9deca2", "#6be273", "#428b46",
+			"#d2f8ed", "#a4f3dd", "#77ecca", "#49937e",
+			"#d2f1ff", "#a6e4ff", "#78d6ff", "#4f8ea8",
+			"#d2d2ff", "#a3a3ff", "#7575ff", "#4d4da8",
+			"#dac7ff", "#b592ff", "#8e58ff", "#5e3aa8",
+			"#f8d4f8", "#f3aaf0", "#ec7dea", "#934f92"
+		];
 		this.make_color_input();
 	},
 	make_color_input: function() {
-		var me = this
 		this.$input.addClass("color-input")
-		var color = ["#ffc4c4", "#ff8989", "#ff4d4d", "#a83333", "#ffe8cd", "#ffd19c", "#ffb868", "#a87945", "#ffd2c2", "#ffa685", "#ff7846", "#a85b5b", "#ffd7d7", "#ffb1b1", "#ff8989", "#a84f2e", "#fffacd", "#fff168", "#fff69c", "#a89f45", "#ebf8cc", "#d9f399", "#c5ec63", "#7b933d", "#cef6d1", "#9deca2", "#6be273", "#428b46", "#d2f8ed", "#a4f3dd", "#77ecca", "#49937e", "#d2f1ff", "#a6e4ff", "#78d6ff", "#4f8ea8", "#d2d2ff", "#a3a3ff", "#7575ff", "#4d4da8", "#dac7ff", "#b592ff", "#8e58ff", "#5e3aa8", "#f8d4f8", "#f3aaf0", "#ec7dea", "#934f92"];
-		this.$input.parents(".control-input-wrapper").append(`<div class="color-picker"><div class="color-picker-pallet"></div></div>`)
-			color.forEach(function(entry) {
-				$(".color-picker-pallet").append('<div class="color-box" data-color='+ entry + ' style="background-color:' + entry +'"></div>');
-			});
+		this.$wrapper.find('.control-input-wrapper')
+			.append('<div class="color-picker"><div class="color-picker-pallet"></div></div>')
+		var color_html = this.colors.map(hex => this.get_color_box(hex)).join("");
+
+		this.$color_pallet = this.$wrapper.find('.color-picker-pallet');
+		this.$color_pallet.append(color_html);
+		this.$color_pallet.hide();
 		this.bind_events();
 
 	},
 	get_color_box: function (hex) {
-		return `<div data-color="${hex}" style="background-color: ${hex}"></div>`
+		return `<div class="color-box" data-color="${hex}" style="background-color: ${hex}"></div>`;
 	},
 	bind_events: function () {
-		var me = this;
-		this.$input.on("click", function () {
-			if($(".color-picker-pallet").is(":visible")){
-				$(".color-picker-pallet").hide();
-			}
-			else {
-				$(".color-picker-pallet").show();
-			}
+		this.$input.on("focus",  () => {
+			$(this.$color_pallet).show();
 		});
-		$(document).on('click', function(e) { // Hides the div by clicking any where in the screen
-	        if ( $(e.target).closest('.color-input').length ) {
-	            $(".color-picker-pallet").show();
-	        }else if ( ! $(e.target).closest('.color-picker').length ) {
-	            $('.color-picker-pallet').hide();
-	        }
-	    });
+		this.$input.on("blur",  () => {
+			$(this.$color_pallet).hide();
+		});
 	},
 	set_input: function(value) {
-		var me = this;
-		this.$input.parents("body").find(".color-box").on("click", function(){
+		this.$wrapper.find(".color-box").on("click", function(){
 			color_val = $(this).data("color")
 			$(this).parents(".control-input-wrapper").find(".color-input").css({"background-color" : color_val, "color": "#000" }).val(color_val);
 		})
-	},
+	}
 });
 
 frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({

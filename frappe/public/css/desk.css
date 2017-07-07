@@ -1004,7 +1004,6 @@ input[type="checkbox"]:checked:before {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   background: #fff;
   border: 1px solid #d1d8dd;
-  display: none;
   max-width: 305px;
   padding: 5px;
   position: absolute;
