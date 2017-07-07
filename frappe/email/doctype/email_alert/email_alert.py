@@ -160,8 +160,8 @@ def get_context(context):
 			attachments = attachments)
 
 		if self.set_property_after_alert:
-			frappe.db.set_value(doc.doctype, doc.name, self.set_property_after_alert,
-			self.property_value)
+			doc.db_set(self.set_property_after_alert,
+			self.property_value, update_modified = False)
 
 	def load_standard_properties(self, context):
 		module = get_doc_module(self.module, self.doctype, self.name)
