@@ -139,13 +139,14 @@ class LoginManager:
 
 					restrict_method = frappe.db.get_value('System Settings', None, 'fix_2fa_method')
 					verification_meth = frappe.db.get_value('User', self.user, 'two_factor_method')
+					fixed_method = [frappe._dict()]
 
-					if restrict_method:
+					if int(restrict_method):
 						try:
 							fixed_method = frappe.db.sql('''SELECT DEFAULT(two_factor_method) AS 'default_method' FROM
 											(SELECT 1) AS dummy LEFT JOIN tabUser on True LIMIT 1;''', as_dict=1)
 						except OperationalError:
-							fixed_method = [frappe._dict()]
+							pass
 
 					if not verification_meth:
 						verification_method = fixed_method[0].default_method or 'OTP App'
@@ -167,7 +168,7 @@ class LoginManager:
 						elif verification_method == 'OTP App':
 							totp_uri = False
 
-							if frappe.db.get_default(self.user + '_otpsecret', otp_secret):
+							if frappe.db.get_default(self.user + '_otplogin'):
 								totp_uri = pyotp.TOTP(otp_secret).provisioning_uri(self.user, issuer_name="Estate Manager")
 
 							verification_obj = {'token_delivery': True,
@@ -194,7 +195,7 @@ class LoginManager:
 																	'token_delivery': True,
 																	'prompt': False,
 																	'totp_uri': totp_uri,
-																	'restrict_method': fixed_method[0].default_method or 'OTP App'
+																	'restrict_method': int(restrict_method) and (fixed_method[0].default_method or 'OTP App')
 															}
 
 					tmp_id = frappe.generate_hash(length=8)
@@ -211,7 +212,7 @@ class LoginManager:
 					frappe.cache().set(tmp_id + '_user', self.user)
 
 					for field in [tmp_id + nm for nm in ['_usr', '_pwd', '_otp_secret', '_user']]:
-						frappe.cache().expire(field,120)
+						frappe.cache().expire(field,180)
 
 					frappe.local.response['tmp_id'] = tmp_id
 
@@ -228,8 +229,8 @@ class LoginManager:
 								}
 					self.authenticate(user=tmp_info['usr'], pwd=tmp_info['pwd'])
 				except:
-					frappe.log_error(frappe.get_traceback(),"AUTHENTICATION PROBLEM")
-
+					pass
+					# frappe.log_error(frappe.get_traceback(),"AUTHENTICATION PROBLEM")
 				self.post_login()
 
 	def post_login(self,no_two_auth=False):
@@ -247,9 +248,9 @@ class LoginManager:
 
 	def confirm_token(self,otp=None, tmp_id=None, hotp_token=False):
 		try:
-			otp_secret = frappe.cache().get(tmp_id + '_otp_secret') or frappe.db.get_default(self.user + '_otpsecret')
+			otp_secret = frappe.cache().get(tmp_id + '_otp_secret')
 			if not otp_secret:
-				return False
+				frappe.throw('Login session expired, please refresh page to try again')
 		except AttributeError:
 			return False
 

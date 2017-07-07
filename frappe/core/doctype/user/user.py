@@ -57,7 +57,6 @@ class User(Document):
 			self.validate_email_type(self.name)
 		self.add_system_manager_role()
 		self.set_system_user()
-		self.set_two_factor_auth()
 		self.set_full_name()
 		self.check_enable_disable()
 		self.ensure_unique_roles()
@@ -146,16 +145,6 @@ class User(Document):
 			self.user_type = 'System User'
 		else:
 			self.user_type = 'Website User'
-
-	def set_two_factor_auth(self):
-		'''Set two factor authentication for user'''
-		if (len(frappe.db.sql("""select name
-			from `tabRole` where two_factor_auth=1
-				and name in ({0}) limit 1""".format(', '.join(['%s'] * len(self.roles))),
-				[d.role for d in self.roles]))):
-			self.two_factor_auth = 1
-		else:
-			self.two_factor_auth = 0
 
 	def has_desk_access(self):
 		'''Return true if any of the set roles has desk access'''
