@@ -50,6 +50,11 @@ frappe.ui.FilterList = Class.extend({
 
 	clear_filters: function() {
 		$.each(this.filters, function(i, f) { f.remove(true); });
+		if(this.base_list.page.fields_dict) {
+			$.each(this.base_list.page.fields_dict, (key, value) => {
+				value.set_input('');
+			});
+		}
 		this.filters = [];
 	},
 
@@ -224,7 +229,7 @@ frappe.ui.Filter = Class.extend({
 		// set the field
 		if(me.fieldname) {
 			// pre-sets given (could be via tags!)
-			this.set_values(me._doctype, me.fieldname, me.condition, me.value);
+			return this.set_values(me._doctype, me.fieldname, me.condition, me.value);
 		} else {
 			me.set_field(me.doctype, 'name');
 		}
@@ -255,7 +260,7 @@ frappe.ui.Filter = Class.extend({
 			this.wrapper.find('.condition').val(condition).change();
 		}
 		if(value!=null) {
-			this.field.set_value(value);
+			return this.field.set_value(value);
 		}
 	},
 
@@ -310,8 +315,9 @@ frappe.ui.Filter = Class.extend({
 		f.refresh();
 
 		me.field = f;
-		if(old_text && me.field.df.fieldtype===cur.fieldtype)
-			me.field.set_input(old_text);
+		if(old_text && me.field.df.fieldtype===cur.fieldtype) {
+			me.field.set_value(old_text);
+		}
 
 		// run on enter
 		$(me.field.wrapper).find(':input').keydown(function(ev) {
@@ -329,6 +335,7 @@ frappe.ui.Filter = Class.extend({
 			df.original_type = df.fieldtype;
 
 		df.description = ''; df.reqd = 0;
+		df.ignore_link_validation = true;
 
 		// given
 		if(fieldtype) {
