@@ -129,7 +129,7 @@ frappe.ui.form.Control = Class.extend({
 		};
 
 		value = this.validate(value);
-		if (value.then) {
+		if (value && value.then) {
 			// got a promise
 			return value.then((value) => set(value));
 		} else {

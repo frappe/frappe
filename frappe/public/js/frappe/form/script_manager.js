@@ -101,11 +101,21 @@ frappe.ui.form.ScriptManager = Class.extend({
 
 		// make list of functions to be run serially
 		handlers.new_style.forEach((_function) => {
-			tasks.push(() => runner(_function, false));
+			if(event_name==='setup') {
+				// setup must be called immediately
+				runner(_function, false);
+			} else {
+				tasks.push(() => runner(_function, false));
+			}
 		});
 
 		handlers.old_style.forEach((_function) => {
-			tasks.push(() => runner(_function, true));
+			if(event_name==='setup') {
+				// setup must be called immediately
+				runner(_function, false);
+			} else {
+				tasks.push(() => runner(_function, true));
+			}
 		});
 
 		// run them serially
@@ -147,7 +157,7 @@ frappe.ui.form.ScriptManager = Class.extend({
 
 		if(doctype.__custom_js) {
 			try {
-				eval(doctype.__custom_js)
+				eval(doctype.__custom_js);
 			} catch(e) {
 				frappe.msgprint({
 					title: __('Error in Custom Script'),
