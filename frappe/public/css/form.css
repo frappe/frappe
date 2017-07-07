@@ -28,7 +28,8 @@
   border-top: 1px solid #d1d8dd;
 }
 .form-message {
-  padding: 15px;
+  padding: 15px 30px;
+  border-bottom: 1px solid #d1d8dd;
 }
 .document-flow-wrapper {
   padding: 40px 15px 30px;
@@ -73,20 +74,23 @@
 }
 .form-dashboard {
   background-color: #fafbfc;
-  border-bottom: 1px solid #d1d8dd;
+}
+.form-dashboard-wrapper {
+  margin: -15px 0px;
 }
 .form-documents h6 {
   margin-top: 15px;
 }
 .form-dashboard-section {
+  margin: 0px -15px;
   padding: 15px 30px;
   border-bottom: 1px solid #EBEFF2;
 }
+.form-dashboard-section:first-child {
+  padding-top: 0px;
+}
 .form-dashboard-section:last-child {
   border-bottom: none;
-}
-.form-heatmap {
-  padding-top: 30px;
 }
 .form-heatmap .heatmap-message {
   margin-top: 10px;
@@ -542,20 +546,6 @@ select.form-control {
 }
 .password-strength-message {
   margin-top: -10px;
-}
-.form-headline {
-  padding: 0px 15px;
-  margin: 0px;
-}
-.form-headline .alert {
-  font-size: 12px;
-  background-color: #fffce7;
-  font-weight: normal !important;
-  border: 0px;
-  border-radius: 0px;
-  margin-bottom: 0px;
-  margin: 0px -15px;
-  padding: 10px 30px;
 }
 .delivery-status-indicator {
   display: inline-block;
