@@ -12,7 +12,7 @@ Frappe ships with a boiler plate for a new app. The command `bench make-app
 app-name` helps you start a new app by starting an interactive shell.
 
 
-	% bench make-app sample_app
+	% bench new-app sample_app
 	App Name: sample_app
 	App Title: Sample App
 	App Description: This is a sample app.
