@@ -1,7 +1,7 @@
 # Les vues web
 
 Frappe a deux principaux environnements, le **bureau** et **le web**. Le **bureau** est un environnement riche AJAX alors
-que **le web** est une collection plus traditionnelle de fichers HTML pour la consultation publique. Les vues web peuvent
+que **le web** est une collection plus traditionnelle de fichiers HTML pour la consultation publique. Les vues web peuvent
 aussi être générées pour créer des vues plus controllées pour les utilisateurs qui peuvent se connecter mais qui n'ont pas
 accès au desk.
 
