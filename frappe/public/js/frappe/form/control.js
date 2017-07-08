@@ -1723,11 +1723,10 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 					});
 				},
 				onChange: function(value) {
-					if(this._setting_value) return;
 					me.parse_validate_and_set_in_model(value);
 				},
 				onKeydown: function(e) {
-					this._last_change_on = new Date();
+					me._last_change_on = new Date();
 					var key = frappe.ui.keys.get_key(e);
 					// prevent 'New DocType (Ctrl + B)' shortcut in editor
 					if(['ctrl+b', 'meta+b'].indexOf(key) !== -1) {
@@ -1846,20 +1845,34 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 		this.last_value = value;
 	},
 	set_in_editor: function(value) {
-		// set value after user has stopped editing
+		// set values in editor only if
+		// 1. value not be set in the last 500ms
+		// 2. user has not typed anything in the last 3seconds
+		// ---
+		// we will attempt to cleanup the user's DOM, hence if this happens
+		// in the middle of the user is typing, it creates a lot of issues
+		// also firefox tends to reset the cursor for some reason if the values
+		// are reset
+
+
 		if(this.__setting_value) {
 			// we don't understand how the internal triggers work,
 			// so quit
 			return;
 		}
 
-		if(!this._last_change_on || (moment() - moment(this._last_change_on) > 3000)) {
+		let time_since_last_keystroke = moment() - moment(this._last_change_on);
+
+		if(!this._last_change_on || (time_since_last_keystroke > 3000)) {
 			this.__setting_value = setTimeout(() => this.__setting_value = null, 500);
 			this.editor.summernote('code', value);
 		} else {
 			this._setting_value = setInterval(() => {
-				if(moment() - moment(this._last_change_on) > 3000) {
-					this.editor.summernote('code', this.last_value);
+				if(time_since_last_keystroke > 3000) {
+					if(this.last_value !== this.get_input_value()) {
+						// if not already in sync, reset
+						this.editor.summernote('code', this.last_value);
+					}
 					clearInterval(this._setting_value);
 					this._setting_value = null;
 				}
