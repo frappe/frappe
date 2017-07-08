@@ -350,10 +350,9 @@
 {% block script %}
 
 <script>
-{% set seccess_msg = success_message.replace("'", "\'") %}
 window.web_form_settings = {
 	allow_incomplete: 	{{ allow_incomplete or 0 }},
-	success_link: 		'<p>{{ success_msg or _("Your information has been submitted") }}</p><p><a href="{{ success_url or "/" }}" class="btn btn-sm btn-default">{{ _("Continue") }}</a></p>',
+	success_link: 		'<p>{{ success_message or _("Your information has been submitted") }}</p><p><a href="{{ success_url or "/" }}" class="btn btn-sm btn-default">{{ _("Continue") }}</a></p>',
 	datepicker_format: 	"{{ frappe.date_format }}",
 	web_form_doctype: 	"{{ doc_type }}",
 	web_form_name: 		"{{ name }}",
