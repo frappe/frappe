@@ -1166,6 +1166,7 @@ frappe.ui.form.ControlAttachImage = frappe.ui.form.ControlAttach.extend({
 		this.set_image();
 	},
 	refresh_input: function() {
+		this._super();
 		$(this.wrapper).find('.btn-attach').addClass('hidden');
 		this.set_image();
 		if(this.get_status()=="Read") {
