@@ -81,8 +81,9 @@ class BlogPost(WebsiteGenerator):
 
 		context.category = frappe.db.get_value("Blog Category",
 			context.doc.blog_category, ["title", "route"], as_dict=1)
-		context.parents = [{"title": context.category.title, "name":
-			context.category.route}]
+		context.parents = [{"name": _("Home"),"route":"/"},
+						   {"name": "Blog", "route": "/blog"},
+						   {"label": context.category.title, "route":context.category.route}]
 
 def get_list_context(context=None):
 	list_context = frappe._dict(
@@ -94,20 +95,25 @@ def get_list_context(context=None):
 		title = _('Blog')
 	)
 
-	if frappe.local.form_dict.blog_category:
-		list_context.sub_title = _("Posts filed under {0}").format(get_blog_category(frappe.local.form_dict.blog_category))
+	category = frappe.local.form_dict.blog_category or frappe.local.form_dict.category
+	if category:
+		category_title = get_blog_category(category)
+		list_context.sub_title = _("Posts filed under {0}").format(category_title)
+		list_context.title = category_title
 
 	elif frappe.local.form_dict.blogger:
 		blogger = frappe.db.get_value("Blogger", {"name": frappe.local.form_dict.blogger}, "full_name")
 		list_context.sub_title = _("Posts by {0}").format(blogger)
+		list_context.title = blogger
 
 	elif frappe.local.form_dict.txt:
 		list_context.sub_title = _('Filtered by "{0}"').format(frappe.local.form_dict.txt)
 
 	if list_context.sub_title:
-		list_context.parents = [{'label': _('All Posts'), 'route': 'blog', 'title': list_context.title}]
+		list_context.parents = [{"name": _("Home"), "route": "/"},
+								{"name": "Blog", "route": "/blog"}]
 	else:
-		list_context.parents = []
+		list_context.parents = [{"name": _("Home"), "route": "/"}]
 
 	list_context.update(frappe.get_doc("Blog Settings", "Blog Settings").as_dict(no_default_fields=True))
 	return list_context
@@ -128,7 +134,7 @@ def clear_blog_cache():
 	clear_cache("writers")
 
 def get_blog_category(route):
-	return frappe.db.get_value("Blog Category", {"route": route }) or route
+	return frappe.db.get_value("Blog Category", {"name": route}, "title") or route
 
 def get_blog_list(doctype, txt=None, filters=None, limit_start=0, limit_page_length=20, order_by=None):
 	conditions = []
