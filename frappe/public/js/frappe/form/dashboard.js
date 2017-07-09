@@ -389,7 +389,7 @@ frappe.ui.form.Dashboard = Class.extend({
 	},
 
 	//graphs
-	setup_graph: function(opts) {
+	setup_graph: function() {
 		var me = this;
 		this.graph_area.removeClass('hidden');
 
@@ -397,7 +397,7 @@ frappe.ui.form.Dashboard = Class.extend({
 		var args = {
 			doctype: this.frm.doctype,
 			docname: this.frm.doc.name,
-		}
+		};
 
 		$.extend(args, this.data.graph_method_args);
 
@@ -424,7 +424,7 @@ frappe.ui.form.Dashboard = Class.extend({
 			height: 140,
 		});
 
-		let graph = new frappe.ui.Graph(args);
+		new frappe.ui.Graph(args);
 	},
 
 	setup_chart: function(opts) {

@@ -674,15 +674,14 @@ select.form-control {
   color: #8D99A6;
 }
 .graph-container .stats-container .stats-value {
-  font-size: 25px;
+  font-size: 20px;
   font-weight: 300;
 }
 .graph-container .stats-container .stats-description {
   font-size: 12px;
   color: #8D99A6;
 }
-.graph-container .stats-container .total,
-.graph-container .stats-container .completed {
+.graph-container .stats-container .graph-data .stats-value {
   color: #98d85b;
 }
 .bar-graph .axis {
@@ -707,13 +706,13 @@ select.form-control {
   stroke-opacity: 1;
   stroke-width: 2px;
 }
-line.average {
+line.dashed {
   stroke-dasharray: 5,3;
 }
 .tick.x-axis-label {
   display: block;
 }
-.tick .average-text {
+.tick .specific-value {
   text-anchor: start;
 }
 .tick .y-value-text {
