@@ -999,7 +999,7 @@ input[type="checkbox"]:checked:before {
   position: relative;
   z-index: 999;
 }
-.color-picker .color-picker-pallet {
+.color-picker .color-picker-pallete {
   border-radius: 4px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   background: #fff;
@@ -1010,8 +1010,8 @@ input[type="checkbox"]:checked:before {
   top: 0;
   left: 0;
 }
-.color-picker .color-picker-pallet:after,
-.color-picker .color-picker-pallet:before {
+.color-picker .color-picker-pallete:after,
+.color-picker .color-picker-pallete:before {
   border: solid transparent;
   content: " ";
   height: 0;
@@ -1021,13 +1021,13 @@ input[type="checkbox"]:checked:before {
   bottom: 100%;
   left: 30px;
 }
-.color-picker .color-picker-pallet:after {
+.color-picker .color-picker-pallete:after {
   border-color: rgba(255, 255, 255, 0);
   border-bottom-color: #fff;
   border-width: 8px;
   margin-left: -8px;
 }
-.color-picker .color-picker-pallet:before {
+.color-picker .color-picker-pallete:before {
   border-color: rgba(221, 221, 221, 0);
   border-bottom-color: #d1d8dd;
   border-width: 9px;

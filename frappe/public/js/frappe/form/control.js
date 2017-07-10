@@ -654,7 +654,6 @@ frappe.ui.form.ControlPercent = frappe.ui.form.ControlFloat;
 
 frappe.ui.form.ControlColor = frappe.ui.form.ControlData.extend({
 	make_input: function () {
-		var me = this;
 		this._super();
 		this.colors = [
 			"#ffc4c4", "#ff8989", "#ff4d4d", "#a83333",
@@ -672,55 +671,63 @@ frappe.ui.form.ControlColor = frappe.ui.form.ControlData.extend({
 		];
 		this.make_color_input();
 	},
-	make_color_input: function() {
-		this.$input.addClass("color-input")
-		this.$wrapper.find('.control-input-wrapper')
-			.append('<div class="color-picker"><div class="color-picker-pallet"></div></div>')
-		var color_html = this.colors.map(hex => this.get_color_box(hex)).join("");
+	make_color_input: function () {
+		this.$wrapper
+			.find('.control-input-wrapper')
+			.append(`<div class="color-picker">
+				<div class="color-picker-pallete"></div>
+			</div>`);
+		this.$color_pallete = this.$wrapper.find('.color-picker-pallete');
 
-		this.$color_pallet = this.$wrapper.find('.color-picker-pallet');
-		this.$color_pallet.append(color_html);
-		this.$color_pallet.hide();
+		var color_html = this.colors.map(this.get_color_box).join("");
+		this.$color_pallete.append(color_html);
+		this.$color_pallete.hide();
 		this.bind_events();
-
 	},
 	get_color_box: function (hex) {
 		return `<div class="color-box" data-color="${hex}" style="background-color: ${hex}"></div>`;
 	},
-	bind_events: function () {
-		var mousedownHappened = false;
-		this.$wrapper.find(".color-box").on("click", function() {
-		    // e.stopImmediatePropagation();
-		    // $("#signup").fadeOut(550);
-        	mousedownHappened = false;
-		    console.log(this, "click");
-			color_val = $(this).data("color");
-			console.log("Color_val1", color_val)
-			$(this).parents(".control-input-wrapper").find(".color-input").css({"background-color" : color_val, "color": "#000" }).val(color_val).focus();
-
-		});
-
-		this.$wrapper.find(".color-box").mousedown(function() {
-		    mousedownHappened = true;
-		});
-
-		this.$input.on("focus",  () => {
-			$(this.$color_pallet).show();
-		});
-		this.$input.on("blur",  () => {
-		    if (mousedownHappened) // cancel the blur event
-		    {
-		        mousedownHappened = false;
-		    }
-		    else // blur event is okay
-		    {
-				console.log("blurr")
-				$(this.$color_pallet).hide();
-		    }
+	set_formatted_input: function(value) {
+		this._super(value);
+		this.$input.css({
+			"background-color": value
 		});
 	},
-	set_input: function(value) {
-		
+	bind_events: function () {
+		var mousedown_happened = false;
+		this.$wrapper.on("click", ".color-box", (e) => {
+			mousedown_happened = false;
+
+			var color_val = $(e.target).data("color");
+			this.set_value(color_val);
+			// set focus so that we can blur it later
+			this.set_focus();
+		});
+
+		this.$wrapper.find(".color-box").mousedown(() => {
+			mousedown_happened = true;
+		});
+
+		this.$input.on("focus", () => {
+			this.$color_pallete.show();
+		});
+		this.$input.on("blur", () => {
+			if (mousedown_happened) {
+				// cancel the blur event
+				mousedown_happened = false;
+			} else {
+				// blur event is okay
+				$(this.$color_pallete).hide();
+			}
+		});
+	},
+	validate: function (value) {
+		var is_valid = /^#[0-9A-F]{6}$/i.test(value);
+		if(is_valid) {
+			return value;
+		}
+		frappe.msgprint(__("{0} is not a valid hex color", [value]));
+		return null;
 	}
 });
 
@@ -955,6 +962,9 @@ frappe.ui.form.ControlCheck = frappe.ui.form.ControlData.extend({
 		this._super();
 		this.$input.removeClass("form-control");
 	},
+	get_input_value: function() {
+		return this.input && this.input.checked ? 1 : 0;
+	},
 	validate: function(value) {
 		return cint(value);
 	},
@@ -965,14 +975,7 @@ frappe.ui.form.ControlCheck = frappe.ui.form.ControlData.extend({
 		this.last_value = value;
 		this.set_mandatory(value);
 		this.set_disp_area();
-	},
-	get_input_value: function() {
-		if (!this.$input) {
-			return;
-		}
-
-		return this.$input.prop("checked") ? 1 : 0;
-	},
+	}
 });
 
 frappe.ui.form.ControlButton = frappe.ui.form.ControlData.extend({
