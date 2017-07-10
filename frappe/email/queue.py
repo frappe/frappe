@@ -5,19 +5,20 @@ from __future__ import unicode_literals
 from six.moves import range
 import frappe
 import HTMLParser
-import smtplib, quopri
+import smtplib, quopri, json
 from frappe import msgprint, throw, _
 from frappe.email.smtp import SMTPServer, get_outgoing_email_account
-from frappe.email.email_body import get_email, get_formatted_html
+from frappe.email.email_body import get_email, get_formatted_html, add_attachment
 from frappe.utils.verified_command import get_signed_params, verify_request
 from html2text import html2text
 from frappe.utils import get_url, nowdate, encode, now_datetime, add_days, split_emails, cstr, cint
+from frappe.utils.file_manager import get_file
 from rq.timeouts import JobTimeoutException
 from frappe.utils.scheduler import log
 
 class EmailLimitCrossedError(frappe.ValidationError): pass
 
-def send(recipients=None, sender=None, subject=None, message=None, reference_doctype=None,
+def send(recipients=None, sender=None, subject=None, message=None, text_content=None, reference_doctype=None,
 		reference_name=None, unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None,
 		attachments=None, reply_to=None, cc=[], message_id=None, in_reply_to=None, send_after=None,
 		expose_recipients=None, send_priority=1, communication=None, now=False, read_receipt=None,
@@ -28,6 +29,7 @@ def send(recipients=None, sender=None, subject=None, message=None, reference_doc
 	:param sender: Email sender.
 	:param subject: Email subject.
 	:param message: Email message.
+	:param text_content: Text version of email message.
 	:param reference_doctype: Reference DocType of caller document.
 	:param reference_name: Reference name of caller document.
 	:param send_priority: Priority for Email Queue, default 1.
@@ -65,12 +67,13 @@ def send(recipients=None, sender=None, subject=None, message=None, reference_doc
 
 	check_email_limit(recipients)
 
-	formatted = get_formatted_html(subject, message, email_account=email_account)
+	if not text_content:
+		try:
+			text_content = html2text(message)
+		except HTMLParser.HTMLParseError:
+			text_content = "See html attachment"
 
-	try:
-		text_content = html2text(formatted)
-	except HTMLParser.HTMLParseError:
-		text_content = "See html attachment"
+	formatted = get_formatted_html(subject, message, email_account=email_account)
 
 	if reference_doctype and reference_name:
 		unsubscribed = [d.email for d in frappe.db.get_all("Email Unsubscribe", "email",
@@ -143,6 +146,7 @@ def get_email_queue(recipients, sender, subject, **kwargs):
 	'''Make Email Queue object'''
 	e = frappe.new_doc('Email Queue')
 	e.priority = kwargs.get('send_priority')
+	e.attachments = json.dumps(kwargs.get('attachments'))
 
 	try:
 		mail = get_email(recipients,
@@ -331,7 +335,7 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False, from_test=Fals
 	email = frappe.db.sql('''select
 			name, status, communication, message, sender, reference_doctype,
 			reference_name, unsubscribe_param, unsubscribe_method, expose_recipients,
-			show_as_cc, add_unsubscribe_link
+			show_as_cc, add_unsubscribe_link, attachments
 		from
 			`tabEmail Queue`
 		where
@@ -457,7 +461,27 @@ def prepare_message(email, recipient, recipients_list):
 			message = message.replace("<!--cc message-->", quopri.encodestring(email_sent_message))
 
 		message = message.replace("<!--recipient-->", recipient)
-	return message
+
+	# On-demand attachments
+	from email.parser import Parser
+
+	msg_obj = Parser().parsestr(message)
+
+	for attachment in json.loads(email.attachments):
+		if attachment.get('fcontent'): continue
+
+		fid = attachment.get('fid')
+		if not fid: continue
+
+		fname, fcontent = get_file(fid)
+		attachment.update({
+			'fname': fname,
+			'fcontent': fcontent,
+			'parent': msg_obj
+		})
+		add_attachment(**attachment)
+
+	return msg_obj.as_string()
 
 def clear_outbox():
 	"""Remove low priority older than 31 days in Outbox and expire mails not sent for 7 days.
