@@ -471,9 +471,9 @@ frappe.ui.Filter = Class.extend({
 			value = {0:"Draft", 1:"Submitted", 2:"Cancelled"}[value] || value;
 		} else if(this.field.df.original_type==="Check") {
 			value = {0:"No", 1:"Yes"}[cint(value)];
-		} else {
-			value = this.field.get_value();
 		}
+
+		value = frappe.format(value, this.field.df, {for_print: 1});
 
 		// for translations
 		// __("like"), __("not like"), __("in")

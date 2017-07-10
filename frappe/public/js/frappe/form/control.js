@@ -829,11 +829,11 @@ frappe.ui.form.ControlDateRange = frappe.ui.form.ControlData.extend({
 			return [from_date, to_date];
 		}
 	},
-	format_for_input: function(value,value2) {
-		if(value && value2) {
-			value = frappe.datetime.str_to_user(value);
+	format_for_input: function(value1, value2) {
+		if(value1 && value2) {
+			value1 = frappe.datetime.str_to_user(value1);
 			value2 = frappe.datetime.str_to_user(value2);
-			return value + " to " + value2;
+			return __("{0} to {1}").format([value1, value2]);
 		}
 		return "";
 	}
