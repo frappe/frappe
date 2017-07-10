@@ -91,51 +91,27 @@ frappe.tests = {
 			});
 	},
 	click_page_head_item: (text) => {
-		if (text == "Menu"){
-			return frappe.run_serially([
-				() => $("span.menu-btn-group-label:contains('Menu'):visible").click(),
-				() => frappe.timeout(0.3)
-			]);
-		} else if (text == "Refresh"){
-			return frappe.run_serially([
-				() => $("button.btn.btn-secondary.btn-default:contains('Refresh'):visible").click(),
-				() => frappe.timeout(0.3)
-			]);
-		} else if (text == "New" || text == "Delete" || text == "Save" || text == "Yes"){
-			return frappe.run_serially([
-				() => $("button.btn.btn-primary:contains("+text+"):visible").click(),
-				() => frappe.timeout(0.3)
-			]);
-		}
+		let  possible_texts = ["New", "Delete", "Save", "Yes"];
+		return frappe.run_serially([
+			() => {
+				if (text == "Menu"){
+					$("span.menu-btn-group-label:contains('Menu'):visible").click();
+				} else if (text == "Refresh") {
+					$(".btn-secondary:contains('Refresh'):visible").click();
+				} else if (possible_texts.includes(text)) {
+					$(".btn-primary:contains("+text+"):visible").click();
+				}
+			},
+			() => frappe.timeout(0.3)
+		]);
 	},
+
+
 	click_menu_item: (text) => {
 		return frappe.run_serially([
 			() => $("div.btn-group.menu-btn-group.open > ul > li:contains("+text+"):visible > a").click(),
 			() => frappe.timeout(0.3)
 		]);
-	},
-	click_navbar_item: (text) => {
-		if (text == "Help"){
-			return frappe.run_serially([
-				() => $(".dropdown-help .dropdown-toggle:visible").click(),
-				() => frappe.timeout(0.3)
-			]);
-		} else if (text == "navbar_user"){
-			return frappe.run_serially([
-				() => $(".dropdown-navbar-user .dropdown-toggle:visible").click(),
-				() => frappe.timeout(0.3)
-			]);
-		} else if (text == "Notification"){
-			return frappe.run_serially([
-				() => $(".navbar-new-comments").click(),
-				() => frappe.timeout(0.3)
-			]);
-		} else if (text == "Home"){
-			return frappe.run_serially([
-				() => $(".navbar-home:contains('Home'):visible")[0].click(),
-				() => frappe.timeout(0.3)
-			]);
-		}
 	},
 	click_navbar_user_item: (text) => {
 		return frappe.run_serially([
@@ -149,6 +125,34 @@ frappe.tests = {
 			() => frappe.timeout(0.3)
 		]);
 	},
+	// DEPRECATE ?????????????????????????????????????????????????????????????????
+	click_dropdown_item: (text) => {
+		return frappe.run_serially([
+			() => $(".dropdown-menu li:contains("+text+"):visible").click(),
+			() => frappe.timeout(0.3)
+		]);
+	},
+	// ???????????????????????????????????????????????????????????????????????????
+
+	click_navbar_item: (text) => {
+		return frappe.run_serially([
+			() => {
+				if (text == "Help"){
+					$(".dropdown-help .dropdown-toggle:visible").click();
+				}
+				else if (text == "navbar_user"){
+					$(".dropdown-navbar-user .dropdown-toggle:visible").click();
+				}
+				else if (text == "Notification"){
+					$(".navbar-new-comments").click();
+				}
+				else if (text == "Home"){
+					$(".navbar-home:contains('Home'):visible")[0].click();
+				}
+			},
+			() => frappe.timeout(0.3)
+		]);
+	},
 	click_generic_text: (text, tag='a') => {
 		return frappe.run_serially([
 			() => $(tag+":contains("+text+"):visible")[0].click(),
@@ -156,7 +160,7 @@ frappe.tests = {
 		]);
 	},
 	click_desktop_icon: (text) => {
-	return frappe.run_serially([
+		return frappe.run_serially([
 			() => $("#icon-grid > div > div.app-icon[title="+text+"]").click(),
 			() => frappe.timeout(0.3)
 		]);

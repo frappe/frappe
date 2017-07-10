@@ -4,16 +4,14 @@ QUnit.test("Gantt View Tests", function(assert) {
 	assert.expect(2);
 	let done = assert.async();
 	let randomText = frappe.utils.get_random(10);
-	let inception_datetime = frappe.datetime.get_today()+" 16:20:35"; //arbitrary value taken to prevent cases like 12a for 12:00am and 12h to 24h conversion;
-	let cessation_datetime = frappe.datetime.get_today()+" 18:30:45"; //arbitrary value taken to prevent cases like 12a for 12:00am and 12h to 24h conversion;();
-
+	let inception_datetime = frappe.datetime.get_today()+" 16:20:35"; //arbitrary value taken to prevent cases like 12a for 12:00am and 12h to 24h conversion
+	let cessation_datetime = frappe.datetime.get_today()+" 18:30:45"; //arbitrary value taken to prevent cases like 12a for 12:00am and 12h to 24h conversion
 	let event_id = () => {
-		let event_label = $('.bar-label').text()
+		let event_label = $('.bar-label').text();
 		let init = event_label.indexOf('(');
 		let fin = event_label.indexOf(')');
 		return (event_label.substr(init+1,fin-init-1));
 	};
-
 
 	frappe.run_serially([
 		// Make an event

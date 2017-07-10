@@ -4,10 +4,7 @@ QUnit.test("Verification of navbar menu links", function(assert) {
 	assert.expect(14);
 	let done = assert.async();
 	let navbar_user_items = ['Set Desktop Icons', 'My Settings', 'Reload', 'View Website', 'Background Jobs', 'Logout'];
-	let modal_and_heading = [
-		['Documentation', ['Documentation', 'span']],
-		['About', ['Frappe Framework', 'div']]
-	];
+	let modal_and_heading = ['Documentation', 'About'];
 	
 	frappe.run_serially([
 		// Goto Home using button click to check if its working
@@ -21,8 +18,8 @@ QUnit.test("Verification of navbar menu links", function(assert) {
 		}),
 
 		() => frappe.tests.click_navbar_item('Help'),
-		() => modal_and_heading.forEach(function(modal, index) {
-			assert.ok(frappe.tests.is_visible(modal[0]));
+		() => modal_and_heading.forEach(function(modal) {
+			assert.ok(frappe.tests.is_visible(modal));
 		}),
 		() => frappe.tests.click_navbar_item('Home'),
 		() => frappe.timeout(0.3),
