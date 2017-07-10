@@ -652,6 +652,78 @@ frappe.ui.form.ControlCurrency = frappe.ui.form.ControlFloat.extend({
 
 frappe.ui.form.ControlPercent = frappe.ui.form.ControlFloat;
 
+frappe.ui.form.ControlColor = frappe.ui.form.ControlData.extend({
+	make_input: function () {
+		var me = this;
+		this._super();
+		this.colors = [
+			"#ffc4c4", "#ff8989", "#ff4d4d", "#a83333",
+			"#ffe8cd", "#ffd19c", "#ffb868", "#a87945",
+			"#ffd2c2", "#ffa685", "#ff7846", "#a85b5b",
+			"#ffd7d7", "#ffb1b1", "#ff8989", "#a84f2e",
+			"#fffacd", "#fff168", "#fff69c", "#a89f45",
+			"#ebf8cc", "#d9f399", "#c5ec63", "#7b933d",
+			"#cef6d1", "#9deca2", "#6be273", "#428b46",
+			"#d2f8ed", "#a4f3dd", "#77ecca", "#49937e",
+			"#d2f1ff", "#a6e4ff", "#78d6ff", "#4f8ea8",
+			"#d2d2ff", "#a3a3ff", "#7575ff", "#4d4da8",
+			"#dac7ff", "#b592ff", "#8e58ff", "#5e3aa8",
+			"#f8d4f8", "#f3aaf0", "#ec7dea", "#934f92"
+		];
+		this.make_color_input();
+	},
+	make_color_input: function() {
+		this.$input.addClass("color-input")
+		this.$wrapper.find('.control-input-wrapper')
+			.append('<div class="color-picker"><div class="color-picker-pallet"></div></div>')
+		var color_html = this.colors.map(hex => this.get_color_box(hex)).join("");
+
+		this.$color_pallet = this.$wrapper.find('.color-picker-pallet');
+		this.$color_pallet.append(color_html);
+		this.$color_pallet.hide();
+		this.bind_events();
+
+	},
+	get_color_box: function (hex) {
+		return `<div class="color-box" data-color="${hex}" style="background-color: ${hex}"></div>`;
+	},
+	bind_events: function () {
+		var mousedownHappened = false;
+		this.$wrapper.find(".color-box").on("click", function() {
+		    // e.stopImmediatePropagation();
+		    // $("#signup").fadeOut(550);
+        	mousedownHappened = false;
+		    console.log(this, "click");
+			color_val = $(this).data("color");
+			console.log("Color_val1", color_val)
+			$(this).parents(".control-input-wrapper").find(".color-input").css({"background-color" : color_val, "color": "#000" }).val(color_val).focus();
+
+		});
+
+		this.$wrapper.find(".color-box").mousedown(function() {
+		    mousedownHappened = true;
+		});
+
+		this.$input.on("focus",  () => {
+			$(this.$color_pallet).show();
+		});
+		this.$input.on("blur",  () => {
+		    if (mousedownHappened) // cancel the blur event
+		    {
+		        mousedownHappened = false;
+		    }
+		    else // blur event is okay
+		    {
+				console.log("blurr")
+				$(this.$color_pallet).hide();
+		    }
+		});
+	},
+	set_input: function(value) {
+		
+	}
+});
+
 frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 	make_input: function() {
 		this._super();
