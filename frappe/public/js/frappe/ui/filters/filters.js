@@ -104,7 +104,14 @@ frappe.ui.FilterList = Class.extend({
 		return filter;
 	},
 	push_new_filter: function(doctype, fieldname, condition, value) {
-		if(this.filter_exists(doctype, fieldname, condition, value)) return;
+		if(this.filter_exists(doctype, fieldname, condition, value)) {
+			return;
+		}
+
+		// if standard filter exists, then clear it.
+		if(this.base_list.page.fields_dict[fieldname]) {
+			this.base_list.page.fields_dict[fieldname].set_input('');
+		}
 
 		var filter = new frappe.ui.Filter({
 			flist: this,
@@ -464,9 +471,9 @@ frappe.ui.Filter = Class.extend({
 			value = {0:"Draft", 1:"Submitted", 2:"Cancelled"}[value] || value;
 		} else if(this.field.df.original_type==="Check") {
 			value = {0:"No", 1:"Yes"}[cint(value)];
-		} else {
-			value = this.field.get_value();
 		}
+
+		value = frappe.format(value, this.field.df, {for_print: 1});
 
 		// for translations
 		// __("like"), __("not like"), __("in")
