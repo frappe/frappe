@@ -104,7 +104,14 @@ frappe.ui.FilterList = Class.extend({
 		return filter;
 	},
 	push_new_filter: function(doctype, fieldname, condition, value) {
-		if(this.filter_exists(doctype, fieldname, condition, value)) return;
+		if(this.filter_exists(doctype, fieldname, condition, value)) {
+			return;
+		}
+
+		// if standard filter exists, then clear it.
+		if(this.base_list.page.fields_dict[fieldname]) {
+			this.base_list.page.fields_dict[fieldname].set_input('');
+		}
 
 		var filter = new frappe.ui.Filter({
 			flist: this,
