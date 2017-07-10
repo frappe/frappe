@@ -108,7 +108,7 @@ frappe.tests = {
 	click_dropdown_item: (text) => {
 		return frappe.run_serially([
 			() => {
-				li = $(".dropdown-menu li:contains("+text+"):visible").get(0);
+				let li = $(".dropdown-menu li:contains("+text+"):visible").get(0);
 				$(li).find('a')[0].click();
 			},
 			() => frappe.timeout(0.3)
