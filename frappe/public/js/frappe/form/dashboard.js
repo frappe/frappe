@@ -418,13 +418,12 @@ frappe.ui.form.Dashboard = Class.extend({
 		var me = this;
 		$.extend(args, {
 			parent: me.graph_area,
-			// set dynamic width and call a method there
-			// something like this.chart.set_chart_size(me.wrapper.width() - 60)
 			width: 700,
 			height: 140,
+			mode: 'line-graph'
 		});
 
-		new frappe.ui.Graph(args);
+		new frappe.ui.LineGraph(args);
 	},
 
 	setup_chart: function(opts) {

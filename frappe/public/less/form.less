@@ -879,7 +879,7 @@ select.form-control {
 	}
 }
 
-.bar-graph {
+.bar-graph, .line-graph {
 
 	.axis {
 		font-size: 10px;
@@ -889,18 +889,29 @@ select.form-control {
 			stroke: rgba(27,31,35,0.1);
 		}
 	}
+}
+
+.line-graph {
+
+}
+
+.data-points {
+	circle {
+		fill: #28a745;
+		stroke: #fff;
+		stroke-width: 2;
+	}
 
 	g.mini {
 		fill: #98d85b;
 	}
-}
 
-// testing
-.path {
-	fill: none;
-	stroke: #28a745;
-	stroke-opacity: 1;
-	stroke-width: 2px;
+	path {
+		fill: none;
+		stroke: #28a745;
+		stroke-opacity: 1;
+		stroke-width: 2px;
+	}
 }
 
 .line-graph {
