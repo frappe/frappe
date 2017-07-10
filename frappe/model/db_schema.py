@@ -43,6 +43,7 @@ type_map = {
 	,'Attach':		('text', '')
 	,'Attach Image':('text', '')
 	,'Signature':	('longtext', '')
+	,'Color':		('varchar', varchar_len)
 }
 
 default_columns = ['name', 'creation', 'modified', 'modified_by', 'owner',
@@ -307,7 +308,7 @@ class DbTable:
 			if not frappe.db.sql("show index from `%s` where key_name = %s" %
 					(self.name, '%s'), col.fieldname):
 				query.append("add index `{}`(`{}`)".format(col.fieldname, col.fieldname))
-		
+
 		for col in self.drop_index:
 			if col.fieldname != 'name': # primary key
 				# if index key exists
