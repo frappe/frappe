@@ -703,18 +703,39 @@ frappe.ui.form.ControlColor = frappe.ui.form.ControlData.extend({
 		return `<div class="color-box" data-color="${hex}" style="background-color: ${hex}"></div>`;
 	},
 	bind_events: function () {
+		var mousedownHappened = false;
+		this.$wrapper.find(".color-box").on("click", function() {
+		    // e.stopImmediatePropagation();
+		    // $("#signup").fadeOut(550);
+        	mousedownHappened = false;
+		    console.log(this, "click");
+			color_val = $(this).data("color");
+			console.log("Color_val1", color_val)
+			$(this).parents(".control-input-wrapper").find(".color-input").css({"background-color" : color_val, "color": "#000" }).val(color_val).focus();
+
+		});
+
+		this.$wrapper.find(".color-box").mousedown(function() {
+		    mousedownHappened = true;
+		});
+
 		this.$input.on("focus",  () => {
 			$(this.$color_pallet).show();
 		});
 		this.$input.on("blur",  () => {
-			$(this.$color_pallet).hide();
+		    if (mousedownHappened) // cancel the blur event
+		    {
+		        mousedownHappened = false;
+		    }
+		    else // blur event is okay
+		    {
+				console.log("blurr")
+				$(this.$color_pallet).hide();
+		    }
 		});
 	},
 	set_input: function(value) {
-		this.$wrapper.find(".color-box").on("click", function(){
-			color_val = $(this).data("color")
-			$(this).parents(".control-input-wrapper").find(".color-input").css({"background-color" : color_val, "color": "#000" }).val(color_val);
-		})
+		
 	}
 });
 
