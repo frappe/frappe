@@ -32,7 +32,7 @@ QUnit.test("Calendar View Tests", function(assert) {
 		() => frappe.timeout(0.3),
 		() => frappe.tests.click_generic_text(random_text),
 		() => frappe.tests.click_page_head_item('Menu'),
-		() => frappe.tests.click_menu_item('Delete'),
+		() => frappe.tests.click_dropdown_item('Delete'),
 		() => frappe.tests.click_page_head_item('Yes'),
 		() => frappe.timeout(4),
 		() => frappe.set_route(["List", "Event", "Calendar"]),
@@ -40,25 +40,25 @@ QUnit.test("Calendar View Tests", function(assert) {
 
 		// Check if all menu items redirect to correct locations
 		() => frappe.tests.click_page_head_item('Menu'),
-		() => frappe.tests.click_menu_item('Import'),
+		() => frappe.tests.click_dropdown_item('Import'),
 		() => assert.deepEqual(["data-import-tool"], frappe.get_route()),
 		() => window.history.back(),
 		() => frappe.timeout(0.5),
 
 		() => frappe.tests.click_page_head_item('Menu'),
-		() => frappe.tests.click_menu_item('User Permissions Manager'),
+		() => frappe.tests.click_dropdown_item('User Permissions Manager'),
 		() => assert.deepEqual(["user-permissions"], frappe.get_route()),
 		() => window.history.back(),
 		() => frappe.timeout(0.5),
 
 		() => frappe.tests.click_page_head_item('Menu'),
-		() => frappe.tests.click_menu_item('Role Permissions Manager'),
+		() => frappe.tests.click_dropdown_item('Role Permissions Manager'),
 		() => assert.deepEqual(["permission-manager"], frappe.get_route()),
 		() => window.history.back(),
 		() => frappe.timeout(0.5),
 
 		() => frappe.tests.click_page_head_item('Menu'),
-		() => frappe.tests.click_menu_item('Customize'),
+		() => frappe.tests.click_dropdown_item('Customize'),
 		() => assert.deepEqual(["Form", "Customize Form"], frappe.get_route()),
 		() => window.history.back(),
 		() => frappe.timeout(0.5),

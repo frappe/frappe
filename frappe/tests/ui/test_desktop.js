@@ -26,28 +26,28 @@ QUnit.test("Verification of navbar menu links", function(assert) {
 
 		// Click navbar-username and verify links of all menu items
 		() => frappe.tests.click_navbar_item('navbar_user'),
-		() => frappe.tests.click_navbar_user_item('Set Desktop Icons'),
+		() => frappe.tests.click_dropdown_item('Set Desktop Icons'),
 		() => assert.deepEqual(["modules_setup"], frappe.get_route()),
 		() => frappe.tests.click_navbar_item('Home'),
 
 		() => frappe.tests.click_navbar_item('navbar_user'),
-		() => frappe.tests.click_navbar_user_item('My Settings'),
+		() => frappe.tests.click_dropdown_item('My Settings'),
 		() => assert.deepEqual(["Form", "User", "Administrator"], frappe.get_route()),
 		() => frappe.tests.click_navbar_item('Home'),
 
 		() => frappe.tests.click_navbar_item('navbar_user'),
-		() => frappe.tests.click_navbar_user_item('Background Jobs'),
+		() => frappe.tests.click_dropdown_item('Background Jobs'),
 		() => assert.deepEqual(["background_jobs"], frappe.get_route()),
 		() => frappe.tests.click_navbar_item('Home'),
 
 		// Click Help and check both modals
 		() => frappe.tests.click_navbar_item('Help'),
-		() => frappe.tests.click_navbar_help_item('Documentation'),
+		() => frappe.tests.click_dropdown_item('Documentation'),
 		() => assert.ok(frappe.tests.is_visible('Documentation', 'span')),
 		() => frappe.tests.click_generic_text('Close', 'button'),
 
 		() => frappe.tests.click_navbar_item('Help'),
-		() => frappe.tests.click_navbar_help_item('About'),
+		() => frappe.tests.click_dropdown_item('About'),
 		() => assert.ok(frappe.tests.is_visible('Frappe Framework', 'div')),
 		() => frappe.tests.click_generic_text('Close', 'button'),
 
