@@ -472,7 +472,6 @@ class EmailAccount(Document):
 				parent = frappe._dict(doctype=self.append_to, name=parent[0].name)
 				return parent
 
-
 	def create_new_parent(self, communication, email):
 		'''If no parent found, create a new reference document'''
 
