@@ -94,5 +94,11 @@ frappe.tests = {
 
 				return frappe.run_serially(tasks);
 			});
-	}
+	},
+	click_and_wait: (button) => {
+		return frappe.run_serially([
+			() => $(button).click(),
+			() => frappe.timeout(0.5)
+		]);
+	},
 };
