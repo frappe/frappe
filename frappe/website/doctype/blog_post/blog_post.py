@@ -82,8 +82,8 @@ class BlogPost(WebsiteGenerator):
 		context.category = frappe.db.get_value("Blog Category",
 			context.doc.blog_category, ["title", "route"], as_dict=1)
 		context.parents = [{"name": _("Home"),"route":"/"},
-						   {"name": "Blog", "route": "/blog"},
-						   {"label": context.category.title, "route":context.category.route}]
+			{"name": "Blog", "route": "/blog"},
+			{"label": context.category.title, "route":context.category.route}]
 
 def get_list_context(context=None):
 	list_context = frappe._dict(
