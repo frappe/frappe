@@ -421,7 +421,7 @@ frappe.ui.form.Timeline = Class.extend({
 							out.push(me.get_version_comment(version, __('cancelled this document')));
 						}
 					} else {
-						
+
 						var df = frappe.meta.get_docfield(me.frm.doctype, p[0], me.frm.docname);
 
 						if(df && !df.hidden) {
@@ -448,8 +448,8 @@ frappe.ui.form.Timeline = Class.extend({
 				var parts = [], count = 0;
 				data.row_changed.every(function(row) {
 					row[3].every(function(p) {
-						var df = me.frm.fields_dict[row[0]] && 
-							frappe.meta.get_docfield(me.frm.fields_dict[row[0]].grid.doctype, 
+						var df = me.frm.fields_dict[row[0]] &&
+							frappe.meta.get_docfield(me.frm.fields_dict[row[0]].grid.doctype,
 								p[0], me.frm.docname);
 
 						if(df && !df.hidden) {

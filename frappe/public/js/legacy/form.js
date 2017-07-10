@@ -503,7 +503,7 @@ _f.Frm.prototype.render_form = function(is_a_different_doc) {
 		}
 
 		// update dashboard after refresh
-		this.dashboard.after_refresh();
+		frappe.timeout(0.1).then(() => this.dashboard.after_refresh());
 
 		// focus on first input
 
