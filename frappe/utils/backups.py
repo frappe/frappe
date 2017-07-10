@@ -217,7 +217,8 @@ def backup(with_files=False, backup_path_db=None, backup_path_files=None, quiet=
 	odb = scheduled_backup(ignore_files=not with_files, backup_path_db=backup_path_db, backup_path_files=backup_path_files, force=True)
 	return {
 		"backup_path_db": odb.backup_path_db,
-		"backup_path_files": odb.backup_path_files
+		"backup_path_files": odb.backup_path_files,
+		"backup_path_private_files": odb.backup_path_private_files
 	}
 
 if __name__ == "__main__":
