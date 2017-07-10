@@ -506,8 +506,27 @@ frappe.views.CommunicationComposer = Class.extend({
 						cur_frm.timeline.input.val("");
 						cur_frm.reload_doc();
 					}
+					
+					// try the success callback if it exists
+					if (me.success) {
+						try {
+							me.success(r);
+						} catch (e) {
+							console.log(e);
+						}
+					}
+					
 				} else {
 					frappe.msgprint(__("There were errors while sending email. Please try again."));
+					
+					// try the error callback if it exists
+					if (me.error) {
+						try {
+							me.error(r);
+						} catch (e) {
+							console.log(e);
+						}
+					}
 				}
 			}
 		});
