@@ -105,11 +105,8 @@ class EMail:
 			_inline_images = []
 			for image in inline_images:
 				# images in dict like {filename:'', filecontent:'raw'}
-				content_id = random_string(10)
 
-				# replace filename in message with CID
-				message = re.sub('''embed=['"]{0}['"]'''.format(image.get('filename')),
-					'src="cid:{0}"'.format(content_id), message)
+				message = replace_filename_with_cid(message, image.get('filename'))
 
 				_inline_images.append({
 					'filename': image.get('filename'),
@@ -329,3 +326,17 @@ def get_footer(email_account, footer=None):
 			footer += '<div style="margin: 15px auto;">{0}</div>'.format(default_mail_footer)
 
 	return footer
+
+def replace_filename_with_cid(message, filename, content_id=None):
+	"""
+		Replaces <img embed="filename.jpg" ...> with
+		<img src="cid:content_id" ...>
+	"""
+	if not content_id:
+		content_id = random_string(10)
+
+	# replace filename in message with CID
+	message = re.sub('''embed=['"]{0}['"]'''.format(filename),
+		'src="cid:{0}"'.format(content_id), message)
+
+	return message
