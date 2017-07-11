@@ -104,7 +104,7 @@ QUnit.test("Test Menu actions", function(assert) {
 		() => frappe.tests.click_and_wait(dropdown_click('Print')),
 		() => {
 			assert.equal(cur_dialog.title, 'Print Documents');
-			$('button.btn-modal-close:visible').click()
+			$('button.btn-modal-close:visible').click();
 		},
 		
 		// //7. test Add to Desktop
