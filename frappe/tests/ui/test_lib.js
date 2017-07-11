@@ -91,6 +91,7 @@ frappe.tests = {
 			});
 	},
 	click_page_head_item: (text) => {
+		// Method to items present on the page header like New, Save, Delete etc. 
 		let  possible_texts = ["New", "Delete", "Save", "Yes"];
 		return frappe.run_serially([
 			() => {
@@ -106,6 +107,7 @@ frappe.tests = {
 		]);
 	},
 	click_dropdown_item: (text) => {
+		// Method to click dropdown elements 
 		return frappe.run_serially([
 			() => {
 				let li = $(".dropdown-menu li:contains("+text+"):visible").get(0);
@@ -115,6 +117,7 @@ frappe.tests = {
 		]);
 	},
 	click_navbar_item: (text) => {
+		// Method to click an elements present on the navbar 
 		return frappe.run_serially([
 			() => {
 				if (text == "Help"){
@@ -134,18 +137,21 @@ frappe.tests = {
 		]);
 	},
 	click_generic_text: (text, tag='a') => {
+		// Method to click an element by its name 
 		return frappe.run_serially([
 			() => $(tag+":contains("+text+"):visible")[0].click(),
 			() => frappe.timeout(0.3)
 		]);
 	},
 	click_desktop_icon: (text) => {
+		// Method to click the desktop icons on the Desk, by their name 
 		return frappe.run_serially([
 			() => $("#icon-grid > div > div.app-icon[title="+text+"]").click(),
 			() => frappe.timeout(0.3)
 		]);
 	},
 	is_visible: (text, tag='a') => {
+		// Method to check the visibility of an element
 		return $(tag+":contains("+text+")").is(':visible');
 	}
 };
