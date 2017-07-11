@@ -42,7 +42,7 @@ QUnit.test("Test deletion of one list element", function(assert) {
 	let random;
 
 	frappe.run_serially([
-		// () => frappe.tests.setup_doctype('User'),
+		() => frappe.tests.setup_doctype('User'),
 		() => frappe.tests.setup_doctype('ToDo'),
 		() => frappe.set_route('List', 'ToDo', 'List'),
 		() => {
@@ -72,7 +72,7 @@ QUnit.test("Test filters", function(assert) {
 	let done = assert.async();
 
 	frappe.run_serially([
-		// () => frappe.tests.setup_doctype('User'),
+		() => frappe.tests.setup_doctype('User'),
 		() => frappe.tests.setup_doctype('ToDo'),
 		() => frappe.set_route('List', 'ToDo', 'List'),
 		() => {
@@ -105,7 +105,7 @@ QUnit.test("Test deletion of all list element", function(assert) {
 	let done = assert.async();
 
 	frappe.run_serially([
-		// () => frappe.tests.setup_doctype('User'),
+		() => frappe.tests.setup_doctype('User'),
 		() => frappe.tests.setup_doctype('ToDo'),
 		() => frappe.set_route('List', 'ToDo', 'List'),
 		() => {
@@ -132,7 +132,7 @@ QUnit.test("Test paging in list", function(assert) {
 	let done = assert.async();
 
 	frappe.run_serially([
-		// () => frappe.tests.setup_doctype('User'),
+		() => frappe.tests.setup_doctype('User'),
 		() => frappe.tests.setup_doctype('ToDo'),
 		() => frappe.set_route('List', 'ToDo', 'List'),
 		() => {
@@ -159,7 +159,7 @@ QUnit.test("Test Menu actions", function(assert) {
 	}
 
 	frappe.run_serially([
-		// () => frappe.tests.setup_doctype('User'),
+		() => frappe.tests.setup_doctype('User'),
 		() => frappe.tests.setup_doctype('ToDo'),
 
 		//1. test Import

@@ -30,7 +30,7 @@ QUnit.test("Test kanban view", function(assert) {
 	let total_elements;
 
 	frappe.run_serially([
-		// () => frappe.tests.setup_doctype('User'),
+		() => frappe.tests.setup_doctype('User'),
 		() => frappe.tests.setup_doctype('ToDo'),
 		() => frappe.tests.setup_doctype('Kanban Board'),
 		() => frappe.set_route("List", "ToDo", "List"),
@@ -51,7 +51,7 @@ QUnit.test("Test setting colour of column", function(assert) {
 	let done = assert.async();
 
 	frappe.run_serially([
-		// () => frappe.tests.setup_doctype('User'),
+		() => frappe.tests.setup_doctype('User'),
 		() => frappe.tests.setup_doctype('ToDo'),
 		() => frappe.tests.setup_doctype('Kanban Board'),
 		() => frappe.set_route("List", "ToDo", "Kanban", "kanban 1"),
@@ -73,7 +73,7 @@ QUnit.skip("Test adding new column", function(assert) {
 	let done = assert.async();
 
 	frappe.run_serially([
-		// () => frappe.tests.setup_doctype('User'),
+		() => frappe.tests.setup_doctype('User'),
 		() => frappe.tests.setup_doctype('ToDo'),
 		() => frappe.tests.setup_doctype('Kanban Board'),
 		() => frappe.set_route("List", "ToDo", "Kanban", "kanban 1"),
