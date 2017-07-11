@@ -73,6 +73,7 @@ QUnit.test("Test Menu actions", function(assert) {
 		() => frappe.timeout(1),
 		() => frappe.tests.click_and_wait(menu_button, 1),
 		() => frappe.tests.click_and_wait(dropdown_click('Customize')),
+		() => frappe.timeout(1),
 		() => assert.deepEqual(frappe.get_route(), ["Form", "Customize Form"]),
 		
 		//5. test Assign To
