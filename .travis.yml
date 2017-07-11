@@ -43,6 +43,7 @@ before_script:
   - cd ~/frappe-bench
   - bench use test_site
   - bench reinstall --yes
+  - bench scheduler disable
   - bench start &
   - sleep 10
 
