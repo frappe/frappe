@@ -9,14 +9,6 @@ QUnit.test("Calendar View Tests", function(assert) {
 		// Method to return the start-time (hours) of the event visible  
 		return $('.fc-time').text().split('p')[0]; // 'p' because the arbitrary time is pm 
 	};
-	// let visible_hours = () => {
-	// 	// Method to return the start-time (hours) of the event visible  
-	// 	return $('.fc-time').text().split(':')[0].replace(/\D+/g, '');
-	// };
-	// let visible_minutes = () => {
-	// 	// Method to return the start-time (minutes) of the event visible  
-	// 	return $('.fc-time').text().split(':')[1].replace(/\D+/g, '');
-	// };
 	let event_title_text = () => {
 		// Method to return the title of the event visible  
 		return $('.fc-title:visible').text();
@@ -37,8 +29,6 @@ QUnit.test("Calendar View Tests", function(assert) {
 			// Check if the event exists and if its title matches with the one created
 			assert.equal(event_title_text(), random_text);
 			// Check if time of event created is correct
-			// assert.equal(visible_hours(), 4);
-			// assert.equal(visible_minutes(), 20);
 			assert.equal(visible_time(), "4:20");
 		},
 
