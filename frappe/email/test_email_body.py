@@ -2,9 +2,8 @@
 # License: GNU General Public License v3. See license.txt
 from __future__ import unicode_literals
 
-import frappe, unittest
+import unittest
 from frappe.email.email_body import replace_filename_with_cid
-from frappe.utils import random_string
 
 class TestEmailBody(unittest.TestCase):
 	def test_replace_filename_with_cid(self):
