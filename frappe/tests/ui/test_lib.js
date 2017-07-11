@@ -89,5 +89,13 @@ frappe.tests = {
 
 				return frappe.run_serially(tasks);
 			});
+	},
+	click_button: function(text) {
+		$(`.btn:contains("${text}"):visible`).click();
+		return frappe.timeout(0.3);
+	},
+	click_link: function(text) {
+		$(`a:contains("${text}"):visible`).click();
+		return frappe.timeout(0.3);
 	}
 };
