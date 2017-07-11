@@ -164,8 +164,8 @@ def get_context(context):
 			and (frappe.session.user!="Guest" or not self.login_required))
 
 		if context.success_message:
-			context.success_message = context.success_message.replace("\n",
-				"<br>").replace("'", "\'")
+			context.success_message = frappe.db.escape(context.success_message.replace("\n",
+				"<br>"))
 
 		self.add_custom_context_and_script(context)
 		if not context.max_attachment_size:

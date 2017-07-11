@@ -398,11 +398,11 @@ $.extend(frappe.model, {
 			});
 
 			tasks.push(() => {
-				runner(frappe.model.events[doc.doctype]['*']);
+				return runner(frappe.model.events[doc.doctype]['*']);
 			});
 		}
 
-		frappe.run_serially(tasks);
+		return frappe.run_serially(tasks);
 	},
 
 	get_doc: function(doctype, name) {

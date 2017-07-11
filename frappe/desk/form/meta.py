@@ -65,7 +65,7 @@ class FormMeta(Meta):
 		def _get_path(fname):
 			return os.path.join(path, scrub(fname))
 
-		system_country = frappe.get_system_country()
+		system_country = frappe.get_system_settings("country")
 
 		self._add_code(_get_path(self.name + '.js'), '__js')
 		if system_country:
@@ -82,6 +82,7 @@ class FormMeta(Meta):
 		self.add_code_via_hook("doctype_js", "__js")
 		self.add_code_via_hook("doctype_list_js", "__list_js")
 		self.add_code_via_hook("doctype_tree_js", "__tree_js")
+		self.add_code_via_hook("doctype_calendar_js", "__calendar_js")
 		self.add_custom_script()
 		self.add_html_templates(path)
 

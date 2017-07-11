@@ -21,7 +21,9 @@
 		"condition": "doc.communication_type=='Comment'",
 		"recipients": [
 			{ "email_by_document_field": "owner" }
-		]
+		],
+		"set_property_after_alert": "subject",
+		"property_value": "__testing__"
 	},
 	{
 		"doctype": "Email Alert",

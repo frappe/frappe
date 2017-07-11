@@ -14,7 +14,7 @@ import os, sys, importlib, inspect, json
 from .exceptions import *
 from .utils.jinja import get_jenv, get_template, render_template
 
-__version__ = '8.2.4'
+__version__ = '8.3.10'
 __title__ = "Frappe Framework"
 
 local = Local()
@@ -138,8 +138,7 @@ def init(site, sites_path=None, new_site=False):
 
 	local.module_app = None
 	local.app_modules = None
-	local.system_settings = None
-	local.system_country = None
+	local.system_settings = _dict()
 
 	local.user = None
 	local.user_perms = None
@@ -1364,7 +1363,7 @@ def get_active_domains():
 
 	return active_domains
 
-def get_system_country():
-	if local.system_country is None:
-		local.system_country = db.get_single_value('System Settings', 'country') or ''
-	return local.system_country
+def get_system_settings(key):
+	if not local.system_settings.has_key(key):
+		local.system_settings.update({key: db.get_single_value('System Settings', key)})
+	return local.system_settings.get(key)

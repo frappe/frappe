@@ -89,6 +89,10 @@ def get_admin_password():
 
 
 def before_tests():
+	if len(frappe.get_installed_apps()) > 1:
+		# don't run before tests if any other app is installed
+		return
+
 	frappe.db.sql("delete from `tabCustom Field`")
 	frappe.db.sql("delete from `tabEvent`")
 	frappe.db.commit()

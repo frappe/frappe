@@ -325,7 +325,6 @@ frappe.views.QueryReport = Class.extend({
 					} else {
 						me.trigger_refresh();
 					}
-					f.set_mandatory && f.set_mandatory(f.$input.val());
 				}
 				df.ignore_link_validation = true;
 			}
@@ -351,7 +350,7 @@ frappe.views.QueryReport = Class.extend({
 		if(frappe.route_options) {
 			$.each(this.filters || [], function(i, f) {
 				if(frappe.route_options[f.df.fieldname]!=null) {
-					f.set_input(frappe.route_options[f.df.fieldname]);
+					f.set_value(frappe.route_options[f.df.fieldname]);
 				}
 			});
 		}
@@ -423,7 +422,7 @@ frappe.views.QueryReport = Class.extend({
 		var filters = {};
 		var mandatory_fields = [];
 		$.each(this.filters || [], function(i, f) {
-			var v = f.get_parsed_value();
+			var v = f.get_value();
 			// TODO: hidden fields dont have $input
 			if(f.df.hidden) v = f.value;
 			if(v === '%') v = null;

@@ -153,5 +153,13 @@ frappe.tests = {
 	is_visible: (text, tag='a') => {
 		// Method to check the visibility of an element
 		return $(tag+":contains("+text+")").is(':visible');
+  },
+	click_button: function(text) {
+		$(`.btn:contains("${text}"):visible`).click();
+		return frappe.timeout(0.3);
+	},
+	click_link: function(text) {
+		$(`a:contains("${text}"):visible`).click();
+		return frappe.timeout(0.3);
 	}
 };

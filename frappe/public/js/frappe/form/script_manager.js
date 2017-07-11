@@ -71,47 +71,55 @@ frappe.ui.form.ScriptManager = Class.extend({
 		// trigger all the form level events that
 		// are bound to this event_name
 		let me = this;
-		return new Promise(resolve => {
-			doctype = doctype || this.frm.doctype;
-			name = name || this.frm.docname;
+		doctype = doctype || this.frm.doctype;
+		name = name || this.frm.docname;
 
-			let tasks = [];
-			let handlers = this.get_handlers(event_name, doctype);
+		let tasks = [];
+		let handlers = this.get_handlers(event_name, doctype);
 
-			// helper for child table
-			this.frm.selected_doc = frappe.get_doc(doctype, name);
+		// helper for child table
+		this.frm.selected_doc = frappe.get_doc(doctype, name);
 
-			let runner = (_function, is_old_style) => {
-				let _promise = null;
-				if(is_old_style) {
-					// old style arguments (doc, cdt, cdn)
-					_promise = me.frm.cscript[_function](me.frm.doc, doctype, name);
-				} else {
-					// new style (frm, doctype, name)
-					_promise = _function(me.frm, doctype, name);
-				}
+		let runner = (_function, is_old_style) => {
+			let _promise = null;
+			if(is_old_style) {
+				// old style arguments (doc, cdt, cdn)
+				_promise = me.frm.cscript[_function](me.frm.doc, doctype, name);
+			} else {
+				// new style (frm, doctype, name)
+				_promise = _function(me.frm, doctype, name);
+			}
 
-				// if the trigger returns a promise, return it,
-				// or use the default promise frappe.after_ajax
-				if (_promise && _promise.then) {
-					return _promise;
-				} else {
-					return frappe.after_server_call();
-				}
-			};
+			// if the trigger returns a promise, return it,
+			// or use the default promise frappe.after_ajax
+			if (_promise && _promise.then) {
+				return _promise;
+			} else {
+				return frappe.after_server_call();
+			}
+		};
 
-			// make list of functions to be run serially
-			handlers.new_style.forEach((_function) => {
+		// make list of functions to be run serially
+		handlers.new_style.forEach((_function) => {
+			if(event_name==='setup') {
+				// setup must be called immediately
+				runner(_function, false);
+			} else {
 				tasks.push(() => runner(_function, false));
-			});
-
-			handlers.old_style.forEach((_function) => {
-				tasks.push(() => runner(_function, true));
-			});
-
-			// run them serially
-			frappe.run_serially(tasks).then(resolve());
+			}
 		});
+
+		handlers.old_style.forEach((_function) => {
+			if(event_name==='setup') {
+				// setup must be called immediately
+				runner(_function, true);
+			} else {
+				tasks.push(() => runner(_function, true));
+			}
+		});
+
+		// run them serially
+		return frappe.run_serially(tasks);
 	},
 	has_handlers: function(event_name, doctype) {
 		let handlers = this.get_handlers(event_name, doctype);
@@ -149,7 +157,7 @@ frappe.ui.form.ScriptManager = Class.extend({
 
 		if(doctype.__custom_js) {
 			try {
-				eval(doctype.__custom_js)
+				eval(doctype.__custom_js);
 			} catch(e) {
 				frappe.msgprint({
 					title: __('Error in Custom Script'),
