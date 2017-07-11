@@ -142,6 +142,9 @@ def getseries(key, digits, doctype=''):
 def revert_series_if_last(key, name):
 	if ".#" in key:
 		prefix, hashes = key.rsplit(".", 1)
+		if '.' in prefix:
+			prefix = parse_naming_series(prefix.split('.'))
+
 		if "#" not in hashes:
 			return
 	else:
