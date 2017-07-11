@@ -22,7 +22,6 @@ QUnit.test("test building report", function(assert) {
 });
 
 //Test for generating report with the help of writing query
-
 QUnit.test("test query report", function(assert) {
 	assert.expect(1);
 	let done = assert.async();
@@ -38,5 +37,6 @@ QUnit.test("test query report", function(assert) {
 			
 			() => assert.deepEqual(["query-report", "Selling Report"], frappe.get_route()),
 			() => done()
+	
 	]);
 });
