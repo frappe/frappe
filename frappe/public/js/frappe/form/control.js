@@ -683,7 +683,17 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 			},
 			onShow: function() {
 				$('.datepicker--button:visible').text(__('Today'));
-			},
+
+				if(!me.frm) return;
+				var window_height = $(window).height();
+				var window_scroll_top = $(window).scrollTop();
+				var el_offset_top = me.$input.offset().top + 280;
+				var position = 'top left';
+				if(window_height + window_scroll_top >= el_offset_top) {
+					position = 'bottom left';
+				}
+				me.datepicker.update('position', position);
+			}
 		};
 	},
 	set_datepicker: function() {
