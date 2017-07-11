@@ -2,11 +2,20 @@
 
 {% block title %}{{ _("Payment Cancelled") }}{% endblock %}
 
-{%- block header -%}
-<h2>{{ _("Payment Cancelled") }}<h2>
-{% endblock %}
-
 {%- block page_content -%}
-<p>{{ _("You have cancelled the payment") }}</p>
-<p><br><a href="/">Back to home page</a></p>
+<div class='page-card'>
+	<div class='page-card-head'>
+		<span class='indicator red'>
+			{{ _("Payment Cancelled") }}</span>
+	</div>
+	<p>{{ _("Your payment is cancelled.") }}</p>
+	<div><a href='{{ frappe.form_dict.redirect_to or "/" }}' class='btn btn-primary btn-sm'>
+		{{ _("Continue") }}</a></div>
+</div>
+<style>
+.hero-and-content {
+	background-color: #f5f7fa;
+}
+</style>
+
 {% endblock %}
