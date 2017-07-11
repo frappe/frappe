@@ -14,7 +14,7 @@ QUnit.skip("Test desktop icon link verification", function(assert) {
 			$('.primary-action').click();
 		},
 		//click file manager icon (list)
-		() => frappe.set_route(),                                                ///******* need reload here ********///
+		() => frappe.set_route(),                                                             ///******* need reload here ********///
 		() => frappe.tests.click_and_wait(icon('"File Manager"')),
 		() => assert.deepEqual(frappe.get_route(), ["List", "File", "List"]),
 
@@ -32,6 +32,7 @@ QUnit.skip("Test navbar notifications", function(assert) {
 	let element_content;
 
 	frappe.run_serially([
+		() => frappe.tests.setup_doctype('User'),
 		() => frappe.tests.setup_doctype('ToDo'),
 		() => frappe.set_route(),
 		() => frappe.tests.click_and_wait('.navbar-new-comments-true'),                         ///******* need reload ********///

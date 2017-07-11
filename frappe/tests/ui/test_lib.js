@@ -95,9 +95,15 @@ frappe.tests = {
 				return frappe.run_serially(tasks);
 			});
 	},
-	click_and_wait: (button) => {
+	click_and_wait: (button, obj=0.1) => {
 		return frappe.run_serially([
-			() => $(button).click(),
+			() => {
+				//check if obj value is passed
+				if (obj == 0.1)
+					$(button).click();
+				else
+					$(button)[obj].click();
+			},
 			() => frappe.timeout(0.5)
 		]);
 	},

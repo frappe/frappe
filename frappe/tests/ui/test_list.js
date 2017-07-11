@@ -1,12 +1,12 @@
 QUnit.module('views');
 
-QUnit.skip("Test quick entry", function(assert) {
+QUnit.test("Test quick entry", function(assert) {
 	assert.expect(2);
 	let done = assert.async();
 	let random = frappe.utils.get_random(10);
 
 	frappe.run_serially([
-		() => frappe.set_route('List', 'ToDo'),
+		() => frappe.set_route('List', 'ToDo', 'List'),
 		() => frappe.new_doc('ToDo'),
 		() => frappe.quick_entry.dialog.set_value('description', random),
 		() => frappe.quick_entry.insert(),
@@ -21,7 +21,7 @@ QUnit.skip("Test quick entry", function(assert) {
 	]);
 });
 
-QUnit.skip("Test list values", function(assert) {
+QUnit.test("Test list values", function(assert) {
 	assert.expect(2);
 	let done = assert.async();
 
@@ -35,8 +35,8 @@ QUnit.skip("Test list values", function(assert) {
 	]);
 });
 
-QUnit.skip("Test Menu actions", function(assert) {
-	assert.expect(1);//total 9
+QUnit.test("Test Menu actions", function(assert) {
+	assert.expect(8);//total 9
 	let done = assert.async();
 	let menu_button = '.menu-btn-group .dropdown-toggle';
 	function dropdown_click(col) {
@@ -44,57 +44,69 @@ QUnit.skip("Test Menu actions", function(assert) {
 	}
 
 	frappe.run_serially([
+		() => frappe.tests.setup_doctype('User'),
 		() => frappe.tests.setup_doctype('ToDo'),
 
-		//test Import
-		() => frappe.set_route('List', 'ToDo'),
-		() => frappe.tests.click_and_wait(menu_button),
+		//1. test Import
+		() => frappe.set_route('List', 'ToDo', 'List'),
+		() => frappe.timeout(1),
+		() => frappe.tests.click_and_wait(menu_button, 1),
 		() => frappe.tests.click_and_wait(dropdown_click('Import')),
 		() => assert.deepEqual(frappe.get_route(), ["data-import-tool"]),
 		
-		// //test User Permissions Manager
-		// () => frappe.set_route('List', 'ToDo'),
-		// () => frappe.tests.click_and_wait(menu_button),
-		// () => frappe.tests.click_and_wait(dropdown_click('User Permissions Manager')),
-		// () => assert.deepEqual(frappe.get_route(), ["user-permissions"]),
+		//2. test User Permissions Manager
+		() => frappe.set_route('List', 'ToDo', 'List'),
+		() => frappe.timeout(1),
+		() => frappe.tests.click_and_wait(menu_button, 1),
+		() => frappe.tests.click_and_wait(dropdown_click('User Permissions Manager')),
+		() => assert.deepEqual(frappe.get_route(), ["user-permissions"]),
 
-		// //test Role Permissions Manager
-		// () => frappe.set_route('List', 'ToDo'),
-		// () => frappe.tests.click_and_wait(menu_button),
-		// () => frappe.tests.click_and_wait(dropdown_click('Role Permissions Manager')),
-		// () => assert.deepEqual(frappe.get_route(), ["permission-manager"]),
+		//3. test Role Permissions Manager
+		() => frappe.set_route('List', 'ToDo', 'List'),
+		() => frappe.timeout(1),
+		() => frappe.tests.click_and_wait(menu_button, 1),
+		() => frappe.tests.click_and_wait(dropdown_click('Role Permissions Manager')),
+		() => assert.deepEqual(frappe.get_route(), ["permission-manager"]),
 
-		// //test Customize
-		// () => frappe.set_route('List', 'ToDo'),
-		// () => frappe.tests.click_and_wait(menu_button),
-		// () => frappe.tests.click_and_wait(dropdown_click('Customize')),
-		// () => assert.deepEqual(frappe.get_route(), ["Form", "Customize Form"]),
+		//4. test Customize
+		() => frappe.set_route('List', 'ToDo', 'List'),
+		() => frappe.timeout(1),
+		() => frappe.tests.click_and_wait(menu_button, 1),
+		() => frappe.tests.click_and_wait(dropdown_click('Customize')),
+		() => assert.deepEqual(frappe.get_route(), ["Form", "Customize Form"]),
 		
-		// //test Print
-		// () => frappe.set_route('List', 'ToDo'),
-		// () => frappe.tests.click_and_wait('div:nth-child(1)>div>div>.list-row-checkbox'),
-		// () => frappe.tests.click_and_wait(menu_button),
-		// () => frappe.tests.click_and_wait(dropdown_click('Print')),
-		// () => assert.equal(cur_dialog.title, 'Print Documents'),
+		//5. test Assign To
+		() => frappe.set_route('List', 'ToDo', 'List'),
+		() => frappe.timeout(1),
+		() => frappe.tests.click_and_wait('div:nth-child(1)>div>div>.list-row-checkbox'),
+		() => frappe.timeout(1),
+		() => frappe.tests.click_and_wait(menu_button, 1),
+		() => frappe.tests.click_and_wait(dropdown_click('Assign To')),
+		() => {
+			assert.equal(cur_dialog.title, 'Add to To Do');
+			cur_dialog.fields_dict.myself.$input[0].click();
+		},
+		() => frappe.timeout(0.5),
+		() => {
+			cur_dialog.set_value('description', 'Assigned to me todo');
+			cur_dialog.primary_action(frappe.confirm);
+		},
+		() => frappe.timeout(1),
+		() => assert.equal(cur_list.data[0].description, 'Assigned to me todo'),
 		
-		// //test Assign To
-		// () => frappe.set_route('List', 'ToDo'),
-		// () => frappe.tests.click_and_wait('div:nth-child(1)>div>div>.list-row-checkbox'),
-		// () => frappe.tests.click_and_wait(menu_button),
-		// () => frappe.tests.click_and_wait(dropdown_click('Assign To')),
-		// () => {
-		// 	assert.equal(cur_dialog.title, 'Add to To Do');
-		// 	cur_dialog.fields_dict.myself.$input[0].click();
-		// },
-		// () => frappe.timeout(0.5),
-		// () => {
-		// 	cur_dialog.set_value('description', 'Assigned to me todo');
-		// 	cur_dialog.primary_action(frappe.confirm);
-		// },
-		// () => frappe.timeout(1),
-		// () => assert.equal(cur_list.data[0].description, 'Assigned to me todo'),
+		//6. test Print
+		() => frappe.set_route('List', 'ToDo', 'List'),
+		() => frappe.timeout(1),
+		() => frappe.tests.click_and_wait('div:nth-child(2)>div>div>.list-row-checkbox'),
+		() => frappe.timeout(1),
+		() => frappe.tests.click_and_wait(menu_button, 1),
+		() => frappe.tests.click_and_wait(dropdown_click('Print')),
+		() => {
+			assert.equal(cur_dialog.title, 'Print Documents');
+			$('button.btn-modal-close:visible').click()
+		},
 		
-		// //test Add to Desktop
+		// //7. test Add to Desktop
 		// () => frappe.set_route("modules_setup"),
 		// () => {
 		// 	if ($('label:contains("ToDo")').is(':visible'))
@@ -103,32 +115,34 @@ QUnit.skip("Test Menu actions", function(assert) {
 		// 		$('.primary-action').click();
 		// 	}
 		// },
-		// () => frappe.set_route('List', 'ToDo'),
-		// () => frappe.tests.click_and_wait(menu_button),
+		// () => frappe.set_route('List', 'ToDo', 'List'),
+		// () => frappe.tests.click_and_wait(menu_button, 1),
 		// () => frappe.tests.click_and_wait(dropdown_click('Add to Desktop')),
 		// () => frappe.set_route("modules_setup"),                                    ///************* needs reload here ************///
 		// () => assert.ok($('label:contains("ToDo")').is(':visible')),
 		
-		// //test Edit DocType
-		// () => frappe.set_route('List', 'ToDo'),
-		// () => frappe.tests.click_and_wait(menu_button),
-		// () => frappe.tests.click_and_wait(dropdown_click('Edit DocType')),
-		// () => assert.deepEqual(frappe.get_route(), ["Form", "DocType", "ToDo"]),
+		//8. test Edit DocType
+		() => frappe.set_route('List', 'ToDo', 'List'),
+		() => frappe.timeout(1),
+		() => frappe.tests.click_and_wait(menu_button, 1),
+		() => frappe.tests.click_and_wait(dropdown_click('Edit DocType')),
+		() => assert.deepEqual(frappe.get_route(), ["Form", "DocType", "ToDo"]),
 		
 		() => done()
 	]);
 });
 
-QUnit.skip("Test filters", function(assert) {
+QUnit.test("Test filters", function(assert) {
 	assert.expect(2);
 	let done = assert.async();
 
 	frappe.run_serially([
-		// () => frappe.tests.setup_doctype('User'),
+		() => frappe.tests.setup_doctype('User'),
 		() => frappe.tests.setup_doctype('ToDo'),
-		() => frappe.set_route('List', 'ToDo'),
+		() => frappe.set_route('List', 'ToDo', 'List'),
 		() => {
 			assert.deepEqual(['List', 'ToDo', 'List'], frappe.get_route());
+			//set filter values
 			$('.col-md-2:nth-child(2) .input-sm').val('Closed');
 			$('.col-md-2:nth-child(3) .input-sm').val('Low');
 			$('.col-md-2:nth-child(4) .input-sm').val('05-07-2017');
@@ -151,15 +165,16 @@ QUnit.skip("Test filters", function(assert) {
 	]);
 });
 
-QUnit.skip("Test deletion of one list element", function(assert) {
+QUnit.test("Test deletion of one list element", function(assert) {
 	assert.expect(3);
 	let done = assert.async();
 	let count;
 	let random;
 
 	frappe.run_serially([
+		() => frappe.tests.setup_doctype('User'),
 		() => frappe.tests.setup_doctype('ToDo'),
-		() => frappe.set_route('List', 'ToDo'),
+		() => frappe.set_route('List', 'ToDo', 'List'),
 		() => {
 			assert.deepEqual(['List', 'ToDo', 'List'], frappe.get_route());
 			//total list elements
@@ -176,18 +191,20 @@ QUnit.skip("Test deletion of one list element", function(assert) {
 			cur_dialog.primary_action(frappe.confirm);
 		},
 		() => frappe.timeout(1),
+		//check if total elements decreased by one
 		() => assert.equal(cur_list.data.length, (count-1)),
 		() => done()
 	]);
 });
 
-QUnit.skip("Test deletion of all list element", function(assert) {
+QUnit.test("Test deletion of all list element", function(assert) {
 	assert.expect(3);
 	let done = assert.async();
 
 	frappe.run_serially([
+		() => frappe.tests.setup_doctype('User'),
 		() => frappe.tests.setup_doctype('ToDo'),
-		() => frappe.set_route('List', 'ToDo'),
+		() => frappe.set_route('List', 'ToDo', 'List'),
 		() => {
 			assert.deepEqual(['List', 'ToDo', 'List'], frappe.get_route());
 			//select all element
@@ -201,18 +218,20 @@ QUnit.skip("Test deletion of all list element", function(assert) {
 			cur_dialog.primary_action(frappe.confirm);
 		},
 		() => frappe.timeout(2),
+		//check zero elements left
 		() => assert.equal( cur_list.data.length, '0' ),
 		() => done()
 	]);
 });
 
-QUnit.skip("Test paging in list", function(assert) {
+QUnit.test("Test paging in list", function(assert) {
 	assert.expect(2);
 	let done = assert.async();
 
 	frappe.run_serially([
+		() => frappe.tests.setup_doctype('User'),
 		() => frappe.tests.setup_doctype('ToDo'),
-		() => frappe.set_route('List', 'ToDo'),
+		() => frappe.set_route('List', 'ToDo', 'List'),
 		() => {
 			assert.deepEqual(['List', 'ToDo', 'List'], frappe.get_route());
 			//remove all filters
@@ -222,6 +241,7 @@ QUnit.skip("Test paging in list", function(assert) {
 		() => frappe.timeout(1),
 		() => cur_list.page.btn_secondary.click(),
 		() => frappe.timeout(0.5),
+		//check elements less then page length [20 in this case]
 		() => assert.ok(cur_list.data.length <= cur_list.page_length),
 		() => done()
 	]);
