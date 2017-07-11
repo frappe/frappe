@@ -32,7 +32,7 @@ QUnit.skip("Test navbar notifications", function(assert) {
 	let element_content;
 
 	frappe.run_serially([
-		() => frappe.tests.setup_doctype('User'),
+		// () => frappe.tests.setup_doctype('User'),
 		() => frappe.tests.setup_doctype('ToDo'),
 		() => frappe.set_route(),
 		() => frappe.tests.click_and_wait('.navbar-new-comments-true'),                         ///******* need reload ********///

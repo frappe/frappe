@@ -35,6 +35,121 @@ QUnit.test("Test list values", function(assert) {
 	]);
 });
 
+QUnit.test("Test deletion of one list element", function(assert) {
+	assert.expect(3);
+	let done = assert.async();
+	let count;
+	let random;
+
+	frappe.run_serially([
+		// () => frappe.tests.setup_doctype('User'),
+		() => frappe.tests.setup_doctype('ToDo'),
+		() => frappe.set_route('List', 'ToDo', 'List'),
+		() => {
+			assert.deepEqual(['List', 'ToDo', 'List'], frappe.get_route());
+			//total list elements
+			count = cur_list.data.length;
+			random = Math.floor(Math.random() * (count) + 1);
+			//select one element randomly
+			$('div:nth-child('+random+')>div>div>.list-row-checkbox').click();
+		},
+		() => cur_list.page.btn_primary.click(),
+		() => frappe.timeout(0.5),
+		() => {
+			//check if asking for confirmation and click yes
+			assert.equal("Confirm", cur_dialog.title);
+			cur_dialog.primary_action(frappe.confirm);
+		},
+		() => frappe.timeout(1),
+		//check if total elements decreased by one
+		() => assert.equal(cur_list.data.length, (count-1)),
+		() => done()
+	]);
+});
+
+QUnit.test("Test filters", function(assert) {
+	assert.expect(2);
+	let done = assert.async();
+
+	frappe.run_serially([
+		// () => frappe.tests.setup_doctype('User'),
+		() => frappe.tests.setup_doctype('ToDo'),
+		() => frappe.set_route('List', 'ToDo', 'List'),
+		() => {
+			assert.deepEqual(['List', 'ToDo', 'List'], frappe.get_route());
+			//set filter values
+			$('.col-md-2:nth-child(2) .input-sm').val('Closed');
+			$('.col-md-2:nth-child(3) .input-sm').val('Low');
+			$('.col-md-2:nth-child(4) .input-sm').val('05-07-2017');
+			$('.col-md-2:nth-child(5) .input-sm').val('Administrator');
+		},
+		() => frappe.timeout(1),
+		() => cur_list.page.btn_secondary.click(),
+		() => frappe.timeout(1),
+		() => {
+			//get total list element
+			var count = cur_list.data.length;
+			//check if all elements are as per filter
+			var i=0;
+			for ( ; i < count ; i++)
+				if ((cur_list.data[i].status!='Closed')||(cur_list.data[i].priority!='Low')||(cur_list.data[i].owner!='Administrator')||(cur_list.data[i].date!='2017-07-05'))
+					break;
+			assert.equal(i, count);
+		},
+		() => done()
+	]);
+});
+
+QUnit.test("Test deletion of all list element", function(assert) {
+	assert.expect(3);
+	let done = assert.async();
+
+	frappe.run_serially([
+		// () => frappe.tests.setup_doctype('User'),
+		() => frappe.tests.setup_doctype('ToDo'),
+		() => frappe.set_route('List', 'ToDo', 'List'),
+		() => {
+			assert.deepEqual(['List', 'ToDo', 'List'], frappe.get_route());
+			//select all element
+			$('.list-select-all.hidden-xs').click();
+		},
+		() => cur_list.page.btn_primary.click(),
+		() => frappe.timeout(0.5),
+		() => {
+			assert.equal("Confirm", cur_dialog.title);
+			//click yes for deletion
+			cur_dialog.primary_action(frappe.confirm);
+		},
+		() => frappe.timeout(2),
+		//check zero elements left
+		() => assert.equal( cur_list.data.length, '0' ),
+		() => done()
+	]);
+});
+
+QUnit.test("Test paging in list", function(assert) {
+	assert.expect(2);
+	let done = assert.async();
+
+	frappe.run_serially([
+		// () => frappe.tests.setup_doctype('User'),
+		() => frappe.tests.setup_doctype('ToDo'),
+		() => frappe.set_route('List', 'ToDo', 'List'),
+		() => {
+			assert.deepEqual(['List', 'ToDo', 'List'], frappe.get_route());
+			//remove all filters
+			for (var i=1; i<=5; i++)
+				$('.col-md-2:nth-child('+i+') .input-sm').val('');
+		},
+		() => frappe.timeout(1),
+		() => cur_list.page.btn_secondary.click(),
+		() => frappe.timeout(0.5),
+		//check elements less then page length [20 in this case]
+		() => assert.ok(cur_list.data.length <= cur_list.page_length),
+		() => done()
+	]);
+});
+
 QUnit.test("Test Menu actions", function(assert) {
 	assert.expect(8);//total 9
 	let done = assert.async();
@@ -44,7 +159,7 @@ QUnit.test("Test Menu actions", function(assert) {
 	}
 
 	frappe.run_serially([
-		() => frappe.tests.setup_doctype('User'),
+		// () => frappe.tests.setup_doctype('User'),
 		() => frappe.tests.setup_doctype('ToDo'),
 
 		//1. test Import
@@ -129,121 +244,6 @@ QUnit.test("Test Menu actions", function(assert) {
 		() => frappe.tests.click_and_wait(dropdown_click('Edit DocType')),
 		() => assert.deepEqual(frappe.get_route(), ["Form", "DocType", "ToDo"]),
 		
-		() => done()
-	]);
-});
-
-QUnit.test("Test filters", function(assert) {
-	assert.expect(2);
-	let done = assert.async();
-
-	frappe.run_serially([
-		() => frappe.tests.setup_doctype('User'),
-		() => frappe.tests.setup_doctype('ToDo'),
-		() => frappe.set_route('List', 'ToDo', 'List'),
-		() => {
-			assert.deepEqual(['List', 'ToDo', 'List'], frappe.get_route());
-			//set filter values
-			$('.col-md-2:nth-child(2) .input-sm').val('Closed');
-			$('.col-md-2:nth-child(3) .input-sm').val('Low');
-			$('.col-md-2:nth-child(4) .input-sm').val('05-07-2017');
-			$('.col-md-2:nth-child(5) .input-sm').val('Administrator');
-		},
-		() => frappe.timeout(1),
-		() => cur_list.page.btn_secondary.click(),
-		() => frappe.timeout(1),
-		() => {
-			//get total list element
-			var count = cur_list.data.length;
-			//check if all elements are as per filter
-			var i=0;
-			for ( ; i < count ; i++)
-				if ((cur_list.data[i].status!='Closed')||(cur_list.data[i].priority!='Low')||(cur_list.data[i].owner!='Administrator')||(cur_list.data[i].date!='2017-07-05'))
-					break;
-			assert.equal(i, count);
-		},
-		() => done()
-	]);
-});
-
-QUnit.test("Test deletion of one list element", function(assert) {
-	assert.expect(3);
-	let done = assert.async();
-	let count;
-	let random;
-
-	frappe.run_serially([
-		() => frappe.tests.setup_doctype('User'),
-		() => frappe.tests.setup_doctype('ToDo'),
-		() => frappe.set_route('List', 'ToDo', 'List'),
-		() => {
-			assert.deepEqual(['List', 'ToDo', 'List'], frappe.get_route());
-			//total list elements
-			count = cur_list.data.length;
-			random = Math.floor(Math.random() * (count) + 1);
-			//select one element randomly
-			$('div:nth-child('+random+')>div>div>.list-row-checkbox').click();
-		},
-		() => cur_list.page.btn_primary.click(),
-		() => frappe.timeout(0.5),
-		() => {
-			//check if asking for confirmation and click yes
-			assert.equal("Confirm", cur_dialog.title);
-			cur_dialog.primary_action(frappe.confirm);
-		},
-		() => frappe.timeout(1),
-		//check if total elements decreased by one
-		() => assert.equal(cur_list.data.length, (count-1)),
-		() => done()
-	]);
-});
-
-QUnit.test("Test deletion of all list element", function(assert) {
-	assert.expect(3);
-	let done = assert.async();
-
-	frappe.run_serially([
-		() => frappe.tests.setup_doctype('User'),
-		() => frappe.tests.setup_doctype('ToDo'),
-		() => frappe.set_route('List', 'ToDo', 'List'),
-		() => {
-			assert.deepEqual(['List', 'ToDo', 'List'], frappe.get_route());
-			//select all element
-			$('.list-select-all.hidden-xs').click();
-		},
-		() => cur_list.page.btn_primary.click(),
-		() => frappe.timeout(0.5),
-		() => {
-			assert.equal("Confirm", cur_dialog.title);
-			//click yes for deletion
-			cur_dialog.primary_action(frappe.confirm);
-		},
-		() => frappe.timeout(2),
-		//check zero elements left
-		() => assert.equal( cur_list.data.length, '0' ),
-		() => done()
-	]);
-});
-
-QUnit.test("Test paging in list", function(assert) {
-	assert.expect(2);
-	let done = assert.async();
-
-	frappe.run_serially([
-		() => frappe.tests.setup_doctype('User'),
-		() => frappe.tests.setup_doctype('ToDo'),
-		() => frappe.set_route('List', 'ToDo', 'List'),
-		() => {
-			assert.deepEqual(['List', 'ToDo', 'List'], frappe.get_route());
-			//remove all filters
-			for (var i=1; i<=5; i++)
-				$('.col-md-2:nth-child('+i+') .input-sm').val('');
-		},
-		() => frappe.timeout(1),
-		() => cur_list.page.btn_secondary.click(),
-		() => frappe.timeout(0.5),
-		//check elements less then page length [20 in this case]
-		() => assert.ok(cur_list.data.length <= cur_list.page_length),
 		() => done()
 	]);
 });
