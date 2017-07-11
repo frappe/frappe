@@ -233,9 +233,16 @@ frappe.setup.WizardSlide = Class.extend({
 
 		if(this.add_more) {
 			this.count = 1;
-			fields = fields.map(field => {
-				if(field.fieldname) field.fieldname += '_1';
-				if(field.label) field.label += ' 1';
+			fields = fields.map((field, i) => {
+				if(field.fieldname) {
+					field.fieldname += '_1';
+				}
+				if(i === 1 && this.mandatory_entry) {
+					field.reqd = 1;
+				}
+				if(!field.static) {
+					if(field.label) field.label += ' 1';
+				}
 				return field;
 			});
 		}
@@ -278,6 +285,9 @@ frappe.setup.WizardSlide = Class.extend({
 		if(this.onload) {
 			this.onload(this);
 		}
+		this.set_reqd_fields();
+		this.bind_fields_to_next($primary_btn);
+
 		this.reset_next($primary_btn);
 		this.focus_first_input();
 	},
@@ -322,7 +332,9 @@ frappe.setup.WizardSlide = Class.extend({
 				var fields = JSON.parse(JSON.stringify(this.fields));
 				this.form.add_fields(fields.map(field => {
 					if(field.fieldname) field.fieldname += '_' + this.count;
-					if(field.label) field.label += ' ' + this.count;
+					if(!field.static) {
+						if(field.label) field.label += ' ' + this.count;
+					}
 					return field;
 				}));
 				if(this.count === this.max_count) {
@@ -437,7 +449,7 @@ var frappe_slides = [
 
 		fields: [
 			{ fieldname: "language", label: __("Your Language"),
-				fieldtype: "Select", "default": "English" }
+				fieldtype: "Select", reqd: 1}
 		],
 
 		onload: function(slide) {
@@ -497,7 +509,7 @@ var frappe_slides = [
 				label: __("Attach Your Picture"), is_private: 0},
 			{ "fieldname": "full_name", "label": __("Full Name"), "fieldtype": "Data",
 				reqd:1},
-			{ "fieldname": "email", "label": __("Email Address") + ' <i>(' + __("Will be your login ID") + ')</i>',
+			{ "fieldname": "email", "label": __("Email Address") + ' (' + __("Will be your login ID") + ')',
 				"fieldtype": "Data", "options":"Email"},
 			{ "fieldname": "password", "label": __("Password"), "fieldtype": "Password" }
 		],
