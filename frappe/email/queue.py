@@ -475,8 +475,7 @@ def clear_outbox():
 		frappe.db.sql("""delete from `tabEmail Queue Recipient` where parent in (%s)"""
 			% ','.join(['%s']*len(email_queues)), tuple(email_queues))
 
-	for dt in ("Email Queue", "Email Queue Recipient"):
-		frappe.db.sql("""
-			update `tab{0}`
-			set status='Expired'
-			where datediff(curdate(), modified) > 7 and status='Not Sent'""".format(dt))
+	frappe.db.sql("""
+		update `tabEmail Queue`
+		set status='Expired'
+		where datediff(curdate(), modified) > 7 and status='Not Sent' and (send_after is null or send_after < %(now)s)""", { 'now': now_datetime() })

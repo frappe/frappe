@@ -20,7 +20,6 @@ frappe.provide('frappe.ui.form');
 frappe.ui.form.Controller = Class.extend({
 	init: function(opts) {
 		$.extend(this, opts);
-		this.setup && this.setup();
 	}
 });
 
@@ -77,7 +76,6 @@ _f.Frm.prototype.check_doctype_conflict = function(docname) {
 };
 
 _f.Frm.prototype.setup = function() {
-
 	var me = this;
 	this.fields = [];
 	this.fields_dict = {};
@@ -413,7 +411,9 @@ _f.Frm.prototype.refresh = function(docname) {
 		}
 
 		// do setup
-		if(!this.setup_done) this.setup();
+		if(!this.setup_done) {
+			this.setup();
+		}
 
 		// load the record for the first time, if not loaded (call 'onload')
 		this.cscript.is_onload = false;
