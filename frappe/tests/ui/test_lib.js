@@ -90,6 +90,70 @@ frappe.tests = {
 				return frappe.run_serially(tasks);
 			});
 	},
+	click_page_head_item: (text) => {
+		// Method to items present on the page header like New, Save, Delete etc. 
+		let  possible_texts = ["New", "Delete", "Save", "Yes"];
+		return frappe.run_serially([
+			() => {
+				if (text == "Menu"){
+					$("span.menu-btn-group-label:contains('Menu'):visible").click();
+				} else if (text == "Refresh") {
+					$(".btn-secondary:contains('Refresh'):visible").click();
+				} else if (possible_texts.includes(text)) {
+					$(".btn-primary:contains("+text+"):visible").click();
+				}
+			},
+			() => frappe.timeout(0.3)
+		]);
+	},
+	click_dropdown_item: (text) => {
+		// Method to click dropdown elements 
+		return frappe.run_serially([
+			() => {
+				let li = $(".dropdown-menu li:contains("+text+"):visible").get(0);
+				$(li).find('a')[0].click();
+			},
+			() => frappe.timeout(0.3)
+		]);
+	},
+	click_navbar_item: (text) => {
+		// Method to click an elements present on the navbar 
+		return frappe.run_serially([
+			() => {
+				if (text == "Help"){
+					$(".dropdown-help .dropdown-toggle:visible").click();
+				}
+				else if (text == "navbar_user"){
+					$(".dropdown-navbar-user .dropdown-toggle:visible").click();
+				}
+				else if (text == "Notification"){
+					$(".navbar-new-comments").click();
+				}
+				else if (text == "Home"){
+					$(".navbar-home:contains('Home'):visible")[0].click();
+				}
+			},
+			() => frappe.timeout(0.3)
+		]);
+	},
+	click_generic_text: (text, tag='a') => {
+		// Method to click an element by its name 
+		return frappe.run_serially([
+			() => $(tag+":contains("+text+"):visible")[0].click(),
+			() => frappe.timeout(0.3)
+		]);
+	},
+	click_desktop_icon: (text) => {
+		// Method to click the desktop icons on the Desk, by their name 
+		return frappe.run_serially([
+			() => $("#icon-grid > div > div.app-icon[title="+text+"]").click(),
+			() => frappe.timeout(0.3)
+		]);
+	},
+	is_visible: (text, tag='a') => {
+		// Method to check the visibility of an element
+		return $(tag+":contains("+text+")").is(':visible');
+	},
 	click_button: function(text) {
 		$(`.btn:contains("${text}"):visible`).click();
 		return frappe.timeout(0.3);
