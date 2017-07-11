@@ -118,6 +118,7 @@ def get_notifications_for_targets(config, notification_percent):
 	"""Notifications for doc targets"""
 	can_read = frappe.get_user().get_can_read()
 	doc_target_percents = {}
+
 	# doc_target_percents = {
 	# 	"Company": {
 	# 		"Acme": 87,

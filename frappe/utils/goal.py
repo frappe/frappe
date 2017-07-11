@@ -4,18 +4,19 @@
 from __future__ import unicode_literals
 import frappe
 
-def get_goal_doctype_monthly_results(goal_doctype, goal_field, aggregation = 'sum'):
-	''''''
+def get_monthly_results(goal_doctype, goal_field, filter_str, aggregation = 'sum'):
+	'''Get monthly aggregation values for given field of doctype'''
 
+	where_clause = ('where ' + filter_str) if filter_str else ''
 	results = frappe.db.sql('''
 		select
 			{0}({1}) as {1}, date_format(creation, '%m-%Y') as month_year
 		from
 			`{2}`
-		where
-			status != 'Draft'
+		{3}
 		group by
-			month_year'''.format(aggregation, goal_field, "tab" + goal_doctype), as_dict=True)
+			month_year'''.format(aggregation, goal_field, "tab" +
+			goal_doctype, where_clause), as_dict=True)
 
 	month_to_value_dict = {}
 	for d in results:
@@ -24,11 +25,25 @@ def get_goal_doctype_monthly_results(goal_doctype, goal_field, aggregation = 'su
 	return month_to_value_dict
 
 @frappe.whitelist()
-def get_goal_graph_data(title, doctype, docname, goal_value_field, goal_total_field,
-	goal_doctype, goal_field, aggregation="sum"):
-	''''''
+def get_monthly_goal_graph_data(title, doctype, docname, goal_value_field, goal_total_field,
+	goal_doctype, goal_field, filter_str, aggregation="sum"):
+	'''
+		Get month-wise graph data for a doctype based on aggregation values of a field in the goal doctype
 
-	month_to_value_dict = get_goal_doctype_monthly_results(goal_doctype, goal_field, aggregation)
+		:param title: Graph title
+		:param doctype: doctype of graph doc
+		:param docname: of the doc to set the graph in
+		:param goal_value_field: goal field of doctype
+		:param goal_total_field: current month value field of doctype
+		:param goal_doctype: doctype the goal is based on
+		:param goal_field: field from which the goal is calculated
+		:param filter_str: where clause condition
+		:param aggregation: a value like 'count', 'sum', 'avg'
+
+		:return: dict of graph data
+	'''
+
+	month_to_value_dict = get_monthly_results(goal_doctype, goal_field, filter_str, aggregation)
 
 	from frappe.utils import today, getdate, formatdate, add_months
 	months = []
