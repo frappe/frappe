@@ -68,6 +68,38 @@ QUnit.test("Test setting colour of column", function(assert) {
 	]);
 });
 
+QUnit.only("Test filters in kanban", function(assert) {
+	assert.expect(1);
+	let done = assert.async();
+
+	frappe.run_serially([
+		// () => frappe.tests.setup_doctype('User'),
+		// () => frappe.tests.setup_doctype('ToDo'),
+		// () => frappe.tests.setup_doctype('Kanban Board'),
+		() => frappe.set_route("List", "ToDo", "Kanban", "kanban 1"),
+		() => frappe.timeout(1),
+		() => {
+			//set filter values
+			$('.col-md-2:nth-child(2) .input-sm').val('Closed');
+			$('.col-md-2:nth-child(5) .input-sm').val('Administrator');
+		},
+		() => frappe.timeout(1),
+		() => cur_list.page.btn_secondary.click(),
+		() => frappe.timeout(1),
+		() => {
+			//get total list element
+			var count = cur_list.data.length;
+			//check if all elements are as per filter
+			var i=0;
+			for ( ; i < count ; i++)
+				if ((cur_list.data[i].status!='Closed')||(cur_list.data[i].owner!='Administrator'))
+					break;
+			assert.equal(i, count);
+		},
+		() => done()
+	]);
+});
+
 QUnit.skip("Test adding new column", function(assert) {
 	assert.expect(0);
 	let done = assert.async();
