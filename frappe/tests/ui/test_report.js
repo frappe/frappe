@@ -1,59 +1,31 @@
 // Test for creating query report
 
-QUnit.test("test building report", function(assert) {
-	assert.expect(2);
+QUnit.test("Test Query Report", function(assert) {
+	assert.expect(1);
 	let done = assert.async();
 	frappe.run_serially([
 		() => {
 			return frappe.tests.make('Report', [
-				{report_name: 'Selling Report'},
+				{report_name: 'ToDo List Report'},
 				{report_type: 'Query Report'},
-				{ref_doctype: 'Sales Person'},
+				{ref_doctype: 'ToDo'},
 				{module: 'Setup'}
 			]);			
 		},
+		() => frappe.set_route('Form','Report', 'ToDo List Report'),
+
+		//Query
+		() => cur_frm.set_value('query','Select * from `tabToDo`'),
+		() => cur_frm.save(),   
+			
+		() => { $("form-inner-toolbar .btn-xs").click(frappe.set_route('query-report','ToDo List Report')); },	
+		() => frappe.timeout(5),
 		() => {
 			
-			assert.ok(cur_frm.doc.report_name=='Selling Report');
-			assert.ok(cur_frm.doc.report_type=='Query Report');
+	  		assert.ok($('div.grid-canvas > div.slick-row').length>0);
+		    frappe.timeout(3);
 		},
 		() => done()
 	]);
 });
 
-//Test for generating report with the help of writing query
-QUnit.test("test query report", function(assert) {
-	assert.expect(1);
-	let done = assert.async();
-	frappe.run_serially([
-		() => frappe.set_route('Form','Report', 'Selling Report'),
-
-			//Query
-		() => cur_frm.set_value('query','Select * from `tabSales Person`'),
-		() => cur_frm.save(),   
-			
-		() => { $("form-inner-toolbar .btn-xs").click(frappe.set_route('query-report','Selling Report')); },	
-		() => frappe.timeout(5),
-			
-		() => assert.deepEqual(["query-report", "Selling Report"], frappe.get_route()),
-		() => done()
-	
-	]);
-});
-
-//Test to export a file
-
-QUnit.only("test data-export-tool", function(assert) {
-	assert.expect(1);
-	let done = assert.async();
-	frappe.run_serially([
-		() => frappe.set_route('data-import-tool'),
-        () => assert.deepEqual(["data-import-tool"], frappe.get_route()),
-		
-		() => $('select.doctype').val("Task").change(),	
-		() => { $(".btn-download-data").click(); },	
-		() => frappe.timeout(5),
-		() => done()
-	
-	]);
-});
