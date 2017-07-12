@@ -20,7 +20,6 @@ frappe.provide('frappe.ui.form');
 frappe.ui.form.Controller = Class.extend({
 	init: function(opts) {
 		$.extend(this, opts);
-		this.setup && this.setup();
 	}
 });
 
@@ -77,7 +76,6 @@ _f.Frm.prototype.check_doctype_conflict = function(docname) {
 };
 
 _f.Frm.prototype.setup = function() {
-
 	var me = this;
 	this.fields = [];
 	this.fields_dict = {};
@@ -202,7 +200,7 @@ _f.Frm.prototype.watch_model_updates = function() {
 				&& me.fields_dict[fieldname].refresh(fieldname);
 
 			me.layout.refresh_dependency();
-			me.script_manager.trigger(fieldname, doc.doctype, doc.name);
+			return me.script_manager.trigger(fieldname, doc.doctype, doc.name);
 		}
 	});
 
@@ -413,7 +411,9 @@ _f.Frm.prototype.refresh = function(docname) {
 		}
 
 		// do setup
-		if(!this.setup_done) this.setup();
+		if(!this.setup_done) {
+			this.setup();
+		}
 
 		// load the record for the first time, if not loaded (call 'onload')
 		this.cscript.is_onload = false;
@@ -503,7 +503,7 @@ _f.Frm.prototype.render_form = function(is_a_different_doc) {
 		}
 
 		// update dashboard after refresh
-		this.dashboard.after_refresh();
+		frappe.timeout(0.1).then(() => this.dashboard.after_refresh());
 
 		// focus on first input
 

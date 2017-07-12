@@ -119,6 +119,16 @@ frappe.form.formatters = {
 
 		return value || "";
 	},
+	DateRange: function(value) {
+		if($.isArray(value)) {
+			return __("{0} to {1}").format([
+				frappe.datetime.str_to_user(value[0]),
+				frappe.datetime.str_to_user(value[1])
+			]);
+		} else {
+			return value || "";
+		}
+	},
 	Datetime: function(value) {
 		if(value) {
 			var m = moment(frappe.datetime.convert_to_user_tz(value));

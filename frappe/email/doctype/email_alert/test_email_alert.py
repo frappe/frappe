@@ -7,6 +7,8 @@ import unittest
 
 test_records = frappe.get_test_records('Email Alert')
 
+test_dependencies = ["User"]
+
 class TestEmailAlert(unittest.TestCase):
 	def setUp(self):
 		frappe.db.sql("""delete from `tabEmail Queue`""")
@@ -31,6 +33,9 @@ class TestEmailAlert(unittest.TestCase):
 
 		self.assertTrue(frappe.db.get_value("Email Queue", {"reference_doctype": "Communication",
 			"reference_name": communication.name, "status":"Not Sent"}))
+
+		self.assertEquals(frappe.db.get_value('Communication',
+			communication.name, 'subject'), '__testing__')
 
 	def test_condition(self):
 		event = frappe.new_doc("Event")
@@ -137,7 +142,7 @@ class TestEmailAlert(unittest.TestCase):
 		event.save()
 
 		# Value Change email alert alert will be trigger as description is not changed
-		# mail will not be sent 
+		# mail will not be sent
 		self.assertFalse(frappe.db.get_value("Email Queue", {"reference_doctype": "Event",
 			"reference_name": event.name, "status":"Not Sent"}))
 

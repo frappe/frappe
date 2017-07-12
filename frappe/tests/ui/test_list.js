@@ -3,21 +3,25 @@ QUnit.module('views');
 QUnit.test("Test quick entry", function(assert) {
 	assert.expect(2);
 	let done = assert.async();
-	let random = frappe.utils.get_random(10);
+	let random_text = frappe.utils.get_random(10);
 
 	frappe.run_serially([
 		() => frappe.set_route('List', 'ToDo', 'List'),
 		() => frappe.new_doc('ToDo'),
-		() => frappe.quick_entry.dialog.set_value('description', random),
+		() => frappe.quick_entry.dialog.set_value('description', random_text),
 		() => frappe.quick_entry.insert(),
 		(doc) => {
 			assert.ok(doc && !doc.__islocal);
 			return frappe.set_route('Form', 'ToDo', doc.name);
 		},
-		() => {
-			assert.ok(cur_frm.doc.description.includes(random));
-			return done();
-		}
+		() => assert.ok(cur_frm.doc.description.includes(random_text)),
+
+		// Delete the created ToDo
+		() => frappe.tests.click_page_head_item('Menu'),
+		() => frappe.tests.click_dropdown_item('Delete'),
+		() => frappe.tests.click_page_head_item('Yes'),
+
+		() => done()
 	]);
 });
 

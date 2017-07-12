@@ -43,6 +43,9 @@ frappe.search.AwesomeBar = Class.extend({
 			}
 		});
 
+		// Added to aid UI testing of global search
+		input.awesomplete = awesomplete;
+
 		$input.on("input", function(e) {
 			var value = e.target.value;
 			var txt = value.trim().replace(/\s\s+/g, ' ');

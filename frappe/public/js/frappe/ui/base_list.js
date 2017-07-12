@@ -289,7 +289,11 @@ frappe.ui.BaseList = Class.extend({
 		frappe.route_options = null;
 	},
 
-	run: function (more) {
+	run: function(more) {
+		setTimeout(() => this._run(more), 100);
+	},
+
+	_run: function (more) {
 		var me = this;
 		if (!more) {
 			this.start = 0;

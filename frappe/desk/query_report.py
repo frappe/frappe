@@ -159,7 +159,7 @@ def export_query():
 				elif not row:
 					result.append([])
 		else:
-			result = result + data.result
+			result = result + [d for i,d in enumerate(data.result) if (i+1 in visible_idx)]
 
 		from frappe.utils.xlsxutils import make_xlsx
 		xlsx_file = make_xlsx(result, "Query Report")
