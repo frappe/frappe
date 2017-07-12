@@ -57,6 +57,9 @@ def render_template(template, context, is_path=None):
 	:param context: dict of properties to pass to the template
 	:param is_path: (optional) assert that the `template` parameter is a path'''
 
+	if not template:
+		return ""
+
 	# if it ends with .html then its a freaking path, not html
 	if (is_path
 		or template.startswith("templates/")
