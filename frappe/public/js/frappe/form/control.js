@@ -1853,8 +1853,6 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 		// also firefox tends to reset the cursor for some reason if the values
 		// are reset
 
-		let current = this.get_input_value();
-
 		if(this.setting_count > 2) {
 			// we don't understand how the internal triggers work,
 			// so if someone is setting the value third time, then quit
@@ -1867,13 +1865,13 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 
 		if(!this._last_change_on || (time_since_last_keystroke > 3000)) {
 			setTimeout(() => this.setting_count = 0, 500);
-			this.editor.summernote('code', value);
+			this.editor.summernote('code', value || '');
 		} else {
 			this._setting_value = setInterval(() => {
 				if(time_since_last_keystroke > 3000) {
 					if(this.last_value !== this.get_input_value()) {
 						// if not already in sync, reset
-						this.editor.summernote('code', this.last_value);
+						this.editor.summernote('code', this.last_value || '');
 					}
 					clearInterval(this._setting_value);
 					this._setting_value = null;
