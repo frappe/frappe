@@ -99,6 +99,9 @@ def make_autoname(key='', doctype='', doc=''):
 
 def parse_naming_series(parts, doctype= '', doc = ''):
 	n = ''
+	if isinstance(parts, basestring):
+		parts = parts.split('.')
+
 	series_set = False
 	today = now_datetime()
 	for e in parts:
