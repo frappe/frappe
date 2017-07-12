@@ -13,9 +13,9 @@ QUnit.test("Gantt View Tests", function(assert) {
 		let fin = event_label.indexOf(')');
 		return (event_label.substr(init+1,fin-init-1));
 	};
-	let event_title_text = (text) => {
+	let event_title_text = () => {
 		// Method to check the name of the event created. This is needed to verify the creation and deletion of the event
-		return $('#bar > g > g.bar-group > text:visible').text().includes(text);
+		return $('#bar > g > g.bar-group > text:visible').text();
 	};
 
 	frappe.run_serially([
@@ -31,7 +31,9 @@ QUnit.test("Gantt View Tests", function(assert) {
 
 		// Check if event is created
 		() => frappe.set_route(["List", "Event", "Gantt"]),
-		() => assert.ok( event_title_text(random_text) ),
+		() => frappe.tests.click_page_head_item("Refresh"),
+		() => frappe.timeout(0.3),
+		() => assert.ok(event_title_text().includes(random_text), "Event title verified"),
 
 		// Delete event 
 		() => frappe.set_route(["List", "Event", "Gantt"]),
@@ -46,7 +48,9 @@ QUnit.test("Gantt View Tests", function(assert) {
 		() => frappe.timeout(0.3),
 
 		// Check if event is deleted
-		() => assert.ok( event_title_text("") ),
+		() => frappe.tests.click_page_head_item("Refresh"),
+		() => frappe.timeout(0.3),
+		() => assert.equal(event_title_text(), "", "Event deleted"),
 
 		() => done()
 	]);
