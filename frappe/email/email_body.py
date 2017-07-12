@@ -16,7 +16,15 @@ def get_email(recipients, sender='', msg='', subject='[No Subject]',
 	text_content = None, footer=None, print_html=None, formatted=None, attachments=None,
 	content=None, reply_to=None, cc=[], email_account=None, expose_recipients=None,
 	inline_images=[]):
-	"""send an html email as multipart with attachments and all"""
+	""" Prepare an email with the following format:
+		- multipart/mixed
+			- multipart/alternative
+				- text/plain
+				- multipart/related
+					- text/html
+					- inline image
+				- attachment
+	"""
 	content = content or msg
 	emailobj = EMail(sender, recipients, subject, reply_to=reply_to, cc=cc, email_account=email_account, expose_recipients=expose_recipients)
 
@@ -58,8 +66,8 @@ class EMail:
 		self.expose_recipients = expose_recipients
 
 		self.msg_root = MIMEMultipart('mixed')
-		self.msg_multipart = MIMEMultipart('alternative')
-		self.msg_root.attach(self.msg_multipart)
+		self.msg_alternative = MIMEMultipart('alternative')
+		self.msg_root.attach(self.msg_alternative)
 		self.cc = cc or []
 		self.html_set = False
 
@@ -88,33 +96,42 @@ class EMail:
 		"""
 		from email.mime.text import MIMEText
 		part = MIMEText(message, 'plain', 'utf-8')
-		self.msg_multipart.attach(part)
+		self.msg_alternative.attach(part)
 
 	def set_part_html(self, message, inline_images):
 		from email.mime.text import MIMEText
 		if inline_images:
-			related = MIMEMultipart('related')
-
+			# process inline images
+			_inline_images = []
 			for image in inline_images:
 				# images in dict like {filename:'', filecontent:'raw'}
+
 				content_id = random_string(10)
+				message = replace_filename_with_cid(message,
+					image.get('filename'), content_id)
 
-				# replace filename in message with CID
-				message = re.sub('''src=['"]{0}['"]'''.format(image.get('filename')),
-					'src="cid:{0}"'.format(content_id), message)
+				_inline_images.append({
+					'filename': image.get('filename'),
+					'filecontent': image.get('filecontent'),
+					'content_id': content_id
+				})
 
-				self.add_attachment(image.get('filename'), image.get('filecontent'),
-					None, content_id=content_id, parent=related)
+			# prepare parts
+			msg_related = MIMEMultipart('related')
 
 			html_part = MIMEText(message, 'html', 'utf-8')
-			related.attach(html_part)
+			msg_related.attach(html_part)
 
-			self.msg_multipart.attach(related)
+			for image in _inline_images:
+				self.add_attachment(image.get('filename'), image.get('filecontent'),
+					content_id=image.get('content_id'), parent=msg_related, inline=True)
+
+			self.msg_alternative.attach(msg_related)
 		else:
-			self.msg_multipart.attach(MIMEText(message, 'html', 'utf-8'))
+			self.msg_alternative.attach(MIMEText(message, 'html', 'utf-8'))
 
 	def set_html_as_text(self, html):
-		"""return html2text"""
+		"""Set plain text from HTML"""
 		self.set_text(to_markdown(html))
 
 	def set_message(self, message, mime_type='text/html', as_attachment=0, filename='attachment.html'):
@@ -139,7 +156,7 @@ class EMail:
 		self.add_attachment(res[0], res[1])
 
 	def add_attachment(self, fname, fcontent, content_type=None,
-		parent=None, content_id=None):
+		parent=None, content_id=None, inline=False):
 		"""add attachment"""
 		from email.mime.audio import MIMEAudio
 		from email.mime.base import MIMEBase
@@ -174,8 +191,8 @@ class EMail:
 
 		# Set the filename parameter
 		if fname:
-			part.add_header(b'Content-Disposition',
-				("attachment; filename=\"%s\"" % fname).encode('utf-8'))
+			attachment_type = 'inline' if inline else 'attachment'
+			part.add_header(b'Content-Disposition', attachment_type, filename=fname.encode('utf=8'))
 		if content_id:
 			part.add_header(b'Content-ID', '<{0}>'.format(content_id))
 
@@ -311,3 +328,12 @@ def get_footer(email_account, footer=None):
 			footer += '<div style="margin: 15px auto;">{0}</div>'.format(default_mail_footer)
 
 	return footer
+
+def replace_filename_with_cid(message, filename, content_id):
+	""" Replaces <img embed="filename.jpg" ...> with
+		<img src="cid:content_id" ...>
+	"""
+	message = re.sub('''embed=['"]{0}['"]'''.format(filename),
+		'src="cid:{0}"'.format(content_id), message)
+
+	return message

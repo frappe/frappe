@@ -22,6 +22,22 @@ def get_jenv():
 def get_template(path):
 	return get_jenv().get_template(path)
 
+def get_email_from_template(name, args):
+	from jinja2 import TemplateNotFound
+
+	args = args or {}
+	try:
+		message = get_template('templates/emails/' + name + '.html').render(args)
+	except TemplateNotFound:
+		message = None
+
+	try:
+		text_content = get_template('templates/emails/' + name + '.txt').render(args)
+	except TemplateNotFound:
+		text_content = None
+
+	return (message, text_content)
+
 def validate_template(html):
 	"""Throws exception if there is a syntax error in the Jinja Template"""
 	import frappe
