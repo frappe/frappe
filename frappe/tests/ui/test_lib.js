@@ -8,8 +8,13 @@ frappe.tests = {
 			() => frappe.set_route('List', doctype),
 			() => frappe.new_doc(doctype),
 			() => {
-				let frm = frappe.quick_entry ? frappe.quick_entry.dialog : cur_frm;
-				return frappe.tests.set_form_values(frm, data);
+				if (frappe.quick_entry) {
+					frappe.quick_entry.dialog.$wrapper.find('.edit-full').click();
+					return frappe.timeout(1);
+				}
+			},
+			() => {
+				return frappe.tests.set_form_values(cur_frm, data);
 			},
 			() => frappe.timeout(1),
 			() => (frappe.quick_entry ? frappe.quick_entry.insert() : cur_frm.save())
@@ -89,6 +94,18 @@ frappe.tests = {
 
 				return frappe.run_serially(tasks);
 			});
+	},
+	click_and_wait: (button, obj=0.1) => {
+		return frappe.run_serially([
+			() => {
+				//check if obj value is passed
+				if (obj == 0.1)
+					$(button).click();
+				else
+					$(button)[obj].click();
+			},
+			() => frappe.timeout(0.5)
+		]);
 	},
 	click_page_head_item: (text) => {
 		// Method to items present on the page header like New, Save, Delete etc. 
