@@ -21,8 +21,8 @@ QUnit.test("Test Query Report", function(assert) {
 		() => frappe.timeout(5),
 		() => {
 			
-	  		assert.ok($('div.grid-canvas > div.slick-row').length>0);
-		    frappe.timeout(3);
+			assert.ok($('div.grid-canvas > div.slick-row').length>0);
+			frappe.timeout(3);
 		},
 		() => done()
 	]);
