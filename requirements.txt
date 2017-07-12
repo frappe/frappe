@@ -42,3 +42,4 @@ oauthlib
 PyJWT
 pypdf
 openpyxl
+pyotp
