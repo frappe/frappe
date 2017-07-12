@@ -44,7 +44,7 @@ QUnit.skip("Test navbar notifications", function(assert) {
 			//check number of elements
 			assert.equal(cur_list.data.length, element_content.replace(/[^0-9]/gi, ''));
 		},
-    () => done()
+    	() => done()
 	]);
 });   
 
