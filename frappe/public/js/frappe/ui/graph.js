@@ -1,26 +1,16 @@
 // specific_values = [
 // 	{
 // 		name: "Average",
-// 		line_type: "dashed",
+// 		line_type: "dashed",	// "dashed" or "solid"
 // 		value: 10
 // 	},
-// 	{
-// 		name: "Goal",
-// 		line_type: "solid",
-// 		value: 120
-// 	}
-// ]
 
 // summary_values = [
 // 	{
 // 		name: "Total",
-// 		color: 1,
+// 		color: 'blue',		// Indicator colors: 'grey', 'blue', 'red', 'green', 'orange',
+// 					// 'purple', 'darkgrey', 'black', 'yellow', 'lightblue'
 // 		value: 80
-// 	},
-// 	{
-// 		name: "Goal",
-// 		color: 0,
-// 		value: 120
 // 	}
 // ]
 
@@ -174,6 +164,7 @@ frappe.ui.Graph = class Graph {
 		});
 	}
 
+	// Helpers
 	get_upper_limit_and_parts(array) {
 		let specific_values = this.specific_values.map(d => d.value);
 		let max_val = Math.max(...array, ...specific_values);
@@ -257,7 +248,7 @@ frappe.ui.BarGraph = class BarGraph extends frappe.ui.Graph {
 			}));
 		});
 	}
-}
+};
 
 frappe.ui.LineGraph = class LineGraph extends frappe.ui.Graph {
 	constructor(args = {}) {
@@ -299,7 +290,7 @@ frappe.ui.LineGraph = class LineGraph extends frappe.ui.Graph {
 	}
 
 	make_units() {
-		let points_list = []
+		let points_list = [];
 		this.y_values.map((value, i) => {
 			let x = i * this.avg_unit_width;
 			let y = (100 - 100/(this.upper_graph_bound/value));
