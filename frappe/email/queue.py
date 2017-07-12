@@ -462,12 +462,16 @@ def prepare_message(email, recipient, recipients_list):
 
 		message = message.replace("<!--recipient-->", recipient)
 
+	attachments = json.loads(email.attachments)
+	if not attachments:
+		return message
+
 	# On-demand attachments
 	from email.parser import Parser
 
 	msg_obj = Parser().parsestr(message)
 
-	for attachment in json.loads(email.attachments):
+	for attachment in attachments:
 		if attachment.get('fcontent'): continue
 
 		fid = attachment.get('fid')
@@ -475,7 +479,7 @@ def prepare_message(email, recipient, recipients_list):
 
 		fname, fcontent = get_file(fid)
 		attachment.update({
-			'fname', fname,
+			'fname': fname,
 			'fcontent': fcontent,
 			'parent': msg_obj
 		})

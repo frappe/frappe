@@ -2,7 +2,7 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
-import frappe, re
+import frappe, re, os
 from frappe.utils.pdf import get_pdf
 from frappe.email.smtp import get_outgoing_email_account
 from frappe.utils import (get_url, scrub_urls, strip, expand_relative_urls, cint,
@@ -102,21 +102,12 @@ class EMail:
 
 	def set_part_html(self, message, inline_images):
 		from email.mime.text import MIMEText
-		if inline_images:
+
+		has_inline_images = re.search('''embed=['"]assets/.*?['"]''', message)
+
+		if has_inline_images:
 			# process inline images
-			_inline_images = []
-			for image in inline_images:
-				# images in dict like {filename:'', filecontent:'raw'}
-
-				content_id = random_string(10)
-				message = replace_filename_with_cid(message,
-					image.get('filename'), content_id)
-
-				_inline_images.append({
-					'filename': image.get('filename'),
-					'filecontent': image.get('filecontent'),
-					'content_id': content_id
-				})
+			message, _inline_images = replace_filename_with_cid(message)
 
 			# prepare parts
 			msg_related = MIMEMultipart('related')
@@ -246,6 +237,7 @@ def get_formatted_html(subject, message, footer=None, print_html=None, email_acc
 		email_account = get_outgoing_email_account(False)
 
 	rendered_email = frappe.get_template("templates/emails/standard.html").render({
+		"header": get_header(),
 		"content": message,
 		"signature": get_signature(email_account),
 		"footer": get_footer(email_account, footer),
@@ -340,11 +332,60 @@ def get_footer(email_account, footer=None):
 
 	return footer
 
-def replace_filename_with_cid(message, filename, content_id):
-	""" Replaces <img embed="filename.jpg" ...> with
-		<img src="cid:content_id" ...>
+def replace_filename_with_cid(message):
+	""" Replaces <img embed="assets/frappe/images/filename.jpg" ...> with
+		<img src="cid:content_id" ...> and return the modified message and
+		a list of inline_images with {filename, filecontent, content_id}
 	"""
-	message = re.sub('''embed=['"]{0}['"]'''.format(filename),
+
+	inline_images = []
+
+	while True:
+		matches = re.search('''embed=["'](assets/.*?)["']''', message)
+		if not matches: break
+		groups = matches.groups()
+
+		# found match
+		img_path = groups[0]
+		filename = img_path.rsplit('/')[-1]
+		content_id = random_string(10)
+
+		full_img_path = os.path.abspath(img_path)
+		if os.path.exists(full_img_path):
+			with open(full_img_path) as f:
+				filecontent = f.read()
+
+			inline_images.append({
+				'filename': filename,
+				'filecontent': filecontent,
+				'content_id': content_id
+			})
+		else:
+			print(full_img_path + ' doesn\'t exists')
+
+		message = re.sub('''embed=['"]{0}['"]'''.format(img_path),
 		'src="cid:{0}"'.format(content_id), message)
 
-	return message
+	return (message, inline_images)
+
+def get_header():
+	""" Build header from template """
+	from frappe.utils.jinja import get_email_from_template
+	from frappe.utils import encode
+
+	default_brand_image = 'assets/frappe/images/favicon.png' # svg doesn't work in email
+	email_brand_image = frappe.get_hooks('email_brand_image')
+	if len(email_brand_image):
+		email_brand_image = email_brand_image[-1]
+	else:
+		email_brand_image = default_brand_image
+
+	email_brand_image = default_brand_image
+	brand_text = frappe.get_hooks('app_title')[-1]
+
+	email_header, text = get_email_from_template('email_header', {
+		'brand_image': email_brand_image,
+		'brand_text': brand_text
+	})
+
+	return email_header
