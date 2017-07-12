@@ -416,6 +416,7 @@ frappe.ui.form.Dashboard = Class.extend({
 
 	render_graph: function(args) {
 		var me = this;
+		this.graph_area.empty();
 		$.extend(args, {
 			parent: me.graph_area,
 			width: 700,
@@ -423,7 +424,7 @@ frappe.ui.form.Dashboard = Class.extend({
 			mode: 'line-graph'
 		});
 
-		new frappe.ui.LineGraph(args);
+		new frappe.ui.Graph(args);
 	},
 
 	setup_chart: function(opts) {

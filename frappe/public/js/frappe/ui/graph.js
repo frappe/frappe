@@ -40,6 +40,15 @@ frappe.ui.Graph = class Graph {
 		color = '',
 		mode = '',
 	} = {}) {
+
+		if(Object.getPrototypeOf(this) === frappe.ui.Graph.prototype) {
+			if(mode === 'line-graph') {
+				return new frappe.ui.LineGraph(arguments[0]);
+			} else if(mode === 'bar-graph') {
+				return new frappe.ui.BarGraph(arguments[0]);
+			}
+		}
+
 		this.parent = parent;
 
 		this.width = width;
@@ -108,6 +117,7 @@ frappe.ui.Graph = class Graph {
 	setup_values() {
 		this.upper_graph_bound = this.get_upper_limit_and_parts(this.y_values)[0];
 		this.y_axis = this.get_y_axis(this.y_values);
+		this.avg_unit_width = (this.width-50)/(this.x_points.length - 1);
 	}
 
 	setup_components() {
@@ -139,12 +149,27 @@ frappe.ui.Graph = class Graph {
 		});
 	}
 
+	show_specific_values() {
+		this.specific_values.map(d => {
+			this.specific_y_lines.add(this.snap.g(
+				this.snap.line(0, 0, this.width - 50, 0).attr({
+					class: d.line_type === "dashed" ? "dashed": ""
+				}),
+				this.snap.text(this.width - 100, 0, d.name.toUpperCase()).attr({
+					dy: ".32em",
+					class: "specific-value",
+				})
+			).attr({
+				class: "tick",
+				transform: `translate(0, ${100 - 100/(this.upper_graph_bound/d.value) })`
+			}));
+		});
+	}
+
 	show_summary() {
 		this.summary_values.map(d => {
-			this.$stats_container.append($(`<div class="stats ${d.name.toLowerCase() + '-stats '}
-			${d.color?' graph-data':''}">
-				<span class="stats-title">${d.name}</span>
-				<span class="stats-value">${d.value}</span>
+			this.$stats_container.append($(`<div class="stats">
+				<span class="indicator ${d.color}">${d.name}: ${d.value}</span>
 			</div>`));
 		});
 	}
@@ -179,6 +204,11 @@ frappe.ui.BarGraph = class BarGraph extends frappe.ui.Graph {
 		super(args);
 	}
 
+	setup_values() {
+		super.setup_values();
+		this.avg_unit_width = (this.width-50)/(this.x_points.length + 2);
+	}
+
 	make_y_axis() {
 		this.y_axis.map((point) => {
 			this.y_axis_group.add(this.snap.g(
@@ -207,7 +237,7 @@ frappe.ui.BarGraph = class BarGraph extends frappe.ui.Graph {
 				})
 			).attr({
 				class: "tick x-axis-label",
-				transform: `translate(${ 27 + i * 20 }, 0)`
+				transform: `translate(${ ((this.avg_unit_width - 5)*3/2) + i * (this.avg_unit_width + 5) }, 0)`
 			}));
 		});
 	}
@@ -218,29 +248,12 @@ frappe.ui.BarGraph = class BarGraph extends frappe.ui.Graph {
 				this.snap.rect(
 					0,
 					(100 - 100/(this.upper_graph_bound/value)),
-					18,
+					this.avg_unit_width - 5,
 					100/(this.upper_graph_bound/value)
 				)
 			).attr({
 				class: "bar mini",
-				transform: `translate(${ 18 + i * 20 }, 0)`,
-			}));
-		});
-	}
-
-	show_specific_values() {
-		this.specific_values.map(d => {
-			this.specific_y_lines.add(this.snap.g(
-				this.snap.line(0, 0, this.width - 110, 0).attr({
-					class: d.line_type === "dashed" ? "dashed": ""
-				}),
-				this.snap.text(this.width - 110, 0, d.name.toUpperCase()).attr({
-					dy: ".32em",
-					class: "specific-value",
-				})
-			).attr({
-				class: "tick",
-				transform: `translate(0, ${100 - 100/(this.upper_graph_bound/d.value) })`
+				transform: `translate(${ (this.avg_unit_width - 5) + i * (this.avg_unit_width + 5) }, 0)`,
 			}));
 		});
 	}
@@ -280,7 +293,7 @@ frappe.ui.LineGraph = class LineGraph extends frappe.ui.Graph {
 				})
 			).attr({
 				class: "tick",
-				transform: `translate(${ i * (this.width-50)/(this.x_points.length - 1) }, 0)`
+				transform: `translate(${ i * this.avg_unit_width }, 0)`
 			}));
 		});
 	}
@@ -288,7 +301,7 @@ frappe.ui.LineGraph = class LineGraph extends frappe.ui.Graph {
 	make_units() {
 		let points_list = []
 		this.y_values.map((value, i) => {
-			let x = i * (this.width-50)/(this.x_points.length - 1);
+			let x = i * this.avg_unit_width;
 			let y = (100 - 100/(this.upper_graph_bound/value));
 			this.graph_list.add(this.snap.circle( x, y, 4));
 			points_list.push(x+","+y);
@@ -299,23 +312,6 @@ frappe.ui.LineGraph = class LineGraph extends frappe.ui.Graph {
 
 	make_path(path_str) {
 		this.graph_list.prepend(this.snap.path(path_str));
-	}
-
-	show_specific_values() {
-		this.specific_values.map(d => {
-			this.specific_y_lines.add(this.snap.g(
-				this.snap.line(0, 0, this.width - 50, 0).attr({
-					class: d.line_type === "dashed" ? "dashed": ""
-				}),
-				this.snap.text(this.width - 100, 0, d.name.toUpperCase()).attr({
-					dy: ".32em",
-					class: "specific-value",
-				})
-			).attr({
-				class: "tick",
-				transform: `translate(0, ${100 - 100/(this.upper_graph_bound/d.value) })`
-			}));
-		});
 	}
 
 }

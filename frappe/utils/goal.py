@@ -62,10 +62,16 @@ def get_monthly_goal_graph_data(title, doctype, docname, goal_value_field, goal_
 	if current_month_year in month_to_value_dict:
 		current_month_value = month_to_value_dict[current_month_year]
 
+
 	# Set doc completed goal value
 	frappe.db.set_value(doctype, docname, goal_total_field, current_month_value)
 
 	goal = frappe.get_value(doctype, docname, goal_value_field)
+
+	from frappe.utils.formatters import format_value
+	meta = frappe.get_meta(doctype)
+	formatted_value = format_value(current_month_value, meta.get_field(goal_total_field), frappe.get_doc(doctype, docname))
+	formatted_goal = format_value(goal, meta.get_field(goal_value_field), frappe.get_doc(doctype, docname))
 
 	data = {
 		'title': title,
@@ -79,6 +85,23 @@ def get_monthly_goal_graph_data(title, doctype, docname, goal_value_field, goal_
 				'value': goal
 			},
 		],
+		'summary_values': [
+			{
+				'name': "This month",
+				'color': 'green',
+				'value': formatted_value
+			},
+			{
+				'name': "Goal",
+				'color': 'blue',
+				'value': formatted_goal
+			},
+			{
+				'name': "Completed",
+				'color': 'green',
+				'value': str(int(round(current_month_value/goal*100))) + "%"
+			}
+		]
 	}
 
 	return data
