@@ -70,8 +70,9 @@ def get_monthly_goal_graph_data(title, doctype, docname, goal_value_field, goal_
 
 	from frappe.utils.formatters import format_value
 	meta = frappe.get_meta(doctype)
-	formatted_value = format_value(current_month_value, meta.get_field(goal_total_field), frappe.get_doc(doctype, docname))
-	formatted_goal = format_value(goal, meta.get_field(goal_value_field), frappe.get_doc(doctype, docname))
+	doc = frappe.get_doc(doctype, docname)
+	formatted_value = format_value(current_month_value, meta.get_field(goal_total_field), doc)
+	formatted_goal = format_value(goal, meta.get_field(goal_value_field), doc)
 
 	data = {
 		'title': title,
