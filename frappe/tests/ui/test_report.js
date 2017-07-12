@@ -26,17 +26,34 @@ QUnit.test("test query report", function(assert) {
 	assert.expect(1);
 	let done = assert.async();
 	frappe.run_serially([
-			() => frappe.set_route('Form','Report', 'Selling Report'),
+		() => frappe.set_route('Form','Report', 'Selling Report'),
 
 			//Query
-			() => cur_frm.set_value('query','Select * from `tabSales Person`'),
-			() => cur_frm.save(),   
+		() => cur_frm.set_value('query','Select * from `tabSales Person`'),
+		() => cur_frm.save(),   
 			
-			() => { $("form-inner-toolbar .btn-xs").click(frappe.set_route('query-report','Selling Report')); },	
-			() => frappe.timeout(5),
+		() => { $("form-inner-toolbar .btn-xs").click(frappe.set_route('query-report','Selling Report')); },	
+		() => frappe.timeout(5),
 			
-			() => assert.deepEqual(["query-report", "Selling Report"], frappe.get_route()),
-			() => done()
+		() => assert.deepEqual(["query-report", "Selling Report"], frappe.get_route()),
+		() => done()
+	
+	]);
+});
+
+//Test to export a file
+
+QUnit.only("test data-export-tool", function(assert) {
+	assert.expect(1);
+	let done = assert.async();
+	frappe.run_serially([
+		() => frappe.set_route('data-import-tool'),
+        () => assert.deepEqual(["data-import-tool"], frappe.get_route()),
+		
+		() => $('select.doctype').val("Task").change(),	
+		() => { $(".btn-download-data").click(); },	
+		() => frappe.timeout(5),
+		() => done()
 	
 	]);
 });
