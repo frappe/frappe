@@ -1371,6 +1371,17 @@ def get_active_domains():
 
 	return active_domains
 
+def get_active_modules():
+	""" get the active modules from Module Def"""
+	active_modules = cache().hget("modules", "active_modules") or None
+	if active_modules is None:
+		domains = get_active_domains()
+		modules = get_all("Module Def", filters={"restrict_to_domain": ("in", domains)})
+		active_modules = [module.name for module in modules]
+		cache().hset("modules", "active_modules", active_modules)
+
+	return active_modules
+
 def get_system_settings(key):
 	if not local.system_settings.has_key(key):
 		local.system_settings.update({key: db.get_single_value('System Settings', key)})

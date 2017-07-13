@@ -91,6 +91,7 @@ class UserPermissions:
 		self.build_perm_map()
 		user_shared = frappe.share.get_shared_doctypes()
 		no_list_view_link = []
+		active_modules = frappe.get_active_modules()
 
 		for dt in self.doctype_map:
 			dtp = self.doctype_map[dt]
@@ -131,7 +132,8 @@ class UserPermissions:
 				if not dtp.get('istable'):
 					if not dtp.get('issingle') and not dtp.get('read_only'):
 						self.can_search.append(dt)
-					if not dtp.get('module') in self.allow_modules:
+					if not dtp.get('module') in self.allow_modules or \
+						(active_modules and (dtp.get('module') in active_modules)):
 						self.allow_modules.append(dtp.get('module'))
 
 		self.can_write += self.can_create

@@ -10,3 +10,4 @@ class DomainSettings(Document):
 	def on_update(self):
 		cache = frappe.cache()
 		cache.delete_key("domains", "active_domains")
+		cache.delete_key("modules", "active_modules")
