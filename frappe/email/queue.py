@@ -17,7 +17,7 @@ from frappe.utils.scheduler import log
 
 class EmailLimitCrossedError(frappe.ValidationError): pass
 
-def send(recipients=None, sender=None, subject=None, message=None, reference_doctype=None,
+def send(recipients=None, sender=None, subject=None, message=None, text_content=None, reference_doctype=None,
 		reference_name=None, unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None,
 		attachments=None, reply_to=None, cc=[], message_id=None, in_reply_to=None, send_after=None,
 		expose_recipients=None, send_priority=1, communication=None, now=False, read_receipt=None,
@@ -28,6 +28,7 @@ def send(recipients=None, sender=None, subject=None, message=None, reference_doc
 	:param sender: Email sender.
 	:param subject: Email subject.
 	:param message: Email message.
+	:param text_content: Text version of email message.
 	:param reference_doctype: Reference DocType of caller document.
 	:param reference_name: Reference name of caller document.
 	:param send_priority: Priority for Email Queue, default 1.
@@ -65,12 +66,13 @@ def send(recipients=None, sender=None, subject=None, message=None, reference_doc
 
 	check_email_limit(recipients)
 
-	formatted = get_formatted_html(subject, message, email_account=email_account)
+	if not text_content:
+		try:
+			text_content = html2text(message)
+		except HTMLParser.HTMLParseError:
+			text_content = "See html attachment"
 
-	try:
-		text_content = html2text(formatted)
-	except HTMLParser.HTMLParseError:
-		text_content = "See html attachment"
+	formatted = get_formatted_html(subject, message, email_account=email_account)
 
 	if reference_doctype and reference_name:
 		unsubscribed = [d.email for d in frappe.db.get_all("Email Unsubscribe", "email",

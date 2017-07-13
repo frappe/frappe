@@ -1,6 +1,7 @@
 import os
 import frappe
-from frappe.utils import get_site_path, cint
+from frappe import _
+from frappe.utils import get_site_path, cint, get_url
 from frappe.utils.data import convert_utc_to_user_timezone
 import datetime
 
@@ -57,3 +58,29 @@ def delete_downloadable_backups():
 
 	if len(files) > backup_limit:
 		cleanup_old_backups(path, files, backup_limit)
+
+@frappe.whitelist()
+def schedule_files_backup(user_email):
+	from frappe.utils.background_jobs import enqueue, get_jobs
+	queued_jobs = get_jobs(site=frappe.local.site, queue="long")
+	method = 'frappe.desk.page.backups.backups.backup_files_and_notify_user'
+
+	if method not in queued_jobs[frappe.local.site]:
+		enqueue("frappe.desk.page.backups.backups.backup_files_and_notify_user", queue='long', user_email=user_email)
+		frappe.msgprint(_("Queued for backup. You will receive an email with the download link"))
+	else:
+		frappe.msgprint(_("Backup job is already queued. You will receive an email with the download link"))
+
+def backup_files_and_notify_user(user_email=None):
+	from frappe.utils.backups import backup
+	backup_files = backup(with_files=True)
+	get_downloadable_links(backup_files)
+
+	subject = "File backup is ready"
+	message = frappe.render_template('frappe/templates/emails/file_backup_notification.html', backup_files, is_path=True)
+	frappe.sendmail(recipients=[user_email], subject=subject, message=message)
+
+def get_downloadable_links(backup_files):
+	for key in ['backup_path_files', 'backup_path_private_files']:
+		path = backup_files[key]
+		backup_files[key] = get_url('/'.join(path.split('/')[-2:]))

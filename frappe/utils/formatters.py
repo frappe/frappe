@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 import frappe
 import datetime
-from frappe.utils import formatdate, fmt_money, flt, cstr, cint, format_datetime
+from frappe.utils import formatdate, fmt_money, flt, cstr, cint, format_datetime, format_time
 from frappe.model.meta import get_field_currency, get_field_precision
 import re
 
@@ -20,6 +20,8 @@ def format_value(value, df=None, doc=None, currency=None, translated=False):
 			df.fieldtype = 'Datetime'
 		elif isinstance(value, datetime.date):
 			df.fieldtype = 'Date'
+		elif isinstance(value, datetime.timedelta):
+			df.fieldtype = 'Time'
 		elif isinstance(value, int):
 			df.fieldtype = 'Int'
 		elif isinstance(value, float):
@@ -44,6 +46,9 @@ def format_value(value, df=None, doc=None, currency=None, translated=False):
 
 	elif df.get("fieldtype")=="Datetime":
 		return format_datetime(value)
+
+	elif df.get("fieldtype")=="Time":
+		return format_time(value)
 
 	elif value==0 and df.get("fieldtype") in ("Int", "Float", "Currency", "Percent") and df.get("print_hide_if_no_value"):
 		# this is required to show 0 as blank in table columns
