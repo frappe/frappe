@@ -14,7 +14,7 @@ class TestLogin(unittest.TestCase):
 			driver.click_primary_action()
 			driver.wait_for('#frappe-qunit-done', timeout=60)
 			console = driver.get_console()
-			if frappe.flags.tests_verbose:
+			if frappe.flags.tests_verbose or True:
 				for line in console:
 					print(line)
 			print('-' * 40)
