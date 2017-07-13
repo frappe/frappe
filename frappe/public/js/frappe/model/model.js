@@ -327,7 +327,7 @@ $.extend(frappe.model, {
 
 	set_value: function(doctype, docname, fieldname, value, fieldtype) {
 		/* help: Set a value locally (if changed) and execute triggers */
-
+		console.log("valuein", value);
 		var doc = locals[doctype] && locals[doctype][docname];
 
 		var to_update = fieldname;
@@ -345,6 +345,7 @@ $.extend(frappe.model, {
 				}
 
 				doc[key] = value;
+				console.log("ssd", value);
 				tasks.push(() => frappe.model.trigger(key, value, doc));
 			} else {
 				// execute link triggers (want to reselect to execute triggers)
@@ -384,8 +385,11 @@ $.extend(frappe.model, {
 					// if the trigger returns a promise, return it,
 					// or use the default promise frappe.after_ajax
 					if (_promise && _promise.then) {
+						console.log("trigger", value);
 						return _promise;
+
 					} else {
+						console.log("trigger 2", value);
 						return frappe.after_server_call();
 					}
 				}

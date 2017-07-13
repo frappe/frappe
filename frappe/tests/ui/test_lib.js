@@ -11,7 +11,7 @@ frappe.tests = {
 				let frm = frappe.quick_entry ? frappe.quick_entry.dialog : cur_frm;
 				return frappe.tests.set_form_values(frm, data);
 			},
-			() => frappe.timeout(3),
+			() => frappe.timeout(4),
 			() => (frappe.quick_entry ? frappe.quick_entry.insert() : cur_frm.save())
 		]);
 	},
@@ -54,7 +54,6 @@ frappe.tests = {
 				// build tasks to set each row value
 				d.forEach(child_value => {
 					for (let child_key in child_value) {
-						debugger
 						grid_value_tasks.push(() => {
 							return frappe.model.set_value(grid_row.doc.doctype,
 								grid_row.doc.name, child_key, child_value[child_key]);
@@ -74,7 +73,6 @@ frappe.tests = {
 			() => {
 				frappe.tests.data[doctype] = [];
 				let expected = frappe.tests.get_fixture_names(doctype);
-				console.log("test", cur_list.data);
 				cur_list.data.forEach((d) => {
 					frappe.tests.data[doctype].push(d.name);
 					if(expected.indexOf(d.name) !== -1) {
@@ -93,7 +91,7 @@ frappe.tests = {
 
 				return frappe.run_serially(tasks);
 			}
-			]);
+		]);
 	},
 	click_page_head_item: (text) => {
 		// Method to items present on the page header like New, Save, Delete etc.

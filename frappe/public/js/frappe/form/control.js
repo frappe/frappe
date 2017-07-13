@@ -99,6 +99,7 @@ frappe.ui.form.Control = Class.extend({
 		}
 	},
 	set_value: function(value) {
+		console.log("value set control", value);
 		return this.validate_and_set_in_model(value);
 	},
 	parse_validate_and_set_in_model: function(value, e) {
@@ -108,6 +109,7 @@ frappe.ui.form.Control = Class.extend({
 		return this.validate_and_set_in_model(value, e);
 	},
 	validate_and_set_in_model: function(value, e) {
+		console.log("value control", value);
 		var me = this;
 		if(this.inside_change_event) {
 			return new Promise.resolve();
