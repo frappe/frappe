@@ -5,13 +5,14 @@ from __future__ import unicode_literals
 from six.moves import range
 import frappe
 import HTMLParser
-import smtplib, quopri
+import smtplib, quopri, json
 from frappe import msgprint, throw, _
 from frappe.email.smtp import SMTPServer, get_outgoing_email_account
-from frappe.email.email_body import get_email, get_formatted_html
+from frappe.email.email_body import get_email, get_formatted_html, add_attachment
 from frappe.utils.verified_command import get_signed_params, verify_request
 from html2text import html2text
 from frappe.utils import get_url, nowdate, encode, now_datetime, add_days, split_emails, cstr, cint
+from frappe.utils.file_manager import get_file
 from rq.timeouts import JobTimeoutException
 from frappe.utils.scheduler import log
 
@@ -21,7 +22,8 @@ def send(recipients=None, sender=None, subject=None, message=None, text_content=
 		reference_name=None, unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None,
 		attachments=None, reply_to=None, cc=[], message_id=None, in_reply_to=None, send_after=None,
 		expose_recipients=None, send_priority=1, communication=None, now=False, read_receipt=None,
-		queue_separately=False, is_notification=False, add_unsubscribe_link=1, inline_images=None):
+		queue_separately=False, is_notification=False, add_unsubscribe_link=1, inline_images=None,
+		header=False):
 	"""Add email to sending queue (Email Queue)
 
 	:param recipients: List of recipients.
@@ -44,6 +46,7 @@ def send(recipients=None, sender=None, subject=None, message=None, text_content=
 	:param is_notification: Marks email as notification so will not trigger notifications from system
 	:param add_unsubscribe_link: Send unsubscribe link in the footer of the Email, default 1.
 	:param inline_images: List of inline images as {"filename", "filecontent"}. All src properties will be replaced with random Content-Id
+	:param header: Append header in email (boolean)
 	"""
 	if not unsubscribe_method:
 		unsubscribe_method = "/api/method/frappe.email.queue.unsubscribe"
@@ -72,7 +75,7 @@ def send(recipients=None, sender=None, subject=None, message=None, text_content=
 		except HTMLParser.HTMLParseError:
 			text_content = "See html attachment"
 
-	formatted = get_formatted_html(subject, message, email_account=email_account)
+	formatted = get_formatted_html(subject, message, email_account=email_account, header=header)
 
 	if reference_doctype and reference_name:
 		unsubscribed = [d.email for d in frappe.db.get_all("Email Unsubscribe", "email",
@@ -116,6 +119,7 @@ def send(recipients=None, sender=None, subject=None, message=None, text_content=
 		queue_separately=queue_separately,
 		is_notification = is_notification,
 		inline_images = inline_images,
+		header=header,
 		now=now)
 
 
@@ -145,6 +149,14 @@ def get_email_queue(recipients, sender, subject, **kwargs):
 	'''Make Email Queue object'''
 	e = frappe.new_doc('Email Queue')
 	e.priority = kwargs.get('send_priority')
+	attachments = kwargs.get('attachments')
+	if attachments:
+		# store attachments with fid, to be attached on-demand later
+		_attachments = []
+		for att in attachments:
+			if att.get('fid'):
+				_attachments.append(att)
+		e.attachments = json.dumps(_attachments)
 
 	try:
 		mail = get_email(recipients,
@@ -157,7 +169,8 @@ def get_email_queue(recipients, sender, subject, **kwargs):
 			cc=kwargs.get('cc'),
 			email_account=kwargs.get('email_account'),
 			expose_recipients=kwargs.get('expose_recipients'),
-			inline_images=kwargs.get('inline_images'))
+			inline_images=kwargs.get('inline_images'),
+			header=kwargs.get('header'))
 
 		mail.set_message_id(kwargs.get('message_id'),kwargs.get('is_notification'))
 		if kwargs.get('read_receipt'):
@@ -333,7 +346,7 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False, from_test=Fals
 	email = frappe.db.sql('''select
 			name, status, communication, message, sender, reference_doctype,
 			reference_name, unsubscribe_param, unsubscribe_method, expose_recipients,
-			show_as_cc, add_unsubscribe_link
+			show_as_cc, add_unsubscribe_link, attachments
 		from
 			`tabEmail Queue`
 		where
@@ -426,6 +439,7 @@ where name=%s""", (unicode(e), email.name), auto_commit=auto_commit)
 			frappe.get_doc('Communication', email.communication).set_delivery_status(commit=auto_commit)
 
 		if now:
+			print(frappe.get_traceback())
 			raise e
 
 		else:
@@ -459,7 +473,31 @@ def prepare_message(email, recipient, recipients_list):
 			message = message.replace("<!--cc message-->", quopri.encodestring(email_sent_message))
 
 		message = message.replace("<!--recipient-->", recipient)
-	return message
+
+	if not email.attachments:
+		return message
+
+	# On-demand attachments
+	from email.parser import Parser
+
+	msg_obj = Parser().parsestr(message)
+	attachments = json.loads(email.attachments)
+
+	for attachment in attachments:
+		if attachment.get('fcontent'): continue
+
+		fid = attachment.get('fid')
+		if not fid: continue
+
+		fname, fcontent = get_file(fid)
+		attachment.update({
+			'fname': fname,
+			'fcontent': fcontent,
+			'parent': msg_obj
+		})
+		add_attachment(**attachment)
+
+	return msg_obj.as_string()
 
 def clear_outbox():
 	"""Remove low priority older than 31 days in Outbox and expire mails not sent for 7 days.
