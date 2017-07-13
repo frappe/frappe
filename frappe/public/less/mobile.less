@@ -223,6 +223,19 @@ body {
 }
 
 @media(max-width: 767px) {
+	body[data-route^="Form"]{
+		.page-title {
+			.title-text {
+				font-size: 16px;
+				width: calc(~"100% - 30px");
+			}
+			.indicator {
+				float: left;
+				margin-top: 10px;
+				margin-right: 5px;
+			}
+		}
+	}
 	.modal {
 		.modal-dialog {
 			margin: 0px;
@@ -391,6 +404,16 @@ body {
 	body[data-route^="Form"] {
 		.page-head .sub-heading {
 			right: 90px;
+		}
+	}
+}
+@media(max-width: 580px) {
+	.timeline-item.user-content {
+		.comment-header {
+			.btn-add-to-kb {
+				float: none !important;
+				margin-top: 5px !important;
+			}
 		}
 	}
 }
