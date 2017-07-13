@@ -11,7 +11,7 @@ frappe.tests = {
 				let frm = frappe.quick_entry ? frappe.quick_entry.dialog : cur_frm;
 				return frappe.tests.set_form_values(frm, data);
 			},
-			() => frappe.timeout(1),
+			() => frappe.timeout(3),
 			() => (frappe.quick_entry ? frappe.quick_entry.insert() : cur_frm.save())
 		]);
 	},
@@ -54,6 +54,7 @@ frappe.tests = {
 				// build tasks to set each row value
 				d.forEach(child_value => {
 					for (let child_key in child_value) {
+						debugger
 						grid_value_tasks.push(() => {
 							return frappe.model.set_value(grid_row.doc.doctype,
 								grid_row.doc.name, child_key, child_value[child_key]);
@@ -67,10 +68,13 @@ frappe.tests = {
 		return frappe.run_serially(grid_row_tasks);
 	},
 	setup_doctype: (doctype) => {
-		return frappe.set_route('List', doctype)
-			.then(() => {
+		return frappe.run_serially([
+			() => frappe.set_route('List', doctype),
+			() => frappe.timeout(0.5),
+			() => {
 				frappe.tests.data[doctype] = [];
 				let expected = frappe.tests.get_fixture_names(doctype);
+				console.log("test", cur_list.data);
 				cur_list.data.forEach((d) => {
 					frappe.tests.data[doctype].push(d.name);
 					if(expected.indexOf(d.name) !== -1) {
@@ -88,10 +92,11 @@ frappe.tests = {
 				});
 
 				return frappe.run_serially(tasks);
-			});
+			}
+			]);
 	},
 	click_page_head_item: (text) => {
-		// Method to items present on the page header like New, Save, Delete etc. 
+		// Method to items present on the page header like New, Save, Delete etc.
 		let  possible_texts = ["New", "Delete", "Save", "Yes"];
 		return frappe.run_serially([
 			() => {
@@ -107,7 +112,7 @@ frappe.tests = {
 		]);
 	},
 	click_dropdown_item: (text) => {
-		// Method to click dropdown elements 
+		// Method to click dropdown elements
 		return frappe.run_serially([
 			() => {
 				let li = $(".dropdown-menu li:contains("+text+"):visible").get(0);
@@ -117,7 +122,7 @@ frappe.tests = {
 		]);
 	},
 	click_navbar_item: (text) => {
-		// Method to click an elements present on the navbar 
+		// Method to click an elements present on the navbar
 		return frappe.run_serially([
 			() => {
 				if (text == "Help"){
@@ -137,14 +142,14 @@ frappe.tests = {
 		]);
 	},
 	click_generic_text: (text, tag='a') => {
-		// Method to click an element by its name 
+		// Method to click an element by its name
 		return frappe.run_serially([
 			() => $(tag+":contains("+text+"):visible")[0].click(),
 			() => frappe.timeout(0.3)
 		]);
 	},
 	click_desktop_icon: (text) => {
-		// Method to click the desktop icons on the Desk, by their name 
+		// Method to click the desktop icons on the Desk, by their name
 		return frappe.run_serially([
 			() => $("#icon-grid > div > div.app-icon[title="+text+"]").click(),
 			() => frappe.timeout(0.3)
