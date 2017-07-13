@@ -139,6 +139,13 @@ def run_tests_for_module(module, verbose=False, tests=(), profile=False):
 
 	return _run_unittest(module=module, verbose=verbose, tests=tests, profile=profile)
 
+def run_ui_tests(app=None, test=None, verbose=False, profile=False):
+	'''Run a single unit test for UI using test_test_runner'''
+	module = importlib.import_module('frappe.tests.ui.test_test_runner')
+	frappe.flags.ui_test_app = app
+	frappe.flags.ui_test_path = test
+	return _run_unittest(module=module, verbose=verbose, tests=(), profile=profile)
+
 def _run_unittest(module, verbose=False, tests=(), profile=False):
 	test_suite = unittest.TestSuite()
 	module_test_cases = unittest.TestLoader().loadTestsFromModule(module)
@@ -153,6 +160,8 @@ def _run_unittest(module, verbose=False, tests=(), profile=False):
 	if profile:
 		pr = cProfile.Profile()
 		pr.enable()
+
+	frappe.flags.tests_verbose = verbose
 
 	out = unittest_runner(verbosity=1+(verbose and 1 or 0)).run(test_suite)
 
