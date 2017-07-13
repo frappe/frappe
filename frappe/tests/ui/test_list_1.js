@@ -1,7 +1,7 @@
 QUnit.module('views');
 
 QUnit.only("Test quick entry", function(assert) {
-	assert.expect(0);
+	assert.expect(2);
 	let done = assert.async();
 	let random_text = frappe.utils.get_random(10);
 
@@ -22,21 +22,6 @@ QUnit.only("Test quick entry", function(assert) {
 		() => frappe.tests.click_page_head_item('Yes'),
 		() => frappe.timeout(2),
 
-		() => done()
-	]);
-});
-
-QUnit.test("Test list values", function(assert) {
-	assert.expect(2);
-	let done = assert.async();
-
-	frappe.run_serially([
-		() => frappe.set_route('List', 'DocType'),
-		() => frappe.timeout(2),
-		() => {
-			assert.deepEqual(['List', 'DocType', 'List'], frappe.get_route());
-			assert.ok($('.list-item:visible').length > 10);
-		},
 		() => done()
 	]);
 });

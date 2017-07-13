@@ -24,6 +24,8 @@ QUnit.test("Calendar View Tests", function(assert) {
 		
 		// Goto Calendar view
 		() => frappe.set_route(["List", "Event", "Calendar"]),
+		() => frappe.tests.click_page_head_item("Refresh"),
+		() => frappe.timeout(2),
 		// Check if event is created
 		() => {
 			// Check if the event exists and if its title matches with the one created
@@ -41,7 +43,9 @@ QUnit.test("Calendar View Tests", function(assert) {
 		() => frappe.tests.click_page_head_item('Menu'),
 		() => frappe.tests.click_dropdown_item('Delete'),
 		() => frappe.tests.click_page_head_item('Yes'),
-		() => frappe.timeout(4),
+		() => frappe.timeout(1),
+		() => frappe.tests.click_page_head_item("Refresh"),
+		() => frappe.timeout(1),
 		// Goto Calendar View
 		() => frappe.set_route(["List", "Event", "Calendar"]),
 		() => frappe.timeout(0.3),
