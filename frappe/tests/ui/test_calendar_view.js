@@ -37,7 +37,7 @@ QUnit.test("Calendar View Tests", function(assert) {
 		// Delete event 
 		// Goto Calendar view
 		() => frappe.set_route(["List", "Event", "Calendar"]),
-		() => frappe.timeout(0.3),
+		() => frappe.timeout(1),
 		// Open the event to be deleted
 		() => frappe.tests.click_generic_text(random_text),
 		() => frappe.tests.click_page_head_item('Menu'),
@@ -48,7 +48,7 @@ QUnit.test("Calendar View Tests", function(assert) {
 		() => frappe.timeout(1),
 		// Goto Calendar View
 		() => frappe.set_route(["List", "Event", "Calendar"]),
-		() => frappe.timeout(0.3),
+		() => frappe.timeout(1),
 
 		// Check if all menu items redirect to correct locations
 		// Check if clicking on 'Import' redirects you to ["data-import-tool"]
@@ -56,33 +56,32 @@ QUnit.test("Calendar View Tests", function(assert) {
 		() => frappe.tests.click_dropdown_item('Import'),
 		() => assert.deepEqual(["data-import-tool"], frappe.get_route(), "Routed to 'data-import-tool' by clicking on 'Import'"),
 		() => window.history.back(),
-		() => frappe.timeout(0.5),
+		() => frappe.timeout(1),
 			
 		// Check if clicking on 'User Permissions Manager' redirects you to ["user-permissions"]
 		() => frappe.tests.click_page_head_item('Menu'),
 		() => frappe.tests.click_dropdown_item('User Permissions Manager'),
 		() => assert.deepEqual(["user-permissions"], frappe.get_route(), "Routed to 'user-permissions' by clicking on 'User Permissions Manager'"),
 		() => window.history.back(),
-		() => frappe.timeout(0.5),
+		() => frappe.timeout(1),
 			
 		// Check if clicking on 'Role Permissions Manager' redirects you to ["permission-manager"]
 		() => frappe.tests.click_page_head_item('Menu'),
 		() => frappe.tests.click_dropdown_item('Role Permissions Manager'),
 		() => assert.deepEqual(["permission-manager"], frappe.get_route(), "Routed to 'permission-manager' by clicking on 'Role Permissions Manager'"),
 		() => window.history.back(),
-		() => frappe.timeout(0.5),
+		() => frappe.timeout(1),
 			
 		// Check if clicking on 'Customize' redirects you to ["Form", "Customize Form"]
 		() => frappe.tests.click_page_head_item('Menu'),
 		() => frappe.tests.click_dropdown_item('Customize'),
 		() => assert.deepEqual(["Form", "Customize Form"], frappe.get_route(), "Routed to 'Form, Customize Form' by clicking on 'Customize'"),
 		() => window.history.back(),
-		() => frappe.timeout(0.5),
+		() => frappe.timeout(1),
 
 		// Check if event is deleted
 		() => assert.equal(event_title_text(), "", "Event deleted"),
 
 		() => done()
-
 	]);
 });

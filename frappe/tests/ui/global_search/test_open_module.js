@@ -13,12 +13,12 @@ QUnit.test("Open a module or tool", function(assert) {
 	frappe.run_serially([
 		// Goto Home using button click to check if its working
 		() => frappe.set_route(),
-		() => frappe.timeout(0.3),
+		() => frappe.timeout(1),
 
 		() => $('#navbar-search').focus(),
 		() => $('#navbar-search').val('ToDo'),
 		() => $('#navbar-search').focus(),
-		() => frappe.timeout(0.3),
+		() => frappe.timeout(1),
 		() => {
 			assert.ok(frappe.tests.is_visible('ToDo List'), "'ToDo List' is visible!");
 			if (frappe.tests.is_visible('ToDo List')){
@@ -33,7 +33,7 @@ QUnit.test("Open a module or tool", function(assert) {
 		() => awesome_search.awesomplete.goto(option_number),
 		// Click the highlighted option
 		() => awesome_search.awesomplete.select(),
-		() => frappe.timeout(0.3),
+		() => frappe.timeout(1),
 		// Verify if the redirected route is correct
 		() => assert.deepEqual(["List", "ToDo", "List"], frappe.get_route(), "Successfully routed to 'ToDo List'"),
 

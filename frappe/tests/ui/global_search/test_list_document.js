@@ -13,12 +13,12 @@ QUnit.test("List a document type", function(assert) {
 	frappe.run_serially([
 		// Goto Home using button click to check if its working
 		() => frappe.set_route(),
-		() => frappe.timeout(0.3),
+		() => frappe.timeout(1),
 
 		() => $('#navbar-search').focus(),
 		() => $('#navbar-search').val('customer'),
 		() => $('#navbar-search').focus(),
-		() => frappe.timeout(0.3),
+		() => frappe.timeout(1),
 		() => {
 			assert.ok(frappe.tests.is_visible("Search for 'customer'"), "'Search for 'customer'' is visible!");
 			if (frappe.tests.is_visible("Search for 'customer'")){

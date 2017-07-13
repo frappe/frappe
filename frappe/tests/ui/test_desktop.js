@@ -25,7 +25,7 @@ QUnit.test("Verification of navbar menu links", function(assert) {
 
 		// Goto Desk
 		() => frappe.tests.click_navbar_item('Home'),
-		() => frappe.timeout(0.3),
+		() => frappe.timeout(1),
 
 		// Click navbar-username and verify links of all menu items
 		// Check if clicking on 'Set Desktop Icons' redirects you to the correct page 

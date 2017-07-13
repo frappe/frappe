@@ -24,14 +24,27 @@ QUnit.only("Print Format Builder", function(assert) {
 		() => frappe.tests.click_print_logo(),
 
 		() => click_custoize(),
+		() => frappe.timeout(1),
 		() => $(`div.control-input > input:visible`).val('custom_todo'),
 		() => frappe.timeout(0.3),
 
-		() => frappe.tests.click_page_head_item('Start'),
+		() => frappe.tests.click_generic_text('Start', 'button'),
 		() => frappe.timeout(1),
 
 		() => frappe.tests.click_page_head_item('Save'),
 
+		() => frappe.tests.click_generic_text('Edit Properties', 'button'),
+		() => frappe.tests.click_page_head_item('Menu'),
+		() => frappe.tests.click_dropdown_item('Delete'),
+		() => frappe.tests.click_page_head_item('Yes'),
+		() => frappe.timeout(1),
+
+		() => frappe.set_route(["List", "ToDo", "List"]),
+		() => frappe.timeout(0.3),
+		() => frappe.tests.click_generic_text(random_text),
+		() => frappe.tests.click_page_head_item('Menu'),
+		() => frappe.tests.click_dropdown_item('Delete'),
+		() => frappe.tests.click_page_head_item('Yes'),
 
 		() => frappe.timeout(2),
 

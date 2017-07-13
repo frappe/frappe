@@ -32,24 +32,24 @@ QUnit.test("Gantt View Tests", function(assert) {
 		// Check if event is created
 		() => frappe.set_route(["List", "Event", "Gantt"]),
 		() => frappe.tests.click_page_head_item("Refresh"),
-		() => frappe.timeout(0.3),
+		() => frappe.timeout(1),
 		() => assert.ok(event_title_text().includes(random_text), "Event title verified"),
 
 		// Delete event 
 		() => frappe.set_route(["List", "Event", "Gantt"]),
-		() => frappe.timeout(0.3),
+		() => frappe.timeout(1),
 		// Redirect to the event page to delete the event
 		() => frappe.set_route(["Form", "Event", event_id()]),
 		() => frappe.tests.click_page_head_item('Menu'),
 		() => frappe.tests.click_dropdown_item('Delete'),
 		() => frappe.tests.click_page_head_item('Yes'),
-		() => frappe.timeout(0.3),
+		() => frappe.timeout(1),
 		() => frappe.set_route(["List", "Event", "Gantt"]),
-		() => frappe.timeout(0.3),
+		() => frappe.timeout(1),
 
 		// Check if event is deleted
 		() => frappe.tests.click_page_head_item("Refresh"),
-		() => frappe.timeout(0.3),
+		() => frappe.timeout(1),
 		() => assert.equal(event_title_text(), "", "Event deleted"),
 
 		() => done()

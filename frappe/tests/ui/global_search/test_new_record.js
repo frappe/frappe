@@ -18,12 +18,12 @@ QUnit.test("Make a new record", function(assert) {
 	frappe.run_serially([
 		// Goto Home using button click to check if its working
 		() => frappe.set_route(),
-		() => frappe.timeout(0.3),
+		() => frappe.timeout(1),
 
 		() => $('#navbar-search').focus(),
 		() => $('#navbar-search').val('ToDo'),
 		() => $('#navbar-search').focus(),
-		() => frappe.timeout(0.3),
+		() => frappe.timeout(1),
 		() => {
 			assert.ok(frappe.tests.is_visible('New ToDo'), "'New ToDo' is visible!");
 			if (frappe.tests.is_visible('New ToDo')){
@@ -41,12 +41,12 @@ QUnit.test("Make a new record", function(assert) {
 		() => frappe.timeout(1),
 		() => frappe.quick_entry.dialog.set_value('description', random_text),
 		() => frappe.quick_entry.insert(),
-		() => frappe.timeout(0.5),
+		() => frappe.timeout(1),
 		() => frappe.set_route(["List", "ToDo", "List"]),
 		() => frappe.timeout(1),
 		// Verify if the todo is created
 		() => frappe.tests.click_page_head_item("Refresh"),
-		() => frappe.timeout(0.3),
+		() => frappe.timeout(1),
 		() => assert.ok(todo_title_text().includes(random_text), "New ToDo was created successfully"),
 		() => assert.deepEqual(["List", "ToDo", "List"], frappe.get_route(), "Successfully routed to 'ToDo List'"),
 

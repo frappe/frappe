@@ -24,12 +24,12 @@ QUnit.test("Search in a document type", function(assert) {
 	frappe.run_serially([
 		// Goto Home using button click to check if its working
 		() => frappe.set_route(),
-		() => frappe.timeout(0.3),
+		() => frappe.timeout(1),
 
 		() => $('#navbar-search').focus(),
 		() => $('#navbar-search').val('ToDo'),
 		() => $('#navbar-search').focus(),
-		() => frappe.timeout(0.3),
+		() => frappe.timeout(1),
 		() => {
 			assert.ok(frappe.tests.is_visible('New ToDo'), "'New ToDo' is visible!");
 			if (frappe.tests.is_visible('New ToDo')){
@@ -47,7 +47,7 @@ QUnit.test("Search in a document type", function(assert) {
 		() => frappe.timeout(1),
 		() => frappe.quick_entry.dialog.set_value('description', random_text),
 		() => frappe.quick_entry.insert(),
-		() => frappe.timeout(0.5),
+		() => frappe.timeout(1),
 
 		// Search for the created ToDo in global search
 		() => frappe.set_route(["List", "ToDo", "List"]),
@@ -55,7 +55,7 @@ QUnit.test("Search in a document type", function(assert) {
 		() => $('#navbar-search').focus(),
 		() => $('#navbar-search').val('argo1234'),
 		() => $('#navbar-search').focus(),
-		() => frappe.timeout(0.3),
+		() => frappe.timeout(1),
 		() => {
 			assert.ok(frappe.tests.is_visible('Find argo1234 in ToDo'), "'Find argo1234 in ToDo' is visible!");
 			if (frappe.tests.is_visible('Find argo1234 in ToDo')){
@@ -76,10 +76,10 @@ QUnit.test("Search in a document type", function(assert) {
 
 		// Remove all filters
 		() => remove_all_filters(),
-		() => frappe.timeout(0.3),
+		() => frappe.timeout(1),
 		// Delete all ToDo
 		() => select_all_todo(),
-		() => frappe.timeout(0.3),
+		() => frappe.timeout(1),
 		() => frappe.tests.click_page_head_item('Delete'),
 		() => frappe.tests.click_page_head_item('Yes'),
 
