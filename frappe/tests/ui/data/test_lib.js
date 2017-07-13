@@ -157,6 +157,12 @@ frappe.tests = {
 		// Method to check the visibility of an element
 		return $(tag+":contains("+text+")").is(':visible');
 	},
+	click_print_logo: () => {
+		return frappe.run_serially([
+			() => $(`.fa-print`).click(),
+			() => frappe.timeout(1)
+		]);
+	},
 	click_button: function(text) {
 		$(`.btn:contains("${text}"):visible`).click();
 		return frappe.timeout(0.3);
