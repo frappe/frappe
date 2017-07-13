@@ -380,7 +380,7 @@ def sendmail(recipients=[], sender="", subject="No Subject", message="No Message
 		attachments=None, content=None, doctype=None, name=None, reply_to=None,
 		cc=[], message_id=None, in_reply_to=None, send_after=None, expose_recipients=None,
 		send_priority=1, communication=None, retry=1, now=None, read_receipt=None, is_notification=False,
-		inline_images=None, template=None, args=None):
+		inline_images=None, template=None, args=None, header=False):
 	"""Send email using user's default **Email Account** or global default **Email Account**.
 
 
@@ -405,8 +405,10 @@ def sendmail(recipients=[], sender="", subject="No Subject", message="No Message
 	:param inline_images: List of inline images as {"filename", "filecontent"}. All src properties will be replaced with random Content-Id
 	:param template: Name of html template from templates/emails folder
 	:param args: Arguments for rendering the template
+	:param header: Append header in email
 	"""
 
+	text_content = None
 	if template:
 		message, text_content = get_email_from_template(template, args)
 
@@ -427,7 +429,7 @@ def sendmail(recipients=[], sender="", subject="No Subject", message="No Message
 		attachments=attachments, reply_to=reply_to, cc=cc, message_id=message_id, in_reply_to=in_reply_to,
 		send_after=send_after, expose_recipients=expose_recipients, send_priority=send_priority,
 		communication=communication, now=now, read_receipt=read_receipt, is_notification=is_notification,
-		inline_images=inline_images)
+		inline_images=inline_images, header=header)
 
 whitelisted = []
 guest_methods = []
