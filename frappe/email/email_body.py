@@ -15,7 +15,7 @@ from email.mime.multipart import MIMEMultipart
 def get_email(recipients, sender='', msg='', subject='[No Subject]',
 	text_content = None, footer=None, print_html=None, formatted=None, attachments=None,
 	content=None, reply_to=None, cc=[], email_account=None, expose_recipients=None,
-	inline_images=[]):
+	inline_images=[], header=False):
 	""" Prepare an email with the following format:
 		- multipart/mixed
 			- multipart/alternative
@@ -31,7 +31,7 @@ def get_email(recipients, sender='', msg='', subject='[No Subject]',
 	if not content.strip().startswith("<"):
 		content = markdown(content)
 
-	emailobj.set_html(content, text_content, footer=footer,
+	emailobj.set_html(content, text_content, footer=footer, header=header,
 		print_html=print_html, formatted=formatted, inline_images=inline_images)
 
 	if isinstance(attachments, dict):
@@ -76,10 +76,11 @@ class EMail:
 		self.email_account = email_account or get_outgoing_email_account()
 
 	def set_html(self, message, text_content = None, footer=None, print_html=None,
-		formatted=None, inline_images=None):
+		formatted=None, inline_images=None, header=False):
 		"""Attach message in the html portion of multipart/alternative"""
 		if not formatted:
-			formatted = get_formatted_html(self.subject, message, footer, print_html, email_account=self.email_account)
+			formatted = get_formatted_html(self.subject, message, footer, print_html,
+				email_account=self.email_account, header=header)
 
 		# this is the first html part of a multi-part message,
 		# convert to text well
@@ -103,7 +104,7 @@ class EMail:
 	def set_part_html(self, message, inline_images):
 		from email.mime.text import MIMEText
 
-		has_inline_images = re.search('''embed=['"]assets/.*?['"]''', message)
+		has_inline_images = re.search('''embed=['"].*?['"]''', message)
 
 		if has_inline_images:
 			# process inline images
@@ -232,12 +233,12 @@ class EMail:
 		self.make()
 		return self.msg_root.as_string()
 
-def get_formatted_html(subject, message, footer=None, print_html=None, email_account=None):
+def get_formatted_html(subject, message, footer=None, print_html=None, email_account=None, header=False):
 	if not email_account:
 		email_account = get_outgoing_email_account(False)
 
 	rendered_email = frappe.get_template("templates/emails/standard.html").render({
-		"header": get_header(),
+		"header": get_header() if header else None,
 		"content": message,
 		"signature": get_signature(email_account),
 		"footer": get_footer(email_account, footer),
@@ -341,32 +342,57 @@ def replace_filename_with_cid(message):
 	inline_images = []
 
 	while True:
-		matches = re.search('''embed=["'](assets/.*?)["']''', message)
+		matches = re.search('''embed=["'](.*?)["']''', message)
 		if not matches: break
 		groups = matches.groups()
 
 		# found match
 		img_path = groups[0]
 		filename = img_path.rsplit('/')[-1]
+
+		filecontent = get_filecontent_from_path(img_path)
+		if not filecontent: continue
+
 		content_id = random_string(10)
 
-		full_img_path = os.path.abspath(img_path)
-		if os.path.exists(full_img_path):
-			with open(full_img_path) as f:
-				filecontent = f.read()
-
-			inline_images.append({
-				'filename': filename,
-				'filecontent': filecontent,
-				'content_id': content_id
-			})
-		else:
-			print(full_img_path + ' doesn\'t exists')
+		inline_images.append({
+			'filename': filename,
+			'filecontent': filecontent,
+			'content_id': content_id
+		})
 
 		message = re.sub('''embed=['"]{0}['"]'''.format(img_path),
 		'src="cid:{0}"'.format(content_id), message)
 
 	return (message, inline_images)
+
+def get_filecontent_from_path(path):
+	if not path: return
+
+	if path.startswith('/'):
+		path = path[1:]
+
+	if path.startswith('assets/'):
+		# from public folder
+		full_path = os.path.abspath(path)
+	elif path.startswith('files/'):
+		# public file
+		full_path = frappe.get_site_path('public', path)
+	elif path.startswith('private/files/'):
+		# private file
+		full_path = frappe.get_site_path(path)
+	else:
+		full_path = path
+
+	if os.path.exists(full_path):
+		with open(full_path) as f:
+			filecontent = f.read()
+
+		return filecontent
+	else:
+		print(full_path + ' doesn\'t exists')
+		return None
+
 
 def get_header():
 	""" Build header from template """
