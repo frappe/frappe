@@ -351,7 +351,9 @@ def replace_filename_with_cid(message):
 		filename = img_path.rsplit('/')[-1]
 
 		filecontent = get_filecontent_from_path(img_path)
-		if not filecontent: continue
+		if not filecontent:
+			message = re.sub('''embed=['"]{0}['"]'''.format(img_path), '', message)
+			continue
 
 		content_id = random_string(10)
 
@@ -397,7 +399,6 @@ def get_filecontent_from_path(path):
 def get_header():
 	""" Build header from template """
 	from frappe.utils.jinja import get_email_from_template
-	from frappe.utils import encode
 
 	default_brand_image = 'assets/frappe/images/favicon.png' # svg doesn't work in email
 	email_brand_image = frappe.get_hooks('email_brand_image')
