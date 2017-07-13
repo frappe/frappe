@@ -128,7 +128,7 @@ def run_tests_for_doctype(doctype, verbose=False, tests=(), force=False, profile
 		for name in frappe.db.sql_list("select name from `tab%s`" % doctype):
 			frappe.delete_doc(doctype, name, force=True)
 	make_test_records(doctype, verbose=verbose, force=force)
-	module = frappe.get_module(test_module)
+	module = importlib.import_module(test_module)
 	return _run_unittest(module, verbose=verbose, tests=tests, profile=profile)
 
 def run_tests_for_module(module, verbose=False, tests=(), profile=False):
@@ -190,7 +190,7 @@ def _add_test(app, path, filename, verbose, test_suite=None, ui_tests=False):
 		module_name = '{app}.{relative_path}.{module_name}'.format(app=app,
 			relative_path=relative_path.replace('/', '.'), module_name=filename[:-3])
 
-	module = frappe.get_module(module_name)
+	module = importlib.import_module(module_name)
 	is_ui_test = True if hasattr(module, 'TestDriver') else False
 
 	if is_ui_test != ui_tests:
