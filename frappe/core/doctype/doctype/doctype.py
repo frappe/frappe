@@ -773,8 +773,7 @@ def init_list(doctype):
 
 def check_if_fieldname_conflicts_with_methods(doctype, fieldname):
 	doc = frappe.get_doc({"doctype": doctype})
-	method_list = [method for method in dir(doc) if callable(getattr(doc, method))]
+	method_list = [method for method in dir(doc) if isinstance(method, str) and callable(getattr(doc, method))]
 
 	if fieldname in method_list:
 		frappe.throw(_("Fieldname {0} conflicting with meta object").format(fieldname))
-
