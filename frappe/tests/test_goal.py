@@ -27,6 +27,8 @@ class TestGoal(unittest.TestCase):
 
 	def test_get_monthly_goal_graph_data(self):
 		'''Test for accurate values in graph data (based on test_get_monthly_results)'''
-		data = get_monthly_goal_graph_data('Test', 'Event', '_Test Event 1', 'color', 'description',
-			'Event', 'subject', 'starts_on = "2014-01-01"', 'count')
-		self.assertEquals(data['y_values'][-1], 2)
+		docname = frappe.get_list('Event', filters = {"subject": ["=", "_Test Event 1"]})[0]["name"]
+		frappe.db.set_value('Event', docname, 'description', 1)
+		data = get_monthly_goal_graph_data('Test', 'Event', docname, 'description', 'description',
+			'Event', 'description', 'starts_on = "2014-01-01"', 'count')
+		self.assertEquals(data['y_values'][-1], 1)

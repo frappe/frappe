@@ -100,7 +100,7 @@ def get_monthly_goal_graph_data(title, doctype, docname, goal_value_field, goal_
 			{
 				'name': "Completed",
 				'color': 'green',
-				'value': str(int(round(current_month_value/goal*100))) + "%"
+				'value': str(int(round(current_month_value/float(goal)*100))) + "%"
 			}
 		]
 	}
