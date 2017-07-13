@@ -149,7 +149,14 @@ def get_email_queue(recipients, sender, subject, **kwargs):
 	'''Make Email Queue object'''
 	e = frappe.new_doc('Email Queue')
 	e.priority = kwargs.get('send_priority')
-	e.attachments = json.dumps(kwargs.get('attachments'))
+	attachments = kwargs.get('attachments')
+	if attachments:
+		# store attachments with fid, to be attached on-demand later
+		_attachments = []
+		for att in attachments:
+			if att.get('fid'):
+				_attachments.append(att)
+		e.attachments = json.dumps(_attachments)
 
 	try:
 		mail = get_email(recipients,
@@ -432,6 +439,7 @@ where name=%s""", (unicode(e), email.name), auto_commit=auto_commit)
 			frappe.get_doc('Communication', email.communication).set_delivery_status(commit=auto_commit)
 
 		if now:
+			print(frappe.get_traceback())
 			raise e
 
 		else:
@@ -466,14 +474,14 @@ def prepare_message(email, recipient, recipients_list):
 
 		message = message.replace("<!--recipient-->", recipient)
 
-	attachments = json.loads(email.attachments)
-	if not attachments:
+	if not email.attachments:
 		return message
 
 	# On-demand attachments
 	from email.parser import Parser
 
 	msg_obj = Parser().parsestr(message)
+	attachments = json.loads(email.attachments)
 
 	for attachment in attachments:
 		if attachment.get('fcontent'): continue
