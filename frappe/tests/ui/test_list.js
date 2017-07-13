@@ -32,11 +32,9 @@ QUnit.test("Test list values", function(assert) {
 		() => frappe.set_route('List', 'DocType'),
 		() => frappe.timeout(1),
 		() => {
-			{
-				assert.deepEqual(['List', 'DocType', 'List'], frappe.get_route());
-				assert.ok($('.list-item:visible').length > 10);
-				done();
-			}
+			assert.deepEqual(['List', 'DocType', 'List'], frappe.get_route());
+			assert.ok($('.list-item:visible').length > 10);
+			done();
 		}
 	]);
 });
