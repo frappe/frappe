@@ -99,11 +99,11 @@ frappe.tests = {
 		return frappe.run_serially([
 			() => {
 				if (text == "Menu"){
-					$("span.menu-btn-group-label:contains('Menu'):visible").click();
+					$(`span.menu-btn-group-label:contains('Menu'):visible`).click();
 				} else if (text == "Refresh") {
-					$(".btn-secondary:contains('Refresh'):visible").click();
+					$(`.btn-secondary:contains('Refresh'):visible`).click();
 				} else if (possible_texts.includes(text)) {
-					$(".btn-primary:contains("+text+"):visible").click();
+					$(`.btn-primary:contains("${text}"):visible`).click();
 				}
 			},
 			() => frappe.timeout(0.3)
@@ -113,8 +113,8 @@ frappe.tests = {
 		// Method to click dropdown elements
 		return frappe.run_serially([
 			() => {
-				let li = $(".dropdown-menu li:contains("+text+"):visible").get(0);
-				$(li).find('a')[0].click();
+				let li = $(`.dropdown-menu li:contains("${text}"):visible`).get(0);
+				$(li).find(`a`)[0].click();
 			},
 			() => frappe.timeout(0.3)
 		]);
@@ -124,16 +124,16 @@ frappe.tests = {
 		return frappe.run_serially([
 			() => {
 				if (text == "Help"){
-					$(".dropdown-help .dropdown-toggle:visible").click();
+					$(`.dropdown-help .dropdown-toggle:visible`).click();
 				}
 				else if (text == "navbar_user"){
-					$(".dropdown-navbar-user .dropdown-toggle:visible").click();
+					$(`.dropdown-navbar-user .dropdown-toggle:visible`).click();
 				}
 				else if (text == "Notification"){
-					$(".navbar-new-comments").click();
+					$(`.navbar-new-comments`).click();
 				}
 				else if (text == "Home"){
-					$(".navbar-home:contains('Home'):visible")[0].click();
+					$(`.navbar-home:contains('Home'):visible`)[0].click();
 				}
 			},
 			() => frappe.timeout(0.3)
@@ -142,7 +142,7 @@ frappe.tests = {
 	click_generic_text: (text, tag='a') => {
 		// Method to click an element by its name
 		return frappe.run_serially([
-			() => $(tag+":contains("+text+"):visible")[0].click(),
+			() => $(`${tag}:contains("${text}"):visible`)[0].click(),
 			() => frappe.timeout(0.3)
 		]);
 	},
@@ -155,8 +155,12 @@ frappe.tests = {
 	},
 	is_visible: (text, tag='a') => {
 		// Method to check the visibility of an element
-		return $(tag+":contains("+text+")").is(':visible');
+		return $(`${tag}:contains("${text}")`).is(`:visible`);
 	},
+	close_modal: () => {
+		// Close the modal on the screen
+		$(`a.close`).click();
+  	},
 	click_print_logo: () => {
 		return frappe.run_serially([
 			() => $(`.fa-print`).click(),
