@@ -14,6 +14,7 @@ p {
 .email-body,
 .email-footer {
   width: 100% !important;
+  min-width: 100% !important;
 }
 .email-body tr {
   font-size: 14px;
