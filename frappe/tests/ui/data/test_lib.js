@@ -8,8 +8,14 @@ frappe.tests = {
 			() => frappe.set_route('List', doctype),
 			() => frappe.new_doc(doctype),
 			() => {
-				let frm = frappe.quick_entry ? frappe.quick_entry.dialog : cur_frm;
-				return frappe.tests.set_form_values(frm, data);
+				if (frappe.quick_entry)
+				{
+					frappe.quick_entry.dialog.$wrapper.find('.edit-full').click();
+					return frappe.timeout(1);
+				}
+			},
+			() => {
+				return frappe.tests.set_form_values(cur_frm, data);
 			},
 			() => frappe.timeout(1),
 			() => (frappe.quick_entry ? frappe.quick_entry.insert() : cur_frm.save())
@@ -90,7 +96,57 @@ frappe.tests = {
 				});
 
 				return frappe.run_serially(tasks);
-			}
+			}]);
+	},
+	click_and_wait: (button, obj=0.1) => {
+		return frappe.run_serially([
+			() => {
+				//check if obj value is passed
+				if (obj == 0.1)
+					$(button).click();
+				else
+					$(button)[obj].click();
+			},
+			() => frappe.timeout(0.5)
+		]);
+	},
+	create_todo: (todo_needed) => {
+		let status_list = ['Closed', 'Open'];
+		let priority_list = ['Low', 'Medium', 'High'];
+		let date_list = ['2017-05-05', '2017-06-06', '2017-07-07', '2017-08-08'];
+		let owner_list = ['Administrator', 'user1@mail.com'];
+		let i;
+		let num_of_todo;
+		let tasks = [];
+
+		return frappe.run_serially([
+			() => frappe.set_route('List', 'ToDo', 'List'),
+			() => {
+				//remove todo filters
+				for (i=1; i<=5; i++)
+					$('.col-md-2:nth-child('+i+') .input-sm').val('');
+			},
+			() => cur_list.page.btn_secondary.click(),
+			() => frappe.timeout(0.5),
+			() => num_of_todo = cur_list.data.length,//todo present
+			() => {
+				if (num_of_todo < todo_needed)
+				{
+					for (i=0; i<(todo_needed-num_of_todo); i+=1)
+					{
+						tasks.push(() => frappe.tests.make("ToDo", [
+							{description: 'ToDo for testing'},
+							{status: status_list[i%2]},
+							{priority: priority_list[i%3]},
+							{date: date_list[i%4]},
+							{owner: owner_list[i%2]}
+						]));
+						tasks.push(() => i+=1);
+					}
+					i=0;
+				}
+			},
+			() => frappe.run_serially(tasks)
 		]);
 	},
 	click_page_head_item: (text) => {
