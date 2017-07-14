@@ -33,3 +33,21 @@ QUnit.test("Test filters", function(assert) {
 		() => done()
 	]);
 });
+
+QUnit.log( ( { result, module, name, message, actual, expected, source } ) => {
+	if ( result ) {
+		return;
+	}
+	let output = `FAILED: ${module}: ${name}: `;
+
+	if ( message ) {
+		output += `${message}, `;
+	}
+	if ( actual ) {
+		output += `expected: ${expected}, actual: ${actual}`;
+	}
+	if ( source ) {
+		output += `, ${source}`;
+	}
+	console.log( output );
+});
