@@ -332,9 +332,3 @@ body {
     right: 90px;
   }
 }
-@media (max-width: 580px) {
-  .timeline-item.user-content .comment-header .btn-add-to-kb {
-    float: none !important;
-    margin-top: 5px !important;
-  }
-}
