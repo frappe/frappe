@@ -1,0 +1,75 @@
+@import "variables.less";
+
+body {
+	line-height: 1.5;
+	color: @text-color;
+}
+
+p {
+	margin: 1em 0 !important;
+}
+
+.body-table, .email-body tr, .email-footer tr {
+	font-family: @font-stack;
+}
+
+.email-header, .email-body, .email-footer {
+	width: 100% !important;
+}
+
+.email-body tr {
+	font-size: @text-regular;
+}
+
+.email-footer {
+	border-top: 1px solid @border-color;
+
+	tr {
+		font-size: @text-medium;
+	}
+}
+
+.email-header {
+	background: @light-bg;
+	border: 1px solid @border-color;
+	border-radius: 3px 3px 0 0;
+
+	.brand-image {
+		width: 24px;
+		height: 24px;
+		display: block;
+	}
+}
+
+.body-table.has-header {
+	.email-body {
+		border: 1px solid @border-color;
+		border-radius: 0 0 3px 3px;
+		border-top: none;
+	}
+
+	.email-footer {
+		border-top: none;
+	}
+}
+
+.btn {
+	text-decoration: none;
+	padding: 7px 10px;
+	font-size: 12px;
+	border: 1px solid;
+	border-radius: 3px;
+
+	&.btn-default {
+		color: #fff;
+		background-color: #f0f4f7;
+		border-color: transparent;
+	}
+
+	&.btn-primary {
+		color: #fff;
+		background-color: @brand-primary;
+		border-color: #444bff;
+	}
+}
+
