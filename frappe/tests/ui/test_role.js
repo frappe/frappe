@@ -14,13 +14,14 @@ QUnit.only("Role-Manager Functions", function(assert) {
         () => frappe.timeout(1),
         () => $("div#page-permission-manager td:nth-child(5) > button").click(),
         () => frappe.timeout(1),
-        () => assert.ok($("div#page-permission-manager td:nth-child(2) > a").length == 0, "Delete Works"),
-        () => frappe.timeout(3),
+        () => assert.ok($("div#page-permission-manager td:nth-child(2) > a").html != "Account Manager", "Delete Works"),
+        () => frappe.timeout(1),
         () => $("div#page-permission-manager button:nth-child(2)").click(),
         () => frappe.timeout(1),
         () => $(".btn-primary:contains('Yes')").click(),
-        () => frappe.timeout(1),
+        () => frappe.timeout(2),
         () => assert.ok($("div#page-permission-manager td:nth-child(2) > a").html() == "Accounts Manager", "Restore Default Works"),
+        () => frappe.timeout(2),
         () => done()
 	]);
 });
