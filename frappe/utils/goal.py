@@ -26,7 +26,7 @@ def get_monthly_results(goal_doctype, goal_field, filter_str, aggregation = 'sum
 
 @frappe.whitelist()
 def get_monthly_goal_graph_data(title, doctype, docname, goal_value_field, goal_total_field,
-	goal_doctype, goal_field, filter_str, aggregation="sum"):
+	goal_doctype, goal_doctype_link, goal_field, filter_str, aggregation="sum"):
 	'''
 		Get month-wise graph data for a doctype based on aggregation values of a field in the goal doctype
 
@@ -36,6 +36,7 @@ def get_monthly_goal_graph_data(title, doctype, docname, goal_value_field, goal_
 		:param goal_value_field: goal field of doctype
 		:param goal_total_field: current month value field of doctype
 		:param goal_doctype: doctype the goal is based on
+		:param goal_doctype_link: doctype link field in goal_doctype
 		:param goal_field: field from which the goal is calculated
 		:param filter_str: where clause condition
 		:param aggregation: a value like 'count', 'sum', 'avg'
@@ -43,9 +44,30 @@ def get_monthly_goal_graph_data(title, doctype, docname, goal_value_field, goal_
 		:return: dict of graph data
 	'''
 
-	month_to_value_dict = get_monthly_results(goal_doctype, goal_field, filter_str, aggregation)
+	from frappe.utils.formatters import format_value
+
+	meta = frappe.get_meta(doctype)
+	doc = frappe.get_doc(doctype, docname)
+
+	goal = doc.get(goal_value_field)
+	formatted_goal = format_value(goal, meta.get_field(goal_value_field), doc)
+
+	current_month_value = doc.get(goal_total_field)
+	formatted_value = format_value(current_month_value, meta.get_field(goal_total_field), doc)
 
 	from frappe.utils import today, getdate, formatdate, add_months
+	current_month_year = formatdate(today(), "MM-yyyy")
+
+	cache = frappe.cache()
+	month_to_value_dict = cache.hget("month_to_value_dict:" + goal_doctype, doctype+':'+docname)
+	if month_to_value_dict is None:
+		doc_filter = (goal_doctype_link + ' = "' + docname + '"') if doctype != goal_doctype else ''
+		if filter_str:
+			doc_filter += ' and ' + filter_str if doc_filter else filter_str
+		month_to_value_dict = get_monthly_results(goal_doctype, goal_field, doc_filter, aggregation)
+
+	month_to_value_dict[current_month_year] = current_month_value
+
 	months = []
 	values = []
 	for i in xrange(0, 12):
@@ -57,41 +79,24 @@ def get_monthly_goal_graph_data(title, doctype, docname, goal_value_field, goal_
 		else:
 			values.insert(0, 0)
 
-	current_month_year = formatdate(today(), "MM-yyyy")
-	current_month_value = 0
-	if current_month_year in month_to_value_dict:
-		current_month_value = month_to_value_dict[current_month_year]
+	specific_values = []
+	summary_values = [
+		{
+			'name': "This month",
+			'color': 'green',
+			'value': formatted_value
+		}
+	]
 
-
-	# Set doc completed goal value
-	frappe.db.set_value(doctype, docname, goal_total_field, current_month_value)
-
-	goal = frappe.get_value(doctype, docname, goal_value_field)
-
-	from frappe.utils.formatters import format_value
-	meta = frappe.get_meta(doctype)
-	doc = frappe.get_doc(doctype, docname)
-	formatted_value = format_value(current_month_value, meta.get_field(goal_total_field), doc)
-	formatted_goal = format_value(goal, meta.get_field(goal_value_field), doc)
-
-	data = {
-		'title': title,
-		# 'subtitle':
-		'y_values': values,
-		'x_points': months,
-		'specific_values': [
+	if float(goal) > 0:
+		specific_values = [
 			{
 				'name': "Goal",
 				'line_type': "dashed",
 				'value': goal
 			},
-		],
-		'summary_values': [
-			{
-				'name': "This month",
-				'color': 'green',
-				'value': formatted_value
-			},
+		]
+		summary_values += [
 			{
 				'name': "Goal",
 				'color': 'blue',
@@ -100,9 +105,17 @@ def get_monthly_goal_graph_data(title, doctype, docname, goal_value_field, goal_
 			{
 				'name': "Completed",
 				'color': 'green',
-				'value': str(int(round(current_month_value/float(goal)*100))) + "%"
+				'value': str(int(round(float(current_month_value)/float(goal)*100))) + "%"
 			}
 		]
+
+	data = {
+		'title': title,
+		# 'subtitle':
+		'y_values': values,
+		'x_points': months,
+		'specific_values': specific_values,
+		'summary_values': summary_values
 	}
 
 	return data

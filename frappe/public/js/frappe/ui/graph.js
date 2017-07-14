@@ -85,7 +85,7 @@ frappe.ui.Graph = class Graph {
 	setup_container() {
 		this.container = $('<div>')
 			.addClass('graph-container')
-			.append($(`<h5 class="title">${this.title}</h5>`))
+			.append($(`<h6 class="title" style="margin-top: 15px;">${this.title}</h6>`))
 			.append($(`<h6 class="sub-title uppercase">${this.subtitle}</h6>`))
 			.append($(`<div class="graphics"></div>`))
 			.append($(`<div class="stats-container"></div>`))
@@ -169,7 +169,7 @@ frappe.ui.Graph = class Graph {
 		let specific_values = this.specific_values.map(d => d.value);
 		let max_val = Math.max(...array, ...specific_values);
 		if((max_val+"").length <= 1) {
-			return 10;
+			return [10, 5];
 		} else {
 			let multiplier = Math.pow(10, ((max_val+"").length - 1));
 			let significant = Math.ceil(max_val/multiplier);
