@@ -5,6 +5,9 @@ body {
 p {
   margin: 1em 0 !important;
 }
+hr {
+  border-top: 1px solid #d1d8dd;
+}
 .body-table,
 .email-body tr,
 .email-footer tr {
