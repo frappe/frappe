@@ -96,7 +96,7 @@ frappe.tests = {
 				});
 
 				return frappe.run_serially(tasks);
-			});
+			}]);
 	},
 	click_and_wait: (button, obj=0.1) => {
 		return frappe.run_serially([

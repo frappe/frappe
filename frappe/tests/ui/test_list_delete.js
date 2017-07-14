@@ -7,7 +7,7 @@ QUnit.test("Test deletion of one list element", function(assert) {
 	let random;
 
 	frappe.run_serially([
-		// () => frappe.tests.setup_doctype('User'),
+		() => frappe.tests.setup_doctype('User'),
 		() => frappe.tests.create_todo(2),
 		() => frappe.set_route('List', 'ToDo', 'List'),
 		() => frappe.timeout(0.5),
@@ -38,7 +38,7 @@ QUnit.test("Test deletion of all list element", function(assert) {
 	let done = assert.async();
 
 	frappe.run_serially([
-		// () => frappe.tests.setup_doctype('User'),
+		() => frappe.tests.setup_doctype('User'),
 		() => frappe.tests.create_todo(5),
 		() => frappe.set_route('List', 'ToDo', 'List'),
 		() => frappe.timeout(0.5),
