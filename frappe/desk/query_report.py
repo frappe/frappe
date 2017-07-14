@@ -208,7 +208,7 @@ def add_total_row(result, columns, meta = None):
 			total_row[i] = result[0][i]
 
 	for i in has_percent:
-		total_row[i] = total_row[i] / len(result)
+		total_row[i] = flt(total_row[i]) / len(result)
 
 	first_col_fieldtype = None
 	if isinstance(columns[0], basestring):
