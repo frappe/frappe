@@ -115,15 +115,16 @@ frappe.tests = {
 		let priority_list = ['Low', 'Medium', 'High'];
 		let date_list = ['2017-05-05', '2017-06-06', '2017-07-07', '2017-08-08'];
 		let owner_list = ['Administrator', 'user1@mail.com'];
-		let tasks = [];
 		let i;
+		let num_of_todo;
+		let tasks = [];
 
 		return frappe.run_serially([
 			() => frappe.set_route('List', 'ToDo', 'List'),
 			() => {
 				//remove todo filters
 				for (i=1; i<=5; i++)
-				$('.col-md-2:nth-child('+i+') .input-sm').val('');
+					$('.col-md-2:nth-child('+i+') .input-sm').val('');
 			},
 			() => cur_list.page.btn_secondary.click(),
 			() => frappe.timeout(0.5),
