@@ -133,10 +133,11 @@ def _notify(contact, txt, subject=None):
 			recipients=contact,
 			sender= frappe.db.get_value("User", frappe.session.user, "email"),
 			subject=subject or "New Message from " + get_fullname(frappe.session.user),
-			message=frappe.get_template("templates/emails/new_message.html").render({
+			template="new_message",
+			args={
 				"from": get_fullname(frappe.session.user),
 				"message": txt,
 				"link": get_url()
-			}))
+			})
 	except frappe.OutgoingEmailError:
 		pass
