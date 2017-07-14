@@ -48,18 +48,20 @@ QUnit.test("Test Menu actions", function(assert) {
 		() => frappe.timeout(1),
 		() => frappe.tests.click_and_wait(menu_button),
 		() => frappe.tests.click_and_wait(dropdown_click('Assign To')),
+		() => frappe.timeout(0.5),
 		() => {
 			assert.equal(cur_dialog.title, 'Add to To Do', "Dialog opened to assign todo.");
-			$('btn-primary:contains("Add"):visible').click();
+			$('button.btn-modal-close:visible').click();
 		},
 
 		//6. test Print
 		() => frappe.set_route('List', 'ToDo', 'List'),
-		() => frappe.timeout(1),
+		() => frappe.timeout(0.5),
 		() => frappe.tests.click_and_wait('div:nth-child(2)>div>div>.list-row-checkbox'),
 		() => frappe.timeout(1),
 		() => frappe.tests.click_and_wait(menu_button),
 		() => frappe.tests.click_and_wait(dropdown_click('Print')),
+		() => frappe.timeout(0.5),
 		() => {
 			assert.equal(cur_dialog.title, 'Print Documents', "Dialog for print document opens.");
 			$('button.btn-modal-close:visible').click();
