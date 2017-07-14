@@ -291,16 +291,16 @@ frappe.ui.form.Toolbar = Class.extend({
 		} else {
 			var click = {
 				"Save": function() {
-					me.frm.save('Save', null, this);
+					return me.frm.save('Save', null, this);
 				},
 				"Submit": function() {
-					me.frm.savesubmit(this);
+					return me.frm.savesubmit(this);
 				},
 				"Update": function() {
-					me.frm.save('Update', null, this);
+					return me.frm.save('Update', null, this);
 				},
 				"Amend": function() {
-					me.frm.amend_doc();
+					return me.frm.amend_doc();
 				}
 			}[status];
 
