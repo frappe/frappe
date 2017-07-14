@@ -117,6 +117,7 @@
 		"set_field_options": true,
 		"getCookie": true,
 		"getCookies": true,
-		"get_url_arg": true
+		"get_url_arg": true,
+		"QUnit": true
 	}
 }

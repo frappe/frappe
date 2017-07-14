@@ -272,6 +272,9 @@ def set_dropbox_access_token(access_token):
 	frappe.db.commit()
 
 def generate_oauth2_access_token_from_oauth1_token(dropbox_settings=None):
+	if not dropbox_settings.get("access_key") or not dropbox_settings.get("access_secret"):
+		return {}
+
 	url = "https://api.dropboxapi.com/2/auth/token/from_oauth1"
 	headers = {"Content-Type": "application/json"}
 	auth = (dropbox_settings["app_key"], dropbox_settings["app_secret"])

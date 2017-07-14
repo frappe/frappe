@@ -12,9 +12,9 @@ import os, sys, importlib, inspect, json
 
 # public
 from .exceptions import *
-from .utils.jinja import get_jenv, get_template, render_template
+from .utils.jinja import get_jenv, get_template, render_template, get_email_from_template
 
-__version__ = '8.2.2'
+__version__ = '8.4.0'
 __title__ = "Frappe Framework"
 
 local = Local()
@@ -138,8 +138,7 @@ def init(site, sites_path=None, new_site=False):
 
 	local.module_app = None
 	local.app_modules = None
-	local.system_settings = None
-	local.system_country = None
+	local.system_settings = _dict()
 
 	local.user = None
 	local.user_perms = None
@@ -381,7 +380,7 @@ def sendmail(recipients=[], sender="", subject="No Subject", message="No Message
 		attachments=None, content=None, doctype=None, name=None, reply_to=None,
 		cc=[], message_id=None, in_reply_to=None, send_after=None, expose_recipients=None,
 		send_priority=1, communication=None, retry=1, now=None, read_receipt=None, is_notification=False,
-		inline_images=None):
+		inline_images=None, template=None, args=None, header=False):
 	"""Send email using user's default **Email Account** or global default **Email Account**.
 
 
@@ -404,7 +403,15 @@ def sendmail(recipients=[], sender="", subject="No Subject", message="No Message
 	:param expose_recipients: Display all recipients in the footer message - "This email was sent to"
 	:param communication: Communication link to be set in Email Queue record
 	:param inline_images: List of inline images as {"filename", "filecontent"}. All src properties will be replaced with random Content-Id
+	:param template: Name of html template from templates/emails folder
+	:param args: Arguments for rendering the template
+	:param header: Append header in email
 	"""
+
+	text_content = None
+	if template:
+		message, text_content = get_email_from_template(template, args)
+
 	message = content or message
 
 	if as_markdown:
@@ -416,13 +423,13 @@ def sendmail(recipients=[], sender="", subject="No Subject", message="No Message
 
 	import email.queue
 	email.queue.send(recipients=recipients, sender=sender,
-		subject=subject, message=message,
+		subject=subject, message=message, text_content=text_content,
 		reference_doctype = doctype or reference_doctype, reference_name = name or reference_name,
 		unsubscribe_method=unsubscribe_method, unsubscribe_params=unsubscribe_params, unsubscribe_message=unsubscribe_message,
 		attachments=attachments, reply_to=reply_to, cc=cc, message_id=message_id, in_reply_to=in_reply_to,
 		send_after=send_after, expose_recipients=expose_recipients, send_priority=send_priority,
 		communication=communication, now=now, read_receipt=read_receipt, is_notification=is_notification,
-		inline_images=inline_images)
+		inline_images=inline_images, header=header)
 
 whitelisted = []
 guest_methods = []
@@ -1364,7 +1371,7 @@ def get_active_domains():
 
 	return active_domains
 
-def get_system_country():
-	if local.system_country is None:
-		local.system_country = db.get_single_value('System Settings', 'country') or ''
-	return local.system_country
+def get_system_settings(key):
+	if not local.system_settings.has_key(key):
+		local.system_settings.update({key: db.get_single_value('System Settings', key)})
+	return local.system_settings.get(key)

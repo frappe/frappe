@@ -119,7 +119,8 @@ frappe.ui.form.on("Email Account", {
 	},
 
 	show_gmail_message_for_less_secure_apps: function(frm) {
-		if(frm.doc.service==="Gmail") {
+		frm.dashboard.clear_headline();
+		if(frm.doc.service==="GMail") {
 			frm.dashboard.set_headline_alert('Gmail will only work if you allow access for less secure \
 				apps in Gmail settings. <a target="_blank" \
 				href="https://support.google.com/accounts/answer/6010255?hl=en">Read this for details</a>');

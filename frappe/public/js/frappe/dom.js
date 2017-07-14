@@ -195,6 +195,26 @@ frappe.ellipsis = function(text, max) {
 	return text;
 };
 
+frappe.run_serially = function(tasks) {
+	var result = Promise.resolve();
+	tasks.forEach(task => {
+		if(task) {
+			result = result.then ? result.then(task) : Promise.resolve();
+		}
+	});
+	return result;
+};
+
+frappe.timeout = seconds => {
+	return new Promise((resolve) => {
+		setTimeout(() => resolve(), seconds * 1000);
+	});
+};
+
+frappe.scrub = function(text) {
+	return text.replace(/ /g, "_").toLowerCase();
+};
+
 frappe.get_modal = function(title, content) {
 	return $(frappe.render_template("modal", {title:title, content:content})).appendTo(document.body);
 };

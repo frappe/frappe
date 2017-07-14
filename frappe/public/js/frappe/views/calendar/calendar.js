@@ -337,7 +337,7 @@ frappe.views.Calendar = Class.extend({
 		if(this.filters) {
 			$.each(this.filters, function(i, df) {
 				filter_vals[df.fieldname || df.label] =
-					me.page.fields_dict[df.fieldname || df.label].get_parsed_value();
+					me.page.fields_dict[df.fieldname || df.label].get_value();
 			});
 		}
 		return filter_vals;

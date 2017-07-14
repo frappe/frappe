@@ -313,32 +313,20 @@ $.extend(frappe.model, {
 
 frappe.create_routes = {};
 frappe.new_doc = function (doctype, opts) {
-	if(opts && $.isPlainObject(opts)) { frappe.route_options = opts; }
-	frappe.model.with_doctype(doctype, function() {
-		if(frappe.create_routes[doctype]) {
-			frappe.set_route(frappe.create_routes[doctype]);
-		} else {
-			var trimmed_doctype = doctype.replace(/ /g, '');
-			var controller_name = "QuickEntryForm";
-
-			if(frappe.ui.form[trimmed_doctype + "QuickEntryForm"]){
-				controller_name = trimmed_doctype + "QuickEntryForm";
-			}
-
-			new frappe.ui.form[controller_name](doctype, function(doc) {
-				//frappe.set_route('List', doctype);
-				var title = doc.name;
-				var title_field = frappe.get_meta(doc.doctype).title_field;
-				if (title_field) {
-					title = doc[title_field];
-				}
-
-				var route = frappe.get_route();
-				if(route && !(route[0]==='List' && route[1]===doc.doctype)) {
-					frappe.set_route('Form', doc.doctype, doc.name);
-				}
-			});
+	return new Promise(resolve => {
+		if(opts && $.isPlainObject(opts)) {
+			frappe.route_options = opts;
 		}
+		frappe.model.with_doctype(doctype, function() {
+			if(frappe.create_routes[doctype]) {
+				frappe.set_route(frappe.create_routes[doctype])
+					.then(() => resolve());
+			} else {
+				frappe.ui.form.make_quick_entry(doctype)
+					.then(() => resolve());
+			}
+		});
+
 	});
 }
 

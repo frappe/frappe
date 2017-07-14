@@ -164,8 +164,8 @@ def get_context(context):
 			and (frappe.session.user!="Guest" or not self.login_required))
 
 		if context.success_message:
-			context.success_message = context.success_message.replace("\n",
-				"<br>").replace("'", "\'")
+			context.success_message = frappe.db.escape(context.success_message.replace("\n",
+				"<br>"))
 
 		self.add_custom_context_and_script(context)
 		if not context.max_attachment_size:
@@ -175,7 +175,7 @@ def get_context(context):
 		'''Load document `doc` and `layout` properties for template'''
 		if frappe.form_dict.name or frappe.form_dict.new:
 			context.layout = self.get_layout()
-			context.parents = [{"route": self.route, "title": self.title }]
+			context.parents = [{"route": self.route, "label": _(self.title) }]
 
 		if frappe.form_dict.name:
 			context.doc = frappe.get_doc(self.doc_type, frappe.form_dict.name)

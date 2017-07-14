@@ -185,6 +185,13 @@ def get_shipping_address(company):
 		address_as_dict = address[0]
 		name, address_template = get_address_templates(address_as_dict)
 		return address_as_dict.get("name"), frappe.render_template(address_template, address_as_dict)
+		
+def get_company_address(company):
+	ret = frappe._dict()
+	ret.company_address = get_default_address('Company', company)
+	ret.company_address_display = get_address_display(ret.company_address)
+	
+	return ret
 
 def address_query(doctype, txt, searchfield, start, page_len, filters):
 	from frappe.desk.reportview import get_match_cond

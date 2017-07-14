@@ -176,6 +176,8 @@ frappe.ui.form.save = function (frm, action, callback, btn) {
 			console.log("Already saving. Please wait a few moments.")
 			throw "saving";
 		}
+
+		frappe.ui.form.remove_old_form_route();
 		frappe.ui.form.is_saving = true;
 
 		return frappe.call({
@@ -206,7 +208,18 @@ frappe.ui.form.save = function (frm, action, callback, btn) {
 	}
 }
 
-frappe.ui.form.update_calling_link = function (newdoc) {
+frappe.ui.form.remove_old_form_route = () => {
+	let index = -1;
+	let current_route = frappe.get_route();
+	frappe.route_history.map((arr, i) => {
+		if (arr.join("/") === current_route.join("/")) {
+			index = i;
+		}
+	});
+	frappe.route_history.splice(index, 1);
+}
+
+frappe.ui.form.update_calling_link = (newdoc) => {
 	if (frappe._from_link && newdoc.doctype === frappe._from_link.df.options) {
 		var doc = frappe.get_doc(frappe._from_link.doctype, frappe._from_link.docname);
 		// set value
@@ -226,8 +239,11 @@ frappe.ui.form.update_calling_link = function (newdoc) {
 
 		// if from form, switch
 		if (frappe._from_link.frm) {
-			frappe.set_route("Form", frappe._from_link.frm.doctype, frappe._from_link.frm.docname);
-			setTimeout(function () { frappe.utils.scroll_to(frappe._from_link_scrollY); }, 100);
+			frappe.set_route("Form",
+				frappe._from_link.frm.doctype, frappe._from_link.frm.docname)
+				.then(() => {
+					frappe.utils.scroll_to(frappe._from_link_scrollY);
+				});
 		}
 
 		frappe._from_link = null;
