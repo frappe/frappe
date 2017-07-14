@@ -698,7 +698,7 @@ _f.Frm.prototype.save = function(save_action, callback, btn, on_error) {
 _f.Frm.prototype._save = function(save_action, callback, btn, on_error, resolve) {
 	var me = this;
 	if(!save_action) save_action = "Save";
-	this.validate_form_action(save_action);
+	this.validate_form_action(save_action, resolve);
 
 	if((!this.meta.in_dialog || this.in_form) && !this.meta.istable) {
 		frappe.utils.scroll_to(0);
@@ -712,8 +712,9 @@ _f.Frm.prototype._save = function(save_action, callback, btn, on_error, resolve)
 			me.script_manager.trigger("after_save");
 			me.refresh();
 		} else {
-			if(on_error)
+			if(on_error) {
 				on_error();
+			}
 		}
 		callback && callback(r);
 		resolve();
@@ -722,23 +723,22 @@ _f.Frm.prototype._save = function(save_action, callback, btn, on_error, resolve)
 	if(save_action != "Update") {
 		// validate
 		frappe.validated = true;
-		Promise.all([
-			this.script_manager.trigger("validate"),
-			this.script_manager.trigger("before_save")
-		]).then(() => {
-			// done is called after all ajaxes in validate & before_save are completed :)
-
-			if(!frappe.validated) {
-				btn && $(btn).prop("disabled", false);
-				if(on_error) {
-					on_error();
+		frappe.run_serially([
+			() => this.script_manager.trigger("validate"),
+			() => this.script_manager.trigger("before_save"),
+			() => {
+				if(!frappe.validated) {
+					btn && $(btn).prop("disabled", false);
+					if(on_error) {
+						on_error();
+					}
+					resolve();
+					return;
 				}
-				resolve();
-				return;
-			}
 
-			frappe.ui.form.save(me, save_action, after_save, btn);
-		});
+				frappe.ui.form.save(me, save_action, after_save, btn);
+			}
+		]);
 	} else {
 		frappe.ui.form.save(me, save_action, after_save, btn);
 	}
@@ -757,7 +757,7 @@ _f.Frm.prototype.savesubmit = function(btn, callback, on_error) {
 				return;
 			}
 
-			me.save('Submit', function(r) {
+			return me.save('Submit', function(r) {
 				if(!r.exc) {
 					frappe.utils.play_sound("submit");
 					callback && callback();
@@ -929,7 +929,7 @@ _f.Frm.prototype.action_perm_type_map = {
 	"Delete": "delete"
 };
 
-_f.Frm.prototype.validate_form_action = function(action) {
+_f.Frm.prototype.validate_form_action = function(action, resolve) {
 	var perm_to_check = this.action_perm_type_map[action];
 	var allowed_for_workflow = false;
 	var perms = frappe.perm.get_perm(this.doc.doctype)[0];
@@ -943,6 +943,10 @@ _f.Frm.prototype.validate_form_action = function(action) {
 	}
 
 	if (!this.perm[0][perm_to_check] && !allowed_for_workflow) {
+		if(resolve) {
+			// re-enable buttons
+			resolve();
+		}
 		frappe.throw (__("No permission to '{0}' {1}", [__(action), __(this.doc.doctype)]));
 	}
 };

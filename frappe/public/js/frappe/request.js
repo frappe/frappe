@@ -239,7 +239,9 @@ frappe.request.prepare = function(opts) {
 
 frappe.request.cleanup = function(opts, r) {
 	// stop button indicator
-	if(opts.btn) $(opts.btn).prop("disabled", false);
+	if(opts.btn) {
+		$(opts.btn).prop("disabled", false);
+	}
 
 	$("body").attr("data-ajax-state", "complete");
 
