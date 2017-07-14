@@ -63,3 +63,9 @@ hr {
   background-color: #5E64FF;
   border-color: #444bff;
 }
+.more-info {
+  font-size: 80%;
+  color: #8D99A6;
+  border-top: 1px solid #EBEFF2;
+  padding-top: 10px;
+}
