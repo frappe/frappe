@@ -99,24 +99,24 @@ frappe.tests = {
 		return frappe.run_serially([
 			() => {
 				if (text == "Menu"){
-					$("span.menu-btn-group-label:contains('Menu'):visible").click();
+					$(`span.menu-btn-group-label:contains('Menu'):visible`).click();
 				} else if (text == "Refresh") {
-					$(".btn-secondary:contains('Refresh'):visible").click();
+					$(`.btn-secondary:contains('Refresh'):visible`).click();
 				} else if (possible_texts.includes(text)) {
-					$(".btn-primary:contains("+text+"):visible").click();
+					$(`.btn-primary:contains("${text}"):visible`).click();
 				}
 			},
-			() => frappe.timeout(0.3)
+			() => frappe.timeout(1)
 		]);
 	},
 	click_dropdown_item: (text) => {
 		// Method to click dropdown elements
 		return frappe.run_serially([
 			() => {
-				let li = $(".dropdown-menu li:contains("+text+"):visible").get(0);
-				$(li).find('a')[0].click();
+				let li = $(`.dropdown-menu li:contains("${text}"):visible`).get(0);
+				$(li).find(`a`)[0].click();
 			},
-			() => frappe.timeout(0.3)
+			() => frappe.timeout(1)
 		]);
 	},
 	click_navbar_item: (text) => {
@@ -124,45 +124,55 @@ frappe.tests = {
 		return frappe.run_serially([
 			() => {
 				if (text == "Help"){
-					$(".dropdown-help .dropdown-toggle:visible").click();
+					$(`.dropdown-help .dropdown-toggle:visible`).click();
 				}
 				else if (text == "navbar_user"){
-					$(".dropdown-navbar-user .dropdown-toggle:visible").click();
+					$(`.dropdown-navbar-user .dropdown-toggle:visible`).click();
 				}
 				else if (text == "Notification"){
-					$(".navbar-new-comments").click();
+					$(`.navbar-new-comments`).click();
 				}
 				else if (text == "Home"){
-					$(".navbar-home:contains('Home'):visible")[0].click();
+					$(`.navbar-home:contains('Home'):visible`)[0].click();
 				}
 			},
-			() => frappe.timeout(0.3)
+			() => frappe.timeout(1)
 		]);
 	},
 	click_generic_text: (text, tag='a') => {
 		// Method to click an element by its name
 		return frappe.run_serially([
-			() => $(tag+":contains("+text+"):visible")[0].click(),
-			() => frappe.timeout(0.3)
+			() => $(`${tag}:contains("${text}"):visible`)[0].click(),
+			() => frappe.timeout(1)
 		]);
 	},
 	click_desktop_icon: (text) => {
 		// Method to click the desktop icons on the Desk, by their name
 		return frappe.run_serially([
 			() => $("#icon-grid > div > div.app-icon[title="+text+"]").click(),
-			() => frappe.timeout(0.3)
+			() => frappe.timeout(1)
 		]);
 	},
 	is_visible: (text, tag='a') => {
 		// Method to check the visibility of an element
-		return $(tag+":contains("+text+")").is(':visible');
+		return $(`${tag}:contains("${text}")`).is(`:visible`);
+	},
+	close_modal: () => {
+		// Close the modal on the screen
+		$(`a.close`).click();
+	},
+	click_print_logo: () => {
+		return frappe.run_serially([
+			() => $(`.fa-print`).click(),
+			() => frappe.timeout(1)
+		]);
 	},
 	click_button: function(text) {
 		$(`.btn:contains("${text}"):visible`).click();
-		return frappe.timeout(0.3);
+		return frappe.timeout(1);
 	},
 	click_link: function(text) {
 		$(`a:contains("${text}"):visible`).click();
-		return frappe.timeout(0.3);
+		return frappe.timeout(1);
 	}
 };
