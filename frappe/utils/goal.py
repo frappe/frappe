@@ -4,18 +4,18 @@
 from __future__ import unicode_literals
 import frappe
 
-def get_monthly_results(goal_doctype, goal_field, filter_str, aggregation = 'sum'):
+def get_monthly_results(goal_doctype, goal_field, date_col, filter_str, aggregation = 'sum'):
 	'''Get monthly aggregation values for given field of doctype'''
 
 	where_clause = ('where ' + filter_str) if filter_str else ''
 	results = frappe.db.sql('''
 		select
-			{0}({1}) as {1}, date_format(creation, '%m-%Y') as month_year
+			{0}({1}) as {1}, date_format({2}, '%m-%Y') as month_year
 		from
-			`{2}`
-		{3}
+			`{3}`
+		{4}
 		group by
-			month_year'''.format(aggregation, goal_field, "tab" +
+			month_year'''.format(aggregation, goal_field, date_col, "tab" +
 			goal_doctype, where_clause), as_dict=True)
 
 	month_to_value_dict = {}
@@ -25,8 +25,8 @@ def get_monthly_results(goal_doctype, goal_field, filter_str, aggregation = 'sum
 	return month_to_value_dict
 
 @frappe.whitelist()
-def get_monthly_goal_graph_data(title, doctype, docname, goal_value_field, goal_total_field,
-	goal_doctype, goal_doctype_link, goal_field, filter_str, aggregation="sum"):
+def get_monthly_goal_graph_data(title, doctype, docname, goal_value_field, goal_total_field, goal_history_field,
+	goal_doctype, goal_doctype_link, goal_field, date_field, filter_str, aggregation="sum"):
 	'''
 		Get month-wise graph data for a doctype based on aggregation values of a field in the goal doctype
 
@@ -35,6 +35,7 @@ def get_monthly_goal_graph_data(title, doctype, docname, goal_value_field, goal_
 		:param docname: of the doc to set the graph in
 		:param goal_value_field: goal field of doctype
 		:param goal_total_field: current month value field of doctype
+		:param goal_history_field: cached history field
 		:param goal_doctype: doctype the goal is based on
 		:param goal_doctype_link: doctype link field in goal_doctype
 		:param goal_field: field from which the goal is calculated
@@ -45,6 +46,7 @@ def get_monthly_goal_graph_data(title, doctype, docname, goal_value_field, goal_
 	'''
 
 	from frappe.utils.formatters import format_value
+	import json
 
 	meta = frappe.get_meta(doctype)
 	doc = frappe.get_doc(doctype, docname)
@@ -58,13 +60,18 @@ def get_monthly_goal_graph_data(title, doctype, docname, goal_value_field, goal_
 	from frappe.utils import today, getdate, formatdate, add_months
 	current_month_year = formatdate(today(), "MM-yyyy")
 
-	cache = frappe.cache()
-	month_to_value_dict = cache.hget("month_to_value_dict:" + goal_doctype, doctype+':'+docname)
+	history = doc.get(goal_history_field)
+	try:
+		month_to_value_dict = json.loads(history) if history and '{' in history else None
+	except ValueError:
+		month_to_value_dict = None
+
 	if month_to_value_dict is None:
 		doc_filter = (goal_doctype_link + ' = "' + docname + '"') if doctype != goal_doctype else ''
 		if filter_str:
 			doc_filter += ' and ' + filter_str if doc_filter else filter_str
-		month_to_value_dict = get_monthly_results(goal_doctype, goal_field, doc_filter, aggregation)
+		month_to_value_dict = get_monthly_results(goal_doctype, goal_field, date_field, doc_filter, aggregation)
+		frappe.db.set_value(doctype, docname, goal_history_field, json.dumps(month_to_value_dict))
 
 	month_to_value_dict[current_month_year] = current_month_value
 

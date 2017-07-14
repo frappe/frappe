@@ -305,4 +305,4 @@ frappe.ui.LineGraph = class LineGraph extends frappe.ui.Graph {
 		this.graph_list.prepend(this.snap.path(path_str));
 	}
 
-}
+};
