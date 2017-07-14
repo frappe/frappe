@@ -12,7 +12,7 @@ frappe.views.CalendarView = frappe.views.ListRenderer.extend({
 			doctype: this.doctype,
 			parent: this.wrapper,
 			page: this.list_view.page,
-			filter_vals: this.list_view.filter_list.get_filters()
+			list_view: this.list_view
 		}
 		$.extend(options, frappe.views.calendar[this.doctype]);
 		this.calendar = new frappe.views.Calendar(options);
@@ -196,19 +196,11 @@ frappe.views.Calendar = Class.extend({
 		}
 	},
 	get_args: function(start, end) {
-		if(this.filter_vals) {
-			var filters = {};
-			this.filter_vals.forEach(function(f) {
-				if(f[2]==="=") {
-					filters[f[1]] = f[3];
-				}
-			});
-		}
 		var args = {
 			doctype: this.doctype,
 			start: this.get_system_datetime(start),
 			end: this.get_system_datetime(end),
-			filters: filters
+			filters: this.list_view.filter_list.get_filters()
 		};
 		return args;
 	},
@@ -308,51 +300,6 @@ frappe.views.Calendar = Class.extend({
 			// We use inclusive end dates. This workaround fixes the rendering of events
 			event.start = event.start ? $.fullCalendar.moment(event.start).stripTime() : null;
 			event.end = event.end ? $.fullCalendar.moment(event.end).add(1, "day").stripTime() : null;
-		}
-	},
-	add_filters: function() {
-		var me = this;
-		if(this.filters) {
-			$.each(this.filters, function(i, df) {
-				df.change = function() {
-					me.refresh();
-				};
-				me.page.add_field(df);
-			});
-		}
-	},
-	set_filter: function(doctype, value) {
-		var me = this;
-		if(this.filters) {
-			$.each(this.filters, function(i, df) {
-				if(df.options===value)
-					me.page.fields_dict[df.fieldname].set_input(value);
-				return false;
-			});
-		}
-	},
-	get_filters: function() {
-		var filter_vals = {},
-			me = this;
-		if(this.filters) {
-			$.each(this.filters, function(i, df) {
-				filter_vals[df.fieldname || df.label] =
-					me.page.fields_dict[df.fieldname || df.label].get_value();
-			});
-		}
-		return filter_vals;
-	},
-	set_filters_from_route_options: function() {
-		var me = this;
-		if(frappe.route_options) {
-			$.each(frappe.route_options, function(k, value) {
-				if(me.page.fields_dict[k]) {
-					me.page.fields_dict[k].set_input(value);
-				}
-			})
-			frappe.route_options = null;
-			me.refresh();
-			return false;
 		}
 	}
 })
