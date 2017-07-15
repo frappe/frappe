@@ -85,7 +85,7 @@ class EmailAccount(Document):
 				frappe.throw(_("Append To can be one of {0}").format(comma_or(valid_doctypes)))
 
 				self.validate_condition()
-				
+
 	def validate_condition(self):
 		if self.condition:
 			try:
