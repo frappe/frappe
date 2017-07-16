@@ -50,6 +50,11 @@ frappe.ui.FilterList = Class.extend({
 
 	clear_filters: function() {
 		$.each(this.filters, function(i, f) { f.remove(true); });
+		if(this.base_list.page.fields_dict) {
+			$.each(this.base_list.page.fields_dict, (key, value) => {
+				value.set_input('');
+			});
+		}
 		this.filters = [];
 	},
 
@@ -88,17 +93,25 @@ frappe.ui.FilterList = Class.extend({
 
 		if (filter && is_new_filter) {
 			filter.wrapper.addClass("is-new-filter");
+		} else {
+			filter.freeze();
 		}
 
-		if (filter && hidden) {
-			filter.freeze();
+		if (hidden) {
 			filter.$btn_group.addClass("hide");
 		}
 
 		return filter;
 	},
 	push_new_filter: function(doctype, fieldname, condition, value) {
-		if(this.filter_exists(doctype, fieldname, condition, value)) return;
+		if(this.filter_exists(doctype, fieldname, condition, value)) {
+			return;
+		}
+
+		// if standard filter exists, then clear it.
+		if(this.base_list.page.fields_dict[fieldname]) {
+			this.base_list.page.fields_dict[fieldname].set_input('');
+		}
 
 		var filter = new frappe.ui.Filter({
 			flist: this,
@@ -223,7 +236,7 @@ frappe.ui.Filter = Class.extend({
 		// set the field
 		if(me.fieldname) {
 			// pre-sets given (could be via tags!)
-			this.set_values(me._doctype, me.fieldname, me.condition, me.value);
+			return this.set_values(me._doctype, me.fieldname, me.condition, me.value);
 		} else {
 			me.set_field(me.doctype, 'name');
 		}
@@ -250,8 +263,12 @@ frappe.ui.Filter = Class.extend({
 			else if(value==1) value = 'Yes';
 		}
 
-		if(condition) this.wrapper.find('.condition').val(condition).change();
-		if(value!=null) this.field.set_input(value);
+		if(condition) {
+			this.wrapper.find('.condition').val(condition).change();
+		}
+		if(value!=null) {
+			return this.field.set_value(value);
+		}
 	},
 
 	set_field: function(doctype, fieldname, fieldtype, condition) {
@@ -293,7 +310,7 @@ frappe.ui.Filter = Class.extend({
 		// save old text
 		var old_text = null;
 		if(me.field) {
-			old_text = me.field.get_parsed_value();
+			old_text = me.field.get_value();
 		}
 
 		var field_area = me.wrapper.find('.filter_field').empty().get(0);
@@ -305,8 +322,9 @@ frappe.ui.Filter = Class.extend({
 		f.refresh();
 
 		me.field = f;
-		if(old_text && me.field.df.fieldtype===cur.fieldtype)
-			me.field.set_input(old_text);
+		if(old_text && me.field.df.fieldtype===cur.fieldtype) {
+			me.field.set_value(old_text);
+		}
 
 		// run on enter
 		$(me.field.wrapper).find(':input').keydown(function(ev) {
@@ -324,6 +342,7 @@ frappe.ui.Filter = Class.extend({
 			df.original_type = df.fieldtype;
 
 		df.description = ''; df.reqd = 0;
+		df.ignore_link_validation = true;
 
 		// given
 		if(fieldtype) {
@@ -375,7 +394,7 @@ frappe.ui.Filter = Class.extend({
 	},
 
 	get_selected_value: function() {
-		var val = this.field.get_parsed_value();
+		var val = this.field.get_value();
 
 		if(typeof val==='string') {
 			val = strip(val);
@@ -396,7 +415,9 @@ frappe.ui.Filter = Class.extend({
 				}
 			}
 		} else if(in_list(["in", "not in"], this.get_condition())) {
-			val = $.map(val.split(","), function(v) { return strip(v); });
+			if(val) {
+				val = $.map(val.split(","), function(v) { return strip(v); });
+			}
 		} if(val === '%') {
 			val = "";
 		}
@@ -450,11 +471,9 @@ frappe.ui.Filter = Class.extend({
 			value = {0:"Draft", 1:"Submitted", 2:"Cancelled"}[value] || value;
 		} else if(this.field.df.original_type==="Check") {
 			value = {0:"No", 1:"Yes"}[cint(value)];
-		} else if (in_list(["Date", "Datetime"], this.field.df.fieldtype)) {
-			value = frappe.datetime.str_to_user(value);
-		} else {
-			value = this.field.get_value();
 		}
+
+		value = frappe.format(value, this.field.df, {for_print: 1});
 
 		// for translations
 		// __("like"), __("not like"), __("in")

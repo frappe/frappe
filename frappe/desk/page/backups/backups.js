@@ -9,6 +9,13 @@ frappe.pages['backups'].on_page_load = function(wrapper) {
 		frappe.set_route('Form', 'System Settings');
 	});
 
+	page.add_inner_button(__("Download Files Backup"), function () {
+		frappe.call({
+			method:"frappe.desk.page.backups.backups.schedule_files_backup",
+			args: {"user_email": frappe.session.user_email}
+		});
+	});
+
 	frappe.breadcrumbs.add("Setup");
 
 	$(frappe.render_template("backups")).appendTo(page.body.addClass("no-border"));

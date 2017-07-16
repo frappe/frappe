@@ -184,55 +184,61 @@ frappe.ui.BaseList = Class.extend({
 			return;
 		}
 
-		this.page.add_field({
-			fieldtype:'Link',
-			options:this.doctype,
-			label:'ID',
-			fieldname:'name',
-			onchange: () => { me.refresh(true); }
-		});
+		if (this.meta) {
+			this.page.add_field({
+				fieldtype: 'Data',
+				label: 'ID',
+				condition: 'like',
+				fieldname: 'name',
+				onchange: () => { me.refresh(true); }
+			});
 
-		var has_standard_filters = false;
-		this.meta.fields.forEach(function(df) {
-			if(df.in_standard_filter) {
-				if(df.fieldtype == "Select" && df.options) {
-					var options = df.options.split("\n")
-					if(options.length > 0 && options[0] != ""){
-						options.unshift("");
-						df.options = options.join("\n");
+			this.meta.fields.forEach(function(df) {
+				if(df.in_standard_filter && !frappe.model.no_value_type.includes(df.fieldtype)) {
+					let options = df.options;
+					let condition = '=';
+					let fieldtype = df.fieldtype;
+					if (['Link', 'Text', 'Small Text', 'Text Editor', 'Data'].includes(fieldtype)) {
+						fieldtype = 'Data',
+						condition = 'like'
 					}
+					if(df.fieldtype == "Select" && df.options) {
+						options = df.options.split("\n");
+						if(options.length > 0 && options[0] != "") {
+							options.unshift("");
+							options = options.join("\n");
+						}
+					}
+					me.page.add_field({
+						fieldtype: fieldtype,
+						label: __(df.label),
+						options: options,
+						fieldname: df.fieldname,
+						condition: condition,
+						onchange: () => {me.refresh(true);}
+					});
 				}
-				me.page.add_field({
-					fieldtype: df.fieldtype,
-					label: __(df.label),
-					options: df.options,
-					fieldname: df.fieldname,
-					onchange: () => {me.refresh(true);}
-				});
-			}
-		});
-
-		this.page.page_form.on('change', ':input', function() {
-			me.refresh(true);
-		});
+			});
+		}
 
 		this.standard_filters_added = true;
 	},
 
 	update_standard_filters: function(filters) {
-		let values = {};
 		let me = this;
 		for(let key in this.page.fields_dict) {
 			let field = this.page.fields_dict[key];
 			let value = field.get_value();
 			if (value) {
+				if (field.df.condition==='like' && !value.includes('%')) {
+					value = '%' + value + '%';
+				}
 				filters.push([
 					me.doctype,
 					field.df.fieldname,
-					(['Data', 'Text', 'Small Text', 'Text Editor']
-						.includes(field.df.fieldtype) ? 'like' : '='),
+					field.df.condition || '=',
 					value
-				])
+				]);
 			}
 		}
 	},
@@ -283,7 +289,11 @@ frappe.ui.BaseList = Class.extend({
 		frappe.route_options = null;
 	},
 
-	run: function (more) {
+	run: function(more) {
+		setTimeout(() => this._run(more), 100);
+	},
+
+	_run: function (more) {
 		var me = this;
 		if (!more) {
 			this.start = 0;
@@ -455,7 +465,7 @@ frappe.ui.BaseList = Class.extend({
 	set_filter: function (fieldname, label, no_run, no_duplicate) {
 		var filter = this.filter_list.get_filter(fieldname);
 		if (filter) {
-			var value = cstr(filter.field.get_parsed_value());
+			var value = cstr(filter.field.get_value());
 			if (value.includes(label)) {
 				// already set
 				return false

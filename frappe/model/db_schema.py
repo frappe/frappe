@@ -43,6 +43,7 @@ type_map = {
 	,'Attach':		('text', '')
 	,'Attach Image':('text', '')
 	,'Signature':	('longtext', '')
+	,'Color':		('varchar', varchar_len)
 }
 
 default_columns = ['name', 'creation', 'modified', 'modified_by', 'owner',
@@ -307,7 +308,7 @@ class DbTable:
 			if not frappe.db.sql("show index from `%s` where key_name = %s" %
 					(self.name, '%s'), col.fieldname):
 				query.append("add index `{}`(`{}`)".format(col.fieldname, col.fieldname))
-		
+
 		for col in self.drop_index:
 			if col.fieldname != 'name': # primary key
 				# if index key exists
@@ -562,6 +563,13 @@ def validate_column_name(n):
 		special_characters = ", ".join('"{0}"'.format(c) for c in special_characters)
 		frappe.throw(_("Fieldname {0} cannot have special characters like {1}").format(cstr(n), special_characters), InvalidColumnName)
 	return n
+
+def validate_column_length(fieldname):
+	""" In MySQL maximum column length is 64 characters,
+		ref: https://dev.mysql.com/doc/refman/5.5/en/identifiers.html"""
+
+	if len(fieldname) > 64:
+		frappe.throw(_("Fieldname is limited to 64 characters ({0})").format(fieldname))
 
 def remove_all_foreign_keys():
 	frappe.db.sql("set foreign_key_checks = 0")

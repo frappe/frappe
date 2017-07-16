@@ -2,11 +2,20 @@
 
 {% block title %}{{ _("Payment Failed") }}{% endblock %}
 
-{%- block header -%}
-<h2>{{ _("Payment Failed") }}<h2>
-{% endblock %}
-
 {%- block page_content -%}
-<p class="lead">{{ _("Oops. Your payment has failed.") }}</p>
-<p><a href="{{ frappe.form_dict.redirect_to or "/" }}" class="btn btn-primary">{{ frappe.form_dict.redirect_message or _("Continue") }}</a></p>
+<div class='page-card'>
+	<div class='page-card-head'>
+		<span class='indicator red'>
+			{{ _("Payment Failed") }}</span>
+	</div>
+	<p>{{ _("Your payment has failed.") }}</p>
+	<div><a href='{{ frappe.form_dict.redirect_to or "/" }}' class='btn btn-primary btn-sm'>
+		{{ _("Continue") }}</a></div>
+</div>
+<style>
+.hero-and-content {
+	background-color: #f5f7fa;
+}
+</style>
+
 {% endblock %}

@@ -43,6 +43,9 @@ frappe.search.AwesomeBar = Class.extend({
 			}
 		});
 
+		// Added to aid UI testing of global search
+		input.awesomplete = awesomplete;
+
 		$input.on("input", function(e) {
 			var value = e.target.value;
 			var txt = value.trim().replace(/\s\s+/g, ' ');
@@ -187,7 +190,7 @@ frappe.search.AwesomeBar = Class.extend({
 					routes.push(str_route);
 				} else {
 					var old = routes.indexOf(str_route);
-					if(out[old].index > option.index) {
+					if(out[old].index < option.index) {
 						out[old] = option;
 					}
 				}

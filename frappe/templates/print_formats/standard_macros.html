@@ -1,7 +1,7 @@
 {% macro render_field(df, doc) -%}
 	{%- if df.fieldtype=="Table" -%}
 		{{ render_table(df, doc) }}
-	{%- elif df.fieldtype=="HTML" -%}
+	{%- elif df.fieldtype=="HTML" and df.options -%}
 		<div>{{ frappe.render_template(df.options, {"doc": doc}) or "" }}</div>
 	{%- elif df.fieldtype in ("Text", "Text Editor", "Code") -%}
 		{{ render_text_field(df, doc) }}

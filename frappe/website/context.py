@@ -132,6 +132,11 @@ def add_sidebar_data(context):
 	from frappe.utils.user import get_fullname_and_avatar
 	import frappe.www.list
 
+	if context.show_sidebar and context.website_sidebar:
+		context.sidebar_items = frappe.get_all('Website Sidebar Item',
+			filters=dict(parent=context.website_sidebar), fields=['title', 'route', '`group`'],
+			order_by='idx asc')
+
 	if not context.sidebar_items:
 		sidebar_items = frappe.cache().hget('portal_menu_items', frappe.session.user)
 		if sidebar_items == None:

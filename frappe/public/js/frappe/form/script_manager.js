@@ -55,8 +55,8 @@ frappe.ui.form.off = function(doctype, fieldname, handler) {
 }
 
 
-frappe.ui.form.trigger = function(doctype, fieldname, callback) {
-	cur_frm.script_manager.trigger(fieldname, doctype, null, callback);
+frappe.ui.form.trigger = function(doctype, fieldname) {
+	cur_frm.script_manager.trigger(fieldname, doctype);
 }
 
 frappe.ui.form.ScriptManager = Class.extend({
@@ -64,32 +64,84 @@ frappe.ui.form.ScriptManager = Class.extend({
 		$.extend(this, opts);
 	},
 	make: function(ControllerClass) {
-		this.frm.cscript = $.extend(this.frm.cscript, new ControllerClass({frm: this.frm}));
+		this.frm.cscript = $.extend(this.frm.cscript,
+			new ControllerClass({frm: this.frm}));
 	},
-	trigger: function(event_name, doctype, name, callback) {
-		var me = this;
+	trigger: function(event_name, doctype, name) {
+		// trigger all the form level events that
+		// are bound to this event_name
+		let me = this;
 		doctype = doctype || this.frm.doctype;
 		name = name || this.frm.docname;
-		var handlers = this.get_handlers(event_name, doctype, name, callback);
-		if(callback) handlers.push(callback);
 
+		let tasks = [];
+		let handlers = this.get_handlers(event_name, doctype);
+
+		// helper for child table
 		this.frm.selected_doc = frappe.get_doc(doctype, name);
 
-		return $.when.apply($, $.map(handlers, function(fn) { return fn(); }));
+		let runner = (_function, is_old_style) => {
+			let _promise = null;
+			if(is_old_style) {
+				// old style arguments (doc, cdt, cdn)
+				_promise = me.frm.cscript[_function](me.frm.doc, doctype, name);
+			} else {
+				// new style (frm, doctype, name)
+				_promise = _function(me.frm, doctype, name);
+			}
+
+			// if the trigger returns a promise, return it,
+			// or use the default promise frappe.after_ajax
+			if (_promise && _promise.then) {
+				return _promise;
+			} else {
+				return frappe.after_server_call();
+			}
+		};
+
+		// make list of functions to be run serially
+		handlers.new_style.forEach((_function) => {
+			if(event_name==='setup') {
+				// setup must be called immediately
+				runner(_function, false);
+			} else {
+				tasks.push(() => runner(_function, false));
+			}
+		});
+
+		handlers.old_style.forEach((_function) => {
+			if(event_name==='setup') {
+				// setup must be called immediately
+				runner(_function, true);
+			} else {
+				tasks.push(() => runner(_function, true));
+			}
+		});
+
+		// run them serially
+		return frappe.run_serially(tasks);
 	},
-	get_handlers: function(event_name, doctype, name, callback) {
-		var handlers = [];
-		var me = this;
+	has_handlers: function(event_name, doctype) {
+		let handlers = this.get_handlers(event_name, doctype);
+		return handlers && (handlers.old_style.length || handlers.new_style.length);
+	},
+	get_handlers: function(event_name, doctype) {
+		// returns list of all functions to be called (old style and new style)
+		let me = this;
+		let handlers = {
+			old_style: [],
+			new_style: []
+		};
 		if(frappe.ui.form.handlers[doctype] && frappe.ui.form.handlers[doctype][event_name]) {
 			$.each(frappe.ui.form.handlers[doctype][event_name], function(i, fn) {
-				handlers.push(function() { return fn(me.frm, doctype, name) });
+				handlers.new_style.push(fn);
 			});
 		}
 		if(this.frm.cscript[event_name]) {
-			handlers.push(function() { return me.frm.cscript[event_name](me.frm.doc, doctype, name); });
+			handlers.old_style.push(event_name);
 		}
 		if(this.frm.cscript["custom_" + event_name]) {
-			handlers.push(function() { return me.frm.cscript["custom_" + event_name](me.frm.doc, doctype, name); });
+			handlers.old_style.push("custom_" + event_name);
 		}
 		return handlers;
 	},
@@ -105,7 +157,7 @@ frappe.ui.form.ScriptManager = Class.extend({
 
 		if(doctype.__custom_js) {
 			try {
-				eval(doctype.__custom_js)
+				eval(doctype.__custom_js);
 			} catch(e) {
 				frappe.msgprint({
 					title: __('Error in Custom Script'),

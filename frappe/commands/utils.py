@@ -298,11 +298,13 @@ def console(context):
 @click.option('--doctype', help="For DocType")
 @click.option('--test', multiple=True, help="Specific test")
 @click.option('--driver', help="For Travis")
+@click.option('--ui-tests', is_flag=True, default=False, help="Run UI Tests")
 @click.option('--module', help="Run tests in a module")
 @click.option('--profile', is_flag=True, default=False)
 @click.option('--junit-xml-output', help="Destination file path for junit xml report")
 @pass_context
-def run_tests(context, app=None, module=None, doctype=None, test=(), driver=None, profile=False, junit_xml_output=False):
+def run_tests(context, app=None, module=None, doctype=None, test=(),
+	driver=None, profile=False, junit_xml_output=False, ui_tests = False):
 	"Run tests"
 	import frappe.test_runner
 	tests = test
@@ -311,7 +313,8 @@ def run_tests(context, app=None, module=None, doctype=None, test=(), driver=None
 	frappe.init(site=site)
 
 	ret = frappe.test_runner.main(app, module, doctype, context.verbose, tests=tests,
-		force=context.force, profile=profile, junit_xml_output=junit_xml_output)
+		force=context.force, profile=profile, junit_xml_output=junit_xml_output,
+		ui_tests = ui_tests)
 	if len(ret.failures) == 0 and len(ret.errors) == 0:
 		ret = 0
 
@@ -320,30 +323,24 @@ def run_tests(context, app=None, module=None, doctype=None, test=(), driver=None
 
 @click.command('run-ui-tests')
 @click.option('--app', help="App to run tests on, leave blank for all apps")
-@click.option('--ci', is_flag=True, default=False, help="Run in CI environment")
+@click.option('--test', help="File name of the test you want to run")
+@click.option('--profile', is_flag=True, default=False)
 @pass_context
-def run_ui_tests(context, app=None, ci=False):
+def run_ui_tests(context, app=None, test=False, profile=False):
 	"Run UI tests"
-	import subprocess
+	import frappe.test_runner
 
 	site = get_site(context)
 	frappe.init(site=site)
+	frappe.connect()
 
-	if app is None:
-		app = ",".join(frappe.get_installed_apps())
+	ret = frappe.test_runner.run_ui_tests(app=app, test=test, verbose=context.verbose,
+		profile=profile)
+	if len(ret.failures) == 0 and len(ret.errors) == 0:
+		ret = 0
 
-	cmd = [
-		'./node_modules/.bin/nightwatch',
-		'--config', './apps/frappe/frappe/nightwatch.js',
-		'--app', app,
-		'--site', site
-	]
-
-	if ci:
-		cmd.extend(['--env', 'ci_server'])
-
-	bench_path = frappe.utils.get_bench_path()
-	subprocess.call(cmd, cwd=bench_path)
+	if os.environ.get('CI'):
+		sys.exit(ret)
 
 @click.command('serve')
 @click.option('--port', default=8000)

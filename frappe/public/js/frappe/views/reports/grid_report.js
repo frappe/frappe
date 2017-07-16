@@ -767,7 +767,6 @@ frappe.views.TreeGridReport = frappe.views.GridReportWithPlot.extend({
 	},
 	tree_formatter: function (row, cell, value, columnDef, dataContext) {
 		var me = frappe.cur_grid_report;
-		value = value.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
 		var data = me.data;
 		var spacer = "<span style='display:inline-block;height:1px;width:" +
 			(15 * dataContext["indent"]) + "px'></span>";

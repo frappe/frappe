@@ -99,6 +99,9 @@ def make_autoname(key='', doctype='', doc=''):
 
 def parse_naming_series(parts, doctype= '', doc = ''):
 	n = ''
+	if isinstance(parts, basestring):
+		parts = parts.split('.')
+
 	series_set = False
 	today = now_datetime()
 	for e in parts:
@@ -142,6 +145,9 @@ def getseries(key, digits, doctype=''):
 def revert_series_if_last(key, name):
 	if ".#" in key:
 		prefix, hashes = key.rsplit(".", 1)
+		if '.' in prefix:
+			prefix = parse_naming_series(prefix.split('.'))
+
 		if "#" not in hashes:
 			return
 	else:

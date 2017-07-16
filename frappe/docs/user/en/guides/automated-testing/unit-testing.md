@@ -1,4 +1,4 @@
-# Writing Tests Guide
+# Unit Testing
 
 ## 1.Introduction
 
@@ -16,12 +16,12 @@ Frappe provides some basic tooling to quickly write automated tests. There are s
 This function will build all the test dependencies and run your tests.
 You should run tests from "frappe_bench" folder. Without options all tests will be run.
 
-	bench run-tests 
+	bench run-tests
 
 If you need more information about test execution - you can use verbose log level for bench.
 
 	bench --verbose run-tests
-	
+
 ### Options:
 
 	--app <AppName>
@@ -30,9 +30,9 @@ If you need more information about test execution - you can use verbose log leve
 	--module <Module> (Run a particular module that has tests)
 	--profile (Runs a Python profiler on the test)
 	--junit-xml-output<PathToXML> (The command provides test results in the standard XUnit XML format)
-	
+
 #### 2.1. Example for app:
-All applications are located in folder: "~/frappe-bench/apps". 
+All applications are located in folder: "~/frappe-bench/apps".
 We can run tests for each application.
 
 	- frappe-bench/apps/erpnext/
@@ -50,7 +50,7 @@ We can run tests for each application.
 	.
 	----------------------------------------------------------------------
 	Ran 1 test in 0.008s
-	
+
 	OK
 
 #### 2.3. Example for test:
@@ -60,44 +60,44 @@ Run a specific case in User:
 	.
 	----------------------------------------------------------------------
 	Ran 1 test in 0.005s
-	
+
 	OK
 
 #### 2.4. Example for module:
 If we want to run tests in the module:
 
 	/home/frappe/frappe-bench/apps/erpnext/erpnext/support/doctype/issue/test_issue.py
-	
+
 We should use module name like this (related to application folder)
 
 	erpnext.support.doctype.issue.test_issue
-	
+
 #####EXAMPLE:
-	
+
 	frappe@erpnext:~/frappe-bench$ bench run-tests --module "erpnext.stock.doctype.stock_entry.test_stock_entry"
 	...........................
 	----------------------------------------------------------------------
 	Ran 27 tests in 30.549s
 
-	
+
 #### 2.5. Example for profile:
 
 	frappe@erpnext:~/frappe-bench$ bench run-tests --doctype "Activity Cost" --profile
 	.
 	----------------------------------------------------------------------
 	Ran 1 test in 0.010s
-	
+
 	OK
 	         9133 function calls (8912 primitive calls) in 0.011 seconds
-	
+
 	   Ordered by: cumulative time
-	
+
 	   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
 	        2    0.000    0.000    0.008    0.004 /home/frappe/frappe-bench/apps/frappe/frappe/model/document.py:187(insert)
 	        1    0.000    0.000    0.003    0.003 /home/frappe/frappe-bench/apps/frappe/frappe/model/document.py:386(_validate)
 	       13    0.000    0.000    0.002    0.000 /home/frappe/frappe-bench/apps/frappe/frappe/database.py:77(sql)
 	      255    0.000    0.000    0.002    0.000 /home/frappe/frappe-bench/apps/frappe/frappe/model/base_document.py:91(get)
-	       12    0.000    0.000    0.002    0.000 
+	       12    0.000    0.000    0.002    0.000
 
 #### 2.6. Example for XUnit XML:
 
@@ -118,7 +118,7 @@ We should use module name like this (related to application folder)
 It’s designed for the CI Jenkins, but will work for anything else that understands an XUnit-formatted XML representation of test results.
 
 #### Jenkins configuration support:
-1. You should install xUnit plugin - https://wiki.jenkins-ci.org/display/JENKINS/xUnit+Plugin 
+1. You should install xUnit plugin - https://wiki.jenkins-ci.org/display/JENKINS/xUnit+Plugin
 2. After installation open Jenkins job configuration, click the box named “Publish JUnit test result report” under the "Post-build Actions" and enter path to XML report:
 (Example: _reports/*.xml_)
 
@@ -197,9 +197,3 @@ It’s designed for the CI Jenkins, but will work for anything else that underst
 			self.assertTrue("_Test Event 3" in subjects)
 			self.assertFalse("_Test Event 2" in subjects)
 
-
-## 4. Client Side Testing (Using Selenium)
-
-This feature is still under development.
-
-For an example see, [https://github.com/frappe/erpnext/blob/develop/erpnext/tests/sel_tests.py](https://github.com/frappe/erpnext/blob/develop/erpnext/tests/sel_tests.py)

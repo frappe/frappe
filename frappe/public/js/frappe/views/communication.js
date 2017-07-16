@@ -43,7 +43,6 @@ frappe.views.CommunicationComposer = Class.extend({
 		})
 		this.prepare();
 		this.dialog.show();
-
 	},
 
 	get_fields: function() {
@@ -107,12 +106,14 @@ frappe.views.CommunicationComposer = Class.extend({
 		this.setup_awesomplete();
 		this.setup_last_edited_communication();
 		this.setup_standard_reply();
-		$(this.dialog.fields_dict.recipients.input).val(this.recipients || "").change();
-		$(this.dialog.fields_dict.cc.input).val(this.cc || "").change();
+
+		this.dialog.fields_dict.recipients.set_value(this.recipients || '');
+		this.dialog.fields_dict.cc.set_value(this.cc || '');
+
 		if(this.dialog.fields_dict.sender) {
-			$(this.dialog.fields_dict.sender.input).val(this.sender || "").change();
+			this.dialog.fields_dict.sender.set_value(this.sender || '');
 		}
-		$(this.dialog.fields_dict.subject.input).val(this.subject || "").change();
+		this.dialog.fields_dict.subject.set_value(this.subject || '');
 		this.setup_earlier_reply();
 	},
 
@@ -156,8 +157,9 @@ frappe.views.CommunicationComposer = Class.extend({
 
 	setup_standard_reply: function() {
 		var me = this;
-		this.dialog.get_input("standard_reply").on("change", function() {
-			var standard_reply = $(this).val();
+
+		this.dialog.fields_dict["standard_reply"].df.onchange = () => {
+			var standard_reply = me.dialog.fields_dict.standard_reply.get_value();
 
 			var prepend_reply = function(reply) {
 				if(me.reply_added===standard_reply) {
@@ -176,9 +178,9 @@ frappe.views.CommunicationComposer = Class.extend({
 					content = [reply.message, "<br>", content];
 				}
 
-				content_field.set_input(content.join(''));
+				content_field.set_value(content.join(''));
 				if(subject === "") {
-					subject_field.set_input(reply.subject);
+					subject_field.set_value(reply.subject);
 				}
 
 				me.reply_added = standard_reply;
@@ -194,8 +196,7 @@ frappe.views.CommunicationComposer = Class.extend({
 					prepend_reply(r.message);
 				}
 			});
-
-		});
+		}
 	},
 
 	setup_last_edited_communication: function() {
@@ -505,8 +506,27 @@ frappe.views.CommunicationComposer = Class.extend({
 						cur_frm.timeline.input.val("");
 						cur_frm.reload_doc();
 					}
+					
+					// try the success callback if it exists
+					if (me.success) {
+						try {
+							me.success(r);
+						} catch (e) {
+							console.log(e);
+						}
+					}
+					
 				} else {
 					frappe.msgprint(__("There were errors while sending email. Please try again."));
+					
+					// try the error callback if it exists
+					if (me.error) {
+						try {
+							me.error(r);
+						} catch (e) {
+							console.log(e);
+						}
+					}
 				}
 			}
 		});
@@ -536,22 +556,23 @@ frappe.views.CommunicationComposer = Class.extend({
 
 		var reply = (this.message || "")
 			+ (signature ? ("<br>" + signature) : "");
+		var content = '';
 
 		if(last_email) {
 			var last_email_content = last_email.original_comment || last_email.content;
 
-			fields.content.set_input(
-				'<div><br></div>'
+			content = '<div><br></div>'
 				+ reply
 				+ "<br><!-- original-reply --><br>"
 				+ '<blockquote>' +
 					'<p>' + __("On {0}, {1} wrote:",
 					[frappe.datetime.global_date_format(last_email.communication_date) , last_email.sender]) + '</p>' +
 					last_email_content +
-				'<blockquote>');
+				'<blockquote>';
 		} else {
-			fields.content.set_input("<div><br></div>" + reply);
+			content = "<div><br></div>" + reply;
 		}
+		fields.content.set_value(content);
 	},
 	setup_awesomplete: function() {
 		var me = this;

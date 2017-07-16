@@ -272,6 +272,7 @@ function watch_js(ondirty) {
 			if (sources.includes(filename)) {
 				pack(target, sources);
 				ondirty && ondirty(target);
+				// break;
 			}
 		}
 	});

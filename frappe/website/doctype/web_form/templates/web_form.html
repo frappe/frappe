@@ -35,7 +35,7 @@
 	{%- if allow_print and not is_list and not _login_required -%}
 	<div class='text-right'>
 		<a class='text-muted small' href='/printview?doctype={{ doc.doctype}}&name={{ doc.name }}
-			{%- if print_format -%}&format={{ print_format }}{%- endif -%}' target="_blank">
+			{%- if print_format -%}&format={{ print_format }}{%- endif -%}' target="_blank" rel="noopener noreferrer">
 			<i class='fa fa-print'></i> {{ _("Print") }}</a>
 	</div>
 	{%- endif -%}
@@ -250,7 +250,7 @@
 	<div class="row">
 		<div class="col-sm-9">
 			<p class="text-muted">
-				<a class="btn btn-default btn-sm" href="{{ doc.route }}" target="_blank">
+				<a class="btn btn-default btn-sm" href="{{ doc.route }}" target="_blank" rel="noopener noreferrer">
 					{{ web_page_link_text }}</a>
 			</p>
 		</div>

@@ -95,7 +95,7 @@ frappe.ui.Page = Class.extend({
 	},
 
 	set_indicator: function(label, color) {
-		this.clear_indicator().removeClass("hide").html(label).addClass(color);
+		this.clear_indicator().removeClass("hide").html(`<span class='hidden-xs'>${label}</span>`).addClass(color);
 	},
 
 	add_action_icon: function(icon, click) {
@@ -253,12 +253,20 @@ frappe.ui.Page = Class.extend({
 	add_inner_button: function(label, action, group) {
 		let _action = function() {
 			let btn = $(this);
-			let promise = action();
-			if (promise && promise.then) {
+			let _ret = action();
+			if (_ret && _ret.then) {
+				// returns a promise
 				btn.attr('disabled', true);
-				promise.then(() => {
+				_ret.then(() => {
 					btn.attr('disabled', false);
 				})
+			}
+			if (_ret && _ret.always) {
+				// returns frappe.call ($.ajax)
+				btn.attr('disabled', true);
+				_ret.always(() => {
+					btn.attr('disabled', false);
+				});
 			}
 		}
 		if(group) {

@@ -2,11 +2,13 @@
 # MIT License. See license.txt
 from __future__ import unicode_literals
 
-import unittest, frappe
+import unittest, frappe, os
 from frappe.utils import get_url
 
 class TestAPI(unittest.TestCase):
 	def test_insert_many(self):
+		if os.environ.get('CI'):
+			return
 		from frappe.frappeclient import FrappeClient
 
 		frappe.db.sql('delete from `tabToDo` where description like "Test API%"')

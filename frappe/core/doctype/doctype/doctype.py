@@ -14,7 +14,7 @@ from frappe.model.document import Document
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 from frappe.desk.notifications import delete_notification_count_for
 from frappe.modules import make_boilerplate
-from frappe.model.db_schema import validate_column_name
+from frappe.model.db_schema import validate_column_name, validate_column_length
 import frappe.website.render
 
 class InvalidFieldNameError(frappe.ValidationError): pass
@@ -78,7 +78,7 @@ class DocType(Document):
 		if not [d.fieldname for d in self.fields if d.in_list_view]:
 			cnt = 0
 			for d in self.fields:
-				if d.reqd and not d.hidden:
+				if d.reqd and not d.hidden and not d.fieldtype == "Table":
 					d.in_list_view = 1
 					cnt += 1
 					if cnt == 4: break
@@ -385,9 +385,10 @@ def validate_fields(meta):
 
 	1. There are no illegal characters in fieldnames
 	2. If fieldnames are unique.
-	3. Fields that do have database columns are not mandatory.
-	4. `Link` and `Table` options are valid.
-	5. **Hidden** and **Mandatory** are not set simultaneously.
+	3. Validate column length.
+	4. Fields that do have database columns are not mandatory.
+	5. `Link` and `Table` options are valid.
+	6. **Hidden** and **Mandatory** are not set simultaneously.
 	7. `Check` type field has default as 0 or 1.
 	8. `Dynamic Links` are correctly defined.
 	9. Precision is set in numeric fields and is between 1 & 6.
@@ -405,6 +406,9 @@ def validate_fields(meta):
 		duplicates = filter(None, map(lambda df: df.fieldname==fieldname and str(df.idx) or None, fields))
 		if len(duplicates) > 1:
 			frappe.throw(_("Fieldname {0} appears multiple times in rows {1}").format(fieldname, ", ".join(duplicates)))
+
+	def check_fieldname_length(fieldname):
+		validate_column_length(fieldname)
 
 	def check_illegal_mandatory(d):
 		if (d.fieldtype in no_value_fields) and d.fieldtype!="Table" and d.reqd:
@@ -581,7 +585,6 @@ def validate_fields(meta):
 					frappe.throw(_("Sort field {0} must be a valid fieldname").format(fieldname),
 						InvalidFieldNameError)
 
-
 	fields = meta.get("fields")
 	fieldname_list = [d.fieldname for d in fields]
 
@@ -598,6 +601,7 @@ def validate_fields(meta):
 		d.fieldname = d.fieldname.lower()
 		check_illegal_characters(d.fieldname)
 		check_unique_fieldname(d.fieldname)
+		check_fieldname_length(d.fieldname)
 		check_illegal_mandatory(d)
 		check_link_table_options(d)
 		check_dynamic_link_options(d)
@@ -766,3 +770,10 @@ def init_list(doctype):
 	doc = frappe.get_meta(doctype)
 	make_boilerplate("controller_list.js", doc)
 	make_boilerplate("controller_list.html", doc)
+
+def check_if_fieldname_conflicts_with_methods(doctype, fieldname):
+	doc = frappe.get_doc({"doctype": doctype})
+	method_list = [method for method in dir(doc) if isinstance(method, str) and callable(getattr(doc, method))]
+
+	if fieldname in method_list:
+		frappe.throw(_("Fieldname {0} conflicting with meta object").format(fieldname))

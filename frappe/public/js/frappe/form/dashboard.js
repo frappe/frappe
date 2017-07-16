@@ -4,10 +4,11 @@
 frappe.ui.form.Dashboard = Class.extend({
 	init: function(opts) {
 		$.extend(this, opts);
+		this.section = this.frm.fields_dict._form_dashboard.wrapper;
+		this.parent = this.section.find('.section-body');
 		this.wrapper = $(frappe.render_template('form_dashboard',
-			{frm: this.frm})).prependTo(this.frm.layout.wrapper);
+			{frm: this.frm})).appendTo(this.parent);
 
-		this.headline = this.wrapper.find('.form-headline');
 		this.progress_area = this.wrapper.find(".progress-area");
 		this.heatmap_area = this.wrapper.find('.form-heatmap');
 		this.chart_area = this.wrapper.find('.form-chart');
@@ -18,7 +19,7 @@ frappe.ui.form.Dashboard = Class.extend({
 
 	},
 	reset: function() {
-		this.wrapper.addClass('hidden');
+		this.section.addClass('hidden');
 		this.clear_headline();
 
 		// clear progress
@@ -36,13 +37,10 @@ frappe.ui.form.Dashboard = Class.extend({
 		this.wrapper.find('.custom').remove();
 	},
 	set_headline: function(html) {
-		this.headline.html(html).removeClass('hidden');
-		this.show();
+		this.frm.layout.show_message(html);
 	},
 	clear_headline: function() {
-		if(this.headline) {
-			this.headline.empty().addClass('hidden');
-		}
+		this.frm.layout.show_message();
 	},
 
 	add_comment: function(text, permanent) {
@@ -59,13 +57,12 @@ frappe.ui.form.Dashboard = Class.extend({
 		this.clear_headline();
 	},
 
-	set_headline_alert: function(text, alert_class) {
+	set_headline_alert: function(text, indicator_color) {
+		if (!indicator_color) {
+			indicator_color = 'orange';
+		}
 		if(text) {
-			if(!alert_class) alert_class = "alert-warning";
-			this.set_headline(repl('<div class="alert %(alert_class)s">%(text)s</div>', {
-				"alert_class": alert_class || "",
-				"text": text
-			}));
+			this.set_headline(`<div><span class="indicator ${indicator_color}">${text}</span></div>`);
 		} else {
 			this.clear_headline();
 		}
@@ -406,6 +403,6 @@ frappe.ui.form.Dashboard = Class.extend({
 		}
 	},
 	show: function() {
-		this.wrapper.removeClass('hidden');
+		this.section.removeClass('hidden');
 	}
 });
