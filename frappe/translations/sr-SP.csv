@@ -1,0 +1,42 @@
+apps/frappe/frappe/desk/doctype/todo/todo_list.js +22,Assigned By Me,Dodijelio
+apps/frappe/frappe/public/js/frappe/form/toolbar.js +189,New {0} (Ctrl+B),Novi {0} (Ctrl-B)
+apps/frappe/frappe/public/js/frappe/ui/filters/filters.js +23,Add Filter,Dodaj filter
+apps/frappe/frappe/public/js/frappe/model/model.js +26,Assigned To,Dodijeljeno
+apps/frappe/frappe/public/js/frappe/form/footer/assign_to.js +138,Assign to me,Dodijeljeno meni
+apps/frappe/frappe/public/js/frappe/ui/filters/edit_filter.html +16,Between,Između
+apps/frappe/frappe/public/js/frappe/list/list_sidebar.js +389,UnCategorised Tags,Nekategorisani tag-ovi
+apps/frappe/frappe/public/js/frappe/form/toolbar.js +163,Customize,Prilagodite
+apps/frappe/frappe/desk/reportview.py +253,No Tags,Nema tag-ova
+apps/frappe/frappe/public/js/frappe/views/treeview.js +212,New {0},Novi {0}
+apps/frappe/frappe/public/js/frappe/ui/filters/edit_filter.html +10,Not equals,Nije jednak
+apps/frappe/frappe/public/js/frappe/ui/page.html +24,Menu,Meni
+apps/frappe/frappe/public/js/frappe/model/model.js +27,Document Status,Status dokumenta
+apps/frappe/frappe/config/core.py +27,Script or Query reports,Skripte ili query izvještaji
+apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +111,Add to Desktop,Dodaj na radnu površinu
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +30,User Permissions,Prava pristupa korisnika
+apps/frappe/frappe/public/js/frappe/model/meta.js +186,Created On,Kreirano
+apps/frappe/frappe/public/js/frappe/ui/toolbar/search_utils.js +107,New,Novi
+,User Permissions Manager,Menadžer prava pristupa korisnika
+DocType: Workflow State,Refresh,Osvježi
+DocType: Contact,Status,Status
+apps/frappe/frappe/desk/doctype/todo/todo.py +20,Assigned to {0}: {1},Dodijeljen {0}: {1}
+apps/frappe/frappe/public/js/frappe/model/meta.js +187,Last Modified On,Poslednji put izmijenjeno
+DocType: Authentication Log,Full Name,Puno ime
+DocType: Custom DocPerm,Import,Uvoz
+DocType: Communication,Assigned,Dodijeljeno
+apps/frappe/frappe/desk/moduleview.py +94,Standard Reports,Standardni izvještaji
+apps/frappe/frappe/public/js/frappe/list/list_sidebar.html +49,Assigned To Me,Dodijeljeno meni
+,Role Permissions Manager,Menadžer prava pristupa rolama
+apps/frappe/frappe/public/js/frappe/ui/filters/edit_filter.html +24,Apply,Primijeni
+apps/frappe/frappe/public/js/frappe/ui/filters/filters.js +479,Like,Kao
+DocType: Workflow State,remove,Ukloni
+apps/frappe/frappe/public/js/frappe/list/list_sidebar.html +32,Kanban,Kanban
+apps/frappe/frappe/public/js/frappe/roles_editor.js +195,Role Permissions,Prava pristupa rolama
+apps/frappe/frappe/public/js/frappe/ui/filters/edit_filter.html +9,Not In,Nije u
+apps/frappe/frappe/public/js/frappe/ui/filters/edit_filter.html +6,Equals,Jednak
+apps/frappe/frappe/public/js/frappe/ui/filters/filters.js +479,Not Like,Nije kao
+apps/frappe/frappe/public/js/frappe/list/list_sidebar.html +10,Reports,Izvještaji
+apps/frappe/frappe/public/js/frappe/ui/sort_selector.js +182,Most Used,Najviše korišćeno
+DocType: ToDo,Assigned By,Dodijelio
+apps/frappe/frappe/desk/report/todo/todo.py +19,ID,ID
+DocType: Workflow State,Print,Štampaj

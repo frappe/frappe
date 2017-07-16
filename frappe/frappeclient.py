@@ -102,7 +102,7 @@ class FrappeClient(object):
 		:param doctype: `doctype` to be deleted
 		:param name: `name` of document to be deleted'''
 		return self.post_request({
-			"cmd": "frappe.model.delete_doc",
+			"cmd": "frappe.client.delete",
 			"doctype": doctype,
 			"name": name
 		})

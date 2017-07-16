@@ -10,7 +10,11 @@
 </ul>
 {% if frm.meta.beta %}
 <div class="sidebar-menu">
-	<label class="label label-warning" title="{{ __("This feature is brand new and still experimental") }}">{{ __("Experimental Feature") }}</label>
+	<p><label class="label label-warning" title="{{ __("This feature is brand new and still experimental") }}">{{ __("Under Development") }}</label></p>
+	<p><a class="small" href="https://github.com/frappe/{{ frappe.boot.module_app[frappe.scrub(frm.meta.module)] }}/issues/new"
+			target="_blank">
+		{{ __("Click here to post bugs and suggestions") }}</a></p>
+
 </div>
 {% endif %}
 <ul class="list-unstyled sidebar-menu sidebar-rating hide">

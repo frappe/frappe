@@ -18,6 +18,7 @@ frappe.email_alert = {
 
 			// set value changed options
 			frm.set_df_property("value_changed", "options", [""].concat(options));
+			frm.set_df_property("set_property_after_alert", "options", [""].concat(options));
 
 			// set date changed options
 			frm.set_df_property("date_changed", "options", $.map(fields,

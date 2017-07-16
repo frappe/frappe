@@ -26,7 +26,7 @@ class EmailGroup(Document):
 
 		for user in frappe.db.get_all(doctype, [email_field, unsubscribed_field or "name"]):
 			try:
-				email = parse_addr(user.get(email_field))[1]
+				email = parse_addr(user.get(email_field))[1] if user.get(email_field) else None
 				if email:
 					frappe.get_doc({
 						"doctype": "Email Group Member",

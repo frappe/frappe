@@ -10,8 +10,9 @@ frappe.request.waiting_for_ajax = [];
 
 // generic server call (call page, object)
 frappe.call = function(opts) {
-	if(opts.quiet)
+	if(opts.quiet) {
 		opts.no_spinner = true;
+	}
 	var args = $.extend({}, opts.args);
 
 	// cmd
@@ -238,7 +239,9 @@ frappe.request.prepare = function(opts) {
 
 frappe.request.cleanup = function(opts, r) {
 	// stop button indicator
-	if(opts.btn) $(opts.btn).prop("disabled", false);
+	if(opts.btn) {
+		$(opts.btn).prop("disabled", false);
+	}
 
 	$("body").attr("data-ajax-state", "complete");
 
@@ -302,13 +305,31 @@ frappe.request.cleanup = function(opts, r) {
 	}
 }
 
-frappe.after_ajax = function(fn) {
+frappe.after_server_call = () => {
 	if(frappe.request.ajax_count) {
-		frappe.request.waiting_for_ajax.push(fn);
+		return new Promise(resolve => {
+			frappe.request.waiting_for_ajax.push(() => {
+				resolve();
+			});
+		});
 	} else {
-		fn();
+		return null;
 	}
-}
+};
+
+frappe.after_ajax = function(fn) {
+	return new Promise(resolve => {
+		if(frappe.request.ajax_count) {
+			frappe.request.waiting_for_ajax.push(() => {
+				if(fn) fn();
+				resolve();
+			});
+		} else {
+			if(fn) fn();
+			resolve();
+		}
+	});
+};
 
 frappe.request.report_error = function(xhr, request_opts) {
 	var data = JSON.parse(xhr.responseText);

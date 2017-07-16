@@ -37,7 +37,8 @@
 }
 
 .form-message {
-	padding: 15px;
+	padding: 15px 30px;
+	border-bottom: 1px solid @border-color;
 }
 
 .document-flow-wrapper {
@@ -102,7 +103,10 @@
 
 .form-dashboard {
 	background-color: @light-bg;
-	border-bottom: 1px solid @border-color;
+}
+
+.form-dashboard-wrapper {
+	margin: -15px 0px;
 }
 
 .form-documents h6 {
@@ -110,8 +114,13 @@
 }
 
 .form-dashboard-section {
+	margin: 0px -15px;
 	padding: 15px 30px;
 	border-bottom: 1px solid @light-border-color;
+}
+
+.form-dashboard-section:first-child {
+	padding-top: 0px;
 }
 
 .form-dashboard-section:last-child {
@@ -119,7 +128,6 @@
 }
 
 .form-heatmap {
-	padding-top: 30px;
 
 	.heatmap-message {
 		margin-top: 10px;
@@ -623,6 +631,7 @@ h6.uppercase, .h6.uppercase {
 
 .like-disabled-input.for-description {
 	font-weight: normal;
+	font-size: 12px;
 }
 
 .frappe-control& {
@@ -666,20 +675,19 @@ select.form-control {
 	background-color: @extra-light-yellow;
 }
 
-.form-headline {
-	padding: 0px 15px;
-	margin: 0px;
+.form-control[data-fieldtype="Password"] {
+	position: inherit;
 }
 
-.form-headline .alert {
-	font-size: @text-medium;
-	background-color: @light-yellow;
-	font-weight: normal !important;
-	border: 0px;
-	border-radius: 0px;
-	margin-bottom: 0px;
-	margin: 0px -15px;
-	padding: 10px 30px;
+.password-strength-indicator {
+    float: right;
+    padding: 15px;
+    margin-top: -41px;
+    margin-right: -7px;
+}
+
+.password-strength-message {
+	margin-top: -10px;
 }
 
 .delivery-status-indicator {

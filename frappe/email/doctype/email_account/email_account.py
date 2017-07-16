@@ -330,6 +330,8 @@ class EmailAccount(Document):
 			# gmail shows sent emails in inbox
 			# and we don't want emails sent by us to be pulled back into the system again
 			# dont count emails sent by the system get those
+			if frappe.flags.in_test:
+				print('WARN: Cannot pull email. Sender sames as recipient inbox')
 			raise SentEmailInInbox
 
 		if email.message_id:
@@ -471,7 +473,6 @@ class EmailAccount(Document):
 			if parent:
 				parent = frappe._dict(doctype=self.append_to, name=parent[0].name)
 				return parent
-
 
 	def create_new_parent(self, communication, email):
 		'''If no parent found, create a new reference document'''

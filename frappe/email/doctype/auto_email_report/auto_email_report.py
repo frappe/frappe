@@ -8,7 +8,7 @@ from frappe import _
 from frappe.model.document import Document
 from datetime import timedelta
 import frappe.utils
-from frappe.utils.xlsutils import get_xls
+from frappe.utils.xlsxutils import make_xlsx
 from frappe.utils.csvutils import to_csv
 
 max_reports_per_user = 3
@@ -43,7 +43,7 @@ class AutoEmailReport(Document):
 
 	def validate_report_format(self):
 		""" check if user has select correct report format """
-		valid_report_formats = ["HTML", "XLS", "CSV"]
+		valid_report_formats = ["HTML", "XLSX", "CSV"]
 		if self.format not in valid_report_formats:
 			frappe.throw(_("%s is not a valid report format. Report format should \
 				one of the following %s"%(frappe.bold(self.format), frappe.bold(", ".join(valid_report_formats)))))
@@ -70,11 +70,14 @@ class AutoEmailReport(Document):
 		if self.format == 'HTML':
 			return self.get_html_table(columns, data)
 
-		elif self.format == 'XLS':
-			return get_xls(columns, data)
+		elif self.format == 'XLSX':
+			spreadsheet_data = self.get_spreadsheet_data(columns, data)
+			xlsx_file = make_xlsx(spreadsheet_data, "Auto Email Report")
+			return xlsx_file.getvalue()
 
 		elif self.format == 'CSV':
-			return self.get_csv(columns, data)
+			spreadsheet_data = self.get_spreadsheet_data(columns, data) 
+			return to_csv(spreadsheet_data)
 
 		else:
 			frappe.throw(_('Invalid Output Format'))
@@ -85,7 +88,8 @@ class AutoEmailReport(Document):
 			'data': data
 		})
 
-	def get_csv(self, columns, data):
+	@staticmethod
+	def get_spreadsheet_data(columns, data):
 		out = [[df.label for df in columns], ]
 		for row in data:
 			new_row = []
@@ -93,7 +97,7 @@ class AutoEmailReport(Document):
 			for df in columns:
 				new_row.append(frappe.format(row[df.fieldname], df, row))
 
-		return to_csv(out)
+		return out
 
 	def get_file_name(self):
 		return "{0}.{1}".format(self.report.replace(" ", "-").replace("/", "-"), self.format.lower())

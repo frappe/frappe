@@ -33,7 +33,7 @@ class TestAutoEmailReport(unittest.TestCase):
 		data = auto_email_report.get_report_content()
 		self.assertTrue('"Language","Core"' in data)
 
-		auto_email_report.format = 'XLS'
+		auto_email_report.format = 'XLSX'
 
 		data = auto_email_report.get_report_content()
 

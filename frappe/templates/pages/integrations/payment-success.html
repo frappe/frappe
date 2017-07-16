@@ -2,12 +2,19 @@
 
 {% block title %}{{ _("Payment Success") }}{% endblock %}
 
-{%- block header -%}
-<h2>{{ _("Payment Success") }}</h2>
-{% endblock %}
-
 {%- block page_content -%}
-<p class="lead">{{ _("Your payment was successfully accepted") }}</p>
-<p><a href="{{ frappe.form_dict.redirect_to or "/" }}"
-	class="btn btn-primary">{{ frappe.form_dict.redirect_message or _("Continue") }}</a></p>
+<div class='page-card'>
+	<div class='page-card-head'>
+		<span class='indicator green'>
+			{{ _("Success") }}</span>
+	</div>
+	<p>{{ _("Your payment was successfully accepted") }}</p>
+	<div><a href='{{ frappe.form_dict.redirect_to or "/" }}' class='btn btn-primary btn-sm'>
+		{{ _("Continue") }}</a></div>
+</div>
+<style>
+.hero-and-content {
+	background-color: #f5f7fa;
+}
+</style>
 {% endblock %}

@@ -11,6 +11,7 @@ from frappe.website.doctype.website_slideshow.website_slideshow import get_slide
 from frappe.website.utils import find_first_image, get_comment_list, extract_title
 from frappe.utils.jinja import render_template
 from jinja2.exceptions import TemplateSyntaxError
+from frappe import _
 
 class WebPage(WebsiteGenerator):
 	def get_feed(self):
@@ -41,11 +42,6 @@ class WebPage(WebsiteGenerator):
 		if not self.show_title:
 			context["no_header"] = 1
 
-		if self.show_sidebar and self.website_sidebar:
-			context.sidebar_items = frappe.get_all('Website Sidebar Item',
-				filters=dict(parent=self.website_sidebar), fields=['title', 'route', '`group`'],
-				order_by='idx asc')
-
 		self.set_metatags(context)
 		self.set_breadcrumbs(context)
 		self.set_title_and_header(context)
@@ -66,7 +62,9 @@ class WebPage(WebsiteGenerator):
 					raise
 
 	def set_breadcrumbs(self, context):
-		"""Build breadcrumbs template (deprecated)"""
+		"""Build breadcrumbs template """
+		if self.breadcrumbs:
+			context.parents = frappe.safe_eval(self.breadcrumbs, { "_": _ })
 		if not "no_breadcrumbs" in context:
 			if "<!-- no-breadcrumbs -->" in context.main_section:
 				context.no_breadcrumbs = 1
