@@ -42,3 +42,4 @@ PyJWT
 pypdf
 openpyxl
 pyotp
+pyqrcode
