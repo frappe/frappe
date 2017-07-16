@@ -168,7 +168,6 @@ frappe.ui.form.save = function (frm, action, callback, btn) {
 		// 	callback: callback,
 		// 	btn: btn
 		// }
-		$(opts.btn).prop("disabled", true);
 
 		if (frappe.ui.form.is_saving) {
 			// this is likely to happen if the user presses the shortcut cmd+s for a longer duration or uses double click
@@ -190,6 +189,7 @@ frappe.ui.form.save = function (frm, action, callback, btn) {
 				opts.callback && opts.callback(r);
 			},
 			always: function (r) {
+				$(btn).prop("disabled", false);
 				frappe.ui.form.is_saving = false;
 				if (r) {
 					var doc = r.docs && r.docs[0];
