@@ -2,6 +2,7 @@ from __future__ import print_function
 import requests
 import json
 import frappe
+from six import iteritems
 
 '''
 FrappeClient is a library that helps you connect with other frappe systems
@@ -37,6 +38,7 @@ class FrappeClient(object):
 		if r.status_code==200 and r.json().get('message') == "Logged In":
 			return r.json()
 		else:
+			print(r.text)
 			raise AuthError
 
 	def logout(self):
@@ -100,7 +102,7 @@ class FrappeClient(object):
 		:param doctype: `doctype` to be deleted
 		:param name: `name` of document to be deleted'''
 		return self.post_request({
-			"cmd": "frappe.model.delete_doc",
+			"cmd": "frappe.client.delete",
 			"doctype": doctype,
 			"name": name
 		})
@@ -269,7 +271,7 @@ class FrappeClient(object):
 
 	def preprocess(self, params):
 		"""convert dicts, lists to json"""
-		for key, value in params.iteritems():
+		for key, value in iteritems(params):
 			if isinstance(value, (dict, list)):
 				params[key] = json.dumps(value)
 

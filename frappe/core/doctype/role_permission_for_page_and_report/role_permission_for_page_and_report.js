@@ -39,8 +39,8 @@ frappe.ui.form.on('Role Permission for Page and Report', {
 	},
 
 	clear_fields: function(frm) {
-		field = (frm.doc.set_role_for == 'Report') ? 'page' : 'report';
-		frm.set_value(field, '')
+		var field = (frm.doc.set_role_for == 'Report') ? 'page' : 'report';
+		frm.set_value(field, '');
 	},
 
 	page: function(frm) {

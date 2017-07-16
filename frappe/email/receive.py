@@ -2,6 +2,8 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
+
+from six import iteritems
 from six.moves import range
 import time, _socket, poplib, imaplib, email, email.utils, datetime, chardet, re, hashlib
 from email_reply_parser import EmailReplyParser
@@ -174,7 +176,9 @@ class EmailServer:
 			email_list = []
 			self.check_imap_uidvalidity()
 
-			self.imap.select("Inbox", readonly=True)
+			readonly = False if self.settings.email_sync_rule == "UNSEEN" else True
+
+			self.imap.select("Inbox", readonly=readonly)
 			response, message = self.imap.uid('search', None, self.settings.email_sync_rule)
 			if message[0]:
 				email_list =  message[0].split()
@@ -261,14 +265,16 @@ class EmailServer:
 				if not cint(self.settings.use_imap):
 					self.pop.dele(msg_num)
 				else:
-					# mark as seen
-					self.imap.uid('STORE', message_meta, '+FLAGS', '(\\SEEN)')
+					# mark as seen if email sync rule is UNSEEN (syncing only unseen mails)
+					if self.settings.email_sync_rule == "UNSEEN":
+						self.imap.uid('STORE', message_meta, '+FLAGS', '(\\SEEN)')
 		else:
 			if not cint(self.settings.use_imap):
 				self.pop.dele(msg_num)
 			else:
-				# mark as seen
-				self.imap.uid('STORE', message_meta, '+FLAGS', '(\\SEEN)')
+				# mark as seen if email sync rule is UNSEEN (syncing only unseen mails)
+				if self.settings.email_sync_rule == "UNSEEN":
+					self.imap.uid('STORE', message_meta, '+FLAGS', '(\\SEEN)')
 
 	def get_email_seen_status(self, uid, flag_string):
 		""" parse the email FLAGS response """
@@ -339,7 +345,7 @@ class EmailServer:
 			return
 
 		self.imap.select("Inbox")
-		for uid, operation in uid_list.iteritems():
+		for uid, operation in iteritems(uid_list):
 			if not uid: continue
 
 			op = "+FLAGS" if operation == "Read" else "-FLAGS"

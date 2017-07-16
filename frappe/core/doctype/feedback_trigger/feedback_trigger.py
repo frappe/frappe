@@ -129,7 +129,7 @@ def get_feedback_request_details(reference_doctype, reference_name, trigger="Man
 			"message": feedback_request_message,
 		}
 	else:
-		frappe.msgprint("Feedback conditions do not match")
+		frappe.msgprint(_("Feedback conditions do not match"))
 		return None
 
 def get_feedback_request_url(reference_doctype, reference_name, recipients, trigger="Manual"):

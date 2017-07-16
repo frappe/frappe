@@ -28,7 +28,8 @@
   border-top: 1px solid #d1d8dd;
 }
 .form-message {
-  padding: 15px;
+  padding: 15px 30px;
+  border-bottom: 1px solid #d1d8dd;
 }
 .document-flow-wrapper {
   padding: 40px 15px 30px;
@@ -73,20 +74,23 @@
 }
 .form-dashboard {
   background-color: #fafbfc;
-  border-bottom: 1px solid #d1d8dd;
+}
+.form-dashboard-wrapper {
+  margin: -15px 0px;
 }
 .form-documents h6 {
   margin-top: 15px;
 }
 .form-dashboard-section {
+  margin: 0px -15px;
   padding: 15px 30px;
   border-bottom: 1px solid #EBEFF2;
 }
+.form-dashboard-section:first-child {
+  padding-top: 0px;
+}
 .form-dashboard-section:last-child {
   border-bottom: none;
-}
-.form-heatmap {
-  padding-top: 30px;
 }
 .form-heatmap .heatmap-message {
   margin-top: 10px;
@@ -194,7 +198,7 @@ h6.uppercase,
 }
 .form-section:not(:last-child),
 .form-inner-toolbar {
-  border-bottom: 1px solid #EBEFF2;
+  border-bottom: 1px solid #d1d8dd;
 }
 .empty-section {
   display: none !important;
@@ -222,6 +226,14 @@ h6.uppercase,
 }
 .badge-important {
   background-color: #e74c3c;
+}
+.address-box {
+  background-color: #fafbfc;
+  padding: 0px 15px;
+  margin: 15px 0px;
+  border: 1px solid #d1d8dd;
+  border-radius: 3px;
+  font-size: 12px;
 }
 .timeline {
   margin: 30px 0px;
@@ -272,7 +284,7 @@ h6.uppercase,
 }
 .timeline-item.user-content .media-body {
   border: 1px solid #d1d8dd;
-  border-radius: 2px;
+  border-radius: 3px;
   margin-left: -7px;
   position: relative;
   overflow: visible;
@@ -386,7 +398,7 @@ h6.uppercase,
 .timeline-head {
   background-color: white;
   border: 1px solid #d1d8dd;
-  border-radius: 2px;
+  border-radius: 3px;
   position: relative;
   z-index: 1;
 }
@@ -488,6 +500,7 @@ h6.uppercase,
 }
 .like-disabled-input.for-description {
   font-weight: normal;
+  font-size: 12px;
 }
 .frappe-control {
   margin-bottom: 10px;
@@ -522,19 +535,17 @@ select.form-control {
   font-weight: bold;
   background-color: #fffdf4;
 }
-.form-headline {
-  padding: 0px 15px;
-  margin: 0px;
+.form-control[data-fieldtype="Password"] {
+  position: inherit;
 }
-.form-headline .alert {
-  font-size: 12px;
-  background-color: #fffce7;
-  font-weight: normal !important;
-  border: 0px;
-  border-radius: 0px;
-  margin-bottom: 0px;
-  margin: 0px -15px;
-  padding: 10px 30px;
+.password-strength-indicator {
+  float: right;
+  padding: 15px;
+  margin-top: -41px;
+  margin-right: -7px;
+}
+.password-strength-message {
+  margin-top: -10px;
 }
 .delivery-status-indicator {
   display: inline-block;

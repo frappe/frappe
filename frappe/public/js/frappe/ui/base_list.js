@@ -163,6 +163,8 @@ frappe.ui.BaseList = Class.extend({
 	},
 
 	make_filters: function () {
+		this.make_standard_filters();
+
 		this.filter_list = new frappe.ui.FilterList({
 			base_list: this,
 			parent: this.wrapper.find('.list-filters').show(),
@@ -173,8 +175,74 @@ frappe.ui.BaseList = Class.extend({
 		// default filter for submittable doctype
 		if (frappe.model.is_submittable(this.doctype)) {
 			this.filter_list.add_filter(this.doctype, "docstatus", "!=", 2);
-		};
+		}
 	},
+
+	make_standard_filters: function() {
+		var me = this;
+		if (this.standard_filters_added) {
+			return;
+		}
+
+		if (this.meta) {
+			this.page.add_field({
+				fieldtype: 'Data',
+				label: 'ID',
+				condition: 'like',
+				fieldname: 'name',
+				onchange: () => { me.refresh(true); }
+			});
+
+			this.meta.fields.forEach(function(df) {
+				if(df.in_standard_filter && !frappe.model.no_value_type.includes(df.fieldtype)) {
+					let options = df.options;
+					let condition = '=';
+					let fieldtype = df.fieldtype;
+					if (['Link', 'Text', 'Small Text', 'Text Editor', 'Data'].includes(fieldtype)) {
+						fieldtype = 'Data',
+						condition = 'like'
+					}
+					if(df.fieldtype == "Select" && df.options) {
+						options = df.options.split("\n");
+						if(options.length > 0 && options[0] != "") {
+							options.unshift("");
+							options = options.join("\n");
+						}
+					}
+					me.page.add_field({
+						fieldtype: fieldtype,
+						label: __(df.label),
+						options: options,
+						fieldname: df.fieldname,
+						condition: condition,
+						onchange: () => {me.refresh(true);}
+					});
+				}
+			});
+		}
+
+		this.standard_filters_added = true;
+	},
+
+	update_standard_filters: function(filters) {
+		let me = this;
+		for(let key in this.page.fields_dict) {
+			let field = this.page.fields_dict[key];
+			let value = field.get_value();
+			if (value) {
+				if (field.df.condition==='like' && !value.includes('%')) {
+					value = '%' + value + '%';
+				}
+				filters.push([
+					me.doctype,
+					field.df.fieldname,
+					field.df.condition || '=',
+					value
+				]);
+			}
+		}
+	},
+
 
 	clear: function () {
 		this.data = [];
@@ -185,9 +253,11 @@ frappe.ui.BaseList = Class.extend({
 		this.onreset && this.onreset();
 	},
 
-	set_filters_from_route_options: function () {
+	set_filters_from_route_options: function ({clear_filters=true} = {}) {
 		var me = this;
-		this.filter_list.clear_filters();
+		if(this.filter_list && clear_filters) {
+			this.filter_list.clear_filters();
+		}
 
 		for(var field in frappe.route_options) {
 			var value = frappe.route_options[field];
@@ -208,7 +278,7 @@ frappe.ui.BaseList = Class.extend({
 				doctype = frappe.meta.get_doctype_for_field(me.doctype, field);
 			}
 
-			if (doctype) {
+			if (doctype && me.filter_list) {
 				if ($.isArray(value)) {
 					me.filter_list.add_filter(doctype, field, value[0], value[1]);
 				} else {
@@ -219,7 +289,11 @@ frappe.ui.BaseList = Class.extend({
 		frappe.route_options = null;
 	},
 
-	run: function (more) {
+	run: function(more) {
+		setTimeout(() => this._run(more), 100);
+	},
+
+	_run: function (more) {
 		var me = this;
 		if (!more) {
 			this.start = 0;
@@ -391,7 +465,7 @@ frappe.ui.BaseList = Class.extend({
 	set_filter: function (fieldname, label, no_run, no_duplicate) {
 		var filter = this.filter_list.get_filter(fieldname);
 		if (filter) {
-			var value = cstr(filter.field.get_parsed_value());
+			var value = cstr(filter.field.get_value());
 			if (value.includes(label)) {
 				// already set
 				return false

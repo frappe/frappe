@@ -11,7 +11,7 @@
 			<p class="post-description">{{ post.intro }}</p>
 			<p class="post-by text-muted small">
 				<a href="/blog?blogger={{ post.blogger }}"
-					class="no-decoration">By {{ post.full_name }}</a>
+					class="no-decoration">{{ _("By") }} {{ post.full_name }}</a>
 				<i class="blog-dot"></i> {{ frappe.format_date(post.published_on) }}
 				<i class="blog-dot"></i>
 				<a href="/blog?blog_category={{ post.blog_category }}"

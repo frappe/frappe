@@ -37,7 +37,7 @@ frappe.ui.form.on('Feedback Trigger', {
 		frappe.model.with_doctype(frm.doc.document_type, function() {
 			var fields = frappe.get_doc("DocType", frm.doc.document_type).fields;
 			$.each(fields, function(idx, field) {
-				if(!inList(frappe.model.no_value_type, field.fieldtype) && field.options == "Email") {
+				if(!in_list(frappe.model.no_value_type, field.fieldtype) && field.options == "Email") {
 					frm.options.push(field.label);
 					frm.fieldname_mapper[field.label] = field.fieldname;
 				}

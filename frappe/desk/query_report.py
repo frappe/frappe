@@ -9,6 +9,7 @@ import os, json
 from frappe import _
 from frappe.modules import scrub, get_module_path
 from frappe.utils import flt, cint, get_html_format, cstr
+from frappe.model.utils import render_include
 from frappe.translate import send_translations
 import frappe.desk.reportview
 from frappe.permissions import get_role_permissions
@@ -55,7 +56,7 @@ def get_script(report_name):
 		send_translations(frappe.get_lang_dict("report", report_name))
 
 	return {
-		"script": script,
+		"script": render_include(script),
 		"html_format": html_format
 	}
 
@@ -120,6 +121,8 @@ def export_query():
 	data = frappe._dict(frappe.local.form_dict)
 
 	del data["cmd"]
+	if "csrf_token" in data:
+		del data["csrf_token"]
 
 	if isinstance(data.get("filters"), basestring):
 		filters = json.loads(data["filters"])
@@ -129,6 +132,8 @@ def export_query():
 		file_format_type = data["file_format_type"]
 	if isinstance(data.get("visible_idx"), basestring):
 		visible_idx = json.loads(data.get("visible_idx"))
+	else:
+		visible_idx = None
 
 	if file_format_type == "Excel":
 
@@ -141,20 +146,20 @@ def export_query():
 		# add column headings
 		for idx in range(len(data.columns)):
 			result[0].append(columns[idx]["label"])
-			
+
 		# build table from dict
 		if isinstance(data.result[0], dict):
-			for row in data.result:
-				if row:
+			for i,row in enumerate(data.result):
+				# only rows which are visible in the report
+				if row and (i+1 in visible_idx):
 					row_list = []
 					for idx in range(len(data.columns)):
 						row_list.append(row.get(columns[idx]["fieldname"],""))
 					result.append(row_list)
+				elif not row:
+					result.append([])
 		else:
-			result = result + data.result
-		
-		# filter rows by slickgrid's inline filter
-		result = [x for idx, x in enumerate(result) if idx == 0 or idx in visible_idx]
+			result = result + [d for i,d in enumerate(data.result) if (i+1 in visible_idx)]
 
 		from frappe.utils.xlsxutils import make_xlsx
 		xlsx_file = make_xlsx(result, "Query Report")
@@ -182,9 +187,12 @@ def add_total_row(result, columns, meta = None):
 			else:
 				col = col.split(":")
 				if len(col) > 1:
-					fieldtype = col[1]
-					if "/" in fieldtype:
-						fieldtype, options = fieldtype.split("/")
+					if col[1]:
+						fieldtype = col[1]
+						if "/" in fieldtype:
+							fieldtype, options = fieldtype.split("/")
+					else:
+						fieldtype = "Data"
 		else:
 			fieldtype = col.get("fieldtype")
 			options = col.get("options")
@@ -210,7 +218,7 @@ def add_total_row(result, columns, meta = None):
 	else:
 		first_col_fieldtype = columns[0].get("fieldtype")
 
-	if first_col_fieldtype not in ["Currency", "Int", "Float", "Percent"]:
+	if first_col_fieldtype not in ["Currency", "Int", "Float", "Percent", "Date"]:
 		if first_col_fieldtype == "Link":
 			total_row[0] = "'" + _("Total") + "'"
 		else:
@@ -281,7 +289,7 @@ def has_match(row, linked_doctypes, doctype_match_filters, ref_doctype, if_owner
 					if dt=="User" and columns_dict[idx]==columns_dict.get("owner"):
 						continue
 
-					if dt in match_filters and row[idx] not in match_filters[dt]:
+					if dt in match_filters and row[idx] not in match_filters[dt] and frappe.db.exists(dt, row[idx]):
 						match = False
 						break
 

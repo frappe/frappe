@@ -67,9 +67,10 @@ frappe.route = function() {
 
 frappe.get_route = function(route) {
 	// for app
-	var route = frappe.get_route_str(route).split('/')
+	var route = frappe.get_raw_route_str(route).split('/');
+	route = $.map(route, frappe._decode_str);
 	var parts = route[route.length - 1].split("?");
-	route[route.length - 1] = parts[0];
+	route[route.length - 1] = frappe._decode_str(parts[0]);
 	if (parts.length > 1) {
 		var query_params = get_query_params(parts[1]);
 		frappe.route_options = $.extend(frappe.route_options || {}, query_params);
@@ -92,48 +93,61 @@ frappe.get_prev_route = function() {
 	}
 }
 
-frappe.get_route_str = function(route) {
+frappe._decode_str = function(r) {
+	try {
+		return decodeURIComponent(r);
+	} catch(e) {
+		if (e instanceof URIError) {
+			return r;
+		} else {
+			throw e;
+		}
+	}
+}
+
+frappe.get_raw_route_str = function(route) {
 	if(!route)
 		route = window.location.hash;
 
 	if(route.substr(0,1)=='#') route = route.substr(1);
 	if(route.substr(0,1)=='!') route = route.substr(1);
 
-	route = $.map(route.split('/'), function(r) {
-		try {
-			return decodeURIComponent(r);
-		} catch(e) {
-			if (e instanceof URIError) {
-				return r;
-			} else {
-				throw e;
-			}
-		}
+	return route;
+}
 
-	}).join('/');
+frappe.get_route_str = function(route) {
+	var rawRoute = frappe.get_raw_route_str()
+	route = $.map(rawRoute.split('/'), frappe._decode_str).join('/');
 
 	return route;
 }
 
 frappe.set_route = function() {
-	var params = arguments;
-	if(params.length===1 && $.isArray(params[0])) {
-		params = params[0];
-	}
-	route = $.map(params, function(a) {
-		if($.isPlainObject(a)) {
-			frappe.route_options = a;
-			return null;
-		} else {
-			return a;
-			// return a ? encodeURIComponent(a) : null;
+	return new Promise(resolve => {
+		var params = arguments;
+		if(params.length===1 && $.isArray(params[0])) {
+			params = params[0];
 		}
-	}).join('/');
+		var route = $.map(params, function(a) {
+			if($.isPlainObject(a)) {
+				frappe.route_options = a;
+				return null;
+			} else {
+				return a;
+				// return a ? encodeURIComponent(a) : null;
+			}
+		}).join('/');
 
-	window.location.hash = route;
+		window.location.hash = route;
 
-	// Set favicon (app.js)
-	frappe.app.set_favicon && frappe.app.set_favicon();
+		// Set favicon (app.js)
+		frappe.app.set_favicon && frappe.app.set_favicon();
+		setTimeout(() => {
+			frappe.after_ajax(() => {
+				resolve();
+			});
+		}, 100);
+	});
 }
 
 frappe.set_re_route = function() {

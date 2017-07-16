@@ -13,6 +13,8 @@ from frappe.utils.file_manager import get_max_file_size
 from frappe.modules.utils import export_module_json, get_doc_module
 from urllib import urlencode
 from frappe.integrations.utils import get_payment_gateway_controller
+from six import iteritems
+
 
 class WebForm(WebsiteGenerator):
 	website = frappe._dict(
@@ -162,8 +164,8 @@ def get_context(context):
 			and (frappe.session.user!="Guest" or not self.login_required))
 
 		if context.success_message:
-			context.success_message = context.success_message.replace("\n",
-				"<br>").replace("'", "\'")
+			context.success_message = frappe.db.escape(context.success_message.replace("\n",
+				"<br>"))
 
 		self.add_custom_context_and_script(context)
 		if not context.max_attachment_size:
@@ -173,7 +175,7 @@ def get_context(context):
 		'''Load document `doc` and `layout` properties for template'''
 		if frappe.form_dict.name or frappe.form_dict.new:
 			context.layout = self.get_layout()
-			context.parents = [{"route": self.route, "title": self.title }]
+			context.parents = [{"route": self.route, "label": _(self.title) }]
 
 		if frappe.form_dict.name:
 			context.doc = frappe.get_doc(self.doc_type, frappe.form_dict.name)
@@ -206,7 +208,7 @@ def get_context(context):
 		context.params_from_form_dict = ''
 
 		params = {}
-		for key, value in frappe.form_dict.iteritems():
+		for key, value in iteritems(frappe.form_dict):
 			if frappe.get_meta(self.doc_type).get_field(key):
 				params[key] = value
 
@@ -365,7 +367,7 @@ def accept(web_form, data, for_payment=False):
 		doc = frappe.new_doc(data.doctype)
 
 	# set values
-	for fieldname, value in data.iteritems():
+	for fieldname, value in iteritems(data):
 		if value and isinstance(value, dict):
 			try:
 				if "__file_attachment" in value:
@@ -436,7 +438,7 @@ def delete(web_form, name):
 	if frappe.session.user == owner and web_form.allow_delete:
 		frappe.delete_doc(web_form.doc_type, name, ignore_permissions=True)
 	else:
-		raise frappe.PermissionError, "Not Allowed"
+		raise frappe.PermissionError("Not Allowed")
 
 def has_web_form_permission(doctype, name, ptype='read'):
 	if frappe.session.user=="Guest":

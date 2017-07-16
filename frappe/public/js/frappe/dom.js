@@ -58,19 +58,19 @@ frappe.dom = {
 	},
 	is_element_in_viewport: function (el) {
 
-	    //special bonus for those using jQuery
-	    if (typeof jQuery === "function" && el instanceof jQuery) {
-	        el = el[0];
-	    }
+		//special bonus for those using jQuery
+		if (typeof jQuery === "function" && el instanceof jQuery) {
+			el = el[0];
+		}
 
-	    var rect = el.getBoundingClientRect();
+		var rect = el.getBoundingClientRect();
 
-	    return (
-	        rect.top >= 0
-	        && rect.left >= 0
-	        // && rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) && /*or $(window).height() */
-	        // && rect.right <= (window.innerWidth || document.documentElement.clientWidth) /*or $(window).width() */
-	    );
+		return (
+			rect.top >= 0
+			&& rect.left >= 0
+			// && rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) && /*or $(window).height() */
+			// && rect.right <= (window.innerWidth || document.documentElement.clientWidth) /*or $(window).width() */
+		);
 	},
 
 	set_style: function(txt, id) {
@@ -115,7 +115,7 @@ frappe.dom = {
 	css: function(ele, s) {
 		if(ele && s) {
 			$.extend(ele.style, s);
-		};
+		}
 		return ele;
 	},
 	freeze: function(msg, css_class) {
@@ -155,7 +155,7 @@ frappe.dom = {
 	save_selection: function() {
 		// via http://stackoverflow.com/questions/5605401/insert-link-in-contenteditable-element
 		if (window.getSelection) {
-			sel = window.getSelection();
+			var sel = window.getSelection();
 			if (sel.getRangeAt && sel.rangeCount) {
 				var ranges = [];
 				for (var i = 0, len = sel.rangeCount; i < len; ++i) {
@@ -171,7 +171,7 @@ frappe.dom = {
 	restore_selection: function(savedSel) {
 		if (savedSel) {
 			if (window.getSelection) {
-				sel = window.getSelection();
+				var sel = window.getSelection();
 				sel.removeAllRanges();
 				for (var i = 0, len = savedSel.length; i < len; ++i) {
 					sel.addRange(savedSel[i]);
@@ -193,6 +193,26 @@ frappe.ellipsis = function(text, max) {
 		text = text.substr(0, max) + '...';
 	}
 	return text;
+};
+
+frappe.run_serially = function(tasks) {
+	var result = Promise.resolve();
+	tasks.forEach(task => {
+		if(task) {
+			result = result.then ? result.then(task) : Promise.resolve();
+		}
+	});
+	return result;
+};
+
+frappe.timeout = seconds => {
+	return new Promise((resolve) => {
+		setTimeout(() => resolve(), seconds * 1000);
+	});
+};
+
+frappe.scrub = function(text) {
+	return text.replace(/ /g, "_").toLowerCase();
 };
 
 frappe.get_modal = function(title, content) {
@@ -242,48 +262,48 @@ frappe._in = function(source, target) {
 })(jQuery);
 
 (function($) {
-    function pasteIntoInput(el, text) {
-        el.focus();
-        if (typeof el.selectionStart == "number") {
-            var val = el.value;
-            var selStart = el.selectionStart;
-            el.value = val.slice(0, selStart) + text + val.slice(el.selectionEnd);
-            el.selectionEnd = el.selectionStart = selStart + text.length;
-        } else if (typeof document.selection != "undefined") {
-            var textRange = document.selection.createRange();
-            textRange.text = text;
-            textRange.collapse(false);
-            textRange.select();
-        }
-    }
+	function pasteIntoInput(el, text) {
+		el.focus();
+		if (typeof el.selectionStart == "number") {
+			var val = el.value;
+			var selStart = el.selectionStart;
+			el.value = val.slice(0, selStart) + text + val.slice(el.selectionEnd);
+			el.selectionEnd = el.selectionStart = selStart + text.length;
+		} else if (typeof document.selection != "undefined") {
+			var textRange = document.selection.createRange();
+			textRange.text = text;
+			textRange.collapse(false);
+			textRange.select();
+		}
+	}
 
-    function allowTabChar(el) {
-        $(el).keydown(function(e) {
-            if (e.which == 9) {
-                pasteIntoInput(this, "\t");
-                return false;
-            }
-        });
+	function allowTabChar(el) {
+		$(el).keydown(function(e) {
+			if (e.which == 9) {
+				pasteIntoInput(this, "\t");
+				return false;
+			}
+		});
 
-        // For Opera, which only allows suppression of keypress events, not keydown
-        $(el).keypress(function(e) {
-            if (e.which == 9) {
-                return false;
-            }
-        });
-    }
+		// For Opera, which only allows suppression of keypress events, not keydown
+		$(el).keypress(function(e) {
+			if (e.which == 9) {
+				return false;
+			}
+		});
+	}
 
-    $.fn.allowTabs = function() {
-        if (this.jquery) {
-            this.each(function() {
-                if (this.nodeType == 1) {
-                    var nodeName = this.nodeName.toLowerCase();
-                    if (nodeName == "textarea" || (nodeName == "input" && this.type == "text")) {
-                        allowTabChar(this);
-                    }
-                }
-            })
-        }
-        return this;
-    }
+	$.fn.allowTabs = function() {
+		if (this.jquery) {
+			this.each(function() {
+				if (this.nodeType == 1) {
+					var nodeName = this.nodeName.toLowerCase();
+					if (nodeName == "textarea" || (nodeName == "input" && this.type == "text")) {
+						allowTabChar(this);
+					}
+				}
+			})
+		}
+		return this;
+	}
 })(jQuery);

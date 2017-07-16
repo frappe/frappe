@@ -10,17 +10,22 @@ click.disable_unicode_literals_warning = True
 
 def main():
 	commands = get_app_groups()
-	commands.update({'get-frappe-commands': get_frappe_commands,
-			'get-frappe-help': get_frappe_help
-			})
+	commands.update({
+		'get-frappe-commands': get_frappe_commands,
+		'get-frappe-help': get_frappe_help
+	})
 	click.Group(commands=commands)(prog_name='bench')
 
 def get_app_groups():
-	ret = {}
+	'''Get all app groups, put them in main group "frappe" since bench is
+	designed to only handle that'''
+	commands = dict()
 	for app in get_apps():
-		app_group = get_app_group(app)
-		if app_group:
-			ret[app] = app_group
+		app_commands = get_app_commands(app)
+		if app_commands:
+			commands.update(app_commands)
+
+	ret = dict(frappe=click.group(name='frappe', commands=commands)(app_group))
 	return ret
 
 def get_app_group(app):
@@ -66,11 +71,18 @@ def get_app_commands(app):
 
 @click.command('get-frappe-commands')
 def get_frappe_commands():
-	print(json.dumps(get_app_commands('frappe').keys()))
+	commands = get_app_commands('frappe').keys()
+
+	for app in get_apps():
+		app_commands = get_app_commands(app)
+		if app_commands:
+			commands.extend(app_commands.keys())
+
+	print(json.dumps(commands))
 
 @click.command('get-frappe-help')
 def get_frappe_help():
-	print(click.Context(get_app_group('frappe')).get_help())
+	print(click.Context(get_app_groups()['frappe']).get_help())
 
 def get_apps():
 	return frappe.get_all_apps(with_internal_apps=False, sites_path='.')

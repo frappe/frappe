@@ -330,7 +330,7 @@ def get_all_perms(role):
 	'''Returns valid permissions for a given role'''
 	perms = frappe.get_all('DocPerm', fields='*', filters=dict(role=role))
 	custom_perms = frappe.get_all('Custom DocPerm', fields='*', filters=dict(role=role))
-	doctypes_with_custom_perms = frappe.db.sql_list("""select distinct parent 
+	doctypes_with_custom_perms = frappe.db.sql_list("""select distinct parent
 		from `tabCustom DocPerm`""")
 
 	for p in perms:
@@ -458,6 +458,31 @@ def setup_custom_perms(parent):
 		copy_perms(parent)
 		return True
 
+def add_permission(doctype, role, permlevel=0):
+	'''Add a new permission rule to the given doctype
+		for the given Role and Permission Level'''
+	from frappe.core.doctype.doctype.doctype import validate_permissions_for_doctype
+	setup_custom_perms(doctype)
+
+	if frappe.db.get_value('Custom DocPerm', dict(parent=doctype, role=role,
+		permlevel=permlevel)):
+		return
+
+	custom_docperm = frappe.get_doc({
+		"doctype":"Custom DocPerm",
+		"__islocal": 1,
+		"parent": doctype,
+		"parenttype": "DocType",
+		"parentfield": "permissions",
+		"role": role,
+		'read': 1,
+		"permlevel": permlevel,
+	})
+
+	custom_docperm.save()
+
+	validate_permissions_for_doctype(doctype)
+
 def copy_perms(parent):
 	'''Copy all DocPerm in to Custom DocPerm for the given document'''
 	for d in frappe.get_all('DocPerm', fields='*', filters=dict(parent=parent)):
@@ -480,3 +505,4 @@ def get_linked_doctypes(dt):
 			"options": ("!=", "[Select]")
 		})
 	]))
+

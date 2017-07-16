@@ -43,7 +43,7 @@ def export_customizations(module, doctype, sync_on_migrate=0, with_permissions=0
 	"""Export Custom Field and Property Setter for the current document to the app folder.
 		This will be synced with bench migrate"""
 	if not frappe.get_conf().developer_mode:
-		raise 'Not developer mode'
+		raise Exception('Not developer mode')
 
 	custom = {'custom_fields': [], 'property_setters': [], 'custom_perms': [],
 		'doctype': doctype, 'sync_on_migrate': 1}
@@ -72,7 +72,7 @@ def export_customizations(module, doctype, sync_on_migrate=0, with_permissions=0
 	with open(path, 'w') as f:
 		f.write(frappe.as_json(custom))
 
-	frappe.msgprint('Customizations exported to {0}'.format(path))
+	frappe.msgprint(_('Customizations exported to {0}').format(path))
 
 def sync_customizations(app=None):
 	'''Sync custom fields and property setters from custom folder in each app module'''
@@ -180,8 +180,8 @@ def load_doctype_module(doctype, module=None, prefix="", suffix=""):
 	try:
 		if key not in doctype_python_modules:
 			doctype_python_modules[key] = frappe.get_module(module_name)
-	except ImportError:
-		raise ImportError, 'Module import failed for {0} ({1})'.format(doctype, module_name)
+	except ImportError, e:
+		raise ImportError('Module import failed for {0} ({1})'.format(doctype, module_name + ' Error: ' + str(e)))
 
 	return doctype_python_modules[key]
 

@@ -164,7 +164,8 @@ $.extend(frappe.meta, {
 			});
 
 			if(!out) {
-				frappe.msgprint(__('Warning: Unable to find {0} in any table related to {1}', [
+				// eslint-disable-next-line
+				console.log(__('Warning: Unable to find {0} in any table related to {1}', [
 					key, __(doctype)]));
 			}
 		}
@@ -173,7 +174,7 @@ $.extend(frappe.meta, {
 
 	get_parentfield: function(parent_dt, child_dt) {
 		var df = (frappe.get_doc("DocType", parent_dt).fields || []).filter(function(d)
-			{ return d.fieldtype==="Table" && options===child_dt })
+			{ return d.fieldtype==="Table" && d.options===child_dt })
 		if(!df.length)
 			throw "parentfield not found for " + parent_dt + ", " + child_dt;
 		return df[0].fieldname;

@@ -1,12 +1,11 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-get_server_fields = function(method, arg, table_field, doc, dt, dn, allow_edit, call_back) {
+window.get_server_fields = function(method, arg, table_field, doc, dt, dn, allow_edit, call_back) {
 	console.warn("This function 'get_server_fields' has been deprecated and will be removed soon.");
 	frappe.dom.freeze();
 	if($.isPlainObject(arg)) arg = JSON.stringify(arg);
-	return $c('runserverobj',
-		args={'method': method, 'docs': JSON.stringify(doc), 'arg': arg },
+	return $c('runserverobj', {'method': method, 'docs': JSON.stringify(doc), 'arg': arg },
 	function(r, rt) {
 		frappe.dom.unfreeze();
 		if (r.message)  {
@@ -24,12 +23,11 @@ get_server_fields = function(method, arg, table_field, doc, dt, dn, allow_edit, 
 			doc = locals[doc.doctype][doc.name];
 			call_back(doc, dt, dn);
 		}
-    }
-  );
+	});
 }
 
 
-set_multiple = function (dt, dn, dict, table_field) {
+window.set_multiple = function (dt, dn, dict, table_field) {
 	var d = locals[dt][dn];
 	for(var key in dict) {
 		d[key] = dict[key];
@@ -40,7 +38,7 @@ set_multiple = function (dt, dn, dict, table_field) {
 	}
 }
 
-refresh_many = function (flist, dn, table_field) {
+window.refresh_many = function (flist, dn, table_field) {
 	for(var i in flist) {
 		if (table_field)
 			refresh_field(flist[i], dn, table_field);
@@ -49,7 +47,7 @@ refresh_many = function (flist, dn, table_field) {
 	}
 }
 
-set_field_tip = function(n,txt) {
+window.set_field_tip = function(n,txt) {
 	var df = frappe.meta.get_docfield(cur_frm.doctype, n, cur_frm.docname);
 	if(df)df.description = txt;
 
@@ -84,11 +82,11 @@ refresh_field = function(n, docname, table_field) {
 	}
 }
 
-set_field_options = function(n, txt) {
+window.set_field_options = function(n, txt) {
 	cur_frm.set_df_property(n, 'options', txt)
 }
 
-set_field_permlevel = function(n, level) {
+window.set_field_permlevel = function(n, level) {
 	cur_frm.set_df_property(n, 'permlevel', level)
 }
 
@@ -161,7 +159,7 @@ _f.Frm.prototype.set_currency_labels = function(fields_list, currency, parentfie
 _f.Frm.prototype.field_map = function(fnames, fn) {
 	if(typeof fnames==='string') {
 		if(fnames == '*') {
-			fnames = keys(this.fields_dict);
+			fnames = Object.keys(this.fields_dict);
 		} else {
 			fnames = [fnames];
 		}
@@ -172,7 +170,7 @@ _f.Frm.prototype.field_map = function(fnames, fn) {
 		if(field) {
 			fn(field);
 			cur_frm.refresh_field(fieldname);
-		};
+		}
 	}
 }
 
@@ -192,14 +190,14 @@ _f.Frm.prototype.set_df_property = function(fieldname, property, value, docname,
 		var df = this.get_docfield(fieldname);
 	} else {
 		var grid = cur_frm.fields_dict[table_field].grid,
-		fname = frappe.utils.filter_dict(grid.docfields, {'fieldname': fieldname});
+			fname = frappe.utils.filter_dict(grid.docfields, {'fieldname': fieldname});
 		if (fname && fname.length)
 			var df = frappe.meta.get_docfield(fname[0].parent, fieldname, docname);
 	}
 	if(df && df[property] != value) {
 		df[property] = value;
 		refresh_field(fieldname, table_field);
-	};
+	}
 }
 
 _f.Frm.prototype.toggle_enable = function(fnames, enable) {
@@ -250,7 +248,17 @@ _f.Frm.prototype.clear_table = function(fieldname) {
 _f.Frm.prototype.add_child = function(fieldname, values) {
 	var doc = frappe.model.add_child(this.doc, frappe.meta.get_docfield(this.doctype, fieldname).options, fieldname);
 	if(values) {
-		$.extend(doc, values);
+		// Values of unique keys should not be overridden
+		var d = {};
+		var unique_keys = ["idx", "name"];
+
+		Object.keys(values).map((key) => {
+			if(!unique_keys.includes(key)) {
+				d[key] = values[key];
+			}
+		});
+
+		$.extend(doc, d);
 	}
 	return doc;
 }
@@ -273,26 +281,28 @@ _f.Frm.prototype.set_value = function(field, value, if_missing) {
 					}
 
 					me.refresh_field(f);
-
+					return Promise.resolve();
 				} else {
-					frappe.model.set_value(me.doctype, me.doc.name, f, v);
+					return frappe.model.set_value(me.doctype, me.doc.name, f, v);
 				}
 			}
 		} else {
-			msgprint("Field " + f + " not found.");
+			frappe.msgprint(__("Field {0} not found.",[f]));
 			throw "frm.set_value";
 		}
 	}
 
 	if(typeof field=="string") {
-		_set(field, value)
+		return _set(field, value)
 	} else if($.isPlainObject(field)) {
-		for (var f in field) {
-			var v = field[f];
+		let tasks = [];
+		for (let f in field) {
+			let v = field[f];
 			if(me.get_field(f)) {
-				_set(f, v);
+				tasks.push(() => _set(f, v));
 			}
 		}
+		return frappe.run_serially(tasks);
 	}
 }
 
@@ -318,7 +328,7 @@ _f.Frm.prototype.call = function(opts, args, callback) {
 					opts.child = locals[opts.child.doctype][opts.child.name];
 
 					var std_field_list = ["doctype"].concat(frappe.model.std_fields_list);
-					for (key in r.message) {
+					for (var key in r.message) {
 						if (std_field_list.indexOf(key)===-1) {
 							opts.child[key] = r.message[key];
 						}
@@ -360,13 +370,13 @@ _f.Frm.prototype.set_read_only = function() {
 }
 
 _f.Frm.prototype.trigger = function(event) {
-	this.script_manager.trigger(event);
+	return this.script_manager.trigger(event);
 };
 
 _f.Frm.prototype.get_formatted = function(fieldname) {
 	return frappe.format(this.doc[fieldname],
-			frappe.meta.get_docfield(this.doctype, fieldname, this.docname),
-			{no_icon:true}, this.doc);
+		frappe.meta.get_docfield(this.doctype, fieldname, this.docname),
+		{no_icon:true}, this.doc);
 }
 
 _f.Frm.prototype.open_grid_row = function() {
@@ -409,6 +419,7 @@ _f.Frm.prototype.has_mapper = function() {
 
 _f.Frm.prototype.set_indicator_formatter = function(fieldname, get_color, get_text) {
 	// get doctype from parent
+	var doctype;
 	if(frappe.meta.docfield_map[this.doctype][fieldname]) {
 		doctype = this.doctype;
 	} else {
@@ -472,7 +483,7 @@ _f.Frm.prototype.make_new = function(doctype) {
 		this.custom_buttons[this.custom_make_buttons[doctype]].trigger('click');
 	} else {
 		frappe.model.with_doctype(doctype, function() {
-			new_doc = frappe.model.get_new_doc(doctype);
+			var new_doc = frappe.model.get_new_doc(doctype);
 
 			// set link fields (if found)
 			frappe.get_meta(doctype).fields.forEach(function(df) {

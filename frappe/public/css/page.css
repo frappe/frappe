@@ -97,14 +97,21 @@
 }
 .page-form {
   margin: 0px;
-  padding-top: 15px;
+  padding-right: 15px;
+  padding-top: 10px;
   border-bottom: 1px solid #d1d8dd;
+  background-color: #F7FAFC;
 }
 .page-form .form-group {
-  margin-bottom: 15px;
+  padding-right: 0px;
+  margin-bottom: 10px;
 }
 .page-form .checkbox {
-  margin-top: 2px;
+  margin-top: 4px;
+  margin-bottom: 4px;
+}
+.page-form .checkbox .help-box {
+  display: none;
 }
 select.input-sm {
   line-height: 1.2em !important;
@@ -138,6 +145,9 @@ select.input-sm {
     left: 0;
     right: 101px;
     width: 100%;
+  }
+  .page-title h1 {
+    padding-right: 170px;
   }
   .page-head .page-title h1 {
     font-size: 18px;

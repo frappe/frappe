@@ -18,7 +18,6 @@ frappe.email_defaults = {
 		"use_imap": 1
 	},
 	"Sendgrid": {
-		"enable_outgoing": 0,
 		"enable_outgoing": 1,
 		"smtp_server": "smtp.sendgrid.net",
 		"smtp_port": 587,
@@ -36,7 +35,7 @@ frappe.email_defaults = {
 		"use_ssl": 1,
 		"enable_outgoing": 1,
 		"smtp_server": "smtp.mail.yahoo.com",
-		"smtp_port": 465,
+		"smtp_port": 587,
 		"use_tls": 1,
 		"use_imap": 1
 	},
@@ -71,7 +70,7 @@ frappe.ui.form.on("Email Account", {
 	service: function(frm) {
 		$.each(frappe.email_defaults[frm.doc.service], function(key, value) {
 			frm.set_value(key, value);
-		})
+		});
 		if (!frm.doc.use_imap) {
 			$.each(frappe.email_defaults_pop[frm.doc.service], function(key, value) {
 				frm.set_value(key, value);
@@ -94,7 +93,7 @@ frappe.ui.form.on("Email Account", {
 	},
 
 	enable_incoming: function(frm) {
-		frm.doc.no_remaining = null //perform full sync
+		frm.doc.no_remaining = null; //perform full sync
 		//frm.set_df_property("append_to", "reqd", frm.doc.enable_incoming);
 	},
 
@@ -114,13 +113,14 @@ frappe.ui.form.on("Email Account", {
 		frm.events.show_gmail_message_for_less_secure_apps(frm);
 
 		if(frappe.route_flags.delete_user_from_locals && frappe.route_flags.linked_user) {
-			delete frappe.route_flags.delete_user_from_locals
-			delete locals['User'][frappe.route_flags.linked_user]
+			delete frappe.route_flags.delete_user_from_locals;
+			delete locals['User'][frappe.route_flags.linked_user];
 		}
 	},
 
 	show_gmail_message_for_less_secure_apps: function(frm) {
-		if(frm.doc.service==="Gmail") {
+		frm.dashboard.clear_headline();
+		if(frm.doc.service==="GMail") {
 			frm.dashboard.set_headline_alert('Gmail will only work if you allow access for less secure \
 				apps in Gmail settings. <a target="_blank" \
 				href="https://support.google.com/accounts/answer/6010255?hl=en">Read this for details</a>');
@@ -134,7 +134,7 @@ frappe.ui.form.on("Email Account", {
 
 	update_domain: function(frm){
 		if (!frm.doc.email_id && !frm.doc.service){
-			return
+			return;
 		}
 
 		frappe.call({
@@ -145,17 +145,17 @@ frappe.ui.form.on("Email Account", {
 			},
 			callback: function (r) {
 				if (r.message) {
-					frm.events.set_domain_fields(frm, r.message)
+					frm.events.set_domain_fields(frm, r.message);
 				} else {
-					frm.set_value("domain", "")
+					frm.set_value("domain", "");
 					frappe.confirm(__('Email Domain not configured for this account, Create one?'),
 						function () {
 							frappe.model.with_doctype("Email Domain", function() {
 								frappe.route_options = { email_id: frm.doc.email_id };
-								frappe.route_flags.return_to_email_account = 1
+								frappe.route_flags.return_to_email_account = 1;
 								var doc = frappe.model.get_new_doc("Email Domain");
 								frappe.set_route("Form", "Email Domain", doc.name);
-							})
+							});
 						}
 					);
 				}
@@ -165,26 +165,26 @@ frappe.ui.form.on("Email Account", {
 
 	set_domain_fields: function(frm, args) {
 		if(!args){
-			args = frappe.route_flags.set_domain_values? frappe.route_options: {}
+			args = frappe.route_flags.set_domain_values? frappe.route_options: {};
 		}
 
-		for(field in args) {
+		for(var field in args) {
 			frm.set_value(field, args[field]);
 		}
 
-		delete frappe.route_flags.set_domain_values
-		frappe.route_options = {}
+		delete frappe.route_flags.set_domain_values;
+		frappe.route_options = {};
 	},
 
 	email_sync_option: function(frm) {
 		// confirm if the ALL sync option is selected
 
 		if(frm.doc.email_sync_option == "ALL"){
-			msg = __("You are selecting Sync Option as ALL, It will resync all \
+			var msg = __("You are selecting Sync Option as ALL, It will resync all \
 				read as well as unread message from server. This may also cause the duplication\
-				of Communication (emails).")
+				of Communication (emails).");
 			frappe.confirm(msg, null, function() {
-				frm.set_value("email_sync_option", "UNSEEN")
+				frm.set_value("email_sync_option", "UNSEEN");
 			});
 		}
 	}

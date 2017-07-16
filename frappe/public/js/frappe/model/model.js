@@ -5,7 +5,7 @@ frappe.provide('frappe.model');
 
 $.extend(frappe.model, {
 	no_value_type: ['Section Break', 'Column Break', 'HTML', 'Table',
- 	'Button', 'Image', 'Fold', 'Heading'],
+		'Button', 'Image', 'Fold', 'Heading'],
 
 	layout_fields: ['Section Break', 'Column Break', 'Fold'],
 
@@ -77,7 +77,7 @@ $.extend(frappe.model, {
 				if(d.fieldname==fieldname) return d;
 			});
 		if(!docfield.length) {
-			msgprint(__("Unknown Column: {0}", [fieldname]));
+			frappe.msgprint(__("Unknown Column: {0}", [fieldname]));
 		}
 		return docfield[0];
 	},
@@ -103,7 +103,7 @@ $.extend(frappe.model, {
 				freeze: true,
 				callback: function(r) {
 					if(r.exc) {
-						msgprint(__("Unable to load: {0}", [__(doctype)]));
+						frappe.msgprint(__("Unable to load: {0}", [__(doctype)]));
 						throw "No doctype";
 					}
 					if(r.message=="use_cache") {
@@ -235,7 +235,7 @@ $.extend(frappe.model, {
 
 	can_import: function(doctype, frm) {
 		// system manager can always import
-		if(roles.indexOf("System Manager")!==-1) return true;
+		if(frappe.user_roles.includes("System Manager")) return true;
 
 		if(frm) return frm.perm[0].import===1;
 		return frappe.boot.user.can_import.indexOf(doctype)!==-1;
@@ -243,7 +243,7 @@ $.extend(frappe.model, {
 
 	can_export: function(doctype, frm) {
 		// system manager can always export
-		if(roles.indexOf("System Manager")!==-1) return true;
+		if(frappe.user_roles.includes("System Manager")) return true;
 
 		if(frm) return frm.perm[0].export===1;
 		return frappe.boot.user.can_export.indexOf(doctype)!==-1;
@@ -268,7 +268,7 @@ $.extend(frappe.model, {
 
 	can_set_user_permissions: function(doctype, frm) {
 		// system manager can always set user permissions
-		if(roles.indexOf("System Manager")!==-1) return true;
+		if(frappe.user_roles.includes("System Manager")) return true;
 
 		if(frm) return frm.perm[0].set_user_permissions===1;
 		return frappe.boot.user.can_set_user_permissions.indexOf(doctype)!==-1;
@@ -327,9 +327,11 @@ $.extend(frappe.model, {
 
 	set_value: function(doctype, docname, fieldname, value, fieldtype) {
 		/* help: Set a value locally (if changed) and execute triggers */
+
 		var doc = locals[doctype] && locals[doctype][docname];
 
 		var to_update = fieldname;
+		let tasks = [];
 		if(!$.isPlainObject(to_update)) {
 			to_update = {};
 			to_update[fieldname] = value;
@@ -343,14 +345,16 @@ $.extend(frappe.model, {
 				}
 
 				doc[key] = value;
-				frappe.model.trigger(key, value, doc);
+				tasks.push(() => frappe.model.trigger(key, value, doc));
 			} else {
 				// execute link triggers (want to reselect to execute triggers)
 				if(fieldtype=="Link" && doc) {
-					frappe.model.trigger(key, value, doc);
+					tasks.push(() => frappe.model.trigger(key, value, doc));
 				}
 			}
 		});
+
+		return frappe.run_serially(tasks);
 	},
 
 	on: function(doctype, fieldname, fn) {
@@ -359,7 +363,7 @@ $.extend(frappe.model, {
 		*/
 		/* example: frappe.model.on("Customer", "age", function(fieldname, value, doc) {
 		  if(doc.age < 16) {
-		    msgprint("Warning, Customer must atleast be 16 years old.");
+		   	frappe.msgprint("Warning, Customer must atleast be 16 years old.");
 		    raise "CustomerAgeError";
 		  }
 		}) */
@@ -371,21 +375,34 @@ $.extend(frappe.model, {
 	},
 
 	trigger: function(fieldname, value, doc) {
-
-		var run = function(events, event_doc) {
+		let tasks = [];
+		var runner = function(events, event_doc) {
 			$.each(events || [], function(i, fn) {
-				fn && fn(fieldname, value, event_doc || doc);
+				if(fn) {
+					let _promise = fn(fieldname, value, event_doc || doc);
+
+					// if the trigger returns a promise, return it,
+					// or use the default promise frappe.after_ajax
+					if (_promise && _promise.then) {
+						return _promise;
+					} else {
+						return frappe.after_server_call();
+					}
+				}
 			});
 		};
 
 		if(frappe.model.events[doc.doctype]) {
+			tasks.push(() => {
+				return runner(frappe.model.events[doc.doctype][fieldname]);
+			});
 
-			// field-level
-			run(frappe.model.events[doc.doctype][fieldname]);
+			tasks.push(() => {
+				return runner(frappe.model.events[doc.doctype]['*']);
+			});
+		}
 
-			// doctype-level
-			run(frappe.model.events[doc.doctype]['*']);
-		};
+		return frappe.run_serially(tasks);
 	},
 
 	get_doc: function(doctype, name) {
@@ -541,7 +558,7 @@ $.extend(frappe.model, {
 
 	get_all_docs: function(doc) {
 		var all = [doc];
-		for(key in doc) {
+		for(var key in doc) {
 			if($.isArray(doc[key])) {
 				var children = doc[key];
 				for (var i=0, l=children.length; i < l; i++) {

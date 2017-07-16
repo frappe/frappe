@@ -114,7 +114,7 @@ frappe.ui.form.Toolbar = Class.extend({
 		// Print
 		if(!is_submittable || docstatus == 1  ||
 			(allow_print_for_cancelled && docstatus == 2)||
-	 		(allow_print_for_draft && docstatus == 0)) {
+			(allow_print_for_draft && docstatus == 0)) {
 			if(frappe.model.can_print(null, me.frm)) {
 				this.page.add_menu_item(__("Print"), function() {
 					me.frm.print_doc();}, true);
@@ -159,7 +159,7 @@ frappe.ui.form.Toolbar = Class.extend({
 				me.frm.savetrash();}, true);
 		}
 
-		if(in_list(roles, "System Manager")) {
+		if(frappe.user_roles.includes("System Manager")) {
 			this.page.add_menu_item(__("Customize"), function() {
 				frappe.set_route("Form", "Customize Form", {
 					doc_type: me.frm.doctype
@@ -178,7 +178,7 @@ frappe.ui.form.Toolbar = Class.extend({
 		if(!this.frm.doc.__unsaved) {
 			if(is_submittable && docstatus == 1) {
 				this.page.add_menu_item(__("Request Feedback"), function() {
-					feedback = new frappe.utils.Feedback();
+					var feedback = new frappe.utils.Feedback();
 					feedback.manual_feedback_request(me.frm.doc);
 				}, true)
 			}
@@ -282,7 +282,6 @@ frappe.ui.form.Toolbar = Class.extend({
 		if(status === "Edit") {
 			this.page.set_primary_action(__("Edit"), function() {
 				me.frm.page.set_view('main');
-				me.frm.set_hidden(false);
 			}, 'octicon octicon-pencil');
 		} else if(status === "Cancel") {
 			this.page.set_secondary_action(__(status), function() {
@@ -291,16 +290,16 @@ frappe.ui.form.Toolbar = Class.extend({
 		} else {
 			var click = {
 				"Save": function() {
-					me.frm.save('Save', null, this);
+					return me.frm.save('Save', null, this);
 				},
 				"Submit": function() {
-					me.frm.savesubmit(this);
+					return me.frm.savesubmit(this);
 				},
 				"Update": function() {
-					me.frm.save('Update', null, this);
+					return me.frm.save('Update', null, this);
 				},
 				"Amend": function() {
-					me.frm.amend_doc();
+					return me.frm.amend_doc();
 				}
 			}[status];
 

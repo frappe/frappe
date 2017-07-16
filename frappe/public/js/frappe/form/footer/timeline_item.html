@@ -41,7 +41,7 @@
 				</span>
 				<span class="text-muted" style="font-weight: normal;">
 					&ndash; {%= data.comment_on %}</span>
-					{% if(inList(["Communication", "Feedback"], data.communication_type)) { %}
+					{% if(in_list(["Communication", "Feedback"], data.communication_type)) { %}
 						{% if (frappe.model.can_read(\'Communication\')) { %}
 						<a href="#Form/{%= data.doctype %}/{%= data.name %}"
 							class="text-muted">
@@ -73,7 +73,8 @@
 						</a>
 						{% } %}
 
-						{% if (data.communication_medium === "Email" && data.sender !== user_email) { %}
+						{% if (data.communication_medium === "Email"
+							&& data.sender !== frappe.session.user_email) { %}
 						<a class="text-muted reply-link pull-right timeline-content-show"
 							data-name="{%= data.name %}">{%= __("Reply") %}</a>
 						{% } %}
@@ -110,7 +111,7 @@
 					{% $.each(data.attachments, function(i, a) { %}
 					<div class="ellipsis">
 						<a href="{%= encodeURI(a.file_url).replace(/#/g, \'%23\') %}"
-							class="text-muted small" target="_blank">
+							class="text-muted small" target="_blank" rel="noopener noreferrer">
 							<i class="fa fa-paperclip"></i>
 							{%= a.file_url.split("/").slice(-1)[0] %}
 							{% if (a.is_private) { %}

@@ -2,7 +2,9 @@
 # MIT License. See license.txt
 from __future__ import unicode_literals
 
-import frappe, unittest
+import frappe, unittest, os
+from frappe.utils import cint
+from frappe.model.naming import revert_series_if_last, make_autoname, parse_naming_series
 
 class TestDocument(unittest.TestCase):
 	def test_get_return_empty_list_for_table_field_if_none(self):
@@ -182,6 +184,11 @@ class TestDocument(unittest.TestCase):
 		self.assertTrue(escaped_xss in d.subject)
 
 	def test_link_count(self):
+		if os.environ.get('CI'):
+			# cannot run this test reliably in travis due to its handling
+			# of parallelism
+			return
+
 		from frappe.model.utils.link_count import update_link_count
 
 		update_link_count()
@@ -192,17 +199,18 @@ class TestDocument(unittest.TestCase):
 		d.ref_type = doctype
 		d.ref_name = name
 
+		d.save()
+
 		link_count = frappe.cache().get_value('_link_count') or {}
 		old_count = link_count.get((doctype, name)) or 0
 
-		d.save()
+		frappe.db.commit()
 
 		link_count = frappe.cache().get_value('_link_count') or {}
 		new_count = link_count.get((doctype, name)) or 0
 
 		self.assertEquals(old_count + 1, new_count)
 
-		frappe.db.commit()
 		before_update = frappe.db.get_value(doctype, name, 'idx')
 
 		update_link_count()
@@ -211,3 +219,20 @@ class TestDocument(unittest.TestCase):
 
 		self.assertEquals(before_update + new_count, after_update)
 
+	def test_naming_series(self):
+		data = ["TEST-", "TEST/17-18/.test_data./.####", "TEST.YYYY.MM.####"]
+
+		for series in data:
+			name = make_autoname(series)
+			prefix = series
+
+			if ".#" in series:
+				prefix = series.rsplit('.',1)[0]
+
+			prefix = parse_naming_series(prefix)
+			old_current = frappe.db.get_value('Series', prefix, "current", order_by="name")
+
+			revert_series_if_last(series, name)
+			new_current = cint(frappe.db.get_value('Series', prefix, "current", order_by="name"))
+
+			self.assertEquals(cint(old_current) - 1, new_current)

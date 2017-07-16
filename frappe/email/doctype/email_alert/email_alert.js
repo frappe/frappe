@@ -18,6 +18,7 @@ frappe.email_alert = {
 
 			// set value changed options
 			frm.set_df_property("value_changed", "options", [""].concat(options));
+			frm.set_df_property("set_property_after_alert", "options", [""].concat(options));
 
 			// set date changed options
 			frm.set_df_property("date_changed", "options", $.map(fields,
@@ -34,6 +35,7 @@ frappe.email_alert = {
 				// set first option as blank to allow email alert not to be defaulted to the owner
 				frm.doc.name).options = [""].concat(["owner"].concat(email_fields));
 
+			frm.fields_dict.recipients.grid.refresh();
 		});
 	}
 }
@@ -70,9 +72,9 @@ frappe.ui.form.on("Email Alert", {
 					},
 					callback: function(r) {
 						if(r.message) {
-							msgprint(r.message);
+							frappe.msgprint(r.message);
 						} else {
-							msgprint(__('No alerts for today'));
+							frappe.msgprint(__('No alerts for today'));
 						}
 					}
 				});

@@ -18,214 +18,12 @@ frappe.ui.FilterList = Class.extend({
 			<div class="show_filters">
 				<div class="set-filters">
 					<button
-						class="btn btn-default btn-xs show-filters text-muted"
-						style="margin-right: 10px;">
-							${__("Show Filters")}
-					</button>
-					<button style="margin-left: -5px;"
+						style="margin-right: 10px;"
 						class="btn btn-default btn-xs new-filter text-muted">
-						<i class="octicon octicon-plus"></i></button>
+						${__("Add Filter")}</button>
 				</div>
-			</div>`);
-		$(frappe.render_template("filter_dashboard", {})).appendTo(this.wrapper.find('.show_filters'));
-
-		//show filter dashboard
-		this.filters_visible = false;
-		this.wrapper.find('.show-filters').click(function() {
-			var wrapper = $(me.wrapper).find('.filter-dashboard-wrapper');
-			if(!me.filters_visible) {
-				wrapper.toggle(true);
-				$(this).text(__("Hide Filters"));
-				me.filters_visible = true;
-			} else {
-				wrapper.toggle(false);
-				$(this).text(__("Show Filters"));
-				me.filters_visible = false;
-			}
-		});
-
-		//add stats
-		$.each(frappe.meta.docfield_map[this.doctype], function(i,d) {
-			if (d.in_standard_filter && frappe.perm.has_perm(me.doctype, d.permlevel, "read")) {
-				if (d.fieldtype != 'Table') {
-					me.stats.push({name:d.fieldname,label:d.label,type:d.fieldtype});
-				}
-			}
-		});
-
-		me.stats = me.stats.concat([
-			{name:'creation', label:'Created On', type:'Datetime'},
-			{name:'modified', label:'Last Modified On', type:'Datetime'},
-			{name:'owner', label:'Created By', type:'Data'},
-			{name:'modified_by', label:'Last Modified By', type:'Data'},
-		]);
-
-		if(frappe.model.is_submittable(me.doctype)) {
-			me.stats.push({name:'docstatus', label:'Document Status', type:'Data'});
-		}
-
-		$.each(me.stats, function (i, v) {
-			me.render_dashboard_headers(v);
-		});
-
-		me.reload_stats()
-	},
-	render_dashboard_headers: function(field){
-		var me = this;
-		var context = {
-			field: field.name,
-			label: __(field.label),
-			type:field.type
-		};
-		var sidebar_stat = $(frappe.render_template("filter_dashboard_head", context))
-			.appendTo(this.wrapper.find(".filter-dashboard-items"));
-	},
-	reload_stats: function(){
-		if(this.fresh) {
-			return;
-		}
-		// set a fresh so that multiple refreshes do not happen
-		// at the same time.
-		this.fresh = true;
-		setTimeout(function() {
-			me.fresh = false;
-		}, 1000);
-
-		//get stats
-		var me = this
-		return frappe.call({
-			type: "GET",
-			method: 'frappe.desk.reportview.get_filter_dashboard_data',
-			args: {
-				stats: me.stats,
-				doctype: me.doctype,
-				filters: me.default_filters
-			},
-			callback: function(r) {
-				// This gives a predictable stats order
-				me.wrapper.find(".filter-stat").empty();
-				$.each(me.stats, function (i, v) {
-						me.render_filters(v, (r.message|| {})[v.name]);
-				});
-			}
-		});
-	},
-	render_filters: function(field, stat){
-		var me = this;
-		var sum = 0;
-		if (['Date', 'Datetime'].indexOf(field.type)!=-1) {
-			return
-		}
-
-		var active = this.wrapper.find(".filter-sort-active[data-name='"+__(field.name)+"']");
-
-		// sort filters
-		if(active.attr('data-sort-by')==='alphabet') {
-			stat = (stat || []).sort(function(a, b) {return a[0].toString().toLowerCase().localeCompare(b[0].toString().toLowerCase());});
-		} else {
-			stat = (stat || []).sort(function(a, b) { return a[1] - b[1] });
-		}
-
-		if(active.attr('data-order')==='desc') {
-			stat = stat.reverse();
-		}
-
-		//check formatting
-		var options = []
-		var df = frappe.meta.has_field(me.doctype,field.name)
-		var labels =[]
-		if(df && df.fieldtype=='Check') {
-			options = [
-				{value: 0, label: 'No'},
-				{value: 1, label: 'Yes'}
-			];
-		} else if(field.name=="docstatus") {
-			labels.length = stat.length;
-			options = [
-				{value: 0, label: "Draft"},
-				{value: 1, label: "Submitted"},
-				{value: 2, label: "Cancelled"}
-			];
-		}
-
-		if(options.length>0) {
-			for (i in stat) {
-				for (o in options) {
-					if (stat[i][0] == options[o].value) {
-						if (field.name=="docstatus") {
-							labels[i] = options[o].label
-						}else{
-							stat[i][0] = options[o].label
-						}
-					}
-				}
-			}
-		}
-		var context = {
-			field: field.name,
-			stat: stat,
-			sum: sum,
-			label: __(field.label),
-			labels:labels
-		};
-		var dashboard_filter = this.wrapper.find(".filter-stat[data-name='" + __(field.name) + "']")
-		dashboard_filter.html(frappe.render_template("filter_dashboard_value", context))
-			.on("click", ".filter-stat-link", function() {
-				var fieldname = $(this).attr('data-field');
-				var label = $(this).attr('data-label');
-				if ((df && df.fieldtype=='Check' )|| field.name=="docstatus") {
-					var noduplicate = true
-				}
-				if (label=="No Data"){
-					me.base_list.set_filter(fieldname, '', false, noduplicate);
-				}else{
-					me.base_list.set_filter(fieldname, label, false, noduplicate);
-				}
-				return false;
-			})
-		if (stat.length>5) {
-			//list for autocomplete
-			var autolist = []
-			for (var i = 0; i < stat.length; i++) {
-				autolist.push({label: stat[i][0], value: field.name});
-			}
-
-			var search_input = dashboard_filter.parent().find(".search-dashboard");
-
-			dashboard_filter.parent().find(".search-dropdown")
-				.removeClass("hide")
-				.on("shown.bs.dropdown", function (event) {
-					search_input.focus();
-					search_input.val("")
-				});
-
-			new Awesomplete(search_input.get(0), {
-				minChars: 0,
-				maxItems: 99,
-				autoFirst: true,
-				list: autolist,
-				item: function(item, input) {
-					return $("<li>").text(item.label).get(0);
-				},
-				replace: function(text) {
-					this.input.value = '';
-				}
-			});
-
-			search_input.on("awesomplete-select", function(e) {
-				var item = e.originalEvent.text;
-				if (item) {
-					if (df && df.fieldtype == 'Check') {
-						var noduplicate = true
-					}
-					if (item.label == "No Data") {
-						me.base_list.set_filter(item.value, '', false, noduplicate);
-					} else {
-						me.base_list.set_filter(item.value, item.label, false, noduplicate);
-					}
-				}
-			});
-		}
+			</div>
+			<div class="filter_area"></div>`);
 	},
 	set_events: function() {
 		var me = this;
@@ -240,57 +38,6 @@ frappe.ui.FilterList = Class.extend({
 			me.base_list.run();
 			$(this).addClass("hide");
 		});
-
-		//set sort filters
-		this.wrapper.on("click", ".filter-sort-item", function() {
-			var active = $(this).closest(".filter-dash-item").find(".filter-sort-active");
-			active.attr('data-sort-by', $(this).attr('data-sort-by'));
-			active.attr('data-order', $(this).attr('data-order'));
-			me.reload_stats();
-		});
-
-		//setup date-time range pickers
-		this.wrapper.find(".filter-input-date").each(function(i,v) {
-			var self = this;
-			var date;
-			var date_wrapper = $('<div>').appendTo($(this));
-			make_date("range");
-
-			function make_date(mode) {
-				var fieldtype = mode==="range" ? "DateRange" : "Date";
-				var name = $(v).data("name");
-				if(date) {
-					//cleanup old datepicker
-					date.datepicker.destroy();
-				}
-				date = frappe.ui.form.make_control({
-					df: {
-						fieldtype: fieldtype,
-						fieldname: name,
-					},
-					parent: date_wrapper,
-					only_input: true
-				});
-				date.refresh();
-
-				date.datepicker.update("onSelect", function(fd, dateObj) {
-					var filt = me.get_filter(name);
-					filt && filt.remove(true);
-					if(!dateObj.length && dateObj && date.datepicker.opts.range===false) {
-						me.add_filter(me.doctype, name, '=', moment(dateObj).format('YYYY-MM-DD'));
-						me.base_list.run();
-					} else if(dateObj.length===2 && date.datepicker.opts.range===true) {
-						var [date1, date2] = [moment(dateObj[0]).format('YYYY-MM-DD'), moment(dateObj[1]).format('YYYY-MM-DD')];
-						if(date1==date2) {
-							me.add_filter(me.doctype, name, '=', date1);
-						} else {
-							me.add_filter(me.doctype, name, 'Between', [date1, date2]);
-						}
-						me.base_list.run();
-					}
-				});
-			}
-		})
 	},
 
 	show_filters: function() {
@@ -303,10 +50,22 @@ frappe.ui.FilterList = Class.extend({
 
 	clear_filters: function() {
 		$.each(this.filters, function(i, f) { f.remove(true); });
+		if(this.base_list.page.fields_dict) {
+			$.each(this.base_list.page.fields_dict, (key, value) => {
+				value.set_input('');
+			});
+		}
 		this.filters = [];
 	},
 
 	add_filter: function(doctype, fieldname, condition, value, hidden) {
+		if (this.base_list.page.fields_dict[fieldname]
+			&& ['=', 'like'].includes(condition)) {
+			// if filter exists in base_list, then exit
+			this.base_list.page.fields_dict[fieldname].set_input(value);
+			return;
+		}
+
 		if(doctype && fieldname
 			&& !frappe.meta.has_field(doctype, fieldname)
 			&& !in_list(frappe.model.std_fields_list, fieldname)) {
@@ -317,7 +76,6 @@ frappe.ui.FilterList = Class.extend({
 			});
 			return;
 		}
-
 
 		this.wrapper.find('.show_filters').toggle(true);
 		var is_new_filter = arguments.length===0;
@@ -335,17 +93,25 @@ frappe.ui.FilterList = Class.extend({
 
 		if (filter && is_new_filter) {
 			filter.wrapper.addClass("is-new-filter");
+		} else {
+			filter.freeze();
 		}
 
-		if (filter && hidden) {
-			filter.freeze();
+		if (hidden) {
 			filter.$btn_group.addClass("hide");
 		}
 
 		return filter;
 	},
 	push_new_filter: function(doctype, fieldname, condition, value) {
-		if(this.filter_exists(doctype, fieldname, condition, value)) return;
+		if(this.filter_exists(doctype, fieldname, condition, value)) {
+			return;
+		}
+
+		// if standard filter exists, then clear it.
+		if(this.base_list.page.fields_dict[fieldname]) {
+			this.base_list.page.fields_dict[fieldname].set_input('');
+		}
 
 		var filter = new frappe.ui.Filter({
 			flist: this,
@@ -353,7 +119,7 @@ frappe.ui.FilterList = Class.extend({
 			fieldname: fieldname,
 			condition: condition,
 			value: value
-        });
+		});
 
 		this.filters.push(filter);
 
@@ -384,6 +150,8 @@ frappe.ui.FilterList = Class.extend({
 				values.push(filter.get_value());
 			}
 		});
+		this.base_list.update_standard_filters(values);
+
 		return values;
 	},
 
@@ -460,15 +228,15 @@ frappe.ui.Filter = Class.extend({
 					? __("values separated by commas")
 					: __("use % as wildcard"))+'</div>');
 			} else {
-				me.set_field(me.field.df.parent, me.field.df.fieldname, null,
-					 condition);
+				//if condition selected after refresh
+				me.set_field(me.field.df.parent, me.field.df.fieldname, null, condition);
 			}
 		});
 
 		// set the field
 		if(me.fieldname) {
 			// pre-sets given (could be via tags!)
-			this.set_values(me._doctype, me.fieldname, me.condition, me.value);
+			return this.set_values(me._doctype, me.fieldname, me.condition, me.value);
 		} else {
 			me.set_field(me.doctype, 'name');
 		}
@@ -481,7 +249,6 @@ frappe.ui.Filter = Class.extend({
 		this.flist.update_filters();
 
 		if(!dont_run) {
-			this.flist.base_list.clean_dash = true;
 			this.flist.base_list.refresh(true);
 		}
 	},
@@ -496,8 +263,12 @@ frappe.ui.Filter = Class.extend({
 			else if(value==1) value = 'Yes';
 		}
 
-		if(condition) this.wrapper.find('.condition').val(condition).change();
-		if(value!=null) this.field.set_input(value);
+		if(condition) {
+			this.wrapper.find('.condition').val(condition).change();
+		}
+		if(value!=null) {
+			return this.field.set_value(value);
+		}
 	},
 
 	set_field: function(doctype, fieldname, fieldtype, condition) {
@@ -512,7 +283,7 @@ frappe.ui.Filter = Class.extend({
 
 		var original_docfield = me.fieldselect.fields_by_name[doctype][fieldname];
 		if(!original_docfield) {
-			msgprint(__("Field {0} is not selectable.", [fieldname]));
+			frappe.msgprint(__("Field {0} is not selectable.", [fieldname]));
 			return;
 		}
 
@@ -539,7 +310,7 @@ frappe.ui.Filter = Class.extend({
 		// save old text
 		var old_text = null;
 		if(me.field) {
-			old_text = me.field.get_parsed_value();
+			old_text = me.field.get_value();
 		}
 
 		var field_area = me.wrapper.find('.filter_field').empty().get(0);
@@ -551,8 +322,9 @@ frappe.ui.Filter = Class.extend({
 		f.refresh();
 
 		me.field = f;
-		if(old_text && me.field.df.fieldtype===cur.fieldtype)
-			me.field.set_input(old_text);
+		if(old_text && me.field.df.fieldtype===cur.fieldtype) {
+			me.field.set_value(old_text);
+		}
 
 		// run on enter
 		$(me.field.wrapper).find(':input').keydown(function(ev) {
@@ -570,6 +342,7 @@ frappe.ui.Filter = Class.extend({
 			df.original_type = df.fieldtype;
 
 		df.description = ''; df.reqd = 0;
+		df.ignore_link_validation = true;
 
 		// given
 		if(fieldtype) {
@@ -591,7 +364,7 @@ frappe.ui.Filter = Class.extend({
 		} else if(['Text','Small Text','Text Editor','Code','Tag','Comments',
 			'Dynamic Link','Read Only','Assign'].indexOf(df.fieldtype)!=-1) {
 			df.fieldtype = 'Data';
-		} else if(df.fieldtype=='Link' && this.wrapper.find('.condition').val()!="=") {
+		} else if(df.fieldtype=='Link' && ['=', '!='].indexOf(this.wrapper.find('.condition').val())==-1) {
 			df.fieldtype = 'Data';
 		}
 		if(df.fieldtype==="Data" && (df.options || "").toLowerCase()==="email") {
@@ -621,7 +394,7 @@ frappe.ui.Filter = Class.extend({
 	},
 
 	get_selected_value: function() {
-		var val = this.field.get_parsed_value();
+		var val = this.field.get_value();
 
 		if(typeof val==='string') {
 			val = strip(val);
@@ -642,7 +415,9 @@ frappe.ui.Filter = Class.extend({
 				}
 			}
 		} else if(in_list(["in", "not in"], this.get_condition())) {
-			val = $.map(val.split(","), function(v) { return strip(v); });
+			if(val) {
+				val = $.map(val.split(","), function(v) { return strip(v); });
+			}
 		} if(val === '%') {
 			val = "";
 		}
@@ -674,7 +449,7 @@ frappe.ui.Filter = Class.extend({
 				title="'+__("Remove Filter")+'">\
 				<i class="fa fa-remove text-muted"></i>\
 			</button></div>')
-			.insertAfter(this.flist.wrapper.find(".set-filters .show-filters"));
+			.insertAfter(this.flist.wrapper.find(".set-filters .new-filter"));
 
 		this.set_filter_button_text();
 
@@ -696,11 +471,9 @@ frappe.ui.Filter = Class.extend({
 			value = {0:"Draft", 1:"Submitted", 2:"Cancelled"}[value] || value;
 		} else if(this.field.df.original_type==="Check") {
 			value = {0:"No", 1:"Yes"}[cint(value)];
-		} else if (in_list(["Date", "Datetime"], this.field.df.fieldtype)) {
-			value = frappe.datetime.str_to_user(value);
-		} else {
-			value = this.field.get_value();
 		}
+
+		value = frappe.format(value, this.field.df, {for_print: 1});
 
 		// for translations
 		// __("like"), __("not like"), __("in")
@@ -784,7 +557,7 @@ frappe.ui.FieldSelect = Class.extend({
 
 		// old style
 		if(doctype.indexOf(".")!==-1) {
-			parts = doctype.split(".");
+			var parts = doctype.split(".");
 			doctype = parts[0];
 			fieldname = parts[1];
 		}
@@ -857,14 +630,14 @@ frappe.ui.FieldSelect = Class.extend({
 			var label = __(df.label) + ' (' + __(df.parent) + ')';
 			var table = df.parent;
 		}
-		if(frappe.model.no_value_type.indexOf(df.fieldtype)==-1 &&
+		if(frappe.model.no_value_type.indexOf(df.fieldtype) == -1 &&
 			!(me.fields_by_name[df.parent] && me.fields_by_name[df.parent][df.fieldname])) {
-				this.options.push({
-					label: label,
-					value: table + "." + df.fieldname,
-					fieldname: df.fieldname,
-					doctype: df.parent
-				})
+			this.options.push({
+				label: label,
+				value: table + "." + df.fieldname,
+				fieldname: df.fieldname,
+				doctype: df.parent
+			});
 			if(!me.fields_by_name[df.parent]) me.fields_by_name[df.parent] = {};
 			me.fields_by_name[df.parent][df.fieldname] = df;
 		}

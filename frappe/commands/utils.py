@@ -298,33 +298,49 @@ def console(context):
 @click.option('--doctype', help="For DocType")
 @click.option('--test', multiple=True, help="Specific test")
 @click.option('--driver', help="For Travis")
+@click.option('--ui-tests', is_flag=True, default=False, help="Run UI Tests")
 @click.option('--module', help="Run tests in a module")
 @click.option('--profile', is_flag=True, default=False)
 @click.option('--junit-xml-output', help="Destination file path for junit xml report")
 @pass_context
-def run_tests(context, app=None, module=None, doctype=None, test=(), driver=None, profile=False, junit_xml_output=False):
+def run_tests(context, app=None, module=None, doctype=None, test=(),
+	driver=None, profile=False, junit_xml_output=False, ui_tests = False):
 	"Run tests"
 	import frappe.test_runner
-	from frappe.utils import sel
 	tests = test
 
 	site = get_site(context)
 	frappe.init(site=site)
 
-	if frappe.conf.run_selenium_tests and False:
-		sel.start(context.verbose, driver)
+	ret = frappe.test_runner.main(app, module, doctype, context.verbose, tests=tests,
+		force=context.force, profile=profile, junit_xml_output=junit_xml_output,
+		ui_tests = ui_tests)
+	if len(ret.failures) == 0 and len(ret.errors) == 0:
+		ret = 0
 
-	try:
-		ret = frappe.test_runner.main(app, module, doctype, context.verbose, tests=tests,
-			force=context.force, profile=profile, junit_xml_output=junit_xml_output)
-		if len(ret.failures) == 0 and len(ret.errors) == 0:
-			ret = 0
-	finally:
-		pass
-		if frappe.conf.run_selenium_tests:
-			sel.close()
+	if os.environ.get('CI'):
+		sys.exit(ret)
 
-	sys.exit(ret)
+@click.command('run-ui-tests')
+@click.option('--app', help="App to run tests on, leave blank for all apps")
+@click.option('--test', help="File name of the test you want to run")
+@click.option('--profile', is_flag=True, default=False)
+@pass_context
+def run_ui_tests(context, app=None, test=False, profile=False):
+	"Run UI tests"
+	import frappe.test_runner
+
+	site = get_site(context)
+	frappe.init(site=site)
+	frappe.connect()
+
+	ret = frappe.test_runner.run_ui_tests(app=app, test=test, verbose=context.verbose,
+		profile=profile)
+	if len(ret.failures) == 0 and len(ret.errors) == 0:
+		ret = 0
+
+	if os.environ.get('CI'):
+		sys.exit(ret)
 
 @click.command('serve')
 @click.option('--port', default=8000)
@@ -459,6 +475,7 @@ commands = [
 	request,
 	reset_perms,
 	run_tests,
+	run_ui_tests,
 	serve,
 	set_config,
 	watch,
