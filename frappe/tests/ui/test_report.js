@@ -1,6 +1,6 @@
 // Test for creating query report
 QUnit.test("Test Query Report", function(assert){
-	assert.expect(1);
+	assert.expect(2);
 	let done = assert.async();
 	let random = frappe.utils.get_random(10);
 	frappe.run_serially([
@@ -20,15 +20,16 @@ QUnit.test("Test Query Report", function(assert){
 		() => frappe.set_route('Form','Report', 'ToDo List Report'),
 
 		//Query
-		() => cur_frm.set_value('query','Select name,owner,status from `tabToDo`'),
+		() => cur_frm.set_value('query','select description,owner,status from `tabToDo`'),
 		() => cur_frm.save(),
 		() => frappe.set_route('query-report','ToDo List Report'),	
 		() => frappe.timeout(5),
-		() => {
+		() => { 
 			assert.ok($('div.slick-header-column').length == 4);
+			//To check if the result is present
+			assert.ok($('div.r1:contains('+random+')').is(':visible'));
 			frappe.timeout(3);
 		},
 		() => done()
 	]);
 });
-
