@@ -11,7 +11,7 @@ frappe.ui.form.on('Test Runner', {
 
 				// all tests
 				frappe.call({
-					method: 'frappe.core.doctype.test_runner.test_runner.get_all_tests'
+					method: 'frappe.core.doctype.test_runner.test_runner.get_test_js'
 				}).always((data) => {
 					$("<div id='qunit'></div>").appendTo(wrapper.empty());
 					frm.events.run_tests(frm, data.message);
@@ -50,11 +50,27 @@ frappe.ui.form.on('Test Runner', {
 					"Runtime": details.runtime
 				};
 
+				details.assertions.map(a => {
+					// eslint-disable-next-line
+					console.log(`${a.result ? '✔' : '✗'}  ${a.message}`);
+				});
+
 				// eslint-disable-next-line
 				console.log(JSON.stringify(result, null, 2));
 			});
 			QUnit.load();
-			QUnit.done(() => {
+
+			QUnit.done(({ total, failed, passed, runtime }) => {
+				// flag for selenium that test is done
+				$('<div id="frappe-qunit-done"></div>').appendTo($('body'));
+
+				console.log( `Total: ${total}, Failed: ${failed}, Passed: ${passed}, Runtime: ${runtime}` );  // eslint-disable-line
+
+				if(failed) {
+					console.log('Tests Failed'); // eslint-disable-line
+				} else {
+					console.log('Tests Passed'); // eslint-disable-line
+				}
 				frappe.set_route('Form', 'Test Runner', 'Test Runner');
 			});
 		});

@@ -4,7 +4,10 @@ apps/frappe/frappe/public/js/frappe/ui/filters/filters.js +23,Add Filter,Dodaj f
 apps/frappe/frappe/public/js/frappe/model/model.js +26,Assigned To,Dodijeljeno
 apps/frappe/frappe/public/js/frappe/form/footer/assign_to.js +138,Assign to me,Dodijeljeno meni
 apps/frappe/frappe/public/js/frappe/ui/filters/edit_filter.html +16,Between,Između
+DocType: Workflow State,move,Kretanje
 apps/frappe/frappe/public/js/frappe/list/list_sidebar.js +389,UnCategorised Tags,Nekategorisani tag-ovi
+apps/frappe/frappe/public/js/frappe/form/footer/timeline.html +4,Add a comment,Dodaj komentar
+DocType: Communication,Cancelled,Otkazan
 apps/frappe/frappe/public/js/frappe/form/toolbar.js +163,Customize,Prilagodite
 apps/frappe/frappe/desk/reportview.py +253,No Tags,Nema tag-ova
 apps/frappe/frappe/public/js/frappe/views/treeview.js +212,New {0},Novi {0}
@@ -14,29 +17,58 @@ apps/frappe/frappe/public/js/frappe/model/model.js +27,Document Status,Status do
 apps/frappe/frappe/config/core.py +27,Script or Query reports,Skripte ili query izvještaji
 apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +111,Add to Desktop,Dodaj na radnu površinu
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +30,User Permissions,Prava pristupa korisnika
+DocType: Event,Groups,Grupe
 apps/frappe/frappe/public/js/frappe/model/meta.js +186,Created On,Kreirano
 apps/frappe/frappe/public/js/frappe/ui/toolbar/search_utils.js +107,New,Novi
+apps/frappe/frappe/public/js/frappe/form/footer/timeline.html +22,New Email,Novi email
+DocType: Footer Item,Company,Preduzeće
+DocType: Contact,Contact,Kontakt
 ,User Permissions Manager,Menadžer prava pristupa korisnika
+apps/frappe/frappe/public/js/frappe/form/toolbar.js +141,Duplicate,Dupliraj
+DocType: Communication,Delivery Status,Status isporuke
+apps/frappe/frappe/public/js/frappe/form/footer/timeline.html +12,Ctrl+Enter to add comment,Ctrl + enter da dodate komentar
+DocType: Workflow State,Comment,Komentar
 DocType: Workflow State,Refresh,Osvježi
 DocType: Contact,Status,Status
+DocType: Authentication Log,Date,Datum
 apps/frappe/frappe/desk/doctype/todo/todo.py +20,Assigned to {0}: {1},Dodijeljen {0}: {1}
+DocType: Communication,Type,Tip
+DocType: Website Settings,Brand,Brend
 apps/frappe/frappe/public/js/frappe/model/meta.js +187,Last Modified On,Poslednji put izmijenjeno
+apps/frappe/frappe/public/js/frappe/model/indicator.js +19,Not Saved,Nije sačuvano
 DocType: Authentication Log,Full Name,Puno ime
+DocType: Report,Disabled,Neaktivni
 DocType: Custom DocPerm,Import,Uvoz
+apps/frappe/frappe/public/js/frappe/form/templates/grid_form.html +25,Ctrl + Up,Ctrl + up
 DocType: Communication,Assigned,Dodijeljeno
+DocType: DocField,Description,Opis
 apps/frappe/frappe/desk/moduleview.py +94,Standard Reports,Standardni izvještaji
+apps/frappe/frappe/website/doctype/web_form/templates/web_form.html +161,Change,Kusur
+DocType: Communication,Submitted,Potvrđen
+apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html +94,(Ctrl + G),(Ctrl + G)
+apps/frappe/frappe/core/doctype/communication/communication.js +42,Close,Zatvori
 apps/frappe/frappe/public/js/frappe/list/list_sidebar.html +49,Assigned To Me,Dodijeljeno meni
 ,Role Permissions Manager,Menadžer prava pristupa rolama
+apps/frappe/frappe/desk/page/chat/chat_main.html +12,Ctrl + Enter to post,Ctrl + enter da objavite
+apps/frappe/frappe/public/js/frappe/form/toolbar.js +152,Reload,Učitaj ponovo
 apps/frappe/frappe/public/js/frappe/ui/filters/edit_filter.html +24,Apply,Primijeni
 apps/frappe/frappe/public/js/frappe/ui/filters/filters.js +479,Like,Kao
 DocType: Workflow State,remove,Ukloni
 apps/frappe/frappe/public/js/frappe/list/list_sidebar.html +32,Kanban,Kanban
 apps/frappe/frappe/public/js/frappe/roles_editor.js +195,Role Permissions,Prava pristupa rolama
+apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +51,{0} days ago,prije {0} dana
+apps/frappe/frappe/public/js/frappe/form/templates/grid_body.html +18,Add Row,Dodaj red
 apps/frappe/frappe/public/js/frappe/ui/filters/edit_filter.html +9,Not In,Nije u
 apps/frappe/frappe/public/js/frappe/ui/filters/edit_filter.html +6,Equals,Jednak
+apps/frappe/frappe/public/js/frappe/form/quick_entry.js +194,Ctrl+enter to save,Ctrl + enter da sačuvate
 apps/frappe/frappe/public/js/frappe/ui/filters/filters.js +479,Not Like,Nije kao
+apps/frappe/frappe/public/js/frappe/model/indicator.js +51,Draft,Na čekanju
+apps/frappe/frappe/public/js/frappe/form/templates/grid_form.html +25,Ctrl + Down,Ctrl + down
 apps/frappe/frappe/public/js/frappe/list/list_sidebar.html +10,Reports,Izvještaji
 apps/frappe/frappe/public/js/frappe/ui/sort_selector.js +182,Most Used,Najviše korišćeno
 DocType: ToDo,Assigned By,Dodijelio
+DocType: Address,Links,Linkovi
+apps/frappe/frappe/public/js/frappe/form/link_selector.js +143,{0} added,Dodao je {0}
 apps/frappe/frappe/desk/report/todo/todo.py +19,ID,ID
 DocType: Workflow State,Print,Štampaj
+DocType: Workflow State,barcode,barkod

@@ -448,6 +448,7 @@
 .list-item__content--activity {
   justify-content: flex-end;
   margin-right: 5px;
+  min-width: 110px;
 }
 .list-item__content--activity .list-row-modified,
 .list-item__content--activity .avatar-small {

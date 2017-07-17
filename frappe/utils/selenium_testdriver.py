@@ -55,6 +55,9 @@ class TestDriver(object):
 			sys.exit(0)
 		signal.signal(signal.SIGINT, signal_handler)
 
+	def refresh(self):
+		self.driver.refresh()
+
 	def close(self):
 		if self.driver:
 			self.driver.quit()
@@ -118,7 +121,8 @@ class TestDriver(object):
 			self.print_console()
 			raise e
 
-	def print_console(self):
+	def get_console(self):
+		out = []
 		for entry in self.driver.get_log('browser'):
 			source, line_no, message = entry.get('message').split(' ', 2)
 
@@ -126,9 +130,15 @@ class TestDriver(object):
 				# message is a quoted/escaped string
 				message = literal_eval(message)
 
-			print(source + ' ' + line_no)
-			print(message)
-			print('-'*40)
+			out.append(source + ' ' + line_no)
+			out.append(message)
+			out.append('-'*40)
+
+		return out
+
+	def print_console(self):
+		for line in self.get_console():
+			print(line)
 
 	def get_wait(self, timeout=20):
 		return WebDriverWait(self.driver, timeout)

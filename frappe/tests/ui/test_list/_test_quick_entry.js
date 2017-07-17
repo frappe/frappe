@@ -1,6 +1,6 @@
 QUnit.module('views');
 
-QUnit.test("Test quick entry", function(assert) {
+QUnit.only("Test quick entry", function(assert) {
 	assert.expect(2);
 	let done = assert.async();
 	let random_text = frappe.utils.get_random(10);
@@ -11,27 +11,17 @@ QUnit.test("Test quick entry", function(assert) {
 		() => frappe.quick_entry.dialog.set_value('description', random_text),
 		() => frappe.quick_entry.insert(),
 		(doc) => {
-			assert.ok(doc && !doc.__islocal);
+			assert.ok(doc && !doc.__islocal, "Document exists");
 			return frappe.set_route('Form', 'ToDo', doc.name);
 		},
-		() => assert.ok(cur_frm.doc.description.includes(random_text)),
+		() => assert.ok(cur_frm.doc.description.includes(random_text), "ToDo created"),
 
 		// Delete the created ToDo
 		() => frappe.tests.click_page_head_item('Menu'),
 		() => frappe.tests.click_dropdown_item('Delete'),
 		() => frappe.tests.click_page_head_item('Yes'),
+		() => frappe.timeout(2),
 
 		() => done()
 	]);
-});
-
-QUnit.test("Test list values", function(assert) {
-	assert.expect(2);
-	let done = assert.async();
-	frappe.set_route('List', 'DocType')
-		.then(() => {
-			assert.deepEqual(['List', 'DocType', 'List'], frappe.get_route());
-			assert.ok($('.list-item:visible').length > 10);
-			done();
-		});
 });
