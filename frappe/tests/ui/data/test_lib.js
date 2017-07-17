@@ -15,8 +15,8 @@ frappe.tests = {
 				}
 			},
 			() => {
-					frappe.tests.set_form_values(cur_frm, data);
-					return frappe.timeout(1);
+				frappe.tests.set_form_values(cur_frm, data);
+				return frappe.timeout(1);
 			},
 			() => frappe.timeout(1),
 			() => (frappe.quick_entry ? frappe.quick_entry.insert() : cur_frm.save())
