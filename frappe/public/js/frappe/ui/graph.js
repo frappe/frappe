@@ -107,7 +107,7 @@ frappe.ui.Graph = class Graph {
 	setup_values() {
 		this.upper_graph_bound = this.get_upper_limit_and_parts(this.y_values)[0];
 		this.y_axis = this.get_y_axis(this.y_values);
-		this.avg_unit_width = (this.width-50)/(this.x_points.length - 1);
+		this.avg_unit_width = (this.width-100)/(this.x_points.length - 1);
 	}
 
 	setup_components() {
@@ -135,7 +135,7 @@ frappe.ui.Graph = class Graph {
 			this.graph_list,
 			this.specific_y_lines
 		).attr({
-			transform: "translate(40, 10)"  // default
+			transform: "translate(60, 10)"  // default
 		});
 	}
 
