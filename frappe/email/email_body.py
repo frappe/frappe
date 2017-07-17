@@ -234,8 +234,6 @@ class EMail:
 		return self.msg_root.as_string()
 
 def get_formatted_html(subject, message, footer=None, print_html=None, email_account=None, header=False):
-	from premailer import Premailer
-
 	if not email_account:
 		email_account = get_outgoing_email_account(False)
 
@@ -250,14 +248,26 @@ def get_formatted_html(subject, message, footer=None, print_html=None, email_acc
 	})
 
 	sanitized_html = scrub_urls(rendered_email)
-
-	css_files = [
-		'assets/frappe/css/email.css'
-	]
-	p = Premailer(html=sanitized_html, external_styles=css_files)
-	transformed_html = p.transform()
-
+	transformed_html = inline_style_in_html(sanitized_html)
 	return transformed_html
+
+def inline_style_in_html(html):
+	''' Convert email.css and html to inline-styled html
+	'''
+	from premailer import Premailer
+
+	apps = frappe.get_installed_apps()
+
+	css_files = []
+	for app in apps:
+		path = 'assets/{0}/css/email.css'.format(app)
+		if os.path.exists(os.path.abspath(path)):
+			css_files.append(path)
+
+	p = Premailer(html=html, external_styles=css_files)
+
+	return p.transform()
+
 
 def add_attachment(fname, fcontent, content_type=None,
 	parent=None, content_id=None, inline=False):
