@@ -232,6 +232,7 @@
   padding: 2px 4px;
   font-weight: normal;
   background-color: #F0F4F7;
+  white-space: normal;
 }
 .taggle_list .taggle:hover {
   padding: 2px 15px 2px 4px;
