@@ -32,17 +32,17 @@ frappe.tests = {
 					if ($.isArray(value)) {
 						return frappe.run_serially([
 							() => { frappe.tests.set_grid_values(frm, key, value);
-									return frappe.timeout(1);
+								return frappe.timeout(1);
 							}
-							]);
+						]);
 					} else {
-							frappe.run_serially([
-							() => { frm.set_value(key, value);
-									return frappe.timeout(1);
+						frappe.run_serially([
+							() => {
+								// set single value
+								frm.set_value(key, value);
+								return frappe.timeout(1);
 							}
-							]);
-						// single value
-						return frm.set_value(key, value);
+						]);
 					}
 				};
 				tasks.push(task);
