@@ -45,6 +45,7 @@ frappe.views.Calendar = Class.extend({
 		var me = this;
 
 		// add links to other calendars
+		me.page.clear_user_actions();
 		$.each(frappe.boot.calendars, function(i, doctype) {
 			if(frappe.model.can_read(doctype)) {
 				me.page.add_menu_item(__(doctype), function() {

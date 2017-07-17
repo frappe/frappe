@@ -57,7 +57,6 @@ frappe.ui.form.on('Test Runner', {
 
 			QUnit.done(({ total, failed, passed, runtime }) => {
 				// flag for selenium that test is done
-				$('<div id="frappe-qunit-done"></div>').appendTo($('body'));
 
 				console.log( `Total: ${total}, Failed: ${failed}, Passed: ${passed}, Runtime: ${runtime}` );  // eslint-disable-line
 
@@ -67,6 +66,9 @@ frappe.ui.form.on('Test Runner', {
 					console.log('Tests Passed'); // eslint-disable-line
 				}
 				frappe.set_route('Form', 'Test Runner', 'Test Runner');
+
+				$('<div id="frappe-qunit-done"></div>').appendTo($('body'));
+
 			});
 		});
 
