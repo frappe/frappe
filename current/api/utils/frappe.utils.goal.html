@@ -4,7 +4,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Frappe Framework: Developer Docs</title>
+	<title>frappe.utils.goal</title>
 	<meta name="generator" content="frappe">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
@@ -22,7 +22,7 @@
     
 
 		</head>
-<body data-path="current">
+<body data-path="current/api/utils/frappe.utils.goal">
 	<div class="main-section">
 		<div>
 					<nav class="navbar navbar-default navbar-main" role="navigation">
@@ -95,7 +95,7 @@
                 <div data-html-block="hero"></div>
                 <div class="container" data-html-block="content">
                 
-<div class="page-container" id="page-current" data-path="{{ pathname }}"
+<div class="page-container" id="page-current/api/utils/frappe.utils.goal" data-path="{{ pathname }}"
 	>
 	<div class="row ">
 		
@@ -104,9 +104,26 @@
 				<div class="row page-head">
 					<div class='col-sm-12 hidden-xs'>
 						
+						<div class="page-breadcrumbs">
+							
+							
+<ul class="breadcrumb" itemscope itemtype="http://data-vocabulary.org/Breadcrumb">
+	
+		<li>
+			<a href="https://frappe.github.io/frappe//current/api/utils" itemprop="url">
+			<span itemprop="title">utils</span>
+			</a>
+		</li>
+	
+	<li class="active"><span itemprop="title">frappe.utils.goal</span></li>
+</ul>
+
+							
+						</div>
+						
 					</div>
 					<div class="col-sm-8 col-xs-6">
-						<h1>Frappe Framework: Developer Docs</h1>
+						<h1>frappe.utils.goal</h1>
 					</div>
 					<div class="col-sm-4 col-xs-6">
 						
@@ -116,61 +133,78 @@
 				</div>
 			</div>
 			<div class="page_content">
-<!-- title: Frappe Framework: Developer Docs -->
-<!-- no-breadcrumbs -->
-
-
-<div class="dev-header">
+<!-- title: frappe.utils.goal --><div class="dev-header">
 
 <a class="btn btn-default btn-sm" disabled style="margin-bottom: 10px;">
 	Version 7.x.x</a>
 
 
-	<a class="btn btn-default btn-sm" href="https://github.com/frappe/frappe/tree/develop/frappe"
+	<a class="btn btn-default btn-sm" href="https://github.com/frappe/frappe/blob/develop/frappe/utils/goal.py"
 		target="_blank" style="margin-left: 10px; margin-bottom: 10px;"><i class="octicon octicon-mark-github"></i> Source</a>
 
 </div>
 
-<table class="table table-bordered">
-	<tr>
-		<td style="width: 20%">
-			App Name
-		</td>
-		<td>
-			<code>frappe</code>
-		</td>
-	</tr>
-	<tr>
-		<td>
-			Publisher
-		</td>
-		<td>
-			<code>Frappe Technologies</code>
-		</td>
-	</tr>
-	<tr>
-		<td>
-			Version
-		</td>
-		<td>
-			<code>8.4.1</code>
-		</td>
-	</tr>
-</table>
 
-<h3>Contents</h3>
+
+
+
+	
+        
+    
+    <p><span class="label label-info">Public API</span>
+        <br><code>/api/method/frappe.utils.goal.get_monthly_goal_graph_data</code>
+    </p>
+	<p class="docs-attr-name">
+        <a name="frappe.utils.goal.get_monthly_goal_graph_data" href="#frappe.utils.goal.get_monthly_goal_graph_data" class="text-muted small">
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
+		frappe.utils.goal.<b>get_monthly_goal_graph_data</b>
+        <i class="text-muted">(title, doctype, docname, goal_value_field, goal_total_field, goal_history_field, goal_doctype, goal_doctype_link, goal_field, date_field, filter_str, aggregation=sum)</i>
+    </p>
+	<div class="docs-attr-desc"><pre><code>    Get month-wise graph data for a doctype based on aggregation values of a field in the goal doctype
+</code></pre>
+
+<p><strong>Parameters:</strong></p>
+
 <ul>
-	<li>
-		<a href="models">Models (DocTypes)</a>
-	</li>
-	<li>
-		<a href="api">Server-side API</a>
-	</li>
+<li><strong><code>title</code></strong> -  Graph title</li>
+<li><strong><code>doctype</code></strong> -  doctype of graph doc</li>
+<li><strong><code>docname</code></strong> -  of the doc to set the graph in</li>
+<li><strong><code>goal_value_field</code></strong> -  goal field of doctype</li>
+<li><strong><code>goal_total_field</code></strong> -  current month value field of doctype</li>
+<li><strong><code>goal_history_field</code></strong> -  cached history field</li>
+<li><strong><code>goal_doctype</code></strong> -  doctype the goal is based on</li>
+<li><strong><code>goal_doctype_link</code></strong> -  doctype link field in goal_doctype</li>
+<li><strong><code>goal_field</code></strong> -  field from which the goal is calculated</li>
+<li><strong><code>filter_str</code></strong> -  where clause condition</li>
+<li><p><strong><code>aggregation</code></strong> -  a value like 'count', 'sum', 'avg'</p>
+
+<pre><code>:return: dict of graph data
+</code></pre></li>
 </ul>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.utils.goal.get_monthly_results" href="#frappe.utils.goal.get_monthly_results" class="text-muted small">
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
+		frappe.utils.goal.<b>get_monthly_results</b>
+        <i class="text-muted">(goal_doctype, goal_field, date_col, filter_str, aggregation=sum)</i>
+    </p>
+	<div class="docs-attr-desc"><p>Get monthly aggregation values for given field of doctype</p>
+</div>
+	<br>
+
+	
+
+
 
 <!-- autodoc -->
-<!-- jinja -->
-<!-- static -->
 </div>
 		</div>
 	</div>

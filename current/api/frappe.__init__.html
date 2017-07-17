@@ -1996,7 +1996,7 @@ given fieldname
         <a name="frappe.sendmail" href="#frappe.sendmail" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		frappe.<b>sendmail</b>
-        <i class="text-muted">(recipients=[], sender=, subject=No Subject, message=No Message, as_markdown=False, delayed=True, reference_doctype=None, reference_name=None, unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None, attachments=None, content=None, doctype=None, name=None, reply_to=None, cc=[], message_id=None, in_reply_to=None, send_after=None, expose_recipients=None, send_priority=1, communication=None, retry=1, now=None, read_receipt=None, is_notification=False, inline_images=None)</i>
+        <i class="text-muted">(recipients=[], sender=, subject=No Subject, message=No Message, as_markdown=False, delayed=True, reference_doctype=None, reference_name=None, unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None, attachments=None, content=None, doctype=None, name=None, reply_to=None, cc=[], message_id=None, in_reply_to=None, send_after=None, expose_recipients=None, send_priority=1, communication=None, retry=1, now=None, read_receipt=None, is_notification=False, inline_images=None, template=None, args=None, header=False)</i>
     </p>
 	<div class="docs-attr-desc"><p>Send email using user's default <strong>Email Account</strong> or global default <strong>Email Account</strong>.</p>
 
@@ -2022,6 +2022,9 @@ given fieldname
 <li><strong><code>expose_recipients</code></strong> -  Display all recipients in the footer message - "This email was sent to"</li>
 <li><strong><code>communication</code></strong> -  Communication link to be set in Email Queue record</li>
 <li><strong><code>inline_images</code></strong> -  List of inline images as {"filename", "filecontent"}. All src properties will be replaced with random Content-Id</li>
+<li><strong><code>template</code></strong> -  Name of html template from templates/emails folder</li>
+<li><strong><code>args</code></strong> -  Arguments for rendering the template</li>
+<li><strong><code>header</code></strong> -  Append header in email</li>
 </ul>
 </div>
 	<br>
