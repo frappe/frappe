@@ -28,8 +28,8 @@ def get_email_from_template(name, args):
 	args = args or {}
 	try:
 		message = get_template('templates/emails/' + name + '.html').render(args)
-	except TemplateNotFound:
-		message = None
+	except TemplateNotFound as e:
+		raise e
 
 	try:
 		text_content = get_template('templates/emails/' + name + '.txt').render(args)
