@@ -2,7 +2,7 @@ from __future__ import print_function
 from frappe.utils.selenium_testdriver import TestDriver
 import unittest, os, frappe, time
 
-class TestLogin(unittest.TestCase):
+class TestTestRunner(unittest.TestCase):
 	def test_test_runner(self):
 		for test in get_tests():
 			print('Running {0}...'.format(test))
