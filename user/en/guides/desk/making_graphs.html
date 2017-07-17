@@ -4,7 +4,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Frappe Framework: Developer Docs</title>
+	<title>Making Graphs</title>
 	<meta name="generator" content="frappe">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
     <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
@@ -22,7 +22,7 @@
     
 
 		</head>
-<body data-path="current">
+<body data-path="user/en/guides/desk/making_graphs">
 	<div class="main-section">
 		<div>
 					<nav class="navbar navbar-default navbar-main" role="navigation">
@@ -95,7 +95,7 @@
                 <div data-html-block="hero"></div>
                 <div class="container" data-html-block="content">
                 
-<div class="page-container" id="page-current" data-path="{{ pathname }}"
+<div class="page-container" id="page-user/en/guides/desk/making_graphs" data-path="{{ pathname }}"
 	>
 	<div class="row ">
 		
@@ -104,9 +104,26 @@
 				<div class="row page-head">
 					<div class='col-sm-12 hidden-xs'>
 						
+						<div class="page-breadcrumbs">
+							
+							
+<ul class="breadcrumb" itemscope itemtype="http://data-vocabulary.org/Breadcrumb">
+	
+		<li>
+			<a href="https://frappe.github.io/frappe//user/en/guides/desk" itemprop="url">
+			<span itemprop="title">Desk Customization</span>
+			</a>
+		</li>
+	
+	<li class="active"><span itemprop="title">Making Graphs</span></li>
+</ul>
+
+							
+						</div>
+						
 					</div>
 					<div class="col-sm-8 col-xs-6">
-						<h1>Frappe Framework: Developer Docs</h1>
+						
 					</div>
 					<div class="col-sm-4 col-xs-6">
 						
@@ -116,67 +133,86 @@
 				</div>
 			</div>
 			<div class="page_content">
-<!-- title: Frappe Framework: Developer Docs -->
-<!-- no-breadcrumbs -->
+<h1>Making Graphs</h1>
 
+<p>The Frappe UI <strong>Graph</strong> object enables you to render simple line and bar graphs for a discreet set of data points. You can also set special checkpoint values and summary stats.</p>
 
-<div class="dev-header">
+<h3>Example: Line graph</h3>
 
-<a class="btn btn-default btn-sm" disabled style="margin-bottom: 10px;">
-	Version 7.x.x</a>
+<p>Here's is an example of a simple sales graph:</p>
 
+<pre><code>    render_graph: function() {
+        $('.form-graph').empty();
 
-	<a class="btn btn-default btn-sm" href="https://github.com/frappe/frappe/tree/develop/frappe"
-		target="_blank" style="margin-left: 10px; margin-bottom: 10px;"><i class="octicon octicon-mark-github"></i> Source</a>
+        var months = ['Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'];
+        var values = [2410, 3100, 1700, 1200, 2700, 1600, 2740, 1000, 850, 1500, 400, 2013];
 
-</div>
+        var goal = 2500;
+        var current_val = 2013;
 
-<table class="table table-bordered">
-	<tr>
-		<td style="width: 20%">
-			App Name
-		</td>
-		<td>
-			<code>frappe</code>
-		</td>
-	</tr>
-	<tr>
-		<td>
-			Publisher
-		</td>
-		<td>
-			<code>Frappe Technologies</code>
-		</td>
-	</tr>
-	<tr>
-		<td>
-			Version
-		</td>
-		<td>
-			<code>8.4.1</code>
-		</td>
-	</tr>
-</table>
+        new frappe.ui.Graph({
+            parent: $('.form-graph'),
+            width: 700,
+            height: 140,
+            mode: 'line-graph',
 
-<h3>Contents</h3>
-<ul>
-	<li>
-		<a href="models">Models (DocTypes)</a>
-	</li>
-	<li>
-		<a href="api">Server-side API</a>
-	</li>
-</ul>
+            title: 'Sales',
+            subtitle: 'Monthly',
+            y_values: values,
+            x_points: months,
 
-<!-- autodoc -->
-<!-- jinja -->
-<!-- static -->
+            specific_values: [
+                {
+                    name: "Goal",
+                    line_type: "dashed",    // "dashed" or "solid"
+                    value: goal
+                },
+            ],
+            summary_values: [
+                {
+                    name: "This month",
+                    color: 'green',     // Indicator colors: 'grey', 'blue', 'red',
+                                // 'green', 'orange', 'purple', 'darkgrey',
+                                // 'black', 'yellow', 'lightblue'
+                    value: '₹ ' + current_val
+                },
+                {
+                    name: "Goal",
+                    color: 'blue',
+                    value: '₹ ' + goal
+                },
+                {
+                    name: "Completed",
+                    color: 'green',
+                    value: (current_val/goal*100).toFixed(1) + "%"
+                }
+            ]
+        });
+    },
+</code></pre>
+
+<p><img src="https://frappe.github.io/frappe/assets/img/desk/line_graph.png" class="screenshot"></p>
+
+<p>Setting the mode to 'bar-graph':</p>
+
+<p><img src="https://frappe.github.io/frappe/assets/img/desk/bar_graph.png" class="screenshot"></p>
+
 </div>
 		</div>
 	</div>
 </div>
 
-				<!-- edit-link -->
+				
+<div class="page-container">
+	<div class="page-content">
+	<div class="edit-container text-center">
+		<i class="fa fa-smile"></i>
+		<a class="text-muted edit" href="https://github.com/frappe/frappe/blob/develop/frappe/docs/user/en/guides/desk/making_graphs.md">
+			Improve this page
+		</a>
+	</div>
+	</div>
+</div>
                 </div>
             </div>
 			<footer class="docs-footer">
