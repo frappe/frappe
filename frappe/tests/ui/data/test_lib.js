@@ -11,12 +11,12 @@ frappe.tests = {
 				if (frappe.quick_entry)
 				{
 					frappe.quick_entry.dialog.$wrapper.find('.edit-full').click();
-					return frappe.timeout(1);
+					return frappe.timeout(0.2);
 				}
 			},
 			() => {
 				frappe.tests.set_form_values(cur_frm, data);
-				return frappe.timeout(1);
+				return frappe.timeout(0.2);
 			},
 			() => frappe.timeout(1),
 			() => (frappe.quick_entry ? frappe.quick_entry.insert() : cur_frm.save())
