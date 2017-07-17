@@ -4,7 +4,6 @@ QUnit.test("Test Query Report", function(assert){
 	let done = assert.async();
 	let random = frappe.utils.get_random(10);
 	frappe.run_serially([
-
 		() => frappe.set_route('List', 'ToDo'),
 		() => frappe.new_doc('ToDo'),
 		() => frappe.quick_entry.dialog.set_value('description', random),
