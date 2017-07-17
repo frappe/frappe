@@ -50,6 +50,11 @@ frappe.ui.form.on('Test Runner', {
 					"Runtime": details.runtime
 				};
 
+				details.assertions.map(a => {
+					// eslint-disable-next-line
+					console.log(`${a.result ? '✔' : '✗'}  ${a.message}`);
+				});
+
 				// eslint-disable-next-line
 				console.log(JSON.stringify(result, null, 2));
 			});
