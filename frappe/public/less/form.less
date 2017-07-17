@@ -376,7 +376,8 @@ h6.uppercase, .h6.uppercase {
 		border-radius: 3px;
 		margin-left: -7px;
 		position: relative;
-
+		max-width: calc(~"100% - 50px");
+		padding-right: 0px;
 		// to display the triangle beside the box
 		overflow: visible;
 	}
@@ -387,12 +388,20 @@ h6.uppercase, .h6.uppercase {
 		width: 45px;
 	}
 
+	.action-btns {
+	    position: absolute;
+	    right: 0;
+	}
+
 	.comment-header {
 		background-color: @light-bg;
 		padding: 10px 15px 10px 13px;
 		margin: 0px;
 		color: @text-muted;
 		border-bottom: 1px solid @light-border-color;
+		&.links-active {
+			padding-right: 60px;
+		}
 
 		.octicon-heart {
 			color: @heart-color;
@@ -402,6 +411,7 @@ h6.uppercase, .h6.uppercase {
 
 	.reply {
 		padding: 15px;
+		overflow: auto;
 
 		& > div > p:first-child {
 			margin-top: 0px;
