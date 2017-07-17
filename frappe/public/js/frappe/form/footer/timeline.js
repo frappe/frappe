@@ -256,7 +256,7 @@ frappe.ui.form.Timeline = Class.extend({
 			}
 		}
 
-		c.comment_on = comment_when(c.creation);
+		c.comment_on = comment_when(c.creation, true);
 		if(!c.fullname) {
 			c.fullname = c.sender_full_name || frappe.user.full_name(c.sender);
 		}
