@@ -59,7 +59,7 @@ frappe.ui.form.on('User', {
 					frappe.route_options = {
 						"user": doc.name
 					};
-					frappe.set_route("user-permissions");
+					frappe.set_route('List', 'User Permission');
 				}, null, "btn-default")
 
 				frm.toggle_display(['sb1', 'sb3', 'modules_access'], true);

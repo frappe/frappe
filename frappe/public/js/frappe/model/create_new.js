@@ -127,8 +127,10 @@ $.extend(frappe.model, {
 		var user_default = "";
 		var user_permissions = frappe.defaults.get_user_permissions();
 		var meta = frappe.get_meta(doc.doctype);
-		var has_user_permissions = (df.fieldtype==="Link" && user_permissions
-			&& df.ignore_user_permissions != 1 && user_permissions[df.options]);
+		var has_user_permissions = (df.fieldtype==="Link"
+			&& user_permissions
+			&& df.ignore_user_permissions != 1
+			&& user_permissions[df.options]);
 
 		// don't set defaults for "User" link field using User Permissions!
 		if (df.fieldtype==="Link" && df.options!=="User") {

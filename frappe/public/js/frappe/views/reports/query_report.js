@@ -103,7 +103,7 @@ frappe.views.QueryReport = Class.extend({
 					doctype: "Report",
 					name: me.report_name
 				};
-				frappe.set_route("user-permissions");
+				frappe.set_route('List', 'User Permission');
 			}, true);
 		}
 

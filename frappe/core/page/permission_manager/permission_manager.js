@@ -21,6 +21,7 @@ frappe.pages['permission-manager'].refresh = function(wrapper) {
 frappe.PermissionEngine = Class.extend({
 	init: function(wrapper) {
 		this.wrapper = wrapper;
+		this.page = wrapper.page;
 		this.body = $(this.wrapper).find(".perm-engine");
 		this.make();
 		this.refresh();
@@ -55,6 +56,10 @@ frappe.PermissionEngine = Class.extend({
 				.change(function() {
 					me.refresh();
 				});
+
+		this.page.add_inner_button(__('Set User Permissions'), () => {
+			return frappe.set_route('List', 'User Permission');
+		});
 		this.set_from_route();
 	},
 	set_from_route: function() {
@@ -336,8 +341,8 @@ frappe.PermissionEngine = Class.extend({
 		var me = this;
 
 		this.body.on("click", ".show-user-permissions", function() {
-			frappe.route_options = { doctype: me.get_doctype() || "" };
-			frappe.set_route("user-permissions");
+			frappe.route_options = { allow: me.get_doctype() || "" };
+			frappe.set_route('List', 'User Permission');
 		});
 
 		this.body.on("click", "input[type='checkbox']", function() {
