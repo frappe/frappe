@@ -56,7 +56,7 @@ QUnit.test("Test deletion of all list element [List view]", function(assert) {
 		},
 		() => frappe.timeout(2),
 		//check zero elements left
-		() => assert.equal( cur_list.data.length, '0', "No element is present in list."),
+		() => assert.equal(cur_list.data.length, 0, "No element is present in list."),
 		() => done()
 	]);
 });

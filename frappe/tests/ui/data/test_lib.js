@@ -191,7 +191,7 @@ frappe.tests = {
 					$(`.navbar-new-comments`).click();
 				}
 				else if (text == "Home"){
-					$(`.navbar-home:contains('Home'):visible`)[0].click();
+					$(`.erpnext-icon`).click();
 				}
 			},
 			() => frappe.timeout(1)
