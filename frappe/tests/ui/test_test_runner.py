@@ -45,7 +45,8 @@ def get_tests_for(app):
 				continue
 
 			for fname in files:
-				if fname.startswith('test_') and fname.endswith('.js'):
+				if (fname.startswith('test_') and fname.endswith('.js')
+					and fname != 'test_runner.js'):
 					path = os.path.join(basepath, fname)
 					path = os.path.relpath(path, frappe.get_app_path(app))
 					tests.append(os.path.join(app, path))
