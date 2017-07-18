@@ -136,7 +136,7 @@ class LoginManager:
 														i in user_obj.roles))
 					two_factor_auth_user = len(frappe.db.sql(query))
 
-				if two_factor_auth_user == 1:
+				if two_factor_auth_user >= 1:
 
 					otp_secret = frappe.db.get_default(self.user + '_otpsecret')
 					verification_method = frappe.db.get_value('System Settings', None, 'two_factor_method')
