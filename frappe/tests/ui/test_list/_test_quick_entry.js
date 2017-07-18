@@ -1,6 +1,6 @@
 QUnit.module('views');
 
-QUnit.only("Test quick entry", function(assert) {
+QUnit.only("Test quick entry [List view]", function(assert) {
 	assert.expect(2);
 	let done = assert.async();
 	let random_text = frappe.utils.get_random(10);

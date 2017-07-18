@@ -1,6 +1,6 @@
 QUnit.module('views');
 
-QUnit.test("Test deletion of one list element", function(assert) {
+QUnit.test("Test deletion of one list element [List view]", function(assert) {
 	assert.expect(3);
 	let done = assert.async();
 	let count;
@@ -33,7 +33,7 @@ QUnit.test("Test deletion of one list element", function(assert) {
 	]);
 });
 
-QUnit.test("Test deletion of all list element", function(assert) {
+QUnit.test("Test deletion of all list element [List view]", function(assert) {
 	assert.expect(3);
 	let done = assert.async();
 

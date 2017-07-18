@@ -1,6 +1,6 @@
 QUnit.module('views');
 
-QUnit.test("Test paging in list", function(assert) {
+QUnit.test("Test paging in list [List view]", function(assert) {
 	assert.expect(3);
 	let done = assert.async();
 
