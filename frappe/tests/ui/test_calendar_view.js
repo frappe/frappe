@@ -41,6 +41,8 @@ QUnit.test("Calendar View Tests", function(assert) {
 			assert.ok(event_title_text().includes(random_text + ':Pri'),
 				"Event title verified");
 			// Check if time of event created is correct
+
+			console.log(visible_time());
 			assert.ok(visible_time().includes("4:20"),
 				"Event start time verified");
 		},
