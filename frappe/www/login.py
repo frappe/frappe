@@ -12,23 +12,9 @@ from frappe.integrations.doctype.ldap_settings.ldap_settings import get_ldap_set
 
 no_cache = True
 
-import pyqrcode
-from StringIO import StringIO
-from werkzeug.wrappers import Response
-
-def get_qr_code():
-
-	url = pyqrcode.create('http://www.google.com')
-	stream = StringIO()
-	url.svg(stream, scale=5)
-	responses = Response(stream.getvalue().encode('utf-8'))
-	responses.status_code = 200
-	responses.headers['content-type'] = 'image/svg+xml; charset=utf-8'
-	return responses
-
 def get_context(context):
 	if frappe.session.user != "Guest" and frappe.session.data.user_type=="System User":
-		frappe.local.flags.redirect_location = "/testpayment"
+		frappe.local.flags.redirect_location = "/desk"
 		raise frappe.Redirect
 
 	# get settings from site config
@@ -44,7 +30,6 @@ def get_context(context):
 
 	ldap_settings = get_ldap_settings()
 	context["ldap_settings"] = ldap_settings
-	context['qqrcode'] = frappe.render_template(get_qr_code())
 
 	return context
 
@@ -83,4 +68,3 @@ def login_via_token(login_token):
 	frappe.local.login_manager = LoginManager()
 
 	redirect_post_login(desk_user = frappe.db.get_value("User", frappe.session.user, "user_type")=="System User")
-

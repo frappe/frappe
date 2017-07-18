@@ -17,7 +17,6 @@ from frappe.translate import get_lang_code
 from frappe.utils.password import check_password
 from frappe.core.doctype.authentication_log.authentication_log import add_authentication_log
 
-from erpnext.setup.doctype.sms_settings.sms_settings import send_request
 
 from urllib import quote
 
@@ -130,28 +129,16 @@ class LoginManager:
 				self.authenticate()
 				# after authenticate, self.user is set (from check_password() call)
 				user_obj = frappe.get_doc('User', self.user)
-				two_factor_auth_user = len(frappe.db.sql("""select name from `tabRole` where two_factor_auth=1
-													and name in ({0}) limit 1""".format(', '.join(['%s'] * len(user_obj.roles))),
-													[d.role for d in user_obj.roles]))
+				two_factor_auth_user = 0
+				if user_obj.roles:
+					query = """select name from `tabRole` where two_factor_auth=1
+													and name in ("All"{0}) limit 1""".format(', '.join('\"{}\"'.format(i.role) for \
+														i in user_obj.roles))
+					two_factor_auth_user = len(frappe.db.sql(query))
+
 				if two_factor_auth_user == 1:
 
 					otp_secret = frappe.db.get_default(self.user + '_otpsecret')
-
-					#restrict_method = frappe.db.get_value('System Settings', None, 'fix_2fa_method')
-					#verification_meth = frappe.db.get_value('User', self.user, 'two_factor_method')
-					#fixed_method = [frappe._dict()]
-
-					#if int(restrict_method):
-					#	try:
-					#		fixed_method = frappe.db.sql('''SELECT DEFAULT(two_factor_method) AS 'default_method' FROM
-					#						(SELECT 1) AS dummy LEFT JOIN tabUser on True LIMIT 1;''', as_dict=1)
-					#	except OperationalError:
-					#		pass
-
-					#if not verification_meth:
-					#	verification_method = fixed_method[0].default_method or 'OTP App'
-					#else:
-					#	verification_method = fixed_method[0].default_method or verification_meth
 					verification_method = frappe.db.get_value('System Settings', None, 'two_factor_method')
 
 					if otp_secret:
@@ -175,7 +162,8 @@ class LoginManager:
 							verification_obj = {'token_delivery': True,
 												'prompt': False,
 												'totp_uri': totp_uri,
-												'method': 'OTP App'}
+												'method': 'OTP App',
+												'qrcode':get_qr_svg_code(totp_uri)}
 						elif verification_method == 'Email':
 							status = self.send_token_via_email(token=token,otpsecret=otp_secret)
 							verification_obj = {'token_delivery': status,
@@ -197,6 +185,7 @@ class LoginManager:
 																	'token_delivery': True,
 																	'prompt': False,
 																	'totp_uri': totp_uri,
+																	'qrcode':get_qr_svg_code(totp_uri)
 																	#'restrict_method': int(restrict_method) and (fixed_method[0].default_method or 'OTP App')
 															}
 
@@ -420,6 +409,10 @@ class LoginManager:
 		clear_cookies()
 
 	def send_token_via_sms(self,otpsecret,token=None,phone_no=None):
+		try:
+			from erpnext.setup.doctype.sms_settings.sms_settings import send_request
+		except:
+			return False
 		ss = frappe.get_doc('SMS Settings', 'SMS Settings')
 		if not ss.sms_gateway_url:
 			return False
@@ -499,3 +492,15 @@ def get_website_user_home_page(user):
 		return '/' + home_page.strip('/')
 	else:
 		return '/me'
+
+def get_qr_svg_code(totp_uri):
+	'''Get SVG code to display Qrcode for OTP.'''
+	from pyqrcode import create as qrcreate
+	from StringIO import StringIO
+	from base64 import b64encode
+	url = qrcreate(totp_uri)
+	stream = StringIO()
+	url.svg(stream, scale=5)
+	svg = stream.getvalue().replace('\n','')
+	svg = b64encode(bytes(svg))
+	return svg

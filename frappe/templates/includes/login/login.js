@@ -174,24 +174,17 @@ login.login_handlers = (function() {
 					verify_token();
 
 					if (!setup_completed){
-						var qrcode = $('<div>').attr('id','qrcode_div');
+						var qrcode = $('<div>')
+						qrcode.attr('id','qrcode_div');
+						qrcode.css('text-align','center');
 
 						var direction = $('<div>').attr('id','qr_info').text(method_prompt || 'Scan QR Code and enter the resulting code displayed');
 
-						var qrcanvas = $('<canvas>');
-						qrcanvas.attr('id','qrcanvass');
+						var qrimg = $('<img>');
+						qrimg.attr('src','data:image/svg+xml;base64,' + data.verification.qrcode);
 						qrcode.append(direction);
-						qrcode.append(qrcanvas);
-						$('#otp_div').prepend(qrcode)
-						qr = new QRious({
-									element: document.getElementById('qrcanvass'),
-									value: data.verification.totp_uri,
-								    background: 'white', // background color
-								    foreground: 'black', // foreground color
-								    level: 'L', // Error correction level of the QR code
-								    mime: 'image/png', // MIME type used to render
-								    size: 200
-								});
+						qrcode.append(qrimg);
+						$('#otp_div').prepend(qrcode);
 					} else {
 						var qrcode = $('<div>').attr('id','qrcode_div');
 						var direction = $('<div>').attr('id','qr_info').text(method_prompt || 'Enter Code displayed in OTP App');
