@@ -473,7 +473,7 @@ frappe.ui.Filter = Class.extend({
 			value = {0:"No", 1:"Yes"}[cint(value)];
 		}
 
-		value = frappe.format(value, this.field.df, {for_print: 1});
+		value = frappe.format(value, this.field.df, {only_value: 1});
 
 		// for translations
 		// __("like"), __("not like"), __("in")
