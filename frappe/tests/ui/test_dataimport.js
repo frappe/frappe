@@ -12,11 +12,11 @@ QUnit.test("test data-export-tool", function(assert) {
 		() => frappe.timeout(2),
 		//To count the number of mandatory fields of a doctype
 		() => { for (var i = 0; i < frappe.get_meta("Task").fields.length; i++) 
-				{	
-					if(frappe.get_meta("Task").fields[i].reqd == 1)
-						f++;
-				}
-			},
+		{	
+			if(frappe.get_meta("Task").fields[i].reqd == 1)
+				f++;
+		}
+	},
 		() => $('.btn-download-data').click(),
 		() => frappe.timeout(3),
 		//To determine if the number of fields checked are mandatory
