@@ -13,7 +13,7 @@ QUnit.test("test data-export-tool", function(assert) {
 		//To count the number of mandatory fields of a doctype
 		() => {
 			var fields = frappe.get_meta("Task").fields;
-			f = fields.filter(f => f.reqd).length
+			f = fields.filter(f => f.reqd).length;
 		},
 		() => $('.btn-download-data').click(),
 		() => frappe.timeout(3),
