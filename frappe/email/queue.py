@@ -495,6 +495,7 @@ def prepare_message(email, recipient, recipients_list):
 			'fcontent': fcontent,
 			'parent': msg_obj
 		})
+		attachment.pop("fid", None)
 		add_attachment(**attachment)
 
 	return msg_obj.as_string()
