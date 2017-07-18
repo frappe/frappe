@@ -337,7 +337,7 @@ class DocType(Document):
 
 		if not self.istable:
 			make_boilerplate("controller.js", self.as_dict())
-			make_boilerplate("controller_list.js", self.as_dict())
+			#make_boilerplate("controller_list.js", self.as_dict())
 			make_boilerplate("_test_controller.js", self.as_dict())
 
 		if self.has_web_view:
