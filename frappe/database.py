@@ -53,8 +53,20 @@ class Database:
 	def connect(self):
 		"""Connects to a database as set in `site_config.json`."""
 		warnings.filterwarnings('ignore', category=MySQLdb.Warning)
-		self._conn = MySQLdb.connect(user=self.user, host=self.host, passwd=self.password,
-			use_unicode=True, charset='utf8mb4')
+		usessl = 0
+                if frappe.conf.db_ssl_ca and frappe.conf.db_ssl_cert and frappe.conf.db_ssl_key:
+                        usessl = 1
+                        self.ssl = {
+                                'ca':frappe.conf.db_ssl_ca,
+                                'cert':frappe.conf.db_ssl_cert,
+                                'key':frappe.conf.db_ssl_key
+                        }
+                if usessl:
+                        self._conn = MySQLdb.connect(user=self.user, host=self.host, passwd=self.password,
+                                use_unicode=True, charset='utf8', ssl=self.ssl)
+                else:
+                        self._conn = MySQLdb.connect(user=self.user, host=self.host, passwd=self.password,
+                                use_unicode=True, charset='utf8')
 		self._conn.converter[246]=float
 		self._conn.converter[12]=get_datetime
 		self._conn.encoders[UnicodeWithAttrs] = self._conn.encoders[UnicodeType]
