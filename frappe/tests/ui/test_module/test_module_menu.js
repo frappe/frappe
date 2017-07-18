@@ -23,31 +23,3 @@ QUnit.test("Test sidebar menu [Module view]", function(assert) {
 		() => done()
 	]);
 });
-
-QUnit.test("Test Menu button [Module view]", function(assert) {
-	assert.expect(2);
-	let done = assert.async();
-	let menu_button = '.menu-btn-group .dropdown-toggle:visible';
-	function dropdown_click(col) {
-		return ('a:contains('+col+'):visible');
-	}
-
-	frappe.run_serially([
-
-		//1. Test Set Desktop Icon
-		() => frappe.set_route(['modules']),
-		() => frappe.timeout(0.5),
-		() => frappe.tests.click_and_wait(menu_button),
-		() => frappe.tests.click_and_wait(dropdown_click('Set Desktop Icons')),
-		() => assert.deepEqual(frappe.get_route(), ["modules_setup"], "Clicking Set Desktop Icons worked correctly."),
-		
-		//2. Test Install Apps		
-		() => frappe.set_route(['modules']),
-		() => frappe.timeout(0.5),
-		() => frappe.tests.click_and_wait(menu_button),
-		() => frappe.tests.click_and_wait(dropdown_click('Install Apps')),
-		() => assert.deepEqual(frappe.get_route(), ["applications"], "Clicking Install Apps worked correctly."),
-
-		() => done()
-	]);
-});
