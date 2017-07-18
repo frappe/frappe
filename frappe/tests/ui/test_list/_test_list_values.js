@@ -1,6 +1,6 @@
 QUnit.module('views');
 
-QUnit.test("Test list values", function(assert) {
+QUnit.test("Test list values [List view]", function(assert) {
 	assert.expect(2);
 	let done = assert.async();
 
