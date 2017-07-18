@@ -272,10 +272,11 @@ frappe.ui.Page = Class.extend({
 	},
 
 	add_inner_button: function(label, action, group) {
+		var me = this;
 		let _action = function() {
 			let btn = $(this);
 			let response = action();
-			this.btn_disable_enable(btn, response);
+			me.btn_disable_enable(btn, response);
 		};
 		if(group) {
 			var $group = this.get_inner_group_button(group);
