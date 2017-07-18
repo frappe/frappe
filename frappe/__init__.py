@@ -492,6 +492,7 @@ def clear_cache(user=None, doctype=None):
 		frappe.sessions.clear_cache()
 		translate.clear_cache()
 		reset_metadata_version()
+		clear_domainification_cache()
 		local.cache = {}
 		local.new_doc_templates = {}
 
@@ -1381,6 +1382,11 @@ def get_active_modules():
 		cache().hset("modules", "active_modules", active_modules)
 
 	return active_modules
+
+def clear_domainification_cache():
+	_cache = cache()
+	_cache.delete_key("domains", "active_domains")
+	_cache.delete_key("modules", "active_modules")
 
 def get_system_settings(key):
 	if not local.system_settings.has_key(key):

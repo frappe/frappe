@@ -46,6 +46,13 @@ class TestDomainification(unittest.TestCase):
 			[ domain_settings.remove(row) for row in to_remove ]
 
 		domain_settings.save()
+	
+	def new_domain(self, domain):
+		# create new domain
+		frappe.get_doc({
+			"doctype": "Domain",
+			"domain": domain
+		}).insert()
 
 	def new_doctype(self, name):
 		return frappe.get_doc({
@@ -56,13 +63,6 @@ class TestDomainification(unittest.TestCase):
 			"permissions": [{"role": "System Manager", "read": 1}],
 			"name": name
 		})
-
-	def new_domain(self, domain):
-		# create new domain
-		frappe.get_doc({
-			"doctype": "Domain",
-			"domain": domain
-		}).insert()
 
 	def test_active_domains(self):
 		self.assertTrue("_Test Domain 1" in frappe.get_active_domains())
