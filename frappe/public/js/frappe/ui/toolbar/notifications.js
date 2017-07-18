@@ -24,7 +24,7 @@ frappe.ui.notifications = {
 		this.boot_info = frappe.boot.notification_info;
 		let defaults = ["Comment", "ToDo", "Event"];
 
-		this.get_counts(this.boot_info.open_count_doctype, 0, defaults);
+		this.get_counts(this.boot_info.open_count_doctype, 1, defaults);
 		this.get_counts(this.boot_info.open_count_other, 1);
 
 		// Target counts are stored for docs per doctype
@@ -49,15 +49,17 @@ frappe.ui.notifications = {
 	},
 
 	get_counts: function(map, divide, keys, excluded = [], target = false) {
+		let empty_map = 1;
 		keys = keys ? keys
 			: Object.keys(map).sort().filter(e => !excluded.includes(e));
 		keys.map(key => {
 			let doc_dt = (map.doctypes) ? map.doctypes[key] : undefined;
-			if(map[key] > 0) {
+			if(map[key] > 0 || target) {
 				this.add_notification(key, map[key], doc_dt, target);
+				empty_map = 0;
 			}
 		});
-		if(divide)
+		if(divide && !empty_map)
 			this.dropdown.append($('<li class="divider"></li>'));
 	},
 
@@ -68,7 +70,7 @@ frappe.ui.notifications = {
 				<span class="badge pull-right">${value}</span>
 			</a></li>`)
 			: $(`<li><a class="progress-small" data-doctype="${doc_dt}"
-				data-doc="${name}">${label}
+				data-doc="${name}"><span class="dropdown-item-label">${label}<span>
 				<div class="progress-chart"><div class="progress">
 					<div class="progress-bar" style="width: ${value}%"></div>
 				</div></div>
