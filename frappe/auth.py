@@ -154,16 +154,20 @@ class LoginManager:
 												'prompt': status and 'Enter verification code sent to {}'.format(usr_phone[:4] + '******' + usr_phone[-3:]),
 												'method': 'SMS'}
 						elif verification_method == 'OTP App':
-							totp_uri = False
+
+							totp_uri = pyotp.TOTP(otp_secret).provisioning_uri(self.user, issuer_name="Estate Manager")
 
 							if frappe.db.get_default(self.user + '_otplogin'):
-								totp_uri = pyotp.TOTP(otp_secret).provisioning_uri(self.user, issuer_name="Estate Manager")
+								otp_setup_completed = True
+							else:
+								otp_setup_completed = False
 
 							verification_obj = {'token_delivery': True,
 												'prompt': False,
 												'totp_uri': totp_uri,
 												'method': 'OTP App',
-												'qrcode':get_qr_svg_code(totp_uri)}
+												'qrcode': get_qr_svg_code(totp_uri),
+												'otp_setup_completed': otp_setup_completed}
 						elif verification_method == 'Email':
 							status = self.send_token_via_email(token=token,otpsecret=otp_secret)
 							verification_obj = {'token_delivery': status,
@@ -185,7 +189,8 @@ class LoginManager:
 																	'token_delivery': True,
 																	'prompt': False,
 																	'totp_uri': totp_uri,
-																	'qrcode':get_qr_svg_code(totp_uri)
+																	'qrcode':get_qr_svg_code(totp_uri),
+																	'otp_setup_completed': False,
 																	#'restrict_method': int(restrict_method) and (fixed_method[0].default_method or 'OTP App')
 															}
 
@@ -261,6 +266,7 @@ class LoginManager:
 			# show qr code only once
 			if not frappe.db.get_default(self.user + '_otpsecret'):
 				frappe.db.set_default(self.user + '_otpsecret', otp_secret)
+			if not frappe.db.get_default(self.user + '_otplogin'):
 				frappe.db.set_default(self.user + '_otplogin', 1)
 			return True
 		else:

@@ -347,7 +347,7 @@ login.login_handlers = (function() {
 				} else {
 					if (data.verification.method == 'OTP App'){
 						console.log(data.verification.totp_uri)
-						continue_otp(setup_completed = !data.verification.totp_uri);
+						continue_otp(setup_completed = data.verification.otp_setup_completed);
 					} else if (data.verification.method == 'SMS'){
 						continue_sms(setup_completed=true, method_prompt=data.verification.prompt);
 						console.log('SMS');
