@@ -66,8 +66,8 @@ a[disabled="disabled"] {
 
 #alert-container .desk-alert {
   -webkit-box-shadow: 0 0px 5px rgba(0, 0, 0, 0.1);
-     -moz-box-shadow: 0 0px 5px rgba(0, 0, 0, 0.1);
-          box-shadow: 0 0px 5px rgba(0, 0, 0, 0.1);
+	 -moz-box-shadow: 0 0px 5px rgba(0, 0, 0, 0.1);
+		  box-shadow: 0 0px 5px rgba(0, 0, 0, 0.1);
 
 	padding: 10px 40px 10px 20px;
 	max-width: 400px;
@@ -318,17 +318,33 @@ textarea.form-control {
 }
 
 .open-notification {
-    position:relative;
+	position:relative;
 	left: 2px;
-    display:inline-block;
-    background:#ff5858;
-    font-size: @text-medium;
-    line-height:20px;
-    padding:0 8px;
-    color:#fff;
-    border-radius:10px;
+	display:inline-block;
+	background:#ff5858;
+	font-size: @text-medium;
+	line-height:20px;
+	padding:0 8px;
+	color:#fff;
+	border-radius:10px;
 	cursor: pointer;
 	margin-right: 10px;
+}
+
+a.progress-small {
+	.progress-chart {
+		width: 60px;
+		margin-top: 4px;
+		float: right;
+	}
+
+	.progress {
+		margin-bottom: 0;
+	}
+
+	.progress-bar {
+		background-color: #98d85b;
+	}
 }
 
 /* on small screens, show only icons on top */
@@ -825,7 +841,7 @@ textarea.form-control {
 }
 
 .c3-line {
-    stroke-width: 3px;
+	stroke-width: 3px;
 }
 
 .c3-tooltip {
@@ -897,10 +913,10 @@ input[type="checkbox"] {
 // Will not be required after commonifying lists with empty state
 .multiselect-empty-state{
 	min-height: 300px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	height: 100%;
 }
 
 // mozilla doesn't support
