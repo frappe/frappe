@@ -11,7 +11,7 @@ frappe.ui.form.Dashboard = Class.extend({
 
 		this.progress_area = this.wrapper.find(".progress-area");
 		this.heatmap_area = this.wrapper.find('.form-heatmap');
-		this.chart_area = this.wrapper.find('.form-chart');
+		this.graph_area = this.wrapper.find('.form-graph');
 		this.stats_area = this.wrapper.find('.form-stats');
 		this.stats_area_row = this.stats_area.find('.row');
 		this.links_area = this.wrapper.find('.form-links');
@@ -43,9 +43,9 @@ frappe.ui.form.Dashboard = Class.extend({
 		this.frm.layout.show_message();
 	},
 
-	add_comment: function(text, permanent) {
+	add_comment: function(text, alert_class, permanent) {
 		var me = this;
-		this.set_headline_alert(text);
+		this.set_headline_alert(text, alert_class);
 		if(!permanent) {
 			setTimeout(function() {
 				me.clear_headline();
@@ -91,6 +91,7 @@ frappe.ui.form.Dashboard = Class.extend({
 
 		this.show();
 	},
+
 	format_percent: function(title, percent) {
 		var width = cint(percent) < 1 ? 1 : cint(percent);
 		var progress_class = "";
@@ -135,6 +136,11 @@ frappe.ui.form.Dashboard = Class.extend({
 
 		if(this.data.heatmap) {
 			this.render_heatmap();
+			show = true;
+		}
+
+		if(this.data.graph) {
+			this.setup_graph();
 			show = true;
 		}
 
@@ -383,13 +389,50 @@ frappe.ui.form.Dashboard = Class.extend({
 	},
 
 	//graphs
+	setup_graph: function() {
+		var me = this;
+
+		var method = this.data.graph_method;
+		var args = {
+			doctype: this.frm.doctype,
+			docname: this.frm.doc.name,
+		};
+
+		$.extend(args, this.data.graph_method_args);
+
+		frappe.call({
+			type: "GET",
+			method: method,
+			args: args,
+
+			callback: function(r) {
+				if(r.message) {
+					me.render_graph(r.message);
+				}
+			}
+		});
+	},
+
+	render_graph: function(args) {
+		var me = this;
+		this.graph_area.empty().removeClass('hidden');
+		$.extend(args, {
+			parent: me.graph_area,
+			width: 710,
+			height: 140,
+			mode: 'line-graph'
+		});
+
+		new frappe.ui.Graph(args);
+	},
+
 	setup_chart: function(opts) {
 		var me = this;
 
-		this.chart_area.removeClass('hidden');
+		this.graph_area.removeClass('hidden');
 
 		$.extend(opts, {
-			wrapper: me.wrapper.find('.form-chart'),
+			wrapper: me.graph_area,
 			padding: {
 				right: 30,
 				bottom: 30

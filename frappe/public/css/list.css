@@ -232,6 +232,7 @@
   padding: 2px 4px;
   font-weight: normal;
   background-color: #F0F4F7;
+  white-space: normal;
 }
 .taggle_list .taggle:hover {
   padding: 2px 15px 2px 4px;
@@ -448,6 +449,7 @@
 .list-item__content--activity {
   justify-content: flex-end;
   margin-right: 5px;
+  min-width: 110px;
 }
 .list-item__content--activity .list-row-modified,
 .list-item__content--activity .avatar-small {

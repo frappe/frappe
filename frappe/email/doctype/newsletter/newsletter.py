@@ -70,8 +70,9 @@ class Newsletter(Document):
 
 			for file in files:
 				try:
-					file = get_file(file.name)
-					attachments.append({"fname": file[0], "fcontent": file[1]})
+					# these attachments will be attached on-demand
+					# and won't be stored in the message
+					attachments.append({"fid": file.name})
 				except IOError:
 					frappe.throw(_("Unable to find attachment {0}").format(a))
 

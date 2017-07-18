@@ -128,7 +128,7 @@ def run_tests_for_doctype(doctype, verbose=False, tests=(), force=False, profile
 		for name in frappe.db.sql_list("select name from `tab%s`" % doctype):
 			frappe.delete_doc(doctype, name, force=True)
 	make_test_records(doctype, verbose=verbose, force=force)
-	module = frappe.get_module(test_module)
+	module = importlib.import_module(test_module)
 	return _run_unittest(module, verbose=verbose, tests=tests, profile=profile)
 
 def run_tests_for_module(module, verbose=False, tests=(), profile=False):
@@ -138,6 +138,13 @@ def run_tests_for_module(module, verbose=False, tests=(), profile=False):
 			make_test_records(doctype, verbose=verbose)
 
 	return _run_unittest(module=module, verbose=verbose, tests=tests, profile=profile)
+
+def run_ui_tests(app=None, test=None, verbose=False, profile=False):
+	'''Run a single unit test for UI using test_test_runner'''
+	module = importlib.import_module('frappe.tests.ui.test_test_runner')
+	frappe.flags.ui_test_app = app
+	frappe.flags.ui_test_path = test
+	return _run_unittest(module=module, verbose=verbose, tests=(), profile=profile)
 
 def _run_unittest(module, verbose=False, tests=(), profile=False):
 	test_suite = unittest.TestSuite()
@@ -153,6 +160,8 @@ def _run_unittest(module, verbose=False, tests=(), profile=False):
 	if profile:
 		pr = cProfile.Profile()
 		pr.enable()
+
+	frappe.flags.tests_verbose = verbose
 
 	out = unittest_runner(verbosity=1+(verbose and 1 or 0)).run(test_suite)
 
@@ -181,7 +190,7 @@ def _add_test(app, path, filename, verbose, test_suite=None, ui_tests=False):
 		module_name = '{app}.{relative_path}.{module_name}'.format(app=app,
 			relative_path=relative_path.replace('/', '.'), module_name=filename[:-3])
 
-	module = frappe.get_module(module_name)
+	module = importlib.import_module(module_name)
 	is_ui_test = True if hasattr(module, 'TestDriver') else False
 
 	if is_ui_test != ui_tests:

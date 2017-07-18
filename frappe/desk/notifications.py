@@ -13,10 +13,12 @@ def get_notifications():
 		return
 
 	config = get_notification_config()
+
 	groups = config.get("for_doctype").keys() + config.get("for_module").keys()
 	cache = frappe.cache()
 
 	notification_count = {}
+	notification_percent = {}
 
 	for name in groups:
 		count = cache.hget("notification_count:" + name, frappe.session.user)
@@ -27,6 +29,7 @@ def get_notifications():
 		"open_count_doctype": get_notifications_for_doctypes(config, notification_count),
 		"open_count_module": get_notifications_for_modules(config, notification_count),
 		"open_count_other": get_notifications_for_other(config, notification_count),
+		"targets": get_notifications_for_targets(config, notification_percent),
 		"new_messages": get_new_messages()
 	}
 
@@ -111,6 +114,49 @@ def get_notifications_for_doctypes(config, notification_count):
 
 	return open_count_doctype
 
+def get_notifications_for_targets(config, notification_percent):
+	"""Notifications for doc targets"""
+	can_read = frappe.get_user().get_can_read()
+	doc_target_percents = {}
+
+	# doc_target_percents = {
+	# 	"Company": {
+	# 		"Acme": 87,
+	# 		"RobotsRUs": 50,
+	# 	}, {}...
+	# }
+
+	for doctype in config.targets:
+		if doctype in can_read:
+			if doctype in notification_percent:
+				doc_target_percents[doctype] = notification_percent[doctype]
+			else:
+				doc_target_percents[doctype] = {}
+				d = config.targets[doctype]
+				condition = d["filters"]
+				target_field = d["target_field"]
+				value_field = d["value_field"]
+				try:
+					if isinstance(condition, dict):
+						doc_list = frappe.get_list(doctype, fields=["name", target_field, value_field],
+							filters=condition, limit_page_length = 100, ignore_ifnull=True)
+
+				except frappe.PermissionError:
+					frappe.clear_messages()
+					pass
+				except Exception as e:
+					if e.args[0]!=1412:
+						raise
+
+				else:
+					for doc in doc_list:
+						value = doc[value_field]
+						target = doc[target_field]
+						doc_target_percents[doctype][doc.name] = (value/target * 100) if value < target else 100
+
+	return doc_target_percents
+
+
 def clear_notifications(user=None):
 	if frappe.flags.in_install:
 		return
@@ -163,7 +209,7 @@ def get_notification_config():
 		config = frappe._dict()
 		for notification_config in frappe.get_hooks().notification_config:
 			nc = frappe.get_attr(notification_config)()
-			for key in ("for_doctype", "for_module", "for_other"):
+			for key in ("for_doctype", "for_module", "for_other", "targets"):
 				config.setdefault(key, {})
 				config[key].update(nc.get(key, {}))
 		return config
