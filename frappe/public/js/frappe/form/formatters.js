@@ -64,8 +64,13 @@ frappe.form.formatters = {
 				precision = decimals.length;
 			}
 		}
-		return frappe.form.formatters._right((value==null || value==="")
-			? "" : format_currency(value, currency, precision), options);
+		value = (value==null || value==="") ?
+			"" : format_currency(value, currency, precision);
+		if (options.for_print) {
+			return value;
+		} else {
+			return frappe.form.formatters._right(value, options);
+		}
 	},
 	Check: function(value) {
 		if(value) {
