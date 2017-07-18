@@ -8,6 +8,7 @@ from frappe import _
 from frappe.model.document import Document
 from datetime import timedelta
 import frappe.utils
+from frappe.utils import now, global_date_format, format_time
 from frappe.utils.xlsxutils import make_xlsx
 from frappe.utils.csvutils import to_csv
 
@@ -76,14 +77,17 @@ class AutoEmailReport(Document):
 			return xlsx_file.getvalue()
 
 		elif self.format == 'CSV':
-			spreadsheet_data = self.get_spreadsheet_data(columns, data) 
+			spreadsheet_data = self.get_spreadsheet_data(columns, data)
 			return to_csv(spreadsheet_data)
 
 		else:
 			frappe.throw(_('Invalid Output Format'))
 
 	def get_html_table(self, columns, data):
-		return frappe.render_template('frappe/templates/includes/print_table.html', {
+		date_time = global_date_format(now()) + ' ' + format_time(now())
+		return frappe.render_template('frappe/templates/emails/auto_email_report.html', {
+			'title': self.name,
+			'date_time': date_time,
 			'columns': columns,
 			'data': data
 		})
@@ -119,7 +123,7 @@ class AutoEmailReport(Document):
 			message += '<hr style="margin: 15px 0px;">' + self.description
 
 		if self.format=='HTML':
-			message += '<hr>' + data
+			message += data
 		else:
 			attachments = [{
 				'fname': self.get_file_name(),
@@ -138,7 +142,8 @@ class AutoEmailReport(Document):
 			recipients = self.email_to.split(),
 			subject = self.name,
 			message = message,
-			attachments = attachments
+			attachments = attachments,
+			now = True
 		)
 
 	def get_report_footer(self):
