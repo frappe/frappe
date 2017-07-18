@@ -11,11 +11,12 @@ frappe.tests = {
 				if (frappe.quick_entry)
 				{
 					frappe.quick_entry.dialog.$wrapper.find('.edit-full').click();
-					return frappe.timeout(1);
+					return frappe.timeout(0.2);
 				}
 			},
 			() => {
-				return frappe.tests.set_form_values(cur_frm, data);
+				frappe.tests.set_form_values(cur_frm, data);
+				return frappe.timeout(0.2);
 			},
 			() => frappe.timeout(1),
 			() => (frappe.quick_entry ? frappe.quick_entry.insert() : cur_frm.save())
@@ -29,10 +30,19 @@ frappe.tests = {
 				let task = () => {
 					let value = item[key];
 					if ($.isArray(value)) {
-						return frappe.tests.set_grid_values(frm, key, value);
+						return frappe.run_serially([
+							() => { frappe.tests.set_grid_values(frm, key, value);
+								return frappe.timeout(1);
+							}
+						]);
 					} else {
-						// single value
-						return frm.set_value(key, value);
+						frappe.run_serially([
+							() => {
+								// set single value
+								frm.set_value(key, value);
+								return frappe.timeout(1);
+							}
+						]);
 					}
 				};
 				tasks.push(task);
