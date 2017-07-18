@@ -113,13 +113,20 @@ frappe.ui.Page = Class.extend({
 	},
 
 	set_action: function(btn, opts) {
+		let me = this;
 		if (opts.icon) {
 			opts.label = this.get_icon_label(opts.icon, opts.label);
 		}
 
 		this.clear_action_of(btn);
 
-		btn.removeClass("hide").prop("disabled", false).html(opts.label).on("click", opts.click);
+		btn.removeClass("hide")
+			.prop("disabled", false)
+			.html(opts.label)
+			.on("click", function() {
+				let response = opts.click.apply(this);
+				me.btn_disable_enable(btn, response);
+			});
 
 		if (opts.working_label) {
 			btn.attr("data-working-label", opts.working_label);
@@ -250,31 +257,35 @@ frappe.ui.Page = Class.extend({
 		this.get_inner_group_button(label).find("button").removeClass("btn-default").addClass("btn-primary");
 	},
 
+	btn_disable_enable: function(btn, response) {
+		if (response && response.then) {
+			btn.prop('disabled', true);
+			response.then(() => {
+				btn.prop('disabled', false);
+			})
+		} else if (response && response.always) {
+			btn.prop('disabled', true);
+			response.always(() => {
+				btn.prop('disabled', false);
+			});
+		}
+	},
+
 	add_inner_button: function(label, action, group) {
 		let _action = function() {
 			let btn = $(this);
-			let _ret = action();
-			if (_ret && _ret.then) {
-				// returns a promise
-				btn.attr('disabled', true);
-				_ret.then(() => {
-					btn.attr('disabled', false);
-				})
-			}
-			if (_ret && _ret.always) {
-				// returns frappe.call ($.ajax)
-				btn.attr('disabled', true);
-				_ret.always(() => {
-					btn.attr('disabled', false);
-				});
-			}
-		}
+			let response = action();
+			this.btn_disable_enable(btn, response);
+		};
 		if(group) {
 			var $group = this.get_inner_group_button(group);
-			return $('<li><a>'+label+'</a></li>').on('click', _action).appendTo($group.find(".dropdown-menu"));
+			return $('<li><a>'+label+'</a></li>')
+				.on('click', _action)
+				.appendTo($group.find(".dropdown-menu"));
 		} else {
 			return $('<button class="btn btn-default btn-xs" style="margin-left: 10px;">'+__(label)+'</btn>')
-				.on("click", _action).appendTo(this.inner_toolbar.removeClass("hide"))
+				.on("click", _action)
+				.appendTo(this.inner_toolbar.removeClass("hide"));
 		}
 	},
 
