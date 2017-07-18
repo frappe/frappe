@@ -167,7 +167,7 @@ frappe.ui.Graph = class Graph {
 	// Helpers
 	get_upper_limit_and_parts(array) {
 		let specific_values = this.specific_values.map(d => d.value);
-		let max_val = Math.max(...array, ...specific_values);
+		let max_val = parseInt(Math.max(...array, ...specific_values));
 		if((max_val+"").length <= 1) {
 			return [10, 5];
 		} else {
