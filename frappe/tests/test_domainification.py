@@ -46,7 +46,7 @@ class TestDomainification(unittest.TestCase):
 			[ domain_settings.remove(row) for row in to_remove ]
 
 		domain_settings.save()
-	
+
 	def new_domain(self, domain):
 		# create new domain
 		frappe.get_doc({
