@@ -76,8 +76,12 @@ def update_system_settings(args):
 		'date_format': frappe.db.get_value("Country", args.get("country"), "date_format"),
 		'number_format': number_format,
 		'enable_scheduler': 1 if not frappe.flags.in_test else 0,
-		'backup_limit': 3 # Default for downloadable backups
+		'backup_limit': 3, # Default for downloadable backups
+		'enable_two_factor_auth':args.get("twofactor_enable"),
+		'two_factor_method':args.get('twofactor_method')
 	})
+	if args.get("twofactor_enable") == 1:
+		enable_twofactor_all_roles()
 	system_settings.save()
 
 def update_user_name(args):
@@ -267,3 +271,10 @@ def email_setup_wizard_exception(traceback, args):
 
 def get_language_code(lang):
 	return frappe.db.get_value('Language', {'language_name':lang})
+
+
+def enable_twofactor_all_roles():
+	all_role = frappe.get_doc('Role',{'role_name':'All'})
+	all_role.two_factor_auth = True
+	all_role.save(ignore_permissions=True)
+
