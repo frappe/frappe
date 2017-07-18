@@ -14,7 +14,7 @@ import os, sys, importlib, inspect, json
 from .exceptions import *
 from .utils.jinja import get_jenv, get_template, render_template, get_email_from_template
 
-__version__ = '8.4.1'
+__version__ = '8.5.0'
 __title__ = "Frappe Framework"
 
 local = Local()
@@ -380,7 +380,7 @@ def sendmail(recipients=[], sender="", subject="No Subject", message="No Message
 		attachments=None, content=None, doctype=None, name=None, reply_to=None,
 		cc=[], message_id=None, in_reply_to=None, send_after=None, expose_recipients=None,
 		send_priority=1, communication=None, retry=1, now=None, read_receipt=None, is_notification=False,
-		inline_images=None, template=None, args=None):
+		inline_images=None, template=None, args=None, header=False):
 	"""Send email using user's default **Email Account** or global default **Email Account**.
 
 
@@ -405,6 +405,7 @@ def sendmail(recipients=[], sender="", subject="No Subject", message="No Message
 	:param inline_images: List of inline images as {"filename", "filecontent"}. All src properties will be replaced with random Content-Id
 	:param template: Name of html template from templates/emails folder
 	:param args: Arguments for rendering the template
+	:param header: Append header in email
 	"""
 
 	text_content = None
@@ -428,7 +429,7 @@ def sendmail(recipients=[], sender="", subject="No Subject", message="No Message
 		attachments=attachments, reply_to=reply_to, cc=cc, message_id=message_id, in_reply_to=in_reply_to,
 		send_after=send_after, expose_recipients=expose_recipients, send_priority=send_priority,
 		communication=communication, now=now, read_receipt=read_receipt, is_notification=is_notification,
-		inline_images=inline_images)
+		inline_images=inline_images, header=header)
 
 whitelisted = []
 guest_methods = []
@@ -491,6 +492,7 @@ def clear_cache(user=None, doctype=None):
 		frappe.sessions.clear_cache()
 		translate.clear_cache()
 		reset_metadata_version()
+		clear_domainification_cache()
 		local.cache = {}
 		local.new_doc_templates = {}
 
@@ -1369,6 +1371,22 @@ def get_active_domains():
 		cache().hset("domains", "active_domains", active_domains)
 
 	return active_domains
+
+def get_active_modules():
+	""" get the active modules from Module Def"""
+	active_modules = cache().hget("modules", "active_modules") or None
+	if active_modules is None:
+		domains = get_active_domains()
+		modules = get_all("Module Def", filters={"restrict_to_domain": ("in", domains)})
+		active_modules = [module.name for module in modules]
+		cache().hset("modules", "active_modules", active_modules)
+
+	return active_modules
+
+def clear_domainification_cache():
+	_cache = cache()
+	_cache.delete_key("domains", "active_domains")
+	_cache.delete_key("modules", "active_modules")
 
 def get_system_settings(key):
 	if not local.system_settings.has_key(key):

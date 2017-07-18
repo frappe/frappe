@@ -161,6 +161,7 @@
 		"public/js/frappe/query_string.js",
 
 		"public/js/frappe/ui/charts.js",
+		"public/js/frappe/ui/graph.js",
 		"public/js/frappe/misc/rating_icons.html",
 
 		"public/js/frappe/feedback.js"

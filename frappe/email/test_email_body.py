@@ -2,7 +2,7 @@
 # License: GNU General Public License v3. See license.txt
 from __future__ import unicode_literals
 
-import unittest, os, base64
+import frappe, unittest, os, base64
 from frappe.email.email_body import replace_filename_with_cid, get_email
 
 class TestEmailBody(unittest.TestCase):
@@ -11,16 +11,15 @@ class TestEmailBody(unittest.TestCase):
 <div>
 	<h3>Hey John Doe!</h3>
 	<p>This is embedded image you asked for</p>
-	<img embed="favicon.png" />
+	<img embed="assets/frappe/images/favicon.png" />
 </div>
 '''
 		email_text = '''
 Hey John Doe!
 This is the text version of this email
 '''
-		frappe_app_path = os.path.join('..', 'apps', 'frappe')
-		img_path = os.path.join(frappe_app_path, 'frappe', 'public', 'images', 'favicon.png')
 
+		img_path = os.path.abspath('assets/frappe/images/favicon.png')
 		with open(img_path) as f:
 			img_content = f.read()
 			img_base64 = base64.b64encode(img_content)
@@ -33,11 +32,7 @@ This is the text version of this email
 			sender='me@example.com',
 			subject='Test Subject',
 			content=email_html,
-			text_content=email_text,
-			inline_images=[{
-				'filename': 'favicon.png',
-				'filecontent': img_content
-			}]
+			text_content=email_text
 		).as_string()
 
 
@@ -86,15 +81,18 @@ w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 	def test_replace_filename_with_cid(self):
 		original_message = '''
 			<div>
-				<img embed="test.jpg" alt="test" />
+				<img embed="assets/frappe/images/favicon.png" alt="test" />
+				<img embed="notexists.jpg" />
 			</div>
 		'''
+		message, inline_images = replace_filename_with_cid(original_message)
+
 		processed_message = '''
 			<div>
-				<img src="cid:abcdefghij" alt="test" />
+				<img src="cid:{0}" alt="test" />
+				<img  />
 			</div>
-		'''
-		message = replace_filename_with_cid(original_message, 'test.jpg', 'abcdefghij')
+		'''.format(inline_images[0].get('content_id'))
 		self.assertEquals(message, processed_message)
 
 

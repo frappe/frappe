@@ -211,6 +211,9 @@ frappe.timeout = seconds => {
 	});
 };
 
+frappe.scrub = function(text) {
+	return text.replace(/ /g, "_").toLowerCase();
+};
 
 frappe.get_modal = function(title, content) {
 	return $(frappe.render_template("modal", {title:title, content:content})).appendTo(document.body);

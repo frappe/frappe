@@ -335,7 +335,7 @@ _f.Frm.prototype.refresh_header = function(is_a_different_doc) {
 		! this.is_dirty() &&
 		! this.is_new() &&
 		this.doc.docstatus===0) {
-		this.dashboard.add_comment(__('Submit this document to confirm'), true);
+		this.dashboard.add_comment(__('Submit this document to confirm'), 'alert-warning', true);
 	}
 
 	this.clear_custom_buttons();
