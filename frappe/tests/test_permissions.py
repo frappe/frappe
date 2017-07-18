@@ -235,7 +235,7 @@ class TestPermissions(unittest.TestCase):
 		frappe.model.meta.clear_cache("Blog Post")
 
 	def set_user_permission_doctypes(self, user_permission_doctypes):
-		set_user_permission_doctypes(doctype="Blog Post", role="Blogger",
+		set_user_permission_doctypes(["Blog Post"], role="Blogger",
 			apply_user_permissions=1, user_permission_doctypes=user_permission_doctypes)
 
 	def test_insert_if_owner_with_user_permissions(self):
@@ -279,8 +279,8 @@ class TestPermissions(unittest.TestCase):
 		self.set_user_permission_doctypes(['Blog Category', 'Blog Post', 'Blogger'])
 
 		frappe.set_user("Administrator")
-		add_user_permission("Blog Category", "_Test Blog Category",
-			"test2@example.com")
+		# add_user_permission("Blog Category", "_Test Blog Category",
+		# 	"test2@example.com")
 		frappe.set_user("test2@example.com")
 
 		doc = frappe.get_doc({
@@ -308,9 +308,9 @@ class TestPermissions(unittest.TestCase):
 		frappe.db.sql('delete from tabContact')
 		make_test_records_for_doctype('Contact', force=True)
 
-		set_user_permission_doctypes(doctype="Contact", role="Sales User",
+		set_user_permission_doctypes("Contact", role="Sales User",
 			apply_user_permissions=1, user_permission_doctypes=['Salutation'])
-		set_user_permission_doctypes(doctype="Salutation", role="All",
+		set_user_permission_doctypes("Salutation", role="All",
 			apply_user_permissions=1, user_permission_doctypes=['Salutation'])
 
 		add_user_permission("Salutation", "Mr", "test3@example.com")
@@ -357,11 +357,16 @@ class TestPermissions(unittest.TestCase):
 		self.assertTrue('Module Def' in json.loads(_perm.user_permission_doctypes))
 
 
-def set_user_permission_doctypes(doctype, role, apply_user_permissions, user_permission_doctypes):
+def set_user_permission_doctypes(doctypes, role, apply_user_permissions,
+	user_permission_doctypes):
 	user_permission_doctypes = None if not user_permission_doctypes else json.dumps(user_permission_doctypes)
 
-	update(doctype, role, 0, 'apply_user_permissions', 1)
-	update(doctype, role, 0, 'user_permission_doctypes',
-		user_permission_doctypes)
+	if isinstance(doctypes, basestring):
+		doctypes = [doctypes]
 
-	frappe.clear_cache(doctype=doctype)
+	for doctype in doctypes:
+		update(doctype, role, 0, 'apply_user_permissions', 1)
+		update(doctype, role, 0, 'user_permission_doctypes',
+			user_permission_doctypes)
+
+		frappe.clear_cache(doctype=doctype)

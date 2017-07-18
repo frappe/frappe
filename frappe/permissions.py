@@ -24,6 +24,9 @@ def has_permission(doctype, ptype="read", doc=None, verbose=False, user=None):
 	"""
 	if not user: user = frappe.session.user
 
+	if verbose:
+		print('--- Checking for {0} {1} ---'.format(doctype, doc.name if doc else '-'))
+
 	if frappe.is_table(doctype):
 		if verbose: print("Table type, always true")
 		return True
@@ -39,7 +42,7 @@ def has_permission(doctype, ptype="read", doc=None, verbose=False, user=None):
 		return False
 
 	if user=="Administrator":
-		if verbose: print("Administrator")
+		if verbose: print("Allowing Administrator")
 		return True
 
 	def false_if_not_shared():
@@ -264,6 +267,10 @@ def user_has_permission(doc, verbose=True, user=None, user_permission_doctypes=N
 
 		messages = {}
 
+		if not user_permission_doctypes:
+			# no doctypes restricted
+			end_result = True
+
 		# check multiple sets of user_permission_doctypes using OR condition
 		for doctypes in user_permission_doctypes:
 			result = True
@@ -366,7 +373,8 @@ def get_roles(user=None, with_standard=True):
 
 def get_perms_for(roles, perm_doctype='DocPerm'):
 	'''Get perms for given roles'''
-	return frappe.db.sql("""select * from `tab{doctype}` where docstatus=0
+	return frappe.db.sql("""
+		select * from `tab{doctype}` where docstatus=0
 		and ifnull(permlevel,0)=0
 		and role in ({roles})""".format(doctype = perm_doctype,
 			roles=", ".join(["%s"]*len(roles))), tuple(roles), as_dict=1)
@@ -473,8 +481,9 @@ def update_permission_property(doctype, role, permlevel, ptype, value=None, vali
 	name = frappe.get_value('Custom DocPerm', dict(parent=doctype, role=role,
 		permlevel=permlevel))
 
-	frappe.db.sql("""update `tabCustom DocPerm` set `%s`=%s where name=%s"""\
-	 	% (frappe.db.escape(ptype), '%s', '%s'), (value, name))
+	frappe.db.sql("""
+		update `tabCustom DocPerm`
+		set `{0}`=%s where name=%s""".format(ptype), (value, name))
 	if validate:
 		validate_permissions_for_doctype(doctype)
 

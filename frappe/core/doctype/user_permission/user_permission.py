@@ -44,7 +44,7 @@ class UserPermission(Document):
 						update_permission_property(doctype, perm.role, 0,
 							'user_permission_doctypes', json.dumps(user_permission_doctypes), validate=False)
 
-	def on_trash(self):
+	def on_trash(self): # pylint: disable=no-self-use
 		frappe.cache().delete_value('user_permissions')
 
 def get_user_permissions(user=None):
