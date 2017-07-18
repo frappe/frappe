@@ -1,9 +1,16 @@
 <table border="0" cellpadding="0" cellspacing="0" width="100%">
 	<tr>
-		<td><h3>{{ title }}</h3></td>
-		<td><p>{{ date_time }}</p></td>
+		<td>
+			<b>{{ title }}</b> <span style="float: right">{{ date_time }}</span>
+		</td>
 	</tr>
+	{% if description %}
+	<tr>
+		<td>{{ description }}</td>
+	</tr>
+	{% endif %}
 </table>
+{% if data %}
 <table class="table table-bordered" cellpadding="0" cellspacing="0" border="0" width="100%">
 	<thead>
 		<tr>
@@ -25,4 +32,16 @@
 		</td>
 		{% endfor %}
 	</tbody>
+</table>
+{% endif %}
+<table class="more-info" border="0" cellpadding="0" cellspacing="0" width="100%">
+	<tr>
+		<td>
+			<p>
+				{{ _("View report in your browser") }}:
+				<a href= {{report_url}} target="_blank">{{report_name}}</a>
+			</p>
+			<p>{{ _("Edit Auto Email Report Settings") }}: {{edit_report_settings}}</p>
+		</td>
+	</tr>
 </table>

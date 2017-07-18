@@ -18,13 +18,11 @@ hr {
   width: 100% !important;
   min-width: 100% !important;
 }
-.email-body tr {
+.email-body {
   font-size: 14px;
 }
 .email-footer {
   border-top: 1px solid #d1d8dd;
-}
-.email-footer tr {
   font-size: 12px;
 }
 .email-header {
@@ -90,5 +88,11 @@ hr {
 .table.table-bordered td,
 .table.table-bordered th {
   border: 1px solid #d1d8dd;
+}
+.more-info {
+  font-size: 80% !important;
+  color: #8D99A6 !important;
+  border-top: 1px solid #EBEFF2;
+  padding-top: 10px;
 }
 /* csslint ignore:end */
