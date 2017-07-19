@@ -107,6 +107,15 @@ hr {
 .text-extra-muted {
   color: #d1d8dd !important;
 }
+.text-regular {
+  font-size: 14px;
+}
+.text-medium {
+  font-size: 12px;
+}
+.text-small {
+  font-size: 10px;
+}
 /* auto email report */
 .report-title {
   margin-bottom: 20px;
