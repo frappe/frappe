@@ -172,7 +172,7 @@ frappe.tests = {
 		return frappe.run_serially([
 			() => {
 				let li = $(`.dropdown-menu li:contains("${text}"):visible`).get(0);
-				$(li).find(`a`)[0].click();
+				$(li).find(`a`).click();
 			},
 			() => frappe.timeout(1)
 		]);
@@ -191,7 +191,7 @@ frappe.tests = {
 					$(`.navbar-new-comments`).click();
 				}
 				else if (text == "Home"){
-					$(`.navbar-home:contains('Home'):visible`)[0].click();
+					$(`.erpnext-icon`).click();
 				}
 			},
 			() => frappe.timeout(1)

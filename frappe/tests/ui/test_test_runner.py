@@ -4,12 +4,13 @@ import unittest, os, frappe, time
 
 class TestTestRunner(unittest.TestCase):
 	def test_test_runner(self):
+		driver = TestDriver()
+		driver.login()
 		for test in get_tests():
 			print('Running {0}...'.format(test))
 			frappe.db.set_value('Test Runner', None, 'module_path', test)
 			frappe.db.commit()
-			driver = TestDriver()
-			driver.login()
+			driver.refresh()
 			driver.set_route('Form', 'Test Runner')
 			driver.click_primary_action()
 			driver.wait_for('#frappe-qunit-done', timeout=60)
@@ -20,8 +21,8 @@ class TestTestRunner(unittest.TestCase):
 			print('-' * 40)
 			print('Checking if passed "{0}"'.format(test))
 			self.assertTrue('Tests Passed' in console)
-			driver.close()
 			time.sleep(1)
+		driver.close()
 
 def get_tests():
 	'''Get tests base on flag'''
