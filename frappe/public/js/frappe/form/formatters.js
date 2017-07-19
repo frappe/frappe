@@ -66,7 +66,7 @@ frappe.form.formatters = {
 		}
 		value = (value==null || value==="") ?
 			"" : format_currency(value, currency, precision);
-		if (options.for_print) {
+		if (options && options.for_print) {
 			return value;
 		} else {
 			return frappe.form.formatters._right(value, options);
