@@ -1,6 +1,11 @@
 // for testing
 frappe.click_button = function(text, idx) {
-	let element = $(`.btn:contains("${text}"):visible`);
+	let container = '';
+	if(typeof idx === 'string') {
+		container = idx + ' ';
+		idx = 0;
+	}
+	let element = $(`${container}.btn:contains("${text}"):visible`);
 	if(!element.length) {
 		throw `did not find any button containing ${text}`;
 	}
