@@ -264,7 +264,7 @@ def inline_style_in_html(html):
 		if os.path.exists(os.path.abspath(path)):
 			css_files.append(path)
 
-	p = Premailer(html=html, external_styles=css_files)
+	p = Premailer(html=html, external_styles=css_files, strip_important=False)
 
 	return p.transform()
 
