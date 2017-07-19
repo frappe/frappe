@@ -113,10 +113,10 @@ frappe.tests = {
 		]);
 	},
 	create_todo: (todo_needed) => {
-		let status_list = ['Closed', 'Open'];
+		let status_list = ['Open', 'Closed'];
 		let priority_list = ['Low', 'Medium', 'High'];
 		let date_list = ['2017-05-05', '2017-06-06', '2017-07-07', '2017-08-08'];
-		let owner_list = ['Administrator', 'user1@mail.com'];
+		let owner_list = ['Administrator', 'user1@mail.com', ''];
 		let i;
 		let num_of_todo;
 		let tasks = [];
@@ -141,7 +141,7 @@ frappe.tests = {
 							{status: status_list[i%2]},
 							{priority: priority_list[i%3]},
 							{date: date_list[i%4]},
-							{owner: owner_list[i%2]}
+							{owner: owner_list[i%3]}
 						]));
 						tasks.push(() => i+=1);
 					}
