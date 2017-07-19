@@ -32,31 +32,28 @@ frappe.ui.form.on('Test Runner', {
 				frappe.dom.eval(f.script);
 			});
 
-			// if(frm.doc.module_name) {
-			// 	QUnit.module.only(frm.doc.module_name);
-			// }
-
 			QUnit.testDone(function(details) {
-				var result = {
-					"Module name": details.module,
-					"Test name": details.name,
-					"Assertions": {
-						"Total": details.total,
-						"Passed": details.passed,
-						"Failed": details.failed
-					},
-					"Skipped": details.skipped,
-					"Todo": details.todo,
-					"Runtime": details.runtime
-				};
+				// var result = {
+				// 	"Module name": details.module,
+				// 	"Test name": details.name,
+				// 	"Assertions": {
+				// 		"Total": details.total,
+				// 		"Passed": details.passed,
+				// 		"Failed": details.failed
+				// 	},
+				// 	"Skipped": details.skipped,
+				// 	"Todo": details.todo,
+				// 	"Runtime": details.runtime
+				// };
+
+				// eslint-disable-next-line
+				// console.log(JSON.stringify(result, null, 2));
 
 				details.assertions.map(a => {
 					// eslint-disable-next-line
 					console.log(`${a.result ? '✔' : '✗'}  ${a.message}`);
 				});
 
-				// eslint-disable-next-line
-				console.log(JSON.stringify(result, null, 2));
 			});
 			QUnit.load();
 

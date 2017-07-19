@@ -208,17 +208,11 @@ def make_boilerplate(template, doc, opts=None):
 	template_name = template.replace("controller", scrub(doc.name))
 	target_file_path = os.path.join(target_path, template_name)
 
-	# allow alternate file paths beginning with _ (e.g. for _test_controller.js)
-	if template_name.startswith('_'):
-		alt_target_file_path = os.path.join(target_path, template_name[1:])
-	else:
-		alt_target_file_path = target_file_path
-
 	if not doc: doc = {}
 
 	app_publisher = get_app_publisher(doc.module)
 
-	if not os.path.exists(target_file_path) and not os.path.exists(alt_target_file_path):
+	if not os.path.exists(target_file_path):
 		if not opts:
 			opts = {}
 
