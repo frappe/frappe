@@ -1,4 +1,8 @@
-<table border="0" cellpadding="0" cellspacing="0" width="100%">
+{% macro get_alignment(col) %}
+{%- if col.fieldtype in ('Int', 'Float', 'Currency', 'Check') %} text-right {% endif -%}
+{% endmacro %}
+
+<table class="report-title" border="0" cellpadding="0" cellspacing="0" width="100%">
 	<tr>
 		<td>
 			<b>{{ title }}</b> <span style="float: right">{{ date_time }}</span>
@@ -15,7 +19,7 @@
 	<thead>
 		<tr>
 			{% for col in columns %}
-			<th>
+			<th class="{{- get_alignment(col) }}">
 				{{- col.label -}}
 			</th>
 			{% endfor %}
@@ -25,7 +29,7 @@
 		{% for row in data %}
 		<tr>
 			{% for col in columns %}
-			<td>
+			<td class="{{- get_alignment(col) }}">
 				{{- frappe.format(row[col.fieldname], col, row) -}}
 			</td>
 			{% endfor %}

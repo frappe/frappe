@@ -95,4 +95,20 @@ hr {
   border-top: 1px solid #EBEFF2;
   padding-top: 10px;
 }
+.text-right {
+  text-align: right !important;
+}
+.text-center {
+  text-align: center !important;
+}
+.text-muted {
+  color: #8D99A6 !important;
+}
+.text-extra-muted {
+  color: #d1d8dd !important;
+}
+/* auto email report */
+.report-title {
+  margin-bottom: 20px;
+}
 /* csslint ignore:end */
