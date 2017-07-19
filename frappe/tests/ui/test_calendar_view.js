@@ -62,16 +62,16 @@ QUnit.test("Calendar View Tests", function(assert) {
 		() => frappe.set_route(["List", "Event", "Calendar"]),
 		() => frappe.timeout(1),
 		// delete event
-		() => frappe.tests.click_generic_text(random_text + ':Pub'),
+		() => frappe.click_link(random_text + ':Pub'),
 		() => {
 			frappe.tests.click_page_head_item('Menu');
 			frappe.tests.click_dropdown_item('Delete');
 		},
 		() => frappe.timeout(0.5),
-		() => frappe.tests.click_button('Yes'),
+		() => frappe.click_button('Yes'),
 		() => frappe.timeout(2),
 		() => frappe.set_route(["List", "Event", "Calendar"]),
-		() => frappe.tests.click_button("Refresh"),
+		() => frappe.click_button("Refresh"),
 		() => frappe.timeout(1),
 
 		// Check if event is deleted

@@ -125,6 +125,7 @@
 		"public/js/frappe/misc/common.js",
 		"public/js/frappe/misc/pretty_date.js",
 		"public/js/frappe/misc/utils.js",
+		"public/js/frappe/misc/test_utils.js",
 		"public/js/frappe/misc/tools.js",
 		"public/js/frappe/misc/datetime.js",
 		"public/js/frappe/misc/number_format.js",

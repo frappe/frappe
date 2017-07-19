@@ -219,13 +219,6 @@ frappe.get_modal = function(title, content) {
 	return $(frappe.render_template("modal", {title:title, content:content})).appendTo(document.body);
 };
 
-frappe._in = function(source, target) {
-	// returns true if source is in target and both are not empty / falsy
-	if(!source) return false;
-	if(!target) return false;
-	return (target.indexOf(source) !== -1);
-};
-
 // add <option> list to <select>
 (function($) {
 	$.fn.add_options = function(options_list) {

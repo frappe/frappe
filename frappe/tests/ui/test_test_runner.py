@@ -7,6 +7,8 @@ class TestTestRunner(unittest.TestCase):
 		driver = TestDriver()
 		driver.login()
 		for test in get_tests():
+			if test.startswith('#'):
+				continue
 			print('Running {0}...'.format(test))
 			frappe.db.set_value('Test Runner', None, 'module_path', test)
 			frappe.db.commit()
@@ -26,11 +28,16 @@ class TestTestRunner(unittest.TestCase):
 
 def get_tests():
 	'''Get tests base on flag'''
-	if frappe.flags.ui_test_app:
-		return get_tests_for(frappe.flags.ui_test_app)
-	elif frappe.flags.ui_test_path:
+	frappe.db.set_value('Test Runner', None, 'app', frappe.flags.ui_test_app or '')
+
+	if frappe.flags.ui_test_path:
+		# specific test
 		return (frappe.flags.ui_test_path,)
+	elif frappe.flags.ui_test_app:
+		# specific app
+		return get_tests_for(frappe.flags.ui_test_app)
 	else:
+		# all apps
 		tests = []
 		for app in frappe.get_installed_apps():
 			tests.extend(get_tests_for(app))
@@ -39,18 +46,9 @@ def get_tests():
 def get_tests_for(app):
 	'''Get all tests for a particular app'''
 	tests = []
-	tests_path = frappe.get_app_path(app)
+	tests_path = frappe.get_app_path(app, 'tests', 'ui', 'tests.txt')
 	if os.path.exists(tests_path):
-		for basepath, folders, files in os.walk(tests_path): # pylint: disable=unused-variable
-			if os.path.join('ui', 'data') in basepath:
-				continue
-
-			for fname in files:
-				if (fname.startswith('test_') and fname.endswith('.js')
-					and fname != 'test_runner.js'):
-					path = os.path.join(basepath, fname)
-					path = os.path.relpath(path, frappe.get_app_path(app))
-					tests.append(os.path.join(app, path))
-
+		with open(tests_path, 'r') as fileobj:
+			tests = fileobj.read().strip().splitlines()
 	return tests
 
