@@ -15,8 +15,6 @@ def execute():
 			pass
 		else:
 			try:
-				doc = frappe.get_doc("Email Group Member", member.name)
-				doc.email = validated_email
-				doc.save()
-			except Exception, e:
+				frappe.db.set_value("Email Group Member", member.name, "email", validated_email)
+			except Exception:
 				frappe.delete_doc(doctype="Email Group Member", name=member.name, force=1, ignore_permissions=True)
