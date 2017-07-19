@@ -126,6 +126,8 @@ def import_country_and_currency():
 		country = frappe._dict(data[name])
 		add_country_and_currency(name, country)
 
+	print("")
+
 	# enable frequently used currencies
 	for currency in ("INR", "USD", "GBP", "EUR", "AED", "AUD", "JPY", "CNY", "CHF"):
 		frappe.db.set_value("Currency", currency, "enabled", 1)
