@@ -3,7 +3,8 @@
 from __future__ import unicode_literals
 
 import frappe, unittest, os, base64
-from frappe.email.email_body import replace_filename_with_cid, get_email
+from frappe.email.email_body import (replace_filename_with_cid,
+	get_email, inline_style_in_html)
 
 class TestEmailBody(unittest.TestCase):
 	def setUp(self):
@@ -94,6 +95,17 @@ w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 			</div>
 		'''.format(inline_images[0].get('content_id'))
 		self.assertEquals(message, processed_message)
+
+	def test_inline_styling(self):
+		html = '''
+<h3>Hi John</h3>
+<p>This is a test email</p>
+'''
+		transformed_html = '''
+<h3>Hi John</h3>
+<p style="margin:1em 0 !important">This is a test email</p>
+'''
+		self.assertTrue(transformed_html in inline_style_in_html(html))
 
 
 def fixed_column_width(string, chunk_size):
