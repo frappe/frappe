@@ -188,3 +188,4 @@ execute:frappe.db.sql('update tabReport set module="Desk" where name="ToDo"')
 frappe.patches.v8_1.enable_allow_error_traceback_in_system_settings
 frappe.patches.v8_1.update_format_options_in_auto_email_report
 frappe.patches.v8_1.delete_custom_docperm_if_doctype_not_exists
+frappe.patches.v8_1.delete_email_group_member_with_invalid_emails
