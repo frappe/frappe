@@ -59,8 +59,11 @@ frappe.ui.FilterList = Class.extend({
 	},
 
 	add_filter: function(doctype, fieldname, condition, value, hidden) {
-		if (this.base_list.page.fields_dict[fieldname]
-			&& ['=', 'like'].includes(condition)) {
+		// allow equal to be used as like
+		let base_filter = this.base_list.page.fields_dict[fieldname];
+		if (base_filter
+			&& (base_filter.df.condition==condition
+				|| (condition==='=' && base_filter.df.condition==='like'))) {
 			// if filter exists in base_list, then exit
 			this.base_list.page.fields_dict[fieldname].set_input(value);
 			return;
