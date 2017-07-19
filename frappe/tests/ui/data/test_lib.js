@@ -30,7 +30,8 @@ frappe.tests = {
 					let value = item[key];
 					if ($.isArray(value)) {
 						return frappe.run_serially([
-							() => { frappe.tests.set_grid_values(frm, key, value);
+							() => {
+								frappe.tests.set_grid_values(frm, key, value);
 								return frappe.timeout(0.5);
 							}
 						]);
