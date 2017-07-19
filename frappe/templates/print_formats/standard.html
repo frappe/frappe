@@ -23,8 +23,8 @@
     {% for section in page %}
     <div class="row section-break">
 		{%- if doc._line_breaks and loop.index != 1 -%}<hr>{%- endif -%}
-		{%- if doc._show_section_headings and section.label -%}
-		<h4 class='col-sm-12'>{{ section.label }}</h4>
+		{%- if doc._show_section_headings and section.label and section.has_data -%}
+		<h4 class='col-sm-12'>{{ _(section.label) }}</h4>
 		{%- endif -%}
         {% for column in section.columns %}
 			<div class="col-xs-{{ (12 / section.columns|len)|int }} column-break">
