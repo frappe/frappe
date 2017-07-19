@@ -19,6 +19,7 @@ QUnit.test("Test sidebar menu [Module view]", function(assert) {
 			module_name = $(sidebar_opt)[random_num].innerText;
 		},
 		() => frappe.tests.click_and_wait(sidebar_opt, random_num),
+		() => frappe.timeout(2),
 		() => assert.equal($('.title-text:visible')[0].innerText, module_name, "Module opened successfully using sidebar"),
 		() => done()
 	]);
