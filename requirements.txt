@@ -41,3 +41,4 @@ oauthlib
 PyJWT
 pypdf
 openpyxl
+premailer
