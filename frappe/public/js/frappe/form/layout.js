@@ -263,18 +263,6 @@ frappe.ui.form.Layout = Class.extend({
 		}
 	},
 
-	refresh_fields: function(fields) {
-		let fieldnames = fields.map((field) => {
-			if(field.label) return field.label;
-		});
-
-		this.fields_list.map(fieldobj => {
-			if(fieldnames.includes(fieldobj._label)) {
-				fieldobj.refresh();
-			}
-		});
-	},
-
 	refresh_section_count: function() {
 		this.wrapper.find(".section-count-label:visible").each(function(i) {
 			$(this).html(i+1);
