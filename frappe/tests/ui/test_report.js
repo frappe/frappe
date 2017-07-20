@@ -1,6 +1,6 @@
 // Test for creating query report
 
-QUnit.test("Test Query Report", function(assert){
+/*QUnit.test("Test Query Report", function(assert){
 	assert.expect(2);
 	let done = assert.async();
 	let random = frappe.utils.get_random(10);
@@ -33,3 +33,4 @@ QUnit.test("Test Query Report", function(assert){
 		() => done()
 	]);
 });
+*/

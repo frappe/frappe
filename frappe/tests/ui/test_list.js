@@ -1,4 +1,4 @@
-QUnit.module('views');
+/*QUnit.module('views');
 
 QUnit.test("test quick entry", function(assert) {
 	assert.expect(2);
@@ -30,4 +30,4 @@ QUnit.test("test list values", function(assert) {
 			assert.ok($('.list-item:visible').length > 10);
 			done();
 		});
-});
+});*/
