@@ -125,7 +125,7 @@ def install_app(name, verbose=False, set_as_patched=True):
 		frappe.msgprint(_("App {0} already installed").format(name))
 		return
 
-	print("Installing {0}...".format(name))
+	print("\nInstalling {0}...".format(name))
 
 	if name != "frappe":
 		frappe.only_for("System Manager")

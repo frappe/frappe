@@ -648,21 +648,6 @@ var utils = {
 			slide.get_field("timezone").set_input(frappe.wizard.values.timezone);
 		}
 
-		country_field.df.description = 'fetching country...';
-		country_field.set_description();
-
-		// get location from IP (unreliable)
-		frappe.call({
-			method:"frappe.desk.page.setup_wizard.setup_wizard.load_country",
-			callback: function(r) {
-				if(r.message) {
-					slide.get_field("country").set_input(r.message);
-					slide.get_input("country").trigger('change');
-				}
-				country_field.df.description = '';
-				country_field.set_description();
-			}
-		});
 	},
 
 	bind_language_events: function(slide) {
