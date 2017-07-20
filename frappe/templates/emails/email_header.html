@@ -1,11 +1,13 @@
 <table class="email-header" border="0" cellpadding="0" cellspacing="0" width="100%">
 	<tr>
 		<td width="15"></td>
-		<td width="35" height="50">
-			<img class="brand-image" embed="{{brand_image}}" alt="{{brand_text}}">
-		</td>
 		<td>
-			<p>{{ brand_text }}</p>
+			<p class="email-header-title">
+				{% if indicator %}
+				<span class="indicator indicator-{{indicator}}"></span>
+				{% endif %}
+				<span>{{ header_title }}</span>
+			</p>
 		</td>
 		<td width="15"></td>
 	</tr>

@@ -29,18 +29,20 @@ hr {
   font-size: 12px;
 }
 .email-header {
-  background: #fafbfc;
   border: 1px solid #d1d8dd;
-  border-radius: 3px 3px 0 0;
+  border-radius: 4px 4px 0 0;
 }
 .email-header .brand-image {
   width: 24px;
   height: 24px;
   display: block;
 }
+.email-header-title {
+  font-weight: bold;
+}
 .body-table.has-header .email-body {
   border: 1px solid #d1d8dd;
-  border-radius: 0 0 3px 3px;
+  border-radius: 0 0 4px 4px;
   border-top: none;
 }
 .body-table.has-header .email-footer {
@@ -118,6 +120,29 @@ hr {
 }
 .text-small {
   font-size: 10px;
+}
+.indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 8px;
+  background-color: #b8c2cc;
+  display: inline-block;
+  margin-right: 5px;
+}
+.indicator.indicator-blue {
+  background-color: #5e64ff;
+}
+.indicator.indicator-green {
+  background-color: #98d85b;
+}
+.indicator.indicator-orange {
+  background-color: #ffa00a;
+}
+.indicator.indicator-red {
+  background-color: #ff5858;
+}
+.indicator.indicator-yellow {
+  background-color: #FEEF72;
 }
 /* auto email report */
 .report-title {
