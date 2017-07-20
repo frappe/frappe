@@ -10,7 +10,11 @@ p {
 	margin: 1em 0 !important;
 }
 
-.body-table, .email-body tr, .email-footer tr {
+hr {
+	border-top: 1px solid @border-color;
+}
+
+.body-table {
 	font-family: @font-stack;
 }
 
@@ -19,16 +23,13 @@ p {
 	min-width: 100% !important;
 }
 
-.email-body tr {
+.email-body {
 	font-size: @text-regular;
 }
 
 .email-footer {
 	border-top: 1px solid @border-color;
-
-	tr {
-		font-size: @text-medium;
-	}
+	font-size: @text-medium;
 }
 
 .email-header {
@@ -75,4 +76,77 @@ p {
 	}
 }
 
+.table {
+	width: 100%;
+	border-collapse: collapse;
+
+	td, th {
+		padding: 8px;
+		line-height: 1.42857143;
+		vertical-align: top;
+		border-top: 1px solid @border-color;
+		text-align: left;
+	}
+
+	th {
+		font-weight: bold;
+	}
+
+	& > thead > tr > th {
+		vertical-align: bottom;
+		border-bottom: 2px solid @border-color;
+	}
+
+	& > thead:first-child > tr:first-child > th {
+		border-top: none;
+	}
+
+	&.table-bordered {
+		border: 1px solid @border-color;
+
+		td, th {
+			border: 1px solid @border-color;
+		}
+	}
+}
+
+.more-info {
+	font-size: 80% !important;
+	color: @text-muted !important;
+	border-top: 1px solid @light-border-color;
+	padding-top: 10px;
+}
+
+.text-right {
+	text-align: right !important;
+}
+
+.text-center {
+	text-align: center !important;
+}
+
+.text-muted {
+	color: @text-muted !important;
+}
+
+.text-extra-muted {
+	color: @text-extra-muted !important;
+}
+
+.text-regular {
+	font-size: @text-regular;
+}
+
+.text-medium {
+	font-size: @text-medium;
+}
+
+.text-small {
+	font-size: @text-small;
+}
+
+/* auto email report */
+.report-title {
+	margin-bottom: 20px;
+}
 /* csslint ignore:end */

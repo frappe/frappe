@@ -6,9 +6,10 @@ body {
 p {
   margin: 1em 0 !important;
 }
-.body-table,
-.email-body tr,
-.email-footer tr {
+hr {
+  border-top: 1px solid #d1d8dd;
+}
+.body-table {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
 }
 .email-header,
@@ -17,13 +18,11 @@ p {
   width: 100% !important;
   min-width: 100% !important;
 }
-.email-body tr {
+.email-body {
   font-size: 14px;
 }
 .email-footer {
   border-top: 1px solid #d1d8dd;
-}
-.email-footer tr {
   font-size: 12px;
 }
 .email-header {
@@ -60,5 +59,65 @@ p {
   color: #fff;
   background-color: #5E64FF;
   border-color: #444bff;
+}
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.table td,
+.table th {
+  padding: 8px;
+  line-height: 1.42857143;
+  vertical-align: top;
+  border-top: 1px solid #d1d8dd;
+  text-align: left;
+}
+.table th {
+  font-weight: bold;
+}
+.table > thead > tr > th {
+  vertical-align: bottom;
+  border-bottom: 2px solid #d1d8dd;
+}
+.table > thead:first-child > tr:first-child > th {
+  border-top: none;
+}
+.table.table-bordered {
+  border: 1px solid #d1d8dd;
+}
+.table.table-bordered td,
+.table.table-bordered th {
+  border: 1px solid #d1d8dd;
+}
+.more-info {
+  font-size: 80% !important;
+  color: #8D99A6 !important;
+  border-top: 1px solid #EBEFF2;
+  padding-top: 10px;
+}
+.text-right {
+  text-align: right !important;
+}
+.text-center {
+  text-align: center !important;
+}
+.text-muted {
+  color: #8D99A6 !important;
+}
+.text-extra-muted {
+  color: #d1d8dd !important;
+}
+.text-regular {
+  font-size: 14px;
+}
+.text-medium {
+  font-size: 12px;
+}
+.text-small {
+  font-size: 10px;
+}
+/* auto email report */
+.report-title {
+  margin-bottom: 20px;
 }
 /* csslint ignore:end */
