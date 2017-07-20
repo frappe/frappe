@@ -10,12 +10,20 @@ class TestTestRunner(unittest.TestCase):
 			if test.startswith('#'):
 				continue
 			print('Running {0}...'.format(test))
+
+			timeout = 60
+			if '#' in test:
+				test, comment = test.split('#')
+				test = test.strip()
+				if comment=='long':
+					timeout = 240
+
 			frappe.db.set_value('Test Runner', None, 'module_path', test)
 			frappe.db.commit()
 			driver.refresh()
 			driver.set_route('Form', 'Test Runner')
 			driver.click_primary_action()
-			driver.wait_for('#frappe-qunit-done', timeout=60)
+			driver.wait_for('#frappe-qunit-done', timeout=timeout)
 			console = driver.get_console()
 			if frappe.flags.tests_verbose or True:
 				for line in console:
