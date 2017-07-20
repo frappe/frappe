@@ -9,14 +9,15 @@ class TestTestRunner(unittest.TestCase):
 		for test in get_tests():
 			if test.startswith('#'):
 				continue
-			print('Running {0}...'.format(test))
 
 			timeout = 60
 			if '#' in test:
 				test, comment = test.split('#')
 				test = test.strip()
-				if comment=='long':
+				if comment.strip()=='long':
 					timeout = 240
+
+			print('Running {0}...'.format(test))
 
 			frappe.db.set_value('Test Runner', None, 'module_path', test)
 			frappe.db.commit()
