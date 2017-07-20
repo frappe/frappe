@@ -1,4 +1,3 @@
-{% if title %}<h3>{{ title }}</h3>{% endif %}
 <p>{{_("Dear")}} {{ first_name }}{% if last_name %} {{ last_name}}{% endif %},</p>
 <p>{{_("A new account has been created for you at {0}").format(site_url)}}.</p>
 <p>{{_("Your login id is")}}: <b>{{ user }}</b>

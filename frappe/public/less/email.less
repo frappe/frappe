@@ -16,6 +16,10 @@ hr {
 
 .body-table {
 	font-family: @font-stack;
+
+	td {
+		font-family: @font-stack;
+	}
 }
 
 .email-header, .email-body, .email-footer {
@@ -33,9 +37,8 @@ hr {
 }
 
 .email-header {
-	background: @light-bg;
 	border: 1px solid @border-color;
-	border-radius: 3px 3px 0 0;
+	border-radius: 4px 4px 0 0;
 
 	.brand-image {
 		width: 24px;
@@ -44,10 +47,14 @@ hr {
 	}
 }
 
+.email-header-title {
+	font-weight: bold;
+}
+
 .body-table.has-header {
 	.email-body {
 		border: 1px solid @border-color;
-		border-radius: 0 0 3px 3px;
+		border-radius: 0 0 4px 4px;
 		border-top: none;
 	}
 
@@ -93,7 +100,7 @@ hr {
 	}
 
 	& > thead > tr > th {
-		vertical-align: bottom;
+		vertical-align: middle;
 		border-bottom: 2px solid @border-color;
 	}
 
@@ -143,6 +150,31 @@ hr {
 
 .text-small {
 	font-size: @text-small;
+}
+
+.indicator {
+	width: 8px;
+	height: 8px;
+	border-radius: 8px;
+	background-color: @indicator-darkgrey;
+	display: inline-block;
+	margin-right: 5px;
+
+	&.indicator-blue {
+		background-color: @indicator-blue;
+	}
+	&.indicator-green {
+		background-color: @indicator-green;
+	}
+	&.indicator-orange {
+		background-color: @indicator-orange;
+	}
+	&.indicator-red {
+		background-color: @indicator-red;
+	}
+	&.indicator-yellow {
+		background-color: @indicator-yellow;
+	}
 }
 
 /* auto email report */

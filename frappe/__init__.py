@@ -380,7 +380,7 @@ def sendmail(recipients=[], sender="", subject="No Subject", message="No Message
 		attachments=None, content=None, doctype=None, name=None, reply_to=None,
 		cc=[], message_id=None, in_reply_to=None, send_after=None, expose_recipients=None,
 		send_priority=1, communication=None, retry=1, now=None, read_receipt=None, is_notification=False,
-		inline_images=None, template=None, args=None, header=False):
+		inline_images=None, template=None, args=None, header=None):
 	"""Send email using user's default **Email Account** or global default **Email Account**.
 
 
