@@ -11,9 +11,7 @@ frappe.ui.FilterList = Class.extend({
 		this.set_events();
 	},
 	make: function() {
-		var me = this;
-
-		this.wrapper.find('.show_filters').remove();
+		this.wrapper.find('.show_filters, .filter_area').remove();
 		this.wrapper.append(`
 			<div class="show_filters">
 				<div class="set-filters">
