@@ -12,6 +12,9 @@ hr {
 .body-table {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
 }
+.body-table td {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+}
 .email-header,
 .email-body,
 .email-footer {
@@ -76,7 +79,7 @@ hr {
   font-weight: bold;
 }
 .table > thead > tr > th {
-  vertical-align: bottom;
+  vertical-align: middle;
   border-bottom: 2px solid #d1d8dd;
 }
 .table > thead:first-child > tr:first-child > th {
