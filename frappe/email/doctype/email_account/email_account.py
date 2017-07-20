@@ -419,9 +419,12 @@ class EmailAccount(Document):
 
 		parent = self.find_parent_from_in_reply_to(communication, email)
 
-		if not frappe.safe_eval(self.condition, None, get_context(communication)):
-			self.append_to = None
-		
+		try:
+			if not frappe.safe_eval(self.condition, None, get_context(communication)):
+				self.append_to = None
+		except:
+			pass
+
 		if not parent and self.append_to:
 			self.set_sender_field_and_subject_field()
 
