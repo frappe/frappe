@@ -15,7 +15,7 @@ from email.mime.multipart import MIMEMultipart
 def get_email(recipients, sender='', msg='', subject='[No Subject]',
 	text_content = None, footer=None, print_html=None, formatted=None, attachments=None,
 	content=None, reply_to=None, cc=[], email_account=None, expose_recipients=None,
-	inline_images=[], header=[]):
+	inline_images=[], header=None):
 	""" Prepare an email with the following format:
 		- multipart/mixed
 			- multipart/alternative
@@ -76,7 +76,7 @@ class EMail:
 		self.email_account = email_account or get_outgoing_email_account()
 
 	def set_html(self, message, text_content = None, footer=None, print_html=None,
-		formatted=None, inline_images=None, header=[]):
+		formatted=None, inline_images=None, header=None):
 		"""Attach message in the html portion of multipart/alternative"""
 		if not formatted:
 			formatted = get_formatted_html(self.subject, message, footer, print_html,
@@ -233,7 +233,7 @@ class EMail:
 		self.make()
 		return self.msg_root.as_string()
 
-def get_formatted_html(subject, message, footer=None, print_html=None, email_account=None, header=[]):
+def get_formatted_html(subject, message, footer=None, print_html=None, email_account=None, header=None):
 	if not email_account:
 		email_account = get_outgoing_email_account(False)
 
@@ -416,7 +416,7 @@ def get_filecontent_from_path(path):
 		return None
 
 
-def get_header(header=[]):
+def get_header(header=None):
 	""" Build header from template """
 	from frappe.utils.jinja import get_email_from_template
 
