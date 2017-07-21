@@ -140,7 +140,7 @@ class LoginManager:
 		if self.verification_method == 'SMS':
 			user_phone = frappe.db.get_value('User', self.user, ['phone','mobile_no'], as_dict=1)
 			usr_phone = user_phone.mobile_no or user_phone.phone
-			status = self.send_token_via_sms(token=token, phone_no=usr_phone, otpsecret=self.otp_secret)
+			status = self.send_token_via_sms(token=self.token, phone_no=usr_phone, otpsecret=self.otp_secret)
 			verification_obj = {'token_delivery': status,
 								'prompt': status and 'Enter verification code sent to {}'.format(usr_phone[:4] + '******' + usr_phone[-3:]),
 								'method': 'SMS'}
@@ -157,7 +157,7 @@ class LoginManager:
 								'qrcode': get_qr_svg_code(totp_uri),
 								'setup': otp_setup_completed }
 		elif self.verification_method == 'Email':
-			status = self.send_token_via_email(token=token,otpsecret=self.otp_secret)
+			status = self.send_token_via_email(token=self.token, otpsecret=self.otp_secret)
 			verification_obj = {'token_delivery': status,
 								'prompt': status and 'Enter verification code sent to your registered email address',
 								'method': 'Email'}
@@ -165,7 +165,7 @@ class LoginManager:
 
 	def process_2fa(self):
 		if self.two_factor_auth_user():
-			token = int(pyotp.TOTP(self.otp_secret).now())
+			self.token = int(pyotp.TOTP(self.otp_secret).now())
 			verification_obj = self.get_verification_obj()
 
 			tmp_id = frappe.generate_hash(length=8)
@@ -175,7 +175,7 @@ class LoginManager:
 			# set increased expiry time for SMS and Email
 			if self.verification_method in ['SMS', 'Email']:
 				expiry_time = 300
-				frappe.cache().set(tmp_id + '_token', token)
+				frappe.cache().set(tmp_id + '_token', self.token)
 				frappe.cache().expire(tmp_id + '_token', expiry_time)
 			else:
 				expiry_time = 180
@@ -212,7 +212,7 @@ class LoginManager:
 			self.post_login()
 		else:
 			self.authenticate()
-			if frappe.db.get_value('System Settings', 'System Settings', 'enable_two_factor_auth') == unicode(1):
+			if (self.user != 'Administrator') and (frappe.db.get_value('System Settings', 'System Settings', 'enable_two_factor_auth') == unicode(1)):
 				self.process_2fa()
 			else:
 				self.post_login(no_two_auth=True)
@@ -417,21 +417,22 @@ class LoginManager:
 
 		args[ss.receiver_parameter] = phone_no
 
-		status = send_request(ss.sms_gateway_url, args)
-
-		if 200 <= status < 300:
-			return True
-		else:
-			return False
+		sms_args = {'gateway_url':ss.sms_gateway_url,'params':args}
+		enqueue(method=send_request, queue='short', timeout=300, event=None, async=True, job_name=None, now=False, **sms_args)
+		return True
 
 	def send_token_via_email(self, token, otpsecret):
+		from frappe.utils.background_jobs import enqueue
 		user_email = frappe.db.get_value('User', self.user, 'email')
 		if not user_email:
 			return False
 		hotp = pyotp.HOTP(otpsecret)
-		frappe.sendmail(recipients=user_email, sender=None, subject='Verification Code',
-						message='<p>Your verification code is {}</p>'.format(hotp.at(int(token))),
-						delayed=False, retry=3)
+		email_args = {
+				'recipients':user_email, 'sender':None, 'subject':'Verification Code',
+				'message':'<p>Your verification code is {}</p>'.format(hotp.at(int(token))),
+				'delayed':False, 'retry':3 }
+
+		enqueue(method=frappe.sendmail, queue='short', timeout=300, event=None, async=True, job_name=None, now=False, **email_args)
 		return True
 
 class CookieManager:

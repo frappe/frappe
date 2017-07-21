@@ -167,7 +167,7 @@ login.login_handlers = (function() {
 				} else if (data.verification.method == 'SMS'){
 					continue_sms(data.verification.setup, data.verification.prompt);
 				} else if (data.verification.method == 'Email'){
-					continue_sms(data.verification.setup, data.verification.prompt);
+					continue_email(data.verification.setup, data.verification.prompt);
 				}
 
 				return false;
@@ -288,7 +288,7 @@ var continue_sms = function(setup, prompt){
 	request_otp();
 	var sms_div = $('<div>').attr({'id':'sms_div','style':'padding-bottom:15px;text-align:center;'});
 
-	if (!setup){
+	if (setup){
 		direction = $('<div>').attr('id','sms_info').text('Enter phone number to send verification code');
 		sms_div.append(direction);
 		sms_div.append($('<div>').attr({'id':'sms_code_div'}).html(
@@ -328,7 +328,7 @@ var continue_email = function(setup, prompt){
 	request_otp();
 	var email_div = $('<div>').attr({'id':'email_div','style':'padding-bottom:15px;text-align:center;'});
 
-	if (!setup){
+	if (setup){
 		email_div.append('<p>Verification code email will be sent to registered email address. Enter code received below</p>')
 		$('#otp_div').prepend(email_div);
 		frappe.call({
