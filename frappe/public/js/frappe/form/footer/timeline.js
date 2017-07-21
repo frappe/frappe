@@ -318,12 +318,14 @@ frappe.ui.form.Timeline = Class.extend({
 
 		// subject
 		c.show_subject = false;
-		if(c.subject
-			&& c.communication_type==="Communication"
-			&& !this.frm.doc.subject.includes(c.subject)
-			&& !this.frm.doc.name.includes(c.subject)
-			&& !this.frm.doc[this.frm.meta.title_field || "name"].includes(c.subject)) {
-			c.show_subject = true;
+		if(c.subject && c.communication_type==="Communication") {
+			if(this.frm.doc.subject && !this.frm.doc.subject.includes(c.subject)) {
+				c.show_subject = true;
+			} else if(this.frm.meta.title_field && !!this.frm.doc[this.frm.meta.title_field].includes(c.subject)) {
+				c.show_subject = true;
+			} else if(!this.frm.doc.name.includes(c.subject)) {
+				c.show_subject = true;
+			}
 		}
 	},
 
