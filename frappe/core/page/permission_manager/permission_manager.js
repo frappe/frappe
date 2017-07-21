@@ -138,11 +138,11 @@ frappe.PermissionEngine = Class.extend({
 	refresh: function() {
 		var me = this;
 		if(!me.doctype_select) {
-			this.body.html("<p class='text-muted'>" + __("Loading") + "...</div>");
+			this.body.html("<p class='text-muted'>" + __("Loading") + "...</p>");
 			return;
 		}
 		if(!me.get_doctype() && !me.get_role()) {
-			this.body.html("<p class='text-muted'>"+__("Select Document Type or Role to start.")+"</div>");
+			this.body.html("<p class='text-muted'>"+__("Select Document Type or Role to start.")+"</p>");
 			return;
 		}
 		// get permissions
@@ -252,10 +252,13 @@ frappe.PermissionEngine = Class.extend({
 
 	setup_user_permissions: function(d, role_cell) {
 		var me = this;
-		d.help = frappe.render('<ul class="user-permission-help small hidden" style="margin-left: -10px;">\
-				<li style="margin-top: 7px;"><a class="show-user-permission-doctypes grey">{%= __("Select Document Types") %}</a></li>\
-				<li style="margin-top: 3px;"><a class="show-user-permissions grey">{%= __("Show User Permissions") %}</a></li>\
-			</ul>', {});
+		d.help = `<ul class="user-permission-help small hidden"
+				style="margin-left: -10px;">
+				<li style="margin-top: 7px;"><a class="show-user-permission-doctypes">
+					${__("Select Document Types")}</a></li>
+				<li style="margin-top: 3px;"><a class="show-user-permissions">
+					${__("Show User Permissions")}</a></li>
+			</ul>`;
 
 		var checkbox = this.add_check(role_cell, d, "apply_user_permissions")
 			.removeClass("col-md-4")
