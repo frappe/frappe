@@ -13,10 +13,6 @@ class TestOAuth20(unittest.TestCase):
 	def setUp(self):
 		# Create Client
 		make_test_records("OAuth Client")
-		
-		# add frappe_server_url for oauth2 endpoints to work
-		frappe.db.set_value("Social Login Keys", None, "frappe_server_url", "http://testserver")
-		frappe.db.commit()
 
 	def test_authorize_guest_redirect(self):
 		expect_in_resp_data = "/login?redirect-to=/api/method/frappe.integrations.oauth2.authorize?" 
