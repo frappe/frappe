@@ -2,25 +2,6 @@
     margin-top: 30px;
 }
 
-.setup-wizard-brand {
-	margin: 30px;
-	text-align: center;
-	display: flex;
-	justify-content: center;
-	align-items: center
-}
-
-.setup-wizard-brand .brand-icon {
-	width: 36px;
-	height: 36px;
-}
-
-.setup-wizard-brand .brand-name {
-	font-size: 20px;
-	margin-left: 8px;
-	color: #36414C;
-}
-
 .setup-wizard-slide {
 	padding-left: 0px;
 	padding-right: 0px;

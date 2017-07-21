@@ -78,7 +78,6 @@ frappe.setup.Wizard = Class.extend({
 		</div>', {html:html}))
 	},
 	show_working: function() {
-		$('header').find('.setup-wizard-brand').hide();
 		this.hide_current_slide();
 		frappe.set_route(this.page_name);
 		this.current_slide = {"$wrapper": this.get_message(this.working_html()).appendTo(this.parent)};
@@ -721,12 +720,4 @@ var utils = {
 frappe.setup.on("before_load", function() {
 	// load slides
 	frappe_slides.map(frappe.setup.add_slide);
-
-	// set header image
-	let $icon = $('header .setup-wizard-brand');
-	if($icon.length === 0) {
-		$('header').append(`<div class="setup-wizard-brand"">
-			<img src="/assets/frappe/images/frappe-bird-grey.svg"
-			class="brand-icon frappe-icon" style="width:36px;"></div>`);
-	}
 });
