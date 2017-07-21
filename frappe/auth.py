@@ -124,7 +124,7 @@ class LoginManager:
 			query = """select name from `tabRole` where two_factor_auth=1
 											and name in ("All",{0}) limit 1""".format(', '.join('\"{}\"'.format(i.role) for \
 												i in user_obj.roles))
-		two_factor_user_role = len(frappe.db.sql(query))
+			two_factor_user_role = len(frappe.db.sql(query))
 
 		self.otp_secret = frappe.db.get_default(self.user + '_otpsecret')
 		if not self.otp_secret:
@@ -152,12 +152,10 @@ class LoginManager:
 			else:
 				otp_setup_completed = False
 
-			verification_obj = {'token_delivery': True,
-								'prompt': False,
-								'totp_uri': totp_uri,
+			verification_obj = {'totp_uri': totp_uri,
 								'method': 'OTP App',
 								'qrcode': get_qr_svg_code(totp_uri),
-								'otp_setup_completed': otp_setup_completed}
+								'setup': otp_setup_completed }
 		elif self.verification_method == 'Email':
 			status = self.send_token_via_email(token=token,otpsecret=self.otp_secret)
 			verification_obj = {'token_delivery': status,
@@ -174,9 +172,13 @@ class LoginManager:
 			usr = frappe.form_dict.get('usr')
 			pwd = frappe.form_dict.get('pwd')
 
+			# set increased expiry time for SMS and Email
 			if self.verification_method in ['SMS', 'Email']:
-				frappe.cache().set(tmp_id + '_token',token)
-				frappe.cache().expire(tmp_id + '_token',300)
+				expiry_time = 300
+				frappe.cache().set(tmp_id + '_token', token)
+				frappe.cache().expire(tmp_id + '_token', expiry_time)
+			else:
+				expiry_time = 180
 
 			frappe.cache().set(tmp_id + '_usr', usr)
 			frappe.cache().set(tmp_id + '_pwd', pwd)
@@ -184,7 +186,7 @@ class LoginManager:
 			frappe.cache().set(tmp_id + '_user', self.user)
 
 			for field in [tmp_id + nm for nm in ['_usr', '_pwd', '_otp_secret', '_user']]:
-				frappe.cache().expire(field,180)
+				frappe.cache().expire(field, expiry_time)
 
 			frappe.local.response['verification'] = verification_obj
 			frappe.local.response['tmp_id'] = tmp_id
@@ -232,7 +234,7 @@ class LoginManager:
 		try:
 			otp_secret = frappe.cache().get(tmp_id + '_otp_secret')
 			if not otp_secret:
-				frappe.throw('Login session expired, please refresh page to try again')
+				frappe.throw('Login session expired. Refresh page to try again')
 		except AttributeError:
 			return False
 
@@ -395,21 +397,24 @@ class LoginManager:
 	def clear_cookies(self):
 		clear_cookies()
 
-	def send_token_via_sms(self,otpsecret,token=None,phone_no=None):
+	def send_token_via_sms(self, otpsecret, token=None, phone_no=None):
 		try:
 			from erpnext.setup.doctype.sms_settings.sms_settings import send_request
 		except:
 			return False
+
+		if not phone_no:
+			return False
+
 		ss = frappe.get_doc('SMS Settings', 'SMS Settings')
 		if not ss.sms_gateway_url:
 			return False
+			
 		hotp = pyotp.HOTP(otpsecret)
 		args = {ss.message_parameter: 'verification code is {}'.format(hotp.at(int(token)))}
 		for d in ss.get("parameters"):
 			args[d.parameter] = d.value
 
-		if not phone_no:
-			return False
 		args[ss.receiver_parameter] = phone_no
 
 		status = send_request(ss.sms_gateway_url, args)
@@ -419,13 +424,14 @@ class LoginManager:
 		else:
 			return False
 
-	def send_token_via_email(self,token,otpsecret):
-		user_email = frappe.db.get_value('User',self.user, 'email')
+	def send_token_via_email(self, token, otpsecret):
+		user_email = frappe.db.get_value('User', self.user, 'email')
 		if not user_email:
 			return False
 		hotp = pyotp.HOTP(otpsecret)
 		frappe.sendmail(recipients=user_email, sender=None, subject='Verification Code',
-			message='<p>Your verification code is {}</p>'.format(hotp.at(int(token))),delayed=False, retry=3)
+						message='<p>Your verification code is {}</p>'.format(hotp.at(int(token))),
+						delayed=False, retry=3)
 		return True
 
 class CookieManager:

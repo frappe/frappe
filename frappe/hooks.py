@@ -40,8 +40,7 @@ app_include_css = [
 ]
 
 web_include_js = [
-	"website_script.js",
-	"assets/js/qrious.min.js"
+	"website_script.js"
 ]
 
 bootstrap = "assets/frappe/css/bootstrap.css"

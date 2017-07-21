@@ -160,204 +160,16 @@ login.login_handlers = (function() {
 			if(data.verification) {
 				login.set_indicator("{{ _("Success") }}", 'green');
 
-				var continue_otp = function(setup_completed,method_prompt){
-
-					$('.login-content').empty().append($('<div>').attr({'id':'otp_div'}).html(
-						'<form class="form-verify">\
-							<div class="page-card-head">\
-								<span class="indicator blue" data-text="Verification">Verification</span>\
-							</div>\
-							<input type="text" id="login_token" class="form-control" placeholder="Verification Code" required autocomplete="off" autofocus="">\
-							<button type="submit" class="btn btn-sm btn-primary btn-block" id="verify_token">Verify</button>\
-						</form>'));
-
-					verify_token();
-
-					if (!setup_completed){
-						var qrcode = $('<div>')
-						qrcode.attr('id','qrcode_div');
-						qrcode.css('text-align','center');
-
-						var direction = $('<div>').attr('id','qr_info').text(method_prompt || 'Scan QR Code and enter the resulting code displayed');
-
-						var qrimg = $('<img>');
-						qrimg.attr('src','data:image/svg+xml;base64,' + data.verification.qrcode);
-						qrcode.append(direction);
-						qrcode.append(qrimg);
-						$('#otp_div').prepend(qrcode);
-					} else {
-						var qrcode = $('<div>').attr('id','qrcode_div');
-						var direction = $('<div>').attr('id','qr_info').text(method_prompt || 'Enter Code displayed in OTP App');
-						direction.attr('style','padding-bottom:10px;');
-						qrcode.append(direction);
-						$('#otp_div').prepend(qrcode)					
-					}
-				}
-
-				var continue_sms = function(setup_completed,method_prompt){
-
-					$('.login-content').empty().append($('<div>').attr({'id':'otp_div'}).html(
-						'<form class="form-verify">\
-							<div class="page-card-head">\
-								<span class="indicator blue" data-text="Verification">Verification</span>\
-							</div>\
-							<input type="text" id="login_token" class="form-control" placeholder="Verification Code" required="" autofocus="">\
-							<button class="btn btn-sm btn-primary btn-block" id="verify_token">Verify</button>\
-						</form>'));
-
-					verify_token();
-
-					if (!setup_completed){
-						var sms_div = $('<div>').attr({'id':'sms_div','style':'margin-bottom: 20px;'});
-						var direction = $('<div>').attr({'id':'sms_info','style':'margin-bottom: 15px;'}).text('Enter phone number to send verification code');
-						sms_div.append(direction);
-						sms_div.append($('<div>').attr({'id':'sms_code_div'}).html(
-								'<div class="form-group text-center">\
-									<input type="text" id="phone_no" class="form-control" placeholder="2347001234567" required="" autofocus="">\
-									<button class="btn btn-sm btn-primary" id="submit_phone_no" >Send SMS</button>\
-								</div><hr>'));
-
-						$('#otp_div').prepend(sms_div);
-
-						$('#submit_phone_no').on('click',function(){
-							frappe.call({
-								method: "frappe.core.doctype.user.user.send_token_via_sms",
-								args: {'phone_no': $('#phone_no').val(), 'tmp_id':data.tmp_id },
-								freeze: true,
-								callback: function(r) {
-									if (r.message){
-										$('#sms_div').empty().append(
-											'<p class="lead">SMS sent.<br><small><small>Enter verification code received</small></small></p><hr>'
-											);
-									} else {
-										$('#sms_div').empty().append(
-											'<p class="lead">SMS not sent</p><hr>'
-											);
-									}
-								}
-							});
-						})
-					} else {
-						var smscode = $('<div>').attr('id','smscode_div');
-						var direction = $('<div>').attr('id','qr_info').text(method_prompt || 'Enter verification code sent to registered phone number');
-						direction.attr('style','padding-bottom:10px;');
-						smscode.append(direction);
-						$('#otp_div').prepend(smscode)					
-					}
-				}
-
-				var continue_email = function(setup_completed,method_prompt){
-
-					$('.login-content').empty().append($('<div>').attr({'id':'otp_div'}).html(
-						'<form class="form-verify">\
-							<div class="page-card-head">\
-								<span class="indicator blue" data-text="Verification">Verification</span>\
-							</div>\
-							<input type="text" id="login_token" class="form-control" placeholder="Verification Code" required="" autofocus="">\
-							<button class="btn btn-sm btn-primary btn-block" id="verify_token">Verify</button>\
-						</form>'));
-
-					verify_token();
-
-					if (!setup_completed){
-						var email_div = $('<div>').attr({'id':'email_div','style':'margin-bottom: 20px;'});
-						email_div.append('<p>Verification code email will be sent to registered email address. Enter code received below</p>')
-
-						$('#otp_div').prepend(email_div);
-
-						frappe.call({
-							method: "frappe.core.doctype.user.user.send_token_via_email",
-							args: {'tmp_id':data.tmp_id },
-							callback: function(r) {
-								if (r.message){
-								} else {
-									$('#email_div').empty().append(
-										'<p>Email not sent</p><hr>'
-										);
-								}
-							}
-						});
-					} else {
-						if (method_prompt){
-							var emailcode = $('<div>').attr('id','emailcode_div');
-							var direction = $('<div>').attr('id','qr_info').text(method_prompt || 'Verification code email will be sent to registered email address. Enter code received below');
-							direction.attr('style','padding-bottom:10px;');
-							emailcode.append(direction);
-							$('#otp_div').prepend(emailcode);
-						} else {
-							var emailcode = $('<div>').attr('id','emailcode_div');
-							var direction = $('<div>').attr('id','qr_info').text('Verification code email not sent');
-							direction.attr('style','padding-bottom:10px;');
-							emailcode.append(direction);
-							$('#otp_div').prepend(emailcode)
-						}
-
-					}
-				}
-
-				if (data.verification.method_first_time){
-				//	$('.login-content').empty().append('<div id="verification_method">\
-				//		<div>\
-				//			<p class="lead">Select verification Method <br>\
-				//			<small><small><small class="text-muted">method may be changed later in settings</small></small></small></p>\
-				//		</div>\
-				//		<div class="form-check">\
-				//		  <label class="form-check-label">\
-				//		    <input class="form-check-input" type="radio" name="method" value="OTP App" checked>\
-				//		    OTP App\
-				//		  </label>\
-				//		</div>\
-				//		<div class="form-check">\
-				//		  <label class="form-check-label">\
-				//		    <input class="form-check-input" type="radio" name="method" value="SMS">\
-				//		    SMS\
-				//		  </label>\
-				//		</div>\
-				//		<div class="form-check disabled">\
-				//		  <label class="form-check-label">\
-				//		    <input class="form-check-input" type="radio" name="method" value="Email">\
-				//		    Email\
-				//		  </label>\
-				//		</div>\
-				//		<button id="submit_method" class="btn btn-sm btn-primary">Continue</button>\
-				//	</div>')
-
-				//	if (data.verification.restrict_method){
-				//		$('input[name=method]').each(function(){
-				//			if ($(this).val() != data.verification.restrict_method){
-				//				$(this).attr('disabled',true)
-				//			}
-				//		})
-				//	}
-				//	$('#submit_method').on('click',function(event){
-					if (data.verification.method == 'OTP App'){
-						continue_otp(setup_completed=false);
-					} else if (data.verification.method == 'SMS'){
-						continue_sms(setup_completed=false);
-					} else if (data.verification.method == 'Email'){
-						continue_email(setup_completed=false);
-					}
-
-				//		frappe.call({
-				//			method: "frappe.core.doctype.user.user.set_verification_method",
-				//			args: {'tmp_id':data.tmp_id, 'method': $('input[name=method]:checked').val()},
-				//			callback: function(r) { }
-				//		});
-				//	});
-				} else {
-					if (data.verification.method == 'OTP App'){
-						console.log(data.verification.totp_uri)
-						continue_otp(setup_completed = data.verification.otp_setup_completed);
-					} else if (data.verification.method == 'SMS'){
-						continue_sms(setup_completed=true, method_prompt=data.verification.prompt);
-						console.log('SMS');
-					} else if (data.verification.method == 'Email'){
-						continue_sms(setup_completed=true, method_prompt=data.verification.prompt);
-					}
-				}
-
 				document.cookie = "tmp_id="+data.tmp_id;
-				//verify_token();
+
+				if (data.verification.method == 'OTP App'){
+					continue_otp_app(data.verification.setup, data.verification.qrcode);
+				} else if (data.verification.method == 'SMS'){
+					continue_sms(data.verification.setup, data.verification.prompt);
+				} else if (data.verification.method == 'Email'){
+					continue_sms(data.verification.setup, data.verification.prompt);
+				}
+
 				return false;
 
 			} else if(data.message == 'Logged In'){
@@ -410,10 +222,7 @@ login.login_handlers = (function() {
 
 frappe.ready(function() {
 
-	
 	login.bind_events();
-	console.log("Why");
-
 
 	if (!window.location.hash) {
 		window.location.hash = "#login";
@@ -439,4 +248,104 @@ var verify_token =  function(event) {
 		login.call(args);
 		return false;
 	});
+}
+
+var request_otp = function(r){
+	$('.login-content').empty().append($('<div>').attr({'id':'twofactor_div'}).html(
+		'<form class="form-verify">\
+			<div class="page-card-head">\
+				<span class="indicator blue" data-text="Verification">Verification</span>\
+			</div>\
+			<div id="otp_div"></div>\
+			<input type="text" id="login_token" autocomplete="off" class="form-control" placeholder="Verification Code" required="" autofocus="">\
+			<button class="btn btn-sm btn-primary btn-block" id="verify_token">Verify</button>\
+		</form>'));
+	// add event handler for submit button
+	verify_token();
+}
+
+var continue_otp_app = function(setup, qrcode){
+	request_otp();
+	var qrcode_div = $('<div>').attr({'id':'qrcode_div','style':'text-align:center;padding-bottom:15px;'});
+
+	if (!setup){
+			direction = $('<div>').attr('id','qr_info').text('Scan QR Code and enter the resulting code displayed' ),
+			qrimg = $('<img>').attr({
+				'src':'data:image/svg+xml;base64,' + qrcode,
+				'style':'width:250px;height:250px;'});
+
+		qrcode_div.append(direction);
+		qrcode_div.append(qrimg);
+		$('#otp_div').prepend(qrcode_div);
+	} else {
+		direction = $('<div>').attr('id','qr_info').text('Enter Code displayed in OTP App');
+		qrcode_div.append(direction);
+		$('#otp_div').prepend(qrcode_div);
+	}
+}
+
+var continue_sms = function(setup, prompt){
+	request_otp();
+	var sms_div = $('<div>').attr({'id':'sms_div','style':'padding-bottom:15px;text-align:center;'});
+
+	if (!setup){
+		direction = $('<div>').attr('id','sms_info').text('Enter phone number to send verification code');
+		sms_div.append(direction);
+		sms_div.append($('<div>').attr({'id':'sms_code_div'}).html(
+				'<div class="form-group text-center">\
+					<input type="text" id="phone_no" class="form-control" placeholder="2347001234567" required="" autofocus="">\
+					<button class="btn btn-sm btn-primary" id="submit_phone_no" >Send SMS</button>\
+				</div><hr>'));
+
+		$('#otp_div').prepend(sms_div);
+
+		$('#submit_phone_no').on('click',function(){
+			frappe.call({
+				method: "frappe.core.doctype.user.user.send_token_via_sms",
+				args: {'phone_no': $('#phone_no').val(), 'tmp_id':data.tmp_id },
+				freeze: true,
+				callback: function(r) {
+					if (r.message){
+						$('#sms_div').empty().append(
+							'<p class="lead">SMS sent.<br><small><small>Enter verification code received</small></small></p><hr>'
+							);
+					} else {
+						$('#sms_div').empty().append(
+							'<p class="lead">SMS not sent</p><hr>'
+							);
+					}
+				}
+			});
+		})
+	} else {
+		direction = $('<div>').attr('id','qr_info').text(prompt || 'SMS not sent');
+		sms_div.append(direction);
+		$('#otp_div').prepend(sms_div)
+	}
+}
+
+var continue_email = function(setup, prompt){
+	request_otp();
+	var email_div = $('<div>').attr({'id':'email_div','style':'padding-bottom:15px;text-align:center;'});
+
+	if (!setup){
+		email_div.append('<p>Verification code email will be sent to registered email address. Enter code received below</p>')
+		$('#otp_div').prepend(email_div);
+		frappe.call({
+			method: "frappe.core.doctype.user.user.send_token_via_email",
+			args: {'tmp_id':data.tmp_id },
+			callback: function(r) {
+				if (r.message){
+				} else {
+					$('#email_div').empty().append(
+						'<p>Email not sent</p><hr>'
+						);
+				}
+			}
+		});
+	} else {
+		var direction = $('<div>').attr('id','qr_info').text(prompt || 'Verification code email not sent');
+		email_div.append(direction);
+		$('#otp_div').prepend(email_div);
+	}
 }

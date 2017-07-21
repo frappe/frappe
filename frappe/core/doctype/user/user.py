@@ -928,17 +928,18 @@ def update_gravatar(name):
 
 @frappe.whitelist(allow_guest=True)
 def send_token_via_sms(tmp_id,phone_no=None,user=None):
-	from erpnext.setup.doctype.sms_settings.sms_settings import send_request
+	try:
+		from erpnext.setup.doctype.sms_settings.sms_settings import send_request
+	except:
+		return False
 
 	if not frappe.cache().ttl(tmp_id + '_token'):
 		return False
-
-	token = frappe.cache().get(tmp_id + '_token')
-
 	ss = frappe.get_doc('SMS Settings', 'SMS Settings')
 	if not ss.sms_gateway_url:
 		return False
 
+	token = frappe.cache().get(tmp_id + '_token')
 	args = {ss.message_parameter: 'verification code is {}'.format(token)}
 
 	for d in ss.get("parameters"):
@@ -956,7 +957,6 @@ def send_token_via_sms(tmp_id,phone_no=None,user=None):
 			return False
 
 	args[ss.receiver_parameter] = usr_phone
-
 	status = send_request(ss.sms_gateway_url, args)
 
 	if 200 <= status < 300:
@@ -971,22 +971,19 @@ def send_token_via_email(tmp_id,token=None):
 
 	user = frappe.cache().get(tmp_id + '_user')
 	count = token or frappe.cache().get(tmp_id + '_token')
+
 	if ((not user) or (user == 'None') or (not count)):
+		return False
+	user_email = frappe.db.get_value('User',user, 'email')
+	if not user_email:
 		return False
 
 	otpsecret = frappe.cache().get(tmp_id + '_otp_secret')
 	hotp = pyotp.HOTP(otpsecret)
-	user_email = frappe.db.get_value('User',user, 'email')
-	if not user_email:
-		return False
-	frappe.sendmail(recipients=user_email, sender=None, subject='Verification Code',
-		message='<p>Your verification code is {0}</p>'.format(hotp.at(int(count))),delayed=False, retry=3)
-	return True
 
-#@frappe.whitelist(allow_guest=True)
-#def set_verification_method(tmp_id,method=None):
-#	user = frappe.cache().get(tmp_id + '_user')
-#	if ((not user) or (user == 'None') or (not method)):
-#		return False
-#	frappe.db.set_value('User', user, 'two_factor_method', method)
-#	frappe.db.commit()
+	frappe.sendmail(
+		recipients=user_email, sender=None, subject='Verification Code',
+		message='<p>Your verification code is {0}</p>'.format(hotp.at(int(count))),
+		delayed=False, retry=3)
+
+	return True
