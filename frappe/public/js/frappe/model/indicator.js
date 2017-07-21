@@ -14,7 +14,7 @@ frappe.has_indicator = function(doctype) {
 	return false;
 }
 
-frappe.get_indicator = function(doc, doctype, without_workflow = false) {
+frappe.get_indicator = function(doc, doctype, without_workflow = true) {
 	if(doc.__unsaved) {
 		return [__("Not Saved"), "orange"];
 	}
