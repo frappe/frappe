@@ -2,7 +2,9 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on('User Permission', {
-	refresh: function() {
-
+	refresh: function(frm) {
+		frm.add_custom_button(__('View Permitted Documents'),
+			() => frappe.set_route('query-report', 'Permitted Documents For User',
+				{user: frm.doc.user}));
 	}
 });

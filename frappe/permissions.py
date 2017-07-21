@@ -412,7 +412,7 @@ def add_user_permission(doctype, name, user, apply=False):
 			user=user,
 			allow=doctype,
 			for_value=name,
-			apply_for_all_roles_and_documents=apply
+			apply_for_all_roles=apply
 		)).insert()
 
 def remove_user_permission(doctype, name, user):

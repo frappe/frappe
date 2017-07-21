@@ -12,7 +12,7 @@ class UserPermission(Document):
 	def on_update(self):
 		frappe.cache().delete_value('user_permissions')
 
-		if self.apply_for_all_roles_and_documents:
+		if self.apply_for_all_roles:
 			self.apply_user_permissions_to_all_roles()
 
 	def apply_user_permissions_to_all_roles(self):
