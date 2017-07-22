@@ -893,14 +893,23 @@ frappe.views.QueryReport = Class.extend({
 		// }
 
 		let data = res.chart.data.columns;
-		console.log(data, data[1], data[1].splice(0,1), data[0], data[0].splice(0,1))
+		console.log(data, data[1], data[1].splice(0,1), data[0], data[0].splice(0,1), data[2].splice(0,1))
 		this.chart_area.empty().toggle(true);
 
 		new frappe.ui.Graph({
 			parent: me.chart_area,
 			mode: 'bar',
 			color: 'blue',
-			y: data[1],
+			y: [
+				{
+					color: 'light-green',
+					values: data[1]
+				},
+				{
+					color: 'green',
+					values: data[2]
+				}
+			],
 			x: data[0],
 		});
 	}

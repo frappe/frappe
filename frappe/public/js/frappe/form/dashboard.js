@@ -419,7 +419,6 @@ frappe.ui.form.Dashboard = Class.extend({
 		$.extend(args, {
 			parent: me.graph_area,
 			mode: 'line',
-			color: 'purple'
 		});
 
 		new frappe.ui.Graph(args);
