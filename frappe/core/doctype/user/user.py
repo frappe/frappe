@@ -929,7 +929,7 @@ def update_gravatar(name):
 @frappe.whitelist(allow_guest=True)
 def send_token_via_sms(tmp_id,phone_no=None,user=None):
 	try:
-		from erpnext.setup.doctype.sms_settings.sms_settings import send_request
+		from frappe.core.doctype.sms_settings.sms_settings import send_request
 	except:
 		return False
 
