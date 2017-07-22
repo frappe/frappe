@@ -418,8 +418,8 @@ frappe.ui.form.Dashboard = Class.extend({
 		this.graph_area.empty().removeClass('hidden');
 		$.extend(args, {
 			parent: me.graph_area,
-			height: 140,
-			mode: 'line-graph'
+			mode: 'line',
+			color: 'purple'
 		});
 
 		new frappe.ui.Graph(args);

@@ -119,8 +119,8 @@ def get_monthly_goal_graph_data(title, doctype, docname, goal_value_field, goal_
 	data = {
 		'title': title,
 		# 'subtitle':
-		'y_values': values,
-		'x_points': months,
+		'y': values,
+		'x': months,
 		'specific_values': specific_values,
 		'summary_values': summary_values
 	}

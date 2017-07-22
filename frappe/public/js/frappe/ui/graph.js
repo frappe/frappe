@@ -5,7 +5,7 @@
 // 		value: 10
 // 	},
 
-// summary_values = [
+// summary = [
 // 	{
 // 		name: "Total",
 // 		color: 'blue',		// Indicator colors: 'grey', 'blue', 'red', 'green', 'orange',
@@ -18,18 +18,20 @@ frappe.ui.Graph = class Graph {
 	constructor({
 		parent = null,
 
-		width = 0, height = 0,
 		title = '', subtitle = '',
 
-		y_values = [],
-		x_points = [],
+		y = [],
+		x = [],
+
+		x_formatted = [],
+		y_formatted = [],
 
 		specific_values = [],
-		summary_values = [],
+		summary = [],
 
-		color = '',
+		color = 'blue',
 		mode = '',
-	} = {}) {
+	}) {
 
 		if(Object.getPrototypeOf(this) === frappe.ui.Graph.prototype) {
 			if(mode === 'line') {
@@ -39,20 +41,22 @@ frappe.ui.Graph = class Graph {
 			}
 		}
 
-		this.parent = parent;
+		// Calculate height width and translate initially
 
-		this.width = parent.width() - 20;
+		let height = 240;
+
+		this.parent = parent;
 		this.base_height = height;
 		this.height = height - 40;
 
 		this.title = title;
 		this.subtitle = subtitle;
 
-		this.y_values = y_values;
-		this.x_points = x_points;
+		this.y = y;
+		this.x = x;
 
 		this.specific_values = specific_values;
-		this.summary_values = summary_values;
+		this.summary = summary;
 
 		this.color = color;
 		this.mode = mode;
@@ -63,27 +67,37 @@ frappe.ui.Graph = class Graph {
 	}
 
 	setup() {
-		this.setup_container();
+		this.setup_utils();
 		this.refresh();
 	}
 
 	refresh() {
+
+		this.base_width = this.parent.width() - 20;
+		this.width = this.base_width - 100;
+
+		this.setup_container();
+
 		this.setup_values();
 		this.setup_components();
 		this.make_y_axis();
 		this.make_x_axis();
 		this.make_units();
+		this.make_path();
 		if(this.specific_values.length > 0) {
 			this.show_specific_values();
 		}
 		this.setup_group();
 
-		if(this.summary_values.length > 0) {
+		if(this.summary.length > 0) {
 			this.show_summary();
 		}
 	}
 
 	setup_container() {
+		// Graph needs a dedicated parent element
+		this.parent.empty();
+
 		this.container = $('<div>')
 			.addClass('graph-container')
 			.append($(`<h6 class="title" style="margin-top: 15px;">${this.title}</h6>`))
@@ -99,46 +113,110 @@ frappe.ui.Graph = class Graph {
 			.addClass(this.mode + '-graph')
 			.appendTo($graphics);
 
-		this.$svg = $(`<svg class="svg" width="${this.width}" height="${this.base_height}"></svg>`);
+		this.$svg = $(`<svg class="svg" width="${this.base_width}" height="${this.base_height}"></svg>`);
 		this.$graph.append(this.$svg);
 
 		this.snap = new Snap(this.$svg[0]);
 	}
 
 	setup_values() {
-		this.upper_graph_bound = this.get_upper_limit_and_parts(this.y_values)[0];
-		this.y_axis = this.get_y_axis(this.y_values);
-		this.avg_unit_width = (this.width-100)/(this.x_points.length - 1);
+		this.multiplier = this.height / this.get_upper_limit_and_parts(this.y)[0];
+		this.y_axis_values = this.get_y_axis_values(this.y);
+		this.y_bottoms = this.y.map( d => d * this.multiplier );
+		this.y_tops = this.y_bottoms.map( e => this.height - e );
+		this.x_values = [];
+
+		// Defaults
+		this.x_offset = 0;
+		this.avg_unit_width = this.width/(this.x.length - 1);
 	}
 
 	setup_components() {
-		this.y_axis_group = this.snap.g().attr({
-			class: "y axis"
-		});
-
-		this.x_axis_group = this.snap.g().attr({
-			class: "x axis"
-		});
-
-		this.graph_list = this.snap.g().attr({
-			class: "data-points",
-		});
-
-		this.specific_y_lines = this.snap.g().attr({
-			class: "specific axis",
-		});
+		this.y_axis_group = this.snap.g().attr({ class: "y axis" });
+		this.x_axis_group = this.snap.g().attr({ class: "x axis" });
+		this.data_units = this.snap.g().attr({ class: "data-points" });
+		this.specific_y_lines = this.snap.g().attr({ class: "specific axis" });
 	}
 
 	setup_group() {
 		this.snap.g(
 			this.y_axis_group,
 			this.x_axis_group,
-			this.graph_list,
+			this.data_units,
 			this.specific_y_lines
 		).attr({
 			transform: "translate(60, 10)"  // default
 		});
 	}
+
+	// make HORIZONTAL lines for y values
+	make_y_axis() {
+		let width, text_end_at, label_class = '';
+		if(this.y_axis_mode === 'span') {		// long lines
+			width = this.width;
+			text_end_at = -3;
+		} else if(this.y_axis_mode === 'tick'){	// short label lines
+			width = -6;
+			text_end_at = -9;
+			label_class = 'y-axis-label';
+		}
+
+		this.y_axis_values.map((point) => {
+			this.y_axis_group.add(this.snap.g(
+				this.snap.line(0, 0, width, 0),
+				this.snap.text(text_end_at, 0, point+"").attr({
+					dy: ".32em",
+					class: "y-value-text"
+				})
+			).attr({
+				class: `tick ${label_class}`,
+				transform: `translate(0, ${this.height *
+					(1 - this.y_axis_values.indexOf(point)/(this.y_axis_values.length-1)) })`
+			}));
+		});
+	}
+
+	// make VERTICAL lines for x values
+	make_x_axis() {
+		let start_at, height, text_start_at, label_class = '';
+		if(this.x_axis_mode === 'span') {		// long lines
+			start_at = -7;
+			height = this.height + 15;
+			text_start_at = this.height + 25;
+		} else if(this.x_axis_mode === 'tick'){	// short label lines
+			start_at = this.height
+			height = 6;
+			text_start_at = 9;
+			label_class = 'x-axis-label';
+		}
+
+		this.x_axis_group.attr({
+			transform: `translate(0,${start_at})`
+		});
+		this.x.map((point, i) => {
+			this.x_axis_group.add(this.snap.g(
+				this.snap.line(0, 0, 0, height),
+				this.snap.text(0, text_start_at, point).attr({
+					dy: ".71em",
+					class: "x-value-text"
+				})
+			).attr({
+				class: `tick ${label_class}`,
+				transform: `translate(${ this.x_offset + i * this.avg_unit_width }, 0)`
+			}));
+		});
+	}
+
+	make_units() {
+		let d = this.unit_args;
+		this.y_tops.map((y, i) => {
+			let x = this.x_offset + i * this.avg_unit_width;
+			this.x_values.push(x);
+			this.data_units.add(this.draw[d.type](x, y, d.args));
+		});
+	}
+
+	make_path() { }
 
 	show_specific_values() {
 		this.specific_values.map(d => {
@@ -152,13 +230,13 @@ frappe.ui.Graph = class Graph {
 				})
 			).attr({
 				class: "tick",
-				transform: `translate(0, ${this.height * (1 - 1/(this.upper_graph_bound/d.value)) })`
+				transform: `translate(0, ${this.height - d.value * this.multiplier })`
 			}));
 		});
 	}
 
 	show_summary() {
-		this.summary_values.map(d => {
+		this.summary.map(d => {
 			this.$stats_container.append($(`<div class="stats">
 				<span class="indicator ${d.color}">${d.name}: ${d.value}</span>
 			</div>`));
@@ -166,6 +244,10 @@ frappe.ui.Graph = class Graph {
 	}
 
 	// Helpers
+	get_strwidth(string) {
+		return string.length * 8;
+	}
+
 	get_upper_limit_and_parts(array) {
 		let specific_values = this.specific_values.map(d => d.value);
 		let max_val = parseInt(Math.max(...array, ...specific_values));
@@ -180,7 +262,7 @@ frappe.ui.Graph = class Graph {
 		}
 	}
 
-	get_y_axis(array) {
+	get_y_axis_values(array) {
 		let upper_limit, parts;
 		[upper_limit, parts] = this.get_upper_limit_and_parts(array);
 		let y_axis = [];
@@ -188,6 +270,24 @@ frappe.ui.Graph = class Graph {
 			y_axis.push(upper_limit / parts * i);
 		}
 		return y_axis;
+	}
+
+	// Objects
+	setup_utils() {
+		this.draw = {
+			'bar': (x, y, args) => {
+				let width = this.avg_unit_width - args.space_width;
+				let start_x = x - width/2;
+				return this.snap.rect(start_x, y, width, this.height - y).attr({
+					class: `bar mini fill ${this.color}`
+				});
+			},
+			'dot': (x, y, args) => {
+				return this.snap.circle(x, y, args.radius).attr({
+					class: `fill ${this.color}`
+				});
+			}
+		}
 	}
 };
 
@@ -197,58 +297,16 @@ frappe.ui.BarGraph = class BarGraph extends frappe.ui.Graph {
 	}
 
 	setup_values() {
+		var me = this;
 		super.setup_values();
-		this.avg_unit_width = (this.width-50)/(this.x_points.length + 2);
-	}
-
-	make_y_axis() {
-		this.y_axis.map((point) => {
-			this.y_axis_group.add(this.snap.g(
-				this.snap.line(0, 0, this.width, 0),
-				this.snap.text(-3, 0, point+"").attr({
-					dy: ".32em",
-					class: "y-value-text"
-				})
-			).attr({
-				class: "tick",
-				transform: `translate(0, ${this.height *
-					(1 - this.y_axis.indexOf(point)/(this.y_axis.length-1)) })`
-			}));
-		});
-	}
-
-	make_x_axis() {
-		this.x_axis_group.attr({
-			transform: `translate(0,${this.height})`
-		});
-		this.x_points.map((point, i) => {
-			this.x_axis_group.add(this.snap.g(
-				this.snap.line(0, 0, 0, 6),
-				this.snap.text(0, 9, point).attr({
-					dy: ".71em",
-					class: "x-value-text"
-				})
-			).attr({
-				class: "tick x-axis-label",
-				transform: `translate(${ ((this.avg_unit_width - 5)*3/2) + i * (this.avg_unit_width + 5) }, 0)`
-			}));
-		});
-	}
-
-	make_units() {
-		this.y_values.map((value, i) => {
-			this.graph_list.add(this.snap.g(
-				this.snap.rect(
-					0,
-					this.height * (1 - 1/(this.upper_graph_bound/value)),
-					this.avg_unit_width - 5,
-					this.height/(this.upper_graph_bound/value)
-				)
-			).attr({
-				class: "bar mini",
-				transform: `translate(${ (this.avg_unit_width - 5) + i * (this.avg_unit_width + 5) }, 0)`,
-			}));
-		});
+		this.y_axis_mode = 'span';
+		this.x_axis_mode = 'tick';
+		this.avg_unit_width = this.width/(this.x.length + 1);
+		this.x_offset = this.avg_unit_width;
+		this.unit_args = {
+			type: 'bar',
+			args: { space_width: me.avg_unit_width/8 }
+		}
 	}
 };
 
@@ -257,54 +315,28 @@ frappe.ui.LineGraph = class LineGraph extends frappe.ui.Graph {
 		super(args);
 	}
 
-	make_y_axis() {
-		this.y_axis.map((point) => {
-			this.y_axis_group.add(this.snap.g(
-				this.snap.line(0, 0, -6, 0),
-				this.snap.text(-9, 0, point+"").attr({
-					dy: ".32em",
-					class: "y-value-text"
-				})
-			).attr({
-				class: "tick",
-				transform: `translate(0, ${this.height *
-					(1 - this.y_axis.indexOf(point)/(this.y_axis.length-1)) })`
-			}));
-		});
+	setup_values() {
+		super.setup_values();
+		this.y_axis_mode = 'tick';
+		this.x_axis_mode = 'span';
+		this.unit_args = {
+			type: 'dot',
+			args: { radius: 4 }
+		}
 	}
 
-	make_x_axis() {
-		this.x_axis_group.attr({
-			transform: "translate(0,-7)"
-		});
-		this.x_points.map((point, i) => {
-			this.x_axis_group.add(this.snap.g(
-				this.snap.line(0, 0, 0, this.height + 15),
-				this.snap.text(0, this.height + 25, point).attr({
-					dy: ".71em",
-					class: "x-value-text"
-				})
-			).attr({
-				class: "tick",
-				transform: `translate(${ i * this.avg_unit_width }, 0)`
-			}));
-		});
-	}
-
-	make_units() {
-		let points_list = [];
-		this.y_values.map((value, i) => {
-			let x = i * this.avg_unit_width;
-			let y = this.height * (1 - 1/(this.upper_graph_bound/value));
-			this.graph_list.add(this.snap.circle( x, y, 4).tooltip());
-			points_list.push(x+","+y);
-		});
-
-		this.make_path("M"+points_list.join("L"));
-	}
-
-	make_path(path_str) {
-		this.graph_list.prepend(this.snap.path(path_str));
+	make_path() {
+		let points_list = this.y_tops.map((y, i) => (this.x_values[i] + ',' + y));
+		let path_str = "M"+points_list.join("L");
+		this.data_units.prepend(this.snap.path(path_str).attr({class: `stroke ${this.color}`}));
 	}
 
 };
+
+frappe.ui.PercentageGraph = class PercentageGraph extends frappe.ui.Graph {
+	constructor({
+
+	}) {
+
+	}
+}

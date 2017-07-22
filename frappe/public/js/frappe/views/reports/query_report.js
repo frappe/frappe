@@ -898,10 +898,10 @@ frappe.views.QueryReport = Class.extend({
 
 		new frappe.ui.Graph({
 			parent: me.chart_area,
-			height: 250,
-			mode: 'line',
-			y_values: data[1],
-			x_points: data[0],
+			mode: 'bar',
+			color: 'blue',
+			y: data[1],
+			x: data[0],
 		});
 	}
 })
