@@ -16,6 +16,7 @@ from frappe.modules.patch_handler import check_session_stopped
 from frappe.translate import get_lang_code
 from frappe.utils.password import check_password
 from frappe.core.doctype.authentication_log.authentication_log import add_authentication_log
+from frappe.utils.background_jobs import enqueue
 
 
 from urllib import quote
@@ -399,7 +400,7 @@ class LoginManager:
 
 	def send_token_via_sms(self, otpsecret, token=None, phone_no=None):
 		try:
-			from erpnext.setup.doctype.sms_settings.sms_settings import send_request
+			from frappe.core.doctype.sms_settings.sms_settings import send_request
 		except:
 			return False
 
@@ -411,7 +412,7 @@ class LoginManager:
 			return False
 			
 		hotp = pyotp.HOTP(otpsecret)
-		args = {ss.message_parameter: 'verification code is {}'.format(hotp.at(int(token)))}
+		args = {ss.message_parameter: 'Your verification code is {}'.format(hotp.at(int(token)))}
 		for d in ss.get("parameters"):
 			args[d.parameter] = d.value
 
@@ -422,7 +423,6 @@ class LoginManager:
 		return True
 
 	def send_token_via_email(self, token, otpsecret):
-		from frappe.utils.background_jobs import enqueue
 		user_email = frappe.db.get_value('User', self.user, 'email')
 		if not user_email:
 			return False
