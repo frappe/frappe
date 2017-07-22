@@ -32,7 +32,7 @@ class TestOAuth20(unittest.TestCase):
 		)
 
 		time.sleep(2)
-		
+
 		# Login
 		username = self.driver.find("#login_email")[0]
 		username.send_keys("test@example.com")
@@ -54,7 +54,7 @@ class TestOAuth20(unittest.TestCase):
 		# Get authorization code from redirected URL
 		auth_code = urlparse(self.driver.driver.current_url).query.split("=")[1]
 
-		payload = "grant_type=authorization_code&code=" 
+		payload = "grant_type=authorization_code&code="
 		payload += auth_code
 		payload += "&redirect_uri=http%3A%2F%2Flocalhost&client_id="
 		payload += self.client_id
@@ -62,7 +62,7 @@ class TestOAuth20(unittest.TestCase):
 		headers = {'content-type':'application/x-www-form-urlencoded'}
 
 		# Request for bearer token
-		token_response = requests.post( frappe.get_site_config().host_name + 
+		token_response = requests.post( frappe.get_site_config().host_name +
 			"/api/method/frappe.integrations.oauth2.get_token", data=payload, headers=headers)
 
 		# Parse bearer token json
