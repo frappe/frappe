@@ -334,7 +334,10 @@ def build_match_conditions(doctype, as_condition=True):
 	else:
 		return match_conditions
 
-def get_filters_cond(doctype, filters, conditions, ignore_permissions=None):
+def get_filters_cond(doctype, filters, conditions, ignore_permissions=None, with_match_conditions=False):
+	if isinstance(filters, basestring):
+		filters = json.loads(filters)
+
 	if filters:
 		flt = filters
 		if isinstance(filters, dict):
@@ -350,10 +353,13 @@ def get_filters_cond(doctype, filters, conditions, ignore_permissions=None):
 		query = DatabaseQuery(doctype)
 		query.filters = flt
 		query.conditions = conditions
+
+		if with_match_conditions:
+			query.build_match_conditions()
+
 		query.build_filter_conditions(flt, conditions, ignore_permissions)
 
 		cond = ' and ' + ' and '.join(query.conditions)
 	else:
 		cond = ''
 	return cond
-

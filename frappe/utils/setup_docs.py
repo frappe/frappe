@@ -12,7 +12,6 @@ from frappe.website.context import get_context
 from frappe.utils import markdown
 from six import iteritems
 
-
 class setup_docs(object):
 	def __init__(self, app):
 		"""Generate source templates for models reference and module API
@@ -30,7 +29,7 @@ class setup_docs(object):
 
 	def setup_app_context(self):
 		self.docs_config = frappe.get_module(self.app + ".config.docs")
-		version = self.hooks.get("app_version")[0]
+		version = get_version(app=self.app)
 		self.app_context =  {
 			"app": frappe._dict({
 				"name": self.app,
@@ -447,6 +446,11 @@ class setup_docs(object):
 				else:
 					css_file.write(text.replace("/assets/frappe/", self.docs_base_url + '/assets/').encode('utf-8'))
 
+def get_version(app="frappe"):
+	try:
+		return frappe.get_attr(app + ".__version__")
+	except AttributeError:
+		return '0.0.1'
 
 edit_link = '''
 <div class="page-container">

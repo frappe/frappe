@@ -89,6 +89,7 @@ kbd {
 }
 .dropdown-menu > li > a {
   padding: 14px;
+  white-space: normal;
 }
 .dropdown-menu {
   min-width: 200px;

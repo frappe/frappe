@@ -54,3 +54,6 @@
 .slick-row.odd .slick-cell {
   background-color: #fafbfc;
 }
+.frappe-rtl .slick-wrapper {
+  direction: ltr;
+}

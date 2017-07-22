@@ -23,7 +23,7 @@ def send(recipients=None, sender=None, subject=None, message=None, text_content=
 		attachments=None, reply_to=None, cc=[], message_id=None, in_reply_to=None, send_after=None,
 		expose_recipients=None, send_priority=1, communication=None, now=False, read_receipt=None,
 		queue_separately=False, is_notification=False, add_unsubscribe_link=1, inline_images=None,
-		header=False):
+		header=None):
 	"""Add email to sending queue (Email Queue)
 
 	:param recipients: List of recipients.
@@ -495,6 +495,7 @@ def prepare_message(email, recipient, recipients_list):
 			'fcontent': fcontent,
 			'parent': msg_obj
 		})
+		attachment.pop("fid", None)
 		add_attachment(**attachment)
 
 	return msg_obj.as_string()

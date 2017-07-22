@@ -494,7 +494,7 @@ def get_qr_svg_code(totp_uri):
 	from base64 import b64encode
 	url = qrcreate(totp_uri)
 	stream = StringIO()
-	url.svg(stream, scale=5)
+	url.svg(stream, scale=3)
 	svg = stream.getvalue().replace('\n','')
 	svg = b64encode(bytes(svg))
 	return svg

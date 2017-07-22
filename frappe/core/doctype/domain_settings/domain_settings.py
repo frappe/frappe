@@ -8,5 +8,4 @@ from frappe.model.document import Document
 
 class DomainSettings(Document):
 	def on_update(self):
-		cache = frappe.cache()
-		cache.delete_key("domains", "active_domains")
+		frappe.clear_domainification_cache()

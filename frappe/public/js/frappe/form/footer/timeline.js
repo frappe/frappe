@@ -320,9 +320,9 @@ frappe.ui.form.Timeline = Class.extend({
 		c.show_subject = false;
 		if(c.subject
 			&& c.communication_type==="Communication"
-			&& !frappe._in(this.frm.doc.subject, c.subject)
-			&& !frappe._in(this.frm.doc.name, c.subject)
-			&& !frappe._in(this.frm.doc[this.frm.meta.title_field || "name"], c.subject)) {
+			&& !this.frm.doc.subject.includes(c.subject)
+			&& !this.frm.doc.name.includes(c.subject)
+			&& !this.frm.doc[this.frm.meta.title_field || "name"].includes(c.subject)) {
 			c.show_subject = true;
 		}
 	},

@@ -45,6 +45,20 @@ frappe.ui.FieldGroup = frappe.ui.form.Layout.extend({
 		this.render(fields);
 		this.refresh_fields(fields);
 	},
+	refresh_fields: function(fields) {
+		let fieldnames = fields.map((field) => {
+			if(field.fieldname) return field.fieldname;
+		});
+
+		this.fields_list.map(fieldobj => {
+			if(fieldnames.includes(fieldobj.df.fieldname)) {
+				fieldobj.refresh();
+				if(fieldobj.df["default"]) {
+					fieldobj.set_input(fieldobj.df["default"]);
+				}
+			}
+		});
+	},
 	first_button: false,
 	catch_enter_as_submit: function() {
 		var me = this;

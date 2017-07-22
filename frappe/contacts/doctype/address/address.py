@@ -135,15 +135,34 @@ def get_list_context(context=None):
 	}
 
 def get_address_list(doctype, txt, filters, limit_start, limit_page_length = 20, order_by = None):
-	from frappe.www.list import get_list
-	user = frappe.session.user
-	ignore_permissions = False
-	if is_website_user():
-		if not filters: filters = []
-		filters.append(("Address", "owner", "=", user))
-		ignore_permissions = True
+    from frappe.www.list import get_list
+    user = frappe.session.user
+    ignore_permissions = False
+    if is_website_user():
+        if not filters: filters = []
+        add_name = []
+        contact = frappe.db.sql("""
+			select
+				address.name
+			from
+				`tabDynamic Link` as link
+			join
+				`tabAddress` as address on link.parent = address.name
+			where
+				link.parenttype = 'Address' and
+				link_name in(
+				   select
+					   link.link_name from `tabContact` as contact
+				   join
+					   `tabDynamic Link` as link on contact.name = link.parent
+				   where
+					   contact.user = %s)""",(user))
+        for c in contact:
+            add_name.append(c[0])
+        filters.append(("Address", "name", "in", add_name))
+        ignore_permissions = True
 
-	return get_list(doctype, txt, filters, limit_start, limit_page_length, ignore_permissions=ignore_permissions)
+    return get_list(doctype, txt, filters, limit_start, limit_page_length, ignore_permissions=ignore_permissions)
 
 def has_website_permission(doc, ptype, user, verbose=False):
 	"""Returns true if there is a related lead or contact related to this document"""
@@ -185,12 +204,12 @@ def get_shipping_address(company):
 		address_as_dict = address[0]
 		name, address_template = get_address_templates(address_as_dict)
 		return address_as_dict.get("name"), frappe.render_template(address_template, address_as_dict)
-		
+
 def get_company_address(company):
 	ret = frappe._dict()
 	ret.company_address = get_default_address('Company', company)
 	ret.company_address_display = get_address_display(ret.company_address)
-	
+
 	return ret
 
 def address_query(doctype, txt, searchfield, start, page_len, filters):

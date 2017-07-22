@@ -309,11 +309,15 @@ frappe.views.ListRenderer = Class.extend({
 
 	render_view: function (values) {
 		var me = this;
-		var $list_items = $(`
-			<div class="list-items">
-			</div>
-		`);
-		me.wrapper.append($list_items);
+		var $list_items = me.wrapper.find('.list-items');
+
+		if($list_items.length === 0) {
+			$list_items = $(`
+				<div class="list-items">
+				</div>
+			`);
+			me.wrapper.append($list_items);
+		}
 
 		values.map(value => {
 			const $item = $(this.get_item_html(value));

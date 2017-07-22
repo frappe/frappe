@@ -198,7 +198,7 @@ frappe.ui.BaseList = Class.extend({
 					let options = df.options;
 					let condition = '=';
 					let fieldtype = df.fieldtype;
-					if (['Link', 'Text', 'Small Text', 'Text Editor', 'Data'].includes(fieldtype)) {
+					if (['Text', 'Small Text', 'Text Editor', 'Data'].includes(fieldtype)) {
 						fieldtype = 'Data',
 						condition = 'like'
 					}

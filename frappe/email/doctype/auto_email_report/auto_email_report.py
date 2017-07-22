@@ -8,6 +8,7 @@ from frappe import _
 from frappe.model.document import Document
 from datetime import timedelta
 import frappe.utils
+from frappe.utils import now, global_date_format, format_time
 from frappe.utils.xlsxutils import make_xlsx
 from frappe.utils.csvutils import to_csv
 
@@ -76,16 +77,28 @@ class AutoEmailReport(Document):
 			return xlsx_file.getvalue()
 
 		elif self.format == 'CSV':
-			spreadsheet_data = self.get_spreadsheet_data(columns, data) 
+			spreadsheet_data = self.get_spreadsheet_data(columns, data)
 			return to_csv(spreadsheet_data)
 
 		else:
 			frappe.throw(_('Invalid Output Format'))
 
-	def get_html_table(self, columns, data):
-		return frappe.render_template('frappe/templates/includes/print_table.html', {
+	def get_html_table(self, columns=None, data=None):
+
+		date_time = global_date_format(now()) + ' ' + format_time(now())
+		report_doctype = frappe.db.get_value('Report', self.report, 'ref_doctype')
+
+		return frappe.render_template('frappe/templates/emails/auto_email_report.html', {
+			'title': self.name,
+			'description': self.description,
+			'date_time': date_time,
 			'columns': columns,
-			'data': data
+			'data': data,
+			'report_url': frappe.utils.get_url_to_report(self.report,
+				self.report_type, report_doctype),
+			'report_name': self.report,
+			'edit_report_settings': frappe.utils.get_link_to_form('Auto Email Report',
+				self.name)
 		})
 
 	@staticmethod
@@ -111,28 +124,16 @@ class AutoEmailReport(Document):
 			return
 
 		attachments = None
-		message = '<p>{0}</p>'.format(_('{0} generated on {1}')\
-				.format(frappe.bold(self.name),
-					frappe.utils.format_datetime(frappe.utils.now_datetime())))
-
-		if self.description:
-			message += '<hr style="margin: 15px 0px;">' + self.description
-
-		if self.format=='HTML':
-			message += '<hr>' + data
+		if self.format == "HTML":
+			message = data
 		else:
+			message = self.get_html_table()
+
+		if not self.format=='HTML':
 			attachments = [{
 				'fname': self.get_file_name(),
 				'fcontent': data
 			}]
-
-		report_doctype = frappe.db.get_value('Report', self.report, 'ref_doctype')
-		report_footer = frappe.render_template(self.get_report_footer(),
-			dict(report_url = frappe.utils.get_url_to_report(self.report, self.report_type, report_doctype),
-			report_name = self.report,
-			edit_report_settings = frappe.utils.get_link_to_form('Auto Email Report', self.name)))
-
-		message += report_footer
 
 		frappe.sendmail(
 			recipients = self.email_to.split(),
@@ -140,14 +141,6 @@ class AutoEmailReport(Document):
 			message = message,
 			attachments = attachments
 		)
-
-	def get_report_footer(self):
-		return """<hr style="margin: 30px 0px 15px 0px;">
-		<p style="font-size: 9px;">
-			View report in your browser:
-			<a href= {{report_url}} target="_blank">{{report_name}}</a><br><br>
-			Edit Auto Email Report Settings: {{edit_report_settings}}
-		</p>"""
 
 @frappe.whitelist()
 def download(name):

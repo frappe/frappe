@@ -22,11 +22,16 @@ To run a Test Runner based test, use the `run-ui-tests` bench command by passing
 
 This will pass the filename to `test_test_runner.py` that will load the required JS in the browser and execute the tests
 
-### Adding Fixtures / Test Data
+### Debugging Tests
 
-You can also add data that you require for all tests in the `tests/ui/data` folder of your app. All the files in this folder will be loaded in the browser before running the test.
+To debug a test, you can open it in the **Test Runner** from your UI and run it manually to see where it is exactly failing.
 
-The file `frappe/tests/ui/data/test_lib.js`, which contains library functions for testing is always loaded.
+### Test Sequence
+
+In Frappé UI tests are run in a fixed sequence to ensure dependencies.
+
+The sequence in which the tests will be run will be in `tests/ui/tests.txt`
+file.
 
 ### Running All UI Tests
 

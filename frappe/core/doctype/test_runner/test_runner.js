@@ -32,32 +32,33 @@ frappe.ui.form.on('Test Runner', {
 				frappe.dom.eval(f.script);
 			});
 
-			// if(frm.doc.module_name) {
-			// 	QUnit.module.only(frm.doc.module_name);
-			// }
-
 			QUnit.testDone(function(details) {
-				var result = {
-					"Module name": details.module,
-					"Test name": details.name,
-					"Assertions": {
-						"Total": details.total,
-						"Passed": details.passed,
-						"Failed": details.failed
-					},
-					"Skipped": details.skipped,
-					"Todo": details.todo,
-					"Runtime": details.runtime
-				};
+				// var result = {
+				// 	"Module name": details.module,
+				// 	"Test name": details.name,
+				// 	"Assertions": {
+				// 		"Total": details.total,
+				// 		"Passed": details.passed,
+				// 		"Failed": details.failed
+				// 	},
+				// 	"Skipped": details.skipped,
+				// 	"Todo": details.todo,
+				// 	"Runtime": details.runtime
+				// };
 
 				// eslint-disable-next-line
-				console.log(JSON.stringify(result, null, 2));
+				// console.log(JSON.stringify(result, null, 2));
+
+				details.assertions.map(a => {
+					// eslint-disable-next-line
+					console.log(`${a.result ? '✔' : '✗'}  ${a.message}`);
+				});
+
 			});
 			QUnit.load();
 
 			QUnit.done(({ total, failed, passed, runtime }) => {
 				// flag for selenium that test is done
-				$('<div id="frappe-qunit-done"></div>').appendTo($('body'));
 
 				console.log( `Total: ${total}, Failed: ${failed}, Passed: ${passed}, Runtime: ${runtime}` );  // eslint-disable-line
 
@@ -67,6 +68,9 @@ frappe.ui.form.on('Test Runner', {
 					console.log('Tests Passed'); // eslint-disable-line
 				}
 				frappe.set_route('Form', 'Test Runner', 'Test Runner');
+
+				$('<div id="frappe-qunit-done"></div>').appendTo($('body'));
+
 			});
 		});
 

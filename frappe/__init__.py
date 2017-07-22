@@ -14,7 +14,7 @@ import os, sys, importlib, inspect, json
 from .exceptions import *
 from .utils.jinja import get_jenv, get_template, render_template, get_email_from_template
 
-__version__ = '8.4.1'
+__version__ = '8.5.7'
 __title__ = "Frappe Framework"
 
 local = Local()
@@ -380,7 +380,7 @@ def sendmail(recipients=[], sender="", subject="No Subject", message="No Message
 		attachments=None, content=None, doctype=None, name=None, reply_to=None,
 		cc=[], message_id=None, in_reply_to=None, send_after=None, expose_recipients=None,
 		send_priority=1, communication=None, retry=1, now=None, read_receipt=None, is_notification=False,
-		inline_images=None, template=None, args=None, header=False):
+		inline_images=None, template=None, args=None, header=None):
 	"""Send email using user's default **Email Account** or global default **Email Account**.
 
 
@@ -492,6 +492,7 @@ def clear_cache(user=None, doctype=None):
 		frappe.sessions.clear_cache()
 		translate.clear_cache()
 		reset_metadata_version()
+		clear_domainification_cache()
 		local.cache = {}
 		local.new_doc_templates = {}
 
@@ -1370,6 +1371,22 @@ def get_active_domains():
 		cache().hset("domains", "active_domains", active_domains)
 
 	return active_domains
+
+def get_active_modules():
+	""" get the active modules from Module Def"""
+	active_modules = cache().hget("modules", "active_modules") or None
+	if active_modules is None:
+		domains = get_active_domains()
+		modules = get_all("Module Def", filters={"restrict_to_domain": ("in", domains)})
+		active_modules = [module.name for module in modules]
+		cache().hset("modules", "active_modules", active_modules)
+
+	return active_modules
+
+def clear_domainification_cache():
+	_cache = cache()
+	_cache.delete_key("domains", "active_domains")
+	_cache.delete_key("modules", "active_modules")
 
 def get_system_settings(key):
 	if not local.system_settings.has_key(key):

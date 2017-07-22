@@ -11,9 +11,7 @@ frappe.ui.FilterList = Class.extend({
 		this.set_events();
 	},
 	make: function() {
-		var me = this;
-
-		this.wrapper.find('.show_filters').remove();
+		this.wrapper.find('.show_filters, .filter_area').remove();
 		this.wrapper.append(`
 			<div class="show_filters">
 				<div class="set-filters">
@@ -59,8 +57,11 @@ frappe.ui.FilterList = Class.extend({
 	},
 
 	add_filter: function(doctype, fieldname, condition, value, hidden) {
-		if (this.base_list.page.fields_dict[fieldname]
-			&& ['=', 'like'].includes(condition)) {
+		// allow equal to be used as like
+		let base_filter = this.base_list.page.fields_dict[fieldname];
+		if (base_filter
+			&& (base_filter.df.condition==condition
+				|| (condition==='=' && base_filter.df.condition==='like'))) {
 			// if filter exists in base_list, then exit
 			this.base_list.page.fields_dict[fieldname].set_input(value);
 			return;
@@ -473,7 +474,7 @@ frappe.ui.Filter = Class.extend({
 			value = {0:"No", 1:"Yes"}[cint(value)];
 		}
 
-		value = frappe.format(value, this.field.df, {for_print: 1});
+		value = frappe.format(value, this.field.df, {only_value: 1});
 
 		// for translations
 		// __("like"), __("not like"), __("in")

@@ -64,8 +64,13 @@ frappe.form.formatters = {
 				precision = decimals.length;
 			}
 		}
-		return frappe.form.formatters._right((value==null || value==="")
-			? "" : format_currency(value, currency, precision), options);
+		value = (value==null || value==="") ?
+			"" : format_currency(value, currency, precision);
+		if (options && options.only_value) {
+			return value;
+		} else {
+			return frappe.form.formatters._right(value, options);
+		}
 	},
 	Check: function(value) {
 		if(value) {
@@ -81,7 +86,7 @@ frappe.form.formatters = {
 			value.replace(/^.(.*).$/, "$1");
 		}
 
-		if(options && options.for_print) {
+		if(options && (options.for_print || options.only_value)) {
 			return value;
 		}
 
