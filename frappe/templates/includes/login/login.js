@@ -77,7 +77,9 @@ login.route = function() {
 
 login.reset_sections = function(hide) {
 	if(hide || hide===undefined) {
-		$("section").toggle(false);
+		$("section.for-login").toggle(false);
+		$("section.for-forgot").toggle(false);
+		$("section.for-signup").toggle(false);
 	}
 	$('section .indicator').each(function() {
 		$(this).removeClass().addClass('indicator').addClass('blue')
