@@ -3,7 +3,6 @@
 from __future__ import unicode_literals
 
 import unittest, frappe, requests
-from frappe.utils import get_url
 from frappe.test_runner import make_test_records
 
 class TestOAuth20(unittest.TestCase):
@@ -13,11 +12,11 @@ class TestOAuth20(unittest.TestCase):
 
 	def test_authorize_guest_redirect(self):
 		resp = requests.get(
-				frappe.get_site_config().host_name + 
-				"/api/method/frappe.integrations.oauth2.authorize?" + 
-				"client_id=test_client_id&" + 
+				frappe.get_site_config().host_name +
+				"/api/method/frappe.integrations.oauth2.authorize?" +
+				"client_id=test_client_id&" +
 				"scope=all%20openid&" +
-				"response_type=code&" + 
+				"response_type=code&" +
 				"redirect_uri=http%3A%2F%2Flocalhost"
 			)
 		self.assertTrue(resp.history[0].status_code == 302)
