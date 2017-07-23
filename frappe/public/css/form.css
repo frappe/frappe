@@ -681,6 +681,7 @@ select.form-control {
 .graph-container .graphics {
   margin-top: 10px;
   padding: 10px 0px;
+  position: relative;
 }
 .graph-container .stats-group {
   display: flex;
@@ -740,6 +741,61 @@ line.dashed {
 }
 .tick .x-value-text {
   text-anchor: middle;
+}
+.svg-tip {
+  position: absolute;
+  z-index: 99999;
+  padding: 10px;
+  font-size: 12px;
+  color: #959da5;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.8);
+  border-radius: 3px;
+}
+.svg-tip.comparison {
+  padding: 0;
+  text-align: left;
+  pointer-events: none;
+}
+.svg-tip.comparison .title {
+  display: block;
+  padding: 10px;
+  margin: 0;
+  font-weight: 600;
+  line-height: 1;
+  pointer-events: none;
+}
+.svg-tip.comparison ul {
+  margin: 0;
+  white-space: nowrap;
+  list-style: none;
+}
+.svg-tip.comparison li {
+  display: inline-block;
+  padding: 5px 10px;
+}
+.svg-tip strong {
+  color: #dfe2e5;
+}
+.svg-tip::after {
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  margin: 0 0 0 -5px;
+  content: " ";
+  border: 5px solid transparent;
+  border-top-color: rgba(0, 0, 0, 0.8);
+}
+ul,
+ol {
+  padding-left: 0;
+  display: flex;
+}
+ul.data-point-list li {
+  min-width: 90px;
+  flex: 1;
 }
 .stroke.grey {
   stroke: #F0F4F7;
@@ -812,6 +868,42 @@ line.dashed {
 }
 .fill.lightblue {
   fill: #7CD6FD;
+}
+.border-top.grey {
+  border-top: 3px solid #F0F4F7;
+}
+.border-top.blue {
+  border-top: 3px solid #5e64ff;
+}
+.border-top.red {
+  border-top: 3px solid #ff5858;
+}
+.border-top.light-green {
+  border-top: 3px solid #98d85b;
+}
+.border-top.green {
+  border-top: 3px solid #28a745;
+}
+.border-top.orange {
+  border-top: 3px solid #ffa00a;
+}
+.border-top.purple {
+  border-top: 3px solid #743ee2;
+}
+.border-top.darkgrey {
+  border-top: 3px solid #b8c2cc;
+}
+.border-top.black {
+  border-top: 3px solid #36414C;
+}
+.border-top.yellow {
+  border-top: 3px solid #FEEF72;
+}
+.border-top.light-blue {
+  border-top: 3px solid #7CD6FD;
+}
+.border-top.lightblue {
+  border-top: 3px solid #7CD6FD;
 }
 body[data-route^="Form/Communication"] textarea[data-fieldname="subject"] {
   height: 80px !important;

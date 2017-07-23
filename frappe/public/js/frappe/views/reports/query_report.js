@@ -902,15 +902,20 @@ frappe.views.QueryReport = Class.extend({
 			color: 'blue',
 			y: [
 				{
-					color: 'light-green',
-					values: data[1]
+					title: 'Some data',
+					values: data[1],
+					formatted: ['2L', '4L', '7L', '6L', '3L', '2L', '8L', '7L'],
+					color: 'light-blue',
 				},
 				{
-					color: 'green',
-					values: data[2]
+					title: 'Another set',
+					values: data[2],
+					formatted: ['1L', '2L', '6L', '4L', '2L', '3L', '7L', '5L'],
+					color: 'purple',
 				}
 			],
 			x: data[0],
+			x_formatted: data[0].map(d => d.toLowerCase().replace(/-/g, 'to'))
 		});
 	}
 })

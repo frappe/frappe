@@ -25,7 +25,6 @@ frappe.ui.Graph = class Graph {
 		x = [],
 
 		x_formatted = [],
-		y_formatted = [],
 
 		specific_values = [],
 		summary = [],
@@ -53,11 +52,15 @@ frappe.ui.Graph = class Graph {
 		this.base_height = height;
 		this.height = height - 40;
 
+		this.translate_x = 60;
+		this.translate_y = 10;
+
 		this.title = title;
 		this.subtitle = subtitle;
 
 		this.y = y;
 		this.x = x;
+		this.x_formatted = x_formatted;
 
 		this.specific_values = specific_values;
 		this.summary = summary;
@@ -93,6 +96,8 @@ frappe.ui.Graph = class Graph {
 			this.make_path(d.y_tops, d.color);
 		});
 
+		this.make_tooltip();
+
 		if(this.specific_values.length > 0) {
 			this.show_specific_values();
 		}
@@ -115,12 +120,12 @@ frappe.ui.Graph = class Graph {
 			.append($(`<div class="stats-container"></div>`))
 			.appendTo(this.parent);
 
-		let $graphics = this.container.find('.graphics');
+		this.$graphics = this.container.find('.graphics');
 		this.$stats_container = this.container.find('.stats-container');
 
 		this.$graph = $('<div>')
 			.addClass(this.mode + '-graph')
-			.appendTo($graphics);
+			.appendTo(this.$graphics);
 
 		this.$svg = $(`<svg class="svg" width="${this.base_width}" height="${this.base_height}"></svg>`);
 		this.$graph.append(this.$svg);
@@ -142,10 +147,17 @@ frappe.ui.Graph = class Graph {
 
 		this.x_axis_values = this.x.map((d, i) => this.x_offset + i * this.avg_unit_width);
 		this.y_axis_values = this.get_y_axis_values(this.upper_limit, this.parts);
+		this.y_min_tops = new Array(this.x_axis_values.length).fill(9999);
 
 		// Data points
 		this.y.map(d => {
-			d.y_tops = d.values.map( val => this.height - val * this.multiplier );
+			d.y_tops = d.values.map( (val, i) => {
+				let y_top = this.height - val * this.multiplier;
+				if(y_top < this.y_min_tops[i]) {
+					this.y_min_tops[i] = y_top;
+				}
+				return y_top;
+			});
 		});
 	}
 
@@ -168,25 +180,24 @@ frappe.ui.Graph = class Graph {
 			this.data_units,
 			this.specific_y_lines
 		).attr({
-			transform: "translate(60, 10)"  // default
+			transform: `translate(${this.translate_x}, ${this.translate_y})`
 		});
 	}
 
 	// make HORIZONTAL lines for y values
 	make_y_axis() {
-		let width, text_end_at, label_class = '';
+		let width, text_end_at = -9, label_class = '', start_at = 0;
 		if(this.y_axis_mode === 'span') {		// long spanning lines
-			width = this.width;
-			text_end_at = -3;
+			width = this.width + 6;
+			start_at = -6
 		} else if(this.y_axis_mode === 'tick'){	// short label lines
 			width = -6;
-			text_end_at = -9;
 			label_class = 'y-axis-label';
 		}
 
 		this.y_axis_values.map((point) => {
 			this.y_axis_group.add(this.snap.g(
-				this.snap.line(0, 0, width, 0),
+				this.snap.line(start_at, 0, width, 0),
 				this.snap.text(text_end_at, 0, point+"").attr({
 					dy: ".32em",
 					class: "y-value-text"
@@ -238,6 +249,70 @@ frappe.ui.Graph = class Graph {
 	}
 
 	make_path(y_values, color) { }
+
+	make_tooltip() {
+		this.tip = $(`<div class="svg-tip comparison">
+			<span class="title"></span>
+			<ul class="data-point-list">
+			</ul>
+		</div>`).attr({
+			style: `top: 0px; left: 0px; opacity: 0; pointer-events: none;`
+		}).appendTo(this.$graphics);
+
+		this.tip_title = this.tip.find('.title');
+		this.tip_data_point_list = this.tip.find('.data-point-list');
+
+		this.bind_tooltip();
+	}
+
+	bind_tooltip() {
+		this.$graphics.on('mousemove', (e) => {
+			let offset = $(this.$graphics).offset();
+			var relX = e.pageX - offset.left - this.translate_x;
+			var relY = e.pageY - offset.top - this.translate_y;
+
+			if(relY < this.height) {
+				for(var i=this.x_axis_values.length - 1; i >= 0 ; i--) {
+					let x_val = this.x_axis_values[i];
+					if(relX > x_val - this.avg_unit_width/2) {
+						let x = x_val - this.tip.width()/2 + this.translate_x;
+						let y = this.y_min_tops[i] - this.tip.height() + this.translate_y;
+
+						this.fill_tooltip(i);
+
+						this.tip.attr({
+							style: `top: ${y}px; left: ${x-0.5}px; opacity: 1; pointer-events: none;`
+						});
+						break;
+					}
+				}
+			} else {
+				this.tip.attr({
+					style: `top: 0px; left: 0px; opacity: 0; pointer-events: none;`
+				});
+			}
+		});
+
+		this.$graphics.on('mouseleave', (e) => {
+			this.tip.attr({
+				style: `top: 0px; left: 0px; opacity: 0; pointer-events: none;`
+			});
+		});
+	}
+
+	fill_tooltip(i) {
+		this.tip_title.html(this.x_formatted.length>0 ? this.x_formatted[i] : this.x[i]);
+		this.tip_data_point_list.empty();
+		this.y.map(y_set => {
+			let $li = $(`<li>
+				<strong style="display: block;">
+					${y_set.formatted ? y_set.formatted[i] : y_set.values[i]}
+				</strong>
+				${y_set.title ? y_set.title : '' }
+			</li>`).addClass(`border-top ${y_set.color}`);
+			this.tip_data_point_list.append($li);
+		});
+	}
 
 	show_specific_values() {
 		this.specific_values.map(d => {
@@ -326,7 +401,7 @@ frappe.ui.BarGraph = class BarGraph extends frappe.ui.Graph {
 		this.unit_args = {
 			type: 'bar',
 			args: {
-				space_width: this.y_axis_mode.length > 1 ?
+				space_width: this.y.length > 1 ?
 					me.avg_unit_width/2 : me.avg_unit_width/8,
 				no_of_datasets: this.y.length
 			}
@@ -346,8 +421,8 @@ frappe.ui.LineGraph = class LineGraph extends frappe.ui.Graph {
 
 	setup_values() {
 		super.setup_values();
-		this.y_axis_mode = 'tick';
-		this.x_axis_mode = 'span';
+		this.y_axis_mode = 'span';
+		this.x_axis_mode = 'tick';
 		this.unit_args = {
 			type: 'dot',
 			args: { radius: 4 }
