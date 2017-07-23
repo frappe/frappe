@@ -138,6 +138,7 @@ class LoginManager:
 		return bool(two_factor_user_role)
 
 	def get_verification_obj(self):
+		otp_issuer = frappe.db.get_value('System Settings', 'System Settings', 'otp_issuer_name')
 		if self.verification_method == 'SMS':
 			user_phone = frappe.db.get_value('User', self.user, ['phone','mobile_no'], as_dict=1)
 			usr_phone = user_phone.mobile_no or user_phone.phone
@@ -146,7 +147,7 @@ class LoginManager:
 								'prompt': status and 'Enter verification code sent to {}'.format(usr_phone[:4] + '******' + usr_phone[-3:]),
 								'method': 'SMS'}
 		elif self.verification_method == 'OTP App':
-			totp_uri = pyotp.TOTP(self.otp_secret).provisioning_uri(self.user, issuer_name="Estate Manager")
+			totp_uri = pyotp.TOTP(self.otp_secret).provisioning_uri(self.user, issuer_name=otp_issuer)
 
 			if frappe.db.get_default(self.user + '_otplogin'):
 				otp_setup_completed = True
@@ -399,6 +400,7 @@ class LoginManager:
 		clear_cookies()
 
 	def send_token_via_sms(self, otpsecret, token=None, phone_no=None):
+		otp_issuer = frappe.db.get_value('System Settings', 'System Settings', 'otp_issuer_name')
 		try:
 			from frappe.core.doctype.sms_settings.sms_settings import send_request
 		except:
@@ -412,7 +414,7 @@ class LoginManager:
 			return False
 			
 		hotp = pyotp.HOTP(otpsecret)
-		args = {ss.message_parameter: 'Your verification code is {}'.format(hotp.at(int(token)))}
+		args = {ss.message_parameter: 'Your verification code is {}'.format(hotp.at(int(token))), ss.sms_sender_name: otp_issuer}
 		for d in ss.get("parameters"):
 			args[d.parameter] = d.value
 
@@ -423,13 +425,14 @@ class LoginManager:
 		return True
 
 	def send_token_via_email(self, token, otpsecret):
+		otp_issuer = frappe.db.get_value('System Settings', 'System Settings', 'otp_issuer_name')
 		user_email = frappe.db.get_value('User', self.user, 'email')
 		if not user_email:
 			return False
 		hotp = pyotp.HOTP(otpsecret)
 		email_args = {
-				'recipients':user_email, 'sender':None, 'subject':'Verification Code',
-				'message':'<p>Your verification code is {}</p>'.format(hotp.at(int(token))),
+				'recipients':user_email, 'sender':None, 'subject':'Verification Code from {}'.format(otp_issuer or "Frappe Framework"),
+				'message':'<p>Your verification code is {}.</p>'.format(hotp.at(int(token))),
 				'delayed':False, 'retry':3 }
 
 		enqueue(method=frappe.sendmail, queue='short', timeout=300, event=None, async=True, job_name=None, now=False, **email_args)

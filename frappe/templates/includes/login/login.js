@@ -269,7 +269,8 @@ var continue_otp_app = function(setup, qrcode){
 	var qrcode_div = $('<div>').attr({'id':'qrcode_div','style':'text-align:center;padding-bottom:15px;'});
 
 	if (!setup){
-			direction = $('<div>').attr('id','qr_info').text('Scan QR Code and enter the resulting code displayed' ),
+			direction = $('<div>').attr('id','qr_info').text('Scan QR Code and enter the resulting code displayed. \
+				You can use apps such as Google Authenticator, Lastpass Authenticator, Authy, Duo Mobile and others.'),
 			qrimg = $('<img>').attr({
 				'src':'data:image/svg+xml;base64,' + qrcode,
 				'style':'width:250px;height:250px;'});
