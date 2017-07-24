@@ -23,16 +23,15 @@
 
 {% for app in apps %}
 <div class="web-list-item">
-	<a class="no-decoration" href="#">
-		<div class="row">
-			<div class="col-xs-6">
-				{{ app.app_name }}
-			</div>
-			<div class="col-xs-6 text-right small text-muted">
-				{{ frappe.utils.pretty_date(app.modified) }}
-			</div>
+	<div class="row">
+		<div class="col-xs-6">
+			{{ app.app_name }}
 		</div>
-	</a>
+		<div class="col-xs-6 text-right small text-muted">
+			{{ frappe.utils.pretty_date(app.modified) }}
+			<a class="revoke-tokens text-muted" data-client_id="{{ app.name }}" data-app_name="{{ app.app_name }}"><i class="fa fa-close" aria-hidden="true"></i></a>
+		</div>
+	</div>
 </div>
 {% endfor %}
 
