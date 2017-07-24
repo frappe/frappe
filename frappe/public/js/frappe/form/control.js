@@ -318,7 +318,7 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 				} else {
 					$(me.input_area).toggle(false);
 					if (me.disp_area) {
-						me.set_disp_area();
+						me.set_disp_area(me.value);
 						$(me.disp_area).toggle(true);
 					}
 				}
@@ -332,8 +332,7 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 		}
 	},
 
-	set_disp_area: function() {
-		let value = this.get_input_value();
+	set_disp_area: function(value) {
 		if(in_list(["Currency", "Int", "Float"], this.df.fieldtype)
 			&& (this.value === 0 || value === 0)) {
 			// to set the 0 value in readonly for currency, int, float field
@@ -449,7 +448,7 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 		this.last_value = this.value;
 		this.value = value;
 		this.set_formatted_input(value);
-		this.set_disp_area();
+		this.set_disp_area(value);
 		this.set_mandatory && this.set_mandatory(value);
 	},
 	set_formatted_input: function(value) {
@@ -903,11 +902,12 @@ frappe.ui.form.ControlDateRange = frappe.ui.form.ControlData.extend({
 			this.value = value;
 		}
 		if (this.value) {
-			this.$input && this.$input.val(this.format_for_input(this.value[0], this.value[1]));
+			let formatted = this.format_for_input(this.value[0], this.value[1]);
+			this.$input && this.$input.val(formatted);
 		} else {
 			this.$input && this.$input.val("");
 		}
-		this.set_disp_area();
+		this.set_disp_area(value || '');
 		this.set_mandatory && this.set_mandatory(value);
 	},
 	parse: function(value) {
@@ -984,7 +984,7 @@ frappe.ui.form.ControlCheck = frappe.ui.form.ControlData.extend({
 		}
 		this.last_value = value;
 		this.set_mandatory(value);
-		this.set_disp_area();
+		this.set_disp_area(value);
 	}
 });
 
