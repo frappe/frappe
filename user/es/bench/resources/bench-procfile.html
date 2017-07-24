@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<!-- Built on Frappe. https://frappe.io/ -->
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Bench Procfile</title>
+	<meta name="generator" content="frappe">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/font-awesome.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/octicons/octicons.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/docs.css">
+
+    
+	<link rel="shortcut icon"
+		href="https://frappe.github.io/frappe/assets/img/favicon.png"
+		type="image/x-icon">
+	<link rel="icon"
+		href="https://frappe.github.io/frappe/assets/img/favicon.png"
+		type="image/x-icon">
+    
+
+		</head>
+<body data-path="user/es/bench/resources/bench-procfile">
+	<div class="main-section">
+		<div>
+					<nav class="navbar navbar-default navbar-main" role="navigation">
+		<div class="container">
+			<div class="navbar-header">
+				<a class="navbar-brand ellipsis"
+					 href="https://frappe.github.io/frappe//">
+					<span><img class="brand-logo" src="https://frappe.github.io/frappe/assets/img/frappe-bird-white.png"> Frappé Framework</img></span>
+				</a>
+				<div class="dropdown">
+					<button class="btn btn-default navbar-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+						<i class="octicon octicon-three-bars"></i>
+					</button>
+					<ul class="dropdown-menu dropdown-menu-right">
+<li data-label='<i class="octicon octicon-search"></i>' >
+	<a href="/#"
+		
+		>
+	<i class="octicon octicon-search"></i></a></li><li data-label='Tutorials' >
+	<a href="https://frappe.github.io/frappe/user"
+		
+		>
+	Tutorials</a></li><li data-label='API' >
+	<a href="https://frappe.github.io/frappe/current"
+		
+		>
+	API</a></li><li data-label='Forum' >
+	<a href="https://discuss.erpnext.com"
+		
+		>
+	Forum</a></li>
+
+<li class="divider"></li>
+
+<!-- post login tools -->
+
+</ul>
+				</div>
+			</div>
+			<div class="hidden-xs">
+				
+				<ul class="nav navbar-nav navbar-left">
+</ul>
+<ul class="nav navbar-nav navbar-right"><li data-label='<i class="octicon octicon-search"></i>' >
+	<a href="/#"
+		
+		>
+	<i class="octicon octicon-search"></i></a></li><li data-label='Tutorials' >
+	<a href="https://frappe.github.io/frappe/user"
+		
+		>
+	Tutorials</a></li><li data-label='API' >
+	<a href="https://frappe.github.io/frappe/current"
+		
+		>
+	API</a></li><li data-label='Forum' >
+	<a href="https://discuss.erpnext.com"
+		
+		>
+	Forum</a></li>
+	
+	
+	<!-- post login tools -->
+
+</ul>
+				
+			</div>
+		</div>
+	</nav><div class="hero-and-content">
+                <div data-html-block="hero"></div>
+                <div class="container" data-html-block="content">
+                
+<div class="page-container" id="page-user/es/bench/resources/bench-procfile" data-path="{{ pathname }}"
+	>
+	<div class="row ">
+		
+		<div class=" page-content col-sm-12 ">
+			<div class="page-content-wrapper">
+				<div class="row page-head">
+					<div class='col-sm-12 hidden-xs'>
+						
+						<div class="page-breadcrumbs">
+							
+							
+<ul class="breadcrumb" itemscope itemtype="http://data-vocabulary.org/Breadcrumb">
+	
+		<li>
+			<a href="https://frappe.github.io/frappe//user/es/bench/resources" itemprop="url">
+			<span itemprop="title">Resources</span>
+			</a>
+		</li>
+	
+	<li class="active"><span itemprop="title">Bench Procfile</span></li>
+</ul>
+
+							
+						</div>
+						
+					</div>
+					<div class="col-sm-8 col-xs-6">
+						<h1>Bench Procfile</h1>
+					</div>
+					<div class="col-sm-4 col-xs-6">
+						
+
+						
+					</div>
+				</div>
+			</div>
+			<div class="page_content">
+<p><code>bench start</code> usa <a href="http://honcho.readthedocs.org">honcho</a> para manejar múltiples procesos en <strong>developer mode</strong>.</p>
+
+<h3>Procesos</h3>
+
+<p>Los diversos procesos que se necesitan para correr frappe son:</p>
+
+<ol>
+<li><code>bench start</code> - El servidor web.</li>
+<li><code>redis_cache</code> para cache (general)</li>
+<li><code>redis_queue</code> para manejar las cosas de los background workers</li>
+<li><code>redis_socketio</code> como un notificador de notificaciones para actualizaciones en tiempo real desde los background workers</li>
+<li><code>web</code> para el servidor web de frappe.</li>
+<li><code>socketio</code> para mensajes en tiempo real.</li>
+<li><code>schedule</code> para disparar tareas periódicas</li>
+<li><code>worker_*</code> redis workers para manejar trabajos aíncronos</li>
+</ol>
+
+<p>Opcionalmente, si estas desarrollando en frappe puedes agregar:</p>
+
+<p><code>bench watch</code> para automáticamente construir la aplicación  javascript desk.</p>
+
+<h3>Ejemplo</h3>
+
+<pre><code>redis_cache: redis-server config/redis_cache.conf
+redis_socketio: redis-server config/redis_socketio.conf
+redis_queue: redis-server config/redis_queue.conf
+web: bench serve --port 8000
+socketio: /usr/bin/node apps/frappe/socketio.js
+watch: bench watch
+schedule: bench schedule
+worker_short: bench worker --queue short
+worker_long: bench worker --queue long
+worker_default: bench worker --queue default
+</code></pre>
+
+</div>
+		</div>
+	</div>
+</div>
+
+				
+<div class="page-container">
+	<div class="page-content">
+	<div class="edit-container text-center">
+		<i class="fa fa-smile"></i>
+		<a class="text-muted edit" href="https://github.com/frappe/frappe/blob/develop/frappe/docs/user/es/bench/resources/bench-procfile.md">
+			Improve this page
+		</a>
+	</div>
+	</div>
+</div>
+                </div>
+            </div>
+			<footer class="docs-footer">
+				<div class="container"><div class="built-with-frappe text-center">
+                    <img class="frappe-bird" src="https://frappe.github.io/frappe/assets/img/frappe-bird-grey.svg">
+                    <h3>By Frappe Technologies</h3>
+                </div>
+                <div class="text-center">
+                    <ul class="list-unstyled">
+                        <li>
+                            <a href="https://github.com/frappe/frappe">
+                            Source</a>
+                        </li>
+                        <li>
+                            <a href="https://github.com/frappe/frappe/issues">
+                            Issues</a>
+                        </li>
+                        <li>
+                            <a href="https://frappe.github.io/frappe/license.html">
+                            License</a>
+                        </li>
+                        <li>
+                            <a href="https://discuss.erpnext.com">
+                            Forum</a>
+                        </li>
+                        <li>
+                            <a href="https://community.erpnext.com/apps">
+                            Frappe Apps</a>
+                        </li>
+                    </ul>
+                </div>
+
+            </div>
+			</footer>
+		</div>
+	</div>
+
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/jquery.min.js"></script>
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/highlight.pack.js"></script>
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/docs.js"></script>
+
+	<!-- js should be loaded in body! -->
+	<script>
+        window.docs_base_url = "https://frappe.github.io/frappe";
+    </script>
+
+	
+	<script>
+	  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+	  ga('create', 'UA-8911157-23', 'auto');
+	  ga('send', 'pageview');
+
+	</script>
+	
+	<!-- csrf_token --></body>
+</html>

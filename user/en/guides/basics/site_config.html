@@ -159,14 +159,24 @@
 <h3>Optional Settings</h3>
 
 <ul>
-<li><code>db_host</code>: Database host if not <code>localhost</code>.</li>
 <li><code>admin_password</code>: Default Password for "Administrator".</li>
 <li><code>mute_emails</code>: Stops email sending if true.</li>
 <li><code>deny_multiple_logins</code>: Stop users from having more than one active session.</li>
 <li><code>root_password</code>: MariaDB root password.</li>
 </ul>
 
-<h3>Defaut Outgoing Email Settings</h3>
+<h3>Remote Database Host Settings</h3>
+
+<ul>
+<li><code>db_host</code>: Database host if not <code>localhost</code>.</li>
+</ul>
+
+<p>To connect to a remote database server using ssl, you must first configure the database host to accept SSL connections. An example of how to do this is available at https://www.digitalocean.com/community/tutorials/how-to-configure-ssl-tls-for-mysql-on-ubuntu-16-04. After you do the configuration, set the following three options. All options must be set for Frappe to attempt to connect using SSL.
+- <code>db_ssl_ca</code>: Full path to the ca.pem file used for connecting to a database host using ssl. Example value is <code>"/etc/mysql/ssl/ca.pem"</code>.
+- <code>db_ssl_cert</code>: Full path to the cert.pem file used for connecting to a database host using ssl. Example value is <code>"/etc/mysql/ssl/client-cert.pem"</code>.
+- <code>db_ssl_key</code>: Full path to the key.pem file used for connecting to a database host using ssl. Example value is <code>"/etc/mysql/ssl/client-key.pem"</code>.</p>
+
+<h3>Default Outgoing Email Settings</h3>
 
 <ul>
 <li><code>mail_server</code>: SMTP server hostname.</li>

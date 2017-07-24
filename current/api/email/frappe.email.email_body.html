@@ -278,7 +278,7 @@ Also sets all messages as multipart/alternative for cleaner reading in text-only
         <a name="set_html" href="#set_html" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		<b>set_html</b>
-        <i class="text-muted">(self, message, text_content=None, footer=None, print_html=None, formatted=None, inline_images=None, header=False)</i>
+        <i class="text-muted">(self, message, text_content=None, footer=None, print_html=None, formatted=None, inline_images=None, header=None)</i>
     </p>
 	<div class="docs-attr-desc"><p>Attach message in the html portion of multipart/alternative</p>
 </div>
@@ -413,7 +413,7 @@ Also sets all messages as multipart/alternative for cleaner reading in text-only
         <a name="frappe.email.email_body.get_email" href="#frappe.email.email_body.get_email" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		frappe.email.email_body.<b>get_email</b>
-        <i class="text-muted">(recipients, sender=, msg=, subject=[No Subject], text_content=None, footer=None, print_html=None, formatted=None, attachments=None, content=None, reply_to=None, cc=[], email_account=None, expose_recipients=None, inline_images=[], header=False)</i>
+        <i class="text-muted">(recipients, sender=, msg=, subject=[No Subject], text_content=None, footer=None, print_html=None, formatted=None, attachments=None, content=None, reply_to=None, cc=[], email_account=None, expose_recipients=None, inline_images=[], header=None)</i>
     </p>
 	<div class="docs-attr-desc"><p>Prepare an email with the following format:
         - multipart/mixed
@@ -468,7 +468,7 @@ Also sets all messages as multipart/alternative for cleaner reading in text-only
         <a name="frappe.email.email_body.get_formatted_html" href="#frappe.email.email_body.get_formatted_html" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		frappe.email.email_body.<b>get_formatted_html</b>
-        <i class="text-muted">(subject, message, footer=None, print_html=None, email_account=None, header=False)</i>
+        <i class="text-muted">(subject, message, footer=None, print_html=None, email_account=None, header=None)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
 </div>
@@ -484,7 +484,7 @@ Also sets all messages as multipart/alternative for cleaner reading in text-only
         <a name="frappe.email.email_body.get_header" href="#frappe.email.email_body.get_header" class="text-muted small">
             <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		frappe.email.email_body.<b>get_header</b>
-        <i class="text-muted">()</i>
+        <i class="text-muted">(header=None)</i>
     </p>
 	<div class="docs-attr-desc"><p>Build header from template </p>
 </div>
@@ -519,6 +519,22 @@ Also sets all messages as multipart/alternative for cleaner reading in text-only
         <i class="text-muted">(email_account)</i>
     </p>
 	<div class="docs-attr-desc"><p><span class="text-muted">No docs</span></p>
+</div>
+	<br>
+
+	
+
+	
+        
+    
+    
+	<p class="docs-attr-name">
+        <a name="frappe.email.email_body.inline_style_in_html" href="#frappe.email.email_body.inline_style_in_html" class="text-muted small">
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
+		frappe.email.email_body.<b>inline_style_in_html</b>
+        <i class="text-muted">(html)</i>
+    </p>
+	<div class="docs-attr-desc"><p>Convert email.css and html to inline-styled html</p>
 </div>
 	<br>
 

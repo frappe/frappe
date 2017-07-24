@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<!-- Built on Frappe. https://frappe.io/ -->
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Uso de Let's Encrypt para configurar HTTPS</title>
+	<meta name="generator" content="frappe">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/font-awesome.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/octicons/octicons.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/docs.css">
+
+    
+	<link rel="shortcut icon"
+		href="https://frappe.github.io/frappe/assets/img/favicon.png"
+		type="image/x-icon">
+	<link rel="icon"
+		href="https://frappe.github.io/frappe/assets/img/favicon.png"
+		type="image/x-icon">
+    
+
+		</head>
+<body data-path="user/es/bench/guides/lets-encrypt-ssl-setup">
+	<div class="main-section">
+		<div>
+					<nav class="navbar navbar-default navbar-main" role="navigation">
+		<div class="container">
+			<div class="navbar-header">
+				<a class="navbar-brand ellipsis"
+					 href="https://frappe.github.io/frappe//">
+					<span><img class="brand-logo" src="https://frappe.github.io/frappe/assets/img/frappe-bird-white.png"> Frappé Framework</img></span>
+				</a>
+				<div class="dropdown">
+					<button class="btn btn-default navbar-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+						<i class="octicon octicon-three-bars"></i>
+					</button>
+					<ul class="dropdown-menu dropdown-menu-right">
+<li data-label='<i class="octicon octicon-search"></i>' >
+	<a href="/#"
+		
+		>
+	<i class="octicon octicon-search"></i></a></li><li data-label='Tutorials' >
+	<a href="https://frappe.github.io/frappe/user"
+		
+		>
+	Tutorials</a></li><li data-label='API' >
+	<a href="https://frappe.github.io/frappe/current"
+		
+		>
+	API</a></li><li data-label='Forum' >
+	<a href="https://discuss.erpnext.com"
+		
+		>
+	Forum</a></li>
+
+<li class="divider"></li>
+
+<!-- post login tools -->
+
+</ul>
+				</div>
+			</div>
+			<div class="hidden-xs">
+				
+				<ul class="nav navbar-nav navbar-left">
+</ul>
+<ul class="nav navbar-nav navbar-right"><li data-label='<i class="octicon octicon-search"></i>' >
+	<a href="/#"
+		
+		>
+	<i class="octicon octicon-search"></i></a></li><li data-label='Tutorials' >
+	<a href="https://frappe.github.io/frappe/user"
+		
+		>
+	Tutorials</a></li><li data-label='API' >
+	<a href="https://frappe.github.io/frappe/current"
+		
+		>
+	API</a></li><li data-label='Forum' >
+	<a href="https://discuss.erpnext.com"
+		
+		>
+	Forum</a></li>
+	
+	
+	<!-- post login tools -->
+
+</ul>
+				
+			</div>
+		</div>
+	</nav><div class="hero-and-content">
+                <div data-html-block="hero"></div>
+                <div class="container" data-html-block="content">
+                
+<div class="page-container" id="page-user/es/bench/guides/lets-encrypt-ssl-setup" data-path="{{ pathname }}"
+	>
+	<div class="row ">
+		
+		<div class=" page-content col-sm-12 ">
+			<div class="page-content-wrapper">
+				<div class="row page-head">
+					<div class='col-sm-12 hidden-xs'>
+						
+						<div class="page-breadcrumbs">
+							
+							
+<ul class="breadcrumb" itemscope itemtype="http://data-vocabulary.org/Breadcrumb">
+	
+		<li>
+			<a href="https://frappe.github.io/frappe//user/es/bench/guides" itemprop="url">
+			<span itemprop="title">Guides</span>
+			</a>
+		</li>
+	
+	<li class="active"><span itemprop="title">Uso de Let's Encrypt para configurar HTTPS</span></li>
+</ul>
+
+							
+						</div>
+						
+					</div>
+					<div class="col-sm-8 col-xs-6">
+						
+					</div>
+					<div class="col-sm-4 col-xs-6">
+						
+
+						
+					</div>
+				</div>
+			</div>
+			<div class="page_content">
+<h1>Uso de Let's Encrypt para configurar HTTPS</h1>
+
+<h2>Prerrequisitos</h2>
+
+<ol>
+<li>Necesitas tener una configuración Multitenant</li>
+<li>Su sitio debería ser accesible a traves de un dominio válido</li>
+<li>Necesitas permisos de administrados en el servidor</li>
+</ol>
+
+<p><strong>Nota : Los certificados de Let's Encrypt expiran cada 3 meses</strong></p>
+
+<h2>Usando el comando bench</h2>
+
+<p>Ejecutar:</p>
+
+<pre><code>sudo -H bench setup lets-encrypt [site-name]
+</code></pre>
+
+<p>Van a aparecer varios prompts, responde a todo. Este comando también va a agregar una entrada a crontab del usuario que esta intentando renovar el certificado cada mes.</p>
+
+<h3>Dominios personalizados</h3>
+
+<p>Puedes configurar Let's Encrypt para <a href="adding-custom-domains.html">dominios personalizados</a>. Solo usando la opción <code>--custom-domain</code></p>
+
+<pre><code>sudo -H bench setup lets-encrypt [site-name] --custom-domain [custom-domain]
+</code></pre>
+
+<h3>Renovar Certificados</h3>
+
+<p>Para la renovación manual de certificados puedes usar:</p>
+
+<pre><code>sudo bench renew-lets-encrypt
+</code></pre>
+
+<hr>
+
+<h2>Método Manual</h2>
+
+<h3>Descarga el script apropiado de Certbot-auto en el directorio /opt</h3>
+
+<pre><code>https://certbot.eff.org/
+</code></pre>
+
+<h3>Detener el servicio / proceso nginx</h3>
+
+<pre><code>$ sudo service nginx stop
+</code></pre>
+
+<h3>Ejecutar Certbot</h3>
+
+<pre><code>$ ./opt/certbot-auto certonly --standalone
+</code></pre>
+
+<p>Despues que letsencrypt se inicializa, vas a tener que llenar algunas informaciones. Los prompts pueden variar de si haz usado o no Let's Encrypt antes, pero vamos a guiarte en su primera vez.</p>
+
+<p>En el prompt, ingresar la dirección de correo eléctronico que será usada para notificaciones y recuperación de claves perdidas:</p>
+
+<p><img src="https://assets.digitalocean.com/articles/letsencrypt/le-email.png" alt="" /></p>
+
+<p>Debes aceptar el acuerdo de subscripción de Let's Encrypt, selecciona Agree:</p>
+
+<p><img src="https://assets.digitalocean.com/articles/letsencrypt/le-agreement.png" alt="" /></p>
+
+<p>Luego ingresa el nombre de su dominio(s). Nota que si deseas un simple certificado para trabajar con
+varios nombres de dominios (ejemplo: example.com y www.example.com), asegurate de incluirlos todos:</p>
+
+<p><img src="https://assets.digitalocean.com/articles/letsencrypt/le-domain.png" alt="" /></p>
+
+<h3>Archivos de certificados</h3>
+
+<p>Despues de obtener el certificado, va a tener los siguientes archivos PEM-encoded:</p>
+
+<ul>
+<li><strong>cert.pem</strong>: El certificado de su dominio</li>
+<li><strong>chain.pem</strong>: La cadena del certificado de Let's Encrypt</li>
+<li><strong>fullchain.pem</strong>: cert.pem y chain.pem combinados</li>
+<li><strong>privkey.pem</strong>: La clave privada de su certificado.</li>
+</ul>
+
+<p>Estos certificados estan almacenados en el directorio <code>/etc/letsencrypt/live/example.com</code></p>
+
+<h3>Configurar los certificados para su site(s)</h3>
+
+<p>Vaya al archivo site_config.json del site donde tiene erpnext</p>
+
+<pre><code>$ cd frappe-bench/sites/{{ nombre_sitio }}
+</code></pre>
+
+<p>Agrega las siguientes lineas al archivo site_config.json</p>
+
+<pre><code>"ssl_certificate": "/etc/letsencrypt/live/example.com/fullchain.pem",
+"ssl_certificate_key": "/etc/letsencrypt/live/example.com/privkey.pem"
+</code></pre>
+
+<p>Regenerar las configuraciones de nginx</p>
+
+<pre><code>$ bench setup nginx
+</code></pre>
+
+<p>Reiniciar el servidor nginx</p>
+
+<pre><code>$ sudo service nginx restart
+</code></pre>
+
+<hr />
+
+<h3>Renovació Automática (experimental)</h3>
+
+<p>Accede como root o como un usuario con privileges de administrador, ejecuta <code>crontab -e</code> y presiona enter:</p>
+
+<pre><code># renovar el certificado de letsencrypt todos los días primero de cada mes y recibe un email si el comando ha sido ejecutado
+MAILTO="mail@example.com"
+0 0 1-7 * * [ "$(date '+\%a')" = "Mon" ] &amp;&amp; sudo service nginx stop &amp;&amp; /opt/certbot-auto renew &amp;&amp; sudo service nginx start
+</code></pre>
+
+</div>
+		</div>
+	</div>
+</div>
+
+				
+<div class="page-container">
+	<div class="page-content">
+	<div class="edit-container text-center">
+		<i class="fa fa-smile"></i>
+		<a class="text-muted edit" href="https://github.com/frappe/frappe/blob/develop/frappe/docs/user/es/bench/guides/lets-encrypt-ssl-setup.md">
+			Improve this page
+		</a>
+	</div>
+	</div>
+</div>
+                </div>
+            </div>
+			<footer class="docs-footer">
+				<div class="container"><div class="built-with-frappe text-center">
+                    <img class="frappe-bird" src="https://frappe.github.io/frappe/assets/img/frappe-bird-grey.svg">
+                    <h3>By Frappe Technologies</h3>
+                </div>
+                <div class="text-center">
+                    <ul class="list-unstyled">
+                        <li>
+                            <a href="https://github.com/frappe/frappe">
+                            Source</a>
+                        </li>
+                        <li>
+                            <a href="https://github.com/frappe/frappe/issues">
+                            Issues</a>
+                        </li>
+                        <li>
+                            <a href="https://frappe.github.io/frappe/license.html">
+                            License</a>
+                        </li>
+                        <li>
+                            <a href="https://discuss.erpnext.com">
+                            Forum</a>
+                        </li>
+                        <li>
+                            <a href="https://community.erpnext.com/apps">
+                            Frappe Apps</a>
+                        </li>
+                    </ul>
+                </div>
+
+            </div>
+			</footer>
+		</div>
+	</div>
+
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/jquery.min.js"></script>
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/highlight.pack.js"></script>
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/docs.js"></script>
+
+	<!-- js should be loaded in body! -->
+	<script>
+        window.docs_base_url = "https://frappe.github.io/frappe";
+    </script>
+
+	
+	<script>
+	  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+	  ga('create', 'UA-8911157-23', 'auto');
+	  ga('send', 'pageview');
+
+	</script>
+	
+	<!-- csrf_token --></body>
+</html>

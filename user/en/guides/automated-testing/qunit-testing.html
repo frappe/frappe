@@ -158,11 +158,16 @@
 
 <p>This will pass the filename to <code>test_test_runner.py</code> that will load the required JS in the browser and execute the tests</p>
 
-<h3>Adding Fixtures / Test Data</h3>
+<h3>Debugging Tests</h3>
 
-<p>You can also add data that you require for all tests in the <code>tests/ui/data</code> folder of your app. All the files in this folder will be loaded in the browser before running the test.</p>
+<p>To debug a test, you can open it in the <strong>Test Runner</strong> from your UI and run it manually to see where it is exactly failing.</p>
 
-<p>The file <code>frappe/tests/ui/data/test_lib.js</code>, which contains library functions for testing is always loaded.</p>
+<h3>Test Sequence</h3>
+
+<p>In Frappé UI tests are run in a fixed sequence to ensure dependencies.</p>
+
+<p>The sequence in which the tests will be run will be in <code>tests/ui/tests.txt</code>
+file.</p>
 
 <h3>Running All UI Tests</h3>
 

@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<!-- Built on Frappe. https://frappe.io/ -->
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Setup Production</title>
+	<meta name="generator" content="frappe">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/font-awesome.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/octicons/octicons.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/docs.css">
+
+    
+	<link rel="shortcut icon"
+		href="https://frappe.github.io/frappe/assets/img/favicon.png"
+		type="image/x-icon">
+	<link rel="icon"
+		href="https://frappe.github.io/frappe/assets/img/favicon.png"
+		type="image/x-icon">
+    
+
+		</head>
+<body data-path="user/es/bench/guides/setup-production">
+	<div class="main-section">
+		<div>
+					<nav class="navbar navbar-default navbar-main" role="navigation">
+		<div class="container">
+			<div class="navbar-header">
+				<a class="navbar-brand ellipsis"
+					 href="https://frappe.github.io/frappe//">
+					<span><img class="brand-logo" src="https://frappe.github.io/frappe/assets/img/frappe-bird-white.png"> Frappé Framework</img></span>
+				</a>
+				<div class="dropdown">
+					<button class="btn btn-default navbar-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+						<i class="octicon octicon-three-bars"></i>
+					</button>
+					<ul class="dropdown-menu dropdown-menu-right">
+<li data-label='<i class="octicon octicon-search"></i>' >
+	<a href="/#"
+		
+		>
+	<i class="octicon octicon-search"></i></a></li><li data-label='Tutorials' >
+	<a href="https://frappe.github.io/frappe/user"
+		
+		>
+	Tutorials</a></li><li data-label='API' >
+	<a href="https://frappe.github.io/frappe/current"
+		
+		>
+	API</a></li><li data-label='Forum' >
+	<a href="https://discuss.erpnext.com"
+		
+		>
+	Forum</a></li>
+
+<li class="divider"></li>
+
+<!-- post login tools -->
+
+</ul>
+				</div>
+			</div>
+			<div class="hidden-xs">
+				
+				<ul class="nav navbar-nav navbar-left">
+</ul>
+<ul class="nav navbar-nav navbar-right"><li data-label='<i class="octicon octicon-search"></i>' >
+	<a href="/#"
+		
+		>
+	<i class="octicon octicon-search"></i></a></li><li data-label='Tutorials' >
+	<a href="https://frappe.github.io/frappe/user"
+		
+		>
+	Tutorials</a></li><li data-label='API' >
+	<a href="https://frappe.github.io/frappe/current"
+		
+		>
+	API</a></li><li data-label='Forum' >
+	<a href="https://discuss.erpnext.com"
+		
+		>
+	Forum</a></li>
+	
+	
+	<!-- post login tools -->
+
+</ul>
+				
+			</div>
+		</div>
+	</nav><div class="hero-and-content">
+                <div data-html-block="hero"></div>
+                <div class="container" data-html-block="content">
+                
+<div class="page-container" id="page-user/es/bench/guides/setup-production" data-path="{{ pathname }}"
+	>
+	<div class="row ">
+		
+		<div class=" page-content col-sm-12 ">
+			<div class="page-content-wrapper">
+				<div class="row page-head">
+					<div class='col-sm-12 hidden-xs'>
+						
+						<div class="page-breadcrumbs">
+							
+							
+<ul class="breadcrumb" itemscope itemtype="http://data-vocabulary.org/Breadcrumb">
+	
+		<li>
+			<a href="https://frappe.github.io/frappe//user/es/bench/guides" itemprop="url">
+			<span itemprop="title">Guides</span>
+			</a>
+		</li>
+	
+	<li class="active"><span itemprop="title">Setup Production</span></li>
+</ul>
+
+							
+						</div>
+						
+					</div>
+					<div class="col-sm-8 col-xs-6">
+						<h1>Setup Production</h1>
+					</div>
+					<div class="col-sm-4 col-xs-6">
+						
+
+						
+					</div>
+				</div>
+			</div>
+			<div class="page_content">
+<p>Puedes configurar el bench para producción configurando dos parametros, Supervisor y nginx. Si quieres volver a ponerlo en desarrollo debes ver <a href="https://github.com/frappe/bench/wiki/Stopping-Production-and-starting-Development">estos comandos</a></p>
+
+<h4>Configuración para producción facíl</h4>
+
+<p>Estos pasos son automátizados si ejecutas <code>sudo bench setup production</code></p>
+
+<h4>Configuración manual para producción</h4>
+
+<h2>Supervisor</h2>
+
+<p>Supervisor se asegura de mantener el proceso que inició Frappe corriendo y lo reinicia en caso de cualquier inconveniente.
+ Puedes generar la configuración necesaria para supervisor ejecutando el comando <code>bench setup supervisor</code>.
+ La configuración va a estar disponible en la carpeta <code>config/supervisor.conf</code>. Luego puedes copiar/enlazar este archivo al directorio de configuración <br />
+ de supervisor y reiniciar el servicio para que tome efecto de los cambios realizados.</p>
+
+<p>Ejemplo,</p>
+
+<p><code>
+bench setup supervisor
+sudo ln -s `pwd`/config/supervisor.conf /etc/supervisor/conf.d/frappe-bench.conf
+</code></p>
+
+<p>Nota: Para CentOS 7, la extensión debería ser <code>ini</code>, por lo que el comando sería
+<code>
+bench setup supervisor
+sudo ln -s `pwd`/config/supervisor.conf /etc/supervisor/conf.d/frappe-bench.ini #para CentOS 7 solamente
+</code></p>
+
+<p>El bench también necesita reiniciar el proceso manejado por supervisor cuando actualizar cualquier aplicación.
+Para automatizarlo, vas a tener que agregar el usuario a sudoers ejecutando <code>sudo bench setup sudoers $(whoami)</code>.</p>
+
+<h2>Nginx</h2>
+
+<p>Nginx es un servidor web y lo usamos para servir archivos estáticos y aponderar el resto de la
+peticiones a frappe. Puedes generar las configuraciones necesarias para nginx usando el comando <code>bench setup nginx</code>.
+La configuración va a estar almacenada en el archivo <code>config/nginx.conf</code>. Entonces puedes copiar/enlazar este archivo al directorio de
+configuración de nginx y reiniar el servicio para poder ver si se han aplicado los cambios.</p>
+
+<p>Ejemplo,</p>
+
+<p><code>
+bench setup nginx
+sudo ln -s `pwd`/config/nginx.conf /etc/nginx/conf.d/frappe-bench.conf
+</code></p>
+
+<p>Nota: Cuando reinicias nginx despues de cualquier cambio en la configuración, podría fallar si tienes otra configuración con el bloque server para el puerto 80 (En la mayoría de veces la página princial de nginx). Vas a tener que deshabilitar esta configuración. Las rutas más probables donde podemos encontrarlo son <code>/etc/nginx/conf.d/default.conf</code> y
+<code>/etc/nginx/conf.d/default</code>.</p>
+
+</div>
+		</div>
+	</div>
+</div>
+
+				
+<div class="page-container">
+	<div class="page-content">
+	<div class="edit-container text-center">
+		<i class="fa fa-smile"></i>
+		<a class="text-muted edit" href="https://github.com/frappe/frappe/blob/develop/frappe/docs/user/es/bench/guides/setup-production.md">
+			Improve this page
+		</a>
+	</div>
+	</div>
+</div>
+                </div>
+            </div>
+			<footer class="docs-footer">
+				<div class="container"><div class="built-with-frappe text-center">
+                    <img class="frappe-bird" src="https://frappe.github.io/frappe/assets/img/frappe-bird-grey.svg">
+                    <h3>By Frappe Technologies</h3>
+                </div>
+                <div class="text-center">
+                    <ul class="list-unstyled">
+                        <li>
+                            <a href="https://github.com/frappe/frappe">
+                            Source</a>
+                        </li>
+                        <li>
+                            <a href="https://github.com/frappe/frappe/issues">
+                            Issues</a>
+                        </li>
+                        <li>
+                            <a href="https://frappe.github.io/frappe/license.html">
+                            License</a>
+                        </li>
+                        <li>
+                            <a href="https://discuss.erpnext.com">
+                            Forum</a>
+                        </li>
+                        <li>
+                            <a href="https://community.erpnext.com/apps">
+                            Frappe Apps</a>
+                        </li>
+                    </ul>
+                </div>
+
+            </div>
+			</footer>
+		</div>
+	</div>
+
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/jquery.min.js"></script>
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/highlight.pack.js"></script>
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/docs.js"></script>
+
+	<!-- js should be loaded in body! -->
+	<script>
+        window.docs_base_url = "https://frappe.github.io/frappe";
+    </script>
+
+	
+	<script>
+	  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+	  ga('create', 'UA-8911157-23', 'auto');
+	  ga('send', 'pageview');
+
+	</script>
+	
+	<!-- csrf_token --></body>
+</html>

@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<!-- Built on Frappe. https://frappe.io/ -->
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Vistas Web (Web Views)</title>
+	<meta name="generator" content="frappe">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/bootstrap.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/hljs.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/font-awesome.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/octicons/octicons.css">
+    <link type="text/css" rel="stylesheet" href="https://frappe.github.io/frappe/assets/css/docs.css">
+
+    
+	<link rel="shortcut icon"
+		href="https://frappe.github.io/frappe/assets/img/favicon.png"
+		type="image/x-icon">
+	<link rel="icon"
+		href="https://frappe.github.io/frappe/assets/img/favicon.png"
+		type="image/x-icon">
+    
+
+		</head>
+<body data-path="user/es/tutorial/web-views">
+	<div class="main-section">
+		<div>
+					<nav class="navbar navbar-default navbar-main" role="navigation">
+		<div class="container">
+			<div class="navbar-header">
+				<a class="navbar-brand ellipsis"
+					 href="https://frappe.github.io/frappe//">
+					<span><img class="brand-logo" src="https://frappe.github.io/frappe/assets/img/frappe-bird-white.png"> Frappé Framework</img></span>
+				</a>
+				<div class="dropdown">
+					<button class="btn btn-default navbar-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+						<i class="octicon octicon-three-bars"></i>
+					</button>
+					<ul class="dropdown-menu dropdown-menu-right">
+<li data-label='<i class="octicon octicon-search"></i>' >
+	<a href="/#"
+		
+		>
+	<i class="octicon octicon-search"></i></a></li><li data-label='Tutorials' >
+	<a href="https://frappe.github.io/frappe/user"
+		
+		>
+	Tutorials</a></li><li data-label='API' >
+	<a href="https://frappe.github.io/frappe/current"
+		
+		>
+	API</a></li><li data-label='Forum' >
+	<a href="https://discuss.erpnext.com"
+		
+		>
+	Forum</a></li>
+
+<li class="divider"></li>
+
+<!-- post login tools -->
+
+</ul>
+				</div>
+			</div>
+			<div class="hidden-xs">
+				
+				<ul class="nav navbar-nav navbar-left">
+</ul>
+<ul class="nav navbar-nav navbar-right"><li data-label='<i class="octicon octicon-search"></i>' >
+	<a href="/#"
+		
+		>
+	<i class="octicon octicon-search"></i></a></li><li data-label='Tutorials' >
+	<a href="https://frappe.github.io/frappe/user"
+		
+		>
+	Tutorials</a></li><li data-label='API' >
+	<a href="https://frappe.github.io/frappe/current"
+		
+		>
+	API</a></li><li data-label='Forum' >
+	<a href="https://discuss.erpnext.com"
+		
+		>
+	Forum</a></li>
+	
+	
+	<!-- post login tools -->
+
+</ul>
+				
+			</div>
+		</div>
+	</nav><div class="hero-and-content">
+                <div data-html-block="hero"></div>
+                <div class="container" data-html-block="content">
+                
+<div class="page-container" id="page-user/es/tutorial/web-views" data-path="{{ pathname }}"
+	>
+	<div class="row ">
+		
+		<div class=" page-content col-sm-12 ">
+			<div class="page-content-wrapper">
+				<div class="row page-head">
+					<div class='col-sm-12 hidden-xs'>
+						
+						<div class="page-breadcrumbs">
+							
+							
+<ul class="breadcrumb" itemscope itemtype="http://data-vocabulary.org/Breadcrumb">
+	
+		<li>
+			<a href="https://frappe.github.io/frappe//user/es/tutorial" itemprop="url">
+			<span itemprop="title">Tutorial sobre Frappe</span>
+			</a>
+		</li>
+	
+	<li class="active"><span itemprop="title">Vistas Web (Web Views)</span></li>
+</ul>
+
+							
+						</div>
+						
+					</div>
+					<div class="col-sm-8 col-xs-6">
+						
+					</div>
+					<div class="col-sm-4 col-xs-6">
+						
+
+						
+					</div>
+				</div>
+			</div>
+			<div class="page_content">
+<h1>Vistas Web (Web Views)</h1>
+
+<p>Frappe tiene dos entornos principales, El escritorio y la Web. El escritorio es una interfaz de usuario controlada con una excelente aplicación AJAX y la web es mas plantillas de HTML tradicionales dispuestas para consumo público. Vistas Web pueden también ser generadas para crear vistas controladas para los usuarios que puedes acceder al sistema pero aún así no tener acceso al escritorio.</p>
+
+<p>En Frappe, Las vistas web son manejadas por plantillas que estan usualmente en el directorio <code>templates</code>. Hay dos tipos principales de plantillas.</p>
+
+<ol>
+<li>Pages: Estos son plantillas Jinja donde una vista existe solo para una ruta. ejemplo. <code>/blog</code>.</li>
+<li>Generators: Estas son plantiallas donde cada instancia de un DocType tiene una ruta diferente <code>/blog/a-blog</code>, <code>blog/b-blog</code> etc.</li>
+<li>Lists and Views: Estos son listas y vistan estandares con la ruta <code>[doctype]/[name]</code> y son renderizadas basándose en los permisos.</li>
+</ol>
+
+<h3>Vista Web Estandar</h3>
+
+<blockquote>
+  <p>Esta funcionalidad sigue bajo desarrollo.</p>
+</blockquote>
+
+<p>Vamos a ver las Vistas web estandar:</p>
+
+<p>Si estas logueado como el usuario de prueba, ve a <code>/article</code> y deberías ver la lista de artículos.</p>
+
+<p><img class="screenshot" alt="web list" src="https://frappe.github.io/frappe/assets/img/web-list.png"></p>
+
+<p>Da click en uno de los artículos y vas a ver una vista web por defecto</p>
+
+<p><img class="screenshot" alt="web view" src="https://frappe.github.io/frappe/assets/img/web-view.png"></p>
+
+<p>Si deseas hacer una mejor vista para la lista de artículos, crea un archivo llamado <code>row_template.html</code> en el directorio <code>library_management/templates/includes/list/</code>.
+ Aquí hay un archivo de ejemplo:</p>
+
+<pre><code>&lt;div class="row"&gt;
+    &lt;div class="col-sm-4"&gt;
+        &lt;a href="/Article/{{ doc.name }}"&gt;
+            &lt;img src="{{ doc.image }}"
+                class="img-responsive" style="max-height: 200px"&gt;
+        &lt;/a&gt;
+    &lt;/div&gt;
+    &lt;div class="col-sm-4"&gt;
+        &lt;a href="/Article/{{ doc.name }}"&gt;&lt;h4&gt;{{ doc.article_name }}&lt;/h4&gt;&lt;/a&gt;
+        &lt;p&gt;{{ doc.author }}&lt;/p&gt;
+        &lt;p&gt;{{ (doc.description[:200] + "...")
+            if doc.description|len &gt; 200 else doc.description }}&lt;/p&gt;
+        &lt;p class="text-muted"&gt;Publisher: {{ doc.publisher }}&lt;/p&gt;
+    &lt;/div&gt;
+&lt;/div&gt;
+</code></pre>
+
+<p>Aquí, vas a tener todas las propiedades de un artículo en el objeto <code>doc</code>.</p>
+
+<p>La lista actualizada debe lucir de esta manera!</p>
+
+<p><img class="screenshot" alt="new web list" src="https://frappe.github.io/frappe/assets/img/web-list-new.png"></p>
+
+<h4>Página de Inicio</h4>
+
+<p>Frappe también tiene vistas para el registro de usuarios que incluye opciones de registro usando Google, Facebook y GitHub. Cuando un usuario se registra vía la web, no tiene acceso a la interfaz del Escritorio por defecto.</p>
+
+<blockquote>
+  <p>Para permitirles a los usuarios acceso al Escritorio, debes especificar que el usuario es de tipo "System User" en Setup &gt; User</p>
+</blockquote>
+
+<p>Para usuario que no son de tipo System User, podemos especificar una página de inicio por defecto a traves de <code>hooks.py</code> basándonos en Role.</p>
+
+<p>Cuando miembros acceden al sistema, deben ser redireccionados a la página <code>article</code>, para configurar esto modifica el archivo <code>library_management/hooks.py</code> y agrega lo siguiente:</p>
+
+<pre><code>role_home_page = {
+    "Library Member": "article"
+}
+</code></pre>
+
+<p><p class="btn-next-wrapper">Next: <a class="btn-next" href="https://frappe.github.io/frappe/user/es/tutorial/single-doctypes">DocTypes Simples</a></p></p>
+
+</div>
+		</div>
+	</div>
+</div>
+
+				
+<div class="page-container">
+	<div class="page-content">
+	<div class="edit-container text-center">
+		<i class="fa fa-smile"></i>
+		<a class="text-muted edit" href="https://github.com/frappe/frappe/blob/develop/frappe/docs/user/es/tutorial/web-views.md">
+			Improve this page
+		</a>
+	</div>
+	</div>
+</div>
+                </div>
+            </div>
+			<footer class="docs-footer">
+				<div class="container"><div class="built-with-frappe text-center">
+                    <img class="frappe-bird" src="https://frappe.github.io/frappe/assets/img/frappe-bird-grey.svg">
+                    <h3>By Frappe Technologies</h3>
+                </div>
+                <div class="text-center">
+                    <ul class="list-unstyled">
+                        <li>
+                            <a href="https://github.com/frappe/frappe">
+                            Source</a>
+                        </li>
+                        <li>
+                            <a href="https://github.com/frappe/frappe/issues">
+                            Issues</a>
+                        </li>
+                        <li>
+                            <a href="https://frappe.github.io/frappe/license.html">
+                            License</a>
+                        </li>
+                        <li>
+                            <a href="https://discuss.erpnext.com">
+                            Forum</a>
+                        </li>
+                        <li>
+                            <a href="https://community.erpnext.com/apps">
+                            Frappe Apps</a>
+                        </li>
+                    </ul>
+                </div>
+
+            </div>
+			</footer>
+		</div>
+	</div>
+
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/jquery.min.js"></script>
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/highlight.pack.js"></script>
+	<script type="text/javascript" src="https://frappe.github.io/frappe/assets/js/docs.js"></script>
+
+	<!-- js should be loaded in body! -->
+	<script>
+        window.docs_base_url = "https://frappe.github.io/frappe";
+    </script>
+
+	
+	<script>
+	  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+	  ga('create', 'UA-8911157-23', 'auto');
+	  ga('send', 'pageview');
+
+	</script>
+	
+	<!-- csrf_token --></body>
+</html>
