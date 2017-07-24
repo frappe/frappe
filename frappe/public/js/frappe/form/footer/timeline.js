@@ -255,7 +255,7 @@ frappe.ui.form.Timeline = Class.extend({
 				c["edit"] = '<a class="edit" title="Edit" href="#"><i class="octicon octicon-pencil"></i></a>';
 			}
 		}
-		c.comment_on_small =comment_when(c.creation, true);
+		c.comment_on_small = comment_when(c.creation, true);
 		c.comment_on = comment_when(c.creation);
 		if(!c.fullname) {
 			c.fullname = c.sender_full_name || frappe.user.full_name(c.sender);
@@ -359,7 +359,7 @@ frappe.ui.form.Timeline = Class.extend({
 				"Like": "octicon octicon-heart",
 				"Edit": "octicon octicon-pencil",
 				"Relinked": "octicon octicon-check",
-				"Reply": "octicon octicon -mail-reply"
+				"Reply": "octicon octicon-mail-reply"
 			}[c.comment_type || c.communication_medium]
 
 			c.color = {
