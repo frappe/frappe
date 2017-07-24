@@ -691,6 +691,7 @@ select.form-control {
 .graph-container .stats-container {
   display: flex;
   justify-content: space-around;
+  padding-top: 10px;
 }
 .graph-container .stats-container .stats {
   padding-bottom: 15px;
@@ -717,6 +718,9 @@ select.form-control {
 .bar-graph .axis line,
 .line-graph .axis line {
   stroke: rgba(27, 31, 35, 0.1);
+}
+.percentage-graph {
+  margin-top: 30px;
 }
 .data-points circle {
   stroke: #fff;
@@ -797,6 +801,9 @@ ul.data-point-list li {
   min-width: 90px;
   flex: 1;
 }
+.focus-margin {
+  margin: 10px 5%;
+}
 .stroke.grey {
   stroke: #F0F4F7;
 }
@@ -868,6 +875,42 @@ ul.data-point-list li {
 }
 .fill.lightblue {
   fill: #7CD6FD;
+}
+.background.grey {
+  background: #F0F4F7;
+}
+.background.blue {
+  background: #5e64ff;
+}
+.background.red {
+  background: #ff5858;
+}
+.background.light-green {
+  background: #98d85b;
+}
+.background.green {
+  background: #28a745;
+}
+.background.orange {
+  background: #ffa00a;
+}
+.background.purple {
+  background: #743ee2;
+}
+.background.darkgrey {
+  background: #b8c2cc;
+}
+.background.black {
+  background: #36414C;
+}
+.background.yellow {
+  background: #FEEF72;
+}
+.background.light-blue {
+  background: #7CD6FD;
+}
+.background.lightblue {
+  background: #7CD6FD;
 }
 .border-top.grey {
   border-top: 3px solid #F0F4F7;

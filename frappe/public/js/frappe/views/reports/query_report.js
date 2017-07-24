@@ -43,7 +43,7 @@ frappe.views.QueryReport = Class.extend({
 		this.wrapper = $("<div>").appendTo(this.page.main);
 		$('<div class="waiting-area" style="display: none;"></div>\
 		<div class="no-report-area msg-box no-border" style="display: none;"></div>\
-		<div class="chart_area" style="border-bottom: 1px solid #d1d8dd; padding-bottom: 1px"></div>\
+		<div class="chart_area" style="border-bottom: 1px solid #d1d8dd; padding: 0px 5%"></div>\
 		<div class="results" style="display: none;">\
 			<div class="result-area" style="height:400px;"></div>\
 			<button class="btn btn-secondary btn-default btn-xs expand-all hidden" style="margin: 10px;">'+__('Expand All')+'</button>\
@@ -869,65 +869,23 @@ frappe.views.QueryReport = Class.extend({
 	},
 
 	setup_chart: function(res) {
-		var me = this;
 		this.chart_area.toggle(false);
 
 		if (this.get_query_report_opts().get_chart_data) {
 			var opts = this.get_query_report_opts().get_chart_data(res.columns, res.result);
 		} else if (res.chart) {
 			var opts = res.chart;
-			let data = res.chart.data.columns;
 		} else {
 			return;
 		}
 
-		// $.extend(opts, {
-		// 	wrapper: this.chart_area,
-		// });
-
-		// console.log("res.chart", res.chart);
-
-		// this.chart = new frappe.ui.Chart(opts);
-		// if(this.chart && opts.data && opts.data.rows && opts.data.rows.length) {
-		// 	this.chart_area.toggle(true);
-		// }
-
-		let data = res.chart.data.columns;
-		console.log(data, data[1], data[1].splice(0,1), data[0], data[0].splice(0,1), data[2].splice(0,1))
-		this.chart_area.empty().toggle(true);
-
-		let g = new frappe.ui.Graph({
-			parent: me.chart_area,
-			mode: 'line',
-			y: [
-				{
-					title: 'Some data',
-					values: data[1],
-					formatted: ['2L', '4L', '7L', '6L', '3L', '2L', '8L', '7L'],
-					color: 'light-blue',
-				},
-				{
-					title: 'Another set',
-					values: data[2],
-					formatted: ['1L', '2L', '6L', '4L', '2L', '3L', '7L', '5L'],
-					color: 'purple',
-				}
-			],
-			x: data[0],
-			x_formatted: data[0].map(d => d.toLowerCase().replace(/-/g, 'to'))
+		$.extend(opts, {
+			wrapper: this.chart_area,
 		});
 
-		setTimeout(() => {
-			g.change_values([
-				{
-					values: data[2],
-					formatted: data[1].map(d => d + 'L'),
-				},
-				{
-					values: data[1].map(d => d+2),
-					formatted: data[1].map(d => (d+2) + 'L'),
-				}
-			]);
-		}, 1000);
+		this.chart = new frappe.ui.Chart(opts);
+		if(this.chart && opts.data && opts.data.rows && opts.data.rows.length) {
+			this.chart_area.toggle(true);
+		}
 	}
 })

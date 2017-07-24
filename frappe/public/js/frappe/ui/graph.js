@@ -24,8 +24,6 @@ frappe.ui.Graph = class Graph {
 		y = [],
 		x = [],
 
-		x_formatted = [],
-
 		specific_values = [],
 		summary = [],
 
@@ -39,9 +37,9 @@ frappe.ui.Graph = class Graph {
 			} else if(mode === 'bar') {
 				return new frappe.ui.BarGraph(arguments[0]);
 			}
-			// else if(mode === 'percentage') {
-			// 	return new frappe.ui.PercentageGraph(arguments[0]);
-			// }
+			else if(mode === 'percentage') {
+				return new frappe.ui.PercentageGraph(arguments[0]);
+			}
 		}
 
 		// Calculate height width and translate initially
@@ -60,7 +58,6 @@ frappe.ui.Graph = class Graph {
 
 		this.y = y;
 		this.x = x;
-		this.x_formatted = x_formatted;
 
 		this.specific_values = specific_values;
 		this.summary = summary;
@@ -85,25 +82,17 @@ frappe.ui.Graph = class Graph {
 		this.setup_container();
 
 		this.setup_values();
+
 		this.setup_utils();
 
 		this.setup_components();
-		this.make_y_axis();
-		this.make_x_axis();
-
-		this.y.map((d, i) => {
-			this.make_units(d.y_tops, d.color, i);
-			this.make_path(d);
-		});
+		this.make_graph_components();
 
 		this.make_tooltip();
 
-		if(this.specific_values.length > 0) {
-			this.show_specific_values();
-		}
-		this.setup_group();
-
 		if(this.summary.length > 0) {
+			this.show_custom_summary();
+		} else {
 			this.show_summary();
 		}
 	}
@@ -127,10 +116,13 @@ frappe.ui.Graph = class Graph {
 			.addClass(this.mode + '-graph')
 			.appendTo(this.$graphics);
 
-		this.$svg = $(`<svg class="svg" width="${this.base_width}" height="${this.base_height}"></svg>`);
-		this.$graph.append(this.$svg);
+		this.$graph.append(this.make_graph_area());
+	}
 
+	make_graph_area() {
+		this.$svg = $(`<svg class="svg" width="${this.base_width}" height="${this.base_height}"></svg>`);
 		this.snap = new Snap(this.$svg[0]);
+		return this.$svg;
 	}
 
 	setup_values() {
@@ -145,7 +137,7 @@ frappe.ui.Graph = class Graph {
 		// Baselines
 		this.set_avg_unit_width_and_x_offset();
 
-		this.x_axis_values = this.x.map((d, i) => this.x_offset + i * this.avg_unit_width);
+		this.x_axis_values = this.x.values.map((d, i) => this.x_offset + i * this.avg_unit_width);
 		this.y_axis_values = this.get_y_axis_values(this.upper_limit, this.parts);
 
 		// Data points
@@ -155,12 +147,10 @@ frappe.ui.Graph = class Graph {
 		});
 
 		this.calc_min_tops();
-
-		console.log(this.y);
 	}
 
 	set_avg_unit_width_and_x_offset() {
-		this.avg_unit_width = this.width/(this.x.length - 1);
+		this.avg_unit_width = this.width/(this.x.values.length - 1);
 		this.x_offset = 0;
 	}
 
@@ -182,6 +172,21 @@ frappe.ui.Graph = class Graph {
 		this.specific_y_lines = this.snap.g().attr({ class: "specific axis" });
 	}
 
+	make_graph_components() {
+		this.make_y_axis();
+		this.make_x_axis();
+
+		this.y.map((d, i) => {
+			this.make_units(d.y_tops, d.color, i);
+			this.make_path(d);
+		});
+
+		if(this.specific_values.length > 0) {
+			this.show_specific_values();
+		}
+		this.setup_group();
+	}
+
 	setup_group() {
 		this.snap.g(
 			this.y_axis_group,
@@ -198,7 +203,7 @@ frappe.ui.Graph = class Graph {
 		let width, text_end_at = -9, label_class = '', start_at = 0;
 		if(this.y_axis_mode === 'span') {		// long spanning lines
 			width = this.width + 6;
-			start_at = -6
+			start_at = -6;
 		} else if(this.y_axis_mode === 'tick'){	// short label lines
 			width = -6;
 			label_class = 'y-axis-label';
@@ -226,7 +231,7 @@ frappe.ui.Graph = class Graph {
 			height = this.height + 15;
 			text_start_at = this.height + 25;
 		} else if(this.x_axis_mode === 'tick'){	// short label lines
-			start_at = this.height
+			start_at = this.height;
 			height = 6;
 			text_start_at = 9;
 			label_class = 'x-axis-label';
@@ -235,7 +240,7 @@ frappe.ui.Graph = class Graph {
 		this.x_axis_group.attr({
 			transform: `translate(0,${start_at})`
 		});
-		this.x.map((point, i) => {
+		this.x.values.map((point, i) => {
 			this.x_axis_group.add(this.snap.g(
 				this.snap.line(0, 0, 0, height),
 				this.snap.text(0, text_start_at, point).attr({
@@ -259,7 +264,7 @@ frappe.ui.Graph = class Graph {
 		});
 	}
 
-	make_path(y_dataset) { }
+	make_path() { }
 
 	make_tooltip() {
 		this.tip = $(`<div class="svg-tip comparison">
@@ -304,7 +309,7 @@ frappe.ui.Graph = class Graph {
 			}
 		});
 
-		this.$graphics.on('mouseleave', (e) => {
+		this.$graphics.on('mouseleave', () => {
 			this.tip.attr({
 				style: `top: 0px; left: 0px; opacity: 0; pointer-events: none;`
 			});
@@ -312,7 +317,7 @@ frappe.ui.Graph = class Graph {
 	}
 
 	fill_tooltip(i) {
-		this.tip_title.html(this.x_formatted.length>0 ? this.x_formatted[i] : this.x[i]);
+		this.tip_title.html(this.x.formatted.length>0 ? this.x.formatted[i] : this.x.values[i]);
 		this.tip_data_point_list.empty();
 		this.y.map(y_set => {
 			let $li = $(`<li>
@@ -342,12 +347,14 @@ frappe.ui.Graph = class Graph {
 		});
 	}
 
-	show_summary() {
-		// this.summary.map(d => {
-		// 	this.$stats_container.append($(`<div class="stats">
-		// 		<span class="indicator ${d.color}">${d.name}: ${d.value}</span>
-		// 	</div>`));
-		// });
+	show_summary() { }
+
+	show_custom_summary() {
+		this.summary.map(d => {
+			this.$stats_container.append($(`<div class="stats">
+				<span class="indicator ${d.color}">${d.name}: ${d.value}</span>
+			</div>`));
+		});
 	}
 
 	change_values(new_y) {
@@ -368,11 +375,13 @@ frappe.ui.Graph = class Graph {
 			});
 		});
 
-		// Replace values and formatted
+		// Replace values and formatted and tops
 		this.y.map((d, i) => {
 			let new_d = new_y[i];
-			[d.values, d.formatted] = [new_d.values, new_d.formatted];
+			[d.values, d.formatted, d.y_tops] = [new_d.values, new_d.formatted, new_d.y_tops];
 		});
+
+		this.calc_min_tops();
 
 		// create new x,y pair string and animate path
 		if(this.y[0].path) {
@@ -428,7 +437,7 @@ frappe.ui.Graph = class Graph {
 					class: `fill ${color}`
 				});
 			}
-		}
+		};
 
 		this.animate = {
 			'bar': (bar, new_y, args) => {
@@ -437,7 +446,7 @@ frappe.ui.Graph = class Graph {
 			'dot': (dot, new_y) => {
 				dot.animate({cy: new_y}, 300, mina.easein);
 			}
-		}
+		};
 	}
 };
 
@@ -459,11 +468,11 @@ frappe.ui.BarGraph = class BarGraph extends frappe.ui.Graph {
 					me.avg_unit_width/2 : me.avg_unit_width/8,
 				no_of_datasets: this.y.length
 			}
-		}
+		};
 	}
 
 	set_avg_unit_width_and_x_offset() {
-		this.avg_unit_width = this.width/(this.x.length + 1);
+		this.avg_unit_width = this.width/(this.x.values.length + 1);
 		this.x_offset = this.avg_unit_width;
 	}
 };
@@ -480,7 +489,7 @@ frappe.ui.LineGraph = class LineGraph extends frappe.ui.Graph {
 		this.unit_args = {
 			type: 'dot',
 			args: { radius: 4 }
-		}
+		};
 	}
 
 	make_path(d) {
@@ -492,9 +501,61 @@ frappe.ui.LineGraph = class LineGraph extends frappe.ui.Graph {
 };
 
 frappe.ui.PercentageGraph = class PercentageGraph extends frappe.ui.Graph {
-	constructor({
-
-	}) {
-
+	constructor(args = {}) {
+		super(args);
 	}
-}
+
+	make_graph_area() {
+		this.$graphics.addClass('focus-margin');
+		this.$stats_container.addClass('focus-margin');
+		this.$div = $(`<div class="div" width="${this.base_width}"
+			height="${this.base_height}">
+				<div class="progress-chart"></div>
+			</div>`);
+		this.$chart = this.$div.find('.progress-chart');
+		return this.$div;
+	}
+
+	setup_values() {
+		this.x.totals = this.x.values.map((d, i) => {
+			let total = 0;
+			this.y.map(e => {
+				total += e.values[i];
+			});
+			return total;
+		});
+
+		// Calculate x unit distances for tooltips
+	}
+
+	setup_utils() { }
+	setup_components() {
+		this.$percentage_bar = $(`<div class="progress">
+		</div>`).appendTo(this.$chart);
+	}
+
+	make_graph_components() {
+		let grand_total = this.x.totals.reduce((a, b) => a + b, 0);
+		this.x.units = [];
+		this.x.totals.map((total, i) => {
+			let $part = $(`<div class="progress-bar background ${this.x.colors[i]}"
+				style="width: ${total*100/grand_total}%"></div>`);
+			this.x.units.push($part);
+			this.$percentage_bar.append($part);
+		});
+	}
+
+	make_tooltip() { }
+
+	show_summary() {
+		let values = this.x.formatted.length > 0 ? this.x.formatted : this.x.values;
+		this.x.totals.map((d, i) => {
+			this.$stats_container.append($(`<div class="stats">
+				<span class="indicator ${this.x.colors[i]}">
+					<span class="text-muted">${values[i]}:</span>
+					${d}
+				</span>
+			</div>`));
+		});
+	}
+};
