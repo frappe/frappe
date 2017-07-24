@@ -92,7 +92,7 @@ class EmailAccount(Document):
 				frappe.safe_eval(self.condition, None, None)
 			except:
 				frappe.throw(_("The condition '{0}' is invalid").format(self.condition))
-				
+
 	def on_update(self):
 		"""Check there is only one default of each type."""
 		from frappe.core.doctype.user.user import ask_pass_update, setup_user_email_inbox
