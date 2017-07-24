@@ -24,7 +24,15 @@ def sanitize_html(html, linkify=False):
 	escaped_html = bleach.clean(html, tags=tags, attributes=attributes, styles=styles, strip_comments=strip_comments)
 
 	if linkify:
-		escaped_html = bleach.linkify(escaped_html, callbacks=[])
+		# based on bleach.clean
+		class s(bleach.BleachSanitizer):
+			allowed_elements = tags
+			allowed_attributes = attributes
+			allowed_css_properties = styles
+			strip_disallowed_elements = False
+			strip_html_comments = strip_comments
+
+		escaped_html = bleach.linkify(escaped_html, callbacks=[], tokenizer=s)
 
 	return escaped_html
 
