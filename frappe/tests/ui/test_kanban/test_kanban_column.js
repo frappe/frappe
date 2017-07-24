@@ -11,7 +11,7 @@ QUnit.test("Test: Setting column colour [Kanban view]", function(assert) {
 		() => frappe.set_route("List", "ToDo", "Kanban", "Kanban test"),
 		() => frappe.timeout(1),
 		() => assert.deepEqual(["List", "ToDo", "Kanban", "Kanban test"], frappe.get_route(),
-				"Kanban view opened successfully."),
+			"Kanban view opened successfully."),
 		() => {
 			// set colour for columns
 			$(get_column('High', "red")).click();
