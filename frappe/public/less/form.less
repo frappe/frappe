@@ -391,6 +391,7 @@ h6.uppercase, .h6.uppercase {
 	.action-btns {
 	    position: absolute;
 	    right: 0;
+	    padding: 5px 10px 2px 5px;
 	}
 
 	.comment-header {
@@ -401,6 +402,9 @@ h6.uppercase, .h6.uppercase {
 		border-bottom: 1px solid @light-border-color;
 		&.links-active {
 			padding-right: 60px;
+		}
+		.commented-on-small {
+			display: none;		
 		}
 
 		.octicon-heart {
@@ -427,11 +431,14 @@ h6.uppercase, .h6.uppercase {
 	}
 
 	.close-btn-container {
-		padding: 4px 10px 2px 5px;
+		.close {
+			color: inherit;
+			opacity: 1;
+		}
 	}
 
 	.edit-btn-container {
-		padding: 4px 5px;
+		padding: 0 10px 0 0;
 
 		.edit {
 			color: inherit;

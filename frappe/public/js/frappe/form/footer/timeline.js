@@ -248,11 +248,11 @@ frappe.ui.form.Timeline = Class.extend({
 		c["edit"] = "";
 		if(c.communication_type=="Comment" && (c.comment_type || "Comment") === "Comment") {
 			if(frappe.model.can_delete("Communication")) {
-				c["delete"] = '<a class="close" href="#"><i class="octicon octicon-trashcan"></i></a>';
+				c["delete"] = '<a class="close" title="Delete"  href="#"><i class="octicon octicon-x"></i></a>';
 			}
 
 			if(frappe.user.name == c.sender || (frappe.user.name == 'Administrator')) {
-				c["edit"] = '<a class="edit" href="#"><i class="octicon octicon-pencil"></i></a>';
+				c["edit"] = '<a class="edit" title="Edit" href="#"><i class="octicon octicon-pencil"></i></a>';
 			}
 		}
 		c.comment_on_small =comment_when(c.creation, true);
