@@ -299,6 +299,7 @@ h6.uppercase,
 .timeline-item.user-content .action-btns {
   position: absolute;
   right: 0;
+  padding: 5px 10px 2px 5px;
 }
 .timeline-item.user-content .comment-header {
   background-color: #fafbfc;
@@ -309,6 +310,9 @@ h6.uppercase,
 }
 .timeline-item.user-content .comment-header.links-active {
   padding-right: 60px;
+}
+.timeline-item.user-content .comment-header .commented-on-small {
+  display: none;
 }
 .timeline-item.user-content .comment-header .octicon-heart {
   color: #ff5858;
@@ -327,11 +331,12 @@ h6.uppercase,
 .timeline-item.user-content .reply hr {
   margin: 10px 0px;
 }
-.timeline-item.user-content .close-btn-container {
-  padding: 4px 10px 2px 5px;
+.timeline-item.user-content .close-btn-container .close {
+  color: inherit;
+  opacity: 1;
 }
 .timeline-item.user-content .edit-btn-container {
-  padding: 4px 5px;
+  padding: 0 10px 0 0;
 }
 .timeline-item.user-content .edit-btn-container .edit {
   color: inherit;
