@@ -1,0 +1,48 @@
+{% extends "templates/web.html" %}
+
+{% block title %} {{ _("Third Party Apps") }} {% endblock %}
+
+{% block header %}
+	<h1>{{ _("Third Party Apps") }}</h1>
+{% endblock %}
+
+{% block style %}
+
+{% endblock %}
+
+
+{% block page_content %}	
+
+<p>
+<!-- <a class='small underline task-status-switch' data-status='Open'>{{ _("Show closed") }}</a> -->
+</p>
+
+<div class='padding'></div>
+
+<h4>{{ _("You are logged into following apps") }}</h4>
+
+{% for app in apps %}
+<div class="web-list-item">
+	<a class="no-decoration" href="#">
+		<div class="row">
+			<div class="col-xs-6">
+				{{ app.app_name }}
+			</div>
+			<div class="col-xs-6 text-right small text-muted">
+				{{ frappe.utils.pretty_date(app.modified) }}
+			</div>
+		</div>
+	</a>
+</div>
+{% endfor %}
+
+<ul>
+</ul>
+
+</div>
+
+<script>
+{% include "templates/includes/integrations/third_party_apps.js" %}
+</script>
+
+{% endblock %}
