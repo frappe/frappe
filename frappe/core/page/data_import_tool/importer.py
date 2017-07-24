@@ -133,7 +133,8 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 								elif fieldtype in ("Image", "Attach Image", "Attach"):
 									# added file to attachments list
 									attachments.append(d[fieldname])
-								elif d[fieldname] == 'Link':
+
+								elif fieldtype in ("Link", "Dynamic Link") and d[fieldname]:
 									# as fields can be saved in the number format(long type) in data import template
 									d[fieldname] = cstr(d[fieldname])
 							except IndexError:
