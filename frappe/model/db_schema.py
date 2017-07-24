@@ -314,7 +314,7 @@ class DbTable:
 				# if index key exists
 				if frappe.db.sql("""show index from `{0}`
 					where key_name=%s
-					and Non_unique=%s""".format(self.name), (col.fieldname, 0 if col.unique else 1)):
+					and Non_unique=%s""".format(self.name), (col.fieldname, col.unique)):
 					query.append("drop index `{}`".format(col.fieldname))
 
 		for col in self.set_default:
