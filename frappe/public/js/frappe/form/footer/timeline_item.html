@@ -91,11 +91,13 @@
 							{% if (data.communication_medium === "Email"
 								&& data.sender !== frappe.session.user_email) { %}
 							<a class="text-muted reply-link pull-right timeline-content-show"
-								data-name="{%= data.name %}">{%= __("Reply") %}</a>
+								data-name="{%= data.name %}" title="{%= __("Reply") %}"><i class="octicon octicon-mail-reply"></i></a>
 							{% } %}
 						{% } %}
-					<span class="text-muted commented-on" style="font-weight: normal;">
+					<span class="text-muted commented-on hidden-xs">
 						&ndash; {%= data.comment_on %}</span>
+					<span class="text-muted visible-xs commented-on" style="display: inline-block!important;">
+						&ndash; {%= data.comment_on_small %}</span>
 					<span class="comment-likes hidden-xs"
 						data-liked-by=\'{{ JSON.stringify(data._liked_by) }}\'>
 						<i class="octicon octicon-heart like-action
