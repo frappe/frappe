@@ -355,6 +355,9 @@ body {
   .timeline .timeline-item.user-content .media-body:before {
     content: none;
   }
+  .timeline .timeline-item.user-content .action-btns {
+    padding: 5px 10px 2px 5px;
+  }
   .timeline .timeline-item.user-content .comment-header {
     padding: 7px 10px;
   }
