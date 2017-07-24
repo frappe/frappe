@@ -299,7 +299,7 @@ h6.uppercase,
 .timeline-item.user-content .action-btns {
   position: absolute;
   right: 0;
-  padding: 5px 10px 2px 5px;
+  padding: 5px 15px 2px 5px;
 }
 .timeline-item.user-content .comment-header {
   background-color: #fafbfc;
@@ -334,9 +334,10 @@ h6.uppercase,
 .timeline-item.user-content .close-btn-container .close {
   color: inherit;
   opacity: 1;
+  padding: 0 0 0 10px;
 }
 .timeline-item.user-content .edit-btn-container {
-  padding: 0 10px 0 0;
+  padding: 0;
 }
 .timeline-item.user-content .edit-btn-container .edit {
   color: inherit;
