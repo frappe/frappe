@@ -16,6 +16,8 @@ frappe.ui.form.Timeline = Class.extend({
 		this.list = this.wrapper.find(".timeline-items");
 		this.input = this.wrapper.find(".form-control");
 
+		this.setup_summernote_on_comment_area();
+
 		this.comment_button = this.wrapper.find(".btn-comment")
 			.on("click", function() {
 				me.add_comment(this);
@@ -24,7 +26,7 @@ frappe.ui.form.Timeline = Class.extend({
 		this.input.keydown("meta+return ctrl+return", function(e) {
 			me.comment_button.trigger("click");
 		}).keyup(function(e) {
-			if(me.input.val()) {
+			if(me.input.summernote('code')) {
 				if(me.comment_button.hasClass('btn-default')) {
 					me.comment_button.removeClass('btn-default').addClass('btn-primary');
 				}
@@ -43,7 +45,7 @@ frappe.ui.form.Timeline = Class.extend({
 
 		this.setup_comment_like();
 
-		this.setup_mentions();
+		// this.setup_mentions();
 
 		this.list.on("click", ".btn-more", function() {
 			var communications = me.get_communications();
@@ -72,6 +74,66 @@ frappe.ui.form.Timeline = Class.extend({
 			});
 		});
 
+	},
+
+	setup_summernote_on_comment_area: function() {
+		this.input.summernote({
+			airMode: true,
+			height: 100,
+			toolbar: false,
+			hint: {
+				mentions: this.get_usernames_for_mentions(),
+				match: /\B@(\w*)$/,
+				search: function (keyword, callback) {
+					callback($.grep(this.mentions, function (item) {
+						return item.indexOf(keyword) == 0;
+					}));
+				},
+				content: function (item) {
+					return '@' + item;
+				}
+			},
+			icons: {
+				'align': 'fa fa-align',
+				'alignCenter': 'fa fa-align-center',
+				'alignJustify': 'fa fa-align-justify',
+				'alignLeft': 'fa fa-align-left',
+				'alignRight': 'fa fa-align-right',
+				'indent': 'fa fa-indent',
+				'outdent': 'fa fa-outdent',
+				'arrowsAlt': 'fa fa-arrows-alt',
+				'bold': 'fa fa-bold',
+				'caret': 'caret',
+				'circle': 'fa fa-circle',
+				'close': 'fa fa-close',
+				'code': 'fa fa-code',
+				'eraser': 'fa fa-eraser',
+				'font': 'fa fa-font',
+				'frame': 'fa fa-frame',
+				'italic': 'fa fa-italic',
+				'link': 'fa fa-link',
+				'unlink': 'fa fa-chain-broken',
+				'magic': 'fa fa-magic',
+				'menuCheck': 'fa fa-check',
+				'minus': 'fa fa-minus',
+				'orderedlist': 'fa fa-list-ol',
+				'pencil': 'fa fa-pencil',
+				'picture': 'fa fa-image',
+				'question': 'fa fa-question',
+				'redo': 'fa fa-redo',
+				'square': 'fa fa-square',
+				'strikethrough': 'fa fa-strikethrough',
+				'subscript': 'fa fa-subscript',
+				'superscript': 'fa fa-superscript',
+				'table': 'fa fa-table',
+				'textHeight': 'fa fa-text-height',
+				'trash': 'fa fa-trash',
+				'underline': 'fa fa-underline',
+				'undo': 'fa fa-undo',
+				'unorderedlist': 'fa fa-list-ul',
+				'video': 'fa fa-video-camera'
+			}
+		});
 	},
 
 	setup_email_button: function() {
@@ -520,7 +582,7 @@ frappe.ui.form.Timeline = Class.extend({
 	},
 
 	add_comment: function(btn) {
-		var txt = this.input.val();
+		var txt = this.input.summernote('code');
 
 		if(txt) {
 			this.insert_comment("Comment", txt, btn, this.input);
@@ -545,11 +607,11 @@ frappe.ui.form.Timeline = Class.extend({
 			btn: btn,
 			callback: function(r) {
 				if(!r.exc) {
-					me.input.val("");
+					me.input.summernote('reset');
 
 					frappe.utils.play_sound("click");
 
-					var comment = r.message;
+					var comment = r.message;f
 					var comments = me.get_communications();
 					var comment_exists = false;
 					for (var i=0, l=comments.length; i<l; i++) {
@@ -657,6 +719,13 @@ frappe.ui.form.Timeline = Class.extend({
 
 	setup_mentions: function() {
 		this.setup_awesomplete_for_mentions();
+	},
+
+	get_usernames_for_mentions: function() {
+		var valid_users = Object.keys(frappe.boot.user_info)
+			.filter(user => !["Administrator", "Guest"].includes(user));
+
+		return valid_users.map(user => frappe.boot.user_info[user].username);
 	},
 
 	setup_awesomplete_for_mentions: function() {
