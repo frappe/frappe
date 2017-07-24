@@ -93,7 +93,7 @@ frappe.ui.Graph = class Graph {
 
 		this.y.map((d, i) => {
 			this.make_units(d.y_tops, d.color, i);
-			this.make_path(d.y_tops, d.color);
+			this.make_path(d);
 		});
 
 		this.make_tooltip();
@@ -147,23 +147,32 @@ frappe.ui.Graph = class Graph {
 
 		this.x_axis_values = this.x.map((d, i) => this.x_offset + i * this.avg_unit_width);
 		this.y_axis_values = this.get_y_axis_values(this.upper_limit, this.parts);
-		this.y_min_tops = new Array(this.x_axis_values.length).fill(9999);
 
 		// Data points
 		this.y.map(d => {
-			d.y_tops = d.values.map( (val, i) => {
-				let y_top = this.height - val * this.multiplier;
-				if(y_top < this.y_min_tops[i]) {
-					this.y_min_tops[i] = y_top;
-				}
-				return y_top;
-			});
+			d.y_tops = d.values.map( val => this.height - val * this.multiplier );
+			d.data_units = [];
 		});
+
+		this.calc_min_tops();
+
+		console.log(this.y);
 	}
 
 	set_avg_unit_width_and_x_offset() {
 		this.avg_unit_width = this.width/(this.x.length - 1);
 		this.x_offset = 0;
+	}
+
+	calc_min_tops() {
+		this.y_min_tops = new Array(this.x_axis_values.length).fill(9999);
+		this.y.map(d => {
+			d.y_tops.map( (y_top, i) => {
+				if(y_top < this.y_min_tops[i]) {
+					this.y_min_tops[i] = y_top;
+				}
+			});
+		});
 	}
 
 	setup_components() {
@@ -243,12 +252,14 @@ frappe.ui.Graph = class Graph {
 	make_units(y_values, color, dataset_index) {
 		let d = this.unit_args;
 		y_values.map((y, i) => {
-			this.data_units.add(this.draw[d.type](this.x_axis_values[i],
-				y, d.args, color, dataset_index));
+			let data_unit = this.draw[d.type](this.x_axis_values[i],
+				y, d.args, color, dataset_index);
+			this.data_units.add(data_unit);
+			this.y[dataset_index].data_units.push(data_unit);
 		});
 	}
 
-	make_path(y_values, color) { }
+	make_path(y_dataset) { }
 
 	make_tooltip() {
 		this.tip = $(`<div class="svg-tip comparison">
@@ -339,6 +350,40 @@ frappe.ui.Graph = class Graph {
 		// });
 	}
 
+	change_values(new_y) {
+		let u = this.unit_args;
+		this.y.map((d, i) => {
+			let new_d = new_y[i];
+			new_d.y_tops = new_d.values.map(val => this.height - val * this.multiplier);
+
+			// below is equal to this.y[i].data_units..
+			d.data_units.map((unit, j) => {
+				let current_y_top = d.y_tops[j];
+				let current_height = this.height - current_y_top;
+
+				let new_y_top = new_d.y_tops[j];
+				let new_height = current_height - (new_y_top - current_y_top);
+
+				this.animate[u.type](unit, new_y_top, {new_height: new_height});
+			});
+		});
+
+		// Replace values and formatted
+		this.y.map((d, i) => {
+			let new_d = new_y[i];
+			[d.values, d.formatted] = [new_d.values, new_d.formatted];
+		});
+
+		// create new x,y pair string and animate path
+		if(this.y[0].path) {
+			new_y.map((e, i) => {
+				let new_points_list = e.y_tops.map((y, i) => (this.x_axis_values[i] + ',' + y));
+				let new_path_str = "M"+new_points_list.join("L");
+				this.y[i].path.animate({d:new_path_str}, 300, mina.easein);
+			});
+		}
+	}
+
 	// Helpers
 	get_strwidth(string) {
 		return string.length * 8;
@@ -384,6 +429,15 @@ frappe.ui.Graph = class Graph {
 				});
 			}
 		}
+
+		this.animate = {
+			'bar': (bar, new_y, args) => {
+				bar.animate({height: args.new_height, y: new_y}, 300, mina.easein);
+			},
+			'dot': (dot, new_y) => {
+				dot.animate({cy: new_y}, 300, mina.easein);
+			}
+		}
 	}
 };
 
@@ -421,18 +475,19 @@ frappe.ui.LineGraph = class LineGraph extends frappe.ui.Graph {
 
 	setup_values() {
 		super.setup_values();
-		this.y_axis_mode = 'span';
-		this.x_axis_mode = 'tick';
+		this.y_axis_mode = 'tick';
+		this.x_axis_mode = 'span';
 		this.unit_args = {
 			type: 'dot',
 			args: { radius: 4 }
 		}
 	}
 
-	make_path(y_values, color) {
-		let points_list = y_values.map((y, i) => (this.x_axis_values[i] + ',' + y));
+	make_path(d) {
+		let points_list = d.y_tops.map((y, i) => (this.x_axis_values[i] + ',' + y));
 		let path_str = "M"+points_list.join("L");
-		this.data_units.prepend(this.snap.path(path_str).attr({class: `stroke ${color}`}));
+		d.path = this.snap.path(path_str).attr({class: `stroke ${d.color}`});
+		this.data_units.prepend(d.path);
 	}
 };
 

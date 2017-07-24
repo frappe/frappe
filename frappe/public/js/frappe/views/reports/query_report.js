@@ -896,10 +896,9 @@ frappe.views.QueryReport = Class.extend({
 		console.log(data, data[1], data[1].splice(0,1), data[0], data[0].splice(0,1), data[2].splice(0,1))
 		this.chart_area.empty().toggle(true);
 
-		new frappe.ui.Graph({
+		let g = new frappe.ui.Graph({
 			parent: me.chart_area,
-			mode: 'bar',
-			color: 'blue',
+			mode: 'line',
 			y: [
 				{
 					title: 'Some data',
@@ -917,5 +916,18 @@ frappe.views.QueryReport = Class.extend({
 			x: data[0],
 			x_formatted: data[0].map(d => d.toLowerCase().replace(/-/g, 'to'))
 		});
+
+		setTimeout(() => {
+			g.change_values([
+				{
+					values: data[2],
+					formatted: data[1].map(d => d + 'L'),
+				},
+				{
+					values: data[1].map(d => d+2),
+					formatted: data[1].map(d => (d+2) + 'L'),
+				}
+			]);
+		}, 1000);
 	}
 })
