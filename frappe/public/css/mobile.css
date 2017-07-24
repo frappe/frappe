@@ -373,6 +373,9 @@ body {
   .timeline .timeline-item.user-content .commented-on-small {
     display: inline-block;
   }
+  .timeline .timeline-item.user-content .commented-on-small {
+    display: inline-block;
+  }
   .timeline .timeline-item.notification-content {
     padding-left: 15px;
     margin: 20px 0;
