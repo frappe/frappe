@@ -1,21 +1,30 @@
 QUnit.module('views');
 
-QUnit.test("Test setting colour for column [Kanban view]", function(assert) {
+QUnit.test("Test: Setting column colour [Kanban view]", function(assert) {
 	assert.expect(3);
 	let done = assert.async();
+	function get_column(name, colour) {
+		return ('.kanban-column:contains('+name+')>div>div>ul>li>div.'+colour);
+	}
 
 	frappe.run_serially([
-		() => frappe.tests.setup_doctype('Kanban Board'),
-		() => frappe.set_route("List", "ToDo", "Kanban", "kanban 1"),
-		() => frappe.timeout(0.5),
-		() => assert.deepEqual(frappe.get_route(), ["List", "ToDo", "Kanban", "kanban 1"], "Kanban view opened successfully."),
-		//set colour for columns
-		() => frappe.tests.click_and_wait('div:nth-child(3) > div > div > ul > li > div.red'),
-		() => frappe.tests.click_and_wait('div:nth-child(4) > div > div > ul > li > div.green'),
+		() => frappe.set_route("List", "ToDo", "Kanban", "Kanban test"),
+		() => frappe.timeout(1),
+		() => assert.deepEqual(["List", "ToDo", "Kanban", "Kanban test"], frappe.get_route(),
+				"Kanban view opened successfully."),
+		() => {
+			// set colour for columns
+			$(get_column('High', "red")).click();
+			$(get_column('Medium', "green")).click();
+			$(get_column('Low', "yellow")).click();
+		},
+		() => frappe.timeout(1),
 		() => {
 			//check if different colours are set
-			assert.equal($('.red > span')[0].innerText, 'Open', "Colour is set for kanban column.");
-			assert.equal($('.green > span')[0].innerText, 'Closed', "Different colour is set for other column.");
+			assert.equal($('.red > span')[0].innerText, 'High',
+				"Colour is set for kanban column.");
+			assert.equal($('.green > span')[0].innerText, 'Medium',
+				"Different colour is set for other column.");
 		},
 		() => done()
 	]);

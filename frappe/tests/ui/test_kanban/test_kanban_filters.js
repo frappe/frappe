@@ -1,33 +1,26 @@
 QUnit.module('views');
 
-QUnit.test("Test filters [Kanban view]", function(assert) {
-	assert.expect(2);
+QUnit.test("Test: Filters [Kanban view]", function(assert) {
+	assert.expect(3);
 	let done = assert.async();
 
 	frappe.run_serially([
-		() => frappe.tests.setup_doctype('User'),
-		() => frappe.tests.setup_doctype('Kanban Board'),
-		() => frappe.tests.create_todo(5),
-		() => frappe.set_route("List", "ToDo", "Kanban", "kanban 1"),
+		() => frappe.set_route("List", "ToDo", "Kanban", "Kanban test"),
 		() => frappe.timeout(1),
 		() => {
-			assert.deepEqual(frappe.get_route(), ["List", "ToDo", "Kanban", "kanban 1"], "Kanban view opened successfully.");
-			//set filter values
-			$('.col-md-2:nth-child(2) .input-sm').val('Closed');
-			$('.col-md-2:nth-child(5) .input-sm').val('Administrator');
+			assert.deepEqual(["List", "ToDo", "Kanban", "Kanban test"], frappe.get_route(),
+				"Kanban view opened successfully.");
+			// set filter values
+			return frappe.set_control('priority', 'Low');
 		},
 		() => frappe.timeout(1),
 		() => cur_list.page.btn_secondary.click(),
 		() => frappe.timeout(1),
 		() => {
-			//get total list element
-			var count = cur_list.data.length;
-			//check if all elements are as per filter
-			var i=0;
-			for ( ; i < count ; i++)
-				if ((cur_list.data[i].status!='Closed')||(cur_list.data[i].owner!='Administrator'))
-					break;
-			assert.equal(i, count, "All elements present contains data as per filters.");
+			assert.equal(cur_list.data[0].priority, 'Low',
+				'visible element has low priority');
+			let non_low_items = cur_list.data.filter(d => d.priority != 'Low');
+			assert.equal(non_low_items.length, 0, 'No item without low priority');
 		},
 		() => done()
 	]);
