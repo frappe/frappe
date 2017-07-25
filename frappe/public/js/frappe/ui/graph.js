@@ -394,7 +394,7 @@ frappe.ui.Graph = class Graph {
 			new_y.map((e, i) => {
 				let new_points_list = e.y_tops.map((y, i) => (this.x_axis_values[i] + ',' + y));
 				let new_path_str = "M"+new_points_list.join("L");
-				this.y[i].path.animate({d:new_path_str}, 300, mina.easein);
+				this.y[i].path.animate({d:new_path_str}, 300, mina.easein);	// eslint-disable-line
 			});
 		}
 	}
@@ -447,10 +447,10 @@ frappe.ui.Graph = class Graph {
 
 		this.animate = {
 			'bar': (bar, new_y, args) => {
-				bar.animate({height: args.new_height, y: new_y}, 300, mina.easein);
+				bar.animate({height: args.new_height, y: new_y}, 300, mina.easein);	// eslint-disable-line
 			},
 			'dot': (dot, new_y) => {
-				dot.animate({cy: new_y}, 300, mina.easein);
+				dot.animate({cy: new_y}, 300, mina.easein);	// eslint-disable-line
 			}
 		};
 	}
@@ -513,7 +513,9 @@ frappe.ui.PercentageGraph = class PercentageGraph extends frappe.ui.Graph {
 
 	make_graph_area() {
 		this.$graphics.addClass('focus-margin');
-		this.$stats_container.addClass('focus-margin');
+		this.$stats_container.addClass('focus-margin').attr({
+			style: `padding-top: 0px; margin-bottom: 30px;`
+		});
 		this.$div = $(`<div class="div" width="${this.base_width}"
 			height="${this.base_height}">
 				<div class="progress-chart"></div>

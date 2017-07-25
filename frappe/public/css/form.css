@@ -678,6 +678,9 @@ select.form-control {
   padding: 10px;
   margin: 10px;
 }
+.graph-container .focus-margin {
+  margin: 0px 5%;
+}
 .graph-container .graphics {
   margin-top: 10px;
   padding: 10px 0px;
@@ -721,6 +724,9 @@ select.form-control {
 }
 .percentage-graph {
   margin-top: 30px;
+}
+.percentage-graph .progress {
+  margin-bottom: 0px;
 }
 .data-points circle {
   stroke: #fff;
@@ -778,6 +784,15 @@ line.dashed {
   display: inline-block;
   padding: 5px 10px;
 }
+.svg-tip ul,
+.svg-tip ol {
+  padding-left: 0;
+  display: flex;
+}
+.svg-tip ul.data-point-list li {
+  min-width: 90px;
+  flex: 1;
+}
 .svg-tip strong {
   color: #dfe2e5;
 }
@@ -791,18 +806,6 @@ line.dashed {
   content: " ";
   border: 5px solid transparent;
   border-top-color: rgba(0, 0, 0, 0.8);
-}
-ul,
-ol {
-  padding-left: 0;
-  display: flex;
-}
-ul.data-point-list li {
-  min-width: 90px;
-  flex: 1;
-}
-.focus-margin {
-  margin: 10px 5%;
 }
 .stroke.grey {
   stroke: #F0F4F7;
