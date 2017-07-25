@@ -223,6 +223,9 @@ body {
 }
 
 @media(max-width: 767px) {
+	.toggle-sidebar {
+		margin-right: 0;
+	}
 	body[data-route^="Form"]{
 		.page-title {
 			.title-text {
@@ -404,6 +407,69 @@ body {
 	body[data-route^="Form"] {
 		.page-head .sub-heading {
 			right: 90px;
+		}
+	}
+	.timeline {
+		&::before {
+			content: none;
+		}
+		.timeline-new-email {
+			margin: 20px 0;
+			padding-left: 15px;
+			&::before {
+				content: none;
+			}
+		}
+		.timeline-item {
+			&.user-content {
+				margin: 20px 15px;
+				.media-body {
+					margin-left: 0;
+					max-width: 100%;
+					overflow: hidden;
+					&:before {
+						content: none;
+					}
+				}
+				.action-btns {
+					padding: 5px 10px 2px 5px;
+				}
+				.comment-header{
+					padding: 7px 10px;
+					.links-active {
+						padding-right: 10px;
+					}
+				}
+				.avatar-medium {
+				    margin-right: 10px;
+				}
+				.reply {
+					padding: 10px;
+				}	
+				.commented-on-small{
+					display: inline-block;
+				}
+				.commented-on-small{
+					display: inline-block;
+				}
+			}
+			&.notification-content {
+				padding-left: 15px;
+				margin: 20px 0;
+				&::before {
+					content: none;
+				}
+				.small {
+				    padding-left: 0;
+				}
+			}
+			.delivery-status-indicator {
+				float: left;
+				margin: 0 5px 0 0;
+			}
+		}
+		.asset-details {
+			line-height: 24px; /*Height of avtar image -36px to align text center vertically*/
 		}
 	}
 }

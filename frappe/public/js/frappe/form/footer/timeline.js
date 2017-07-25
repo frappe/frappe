@@ -248,14 +248,14 @@ frappe.ui.form.Timeline = Class.extend({
 		c["edit"] = "";
 		if(c.communication_type=="Comment" && (c.comment_type || "Comment") === "Comment") {
 			if(frappe.model.can_delete("Communication")) {
-				c["delete"] = '<a class="close" href="#"><i class="octicon octicon-trashcan"></i></a>';
+				c["delete"] = '<a class="close" title="Delete"  href="#"><i class="octicon octicon-x"></i></a>';
 			}
 
 			if(frappe.user.name == c.sender || (frappe.user.name == 'Administrator')) {
-				c["edit"] = '<a class="edit" href="#"><i class="octicon octicon-pencil"></i></a>';
+				c["edit"] = '<a class="edit" title="Edit" href="#"><i class="octicon octicon-pencil"></i></a>';
 			}
 		}
-
+		c.comment_on_small = comment_when(c.creation, true);
 		c.comment_on = comment_when(c.creation);
 		if(!c.fullname) {
 			c.fullname = c.sender_full_name || frappe.user.full_name(c.sender);
@@ -358,7 +358,8 @@ frappe.ui.form.Timeline = Class.extend({
 				"Unshared": "octicon octicon-circle-slash",
 				"Like": "octicon octicon-heart",
 				"Edit": "octicon octicon-pencil",
-				"Relinked": "octicon octicon-check"
+				"Relinked": "octicon octicon-check",
+				"Reply": "octicon octicon-mail-reply"
 			}[c.comment_type || c.communication_medium]
 
 			c.color = {
@@ -376,7 +377,8 @@ frappe.ui.form.Timeline = Class.extend({
 				"Label": "#2c3e50",
 				"Attachment": "#7f8c8d",
 				"Attachment Removed": "#eee",
-				"Relinked": "#16a085"
+				"Relinked": "#16a085",
+				"Reply": "#8d99a6"
 			}[c.comment_type || c.communication_medium];
 
 			c.icon_fg = {

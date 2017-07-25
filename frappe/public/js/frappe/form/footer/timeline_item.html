@@ -1,6 +1,6 @@
 <div class="media timeline-item {% if (data.user_content) { %} user-content {% } else { %} notification-content {% } %}" data-doctype="{{ data.doctype }}" data-name="{%= data.name %}">
 	{% if (data.user_content) { %}
-	<span class="pull-left avatar avatar-medium" style="margin-top: 1px">
+	<span class="pull-left avatar avatar-medium hidden-xs" style="margin-top: 1px">
 		{% if(data.user_info.image) { %}
 		<div class="avatar-frame" style="background-image: url({%= data.user_info.image %})"></div>
 		{% } else { %}
@@ -10,88 +10,108 @@
 	</span>
 	{% } %}
 
-	<div class="pull-left media-body" style="max-width: calc(100% - 50px); padding-right: 0px;">
+	<div class="pull-left media-body">
 		<div class="media-content-wrapper">
-			<div class="pull-right close-btn-container">
-				<span class="small text-muted">
-					{%= data.delete %}
-				</span>
-			</div>
-			<div class="pull-right edit-btn-container">
-				<span class="small text-muted">
-					{%= data.edit %}
-				</span>
+			<div class="action-btns">
+				{% if(data.delete) { %}
+				<div class="pull-right hidden-xs close-btn-container">
+					<span class="small text-muted">
+						{%= data.delete %}
+					</span>
+				</div>
+				{% } %}
+				{% if(data.edit) { %}
+				<div class="pull-right edit-btn-container">
+					<span class="small text-muted">
+						{%= data.edit %}
+					</span>
+				</div>
+				{% } %}
 			</div>
 			{% if(data.communication_type==="Communication"
 				|| data.communication_type==="Feedback"
 				|| (data.communication_type==="Comment"
 					&& data.comment_type==="Comment")) { %}
-			<div class="comment-header small">
-				<i class="{%= data.icon %} fa-fw"></i>
-				<span title="{%= data.comment_by %}">{%= data.fullname %}</span>
-				<span>
-					{% if (data.timeline_doctype===data.frm.doc.doctype
-						&& data.timeline_name===data.frm.doc.name) { %}
-						&ndash;
-						<a href="#Form/{%= data.reference_doctype %}/{%= data.reference_name %}" class="text-muted">
-							<strong>{{ __(data.reference_doctype) }}</strong>
-								{{ data.reference_name }}
-						</a>
+			<div class="comment-header clearfix small {% if (data.edit || data.delete) { %} links-active {% } %}">
+				<span class="pull-left avatar avatar-small visible-xs">
+					{% if(data.user_info.image) { %}
+					<div class="avatar-frame" style="background-image: url({%= data.user_info.image %})"></div>
+					{% } else { %}
+					<div class="standard-image" style="background-color: {{ data.user_info.color }}">
+						{{ data.user_info.abbr }}</div>
 					{% } %}
 				</span>
-				<span class="text-muted" style="font-weight: normal;">
-					&ndash; {%= data.comment_on %}</span>
-					{% if(in_list(["Communication", "Feedback"], data.communication_type)) { %}
-						{% if (frappe.model.can_read(\'Communication\')) { %}
-						<a href="#Form/{%= data.doctype %}/{%= data.name %}"
-							class="text-muted">
+				<div class="asset-details">
+					<span class="author-wrap">
+						<i class="{%= data.icon %} hidden-xs fa-fw"></i>
+						<span title="{%= data.comment_by %}">{%= data.fullname %}</span>
+					</span>
+					<span>
+						{% if (data.timeline_doctype===data.frm.doc.doctype
+							&& data.timeline_name===data.frm.doc.name) { %}
+							&ndash;
+							<a href="#Form/{%= data.reference_doctype %}/{%= data.reference_name %}" class="text-muted">
+								<strong>{{ __(data.reference_doctype) }}</strong>
+									{{ data.reference_name }}
+							</a>
 						{% } %}
-
-						{% if (data.delivery_status) {
-							if (in_list(["Sent", "Opened", "Clicked"], data.delivery_status)) {
-								var indicator_class = "green";
-							} else if (data.delivery_status === "Sending") {
-								var indicator_class = "orange";
-							} else {
-								var indicator_class = "red";
-							}
-						%}
-						<span class="text-muted">&ndash;</span>
-						<span class="indicator-right {%= indicator_class %}
-							delivery-status-indicator"
-							title="{%= data.delivery_status %}">
-							{%= data.delivery_status %}</span>
-
-						{% } else { %}
+					</span>
+						{% if(in_list(["Communication", "Feedback"], data.communication_type)) { %}
 							{% if (frappe.model.can_read(\'Communication\')) { %}
-							<span class="text-muted">&ndash;</span>
-							{%= __("Details") %}
+							<a href="#Form/{%= data.doctype %}/{%= data.name %}"
+								class="text-muted">
+							{% } %}
+
+							{% if (data.delivery_status) {
+								if (in_list(["Sent", "Opened", "Clicked"], data.delivery_status)) {
+									var indicator_class = "green";
+								} else if (data.delivery_status === "Sending") {
+									var indicator_class = "orange";
+								} else {
+									var indicator_class = "red";
+								}
+							%}
+							<span class="text-muted hidden-xs">&ndash;</span>
+							<span class="indicator-right {%= indicator_class %}
+								delivery-status-indicator"
+								title="{%= data.delivery_status %}"><span class="hidden-xs">
+								{%= data.delivery_status %}</span></span>
+
+							{% } else { %}
+								{% if (frappe.model.can_read(\'Communication\')) { %}
+								<span class="text-muted n-dash">&ndash;</span>
+								{%= __("Details") %}
+								{% } %}
+							{% } %}
+
+							{% if (frappe.model.can_read(\'Communication\')) { %}
+							</a>
+							{% } %}
+
+							{% if (data.communication_medium === "Email"
+								&& data.sender !== frappe.session.user_email) { %}
+							<a class="text-muted reply-link pull-right timeline-content-show"
+								data-name="{%= data.name %}" title="{%= __("Reply") %}"><i class="octicon octicon-mail-reply"></i></a>
 							{% } %}
 						{% } %}
-
-						{% if (frappe.model.can_read(\'Communication\')) { %}
-						</a>
-						{% } %}
-
-						{% if (data.communication_medium === "Email"
-							&& data.sender !== frappe.session.user_email) { %}
-						<a class="text-muted reply-link pull-right timeline-content-show"
-							data-name="{%= data.name %}">{%= __("Reply") %}</a>
-						{% } %}
-					{% } %}
-				<span class="comment-likes"
-					data-liked-by=\'{{ JSON.stringify(data._liked_by) }}\'>
-					<i class="octicon octicon-heart like-action
-						{% if (!data.liked_by_user) { %}
-							text-extra-muted not-liked
-						{% } %} fa-fw"
-						data-doctype="{%= data.doctype %}"
-						data-name="{%= data.name %}"></i>
-					<span class="likes-count text-muted">
-						{{ (data._liked_by || []).length }}</span>
-				</span>
+					<span class="text-muted commented-on hidden-xs">
+						&ndash; {%= data.comment_on %}</span>
+					<span class="text-muted commented-on-small">
+						&ndash; {%= data.comment_on_small %}</span>
+					<span class="comment-likes hidden-xs"
+						data-liked-by=\'{{ JSON.stringify(data._liked_by) }}\'>
+						<i class="octicon octicon-heart like-action
+							{% if (!data.liked_by_user) { %}
+								text-extra-muted not-liked
+							{% } %} fa-fw"
+							data-doctype="{%= data.doctype %}"
+							data-name="{%= data.name %}"></i>
+						<span class="likes-count text-muted">
+							{{ (data._liked_by || []).length }}</span>
+					</span>
+				</div>
 			</div>
-			<div class="reply timeline-content-show" style="overflow-x: auto">
+			<div class="reply timeline-content-show">
 				<div class="timeline-item-content">
 					{% if data.show_subject %}
 						<p class="text-muted small">
@@ -143,7 +163,7 @@
 						{% if(data.link_doctype && data.link_name) { %}
 						</a>
 						{% } %}
-						<span class="text-muted" style="font-weight: normal;">
+						<span class="text-muted commented-on" style="font-weight: normal;">
 						&ndash; {%= data.comment_on %}</span>
 				</div>
 			{% } else { %}
@@ -172,7 +192,7 @@
 							</a>
 						{% } %}
 					{% } %}
-					<span class="text-muted" style="font-weight: normal;">
+					<span class="text-muted commented-on" style="font-weight: normal;">
 					&ndash; {%= data.comment_on %}</span>
 				</div>
 			{% } %}
