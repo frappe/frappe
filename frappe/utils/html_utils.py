@@ -25,7 +25,7 @@ def sanitize_html(html, linkify=False):
 
 	if linkify:
 		# based on bleach.clean
-		class s(bleach.BleachSanitizer):
+		class s(bleach.sanitizer.BleachSanitizer):
 			allowed_elements = tags
 			allowed_attributes = attributes
 			allowed_css_properties = styles
