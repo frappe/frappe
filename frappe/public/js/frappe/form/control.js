@@ -1219,6 +1219,15 @@ frappe.ui.form.ControlAttachImage = frappe.ui.form.ControlAttach.extend({
 	make: function() {
 		var me = this;
 		this._super();
+
+		this.container = $('<div class="control-container">').appendTo($(this.parent).empty());
+		this.container.attr('data-fieldtype', this.df.fieldtype).append(this.wrapper);
+		if(this.df.align === 'center') {
+			this.container.addClass("flex-justify-center");
+		} else if (this.df.align === 'right') {
+			this.container.addClass("flex-justify-end");
+		}
+
 		this.img_wrapper = $('<div style="width: 100%; height: calc(100% - 40px); position: relative;">\
 			<div class="missing-image attach-missing-image"><i class="octicon octicon-device-camera"></i></div></div>')
 			.appendTo(this.wrapper);

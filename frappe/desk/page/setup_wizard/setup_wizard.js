@@ -506,7 +506,7 @@ var frappe_slides = [
 		icon: "fa fa-user",
 		fields: [
 			{ "fieldtype":"Attach Image", "fieldname":"attach_user_image",
-				label: __("Attach Your Picture"), is_private: 0},
+				label: __("Attach Your Picture"), is_private: 0, align: 'center'},
 			{ "fieldname": "full_name", "label": __("Full Name"), "fieldtype": "Data",
 				reqd:1},
 			{ "fieldname": "email", "label": __("Email Address") + ' (' + __("Will be your login ID") + ')',
