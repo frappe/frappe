@@ -14,28 +14,17 @@ frappe.ui.form.Timeline = Class.extend({
 			{doctype: this.frm.doctype})).appendTo(this.parent);
 
 		this.list = this.wrapper.find(".timeline-items");
-		this.input = this.wrapper.find(".form-control");
+		// this.input = this.wrapper.find(".form-control");
 
-		this.setup_summernote_on_comment_area();
+		this.comment_area = new frappe.ui.CommentArea({
+			parent: this.wrapper.find('.comment-input-container')
+		});
+
 
 		this.comment_button = this.wrapper.find(".btn-comment")
 			.on("click", function() {
 				me.add_comment(this);
 			});
-
-		this.input.keydown("meta+return ctrl+return", function(e) {
-			me.comment_button.trigger("click");
-		}).keyup(function(e) {
-			if(me.input.summernote('code')) {
-				if(me.comment_button.hasClass('btn-default')) {
-					me.comment_button.removeClass('btn-default').addClass('btn-primary');
-				}
-			} else {
-				if(me.comment_button.hasClass('btn-primary')) {
-					me.comment_button.removeClass('btn-primary').addClass('btn-default');
-				}
-			}
-		});
 
 		this.setup_email_button();
 
@@ -45,7 +34,7 @@ frappe.ui.form.Timeline = Class.extend({
 
 		this.setup_comment_like();
 
-		// this.setup_mentions();
+		this.setup_summernote_on_comment_area();
 
 		this.list.on("click", ".btn-more", function() {
 			var communications = me.get_communications();
@@ -77,8 +66,8 @@ frappe.ui.form.Timeline = Class.extend({
 	},
 
 	setup_summernote_on_comment_area: function() {
+		var me = this;
 		this.input.summernote({
-			airMode: true,
 			height: 100,
 			toolbar: false,
 			hint: {
@@ -91,6 +80,24 @@ frappe.ui.form.Timeline = Class.extend({
 				},
 				content: function (item) {
 					return '@' + item;
+				}
+			},
+			onChange: function() {
+				console.log(this);
+				if(me.input.summernote('isEmpty')) {
+					me.comment_button
+						.removeClass('btn-primary')
+						.addClass('btn-default');
+				} else {
+					me.comment_button
+						.removeClass('btn-default')
+						.addClass('btn-primary');
+				}
+			},
+			onKeydown: function(e) {
+				var key = frappe.ui.keys.get_key(e);
+				if(key === 'ctrl+enter') {
+					me.comment_button.trigger("click");
 				}
 			},
 			icons: {
@@ -156,7 +163,7 @@ frappe.ui.form.Timeline = Class.extend({
 					});
 				} else {
 					$.extend(args, {
-						txt: frappe.markdown(me.input.val())
+						txt: frappe.markdown(me.input.summernote('code'))
 					});
 				}
 				new frappe.views.CommunicationComposer(args)
