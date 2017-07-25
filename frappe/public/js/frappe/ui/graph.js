@@ -18,6 +18,7 @@
 frappe.ui.Graph = class Graph {
 	constructor({
 		parent = null,
+		height = 240,
 
 		title = '', subtitle = '',
 
@@ -44,8 +45,6 @@ frappe.ui.Graph = class Graph {
 
 		// Calculate height width and translate initially
 
-		let height = 240;
-
 		this.parent = parent;
 		this.base_height = height;
 		this.height = height - 40;
@@ -71,7 +70,14 @@ frappe.ui.Graph = class Graph {
 	}
 
 	setup() {
+		this.bind_window_event();
 		this.refresh();
+	}
+
+	bind_window_event() {
+		$(window).on('resize orientationChange', () => {
+			this.refresh();
+		});
 	}
 
 	refresh() {
@@ -333,10 +339,10 @@ frappe.ui.Graph = class Graph {
 	show_specific_values() {
 		this.specific_values.map(d => {
 			this.specific_y_lines.add(this.snap.g(
-				this.snap.line(0, 0, this.width - 70, 0).attr({
+				this.snap.line(0, 0, this.width, 0).attr({
 					class: d.line_type === "dashed" ? "dashed": ""
 				}),
-				this.snap.text(this.width - 95, 0, d.name.toUpperCase()).attr({
+				this.snap.text(this.width + 5, 0, d.name.toUpperCase()).attr({
 					dy: ".32em",
 					class: "specific-value",
 				})

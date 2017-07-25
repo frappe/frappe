@@ -419,6 +419,7 @@ frappe.ui.form.Dashboard = Class.extend({
 		$.extend(args, {
 			parent: me.graph_area,
 			mode: 'line',
+			height: 140
 		});
 
 		new frappe.ui.Graph(args);
