@@ -86,7 +86,7 @@ def backup_to_dropbox():
 		access_token = generate_oauth2_access_token_from_oauth1_token(dropbox_settings)
 
 		if not access_token.get('oauth2_token'):
-			return
+			return 'Failed backup upload', 'No Access Token exists! Please generate the access token for Dropbox.'
 
 		dropbox_settings['access_token'] = access_token['oauth2_token']
 		set_dropbox_access_token(access_token['oauth2_token'])
