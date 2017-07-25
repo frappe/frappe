@@ -3,7 +3,8 @@
 from __future__ import unicode_literals
 
 import frappe, unittest, os, base64
-from frappe.email.email_body import replace_filename_with_cid, get_email
+from frappe.email.email_body import (replace_filename_with_cid,
+	get_email, inline_style_in_html, get_header)
 
 class TestEmailBody(unittest.TestCase):
 	def setUp(self):
@@ -94,6 +95,46 @@ w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 			</div>
 		'''.format(inline_images[0].get('content_id'))
 		self.assertEquals(message, processed_message)
+
+	def test_inline_styling(self):
+		html = '''
+<h3>Hi John</h3>
+<p>This is a test email</p>
+'''
+		transformed_html = '''
+<h3>Hi John</h3>
+<p style="margin:1em 0 !important">This is a test email</p>
+'''
+		self.assertTrue(transformed_html in inline_style_in_html(html))
+
+	def test_email_header(self):
+		email_html = '''
+<h3>Hey John Doe!</h3>
+<p>This is embedded image you asked for</p>
+'''
+		email_string = get_email(
+			recipients=['test@example.com'],
+			sender='me@example.com',
+			subject='Test Subject',
+			content=email_html,
+			header=['Email Title', 'green']
+		).as_string()
+
+		self.assertTrue('''<span class=3D"indicator indicator-green" style=3D"background-color:#98=
+d85b; border-radius:8px; display:inline-block; height:8px; margin-right:5px=
+; width:8px" bgcolor=3D"#98d85b" height=3D"8" width=3D"8"></span>''' in email_string)
+		self.assertTrue('<span>Email Title</span>' in email_string)
+
+	def test_get_email_header(self):
+		html = get_header(['This is test', 'orange'])
+		self.assertTrue('<span class="indicator indicator-orange"></span>' in html)
+		self.assertTrue('<span>This is test</span>' in html)
+
+		html = get_header(['This is another test'])
+		self.assertTrue('<span>This is another test</span>' in html)
+
+		html = get_header('This is string')
+		self.assertTrue('<span>This is string</span>' in html)
 
 
 def fixed_column_width(string, chunk_size):

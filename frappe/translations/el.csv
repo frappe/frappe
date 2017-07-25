@@ -55,7 +55,7 @@ apps/frappe/frappe/core/page/data_import_tool/exporter.py +52,Data Import Templa
 apps/frappe/frappe/public/js/frappe/model/model.js +31,Parent,Γονέας
 DocType: System Settings,"If enabled, the password strength will be enforced based on the Minimum Password Score value. A value of 2 being medium strong and 4 being very strong.","Αν είναι ενεργοποιημένη, η ισχύς του κωδικού θα επιβληθεί με βάση την τιμή του ελάχιστου αριθμού κωδικού πρόσβασης. Μια τιμή 2 είναι μέτρια ισχυρή και 4 είναι πολύ ισχυρή."
 DocType: About Us Settings,"""Team Members"" or ""Management""","""Μέλη ομάδας"" ή ""διαχείριση"""
-apps/frappe/frappe/core/doctype/doctype/doctype.py +457,Default for 'Check' type of field must be either '0' or '1',Η προεπιλογή για τον τύπο πεδίου 'ελέγχου' πρέπει να είναι είτε «0» είτε «1»
+apps/frappe/frappe/core/doctype/doctype/doctype.py +461,Default for 'Check' type of field must be either '0' or '1',Η προεπιλογή για τον τύπο πεδίου 'ελέγχου' πρέπει να είναι είτε «0» είτε «1»
 apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +50,Yesterday,Εχτές
 DocType: Contact,Designation,Ονομασία
 DocType: Test Runner,Test Runner,Δοκιμή Runner
@@ -71,7 +71,7 @@ DocType: DocType,Is Published Field,Δημοσιεύεται πεδίο
 DocType: Email Group,Email Group,email Ομάδα
 DocType: Note,Seen By,Θεάθηκε από
 apps/frappe/frappe/public/js/frappe/form/templates/grid_body.html +15,Add Multiple,Προσθήκη πολλαπλών
-apps/frappe/frappe/public/js/frappe/ui/filters/filters.js +479,Not Like,Όχι σαν
+apps/frappe/frappe/public/js/frappe/ui/filters/filters.js +480,Not Like,Όχι σαν
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +212,Set the display label for the field,Ρυθμίστε την ετικέτα που εμφανίζεται για το πεδίο
 apps/frappe/frappe/model/document.py +921,Incorrect value: {0} must be {1} {2},Λανθασμένη τιμή: το {0} πρέπει να είναι {1} {2}
 apps/frappe/frappe/config/setup.py +220,"Change field properties (hide, readonly, permission etc.)","Αλλαγή ιδιοτήτων πεδίου ( απόκρυψη , μόνο για ανάγνωση , την άδεια κλπ. )"
@@ -160,7 +160,8 @@ apps/frappe/frappe/public/js/frappe/upload.js +296,Uploading...,Γίνεται �
 DocType: Email Domain,Email Domain,τομέα email
 DocType: Workflow State,italic,Πλάγια γραφή
 apps/frappe/frappe/core/page/modules_setup/modules_setup.html +7,For Everyone,Για όλους
-apps/frappe/frappe/core/doctype/doctype/doctype.py +702,{0}: Cannot set Import without Create,{0} : Δεν είναι δυνατή η ρύθμιση εισαγωγής χωρίς δημιουργία
+apps/frappe/frappe/core/doctype/doctype/doctype.py +706,{0}: Cannot set Import without Create,{0} : Δεν είναι δυνατή η ρύθμιση εισαγωγής χωρίς δημιουργία
+apps/frappe/frappe/templates/emails/auto_email_report.html +45,View report in your browser,Προβολή αναφοράς στο πρόγραμμα περιήγησής σας
 apps/frappe/frappe/config/desk.py +26,Event and other calendars.,Εκδήλωση και άλλα ημερολόγια.
 apps/frappe/frappe/templates/includes/comments/comments.html +96,All fields are necessary to submit the comment.,Όλα τα πεδία είναι απαραίτητα για την υποβολή του σχολίου.
 apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +861,Drag to sort columns,Σύρετε για να ταξινομήσετε στήλες
@@ -237,7 +238,7 @@ apps/frappe/frappe/config/setup.py +121,Update many values at one time.,Ενημ
 apps/frappe/frappe/model/document.py +538,Error: Document has been modified after you have opened it,Σφάλμα: το έγγραφο έχει τροποποιηθεί αφού το έχετε ανοίξει
 apps/frappe/frappe/core/doctype/communication/feed.py +63,{0} logged out: {1},{0} αποσυνδεθεί: {1}
 DocType: Address,West Bengal,Δυτική Βεγγάλη
-apps/frappe/frappe/core/doctype/doctype/doctype.py +723,{0}: Cannot set Assign Submit if not Submittable,{0} : Δεν είναι δυνατή η ανάθεση υποβολής αν δεν είναι υποβλητέα
+apps/frappe/frappe/core/doctype/doctype/doctype.py +727,{0}: Cannot set Assign Submit if not Submittable,{0} : Δεν είναι δυνατή η ανάθεση υποβολής αν δεν είναι υποβλητέα
 DocType: Social Login Keys,Facebook,Facebook
 apps/frappe/frappe/www/list.py +65,"Filtered by ""{0}""",Φιλτράρισμα κατά &quot;{0}&quot;
 DocType: Salutation,Administrator,Διαχειριστής
@@ -261,7 +262,7 @@ DocType: User,Get your globally recognized avatar from Gravatar.com,Πάρτε �
 apps/frappe/frappe/limits.py +30,"Your subscription expired on {0}. To renew, {1}.","Η συνδρομή σας έληξε στις {0}. Για την ανανέωση, {1}."
 DocType: Workflow State,plus-sign,Plus-sign
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.py +24,Setup already complete,Ρύθμιση ήδη ολοκληρωθεί
-apps/frappe/frappe/__init__.py +897,App {0} is not installed,App {0} δεν είναι εγκατεστημένο
+apps/frappe/frappe/__init__.py +898,App {0} is not installed,App {0} δεν είναι εγκατεστημένο
 DocType: Workflow State,Refresh,Ανανέωση
 DocType: Event,Public,Δημόσιο
 apps/frappe/frappe/public/js/frappe/ui/base_list.js +76,Nothing to show,Δεν έχει τίποτα να δείξει
@@ -269,7 +270,7 @@ apps/frappe/frappe/public/js/frappe/model/model.js +24,Liked By,Άρεσε
 apps/frappe/frappe/public/js/frappe/toolbar.js +26,Email Support,Υποστήριξη ηλεκτρονικού ταχυδρομείου
 DocType: DocField,Print Hide If No Value,Εκτύπωση Απόκρυψη Αν Όχι Αξία
 DocType: Event,yellow,Kίτρινος
-apps/frappe/frappe/core/doctype/doctype/doctype.py +563,Is Published Field must be a valid fieldname,Δημοσιεύεται πεδίο πρέπει να είναι μια έγκυρη ΌνομαΠεδίου
+apps/frappe/frappe/core/doctype/doctype/doctype.py +567,Is Published Field must be a valid fieldname,Δημοσιεύεται πεδίο πρέπει να είναι μια έγκυρη ΌνομαΠεδίου
 apps/frappe/frappe/public/js/frappe/upload.js +20,Upload Attachment,Ανεβάστε Συνημμένο
 DocType: Block Module,Block Module,Block Ενότητα
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +3,Export Template,Πρότυπο εξαγωγής
@@ -286,7 +287,7 @@ DocType: Email Account,Total number of emails to sync in initial sync process ,�
 DocType: Website Settings,Set Banner from Image,Ορισμός banner από την εικόνα
 apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js +355,Global Search,Καθολική αναζήτηση
 DocType: Email Account,SparkPost,SparkPost
-apps/frappe/frappe/templates/emails/new_user.html +3,A new account has been created for you at {0},Ένας νέος λογαριασμός έχει δημιουργηθεί για εσάς σε {0}
+apps/frappe/frappe/templates/emails/new_user.html +2,A new account has been created for you at {0},Ένας νέος λογαριασμός έχει δημιουργηθεί για εσάς σε {0}
 apps/frappe/frappe/templates/includes/login/login.js +178,Instructions Emailed,Οδηγίες μέσω ηλεκτρονικού ταχυδρομείου
 apps/frappe/frappe/public/js/frappe/views/communication.js +449,Enter Email Recipient(s),Εισάγετε το Email Παραλήπτη (ες)
 DocType: Print Format,Verdana,Verdana
@@ -352,7 +353,7 @@ apps/frappe/frappe/utils/nestedset.py +218,Merging is only possible between Grou
 apps/frappe/frappe/integrations/doctype/gsuite_templates/gsuite_templates.py +30,Added {0},Προστέθηκε {0}
 apps/frappe/frappe/www/search.html +28,No matching records. Search something new,Δεν υπάρχουν στοιχεία που να ταιριάζουν. Αναζήτηση κάτι νέο
 DocType: Currency,Fraction Units,Μονάδες κλάσματος
-apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +431,{0} from {1} to {2},{0} από {1} έως {2}
+apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +433,{0} from {1} to {2},{0} από {1} έως {2}
 DocType: Communication,Type,Τύπος
 DocType: Authentication Log,Subject,Θέμα
 DocType: Web Form,Amount Based On Field,Ποσό με βάση το πεδίο
@@ -365,10 +366,10 @@ DocType: Workflow State,plane,Αεροπλάνο
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +65,"If you are uploading new records, ""Naming Series"" becomes mandatory, if present.","Αν ανεβάζετε νέες εγγραφές, η ""σειρά ονομασίας"" είναι απαραίτητη, εφόσον υπάρχει."
 apps/frappe/frappe/email/doctype/email_alert/email_alert.js +67,Get Alerts for Today,Λάβετε ειδοποιήσεις για σήμερα
 apps/frappe/frappe/core/doctype/doctype/doctype.py +280,DocType can only be renamed by Administrator,DocType μπορεί να μετονομαστεί μόνο από Administrator
-apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +442,changed value of {0},αλλαγμένη τιμή του {0}
+apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +444,changed value of {0},αλλαγμένη τιμή του {0}
 DocType: Report,JSON,JSON
 apps/frappe/frappe/core/doctype/user/user.py +752,Please check your email for verification,Παρακαλώ ελέγξτε το email σας για επαλήθευση
-apps/frappe/frappe/core/doctype/doctype/doctype.py +509,Fold can not be at the end of the form,Η αναδίπλωση δεν μπορεί να είναι στο τέλος της φόρμας
+apps/frappe/frappe/core/doctype/doctype/doctype.py +513,Fold can not be at the end of the form,Η αναδίπλωση δεν μπορεί να είναι στο τέλος της φόρμας
 DocType: Communication,Bounced,Ακάλυπτες
 DocType: Deleted Document,Deleted Name,διαγράφεται Όνομα
 apps/frappe/frappe/config/setup.py +14,System and Website Users,Χρήστες συστήματος και ιστοσελίδας
@@ -376,25 +377,26 @@ DocType: Workflow Document State,Doc Status,Κατάσταση εγγράφου
 DocType: Auto Email Report,No of Rows (Max 500),Αριθμός σειρών (Max 500)
 DocType: Language,Language Code,Κωδικός γλώσσας
 apps/frappe/frappe/public/js/frappe/ui/toolbar/toolbar.js +234,"Your download is being built, this may take a few moments...","Η λήψη σας δημιουργείται, αυτό μπορεί να διαρκέσει λίγα λεπτά ..."
-apps/frappe/frappe/public/js/frappe/ui/filters/filters.js +23,Add Filter,Προσθήκη φίλτρου
+apps/frappe/frappe/public/js/frappe/ui/filters/filters.js +21,Add Filter,Προσθήκη φίλτρου
 apps/frappe/frappe/www/feedback.html +23,Your rating: ,Η βαθμολογία σας:
 apps/frappe/frappe/utils/data.py +568,{0} and {1},{0} και {1}
 DocType: Print Settings,"Always add ""Draft"" Heading for printing draft documents",Πάντα προσθέστε &quot;Σχέδιο&quot; Τομέας για σχέδιο εκτύπωση εγγράφων
 apps/frappe/frappe/core/doctype/communication/communication.js +228,Email has been marked as spam,Το μήνυμα ηλεκτρονικού ταχυδρομείου έχει επισημανθεί ως ανεπιθύμητο
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +8,Setup &gt; User,Ρύθμιση&gt; Χρήστης
 DocType: About Us Settings,Website Manager,Διαχειριστής ιστοσελίδας
 apps/frappe/frappe/public/js/frappe/list/list_view.js +695,You selected Draft or Cancelled documents,Έχετε επιλέξει Έγγραφα ή Άκυρα έγγραφα
 apps/frappe/frappe/model/document.py +1044,Document Queued,έγγραφο ουρά
 DocType: GSuite Templates,Destination ID,Αναγνωριστικό προορισμού
 DocType: Desktop Icon,List,Λίστα
 DocType: Communication,Link Name,Όνομα σύνδεσμο
-apps/frappe/frappe/core/doctype/doctype/doctype.py +433,Field {0} in row {1} cannot be hidden and mandatory without default,Το πεδίο {0} στη γραμμή {1} δεν μπορεί να είναι κρυφό και υποχρεωτικό χωρίς προεπιλογμένη τιμή
+apps/frappe/frappe/core/doctype/doctype/doctype.py +437,Field {0} in row {1} cannot be hidden and mandatory without default,Το πεδίο {0} στη γραμμή {1} δεν μπορεί να είναι κρυφό και υποχρεωτικό χωρίς προεπιλογμένη τιμή
 DocType: System Settings,mm/dd/yyyy,μμ/ηη/εεεε
 apps/frappe/frappe/core/doctype/user/user.py +890,Invalid Password: ,Λανθασμένος κωδικός:
 DocType: Print Settings,Send document web view link in email,Αποστολή εγγράφου σύνδεσμο προβολή ιστοσελίδων στο email
 apps/frappe/frappe/www/feedback.html +114,Your Feedback for document {0} is saved successfully,Σχόλια για το έγγραφο {0} έχει αποθηκευτεί με επιτυχία
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard_page.html +20,Previous,Προηγούμενο
 apps/frappe/frappe/email/doctype/email_account/email_account.py +552,Re:,Απ:
-apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +496,{0} rows for {1},{0} γραμμές για {1}
+apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +498,{0} rows for {1},{0} γραμμές για {1}
 DocType: Currency,"Sub-currency. For e.g. ""Cent""",Υπο-νόμισμα. Για παράδειγμα &quot;cent&quot;
 apps/frappe/frappe/public/js/frappe/form/footer/attachments.js +215,Select uploaded file,Επιλέξτε προστιθέμενο αρχείο
 DocType: Letter Head,Check this to make this the default letter head in all prints,Επιλέξτε αυτό για να γίνει η προεπιλεγμένη κεφαλίδα επιστολόχαρτου σε όλες τις εκτυπώσεις
@@ -417,7 +419,7 @@ apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +5,
 DocType: Event,Wednesday,Τετάρτη
 apps/frappe/frappe/core/page/user_permissions/user_permissions.js +19,"Apart from Role based Permission Rules, you can apply User Permissions based on DocTypes.","Εκτός από τους κανόνες δικαιωμάτων που βασίζονται σε ρόλους, μπορείτε να εφαρμόσετε δικαιώματα χρηστών με βάση τύπους εγγράφων"
 apps/frappe/frappe/core/page/user_permissions/user_permissions.js +23,"These permissions will apply for all transactions where the permitted record is linked. For example, if Company C is added to User Permissions of user X, user X will only be able to see transactions that has company C as a linked value.","Αυτά τα δικαιώματα θα ισχύουν για όλες τις συναλλαγές όπου το επιτρεπόμενο αρχείο είναι συνδεδεμένο. Για παράδειγμα αν η εταιρία c προστεθή στα δικαιώματα του χρήστη χ, ο χρήστης χ θα μπορεί να δει μόνο τις συναλλαγές που έχουν την εταιρία c σαν συνδεδεμένη τιμή."
-apps/frappe/frappe/core/doctype/doctype/doctype.py +554,Image field must be a valid fieldname,πεδίο εικόνας πρέπει να είναι μια έγκυρη ΌνομαΠεδίου
+apps/frappe/frappe/core/doctype/doctype/doctype.py +558,Image field must be a valid fieldname,πεδίο εικόνας πρέπει να είναι μια έγκυρη ΌνομαΠεδίου
 DocType: OAuth Client,Token,Ένδειξη
 DocType: Property Setter,ID (name) of the entity whose property is to be set,Id (όνομα) της οντότητας της οποίας η ιδιότητα είναι να καθοριστεί
 apps/frappe/frappe/limits.py +82,"To renew, {0}.","Για την ανανέωση, {0}."
@@ -426,7 +428,7 @@ DocType: Web Form,Sidebar Items,Αντικείμενα της sidebar
 apps/frappe/frappe/installer.py +125,App {0} already installed,Η εφαρμογή {0} έχει ήδη εγκατασταθεί
 DocType: Workflow State,exclamation-sign,exclamation-sign
 apps/frappe/frappe/core/report/permitted_documents_for_user/permitted_documents_for_user.js +30,Show Permissions,Εμφάνιση Δικαιώματα
-apps/frappe/frappe/core/doctype/doctype/doctype.py +574,Timeline field must be a Link or Dynamic Link,Χρονοδιάγραμμα πεδίο πρέπει να είναι ένας σύνδεσμος ή Dynamic Link
+apps/frappe/frappe/core/doctype/doctype/doctype.py +578,Timeline field must be a Link or Dynamic Link,Χρονοδιάγραμμα πεδίο πρέπει να είναι ένας σύνδεσμος ή Dynamic Link
 apps/frappe/frappe/public/js/frappe/form/multi_select_dialog.js +53,Date Range,Εύρος ημερομηνιών
 apps/frappe/frappe/public/js/frappe/views/gantt/gantt_view.js +20,Gantt,Gantt
 apps/frappe/frappe/public/html/print_template.html +27,Page {0} of {1},Σελίδα {0} από {1}
@@ -456,18 +458,18 @@ DocType: Workflow State,music,Μουσική
 DocType: Web Page,Settings,Ρυθμίσεις
 apps/frappe/frappe/core/report/permitted_documents_for_user/permitted_documents_for_user.py +36,Please specify doctype,Παρακαλώ ορίστε τον τύπο εγγράφου
 DocType: Print Format,Style Settings,Ρυθμίσεις στυλ
-apps/frappe/frappe/core/doctype/doctype/doctype.py +585,Sort field {0} must be a valid fieldname,πεδίο Ταξινόμηση {0} πρέπει να είναι μια έγκυρη ΌνομαΠεδίου
+apps/frappe/frappe/core/doctype/doctype/doctype.py +589,Sort field {0} must be a valid fieldname,πεδίο Ταξινόμηση {0} πρέπει να είναι μια έγκυρη ΌνομαΠεδίου
 apps/frappe/frappe/public/js/frappe/ui/base_list.js +81,More,Περισσότερο
 DocType: Contact,Sales Manager,Διευθυντής πωλήσεων
 apps/frappe/frappe/public/js/frappe/model/model.js +513,Rename,Μετονομασία
 DocType: Print Format,Format Data,Μορφοποίηση δεδομένων
-apps/frappe/frappe/public/js/frappe/ui/filters/filters.js +479,Like,σαν
+apps/frappe/frappe/public/js/frappe/ui/filters/filters.js +480,Like,σαν
 DocType: Customize Form Field,Customize Form Field,Προσαρμογή πεδίου φόρμας
 apps/frappe/frappe/core/page/user_permissions/user_permissions.js +251,Allow User,Επίτρεψε χρήστη
 DocType: OAuth Client,Grant Type,Είδος επιδότησης
 apps/frappe/frappe/config/setup.py +59,Check which Documents are readable by a User,Ελέγξτε ποια έγγραφα είναι δυνατόν να αναγνωσθούν από έναν χρήστη
 apps/frappe/frappe/desk/page/applications/applications.py +71,Listing app not allowed,Η εφαρμογή καταχώρισης δεν επιτρέπεται
-apps/frappe/frappe/public/js/frappe/ui/filters/filters.js +229,use % as wildcard,χρησιμοποιήστε% ως μπαλαντέρ
+apps/frappe/frappe/public/js/frappe/ui/filters/filters.js +230,use % as wildcard,χρησιμοποιήστε% ως μπαλαντέρ
 apps/frappe/frappe/email/doctype/email_account/email_account.js +151,"Email Domain not configured for this account, Create one?","Τομέα email δεν έχει ρυθμιστεί για αυτόν το λογαριασμό, δημιουργήστε έναν;"
 DocType: User,Reset Password Key,Επαναφορά κωδικού
 DocType: Email Account,Enable Auto Reply,Ενεργοποίηση αυτόματης απάντησης
@@ -492,11 +494,12 @@ apps/frappe/frappe/model/document.py +574,Cannot change docstatus from 1 to 0,Δ
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.js +40,Take Backup Now,Πάρτε αντιγράφων ασφαλείας Τώρα
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +41,Welcome,Καλωσόρισμα
 apps/frappe/frappe/desk/page/applications/applications.js +95,Installed Apps,Εγκατεστημένων εφαρμογών
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +33,Setup &gt; User Permissions Manager,Εγκατάσταση&gt; Διαχείριση δικαιωμάτων χρηστών
 DocType: Contact,Open,Ανοιχτό
 DocType: Workflow Transition,Defines actions on states and the next step and allowed roles.,"Καθορίζει τις ενέργειες για τις καταστάσεις, το επόμενο βήμα και τους ρόλους που επιτρέπονται."
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +11,"As a best practice, do not assign the same set of permission rule to different Roles. Instead, set multiple Roles to the same User.","Ως βέλτιστη πρακτική, μην αποδίδετε το ίδιο σύνολο κανόνων δικαιωμάτων σε διαφορετικούς ρόλους. Αντ'αυτού , ορίστε περισσότερους ρόλους στον ίδιο χρήστη."
 DocType: Web Form,Message to be displayed on successful completion,Μήνυμα που θα εμφανίζεται μετά την επιτυχή ολοκλήρωση
-apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.py +42,Only {0} emailed reports are allowed per user,Μόνο {0} σταλούν οι αναφορές που επιτρέπονται ανά χρήστη
+apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.py +43,Only {0} emailed reports are allowed per user,Μόνο {0} σταλούν οι αναφορές που επιτρέπονται ανά χρήστη
 DocType: Address,Address Title,Τίτλος διεύθυνσης
 DocType: Website Settings,Footer Items,Αντικείμενα υποσέλιδου
 apps/frappe/frappe/public/js/frappe/form/toolbar.js +180,Request Feedback,Αίτηση Επικοινωνία
@@ -511,7 +514,7 @@ DocType: DocField,Set Only Once,Ορισμός μόνο μία φορά
 DocType: Email Queue Recipient,Email Queue Recipient,Email Ουρά Παραλήπτη
 DocType: Address,Nagaland,Nagaland
 apps/frappe/frappe/core/doctype/user/user.py +405,Username {0} already exists,Όνομα Χρήστη {0} υπάρχει ήδη
-apps/frappe/frappe/core/doctype/doctype/doctype.py +729,{0}: Cannot set import as {1} is not importable,{0} : Δεν είναι δυνατή η ρύθμιση των εισαγωγών καθώς το {1} δεν είναι δυνατόν να εισαχθεί
+apps/frappe/frappe/core/doctype/doctype/doctype.py +733,{0}: Cannot set import as {1} is not importable,{0} : Δεν είναι δυνατή η ρύθμιση των εισαγωγών καθώς το {1} δεν είναι δυνατόν να εισαχθεί
 apps/frappe/frappe/contacts/doctype/address/address.py +110,There is an error in your Address Template {0},Υπάρχει ένα σφάλμα στο Πρότυπο σας Διεύθυνση {0}
 DocType: Footer Item,"target = ""_blank""","Target = ""_blank"""
 DocType: Workflow State,hdd,hdd
@@ -523,7 +526,7 @@ DocType: Communication,From Full Name,Από Ονοματεπώνυμο
 apps/frappe/frappe/desk/query_report.py +20,You don't have access to Report: {0},Δεν έχετε πρόσβαση στην έκθεση: {0}
 DocType: User,Send Welcome Email,Αποστολή Καλώς Email
 apps/frappe/frappe/core/page/user_permissions/user_permissions.js +132,Upload CSV file containing all user permissions in the same format as Download.,Ανεβάστε το αρχείο csv που περιέχει όλα τα δικαιώματα των χρηστών στην ίδια μορφή όπως οι λήψεις.
-apps/frappe/frappe/public/js/frappe/ui/filters/filters.js +449,Remove Filter,Κατάργηση φίλτρου
+apps/frappe/frappe/public/js/frappe/ui/filters/filters.js +450,Remove Filter,Κατάργηση φίλτρου
 DocType: Address,Daman and Diu,Δαμάν και Ντιού
 DocType: Address,Personal,Προσωπικός
 apps/frappe/frappe/config/setup.py +113,Bulk Rename,Μαζική Μετονομασία
@@ -553,13 +556,12 @@ apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.js +33,Send
 apps/frappe/frappe/core/doctype/doctype/doctype.py +74,"Standard DocType cannot have default print format, use Customize Form","Το τυπικό DocType δεν μπορεί να έχει προεπιλεγμένη μορφή εκτύπωσης, χρησιμοποιήστε τη ρύθμιση Customize Form"
 DocType: Report,Query,Ερώτημα
 DocType: DocType,Sort Order,Σειρά ταξινόμησης
-apps/frappe/frappe/core/doctype/doctype/doctype.py +441,'In List View' not allowed for type {0} in row {1},«Σε προβολή λίστας» δεν επιτρέπεται για τον τύπο {0} στη γραμμή {1}
+apps/frappe/frappe/core/doctype/doctype/doctype.py +445,'In List View' not allowed for type {0} in row {1},«Σε προβολή λίστας» δεν επιτρέπεται για τον τύπο {0} στη γραμμή {1}
 DocType: Custom Field,Select the label after which you want to insert new field.,Επιλέξτε την ετικέτα μετά την οποία θέλετε να εισαγάγετε νέο πεδίο.
 ,Document Share Report,Αναφορά κοινοποίησης εγγράφου
 DocType: User,Last Login,Τελευταία είσοδος
-apps/frappe/frappe/core/doctype/doctype/doctype.py +600,Fieldname is required in row {0},Το όνομα πεδίου είναι απαραίτητο στη γραμμή {0}
+apps/frappe/frappe/core/doctype/doctype/doctype.py +604,Fieldname is required in row {0},Το όνομα πεδίου είναι απαραίτητο στη γραμμή {0}
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder_column_selector.html +4,Column,Στήλη
-apps/frappe/frappe/email/smtp.py +57,Please setup default Email Account from Setup &gt; Email &gt; Email Account,Ρυθμίστε τον προεπιλεγμένο λογαριασμό ηλεκτρονικού ταχυδρομείου από το Setup&gt; Email&gt; Email Account
 DocType: Custom Field,Adds a custom field to a DocType,Προσθέτει ένα προσαρμοσμένο πεδίο σε έναν τύπο εγγράφου
 DocType: File,Is Home Folder,Είναι Προσωπικόςφάκελος
 apps/frappe/frappe/email/doctype/email_group/email_group.py +87,{0} is not a valid Email Address,{0} δεν είναι μια έγκυρη διεύθυνση ηλεκτρονικού ταχυδρομείου
@@ -583,7 +585,7 @@ DocType: File,Folder,Φάκελος
 DocType: DocField,Index,Δείκτης
 DocType: Email Group,Newsletter Manager,Ενημερωτικό Δελτίο Διευθυντής
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +63,Option 1,Επιλογή 1
-apps/frappe/frappe/public/js/frappe/form/formatters.js +124,{0} to {1},{0} έως {1}
+apps/frappe/frappe/public/js/frappe/form/formatters.js +129,{0} to {1},{0} έως {1}
 apps/frappe/frappe/config/setup.py +89,Log of error during requests.,Συνδεθείτε σφάλματος κατά τη διάρκεια αιτήσεων.
 apps/frappe/frappe/email/doctype/newsletter/newsletter.py +194,{0} has been successfully added to the Email Group.,{0} έχει προστεθεί με επιτυχία τον Όμιλο Email.
 DocType: Address,Uttar Pradesh,Uttar Pradesh
@@ -593,7 +595,7 @@ apps/frappe/frappe/email/doctype/newsletter/newsletter.py +30,Scheduled to send 
 DocType: Kanban Board Column,Indicator,Δείκτης
 DocType: DocShare,Everyone,Όλοι
 DocType: Workflow State,backward,Πίσω
-apps/frappe/frappe/core/doctype/doctype/doctype.py +676,"{0}: Only one rule allowed with the same Role, Level and {1}","{0}: Μόνο ένας κανόνας είναι επιτρεπτός με τον ίδιο Ρόλο, Επίπεδο και {1}"
+apps/frappe/frappe/core/doctype/doctype/doctype.py +680,"{0}: Only one rule allowed with the same Role, Level and {1}","{0}: Μόνο ένας κανόνας είναι επιτρεπτός με τον ίδιο Ρόλο, Επίπεδο και {1}"
 DocType: Email Queue,Add Unsubscribe Link,Προσθήκη Διαγραφή Σύνδεσμος
 apps/frappe/frappe/templates/includes/comments/comments.html +7,No comments yet. Start a new discussion.,Δεν υπάρχουν ακόμη σχόλια. Ξεκινήστε μια νέα συζήτηση.
 DocType: Workflow State,share,Κοινοποίηση
@@ -632,7 +634,7 @@ apps/frappe/frappe/printing/doctype/print_format/print_format.py +80,{0} is now 
 apps/frappe/frappe/public/js/frappe/views/kanban/kanban_board.js +399,Archived Columns,Αρχείο Στήλες
 DocType: Email Account,Default Outgoing,Προεπιλογμένα εξερχόμενα
 DocType: Workflow State,play,Παιχνίδι
-apps/frappe/frappe/templates/emails/new_user.html +5,Click on the link below to complete your registration and set a new password,Κάντε κλικ στον παρακάτω σύνδεσμο για να ολοκληρωθεί η εγγραφή σας και να ορίσετε έναν νέο κωδικό πρόσβασης
+apps/frappe/frappe/templates/emails/new_user.html +4,Click on the link below to complete your registration and set a new password,Κάντε κλικ στον παρακάτω σύνδεσμο για να ολοκληρωθεί η εγγραφή σας και να ορίσετε έναν νέο κωδικό πρόσβασης
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +408,Did not add,Δεν έγινε η προσθήκη
 apps/frappe/frappe/public/js/frappe/views/inbox/inbox_no_result.html +3,No Email Accounts Assigned,Δεν Λογαριασμοί email ειδικό προορισμό
 DocType: Contact Us Settings,Contact Us Settings,Ρυθμίσεις επικοινωνίας
@@ -653,12 +655,12 @@ apps/frappe/frappe/core/page/user_permissions/user_permissions.js +127,Upload Us
 DocType: Dropbox Settings,App Secret Key,App μυστικό κλειδί
 apps/frappe/frappe/config/website.py +7,Web Site,Web Site
 apps/frappe/frappe/core/page/desktop/all_applications_dialog.html +8,Checked items will be shown on desktop,Τα επιλεγμένα στοιχεία θα εμφανίζονται στην επιφάνεια εργασίας
-apps/frappe/frappe/core/doctype/doctype/doctype.py +719,{0} cannot be set for Single types,{0} Δεν μπορεί να οριστεί για μοναδιαίους τύπους
+apps/frappe/frappe/core/doctype/doctype/doctype.py +723,{0} cannot be set for Single types,{0} Δεν μπορεί να οριστεί για μοναδιαίους τύπους
 apps/frappe/frappe/public/js/frappe/views/kanban/kanban_board.js +858,Kanban Board {0} does not exist.,Kanban Διοικητικό {0} δεν υπάρχει.
 apps/frappe/frappe/public/js/frappe/form/form_viewers.js +48,{0} are currently viewing this document,{0} Αυτή τη στιγμή βλέπετε αυτό το έγγραφο
 DocType: ToDo,Assigned By Full Name,Ανατεθεί Με Ονοματεπώνυμο
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +153,{0} updated,{0} Ενημερώθηκε
-apps/frappe/frappe/core/doctype/doctype/doctype.py +709,Report cannot be set for Single types,Η έκθεση δεν μπορεί να οριστεί για μοναδιαίους τύπους
+apps/frappe/frappe/core/doctype/doctype/doctype.py +713,Report cannot be set for Single types,Η έκθεση δεν μπορεί να οριστεί για μοναδιαίους τύπους
 apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +51,{0} days ago,{0} ημέρες πριν
 DocType: Email Account,Awaiting Password,Εν αναμονή Κωδικός
 DocType: Address,Address Line 1,Γραμμή διεύθυνσης 1
@@ -708,7 +710,7 @@ DocType: Feedback Trigger,"To add dynamic subject, use jinja tags like
 apps/frappe/frappe/desk/page/applications/applications.py +103,App {0} removed,App {0} αφαιρεθεί
 DocType: Custom DocPerm,Apply User Permissions,Εφαρμογή δικαιωμάτων χρηστών
 DocType: User,Modules HTML,Ενότητες HTML
-apps/frappe/frappe/public/js/frappe/ui/field_group.js +82,Missing Values Required,Οι τιμές που λείπουν είναι απαραίτητες
+apps/frappe/frappe/public/js/frappe/ui/field_group.js +96,Missing Values Required,Οι τιμές που λείπουν είναι απαραίτητες
 DocType: DocType,Other Settings,άλλες ρυθμίσεις
 DocType: Social Login Keys,Frappe,Φραπέ
 apps/frappe/frappe/core/doctype/communication/communication_list.js +17,Mark as Unread,Επισήμανση ως μη αναγνωσμένα
@@ -762,7 +764,7 @@ DocType: Event,orange,πορτοκάλι
 apps/frappe/frappe/public/js/frappe/list/list_renderer.js +558,No {0} found,Όχι {0} βρέθηκαν
 apps/frappe/frappe/config/setup.py +242,Add custom forms.,Προσθέστε προσαρμοσμένες φόρμες.
 apps/frappe/frappe/desk/like.py +84,{0}: {1} in {2},{0}: {1} στο {2}
-apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +419,submitted this document,υπέβαλε αυτό το έγγραφο
+apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +421,submitted this document,υπέβαλε αυτό το έγγραφο
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +9,The system provides many pre-defined roles. You can add new roles to set finer permissions.,Το σύστημα παρέχει πολλούς προκαθορισμένες ρόλους. Μπορείτε να προσθέσετε νέους ρόλους για να ορίσετε ειδικότερα δικαιώματα .
 DocType: Communication,CC,CC
 DocType: Country,Geo,Γεωγραφία
@@ -812,7 +814,7 @@ DocType: DocType,Hide Toolbar,Απόκρυψη της γραμμής εργαλ�
 DocType: User,Last Active,Τελευταία σύνδεση
 DocType: Email Account,SMTP Settings for outgoing emails,Ρυθμίσεις smtp για εξερχόμενα μηνύματα ηλεκτρονικού ταχυδρομείου
 apps/frappe/frappe/core/page/data_import_tool/data_import_tool.js +213,Import Failed,Η εισαγωγή απέτυχε
-apps/frappe/frappe/templates/emails/password_update.html +3,Your password has been updated. Here is your new password,Ο κωδικός σας έχει ενημερωθεί. Εδώ είναι ο νέος κωδικός σας
+apps/frappe/frappe/templates/emails/password_update.html +2,Your password has been updated. Here is your new password,Ο κωδικός σας έχει ενημερωθεί. Εδώ είναι ο νέος κωδικός σας
 DocType: Email Account,Auto Reply Message,Μήνυμα αυτόματης απάντησης
 DocType: Feedback Trigger,Condition,Συνθήκη
 apps/frappe/frappe/utils/data.py +546,{0} hours ago,Πριν από {0} ώρες
@@ -820,7 +822,6 @@ apps/frappe/frappe/utils/data.py +556,1 month ago,Πριν από 1 μηνά
 DocType: Contact,User ID,ID χρήστη
 DocType: Communication,Sent,Εστάλη
 DocType: Address,Kerala,Κεράλα
-apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +54,&gt; {0} year(s) ago,&gt; {0} χρόνια πριν
 DocType: File,Lft,Lft
 DocType: User,Simultaneous Sessions,ταυτόχρονη Συνεδρίες
 DocType: OAuth Client,Client Credentials,Διαπιστευτήρια πελάτη
@@ -837,7 +838,7 @@ DocType: Email Queue,Unsubscribe Method,Μέθοδος Διαγραφή
 DocType: GSuite Templates,Related DocType,Σχετικό πρότυπο DocType
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +674,Edit to add content,Επεξεργασία για να προσθέσετε περιεχόμενο
 apps/frappe/frappe/public/js/frappe/views/communication.js +79,Select Languages,Επιλέξτε Γλώσσες
-apps/frappe/frappe/__init__.py +517,No permission for {0},Δεν άδεια για {0}
+apps/frappe/frappe/__init__.py +518,No permission for {0},Δεν άδεια για {0}
 DocType: DocType,Advanced,Για προχωρημένους
 apps/frappe/frappe/integrations/doctype/razorpay_settings/razorpay_settings.py +78,Seems API Key or API Secret is wrong !!!,Φαίνεται κλειδί API ή API μυστικό είναι λάθος !!!
 apps/frappe/frappe/templates/emails/auto_reply.html +3,Reference: {0} {1},Παραπομπή: {0} {1}
@@ -869,14 +870,14 @@ DocType: Custom DocPerm,Additional Permissions,Πρόσθετα δικαιώμα
 DocType: Email Account,Always use Account's Email Address as Sender,Πάντα να χρησιμοποιείτε Λογαριασμού διεύθυνση ηλεκτρονικού ταχυδρομείου ως αποστολέα
 apps/frappe/frappe/templates/includes/comments/comments.html +21,Login to comment,Συνδεθείτε για να σχολιάσετε
 apps/frappe/frappe/core/page/data_import_tool/data_import_tool.py +13,Start entering data below this line,Ξεκινήστε την εισαγωγή δεδομένων κάτω από αυτή τη γραμμή
-apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +474,changed values for {0},μεταβολή των τιμών για {0}
+apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +476,changed values for {0},μεταβολή των τιμών για {0}
 DocType: Workflow State,retweet,Retweet
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +221,Specify the value of the field,Καθορίστε την τιμή του πεδίου
 DocType: Report,Disabled,Απενεργοποιημένο
 DocType: Workflow State,eye-close,Eye-close
 DocType: OAuth Provider Settings,OAuth Provider Settings,Ρυθμίσεις Provider OAuth
 apps/frappe/frappe/config/setup.py +254,Applications,Εφαρμογές
-apps/frappe/frappe/public/js/frappe/request.js +349,Report this issue,Αναφορά αυτού του ζητήματος
+apps/frappe/frappe/public/js/frappe/request.js +353,Report this issue,Αναφορά αυτού του ζητήματος
 apps/frappe/frappe/public/js/frappe/form/save.js +79,Name is required,Το όνομα είναι απαραίτητο
 DocType: Custom Script,Adds a custom script (client or server) to a DocType,Προσθέτει ένα προσαρμοσμένο script (client ή server) σε έναν τύπο εγγράφου
 DocType: Address,City/Town,Πόλη / χωριό
@@ -960,7 +961,7 @@ DocType: Web Form,Actions,Ενέργειες
 DocType: Workflow State,align-justify,Ευθυγράμμιση σε όλη τη γραμμή
 DocType: User,Middle Name (Optional),Πατρώνυμο (προαιρετικό)
 apps/frappe/frappe/public/js/frappe/request.js +88,Not Permitted,Δεν επιτρέπεται
-apps/frappe/frappe/public/js/frappe/ui/field_group.js +83,Following fields have missing values:,Μετά πεδία έχουν τις τιμές που λείπουν:
+apps/frappe/frappe/public/js/frappe/ui/field_group.js +97,Following fields have missing values:,Μετά πεδία έχουν τις τιμές που λείπουν:
 apps/frappe/frappe/app.py +151,You do not have enough permissions to complete the action,Δεν έχετε επαρκή δικαιώματα για την ολοκλήρωση της δράσης
 apps/frappe/frappe/public/js/frappe/form/link_selector.js +103,No Results,Δεν υπάρχουν αποτελέσματα
 DocType: System Settings,Security,Ασφάλεια
@@ -1003,7 +1004,7 @@ apps/frappe/frappe/public/js/frappe/form/layout.js +133,Hide Details,Απόκρ�
 DocType: Workflow State,Tasks,Εργασίες
 DocType: Event,Tuesday,Τρίτη
 DocType: Blog Settings,Blog Settings,Ρυθμίσεις blog
-apps/frappe/frappe/templates/emails/new_user.html +17,You can also copy-paste this link in your browser,Μπορείτε επίσης να αντιγράψετε και να επικολλήσετε αυτό το σύνδεσμο στο πρόγραμμα περιήγησής σας
+apps/frappe/frappe/templates/emails/new_user.html +16,You can also copy-paste this link in your browser,Μπορείτε επίσης να αντιγράψετε και να επικολλήσετε αυτό το σύνδεσμο στο πρόγραμμα περιήγησής σας
 DocType: Workflow State,bullhorn,Τηλεβόας
 DocType: Social Login Keys,Facebook Client Secret,Facebook client secret
 DocType: Footer Item,Target,Στόχος
@@ -1015,12 +1016,12 @@ DocType: ToDo,Due Date,Ημερομηνία λήξης προθεσμίας
 apps/frappe/frappe/public/js/frappe/views/gantt/gantt_view.js +99,Quarter Day,Ημέρα τρίμηνο
 DocType: Social Login Keys,Google Client Secret,Google client secret
 DocType: Website Settings,Hide Footer Signup,Απόκρυψη Υποσέλιδο Εγγραφή
-apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +421,cancelled this document,ακυρωθεί αυτό το έγγραφο
+apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +423,cancelled this document,ακυρωθεί αυτό το έγγραφο
 apps/frappe/frappe/core/doctype/report/report.js +16,Write a Python file in the same folder where this is saved and return column and result.,Γράψτε ένα αρχείο python στον ίδιο φάκελο όπου αυτό αποθηκεύεται και επέστρεψε στήλη και αποτέλεσμα.
 DocType: DocType,Sort Field,Πεδίο ταξινόμησης
 DocType: Razorpay Settings,Razorpay Settings,Ρυθμίσεις Razorpay
-apps/frappe/frappe/public/js/frappe/ui/filters/filters.js +445,Edit Filter,Επεξεργασία φίλτρου
-apps/frappe/frappe/core/doctype/doctype/doctype.py +415,Field {0} of type {1} cannot be mandatory,Το πεδίο {0} με τύπο {1} δεν μπορεί να είναι υποχρεωτικό
+apps/frappe/frappe/public/js/frappe/ui/filters/filters.js +446,Edit Filter,Επεξεργασία φίλτρου
+apps/frappe/frappe/core/doctype/doctype/doctype.py +419,Field {0} of type {1} cannot be mandatory,Το πεδίο {0} με τύπο {1} δεν μπορεί να είναι υποχρεωτικό
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard_page.html +15,Add More,Πρόσθεσε περισσότερα
 apps/frappe/frappe/public/js/frappe/ui/charts.js +101,Hide Chart,Απόκρυψη Διάγραμμα
 DocType: System Settings,Session Expiry Mobile,Συνεδρία λήξης Κινητό
@@ -1061,7 +1062,7 @@ DocType: Address,Contacts,Επαφές
 DocType: System Settings,Setup Complete,Η εγκατάσταση ολοκληρώθηκε
 apps/frappe/frappe/config/setup.py +66,Report of all document shares,Έκθεση του συνόλου των κοινοποιήσεων του εγγράφου
 apps/frappe/frappe/www/update-password.html +18,New Password,Νέος κωδικός
-apps/frappe/frappe/public/js/frappe/ui/filters/filters.js +73,Filter {0} missing,Φίλτρο {0} λείπει
+apps/frappe/frappe/public/js/frappe/ui/filters/filters.js +74,Filter {0} missing,Φίλτρο {0} λείπει
 apps/frappe/frappe/core/doctype/communication/communication.py +107,Sorry! You cannot delete auto-generated comments,Συγνώμη! Δεν μπορείτε να διαγράψετε δημιουργείται αυτόματα σχόλια
 DocType: Website Theme,Style using CSS,Στυλ χρήση CSS
 apps/frappe/frappe/core/doctype/communication/communication.js +100,Reference DocType,Τύπος εγγράφου αναφοράς
@@ -1126,7 +1127,6 @@ apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +127,Help on Searc
 apps/frappe/frappe/core/doctype/user/user.py +725,Registered but disabled,Εγγεγραμμένοι αλλά άτομα με ειδικές ανάγκες
 DocType: DocType,Hide Copy,Απόκρυψη αντιγράφου
 apps/frappe/frappe/public/js/frappe/roles_editor.js +38,Clear all roles,Καταργήστε όλους τους ρόλους
-apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.py +114,{0} generated on {1},{0} δημιουργήθηκε στις {1}
 apps/frappe/frappe/model/base_document.py +361,{0} must be unique,{0} Πρέπει να είναι μοναδικό
 apps/frappe/frappe/permissions.py +274,Row,Γραμμή
 DocType: DocType,Track Changes,Παρακολούθηση αλλαγών
@@ -1177,11 +1177,11 @@ DocType: User,Github User ID,ID χρήστη github
 apps/frappe/frappe/core/page/user_permissions/user_permissions.js +251,If Document Type,Εάν Τύπος εγγράφου
 apps/frappe/frappe/model/delete_doc.py +221,"Cannot delete or cancel because {0} <a href=""#Form/{0}/{1}"">{1}</a> is linked with {2} <a href=""#Form/{2}/{3}"">{3}</a> {4}","Δεν μπορείτε να διαγράψετε ή να ακυρώσετε επειδή {0} <a href=""#Form/{0}/{1}"">{1}</a> συνδέεται με {2} <a href=""#Form/{2}/{3}"">{3}</a> {4}"
 apps/frappe/frappe/desk/page/applications/applications.py +109,Unknown app {0},Άγνωστος app {0}
-apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.py +48,"%s is not a valid report format. Report format should \
+apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.py +49,"%s is not a valid report format. Report format should \
 				one of the following %s",%s δεν είναι έγκυρη μορφή έκθεσης. Αναφορά μορφή θα πρέπει να \ ένα από τα ακόλουθα %s
 DocType: Communication,Chat,Κουβέντα
-apps/frappe/frappe/core/doctype/doctype/doctype.py +408,Fieldname {0} appears multiple times in rows {1},Το όνομα πεδίου {0} εμφανίζεται πολλαπλές φορές στις γραμμές {1}
-apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +460,{0} from {1} to {2} in row #{3},{0} από {1} έως {2} στη σειρά # {3}
+apps/frappe/frappe/core/doctype/doctype/doctype.py +412,Fieldname {0} appears multiple times in rows {1},Το όνομα πεδίου {0} εμφανίζεται πολλαπλές φορές στις γραμμές {1}
+apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +462,{0} from {1} to {2} in row #{3},{0} από {1} έως {2} στη σειρά # {3}
 DocType: Communication,Expired,Έληξε
 DocType: Customize Form Field,Number of columns for a field in a Grid (Total Columns in a grid should be less than 11),Αριθμό των στηλών για ένα πεδίο σε ένα πλέγμα (Σύνολο Στήλες σε ένα πλέγμα πρέπει να είναι μικρότερο από 11)
 DocType: DocType,System,Σύστημα
@@ -1196,7 +1196,7 @@ DocType: Help Article,Likes,Μου αρέσουν
 DocType: Website Settings,Top Bar,Top bar
 DocType: GSuite Settings,Script Code,Κώδικα δέσμης ενεργειών
 apps/frappe/frappe/core/doctype/user/user.js +97,Create User Email,Δημιουργία ηλεκτρονικού ταχυδρομείου χρήστη
-apps/frappe/frappe/core/doctype/doctype/doctype.py +647,No Permissions Specified,Δεν καθορίζονται δικαιώματα
+apps/frappe/frappe/core/doctype/doctype/doctype.py +651,No Permissions Specified,Δεν καθορίζονται δικαιώματα
 apps/frappe/frappe/core/page/modules_setup/modules_setup.html +32,Global Settings: Users will only be able to choose checked icons,Καθολικές ρυθμίσεις: Οι χρήστες θα έχουν τη δυνατότητα να επιλέξουν ελέγχονται εικονίδια μόνο
 apps/frappe/frappe/desk/doctype/desktop_icon/desktop_icon.py +295,{0} not found,Το {0} δεν βρέθηκε
 DocType: Custom Role,Custom Role,Προσαρμοσμένη ρόλος
@@ -1208,12 +1208,12 @@ DocType: Dropbox Settings,Dropbox Access Secret,Dropbox access secret
 apps/frappe/frappe/templates/includes/comments/comments.html +119,Add Another Comment,Προσθέστε άλλο ένα σχόλιο
 apps/frappe/frappe/public/js/frappe/form/toolbar.js +171,Edit DocType,Επεξεργασία DocType
 apps/frappe/frappe/email/doctype/newsletter/newsletter.py +135,Unsubscribed from Newsletter,Αδιάθετες από Ενημερωτικό Δελτίο
-apps/frappe/frappe/core/doctype/doctype/doctype.py +507,Fold must come before a Section Break,Διπλώστε πρέπει να προηγηθεί μια αλλαγή ενότητας
+apps/frappe/frappe/core/doctype/doctype/doctype.py +511,Fold must come before a Section Break,Διπλώστε πρέπει να προηγηθεί μια αλλαγή ενότητας
 apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html +13,Under Development,Υπό ανάπτυξη
 apps/frappe/frappe/public/js/frappe/model/meta.js +190,Last Modified By,Τροποποιήθηκε τελευταία από
 DocType: Workflow State,hand-down,Hand-down
 DocType: Address,GST State,Κράτος GST
-apps/frappe/frappe/core/doctype/doctype/doctype.py +695,{0}: Cannot set Cancel without Submit,{0} : Δεν είναι δυνατή η ακύρωση χωρίς υποβολή
+apps/frappe/frappe/core/doctype/doctype/doctype.py +699,{0}: Cannot set Cancel without Submit,{0} : Δεν είναι δυνατή η ακύρωση χωρίς υποβολή
 DocType: Website Theme,Theme,Θέμα
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +162,There were errors.,Υπήρχαν σφάλματα.
 DocType: OAuth Authorization Code,Redirect URI Bound To Auth Code,Ανακατεύθυνση URI αναγκασμένοι να Auth Code
@@ -1252,7 +1252,7 @@ apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +7,
 apps/frappe/frappe/templates/includes/comments/comments.html +25,Add Comment,Πρόσθεσε σχόλιο
 DocType: DocField,Mandatory,Υποχρεωτικό
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +88,Module to Export,Ενότητα για Εξαγωγή
-apps/frappe/frappe/core/doctype/doctype/doctype.py +659,{0}: No basic permissions set,{0}: Δεν ρυθμίστηκαν βασικά δικαιώματα
+apps/frappe/frappe/core/doctype/doctype/doctype.py +663,{0}: No basic permissions set,{0}: Δεν ρυθμίστηκαν βασικά δικαιώματα
 apps/frappe/frappe/limits.py +78,Your subscription will expire on {0}.,Η συνδρομή σας θα λήξει στις {0}.
 apps/frappe/frappe/utils/backups.py +159,Download link for your backup will be emailed on the following email address: {0},Ο σύνδεσμος λήψης του αντιγράφου ασφαλείας θα σας αποσταλεί στην ακόλουθη διεύθυνση ηλεκτρονικού ταχυδρομείου: {0}
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +14,"Meaning of Submit, Cancel, Amend","Σημασία των υποβολή, ακύρωση, τροποποίηση"
@@ -1267,6 +1267,7 @@ apps/frappe/frappe/public/js/frappe/views/kanban/kanban_board.js +129,Filters sa
 DocType: DocField,Percent,Τοις εκατό
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +435,Please set filters,Παρακαλούμε να ορίσετε φίλτρα
 apps/frappe/frappe/public/js/frappe/form/linked_with.js +29,Linked With,Συνδέεται με την
+apps/frappe/frappe/templates/emails/auto_email_report.html +48,Edit Auto Email Report Settings,Επεξεργασία ρυθμίσεων αυτόματης αναφοράς ηλεκτρονικού ταχυδρομείου
 DocType: Workflow State,book,Καταχώρηση
 DocType: Website Settings,Landing Page,Σελίδα προσέλευσης
 apps/frappe/frappe/public/js/frappe/form/script_manager.js +163,Error in Custom Script,Σφάλμα στην προσαρμοσμένη δέσμη ενεργειών
@@ -1275,7 +1276,7 @@ apps/frappe/frappe/core/page/data_import_tool/data_import_tool.js +132,"Import R
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +162,No Permissions set for this criteria.,Δεν έχουν οριστεί δικαιώματα για τα εν λόγω κριτήρια.
 DocType: Auto Email Report,Auto Email Report,Auto Email Έκθεση
 apps/frappe/frappe/core/page/usage_info/usage_info.html +51,Max Emails,max Emails
-apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +575,Delete comment?,Διαγραφή σχόλιο;
+apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +577,Delete comment?,Διαγραφή σχόλιο;
 DocType: Address Template,This format is used if country specific format is not found,Αυτή η μορφοποίηση χρησιμοποιείται εάν δεν βρεθεί ειδική μορφοποίηση χώρας
 DocType: System Settings,Allow Login using Mobile Number,Να επιτρέπεται η σύνδεση χρησιμοποιώντας τον αριθμό κινητού τηλεφώνου
 apps/frappe/frappe/public/js/frappe/request.js +105,You do not have enough permissions to access this resource. Please contact your manager to get access.,Δεν έχετε επαρκή δικαιώματα για να αποκτήσετε πρόσβαση σε αυτόν τον πόρο. Επικοινωνήστε με το διαχειριστή σας για να αποκτήσετε πρόσβαση.
@@ -1291,7 +1292,7 @@ DocType: Print Format,Monospace,Monospace
 DocType: Letter Head,Printing,Εκτύπωση
 DocType: Workflow State,thumbs-up,Thumbs-up
 DocType: DocPerm,DocPerm,Άδεια εγγράφου
-apps/frappe/frappe/core/doctype/doctype/doctype.py +463,Precision should be between 1 and 6,Η ακρίβεια πρέπει να είναι μεταξύ 1 και 6
+apps/frappe/frappe/core/doctype/doctype/doctype.py +467,Precision should be between 1 and 6,Η ακρίβεια πρέπει να είναι μεταξύ 1 και 6
 apps/frappe/frappe/core/doctype/communication/communication.js +180,Fw: {0},Fw: {0}
 apps/frappe/frappe/public/js/frappe/misc/utils.js +154,and,Και
 DocType: Error Snapshot,Frames,Πλαίσια
@@ -1304,9 +1305,10 @@ apps/frappe/frappe/utils/boilerplate.py +263,{app_title},{app_title}
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +200,Please set Dropbox access keys in your site config,Παρακαλώ ορίστε τα κλειδιά πρόσβασης dropbox στις ρυθμίσεις του site σας
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +16,Delete this record to allow sending to this email address,Διαγραφή αυτής της εγγραφής για να επιτρέψει την αποστολή σε αυτήν τη διεύθυνση ηλεκτρονικού ταχυδρομείου
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +66,Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish.,Μόνο τα υποχρεωτικά πεδία είναι απαραίτητα για νέες εγγραφές. Μπορείτε να διαγράψετε μη υποχρεωτικές στήλες εάν το επιθυμείτε.
-apps/frappe/frappe/public/js/frappe/views/calendar/calendar.js +269,Unable to update event,Δεν είναι δυνατή η ενημέρωση εκδήλωση
+apps/frappe/frappe/public/js/frappe/views/calendar/calendar.js +262,Unable to update event,Δεν είναι δυνατή η ενημέρωση εκδήλωση
 apps/frappe/frappe/website/doctype/web_form/templates/web_form.html +304,Payment Complete,Πλήρης πληρωμή
 apps/frappe/frappe/utils/data.py +734,"Filter must have 4 values (doctype, fieldname, operator, value): {0}","Το φίλτρο πρέπει να έχει 4 τιμές (doctype, όνομα πεδίου, χειριστής, τιμή): {0}"
+apps/frappe/frappe/contacts/doctype/address/address.py +189,No default Address Template found. Please create a new one from Setup &gt; Printing and Branding &gt; Address Template.,Δεν βρέθηκε προεπιλεγμένο πρότυπο διεύθυνσης. Δημιουργήστε ένα νέο από το Setup&gt; Printing and Branding&gt; Template Address.
 apps/frappe/frappe/utils/bot.py +89,show,προβολή
 DocType: Address Template,Address Template,Πρότυπο διεύθυνσης
 DocType: Workflow State,text-height,Text-height
@@ -1359,7 +1361,6 @@ apps/frappe/frappe/public/js/frappe/form/templates/set_sharing.html +6,Can Write
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +16,"Certain documents, like an Invoice, should not be changed once final. The final state for such documents is called Submitted. You can restrict which roles can Submit.","Ορισμένα έγγραφα, όπως ένα τιμολόγιο, δεν θα πρέπει να αλλάξουν αφού οριστικοποιηθούν. Η τελική κατάσταση των εν λόγω εγγράφων ονομάζεται υποβεβλημένο. Μπορείτε να ορίσετε ποιοι ρόλοι έχουν δικαίωμα υποβολής."
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +825,You are not allowed to export this report,Δεν επιτρέπεται να εξάγουν αυτή την έκθεση
 apps/frappe/frappe/public/js/frappe/list/list_view.js +804,1 item selected,1 επιλεγμένο στοιχείο
-apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js +357,<p>No results found for '</p>,<p> Δεν βρέθηκαν αποτελέσματα για ' </p>
 DocType: Newsletter,Test Email Address,Δοκιμή διεύθυνση ηλεκτρονικού ταχυδρομείου
 DocType: ToDo,Sender,Αποστολέας
 DocType: GSuite Settings,Google Apps Script,Σενάριο Google Apps
@@ -1372,7 +1373,7 @@ DocType: System Settings,Allow only one session per user,Επιτρέπουν μ
 apps/frappe/frappe/core/doctype/file/file_list.js +128,Copy,Αντιγραφή
 apps/frappe/frappe/core/doctype/file/test_file.py +74,Home/Test Folder 1/Test Folder 3,Αρχική Σελίδα / Δοκιμή Φάκελος 1 / Έλεγχος φακέλου 3
 DocType: Website Settings,&lt;head&gt; HTML,&lt;head&gt; HTML
-apps/frappe/frappe/public/js/frappe/views/calendar/calendar.js +66,Select or drag across time slots to create a new event.,Επιλέξτε ή σύρετε χρονοθυρίδες για να δημιουργήσετε ένα νέο συμβάν.
+apps/frappe/frappe/public/js/frappe/views/calendar/calendar.js +67,Select or drag across time slots to create a new event.,Επιλέξτε ή σύρετε χρονοθυρίδες για να δημιουργήσετε ένα νέο συμβάν.
 DocType: DocField,In Filter,Στο φίλτρο
 apps/frappe/frappe/public/js/frappe/list/list_sidebar.html +32,Kanban,Kanban
 DocType: DocType,Show in Module Section,Εμφάνιση στο τμήμα Module
@@ -1393,7 +1394,7 @@ apps/frappe/frappe/email/doctype/email_account/email_account_list.js +6,Default 
 apps/frappe/frappe/core/doctype/file/file_list.js +84,Import .zip,εισαγωγής .zip
 apps/frappe/frappe/core/report/feedback_ratings/feedback_ratings.js +21,Document ID,έγγραφο ταυτότητας
 DocType: Print Settings,Letter,Επιστολή
-apps/frappe/frappe/core/doctype/doctype/doctype.py +556,Image field must be of type Attach Image,πεδίο εικόνας πρέπει να είναι τύπου Επισύναψη εικόνας
+apps/frappe/frappe/core/doctype/doctype/doctype.py +560,Image field must be of type Attach Image,πεδίο εικόνας πρέπει να είναι τύπου Επισύναψη εικόνας
 DocType: DocField,Columns,Στήλες
 DocType: Async Task,Succeeded,Πετυχημένος
 apps/frappe/frappe/public/js/frappe/form/save.js +141,Mandatory fields required in {0},Υποχρεωτικά πεδία είναι υποχρεωτικά σε {0}
@@ -1444,7 +1445,7 @@ DocType: DocField,Text Editor,Επεξεργαστής κειμένου
 apps/frappe/frappe/config/website.py +73,Settings for About Us Page.,Ρυθμίσεις για τη σελίδα προφίλ.
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +679,Edit Custom HTML,Επεξεργασία προσαρμοσμένου κώδικα HTML
 DocType: Error Snapshot,Error Snapshot,Στιγμιότυπο σφάλματος
-apps/frappe/frappe/public/js/frappe/ui/filters/filters.js +479,In,σε
+apps/frappe/frappe/public/js/frappe/ui/filters/filters.js +480,In,σε
 DocType: Email Alert,Value Change,Αλλαγή τιμής
 DocType: Standard Reply,Standard Reply,Πρότυπη απάντηση
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +233,Width of the input box,Το πλάτος του πεδίου εισόδου
@@ -1464,12 +1465,11 @@ apps/frappe/frappe/public/js/frappe/views/communication.js +82,Select Attachment
 apps/frappe/frappe/model/naming.py +94, for {0},για {0}
 apps/frappe/frappe/website/js/web_form.js +293,There were errors. Please report this.,Υπήρξαν λάθη. Παρακαλούμε αναφέρετε αυτό.
 apps/frappe/frappe/public/js/legacy/form.js +174,You are not allowed to print this document,Δεν επιτρέπεται να εκτυπώσετε το έγγραφο
-apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.py +107,Please set filters value in Report Filter table.,Παρακαλούμε να ορίσετε την αξία φίλτρα στον πίνακα Έκθεση Φίλτρο.
+apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.py +120,Please set filters value in Report Filter table.,Παρακαλούμε να ορίσετε την αξία φίλτρα στον πίνακα Έκθεση Φίλτρο.
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +379,Loading Report,Φόρτωση Έκθεση
 apps/frappe/frappe/limits.py +72,Your subscription will expire today.,Η συνδρομή σας θα λήξει σήμερα.
 DocType: Page,Standard,Πρότυπο
 apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html +50,Attach File,Επισυνάψετε Το Αρχείο
-apps/frappe/frappe/templates/emails/password_update.html +1,Password Update Notification,Ειδοποίηση ενημέρωσης κωδικού
 apps/frappe/frappe/desk/page/backups/backups.html +13,Size,Μέγεθος
 apps/frappe/frappe/public/js/frappe/form/footer/assign_to.js +59,Assignment Complete,Εκχώρηση Ολοκλήρωση
 DocType: Custom DocPerm,User Permission DocTypes,Τύποι εγγράφου δικαιωμάτων χρήστη
@@ -1482,6 +1482,7 @@ apps/frappe/frappe/public/js/frappe/form/templates/grid_form.html +10,Insert Abo
 apps/frappe/frappe/utils/password_strength.py +169,Common names and surnames are easy to guess.,Κοινά ονόματα και επίθετα είναι εύκολο να μαντέψει κανείς.
 apps/frappe/frappe/public/js/frappe/model/indicator.js +51,Draft,Προσχέδιο
 apps/frappe/frappe/utils/password_strength.py +159,This is similar to a commonly used password.,Αυτό είναι παρόμοιο με μια ευρέως χρησιμοποιούμενη κωδικό πρόσβασης.
+apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js +357,<p>No results found for '</p>,<p> Δεν βρέθηκαν αποτελέσματα για ' </p>
 DocType: User,Female,Γυναίκα
 DocType: Print Settings,Modern,Σύγχρονος
 apps/frappe/frappe/desk/page/applications/applications.js +61,Search Results,Αποτελέσματα Αναζήτησης
@@ -1536,7 +1537,7 @@ apps/frappe/frappe/core/doctype/file/file_list.js +65,Folder name should not inc
 DocType: Note,Note,Σημείωση
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot.html +32,Error Report,Αναφορά σφάλματος
 apps/frappe/frappe/core/doctype/feedback_trigger/feedback_trigger.py +132,Feedback conditions do not match,Οι συνθήκες ανάδρασης δεν ταιριάζουν
-apps/frappe/frappe/core/doctype/doctype/doctype.py +570,Timeline field must be a valid fieldname,Χρονοδιάγραμμα πεδίο πρέπει να είναι ένα έγκυρο ΌνομαΠεδίου
+apps/frappe/frappe/core/doctype/doctype/doctype.py +574,Timeline field must be a valid fieldname,Χρονοδιάγραμμα πεδίο πρέπει να είναι ένα έγκυρο ΌνομαΠεδίου
 DocType: Currency,Symbol,Σύμβολο
 apps/frappe/frappe/model/base_document.py +534,Row #{0}:,Γραμμή #{0}:
 apps/frappe/frappe/core/doctype/user/user.py +140,New password emailed,Ο νέος κωδικός απεστάλη μέσω e-mail
@@ -1593,8 +1594,7 @@ DocType: Web Page,Text Align,Στίχοιση κειμένου
 apps/frappe/frappe/model/naming.py +185,Name cannot contain special characters like {0},"Όνομα δεν μπορεί να περιέχει ειδικούς χαρακτήρες, όπως {0}"
 DocType: Contact Us Settings,Forward To Email Address,Προώθηση στις διευθύνσεις ηλεκτρονικού ταχυδρομείου
 apps/frappe/frappe/public/js/frappe/views/reports/reportview_footer.html +9,Show all data,Εμφάνιση όλων των δεδομένων
-apps/frappe/frappe/core/doctype/doctype/doctype.py +527,Title field must be a valid fieldname,Το πεδίο τίτλου πρέπει να είναι ένα έγκυρο όνομα πεδίου
-apps/frappe/frappe/email/smtp.py +158,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,Δεν έχει ρυθμιστεί ο λογαριασμός ηλεκτρονικού ταχυδρομείου. Δημιουργήστε ένα νέο λογαριασμό ηλεκτρονικού ταχυδρομείου από το Setup&gt; Email&gt; Email Account
+apps/frappe/frappe/core/doctype/doctype/doctype.py +531,Title field must be a valid fieldname,Το πεδίο τίτλου πρέπει να είναι ένα έγκυρο όνομα πεδίου
 apps/frappe/frappe/config/core.py +7,Documents,Έγγραφα
 DocType: Email Flag Queue,Is Completed,έχει ολοκληρωθεί
 apps/frappe/frappe/www/me.html +22,Edit Profile,Επεξεργασία προφίλ
@@ -1646,7 +1646,7 @@ DocType: Standard Reply,Standard Reply Help,Πρότυπο Απάντηση Βο
 DocType: Blogger,Avatar,Avatar
 DocType: Blogger,Posts,Δημοσιεύσεις
 DocType: DocType,Has Web View,Έχει Web Προβολή
-apps/frappe/frappe/core/doctype/doctype/doctype.py +377,"DocType's name should start with a letter and it can only consist of letters, numbers, spaces and underscores","Το όνομά DocType θα πρέπει να αρχίζει με ένα γράμμα και μπορεί να αποτελείται μόνο από γράμματα, αριθμούς, διαστήματα και χαρακτήρες υπογράμμισης"
+apps/frappe/frappe/core/doctype/doctype/doctype.py +381,"DocType's name should start with a letter and it can only consist of letters, numbers, spaces and underscores","Το όνομά DocType θα πρέπει να αρχίζει με ένα γράμμα και μπορεί να αποτελείται μόνο από γράμματα, αριθμούς, διαστήματα και χαρακτήρες υπογράμμισης"
 DocType: Communication,Spam,Ανεπιθυμητη αλληλογραφια
 DocType: Integration Request,Integration Request,Αίτηση ολοκλήρωσης
 apps/frappe/frappe/public/js/frappe/views/communication.js +553,Dear,Αγαπητέ
@@ -1682,7 +1682,7 @@ DocType: Website Settings,Sub-domain provided by erpnext.com,Sub-domain που �
 DocType: System Settings,dd-mm-yyyy,Ηη/μμ/εεεε
 apps/frappe/frappe/desk/query_report.py +77,Must have report permission to access this report.,Πρέπει να έχετε δικαιώματα πρόσβασης σε αυτή την έκθεση.
 apps/frappe/frappe/core/doctype/system_settings/system_settings.py +18,Please select Minimum Password Score,Επιλέξτε το Ελάχιστο Βαθμολογία Κωδικού
-apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +480,Added,Προστέθηκε
+apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +482,Added,Προστέθηκε
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +81,"Update only, do not insert new records.","Ενημέρωση μόνο, μην εισάγετε νέες εγγραφές."
 apps/frappe/frappe/desk/doctype/event/event.py +61,Daily Event Digest is sent for Calendar Events where reminders are set.,Το άρθρο καθημερινών γεγονότων απεστάλη για τις εκδηλώσεις του ημερολογίου για τις οποίες έχουν οριστεί υπενθυμίσεις.
 apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html +32,View Website,Δείτε την ιστοσελίδα
@@ -1696,7 +1696,7 @@ DocType: Integration Request,Reference DocName,Όνομα εγγράφου αν�
 DocType: Web Form,Success Message,Μήνυμα επιτυχίας
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +84,Export Customizations,Προσαρμογές των εξαγωγών
 DocType: DocType,User Cannot Search,Ο χρήστης δεν μπορεί να αναζητήσει
-apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.py +83,Invalid Output Format,Άκυρη Μορφή εξόδου
+apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.py +84,Invalid Output Format,Άκυρη Μορφή εξόδου
 DocType: Custom DocPerm,Apply this rule if the User is the Owner,"Εφαρμόστε τον κανόνα αυτό, αν ο χρήστης είναι ο ιδιοκτήτης"
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +512,Will be your login ID,Θα είναι το αναγνωριστικό σύνδεσής σας
 apps/frappe/frappe/desk/page/activity/activity.js +76,Build Report,Κατασκευή έκθεσης
@@ -1714,10 +1714,11 @@ apps/frappe/frappe/public/js/frappe/form/footer/attachments.js +138,There were e
 apps/frappe/frappe/core/doctype/communication/communication.js +42,Close,Κλείσιμο
 apps/frappe/frappe/model/document.py +564,Cannot change docstatus from 0 to 2,Δεν είναι δυνατή η αλλαγή κατάστασης εγγράφου από 0 σε 2
 DocType: User Permission for Page and Report,Roles Permission,Ρόλοι άδεια
+apps/frappe/frappe/email/smtp.py +158,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,Δεν έχει ρυθμιστεί ο λογαριασμός ηλεκτρονικού ταχυδρομείου. Δημιουργήστε ένα νέο λογαριασμό ηλεκτρονικού ταχυδρομείου από το Setup&gt; Email&gt; Email Account
 apps/frappe/frappe/core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.js +14,Update,Ενημέρωση
 DocType: Error Snapshot,Snapshot View,Προβολή στιγμιότυπου
 apps/frappe/frappe/email/doctype/newsletter/newsletter.py +101,Please save the Newsletter before sending,Παρακαλώ αποθηκεύστε το ενημερωτικό δελτίο πριν από την αποστολή
-apps/frappe/frappe/core/doctype/doctype/doctype.py +426,Options must be a valid DocType for field {0} in row {1},Οι επιλογές θα πρέπει να είναι ένας έγκυρος τύπος εγγράφου για το πεδίο {0} στη γραμμή {1}
+apps/frappe/frappe/core/doctype/doctype/doctype.py +430,Options must be a valid DocType for field {0} in row {1},Οι επιλογές θα πρέπει να είναι ένας έγκυρος τύπος εγγράφου για το πεδίο {0} στη γραμμή {1}
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +167,Edit Properties,Επεξεργασία ιδιοτήτων
 DocType: Patch Log,List of patches executed,Λίστα των δημοσιεύσεων του φόρουμ της ιστοσελίδας.
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +21,{0} already unsubscribed,{0} έχετε ήδη διαγραφή
@@ -1810,7 +1811,7 @@ apps/frappe/frappe/core/doctype/version/version_view.html +32,Rows Added,σει�
 apps/frappe/frappe/www/update-password.html +163,Success! You are good to go 👍,Επιτυχία! Είστε καλά να πάτε 👍
 apps/frappe/frappe/www/me.html +3,My Account,Ο Λογαριασμός Μου
 DocType: ToDo,Allocated To,Που διατίθενται για
-apps/frappe/frappe/templates/emails/password_reset.html +4,Please click on the following link to set your new password,Παρακαλώ κάντε κλικ στον παρακάτω σύνδεσμο για να ορίσετε νέο κωδικό πρόσβασης
+apps/frappe/frappe/templates/emails/password_reset.html +2,Please click on the following link to set your new password,Παρακαλώ κάντε κλικ στον παρακάτω σύνδεσμο για να ορίσετε νέο κωδικό πρόσβασης
 DocType: Email Alert,Days After,Ημέρες Μετά
 DocType: Newsletter,Receipient,παραλήπτης
 DocType: Contact Us Settings,Settings for Contact Us Page,Ρυθμίσεις για τη σελίδα επικοινωνίας.
@@ -1824,7 +1825,7 @@ DocType: Property Setter,Property Type,Τύπος ιδιότητας
 DocType: Workflow State,screenshot,Screenshot
 apps/frappe/frappe/core/doctype/report/report.py +33,Only Administrator can save a standard report. Please rename and save.,Μόνο ο διαχειριστής μπορεί να αποθηκεύσει μια πρότυπη έκθεση. Παρακαλώ να μετονομάσετε και να αποθηκεύσετε.
 DocType: System Settings,Background Workers,Οι εργαζόμενοι φόντο
-apps/frappe/frappe/core/doctype/doctype/doctype.py +779,Fieldname {0} conflicting with meta object,Όνομα πεδίου {0} που έρχεται σε σύγκρουση με αντικείμενο meta
+apps/frappe/frappe/core/doctype/doctype/doctype.py +783,Fieldname {0} conflicting with meta object,Όνομα πεδίου {0} που έρχεται σε σύγκρουση με αντικείμενο meta
 DocType: Deleted Document,Data,Δεδομένα
 apps/frappe/frappe/public/js/frappe/model/model.js +27,Document Status,Κατάσταση εγγράφου
 apps/frappe/frappe/core/page/desktop/desktop_help_message.html +5,You have made {0} of {1},Κάνατε {0} από {1}
@@ -1888,7 +1889,6 @@ apps/frappe/frappe/core/page/data_import_tool/exporter.py +70,"""Parent"" signif
 DocType: Website Theme,Apply Style,Εφαρμογή στυλ
 DocType: Feedback Request,Feedback Rating,feedback Αξιολόγηση
 apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html +63,Shared With,Κοινόχρηστο Με
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +33,Setup &gt; User Permissions Manager,Εγκατάσταση&gt; Διαχείριση δικαιωμάτων χρηστών
 DocType: Help Category,Help Articles,άρθρα Βοήθειας
 ,Modules Setup,Ρυθμίσεις λειτουργικής μονάδας
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +268,Type:,Τύπος:
@@ -1934,12 +1934,11 @@ apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +63,Option 2,Επ
 DocType: Feedback Trigger,Email Field,email πεδίο
 apps/frappe/frappe/www/update-password.html +59,New Password Required.,Απαιτείται νέος κωδικός πρόσβασης.
 apps/frappe/frappe/core/doctype/docshare/docshare.py +49,{0} shared this document with {1},{0} Μοιράστηκε αυτό το έγγραφο με {1}
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +8,Setup &gt; User,Ρύθμιση&gt; Χρήστης
 DocType: Website Settings,Brand Image,brand Εικόνα
 DocType: Print Settings,A4,A4
 apps/frappe/frappe/config/website.py +58,"Setup of top navigation bar, footer and logo.","Ρύθμιση της επάνω γραμμή πλοήγησης, του υποσέλιδου και του λογότυπου."
 DocType: Web Form Field,Max Value,Μέγιστη τιμή
-apps/frappe/frappe/core/doctype/doctype/doctype.py +655,For {0} at level {1} in {2} in row {3},Για {0} σε επίπεδο {1} στο {2} στη γραμμή {3}
+apps/frappe/frappe/core/doctype/doctype/doctype.py +659,For {0} at level {1} in {2} in row {3},Για {0} σε επίπεδο {1} στο {2} στη γραμμή {3}
 DocType: Contact,All,Όλα
 DocType: Email Queue,Recipient,Παραλήπτης
 DocType: Communication,Has  Attachment,έχει Συνημμένο
@@ -1957,7 +1956,7 @@ DocType: Auto Email Report,Email To,E-mail Για να
 apps/frappe/frappe/core/doctype/file/file.py +211,Folder {0} is not empty,Φάκελο {0} δεν είναι άδειο
 DocType: Page,Roles,Ρόλοι
 apps/frappe/frappe/model/base_document.py +430,Error: Value missing for {0}: {1},Σφάλμα: Λείπει τιμή για {0}: {1}
-apps/frappe/frappe/public/js/frappe/ui/filters/filters.js +286,Field {0} is not selectable.,Το πεδίο {0} δεν είναι επιλέξιμο .
+apps/frappe/frappe/public/js/frappe/ui/filters/filters.js +287,Field {0} is not selectable.,Το πεδίο {0} δεν είναι επιλέξιμο .
 DocType: System Settings,Session Expiry,Λήξη συνεδρίας
 DocType: Workflow State,ban-circle,Ban-circle
 DocType: Email Flag Queue,Unread,Αδιάβαστος
@@ -2015,7 +2014,7 @@ DocType: DocType,"Naming Options:
 <ol><li><b>field:[fieldname]</b> - By Field</li><li><b>naming_series:</b> - By Naming Series (field called naming_series must be present</li><li><b>Prompt</b> - Prompt user for a name</li><li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####</li></ol>",Ονοματοδοσία Επιλογές: <ol><li> <b>πεδίο: [ΌνομαΠεδίου]</b> - Με πεδίο </li><li> <b>naming_series:</b> - με την ονομασία Series (πεδίο που ονομάζεται naming_series πρέπει να είναι παρόντες </li><li> <b>Προτροπή</b> - Προτροπή του χρήστη για ένα όνομα </li><li> <b>[σειράς]</b> - Σειρά με πρόθεμα (χωρίζονται με τελεία)? για παράδειγμα PRE. ##### </li></ol>
 DocType: Blog Post,Email Sent,Το email απεστάλη
 DocType: DocField,Ignore XSS Filter,Αγνοήστε XSS φίλτρο
-apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +480,removed,αφαιρεθεί
+apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +482,removed,αφαιρεθεί
 apps/frappe/frappe/config/integrations.py +33,Dropbox backup settings,Ρυθμίσεις Dropbox αντιγράφων ασφαλείας
 apps/frappe/frappe/public/js/frappe/views/communication.js +63,Send As Email,Αποστολή ως e-mail
 DocType: Website Theme,Link Color,Χρώμα δεσμού
@@ -2148,6 +2147,7 @@ apps/frappe/frappe/core/doctype/communication/communication.js +65,Reply All,Α�
 DocType: DocType,Setup,Εγκατάσταση
 DocType: Email Account,Initial Sync Count,Αρχική Sync Καταμέτρηση
 apps/frappe/frappe/templates/includes/comments/comments.py +55,New comment on {0} {1},Νέο σχόλιο για {0} {1}
+apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +54,&gt; {0} year(s) ago,&gt; {0} χρόνια πριν
 DocType: Workflow State,glass,Ποτήρι
 DocType: DocType,Timeline Field,Χρονοδιάγραμμα πεδίο
 DocType: Country,Time Zones,Ζώνες ώρας
@@ -2182,10 +2182,10 @@ apps/frappe/frappe/public/js/frappe/views/kanban/kanban_board.js +77,You are not
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +269,Info:,Πληροφορίες:
 DocType: Custom Field,Permission Level,Επίπεδο δικαιωμάτων
 DocType: User,Send Notifications for Transactions I Follow,Αποστολή ειδοποιήσεων για συναλλαγές που παρακολουθώ
-apps/frappe/frappe/core/doctype/doctype/doctype.py +698,"{0}: Cannot set Submit, Cancel, Amend without Write","{0} : Δεν είναι δυνατή η ρύθμιση υποβολή, ακύρωση, τροποποίηση χωρίς εγγραφή"
+apps/frappe/frappe/core/doctype/doctype/doctype.py +702,"{0}: Cannot set Submit, Cancel, Amend without Write","{0} : Δεν είναι δυνατή η ρύθμιση υποβολή, ακύρωση, τροποποίηση χωρίς εγγραφή"
 apps/frappe/frappe/public/js/frappe/form/footer/attachments.js +83,Are you sure you want to delete the attachment?,Είστε σίγουροι ότι θέλετε να διαγράψετε το συνημμένο;
 apps/frappe/frappe/model/delete_doc.py +186,"Cannot delete or cancel because {0} <a href=""#Form/{0}/{1}"">{1}</a> is linked with {2} <a href=""#Form/{2}/{3}"">{3}</a>","Δεν μπορείτε να διαγράψετε ή να ακυρώσετε επειδή {0} <a href=""#Form/{0}/{1}"">{1}</a> συνδέεται με {2} <a href=""#Form/{2}/{3}"">{3}</a>"
-apps/frappe/frappe/__init__.py +1070,Thank you,Σας ευχαριστούμε
+apps/frappe/frappe/__init__.py +1071,Thank you,Σας ευχαριστούμε
 apps/frappe/frappe/public/js/frappe/form/save.js +11,Saving,Οικονομία
 DocType: Print Settings,Print Style Preview,Προεπισκόπηση στυλ εκτύπωσης
 apps/frappe/frappe/core/doctype/file/test_file.py +81,Test_Folder,Test_Folder
@@ -2229,7 +2229,7 @@ apps/frappe/frappe/public/js/frappe/list/list_renderer.js +501,2 days ago,2 μέ
 apps/frappe/frappe/config/website.py +47,Categorize blog posts.,Κατηγοριοποίηση δημοσιεύσεων blog.
 DocType: Workflow State,Time,Χρόνος
 DocType: DocField,Attach,Επισυνάψτε
-apps/frappe/frappe/core/doctype/doctype/doctype.py +539,{{{0}}} is not a valid fieldname pattern. It should be {{field_name}}.,{{{0}}} δεν είναι έγκυρο μοτίβο ΌνομαΠεδίου. Θα πρέπει να είναι {{FIELD_NAME}}.
+apps/frappe/frappe/core/doctype/doctype/doctype.py +543,{{{0}}} is not a valid fieldname pattern. It should be {{field_name}}.,{{{0}}} δεν είναι έγκυρο μοτίβο ΌνομαΠεδίου. Θα πρέπει να είναι {{FIELD_NAME}}.
 DocType: Feedback Trigger,Send Feedback Request only if there is at least one communication is available for the document.,Αποστολή σχολίων Αίτημα μόνο εάν υπάρχει τουλάχιστον ένας επικοινωνίας είναι διαθέσιμη για το έγγραφο.
 DocType: Custom Role,Permission Rules,Κανόνες άδειας
 DocType: GSuite Settings,GSuite Settings,Ρυθμίσεις GSuite
@@ -2249,7 +2249,7 @@ apps/frappe/frappe/website/doctype/blog_post/blog_post.py +106,Posts by {0},Δη
 apps/frappe/frappe/core/doctype/report/report.js +9,"To format columns, give column labels in the query.","Για να διαμορφώσετε τις στήλες, εισάγετε τις ετικέτες των στηλών στο ερώτημα."
 DocType: Has Domain,Has Domain,Έχει τομέα
 apps/frappe/frappe/www/login.html +72,Don't have an account? Sign up,Δεν έχετε λογαριασμό; Εγγραφείτε
-apps/frappe/frappe/core/doctype/doctype/doctype.py +725,{0}: Cannot set Assign Amend if not Submittable,"{0} : Δεν είναι δυνατή η ανάθεση τροποποίησης, αν δεν είναι υποβλητέα"
+apps/frappe/frappe/core/doctype/doctype/doctype.py +729,{0}: Cannot set Assign Amend if not Submittable,"{0} : Δεν είναι δυνατή η ανάθεση τροποποίησης, αν δεν είναι υποβλητέα"
 DocType: Address,Bihar,Bihar
 apps/frappe/frappe/core/page/user_permissions/user_permissions.js +14,Edit Role Permissions,Επεξεργασία δικαιωμάτων ρόλου
 DocType: Communication,Link DocType,DocType σύνδεσμο
@@ -2301,7 +2301,7 @@ DocType: DocField,Set non-standard precision for a Float or Currency field,Ορ�
 DocType: Email Account,Ignore attachments over this size,Αγνοήστε τα συνημμένα πάνω από αυτό το μέγεθος
 DocType: Address,Preferred Billing Address,Προτιμώμενη διεύθυνση χρέωσης
 apps/frappe/frappe/config/integrations.py +63,External Documents,Εξωτερικά Έγγραφα
-apps/frappe/frappe/database.py +235,Too many writes in one request. Please send smaller requests,Πάρα πολλές εγγραφές σε ένα αίτημα. Παρακαλώ να στέλνετε μικρότερα αιτήματα.
+apps/frappe/frappe/database.py +247,Too many writes in one request. Please send smaller requests,Πάρα πολλές εγγραφές σε ένα αίτημα. Παρακαλώ να στέλνετε μικρότερα αιτήματα.
 apps/frappe/frappe/core/doctype/version/version_view.html +8,Values Changed,τιμές Άλλαξε
 DocType: Workflow State,arrow-up,Βέλος πάνω
 DocType: OAuth Bearer Token,Expires In,Λήγει σε
@@ -2349,7 +2349,7 @@ apps/frappe/frappe/core/page/data_import_tool/importer.py +81,Please make sure t
 apps/frappe/frappe/utils/oauth.py +232,Please ensure that your profile has an email address,Παρακαλώ βεβαιωθείτε ότι το προφίλ σας έχει μια διεύθυνση ηλεκτρονικού ταχυδρομείου
 apps/frappe/frappe/public/js/frappe/model/create_new.js +286,You have unsaved changes in this form. Please save before you continue.,Έχετε μη αποθηκευμένες αλλαγές σε αυτή τη φόρμα. Παρακαλώ αποθηκεύστε πριν συνεχίσετε.
 DocType: Address,Telangana,Telangana
-apps/frappe/frappe/core/doctype/doctype/doctype.py +459,Default for {0} must be an option,Προεπιλογή για {0} πρέπει να είναι μια επιλογή
+apps/frappe/frappe/core/doctype/doctype/doctype.py +463,Default for {0} must be an option,Προεπιλογή για {0} πρέπει να είναι μια επιλογή
 DocType: Tag Doc Category,Tag Doc Category,Tag Doc Κατηγορία
 DocType: User,User Image,Εικόνα εικόνα
 apps/frappe/frappe/email/queue.py +304,Emails are muted,Τα email είναι σε σίγαση
@@ -2394,7 +2394,7 @@ DocType: Async Task,Running,Τρέξιμο
 apps/frappe/frappe/core/doctype/user/user.js +68,Reset Password,Επαναφορά κωδικού πρόσβασης
 apps/frappe/frappe/email/doctype/email_group/email_group.py +102,Please Upgrade to add more than {0} subscribers,Παρακαλούμε Αναβάθμιση για να προσθέσετε περισσότερες από {0} συνδρομητές
 DocType: Workflow State,hand-left,Hand-left
-apps/frappe/frappe/core/doctype/doctype/doctype.py +472,Fieldtype {0} for {1} cannot be unique,Fieldtype {0} για {1} δεν μπορεί να είναι μοναδικό
+apps/frappe/frappe/core/doctype/doctype/doctype.py +476,Fieldtype {0} for {1} cannot be unique,Fieldtype {0} για {1} δεν μπορεί να είναι μοναδικό
 DocType: Email Account,Use SSL,Χρήση ssl
 DocType: Workflow State,play-circle,Play-circle
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +82,Select Print Format to Edit,Επιλέξτε μορφοποίηση εκτύπωσης για επεξεργασία
@@ -2449,7 +2449,7 @@ DocType: DocField,No Copy,Δεν υπάρχει αντίγραφο
 DocType: Workflow State,qrcode,Qrcode
 apps/frappe/frappe/www/login.html +34,Login with LDAP,Σύνδεση με LDAP
 DocType: Web Form,Breadcrumbs,Διαδρομή
-apps/frappe/frappe/core/doctype/doctype/doctype.py +671,If Owner,Εάν Ιδιοκτήτης
+apps/frappe/frappe/core/doctype/doctype/doctype.py +675,If Owner,Εάν Ιδιοκτήτης
 DocType: OAuth Authorization Code,Expiration time,ώρα λήξης
 DocType: Web Page,Website Sidebar,ιστοσελίδα Sidebar
 DocType: Web Form,Show Sidebar,Εμφάνιση Sidebar
@@ -2620,6 +2620,7 @@ DocType: Portal Settings,Hide Standard Menu,Απόκρυψη Πρότυπο Με
 apps/frappe/frappe/config/setup.py +151,Add / Manage Email Domains.,Προσθήκη / Διαχείριση Domains Email.
 apps/frappe/frappe/workflow/doctype/workflow/workflow.py +70,Cannot cancel before submitting. See Transition {0},Δεν μπορείτε να ακυρώσετε πριν την υποβολή. Δείτε την μετάβαση {0}
 apps/frappe/frappe/www/printview.py +211,Print Format {0} is disabled,Η μορφοποίηση εκτύπωσης {0} είναι απενεργοποιημένη
+apps/frappe/frappe/email/smtp.py +57,Please setup default Email Account from Setup &gt; Email &gt; Email Account,Ρυθμίστε τον προεπιλεγμένο λογαριασμό ηλεκτρονικού ταχυδρομείου από το Setup&gt; Email&gt; Email Account
 DocType: Email Alert,Send days before or after the reference date,Αποστολή ημερών πριν ή μετά την ημερομηνία αναφοράς
 DocType: User,Allow user to login only after this hour (0-24),Επίτρεψε στο χρήστη να συνδεθεί μόνο μετά από αυτή την ώρα (0-24)
 apps/frappe/frappe/public/js/frappe/form/link_selector.js +22,Value,Αξία
@@ -2635,7 +2636,6 @@ DocType: ToDo,Priority,Προτεραιότητα
 DocType: Email Queue,Unsubscribe Param,Διαγραφή Param
 DocType: Auto Email Report,Weekly,Εβδομαδιαίος
 DocType: Communication,In Reply To,Σε απάντηση της
-apps/frappe/frappe/contacts/doctype/address/address.py +189,No default Address Template found. Please create a new one from Setup &gt; Printing and Branding &gt; Address Template.,Δεν βρέθηκε προεπιλεγμένο πρότυπο διεύθυνσης. Δημιουργήστε ένα νέο από το Setup&gt; Printing and Branding&gt; Template Address.
 DocType: DocType,Allow Import (via Data Import Tool),Αφήστε Εισαγωγή (μέσω του εργαλείου εισαγωγής δεδομένων)
 apps/frappe/frappe/templates/print_formats/standard_macros.html +30,Sr,Sr
 DocType: DocField,Float,Κινητής υποδιαστολής
@@ -2678,7 +2678,7 @@ apps/frappe/frappe/templates/emails/auto_reply.html +1,Thank you for your email,
 DocType: DocField,Small Text,Μικρό κείμενο
 apps/frappe/frappe/core/doctype/user/user.py +868,Administrator accessed {0} on {1} via IP Address {2}.,Διαχειριστής προσπελαστεί {0} σε {1} μέσω της διεύθυνσης IP {2}.
 apps/frappe/frappe/public/js/frappe/ui/filters/edit_filter.html +6,Equals,Ίσο
-apps/frappe/frappe/core/doctype/doctype/doctype.py +453,Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType',Οι επιλογές του τύπου πεδίου 'δυναμικός σύνδεσμος' πρέπει να δείχνουν σε ένα άλλο πεδίο συνδέσμου επιλογές σαν τον 'τύπο εγγράφου'
+apps/frappe/frappe/core/doctype/doctype/doctype.py +457,Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType',Οι επιλογές του τύπου πεδίου 'δυναμικός σύνδεσμος' πρέπει να δείχνουν σε ένα άλλο πεδίο συνδέσμου επιλογές σαν τον 'τύπο εγγράφου'
 DocType: About Us Settings,Team Members Heading,Κεφαλίδα των μελών της ομάδας
 apps/frappe/frappe/utils/csvutils.py +35,Invalid CSV Format,Μη έγκυρη μορφή CSV
 apps/frappe/frappe/desk/page/backups/backups.js +8,Set Number of Backups,Ρυθμίστε τον αριθμό των αντιγράφων ασφαλείας
@@ -2712,7 +2712,7 @@ DocType: Kanban Board Column,Column Name,Όνομα στήλης
 DocType: Language,Based On,Με βάση την
 apps/frappe/frappe/printing/doctype/print_format/print_format.js +34,Make Default,Κάντε Προεπιλογή
 apps/frappe/frappe/integrations/doctype/social_login_keys/social_login_keys.py +31,Check Frappe Server URL,Ελέγξτε τη διεύθυνση URL Φραπέ διακομιστή
-apps/frappe/frappe/core/doctype/doctype/doctype.py +495,Fieldtype {0} for {1} cannot be indexed,Fieldtype {0} για {1} δεν μπορεί να αναπροσαρμόζονται
+apps/frappe/frappe/core/doctype/doctype/doctype.py +499,Fieldtype {0} for {1} cannot be indexed,Fieldtype {0} για {1} δεν μπορεί να αναπροσαρμόζονται
 DocType: Communication,Email Account,Ο λογαριασμός ηλεκτρονικού ταχυδρομείου
 DocType: Workflow State,Download,Λήψη
 DocType: Blog Post,Blog Intro,Εισαγωγή blog
@@ -2744,15 +2744,15 @@ apps/frappe/frappe/email/doctype/email_group/email_group.js +45,New Newsletter,�
 DocType: Print Settings,Send Print as PDF,Αποστολή εκτύπωσης ως pdf
 DocType: Web Form,Amount,Ποσό
 DocType: Workflow Transition,Allowed,Επιτρέπεται
-apps/frappe/frappe/core/doctype/doctype/doctype.py +502,There can be only one Fold in a form,Μπορεί να υπάρχει μόνο μία αναδίπλωση σε μια φόρμα
+apps/frappe/frappe/core/doctype/doctype/doctype.py +506,There can be only one Fold in a form,Μπορεί να υπάρχει μόνο μία αναδίπλωση σε μια φόρμα
 apps/frappe/frappe/core/doctype/file/file.py +198,Unable to write file format for {0},Δεν είναι δυνατή η εγγραφή μορφής αρχείου για το {0}
 apps/frappe/frappe/website/doctype/portal_settings/portal_settings.js +10,Restore to default settings?,Επαναφορά στις προεπιλεγμένες ρυθμίσεις;
 apps/frappe/frappe/website/doctype/website_settings/website_settings.py +23,Invalid Home Page,Μη έγκυρη αρχική σελίδα
 apps/frappe/frappe/templates/includes/login/login.js +192,Invalid Login. Try again.,Μη έγκυρη σύνδεση. Προσπάθησε ξανά.
-apps/frappe/frappe/core/doctype/doctype/doctype.py +420,Options required for Link or Table type field {0} in row {1},Επιλογές που απαιτούνται για το πεδίο Τύπος συνδέσμου ή πίνακα {0} στη σειρά {1}
+apps/frappe/frappe/core/doctype/doctype/doctype.py +424,Options required for Link or Table type field {0} in row {1},Επιλογές που απαιτούνται για το πεδίο Τύπος συνδέσμου ή πίνακα {0} στη σειρά {1}
 DocType: Auto Email Report,Send only if there is any data,Αποστολή μόνο αν υπάρχει κάποια δεδομένα
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +170,Reset Filters,Επαναφορά φίλτρων
-apps/frappe/frappe/core/doctype/doctype/doctype.py +688,{0}: Permission at level 0 must be set before higher levels are set,{0}: Το δικαίωμα στο επίπεδο 0 πρέπει να οριστεί πριν οριστούν υψηλότερα επίπεδα
+apps/frappe/frappe/core/doctype/doctype/doctype.py +692,{0}: Permission at level 0 must be set before higher levels are set,{0}: Το δικαίωμα στο επίπεδο 0 πρέπει να οριστεί πριν οριστούν υψηλότερα επίπεδα
 apps/frappe/frappe/desk/doctype/todo/todo.py +28,Assignment closed by {0},Η ανάθεση έχει κλείσει από {0}
 DocType: Integration Request,Remote,Μακρινός
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +140,Calculate,Υπολογισμός
@@ -2772,7 +2772,7 @@ DocType: DocField,Perm Level,Επίπεδο πρόσβασης
 apps/frappe/frappe/desk/doctype/event/event.py +54,Events In Today's Calendar,Συμβάντα στο σημερινό ημερολόγιο
 DocType: Web Page,Web Page,Ιστοσελίδα
 DocType: Blog Category,Blogger,Blogger
-apps/frappe/frappe/core/doctype/doctype/doctype.py +445,'In Global Search' not allowed for type {0} in row {1},&#39;Στην Παγκόσμια Αναζήτηση&#39; δεν επιτρέπεται ο τύπος {0} στη σειρά {1}
+apps/frappe/frappe/core/doctype/doctype/doctype.py +449,'In Global Search' not allowed for type {0} in row {1},&#39;Στην Παγκόσμια Αναζήτηση&#39; δεν επιτρέπεται ο τύπος {0} στη σειρά {1}
 apps/frappe/frappe/public/js/frappe/views/treeview.js +297,View List,Προβολή λίστας
 apps/frappe/frappe/public/js/frappe/form/control.js +810,Date must be in format: {0},Η ημερομηνία πρέπει να είναι σε μορφή : {0}
 DocType: Workflow,Don't Override Status,Μην Παράκαμψη Κατάσταση
@@ -2821,7 +2821,7 @@ DocType: Website Theme,Background,Φόντο
 DocType: Custom DocPerm,"JSON list of DocTypes used to apply User Permissions. If empty, all linked DocTypes will be used to apply User Permissions.","Λίστα json των τύπων εγγράφων που χρησιμοποιούνται για την εφαρμογή δικαιωμάτων χρήστη. Εάν είναι κενό, όλοι οι συνδεδεμένοι τύποι εγγράφων θα χρησιμοποιηθούν για να εφαρμοστούν τα δικαιώματα χρήσης."
 DocType: Report,Ref DocType,Ref doctype
 apps/frappe/frappe/www/feedback.py +42,Please add a rating,Προσθέστε μια βαθμολογία
-apps/frappe/frappe/core/doctype/doctype/doctype.py +700,{0}: Cannot set Amend without Cancel,{0} : Δεν είναι δυνατή η ρύθμιση τροποποίησης χωρίς ακύρωση
+apps/frappe/frappe/core/doctype/doctype/doctype.py +704,{0}: Cannot set Amend without Cancel,{0} : Δεν είναι δυνατή η ρύθμιση τροποποίησης χωρίς ακύρωση
 apps/frappe/frappe/public/js/frappe/form/templates/print_layout.html +22,Full Page,Ολοσέλιδος
 DocType: DocType,Is Child Table,Είναι θυγατρικός πίνακας
 apps/frappe/frappe/utils/csvutils.py +124,{0} must be one of {1},{0} Πρέπει να είναι μία από {1}
@@ -2850,7 +2850,7 @@ DocType: Event,Send an email reminder in the morning,Στείλτε ένα email
 DocType: Blog Post,Published On,Δημοσιεύθηκε στις
 DocType: Contact,Gender,Φύλο
 apps/frappe/frappe/website/doctype/web_form/web_form.py +342,Mandatory Information missing:,Υποχρεωτικές πληροφορίες λείπουν:
-apps/frappe/frappe/core/doctype/doctype/doctype.py +492,Field '{0}' cannot be set as Unique as it has non-unique values,Το πεδίο &#39;{0}&#39; δεν μπορεί να οριστεί ως μοναδικό καθώς έχει μη μοναδικές τιμές
+apps/frappe/frappe/core/doctype/doctype/doctype.py +496,Field '{0}' cannot be set as Unique as it has non-unique values,Το πεδίο &#39;{0}&#39; δεν μπορεί να οριστεί ως μοναδικό καθώς έχει μη μοναδικές τιμές
 apps/frappe/frappe/client.py +140,Only 200 inserts allowed in one request,Μόνο 200 ένθετα επιτρέπεται σε ένα αίτημα
 DocType: Footer Item,URL,URL
 DocType: ToDo,Reference Type,Τύπος αναφοράς
@@ -2893,8 +2893,8 @@ apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +135,Please save
 apps/frappe/frappe/email/doctype/email_group/email_group.py +42,{0} subscribers added,{0} συνδρομητές προστέθηκαν
 apps/frappe/frappe/public/js/frappe/ui/filters/edit_filter.html +9,Not In,Δεν Στο
 DocType: Workflow State,star,Αστέρι
-apps/frappe/frappe/public/js/frappe/ui/filters/filters.js +228,values separated by commas,τιμές διαχωρισμένες με κόμμα
-apps/frappe/frappe/core/doctype/doctype/doctype.py +437,Max width for type Currency is 100px in row {0},Το μέγιστο πλάτος για τον τύπο νόμισμα είναι 100px στη γραμμή {0}
+apps/frappe/frappe/public/js/frappe/ui/filters/filters.js +229,values separated by commas,τιμές διαχωρισμένες με κόμμα
+apps/frappe/frappe/core/doctype/doctype/doctype.py +441,Max width for type Currency is 100px in row {0},Το μέγιστο πλάτος για τον τύπο νόμισμα είναι 100px στη γραμμή {0}
 apps/frappe/frappe/www/feedback.html +68,Please share your feedback for {0},Παρακαλούμε να μοιραστείτε τα σχόλιά σας για {0}
 apps/frappe/frappe/config/website.py +13,Content web page.,Ιστοσελίδα περιεχομένου
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +9,Add a New Role,Προσθήκη νέου ρόλου
@@ -2912,7 +2912,7 @@ apps/frappe/frappe/public/js/frappe/desk.js +383,Please Enter Your Password to C
 apps/frappe/frappe/integrations/doctype/ldap_settings/ldap_settings.py +97,Not a valid LDAP user,Δεν είναι ένα έγκυρο χρήστη LDAP
 apps/frappe/frappe/workflow/doctype/workflow/workflow.py +57,{0} not a valid State,{0} Δεν είναι έγκυρη κατάσταση
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py +90,Please select another payment method. PayPal does not support transactions in currency '{0}',Επιλέξτε μια άλλη μέθοδο πληρωμής. Το PayPal δεν υποστηρίζει τις συναλλαγές μετρητών «{0}»
-apps/frappe/frappe/core/doctype/doctype/doctype.py +519,Search field {0} is not valid,πεδίο αναζήτησης {0} δεν είναι έγκυρη
+apps/frappe/frappe/core/doctype/doctype/doctype.py +523,Search field {0} is not valid,πεδίο αναζήτησης {0} δεν είναι έγκυρη
 DocType: Workflow State,ok-circle,Ok-circle
 apps/frappe/frappe/utils/bot.py +150,You can find things by asking 'find orange in customers',"Μπορείτε να βρείτε τα πράγματα, ζητώντας «να βρει πορτοκαλί πελατών"
 apps/frappe/frappe/core/doctype/user/user.py +172,Sorry! User should have complete access to their own record.,Συγγνώμη! Ο χρήστης θα πρέπει να έχει πλήρη πρόσβαση στο δικό τους αρχείο.
@@ -2982,7 +2982,7 @@ DocType: User,Background Style,Στυλ φόντου
 apps/frappe/frappe/model/rename_doc.py +77,merged {0} into {1},συγχωνεύθηκαν {0} σε {1}
 DocType: System Settings,mm-dd-yyyy,μμ/ηη/εεεε
 apps/frappe/frappe/core/doctype/communication/feed.py +58,{0} logged in,{0} Συνδεδεμένος
-apps/frappe/frappe/templates/emails/new_user.html +4,Your login id is,Το Id σύνδεσής σας είναι
+apps/frappe/frappe/templates/emails/new_user.html +3,Your login id is,Το Id σύνδεσής σας είναι
 DocType: OAuth Client,Skip Authorization,Μετάβαση Εξουσιοδότηση
 DocType: Web Form,Amount Field,ποσό πεδίο
 DocType: Dropbox Settings,Send Notifications To,Αποστολή ενημερώσεων σε

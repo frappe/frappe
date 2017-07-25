@@ -23,7 +23,7 @@ DocType: Address Template,"<h4>Default Template</h4>
  {% if email_ID%} Email: {{email_ID}} &amp; lt; br &amp; gt ; {% endif -%} 
  <!-- code--> <!-- pre--></code></pre></h4>"
 apps/frappe/frappe/email/receive.py +197,Can not find UIDVALIDITY in imap status response,No se puede encontrar UIDVALIDITY en la respuesta de estado IMAP
-apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +474,changed values for {0},Valores modificados para {0}
+apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +476,changed values for {0},Valores modificados para {0}
 DocType: Communication,Link DocType,Enlace DocType
 apps/frappe/frappe/desk/doctype/kanban_board/kanban_board.py +20,Column Name cannot be empty,El Nombre de la Columna no puede estar vacía
 ,Feedback Ratings,Ratings de Feedback
