@@ -27,7 +27,7 @@ email_reply_parser
 click
 num2words==0.5.4
 watchdog==0.8.0
-bleach
+bleach==1.4.3
 bleach-whitelist
 Pillow
 beautifulsoup4
