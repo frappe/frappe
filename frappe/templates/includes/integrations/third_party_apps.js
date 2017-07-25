@@ -1,6 +1,9 @@
 frappe.ready(() => {
-	$(".revoke-tokens").on("click", function(event) {
-		console.log("App Name", $(this).data("app_name"));
-		console.log("client id", $(this).data("client_id"));
+	$(".btn-delete-app").on("click", function(event) {
+		frappe.call({
+			method:"frappe.www.third_party_apps.delete_client",
+			args: {"client_id": $(this).data("client_id"),
+			}
+		}).done(r => location.href="/third_party_apps");
 	});
 });
