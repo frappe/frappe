@@ -515,6 +515,14 @@ h6.uppercase,
   padding: 0px;
   margin: 0px;
 }
+.flex-justify-center {
+  display: flex;
+  justify-content: center;
+}
+.flex-justify-end {
+  display: flex;
+  justify-content: flex-end;
+}
 .hide-control {
   display: none !important;
 }
