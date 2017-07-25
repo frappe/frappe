@@ -14,6 +14,7 @@ import frappe.share
 import re
 from frappe.limits import get_limits
 from frappe.website.utils import is_signup_enabled
+from frappe.utils.background_jobs import enqueue
 
 STANDARD_USERS = ("Guest", "Administrator")
 
@@ -618,8 +619,8 @@ def get_email_awaiting(user):
 		return waiting
 	else:
 		frappe.db.sql("""update `tabUser Email`
-	    		set awaiting_password =0
-	    		where parent = %(user)s""",{"user":user})
+				set awaiting_password =0
+				where parent = %(user)s""",{"user":user})
 		return False
 
 @frappe.whitelist(allow_guest=False)
@@ -707,7 +708,7 @@ def ask_pass_update():
 	from frappe.utils import set_default
 
 	users = frappe.db.sql("""SELECT DISTINCT(parent) as user FROM `tabUser Email`
-        WHERE awaiting_password = 1""", as_dict=True)
+		WHERE awaiting_password = 1""", as_dict=True)
 
 	password_list = [ user.get("user") for user in users ]
 	set_default("email_user_password", u','.join(password_list))
@@ -987,3 +988,21 @@ def send_token_via_email(tmp_id,token=None):
 		delayed=False, retry=3)
 
 	return True
+	
+@frappe.whitelist(allow_guest=True)
+def reset_otp_secret(user):
+	otp_issuer = frappe.db.get_value('System Settings', 'System Settings', 'otp_issuer_name')
+	user_email = frappe.db.get_value('User',user, 'email')
+	if frappe.session.user in ["Administrator", user] :
+		frappe.defaults.clear_default(user + '_otplogin')
+		frappe.defaults.clear_default(user + '_otpsecret')
+		email_args = {
+			'recipients':user_email, 'sender':None, 'subject':'OTP Secret Reset - {}'.format(otp_issuer or "Frappe Framework"),
+			'message':'<p>Your OTP secret on {} has been reset. If you did not perform this reset and did not request it, please contact your System Administrator immediately.</p>'.format(otp_issuer or "Frappe Framework"),
+			'delayed':False,
+			'retry':3 
+		}
+		enqueue(method=frappe.sendmail, queue='short', timeout=300, event=None, async=True, job_name=None, now=False, **email_args)
+		return frappe.msgprint(_("OTP Secret has been reset. Re-registration will be required on next login."))
+	else:
+		return frappe.throw(_("OTP secret can only be reset by the Administrator."))
