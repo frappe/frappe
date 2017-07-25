@@ -751,28 +751,37 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 		if(!$.fn.datepicker.language[lang]) {
 			lang = 'en';
 		}
+		this.today_text = __("Today");
 		this.datepicker_options = {
 			language: lang,
 			autoClose: true,
-			todayButton: new Date(),
+			todayButton: frappe.datetime.now_date(true),
 			dateFormat: (frappe.boot.sysdefaults.date_format || 'yyyy-mm-dd'),
-			onSelect: function(dateStr) {
-				me.$input.trigger('change');
+			startDate: frappe.datetime.now_date(true),
+			onSelect: () => {
+				this.$input.trigger('change');
 			},
-			onShow: function() {
-				$('.datepicker--button:visible').text(__('Today'));
+			onShow: () => {
+				this.datepicker.$datepicker
+					.find('.datepicker--button:visible')
+					.text(me.today_text);
 
-				if(!me.frm) return;
-				var window_height = $(window).height();
-				var window_scroll_top = $(window).scrollTop();
-				var el_offset_top = me.$input.offset().top + 280;
-				var position = 'top left';
-				if(window_height + window_scroll_top >= el_offset_top) {
-					position = 'bottom left';
-				}
-				me.datepicker.update('position', position);
+				this.update_datepicker_position();
 			}
 		};
+	},
+	update_datepicker_position: function() {
+		if(!this.frm) return;
+		// show datepicker above or below the input
+		// based on scroll position
+		var window_height = $(window).height();
+		var window_scroll_top = $(window).scrollTop();
+		var el_offset_top = this.$input.offset().top + 280;
+		var position = 'top left';
+		if(window_height + window_scroll_top >= el_offset_top) {
+			position = 'bottom left';
+		}
+		this.datepicker.update('position', position);
 	},
 	set_datepicker: function() {
 		this.$input.datepicker(this.datepicker_options);
@@ -813,6 +822,30 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 	}
 });
 
+frappe.ui.form.ControlDatetime = frappe.ui.form.ControlDate.extend({
+	set_date_options: function() {
+		this._super();
+		this.today_text = __("Now");
+		$.extend(this.datepicker_options, {
+			timepicker: true,
+			timeFormat: "hh:ii:ss",
+			todayButton: frappe.datetime.now_datetime(true)
+		});
+	},
+	set_description: function() {
+		const { description } = this.df;
+		const { time_zone } = frappe.sys_defaults;
+		if (!frappe.datetime.is_timezone_same()) {
+			if (!description) {
+				this.df.description = time_zone;
+			} else if (!description.includes(time_zone)) {
+				this.df.description += '<br>' + time_zone;
+			}
+		}
+		this._super();
+	}
+});
+
 frappe.ui.form.ControlTime = frappe.ui.form.ControlData.extend({
 	make_input: function() {
 		var me = this;
@@ -822,13 +855,14 @@ frappe.ui.form.ControlTime = frappe.ui.form.ControlData.extend({
 			timepicker: true,
 			onlyTimepicker: true,
 			timeFormat: "hh:ii:ss",
+			startDate: frappe.datetime.now_time(true),
 			onSelect: function() {
 				me.$input.trigger('change');
 			},
 			onShow: function() {
 				$('.datepicker--button:visible').text(__('Now'));
 			},
-			todayButton: new Date()
+			todayButton: frappe.datetime.now_time(true)
 		});
 		this.datepicker = this.$input.data('datepicker');
 		this.refresh();
@@ -839,33 +873,21 @@ frappe.ui.form.ControlTime = frappe.ui.form.ControlData.extend({
 			&& ((this.last_value && this.last_value !== this.value)
 				|| (!this.datepicker.selectedDates.length))) {
 
-			this.datepicker.selectDate(moment(value, 'hh:mm:ss')._d);
+			var date_obj = frappe.datetime.moment_to_date_obj(moment(value, 'hh:mm:ss'));
+			this.datepicker.selectDate(date_obj);
 		}
 	},
-});
-
-frappe.ui.form.ControlDatetime = frappe.ui.form.ControlDate.extend({
-	set_date_options: function() {
+	set_description: function() {
+		const { description } = this.df;
+		const { time_zone } = frappe.sys_defaults;
+		if (!frappe.datetime.is_timezone_same()) {
+			if (!description) {
+				this.df.description = time_zone;
+			} else if (!description.includes(time_zone)) {
+				this.df.description += '<br>' + time_zone;
+			}
+		}
 		this._super();
-		this.datepicker_options.timepicker = true;
-		this.datepicker_options.timeFormat = "hh:ii:ss";
-		this.datepicker_options.onShow = function() {
-			$('.datepicker--button:visible').text(__('Now'));
-		};
-	},
-	parse: function(value) {
-		if(value) {
-			// parse and convert
-			value = frappe.datetime.convert_to_system_tz(frappe.datetime.user_to_str(value));
-		}
-		return value;
-	},
-	format_for_input: function(value) {
-		if(value) {
-			// convert and format
-			value = frappe.datetime.str_to_user(frappe.datetime.convert_to_user_tz(value));
-		}
-		return value || "";
 	}
 });
 
@@ -1219,6 +1241,15 @@ frappe.ui.form.ControlAttachImage = frappe.ui.form.ControlAttach.extend({
 	make: function() {
 		var me = this;
 		this._super();
+
+		this.container = $('<div class="control-container">').appendTo($(this.parent).empty());
+		this.container.attr('data-fieldtype', this.df.fieldtype).append(this.wrapper);
+		if(this.df.align === 'center') {
+			this.container.addClass("flex-justify-center");
+		} else if (this.df.align === 'right') {
+			this.container.addClass("flex-justify-end");
+		}
+
 		this.img_wrapper = $('<div style="width: 100%; height: calc(100% - 40px); position: relative;">\
 			<div class="missing-image attach-missing-image"><i class="octicon octicon-device-camera"></i></div></div>')
 			.appendTo(this.wrapper);
