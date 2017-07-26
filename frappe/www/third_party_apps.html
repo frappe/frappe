@@ -40,12 +40,14 @@
 	<div class="web-list-item">
 		<div class="row">
 			<div class="col-xs-6">
-				{{ app.app_name }}
-			</div>
-			<div class="col-xs-6 text-right small text-muted">
-				{{ frappe.utils.pretty_date(app.creation) }}
-				<a class="text-muted" href="/third_party_apps?app={{ app.name }}"><i class="fa fa-close" aria-hidden="true"></i></a>
-			</div>
+			{{ app.app_name }}
+			<small class="text-muted">
+				{{ _("logged in") }}&nbsp;{{ frappe.utils.pretty_date(app.creation) }}
+			</small>
+		</div>
+		<div class="col-xs-6 text-right small text-muted">
+			<a class="btn btn-link btn-xs" href="/third_party_apps?app={{ app.name }}">{{ _("Revoke") }}</a>
+		</div>
 		</div>
 	</div>
 	{% endfor %}

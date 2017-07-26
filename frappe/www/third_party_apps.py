@@ -39,8 +39,8 @@ def get_context(context):
 
 def get_first_login(client):
 	login_date = frappe.get_all("OAuth Bearer Token",
-							filters=[["user", "=", frappe.session.user], ["client", "=", client]],
-							fields=["creation"], order_by="creation", limit=1)
+		filters=[["user", "=", frappe.session.user], ["client", "=", client]],
+		fields=["creation"], order_by="creation", limit=1)
 
 	login_date = login_date[0].get("creation") if login_date and len(login_date) > 0 else None
 
@@ -49,7 +49,7 @@ def get_first_login(client):
 @frappe.whitelist()
 def delete_client(client_id):
 	active_client_id_tokens = frappe.get_all("OAuth Bearer Token",
-									filters=[["user", "=", frappe.session.user], 
+		filters=[["user", "=", frappe.session.user], 
 											["client","=", client_id]])
 	for token in active_client_id_tokens:
 		frappe.delete_doc("OAuth Bearer Token", token.get("name"),  ignore_permissions=True)
