@@ -12,7 +12,7 @@ QUnit.test("Test Query Report", function(assert){
 		() => frappe.set_route('List/Module Def/List'),
 		() => {
 			return frappe.tests.make('Module Def', [
-				{module_name: 'Setup'},
+				{module_name: 'Test'},
 				{app_name: 'frappe'}
 			]);	
 		},
@@ -21,7 +21,7 @@ QUnit.test("Test Query Report", function(assert){
 				{report_name: 'ToDo List Report'},
 				{report_type: 'Query Report'},
 				{ref_doctype: 'ToDo'},
-				{module: 'Setup'}
+				{module: 'Test'}
 			]);
 		},
 		() => frappe.set_route('Form','Report', 'ToDo List Report'),
