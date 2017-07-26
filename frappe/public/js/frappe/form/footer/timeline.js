@@ -14,17 +14,15 @@ frappe.ui.form.Timeline = Class.extend({
 			{doctype: this.frm.doctype})).appendTo(this.parent);
 
 		this.list = this.wrapper.find(".timeline-items");
-		// this.input = this.wrapper.find(".form-control");
 
 		this.comment_area = new frappe.ui.CommentArea({
-			parent: this.wrapper.find('.comment-input-container')
+			parent: this.wrapper.find('.timeline-head'),
+			mentions: this.get_usernames_for_mentions(),
+			on_submit: (val) => {
+				val && this.insert_comment(
+					"Comment", val, this.comment_area.button);
+			}
 		});
-
-
-		this.comment_button = this.wrapper.find(".btn-comment")
-			.on("click", function() {
-				me.add_comment(this);
-			});
 
 		this.setup_email_button();
 
@@ -33,8 +31,6 @@ frappe.ui.form.Timeline = Class.extend({
 		});
 
 		this.setup_comment_like();
-
-		this.setup_summernote_on_comment_area();
 
 		this.list.on("click", ".btn-more", function() {
 			var communications = me.get_communications();
@@ -65,84 +61,6 @@ frappe.ui.form.Timeline = Class.extend({
 
 	},
 
-	setup_summernote_on_comment_area: function() {
-		var me = this;
-		this.input.summernote({
-			height: 100,
-			toolbar: false,
-			hint: {
-				mentions: this.get_usernames_for_mentions(),
-				match: /\B@(\w*)$/,
-				search: function (keyword, callback) {
-					callback($.grep(this.mentions, function (item) {
-						return item.indexOf(keyword) == 0;
-					}));
-				},
-				content: function (item) {
-					return '@' + item;
-				}
-			},
-			onChange: function() {
-				console.log(this);
-				if(me.input.summernote('isEmpty')) {
-					me.comment_button
-						.removeClass('btn-primary')
-						.addClass('btn-default');
-				} else {
-					me.comment_button
-						.removeClass('btn-default')
-						.addClass('btn-primary');
-				}
-			},
-			onKeydown: function(e) {
-				var key = frappe.ui.keys.get_key(e);
-				if(key === 'ctrl+enter') {
-					me.comment_button.trigger("click");
-				}
-			},
-			icons: {
-				'align': 'fa fa-align',
-				'alignCenter': 'fa fa-align-center',
-				'alignJustify': 'fa fa-align-justify',
-				'alignLeft': 'fa fa-align-left',
-				'alignRight': 'fa fa-align-right',
-				'indent': 'fa fa-indent',
-				'outdent': 'fa fa-outdent',
-				'arrowsAlt': 'fa fa-arrows-alt',
-				'bold': 'fa fa-bold',
-				'caret': 'caret',
-				'circle': 'fa fa-circle',
-				'close': 'fa fa-close',
-				'code': 'fa fa-code',
-				'eraser': 'fa fa-eraser',
-				'font': 'fa fa-font',
-				'frame': 'fa fa-frame',
-				'italic': 'fa fa-italic',
-				'link': 'fa fa-link',
-				'unlink': 'fa fa-chain-broken',
-				'magic': 'fa fa-magic',
-				'menuCheck': 'fa fa-check',
-				'minus': 'fa fa-minus',
-				'orderedlist': 'fa fa-list-ol',
-				'pencil': 'fa fa-pencil',
-				'picture': 'fa fa-image',
-				'question': 'fa fa-question',
-				'redo': 'fa fa-redo',
-				'square': 'fa fa-square',
-				'strikethrough': 'fa fa-strikethrough',
-				'subscript': 'fa fa-subscript',
-				'superscript': 'fa fa-superscript',
-				'table': 'fa fa-table',
-				'textHeight': 'fa fa-text-height',
-				'trash': 'fa fa-trash',
-				'underline': 'fa fa-underline',
-				'undo': 'fa fa-undo',
-				'unorderedlist': 'fa fa-list-ul',
-				'video': 'fa fa-video-camera'
-			}
-		});
-	},
-
 	setup_email_button: function() {
 		var me = this;
 		var selector = this.frm.doctype === "Communication"? ".btn-reply-email": ".btn-new-email"
@@ -163,7 +81,7 @@ frappe.ui.form.Timeline = Class.extend({
 					});
 				} else {
 					$.extend(args, {
-						txt: frappe.markdown(me.input.summernote('code'))
+						txt: frappe.markdown(me.comment_area.val())
 					});
 				}
 				new frappe.views.CommunicationComposer(args)
@@ -181,7 +99,7 @@ frappe.ui.form.Timeline = Class.extend({
 		}
 		this.wrapper.toggle(true);
 		this.list.empty();
-		this.input.val('');
+		this.comment_area.val('');
 
 		var communications = this.get_communications(true);
 
@@ -588,16 +506,8 @@ frappe.ui.form.Timeline = Class.extend({
 		};
 	},
 
-	add_comment: function(btn) {
-		var txt = this.input.summernote('code');
-
-		if(txt) {
-			this.insert_comment("Comment", txt, btn, this.input);
-		}
-	},
-	insert_comment: function(comment_type, comment, btn, input) {
+	insert_comment: function(comment_type, comment, btn) {
 		var me = this;
-		if(input) input.prop('disabled', true);
 		return frappe.call({
 			method: "frappe.desk.form.utils.add_comment",
 			args: {
@@ -614,11 +524,10 @@ frappe.ui.form.Timeline = Class.extend({
 			btn: btn,
 			callback: function(r) {
 				if(!r.exc) {
-					me.input.summernote('reset');
-
+					me.comment_area.val('');
 					frappe.utils.play_sound("click");
 
-					var comment = r.message;f
+					var comment = r.message;
 					var comments = me.get_communications();
 					var comment_exists = false;
 					for (var i=0, l=comments.length; i<l; i++) {
@@ -634,9 +543,6 @@ frappe.ui.form.Timeline = Class.extend({
 					me.frm.get_docinfo().communications = comments.concat([r.message]);
 					me.refresh(true);
 				}
-			},
-			always: function() {
-				if(input) input.prop('disabled', false);
 			}
 		});
 
@@ -724,42 +630,11 @@ frappe.ui.form.Timeline = Class.extend({
 		return last_email;
 	},
 
-	setup_mentions: function() {
-		this.setup_awesomplete_for_mentions();
-	},
-
 	get_usernames_for_mentions: function() {
 		var valid_users = Object.keys(frappe.boot.user_info)
 			.filter(user => !["Administrator", "Guest"].includes(user));
 
 		return valid_users.map(user => frappe.boot.user_info[user].username);
-	},
-
-	setup_awesomplete_for_mentions: function() {
-		var me = this;
-		var username_user_map = {};
-		for (var name in frappe.boot.user_info) {
-			if(name !== "Administrator" && name !== "Guest") {
-				var _user = frappe.boot.user_info[name];
-				username_user_map[_user.username] = _user;
-			}
-		}
-		var source = Object.keys(username_user_map);
-
-		this.awesomplete = new Awesomplete(this.input.get(0), {
-			minChars: 0,
-			maxItems: 99,
-			autoFirst: true,
-			list: source,
-			filter: function(text, input) {
-				if(input.indexOf("@") === -1) return false;
-				return Awesomplete.FILTER_STARTSWITH(text, input.match(/[^@]*$/)[0]);
-			},
-			replace: function(text) {
-				var before = this.input.value.match(/^.*@\s*|/)[0];
-				this.input.value = before + text + " ";
-			}
-		});
 	},
 
 	setup_comment_like: function() {

@@ -2,35 +2,57 @@
  * CommentArea: A small rich text editor with
  * support for @mentions and :emojis:
  * @example
- * let comment_area = new CommentArea();
+ * let comment_area = new frappe.ui.CommentArea({
+ *     parent: '.comment-area',
+ *     mentions: ['john', 'mary', 'kate'],
+ *     on_submit: (value) => save_to_database(value)
+ * });
  */
 
 frappe.ui.CommentArea = class CommentArea {
 
-	constructor({ parent = null }) {
+	constructor({ parent = null, mentions = [], on_submit = null }) {
 		this.parent = $(parent);
+		this.mentions = mentions;
+		this.on_submit = on_submit;
 
 		this.make();
 	}
 
 	make() {
-		this.make_dom();
+		this.setup_dom();
 		this.setup_summernote();
+		this.bind_events();
 	}
 
-	make_dom() {
-		this.parent.html(`
-			<div class="form-control comment-input"></div>
-			<div class="text-muted small">${__("Ctrl+Enter to add comment")}</div>
+	setup_dom() {
+		this.wrapper = $(`
+			<div class="comment-input-wrapper">
+				<div class="comment-input-header">
+					<span class="small text-muted">${__("Add a comment")}</span>
+					<button class="btn btn-default btn-comment btn-xs pull-right">
+						${__("Comment")}
+					</button>
+				</div>
+				<div class="comment-input-container">
+					<div class="form-control comment-input"></div>
+					<div class="text-muted small">${__("Ctrl+Enter to add comment")}</div>
+				</div>
+			</div>
 		`);
+		this.wrapper.appendTo(this.parent);
+		this.input = this.parent.find('.comment-input');
+		this.button = this.parent.find('.btn-comment');
 	}
 
 	setup_summernote() {
-		this.input.summernote({
+		const { input, button } = this;
+
+		input.summernote({
 			height: 100,
 			toolbar: false,
 			hint: {
-				mentions: this.get_usernames_for_mentions(),
+				mentions: this.mentions,
 				match: /\B@(\w*)$/,
 				search: function (keyword, callback) {
 					callback($.grep(this.mentions, function (item) {
@@ -41,23 +63,26 @@ frappe.ui.CommentArea = class CommentArea {
 					return '@' + item;
 				}
 			},
-			onChange: function() {
-				console.log(this);
-				if(me.input.summernote('isEmpty')) {
-					me.comment_button
-						.removeClass('btn-primary')
-						.addClass('btn-default');
-				} else {
-					me.comment_button
-						.removeClass('btn-default')
-						.addClass('btn-primary');
-				}
-			},
-			onKeydown: function(e) {
-				var key = frappe.ui.keys.get_key(e);
-				if(key === 'ctrl+enter') {
-					me.comment_button.trigger("click");
-				}
+			callbacks: {
+				onChange: () => {
+					if(input.summernote('isEmpty')) {
+						button
+							.removeClass('btn-primary')
+							.addClass('btn-default');
+					} else {
+						button
+							.removeClass('btn-default')
+							.addClass('btn-primary');
+					}
+				},
+				onKeydown: (e) => {
+					var key = frappe.ui.keys.get_key(e);
+					if(key === 'ctrl+enter') {
+						e.preventDefault();
+						this.submit();
+					}
+					e.stopPropagation();
+				},
 			},
 			icons: {
 				'align': 'fa fa-align',
@@ -102,9 +127,21 @@ frappe.ui.CommentArea = class CommentArea {
 		});
 	}
 
-	val(value) {
-		if(value === undefined) {
-			return
-		}
+	bind_events() {
+		this.button.on('click', this.submit.bind(this));
 	}
-}
+
+	val(value) {
+		// Return html if no value specified
+		if(value === undefined) {
+			return this.input.summernote('code');
+		}
+		// Set html if value is specified
+		this.input.summernote('code', value);
+	}
+
+	submit() {
+		// Pass comment's value (html) to submit handler
+		this.on_submit && this.on_submit(this.val());
+	}
+};
