@@ -2,8 +2,10 @@
 
 {% block hero %}{% endblock %}
 {% block content %}
-<div class="page-container" id="page-{{ name or route }}" data-path="{{ pathname }}"
-	{% if page_or_generator=="Generator" %}data-doctype="{{ doctype }}"{% endif %}>
+<div class="page-container" id="page-{{ name or route }}"
+	data-path="{{ pathname }}"
+	{%- if page_or_generator=="Generator" %}
+		data-doctype="{{ doctype }}"{% endif %}>
 	<div class="row {% if show_sidebar %}vert-line{% endif %}">
 		{% if show_sidebar %}
 			<div class="col-sm-3 sidebar-block hidden-xs">
@@ -29,7 +31,8 @@
 						{% if show_search %}
 							<div class="page-search-block">
 							{% block search %}
-								{% include 'templates/includes/search_box.html' %}
+								{% include
+									'templates/includes/search_box.html' %}
 							{% endblock %}
 							</div>
 						{% endif %}
@@ -41,9 +44,9 @@
 						{% endif %}
 					</div>
 				</div>
-			</div>
-			<div class="page_content">
-				{%- block page_content -%}{%- endblock -%}
+				<div class="page_content">
+					{%- block page_content -%}{%- endblock -%}
+				</div>
 			</div>
 		</div>
 	</div>

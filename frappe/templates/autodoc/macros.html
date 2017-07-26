@@ -59,7 +59,7 @@
 {% macro doctype_link(app, doctype) %}
 {% set module = frappe.db.get_value("DocType", doctype, "module") %}
 {% if doctype and module %}
-<a href="{{ app.docs_base_url }}/{{ app.docs_version }}/models/{{
+<a href="{{ docs_base_url }}/{{ app.docs_version }}/models/{{
 		scrub(module) }}/{{ scrub(doctype) }}">{{ doctype }}</a>
 {% endif %}
 {% endmacro %}
