@@ -177,8 +177,8 @@ frappe.request.call = function(opts) {
 					status_code_handler(data, xhr);
 				}
 			} catch(e) {
-				console.log("Unable to handle response");
-				console.trace(e);
+				console.log("Unable to handle success response"); // eslint-disable-line
+				console.trace(e); // eslint-disable-line
 			}
 			
 		})
@@ -201,12 +201,17 @@ frappe.request.call = function(opts) {
 			}
 		})
 		.fail(function(xhr, textStatus) {
-			var status_code_handler = statusCode[xhr.statusCode().status];
-			if (status_code_handler) {
-				status_code_handler(xhr);
-			} else {
-				// if not handled by error handler!
-				opts.error_callback && opts.error_callback(xhr);
+			try {
+				var status_code_handler = statusCode[xhr.statusCode().status];
+				if (status_code_handler) {
+					status_code_handler(xhr);
+				} else {
+					// if not handled by error handler!
+					opts.error_callback && opts.error_callback(xhr);
+				}
+			} catch(e) {
+				console.log("Unable to handle failed response"); // eslint-disable-line
+				console.trace(e); // eslint-disable-line
 			}
 		});
 }
