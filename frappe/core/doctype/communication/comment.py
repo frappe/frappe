@@ -82,7 +82,7 @@ def notify_mentions(doc):
 
 		sender_fullname = get_fullname(frappe.session.user)
 		parent_doc_label = "{0} {1}".format(_(doc.reference_doctype), doc.reference_name)
-		subject = _("{0} mentioned you in a comment in {1}").format(sender_fullname, parent_doc_label)
+		subject = _("{0} mentioned you in a comment").format(sender_fullname)
 
 		recipients = [frappe.db.get_value("User", {"enabled": 1, "username": username, "user_type": "System User"})
 			for username in mentions]
@@ -97,7 +97,7 @@ def notify_mentions(doc):
 				"comment": doc,
 				"link": get_link_to_form(doc.reference_doctype, doc.reference_name, label=parent_doc_label)
 			},
-			header=True
+			header=[_('New Mention'), 'orange']
 		)
 
 def get_comments_from_parent(doc):

@@ -82,7 +82,7 @@ def backup_files_and_notify_user(user_email=None):
 		subject=subject,
 		template="file_backup_notification",
 		args=backup_files,
-		header=True
+		header=[subject, 'green']
 	)
 
 def get_downloadable_links(backup_files):

@@ -75,7 +75,7 @@ def send_feedback_request(reference_doctype, reference_name, trigger="Manual", d
 	)
 	details.update({
 		"message": message,
-		"header": True
+		"header": [details.get('subject'), 'blue']
 	})
 
 	if details:

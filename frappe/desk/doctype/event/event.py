@@ -62,7 +62,7 @@ def send_event_digest():
 				args={
 					'events': events,
 				},
-				header=True
+				header=[frappe._("Events in Today's Calendar"), 'blue']
 			)
 
 @frappe.whitelist()
