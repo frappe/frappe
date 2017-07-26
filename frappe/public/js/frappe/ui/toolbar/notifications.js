@@ -67,11 +67,11 @@ frappe.ui.notifications = {
 	add_notification: function(name, value, doc_dt, target = false) {
 		let label = this.config[name] ? this.config[name].label : name;
 		let $list_item = !target
-			? $(`<li><a class="badge-hover" data-doctype="${name}">${label}
+			? $(`<li><a class="badge-hover" data-doctype="${name}">${__(label)}
 				<span class="badge pull-right">${value}</span>
 			</a></li>`)
 			: $(`<li><a class="progress-small" data-doctype="${doc_dt}"
-				data-doc="${name}"><span class="dropdown-item-label">${label}<span>
+				data-doc="${name}"><span class="dropdown-item-label">${__(label)}<span>
 				<div class="progress-chart"><div class="progress">
 					<div class="progress-bar" style="width: ${value}%"></div>
 				</div></div>

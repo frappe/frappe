@@ -8,13 +8,14 @@ import unittest
 
 # test_records = frappe.get_test_records('DocType')
 
+
 class TestDocType(unittest.TestCase):
-	def new_doctype(self, name):
+	def new_doctype(self, name, unique=0):
 		return frappe.get_doc({
 			"doctype": "DocType",
 			"module": "Core",
 			"custom": 1,
-			"fields": [{"label": "Some Field", "fieldname": "some_fieldname", "fieldtype": "Data"}],
+			"fields": [{"label": "Some Field", "fieldname": "some_fieldname", "fieldtype": "Data", "unique": unique}],
 			"permissions": [{"role": "System Manager", "read": 1}],
 			"name": name
 		})
@@ -29,3 +30,27 @@ class TestDocType(unittest.TestCase):
 
 			doc = self.new_doctype(name).insert()
 			doc.delete()
+
+	def test_doctype_unique_constraint_dropped(self):
+		if frappe.db.exists("DocType", "With_Unique"):
+			frappe.delete_doc("DocType", "With_Unique")
+
+		dt = self.new_doctype("With_Unique", unique=1)
+		dt.insert()
+
+		doc1 = frappe.new_doc("With_Unique")
+		doc2 = frappe.new_doc("With_Unique")
+		doc1.some_fieldname = "Something"
+		doc1.name = "one"
+		doc2.some_fieldname = "Something"
+		doc2.name = "two"
+
+		doc1.insert()
+		self.assertRaises(frappe.UniqueValidationError, doc2.insert)
+
+		dt.fields[0].unique = 0
+		dt.save()
+
+		doc2.insert()
+		doc1.delete()
+		doc2.delete()

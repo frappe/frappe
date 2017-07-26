@@ -287,12 +287,19 @@ h6.uppercase,
   border-radius: 3px;
   margin-left: -7px;
   position: relative;
+  max-width: calc(100% - 50px);
+  padding-right: 0px;
   overflow: visible;
 }
 .timeline-item.user-content .avatar-medium {
   margin-right: 10px;
   height: 45px;
   width: 45px;
+}
+.timeline-item.user-content .action-btns {
+  position: absolute;
+  right: 0;
+  padding: 5px 15px 2px 5px;
 }
 .timeline-item.user-content .comment-header {
   background-color: #fafbfc;
@@ -301,12 +308,19 @@ h6.uppercase,
   color: #8D99A6;
   border-bottom: 1px solid #EBEFF2;
 }
+.timeline-item.user-content .comment-header.links-active {
+  padding-right: 60px;
+}
+.timeline-item.user-content .comment-header .commented-on-small {
+  display: none;
+}
 .timeline-item.user-content .comment-header .octicon-heart {
   color: #ff5858;
   cursor: pointer;
 }
 .timeline-item.user-content .reply {
   padding: 15px;
+  overflow: auto;
 }
 .timeline-item.user-content .reply > div > p:first-child {
   margin-top: 0px;
@@ -317,11 +331,13 @@ h6.uppercase,
 .timeline-item.user-content .reply hr {
   margin: 10px 0px;
 }
-.timeline-item.user-content .close-btn-container {
-  padding: 4px 10px 2px 5px;
+.timeline-item.user-content .close-btn-container .close {
+  color: inherit;
+  opacity: 1;
+  padding: 0 0 0 10px;
 }
 .timeline-item.user-content .edit-btn-container {
-  padding: 4px 5px;
+  padding: 0;
 }
 .timeline-item.user-content .edit-btn-container .edit {
   color: inherit;
@@ -514,6 +530,14 @@ h6.uppercase,
   border: none;
   padding: 0px;
   margin: 0px;
+}
+.flex-justify-center {
+  display: flex;
+  justify-content: center;
+}
+.flex-justify-end {
+  display: flex;
+  justify-content: flex-end;
 }
 .hide-control {
   display: none !important;
