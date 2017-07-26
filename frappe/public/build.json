@@ -132,6 +132,7 @@
 		"public/js/frappe/misc/help.js",
 		"public/js/frappe/misc/help_links.js",
 		"public/js/frappe/misc/address_and_contact.js",
+		"public/js/frappe/misc/preview_email.js",
 
 		"public/js/frappe/ui/upload.html",
 		"public/js/frappe/upload.js",
