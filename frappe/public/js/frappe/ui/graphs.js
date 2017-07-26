@@ -37,13 +37,10 @@ frappe.ui.Graph = class Graph {
 				return new frappe.ui.LineGraph(arguments[0]);
 			} else if(mode === 'bar') {
 				return new frappe.ui.BarGraph(arguments[0]);
-			}
-			else if(mode === 'percentage') {
+			} else if(mode === 'percentage') {
 				return new frappe.ui.PercentageGraph(arguments[0]);
 			}
 		}
-
-		// Calculate height width and translate initially
 
 		this.parent = parent;
 		this.base_height = height;
@@ -394,7 +391,7 @@ frappe.ui.Graph = class Graph {
 			new_y.map((e, i) => {
 				let new_points_list = e.y_tops.map((y, i) => (this.x_axis_values[i] + ',' + y));
 				let new_path_str = "M"+new_points_list.join("L");
-				this.y[i].path.animate({d:new_path_str}, 300, mina.easein);	// eslint-disable-line
+				this.y[i].path.animate({d:new_path_str}, 300, mina.easein);
 			});
 		}
 	}
@@ -447,10 +444,10 @@ frappe.ui.Graph = class Graph {
 
 		this.animate = {
 			'bar': (bar, new_y, args) => {
-				bar.animate({height: args.new_height, y: new_y}, 300, mina.easein);	// eslint-disable-line
+				bar.animate({height: args.new_height, y: new_y}, 300, mina.easein);
 			},
 			'dot': (dot, new_y) => {
-				dot.animate({cy: new_y}, 300, mina.easein);	// eslint-disable-line
+				dot.animate({cy: new_y}, 300, mina.easein);
 			}
 		};
 	}
