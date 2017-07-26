@@ -258,8 +258,8 @@ def get_email_html(template, args, subject, header=None):
 	args = json.loads(args)
 	if header and header.startswith('['):
 		header = json.loads(header)
-	message, text_content = frappe.utils.jinja.get_email_from_template(template, args)
-	return get_formatted_html(subject, message, header=header)
+	email = frappe.utils.jinja.get_email_from_template(template, args)
+	return get_formatted_html(subject, email[0], header=header)
 
 def inline_style_in_html(html):
 	''' Convert email.css and html to inline-styled html
