@@ -134,7 +134,9 @@ frappe.ui.CommentArea = class CommentArea {
 			'padding': '10px',
 			'margin-bottom': '10px',
 			'min-height': '80px',
+			'cursor': 'text'
 		});
+		this.note_editor.on('click', () => input.summernote('focus'));
 	}
 
 	bind_events() {
