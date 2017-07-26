@@ -256,7 +256,8 @@ def get_email_html(template, args, subject, header=None):
 	import json
 
 	args = json.loads(args)
-	header = json.loads(header)
+	if header and header.startswith('['):
+		header = json.loads(header)
 	message, text_content = frappe.utils.jinja.get_email_from_template(template, args)
 	return get_formatted_html(subject, message, header=header)
 
