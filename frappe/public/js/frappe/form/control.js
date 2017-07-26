@@ -1242,7 +1242,8 @@ frappe.ui.form.ControlAttachImage = frappe.ui.form.ControlAttach.extend({
 		var me = this;
 		this._super();
 
-		this.container = $('<div class="control-container">').appendTo($(this.parent).empty());
+		$(this.wrapper).detach();
+		this.container = $('<div class="control-container">').appendTo($(this.parent));
 		this.container.attr('data-fieldtype', this.df.fieldtype).append(this.wrapper);
 		if(this.df.align === 'center') {
 			this.container.addClass("flex-justify-center");
