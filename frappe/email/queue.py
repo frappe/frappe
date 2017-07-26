@@ -480,6 +480,7 @@ def prepare_message(email, recipient, recipients_list):
 	# On-demand attachments
 	from email.parser import Parser
 
+	message = (message and message.encode('utf8')) or ''
 	msg_obj = Parser().parsestr(message)
 	attachments = json.loads(email.attachments)
 
