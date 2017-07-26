@@ -1,5 +1,4 @@
 // Test for creating query report
-
 QUnit.test("Test Query Report", function(assert){
 	assert.expect(2);
 	let done = assert.async();
