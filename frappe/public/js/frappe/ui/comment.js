@@ -51,6 +51,7 @@ frappe.ui.CommentArea = class CommentArea {
 		input.summernote({
 			height: 100,
 			toolbar: false,
+			airMode: true,
 			hint: {
 				mentions: this.mentions,
 				match: /\B@(\w*)$/,
@@ -124,6 +125,15 @@ frappe.ui.CommentArea = class CommentArea {
 				'unorderedlist': 'fa fa-list-ul',
 				'video': 'fa fa-video-camera'
 			}
+		});
+
+		this.note_editor = this.wrapper.find('.note-editor');
+		this.note_editor.css({
+			'border': '1px solid #ebeff2',
+			'border-radius': '3px',
+			'padding': '10px',
+			'margin-bottom': '10px',
+			'min-height': '80px',
 		});
 	}
 
