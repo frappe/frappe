@@ -3,16 +3,19 @@
 
 frappe.db = {
 	get_value: function(doctype, filters, fieldname, callback) {
-		return frappe.call({
-			method: "frappe.client.get_value",
-			args: {
-				doctype: doctype,
-				fieldname: fieldname,
-				filters: filters
-			},
-			callback: function(r) {
-				callback && callback(r.message);
-			}
+		return new Promise(resolve => {
+			frappe.call({
+				method: "frappe.client.get_value",
+				args: {
+					doctype: doctype,
+					fieldname: fieldname,
+					filters: filters
+				},
+				callback: function(r) {
+					callback && callback(r.message);
+					resolve(r.message);
+				}
+			});
 		});
 	},
 	set_value: function(doctype, docname, fieldname, value, callback) {
