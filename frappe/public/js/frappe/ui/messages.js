@@ -141,17 +141,17 @@ frappe.msgprint = function(msg, title) {
 		msg = replace_newlines(data.message);
 	}
 
+	var msg_exists = false;
 	if(data.clear) {
 		msg_dialog.msg_area.empty();
-		var msg_exists = false;
 	} else {
-		var msg_exists = msg_dialog.msg_area.html();
+		msg_exists = msg_dialog.msg_area.html();
 	}
 
 	if(data.title || !msg_exists) {
 		// set title only if it is explicitly given
 		// and no existing title exists
-		msg_dialog.set_title(data.title || __('Message'))
+		msg_dialog.set_title(data.title || __('Message'));
 	}
 
 	// show / hide indicator

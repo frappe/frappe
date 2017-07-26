@@ -103,14 +103,15 @@ class setup_docs(object):
 		self.add_breadcrumbs_for_user_pages()
 
 	def add_breadcrumbs_for_user_pages(self):
-		for basepath, folders, files in os.walk(os.path.join(self.docs_path, 'user')):
+		for basepath, folders, files in os.walk(os.path.join(self.docs_path,
+			'user')): # pylint: disable=unused-variable
 			for fname in files:
 				if fname.endswith('.md') or fname.endswith('.html'):
 					add_breadcrumbs_tag(os.path.join(basepath, fname))
 
 	def add_sidebars(self):
 		'''Add _sidebar.json in each folder in docs'''
-		for basepath, folders, files in os.walk(self.docs_path):
+		for basepath, folders, files in os.walk(self.docs_path): # pylint: disable=unused-variable
 			with open(os.path.join(basepath, '_sidebar.json'), 'w') as sidebarfile:
 				sidebarfile.write(frappe.as_json([
 					{"title": "Docs Home", "route": "/docs"},
