@@ -17,6 +17,7 @@ from frappe.translate import get_lang_code
 from frappe.utils.password import check_password
 from frappe.core.doctype.authentication_log.authentication_log import add_authentication_log
 from frappe.utils.background_jobs import enqueue
+from twofactor import validate_2fa_if_set, confirm_otp_token
 
 
 from urllib import quote
@@ -102,7 +103,7 @@ class LoginManager:
 		self.user_type = None
 
 		if frappe.local.form_dict.get('cmd')=='login' or frappe.local.request.path=="/api/method/login":
-			self.login()
+			if not self.login():return
 			self.resume = False
 
 			# run login triggers
@@ -193,44 +194,28 @@ class LoginManager:
 			frappe.local.response['verification'] = verification_obj
 			frappe.local.response['tmp_id'] = tmp_id
 
-			raise frappe.RequestToken
+			# raise frappe.RequestToken
 		else:
 			self.post_login(no_two_auth=True)
 
 	def login(self):
 		# clear cache
 		frappe.clear_cache(user = frappe.form_dict.get('usr'))
+		self.authenticate()
+		otp  = validate_2fa_if_set(self.user)
+		return self.post_login()
 
-		otp = frappe.form_dict.get('otp')		
-		if otp:
-			try:
-				tmp_info = {
-								'usr': frappe.cache().get(frappe.form_dict.get('tmp_id')+'_usr'),
-								'pwd': frappe.cache().get(frappe.form_dict.get('tmp_id')+'_pwd')
-							}
-				self.authenticate(user=tmp_info['usr'], pwd=tmp_info['pwd'])
-			except:
-				pass
-			self.post_login()
-		else:
-			self.authenticate()
-			if (self.user != 'Administrator') and (frappe.db.get_value('System Settings', 'System Settings', 'enable_two_factor_auth') == unicode(1)):
-				self.process_2fa()
-			else:
-				self.post_login(no_two_auth=True)
 
-	def post_login(self,no_two_auth=False):
+	def post_login(self,otp=None):
 		self.run_trigger('on_login')
 		self.validate_ip_address()
 		self.validate_hour()
-		if frappe.form_dict.get('otp') and not no_two_auth:
-			hotp_token = frappe.cache().get(frappe.form_dict.get('tmp_id') + '_token')
-			self.confirm_token(otp=frappe.form_dict.get('otp'), tmp_id=frappe.form_dict.get('tmp_id'), hotp_token=hotp_token)
-			self.make_session()
-			self.set_user_info()
-		else:
-			self.make_session()
-			self.set_user_info()
+		if not confirm_otp_token(self,otp):
+			return False
+		self.make_session()
+		self.set_user_info()
+		return True
+
 
 	def confirm_token(self, otp=None, tmp_id=None, hotp_token=False):
 		try:
