@@ -9,6 +9,13 @@ QUnit.test("Test Query Report", function(assert){
 		() => frappe.new_doc('ToDo'),
 		() => frappe.quick_entry.dialog.set_value('description', random),
 		() => frappe.quick_entry.insert(),
+		() => frappe.set_route('List/Module Def/List'),
+		() => {
+			return frappe.tests.make('Module Def', [
+				{module_name: 'Setup'},
+				{app_name: 'frappe'}
+			]);	
+		},
 		() => {
 			return frappe.tests.make('Report', [
 				{report_name: 'ToDo List Report'},
