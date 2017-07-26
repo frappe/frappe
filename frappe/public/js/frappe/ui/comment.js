@@ -54,14 +54,34 @@ frappe.ui.CommentArea = class CommentArea {
 			airMode: true,
 			hint: {
 				mentions: this.mentions,
-				match: /\B@(\w*)$/,
+				match: /\B([@:]\w*)/,
 				search: function (keyword, callback) {
-					callback($.grep(this.mentions, function (item) {
+					let items = [];
+					if (keyword.startsWith('@')) {
+						keyword = keyword.substr(1);
+						items = this.mentions;
+					} else if (keyword.startsWith(':')) {
+						items = frappe.ui.emoji_keywords
+							.filter(k => k.startsWith(keyword))
+							.slice(0, 7);
+					}
+					callback($.grep(items, function (item) {
 						return item.indexOf(keyword) == 0;
 					}));
 				},
+				template: function (item) {
+					if (item.startsWith(':')) {
+						return frappe.ui.get_emoji(item) + ' ' + item;
+					} else {
+						return item;
+					}
+				},
 				content: function (item) {
-					return '@' + item;
+					if(item.startsWith(':')) {
+						return frappe.ui.get_emoji(item);
+					} else {
+						return '@' + item;
+					}
 				}
 			},
 			callbacks: {
