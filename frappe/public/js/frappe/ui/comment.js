@@ -11,10 +11,11 @@
 
 frappe.ui.CommentArea = class CommentArea {
 
-	constructor({ parent = null, mentions = [], on_submit = null }) {
+	constructor({ parent = null, mentions = [], on_submit = null, no_wrapper = false }) {
 		this.parent = $(parent);
 		this.mentions = mentions;
 		this.on_submit = on_submit;
+		this.no_wrapper = no_wrapper;
 
 		this.make();
 	}
@@ -26,17 +27,25 @@ frappe.ui.CommentArea = class CommentArea {
 	}
 
 	setup_dom() {
+		const header = !this.no_wrapper ?
+			`<div class="comment-input-header">
+				<span class="small text-muted">${__("Add a comment")}</span>
+				<button class="btn btn-default btn-comment btn-xs pull-right">
+					${__("Comment")}
+				</button>
+			</div>` : '';
+
+		const footer = !this.no_wrapper ?
+			`<div class="text-muted small">
+				${__("Ctrl+Enter to add comment")}
+			</div>` : '';
+
 		this.wrapper = $(`
 			<div class="comment-input-wrapper">
-				<div class="comment-input-header">
-					<span class="small text-muted">${__("Add a comment")}</span>
-					<button class="btn btn-default btn-comment btn-xs pull-right">
-						${__("Comment")}
-					</button>
-				</div>
+				${ header }
 				<div class="comment-input-container">
 					<div class="form-control comment-input"></div>
-					<div class="text-muted small">${__("Ctrl+Enter to add comment")}</div>
+					${ footer }
 				</div>
 			</div>
 		`);
