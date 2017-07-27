@@ -236,7 +236,7 @@ def get_unsubscribe_message(unsubscribe_message, expose_recipients):
 	html = """<div style="margin: 15px auto; padding: 0px 7px; text-align: center; color: #8d99a6;">
 			<!--cc message-->
 			<p style="margin: 15px auto;">
-				<a href="<!--unsubscribe url-->" style="color: #8d99a6; text-decoration: underline;
+				<a href="<!--unsubscribe url-->" style="color: #8d99a6; text-decoration: underline;"
 					target="_blank">{unsubscribe_message}
 				</a>
 			</p>

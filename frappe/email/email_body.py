@@ -251,6 +251,16 @@ def get_formatted_html(subject, message, footer=None, print_html=None, email_acc
 	transformed_html = inline_style_in_html(sanitized_html)
 	return transformed_html
 
+@frappe.whitelist()
+def get_email_html(template, args, subject, header=None):
+	import json
+
+	args = json.loads(args)
+	if header and header.startswith('['):
+		header = json.loads(header)
+	email = frappe.utils.jinja.get_email_from_template(template, args)
+	return get_formatted_html(subject, email[0], header=header)
+
 def inline_style_in_html(html):
 	''' Convert email.css and html to inline-styled html
 	'''
@@ -334,8 +344,6 @@ def get_footer(email_account, footer=None):
 	if email_account and email_account.footer:
 		footer += '<div style="margin: 15px auto;">{0}</div>'.format(email_account.footer)
 
-	footer += "<!--unsubscribe link here-->"
-
 	company_address = frappe.db.get_default("email_footer_address")
 
 	if company_address:
@@ -346,6 +354,8 @@ def get_footer(email_account, footer=None):
 			footer += '<tr style="margin: 15px auto; text-align: center; color: #8d99a6"><td>{0}</td></tr>'\
 				.format(x)
 		footer += "</table>"
+
+	footer += "<!--unsubscribe link here-->"
 
 	if not cint(frappe.db.get_default("disable_standard_email_footer")):
 		for default_mail_footer in frappe.get_hooks("default_mail_footer"):
