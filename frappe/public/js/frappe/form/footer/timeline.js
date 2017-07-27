@@ -98,6 +98,8 @@ frappe.ui.form.Timeline = Class.extend({
 			mentions: this.get_usernames_for_mentions(),
 			no_wrapper: true
 		});
+
+		this.editing_area.destroy();
 	},
 
 	refresh: function(scroll_to_end) {
@@ -168,6 +170,7 @@ frappe.ui.form.Timeline = Class.extend({
 
 				if($timeline_item.hasClass('is-editing')) {
 					me.editing_area.submit();
+					me.$editing_area.detach();
 				} else {
 					var $edit_btn = $(this);
 					var content = $timeline_item.find('.timeline-item-content').html();
@@ -177,8 +180,11 @@ frappe.ui.form.Timeline = Class.extend({
 						.removeClass('octicon-pencil')
 						.addClass('octicon-check');
 
+					me.editing_area.setup_summernote();
 					me.editing_area.val(content);
 					me.editing_area.on_submit = (value) => {
+						me.editing_area.destroy();
+						value = value.trim();
 						// set content to new val so that on save and refresh the new content is shown
 						c.content = value;
 						frappe.timeline.update_communication(c);
@@ -292,11 +298,14 @@ frappe.ui.form.Timeline = Class.extend({
 			} else {
 				c.content_html = c.content;
 				c.content_html = frappe.utils.strip_whitespace(c.content_html);
-				c.content_html = c.content_html.replace(/&lt;/g,"<").replace(/&gt;/g,">")
+				c.content_html = c.content_html.replace(/&lt;/g,"<").replace(/&gt;/g,">");
 			}
 
 			// bold @mentions
-			if(c.comment_type==="Comment") {
+			if(c.comment_type==="Comment" &&
+				// avoid adding <b> tag a 2nd time
+				!c.content_html.match(/(^|\W)<b>(@\w+)<\/b>/)
+			) {
 				c.content_html = c.content_html.replace(/(^|\W)(@\w+)/g, "$1<b>$2</b>");
 			}
 

@@ -168,6 +168,10 @@ frappe.ui.CommentArea = class CommentArea {
 		this.note_editor.on('click', () => input.summernote('focus'));
 	}
 
+	destroy() {
+		this.input.summernote('destroy');
+	}
+
 	bind_events() {
 		this.button.on('click', this.submit.bind(this));
 	}
