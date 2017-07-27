@@ -858,24 +858,20 @@ def notify_admin_access_to_system_manager(login_manager=None):
 		and login_manager.user == "Administrator"
 		and frappe.local.conf.notify_admin_access_to_system_manager):
 
-		message = """<p>
-			{dear_system_manager} <br><br>
-			{access_message} <br><br>
-			{is_it_unauthorized}
-		</p>""".format(
-			dear_system_manager=_("Dear System Manager,"),
+		site = '<a href="{0}" target="_blank">{0}</a>'.format(frappe.local.request.host_url)
+		date_and_time = '<b>{0}</b>'.format(format_datetime(now_datetime(), format_string="medium"))
+		ip_address = frappe.local.request_ip
 
-			access_message=_("""Administrator accessed {0} on {1} via IP Address {2}.""").format(
-				"""<a href="{site}" target="_blank">{site}</a>""".format(site=frappe.local.request.host_url),
-				"""<b>{date_and_time}</b>""".format(date_and_time=format_datetime(now_datetime(), format_string="medium")),
-				frappe.local.request_ip
-			),
+		access_message = _('Administrator accessed {0} on {1} via IP Address {2}.').format(
+			site, date_and_time, ip_address)
 
-			is_it_unauthorized=_("If you think this is unauthorized, please change the Administrator password.")
+		frappe.sendmail(
+			recipients=get_system_managers(),
+			subject=_("Administrator Logged In"),
+			template="administrator_logged_in",
+			args={'access_message': access_message},
+			header=[subject, 'orange']
 		)
-
-		frappe.sendmail(recipients=get_system_managers(), subject=_("Administrator Logged In"),
-			message=message)
 
 def extract_mentions(txt):
 	"""Find all instances of @username in the string.

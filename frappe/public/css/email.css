@@ -121,6 +121,9 @@ hr {
 .text-small {
   font-size: 10px;
 }
+.text-bold {
+  font-weight: bold;
+}
 .indicator {
   width: 8px;
   height: 8px;
