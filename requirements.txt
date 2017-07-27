@@ -43,5 +43,6 @@ pypdf
 openpyxl
 pyotp
 pyqrcode
+pypng
 premailer
 

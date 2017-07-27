@@ -10,6 +10,7 @@ from frappe.utils.background_jobs import enqueue
 from pyqrcode import create as qrcreate
 from StringIO import StringIO
 from base64 import b64encode,b32encode
+from frappe.utils import get_url, get_datetime, time_diff_in_seconds
 
 
 class ExpiredLoginExpection(Exception):pass
@@ -114,7 +115,8 @@ def confirm_otp_token(login_manager,otp=None,tmp_id=None):
 	if totp.verify(otp):
 		# show qr code only once
 		if not frappe.db.get_default(login_manager.user + '_otplogin'):
-			frappe.db.set_default(login_manager.user + '_otplogin', 1)
+			# frappe.db.set_default(login_manager.user + '_otplogin', 1)
+			delete_qrimage(login_manager.user)
 		return True
 	else:
 		login_manager.fail('Incorrect Verification code', login_manager.user)
@@ -168,8 +170,8 @@ def process_2fa_for_email(user,token,otp_secret,otp_issuer,method='email'):
 	if method == 'otp_app' and not frappe.db.get_default(user + '_otplogin'):
 		totp_uri = pyotp.TOTP(otp_secret).provisioning_uri(user, issuer_name=otp_issuer)
 		message = '''<p>Please scan the barcode for One Time Password</p>
-				<img src="data:image/svg+xml;base64{}" 
-				style':'width:250px;height:250px;>'''.format(get_qr_svg_code(totp_uri))
+				<img src="{}" 
+				style':'width:150px;height:150px;>'''.format(qrcode_as_png(user,totp_uri))
 	if method == 'email' or message:
 		status = send_token_via_email(user,token,otp_secret,otp_issuer,message=message)
 	verification_obj = {'token_delivery': status,
@@ -227,10 +229,6 @@ def should_send_barcode_as_email():
 		return True
 	return False
 
-def send_barcode_as_email(user,svg_code):
-	pass
-
-
 
 def get_qr_svg_code(totp_uri):
 	'''Get SVG code to display Qrcode for OTP.'''
@@ -245,7 +243,56 @@ def get_qr_svg_code(totp_uri):
 		stream.close()
 	return svg
 
+def qrcode_as_png(user,totp_uri):
+	'''Save temporary Qrcode to server.'''
+	from frappe.utils.file_manager import save_file
+	folder = create_barcode_folder()
+	png_file_name = '{}.png'.format(frappe.generate_hash(length=20))
+	file_obj = save_file(png_file_name,png_file_name,'User',user,folder=folder)
+	frappe.db.commit()
+	file_url = get_url(file_obj.file_url)
+	file_path = os.path.join(frappe.get_site_path('public', 'files'),file_obj.file_name)
+	url = qrcreate(totp_uri)		
+	with open(file_path,'w') as png_file:
+		url.png(png_file,scale=8, module_color=[0, 0, 0, 180], background=[0xff, 0xff, 0xcc])
+	return file_url
 
+def create_barcode_folder():
+	'''Get Barcodes folder.'''
+	folder_name = 'Barcodes'
+	folder = frappe.db.exists('File',{'file_name':folder_name})
+	if folder:
+		return folder
+	folder = frappe.get_doc({
+			'doctype':'File',
+			'file_name':folder_name,
+			'is_folder':1,
+			'folder':'Home'
+		})
+	folder.insert(ignore_permissions=True)
+	return folder.name
 
+def delete_qrimage(user,check_expiry=False):
+	'''Delete Qrimage when user logs in.'''
+	user_barcodes = frappe.get_all('File',{'attached_to_doctype':'User',
+							'attached_to_name':user,'folder':'Home/Barcodes'})
+	for barcode in user_barcodes:
+		if check_expiry and not should_remove_barcode_image(barcode):continue
+		barcode = frappe.get_doc('File',barcode.name)
+		frappe.delete_doc('File',barcode.name,ignore_permissions=True)
 
+def delete_all_barcodes_for_users():
+	'''Task to delete all barcodes for user.'''
+	users = frappe.get_all('User',{'enabled':1})
+	for user in users:
+		delete_qrimage(user.name,check_expiry=True)
+
+def should_remove_barcode_image(barcode):
+	'''Check if it's time to delete barcode image from server. '''
+	if isinstance(barcode, basestring):
+		barcode = frappe.get_doc('File',barcode)
+	lifespan = frappe.db.get_value('System Settings', 'System Settings', 'lifespan_barcode_image')
+	if time_diff_in_seconds(get_datetime(),barcode.creation) > int(lifespan):
+		return True
+	return False
 

@@ -198,7 +198,7 @@ login.login_handlers = (function() {
 			}
 
 			//OTP verification
-			if(data.verification) {
+			if(data.verification && data.message != 'Logged In') {
 				login.set_indicator("{{ _("Success") }}", 'green');
 
 				document.cookie = "tmp_id="+data.tmp_id;
