@@ -330,10 +330,10 @@ class DocType(Document):
 
 	def make_controller_template(self):
 		"""Make boilerplate controller template."""
-		make_boilerplate("controller.py", self)
+		make_boilerplate("controller._py", self)
 
 		if not (self.istable or self.issingle):
-			make_boilerplate("test_controller.py", self.as_dict())
+			make_boilerplate("test_controller._py", self.as_dict())
 
 		if not self.istable:
 			make_boilerplate("controller.js", self.as_dict())

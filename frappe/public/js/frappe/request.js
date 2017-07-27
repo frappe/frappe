@@ -8,6 +8,8 @@ frappe.request.url = '/';
 frappe.request.ajax_count = 0;
 frappe.request.waiting_for_ajax = [];
 
+
+
 // generic server call (call page, object)
 frappe.call = function(opts) {
 	if(opts.quiet) {
@@ -177,10 +179,10 @@ frappe.request.call = function(opts) {
 					status_code_handler(data, xhr);
 				}
 			} catch(e) {
-				console.log("Unable to handle response");
-				console.trace(e);
+				console.log("Unable to handle success response"); // eslint-disable-line
+				console.trace(e); // eslint-disable-line
 			}
-			
+
 		})
 		.always(function(data, textStatus, xhr) {
 			try {
@@ -201,20 +203,23 @@ frappe.request.call = function(opts) {
 			}
 		})
 		.fail(function(xhr, textStatus) {
-			var status_code_handler = statusCode[xhr.statusCode().status];
-			if (status_code_handler) {
-				status_code_handler(xhr);
-			} else {
-				// if not handled by error handler!
-				opts.error_callback && opts.error_callback(xhr);
+			try {
+				var status_code_handler = statusCode[xhr.statusCode().status];
+				if (status_code_handler) {
+					status_code_handler(xhr);
+				} else {
+					// if not handled by error handler!
+					opts.error_callback && opts.error_callback(xhr);
+				}
+			} catch(e) {
+				console.log("Unable to handle failed response"); // eslint-disable-line
+				console.trace(e); // eslint-disable-line
 			}
 		});
 }
 
 // call execute serverside request
 frappe.request.prepare = function(opts) {
-	frappe.request.ajax_count++;
-	
 	$("body").attr("data-ajax-state", "triggered");
 
 	// btn indicator
@@ -253,7 +258,7 @@ frappe.request.cleanup = function(opts, r) {
 
 	// un-freeze page
 	if(opts.freeze) frappe.dom.unfreeze();
-	
+
 	if(r) {
 
 		// session expired? - Guest has no business here!
@@ -299,14 +304,6 @@ frappe.request.cleanup = function(opts, r) {
 	}
 
 	frappe.last_response = r;
-
-	frappe.request.ajax_count--;
-	if(!frappe.request.ajax_count) {
-		$.each(frappe.request.waiting_for_ajax || [], function(i, fn) {
-			fn();
-		});
-		frappe.request.waiting_for_ajax = [];
-	}
 }
 
 frappe.after_server_call = () => {
@@ -408,3 +405,17 @@ frappe.request.cleanup_request_opts = function(request_opts) {
 	}
 	return request_opts;
 };
+
+$(document).ajaxSend(function() {
+	frappe.request.ajax_count++;
+});
+
+$(document).ajaxComplete(function() {
+	frappe.request.ajax_count--;
+	if(!frappe.request.ajax_count) {
+		$.each(frappe.request.waiting_for_ajax || [], function(i, fn) {
+			fn();
+		});
+		frappe.request.waiting_for_ajax = [];
+	}
+});

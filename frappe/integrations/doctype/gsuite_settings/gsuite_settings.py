@@ -17,7 +17,7 @@ class GSuiteSettings(Document):
 
 	def get_access_token(self):
 		if not self.refresh_token:
-			raise UserError(_("Google GSuite is not configured."))
+			raise frappe.ValidationError(_("Google GSuite is not configured."))
 		data = {
 			'client_id': self.client_id,
 			'client_secret': self.get_password(fieldname='client_secret',raise_exception=False),

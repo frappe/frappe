@@ -137,11 +137,16 @@ frappe.msgprint = function(msg, title) {
 		data.message = '';
 	}
 
-	if(data.message.search(/<br>|<p>|<li>/)==-1)
+	if(data.message.search(/<br>|<p>|<li>/)==-1) {
 		msg = replace_newlines(data.message);
+	}
 
-
-	var msg_exists = msg_dialog.msg_area.html();
+	if(data.clear) {
+		msg_dialog.msg_area.empty();
+		var msg_exists = false;
+	} else {
+		var msg_exists = msg_dialog.msg_area.html();
+	}
 
 	if(data.title || !msg_exists) {
 		// set title only if it is explicitly given

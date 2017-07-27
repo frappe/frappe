@@ -85,6 +85,7 @@
 		"public/js/frappe/dom.js",
 		"public/js/frappe/ui/messages.js",
 		"public/js/frappe/ui/keyboard.js",
+		"public/js/frappe/ui/emoji.js",
 
 		"public/js/frappe/request.js",
 		"public/js/frappe/socketio_client.js",
@@ -132,6 +133,7 @@
 		"public/js/frappe/misc/help.js",
 		"public/js/frappe/misc/help_links.js",
 		"public/js/frappe/misc/address_and_contact.js",
+		"public/js/frappe/misc/preview_email.js",
 
 		"public/js/frappe/ui/upload.html",
 		"public/js/frappe/upload.js",
@@ -163,6 +165,7 @@
 
 		"public/js/frappe/ui/charts.js",
 		"public/js/frappe/ui/graph.js",
+		"public/js/frappe/ui/comment.js",
 		"public/js/frappe/misc/rating_icons.html",
 
 		"public/js/frappe/feedback.js"

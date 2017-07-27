@@ -142,10 +142,10 @@ frappe.ui.Graph = class Graph {
 	show_specific_values() {
 		this.specific_values.map(d => {
 			this.specific_y_lines.add(this.snap.g(
-				this.snap.line(0, 0, this.width - 50, 0).attr({
+				this.snap.line(0, 0, this.width - 70, 0).attr({
 					class: d.line_type === "dashed" ? "dashed": ""
 				}),
-				this.snap.text(this.width - 100, 0, d.name.toUpperCase()).attr({
+				this.snap.text(this.width - 95, 0, d.name.toUpperCase()).attr({
 					dy: ".32em",
 					class: "specific-value",
 				})

@@ -26,8 +26,15 @@
 	background-color: #7575ff;
 }
 
+.for-login {
+	display: none;
+}
 
-section {
+.for-forgot {
+	display: none;
+}
+
+.for-signup {
 	display: none;
 }
 

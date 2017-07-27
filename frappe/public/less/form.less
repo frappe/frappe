@@ -376,7 +376,8 @@ h6.uppercase, .h6.uppercase {
 		border-radius: 3px;
 		margin-left: -7px;
 		position: relative;
-
+		max-width: calc(~"100% - 50px");
+		padding-right: 0px;
 		// to display the triangle beside the box
 		overflow: visible;
 	}
@@ -387,12 +388,24 @@ h6.uppercase, .h6.uppercase {
 		width: 45px;
 	}
 
+	.action-btns {
+	    position: absolute;
+	    right: 0;
+	    padding: 5px 15px 2px 5px;
+	}
+
 	.comment-header {
 		background-color: @light-bg;
 		padding: 10px 15px 10px 13px;
 		margin: 0px;
 		color: @text-muted;
 		border-bottom: 1px solid @light-border-color;
+		&.links-active {
+			padding-right: 60px;
+		}
+		.commented-on-small {
+			display: none;
+		}
 
 		.octicon-heart {
 			color: @heart-color;
@@ -402,6 +415,7 @@ h6.uppercase, .h6.uppercase {
 
 	.reply {
 		padding: 15px;
+		overflow: auto;
 
 		& > div > p:first-child {
 			margin-top: 0px;
@@ -417,11 +431,15 @@ h6.uppercase, .h6.uppercase {
 	}
 
 	.close-btn-container {
-		padding: 4px 10px 2px 5px;
+		.close {
+			color: inherit;
+			opacity: 1;
+			padding: 0 0 0 10px;
+		}
 	}
 
 	.edit-btn-container {
-		padding: 4px 5px;
+		padding: 0;
 
 		.edit {
 			color: inherit;
@@ -648,6 +666,16 @@ h6.uppercase, .h6.uppercase {
 		padding: 0px;
 		margin: 0px;
 	}
+}
+
+.flex-justify-center {
+	display: flex;
+    justify-content: center;
+}
+
+.flex-justify-end {
+	display: flex;
+    justify-content: flex-end;
 }
 
 .hide-control {
