@@ -7,3 +7,4 @@ frappe/tests/ui/test_kanban/test_kanban_creation.js
 frappe/tests/ui/test_kanban/test_kanban_view.js
 frappe/tests/ui/test_kanban/test_kanban_filters.js
 frappe/tests/ui/test_kanban/test_kanban_column.js
+frappe/core/doctype/report/test_query_report.js
