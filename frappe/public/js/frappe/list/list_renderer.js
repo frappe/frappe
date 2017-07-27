@@ -271,6 +271,8 @@ frappe.views.ListRenderer = Class.extend({
 
 	setup_filterable: function () {
 		var me = this;
+
+		this.list_view.wrapper &&
 		this.list_view.wrapper.on('click', '.result-list .filterable', function (e) {
 			var filters = $(this).attr('data-filter').split('|');
 			var added = false;
@@ -294,7 +296,9 @@ frappe.views.ListRenderer = Class.extend({
 				me.list_view.refresh(true);
 			}
 		});
-		this.wrapper.on('click', '.list-item', function (e) {
+
+		this.list_view.wrapper &&
+		this.list_view.wrapper.on('click', '.list-item', function (e) {
 			// don't open in case of checkbox, like, filterable
 			if ($(e.target).hasClass('filterable')
 				|| $(e.target).hasClass('octicon-heart')
