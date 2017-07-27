@@ -115,7 +115,7 @@ def confirm_otp_token(login_manager,otp=None,tmp_id=None):
 	if totp.verify(otp):
 		# show qr code only once
 		if not frappe.db.get_default(login_manager.user + '_otplogin'):
-			# frappe.db.set_default(login_manager.user + '_otplogin', 1)
+			frappe.db.set_default(login_manager.user + '_otplogin', 1)
 			delete_qrimage(login_manager.user)
 		return True
 	else:
