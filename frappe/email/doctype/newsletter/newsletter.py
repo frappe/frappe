@@ -13,7 +13,6 @@ from frappe.utils.background_jobs import enqueue
 from frappe.utils.scheduler import log
 from frappe.email.queue import send
 from frappe.email.doctype.email_group.email_group import add_subscribers
-from frappe.utils.file_manager import get_file
 from frappe.utils import parse_addr
 
 
@@ -68,7 +67,7 @@ class Newsletter(Document):
 			files = frappe.get_all("File", fields = ["name"], filters = {"attached_to_doctype": "Newsletter",
 				"attached_to_name":self.name}, order_by="creation desc")
 
-			for file in files:
+			for a in files:
 				try:
 					# these attachments will be attached on-demand
 					# and won't be stored in the message
