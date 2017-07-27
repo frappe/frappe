@@ -398,6 +398,25 @@ def fmt_money(amount, precision=None, currency=None):
 
 	return amount
 
+def number_format_to_float(amount, precision=None):
+	'''
+		convert amount to decimal system from the number format
+	'''
+	number_format = frappe.get_system_settings("number_format") or "#,###.##"
+	decimal_seperator, comma_str, number_format_precision = get_number_format_info(number_format)
+
+	if precision is None:
+		precision = frappe.get_system_settings("float_precision") or number_format_precision
+
+	amount_list = cstr(amount).split(decimal_seperator)
+	int_part = amount_list[0]
+	dec_part = amount_list[1] if amount_list[1] else None
+	int_list = int_part.split(comma_str)
+	int_value = int_list[0] if len(int_list)==1 else "".join(int_list)
+	float_value = int_value if not dec_part else ".".join([int_value ,dec_part])
+
+	return flt(float_value, precision)
+
 number_format_info = {
 	"#,###.##": (".", ",", 2),
 	"#.###,##": (",", ".", 2),
