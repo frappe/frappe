@@ -405,7 +405,7 @@ frappe.views.ListRenderer = Class.extend({
 	},
 
 	get_indicator_html: function (doc) {
-		var indicator = frappe.get_indicator(doc, this.doctype);
+		var indicator = this.get_indicator_from_doc(doc);
 		if (indicator) {
 			return `<span class='indicator ${indicator[1]} filterable'
 				data-filter='${indicator[2]}'>
@@ -414,15 +414,17 @@ frappe.views.ListRenderer = Class.extend({
 		}
 		return '';
 	},
-
 	get_indicator_dot: function (doc) {
-		var indicator = frappe.get_indicator(doc, this.doctype);
+		var indicator = this.get_indicator_from_doc(doc);
 		if (!indicator) {
 			return '';
 		}
 		return `<span class='indicator ${indicator[1]}' title='${__(indicator[0])}'></span>`;
 	},
-
+	get_indicator_from_doc: function (doc) {
+		var workflow = frappe.workflow.workflows[this.doctype];
+		return frappe.get_indicator(doc, this.doctype, (workflow && workflow['override_status']) || true);
+	},
 	prepare_data: function (data) {
 		if (data.modified)
 			this.prepare_when(data, data.modified);
