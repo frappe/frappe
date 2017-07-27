@@ -474,13 +474,13 @@ def prepare_message(email, recipient, recipients_list):
 
 		message = message.replace("<!--recipient-->", recipient)
 
+	message = (message and message.encode('utf8')) or ''
 	if not email.attachments:
 		return message
 
 	# On-demand attachments
 	from email.parser import Parser
 
-	message = (message and message.encode('utf8')) or ''
 	msg_obj = Parser().parsestr(message)
 	attachments = json.loads(email.attachments)
 
