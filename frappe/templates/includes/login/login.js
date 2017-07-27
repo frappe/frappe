@@ -156,23 +156,7 @@ login.login_handlers = (function() {
 
 	var login_handlers = {
 		200: function(data) {
-			console.log(data);
-			if(data.verification) {
-				login.set_indicator("{{ _("Success") }}", 'green');
-
-				document.cookie = "tmp_id="+data.tmp_id;
-
-				if (data.verification.method == 'OTP App'){
-					continue_otp_app(data.verification.setup, data.verification.qrcode);
-				} else if (data.verification.method == 'SMS'){
-					continue_sms(data.verification.setup, data.verification.prompt);
-				} else if (data.verification.method == 'Email'){
-					continue_email(data.verification.setup, data.verification.prompt);
-				}
-
-				return false;
-
-			} else if(data.message == 'Logged In'){
+			if(data.message == 'Logged In'){
 				login.set_indicator("{{ _("Success") }}", 'green');
 				window.location.href = get_url_arg("redirect-to") || data.home_page;
 			} else if(data.message=="No App") {
@@ -211,6 +195,21 @@ login.login_handlers = (function() {
 					frappe.msgprint(data.message[1])
 				}
 				//login.set_indicator(__(data.message), 'green');
+			}
+
+			//OTP verification
+			if(data.verification) {
+				login.set_indicator("{{ _("Success") }}", 'green');
+
+				document.cookie = "tmp_id="+data.tmp_id;
+
+				if (data.verification.method == 'OTP App'){
+					continue_otp_app(data.verification.setup, data.verification.qrcode);
+				} else if (data.verification.method == 'SMS'){
+					continue_sms(data.verification.setup, data.verification.prompt);
+				} else if (data.verification.method == 'Email'){
+					continue_email(data.verification.setup, data.verification.prompt);
+				}
 			}
 		},
 		401: get_error_handler("{{ _("Invalid Login. Try again.") }}"),

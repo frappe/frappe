@@ -4,6 +4,7 @@
 from __future__ import unicode_literals
 
 import frappe
+from frappe import _
 import pyotp,base64,os
 from frappe.utils.background_jobs import enqueue
 from pyqrcode import create as qrcreate
@@ -11,20 +12,26 @@ from StringIO import StringIO
 from base64 import b64encode,b32encode
 
 
+class ExpiredLoginExpection(Exception):pass
 
-def validate_2fa_if_set(user):
-	'''Check for 2fa if set in settings.'''
+def should_run_2fa(user):
+	'''Check if 2fa should run.'''
 	site_otp_enabled = frappe.db.get_value('System Settings', 'System Settings', 'enable_two_factor_auth')
 	user_otp_enabled = two_factor_is_enabled_for_(user)
 	#Don't validate for Admin of if not enabled
 	if user =='Administrator' or not site_otp_enabled or not user_otp_enabled:
-		return (None,None,None)
-	otp = frappe.form_dict.get('otp')
-	if otp:
-		user = frappe.cache().get(frappe.form_dict.get('tmp_id')+'_usr')
-		pwd = frappe.cache().get(frappe.form_dict.get('tmp_id')+'_pwd')
-		return (user,pwd,otp)
-	authenticate_for_2factor(user)
+		return False
+	return True
+
+
+def get_cached_user_pass():
+	'''Get user and password if set.'''
+	user = pwd = None
+	tmp_id = frappe.form_dict.get('tmp_id')
+	if tmp_id:
+		user = frappe.cache().get(tmp_id+'_usr')
+		pwd = frappe.cache().get(tmp_id+'_pwd')
+	return (user,pwd)
 
 
 def authenticate_for_2factor(user):
@@ -81,24 +88,27 @@ def get_verification_method():
 
 
 
-def confirm_otp_token(login_manager, otp):
-	'''Confirm otp matches.'''	
+def confirm_otp_token(login_manager,otp=None,tmp_id=None):
+	'''Confirm otp matches.'''
+	if not otp:
+		otp = frappe.form_dict.get('otp')
 	if not otp:
 		if two_factor_is_enabled_for_(login_manager.user):
 			return False
 		return True
-	hotp_token = frappe.cache().get(frappe.form_dict.get('tmp_id') + '_token')
-	tmp_id = frappe.form_dict.get('tmp_id')
+	if not tmp_id:
+		tmp_id = frappe.form_dict.get('tmp_id')
+	hotp_token = frappe.cache().get(tmp_id + '_token')
 	otp_secret = frappe.cache().get(tmp_id + '_otp_secret')
 	if not otp_secret:
-		frappe.throw('Login session expired. Refresh page to try again')
+		raise ExpiredLoginExpection(_('Login session expired, refresh page to retry'))
 	hotp = pyotp.HOTP(otp_secret)
 	if hotp_token:		
 		if hotp.verify(otp, int(hotp_token)):
 			frappe.cache().delete(tmp_id + '_token')
-			return
+			return True
 		else:
-			login_manager.fail('Incorrect Verification code', login_manager.user)
+			login_manager.fail(_('Incorrect Verification code'), login_manager.user)
 
 	totp = pyotp.TOTP(otp_secret)
 	if totp.verify(otp):
@@ -107,7 +117,7 @@ def confirm_otp_token(login_manager, otp):
 			frappe.db.set_default(login_manager.user + '_otplogin', 1)
 		return True
 	else:
-		login_manager.fail('Incorrect Verification code', user)
+		login_manager.fail('Incorrect Verification code', login_manager.user)
 
 
 def get_verification_obj(user,token,otp_secret):
@@ -117,7 +127,10 @@ def get_verification_obj(user,token,otp_secret):
 	if verification_method == 'SMS':
 		verification_obj = process_2fa_for_sms(user,token,otp_secret)
 	elif verification_method == 'OTP App':
-		verification_obj = process_2fa_for_otp_app(user,otp_secret,otp_issuer)
+		if should_send_barcode_as_email():
+			verification_obj = process_2fa_for_email(user,token,otp_secret,otp_issuer,method='otp_app')
+		else:
+			verification_obj = process_2fa_for_otp_app(user,otp_secret,otp_issuer)
 	elif verification_method == 'Email':
 		process_2fa_for_email(user,token,otp_secret,otp_issuer)
 	return verification_obj
@@ -147,17 +160,26 @@ def process_2fa_for_otp_app(user,otp_secret,otp_issuer):
 						'setup': otp_setup_completed }
 	return verification_obj
 
-def process_2fa_for_email(user,token,otp_secret,otp_issuer):
+def process_2fa_for_email(user,token,otp_secret,otp_issuer,method='email'):
 	'''Process Email method for 2fa.'''
-	status = send_token_via_email(user,token,otp_secret,otp_issuer)
+	message = None
+	status = True
+	# TODO SVG don't display in email
+	if method == 'otp_app' and not frappe.db.get_default(user + '_otplogin'):
+		totp_uri = pyotp.TOTP(otp_secret).provisioning_uri(user, issuer_name=otp_issuer)
+		message = '''<p>Please scan the barcode for One Time Password</p>
+				<img src="data:image/svg+xml;base64{}" 
+				style':'width:250px;height:250px;>'''.format(get_qr_svg_code(totp_uri))
+	if method == 'email' or message:
+		status = send_token_via_email(user,token,otp_secret,otp_issuer,message=message)
 	verification_obj = {'token_delivery': status,
-							'prompt': status and 'Enter verification code sent to your registered email address',
+							'prompt': status and 'Verification code has been sent to your registered email address',
 							'method': 'Email'}
 	return verification_obj
 
 
 
-def send_token_via_sms(self, otpsecret, token=None, phone_no=None):
+def send_token_via_sms(otpsecret, token=None, phone_no=None):
 	'''Send token as sms to user.'''
 	otp_issuer = frappe.db.get_value('System Settings', 'System Settings', 'otp_issuer_name')
 	try:
@@ -183,29 +205,44 @@ def send_token_via_sms(self, otpsecret, token=None, phone_no=None):
 	enqueue(method=send_request, queue='short', timeout=300, event=None, async=True, job_name=None, now=False, **sms_args)
 	return True
 
-def send_token_via_email(user, token, otp_secret, otp_issuer):
+def send_token_via_email(user, token, otp_secret, otp_issuer,message=None):
 	'''Send token to user as email.'''
 	user_email = frappe.db.get_value('User', user, 'email')
 	if not user_email:
 		return False
 	hotp = pyotp.HOTP(otp_secret)
+	if not message:
+		message = '<p>Your verification code is {}.</p>'.format(hotp.at(int(token)))
 	email_args = {
 			'recipients':user_email, 'sender':None, 'subject':'Verification Code from {}'.format(otp_issuer or "Frappe Framework"),
-			'message':'<p>Your verification code is {}.</p>'.format(hotp.at(int(token))),
+			'message':message,
 			'delayed':False, 'retry':3 }
 
 	enqueue(method=frappe.sendmail, queue='short', timeout=300, event=None, async=True, job_name=None, now=False, **email_args)
 	return True
+
+def should_send_barcode_as_email():
+	settings = frappe.get_doc('System Settings', 'System Settings')
+	if settings.two_factor_method and settings.send_barcode_as_email:
+		return True
+	return False
+
+def send_barcode_as_email(user,svg_code):
+	pass
 
 
 
 def get_qr_svg_code(totp_uri):
 	'''Get SVG code to display Qrcode for OTP.'''
 	url = qrcreate(totp_uri)
+	svg = ''
 	stream = StringIO()
-	url.svg(stream, scale=3)
-	svg = stream.getvalue().replace('\n','')
-	svg = b64encode(bytes(svg))
+	try:
+		url.svg(stream, scale=3)
+		svg = stream.getvalue().replace('\n','')
+		svg = b64encode(bytes(svg))
+	finally:
+		stream.close()
 	return svg
 
 

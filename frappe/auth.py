@@ -17,7 +17,8 @@ from frappe.translate import get_lang_code
 from frappe.utils.password import check_password
 from frappe.core.doctype.authentication_log.authentication_log import add_authentication_log
 from frappe.utils.background_jobs import enqueue
-from twofactor import validate_2fa_if_set, confirm_otp_token
+from twofactor import should_run_2fa, authenticate_for_2factor, \
+						confirm_otp_token,get_cached_user_pass
 
 
 from urllib import quote
@@ -67,6 +68,7 @@ class HTTPRequest:
 
 	def validate_csrf_token(self):
 		if frappe.local.request and frappe.local.request.method=="POST":
+			if not frappe.local.session:return
 			if not frappe.local.session.data.csrf_token \
 				or frappe.local.session.data.device=="mobile" \
 				or frappe.conf.get('ignore_csrf', None):
@@ -103,7 +105,7 @@ class LoginManager:
 		self.user_type = None
 
 		if frappe.local.form_dict.get('cmd')=='login' or frappe.local.request.path=="/api/method/login":
-			if not self.login():return
+			if self.login()==False:return
 			self.resume = False
 
 			# run login triggers
@@ -118,129 +120,26 @@ class LoginManager:
 				self.make_session()
 				self.set_user_info()
 
-	def two_factor_auth_user(self):
-		''' Check if user has 2fa role and set otpsecret and verification method'''
-		two_factor_user_role = 0
-		user_obj = frappe.get_doc('User', self.user)
-		if user_obj.roles:
-			query = """select name from `tabRole` where two_factor_auth=1
-											and name in ("All",{0}) limit 1""".format(', '.join('\"{}\"'.format(i.role) for \
-												i in user_obj.roles))
-			two_factor_user_role = len(frappe.db.sql(query))
-
-		self.otp_secret = frappe.db.get_default(self.user + '_otpsecret')
-		if not self.otp_secret:
-			self.otp_secret = base64.b32encode(os.urandom(10)).decode('utf-8')
-			frappe.db.set_default(self.user + '_otpsecret', self.otp_secret)
-			frappe.db.commit()
-
-		self.verification_method = frappe.db.get_value('System Settings', None, 'two_factor_method')
-
-		return bool(two_factor_user_role)
-
-	def get_verification_obj(self):
-		otp_issuer = frappe.db.get_value('System Settings', 'System Settings', 'otp_issuer_name')
-		if self.verification_method == 'SMS':
-			user_phone = frappe.db.get_value('User', self.user, ['phone','mobile_no'], as_dict=1)
-			usr_phone = user_phone.mobile_no or user_phone.phone
-			status = self.send_token_via_sms(token=self.token, phone_no=usr_phone, otpsecret=self.otp_secret)
-			verification_obj = {'token_delivery': status,
-								'prompt': status and 'Enter verification code sent to {}'.format(usr_phone[:4] + '******' + usr_phone[-3:]),
-								'method': 'SMS'}
-		elif self.verification_method == 'OTP App':
-			totp_uri = pyotp.TOTP(self.otp_secret).provisioning_uri(self.user, issuer_name=otp_issuer)
-
-			if frappe.db.get_default(self.user + '_otplogin'):
-				otp_setup_completed = True
-			else:
-				otp_setup_completed = False
-
-			verification_obj = {'totp_uri': totp_uri,
-								'method': 'OTP App',
-								'qrcode': get_qr_svg_code(totp_uri),
-								'setup': otp_setup_completed }
-		elif self.verification_method == 'Email':
-			status = self.send_token_via_email(token=self.token, otpsecret=self.otp_secret)
-			verification_obj = {'token_delivery': status,
-								'prompt': status and 'Enter verification code sent to your registered email address',
-								'method': 'Email'}
-		return verification_obj
-
-	def process_2fa(self):
-		if self.two_factor_auth_user():
-			self.token = int(pyotp.TOTP(self.otp_secret).now())
-			verification_obj = self.get_verification_obj()
-
-			tmp_id = frappe.generate_hash(length=8)
-			usr = frappe.form_dict.get('usr')
-			pwd = frappe.form_dict.get('pwd')
-
-			# set increased expiry time for SMS and Email
-			if self.verification_method in ['SMS', 'Email']:
-				expiry_time = 300
-				frappe.cache().set(tmp_id + '_token', self.token)
-				frappe.cache().expire(tmp_id + '_token', expiry_time)
-			else:
-				expiry_time = 180
-
-			frappe.cache().set(tmp_id + '_usr', usr)
-			frappe.cache().set(tmp_id + '_pwd', pwd)
-			frappe.cache().set(tmp_id + '_otp_secret', self.otp_secret)
-			frappe.cache().set(tmp_id + '_user', self.user)
-
-			for field in [tmp_id + nm for nm in ['_usr', '_pwd', '_otp_secret', '_user']]:
-				frappe.cache().expire(field, expiry_time)
-
-			frappe.local.response['verification'] = verification_obj
-			frappe.local.response['tmp_id'] = tmp_id
-
-			# raise frappe.RequestToken
-		else:
-			self.post_login(no_two_auth=True)
 
 	def login(self):
 		# clear cache
 		frappe.clear_cache(user = frappe.form_dict.get('usr'))
-		self.authenticate()
-		otp  = validate_2fa_if_set(self.user)
-		return self.post_login()
+		user,pwd = get_cached_user_pass()
+		self.authenticate(user=user,pwd=pwd)
+		if should_run_2fa(self.user):
+			authenticate_for_2factor(self.user)
+			if not confirm_otp_token(self):
+				return False
+		self.post_login()
 
 
-	def post_login(self,otp=None):
+
+	def post_login(self):
 		self.run_trigger('on_login')
 		self.validate_ip_address()
 		self.validate_hour()
-		if not confirm_otp_token(self,otp):
-			return False
 		self.make_session()
 		self.set_user_info()
-		return True
-
-
-	def confirm_token(self, otp=None, tmp_id=None, hotp_token=False):
-		try:
-			otp_secret = frappe.cache().get(tmp_id + '_otp_secret')
-			if not otp_secret:
-				frappe.throw('Login session expired. Refresh page to try again')
-		except AttributeError:
-			return False
-
-		if hotp_token:
-			u_hotp = pyotp.HOTP(otp_secret)
-			if u_hotp.verify(otp, int(hotp_token)):
-				frappe.cache().delete(tmp_id + '_token')
-				return True
-			else:
-				self.fail('Incorrect Verification code', self.user)
-
-		totp = pyotp.TOTP(otp_secret)
-		if totp.verify(otp):
-			# show qr code only once
-			if not frappe.db.get_default(self.user + '_otplogin'):
-				frappe.db.set_default(self.user + '_otplogin', 1)
-			return True
-		else:
-			self.fail('Incorrect Verification code', self.user)
 
 	def set_user_info(self, resume=False):
 		# set sid again
@@ -384,45 +283,6 @@ class LoginManager:
 	def clear_cookies(self):
 		clear_cookies()
 
-	def send_token_via_sms(self, otpsecret, token=None, phone_no=None):
-		otp_issuer = frappe.db.get_value('System Settings', 'System Settings', 'otp_issuer_name')
-		try:
-			from frappe.core.doctype.sms_settings.sms_settings import send_request
-		except:
-			return False
-
-		if not phone_no:
-			return False
-
-		ss = frappe.get_doc('SMS Settings', 'SMS Settings')
-		if not ss.sms_gateway_url:
-			return False
-			
-		hotp = pyotp.HOTP(otpsecret)
-		args = {ss.message_parameter: 'Your verification code is {}'.format(hotp.at(int(token))), ss.sms_sender_name: otp_issuer}
-		for d in ss.get("parameters"):
-			args[d.parameter] = d.value
-
-		args[ss.receiver_parameter] = phone_no
-
-		sms_args = {'gateway_url':ss.sms_gateway_url,'params':args}
-		enqueue(method=send_request, queue='short', timeout=300, event=None, async=True, job_name=None, now=False, **sms_args)
-		return True
-
-	def send_token_via_email(self, token, otpsecret):
-		otp_issuer = frappe.db.get_value('System Settings', 'System Settings', 'otp_issuer_name')
-		user_email = frappe.db.get_value('User', self.user, 'email')
-		if not user_email:
-			return False
-		hotp = pyotp.HOTP(otpsecret)
-		email_args = {
-				'recipients':user_email, 'sender':None, 'subject':'Verification Code from {}'.format(otp_issuer or "Frappe Framework"),
-				'message':'<p>Your verification code is {}.</p>'.format(hotp.at(int(token))),
-				'delayed':False, 'retry':3 }
-
-		enqueue(method=frappe.sendmail, queue='short', timeout=300, event=None, async=True, job_name=None, now=False, **email_args)
-		return True
-
 class CookieManager:
 	def __init__(self):
 		self.cookies = {}
@@ -474,15 +334,3 @@ def get_website_user_home_page(user):
 		return '/' + home_page.strip('/')
 	else:
 		return '/me'
-
-def get_qr_svg_code(totp_uri):
-	'''Get SVG code to display Qrcode for OTP.'''
-	from pyqrcode import create as qrcreate
-	from StringIO import StringIO
-	from base64 import b64encode
-	url = qrcreate(totp_uri)
-	stream = StringIO()
-	url.svg(stream, scale=3)
-	svg = stream.getvalue().replace('\n','')
-	svg = b64encode(bytes(svg))
-	return svg
