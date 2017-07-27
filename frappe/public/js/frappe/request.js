@@ -406,7 +406,7 @@ frappe.request.cleanup_request_opts = function(request_opts) {
 	return request_opts;
 };
 
-$(document).ajaxStart(function() {
+$(document).ajaxSend(function() {
 	frappe.request.ajax_count++;
 });
 
