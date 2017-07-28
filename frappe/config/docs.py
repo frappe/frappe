@@ -4,8 +4,8 @@ from __future__ import unicode_literals
 
 source_link = "https://github.com/frappe/frappe"
 docs_base_url = "/docs"
-headline = "Superhero Web Framework"
-sub_heading = "Build extensions to ERPNext or make your own app"
+headline = "Frappé Framework"
+sub_heading = "Tutorials, API documentation and Model Reference"
 hide_install = True
 long_description = """Frappe is a full stack web application framework written in Python,
 Javascript, HTML/CSS with MySQL as the backend. It was built for ERPNext

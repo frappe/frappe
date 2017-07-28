@@ -195,6 +195,10 @@ def get_page_info(path, app, start, basepath=None, app_path=None, fname=None):
 	if os.path.basename(page_info.route) in ('index.html', 'index.md'):
 		page_info.route = os.path.dirname(page_info.route)
 
+	# remove the extension
+	if page_info.route.endswith('.md') or page_info.route.endswith('.html'):
+		page_info.route = page_info.route.rsplit('.', 1)[0]
+
 	page_info.name = page_info.page_name = page_info.route
 	# controller
 	page_info.controller_path = os.path.join(basepath, page_name.replace("-", "_") + ".py")

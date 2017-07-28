@@ -9,13 +9,11 @@
 <h1>{{ app.headline }}</h1>
 {% endif %}
 {% if app.sub_heading %}
-<h2>{{ app.sub_heading }}</h2>
+<h3 style='margin-top: 10px; margin-bottom: 30px;'>{{ app.sub_heading }}</h3>
 {% endif %}
 
 {% if app.long_description %}
-<section>
 {{ app.long_description|markdown }}
-</section>
 {% endif %}
 
 <!-- autodoc -->

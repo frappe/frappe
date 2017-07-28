@@ -621,7 +621,6 @@ fieldset {
   font-weight: 500 !important;
 }
 .web-sidebar .sidebar-items {
-  margin-top: -10px;
   margin-bottom: 30px;
 }
 .web-sidebar .sidebar-items .title {
@@ -793,7 +792,7 @@ a.active {
 }
 .sidebar-block,
 .page-content {
-  padding-top: 50px;
+  padding-top: 30px;
   padding-bottom: 50px;
 }
 .your-account-info {
