@@ -15,7 +15,10 @@ import os
 import shutil
 import requests
 import requests.exceptions
-import StringIO
+try:
+	from StringIO import StringIO
+except ImportError:
+	from io import StringIO
 import mimetypes, imghdr
 
 from frappe.utils.file_manager import delete_file_data_content, get_content_hash, get_random_filename
@@ -372,7 +375,7 @@ def get_web_image(file_url):
 			frappe.msgprint(_("Unable to read file format for {0}").format(file_url))
 		raise
 
-	image = Image.open(StringIO.StringIO(r.content))
+	image = Image.open(StringIO(r.content))
 
 	try:
 		filename, extn = file_url.rsplit("/", 1)[1].rsplit(".", 1)

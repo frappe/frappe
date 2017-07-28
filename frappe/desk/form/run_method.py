@@ -53,7 +53,11 @@ def make_csv_output(res, dt):
 	"""send method response as downloadable CSV file"""
 	import frappe
 
-	from cStringIO import StringIO
+	try:
+		from cStringIO import StringIO
+	except ImportError:
+		from io import StringIO
+
 	import csv
 
 	f = StringIO()

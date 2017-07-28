@@ -10,7 +10,11 @@ import importlib
 from frappe.modules import load_doctype_module, get_module_name
 from frappe.utils import cstr
 import frappe.utils.scheduler
-import cProfile, StringIO, pstats
+import cProfile, pstats
+try:
+	from StringIO import StringIO
+except ImportError:
+	from io import StringIO
 
 
 unittest_runner = unittest.TextTestRunner
@@ -110,7 +114,7 @@ def run_all_tests(app=None, verbose=False, profile=False, ui_tests=False):
 
 	if profile:
 		pr.disable()
-		s = StringIO.StringIO()
+		s = StringIO()
 		ps = pstats.Stats(pr, stream=s).sort_stats('cumulative')
 		ps.print_stats()
 		print(s.getvalue())
@@ -167,7 +171,7 @@ def _run_unittest(module, verbose=False, tests=(), profile=False):
 
 	if profile:
 		pr.disable()
-		s = StringIO.StringIO()
+		s = StringIO()
 		ps = pstats.Stats(pr, stream=s).sort_stats('cumulative')
 		ps.print_stats()
 		print(s.getvalue())

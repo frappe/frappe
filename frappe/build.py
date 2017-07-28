@@ -121,7 +121,11 @@ def get_build_maps():
 timestamps = {}
 
 def pack(target, sources, no_compress, verbose):
-	from cStringIO import StringIO
+	try:
+		from cStringIO import StringIO
+	except ImportError:
+		from io import StringIO
+
 
 	outtype, outtxt = target.split(".")[-1], ''
 	jsm = JavascriptMinify()
