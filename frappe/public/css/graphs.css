@@ -1,79 +1,79 @@
 /* graphs */
-.graph-container .focus-margin {
+.graph-container .graph-focus-margin {
   margin: 0px 5%;
 }
-.graph-container .graphics {
+.graph-container .graph-graphics {
   margin-top: 10px;
   padding: 10px 0px;
   position: relative;
 }
-.graph-container .stats-group {
+.graph-container .graph-stats-group {
   display: flex;
   justify-content: space-around;
   flex: 1;
 }
-.graph-container .stats-container {
+.graph-container .graph-stats-container {
   display: flex;
   justify-content: space-around;
   padding-top: 10px;
 }
-.graph-container .stats-container .stats {
+.graph-container .graph-stats-container .stats {
   padding-bottom: 15px;
 }
-.graph-container .stats-container .stats-title {
+.graph-container .graph-stats-container .stats-title {
   color: #8D99A6;
 }
-.graph-container .stats-container .stats-value {
+.graph-container .graph-stats-container .stats-value {
   font-size: 20px;
   font-weight: 300;
 }
-.graph-container .stats-container .stats-description {
+.graph-container .graph-stats-container .stats-description {
   font-size: 12px;
   color: #8D99A6;
 }
-.graph-container .stats-container .graph-data .stats-value {
+.graph-container .graph-stats-container .graph-data .stats-value {
   color: #98d85b;
 }
-.bar-graph .axis,
-.line-graph .axis {
+.graph-container .bar-graph .axis,
+.graph-container .line-graph .axis {
   font-size: 10px;
   fill: #6a737d;
 }
-.bar-graph .axis line,
-.line-graph .axis line {
+.graph-container .bar-graph .axis line,
+.graph-container .line-graph .axis line {
   stroke: rgba(27, 31, 35, 0.1);
 }
-.percentage-graph {
-  margin-top: 30px;
+.graph-container .percentage-graph {
+  margin-top: 35px;
 }
-.percentage-graph .progress {
+.graph-container .percentage-graph .progress {
   margin-bottom: 0px;
 }
-.data-points circle {
+.graph-container .graph-data-points circle {
   stroke: #fff;
   stroke-width: 2;
 }
-.data-points path {
+.graph-container .graph-data-points path {
   fill: none;
   stroke-opacity: 1;
   stroke-width: 2px;
 }
-line.dashed {
+.graph-container line.graph-dashed {
   stroke-dasharray: 5,3;
 }
-.tick.x-axis-label {
+.graph-container .tick.x-axis-label {
   display: block;
 }
-.tick .specific-value {
+.graph-container .tick .specific-value {
   text-anchor: start;
 }
-.tick .y-value-text {
+.graph-container .tick .y-value-text {
   text-anchor: end;
 }
-.tick .x-value-text {
+.graph-container .tick .x-value-text {
   text-anchor: middle;
 }
-.svg-tip {
+.graph-container .graph-svg-tip {
   position: absolute;
   z-index: 99999;
   padding: 10px;
@@ -83,12 +83,12 @@ line.dashed {
   background: rgba(0, 0, 0, 0.8);
   border-radius: 3px;
 }
-.svg-tip.comparison {
+.graph-container .graph-svg-tip.comparison {
   padding: 0;
   text-align: left;
   pointer-events: none;
 }
-.svg-tip.comparison .title {
+.graph-container .graph-svg-tip.comparison .title {
   display: block;
   padding: 10px;
   margin: 0;
@@ -96,28 +96,28 @@ line.dashed {
   line-height: 1;
   pointer-events: none;
 }
-.svg-tip.comparison ul {
+.graph-container .graph-svg-tip.comparison ul {
   margin: 0;
   white-space: nowrap;
   list-style: none;
 }
-.svg-tip.comparison li {
+.graph-container .graph-svg-tip.comparison li {
   display: inline-block;
   padding: 5px 10px;
 }
-.svg-tip ul,
-.svg-tip ol {
+.graph-container .graph-svg-tip ul,
+.graph-container .graph-svg-tip ol {
   padding-left: 0;
   display: flex;
 }
-.svg-tip ul.data-point-list li {
+.graph-container .graph-svg-tip ul.data-point-list li {
   min-width: 90px;
   flex: 1;
 }
-.svg-tip strong {
+.graph-container .graph-svg-tip strong {
   color: #dfe2e5;
 }
-.svg-tip::after {
+.graph-container .graph-svg-tip::after {
   position: absolute;
   bottom: -10px;
   left: 50%;
@@ -128,147 +128,147 @@ line.dashed {
   border: 5px solid transparent;
   border-top-color: rgba(0, 0, 0, 0.8);
 }
-.stroke.grey {
+.graph-container .stroke.grey {
   stroke: #F0F4F7;
 }
-.stroke.blue {
+.graph-container .stroke.blue {
   stroke: #5e64ff;
 }
-.stroke.red {
+.graph-container .stroke.red {
   stroke: #ff5858;
 }
-.stroke.light-green {
+.graph-container .stroke.light-green {
   stroke: #98d85b;
 }
-.stroke.green {
+.graph-container .stroke.green {
   stroke: #28a745;
 }
-.stroke.orange {
+.graph-container .stroke.orange {
   stroke: #ffa00a;
 }
-.stroke.purple {
+.graph-container .stroke.purple {
   stroke: #743ee2;
 }
-.stroke.darkgrey {
+.graph-container .stroke.darkgrey {
   stroke: #b8c2cc;
 }
-.stroke.black {
+.graph-container .stroke.black {
   stroke: #36414C;
 }
-.stroke.yellow {
+.graph-container .stroke.yellow {
   stroke: #FEEF72;
 }
-.stroke.light-blue {
+.graph-container .stroke.light-blue {
   stroke: #7CD6FD;
 }
-.stroke.lightblue {
+.graph-container .stroke.lightblue {
   stroke: #7CD6FD;
 }
-.fill.grey {
+.graph-container .fill.grey {
   fill: #F0F4F7;
 }
-.fill.blue {
+.graph-container .fill.blue {
   fill: #5e64ff;
 }
-.fill.red {
+.graph-container .fill.red {
   fill: #ff5858;
 }
-.fill.light-green {
+.graph-container .fill.light-green {
   fill: #98d85b;
 }
-.fill.green {
+.graph-container .fill.green {
   fill: #28a745;
 }
-.fill.orange {
+.graph-container .fill.orange {
   fill: #ffa00a;
 }
-.fill.purple {
+.graph-container .fill.purple {
   fill: #743ee2;
 }
-.fill.darkgrey {
+.graph-container .fill.darkgrey {
   fill: #b8c2cc;
 }
-.fill.black {
+.graph-container .fill.black {
   fill: #36414C;
 }
-.fill.yellow {
+.graph-container .fill.yellow {
   fill: #FEEF72;
 }
-.fill.light-blue {
+.graph-container .fill.light-blue {
   fill: #7CD6FD;
 }
-.fill.lightblue {
+.graph-container .fill.lightblue {
   fill: #7CD6FD;
 }
-.background.grey {
+.graph-container .background.grey {
   background: #F0F4F7;
 }
-.background.blue {
+.graph-container .background.blue {
   background: #5e64ff;
 }
-.background.red {
+.graph-container .background.red {
   background: #ff5858;
 }
-.background.light-green {
+.graph-container .background.light-green {
   background: #98d85b;
 }
-.background.green {
+.graph-container .background.green {
   background: #28a745;
 }
-.background.orange {
+.graph-container .background.orange {
   background: #ffa00a;
 }
-.background.purple {
+.graph-container .background.purple {
   background: #743ee2;
 }
-.background.darkgrey {
+.graph-container .background.darkgrey {
   background: #b8c2cc;
 }
-.background.black {
+.graph-container .background.black {
   background: #36414C;
 }
-.background.yellow {
+.graph-container .background.yellow {
   background: #FEEF72;
 }
-.background.light-blue {
+.graph-container .background.light-blue {
   background: #7CD6FD;
 }
-.background.lightblue {
+.graph-container .background.lightblue {
   background: #7CD6FD;
 }
-.border-top.grey {
+.graph-container .border-top.grey {
   border-top: 3px solid #F0F4F7;
 }
-.border-top.blue {
+.graph-container .border-top.blue {
   border-top: 3px solid #5e64ff;
 }
-.border-top.red {
+.graph-container .border-top.red {
   border-top: 3px solid #ff5858;
 }
-.border-top.light-green {
+.graph-container .border-top.light-green {
   border-top: 3px solid #98d85b;
 }
-.border-top.green {
+.graph-container .border-top.green {
   border-top: 3px solid #28a745;
 }
-.border-top.orange {
+.graph-container .border-top.orange {
   border-top: 3px solid #ffa00a;
 }
-.border-top.purple {
+.graph-container .border-top.purple {
   border-top: 3px solid #743ee2;
 }
-.border-top.darkgrey {
+.graph-container .border-top.darkgrey {
   border-top: 3px solid #b8c2cc;
 }
-.border-top.black {
+.graph-container .border-top.black {
   border-top: 3px solid #36414C;
 }
-.border-top.yellow {
+.graph-container .border-top.yellow {
   border-top: 3px solid #FEEF72;
 }
-.border-top.light-blue {
+.graph-container .border-top.light-blue {
   border-top: 3px solid #7CD6FD;
 }
-.border-top.lightblue {
+.graph-container .border-top.lightblue {
   border-top: 3px solid #7CD6FD;
 }

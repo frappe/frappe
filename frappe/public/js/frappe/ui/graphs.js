@@ -63,6 +63,8 @@ frappe.ui.Graph = class Graph {
 
 		this.$graph = null;
 
+		// Validate all arguments
+
 		frappe.require("assets/frappe/js/lib/snap.svg-min.js", this.setup.bind(this));
 	}
 
@@ -108,12 +110,12 @@ frappe.ui.Graph = class Graph {
 			.addClass('graph-container')
 			.append($(`<h6 class="title" style="margin-top: 15px;">${this.title}</h6>`))
 			.append($(`<h6 class="sub-title uppercase">${this.subtitle}</h6>`))
-			.append($(`<div class="graphics"></div>`))
-			.append($(`<div class="stats-container"></div>`))
+			.append($(`<div class="graph-graphics"></div>`))
+			.append($(`<div class="graph-stats-container"></div>`))
 			.appendTo(this.parent);
 
-		this.$graphics = this.container.find('.graphics');
-		this.$stats_container = this.container.find('.stats-container');
+		this.$graphics = this.container.find('.graph-graphics');
+		this.$stats_container = this.container.find('.graph-stats-container');
 
 		this.$graph = $('<div>')
 			.addClass(this.mode + '-graph')
@@ -171,7 +173,7 @@ frappe.ui.Graph = class Graph {
 	setup_components() {
 		this.y_axis_group = this.snap.g().attr({ class: "y axis" });
 		this.x_axis_group = this.snap.g().attr({ class: "x axis" });
-		this.data_units = this.snap.g().attr({ class: "data-points" });
+		this.data_units = this.snap.g().attr({ class: "graph-data-points" });
 		this.specific_y_lines = this.snap.g().attr({ class: "specific axis" });
 	}
 
@@ -270,7 +272,7 @@ frappe.ui.Graph = class Graph {
 	make_path() { }
 
 	make_tooltip() {
-		this.tip = $(`<div class="svg-tip comparison">
+		this.tip = $(`<div class="graph-svg-tip comparison">
 			<span class="title"></span>
 			<ul class="data-point-list">
 			</ul>
@@ -320,7 +322,8 @@ frappe.ui.Graph = class Graph {
 	}
 
 	fill_tooltip(i) {
-		this.tip_title.html(this.x.formatted.length>0 ? this.x.formatted[i] : this.x.values[i]);
+		this.tip_title.html(this.x.formatted && this.x.formatted.length>0
+			? this.x.formatted[i] : this.x.values[i]);
 		this.tip_data_point_list.empty();
 		this.y.map(y_set => {
 			let $li = $(`<li>
@@ -337,7 +340,7 @@ frappe.ui.Graph = class Graph {
 		this.specific_values.map(d => {
 			this.specific_y_lines.add(this.snap.g(
 				this.snap.line(0, 0, this.width, 0).attr({
-					class: d.line_type === "dashed" ? "dashed": ""
+					class: d.line_type === "dashed" ? "graph-dashed": ""
 				}),
 				this.snap.text(this.width + 5, 0, d.name.toUpperCase()).attr({
 					dy: ".32em",
@@ -509,8 +512,8 @@ frappe.ui.PercentageGraph = class PercentageGraph extends frappe.ui.Graph {
 	}
 
 	make_graph_area() {
-		this.$graphics.addClass('focus-margin');
-		this.$stats_container.addClass('focus-margin').attr({
+		this.$graphics.addClass('graph-focus-margin');
+		this.$stats_container.addClass('graph-focus-margin').attr({
 			style: `padding-top: 0px; margin-bottom: 30px;`
 		});
 		this.$div = $(`<div class="div" width="${this.base_width}"
