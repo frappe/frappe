@@ -246,9 +246,9 @@ def get_unsubscribe_message(unsubscribe_message, expose_recipients):
 
 	html = """<div class="email-unsubscribe">
 			<!--cc message-->
-			<p>
+			<div>
 				{unsubscribe_message}
-			</p>
+			</div>
 		</div>""".format(unsubscribe_message=unsubscribe_message)
 
 	if expose_recipients == "footer":

@@ -51,6 +51,9 @@ hr {
 .email-footer-container {
   margin-top: 10px;
 }
+.email-footer-container > div:not(:last-child) {
+  margin-bottom: 5px;
+}
 .email-unsubscribe a {
   color: #8D99A6;
   text-decoration: underline;
