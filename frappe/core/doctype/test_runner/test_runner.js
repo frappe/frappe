@@ -11,7 +11,8 @@ frappe.ui.form.on('Test Runner', {
 
 				// all tests
 				frappe.call({
-					method: 'frappe.core.doctype.test_runner.test_runner.get_test_js'
+					method: 'frappe.core.doctype.test_runner.test_runner.get_test_js',
+					args: { test_path: frm.doc.module_path }
 				}).always((data) => {
 					$("<div id='qunit'></div>").appendTo(wrapper.empty());
 					frm.events.run_tests(frm, data.message);
