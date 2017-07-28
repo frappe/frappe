@@ -7,19 +7,20 @@ import frappe
 from frappe import _
 import pyotp,base64,os
 from frappe.utils.background_jobs import enqueue
+from jinja2 import Template
 from pyqrcode import create as qrcreate
 from StringIO import StringIO
 from base64 import b64encode,b32encode
 from frappe.utils import get_url, get_datetime, time_diff_in_seconds
 
 
-class ExpiredLoginExpection(Exception):pass
+class ExpiredLoginException(Exception):pass
 
 def should_run_2fa(user):
 	'''Check if 2fa should run.'''
 	site_otp_enabled = frappe.db.get_value('System Settings', 'System Settings', 'enable_two_factor_auth')
 	user_otp_enabled = two_factor_is_enabled_for_(user)
-	#Don't validate for Admin of if not enabled
+	#Don't validate for Admin or if not enabled
 	if user =='Administrator' or not site_otp_enabled or not user_otp_enabled:
 		return False
 	return True
@@ -102,7 +103,7 @@ def confirm_otp_token(login_manager,otp=None,tmp_id=None):
 	hotp_token = frappe.cache().get(tmp_id + '_token')
 	otp_secret = frappe.cache().get(tmp_id + '_otp_secret')
 	if not otp_secret:
-		raise ExpiredLoginExpection(_('Login session expired, refresh page to retry'))
+		raise ExpiredLoginException(_('Login session expired, refresh page to retry'))
 	hotp = pyotp.HOTP(otp_secret)
 	if hotp_token:		
 		if hotp.verify(otp, int(hotp_token)):
@@ -119,7 +120,7 @@ def confirm_otp_token(login_manager,otp=None,tmp_id=None):
 			delete_qrimage(login_manager.user)
 		return True
 	else:
-		login_manager.fail('Incorrect Verification code', login_manager.user)
+		login_manager.fail(_('Incorrect Verification code'), login_manager.user)
 
 
 def get_verification_obj(user,token,otp_secret):
@@ -166,20 +167,71 @@ def process_2fa_for_email(user,token,otp_secret,otp_issuer,method='email'):
 	'''Process Email method for 2fa.'''
 	message = None
 	status = True
-	# TODO SVG don't display in email
 	if method == 'otp_app' and not frappe.db.get_default(user + '_otplogin'):
 		totp_uri = pyotp.TOTP(otp_secret).provisioning_uri(user, issuer_name=otp_issuer)
-		message = '''<p>Please scan the barcode for One Time Password</p>
-				<img src="{}" 
-				style':'width:150px;height:150px;>'''.format(qrcode_as_png(user,totp_uri))
+		qrcode_link = get_link_for_qrcode(user,totp_uri)
+		message = get_email_body_for_qr_code({'qrcode_link':qrcode_link})
+		subject = get_email_subject_for_qr_code({'qrcode_link':qrcode_link})
 	if method == 'email' or message:
-		status = send_token_via_email(user,token,otp_secret,otp_issuer,message=message)
+		status = send_token_via_email(user,token,otp_secret,otp_issuer,subject=subject,message=message)
 	verification_obj = {'token_delivery': status,
 							'prompt': status and 'Verification code has been sent to your registered email address',
 							'method': 'Email'}
 	return verification_obj
 
+def get_email_subject_for_2fa(kwargs_dict):
+	'''Get email subject for 2fa.'''
+	subject_template = 'Verifcation Code from Frappe Framework'
+	template = frappe.get_value('System Settings','System Settings','two_factor_email_subject')
+	if not template == '':
+		subject_template = template
+	subject = render_string_template(subject_template,kwargs_dict)
+	return subject
 
+def get_email_body_for_2fa(kwargs_dict):
+	'''Get email body for 2fa.'''
+	body_template = 'Use this token to login <br> {{otp}}'
+	template = frappe.get_value('System Settings','System Settings','two_factor_email_body')
+	if not template == '':
+		subject_template = template
+	body = render_string_template(body_template,kwargs_dict)
+	return body
+
+def get_email_subject_for_qr_code(kwargs_dict):
+	'''Get QRCode email subject.'''
+	subject_template = 'Verification Code from Frappe Framework'
+	template = frappe.get_value('System Settings','System Settings','qr_code_email_subject')
+	if not template == '':
+		subject_template = template
+	subject = render_string_template(subject_template,kwargs_dict)	
+	return subject
+
+def get_email_body_for_qr_code(kwargs_dict):
+	'''Get QRCode email body.'''
+	body_template = 'Scan the QRCode on this link to get token <br> {{qrcode_link}}'
+	template = frappe.get_value('System Settings','System Settings','qr_code_email_body')
+	if not template == '':
+		body_template = template
+	body = render_string_template(body_template,kwargs_dict)
+	return body
+
+def render_string_template(_str,kwargs_dict):
+	'''Render string with jinja.'''
+	s = Template(_str)
+	s = s.render(**kwargs_dict)
+	return s
+
+def get_link_for_qrcode(user,totp_uri):
+	'''Get link to temporary page showing QRCode.'''
+	key = frappe.generate_hash(length=20)
+	key_user = "{}_user".format(key)
+	key_uri = "{}_uri".format(key)
+	lifespan = int(frappe.db.get_value('System Settings', 'System Settings', 'lifespan_barcode_image'))
+	if lifespan<=0:
+		lifespan = 240
+	frappe.cache().set_value(key_uri,totp_uri,expires_in_sec=lifespan)
+	frappe.cache().set_value(key_user,user,expires_in_sec=lifespan)
+	return get_url('/qrcode?k={}'.format(key))
 
 def send_token_via_sms(otpsecret, token=None, phone_no=None):
 	'''Send token as sms to user.'''
@@ -207,16 +259,20 @@ def send_token_via_sms(otpsecret, token=None, phone_no=None):
 	enqueue(method=send_request, queue='short', timeout=300, event=None, async=True, job_name=None, now=False, **sms_args)
 	return True
 
-def send_token_via_email(user, token, otp_secret, otp_issuer,message=None):
+def send_token_via_email(user, token, otp_secret, otp_issuer,subject=None,message=None):
 	'''Send token to user as email.'''
 	user_email = frappe.db.get_value('User', user, 'email')
 	if not user_email:
 		return False
 	hotp = pyotp.HOTP(otp_secret)
+	otp = hotp.at(int(token))
+	template_args = {'otp':otp,'otp_issuer':otp_issuer}
+	if not subject:
+		subject = get_email_subject_for_2fa(template_args)
 	if not message:
-		message = '<p>Your verification code is {}.</p>'.format(hotp.at(int(token)))
+		message = get_email_body_for_2fa(template_args)
 	email_args = {
-			'recipients':user_email, 'sender':None, 'subject':'Verification Code from {}'.format(otp_issuer or "Frappe Framework"),
+			'recipients':user_email, 'sender':None, 'subject':subject,
 			'message':message,
 			'delayed':False, 'retry':3 }
 
@@ -236,7 +292,7 @@ def get_qr_svg_code(totp_uri):
 	svg = ''
 	stream = StringIO()
 	try:
-		url.svg(stream, scale=3)
+		url.svg(stream, scale=4, background="#eee", module_color="#222")
 		svg = stream.getvalue().replace('\n','')
 		svg = b64encode(bytes(svg))
 	finally:
