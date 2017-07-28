@@ -533,6 +533,11 @@ frappe.ui.PercentageGraph = class PercentageGraph extends frappe.ui.Graph {
 			return total;
 		});
 
+		if(!this.x.colors) {
+			this.x.colors = ['green', 'blue', 'purple', 'red', 'orange',
+				'yellow', 'lightblue', 'lightgreen'];
+		}
+
 		// Calculate x unit distances for tooltips
 	}
 
@@ -556,14 +561,93 @@ frappe.ui.PercentageGraph = class PercentageGraph extends frappe.ui.Graph {
 	make_tooltip() { }
 
 	show_summary() {
-		let values = this.x.formatted.length > 0 ? this.x.formatted : this.x.values;
+		let x_values = this.x.formatted && this.x.formatted.length > 0
+			? this.x.formatted : this.x.values;
 		this.x.totals.map((d, i) => {
-			this.$stats_container.append($(`<div class="stats">
-				<span class="indicator ${this.x.colors[i]}">
-					<span class="text-muted">${values[i]}:</span>
-					${d}
-				</span>
-			</div>`));
+			if(d) {
+				this.$stats_container.append($(`<div class="stats">
+					<span class="indicator ${this.x.colors[i]}">
+						<span class="text-muted">${x_values[i]}:</span>
+						${d}
+					</span>
+				</div>`));
+			}
 		});
 	}
 };
+
+frappe.provide("frappe.ui.graphs");
+
+frappe.ui.graphs.map_c3 = function(chart) {
+	if (chart.data) {
+		let data = chart.data;
+		let mode = chart.chart_type || 'line';
+		if(mode === 'pie') {
+			mode = 'percentage';
+		}
+
+		let x = {}, y = [];
+
+		if(data.columns) {
+			let columns = data.columns;
+
+			x.values = columns.filter(col => {
+				return col[0] === data.x;
+			})[0];
+
+			if(x.values && x.values.length) {
+				let dataset_length = x.values.length;
+				let dirty = false;
+				columns.map(col => {
+					if(col[0] !== data.x) {
+						if(col.length === dataset_length) {
+							let title = col[0];
+							col.splice(0, 1);
+							y.push({
+								title: title,
+								values: col,
+								color: 'blue'
+							});
+						} else {
+							dirty = true;
+						}
+					}
+				})
+
+				if(dirty) {
+					return;
+				}
+
+				x.values.splice(0, 1);
+
+				return {
+					mode: mode,
+					y: y,
+					x: x
+				}
+
+			}
+		} else if(data.rows) {
+			let rows = data.rows;
+			x.values = rows[0];
+
+			rows.map((row, i) => {
+				if(i === 0) {
+					x.values = row;
+				} else {
+					y.push({
+						title: 'data' + i,
+						values: row,
+						color: 'blue'
+					})
+				}
+			});
+
+			return {
+				mode: mode,
+				y: y,
+				x: x
+			}
+		}
+	}
+}

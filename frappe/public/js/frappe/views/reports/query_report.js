@@ -3,6 +3,7 @@
 
 frappe.provide("frappe.views");
 frappe.provide("frappe.query_reports");
+frappe.provide("frappe.ui.graphs");
 
 frappe.standard_pages["query-report"] = function() {
 	var wrapper = frappe.container.add_page('query-report');
@@ -928,22 +929,24 @@ frappe.views.QueryReport = Class.extend({
 
 	setup_chart: function(res) {
 		this.chart_area.toggle(false);
+		let chart, g;
 
 		if (this.get_query_report_opts().get_chart_data) {
-			var opts = this.get_query_report_opts().get_chart_data(res.columns, res.result);
+			chart = this.get_query_report_opts().get_chart_data(res.columns, res.result);
 		} else if (res.chart) {
-			var opts = res.chart;
+			chart = res.chart;
 		} else {
 			return;
 		}
 
-		$.extend(opts, {
-			wrapper: this.chart_area,
-		});
+		let args = frappe.ui.graphs.map_c3(chart);
+		this.chart_area.empty().toggle(true);
 
-		this.chart = new frappe.ui.Chart(opts);
-		if(this.chart && opts.data && opts.data.rows && opts.data.rows.length) {
-			this.chart_area.toggle(true);
+		if(args) {
+			$.extend(args, {
+				parent: this.chart_area,
+			});
+			g = new frappe.ui.Graph(args);
 		}
 	},
 

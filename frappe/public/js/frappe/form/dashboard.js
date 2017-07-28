@@ -388,16 +388,14 @@ frappe.ui.form.Dashboard = Class.extend({
 		return indicator;
 	},
 
-	//graphs
+	// graphs
 	setup_graph: function() {
 		var me = this;
-
 		var method = this.data.graph_method;
 		var args = {
 			doctype: this.frm.doctype,
 			docname: this.frm.doc.name,
 		};
-
 		$.extend(args, this.data.graph_method_args);
 
 		frappe.call({
@@ -421,29 +419,9 @@ frappe.ui.form.Dashboard = Class.extend({
 			mode: 'line',
 			height: 140
 		});
-
 		new frappe.ui.Graph(args);
 	},
 
-	setup_chart: function(opts) {
-		var me = this;
-
-		this.graph_area.removeClass('hidden');
-
-		$.extend(opts, {
-			wrapper: me.graph_area,
-			padding: {
-				right: 30,
-				bottom: 30
-			}
-		});
-
-		this.chart = new frappe.ui.Chart(opts);
-		if(this.chart) {
-			this.show();
-			this.chart.set_chart_size(me.wrapper.width() - 60);
-		}
-	},
 	show: function() {
 		this.section.removeClass('hidden');
 	}
