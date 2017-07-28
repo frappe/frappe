@@ -237,19 +237,19 @@ def get_emails_sent_this_month():
 
 def get_unsubscribe_message(unsubscribe_message, expose_recipients):
 	if unsubscribe_message:
-		unsubscribe_message = '''<a href="<!--unsubscribe url-->"
+		unsubscribe_html = '''<a href="<!--unsubscribe url-->"
 			target="_blank">{0}</a>'''.format(unsubscribe_message)
 	else:
 		unsubscribe_link = '''<a href="<!--unsubscribe url-->"
 			target="_blank">{0}</a>'''.format(_('Unsubscribe'))
-		unsubscribe_message = _("{0} to stop receiving emails of this type").format(unsubscribe_link)
+		unsubscribe_html = _("{0} to stop receiving emails of this type").format(unsubscribe_link)
 
 	html = """<div class="email-unsubscribe">
 			<!--cc message-->
 			<div>
-				{unsubscribe_message}
+				{0}
 			</div>
-		</div>""".format(unsubscribe_message=unsubscribe_message)
+		</div>""".format(unsubscribe_html)
 
 	if expose_recipients == "footer":
 		text = "\n<!--cc message-->"
