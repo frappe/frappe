@@ -87,6 +87,7 @@ frappe.ui.FilterList = Class.extend({
 		}
 
 		var filter = this.push_new_filter(doctype, fieldname, condition, value);
+		if (!filter) return;
 
 		if(this.wrapper.find('.clear-filters').hasClass("hide")) {
 			this.wrapper.find('.clear-filters').removeClass("hide");

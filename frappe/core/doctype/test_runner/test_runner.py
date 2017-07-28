@@ -10,9 +10,10 @@ class TestRunner(Document):
 	pass
 
 @frappe.whitelist()
-def get_test_js():
+def get_test_js(test_path=None):
 	'''Get test + data for app, example: app/tests/ui/test_name.js'''
-	test_path = frappe.db.get_single_value('Test Runner', 'module_path')
+	if not test_path:
+		test_path = frappe.db.get_single_value('Test Runner', 'module_path')
 	test_js = []
 
 	# split
