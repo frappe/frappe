@@ -274,6 +274,7 @@ frappe.views.ListRenderer = Class.extend({
 
 		this.list_view.wrapper &&
 		this.list_view.wrapper.on('click', '.result-list .filterable', function (e) {
+			e.stopPropagation();
 			var filters = $(this).attr('data-filter').split('|');
 			var added = false;
 
