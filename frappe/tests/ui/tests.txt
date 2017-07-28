@@ -3,3 +3,4 @@ frappe/tests/ui/test_list/test_list_filter.js
 frappe/tests/ui/test_list/test_list_paging.js
 frappe/tests/ui/test_module_view.js
 frappe/tests/ui/test_calendar_view.js
+frappe/tests/ui/test_linked_with.js
