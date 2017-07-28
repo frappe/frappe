@@ -79,7 +79,7 @@ def is_static_file(path):
 	if ('.' not in path):
 		return False
 	extn = path.rsplit('.', 1)[-1]
-	if extn in ('html', 'md', 'js'):
+	if extn in ('html', 'md', 'js', 'xml'):
 		return False
 
 	for app in frappe.get_installed_apps():
