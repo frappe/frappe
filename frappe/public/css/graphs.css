@@ -2,9 +2,10 @@
 .graph-container .graph-focus-margin {
   margin: 0px 5%;
 }
-.graph-container .graph-graphics {
+.graph-container .graphics {
   margin-top: 10px;
-  padding: 10px 0px;
+  padding-top: 10px;
+  padding-bottom: 10px;
   position: relative;
 }
 .graph-container .graph-stats-group {
@@ -43,22 +44,19 @@
 .graph-container .line-graph .axis line {
   stroke: rgba(27, 31, 35, 0.1);
 }
-.graph-container .percentage-graph {
-  margin-top: 35px;
-}
 .graph-container .percentage-graph .progress {
   margin-bottom: 0px;
 }
-.graph-container .graph-data-points circle {
+.graph-container .data-points circle {
   stroke: #fff;
   stroke-width: 2;
 }
-.graph-container .graph-data-points path {
+.graph-container .data-points path {
   fill: none;
   stroke-opacity: 1;
   stroke-width: 2px;
 }
-.graph-container line.graph-dashed {
+.graph-container line.dashed {
   stroke-dasharray: 5,3;
 }
 .graph-container .tick.x-axis-label {
@@ -73,7 +71,7 @@
 .graph-container .tick .x-value-text {
   text-anchor: middle;
 }
-.graph-container .graph-svg-tip {
+.graph-svg-tip {
   position: absolute;
   z-index: 99999;
   padding: 10px;
@@ -83,12 +81,12 @@
   background: rgba(0, 0, 0, 0.8);
   border-radius: 3px;
 }
-.graph-container .graph-svg-tip.comparison {
+.graph-svg-tip.comparison {
   padding: 0;
   text-align: left;
   pointer-events: none;
 }
-.graph-container .graph-svg-tip.comparison .title {
+.graph-svg-tip.comparison .title {
   display: block;
   padding: 10px;
   margin: 0;
@@ -96,28 +94,28 @@
   line-height: 1;
   pointer-events: none;
 }
-.graph-container .graph-svg-tip.comparison ul {
+.graph-svg-tip.comparison ul {
   margin: 0;
   white-space: nowrap;
   list-style: none;
 }
-.graph-container .graph-svg-tip.comparison li {
+.graph-svg-tip.comparison li {
   display: inline-block;
   padding: 5px 10px;
 }
-.graph-container .graph-svg-tip ul,
-.graph-container .graph-svg-tip ol {
+.graph-svg-tip ul,
+.graph-svg-tip ol {
   padding-left: 0;
   display: flex;
 }
-.graph-container .graph-svg-tip ul.data-point-list li {
+.graph-svg-tip ul.data-point-list li {
   min-width: 90px;
   flex: 1;
 }
-.graph-container .graph-svg-tip strong {
+.graph-svg-tip strong {
   color: #dfe2e5;
 }
-.graph-container .graph-svg-tip::after {
+.graph-svg-tip .svg-pointer {
   position: absolute;
   bottom: -10px;
   left: 50%;
@@ -128,147 +126,147 @@
   border: 5px solid transparent;
   border-top-color: rgba(0, 0, 0, 0.8);
 }
-.graph-container .stroke.grey {
+.stroke.grey {
   stroke: #F0F4F7;
 }
-.graph-container .stroke.blue {
+.stroke.blue {
   stroke: #5e64ff;
 }
-.graph-container .stroke.red {
+.stroke.red {
   stroke: #ff5858;
 }
-.graph-container .stroke.light-green {
+.stroke.light-green {
   stroke: #98d85b;
 }
-.graph-container .stroke.green {
+.stroke.green {
   stroke: #28a745;
 }
-.graph-container .stroke.orange {
+.stroke.orange {
   stroke: #ffa00a;
 }
-.graph-container .stroke.purple {
+.stroke.purple {
   stroke: #743ee2;
 }
-.graph-container .stroke.darkgrey {
+.stroke.darkgrey {
   stroke: #b8c2cc;
 }
-.graph-container .stroke.black {
+.stroke.black {
   stroke: #36414C;
 }
-.graph-container .stroke.yellow {
+.stroke.yellow {
   stroke: #FEEF72;
 }
-.graph-container .stroke.light-blue {
+.stroke.light-blue {
   stroke: #7CD6FD;
 }
-.graph-container .stroke.lightblue {
+.stroke.lightblue {
   stroke: #7CD6FD;
 }
-.graph-container .fill.grey {
+.fill.grey {
   fill: #F0F4F7;
 }
-.graph-container .fill.blue {
+.fill.blue {
   fill: #5e64ff;
 }
-.graph-container .fill.red {
+.fill.red {
   fill: #ff5858;
 }
-.graph-container .fill.light-green {
+.fill.light-green {
   fill: #98d85b;
 }
-.graph-container .fill.green {
+.fill.green {
   fill: #28a745;
 }
-.graph-container .fill.orange {
+.fill.orange {
   fill: #ffa00a;
 }
-.graph-container .fill.purple {
+.fill.purple {
   fill: #743ee2;
 }
-.graph-container .fill.darkgrey {
+.fill.darkgrey {
   fill: #b8c2cc;
 }
-.graph-container .fill.black {
+.fill.black {
   fill: #36414C;
 }
-.graph-container .fill.yellow {
+.fill.yellow {
   fill: #FEEF72;
 }
-.graph-container .fill.light-blue {
+.fill.light-blue {
   fill: #7CD6FD;
 }
-.graph-container .fill.lightblue {
+.fill.lightblue {
   fill: #7CD6FD;
 }
-.graph-container .background.grey {
+.background.grey {
   background: #F0F4F7;
 }
-.graph-container .background.blue {
+.background.blue {
   background: #5e64ff;
 }
-.graph-container .background.red {
+.background.red {
   background: #ff5858;
 }
-.graph-container .background.light-green {
+.background.light-green {
   background: #98d85b;
 }
-.graph-container .background.green {
+.background.green {
   background: #28a745;
 }
-.graph-container .background.orange {
+.background.orange {
   background: #ffa00a;
 }
-.graph-container .background.purple {
+.background.purple {
   background: #743ee2;
 }
-.graph-container .background.darkgrey {
+.background.darkgrey {
   background: #b8c2cc;
 }
-.graph-container .background.black {
+.background.black {
   background: #36414C;
 }
-.graph-container .background.yellow {
+.background.yellow {
   background: #FEEF72;
 }
-.graph-container .background.light-blue {
+.background.light-blue {
   background: #7CD6FD;
 }
-.graph-container .background.lightblue {
+.background.lightblue {
   background: #7CD6FD;
 }
-.graph-container .border-top.grey {
+.border-top.grey {
   border-top: 3px solid #F0F4F7;
 }
-.graph-container .border-top.blue {
+.border-top.blue {
   border-top: 3px solid #5e64ff;
 }
-.graph-container .border-top.red {
+.border-top.red {
   border-top: 3px solid #ff5858;
 }
-.graph-container .border-top.light-green {
+.border-top.light-green {
   border-top: 3px solid #98d85b;
 }
-.graph-container .border-top.green {
+.border-top.green {
   border-top: 3px solid #28a745;
 }
-.graph-container .border-top.orange {
+.border-top.orange {
   border-top: 3px solid #ffa00a;
 }
-.graph-container .border-top.purple {
+.border-top.purple {
   border-top: 3px solid #743ee2;
 }
-.graph-container .border-top.darkgrey {
+.border-top.darkgrey {
   border-top: 3px solid #b8c2cc;
 }
-.graph-container .border-top.black {
+.border-top.black {
   border-top: 3px solid #36414C;
 }
-.graph-container .border-top.yellow {
+.border-top.yellow {
   border-top: 3px solid #FEEF72;
 }
-.graph-container .border-top.light-blue {
+.border-top.light-blue {
   border-top: 3px solid #7CD6FD;
 }
-.graph-container .border-top.lightblue {
+.border-top.lightblue {
   border-top: 3px solid #7CD6FD;
 }

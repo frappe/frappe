@@ -939,8 +939,12 @@ frappe.views.QueryReport = Class.extend({
 			return;
 		}
 
+		console.log(chart);
+
 		let args = frappe.ui.graphs.map_c3(chart);
 		this.chart_area.empty().toggle(true);
+
+		console.log(args);
 
 		if(args) {
 			$.extend(args, {
