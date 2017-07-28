@@ -13,7 +13,7 @@ frappe.ui.form.on("Customize Form", {
 				filters: [
 					['DocType', 'issingle', '=', 0],
 					['DocType', 'custom', '=', 0],
-					['DocType', 'name', 'not in', 'DocType, DocField, DocPerm, User, Role, Has Role, \
+					['DocType', 'name', 'not in', 'DocType, DocField, DocPerm, Role, Has Role, \
 						Page, Has Role, Module Def, Print Format, Report, Customize Form, \
 						Customize Form Field, Property Setter, Custom Field, Custom Script'],
 					['DocType', 'restrict_to_domain', 'in', frappe.boot.active_domains]
