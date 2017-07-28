@@ -21,6 +21,7 @@ frappe.pages['permission-manager'].refresh = function(wrapper) {
 frappe.PermissionEngine = Class.extend({
 	init: function(wrapper) {
 		this.wrapper = wrapper;
+		this.page = wrapper.page;
 		this.body = $(this.wrapper).find(".perm-engine");
 		this.make();
 		this.refresh();
@@ -55,6 +56,10 @@ frappe.PermissionEngine = Class.extend({
 				.change(function() {
 					me.refresh();
 				});
+
+		this.page.add_inner_button(__('Set User Permissions'), () => {
+			return frappe.set_route('List', 'User Permission');
+		});
 		this.set_from_route();
 	},
 	set_from_route: function() {
@@ -133,11 +138,11 @@ frappe.PermissionEngine = Class.extend({
 	refresh: function() {
 		var me = this;
 		if(!me.doctype_select) {
-			this.body.html("<p class='text-muted'>" + __("Loading") + "...</div>");
+			this.body.html("<p class='text-muted'>" + __("Loading") + "...</p>");
 			return;
 		}
 		if(!me.get_doctype() && !me.get_role()) {
-			this.body.html("<p class='text-muted'>"+__("Select Document Type or Role to start.")+"</div>");
+			this.body.html("<p class='text-muted'>"+__("Select Document Type or Role to start.")+"</p>");
 			return;
 		}
 		// get permissions
@@ -247,10 +252,13 @@ frappe.PermissionEngine = Class.extend({
 
 	setup_user_permissions: function(d, role_cell) {
 		var me = this;
-		d.help = frappe.render('<ul class="user-permission-help small hidden" style="margin-left: -10px;">\
-				<li style="margin-top: 7px;"><a class="show-user-permission-doctypes grey">{%= __("Select Document Types") %}</a></li>\
-				<li style="margin-top: 3px;"><a class="show-user-permissions grey">{%= __("Show User Permissions") %}</a></li>\
-			</ul>', {});
+		d.help = `<ul class="user-permission-help small hidden"
+				style="margin-left: -10px;">
+				<li style="margin-top: 7px;"><a class="show-user-permission-doctypes">
+					${__("Select Document Types")}</a></li>
+				<li style="margin-top: 3px;"><a class="show-user-permissions">
+					${__("Show User Permissions")}</a></li>
+			</ul>`;
 
 		var checkbox = this.add_check(role_cell, d, "apply_user_permissions")
 			.removeClass("col-md-4")
@@ -336,8 +344,8 @@ frappe.PermissionEngine = Class.extend({
 		var me = this;
 
 		this.body.on("click", ".show-user-permissions", function() {
-			frappe.route_options = { doctype: me.get_doctype() || "" };
-			frappe.set_route("user-permissions");
+			frappe.route_options = { allow: me.get_doctype() || "" };
+			frappe.set_route('List', 'User Permission');
 		});
 
 		this.body.on("click", "input[type='checkbox']", function() {

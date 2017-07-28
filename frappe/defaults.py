@@ -48,25 +48,10 @@ def is_a_user_permission_key(key):
 	return ":" not in key and key != frappe.scrub(key)
 
 def get_user_permissions(user=None):
-	if not user:
-		user = frappe.session.user
-
-	return build_user_permissions(user)
-
-def build_user_permissions(user):
-	out = frappe.cache().hget("user_permissions", user)
-	if out==None:
-		out = {}
-		for key, value in frappe.db.sql("""select defkey, ifnull(defvalue, '') as defvalue
-			from tabDefaultValue where parent=%s and parenttype='User Permission'""", (user,)):
-			out.setdefault(key, []).append(value)
-
-		# add profile match
-		if user not in out.get("User", []):
-			out.setdefault("User", []).append(user)
-
-		frappe.cache().hset("user_permissions", user, out)
-	return out
+	from frappe.core.doctype.user_permission.user_permission \
+		import get_user_permissions as _get_user_permissions
+	'''Return frappe.core.doctype.user_permissions.user_permissions._get_user_permissions (kept for backward compatibility)'''
+	return _get_user_permissions(user)
 
 def get_defaults(user=None):
 	globald = get_defaults_for()
