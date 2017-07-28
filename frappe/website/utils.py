@@ -5,9 +5,9 @@ from __future__ import unicode_literals
 import frappe, re, os
 from six import iteritems
 
-
 def delete_page_cache(path):
 	cache = frappe.cache()
+	cache.delete_value('full_index')
 	groups = ("website_page", "page_context")
 	if path:
 		for name in groups:
@@ -184,38 +184,89 @@ def abs_url(path):
 		path = "/" + path
 	return path
 
+def get_toc(route, url_prefix=None, app=None):
+	'''Insert full index (table of contents) for {index} tag'''
+	from frappe.website.utils import get_full_index
+
+	full_index = get_full_index(app=app)
+
+	return frappe.get_template("templates/includes/full_index.html").render({
+			"full_index": full_index,
+			"url_prefix": url_prefix or "/",
+			"route": route.rstrip('/')
+		})
+
+def get_next_link(route, url_prefix=None, app=None):
+	# insert next link
+	next_item = None
+	route = route.rstrip('/')
+	children_map = get_full_index(app=app)
+	parent_route = os.path.dirname(route)
+	children = children_map[parent_route]
+
+	if parent_route and children:
+		for i, c in enumerate(children):
+			if c.route == route and i < (len(children) - 1):
+				next_item = children[i+1]
+				next_item.url_prefix = url_prefix or "/"
+
+	if next_item:
+		if next_item.route and next_item.title:
+			html = ('<p class="btn-next-wrapper">' + frappe._("Next")\
+				+': <a class="btn-next" href="{url_prefix}{route}">{title}</a></p>').format(**next_item)
+
+			return html
+
+	return ''
+
 def get_full_index(route=None, app=None):
 	"""Returns full index of the website for www upto the n-th level"""
+	from frappe.website.router import get_pages
+
 	if not frappe.local.flags.children_map:
-		from frappe.website.router import get_pages
-		children_map = {}
-		pages = get_pages(app=app)
+		def _build():
+			children_map = {}
+			added = []
+			pages = get_pages(app=app)
 
-		# make children map
-		for route, page_info in iteritems(pages):
-			parent_route = os.path.dirname(route)
-			children_map.setdefault(parent_route, []).append(page_info)
+			# make children map
+			for route, page_info in iteritems(pages):
+				parent_route = os.path.dirname(route)
+				if parent_route not in added:
+					children_map.setdefault(parent_route, []).append(page_info)
 
-			if frappe.flags.local_docs:
-				page_info.extn = '.html'
+			# order as per index if present
+			for route, children in children_map.items():
+				if not route in pages:
+					# no parent (?)
+					continue
 
-		# order as per index if present
-		for route, children in children_map.items():
-			page_info = pages[route]
-			if page_info.index:
-				new_children = []
-				page_info.extn = ''
-				for name in page_info.index:
-					child_route = page_info.route + '/' + name
-					if child_route in pages:
-						new_children.append(pages[child_route])
+				page_info = pages[route]
+				if page_info.index or ('index' in page_info.template):
+					new_children = []
+					page_info.extn = ''
+					for name in (page_info.index or []):
+						child_route = page_info.route + '/' + name
+						if child_route in pages:
+							if child_route not in added:
+								new_children.append(pages[child_route])
+								added.append(child_route)
 
-				# add remaining pages not in index.txt
-				for c in children:
-					if c not in new_children:
-						new_children.append(c)
+					# add remaining pages not in index.txt
+					_children = sorted(children, lambda a, b: cmp(
+						os.path.basename(a.route), os.path.basename(b.route)))
 
-				children_map[route] = new_children
+					for child_route in _children:
+						if child_route not in new_children:
+							if child_route not in added:
+								new_children.append(child_route)
+								added.append(child_route)
+
+					children_map[route] = new_children
+
+			return children_map
+
+		children_map = frappe.cache().get_value('website_full_index', _build)
 
 		frappe.local.flags.children_map = children_map
 
@@ -223,12 +274,14 @@ def get_full_index(route=None, app=None):
 
 def extract_title(source, path):
 	'''Returns title from `&lt;!-- title --&gt;` or &lt;h1&gt; or path'''
+	title = ''
+
 	if "<!-- title:" in source:
 		title = re.findall('<!-- title:([^>]*) -->', source)[0].strip()
 	elif "<h1>" in source:
 		match = re.findall('<h1>([^<]*)', source)
 		title = match[0].strip()[:300]
-	else:
-		title = os.path.basename(path).replace('_', ' ').replace('-', ' ').title()
+	if not title:
+		title = os.path.basename(path.rsplit('.', )[0].rstrip('/')).replace('_', ' ').replace('-', ' ').title()
 
 	return title

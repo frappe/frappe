@@ -13,12 +13,12 @@ from frappe.utils import markdown
 from six import iteritems
 
 class setup_docs(object):
-	def __init__(self, app):
+	def __init__(self, app, target_app):
 		"""Generate source templates for models reference and module API
 			and templates at `templates/autodoc`
 		"""
 		self.app = app
-
+		self.target_app = target_app
 
 		frappe.flags.web_pages_folders = ['docs',]
 		frappe.flags.web_pages_apps = [self.app,]
@@ -44,7 +44,6 @@ class setup_docs(object):
 				"sub_heading": self.docs_config.sub_heading,
 				"source_link": self.docs_config.source_link,
 				"hide_install": getattr(self.docs_config, "hide_install", False),
-				"docs_base_url": self.docs_config.docs_base_url,
 				"long_description": markdown(getattr(self.docs_config, "long_description", "")),
 				"license": self.hooks.get("app_license")[0],
 				"branch": getattr(self.docs_config, "branch", None) or "develop",
@@ -59,7 +58,7 @@ class setup_docs(object):
 
 	def build(self, docs_version):
 		"""Build templates for docs models and Python API"""
-		self.docs_path = frappe.get_app_path(self.app, "docs")
+		self.docs_path = frappe.get_app_path(self.target_app, 'www', "docs")
 		self.path = os.path.join(self.docs_path, docs_version)
 		self.app_context["app"]["docs_version"] = docs_version
 
@@ -91,14 +90,50 @@ class setup_docs(object):
 				#print parts
 				module, doctype = parts[-3], parts[-1]
 
-				if doctype not in ("doctype", "boilerplate"):
+				if doctype != "boilerplate":
 					self.write_model_file(basepath, module, doctype)
 
 			# standard python module
 			if self.is_py_module(basepath, folders, files):
 				self.write_modules(basepath, folders, files)
 
-		self.build_user_docs()
+		#self.build_user_docs()
+		self.copy_user_assets()
+		self.add_sidebars()
+		self.add_breadcrumbs_for_user_pages()
+
+	def add_breadcrumbs_for_user_pages(self):
+		for basepath, folders, files in os.walk(os.path.join(self.docs_path,
+			'user')): # pylint: disable=unused-variable
+			for fname in files:
+				if fname.endswith('.md') or fname.endswith('.html'):
+					add_breadcrumbs_tag(os.path.join(basepath, fname))
+
+	def add_sidebars(self):
+		'''Add _sidebar.json in each folder in docs'''
+		for basepath, folders, files in os.walk(self.docs_path): # pylint: disable=unused-variable
+			with open(os.path.join(basepath, '_sidebar.json'), 'w') as sidebarfile:
+				sidebarfile.write(frappe.as_json([
+					{"title": "Docs Home", "route": "/docs"},
+					{"title": "User Guide", "route": "/docs/user"},
+					{"title": "Server API", "route": "/docs/current/api"},
+					{"title": "Models (Reference)", "route": "/docs/current/models"},
+					{"title": "Improve Docs", "route":
+						"{0}/tree/develop/{1}/docs".format(self.docs_config.source_link, self.app)}
+				]))
+
+
+	def copy_user_assets(self):
+		'''Copy docs/user and docs/assets to the target app'''
+		print('Copying docs/user and docs/assets...')
+		shutil.rmtree(os.path.join(self.docs_path, 'user'),
+			ignore_errors=True)
+		shutil.rmtree(os.path.join(self.docs_path, 'assets'),
+			ignore_errors=True)
+		shutil.copytree(os.path.join(self.app_path, 'docs', 'user'),
+			os.path.join(self.docs_path, 'user'))
+		shutil.copytree(os.path.join(self.app_path, 'docs', 'assets'),
+			frappe.get_app_path(self.target_app, 'www', 'docs', 'assets'))
 
 	def make_home_pages(self):
 		"""Make standard home pages for docs, developer docs, api and models
@@ -463,3 +498,9 @@ edit_link = '''
 	</div>
 	</div>
 </div>'''
+
+def add_breadcrumbs_tag(path):
+	with open(path, 'r') as f:
+		content = frappe.as_unicode(f.read())
+	with open(path, 'w') as f:
+		f.write(('<!-- add-breadcrumbs -->\n' + content).encode('utf-8'))
