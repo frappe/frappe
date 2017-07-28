@@ -153,7 +153,7 @@ def get_list_context(context, doctype):
 
 	return list_context
 
-def get_list(doctype, txt, filters, limit_start, limit_page_length=20, ignore_permissions=False,
+def get_list(doctype, txt, filters, or_filters, limit_start, limit_page_length=20, ignore_permissions=False,
 	fields=None, order_by=None):
 	meta = frappe.get_meta(doctype)
 	if not filters:
@@ -162,7 +162,8 @@ def get_list(doctype, txt, filters, limit_start, limit_page_length=20, ignore_pe
 	if not fields:
 		fields = "distinct *"
 
-	or_filters = []
+	if not or_filters:
+		or_filters = []
 
 	if txt:
 		if meta.search_fields:
