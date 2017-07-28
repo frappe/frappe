@@ -23,8 +23,9 @@ class PageNotFoundError(Exception): pass
 
 def render(path=None, http_status_code=None):
 	"""render html page"""
-	path = resolve_path(path or frappe.local.request.path)
-	path = path.strip('/ ')
+	if not path:
+		path = frappe.local.request.path
+	path = resolve_path(path.strip('/ '))
 	data = None
 
 	# if in list of already known 404s, send it
