@@ -201,7 +201,8 @@ def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data
 							value = formatdate(value)
 						elif fieldtype == "Datetime":
 							value = format_datetime(value)
-						elif fieldtype in ("Float", "Currency", "Percent"):
+						elif fieldtype in ("Float", "Currency", "Percent") and \
+								frappe.get_system_settings("number_format_in_data_import"):
 							value = fmt_money(value)
 
 					row[_column_start_end.start + i + 1] = value

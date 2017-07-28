@@ -116,7 +116,10 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 								if fieldtype in ("Int", "Check"):
 									d[fieldname] = cint(d[fieldname])
 								elif fieldtype in ("Float", "Currency", "Percent"):
-									d[fieldname] = number_format_to_float(d[fieldname])
+									if frappe.get_system_settings("number_format_in_data_import"):
+										d[fieldname] = number_format_to_float(d[fieldname])
+									else:
+										d[fieldname] = flt(d[fieldname])
 								elif fieldtype == "Date":
 									d[fieldname] = getdate(parse_date(d[fieldname])) if d[fieldname] else None
 								elif fieldtype == "Datetime":
