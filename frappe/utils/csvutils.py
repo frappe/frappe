@@ -5,7 +5,11 @@ from __future__ import unicode_literals
 import frappe
 from frappe import msgprint, _
 import json
-import csv, cStringIO
+import csv
+try:
+	from cStringIO import StringIO
+except ImportError:
+	from io import StringIO
 from frappe.utils import encode, cstr, cint, flt, comma_or
 
 def read_csv_content_from_uploaded_file(ignore_encoding=False):
@@ -97,7 +101,7 @@ def to_csv(data):
 class UnicodeWriter:
 	def __init__(self, encoding="utf-8"):
 		self.encoding = encoding
-		self.queue = cStringIO.StringIO()
+		self.queue = StringIO()
 		self.writer = csv.writer(self.queue, quoting=csv.QUOTE_NONNUMERIC)
 
 	def writerow(self, row):

@@ -6,7 +6,10 @@ import frappe
 from frappe.utils import encode, cstr, cint, flt, comma_or
 
 import openpyxl
-from cStringIO import StringIO
+try:
+	from cStringIO import StringIO
+except ImportError:
+	from io import StringIO
 from openpyxl.styles import Font
 from openpyxl import load_workbook
 
