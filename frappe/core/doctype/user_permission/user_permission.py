@@ -18,6 +18,13 @@ class UserPermission(Document):
 	def apply_user_permissions_to_all_roles(self):
 		# add apply user permissions for all roles that
 		# for this doctype
+		def show_progress(i, l):
+			if l > 2:
+				frappe.publish_realtime("progress",
+					dict(progress=[i, l], title=_('Updating...')),
+						user=frappe.session.user)
+
+
 		roles = frappe.get_roles(self.user)
 		linked = frappe.db.sql('''select distinct parent from tabDocField
 			where fieldtype="Link" and options=%s''', self.allow)
@@ -25,10 +32,7 @@ class UserPermission(Document):
 			doctype = link[0]
 			for perm in get_valid_perms(doctype, self.user):
 				# if the role is applicable to the user
-				if len(linked) > 2:
-					frappe.publish_realtime("progress",
-						dict(progress=[i+1, len(linked)], title=_('Updating...')),
-						user=frappe.session.user)
+				show_progress(i+1, len(linked))
 				if perm.role in roles:
 					if not perm.apply_user_permissions:
 						update_permission_property(doctype, perm.role, 0,
@@ -43,6 +47,8 @@ class UserPermission(Document):
 						user_permission_doctypes.append(self.allow)
 						update_permission_property(doctype, perm.role, 0,
 							'user_permission_doctypes', json.dumps(user_permission_doctypes), validate=False)
+
+		show_progress(len(linked), len(linked))
 
 	def on_trash(self): # pylint: disable=no-self-use
 		frappe.cache().delete_value('user_permissions')
