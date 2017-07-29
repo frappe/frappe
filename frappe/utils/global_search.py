@@ -235,7 +235,7 @@ def update_global_search(doc):
 def get_formatted_value(value, field):
 	'''Prepare field from raw data'''
 
-	from HTMLParser import HTMLParser
+	from six.moves.html_parser import HTMLParser
 
 	if(getattr(field, 'fieldtype', None) in ["Text", "Text Editor"]):
 		h = HTMLParser()

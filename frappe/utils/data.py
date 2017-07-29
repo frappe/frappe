@@ -11,7 +11,7 @@ import babel.dates
 from babel.core import UnknownLocaleError
 from dateutil import parser
 from num2words import num2words
-import HTMLParser
+from six.moves import html_parser as HTMLParser
 from html2text import html2text
 from six import iteritems
 
