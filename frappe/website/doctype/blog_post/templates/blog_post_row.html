@@ -12,11 +12,11 @@
 			<p class="post-by text-muted small">
 				<a href="/blog?blogger={{ post.blogger }}"
 					class="no-decoration">{{ _("By") }} {{ post.full_name }}</a>
-				<i class="blog-dot"></i> {{ frappe.format_date(post.published_on) }}
-				<i class="blog-dot"></i>
+				<i class="spacer-dot"></i> {{ frappe.format_date(post.published_on) }}
+				<i class="spacer-dot"></i>
 				<a href="/blog?blog_category={{ post.blog_category }}"
 					class="no-decoration">{{ post.category.title }}</a>
-				<i class="blog-dot"></i> {{ post.comment_text }}
+				<i class="spacer-dot"></i> {{ post.comment_text }}
 			</p>
 		</div>
 	</div>

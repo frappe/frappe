@@ -7,7 +7,7 @@ import frappe.defaults
 from frappe.modules.import_file import get_file_path, read_doc_from_file
 from frappe.translate import send_translations
 from frappe.permissions import (reset_perms, get_linked_doctypes, get_all_perms,
-	setup_custom_perms, add_permission)
+	setup_custom_perms, add_permission, update_permission_property)
 from frappe.core.doctype.doctype.doctype import (clear_permissions_cache,
 	validate_permissions_for_doctype)
 from frappe import _
@@ -68,18 +68,8 @@ def add(parent, role, permlevel):
 @frappe.whitelist()
 def update(doctype, role, permlevel, ptype, value=None):
 	frappe.only_for("System Manager")
-
-	out = None
-	if setup_custom_perms(doctype):
-		out = 'refresh'
-
-	name = frappe.get_value('Custom DocPerm', dict(parent=doctype, role=role, permlevel=permlevel))
-
-	frappe.db.sql("""update `tabCustom DocPerm` set `%s`=%s where name=%s"""\
-	 	% (frappe.db.escape(ptype), '%s', '%s'), (value, name))
-	validate_permissions_for_doctype(doctype)
-
-	return out
+	out = update_permission_property(doctype, role, permlevel, ptype, value)
+	return 'refresh' if out else None
 
 @frappe.whitelist()
 def remove(doctype, role, permlevel):

@@ -11,7 +11,7 @@ from frappe.utils.file_manager import remove_all
 from frappe.utils.password import delete_all_passwords_for
 from frappe import _
 from frappe.model.naming import revert_series_if_last
-from frappe.utils.global_search import delete_for_document 
+from frappe.utils.global_search import delete_for_document
 
 def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reload=False,
 	ignore_permissions=False, flags=None, ignore_on_trash=False):
@@ -158,8 +158,13 @@ def update_flags(doc, flags=None, ignore_permissions=False):
 
 def check_permission_and_not_submitted(doc):
 	# permission
-	if not doc.flags.ignore_permissions and frappe.session.user!="Administrator" and (not doc.has_permission("delete") or (doc.doctype=="DocType" and not doc.custom)):
-		frappe.msgprint(_("User not allowed to delete {0}: {1}").format(doc.doctype, doc.name), raise_exception=True)
+	if (not doc.flags.ignore_permissions
+		and frappe.session.user!="Administrator"
+		and (
+			not doc.has_permission("delete")
+			or (doc.doctype=="DocType" and not doc.custom))):
+		frappe.msgprint(_("User not allowed to delete {0}: {1}")
+			.format(doc.doctype, doc.name), raise_exception=frappe.PermissionError)
 
 	# check if submitted
 	if doc.docstatus == 1:

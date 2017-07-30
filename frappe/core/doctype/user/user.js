@@ -59,8 +59,12 @@ frappe.ui.form.on('User', {
 					frappe.route_options = {
 						"user": doc.name
 					};
-					frappe.set_route("user-permissions");
+					frappe.set_route('List', 'User Permission');
 				}, null, "btn-default")
+
+				frm.add_custom_button(__('View Permitted Documents'),
+					() => frappe.set_route('query-report', 'Permitted Documents For User',
+						{user: frm.doc.name}));
 
 				frm.toggle_display(['sb1', 'sb3', 'modules_access'], true);
 			}

@@ -77,10 +77,6 @@ frappe.defaults = {
 	},
 
 	get_user_permissions: function() {
-		return frappe.defaults.user_permissions;
+		return frappe.boot.user_permissions;
 	},
-	set_user_permissions: function(user_permissions) {
-		if(!user_permissions) return;
-		frappe.defaults.user_permissions = $.extend(frappe.defaults.user_permissions || {}, user_permissions);
-	}
 }

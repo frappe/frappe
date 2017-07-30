@@ -871,7 +871,7 @@ def notify_admin_access_to_system_manager(login_manager=None):
 			subject=_("Administrator Logged In"),
 			template="administrator_logged_in",
 			args={'access_message': access_message},
-			header=[subject, 'orange']
+			header=['Access Notification', 'orange']
 		)
 
 def extract_mentions(txt):

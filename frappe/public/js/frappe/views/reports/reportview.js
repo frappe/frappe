@@ -821,12 +821,12 @@ frappe.views.ReportView = frappe.ui.BaseList.extend({
 	make_user_permissions: function() {
 		var me = this;
 		if(this.docname && frappe.model.can_set_user_permissions("Report")) {
-			this.page.add_menu_item(__("User Permissions Manager"), function() {
+			this.page.add_menu_item(__("User Permissions"), function() {
 				frappe.route_options = {
 					doctype: "Report",
 					name: me.docname
 				};
-				frappe.set_route("user-permissions");
+				frappe.set_route('List', 'User Permission');
 			}, true);
 		}
 	},

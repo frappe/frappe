@@ -35,6 +35,7 @@ class SystemSettings(Document):
 
 		frappe.cache().delete_value('system_settings')
 		frappe.cache().delete_value('time_zone')
+		frappe.local.system_settings = {}
 
 @frappe.whitelist()
 def load():

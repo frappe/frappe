@@ -258,7 +258,7 @@ a[disabled="disabled"]:hover {
 }
 .link-btn {
   position: absolute;
-  top: 2px;
+  top: 3px;
   right: 4px;
   border-radius: 2px;
   padding: 3px;
