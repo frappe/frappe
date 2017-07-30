@@ -5,22 +5,27 @@ def execute():
 	frappe.delete_doc('core', 'page', 'user-permissions')
 	for perm in frappe.db.sql("""
 		select
-			name, parent, defkey, defvalue
+			defval.name, defval.parent, defval.defkey, defval.defvalue
 		from
-			tabDefaultValue
+			tabDefaultValue as defval,
+			tabUser as usr
 		where
-			parent not in ('__default', '__global')
+			defval.parent not in ('__default', '__global')
 		and
-			substr(defkey,1,1)!='_'
+			substr(defval.defkey,1,1)!='_'
 		and
-			parenttype='User Permission'
+			defval.parenttype='User Permission'
+		and 
+			usr.name=defval.parent
 		""", as_dict=True):
-		frappe.get_doc(dict(
-			doctype='User Permission',
-			user=perm.parent,
-			allow=perm.defkey,
-			for_value=perm.defvalue,
-			apply_for_all_roles=0,
-		)).insert(ignore_permissions = True)
+
+			frappe.get_doc(dict(
+				doctype='User Permission',
+				user=perm.parent,
+				allow=perm.defkey,
+				for_value=perm.defvalue,
+				apply_for_all_roles=0,
+			)).insert(ignore_permissions = True)
+
 
 	frappe.db.sql('delete from tabDefaultValue where parenttype="User Permission"')
