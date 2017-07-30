@@ -130,12 +130,13 @@ def get_verification_obj(user,token,otp_secret):
 	if verification_method == 'SMS':
 		verification_obj = process_2fa_for_sms(user,token,otp_secret)
 	elif verification_method == 'OTP App':
-		if should_send_barcode_as_email():
-			verification_obj = process_2fa_for_email(user,token,otp_secret,otp_issuer,method='otp_app')
+		#check if this if the first time that the user is trying to login. If so, send an email
+		if not frappe.db.get_default(user + '_otplogin'):
+			verification_obj = process_2fa_for_email(user,token,otp_secret,otp_issuer,method='OTP App')
 		else:
 			verification_obj = process_2fa_for_otp_app(user,otp_secret,otp_issuer)
 	elif verification_method == 'Email':
-		process_2fa_for_email(user,token,otp_secret,otp_issuer)
+		verification_obj = process_2fa_for_email(user,token,otp_secret,otp_issuer)
 	return verification_obj
 
 
@@ -146,7 +147,8 @@ def process_2fa_for_sms(user,token,otp_secret):
 	status = send_token_via_sms(otp_secret,token=token, phone_no=phone)
 	verification_obj = {'token_delivery': status,
 						'prompt': status and 'Enter verification code sent to {}'.format(phone[:4] + '******' + phone[-3:]),
-						'method': 'SMS'}
+						'method': 'SMS',
+						'setup': status}
 	return verification_obj
 
 def process_2fa_for_otp_app(user,otp_secret,otp_issuer):
@@ -163,55 +165,50 @@ def process_2fa_for_otp_app(user,otp_secret,otp_issuer):
 						'setup': otp_setup_completed }
 	return verification_obj
 
-def process_2fa_for_email(user,token,otp_secret,otp_issuer,method='email'):
+def process_2fa_for_email(user,token,otp_secret,otp_issuer,method='Email'):
 	'''Process Email method for 2fa.'''
+	subject = None
 	message = None
 	status = True
-	if method == 'otp_app' and not frappe.db.get_default(user + '_otplogin'):
+	prompt = ''
+	if method == 'OTP App' and not frappe.db.get_default(user + '_otplogin'):
+		'''Sending one-time email for OTP App'''
 		totp_uri = pyotp.TOTP(otp_secret).provisioning_uri(user, issuer_name=otp_issuer)
 		qrcode_link = get_link_for_qrcode(user,totp_uri)
 		message = get_email_body_for_qr_code({'qrcode_link':qrcode_link})
 		subject = get_email_subject_for_qr_code({'qrcode_link':qrcode_link})
-	if method == 'email' or message:
-		status = send_token_via_email(user,token,otp_secret,otp_issuer,subject=subject,message=message)
+		prompt = 'Please check your registered email address for instructions on how to proceed. Do not close this window as you will have to return to it!!'
+	else:
+		'''Sending email verification'''
+		prompt = 'Verification code has been sent to your registered email address.'
+	status = send_token_via_email(user,token,otp_secret,otp_issuer,subject=subject,message=message)
 	verification_obj = {'token_delivery': status,
-							'prompt': status and 'Verification code has been sent to your registered email address',
-							'method': 'Email'}
+							'prompt': status and prompt,
+							'method': 'Email',
+							'setup': status}
 	return verification_obj
 
 def get_email_subject_for_2fa(kwargs_dict):
 	'''Get email subject for 2fa.'''
-	subject_template = 'Verifcation Code from Frappe Framework'
-	template = frappe.get_value('System Settings','System Settings','two_factor_email_subject')
-	if not template == '':
-		subject_template = template
+	subject_template = 'Verifcation Code from {}'.format(frappe.db.get_value('System Settings', 'System Settings', 'otp_issuer_name'))
 	subject = render_string_template(subject_template,kwargs_dict)
 	return subject
 
 def get_email_body_for_2fa(kwargs_dict):
 	'''Get email body for 2fa.'''
 	body_template = 'Use this token to login <br> {{otp}}'
-	template = frappe.get_value('System Settings','System Settings','two_factor_email_body')
-	if not template == '':
-		subject_template = template
 	body = render_string_template(body_template,kwargs_dict)
 	return body
 
 def get_email_subject_for_qr_code(kwargs_dict):
 	'''Get QRCode email subject.'''
-	subject_template = 'Verification Code from Frappe Framework'
-	template = frappe.get_value('System Settings','System Settings','qr_code_email_subject')
-	if not template == '':
-		subject_template = template
+	subject_template = 'OTP Registration Code from {}'.format(frappe.db.get_value('System Settings', 'System Settings', 'otp_issuer_name'))
 	subject = render_string_template(subject_template,kwargs_dict)	
 	return subject
 
 def get_email_body_for_qr_code(kwargs_dict):
 	'''Get QRCode email body.'''
-	body_template = 'Scan the QRCode on this link to get token <br> {{qrcode_link}}'
-	template = frappe.get_value('System Settings','System Settings','qr_code_email_body')
-	if not template == '':
-		body_template = template
+	body_template = 'Please click on the following link and follow the instructions on the page.<br> {{qrcode_link}}'
 	body = render_string_template(body_template,kwargs_dict)
 	return body
 

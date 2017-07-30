@@ -269,18 +269,12 @@ var continue_otp_app = function(setup, qrcode){
 	request_otp();
 	var qrcode_div = $('<div>').attr({'id':'qrcode_div','style':'text-align:center;padding-bottom:15px;'});
 
-	if (!setup){
-			direction = $('<div>').attr('id','qr_info').text('Scan QR Code and enter the resulting code displayed. \
-				You can use apps such as Google Authenticator, Lastpass Authenticator, Authy, Duo Mobile and others.'),
-			qrimg = $('<img>').attr({
-				'src':'data:image/svg+xml;base64,' + qrcode,
-				'style':'width:250px;height:250px;'});
-
+	if (setup){
+		direction = $('<div>').attr('id','qr_info').text('Enter Code displayed in OTP App.');
 		qrcode_div.append(direction);
-		qrcode_div.append(qrimg);
 		$('#otp_div').prepend(qrcode_div);
 	} else {
-		direction = $('<div>').attr('id','qr_info').text('Enter Code displayed in OTP App');
+		direction = $('<div>').attr('id','qr_info').text('OTP setup using OTP App was not completed. Please contact Administrator.');
 		qrcode_div.append(direction);
 		$('#otp_div').prepend(qrcode_div);
 	}
@@ -291,36 +285,10 @@ var continue_sms = function(setup, prompt){
 	var sms_div = $('<div>').attr({'id':'sms_div','style':'padding-bottom:15px;text-align:center;'});
 
 	if (setup){
-		direction = $('<div>').attr('id','sms_info').text('Enter phone number to send verification code');
-		sms_div.append(direction);
-		sms_div.append($('<div>').attr({'id':'sms_code_div'}).html(
-				'<div class="form-group text-center">\
-					<input type="text" id="phone_no" class="form-control" placeholder="2347001234567" required="" autofocus="">\
-					<button class="btn btn-sm btn-primary" id="submit_phone_no" >Send SMS</button>\
-				</div><hr>'));
-
+		sms_div.append(prompt)
 		$('#otp_div').prepend(sms_div);
-
-		$('#submit_phone_no').on('click',function(){
-			frappe.call({
-				method: "frappe.core.doctype.user.user.send_token_via_sms",
-				args: {'phone_no': $('#phone_no').val(), 'tmp_id':data.tmp_id },
-				freeze: true,
-				callback: function(r) {
-					if (r.message){
-						$('#sms_div').empty().append(
-							'<p class="lead">SMS sent.<br><small><small>Enter verification code received</small></small></p><hr>'
-							);
-					} else {
-						$('#sms_div').empty().append(
-							'<p class="lead">SMS not sent</p><hr>'
-							);
-					}
-				}
-			});
-		})
 	} else {
-		direction = $('<div>').attr('id','qr_info').text(prompt || 'SMS not sent');
+		direction = $('<div>').attr('id','qr_info').text(prompt || 'SMS was not sent. Please contact Administrator.');
 		sms_div.append(direction);
 		$('#otp_div').prepend(sms_div)
 	}
@@ -331,22 +299,10 @@ var continue_email = function(setup, prompt){
 	var email_div = $('<div>').attr({'id':'email_div','style':'padding-bottom:15px;text-align:center;'});
 
 	if (setup){
-		email_div.append('<p>Verification code email will be sent to registered email address. Enter code received below</p>')
+		email_div.append(prompt)
 		$('#otp_div').prepend(email_div);
-		frappe.call({
-			method: "frappe.core.doctype.user.user.send_token_via_email",
-			args: {'tmp_id':data.tmp_id },
-			callback: function(r) {
-				if (r.message){
-				} else {
-					$('#email_div').empty().append(
-						'<p>Email not sent</p><hr>'
-						);
-				}
-			}
-		});
 	} else {
-		var direction = $('<div>').attr('id','qr_info').text(prompt || 'Verification code email not sent');
+		var direction = $('<div>').attr('id','qr_info').text(prompt || 'Verification code email not sent. Please contact Administrator.');
 		email_div.append(direction);
 		$('#otp_div').prepend(email_div);
 	}

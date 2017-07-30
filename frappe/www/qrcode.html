@@ -1,12 +1,31 @@
+{% extends "templates/web.html" %}
+
+{% block title %}Register OTP Secret{% endblock %}
+
+{% block page_content %}
 <div>
 	<div style="text-align:center">
-		<div style="width:400px;margin:auto;text-align:center;">
-			<strong style="padding:10px;">Hi {{qr_code_user.first_name}}, Please scan QR Code and enter the resulting code displayed.
-				You can use apps such as Google Authenticator, Lastpass Authenticator, Authy, Duo Mobile and others.
-			</strong>
-		</div>
-		<div style="margin-top:10px;">
-		<img src="data:image/svg+xml;base64,{{qrcode_svg}}">
-		</div>
+		<table>
+			<tr>
+				<td width="50%">
+					<div style="margin:auto;text-align:left;">
+						<p>
+							Hi {{qr_code_user.first_name}}, please perform the following actions:
+							<li> Open your authentication app on your mobile phone, 
+							<li> Scan the QR Code and enter the resulting code displayed
+							<li> Return to the Verification screen and enter the code displayed by your authentication app
+						</p>
+						<p>Examples of Authentication Apps you can use are Google Authenticator, Lastpass Authenticator, Authy and Duo Mobile.
+						</p>
+					</div>
+				</td>
+				<td>
+					<div style="padding:10px;">
+					<img src="data:image/svg+xml;base64,{{qrcode_svg}}">
+					</div>
+				</td>
+			</tr>
+		</table>
 	</div>
 </div>
+{% endblock %}

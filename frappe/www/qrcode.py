@@ -14,10 +14,6 @@ no_cache = 1
 def get_context(context):
 	context.qr_code_user,context.qrcode_svg = get_user_svg_from_cache()
 
-
-
-
-
 def get_query_key():
 	'''Return query string arg.'''
 	query_string = frappe.local.request.query_string
