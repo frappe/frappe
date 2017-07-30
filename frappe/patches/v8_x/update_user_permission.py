@@ -15,7 +15,7 @@ def execute():
 			substr(defval.defkey,1,1)!='_'
 		and
 			defval.parenttype='User Permission'
-		and 
+		and
 			usr.name=defval.parent
 		""", as_dict=True):
 
