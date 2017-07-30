@@ -13,7 +13,7 @@ frappe.ui.form.make_quick_entry = (doctype, after_insert, init_callback) => {
 };
 
 frappe.ui.form.QuickEntryForm = Class.extend({
-	init: function(doctype, after_insert){
+	init: function(doctype, after_insert, init_callback){
 		this.doctype = doctype;
 		this.after_insert = after_insert;
 		this.init_callback = init_callback;
