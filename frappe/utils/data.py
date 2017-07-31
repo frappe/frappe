@@ -667,21 +667,21 @@ def get_url_to_report(name, report_type = None, doctype = None):
 
 operator_map = {
 	# startswith
-	"^": lambda (a, b): (a or "").startswith(b),
+	"^": lambda a, b: (a or "").startswith(b),
 
 	# in or not in a list
-	"in": lambda (a, b): operator.contains(b, a),
-	"not in": lambda (a, b): not operator.contains(b, a),
+	"in": lambda a, b: operator.contains(b, a),
+	"not in": lambda a, b: not operator.contains(b, a),
 
 	# comparison operators
-	"=": lambda (a, b): operator.eq(a, b),
-	"!=": lambda (a, b): operator.ne(a, b),
-	">": lambda (a, b): operator.gt(a, b),
-	"<": lambda (a, b): operator.lt(a, b),
-	">=": lambda (a, b): operator.ge(a, b),
-	"<=": lambda (a, b): operator.le(a, b),
-	"not None": lambda (a, b): a and True or False,
-	"None": lambda (a, b): (not a) and True or False
+	"=": lambda a, b: operator.eq(a, b),
+	"!=": lambda a, b: operator.ne(a, b),
+	">": lambda a, b: operator.gt(a, b),
+	"<": lambda a, b: operator.lt(a, b),
+	">=": lambda a, b: operator.ge(a, b),
+	"<=": lambda a, b: operator.le(a, b),
+	"not None": lambda a, b: a and True or False,
+	"None": lambda a, b: (not a) and True or False
 }
 
 def evaluate_filters(doc, filters):
@@ -704,7 +704,7 @@ def evaluate_filters(doc, filters):
 def compare(val1, condition, val2):
 	ret = False
 	if condition in operator_map:
-		ret = operator_map[condition]((val1, val2))
+		ret = operator_map[condition](val1, val2)
 
 	return ret
 
