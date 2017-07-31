@@ -1,3 +1,5 @@
+# How To Make Query Report
+
 You can create tabulated reports using complex SQL queries by creating a new Report. These reports can be created by a System Manager and are stored in the Database
 
 &gt; Note: You will need System Manager Permissions for this.

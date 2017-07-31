@@ -285,3 +285,24 @@ def extract_title(source, path):
 		title = os.path.basename(path.rsplit('.', )[0].rstrip('/')).replace('_', ' ').replace('-', ' ').title()
 
 	return title
+
+def add_missing_headers():
+	'''Walk and add missing headers in docs (to be called from bench execute)'''
+	path = frappe.get_app_path('erpnext', 'docs')
+	for basepath, folders, files in os.walk(path):
+		for fname in files:
+			if fname.endswith('.md'):
+				with open(os.path.join(basepath, fname), 'r') as f:
+					content = frappe.as_unicode(f.read())
+
+				if not content.startswith('# ') and not '<h1>' in content:
+					with open(os.path.join(basepath, fname), 'w') as f:
+						if fname=='index.md':
+							fname = os.path.basename(basepath)
+						else:
+							fname = fname[:-3]
+						h = fname.replace('_', ' ').replace('-', ' ').title()
+						print h
+						content = '# {0}\n\n'.format(h) + content
+						f.write(content.encode('utf-8'))
+

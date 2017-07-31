@@ -1,3 +1,5 @@
+# Setup Production
+
 Puedes configurar el bench para producción configurando dos parametros, Supervisor y nginx. Si quieres volver a ponerlo en desarrollo debes ver [estos comandos](https://github.com/frappe/bench/wiki/Stopping-Production-and-starting-Development)
 
 ####Configuración para producción facíl

@@ -1,3 +1,5 @@
+# Formatter For Link Fields
+
 In case where a code and a name is maintained for an entity, (for example for Employee there may be an Employee Code and Employee Name) and we want to show both the ID and name in a link field, we can make a formatter.
 
 #### Example:

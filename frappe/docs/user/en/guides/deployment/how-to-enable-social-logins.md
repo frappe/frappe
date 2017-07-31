@@ -1,3 +1,5 @@
+# How To Enable Social Logins
+
 Use Facebook, Google or GitHub authentication to login to Frappe, and your users will be spared from remembering another password.
 
 The system uses the **Email Address** supplied by these services to **match with an existing user** in Frappe. If no such user is found, **a new user is created** of the default type **Website User**, if Signup is not disabled in Website Settings. Any System Manager can later change the user type from **Website User** to **System User**, so that the user can access the Desktop.

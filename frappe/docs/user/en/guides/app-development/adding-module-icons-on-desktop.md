@@ -1,3 +1,5 @@
+# Adding Module Icons On Desktop
+
 To create a module icon for a Page, List or Module, you will have to edit the `config/desktop.py` file in your app.
 
 In this file you will have to write the `get_data` method that will return a dict object with the module icon parameters

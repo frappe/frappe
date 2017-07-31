@@ -1,8 +1,18 @@
+'''
+Check for unused CSS Classes
+
+sUpdate source and target apps below and run from CLI
+
+	bench --site [sitename] execute frappe.website.purifycss.purify.css
+
+'''
+
 import frappe, re, os
 
+source = frappe.get_app_path('frappe_theme', 'public', 'less', 'frappe_theme.less')
+target_apps = ['erpnext_com', 'frappe_io', 'translator', 'chart_of_accounts_builder', 'frappe_theme']
+
 def purifycss():
-	source = frappe.get_app_path('frappe_theme', 'public', 'less', 'frappe_theme.less')
-	target_apps = ['erpnext_com', 'frappe_io', 'translator', 'chart_of_accounts_builder', 'frappe_theme']
 	with open(source, 'r') as f:
 		src = f.read()
 

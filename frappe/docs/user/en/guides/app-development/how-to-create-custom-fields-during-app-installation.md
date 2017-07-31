@@ -1,3 +1,5 @@
+# How To Create Custom Fields During App Installation
+
 Your custom app can automatically add **Custom Fields** to DocTypes outside of your app when it is installed to a new site.
 
 To do this, add the new custom fields that your app requires, using the Frappe web application. 
