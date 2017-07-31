@@ -8,7 +8,7 @@ from frappe import _
 import frappe.permissions
 import re, csv, os
 from frappe.utils.csvutils import UnicodeWriter
-from frappe.utils import cstr, formatdate, format_datetime
+from frappe.utils import cstr, formatdate, format_datetime, fmt_money
 from  frappe.core.page.data_import_tool.data_import_tool import get_data_keys
 
 reflags = {
@@ -201,6 +201,9 @@ def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data
 							value = formatdate(value)
 						elif fieldtype == "Datetime":
 							value = format_datetime(value)
+						elif fieldtype in ("Float", "Currency", "Percent") and \
+								frappe.get_system_settings("number_format_in_data_import"):
+							value = fmt_money(value)
 
 					row[_column_start_end.start + i + 1] = value
 
