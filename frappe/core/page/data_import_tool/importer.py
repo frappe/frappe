@@ -118,7 +118,8 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 								elif fieldtype in ("Float", "Currency", "Percent"):
 									d[fieldname] = flt(d[fieldname])
 								elif fieldtype == "Date":
-									d[fieldname] = getdate(parse_date(d[fieldname])) if d[fieldname] else None
+									if d[fieldname] and isinstance(d[fieldname], basestring):
+										d[fieldname] = getdate(parse_date(d[fieldname]))
 								elif fieldtype == "Datetime":
 									if d[fieldname]:
 										if " " in d[fieldname]:
