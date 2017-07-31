@@ -223,7 +223,7 @@ def get_link_for_qrcode(user,totp_uri):
 	key = frappe.generate_hash(length=20)
 	key_user = "{}_user".format(key)
 	key_uri = "{}_uri".format(key)
-	lifespan = int(frappe.db.get_value('System Settings', 'System Settings', 'lifespan_barcode_image'))
+	lifespan = int(frappe.db.get_value('System Settings', 'System Settings', 'lifespan_qrcode_image'))
 	if lifespan<=0:
 		lifespan = 240
 	frappe.cache().set_value(key_uri,totp_uri,expires_in_sec=lifespan)
@@ -275,13 +275,6 @@ def send_token_via_email(user, token, otp_secret, otp_issuer,subject=None,messag
 
 	enqueue(method=frappe.sendmail, queue='short', timeout=300, event=None, async=True, job_name=None, now=False, **email_args)
 	return True
-
-def should_send_barcode_as_email():
-	settings = frappe.get_doc('System Settings', 'System Settings')
-	if settings.two_factor_method and settings.send_barcode_as_email:
-		return True
-	return False
-
 
 def get_qr_svg_code(totp_uri):
 	'''Get SVG code to display Qrcode for OTP.'''
@@ -344,7 +337,7 @@ def should_remove_barcode_image(barcode):
 	'''Check if it's time to delete barcode image from server. '''
 	if isinstance(barcode, basestring):
 		barcode = frappe.get_doc('File',barcode)
-	lifespan = frappe.db.get_value('System Settings', 'System Settings', 'lifespan_barcode_image')
+	lifespan = frappe.db.get_value('System Settings', 'System Settings', 'lifespan_qrcode_image')
 	if time_diff_in_seconds(get_datetime(),barcode.creation) > int(lifespan):
 		return True
 	return False
