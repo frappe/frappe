@@ -145,7 +145,7 @@ def export_query():
 
 		# convert to csv
 		import csv
-		from cStringIO import StringIO
+		from six import StringIO
 
 		f = StringIO()
 		writer = csv.writer(f)

@@ -239,7 +239,7 @@ def runquery_csv():
 
 	rows = [[rep_name], out['colnames']] + out['values']
 
-	from cStringIO import StringIO
+	from six import StringIO
 	import csv
 
 	f = StringIO()
