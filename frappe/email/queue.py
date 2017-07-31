@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 from six.moves import range
 import frappe
-import HTMLParser
+from six.moves import html_parser as HTMLParser
 import smtplib, quopri, json
 from frappe import msgprint, throw, _
 from frappe.email.smtp import SMTPServer, get_outgoing_email_account
