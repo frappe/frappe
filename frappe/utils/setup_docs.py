@@ -7,10 +7,8 @@ Call from command line:
 """
 from __future__ import unicode_literals, print_function
 
-import os, json, frappe, shutil, re
-from frappe.website.context import get_context
+import os, json, frappe, shutil
 from frappe.utils import markdown
-from six import iteritems
 
 class setup_docs(object):
 	def __init__(self, app, target_app):
@@ -39,16 +37,9 @@ class setup_docs(object):
 				"publisher": self.hooks.get("app_publisher")[0],
 				"icon": self.hooks.get("app_icon")[0],
 				"email": self.hooks.get("app_email")[0],
-				"headline": self.docs_config.headline,
-				"brand_html": getattr(self.docs_config, 'brand_html', None),
-				"sub_heading": self.docs_config.sub_heading,
 				"source_link": self.docs_config.source_link,
-				"hide_install": getattr(self.docs_config, "hide_install", False),
-				"long_description": markdown(getattr(self.docs_config, "long_description", "")),
 				"license": self.hooks.get("app_license")[0],
 				"branch": getattr(self.docs_config, "branch", None) or "develop",
-				"style": getattr(self.docs_config, "style", ""),
-				"google_analytics_id": getattr(self.docs_config, "google_analytics_id", "")
 			}),
 			"metatags": {
 				"description": self.hooks.get("app_description")[0],
@@ -135,14 +126,13 @@ class setup_docs(object):
 		shutil.copytree(os.path.join(self.app_path, 'docs', 'assets'),
 			frappe.get_app_path(self.target_app, 'www', 'docs', 'assets'))
 
+		# copy index
+		shutil.copy(os.path.join(self.app_path, 'docs', 'index.md'),
+			frappe.get_app_path(self.target_app, 'www', 'docs'))
+
 	def make_home_pages(self):
 		"""Make standard home pages for docs, developer docs, api and models
 			from templates"""
-		# make dev home page
-		with open(os.path.join(self.docs_path, "index.html"), "w") as home:
-			home.write(frappe.render_template("templates/autodoc/docs_home.html",
-			self.app_context))
-
 		# make dev home page
 		with open(os.path.join(self.path, "index.html"), "w") as home:
 			home.write(frappe.render_template("templates/autodoc/dev_home.html",
@@ -195,26 +185,6 @@ class setup_docs(object):
 			f.write(html)
 
 		self.update_index_txt(self.docs_path)
-
-	def make_docs(self, target, local = False):
-		self.target = target
-		self.local = local
-
-		frappe.flags.local_docs = local
-
-		if self.local:
-			self.docs_base_url = ""
-		else:
-			self.docs_base_url = self.docs_config.docs_base_url
-
-		# add for processing static files (full-index)
-		frappe.local.docs_base_url = self.docs_base_url
-
-		# write in target path
-		self.write_files()
-
-		# copy assets/js, assets/css, assets/img
-		self.copy_assets()
 
 	def is_py_module(self, basepath, folders, files):
 		return "__init__.py" in files \
@@ -311,175 +281,6 @@ class setup_docs(object):
 					context.update(self.app_context)
 					f.write(frappe.render_template("templates/autodoc/doctype.html",
 						context).encode("utf-8"))
-
-	def write_files(self):
-		"""render templates and write files to target folder"""
-		frappe.flags.home_page = "index"
-
-		from frappe.website.router import get_pages, make_toc
-		pages = get_pages(self.app)
-
-		# clear the user, current folder in target
-		shutil.rmtree(os.path.join(self.target, "user"), ignore_errors=True)
-		shutil.rmtree(os.path.join(self.target, "current"), ignore_errors=True)
-
-		def raw_replacer(matchobj):
-			if '{% raw %}' in matchobj.group(0):
-				return matchobj.group(0)
-			else:
-				return '{% raw %}' + matchobj.group(0) + '{% endraw %}'
-
-		cnt = 0
-		for path, context in iteritems(pages):
-			print("Writing {0}".format(path))
-
-			# set this for get_context / website libs
-			frappe.local.path = path
-
-			context.update({
-				"page_links_with_extn": True,
-				"relative_links": True,
-				"docs_base_url": self.docs_base_url,
-				"url_prefix": self.docs_base_url,
-			})
-
-			context.update(self.app_context)
-
-			context = get_context(path, context)
-
-			if context.basename:
-				target_path_fragment = context.route + '.html'
-			else:
-				# index.html
-				target_path_fragment = context.route + '/index.html'
-
-			target_filename = os.path.join(self.target, target_path_fragment.strip('/'))
-
-			context.brand_html = context.app.brand_html
-			context.top_bar_items = context.favicon = None
-
-			self.docs_config.get_context(context)
-
-			if not context.brand_html:
-				if context.docs_icon:
-					context.brand_html = '<i class="{0}"></i> {1}'.format(context.docs_icon, context.app.title)
-				else:
-					context.brand_html = context.app.title
-
-			if not context.top_bar_items:
-				context.top_bar_items = [
-					# {"label": "Contents", "url": self.docs_base_url + "/contents.html", "right": 1},
-					{"label": "User Guide", "url": self.docs_base_url + "/user", "right": 1},
-					{"label": "Developer Docs", "url": self.docs_base_url + "/current", "right": 1},
-				]
-
-			context.top_bar_items = [{"label": '<i class="octicon octicon-search"></i>', "url": "#",
-				"right": 1}] + context.top_bar_items
-
-			context.parents = []
-			parent_route = os.path.dirname(context.route)
-			if pages[parent_route]:
-				context.parents = [pages[parent_route]]
-
-			context.only_static = True
-			context.base_template_path = "templates/autodoc/base_template.html"
-
-			if '<code>' in context.source:
-				context.source = re.sub('\<code\>(.*)\</code\>', raw_replacer, context.source)
-
-			html = frappe.render_template(context.source, context)
-
-			html = make_toc(context, html, self.app)
-
-			if not "<!-- autodoc -->" in html:
-				html = html.replace('<!-- edit-link -->',
-					edit_link.format(\
-						source_link = self.docs_config.source_link,
-						app_name = self.app,
-						branch = context.app.branch,
-						target = context.template))
-
-			if not os.path.exists(os.path.dirname(target_filename)):
-				os.makedirs(os.path.dirname(target_filename))
-
-			with open(target_filename, "w") as htmlfile:
-				htmlfile.write(html.encode("utf-8"))
-
-				cnt += 1
-
-		print("Wrote {0} files".format(cnt))
-
-
-	def copy_assets(self):
-		"""Copy jquery, bootstrap and other assets to files"""
-
-		print("Copying assets...")
-		assets_path = os.path.join(self.target, "assets")
-
-		# copy assets from docs
-		source_assets = frappe.get_app_path(self.app, "docs", "assets")
-		if os.path.exists(source_assets):
-			for basepath, folders, files in os.walk(source_assets):
-				target_basepath = os.path.join(assets_path, os.path.relpath(basepath, source_assets))
-
-				# make the base folder
-				if not os.path.exists(target_basepath):
-					os.makedirs(target_basepath)
-
-				# copy all files in the current folder
-				for f in files:
-					shutil.copy(os.path.join(basepath, f), os.path.join(target_basepath, f))
-
-		# make missing folders
-		for fname in ("js", "css", "img"):
-			path = os.path.join(assets_path, fname)
-			if not os.path.exists(path):
-				os.makedirs(path)
-
-		copy_files = {
-			"js/lib/jquery/jquery.min.js": "js/jquery.min.js",
-			"js/lib/bootstrap.min.js": "js/bootstrap.min.js",
-			"js/lib/highlight.pack.js": "js/highlight.pack.js",
-			"js/docs.js": "js/docs.js",
-			"css/bootstrap.css": "css/bootstrap.css",
-			"css/font-awesome.css": "css/font-awesome.css",
-			"css/docs.css": "css/docs.css",
-			"css/hljs.css": "css/hljs.css",
-			"css/fonts": "css/fonts",
-			"css/octicons": "css/octicons",
-			# always overwrite octicons.css to fix the path
-			"css/octicons/octicons.css": "css/octicons/octicons.css",
-			"images/frappe-bird-grey.svg": "img/frappe-bird-grey.svg",
-			"images/favicon.png": "img/favicon.png",
-			"images/background.png": "img/background.png",
-			"images/smiley.png": "img/smiley.png",
-			"images/up.png": "img/up.png"
-		}
-
-		for source, target in iteritems(copy_files):
-			source_path = frappe.get_app_path("frappe", "public", source)
-			if os.path.isdir(source_path):
-				if not os.path.exists(os.path.join(assets_path, target)):
-					shutil.copytree(source_path, os.path.join(assets_path, target))
-			else:
-				shutil.copy(source_path, os.path.join(assets_path, target))
-
-		# fix path for font-files, background
-		files = (
-			os.path.join(assets_path, "css", "octicons", "octicons.css"),
-			os.path.join(assets_path, "css", "font-awesome.css"),
-			os.path.join(assets_path, "css", "docs.css"),
-		)
-
-		for path in files:
-			with open(path, "r") as css_file:
-				text = unicode(css_file.read(), 'utf-8')
-			with open(path, "w") as css_file:
-				if "docs.css" in path:
-					css_file.write(text.replace("/assets/img/",
-						self.docs_base_url + '/assets/img/').encode('utf-8'))
-				else:
-					css_file.write(text.replace("/assets/frappe/", self.docs_base_url + '/assets/').encode('utf-8'))
 
 def get_version(app="frappe"):
 	try:

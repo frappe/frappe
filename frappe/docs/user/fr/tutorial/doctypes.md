@@ -50,7 +50,7 @@ sur chacune des lignes comme ci-dessous
 #### Ajouter des permissins
 
 Après avoir ajouté les champs, validez et ajoutez un nouveau rôle dans la section des règles de permissions. Pour le moment
-ajoutons les droits le lecture, écriture, création et suppression au modèle **Librarian**. Frappe à une gestion fine des 
+ajoutons les droits le lecture, écriture, création et suppression au modèle **Librarian**. Frappé à une gestion fine des 
 permissions sur les modèles. Vous pouvez aussi changer les permissions plus tard en utilisant le gestionnaire de permissions
 dans la configuration.
 

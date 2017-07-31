@@ -45,7 +45,7 @@ Nós podemos adicionar os seguintes campos:
 
 #### Adicionando permissões
 
-Depois de adicionar os campos, finalize e adicione uma nova linha na seção Regras de permissão. Por enquanto, vamos dar permissão de Read, Write, Create, Delete and Report, a **Librarian**. Frappe tem uma Role baseado nas permissões do modelo. Você também pode alterar as permissões posteriormente usando o **Role Permissions Manager** do **Setup**.
+Depois de adicionar os campos, finalize e adicione uma nova linha na seção Regras de permissão. Por enquanto, vamos dar permissão de Read, Write, Create, Delete and Report, a **Librarian**. Frappé tem uma Role baseado nas permissões do modelo. Você também pode alterar as permissões posteriormente usando o **Role Permissions Manager** do **Setup**.
 
 <img class="screenshot" alt="Adding Permissions" src="/docs/assets/img/doctype_adding_permission.png">
 

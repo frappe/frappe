@@ -1,4 +1,4 @@
-# Frappe Developer Tutorial
+# Frappé Developer Tutorial
 
 Select your language
 

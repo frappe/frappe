@@ -45,7 +45,7 @@ We can add the following fields:
 
 #### Add Permissions
 
-After adding the fields, hit done and add a new row in the Permission Rules section. For now, let us give Read, Write, Create, Delete and Report access to **Librarian**. Frappe has a finely grained Role based permission model. You can also change permissions later using the **Role Permissions Manager** from **Setup**.
+After adding the fields, hit done and add a new row in the Permission Rules section. For now, let us give Read, Write, Create, Delete and Report access to **Librarian**. Frappé has a finely grained Role based permission model. You can also change permissions later using the **Role Permissions Manager** from **Setup**.
 
 <img class="screenshot" alt="Adding Permissions" src="/docs/assets/img/doctype_adding_permission.png">
 

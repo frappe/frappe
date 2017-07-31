@@ -24,7 +24,7 @@ Isso pode ser definido através do preenchimento do campo **Autoname**. Para o c
 
 #### Vinculando e selecionando campos
 
-As chaves estrangeiras são especificados no Frappe como um tipo de campo **Link**. O DocType alvo deve ser mencionado na área de Opções de texto.
+As chaves estrangeiras são especificados no Frappé como um tipo de campo **Link**. O DocType alvo deve ser mencionado na área de Opções de texto.
 
 No nosso exemplo, na Library Transaction DocType, temos que ligar o Membro da Biblioteca e o artigo.
 

@@ -26,7 +26,7 @@ Une fois connecté, vous devriez voir le `Desk`, c'est à dire la page d'accueil
 
 <img class="screenshot" alt="Desk" src="/docs/assets/img/desk.png">
 
-Comme vous pouvez le voir, Frappe fournit quelques applications comme un To Do, un gestionnaire de fichiers etc. Ces applications
+Comme vous pouvez le voir, Frappé fournit quelques applications comme un To Do, un gestionnaire de fichiers etc. Ces applications
 peuvent être intégrées par la suite.
 
 {next}

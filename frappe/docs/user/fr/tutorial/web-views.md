@@ -1,11 +1,11 @@
 # Les vues web
 
-Frappe a deux principaux environnements, le **bureau** et **le web**. Le **bureau** est un environnement riche AJAX alors
+Frappé a deux principaux environnements, le **bureau** et **le web**. Le **bureau** est un environnement riche AJAX alors
 que **le web** est une collection plus traditionnelle de fichiers HTML pour la consultation publique. Les vues web peuvent
 aussi être générées pour créer des vues plus controllées pour les utilisateurs qui peuvent se connecter mais qui n'ont pas
 accès au desk.
 
-Dans Frappe, les vues sont gérées par des templates et sont tout naturellement placés dans le repertoire `templates`. Il 
+Dans Frappé, les vues sont gérées par des templates et sont tout naturellement placés dans le repertoire `templates`. Il 
 y a 2 principaux types de templates.
 
 1. Pages: Ce sont des templates Jinja ou une vue unique existe pour une route (exemple:`/blog`).
@@ -54,7 +54,7 @@ La mise à jour de la liste ressemble à ca !
 
 #### La page d'accueil
 
-Frappe permet l'inscription et inclut les inscriptions via Google, Facebook et Github. Quand un utilisateur s'inscrit via
+Frappé permet l'inscription et inclut les inscriptions via Google, Facebook et Github. Quand un utilisateur s'inscrit via
 le web, il n'a pas accès à l'interface du desk par defaut.
 
 > Pour autoriser les utilisateurs à accéder au `Desk`, ouvrez la configuration de l'utilisateur (Setup > User) et définissez

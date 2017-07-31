@@ -26,6 +26,6 @@ Cuando accedas, deberías poder ver la página de inicio (Desk).
 
 <img class="screenshot" alt="Desk" src="/docs/assets/img/desk.png">
 
-Como puedes ver, el sistema básico de Frappe viene con algunas aplicaciones preinstaladas como To Do, File Manager etc. Estas aplicaciones pueden integrarse en el flujo de trabajo de su aplicació a medida que avancemos.
+Como puedes ver, el sistema básico de Frappé viene con algunas aplicaciones preinstaladas como To Do, File Manager etc. Estas aplicaciones pueden integrarse en el flujo de trabajo de su aplicació a medida que avancemos.
 
 {next}

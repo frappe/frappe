@@ -1,8 +1,8 @@
 # Vistas Web (Web Views)
 
-Frappe tiene dos entornos principales, El escritorio y la Web. El escritorio es una interfaz de usuario controlada con una excelente aplicación AJAX y la web es mas plantillas de HTML tradicionales dispuestas para consumo público. Vistas Web pueden también ser generadas para crear vistas controladas para los usuarios que puedes acceder al sistema pero aún así no tener acceso al escritorio.
+Frappé tiene dos entornos principales, El escritorio y la Web. El escritorio es una interfaz de usuario controlada con una excelente aplicación AJAX y la web es mas plantillas de HTML tradicionales dispuestas para consumo público. Vistas Web pueden también ser generadas para crear vistas controladas para los usuarios que puedes acceder al sistema pero aún así no tener acceso al escritorio.
 
-En Frappe, Las vistas web son manejadas por plantillas que estan usualmente en el directorio `templates`. Hay dos tipos principales de plantillas.
+En Frappé, Las vistas web son manejadas por plantillas que estan usualmente en el directorio `templates`. Hay dos tipos principales de plantillas.
 
 1. Pages: Estos son plantillas Jinja donde una vista existe solo para una ruta. ejemplo. `/blog`.
 2. Generators: Estas son plantiallas donde cada instancia de un DocType tiene una ruta diferente `/blog/a-blog`, `blog/b-blog` etc.
@@ -49,7 +49,7 @@ La lista actualizada debe lucir de esta manera!
 
 #### Página de Inicio
 
-Frappe también tiene vistas para el registro de usuarios que incluye opciones de registro usando Google, Facebook y GitHub. Cuando un usuario se registra vía la web, no tiene acceso a la interfaz del Escritorio por defecto.
+Frappé también tiene vistas para el registro de usuarios que incluye opciones de registro usando Google, Facebook y GitHub. Cuando un usuario se registra vía la web, no tiene acceso a la interfaz del Escritorio por defecto.
 
 > Para permitirles a los usuarios acceso al Escritorio, debes especificar que el usuario es de tipo "System User" en Setup > User
 

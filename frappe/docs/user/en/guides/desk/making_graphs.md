@@ -1,6 +1,6 @@
 # Making Graphs
 
-The Frappe UI **Graph** object enables you to render simple line, bar or percentage graphs for single or multiple discreet sets of data points. You can also set special checkpoint values and summary stats.
+The Frappé UI **Graph** object enables you to render simple line, bar or percentage graphs for single or multiple discreet sets of data points. You can also set special checkpoint values and summary stats.
 
 ### Example: Line graph
 Here's an example of a simple sales graph:

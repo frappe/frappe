@@ -25,7 +25,7 @@ Dans notre cas, l'arcicle peut etre cherché par un titre ou par l'auteur. Rempl
 
 #### Relation et champs select
 
-Les clés étrangères sont, dans Frappe, traduits par un champs de type **Link**. Le **DocType** ciblé doit être mentionné
+Les clés étrangères sont, dans Frappé, traduits par un champs de type **Link**. Le **DocType** ciblé doit être mentionné
  dans le champs **Options**.
 
 Dans notre exemple, pour le **doctype** `Library Transaction`, nous avons un lien vers `Library Member` et vers `Article`.

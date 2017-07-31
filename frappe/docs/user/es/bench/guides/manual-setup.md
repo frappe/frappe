@@ -32,7 +32,7 @@ Uso básico
 
 * Crea un nuevo bench
 
-	El comando init va a crear un directorio conteniendo el framework Frappe instalado.
+	El comando init va a crear un directorio conteniendo el framework Frappé instalado.
 	Va a ser configurado para copias de seguridad periódicas y actualizaciones automáticas una vez por día.
 
 		bench init frappe-bench && cd frappe-bench
@@ -49,7 +49,7 @@ Uso básico
 
 * Agregar Site
 
-	Las aplicaciones Frappe son montadas en los Sites y por tanto tendras que crear por lo menos un site.
+	Las aplicaciones Frappé son montadas en los Sites y por tanto tendras que crear por lo menos un site.
 	El comando new-site te permite crearlos.
 
 		bench new-site site1.local
@@ -60,7 +60,7 @@ Uso básico
 
 		bench start
 
-	Para acceder a Frappe / ERPNext, abra su navegador favorito y escriba la ruta `localhost:8000`
+	Para acceder a Frappé / ERPNext, abra su navegador favorito y escriba la ruta `localhost:8000`
 
 	El usuario por defecto es "Administrator" y la contraseña es la que específicaste al momento de crear el nuevo site.
 

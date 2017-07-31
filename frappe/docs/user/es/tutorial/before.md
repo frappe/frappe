@@ -1,12 +1,12 @@
 # Antes de empezar
 
-<p class="lead">Una lista de recursos que te ayudaran a inicar con el desarrollo de aplicaciones usando Frappe.</p>
+<p class="lead">Una lista de recursos que te ayudaran a inicar con el desarrollo de aplicaciones usando Frappé.</p>
 
 ---
 
 #### 1. Python
 
-Frappe usa Python (v2.7) como lenguaje de parte del servidor. Es altamente recomendable aprender Python antes de iniciar a crear aplicaciones con Frappe.
+Frappé usa Python (v2.7) como lenguaje de parte del servidor. Es altamente recomendable aprender Python antes de iniciar a crear aplicaciones con Frappé.
 
 Para escribir código de calidad del lado del servidor, también debes incluir pruebas automatizadas.
 
@@ -30,7 +30,7 @@ Recursos:
 
 #### 3. HTML / CSS
 
-Si quieres construir interfaces de usuario usando Frappe, necesitas aprender los conceptops básicos de HTML / CSS y el framework de CSS Bootstrap.
+Si quieres construir interfaces de usuario usando Frappé, necesitas aprender los conceptops básicos de HTML / CSS y el framework de CSS Bootstrap.
 
 Recursos:
  1. [Tutorial sobre HTML/CSS de Codecademy](https://www.codecademy.com/learn/learn-html-css)
@@ -68,4 +68,4 @@ Recursos:
 
 ---
 
-Cuando estes listo, puedes intentar [crear una aplicación simple](/docs/user/es/tutorial/app) usando Frappe.
+Cuando estes listo, puedes intentar [crear una aplicación simple](/docs/user/es/tutorial/app) usando Frappé.

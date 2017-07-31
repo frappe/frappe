@@ -1,6 +1,6 @@
 # Making Charts using c3.js
 
-Frappe bundles the c3.js libary to make charts inside the app and provides a wrapper class so that you can start using charts out of the box. To use chart, you need the x and y data, make a wrapper block and then just make the chart object.
+Frappé bundles the c3.js libary to make charts inside the app and provides a wrapper class so that you can start using charts out of the box. To use chart, you need the x and y data, make a wrapper block and then just make the chart object.
 
 ### Time Series Example
 

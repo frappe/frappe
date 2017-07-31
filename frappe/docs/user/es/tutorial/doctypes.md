@@ -46,7 +46,7 @@ Podemos agregar los siguientes campos:
 
 #### Agregar permisos
 
-Despues de agregar los campos, dar click en hecho y agrega una nueva fila en la sección de Permission Roles. Por ahora, vamos a darle accesos Lectura, Escritura, Creación y Reportes al Role **Librarian**. Frappe cuenta con un sistema basados en el modelo de Roles finamente granulado. Puedes cambiar los permisos más adealante usando el **Role Permissions Manager** desde **Setup**.
+Despues de agregar los campos, dar click en hecho y agrega una nueva fila en la sección de Permission Roles. Por ahora, vamos a darle accesos Lectura, Escritura, Creación y Reportes al Role **Librarian**. Frappé cuenta con un sistema basados en el modelo de Roles finamente granulado. Puedes cambiar los permisos más adealante usando el **Role Permissions Manager** desde **Setup**.
 
 <img class="screenshot" alt="Adding Permissions" src="/docs/assets/img/doctype_adding_permission.png">
 

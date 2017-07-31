@@ -1,4 +1,4 @@
-# UI Testing with Frappe API
+# UI Testing with Frappé API
 
 You can either write integration tests, or directly write tests in Javascript using [QUnit](http://api.qunitjs.com/)
 

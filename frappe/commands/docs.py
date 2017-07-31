@@ -28,10 +28,9 @@ def build_docs(context, app, docs_version="current", target=None, local=False, w
 					shutil.copy(source_path, target_path)
 					add_breadcrumbs_tag(target_path)
 
-				elif ("/docs.css" in source_path
-					or "/docs/" in source_path
-					or "docs.py" in source_path):
-					_build_docs_once(site, app, docs_version, target, local, only_content_updated=True)
+				if source_path.endswith('/docs/index.md'):
+					target_path = frappe.get_app_path(target, 'www', 'docs', 'index.md')
+					shutil.copy(source_path, target_path)
 
 			apps_path = frappe.get_app_path(app)
 			start_watch(apps_path, handler=trigger_make)

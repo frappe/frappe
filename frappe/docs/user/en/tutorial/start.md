@@ -26,6 +26,6 @@ When you login, you should see the "Desk" home page
 
 <img class="screenshot" alt="Desk" src="/docs/assets/img/desk.png">
 
-As you can see, the Frappe basic system comes with several pre-loaded applications like To Do, File Manager etc. These apps can integrated in your app workflow as we progress.
+As you can see, the Frappé basic system comes with several pre-loaded applications like To Do, File Manager etc. These apps can integrated in your app workflow as we progress.
 
 {next}

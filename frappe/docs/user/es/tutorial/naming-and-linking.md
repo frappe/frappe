@@ -24,7 +24,7 @@ Esto puede ser seteado a traves del campo **Autoname**. Para el controlador, dej
 
 #### Campo de Enlace y Campo Select
 
-Las claves foraneas son específicadas en Frappe como campos **Link** (Enlace). El DocType debe ser mencionado en el area de texto de Options.
+Las claves foraneas son específicadas en Frappé como campos **Link** (Enlace). El DocType debe ser mencionado en el area de texto de Options.
 
 En nuestro ejemplo, en el DocType de Library Transaction,tenemos que enlazar los dos DocTypes de Library Member and the Article.
 

@@ -1,6 +1,6 @@
 # Making Portals
 
-Frappe has powerful tools to build portals where pages can be dynamically generated using templates (Jinja) and users can be shown records after login
+Frappé has powerful tools to build portals where pages can be dynamically generated using templates (Jinja) and users can be shown records after login
 
 #### Adding Pages
 

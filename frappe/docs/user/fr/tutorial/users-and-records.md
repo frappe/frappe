@@ -1,7 +1,7 @@
 # Créer des utilisateurs et des enregistrements
 
 Maintenant que nous avons définis des modèles, nous pouvons créér des enregistrements directement depuis l'interface. Vous
-n'avez pas à créer des vues ! Les vues dans Frappe sont automatiquements créées à partir des propriétés de vos **DocTypes**.
+n'avez pas à créer des vues ! Les vues dans Frappé sont automatiquements créées à partir des propriétés de vos **DocTypes**.
 
 ### 4.1 Créer des utilisateurs
 

@@ -1,8 +1,8 @@
 # Using Html Templates In Javascript
 
-Often while building javascript interfaces, there is a need to render DOM as an HTML template. Frappe Framework uses John Resig's Microtemplate script to render HTML templates in the Desk application.
+Often while building javascript interfaces, there is a need to render DOM as an HTML template. Frappé Framework uses John Resig's Microtemplate script to render HTML templates in the Desk application.
 
-> Note 1: In Frappe we use the Jinja-like `{% raw %}{%{% endraw %}` tags to embed code rather than the standard `<%`
+> Note 1: In Frappé we use the Jinja-like `{% raw %}{%{% endraw %}` tags to embed code rather than the standard `<%`
 
 > Note 2: Never use single quotes `'` inside the HTML template.
 

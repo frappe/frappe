@@ -1,6 +1,6 @@
-# Videos Tutoriales acerca del Framework Frappe
+# Videos Tutoriales acerca del Framework Frappé
 
-Este video tutorial de 10 videos va a enseñarte como crear aplicaciones complejas en Frappe.
+Este video tutorial de 10 videos va a enseñarte como crear aplicaciones complejas en Frappé.
 
 Prerrequisitos: <a href="/docs/user/es/tutorial/before.html" target="_blank">Debes tener conocimientos básicos de Python, Javascript y MySQl antes de empezar este tutorial.</a>
 

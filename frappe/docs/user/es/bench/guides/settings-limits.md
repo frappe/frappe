@@ -1,6 +1,6 @@
 # Estableciendo límites para su sitio
 
-La versión 7 de Frappe ha agregado soporte para la configuración de límites y restricciones para su site.
+La versión 7 de Frappé ha agregado soporte para la configuración de límites y restricciones para su site.
 Estas restricciones están en el archivo `site_config.json` dentro de la carpeta del site.
 
 	{

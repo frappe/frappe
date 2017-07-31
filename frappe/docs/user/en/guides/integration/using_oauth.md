@@ -106,4 +106,4 @@ status : 400
 
 ### Accessing Resource
 
-Add header `Authorizaton: Bearer <valid_bearer_token>` to Frappe's REST API endpoints to access user's resource
+Add header `Authorizaton: Bearer <valid_bearer_token>` to Frappé's REST API endpoints to access user's resource

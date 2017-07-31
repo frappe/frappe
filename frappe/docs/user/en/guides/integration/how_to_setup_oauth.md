@@ -1,6 +1,6 @@
 # How to setup oauth?
 
-<a href="https://tools.ietf.org/html/rfc6749">OAuth 2.0</a> provider based on <a href="https://github.com/idan/oauthlib">oauthlib</a> is built into frappe. Third party apps can now access resources of users based on Frappe Role and User permission system. To setup an app to access
+<a href="https://tools.ietf.org/html/rfc6749">OAuth 2.0</a> provider based on <a href="https://github.com/idan/oauthlib">oauthlib</a> is built into frappe. Third party apps can now access resources of users based on Frappé Role and User permission system. To setup an app to access
 
 ## OAuth defines four roles
 
@@ -30,7 +30,7 @@ Go to
 
 ### Add Primary Server
 
-This is the main server hosting all the users. e.g. `https://frappe.io`. To setup this as the main server, go to *Setup* > *Integrations* > *Social Login Keys* and enter `https://frappe.io` in the field  `Frappe Server URL`. This URL repeats in all other Frappe servers who connect to this server to authenticate. Effectively, this is the main Identity Provider (IDP). 
+This is the main server hosting all the users. e.g. `https://frappe.io`. To setup this as the main server, go to *Setup* > *Integrations* > *Social Login Keys* and enter `https://frappe.io` in the field  `Frappé Server URL`. This URL repeats in all other Frappé servers who connect to this server to authenticate. Effectively, this is the main Identity Provider (IDP). 
 
 Under this server add as many `OAuth Client`(s) as required.
 

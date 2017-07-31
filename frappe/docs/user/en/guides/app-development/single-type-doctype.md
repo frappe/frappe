@@ -8,4 +8,4 @@ The data in Single DocType is stored in `tabSingles` (`doctype`, `field`, `value
 
 #### Examples 
 
-In Frappe, Single types are **System Settings** and **Customize Form**
+In Frappé, Single types are **System Settings** and **Customize Form**

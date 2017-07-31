@@ -10,7 +10,7 @@ These steps are automated if you run `sudo bench setup production`
 Supervisor
 ----------
 
-Supervisor makes sure that the process that power the Frappe system keep running
+Supervisor makes sure that the process that power the Frappé system keep running
 and it restarts them if they happen to crash. You can generate the required
 configuration for supervisor using the command `bench setup supervisor`. The
 configuration will be available in `config/supervisor.conf` directory. You can

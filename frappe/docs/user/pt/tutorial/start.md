@@ -26,6 +26,6 @@ Quando voce logar, voce deverá ver o "Desk" da pagine home
 
 <img class="screenshot" alt="Desk" src="/docs/assets/img/desk.png">
 
-Como você pode ver, o básico do sistema Frappe vem com vários aplicativos pré-carregados como coisas a fazer, o Gerenciador de arquivos etc. Esses aplicativos podem ser integrados no fluxo de trabalho do app à medida que progredimos.
+Como você pode ver, o básico do sistema Frappé vem com vários aplicativos pré-carregados como coisas a fazer, o Gerenciador de arquivos etc. Esses aplicativos podem ser integrados no fluxo de trabalho do app à medida que progredimos.
 
 {next}

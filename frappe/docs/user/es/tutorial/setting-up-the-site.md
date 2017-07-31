@@ -19,7 +19,7 @@ Vamos a crear un nuevo Site llamado `library`.
 Ahora puedes instalar un nuevo site, ejecutando el comando `bench new-site library`.
 
 La ejecución del comando anterior va a generar una nueva base de datos, un directorio en la carpeta sites y va a instalar `frappe` (el cual también es una aplicación!) en el nuevo site.
- La aplicación `frappe` tiene dos módulos integrados que son **Core** y **Website**. El módulo Core contiene los modelos básicos para la aplicación. Frappe es un Framework con muchas funcionalidades incluidas y viene con muchos modelos integrados. Estos modelos son llamados **DocTypes**. Vamos a ver más de esto en lo adelante.
+ La aplicación `frappe` tiene dos módulos integrados que son **Core** y **Website**. El módulo Core contiene los modelos básicos para la aplicación. Frappé es un Framework con muchas funcionalidades incluidas y viene con muchos modelos integrados. Estos modelos son llamados **DocTypes**. Vamos a ver más de esto en lo adelante.
 
 	$ bench new-site library
 	MySQL root password:
