@@ -464,8 +464,8 @@ class DbManager:
 		"""
 		Pass root_conn here for access to all databases.
 		"""
- 		if db:
- 			self.db = db
+		if db:
+			self.db = db
 
 	def get_current_host(self):
 		return self.db.sql("select user()")[0][0].split('@')[1]
