@@ -233,7 +233,8 @@ class EMail:
 		self.make()
 		return self.msg_root.as_string()
 
-def get_formatted_html(subject, message, footer=None, print_html=None, email_account=None, header=None):
+def get_formatted_html(subject, message, footer=None, print_html=None,
+		email_account=None, header=None, unsubscribe_link=None):
 	if not email_account:
 		email_account = get_outgoing_email_account(False)
 
@@ -247,9 +248,13 @@ def get_formatted_html(subject, message, footer=None, print_html=None, email_acc
 		"subject": subject
 	})
 
-	sanitized_html = scrub_urls(rendered_email)
-	transformed_html = inline_style_in_html(sanitized_html)
-	return transformed_html
+	html = scrub_urls(rendered_email)
+
+	if unsubscribe_link:
+		html = html.replace("<!--unsubscribe link here-->", unsubscribe_link.html)
+
+	html = inline_style_in_html(html)
+	return html
 
 @frappe.whitelist()
 def get_email_html(template, args, subject, header=None):
@@ -341,25 +346,20 @@ def get_footer(email_account, footer=None):
 	"""append a footer (signature)"""
 	footer = footer or ""
 
+	args = {}
+
 	if email_account and email_account.footer:
-		footer += '<div style="margin: 15px auto;">{0}</div>'.format(email_account.footer)
+		args.update({'email_account_footer': email_account.footer})
 
 	company_address = frappe.db.get_default("email_footer_address")
 
 	if company_address:
-		company_address = company_address.splitlines(True)
-		footer += '<table width="100%" border=0>'
-		footer += '<tr><td height=20></td></tr>'
-		for x in company_address:
-			footer += '<tr style="margin: 15px auto; text-align: center; color: #8d99a6"><td>{0}</td></tr>'\
-				.format(x)
-		footer += "</table>"
-
-	footer += "<!--unsubscribe link here-->"
+		args.update({'company_address': company_address})
 
 	if not cint(frappe.db.get_default("disable_standard_email_footer")):
-		for default_mail_footer in frappe.get_hooks("default_mail_footer"):
-			footer += '<div style="margin: 15px auto;">{0}</div>'.format(default_mail_footer)
+		args.update({'default_mail_footer': frappe.get_hooks('default_mail_footer')})
+
+	footer += frappe.utils.jinja.get_email_from_template('email_footer', args)[0]
 
 	return footer
 
