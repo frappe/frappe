@@ -15,12 +15,13 @@ def execute():
 		and
 			parenttype='User Permission'
 		""", as_dict=True):
-		frappe.get_doc(dict(
-			doctype='User Permission',
-			user=perm.parent,
-			allow=perm.defkey,
-			for_value=perm.defvalue,
-			apply_for_all_roles=0,
-		)).insert(ignore_permissions = True)
+		if frappe.db.exists(perm.defkey, perm.defvalue):
+			frappe.get_doc(dict(
+				doctype='User Permission',
+				user=perm.parent,
+				allow=perm.defkey,
+				for_value=perm.defvalue,
+				apply_for_all_roles=0,
+			)).insert(ignore_permissions = True)
 
 	frappe.db.sql('delete from tabDefaultValue where parenttype="User Permission"')
