@@ -48,7 +48,7 @@ In this script:
 
 Check if your validations work by creating new records
 
-<img class="screenshot" alt="Transaction" src="{{docs_base_url}}/assets/img/lib_trans.png">
+<img class="screenshot" alt="Transaction" src="/docs/assets/img/lib_trans.png">
 
 #### Debugging
 

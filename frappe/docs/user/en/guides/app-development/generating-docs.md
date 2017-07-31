@@ -40,7 +40,7 @@ Some quick tips:
 
 ### 3. Linking
 
-While linking make sure you add `{{ docs_base_url }}` to all your links.
+While linking make sure you add `/docs` to all your links.
 
 
     {% raw %}<a href="/docs/user/link/to/page.html">Link Description</a>{% endraw %}

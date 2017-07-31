@@ -45,5 +45,5 @@ Si vous voulez modifier les affichages, vous devez apprendre le [language de tem
 
 ---
 
-Quand vous êtes prêts, [essayez de développer une application simple avec Frappe]({{ docs_base_url }}/user/fr/tutorial/app)
+Quand vous êtes prêts, [essayez de développer une application simple avec Frappe](/docs/user/fr/tutorial/app)
 

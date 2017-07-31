@@ -44,4 +44,4 @@ Se estiver personalizando modelos de impressão, você precisa aprender a [líng
 
 ---
 
-Quando estiver pronto, [tente construir uma aplicação de exemplo em Frappe]({{docs_base_url}}/user/pt/tutorial/app)
+Quando estiver pronto, [tente construir uma aplicação de exemplo em Frappe](/docs/user/pt/tutorial/app)

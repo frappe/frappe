@@ -74,5 +74,5 @@ Resources:
 
 ---
 
-When you are ready, you can try [building a sample application]({{ docs_base_url }}/user/en/tutorial/app) using Frappe.
+When you are ready, you can try [building a sample application](/docs/user/en/tutorial/app) using Frappe.
 

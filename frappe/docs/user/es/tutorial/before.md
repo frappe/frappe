@@ -68,4 +68,4 @@ Recursos:
 
 ---
 
-Cuando estes listo, puedes intentar [crear una aplicación simple]({{ docs_base_url }}/user/es/tutorial/app) usando Frappe.
+Cuando estes listo, puedes intentar [crear una aplicación simple](/docs/user/es/tutorial/app) usando Frappe.

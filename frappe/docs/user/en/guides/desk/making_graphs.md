@@ -72,15 +72,15 @@ Here's an example of a simple sales graph:
 			]
 		});
 
-<img src="{{docs_base_url}}/assets/img/desk/line_graph_sales.png" class="screenshot">
+<img src="/docs/assets/img/desk/line_graph_sales.png" class="screenshot">
 
 `bar` mode yeilds:
 
-<img src="{{docs_base_url}}/assets/img/desk/bar_graph.png" class="screenshot">
+<img src="/docs/assets/img/desk/bar_graph.png" class="screenshot">
 
 You can set the `colors` property of `x` to an array of color values for `percentage` mode:
 
-<img src="{{docs_base_url}}/assets/img/desk/percentage_graph.png" class="screenshot">
+<img src="/docs/assets/img/desk/percentage_graph.png" class="screenshot">
 
 You can also change the values of an existing graph with a new set of `y` values:
 
@@ -97,4 +97,4 @@ You can also change the values of an existing graph with a new set of `y` values
 			]);
 		}, 1000);
 
-<img src="{{docs_base_url}}/assets/img/desk/animated_line_graph.gif" class="screenshot">
+<img src="/docs/assets/img/desk/animated_line_graph.gif" class="screenshot">
