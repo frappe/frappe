@@ -6,7 +6,7 @@ globals attached to frappe module
 """
 from __future__ import unicode_literals, print_function
 
-from six import iteritems
+from six import iteritems, text_type
 from werkzeug.local import Local, release_local
 import os, sys, importlib, inspect, json
 
@@ -57,14 +57,14 @@ def _(msg, lang=None):
 
 def as_unicode(text, encoding='utf-8'):
 	'''Convert to unicode if required'''
-	if isinstance(text, unicode):
+	if isinstance(text, text_type):
 		return text
 	elif text==None:
 		return ''
 	elif isinstance(text, basestring):
-		return unicode(text, encoding)
+		return text_type(text, encoding)
 	else:
-		return unicode(text)
+		return text_type(text)
 
 def get_lang_dict(fortype, name=None):
 	"""Returns the translated language dict for the given type and name.
@@ -880,7 +880,7 @@ def get_file_json(path):
 
 def read_file(path, raise_not_found=False):
 	"""Open a file and return its content as Unicode."""
-	if isinstance(path, unicode):
+	if isinstance(path, text_type):
 		path = path.encode("utf-8")
 
 	if os.path.exists(path):

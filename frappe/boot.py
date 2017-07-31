@@ -3,7 +3,7 @@
 
 from __future__ import unicode_literals
 
-from six import iteritems
+from six import iteritems, text_type
 
 """
 bootstrap client session
@@ -68,7 +68,7 @@ def get_bootinfo():
 		frappe.get_attr(method)(bootinfo)
 
 	if bootinfo.lang:
-		bootinfo.lang = unicode(bootinfo.lang)
+		bootinfo.lang = text_type(bootinfo.lang)
 	bootinfo.versions = {k: v['version'] for k, v in get_versions().items()}
 
 	bootinfo.error_report_email = frappe.get_hooks("error_report_email")

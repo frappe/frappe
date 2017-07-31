@@ -7,6 +7,7 @@ import frappe
 from frappe.utils import cstr
 from frappe.build import html_to_js_template
 import re
+from six import text_type
 
 
 """
@@ -51,7 +52,7 @@ def render_include(content):
 			for path in paths:
 				app, app_path = path.split('/', 1)
 				with open(frappe.get_app_path(app, app_path), 'r') as f:
-					include = unicode(f.read(), 'utf-8')
+					include = text_type(f.read(), 'utf-8')
 					if path.endswith('.html'):
 						include = html_to_js_template(path, include)
 

@@ -8,6 +8,7 @@ out = frappe.response
 
 from frappe.utils import cint
 import frappe.defaults
+from six import text_type
 
 def get_sql_tables(q):
 	if q.find('WHERE') != -1:
@@ -246,10 +247,10 @@ def runquery_csv():
 	writer = csv.writer(f)
 	for r in rows:
 		# encode only unicode type strings and not int, floats etc.
-		writer.writerow(map(lambda v: isinstance(v, unicode) and v.encode('utf-8') or v, r))
+		writer.writerow(map(lambda v: isinstance(v, text_type) and v.encode('utf-8') or v, r))
 
 	f.seek(0)
-	out['result'] = unicode(f.read(), 'utf-8')
+	out['result'] = text_type(f.read(), 'utf-8')
 	out['type'] = 'csv'
 	out['doctype'] = rep_name
 
