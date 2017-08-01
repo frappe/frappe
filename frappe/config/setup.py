@@ -33,13 +33,6 @@ def get_data():
 				},
 				{
 					"type": "page",
-					"name": "user-permissions",
-					"label": _("User Permissions Manager"),
-					"icon": "fa fa-shield",
-					"description": _("Set Permissions per User")
-				},
-				{
-					"type": "page",
 					"name": "modules_setup",
 					"label": _("Show / Hide Modules"),
 					"icon": "fa fa-upload",
