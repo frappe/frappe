@@ -10,7 +10,7 @@ from frappe.utils import get_hook_method, get_files_path, random_string, encode,
 from frappe import _
 from frappe import conf
 from copy import copy
-import urllib
+from six.moves.urllib.parse import unquote
 
 class MaxFileSizeReachedError(frappe.ValidationError): pass
 
@@ -66,7 +66,7 @@ def save_url(file_url, filename, dt, dn, folder, is_private):
 	# 	frappe.msgprint("URL must start with 'http://' or 'https://'")
 	# 	return None, None
 
-	file_url = urllib.unquote(file_url)
+	file_url = unquote(file_url)
 
 	f = frappe.get_doc({
 		"doctype": "File",

@@ -10,7 +10,6 @@ naming for same name files: file.gif, file-1.gif, file-2.gif etc
 
 import frappe
 import json
-import urllib
 import os
 import shutil
 import requests
@@ -23,6 +22,7 @@ from frappe.utils.nestedset import NestedSet
 from frappe.utils import strip, get_files_path
 from PIL import Image, ImageOps
 from six import StringIO
+from six.moves.urllib.parse import unquote
 import zipfile
 
 class FolderNotEmpty(frappe.ValidationError): pass
@@ -383,7 +383,7 @@ def get_web_image(file_url):
 		extn = None
 
 	extn = get_extension(filename, extn, r.content)
-	filename = "/files/" + strip(urllib.unquote(filename))
+	filename = "/files/" + strip(unquote(filename))
 
 	return image, filename, extn
 
