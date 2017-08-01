@@ -141,7 +141,7 @@ frappe.ui.form.QuickEntryForm = Class.extend({
 						frappe.ui.form.update_calling_link(me.dialog.doc);
 					} else {
 						if(me.after_insert) {
-							me.after_insert(me.dialig.doc);
+							me.after_insert(me.dialog.doc);
 						} else {
 							me.open_from_if_not_list();
 						}
