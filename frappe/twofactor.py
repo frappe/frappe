@@ -1,4 +1,4 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2017, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
@@ -190,7 +190,7 @@ def process_2fa_for_email(user,token,otp_secret,otp_issuer,method='Email'):
 
 def get_email_subject_for_2fa(kwargs_dict):
 	'''Get email subject for 2fa.'''
-	subject_template = 'Verifcation Code from {}'.format(frappe.db.get_value('System Settings', 'System Settings', 'otp_issuer_name'))
+	subject_template = 'Verification Code from {}'.format(frappe.db.get_value('System Settings', 'System Settings', 'otp_issuer_name'))
 	subject = render_string_template(subject_template,kwargs_dict)
 	return subject
 

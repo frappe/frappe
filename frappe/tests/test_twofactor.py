@@ -1,4 +1,4 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2017, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 from __future__ import unicode_literals
 
@@ -50,7 +50,7 @@ class TestTwoFactor(unittest.TestCase):
 							'{} not available'.format(k))
 
 	def test_two_factor_is_enabled_for_user(self):
-		'''Should be true if enabled for user.'''
+		'''Should return true if enabled for user.'''
 		toggle_2fa_all_role(state=True)
 		self.assertTrue(two_factor_is_enabled_for_(self.user))
 		toggle_2fa_all_role(state=False)
@@ -82,6 +82,13 @@ class TestTwoFactor(unittest.TestCase):
 		token = int(pyotp.TOTP(otp_secret).now())
 		self.assertTrue(get_verification_obj(self.user,token,otp_secret))
 
+	def test_render_string_template(self):
+		'''String template renders as expected with variables.'''
+		args = {'issuer_name':'Frappe Technologies'}
+		_str = 'Verification Code from {{issuer_name}}'
+		_str = render_string_template(_str,args)
+		self.assertEqual(_str,'Verification Code from Frappe Technologies')
+
 
 def set_request(**kwargs):
 	builder = EnvironBuilder(**kwargs)
@@ -106,6 +113,7 @@ def enable_2fa():
 	frappe.db.commit()
 
 def toggle_2fa_all_role(state=None):
+	'''Enable or disable 2fa for 'all' role on the system.'''
 	all_role = frappe.get_doc('Role','All')
 	if state == None:
 		state = False if all_role.two_factor_auth == True else False
