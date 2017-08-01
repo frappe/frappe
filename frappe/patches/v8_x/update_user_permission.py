@@ -15,7 +15,7 @@ def execute():
 		and
 			parenttype='User Permission'
 		""", as_dict=True):
-		if frappe.db.exists(perm.defkey, perm.defvalue):
+		if frappe.db.exists(perm.defkey, perm.defvalue) and frappe.db.exists('User', perm.parent)::
 			frappe.get_doc(dict(
 				doctype='User Permission',
 				user=perm.parent,
