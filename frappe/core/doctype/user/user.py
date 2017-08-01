@@ -1,7 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 import frappe
 from frappe.model.document import Document
 from frappe.utils import cint, has_gravatar, format_datetime, now_datetime, get_formatted_email
@@ -191,7 +191,7 @@ class User(Document):
 				self.email_new_password(new_password)
 
 		except frappe.OutgoingEmailError:
-			print frappe.get_traceback()
+			print(frappe.get_traceback())
 			pass # email server not set, don't send email
 
 	@Document.hook

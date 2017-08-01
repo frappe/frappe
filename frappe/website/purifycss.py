@@ -7,6 +7,7 @@ sUpdate source and target apps below and run from CLI
 
 '''
 
+from __future__ import print_function
 import frappe, re, os
 
 source = frappe.get_app_path('frappe_theme', 'public', 'less', 'frappe_theme.less')
@@ -39,4 +40,4 @@ def purifycss():
 							classes.remove(c)
 
 	for c in sorted(classes):
-		print c
+		print(c)

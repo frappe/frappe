@@ -1,7 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 import frappe, re, os
 from six import iteritems
 
@@ -302,7 +302,7 @@ def add_missing_headers():
 						else:
 							fname = fname[:-3]
 						h = fname.replace('_', ' ').replace('-', ' ').title()
-						print h
+						print(h)
 						content = '# {0}\n\n'.format(h) + content
 						f.write(content.encode('utf-8'))
 
