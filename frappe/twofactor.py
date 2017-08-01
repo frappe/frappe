@@ -38,6 +38,7 @@ def get_cached_user_pass():
 
 def authenticate_for_2factor(user):
 	'''Authenticate two factor for enabled user before login.'''
+	if frappe.form_dict.get('otp'):return
 	otp_secret = get_otpsecret_for_(user)
 	verification_method = frappe.db.get_value('System Settings', None, 'two_factor_method')
 	token = int(pyotp.TOTP(otp_secret).now())
