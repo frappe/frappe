@@ -508,8 +508,11 @@ frappe.PrintFormatBuilder = Class.extend({
 		this.page.main.find('[data-fieldtype="Custom HTML"]').each(function() {
 			var fieldname = $(this).attr('data-fieldname');
 			var content = $($(this).find('.html-content')[0]);
-			var html = me.custom_html_dict[parseInt(content.attr('data-custom-html-id'))].options;
-			content.data('content', html);
+			var custom_html_dict = me.custom_html_dict[parseInt(content.attr('data-custom-html-id'))];
+			var extract_images = custom_html_dict.extract_images;
+			if (typeof(extract_images) == "undefined") { extract_images = 1; }
+			content.data('content', custom_html_dict.options);
+			content.data('extract_images', extract_images);
 		})
 	},
 	update_columns_in_section: function(section, no_of_columns, new_no_of_columns) {
@@ -691,6 +694,11 @@ frappe.PrintFormatBuilder = Class.extend({
 					label: label
 				},
 				{
+					fieldname: "extract_images",
+					fieldtype: "Check",
+					label: __("Extract Images")
+				},
+				{
 					fieldname: "help",
 					fieldtype: "HTML",
 					options: '<p>'
@@ -703,11 +711,14 @@ frappe.PrintFormatBuilder = Class.extend({
 
 		// set existing content in input
 		var content = $content.data('content') || "";
+		var extract_images = $content.data('extract_images');
 		if(content.indexOf(me.get_no_content())!==-1) content = "";
 		d.set_input("content", content);
+		d.set_value("extract_images", extract_images);
 
 		d.set_primary_action(__("Update"), function() {
 			$($content[0]).data('content', d.get_value("content"));
+			$($content[0]).data('extract_images', d.get_value("extract_images"));
 			$content.html(d.get_value("content"));
 			d.hide();
 		});
@@ -726,7 +737,8 @@ frappe.PrintFormatBuilder = Class.extend({
 		data.push({
 			fieldname: "print_heading_template",
 			fieldtype:"Custom HTML",
-			options: this.page.main.find(".print-format-builder-print-heading").data('content')
+			options: this.page.main.find(".print-format-builder-print-heading").data('content'),
+			extract_images: this.page.main.find(".print-format-builder-print-heading").data('extract_images')
 		});
 
 		// add pages
@@ -770,6 +782,7 @@ frappe.PrintFormatBuilder = Class.extend({
 						// custom html as HTML field
 						df.fieldtype = "HTML";
 						df.options = $($this.find(".html-content")[0]).data('content');
+						df.extract_images = $($this.find(".html-content")[0]).data('extract_images');
 					}
 					data.push(df);
 				});
