@@ -726,7 +726,7 @@ _f.Frm.prototype._save = function(save_action, callback, btn, on_error, resolve)
 			on_error();
 		}
 		resolve();
-	}
+	};
 
 	if(save_action != "Update") {
 		// validate
