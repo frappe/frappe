@@ -11,6 +11,7 @@ from frappe import _
 from frappe import conf
 from copy import copy
 from six.moves.urllib.parse import unquote
+from six import text_type
 
 class MaxFileSizeReachedError(frappe.ValidationError): pass
 
@@ -114,8 +115,8 @@ def extract_images_from_html(doc, content):
 			filename = headers.split("filename=")[-1]
 
 			# decode filename
-			if not isinstance(filename, unicode):
-				filename = unicode(filename, 'utf-8')
+			if not isinstance(filename, text_type):
+				filename = text_type(filename, 'utf-8')
 		else:
 			mtype = headers.split(";")[0]
 			filename = get_random_filename(content_type=mtype)
@@ -147,7 +148,7 @@ def get_random_filename(extn=None, content_type=None):
 
 def save_file(fname, content, dt, dn, folder=None, decode=False, is_private=0):
 	if decode:
-		if isinstance(content, unicode):
+		if isinstance(content, text_type):
 			content = content.encode("utf-8")
 
 		if "," in content:

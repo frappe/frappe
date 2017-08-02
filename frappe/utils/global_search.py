@@ -7,6 +7,7 @@ import frappe
 import re
 from frappe.utils import cint, strip_html_tags
 from frappe.model.base_document import get_controller
+from six import text_type
 
 def setup_global_search_table():
 	'''Creates __global_seach table'''
@@ -240,9 +241,9 @@ def get_formatted_value(value, field):
 	if(getattr(field, 'fieldtype', None) in ["Text", "Text Editor"]):
 		h = HTMLParser()
 		value = h.unescape(value)
-		value = (re.subn(r'<[\s]*(script|style).*?</\1>(?s)', '', unicode(value))[0])
+		value = (re.subn(r'<[\s]*(script|style).*?</\1>(?s)', '', text_type(value))[0])
 		value = ' '.join(value.split())
-	return field.label + " : " + strip_html_tags(unicode(value))
+	return field.label + " : " + strip_html_tags(text_type(value))
 
 def sync_global_search(flags=None):
 	'''Add values from `flags` (frappe.flags.update_global_search) to __global_search.

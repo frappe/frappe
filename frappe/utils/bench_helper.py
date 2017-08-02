@@ -5,6 +5,7 @@ import os
 import json
 import importlib
 import frappe.utils
+import traceback
 
 click.disable_unicode_literals_warning = True
 
@@ -62,6 +63,7 @@ def get_app_commands(app):
 	try:
 		app_command_module = importlib.import_module(app + '.commands')
 	except ImportError:
+		traceback.print_exc()
 		return []
 
 	ret = {}
