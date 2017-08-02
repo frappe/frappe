@@ -1,7 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 
 no_sitemap = 1
 no_cache = 1
@@ -23,7 +23,7 @@ def get_context(context):
 		boot = frappe.sessions.get()
 	except Exception as e:
 		boot = frappe._dict(status='failed', error = str(e))
-		print frappe.get_traceback()
+		print(frappe.get_traceback())
 
 	# this needs commit
 	csrf_token = frappe.sessions.get_csrf_token()

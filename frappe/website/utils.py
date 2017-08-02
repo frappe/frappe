@@ -302,7 +302,6 @@ def add_missing_headers():
 						else:
 							fname = fname[:-3]
 						h = fname.replace('_', ' ').replace('-', ' ').title()
-						print h
 						content = '# {0}\n\n'.format(h) + content
 						f.write(content.encode('utf-8'))
 
