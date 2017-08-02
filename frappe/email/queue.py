@@ -15,6 +15,7 @@ from frappe.utils import get_url, nowdate, encode, now_datetime, add_days, split
 from frappe.utils.file_manager import get_file
 from rq.timeouts import JobTimeoutException
 from frappe.utils.scheduler import log
+from six import text_type
 
 class EmailLimitCrossedError(frappe.ValidationError): pass
 
@@ -440,10 +441,10 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False, from_test=Fals
 
 		if any("Sent" == s.status for s in recipients_list):
 			frappe.db.sql("""update `tabEmail Queue` set status='Partially Errored', error=%s where name=%s""",
-				(unicode(e), email.name), auto_commit=auto_commit)
+				(text_type(e), email.name), auto_commit=auto_commit)
 		else:
 			frappe.db.sql("""update `tabEmail Queue` set status='Error', error=%s
-where name=%s""", (unicode(e), email.name), auto_commit=auto_commit)
+where name=%s""", (text_type(e), email.name), auto_commit=auto_commit)
 
 		if email.communication:
 			frappe.get_doc('Communication', email.communication).set_delivery_status(commit=auto_commit)
@@ -454,7 +455,7 @@ where name=%s""", (unicode(e), email.name), auto_commit=auto_commit)
 
 		else:
 			# log to Error Log
-			log('frappe.email.queue.flush', unicode(e))
+			log('frappe.email.queue.flush', text_type(e))
 
 def prepare_message(email, recipient, recipients_list):
 	message = email.message

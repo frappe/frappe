@@ -6,6 +6,7 @@ import json, inspect
 import frappe
 from frappe import _
 from frappe.utils import cint
+from six import text_type
 
 @frappe.whitelist()
 def runserverobj(method, docs=None, dt=None, dn=None, arg=None, args=None):
@@ -68,6 +69,6 @@ def make_csv_output(res, dt):
 
 	f.seek(0)
 
-	frappe.response['result'] = unicode(f.read(), 'utf-8')
+	frappe.response['result'] = text_type(f.read(), 'utf-8')
 	frappe.response['type'] = 'csv'
 	frappe.response['doctype'] = dt.replace(' ','')

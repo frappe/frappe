@@ -13,6 +13,7 @@ import os
 from markdown2 import markdown
 from bs4 import BeautifulSoup
 import jinja2.exceptions
+from six import text_type
 
 def sync():
 	# make table
@@ -119,7 +120,7 @@ class HelpDatabase(object):
 							fpath = os.path.join(basepath, fname)
 							with open(fpath, 'r') as f:
 								try:
-									content = frappe.render_template(unicode(f.read(), 'utf-8'),
+									content = frappe.render_template(text_type(f.read(), 'utf-8'),
 										{'docs_base_url': '/assets/{app}_docs'.format(app=app)})
 
 									relpath = self.get_out_path(fpath)
