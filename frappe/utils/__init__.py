@@ -5,7 +5,7 @@
 
 from __future__ import unicode_literals, print_function
 from werkzeug.test import Client
-import os, re, urllib, sys, json, hashlib, requests, traceback
+import os, re, sys, json, hashlib, requests, traceback
 from markdown2 import markdown as _markdown
 from .html_utils import sanitize_html
 import frappe
@@ -13,6 +13,7 @@ from frappe.utils.identicon import Identicon
 from email.utils import parseaddr, formataddr
 # utility functions like cint, int, flt, etc.
 from frappe.utils.data import *
+from six.moves.urllib.parse import quote
 from six import text_type
 
 default_fields = ['doctype', 'name', 'owner', 'creation', 'modified', 'modified_by',
@@ -178,7 +179,7 @@ def dict_to_str(args, sep='&'):
 	"""
 	t = []
 	for k in args.keys():
-		t.append(str(k)+'='+urllib.quote(str(args[k] or '')))
+		t.append(str(k)+'='+quote(str(args[k] or '')))
 	return sep.join(t)
 
 # Get Defaults

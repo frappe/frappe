@@ -12,6 +12,7 @@ from babel.core import UnknownLocaleError
 from dateutil import parser
 from num2words import num2words
 from six.moves import html_parser as HTMLParser
+from six.moves.urllib.parse import quote
 from html2text import html2text
 from six import iteritems, text_type
 
@@ -795,7 +796,7 @@ def expand_relative_urls(html):
 	return html
 
 def quoted(url):
-	return cstr(urllib.quote(encode(url), safe=b"~@#$&()*!+=:;,.?/'"))
+	return cstr(quote(encode(url), safe=b"~@#$&()*!+=:;,.?/'"))
 
 def quote_urls(html):
 	def _quote_url(match):
