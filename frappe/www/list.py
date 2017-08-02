@@ -11,9 +11,10 @@ from frappe import _
 no_cache = 1
 no_sitemap = 1
 
-def get_context(context):
+def get_context(context, **dict_params):
 	"""Returns context for a list standard list page.
 	Will also update `get_list_context` from the doctype module file"""
+	frappe.local.form_dict.update(dict_params)
 	doctype = frappe.local.form_dict.doctype
 	context.parents = [{"route":"me", "title":_("My Account")}]
 	context.update(get_list_context(context, doctype) or {})
