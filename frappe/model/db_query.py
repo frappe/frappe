@@ -291,7 +291,7 @@ class DatabaseQuery(object):
 
 		# prepare in condition
 		if f.operator.lower() in ('in', 'not in'):
-			values = f.value
+			values = f.value or ''
 			if not isinstance(values, (list, tuple)):
 				values = values.split(",")
 
