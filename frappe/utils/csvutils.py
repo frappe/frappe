@@ -6,7 +6,7 @@ import frappe
 from frappe import msgprint, _
 import json
 import csv
-from six import StringIO
+from six import StringIO, text_type
 from frappe.utils import encode, cstr, cint, flt, comma_or
 
 def read_csv_content_from_uploaded_file(ignore_encoding=False):
@@ -38,11 +38,11 @@ def read_csv_content_from_attached_file(doc):
 def read_csv_content(fcontent, ignore_encoding=False):
 	rows = []
 
-	if not isinstance(fcontent, unicode):
+	if not isinstance(fcontent, text_type):
 		decoded = False
 		for encoding in ["utf-8", "windows-1250", "windows-1252"]:
 			try:
-				fcontent = unicode(fcontent, encoding)
+				fcontent = text_type(fcontent, encoding)
 				decoded = True
 				break
 			except UnicodeDecodeError:
@@ -60,7 +60,7 @@ def read_csv_content(fcontent, ignore_encoding=False):
 			r = []
 			for val in row:
 				# decode everything
-				val = unicode(val, "utf-8").strip()
+				val = text_type(val, "utf-8").strip()
 
 				if val=="":
 					# reason: in maraidb strict config, one cannot have blank strings for non string datatypes

@@ -17,6 +17,7 @@ from frappe.utils.file_manager import save_url
 
 from frappe.utils import cint, cstr, flt, getdate, get_datetime, get_url
 from frappe.core.page.data_import_tool.data_import_tool import get_data_keys
+from six import text_type
 
 @frappe.whitelist()
 def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, no_email=True, overwrite=None,
@@ -308,7 +309,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 				doc = parent.append(parentfield, doc)
 				parent.save()
 				log('Inserted row for %s at #%s' % (as_link(parenttype,
-					doc.parent), unicode(doc.idx)))
+					doc.parent),text_type(doc.idx)))
 			else:
 				if overwrite and doc["name"] and frappe.db.exists(doctype, doc["name"]):
 					original = frappe.get_doc(doctype, doc["name"])

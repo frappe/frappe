@@ -9,6 +9,7 @@ from frappe.commands.scheduler import _is_scheduler_enabled
 from frappe.limits import update_limits, get_limits
 from frappe.installer import update_site_config
 from frappe.utils import touch_file, get_site_path
+from six import text_type
 
 @click.command('new-site')
 @click.argument('site')
@@ -428,7 +429,7 @@ def set_limit(context, site, limit, value):
 
 @click.command('set-limits')
 @click.option('--site', help='site name')
-@click.option('--limit', 'limits', type=(unicode, unicode), multiple=True)
+@click.option('--limit', 'limits', type=(text_type, text_type), multiple=True)
 @pass_context
 def set_limits(context, site, limits):
 	_set_limits(context, site, limits)

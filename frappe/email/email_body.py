@@ -8,7 +8,7 @@ from frappe.email.smtp import get_outgoing_email_account
 from frappe.utils import (get_url, scrub_urls, strip, expand_relative_urls, cint,
 	split_emails, to_markdown, markdown, encode, random_string, parse_addr)
 import email.utils
-from six import iteritems
+from six import iteritems, text_type
 from email.mime.multipart import MIMEMultipart
 
 
@@ -307,7 +307,7 @@ def add_attachment(fname, fcontent, content_type=None,
 	maintype, subtype = content_type.split('/', 1)
 	if maintype == 'text':
 		# Note: we should handle calculating the charset
-		if isinstance(fcontent, unicode):
+		if isinstance(fcontent, text_type):
 			fcontent = fcontent.encode("utf-8")
 		part = MIMEText(fcontent, _subtype=subtype, _charset="utf-8")
 	elif maintype == 'image':

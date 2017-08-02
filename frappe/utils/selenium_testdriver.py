@@ -115,7 +115,7 @@ class TestDriver(object):
 			elem = self.get_wait(timeout).until(
 				EC.presence_of_element_located((_by, selector)))
 			return elem
-		except Exception, e:
+		except Exception as e:
 			# body = self.driver.find_element_by_id('body_div')
 			# print(body.get_attribute('innerHTML'))
 			self.print_console()

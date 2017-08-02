@@ -19,6 +19,7 @@ from werkzeug.exceptions import NotFound, Forbidden
 from frappe.core.doctype.file.file import check_file_permission
 from frappe.website.render import render
 from frappe.utils import cint
+from six import text_type
 
 def report_error(status_code):
 	'''Build error. Show traceback in developer mode'''
@@ -103,10 +104,10 @@ def json_handler(obj):
 	"""serialize non-serializable data for json"""
 	# serialize date
 	if isinstance(obj, (datetime.date, datetime.timedelta, datetime.datetime)):
-		return unicode(obj)
+		return text_type(obj)
 
 	elif isinstance(obj, LocalProxy):
-		return unicode(obj)
+		return text_type(obj)
 
 	elif isinstance(obj, frappe.model.document.BaseDocument):
 		doc = obj.as_dict(no_nulls=True)
