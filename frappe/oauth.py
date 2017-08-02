@@ -3,7 +3,6 @@ import frappe
 import pytz
 
 from frappe import _
-from urlparse import parse_qs, urlparse
 from oauthlib.oauth2.rfc6749.tokens import BearerToken
 from oauthlib.oauth2.rfc6749.grant_types import AuthorizationCodeGrant, ImplicitGrant, ResourceOwnerPasswordCredentialsGrant, ClientCredentialsGrant,  RefreshTokenGrant, OpenIDConnectAuthCode
 from oauthlib.oauth2 import RequestValidator
@@ -12,7 +11,7 @@ from oauthlib.oauth2.rfc6749.endpoints.token import TokenEndpoint
 from oauthlib.oauth2.rfc6749.endpoints.resource import ResourceEndpoint
 from oauthlib.oauth2.rfc6749.endpoints.revocation import RevocationEndpoint
 from oauthlib.common import Request
-from six.moves.urllib.parse import unquote
+from six.moves.urllib.parse import parse_qs, urlparse, unquote
 
 def get_url_delimiter(separator_character=" "):
 	return separator_character
