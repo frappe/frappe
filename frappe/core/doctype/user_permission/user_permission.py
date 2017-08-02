@@ -72,7 +72,7 @@ def get_user_permissions(user=None):
 				out.setdefault("User", []).append(user)
 
 			frappe.cache().hset("user_permissions", user, out)
-		except frappe.SQLError, e:
+		except frappe.SQLError as e:
 			if e.args[0]==1146:
 				# called from patch
 				pass

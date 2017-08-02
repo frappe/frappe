@@ -242,7 +242,7 @@ def evaluate_alert(doc, alert, event):
 		alert.send(doc)
 	except TemplateError:
 		frappe.throw(_("Error while evaluating Email Alert {0}. Please fix your template.").format(alert))
-	except Exception, e:
+	except Exception as e:
 		frappe.log_error(message=frappe.get_traceback(), title=e)
 		frappe.throw(_("Error in Email Alert"))
 
