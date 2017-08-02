@@ -17,7 +17,7 @@ import frappe.defaults
 import frappe.translate
 from frappe.utils.change_log import get_change_log
 import redis
-from urllib import unquote
+from six.moves.urllib.parse import unquote
 from frappe.desk.notifications import clear_notifications
 from six import text_type
 
