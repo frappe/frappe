@@ -68,15 +68,22 @@ frappe.ui.form.GridRow = Class.extend({
 					this.hide_form();
 				}
 
-				this.frm.script_manager.trigger("before_" + this.grid.df.fieldname + "_remove",
-					this.doc.doctype, this.doc.name);
+				frappe.run_serially([
+					() => {
+						return this.frm.script_manager.trigger("before_" + this.grid.df.fieldname + "_remove",
+							this.doc.doctype, this.doc.name);
+					},
+					() => {
+						frappe.model.clear_doc(this.doc.doctype, this.doc.name);
 
-				//this.wrapper.toggle(false);
-				frappe.model.clear_doc(this.doc.doctype, this.doc.name);
-
-				this.frm.script_manager.trigger(this.grid.df.fieldname + "_remove",
-					this.doc.doctype, this.doc.name);
-				this.frm.dirty();
+						this.frm.script_manager.trigger(this.grid.df.fieldname + "_remove",
+							this.doc.doctype, this.doc.name);
+						this.frm.dirty();
+					}
+				]).catch((e) => {
+					// aborted
+					console.trace(e); // eslint-disable-line
+				});
 			} else {
 				this.grid.df.data = this.grid.df.data.filter(function(d) {
 					return d.name !== me.doc.name;
