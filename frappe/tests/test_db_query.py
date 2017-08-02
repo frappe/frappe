@@ -31,6 +31,19 @@ class TestReportview(unittest.TestCase):
 		self.assertTrue({"name":"DocField"} \
 			in DatabaseQuery("DocType").execute(filters={"name": "DocField"}))
 
+	def test_in_not_in_filters(self):
+		self.assertFalse(DatabaseQuery("DocType").execute(filters={"name": ["in", None]}))
+		self.assertTrue({"name":"DocType"} \
+				in DatabaseQuery("DocType").execute(filters={"name": ["not in", None]}))
+
+		for result in [{"name":"DocType"}, {"name":"DocField"}]:
+			self.assertTrue(result
+				in DatabaseQuery("DocType").execute(filters={"name": ["in", 'DocType,DocField']}))
+
+		for result in [{"name":"DocType"}, {"name":"DocField"}]:
+			self.assertFalse(result
+				in DatabaseQuery("DocType").execute(filters={"name": ["not in", 'DocType,DocField']}))
+
 	def test_or_filters(self):
 		data = DatabaseQuery("DocField").execute(
 				filters={"parent": "DocType"}, fields=["fieldname", "fieldtype"],
