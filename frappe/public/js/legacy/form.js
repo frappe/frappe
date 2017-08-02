@@ -720,6 +720,14 @@ _f.Frm.prototype._save = function(save_action, callback, btn, on_error, resolve)
 		resolve();
 	};
 
+	var fail = () => {
+		btn && $(btn).prop("disabled", false);
+		if(on_error) {
+			on_error();
+		}
+		resolve();
+	};
+
 	if(save_action != "Update") {
 		// validate
 		frappe.validated = true;
@@ -728,17 +736,13 @@ _f.Frm.prototype._save = function(save_action, callback, btn, on_error, resolve)
 			() => this.script_manager.trigger("before_save"),
 			() => {
 				if(!frappe.validated) {
-					btn && $(btn).prop("disabled", false);
-					if(on_error) {
-						on_error();
-					}
-					resolve();
+					fail();
 					return;
 				}
 
 				frappe.ui.form.save(me, save_action, after_save, btn);
 			}
-		]);
+		]).catch(fail);
 	} else {
 		frappe.ui.form.save(me, save_action, after_save, btn);
 	}
