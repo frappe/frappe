@@ -54,6 +54,7 @@ frappe.ui.color = {
 		return Object.keys(frappe.ui.color_map);
 	},
 	validate: function(color_name) {
+		if(!color_name) return false;
 		if(color_name.startsWith('#')) {
 			return this.all().includes(color_name);
 		}
