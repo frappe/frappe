@@ -240,7 +240,12 @@ def get_stats(stats, doctype, filters=[]):
 		filters = json.loads(filters)
 	stats = {}
 
-	columns = frappe.db.get_table_columns(doctype)
+	try:
+		columns = frappe.db.get_table_columns(doctype)
+	except MySQLdb.OperationalError:
+		# raised when _user_tags column is added on the fly
+		columns = []
+
 	for tag in tags:
 		if not tag in columns: continue
 		try:
