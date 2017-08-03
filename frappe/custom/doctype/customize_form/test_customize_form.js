@@ -7,10 +7,12 @@ QUnit.test("test customize form", function(assert) {
 	let done = assert.async();
 	frappe.run_serially([
 		() => frappe.set_route('Form', 'Customize Form'),
-		() => frappe.timeout(5),
+		() => frappe.timeout(1),
 		() => cur_frm.set_value('doc_type', 'ToDo'),
-		() => frappe.timeout(2),
-
+		() => frappe.timeout(1),
+		() => frappe.click_button('Reset to defaults'),
+		() => frappe.click_button('Submit'),
+		() => frappe.timeout(1),
 		() => assert.equal(cur_frm.doc.fields[1].fieldname, 'status',
 			'check if second field is "status"'),
 
