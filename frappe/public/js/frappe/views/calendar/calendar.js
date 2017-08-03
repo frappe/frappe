@@ -243,8 +243,8 @@ frappe.views.Calendar = Class.extend({
 			color_name = this.color_map[this.get_css_class(d)];
 			color_name =
 				frappe.ui.color.validate(color_name) ?
-				color_name :
-				'blue';
+					color_name :
+					'blue';
 			d.backgroundColor = frappe.ui.color.get(color_name, 'extra-light');
 			d.textColor = frappe.ui.color.get(color_name, 'dark');
 		} else {
