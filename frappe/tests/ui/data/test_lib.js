@@ -54,14 +54,17 @@ frappe.tests = {
 		// build tasks for each row
 		value.forEach(d => {
 			grid_row_tasks.push(() => {
-				grid.add_new_row();
-				let grid_row = grid.get_row(-1).toggle_view(true);
+
 				let grid_value_tasks = [];
+				grid_value_tasks.push(() => grid.add_new_row());
+				grid_value_tasks.push(() => grid.get_row(-1).toggle_view(true));
+				grid_value_tasks.push(() => frappe.timeout(0.5));
 
 				// build tasks to set each row value
 				d.forEach(child_value => {
 					for (let child_key in child_value) {
 						grid_value_tasks.push(() => {
+							let grid_row = grid.get_row(-1);
 							return frappe.model.set_value(grid_row.doc.doctype,
 								grid_row.doc.name, child_key, child_value[child_key]);
 						});

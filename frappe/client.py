@@ -69,7 +69,6 @@ def get_value(doctype, fieldname, filters=None, as_dict=True, debug=False):
 		fieldname = json.loads(fieldname)
 	except (TypeError, ValueError):
 		# name passed, not json
-		fieldname = "name"
 		pass
 
 	# check whether the used filters were really parseable and usable
