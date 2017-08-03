@@ -248,7 +248,6 @@ $.extend(frappe.meta, {
 			}
 		} else if(doc && doc.Company){
 			currency = frappe.model.get_value("Company", doc.Company, "default_currency");
-			console.log("expected currency",frappe.model.get_value("Company", doc.Company, "default_currency"));
 		}
 		return currency;
 	},
