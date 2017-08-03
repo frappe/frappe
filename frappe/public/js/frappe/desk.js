@@ -45,6 +45,7 @@ frappe.Application = Class.extend({
 		this.make_nav_bar();
 		this.set_favicon();
 		this.setup_analytics();
+		this.setup_beforeunload();
 		frappe.ui.keys.setup();
 		this.set_rtl();
 
@@ -478,6 +479,19 @@ frappe.Application = Class.extend({
 				"$email": frappe.session.user
 			});
 		}
+	},
+
+	setup_beforeunload: function() {
+		window.onbeforeunload = function () {
+			var unsaved_docs = [];
+			for (doctype in locals) {
+				for (name in locals[doctype]) {
+					var doc = locals[doctype][name];
+					if(doc.__unsaved) { unsaved_docs.push(doc.name); }
+				}
+			}
+			return unsaved_docs.length ? true : false;
+		};
 	},
 
 	show_notes: function() {
