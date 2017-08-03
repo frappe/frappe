@@ -483,6 +483,7 @@ frappe.Application = Class.extend({
 
 	setup_beforeunload: function() {
 		window.onbeforeunload = function () {
+			if (frappe.flags.in_test) return false;
 			var unsaved_docs = [];
 			for (doctype in locals) {
 				for (name in locals[doctype]) {
