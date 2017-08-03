@@ -246,6 +246,8 @@ $.extend(frappe.meta, {
 			} else if(cur_frm && cur_frm.doc[df.options]) {
 				currency = cur_frm.doc[df.options];
 			}
+		} else if(doc && doc.Company){
+			currency = frappe.model.get_value("Company", doc.Company, "default_currency");
 		}
 		return currency;
 	},
