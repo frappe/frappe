@@ -1,3 +1,5 @@
+# Custom Module Icon
+
 If you want to create a custom icon for your module, you will have to create an SVG file for your module and set the path to this file in the `desktop/config.py` of your app.<br>
 
 This icon is loaded via AJAX first time, then it will be rendered.
@@ -8,10 +10,10 @@ Example:
 
 	def get_data():
 		return {
-			"Frappe Apps": {
+			"Frappé Apps": {
 				"color": "orange",
 				"icon": "assets/frappe/images/frappe.svg",
-				"label": _("Frappe.io Portal"),
+				"label": _("Frappé.io Portal"),
 				"type": "module"
 			}
 		}

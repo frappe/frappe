@@ -3,7 +3,7 @@
 #### Application Name and Details
 
 1. `app_name` - slugified name e.g. "frappe"
-1. `app_title` - full title name e.g. "Frappe"
+1. `app_title` - full title name e.g. "Frappé"
 1. `app_publisher`
 1. `app_description`
 1. `app_version`

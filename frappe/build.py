@@ -5,7 +5,7 @@ from __future__ import unicode_literals, print_function
 from frappe.utils.minify import JavascriptMinify
 import subprocess
 
-from six import iteritems
+from six import iteritems, text_type
 
 """
 Build the `public` folders and setup languages
@@ -121,7 +121,7 @@ def get_build_maps():
 timestamps = {}
 
 def pack(target, sources, no_compress, verbose):
-	from cStringIO import StringIO
+	from six import StringIO
 
 	outtype, outtxt = target.split(".")[-1], ''
 	jsm = JavascriptMinify()
@@ -135,7 +135,7 @@ def pack(target, sources, no_compress, verbose):
 		timestamps[f] = os.path.getmtime(f)
 		try:
 			with open(f, 'r') as sourcefile:
-				data = unicode(sourcefile.read(), 'utf-8', errors='ignore')
+				data = text_type(sourcefile.read(), 'utf-8', errors='ignore')
 
 			extn = f.rsplit(".", 1)[1]
 
@@ -144,7 +144,7 @@ def pack(target, sources, no_compress, verbose):
 				jsm.minify(tmpin, tmpout)
 				minified = tmpout.getvalue()
 				if minified:
-					outtxt += unicode(minified or '', 'utf-8').strip('\n') + ';'
+					outtxt += text_type(minified or '', 'utf-8').strip('\n') + ';'
 
 				if verbose:
 					print("{0}: {1}k".format(f, int(len(minified) / 1024)))

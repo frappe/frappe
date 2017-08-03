@@ -14,7 +14,7 @@ from frappe.model.utils import render_include
 from frappe.build import scrub_html_template
 
 ######
-from six import iteritems
+from six import iteritems, text_type
 
 
 def get_meta(doctype, cached=True):
@@ -99,7 +99,7 @@ class FormMeta(Meta):
 		for fname in os.listdir(path):
 			if fname.endswith(".html"):
 				with open(os.path.join(path, fname), 'r') as f:
-					templates[fname.split('.')[0]] = scrub_html_template(unicode(f.read(), "utf-8"))
+					templates[fname.split('.')[0]] = scrub_html_template(text_type(f.read(), "utf-8"))
 
 		self.set("__templates", templates or None)
 

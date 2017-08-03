@@ -125,8 +125,19 @@ frappe.ui.form.PrintPreview = Class.extend({
 		var me = this;
 		this.get_print_html(function (out) {
 			me.wrapper.find(".print-format").html(out.html);
+			me.show_footer();
 			me.set_style(out.style);
 		});
+	},
+	show_footer: function() {
+		// footer is hidden by default as reqd by pdf generation
+		// simple hack to show it in print preview
+		this.wrapper.find('.print-format').css('position', 'relative');
+		this.wrapper.find('#footer-html').attr('style', `
+			display: block !important;
+			position: absolute;
+			bottom: 0.75in;
+		`);
 	},
 	printit: function () {
 		this.new_page_preview(true);

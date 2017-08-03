@@ -14,7 +14,7 @@ Pour démarrer le serveur de développement, lancez la commande `bench start`
 
 Vous pouvez maintenant ouvrir votre navigateur et vous rendre sur `http://localhost:8000`. Si tout se passe bien vous devriez voir:
 
-<img class="screenshot" alt="Login Screen" src="{{docs_base_url}}/assets/img/login.png">
+<img class="screenshot" alt="Login Screen" src="/docs/assets/img/login.png">
 
 Maintenant, connectez vous avec les identifiants suivants: 
 
@@ -24,9 +24,9 @@ Mot de passe: **Le mot de passe que vous avez définis pendant l'installation**
 
 Une fois connecté, vous devriez voir le `Desk`, c'est à dire la page d'accueil
 
-<img class="screenshot" alt="Desk" src="{{docs_base_url}}/assets/img/desk.png">
+<img class="screenshot" alt="Desk" src="/docs/assets/img/desk.png">
 
-Comme vous pouvez le voir, Frappe fournit quelques applications comme un To Do, un gestionnaire de fichiers etc. Ces applications
+Comme vous pouvez le voir, Frappé fournit quelques applications comme un To Do, un gestionnaire de fichiers etc. Ces applications
 peuvent être intégrées par la suite.
 
 {next}

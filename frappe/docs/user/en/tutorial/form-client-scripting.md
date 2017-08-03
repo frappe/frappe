@@ -1,3 +1,5 @@
+# Form Client Scripting
+
 ## Scripting Forms
 
 Now we have created a basic system that works out of the box without us having to write any code. Let us now write some scripts to make the application richer and add validations so that the user does not enter wrong data.

@@ -1,6 +1,6 @@
 # Tareas Programadas
 
-Finalmente, una aplicación también tiene que mandar notificaciones de email y hacer otros tipos de tareas programadas. En Frappe, si tienes el bench configurado, el programador de tareas es configurado vía Celery usando Redis Queue.
+Finalmente, una aplicación también tiene que mandar notificaciones de email y hacer otros tipos de tareas programadas. En Frappé, si tienes el bench configurado, el programador de tareas es configurado vía Celery usando Redis Queue.
 
 Para agregar un nuevo manejador(Handler) de tareas, ir a `hooks.py` y agrega un nuevo manejador. Los manejadores (Handlers) por defecto son `all`, `daily`, `weekly`, `monthly`. El manejador `all` es llamado cada 3 minutos por defecto.
 
@@ -15,7 +15,7 @@ Para agregar un nuevo manejador(Handler) de tareas, ir a `hooks.py` y agrega un 
 
 Aquí hacemos referencia a una función Python que va a ser ejecutada diariamente. Vamos a ver como se ve esta función:
 
-	# Copyright (c) 2013, Frappe
+	# Copyright (c) 2013, Frappé
 	# For license information, please see license.txt
 
 	from __future__ import unicode_literals

@@ -14,26 +14,17 @@ frappe.ui.form.Timeline = Class.extend({
 			{doctype: this.frm.doctype})).appendTo(this.parent);
 
 		this.list = this.wrapper.find(".timeline-items");
-		this.input = this.wrapper.find(".form-control");
 
-		this.comment_button = this.wrapper.find(".btn-comment")
-			.on("click", function() {
-				me.add_comment(this);
-			});
-
-		this.input.keydown("meta+return ctrl+return", function(e) {
-			me.comment_button.trigger("click");
-		}).keyup(function(e) {
-			if(me.input.val()) {
-				if(me.comment_button.hasClass('btn-default')) {
-					me.comment_button.removeClass('btn-default').addClass('btn-primary');
-				}
-			} else {
-				if(me.comment_button.hasClass('btn-primary')) {
-					me.comment_button.removeClass('btn-primary').addClass('btn-default');
-				}
+		this.comment_area = new frappe.ui.CommentArea({
+			parent: this.wrapper.find('.timeline-head'),
+			mentions: this.get_usernames_for_mentions(),
+			on_submit: (val) => {
+				val && this.insert_comment(
+					"Comment", val, this.comment_area.button);
 			}
 		});
+
+		this.setup_editing_area();
 
 		this.setup_email_button();
 
@@ -42,8 +33,6 @@ frappe.ui.form.Timeline = Class.extend({
 		});
 
 		this.setup_comment_like();
-
-		this.setup_mentions();
 
 		this.list.on("click", ".btn-more", function() {
 			var communications = me.get_communications();
@@ -94,11 +83,23 @@ frappe.ui.form.Timeline = Class.extend({
 					});
 				} else {
 					$.extend(args, {
-						txt: frappe.markdown(me.input.val())
+						txt: frappe.markdown(me.comment_area.val())
 					});
 				}
 				new frappe.views.CommunicationComposer(args)
 			});
+	},
+
+	setup_editing_area: function() {
+		this.$editing_area = $('<div class="timeline-editing-area">');
+
+		this.editing_area = new frappe.ui.CommentArea({
+			parent: this.$editing_area,
+			mentions: this.get_usernames_for_mentions(),
+			no_wrapper: true
+		});
+
+		this.editing_area.destroy();
 	},
 
 	refresh: function(scroll_to_end) {
@@ -112,7 +113,7 @@ frappe.ui.form.Timeline = Class.extend({
 		}
 		this.wrapper.toggle(true);
 		this.list.empty();
-		this.input.val('');
+		this.comment_area.val('');
 
 		var communications = this.get_communications(true);
 
@@ -130,7 +131,7 @@ frappe.ui.form.Timeline = Class.extend({
 		}
 
 		if (this.more) {
-			var $more = $('<div class="timeline-item">\
+			$('<div class="timeline-item">\
 				<button class="btn btn-default btn-xs btn-more">More</button>\
 			</div>').appendTo(me.list);
 		}
@@ -161,43 +162,45 @@ frappe.ui.form.Timeline = Class.extend({
 			.on("click", ".close", function() {
 				var name = $timeline_item.data('name');
 				me.delete_comment(name);
-
 				return false;
 			})
-			.on('click', '.edit', function() {
-				var is_editing = 'is-editing';
-				var content = $timeline_item.find('.timeline-item-content');
+			.on('click', '.edit', function(e) {
+				e.preventDefault();
 				var name = $timeline_item.data('name');
 
-				var update_comment = function() {
-					var val = content.find('textarea').val();
-					// set content to new val so that on save and refresh the new content is shown
-					c.content = val;
-
-					frappe.timeline.update_communication(c);
-					me.update_comment(name, val);
-
-					// all changes to the timeline_item for editing are reset after calling refresh
-					me.refresh();
-				}
-
-				if(content.hasClass(is_editing)) {
-					update_comment();
+				if($timeline_item.hasClass('is-editing')) {
+					me.editing_area.submit();
+					me.$editing_area.detach();
 				} else {
 					var $edit_btn = $(this);
-					var editing_textarea = me.input.clone()
-						.removeClass('comment-input');
+					var content = $timeline_item.find('.timeline-item-content').html();
 
-					editing_textarea.keydown("meta+return ctrl+return", function(e) {
-						update_comment();
-					});
+					$edit_btn
+						.find('i')
+						.removeClass('octicon-pencil')
+						.addClass('octicon-check');
 
-					frappe.db.get_value('Communication', {name: name}, 'content', function(r) {
-						$edit_btn.find('i').removeClass('octicon-pencil').addClass('octicon-check');
-						editing_textarea.val(r.content);
-						content.html(editing_textarea);
-						content.addClass(is_editing);
-					});
+					me.editing_area.setup_summernote();
+					me.editing_area.val(content);
+					me.editing_area.on_submit = (value) => {
+						me.editing_area.destroy();
+						value = value.trim();
+						// set content to new val so that on save and refresh the new content is shown
+						c.content = value;
+						frappe.timeline.update_communication(c);
+						me.update_comment(name, value);
+						// all changes to the timeline_item for editing are reset after calling refresh
+						me.refresh();
+					};
+
+					$timeline_item
+						.find('.timeline-item-content')
+						.hide();
+					$timeline_item
+						.find('.timeline-content-show')
+						.append(me.$editing_area);
+					$timeline_item
+						.addClass('is-editing');
 				}
 
 				return false;
@@ -295,11 +298,14 @@ frappe.ui.form.Timeline = Class.extend({
 			} else {
 				c.content_html = c.content;
 				c.content_html = frappe.utils.strip_whitespace(c.content_html);
-				c.content_html = c.content_html.replace(/&lt;/g,"<").replace(/&gt;/g,">")
+				c.content_html = c.content_html.replace(/&lt;/g,"<").replace(/&gt;/g,">");
 			}
 
 			// bold @mentions
-			if(c.comment_type==="Comment") {
+			if(c.comment_type==="Comment" &&
+				// avoid adding <b> tag a 2nd time
+				!c.content_html.match(/(^|\W)<b>(@\w+)<\/b>/)
+			) {
 				c.content_html = c.content_html.replace(/(^|\W)(@\w+)/g, "$1<b>$2</b>");
 			}
 
@@ -519,16 +525,8 @@ frappe.ui.form.Timeline = Class.extend({
 		};
 	},
 
-	add_comment: function(btn) {
-		var txt = this.input.val();
-
-		if(txt) {
-			this.insert_comment("Comment", txt, btn, this.input);
-		}
-	},
-	insert_comment: function(comment_type, comment, btn, input) {
+	insert_comment: function(comment_type, comment, btn) {
 		var me = this;
-		if(input) input.prop('disabled', true);
 		return frappe.call({
 			method: "frappe.desk.form.utils.add_comment",
 			args: {
@@ -545,8 +543,7 @@ frappe.ui.form.Timeline = Class.extend({
 			btn: btn,
 			callback: function(r) {
 				if(!r.exc) {
-					me.input.val("");
-
+					me.comment_area.val('');
 					frappe.utils.play_sound("click");
 
 					var comment = r.message;
@@ -565,9 +562,6 @@ frappe.ui.form.Timeline = Class.extend({
 					me.frm.get_docinfo().communications = comments.concat([r.message]);
 					me.refresh(true);
 				}
-			},
-			always: function() {
-				if(input) input.prop('disabled', false);
 			}
 		});
 
@@ -620,7 +614,9 @@ frappe.ui.form.Timeline = Class.extend({
 				fieldname: 'content',
 				value: content,
 			}, callback: function(r) {
-				frappe.utils.play_sound('click');
+				if(!r.exc) {
+					frappe.utils.play_sound('click');
+				}
 			}
 		});
 	},
@@ -655,35 +651,11 @@ frappe.ui.form.Timeline = Class.extend({
 		return last_email;
 	},
 
-	setup_mentions: function() {
-		this.setup_awesomplete_for_mentions();
-	},
+	get_usernames_for_mentions: function() {
+		var valid_users = Object.keys(frappe.boot.user_info)
+			.filter(user => !["Administrator", "Guest"].includes(user));
 
-	setup_awesomplete_for_mentions: function() {
-		var me = this;
-		var username_user_map = {};
-		for (var name in frappe.boot.user_info) {
-			if(name !== "Administrator" && name !== "Guest") {
-				var _user = frappe.boot.user_info[name];
-				username_user_map[_user.username] = _user;
-			}
-		}
-		var source = Object.keys(username_user_map);
-
-		this.awesomplete = new Awesomplete(this.input.get(0), {
-			minChars: 0,
-			maxItems: 99,
-			autoFirst: true,
-			list: source,
-			filter: function(text, input) {
-				if(input.indexOf("@") === -1) return false;
-				return Awesomplete.FILTER_STARTSWITH(text, input.match(/[^@]*$/)[0]);
-			},
-			replace: function(text) {
-				var before = this.input.value.match(/^.*@\s*|/)[0];
-				this.input.value = before + text + " ";
-			}
-		});
+		return valid_users.map(user => frappe.boot.user_info[user].username);
 	},
 
 	setup_comment_like: function() {

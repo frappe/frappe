@@ -1,9 +1,8 @@
 from __future__ import print_function
-import frappe, urllib
+import frappe
 import pytz
 
 from frappe import _
-from urlparse import parse_qs, urlparse
 from oauthlib.oauth2.rfc6749.tokens import BearerToken
 from oauthlib.oauth2.rfc6749.grant_types import AuthorizationCodeGrant, ImplicitGrant, ResourceOwnerPasswordCredentialsGrant, ClientCredentialsGrant,  RefreshTokenGrant, OpenIDConnectAuthCode
 from oauthlib.oauth2 import RequestValidator
@@ -12,6 +11,7 @@ from oauthlib.oauth2.rfc6749.endpoints.token import TokenEndpoint
 from oauthlib.oauth2.rfc6749.endpoints.resource import ResourceEndpoint
 from oauthlib.oauth2.rfc6749.endpoints.revocation import RevocationEndpoint
 from oauthlib.common import Request
+from six.moves.urllib.parse import parse_qs, urlparse, unquote
 
 def get_url_delimiter(separator_character=" "):
 	return separator_character
@@ -134,7 +134,7 @@ class OAuthWebRequestValidator(RequestValidator):
 		oac.scopes = get_url_delimiter().join(request.scopes)
 		oac.redirect_uri_bound_to_authorization_code = request.redirect_uri
 		oac.client = client_id
-		oac.user = urllib.unquote(cookie_dict['user_id'])
+		oac.user = unquote(cookie_dict['user_id'])
 		oac.authorization_code = code['code']
 		oac.save(ignore_permissions=True)
 		frappe.db.commit()
@@ -159,7 +159,7 @@ class OAuthWebRequestValidator(RequestValidator):
 		except Exception as e:
 			print("Failed body authentication: Application %s does not exist".format(cid=request.client_id))
 
-		return frappe.session.user == urllib.unquote(cookie_dict.get('user_id', "Guest"))
+		return frappe.session.user == unquote(cookie_dict.get('user_id', "Guest"))
 
 	def authenticate_client_id(self, client_id, request, *args, **kwargs):
 		cli_id = frappe.db.get_value('OAuth Client', client_id, 'name')

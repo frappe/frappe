@@ -16,14 +16,16 @@ def get_context(path, args=None):
 		if args:
 			context.update(args)
 
-	context = build_context(context)
-
 	if hasattr(frappe.local, 'request'):
 		# for <body data-path=""> (remove leading slash)
 		# path could be overriden in render.resolve_from_map
-		context["path"] = frappe.local.request.path[1:]
+		context["path"] = frappe.local.request.path.strip('/ ')
 	else:
 		context["path"] = path
+
+	context.route = context.path
+
+	context = build_context(context)
 
 	# set using frappe.respond_as_web_page
 	if hasattr(frappe.local, 'response') and frappe.local.response.get('context'):
@@ -69,6 +71,9 @@ def build_context(context):
 	if context.url_prefix and context.url_prefix[-1]!='/':
 		context.url_prefix += '/'
 
+	# for backward compatibility
+	context.docs_base_url = '/docs'
+
 	context.update(get_website_settings())
 	context.update(frappe.local.conf.get("website_context") or {})
 
@@ -105,7 +110,21 @@ def build_context(context):
 				update_controller_context(context, extension)
 
 	add_metatags(context)
+	add_sidebar_and_breadcrumbs(context)
 
+	# determine templates to be used
+	if not context.base_template_path:
+		app_base = frappe.get_hooks("base_template")
+		context.base_template_path = app_base[0] if app_base else "templates/base.html"
+
+	if context.title_prefix and context.title and not context.title.startswith(context.title_prefix):
+		context.title = '{0} - {1}'.format(context.title_prefix, context.title)
+
+	return context
+
+def add_sidebar_and_breadcrumbs(context):
+	'''Add sidebar and breadcrumbs to context'''
+	from frappe.website.router import get_page_info_from_template
 	if context.show_sidebar:
 		context.no_cache = 1
 		add_sidebar_data(context)
@@ -117,16 +136,12 @@ def build_context(context):
 					context.sidebar_items = json.loads(sidebarfile.read())
 					context.show_sidebar = 1
 
-
-	# determine templates to be used
-	if not context.base_template_path:
-		app_base = frappe.get_hooks("base_template")
-		context.base_template_path = app_base[0] if app_base else "templates/base.html"
-
-	if context.title_prefix and context.title and not context.title.startswith(context.title_prefix):
-		context.title = '{0} - {1}'.format(context.title_prefix, context.title)
-
-	return context
+	if context.add_breadcrumbs and not context.parents:
+		if context.basepath:
+			parent_path = os.path.dirname(context.path).rstrip('/')
+			page_info = get_page_info_from_template(parent_path)
+			if page_info:
+				context.parents = [dict(route=parent_path, title=page_info.title)]
 
 def add_sidebar_data(context):
 	from frappe.utils.user import get_fullname_and_avatar

@@ -1,3 +1,5 @@
+# Insert A Document Via Api
+
 You can insert documents via a script using the `frappe.get_doc` method
 
 ### Examples:

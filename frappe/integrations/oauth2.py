@@ -2,9 +2,10 @@ from __future__ import unicode_literals
 import frappe, json
 from frappe.oauth import OAuthWebRequestValidator, WebApplicationServer
 from oauthlib.oauth2 import FatalClientError, OAuth2Error
-from urllib import quote, urlencode
+from urllib import urlencode
+from six.moves.urllib.parse import quote
 from werkzeug import url_fix
-from urlparse import urlparse
+from six.moves.urllib.parse import urlparse
 from frappe.integrations.doctype.oauth_provider_settings.oauth_provider_settings import get_oauth_settings
 from frappe import _
 
@@ -178,7 +179,6 @@ def openid_profile(*args, **kwargs):
 	frappe.local.response = user_profile
 
 def validate_url(url_string):
-	from urlparse import urlparse
 	try:
 		result = urlparse(url_string)
 		if result.scheme and result.scheme in ["http", "https", "ftp", "ftps"]:

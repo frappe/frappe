@@ -16,12 +16,12 @@ def execute(filters=None):
 	data = frappe.get_list(doctype, fields=fields, as_list=True, user=user)
 
 	if show_permissions:
- 		columns = columns + ["Read", "Write", "Create", "Delete", "Submit", "Cancel", "Amend", "Print", "Email",
- 		                     "Report", "Import", "Export", "Share"]
- 		data = list(data)
- 		for i,item in enumerate(data):
- 			temp = frappe.permissions.get_doc_permissions(frappe.get_doc(doctype, item[0]), False,user)
- 			data[i] = item+(temp.get("read"),temp.get("write"),temp.get("create"),temp.get("delete"),temp.get("submit"),temp.get("cancel"),temp.get("amend"),temp.get("print"),temp.get("email"),temp.get("report"),temp.get("import"),temp.get("export"),temp.get("share"),)
+		columns = columns + ["Read", "Write", "Create", "Delete", "Submit", "Cancel", "Amend", "Print", "Email",
+		                     "Report", "Import", "Export", "Share"]
+		data = list(data)
+		for i,item in enumerate(data):
+			temp = frappe.permissions.get_doc_permissions(frappe.get_doc(doctype, item[0]), False,user)
+			data[i] = item+(temp.get("read"),temp.get("write"),temp.get("create"),temp.get("delete"),temp.get("submit"),temp.get("cancel"),temp.get("amend"),temp.get("print"),temp.get("email"),temp.get("report"),temp.get("import"),temp.get("export"),temp.get("share"),)
 
 	return columns, data
 

@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 import frappe, unittest
 
 from frappe.email.doctype.newsletter.newsletter import confirmed_unsubscribe
-from urllib import unquote
+from six.moves.urllib.parse import unquote
 
 emails = ["test_subscriber1@example.com", "test_subscriber2@example.com",
 			"test_subscriber3@example.com"]

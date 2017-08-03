@@ -6,7 +6,7 @@ Para criar um novo **DocType**, vá para:
 
 > Developer > Documents > Doctype > New
 
-<img class="screenshot" alt="New Doctype" src="{{docs_base_url}}/assets/img/doctype_new.png">
+<img class="screenshot" alt="New Doctype" src="/docs/assets/img/doctype_new.png">
 
 No DocType, criamos o módulo, que no nosso caso é **Library Managment**
 
@@ -25,7 +25,7 @@ Os campos são muito mais do que colunas de banco de dados, eles podem ser:
 
 Vamos adicionar os campos do artigo.
 
-<img class="screenshot" alt="Adding Fields" src="{{docs_base_url}}/assets/img/doctype_adding_field.png">
+<img class="screenshot" alt="Adding Fields" src="/docs/assets/img/doctype_adding_field.png">
 
 Quando você adiciona campos, você precisa digitar o **Type**. **Label** é opcional para quebra de seção e quebra de coluna. **Name** (`fieldname`) é o nome da coluna da tabela de banco de dados e também a propriedade do controlador. Isso tem que ser um *código amigável*, ou seja, ele tem que ter caracteres minusculos e _ em vez de "". Se você deixar o nome do campo em branco, ele será ajustado automaticamente quando você salvá-lo.
 
@@ -45,9 +45,9 @@ Nós podemos adicionar os seguintes campos:
 
 #### Adicionando permissões
 
-Depois de adicionar os campos, finalize e adicione uma nova linha na seção Regras de permissão. Por enquanto, vamos dar permissão de Read, Write, Create, Delete and Report, a **Librarian**. Frappe tem uma Role baseado nas permissões do modelo. Você também pode alterar as permissões posteriormente usando o **Role Permissions Manager** do **Setup**.
+Depois de adicionar os campos, finalize e adicione uma nova linha na seção Regras de permissão. Por enquanto, vamos dar permissão de Read, Write, Create, Delete and Report, a **Librarian**. Frappé tem uma Role baseado nas permissões do modelo. Você também pode alterar as permissões posteriormente usando o **Role Permissions Manager** do **Setup**.
 
-<img class="screenshot" alt="Adding Permissions" src="{{docs_base_url}}/assets/img/doctype_adding_permission.png">
+<img class="screenshot" alt="Adding Permissions" src="/docs/assets/img/doctype_adding_permission.png">
 
 #### Salvando
 

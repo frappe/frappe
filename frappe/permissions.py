@@ -7,7 +7,6 @@ import frappe, copy, json
 from frappe import _, msgprint
 from frappe.utils import cint
 import frappe.share
-
 rights = ("read", "write", "create", "delete", "submit", "cancel", "amend",
 	"print", "email", "report", "import", "export", "set_user_permissions", "share")
 
@@ -25,6 +24,9 @@ def has_permission(doctype, ptype="read", doc=None, verbose=False, user=None):
 	"""
 	if not user: user = frappe.session.user
 
+	if verbose:
+		print('--- Checking for {0} {1} ---'.format(doctype, doc.name if doc else '-'))
+
 	if frappe.is_table(doctype):
 		if verbose: print("Table type, always true")
 		return True
@@ -40,7 +42,7 @@ def has_permission(doctype, ptype="read", doc=None, verbose=False, user=None):
 		return False
 
 	if user=="Administrator":
-		if verbose: print("Administrator")
+		if verbose: print("Allowing Administrator")
 		return True
 
 	def false_if_not_shared():
@@ -210,7 +212,10 @@ def get_role_permissions(meta, user=None, verbose=False):
 
 					if p.user_permission_doctypes:
 						# set user_permission_doctypes in perms
-						user_permission_doctypes = json.loads(p.user_permission_doctypes)
+						try:
+							user_permission_doctypes = json.loads(p.user_permission_doctypes)
+						except ValueError:
+							user_permission_doctypes = []
 					else:
 						user_permission_doctypes = get_linked_doctypes(meta.name)
 
@@ -247,8 +252,12 @@ def get_role_permissions(meta, user=None, verbose=False):
 
 	return frappe.local.role_permissions[cache_key]
 
+def get_user_permissions(user):
+	from frappe.core.doctype.user_permission.user_permission import get_user_permissions
+	return get_user_permissions(user)
+
 def user_has_permission(doc, verbose=True, user=None, user_permission_doctypes=None):
-	from frappe.defaults import get_user_permissions
+	from frappe.core.doctype.user_permission.user_permission import get_user_permissions
 	user_permissions = get_user_permissions(user)
 	user_permission_doctypes = get_user_permission_doctypes(user_permission_doctypes, user_permissions)
 
@@ -257,6 +266,10 @@ def user_has_permission(doc, verbose=True, user=None, user_permission_doctypes=N
 		end_result = False
 
 		messages = {}
+
+		if not user_permission_doctypes:
+			# no doctypes restricted
+			end_result = True
 
 		# check multiple sets of user_permission_doctypes using OR condition
 		for doctypes in user_permission_doctypes:
@@ -309,9 +322,9 @@ def has_controller_permissions(doc, ptype, user=None):
 def get_doctypes_with_read():
 	return list(set([p.parent for p in get_valid_perms()]))
 
-def get_valid_perms(doctype=None):
+def get_valid_perms(doctype=None, user=None):
 	'''Get valid permissions for the current user from DocPerm and Custom DocPerm'''
-	roles = get_roles()
+	roles = get_roles(user)
 
 	perms = get_perms_for(roles)
 	custom_perms = get_perms_for(roles, 'Custom DocPerm')
@@ -360,7 +373,8 @@ def get_roles(user=None, with_standard=True):
 
 def get_perms_for(roles, perm_doctype='DocPerm'):
 	'''Get perms for given roles'''
-	return frappe.db.sql("""select * from `tab{doctype}` where docstatus=0
+	return frappe.db.sql("""
+		select * from `tab{doctype}` where docstatus=0
 		and ifnull(permlevel,0)=0
 		and role in ({roles})""".format(doctype = perm_doctype,
 			roles=", ".join(["%s"]*len(roles))), tuple(roles), as_dict=1)
@@ -386,22 +400,28 @@ def set_user_permission_if_allowed(doctype, name, user, with_message=False):
 	if get_role_permissions(frappe.get_meta(doctype), user).set_user_permissions!=1:
 		add_user_permission(doctype, name, user, with_message)
 
-def add_user_permission(doctype, name, user, with_message=False):
-	'''Add user default'''
-	if name not in frappe.defaults.get_user_permissions(user).get(doctype, []):
+def add_user_permission(doctype, name, user, apply=False):
+	'''Add user permission'''
+	from frappe.core.doctype.user_permission.user_permission import get_user_permissions
+	if name not in get_user_permissions(user).get(doctype, []):
 		if not frappe.db.exists(doctype, name):
 			frappe.throw(_("{0} {1} not found").format(_(doctype), name), frappe.DoesNotExistError)
 
-		frappe.defaults.add_default(doctype, name, user, "User Permission")
-	elif with_message:
-		msgprint(_("Permission already set"))
+		frappe.get_doc(dict(
+			doctype='User Permission',
+			user=user,
+			allow=doctype,
+			for_value=name,
+			apply_for_all_roles=apply
+		)).insert()
 
-def remove_user_permission(doctype, name, user, default_value_name=None):
-	frappe.defaults.clear_default(key=doctype, value=name, parent=user, parenttype="User Permission",
-		name=default_value_name)
+def remove_user_permission(doctype, name, user):
+	user_permission_name = frappe.db.get_value('User Permission',
+		dict(user=user, allow=doctype, for_value=name))
+	frappe.delete_doc('User Permission', user_permission_name)
 
 def clear_user_permissions_for_doctype(doctype):
-	frappe.defaults.clear_default(parenttype="User Permission", key=doctype)
+	frappe.cache().delete_value('user_permissions')
 
 def can_import(doctype, raise_exception=False):
 	if not ("System Manager" in frappe.get_roles() or has_permission(doctype, "import")):
@@ -426,9 +446,10 @@ def apply_user_permissions(doctype, ptype, user=None):
 
 def get_user_permission_doctypes(user_permission_doctypes, user_permissions):
 	"""returns a list of list like [["User", "Blog Post"], ["User"]]"""
-	if cint(frappe.db.get_single_value("System Settings", "ignore_user_permissions_if_missing")):
+	if cint(frappe.get_system_settings('ignore_user_permissions_if_missing')):
 		# select those user permission doctypes for which user permissions exist!
-		user_permission_doctypes = [list(set(doctypes).intersection(set(user_permissions.keys())))
+		user_permission_doctypes = [
+			list(set(doctypes).intersection(set(user_permissions.keys())))
 			for doctypes in user_permission_doctypes]
 
 	if len(user_permission_doctypes) > 1:
@@ -451,6 +472,22 @@ def get_user_permission_doctypes(user_permission_doctypes, user_permissions):
 					break
 
 	return user_permission_doctypes
+
+def update_permission_property(doctype, role, permlevel, ptype, value=None, validate=True):
+	'''Update a property in Custom Perm'''
+	from frappe.core.doctype.doctype.doctype import validate_permissions_for_doctype
+	out = setup_custom_perms(doctype)
+
+	name = frappe.get_value('Custom DocPerm', dict(parent=doctype, role=role,
+		permlevel=permlevel))
+
+	frappe.db.sql("""
+		update `tabCustom DocPerm`
+		set `{0}`=%s where name=%s""".format(ptype), (value, name))
+	if validate:
+		validate_permissions_for_doctype(doctype)
+
+	return out
 
 def setup_custom_perms(parent):
 	'''if custom permssions are not setup for the current doctype, set them up'''

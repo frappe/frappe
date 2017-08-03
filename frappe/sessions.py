@@ -17,8 +17,9 @@ import frappe.defaults
 import frappe.translate
 from frappe.utils.change_log import get_change_log
 import redis
-from urllib import unquote
+from six.moves.urllib.parse import unquote
 from frappe.desk.notifications import clear_notifications
+from six import text_type
 
 @frappe.whitelist()
 def clear(user=None):
@@ -360,7 +361,7 @@ class Session:
 		now = frappe.utils.now()
 
 		self.data['data']['last_updated'] = now
-		self.data['data']['lang'] = unicode(frappe.lang)
+		self.data['data']['lang'] = text_type(frappe.lang)
 
 		# update session in db
 		last_updated = frappe.cache().hget("last_db_session_update", self.sid)

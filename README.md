@@ -1,4 +1,4 @@
-## Frappe Framework
+## Frappé Framework
 
 [![Build Status](https://travis-ci.org/frappe/frappe.png)](https://travis-ci.org/frappe/frappe)
 
@@ -6,7 +6,7 @@ Full-stack web application framework that uses Python and MariaDB on the server 
 
 ### Installation
 
-[Install via Frappe Bench](https://github.com/frappe/bench)
+[Install via Frappé Bench](https://github.com/frappe/bench)
 
 ## Contributing
 

@@ -597,9 +597,3 @@ a.edit:visited,
 .page-content-wrapper > .row .col-sm-4 {
   display: none;
 }
-.screenshot {
-  border: 2px solid #d1d8dd;
-  box-shadow: 1px 1px 7px rgba(0, 0, 0, 0.15);
-  margin: 15px 0px;
-  max-width: 100%;
-}
