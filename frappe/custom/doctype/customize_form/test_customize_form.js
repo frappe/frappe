@@ -7,11 +7,12 @@ QUnit.test("test customize form", function(assert) {
 	let done = assert.async();
 	frappe.run_serially([
 		() => frappe.set_route('Form', 'Customize Form'),
+		() => frappe.timeout(3),
 		() => cur_frm.set_value('doc_type', 'ToDo'),
+		() => frappe.timeout(3),
 
-		() => frappe.timeout(2),
-
-		() => assert.equal(cur_frm.doc.fields[1].fieldname, 'status'),
+		() => assert.equal(cur_frm.doc.fields[1].fieldname, 'status',
+			'check if second field is "status"'),
 
 		// open "status" row
 		() => cur_frm.fields_dict.fields.grid.grid_rows[1].toggle_view(),
@@ -25,7 +26,8 @@ QUnit.test("test customize form", function(assert) {
 		() => frappe.timeout(0.5),
 
 		// status still exists
-		() => assert.equal(cur_frm.doc.fields[1].fieldname, 'status'),
+		() => assert.equal(cur_frm.doc.fields[1].fieldname, 'status',
+			'check if second field is still "status"'),
 		() => done()
 	]);
 });

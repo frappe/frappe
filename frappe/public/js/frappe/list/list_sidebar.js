@@ -195,7 +195,7 @@ frappe.views.ListSidebar = Class.extend({
 
 					var custom_column = values.custom_column !== undefined ?
 						values.custom_column : 1;
-					
+
 					if(custom_column) {
 						var field_name = 'kanban_column';
 					} else {
@@ -350,43 +350,35 @@ frappe.views.ListSidebar = Class.extend({
 		var stats = []
 		var label = frappe.meta.docfield_map[this.doctype][field] ?
 			frappe.meta.docfield_map[this.doctype][field].label : field;
-		var show_tags = '<a class="list-tag-preview hidden-xs" title="' + __("Show tags")
-			+ '"><i class="octicon octicon-pencil"></i></a>';
 
 		stat = (stat || []).sort(function(a, b) { return b[1] - a[1] });
 		$.each(stat, function(i,v) { sum = sum + v[1]; })
 
-		if(tags)
-		{
+		if(tags) {
 			for (var t in tags) {
 				var nfound = -1;
 				for (var i in stat) {
 					if (tags[t] ===stat[i][0]) {
 						stats.push(stat[i]);
 						nfound = i;
-						break
+						break;
 					}
 				}
-				if (nfound<0)
-				{
-					stats.push([tags[t],0])
-				}
-				else
-				{
+				if (nfound<0) {
+					stats.push([tags[t],0]);
+				} else {
 					me.tempstats["_user_tags"].splice(nfound,1);
 				}
 			}
-			field = "_user_tags"
-		}
-		else
-		{
-			stats = stat
+			field = "_user_tags";
+		} else {
+			stats = stat;
 		}
 		var context = {
 			field: field,
 			stat: stats,
 			sum: sum,
-			label: field==='_user_tags' ?  tags ? __(label)+ show_tags:(__("UnCategorised Tags") + show_tags): __(label),
+			label: field==='_user_tags' ?  (tags ? __(label) : __("Tags")) : __(label),
 		};
 		var sidebar_stat = $(frappe.render_template("list_sidebar_stat", context))
 			.on("click", ".stat-link", function() {
