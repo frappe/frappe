@@ -36,7 +36,8 @@ class PrintFormat(Document):
 			data = json.loads(self.format_data)
 			for df in data:
 				if df.get('fieldtype') and df['fieldtype'] in ('HTML', 'Custom HTML') and df.get('options'):
-					df['options'] = extract_images_from_html(self, df['options'])
+					if df.get('extract_images') == 1:
+						df['options'] = extract_images_from_html(self, df['options'])
 			self.format_data = json.dumps(data)
 
 	def on_update(self):
