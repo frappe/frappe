@@ -11,7 +11,7 @@ QUnit.test("test customize form", function(assert) {
 
 		() => frappe.timeout(2),
 
-		() => assert.equal(cur_frm.doc.fields[1].fieldname, 'status'),
+		() => assert.equal(cur_frm.doc.fields[1].fieldname, 'status', "Status Field"),
 
 		// open "status" row
 		() => cur_frm.fields_dict.fields.grid.grid_rows[1].toggle_view(),
@@ -25,7 +25,7 @@ QUnit.test("test customize form", function(assert) {
 		() => frappe.timeout(0.5),
 
 		// status still exists
-		() => assert.equal(cur_frm.doc.fields[1].fieldname, 'status'),
+		() => assert.equal(cur_frm.doc.fields[1].fieldname, 'status', "Status Field Still Exists"),
 		() => done()
 	]);
 });
