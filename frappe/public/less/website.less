@@ -378,11 +378,6 @@ textarea {
 	}
 }
 
-@media (max-width: 767px) {
-	.visible-xs {
-		display: inline-block !important;
-	}
-}
 
 .more-block {
 	padding-bottom: 30px;
@@ -480,13 +475,36 @@ a.active {
 .sidebar-block, .page-content {
 	padding-top: 30px;
 	padding-bottom: 50px;
-}
-.your-account-info {
-	margin-top: 30px;
+	//width: 20%;
 }
 
 .page-content.with-sidebar {
 	padding-left: 50px;
+	//width: 80%;
+}
+
+.your-account-info {
+	margin-top: 30px;
+}
+
+@media (max-width: 767px) {
+	.visible-xs {
+		display: inline-block !important;
+	}
+	.sidebar-block {
+		width: 100%;
+
+		.web-sidebar {
+			margin: 0px -15px;
+			padding: 0px 30px;
+			border-bottom: 1px solid @border-color;
+		}
+	}
+	.page-content.with-sidebar {
+		width: 100%;
+		padding-left: 20px;
+		padding-right: 20px;
+	}
 }
 
 @media screen and (max-width: 480px) {
