@@ -299,20 +299,32 @@ h6.uppercase,
 .timeline-item.user-content .action-btns {
   position: absolute;
   right: 0;
-  padding: 9px 15px 2px 5px;
+  padding: 8px 15px 0 5px;
 }
 .timeline-item.user-content .action-btns .edit-btn-container {
-  margin-right: 10px;
+  margin-right: 13px;
 }
 .timeline-item.user-content .comment-header {
   background-color: #fafbfc;
-  padding: 10px 15px 10px 13px;
+  padding: 10px 15px 8px 13px;
   margin: 0px;
   color: #8D99A6;
   border-bottom: 1px solid #EBEFF2;
 }
 .timeline-item.user-content .comment-header.links-active {
-  padding-right: 95px;
+  padding-right: 77px;
+}
+.timeline-item.user-content .comment-header .asset-details {
+  display: inline-block;
+  width: 100%;
+}
+.timeline-item.user-content .comment-header .asset-details .btn-link {
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+}
+.timeline-item.user-content .comment-header .asset-details .btn-link:hover {
+  text-decoration: none;
 }
 .timeline-item.user-content .comment-header .commented-on-small {
   display: none;
@@ -337,7 +349,8 @@ h6.uppercase,
 .timeline-item.user-content .close-btn-container .close {
   color: inherit;
   opacity: 1;
-  padding: 0 0 0 10px;
+  padding: 0;
+  font-size: 18px;
 }
 .timeline-item.user-content .edit-btn-container {
   padding: 0;
@@ -412,9 +425,8 @@ h6.uppercase,
   top: 5px;
 }
 .timeline-item .reply-link {
-  padding-left: 7px;
-  margin-left: 5px;
-  margin-top: 3px;
+  margin-left: 15px;
+  font-size: 12px;
 }
 .timeline-head {
   background-color: white;

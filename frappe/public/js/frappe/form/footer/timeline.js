@@ -252,7 +252,7 @@ frappe.ui.form.Timeline = Class.extend({
 		c["edit"] = "";
 		if(c.communication_type=="Comment" && (c.comment_type || "Comment") === "Comment") {
 			if(frappe.model.can_delete("Communication")) {
-				c["delete"] = '<a class="delete-comment text-muted" title="Delete"  href="#">Delete</a>';
+				c["delete"] = '<a class="close delete-comment" title="Delete"  href="#"><i class="octicon octicon-x"></i></a>';
 			}
 
 			if(frappe.user.name == c.sender || (frappe.user.name == 'Administrator')) {

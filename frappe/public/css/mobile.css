@@ -373,6 +373,9 @@ body {
   .timeline .timeline-item.user-content .comment-header .reply-link {
     margin-left: 0;
   }
+  .timeline .timeline-item.user-content .comment-header .asset-details {
+    width: calc(100% - 30px);
+  }
   .timeline .timeline-item.user-content .avatar-medium {
     margin-right: 10px;
   }
