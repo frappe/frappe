@@ -588,9 +588,14 @@ fieldset {
   width: 100%;
 }
 .page-container {
-  padding: 0px;
+  display: flex;
   max-width: 970px;
-  margin: auto;
+  margin: 0 auto;
+}
+@media (max-width: 767px) {
+  .page-container {
+    flex-direction: column-reverse;
+  }
 }
 .page-max-width {
   max-width: 800px;
@@ -603,29 +608,27 @@ fieldset {
 .web-sidebar {
   position: relative;
 }
-.web-sidebar .sidebar-item {
+.web-sidebar .sidebar-item:not(:last-child) {
   margin: 0px;
   padding-bottom: 12px;
   border: none;
   color: #8D99A6;
-  font-size: 12px;
 }
-.web-sidebar .sidebar-item .badge {
+.web-sidebar .sidebar-item:not(:last-child) .badge {
   font-weight: normal;
 }
 .web-sidebar .sidebar-item a {
-  color: #36414C !important;
+  color: #8D99A6;
 }
 .web-sidebar .sidebar-item a.active {
-  color: #36414C !important;
-  font-weight: 500 !important;
-}
-.web-sidebar .sidebar-items {
-  margin-bottom: 30px;
+  color: #36414C;
 }
 .web-sidebar .sidebar-items .title {
   font-size: 14px;
   font-weight: bold;
+}
+.web-sidebar .sidebar-items ul {
+  margin-bottom: 0;
 }
 .page-footer {
   padding: 15px 0px;
@@ -785,13 +788,30 @@ a.active {
 .btn-next-wrapper {
   margin-top: 60px;
 }
-.sidebar-block,
+.sidebar-block {
+  flex: 1;
+  font-size: 12px;
+  border-right: 1px solid #d1d8dd;
+  padding: 30px;
+  padding-left: 0px;
+}
+@media (max-width: 767px) {
+  .sidebar-block {
+    font-size: 14px;
+    border-right: none;
+    border-top: 1px solid #d1d8dd;
+    padding-left: 20px;
+  }
+}
 .page-content {
-  padding-top: 30px;
-  padding-bottom: 50px;
+  flex: 6;
+}
+.page-content h1:first-child {
+  margin-top: 0;
 }
 .page-content.with-sidebar {
-  padding-left: 50px;
+  padding: 30px;
+  padding-left: 40px;
 }
 .your-account-info {
   margin-top: 30px;
@@ -802,11 +822,6 @@ a.active {
   }
   .sidebar-block {
     width: 100%;
-  }
-  .sidebar-block .web-sidebar {
-    margin: 0px -15px;
-    padding: 0px 30px;
-    border-bottom: 1px solid #d1d8dd;
   }
   .page-content.with-sidebar {
     width: 100%;
