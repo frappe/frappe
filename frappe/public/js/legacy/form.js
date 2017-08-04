@@ -459,6 +459,7 @@ _f.Frm.prototype.refresh = function(docname) {
 _f.Frm.prototype.show_if_needs_refresh = function() {
 	if(this.doc.__needs_refresh) {
 		if(this.doc.__unsaved) {
+			this.dashboard.clear_headline();
 			this.dashboard.set_headline_alert(__("This form has been modified after you have loaded it")
 				+ '<a class="btn btn-xs btn-primary pull-right" onclick="cur_frm.reload_doc()">'
 				+ __("Refresh") + '</a>', "alert-warning");
