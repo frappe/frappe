@@ -106,8 +106,8 @@ def create_http_request():
 
 def enable_2fa():
 	'''Enable Two factor in system settings.'''
+	toggle_two_factor_auth(True)
 	system_settings = frappe.get_doc('System Settings')
-	system_settings.enable_two_factor_auth = True
 	system_settings.two_factor_method = 'OTP App'
 	system_settings.save(ignore_permissions=True)
 	frappe.db.commit()

@@ -12,18 +12,31 @@ from pyqrcode import create as qrcreate
 from StringIO import StringIO
 from base64 import b64encode,b32encode
 from frappe.utils import get_url, get_datetime, time_diff_in_seconds
+from frappe.installer import update_site_config
 
 
 class ExpiredLoginException(Exception):pass
 
+
+def toggle_two_factor_auth(state,roles=[]):
+	'''Enable or disable 2FA in site_config and roles'''
+	update_site_config('enable_two_factor_auth',state)
+	for role in roles:
+		role = frappe.get_doc('Role',{'role_name':role})
+		role.two_factor_auth = state
+		role.save(ignore_permissions=True)
+
+
+def two_factor_is_enabled(user=None):
+	'''Returns True if 2FA is enabled.'''
+	enabled = frappe.local.conf.get('enable_two_factor_auth',False)
+	if not user or not enabled:
+		return enabled
+	return two_factor_is_enabled_for_(user)
+
 def should_run_2fa(user):
 	'''Check if 2fa should run.'''
-	site_otp_enabled = frappe.db.get_value('System Settings', 'System Settings', 'enable_two_factor_auth')
-	user_otp_enabled = two_factor_is_enabled_for_(user)
-	#Don't validate for Admin or if not enabled
-	if user =='Administrator' or not site_otp_enabled or not user_otp_enabled:
-		return False
-	return True
+	return two_factor_is_enabled(user=user)
 
 
 def get_cached_user_pass():
