@@ -359,13 +359,19 @@ body {
     content: none;
   }
   .timeline .timeline-item.user-content .action-btns {
-    padding: 5px 10px 2px 5px;
+    padding: 7px 10px 2px 5px;
+  }
+  .timeline .timeline-item.user-content .action-btns .edit-btn-container {
+    margin-right: 0;
   }
   .timeline .timeline-item.user-content .comment-header {
     padding: 7px 10px;
   }
   .timeline .timeline-item.user-content .comment-header .links-active {
     padding-right: 10px;
+  }
+  .timeline .timeline-item.user-content .comment-header .reply-link {
+    margin-left: 0;
   }
   .timeline .timeline-item.user-content .avatar-medium {
     margin-right: 10px;

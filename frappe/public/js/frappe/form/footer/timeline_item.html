@@ -91,7 +91,7 @@
 							{% if (data.communication_medium === "Email"
 								&& data.sender !== frappe.session.user_email) { %}
 							<a class="text-muted reply-link pull-right timeline-content-show"
-								data-name="{%= data.name %}" title="{%= __("Reply") %}"><i class="octicon octicon-mail-reply"></i></a>
+								data-name="{%= data.name %}" title="{%= __("Reply") %}">{%= __("Reply") %}</a>
 							{% } %}
 						{% } %}
 					<span class="text-muted commented-on hidden-xs">
