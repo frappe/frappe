@@ -494,7 +494,7 @@ frappe.Application = Class.extend({
 					if(doc.__unsaved) { unsaved_docs.push(doc.name); }
 				}
 			}
-			return unsaved_docs.length ? true : false;
+			return unsaved_docs.length ? true : null;
 		};
 	},
 
