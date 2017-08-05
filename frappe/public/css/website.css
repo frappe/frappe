@@ -712,11 +712,6 @@ textarea {
 .sidebar-navbar-items a:visited {
   border-bottom: 0px;
 }
-@media (max-width: 767px) {
-  .visible-xs {
-    display: inline-block !important;
-  }
-}
 .more-block {
   padding-bottom: 30px;
 }
@@ -795,11 +790,29 @@ a.active {
   padding-top: 30px;
   padding-bottom: 50px;
 }
+.page-content.with-sidebar {
+  padding-left: 50px;
+}
 .your-account-info {
   margin-top: 30px;
 }
-.page-content.with-sidebar {
-  padding-left: 50px;
+@media (max-width: 767px) {
+  .visible-xs {
+    display: inline-block !important;
+  }
+  .sidebar-block {
+    width: 100%;
+  }
+  .sidebar-block .web-sidebar {
+    margin: 0px -15px;
+    padding: 0px 30px;
+    border-bottom: 1px solid #d1d8dd;
+  }
+  .page-content.with-sidebar {
+    width: 100%;
+    padding-left: 20px;
+    padding-right: 20px;
+  }
 }
 @media screen and (max-width: 480px) {
   .page-content {

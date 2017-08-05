@@ -600,8 +600,9 @@ class Database:
 
 		order_by = ("order by " + order_by) if order_by else ""
 
-		r = self.sql("select {0} from `tab{1}` where {2} {3}".format(fl, doctype,
-			conditions, order_by), values, as_dict=as_dict, debug=debug, update=update)
+		r = self.sql("select {0} from `tab{1}` {2} {3} {4}"
+			.format(fl, doctype, "where" if conditions else "", conditions, order_by), values, 
+			as_dict=as_dict, debug=debug, update=update)
 
 		return r
 
