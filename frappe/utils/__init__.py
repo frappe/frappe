@@ -126,7 +126,7 @@ def random_string(length):
 	"""generate a random string"""
 	import string
 	from random import choice
-	return ''.join([choice(string.letters + string.digits) for i in range(length)])
+	return ''.join([choice(string.ascii_letters + string.digits) for i in range(length)])
 
 
 def has_gravatar(email):
