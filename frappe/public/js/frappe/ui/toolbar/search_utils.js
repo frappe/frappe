@@ -251,7 +251,9 @@ frappe.search.utils = {
 			var level = me.fuzzy_search(keywords, item);
 			if(level > 0) {
 				var module = frappe.modules[item];
-				if(module._doctype) return;
+				if(module._doctype || module.blocked) {
+					return;
+				}
 				var ret = {
 					type: "Module",
 					label: __("Open {0}", [me.bolden_match_part(__(item), keywords)]),

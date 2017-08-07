@@ -189,7 +189,9 @@ frappe.Application = Class.extend({
 	load_bootinfo: function() {
 		if(frappe.boot) {
 			frappe.modules = {};
-			frappe.boot.desktop_icons.forEach(function(m) { frappe.modules[m.module_name]=m; });
+			frappe.boot.desktop_icons.forEach(function(m) {
+				frappe.modules[m.module_name] = m;
+			});
 			frappe.model.sync(frappe.boot.docs);
 			$.extend(frappe._messages, frappe.boot.__messages);
 			this.check_metadata_cache_status();

@@ -92,8 +92,13 @@ class UserPermissions:
 		user_shared = frappe.share.get_shared_doctypes()
 		no_list_view_link = []
 		active_modules = frappe.get_active_modules() or []
+		blocked_doctype = frappe.get_blocked_doctypes() or []
 
 		for dt in self.doctype_map:
+			# [domainify] dont show blocked doctype
+			if dt in blocked_doctype:
+				continue
+
 			dtp = self.doctype_map[dt]
 			p = self.perm_map.get(dt, {})
 
