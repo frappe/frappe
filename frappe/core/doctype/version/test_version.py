@@ -14,12 +14,13 @@ class TestVersion(unittest.TestCase):
 		new_doc = copy.deepcopy(old_doc)
 
 		old_doc.color = None
+		new_doc.color = '#fafafa'
 
 		diff = get_diff(old_doc, new_doc)['changed']
 
 		self.assertEquals(get_fieldnames(diff)[0], 'color')
 		self.assertTrue(get_old_values(diff)[0] is None)
-		self.assertEquals(get_new_values(diff)[0], 'blue')
+		self.assertEquals(get_new_values(diff)[0], '#fafafa')
 
 		new_doc.starts_on = "2017-07-20"
 
