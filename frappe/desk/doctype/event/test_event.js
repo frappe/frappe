@@ -16,12 +16,18 @@ QUnit.test("test: Event", function (assert) {
 			// values to be set
 			{subject: subject},
 			{starts_on: datetime},
-			{color: hex}
+			{color: hex},
+			{event_type: 'Private'}
 		]),
 		() => {
 			assert.equal(cur_frm.doc.subject, subject, 'Subject correctly set');
 			assert.equal(cur_frm.doc.starts_on, datetime, 'Date correctly set');
 			assert.equal(cur_frm.doc.color, hex, 'Color correctly set');
+
+			// set filters explicitly for list view
+			frappe.route_options = {
+				event_type: 'Private'
+			}
 		},
 		() => frappe.set_route('List', 'Event', 'Calendar'),
 		() => frappe.timeout(2),
