@@ -27,7 +27,7 @@ QUnit.test("test: Event", function (assert) {
 			// set filters explicitly for list view
 			frappe.route_options = {
 				event_type: 'Private'
-			}
+			};
 		},
 		() => frappe.set_route('List', 'Event', 'Calendar'),
 		() => frappe.timeout(2),
