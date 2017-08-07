@@ -14,6 +14,7 @@ from frappe.utils.scheduler import log
 from frappe.email.queue import send
 from frappe.email.doctype.email_group.email_group import add_subscribers
 from frappe.utils import parse_addr
+from frappe.utils import validate_email_add
 
 
 class Newsletter(Document):
@@ -22,6 +23,10 @@ class Newsletter(Document):
 			self.get("__onload").status_count = dict(frappe.db.sql("""select status, count(name)
 				from `tabEmail Queue` where reference_doctype=%s and reference_name=%s
 				group by status""", (self.doctype, self.name))) or None
+
+	def validate(self):
+		if self.send_from:
+			validate_email_add(self.send_from, True)
 
 	def test_send(self, doctype="Lead"):
 		self.recipients = frappe.utils.split_emails(self.test_email_id)
