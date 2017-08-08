@@ -17,7 +17,6 @@ class ExpiredLoginException(Exception): pass
 
 def toggle_two_factor_auth(state, roles=[]):
 	'''Enable or disable 2FA in site_config and roles'''
-	frappe.db.set_value('System Settings', None, 'enable_two_factor_auth', 1)
 	for role in roles:
 		role = frappe.get_doc('Role', {'role_name': role})
 		role.two_factor_auth = state
@@ -364,4 +363,7 @@ def should_remove_barcode_image(barcode):
 	if time_diff_in_seconds(get_datetime(), barcode.creation) > int(lifespan):
 		return True
 	return False
+
+def disable():
+	frappe.db.set_value('System Settings', None, 'enable_two_factor_auth', 0)
 
