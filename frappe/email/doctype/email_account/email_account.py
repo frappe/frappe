@@ -90,7 +90,7 @@ class EmailAccount(Document):
 		if self.condition:
 			try:
 				frappe.safe_eval(self.condition, None, None)
-			except:
+			except Exception:
 				frappe.throw(_("The condition '{0}' is invalid").format(self.condition))
 
 	def on_update(self):
@@ -422,7 +422,7 @@ class EmailAccount(Document):
 		try:
 			if not frappe.safe_eval(self.condition, None, get_context(communication)):
 				self.append_to = None
-		except:
+		except Exception:
 			pass
 
 		if not parent and self.append_to:
