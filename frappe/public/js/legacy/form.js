@@ -941,7 +941,7 @@ _f.Frm.prototype.validate_form_action = function(action, resolve) {
 	// Allow submit, write, cancel and create permissions for read only documents that are assigned by
 	// workflows if the user already have those permissions. This is to allow for users to
 	// continue through the workflow states and to allow execution of functions like Duplicate.
-	if (frappe.workflow.is_read_only(this.doctype, this.docname) && (perms["write"] ||
+	if (!frappe.workflow.is_read_only(this.doctype, this.docname) && (perms["write"] ||
 		perms["create"] || perms["submit"] || perms["cancel"])) {
 		var allowed_for_workflow = true;
 	}
