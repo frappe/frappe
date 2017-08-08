@@ -7,6 +7,7 @@ QUnit.test("test customize form", function(assert) {
 	let done = assert.async();
 	frappe.run_serially([
 		() => frappe.set_route('Form', 'Customize Form'),
+		() => frappe.timeout(2),
 		() => cur_frm.set_value('doc_type', 'ToDo'),
 		() => frappe.timeout(2),
 		() => {

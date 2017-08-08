@@ -70,7 +70,6 @@ def getdoctype(doctype, with_parent=False, cached_timestamp=None):
 	if not docs:
 		docs = get_meta_bundle(doctype)
 
-	frappe.response['user_permissions'] = get_user_permissions(docs)
 	frappe.response['user_settings'] = get_user_settings(parent_dt or doctype)
 
 	if cached_timestamp and docs[0].modified==cached_timestamp:
@@ -101,16 +100,6 @@ def get_docinfo(doc=None, doctype=None, name=None):
 		"shared": frappe.share.get_users(doc.doctype, doc.name),
 		"rating": get_feedback_rating(doc.doctype, doc.name)
 	}
-
-def get_user_permissions(meta):
-	out = {}
-	all_user_permissions = frappe.defaults.get_user_permissions()
-
-	for m in meta:
-		for df in m.get_fields_to_check_permissions(all_user_permissions):
-			out[df.options] = list(set(all_user_permissions[df.options]))
-
-	return out
 
 def get_attachments(dt, dn):
 	return frappe.get_all("File", fields=["name", "file_name", "file_url", "is_private"],

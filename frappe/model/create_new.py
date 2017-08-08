@@ -11,6 +11,7 @@ from frappe.utils import nowdate, nowtime, now_datetime
 import frappe.defaults
 from frappe.model.db_schema import type_map
 import copy
+from frappe.core.doctype.user_permission.user_permission import get_user_permissions
 
 def get_new_doc(doctype, parent_doc = None, parentfield = None, as_dict=False):
 	if doctype not in frappe.local.new_doc_templates:
@@ -47,7 +48,7 @@ def make_new_doc(doctype):
 	return doc
 
 def set_user_and_static_default_values(doc):
-	user_permissions = frappe.defaults.get_user_permissions()
+	user_permissions = get_user_permissions()
 	defaults = frappe.defaults.get_defaults()
 
 	for df in doc.meta.get("fields"):
@@ -103,7 +104,7 @@ def get_static_default_value(df, user_permissions):
 
 def set_dynamic_default_values(doc, parent_doc, parentfield):
 	# these values should not be cached
-	user_permissions = frappe.defaults.get_user_permissions()
+	user_permissions = get_user_permissions()
 
 	for df in frappe.get_meta(doc["doctype"]).get("fields"):
 		if df.get("default"):

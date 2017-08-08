@@ -1,6 +1,6 @@
 # Les tâches planifiées
 
-Finalement, une application a aussi à envoyer des emails de notifications ou d'autres taches planifiées. Dans Frappe, si 
+Finalement, une application a aussi à envoyer des emails de notifications ou d'autres taches planifiées. Dans Frappé, si 
  vous avez configuré le **bench**, la tâche / planificateur est configuré via Celery en utilisant les queues Redis.
 
 Pour ajouter un nouveau gestionnaire de tâches, ouvrez le fichier `hooks.py` et ajoutez un nouveau gestionnaire. Les gestionnaires
@@ -18,7 +18,7 @@ Pour ajouter un nouveau gestionnaire de tâches, ouvrez le fichier `hooks.py` et
 Ici, nous pointons sur une fonction en Python et cette fonction sera appelée tous les jours. Voyons à quoi cette fonction 
 ressemble:
 
-	# Copyright (c) 2013, Frappe
+	# Copyright (c) 2013, Frappé
 	# For license information, please see license.txt
 
 	from __future__ import unicode_literals

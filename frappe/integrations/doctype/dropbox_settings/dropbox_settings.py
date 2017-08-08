@@ -10,7 +10,7 @@ from frappe.model.document import Document
 import dropbox, json
 from frappe.utils.backups import new_backup
 from frappe.utils.background_jobs import enqueue
-from urlparse import urlparse, parse_qs
+from six.moves.urllib.parse import urlparse, parse_qs
 from frappe.integrations.utils import make_post_request
 from frappe.utils import (cint, split_emails, get_request_site_address, cstr,
 	get_files_path, get_backups_path, encode, get_url)

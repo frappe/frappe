@@ -17,7 +17,7 @@ class GSuiteSettings(Document):
 
 	def get_access_token(self):
 		if not self.refresh_token:
-			raise UserError(_("Google GSuite is not configured."))
+			raise frappe.ValidationError(_("Google GSuite is not configured."))
 		data = {
 			'client_id': self.client_id,
 			'client_secret': self.get_password(fieldname='client_secret',raise_exception=False),
@@ -51,7 +51,7 @@ def gsuite_callback(code=None):
 				frappe.db.set_value("Gsuite Settings", None, "refresh_token", r['refresh_token'])
 			frappe.db.commit()
 			return
-		except Exception, e:
+		except Exception as e:
 			frappe.throw(e.message)
 
 def run_gsuite_script(option, filename = None, template_id = None, destination_id = None, json_data = None):
@@ -68,7 +68,7 @@ def run_gsuite_script(option, filename = None, template_id = None, destination_i
 
 		try:
 			r = requests.post(gdoc.script_url, headers=headers, data=dumps(data, default=json_handler, separators=(',',':')))
-		except Exception, e:
+		except Exception as e:
 			frappe.throw(e.message)
 
 		try:

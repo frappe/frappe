@@ -6,6 +6,7 @@ import frappe
 from frappe.desk.notifications import delete_notification_count_for
 from frappe.core.doctype.user.user import STANDARD_USERS
 from frappe.utils import cint
+from frappe import _
 
 @frappe.whitelist()
 def get_list(arg=None):
@@ -132,11 +133,13 @@ def _notify(contact, txt, subject=None):
 		frappe.sendmail(\
 			recipients=contact,
 			sender= frappe.db.get_value("User", frappe.session.user, "email"),
-			subject=subject or "New Message from " + get_fullname(frappe.session.user),
-			message=frappe.get_template("templates/emails/new_message.html").render({
+			subject=subject or _("New Message from {0}").format(get_fullname(frappe.session.user)),
+			template="new_message",
+			args={
 				"from": get_fullname(frappe.session.user),
 				"message": txt,
 				"link": get_url()
-			}))
+			},
+			header=[_('New Message'), 'orange'])
 	except frappe.OutgoingEmailError:
 		pass

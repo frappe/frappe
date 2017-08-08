@@ -1,7 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 
 import frappe
 import os
@@ -25,7 +25,7 @@ def execute():
 			_file_name, content = get_file(name)
 			b.content_hash = get_content_hash(content)
 		except IOError:
-			print 'Warning: Error processing ', name
+			print('Warning: Error processing ', name)
 			_file_name = old_file_name
 			b.content_hash = None
 

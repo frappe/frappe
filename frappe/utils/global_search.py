@@ -7,6 +7,7 @@ import frappe
 import re
 from frappe.utils import cint, strip_html_tags
 from frappe.model.base_document import get_controller
+from six import text_type
 
 def setup_global_search_table():
 	'''Creates __global_seach table'''
@@ -218,9 +219,9 @@ def update_global_search(doc):
 	# Get children
 	for child in doc.meta.get_table_fields():
 		for d in doc.get(child.fieldname):
-		  	if d.parent == doc.name:
-		  		for field in d.meta.get_global_search_fields():
-		  			if d.get(field.fieldname):
+			if d.parent == doc.name:
+				for field in d.meta.get_global_search_fields():
+					if d.get(field.fieldname):
 						content.append(get_formatted_value(d.get(field.fieldname), field))
 
 	if content:
@@ -235,14 +236,14 @@ def update_global_search(doc):
 def get_formatted_value(value, field):
 	'''Prepare field from raw data'''
 
-	from HTMLParser import HTMLParser
+	from six.moves.html_parser import HTMLParser
 
 	if(getattr(field, 'fieldtype', None) in ["Text", "Text Editor"]):
 		h = HTMLParser()
 		value = h.unescape(value)
-		value = (re.subn(r'<[\s]*(script|style).*?</\1>(?s)', '', unicode(value))[0])
+		value = (re.subn(r'<[\s]*(script|style).*?</\1>(?s)', '', text_type(value))[0])
 		value = ' '.join(value.split())
-	return field.label + " : " + strip_html_tags(unicode(value))
+	return field.label + " : " + strip_html_tags(text_type(value))
 
 def sync_global_search(flags=None):
 	'''Add values from `flags` (frappe.flags.update_global_search) to __global_search.

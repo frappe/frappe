@@ -8,7 +8,7 @@ from frappe.email.smtp import get_outgoing_email_account
 from frappe.utils import (get_url, scrub_urls, strip, expand_relative_urls, cint,
 	split_emails, to_markdown, markdown, encode, random_string, parse_addr)
 import email.utils
-from six import iteritems
+from six import iteritems, text_type
 from email.mime.multipart import MIMEMultipart
 
 
@@ -233,7 +233,8 @@ class EMail:
 		self.make()
 		return self.msg_root.as_string()
 
-def get_formatted_html(subject, message, footer=None, print_html=None, email_account=None, header=None):
+def get_formatted_html(subject, message, footer=None, print_html=None,
+		email_account=None, header=None, unsubscribe_link=None):
 	if not email_account:
 		email_account = get_outgoing_email_account(False)
 
@@ -247,9 +248,23 @@ def get_formatted_html(subject, message, footer=None, print_html=None, email_acc
 		"subject": subject
 	})
 
-	sanitized_html = scrub_urls(rendered_email)
-	transformed_html = inline_style_in_html(sanitized_html)
-	return transformed_html
+	html = scrub_urls(rendered_email)
+
+	if unsubscribe_link:
+		html = html.replace("<!--unsubscribe link here-->", unsubscribe_link.html)
+
+	html = inline_style_in_html(html)
+	return html
+
+@frappe.whitelist()
+def get_email_html(template, args, subject, header=None):
+	import json
+
+	args = json.loads(args)
+	if header and header.startswith('['):
+		header = json.loads(header)
+	email = frappe.utils.jinja.get_email_from_template(template, args)
+	return get_formatted_html(subject, email[0], header=header)
 
 def inline_style_in_html(html):
 	''' Convert email.css and html to inline-styled html
@@ -292,7 +307,7 @@ def add_attachment(fname, fcontent, content_type=None,
 	maintype, subtype = content_type.split('/', 1)
 	if maintype == 'text':
 		# Note: we should handle calculating the charset
-		if isinstance(fcontent, unicode):
+		if isinstance(fcontent, text_type):
 			fcontent = fcontent.encode("utf-8")
 		part = MIMEText(fcontent, _subtype=subtype, _charset="utf-8")
 	elif maintype == 'image':
@@ -331,25 +346,20 @@ def get_footer(email_account, footer=None):
 	"""append a footer (signature)"""
 	footer = footer or ""
 
-	if email_account and email_account.footer:
-		footer += '<div style="margin: 15px auto;">{0}</div>'.format(email_account.footer)
+	args = {}
 
-	footer += "<!--unsubscribe link here-->"
+	if email_account and email_account.footer:
+		args.update({'email_account_footer': email_account.footer})
 
 	company_address = frappe.db.get_default("email_footer_address")
 
 	if company_address:
-		company_address = company_address.splitlines(True)
-		footer += '<table width="100%" border=0>'
-		footer += '<tr><td height=20></td></tr>'
-		for x in company_address:
-			footer += '<tr style="margin: 15px auto; text-align: center; color: #8d99a6"><td>{0}</td></tr>'\
-				.format(x)
-		footer += "</table>"
+		args.update({'company_address': company_address})
 
 	if not cint(frappe.db.get_default("disable_standard_email_footer")):
-		for default_mail_footer in frappe.get_hooks("default_mail_footer"):
-			footer += '<div style="margin: 15px auto;">{0}</div>'.format(default_mail_footer)
+		args.update({'default_mail_footer': frappe.get_hooks('default_mail_footer')})
+
+	footer += frappe.utils.jinja.get_email_from_template('email_footer', args)[0]
 
 	return footer
 

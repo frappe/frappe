@@ -10,6 +10,7 @@ from frappe.model.utils import render_include
 from frappe import conf, _
 from frappe.desk.form.meta import get_code_files_via_hooks, get_js
 from frappe.core.doctype.custom_role.custom_role import get_custom_allowed_roles
+from six import text_type
 
 class Page(Document):
 	def autoname(self):
@@ -111,13 +112,13 @@ class Page(Document):
 		fpath = os.path.join(path, page_name + '.css')
 		if os.path.exists(fpath):
 			with open(fpath, 'r') as f:
-				self.style = unicode(f.read(), "utf-8")
+				self.style = text_type(f.read(), "utf-8")
 
 		# html as js template
 		for fname in os.listdir(path):
 			if fname.endswith(".html"):
 				with open(os.path.join(path, fname), 'r') as f:
-					template = unicode(f.read(), "utf-8")
+					template = text_type(f.read(), "utf-8")
 					if "<!-- jinja -->" in template:
 						context = frappe._dict({})
 						try:

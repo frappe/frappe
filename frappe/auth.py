@@ -17,7 +17,7 @@ from frappe.translate import get_lang_code
 from frappe.utils.password import check_password
 from frappe.core.doctype.authentication_log.authentication_log import add_authentication_log
 
-from urllib import quote
+from six.moves.urllib.parse import quote
 
 class HTTPRequest:
 	def __init__(self):

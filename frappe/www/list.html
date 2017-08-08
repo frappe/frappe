@@ -1,6 +1,8 @@
 {% extends "templates/web.html" %}
 
-{% block title %}{{ title or (_("{0} List").format(_(doctype))) }}{% endblock %}
+{% block title %}
+	{{ title or (_("{0} List").format(_(doctype))) }}
+{% endblock %}
 
 {% block header %}
 	<h1>{{ title or (_("{0} List").format(_(doctype))) }}</h1>

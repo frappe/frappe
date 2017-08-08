@@ -5,11 +5,11 @@ from __future__ import unicode_literals, absolute_import, print_function
 import sys
 import click
 import cProfile
-import StringIO
 import pstats
 import frappe
 import frappe.utils
 from functools import wraps
+from six import StringIO
 
 click.disable_unicode_literals_warning = True
 
@@ -25,7 +25,7 @@ def pass_context(f):
 
 		if profile:
 			pr.disable()
-			s = StringIO.StringIO()
+			s = StringIO()
 			ps = pstats.Stats(pr, stream=s)\
 				.sort_stats('cumtime', 'tottime', 'ncalls')
 			ps.print_stats()

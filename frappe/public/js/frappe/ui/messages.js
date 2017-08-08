@@ -137,16 +137,21 @@ frappe.msgprint = function(msg, title) {
 		data.message = '';
 	}
 
-	if(data.message.search(/<br>|<p>|<li>/)==-1)
+	if(data.message.search(/<br>|<p>|<li>/)==-1) {
 		msg = replace_newlines(data.message);
+	}
 
-
-	var msg_exists = msg_dialog.msg_area.html();
+	var msg_exists = false;
+	if(data.clear) {
+		msg_dialog.msg_area.empty();
+	} else {
+		msg_exists = msg_dialog.msg_area.html();
+	}
 
 	if(data.title || !msg_exists) {
 		// set title only if it is explicitly given
 		// and no existing title exists
-		msg_dialog.set_title(data.title || __('Message'))
+		msg_dialog.set_title(data.title || __('Message'));
 	}
 
 	// show / hide indicator

@@ -1,6 +1,8 @@
+# Email Notifications For Failed Background Jobs
+
 <!-- markdown -->
 
-<p>Frappe handles failure of jobs in the following way,</p><p>1) If a job fails, (raises exception), it's logged in Scheduler Log and&nbsp; <code>logs/worker.error.log</code>.<br>2) Keeps a lock file and would not run anymore if lock file is there.<br>3) Raises LockTimeoutError in case the lock file is more than 10 minutes old.</p>
+<p>Frappé handles failure of jobs in the following way,</p><p>1) If a job fails, (raises exception), it's logged in Scheduler Log and&nbsp; <code>logs/worker.error.log</code>.<br>2) Keeps a lock file and would not run anymore if lock file is there.<br>3) Raises LockTimeoutError in case the lock file is more than 10 minutes old.</p>
 
 <p>You can configure email notification for scheduler errors. By writing a file, <code>sites/common_site_config.json</code> with content<br></p>
 

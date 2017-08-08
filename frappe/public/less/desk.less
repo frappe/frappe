@@ -24,7 +24,7 @@ a[disabled="disabled"] {
 
 .link-btn {
 	position: absolute;
-	top: 2px;
+	top: 3px;
 	right: 4px;
 	border-radius: 2px;
 	padding: 3px;
@@ -588,6 +588,24 @@ a.progress-small {
 	[data-original-title="Video"],
 	[data-original-title="Table"] {
 		display: none;
+	}
+}
+
+.note-hint-popover {
+	border-radius: 3px;
+	border-color: @border-color;
+	padding: 0;
+
+	.popover-content {
+		padding: 0;
+	}
+
+	.note-hint-item {
+		color: @text-color !important;
+		padding: 5px 8.8px !important;
+	}
+	.note-hint-item.active {
+		background-color: @btn-bg !important;
 	}
 }
 

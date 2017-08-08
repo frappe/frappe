@@ -1,8 +1,8 @@
 # Vistas Web (Web Views)
 
-Frappe tiene dos entornos principales, El escritorio y la Web. El escritorio es una interfaz de usuario controlada con una excelente aplicación AJAX y la web es mas plantillas de HTML tradicionales dispuestas para consumo público. Vistas Web pueden también ser generadas para crear vistas controladas para los usuarios que puedes acceder al sistema pero aún así no tener acceso al escritorio.
+Frappé tiene dos entornos principales, El escritorio y la Web. El escritorio es una interfaz de usuario controlada con una excelente aplicación AJAX y la web es mas plantillas de HTML tradicionales dispuestas para consumo público. Vistas Web pueden también ser generadas para crear vistas controladas para los usuarios que puedes acceder al sistema pero aún así no tener acceso al escritorio.
 
-En Frappe, Las vistas web son manejadas por plantillas que estan usualmente en el directorio `templates`. Hay dos tipos principales de plantillas.
+En Frappé, Las vistas web son manejadas por plantillas que estan usualmente en el directorio `templates`. Hay dos tipos principales de plantillas.
 
 1. Pages: Estos son plantillas Jinja donde una vista existe solo para una ruta. ejemplo. `/blog`.
 2. Generators: Estas son plantiallas donde cada instancia de un DocType tiene una ruta diferente `/blog/a-blog`, `blog/b-blog` etc.
@@ -16,11 +16,11 @@ Vamos a ver las Vistas web estandar:
 
 Si estas logueado como el usuario de prueba, ve a `/article` y deberías ver la lista de artículos.
 
-<img class="screenshot" alt="web list" src="{{docs_base_url}}/assets/img/web-list.png">
+<img class="screenshot" alt="web list" src="/docs/assets/img/web-list.png">
 
 Da click en uno de los artículos y vas a ver una vista web por defecto
 
-<img class="screenshot" alt="web view" src="{{docs_base_url}}/assets/img/web-view.png">
+<img class="screenshot" alt="web view" src="/docs/assets/img/web-view.png">
 
 Si deseas hacer una mejor vista para la lista de artículos, crea un archivo llamado `row_template.html` en el directorio `library_management/templates/includes/list/`.
  Aquí hay un archivo de ejemplo:
@@ -45,11 +45,11 @@ Aquí, vas a tener todas las propiedades de un artículo en el objeto `doc`.
 
 La lista actualizada debe lucir de esta manera!
 
-<img class="screenshot" alt="new web list" src="{{docs_base_url}}/assets/img/web-list-new.png">
+<img class="screenshot" alt="new web list" src="/docs/assets/img/web-list-new.png">
 
 #### Página de Inicio
 
-Frappe también tiene vistas para el registro de usuarios que incluye opciones de registro usando Google, Facebook y GitHub. Cuando un usuario se registra vía la web, no tiene acceso a la interfaz del Escritorio por defecto.
+Frappé también tiene vistas para el registro de usuarios que incluye opciones de registro usando Google, Facebook y GitHub. Cuando un usuario se registra vía la web, no tiene acceso a la interfaz del Escritorio por defecto.
 
 > Para permitirles a los usuarios acceso al Escritorio, debes especificar que el usuario es de tipo "System User" en Setup > User
 

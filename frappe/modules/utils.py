@@ -180,7 +180,7 @@ def load_doctype_module(doctype, module=None, prefix="", suffix=""):
 	try:
 		if key not in doctype_python_modules:
 			doctype_python_modules[key] = frappe.get_module(module_name)
-	except ImportError, e:
+	except ImportError as e:
 		raise ImportError('Module import failed for {0} ({1})'.format(doctype, module_name + ' Error: ' + str(e)))
 
 	return doctype_python_modules[key]
@@ -206,6 +206,8 @@ def get_app_publisher(module):
 def make_boilerplate(template, doc, opts=None):
 	target_path = get_doc_path(doc.module, doc.doctype, doc.name)
 	template_name = template.replace("controller", scrub(doc.name))
+	if template_name.endswith('._py'):
+		template_name = template_name[:-4] + '.py'
 	target_file_path = os.path.join(target_path, template_name)
 
 	if not doc: doc = {}

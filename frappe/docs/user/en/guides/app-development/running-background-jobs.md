@@ -1,6 +1,8 @@
+# Running Background Jobs
+
 Sometimes you may not want a user request to be executed immediately but added to a queue that will be executed by a background worker. The advantage of doing this is that your web workers remain free to execute other requests and longer jobs do not eat up all of your resources.
 
-From version 7, Frappe uses Python RQ to run background jobs.
+From version 7, Frappé uses Python RQ to run background jobs.
 
 To enqueue a job,
 

@@ -1,6 +1,6 @@
 # Estableciendo límites para su sitio
 
-La versión 7 de Frappe ha agregado soporte para la configuración de límites y restricciones para su site.
+La versión 7 de Frappé ha agregado soporte para la configuración de límites y restricciones para su site.
 Estas restricciones están en el archivo `site_config.json` dentro de la carpeta del site.
 
 	{
@@ -36,4 +36,4 @@ Ejemplo:
 
 Puedes verificar el uso abriendo la página de "Usage Info" ubicada en el toolbar / AwesomeBar. Un límite solo va a mostrarse en la página si ha sido configurado.
 
-<img class="screenshot" alt="Doctype Saved" src="{{docs_base_url}}/assets/img/usage_info.png">
+<img class="screenshot" alt="Doctype Saved" src="/docs/assets/img/usage_info.png">

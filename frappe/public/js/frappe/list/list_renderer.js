@@ -428,8 +428,7 @@ frappe.views.ListRenderer = Class.extend({
 	},
 	get_indicator_from_doc: function (doc) {
 		var workflow = frappe.workflow.workflows[this.doctype];
-		var override = workflow ? workflow['override_status'] : true;
-		return frappe.get_indicator(doc, this.doctype, override);
+		return frappe.get_indicator(doc, this.doctype, (workflow && workflow['override_status']) || true);
 	},
 	prepare_data: function (data) {
 		if (data.modified)

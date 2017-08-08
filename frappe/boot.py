@@ -3,7 +3,7 @@
 
 from __future__ import unicode_literals
 
-from six import iteritems
+from six import iteritems, text_type
 
 """
 bootstrap client session
@@ -17,6 +17,7 @@ from frappe.utils.change_log import get_versions
 from frappe.translate import get_lang_dict
 from frappe.email.inbox import get_email_accounts
 from frappe.core.doctype.feedback_trigger.feedback_trigger import get_enabled_feedback_trigger
+from frappe.core.doctype.user_permission.user_permission import get_user_permissions
 
 def get_bootinfo():
 	"""build and return boot info"""
@@ -30,6 +31,7 @@ def get_bootinfo():
 
 	# system info
 	bootinfo.sysdefaults = frappe.defaults.get_defaults()
+	bootinfo.user_permissions = get_user_permissions()
 	bootinfo.server_date = frappe.utils.nowdate()
 
 	if frappe.session['user'] != 'Guest':
@@ -66,7 +68,7 @@ def get_bootinfo():
 		frappe.get_attr(method)(bootinfo)
 
 	if bootinfo.lang:
-		bootinfo.lang = unicode(bootinfo.lang)
+		bootinfo.lang = text_type(bootinfo.lang)
 	bootinfo.versions = {k: v['version'] for k, v in get_versions().items()}
 
 	bootinfo.error_report_email = frappe.get_hooks("error_report_email")

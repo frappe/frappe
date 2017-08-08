@@ -1,6 +1,6 @@
 # Définir des modèles
 
-La prochaine étape est de définir les modèles que nous avons présenté en introduction. Dans **Frappe**, les modèles sont appelés
+La prochaine étape est de définir les modèles que nous avons présenté en introduction. Dans **Frappé**, les modèles sont appelés
 des **DocTypes**. Vous pouvez définir de nouveaux **DocTypes** depuis l'interface. Les **DocTypes** sont faits de **DocField** 
 et de permissions appelées **DocPerms**.
 

@@ -3,7 +3,7 @@
 
 from __future__ import unicode_literals, print_function
 
-from six import iteritems
+from six import iteritems, text_type
 
 """
 	frappe.translate
@@ -30,8 +30,8 @@ def guess_language(lang_list=None):
 
 	for l in lang_codes:
 		code = l.strip()
-		if not isinstance(code, unicode):
-			code = unicode(code, 'utf-8')
+		if not isinstance(code, text_type):
+			code = text_type(code, 'utf-8')
 		if code in lang_list or code == "en":
 			guess = code
 			break
@@ -544,7 +544,7 @@ def read_csv_file(path):
 		# for japanese! #wtf
 		data = data.replace(chr(28), "").replace(chr(29), "")
 		data = reader([r.encode('utf-8') for r in data.splitlines()])
-		newdata = [[unicode(val, 'utf-8') for val in row] for row in data]
+		newdata = [[text_type(val, 'utf-8') for val in row] for row in data]
 	return newdata
 
 def write_csv_file(path, app_messages, lang_dict):

@@ -1,6 +1,6 @@
 # Setting Limits for your Site
 
-Frappe v7 has added support for setting limits and restrictions for your site.
+Frappé v7 has added support for setting limits and restrictions for your site.
 These restrictions are set in the `site_config.json` file inside the site's folder. 
 
 	{
@@ -36,4 +36,4 @@ Example:
 
 You can check your usage by opening the "Usage Info" page from the toolbar / AwesomeBar. A limit will only show up on the page if it has been set.
 
-<img class="screenshot" alt="Doctype Saved" src="{{docs_base_url}}/assets/img/usage_info.png">
+<img class="screenshot" alt="Doctype Saved" src="/docs/assets/img/usage_info.png">
