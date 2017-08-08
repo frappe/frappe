@@ -226,8 +226,27 @@
 	padding: 5px 15px;
 }
 
-.listview-main-section .octicon-heart {
-	cursor: pointer;
+.listview-main-section {
+	.octicon-heart {
+		cursor: pointer;
+	}
+	.page-form {
+		padding-left: 17px;
+
+		@media (max-width: @screen-sm) {
+			padding-left: 25px;
+		}
+
+		.octicon-search {
+		    float: left;
+		    padding-top: 7px;
+		    margin-left: -4px;
+		    margin-right: -4px;
+			@media (max-width: @screen-sm) {
+				margin-left: -12px;
+			}
+		}
+	}
 }
 
 .like-action.octicon-heart {

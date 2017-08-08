@@ -20,7 +20,7 @@
 	<link rel="icon"
 		href="{{ favicon or "/assets/frappe/images/favicon.png" }}" type="image/x-icon">
 	{% for include in include_css -%}
-	<link type="text/css" rel="stylesheet" href="{{ include }}">
+	<link type="text/css" rel="stylesheet" href="{{ include }}?ver={{ build_version }}">
 	{%- endfor -%}
 </head>
 <body>
@@ -55,7 +55,7 @@
 	</script>
 
 	{% for include in include_js %}
-	<script type="text/javascript" src="{{ include }}"></script>
+	<script type="text/javascript" src="{{ include }}?ver={{ build_version }}"></script>
 	{% endfor %}
     {% include "templates/includes/app_analytics/google_analytics.html" %}
     {% include "templates/includes/app_analytics/mixpanel_analytics.html" %}
