@@ -9,6 +9,7 @@ from frappe.translate import (set_default_language, get_dict, send_translations)
 from frappe.geo.country_info import get_country_info
 from frappe.utils.file_manager import save_file
 from frappe.utils.password import update_password
+from frappe.twofactor import toggle_two_factor_auth
 from werkzeug.useragents import UserAgent
 import install_fixtures
 
@@ -78,6 +79,9 @@ def update_system_settings(args):
 		'enable_scheduler': 1 if not frappe.flags.in_test else 0,
 		'backup_limit': 3 # Default for downloadable backups
 	})
+	if args.get("twofactor_enable") == 1:
+		toggle_two_factor_auth(True, roles=['All'])
+		system_settings.two_factor_method = args.get('twofactor_method')
 	system_settings.save()
 
 def update_user_name(args):
@@ -267,3 +271,10 @@ def email_setup_wizard_exception(traceback, args):
 
 def get_language_code(lang):
 	return frappe.db.get_value('Language', {'language_name':lang})
+
+
+def enable_twofactor_all_roles():
+	all_role = frappe.get_doc('Role',{'role_name':'All'})
+	all_role.two_factor_auth = True
+	all_role.save(ignore_permissions=True)
+

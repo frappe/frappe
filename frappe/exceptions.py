@@ -37,6 +37,9 @@ class SessionStopped(Exception):
 class UnsupportedMediaType(Exception):
 	http_status_code = 415
 
+class RequestToken(Exception):
+	http_status_code = 200
+
 class Redirect(Exception):
 	http_status_code = 301
 

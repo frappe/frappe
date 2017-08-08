@@ -562,6 +562,36 @@ var frappe_slides = [
 			}
 		},
 	},
+	{
+		//Two Factor Select
+		name:'twofactor',
+		domains: ["all"],
+		title: __("Two Factor Authentication"),
+		icon: "fa fa-flag",
+		help: __("Setup Two Factor Authentication For Users"),
+		fields: [
+			{ fieldname: "twofactor_enable", label: __("Enable Two Factor Authentication"),
+				fieldtype: "Check"},
+			{ fieldtype: "Section Break" },
+			{ fieldname: "twofactor_method", label: __("Select Authentication Method"),
+				fieldtype: "Select"}
+		],
+		onload:function(slide){
+			slide.form.fields_dict.twofactor_method.df.options = ['SMS','Email','OTP App']
+			slide.form.fields_dict.twofactor_method.$wrapper.css('display','none');
+			slide.get_input('twofactor_enable').change(function(){
+				slide.form.fields_dict.twofactor_method.$wrapper.toggle();
+				if(this.checked){
+					slide.form.fields_dict.twofactor_method.df.reqd = 1;
+				}
+				else{
+					slide.form.fields_dict.twofactor_method.df.reqd = 0;
+				}
+				slide.form.fields_dict.twofactor_method.refresh();
+			});
+		}
+
+	}
 ];
 
 var utils = {

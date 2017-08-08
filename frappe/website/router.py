@@ -35,7 +35,6 @@ def get_page_context(path):
 		page_context = make_page_context(path)
 		if can_cache(page_context.no_cache):
 			page_context_cache[frappe.local.lang] = page_context
-
 			frappe.cache().hset("page_context", path, page_context_cache)
 
 	return page_context
