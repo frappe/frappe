@@ -10,6 +10,7 @@ const path_join = path.resolve;
 const app = require('express')();
 const http = require('http').Server(app);
 const io = require('socket.io')(http);
+const touch = require("touch");
 
 // basic setup
 const sites_path = path_join(__dirname, '..', '..', '..', 'sites');
@@ -42,6 +43,7 @@ function build(minify) {
 	for (const output_path in build_map) {
 		pack(output_path, build_map[output_path], minify);
 	}
+	touch(path_join(sites_path, '.build'), {force:true});
 }
 
 let socket_connection = false;
@@ -228,7 +230,7 @@ function watch_less(ondirty) {
 	const less_paths = app_paths.map(path => path_join(path, 'public', 'less'));
 
 	const to_watch = filter_valid_paths(less_paths);
-	chokidar.watch(to_watch).on('change', (filename, stats) => {
+	chokidar.watch(to_watch).on('change', (filename) => {
 		console.log(filename, 'dirty');
 		var last_index = filename.lastIndexOf('/');
 		const less_path = filename.slice(0, last_index);
@@ -236,17 +238,18 @@ function watch_less(ondirty) {
 		filename = filename.split('/').pop();
 
 		compile_less_file(filename, less_path, public_path)
-		.then(css_file_path => {
-			// build the target css file for which this css file is input
-			for (const target in build_map) {
-				const sources = build_map[target];
-				if (sources.includes(css_file_path)) {
-					pack(target, sources);
-					ondirty && ondirty(target);
-					break;
+			.then(css_file_path => {
+				// build the target css file for which this css file is input
+				for (const target in build_map) {
+					const sources = build_map[target];
+					if (sources.includes(css_file_path)) {
+						pack(target, sources);
+						ondirty && ondirty(target);
+						break;
+					}
 				}
-			}
-		})
+			});
+		touch(path_join(sites_path, '.build'), {force:true});
 	});
 }
 
@@ -265,6 +268,7 @@ function watch_js(ondirty) {
 				// break;
 			}
 		}
+		touch(path_join(sites_path, '.build'), {force:true});
 	});
 }
 

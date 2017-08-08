@@ -49,7 +49,7 @@ hr {
   border-top: none;
 }
 .email-footer-container {
-  margin-top: 10px;
+  margin-top: 30px;
 }
 .email-footer-container > div:not(:last-child) {
   margin-bottom: 5px;
