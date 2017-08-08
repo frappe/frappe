@@ -5,26 +5,24 @@ from __future__ import unicode_literals
 import unittest, frappe, pyotp
 from werkzeug.wrappers import Request
 from werkzeug.test import EnvironBuilder
-from frappe.auth import LoginManager, HTTPRequest
-from frappe.twofactor import *
+from frappe.auth import HTTPRequest
+from frappe.twofactor import (should_run_2fa, authenticate_for_2factor, get_cached_user_pass,
+	two_factor_is_enabled_for_, confirm_otp_token, get_otpsecret_for_, get_verification_obj,
+	render_string_template)
+
 import time
 
-
-
 class TestTwoFactor(unittest.TestCase):
-
-
 	def setUp(self):
 		self.http_requests = create_http_request()
 		self.login_manager = frappe.local.login_manager
 		self.user = self.login_manager.user
 
 	def tearDown(self):
-		tmp_id = frappe.local.response['tmp_id']
 		frappe.local.response['verification'] = None
 		frappe.local.response['tmp_id'] = None
+		disable_2fa()
 		frappe.clear_cache(user=self.user)
-
 
 	def test_should_run_2fa(self):
 		'''Should return true if enabled.'''
@@ -68,7 +66,7 @@ class TestTwoFactor(unittest.TestCase):
 		otp = 'wrongotp'
 		with self.assertRaises(frappe.AuthenticationError):
 			confirm_otp_token(self.login_manager,otp=otp,tmp_id=tmp_id)
-		otp = get_otp(self.user)		
+		otp = get_otp(self.user)
 		self.assertTrue(confirm_otp_token(self.login_manager,otp=otp,tmp_id=tmp_id))
 		if frappe.flags.tests_verbose:
 			print('Sleeping for 30secs to confirm token expires..')
@@ -106,9 +104,15 @@ def create_http_request():
 
 def enable_2fa():
 	'''Enable Two factor in system settings.'''
-	toggle_two_factor_auth(True)
 	system_settings = frappe.get_doc('System Settings')
+	system_settings.enable_two_factor_auth = 1
 	system_settings.two_factor_method = 'OTP App'
+	system_settings.save(ignore_permissions=True)
+	frappe.db.commit()
+
+def disable_2fa():
+	system_settings = frappe.get_doc('System Settings')
+	system_settings.enable_two_factor_auth = 0
 	system_settings.save(ignore_permissions=True)
 	frappe.db.commit()
 
