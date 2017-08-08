@@ -68,4 +68,3 @@ def login_via_token(login_token):
 	frappe.local.login_manager = LoginManager()
 
 	redirect_post_login(desk_user = frappe.db.get_value("User", frappe.session.user, "user_type")=="System User")
-

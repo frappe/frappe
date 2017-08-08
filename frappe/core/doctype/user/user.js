@@ -77,6 +77,15 @@ frappe.ui.form.on('User', {
 					}
 				})
 			})
+			
+			frm.add_custom_button(__("Reset OTP Secret"), function() {
+				frappe.call({
+					method: "frappe.core.doctype.user.user.reset_otp_secret",
+					args: {
+						"user": frm.doc.name
+					}
+				})
+			})
 
 			frm.trigger('enabled');
 
@@ -111,6 +120,28 @@ frappe.ui.form.on('User', {
 			}
 			cur_frm.dirty();
 		}
+
+	//	frappe.call({
+	//			method: "get_2fa_params",
+	//			doc:frm.doc,
+	//			callback: function(r) {
+	//				if (r.message){
+	//					frm.toggle_display('two_factor_method', r.message.show_method_field == true);
+	//					if (r.message.restrict_method){
+	//						$("select[data-fieldname=two_factor_method] > option").each(function() {
+	//							if ($(this).val() != r.message.restrict_method){
+	//								$(this).attr('disabled','');
+	//							} else {
+	//								$(this).removeAttr('disabled')
+	//							}
+	//						});
+							//frm.set_df_property('two_factor_method', 'options', [r.message.restrict_method]);
+							//frm.set_value('two_factor_method',r.message.restrict_method)
+							//frm.refresh_field('two_factor_method');
+	//					}
+	//				}
+	//			}
+	//		});
 	},
 	validate: function(frm) {
 		if(frm.roles_editor) {
