@@ -22,7 +22,7 @@ frappe.ui.form.on("Address", {
 				}
 			}
 		});
-		cur_frm.refresh_field("links");
+		frm.refresh_field("links");
 	},
 	validate: function(frm) {
 		// clear linked customer / supplier / sales partner on saving...
