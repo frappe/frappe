@@ -267,7 +267,7 @@ var request_otp = function(r){
 
 var continue_otp_app = function(setup, qrcode){
 	request_otp();
-	var qrcode_div = $('<div>').attr({'id':'qrcode_div','style':'text-align:center;padding-bottom:15px;'});
+	var qrcode_div = $('<div class="text-muted" style="padding-bottom: 15px;"></div>');
 
 	if (setup){
 		direction = $('<div>').attr('id','qr_info').text('Enter Code displayed in OTP App.');
@@ -282,7 +282,7 @@ var continue_otp_app = function(setup, qrcode){
 
 var continue_sms = function(setup, prompt){
 	request_otp();
-	var sms_div = $('<div>').attr({'id':'sms_div','style':'padding-bottom:15px;text-align:center;'});
+	var sms_div = $('<div class="text-muted" style="padding-bottom: 15px;"></div>');
 
 	if (setup){
 		sms_div.append(prompt)
@@ -296,7 +296,7 @@ var continue_sms = function(setup, prompt){
 
 var continue_email = function(setup, prompt){
 	request_otp();
-	var email_div = $('<div>').attr({'id':'email_div','style':'padding-bottom:15px;text-align:center;'});
+	var email_div = $('<div class="text-muted" style="padding-bottom: 15px;"></div>');
 
 	if (setup){
 		email_div.append(prompt)

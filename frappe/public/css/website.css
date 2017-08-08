@@ -507,6 +507,7 @@ li {
   border-top: 1px solid #EBEFF2;
 }
 .page_content {
+  padding-top: 30px;
   padding-bottom: 30px;
 }
 .carousel-control .icon {
@@ -553,6 +554,9 @@ li {
 .panel-heading,
 .panel-body {
   padding-left: 15px;
+}
+.page-head {
+  margin-bottom: -30px;
 }
 .page-head h1,
 .page-head h2 {
@@ -812,6 +816,9 @@ a.active {
 .page-content.with-sidebar {
   padding: 30px;
   padding-left: 40px;
+}
+.page-content.without-sidebar {
+  padding-top: 30px;
 }
 .your-account-info {
   margin-top: 30px;

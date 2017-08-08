@@ -1,31 +1,27 @@
 {% extends "templates/web.html" %}
 
-{% block title %}Register OTP Secret{% endblock %}
+{% block title %}{{ _("QR Code") }}{% endblock %}
 
 {% block page_content %}
-<div>
-	<div style="text-align:center">
-		<table>
-			<tr>
-				<td width="50%">
-					<div style="margin:auto;text-align:left;">
-						<p>
-							Hi {{qr_code_user.first_name}}, please perform the following actions:
-							<li> Open your authentication app on your mobile phone, 
-							<li> Scan the QR Code and enter the resulting code displayed
-							<li> Return to the Verification screen and enter the code displayed by your authentication app
-						</p>
-						<p>Examples of Authentication Apps you can use are Google Authenticator, Lastpass Authenticator, Authy and Duo Mobile.
-						</p>
-					</div>
-				</td>
-				<td>
-					<div style="padding:10px;">
-					<img src="data:image/svg+xml;base64,{{qrcode_svg}}">
-					</div>
-				</td>
-			</tr>
-		</table>
+<h1>{{ _("QR Code for Login Verification") }}</h1>
+<div class='row'>
+	<div class='col-sm-6'>
+		<p>{{ _("Hi {0}").format(qr_code_user.first_name) }},</p>
+
+		<p>{{ _("Steps to verify your login") }}:</p>
+			<ol>
+			<li> {{ _("Open your authentication app on your mobile phone.") }}
+			<li> {{ _("Scan the QR Code and enter the resulting code displayed.") }}
+			<li> {{ _("Return to the Verification screen and enter the code displayed by your authentication app") }}
+			</ol>
+		</p>
+		<br>
+		<p class='text-muted small'>{{ _("Authentication Apps you can use are: ") }}
+			Google Authenticator, Lastpass Authenticator, Authy and Duo Mobile.
+		</p>
+	</div>
+	<div class='col-sm-6' style='padding-top: 15px;'>
+		<img src="data:image/svg+xml;base64,{{qrcode_svg}}">
 	</div>
 </div>
 {% endblock %}

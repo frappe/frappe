@@ -80,7 +80,7 @@ def update_system_settings(args):
 		'backup_limit': 3 # Default for downloadable backups
 	})
 	if args.get("twofactor_enable") == 1:
-		toggle_two_factor_auth(True,roles=['All'])
+		toggle_two_factor_auth(True, roles=['All'])
 		system_settings.two_factor_method = args.get('twofactor_method')
 	system_settings.save()
 

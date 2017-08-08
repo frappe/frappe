@@ -8,10 +8,8 @@ from frappe import _
 from urlparse import parse_qs
 from frappe.twofactor import get_qr_svg_code
 
-no_cache = 1
-
-
 def get_context(context):
+	context.no_cache = 1
 	context.qr_code_user,context.qrcode_svg = get_user_svg_from_cache()
 
 def get_query_key():
