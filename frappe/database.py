@@ -18,7 +18,7 @@ import redis
 import frappe.model.meta
 from frappe.utils import now, get_datetime, cstr
 from frappe import _
-from six import text_type, binary_type
+from six import text_type, binary_type, integer_types
 from frappe.utils.global_search import sync_global_search
 from frappe.model.utils.link_count import flush_local_link_count
 from six import iteritems, text_type
@@ -270,7 +270,7 @@ class Database:
 		"""Returns true if the first row in the result has a Date, Datetime, Long Int."""
 		if result and result[0]:
 			for v in result[0]:
-				if isinstance(v, (datetime.date, datetime.timedelta, datetime.datetime, long)):
+				if isinstance(v, (datetime.date, datetime.timedelta, datetime.datetime, integer_types)):
 					return True
 				if formatted and isinstance(v, (int, float)):
 					return True
@@ -287,7 +287,7 @@ class Database:
 
 		from frappe.utils import formatdate, fmt_money
 
-		if isinstance(v, (datetime.date, datetime.timedelta, datetime.datetime, long)):
+		if isinstance(v, (datetime.date, datetime.timedelta, datetime.datetime, integer_types)):
 			if isinstance(v, datetime.date):
 				v = text_type(v)
 				if formatted:
@@ -298,7 +298,7 @@ class Database:
 				v = text_type(v)
 
 			# long
-			elif isinstance(v, long):
+			elif isinstance(v, integer_types):
 				v=int(v)
 
 		# convert to strings... (if formatted)
