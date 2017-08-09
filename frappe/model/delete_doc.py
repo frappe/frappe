@@ -183,13 +183,18 @@ def check_if_doc_is_linked(doc, method="Delete"):
 		if not issingle:
 			for item in frappe.db.get_values(link_dt, {link_field:doc.name},
 				["name", "parent", "parenttype", "docstatus"], as_dict=True):
+				linked_doctype = item.parenttype if item.parent else link_dt
+				if linked_doctype in ("Communication", "ToDo", "DocShare", "Email Unsubscribe", 'File', 'Version'):
+					# don't check for communication and todo!
+					continue
+
 				if item and ((item.parent or item.name) != doc.name) \
 						and ((method=="Delete" and item.docstatus<2) or (method=="Cancel" and item.docstatus==1)):
 					# raise exception only if
 					# linked to an non-cancelled doc when deleting
 					# or linked to a submitted doc when cancelling
 					frappe.throw(_('Cannot delete or cancel because {0} <a href="#Form/{0}/{1}">{1}</a> is linked with {2} <a href="#Form/{2}/{3}">{3}</a>')
-						.format(doc.doctype, doc.name, item.parenttype if item.parent else link_dt,
+						.format(doc.doctype, doc.name, linked_doctype,
 						item.parent or item.name), frappe.LinkExistsError)
 
 def check_if_doc_is_dynamically_linked(doc, method="Delete"):
