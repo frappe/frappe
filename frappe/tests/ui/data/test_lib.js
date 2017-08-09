@@ -55,8 +55,10 @@ frappe.tests = {
 		value.forEach(d => {
 			grid_row_tasks.push(() => {
 				grid.add_new_row();
-				let grid_row = grid.get_row(-1).toggle_view(true);
+				let grid_row = grid.get_row(-1);
 				let grid_value_tasks = [];
+
+				grid_row.toggle_view(true);
 
 				// build tasks to set each row value
 				d.forEach(child_value => {
