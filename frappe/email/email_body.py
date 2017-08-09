@@ -324,7 +324,7 @@ def add_attachment(fname, fcontent, content_type=None,
 	# Set the filename parameter
 	if fname:
 		attachment_type = 'inline' if inline else 'attachment'
-		part.add_header(b'Content-Disposition', attachment_type, filename=fname.encode('utf=8'))
+		part.add_header(b'Content-Disposition', attachment_type, filename=text_type(fname))
 	if content_id:
 		part.add_header(b'Content-ID', '<{0}>'.format(content_id))
 
