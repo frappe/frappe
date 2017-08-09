@@ -37,7 +37,7 @@ class DatabaseQuery(object):
 		update=None, add_total_row=None, user_settings=None):
 		if not ignore_permissions and not frappe.has_permission(self.doctype, "read", user=user):
 			frappe.flags.error_message = _('Insufficient Permission for {0}').format(frappe.bold(self.doctype))
-			raise frappe.PermissionError, self.doctype
+			raise frappe.PermissionError(self.doctype)
 
 		# fitlers and fields swappable
 		# its hard to remember what comes first
@@ -203,7 +203,7 @@ class DatabaseQuery(object):
 		doctype = table_name[4:-1]
 		if (not self.flags.ignore_permissions) and (not frappe.has_permission(doctype)):
 			frappe.flags.error_message = _('Insufficient Permission for {0}').format(frappe.bold(doctype))
-			raise frappe.PermissionError, doctype
+			raise frappe.PermissionError(doctype)
 
 	def set_field_tables(self):
 		'''If there are more than one table, the fieldname must not be ambigous.
