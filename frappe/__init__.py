@@ -6,7 +6,7 @@ globals attached to frappe module
 """
 from __future__ import unicode_literals, print_function
 
-from six import iteritems, text_type
+from six import iteritems, text_type, string_types
 from werkzeug.local import Local, release_local
 import os, sys, importlib, inspect, json
 
@@ -61,7 +61,7 @@ def as_unicode(text, encoding='utf-8'):
 		return text
 	elif text==None:
 		return ''
-	elif isinstance(text, basestring):
+	elif isinstance(text, string_types):
 		return text_type(text, encoding)
 	else:
 		return text_type(text)
@@ -533,7 +533,7 @@ def has_website_permission(doc=None, ptype='read', user=None, verbose=False, doc
 		user = session.user
 
 	if doc:
-		if isinstance(doc, basestring):
+		if isinstance(doc, string_types):
 			doc = get_doc(doctype, doc)
 
 		doctype = doc.doctype
@@ -903,7 +903,7 @@ def get_attr(method_string):
 
 def call(fn, *args, **kwargs):
 	"""Call a function and match arguments."""
-	if isinstance(fn, basestring):
+	if isinstance(fn, string_types):
 		fn = get_attr(fn)
 
 	if hasattr(fn, 'fnargs'):

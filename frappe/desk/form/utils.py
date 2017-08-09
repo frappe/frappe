@@ -7,6 +7,7 @@ import frappe.desk.form.meta
 import frappe.desk.form.load
 
 from frappe import _
+from six import string_types
 
 @frappe.whitelist()
 def remove_attach():
@@ -65,7 +66,7 @@ def get_next(doctype, value, prev, filters=None, order_by="modified desc"):
 	sort_field, sort_order = order_by.split(" ")
 
 	if not filters: filters = []
-	if isinstance(filters, basestring):
+	if isinstance(filters, string_types):
 		filters = json.loads(filters)
 
 	# condition based on sort order

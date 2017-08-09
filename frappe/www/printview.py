@@ -10,6 +10,7 @@ from frappe.modules import get_doc_path
 from jinja2 import TemplateNotFound
 from frappe.utils import cint, strip_html
 from markdown2 import markdown
+from six import string_types
 
 no_cache = 1
 no_sitemap = 1
@@ -64,7 +65,7 @@ def get_html(doc, name=None, print_format=None, meta=None,
 
 	print_settings = frappe.db.get_singles_dict("Print Settings")
 
-	if isinstance(no_letterhead, basestring):
+	if isinstance(no_letterhead, string_types):
 		no_letterhead = cint(no_letterhead)
 
 	elif no_letterhead is None:
@@ -175,10 +176,10 @@ def get_html_and_style(doc, name=None, print_format=None, meta=None,
 	no_letterhead=None, trigger_print=False):
 	"""Returns `html` and `style` of print format, used in PDF etc"""
 
-	if isinstance(doc, basestring) and isinstance(name, basestring):
+	if isinstance(doc, string_types) and isinstance(name, string_types):
 		doc = frappe.get_doc(doc, name)
 
-	if isinstance(doc, basestring):
+	if isinstance(doc, string_types):
 		doc = frappe.get_doc(json.loads(doc))
 
 	print_format = get_print_format_doc(print_format, meta=meta or frappe.get_meta(doc.doctype))
@@ -336,7 +337,7 @@ def has_value(df, doc):
 	if value in (None, ""):
 		return False
 
-	elif isinstance(value, basestring) and not strip_html(value).strip():
+	elif isinstance(value, string_types) and not strip_html(value).strip():
 		return False
 
 	elif isinstance(value, list) and not len(value):
@@ -427,7 +428,7 @@ def column_has_value(data, fieldname):
 	for row in data:
 		value = row.get(fieldname)
 		if value:
-			if isinstance(value, basestring):
+			if isinstance(value, string_types):
 				if strip_html(value).strip():
 					has_value = True
 					break

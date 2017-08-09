@@ -11,6 +11,7 @@ from frappe.utils.file_manager import save_file
 from frappe.utils.password import update_password
 from werkzeug.useragents import UserAgent
 import install_fixtures
+from six import string_types
 
 @frappe.whitelist()
 def setup_complete(args):
@@ -127,14 +128,14 @@ def update_user_name(args):
 def process_args(args):
 	if not args:
 		args = frappe.local.form_dict
-	if isinstance(args, basestring):
+	if isinstance(args, string_types):
 		args = json.loads(args)
 
 	args = frappe._dict(args)
 
 	# strip the whitespace
 	for key, value in args.items():
-		if isinstance(value, basestring):
+		if isinstance(value, string_types):
 			args[key] = strip(value)
 
 	return args
@@ -204,7 +205,7 @@ def load_user_details():
 def prettify_args(args):
 	# remove attachments
 	for key, val in args.items():
-		if isinstance(val, basestring) and "data:image" in val:
+		if isinstance(val, string_types) and "data:image" in val:
 			filename = val.split("data:image", 1)[0].strip(", ")
 			size = round((len(val) * 3 / 4) / 1048576.0, 2)
 			args[key] = "Image Attached: '{0}' of size {1} MB".format(filename, size)

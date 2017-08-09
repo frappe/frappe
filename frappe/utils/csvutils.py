@@ -6,7 +6,7 @@ import frappe
 from frappe import msgprint, _
 import json
 import csv
-from six import StringIO, text_type
+from six import StringIO, text_type, string_types
 from frappe.utils import encode, cstr, cint, flt, comma_or
 
 def read_csv_content_from_uploaded_file(ignore_encoding=False):
@@ -78,7 +78,7 @@ def read_csv_content(fcontent, ignore_encoding=False):
 
 @frappe.whitelist()
 def send_csv_to_client(args):
-	if isinstance(args, basestring):
+	if isinstance(args, string_types):
 		args = json.loads(args)
 
 	args = frappe._dict(args)
