@@ -291,7 +291,7 @@ class DatabaseQuery(object):
 
 		# prepare in condition
 		if f.operator.lower() in ('in', 'not in'):
-			values = f.value
+			values = f.value or ''
 			if not isinstance(values, (list, tuple)):
 				values = values.split(",")
 
@@ -388,7 +388,7 @@ class DatabaseQuery(object):
 			# apply user permissions?
 			if role_permissions.get("apply_user_permissions", {}).get("read"):
 				# get user permissions
-				user_permissions = frappe.defaults.get_user_permissions(self.user)
+				user_permissions = frappe.permissions.get_user_permissions(self.user)
 				self.add_user_permissions(user_permissions,
 					user_permission_doctypes=role_permissions.get("user_permission_doctypes").get("read"))
 

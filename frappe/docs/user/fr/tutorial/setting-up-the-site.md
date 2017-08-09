@@ -21,7 +21,7 @@ Vous pouvez installer un nouveau site avec la commande `bench new-site library`
 
 Cette commande va créer une nouvelle base de données, un repertoire et installer `frappe` (qui est aussi une application!) 
 dans le nouveau site. L'application `frappe` a deux modules par défaut, **Core** et **Website**. Le module **Core**
-contient les modèles basiques pour l'application. En effet, Frappe contient des modèles par défaut qui sont appelés **DocTypes**
+contient les modèles basiques pour l'application. En effet, Frappé contient des modèles par défaut qui sont appelés **DocTypes**
 mais nous en reparlerons plus tard.
 
 	$ bench new-site library

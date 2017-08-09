@@ -1,3 +1,5 @@
+# Manual Setup
+
 Manual Setup
 --------------
 
@@ -49,7 +51,7 @@ Basic Usage
 
 * Add site
 
-	Frappe apps are run by frappe sites and you will have to create at least one
+	Frappé apps are run by frappe sites and you will have to create at least one
 	site. The new-site command allows you to do that.
 
 		bench new-site site1.local
@@ -60,7 +62,7 @@ Basic Usage
 
 		bench start
 
-	To login to Frappe / ERPNext, open your browser and go to `localhost:8000`
+	To login to Frappé / ERPNext, open your browser and go to `localhost:8000`
 
 	The default user name is "Administrator" and password is what you set when you created the new site.
 

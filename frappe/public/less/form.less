@@ -708,10 +708,10 @@ select.form-control {
 }
 
 .password-strength-indicator {
-    float: right;
-    padding: 15px;
-    margin-top: -41px;
-    margin-right: -7px;
+	float: right;
+	padding: 15px;
+	margin-top: -41px;
+	margin-right: -7px;
 }
 
 .password-strength-message {
@@ -856,7 +856,6 @@ select.form-control {
 }
 
 /* goals */
-
 .goals-page-container {
 	background-color: #fafbfc;
 	padding-top: 1px;
@@ -869,106 +868,6 @@ select.form-control {
 		margin: 10px;
 	}
 }
-
-.graph-container {
-	.graphics {
-		margin-top: 10px;
-		padding: 10px 0px;
-	}
-
-	.stats-group {
-		display: flex;
-		justify-content: space-around;
-		flex: 1;
-	}
-
-	.stats-container {
-		display: flex;
-		justify-content: space-around;
-
-		.stats {
-			padding-bottom: 15px;
-		}
-
-		.stats-title {
-			color: #8D99A6;
-		}
-		.stats-value {
-			font-size: 20px;
-			font-weight: 300;
-		}
-		.stats-description {
-			font-size: 12px;
-			color: #8D99A6;
-		}
-		.graph-data .stats-value {
-			color: #98d85b;
-		}
-	}
-}
-
-.bar-graph, .line-graph {
-
-	.axis {
-		font-size: 10px;
-		fill: #6a737d;
-
-		line {
-			stroke: rgba(27,31,35,0.1);
-		}
-	}
-}
-
-.data-points {
-	circle {
-		fill: #28a745;
-		stroke: #fff;
-		stroke-width: 2;
-	}
-
-	g.mini {
-		fill: #98d85b;
-	}
-
-	path {
-		fill: none;
-		stroke: #28a745;
-		stroke-opacity: 1;
-		stroke-width: 2px;
-	}
-}
-
-.line-graph {
-	.path {
-		fill: none;
-		stroke: #28a745;
-		stroke-opacity: 1;
-		stroke-width: 2px;
-	}
-}
-
-line.dashed {
-	stroke-dasharray: 5,3;
-}
-
-.tick {
-	&.x-axis-label {
-		display: block;
-	}
-
-	.specific-value {
-		text-anchor: start;
-	}
-
-	.y-value-text {
-		text-anchor: end;
-	}
-
-	.x-value-text {
-		text-anchor: middle;
-	}
-}
-
 
 body[data-route^="Form/Communication"] textarea[data-fieldname="subject"] {
 	height: 80px !important;

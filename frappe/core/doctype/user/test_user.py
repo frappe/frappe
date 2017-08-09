@@ -200,6 +200,28 @@ class TestUser(unittest.TestCase):
 		clear_limit("expiry")
 		frappe.local.conf = _dict(frappe.get_site_config())
 
+	def test_delete_user(self):
+		new_user = frappe.get_doc(dict(doctype='User', email='test-for-delete@example.com',
+			first_name='Tester Delete User')).insert()
+		self.assertEquals(new_user.user_type, 'Website User')
+
+		# role with desk access
+		new_user.add_roles('_Test Role 2')
+		new_user.save()
+		self.assertEquals(new_user.user_type, 'System User')
+
+		comm = frappe.get_doc({
+			"doctype":"Communication",
+			"subject": "To check user able to delete even if linked with communication",
+			"content": "To check user able to delete even if linked with communication",
+			"sent_or_received": "Sent",
+			"user": new_user.name
+		})
+		comm.insert(ignore_permissions=True)
+
+		frappe.delete_doc('User', new_user.name)
+		self.assertFalse(frappe.db.exists('User', new_user.name))
+
 	def test_deactivate_additional_users(self):
 		update_limits({'users': get_total_users()+1})
 

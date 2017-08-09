@@ -1,3 +1,4 @@
+/*eslint-disable no-console */
 const path = require('path');
 const fs = require('fs');
 const babel = require('babel-core');
@@ -17,7 +18,7 @@ const apps_contents = fs.readFileSync(path_join(sites_path, 'apps.txt'), 'utf8')
 const apps = apps_contents.split('\n');
 const app_paths = apps.map(app => path_join(apps_path, app, app)) // base_path of each app
 const assets_path = path_join(sites_path, 'assets');
-const build_map = make_build_map();
+let build_map = make_build_map();
 const file_watcher_port = get_conf().file_watcher_port;
 
 // command line args
@@ -62,6 +63,7 @@ function watch() {
 				io.emit('reload_js', filename);
 			}
 		});
+		watch_build_json();
 	});
 
 	io.on('connection', function (socket) {
@@ -225,11 +227,7 @@ function compile_less_file(file, less_path, public_path) {
 function watch_less(ondirty) {
 	const less_paths = app_paths.map(path => path_join(path, 'public', 'less'));
 
-	const to_watch = [];
-	for (const less_path of less_paths) {
-		if (!fs.existsSync(less_path)) continue;
-		to_watch.push(less_path);
-	}
+	const to_watch = filter_valid_paths(less_paths);
 	chokidar.watch(to_watch).on('change', (filename, stats) => {
 		console.log(filename, 'dirty');
 		var last_index = filename.lastIndexOf('/');
@@ -255,17 +253,9 @@ function watch_less(ondirty) {
 function watch_js(ondirty) {
 	const js_paths = app_paths.map(path => path_join(path, 'public', 'js'));
 
-	const to_watch = [];
-	for (const js_path of js_paths) {
-		if (!fs.existsSync(js_path)) continue;
-		to_watch.push(js_path);
-	}
+	const to_watch = filter_valid_paths(js_paths);
 	chokidar.watch(to_watch).on('change', (filename, stats) => {
 		console.log(filename, 'dirty');
-		var last_index = filename.lastIndexOf('/');
-		const js_path = filename.slice(0, last_index);
-		const public_path = path_join(js_path, '..');
-
 		// build the target js file for which this js/html file is input
 		for (const target in build_map) {
 			const sources = build_map[target];
@@ -276,6 +266,19 @@ function watch_js(ondirty) {
 			}
 		}
 	});
+}
+
+function watch_build_json() {
+	const build_json_paths = app_paths.map(path => path_join(path, 'public', 'build.json'));
+	const to_watch = filter_valid_paths(build_json_paths);
+	chokidar.watch(to_watch).on('change', (filename) => {
+		console.log(filename, 'updated');
+		build_map = make_build_map();
+	});
+}
+
+function filter_valid_paths(paths) {
+	return paths.filter(path => fs.existsSync(path));
 }
 
 function html_to_js_template(path, content) {

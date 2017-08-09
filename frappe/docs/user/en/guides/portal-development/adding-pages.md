@@ -13,7 +13,7 @@ Either file must be present for the system to make this a valid folder to build 
 ### Markdown
 
     # This is a title
-    
+
     This is some page content
     a [link](/link/to/page)
 

@@ -6,4 +6,4 @@
 
 1.
 
-Frappe version: 
+Frappé version: 

@@ -1,6 +1,6 @@
 # Scheduled Tasks
 
-Finally, an application also has to send email notifications and do other kind of scheduled tasks. In Frappe, if you have setup the bench, the task / scheduler is setup via Celery using Redis Queue.
+Finally, an application also has to send email notifications and do other kind of scheduled tasks. In Frappé, if you have setup the bench, the task / scheduler is setup via Celery using Redis Queue.
 
 To add a new task handler, go to `hooks.py` and add a new handler. Default handlers are `all`, `daily`, `weekly`, `monthly`. The `all` handler is called every 3 minutes by default.
 
@@ -15,7 +15,7 @@ To add a new task handler, go to `hooks.py` and add a new handler. Default handl
 
 Here we can point to a Python function and that function will be executed every day. Let us look what this function looks like:
 
-	# Copyright (c) 2013, Frappe
+	# Copyright (c) 2013, Frappé
 	# For license information, please see license.txt
 
 	from __future__ import unicode_literals

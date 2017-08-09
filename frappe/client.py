@@ -61,15 +61,20 @@ def get_value(doctype, fieldname, filters=None, as_dict=True, debug=False):
 
 	try:
 		filters = json.loads(filters)
-	except ValueError:
-		# name passed, not json
+	except (TypeError, ValueError):
+		# filters are not passesd, not json
 		pass
 
 	try:
 		fieldname = json.loads(fieldname)
-	except ValueError:
+	except (TypeError, ValueError):
 		# name passed, not json
 		pass
+
+	# check whether the used filters were really parseable and usable
+	# and did not just result in an empty string or dict
+	if not filters:
+		filters = None
 
 	return frappe.db.get_value(doctype, filters, fieldname, as_dict=as_dict, debug=debug)
 

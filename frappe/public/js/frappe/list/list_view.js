@@ -599,9 +599,9 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 			}, true);
 		}
 		if (frappe.model.can_set_user_permissions(this.doctype)) {
-			this.page.add_menu_item(__('User Permissions Manager'), function () {
-				frappe.set_route('user-permissions', {
-					doctype: me.doctype
+			this.page.add_menu_item(__('User Permissions'), function () {
+				frappe.set_route('List', 'User Permission', {
+					allow: me.doctype
 				});
 			}, true);
 		}

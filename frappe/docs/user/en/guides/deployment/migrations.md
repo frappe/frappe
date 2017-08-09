@@ -1,10 +1,10 @@
 # Migrations
 
 A project often undergoes changes related to database schema during course of
-its life. It may also be required patch existing data. Frappe bundles tools to
+its life. It may also be required patch existing data. Frappé bundles tools to
 handle these schenarios.
 
-When you pull updates from any Frappe app (including Frappe), you should run
+When you pull updates from any Frappé app (including Frappé), you should run
 `bench migrate` to apply schema changes and data migrations if any.
 
 ## Schema changes
@@ -23,7 +23,7 @@ table and however, they will not be visible in the documents. This is done to
 avoid any potential data loss situations and to allow you write related data
 migrations which might need values from deleted fields.
 
-Note: Frappe doesn't support reverse schema migrations.
+Note: Frappé doesn't support reverse schema migrations.
 
 ## Data Migrations
 
@@ -37,7 +37,7 @@ It is recommended to make a file with a patch number and name in its path and
 add it to a patches package (directory) in your app. You can then add a line
 with dotted path to the patch module to `patches.txt`.
 
-The directory structure followed in Frappe is as below
+The directory structure followed in Frappé is as below
 
 
 	frappe

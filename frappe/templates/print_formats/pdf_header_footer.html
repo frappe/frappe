@@ -34,6 +34,13 @@
 			.letter-head-footer {
 				margin-top: -15mm !important;
 			}
+
+			/* Dont show explicit links for <a> tags */
+			@media print {
+				a[href]:after {
+					content: none;
+				}
+			}
 		</style>
 
 		<!-- from: http://wkhtmltopdf.org/usage/wkhtmltopdf.txt -->

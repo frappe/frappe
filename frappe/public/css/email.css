@@ -48,6 +48,16 @@ hr {
 .body-table.has-header .email-footer {
   border-top: none;
 }
+.email-footer-container {
+  margin-top: 10px;
+}
+.email-footer-container > div:not(:last-child) {
+  margin-bottom: 5px;
+}
+.email-unsubscribe a {
+  color: #8D99A6;
+  text-decoration: underline;
+}
 .btn {
   text-decoration: none;
   padding: 7px 10px;
@@ -120,6 +130,9 @@ hr {
 }
 .text-small {
   font-size: 10px;
+}
+.text-bold {
+  font-weight: bold;
 }
 .indicator {
   width: 8px;

@@ -7,7 +7,7 @@ import frappe
 import json
 
 from frappe.utils import (getdate, cint, add_months, date_diff, add_days,
-	nowdate, get_datetime_str, cstr, get_datetime, now_datetime)
+	nowdate, get_datetime_str, cstr, get_datetime, now_datetime, format_datetime)
 from frappe.model.document import Document
 from frappe.utils.user import get_enabled_system_users
 from frappe.desk.reportview import get_filters_cond
@@ -48,20 +48,22 @@ def send_event_digest():
 	for user in get_enabled_system_users():
 		events = get_events(today, today, user.name, for_reminder=True)
 		if events:
-			text = ""
 			frappe.set_user_lang(user.name, user.language)
 
-			text = "<h3>" + frappe._("Events In Today's Calendar") + "</h3>"
 			for e in events:
+				e.starts_on = format_datetime(e.starts_on, 'hh:mm a')
 				if e.all_day:
 					e.starts_on = "All Day"
-				text += "<h4>%(starts_on)s: %(subject)s</h4><p>%(description)s</p>" % e
 
-			text += '<p style="color: #888; font-size: 80%; margin-top: 20px; padding-top: 10px; border-top: 1px solid #eee;">'\
-				+ frappe._("Daily Event Digest is sent for Calendar Events where reminders are set.")+'</p>'
-
-			frappe.sendmail(recipients=user.email, subject=frappe._("Upcoming Events for Today"),
-				content = text)
+			frappe.sendmail(
+				recipients=user.email,
+				subject=frappe._("Upcoming Events for Today"),
+				template="upcoming_events",
+				args={
+					'events': events,
+				},
+				header=[frappe._("Events in Today's Calendar"), 'blue']
+			)
 
 @frappe.whitelist()
 def get_events(start, end, user=None, for_reminder=False, filters=None):

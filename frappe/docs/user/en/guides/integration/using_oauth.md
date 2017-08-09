@@ -20,7 +20,7 @@ redirect_uri = <redirect uri from OAuth Client>
 
 #### Confirmation Dialog
 
-<img class="screenshot" src="{{docs_base_url}}/assets/img/oauth_confirmation_page.png">
+<img class="screenshot" src="/docs/assets/img/oauth_confirmation_page.png">
 
 Click 'Allow' to receive authorization code in redirect uri.
 
@@ -106,4 +106,4 @@ status : 400
 
 ### Accessing Resource
 
-Add header `Authorizaton: Bearer <valid_bearer_token>` to Frappe's REST API endpoints to access user's resource
+Add header `Authorizaton: Bearer <valid_bearer_token>` to Frappé's REST API endpoints to access user's resource

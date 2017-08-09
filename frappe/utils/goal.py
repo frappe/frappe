@@ -76,15 +76,21 @@ def get_monthly_goal_graph_data(title, doctype, docname, goal_value_field, goal_
 	month_to_value_dict[current_month_year] = current_month_value
 
 	months = []
+	months_formatted = []
 	values = []
+	values_formatted = []
 	for i in xrange(0, 12):
 		month_value = formatdate(add_months(today(), -i), "MM-yyyy")
 		month_word = getdate(month_value).strftime('%b')
+		month_year = getdate(month_value).strftime('%B') + ', ' + getdate(month_value).strftime('%Y')
 		months.insert(0, month_word)
+		months_formatted.insert(0, month_year)
 		if month_value in month_to_value_dict:
-			values.insert(0, month_to_value_dict[month_value])
+			val = month_to_value_dict[month_value]
 		else:
-			values.insert(0, 0)
+			val = 0
+		values.insert(0, val)
+		values_formatted.insert(0, format_value(val, meta.get_field(goal_total_field), doc))
 
 	specific_values = []
 	summary_values = [
@@ -119,10 +125,20 @@ def get_monthly_goal_graph_data(title, doctype, docname, goal_value_field, goal_
 	data = {
 		'title': title,
 		# 'subtitle':
-		'y_values': values,
-		'x_points': months,
+		'y': [
+			{
+				'color': 'green',
+				'values': values,
+				'formatted': values_formatted
+			}
+		],
+		'x': {
+			'values': months,
+			'formatted': months_formatted
+		},
+
 		'specific_values': specific_values,
-		'summary_values': summary_values
+		'summary': summary_values
 	}
 
 	return data

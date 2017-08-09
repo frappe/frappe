@@ -284,7 +284,7 @@ def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data
 	if from_data_import == "Yes" and excel_format == "Yes":
 		filename = frappe.generate_hash("", 10)
 		with open(filename, 'wb') as f:
-		    f.write(cstr(w.getvalue()).encode("utf-8"))
+			f.write(cstr(w.getvalue()).encode("utf-8"))
 		f = open(filename)
 		reader = csv.reader(f)
 
