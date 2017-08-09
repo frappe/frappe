@@ -258,7 +258,7 @@ a[disabled="disabled"]:hover {
 }
 .link-btn {
   position: absolute;
-  top: 2px;
+  top: 3px;
   right: 4px;
   border-radius: 2px;
   padding: 3px;
@@ -708,6 +708,21 @@ a.progress-small .progress-bar {
 .modal .note-editor [data-original-title="Video"],
 .modal .note-editor [data-original-title="Table"] {
   display: none;
+}
+.note-hint-popover {
+  border-radius: 3px;
+  border-color: #d1d8dd;
+  padding: 0;
+}
+.note-hint-popover .popover-content {
+  padding: 0;
+}
+.note-hint-popover .note-hint-item {
+  color: #36414C !important;
+  padding: 5px 8.8px !important;
+}
+.note-hint-popover .note-hint-item.active {
+  background-color: #F0F4F7 !important;
 }
 .search-dialog .modal-dialog {
   width: 768px;

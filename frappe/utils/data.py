@@ -11,9 +11,10 @@ import babel.dates
 from babel.core import UnknownLocaleError
 from dateutil import parser
 from num2words import num2words
-import HTMLParser
+from six.moves import html_parser as HTMLParser
+from six.moves.urllib.parse import quote
 from html2text import html2text
-from six import iteritems
+from six import iteritems, text_type
 
 DATE_FORMAT = "%Y-%m-%d"
 TIME_FORMAT = "%H:%M:%S.%f"
@@ -329,12 +330,12 @@ def encode(obj, encoding="utf-8"):
 	if isinstance(obj, list):
 		out = []
 		for o in obj:
-			if isinstance(o, unicode):
+			if isinstance(o, text_type):
 				out.append(o.encode(encoding))
 			else:
 				out.append(o)
 		return out
-	elif isinstance(obj, unicode):
+	elif isinstance(obj, text_type):
 		return obj.encode(encoding)
 	else:
 		return obj
@@ -342,9 +343,9 @@ def encode(obj, encoding="utf-8"):
 def parse_val(v):
 	"""Converts to simple datatypes from SQL query results"""
 	if isinstance(v, (datetime.date, datetime.datetime)):
-		v = unicode(v)
+		v = text_type(v)
 	elif isinstance(v, datetime.timedelta):
-		v = ":".join(unicode(v).split(":")[:2])
+		v = ":".join(text_type(v).split(":")[:2])
 	elif isinstance(v, long):
 		v = int(v)
 	return v
@@ -570,7 +571,7 @@ def comma_and(some_list):
 def comma_sep(some_list, pattern):
 	if isinstance(some_list, (list, tuple)):
 		# list(some_list) is done to preserve the existing list
-		some_list = [unicode(s) for s in list(some_list)]
+		some_list = [text_type(s) for s in list(some_list)]
 		if not some_list:
 			return ""
 		elif len(some_list) == 1:
@@ -584,7 +585,7 @@ def comma_sep(some_list, pattern):
 def new_line_sep(some_list):
 	if isinstance(some_list, (list, tuple)):
 		# list(some_list) is done to preserve the existing list
-		some_list = [unicode(s) for s in list(some_list)]
+		some_list = [text_type(s) for s in list(some_list)]
 		if not some_list:
 			return ""
 		elif len(some_list) == 1:
@@ -667,21 +668,21 @@ def get_url_to_report(name, report_type = None, doctype = None):
 
 operator_map = {
 	# startswith
-	"^": lambda (a, b): (a or "").startswith(b),
+	"^": lambda a, b: (a or "").startswith(b),
 
 	# in or not in a list
-	"in": lambda (a, b): operator.contains(b, a),
-	"not in": lambda (a, b): not operator.contains(b, a),
+	"in": lambda a, b: operator.contains(b, a),
+	"not in": lambda a, b: not operator.contains(b, a),
 
 	# comparison operators
-	"=": lambda (a, b): operator.eq(a, b),
-	"!=": lambda (a, b): operator.ne(a, b),
-	">": lambda (a, b): operator.gt(a, b),
-	"<": lambda (a, b): operator.lt(a, b),
-	">=": lambda (a, b): operator.ge(a, b),
-	"<=": lambda (a, b): operator.le(a, b),
-	"not None": lambda (a, b): a and True or False,
-	"None": lambda (a, b): (not a) and True or False
+	"=": lambda a, b: operator.eq(a, b),
+	"!=": lambda a, b: operator.ne(a, b),
+	">": lambda a, b: operator.gt(a, b),
+	"<": lambda a, b: operator.lt(a, b),
+	">=": lambda a, b: operator.ge(a, b),
+	"<=": lambda a, b: operator.le(a, b),
+	"not None": lambda a, b: a and True or False,
+	"None": lambda a, b: (not a) and True or False
 }
 
 def evaluate_filters(doc, filters):
@@ -704,7 +705,7 @@ def evaluate_filters(doc, filters):
 def compare(val1, condition, val2):
 	ret = False
 	if condition in operator_map:
-		ret = operator_map[condition]((val1, val2))
+		ret = operator_map[condition](val1, val2)
 
 	return ret
 
@@ -795,7 +796,7 @@ def expand_relative_urls(html):
 	return html
 
 def quoted(url):
-	return cstr(urllib.quote(encode(url), safe=b"~@#$&()*!+=:;,.?/'"))
+	return cstr(quote(encode(url), safe=b"~@#$&()*!+=:;,.?/'"))
 
 def quote_urls(html):
 	def _quote_url(match):

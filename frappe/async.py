@@ -9,6 +9,7 @@ import frappe
 import os
 import time
 import redis
+from io import FileIO
 from frappe.utils import get_site_path
 from frappe import conf
 
@@ -138,7 +139,7 @@ def get_redis_server():
 	return redis_server
 
 
-class FileAndRedisStream(file):
+class FileAndRedisStream(FileIO):
 	def __init__(self, *args, **kwargs):
 		ret = super(FileAndRedisStream, self).__init__(*args, **kwargs)
 		self.count = 0

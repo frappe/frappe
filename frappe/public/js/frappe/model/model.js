@@ -112,7 +112,6 @@ $.extend(frappe.model, {
 						localStorage["_doctype:" + doctype] = JSON.stringify(r.docs);
 					}
 					frappe.model.init_doctype(doctype);
-					frappe.defaults.set_user_permissions(r.user_permissions);
 
 					if(r.user_settings) {
 						// remember filters and other settings from last view

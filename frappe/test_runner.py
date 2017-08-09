@@ -10,8 +10,8 @@ import importlib
 from frappe.modules import load_doctype_module, get_module_name
 from frappe.utils import cstr
 import frappe.utils.scheduler
-import cProfile, StringIO, pstats
-
+import cProfile, pstats
+from six import StringIO
 
 unittest_runner = unittest.TextTestRunner
 
@@ -110,7 +110,7 @@ def run_all_tests(app=None, verbose=False, profile=False, ui_tests=False):
 
 	if profile:
 		pr.disable()
-		s = StringIO.StringIO()
+		s = StringIO()
 		ps = pstats.Stats(pr, stream=s).sort_stats('cumulative')
 		ps.print_stats()
 		print(s.getvalue())
@@ -167,7 +167,7 @@ def _run_unittest(module, verbose=False, tests=(), profile=False):
 
 	if profile:
 		pr.disable()
-		s = StringIO.StringIO()
+		s = StringIO()
 		ps = pstats.Stats(pr, stream=s).sort_stats('cumulative')
 		ps.print_stats()
 		print(s.getvalue())
@@ -266,12 +266,12 @@ def make_test_records_for_doctype(doctype, verbose=0, force=False):
 		frappe.local.test_objects[doctype] += test_module._make_test_records(verbose)
 
 	elif hasattr(test_module, "test_records"):
-		frappe.local.test_objects[doctype] += make_test_objects(doctype, test_module.test_records, verbose)
+		frappe.local.test_objects[doctype] += make_test_objects(doctype, test_module.test_records, verbose, force)
 
 	else:
 		test_records = frappe.get_test_records(doctype)
 		if test_records:
-			frappe.local.test_objects[doctype] += make_test_objects(doctype, test_records, verbose)
+			frappe.local.test_objects[doctype] += make_test_objects(doctype, test_records, verbose, force)
 
 		elif verbose:
 			print_mandatory_fields(doctype)

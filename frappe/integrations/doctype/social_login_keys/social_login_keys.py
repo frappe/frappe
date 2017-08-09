@@ -10,11 +10,7 @@ import socket
 
 from frappe.model.document import Document
 from frappe import _
-
-try:
-	from urllib.parse import urlparse
-except ImportError:
-	from urlparse import urlparse
+from six.moves.urllib.parse import urlparse
 
 class SocialLoginKeys(Document):
 	def validate(self):

@@ -2,10 +2,12 @@
     <ol>
     {% for item in children_map[route] %}
         <li>
-            <a href="{{ url_prefix }}{{ item.route }}{{ item.extn or "" }}">{{ item.title }}</a>
+            <a href="{{ url_prefix }}{{ item.route }}">{{ item.title }}</a>
+			{#
             {% if children_map[item.route] %}
 				{{ make_item_list(item.route, children_map) }}
 			{% endif %}
+			#}
         </li>
     {% endfor %}
     </ol>

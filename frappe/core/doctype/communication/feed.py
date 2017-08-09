@@ -3,7 +3,6 @@
 
 from __future__ import unicode_literals
 import frappe
-import frappe.defaults
 import frappe.permissions
 from frappe.model.document import Document
 from frappe.utils import get_fullname
@@ -68,7 +67,7 @@ def get_feed_match_conditions(user=None, force=True):
 
 	conditions = ['`tabCommunication`.owner="{user}" or `tabCommunication`.reference_owner="{user}"'.format(user=frappe.db.escape(user))]
 
-	user_permissions = frappe.defaults.get_user_permissions(user)
+	user_permissions = frappe.permissions.get_user_permissions(user)
 	can_read = frappe.get_user().get_can_read()
 
 	can_read_doctypes = ['"{}"'.format(doctype) for doctype in

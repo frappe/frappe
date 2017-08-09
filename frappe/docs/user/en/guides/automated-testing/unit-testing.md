@@ -2,12 +2,12 @@
 
 ## 1.Introduction
 
-Frappe provides some basic tooling to quickly write automated tests. There are some basic rules:
+Frappé provides some basic tooling to quickly write automated tests. There are some basic rules:
 
 1. Test can be anywhere in your repository but must begin with `test_` and should be a `.py` file.
 1. Tests must run on a site that starts with `test_`. This is to prevent accidental loss of data.
 1. Test stubs are automatically generated for new DocTypes.
-1. Frappe test runner will automatically build test records for dependant DocTypes identified by the `Link` type field (Foreign Key)
+1. Frappé test runner will automatically build test records for dependant DocTypes identified by the `Link` type field (Foreign Key)
 1. Tests can be executed using `bench run-tests`
 1. For non-DocType tests, you can write simple unittests and prefix your file names with `test_`.
 
@@ -159,7 +159,7 @@ It’s designed for the CI Jenkins, but will work for anything else that underst
 
 #### Example (for `test_event.py`):
 
-	# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+	# Copyright (c) 2015, Frappé Technologies Pvt. Ltd. and Contributors
 	# MIT License. See license.txt
 
 	import frappe

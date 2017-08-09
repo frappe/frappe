@@ -6,7 +6,7 @@ import frappe
 from frappe import _
 from frappe.utils import get_request_site_address, encode
 from frappe.model.document import Document
-from urllib import quote
+from six.moves.urllib.parse import quote
 from frappe.website.router import resolve_route
 from frappe.website.doctype.website_theme.website_theme import add_website_theme
 

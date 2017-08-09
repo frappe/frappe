@@ -18,10 +18,10 @@ import redis
 import frappe.model.meta
 from frappe.utils import now, get_datetime, cstr
 from frappe import _
-from types import StringType, UnicodeType
+from six import text_type, binary_type
 from frappe.utils.global_search import sync_global_search
 from frappe.model.utils.link_count import flush_local_link_count
-from six import iteritems
+from six import iteritems, text_type
 
 
 class Database:
@@ -69,8 +69,8 @@ class Database:
 				use_unicode=True, charset='utf8mb4')
 		self._conn.converter[246]=float
 		self._conn.converter[12]=get_datetime
-		self._conn.encoders[UnicodeWithAttrs] = self._conn.encoders[UnicodeType]
-		self._conn.encoders[DateTimeDeltaType] = self._conn.encoders[StringType]
+		self._conn.encoders[UnicodeWithAttrs] = self._conn.encoders[text_type]
+		self._conn.encoders[DateTimeDeltaType] = self._conn.encoders[binary_type]
 
 		MYSQL_OPTION_MULTI_STATEMENTS_OFF = 1
 		self._conn.set_server_option(MYSQL_OPTION_MULTI_STATEMENTS_OFF)
@@ -260,7 +260,7 @@ class Database:
 				else:
 					val = r[i]
 
-				if as_utf8 and type(val) is unicode:
+				if as_utf8 and type(val) is text_type:
 					val = val.encode('utf-8')
 				row_dict[self._cursor.description[i][0]] = val
 			ret.append(row_dict)
@@ -289,13 +289,13 @@ class Database:
 
 		if isinstance(v, (datetime.date, datetime.timedelta, datetime.datetime, long)):
 			if isinstance(v, datetime.date):
-				v = unicode(v)
+				v = text_type(v)
 				if formatted:
 					v = formatdate(v)
 
 			# time
 			elif isinstance(v, (datetime.timedelta, datetime.datetime)):
-				v = unicode(v)
+				v = text_type(v)
 
 			# long
 			elif isinstance(v, long):
@@ -306,7 +306,7 @@ class Database:
 			if isinstance(v, float):
 				v=fmt_money(v)
 			elif isinstance(v, int):
-				v = unicode(v)
+				v = text_type(v)
 
 		return v
 
@@ -321,7 +321,7 @@ class Database:
 					val = self.convert_to_simple_type(c, formatted)
 				else:
 					val = c
-				if as_utf8 and type(val) is unicode:
+				if as_utf8 and type(val) is text_type:
 					val = val.encode('utf-8')
 				nr.append(val)
 			nres.append(nr)
@@ -333,7 +333,7 @@ class Database:
 		for r in res:
 			nr = []
 			for c in r:
-				if type(c) is unicode:
+				if type(c) is text_type:
 					c = c.encode('utf-8')
 					nr.append(self.convert_to_simple_type(c, formatted))
 			nres.append(nr)
@@ -881,10 +881,10 @@ class Database:
 
 	def escape(self, s, percent=True):
 		"""Excape quotes and percent in given string."""
-		if isinstance(s, unicode):
+		if isinstance(s, text_type):
 			s = (s or "").encode("utf-8")
 
-		s = unicode(MySQLdb.escape_string(s), "utf-8").replace("`", "\\`")
+		s = text_type(MySQLdb.escape_string(s), "utf-8").replace("`", "\\`")
 
 		# NOTE separating % escape, because % escape should only be done when using LIKE operator
 		# or when you use python format string to generate query that already has a %s

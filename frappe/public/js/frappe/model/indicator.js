@@ -14,7 +14,7 @@ frappe.has_indicator = function(doctype) {
 	return false;
 }
 
-frappe.get_indicator = function(doc, doctype) {
+frappe.get_indicator = function(doc, doctype, without_workflow = true) {
 	if(doc.__unsaved) {
 		return [__("Not Saved"), "orange"];
 	}
@@ -27,7 +27,7 @@ frappe.get_indicator = function(doc, doctype) {
 		workflow_fieldname = frappe.workflow.get_state_fieldname(doctype);
 
 	// workflow
-	if(workflow_fieldname) {
+	if(workflow_fieldname && !without_workflow) {
 		var value = doc[workflow_fieldname];
 		if(value) {
 			var colour = "";

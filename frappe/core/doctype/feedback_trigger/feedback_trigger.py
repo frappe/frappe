@@ -66,12 +66,16 @@ def send_feedback_request(reference_doctype, reference_name, trigger="Manual", d
 	feedback_request, url = get_feedback_request_url(reference_doctype,
 		reference_name, details.get("recipients"), trigger)
 
-	feedback_url = frappe.render_template("templates/emails/feedback_request_url.html", { "url": url })
+	feedback_msg = frappe.render_template("templates/emails/feedback_request_url.html", { "url": url })
 
 	# appending feedback url to message body
-	details.update({ "message": "{message}{feedback_url}".format(
+	message = "{message}{feedback_msg}".format(
 		message=details.get("message"),
-		feedback_url=feedback_url)
+		feedback_msg=feedback_msg
+	)
+	details.update({
+		"message": message,
+		"header": [details.get('subject'), 'blue']
 	})
 
 	if details:

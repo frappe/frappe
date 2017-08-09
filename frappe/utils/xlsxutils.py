@@ -6,9 +6,9 @@ import frappe
 from frappe.utils import encode, cstr, cint, flt, comma_or
 
 import openpyxl
-from cStringIO import StringIO
 from openpyxl.styles import Font
 from openpyxl import load_workbook
+from six import StringIO
 
 
 # return xlsx file object

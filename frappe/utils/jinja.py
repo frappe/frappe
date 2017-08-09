@@ -28,8 +28,8 @@ def get_email_from_template(name, args):
 	args = args or {}
 	try:
 		message = get_template('templates/emails/' + name + '.html').render(args)
-	except TemplateNotFound:
-		message = None
+	except TemplateNotFound as e:
+		raise e
 
 	try:
 		text_content = get_template('templates/emails/' + name + '.txt').render(args)
@@ -47,7 +47,7 @@ def validate_template(html):
 	try:
 		jenv.from_string(html)
 	except TemplateSyntaxError as e:
- 		frappe.msgprint('Line {}: {}'.format(e.lineno, e.message))
+		frappe.msgprint('Line {}: {}'.format(e.lineno, e.message))
 		frappe.throw(frappe._("Syntax error in template"))
 
 def render_template(template, context, is_path=None):
@@ -75,7 +75,7 @@ def get_allowed_functions_for_jenv():
 	import frappe.utils.data
 	from frappe.utils.autodoc import automodule, get_version
 	from frappe.model.document import get_controller
-	from frappe.website.utils import get_shade
+	from frappe.website.utils import (get_shade, get_toc, get_next_link)
 	from frappe.modules import scrub
 	import mimetypes
 	from html2text import html2text
@@ -128,11 +128,16 @@ def get_allowed_functions_for_jenv():
 				'csrf_token': frappe.local.session.data.csrf_token if getattr(frappe.local, "session", None) else ''
 			},
 		},
+		'style': {
+			'border_color': '#d1d8dd'
+		},
 		"autodoc": {
 			"get_version": get_version,
 			"automodule": automodule,
 			"get_controller": get_controller
 		},
+		'get_toc': get_toc,
+		'get_next_link': get_next_link,
 		"_": frappe._,
 		"get_shade": get_shade,
 		"scrub": scrub,
@@ -159,8 +164,10 @@ def get_jloader():
 		if frappe.local.flags.in_setup_help:
 			apps = ['frappe']
 		else:
-			apps = frappe.local.flags.web_pages_apps or frappe.get_installed_apps(sort=True)
-			apps.reverse()
+			apps = frappe.get_hooks('template_apps')
+			if not apps:
+				apps = frappe.local.flags.web_pages_apps or frappe.get_installed_apps(sort=True)
+				apps.reverse()
 
 		if not "frappe" in apps:
 			apps.append('frappe')
