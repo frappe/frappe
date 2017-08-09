@@ -3,7 +3,7 @@
 
 from __future__ import unicode_literals
 import hmac
-import urllib
+from six.moves.urllib.parse import urlencode
 from frappe import _
 
 import frappe
@@ -14,7 +14,7 @@ def get_signed_params(params):
 
 	:param params: String or dict of parameters."""
 	if not isinstance(params, basestring):
-		params = urllib.urlencode(params)
+		params = urlencode(params)
 
 	signature = hmac.new(params)
 	signature.update(get_secret())
@@ -49,7 +49,7 @@ def get_url(cmd, params, nonce=None, secret=None):
 		nonce = params
 	signature = get_signature(params, nonce, secret)
 	params['signature'] = signature
-	return frappe.utils.get_url("".join(['api/method/', cmd, '?', urllib.urlencode(params)]))
+	return frappe.utils.get_url("".join(['api/method/', cmd, '?', urlencode(params)]))
 
 def get_signature(params, nonce, secret=None):
 	params = "".join((frappe.utils.cstr(p) for p in params.values()))
