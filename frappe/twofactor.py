@@ -24,7 +24,7 @@ def toggle_two_factor_auth(state, roles=[]):
 
 def two_factor_is_enabled(user=None):
 	'''Returns True if 2FA is enabled.'''
-	enabled = frappe.db.get_value('System Settings', None, 'enable_two_factor_auth')
+	enabled = int(frappe.db.get_value('System Settings', None, 'enable_two_factor_auth') or 0)
 	if not user or not enabled:
 		return enabled
 	return two_factor_is_enabled_for_(user)
