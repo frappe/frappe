@@ -662,7 +662,7 @@ class Document(BaseDocument):
 			# hack! to run hooks even if method does not exist
 			fn = lambda self, *args, **kwargs: None
 
-		fn.__name__ = method.encode("utf-8")
+		fn.__name__ = str(method)
 		out = Document.hook(fn)(self, *args, **kwargs)
 
 		self.run_email_alerts(method)
