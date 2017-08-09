@@ -38,10 +38,34 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 				search_modal.find('#modal-search').focus();
 			}, 300);
 		});
+
+		var me = this;
+		frappe.call({
+			method: "frappe.desk.user_progress.get_user_progress_slides",
+			callback: function(r) {
+				if(r.message) {
+					let boot_info = frappe.boot.notification_info.user_progress;
+					let completed = 0;
+					Object.keys(boot_info).map(key => {
+						if(boot_info[key]) {
+							completed++;
+						}
+					});
+					let percent = completed * 100 / Object.keys(boot_info).length;
+					$('.user-progress .progress-bar').css({'width': percent + '%'});
+					me.progress_dialog = new frappe.setup.UserProgressDialog({
+						slides: r.message
+					});
+					$('.user-progress .dropdown-toggle').on('click', () => {
+						me.progress_dialog.show();
+					});
+				}
+			},
+			freeze: false
+		});
 	},
 
 	setup_sidebar: function () {
-
 		var header = $('header');
 		header.find(".toggle-sidebar").on("click", function () {
 			var layout_side_section = $('.layout-side-section');

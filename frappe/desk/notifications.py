@@ -30,6 +30,7 @@ def get_notifications():
 		"open_count_module": get_notifications_for_modules(config, notification_count),
 		"open_count_other": get_notifications_for_other(config, notification_count),
 		"targets": get_notifications_for_targets(config, notification_percent),
+		"user_progress": config.get("user_progress"),
 		"new_messages": get_new_messages()
 	}
 
@@ -209,7 +210,7 @@ def get_notification_config():
 		config = frappe._dict()
 		for notification_config in frappe.get_hooks().notification_config:
 			nc = frappe.get_attr(notification_config)()
-			for key in ("for_doctype", "for_module", "for_other", "targets"):
+			for key in ("for_doctype", "for_module", "for_other", "targets", "user_progress"):
 				config.setdefault(key, {})
 				config[key].update(nc.get(key, {}))
 		return config

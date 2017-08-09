@@ -510,7 +510,7 @@ fieldset[disabled] .form-control {
   margin-right: 10px;
 }
 a.progress-small .progress-chart {
-  width: 60px;
+  width: 50px;
   margin-top: 4px;
   float: right;
 }
@@ -518,6 +518,18 @@ a.progress-small .progress {
   margin-bottom: 0;
 }
 a.progress-small .progress-bar {
+  background-color: #98d85b;
+}
+li.user-progress .progress-chart {
+  width: 60px;
+  margin-top: 8px;
+}
+li.user-progress .progress {
+  margin-bottom: 0;
+  background-color: #fff;
+  border: 1px solid #e5e7e9;
+}
+li.user-progress .progress-bar {
   background-color: #98d85b;
 }
 /* on small screens, show only icons on top */
@@ -1069,4 +1081,31 @@ input[type="checkbox"]:checked:before {
   height: 20px;
   margin: -2px 0 0 3px;
   border: 1px solid rgba(0, 0, 0, 0.25);
+}
+.dialog-slide .fa-circle.active {
+  color: #5e64ff;
+}
+.dialog-slide .fa-check-circle.active {
+  color: #98d85b;
+}
+.dialog-slide .form {
+  margin-top: 15px;
+}
+.dialog-slide .form .form-section {
+  padding: 0px 7px;
+  border: none;
+}
+.dialog-slide .lead {
+  margin-top: 20px;
+}
+.dialog-slide .success-state {
+  margin-bottom: 20px;
+}
+.dialog-slide .footer {
+  margin-top: 20px;
+}
+.dialog-slide .footer a.make-btn.disabled {
+  background-color: #b1bdca;
+  color: #fff;
+  border-color: #b1bdca;
 }

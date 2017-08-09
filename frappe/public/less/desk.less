@@ -333,13 +333,30 @@ textarea.form-control {
 
 a.progress-small {
 	.progress-chart {
-		width: 60px;
+		width: 50px;
 		margin-top: 4px;
 		float: right;
 	}
 
 	.progress {
 		margin-bottom: 0;
+	}
+
+	.progress-bar {
+		background-color: #98d85b;
+	}
+}
+
+li.user-progress {
+	.progress-chart {
+		width: 60px;
+		margin-top: 8px;
+	}
+
+	.progress {
+		margin-bottom: 0;
+		background-color: #fff;
+		border: 1px solid #e5e7e9;
 	}
 
 	.progress-bar {
@@ -1003,5 +1020,38 @@ input[type="checkbox"] {
 		margin: -2px 0 0 3px;
 		border: 1px solid rgba(0,0,0, 0.25);
 
+	}
+}
+
+// Progress Dialog
+
+.dialog-slide {
+	.fa-circle.active {
+		color: #5e64ff;
+	}
+	.fa-check-circle.active {
+		color: #98d85b;
+	}
+	.form {
+		margin-top: 15px;
+		.form-section {
+			padding: 0px 7px;
+			border: none;
+		}
+	}
+	.lead {
+		margin-top: 20px;
+	}
+	.success-state {
+		margin-bottom: 20px;
+	}
+	.footer {
+		margin-top: 20px;
+
+		a.make-btn.disabled {
+			background-color: #b1bdca;
+			color: #fff;
+			border-color: #b1bdca;
+		}
 	}
 }

@@ -1,4 +1,4 @@
-frappe.provide("frappe.wiz");
+frappe.provide("frappe.setup");
 frappe.provide("frappe.setup.events");
 
 frappe.setup = {

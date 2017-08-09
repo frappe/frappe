@@ -89,7 +89,9 @@
 		"public/js/frappe/form/controls/read_only.js",
 		"public/js/frappe/form/controls/button.js",
 		"public/js/frappe/form/controls/html.js",
-		"public/js/frappe/form/controls/heading.js"
+		"public/js/frappe/form/controls/heading.js",
+		"public/js/frappe/form/user_progress_dialog.js",
+		"public/js/frappe/form/user_progress_slide.html"
 	],
 	"css/desk.min.css": [
 		"public/js/lib/datepicker/datepicker.min.css",
@@ -169,6 +171,8 @@
 		"public/js/frappe/form/link_selector.js",
 		"public/js/frappe/form/multi_select_dialog.js",
 		"public/js/frappe/ui/dialog.js",
+		"public/js/frappe/form/user_progress_dialog.js",
+		"public/js/frappe/form/user_progress_slide.html",
 		"public/js/frappe/ui/app_icon.js",
 
 		"public/js/frappe/model/model.js",

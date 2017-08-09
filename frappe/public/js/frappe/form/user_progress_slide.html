@@ -1,0 +1,44 @@
+<div class="dialog-slide with-form" data-slide-name="{%= name %}">
+	<div class="text-center dialog-progress text-extra-muted">
+		{% for (var i=0; i < slides_count; i++) { %}
+				<i class="fa fa-fw {% if (success_states[i]) { %} fa-check-circle {% } else { %} fa-circle {% } %}
+					{% if (i+1==step) { %} active {% } %}"></i>
+		{% } %}
+	</div>
+	<div class="row">
+		<div class="col-sm-12">
+			<div class="info text-center">
+				<p class="lead">{%= title %}</p>
+				<p class="text-center">{%= help %}</p>
+				<img src="{%= image_src %}" style="margin: 20px;">
+				<div class="success-state hide">
+					<p><i class="octicon octicon-check text-success" style="font-size: 30px;"></i></p>
+					<p style="font-size: 16px;">{%= __("Completed!") %}</p>
+				</div>
+				<div class="doctype-actions hide">
+					<a class="list-btn btn btn-primary btn-sm"><b>{%= __("Go to List") %}</b></a>
+					<a class="import-btn btn btn-default btn-sm">{%= __("Import Data") %}</a>
+				</div>
+				<div class="doc-actions hide">
+					<a class="doc-btn btn btn-primary btn-sm"><b>{%= __("Check it out") %}</b></a>
+				</div>
+			</div>
+
+			<div class="form"></div>
+			<div>
+				<a class="more-btn hide grey small btn btn-default btn-xs" style="margin-top: 20px; margin-left: 44%;">{%= __("Add More") %}</a>
+			</div>
+		</div>
+	</div>
+	<div class="footer">
+		<div class="row">
+			<div class="col-sm-6">
+				<a class="prev-btn hide btn btn-default btn-sm">{%= __("Previous") %}</a>
+			</div>
+			<div class="col-sm-6 text-right">
+				<a class="make-btn hide btn btn-primary btn-sm"><b>{%= __("Create") %}</b></a>
+				<a class="next-btn hide btn btn-default btn-sm">{%= __("Next") %}</a>
+			</div>
+		</div>
+	</div>
+</div>
