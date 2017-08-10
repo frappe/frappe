@@ -1,6 +1,7 @@
 from __future__ import unicode_literals, print_function
 import redis
 from rq import Connection, Queue, Worker
+from rq.logutils import setup_loghandlers
 from frappe.utils import cstr
 from collections import defaultdict
 import frappe
@@ -101,6 +102,9 @@ def start_worker(queue=None):
 	with frappe.init_site():
 		# empty init is required to get redis_queue from common_site_config.json
 		redis_connection = get_redis_conn()
+
+	if os.environ.get('CI'):
+		setup_loghandlers('ERROR')
 
 	with Connection(redis_connection):
 		queues = get_queue_list(queue)
