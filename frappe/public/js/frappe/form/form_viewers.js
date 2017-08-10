@@ -4,11 +4,18 @@ frappe.ui.form.Viewers = Class.extend({
 	init: function(opts) {
 		$.extend(this, opts);
 	},
+	get_viewers: function() {
+		let docinfo = this.frm.get_docinfo();
+		if (docinfo) {
+			return docinfo.viewers || {};
+		} else {
+			return {};
+		}
+	},
 	refresh: function(data_updated) {
-		var me = this;
 		this.parent.empty();
 
-		var viewers = this.frm.get_docinfo().viewers || {};
+		var viewers = this.get_viewers();
 
 		var users = [];
 		var new_users = [];
@@ -55,7 +62,8 @@ frappe.ui.form.Viewers = Class.extend({
 frappe.ui.form.set_viewers = function(data) {
 	var doctype = data.doctype;
 	var docname = data.docname;
-	var past_viewers = (frappe.model.get_docinfo(doctype, docname).viewers || {}).past || [];
+	var docinfo = frappe.model.get_docinfo(doctype, docname);
+	var past_viewers = ((docinfo && docinfo.viewers) || {}).past || [];
 	var viewers = data.viewers || [];
 
 	var new_viewers = viewers.filter(viewer => !past_viewers.includes(viewer));
