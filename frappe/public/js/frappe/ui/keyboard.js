@@ -68,7 +68,7 @@ frappe.ui.keys.on('esc', function(e) {
 	close_grid_and_dialog();
 });
 
-frappe.ui.keys.on('Enter', function(e) {
+frappe.ui.keys.on('enter', function(e) {
 	if(cur_dialog && cur_dialog.confirm_dialog) {
 		cur_dialog.get_primary_btn().trigger('click');
 	}
