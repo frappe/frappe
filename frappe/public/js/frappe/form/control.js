@@ -688,6 +688,8 @@ frappe.ui.form.ControlColor = frappe.ui.form.ControlData.extend({
 	},
 	set_formatted_input: function(value) {
 		this._super(value);
+
+		if(!value) value = '#ffffff';
 		this.$input.css({
 			"background-color": value
 		});
@@ -721,6 +723,9 @@ frappe.ui.form.ControlColor = frappe.ui.form.ControlData.extend({
 		});
 	},
 	validate: function (value) {
+		if(value === '') {
+			return '';
+		}
 		var is_valid = /^#[0-9A-F]{6}$/i.test(value);
 		if(is_valid) {
 			return value;

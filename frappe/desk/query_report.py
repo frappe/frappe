@@ -77,7 +77,7 @@ def run(report_name, filters=None, user=None):
 		frappe.msgprint(_("Must have report permission to access this report."),
 			raise_exception=True)
 
-	columns, result, message, chart = [], [], None, None
+	columns, result, message, chart, data_to_be_printed = [], [], None, None, None
 	if report.report_type=="Query Report":
 		if not report.query:
 			frappe.msgprint(_("Must specify a Query to run"), raise_exception=True)
@@ -99,6 +99,8 @@ def run(report_name, filters=None, user=None):
 				message = res[2]
 			if len(res) > 3:
 				chart = res[3]
+			if len(res) > 4:
+				data_to_be_printed = res[4]
 
 	if report.apply_user_permissions and result:
 		result = get_filtered_data(report.ref_doctype, columns, result, user)
@@ -110,7 +112,8 @@ def run(report_name, filters=None, user=None):
 		"result": result,
 		"columns": columns,
 		"message": message,
-		"chart": chart
+		"chart": chart,
+		"data_to_be_printed": data_to_be_printed
 	}
 
 

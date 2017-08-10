@@ -6,13 +6,12 @@
 	data-path="{{ pathname }}"
 	{%- if page_or_generator=="Generator" %}
 		data-doctype="{{ doctype }}"{% endif %}>
-	<div class="row {% if show_sidebar %}vert-line{% endif %}">
 		{% if show_sidebar %}
-			<div class="col-sm-3 sidebar-block hidden-xs">
+			<div class="sidebar-block">
 				{% include "templates/includes/web_sidebar.html" %}
 			</div>
 		{% endif %}
-		<div class="{% if show_sidebar %}page-content with-sidebar col-sm-9{% else %} page-content col-sm-12 {% endif %}">
+		<div class="{% if show_sidebar %}page-content with-sidebar{% else %}page-content without-sidebar{% endif %}">
 			<div class="page-content-wrapper">
 				<div class="row page-head">
 					<div class='col-sm-12'>
@@ -48,7 +47,7 @@
 					{%- block page_content -%}{%- endblock -%}
 				</div>
 			</div>
+			<!-- sidebar ends -->
 		</div>
-	</div>
 </div>
 {% endblock %}

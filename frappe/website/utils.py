@@ -24,7 +24,11 @@ def find_first_image(html):
 		return None
 
 def can_cache(no_cache=False):
-	return not (frappe.conf.disable_website_cache or getattr(frappe.local, "no_cache", False) or no_cache)
+	if frappe.conf.disable_website_cache or frappe.conf.developer_mode:
+		return False
+	if getattr(frappe.local, "no_cache", False):
+		return False
+	return not no_cache
 
 def get_comment_list(doctype, name):
 	return frappe.db.sql("""select

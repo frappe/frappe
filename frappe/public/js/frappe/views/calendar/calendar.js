@@ -100,7 +100,8 @@ frappe.views.Calendar = Class.extend({
 	color_map: {
 		"danger": "red",
 		"success": "green",
-		"warning": "orange"
+		"warning": "orange",
+		"default": "blue"
 	},
 	get_system_datetime: function(date) {
 		date._offset = moment.user_utc_offset;
@@ -232,24 +233,27 @@ frappe.views.Calendar = Class.extend({
 			d.end = frappe.datetime.convert_to_user_tz(d.end);
 
 			me.fix_end_date_for_event_render(d);
-
-			let color;
-			if(me.get_css_class) {
-				color = me.color_map[me.get_css_class(d)];
-				// if invalid, fallback to blue color
-				if(!Object.values(me.color_map).includes(color)) {
-					color = "blue";
-				}
-			} else {
-				// color field can be set in {doctype}_calendar.js
-				// see event_calendar.js
-				color = d.color;
-			}
-
-			if(!color) color = "blue";
-			d.className = "fc-bg-" + color;
+			me.prepare_colors(d);
 			return d;
 		});
+	},
+	prepare_colors: function(d) {
+		let color, color_name;
+		if(this.get_css_class) {
+			color_name = this.color_map[this.get_css_class(d)];
+			color_name =
+				frappe.ui.color.validate(color_name) ?
+					color_name :
+					'blue';
+			d.backgroundColor = frappe.ui.color.get(color_name, 'extra-light');
+			d.textColor = frappe.ui.color.get(color_name, 'dark');
+		} else {
+			color = d.color;
+			if(!color) color = frappe.ui.color.get('blue', 'extra-light');
+			d.backgroundColor = color;
+			d.textColor = frappe.ui.color.get_contrast_color(color);
+		}
+		return d;
 	},
 	update_event: function(event, revertFunc) {
 		var me = this;

@@ -9,16 +9,16 @@
 {% block page_content %}
 <!-- {{ for_test }} -->
 <section class='for-login'>
-	<div class="login-content page-card" style="margin-top: 20px;">
+	<div class="login-content page-card" style="margin-top: 30px;">
 		<form class="form-signin form-login" role="form">
 			<div class="page-card-head">
 				<span class="indicator blue" data-text="{{ _("Sign In") }}"></span>
 			</div>
 
 			<input type="text" id="login_email"
-				class="form-control" placeholder="{{ 
-					_('Email address or Mobile number') 
-					if frappe.utils.cint(frappe.db.get_value('System Settings', 'System Settings', 'allow_login_using_mobile_number')) 
+				class="form-control" placeholder="{{
+					_('Email address or Mobile number')
+					if frappe.utils.cint(frappe.db.get_value('System Settings', 'System Settings', 'allow_login_using_mobile_number'))
 					else _('Email address') }}"
 				required autofocus>
 
