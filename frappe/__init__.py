@@ -164,7 +164,7 @@ def connect(site=None, db_name=None):
 
 	:param site: If site is given, calls `frappe.init`.
 	:param db_name: Optional. Will use from `site_config.json`."""
-	from database import Database
+	from frappe.database import Database
 	if site:
 		init(site)
 	local.db = Database(user=db_name or local.conf.db_name)
