@@ -18,8 +18,8 @@ def build(make_copy=False, verbose=False):
 @click.command('watch')
 def watch():
 	"Watch and concatenate JS and CSS files as and when they change"
-	if os.environ.get('CI'):
-		return
+	# if os.environ.get('CI'):
+	# 	return
 	import frappe.build
 	frappe.init('')
 	frappe.build.watch(True)
