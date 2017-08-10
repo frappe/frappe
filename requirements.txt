@@ -34,6 +34,9 @@ beautifulsoup4
 rq
 schedule
 cryptography
+pyopenssl
+ndg-httpsclient
+pyasn1
 zxcvbn
 psutil
 unittest-xml-reporting
