@@ -54,6 +54,9 @@ def execute_job(site, method, event, job_name, kwargs, user=None, async=True, re
 
 	if async:
 		frappe.connect(site)
+		if os.environ.get('CI'):
+			frappe.flags.in_test = True
+
 		if user:
 			frappe.set_user(user)
 
