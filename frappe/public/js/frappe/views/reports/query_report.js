@@ -594,7 +594,7 @@ frappe.views.QueryReport = Class.extend({
 
 		var me = this;
 		this.dataView.onRowCountChanged.subscribe(function (e, args) {
-			me.update_totals_row(e, args);
+			me.update_totals_row();
 			me.grid.updateRowCount();
 			me.grid.render();
 		});
@@ -604,7 +604,7 @@ frappe.views.QueryReport = Class.extend({
 			me.grid.render();
 		});
 	},
-	update_totals_row: function(e, args) {
+	update_totals_row: function() {
 		if(!this.report_doc.add_total_row) return;
 
 		const data_length = this.dataView.getLength();
