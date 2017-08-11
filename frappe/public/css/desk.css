@@ -510,7 +510,7 @@ fieldset[disabled] .form-control {
   margin-right: 10px;
 }
 a.progress-small .progress-chart {
-  width: 50px;
+  width: 40px;
   margin-top: 4px;
   float: right;
 }
@@ -1082,14 +1082,18 @@ input[type="checkbox"]:checked:before {
   margin: -2px 0 0 3px;
   border: 1px solid rgba(0, 0, 0, 0.25);
 }
+.dialog-slide .fa-circle {
+  font-size: 10px;
+}
 .dialog-slide .fa-circle.active {
   color: #5e64ff;
 }
-.dialog-slide .fa-check-circle.active {
-  color: #98d85b;
-}
 .dialog-slide .form {
   margin-top: 15px;
+}
+.dialog-slide .form .form-layout {
+  margin-top: 0px;
+  margin-bottom: 0px;
 }
 .dialog-slide .form .form-section {
   padding: 0px 7px;
@@ -1101,8 +1105,12 @@ input[type="checkbox"]:checked:before {
 .dialog-slide .success-state {
   margin-bottom: 20px;
 }
+.dialog-slide .btn-primary {
+  font-weight: bold;
+}
 .dialog-slide .footer {
-  margin-top: 20px;
+  margin-top: 15px;
+  padding: 0px 7px;
 }
 .dialog-slide .footer a.make-btn.disabled {
   background-color: #b1bdca;

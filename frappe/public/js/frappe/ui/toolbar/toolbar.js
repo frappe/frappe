@@ -6,25 +6,31 @@ frappe.provide('frappe.search');
 
 frappe.ui.toolbar.Toolbar = Class.extend({
 	init: function() {
-		var header = $('header').append(frappe.render_template("navbar", {
+		$('header').append(frappe.render_template("navbar", {
 			avatar: frappe.avatar(frappe.session.user)
 		}));
+		$('.dropdown-toggle').dropdown();
 
-		this.setup_sidebar();
-
-		var awesome_bar = new frappe.search.AwesomeBar();
+		let awesome_bar = new frappe.search.AwesomeBar();
 		awesome_bar.setup("#navbar-search");
 		awesome_bar.setup("#modal-search");
 
-		this.setup_help();
+		this.make();
+	},
 
+	make: function() {
+		this.setup_sidebar();
+		this.setup_help();
+		this.setup_progress_dialog();
+		this.bind_events();
+
+		$(document).trigger('toolbar_setup');
+	},
+
+	bind_events: function() {
 		$(document).on("notification-update", function() {
 			frappe.ui.notifications.update_notifications();
 		});
-
-		$('.dropdown-toggle').dropdown();
-
-		$(document).trigger('toolbar_setup');
 
 		// clear all custom menus on page change
 		$(document).on("page-change", function() {
@@ -37,31 +43,6 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 			setTimeout(function() {
 				search_modal.find('#modal-search').focus();
 			}, 300);
-		});
-
-		var me = this;
-		frappe.call({
-			method: "frappe.desk.user_progress.get_user_progress_slides",
-			callback: function(r) {
-				if(r.message) {
-					let boot_info = frappe.boot.notification_info.user_progress;
-					let completed = 0;
-					Object.keys(boot_info).map(key => {
-						if(boot_info[key]) {
-							completed++;
-						}
-					});
-					let percent = completed * 100 / Object.keys(boot_info).length;
-					$('.user-progress .progress-bar').css({'width': percent + '%'});
-					me.progress_dialog = new frappe.setup.UserProgressDialog({
-						slides: r.message
-					});
-					$('.user-progress .dropdown-toggle').on('click', () => {
-						me.progress_dialog.show();
-					});
-				}
-			},
-			freeze: false
 		});
 	},
 
@@ -210,9 +191,43 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 				});
 			}
 		}
+	},
+
+	setup_progress_dialog: function() {
+		var me = this;
+		frappe.call({
+			method: "frappe.desk.user_progress.get_user_progress_slides",
+			callback: function(r) {
+				if(r.message) {
+					let slides = r.message;
+					let boot_info = frappe.boot.notification_info.user_progress;
+					let completed = 0;
+					slides.map(slide => {
+						let key = slide.name;
+						if(Object.keys(boot_info).includes(key) && boot_info[key]) {
+							completed++;
+							slide.done = 1;
+						}
+					});
+					let percent = completed * 100 / slides.length;
+					$('.user-progress .progress-bar').css({'width': percent + '%'});
+
+					me.progress_dialog = new frappe.setup.UserProgressDialog({
+						slides: slides
+					});
+					$('.user-progress .dropdown-toggle').on('click', () => {
+						me.progress_dialog.show();
+					});
+					if(frappe.flags.first_time_desk) {
+						me.progress_dialog.show();
+						frappe.flags.first_time_desk = 0;
+					}
+				}
+			},
+			freeze: false
+		});
 	}
 });
-
 
 $.extend(frappe.ui.toolbar, {
 	add_dropdown_button: function(parent, label, click, icon) {

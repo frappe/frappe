@@ -333,7 +333,7 @@ textarea.form-control {
 
 a.progress-small {
 	.progress-chart {
-		width: 50px;
+		width: 40px;
 		margin-top: 4px;
 		float: right;
 	}
@@ -1026,14 +1026,18 @@ input[type="checkbox"] {
 // Progress Dialog
 
 .dialog-slide {
-	.fa-circle.active {
-		color: #5e64ff;
-	}
-	.fa-check-circle.active {
-		color: #98d85b;
+	.fa-circle {
+		font-size: 10px;
+		&.active {
+			color: #5e64ff;
+		}
 	}
 	.form {
 		margin-top: 15px;
+		.form-layout {
+			margin-top: 0px;
+			margin-bottom: 0px;
+		}
 		.form-section {
 			padding: 0px 7px;
 			border: none;
@@ -1045,8 +1049,12 @@ input[type="checkbox"] {
 	.success-state {
 		margin-bottom: 20px;
 	}
+	.btn-primary {
+		font-weight: bold;
+	}
 	.footer {
-		margin-top: 20px;
+		margin-top: 15px;
+		padding: 0px 7px;
 
 		a.make-btn.disabled {
 			background-color: #b1bdca;

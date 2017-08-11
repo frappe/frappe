@@ -30,7 +30,7 @@ def get_notifications():
 		"open_count_module": get_notifications_for_modules(config, notification_count),
 		"open_count_other": get_notifications_for_other(config, notification_count),
 		"targets": get_notifications_for_targets(config, notification_percent),
-		"user_progress": config.get("user_progress"),
+		"user_progress": get_user_progress_status(config),
 		"new_messages": get_new_messages()
 	}
 
@@ -157,6 +157,18 @@ def get_notifications_for_targets(config, notification_percent):
 
 	return doc_target_percents
 
+def get_user_progress_status(config):
+	"User Progress status based on predefined setup slides"
+	user_progress_status = {}
+	for key, val in config.user_progress.iteritems():
+		if "default" in val:
+			doc_name = frappe.defaults.get_defaults()[val["default"]]
+			field_value = frappe.db.get_value(val["doctype"], val["default"], val["field"])
+			user_progress_status[key] = int(field_value > val["min_value"])
+		elif "min_count" in val:
+			user_progress_status[key] = int(frappe.db.count(val["doctype"]) > val["min_count"])
+
+	return user_progress_status
 
 def clear_notifications(user=None):
 	if frappe.flags.in_install:

@@ -150,6 +150,7 @@ frappe.setup.Wizard = Class.extend({
 			args: {args: this.values},
 			callback: function(r) {
 				me.show_complete();
+				frappe.flags.first_time_desk = 1;
 				if(frappe.setup.welcome_page) {
 					localStorage.setItem("session_last_route", frappe.setup.welcome_page);
 				}

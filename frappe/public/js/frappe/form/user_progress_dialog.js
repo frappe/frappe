@@ -1,14 +1,19 @@
+// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+// License: GNU General Public License v3. See license.txt
+
 frappe.provide("frappe.setup");
 
-frappe.setup.ProgressSlide = Class.extend({
-	init: function(opts) {
-		$.extend(this, opts);
+frappe.setup.ProgressSlide = class ProgressSlide {
+	constructor(slide = null) {
+		$.extend(this, slide);
+		this.setup();
+	}
+	setup() {
 		this.$wrapper = $('<div class="slide-wrapper hidden"></div>')
-			.appendTo(this.dialog.d.body)
+			.appendTo(this.parent)
 			.attr("data-slide-id", this.id);
-	},
-	make: function() {
-		var me = this;
+	}
+	make() {
 		if(this.$body) this.$body.remove();
 
 		if(this.before_load) {
@@ -18,22 +23,21 @@ frappe.setup.ProgressSlide = Class.extend({
 			help: __(this.help),
 			title:__(this.title),
 			image_src: __(this.image_src),
-			main_title:__(this.dialog.title),
-			step: this.id + 1,
+			step: this.id,
 			name: this.name,
-			slides_count: this.dialog.slides.length,
-			success_states: this.dialog.slides.map((slide, i) => {
-				if(this.dialog.slide_dict[i]) {
-					return this.dialog.slide_dict[i].done || 0;
+			slides_count: this.container.slides.length,
+			success_states: this.container.slides.map((slide, i) => {
+				if(this.container.slide_dict[i]) {
+					return this.container.slide_dict[i].done || 0;
 				} else {
 					return slide.done || 0;
 				}
 			})
 		})).appendTo(this.$wrapper);
 
+		this.make_progress_dots();
 		this.make_prev_next_buttons();
 
-		this.content = this.$body.find(".form")[0];
 		if(!this.done) {
 			this.$make = this.$body.find('.make-btn')
 				.removeClass("hide")
@@ -43,23 +47,38 @@ frappe.setup.ProgressSlide = Class.extend({
 		} else {
 			this.setup_success_state();
 		}
-	},
-	setup_success_state: function() {
-		console.log(this);
+	}
+	setup_success_state() {
 		this.$success_state = this.$body.find(".success-state").removeClass("hide");
 		if(this.doctype) {
 			this.$body.find('.doctype-actions').removeClass("hide");
-			this.$list = this.$body.find('.list-btn').on('click', () => {
-				frappe.set_route("List", this.doctype);
-			});
+			this.$list = this.$body.find('.list-btn')
+				.html("Go to " + this.name)
+				.on('click', () => {
+					frappe.set_route("List", this.doctype);
+				});
+			if(this.sec_doctype) {
+				this.$sec_list = this.$body.find('.sec-list-btn')
+					.removeClass("hide")
+					.html("Go to " + this.sec_doctype + "s")
+					.on('click', () => {
+						frappe.set_route("List", this.sec_doctype);
+					});
+			}
+			this.$import = this.$body.find('.import-btn')
+				.html("Import " + this.name)
+				.on('click', () => {
+					frappe.set_route("data-import-tool");
+				});
 		} else if (this.route) {
 			this.$body.find('.doc-actions').removeClass("hide");
 			this.$doc = this.$body.find('.doc-btn').on('click', () => {
 				frappe.set_route(this.route);
 			});
 		}
-	},
-	setup_form: function() {
+	}
+	setup_form() {
+		this.$form = this.$body.find(".form").removeClass("hide");
 		var fields = JSON.parse(JSON.stringify(this.fields));
 		if(this.add_more) {
 			this.count = 1;
@@ -79,12 +98,12 @@ frappe.setup.ProgressSlide = Class.extend({
 		if(this.fields) {
 			this.form = new frappe.ui.FieldGroup({
 				fields: fields,
-				body: this.content,
+				body: this.$form[0],
 				no_submit_on_enter: true
 			});
 			this.form.make();
 		} else {
-			$(this.content).html(this.html);
+			this.$form.html(this.html);
 		}
 
 		this.set_reqd_fields();
@@ -99,9 +118,37 @@ frappe.setup.ProgressSlide = Class.extend({
 		this.set_reqd_fields();
 		this.bind_fields_to_make($primary_btn);
 		this.reset_make($primary_btn);
-		this.focus_first_input();
-	},
-	set_reqd_fields: function() {
+		setTimeout(function() {
+			this.$body.find('.form-control').first().focus();
+		}.bind(this), 0);
+	}
+	make_progress_dots() {
+		var me = this;
+		this.$body.find('.fa-circle').on('click', function() {
+			let id = $(this).attr('data-step-id');
+			me.change_slide(id);
+		});
+	}
+	make_prev_next_buttons() {
+		if(this.id > 0) {
+			this.$prev = this.$body.find('.prev-btn')
+				.removeClass("hide")
+				.attr('tabIndex', 0)
+				.on('click', () => { this.change_slide(this.id - 1); });
+		}
+		if(this.id+1 < this.container.slides.length) {
+			this.$next = this.$body.find('.next-btn')
+				.removeClass("hide")
+				.attr('tabIndex', 0)
+				.on('click', () => { this.change_slide(this.id + 1); });
+		}
+	}
+	change_slide(id) {
+		this.container.show_slide(id);
+	}
+
+	// Form methods
+	set_reqd_fields() {
 		var dict = this.form.fields_dict;
 		this.reqd_fields = [];
 		Object.keys(dict).map(key => {
@@ -109,8 +156,8 @@ frappe.setup.ProgressSlide = Class.extend({
 				this.reqd_fields.push(dict[key]);
 			}
 		});
-	},
-	set_values: function() {
+	}
+	set_values() {
 		this.values = this.form.get_values();
 		if(this.values===null) {
 			return false;
@@ -119,8 +166,8 @@ frappe.setup.ProgressSlide = Class.extend({
 			return false;
 		}
 		return true;
-	},
-	bind_more_button: function() {
+	}
+	bind_more_button() {
 		this.$more = this.$body.find('.more-btn');
 		this.$more.removeClass('hide')
 			.on('click', () => {
@@ -137,31 +184,16 @@ frappe.setup.ProgressSlide = Class.extend({
 					this.$more.addClass('hide');
 				}
 			});
-	},
-	make_prev_next_buttons: function() {
-		if(this.id > 0) {
-			this.$prev = this.$body.find('.prev-btn')
-				.removeClass("hide")
-				.attr('tabIndex', 0)
-				.click(() => { this.prev(); })
-				.css({"margin-right": "10px"});
-		}
-		if(this.id+1 < this.dialog.slides.length) {
-			this.$next = this.$body.find('.next-btn')
-				.removeClass("hide")
-				.attr('tabIndex', 0)
-				.click(this.next.bind(this));
-		}
-	},
-	bind_fields_to_make: function($primary_btn) {
+	}
+	bind_fields_to_make($primary_btn) {
 		var me = this;
 		this.reqd_fields.map((field) => {
 			field.$wrapper.on('change input', () => {
 				me.reset_make($primary_btn);
 			});
 		});
-	},
-	reset_make: function($primary_btn) {
+	}
+	reset_make($primary_btn) {
 		var empty_fields = this.reqd_fields.filter((field) => {
 			return !field.get_value();
 		});
@@ -170,72 +202,65 @@ frappe.setup.ProgressSlide = Class.extend({
 		} else {
 			$primary_btn.removeClass('disabled');
 		}
-	},
-	focus_first_input: function() {
-		setTimeout(function() {
-			this.$body.find('.form-control').first().focus();
-		}.bind(this), 0);
-	},
-	make_records: function() {
+	}
+
+	// Primary button action
+	make_records() {
 		var me = this;
 		if(this.set_values()) {
 			frappe.call({
 				method: me.method,
 				args: {args_data: me.form.get_values()},
-				callback: function(r) {
+				callback: function() {
 					me.done = 1;
 					me.make();
 					let completed = 0;
-					me.dialog.slides.map((slide, i) => {
-						if(me.dialog.slide_dict[i]) {
-							if(me.dialog.slide_dict[i].done) completed++;
+					me.container.slides.map((slide, i) => {
+						if(me.container.slide_dict[i]) {
+							if(me.container.slide_dict[i].done) completed++;
 						} else {
 							if(slide.done) completed++;
 						}
-					})
-					let percent = completed * 100 / me.dialog.slides.length;
+					});
+					let percent = completed * 100 / me.container.slides.length;
 					$('.user-progress .progress-bar').css({'width': percent + '%'});
+					if(percent === 100) {
+						$(document).trigger("user-initial-setup-complete");
+					}
 				},
 				freeze: true
 			});
 		}
-	},
-	next: function() {
-		this.dialog.show_slide(this.id + 1);
-	},
-	prev: function() {
-		this.dialog.show_slide(this.id - 1);
 	}
-});
+};
 
-frappe.setup.UserProgressDialog  = class UserProgressDialog {
+frappe.setup.Slides = class Slides {
 	constructor({
-		slides = []
+		parent = null,
+		slides = [],
+		slide_class = null
 	}) {
+		this.parent = parent;
 		this.slides = slides;
+		this.slide_class = slide_class;
 		this.setup();
 	}
-
 	setup() {
-		this.d = new frappe.ui.Dialog({title: __("Setup Tour")});
+		this.container = $('<div>').addClass("slide-container").appendTo(this.parent);
 		this.slide_dict = {};
 		this.slides.map((slide, id) => {
 			if(!this.slide_dict[id]) {
-				this.slide_dict[id] = new frappe.setup.ProgressSlide(
-					$.extend(this.slides[id], {dialog: this, id:id})
+				this.slide_dict[id] = new (this.slide_class)(
+					$.extend(this.slides[id], {
+						container: this,
+						parent: this.container,
+						id: id})
 				);
 				this.slide_dict[id].make();
 			}
 		});
 		this.show_slide(0);
 	}
-
-	show() {
-		// Calculate the progress number and render bar
-		// render slide states
-		this.d.show();
-	}
-
 	show_slide(id) {
 		this.slide_dict[id].make();
 		this.hide_current_slide();
@@ -249,5 +274,45 @@ frappe.setup.UserProgressDialog  = class UserProgressDialog {
 			this.current_slide = null;
 		}
 	}
+};
 
+frappe.setup.UserProgressDialog  = class UserProgressDialog {
+	constructor({
+		slides = []
+	}) {
+		this.slides = slides;
+		this.setup();
+	}
+
+	setup() {
+		this.dialog = new frappe.ui.Dialog({title: __("Complete Setup")});
+		this.slide_container = new frappe.setup.Slides({
+			parent: this.dialog.body,
+			slides: this.slides,
+			slide_class: frappe.setup.ProgressSlide
+		});
+		this.make_dismiss_button();
+	}
+
+	make_dismiss_button() {
+		this.dialog.set_primary_action(__('Dismiss'), () => {
+			$('.user-progress').addClass('hide');
+			this.dialog.hide();
+		});
+		this.$dismiss_button = this.dialog.header.find('.btn-primary').addClass('dismiss-btn');
+		// hidden by default
+		this.$dismiss_button.addClass('hide');
+
+		$(document).on("user-initial-setup-complete", () => {
+			this.show_dismiss_button();
+		});
+	}
+
+	show_dismiss_button() {
+		this.$dismiss_button.removeClass('hide');
+	}
+
+	show() {
+		this.dialog.show();
+	}
 };
