@@ -74,7 +74,7 @@ def get_app_commands(app):
 
 @click.command('get-frappe-commands')
 def get_frappe_commands():
-	commands = get_app_commands('frappe').keys()
+	commands = list(get_app_commands('frappe').keys())
 
 	for app in get_apps():
 		app_commands = get_app_commands(app)
