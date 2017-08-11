@@ -9,7 +9,7 @@ import pyotp, os
 from frappe.utils.background_jobs import enqueue
 from jinja2 import Template
 from pyqrcode import create as qrcreate
-from StringIO import StringIO
+from six import StringIO
 from base64 import b64encode, b32encode
 from frappe.utils import get_url, get_datetime, time_diff_in_seconds
 from six import string_types
