@@ -18,7 +18,7 @@ import redis
 import frappe.model.meta
 from frappe.utils import now, get_datetime, cstr
 from frappe import _
-from six import text_type, binary_type, integer_types
+from six import text_type, binary_type, string_types, integer_types
 from frappe.utils.global_search import sync_global_search
 from frappe.model.utils.link_count import flush_local_link_count
 from six import iteritems, text_type
@@ -386,7 +386,7 @@ class Database:
 
 			conditions.append(condition)
 
-		if isinstance(filters, basestring):
+		if isinstance(filters, string_types):
 			filters = { "name": filters }
 
 		for f in filters:
@@ -451,7 +451,7 @@ class Database:
 			user = frappe.db.get_values("User", "test@example.com", "*")[0]
 		"""
 		out = None
-		if cache and isinstance(filters, basestring) and \
+		if cache and isinstance(filters, string_types) and \
 			(doctype, filters, fieldname) in self.value_cache:
 			return self.value_cache[(doctype, filters, fieldname)]
 
@@ -463,7 +463,7 @@ class Database:
 		else:
 			fields = fieldname
 			if fieldname!="*":
-				if isinstance(fieldname, basestring):
+				if isinstance(fieldname, string_types):
 					fields = [fieldname]
 				else:
 					fields = fieldname
@@ -483,7 +483,7 @@ class Database:
 			else:
 				out = self.get_values_from_single(fields, filters, doctype, as_dict, debug, update)
 
-		if cache and isinstance(filters, basestring):
+		if cache and isinstance(filters, string_types):
 			self.value_cache[(doctype, filters, fieldname)] = out
 
 		return out
@@ -789,7 +789,7 @@ class Database:
 
 		:param dt: DocType name.
 		:param dn: Document name or filter dict."""
-		if isinstance(dt, basestring):
+		if isinstance(dt, string_types):
 			if dt!="DocType" and dt==dn:
 				return True # single always exists (!)
 			try:
@@ -854,7 +854,7 @@ class Database:
 				add index `%s`(%s)""" % (doctype, index_name, ", ".join(fields)))
 
 	def add_unique(self, doctype, fields, constraint_name=None):
-		if isinstance(fields, basestring):
+		if isinstance(fields, string_types):
 			fields = [fields]
 		if not constraint_name:
 			constraint_name = "unique_" + "_".join(fields)

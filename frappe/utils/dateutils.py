@@ -6,6 +6,7 @@ import frappe
 import frappe.defaults
 import datetime
 from frappe.utils import get_datetime
+from six import string_types
 
 # global values -- used for caching
 dateformats = {
@@ -68,7 +69,7 @@ def get_user_date_format():
 def datetime_in_user_format(date_time):
 	if not date_time:
 		return ""
-	if isinstance(date_time, basestring):
+	if isinstance(date_time, string_types):
 		date_time = get_datetime(date_time)
 	from frappe.utils import formatdate
 	return formatdate(date_time.date()) + " " + date_time.strftime("%H:%M")

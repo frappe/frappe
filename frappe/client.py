@@ -8,7 +8,7 @@ import frappe.model
 import frappe.utils
 import json, os
 
-from six import iteritems
+from six import iteritems, string_types
 
 '''
 Handle RESTful requests that are mapped to the `/api/resource` route.
@@ -92,7 +92,7 @@ def set_value(doctype, name, fieldname, value=None):
 
 	if not value:
 		values = fieldname
-		if isinstance(fieldname, basestring):
+		if isinstance(fieldname, string_types):
 			try:
 				values = json.loads(fieldname)
 			except ValueError:
@@ -118,7 +118,7 @@ def insert(doc=None):
 	'''Insert a document
 
 	:param doc: JSON or dict object to be inserted'''
-	if isinstance(doc, basestring):
+	if isinstance(doc, string_types):
 		doc = json.loads(doc)
 
 	if doc.get("parent") and doc.get("parenttype"):
@@ -136,7 +136,7 @@ def insert_many(docs=None):
 	'''Insert multiple documents
 
 	:param docs: JSON or list of dict objects to be inserted in one request'''
-	if isinstance(docs, basestring):
+	if isinstance(docs, string_types):
 		docs = json.loads(docs)
 
 	out = []
@@ -162,7 +162,7 @@ def save(doc):
 	'''Update (save) an existing document
 
 	:param doc: JSON or dict object with the properties of the document to be updated'''
-	if isinstance(doc, basestring):
+	if isinstance(doc, string_types):
 		doc = json.loads(doc)
 
 	doc = frappe.get_doc(doc).save()
@@ -183,7 +183,7 @@ def submit(doc):
 	'''Submit a document
 
 	:param doc: JSON or dict object to be submitted remotely'''
-	if isinstance(doc, basestring):
+	if isinstance(doc, string_types):
 		doc = json.loads(doc)
 
 	doc = frappe.get_doc(doc)
@@ -221,7 +221,7 @@ def make_width_property_setter(doc):
 	'''Set width Property Setter
 
 	:param doc: Property Setter document with `width` property'''
-	if isinstance(doc, basestring):
+	if isinstance(doc, string_types):
 		doc = json.loads(doc)
 	if doc["doctype"]=="Property Setter" and doc["property"]=="width":
 		frappe.get_doc(doc).insert(ignore_permissions = True)

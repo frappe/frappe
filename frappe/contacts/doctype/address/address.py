@@ -13,7 +13,7 @@ from jinja2 import TemplateSyntaxError
 from frappe.utils.user import is_website_user
 from frappe.model.naming import make_autoname
 from frappe.core.doctype.dynamic_link.dynamic_link import deduplicate_dynamic_links
-from six import iteritems
+from six import iteritems, string_types
 
 
 class Address(Document):
@@ -115,7 +115,7 @@ def get_territory_from_address(address):
 	if not address:
 		return
 
-	if isinstance(address, basestring):
+	if isinstance(address, string_types):
 		address = frappe.get_doc("Address", address)
 
 	territory = None

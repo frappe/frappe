@@ -3,7 +3,7 @@
 
 from __future__ import unicode_literals, print_function
 
-from six import iteritems, text_type
+from six import iteritems, text_type, string_types
 
 """
 	frappe.translate
@@ -359,7 +359,7 @@ def get_messages_from_workflow(doctype=None, app_name=None):
 	else:
 		fixtures = frappe.get_hooks('fixtures', app_name=app_name) or []
 		for fixture in fixtures:
-			if isinstance(fixture, basestring) and fixture == 'Worflow':
+			if isinstance(fixture, string_types) and fixture == 'Worflow':
 				workflows = frappe.get_all('Workflow')
 				break
 			elif isinstance(fixture, dict) and fixture.get('dt', fixture.get('doctype')) == 'Workflow':
@@ -394,7 +394,7 @@ def get_messages_from_custom_fields(app_name):
 	custom_fields = []
 
 	for fixture in fixtures:
-		if isinstance(fixture, basestring) and fixture == 'Custom Field':
+		if isinstance(fixture, string_types) and fixture == 'Custom Field':
 			custom_fields = frappe.get_all('Custom Field', fields=['name','label', 'description', 'fieldtype', 'options'])
 			break
 		elif isinstance(fixture, dict) and fixture.get('dt', fixture.get('doctype')) == 'Custom Field':
