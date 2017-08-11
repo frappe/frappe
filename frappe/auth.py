@@ -17,7 +17,7 @@ from frappe.translate import get_lang_code
 from frappe.utils.password import check_password
 from frappe.core.doctype.authentication_log.authentication_log import add_authentication_log
 from frappe.utils.background_jobs import enqueue
-from twofactor import (should_run_2fa, authenticate_for_2factor,
+from frappe.twofactor import (should_run_2fa, authenticate_for_2factor,
 	confirm_otp_token, get_cached_user_pass)
 
 from six.moves.urllib.parse import quote
