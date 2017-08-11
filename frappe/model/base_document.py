@@ -296,7 +296,7 @@ class BaseDocument(object):
 					doctype = self.doctype,
 					columns = ", ".join(["`"+c+"`" for c in columns]),
 					values = ", ".join(["%s"] * len(columns))
-				), d.values())
+				), list(d.values()))
 		except Exception as e:
 			if e.args[0]==1062:
 				if "PRIMARY" in cstr(e.args[1]):
@@ -338,7 +338,7 @@ class BaseDocument(object):
 				set {values} where name=%s""".format(
 					doctype = self.doctype,
 					values = ", ".join(["`"+c+"`=%s" for c in columns])
-				), d.values() + [name])
+				), list(d.values()) + [name])
 		except Exception as e:
 			if e.args[0]==1062 and "Duplicate" in cstr(e.args[1]):
 				self.show_unique_validation_message(e)
