@@ -133,9 +133,7 @@ def import_doc(docdict, force=False, data_import=False, pre_process=None,
 def update_icon(doc):
 
 	link = 'List/{0}'.format(doc.name)
-
-	icon_name = frappe.db.exists('Desktop Icon', {'standard': 1,
-												  'link': link,
+	icon_name = frappe.db.exists('Desktop Icon', {'standard': 1, 'link': link,
 		'owner': frappe.session.user})
 
 	if icon_name:
