@@ -6,6 +6,7 @@ import frappe, json
 from frappe import _
 from frappe.utils import cstr
 from frappe.model import default_fields
+from six import string_types
 
 @frappe.whitelist()
 def make_mapped_doc(method, source_name, selected_children=None):
@@ -43,7 +44,7 @@ def get_mapped_doc(from_doctype, from_docname, table_maps, target_doc=None,
 	# main
 	if not target_doc:
 		target_doc = frappe.new_doc(table_maps[from_doctype]["doctype"])
-	elif isinstance(target_doc, basestring):
+	elif isinstance(target_doc, string_types):
 		target_doc = frappe.get_doc(json.loads(target_doc))
 
 	if not ignore_permissions and not target_doc.has_permission("create"):

@@ -8,12 +8,13 @@ from frappe import _
 
 import frappe
 import frappe.utils
+from six import string_types
 
 def get_signed_params(params):
 	"""Sign a url by appending `&_signature=xxxxx` to given params (string or dict).
 
 	:param params: String or dict of parameters."""
-	if not isinstance(params, basestring):
+	if not isinstance(params, string_types):
 		params = urlencode(params)
 
 	signature = hmac.new(params)
