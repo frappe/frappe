@@ -42,7 +42,7 @@ psutil
 unittest-xml-reporting
 oauthlib
 PyJWT
-pypdf
+PyPDF2
 openpyxl
 pyotp
 pyqrcode
