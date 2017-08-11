@@ -778,9 +778,11 @@ def expand_relative_urls(html):
 
 	def _expand_relative_urls(match):
 		to_expand = list(match.groups())
-		if not to_expand[2].startswith("/"):
-			to_expand[2] = "/" + to_expand[2]
-		to_expand.insert(2, url)
+
+		if not to_expand[2].startswith('mailto'):
+			if not to_expand[2].startswith("/"):
+				to_expand[2] = "/" + to_expand[2]
+			to_expand.insert(2, url)
 
 		if 'url' in to_expand[0] and to_expand[1].startswith('(') and to_expand[-1].endswith(')'):
 			# background-image: url('/assets/...') - workaround for wkhtmltopdf print-media-type
