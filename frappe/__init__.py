@@ -164,7 +164,7 @@ def connect(site=None, db_name=None):
 
 	:param site: If site is given, calls `frappe.init`.
 	:param db_name: Optional. Will use from `site_config.json`."""
-	from database import Database
+	from frappe.database import Database
 	if site:
 		init(site)
 	local.db = Database(user=db_name or local.conf.db_name)
@@ -235,8 +235,8 @@ def cache():
 
 def get_traceback():
 	"""Returns error traceback."""
-	import utils
-	return utils.get_traceback()
+	from frappe.utils import get_traceback
+	return get_traceback()
 
 def errprint(msg):
 	"""Log error. This is sent back as `exc` in response.
@@ -268,7 +268,7 @@ def msgprint(msg, title=None, raise_exception=0, as_table=False, indicator=None,
 	:param raise_exception: [optional] Raise given exception and show message.
 	:param as_table: [optional] If `msg` is a list of lists, render as HTML table.
 	"""
-	from utils import encode
+	from frappe.utils import encode
 
 	out = _dict(message=msg)
 
@@ -421,8 +421,8 @@ def sendmail(recipients=[], sender="", subject="No Subject", message="No Message
 	if not delayed:
 		now = True
 
-	import email.queue
-	email.queue.send(recipients=recipients, sender=sender,
+	from frappe.email import queue
+	queue.send(recipients=recipients, sender=sender,
 		subject=subject, message=message, text_content=text_content,
 		reference_doctype = doctype or reference_doctype, reference_name = name or reference_name,
 		unsubscribe_method=unsubscribe_method, unsubscribe_params=unsubscribe_params, unsubscribe_message=unsubscribe_message,
@@ -488,7 +488,7 @@ def clear_cache(user=None, doctype=None):
 	elif user:
 		frappe.sessions.clear_cache(user)
 	else: # everything
-		import translate
+		from frappe import translate
 		frappe.sessions.clear_cache()
 		translate.clear_cache()
 		reset_metadata_version()
