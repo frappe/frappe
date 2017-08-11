@@ -18,7 +18,7 @@ import MySQLdb
 import frappe.utils
 from frappe.utils import get_sites
 from datetime import datetime
-from background_jobs import enqueue, get_jobs, queue_timeout
+from frappe.utils.background_jobs import enqueue, get_jobs, queue_timeout
 from frappe.limits import has_expired
 from frappe.utils.data import get_datetime, now_datetime
 from frappe.core.doctype.user.user import STANDARD_USERS
