@@ -7,7 +7,7 @@ from frappe.modules import get_doc_path
 from jinja2 import TemplateNotFound
 from frappe.utils import cint, strip_html
 from frappe.utils.pdf import get_pdf
-from pyPdf import PdfFileWriter, PdfFileReader
+from pyPDF2 import PdfFileWriter, PdfFileReader
 
 no_cache = 1
 no_sitemap = 1
