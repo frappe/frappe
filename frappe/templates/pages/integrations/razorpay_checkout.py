@@ -5,6 +5,7 @@ import frappe
 from frappe import _
 from frappe.utils import flt, cint
 import json
+from six import string_types
 
 no_cache = 1
 no_sitemap = 1
@@ -39,7 +40,7 @@ def get_api_key():
 def make_payment(razorpay_payment_id, options, reference_doctype, reference_docname):
 	data = {}
 
-	if isinstance(options, basestring):
+	if isinstance(options, string_types):
 		data = json.loads(options)
 
 	data.update({

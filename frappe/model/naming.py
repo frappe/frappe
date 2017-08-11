@@ -6,6 +6,7 @@ import frappe
 from frappe import _
 from frappe.utils import now_datetime, cint
 import re
+from six import string_types
 
 def set_new_name(doc):
 	"""
@@ -99,7 +100,7 @@ def make_autoname(key='', doctype='', doc=''):
 
 def parse_naming_series(parts, doctype= '', doc = ''):
 	n = ''
-	if isinstance(parts, basestring):
+	if isinstance(parts, string_types):
 		parts = parts.split('.')
 
 	series_set = False
@@ -123,7 +124,7 @@ def parse_naming_series(parts, doctype= '', doc = ''):
 			part = doc.get(e)
 		else: part = e
 
-		if isinstance(part, basestring):
+		if isinstance(part, string_types):
 			n+=part
 
 	return n

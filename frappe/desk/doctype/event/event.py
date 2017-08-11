@@ -3,6 +3,7 @@
 
 from __future__ import unicode_literals
 from six.moves import range
+from six import string_types
 import frappe
 import json
 
@@ -69,7 +70,7 @@ def send_event_digest():
 def get_events(start, end, user=None, for_reminder=False, filters=None):
 	if not user:
 		user = frappe.session.user
-	if isinstance(filters, basestring):
+	if isinstance(filters, string_types):
 		filters = json.loads(filters)
 	roles = frappe.get_roles(user)
 	events = frappe.db.sql("""select name, subject, description, color,

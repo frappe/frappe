@@ -14,7 +14,7 @@ from email.utils import parseaddr, formataddr
 # utility functions like cint, int, flt, etc.
 from frappe.utils.data import *
 from six.moves.urllib.parse import quote
-from six import text_type
+from six import text_type, string_types
 
 default_fields = ['doctype', 'name', 'owner', 'creation', 'modified', 'modified_by',
 	'parent', 'parentfield', 'parenttype', 'idx', 'docstatus']
@@ -63,7 +63,7 @@ def get_formatted_email(user):
 def extract_email_id(email):
 	"""fetch only the email part of the Email Address"""
 	email_id = parse_addr(email)[1]
-	if email_id and isinstance(email_id, basestring) and not isinstance(email_id, text_type):
+	if email_id and isinstance(email_id, string_types) and not isinstance(email_id, text_type):
 		email_id = email_id.decode("utf-8", "ignore")
 	return email_id
 
@@ -305,14 +305,14 @@ def get_request_site_address(full_address=False):
 
 def encode_dict(d, encoding="utf-8"):
 	for key in d:
-		if isinstance(d[key], basestring) and isinstance(d[key], text_type):
+		if isinstance(d[key], string_types) and isinstance(d[key], text_type):
 			d[key] = d[key].encode(encoding)
 
 	return d
 
 def decode_dict(d, encoding="utf-8"):
 	for key in d:
-		if isinstance(d[key], basestring) and not isinstance(d[key], text_type):
+		if isinstance(d[key], string_types) and not isinstance(d[key], text_type):
 			d[key] = d[key].decode(encoding, "ignore")
 
 	return d

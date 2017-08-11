@@ -6,6 +6,7 @@ import frappe
 import frappe.utils
 import json
 from frappe import _
+from six import string_types
 
 class SignupDisabledError(frappe.PermissionError): pass
 
@@ -211,10 +212,10 @@ def login_oauth_user(data=None, provider=None, state=None, email_id=None, key=No
 	# 	return
 
 	# json.loads data and state
-	if isinstance(data, basestring):
+	if isinstance(data, string_types):
 		data = json.loads(data)
 
-	if isinstance(state, basestring):
+	if isinstance(state, string_types):
 		state = json.loads(state)
 
 	if not (state and state["token"]):

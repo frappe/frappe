@@ -12,6 +12,7 @@ from frappe.utils.data import parse_val
 from frappe.utils.jinja import validate_template
 from frappe.modules.utils import export_module_json, get_doc_module
 from markdown2 import markdown
+from six import string_types
 
 class EmailAlert(Document):
 	def autoname(self):
@@ -210,7 +211,7 @@ def trigger_email_alerts(doc, method=None):
 def evaluate_alert(doc, alert, event):
 	from jinja2 import TemplateError
 	try:
-		if isinstance(alert, basestring):
+		if isinstance(alert, string_types):
 			alert = frappe.get_doc("Email Alert", alert)
 
 		context = get_context(doc)

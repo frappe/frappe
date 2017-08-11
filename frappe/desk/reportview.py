@@ -10,7 +10,7 @@ import frappe.permissions
 import MySQLdb
 from frappe.model.db_query import DatabaseQuery
 from frappe import _
-from six import text_type
+from six import text_type, string_types
 
 @frappe.whitelist()
 def get():
@@ -31,13 +31,13 @@ def get_form_params():
 	if "csrf_token" in data:
 		del data["csrf_token"]
 
-	if isinstance(data.get("filters"), basestring):
+	if isinstance(data.get("filters"), string_types):
 		data["filters"] = json.loads(data["filters"])
-	if isinstance(data.get("fields"), basestring):
+	if isinstance(data.get("fields"), string_types):
 		data["fields"] = json.loads(data["fields"])
-	if isinstance(data.get("docstatus"), basestring):
+	if isinstance(data.get("docstatus"), string_types):
 		data["docstatus"] = json.loads(data["docstatus"])
-	if isinstance(data.get("save_user_settings"), basestring):
+	if isinstance(data.get("save_user_settings"), string_types):
 		data["save_user_settings"] = json.loads(data["save_user_settings"])
 	else:
 		data["save_user_settings"] = True
@@ -341,7 +341,7 @@ def build_match_conditions(doctype, as_condition=True):
 		return match_conditions
 
 def get_filters_cond(doctype, filters, conditions, ignore_permissions=None, with_match_conditions=False):
-	if isinstance(filters, basestring):
+	if isinstance(filters, string_types):
 		filters = json.loads(filters)
 
 	if filters:
@@ -350,10 +350,10 @@ def get_filters_cond(doctype, filters, conditions, ignore_permissions=None, with
 			filters = filters.items()
 			flt = []
 			for f in filters:
-				if isinstance(f[1], basestring) and f[1][0] == '!':
+				if isinstance(f[1], string_types) and f[1][0] == '!':
 					flt.append([doctype, f[0], '!=', f[1][1:]])
 				else:
-					value = frappe.db.escape(f[1]) if isinstance(f[1], basestring) else f[1]
+					value = frappe.db.escape(f[1]) if isinstance(f[1], string_types) else f[1]
 					flt.append([doctype, f[0], '=', value])
 
 		query = DatabaseQuery(doctype)

@@ -23,6 +23,7 @@ from frappe.limits import has_expired
 from frappe.utils.data import get_datetime, now_datetime
 from frappe.core.doctype.user.user import STANDARD_USERS
 from frappe.installer import update_site_config
+from six import string_types
 
 DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 
@@ -192,7 +193,7 @@ def get_enabled_scheduler_events():
 
 	enabled_events = frappe.db.get_global("enabled_scheduler_events")
 	if enabled_events:
-		if isinstance(enabled_events, basestring):
+		if isinstance(enabled_events, string_types):
 			enabled_events = json.loads(enabled_events)
 
 		return enabled_events

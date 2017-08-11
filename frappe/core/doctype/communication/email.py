@@ -3,6 +3,7 @@
 
 from __future__ import unicode_literals, absolute_import
 from six.moves import range
+from six import string_types
 import frappe
 import json
 from email.utils import formataddr
@@ -71,7 +72,7 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 		# if no reference given, then send it against the communication
 		comm.db_set(dict(reference_doctype='Communication', reference_name=comm.name))
 
-	if isinstance(attachments, basestring):
+	if isinstance(attachments, string_types):
 		attachments = json.loads(attachments)
 
 	# if not committed, delayed task doesn't find the communication
@@ -250,11 +251,11 @@ def prepare_to_notify(doc, print_html=None, print_format=None, attachments=None)
 			print_format=print_format, html=print_html))
 
 	if attachments:
-		if isinstance(attachments, basestring):
+		if isinstance(attachments, string_types):
 			attachments = json.loads(attachments)
 
 		for a in attachments:
-			if isinstance(a, basestring):
+			if isinstance(a, string_types):
 				# is it a filename?
 				try:
 					file = get_file(a)
@@ -342,7 +343,7 @@ def add_attachments(name, attachments):
 
 	# loop through attachments
 	for a in attachments:
-		if isinstance(a, basestring):
+		if isinstance(a, string_types):
 			attach = frappe.db.get_value("File", {"name":a},
 				["file_name", "file_url", "is_private"], as_dict=1)
 

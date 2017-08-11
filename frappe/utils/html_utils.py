@@ -1,5 +1,6 @@
 import json
 import bleach, bleach_whitelist
+from six import string_types
 
 def sanitize_html(html, linkify=False):
 	"""
@@ -8,7 +9,7 @@ def sanitize_html(html, linkify=False):
 
 	Does not sanitize JSON, as it could lead to future problems
 	"""
-	if not isinstance(html, basestring):
+	if not isinstance(html, string_types):
 		return html
 
 	elif is_json(html):

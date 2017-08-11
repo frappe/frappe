@@ -9,7 +9,7 @@ from frappe.utils import flt, cstr, now, get_datetime_str, file_lock
 from frappe.utils.background_jobs import enqueue
 from frappe.model.base_document import BaseDocument, get_controller
 from frappe.model.naming import set_new_name
-from six import iteritems
+from six import iteritems, string_types
 from werkzeug.exceptions import NotFound, Forbidden
 import hashlib, json
 from frappe.model import optional_fields
@@ -41,7 +41,7 @@ def get_doc(arg1, arg2=None):
 	"""
 	if isinstance(arg1, BaseDocument):
 		return arg1
-	elif isinstance(arg1, basestring):
+	elif isinstance(arg1, string_types):
 		doctype = arg1
 	else:
 		doctype = arg1.get("doctype")
@@ -67,7 +67,7 @@ class Document(BaseDocument):
 		self._default_new_docs = {}
 		self.flags = frappe._dict()
 
-		if arg1 and isinstance(arg1, basestring):
+		if arg1 and isinstance(arg1, string_types):
 			if not arg2:
 				# single
 				self.doctype = self.name = arg1

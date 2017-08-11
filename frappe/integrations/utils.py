@@ -6,6 +6,7 @@ from __future__ import unicode_literals
 import frappe
 import json
 from six.moves.urllib.parse import parse_qs
+from six import string_types
 from frappe.utils import get_request_session
 from frappe import _
 
@@ -49,7 +50,7 @@ def make_post_request(url, auth=None, headers=None, data=None):
 		raise exc
 
 def create_request_log(data, integration_type, service_name, name=None):
-	if isinstance(data, basestring):
+	if isinstance(data, string_types):
 		data = json.loads(data)
 
 	integration_request = frappe.get_doc({

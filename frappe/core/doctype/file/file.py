@@ -21,7 +21,7 @@ from frappe import _
 from frappe.utils.nestedset import NestedSet
 from frappe.utils import strip, get_files_path
 from PIL import Image, ImageOps
-from six import StringIO
+from six import StringIO, string_types
 from six.moves.urllib.parse import unquote
 import zipfile
 
@@ -305,7 +305,7 @@ def create_new_folder(file_name, folder):
 
 @frappe.whitelist()
 def move_file(file_list, new_parent, old_parent):
-	if isinstance(file_list, basestring):
+	if isinstance(file_list, string_types):
 		file_list = json.loads(file_list)
 
 	for file_obj in file_list:
