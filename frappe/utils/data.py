@@ -14,7 +14,7 @@ from num2words import num2words
 from six.moves import html_parser as HTMLParser
 from six.moves.urllib.parse import quote
 from html2text import html2text
-from six import iteritems, text_type, string_types
+from six import iteritems, text_type, string_types, integer_types
 
 DATE_FORMAT = "%Y-%m-%d"
 TIME_FORMAT = "%H:%M:%S.%f"
@@ -346,7 +346,7 @@ def parse_val(v):
 		v = text_type(v)
 	elif isinstance(v, datetime.timedelta):
 		v = ":".join(text_type(v).split(":")[:2])
-	elif isinstance(v, long):
+	elif isinstance(v, integer_types):
 		v = int(v)
 	return v
 
