@@ -36,7 +36,7 @@ def _new_site(db_name, site, mariadb_root_username=None, mariadb_root_password=N
 	"""Install a new Frappe site"""
 
 	if not db_name:
-		db_name = hashlib.sha1(site).hexdigest()[:16]
+		db_name = hashlib.sha1(site.encode()).hexdigest()[:16]
 
 	from frappe.installer import install_db, make_site_dirs
 	from frappe.installer import install_app as _install_app
