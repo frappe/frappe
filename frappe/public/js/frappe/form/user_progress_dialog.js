@@ -44,8 +44,8 @@ frappe.ui.Slide = class Slide {
 
 	refresh() {
 		if(!this.done) {
-			this.make_primary_button();
 			this.setup_form();
+			this.setup_primary_button();
 		} else {
 			this.render_parent_dots();
 			this.setup_done_state();
@@ -59,10 +59,11 @@ frappe.ui.Slide = class Slide {
 			no_submit_on_enter: true
 		});
 		this.form.make();
+		if(this.add_more) this.bind_more_button();
+		this.$primary_btn = this.slides_footer.find('.btn-primary')
+			.attr('tabIndex', 0);
 
 		this.set_reqd_fields();
-
-		if(this.add_more) this.bind_more_button();
 		this.bind_fields_to_primary_btn();
 
 		if(this.onload) { this.onload(this); }
@@ -166,11 +167,8 @@ frappe.setup.UserProgressSlide = class UserProgressSlide extends frappe.ui.Slide
 		super.make();
 	}
 
-	make_primary_button() {
-		this.$make = this.slides_footer.find('.make-btn')
-			.attr('tabIndex', 0)
-			.click(this.make_records.bind(this));
-		this.$primary_btn = this.$make;
+	setup_primary_button() {
+		this.$primary_btn.on('click', this.make_records.bind(this));
 	}
 
 	setup_done_state() {
@@ -272,6 +270,8 @@ frappe.ui.Slides = class Slides {
 		this.unidirectional = unidirectional;
 		this.done_state = done_state;
 		this.before_load = before_load;
+
+		this.values = {};
 		this.make();
 	}
 
@@ -351,10 +351,10 @@ frappe.ui.Slides = class Slides {
 			</div>
 		</div>`).appendTo(this.$footer);
 
-		this.$prev_btn = $('.footer').find('.prev-btn').attr('tabIndex', 0)
+		this.$prev_btn = this.$footer.find('.prev-btn').attr('tabIndex', 0)
 			.on('click', () => { this.show_slide(this.current_id - 1); });
 
-		this.$next_btn = $('.footer').find('.next-btn').attr('tabIndex', 0)
+		this.$next_btn = this.$footer.find('.next-btn').attr('tabIndex', 0)
 			.on('click', () => { this.show_slide(this.current_id + 1); });
 	}
 
@@ -366,7 +366,33 @@ frappe.ui.Slides = class Slides {
 		});
 	}
 
+	get_values() {
+		var values = {};
+		$.each(this.slide_dict, function(id, slide) {
+			if(slide.values) {
+				$.extend(values, slide.values);
+			}
+		});
+		return values;
+	}
+
+	update_values() {
+		this.values = $.extend(this.values, this.get_values());
+	}
+
+	before_show_slide() {
+		return true;
+	}
+
 	show_slide(id) {
+		id = cint(id);
+		if(!this.before_show_slide() ||
+			(this.current_slide && this.current_id===id)) {
+			return;
+		}
+
+		this.update_values();
+
 		if(this.current_slide) this.current_slide.hide_slide();
 		this.current_id = id;
 		this.current_slide = this.slide_dict[id];

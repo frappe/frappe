@@ -1,5 +1,6 @@
 frappe.provide("frappe.setup");
 frappe.provide("frappe.setup.events");
+frappe.provide("frappe.ui");
 
 frappe.setup = {
 	slides: [],
@@ -7,7 +8,6 @@ frappe.setup = {
 	data: {},
 	utils: {},
 
-	remove_app_slides: [],
 	on: function(event, fn) {
 		if(!frappe.setup.events[event]) {
 			frappe.setup.events[event] = [];
@@ -35,12 +35,20 @@ frappe.pages['setup-wizard'].on_page_load = function(wrapper) {
 	frappe.require(requires, function() {
 		frappe.setup.run_event("before_load");
 		var wizard_settings = {
-			page_name: "setup-wizard",
 			parent: wrapper,
 			slides: frappe.setup.slides,
-			title: __("Welcome")
+			slide_class: frappe.setup.SetupWizardSlide,
+			unidirectional: 1,
+			before_load: ($footer) => {
+				$footer.find('.next-btn').removeClass('btn-default')
+					.addClass('btn-primary');
+				$footer.find('.text-right').prepend(
+					$(`<a class="make-btn btn btn-sm">
+				${__("Complete Setup")}</a>`));
+
+			}
 		}
-		frappe.wizard = new frappe.setup.Wizard(wizard_settings);
+		frappe.wizard = new frappe.setup.SetupWizard(wizard_settings);
 		frappe.setup.run_event("after_load");
 
 		// frappe.wizard.values = test_values_edu;
@@ -63,97 +71,132 @@ frappe.setup.on("before_load", function() {
 	frappe.setup.slides_settings.map(frappe.setup.add_slide);
 });
 
-frappe.setup.Wizard = Class.extend({
-	init: function(opts) {
-		$.extend(this, opts);
-		this.make();
-		this.slides;
-		this.slide_dict = {};
-		this.values = {};
+frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
+	constructor(args = {}) {
+		super(args);
+		$.extend(this, args);
+
 		this.welcomed = true;
+		this.page_name = "setup-wizard";
 		frappe.set_route("setup-wizard/0");
-	},
-	make: function() {
-		this.parent = $('<div class="setup-wizard-wrapper">').appendTo(this.parent);
-	},
-	get_message: function(html) {
-		return $(repl('<div data-state="setup-complete">\
-			<div style="padding: 40px;" class="text-center">%(html)s</div>\
-		</div>', {html:html}))
-	},
-	show_working: function() {
-		this.hide_current_slide();
-		frappe.set_route(this.page_name);
-		this.current_slide = {"$wrapper": this.get_message(this.working_html()).appendTo(this.parent)};
-	},
-	show_complete: function() {
-		this.hide_current_slide();
-		this.current_slide = {"$wrapper": this.get_message(this.complete_html()).appendTo(this.parent)};
-	},
-	show: function(id) {
+	}
+
+	// make() {
+		// account for wrapper pr parent with the card
+	// }
+
+	setup() {
+		super.setup();
+		// bind complete button
+		this.$complete_btn = this.$footer.find('.complete-btn');
+	}
+
+	before_show_slide() {
 		if(!this.welcomed) {
 			frappe.set_route(this.page_name);
+			return false;
+		}
+		return true;
+	}
+
+	show_hide_prev_next(id) {
+		if (id + 1 === this.slide_class.length){
+			this.$next_btn.removeClass("btn-primary").hide();
+			this.$complete_btn.addClass("btn-primary").show();
+
+		} else {
+			this.$next_btn.addClass("btn-primary").show();
+			this.$complete_btn.removeClass("btn-primary").hide();
+		}
+
+	}
+
+	refresh_slides() {
+		// For Translations, etc.
+		if(this.in_refresh_slides || !this.current_slide.set_values()) {
 			return;
 		}
-		id = cint(id);
-		if(this.current_slide && this.current_slide.id===id) {
-			return;
-		}
+		this.in_refresh_slides = true;
 
 		this.update_values();
+		frappe.setup.slides = [];
+		frappe.setup.run_event("before_load");
 
-		if(!this.slide_dict[id]) {
-			this.slide_dict[id] = new frappe.setup.WizardSlide($.extend(this.slides[id], {wiz:this, id:id}));
-			this.slide_dict[id].make();
-		}
+		frappe.setup.slides = this.get_setup_slides_filtered_by_domain();
 
-		this.hide_current_slide();
+		this.slides = frappe.setup.slides;
+		frappe.setup.run_event("after_load");
 
-		this.current_slide = this.slide_dict[id];
-		this.current_slide.$wrapper.removeClass("hidden");
-	},
-	hide_current_slide: function() {
-		if(this.current_slide) {
-			this.current_slide.$wrapper.addClass("hidden");
-			this.current_slide = null;
-		}
-	},
-	get_values: function() {
-		var values = {};
-		$.each(this.slide_dict, function(id, slide) {
-			if(slide.values) {
-				$.extend(values, slide.values);
+		// re-render all slides
+		this.slide_dict = {};
+		this.current_slide.destroy();
+		this.show_slide(this.current_id);
+		this.in_refresh_slides = false;
+	}
+
+	show_working_state() {
+		this.container.hide();
+		frappe.set_route(this.page_name);
+
+		let message = this.get_message(
+			"/assets/frappe/images/ui/bubble-tea-smile.svg",
+			__("Setting Up"),
+			__('Sit tight while your system is being setup. This may take a few moments.'),
+			"animated infinite bounce"
+		).appendTo(this.$wrapper);
+
+		this.current_id = this.slides.length;
+		this.current_slide = {"$wrapper": message}
+	}
+
+	show_setup_complete_state() {
+		this.container.hide();
+		let message = this.get_message(
+			"/assets/frappe/images/ui/bubble-tea-happy.svg",
+			__("Setup Complete")
+		).appendTo(this.$wrapper);
+
+		this.current_id = this.slides.length;
+		this.current_slide = {"$wrapper": message};
+	}
+
+	get_setup_slides_filtered_by_domain() {
+		var new_slides = [];
+		frappe.setup.slides.forEach(function(slide) {
+			if(frappe.setup.domain) {
+				var domains = slide.domains;
+				if (domains.indexOf('all') !== -1 ||
+					domains.indexOf(frappe.setup.domain.toLowerCase()) !== -1) {
+					new_slides.push(slide);
+				}
+			} else {
+				new_slides.push(slide);
 			}
-		});
-		return values;
-	},
-	working_html: function() {
-		var msg = $(frappe.render_template("setup_wizard_message", {
-			image: "/assets/frappe/images/ui/bubble-tea-smile.svg",
-			title: __("Setting Up"),
-			message: __('Sit tight while your system is being setup. This may take a few moments.')
-		}));
-		msg.find(".setup-wizard-message-image").addClass("animated infinite bounce");
-		return msg.html();
-	},
+		})
+		return new_slides;
+	}
 
-	complete_html: function() {
-		return frappe.render_template("setup_wizard_message", {
-			image: "/assets/frappe/images/ui/bubble-tea-happy.svg",
-			title: __('Setup Complete'),
-			message: ""
-		});
-	},
+	get_message(image, title, message="", image_class) {
+		return $(`<div data-state="setup-complete">
+			<div style="padding: 40px;" class="text-center">
+				<div class="container setup-wizard-slide">
+					<img class="img-responsive setup-wizard-message-image ${image_class}" src="${image}">
+					<p class="text-center lead">${title}</p>
+					<p class="text-center">${message}</p>
+				</div>
+			</div>
+		</div>`);
+	}
 
-	on_complete: function() {
+	action_on_complete() {
 		var me = this;
 		this.update_values();
-		this.show_working();
+		this.show_working_state();
 		return frappe.call({
 			method: "frappe.desk.page.setup_wizard.setup_wizard.setup_complete",
 			args: {args: this.values},
 			callback: function(r) {
-				me.show_complete();
+				me.show_complete_state();
 				frappe.flags.first_time_desk = 1;
 				if(frappe.setup.welcome_page) {
 					localStorage.setItem("session_last_route", frappe.setup.welcome_page);
@@ -169,11 +212,99 @@ frappe.setup.Wizard = Class.extend({
 				};
 			}
 		});
-	},
+	}
+};
 
-	update_values: function() {
-		this.values = $.extend(this.values, this.get_values());
+frappe.setup.Wizard = Class.extend({
+	// init: function(opts) {
+	// 	$.extend(this, opts);
+	// 	this.make();
+
+	// 	// slide container
+	// 	this.slides;
+	// 	this.slide_dict = {};
+	// 	this.values = {};
+
+	// 	this.welcomed = true;
+	// 	frappe.set_route("setup-wizard/0");
+	// },
+	// make: function() {
+	// 	this.$wrapper = $('<div class="setup-wizard-wrapper">').appendTo(this.parent);
+	// },
+	show: function(id) {
+		// if(!this.welcomed) {
+		// 	frappe.set_route(this.page_name);
+		// 	return;
+		// }
+		// id = cint(id);
+		// if(this.current_slide && this.current_slide.id===id) {
+		// 	return;
+		// }
+
+		this.update_values();
+
+		if(!this.slide_dict[id]) {
+			this.slide_dict[id] = new frappe.setup.SetupWizardSlide($.extend(this.slides[id], {wiz:this, id:id}));
+			this.slide_dict[id].make();
+		}
+
+		this.hide_current_slide();
+
+		this.current_slide = this.slide_dict[id];
+		this.current_slide.$wrapper.removeClass("hidden");
 	},
+	hide_current_slide: function() {
+		if(this.current_slide) {
+			this.current_slide.$wrapper.addClass("hidden");
+			this.current_slide = null;
+		}
+	},
+	// get_values: function() {
+	// 	var values = {};
+	// 	$.each(this.slide_dict, function(id, slide) {
+	// 		if(slide.values) {
+	// 			$.extend(values, slide.values);
+	// 		}
+	// 	});
+	// 	return values;
+	// },
+	// get_message: function(html) {
+	// 	return $(repl('\
+	// 		%(html)s</div>\
+	// 	</div>', {html:html}))
+	// },
+	// show_working: function() {
+	// 	this.hide_current_slide();
+	// 	frappe.set_route(this.page_name);
+	// 	this.current_slide = {"$wrapper": this.get_message(this.working_html()).appendTo(this.$wrapper)};
+	// },
+	// show_complete: function() {
+	// 	this.hide_current_slide();
+	// 	this.current_slide = {"$wrapper": this.get_message(this.complete_html()).appendTo(this.$wrapper)};
+	// },
+	// working_html: function() {
+	// 	var msg = $(frappe.render_template("setup_wizard_message", {
+	// 		image: ,
+	// 		title: ,
+	// 		message:
+	// 	}));
+	// 	msg.find(".setup-wizard-message-image").addClass();
+	// 	return msg.html();
+	// },
+
+	// complete_html: function() {
+	// 	return frappe.render_template("setup_wizard_message", {
+	// 		image: "/assets/frappe/images/ui/bubble-tea-happy.svg",
+	// 		title: __('Setup Complete'),
+	// 		message: ""
+	// 	});
+	// },
+
+
+
+	// update_values: function() {
+	// 	this.values = $.extend(this.values, this.get_values());
+	// },
 
 	refresh_slides: function() {
 		// reset all slides so that labels are translated
@@ -222,14 +353,30 @@ frappe.setup.Wizard = Class.extend({
 	}
 });
 
+frappe.setup.SetupWizardSlide = class UserProgressSlide extends frappe.ui.Slide {
+	constructor(slide = null) {
+		super(slide);
+	}
+
+	make() {
+		super.make();
+	}
+
+	setup_primary_button() {
+		this.$primary_btn.on('click', this.make_records.bind(this));
+	}
+
+
+};
+
 frappe.setup.WizardSlide = Class.extend({
-	init: function(opts) {
+	init: function(opts) {//////////////
 		$.extend(this, opts);
 		this.$wrapper = $('<div class="slide-wrapper hidden"></div>')
 			.appendTo(this.wiz.parent)
 			.attr("data-slide-id", this.id);
 	},
-	make: function() {
+	make: function() {/////////////////
 		var me = this;
 		if(this.$body) this.$body.remove();
 
@@ -258,7 +405,6 @@ frappe.setup.WizardSlide = Class.extend({
 		this.$body = $(frappe.render_template("setup_wizard_page", {
 			help: __(this.help),
 			title:__(this.title),
-			main_title:__(this.wiz.title),
 			step: this.id + 1,
 			name: this.name,
 			slides_count: this.wiz.slides.length
@@ -295,7 +441,7 @@ frappe.setup.WizardSlide = Class.extend({
 		this.reset_next($primary_btn);
 		this.focus_first_input();
 	},
-	set_reqd_fields: function() {
+	set_reqd_fields: function() {/////////////
 		var dict = this.form.fields_dict;
 		this.reqd_fields = [];
 		Object.keys(dict).map(key => {
@@ -317,7 +463,7 @@ frappe.setup.WizardSlide = Class.extend({
 		}
 	},
 
-	set_values: function() {
+	set_values: function() {//////////////
 		this.values = this.form.get_values();
 		if(this.values===null) {
 			return false;
@@ -328,7 +474,7 @@ frappe.setup.WizardSlide = Class.extend({
 		return true;
 	},
 
-	bind_more_button: function() {
+	bind_more_button: function() {/////////////
 		this.$more = this.$body.find('.more-btn');
 		this.$more.removeClass('hide')
 			.on('click', () => {
@@ -348,31 +494,31 @@ frappe.setup.WizardSlide = Class.extend({
 	},
 
 	make_prev_next_buttons: function() {
-		var me = this;
+		// var me = this;
 
-		// prev
-		if(this.id > 0) {
-			this.$prev = this.$body.find('.prev-btn')
-				.removeClass("hide")
-				.attr('tabIndex', 0)
-				.click(function() {
-					me.prev();
-				})
-				.css({"margin-right": "10px"});
-		}
+		// // prev
+		// if(this.id > 0) {
+		// 	this.$prev = this.$body.find('.prev-btn')
+		// 		.removeClass("hide")
+		// 		.attr('tabIndex', 0)
+		// 		.click(function() {
+		// 			me.prev();
+		// 		})
+		// 		.css({"margin-right": "10px"});
+		// }
 
-		// next or complete
-		if(this.id+1 < this.wiz.slides.length) {
-			this.$next = this.$body.find('.next-btn')
-				.removeClass("hide")
-				.attr('tabIndex', 0)
-				.click(this.next_or_complete.bind(this));
-		} else {
-			this.$complete = this.$body.find('.complete-btn')
-				.removeClass("hide")
-				.attr('tabIndex', 0)
-				.click(this.next_or_complete.bind(this));
-		}
+		// // next or complete
+		// if(this.id+1 < this.wiz.slides.length) {
+		// 	this.$next = this.$body.find('.next-btn')
+		// 		.removeClass("hide")
+		// 		.attr('tabIndex', 0)
+		// 		.click(this.next_or_complete.bind(this));
+		// } else {
+		// 	this.$complete = this.$body.find('.complete-btn')
+		// 		.removeClass("hide")
+		// 		.attr('tabIndex', 0)
+		// 		.click(this.next_or_complete.bind(this));
+		// }
 
 		// setup mousefree navigation
 		this.$body.on('keypress', function(e) {
@@ -389,7 +535,7 @@ frappe.setup.WizardSlide = Class.extend({
 			}
 		});
 	},
-	bind_fields_to_next: function($primary_btn) {
+	bind_fields_to_next: function($primary_btn) {//////////////
 		var me = this;
 		this.reqd_fields.map((field) => {
 			field.$wrapper.on('change input', () => {
@@ -397,7 +543,7 @@ frappe.setup.WizardSlide = Class.extend({
 			});
 		});
 	},
-	next_or_complete: function() {
+	next_or_complete: function() {//////////////
 		if(this.set_values()) {
 			if(this.id+1 < this.wiz.slides.length) {
 				this.next();
@@ -406,7 +552,7 @@ frappe.setup.WizardSlide = Class.extend({
 			}
 		}
 	},
-	reset_next: function($primary_btn) {
+	reset_next: function($primary_btn) {/////////////
 		var empty_fields = this.reqd_fields.filter((field) => {
 			return !field.get_value();
 		})
@@ -417,7 +563,7 @@ frappe.setup.WizardSlide = Class.extend({
 			$primary_btn.removeClass('disabled');
 		}
 	},
-	focus_first_input: function() {
+	focus_first_input: function() {////////////////
 		setTimeout(function() {
 			this.$body.find('.form-control').first().focus();
 		}.bind(this), 0);
