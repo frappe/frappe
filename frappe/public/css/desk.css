@@ -1082,37 +1082,38 @@ input[type="checkbox"]:checked:before {
   margin: -2px 0 0 3px;
   border: 1px solid rgba(0, 0, 0, 0.25);
 }
-.dialog-slide .fa-circle {
+.slides-wrapper .fa-circle {
   font-size: 10px;
+  margin: 0px 2px;
 }
-.dialog-slide .fa-circle.active {
+.slides-wrapper .fa-circle.active {
   color: #5e64ff;
 }
-.dialog-slide .form {
+.slides-wrapper .form {
   margin-top: 15px;
 }
-.dialog-slide .form .form-layout {
+.slides-wrapper .form .form-layout {
   margin-top: 0px;
   margin-bottom: 0px;
 }
-.dialog-slide .form .form-section {
+.slides-wrapper .form .form-section {
   padding: 0px 7px;
   border: none;
 }
-.dialog-slide .lead {
+.slides-wrapper .lead {
   margin-top: 20px;
 }
-.dialog-slide .success-state {
+.slides-wrapper .success-state {
   margin-bottom: 20px;
 }
-.dialog-slide .btn-primary {
+.slides-wrapper .btn-primary {
   font-weight: bold;
 }
-.dialog-slide .footer {
+.slides-wrapper .footer {
   margin-top: 15px;
   padding: 0px 7px;
 }
-.dialog-slide .footer a.make-btn.disabled {
+.slides-wrapper .footer a.make-btn.disabled {
   background-color: #b1bdca;
   color: #fff;
   border-color: #b1bdca;

@@ -29,18 +29,17 @@ frappe.pages['setup-wizard'].on_page_load = function(wrapper) {
 	// setup page ui
 	$(".navbar:first").toggle(false);
 
-	var requires = ["/assets/frappe/css/animate.min.css"].concat(frappe.boot.setup_wizard_requires || []);
+	var requires = ["/assets/frappe/css/animate.min.css"].concat(
+		frappe.boot.setup_wizard_requires || []);
 
 	frappe.require(requires, function() {
 		frappe.setup.run_event("before_load");
-
 		var wizard_settings = {
 			page_name: "setup-wizard",
 			parent: wrapper,
 			slides: frappe.setup.slides,
 			title: __("Welcome")
 		}
-
 		frappe.wizard = new frappe.setup.Wizard(wizard_settings);
 		frappe.setup.run_event("after_load");
 
@@ -51,13 +50,18 @@ frappe.pages['setup-wizard'].on_page_load = function(wrapper) {
 			frappe.wizard.show(route[1]);
 		}
 	});
-}
+};
 
 frappe.pages['setup-wizard'].on_page_show = function(wrapper) {
 	if(frappe.get_route()[1]) {
 		frappe.wizard && frappe.wizard.show(frappe.get_route()[1]);
 	}
-}
+};
+
+frappe.setup.on("before_load", function() {
+	// load slides
+	frappe.setup.slides_settings.map(frappe.setup.add_slide);
+});
 
 frappe.setup.Wizard = Class.extend({
 	init: function(opts) {
@@ -438,7 +442,7 @@ frappe.setup.WizardSlide = Class.extend({
 	},
 });
 
-var frappe_slides = [
+frappe.setup.slides_settings = [
 	{
 		// Welcome (language) slide
 		name: "welcome",
@@ -456,13 +460,13 @@ var frappe_slides = [
 			if (frappe.setup.data.lang) {
 				this.setup_fields(slide);
 			} else {
-				utils.load_languages(slide, this.setup_fields);
+				frappe.setup.utils.load_languages(slide, this.setup_fields);
 			}
 		},
 
 		setup_fields: function(slide) {
-			utils.setup_language_field(slide);
-			utils.bind_language_events(slide);
+			frappe.setup.utils.setup_language_field(slide);
+			frappe.setup.utils.bind_language_events(slide);
 		},
 	},
 
@@ -488,13 +492,13 @@ var frappe_slides = [
 			if(frappe.setup.data.regional_data) {
 				this.setup_fields(slide);
 			} else {
-				utils.load_regional_data(slide, this.setup_fields);
+				frappe.setup.utils.load_regional_data(slide, this.setup_fields);
 			}
 		},
 
 		setup_fields: function(slide) {
-			utils.setup_region_fields(slide);
-			utils.bind_region_events(slide);
+			frappe.setup.utils.setup_region_fields(slide);
+			frappe.setup.utils.bind_region_events(slide);
 		}
 	},
 
@@ -543,7 +547,7 @@ var frappe_slides = [
 				slide.form.fields_dict.password.df.reqd = 1;
 				slide.form.fields_dict.password.refresh();
 
-				utils.load_user_details(slide, this.setup_fields);
+				frappe.setup.utils.load_user_details(slide, this.setup_fields);
 			}
 		},
 
@@ -565,7 +569,7 @@ var frappe_slides = [
 	}
 ];
 
-var utils = {
+frappe.setup.utils = {
 	load_languages: function(slide, callback) {
 		frappe.call({
 			method: "frappe.desk.page.setup_wizard.setup_wizard.load_languages",
@@ -716,9 +720,4 @@ var utils = {
 		});
 	},
 
-}
-
-frappe.setup.on("before_load", function() {
-	// load slides
-	frappe_slides.map(frappe.setup.add_slide);
-});
+};
