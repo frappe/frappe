@@ -15,7 +15,23 @@ class DataMigrationPlan(Document):
 			mapping = frappe.get_doc('Data Migration Mapping', d.mapping)
 			data = source_connector.get_objects(mapping.source_objectname, mapping.condition)
 			for i, source in enumerate(data):
+
 				target = frappe.new_doc(mapping.target_doctype)
+				
+				flag = frappe.db.get_value(mapping.target_doctype, {'primary_key': source.get('id')})
+				if flag:
+					target = frappe.get_doc(mapping.target_doctype, flag)
+				else:
+					primary_name = mapping.mapping_details[0].target_fieldname
+					primary_value = source.get(mapping.mapping_details[0].source_fieldname)
+					flag_2 = frappe.db.get_value(mapping.target_doctype, {primary_name: primary_value})
+					if flag_2:
+						target = frappe.get_doc(mapping.target_doctype, flag_2)
+					else :
+						target = frappe.new_doc(mapping.target_doctype)
+
+				target.set('primary_key', source.get('id'))
+
 				for field in mapping.mapping_details:
 					target.set(field.target_fieldname, source.get(field.source_fieldname))
 
@@ -32,8 +48,8 @@ class DataMigrationPlan(Document):
 					title = _('Migrating {0}').format(target.doctype), doctype=self.doctype, docname=self.name)
 
 
-			# frappe.publish_progress(100,
-			# 	title = _('Migrating {0}').format(target.doctype), doctype=self.doctype, docname=self.name)
+			frappe.publish_progress(100,
+				title = _('Migrating {0}').format(target.doctype), doctype=self.doctype, docname=self.name)
 
 
 
