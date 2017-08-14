@@ -170,7 +170,7 @@ class File(NestedSet):
 		super(File, self).on_trash()
 		self.delete_file()
 
-	def make_thumbnail(self):
+	def make_thumbnail(self, set_as_thumbnail=True, width=300, height=300, suffix="small"):
 		if self.file_url:
 			if self.file_url.startswith("/files"):
 				try:
@@ -184,15 +184,19 @@ class File(NestedSet):
 				except (requests.exceptions.HTTPError, requests.exceptions.SSLError, IOError):
 					return
 
-			size = 300, 300
+			size = width, height
 			image.thumbnail(size)
 
-			thumbnail_url = filename + "_small." + extn
+			thumbnail_url = filename + "_" + suffix + "." + extn
 
 			path = os.path.abspath(frappe.get_site_path("public", thumbnail_url.lstrip("/")))
 
 			try:
 				image.save(path)
+
+				if set_as_thumbnail:
+					self.db_set("thumbnail_url", thumbnail_url)
+
 				self.db_set("thumbnail_url", thumbnail_url)
 			except IOError:
 				frappe.msgprint(_("Unable to write file format for {0}").format(path))
