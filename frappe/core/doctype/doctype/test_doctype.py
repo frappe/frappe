@@ -54,3 +54,21 @@ class TestDocType(unittest.TestCase):
 		doc2.insert()
 		doc1.delete()
 		doc2.delete()
+
+	def test_validate_search_fields(self):
+		doc = self.new_doctype("Test Search Fields")
+		doc.search_fields = "some_fieldname"
+		doc.insert()
+		self.assertEqual(doc.name, "Test Search Fields")
+
+		# check if invalid fieldname is allowed or not
+		doc.search_fields = "some_fieldname_1"
+		self.assertRaises(frappe.ValidationError, doc.save)
+
+		# check if no value fields are allowed in search fields
+		field = doc.append("fields", {})
+		field.fieldname = "some_html_field"
+		field.fieldtype = "HTML"
+		field.label = "Some HTML Field"
+		doc.search_fields = "some_fieldname,some_html_field"
+		self.assertRaises(frappe.ValidationError, doc.save)
