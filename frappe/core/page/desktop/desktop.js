@@ -27,7 +27,7 @@ $.extend(frappe.desktop, {
 
 	render: function() {
 		var me = this;
-		frappe.utils.set_title("Desktop");
+		frappe.utils.set_title(__("Desktop"));
 
 		var template = frappe.list_desktop ? "desktop_list_view" : "desktop_icon_grid";
 
