@@ -42,7 +42,7 @@ def sync_for(app_name, force=0, sync_everything = False, verbose=False, reset_pe
 	if l:
 		for i, doc_path in enumerate(files):
 			import_file_by_path(doc_path, force=force, ignore_version=True,
-				reset_permissions=reset_permissions)
+				reset_permissions=reset_permissions, for_sync=True)
 			#print module_name + ' | ' + doctype + ' | ' + name
 
 			frappe.db.commit()
