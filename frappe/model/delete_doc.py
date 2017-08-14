@@ -168,7 +168,7 @@ def check_permission_and_not_submitted(doc):
 
 	# check if submitted
 	if doc.docstatus == 1:
-		frappe.msgprint(_("{0} {1}: Submitted Record cannot be deleted.").format(doc.doctype, doc.name),
+		frappe.msgprint(_("{0} {1}: Submitted Record cannot be deleted.").format(_(doc.doctype), doc.name),
 			raise_exception=True)
 
 def check_if_doc_is_linked(doc, method="Delete"):
