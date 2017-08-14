@@ -1802,7 +1802,7 @@ frappe.ui.form.ControlCode = frappe.ui.form.ControlText.extend({
 		this._super();
 		$(this.input_area).find("textarea")
 			.allowTabs()
-			.css({"height":"400px", "font-family": "Monaco, \"Courier New\", monospace"});
+			.addClass('control-code');
 	}
 });
 

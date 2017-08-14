@@ -7,14 +7,18 @@ import json, os
 from frappe import _
 from frappe.model.document import Document
 from frappe.core.doctype.role.role import get_emails_from_role
-from frappe.utils import validate_email_add, nowdate
-from frappe.utils.data import parse_val
+from frappe.utils import validate_email_add, nowdate, parse_val, is_html
 from frappe.utils.jinja import validate_template
 from frappe.modules.utils import export_module_json, get_doc_module
 from markdown2 import markdown
 from six import string_types
 
 class EmailAlert(Document):
+	def onload(self):
+		'''load message'''
+		if self.is_standard:
+			self.message = self.get_template()
+
 	def autoname(self):
 		if not self.name:
 			self.name = self.subject
@@ -31,6 +35,7 @@ class EmailAlert(Document):
 
 		self.validate_forbidden_types()
 		self.validate_condition()
+		self.validate_standard()
 
 	def on_update(self):
 		frappe.cache().hdel('email_alerts', self.document_type)
@@ -52,6 +57,10 @@ def get_context(context):
 	# do your magic here
 	pass
 """)
+
+	def validate_standard(self):
+		if self.is_standard and not frappe.conf.developer_mode:
+			frappe.throw(_('Cannot edit Standard Email Alert. To edit, please disable this and duplicate it'))
 
 	def validate_condition(self):
 		temp_doc = frappe.new_doc(self.document_type)
@@ -165,26 +174,31 @@ def get_context(context):
 				self.property_value, update_modified = False)
 			doc.set(self.set_property_after_alert, self.property_value)
 
+	def get_template(self):
+		module = get_doc_module(self.module, self.doctype, self.name)
+		def load_template(extn):
+			template = ''
+			template_path = os.path.join(os.path.dirname(module.__file__),
+				frappe.scrub(self.name) + extn)
+			if os.path.exists(template_path):
+				with open(template_path, 'r') as f:
+					template = f.read()
+			return template
+
+		return load_template('.html') or load_template('.md')
+
 	def load_standard_properties(self, context):
+		'''load templates and run get_context'''
 		module = get_doc_module(self.module, self.doctype, self.name)
 		if module:
 			if hasattr(module, 'get_context'):
 				out = module.get_context(context)
 				if out: context.update(out)
 
-			def load_template(extn):
-				template_path = os.path.join(os.path.dirname(module.__file__),
-					frappe.scrub(self.name) + extn)
-				if os.path.exists(template_path):
-					with open(template_path, 'r') as f:
-						self.message = f.read()
-					return True
+		self.message = self.get_template()
 
-			# get template
-			if not load_template('.html'):
-				if load_template('.md'):
-					self.message = markdown(self.message)
-
+		if not is_html(self.message):
+			self.message = markdown(self.message)
 
 @frappe.whitelist()
 def get_documents_for_today(email_alert):
