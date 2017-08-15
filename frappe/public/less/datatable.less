@@ -1,0 +1,53 @@
+@import "variables.less";
+
+.data-table {
+	width: 100%;
+	// border: 1px solid @border-color;
+	position: relative;
+	overflow: auto;
+	font-size: @text-medium;
+	border-collapse: collapse;
+}
+
+.body-scrollable {
+	max-height: 500px;
+	overflow: auto;
+	// margin-top: 35px;
+
+
+	// th {
+	// 	white-space: nowrap;
+	// }
+
+	// td {
+	// 	max-height: 20px;
+	// }
+}
+
+.data-table-header {
+	position: absolute;
+	top: 0;
+	left: 0;
+	// width: 100%;
+	background-color: white;
+
+	// th {
+	// 	white-space: nowrap;
+	// }
+}
+
+.data-table-col {
+	display: table-cell;
+	border: 1px solid @border-color;
+	white-space: nowrap;
+	// padding: 5px;
+
+	& > div {
+		padding: 5px;
+	}
+}
+
+.data-table-row {
+	display: table-row;
+}
+

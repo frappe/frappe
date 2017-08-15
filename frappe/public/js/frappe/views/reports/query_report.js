@@ -14,13 +14,20 @@ frappe.standard_pages["query-report"] = function() {
 		single_column: true,
 	});
 
-	frappe.query_report = new frappe.views.QueryReport({
-		parent: wrapper,
-	});
+	// frappe.query_report = new frappe.views.QueryReport({
+	// 	parent: wrapper,
+	// });
 
-	$(wrapper).bind("show", function() {
-		frappe.query_report.load();
-	});
+	frappe.require('/assets/frappe/js/frappe/views/datatable/datatable.js', () => {
+		frappe.query_report = new frappe.views.QueryReport2({
+			parent: wrapper
+		});
+	})
+
+
+	// $(wrapper).bind("show", function() {
+	// 	frappe.query_report.load();
+	// });
 }
 
 frappe.views.QueryReport = Class.extend({
