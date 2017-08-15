@@ -233,7 +233,7 @@ frappe.ui.form.Timeline = Class.extend({
 			new frappe.views.CommunicationComposer({
 				doc: me.frm.doc,
 				txt: "",
-				subject: __('Reply'),
+				title: __('Reply'),
 				frm: me.frm,
 				last_email: last_email
 			});
