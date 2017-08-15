@@ -43,7 +43,7 @@ frappe.pages['setup-wizard'].on_page_load = function(wrapper) {
 				$footer.find('.next-btn').removeClass('btn-default')
 					.addClass('btn-primary');
 				$footer.find('.text-right').prepend(
-					$(`<a class="complete-btn btn btn-sm">
+					$(`<a class="complete-btn btn btn-sm primary">
 				${__("Complete Setup")}</a>`));
 
 			}
@@ -82,11 +82,6 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 	make() {
 		super.make();
 		this.container.addClass("container setup-wizard-slide with-form");
-	}
-
-	setup() {
-		super.setup();
-		// bind complete button
 		this.$complete_btn = this.$footer.find('.complete-btn')
 			.on('click', this.action_on_complete.bind(this));
 	}
@@ -101,7 +96,6 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 
 	show_slide(id) {
 		super.show_slide(id);
-		console.log("wizard values", this.values);
 		frappe.set_route(this.page_name, id + "");
 	}
 
@@ -155,7 +149,7 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 			method: "frappe.desk.page.setup_wizard.setup_wizard.setup_complete",
 			args: {args: this.values},
 			callback: function() {
-				me.show_complete_state();
+				me.show_setup_complete_state();
 				frappe.flags.first_time_desk = 1;
 				if(frappe.setup.welcome_page) {
 					localStorage.setItem("session_last_route", frappe.setup.welcome_page);
@@ -167,6 +161,8 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 			error: function() {
 				var d = frappe.msgprint(__("There were errors."));
 				d.custom_onhide = function() {
+					$(me.parent).find('.setup-state').remove();
+					me.container.show();
 					frappe.set_route(me.page_name, me.slides.length - 1);
 				};
 			}
@@ -193,30 +189,28 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 		this.container.hide();
 		frappe.set_route(this.page_name);
 
-		let message = this.get_message(
+		this.working_state_message = this.get_message(
 			"/assets/frappe/images/ui/bubble-tea-smile.svg",
 			__("Setting Up"),
 			__('Sit tight while your system is being setup. This may take a few moments.'),
 			"animated infinite bounce"
-		).appendTo(this.$wrapper);
+		).appendTo(this.parent);
 
 		this.current_id = this.slides.length;
-		this.current_slide = {"$wrapper": message}
+		this.current_slide = null;
+		this.completed_state_message = this.get_message(
+			"/assets/frappe/images/ui/bubble-tea-happy.svg",
+			__("Setup Complete")
+		);
 	}
 
 	show_setup_complete_state() {
-		this.container.hide();
-		let message = this.get_message(
-			"/assets/frappe/images/ui/bubble-tea-happy.svg",
-			__("Setup Complete")
-		).appendTo(this.$wrapper);
-
-		this.current_id = this.slides.length;
-		this.current_slide = {"$wrapper": message};
+		this.working_state_message.hide();
+		this.completed_state_message.appendTo(this.parent);
 	}
 
 	get_message(image, title, message="", image_class) {
-		return $(`<div data-state="setup-complete">
+		return $(`<div class="setup-state" data-state="setup">
 			<div style="padding: 40px;" class="text-center">
 				<div class="container setup-wizard-slide">
 					<img class="img-responsive setup-wizard-message-image ${image_class}" src="${image}">
@@ -235,10 +229,9 @@ frappe.setup.SetupWizardSlide = class SetupWizardSlide extends frappe.ui.Slide {
 
 	make() {
 		super.make();
-		// Add class
-
 		this.set_init_values();
 		this.reset_primary_button_state();
+		// this.setup_keyboard_nav();
 	}
 
 	set_init_values () {
@@ -254,6 +247,20 @@ frappe.setup.SetupWizardSlide = class SetupWizardSlide extends frappe.ui.Slide {
 		}
 	}
 
+	// setup_keyboard_nav() {
+	// 	var me = this;
+	// 	this.$body.on('keypress', function(e) {
+	// 		if(e.which === 13) {
+	// 			var $target = $(e.target);
+	// 			if($target.hasClass('prev-btn')) {
+	// 				me.prev();
+	// 			} else {
+	// 				me.next_or_complete();
+	// 				e.preventDefault();
+	// 			}
+	// 		}
+	// 	});
+	// }
 };
 
 // ======================================================

@@ -152,9 +152,9 @@ frappe.ui.Slide = class Slide {
 			return !field.get_value();
 		});
 		if(empty_fields.length) {
-			this.$primary_btn.addClass('disabled');
+			this.slides_footer.find('.primary').addClass('disabled');
 		} else {
-			this.$primary_btn.removeClass('disabled');
+			this.slides_footer.find('.primary').removeClass('disabled');
 		}
 	}
 
@@ -168,8 +168,8 @@ frappe.ui.Slide = class Slide {
 
 	show_slide() {
 		this.$wrapper.removeClass("hidden");
+		this.resetup_primary_button();
 		if(!this.done) {
-			this.resetup_primary_button();
 			this.$body.find('.form-control').first().focus();
 		} else {
 			this.$primary_btn.hide();
