@@ -34,13 +34,14 @@ frappe.ui.Slide = class Slide {
 
 		this.$content = this.$body.find(".content");
 		this.$form = this.$body.find(".form");
-		this.$primary_btn = this.slides_footer.find('.btn-primary').off();
+		this.$primary_btn = this.slides_footer.find('.btn-primary').addClass('primary');
 
 		if(this.help) this.$content.append($(`<p>${this.help}</p>`));
 		if(this.image_src) this.$content.append(
 			$(`<img src="${this.image_src}" style="margin: 20px;">`));
 
 		this.refresh();
+		this.made = true;
 	}
 
 	refresh() {
@@ -62,7 +63,6 @@ frappe.ui.Slide = class Slide {
 		if(this.add_more) this.bind_more_button();
 
 		this.set_reqd_fields();
-		// this.bind_fields_to_primary_btn();
 
 		if(this.onload) { this.onload(this); }
 		this.set_reqd_fields();
@@ -131,7 +131,8 @@ frappe.ui.Slide = class Slide {
 
 	// Primary button (outside of slide)
 	resetup_primary_button() {
-		this.$primary_btn = this.slides_footer.find('.btn-primary').off().show();
+		this.unbind_primary_action();
+		this.$primary_btn = this.slides_footer.find('.btn-primary').addClass('primary').show();
 		this.bind_fields_to_primary_btn();
 		this.reset_primary_button_state();
 		this.bind_primary_action();
@@ -157,17 +158,41 @@ frappe.ui.Slide = class Slide {
 		}
 	}
 
-	bind_primary_action() {}
+	unbind_primary_action() {
+		this.slides_footer.off('click', '.primary', this.primary_action.bind(this));
+	}
+
+	bind_primary_action() {
+		this.slides_footer.on('click', '.primary', this.primary_action.bind(this));
+	}
 
 	show_slide() {
 		this.$wrapper.removeClass("hidden");
 		if(!this.done) {
 			this.resetup_primary_button();
+			this.$body.find('.form-control').first().focus();
 		} else {
 			this.$primary_btn.hide();
 		}
 	}
-	hide_slide() { this.$wrapper.addClass("hidden");}
+
+	hide_slide() {
+		this.$wrapper.addClass("hidden");
+	}
+
+	get_input(fieldname) {
+		return this.form.get_input(fieldname);
+	}
+
+	get_field(fieldname) {
+		return this.form.get_field(fieldname);
+	}
+
+	destroy() {
+		this.$body.remove();
+	}
+
+	primary_action() { }
 };
 
 frappe.setup.UserProgressSlide = class UserProgressSlide extends frappe.ui.Slide {
@@ -177,10 +202,6 @@ frappe.setup.UserProgressSlide = class UserProgressSlide extends frappe.ui.Slide
 
 	make() {
 		super.make();
-	}
-
-	bind_primary_action() {
-		this.$primary_btn.on('click', this.make_records.bind(this));
 	}
 
 	setup_done_state() {
@@ -235,8 +256,7 @@ frappe.setup.UserProgressSlide = class UserProgressSlide extends frappe.ui.Slide
 		}
 	}
 
-	// Primary button action
-	make_records() {
+	primary_action() {
 		var me = this;
 		if(this.set_values()) {
 			frappe.call({
@@ -286,6 +306,9 @@ frappe.ui.Slides = class Slides {
 		this.before_load = before_load;
 
 		this.slide_dict = {};
+
+		//In case of refreshing
+		this.made_slide_ids = [];
 		this.values = {};
 		this.make();
 	}
@@ -322,7 +345,14 @@ frappe.ui.Slides = class Slides {
 						id: id,
 					})
 				);
-				this.slide_dict[id].make();
+				if(!this.unidirectional) {
+					this.slide_dict[id].make();
+				}
+			} else {
+				if(this.made_slide_ids.includes(id+"")) {
+					this.slide_dict[id].destroy();
+					this.slide_dict[id].make();
+				}
 			}
 		});
 	}
@@ -371,12 +401,16 @@ frappe.ui.Slides = class Slides {
 			.on('click', () => { this.show_slide(this.current_id - 1); });
 
 		this.$next_btn = this.$footer.find('.next-btn').attr('tabIndex', 0)
-			.on('click', () => { this.show_slide(this.current_id + 1); });
+			.on('click', () => {
+				if (this.current_slide.set_values()) {
+					this.show_slide(this.current_id + 1);
+				}
+			});
 	}
 
 	bind_progress_dots() {
 		var me = this;
-		this.$slide_progress.find('.fa-circle').on('click', function() {
+		this.$slide_progress.find('.fa-circle').addClass('link').on('click', function() {
 			let id = $(this).attr('data-step-id');
 			me.show_slide(id);
 		});
@@ -396,10 +430,18 @@ frappe.ui.Slides = class Slides {
 		this.update_values();
 
 		if(this.current_slide) this.current_slide.hide_slide();
+		if(this.unidirectional && !this.slide_dict[id].made) {
+			this.slide_dict[id].make();
+		}
 		this.current_id = id;
 		this.current_slide = this.slide_dict[id];
 		this.current_slide.show_slide();
 		this.refresh(id);
+	}
+
+	destroy_slide(id) {
+		if(this.slide_dict[id]) this.slide_dict[id].destroy();
+		this.slide_dict[id] = null;
 	}
 
 	show_hide_prev_next(id) {

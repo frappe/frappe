@@ -161,9 +161,9 @@ def get_user_progress_status(config):
 	"User Progress status based on predefined setup slides"
 	user_progress_status = {}
 	for key, val in config.user_progress.iteritems():
-		if "default" in val:
+		if "default" in val and val["default"] in frappe.defaults.get_defaults():
 			doc_name = frappe.defaults.get_defaults()[val["default"]]
-			field_value = frappe.db.get_value(val["doctype"], val["default"], val["field"])
+			field_value = frappe.db.get_value(val["doctype"], doc_name, val["field"])
 			user_progress_status[key] = int(field_value > val["min_value"])
 		elif "min_count" in val:
 			user_progress_status[key] = int(frappe.db.count(val["doctype"]) > val["min_count"])

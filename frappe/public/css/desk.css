@@ -1085,10 +1085,12 @@ input[type="checkbox"]:checked:before {
 .slides-wrapper .fa-circle {
   font-size: 10px;
   margin: 0px 2px;
-  cursor: pointer;
 }
 .slides-wrapper .fa-circle.active {
   color: #5e64ff;
+}
+.slides-wrapper .fa-circle.link {
+  cursor: pointer;
 }
 .slides-wrapper .form {
   margin-top: 15px;
