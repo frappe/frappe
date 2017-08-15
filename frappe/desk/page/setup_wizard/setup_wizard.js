@@ -263,7 +263,6 @@ frappe.setup.SetupWizardSlide = class SetupWizardSlide extends frappe.ui.Slide {
 	// }
 };
 
-// ======================================================
 // Frappe slides settings
 // ======================================================
 
