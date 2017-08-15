@@ -12,7 +12,7 @@ frappe.views.CommunicationComposer = Class.extend({
 	make: function() {
 		var me = this;
 		this.dialog = new frappe.ui.Dialog({
-			title: (this.subject || __("New Email")),
+			title: (this.title || this.subject || __("New Email")),
 			no_submit_on_enter: true,
 			fields: this.get_fields(),
 			primary_action_label: __("Send"),
@@ -49,12 +49,12 @@ frappe.views.CommunicationComposer = Class.extend({
 		var fields= [
 			{label:__("To"), fieldtype:"Data", reqd: 0, fieldname:"recipients",length:524288},
 			{fieldtype: "Section Break", collapsible: 1, label: "CC & Standard Reply"},
-			{label:__("CC"), fieldtype:"Data", fieldname:"cc",length:524288},
+			{label:__("CC"), fieldtype:"Data", fieldname:"cc", length:524288},
 			{label:__("Standard Reply"), fieldtype:"Link", options:"Standard Reply",
 				fieldname:"standard_reply"},
 			{fieldtype: "Section Break"},
 			{label:__("Subject"), fieldtype:"Data", reqd: 1,
-				fieldname:"subject",length:524288},
+				fieldname:"subject", length:524288},
 			{fieldtype: "Section Break"},
 			{label:__("Message"), fieldtype:"Text Editor", reqd: 1,
 				fieldname:"content"},
