@@ -34,6 +34,7 @@ frappe.ui.Slide = class Slide {
 
 		this.$content = this.$body.find(".content");
 		this.$form = this.$body.find(".form");
+		this.$primary_btn = this.slides_footer.find('.btn-primary').off();
 
 		if(this.help) this.$content.append($(`<p>${this.help}</p>`));
 		if(this.image_src) this.$content.append(
@@ -43,11 +44,10 @@ frappe.ui.Slide = class Slide {
 	}
 
 	refresh() {
+		this.render_parent_dots();
 		if(!this.done) {
 			this.setup_form();
-			this.setup_primary_button();
 		} else {
-			this.render_parent_dots();
 			this.setup_done_state();
 		}
 	}
@@ -60,16 +60,12 @@ frappe.ui.Slide = class Slide {
 		});
 		this.form.make();
 		if(this.add_more) this.bind_more_button();
-		this.$primary_btn = this.slides_footer.find('.btn-primary')
-			.attr('tabIndex', 0);
 
 		this.set_reqd_fields();
-		this.bind_fields_to_primary_btn();
+		// this.bind_fields_to_primary_btn();
 
 		if(this.onload) { this.onload(this); }
 		this.set_reqd_fields();
-		this.bind_fields_to_primary_btn();
-		this.reset_primary_btn();
 	}
 
 	// Form methods
@@ -133,17 +129,24 @@ frappe.ui.Slide = class Slide {
 			});
 	}
 
-	// Primary button
+	// Primary button (outside of slide)
+	resetup_primary_button() {
+		this.$primary_btn = this.slides_footer.find('.btn-primary').off().show();
+		this.bind_fields_to_primary_btn();
+		this.reset_primary_button_state();
+		this.bind_primary_action();
+	}
+
 	bind_fields_to_primary_btn() {
 		var me = this;
 		this.reqd_fields.map((field) => {
 			field.$wrapper.on('change input', () => {
-				me.reset_primary_btn();
+				me.reset_primary_button_state();
 			});
 		});
 	}
 
-	reset_primary_btn() {
+	reset_primary_button_state() {
 		var empty_fields = this.reqd_fields.filter((field) => {
 			return !field.get_value();
 		});
@@ -154,7 +157,16 @@ frappe.ui.Slide = class Slide {
 		}
 	}
 
-	show_slide() { this.$wrapper.removeClass("hidden");}
+	bind_primary_action() {}
+
+	show_slide() {
+		this.$wrapper.removeClass("hidden");
+		if(!this.done) {
+			this.resetup_primary_button();
+		} else {
+			this.$primary_btn.hide();
+		}
+	}
 	hide_slide() { this.$wrapper.addClass("hidden");}
 };
 
@@ -167,7 +179,7 @@ frappe.setup.UserProgressSlide = class UserProgressSlide extends frappe.ui.Slide
 		super.make();
 	}
 
-	setup_primary_button() {
+	bind_primary_action() {
 		this.$primary_btn.on('click', this.make_records.bind(this));
 	}
 
@@ -232,22 +244,24 @@ frappe.setup.UserProgressSlide = class UserProgressSlide extends frappe.ui.Slide
 				args: {args_data: me.values},
 				callback: function() {
 					me.done = 1;
-					// hide Create button
+					// hide Create button immediately, or show_slide again
 					me.$primary_btn.hide();
 					me.refresh();
-					let completed = 0;
-					me.container.slides.map((slide, i) => {
-						if(me.container.slide_dict[i]) {
-							if(me.container.slide_dict[i].done) completed++;
-						} else {
-							if(slide.done) completed++;
-						}
-					});
-					let percent = completed * 100 / me.container.slides.length;
-					$('.user-progress .progress-bar').css({'width': percent + '%'});
-					if(percent === 100) {
-						$(document).trigger("user-initial-setup-complete");
-					}
+
+					// let completed = 0;
+					// me.container.slides.map((slide, i) => {
+					// 	if(me.container.slide_dict[i]) {
+					// 		if(me.container.slide_dict[i].done) completed++;
+					// 	} else {
+					// 		if(slide.done) completed++;
+					// 	}
+					// });
+					// let percent = completed * 100 / me.container.slides.length;
+					// $('.user-progress .progress-bar').css({'width': percent + '%'});
+					// if(percent === 100) {
+					// 	$(document).trigger("user-initial-setup-complete");
+					// }
+
 				},
 				freeze: true
 			});
@@ -271,6 +285,7 @@ frappe.ui.Slides = class Slides {
 		this.done_state = done_state;
 		this.before_load = before_load;
 
+		this.slide_dict = {};
 		this.values = {};
 		this.make();
 	}
@@ -285,17 +300,18 @@ frappe.ui.Slides = class Slides {
 		this.$footer = $(`<div>`).addClass(`footer`)
 			.appendTo(this.container);
 
-		this.setup();
-
 		this.render_progress_dots();
 		this.make_prev_next_buttons();
 		if(this.before_load) { this.before_load(this.$footer); }
 
+		// can be on demand
+		this.setup();
+
+		// can be on demand
 		this.show_slide(0);
 	}
 
 	setup() {
-		this.slide_dict = {};
 		this.slides.map((slide, id) => {
 			if(!this.slide_dict[id]) {
 				this.slide_dict[id] = new (this.slide_class)(
@@ -344,10 +360,10 @@ frappe.ui.Slides = class Slides {
 	make_prev_next_buttons() {
 		$(`<div class="row">
 			<div class="col-sm-6">
-				<a class="prev-btn btn btn-default btn-sm">${__("Previous")}</a>
+				<a class="prev-btn btn btn-default btn-sm" tabindex="0">${__("Previous")}</a>
 			</div>
 			<div class="col-sm-6 text-right">
-				<a class="next-btn btn btn-default btn-sm">${__("Next")}</a>
+				<a class="next-btn btn btn-default btn-sm" tabindex="0">${__("Next")}</a>
 			</div>
 		</div>`).appendTo(this.$footer);
 
@@ -364,20 +380,6 @@ frappe.ui.Slides = class Slides {
 			let id = $(this).attr('data-step-id');
 			me.show_slide(id);
 		});
-	}
-
-	get_values() {
-		var values = {};
-		$.each(this.slide_dict, function(id, slide) {
-			if(slide.values) {
-				$.extend(values, slide.values);
-			}
-		});
-		return values;
-	}
-
-	update_values() {
-		this.values = $.extend(this.values, this.get_values());
 	}
 
 	before_show_slide() {
@@ -403,8 +405,22 @@ frappe.ui.Slides = class Slides {
 	show_hide_prev_next(id) {
 		(id === 0) ?
 			this.$prev_btn.hide() : this.$prev_btn.show();
-		(id + 1 === this.slide_class.length) ?
+		(id + 1 === this.slides.length) ?
 			this.$next_btn.hide() : this.$next_btn.show();
+	}
+
+	get_values() {
+		var values = {};
+		$.each(this.slide_dict, function(id, slide) {
+			if(slide.values) {
+				$.extend(values, slide.values);
+			}
+		});
+		return values;
+	}
+
+	update_values() {
+		this.values = $.extend(this.values, this.get_values());
 	}
 };
 
