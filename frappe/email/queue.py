@@ -95,7 +95,7 @@ def send(recipients=None, sender=None, subject=None, message=None, text_content=
 		and add_unsubscribe_link==1)
 
 	unsubscribe_link = None
-	if should_append_unsubscribe or True:
+	if should_append_unsubscribe:
 		unsubscribe_link = get_unsubscribe_message(unsubscribe_message, expose_recipients)
 		email_text_context += unsubscribe_link.text
 
