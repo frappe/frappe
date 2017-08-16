@@ -36,3 +36,20 @@ class PostGresConnection(object):
 			data.append(row_dict)
 
 		return data
+
+	def get_join_objects(self, object_type, field, primary_key):
+		"""
+		field.formula 's first line will be list of tables that needs to be linked to fetch an item
+		The subsequent lines that follows will contain one to one mapping across tables keys
+		"""
+		condition = ""
+		key_mapping = field.formula.split('\n')
+		obj_type = key_mapping[0]
+		selection = field.source_fieldname
+		
+		for d in key_mapping[1:]:
+			condition += d + ' AND '
+
+		condition += str(object_type) + ".id=" + str(primary_key)
+
+		return self.get_objects(obj_type, condition, selection)
