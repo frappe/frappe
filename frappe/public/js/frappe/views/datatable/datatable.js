@@ -1,23 +1,16 @@
+(function() {
+
 /* eslint-disable */
 frappe.provide('frappe.views');
 
 frappe.views.DataTable = class DataTable {
 	constructor({ wrapper }) {
 		this.wrapper = wrapper;
-
-		const assets = [
-			'/assets/frappe/css/datatable.css'
-		]
-		frappe.require(assets, () => {
-			this.prepare();
-		});
+		this.make_dom();
+		this.bind_events();
 	}
 
-	prepare() {
-		this.prepare_dom();
-	}
-
-	prepare_dom() {
+	make_dom() {
 		this.wrapper.html(`
 			<div class="data-table">
 				<div class="data-table-header">
@@ -39,114 +32,71 @@ frappe.views.DataTable = class DataTable {
 
 	render({ columns, rows }) {
 
-		this.header.html(get_header());
-		this.body.html(get_body());
+		this.header.html(get_header(columns));
+		this.body.html(get_body(rows, columns));
 
 		this.body_scrollable.css({
 			width: this.header.width(),
 			marginTop: this.header.height()
 		});
+	}
 
-		function get_header() {
-			return `
-				<div class="data-table-row">
-					${columns.map(
-						col => get_col(col.fieldname, col.width)
-					).join('')}
-				</div>
-			`
-		}
-
-		function get_body() {
-			return `
-				${rows.map(get_row).join('')}
-			`
-		}
-
-		function get_row(row) {
-			return `
-				<div class="data-table-row">
-					${row.map((col, i) => {
-						const width = columns[i].width;
-						return get_col(col, width)
-					}).join('')}
-				</div>
-			`
-		}
-
-		function get_col(col, width='') {
-			return `
-				<div class="data-table-col">
-					<div style="width: ${width + 'px' || 'auto'}" class="ellipsis">
-						${col}
-					</div>
-				</div>
-			`
-		}
-
+	bind_events() {
+		const { body_scrollable } = this;
+		body_scrollable.on('click', '.data-table-col', function() {
+			body_scrollable.find('.data-table-col').removeClass('selected');
+			const $col = $(this);
+			$col.addClass('selected');
+			// $col.addClass('selected');
+		})
+		// this.body.scroll(() => console.log('asdf'));
+		// this.body_scrollable.scroll(() => {
+		// 	var scroll = $(window).scrollTop();
+		// 	if (scroll > 0) {
+		// 		this.header.addClass("scroll-shadow");
+		// 	}
+		// 	else {
+		// 		this.header.removeClass("scroll-shadow");
+		// 	}
+		// });
 	}
 }
 
-
-frappe.views.QueryReport2 = class QueryReport2 {
-	constructor({ parent }) {
-		this.wrapper = parent.page.main;
-		this.prepare_report();
-		this.make_datatable();
-
-		this.get_data()
-			.then(data => {
-				this.datatable.render(data);
-			});
-	}
-
-	prepare_report() {
-		this.report_name = frappe.get_route()[1];
-	}
-
-	make_datatable() {
-		this.datatable = new frappe.views.DataTable({
-			wrapper: this.wrapper
-		});
-	}
-
-	get_data() {
-		return new Promise(res => {
-			frappe.call({
-				method: "frappe.desk.query_report.run",
-				type: "GET",
-				args: {
-					report_name: this.report_name
-				},
-				callback: r => {
-					const data = r.message;
-					const columns = this.parse_columns(data.columns);
-					const rows = data.result;
-					res({ columns, rows });
-				}
-			});
-		});
-	}
-
-	parse_columns(columns) {
-		return columns.map(column => {
-			const part = column.split(':');
-
-			let fieldname, fieldtype, link_doctype, width;
-			fieldname = part[0];
-
-			fieldtype = part[1];
-			if(fieldtype.includes('/')) {
-				const parts = fieldtype.split('/');
-				fieldtype = parts[0];
-				link_doctype = parts[1];
-			}
-
-			width = part[2];
-
-			return {
-				fieldname, fieldtype, link_doctype, width
-			}
-		});
-	}
+function get_header(columns) {
+	return `
+		<div class="data-table-row">
+			${columns.map(
+				col => get_col(col.fieldname, col.width)
+			).join('')}
+		</div>
+	`
 }
+
+function get_body(rows, columns) {
+	return `
+		${rows.map(row => get_row(row, columns)).join('')}
+	`
+}
+
+function get_row(row, columns) {
+	return `
+		<div class="data-table-row">
+			${row.map((col, i) => {
+				const width = columns[i].width;
+				return get_col(col, width)
+			}).join('')}
+		</div>
+	`
+}
+
+function get_col(col, width, is_numeric=false) {
+	return `
+		<div class="data-table-col ${is_numeric ? 'numeric': ''}">
+			<div style="width: ${width ? width + 'px' : 'auto'}" class="ellipsis">
+				${col}
+			</div>
+		</div>
+	`
+}
+
+})();
