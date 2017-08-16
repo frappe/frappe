@@ -95,7 +95,7 @@ def send(recipients=None, sender=None, subject=None, message=None, text_content=
 		and add_unsubscribe_link==1)
 
 	unsubscribe_link = None
-	if should_append_unsubscribe or True:
+	if should_append_unsubscribe:
 		unsubscribe_link = get_unsubscribe_message(unsubscribe_message, expose_recipients)
 		email_text_context += unsubscribe_link.text
 
@@ -218,9 +218,18 @@ def check_email_limit(recipients):
 		or frappe.flags.in_test):
 
 		monthly_email_limit = frappe.conf.get('limits', {}).get('emails')
+		daily_email_limit = frappe.conf.get('limits', {}).get('daily_emails')
 
 		if frappe.flags.in_test:
 			monthly_email_limit = 500
+			daily_email_limit = 50
+
+		if daily_email_limit:
+			# get count of sent mails in last 24 hours
+			today = get_emails_sent_today()
+			if (today + len(recipients)) > daily_email_limit:
+				throw(_("Cannot send this email. You have crossed the sending limit of {0} emails for this day.").format(daily_email_limit),
+					EmailLimitCrossedError)
 
 		if not monthly_email_limit:
 			return
@@ -235,6 +244,10 @@ def check_email_limit(recipients):
 def get_emails_sent_this_month():
 	return frappe.db.sql("""select count(name) from `tabEmail Queue` where
 		status='Sent' and MONTH(creation)=MONTH(CURDATE())""")[0][0]
+
+def get_emails_sent_today():
+	return frappe.db.sql("""select count(name) from `tabEmail Queue` where
+		status='Sent' and creation>DATE_SUB(NOW(), INTERVAL 24 HOUR)""")[0][0]
 
 def get_unsubscribe_message(unsubscribe_message, expose_recipients):
 	if unsubscribe_message:
