@@ -212,16 +212,14 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 					let percent = completed * 100 / slides.length;
 					$('.user-progress .progress-bar').css({'width': percent + '%'});
 
-					// me.progress_dialog = new frappe.setup.UserProgressDialog({
-					// 	slides: slides
-					// });
-					// $('.user-progress .dropdown-toggle').on('click', () => {
-					// 	me.progress_dialog.show();
-					// });
-					// if(frappe.flags.first_time_desk) {
-					// 	me.progress_dialog.show();
-					// 	frappe.flags.first_time_desk = 0;
-					// }
+					frappe.require("assets/frappe/js/frappe/ui/toolbar/user_progress_dialog.js", function() {
+						me.progress_dialog = new frappe.setup.UserProgressDialog({
+							slides: slides
+						});
+						$('.user-progress .dropdown-toggle').on('click', () => {
+							me.progress_dialog.show();
+						});
+					});
 				}
 			},
 			freeze: false

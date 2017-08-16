@@ -150,12 +150,14 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 			args: {args: this.values},
 			callback: function() {
 				me.show_setup_complete_state();
-				frappe.flags.first_time_desk = 1;
 				if(frappe.setup.welcome_page) {
 					localStorage.setItem("session_last_route", frappe.setup.welcome_page);
 				}
 				setTimeout(function() {
 					window.location = "/desk";
+					setTimeout(function() {
+						frappe.frappe_toolbar.progress_dialog.show();
+					}, 2000);
 				}, 2000);
 			},
 			error: function() {

@@ -1,7 +1,6 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // License: GNU General Public License v3. See license.txt
 
-frappe.provide("frappe.setup");
 frappe.provide("frappe.ui");
 
 frappe.ui.Slide = class Slide {
@@ -39,6 +38,8 @@ frappe.ui.Slide = class Slide {
 		if(this.help) this.$content.append($(`<p class="help">${this.help}</p>`));
 		if(this.image_src) this.$content.append(
 			$(`<img src="${this.image_src}" style="margin: 20px;">`));
+
+		this.reqd_fields = [];
 
 		this.refresh();
 		this.made = true;
@@ -159,11 +160,13 @@ frappe.ui.Slide = class Slide {
 	}
 
 	unbind_primary_action() {
-		this.slides_footer.off('click', '.primary', this.primary_action.bind(this));
+		this.slides_footer.find(".action").off();
 	}
 
 	bind_primary_action() {
-		this.slides_footer.on('click', '.primary', this.primary_action.bind(this));
+		this.slides_footer.find(".action").on('click', () => {
+			this.primary_action();
+		});
 	}
 
 	show_slide() {
@@ -195,100 +198,6 @@ frappe.ui.Slide = class Slide {
 	primary_action() { }
 };
 
-frappe.setup.UserProgressSlide = class UserProgressSlide extends frappe.ui.Slide {
-	constructor(slide = null) {
-		super(slide);
-	}
-
-	make() {
-		super.make();
-	}
-
-	setup_done_state() {
-		this.$body.find(".form-wrapper").hide();
-		this.make_done_state();
-		this.bind_done_state();
-	}
-
-	make_done_state() {
-		this.$done_state = $(`<div class="done-state text-center">
-			<p><i class="octicon octicon-check text-success" style="font-size: 30px;"></i></p>
-			<p style="font-size: 16px;">${__("Completed!")}</p>
-			<div class="actions">
-				<div class="doctype-actions text-center hide">
-					<a class="list-btn btn btn-primary btn-sm"></a>
-					<a class="sec-list-btn btn btn-default btn-sm hide"></a>
-					<a class="import-btn btn btn-default btn-sm"></a>
-				</div>
-				<div class="doc-actions text-center hide">
-					<a class="doc-btn btn btn-primary btn-sm">${__("Check it out")}</a>
-				</div>
-			</div>
-		</div>`).appendTo(this.$body);
-	}
-
-	bind_done_state() {
-		if(this.doctype) {
-			this.$body.find('.doctype-actions').removeClass("hide");
-			this.$list = this.$body.find('.list-btn')
-				.html("Go to " + this.name)
-				.on('click', () => {
-					frappe.set_route("List", this.doctype);
-				});
-			if(this.sec_doctype) {
-				this.$sec_list = this.$body.find('.sec-list-btn')
-					.removeClass("hide")
-					.html("Go to " + this.sec_doctype + "s")
-					.on('click', () => {
-						frappe.set_route("List", this.sec_doctype);
-					});
-			}
-			this.$import = this.$body.find('.import-btn')
-				.html("Import " + this.name)
-				.on('click', () => {
-					frappe.set_route("data-import-tool");
-				});
-		} else if (this.route) {
-			this.$body.find('.doc-actions').removeClass("hide");
-			this.$doc = this.$body.find('.doc-btn').on('click', () => {
-				frappe.set_route(this.route);
-			});
-		}
-	}
-
-	primary_action() {
-		var me = this;
-		if(this.set_values()) {
-			frappe.call({
-				method: me.method,
-				args: {args_data: me.values},
-				callback: function() {
-					me.done = 1;
-					// hide Create button immediately, or show_slide again
-					me.$primary_btn.hide();
-					me.refresh();
-
-					// let completed = 0;
-					// me.container.slides.map((slide, i) => {
-					// 	if(me.container.slide_dict[i]) {
-					// 		if(me.container.slide_dict[i].done) completed++;
-					// 	} else {
-					// 		if(slide.done) completed++;
-					// 	}
-					// });
-					// let percent = completed * 100 / me.container.slides.length;
-					// $('.user-progress .progress-bar').css({'width': percent + '%'});
-					// if(percent === 100) {
-					// 	$(document).trigger("user-initial-setup-complete");
-					// }
-
-				},
-				freeze: true
-			});
-		}
-	}
-};
-
 frappe.ui.Slides = class Slides {
 	constructor({
 		parent = null,
@@ -296,7 +205,8 @@ frappe.ui.Slides = class Slides {
 		slide_class = null,
 		unidirectional = 0,
 		done_state = 0,
-		before_load = null
+		before_load = null,
+		on_update = null
 	}) {
 		this.parent = parent;
 		this.slides = slides;
@@ -304,6 +214,7 @@ frappe.ui.Slides = class Slides {
 		this.unidirectional = unidirectional;
 		this.done_state = done_state;
 		this.before_load = before_load;
+		this.on_update = on_update;
 
 		this.slide_dict = {};
 
@@ -384,6 +295,16 @@ frappe.ui.Slides = class Slides {
 			this.$slide_progress.append($dot);
 		});
 
+		this.completed = 0;
+		this.slides.map((slide, i) => {
+			if(this.slide_dict[i]) {
+				if(this.slide_dict[i].done) this.completed++;
+			} else {
+				if(slide.done) this.completed++;
+			}
+		});
+		if(this.on_update) {this.on_update(this.completed, this.slides.length);}
+
 		if(!this.unidirectional) this.bind_progress_dots();
 	}
 
@@ -402,7 +323,7 @@ frappe.ui.Slides = class Slides {
 
 		this.$next_btn = this.$footer.find('.next-btn').attr('tabIndex', 0)
 			.on('click', () => {
-				if (this.current_slide.set_values()) {
+				if (!this.unidirectional || (this.unidirectional && this.current_slide.set_values())) {
 					this.show_slide(this.current_id + 1);
 				}
 			});
@@ -444,6 +365,8 @@ frappe.ui.Slides = class Slides {
 		this.slide_dict[id] = null;
 	}
 
+	on_update(completed, total) {}
+
 	show_hide_prev_next(id) {
 		(id === 0) ?
 			this.$prev_btn.hide() : this.$prev_btn.show();
@@ -463,52 +386,5 @@ frappe.ui.Slides = class Slides {
 
 	update_values() {
 		this.values = $.extend(this.values, this.get_values());
-	}
-};
-
-frappe.setup.UserProgressDialog  = class UserProgressDialog {
-	constructor({
-		slides = []
-	}) {
-		this.slides = slides;
-		this.setup();
-	}
-
-	setup() {
-		this.dialog = new frappe.ui.Dialog({title: __("Complete Setup")});
-		this.slide_container = new frappe.ui.Slides({
-			parent: this.dialog.body,
-			slides: this.slides,
-			slide_class: frappe.setup.UserProgressSlide,
-			done_state: 1,
-			before_load: ($footer) => {
-				$footer.find('.text-right').prepend(
-					$(`<a class="make-btn btn btn-primary btn-sm">
-				${__("Create")}</a>`));
-			}
-		});
-		this.make_dismiss_button();
-	}
-
-	make_dismiss_button() {
-		this.dialog.set_primary_action(__('Dismiss'), () => {
-			$('.user-progress').addClass('hide');
-			this.dialog.hide();
-		});
-		this.$dismiss_button = this.dialog.header.find('.btn-primary').addClass('dismiss-btn');
-		// hidden by default
-		this.$dismiss_button.addClass('hide');
-
-		$(document).on("user-initial-setup-complete", () => {
-			this.show_dismiss_button();
-		});
-	}
-
-	show_dismiss_button() {
-		this.$dismiss_button.removeClass('hide');
-	}
-
-	show() {
-		this.dialog.show();
 	}
 };

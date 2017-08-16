@@ -69,7 +69,7 @@ class TestDriver(object):
 		self.get('login')
 		self.wait_for("#login_email")
 		self.set_input("#login_email", "Administrator")
-		self.set_input("#login_password", "abcd1234")
+		self.set_input("#login_password", "admin")
 		self.click('.btn-login')
 		self.wait_for(wait_for_id)
 		self.logged_in = True
