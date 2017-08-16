@@ -18,7 +18,10 @@ frappe.standard_pages["query-report"] = function() {
 	// 	parent: wrapper,
 	// });
 
-	frappe.require('/assets/frappe/js/frappe/views/datatable/datatable.js', () => {
+	frappe.require([
+		'/assets/frappe/js/frappe/views/datatable/datatable.js',
+		'/assets/frappe/css/datatable.css'
+	], () => {
 		frappe.query_report = new frappe.views.QueryReport2({
 			parent: wrapper
 		});
@@ -28,6 +31,84 @@ frappe.standard_pages["query-report"] = function() {
 	// $(wrapper).bind("show", function() {
 	// 	frappe.query_report.load();
 	// });
+}
+
+
+frappe.views.QueryReport2 = class QueryReport2 {
+	constructor({ parent }) {
+		this.wrapper = parent.page.main;
+		this.prepare_report();
+		this.make_datatable();
+
+		this.get_data()
+			.then(data => {
+				this.datatable.render(data);
+			});
+	}
+
+	prepare_report() {
+		this.report_name = frappe.get_route()[1];
+	}
+
+	make_datatable() {
+		this.datatable = new frappe.views.DataTable({
+			wrapper: this.wrapper
+		});
+	}
+
+	get_data() {
+		return new Promise(res => {
+			frappe.call({
+				method: "frappe.desk.query_report.run",
+				type: "GET",
+				args: {
+					report_name: this.report_name
+				},
+				callback: r => {
+					const data = r.message;
+					const columns = this.parse_columns(data.columns);
+					const rows = this.format_rows(data.result, columns);
+
+					res({ columns, rows });
+				}
+			});
+		});
+	}
+
+	parse_columns(columns) {
+		return columns.map(column => {
+			const part = column.split(':');
+
+			let fieldname, fieldtype, link_doctype, width;
+			fieldname = part[0];
+
+			fieldtype = part[1];
+			if(fieldtype.includes('/')) {
+				const parts = fieldtype.split('/');
+				fieldtype = parts[0];
+				link_doctype = parts[1];
+			}
+
+			width = part[2];
+
+			return {
+				fieldname, fieldtype, link_doctype, width
+			}
+		});
+	}
+
+	format_rows(rows, columns) {
+		// console.log(rows, columns);
+		return rows.map(row => {
+			return row.map((col, i) => {
+				const col_header = columns[i];
+				if(col_header.fieldtype && col_header.fieldtype === 'Link') {
+					return `<a href='#Form/${col_header.link_doctype}/${col}'>${col}</a>`;
+				}
+				return col;
+			});
+		});
+	}
 }
 
 frappe.views.QueryReport = Class.extend({
