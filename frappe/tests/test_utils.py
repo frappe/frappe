@@ -4,7 +4,8 @@ from __future__ import unicode_literals
 
 import unittest
 
-from frappe.utils import evaluate_filters, money_in_words, scrub_urls, get_url
+from frappe.utils import evaluate_filters, money_in_words, scrub_urls, get_url,\
+	fmt_money
 
 class TestFilters(unittest.TestCase):
 	def test_simple_dict(self):
@@ -58,6 +59,27 @@ class TestMoney(unittest.TestCase):
 				money_in_words(num[0], "NGN"), num[1], "{0} is not the same as {1}".
 					format(money_in_words(num[0], "NGN"), num[1])
 			)
+
+	def test_fmt_money(self):
+		input = [40000, 40000.23, 40000.4567]
+
+		output = ['40,000.00', '40,000.23', '40,000.4567']
+		precision = 5
+		self.assertEqual(fmt_money(input[0], precision), output[0])
+		self.assertEqual(fmt_money(input[1], precision), output[1])
+		self.assertEqual(fmt_money(input[2], precision), output[2])
+
+		output = ['40,000.00', '40,000.23', '40,000.457']
+		precision = 3
+		self.assertEqual(fmt_money(input[0], precision), output[0])
+		self.assertEqual(fmt_money(input[1], precision), output[1])
+		self.assertEqual(fmt_money(input[2], precision), output[2])
+
+		output = ['40,000.0', '40,000.2', '40,000.5']
+		precision = 1
+		self.assertEqual(fmt_money(input[0], precision), output[0])
+		self.assertEqual(fmt_money(input[1], precision), output[1])
+		self.assertEqual(fmt_money(input[2], precision), output[2])
 
 class TestDataManipulation(unittest.TestCase):
 	def test_scrub_urls(self):
