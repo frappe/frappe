@@ -3,11 +3,11 @@ import frappe
 
 def execute():
 	colors = ['red', 'green', 'blue', 'yellow', 'skyblue', 'orange']
-	hex = ['#ffc4c4', '#cef6d1', '#d2d2ff', '#fffacd', '#d2f1ff', '#ffd2c2']
+	hex_colors = ['#ffc4c4', '#cef6d1', '#d2d2ff', '#fffacd', '#d2f1ff', '#ffd2c2']
 
 	def get_hex_for_color(color):
 		index = colors.index(color)
-		return hex[index]
+		return hex_colors[index]
 
 	query = '''
 		update tabEvent
