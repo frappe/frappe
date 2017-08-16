@@ -14,12 +14,15 @@ frappe.has_indicator = function(doctype) {
 	return false;
 }
 
-frappe.get_indicator = function(doc, doctype, without_workflow = true) {
+frappe.get_indicator = function(doc, doctype) {
 	if(doc.__unsaved) {
 		return [__("Not Saved"), "orange"];
 	}
 
 	if(!doctype) doctype = doc.doctype;
+
+	var workflow = frappe.workflow.workflows[doctype];
+	var without_workflow = workflow ? workflow['override_status'] : true;
 
 	var settings = frappe.listview_settings[doctype] || {};
 
