@@ -164,5 +164,12 @@ frappe.tests = {
 		control.val(value).trigger('change');
 		return frappe.timeout(0.5);
 	},
-
+	is_disabled_field: function(fieldname){
+		let control = $(`.form-control[data-fieldname="${fieldname}"]:disabled`);
+		if(!control.length) {
+			throw `did not find any control with fieldname ${fieldname}`;
+		} else {
+			return true;
+		}
+	}
 };
