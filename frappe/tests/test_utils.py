@@ -4,8 +4,7 @@ from __future__ import unicode_literals
 
 import unittest
 
-from frappe.utils import evaluate_filters, money_in_words, scrub_urls, get_url,\
-	fmt_money
+from frappe.utils import evaluate_filters, money_in_words, scrub_urls, get_url
 
 class TestFilters(unittest.TestCase):
 	def test_simple_dict(self):
