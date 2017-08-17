@@ -60,27 +60,6 @@ class TestMoney(unittest.TestCase):
 					format(money_in_words(num[0], "NGN"), num[1])
 			)
 
-	def test_fmt_money(self):
-		input_value = [40000, 40000.23, 40000.4567]
-
-		output_value = ['40,000.00', '40,000.23', '40,000.4567']
-		precision = 5
-		self.assertEqual(fmt_money(input_value[0], precision), output_value[0])
-		self.assertEqual(fmt_money(input_value[1], precision), output_value[1])
-		self.assertEqual(fmt_money(input_value[2], precision), output_value[2])
-
-		output_value = ['40,000.00', '40,000.23', '40,000.457']
-		precision = 3
-		self.assertEqual(fmt_money(input_value[0], precision), output_value[0])
-		self.assertEqual(fmt_money(input_value[1], precision), output_value[1])
-		self.assertEqual(fmt_money(input_value[2], precision), output_value[2])
-
-		output_value = ['40,000.0', '40,000.2', '40,000.5']
-		precision = 1
-		self.assertEqual(fmt_money(input_value[0], precision), output_value[0])
-		self.assertEqual(fmt_money(input_value[1], precision), output_value[1])
-		self.assertEqual(fmt_money(input_value[2], precision), output_value[2])
-
 class TestDataManipulation(unittest.TestCase):
 	def test_scrub_urls(self):
 		html = '''
