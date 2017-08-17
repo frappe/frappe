@@ -150,13 +150,13 @@ def handle_exception(e):
 	elif http_status_code==403:
 		frappe.respond_as_web_page(_("Not Permitted"),
 			_("You do not have enough permissions to complete the action"),
-			http_status_code=http_status_code,  indicator_color='red')
+			http_status_code=http_status_code,  indicator_color='red', fullpage=True)
 		return_as_message = True
 
 	elif http_status_code==404:
 		frappe.respond_as_web_page(_("Not Found"),
 			_("The resource you are looking for is not available"),
-			http_status_code=http_status_code,  indicator_color='red')
+			http_status_code=http_status_code,  indicator_color='red', fullpage=True)
 		return_as_message = True
 
 	else:
@@ -166,7 +166,7 @@ def handle_exception(e):
 
 		frappe.respond_as_web_page("Server Error",
 			traceback, http_status_code=http_status_code,
-			indicator_color='red')
+			indicator_color='red', fullpage=True)
 		return_as_message = True
 
 	if e.__class__ == frappe.AuthenticationError:
@@ -178,7 +178,8 @@ def handle_exception(e):
 		make_error_snapshot(e)
 
 	if return_as_message:
-		response = frappe.website.render.render("message", http_status_code=http_status_code)
+		response = frappe.website.render.render("message",
+			http_status_code=http_status_code, fullpage=True)
 
 	return response
 

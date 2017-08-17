@@ -279,7 +279,8 @@ def render_403(e, pathname):
 	frappe.local.response['context'] = dict(
 		indicator_color = 'red',
 		primary_action = '/login',
-		primary_label = _('Login')
+		primary_label = _('Login'),
+		fullpage=True
 	)
 	return render_page("message"), e.http_status_code
 

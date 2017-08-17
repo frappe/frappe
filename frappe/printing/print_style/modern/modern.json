@@ -1,0 +1,14 @@
+{
+ "creation": "2017-08-17 02:16:58.060374", 
+ "css": ".print-heading {\n\ttext-align: right;\n\ttext-transform: uppercase;\n\tcolor: #666;\n\tpadding-bottom: 20px;\n\tmargin-bottom: 20px;\n\tborder-bottom: 1px solid #d1d8dd;\n}\n\n.print-heading h2 {\n\tfont-size: 24px;\n}\n\n.print-format th {\n\tbackground-color: #eee !important;\n\tborder-bottom: 0px !important;\n}\n\n/* modern format: don't remove this line */", 
+ "disabled": 0, 
+ "docstatus": 0, 
+ "doctype": "Print Style", 
+ "idx": 0, 
+ "modified": "2017-08-17 05:02:05.043839", 
+ "modified_by": "Administrator", 
+ "name": "Modern", 
+ "owner": "Administrator", 
+ "print_style_name": "Modern", 
+ "standard": 1
+}

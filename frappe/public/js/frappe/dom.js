@@ -93,6 +93,7 @@ frappe.dom = {
 			se.appendChild(document.createTextNode(txt));
 		}
 		document.getElementsByTagName('head')[0].appendChild(se);
+		return se;
 	},
 	add: function(parent, newtag, className, cs, innerHTML, onclick) {
 		if(parent && parent.substr)parent = frappe.dom.by_id(parent);
