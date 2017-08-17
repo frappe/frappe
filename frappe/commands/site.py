@@ -460,7 +460,7 @@ def _set_limits(context, site, limits):
 			elif limit=='space':
 				value = float(value)
 
-			elif limit in ('users', 'emails', 'email_group'):
+			elif limit in ('users', 'emails', 'email_group', 'daily_emails'):
 				value = int(value)
 
 			new_limits[limit] = value
