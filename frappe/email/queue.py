@@ -218,7 +218,7 @@ def check_email_limit(recipients):
 		or frappe.flags.in_test):
 
 		monthly_email_limit = frappe.conf.get('limits', {}).get('emails')
-		daily_email_limit = frappe.conf.get('limits', {}).get('daily_emails')
+		daily_email_limit = cint(frappe.conf.get('limits', {}).get('daily_emails'))
 
 		if frappe.flags.in_test:
 			monthly_email_limit = 500
