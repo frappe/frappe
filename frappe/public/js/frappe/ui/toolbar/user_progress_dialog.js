@@ -15,22 +15,29 @@ frappe.setup.UserProgressSlide = class UserProgressSlide extends frappe.ui.Slide
 
 	setup_done_state() {
 		this.$body.find(".form-wrapper").hide();
+
 		this.make_done_state();
 		this.bind_done_state();
 	}
 
 	make_done_state() {
-		this.$done_state = $(`<div class="done-state text-center">
-			<p><i class="octicon octicon-check text-success" style="font-size: 30px;"></i></p>
-			<p style="font-size: 16px;">${__("Completed!")}</p>
+		this.$done_state = $(`<div class="done-content">
+			<div class="state text-center">
+				<p><i class="octicon octicon-check text-success" style="font-size: 30px;"></i></p>
+				<p style="font-size: 16px;">${__("Completed!")}</p>
+			</div>
 			<div class="actions">
 				<div class="doctype-actions text-center hide">
-					<a class="list-btn btn btn-primary btn-sm"></a>
+					<a class="list-btn btn btn-default btn-sm"></a>
 					<a class="sec-list-btn btn btn-default btn-sm hide"></a>
 					<a class="import-btn btn btn-default btn-sm"></a>
 				</div>
 				<div class="doc-actions text-center hide">
-					<a class="doc-btn btn btn-primary btn-sm">${__("Check it out")}</a>
+					<a class="doc-btn btn btn-default btn-sm">${__("Check it out")}</a>
+				</div>
+				<div class="next-steps-links">
+					<h6 class="title">${__("Going Further")}</h6>
+					<a>${__("help link")}</a>
 				</div>
 			</div>
 		</div>`).appendTo(this.$body);
@@ -65,6 +72,14 @@ frappe.setup.UserProgressSlide = class UserProgressSlide extends frappe.ui.Slide
 		}
 	}
 
+	before_show() {
+		if(this.done) {
+			this.slides_footer.find('.next-btn').addClass('btn-primary');
+		} else {
+			this.slides_footer.find('.next-btn').removeClass('btn-primary');
+		}
+	}
+
 	primary_action() {
 		var me = this;
 		if(this.set_values()) {
@@ -74,6 +89,7 @@ frappe.setup.UserProgressSlide = class UserProgressSlide extends frappe.ui.Slide
 				callback: function() {
 					me.done = 1;
 					// hide Create button immediately, or show_slide again
+					me.slides_footer.find('.next-btn').addClass('btn-primary');
 					me.$primary_btn.hide();
 					me.refresh();
 				},
@@ -100,7 +116,7 @@ frappe.setup.UserProgressDialog  = class UserProgressDialog {
 			done_state: 1,
 			before_load: ($footer) => {
 				$footer.find('.text-right').prepend(
-					$(`<a class="make-btn btn btn-primary btn-sm action">
+					$(`<a class="make-btn btn btn-primary btn-sm primary">
 				${__("Create")}</a>`));
 			},
 			on_update: (completed, total) => {

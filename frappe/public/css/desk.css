@@ -1109,6 +1109,11 @@ input[type="checkbox"]:checked:before {
 .slides-wrapper .success-state {
   margin-bottom: 20px;
 }
+.slides-wrapper .next-steps-links .title {
+  text-transform: uppercase;
+  color: #8D99A6;
+  font-size: 11px;
+}
 .slides-wrapper .btn-primary {
   font-weight: bold;
 }

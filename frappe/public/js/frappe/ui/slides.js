@@ -133,7 +133,6 @@ frappe.ui.Slide = class Slide {
 	// Primary button (outside of slide)
 	resetup_primary_button() {
 		this.unbind_primary_action();
-		this.$primary_btn = this.slides_footer.find('.btn-primary').addClass('primary').show();
 		this.bind_fields_to_primary_btn();
 		this.reset_primary_button_state();
 		this.bind_primary_action();
@@ -160,20 +159,24 @@ frappe.ui.Slide = class Slide {
 	}
 
 	unbind_primary_action() {
-		this.slides_footer.find(".action").off();
+		this.slides_footer.find(".primary").off();
 	}
 
 	bind_primary_action() {
-		this.slides_footer.find(".action").on('click', () => {
+		this.slides_footer.find(".primary").on('click', () => {
 			this.primary_action();
 		});
 	}
 
+	before_show() { }
+
 	show_slide() {
 		this.$wrapper.removeClass("hidden");
+		this.before_show();
 		this.resetup_primary_button();
 		if(!this.done) {
 			this.$body.find('.form-control').first().focus();
+			this.$primary_btn.show();
 		} else {
 			this.$primary_btn.hide();
 		}
