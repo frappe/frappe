@@ -953,8 +953,9 @@ frappe.ui.form.ControlDateRange = frappe.ui.form.ControlData.extend({
 		this.set_mandatory && this.set_mandatory(value);
 	},
 	parse: function(value) {
-		const to = __('to');
-		value = value.replace(` ${to} `, ',');
+		// replace the separator (which can be in user language) with comma
+		const to = __('{0} to {1}').replace('{0}', '').replace('{1}', '');
+		value = value.replace(to, ',');
 
 		if(value && value.includes(',')) {
 			var vals = value.split(',');
