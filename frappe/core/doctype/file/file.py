@@ -329,7 +329,12 @@ def setup_folder_path(filename, new_parent):
 
 def get_extension(filename, extn, content):
 	mimetype = None
+
 	if extn:
+		# remove '?' char and parameters from extn if present
+		if '?' in extn:
+			extn = extn.split('?', 1)[0]
+
 		mimetype = mimetypes.guess_type(filename + "." + extn)[0]
 
 	if mimetype is None or not mimetype.startswith("image/") and content:
