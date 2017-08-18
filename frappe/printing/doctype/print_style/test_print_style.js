@@ -12,12 +12,9 @@ QUnit.test("test: Print Style", function (assert) {
 		// insert a new Print Style
 		() => frappe.tests.make('Print Style', [
 			// values to be set
-			{key: 'value'}
+			{print_style_name: 'Test Print Style'},
+			{css: '/* some css value */'}
 		]),
-		() => {
-			assert.equal(cur_frm.doc.key, 'value');
-		},
-		() => done()
 	]);
 
 });

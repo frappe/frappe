@@ -38,12 +38,6 @@ frappe.ui.form.PrintPreview = Class.extend({
 				me.multilingual_preview();
 			});
 
-		this.print_style_select = this.wrapper
-			.find('.print-style-select')
-			.on("change", function () {
-				me.multilingual_preview();
-			});
-
 		//On selection of language get code and pass it to preview method
 		this.language_sel = this.wrapper
 			.find(".languages")
@@ -70,13 +64,11 @@ frappe.ui.form.PrintPreview = Class.extend({
 
 		this.wrapper.find(".btn-download-pdf").click(function () {
 			if (!me.is_old_style()) {
-				let print_style = me.selected_style();
 				var w = window.open(
 					frappe.urllib.get_full_url("/api/method/frappe.utils.print_format.download_pdf?"
 						+ "doctype=" + encodeURIComponent(me.frm.doc.doctype)
 						+ "&name=" + encodeURIComponent(me.frm.doc.name)
 						+ "&format=" + me.selected_format()
-						+ (print_style ? '&style=' + print_style : '')
 						+ "&no_letterhead=" + (me.with_letterhead() ? "0" : "1")
 						+ (me.lang_code ? ("&_lang=" + me.lang_code) : ""))
 				);
@@ -114,7 +106,8 @@ frappe.ui.form.PrintPreview = Class.extend({
 		this.lang_code = this.frm.doc.language;
 		// Load all languages in the field
 		this.language_sel.empty()
-			.add_options(frappe.get_languages())
+			.add_options([{value:'', label:__("Select Language...")}]
+				.concat(frappe.get_languages()))
 			.val(this.lang_code);
 		this.preview();
 	},
@@ -155,13 +148,11 @@ frappe.ui.form.PrintPreview = Class.extend({
 	},
 	new_page_preview: function (printit) {
 		var me = this;
-		let print_style = me.selected_style();
 		var w = window.open(frappe.urllib.get_full_url("/printview?"
 			+ "doctype=" + encodeURIComponent(me.frm.doc.doctype)
 			+ "&name=" + encodeURIComponent(me.frm.doc.name)
 			+ (printit ? "&trigger_print=1" : "")
 			+ "&format=" + me.selected_format()
-			+ (print_style ? '&style=' + print_style : '')
 			+ "&no_letterhead=" + (me.with_letterhead() ? "0" : "1")
 			+ (me.lang_code ? ("&_lang=" + me.lang_code) : "")));
 		if (!w) {
@@ -174,7 +165,6 @@ frappe.ui.form.PrintPreview = Class.extend({
 			args: {
 				doc: this.frm.doc,
 				print_format: this.selected_format(),
-				style: this.selected_style(),
 				no_letterhead: !this.with_letterhead() ? 1 : 0,
 				_lang: this.lang_code
 			},
@@ -202,8 +192,6 @@ frappe.ui.form.PrintPreview = Class.extend({
 	},
 	refresh_print_options: function () {
 		this.print_formats = frappe.meta.get_print_formats(this.frm.doctype);
-		this.print_style_select.empty()
-			.add_options([''].concat(Object.keys(locals[':Print Style'] || {}).sort()));
 		return this.print_sel
 			.empty().add_options(this.print_formats);
 
@@ -229,9 +217,6 @@ frappe.ui.form.PrintPreview = Class.extend({
 	selected_format: function () {
 		return this.print_sel.val() || this.frm.meta.default_print_format || "Standard";
 	},
-	selected_style: function () {
-		return this.print_style_select.val() || '';
-	},
 	is_old_style: function (format) {
 		return this.get_print_format(format).print_format_type === "Client";
 	},
@@ -250,8 +235,6 @@ frappe.ui.form.PrintPreview = Class.extend({
 		return this.print_letterhead.is(":checked") ? 1 : 0;
 	},
 	set_style: function (style) {
-		$('#print-style').remove();
-		console.log(style || frappe.boot.print_css);
 		frappe.dom.set_style(style || frappe.boot.print_css, "print-style");
 	}
 });

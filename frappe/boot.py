@@ -236,8 +236,6 @@ def load_print(bootinfo, doclist):
 	print_settings.doctype = ":Print Settings"
 	doclist.append(print_settings)
 	load_print_css(bootinfo, print_settings)
-	doclist.extend(frappe.get_all('Print Style', 'name',
-		dict(disabled=0), update=dict(doctype=':Print Style')))
 
 def load_print_css(bootinfo, print_settings):
 	import frappe.www.printview

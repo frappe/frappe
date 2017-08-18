@@ -202,7 +202,7 @@ frappe.Application = Class.extend({
 				moment.tz.add(frappe.boot.timezone_info);
 			}
 			if(frappe.boot.print_css) {
-				frappe.dom.set_style(frappe.boot.print_css)
+				frappe.dom.set_style(frappe.boot.print_css, "print-style");
 			}
 			frappe.user.name = frappe.boot.user.name;
 		} else {
