@@ -37,6 +37,10 @@ class DataMigrationPlan(Document):
 						if '.' in  source_field:
 							arr = source_field.split('.')
 							join_data = source_connector.get_join_objects(self.mapping.source_objectname, field, source.get('id'))
+
+							if len(join_data) > 1:
+								join_data = join_data[0:1] # ManyToOne mapping, taking the first value only
+
 							target.set(field.target_fieldname, join_data[0][arr[1]])
 						else:
 							# Else its a simple column to column mapping
