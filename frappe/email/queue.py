@@ -15,7 +15,7 @@ from frappe.utils import get_url, nowdate, encode, now_datetime, add_days, split
 from frappe.utils.file_manager import get_file
 from rq.timeouts import JobTimeoutException
 from frappe.utils.scheduler import log
-from six import text_type
+from six import text_type, string_types
 
 class EmailLimitCrossedError(frappe.ValidationError): pass
 
@@ -55,10 +55,10 @@ def send(recipients=None, sender=None, subject=None, message=None, text_content=
 	if not recipients and not cc:
 		return
 
-	if isinstance(recipients, basestring):
+	if isinstance(recipients, string_types):
 		recipients = split_emails(recipients)
 
-	if isinstance(cc, basestring):
+	if isinstance(cc, string_types):
 		cc = split_emails(cc)
 
 	if isinstance(send_after, int):
@@ -484,7 +484,7 @@ def prepare_message(email, recipient, recipients_list):
 		pass
 	else:
 		if email.expose_recipients == "footer":
-			if isinstance(email.show_as_cc, basestring):
+			if isinstance(email.show_as_cc, string_types):
 				email.show_as_cc = email.show_as_cc.split(",")
 			email_sent_to = [r.recipient for r in recipients_list]
 			email_sent_cc = ", ".join([e for e in email_sent_to if e in email.show_as_cc])

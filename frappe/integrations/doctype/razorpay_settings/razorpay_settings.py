@@ -55,7 +55,8 @@ For razorpay payment status is Authorized
 from __future__ import unicode_literals
 import frappe
 from frappe import _
-import urllib, json
+import json
+from six.moves.urllib.parse import urlencode
 from frappe.model.document import Document
 from frappe.utils import get_url, call_hook_method, cint
 from frappe.integrations.utils import make_get_request, make_post_request, create_request_log, create_payment_gateway
@@ -82,7 +83,7 @@ class RazorpaySettings(Document):
 			frappe.throw(_("Please select another payment method. Razorpay does not support transactions in currency '{0}'").format(currency))
 
 	def get_payment_url(self, **kwargs):
-		return get_url("./integrations/razorpay_checkout?{0}".format(urllib.urlencode(kwargs)))
+		return get_url("./integrations/razorpay_checkout?{0}".format(urlencode(kwargs)))
 
 	def create_request(self, data):
 		self.data = frappe._dict(data)
@@ -146,9 +147,9 @@ class RazorpaySettings(Document):
 			redirect_url = 'payment-failed'
 
 		if redirect_to:
-			redirect_url += '?' + urllib.urlencode({'redirect_to': redirect_to})
+			redirect_url += '?' + urlencode({'redirect_to': redirect_to})
 		if redirect_message:
-			redirect_url += '&' + urllib.urlencode({'redirect_message': redirect_message})
+			redirect_url += '&' + urlencode({'redirect_message': redirect_message})
 
 		return {
 			"redirect_to": redirect_url,

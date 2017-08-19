@@ -6,6 +6,7 @@ class TestTestRunner(unittest.TestCase):
 	def test_test_runner(self):
 		driver = TestDriver()
 		driver.login()
+		frappe.db.set_default('in_selenium', '1')
 		for test in get_tests():
 			if test.startswith('#'):
 				continue
@@ -26,13 +27,14 @@ class TestTestRunner(unittest.TestCase):
 			driver.click_primary_action()
 			driver.wait_for('#frappe-qunit-done', timeout=timeout)
 			console = driver.get_console()
-			if frappe.flags.tests_verbose or True:
+			passed = 'Tests Passed' in console
+			if frappe.flags.tests_verbose or not passed:
 				for line in console:
 					print(line)
-			print('-' * 40)
-			print('Checking if passed "{0}"'.format(test))
-			self.assertTrue('Tests Passed' in console)
+				print('-' * 40)
+			self.assertTrue(passed)
 			time.sleep(1)
+		frappe.db.set_default('in_selenium', None)
 		driver.close()
 
 def get_tests():

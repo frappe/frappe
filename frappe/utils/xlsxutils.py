@@ -8,7 +8,7 @@ from frappe.utils import encode, cstr, cint, flt, comma_or
 import openpyxl
 from openpyxl.styles import Font
 from openpyxl import load_workbook
-from six import StringIO
+from six import StringIO, string_types
 
 
 # return xlsx file object
@@ -23,7 +23,7 @@ def make_xlsx(data, sheet_name):
 	for row in data:
 		clean_row = []
 		for item in row:
-			if isinstance(item, basestring) and sheet_name != "Data Import Template":
+			if isinstance(item, string_types) and sheet_name != "Data Import Template":
 				value = handle_html(item)
 			else:
 				value = item

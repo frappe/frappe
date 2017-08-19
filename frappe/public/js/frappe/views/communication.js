@@ -12,7 +12,7 @@ frappe.views.CommunicationComposer = Class.extend({
 	make: function() {
 		var me = this;
 		this.dialog = new frappe.ui.Dialog({
-			title: (this.subject || ""),
+			title: (this.title || this.subject || __("New Email")),
 			no_submit_on_enter: true,
 			fields: this.get_fields(),
 			primary_action_label: __("Send"),
@@ -49,12 +49,12 @@ frappe.views.CommunicationComposer = Class.extend({
 		var fields= [
 			{label:__("To"), fieldtype:"Data", reqd: 0, fieldname:"recipients",length:524288},
 			{fieldtype: "Section Break", collapsible: 1, label: "CC & Standard Reply"},
-			{label:__("CC"), fieldtype:"Data", fieldname:"cc",length:524288},
+			{label:__("CC"), fieldtype:"Data", fieldname:"cc", length:524288},
 			{label:__("Standard Reply"), fieldtype:"Link", options:"Standard Reply",
 				fieldname:"standard_reply"},
 			{fieldtype: "Section Break"},
 			{label:__("Subject"), fieldtype:"Data", reqd: 1,
-				fieldname:"subject",length:524288},
+				fieldname:"subject", length:524288},
 			{fieldtype: "Section Break"},
 			{label:__("Message"), fieldtype:"Text Editor", reqd: 1,
 				fieldname:"content"},
@@ -444,6 +444,7 @@ frappe.views.CommunicationComposer = Class.extend({
 
 	send_email: function(btn, form_values, selected_attachments, print_html, print_format) {
 		var me = this;
+		me.dialog.hide();
 
 		if((form_values.send_email || form_values.communication_medium === "Email") && !form_values.recipients) {
 			frappe.msgprint(__("Enter Email Recipient(s)"));
@@ -496,8 +497,6 @@ frappe.views.CommunicationComposer = Class.extend({
 							[ frappe.utils.escape_html(r.message["emails_not_sent_to"]) ]) );
 					}
 
-					me.dialog.hide();
-
 					if ((frappe.last_edited_communication[me.doc] || {})[me.key]) {
 						delete frappe.last_edited_communication[me.doc][me.key];
 					}
@@ -506,7 +505,7 @@ frappe.views.CommunicationComposer = Class.extend({
 						cur_frm.timeline.input.val("");
 						cur_frm.reload_doc();
 					}
-					
+
 					// try the success callback if it exists
 					if (me.success) {
 						try {
@@ -515,10 +514,10 @@ frappe.views.CommunicationComposer = Class.extend({
 							console.log(e);
 						}
 					}
-					
+
 				} else {
 					frappe.msgprint(__("There were errors while sending email. Please try again."));
-					
+
 					// try the error callback if it exists
 					if (me.error) {
 						try {

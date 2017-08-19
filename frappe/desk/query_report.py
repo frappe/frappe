@@ -13,6 +13,7 @@ from frappe.model.utils import render_include
 from frappe.translate import send_translations
 import frappe.desk.reportview
 from frappe.permissions import get_role_permissions
+from six import string_types
 
 def get_report_doc(report_name):
 	doc = frappe.get_doc("Report", report_name)
@@ -70,14 +71,14 @@ def run(report_name, filters=None, user=None):
 	if not filters:
 		filters = []
 
-	if filters and isinstance(filters, basestring):
+	if filters and isinstance(filters, string_types):
 		filters = json.loads(filters)
 
 	if not frappe.has_permission(report.ref_doctype, "report"):
 		frappe.msgprint(_("Must have report permission to access this report."),
 			raise_exception=True)
 
-	columns, result, message, chart = [], [], None, None
+	columns, result, message, chart, data_to_be_printed = [], [], None, None, None
 	if report.report_type=="Query Report":
 		if not report.query:
 			frappe.msgprint(_("Must specify a Query to run"), raise_exception=True)
@@ -99,6 +100,8 @@ def run(report_name, filters=None, user=None):
 				message = res[2]
 			if len(res) > 3:
 				chart = res[3]
+			if len(res) > 4:
+				data_to_be_printed = res[4]
 
 	if report.apply_user_permissions and result:
 		result = get_filtered_data(report.ref_doctype, columns, result, user)
@@ -110,7 +113,8 @@ def run(report_name, filters=None, user=None):
 		"result": result,
 		"columns": columns,
 		"message": message,
-		"chart": chart
+		"chart": chart,
+		"data_to_be_printed": data_to_be_printed
 	}
 
 
@@ -124,13 +128,13 @@ def export_query():
 	if "csrf_token" in data:
 		del data["csrf_token"]
 
-	if isinstance(data.get("filters"), basestring):
+	if isinstance(data.get("filters"), string_types):
 		filters = json.loads(data["filters"])
-	if isinstance(data.get("report_name"), basestring):
+	if isinstance(data.get("report_name"), string_types):
 		report_name = data["report_name"]
-	if isinstance(data.get("file_format_type"), basestring):
+	if isinstance(data.get("file_format_type"), string_types):
 		file_format_type = data["file_format_type"]
-	if isinstance(data.get("visible_idx"), basestring):
+	if isinstance(data.get("visible_idx"), string_types):
 		visible_idx = json.loads(data.get("visible_idx"))
 	else:
 		visible_idx = None
@@ -178,7 +182,7 @@ def add_total_row(result, columns, meta = None):
 	has_percent = []
 	for i, col in enumerate(columns):
 		fieldtype, options = None, None
-		if isinstance(col, basestring):
+		if isinstance(col, string_types):
 			if meta:
 				# get fieldtype from the meta
 				field = meta.get_field(col)
@@ -211,7 +215,7 @@ def add_total_row(result, columns, meta = None):
 		total_row[i] = flt(total_row[i]) / len(result)
 
 	first_col_fieldtype = None
-	if isinstance(columns[0], basestring):
+	if isinstance(columns[0], string_types):
 		first_col = columns[0].split(":")
 		if len(first_col) > 1:
 			first_col_fieldtype = first_col[1].split("/")[0]
@@ -316,7 +320,7 @@ def get_linked_doctypes(columns, data):
 	for idx, col in enumerate(columns):
 		df = columns_dict[idx]
 		if df.get("fieldtype")=="Link":
-			if isinstance(col, basestring):
+			if isinstance(col, string_types):
 				linked_doctypes[df["options"]] = idx
 			else:
 				# dict
@@ -352,7 +356,7 @@ def get_columns_dict(columns):
 		col_dict = frappe._dict()
 
 		# string
-		if isinstance(col, basestring):
+		if isinstance(col, string_types):
 			col = col.split(":")
 			if len(col) > 1:
 				if "/" in col[1]:

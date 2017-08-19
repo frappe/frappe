@@ -9,6 +9,7 @@ from frappe.model import no_value_fields
 from frappe.translate import set_default_language
 from frappe.utils import cint
 from frappe.utils.momentjs import get_all_timezones
+from frappe.twofactor import toggle_two_factor_auth
 
 class SystemSettings(Document):
 	def validate(self):
@@ -24,6 +25,12 @@ class SystemSettings(Document):
 				parts = self.get(key).split(":")
 				if len(parts)!=2 or not (cint(parts[0]) or cint(parts[1])):
 					frappe.throw(_("Session Expiry must be in format {0}").format("hh:mm"))
+
+		if self.enable_two_factor_auth:
+			if self.two_factor_method=='SMS':
+				if not frappe.db.get_value('SMS Settings', None, 'sms_gateway_url'):
+					frappe.throw(_('Please setup SMS before setting it as an authentication method, via SMS Settings'))
+			toggle_two_factor_auth(True, roles=['All'])
 
 	def on_update(self):
 		for df in self.meta.get("fields"):

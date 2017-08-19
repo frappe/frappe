@@ -127,7 +127,7 @@ class DbTable:
 					else:
 						raise
 
-				if max_length and max_length[0][0] > new_length:
+				if max_length and max_length[0][0] and max_length[0][0] > new_length:
 					current_type = self.current_columns[col.fieldname]["type"]
 					current_length = re.findall('varchar\(([\d]+)\)', current_type)
 					if not current_length:

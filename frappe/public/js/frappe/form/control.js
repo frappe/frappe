@@ -688,6 +688,8 @@ frappe.ui.form.ControlColor = frappe.ui.form.ControlData.extend({
 	},
 	set_formatted_input: function(value) {
 		this._super(value);
+
+		if(!value) value = '#ffffff';
 		this.$input.css({
 			"background-color": value
 		});
@@ -721,6 +723,9 @@ frappe.ui.form.ControlColor = frappe.ui.form.ControlData.extend({
 		});
 	},
 	validate: function (value) {
+		if(value === '') {
+			return '';
+		}
 		var is_valid = /^#[0-9A-F]{6}$/i.test(value);
 		if(is_valid) {
 			return value;
@@ -739,9 +744,24 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 	},
 	set_formatted_input: function(value) {
 		this._super(value);
-		if(value
-			&& ((this.last_value && this.last_value !== value)
-				|| (!this.datepicker.selectedDates.length))) {
+		if(!value) return;
+
+		let should_refresh = this.last_value && this.last_value !== value;
+
+		if (!should_refresh) {
+			if(this.datepicker.selectedDates.length > 0) {
+				// if date is selected but different from value, refresh
+				const selected_date =
+					moment(this.datepicker.selectedDates[0])
+						.format(moment.defaultDateFormat);
+				should_refresh = selected_date !== value;
+			} else {
+				// if datepicker has no selected date, refresh
+				should_refresh = true;
+			}
+		}
+
+		if(should_refresh) {
 			this.datepicker.selectDate(frappe.datetime.str_to_obj(value));
 		}
 	},
@@ -1782,7 +1802,7 @@ frappe.ui.form.ControlCode = frappe.ui.form.ControlText.extend({
 		this._super();
 		$(this.input_area).find("textarea")
 			.allowTabs()
-			.css({"height":"400px", "font-family": "Monaco, \"Courier New\", monospace"});
+			.addClass('control-code');
 	}
 });
 

@@ -78,6 +78,15 @@ frappe.ui.form.on('User', {
 				})
 			})
 
+			frm.add_custom_button(__("Reset OTP Secret"), function() {
+				frappe.call({
+					method: "frappe.core.doctype.user.user.reset_otp_secret",
+					args: {
+						"user": frm.doc.name
+					}
+				})
+			})
+
 			frm.trigger('enabled');
 
 			frm.roles_editor && frm.roles_editor.show();
@@ -111,6 +120,7 @@ frappe.ui.form.on('User', {
 			}
 			cur_frm.dirty();
 		}
+
 	},
 	validate: function(frm) {
 		if(frm.roles_editor) {

@@ -401,8 +401,13 @@ frappe.ui.Page = Class.extend({
 			.addClass('col-md-2')
 			.attr("title", __(df.label)).tooltip();
 
+		// html fields in toolbar are only for display
+		if (df.fieldtype=='HTML') {
+			return;
+		}
+
 		// hidden fields dont have $input
-		if(!f.$input) f.make_input();
+		if (!f.$input) f.make_input();
 
 		f.$input.addClass("input-sm").attr("placeholder", __(df.label));
 

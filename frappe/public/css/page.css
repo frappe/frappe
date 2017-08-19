@@ -44,7 +44,6 @@
   vertical-align: middle;
 }
 .page-title .title-image {
-  display: inline-block;
   width: 46px;
   height: 0;
   padding: 23px 0;
@@ -56,6 +55,7 @@
   text-align: center;
   line-height: 0;
   float: left;
+  margin-right: 10px;
 }
 .editable-title .title-text {
   cursor: pointer;

@@ -14,6 +14,7 @@ from frappe.permissions import (add_user_permission, remove_user_permission,
 	get_valid_perms)
 from frappe.core.page.permission_manager.permission_manager import update, reset
 from frappe.test_runner import make_test_records_for_doctype
+from six import string_types
 
 test_records = frappe.get_test_records('Blog Post')
 
@@ -361,7 +362,7 @@ def set_user_permission_doctypes(doctypes, role, apply_user_permissions,
 	user_permission_doctypes):
 	user_permission_doctypes = None if not user_permission_doctypes else json.dumps(user_permission_doctypes)
 
-	if isinstance(doctypes, basestring):
+	if isinstance(doctypes, string_types):
 		doctypes = [doctypes]
 
 	for doctype in doctypes:
