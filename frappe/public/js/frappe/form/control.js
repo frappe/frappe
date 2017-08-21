@@ -953,8 +953,12 @@ frappe.ui.form.ControlDateRange = frappe.ui.form.ControlData.extend({
 		this.set_mandatory && this.set_mandatory(value);
 	},
 	parse: function(value) {
-		if(value && (value.indexOf(',') !== -1 || value.indexOf('to') !== -1)) {
-			var vals = value.split(/[( to )(,)]/);
+		// replace the separator (which can be in user language) with comma
+		const to = __('{0} to {1}').replace('{0}', '').replace('{1}', '');
+		value = value.replace(to, ',');
+
+		if(value && value.includes(',')) {
+			var vals = value.split(',');
 			var from_date = moment(frappe.datetime.user_to_obj(vals[0])).format('YYYY-MM-DD');
 			var to_date = moment(frappe.datetime.user_to_obj(vals[vals.length-1])).format('YYYY-MM-DD');
 			return [from_date, to_date];
