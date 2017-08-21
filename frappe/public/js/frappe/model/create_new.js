@@ -314,7 +314,7 @@ $.extend(frappe.model, {
 });
 
 frappe.create_routes = {};
-frappe.new_doc = function (doctype, opts) {
+frappe.new_doc = function (doctype, opts, init_callback) {
 	return new Promise(resolve => {
 		if(opts && $.isPlainObject(opts)) {
 			frappe.route_options = opts;
@@ -324,7 +324,7 @@ frappe.new_doc = function (doctype, opts) {
 				frappe.set_route(frappe.create_routes[doctype])
 					.then(() => resolve());
 			} else {
-				frappe.ui.form.make_quick_entry(doctype)
+				frappe.ui.form.make_quick_entry(doctype, null, init_callback)
 					.then(() => resolve());
 			}
 		});
