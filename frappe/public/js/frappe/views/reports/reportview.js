@@ -78,7 +78,7 @@ frappe.views.ReportView = frappe.ui.BaseList.extend({
 		this.page = this.parent.page;
 		this.meta = frappe.get_meta(this.doctype);
 		this._body = $('<div>').appendTo(this.page.main);
-		this.page_title = __('Report')+ ': ' + (this.docname ?
+		this.page_title = __('Report') + ': ' + (this.docname ?
 			__(this.doctype) + ' - ' + __(this.docname) : __(this.doctype));
 		this.page.set_title(this.page_title);
 		this.init_user_settings();
@@ -390,79 +390,149 @@ frappe.views.ReportView = frappe.ui.BaseList.extend({
 	render_view: function() {
 		var me = this;
 		var data = this.get_unique_data(this.column_info);
+		var columns = this.column_info;
+		// console.log(data, this);
+		this.render_datatable(columns, data);
+		// return;
 
-		this.set_totals_row();
 
-		// add sr in data
-		$.each(data, function(i, v) {
-			// add index
-			v._idx = i+1;
-			v.id = v._idx;
+		// this.set_totals_row();
+
+		// // add sr in data
+		// $.each(data, function(i, v) {
+		// 	// add index
+		// 	v._idx = i+1;
+		// 	v.id = v._idx;
+		// });
+
+		// var options = {
+		// 	enableCellNavigation: true,
+		// 	enableColumnReorder: false,
+		// };
+
+		// if(this.slickgrid_options) {
+		// 	$.extend(options, this.slickgrid_options);
+		// }
+
+		// this.dataView = new Slick.Data.DataView();
+		// this.set_data(data);
+
+		// var grid_wrapper = this.wrapper.find('.result-list').addClass("slick-wrapper");
+
+		// // set height if not auto
+		// if(!options.autoHeight)
+		// 	grid_wrapper.css('height', '500px');
+
+		// this.grid = new Slick.Grid(grid_wrapper
+		// 	.get(0), this.dataView,
+		// 	this.column_info, options);
+
+		// if (!frappe.dom.is_touchscreen()) {
+		// 	this.grid.setSelectionModel(new Slick.CellSelectionModel());
+		// 	this.grid.registerPlugin(new Slick.CellExternalCopyManager({
+		// 		dataItemColumnValueExtractor: function(item, columnDef, value) {
+		// 			return item[columnDef.field];
+		// 		}
+		// 	}));
+		// }
+
+		// frappe.slickgrid_tools.add_property_setter_on_resize(this.grid);
+		// if(this.start!=0 && !options.autoHeight) {
+		// 	this.grid.scrollRowIntoView(data.length-1);
+		// }
+
+		// this.grid.onDblClick.subscribe(function(e, args) {
+		// 	var row = me.dataView.getItem(args.row);
+		// 	var cell = me.grid.getColumns()[args.cell];
+		// 	me.edit_cell(row, cell.docfield);
+		// });
+
+		// this.dataView.onRowsChanged.subscribe(function (e, args) {
+		// 	me.grid.invalidateRows(args.rows);
+		// 	me.grid.render();
+		// });
+
+		// this.grid.onHeaderClick.subscribe(function(e, args) {
+		// 	if(e.target.className === "slick-resizable-handle")
+		// 		return;
+
+
+		// 	var df = args.column.docfield,
+		// 		sort_by = df.parent + "." + df.fieldname;
+
+		// 	if(sort_by===me.sort_by_select.val()) {
+		// 		me.sort_order_select.val(me.sort_order_select.val()==="asc" ? "desc" : "asc");
+		// 	} else {
+		// 		me.sort_by_select.val(df.parent + "." + df.fieldname);
+		// 		me.sort_order_select.val("asc");
+		// 	}
+
+		// 	me.run();
+		// });
+	},
+
+	render_datatable(columns, data) {
+
+		columns = columns.map(col => {
+			col.data = col.name;
+			return col;
 		});
 
-		var options = {
-			enableCellNavigation: true,
-			enableColumnReorder: false,
-		};
-
-		if(this.slickgrid_options) {
-			$.extend(options, this.slickgrid_options);
-		}
-
-		this.dataView = new Slick.Data.DataView();
-		this.set_data(data);
-
-		var grid_wrapper = this.wrapper.find('.result-list').addClass("slick-wrapper");
-
-		// set height if not auto
-		if(!options.autoHeight)
-			grid_wrapper.css('height', '500px');
-
-		this.grid = new Slick.Grid(grid_wrapper
-			.get(0), this.dataView,
-			this.column_info, options);
-
-		if (!frappe.dom.is_touchscreen()) {
-			this.grid.setSelectionModel(new Slick.CellSelectionModel());
-			this.grid.registerPlugin(new Slick.CellExternalCopyManager({
-				dataItemColumnValueExtractor: function(item, columnDef, value) {
-					return item[columnDef.field];
+		const rows = data.map((d, i) => {
+			return columns.map(col => {
+				if(col.name === 'Sr.') {
+					return { data: i };
 				}
-			}));
-		}
-
-		frappe.slickgrid_tools.add_property_setter_on_resize(this.grid);
-		if(this.start!=0 && !options.autoHeight) {
-			this.grid.scrollRowIntoView(data.length-1);
-		}
-
-		this.grid.onDblClick.subscribe(function(e, args) {
-			var row = me.dataView.getItem(args.row);
-			var cell = me.grid.getColumns()[args.cell];
-			me.edit_cell(row, cell.docfield);
+				if(col.field in d) {
+					const value = d[col.field];
+					return {
+						data: value,
+						format: function(value) {
+							return frappe.format(value, col.docfield, {always_show_decimals: true});
+						}
+					}
+				}
+				return {
+					data: ''
+				};
+			});
 		});
+		// console.log(columns, rows);
+		// return;
+		frappe.require([
+			'/assets/frappe/js/frappe/views/datatable/datatable.js',
+			'/assets/frappe/css/datatable.css'
+		], () => {
+			if(!this.datatable) {
+				//eslint-disable-next-line
+				this.datatable = new DataTable({
+					wrapper: this.wrapper.find('.result-list'),
+					events: {
+						on_cell_doubleclick: (el_cell, row_index, col_index) => {
+							const col = columns[col_index];
+							const row = data[row_index];
+							const value = row[col.field];
 
-		this.dataView.onRowsChanged.subscribe(function (e, args) {
-			me.grid.invalidateRows(args.rows);
-			me.grid.render();
-		});
+							const $cell = $(el_cell);
+							$cell.find('> div').hide();
+							const control = frappe.ui.form.make_control({
+								df: col.docfield,
+								parent: $cell,
+								render_input: true
+							});
 
-		this.grid.onHeaderClick.subscribe(function(e, args) {
-			if(e.target.className === "slick-resizable-handle")
-				return;
+							control.set_value(value);
+							control.toggle_label(false);
+							control.toggle_description(false);
+							// console.log(control);
+							// $(control.input).css('border', 'none').appendTo($cell);
 
-
-			var df = args.column.docfield,
-				sort_by = df.parent + "." + df.fieldname;
-
-			if(sort_by===me.sort_by_select.val()) {
-				me.sort_order_select.val(me.sort_order_select.val()==="asc" ? "desc" : "asc");
-			} else {
-				me.sort_by_select.val(df.parent + "." + df.fieldname);
-				me.sort_order_select.val("asc");
+						}
+					}
+				});
 			}
 
-			me.run();
+			this.datatable.render({columns, rows});
 		});
 	},
 
