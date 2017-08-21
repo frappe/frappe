@@ -18,14 +18,9 @@ frappe.standard_pages["query-report"] = function() {
 	// 	parent: wrapper,
 	// });
 
-	frappe.require([
-		'/assets/frappe/js/frappe/views/datatable/datatable.js',
-		'/assets/frappe/css/datatable.css'
-	], () => {
-		frappe.query_report = new frappe.views.QueryReport2({
-			parent: wrapper
-		});
-	})
+	frappe.query_report = new frappe.views.QueryReport2({
+		parent: wrapper
+	});
 
 
 	// $(wrapper).bind("show", function() {
@@ -38,8 +33,17 @@ frappe.views.QueryReport2 = class QueryReport2 {
 	constructor({ parent }) {
 		this.wrapper = parent.page.main;
 		this.prepare_report();
-		this.make_datatable();
 
+		frappe.require([
+			'/assets/frappe/js/frappe/views/datatable/datatable.js',
+			'/assets/frappe/css/datatable.css'
+		], () => {
+			this.make();
+		});
+	}
+
+	make() {
+		this.make_datatable();
 		this.get_data()
 			.then(data => {
 				this.datatable.render(data);
@@ -51,7 +55,8 @@ frappe.views.QueryReport2 = class QueryReport2 {
 	}
 
 	make_datatable() {
-		this.datatable = new frappe.views.DataTable({
+		// eslint-disable-next-line
+		this.datatable = new DataTable({
 			wrapper: this.wrapper
 		});
 	}
@@ -67,7 +72,8 @@ frappe.views.QueryReport2 = class QueryReport2 {
 				callback: r => {
 					const data = r.message;
 					const columns = this.parse_columns(data.columns);
-					const rows = this.format_rows(data.result, columns);
+					const rows = this.parse_rows(data.result);
+					// const rows = this.format_rows(data.result, columns);
 
 					res({ columns, rows });
 				}
@@ -76,39 +82,85 @@ frappe.views.QueryReport2 = class QueryReport2 {
 	}
 
 	parse_columns(columns) {
-		return columns.map(column => {
-			const part = column.split(':');
-
-			let fieldname, fieldtype, link_doctype, width;
-			fieldname = part[0];
-
-			fieldtype = part[1];
-			if(fieldtype.includes('/')) {
-				const parts = fieldtype.split('/');
-				fieldtype = parts[0];
-				link_doctype = parts[1];
+		return columns.map(col => {
+			let df, opts;
+			if ($.isPlainObject(col)) {
+				df = col;
+			} else if (col.includes(':')) {
+				opts = col.split(':');
+				df = {
+					label: opts.length <= 2 ? opts[0] : opts.slice(0, opts.length - 2).join('/'),
+					fieldtype: opts.length <= 2 ? opts[1] : opts[opts.length - 2],
+					width: opts.length <= 2 ? opts[2] : opts[opts.length - 1]
+				};
+				if (df.fieldtype.includes("/")) {
+					const [fieldtype, options] = df.fieldtype.split('/');
+					df.fieldtype = fieldtype;
+					df.options = options;
+				}
+				df.width = cint(df.width);
+			} else {
+				df = {
+					label: col,
+					fieldtype: "Data"
+				};
 			}
 
-			width = part[2];
+			if (!df.fieldtype) df.fieldtype = "Data";
+			if (!cint(df.width)) df.width = 80;
 
-			return {
-				fieldname, fieldtype, link_doctype, width
-			}
+
+			const value = df.label || (df.fieldname && __(toTitle(df.fieldname.replace(/_/g, " ")))) || "";
+			let _col = $.extend({}, df, {
+				data: __(value),
+				df: df,
+				width: df.width
+			});
+			return _col;
 		});
+		// return columns.map(column => {
+		// 	const part = column.split(':');
+
+		// 	let fieldname, fieldtype, link_doctype, width;
+		// 	fieldname = part[0];
+
+		// 	fieldtype = part[1];
+		// 	if(fieldtype.includes('/')) {
+		// 		const parts = fieldtype.split('/');
+		// 		fieldtype = parts[0];
+		// 		link_doctype = parts[1];
+		// 	}
+
+		// 	width = part[2];
+
+		// 	return {
+		// 		data: fieldname,
+		// 		width: width
+		// 	};
+		// });
 	}
 
-	format_rows(rows, columns) {
-		// console.log(rows, columns);
-		return rows.map(row => {
-			return row.map((col, i) => {
-				const col_header = columns[i];
-				if(col_header.fieldtype && col_header.fieldtype === 'Link') {
-					return `<a href='#Form/${col_header.link_doctype}/${col}'>${col}</a>`;
+	parse_rows(rows) {
+		return rows.map(cells => {
+			return cells.map(cell => {
+				return {
+					data: cell
 				}
-				return col;
 			});
 		});
 	}
+
+	// format_rows(rows, columns) {
+	// 	return rows.map(row => {
+	// 		return row.map((col, i) => {
+	// 			const col_header = columns[i];
+	// 			if(col_header.fieldtype && col_header.fieldtype === 'Link') {
+	// 				return `<a href='#Form/${col_header.link_doctype}/${col}'>${col}</a>`;
+	// 			}
+	// 			return col;
+	// 		});
+	// 	});
+	// }
 }
 
 frappe.views.QueryReport = Class.extend({

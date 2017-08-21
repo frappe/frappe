@@ -1,9 +1,16 @@
+.table {
+  margin: 0;
+}
 .data-table {
   width: 100%;
   position: relative;
   overflow: auto;
   font-size: 12px;
   border-collapse: collapse;
+}
+.data-table .table > thead > tr > td,
+.data-table .table > tbody > tr > td {
+  padding: 0;
 }
 .body-scrollable {
   max-height: 500px;
@@ -17,23 +24,9 @@
   color: #8D99A6;
   font-weight: bold;
 }
-.data-table-col {
-  display: table-cell;
-  border: 1px solid #d1d8dd;
-  white-space: nowrap;
+.data-table-header .content span {
+  cursor: pointer;
 }
-.data-table-col > div {
-  padding: 10px;
-}
-.data-table-col.numeric {
-  text-align: right;
-}
-.data-table-col div {
-  border: 1px solid white;
-}
-.data-table-col.selected > div {
-  border: 1px solid #5E64FF;
-}
-.data-table-row {
-  display: table-row;
+.data-table-col .content {
+  padding: 8px;
 }
