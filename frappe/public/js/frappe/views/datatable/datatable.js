@@ -177,8 +177,8 @@ class DataTable {
 
 	sort_rows(col_index, sort_by='none') {
 		this.rows.sort((a, b) => {
-			const _a_index = a[0].data;
-			const _b_index = b[0].data;
+			const _a_index = a[0].row_index;
+			const _b_index = b[0].row_index;
 			const _a = a[col_index].data;
 			const _b = b[col_index].data;
 
