@@ -127,6 +127,7 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 			return;
 		}
 
+		this.is_list_view = true;
 		this.page_name = 'List/' + this.doctype;
 		this.dirty = true;
 		this.tags_shown = false;
