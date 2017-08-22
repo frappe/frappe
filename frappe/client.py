@@ -296,3 +296,8 @@ def get_js(items):
 		out.append(code)
 
 	return out
+
+@frappe.whitelist(allow_guest=True)
+def get_time_zone():
+	'''Returns default time zone'''
+	return {"time_zone": frappe.defaults.get_defaults().get("time_zone")}

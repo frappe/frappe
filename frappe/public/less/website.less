@@ -125,6 +125,7 @@ li {
 }
 
 .page_content {
+	padding-top: 30px;
 	padding-bottom: 30px;
 }
 
@@ -181,6 +182,7 @@ li {
 }
 
 .page-head {
+	margin-bottom: -30px;
 	h1, h2 {
 		margin-top: 0px;
 	}
@@ -221,9 +223,13 @@ fieldset {
 }
 
 .page-container {
-	padding: 0px;
+	display: flex;
 	max-width: 970px;
-	margin: auto;
+	margin: 0 auto;
+
+	@media(max-width: @screen-xs) {
+		flex-direction: column-reverse;
+	}
 }
 
 .page-max-width {
@@ -241,12 +247,11 @@ fieldset {
 .web-sidebar {
 	position: relative;
 
-	.sidebar-item {
+	.sidebar-item:not(:last-child) {
 		margin: 0px;
 		padding-bottom: 12px;
 		border: none;
 		color: @text-muted;
-		font-size: 12px;
 
 		.badge {
 			font-weight: normal;
@@ -255,20 +260,21 @@ fieldset {
 	}
 
 	.sidebar-item a {
-		color: @text-color !important;
-	}
+		color: @text-muted;
 
-	.sidebar-item a.active {
-		color: @text-color !important;
-		font-weight: 500 !important;
+		&.active {
+			color: @text-color;
+		}
 	}
 
 	.sidebar-items {
-		// margin-top:30px;
-		margin-bottom:30px;
 		.title{
 			font-size: 14px;
 			font-weight: bold;
+		}
+
+		ul {
+			margin-bottom: 0;
 		}
 	}
 }
@@ -378,11 +384,6 @@ textarea {
 	}
 }
 
-@media (max-width: 767px) {
-	.visible-xs {
-		display: inline-block !important;
-	}
-}
 
 .more-block {
 	padding-bottom: 30px;
@@ -477,16 +478,54 @@ a.active {
 	margin-top: 60px;
 }
 
-.sidebar-block, .page-content {
-	padding-top: 30px;
-	padding-bottom: 50px;
+.sidebar-block {
+	flex: 1;
+	font-size: @text-medium;
+	border-right: 1px solid @border-color;
+	padding: 30px;
+	padding-left: 0px;
+
+	@media(max-width: @screen-xs) {
+		font-size: @text-regular;
+		border-right: none;
+		border-top: 1px solid @border-color;
+		padding-left: 20px;
+	}
 }
+
+.page-content {
+	flex: 6;
+
+	h1:first-child {
+		margin-top: 0;
+	}
+}
+
+.page-content.with-sidebar {
+	padding: 30px;
+	padding-left: 40px;
+}
+
+.page-content.without-sidebar {
+	padding-top: 30px;
+}
+
 .your-account-info {
 	margin-top: 30px;
 }
 
-.page-content.with-sidebar {
-	padding-left: 50px;
+@media (max-width: 767px) {
+	.visible-xs {
+		display: inline-block !important;
+	}
+	.sidebar-block {
+		width: 100%;
+	}
+	.page-content.with-sidebar {
+		width: 100%;
+		padding-left: 20px;
+		padding-right: 20px;
+	}
 }
 
 @media screen and (max-width: 480px) {

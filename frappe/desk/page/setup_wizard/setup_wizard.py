@@ -267,3 +267,10 @@ def email_setup_wizard_exception(traceback, args):
 
 def get_language_code(lang):
 	return frappe.db.get_value('Language', {'language_name':lang})
+
+
+def enable_twofactor_all_roles():
+	all_role = frappe.get_doc('Role',{'role_name':'All'})
+	all_role.two_factor_auth = True
+	all_role.save(ignore_permissions=True)
+

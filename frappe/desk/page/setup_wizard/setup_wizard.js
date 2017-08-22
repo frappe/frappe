@@ -561,7 +561,7 @@ var frappe_slides = [
 				}
 			}
 		},
-	},
+	}
 ];
 
 var utils = {

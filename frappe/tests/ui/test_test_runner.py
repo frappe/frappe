@@ -6,6 +6,7 @@ class TestTestRunner(unittest.TestCase):
 	def test_test_runner(self):
 		driver = TestDriver()
 		driver.login()
+		frappe.db.set_default('in_selenium', '1')
 		for test in get_tests():
 			if test.startswith('#'):
 				continue
@@ -33,6 +34,7 @@ class TestTestRunner(unittest.TestCase):
 			print('Checking if passed "{0}"'.format(test))
 			self.assertTrue('Tests Passed' in console)
 			time.sleep(1)
+		frappe.db.set_default('in_selenium', None)
 		driver.close()
 
 def get_tests():

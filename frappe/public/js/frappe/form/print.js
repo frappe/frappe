@@ -132,11 +132,14 @@ frappe.ui.form.PrintPreview = Class.extend({
 	show_footer: function() {
 		// footer is hidden by default as reqd by pdf generation
 		// simple hack to show it in print preview
-		this.wrapper.find('.print-format').css('position', 'relative');
+		this.wrapper.find('.page-break').css({
+			'display': 'flex',
+			'flex-direction': 'column'
+		});
 		this.wrapper.find('#footer-html').attr('style', `
 			display: block !important;
-			position: absolute;
-			bottom: 0.75in;
+			order: 1;
+			margin-top: 20px;
 		`);
 	},
 	printit: function () {

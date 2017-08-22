@@ -184,12 +184,12 @@ frappe.views.QueryReport = Class.extend({
 			frappe.msgprint(__("You are not allowed to print this report"));
 			return false;
 		}
-
 		if(this.html_format) {
 			var content = frappe.render(this.html_format, {
 				data: frappe.slickgrid_tools.get_filtered_items(this.dataView),
 				filters: this.get_values(),
-				report: this
+				report: this,
+				data_to_be_printed: this.data_to_be_printed
 			});
 
 			frappe.render_grid({
@@ -223,7 +223,8 @@ frappe.views.QueryReport = Class.extend({
 			var content = frappe.render(this.html_format, {
 				data: frappe.slickgrid_tools.get_filtered_items(this.dataView),
 				filters:this.get_values(),
-				report:this
+				report:this,
+				data_to_be_printed: this.data_to_be_printed
 			});
 
 			//Render Report in HTML
@@ -487,6 +488,7 @@ frappe.views.QueryReport = Class.extend({
 
 		this.set_message(res.message);
 		this.setup_chart(res);
+		this.set_print_data(res.data_to_be_printed);
 
 		this.toggle_expand_collapse_buttons(this.is_tree_report);
 	},
@@ -897,5 +899,9 @@ frappe.views.QueryReport = Class.extend({
 		if(this.chart && opts.data && opts.data.rows && opts.data.rows.length) {
 			this.chart_area.toggle(true);
 		}
+	},
+
+	set_print_data: function(data_to_be_printed) {
+		this.data_to_be_printed = data_to_be_printed;
 	}
 })
