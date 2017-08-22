@@ -31,6 +31,7 @@ class DataTable {
 	}
 
 	render({ columns, rows }) {
+		debugger;
 		console.log(columns, rows);
 		this.columns = this.prepare_columns(columns);
 		this.rows = this.prepare_rows(rows);
@@ -119,13 +120,20 @@ class DataTable {
 		let $curr_cell, start_width, start_x, last_width;
 
 		this.header.on('mousedown', '.data-table-col', function(e) {
-			is_dragging = true;
 			$curr_cell = $(this);
+			const col = me.get_column($curr_cell.attr('data-col-index'));
+			if(col && col.resizable === false) {
+				return;
+			}
+
+			is_dragging = true;
 			start_width = $curr_cell.find('.content').width();
 			start_x = e.pageX;
 		});
 
 		$('body').on('mouseup', function(e) {
+			if(!$curr_cell) return;
+
 			is_dragging = false;
 			const col_index = $curr_cell.attr('data-col-index');
 			if($curr_cell) {
@@ -207,6 +215,10 @@ class DataTable {
 			$el = this.body_scrollable.find(selector);
 		}
 		$el.css('width', width);
+	}
+
+	get_column(col_index) {
+		return this.columns.find(col => col.col_index == col_index);
 	}
 }
 

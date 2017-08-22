@@ -1,3 +1,4 @@
+/* global DataTable */
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
@@ -68,7 +69,13 @@ frappe.views.ReportView = frappe.ui.BaseList.extend({
 		$.extend(this, opts);
 		this.can_delete = frappe.model.can_delete(me.doctype);
 		this.tab_name = '`tab'+this.doctype+'`';
-		this.setup();
+
+		frappe.require([
+			'/assets/frappe/js/frappe/views/datatable/datatable.js',
+			'/assets/frappe/css/datatable.css'
+		], () => {
+			this.setup();
+		});
 	},
 
 	setup: function() {
@@ -389,16 +396,16 @@ frappe.views.ReportView = frappe.ui.BaseList.extend({
 	// render data
 	render_view: function() {
 		var me = this;
+		this.set_totals_row();
 		var data = this.get_unique_data(this.column_info);
 		var columns = this.column_info;
-		// console.log(data, this);
+
 		this.render_datatable(columns, data);
-		// return;
 
 
-		// this.set_totals_row();
 
-		// // add sr in data
+
+		// add sr in data
 		// $.each(data, function(i, v) {
 		// 	// add index
 		// 	v._idx = i+1;
@@ -410,6 +417,7 @@ frappe.views.ReportView = frappe.ui.BaseList.extend({
 		// 	enableColumnReorder: false,
 		// };
 
+
 		// if(this.slickgrid_options) {
 		// 	$.extend(options, this.slickgrid_options);
 		// }
@@ -419,7 +427,7 @@ frappe.views.ReportView = frappe.ui.BaseList.extend({
 
 		// var grid_wrapper = this.wrapper.find('.result-list').addClass("slick-wrapper");
 
-		// // set height if not auto
+		// set height if not auto
 		// if(!options.autoHeight)
 		// 	grid_wrapper.css('height', '500px');
 
@@ -436,7 +444,9 @@ frappe.views.ReportView = frappe.ui.BaseList.extend({
 		// 	}));
 		// }
 
+		// update column width on resize
 		// frappe.slickgrid_tools.add_property_setter_on_resize(this.grid);
+
 		// if(this.start!=0 && !options.autoHeight) {
 		// 	this.grid.scrollRowIntoView(data.length-1);
 		// }
@@ -475,6 +485,9 @@ frappe.views.ReportView = frappe.ui.BaseList.extend({
 
 		columns = columns.map(col => {
 			col.data = col.name;
+			if (['_idx', '_check'].includes(col.id)) {
+				col.resizable = false;
+			}
 			return col;
 		});
 
@@ -497,43 +510,35 @@ frappe.views.ReportView = frappe.ui.BaseList.extend({
 				};
 			});
 		});
-		// console.log(columns, rows);
-		// return;
-		frappe.require([
-			'/assets/frappe/js/frappe/views/datatable/datatable.js',
-			'/assets/frappe/css/datatable.css'
-		], () => {
-			if(!this.datatable) {
-				//eslint-disable-next-line
-				this.datatable = new DataTable({
-					wrapper: this.wrapper.find('.result-list'),
-					events: {
-						on_cell_doubleclick: (el_cell, row_index, col_index) => {
-							const col = columns[col_index];
-							const row = data[row_index];
-							const value = row[col.field];
 
-							const $cell = $(el_cell);
-							$cell.find('> div').hide();
-							const control = frappe.ui.form.make_control({
-								df: col.docfield,
-								parent: $cell,
-								render_input: true
-							});
-
-							control.set_value(value);
-							control.toggle_label(false);
-							control.toggle_description(false);
-							// console.log(control);
-							// $(control.input).css('border', 'none').appendTo($cell);
-
-						}
-					}
-				});
-			}
-
+		if (this.datatable) {
 			this.datatable.render({columns, rows});
+			return;
+		}
+
+		this.datatable = new DataTable({
+			wrapper: this.wrapper.find('.result-list'),
+			events: {
+				on_cell_doubleclick: (el_cell, row_index, col_index) => {
+					const col = columns[col_index];
+					const row = data[row_index];
+					const value = row[col.field];
+
+					const $cell = $(el_cell);
+					$cell.find('> div').hide();
+					const control = frappe.ui.form.make_control({
+						df: col.docfield,
+						parent: $cell,
+						render_input: true
+					});
+
+					control.set_value(value);
+					control.toggle_label(false);
+					control.toggle_description(false);
+				}
+			}
 		});
+		this.datatable.render({columns, rows});
 	},
 
 	has_child_column: function() {
@@ -647,11 +652,11 @@ frappe.views.ReportView = frappe.ui.BaseList.extend({
 		});
 	},
 
-	set_data: function(data) {
-		this.dataView.beginUpdate();
-		this.dataView.setItems(data);
-		this.dataView.endUpdate();
-	},
+	// set_data: function(data) {
+	// 	this.dataView.beginUpdate();
+	// 	this.dataView.setItems(data);
+	// 	this.dataView.endUpdate();
+	// },
 
 	get_columns: function() {
 		var std_columns = [{id:'_idx', field:'_idx', name: 'Sr.', width: 40, maxWidth: 40}];
