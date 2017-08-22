@@ -108,6 +108,10 @@ frappe.views.ListRenderer = Class.extend({
 			add_field(this.meta.title_field);
 		}
 
+		if (this.meta.image_field) {
+			add_field(this.meta.image_field);
+		}
+
 		// enabled / disabled
 		if (frappe.meta.has_field(this.doctype, 'enabled')) { add_field('enabled'); }
 		if (frappe.meta.has_field(this.doctype, 'disabled')) { add_field('disabled'); }

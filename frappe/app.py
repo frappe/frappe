@@ -178,7 +178,8 @@ def handle_exception(e):
 		make_error_snapshot(e)
 
 	if return_as_message:
-		response = frappe.website.render.render("message", http_status_code=http_status_code)
+		response = frappe.website.render.render("message",
+			http_status_code=http_status_code)
 
 	return response
 
