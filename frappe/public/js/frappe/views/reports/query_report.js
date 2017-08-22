@@ -373,7 +373,7 @@ frappe.views.QueryReport = Class.extend({
 			}, 300);
 		}
 	},
- 	_refresh: function() {
+	_refresh: function() {
 		// Run
 		var me = this;
 
