@@ -92,7 +92,7 @@ class RedisWrapper(redis.Redis):
 
 		except redis.exceptions.ConnectionError:
 			regex = re.compile(cstr(key).replace("|", "\|").replace("*", "[\w]*"))
-			return [k for k in frappe.local.cache.keys() if regex.match(k)]
+			return [k for k in frappe.local.cache.keys() if regex.match(k.decode())]
 
 	def delete_keys(self, key):
 		"""Delete keys with wildcard `*`."""
