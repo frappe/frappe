@@ -185,9 +185,10 @@ frappe.ui.BaseList = Class.extend({
 		}
 
 		if (this.meta) {
-			var filter_count = 1;
-			$(`<span class="octicon octicon-search text-muted small"></span>`)
-				.appendTo(this.page.page_form);
+			if(this.is_list_view) {
+				$(`<span class="octicon octicon-search text-muted small"></span>`)
+					.prependTo(this.page.page_form);
+			}
 			this.page.add_field({
 				fieldtype: 'Data',
 				label: 'ID',

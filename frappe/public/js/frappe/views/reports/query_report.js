@@ -365,6 +365,16 @@ frappe.views.QueryReport = Class.extend({
 		}
 	},
 	refresh: function() {
+		// throttle
+		// stop refresh from being called multiple times (from triggers ?)
+		if (!this.request_refresh) {
+			this.request_refresh = setTimeout(() => {
+				this._refresh();
+				this.request_refresh = null;
+			}, 300);
+		}
+	},
+	_refresh: function() {
 		// Run
 		var me = this;
 
