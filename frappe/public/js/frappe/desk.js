@@ -482,14 +482,14 @@ frappe.Application = Class.extend({
 	},
 
 	setup_beforeunload: function() {
-		if (frappe.defaults.get_default('in_selenium')) {
+		if (frappe.defaults.get_default('in_selenium') || frappe.boot.developer_mode) {
 			return;
 		}
 		window.onbeforeunload = function () {
 			if (frappe.flags.in_test) return null;
 			var unsaved_docs = [];
-			for (doctype in locals) {
-				for (name in locals[doctype]) {
+			for (const doctype in locals) {
+				for (const name in locals[doctype]) {
 					var doc = locals[doctype][name];
 					if(doc.__unsaved) { unsaved_docs.push(doc.name); }
 				}
