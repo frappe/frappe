@@ -670,7 +670,7 @@ class Database:
 				delete from tabSingles
 				where field in ({0}) and
 					doctype=%s'''.format(', '.join(['%s']*len(keys))),
-					keys + [dt], debug=debug)
+					list(keys) + [dt], debug=debug)
 			for key, value in iteritems(to_update):
 				self.sql('''insert into tabSingles(doctype, field, value) values (%s, %s, %s)''',
 					(dt, key, value), debug=debug)
