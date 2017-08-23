@@ -442,15 +442,14 @@ frappe.ui.Filter = Class.extend({
 		var me = this;
 
 		// add a button for new filter if missing
-		this.$btn_group = $('<div class="btn-group">\
-			<button class="btn btn-default btn-xs toggle-filter"\
-				title="'+__("Edit Filter")+'">\
-				%(label)s %(condition)s "%(value)s"\
-			</button>\
-			<button class="btn btn-default btn-xs remove-filter"\
-				title="'+__("Remove Filter")+'">\
-				<i class="fa fa-remove text-muted"></i>\
-			</button></div>')
+		this.$btn_group = $(`<div class="btn-group">
+			<button class="btn btn-default btn-xs toggle-filter"
+				title="${ __("Edit Filter") }">
+			</button>
+			<button class="btn btn-default btn-xs remove-filter"
+				title="${ __("Remove Filter") }">
+				<i class="fa fa-remove text-muted"></i>
+			</button></div>`)
 			.insertAfter(this.flist.wrapper.find(".set-filters .new-filter"));
 
 		this.set_filter_button_text();
