@@ -555,7 +555,7 @@ frappe.ui.form.Section = Class.extend({
 			if (f.df.fieldtype=='Signature') {
 				f.refresh();
 			}
-		})
+		});
 	},
 	has_missing_mandatory: function() {
 		var missing_mandatory = false;
