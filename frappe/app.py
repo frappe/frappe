@@ -6,6 +6,7 @@ from __future__ import unicode_literals
 import os
 import MySQLdb
 from six import iteritems
+import logging
 
 from werkzeug.wrappers import Request
 from werkzeug.local import LocalManager
@@ -177,7 +178,8 @@ def handle_exception(e):
 		make_error_snapshot(e)
 
 	if return_as_message:
-		response = frappe.website.render.render("message", http_status_code=http_status_code)
+		response = frappe.website.render.render("message",
+			http_status_code=http_status_code)
 
 	return response
 
@@ -212,11 +214,11 @@ def serve(port=8000, profile=False, site=None, sites_path='.'):
 
 	if not os.environ.get('NO_STATICS'):
 		application = SharedDataMiddleware(application, {
-			b'/assets': os.path.join(sites_path, 'assets').encode("utf-8"),
+			b'/assets': os.path.join(sites_path, 'assets'),
 		})
 
 		application = StaticDataMiddleware(application, {
-			b'/files': os.path.abspath(sites_path).encode("utf-8")
+			b'/files': os.path.abspath(sites_path)
 		})
 
 	application.debug = True
@@ -225,6 +227,10 @@ def serve(port=8000, profile=False, site=None, sites_path='.'):
 	}
 
 	in_test_env = os.environ.get('CI')
+	if in_test_env:
+		log = logging.getLogger('werkzeug')
+		log.setLevel(logging.ERROR)
+
 	run_simple('0.0.0.0', int(port), application,
 		use_reloader=not in_test_env,
 		use_debugger=not in_test_env,

@@ -2,7 +2,7 @@ from __future__ import print_function
 import requests
 import json
 import frappe
-from six import iteritems
+from six import iteritems, string_types
 
 '''
 FrappeClient is a library that helps you connect with other frappe systems
@@ -49,7 +49,7 @@ class FrappeClient(object):
 
 	def get_list(self, doctype, fields='"*"', filters=None, limit_start=0, limit_page_length=0):
 		"""Returns list of records of a particular type"""
-		if not isinstance(fields, basestring):
+		if not isinstance(fields, string_types):
 			fields = json.dumps(fields)
 		params = {
 			"fields": fields,

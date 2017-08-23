@@ -9,9 +9,10 @@ import pyotp, os
 from frappe.utils.background_jobs import enqueue
 from jinja2 import Template
 from pyqrcode import create as qrcreate
-from StringIO import StringIO
+from six import StringIO
 from base64 import b64encode, b32encode
 from frappe.utils import get_url, get_datetime, time_diff_in_seconds
+from six import string_types
 
 class ExpiredLoginException(Exception): pass
 
@@ -73,7 +74,7 @@ def cache_2fa_data(user, token, otp_secret, tmp_id):
 
 def two_factor_is_enabled_for_(user):
 	'''Check if 2factor is enabled for user.'''
-	if isinstance(user, basestring):
+	if isinstance(user, string_types):
 		user = frappe.get_doc('User', user)
 
 	roles = [frappe.db.escape(d.role) for d in user.roles or []]
@@ -357,7 +358,7 @@ def delete_all_barcodes_for_users():
 
 def should_remove_barcode_image(barcode):
 	'''Check if it's time to delete barcode image from server. '''
-	if isinstance(barcode, basestring):
+	if isinstance(barcode, string_types):
 		barcode = frappe.get_doc('File', barcode)
 	lifespan = frappe.db.get_value('System Settings', 'System Settings', 'lifespan_qrcode_image')
 	if time_diff_in_seconds(get_datetime(), barcode.creation) > int(lifespan):

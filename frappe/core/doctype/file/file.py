@@ -21,7 +21,7 @@ from frappe import _
 from frappe.utils.nestedset import NestedSet
 from frappe.utils import strip, get_files_path
 from PIL import Image, ImageOps
-from six import StringIO
+from six import StringIO, string_types
 from six.moves.urllib.parse import unquote
 import zipfile
 
@@ -170,7 +170,7 @@ class File(NestedSet):
 		super(File, self).on_trash()
 		self.delete_file()
 
-	def make_thumbnail(self):
+	def make_thumbnail(self, set_as_thumbnail=True, width=300, height=300, suffix="small"):
 		if self.file_url:
 			if self.file_url.startswith("/files"):
 				try:
@@ -184,15 +184,19 @@ class File(NestedSet):
 				except (requests.exceptions.HTTPError, requests.exceptions.SSLError, IOError):
 					return
 
-			size = 300, 300
+			size = width, height
 			image.thumbnail(size)
 
-			thumbnail_url = filename + "_small." + extn
+			thumbnail_url = filename + "_" + suffix + "." + extn
 
 			path = os.path.abspath(frappe.get_site_path("public", thumbnail_url.lstrip("/")))
 
 			try:
 				image.save(path)
+
+				if set_as_thumbnail:
+					self.db_set("thumbnail_url", thumbnail_url)
+
 				self.db_set("thumbnail_url", thumbnail_url)
 			except IOError:
 				frappe.msgprint(_("Unable to write file format for {0}").format(path))
@@ -305,7 +309,7 @@ def create_new_folder(file_name, folder):
 
 @frappe.whitelist()
 def move_file(file_list, new_parent, old_parent):
-	if isinstance(file_list, basestring):
+	if isinstance(file_list, string_types):
 		file_list = json.loads(file_list)
 
 	for file_obj in file_list:
@@ -325,7 +329,12 @@ def setup_folder_path(filename, new_parent):
 
 def get_extension(filename, extn, content):
 	mimetype = None
+
 	if extn:
+		# remove '?' char and parameters from extn if present
+		if '?' in extn:
+			extn = extn.split('?', 1)[0]
+
 		mimetype = mimetypes.guess_type(filename + "." + extn)[0]
 
 	if mimetype is None or not mimetype.startswith("image/") and content:

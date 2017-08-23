@@ -72,13 +72,13 @@ class Newsletter(Document):
 			files = frappe.get_all("File", fields = ["name"], filters = {"attached_to_doctype": "Newsletter",
 				"attached_to_name":self.name}, order_by="creation desc")
 
-			for a in files:
+			for file in files:
 				try:
 					# these attachments will be attached on-demand
 					# and won't be stored in the message
 					attachments.append({"fid": file.name})
 				except IOError:
-					frappe.throw(_("Unable to find attachment {0}").format(a))
+					frappe.throw(_("Unable to find attachment {0}").format(file.name))
 
 		send(recipients = self.recipients, sender = sender,
 			subject = self.subject, message = self.message,

@@ -14,6 +14,13 @@
 	margin: 0px;
 	padding: 10px 0px;
 	border-bottom: 1px solid @border-color;
+
+	> div {
+		padding-right: 0px;
+	}
+	> div:last-child {
+		padding-right: 15px;
+	}
 }
 
 .form-inner-toolbar {
@@ -733,6 +740,16 @@ select.form-control {
 
 .password-strength-message {
 	margin-top: -10px;
+}
+
+.control-code, .control-code.bold {
+	height: 400px;
+	font-family: Monaco, "Courier New", monospace;
+	background-color: black;
+	color: @light-yellow;
+	font-size: 12px;
+	line-height: 1.7em;
+	border: none;
 }
 
 .delivery-status-indicator {

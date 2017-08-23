@@ -9,6 +9,7 @@ from frappe.utils import get_fullname
 from frappe import _
 from frappe.core.doctype.communication.comment import add_info_comment
 from frappe.core.doctype.authentication_log.authentication_log import add_authentication_log
+from six import string_types
 
 def update_feed(doc, method=None):
 	"adds a new communication with comment_type='Updated'"
@@ -25,7 +26,7 @@ def update_feed(doc, method=None):
 		feed = doc.get_feed()
 
 		if feed:
-			if isinstance(feed, basestring):
+			if isinstance(feed, string_types):
 				feed = {"subject": feed}
 
 			feed = frappe._dict(feed)

@@ -7,9 +7,9 @@ import frappe, os, copy, json, re
 from frappe import _
 
 from frappe.modules import get_doc_path
-from jinja2 import TemplateNotFound
 from frappe.utils import cint, strip_html
 from markdown2 import markdown
+from six import string_types
 
 no_cache = 1
 no_sitemap = 1
@@ -64,7 +64,7 @@ def get_html(doc, name=None, print_format=None, meta=None,
 
 	print_settings = frappe.db.get_singles_dict("Print Settings")
 
-	if isinstance(no_letterhead, basestring):
+	if isinstance(no_letterhead, string_types):
 		no_letterhead = cint(no_letterhead)
 
 	elif no_letterhead is None:
@@ -172,20 +172,20 @@ def convert_markdown(doc, meta):
 
 @frappe.whitelist()
 def get_html_and_style(doc, name=None, print_format=None, meta=None,
-	no_letterhead=None, trigger_print=False):
+	no_letterhead=None, trigger_print=False, style=None):
 	"""Returns `html` and `style` of print format, used in PDF etc"""
 
-	if isinstance(doc, basestring) and isinstance(name, basestring):
+	if isinstance(doc, string_types) and isinstance(name, string_types):
 		doc = frappe.get_doc(doc, name)
 
-	if isinstance(doc, basestring):
+	if isinstance(doc, string_types):
 		doc = frappe.get_doc(json.loads(doc))
 
 	print_format = get_print_format_doc(print_format, meta=meta or frappe.get_meta(doc.doctype))
 	return {
 		"html": get_html(doc, name=name, print_format=print_format, meta=meta,
 	no_letterhead=no_letterhead, trigger_print=trigger_print),
-		"style": get_print_style(print_format=print_format)
+		"style": get_print_style(style=style, print_format=print_format)
 	}
 
 def validate_print_permission(doc):
@@ -336,7 +336,7 @@ def has_value(df, doc):
 	if value in (None, ""):
 		return False
 
-	elif isinstance(value, basestring) and not strip_html(value).strip():
+	elif isinstance(value, string_types) and not strip_html(value).strip():
 		return False
 
 	elif isinstance(value, list) and not len(value):
@@ -348,7 +348,7 @@ def get_print_style(style=None, print_format=None, for_legacy=False):
 	print_settings = frappe.get_doc("Print Settings")
 
 	if not style:
-		style = print_settings.print_style or "Standard"
+		style = print_settings.print_style or ''
 
 	context = {
 		"print_settings": print_settings,
@@ -358,10 +358,8 @@ def get_print_style(style=None, print_format=None, for_legacy=False):
 
 	css = frappe.get_template("templates/styles/standard.css").render(context)
 
-	try:
-		css += frappe.get_template("templates/styles/" + style.lower() + ".css").render(context)
-	except TemplateNotFound:
-		pass
+	if style and frappe.db.exists('Print Style', style):
+		css = css + '\n' + frappe.db.get_value('Print Style', style, 'css')
 
 	# move @import to top
 	for at_import in list(set(re.findall("(@import url\([^\)]+\)[;]?)", css))):
@@ -427,7 +425,7 @@ def column_has_value(data, fieldname):
 	for row in data:
 		value = row.get(fieldname)
 		if value:
-			if isinstance(value, basestring):
+			if isinstance(value, string_types):
 				if strip_html(value).strip():
 					has_value = True
 					break

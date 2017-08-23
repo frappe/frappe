@@ -6,7 +6,7 @@ globals attached to frappe module
 """
 from __future__ import unicode_literals, print_function
 
-from six import iteritems, text_type
+from six import iteritems, text_type, string_types
 from werkzeug.local import Local, release_local
 import os, sys, importlib, inspect, json
 
@@ -61,7 +61,7 @@ def as_unicode(text, encoding='utf-8'):
 		return text
 	elif text==None:
 		return ''
-	elif isinstance(text, basestring):
+	elif isinstance(text, string_types):
 		return text_type(text, encoding)
 	else:
 		return text_type(text)
@@ -164,7 +164,7 @@ def connect(site=None, db_name=None):
 
 	:param site: If site is given, calls `frappe.init`.
 	:param db_name: Optional. Will use from `site_config.json`."""
-	from database import Database
+	from frappe.database import Database
 	if site:
 		init(site)
 	local.db = Database(user=db_name or local.conf.db_name)
@@ -235,8 +235,8 @@ def cache():
 
 def get_traceback():
 	"""Returns error traceback."""
-	import utils
-	return utils.get_traceback()
+	from frappe.utils import get_traceback
+	return get_traceback()
 
 def errprint(msg):
 	"""Log error. This is sent back as `exc` in response.
@@ -268,7 +268,7 @@ def msgprint(msg, title=None, raise_exception=0, as_table=False, indicator=None,
 	:param raise_exception: [optional] Raise given exception and show message.
 	:param as_table: [optional] If `msg` is a list of lists, render as HTML table.
 	"""
-	from utils import encode
+	from frappe.utils import encode
 
 	out = _dict(message=msg)
 
@@ -421,8 +421,8 @@ def sendmail(recipients=[], sender="", subject="No Subject", message="No Message
 	if not delayed:
 		now = True
 
-	import email.queue
-	email.queue.send(recipients=recipients, sender=sender,
+	from frappe.email import queue
+	queue.send(recipients=recipients, sender=sender,
 		subject=subject, message=message, text_content=text_content,
 		reference_doctype = doctype or reference_doctype, reference_name = name or reference_name,
 		unsubscribe_method=unsubscribe_method, unsubscribe_params=unsubscribe_params, unsubscribe_message=unsubscribe_message,
@@ -488,7 +488,7 @@ def clear_cache(user=None, doctype=None):
 	elif user:
 		frappe.sessions.clear_cache(user)
 	else: # everything
-		import translate
+		from frappe import translate
 		frappe.sessions.clear_cache()
 		translate.clear_cache()
 		reset_metadata_version()
@@ -533,7 +533,7 @@ def has_website_permission(doc=None, ptype='read', user=None, verbose=False, doc
 		user = session.user
 
 	if doc:
-		if isinstance(doc, basestring):
+		if isinstance(doc, string_types):
 			doc = get_doc(doctype, doc)
 
 		doctype = doc.doctype
@@ -576,7 +576,7 @@ def generate_hash(txt=None, length=None):
 	"""Generates random hash for given text + current timestamp + random string."""
 	import hashlib, time
 	from .utils import random_string
-	digest = hashlib.sha224((txt or "") + repr(time.time()) + repr(random_string(8))).hexdigest()
+	digest = hashlib.sha224(((txt or "") + repr(time.time()) + repr(random_string(8))).encode()).hexdigest()
 	if length:
 		digest = digest[:length]
 	return digest
@@ -903,7 +903,7 @@ def get_attr(method_string):
 
 def call(fn, *args, **kwargs):
 	"""Call a function and match arguments."""
-	if isinstance(fn, basestring):
+	if isinstance(fn, string_types):
 		fn = get_attr(fn)
 
 	if hasattr(fn, 'fnargs'):
@@ -1111,7 +1111,7 @@ def get_list(doctype, *args, **kwargs):
 	:param filters: List of filters (see example).
 	:param order_by: Order By e.g. `modified desc`.
 	:param limit_page_start: Start results at record #. Default 0.
-	:param limit_poge_length: No of records in the page. Default 20.
+	:param limit_page_length: No of records in the page. Default 20.
 
 	Example usage:
 
@@ -1136,7 +1136,7 @@ def get_all(doctype, *args, **kwargs):
 	:param filters: List of filters (see example).
 	:param order_by: Order By e.g. `modified desc`.
 	:param limit_page_start: Start results at record #. Default 0.
-	:param limit_poge_length: No of records in the page. Default 20.
+	:param limit_page_length: No of records in the page. Default 20.
 
 	Example usage:
 

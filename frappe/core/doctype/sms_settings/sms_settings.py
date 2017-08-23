@@ -9,6 +9,7 @@ from frappe import _, throw, msgprint
 from frappe.utils import nowdate
 
 from frappe.model.document import Document
+from six import string_types
 
 class SMSSettings(Document):
 	pass
@@ -55,7 +56,7 @@ def get_contact_number(contact_name, ref_doctype, ref_name):
 def send_sms(receiver_list, msg, sender_name = '', success_msg = True):
 
 	import json
-	if isinstance(receiver_list, basestring):
+	if isinstance(receiver_list, string_types):
 		receiver_list = json.loads(receiver_list)
 		if not isinstance(receiver_list, list):
 			receiver_list = [receiver_list]
