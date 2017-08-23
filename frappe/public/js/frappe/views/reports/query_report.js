@@ -535,11 +535,8 @@ frappe.views.QueryReport = Class.extend({
 				df.label = __(df.label);
 				col.name = col.id = col.label = df.label;
 			
-				if(df.width < 0)
-				{
-					col = $.extend({}, col, {
-						hidden: true
-					});
+				if(df.width < 0) {
+					col.hidden = true;
 				}
 			
 				return col
