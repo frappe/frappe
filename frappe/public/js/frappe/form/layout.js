@@ -549,6 +549,13 @@ frappe.ui.form.Section = Class.extend({
 		this.head.toggleClass("collapsed", hide);
 		this.indicator.toggleClass("octicon-chevron-down", hide);
 		this.indicator.toggleClass("octicon-chevron-up", !hide);
+
+		// refresh signature fields
+		this.fields_list.forEach((f) => {
+			if (f.df.fieldtype=='Signature') {
+				f.refresh();
+			}
+		})
 	},
 	has_missing_mandatory: function() {
 		var missing_mandatory = false;

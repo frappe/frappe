@@ -478,17 +478,16 @@ h6.uppercase,
   right: 12px;
 }
 .signature-reset {
+  z-index: 10;
   height: 30px;
   width: 30px;
   padding: 4px 0px;
 }
 .signature-img {
-  border: 1px solid #d1d8dd;
   background: #fff;
   border-radius: 3px;
   margin-top: 5px;
-  width: 100%;
-  max-height: 300px;
+  max-height: 150px;
 }
 .timeline-new-email {
   margin: 30px 0px;
