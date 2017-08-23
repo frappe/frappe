@@ -9,6 +9,7 @@ import frappe.share
 from frappe.utils import cint
 from frappe.boot import get_allowed_reports
 from frappe.permissions import get_roles, get_valid_perms
+from frappe.core.doctype.domain_settings.domain_settings import get_active_modules
 
 class UserPermissions:
 	"""
@@ -94,7 +95,7 @@ class UserPermissions:
 		self.build_perm_map()
 		user_shared = frappe.share.get_shared_doctypes()
 		no_list_view_link = []
-		active_modules = frappe.get_active_modules() or []
+		active_modules = get_active_modules() or []
 
 		for dt in self.doctype_map:
 			dtp = self.doctype_map[dt]

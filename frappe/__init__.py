@@ -481,6 +481,7 @@ def clear_cache(user=None, doctype=None):
 	:param user: If user is given, only user cache is cleared.
 	:param doctype: If doctype is given, only DocType cache is cleared."""
 	import frappe.sessions
+	from frappe.core.doctype.domain_settings.domain_settings import clear_domain_cache
 	if doctype:
 		import frappe.model.meta
 		frappe.model.meta.clear_cache(doctype)
@@ -492,7 +493,7 @@ def clear_cache(user=None, doctype=None):
 		frappe.sessions.clear_cache()
 		translate.clear_cache()
 		reset_metadata_version()
-		clear_domainification_cache()
+		clear_domain_cache()
 		local.cache = {}
 		local.new_doc_templates = {}
 
@@ -1358,39 +1359,11 @@ def safe_eval(code, eval_globals=None, eval_locals=None):
 
 	return eval(code, eval_globals, eval_locals)
 
-def get_active_domains():
-	""" get the domains set in the Domain Settings as active domain """
-
-	active_domains = cache().hget("domains", "active_domains") or None
-	if active_domains is None:
-		domains = get_all("Has Domain", filters={ "parent": "Domain Settings" },
-			fields=["domain"], distinct=True)
-
-		active_domains = [row.get("domain") for row in domains]
-		active_domains.append("")
-		cache().hset("domains", "active_domains", active_domains)
-
-	return active_domains
-
-def get_active_modules():
-	""" get the active modules from Module Def"""
-	active_modules = cache().hget("modules", "active_modules") or None
-	if active_modules is None:
-		active_modules = []
-		active_domains = get_active_domains()
-		for m in get_all("Module Def", fields=['name', 'restrict_to_domain']):
-			if (not m.restrict_to_domain) or (m.restrict_to_domain in active_domains):
-				active_modules.append(m)
-		cache().hset("modules", "active_modules", active_modules)
-
-	return active_modules
-
-def clear_domainification_cache():
-	_cache = cache()
-	_cache.delete_key("domains", "active_domains")
-	_cache.delete_key("modules", "active_modules")
-
 def get_system_settings(key):
 	if not local.system_settings.has_key(key):
 		local.system_settings.update({key: db.get_single_value('System Settings', key)})
 	return local.system_settings.get(key)
+
+def get_active_domains():
+	from frappe.core.doctype.domain_settings.domain_settings import get_active_domains
+	return get_active_domains()
