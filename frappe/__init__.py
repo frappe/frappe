@@ -1377,7 +1377,7 @@ def get_active_modules():
 	active_modules = cache().hget("modules", "active_modules") or None
 	if active_modules is None:
 		active_modules = []
-		domains = get_active_domains()
+		active_domains = get_active_domains()
 		for m in get_all("Module Def", fields=['name', 'restrict_to_domain']):
 			if (not m.restrict_to_domain) or (m.restrict_to_domain in active_domains):
 				active_modules.append(m)
