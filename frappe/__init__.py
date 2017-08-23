@@ -1383,6 +1383,24 @@ def get_active_modules():
 
 	return active_modules
 
+def get_blocked_doctypes():
+	""" get the active modules from Module Def"""
+	blocked_doctypes = cache().hget("doctypes", "blocked_doctypes") or None
+	if blocked_doctypes is None:
+		active_domains = get_active_domains()
+		if not active_domains:
+			blocked_doctypes = []
+		else:
+			doctypes = get_all("DocType", fields=["name"],
+				filters={
+					"ifnull(restrict_to_domain, '')": ("not in", ",".join(active_domains))
+				}
+			)
+			blocked_doctypes = [ d.get("name") for d in doctypes ]
+			cache().hset("blocked_doctypes", "blocked_doctypes", doctypes)
+
+	return blocked_doctypes
+
 def clear_domainification_cache():
 	_cache = cache()
 	_cache.delete_key("domains", "active_domains")

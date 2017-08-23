@@ -164,5 +164,4 @@ frappe.tests = {
 		control.val(value).trigger('change');
 		return frappe.timeout(0.5);
 	},
-
 };

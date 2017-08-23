@@ -34,14 +34,7 @@ def get_desktop_icons(user=None):
 		fields = ['module_name', 'hidden', 'label', 'link', 'type', 'icon', 'color',
 			'_doctype', '_report', 'idx', 'force_show', 'reverse', 'custom', 'standard', 'blocked']
 
-		active_domains = frappe.get_active_domains()
-
-		blocked_doctypes = frappe.get_all("DocType", filters={
-			"ifnull(restrict_to_domain, '')": ("not in", ",".join(active_domains))
-		}, fields=["name"])
-
-		blocked_doctypes = [ d.get("name") for d in blocked_doctypes ]
-
+		blocked_doctypes = frappe.get_blocked_doctypes()
 		standard_icons = frappe.db.get_all('Desktop Icon',
 			fields=fields, filters={'standard': 1})
 
@@ -90,9 +83,12 @@ def get_desktop_icons(user=None):
 				user_icons.append(standard_icon)
 
 		user_blocked_modules = frappe.get_doc('User', user).get_blocked_modules()
+		active_modules = frappe.get_active_modules()
 		for icon in user_icons:
 			if icon.module_name in user_blocked_modules:
 				icon.hidden = 1
+			if icon.type == "module" and not (icon.module_name in active_modules):
+				icon.blocked = 1
 
 		# sort by idx
 		user_icons.sort(lambda a, b: 1 if a.idx > b.idx else -1)
