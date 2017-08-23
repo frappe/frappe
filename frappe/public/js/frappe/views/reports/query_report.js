@@ -534,7 +534,11 @@ frappe.views.QueryReport = Class.extend({
 				col.field = df.fieldname || df.label;
 				df.label = __(df.label);
 				col.name = col.id = col.label = df.label;
-
+			
+				if(df.width < 0) {
+					col.hidden = true;
+				}
+			
 				return col
 			}));
 	},
