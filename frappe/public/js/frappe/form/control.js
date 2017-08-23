@@ -2194,15 +2194,13 @@ frappe.ui.form.ControlSignature = frappe.ui.form.ControlData.extend({
 			if (value) {
 				// load the image to find out the size, because scaling will affect
 				// stroke width
-				setTimeout(() => {
-					try {
-						this.$pad.jSignature('setData', value);
-						this.set_image(value);
-					}
-					catch (e){
-						console.log("Cannot set data for signature", value, e);
-					}
-				}, 200);
+				try {
+					this.$pad.jSignature('setData', value);
+					this.set_image(value);
+				}
+				catch (e){
+					console.log("Cannot set data for signature", value, e);
+				}
 			}
 
 			this.loading = false;
