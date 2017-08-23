@@ -233,7 +233,7 @@ frappe.ui.form.Dashboard = Class.extend({
 		} else {
 			frappe.route_options = this.get_document_filter(doctype);
 			if(show_open) {
-				$.extend(frappe.route_options, frappe.ui.notifications.get_filters(doctype));
+				frappe.ui.notifications.show_open_count_list(doctype);
 			}
 		}
 
