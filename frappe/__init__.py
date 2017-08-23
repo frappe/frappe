@@ -1376,9 +1376,11 @@ def get_active_modules():
 	""" get the active modules from Module Def"""
 	active_modules = cache().hget("modules", "active_modules") or None
 	if active_modules is None:
+		active_modules = []
 		domains = get_active_domains()
-		modules = get_all("Module Def", filters={"restrict_to_domain": ("in", domains)})
-		active_modules = [module.name for module in modules]
+		for m in get_all("Module Def", fields=['name', 'restrict_to_domain']):
+			if (not m.restrict_to_domain) or (m.restrict_to_domain in active_domains):
+				active_modules.append(m)
 		cache().hset("modules", "active_modules", active_modules)
 
 	return active_modules
