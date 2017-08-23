@@ -29,7 +29,8 @@ frappe.ui.color = {
 		if(color_names.includes(color_name)) {
 			return frappe.ui.color_map[color_name];
 		} else {
-			throw new RangeError(`${color_name} can be one of ${color_names}`);
+			// eslint-disable-next-line
+			console.warn(`'color_name' can be one of ${color_names} and not ${color_name}`);
 		}
 	},
 	get_color_shade: function(color_name, shade) {
@@ -43,7 +44,8 @@ frappe.ui.color = {
 		if(Object.keys(shades).includes(shade)) {
 			return frappe.ui.color_map[color_name][shades[shade]];
 		} else {
-			throw new RangeError(`${shade} can be one of ${Object.keys(shades)}`);
+			// eslint-disable-next-line
+			console.warn(`'shade' can be one of ${Object.keys(shades)} and not ${shade}`);
 		}
 	},
 	all: function() {
@@ -53,7 +55,7 @@ frappe.ui.color = {
 	names: function() {
 		return Object.keys(frappe.ui.color_map);
 	},
-	validate: function(color_name) {
+	is_standard: function(color_name) {
 		if(!color_name) return false;
 		if(color_name.startsWith('#')) {
 			return this.all().includes(color_name);
@@ -67,7 +69,10 @@ frappe.ui.color = {
 		}
 	},
 	get_contrast_color: function(hex) {
-		if(!this.validate(hex)) {
+		if(!this.validate_hex(hex)) {
+			return;
+		}
+		if(!this.is_standard(hex)) {
 			const brightness = this.brightness(hex);
 			if(brightness < 128) {
 				return this.lighten(hex, 0.5);
@@ -82,6 +87,11 @@ frappe.ui.color = {
 			return this.get(color_name, 'dark');
 		}
 		return this.get(color_name, 'extra-light');
+	},
+
+	validate_hex: function(hex) {
+		// https://stackoverflow.com/a/8027444/5353542
+		return /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i.test(hex);
 	},
 
 	lighten(color, percent) {
