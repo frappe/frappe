@@ -281,6 +281,19 @@ frappe.views.TreeView = Class.extend({
 			}
 		})
 	},
+	print_tree: function() {
+		if(!frappe.model.can_print(this.doctype)) {
+			frappe.msgprint(__("You are not allowed to print this report"));
+			return false;
+		}
+		this.tree.rootnode.load_all();
+		var tree = $(".tree.opened").html(); 
+		var me = this;
+		frappe.ui.get_print_settings(false, function(print_settings) {
+			var title =  __(me.docname || me.doctype);
+			frappe.render_tree({title: title, tree: tree, print_settings:print_settings});
+		});
+	},
 	set_primary_action: function(){
 		var me = this;
 		if (!this.opts.disable_add_node && this.can_create) {
@@ -305,7 +318,15 @@ frappe.views.TreeView = Class.extend({
 					me.make_tree();
 				}
 			},
-		]
+		];
+		if (this.doctype == "Warehouse") {
+			this.menu_items.push({
+				label: __('Print'),
+				action: function() {
+					me.print_tree();
+				}
+			});
+		}
 
 		if (me.opts.menu_items) {
 			me.menu_items.push.apply(me.menu_items, me.opts.menu_items)
