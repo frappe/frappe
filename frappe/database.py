@@ -607,7 +607,7 @@ class Database:
 		return r
 
 	def _get_value_for_many_names(self, doctype, names, field, debug=False):
-		names = filter(None, names)
+		names = list(filter(None, names))
 
 		if names:
 			return dict(self.sql("select name, `%s` from `tab%s` where name in (%s)" \
