@@ -111,6 +111,8 @@ frappe.ui.form.States = Class.extend({
 						me.frm.save("Update", success, null, on_error);
 					} else if(new_docstatus==2 && me.frm.doc.docstatus==1) {
 						me.frm.savecancel(null, success, on_error);
+					} else if(new_docstatus==2 && me.frm.doc.docstatus==0){
+						me.frm.savecancel(null, success, on_error);
 					} else {
 						frappe.msgprint(__("Document Status transition from ") + me.frm.doc.docstatus + " "
 							+ __("to") +
