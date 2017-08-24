@@ -222,7 +222,7 @@ class File(NestedSet):
 				if not self.flags.ignore_permissions and \
 					not frappe.has_permission(self.attached_to_doctype,
 						"write", self.attached_to_name):
-					frappe.throw(frappe._("No permission to write / remove."),
+					frappe.throw(frappe._("Cannot delete file as it belongs to {0} {1} for which you do not have permissions").format(self.attached_to_doctype, self.attached_to_name),
 						frappe.PermissionError)
 			except frappe.DoesNotExistError:
 				pass
