@@ -93,7 +93,10 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 		for i, d in enumerate(doctype_row[1:]):
 			if d not in ("~", "-"):
 				if d and doctype_row[i] in (None, '' ,'~', '-', 'DocType:'):
-					dt, parentfield = d, doctype_row[i+2] or None
+					dt, parentfield = d, None
+					# xls format truncates the row, so it may not have more columns
+					if len(doctype_row) > i+2:
+						parentfield = doctype_row[i+2]
 					doctypes.append((dt, parentfield))
 					column_idx_to_fieldname[(dt, parentfield)] = {}
 					column_idx_to_fieldtype[(dt, parentfield)] = {}
@@ -210,7 +213,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 			# file is already attached
 			return
 
-		file = save_url(file_url, None, doctype, docname, "Home/Attachments", 0)
+		save_url(file_url, None, doctype, docname, "Home/Attachments", 0)
 
 	# header
 	if not rows:

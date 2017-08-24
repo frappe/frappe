@@ -103,7 +103,10 @@ frappe.ui.notifications = {
 	show_open_count_list: function(doctype) {
 		let filters = this.boot_info.conditions[doctype];
 		if(filters && $.isPlainObject(filters)) {
-			frappe.route_options = filters;
+			if (!frappe.route_options) {
+				frappe.route_options = {};
+			}
+			$.extend(frappe.route_options, filters);
 		}
 		let route = frappe.get_route();
 		if(route[0]==="List" && route[1]===doctype) {
