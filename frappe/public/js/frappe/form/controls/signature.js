@@ -1,4 +1,3 @@
-
 frappe.ui.form.ControlSignature = frappe.ui.form.ControlData.extend({
 	saving: false,
 	loading: false,
@@ -7,10 +6,8 @@ frappe.ui.form.ControlSignature = frappe.ui.form.ControlData.extend({
 		this._super();
 
 		// make jSignature field
-		this.$pad = $('<div class="signature-field"></div>')
-			.appendTo(me.wrapper)
-			.jSignature({height:300, width: "100%", "lineWidth": 0.8})
-			.on('change', this.on_save_sign.bind(this));
+		this.body = $('<div class="signature-field"></div>').appendTo(me.wrapper);
+		this.make_pad();
 
 		this.img_wrapper = $(`<div class="signature-display">
 			<div class="missing-image attach-missing-image">
@@ -20,18 +17,31 @@ frappe.ui.form.ControlSignature = frappe.ui.form.ControlData.extend({
 		this.img = $("<img class='img-responsive attach-image-display'>")
 			.appendTo(this.img_wrapper).toggle(false);
 
-
-		this.$btnWrapper = $(`<div class="signature-btn-row">
-			<a href="#" type="button" class="signature-reset btn btn-default">
-			<i class="glyphicon glyphicon-repeat"></i></a>`)
-			.appendTo(this.$pad)
-			.on("click", '.signature-reset', function() {
-				me.on_reset_sign();
-				return false;
-			});
 	},
-	refresh_input: function() {
+	make_pad: function() {
+		let width = this.body.width();
+		if (width > 0 && !this.$pad) {
+			this.$pad = this.body.jSignature({
+				height: 300,
+				width: this.body.width(),
+				lineWidth: 0.8
+			}).on('change',
+				this.on_save_sign.bind(this));
+			this.load_pad();
+			this.$reset_button_wrapper = $(`<div class="signature-btn-row">
+				<a href="#" type="button" class="signature-reset btn btn-default">
+				<i class="glyphicon glyphicon-repeat"></i></a>`)
+				.appendTo(this.$pad)
+				.on("click", '.signature-reset', () => {
+					this.on_reset_sign();
+					return false;
+				});
+
+		}
+	},
+	refresh_input: function(e) {
 		// prevent to load the second time
+		this.make_pad();
 		this.$wrapper.find(".control-input").toggle(false);
 		this.set_editable(this.get_status()=="Write");
 		this.load_pad();
@@ -66,7 +76,6 @@ frappe.ui.form.ControlSignature = frappe.ui.form.ControlData.extend({
 					this.set_image(value);
 				}
 				catch (e){
-					// eslint-disable-next-line
 					console.log("Cannot set data for signature", value, e);
 				}
 			}
@@ -75,25 +84,26 @@ frappe.ui.form.ControlSignature = frappe.ui.form.ControlData.extend({
 		}
 	},
 	set_editable: function(editable) {
-		this.$pad.toggle(editable);
+		this.$pad && this.$pad.toggle(editable);
 		this.img_wrapper.toggle(!editable);
-		this.$btnWrapper.toggle(editable);
-		if (editable) {
-			this.$btnWrapper.addClass('editing');
-		}
-		else {
-			this.$btnWrapper.removeClass('editing');
+		if (this.$reset_button_wrapper) {
+			this.$reset_button_wrapper.toggle(editable);
+			if (editable) {
+				this.$reset_button_wrapper.addClass('editing');
+			}
+			else {
+				this.$reset_button_wrapper.removeClass('editing');
+			}
 		}
 	},
 	set_my_value: function(value) {
 		if (this.saving || this.loading) return;
 		this.saving = true;
 		this.set_value(value);
-		this.value = value;
 		this.saving = false;
 	},
 	get_value: function() {
-		return this.value? this.value: this.get_model_value();
+		return this.value ? this.value: this.get_model_value();
 	},
 	// reset signature canvas
 	on_reset_sign: function() {
