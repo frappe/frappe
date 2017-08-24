@@ -66,9 +66,6 @@ class Workflow(Document):
 			if state.doc_status=="1" and next_state.doc_status=="0":
 				frappe.throw(frappe._("Submitted Document cannot be converted back to draft. Transition row {0}").format(t.idx))
 
-			# if state.doc_status=="0" and next_state.doc_status=="2":
-			# 	frappe.throw(frappe._("Cannot cancel before submitting. See Transition {0}").format(t.idx))
-
 	def set_active(self):
 		if int(self.is_active or 0):
 			# clear all other
