@@ -219,9 +219,6 @@ class EMail:
 			frappe.get_attr(hook)(self)
 
 	def set_header(self, key, value):
-		key = encode(key)
-		value = encode(value)
-
 		if key in self.msg_root:
 			del self.msg_root[key]
 
