@@ -131,7 +131,8 @@ def import_doc(docdict, force=False, data_import=False, pre_process=None,
 	frappe.flags.in_import = False
 
 def update_icon(doc):
-
+	if not hasattr(doc, "icon"):
+		return
 	link = 'List/{0}'.format(doc.name)
 	icon_name = frappe.db.exists('Desktop Icon', {'standard': 1,
 						      'link': link,
