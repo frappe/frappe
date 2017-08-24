@@ -10,7 +10,7 @@ import frappe.permissions
 import MySQLdb
 from frappe.model.db_query import DatabaseQuery
 from frappe import _
-from six import text_type, string_types
+from six import text_type, string_types, StringIO
 
 @frappe.whitelist()
 def get():
@@ -146,13 +146,14 @@ def export_query():
 
 		# convert to csv
 		import csv
-		from six import StringIO
+		from frappe.utils.xlsxutils import handle_html
 
 		f = StringIO()
 		writer = csv.writer(f)
 		for r in data:
 			# encode only unicode type strings and not int, floats etc.
-			writer.writerow(map(lambda v: isinstance(v, text_type) and v.encode('utf-8') or v, r))
+			writer.writerow(map(lambda v: isinstance(v, string_types) and
+				handle_html(v.encode('utf-8')) or v, r))
 
 		f.seek(0)
 		frappe.response['result'] = text_type(f.read(), 'utf-8')
