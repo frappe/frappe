@@ -1360,7 +1360,7 @@ def safe_eval(code, eval_globals=None, eval_locals=None):
 	return eval(code, eval_globals, eval_locals)
 
 def get_system_settings(key):
-	if not local.system_settings.has_key(key):
+	if key not in local.system_settings:
 		local.system_settings.update({key: db.get_single_value('System Settings', key)})
 	return local.system_settings.get(key)
 

@@ -222,7 +222,7 @@ class EMail:
 		key = encode(key)
 		value = encode(value)
 
-		if self.msg_root.has_key(key):
+		if key in self.msg_root:
 			del self.msg_root[key]
 
 		self.msg_root[key] = value
