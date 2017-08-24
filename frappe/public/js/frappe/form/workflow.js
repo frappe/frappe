@@ -112,9 +112,6 @@ frappe.ui.form.States = Class.extend({
 					} else if(new_docstatus==2 && me.frm.doc.docstatus==1) {
 						me.frm.savecancel(null, success, on_error);
 					} else {
-						frappe.msgprint(__("Document Status transition from ") + me.frm.doc.docstatus + " "
-							+ __("to") +
-							new_docstatus + " " + __("is not allowed."));
 						frappe.msgprint(__("Document Status transition from {0} to {1} is not allowed", [me.frm.doc.docstatus, new_docstatus]));
 						return false;
 					}
