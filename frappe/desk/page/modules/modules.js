@@ -41,7 +41,7 @@ frappe.pages['modules'].on_page_load = function(wrapper) {
 	page.main.on("click", '.open-notification', function(event) {
 		var doctype = $(this).attr('data-doctype');
 		if(doctype) {
-			frappe.set_route('List', doctype, frappe.ui.notifications.get_filters(doctype));
+			frappe.ui.notifications.show_open_count_list(doctype);
 		}
 	});
 
