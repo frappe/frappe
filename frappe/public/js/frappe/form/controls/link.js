@@ -42,7 +42,6 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		this.input = this.$input.get(0);
 		this.has_input = true;
 		this.translate_values = true;
-		var me = this;
 		this.setup_buttons();
 		this.setup_awesomeplete();
 		if(this.df.change) {
@@ -55,8 +54,6 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		return this.df.options;
 	},
 	setup_buttons: function() {
-		var me = this;
-
 		if(this.only_input && !this.with_link_btn) {
 			this.$input_area.find(".link-btn").remove();
 		}
@@ -107,16 +104,16 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 			maxItems: 99,
 			autoFirst: true,
 			list: [],
-			data: function (item, input) {
+			data: function (item) {
 				return {
 					label: item.label || item.value,
 					value: item.value
 				};
 			},
-			filter: function(item, input) {
+			filter: function() {
 				return true;
 			},
-			item: function (item, input) {
+			item: function (item) {
 				var d = this.get_item(item.value);
 				if(!d.label) {	d.label = d.value; }
 
@@ -131,7 +128,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 					.html('<a><p>' + html + '</p></a>')
 					.get(0);
 			},
-			sort: function(a, b) {
+			sort: function() {
 				return 0;
 			}
 		});
@@ -207,13 +204,13 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 			}
 		});
 
-		this.$input.on("awesomplete-open", function(e) {
+		this.$input.on("awesomplete-open", function() {
 			me.$wrapper.css({"z-index": 100});
 			me.$wrapper.find('ul').css({"z-index": 100});
 			me.autocomplete_open = true;
 		});
 
-		this.$input.on("awesomplete-close", function(e) {
+		this.$input.on("awesomplete-close", function() {
 			me.$wrapper.css({"z-index": 1});
 			me.autocomplete_open = false;
 		});
@@ -282,7 +279,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 				}
 
 				if (filters) {
-					var filters = set_nulls(filters);
+					filters = set_nulls(filters);
 
 					// extend args for custom functions
 					$.extend(args, filters);

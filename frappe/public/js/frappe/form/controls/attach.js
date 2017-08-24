@@ -112,7 +112,7 @@ frappe.ui.form.ControlAttach = frappe.ui.form.ControlData.extend({
 					frappe.msgprint(__("Please attach a file or set a URL"));
 				}
 			},
-			callback: function(attachment, r) {
+			callback: function(attachment) {
 				me.on_upload_complete(attachment);
 				me.dialog.hide();
 			},
@@ -154,7 +154,7 @@ frappe.ui.form.ControlAttach = frappe.ui.form.ControlData.extend({
 			if(this.value.indexOf(",")!==-1) {
 				var parts = this.value.split(",");
 				var filename = parts[0];
-				var dataurl = parts[1];
+				dataurl = parts[1];
 			}
 			this.$value.toggle(true).find(".attached-file")
 				.html(filename || this.value)

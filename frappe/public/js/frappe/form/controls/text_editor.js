@@ -136,8 +136,7 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 			});
 	},
 	get_image: function (fileobj, callback) {
-		var freader = new FileReader(),
-			me = this;
+		var freader = new FileReader();
 
 		freader.onload = function() {
 			var dataurl = freader.result;
@@ -232,7 +231,7 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 					frappe.msgprint(__("Please attach a file or set a URL"));
 				}
 			},
-			callback: function(attachment, r) {
+			callback: function(attachment) {
 				me.editor.summernote('insertImage', attachment.file_url, attachment.file_name);
 				me.image_dialog.hide();
 			},
@@ -261,7 +260,7 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 	},
 
 	setup_image_dialog: function() {
-		this.note_editor.find('[data-original-title="Image"]').on('click', (e) => {
+		this.note_editor.find('[data-original-title="Image"]').on('click', () => {
 			if(!this.image_dialog) {
 				this.image_dialog = new frappe.ui.Dialog({
 					title: __("Image"),

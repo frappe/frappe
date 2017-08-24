@@ -30,7 +30,7 @@ frappe.ui.form.ControlSignature = frappe.ui.form.ControlData.extend({
 				return false;
 			});
 	},
-	refresh_input: function(e) {
+	refresh_input: function() {
 		// prevent to load the second time
 		this.$wrapper.find(".control-input").toggle(false);
 		this.set_editable(this.get_status()=="Write");
@@ -66,6 +66,7 @@ frappe.ui.form.ControlSignature = frappe.ui.form.ControlData.extend({
 					this.set_image(value);
 				}
 				catch (e){
+					// eslint-disable-next-line
 					console.log("Cannot set data for signature", value, e);
 				}
 			}

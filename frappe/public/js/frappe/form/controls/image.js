@@ -1,7 +1,6 @@
 frappe.ui.form.ControlImage = frappe.ui.form.Control.extend({
 	make: function() {
 		this._super();
-		var me = this;
 		this.$wrapper.css({"margin": "0px"});
 		this.$body = $("<div></div>").appendTo(this.$wrapper)
 			.css({"margin-bottom": "10px"});

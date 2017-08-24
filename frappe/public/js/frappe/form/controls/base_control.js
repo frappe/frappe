@@ -3,6 +3,7 @@ frappe.ui.form.make_control = function (opts) {
 	if(frappe.ui.form[control_class_name]) {
 		return new frappe.ui.form[control_class_name](opts);
 	} else {
+		// eslint-disable-next-line
 		console.log("Invalid Control Name: " + opts.df.fieldtype);
 	}
 };
@@ -49,14 +50,17 @@ frappe.ui.form.Control = Class.extend({
 		if(!this.doctype && !this.docname) {
 			// like in case of a dialog box
 			if (cint(this.df.hidden)) {
+				// eslint-disable-next-line
 				if(explain) console.log("By Hidden: None");
 				return "None";
 
 			} else if (cint(this.df.hidden_due_to_dependency)) {
+				// eslint-disable-next-line
 				if(explain) console.log("By Hidden Dependency: None");
 				return "None";
 
 			} else if (cint(this.df.read_only)) {
+				// eslint-disable-next-line
 				if(explain) console.log("By Read Only: Read");
 				return "Read";
 
@@ -73,6 +77,7 @@ frappe.ui.form.Control = Class.extend({
 			&& is_null(frappe.model.get_value(this.doctype, this.docname, this.df.fieldname))
 			&& !in_list(["HTML", "Image"], this.df.fieldtype)) {
 
+			// eslint-disable-next-line
 			if(explain) console.log("By Hide Read-only, null fields: None");
 			status = "None";
 		}
