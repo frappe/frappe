@@ -2,7 +2,7 @@ frappe.ui.form.ControlHTML = frappe.ui.form.Control.extend({
 	make: function() {
 		this._super();
 		this.disp_area = this.wrapper;
-		this.frm.$wrapper.on('blur change', () => {
+		$(document).on('change', () => {
 			setTimeout(() => this.refresh_input(), 500);
 		});
 	},
@@ -12,7 +12,11 @@ frappe.ui.form.ControlHTML = frappe.ui.form.Control.extend({
 	},
 	get_content: function() {
 		var content = this.df.options || "";
-		return frappe.render(content, this);
+		try {
+			return frappe.render(content, this);
+		} catch (e) {
+			return content;
+		}
 	},
 	html: function(html) {
 		this.$wrapper.html(html || this.get_content());
