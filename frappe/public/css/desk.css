@@ -1126,3 +1126,42 @@ input[type="checkbox"]:checked:before {
   color: #fff;
   border-color: #b1bdca;
 }
+.cards-container .card-container {
+  background-color: #fff;
+  margin: 10px 7px;
+  border: 1px solid #e5e5e5;
+  border-radius: 3px;
+  display: flex;
+}
+.cards-container .card-container.done {
+  background-color: #fafbfc;
+}
+.cards-container .card-container.done .title {
+  color: #8D99A6;
+}
+.cards-container .card-container.single_action {
+  cursor: pointer;
+}
+.cards-container .title {
+  margin-top: 0px;
+}
+.cards-container .content {
+  font-size: 12px;
+}
+.cards-container img {
+  width: 195px;
+}
+.cards-container img.clip {
+  margin: -15px 0px;
+  clip-path: inset(15px 0px 15px 0px);
+}
+.cards-container .content-container {
+  padding: 10px;
+  width: 516px;
+}
+.cards-container .actions {
+  margin-top: 15px;
+}
+.cards-container .actions button:not(:first-child) {
+  margin-left: 15px;
+}

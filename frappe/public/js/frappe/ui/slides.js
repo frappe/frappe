@@ -35,7 +35,7 @@ frappe.ui.Slide = class Slide {
 		this.$form = this.$body.find(".form");
 		this.$primary_btn = this.slides_footer.find('.btn-primary').addClass('primary');
 
-		if(this.help) this.$content.append($(`<p class="help">${this.help}</p>`));
+		if(this.help) this.$content.append($(`<p class="slide-help">${this.help}</p>`));
 		if(this.image_src) this.$content.append(
 			$(`<img src="${this.image_src}" style="margin: 20px;">`));
 

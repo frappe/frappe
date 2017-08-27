@@ -24,7 +24,7 @@ frappe.help.show_video = function(youtube_id, title) {
 	var dialog = frappe.msgprint('<iframe width="'+size[0]+'" height="'+size[1]+'" \
 		src="https://www.youtube.com/embed/'+ youtube_id +'" \
 		frameborder="0" allowfullscreen></iframe>' + (frappe.help_feedback_link || ""),
-		title || __("Help"));
+	title || __("Help"));
 
 	dialog.$wrapper.find(".modal-content").addClass("video-modal");
 }
