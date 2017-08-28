@@ -25,7 +25,7 @@ frappe.ui.Slide = class Slide {
 			</div>
 			<div class="form-wrapper">
 				<div class="form"></div>
-				<div class="text-center" style="margin-top: 5px;margin-bottom: 30px;">
+				<div class="add-more text-center" style="margin-top: 5px;">
 					<a class="form-more-btn hide btn btn-default btn-xs">${__("Add More")}</a>
 				</div>
 			</div>
@@ -133,28 +133,28 @@ frappe.ui.Slide = class Slide {
 	// Primary button (outside of slide)
 	resetup_primary_button() {
 		this.unbind_primary_action();
-		this.bind_fields_to_primary_btn();
-		this.reset_primary_button_state();
+		this.bind_fields_to_action_btn();
+		this.reset_action_button_state();
 		this.bind_primary_action();
 	}
 
-	bind_fields_to_primary_btn() {
+	bind_fields_to_action_btn() {
 		var me = this;
 		this.reqd_fields.map((field) => {
 			field.$wrapper.on('change input', () => {
-				me.reset_primary_button_state();
+				me.reset_action_button_state();
 			});
 		});
 	}
 
-	reset_primary_button_state() {
+	reset_action_button_state() {
 		var empty_fields = this.reqd_fields.filter((field) => {
 			return !field.get_value();
 		});
 		if(empty_fields.length) {
-			this.slides_footer.find('.primary').addClass('disabled');
+			this.slides_footer.find('.action').addClass('disabled');
 		} else {
-			this.slides_footer.find('.primary').removeClass('disabled');
+			this.slides_footer.find('.action').removeClass('disabled');
 		}
 	}
 

@@ -82,8 +82,8 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 	make() {
 		super.make();
 		this.container.addClass("container setup-wizard-slide with-form");
-		this.$complete_btn = this.$footer.find('.complete-btn')
-			.on('click', this.action_on_complete.bind(this));
+		this.$next_btn.addClass('action');
+		this.$complete_btn = this.$footer.find('.complete-btn').addClass('action');
 	}
 
 	before_show_slide() {
@@ -103,7 +103,8 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 		super.show_hide_prev_next(id);
 		if (id + 1 === this.slides.length){
 			this.$next_btn.removeClass("btn-primary").hide();
-			this.$complete_btn.addClass("btn-primary").show();
+			this.$complete_btn.addClass("btn-primary").show()
+				.on('click', this.action_on_complete.bind(this));
 
 		} else {
 			this.$next_btn.addClass("btn-primary").show();
@@ -155,9 +156,10 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 				}
 				setTimeout(function() {
 					window.location = "/desk";
-					setTimeout(function() {
-						frappe.frappe_toolbar.progress_dialog.show();
-					}, 2000);
+					frappe.ui.toolbar.clear_cache();
+					// setTimeout(function() {
+					// 	frappe.frappe_toolbar.progress_dialog.show();
+					// }, 2000);
 				}, 2000);
 			},
 			error: function() {
@@ -232,7 +234,7 @@ frappe.setup.SetupWizardSlide = class SetupWizardSlide extends frappe.ui.Slide {
 	make() {
 		super.make();
 		this.set_init_values();
-		this.reset_primary_button_state();
+		this.reset_action_button_state();
 		// this.setup_keyboard_nav();
 	}
 

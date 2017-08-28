@@ -1103,6 +1103,9 @@ input[type="checkbox"]:checked:before {
   padding: 0px 7px;
   border: none;
 }
+.slides-wrapper .add-more {
+  margin-bottom: 30px;
+}
 .slides-wrapper .lead {
   margin-top: 20px;
 }

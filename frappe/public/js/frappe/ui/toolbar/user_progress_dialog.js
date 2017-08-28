@@ -170,12 +170,16 @@ frappe.setup.UserProgressSlide = class UserProgressSlide extends frappe.ui.Slide
 	primary_action() {
 		var me = this;
 		if(this.set_values()) {
+			this.$primary_btn.addClass('.disabled');
 			frappe.call({
 				method: me.submit_method,
 				args: {args_data: me.values},
 				callback: function() {
 					me.done = 1;
 					me.refresh();
+				},
+				onerror: function() {
+					me.$primary_btn.removeClass('.disabled');
 				},
 				freeze: true
 			});
@@ -212,7 +216,7 @@ frappe.setup.UserProgressDialog  = class UserProgressDialog {
 				$footer.find('.text-right')
 					.prepend($(`<a class="done-btn btn btn-default btn-sm">
 					${__("Mark as Done")}</a>`))
-					.prepend($(`<a class="make-btn btn btn-primary btn-sm primary">
+					.prepend($(`<a class="make-btn btn btn-primary btn-sm primary action">
 					${__("Create")}</a>`));
 			},
 			on_update: (completed, total) => {

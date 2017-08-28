@@ -13,6 +13,10 @@
 	}
 }
 
+.setup-wizard-slide .slides-progress {
+	margin-top: 10px;
+}
+
 .setup-wizard-slide .lead {
 	margin: 30px;
 	color: #777777;
@@ -41,14 +45,18 @@
 }
 
 .setup-wizard-slide.with-form {
-	margin: 60px auto;
+	margin: 40px auto;
 	padding: 10px 50px;
 	border: 1px solid #d1d8dd;
 	box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.1);
 }
 
+.setup-wizard-slide .add-more {
+	margin: 0px;
+}
+
 .setup-wizard-slide .footer {
-	padding: 30px 0px;
+	padding: 30px 7px;
 }
 
 .setup-wizard-slide a.next-btn.disabled,
@@ -56,10 +64,6 @@
 	background-color: #b1bdca;
 	color: #fff;
 	border-color: #b1bdca;
-}
-
-.setup-wizard-progress {
-	padding: 15px;
 }
 
 .setup-wizard-slide .fa-fw {
