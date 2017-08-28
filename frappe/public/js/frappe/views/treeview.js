@@ -286,8 +286,7 @@ frappe.views.TreeView = Class.extend({
 			frappe.msgprint(__("You are not allowed to print this report"));
 			return false;
 		}
-		this.tree.rootnode.load_all();
-		var tree = $(".tree.opened").html(); 
+		var tree = $(".tree:visible").html(); 
 		var me = this;
 		frappe.ui.get_print_settings(false, function(print_settings) {
 			var title =  __(me.docname || me.doctype);
@@ -313,20 +312,19 @@ frappe.views.TreeView = Class.extend({
 				}
 			},
 			{
+				label: __('Print'),
+				action: function() {
+					me.print_tree();
+				}
+
+			},
+			{
 				label: __('Refresh'),
 				action: function() {
 					me.make_tree();
 				}
 			},
 		];
-		if (this.doctype == "Warehouse") {
-			this.menu_items.push({
-				label: __('Print'),
-				action: function() {
-					me.print_tree();
-				}
-			});
-		}
 
 		if (me.opts.menu_items) {
 			me.menu_items.push.apply(me.menu_items, me.opts.menu_items)
