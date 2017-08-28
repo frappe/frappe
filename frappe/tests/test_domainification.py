@@ -92,8 +92,8 @@ class TestDomainification(unittest.TestCase):
 
 		# doctype should be hidden in desktop icon, role permissions
 		results = get_roles_and_doctypes()
-		self.assertTrue("Test Domainification" in results.get("doctypes"))
-		self.assertTrue("_Test Role" in results.get("roles"))
+		self.assertTrue("Test Domainification" in [d.get("value") for d in results.get("doctypes")])
+		self.assertTrue("_Test Role" in [d.get("value") for d in results.get("roles")])
 
 		self.add_active_domain("_Test Domain 2")
 		test_doctype.restrict_to_domain = "_Test Domain 2"
@@ -103,14 +103,14 @@ class TestDomainification(unittest.TestCase):
 		test_role.save()
 
 		results = get_roles_and_doctypes()
-		self.assertTrue("Test Domainification" in results.get("doctypes"))
-		self.assertTrue("_Test Role" in results.get("roles"))
+		self.assertTrue("Test Domainification" in [d.get("value") for d in results.get("doctypes")])
+		self.assertTrue("_Test Role" in [d.get("value") for d in results.get("roles")])
 
 		self.remove_from_active_domains("_Test Domain 2")
 		results = get_roles_and_doctypes()
 
-		self.assertTrue("Test Domainification" not in results.get("doctypes"))
-		self.assertTrue("_Test Role" not in results.get("roles"))
+		self.assertTrue("Test Domainification" not in [d.get("value") for d in results.get("doctypes")])
+		self.assertTrue("_Test Role" not in [d.get("value") for d in results.get("roles")])
 
 	def test_desktop_icon_for_domainification(self):
 		""" desktop icon should be hidden if doctype's restrict to domain is not in active domains """
