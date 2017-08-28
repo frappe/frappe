@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>{{ title }}</title>
+    <link href="{{ base_url }}/assets/frappe/css/bootstrap.css" rel="stylesheet">
+	<link type="text/css" rel="stylesheet"
+		href="{{ base_url }}/assets/frappe/css/font-awesome.css">
+	<link rel="stylesheet" type="text/css" href="{{ base_url }}/assets/frappe/css/tree.css">	
+	<style>
+		{{ print_css }}
+	</style>
+	<style>
+		.tree.opened::before, 
+		.tree-node.opened::before, 
+		.tree:last-child::after, 
+		.tree-node:last-child::after {
+			z-index: 1;
+			border-left: 1px solid #d1d8dd;
+			background: none;
+		}
+		.tree a,
+		.tree-link {
+			text-decoration: none;
+			cursor: default;
+		}
+		.tree.opened > .tree-children > .tree-node > .tree-link::before, 
+		.tree-node.opened > .tree-children > .tree-node > .tree-link::before {
+			border-top: 1px solid #d1d8dd;
+			z-index: 1;
+			background: none;
+		}
+		i.fa.fa-fw.fa-folder {
+			z-index: 2;
+			position: relative;
+		}
+		.tree:last-child::after, .tree-node:last-child::after {
+			display: none;
+		}
+		.tree-node-toolbar {
+			display: none;
+		}
+		i.octicon.octicon-primitive-dot.text-extra-muted {
+			width: 7px;
+			height: 7px;
+			border-radius: 50%;
+			background: #d1d8dd;
+			display: inline-block;
+			position: relative;
+			z-index: 2;
+		}
+
+		@media (max-width: 767px) {
+			ul.tree-children {
+				padding-left: 20px;
+			}
+		}
+	</style>
+  </head>
+  <body>
+	  <div class="print-format-gutter">
+		  {% if print_settings.repeat_header_footer %}
+			<div id="footer-html" class="visible-pdf">
+				{% if print_settings.letter_head && print_settings.letter_head.footer %}
+					<div class="letter-head-footer">
+						{{ print_settings.letter_head.footer }}
+					</div>
+				{% endif %}
+				<p class="text-center small page-number visible-pdf">
+					{{ __("Page {0} of {1}", [`<span class="page"></span>`, `<span class="topage"></span>`]) }}
+				</p>
+			</div>
+		  {% endif %}
+
+		  <div class="print-format {% if landscape %} landscape {% endif %}">
+			  {% if print_settings.letter_head %}
+			  <div {% if print_settings.repeat_header_footer %} id="header-html" class="hidden-pdf" {% endif %}>
+				  <div class="letter-head">{{ print_settings.letter_head.header }}</div>
+			  </div>
+				{% endif %}
+				<div class="tree opened">
+					{{ tree }}
+				</div>
+		  </div>
+	  </div>
+  </body>
+</html>
