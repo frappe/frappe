@@ -200,18 +200,6 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 			callback: function(r) {
 				if(r.message) {
 					let slides = r.message;
-					let boot_info = frappe.boot.notification_info.user_progress;
-					let completed = 0;
-					slides.map(slide => {
-						let key = slide.name;
-						if(Object.keys(boot_info).includes(key) && boot_info[key]) {
-							completed++;
-							slide.done = 1;
-						}
-					});
-					let percent = completed * 100 / slides.length;
-					$('.user-progress .progress-bar').css({'width': percent + '%'});
-
 					frappe.require("assets/frappe/js/frappe/ui/toolbar/user_progress_dialog.js", function() {
 						me.progress_dialog = new frappe.setup.UserProgressDialog({
 							slides: slides

@@ -441,7 +441,7 @@ fieldset[disabled] .form-control {
   }
 }
 @media (min-width: 768px) {
-  .video-modal {
+  .video-modal .modal-dialog {
     width: 700px;
   }
 }
@@ -1093,7 +1093,7 @@ input[type="checkbox"]:checked:before {
   cursor: pointer;
 }
 .slides-wrapper .form {
-  margin-top: 15px;
+  margin-top: 30px;
 }
 .slides-wrapper .form .form-layout {
   margin-top: 0px;
@@ -1121,6 +1121,12 @@ input[type="checkbox"]:checked:before {
   margin-top: 15px;
   padding: 0px 7px;
 }
+.slides-wrapper .footer .btn:not(:last-child) {
+  margin-right: 3px;
+}
+.slides-wrapper .footer a.btn.make-btn {
+  margin-right: 7px;
+}
 .slides-wrapper .footer a.make-btn.disabled {
   background-color: #b1bdca;
   color: #fff;
@@ -1132,6 +1138,7 @@ input[type="checkbox"]:checked:before {
   border: 1px solid #e5e5e5;
   border-radius: 3px;
   display: flex;
+  position: relative;
 }
 .cards-container .card-container.done {
   background-color: #fafbfc;
@@ -1142,11 +1149,34 @@ input[type="checkbox"]:checked:before {
 .cards-container .card-container.single_action {
   cursor: pointer;
 }
+.cards-container .card-container.single_action .image-overlay {
+  opacity: 0.1;
+}
 .cards-container .title {
   margin-top: 0px;
 }
 .cards-container .content {
   font-size: 12px;
+}
+.cards-container .img-container {
+  position: relative;
+}
+.cards-container .img-container .image-overlay {
+  position: absolute;
+  top: 0;
+  background-color: #fff;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+}
+.cards-container .img-container .fa-play-circle {
+  position: absolute;
+  font-size: 42px;
+  left: calc(33%);
+  top: 25%;
+  color: #fff;
+  opacity: 0.8;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.35);
 }
 .cards-container img {
   width: 195px;
@@ -1157,11 +1187,34 @@ input[type="checkbox"]:checked:before {
 }
 .cards-container .content-container {
   padding: 10px;
-  width: 516px;
+  width: 92%;
+  position: relative;
 }
-.cards-container .actions {
+.cards-container .action-area {
   margin-top: 15px;
+  font-size: 12px;
 }
-.cards-container .actions button:not(:first-child) {
+.cards-container .action-area button:not(:first-child),
+.cards-container .action-area a:not(:first-child) {
   margin-left: 15px;
+}
+.cards-container .check {
+  position: absolute;
+  font-size: 24px;
+  right: 10px;
+  top: calc(40%);
+}
+.user-progress-dialog .modal-title {
+  display: inline-block;
+}
+.user-progress-dialog .progress-chart {
+  display: inline-block;
+  margin-left: 15px;
+  width: 60px;
+}
+.user-progress-dialog .progress {
+  margin-bottom: 0px;
+}
+.user-progress-dialog .progress-bar {
+  background-color: #98d85b;
 }

@@ -246,7 +246,7 @@ textarea.form-control {
 }
 
 @media (min-width: 768px) {
-	.video-modal {
+	.video-modal .modal-dialog {
 		width: 700px;
 	}
 }
@@ -1036,7 +1036,7 @@ input[type="checkbox"] {
 		}
 	}
 	.form {
-		margin-top: 15px;
+		margin-top: 30px;
 		.form-layout {
 			margin-top: 0px;
 			margin-bottom: 0px;
@@ -1067,6 +1067,14 @@ input[type="checkbox"] {
 		margin-top: 15px;
 		padding: 0px 7px;
 
+		.btn:not(:last-child) {
+			margin-right: 3px;
+		}
+
+		a.btn.make-btn {
+			margin-right: 7px;
+		}
+
 		a.make-btn.disabled {
 			background-color: #b1bdca;
 			color: #fff;
@@ -1083,6 +1091,7 @@ input[type="checkbox"] {
 		border: 1px solid #e5e5e5;
 		border-radius: 3px;
 		display: flex;
+		position: relative;
 
 		&.done {
 			background-color: #fafbfc;
@@ -1094,12 +1103,12 @@ input[type="checkbox"] {
 
 		&.single_action {
 			cursor: pointer;
-
-			// .title {
-			// 	color: blue;
+			.image-overlay {
+				opacity: 0.1;
+			}
+			// .fa-play-circle{
+			// 	opacity: 1;
 			// }
-
-			// emphasize image overlay
 		}
 	}
 
@@ -1110,9 +1119,28 @@ input[type="checkbox"] {
 	.content {
 		font-size: 12px;
 	}
-	// .img-container {
+	.img-container {
+		position: relative;
 
-	// }
+		.image-overlay {
+			position: absolute;
+			top: 0;
+			background-color: #fff;
+			width: 100%;
+			height: 100%;
+			opacity: 0;
+		}
+
+		.fa-play-circle {
+			position: absolute;
+			font-size: 42px;
+			left: calc(50% - 17px);
+			top: 25%;
+			color: #fff;
+			opacity: 0.8;
+			text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.35);
+		}
+	}
 
 	img {
 		width: 195px;
@@ -1125,14 +1153,41 @@ input[type="checkbox"] {
 
 	.content-container {
 		padding: 10px;
-		width: 516px;
+		width: 92%;
+		position: relative;
 	}
 
-	.actions {
+	.action-area {
 		margin-top: 15px;
+		font-size: 12px;
 
-		button:not(:first-child) {
+		button:not(:first-child), a:not(:first-child) {
 			margin-left: 15px;
 		}
+	}
+
+	.check {
+		position: absolute;
+		font-size: 24px;
+		right: 10px;
+		top: calc(50% - 10px);
+	}
+}
+
+// User Progress Dialog
+.user-progress-dialog {
+	.modal-title {
+		display: inline-block;
+	}
+	.progress-chart {
+		display: inline-block;
+		margin-left: 15px;
+		width: 60px;
+	}
+	.progress {
+		margin-bottom: 0px;
+	}
+	.progress-bar {
+		background-color: #98d85b;
 	}
 }

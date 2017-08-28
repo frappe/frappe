@@ -26,7 +26,7 @@ frappe.help.show_video = function(youtube_id, title) {
 		frameborder="0" allowfullscreen></iframe>' + (frappe.help_feedback_link || ""),
 	title || __("Help"));
 
-	dialog.$wrapper.find(".modal-content").addClass("video-modal");
+	dialog.$wrapper.addClass("video-modal");
 }
 
 $("body").on("click", "a.help-link", function() {

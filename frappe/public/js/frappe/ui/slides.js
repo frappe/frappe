@@ -25,7 +25,7 @@ frappe.ui.Slide = class Slide {
 			</div>
 			<div class="form-wrapper">
 				<div class="form"></div>
-				<div class="text-center" style="margin-top: 5px;">
+				<div class="text-center" style="margin-top: 5px;margin-bottom: 30px;">
 					<a class="form-more-btn hide btn btn-default btn-xs">${__("Add More")}</a>
 				</div>
 			</div>
@@ -33,7 +33,7 @@ frappe.ui.Slide = class Slide {
 
 		this.$content = this.$body.find(".content");
 		this.$form = this.$body.find(".form");
-		this.$primary_btn = this.slides_footer.find('.btn-primary').addClass('primary');
+		this.$primary_btn = this.slides_footer.find('.primary');
 
 		if(this.help) this.$content.append($(`<p class="slide-help">${this.help}</p>`));
 		if(this.image_src) this.$content.append(
