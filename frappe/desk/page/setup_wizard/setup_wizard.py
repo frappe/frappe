@@ -10,7 +10,7 @@ from frappe.geo.country_info import get_country_info
 from frappe.utils.file_manager import save_file
 from frappe.utils.password import update_password
 from werkzeug.useragents import UserAgent
-import install_fixtures
+from . import install_fixtures
 from six import string_types
 
 @frappe.whitelist()

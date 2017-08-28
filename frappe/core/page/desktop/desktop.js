@@ -124,7 +124,7 @@ $.extend(frappe.desktop, {
 		frappe.desktop.wrapper.on("click", ".circle", function() {
 			var doctype = $(this).attr('data-doctype');
 			if(doctype) {
-				frappe.set_route('List', doctype, frappe.ui.notifications.get_filters(doctype));
+				frappe.ui.notifications.show_open_count_list(doctype);
 			}
 		});
 	},

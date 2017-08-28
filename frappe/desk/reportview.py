@@ -10,7 +10,7 @@ import frappe.permissions
 import MySQLdb
 from frappe.model.db_query import DatabaseQuery
 from frappe import _
-from six import text_type, string_types
+from six import text_type, string_types, StringIO
 
 @frappe.whitelist()
 def get():
@@ -146,13 +146,14 @@ def export_query():
 
 		# convert to csv
 		import csv
-		from six import StringIO
+		from frappe.utils.xlsxutils import handle_html
 
 		f = StringIO()
 		writer = csv.writer(f)
 		for r in data:
 			# encode only unicode type strings and not int, floats etc.
-			writer.writerow(map(lambda v: isinstance(v, text_type) and v.encode('utf-8') or v, r))
+			writer.writerow(map(lambda v: isinstance(v, string_types) and
+				handle_html(v.encode('utf-8')) or v, r))
 
 		f.seek(0)
 		frappe.response['result'] = text_type(f.read(), 'utf-8')
@@ -352,6 +353,10 @@ def get_filters_cond(doctype, filters, conditions, ignore_permissions=None, with
 			for f in filters:
 				if isinstance(f[1], string_types) and f[1][0] == '!':
 					flt.append([doctype, f[0], '!=', f[1][1:]])
+				elif isinstance(f[1], list) and \
+					f[1][0] in (">", "<", ">=", "<=", "like", "not like", "in", "not in", "between"):
+
+					flt.append([doctype, f[0], f[1][0], f[1][1]])
 				else:
 					flt.append([doctype, f[0], '=', f[1]])
 

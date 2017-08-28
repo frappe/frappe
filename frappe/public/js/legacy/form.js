@@ -757,13 +757,18 @@ _f.Frm.prototype.savesubmit = function(btn, callback, on_error) {
 		frappe.validated = true;
 		me.script_manager.trigger("before_submit").then(function() {
 			if(!frappe.validated) {
-				if(on_error)
+				if(on_error) {
 					on_error();
+				}
 				return;
 			}
 
 			return me.save('Submit', function(r) {
-				if(!r.exc) {
+				if(r.exc) {
+					if (on_error) {
+						on_error();
+					}
+				} else {
 					frappe.utils.play_sound("submit");
 					callback && callback();
 					me.script_manager.trigger("on_submit");
@@ -780,19 +785,22 @@ _f.Frm.prototype.savecancel = function(btn, callback, on_error) {
 		frappe.validated = true;
 		me.script_manager.trigger("before_cancel").then(function() {
 			if(!frappe.validated) {
-				if(on_error)
+				if(on_error) {
 					on_error();
+				}
 				return;
 			}
 
 			var after_cancel = function(r) {
-				if(!r.exc) {
+				if(r.exc) {
+					if (on_error) {
+						on_error();
+					}
+				} else {
 					frappe.utils.play_sound("cancel");
 					me.refresh();
 					callback && callback();
 					me.script_manager.trigger("after_cancel");
-				} else {
-					on_error();
 				}
 			};
 			frappe.ui.form.save(me, "cancel", after_cancel, btn);

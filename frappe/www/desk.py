@@ -49,6 +49,8 @@ def get_context(context):
 		"mixpanel_id": frappe.conf.get("mixpanel_id")
 	})
 
+	return context
+
 @frappe.whitelist()
 def get_desk_assets(build_version):
 	"""Get desk assets to be loaded for mobile app"""

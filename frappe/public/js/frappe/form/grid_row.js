@@ -79,7 +79,8 @@ frappe.ui.form.GridRow = Class.extend({
 						this.frm.script_manager.trigger(this.grid.df.fieldname + "_remove",
 							this.doc.doctype, this.doc.name);
 						this.frm.dirty();
-					}
+						this.grid.refresh();
+					},
 				]).catch((e) => {
 					// aborted
 					console.trace(e); // eslint-disable-line
@@ -92,8 +93,9 @@ frappe.ui.form.GridRow = Class.extend({
 				this.grid.df.data.forEach(function(d, i) {
 					d.idx = i+1;
 				});
+
+				this.grid.refresh();
 			}
-			this.grid.refresh();
 		}
 	},
 	insert: function(show, below) {
