@@ -129,4 +129,20 @@ def import_doc(docdict, force=False, data_import=False, pre_process=None,
 		doc.flags.ignore_permissions = True
 		doc.flags.ignore_mandatory = True
 	doc.insert()
+	update_icon(doc)
 	frappe.flags.in_import = False
+
+def update_icon(doc):
+	if not hasattr(doc, "icon"):
+		return
+	link = 'List/{0}'.format(doc.name)
+	icon_name = frappe.db.exists('Desktop Icon', {'standard': 1,
+						      'link': link,
+						      'owner': frappe.session.user})
+
+	if icon_name:
+		from frappe.desk.doctype.desktop_icon.desktop_icon import clear_desktop_icons_cache
+
+		icon = frappe.get_doc('Desktop Icon', icon_name)
+		icon.db_set('icon', doc.icon)
+		clear_desktop_icons_cache()
