@@ -456,7 +456,7 @@ frappe.views.ListRenderer = Class.extend({
 
 		// check for duplicates
 		// add suffix like (1), (2) etc
-		if (data.name) {
+		if (data.name && this.values_map) {
 			if (this.values_map[data.name]!==undefined) {
 				if (this.values_map[data.name]===1) {
 					// update first row!
