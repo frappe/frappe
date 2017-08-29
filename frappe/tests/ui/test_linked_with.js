@@ -8,7 +8,7 @@ QUnit.test("Test Linked With", function(assert) {
 		() => frappe.set_route('Form', 'Module Def', 'Contacts'),
 		() => frappe.tests.click_page_head_item('Menu'),
 		() => frappe.tests.click_dropdown_item('Links'),
-		() => frappe.timeout(4),
+		() => frappe.timeout(5),
 		() => {
 			assert.equal(cur_dialog.title, 'Linked With', 'Linked with dialog is opened');
 			const link_tables_count = cur_dialog.$wrapper.find('.list-item-table').length;
