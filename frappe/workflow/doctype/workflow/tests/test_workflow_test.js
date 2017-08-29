@@ -13,7 +13,7 @@ QUnit.test("Test Workflow", function(assert) {
 			cur_frm.set_value('send_welcome_email', 0);
 			cur_frm.save();
 		},
-		() => frappe.timeout(0.5),
+		() => frappe.timeout(2),
 		() => frappe.tests.click_button('Actions'),
 		() => frappe.timeout(0.5),
 		() => {
