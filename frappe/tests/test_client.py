@@ -13,3 +13,11 @@ class TestClient(unittest.TestCase):
 		frappe.set_value('ToDo', todo.name, {'description': 'test 2'})
 		self.assertEquals(frappe.get_value('ToDo', todo.name, 'description'), 'test 2')
 
+	def test_delete(self):
+		from frappe.client import delete
+
+		todo = frappe.get_doc(dict(doctype='ToDo', description='description')).insert()
+		delete("ToDo", todo.name)
+
+		self.assertFalse(frappe.db.exists("ToDo", todo.name))
+		self.assertRaises(frappe.DoesNotExistError, delete, "ToDo", todo.name)
