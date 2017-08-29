@@ -34,12 +34,15 @@ beautifulsoup4
 rq
 schedule
 cryptography
+pyopenssl
+ndg-httpsclient
+pyasn1
 zxcvbn
 psutil
 unittest-xml-reporting
 oauthlib
 PyJWT
-pypdf
+PyPDF2
 openpyxl
 pyotp
 pyqrcode

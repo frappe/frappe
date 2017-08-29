@@ -17,7 +17,7 @@ from frappe.utils.file_manager import save_url
 
 from frappe.utils import cint, cstr, flt, getdate, get_datetime, get_url
 from frappe.core.page.data_import_tool.data_import_tool import get_data_keys
-from six import text_type
+from six import text_type, string_types
 
 @frappe.whitelist()
 def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, no_email=True, overwrite=None,
@@ -122,7 +122,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 								elif fieldtype in ("Float", "Currency", "Percent"):
 									d[fieldname] = flt(d[fieldname])
 								elif fieldtype == "Date":
-									if d[fieldname] and isinstance(d[fieldname], basestring):
+									if d[fieldname] and isinstance(d[fieldname], string_types):
 										d[fieldname] = getdate(parse_date(d[fieldname]))
 								elif fieldtype == "Datetime":
 									if d[fieldname]:

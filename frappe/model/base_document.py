@@ -2,7 +2,7 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
-from six import reraise as raise_, iteritems
+from six import iteritems, string_types
 import frappe, sys
 from frappe import _
 from frappe.utils import (cint, flt, now, cstr, strip_html, getdate, get_datetime, to_timedelta,
@@ -296,7 +296,7 @@ class BaseDocument(object):
 					doctype = self.doctype,
 					columns = ", ".join(["`"+c+"`" for c in columns]),
 					values = ", ".join(["%s"] * len(columns))
-				), d.values())
+				), list(d.values()))
 		except Exception as e:
 			if e.args[0]==1062:
 				if "PRIMARY" in cstr(e.args[1]):
@@ -307,8 +307,7 @@ class BaseDocument(object):
 						return
 
 					frappe.msgprint(_("Duplicate name {0} {1}").format(self.doctype, self.name))
-					traceback = sys.exc_info()[2]
-					raise_(frappe.DuplicateEntryError, (self.doctype, self.name, e), traceback)
+					raise frappe.DuplicateEntryError(self.doctype, self.name, e)
 
 				elif "Duplicate" in cstr(e.args[1]):
 					# unique constraint
@@ -338,7 +337,7 @@ class BaseDocument(object):
 				set {values} where name=%s""".format(
 					doctype = self.doctype,
 					values = ", ".join(["`"+c+"`=%s" for c in columns])
-				), d.values() + [name])
+				), list(d.values()) + [name])
 		except Exception as e:
 			if e.args[0]==1062 and "Duplicate" in cstr(e.args[1]):
 				self.show_unique_validation_message(e)
@@ -361,7 +360,7 @@ class BaseDocument(object):
 		frappe.msgprint(_("{0} must be unique".format(label or fieldname)))
 
 		# this is used to preserve traceback
-		raise_(frappe.UniqueValidationError, (self.doctype, self.name, e), traceback)
+		raise frappe.UniqueValidationError(self.doctype, self.name, e)
 
 	def db_set(self, fieldname, value=None, update_modified=True):
 		'''Set a value in the document object, update the timestamp and update the database.
@@ -610,7 +609,7 @@ class BaseDocument(object):
 			return
 
 		for fieldname, value in self.get_valid_dict().items():
-			if not value or not isinstance(value, basestring):
+			if not value or not isinstance(value, string_types):
 				continue
 
 			value = frappe.as_unicode(value)
@@ -673,7 +672,7 @@ class BaseDocument(object):
 		:param parentfield: If fieldname is in child table."""
 		from frappe.model.meta import get_field_precision
 
-		if parentfield and not isinstance(parentfield, basestring):
+		if parentfield and not isinstance(parentfield, string_types):
 			parentfield = parentfield.parentfield
 
 		cache_key = parentfield or "main"
@@ -831,7 +830,7 @@ def _filter(data, filters, limit=None):
 					fval = ("not None", fval)
 				elif fval is False:
 					fval = ("None", fval)
-				elif isinstance(fval, basestring) and fval.startswith("^"):
+				elif isinstance(fval, string_types) and fval.startswith("^"):
 					fval = ("^", fval[1:])
 				else:
 					fval = ("=", fval)

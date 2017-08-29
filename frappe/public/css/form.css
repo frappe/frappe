@@ -11,6 +11,12 @@
   padding: 10px 0px;
   border-bottom: 1px solid #d1d8dd;
 }
+.print-toolbar > div {
+  padding-right: 0px;
+}
+.print-toolbar > div:last-child {
+  padding-right: 15px;
+}
 .form-inner-toolbar {
   padding: 10px 15px 0px;
   background-color: #fafbfc;
@@ -586,6 +592,16 @@ select.form-control {
 }
 .password-strength-message {
   margin-top: -10px;
+}
+.control-code,
+.control-code.bold {
+  height: 400px;
+  font-family: Monaco, "Courier New", monospace;
+  background-color: black;
+  color: #fffce7;
+  font-size: 12px;
+  line-height: 1.7em;
+  border: none;
 }
 .delivery-status-indicator {
   display: inline-block;

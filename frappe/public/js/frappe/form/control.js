@@ -744,9 +744,24 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 	},
 	set_formatted_input: function(value) {
 		this._super(value);
-		if(value
-			&& ((this.last_value && this.last_value !== value)
-				|| (!this.datepicker.selectedDates.length))) {
+		if(!value) return;
+
+		let should_refresh = this.last_value && this.last_value !== value;
+
+		if (!should_refresh) {
+			if(this.datepicker.selectedDates.length > 0) {
+				// if date is selected but different from value, refresh
+				const selected_date =
+					moment(this.datepicker.selectedDates[0])
+						.format(moment.defaultDateFormat);
+				should_refresh = selected_date !== value;
+			} else {
+				// if datepicker has no selected date, refresh
+				should_refresh = true;
+			}
+		}
+
+		if(should_refresh) {
 			this.datepicker.selectDate(frappe.datetime.str_to_obj(value));
 		}
 	},
@@ -938,8 +953,12 @@ frappe.ui.form.ControlDateRange = frappe.ui.form.ControlData.extend({
 		this.set_mandatory && this.set_mandatory(value);
 	},
 	parse: function(value) {
-		if(value && (value.indexOf(',') !== -1 || value.indexOf('to') !== -1)) {
-			var vals = value.split(/[( to )(,)]/);
+		// replace the separator (which can be in user language) with comma
+		const to = __('{0} to {1}').replace('{0}', '').replace('{1}', '');
+		value = value.replace(to, ',');
+
+		if(value && value.includes(',')) {
+			var vals = value.split(',');
 			var from_date = moment(frappe.datetime.user_to_obj(vals[0])).format('YYYY-MM-DD');
 			var to_date = moment(frappe.datetime.user_to_obj(vals[vals.length-1])).format('YYYY-MM-DD');
 			return [from_date, to_date];
@@ -1787,7 +1806,7 @@ frappe.ui.form.ControlCode = frappe.ui.form.ControlText.extend({
 		this._super();
 		$(this.input_area).find("textarea")
 			.allowTabs()
-			.css({"height":"400px", "font-family": "Monaco, \"Courier New\", monospace"});
+			.addClass('control-code');
 	}
 });
 

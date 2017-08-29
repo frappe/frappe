@@ -5,8 +5,9 @@ from frappe.utils import now_datetime, getdate, flt, cint, get_fullname
 from frappe.installer import update_site_config
 from frappe.utils.data import formatdate
 from frappe.utils.user import get_enabled_system_users, disable_users
-import os, subprocess, urllib
-from six.moves.urllib.parse import parse_qsl, urlsplit, urlunsplit
+import os, subprocess
+from six.moves.urllib.parse import parse_qsl, urlsplit, urlunsplit, urlencode
+from six import string_types
 
 class SiteExpiredError(frappe.ValidationError):
 	http_status_code = 417
@@ -131,7 +132,7 @@ def get_upgrade_url(upgrade_url):
 		'country': frappe.db.get_value("System Settings", "System Settings", 'country')
 	})
 
-	query = urllib.urlencode(params, doseq=True)
+	query = urlencode(params, doseq=True)
 	url = urlunsplit((parts.scheme, parts.netloc, parts.path, query, parts.fragment))
 	return url
 
@@ -162,7 +163,7 @@ def update_limits(limits_dict):
 def clear_limit(key):
 	'''Remove a limit option from site_config'''
 	limits = get_limits()
-	to_clear = [key] if isinstance(key, basestring) else key
+	to_clear = [key] if isinstance(key, string_types) else key
 	for key in to_clear:
 		if key in limits:
 			del limits[key]

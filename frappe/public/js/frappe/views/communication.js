@@ -560,6 +560,10 @@ frappe.views.CommunicationComposer = Class.extend({
 		if(last_email) {
 			var last_email_content = last_email.original_comment || last_email.content;
 
+			last_email_content = last_email_content
+				.replace(/&lt;meta[\s\S]*meta&gt;/g, '') // remove <meta> tags
+				.replace(/&lt;style[\s\S]*&lt;\/style&gt;/g, ''); // // remove <style> tags
+
 			content = '<div><br></div>'
 				+ reply
 				+ "<br><!-- original-reply --><br>"

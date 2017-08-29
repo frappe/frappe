@@ -11,7 +11,7 @@ from frappe.website.utils import get_comment_list
 from frappe.custom.doctype.customize_form.customize_form import docfield_properties
 from frappe.utils.file_manager import get_max_file_size
 from frappe.modules.utils import export_module_json, get_doc_module
-from urllib import urlencode
+from six.moves.urllib.parse import urlencode
 from frappe.integrations.utils import get_payment_gateway_controller
 from six import iteritems
 

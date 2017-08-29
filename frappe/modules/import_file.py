@@ -33,7 +33,7 @@ def get_file_path(module, dt, dn):
 	return path
 
 def import_file_by_path(path, force=False, data_import=False, pre_process=None, ignore_version=None,
-		reset_permissions=False):
+		reset_permissions=False, for_sync=False):
 	try:
 		docs = read_doc_from_file(path)
 	except IOError:
@@ -86,7 +86,9 @@ def read_doc_from_file(path):
 
 ignore_values = {
 	"Report": ["disabled"],
-	"Print Format": ["disabled"]
+	"Print Format": ["disabled"],
+	"Email Alert": ["enabled"],
+	"Print Style": ["disabled"]
 }
 
 ignore_doctypes = [""]
