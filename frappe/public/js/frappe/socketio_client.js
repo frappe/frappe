@@ -3,7 +3,7 @@ frappe.socket = {
 	open_docs: [],
 	emit_queue: [],
 	init: function() {
-		if (frappe.boot.disable_async) {
+		if ( frappe.boot.disable_async) {
 			return;
 		}
 

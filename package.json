@@ -28,6 +28,8 @@
     "redis": "^2.7.1",
     "socket.io": "^2.0.1",
     "superagent": "^3.5.2",
-	"touch": "^3.1.0"
+    "touch": "^3.1.0",
+    "nodemon": "1.11.0",
+    "mocha": "3.5.0"
   }
 }
