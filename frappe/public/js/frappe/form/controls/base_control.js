@@ -112,7 +112,7 @@ frappe.ui.form.Control = Class.extend({
 	validate_and_set_in_model: function(value, e) {
 		var me = this;
 		if(this.inside_change_event) {
-			return new Promise.resolve();
+			return Promise.resolve();
 		}
 		this.inside_change_event = true;
 		var set = function(value) {
