@@ -518,6 +518,7 @@ a.progress-small .progress {
   margin-bottom: 0;
 }
 a.progress-small .progress-bar {
+  transition: unset;
   background-color: #98d85b;
 }
 li.user-progress .progress-chart {
@@ -530,6 +531,7 @@ li.user-progress .progress {
   border: 1px solid #e5e7e9;
 }
 li.user-progress .progress-bar {
+  transition: unset;
   background-color: #98d85b;
 }
 /* on small screens, show only icons on top */
@@ -1219,5 +1221,6 @@ input[type="checkbox"]:checked:before {
   margin-bottom: 0px;
 }
 .user-progress-dialog .progress-bar {
+  transition: unset;
   background-color: #98d85b;
 }

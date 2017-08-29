@@ -170,7 +170,7 @@ frappe.setup.UserProgressSlide = class UserProgressSlide extends frappe.ui.Slide
 	primary_action() {
 		var me = this;
 		if(this.set_values()) {
-			this.$primary_btn.addClass('.disabled');
+			this.slides_footer.find('.make-btn').addClass('disabled');
 			frappe.call({
 				method: me.submit_method,
 				args: {args_data: me.values},
@@ -179,7 +179,7 @@ frappe.setup.UserProgressSlide = class UserProgressSlide extends frappe.ui.Slide
 					me.refresh();
 				},
 				onerror: function() {
-					me.$primary_btn.removeClass('.disabled');
+					me.slides_footer.find('.make-btn').removeClass('disabled');
 				},
 				freeze: true
 			});

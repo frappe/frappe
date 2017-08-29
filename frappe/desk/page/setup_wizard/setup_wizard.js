@@ -154,13 +154,11 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 				if(frappe.setup.welcome_page) {
 					localStorage.setItem("session_last_route", frappe.setup.welcome_page);
 				}
+				window.location = "/desk";
 				setTimeout(function() {
+					// frappe.ui.toolbar.clear_cache();
 					window.location = "/desk";
-					frappe.ui.toolbar.clear_cache();
-					// setTimeout(function() {
-					// 	frappe.frappe_toolbar.progress_dialog.show();
-					// }, 2000);
-				}, 2000);
+				}, 4000);
 			},
 			error: function() {
 				var d = frappe.msgprint(__("There were errors."));

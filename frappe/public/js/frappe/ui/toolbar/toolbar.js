@@ -195,19 +195,27 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 
 	setup_progress_dialog: function() {
 		var me = this;
+		$('.user-progress').hide();
 		frappe.call({
 			method: "frappe.desk.user_progress.get_user_progress_slides",
 			callback: function(r) {
 				if(r.message) {
 					let slides = r.message;
-					frappe.require("assets/frappe/js/frappe/ui/toolbar/user_progress_dialog.js", function() {
-						me.progress_dialog = new frappe.setup.UserProgressDialog({
-							slides: slides
+					if(slides.length) {
+						frappe.require("assets/frappe/js/frappe/ui/toolbar/user_progress_dialog.js", function() {
+							me.progress_dialog = new frappe.setup.UserProgressDialog({
+								slides: slides
+							});
+							$('.user-progress').show();
+							$('.user-progress .dropdown-toggle').on('click', () => {
+								me.progress_dialog.show();
+							});
+
+							setTimeout(function() {
+								me.progress_dialog.show();
+							}, 5000);
 						});
-						$('.user-progress .dropdown-toggle').on('click', () => {
-							me.progress_dialog.show();
-						});
-					});
+					}
 				}
 			},
 			freeze: false

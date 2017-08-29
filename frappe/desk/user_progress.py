@@ -4,6 +4,7 @@
 from __future__ import unicode_literals
 
 import frappe
+from frappe.utils import cint
 
 @frappe.whitelist()
 def get_user_progress_slides():
@@ -11,8 +12,9 @@ def get_user_progress_slides():
 		Return user progress slides for the desktop (called via `get_user_progress_slides` hook)
 	'''
 	slides = []
-	for fn in frappe.get_hooks('get_user_progress_slides'):
-		slides += frappe.get_attr(fn)()
+	if cint(frappe.db.get_single_value('System Settings', 'setup_complete')):
+		for fn in frappe.get_hooks('get_user_progress_slides'):
+			slides += frappe.get_attr(fn)()
 
 	return slides
 
