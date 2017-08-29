@@ -15,7 +15,7 @@ frappe.ui.ActionCard = class {
 
 	make() {
 		this.container = $(`<div class="card-container">
-			<div class="img-container">
+			<div class="img-container hide">
 				<img src="" class="clip">
 				<div class="image-overlay hide"></div>
 				<i class="play fa fa-fw fa-play-circle hide"></i>
@@ -29,7 +29,7 @@ frappe.ui.ActionCard = class {
 		</div>`);
 		this.property_components = [
 			{ card_properties: ['content'], component_name: '$content', class_name: 'content' },
-			{ card_properties: ['image'], component_name: '$img_container', class_name: 'img-container'},
+			// { card_properties: ['image'], component_name: '$img_container', class_name: 'img-container'},
 			{ card_properties: ['done'], component_name: '$check', class_name: 'check' },
 			{ card_properties: ['actions', 'help_links'], component_name: '$action_area', class_name: 'action-area' }
 		];
@@ -44,8 +44,12 @@ frappe.ui.ActionCard = class {
 
 		if(this.data.video_id) {
 			this.data.image = `http://img.youtube.com/vi/${this.data.video_id}/0.jpg`;
-			this.$img_container.find('.image-overlay').removeClass('hide');
-			this.$img_container.find('.fa-play-circle').removeClass('hide');
+			// this.$img_container.find('.image-overlay').removeClass('hide');
+			// this.$img_container.find('.fa-play-circle').removeClass('hide');
+			this.data.title = "Video: " + this.data.title;
+			if(this.data.content) {
+				this.$content.html(this.data.content);
+			}
 		}
 
 		this.refresh();
@@ -73,18 +77,18 @@ frappe.ui.ActionCard = class {
 
 	render() {
 		this.container.find('.title').html(this.data.title);
-		if(this.data.image) {
-			this.$img_container.find('img').attr({"src": this.data.image});
-		}
-		if(this.data.content) {
-			this.$content.html(this.data.content);
-		}
+		// if(this.data.image) {
+		// 	this.$img_container.find('img').attr({"src": this.data.image});
+		// }
+		// if(this.data.content) {
+		// 	this.$content.html(this.data.content);
+		// }
 		if(this.data.done) {
 			this.container.addClass("done");
 		}
 		if(this.data.actions) {
 			this.data.actions.map(action => {
-				let $btn = $(`<button class="btn btn-default btn-sm">${action.label}</button>`);
+				let $btn = $(`<button class="btn btn-default btn-xs">${action.label}</button>`);
 				this.$action_area.append($btn);
 				if(action.route) {
 					$btn.on('click', () => {

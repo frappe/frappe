@@ -1139,7 +1139,7 @@ input[type="checkbox"]:checked:before {
 }
 .cards-container .card-container {
   background-color: #fff;
-  margin: 10px 7px;
+  margin: 15px 7px;
   border: 1px solid #e5e5e5;
   border-radius: 3px;
   display: flex;
