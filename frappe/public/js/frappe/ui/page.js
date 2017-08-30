@@ -369,7 +369,7 @@ frappe.ui.Page = Class.extend({
 			.appendTo(this.page_form);
 	},
 	add_select: function(label, options) {
-		var field = this.add_field({label:label, fieldtype:"Select"})
+		var field = this.add_field({label:label, fieldtype:"Select"});
 		return field.$wrapper.find("select").empty().add_options(options);
 	},
 	add_data: function(label) {

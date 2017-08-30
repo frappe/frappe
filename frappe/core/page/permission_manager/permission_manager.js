@@ -46,13 +46,13 @@ frappe.PermissionEngine = Class.extend({
 		var me = this;
 		this.doctype_select
 			= this.wrapper.page.add_select(__("Document Types"),
-				[{value: "", label: __("Select Document Type")+"..."}].concat(this.options.doctypes.sort()))
+				[{value: "", label: __("Select Document Type")+"..."}].concat(this.options.doctypes))
 				.change(function() {
 					frappe.set_route("permission-manager", $(this).val());
 				});
 		this.role_select
 			= this.wrapper.page.add_select(__("Roles"),
-				[__("Select Role")+"..."].concat(this.options.roles.sort()))
+				[__("Select Role")+"..."].concat(this.options.roles))
 				.change(function() {
 					me.refresh();
 				});
