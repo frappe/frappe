@@ -1139,17 +1139,16 @@ input[type="checkbox"]:checked:before {
 }
 .cards-container .card-container {
   background-color: #fff;
-  margin: 15px 7px;
-  border: 1px solid #e5e5e5;
+  margin: 5px 7px;
   border-radius: 3px;
   display: flex;
   position: relative;
 }
-.cards-container .card-container.done {
-  background-color: #fafbfc;
-}
 .cards-container .card-container.done .title {
   color: #8D99A6;
+}
+.cards-container .card-container:not(:last-child) {
+  border-bottom: 1px solid #e5e5e5;
 }
 .cards-container .card-container.single_action {
   cursor: pointer;
@@ -1157,7 +1156,7 @@ input[type="checkbox"]:checked:before {
 .cards-container .card-container.single_action .image-overlay {
   opacity: 0.1;
 }
-.cards-container .title {
+.cards-container .title a {
   margin-top: 0px;
 }
 .cards-container .content {

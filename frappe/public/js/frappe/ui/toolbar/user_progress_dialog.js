@@ -21,11 +21,11 @@ frappe.ui.ActionCard = class {
 				<i class="play fa fa-fw fa-play-circle hide"></i>
 			</div>
 			<div class="content-container">
-				<h5 class="title"></h5>
+				<h5 class="title"><a></a></h5>
 				<div class="content"></div>
 				<div class="action-area"></div>
 			</div>
-			<i class="check pull-right fa fa-fw fa-check-circle text-success"></i>
+			<i class="check pull-right fa fa-fw fa-check-circle text-extra-muted"></i>
 		</div>`);
 		this.property_components = [
 			{ card_properties: ['content'], component_name: '$content', class_name: 'content' },
@@ -76,7 +76,11 @@ frappe.ui.ActionCard = class {
 	}
 
 	render() {
-		this.container.find('.title').html(this.data.title);
+		this.container.find('.title a').html(this.data.title)
+			.on('click', () => {
+				frappe.set_route(this.data.title_route);
+			});
+
 		// if(this.data.image) {
 		// 	this.$img_container.find('img').attr({"src": this.data.image});
 		// }
@@ -103,7 +107,14 @@ frappe.ui.ActionCard = class {
 		}
 		if(this.data.help_links) {
 			this.data.help_links.map(link => {
-				let $link = $(`<a target="_blank" href="${link.url}">${link.label}</a>`);
+				let $link = $(`<a target="_blank">${link.label}</a>`);
+				if(link.url) {
+					$link.attr({"attr": link.url});
+				} else if(link.video_id) {
+					$link.on('click', () => {
+						frappe.help.show_video(this.data.video_id, this.title);
+					})
+				}
 				this.$action_area.append($link);
 			});
 		}

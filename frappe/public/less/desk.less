@@ -1092,18 +1092,21 @@ input[type="checkbox"] {
 .cards-container {
 	.card-container {
 		background-color: #fff;
-		margin: 15px 7px;
-		border: 1px solid #e5e5e5;
+		margin: 5px 7px;
 		border-radius: 3px;
 		display: flex;
 		position: relative;
 
 		&.done {
-			background-color: #fafbfc;
+			// background-color: #fafbfc;
 
 			.title {
 				color: #8D99A6;
 			}
+		}
+
+		&:not(:last-child) {
+			border-bottom: 1px solid #e5e5e5;
 		}
 
 		&.single_action {
@@ -1117,7 +1120,7 @@ input[type="checkbox"] {
 		}
 	}
 
-	.title {
+	.title a{
 		margin-top: 0px;
 	}
 
