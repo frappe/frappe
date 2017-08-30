@@ -118,6 +118,7 @@ def uploadfile():
 				ret = method()
 	except Exception:
 		frappe.errprint(frappe.utils.get_traceback())
+		frappe.response['http_status_code'] = 500
 		ret = None
 
 	return ret
