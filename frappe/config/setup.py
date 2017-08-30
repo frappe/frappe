@@ -124,7 +124,7 @@ def get_data():
 				{
 					"type": "doctype",
 					"name": "Deleted Document",
-					"label": _("Deleted Documents"),					
+					"label": _("Deleted Documents"),
 					"description": _("Restore or permanently delete a document.")
 				},
 			]
@@ -179,6 +179,11 @@ def get_data():
 					"type": "doctype",
 					"name": "Print Format",
 					"description": _("Customized HTML Templates for printing transactions.")
+				},
+				{
+					"type": "doctype",
+					"name": "Print Style",
+					"description": _("Stylesheets for Print Formats")
 				},
 			]
 		},

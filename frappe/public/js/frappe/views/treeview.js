@@ -281,6 +281,18 @@ frappe.views.TreeView = Class.extend({
 			}
 		})
 	},
+	print_tree: function() {
+		if(!frappe.model.can_print(this.doctype)) {
+			frappe.msgprint(__("You are not allowed to print this report"));
+			return false;
+		}
+		var tree = $(".tree:visible").html(); 
+		var me = this;
+		frappe.ui.get_print_settings(false, function(print_settings) {
+			var title =  __(me.docname || me.doctype);
+			frappe.render_tree({title: title, tree: tree, print_settings:print_settings});
+		});
+	},
 	set_primary_action: function(){
 		var me = this;
 		if (!this.opts.disable_add_node && this.can_create) {
@@ -300,12 +312,19 @@ frappe.views.TreeView = Class.extend({
 				}
 			},
 			{
+				label: __('Print'),
+				action: function() {
+					me.print_tree();
+				}
+
+			},
+			{
 				label: __('Refresh'),
 				action: function() {
 					me.make_tree();
 				}
 			},
-		]
+		];
 
 		if (me.opts.menu_items) {
 			me.menu_items.push.apply(me.menu_items, me.opts.menu_items)

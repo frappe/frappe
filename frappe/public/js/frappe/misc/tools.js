@@ -66,7 +66,7 @@ frappe.tools.to_csv = function(data) {
 	var res = [];
 	$.each(data, function(i, row) {
 		row = $.map(row, function(col) {
-			return typeof(col)==="string" ? ('"' + col.replace(/"/g, '""') + '"') : col;
+			return typeof(col)==="string" ? ('"' + $('<i>').html(col.replace(/"/g, '""')).text() + '"') : col;
 		});
 		res.push(row.join(","));
 	});

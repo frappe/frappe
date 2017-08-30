@@ -335,7 +335,7 @@ _f.Frm.prototype.refresh_header = function(is_a_different_doc) {
 		! this.is_dirty() &&
 		! this.is_new() &&
 		this.doc.docstatus===0) {
-		this.dashboard.add_comment(__('Submit this document to confirm'), 'alert-warning', true);
+		this.dashboard.add_comment(__('Submit this document to confirm'), 'orange', true);
 	}
 
 	this.clear_custom_buttons();
@@ -459,6 +459,7 @@ _f.Frm.prototype.refresh = function(docname) {
 _f.Frm.prototype.show_if_needs_refresh = function() {
 	if(this.doc.__needs_refresh) {
 		if(this.doc.__unsaved) {
+			this.dashboard.clear_headline();
 			this.dashboard.set_headline_alert(__("This form has been modified after you have loaded it")
 				+ '<a class="btn btn-xs btn-primary pull-right" onclick="cur_frm.reload_doc()">'
 				+ __("Refresh") + '</a>', "alert-warning");
@@ -756,13 +757,18 @@ _f.Frm.prototype.savesubmit = function(btn, callback, on_error) {
 		frappe.validated = true;
 		me.script_manager.trigger("before_submit").then(function() {
 			if(!frappe.validated) {
-				if(on_error)
+				if(on_error) {
 					on_error();
+				}
 				return;
 			}
 
 			return me.save('Submit', function(r) {
-				if(!r.exc) {
+				if(r.exc) {
+					if (on_error) {
+						on_error();
+					}
+				} else {
 					frappe.utils.play_sound("submit");
 					callback && callback();
 					me.script_manager.trigger("on_submit");
@@ -779,19 +785,22 @@ _f.Frm.prototype.savecancel = function(btn, callback, on_error) {
 		frappe.validated = true;
 		me.script_manager.trigger("before_cancel").then(function() {
 			if(!frappe.validated) {
-				if(on_error)
+				if(on_error) {
 					on_error();
+				}
 				return;
 			}
 
 			var after_cancel = function(r) {
-				if(!r.exc) {
+				if(r.exc) {
+					if (on_error) {
+						on_error();
+					}
+				} else {
 					frappe.utils.play_sound("cancel");
 					me.refresh();
 					callback && callback();
 					me.script_manager.trigger("after_cancel");
-				} else {
-					on_error();
 				}
 			};
 			frappe.ui.form.save(me, "cancel", after_cancel, btn);
@@ -941,7 +950,7 @@ _f.Frm.prototype.validate_form_action = function(action, resolve) {
 	// Allow submit, write, cancel and create permissions for read only documents that are assigned by
 	// workflows if the user already have those permissions. This is to allow for users to
 	// continue through the workflow states and to allow execution of functions like Duplicate.
-	if (frappe.workflow.is_read_only(this.doctype, this.docname) && (perms["write"] ||
+	if (!frappe.workflow.is_read_only(this.doctype, this.docname) && (perms["write"] ||
 		perms["create"] || perms["submit"] || perms["cancel"])) {
 		var allowed_for_workflow = true;
 	}

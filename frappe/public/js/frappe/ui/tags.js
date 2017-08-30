@@ -25,7 +25,7 @@ frappe.ui.TagEditor = Class.extend({
 						method: 'frappe.desk.tags.add_tag',
 						args: me.get_args(tag),
 						callback: function(r) {
-							var user_tags = me.user_tags.split(",");
+							var user_tags = me.user_tags ? me.user_tags.split(",") : [];
 							user_tags.push(tag)
 							me.user_tags = user_tags.join(",");
 							me.on_change && me.on_change(me.user_tags);
@@ -77,7 +77,8 @@ frappe.ui.TagEditor = Class.extend({
 				args:{
 					doctype: me.frm.doctype,
 					txt: value.toLowerCase(),
-					cat_tags:JSON.stringify(me.list_sidebar.get_cat_tags())
+					cat_tags: me.list_sidebar ?
+						JSON.stringify(me.list_sidebar.get_cat_tags()) : '[]'
 				},
 				callback: function(r) {
 					me.awesomplete.list = r.message;

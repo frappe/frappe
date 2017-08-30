@@ -27,6 +27,7 @@ app_include_js = [
 	"assets/js/desk.min.js",
 	"assets/js/list.min.js",
 	"assets/js/form.min.js",
+	"assets/js/control.min.js",
 	"assets/js/report.min.js",
 	"assets/js/d3.min.js",
 	"assets/frappe/js/frappe/toolbar.js"
@@ -128,7 +129,8 @@ scheduler_events = {
 		"frappe.email.doctype.email_account.email_account.pull",
 		"frappe.email.doctype.email_account.email_account.notify_unreplied",
 		"frappe.oauth.delete_oauth2_data",
-		"frappe.integrations.doctype.razorpay_settings.razorpay_settings.capture_payment"
+		"frappe.integrations.doctype.razorpay_settings.razorpay_settings.capture_payment",
+		"frappe.twofactor.delete_all_barcodes_for_users"
 	],
 	"hourly": [
 		"frappe.model.utils.link_count.update_link_count",
@@ -189,3 +191,5 @@ bot_parsers = [
 
 setup_wizard_exception = "frappe.desk.page.setup_wizard.setup_wizard.email_setup_wizard_exception"
 before_write_file = "frappe.limits.validate_space_limit"
+
+otp_methods = ['OTP App','Email','SMS']

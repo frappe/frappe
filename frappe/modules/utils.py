@@ -10,8 +10,9 @@ import frappe.utils
 from frappe import _
 
 lower_case_files_for = ['DocType', 'Page', 'Report',
-	"Workflow", 'Module Def', 'Desktop Item', 'Workflow State', 'Workflow Action', 'Print Format',
-	"Website Theme", 'Web Form', 'Email Alert']
+	"Workflow", 'Module Def', 'Desktop Item', 'Workflow State',
+	'Workflow Action', 'Print Format', "Website Theme", 'Web Form',
+	'Email Alert', 'Print Style']
 
 def export_module_json(doc, is_standard, module):
 	"""Make a folder for the given doc and add its json file (make it a standard

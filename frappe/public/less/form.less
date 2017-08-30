@@ -14,6 +14,13 @@
 	margin: 0px;
 	padding: 10px 0px;
 	border-bottom: 1px solid @border-color;
+
+	> div {
+		padding-right: 0px;
+	}
+	> div:last-child {
+		padding-right: 15px;
+	}
 }
 
 .form-inner-toolbar {
@@ -391,17 +398,32 @@ h6.uppercase, .h6.uppercase {
 	.action-btns {
 	    position: absolute;
 	    right: 0;
-	    padding: 5px 15px 2px 5px;
+		padding: 8px 15px 0 5px;
+		.edit-btn-container {
+			margin-right: 13px;
+		}
 	}
 
 	.comment-header {
 		background-color: @light-bg;
-		padding: 10px 15px 10px 13px;
+		padding: 10px 15px 8px 13px;
 		margin: 0px;
 		color: @text-muted;
 		border-bottom: 1px solid @light-border-color;
 		&.links-active {
-			padding-right: 60px;
+			padding-right: 77px;
+		}
+		.asset-details {
+			display: inline-block;
+			width: 100%;
+			.btn-link {
+				border: 0;
+				border-radius: 0;
+				padding: 0;
+				&:hover {
+					text-decoration: none;
+				}
+			}
 		}
 		.commented-on-small {
 			display: none;
@@ -434,7 +456,8 @@ h6.uppercase, .h6.uppercase {
 		.close {
 			color: inherit;
 			opacity: 1;
-			padding: 0 0 0 10px;
+			padding: 0;
+			font-size: 18px;
 		}
 	}
 
@@ -530,7 +553,8 @@ h6.uppercase, .h6.uppercase {
 }
 
 .timeline-item .reply-link {
-	padding-left: 7px;
+	margin-left: 15px;
+	font-size: 12px;
 }
 
 .timeline-head {
@@ -591,18 +615,17 @@ h6.uppercase, .h6.uppercase {
 	right: 12px;
 }
 .signature-reset {
+	z-index: 10;
 	height: 30px;
 	width: 30px;
 	padding: 4px 0px;
 }
 
 .signature-img {
-	border: 1px solid @border-color;
 	background: #fff;
 	border-radius: 3px;
 	margin-top: 5px;
-	width: 100%;
-	max-height: 300px;
+	max-height: 150px;
 }
 
 
@@ -716,6 +739,16 @@ select.form-control {
 
 .password-strength-message {
 	margin-top: -10px;
+}
+
+.control-code, .control-code.bold {
+	height: 400px;
+	font-family: Monaco, "Courier New", monospace;
+	background-color: black;
+	color: @light-yellow;
+	font-size: 12px;
+	line-height: 1.7em;
+	border: none;
 }
 
 .delivery-status-indicator {

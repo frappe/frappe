@@ -5,11 +5,7 @@ from __future__ import unicode_literals
 import unittest, frappe, requests, time
 from frappe.test_runner import make_test_records
 from frappe.utils.selenium_testdriver import TestDriver
-
-try:
-	from urllib.parse import urlparse
-except ImportError:
-	from urlparse import urlparse
+from six.moves.urllib.parse import urlparse
 
 class TestOAuth20(unittest.TestCase):
 	def setUp(self):

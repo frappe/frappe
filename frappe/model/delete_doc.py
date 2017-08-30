@@ -12,6 +12,7 @@ from frappe.utils.password import delete_all_passwords_for
 from frappe import _
 from frappe.model.naming import revert_series_if_last
 from frappe.utils.global_search import delete_for_document
+from six import string_types
 
 def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reload=False,
 	ignore_permissions=False, flags=None, ignore_on_trash=False):
@@ -26,7 +27,7 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 		name = frappe.form_dict.get('dn')
 
 	names = name
-	if isinstance(name, basestring):
+	if isinstance(name, string_types):
 		names = [name]
 
 	for name in names or []:
@@ -168,7 +169,7 @@ def check_permission_and_not_submitted(doc):
 
 	# check if submitted
 	if doc.docstatus == 1:
-		frappe.msgprint(_("{0} {1}: Submitted Record cannot be deleted.").format(doc.doctype, doc.name),
+		frappe.msgprint(_("{0} {1}: Submitted Record cannot be deleted.").format(_(doc.doctype), doc.name),
 			raise_exception=True)
 
 def check_if_doc_is_linked(doc, method="Delete"):
@@ -183,13 +184,18 @@ def check_if_doc_is_linked(doc, method="Delete"):
 		if not issingle:
 			for item in frappe.db.get_values(link_dt, {link_field:doc.name},
 				["name", "parent", "parenttype", "docstatus"], as_dict=True):
+				linked_doctype = item.parenttype if item.parent else link_dt
+				if linked_doctype in ("Communication", "ToDo", "DocShare", "Email Unsubscribe", 'File', 'Version'):
+					# don't check for communication and todo!
+					continue
+
 				if item and ((item.parent or item.name) != doc.name) \
 						and ((method=="Delete" and item.docstatus<2) or (method=="Cancel" and item.docstatus==1)):
 					# raise exception only if
 					# linked to an non-cancelled doc when deleting
 					# or linked to a submitted doc when cancelling
 					frappe.throw(_('Cannot delete or cancel because {0} <a href="#Form/{0}/{1}">{1}</a> is linked with {2} <a href="#Form/{2}/{3}">{3}</a>')
-						.format(doc.doctype, doc.name, item.parenttype if item.parent else link_dt,
+						.format(doc.doctype, doc.name, linked_doctype,
 						item.parent or item.name), frappe.LinkExistsError)
 
 def check_if_doc_is_dynamically_linked(doc, method="Delete"):

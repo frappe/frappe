@@ -11,6 +11,7 @@ import frappe.utils.file_manager
 import frappe.desk.form.run_method
 from frappe.utils.response import build_response
 from werkzeug.wrappers import Response
+from six import string_types
 
 def handle():
 	"""handle request"""
@@ -63,7 +64,7 @@ def is_whitelisted(method):
 			# strictly sanitize form_dict
 			# escapes html characters like <> except for predefined tags like a, b, ul etc.
 			for key, value in frappe.form_dict.items():
-				if isinstance(value, basestring):
+				if isinstance(value, string_types):
 					frappe.form_dict[key] = frappe.utils.sanitize_html(value)
 
 	else:
@@ -117,6 +118,7 @@ def uploadfile():
 				ret = method()
 	except Exception:
 		frappe.errprint(frappe.utils.get_traceback())
+		frappe.response['http_status_code'] = 500
 		ret = None
 
 	return ret

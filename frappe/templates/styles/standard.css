@@ -156,3 +156,11 @@ table td div {
 [document-status] {
 	margin-bottom: 5mm;
 }
+
+.signature-img {
+	background: #fff;
+	border-radius: 3px;
+	margin-top: 5px;
+	max-height: 150px;
+}
+

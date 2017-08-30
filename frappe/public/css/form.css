@@ -11,6 +11,12 @@
   padding: 10px 0px;
   border-bottom: 1px solid #d1d8dd;
 }
+.print-toolbar > div {
+  padding-right: 0px;
+}
+.print-toolbar > div:last-child {
+  padding-right: 15px;
+}
 .form-inner-toolbar {
   padding: 10px 15px 0px;
   background-color: #fafbfc;
@@ -299,17 +305,32 @@ h6.uppercase,
 .timeline-item.user-content .action-btns {
   position: absolute;
   right: 0;
-  padding: 5px 15px 2px 5px;
+  padding: 8px 15px 0 5px;
+}
+.timeline-item.user-content .action-btns .edit-btn-container {
+  margin-right: 13px;
 }
 .timeline-item.user-content .comment-header {
   background-color: #fafbfc;
-  padding: 10px 15px 10px 13px;
+  padding: 10px 15px 8px 13px;
   margin: 0px;
   color: #8D99A6;
   border-bottom: 1px solid #EBEFF2;
 }
 .timeline-item.user-content .comment-header.links-active {
-  padding-right: 60px;
+  padding-right: 77px;
+}
+.timeline-item.user-content .comment-header .asset-details {
+  display: inline-block;
+  width: 100%;
+}
+.timeline-item.user-content .comment-header .asset-details .btn-link {
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+}
+.timeline-item.user-content .comment-header .asset-details .btn-link:hover {
+  text-decoration: none;
 }
 .timeline-item.user-content .comment-header .commented-on-small {
   display: none;
@@ -334,7 +355,8 @@ h6.uppercase,
 .timeline-item.user-content .close-btn-container .close {
   color: inherit;
   opacity: 1;
-  padding: 0 0 0 10px;
+  padding: 0;
+  font-size: 18px;
 }
 .timeline-item.user-content .edit-btn-container {
   padding: 0;
@@ -409,7 +431,8 @@ h6.uppercase,
   top: 5px;
 }
 .timeline-item .reply-link {
-  padding-left: 7px;
+  margin-left: 15px;
+  font-size: 12px;
 }
 .timeline-head {
   background-color: white;
@@ -461,17 +484,16 @@ h6.uppercase,
   right: 12px;
 }
 .signature-reset {
+  z-index: 10;
   height: 30px;
   width: 30px;
   padding: 4px 0px;
 }
 .signature-img {
-  border: 1px solid #d1d8dd;
   background: #fff;
   border-radius: 3px;
   margin-top: 5px;
-  width: 100%;
-  max-height: 300px;
+  max-height: 150px;
 }
 .timeline-new-email {
   margin: 30px 0px;
@@ -570,6 +592,16 @@ select.form-control {
 }
 .password-strength-message {
   margin-top: -10px;
+}
+.control-code,
+.control-code.bold {
+  height: 400px;
+  font-family: Monaco, "Courier New", monospace;
+  background-color: black;
+  color: #fffce7;
+  font-size: 12px;
+  line-height: 1.7em;
+  border: none;
 }
 .delivery-status-indicator {
   display: inline-block;

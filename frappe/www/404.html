@@ -3,6 +3,18 @@
 {%- block title -%}{{_("Not Found")}}{%- endblock -%}
 
 {% block page_content %}
+<style>
+.hero-and-content {
+	background-color: #f5f7fa;
+}
+header, footer {
+	display: none;
+}
+html, body {
+	background-color: #f5f7fa;
+}
+</style>
+
 <div class='page-card'>
 	<div class='page-card-head'>
 		<span class='indicator darkgrey'>{{_("Page Missing or Moved")}}</span>

@@ -45,6 +45,7 @@ frappe.Application = Class.extend({
 		this.make_nav_bar();
 		this.set_favicon();
 		this.setup_analytics();
+		this.setup_beforeunload();
 		frappe.ui.keys.setup();
 		this.set_rtl();
 
@@ -92,9 +93,9 @@ frappe.Application = Class.extend({
 			var dialog = frappe.msgprint({
 				message:__("The application has been updated to a new version, please refresh this page"),
 				indicator: 'green',
-				title: 'Version Updated'
+				title: __('Version Updated')
 			});
-			dialog.set_primary_action("Refresh", function() {
+			dialog.set_primary_action(__("Refresh"), function() {
 				location.reload(true);
 			});
 			dialog.get_close_btn().toggle(false);
@@ -201,7 +202,7 @@ frappe.Application = Class.extend({
 				moment.tz.add(frappe.boot.timezone_info);
 			}
 			if(frappe.boot.print_css) {
-				frappe.dom.set_style(frappe.boot.print_css)
+				frappe.dom.set_style(frappe.boot.print_css, "print-style");
 			}
 			frappe.user.name = frappe.boot.user.name;
 		} else {
@@ -478,6 +479,23 @@ frappe.Application = Class.extend({
 				"$email": frappe.session.user
 			});
 		}
+	},
+
+	setup_beforeunload: function() {
+		if (frappe.defaults.get_default('in_selenium') || frappe.boot.developer_mode) {
+			return;
+		}
+		window.onbeforeunload = function () {
+			if (frappe.flags.in_test) return null;
+			var unsaved_docs = [];
+			for (const doctype in locals) {
+				for (const name in locals[doctype]) {
+					var doc = locals[doctype][name];
+					if(doc.__unsaved) { unsaved_docs.push(doc.name); }
+				}
+			}
+			return unsaved_docs.length ? true : null;
+		};
 	},
 
 	show_notes: function() {

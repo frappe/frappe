@@ -1,3 +1,4 @@
+/*eslint-disable no-console */
 const path = require('path');
 const fs = require('fs');
 const babel = require('babel-core');
@@ -9,6 +10,7 @@ const path_join = path.resolve;
 const app = require('express')();
 const http = require('http').Server(app);
 const io = require('socket.io')(http);
+const touch = require("touch");
 
 // basic setup
 const sites_path = path_join(__dirname, '..', '..', '..', 'sites');
@@ -17,7 +19,7 @@ const apps_contents = fs.readFileSync(path_join(sites_path, 'apps.txt'), 'utf8')
 const apps = apps_contents.split('\n');
 const app_paths = apps.map(app => path_join(apps_path, app, app)) // base_path of each app
 const assets_path = path_join(sites_path, 'assets');
-const build_map = make_build_map();
+let build_map = make_build_map();
 const file_watcher_port = get_conf().file_watcher_port;
 
 // command line args
@@ -41,6 +43,7 @@ function build(minify) {
 	for (const output_path in build_map) {
 		pack(output_path, build_map[output_path], minify);
 	}
+	touch(path_join(sites_path, '.build'), {force:true});
 }
 
 let socket_connection = false;
@@ -62,6 +65,7 @@ function watch() {
 				io.emit('reload_js', filename);
 			}
 		});
+		watch_build_json();
 	});
 
 	io.on('connection', function (socket) {
@@ -225,12 +229,8 @@ function compile_less_file(file, less_path, public_path) {
 function watch_less(ondirty) {
 	const less_paths = app_paths.map(path => path_join(path, 'public', 'less'));
 
-	const to_watch = [];
-	for (const less_path of less_paths) {
-		if (!fs.existsSync(less_path)) continue;
-		to_watch.push(less_path);
-	}
-	chokidar.watch(to_watch).on('change', (filename, stats) => {
+	const to_watch = filter_valid_paths(less_paths);
+	chokidar.watch(to_watch).on('change', (filename) => {
 		console.log(filename, 'dirty');
 		var last_index = filename.lastIndexOf('/');
 		const less_path = filename.slice(0, last_index);
@@ -238,34 +238,27 @@ function watch_less(ondirty) {
 		filename = filename.split('/').pop();
 
 		compile_less_file(filename, less_path, public_path)
-		.then(css_file_path => {
-			// build the target css file for which this css file is input
-			for (const target in build_map) {
-				const sources = build_map[target];
-				if (sources.includes(css_file_path)) {
-					pack(target, sources);
-					ondirty && ondirty(target);
-					break;
+			.then(css_file_path => {
+				// build the target css file for which this css file is input
+				for (const target in build_map) {
+					const sources = build_map[target];
+					if (sources.includes(css_file_path)) {
+						pack(target, sources);
+						ondirty && ondirty(target);
+						break;
+					}
 				}
-			}
-		})
+			});
+		touch(path_join(sites_path, '.build'), {force:true});
 	});
 }
 
 function watch_js(ondirty) {
 	const js_paths = app_paths.map(path => path_join(path, 'public', 'js'));
 
-	const to_watch = [];
-	for (const js_path of js_paths) {
-		if (!fs.existsSync(js_path)) continue;
-		to_watch.push(js_path);
-	}
+	const to_watch = filter_valid_paths(js_paths);
 	chokidar.watch(to_watch).on('change', (filename, stats) => {
 		console.log(filename, 'dirty');
-		var last_index = filename.lastIndexOf('/');
-		const js_path = filename.slice(0, last_index);
-		const public_path = path_join(js_path, '..');
-
 		// build the target js file for which this js/html file is input
 		for (const target in build_map) {
 			const sources = build_map[target];
@@ -275,7 +268,21 @@ function watch_js(ondirty) {
 				// break;
 			}
 		}
+		touch(path_join(sites_path, '.build'), {force:true});
 	});
+}
+
+function watch_build_json() {
+	const build_json_paths = app_paths.map(path => path_join(path, 'public', 'build.json'));
+	const to_watch = filter_valid_paths(build_json_paths);
+	chokidar.watch(to_watch).on('change', (filename) => {
+		console.log(filename, 'updated');
+		build_map = make_build_map();
+	});
+}
+
+function filter_valid_paths(paths) {
+	return paths.filter(path => fs.existsSync(path));
 }
 
 function html_to_js_template(path, content) {

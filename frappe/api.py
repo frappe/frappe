@@ -8,8 +8,7 @@ import frappe.handler
 import frappe.client
 from frappe.utils.response import build_response
 from frappe import _
-from urlparse import urlparse
-from urllib import urlencode
+from six.moves.urllib.parse import urlparse, urlencode
 
 def handle():
 	"""

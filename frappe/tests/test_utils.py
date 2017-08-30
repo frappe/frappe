@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 
 import unittest
 
-from frappe.utils import evaluate_filters, money_in_words
+from frappe.utils import evaluate_filters, money_in_words, scrub_urls, get_url
 
 class TestFilters(unittest.TestCase):
 	def test_simple_dict(self):
@@ -58,3 +58,29 @@ class TestMoney(unittest.TestCase):
 				money_in_words(num[0], "NGN"), num[1], "{0} is not the same as {1}".
 					format(money_in_words(num[0], "NGN"), num[1])
 			)
+
+class TestDataManipulation(unittest.TestCase):
+	def test_scrub_urls(self):
+		html = '''
+			<p>You have a new message from: <b>John</b></p>
+			<p>Hey, wassup!</p>
+			<div class="more-info">
+				<a href="http://test.com">Test link 1</a>
+				<a href="/about">Test link 2</a>
+				<a href="login">Test link 3</a>
+				<img src="/assets/frappe/test.jpg">
+			</div>
+			<div style="background-image: url('/assets/frappe/bg.jpg')">
+				Please mail us at <a href="mailto:test@example.com">email</a>
+			</div>
+		'''
+
+		html = scrub_urls(html)
+		url = get_url()
+
+		self.assertTrue('<a href="http://test.com">Test link 1</a>' in html)
+		self.assertTrue('<a href="{0}/about">Test link 2</a>'.format(url) in html)
+		self.assertTrue('<a href="{0}/login">Test link 3</a>'.format(url) in html)
+		self.assertTrue('<img src="{0}/assets/frappe/test.jpg">'.format(url) in html)
+		self.assertTrue('style="background-image: url(\'{0}/assets/frappe/bg.jpg\') !important"'.format(url) in html)
+		self.assertTrue('<a href="mailto:test@example.com">email</a>' in html)

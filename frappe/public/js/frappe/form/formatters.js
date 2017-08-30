@@ -9,7 +9,7 @@ frappe.form.link_formatters = {};
 
 frappe.form.formatters = {
 	_right: function(value, options) {
-		if(options && options.inline) {
+		if(options && (options.inline || options.only_value)) {
 			return value;
 		} else {
 			return "<div style='text-align: right'>" + value + "</div>";

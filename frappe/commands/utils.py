@@ -18,6 +18,8 @@ def build(make_copy=False, verbose=False):
 @click.command('watch')
 def watch():
 	"Watch and concatenate JS and CSS files as and when they change"
+	# if os.environ.get('CI'):
+	# 	return
 	import frappe.build
 	frappe.init('')
 	frappe.build.watch(True)
@@ -358,9 +360,10 @@ def serve(context, port=None, profile=False, sites_path='.', site=None):
 	frappe.app.serve(port=port, profile=profile, site=site, sites_path='.')
 
 @click.command('request')
-@click.argument('args')
+@click.option('--args', help='arguments like `?cmd=test&key=value` or `/api/request/method?..`')
+@click.option('--path', help='path to request JSON')
 @pass_context
-def request(context, args):
+def request(context, args=None, path=None):
 	"Run a request as an admin"
 	import frappe.handler
 	import frappe.api
@@ -368,13 +371,19 @@ def request(context, args):
 		try:
 			frappe.init(site=site)
 			frappe.connect()
-			if "?" in args:
-				frappe.local.form_dict = frappe._dict([a.split("=") for a in args.split("?")[-1].split("&")])
-			else:
-				frappe.local.form_dict = frappe._dict()
+			if args:
+				if "?" in args:
+					frappe.local.form_dict = frappe._dict([a.split("=") for a in args.split("?")[-1].split("&")])
+				else:
+					frappe.local.form_dict = frappe._dict()
 
-			if args.startswith("/api/method"):
-				frappe.local.form_dict.cmd = args.split("?")[0].split("/")[-1]
+				if args.startswith("/api/method"):
+					frappe.local.form_dict.cmd = args.split("?")[0].split("/")[-1]
+			elif path:
+				with open(os.path.join('..', path), 'r') as f:
+					args = json.loads(f.read())
+
+				frappe.local.form_dict = frappe._dict(args)
 
 			frappe.handler.execute_cmd(frappe.form_dict.cmd)
 

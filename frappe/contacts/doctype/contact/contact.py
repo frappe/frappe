@@ -22,6 +22,8 @@ class Contact(Document):
 			break
 
 	def validate(self):
+		if self.email_id:
+			self.email_id = self.email_id.strip()
 		self.set_user()
 		if self.email_id and not self.image:
 			self.image = has_gravatar(self.email_id)

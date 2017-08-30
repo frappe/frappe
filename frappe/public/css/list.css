@@ -183,6 +183,25 @@
 .listview-main-section .octicon-heart {
   cursor: pointer;
 }
+.listview-main-section .page-form {
+  padding-left: 17px;
+}
+@media (max-width: 991px) {
+  .listview-main-section .page-form {
+    padding-left: 25px;
+  }
+}
+.listview-main-section .page-form .octicon-search {
+  float: left;
+  padding-top: 7px;
+  margin-left: -4px;
+  margin-right: -4px;
+}
+@media (max-width: 991px) {
+  .listview-main-section .page-form .octicon-search {
+    margin-left: -12px;
+  }
+}
 .like-action.octicon-heart {
   color: #ff5858;
 }
@@ -215,17 +234,19 @@
   text-align: left;
 }
 .tag-row {
-  margin-top: 5px;
   padding-left: 55px;
+  margin-bottom: 0px;
+  margin-top: -5px;
 }
 .taggle_placeholder {
   top: 0;
-  left: 0;
+  left: 5px;
   font-size: 11px;
+  color: #8D99A6;
 }
 .taggle_list {
-  padding-left: 0;
-  margin-bottom: 0;
+  padding-left: 5px;
+  margin-bottom: 3px;
 }
 .taggle_list .taggle {
   font-size: 11px;

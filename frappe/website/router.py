@@ -35,7 +35,6 @@ def get_page_context(path):
 		page_context = make_page_context(path)
 		if can_cache(page_context.no_cache):
 			page_context_cache[frappe.local.lang] = page_context
-
 			frappe.cache().hset("page_context", path, page_context_cache)
 
 	return page_context
@@ -349,9 +348,9 @@ def sync_global_search():
 							frappe.flags.update_global_search.append(
 								dict(doctype='Static Web Page',
 									name=route,
-									content=frappe.text_type(text),
+									content=text_type(text),
 									published=1,
-									title=soup.title.string,
+									title=text_type(soup.title.string),
 									route=route))
 
 						except Exception:

@@ -248,7 +248,7 @@ frappe.ui.Page = Class.extend({
 			$group = $('<div class="btn-group" data-label="'+label+'" style="margin-left: 10px;">\
 				<button type="button" class="btn btn-default dropdown-toggle btn-xs" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">\
 				'+label+' <span class="caret"></span></button>\
-				<ul class="dropdown-menu" style="margin-top: -8px;"></ul></div>').appendTo(this.inner_toolbar.removeClass("hide"));
+				<ul class="dropdown-menu" style="margin-top: -8px;"></ul></div>').appendTo(this.inner_toolbar);
 		}
 		return $group;
 	},
@@ -280,6 +280,7 @@ frappe.ui.Page = Class.extend({
 		};
 		if(group) {
 			var $group = this.get_inner_group_button(group);
+			$(this.inner_toolbar).removeClass("hide");
 			return $('<li><a>'+label+'</a></li>')
 				.on('click', _action)
 				.appendTo($group.find(".dropdown-menu"));
@@ -368,7 +369,7 @@ frappe.ui.Page = Class.extend({
 			.appendTo(this.page_form);
 	},
 	add_select: function(label, options) {
-		var field = this.add_field({label:label, fieldtype:"Select"})
+		var field = this.add_field({label:label, fieldtype:"Select"});
 		return field.$wrapper.find("select").empty().add_options(options);
 	},
 	add_data: function(label) {
@@ -400,8 +401,13 @@ frappe.ui.Page = Class.extend({
 			.addClass('col-md-2')
 			.attr("title", __(df.label)).tooltip();
 
+		// html fields in toolbar are only for display
+		if (df.fieldtype=='HTML') {
+			return;
+		}
+
 		// hidden fields dont have $input
-		if(!f.$input) f.make_input();
+		if (!f.$input) f.make_input();
 
 		f.$input.addClass("input-sm").attr("placeholder", __(df.label));
 

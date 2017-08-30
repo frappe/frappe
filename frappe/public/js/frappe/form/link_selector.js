@@ -113,6 +113,7 @@ frappe.ui.form.LinkSelector = Class.extend({
 	},
 	set_in_grid: function (value) {
 		var me = this, updated = false;
+		var d = null;
 		if (this.qty_fieldname) {
 			frappe.prompt({
 				fieldname: "qty", fieldtype: "Float", label: "Qty",
@@ -127,14 +128,16 @@ frappe.ui.form.LinkSelector = Class.extend({
 					}
 				});
 				if (!updated) {
-					var d = me.target.add_new_row();
-					frappe.model.set_value(d.doctype, d.name, me.fieldname, value);
-					frappe.after_ajax(function () {
-						setTimeout(function () {
-							frappe.model.set_value(d.doctype, d.name, me.qty_fieldname, data.qty);
-							frappe.show_alert(__("Added {0} ({1})", [value, data.qty]));
-						}, 100);
-					});
+					frappe.run_serially([
+						() => {
+							d = me.target.add_new_row();
+						},
+						() => frappe.timeout(0.1),
+						() => frappe.model.set_value(d.doctype, d.name, me.fieldname, value),
+						() => frappe.timeout(0.5),
+						() => frappe.model.set_value(d.doctype, d.name, me.qty_fieldname, data.qty),
+						() => frappe.show_alert(__("Added {0} ({1})", [value, data.qty]))
+					]);
 				}
 			}, __("Set Quantity"), __("Set"));
 		} else {

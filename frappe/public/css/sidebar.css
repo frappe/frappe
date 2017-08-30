@@ -293,19 +293,6 @@ body[data-route^="Module"] .main-menu .form-sidebar {
 .sidebar-left .list-sidebar .stat-label {
   margin-bottom: -10px;
 }
-.list-sidebar .list-tag-preview {
-  padding: 5px !important;
-  margin-left: 5px;
-  display: inline !important;
-}
-.list-sidebar .list-tag-preview:hover,
-a.close:hover,
-.list-sidebar .list-tag-preview:active,
-a.close:active,
-.list-sidebar .list-tag-preview:focus,
-a.close:focus {
-  border-color: transparent !important;
-}
 .layout-side-section .module-sidebar-nav {
   margin-top: 15px;
 }

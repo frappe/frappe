@@ -159,12 +159,12 @@ frappe.ui.form.Timeline = Class.extend({
 		this.prepare_timeline_item(c);
 		var $timeline_item = $(frappe.render_template("timeline_item", {data:c, frm:this.frm}))
 			.appendTo(me.list)
-			.on("click", ".close", function() {
+			.on("click", ".delete-comment", function() {
 				var name = $timeline_item.data('name');
 				me.delete_comment(name);
 				return false;
 			})
-			.on('click', '.edit', function(e) {
+			.on('click', '.edit-comment', function(e) {
 				e.preventDefault();
 				var name = $timeline_item.data('name');
 
@@ -176,6 +176,7 @@ frappe.ui.form.Timeline = Class.extend({
 					var content = $timeline_item.find('.timeline-item-content').html();
 
 					$edit_btn
+						.text("Save")
 						.find('i')
 						.removeClass('octicon-pencil')
 						.addClass('octicon-check');
@@ -232,6 +233,7 @@ frappe.ui.form.Timeline = Class.extend({
 			new frappe.views.CommunicationComposer({
 				doc: me.frm.doc,
 				txt: "",
+				title: __('Reply'),
 				frm: me.frm,
 				last_email: last_email
 			});
@@ -251,11 +253,11 @@ frappe.ui.form.Timeline = Class.extend({
 		c["edit"] = "";
 		if(c.communication_type=="Comment" && (c.comment_type || "Comment") === "Comment") {
 			if(frappe.model.can_delete("Communication")) {
-				c["delete"] = '<a class="close" title="Delete"  href="#"><i class="octicon octicon-x"></i></a>';
+				c["delete"] = '<a class="close delete-comment" title="Delete"  href="#"><i class="octicon octicon-x"></i></a>';
 			}
 
 			if(frappe.user.name == c.sender || (frappe.user.name == 'Administrator')) {
-				c["edit"] = '<a class="edit" title="Edit" href="#"><i class="octicon octicon-pencil"></i></a>';
+				c["edit"] = '<a class="edit-comment text-muted" title="Edit" href="#">Edit</a>';
 			}
 		}
 		c.comment_on_small = comment_when(c.creation, true);
@@ -634,7 +636,7 @@ frappe.ui.form.Timeline = Class.extend({
 			communications = this.frm.get_docinfo().communications,
 			email = this.get_recipient();
 
-		$.each(communications.sort(function(a, b) { return a.creation > b.creation ? -1 : 1 }), function(i, c) {
+		$.each(communications && communications.sort(function(a, b) { return a.creation > b.creation ? -1 : 1 }), function(i, c) {
 			if(c.communication_type=='Communication' && c.communication_medium=="Email") {
 				if(from_recipient) {
 					if(c.sender.indexOf(email)!==-1) {

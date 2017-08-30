@@ -184,12 +184,12 @@ frappe.views.QueryReport = Class.extend({
 			frappe.msgprint(__("You are not allowed to print this report"));
 			return false;
 		}
-
 		if(this.html_format) {
 			var content = frappe.render(this.html_format, {
 				data: frappe.slickgrid_tools.get_filtered_items(this.dataView),
 				filters: this.get_values(),
-				report: this
+				report: this,
+				data_to_be_printed: this.data_to_be_printed
 			});
 
 			frappe.render_grid({
@@ -223,7 +223,8 @@ frappe.views.QueryReport = Class.extend({
 			var content = frappe.render(this.html_format, {
 				data: frappe.slickgrid_tools.get_filtered_items(this.dataView),
 				filters:this.get_values(),
-				report:this
+				report:this,
+				data_to_be_printed: this.data_to_be_printed
 			});
 
 			//Render Report in HTML
@@ -364,6 +365,16 @@ frappe.views.QueryReport = Class.extend({
 		}
 	},
 	refresh: function() {
+		// throttle
+		// stop refresh from being called multiple times (from triggers ?)
+		if (!this.request_refresh) {
+			this.request_refresh = setTimeout(() => {
+				this._refresh();
+				this.request_refresh = null;
+			}, 300);
+		}
+	},
+	_refresh: function() {
 		// Run
 		var me = this;
 
@@ -477,6 +488,7 @@ frappe.views.QueryReport = Class.extend({
 
 		this.set_message(res.message);
 		this.setup_chart(res);
+		this.set_print_data(res.data_to_be_printed);
 
 		this.toggle_expand_collapse_buttons(this.is_tree_report);
 	},
@@ -522,7 +534,11 @@ frappe.views.QueryReport = Class.extend({
 				col.field = df.fieldname || df.label;
 				df.label = __(df.label);
 				col.name = col.id = col.label = df.label;
-
+			
+				if(df.width < 0) {
+					col.hidden = true;
+				}
+			
 				return col
 			}));
 	},
@@ -592,6 +608,7 @@ frappe.views.QueryReport = Class.extend({
 
 		var me = this;
 		this.dataView.onRowCountChanged.subscribe(function (e, args) {
+			me.update_totals_row();
 			me.grid.updateRowCount();
 			me.grid.render();
 		});
@@ -601,8 +618,38 @@ frappe.views.QueryReport = Class.extend({
 			me.grid.render();
 		});
 	},
+	update_totals_row: function() {
+		if(!this.report_doc.add_total_row) return;
+
+		const data_length = this.dataView.getLength();
+		const last_index = data_length - 1;
+
+		const number_fields = ['Currency', 'Float', 'Int'];
+		const fields = this.columns
+			.filter(col => number_fields.includes(col.fieldtype))
+			.map(col => col.field);
+
+		// reset numeric fields
+		let updated_totals = Object.assign({}, this.dataView.getItem(last_index));
+		fields.map(field => {
+			updated_totals[field] = 0.0;
+		});
+
+		// loop all the rows except the last Total row
+		for (let i = 0; i < data_length - 1; i++) {
+			const item = this.dataView.getItem(i);
+			fields.map(field => {
+				updated_totals[field] += item[field];
+			});
+		}
+		this.dataView.updateItem(updated_totals.id, updated_totals);
+	},
 	inline_filter: function (item) {
 		var me = frappe.container.page.query_report;
+		if(me.report_doc.add_total_row) {
+			// always show totals row
+			if(Object.values(item).includes("'Total'")) return true;
+		}
 		for (var columnId in me.columnFilters) {
 			if (columnId !== undefined && me.columnFilters[columnId] !== "") {
 				var c = me.grid.getColumns()[me.grid.getColumnIndex(columnId)];
@@ -772,6 +819,16 @@ frappe.views.QueryReport = Class.extend({
 			var cols = args.sortCols;
 
 			me.data.sort(function (dataRow1, dataRow2) {
+				// Totals row should always be last
+				if(me.report_doc.add_total_row) {
+					if(Object.values(dataRow1).includes("'Total'")) {
+						return 1;
+					}
+					if(Object.values(dataRow2).includes("'Total'")) {
+						return -1;
+					}
+				}
+
 				for (var i = 0, l = cols.length; i < l; i++) {
 					var field = cols[i].sortCol.field;
 					var sign = cols[i].sortAsc ? 1 : -1;
@@ -887,5 +944,9 @@ frappe.views.QueryReport = Class.extend({
 		if(this.chart && opts.data && opts.data.rows && opts.data.rows.length) {
 			this.chart_area.toggle(true);
 		}
+	},
+
+	set_print_data: function(data_to_be_printed) {
+		this.data_to_be_printed = data_to_be_printed;
 	}
 })

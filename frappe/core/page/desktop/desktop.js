@@ -27,7 +27,7 @@ $.extend(frappe.desktop, {
 
 	render: function() {
 		var me = this;
-		frappe.utils.set_title("Desktop");
+		frappe.utils.set_title(__("Desktop"));
 
 		var template = frappe.list_desktop ? "desktop_list_view" : "desktop_icon_grid";
 
@@ -50,7 +50,6 @@ $.extend(frappe.desktop, {
 			desktop_items: all_icons,
 		}));
 
-		frappe.desktop.setup_help_messages();
 		frappe.desktop.setup_module_click();
 
 		// notifications
@@ -60,30 +59,6 @@ $.extend(frappe.desktop, {
 		});
 
 		$(document).trigger("desktop-render");
-
-	},
-
-	setup_help_messages: function() {
-		// 	{
-		// 		title: 'Sign up for a Premium Plan',
-		// 		description: 'Sign up for a premium plan and add users, get more disk space and priority support',
-		// 		action: 'Select Plan',
-		// 		route: 'usage-info'
-		// 	}
-
-		// TEMP: test activiation without this message.
-		return;
-
-		// if(!frappe.user.has_role('System Manager')) {
-		// 	return;
-		// }
-
-		// frappe.call({
-		// 	method: 'frappe.core.page.desktop.desktop.get_help_messages',
-		// 	callback: function(r) {
-		// 		frappe.desktop.render_help_messages(r.message);
-		// 	}
-		// });
 
 	},
 
@@ -149,7 +124,7 @@ $.extend(frappe.desktop, {
 		frappe.desktop.wrapper.on("click", ".circle", function() {
 			var doctype = $(this).attr('data-doctype');
 			if(doctype) {
-				frappe.set_route('List', doctype, frappe.ui.notifications.get_filters(doctype));
+				frappe.ui.notifications.show_open_count_list(doctype);
 			}
 		});
 	},
