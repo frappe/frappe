@@ -51,13 +51,9 @@
 .column-picker-dialog .add-btn {
   margin-bottom: 2px;
 }
-.data-table .frappe-control {
-  margin: 0;
+.data-table .edit-popup .frappe-control {
   padding: 0;
 }
-.data-table .frappe-control .form-group {
+.data-table .edit-popup .frappe-control .form-group {
   margin: 0;
-}
-.data-table .frappe-control input {
-  border: none;
 }

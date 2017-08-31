@@ -69,13 +69,7 @@ frappe.views.ReportView = frappe.ui.BaseList.extend({
 		$.extend(this, opts);
 		this.can_delete = frappe.model.can_delete(me.doctype);
 		this.tab_name = '`tab'+this.doctype+'`';
-
-		frappe.require([
-			'/assets/frappe/js/frappe/views/datatable/datatable.js',
-			'/assets/frappe/css/datatable.css'
-		], () => {
-			this.setup();
-		});
+		this.setup();
 	},
 
 	setup: function() {
@@ -402,9 +396,6 @@ frappe.views.ReportView = frappe.ui.BaseList.extend({
 
 		this.render_datatable(columns, data);
 
-
-
-
 		// add sr in data
 		// $.each(data, function(i, v) {
 		// 	// add index
@@ -516,30 +507,107 @@ frappe.views.ReportView = frappe.ui.BaseList.extend({
 			return;
 		}
 
+		var me = this;
+
 		this.datatable = new DataTable({
 			wrapper: this.wrapper.find('.result-list'),
 			events: {
-				on_cell_doubleclick: (el_cell, row_index, col_index) => {
-					const col = columns[col_index];
-					const row = data[row_index];
-					const value = row[col.field];
+				on_cell_doubleclick: (el_cell, $edit_area, row_index, col_index) => {
+					if($edit_area.find('.frappe-control').length)
+						return;
 
-					const $cell = $(el_cell);
-					$cell.find('> div').hide();
-					const control = frappe.ui.form.make_control({
-						df: col.docfield,
-						parent: $cell,
-						render_input: true
-					});
-
-					control.set_value(value);
-					control.toggle_label(false);
-					control.toggle_description(false);
+					me.edit_datatable_cell(row_index, col_index, $edit_area, columns, data);
 				}
 			}
 		});
 		this.datatable.render({columns, rows});
 	},
+
+	edit_datatable_cell: function(row_index, col_index, $edit_area, columns, data) {
+
+
+
+		const me = this;
+		const col = columns[col_index];
+		const row = data[row_index];
+		const value = row[col.field];
+		const docfield = col.docfield;
+
+		if(!docfield || docfield.fieldname !== "idx"
+			&& frappe.model.std_fields_list.includes(docfield.fieldname)) {
+			return;
+		} else if(!frappe.boot.user.can_write.includes(this.doctype)) {
+			frappe.throw({
+				title:__('Not Permitted'),
+				message:__("No permission to edit")
+			});
+		}
+
+		// make control
+		const control = frappe.ui.form.make_control({
+			df: col.docfield,
+			parent: $edit_area,
+			render_input: true
+		});
+		control.set_value(value);
+		control.toggle_label(false);
+		control.toggle_description(false);
+
+		// Add save/cancel buttons
+		const $save_button =
+			$('<button class="btn btn-primary btn-sm">' + __('Update') + '</button>')
+				.on('click', () => {
+					const updated_value = control.get_value();
+					if (value === updated_value) {
+						$edit_area.hide();
+						return;
+					}
+
+					me.update_value_on_server(
+						docfield.parent,
+						row[docfield.parent===me.doctype ? "name" : docfield.parent+":name"],
+						docfield.fieldname,
+						updated_value
+					).then(r => {
+						if(r.message) {
+							const updated_value = r.message[docfield.fieldname];
+							me.datatable.update_cell(row_index, col_index, updated_value);
+						}
+						$edit_area.hide();
+					});
+				});
+
+		const $cancel_button =
+			$('<button class="btn btn-default btn-sm">'+__('Cancel')+'</button>')
+				.css({ 'margin-right': '10px' })
+				.on('click', () => $edit_area.hide());
+
+		$('<div>')
+			.css({
+				'display': 'flex',
+				'justify-content': 'flex-end'
+			})
+			.append($cancel_button)
+			.append($save_button)
+			.appendTo($edit_area);
+
+		$edit_area.show();
+	},
+
+	update_value_on_server: function(doctype, docname, field, value) {
+		var args = {
+			doctype: doctype,
+			name: docname,
+			fieldname: field,
+			value: value
+		};
+
+		return frappe.call({
+			method: "frappe.client.set_value",
+			args: args
+		});
+	},
+
 
 	has_child_column: function() {
 		var me = this;
