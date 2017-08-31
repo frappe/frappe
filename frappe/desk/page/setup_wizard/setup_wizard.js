@@ -233,7 +233,6 @@ frappe.setup.SetupWizardSlide = class SetupWizardSlide extends frappe.ui.Slide {
 		super.make();
 		this.set_init_values();
 		this.reset_action_button_state();
-		// this.setup_keyboard_nav();
 	}
 
 	set_init_values () {
@@ -249,20 +248,6 @@ frappe.setup.SetupWizardSlide = class SetupWizardSlide extends frappe.ui.Slide {
 		}
 	}
 
-	// setup_keyboard_nav() {
-	// 	var me = this;
-	// 	this.$body.on('keypress', function(e) {
-	// 		if(e.which === 13) {
-	// 			var $target = $(e.target);
-	// 			if($target.hasClass('prev-btn')) {
-	// 				me.prev();
-	// 			} else {
-	// 				me.next_or_complete();
-	// 				e.preventDefault();
-	// 			}
-	// 		}
-	// 	});
-	// }
 };
 
 // Frappe slides settings

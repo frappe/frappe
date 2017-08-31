@@ -211,9 +211,15 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 								me.progress_dialog.show();
 							});
 
-							setTimeout(function() {
+							if (frappe.boot.is_first_startup) {
 								me.progress_dialog.show();
-							}, 5000);
+								frappe.call({
+									method: "frappe.desk.page.setup_wizard.setup_wizard.reset_is_first_startup",
+									args: {},
+									callback: () => {}
+								});
+							}
+
 						});
 					}
 				}
