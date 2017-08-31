@@ -54,20 +54,17 @@ def take_backup_to_dropbox():
 
 def send_email(success, service_name, error_status=None):
 	if success:
-		subject = "Backup Upload Successful"
-		message ="""<h3>Backup Uploaded Successfully</h3><p>Hi there, this is just to inform you
-		that your backup was successfully uploaded to your %s account. So relax!</p>
-		""" % service_name
+		subject = _("Backup Upload Successful")
+		message = """<h3>{0}</h3><p>{1}</p>""".format(_('Backup Uploaded Successfully'),
+			 _('Your backup was successfully uploaded to your {0} account.').format(service_name))
 
 	else:
-		subject = "[Warning] Backup Upload Failed"
-		message ="""<h3>Backup Upload Failed</h3><p>Oops, your automated backup to %s
-		failed.</p>
+		subject = _("[Warning] Backup Upload Failed")
+		message = _("""<h3>{0}</h3><p>{1}</p>
 		<p>Error message: <br>
-		<pre><code>%s</code></pre>
-		</p>
-		<p>Please contact your system manager for more information.</p>
-		""" % (service_name, error_status)
+		<pre><code>{2}</code></pre>
+		</p>""".format(_('Backup Upload Failed'),
+			 _('Your automated backup to {0} failed.').format(service_name), error_status))
 
 	if not frappe.db:
 		frappe.connect()
