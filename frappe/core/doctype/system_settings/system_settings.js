@@ -20,3 +20,9 @@ frappe.ui.form.on("System Settings", "enable_password_policy", function(frm) {
 		frm.set_value("minimum_password_score", "2");
 	}
 });
+
+frappe.ui.form.on("System Settings", "enable_two_factor_auth", function(frm) {
+	if(frm.doc.enable_password_policy == 0){
+		frm.set_value("bypass_2fa_for_retricted_ip_users", "");
+	}
+});
