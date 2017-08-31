@@ -431,8 +431,9 @@ frappe.views.ListRenderer = Class.extend({
 		return `<span class='indicator ${indicator[1]}' title='${__(indicator[0])}'></span>`;
 	},
 	prepare_data: function (data) {
-		if (data.modified)
+		if (data.modified) {
 			this.prepare_when(data, data.modified);
+		}
 
 		// nulls as strings
 		for (var key in data) {
@@ -452,8 +453,24 @@ frappe.views.ListRenderer = Class.extend({
 
 		var title_field = this.meta.title_field || 'name';
 		data._title = strip_html(data[title_field] || data.name);
-		data._full_title = data._title;
 
+		// check for duplicates
+		// add suffix like (1), (2) etc
+		if (data.name && this.values_map) {
+			if (this.values_map[data.name]!==undefined) {
+				if (this.values_map[data.name]===1) {
+					// update first row!
+					this.set_title_with_row_number(this.rows_map[data.name], 1);
+				}
+				this.values_map[data.name]++;
+				this.set_title_with_row_number(data, this.values_map[data.name]);
+			} else {
+				this.values_map[data.name] = 1;
+				this.rows_map[data.name] = data;
+			}
+		}
+
+		data._full_title = data._title;
 
 		data._workflow = null;
 		if (this.workflow_state_fieldname) {
@@ -493,6 +510,11 @@ frappe.views.ListRenderer = Class.extend({
 		return data;
 	},
 
+	set_title_with_row_number: function (data, id) {
+		data._title = data._title + ` (${__("Row")} ${id})`;
+		data._full_title = data._title;
+	},
+
 	prepare_when: function (data, date_str) {
 		if (!date_str) date_str = data.modified;
 		// when
@@ -520,10 +542,12 @@ frappe.views.ListRenderer = Class.extend({
 			|| ($.isArray(this.required_libs) && this.required_libs.length);
 
 		this.render_view = function (values) {
+			me.values_map = {};
+			me.rows_map = {};
 			// prepare data before rendering view
 			values = values.map(me.prepare_data.bind(this));
 			// remove duplicates
-			values = values.uniqBy(value => value.name);
+			// values = values.uniqBy(value => value.name);
 
 			if (lib_exists) {
 				me.load_lib(function () {

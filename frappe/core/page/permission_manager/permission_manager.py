@@ -35,9 +35,12 @@ def get_roles_and_doctypes():
 		"restrict_to_domain": ("in", active_domains)
 	}, fields=["name"])
 
+	doctypes_list = [ {"label":_(d.get("name")), "value":d.get("name")} for d in doctypes]
+	roles_list = [ {"label":_(d.get("name")), "value":d.get("name")} for d in roles]
+
 	return {
-		"doctypes": [d.get("name") for d in doctypes],
-		"roles": [d.get("name") for d in roles]
+		"doctypes": sorted(doctypes_list, key=lambda d: d['label']),
+		"roles": sorted(roles_list, key=lambda d: d['label'])
 	}
 
 @frappe.whitelist()

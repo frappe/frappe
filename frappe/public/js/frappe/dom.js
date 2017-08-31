@@ -224,7 +224,7 @@ frappe.get_modal = function(title, content) {
 (function($) {
 	$.fn.add_options = function(options_list) {
 		// create options
-		for(var i=0; i<options_list.length; i++) {
+		for(var i=0, j=options_list.length; i<j; i++) {
 			var v = options_list[i];
 			if (is_null(v)) {
 				var value = null;

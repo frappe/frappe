@@ -28,6 +28,9 @@ frappe.ui.form.save = function (frm, action, callback, btn) {
 						$(document).trigger("save", [frm.doc]);
 						callback(r);
 					},
+					error: function (r) {
+						callback(r);
+					},
 					btn: btn,
 					freeze_message: freeze_message
 				});
@@ -188,6 +191,7 @@ frappe.ui.form.save = function (frm, action, callback, btn) {
 			callback: function (r) {
 				opts.callback && opts.callback(r);
 			},
+			error: opts.error,
 			always: function (r) {
 				$(btn).prop("disabled", false);
 				frappe.ui.form.is_saving = false;

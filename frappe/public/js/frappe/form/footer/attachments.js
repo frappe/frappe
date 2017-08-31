@@ -254,6 +254,9 @@ frappe.ui.get_upload_dialog = function(opts){
 				"reqd" : false,
 				"filters": {
 					'related_doctype': opts.args.doctype
+				},
+				onchange: function(){
+					opts.args.gs_template = this.get_value();
 				}
 			},
 		],
@@ -263,12 +266,6 @@ frappe.ui.get_upload_dialog = function(opts){
 
 	dialog.show();
 	var upload_area = $('<div style="padding-bottom: 25px;"></div>').prependTo(dialog.body);
-
-	var fd = dialog.fields_dict;
-
-	$(fd.gs_template.input).change(function() {
-		opts.args.gs_template = fd.gs_template.get_value();
-	});
 
 	frappe.upload.make({
 		parent: upload_area,
