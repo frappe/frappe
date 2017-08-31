@@ -4,137 +4,6 @@
 frappe.provide("frappe.setup");
 frappe.provide("frappe.ui");
 
-frappe.ui.ActionCard = class {
-	constructor({
-		data = null
-	}) {
-		this.data = data;
-		this.make();
-		this.setup();
-	}
-
-	make() {
-		this.container = $(`<div class="card-container">
-			<div class="img-container hide">
-				<img src="" class="clip">
-				<div class="image-overlay hide"></div>
-				<i class="play fa fa-fw fa-play-circle hide"></i>
-			</div>
-			<div class="content-container">
-				<h5 class="title"><a></a></h5>
-				<div class="content"></div>
-				<div class="action-area"></div>
-			</div>
-			<i class="check pull-right fa fa-fw fa-check-circle text-extra-muted"></i>
-		</div>`);
-		this.property_components = [
-			{ card_properties: ['content'], component_name: '$content', class_name: 'content' },
-			// { card_properties: ['image'], component_name: '$img_container', class_name: 'img-container'},
-			{ card_properties: ['done'], component_name: '$check', class_name: 'check' },
-			{ card_properties: ['actions', 'help_links'], component_name: '$action_area', class_name: 'action-area' }
-		];
-	}
-
-	setup() {
-		this.property_components.map(d => {
-			if(!this[d.component_name]) {
-				this[d.component_name] = this.container.find('.' + d.class_name);
-			}
-		});
-
-		if(this.data.video_id) {
-			this.data.image = `http://img.youtube.com/vi/${this.data.video_id}/0.jpg`;
-			// this.$img_container.find('.image-overlay').removeClass('hide');
-			// this.$img_container.find('.fa-play-circle').removeClass('hide');
-			this.data.title = "Video: " + this.data.title;
-			if(this.data.content) {
-				this.$content.html(this.data.content);
-			}
-		}
-
-		this.refresh();
-		if(this.data.video_id) {
-			this.bind_single_action(() => {
-				frappe.help.show_video(this.data.video_id, this.title);
-			});
-		}
-	}
-
-	refresh() {
-		// render according to props
-		this.property_components.map(comp => {
-			let visible = 0;
-			comp.card_properties.map(d => {
-				if(this.data[d]) visible = 1;
-			});
-			if(!visible) {
-				this[comp.component_name].hide();
-			}
-		});
-
-		this.render();
-	}
-
-	render() {
-		this.container.find('.title a').html(this.data.title)
-			.on('click', () => {
-				frappe.set_route(this.data.title_route);
-			});
-
-		// if(this.data.image) {
-		// 	this.$img_container.find('img').attr({"src": this.data.image});
-		// }
-		// if(this.data.content) {
-		// 	this.$content.html(this.data.content);
-		// }
-		if(this.data.done) {
-			this.container.addClass("done");
-		}
-		if(this.data.actions) {
-			this.data.actions.map(action => {
-				let $btn = $(`<button class="btn btn-default btn-xs">${action.label}</button>`);
-				this.$action_area.append($btn);
-				if(action.route) {
-					$btn.on('click', () => {
-						frappe.set_route(action.route);
-					});
-				} if(action.new_doc) {
-					$btn.on('click', () => {
-						frappe.new_doc(action.new_doc);
-					});
-				}
-			});
-		}
-		if(this.data.help_links) {
-			this.data.help_links.map(link => {
-				let $link = $(`<a target="_blank">${link.label}</a>`);
-				if(link.url) {
-					$link.attr({"attr": link.url});
-				} else if(link.video_id) {
-					$link.on('click', () => {
-						frappe.help.show_video(this.data.video_id, this.title);
-					})
-				}
-				this.$action_area.append($link);
-			});
-		}
-	}
-
-	bind_single_action(onclick) {
-		if(this.data.video_id) {
-			// on entire card click
-			this.container.on('mouseenter', () => {
-				this.container.addClass('single_action');
-			}).on('mouseleave', () => {
-				this.container.removeClass('single_action');
-			}).on('click', onclick);
-		}
-	}
-
-	mark_as_done() {}
-
-}
-
 frappe.setup.UserProgressSlide = class UserProgressSlide extends frappe.ui.Slide {
 	constructor(slide = null) {
 		super(slide);
@@ -150,26 +19,41 @@ frappe.setup.UserProgressSlide = class UserProgressSlide extends frappe.ui.Slide
 		this.slides_footer.find('.next-btn').addClass('btn-primary');
 		this.slides_footer.find('.done-btn').hide();
 		this.$primary_btn.hide();
-		this.make_action_cards();
+		this.make_done_state();
 	}
 
-	make_action_cards() {
-		this.$done_state = $(`<div class="done-content">
-			<div class="actions cards-container">
-
-			</div>
+	make_done_state() {
+		this.$done_state = $(`<div class="done-state text-center">
+			<div class="check-container"><i class="check fa fa-fw fa-check-circle text-success"></i></div>
+			<h4 class="title"><a></a></h4>
+			<div class="help-links"></div>
 		</div>`).appendTo(this.$body);
 
-		this.$actions = this.$done_state.find('.actions');
-		this.action_cards.map(this.add_card.bind(this));
-	}
+		this.$done_state_title = this.$done_state.find('.title');
+		this.$check = this.$done_state.find('.check');
+		this.$help_links = this.$done_state.find('.help-links');
 
-	add_card(data) {
-		let card = new frappe.ui.ActionCard({
-			data: data
-		});
+		if(this.done_state_title) {
+			$("<a>" + this.done_state_title + "</a>").appendTo(this.$done_state_title);
+			this.$done_state_title.on('click', () => {
+				frappe.set_route(this.done_state_title_route);
+			});
+		}
 
-		card.container.appendTo(this.$actions);
+		if(this.help_links) {
+			this.help_links.map(link => {
+				let $link = $(`<a target="_blank" class="small text-muted">${link.label}</a>`);
+				if(link.url) {
+					$link.attr({"href": link.url});
+				} else if(link.video_id) {
+					$link.on('click', () => {
+						frappe.help.show_video(link.video_id, link.label);
+					})
+				}
+				this.$help_links.append($link);
+			});
+		}
+
 	}
 
 	before_show() {
@@ -179,6 +63,9 @@ frappe.setup.UserProgressSlide = class UserProgressSlide extends frappe.ui.Slide
 		} else {
 			this.slides_footer.find('.next-btn').removeClass('btn-primary');
 			this.slides_footer.find('.done-btn').show();
+		}
+		if(this.dialog_dismissed) {
+			this.slides_footer.find('.next-btn').removeClass('btn-primary');
 		}
 	}
 
@@ -218,10 +105,6 @@ frappe.setup.UserProgressDialog  = class UserProgressDialog {
 	setup() {
 		this.dialog = new frappe.ui.Dialog({title: __("Complete Setup")});
 		this.$wrapper = $(this.dialog.$wrapper).addClass('user-progress-dialog');
-		this.$progress = $(`<div class="progress-chart">
-			<div class="progress"><div class="progress-bar"></div></div>
-		</div>`);
-		this.dialog.header.find('.col-xs-7').append(this.$progress);
 		this.slide_container = new frappe.ui.Slides({
 			parent: this.dialog.body,
 			slides: this.slides,
@@ -236,7 +119,6 @@ frappe.setup.UserProgressDialog  = class UserProgressDialog {
 			},
 			on_update: (completed, total) => {
 				let percent = completed * 100 / total;
-				this.$wrapper.find('.progress-bar').css({'width': percent + '%'});
 				$('.user-progress .progress-bar').css({'width': percent + '%'});
 				if(percent === 100) {
 					$(document).trigger("user-initial-setup-complete");
@@ -316,7 +198,6 @@ frappe.setup.UserProgressDialog  = class UserProgressDialog {
 	}
 
 	update_progress_bars() {
-		this.$wrapper.find('.progress-bar').css({'width': this.progress_percent + '%'});
 		$('.user-progress .progress-bar').css({'width': this.progress_percent + '%'});
 		if(this.progress_percent === 100) {
 			$(document).trigger("user-initial-setup-complete");
@@ -339,6 +220,12 @@ frappe.setup.UserProgressDialog  = class UserProgressDialog {
 
 	add_finish_slide_and_make_dismissable() {
 		clearInterval(this.updater);
+
+		let slide_dict = this.slide_container.slide_dict;
+		Object.keys(slide_dict).map(id => {
+			slide_dict[id].dialog_dismissed = 1;
+		});
+
 		this.$dismiss_button.removeClass('hide');
 	}
 
