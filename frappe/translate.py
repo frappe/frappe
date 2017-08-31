@@ -453,6 +453,7 @@ def get_server_messages(app):
 			if dontwalk in folders: folders.remove(dontwalk)
 
 		for f in files:
+			f = frappe.as_unicode(f)
 			if f.endswith(".py") or f.endswith(".html") or f.endswith(".js"):
 				messages.extend(get_messages_from_file(os.path.join(basepath, f)))
 
