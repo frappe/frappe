@@ -105,7 +105,7 @@ frappe.ui.form.LinkSelector = Class.extend({
 						('<br><br><a class="new-doc btn btn-default btn-sm">'
 							+ __("Make a new {0}", [__(me.doctype)]) + "</a>") : '')
 					+ '</p>').appendTo(parent).find(".new-doc").click(function () {
-						frappe.new_doc('Item');
+						frappe.new_doc(me.doctype);
 					});
 			}
 		}, this.dialog.get_primary_btn());
