@@ -61,10 +61,10 @@ def send_email(success, service_name, error_status=None):
 	else:
 		subject = _("[Warning] Backup Upload Failed")
 		message = _("""<h3>{0}</h3><p>{1}</p>
-		<p>Error message: <br>
-		<pre><code>{2}</code></pre>
+		<p>{2}<br>
+		<pre><code>{3}</code></pre>
 		</p>""".format(_('Backup Upload Failed'),
-			 _('Your automated backup to {0} failed.').format(service_name), error_status))
+			 _('Your automated backup to {0} failed.').format(service_name), _('Error message:'), error_status))
 
 	if not frappe.db:
 		frappe.connect()
