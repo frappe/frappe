@@ -768,7 +768,7 @@ class Document(BaseDocument):
 
 		self._doc_before_save = None
 		if not self.is_new() and getattr(self.meta, 'track_changes', False):
-			self._doc_before_save = frappe.get_doc(self.doctype, self.name)
+			self.get_doc_before_save()
 
 		if self.flags.ignore_validate:
 			return
