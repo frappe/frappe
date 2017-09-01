@@ -95,7 +95,7 @@ def handle():
 
 				if frappe.local.request.method=="DELETE":
 					# Not checking permissions here because it's checked in delete_doc
-					frappe.delete_doc(doctype, name)
+					frappe.delete_doc(doctype, name, ignore_missing=False)
 					frappe.local.response.http_status_code = 202
 					frappe.local.response.message = "ok"
 					frappe.db.commit()

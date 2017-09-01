@@ -14,7 +14,7 @@ import os, sys, importlib, inspect, json
 from .exceptions import *
 from .utils.jinja import get_jenv, get_template, render_template, get_email_from_template
 
-__version__ = '8.9.1'
+__version__ = '8.9.2'
 __title__ = "Frappe Framework"
 
 local = Local()
@@ -642,7 +642,7 @@ def get_meta_module(doctype):
 	return frappe.modules.load_doctype_module(doctype)
 
 def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reload=False,
-	ignore_permissions=False, flags=None):
+	ignore_permissions=False, flags=None, ignore_on_trash=False, ignore_missing=True):
 	"""Delete a document. Calls `frappe.model.delete_doc.delete_doc`.
 
 	:param doctype: DocType of document to be delete.
@@ -653,7 +653,7 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 	:param ignore_permissions: Ignore user permissions."""
 	import frappe.model.delete_doc
 	frappe.model.delete_doc.delete_doc(doctype, name, force, ignore_doctypes, for_reload,
-		ignore_permissions, flags)
+		ignore_permissions, flags, ignore_on_trash, ignore_missing)
 
 def delete_doc_if_exists(doctype, name, force=0):
 	"""Delete document if exists."""

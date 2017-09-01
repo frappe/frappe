@@ -208,7 +208,7 @@ def delete(doctype, name):
 
 	:param doctype: DocType of the document to be deleted
 	:param name: name of the document to be deleted'''
-	frappe.delete_doc(doctype, name)
+	frappe.delete_doc(doctype, name, ignore_missing=False)
 
 @frappe.whitelist()
 def set_default(key, value, parent=None):
