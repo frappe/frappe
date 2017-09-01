@@ -155,6 +155,7 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 					localStorage.setItem("session_last_route", frappe.setup.welcome_page);
 				}
 				window.location = "/desk";
+				window.location.reload();
 				setTimeout(function() {
 					// frappe.ui.toolbar.clear_cache();
 					window.location = "/desk";

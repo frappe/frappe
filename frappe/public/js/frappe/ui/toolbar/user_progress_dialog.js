@@ -121,7 +121,7 @@ frappe.setup.UserProgressDialog  = class UserProgressDialog {
 				let percent = completed * 100 / total;
 				$('.user-progress .progress-bar').css({'width': percent + '%'});
 				if(percent === 100) {
-					$(document).trigger("user-initial-setup-complete");
+					this.dismiss_progress();
 				}
 			}
 		});
@@ -130,7 +130,6 @@ frappe.setup.UserProgressDialog  = class UserProgressDialog {
 			this.mark_as_done();
 		});
 
-		this.make_dismiss_button();
 		this.get_and_update_progress_state();
 		this.check_for_updates();
 	}
@@ -194,39 +193,15 @@ frappe.setup.UserProgressDialog  = class UserProgressDialog {
 	}
 
 	update_progress() {
-		this.update_progress_bars();
-	}
-
-	update_progress_bars() {
 		$('.user-progress .progress-bar').css({'width': this.progress_percent + '%'});
 		if(this.progress_percent === 100) {
-			$(document).trigger("user-initial-setup-complete");
+			this.dismiss_progress();
 		}
 	}
 
-	make_dismiss_button() {
-		this.dialog.set_primary_action(__('Dismiss'), () => {
-			$('.user-progress').addClass('hide');
-			this.dialog.hide();
-		});
-		this.$dismiss_button = this.dialog.header.find('.btn-primary').addClass('dismiss-btn');
-		// hidden by default
-		this.$dismiss_button.addClass('hide');
-
-		$(document).on("user-initial-setup-complete", () => {
-			this.add_finish_slide_and_make_dismissable();
-		});
-	}
-
-	add_finish_slide_and_make_dismissable() {
+	dismiss_progress() {
+		$('.user-progress').addClass('hide');
 		clearInterval(this.updater);
-
-		let slide_dict = this.slide_container.slide_dict;
-		Object.keys(slide_dict).map(id => {
-			slide_dict[id].dialog_dismissed = 1;
-		});
-
-		this.$dismiss_button.removeClass('hide');
 	}
 
 	show() {
