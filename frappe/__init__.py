@@ -1344,7 +1344,7 @@ def safe_eval(code, eval_globals=None, eval_locals=None):
 	whitelisted_globals = {
 		"int": int,
 		"float": float,
-		"long": long,
+		"long": int,
 		"round": round
 	}
 
