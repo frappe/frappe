@@ -51,7 +51,7 @@ class EMail:
 	Also sets all messages as multipart/alternative for cleaner reading in text-only clients
 	"""
 	def __init__(self, sender='', recipients=(), subject='', alternative=0, reply_to=None, cc=(), email_account=None, expose_recipients=None):
-		from email import Charset
+		from email import charset as Charset
 		Charset.add_charset('utf-8', Charset.QP, Charset.QP, 'utf-8')
 
 		if isinstance(recipients, string_types):
