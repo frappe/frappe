@@ -230,7 +230,7 @@ frappe.ui.form.Dashboard = Class.extend({
 			} else {
 				return false;
 			}
-		} else {
+		} else if(this.data.fieldname) {
 			frappe.route_options = this.get_document_filter(doctype);
 			if(show_open) {
 				frappe.ui.notifications.show_open_count_list(doctype);
@@ -250,7 +250,7 @@ frappe.ui.form.Dashboard = Class.extend({
 		return filter;
 	},
 	set_open_count: function() {
-		if(!this.data.transactions) {
+		if(!this.data.transactions || !this.data.fieldname) {
 			return;
 		}
 
