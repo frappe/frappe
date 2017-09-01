@@ -26,7 +26,7 @@ frappe.ui.form.ControlSelect = frappe.ui.form.ControlData.extend({
 	},
 	set_options: function(value) {
 		// reset options, if something new is set
-		var options = value || this.df.options || [];
+		var options = this.df.options || [];
 
 		if(typeof this.df.options==="string") {
 			options = this.df.options.split("\n");
