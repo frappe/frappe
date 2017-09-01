@@ -249,7 +249,7 @@ class EmailAccount(Document):
 				email_server = None
 				try:
 					email_server = self.get_incoming_server(in_receive=True, email_sync_rule=email_sync_rule)
-				except Exception as e:
+				except Exception:
 					frappe.log_error(title=_("Error while connecting to email account {0}").format(self.name))
 
 				if not email_server:
