@@ -30,7 +30,7 @@ class ModuleDef(Document):
 			with open(frappe.get_app_path(self.app_name, "modules.txt"), "r") as f:
 				content = f.read()
 				if not self.name in content.splitlines():
-					modules = filter(None, content.splitlines())
+					modules = list(filter(None, content.splitlines()))
 					modules.append(self.name)
 
 			if modules:
