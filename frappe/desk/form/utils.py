@@ -29,8 +29,15 @@ def validate_link():
 		frappe.response['message'] = 'Ok'
 		return
 
-	valid_value = frappe.db.sql("select name from `tab%s` where name=%s" % (frappe.db.escape(options),
-		'%s'), (value,))
+	# if enabled/disabled field is present
+	condition = ""
+	condition_dict = {'enabled':1, 'disabled':0}
+	for key, value in condition_dict.items():
+		if options and frappe.get_meta(options).get_field(key):
+			condition = " and {0} = {1}".format(key, value)
+
+	valid_value = frappe.db.sql("select name from `tab%s` where name=%s%s" % (frappe.db.escape(options),
+		'%s', condition), (value,))
 
 	if valid_value:
 		valid_value = valid_value[0][0]
@@ -93,4 +100,3 @@ def get_next(doctype, value, prev, filters=None, order_by="modified desc"):
 		return None
 	else:
 		return res[0][0]
-
