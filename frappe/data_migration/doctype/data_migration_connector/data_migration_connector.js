@@ -2,7 +2,7 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on('Data Migration Connector', {
-	refresh: function(frm) {
+	refresh: function() {
 
 	}
 });
