@@ -352,6 +352,8 @@ def delete_qrimage(user, check_expiry=False):
 
 def delete_all_barcodes_for_users():
 	'''Task to delete all barcodes for user.'''
+	if not two_factor_is_enabled():
+		return
 	users = frappe.get_all('User', {'enabled':1})
 	for user in users:
 		delete_qrimage(user.name, check_expiry=True)
