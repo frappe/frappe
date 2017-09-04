@@ -156,7 +156,6 @@ def get_notifications_for_targets(config, notification_percent):
 
 	return doc_target_percents
 
-
 def clear_notifications(user=None):
 	if frappe.flags.in_install:
 		return
