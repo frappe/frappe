@@ -216,6 +216,10 @@ class File(NestedSet):
 
 	def check_reference_doc_permission(self):
 		"""Check if permission exists for reference document"""
+		if not frappe.db.exists(self.attached_to_doctype, self.attached_to_name):
+			# document is already deleted before deleting attachment
+			return
+
 		if self.attached_to_name:
 			# check persmission
 			try:
