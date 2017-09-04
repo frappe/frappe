@@ -159,12 +159,16 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 				setTimeout(function() {
 					// frappe.ui.toolbar.clear_cache();
 					window.location = "/desk";
-				}, 4000);
+				}, 2000);
+				setTimeout(()=> {
+					$('body').removeClass('setup-state');
+				}, 20000);
 			},
 			error: function() {
 				var d = frappe.msgprint(__("There were errors."));
 				d.custom_onhide = function() {
 					$(me.parent).find('.setup-state').remove();
+					$('body').removeClass('setup-state');
 					me.container.show();
 					frappe.set_route(me.page_name, me.slides.length - 1);
 				};
@@ -190,20 +194,20 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 
 	show_working_state() {
 		this.container.hide();
+		$('body').addClass('setup-state');
 		frappe.set_route(this.page_name);
 
 		this.working_state_message = this.get_message(
-			"/assets/frappe/images/ui/bubble-tea-smile.svg",
 			__("Setting Up"),
-			__('Sit tight while your system is being setup. This may take a few moments.'),
-			"animated infinite bounce"
+			__("Sit tight while your system is being setup. This may take a few moments."),
+			true
 		).appendTo(this.parent);
 
 		this.current_id = this.slides.length;
 		this.current_slide = null;
 		this.completed_state_message = this.get_message(
-			"/assets/frappe/images/ui/bubble-tea-happy.svg",
-			__("Setup Complete")
+			__("Setup Complete"),
+			__("You're all set!")
 		);
 	}
 
@@ -212,13 +216,21 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 		this.completed_state_message.appendTo(this.parent);
 	}
 
-	get_message(image, title, message="", image_class) {
-		return $(`<div class="setup-state" data-state="setup">
-			<div style="padding: 40px;" class="text-center">
-				<div class="container setup-wizard-slide">
-					<img class="img-responsive setup-wizard-message-image ${image_class}" src="${image}">
-					<p class="text-center lead">${title}</p>
-					<p class="text-center">${message}</p>
+	get_message(title, message="", loading=false) {
+		return $(`<div data-state="setup">
+			<div class="page-card">
+				<div class="page-card-head">
+					<span class="indicator blue">
+						${title}</span>
+				</div>
+				<p>${message}</p>
+				<div class="state-icon-container">
+				${loading
+					? '<div style="width:100%;height:100%" class="lds-rolling state-icon"><div></div></div>'
+					: `<div style="width:100%;height:100%" class="state-icon"><i class="fa fa-check-circle text-extra-muted"
+						style="font-size: 64px; margin-top: -8px;">
+					</i></div>`
+				}
 				</div>
 			</div>
 		</div>`);
