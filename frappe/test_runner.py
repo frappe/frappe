@@ -12,6 +12,7 @@ from frappe.utils import cstr
 import frappe.utils.scheduler
 import cProfile, pstats
 from six import StringIO
+from six.moves import reload_module
 
 unittest_runner = unittest.TextTestRunner
 
@@ -233,7 +234,7 @@ def get_modules(doctype):
 	try:
 		test_module = load_doctype_module(doctype, module, "test_")
 		if test_module:
-			reload(test_module)
+			reload_module(test_module)
 	except ImportError:
 		test_module = None
 
