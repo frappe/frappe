@@ -81,8 +81,8 @@ def two_factor_is_enabled_for_(user):
 	roles.append('All')
 
 	query = """select name from `tabRole` where two_factor_auth=1
-		and name in ({0}) limit 1""".format(', '.join('\"{}\"'.format(i) for \
-											i in roles))
+		and name in ({0}) limit 1""".format(', '.join('\"{}\"'.format(i) for i in roles))
+
 	if len(frappe.db.sql(query)) > 0:
 		return True
 
@@ -148,7 +148,6 @@ def get_verification_obj(user, token, otp_secret):
 	elif verification_method == 'Email':
 		verification_obj = process_2fa_for_email(user, token, otp_secret, otp_issuer)
 	return verification_obj
-
 
 def process_2fa_for_sms(user, token, otp_secret):
 	'''Process sms method for 2fa.'''
@@ -262,14 +261,22 @@ def send_token_via_sms(otpsecret, token=None, phone_no=None):
 		return False
 
 	hotp = pyotp.HOTP(otpsecret)
-	args = {ss.message_parameter: 'Your verification code is {}'.format(hotp.at(int(token))), ss.sms_sender_name: otp_issuer}
+	args = {
+		ss.sms_sender_name: otp_issuer,
+		ss.message_parameter: 'Your verification code is {}'.format(hotp.at(int(token)))
+	}
+
 	for d in ss.get("parameters"):
 		args[d.parameter] = d.value
 
 	args[ss.receiver_parameter] = phone_no
 
-	sms_args = {'gateway_url': ss.sms_gateway_url, 'params': args}
-	enqueue(method=send_request, queue='short', timeout=300, event=None, async=True, job_name=None, now=False, **sms_args)
+	sms_args = {
+		'params': args,
+		'gateway_url': ss.sms_gateway_url
+	}
+	enqueue(method=send_request, queue='short', timeout=300, event=None,
+		async=True, job_name=None, now=False, **sms_args)
 	return True
 
 def send_token_via_email(user, token, otp_secret, otp_issuer, subject=None, message=None):
@@ -295,8 +302,8 @@ def send_token_via_email(user, token, otp_secret, otp_issuer, subject=None, mess
 		'retry':3
 	}
 
-	enqueue(method=frappe.sendmail, queue='short',
-		timeout=300, event=None, async=True, job_name=None, now=False, **email_args)
+	enqueue(method=frappe.sendmail, queue='short', timeout=300, event=None,
+		async=True, job_name=None, now=False, **email_args)
 	return True
 
 def get_qr_svg_code(totp_uri):
@@ -344,14 +351,19 @@ def create_barcode_folder():
 def delete_qrimage(user, check_expiry=False):
 	'''Delete Qrimage when user logs in.'''
 	user_barcodes = frappe.get_all('File', {'attached_to_doctype': 'User',
-							'attached_to_name': user, 'folder': 'Home/Barcodes'})
+		'attached_to_name': user, 'folder': 'Home/Barcodes'})
+
 	for barcode in user_barcodes:
-		if check_expiry and not should_remove_barcode_image(barcode): continue
+		if check_expiry and not should_remove_barcode_image(barcode):
+			continue
 		barcode = frappe.get_doc('File', barcode.name)
 		frappe.delete_doc('File', barcode.name, ignore_permissions=True)
 
 def delete_all_barcodes_for_users():
 	'''Task to delete all barcodes for user.'''
+	if not two_factor_is_enabled():
+		return
+
 	users = frappe.get_all('User', {'enabled':1})
 	for user in users:
 		delete_qrimage(user.name, check_expiry=True)
@@ -367,4 +379,3 @@ def should_remove_barcode_image(barcode):
 
 def disable():
 	frappe.db.set_value('System Settings', None, 'enable_two_factor_auth', 0)
-
