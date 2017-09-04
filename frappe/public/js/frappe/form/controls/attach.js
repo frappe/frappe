@@ -182,6 +182,7 @@ frappe.ui.form.ControlAttach = frappe.ui.form.ControlData.extend({
 		} else {
 			this.value = this.get_value();
 			this.refresh();
+			frappe.hide_progress();
 		}
 	},
 });
