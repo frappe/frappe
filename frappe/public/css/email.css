@@ -157,6 +157,12 @@ hr {
 .indicator.indicator-yellow {
   background-color: #FEEF72;
 }
+.screenshot {
+  box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.1);
+  border: 1px solid #d1d8dd;
+  margin: 8px 0;
+  max-width: 100%;
+}
 /* auto email report */
 .report-title {
   margin-bottom: 20px;

@@ -636,7 +636,7 @@ frappe.ui.form.Timeline = Class.extend({
 			communications = this.frm.get_docinfo().communications,
 			email = this.get_recipient();
 
-		$.each(communications.sort(function(a, b) { return a.creation > b.creation ? -1 : 1 }), function(i, c) {
+		$.each(communications && communications.sort(function(a, b) { return a.creation > b.creation ? -1 : 1 }), function(i, c) {
 			if(c.communication_type=='Communication' && c.communication_medium=="Email") {
 				if(from_recipient) {
 					if(c.sender.indexOf(email)!==-1) {

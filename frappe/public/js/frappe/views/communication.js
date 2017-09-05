@@ -63,7 +63,7 @@ frappe.views.CommunicationComposer = Class.extend({
 			{label:__("Send As Email"), fieldtype:"Check",
 				fieldname:"send_email"},
 			{label:__("Send me a copy"), fieldtype:"Check",
-				fieldname:"send_me_a_copy"},
+				fieldname:"send_me_a_copy", 'default': frappe.boot.user.send_me_a_copy},
 			{label:__("Send Read Receipt"), fieldtype:"Check",
 				fieldname:"send_read_receipt"},
 			{label:__("Communication Medium"), fieldtype:"Select",
@@ -375,7 +375,14 @@ frappe.views.CommunicationComposer = Class.extend({
 			$(fields.select_print_format.wrapper).toggle(true);
 		}
 
-		$(fields.send_email.input).prop("checked", true)
+		$(fields.send_email.input).prop("checked", true);
+
+		$(fields.send_me_a_copy.input).on('click', () => {
+			// update send me a copy (make it sticky)
+			let val = fields.send_me_a_copy.get_value();
+			frappe.db.set_value('User', frappe.session.user, 'send_me_a_copy', val);
+			frappe.boot.user.send_me_a_copy = val;
+		});
 
 		// toggle print format
 		$(fields.send_email.input).click(function() {

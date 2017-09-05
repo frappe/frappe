@@ -9,6 +9,7 @@ import frappe.share
 from frappe.utils import cint
 from frappe.boot import get_allowed_reports
 from frappe.permissions import get_roles, get_valid_perms
+from frappe.core.doctype.domain_settings.domain_settings import get_active_modules
 
 class UserPermissions:
 	"""
@@ -63,10 +64,13 @@ class UserPermissions:
 	def build_doctype_map(self):
 		"""build map of special doctype properties"""
 
+		active_domains = frappe.get_active_domains()
+
 		self.doctype_map = {}
 		for r in frappe.db.sql("""select name, in_create, issingle, istable,
-			read_only, module from tabDocType""", as_dict=1):
-			self.doctype_map[r['name']] = r
+			read_only, restrict_to_domain, module from tabDocType""", as_dict=1):
+			if (not r.restrict_to_domain) or (r.restrict_to_domain in active_domains):
+				self.doctype_map[r['name']] = r
 
 	def build_perm_map(self):
 		"""build map of permissions at level 0"""
@@ -91,7 +95,7 @@ class UserPermissions:
 		self.build_perm_map()
 		user_shared = frappe.share.get_shared_doctypes()
 		no_list_view_link = []
-		active_modules = frappe.get_active_modules() or []
+		active_modules = get_active_modules() or []
 
 		for dt in self.doctype_map:
 			dtp = self.doctype_map[dt]
@@ -193,8 +197,8 @@ class UserPermissions:
 
 	def load_user(self):
 		d = frappe.db.sql("""select email, first_name, last_name, creation,
-			email_signature, user_type, language, background_image, background_style, mute_sounds
-			from tabUser where name = %s""", (self.name,), as_dict=1)[0]
+			email_signature, user_type, language, background_image, background_style,
+			mute_sounds, send_me_a_copy from tabUser where name = %s""", (self.name,), as_dict=1)[0]
 
 		if not self.can_read:
 			self.build_permissions()
