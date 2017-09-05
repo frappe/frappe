@@ -15,6 +15,11 @@ html, body {
 	background-color: #f5f7fa;
 }
 {% endif %}
+{% if card_width %}
+.page-card {
+	max-width: {{ card_width }}px;
+}
+{% endif %}
 </style>
 <div class='page-card'>
 	<div class='page-card-head'>
