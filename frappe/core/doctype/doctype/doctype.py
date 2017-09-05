@@ -332,7 +332,7 @@ class DocType(Document):
 		"""Make boilerplate controller template."""
 		make_boilerplate("controller._py", self)
 
-		if not (self.istable or self.issingle):
+		if not self.istable:
 			make_boilerplate("test_controller._py", self.as_dict())
 
 		if not self.istable:
