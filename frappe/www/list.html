@@ -23,8 +23,11 @@
 {% endblock %}
 
 {% block page_content %}
+
 {% if introduction %}<p>{{ introduction }}</p>{% endif %}
 {% include "templates/includes/list/list.html" %}
+{% if list_footer %}{{ list_footer }}{% endif %}
+
 {% endblock %}
 
 {% block script %}
