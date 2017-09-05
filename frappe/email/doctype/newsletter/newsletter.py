@@ -219,4 +219,22 @@ def send_newsletter(newsletter):
 		frappe.db.commit()
 
 
+def get_list_context(context=None):
+	return {
+		"show_sidebar": True,
+		"show_search": True,
+		'no_breadcrumbs': True,
+		"title": _("Newsletter"),
+		"get_list": get_newsletter_list,
+		"row_template": "templates/includes/newsletter/newsletter_row.html"
+	}
 
+def get_newsletter_list(doctype, txt, filters, limit_start, limit_page_length=20, order_by="modified"):
+	email_group_list = frappe.db.sql('''select eg.name from `tabEmail Group` eg, `tabEmail Group Member` egm
+		where egm.unsubscribed=0 and eg.name=egm.email_group and egm.email = %s''', frappe.session.user)
+	if email_group_list:
+		return frappe.db.sql('''select n.name, n.subject, n.message, n.modified
+			from `tabNewsletter` n, `tabNewsletter Email Group` neg
+			where n.name = neg.parent and n.email_sent=1 and neg.email_group in %s
+			order by n.modified desc limit {0}, {1}
+			'''.format(limit_start, limit_page_length), [email_group_list], as_dict=1)
