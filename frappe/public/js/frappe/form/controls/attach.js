@@ -179,7 +179,7 @@ frappe.ui.form.ControlAttach = frappe.ui.form.ControlData.extend({
 				}
 			}
 
-			return null
+			return null;
 		}
 	},
 
