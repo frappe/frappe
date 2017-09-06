@@ -191,9 +191,16 @@ select.input-sm {
 #page-setup-wizard {
 	margin-top: 30px;
 }
+@media (min-width: 768px) {
+	.setup-wizard-slide {
+		max-width: 500px;
+	}
+}
 .setup-wizard-slide {
-	padding-left: 0px;
-	padding-right: 0px;
+	margin: 60px auto;
+	padding: 10px 50px;
+	border: 1px solid #d1d8dd;
+	box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.1);
 
 	.slides-progress {
 		margin-top: 20px;
@@ -265,15 +272,14 @@ select.input-sm {
 	}
 
 	.frappe-control[data-fieldtype="Attach Image"] {
-			width: 140px;
-			height: 180px;
-			margin-top: 20px;
-			.form-group {
-				display: none;
-			}
-			.clearfix {
-				display: none;
-			}
+		width: 140px;
+		height: 180px;
+		margin-top: 20px;
+		.form-group {
+			display: none;
+		}
+		.clearfix {
+			display: none;
 		}
 	}
 
