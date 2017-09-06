@@ -226,7 +226,7 @@ def get_list_context(context=None):
 		'no_breadcrumbs': True,
 		"title": _("Newsletter"),
 		"get_list": get_newsletter_list,
-		"row_template": "templates/includes/newsletter/newsletter_row.html"
+		"row_template": "email/doctype/newsletter/templates/newsletter_row.html",
 	}
 
 def get_newsletter_list(doctype, txt, filters, limit_start, limit_page_length=20, order_by="modified"):
