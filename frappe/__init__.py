@@ -1319,6 +1319,20 @@ def enqueue(*args, **kwargs):
 	import frappe.utils.background_jobs
 	return frappe.utils.background_jobs.enqueue(*args, **kwargs)
 
+def enqueue_doc(*args, **kwargs):
+	'''
+		Enqueue method to be executed using a background worker
+
+		:param doctype: DocType of the document on which you want to run the event
+		:param name: Name of the document on which you want to run the event
+		:param method: method string or method object
+		:param queue: (optional) should be either long, default or short
+		:param timeout: (optional) should be set according to the functions
+		:param kwargs: keyword arguments to be passed to the method
+	'''
+	import frappe.utils.background_jobs
+	return frappe.utils.background_jobs.enqueue_doc(*args, **kwargs)
+
 def get_doctype_app(doctype):
 	def _get_doctype_app():
 		doctype_module = local.db.get_value("DocType", doctype, "module")
