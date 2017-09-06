@@ -97,7 +97,7 @@ frappe.upload = {
 
 				attached_files = attached_files.map(file => {
 					if (file.name === filename) {
-						file.is_private = is_private ? 1 : 0;
+						file.is_private = !!is_private;
 					}
 					return file;
 				});
