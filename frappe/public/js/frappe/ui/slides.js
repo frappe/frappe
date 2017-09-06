@@ -228,7 +228,7 @@ frappe.ui.Slides = class Slides {
 	}
 
 	make() {
-		this.container = $('<div>').addClass("slides-wrapper")
+		this.container = $('<div>').addClass("slides-wrapper").attr({"tabindex": -1})
 			.appendTo(this.parent);
 		this.$slide_progress = $(`<div>`).addClass(`slides-progress text-center text-extra-muted`)
 			.appendTo(this.container);

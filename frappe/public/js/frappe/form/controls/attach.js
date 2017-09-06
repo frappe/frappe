@@ -169,7 +169,17 @@ frappe.ui.form.ControlAttach = frappe.ui.form.ControlData.extend({
 		if(this.frm) {
 			return this.value;
 		} else {
-			return this.fileobj ? (this.fileobj.filename + "," + this.dataurl) : null;
+			if ( this.fileobj ) {
+				if ( this.fileobj.file_url ) {
+					return this.fileobj.file_url;
+				} else if ( this.fileobj.filename ) {
+					var dataURI = this.fileobj.filename + ',' + this.dataurl;
+
+					return dataURI;
+				}
+			}
+
+			return null;
 		}
 	},
 

@@ -534,11 +534,11 @@ frappe.views.QueryReport = Class.extend({
 				col.field = df.fieldname || df.label;
 				df.label = __(df.label);
 				col.name = col.id = col.label = df.label;
-			
+
 				if(df.width < 0) {
 					col.hidden = true;
 				}
-			
+
 				return col
 			}));
 	},
@@ -590,6 +590,9 @@ frappe.views.QueryReport = Class.extend({
 			newrow.id = newrow.name ? newrow.name : ("_" + newrow._id);
 			this.data.push(newrow);
 		}
+		if(this.report_doc.add_total_row) {
+			this.total_row_id = this.data[this.data.length - 1].id;
+		}
 	},
 	make_dataview: function() {
 		// initialize the model
@@ -621,20 +624,18 @@ frappe.views.QueryReport = Class.extend({
 	update_totals_row: function() {
 		if(!this.report_doc.add_total_row) return;
 
-		const data_length = this.dataView.getLength();
-		const last_index = data_length - 1;
-
 		const number_fields = ['Currency', 'Float', 'Int'];
 		const fields = this.columns
 			.filter(col => number_fields.includes(col.fieldtype))
 			.map(col => col.field);
 
 		// reset numeric fields
-		let updated_totals = Object.assign({}, this.dataView.getItem(last_index));
+		let updated_totals = Object.assign({}, this.dataView.getItemById(this.total_row_id));
 		fields.map(field => {
 			updated_totals[field] = 0.0;
 		});
 
+		const data_length = this.dataView.getLength();
 		// loop all the rows except the last Total row
 		for (let i = 0; i < data_length - 1; i++) {
 			const item = this.dataView.getItem(i);
@@ -648,7 +649,7 @@ frappe.views.QueryReport = Class.extend({
 		var me = frappe.container.page.query_report;
 		if(me.report_doc.add_total_row) {
 			// always show totals row
-			if(Object.values(item).includes("'Total'")) return true;
+			if(item.id === me.total_row_id) return true;
 		}
 		for (var columnId in me.columnFilters) {
 			if (columnId !== undefined && me.columnFilters[columnId] !== "") {
@@ -821,10 +822,10 @@ frappe.views.QueryReport = Class.extend({
 			me.data.sort(function (dataRow1, dataRow2) {
 				// Totals row should always be last
 				if(me.report_doc.add_total_row) {
-					if(Object.values(dataRow1).includes("'Total'")) {
+					if(dataRow1.id === me.total_row_id) {
 						return 1;
 					}
-					if(Object.values(dataRow2).includes("'Total'")) {
+					if(dataRow2.id === me.total_row_id) {
 						return -1;
 					}
 				}

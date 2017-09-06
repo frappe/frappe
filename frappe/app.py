@@ -166,7 +166,7 @@ def handle_exception(e):
 
 		frappe.respond_as_web_page("Server Error",
 			traceback, http_status_code=http_status_code,
-			indicator_color='red')
+			indicator_color='red', width=640)
 		return_as_message = True
 
 	if e.__class__ == frappe.AuthenticationError:
