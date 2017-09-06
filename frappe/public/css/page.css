@@ -277,13 +277,17 @@ select.input-sm {
   opacity: 1;
   cursor: pointer;
 }
+.page-card-container,
 .setup-state {
   background-color: #f5f7fa;
 }
+.page-card-container {
+  padding: 70px;
+}
 .page-card {
   max-width: 360px;
-  padding: 15px;
   margin: 70px auto;
+  padding: 15px;
   border: 1px solid #d1d8dd;
   border-radius: 4px;
   background-color: #fff;
@@ -294,6 +298,9 @@ select.input-sm {
   margin: -15px;
   margin-bottom: 15px;
   border-bottom: 1px solid #d1d8dd;
+}
+.page-card .btn {
+  margin-top: 30px;
 }
 .state-icon-container {
   display: flex;

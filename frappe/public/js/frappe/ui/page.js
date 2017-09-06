@@ -1,20 +1,36 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-// __("Form")
+/**
+ * Make a standard page layout with a toolbar and title
+ *
+ * @param {Object} opts
+ *
+ * @param {string} opts.parent [HTMLElement] Parent element
+ * @param {boolean} opts.single_column Whether to include sidebar
+ * @param {string} [opts.title] Page title
+ * @param {Object} [opts.required_libs] resources to load
+ * @param {Object} [opts.empty_state] by default active
+ * @param {Object} [opts.make_page]
+ *
+ * @param {Object} opts.empty_state.get_whether_active [function] mostly async,
+ * 	to return the page state from backend, with on_empty and on_active callback params
+ * @param {string} opts.empty_state.title
+ * @param {string} opts.empty_state.message
+ * @param {Object} opts.empty_state.primary_action
+ *
+ * @param {Object} opts.empty_state.primary_action.label
+ * @param {Object} opts.empty_state.primary_action.on_click
+ *
+ * @returns {frappe.ui.Page}
+ */
 
-// parent, title, single_column
-// standard page with page
+/**
+ * @typedef {Object} frappe.ui.Page
+ */
+
 
 frappe.ui.make_app_page = function(opts) {
-	/* help: make a standard page layout with a toolbar and title */
-	/* options: [
-			"parent: [HTMLElement] parent element",
-			"single_column: [Boolean] false/true",
-			"title: [optional] set this title"
-		]
-	*/
-
 	opts.parent.page = new frappe.ui.Page(opts);
 	return opts.parent.page;
 }
@@ -37,8 +53,55 @@ frappe.ui.Page = Class.extend({
 	make: function() {
 		this.wrapper = $(this.parent);
 
-		$(frappe.render_template("page", {})).appendTo(this.wrapper);
+		if(this.empty_state) {
+			this.empty_state.get_whether_active(() => {
+				this.get_empty_state( this.empty_state ).appendTo(this.wrapper);
+			},
+			() => this.setup_render()
+			);
+		} else {
+			this.setup_render();
+		}
+	},
 
+	get_empty_state: function({title, message, primary_action}) {
+		let $empty_state = $(`<div class="page-card-container">
+			<div class="page-card">
+				<div class="page-card-head">
+					<span class="indicator blue">
+						${title}</span>
+				</div>
+				<p>${message}</p>
+				<div><a href="/login" class="btn btn-primary btn-sm">${primary_action.label}</a></div>
+			</div>
+		</div>`);
+
+		$empty_state.find('.btn-primary').on('click', () => {
+			primary_action.on_click();
+		});
+
+		return $empty_state;
+	},
+
+	setup_render: function() {
+		var lib_exists = (typeof this.required_libs === 'string' && this.required_libs)
+			|| ($.isArray(this.required_libs) && this.required_libs.length);
+
+		if (lib_exists) {
+			this.load_lib(() => {
+				this.add_main_section();
+			});
+		} else {
+			this.add_main_section();
+		}
+	},
+
+	load_lib: function (callback) {
+		frappe.require(this.required_libs, callback);
+	},
+
+	add_main_section: function() {
+		$(frappe.render_template("page", {})).appendTo(this.wrapper);
 		if(this.single_column) {
 			// nesting under col-sm-12 for consistency
 			this.add_view("main", '<div class="row layout-main">\
@@ -48,18 +111,19 @@ frappe.ui.Page = Class.extend({
 					</div>\
 				</div>');
 		} else {
-			var main = this.add_view("main", '<div class="row layout-main">\
+			this.add_view("main", '<div class="row layout-main">\
 				<div class="col-md-2 layout-side-section"></div>\
 				<div class="col-md-10 layout-main-section-wrapper">\
 					<div class="layout-main-section"></div>\
 					<div class="layout-footer hide"></div>\
 				</div>\
 			</div>');
-			// this.wrapper.find('.page-title')
-			// 	.removeClass('col-md-7').addClass('col-md-offset-2 col-md-5')
-			// 	.css({'padding-left': '45px'});
 		}
 
+		this.setup_page();
+	},
+
+	setup_page: function() {
 		this.$title_area = this.wrapper.find("h1");
 
 		this.$sub_title_area = this.wrapper.find("h6");
@@ -92,6 +156,10 @@ frappe.ui.Page = Class.extend({
 		this.page_form = $('<div class="page-form row hide"></div>').prependTo(this.main);
 		this.inner_toolbar = $('<div class="form-inner-toolbar hide"></div>').prependTo(this.main);
 		this.icon_group = this.page_actions.find(".page-icon-group");
+
+		if(this.make_page) {
+			this.make_page();
+		}
 	},
 
 	set_indicator: function(label, color) {
@@ -437,7 +505,11 @@ frappe.ui.Page = Class.extend({
 		return values;
 	},
 	add_view: function(name, html) {
-		this.views[name] = $(html).appendTo($(this.wrapper).find(".page-content"));
+		let element = html;
+		if(typeof(html) === "string") {
+			element = $(html);
+		}
+		this.views[name] = element.appendTo($(this.wrapper).find(".page-content"));
 		if(!this.current_view) {
 			this.current_view = this.views[name];
 		} else {
