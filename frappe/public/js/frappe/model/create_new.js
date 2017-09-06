@@ -290,7 +290,7 @@ $.extend(frappe.model, {
 		} else if (!opts.source_name && opts.frm) {
 			opts.source_name = opts.frm.doc.name;
 
-		//Allow opening a mapped doc without a source document name
+		// Allow opening a mapped doc without a source document name
 		} else if (!opts.frm) {
 			opts.source_name = null;
 		}
@@ -301,7 +301,7 @@ $.extend(frappe.model, {
 			args: {
 				method: opts.method,
 				source_name: opts.source_name,
-				selected_children: (opts.frm === undefined) ? null : opts.frm.get_selected()
+				selected_children: opts.frm ? opts.frm.get_selected() : null
 			},
 			freeze: true,
 			callback: function(r) {
