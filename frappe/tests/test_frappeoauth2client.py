@@ -64,7 +64,7 @@ class TestFrappeOAuth2Client(unittest.TestCase):
 
 		# Parse bearer token json
 		bearer_token = token_response.json()
-		client = FrappeClient(frappe.get_site_config().host_name, bearer_token.get("access_token"))
+		client = FrappeOAuth2Client(frappe.get_site_config().host_name, bearer_token.get("access_token"))
 		
 		notes = [
 			{"doctype": "Note", "title": "Sing", "public": True},
