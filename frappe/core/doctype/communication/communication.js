@@ -193,6 +193,7 @@ frappe.ui.form.on("Communication", {
 		});
 
 		return {
+			frm: frm,
 			doc: frm.doc,
 			last_email: frm.doc,
 			sender: sender_email_id,

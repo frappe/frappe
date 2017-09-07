@@ -98,7 +98,7 @@ def get_html(doc, name=None, print_format=None, meta=None,
 	if print_format:
 		doc._show_section_headings = print_format.show_section_headings
 		doc._line_breaks = print_format.line_breaks
-		doc._align_labels_left = print_format.align_labels_left
+		doc._align_labels_right = print_format.align_labels_right
 
 		def get_template_from_string():
 			return jenv.from_string(get_print_format(doc.doctype,
