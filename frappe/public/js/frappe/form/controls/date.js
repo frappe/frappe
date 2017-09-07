@@ -16,7 +16,7 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 				// if date is selected but different from value, refresh
 				const selected_date =
 					moment(this.datepicker.selectedDates[0])
-						.format(moment.defaultDateFormat);
+						.format(this.date_format);
 				should_refresh = selected_date !== value;
 			} else {
 				// if datepicker has no selected date, refresh
@@ -35,6 +35,7 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 			lang = 'en';
 		}
 		this.today_text = __("Today");
+		this.date_format = moment.defaultDateFormat;
 		this.datepicker_options = {
 			language: lang,
 			autoClose: true,
