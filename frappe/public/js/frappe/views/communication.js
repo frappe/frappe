@@ -309,7 +309,8 @@ frappe.views.CommunicationComposer = Class.extend({
 
 		var args = {
 			args: {
-				from_form: 1,folder:"Home/Attachments"
+				from_form: 1,
+				folder:"Home/Attachments"
 			},
 			callback: function(attachment, r) { me.attachments.push(attachment); },
 			max_width: null,
@@ -331,10 +332,10 @@ frappe.views.CommunicationComposer = Class.extend({
 		}
 
 		$("<h6 class='text-muted add-attachment' style='margin-top: 12px; cursor:pointer;'>"
-				+__("Select Attachments")+"</h6><div class='attach-list'></div>\
-				<p class='add-more-attachments'>\
-				<a class='text-muted small'><i class='octicon octicon-plus' style='font-size: 12px'></i> "
-				+__("Add Attachment")+"</a></p>").appendTo(attach.empty())
+			+__("Select Attachments")+"</h6><div class='attach-list'></div>\
+			<p class='add-more-attachments'>\
+			<a class='text-muted small'><i class='octicon octicon-plus' style='font-size: 12px'></i> "
+			+__("Add Attachment")+"</a></p>").appendTo(attach.empty())
 		attach.find(".add-more-attachments a").on('click',this,function() {
 			me.upload = frappe.ui.get_upload_dialog(args);
 		})
