@@ -1386,3 +1386,9 @@ def get_system_settings(key):
 def get_active_domains():
 	from frappe.core.doctype.domain_settings.domain_settings import get_active_domains
 	return get_active_domains()
+
+def assign_if_none(a, b):
+	if a == None:
+		b = a
+
+	return b

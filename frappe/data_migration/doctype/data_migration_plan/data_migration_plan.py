@@ -4,11 +4,24 @@
 
 from __future__ import unicode_literals
 import frappe
+from frappe.modules.export_file import export_to_files
 from frappe.model.document import Document
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 from frappe import _
 
 class DataMigrationPlan(Document):
+	def on_update(self):
+		if frappe.flags.in_import:
+			return
+
+		if frappe.local.conf.get('developer_mode'):
+			record_list =[['Data Migration Plan', self.name]]
+
+			for m in self.mappings:
+				record_list.append(['Data Migration Mapping', m.mapping])
+
+			export_to_files(record_list=record_list, record_module=self.module)
+
 	def migrate(self):
 		connection = frappe.get_doc('Data Migration Connector', self.connector).get_connection()
 
@@ -17,12 +30,7 @@ class DataMigrationPlan(Document):
 			mapping = frappe.get_doc('Data Migration Mapping', d.mapping)
 			mapping.run(connection)
 
-				# frappe.publish_progress(float(i)*100/len(data),
-				# 	title = _('Migrating {0}').format(target.doctype), doctype=self.doctype, docname=self.name)
-
-
-			frappe.publish_progress(100,
-				title = _('Migrating {0}').format(target.doctype), doctype=self.doctype, docname=self.name)
+			# TODO - add progress
 
 	def store_mapped_data(self, target):
 		""" mapping source field to target field """
