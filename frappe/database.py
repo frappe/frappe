@@ -389,6 +389,9 @@ class Database:
 		if isinstance(filters, string_types):
 			filters = { "name": filters }
 
+		elif isinstance(filters, integer_types):
+			filters = {"name": frappe.as_unicode(filters)}
+
 		for f in filters:
 			_build_condition(f)
 
