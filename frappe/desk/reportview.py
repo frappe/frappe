@@ -153,7 +153,7 @@ def export_query():
 		for r in data:
 			# encode only unicode type strings and not int, floats etc.
 			writer.writerow(map(lambda v: isinstance(v, string_types) and
-				handle_html(v.encode('utf-8')) or v, r))
+				handle_html(frappe.as_unicode(v)) or v, r))
 
 		f.seek(0)
 		frappe.response['result'] = text_type(f.read(), 'utf-8')
