@@ -12,7 +12,7 @@ from pyqrcode import create as qrcreate
 from six import StringIO
 from base64 import b64encode, b32encode
 from frappe.utils import get_url, get_datetime, time_diff_in_seconds
-from six import string_types
+from six import iteritems, string_types
 
 class ExpiredLoginException(Exception): pass
 
@@ -68,7 +68,7 @@ def cache_2fa_data(user, token, otp_secret, tmp_id):
 		frappe.cache().expire(tmp_id + '_token', expiry_time)
 	else:
 		expiry_time = 180
-	for k, v in {'_usr': user, '_pwd': pwd, '_otp_secret': otp_secret}.iteritems():
+	for k, v in iteritems({'_usr': user, '_pwd': pwd, '_otp_secret': otp_secret}):
 		frappe.cache().set("{0}{1}".format(tmp_id, k), v)
 		frappe.cache().expire("{0}{1}".format(tmp_id, k), expiry_time)
 

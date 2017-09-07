@@ -1,5 +1,5 @@
 import json
-import bleach, bleach_whitelist
+import bleach, bleach_whitelist.bleach_whitelist as bleach_whitelist
 from six import string_types
 
 def sanitize_html(html, linkify=False):

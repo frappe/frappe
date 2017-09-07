@@ -62,10 +62,10 @@ class Database:
 				'key':frappe.conf.db_ssl_key
 			}
 		if usessl:
-			self._conn = MySQLdb.connect(user=self.user, host=self.host, passwd=self.password,
+			self._conn = MySQLdb.connect(self.host, self.user or '', self.password or '',
 				use_unicode=True, charset='utf8mb4', ssl=self.ssl)
 		else:
-			self._conn = MySQLdb.connect(user=self.user, host=self.host, passwd=self.password,
+			self._conn = MySQLdb.connect(self.host, self.user or '', self.password or '',
 				use_unicode=True, charset='utf8mb4')
 		self._conn.converter[246]=float
 		self._conn.converter[12]=get_datetime
@@ -607,7 +607,7 @@ class Database:
 		return r
 
 	def _get_value_for_many_names(self, doctype, names, field, debug=False):
-		names = filter(None, names)
+		names = list(filter(None, names))
 
 		if names:
 			return dict(self.sql("select name, `%s` from `tab%s` where name in (%s)" \

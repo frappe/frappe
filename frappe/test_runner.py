@@ -12,6 +12,7 @@ from frappe.utils import cstr
 import frappe.utils.scheduler
 import cProfile, pstats
 from six import StringIO
+from six.moves import reload_module
 
 unittest_runner = unittest.TextTestRunner
 
@@ -139,6 +140,11 @@ def run_tests_for_module(module, verbose=False, tests=(), profile=False):
 
 	return _run_unittest(module=module, verbose=verbose, tests=tests, profile=profile)
 
+def run_setup_wizard_ui_test(app=None, verbose=False, profile=False):
+	'''Run setup wizard UI test using test_test_runner'''
+	frappe.flags.run_setup_wizard_ui_test = 1
+	return run_ui_tests(app, None, verbose, profile)
+
 def run_ui_tests(app=None, test=None, verbose=False, profile=False):
 	'''Run a single unit test for UI using test_test_runner'''
 	module = importlib.import_module('frappe.tests.ui.test_test_runner')
@@ -228,7 +234,7 @@ def get_modules(doctype):
 	try:
 		test_module = load_doctype_module(doctype, module, "test_")
 		if test_module:
-			reload(test_module)
+			reload_module(test_module)
 	except ImportError:
 		test_module = None
 

@@ -163,6 +163,7 @@ def get():
 		# check only when clear cache is done, and don't cache this
 		if frappe.local.request:
 			bootinfo["change_log"] = get_change_log()
+			bootinfo["is_first_startup"] = cint(frappe.db.get_single_value('System Settings', 'is_first_startup'))
 
 	bootinfo["metadata_version"] = frappe.cache().get_value("metadata_version")
 	if not bootinfo["metadata_version"]:

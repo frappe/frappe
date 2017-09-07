@@ -106,6 +106,21 @@ def create_custom_field(doctype, df):
 			"hidden": df.hidden or 0
 		}).insert()
 
+def create_custom_fields(custom_fields):
+	'''Add / update multiple custom fields
+
+	:param custom_fields: example `{'Sales Invoice': [dict(fieldname='test')]}`'''
+	for doctype, fields in custom_fields.items():
+		for df in fields:
+			field = frappe.db.get_value("Custom Field", {"dt": doctype, "fieldname": df["fieldname"]})
+			if not field:
+				create_custom_field(doctype, df)
+			else:
+				custom_field = frappe.get_doc("Custom Field", field)
+				custom_field.update(df)
+				custom_field.save()
+
+
 @frappe.whitelist()
 def add_custom_field(doctype, df):
 	df = json.loads(df)

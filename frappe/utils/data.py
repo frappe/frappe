@@ -12,7 +12,7 @@ from babel.core import UnknownLocaleError
 from dateutil import parser
 from num2words import num2words
 from six.moves import html_parser as HTMLParser
-from six.moves.urllib.parse import quote
+from six.moves.urllib.parse import quote, urljoin
 from html2text import html2text
 from six import iteritems, text_type, string_types, integer_types
 
@@ -654,7 +654,7 @@ def get_url(uri=None, full_address=False):
 	if frappe.conf.http_port:
 		host_name = host_name + ':' + str(frappe.conf.http_port)
 
-	url = urllib.basejoin(host_name, uri) if uri else host_name
+	url = urljoin(host_name, uri) if uri else host_name
 
 	return url
 
