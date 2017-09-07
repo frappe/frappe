@@ -74,7 +74,7 @@ def cache_2fa_data(user, token, otp_secret, tmp_id):
 		frappe.cache().expire(tmp_id + '_token', expiry_time)
 	else:
 		expiry_time = 180
-	for k, v in {'_usr': user, '_pwd': pwd, '_otp_secret': otp_secret}.iteritems():
+	for k, v in iteritems({'_usr': user, '_pwd': pwd, '_otp_secret': otp_secret}):
 		frappe.cache().set("{0}{1}".format(tmp_id, k), v)
 		frappe.cache().expire("{0}{1}".format(tmp_id, k), expiry_time)
 
@@ -87,8 +87,7 @@ def two_factor_is_enabled_for_(user):
 	roles.append('All')
 
 	query = """select name from `tabRole` where two_factor_auth=1
-		and name in ({0}) limit 1""".format(', '.join('\"{}\"'.format(i) for \
-											i in roles))
+		and name in ({0}) limit 1""".format(', '.join('\"{}\"'.format(i) for i in roles))
 	if len(frappe.db.sql(query)) > 0:
 		return True
 
@@ -154,7 +153,6 @@ def get_verification_obj(user, token, otp_secret):
 	elif verification_method == 'Email':
 		verification_obj = process_2fa_for_email(user, token, otp_secret, otp_issuer)
 	return verification_obj
-
 
 def process_2fa_for_sms(user, token, otp_secret):
 	'''Process sms method for 2fa.'''
@@ -386,4 +384,3 @@ def should_remove_barcode_image(barcode):
 
 def disable():
 	frappe.db.set_value('System Settings', None, 'enable_two_factor_auth', 0)
-
