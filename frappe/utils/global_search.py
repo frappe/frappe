@@ -309,8 +309,7 @@ def search(text, start=0, limit=20, doctype=""):
 	for r in results:
 		try:
 			if frappe.get_meta(r.doctype).image_field:
-				doc = frappe.get_doc(r.doctype, r.name)
-				r.image = doc.get(doc.meta.image_field)
+				r.image = frappe.db.get_value(r.doctype, r.name, frappe.get_meta(r.doctype).image_field)
 		except:
 			frappe.clear_messages()
 			pass
