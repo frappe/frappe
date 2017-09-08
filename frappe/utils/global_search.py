@@ -307,13 +307,12 @@ def search(text, start=0, limit=20, doctype=""):
 			limit {start}, {limit}'''.format(start=start, limit=limit), (doctype, text), as_dict=True)
 
 	for r in results:
-		if not frappe.db.exists("Doctype", r.doctype):
-			continue
 		try:
 			if frappe.get_meta(r.doctype).image_field:
 				doc = frappe.get_doc(r.doctype, r.name)
 				r.image = doc.get(doc.meta.image_field)
 		except:
+			frappe.clear_messages()
 			pass
 
 	return results
