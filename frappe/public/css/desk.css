@@ -441,7 +441,7 @@ fieldset[disabled] .form-control {
   }
 }
 @media (min-width: 768px) {
-  .video-modal {
+  .video-modal .modal-dialog {
     width: 700px;
   }
 }
@@ -510,7 +510,7 @@ fieldset[disabled] .form-control {
   margin-right: 10px;
 }
 a.progress-small .progress-chart {
-  width: 60px;
+  width: 40px;
   margin-top: 4px;
   float: right;
 }
@@ -518,6 +518,20 @@ a.progress-small .progress {
   margin-bottom: 0;
 }
 a.progress-small .progress-bar {
+  transition: unset;
+  background-color: #98d85b;
+}
+li.user-progress .progress-chart {
+  width: 60px;
+  margin-top: 8px;
+}
+li.user-progress .progress {
+  margin-bottom: 0;
+  background-color: #fff;
+  border: 1px solid #e5e7e9;
+}
+li.user-progress .progress-bar {
+  transition: unset;
   background-color: #98d85b;
 }
 /* on small screens, show only icons on top */
@@ -1069,4 +1083,70 @@ input[type="checkbox"]:checked:before {
   height: 20px;
   margin: -2px 0 0 3px;
   border: 1px solid rgba(0, 0, 0, 0.25);
+}
+.slides-wrapper .fa-circle {
+  font-size: 10px;
+  margin: 0px 2px;
+}
+.slides-wrapper .fa-circle.active {
+  color: #5e64ff;
+}
+.slides-wrapper .fa-circle.link {
+  cursor: pointer;
+}
+.slides-wrapper .form {
+  margin-top: 30px;
+}
+.slides-wrapper .form .form-layout {
+  margin-top: 0px;
+  margin-bottom: 0px;
+}
+.slides-wrapper .form .form-section {
+  padding: 0px 7px;
+  border: none;
+}
+.slides-wrapper .add-more {
+  margin-bottom: 30px;
+}
+.slides-wrapper .lead {
+  margin-top: 20px;
+}
+.slides-wrapper .success-state {
+  margin-bottom: 20px;
+}
+.slides-wrapper .next-steps-links .title {
+  text-transform: uppercase;
+  color: #8D99A6;
+  font-size: 11px;
+}
+.slides-wrapper .btn-primary {
+  font-weight: bold;
+}
+.slides-wrapper .footer {
+  margin-top: 15px;
+  padding: 0px 7px;
+}
+.slides-wrapper .footer .btn:not(:last-child) {
+  margin-right: 3px;
+}
+.slides-wrapper .footer a.btn.make-btn {
+  margin-right: 7px;
+}
+.slides-wrapper .footer a.make-btn.disabled {
+  background-color: #b1bdca;
+  color: #fff;
+  border-color: #b1bdca;
+}
+.user-progress-dialog .slides-progress {
+  margin-top: 15px;
+}
+.user-progress-dialog .done-state .check-container {
+  font-size: 64px;
+  margin: 40px;
+}
+.user-progress-dialog .done-state .title {
+  font-weight: normal;
+}
+.user-progress-dialog .done-state .help-links a {
+  margin: 0px 10px;
 }

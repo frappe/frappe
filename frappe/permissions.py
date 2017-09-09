@@ -245,7 +245,7 @@ def get_role_permissions(meta, user=None, verbose=False):
 					perms["apply_user_permissions"][ptype] = 1
 
 		# delete 0 values
-		for key, value in perms.get("apply_user_permissions").items():
+		for key, value in list(perms.get("apply_user_permissions").items()):
 			if not value:
 				del perms["apply_user_permissions"][key]
 

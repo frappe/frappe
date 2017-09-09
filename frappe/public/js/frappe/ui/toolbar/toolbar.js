@@ -6,25 +6,31 @@ frappe.provide('frappe.search');
 
 frappe.ui.toolbar.Toolbar = Class.extend({
 	init: function() {
-		var header = $('header').append(frappe.render_template("navbar", {
+		$('header').append(frappe.render_template("navbar", {
 			avatar: frappe.avatar(frappe.session.user)
 		}));
+		$('.dropdown-toggle').dropdown();
 
-		this.setup_sidebar();
-
-		var awesome_bar = new frappe.search.AwesomeBar();
+		let awesome_bar = new frappe.search.AwesomeBar();
 		awesome_bar.setup("#navbar-search");
 		awesome_bar.setup("#modal-search");
 
-		this.setup_help();
+		this.make();
+	},
 
+	make: function() {
+		this.setup_sidebar();
+		this.setup_help();
+		this.setup_progress_dialog();
+		this.bind_events();
+
+		$(document).trigger('toolbar_setup');
+	},
+
+	bind_events: function() {
 		$(document).on("notification-update", function() {
 			frappe.ui.notifications.update_notifications();
 		});
-
-		$('.dropdown-toggle').dropdown();
-
-		$(document).trigger('toolbar_setup');
 
 		// clear all custom menus on page change
 		$(document).on("page-change", function() {
@@ -41,7 +47,6 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 	},
 
 	setup_sidebar: function () {
-
 		var header = $('header');
 		header.find(".toggle-sidebar").on("click", function () {
 			var layout_side_section = $('.layout-side-section');
@@ -186,9 +191,43 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 				});
 			}
 		}
+	},
+
+	setup_progress_dialog: function() {
+		var me = this;
+		$('.user-progress').hide();
+		frappe.call({
+			method: "frappe.desk.user_progress.get_user_progress_slides",
+			callback: function(r) {
+				if(r.message) {
+					let slides = r.message;
+					if(slides.length) {
+						frappe.require("assets/frappe/js/frappe/ui/toolbar/user_progress_dialog.js", function() {
+							me.progress_dialog = new frappe.setup.UserProgressDialog({
+								slides: slides
+							});
+							$('.user-progress').show();
+							$('.user-progress .dropdown-toggle').on('click', () => {
+								me.progress_dialog.show();
+							});
+
+							if (frappe.boot.is_first_startup) {
+								me.progress_dialog.show();
+								frappe.call({
+									method: "frappe.desk.page.setup_wizard.setup_wizard.reset_is_first_startup",
+									args: {},
+									callback: () => {}
+								});
+							}
+
+						});
+					}
+				}
+			},
+			freeze: false
+		});
 	}
 });
-
 
 $.extend(frappe.ui.toolbar, {
 	add_dropdown_button: function(parent, label, click, icon) {

@@ -1,3 +1,5 @@
+frappe.provide('frappe.utils');
+
 function get_url_arg(name) {
 	return get_query_params()[name] || "";
 }
@@ -36,8 +38,29 @@ function get_query_params(query_string) {
 	return query_params;
 }
 
-function make_query_string(obj) {
-	var query_params = [];
-	$.each(obj, function(k, v) { query_params.push(encodeURIComponent(k) + "=" + encodeURIComponent(v)); });
-	return "?" + query_params.join("&");
+function make_query_string(obj, encode=true) {
+	let query_params = [];
+	for (let key in obj) {
+		let value = obj[key];
+		if (value === undefined || value === '' || value === null) {
+			continue;
+		}
+		if (typeof value === 'object') {
+			value = JSON.stringify(value);
+		}
+
+		if (encode) {
+			key = encodeURIComponent(key);
+			value = encodeURIComponent(value);
+		}
+
+		query_params.push(`${key}=${value}`);
+	}
+	return '?' + query_params.join('&');
 }
+
+Object.assign(frappe.utils, {
+	get_url_arg,
+	get_query_params,
+	make_query_string
+});

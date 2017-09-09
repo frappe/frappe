@@ -344,6 +344,26 @@ def run_ui_tests(context, app=None, test=False, profile=False):
 	if os.environ.get('CI'):
 		sys.exit(ret)
 
+@click.command('run-setup-wizard-ui-test')
+@click.option('--app', help="App to run tests on, leave blank for all apps")
+@click.option('--profile', is_flag=True, default=False)
+@pass_context
+def run_setup_wizard_ui_test(context, app=None, profile=False):
+	"Run setup wizard UI test"
+	import frappe.test_runner
+
+	site = get_site(context)
+	frappe.init(site=site)
+	frappe.connect()
+
+	ret = frappe.test_runner.run_setup_wizard_ui_test(app=app, verbose=context.verbose,
+		profile=profile)
+	if len(ret.failures) == 0 and len(ret.errors) == 0:
+		ret = 0
+
+	if os.environ.get('CI'):
+		sys.exit(ret)
+
 @click.command('serve')
 @click.option('--port', default=8000)
 @click.option('--profile', is_flag=True, default=False)
@@ -485,6 +505,7 @@ commands = [
 	reset_perms,
 	run_tests,
 	run_ui_tests,
+	run_setup_wizard_ui_test,
 	serve,
 	set_config,
 	watch,
