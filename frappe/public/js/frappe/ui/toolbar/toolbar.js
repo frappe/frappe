@@ -195,18 +195,17 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 
 	setup_progress_dialog: function() {
 		var me = this;
-		$('.user-progress').hide();
 		frappe.call({
 			method: "frappe.desk.user_progress.get_user_progress_slides",
 			callback: function(r) {
 				if(r.message) {
 					let slides = r.message;
-					if(slides.length) {
+					if(slides.length && slides.map(s => parseInt(s.done)).includes(0)) {
 						frappe.require("assets/frappe/js/frappe/ui/toolbar/user_progress_dialog.js", function() {
 							me.progress_dialog = new frappe.setup.UserProgressDialog({
 								slides: slides
 							});
-							$('.user-progress').show();
+							$('.user-progress').removeClass('hide');
 							$('.user-progress .dropdown-toggle').on('click', () => {
 								me.progress_dialog.show();
 							});

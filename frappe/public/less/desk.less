@@ -1027,6 +1027,9 @@ input[type="checkbox"] {
 
 // Slides
 .slides-wrapper {
+	&:focus {
+		outline: none;
+	}
 	.fa-circle {
 		font-size: 10px;
 		margin: 0px 2px;
@@ -1035,6 +1038,11 @@ input[type="checkbox"] {
 		}
 		&.link {
 			cursor: pointer;
+		}
+	}
+	.slide-wrapper {
+		&:focus {
+			outline: none;
 		}
 	}
 	.form {
