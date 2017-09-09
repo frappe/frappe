@@ -8,7 +8,12 @@ from frappe import _
 # Doc Events Webhook
 def doc_event_webhook(doc, method=None, *args, **kwargs):
 	headers = {}
-	webhook = frappe.get_doc("Webhook", doc.get("doctype") + "-" + method)
+	filters = {
+		"webhook_doctype": doc.get("doctype"),
+		"webhook_docevent": method
+	}
+	webhooks = frappe.get_all("Webhook", filters=filters)
+	webhook = frappe.get_doc("Webhook", webhooks[0].get("name")) if webhooks and len(webhooks) > 0 else None
 	if webhook:
 		if webhook.webhook_headers:
 			for h in webhook.webhook_headers:
