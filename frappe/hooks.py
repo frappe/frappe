@@ -108,14 +108,25 @@ doc_events = {
 	"*": {
 		"on_update": [
 			"frappe.desk.notifications.clear_doctype_notifications",
-			"frappe.core.doctype.communication.feed.update_feed"
+			"frappe.core.doctype.communication.feed.update_feed",
+			"frappe.integrations.webhooks.on_update_webhook"
 		],
 		"after_rename": "frappe.desk.notifications.clear_doctype_notifications",
 		"on_cancel": [
 			"frappe.desk.notifications.clear_doctype_notifications",
+			"frappe.integrations.webhooks.on_cancel_webhook"
 		],
-		"on_trash": "frappe.desk.notifications.clear_doctype_notifications",
-		"on_change": "frappe.core.doctype.feedback_trigger.feedback_trigger.trigger_feedback_request"
+		"on_trash": [
+			"frappe.desk.notifications.clear_doctype_notifications",
+			"frappe.integrations.webhooks.on_trash_webhook"
+		],
+		"on_change": [
+			"frappe.core.doctype.feedback_trigger.feedback_trigger.trigger_feedback_request",
+			"frappe.integrations.webhooks.on_change_webhook"
+		],
+		"after_insert": "frappe.integrations.webhooks.after_insert_webhook",
+		"on_submit": "frappe.integrations.webhooks.on_submit_webhook",
+		"on_update_after_submit": "frappe.integrations.webhooks.on_update_after_submit_webhook"
 	},
 	"Email Group Member": {
 		"validate": "frappe.email.doctype.email_group.email_group.restrict_email_group"

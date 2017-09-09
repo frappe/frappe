@@ -7,15 +7,9 @@ import frappe
 import unittest
 
 class TestWebhook(unittest.TestCase):
-	def test_mandatory_fields(self):
-		base_doc = frappe.new_doc("Webhook")
-		
-		# Test for scheduler event webhook
-		scheduler_event_doc = base_doc
-		scheduler_event_doc.webhook_type = "Scheduler Event"
-		self.assertRaises(frappe.ValidationError, scheduler_event_doc.save)
-
-		# Test for doc event webhook
-		doc_event_doc = base_doc
-		doc_event_doc.webhook_type = "Doc Event"
-		self.assertRaises(frappe.ValidationError, doc_event_doc.save)
+	def test_validate_docevents(self):
+		doc = frappe.new_doc("Webhook")
+		doc.webhook_doctype = "User"
+		doc.webhook_docevent = "on_submit"
+		doc.request_url = "https://httpbin.org/post"
+		self.assertRaises(frappe.ValidationError, doc.save)
