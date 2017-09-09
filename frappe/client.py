@@ -8,7 +8,7 @@ import frappe.model
 import frappe.utils
 import json, os
 
-from six import iteritems, string_types
+from six import iteritems, string_types, integer_types
 
 '''
 Handle RESTful requests that are mapped to the `/api/resource` route.
@@ -61,6 +61,10 @@ def get_value(doctype, fieldname, filters=None, as_dict=True, debug=False):
 
 	try:
 		filters = json.loads(filters)
+
+		if isinstance(filters, (integer_types, float)):
+			filters = frappe.as_unicode(filters)
+
 	except (TypeError, ValueError):
 		# filters are not passesd, not json
 		pass
