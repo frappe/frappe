@@ -24,5 +24,5 @@ class Webhook(Document):
 			request_url = urlparse(self.request_url).netloc
 			if not request_url:
 				raise
-		except:
+		except Exception as e:
 			frappe.throw(_("Check Request URL"))

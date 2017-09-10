@@ -22,6 +22,6 @@ def doc_event_webhook(doc, method=None, *args, **kwargs):
 		try:
 			r = requests.post(webhook.request_url, data=doc.as_json(), headers=headers, timeout=5)
 			frappe.logger().debug({"webhook_success":r.text, "webhook": webhook.as_json()})
-		except:
+		except Exception as e:
 			frappe.logger().debug({"webhook_error":r.text, "webhook": webhook.as_json()})
 			frappe.throw(_("Unable to make request"))
