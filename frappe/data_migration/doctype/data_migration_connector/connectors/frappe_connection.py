@@ -17,6 +17,7 @@ class FrappeConnection(BaseConnection):
 				response = self.connection.update(doc)
 			else:
 				response = self.connection.insert(doc)
+			return response
 		except FrappeException as e:
 			frappe.msgprint(e.args[0])
 			raise frappe.ValidationError

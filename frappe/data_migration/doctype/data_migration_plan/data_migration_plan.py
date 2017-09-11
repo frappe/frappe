@@ -6,7 +6,6 @@ from __future__ import unicode_literals
 import frappe
 from frappe.modules.export_file import export_to_files
 from frappe.model.document import Document
-from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 from frappe import _
 
 class DataMigrationPlan(Document):
@@ -22,15 +21,6 @@ class DataMigrationPlan(Document):
 
 			export_to_files(record_list=record_list, record_module=self.module)
 
-	def migrate(self):
-		connection = frappe.get_doc('Data Migration Connector', self.connector).get_connection()
-
-		for d in self.mappings:
-			# iterating through each mappings
-			mapping = frappe.get_doc('Data Migration Mapping', d.mapping)
-			mapping.run(connection)
-
-			# TODO - add progress
 
 	def store_mapped_data(self, target):
 		""" mapping source field to target field """
@@ -88,18 +78,6 @@ def migrate(plan):
 
 	frappe.clear_messages()
 
-def make_custom_fields(self, dt):
-	""" Adding custom field for primary key """
-	field = frappe.db.get_value("Custom Field", {"dt": dt, "fieldname": 'migration_key'})
-	if not field:
-		create_custom_field(dt, {
-			'label': 'Migration Key',
-			'fieldname': 'migration_key',
-			'fieldtype': 'Data',
-			'hidden': 1,
-			'read_only': 1,
-			'unique': 1,
-		})
 
 def clean_data(self, doctype, condition):
 	frappe.db.sql("""delete from `tab{0}`{1}""".format(doctype, condition)) # Incase default frappe data needs to be deleted
