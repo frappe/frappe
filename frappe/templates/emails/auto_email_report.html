@@ -20,7 +20,7 @@
 		<tr>
 			{% for col in columns %}
 			<th {{- get_alignment(col) }}>
-				{{- col.label -}}
+				{{- _(col.label) -}}
 			</th>
 			{% endfor %}
 		</tr>

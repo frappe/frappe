@@ -150,8 +150,7 @@ class Report(Document):
 			_columns = []
 			for column in columns:
 				meta = frappe.get_meta(column[1])
-				field = [meta.get_field(column[0]) 
-					or frappe._dict(label=meta.get_label(column[0]), fieldname=column[0])]
+				field = [meta.get_field(column[0]) or frappe._dict(label=meta.get_label(column[0]), fieldname=column[0])]
 				_columns.extend(field)
 			columns = _columns
 
