@@ -4,6 +4,7 @@ DocType: Desktop Icon,List,Lista
 apps/frappe/frappe/public/js/frappe/form/toolbar.js +196,New {0} (Ctrl+B),Novi {0} (Ctrl-B)
 DocType: DocShare,DocShare,Dijeljenje dokumenta
 apps/frappe/frappe/public/js/frappe/ui/filters/filters.js +21,Add Filter,Dodaj filter
+DocType: Address,Contacts,Kontakti
 apps/frappe/frappe/public/js/frappe/form/save.js +12,Submitting,Potvrđivanje
 apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html +57,What do you need help with?,Oko čega Vam je potrebna pomoć?
 DocType: ToDo,Allocated To,Dodijeljeno je
@@ -28,7 +29,7 @@ DocType: Website Settings,Brand Image,Slika brenda
 apps/frappe/frappe/utils/bot.py +89,show,Prikaži
 DocType: Page,Yes,Da
 DocType: Custom DocPerm,Role,Uloga
-apps/frappe/frappe/core/doctype/user/user.py +887,Invalid Password: ,Pogrešna lozinka:
+apps/frappe/frappe/core/doctype/user/user.py +889,Invalid Password: ,Pogrešna lozinka:
 apps/frappe/frappe/core/report/feedback_ratings/feedback_ratings.js +40,To Date,Do datuma
 DocType: Address Template,System Manager,Menadžer sistema
 apps/frappe/frappe/www/update-password.html +18,New Password,Nova lozinka
@@ -39,7 +40,7 @@ DocType: Contact,Last Name,Prezime
 apps/frappe/frappe/public/js/frappe/views/pageview.js +112,Sorry! You are not permitted to view this page.,Niste autorizovani za prikaz ove stranice.
 DocType: Web Form,Success Message,Poruka o uspjehu
 apps/frappe/frappe/public/js/frappe/form/sidebar.js +62,{0} created this {1},{1} {0} je kreirao/la ovo.
-apps/frappe/frappe/core/doctype/file/file.py +300,Folder {0} does not exist,Folder {0} ne postoji
+apps/frappe/frappe/core/doctype/file/file.py +303,Folder {0} does not exist,Folder {0} ne postoji
 apps/frappe/frappe/core/doctype/file/file_list.js +77,Enter folder name,Unesi naziv foldera
 DocType: Workflow State,Tags,Tagovi
 apps/frappe/frappe/patches/v6_19/comment_feed_communication.py +131,Assignment,Dodjeljivanje
@@ -66,6 +67,7 @@ apps/frappe/frappe/config/desk.py +32,Chat messages and other notifications.,Por
 apps/frappe/frappe/website/doctype/blog_post/blog_post.py +80,{0} comments,{0} komentara
 apps/frappe/frappe/public/js/frappe/form/toolbar.js +170,Customize,Prilagodite
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +309,Users with role {0}:,Korisnici sa rolom {0} :
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +416,Did not add,Nije dodato
 apps/frappe/frappe/config/desk.py +19,Files,Fajlovi
 apps/frappe/frappe/desk/reportview.py +260,No Tags,Nema tag-ova
 DocType: Workflow State,picture,Slika
@@ -92,6 +94,7 @@ apps/frappe/frappe/public/js/frappe/form/save.js +11,Saving,Čuvanje
 DocType: About Us Settings,Website,Web sajt
 apps/frappe/frappe/desk/page/activity/activity.js +89,Show Likes,Prikaži lajkove
 apps/frappe/frappe/config/core.py +27,Script or Query reports,Skripte ili query izvještaji
+apps/frappe/frappe/integrations/doctype/gsuite_templates/gsuite_templates.py +30,Added {0},Dodatо {0}
 apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +111,Add to Desktop,Dodaj na radnu površinu
 apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html +64,Documentation,Dokumentacija
 DocType: Contact,First Name,Ime
@@ -111,9 +114,13 @@ DocType: ToDo,High,Visok
 apps/frappe/frappe/www/printview.py +199,No {0} permission,{0} Nema dozvolu
 apps/frappe/frappe/public/js/frappe/list/list_view.js +854,Delete {0} items permanently?,Trajno obriši stavke{0} ?
 apps/frappe/frappe/workflow/doctype/workflow/workflow_list.js +7,Not active,Nije aktivna
+apps/frappe/frappe/public/js/frappe/views/kanban/kanban_column.html +19,Add,Dodaj
+DocType: Email Account,Add Signature,Dodaj potpis
 DocType: Deleted Document,New Name,Novi naziv
+DocType: Feedback Trigger,Enabled,Aktivan
 DocType: ToDo,ToDo,To Do
 apps/frappe/frappe/public/js/frappe/views/communication.js +15,New Email,Novi email
+apps/frappe/frappe/public/js/frappe/ui/slides.js +29,Add More,Dodaj još
 DocType: Footer Item,Company,Preduzeće
 DocType: Address,Purchase User,Korisnik u nabavci
 apps/frappe/frappe/public/js/frappe/model/model.js +18,Created By,Kreirao
@@ -121,6 +128,7 @@ apps/frappe/frappe/public/js/frappe/form/footer/assign_to.js +137,Assign To,Dodi
 apps/frappe/frappe/www/update-password.html +71,Invalid Password,Pogrešna lozinka
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +260,Dropbox Setup,Dropbox podešavanje
 apps/frappe/frappe/public/js/frappe/form/share.js +57,Share {0} with,Podijeli {0} sa
+,Addresses And Contacts,Adrese i kontakti
 DocType: Address,Accounts User,Računi korisnik
 DocType: File,File Name,Naziv dokumenta
 DocType: Has Role,Has Role,Ima ulogu
@@ -128,12 +136,14 @@ apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html +63,Shared 
 DocType: Contact,Contact,Kontakt
 apps/frappe/frappe/desk/page/activity/activity_row.html +34,{0} {1} to {2},{0} {1} do {2}
 apps/frappe/frappe/config/setup.py +37,Show / Hide Modules,Prikaži / sakrij module
+apps/frappe/frappe/templates/includes/comments/comments.html +25,Add Comment,Dodaj komentar
 DocType: Error Log,Title,Naslov
 apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html +44,Assign,Dodijeli
 DocType: Note,Note,Bilješke
-apps/frappe/frappe/public/js/frappe/list/list_renderer.js +589,No {0} found,{0} nije nadjen
+apps/frappe/frappe/public/js/frappe/list/list_renderer.js +592,No {0} found,{0} nije nadjen
 DocType: Email Group,Newsletter Manager,Menadžer newsletter-a
 ,User Permissions Manager,Menadžer prava pristupa korisnika
+apps/frappe/frappe/core/doctype/communication/communication.js +77,Add Contact,Dodaj kontakt
 apps/frappe/frappe/core/doctype/version/version.js +5,Show all Versions,Prikaži sve verzije
 apps/frappe/frappe/public/js/frappe/form/templates/grid_form.html +10,Insert Above,Ubacite iznad
 apps/frappe/frappe/core/doctype/version/version_view.html +14,New Value,Nova vrijednost
@@ -179,21 +189,23 @@ DocType: Desktop Icon,Desktop Icon,Ikone na radnoj površini
 apps/frappe/frappe/public/js/frappe/form/multi_select_dialog.js +67,Get Items,Dodaj stavke
 apps/frappe/frappe/public/js/frappe/model/meta.js +187,Last Modified On,Poslednji put izmijenjeno
 apps/frappe/frappe/public/js/frappe/form/save.js +141,"Mandatory fields required in table {0}, Row {1}","Obavezna polja koja se moraju unijeti u tabeli {0}, Red {1}"
+apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +492,Added,Dodato
 DocType: Workflow,Is Active,Je aktivan
 apps/frappe/frappe/www/login.html +101,Forgot Password,Zaboravili ste lozinku
 DocType: Page,No,Ne
 apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +784,New Report name,Novi naziv izvještaja
 apps/frappe/frappe/public/js/frappe/model/indicator.js +19,Not Saved,Nije sačuvano
-apps/frappe/frappe/public/js/frappe/views/communication.js +337,Add Attachment,Dodaj prilog
+apps/frappe/frappe/public/js/frappe/views/communication.js +338,Add Attachment,Dodaj prilog
 DocType: Authentication Log,Full Name,Puno ime
-apps/frappe/frappe/public/js/frappe/views/kanban/kanban_board.js +758,Edit in full page,Izmijeni u punoj strani
+apps/frappe/frappe/public/js/frappe/views/kanban/kanban_board.js +772,Edit in full page,Izmijeni u punoj strani
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +62,Notes:,Bilješke :
 DocType: Email Alert,Save,Sačuvaj
 DocType: File,Folder,Folder
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +200,Help,Pomoć
-apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +337,Attach Your Picture,Priložite svoju fotografiju
+apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +353,Attach Your Picture,Priložite svoju fotografiju
 DocType: Report,Disabled,Neaktivni
 DocType: Communication,Email Account,Email nalog
+apps/frappe/frappe/public/js/frappe/form/templates/grid_body.html +15,Add Multiple,Dodaj više
 DocType: Custom DocPerm,Import,Uvoz
 DocType: User,Security Settings,Bezbjedonosna podešavanja
 apps/frappe/frappe/www/login.html +22,Email Address,Email adresa
@@ -228,7 +240,7 @@ apps/frappe/frappe/core/doctype/communication/communication.js +42,Close,Zatvori
 apps/frappe/frappe/contacts/report/addresses_and_contacts/addresses_and_contacts.js +23,Party Name,Ime partije
 apps/frappe/frappe/templates/print_formats/standard_macros.html +30,Sr,Rb
 DocType: Contact,Purchase Master Manager,Direktor nabavke
-apps/frappe/frappe/core/doctype/file/file.py +215,Folder {0} is not empty,Folder {0} nije prazan
+apps/frappe/frappe/core/doctype/file/file.py +218,Folder {0} is not empty,Folder {0} nije prazan
 DocType: Communication,User Tags,Korisnički tagovi
 apps/frappe/frappe/public/js/frappe/list/list_sidebar.html +49,Assigned To Me,Dodijeljeno meni
 apps/frappe/frappe/public/js/frappe/ui/charts.js +101,Hide Chart,Sakrij grafikon
@@ -267,6 +279,7 @@ apps/frappe/frappe/core/doctype/user/user.js +49,Set Desktop Icons,Podesi ikonic
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +54,For ranges,Za opsege
 apps/frappe/frappe/desk/page/applications/applications.js +47,Developer Tools,Razvojni alati
 DocType: Communication,Error,Greška
+DocType: Address,Warehouse,Skladište
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +53,"For comparative filters, start with","Za poređenja filterima, krenite sa"
 apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html +58,Go,Traži
 apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +51,{0} days ago,prije {0} dana
@@ -276,10 +289,12 @@ apps/frappe/frappe/desk/doctype/todo/todo_list.js +7,To Do,To Do
 apps/frappe/frappe/public/js/frappe/ui/filters/edit_filter.html +9,Not In,Nije u
 apps/frappe/frappe/public/js/frappe/form/footer/assign_to.js +134,Add to To Do,Dodaj u To Do
 apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +141,Created,Kreirano
+apps/frappe/frappe/public/js/frappe/form/link_selector.js +125,Added {0} ({1}),Dodato {0} ({1})
 DocType: Address,Address,Adresa
 DocType: Email Account,Email Addresses,Email adrese
 apps/frappe/frappe/public/js/frappe/ui/filters/edit_filter.html +6,Equals,Jednak
 DocType: Address,Address Line 1,Adresa 1
+apps/frappe/frappe/public/js/frappe/views/kanban/kanban_board.html +4,Add a column,Dodaj kolonu
 ,Background Jobs,Pozadinski procesi
 apps/frappe/frappe/public/js/frappe/form/quick_entry.js +199,Ctrl+enter to save,Ctrl + enter da sačuvate
 DocType: Communication,Chat,Poruke
@@ -297,6 +312,7 @@ apps/frappe/frappe/core/doctype/file/file.py +125,Folder is mandatory,Folder je 
 apps/frappe/frappe/desk/reportview.py +108,{0} is saved,{0} je sačuvan
 DocType: Email Group,Email Group,Email grupa
 apps/frappe/frappe/public/js/frappe/list/list_sidebar.html +10,Reports,Izvještaji
+apps/frappe/frappe/public/js/frappe/ui/tags.js +20,Add a tag,Dodaj tag
 apps/frappe/frappe/public/js/frappe/model/model.js +25,Comments,Komentari
 DocType: Workflow State,folder-open,folder-otvori
 apps/frappe/frappe/core/page/usage_info/usage_info.html +95,Files Size,Veličina fajlova
@@ -311,6 +327,7 @@ apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +85,PDF,PDF
 apps/frappe/frappe/public/js/frappe/ui/sort_selector.js +182,Most Used,Najviše korišćeno
 DocType: File,Is Attachments Folder,Da li je prilog folder
 DocType: Contact,Gender,Pol
+apps/frappe/frappe/contacts/doctype/address/address.py +132,Addresses,Adrese
 DocType: ToDo,Assigned By,Dodijelio od strane
 DocType: Contact,All,Svi
 apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +53,{0} months ago,Prije {0} mjeseci
@@ -326,6 +343,7 @@ apps/frappe/frappe/core/page/permission_manager/permission_manager.js +442,Set,S
 apps/frappe/frappe/desk/report/todo/todo.py +20,Assigned To/Owner,Dodijeljeno / Vlasnik
 apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +745,Save As,Sačuvaj kao
 apps/frappe/frappe/core/doctype/file/test_file.py +81,Test_Folder,Test_folder
+apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +863,Add Column,Dodaj kolonu
 DocType: Communication,Unshared,Nije podijeljen
 DocType: Help Article,Knowledge Base Editor,Urednik baze znanja
 DocType: Report,Report Builder,Generator izvještaja
