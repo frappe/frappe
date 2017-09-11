@@ -35,13 +35,13 @@
 .graph-container .graph-stats-container .graph-data .stats-value {
   color: #98d85b;
 }
-.graph-container .bar-graph .axis,
-.graph-container .line-graph .axis {
+.graph-container .axis,
+.graph-container .chart-label {
   font-size: 10px;
-  fill: #6a737d;
+  fill: #959ba1;
 }
-.graph-container .bar-graph .axis line,
-.graph-container .line-graph .axis line {
+.graph-container .axis line,
+.graph-container .chart-label line {
   stroke: rgba(27, 31, 35, 0.1);
 }
 .graph-container .percentage-graph .progress {

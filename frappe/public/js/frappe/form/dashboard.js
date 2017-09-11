@@ -334,22 +334,11 @@ frappe.ui.form.Dashboard = Class.extend({
 	// heatmap
 	render_heatmap: function() {
 		if(!this.heatmap) {
-			this.heatmap = new CalHeatMap();
-			this.heatmap.init({
-				itemSelector: "#heatmap-" + frappe.model.scrub(this.frm.doctype),
-				domain: "month",
-				subDomain: "day",
-				start: moment().subtract(1, 'year').add(1, 'month').toDate(),
-				cellSize: 9,
-				cellPadding: 2,
-				domainGutter: 2,
-				range: 12,
-				domainLabelFormat: function(date) {
-					return moment(date).format("MMM").toUpperCase();
-				},
-				displayLegend: false,
-				legend: [5, 10, 15, 20]
-				// subDomainTextFormat: "%d",
+			this.heatmap = new frappe.ui.HeatMap({
+				parent: this.heatmap_area.find("#heatmap-" + frappe.model.scrub(this.frm.doctype)),
+				height: 100,
+				start: new Date(moment().subtract(1, 'year').toDate()),
+				discrete_domains: 1
 			});
 
 			// center the heatmap

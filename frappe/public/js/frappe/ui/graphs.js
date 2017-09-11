@@ -42,14 +42,13 @@ frappe.ui.Graph = class Graph {
 		}
 
 		this.parent = parent;
-		this.base_height = height;
-		this.height = height - 40;
 
-		this.translate_x = 60;
-		this.translate_y = 10;
+		this.set_margins(height);
 
 		this.title = title;
 		this.subtitle = subtitle;
+
+		// Begin axis graph-related args
 
 		this.y = y;
 		this.x = x;
@@ -59,8 +58,8 @@ frappe.ui.Graph = class Graph {
 
 		this.mode = mode;
 
-		this.current_hover_index = 0;
-		this.current_selected_index = 0;
+		// this.current_hover_index = 0;
+		// this.current_selected_index = 0;
 
 		this.$graph = null;
 
@@ -82,7 +81,8 @@ frappe.ui.Graph = class Graph {
 
 	refresh() {
 
-		this.base_width = this.parent.width();
+		this.setup_base_values();
+		this.set_width();
 		this.width = this.base_width - this.translate_x * 2;
 
 		this.setup_container();
@@ -99,6 +99,20 @@ frappe.ui.Graph = class Graph {
 			this.show_summary();
 		}
 	}
+
+	set_margins(height) {
+		this.base_height = height;
+		this.height = height - 40;
+
+		this.translate_x = 60;
+		this.translate_y = 10;
+	}
+
+	set_width() {
+		this.base_width = this.parent.width();
+	}
+
+	setup_base_values() {}
 
 	setup_container() {
 		// Graph needs a dedicated parent element
@@ -126,6 +140,13 @@ frappe.ui.Graph = class Graph {
 		this.$svg = $(`<svg class="svg" width="${this.base_width}" height="${this.base_height}"></svg>`);
 		this.snap = new Snap(this.$svg[0]);
 		return this.$svg;
+	}
+
+	setup_components() {
+		this.y_axis_group = this.snap.g().attr({ class: "y axis" });
+		this.x_axis_group = this.snap.g().attr({ class: "x axis" });
+		this.data_units = this.snap.g().attr({ class: "data-points" });
+		this.specific_y_lines = this.snap.g().attr({ class: "specific axis" });
 	}
 
 	setup_values() {
@@ -166,13 +187,6 @@ frappe.ui.Graph = class Graph {
 				}
 			});
 		});
-	}
-
-	setup_components() {
-		this.y_axis_group = this.snap.g().attr({ class: "y axis" });
-		this.x_axis_group = this.snap.g().attr({ class: "x axis" });
-		this.data_units = this.snap.g().attr({ class: "data-points" });
-		this.specific_y_lines = this.snap.g().attr({ class: "specific axis" });
 	}
 
 	make_graph_components() {
@@ -246,6 +260,11 @@ frappe.ui.Graph = class Graph {
 			transform: `translate(0,${start_at})`
 		});
 		this.x.values.map((point, i) => {
+			let allowed_space = this.avg_unit_width * 1.5;
+			if(this.get_strwidth(point) > allowed_space) {
+				let allowed_letters = allowed_space / 8;
+				point = point.slice(0, allowed_letters-3) + " ...";
+			}
 			this.x_axis_group.add(this.snap.g(
 				this.snap.line(0, 0, 0, height),
 				this.snap.text(0, text_start_at, point).attr({
@@ -262,8 +281,13 @@ frappe.ui.Graph = class Graph {
 	make_units(y_values, color, dataset_index) {
 		let d = this.unit_args;
 		y_values.map((y, i) => {
-			let data_unit = this.draw[d.type](this.x_axis_values[i],
-				y, d.args, color, dataset_index);
+			let data_unit = this.draw[d.type](
+				this.x_axis_values[i],
+				y,
+				d.args,
+				color,
+				dataset_index
+			);
 			this.data_units.add(data_unit);
 			this.y[dataset_index].data_units.push(data_unit);
 		});
@@ -417,12 +441,20 @@ frappe.ui.Graph = class Graph {
 
 				let width = total_width / args.no_of_datasets;
 				let current_x = start_x + width * index;
+				if(y == this.height) {
+					y = this.height * 0.98;
+				}
 				return this.snap.rect(current_x, y, width, this.height - y).attr({
 					class: `bar mini fill ${color}`
 				});
 			},
 			'dot': (x, y, args, color) => {
 				return this.snap.circle(x, y, args.radius).attr({
+					class: `fill ${color}`
+				});
+			},
+			'rect': (x, y, args, color) => {
+				return this.snap.rect(x, y, args.width, args.height).attr({
 					class: `fill ${color}`
 				});
 			}
@@ -453,6 +485,7 @@ frappe.ui.BarGraph = class BarGraph extends frappe.ui.Graph {
 		this.unit_args = {
 			type: 'bar',
 			args: {
+				// More intelligent width setting
 				space_width: this.y.length > 1 ?
 					me.avg_unit_width/2 : me.avg_unit_width/8,
 				no_of_datasets: this.y.length
@@ -574,46 +607,252 @@ frappe.ui.PercentageGraph = class PercentageGraph extends frappe.ui.Graph {
 	}
 };
 
-frappe.ui.CompositeGraph = class {
+frappe.ui.HeatMap = class HeatMap extends frappe.ui.Graph {
 	constructor({
-		parent = null
-	}) {
-		this.parent = parent;
-		this.title_name = '';
-		this.title_value = '';
-		this.list_values = [];
+		parent = null,
+		height = 240,
+		title = '', subtitle = '',
 
-		this.x = 0;
-		this.y = 0;
+		start = '',
+		domain = '',
+		subdomain = '',
+		data = {},
+		discrete_domains = 0,
 
-		this.top = 0;
-		this.left = 0;
+		// remove these graph related args
+		y = [],
+		x = [],
+		specific_values = [],
+		summary = [],
+		mode = 'heatmap',
+	} = {}) {
+		super(arguments[0]);
+		this.start = start;
+		this.data = data;
+		this.discrete_domains = discrete_domains;
 
-		this.setup();
+		this.legend_colors = ['#ebedf0', '#c6e48b', '#7bc96f', '#239a3b', '#196127'];
 	}
 
+	setup_base_values() {
+		this.today = new Date();
 
-}
-
-frappe.ui.Heatmap = class {
-	constructor({
-		parent = null
-	}) {
-		this.parent = parent;
-		this.title_name = '';
-		this.title_value = '';
-		this.list_values = [];
-
-		this.x = 0;
-		this.y = 0;
-
-		this.top = 0;
-		this.left = 0;
-
-		this.setup();
+		this.first_week_start = new Date(this.start.toDateString());
+		this.last_week_start = new Date(this.today.toDateString());
+		if(this.first_week_start.getDay() !== 7) {
+			this.add_days(this.first_week_start, (-1) * this.first_week_start.getDay());
+		}
+		if(this.last_week_start.getDay() !== 7) {
+			this.add_days(this.last_week_start, (-1) * this.last_week_start.getDay());
+		}
+		this.no_of_cols = this.get_weeks_between(this.first_week_start + '', this.last_week_start + '') + 1;
 	}
 
+	set_width() {
+		this.base_width = (this.no_of_cols + 14) * 12;
+	}
 
+	setup_components() {
+		this.domain_label_group = this.snap.g().attr({ class: "domain-label-group chart-label" });
+		this.data_groups = this.snap.g().attr({ class: "data-groups", transform: `translate(0, 20)` });
+	}
+
+	setup_values() {
+		this.distribution = this.get_distribution(this.data, this.legend_colors);
+		this.month_names = ["January", "February", "March", "April", "May", "June",
+			"July", "August", "September", "October", "November", "December"
+		];
+
+		this.render_all_weeks_and_store_x_values(this.no_of_cols);
+	}
+
+	render_all_weeks_and_store_x_values(no_of_weeks) {
+		let current_week_sunday = new Date(this.first_week_start);
+		this.week_col = 0;
+		this.current_month = current_week_sunday.getMonth();
+
+		this.months = [this.current_month + ''];
+		this.month_weeks = {}, this.month_start_points = [];
+		this.month_weeks[this.current_month] = 0;
+		this.month_start_points.push(13);
+
+		for(var i = 0; i < no_of_weeks; i++) {
+			let data_group, month_change = 0;
+			let day = new Date(current_week_sunday);
+
+			[data_group, month_change] = this.get_week_squares_group(day, this.week_col);
+			this.data_groups.add(data_group);
+			this.week_col += 1 + parseInt(this.discrete_domains && month_change);
+			this.month_weeks[this.current_month]++;
+			if(month_change) {
+				this.current_month = (this.current_month + 1) % 12;
+				this.months.push(this.current_month + '');
+				this.month_weeks[this.current_month] = 1;
+			}
+			this.add_days(current_week_sunday, 7);
+		}
+		this.render_month_labels();
+	}
+
+	get_week_squares_group(current_date, index) {
+		const no_of_weekdays = 7;
+		const square_side = 10;
+		const cell_padding = 2;
+		const step = 1;
+
+		let month_change = 0;
+		let week_col_change = 0;
+
+		let data_group = this.snap.g().attr({ class: "data-group" });
+
+		for(var y = 0, i = 0; i < no_of_weekdays; i += step, y += (square_side + cell_padding)) {
+			let data_value = 0;
+			let color_index = 0;
+
+			// TODO: More foolproof for any data
+			let timestamp = Math.floor(current_date.getTime()/1000).toFixed(1);
+
+			if(this.data[timestamp]) {
+				data_value = this.data[timestamp];
+				color_index = this.get_max_checkpoint(data_value, this.distribution);
+			}
+
+			let x = 13 + (index + week_col_change) * 12;
+
+			data_group.add(this.snap.rect(x, y, square_side, square_side).attr({
+				'class': `day`,
+				'fill':  this.legend_colors[color_index],
+				'data-date': this.get_dd_mm_yyyy(current_date),
+				'data-value': data_value,
+				'data-day': current_date.getDay()
+			}));
+
+			let next_date = new Date(current_date);
+			this.add_days(next_date, 1);
+			if(next_date.getMonth() - current_date.getMonth()) {
+				month_change = 1;
+				if(this.discrete_domains) {
+					week_col_change = 1;
+				}
+
+				this.month_start_points.push(13 + (index + week_col_change) * 12);
+			}
+			current_date = next_date;
+		}
+
+		return [data_group, month_change];
+	}
+
+	render_month_labels() {
+		this.first_month_label = 1;
+		if (this.first_week_start.getDate() > 8) {
+			this.first_month_label = 0;
+		}
+		this.last_month_label = 1;
+
+		let first_month = this.months.shift();
+		let first_month_start = this.month_start_points.shift();
+		// render first month if
+
+		let last_month = this.months.pop();
+		let last_month_start = this.month_start_points.pop();
+		// render last month if
+
+		this.month_start_points.map((start, i) => {
+			let month_name =  this.month_names[this.months[i]].substring(0, 3);
+			this.domain_label_group.add(this.snap.text(start + 12, 10, month_name).attr({
+				dy: ".32em",
+				class: "y-value-text"
+			}));
+		});
+	}
+
+	make_graph_components() {
+		this.container.find('.graph-stats-container, .sub-title, .title').hide();
+		this.container.find('.graphics').css({'margin-top': '0px', 'padding-top': '0px'});
+	}
+
+	bind_tooltip() {
+		this.container.on('mouseenter', '.day', (e) => {
+			let subdomain = $(e.target);
+			let count = subdomain.attr('data-value');
+			let date_parts = subdomain.attr('data-date').split('-');
+
+			let month = this.month_names[parseInt(date_parts[1])-1].substring(0, 3);
+
+			let g_off = this.$graphics.offset(), p_off = subdomain.offset();
+
+			let width = parseInt(subdomain.attr('width'));
+			let x = p_off.left - g_off.left + (width+2)/2;
+			let y = p_off.top - g_off.top - (width+2)/2;
+			let value = count + ' items';
+			let name = ' on ' + month + ' ' + date_parts[0] + ', ' + date_parts[2];
+
+			this.tip.set_values(x, y, name, value, [], 1);
+			this.tip.show_tip();
+		});
+	}
+
+	update(data) {
+		this.data = data;
+		this.setup_values();
+	}
+
+	get_distribution(data, mapper_array) {
+		let data_values = Object.keys(data).map(key => data[key]);
+		let data_max_value = Math.max(...data_values);
+
+		let distribution_step = 1 / (mapper_array.length - 1);
+		let distribution = [];
+
+		mapper_array.map((color, i) => {
+			let checkpoint = data_max_value * (distribution_step * i);
+			distribution.push(checkpoint);
+		});
+
+		return distribution;
+	}
+
+	get_max_checkpoint(value, distribution) {
+		return distribution.filter(d => {
+			return d <= value;
+		}).length - 1;
+	}
+
+	// TODO: date utils, move these out
+
+	// https://stackoverflow.com/a/11252167/6495043
+	treat_as_utc(date_str) {
+		let result = new Date(date_str);
+		result.setMinutes(result.getMinutes() - result.getTimezoneOffset());
+		return result;
+	}
+
+	get_dd_mm_yyyy(date) {
+		let dd = date.getDate();
+		let mm = date.getMonth() + 1; // getMonth() is zero-based
+		return [
+			(dd>9 ? '' : '0') + dd,
+			(mm>9 ? '' : '0') + mm,
+			date.getFullYear()
+		].join('-');
+	}
+
+	get_weeks_between(start_date_str, end_date_str) {
+		return Math.ceil(this.get_days_between(start_date_str, end_date_str) / 7);
+	}
+
+	get_days_between(start_date_str, end_date_str) {
+		let milliseconds_per_day = 24 * 60 * 60 * 1000;
+		return (this.treat_as_utc(end_date_str) - this.treat_as_utc(start_date_str)) / milliseconds_per_day;
+	}
+
+	// mutates
+	add_days(date, number_of_days) {
+		date.setDate(date.getDate() + number_of_days);
+	}
+
+	get_month_name() {}
 }
 
 frappe.ui.SvgTip = class {
@@ -624,6 +863,7 @@ frappe.ui.SvgTip = class {
 		this.title_name = '';
 		this.title_value = '';
 		this.list_values = [];
+		this.title_value_first = 0;
 
 		this.x = 0;
 		this.y = 0;
@@ -661,7 +901,13 @@ frappe.ui.SvgTip = class {
 	}
 
 	fill() {
-		this.title.html(`${this.title_name}<strong>${this.title_value}</strong>`);
+		let title;
+		if(this.title_value_first) {
+			title = `<strong>${this.title_value}</strong>${this.title_name}`;
+		} else {
+			title = `${this.title_name}<strong>${this.title_value}</strong>`;
+		}
+		this.title.html(title);
 		this.data_point_list.empty();
 		this.list_values.map((set, i) => {
 			let $li = $(`<li>
@@ -692,12 +938,13 @@ frappe.ui.SvgTip = class {
 		}
 	}
 
-	set_values(x, y, title_name = '', title_value = '', list_values = []) {
+	set_values(x, y, title_name = '', title_value = '', list_values = [], title_value_first = 0) {
 		this.title_name = title_name;
 		this.title_value = title_value;
 		this.list_values = list_values;
 		this.x = x;
 		this.y = y;
+		this.title_value_first = title_value_first;
 		this.refresh();
 	}
 
@@ -796,3 +1043,23 @@ frappe.ui.graphs.map_c3 = function(chart) {
 		}
 	}
 }
+
+
+// frappe.ui.CompositeGraph = class {
+// 	constructor({
+// 		parent = null
+// 	}) {
+// 		this.parent = parent;
+// 		this.title_name = '';
+// 		this.title_value = '';
+// 		this.list_values = [];
+
+// 		this.x = 0;
+// 		this.y = 0;
+
+// 		this.top = 0;
+// 		this.left = 0;
+
+// 		this.setup();
+// 	}
+// }

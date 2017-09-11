@@ -929,28 +929,22 @@ frappe.views.QueryReport = Class.extend({
 
 	setup_chart: function(res) {
 		this.chart_area.toggle(false);
-		let chart, g;
 
 		if (this.get_query_report_opts().get_chart_data) {
-			chart = this.get_query_report_opts().get_chart_data(res.columns, res.result);
+			var opts = this.get_query_report_opts().get_chart_data(res.columns, res.result);
 		} else if (res.chart) {
-			chart = res.chart;
+			var opts = res.chart;
 		} else {
 			return;
 		}
 
-		console.log(chart);
+		$.extend(opts, {
+			wrapper: this.chart_area,
+		});
 
-		let args = frappe.ui.graphs.map_c3(chart);
-		this.chart_area.empty().toggle(true);
-
-		console.log(args);
-
-		if(args) {
-			$.extend(args, {
-				parent: this.chart_area,
-			});
-			g = new frappe.ui.Graph(args);
+		this.chart = new frappe.ui.Chart(opts);
+		if(this.chart && opts.data && opts.data.rows && opts.data.rows.length) {
+			this.chart_area.toggle(true);
 		}
 	},
 
