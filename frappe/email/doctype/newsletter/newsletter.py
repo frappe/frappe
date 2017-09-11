@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 import frappe
 import frappe.utils
 from frappe import throw, _
-from frappe.model.document import Document
+from frappe.website.website_generator import WebsiteGenerator
 from frappe.email.queue import check_email_limit
 from frappe.utils.verified_command import get_signed_params, verify_request
 from frappe.utils.background_jobs import enqueue
@@ -17,7 +17,7 @@ from frappe.utils import parse_addr
 from frappe.utils import validate_email_add
 
 
-class Newsletter(Document):
+class Newsletter(WebsiteGenerator):
 	def onload(self):
 		if self.email_sent:
 			self.get("__onload").status_count = dict(frappe.db.sql("""select status, count(name)
@@ -25,6 +25,7 @@ class Newsletter(Document):
 				group by status""", (self.doctype, self.name))) or None
 
 	def validate(self):
+		self.route = "newsletters/" + self.name
 		if self.send_from:
 			validate_email_add(self.send_from, True)
 
@@ -104,6 +105,24 @@ class Newsletter(Document):
 		if self.get("__islocal"):
 			throw(_("Please save the Newsletter before sending"))
 		check_email_limit(self.recipients)
+
+	def get_context(self, context):
+		newsletter_list = [d.name for d in get_newsletter_list("Newsletter", None, None, 0)]
+		context.no_cache = 1
+		context.show_sidebar = True
+		if self.name not in newsletter_list:
+			frappe.redirect_to_message(_('Permission Error'),
+				_("You are not permitted to view the newsletter."))
+			frappe.local.flags.redirect_location = frappe.local.response.location
+			raise frappe.Redirect
+		else:
+			context.attachments = get_attachments(self.name)
+
+
+def get_attachments(name):
+	return frappe.get_all("File",
+			fields=["name", "file_name", "file_url", "is_private"],
+			filters = {"attached_to_name": name, "attached_to_doctype": "Newsletter", "is_private":0})
 
 
 def get_email_groups(name):
@@ -220,14 +239,15 @@ def send_newsletter(newsletter):
 
 
 def get_list_context(context=None):
-	return {
+	context.update({
 		"show_sidebar": True,
 		"show_search": True,
 		'no_breadcrumbs': True,
 		"title": _("Newsletter"),
 		"get_list": get_newsletter_list,
 		"row_template": "email/doctype/newsletter/templates/newsletter_row.html",
-	}
+	})
+
 
 def get_newsletter_list(doctype, txt, filters, limit_start, limit_page_length=20, order_by="modified"):
 	email_group_list = frappe.db.sql('''select eg.name from `tabEmail Group` eg, `tabEmail Group Member` egm
@@ -235,6 +255,6 @@ def get_newsletter_list(doctype, txt, filters, limit_start, limit_page_length=20
 	if email_group_list:
 		return frappe.db.sql('''select n.name, n.subject, n.message, n.modified
 			from `tabNewsletter` n, `tabNewsletter Email Group` neg
-			where n.name = neg.parent and n.email_sent=1 and neg.email_group in %s
+			where n.name = neg.parent and n.email_sent=1 and n.published=1 and neg.email_group in %s
 			order by n.modified desc limit {0}, {1}
 			'''.format(limit_start, limit_page_length), [email_group_list], as_dict=1)
