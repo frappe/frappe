@@ -613,7 +613,7 @@ frappe.ui.HeatMap = class HeatMap extends frappe.ui.Graph {
 		height = 240,
 		title = '', subtitle = '',
 
-		start = '',
+		start = new Date(moment().subtract(1, 'year').toDate()),
 		domain = '',
 		subdomain = '',
 		data = {},
