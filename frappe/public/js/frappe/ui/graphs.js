@@ -618,6 +618,7 @@ frappe.ui.HeatMap = class HeatMap extends frappe.ui.Graph {
 		subdomain = '',
 		data = {},
 		discrete_domains = 0,
+		count_label = '',
 
 		// remove these graph related args
 		y = [],
@@ -630,6 +631,8 @@ frappe.ui.HeatMap = class HeatMap extends frappe.ui.Graph {
 		this.start = start;
 		this.data = data;
 		this.discrete_domains = discrete_domains;
+
+		this.count_label = count_label;
 
 		this.legend_colors = ['#ebedf0', '#c6e48b', '#7bc96f', '#239a3b', '#196127'];
 	}
@@ -717,6 +720,11 @@ frappe.ui.HeatMap = class HeatMap extends frappe.ui.Graph {
 				color_index = this.get_max_checkpoint(data_value, this.distribution);
 			}
 
+			if(this.data[Math.round(timestamp)]) {
+				data_value = this.data[Math.round(timestamp)];
+				color_index = this.get_max_checkpoint(data_value, this.distribution);
+			}
+
 			let x = 13 + (index + week_col_change) * 12;
 
 			data_group.add(this.snap.rect(x, y, square_side, square_side).attr({
@@ -745,9 +753,9 @@ frappe.ui.HeatMap = class HeatMap extends frappe.ui.Graph {
 
 	render_month_labels() {
 		this.first_month_label = 1;
-		if (this.first_week_start.getDate() > 8) {
-			this.first_month_label = 0;
-		}
+		// if (this.first_week_start.getDate() > 8) {
+		// 	this.first_month_label = 0;
+		// }
 		this.last_month_label = 1;
 
 		let first_month = this.months.shift();
@@ -785,7 +793,7 @@ frappe.ui.HeatMap = class HeatMap extends frappe.ui.Graph {
 			let width = parseInt(subdomain.attr('width'));
 			let x = p_off.left - g_off.left + (width+2)/2;
 			let y = p_off.top - g_off.top - (width+2)/2;
-			let value = count + ' items';
+			let value = count + ' ' + this.count_label;
 			let name = ' on ' + month + ' ' + date_parts[0] + ', ' + date_parts[2];
 
 			this.tip.set_values(x, y, name, value, [], 1);

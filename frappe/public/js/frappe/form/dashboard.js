@@ -338,6 +338,7 @@ frappe.ui.form.Dashboard = Class.extend({
 				parent: this.heatmap_area.find("#heatmap-" + frappe.model.scrub(this.frm.doctype)),
 				height: 100,
 				start: new Date(moment().subtract(1, 'year').toDate()),
+				count_label: "items",
 				discrete_domains: 0
 			});
 
