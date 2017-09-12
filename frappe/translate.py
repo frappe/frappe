@@ -684,7 +684,7 @@ def deduplicate_messages(messages):
 	op = operator.itemgetter(1)
 	messages = sorted(messages, key=op)
 	for k, g in itertools.groupby(messages, op):
-		ret.append(g.next())
+		ret.append(next(g))
 	return ret
 
 def get_bench_dir():
