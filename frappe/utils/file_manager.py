@@ -15,6 +15,7 @@ from six import text_type
 
 class MaxFileSizeReachedError(frappe.ValidationError): pass
 
+
 def get_file_url(file_data_name):
 	data = frappe.db.get_value("File", file_data_name, ["file_name", "file_url"], as_dict=True)
 	return data.file_url or data.file_name
@@ -96,55 +97,6 @@ def get_uploaded_content():
 	else:
 		frappe.msgprint(_('No file attached'))
 		return None, None
-
-def extract_images_from_doc(doc, fieldname):
-	content = doc.get(fieldname)
-	content = extract_images_from_html(doc, content)
-	if frappe.flags.has_dataurl:
-		doc.set(fieldname, content)
-
-def extract_images_from_html(doc, content):
-	frappe.flags.has_dataurl = False
-
-	def _save_file(match):
-		data = match.group(1)
-		data = data.split("data:")[1]
-		headers, content = data.split(",")
-
-		if "filename=" in headers:
-			filename = headers.split("filename=")[-1]
-
-			# decode filename
-			if not isinstance(filename, text_type):
-				filename = text_type(filename, 'utf-8')
-		else:
-			mtype = headers.split(";")[0]
-			filename = get_random_filename(content_type=mtype)
-
-		doctype = doc.parenttype if doc.parent else doc.doctype
-		name = doc.parent or doc.name
-
-		# TODO fix this
-		file_url = save_file(filename, content, doctype, name, decode=True).get("file_url")
-		if not frappe.flags.has_dataurl:
-			frappe.flags.has_dataurl = True
-
-		return '<img src="{file_url}"'.format(file_url=file_url)
-
-	if content:
-		content = re.sub('<img[^>]*src\s*=\s*["\'](?=data:)(.*?)["\']', _save_file, content)
-
-	return content
-
-def get_random_filename(extn=None, content_type=None):
-	if extn:
-		if not extn.startswith("."):
-			extn = "." + extn
-
-	elif content_type:
-		extn = mimetypes.guess_extension(content_type)
-
-	return random_string(7) + (extn or "")
 
 def save_file(fname, content, dt, dn, folder=None, decode=False, is_private=0):
 	if decode:
@@ -370,3 +322,52 @@ def download_file(file_url):
 	frappe.local.response.filename = file_url[file_url.rfind("/")+1:]
 	frappe.local.response.filecontent = filedata
 	frappe.local.response.type = "download"
+
+def extract_images_from_doc(doc, fieldname):
+	content = doc.get(fieldname)
+	content = extract_images_from_html(doc, content)
+	if frappe.flags.has_dataurl:
+		doc.set(fieldname, content)
+
+def extract_images_from_html(doc, content):
+	frappe.flags.has_dataurl = False
+
+	def _save_file(match):
+		data = match.group(1)
+		data = data.split("data:")[1]
+		headers, content = data.split(",")
+
+		if "filename=" in headers:
+			filename = headers.split("filename=")[-1]
+
+			# decode filename
+			if not isinstance(filename, text_type):
+				filename = text_type(filename, 'utf-8')
+		else:
+			mtype = headers.split(";")[0]
+			filename = get_random_filename(content_type=mtype)
+
+		doctype = doc.parenttype if doc.parent else doc.doctype
+		name = doc.parent or doc.name
+
+		# TODO fix this
+		file_url = save_file(filename, content, doctype, name, decode=True).get("file_url")
+		if not frappe.flags.has_dataurl:
+			frappe.flags.has_dataurl = True
+
+		return '<img src="{file_url}"'.format(file_url=file_url)
+
+	if content:
+		content = re.sub('<img[^>]*src\s*=\s*["\'](?=data:)(.*?)["\']', _save_file, content)
+
+	return content
+
+def get_random_filename(extn=None, content_type=None):
+	if extn:
+		if not extn.startswith("."):
+			extn = "." + extn
+
+	elif content_type:
+		extn = mimetypes.guess_extension(content_type)
+
+	return random_string(7) + (extn or "")
