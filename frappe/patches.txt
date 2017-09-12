@@ -192,3 +192,4 @@ frappe.patches.v8_5.delete_email_group_member_with_invalid_emails
 frappe.patches.v8_x.update_user_permission
 frappe.patches.v8_5.patch_event_colors
 frappe.patches.v8_7.update_email_queue_status
+frappe.patches.v8_10.delete_static_web_page_from_global_search
