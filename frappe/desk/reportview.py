@@ -152,8 +152,8 @@ def export_query():
 		writer = csv.writer(f)
 		for r in data:
 			# encode only unicode type strings and not int, floats etc.
-			writer.writerow(map(lambda v: isinstance(v, string_types) and
-				handle_html(frappe.as_unicode(v)) or v, r))
+			writer.writerow([handle_html(frappe.as_unicode(v)).encode('utf-8') \
+				if isinstance(v, string_types) else v for v in r])
 
 		f.seek(0)
 		frappe.response['result'] = text_type(f.read(), 'utf-8')
