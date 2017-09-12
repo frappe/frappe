@@ -24,7 +24,7 @@
             {% for col in columns %}
                 {% if col.name && col._id !== "_check" %}
 
-					{% var value = col.fieldname ? row[col.fieldname] : row[col.id]; %}
+					{% var value = col.fieldname ? row[col.fieldname] : row[col.field]; %}
 
                 	<td>{{ col.formatter
 	                        ? col.formatter(row._index, col._index, value, col, row, true)

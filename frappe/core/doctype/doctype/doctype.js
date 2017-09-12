@@ -13,9 +13,12 @@
 
 frappe.ui.form.on('DocType', {
 	refresh: function(frm) {
-		if(frm.is_new() && (frappe.session.user !== "Administrator" || !frappe.boot.developer_mode)) {
-			frm.set_value("custom", 1);
+		if(frappe.session.user !== "Administrator" || !frappe.boot.developer_mode) {
+			if(frm.is_new()) {
+				frm.set_value("custom", 1);
+			}
 			frm.toggle_enable("custom", 0);
+			frm.toggle_enable("beta", 0);
 		}
 
 		if(!frappe.boot.developer_mode && !frm.doc.custom) {
