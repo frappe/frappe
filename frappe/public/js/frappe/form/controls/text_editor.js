@@ -137,17 +137,17 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 			});
 	},
 	get_image: function (fileobj, callback) {
-		var freader = new FileReader();
+		var reader = new FileReader();
 
-		freader.onload = function() {
-			var dataurl = freader.result;
+		reader.onload = function() {
+			var dataurl = reader.result;
 			// add filename to dataurl
 			var parts = dataurl.split(",");
 			parts[0] += ";filename=" + fileobj.name;
 			dataurl = parts[0] + ',' + parts[1];
 			callback(dataurl);
 		};
-		freader.readAsDataURL(fileobj);
+		reader.readAsDataURL(fileobj);
 	},
 	hide_elements_on_mobile: function() {
 		this.note_editor.find('.note-btn-underline,\

@@ -55,7 +55,7 @@ frappe.socketio = {
 
 		frappe.socketio.setup_listeners();
 		frappe.socketio.setup_reconnect();
-		frappe.socketio.setup_fileupload();
+		frappe.socketio.uploader = new frappe.socketio.SocketIOUploader();
 
 		$(document).on('form-load form-rename', function(e, frm) {
 			if (frm.is_new()) {
@@ -162,12 +162,6 @@ frappe.socketio = {
 	doc_close: function(doctype, docname) {
 		// notify that the user has closed this doc
 		frappe.socketio.socket.emit('doc_close', doctype, docname);
-	},
-	setup_fileupload: function() {
-		frappe.socketio.uploader = new SocketIOFileClient(frappe.socketio.socket, {
-		    rename: function(filename) {
-				return `${frappe.boot.sitename}_${filename}`;
-		});
 	},
 	setup_listeners: function() {
 		frappe.socketio.socket.on('task_status_change', function(data) {
@@ -282,4 +276,58 @@ frappe.realtime.publish = function(event, message) {
 	if(frappe.socketio.socket) {
 		frappe.socketio.socket.emit(event, message);
 	}
+}
+
+frappe.socketio.SocketIOUploader = class SocketIOUploader {
+	constructor() {
+		frappe.socketio.socket.on('upload-request-slice', (data) => {
+			var place = data.currentSlice * this.chunk_size,
+				slice = this.file.slice(place,
+					place + Math.min(this.chunk_size, this.file.size - place));
+
+			if (this.on_progress) {
+				// update progress
+				this.on_progress(place / this.file.size * 100);
+			}
+
+			this.reader.readAsArrayBuffer(slice);
+		});
+
+		frappe.socketio.socket.on('upload-end', (data) => {
+			if (data.file_url.substr(0, 7)==='/public') {
+				data.file_url = data.file_url.substr(7);
+			}
+			this.callback(data);
+			this.reader = null;
+			this.file = null;
+		});
+	}
+
+	start({file=null, is_private=0, filename='', callback=null, on_progress=null,
+		chunk_size=100000} = {}) {
+
+		if (this.reader) {
+			frappe.throw(__('File Upload in Progress. Please try again in a few moments.'));
+		}
+
+		this.reader = new FileReader();
+		this.file = file;
+		this.chunk_size = chunk_size;
+		this.callback = callback;
+		this.on_progress = on_progress;
+
+		this.reader.onload = () => {
+			frappe.socketio.socket.emit('upload-accept-slice', {
+				is_private: is_private,
+				name: filename,
+				type: this.file.type,
+				size: this.file.size,
+				data: this.reader.result
+			});
+		};
+
+		var slice = file.slice(0, this.chunk_size);
+		this.reader.readAsArrayBuffer(slice);
+	}
+
 }

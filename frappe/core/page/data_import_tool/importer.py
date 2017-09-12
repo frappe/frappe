@@ -217,8 +217,8 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 
 	# header
 	if not rows:
-		from frappe.utils.file_manager import save_uploaded
-		file_doc = save_uploaded(dt=None, dn="Data Import", folder='Home', is_private=1)
+		from frappe.utils.file_manager import get_file_doc
+		file_doc = get_file_doc(dt='', dn="Data Import", folder='Home', is_private=1)
 		filename, file_extension = os.path.splitext(file_doc.file_name)
 
 		if file_extension == '.xlsx' and from_data_import == 'Yes':
