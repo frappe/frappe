@@ -334,22 +334,12 @@ frappe.ui.form.Dashboard = Class.extend({
 	// heatmap
 	render_heatmap: function() {
 		if(!this.heatmap) {
-			this.heatmap = new CalHeatMap();
-			this.heatmap.init({
-				itemSelector: "#heatmap-" + frappe.model.scrub(this.frm.doctype),
-				domain: "month",
-				subDomain: "day",
-				start: moment().subtract(1, 'year').add(1, 'month').toDate(),
-				cellSize: 9,
-				cellPadding: 2,
-				domainGutter: 2,
-				range: 12,
-				domainLabelFormat: function(date) {
-					return moment(date).format("MMM").toUpperCase();
-				},
-				displayLegend: false,
-				legend: [5, 10, 15, 20]
-				// subDomainTextFormat: "%d",
+			this.heatmap = new frappe.ui.HeatMap({
+				parent: this.heatmap_area.find("#heatmap-" + frappe.model.scrub(this.frm.doctype)),
+				height: 100,
+				start: new Date(moment().subtract(1, 'year').toDate()),
+				count_label: "items",
+				discrete_domains: 0
 			});
 
 			// center the heatmap
@@ -388,16 +378,14 @@ frappe.ui.form.Dashboard = Class.extend({
 		return indicator;
 	},
 
-	//graphs
+	// graphs
 	setup_graph: function() {
 		var me = this;
-
 		var method = this.data.graph_method;
 		var args = {
 			doctype: this.frm.doctype,
 			docname: this.frm.doc.name,
 		};
-
 		$.extend(args, this.data.graph_method_args);
 
 		frappe.call({
@@ -421,29 +409,9 @@ frappe.ui.form.Dashboard = Class.extend({
 			mode: 'line',
 			height: 140
 		});
-
 		new frappe.ui.Graph(args);
 	},
 
-	setup_chart: function(opts) {
-		var me = this;
-
-		this.graph_area.removeClass('hidden');
-
-		$.extend(opts, {
-			wrapper: me.graph_area,
-			padding: {
-				right: 30,
-				bottom: 30
-			}
-		});
-
-		this.chart = new frappe.ui.Chart(opts);
-		if(this.chart) {
-			this.show();
-			this.chart.set_chart_size(me.wrapper.width() - 60);
-		}
-	},
 	show: function() {
 		this.section.removeClass('hidden');
 	}

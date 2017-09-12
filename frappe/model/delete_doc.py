@@ -244,6 +244,14 @@ def delete_dynamic_links(doctype, name):
 	frappe.db.sql('''delete from `tabEmail Unsubscribe`
 		where reference_doctype=%s and reference_name=%s''', (doctype, name))
 
+	# delete shares
+	delete_doc("DocShare", frappe.db.sql_list("""select name from `tabDocShare`
+		where share_doctype=%s and share_name=%s""", (doctype, name)),
+		ignore_on_trash=True, force=True)
+
+	# delete versions
+	frappe.db.sql('delete from tabVersion where ref_doctype=%s and docname=%s', (doctype, name))
+
 	# delete comments
 	frappe.db.sql("""delete from `tabCommunication`
 		where
@@ -267,14 +275,6 @@ def delete_dynamic_links(doctype, name):
 	frappe.db.sql("""update `tabCommunication`
 		set timeline_doctype=null, timeline_name=null
 		where timeline_doctype=%s and timeline_name=%s""", (doctype, name))
-
-	# delete shares
-	delete_doc("DocShare", frappe.db.sql_list("""select name from `tabDocShare`
-		where share_doctype=%s and share_name=%s""", (doctype, name)),
-		ignore_on_trash=True, force=True)
-
-	# delete versions
-	frappe.db.sql('delete from tabVersion where ref_doctype=%s and docname=%s', (doctype, name))
 
 def insert_feed(doc):
 	from frappe.utils import get_fullname

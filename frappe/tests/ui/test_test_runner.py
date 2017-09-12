@@ -22,7 +22,7 @@ class TestTestRunner(unittest.TestCase):
 				test, comment = test.split('#')
 				test = test.strip()
 				if comment.strip()=='long':
-					timeout = 240
+					timeout = 300
 
 			print('Running {0}...'.format(test))
 

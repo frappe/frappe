@@ -97,7 +97,6 @@
 		"public/css/bootstrap.css",
 		"public/css/font-awesome.css",
 		"public/css/octicons/octicons.css",
-		"public/css/cal-heatmap.css",
 		"public/css/c3.min.css",
 		"public/css/desk.css",
 		"public/css/indicator.css",
@@ -231,7 +230,6 @@
 	],
 	"js/d3.min.js": [
 		"public/js/lib/d3.min.js",
-		"public/js/lib/cal-heatmap.js",
 		"public/js/lib/c3.min.js"
 	],
 	"css/module.min.css": [
