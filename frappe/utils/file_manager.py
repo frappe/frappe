@@ -57,8 +57,8 @@ def get_file_doc(dt=None, dn=None, folder=None, is_private=None):
 	'''returns File object (Document) from given parameters or form_dict'''
 	r = frappe.form_dict
 
-	if dt is None: dt = r.dt
-	if dn is None: dn = r.dn
+	if dt is None: dt = r.doctype
+	if dn is None: dn = r.docname
 	if folder is None: folder = r.folder
 	if is_private is None: is_private = r.is_private
 
