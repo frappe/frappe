@@ -98,6 +98,10 @@
 .form-dashboard-section:last-child {
   border-bottom: none;
 }
+.form-heatmap .heatmap {
+  display: flex;
+  justify-content: center;
+}
 .form-heatmap .heatmap-message {
   margin-top: 10px;
 }

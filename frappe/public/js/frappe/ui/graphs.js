@@ -649,7 +649,7 @@ frappe.ui.HeatMap = class HeatMap extends frappe.ui.Graph {
 	}
 
 	set_width() {
-		this.base_width = (this.no_of_cols + 14) * 12;
+		this.base_width = (this.no_of_cols) * 12;
 	}
 
 	setup_components() {
