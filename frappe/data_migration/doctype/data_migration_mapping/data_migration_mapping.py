@@ -5,13 +5,10 @@
 from __future__ import unicode_literals
 import frappe, json
 from frappe.model.document import Document
-from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 
 class DataMigrationMapping(Document):
 
 	def run_mapping(self, run, condition=None):
-		self.make_custom_fields()
-
 		connection = run.get_connection()
 		start = run.current_mapping_start
 
@@ -28,16 +25,27 @@ class DataMigrationMapping(Document):
 	def push(self, connection, start, condition):
 		data = self.get_data(start, condition)
 
+		failed_items = []
 		for d in data:
-			response = connection.push(self.remote_objectname, self.get_mapped_record(d), d.migration_id)
-			if not d.migration_id:
-				frappe.db.set_value(self.local_doctype, d.name, 'migration_id', response['name'], update_modified=False)
-				frappe.db.commit()
+			migration_id_value = d.get(self.migration_id_field)
+			response = connection.push(self.remote_objectname, self.get_mapped_record(d), migration_id_value)
+			if response.ok:
+				if not migration_id_value:
+					frappe.db.set_value(self.local_doctype, d.name, self.migration_id_field, response.doc['name'], update_modified=False)
+					frappe.db.commit()
+			else:
+				failed_items.append(response.doc)
 
 		if len(data) < self.page_length:
-			return True
+			return frappe._dict(dict(
+				done=True,
+				failed_items=failed_items
+			))
 
-		return False
+		return frappe._dict(dict(
+			done=False,
+			failed_items=failed_items
+		))
 
 	def get_data(self, start=0, condition=None, count=False):
 		filters = {}
@@ -59,8 +67,8 @@ class DataMigrationMapping(Document):
 			if not (f.local_fieldname[0] in ('"', "'") or f.local_fieldname.startswith('eval:')):
 				fields.append(f.local_fieldname)
 
-		if frappe.db.has_column(self.local_doctype, 'migration_id'):
-			fields.append('migration_id')
+		if frappe.db.has_column(self.local_doctype, self.migration_id_field):
+			fields.append(self.migration_id_field)
 
 		if 'name' not in fields:
 			fields.append('name')
@@ -100,15 +108,3 @@ class DataMigrationMapping(Document):
 			target.set('migration_key', self.source.get('id')) # Setting migration key
 
 			self.store_mapped_data(target) # fetching data and storing it appropriately
-
-	def make_custom_fields(self):
-		""" Add custom field for primary key """
-		field = frappe.db.get_value("Custom Field", {"dt": self.local_doctype, "fieldname": 'migration_id'})
-		if not field:
-			create_custom_field(self.local_doctype, {
-				'label': 'Migration ID',
-				'fieldname': 'migration_id',
-				'fieldtype': 'Data',
-				'read_only': 1,
-				'unique': 1
-			})

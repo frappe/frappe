@@ -5,6 +5,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
+from frappe import _
 
 class DataMigrationRun(Document):
 	def get_connection(self):
@@ -13,6 +14,13 @@ class DataMigrationRun(Document):
 				self.data_migration_connector).get_connection()
 
 		return self.connection
+
+	def validate(self):
+		exists = frappe.db.exists('Data Migration Run', dict(
+			status=('in', ['Fail', 'Error'])
+		))
+		if exists:
+			frappe.throw(_('There are failed runs with the same Data Migration Plan'))
 
 	def run(self):
 		no_of_mappings = len(frappe.get_doc('Data Migration Plan',

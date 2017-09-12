@@ -14,10 +14,17 @@ class FrappeConnection(BaseConnection):
 		try:
 			if migration_id:
 				doc.name = migration_id
-				response = self.connection.update(doc)
+				response_doc = self.connection.update(doc)
 			else:
-				response = self.connection.insert(doc)
-			return response
+				response_doc = self.connection.insert(doc)
+			return frappe._dict(dict(
+				doc=response_doc,
+				ok=True
+			))
 		except FrappeException as e:
 			frappe.msgprint(e.args[0])
-			raise frappe.ValidationError
+			return frappe._dict(dict(
+				doc=doc,
+				ok=False
+			))
+			# raise frappe.ValidationError
