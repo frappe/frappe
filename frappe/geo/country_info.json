@@ -269,9 +269,11 @@
  },
  "Benin": {
   "code": "bj",
+  "currency": "XOF",
+  "currency_name": "West African CFA Franc",
+  "currency_symbol": "FCFA",
   "currency_fraction": "Centime",
   "currency_fraction_units": 100,
-  "currency_symbol": "Fr",
   "number_format": "#,###.##",
   "timezones": [
    "Africa/Porto-Novo"
@@ -386,6 +388,8 @@
  },
  "Bulgaria": {
   "code": "bg",
+  "currency": "BGN",
+  "currency_name": "Bulgarian Lev",
   "currency_fraction": "Stotinka",
   "currency_fraction_units": 100,
   "currency_symbol": "\u043b\u0432",
@@ -396,9 +400,11 @@
  },
  "Burkina Faso": {
   "code": "bf",
+  "currency": "XOF",
+  "currency_name": "West African CFA Franc",
+  "currency_symbol": "FCFA",
   "currency_fraction": "Centime",
   "currency_fraction_units": 100,
-  "currency_symbol": "Fr",
   "number_format": "#,###.##",
   "timezones": [
    "Africa/Ouagadougou"
@@ -430,9 +436,11 @@
  },
  "Cameroon": {
   "code": "cm",
+  "currency": "XAF",
+  "currency_name": "Central African CFA Franc",
+  "currency_symbol": "FCFA",
   "currency_fraction": "Centime",
   "currency_fraction_units": 100,
-  "currency_symbol": "Fr",
   "number_format": "#,###.##",
   "timezones": [
    "Africa/Douala"
@@ -504,9 +512,11 @@
  },
  "Central African Republic": {
   "code": "cf",
+  "currency": "XAF",
   "currency_fraction": "Centime",
   "currency_fraction_units": 100,
-  "currency_symbol": "Fr",
+  "currency_name": "Central African CFA Franc",
+  "currency_symbol": "FCFA",
   "number_format": "#,###.##",
   "timezones": [
    "Africa/Bangui"
@@ -514,9 +524,11 @@
  },
  "Chad": {
   "code": "td",
+  "currency": "XAF",
+  "currency_name": "Central African CFA Franc",
+  "currency_symbol": "FCFA",
   "currency_fraction": "Centime",
   "currency_fraction_units": 100,
-  "currency_symbol": "Fr",
   "number_format": "#,###.##",
   "timezones": [
    "Africa/Ndjamena"
@@ -592,7 +604,12 @@
  },
  "Congo": {
   "code": "cg",
-  "number_format": "#,###.##"
+  "number_format": "#,###.##",
+  "currency": "XAF",
+  "currency_name": "Central African CFA Franc",
+  "currency_symbol": "FCFA",
+  "currency_fraction": "Centime",
+  "currency_fraction_units": 100
  },
  "Congo, The Democratic Republic of the": {
   "code": "cd",
@@ -758,9 +775,11 @@
  },
  "Equatorial Guinea": {
   "code": "gq",
+  "currency": "XAF",
+  "currency_name": "Central African CFA Franc",
+  "currency_symbol": "FCFA",
   "currency_fraction": "Centime",
   "currency_fraction_units": 100,
-  "currency_symbol": "Fr",
   "number_format": "#,###.##",
   "timezones": [
    "Africa/Malabo"
@@ -877,9 +896,11 @@
  },
  "Gabon": {
   "code": "ga",
+  "currency": "XAF",
+  "currency_name": "Central African CFA Franc",
+  "currency_symbol": "FCFA",
   "currency_fraction": "Centime",
   "currency_fraction_units": 100,
-  "currency_symbol": "Fr",
   "number_format": "#,###.##",
   "timezones": [
    "Africa/Libreville"
@@ -1019,9 +1040,11 @@
  },
  "Guinea-Bissau": {
   "code": "gw",
+  "currency": "XOF",
+  "currency_name": "West African CFA Franc",
+  "currency_symbol": "FCFA",
   "currency_fraction": "Centime",
   "currency_fraction_units": 100,
-  "currency_symbol": "Fr",
   "number_format": "#,###.##",
   "timezones": [
    "Africa/Bissau"
@@ -1205,10 +1228,15 @@
  },
  "Ivory Coast": {
   "code": "ci",
+  "currency": "XOF",
+  "currency_name": "West African CFA Franc",
+  "currency_symbol": "FCFA",
   "currency_fraction": "Centime",
   "currency_fraction_units": 100,
-  "currency_symbol": "Fr",
-  "number_format": "#,###.##"
+  "number_format": "#,###.##",
+  "timeszones": [
+   "Africa/Abidjan"
+  ]
  },
  "Jamaica": {
   "code": "jm",
@@ -1496,9 +1524,11 @@
  },
  "Mali": {
   "code": "ml",
+  "currency": "XOF",
+  "currency_name": "West African CFA Franc",
+  "currency_symbol": "FCFA",
   "currency_fraction": "Centime",
   "currency_fraction_units": 100,
-  "currency_symbol": "Fr",
   "number_format": "#,###.##",
   "timezones": [
    "Africa/Bamako"
@@ -1758,9 +1788,11 @@
  },
  "Niger": {
   "code": "ne",
+  "currency": "XOF",
+  "currency_name": "West African CFA Franc",
+  "currency_symbol": "FCFA",
   "currency_fraction": "Centime",
   "currency_fraction_units": 100,
-  "currency_symbol": "Fr",
   "number_format": "#,###.##",
   "timezones": [
    "Africa/Niamey"
@@ -2087,9 +2119,11 @@
  },
  "Senegal": {
   "code": "sn",
+  "currency": "XOF",
+  "currency_name": "West African CFA Franc",
+  "currency_symbol": "FCFA",
   "currency_fraction": "Centime",
   "currency_fraction_units": 100,
-  "currency_symbol": "Fr",
   "number_format": "#,###.##",
   "timezones": [
    "Africa/Dakar"
@@ -2355,9 +2389,11 @@
  },
  "Togo": {
   "code": "tg",
+  "currency": "XOF",
+  "currency_name": "West African CFA Franc",
+  "currency_symbol": "FCFA",
   "currency_fraction": "Centime",
   "currency_fraction_units": 100,
-  "currency_symbol": "Fr",
   "number_format": "#,###.##",
   "timezones": [
    "Africa/Lome"
