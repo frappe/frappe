@@ -328,6 +328,11 @@ class Document(BaseDocument):
 				and parenttype=%s and parentfield=%s""".format(df.options),
 				(self.name, self.doctype, fieldname))
 
+	def get_doc_before_save(self):
+		if not getattr(self, '_doc_before_save', None):
+			self._doc_before_save = frappe.get_doc(self.doctype, self.name)
+		return self._doc_before_save
+
 	def set_new_name(self):
 		"""Calls `frappe.naming.se_new_name` for parent and child docs."""
 		set_new_name(self)
@@ -763,7 +768,7 @@ class Document(BaseDocument):
 
 		self._doc_before_save = None
 		if not self.is_new() and getattr(self.meta, 'track_changes', False):
-			self._doc_before_save = frappe.get_doc(self.doctype, self.name)
+			self.get_doc_before_save()
 
 		if self.flags.ignore_validate:
 			return

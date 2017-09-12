@@ -190,7 +190,7 @@ frappe.provide("frappe.views");
 				// cache original order
 				const _cards = this.cards.slice();
 				const _columns = this.columns.slice();
-				
+
 				frappe.call({
 					method: method_prefix + "update_order",
 					args: {
@@ -363,7 +363,7 @@ frappe.provide("frappe.views");
 			var set_filter_state = function () {
 				fluxify.doAction('set_filter_state');
 			}
-			
+
 			if(isBound(self.$kanban_board, 'after-refresh', set_filter_state)) return;
 
 			store.on('change:filters_modified', function (modified) {
@@ -606,6 +606,20 @@ frappe.provide("frappe.views");
 					'<i class="octicon octicon-comment"></i> ' + card.comment_count +
 					'</span>';
 			html += get_assignees_html();
+
+			if (card.color && frappe.ui.color.validate_hex(card.color)) {
+				const $div = $('<div>');
+				$('<div></div>').css({
+					width: '20px',
+					height: '5px',
+					borderRadius: '2px',
+					marginBottom: '4px',
+					backgroundColor: card.color
+				}).appendTo($div);
+
+				self.$card.find('.kanban-card.content').prepend($div);
+			}
+
 			self.$card.find(".kanban-card-meta").empty().append(html);
 		}
 
@@ -942,6 +956,7 @@ frappe.provide("frappe.views");
 			column: card[state.board.field_name],
 			assigned_list: card.assigned_list || assigned_list,
 			comment_count: card.comment_count || comment_count,
+			color: card.color || null,
 			doc: doc
 		};
 	}

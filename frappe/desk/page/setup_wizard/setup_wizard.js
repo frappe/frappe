@@ -84,6 +84,21 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 		this.container.addClass("container setup-wizard-slide with-form");
 		this.$next_btn.addClass('action');
 		this.$complete_btn = this.$footer.find('.complete-btn').addClass('action');
+		this.setup_keyboard_nav();
+	}
+
+	setup_keyboard_nav() {
+		this.container.on('keydown',  (e) => {
+			if(e.which === 13) {
+				var $target = $(e.target);
+				if($target.hasClass('prev-btn')) {
+					$target.trigger('click');
+				} else {
+					this.container.find('.next-btn').trigger('click');
+					e.preventDefault();
+				}
+			}
+		});
 	}
 
 	before_show_slide() {
@@ -138,6 +153,9 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 		this.setup();
 
 		this.show_slide(this.current_id);
+		setTimeout(() => {
+			this.container.find('.form-control').first().focus();
+		}, 200);
 		this.in_refresh_slides = false;
 	}
 
@@ -154,8 +172,6 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 				if(frappe.setup.welcome_page) {
 					localStorage.setItem("session_last_route", frappe.setup.welcome_page);
 				}
-				window.location = "/desk";
-				window.location.reload();
 				setTimeout(function() {
 					// frappe.ui.toolbar.clear_cache();
 					window.location = "/desk";
@@ -167,7 +183,7 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 			error: function() {
 				var d = frappe.msgprint(__("There were errors."));
 				d.custom_onhide = function() {
-					$(me.parent).find('.setup-state').remove();
+					$(me.parent).find('.setup-loading').remove();
 					$('body').removeClass('setup-state');
 					me.container.show();
 					frappe.set_route(me.page_name, me.slides.length - 1);
@@ -217,7 +233,7 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 	}
 
 	get_message(title, message="", loading=false) {
-		return $(`<div data-state="setup">
+		return $(`<div class="setup-loading" data-state="setup">
 			<div class="page-card">
 				<div class="page-card-head">
 					<span class="indicator blue">

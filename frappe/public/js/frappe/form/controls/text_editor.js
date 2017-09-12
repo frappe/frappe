@@ -46,7 +46,8 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 					// this function is executed only once
 					$(".note-editable[contenteditable='true']").one('focus', function() {
 						var $this = $(this);
-						$this.html($this.html() + '<br>');
+						if(!$this.html())
+							$this.html($this.html() + '<br>');
 					});
 				},
 				onChange: function(value) {

@@ -1084,6 +1084,9 @@ input[type="checkbox"]:checked:before {
   margin: -2px 0 0 3px;
   border: 1px solid rgba(0, 0, 0, 0.25);
 }
+.slides-wrapper:focus {
+  outline: none;
+}
 .slides-wrapper .fa-circle {
   font-size: 10px;
   margin: 0px 2px;
@@ -1093,6 +1096,9 @@ input[type="checkbox"]:checked:before {
 }
 .slides-wrapper .fa-circle.link {
   cursor: pointer;
+}
+.slides-wrapper .slide-wrapper:focus {
+  outline: none;
 }
 .slides-wrapper .form {
   margin-top: 30px;

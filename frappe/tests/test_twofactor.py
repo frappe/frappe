@@ -51,6 +51,7 @@ class TestTwoFactor(unittest.TestCase):
 		'''Should return true if enabled for user.'''
 		toggle_2fa_all_role(state=True)
 		self.assertTrue(two_factor_is_enabled_for_(self.user))
+		self.assertFalse(two_factor_is_enabled_for_("Administrator"))
 		toggle_2fa_all_role(state=False)
 		self.assertFalse(two_factor_is_enabled_for_(self.user))
 
@@ -86,7 +87,6 @@ class TestTwoFactor(unittest.TestCase):
 		_str = 'Verification Code from {{issuer_name}}'
 		_str = render_string_template(_str,args)
 		self.assertEqual(_str,'Verification Code from Frappe Technologies')
-
 
 def set_request(**kwargs):
 	builder = EnvironBuilder(**kwargs)
