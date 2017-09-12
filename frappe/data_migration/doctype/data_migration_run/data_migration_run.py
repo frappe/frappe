@@ -3,7 +3,7 @@
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
-import frappe
+import frappe, json
 from frappe.model.document import Document
 from frappe import _
 
@@ -17,29 +17,36 @@ class DataMigrationRun(Document):
 			frappe.throw(_('There are failed runs with the same Data Migration Plan'))
 
 	def run(self):
-		print('--------------start----------------')
 		self.begin()
 		self.enqueue_next_mapping()
 
 	def enqueue_next_mapping(self):
-		print('--------------start next_mapping----------------')
 		next_mapping_name, percent_mappings_complete = self.get_next_mapping_and_percent_mappings_complete()
 		if next_mapping_name:
 			next_mapping = self.get_mapping(next_mapping_name)
 			self.db_set(dict(
 				current_mapping = next_mapping.name,
-				current_mapping_start = 0
+				current_mapping_start = 0,
+				current_mapping_delete_start = 0,
+				current_mapping_action = 'Insert'
 			), notify=True, commit=True)
 			frappe.enqueue_doc(self.doctype, self.name, 'run_current_mapping')
 		else:
 			self.complete()
 
-	def enqueue_next_page(self, start):
-		print('--------------start next_page----------------')
-		self.db_set(dict(
-			current_mapping_start = start,
+	def enqueue_next_page(self):
+		mapping = self.get_mapping(self.current_mapping)
+		fields = dict(
 			percent_complete = self.percent_complete + (100.0 / self.total_pages)
-		), notify=True, commit=True)
+		)
+		if self.current_mapping_action == 'Insert':
+			start = self.current_mapping_start + mapping.page_length
+			fields['current_mapping_start'] = start
+		elif self.current_mapping_action == 'Delete':
+			delete_start = self.current_mapping_delete_start + mapping.page_length
+			fields['current_mapping_delete_start'] = delete_start
+
+		self.db_set(fields, notify=True, commit=True)
 		frappe.enqueue_doc(self.doctype, self.name, 'run_current_mapping')
 
 	def run_current_mapping(self):
@@ -54,7 +61,7 @@ class DataMigrationRun(Document):
 			if done:
 				self.enqueue_next_mapping()
 			else:
-				self.enqueue_next_page(start = self.current_mapping_start + mapping.page_length)
+				self.enqueue_next_page()
 
 		except Exception as e:
 			self.db_set('status', 'Error', notify=True, commit=True)
@@ -82,7 +89,9 @@ class DataMigrationRun(Document):
 			status = 'Started',
 			current_mapping = None,
 			current_mapping_start = 0,
-			current_mapping_pages = 0,
+			current_mapping_delete_start = 0,
+			percent_complete = 0,
+			current_mapping_action = 'Insert',
 			total_pages = total_pages
 		), notify=True, commit=True)
 
@@ -123,8 +132,31 @@ class DataMigrationRun(Document):
 		if condition:
 			filters.update(condition)
 
-		return frappe.get_all(mapping.local_doctype, fields=mapping.get_fields(), filters=filters, start=start,
-			page_length=mapping.page_length, debug=True)
+		if self.current_mapping_action == 'Insert':
+			return frappe.get_all(mapping.local_doctype, fields=mapping.get_fields(), filters=filters, start=start,
+				page_length=mapping.page_length)
+		elif self.current_mapping_action == 'Delete':
+			return self.get_deleted_docs(mapping,
+				start=self.current_mapping_delete_start,
+				page_length=mapping.page_length
+			)
+
+	def get_deleted_docs(self, mapping, start, page_length):
+		filters = self.get_last_modified_condition()
+		filters.update(dict(
+			deleted_doctype=mapping.local_doctype
+		))
+		data = frappe.get_all('Deleted Document', fields=['data'], filters=filters, debug=True)
+
+		_data = []
+		for d in data:
+			doc = json.loads(d.data)
+			if doc.get(mapping.migration_id_field):
+				doc['to_delete'] = 1
+				_data.append(doc)
+
+		return _data
+
 
 	def get_count(self, mapping):
 		filters = mapping.get_filters() or {}
@@ -145,34 +177,37 @@ class DataMigrationRun(Document):
 
 		data = self.get_data(mapping, start, condition)
 
-		failed_items = json.loads(self.db_get('failed_log')) or []
+		failed_items = json.loads(self.failed_log or '[]')
+
 		for d in data:
 			migration_id_value = d.get(mapping.migration_id_field)
-			response = connection.push(mapping.remote_objectname, mapping.get_mapped_record(d), migration_id_value)
-			if response.ok:
-				if not migration_id_value:
-					frappe.db.set_value(mapping.local_doctype, d.name,
-						mapping.migration_id_field, response.doc['name'],
-						update_modified=False)
-					frappe.db.commit()
+
+			if d.get('to_delete'):
+				response = connection.delete(mapping.remote_objectname, migration_id_value)
+				if not response.ok:
+					failed_items.append(d)
 			else:
-				failed_items.append(response.doc)
+				response = connection.push(mapping.remote_objectname,
+					mapping.get_mapped_record(d), migration_id_value)
+				if response.ok:
+					if not migration_id_value:
+						frappe.db.set_value(mapping.local_doctype, d.name,
+							mapping.migration_id_field, response.doc['name'],
+							update_modified=False)
+						frappe.db.commit()
+				else:
+					failed_items.append(response.doc)
 
 		self.db_set('failed_log', json.dumps(failed_items))
 
 		if len(data) < mapping.page_length:
-			return True
-			# return frappe._dict(dict(
-			# 	done=True,
-			# 	failed_items=failed_items
-			# ))
+			if self.current_mapping_action == 'Insert':
+				self.db_set('current_mapping_action', 'Delete')
+				return False
+			elif self.current_mapping_action == 'Delete':
+				return True
 
 		return False
-
-		# return frappe._dict(dict(
-		# 	done=False,
-		# 	failed_items=failed_items
-		# ))
 
 	def pull(self):
 		pass

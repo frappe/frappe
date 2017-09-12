@@ -25,6 +25,20 @@ class FrappeConnection(BaseConnection):
 			frappe.msgprint(e.args[0])
 			return frappe._dict(dict(
 				doc=doc,
-				ok=False
+				ok=False,
+				error=e.args[0]
 			))
 			# raise frappe.ValidationError
+
+	def delete(self, doctype, migration_id):
+		try:
+			self.connection.delete(doctype, migration_id)
+			return frappe._dict(dict(
+				ok=True
+			))
+		except FrappeException as e:
+			frappe.msgprint(e.args[0])
+			return frappe._dict(dict(
+				ok=False,
+				error=e.args[0]
+			))

@@ -75,15 +75,16 @@ class DataMigrationPlan(Document):
 				return frappe.new_doc(self.mapping.local_doctype)
 
 	def make_custom_fields_for_mappings(self):
+		label = self.name + ' ID'
+		fieldname = frappe.scrub(label)
+
 		for m in self.mappings:
 			mapping = frappe.get_doc('Data Migration Mapping', m.mapping)
-
-			label = self.name + ' ID'
-			fieldname = frappe.scrub(label)
 			self.make_custom_field_for_doctype(mapping.local_doctype, label, fieldname)
-
 			mapping.migration_id_field = fieldname
 			mapping.save()
+
+		self.make_custom_field_for_doctype('Deleted Document', label, fieldname)
 
 	def make_custom_field_for_doctype(self, doctype, label, fieldname):
 		""" Add custom field for doctype """
