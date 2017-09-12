@@ -628,7 +628,7 @@ frappe.ui.HeatMap = class HeatMap extends frappe.ui.Graph {
 		mode = 'heatmap',
 	} = {}) {
 		super(arguments[0]);
-		this.start = start;
+		this.start = start || new Date(moment().subtract(1, 'year').toDate());
 		this.data = data;
 		this.discrete_domains = discrete_domains;
 
