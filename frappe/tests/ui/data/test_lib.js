@@ -36,7 +36,8 @@ frappe.tests = {
 					}
 				};
 				tasks.push(task);
-				tasks.push(() => frappe.timeout(0.2));
+				tasks.push(frappe.after_ajax);
+				tasks.push(() => frappe.timeout(0.4));
 			}
 		});
 
@@ -68,7 +69,8 @@ frappe.tests = {
 							return frappe.model.set_value(grid_row.doc.doctype,
 								grid_row.doc.name, child_key, child_value[child_key]);
 						});
-						grid_value_tasks.push(() => frappe.timeout(0.2));
+						grid_value_tasks.push(frappe.after_ajax);
+						grid_value_tasks.push(() => frappe.timeout(0.4));
 					}
 				});
 
