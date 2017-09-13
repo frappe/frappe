@@ -478,7 +478,7 @@ def prepare_message(email, recipient, recipients_list):
 	if email.add_unsubscribe_link and email.reference_doctype: # is missing the check for unsubscribe message but will not add as there will be no unsubscribe url
 		unsubscribe_url = get_unsubcribed_url(email.reference_doctype, email.reference_name, recipient,
 		email.unsubscribe_method, email.unsubscribe_params)
-		message = message.replace("<!--unsubscribe url-->", quopri.encodestring(unsubscribe_url.encode()))
+		message = message.replace("<!--unsubscribe url-->", quopri.encodestring(unsubscribe_url.encode()).decode())
 
 	if email.expose_recipients == "header":
 		pass
@@ -494,7 +494,7 @@ def prepare_message(email, recipient, recipients_list):
 				email_sent_message = _("This email was sent to {0} and copied to {1}").format(email_sent_to,email_sent_cc)
 			else:
 				email_sent_message = _("This email was sent to {0}").format(email_sent_to)
-			message = message.replace("<!--cc message-->", quopri.encodestring(email_sent_message.encode()))
+			message = message.replace("<!--cc message-->", quopri.encodestring(email_sent_message.encode()).decode())
 
 		message = message.replace("<!--recipient-->", recipient)
 
