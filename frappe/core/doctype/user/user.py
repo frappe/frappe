@@ -42,6 +42,13 @@ class User(Document):
 
 	def before_insert(self):
 		self.flags.in_insert = True
+		self.throttle_user_creation()
+
+	def throttle_user_creation(self):
+		if frappe.flags.in_import:
+			return
+		if frappe.db.get_creation_count('User', 60) > 60:
+			frappe.throw(_('Throttled'))
 
 	def validate(self):
 		self.check_demo()

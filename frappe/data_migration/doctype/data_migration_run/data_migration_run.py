@@ -65,6 +65,8 @@ class DataMigrationRun(Document):
 
 		except Exception as e:
 			self.db_set('status', 'Error', notify=True, commit=True)
+			print('Data Migration Run failed')
+			print(frappe.get_traceback())
 			raise e
 
 	def get_last_modified_condition(self):
@@ -75,7 +77,7 @@ class DataMigrationRun(Document):
 		if last_run_timestamp:
 			condition = dict(modified=('>', last_run_timestamp))
 		else:
-			condition = None
+			condition = {}
 		return condition
 
 	def begin(self):
@@ -127,32 +129,40 @@ class DataMigrationRun(Document):
 
 		raise frappe.ValidationError('Mapping Broken')
 
-	def get_data(self, mapping, start=0, condition=None):
+	def get_data(self, mapping, start=0):
 		filters = mapping.get_filters() or {}
-		if condition:
-			filters.update(condition)
+		or_filters = self.get_last_modified_condition()
+
+		# include docs whose migration_id_field is not set
+		or_filters.update({
+			mapping.migration_id_field: ('=', '')
+		})
 
 		if self.current_mapping_action == 'Insert':
-			return frappe.get_all(mapping.local_doctype, fields=mapping.get_fields(), filters=filters, start=start,
-				page_length=mapping.page_length)
+			return frappe.get_all(mapping.local_doctype,
+				fields=mapping.get_fields(),
+				filters=filters, or_filters=or_filters,
+				start=start, page_length=mapping.page_length, debug=True)
 		elif self.current_mapping_action == 'Delete':
 			return self.get_deleted_docs(mapping,
 				start=self.current_mapping_delete_start,
-				page_length=mapping.page_length
+				page_length=mapping.page_length,
+				or_filters=or_filters
 			)
 
-	def get_deleted_docs(self, mapping, start, page_length):
-		filters = self.get_last_modified_condition()
-		filters.update(dict(
+	def get_deleted_docs(self, mapping, start, page_length, or_filters):
+		filters = dict(
 			deleted_doctype=mapping.local_doctype
-		))
-		data = frappe.get_all('Deleted Document', fields=['data'], filters=filters, debug=True)
+		)
+		data = frappe.get_all('Deleted Document', fields=['data'],
+			filters=filters, or_filters=or_filters, debug=True)
 
 		_data = []
 		for d in data:
 			doc = json.loads(d.data)
 			if doc.get(mapping.migration_id_field):
 				doc['to_delete'] = 1
+				doc['_deleted_document_name'] = d.name
 				_data.append(doc)
 
 		return _data
@@ -165,18 +175,16 @@ class DataMigrationRun(Document):
 	def get_connection(self):
 		if not hasattr(self, 'connection'):
 			self.connection = frappe.get_doc('Data Migration Connector',
-				self.get_plan().connector).get_connection()
+				self.data_migration_connector).get_connection()
 
 		return self.connection
 
 	def push(self):
 		mapping = self.get_mapping(self.current_mapping)
 		start = self.current_mapping_start
-		condition = self.get_last_modified_condition()
 		connection = self.get_connection()
 
-		data = self.get_data(mapping, start, condition)
-
+		data = self.get_data(mapping, start)
 		failed_items = json.loads(self.failed_log or '[]')
 
 		for d in data:
@@ -186,6 +194,11 @@ class DataMigrationRun(Document):
 				response = connection.delete(mapping.remote_objectname, migration_id_value)
 				if not response.ok:
 					failed_items.append(d)
+				else:
+					frappe.db.set_value('Deleted Document',
+						d.get('_deleted_document_name'),
+						mapping.migration_id_field, migration_id_value,
+						update_modified=False)
 			else:
 				response = connection.push(mapping.remote_objectname,
 					mapping.get_mapped_record(d), migration_id_value)
