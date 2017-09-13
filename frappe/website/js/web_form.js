@@ -280,10 +280,14 @@ frappe.ready(function() {
 			callback: function(data) {
 				if(!data.exc) {
 					frappe.doc_name = data.message;
-					$form.addClass("hide");
-					$(".comments, .introduction, .page-head").addClass("hide");
-					scroll(0, 0);
-					set_message(frappe.success_link, true);
+					if(!frappe.login_required) {
+						show_sucess_message()
+					}
+
+					if(frappe.is_new && frappe.login_required) {
+						// reload page (with ID)
+						window.location.href = window.location.pathname + "?name=" + frappe.doc_name;
+					}
 
 					if(for_payment && data.message) {
 						// redirect to payment
@@ -298,6 +302,13 @@ frappe.ready(function() {
 			}
 		});
 		return true;
+	}
+
+	function show_sucess_message() {
+		$form.addClass("hide");
+		$(".comments, .introduction, .page-head").addClass("hide");
+		scroll(0, 0);
+		set_message(frappe.success_link, true);
 	}
 
 	function show_mandatory_missing() {
