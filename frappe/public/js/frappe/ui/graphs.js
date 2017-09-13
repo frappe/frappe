@@ -29,6 +29,7 @@ frappe.ui.Graph = class Graph {
 		summary = [],
 
 		mode = '',
+		call_setup = true
 	}) {
 
 		if(Object.getPrototypeOf(this) === frappe.ui.Graph.prototype) {
@@ -64,13 +65,17 @@ frappe.ui.Graph = class Graph {
 		this.$graph = null;
 
 		// Validate all arguments, check passed data format, set defaults
+		if (call_setup) {
+			this.setup();
+		}
 
-		frappe.require("assets/frappe/js/lib/snap.svg-min.js", this.setup.bind(this));
 	}
 
 	setup() {
-		this.bind_window_event();
-		this.refresh();
+		frappe.require("assets/frappe/js/lib/snap.svg-min.js", () => {
+			this.bind_window_event();
+			this.refresh();
+		});
 	}
 
 	bind_window_event() {
@@ -625,6 +630,7 @@ frappe.ui.HeatMap = class HeatMap extends frappe.ui.Graph {
 		specific_values = [],
 		summary = [],
 		mode = 'heatmap',
+		call_setup = false
 	} = {}) {
 		super(arguments[0]);
 		this.start = start;
@@ -634,6 +640,7 @@ frappe.ui.HeatMap = class HeatMap extends frappe.ui.Graph {
 		this.count_label = count_label;
 
 		this.legend_colors = ['#ebedf0', '#c6e48b', '#7bc96f', '#239a3b', '#196127'];
+		this.setup();
 	}
 
 	setup_base_values() {
@@ -664,7 +671,7 @@ frappe.ui.HeatMap = class HeatMap extends frappe.ui.Graph {
 	}
 
 	setup_values() {
-		this.distribution = this.get_distribution(this.legend_colors, this.data);
+		this.distribution = this.get_distribution(this.data, this.legend_colors);
 		this.month_names = ["January", "February", "March", "April", "May", "June",
 			"July", "August", "September", "October", "November", "December"
 		];
@@ -809,10 +816,7 @@ frappe.ui.HeatMap = class HeatMap extends frappe.ui.Graph {
 		this.setup_values();
 	}
 
-	get_distribution(mapper_array, data = {}) {
-		if(!data) {
-			data = {};
-		}
+	get_distribution(data={}, mapper_array) {
 		let data_values = Object.keys(data).map(key => data[key]);
 		let data_max_value = Math.max(...data_values);
 
