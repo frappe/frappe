@@ -10,17 +10,7 @@
  * @param {boolean} opts.single_column Whether to include sidebar
  * @param {string} [opts.title] Page title
  * @param {Object} [opts.required_libs] resources to load
- * @param {Object} [opts.empty_state] by default active
  * @param {Object} [opts.make_page]
- *
- * @param {Object} opts.empty_state.get_whether_active [function] mostly async,
- * 	to return the page state from backend, with on_empty and on_active callback params
- * @param {string} opts.empty_state.title
- * @param {string} opts.empty_state.message
- * @param {Object} opts.empty_state.primary_action
- *
- * @param {Object} opts.empty_state.primary_action.label
- * @param {Object} opts.empty_state.primary_action.on_click
  *
  * @returns {frappe.ui.Page}
  */
@@ -52,16 +42,7 @@ frappe.ui.Page = Class.extend({
 
 	make: function() {
 		this.wrapper = $(this.parent);
-
-		if(this.empty_state) {
-			this.empty_state.get_whether_active(() => {
-				this.get_empty_state( this.empty_state ).appendTo(this.wrapper);
-			},
-			() => this.setup_render()
-			);
-		} else {
-			this.setup_render();
-		}
+		this.setup_render();
 	},
 
 	get_empty_state: function({title, message, primary_action}) {
