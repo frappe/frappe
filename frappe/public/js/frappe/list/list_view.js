@@ -777,7 +777,7 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 
 	setup_delete: function () {
 		var me = this;
-		if (!(this.can_delete || this.list_renderer.settings.selectable)) {
+		if (!this.can_delete) {
 			return;
 		}
 		this.$page.on('change', '.list-row-checkbox, .list-select-all', function() {
