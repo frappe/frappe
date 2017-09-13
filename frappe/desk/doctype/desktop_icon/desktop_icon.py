@@ -95,7 +95,7 @@ def get_desktop_icons(user=None):
 				icon.hidden = 1
 
 		# sort by idx
-		user_icons.sort(lambda a, b: 1 if a.idx > b.idx else -1)
+		user_icons.sort(key = lambda a: a.idx)
 
 		# translate
 		for d in user_icons:
