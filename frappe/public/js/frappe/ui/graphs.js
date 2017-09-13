@@ -486,8 +486,7 @@ frappe.ui.BarGraph = class BarGraph extends frappe.ui.Graph {
 			type: 'bar',
 			args: {
 				// More intelligent width setting
-				space_width: this.y.length > 1 ?
-					me.avg_unit_width/2 : me.avg_unit_width/8,
+				space_width:me.avg_unit_width/2,
 				no_of_datasets: this.y.length
 			}
 		};
@@ -620,7 +619,7 @@ frappe.ui.HeatMap = class HeatMap extends frappe.ui.Graph {
 		discrete_domains = 0,
 		count_label = '',
 
-		// remove these graph related args
+		// TODO: remove these graph related args
 		y = [],
 		x = [],
 		specific_values = [],
@@ -628,7 +627,7 @@ frappe.ui.HeatMap = class HeatMap extends frappe.ui.Graph {
 		mode = 'heatmap',
 	} = {}) {
 		super(arguments[0]);
-		this.start = start || new Date(moment().subtract(1, 'year').toDate());
+		this.start = start;
 		this.data = data;
 		this.discrete_domains = discrete_domains;
 
@@ -640,6 +639,10 @@ frappe.ui.HeatMap = class HeatMap extends frappe.ui.Graph {
 	setup_base_values() {
 		this.today = new Date();
 
+		if(!this.start) {
+			this.start = new Date();
+			this.start.setFullYear( this.start.getFullYear() - 1 );
+		}
 		this.first_week_start = new Date(this.start.toDateString());
 		this.last_week_start = new Date(this.today.toDateString());
 		if(this.first_week_start.getDay() !== 7) {
@@ -822,7 +825,10 @@ frappe.ui.HeatMap = class HeatMap extends frappe.ui.Graph {
 	}
 
 	get_max_checkpoint(value, distribution) {
-		return distribution.filter(d => {
+		return distribution.filter((d, i) => {
+			if(i === 1) {
+				return distribution[0] < value;
+			}
 			return d <= value;
 		}).length - 1;
 	}
