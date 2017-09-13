@@ -664,7 +664,7 @@ frappe.ui.HeatMap = class HeatMap extends frappe.ui.Graph {
 	}
 
 	setup_values() {
-		this.distribution = this.get_distribution(this.data, this.legend_colors);
+		this.distribution = this.get_distribution(this.legend_colors, this.data);
 		this.month_names = ["January", "February", "March", "April", "May", "June",
 			"July", "August", "September", "October", "November", "December"
 		];
@@ -809,7 +809,10 @@ frappe.ui.HeatMap = class HeatMap extends frappe.ui.Graph {
 		this.setup_values();
 	}
 
-	get_distribution(data, mapper_array) {
+	get_distribution(mapper_array, data = {}) {
+		if(!data) {
+			data = {};
+		}
 		let data_values = Object.keys(data).map(key => data[key]);
 		let data_max_value = Math.max(...data_values);
 
