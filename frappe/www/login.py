@@ -31,6 +31,16 @@ def get_context(context):
 	ldap_settings = get_ldap_settings()
 	context["ldap_settings"] = ldap_settings
 
+	login_name_placeholder = "Email address"
+
+	if frappe.utils.cint(frappe.db.get_value("System Settings", "System Settings", "allow_login_using_mobile_number")):
+			login_name_placeholder += " or Mobile number"
+
+	if frappe.utils.cint(frappe.db.get_value("System Settings", "System Settings", "allow_login_using_user_name")):
+			login_name_placeholder += " or Username"
+
+	context['login_name_placeholder'] = login_name_placeholder
+
 	return context
 
 @frappe.whitelist(allow_guest=True)
