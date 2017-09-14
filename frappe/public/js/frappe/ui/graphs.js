@@ -28,8 +28,7 @@ frappe.ui.Graph = class Graph {
 		specific_values = [],
 		summary = [],
 
-		mode = '',
-		call_setup = true
+		mode = ''
 	}) {
 
 		if(Object.getPrototypeOf(this) === frappe.ui.Graph.prototype) {
@@ -65,9 +64,6 @@ frappe.ui.Graph = class Graph {
 		this.$graph = null;
 
 		// Validate all arguments, check passed data format, set defaults
-		if (call_setup) {
-			this.setup();
-		}
 
 	}
 
@@ -479,6 +475,7 @@ frappe.ui.Graph = class Graph {
 frappe.ui.BarGraph = class BarGraph extends frappe.ui.Graph {
 	constructor(args = {}) {
 		super(args);
+		this.setup();
 	}
 
 	setup_values() {
@@ -506,6 +503,7 @@ frappe.ui.BarGraph = class BarGraph extends frappe.ui.Graph {
 frappe.ui.LineGraph = class LineGraph extends frappe.ui.Graph {
 	constructor(args = {}) {
 		super(args);
+		this.setup();
 	}
 
 	setup_values() {
@@ -529,6 +527,7 @@ frappe.ui.LineGraph = class LineGraph extends frappe.ui.Graph {
 frappe.ui.PercentageGraph = class PercentageGraph extends frappe.ui.Graph {
 	constructor(args = {}) {
 		super(args);
+		this.setup();
 	}
 
 	make_graph_area() {
@@ -629,8 +628,7 @@ frappe.ui.HeatMap = class HeatMap extends frappe.ui.Graph {
 		x = [],
 		specific_values = [],
 		summary = [],
-		mode = 'heatmap',
-		call_setup = false
+		mode = 'heatmap'
 	} = {}) {
 		super(arguments[0]);
 		this.start = start;
@@ -638,6 +636,7 @@ frappe.ui.HeatMap = class HeatMap extends frappe.ui.Graph {
 		this.discrete_domains = discrete_domains;
 
 		this.count_label = count_label;
+
 
 		this.legend_colors = ['#ebedf0', '#c6e48b', '#7bc96f', '#239a3b', '#196127'];
 		this.setup();
