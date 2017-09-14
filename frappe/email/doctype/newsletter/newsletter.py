@@ -107,16 +107,18 @@ class Newsletter(WebsiteGenerator):
 		check_email_limit(self.recipients)
 
 	def get_context(self, context):
-		newsletter_list = [d.name for d in get_newsletter_list("Newsletter", None, None, 0)]
+		newsletters = get_newsletter_list("Newsletter", None, None, 0)
+		if newsletters:
+			newsletter_list = [d.name for d in newsletters]
+			if self.name not in newsletter_list:
+				frappe.redirect_to_message(_('Permission Error'),
+					_("You are not permitted to view the newsletter."))
+				frappe.local.flags.redirect_location = frappe.local.response.location
+				raise frappe.Redirect
+			else:
+				context.attachments = get_attachments(self.name)
 		context.no_cache = 1
 		context.show_sidebar = True
-		if self.name not in newsletter_list:
-			frappe.redirect_to_message(_('Permission Error'),
-				_("You are not permitted to view the newsletter."))
-			frappe.local.flags.redirect_location = frappe.local.response.location
-			raise frappe.Redirect
-		else:
-			context.attachments = get_attachments(self.name)
 
 
 def get_attachments(name):
@@ -258,3 +260,4 @@ def get_newsletter_list(doctype, txt, filters, limit_start, limit_page_length=20
 			where n.name = neg.parent and n.email_sent=1 and n.published=1 and neg.email_group in %s
 			order by n.modified desc limit {0}, {1}
 			'''.format(limit_start, limit_page_length), [email_group_list], as_dict=1)
+
