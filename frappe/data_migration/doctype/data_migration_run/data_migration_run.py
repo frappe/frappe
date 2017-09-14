@@ -213,8 +213,12 @@ class DataMigrationRun(Document):
 						mapping.migration_id_field, migration_id_value,
 						update_modified=False)
 			else:
-				response = connection.push(mapping.remote_objectname,
-					mapping.get_mapped_record(d), migration_id_value)
+				if not migration_id_value:
+					response = connection.insert(mapping.remote_objectname,
+						mapping.get_mapped_record(d))
+				else:
+					response = connection.update(mapping.remote_objectname,
+						mapping.get_mapped_record(d), migration_id_value)
 				if response.ok:
 					if not migration_id_value:
 						self.items_inserted += 1
