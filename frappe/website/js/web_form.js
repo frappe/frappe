@@ -281,7 +281,7 @@ frappe.ready(function() {
 				if(!data.exc) {
 					frappe.doc_name = data.message;
 					if(!frappe.login_required) {
-						show_sucess_message();
+						show_success_message();
 					}
 
 					if(frappe.is_new && frappe.login_required) {
@@ -304,7 +304,7 @@ frappe.ready(function() {
 		return true;
 	}
 
-	function show_sucess_message() {
+	function show_success_message() {
 		$form.addClass("hide");
 		$(".comments, .introduction, .page-head").addClass("hide");
 		scroll(0, 0);
