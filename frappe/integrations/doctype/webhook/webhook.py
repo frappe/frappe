@@ -14,6 +14,7 @@ class Webhook(Document):
 	def validate(self):
 		self.validate_docevent()
 		self.validate_request_url()
+		self.validate_repeating_companies()
 	def validate_docevent(self):
 		if self.webhook_doctype:
 			is_submittable = frappe.get_value("DocType", self.webhook_doctype, "is_submittable")
@@ -26,3 +27,11 @@ class Webhook(Document):
 				raise frappe.ValidationError
 		except Exception as e:
 			frappe.throw(_("Check Request URL"), exc=e)
+	def validate_repeating_companies(self):
+		"""Error when Same Field is entered multiple times in webhook_data"""
+		webhook_data = []
+		for entry in self.webhook_data:
+			webhook_data.append(entry.fieldname)
+
+		if len(webhook_data)!= len(set(webhook_data)):
+			frappe.throw(_("Same Field is entered more than once"))
