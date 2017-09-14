@@ -151,35 +151,42 @@ io.on('connection', function(socket) {
 	});
 
 	socket.on('upload-accept-slice', (data) => {
-		if (!socket.files[data.name]) {
-			socket.files[data.name] = Object.assign({}, files_struct, data);
-			socket.files[data.name].data = [];
-		}
+		try {
+			if (!socket.files[data.name]) {
+				socket.files[data.name] = Object.assign({}, files_struct, data);
+				socket.files[data.name].data = [];
+			}
 
-		//convert the ArrayBuffer to Buffer
-		data.data = new Buffer(new Uint8Array(data.data));
-		//save the data
-		socket.files[data.name].data.push(data.data);
-		socket.files[data.name].slice++;
+			//convert the ArrayBuffer to Buffer
+			data.data = new Buffer(new Uint8Array(data.data));
+			//save the data
+			socket.files[data.name].data.push(data.data);
+			socket.files[data.name].slice++;
 
-		if (socket.files[data.name].slice * 100000 >= socket.files[data.name].size) {
-			// do something with the data
-			var fileBuffer = Buffer.concat(socket.files[data.name].data);
+			if (socket.files[data.name].slice * 100000 >= socket.files[data.name].size) {
+				// do something with the data
+				var fileBuffer = Buffer.concat(socket.files[data.name].data);
 
-			const file_url = path.join((socket.files[data.name].is_private ? 'private' : 'public'),
-				'files', data.name);
-			const file_path = path.join('sites', get_site_name(socket), file_url);
+				const file_url = path.join((socket.files[data.name].is_private ? 'private' : 'public'),
+					'files', data.name);
+				const file_path = path.join('sites', get_site_name(socket), file_url);
 
-			fs.writeFile(file_path, fileBuffer, (err) => {
-				delete socket.files[data.name];
-				if (err) return socket.emit('upload error');
-				socket.emit('upload-end', {
-					file_url: '/' + file_url
+				fs.writeFile(file_path, fileBuffer, (err) => {
+					delete socket.files[data.name];
+					if (err) return socket.emit('upload error');
+					socket.emit('upload-end', {
+						file_url: '/' + file_url
+					});
 				});
-			});
-		} else {
-			socket.emit('upload-request-slice', {
-				currentSlice: socket.files[data.name].slice
+			} else {
+				socket.emit('upload-request-slice', {
+					currentSlice: socket.files[data.name].slice
+				});
+			}
+		} catch (e) {
+			console.log(e);
+			socket.emit('upload-error', {
+				error: e.message
 			});
 		}
 	});

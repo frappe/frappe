@@ -291,6 +291,7 @@ frappe.socketio.SocketIOUploader = class SocketIOUploader {
 			}
 
 			this.reader.readAsArrayBuffer(slice);
+			this.keep_alive();
 		});
 
 		frappe.socketio.socket.on('upload-end', (data) => {
@@ -300,6 +301,19 @@ frappe.socketio.SocketIOUploader = class SocketIOUploader {
 			this.callback(data);
 			this.reader = null;
 			this.file = null;
+		});
+
+		frappe.socketio.socket.on('upload-error', (data) => {
+			this.disconnect(false);
+			frappe.msgprint({
+				title: __('Upload Failed'),
+				message: data.error,
+				indicator: 'red'
+			});
+		});
+
+		frappe.socketio.socket.on('disconnect', () => {
+			this.disconnect();
 		});
 	}
 
@@ -324,10 +338,35 @@ frappe.socketio.SocketIOUploader = class SocketIOUploader {
 				size: this.file.size,
 				data: this.reader.result
 			});
+			this.keep_alive();
 		};
 
 		var slice = file.slice(0, this.chunk_size);
 		this.reader.readAsArrayBuffer(slice);
+	}
+
+	keep_alive() {
+		if (this.next_check) {
+			clearTimeout (this.next_check);
+		}
+		this.next_check = setTimeout (() => {
+			this.disconnect();
+		}, 3000);
+	}
+
+	disconnect(with_message = true) {
+		if (this.reader) {
+			this.reader = null;
+			this.file = null;
+			frappe.hide_progress();
+			if (with_message) {
+				frappe.msgprint({
+					title: __('File Upload'),
+					message: __('File Upload Disconnected. Please try again.'),
+					indicator: 'red'
+				});
+			}
+		}
 	}
 
 }
