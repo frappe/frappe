@@ -10,11 +10,12 @@ from frappe.model.document import Document
 from frappe import _
 
 class DataMigrationPlan(Document):
+	def after_insert(self):
+		self.make_custom_fields_for_mappings()
+
 	def on_update(self):
 		if frappe.flags.in_import:
 			return
-
-		self.make_custom_fields_for_mappings()
 
 		if frappe.local.conf.get('developer_mode'):
 			record_list =[['Data Migration Plan', self.name]]

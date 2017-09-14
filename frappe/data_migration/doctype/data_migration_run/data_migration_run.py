@@ -11,7 +11,8 @@ class DataMigrationRun(Document):
 
 	def validate(self):
 		exists = frappe.db.exists('Data Migration Run', dict(
-			status=('in', ['Fail', 'Error'])
+			status=('in', ['Fail', 'Error']),
+			name=('!=', self.name)
 		))
 		if exists:
 			frappe.throw(_('There are failed runs with the same Data Migration Plan'))
@@ -37,7 +38,10 @@ class DataMigrationRun(Document):
 	def enqueue_next_page(self):
 		mapping = self.get_mapping(self.current_mapping)
 		fields = dict(
-			percent_complete = self.percent_complete + (100.0 / self.total_pages)
+			percent_complete = self.percent_complete + (100.0 / self.total_pages),
+			items_inserted=self.items_inserted,
+			items_updated=self.items_updated,
+			items_deleted=self.items_deleted
 		)
 		if self.current_mapping_action == 'Insert':
 			start = self.current_mapping_start + mapping.page_length
@@ -94,12 +98,20 @@ class DataMigrationRun(Document):
 			current_mapping_delete_start = 0,
 			percent_complete = 0,
 			current_mapping_action = 'Insert',
-			total_pages = total_pages
+			total_pages = total_pages,
+			items_inserted = 0,
+			items_updated = 0,
+			items_deleted = 0
 		), notify=True, commit=True)
 
 	def complete(self):
+		status = 'Success'
+		items_failed = json.loads(self.failed_log)
+		if items_failed:
+			self.items_failed = len(items_failed)
+			status = 'Partial Success'
 		self.db_set(dict(
-			status='Success',
+			status=status,
 			percent_complete=100
 		), notify=True, commit=True)
 
@@ -195,6 +207,7 @@ class DataMigrationRun(Document):
 				if not response.ok:
 					failed_items.append(d)
 				else:
+					self.items_deleted += 1
 					frappe.db.set_value('Deleted Document',
 						d.get('_deleted_document_name'),
 						mapping.migration_id_field, migration_id_value,
@@ -204,10 +217,13 @@ class DataMigrationRun(Document):
 					mapping.get_mapped_record(d), migration_id_value)
 				if response.ok:
 					if not migration_id_value:
+						self.items_inserted += 1
 						frappe.db.set_value(mapping.local_doctype, d.name,
 							mapping.migration_id_field, response.doc['name'],
 							update_modified=False)
 						frappe.db.commit()
+					else:
+						self.items_updated += 1
 				else:
 					failed_items.append(response.doc)
 

@@ -9,6 +9,7 @@ class FrappeConnection(BaseConnection):
 		self.connection = FrappeClient(self.connector.hostname,
 			self.connector.username, self.connector.password)
 
+	# remove
 	def push(self, doctype, doc, migration_id):
 		doc.doctype = doctype
 		try:
@@ -29,6 +30,40 @@ class FrappeConnection(BaseConnection):
 				error=e.args[0]
 			))
 			# raise frappe.ValidationError
+
+	def insert(self, doctype, doc):
+		doc.doctype = doctype
+		try:
+			response_doc = self.connection.insert(doc)
+			return frappe._dict(dict(
+				doc=response_doc,
+				ok=True
+			))
+		except FrappeException as e:
+			frappe.msgprint(e.args[0])
+			return frappe._dict(dict(
+				doc=doc,
+				ok=False,
+				error=e.args[0]
+			))
+			# raise frappe.ValidationError
+
+	def update(self, doctype, doc, migration_id):
+		doc.doctype = doctype
+		doc.name = migration_id
+		try:
+			response_doc = self.connection.update(doc)
+			return frappe._dict(dict(
+				doc=response_doc,
+				ok=True
+			))
+		except FrappeException as e:
+			frappe.msgprint(e.args[0])
+			return frappe._dict(dict(
+				doc=doc,
+				ok=False,
+				error=e.args[0]
+			))
 
 	def delete(self, doctype, migration_id):
 		try:
