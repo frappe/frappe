@@ -7,7 +7,6 @@ import frappe, json
 from frappe.model.document import Document
 
 class DataMigrationMapping(Document):
-
 	def get_filters(self):
 		if self.condition:
 			return frappe.safe_eval(self.condition, dict(frappe=frappe))
@@ -35,7 +34,17 @@ class DataMigrationMapping(Document):
 				value = f.local_fieldname[1:-1]
 			else:
 				value = d.get(f.local_fieldname)
-			mapped[f.remote_fieldname] = value
+
+
+			if not f.is_child_table:
+				mapped[f.remote_fieldname] = value
+			else:
+				if mapped.get(f.remote_fieldname):
+					mapped[f.remote_fieldname]['child_docs'].append()
+				else:
+					remote_child_docs = mapped[f.remote_fieldname]
+					remote_child_docs = frappe._dict()
+					remote_child_docs['doctype'] = []
 
 		return mapped
 
