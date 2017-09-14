@@ -3,7 +3,7 @@
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
-import frappe, json
+import frappe, json, math
 from frappe.model.document import Document
 from frappe import _
 
@@ -19,7 +19,10 @@ class DataMigrationRun(Document):
 
 	def run(self):
 		self.begin()
-		self.enqueue_next_mapping()
+		if self.total_pages > 0:
+			self.enqueue_next_mapping()
+		else:
+			self.complete()
 
 	def enqueue_next_mapping(self):
 		next_mapping_name, percent_mappings_complete = self.get_next_mapping_and_percent_mappings_complete()
@@ -87,10 +90,13 @@ class DataMigrationRun(Document):
 	def begin(self):
 		self.mappings = [frappe.get_doc(
 			'Data Migration Mapping', m.mapping) for m in self.get_plan().mappings]
+
 		total_pages = 0
 		for m in self.mappings:
-			page_count = float(self.get_count(m)) / m.page_length
+			count = float(self.get_count(m))
+			page_count = math.ceil(count / m.page_length)
 			total_pages += page_count
+
 		self.db_set(dict(
 			status = 'Started',
 			current_mapping = None,
@@ -106,7 +112,7 @@ class DataMigrationRun(Document):
 
 	def complete(self):
 		status = 'Success'
-		items_failed = json.loads(self.failed_log)
+		items_failed = json.loads(self.failed_log or '[]')
 		if items_failed:
 			self.items_failed = len(items_failed)
 			status = 'Partial Success'
@@ -143,12 +149,7 @@ class DataMigrationRun(Document):
 
 	def get_data(self, mapping, start=0):
 		filters = mapping.get_filters() or {}
-		or_filters = self.get_last_modified_condition()
-
-		# include docs whose migration_id_field is not set
-		or_filters.update({
-			mapping.migration_id_field: ('=', '')
-		})
+		or_filters = self.get_or_filters(mapping)
 
 		if self.current_mapping_action == 'Insert':
 			return frappe.get_all(mapping.local_doctype,
@@ -158,16 +159,15 @@ class DataMigrationRun(Document):
 		elif self.current_mapping_action == 'Delete':
 			return self.get_deleted_docs(mapping,
 				start=self.current_mapping_delete_start,
-				page_length=mapping.page_length,
-				or_filters=or_filters
+				page_length=mapping.page_length
 			)
 
-	def get_deleted_docs(self, mapping, start, page_length, or_filters):
+	def get_deleted_docs(self, mapping, start, page_length):
 		filters = dict(
 			deleted_doctype=mapping.local_doctype
 		)
 		data = frappe.get_all('Deleted Document', fields=['data'],
-			filters=filters, or_filters=or_filters, debug=True)
+			filters=filters, or_filters=self.get_or_filters(mapping), debug=True)
 
 		_data = []
 		for d in data:
@@ -182,7 +182,25 @@ class DataMigrationRun(Document):
 
 	def get_count(self, mapping):
 		filters = mapping.get_filters() or {}
-		return frappe.get_all(mapping.local_doctype, ['count(name) as total'], filters=filters)[0].total
+		or_filters = self.get_or_filters(mapping)
+
+		to_insert = frappe.get_all(mapping.local_doctype, ['count(name) as total'],
+			filters=filters, or_filters=or_filters)[0].total
+
+		to_delete = frappe.get_all('Deleted Document', ['count(name) as total'],
+			filters={'deleted_doctype': mapping.local_doctype}, or_filters=or_filters)[0].total
+
+		return to_insert + to_delete
+
+	def get_or_filters(self, mapping):
+		or_filters = self.get_last_modified_condition()
+
+		# include docs whose migration_id_field is not set
+		or_filters.update({
+			mapping.migration_id_field: ('=', '')
+		})
+
+		return or_filters
 
 	def get_connection(self):
 		if not hasattr(self, 'connection'):
