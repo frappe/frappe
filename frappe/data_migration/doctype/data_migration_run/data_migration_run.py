@@ -111,15 +111,16 @@ class DataMigrationRun(Document):
 		), notify=True, commit=True)
 
 	def complete(self):
-		status = 'Success'
+		fields = dict()
 		items_failed = json.loads(self.failed_log or '[]')
 		if items_failed:
 			self.items_failed = len(items_failed)
-			status = 'Partial Success'
-		self.db_set(dict(
-			status=status,
-			percent_complete=100
-		), notify=True, commit=True)
+			fields['status'] = 'Partial Success'
+		else:
+			fields['status'] = 'Success'
+			fields['percent_complete'] = 100
+
+		self.db_set(fields, notify=True, commit=True)
 
 	def get_plan(self):
 		if not hasattr(self, 'plan'):
