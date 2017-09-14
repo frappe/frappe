@@ -620,8 +620,9 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 		}
 
 		this.make_bulk_assignment();
-		if(frappe.model.can_print(this.doctype))
+		if(frappe.model.can_print(this.doctype)) {
 			this.make_bulk_printing();
+		}
 
 		// add to desktop
 		this.page.add_menu_item(__('Add to Desktop'), function () {
