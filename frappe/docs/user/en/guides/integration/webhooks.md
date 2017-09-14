@@ -29,7 +29,7 @@ e.g. Webhook
 
 Note: if no headers or data is present, request will be made without any header or body  
 
-Example request sent by frappe server on `Quotation` - `on_update` to https://httpbin.org/post:
+Example response of request sent by frappe server on `Quotation` - `on_update` to https://httpbin.org/post:
 
 ```
 {
