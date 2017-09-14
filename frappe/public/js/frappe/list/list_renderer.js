@@ -47,6 +47,9 @@ frappe.views.ListRenderer = Class.extend({
 	},
 	init_settings: function () {
 		this.settings = frappe.listview_settings[this.doctype] || {};
+		if(!("selectable" in this.settings)) {
+			this.settings.selectable = true;
+		}
 		this.init_user_settings();
 
 		this.order_by = this.user_settings.order_by || this.settings.order_by;
