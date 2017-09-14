@@ -191,7 +191,7 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 			error: function() {
 				var d = frappe.msgprint(__("There were errors."));
 				d.custom_onhide = function() {
-					$(me.parent).find('.setup-loading').remove();
+					$(me.parent).find('.page-card-container').remove();
 					$('body').removeClass('setup-state');
 					me.container.show();
 					frappe.set_route(me.page_name, me.slides.length - 1);
@@ -241,7 +241,7 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 	}
 
 	get_message(title, message="", loading=false) {
-		return $(`<div class="setup-loading" data-state="setup">
+		return $(`<div class="page-card-container" data-state="setup">
 			<div class="page-card">
 				<div class="page-card-head">
 					<span class="indicator blue">
