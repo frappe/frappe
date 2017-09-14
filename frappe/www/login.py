@@ -31,15 +31,16 @@ def get_context(context):
 	ldap_settings = get_ldap_settings()
 	context["ldap_settings"] = ldap_settings
 
-	login_name_placeholder = "Email address"
+	
+	login_name_placeholder = [_("Email address")]
 
-	if frappe.utils.cint(frappe.db.get_value("System Settings", "System Settings", "allow_login_using_mobile_number")):
-			login_name_placeholder += " or Mobile number"
+	if frappe.utils.cint(frappe.get_system_settings("allow_login_using_mobile_number")):
+		login_name_placeholder.append(_("Mobile number"))
 
-	if frappe.utils.cint(frappe.db.get_value("System Settings", "System Settings", "allow_login_using_user_name")):
-			login_name_placeholder += " or Username"
+	if frappe.utils.cint(frappe.get_system_settings("allow_login_using_user_name")):
+		login_name_placeholder.append(_("Username"))
 
-	context['login_name_placeholder'] = login_name_placeholder
+	context['login_name_placeholder'] = ' {0} '.format(_('or')).join(login_name_placeholder)
 
 	return context
 
