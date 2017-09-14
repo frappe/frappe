@@ -281,7 +281,7 @@ frappe.ready(function() {
 				if(!data.exc) {
 					frappe.doc_name = data.message;
 					if(!frappe.login_required) {
-						show_sucess_message()
+						show_sucess_message();
 					}
 
 					if(frappe.is_new && frappe.login_required) {
