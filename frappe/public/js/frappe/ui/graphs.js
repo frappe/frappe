@@ -28,7 +28,7 @@ frappe.ui.Graph = class Graph {
 		specific_values = [],
 		summary = [],
 
-		mode = '',
+		mode = ''
 	}) {
 
 		if(Object.getPrototypeOf(this) === frappe.ui.Graph.prototype) {
@@ -65,12 +65,13 @@ frappe.ui.Graph = class Graph {
 
 		// Validate all arguments, check passed data format, set defaults
 
-		frappe.require("assets/frappe/js/lib/snap.svg-min.js", this.setup.bind(this));
 	}
 
 	setup() {
-		this.bind_window_event();
-		this.refresh();
+		frappe.require("assets/frappe/js/lib/snap.svg-min.js", () => {
+			this.bind_window_event();
+			this.refresh();
+		});
 	}
 
 	bind_window_event() {
@@ -474,6 +475,7 @@ frappe.ui.Graph = class Graph {
 frappe.ui.BarGraph = class BarGraph extends frappe.ui.Graph {
 	constructor(args = {}) {
 		super(args);
+		this.setup();
 	}
 
 	setup_values() {
@@ -501,6 +503,7 @@ frappe.ui.BarGraph = class BarGraph extends frappe.ui.Graph {
 frappe.ui.LineGraph = class LineGraph extends frappe.ui.Graph {
 	constructor(args = {}) {
 		super(args);
+		this.setup();
 	}
 
 	setup_values() {
@@ -524,6 +527,7 @@ frappe.ui.LineGraph = class LineGraph extends frappe.ui.Graph {
 frappe.ui.PercentageGraph = class PercentageGraph extends frappe.ui.Graph {
 	constructor(args = {}) {
 		super(args);
+		this.setup();
 	}
 
 	make_graph_area() {
@@ -624,7 +628,7 @@ frappe.ui.HeatMap = class HeatMap extends frappe.ui.Graph {
 		x = [],
 		specific_values = [],
 		summary = [],
-		mode = 'heatmap',
+		mode = 'heatmap'
 	} = {}) {
 		super(arguments[0]);
 		this.start = start;
@@ -633,7 +637,9 @@ frappe.ui.HeatMap = class HeatMap extends frappe.ui.Graph {
 
 		this.count_label = count_label;
 
+
 		this.legend_colors = ['#ebedf0', '#c6e48b', '#7bc96f', '#239a3b', '#196127'];
+		this.setup();
 	}
 
 	setup_base_values() {
@@ -809,7 +815,7 @@ frappe.ui.HeatMap = class HeatMap extends frappe.ui.Graph {
 		this.setup_values();
 	}
 
-	get_distribution(data, mapper_array) {
+	get_distribution(data={}, mapper_array) {
 		let data_values = Object.keys(data).map(key => data[key]);
 		let data_max_value = Math.max(...data_values);
 
