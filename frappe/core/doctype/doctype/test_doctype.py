@@ -10,13 +10,22 @@ import unittest
 
 
 class TestDocType(unittest.TestCase):
-	def new_doctype(self, name, unique=0):
+	def new_doctype(self, name, unique=0, depends_on=''):
 		return frappe.get_doc({
 			"doctype": "DocType",
 			"module": "Core",
 			"custom": 1,
-			"fields": [{"label": "Some Field", "fieldname": "some_fieldname", "fieldtype": "Data", "unique": unique}],
-			"permissions": [{"role": "System Manager", "read": 1}],
+			"fields": [{
+				"label": "Some Field",
+				"fieldname": "some_fieldname",
+				"fieldtype": "Data",
+				"unique": unique,
+				"depends_on": depends_on,
+			}],
+			"permissions": [{
+				"role": "System Manager",
+				"read": 1
+			}],
 			"name": name
 		})
 
@@ -72,3 +81,27 @@ class TestDocType(unittest.TestCase):
 		field.label = "Some HTML Field"
 		doc.search_fields = "some_fieldname,some_html_field"
 		self.assertRaises(frappe.ValidationError, doc.save)
+
+	def test_depends_on_fields(self):
+		doc = self.new_doctype("Test Depends On", depends_on="eval:doc.__islocal == 0")
+		doc.insert()
+
+		# check if the assignment operation is allowed in depends_on
+		field = doc.fields[0]
+		field.depends_on = "eval:doc.__islocal = 0"
+		self.assertRaises(frappe.ValidationError, doc.save)
+
+	def test_all_depends_on_fields_conditions(self):
+		import re
+
+		docfields = frappe.get_all("DocField", or_filters={
+			"ifnull(depends_on, '')": ("!=", ''),
+			"ifnull(collapsible_depends_on, '')": ("!=", '')
+		}, fields=["parent", "depends_on", "collapsible_depends_on", "fieldname", "fieldtype"])
+
+		pattern = """[\w\.:_]+\s*={1}\s*[\w\.@'"]+"""
+		for field in docfields:
+			for depends_on in ["depends_on", "collapsible_depends_on"]:
+				condition = field.get(depends_on)
+				if condition:
+					self.assertFalse(re.match(pattern, condition))
