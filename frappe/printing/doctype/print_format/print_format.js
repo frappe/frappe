@@ -43,7 +43,7 @@ frappe.ui.form.on("Print Format", {
 	},
 	custom_format: function(frm) {
 		var value = frm.doc.custom_format ? 0:1;
-		frm.set_value('align_labels_left', value);
+		frm.set_value('align_labels_right', value);
 		frm.set_value('show_section_headings', value);
 		frm.set_value('line_breaks', value);
 		frm.trigger('render_buttons');
