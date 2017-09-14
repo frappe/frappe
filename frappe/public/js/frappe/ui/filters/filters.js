@@ -133,7 +133,7 @@ frappe.ui.FilterList = Class.extend({
 		for(var i in this.filters) {
 			if(this.filters[i].field) {
 				var f = this.filters[i].get_value();
-				var val = this.get_correct_value(this.filters[i].field, f[3]);
+				var val = this.get_formatted_value(this.filters[i].field, f[3]);
 
 				if(f[0]==doctype && f[1]==fieldname && f[2]==condition && val==value) {
 					flag = true;
@@ -178,7 +178,7 @@ frappe.ui.FilterList = Class.extend({
 		}
 	},
 
-	get_correct_value: function(field, val){
+	get_formatted_value: function(field, val){
 		var value = val;
 
 		if(field.df.fieldname==="docstatus") {
@@ -263,7 +263,7 @@ frappe.ui.Filter = Class.extend({
 	apply: function() {
 		var f = this.get_value();
 		this.flist.filters.pop();
-		var val = this.flist.get_correct_value(this.field, f[3]);
+		var val = this.flist.get_formatted_value(this.field, f[3]);
 		this.flist.push_new_filter(f[0], f[1], f[2], val);
 		this.wrapper.remove();
 	},
@@ -491,7 +491,7 @@ frappe.ui.Filter = Class.extend({
 
 	set_filter_button_text: function() {
 		var value = this.get_selected_value();
-		value = this.flist.get_correct_value(this.field, value);
+		value = this.flist.get_formatted_value(this.field, value);
 
 		// for translations
 		// __("like"), __("not like"), __("in")
