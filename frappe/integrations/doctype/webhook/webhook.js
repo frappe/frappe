@@ -3,7 +3,7 @@
 
 frappe.webhook = {
 	set_fieldname_select: function(frm) {
-		doc = frm.doc;
+		var doc = frm.doc;
 		if (doc.webhook_doctype) {
 			frappe.model.with_doctype(doc.webhook_doctype, function() {
 				var fields = $.map(frappe.get_doc("DocType", frm.doc.webhook_doctype).fields, function(d) {
@@ -18,7 +18,7 @@ frappe.webhook = {
 						return null;
 					}
 				});
-				fields.unshift({"label":"Name (Doc Name)","value":"name"})
+				fields.unshift({"label":"Name (Doc Name)","value":"name"});
 				frappe.meta.get_docfield("Webhook Data", "fieldname", frm.doc.name).options = [""].concat(fields);
 			});
 		}
