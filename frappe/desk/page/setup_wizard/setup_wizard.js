@@ -33,28 +33,36 @@ frappe.pages['setup-wizard'].on_page_load = function(wrapper) {
 		frappe.boot.setup_wizard_requires || []);
 
 	frappe.require(requires, function() {
-		frappe.setup.run_event("before_load");
-		var wizard_settings = {
-			parent: wrapper,
-			slides: frappe.setup.slides,
-			slide_class: frappe.setup.SetupWizardSlide,
-			unidirectional: 1,
-			before_load: ($footer) => {
-				$footer.find('.next-btn').removeClass('btn-default')
-					.addClass('btn-primary');
-				$footer.find('.text-right').prepend(
-					$(`<a class="complete-btn btn btn-sm primary">
-				${__("Complete Setup")}</a>`));
+		frappe.call({
+			method: "frappe.desk.page.setup_wizard.setup_wizard.load_languages",
+			freeze: true,
+			callback: function(r) {
+				frappe.setup.data.lang = r.message;
+				
+				frappe.setup.run_event("before_load");
+				var wizard_settings = {
+					parent: wrapper,
+					slides: frappe.setup.slides,
+					slide_class: frappe.setup.SetupWizardSlide,
+					unidirectional: 1,
+					before_load: ($footer) => {
+						$footer.find('.next-btn').removeClass('btn-default')
+							.addClass('btn-primary');
+						$footer.find('.text-right').prepend(
+							$(`<a class="complete-btn btn btn-sm primary">
+						${__("Complete Setup")}</a>`));
 
+					}
+				}
+				frappe.wizard = new frappe.setup.SetupWizard(wizard_settings);
+				frappe.setup.run_event("after_load");
+				// frappe.wizard.values = test_values_edu;
+				let route = frappe.get_route();
+				if(route) {
+					frappe.wizard.show_slide(route[1]);
+				}
 			}
-		}
-		frappe.wizard = new frappe.setup.SetupWizard(wizard_settings);
-		frappe.setup.run_event("after_load");
-		// frappe.wizard.values = test_values_edu;
-		let route = frappe.get_route();
-		if(route) {
-			frappe.wizard.show_slide(route[1]);
-		}
+		});
 	});
 };
 
@@ -183,7 +191,7 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 			error: function() {
 				var d = frappe.msgprint(__("There were errors."));
 				d.custom_onhide = function() {
-					$(me.parent).find('.setup-loading').remove();
+					$(me.parent).find('.page-card-container').remove();
 					$('body').removeClass('setup-state');
 					me.container.show();
 					frappe.set_route(me.page_name, me.slides.length - 1);
@@ -233,7 +241,7 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 	}
 
 	get_message(title, message="", loading=false) {
-		return $(`<div class="setup-loading" data-state="setup">
+		return $(`<div class="page-card-container" data-state="setup">
 			<div class="page-card">
 				<div class="page-card-head">
 					<span class="indicator blue">
@@ -297,11 +305,17 @@ frappe.setup.slides_settings = [
 		],
 
 		onload: function(slide) {
-			if (frappe.setup.data.lang) {
-				this.setup_fields(slide);
-			} else {
-				frappe.setup.utils.load_languages(slide, this.setup_fields);
+			this.setup_fields(slide);
+
+			var language_field = slide.get_field("language");
+
+			language_field.set_input(frappe.setup.data.default_language || "English");
+
+			if (!frappe.setup._from_load_messages) {
+				language_field.$input.trigger("change");
 			}
+			delete frappe.setup._from_load_messages;
+			moment.locale("en");
 		},
 
 		setup_fields: function(slide) {
@@ -410,27 +424,6 @@ frappe.setup.slides_settings = [
 ];
 
 frappe.setup.utils = {
-	load_languages: function(slide, callback) {
-		frappe.call({
-			method: "frappe.desk.page.setup_wizard.setup_wizard.load_languages",
-			freeze: true,
-			callback: function(r) {
-				frappe.setup.data.lang = r.message;
-				callback(slide);
-
-				var language_field = slide.get_field("language");
-
-				language_field.set_input(frappe.setup.data.default_language || "English");
-
-				if (!frappe.setup._from_load_messages) {
-					language_field.$input.trigger("change");
-				}
-				delete frappe.setup._from_load_messages;
-				moment.locale("en");
-			}
-		});
-	},
-
 	load_regional_data: function(slide, callback) {
 		frappe.call({
 			method:"frappe.geo.country_info.get_country_timezone_info",

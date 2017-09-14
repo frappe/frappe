@@ -28,7 +28,7 @@ frappe.ui.Graph = class Graph {
 		specific_values = [],
 		summary = [],
 
-		mode = '',
+		mode = ''
 	}) {
 
 		if(Object.getPrototypeOf(this) === frappe.ui.Graph.prototype) {
@@ -65,12 +65,13 @@ frappe.ui.Graph = class Graph {
 
 		// Validate all arguments, check passed data format, set defaults
 
-		frappe.require("assets/frappe/js/lib/snap.svg-min.js", this.setup.bind(this));
 	}
 
 	setup() {
-		this.bind_window_event();
-		this.refresh();
+		frappe.require("assets/frappe/js/lib/snap.svg-min.js", () => {
+			this.bind_window_event();
+			this.refresh();
+		});
 	}
 
 	bind_window_event() {
@@ -474,6 +475,7 @@ frappe.ui.Graph = class Graph {
 frappe.ui.BarGraph = class BarGraph extends frappe.ui.Graph {
 	constructor(args = {}) {
 		super(args);
+		this.setup();
 	}
 
 	setup_values() {
@@ -486,8 +488,7 @@ frappe.ui.BarGraph = class BarGraph extends frappe.ui.Graph {
 			type: 'bar',
 			args: {
 				// More intelligent width setting
-				space_width: this.y.length > 1 ?
-					me.avg_unit_width/2 : me.avg_unit_width/8,
+				space_width:me.avg_unit_width/2,
 				no_of_datasets: this.y.length
 			}
 		};
@@ -502,6 +503,7 @@ frappe.ui.BarGraph = class BarGraph extends frappe.ui.Graph {
 frappe.ui.LineGraph = class LineGraph extends frappe.ui.Graph {
 	constructor(args = {}) {
 		super(args);
+		this.setup();
 	}
 
 	setup_values() {
@@ -525,6 +527,7 @@ frappe.ui.LineGraph = class LineGraph extends frappe.ui.Graph {
 frappe.ui.PercentageGraph = class PercentageGraph extends frappe.ui.Graph {
 	constructor(args = {}) {
 		super(args);
+		this.setup();
 	}
 
 	make_graph_area() {
@@ -620,26 +623,32 @@ frappe.ui.HeatMap = class HeatMap extends frappe.ui.Graph {
 		discrete_domains = 0,
 		count_label = '',
 
-		// remove these graph related args
+		// TODO: remove these graph related args
 		y = [],
 		x = [],
 		specific_values = [],
 		summary = [],
-		mode = 'heatmap',
+		mode = 'heatmap'
 	} = {}) {
 		super(arguments[0]);
-		this.start = start || new Date(moment().subtract(1, 'year').toDate());
+		this.start = start;
 		this.data = data;
 		this.discrete_domains = discrete_domains;
 
 		this.count_label = count_label;
 
+
 		this.legend_colors = ['#ebedf0', '#c6e48b', '#7bc96f', '#239a3b', '#196127'];
+		this.setup();
 	}
 
 	setup_base_values() {
 		this.today = new Date();
 
+		if(!this.start) {
+			this.start = new Date();
+			this.start.setFullYear( this.start.getFullYear() - 1 );
+		}
 		this.first_week_start = new Date(this.start.toDateString());
 		this.last_week_start = new Date(this.today.toDateString());
 		if(this.first_week_start.getDay() !== 7) {
@@ -806,7 +815,7 @@ frappe.ui.HeatMap = class HeatMap extends frappe.ui.Graph {
 		this.setup_values();
 	}
 
-	get_distribution(data, mapper_array) {
+	get_distribution(data={}, mapper_array) {
 		let data_values = Object.keys(data).map(key => data[key]);
 		let data_max_value = Math.max(...data_values);
 
@@ -822,7 +831,10 @@ frappe.ui.HeatMap = class HeatMap extends frappe.ui.Graph {
 	}
 
 	get_max_checkpoint(value, distribution) {
-		return distribution.filter(d => {
+		return distribution.filter((d, i) => {
+			if(i === 1) {
+				return distribution[0] < value;
+			}
 			return d <= value;
 		}).length - 1;
 	}

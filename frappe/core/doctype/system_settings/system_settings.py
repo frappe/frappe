@@ -31,6 +31,8 @@ class SystemSettings(Document):
 				if not frappe.db.get_value('SMS Settings', None, 'sms_gateway_url'):
 					frappe.throw(_('Please setup SMS before setting it as an authentication method, via SMS Settings'))
 			toggle_two_factor_auth(True, roles=['All'])
+		else:
+			self.bypass_2fa_for_retricted_ip_users = 0
 
 	def on_update(self):
 		for df in self.meta.get("fields"):

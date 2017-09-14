@@ -6,9 +6,10 @@ import unittest, frappe, pyotp
 from werkzeug.wrappers import Request
 from werkzeug.test import EnvironBuilder
 from frappe.auth import HTTPRequest
+from frappe.utils import cint
 from frappe.twofactor import (should_run_2fa, authenticate_for_2factor, get_cached_user_pass,
 	two_factor_is_enabled_for_, confirm_otp_token, get_otpsecret_for_, get_verification_obj,
-	render_string_template)
+	render_string_template, two_factor_is_enabled)
 
 import time
 
@@ -46,6 +47,43 @@ class TestTwoFactor(unittest.TestCase):
 		for k in ['_usr','_pwd','_otp_secret']:
 			self.assertTrue(frappe.cache().get('{0}{1}'.format(tmp_id,k)),
 							'{} not available'.format(k))
+
+	def test_two_factor_is_enabled(self):
+		'''
+		1. Should return true, if enabled and not bypass_2fa_for_retricted_ip_users
+		2. Should return false, if not enabled
+		3. Should return true, if enabled and bypass_2fa_for_retricted_ip_users and not user.restricted_ip
+		4. Should return false, if enabled and bypass_2fa_for_retricted_ip_users and user.restricted_ip
+		'''
+
+		#Scenario 1
+		disable_2fa()
+		self.assertFalse(two_factor_is_enabled(self.user))
+
+		#Scenario 2
+		enable_2fa()
+		self.assertTrue(two_factor_is_enabled(self.user))
+
+		#Scenario 3
+		enable_2fa()
+		user = frappe.get_doc('User', self.user)
+		user.restrict_ip = frappe.local.request_ip
+		user.save()
+		self.assertTrue(two_factor_is_enabled(self.user))
+
+		#Scenario 4
+		user = frappe.get_doc('User', self.user)
+		user.restrict_ip = ""
+		user.save()
+		enable_2fa(1)
+		self.assertTrue(two_factor_is_enabled(self.user))
+
+		#Scenario 5
+		user = frappe.get_doc('User', self.user)
+		user.restrict_ip = frappe.local.request_ip
+		user.save()
+		enable_2fa(1)
+		self.assertFalse(two_factor_is_enabled(self.user))
 
 	def test_two_factor_is_enabled_for_user(self):
 		'''Should return true if enabled for user.'''
@@ -102,10 +140,11 @@ def create_http_request():
 	http_requests = HTTPRequest()
 	return http_requests
 
-def enable_2fa():
+def enable_2fa(bypass_two_factor_auth=0):
 	'''Enable Two factor in system settings.'''
 	system_settings = frappe.get_doc('System Settings')
 	system_settings.enable_two_factor_auth = 1
+	system_settings.bypass_2fa_for_retricted_ip_users = cint(bypass_two_factor_auth)
 	system_settings.two_factor_method = 'OTP App'
 	system_settings.save(ignore_permissions=True)
 	frappe.db.commit()
@@ -113,6 +152,7 @@ def enable_2fa():
 def disable_2fa():
 	system_settings = frappe.get_doc('System Settings')
 	system_settings.enable_two_factor_auth = 0
+	system_settings.bypass_2fa_for_retricted_ip_users = 0
 	system_settings.save(ignore_permissions=True)
 	frappe.db.commit()
 
