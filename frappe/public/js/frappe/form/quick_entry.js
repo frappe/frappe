@@ -48,7 +48,8 @@ frappe.ui.form.QuickEntryForm = Class.extend({
 			return false;
 		}
 
-		if (this.too_many_mandatory_fields() || this.has_child_table()) {
+		if (this.too_many_mandatory_fields() || this.has_child_table()
+			|| !this.mandatory.length) {
 			return false;
 		}
 
