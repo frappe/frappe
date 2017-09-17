@@ -127,17 +127,24 @@ def get_monthly_goal_graph_data(title, doctype, docname, goal_value_field, goal_
 	data = {
 		'title': title,
 		# 'subtitle':
-		'y': [
-			{
-				'color': 'green',
-				'values': values,
-				'formatted': values_formatted
-			}
-		],
-		'x': {
-			'values': months,
-			'formatted': months_formatted
+
+		'data': {
+			'datasets': [
+				{
+					'color': 'green',
+					'values': values,
+					'formatted': values_formatted
+				}
+			],
+			'labels': months
 		},
+
+		'format_lambdas': {},
+
+		# 'x': {
+		# 	'values': months,
+		# 	'formatted': months_formatted
+		# },
 
 		'specific_values': specific_values,
 		'summary': summary_values
