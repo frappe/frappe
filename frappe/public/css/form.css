@@ -601,11 +601,9 @@ select.form-control {
 .control-code.bold {
   height: 400px;
   font-family: Monaco, "Courier New", monospace;
-  background-color: black;
-  color: #fffce7;
+  color: #36414C;
   font-size: 12px;
   line-height: 1.7em;
-  border: none;
 }
 .delivery-status-indicator {
   display: inline-block;
