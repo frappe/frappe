@@ -7,7 +7,7 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import validate_email_add, get_fullname, strip_html, cstr
 from frappe.core.doctype.communication.comment import (notify_mentions,
-	update_comment_in_doc)
+	update_comment_in_doc, on_trash)
 from frappe.core.doctype.communication.email import (validate_email,
 	notify, _notify, update_parent_status)
 from frappe.utils.bot import BotReply
@@ -111,6 +111,8 @@ class Communication(Document):
 			frappe.publish_realtime('delete_communication', self.as_dict(),
 				doctype= self.reference_doctype, docname = self.reference_name,
 				after_commit=True)
+			# delete the comments from _comment
+			on_trash(self)
 
 	def set_status(self):
 		if not self.is_new():

@@ -179,11 +179,13 @@ def delete_temp_backups(older_than=24):
 	"""
 		Cleans up the backup_link_path directory by deleting files older than 24 hours
 	"""
-	file_list = os.listdir(get_backup_path())
-	for this_file in file_list:
-		this_file_path = os.path.join(get_backup_path(), this_file)
-		if is_file_old(this_file_path, older_than):
-			os.remove(this_file_path)
+	backup_path = get_backup_path()
+	if os.path.exists(backup_path):
+		file_list = os.listdir(get_backup_path())
+		for this_file in file_list:
+			this_file_path = os.path.join(get_backup_path(), this_file)
+			if is_file_old(this_file_path, older_than):
+				os.remove(this_file_path)
 
 def is_file_old(db_file_name, older_than=24):
 		"""

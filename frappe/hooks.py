@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 from . import __version__ as app_version
 
+
 app_name = "frappe"
 app_title = "Frappe Framework"
 app_publisher = "Frappe Technologies"
@@ -48,9 +49,11 @@ bootstrap = "assets/frappe/css/bootstrap.css"
 web_include_css = [
 	"assets/css/frappe-web.css"
 ]
+
 website_route_rules = [
 	{"from_route": "/blog/<category>", "to_route": "Blog Post"},
-	{"from_route": "/kb/<category>", "to_route": "Help Article"}
+	{"from_route": "/kb/<category>", "to_route": "Help Article"},
+	{"from_route": "/newsletters", "to_route": "Newsletter"}
 ]
 
 write_file_keys = ["file_url", "file_name"]
