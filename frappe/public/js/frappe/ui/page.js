@@ -44,7 +44,7 @@ frappe.ui.Page = Class.extend({
 		this.add_main_section();
 	},
 
-	get_empty_state: function({title, message, primary_action}) {
+	get_empty_state: function(title, message, primary_action) {
 		let $empty_state = $(`<div class="page-card-container">
 			<div class="page-card">
 				<div class="page-card-head">
@@ -52,13 +52,11 @@ frappe.ui.Page = Class.extend({
 						${title}</span>
 				</div>
 				<p>${message}</p>
-				<div><a href="/login" class="btn btn-primary btn-sm">${primary_action.label}</a></div>
+				<div>
+					<button class="btn btn-primary btn-sm">${primary_action}</button>
+				</div>
 			</div>
 		</div>`);
-
-		$empty_state.find('.btn-primary').on('click', () => {
-			primary_action.on_click();
-		});
 
 		return $empty_state;
 	},
