@@ -135,7 +135,7 @@ frappe.ui.form.Dashboard = Class.extend({
 		}
 
 		if(this.data.heatmap) {
-			this.render_heatmap();
+			// this.render_heatmap();
 			show = true;
 		}
 
@@ -273,7 +273,7 @@ frappe.ui.form.Dashboard = Class.extend({
 			},
 			callback: function(r) {
 				if(r.message.timeline_data) {
-					me.update_heatmap(r.message.timeline_data);
+					// me.update_heatmap(r.message.timeline_data);
 				}
 
 				// update badges
@@ -404,20 +404,20 @@ frappe.ui.form.Dashboard = Class.extend({
 
 	render_graph: function(args) {
 		var me = this;
-		console.log(args.data.datasets[0].values);
 		this.graph_area.empty().removeClass('hidden');
 		$.extend(args, {
-			parent: me.graph_area,
+			parent: me.graph_area[0],
 			type: 'bar',
 			height: 140,
 			is_navigable: 1
 		});
 		this.show();
+
 		this.graph = new FrappeChart(args);
 		if(!this.graph) {
 			this.hide();
 		}
-		console.log(this.graph);
+		console.log(this.graph, args.data);
 	},
 
 	show: function() {

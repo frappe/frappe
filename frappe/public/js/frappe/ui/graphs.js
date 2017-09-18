@@ -72,16 +72,13 @@ class FrappeChart {
 	}
 
 	setup() {
-		frappe.require("assets/frappe/js/lib/snap.svg-min.js", () => {
-			this.bind_window_event();
-			this.refresh();
-		});
+		this.bind_window_events();
+		this.refresh();
 	}
 
-	bind_window_event() {
-		$(window).on('resize orientationChange', () => {
-			this.refresh();
-		});
+	bind_window_events() {
+		window.addEventListener('resize', () => this.refresh());
+		window.addEventListener('orientationchange', () => this.refresh());
 	}
 
 	refresh() {
@@ -108,70 +105,62 @@ class FrappeChart {
 	}
 
 	set_width() {
-		this.base_width = this.parent.width();
+		this.base_width = this.parent.offsetWidth;
 		this.width = this.base_width - this.translate_x * 2;
 	}
 
 	setup_base_values() {}
 
 	setup_container() {
+		this.container = $$.create('div', {
+			className: 'graph-container',
+			innerHTML: `<h6 class="title" style="margin-top: 15px;">${this.title}</h6>
+				<h6 class="sub-title uppercase">${this.subtitle}</h6>
+				<div class="frappe-chart graphics"></div>
+				<div class="graph-stats-container"></div>`
+		});
+
 		// Chart needs a dedicated parent element
-		this.parent.empty();
+		this.parent.innerHTML = '';
+		this.parent.appendChild(this.container);
 
-		this.container = $('<div>')
-			.addClass('graph-container')
-			.append($(`<h6 class="title" style="margin-top: 15px;">${this.title}</h6>`))
-			.append($(`<h6 class="sub-title uppercase">${this.subtitle}</h6>`))
-			.append($(`<div class="graphics"></div>`))
-			.append($(`<div class="graph-stats-container"></div>`))
-			.appendTo(this.parent);
+		this.chart_wrapper = this.container.querySelector('.frappe-chart');
+		this.chart_wrapper.appendChild(this.make_graph_area());
 
-		this.$graphics = this.container.find('.graphics');
-		this.$stats_container = this.container.find('.graph-stats-container');
-
-		this.$graph = $('<div>')
-			.addClass('frappe-chart')
-			.appendTo(this.$graphics)
-			.append(this.make_graph_area());
+		this.stats_wrapper = this.container.querySelector('.graph-stats-container');
 	}
 
 	make_graph_area() {
-		this.$svg = $(`<svg class="svg" width="${this.base_width}" height="${this.base_height}"></svg>`);
-		this.snap = new Snap(this.$svg[0]);
-		return this.$svg;
+		this.svg = $$.create('svg', {
+			className: 'chart',
+			width: this.base_width,
+			height: this.base_height
+		});
+
+		// this.snap = new Snap(this.svg);
+		return this.svg;
+	}
+
+	setup_components() {
+		this.data_units = $$.create('g', {className: 'data-points'});
 	}
 
 	make_tooltip() {
 		this.tip = new frappe.ui.SvgTip({
-			parent: this.$graphics,
+			parent: this.chart_wrapper,
 		});
 		this.bind_tooltip();
-	}
-
-	show_specific_values() {
-		this.specific_values.map(d => {
-			this.specific_y_lines.add(this.snap.g(
-				this.snap.line(0, 0, this.width, 0).attr({
-					class: d.line_type === "dashed" ? "dashed": ""
-				}),
-				this.snap.text(this.width + 5, 0, d.name.toUpperCase()).attr({
-					dy: ".32em",
-					class: "specific-value",
-				})
-			).attr({
-				class: "tick",
-				transform: `translate(0, ${this.height - d.value * this.multiplier })`
-			}));
-		});
 	}
 
 	show_summary() { }
 
 	show_custom_summary() {
 		this.summary.map(d => {
-			this.$stats_container.append($(`<div class="stats">
-				<span class="indicator ${d.color}">${d.name}: ${d.value}</span>
-			</div>`));
+			let stats = $$.create('div', {
+				className: 'stats',
+				innerHTML: `<span class="indicator ${d.color}">${d.name}: ${d.value}</span>`
+			});
+			this.stats_wrapper.appendChild(stats);
 		});
 	}
 
@@ -215,13 +204,20 @@ class FrappeChart {
 				if(y == this.height) {
 					y = this.height * 0.98;
 				}
-				return this.snap.rect(current_x, y, width, this.height - y).attr({
-					class: `bar mini fill ${color}`
+				return $$.create('rect', {
+					className: `bar mini fill ${color}`,
+					x: current_x,
+					y: y,
+					width: width,
+					height: this.height - y
 				});
 			},
 			'dot': (x, y, args, color) => {
-				return this.snap.circle(x, y, args.radius).attr({
-					class: `fill ${color}`
+				return $$.create('circle', {
+					className: `fill ${color}`,
+					cx: x,
+					cy: y,
+					r: args.radius
 				});
 			}
 		};
@@ -251,13 +247,6 @@ class AxisGraph extends FrappeChart {
 
 	}
 
-	setup_components() {
-		this.y_axis_group = this.snap.g().attr({ class: "y axis" });
-		this.x_axis_group = this.snap.g().attr({ class: "x axis" });
-		this.data_units = this.snap.g().attr({ class: "data-points" });
-		this.specific_y_lines = this.snap.g().attr({ class: "specific axis" });
-	}
-
 	setup_values() {
 		// Multiplier
 		let all_values = this.specific_values.map(d => d.value);
@@ -280,6 +269,13 @@ class AxisGraph extends FrappeChart {
 		});
 
 		this.calc_min_tops();
+	}
+
+	setup_components() {
+		super.setup_components();
+		this.y_axis_group = $$.create('g', {className: 'y axis'});
+		this.x_axis_group = $$.create('g', {className: 'x axis'});
+		this.specific_y_lines = $$.create('g', {className: 'specific axis'});
 	}
 
 	make_graph_components() {
@@ -313,16 +309,29 @@ class AxisGraph extends FrappeChart {
 		}
 
 		this.y_axis_values.map((point) => {
-			this.y_axis_group.add(this.snap.g(
-				this.snap.line(start_at, 0, width, 0),
-				this.snap.text(text_end_at, 0, point+"").attr({
-					dy: ".32em",
-					class: "y-value-text"
-				})
-			).attr({
-				class: `tick ${label_class}`,
+			let line = $$.create('line', {
+				x1: start_at,
+				x2: width,
+				y1: 0,
+				y2: 0
+			});
+			let text = $$.create('text', {
+				className: 'y-value-text',
+				x: text_end_at,
+				y: 0,
+				dy: '.32em',
+				innerHTML: point+""
+			});
+
+			let y_level = $$.create('g', {
+				className: `tick ${label_class}`,
 				transform: `translate(0, ${this.height - point * this.multiplier })`
-			}));
+			});
+
+			y_level.appendChild(line);
+			y_level.appendChild(text);
+
+			this.y_axis_group.appendChild(y_level);
 		});
 	}
 
@@ -340,25 +349,38 @@ class AxisGraph extends FrappeChart {
 			label_class = 'x-axis-label';
 		}
 
-		this.x_axis_group.attr({
-			transform: `translate(0,${start_at})`
-		});
+		this.x_axis_group.setAttribute('transform', `translate(0,${start_at})`);
+
 		this.x.map((point, i) => {
 			let allowed_space = this.avg_unit_width * 1.5;
 			if(this.get_strwidth(point) > allowed_space) {
 				let allowed_letters = allowed_space / 8;
 				point = point.slice(0, allowed_letters-3) + " ...";
 			}
-			this.x_axis_group.add(this.snap.g(
-				this.snap.line(0, 0, 0, height),
-				this.snap.text(0, text_start_at, point).attr({
-					dy: ".71em",
-					class: "x-value-text"
-				})
-			).attr({
-				class: `tick ${label_class}`,
-				transform: `translate(${ this.x_axis_values[i] }, 0)`
-			}));
+
+			let line = $$.create('line', {
+				x1: 0,
+				x2: 0,
+				y1: 0,
+				y2: height
+			});
+			let text = $$.create('text', {
+				className: 'x-value-text',
+				x: 0,
+				y: text_start_at,
+				dy: '.71em',
+				innerHTML: point
+			});
+
+			let x_level = $$.create('g', {
+				className: `tick ${label_class}`,
+				transform:  `translate(${ this.x_axis_values[i] }, 0)`
+			});
+
+			x_level.appendChild(line);
+			x_level.appendChild(text);
+
+			this.x_axis_group.appendChild(x_level);
 		});
 	}
 
@@ -372,47 +394,69 @@ class AxisGraph extends FrappeChart {
 				color,
 				dataset_index
 			);
-			this.data_units.add(data_unit);
+			this.data_units.appendChild(data_unit);
 			this.y[dataset_index].data_units.push(data_unit);
+		});
+	}
+
+	show_specific_values() {
+		this.specific_values.map(d => {
+			let line = $$.create('line', {
+				className: d.line_type === "dashed" ? "dashed": "",
+				x1: 0,
+				x2: 0,
+				y1: this.width,
+				y2: 0
+			});
+
+			let text = $$.create('text', {
+				className: 'specific-value',
+				x: this.width + 5,
+				y: 0,
+				dy: '.32em',
+				innerHTML: d.name.toUpperCase()
+			});
+
+			let specific_y_level = $$.create('g', {
+				className: `tick`,
+				transform: `translate(0, ${this.height - d.value * this.multiplier })`
+			});
+
+			specific_y_level.appendChild(line);
+			specific_y_level.appendChild(text);
+
+			this.specific_y_lines.appendChild(specific_y_level);
 		});
 	}
 
 	// translates everything with predefined x and y: TODO: make generic
 	setup_group() {
-		// this.chart_group = $$.create("g", {
-		// 	className: this.type,
-		// 	inside: this.$svg[0],
-		// 	transform: `translate(${this.translate_x}, ${this.translate_y})`
-		// });
-		// let all_components = [this.y_axis_group,
-		// 	this.x_axis_group,
-		// 	this.data_units,
-		// 	this.specific_y_lines]
-
-		// console.log(all_components);
-
-		// all_components.map(c => {
-		// 	this.chart_group.appendChild(c[0]);
-		// });
-
-		this.snap.g(
-			this.y_axis_group,
-			this.x_axis_group,
-			this.data_units,
-			this.specific_y_lines
-		).attr({
-			class: this.type,
+		this.chart_group = $$.create("g", {
+			className: this.type,
+			inside: this.svg,
 			transform: `translate(${this.translate_x}, ${this.translate_y})`
 		});
+		let all_components = [this.y_axis_group,
+			this.x_axis_group,
+			this.data_units,
+			this.specific_y_lines]
+
+		console.log(all_components);
+
+		all_components.map(c => this.chart_group.appendChild(c));
 	}
 
 	bind_tooltip() {
 		// should be w.r.t. this.parent, but will have to take care of
 		// all the elements and padding, margins on top
-		this.$graphics.on('mousemove', (e) => {
-			let offset = this.$graphics.offset();
-			var relX = e.pageX - offset.left - this.translate_x;
-			var relY = e.pageY - offset.top - this.translate_y;
+		this.chart_wrapper.addEventListener('mousemove', (e) => {
+			let rect = this.chart_wrapper.getBoundingClientRect();
+			let offset = {
+				top: rect.top + document.body.scrollTop,
+				left: rect.left + document.body.scrollLeft
+			}
+			let relX = e.pageX - offset.left - this.translate_x;
+			let relY = e.pageY - offset.top - this.translate_y;
 
 			if(relY < this.height + this.translate_y * 2) {
 				this.map_tooltip_x_position_and_show(relX);
@@ -420,6 +464,31 @@ class AxisGraph extends FrappeChart {
 				this.tip.hide_tip()
 			}
 		});
+	}
+
+	map_tooltip_x_position_and_show(relX) {
+		for(var i=this.x_axis_values.length - 1; i >= 0 ; i--) {
+			let x_val = this.x_axis_values[i];
+			// let delta = i === 0 ? this.avg_unit_width : x_val - this.x_axis_values[i-1];
+			if(relX > x_val - this.avg_unit_width/2) {
+				let x = x_val + this.translate_x - 0.5;
+				let y = this.y_min_tops[i] + this.translate_y + 4; // adjustment
+
+				let title = this.x.formatted && this.x.formatted.length>0
+					? this.x.formatted[i] : this.x[i];
+				let values = this.y.map((set, j) => {
+					return {
+						title: set.title,
+						value: set.formatted ? set.formatted[i] : set.values[i],
+						color: set.color || this.y_colors[j],
+					}
+				});
+
+				this.tip.set_values(x, y, title, '', values);
+				this.tip.show_tip();
+				break;
+			}
+		}
 	}
 
 	// API
@@ -464,30 +533,6 @@ class AxisGraph extends FrappeChart {
 	update_y_axis() {}
 
 	// Helpers
-	map_tooltip_x_position_and_show(relX) {
-		for(var i=this.x_axis_values.length - 1; i >= 0 ; i--) {
-			let x_val = this.x_axis_values[i];
-			// let delta = i === 0 ? this.avg_unit_width : x_val - this.x_axis_values[i-1];
-			if(relX > x_val - this.avg_unit_width/2) {
-				let x = x_val + this.translate_x - 0.5;
-				let y = this.y_min_tops[i] + this.translate_y;
-				let title = this.x.formatted && this.x.formatted.length>0
-					? this.x.formatted[i] : this.x[i];
-				let values = this.y.map((set, j) => {
-					return {
-						title: set.title,
-						value: set.formatted ? set.formatted[i] : set.values[i],
-						color: set.color || this.y_colors[j],
-					}
-				});
-
-				this.tip.set_values(x, y, title, '', values);
-				this.tip.show_tip();
-				break;
-			}
-		}
-	}
-
 	set_avg_unit_width_and_x_offset() {
 		this.avg_unit_width = this.width/(this.x.length - 1);
 		this.x_offset = 0;
@@ -568,7 +613,12 @@ class LineGraph extends AxisGraph {
 	make_path(d, color) {
 		let points_list = d.y_tops.map((y, i) => (this.x_axis_values[i] + ',' + y));
 		let path_str = "M"+points_list.join("L");
-		d.path = this.snap.path(path_str).attr({class: `stroke ${color}`});
+
+		d.path = $$.create('path', {
+			className: `stroke ${color}`,
+			d: path_str
+		});
+
 		this.data_units.prepend(d.path);
 	}
 }
@@ -589,10 +639,10 @@ class PercentageGraph extends FrappeChart {
 	}
 
 	make_graph_area() {
-		this.$graphics.addClass('graph-focus-margin').attr({
+		this.chart_wrapper.addClass('graph-focus-margin').attr({
 			style: `margin-top: 45px;`
 		});
-		this.$stats_container.addClass('graph-focus-margin').attr({
+		this.stats_wrapper.addClass('graph-focus-margin').attr({
 			style: `padding-top: 0px; margin-bottom: 30px;`
 		});
 		this.$div = $(`<div class="div" width="${this.base_width}"
@@ -638,7 +688,7 @@ class PercentageGraph extends FrappeChart {
 	bind_tooltip() {
 		this.x.units.map(($part, i) => {
 			$part.on('mouseenter', () => {
-				let g_off = this.$graphics.offset(), p_off = $part.offset();
+				let g_off = this.chart_wrapper.offset(), p_off = $part.offset();
 
 				let x = p_off.left - g_off.left + $part.width()/2;
 				let y = p_off.top - g_off.top - 6;
@@ -657,7 +707,7 @@ class PercentageGraph extends FrappeChart {
 			? this.x.formatted : this.x;
 		this.x.totals.map((d, i) => {
 			if(d) {
-				this.$stats_container.append($(`<div class="stats">
+				this.stats_wrapper.append($(`<div class="stats">
 					<span class="indicator ${this.x.colors[i]}">
 						<span class="text-muted">${x_values[i]}:</span>
 						${d}
@@ -839,7 +889,7 @@ class HeatMap extends FrappeChart {
 
 	make_graph_components() {
 		this.container.find('.graph-stats-container, .sub-title, .title').hide();
-		this.container.find('.graphics').css({'margin-top': '0px', 'padding-top': '0px'});
+		this.container.find('.frappe-chart').css({'margin-top': '0px', 'padding-top': '0px'});
 	}
 
 	bind_tooltip() {
@@ -850,7 +900,7 @@ class HeatMap extends FrappeChart {
 
 			let month = this.month_names[parseInt(date_parts[1])-1].substring(0, 3);
 
-			let g_off = this.$graphics.offset(), p_off = subdomain.offset();
+			let g_off = this.chart_wrapper.offset(), p_off = subdomain.offset();
 
 			let width = parseInt(subdomain.attr('width'));
 			let x = p_off.left - g_off.left + (width+2)/2;
@@ -955,17 +1005,20 @@ frappe.ui.SvgTip = class {
 	}
 
 	make_tooltip() {
-		this.container = $(`<div class="graph-svg-tip comparison">
-			<span class="title"></span>
-			<ul class="data-point-list"></ul>
-			<div class="svg-pointer"></div>
-		</div>`).appendTo(this.parent);
+		this.container = $$.create('div', {
+			className: 'graph-svg-tip comparison',
+			innerHTML: `<span class="title"></span>
+				<ul class="data-point-list"></ul>
+				<div class="svg-pointer"></div>`
+		});
+
+		this.parent.appendChild(this.container);
 		this.hide_tip();
 
-		this.title = this.container.find('.title');
-		this.data_point_list = this.container.find('.data-point-list');
+		this.title = this.container.querySelector('.title');
+		this.data_point_list = this.container.querySelector('.data-point-list');
 
-		this.parent.on('mouseleave', () => {
+		this.parent.addEventListener('mouseleave', () => {
 			this.hide_tip();
 		});
 	}
@@ -977,34 +1030,36 @@ frappe.ui.SvgTip = class {
 		} else {
 			title = `${this.title_name}<strong>${this.title_value}</strong>`;
 		}
-		this.title.html(title);
-		this.data_point_list.empty();
-		this.list_values.map((set, i) => {
-			let $li = $(`<li>
-				<strong style="display: block;">${set.value ? set.value : '' }</strong>
-				${set.title ? set.title : '' }
-			</li>`).addClass(`border-top ${set.color || 'black'}`);
+		this.title.innerHTML = title;
+		this.data_point_list.innerHTML = '';
 
-			this.data_point_list.append($li);
+		this.list_values.map((set, i) => {
+			let li = $$.create('li', {
+				className: `border-top ${set.color || 'black'}`,
+				innerHTML: `<strong style="display: block;">${set.value ? set.value : '' }</strong>
+					${set.title ? set.title : '' }`
+			});
+
+			this.data_point_list.appendChild(li);
 		});
 	}
 
 	calc_position() {
-		this.top = this.y - this.container.height();
-		this.left = this.x - this.container.width()/2;
-		let max_left = this.parent.width() - this.container.width();
+		this.top = this.y - this.container.offsetHeight;
+		this.left = this.x - this.container.offsetWidth/2;
+		let max_left = this.parent.offsetWidth - this.container.offsetWidth;
 
-		let $pointer = this.container.find('.svg-pointer');
+		let pointer = this.container.querySelector('.svg-pointer');
 
 		if(this.left < 0) {
-			$pointer.css({ 'left': `calc(50% - ${-1 * this.left}px)` });
+			pointer.style.left = `calc(50% - ${-1 * this.left}px)`;
 			this.left = 0;
 		} else if(this.left > max_left) {
 			let delta = this.left - max_left;
-			$pointer.css({ 'left': `calc(50% + ${delta}px)` });
+			pointer.style.left = `calc(50% + ${delta}px)`;
 			this.left = max_left;
 		} else {
-			$pointer.css({ 'left': `50%` });
+			pointer.style.left = `50%`;
 		}
 	}
 
@@ -1019,19 +1074,15 @@ frappe.ui.SvgTip = class {
 	}
 
 	hide_tip() {
-		this.container.css({
-			'top': '0px',
-			'left': '0px',
-			'opacity': '0'
-		});
+		this.container.style.top = '0px';
+		this.container.style.left = '0px';
+		this.container.style.opacity = '0';
 	}
 
 	show_tip() {
-		this.container.css({
-			'top': this.top + 'px',
-			'left': this.left + 'px',
-			'opacity': '1'
-		});
+		this.container.style.top = this.top + 'px';
+		this.container.style.left = this.left + 'px';
+		this.container.style.opacity = '1';
 	}
 };
 
