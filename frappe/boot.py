@@ -30,6 +30,7 @@ def get_bootinfo():
 	get_user(bootinfo)
 
 	# system info
+	bootinfo.sitename = frappe.local.site
 	bootinfo.sysdefaults = frappe.defaults.get_defaults()
 	bootinfo.user_permissions = get_user_permissions()
 	bootinfo.server_date = frappe.utils.nowdate()
