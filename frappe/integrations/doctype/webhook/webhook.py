@@ -51,10 +51,12 @@ class Webhook(Document):
 		r = requests.post(self.request_url, data=json.dumps(data), headers=headers, timeout=5)
 		frappe.logger().debug({"webhook_success":r.text})
 
-def evaluate_webhook(doc, webhook):
+def enqueue_webhook(doc, webhook):
 	webhook = frappe.get_doc("Webhook", webhook.get("name"))
 	try:
 		webhook.request(doc)
 	except Exception as e:
-		frappe.log_error(message=frappe.get_traceback(), title=e)
-		frappe.throw(_("Error in Webhook"))
+		frappe.throw(_("Error in Webhook"), exc=e)
+
+def evaluate_webhook(doc, webhook):
+	frappe.enqueue('frappe.integrations.doctype.webhook.webhook.enqueue_webhook', doc=doc, webhook=webhook)
