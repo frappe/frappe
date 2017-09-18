@@ -4,6 +4,7 @@
 
 from __future__ import unicode_literals
 import frappe
+import json, requests
 from frappe import _
 from frappe.model.document import Document
 from six.moves.urllib.parse import urlparse
@@ -35,3 +36,25 @@ class Webhook(Document):
 
 		if len(webhook_data)!= len(set(webhook_data)):
 			frappe.throw(_("Same Field is entered more than once"))
+	def request(self, doc):
+		headers = {}
+		data = {}
+		if self.webhook_headers:
+			for h in self.webhook_headers:
+				if h.get("key") and h.get("value"):
+					headers[h.get("key")] = h.get("value")
+		if self.webhook_data:
+			for k, v in doc.as_dict().items():
+				for w in self.webhook_data:
+					if k == w.fieldname:
+						data[w.key] = v
+		r = requests.post(self.request_url, data=json.dumps(data), headers=headers, timeout=5)
+		frappe.logger().debug({"webhook_success":r.text})
+
+def evaluate_webhook(doc, webhook):
+	webhook = frappe.get_doc("Webhook", webhook.get("name"))
+	try:
+		webhook.request(doc)
+	except Exception as e:
+		frappe.log_error(message=frappe.get_traceback(), title=e)
+		frappe.throw(_("Error in Webhook"))

@@ -169,6 +169,7 @@ class Document(BaseDocument):
 			return
 
 		self.flags.email_alerts_executed = []
+		self.flags.webhooks_executed = []
 
 		if ignore_permissions!=None:
 			self.flags.ignore_permissions = ignore_permissions
@@ -242,6 +243,7 @@ class Document(BaseDocument):
 			return
 
 		self.flags.email_alerts_executed = []
+		self.flags.webhooks_executed = []
 
 		if ignore_permissions!=None:
 			self.flags.ignore_permissions = ignore_permissions
@@ -671,6 +673,7 @@ class Document(BaseDocument):
 		out = Document.hook(fn)(self, *args, **kwargs)
 
 		self.run_email_alerts(method)
+		self.run_webhooks(method)
 
 		return out
 
@@ -722,6 +725,50 @@ class Document(BaseDocument):
 				_evaluate_alert(alert)
 			elif alert.event=='Method' and method == alert.method:
 				_evaluate_alert(alert)
+
+	def run_webhooks(self, method):
+		'''Run webhooks for this method'''
+		if frappe.flags.in_import or frappe.flags.in_patch or frappe.flags.in_install:
+			return
+
+		if self.flags.webhooks_executed==None:
+			self.flags.webhooks_executed = []
+
+		from frappe.integrations.doctype.webhook.webhook import evaluate_webhook
+
+		if self.flags.webhooks == None:
+			webhooks = frappe.cache().hget('webhooks', self.doctype)
+			if webhooks==None:
+				webhooks = frappe.get_all('Webhook',
+					fields=["name", "webhook_docevent", "webhook_doctype"])
+				frappe.cache().hset('webhooks', self.doctype, webhooks)
+			self.flags.webhooks = webhooks
+
+		if not self.flags.webhooks:
+			return
+
+		def _evaluate_webhook(webhook):
+			if not webhook.name in self.flags.webhooks_executed:
+				evaluate_webhook(self, webhook)
+				self.flags.webhooks_executed.append(webhook.name)
+
+		event_map = {
+			"on_update": "on_update",
+			"after_insert": "after_insert",
+			"on_submit": "on_submit",
+			"on_cancel": "on_cancel",
+			"on_trash": "on_trash"
+		}
+
+		if not self.flags.in_insert:
+			# value change is not applicable in insert
+			event_map['on_change'] = 'on_change'
+			event_map['before_update_after_submit'] = 'before_update_after_submit'
+
+		for webhook in self.flags.webhooks:
+			event = event_map.get(method, None)
+			if event and webhook.webhook_docevent == event:
+				_evaluate_webhook(webhook)
 
 	@staticmethod
 	def whitelist(f):
