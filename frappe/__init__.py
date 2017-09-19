@@ -14,7 +14,7 @@ import os, sys, importlib, inspect, json
 from .exceptions import *
 from .utils.jinja import get_jenv, get_template, render_template, get_email_from_template
 
-__version__ = '8.10.7'
+__version__ = '8.10.8'
 __title__ = "Frappe Framework"
 
 local = Local()
@@ -1335,7 +1335,7 @@ def logger(module=None, with_more_info=True):
 
 def log_error(message=None, title=None):
 	'''Log error to Error Log'''
-	get_doc(dict(doctype='Error Log', error=str(message or get_traceback()),
+	get_doc(dict(doctype='Error Log', error=as_unicode(message or get_traceback()),
 		method=title)).insert(ignore_permissions=True)
 
 def get_desk_link(doctype, name):
