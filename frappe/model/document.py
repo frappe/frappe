@@ -734,41 +734,35 @@ class Document(BaseDocument):
 		if self.flags.webhooks_executed==None:
 			self.flags.webhooks_executed = []
 
-		from frappe.integrations.doctype.webhook.webhook import evaluate_webhook
+		from frappe.integrations.doctype.webhook.webhook import webhook_request
 
 		if self.flags.webhooks == None:
 			webhooks = frappe.cache().hget('webhooks', self.doctype)
 			if webhooks==None:
 				webhooks = frappe.get_all('Webhook',
-					fields=["name", "webhook_docevent", "webhook_doctype"])
+					fields=["name", "webhook_docevent"])
 				frappe.cache().hset('webhooks', self.doctype, webhooks)
 			self.flags.webhooks = webhooks
 
 		if not self.flags.webhooks:
 			return
 
-		def _evaluate_webhook(webhook):
+		def _webhook_request(webhook):
 			if not webhook.name in self.flags.webhooks_executed:
-				evaluate_webhook(self, webhook)
+				webhook_request(self, webhook)
 				self.flags.webhooks_executed.append(webhook.name)
 
-		event_map = {
-			"on_update": "on_update",
-			"after_insert": "after_insert",
-			"on_submit": "on_submit",
-			"on_cancel": "on_cancel",
-			"on_trash": "on_trash"
-		}
+		event_list = ["on_update", "after_insert", "on_submit", "on_cancel", "on_trash"]
 
 		if not self.flags.in_insert:
 			# value change is not applicable in insert
-			event_map['on_change'] = 'on_change'
-			event_map['before_update_after_submit'] = 'before_update_after_submit'
+			event_list.append('on_change')
+			event_list.append('before_update_after_submit')
 
 		for webhook in self.flags.webhooks:
-			event = event_map.get(method, None)
+			event = method if method in event_list else None
 			if event and webhook.webhook_docevent == event:
-				_evaluate_webhook(webhook)
+				_webhook_request(webhook)
 
 	@staticmethod
 	def whitelist(f):

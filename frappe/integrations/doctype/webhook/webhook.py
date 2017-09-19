@@ -58,5 +58,5 @@ def enqueue_webhook(doc, webhook):
 	except Exception as e:
 		frappe.throw(_("Error in Webhook"), exc=e)
 
-def evaluate_webhook(doc, webhook):
+def webhook_request(doc, webhook):
 	frappe.enqueue('frappe.integrations.doctype.webhook.webhook.enqueue_webhook', doc=doc, webhook=webhook)
