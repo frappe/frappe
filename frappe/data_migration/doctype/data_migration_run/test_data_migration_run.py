@@ -74,7 +74,7 @@ class TestDataMigrationRun(unittest.TestCase):
 			'doctype': 'Data Migration Connector',
 			'connector_name': 'Local Connector',
 			'connector_type': 'Frappe',
-			'hostname': 'localhost:8000',
+			'hostname': 'http://localhost:8000',
 			'username': 'Administrator',
 			'password': 'admin'
 		}).insert()
