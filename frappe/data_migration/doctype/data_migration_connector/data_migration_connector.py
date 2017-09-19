@@ -3,9 +3,8 @@
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
-import frappe
 from frappe.model.document import Document
-from .connectors.postgres import PostGresConnector
+from .connectors.postgres import PostGresConnection
 from .connectors.frappe_connection import FrappeConnection
 
 class DataMigrationConnector(Document):

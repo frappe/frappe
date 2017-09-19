@@ -3,7 +3,7 @@
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
-import frappe, json, os, base64
+import frappe, os, base64
 from frappe.model.document import Document
 
 class DataMigrationMapping(Document):
@@ -49,18 +49,3 @@ class DataMigrationMapping(Document):
 					remote_child_docs['doctype'] = []
 
 		return mapped
-
-	def pull(self, connection, start, page_length):
-		data = connection.get_objects(self.remote_objectname, self.condition, "*", start=start, page_length=page_length)
-		# self.make_custom_fields(self.local_doctype) # Creating a custom field for primary key
-
-		# pre process
-		if self.pre_process:
-			exec self.pre_process in locals()
-
-		for i, self.source in enumerate(data):
-			# Fetchnig the appropriate doctype
-			target = self.fetch_doctype()
-			target.set('migration_key', self.source.get('id')) # Setting migration key
-
-			self.store_mapped_data(target) # fetching data and storing it appropriately

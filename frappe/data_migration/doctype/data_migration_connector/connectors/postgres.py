@@ -2,7 +2,7 @@ from __future__ import unicode_literals
 import frappe, psycopg2
 from .base import BaseConnection
 
-class PostGresConnector(BaseConnection):
+class PostGresConnection(BaseConnection):
 	def __init__(self, properties):
 		self.__dict__.update(properties)
 		self._connector = psycopg2.connect("host='{0}' dbname='{1}' user='{2}' password='{3}'".format(self.hostname,
@@ -19,8 +19,8 @@ class PostGresConnector(BaseConnection):
 		data = []
 		for r in raw_data:
 			row_dict = frappe._dict({})
-			for i in range(len(r)):
-				row_dict[self.cursor.description[i][0]] = r[i]
+			for i, value in enumerate(r):
+				row_dict[self.cursor.description[i][0]] = value
 			data.append(row_dict)
 
 		return data

@@ -25,7 +25,7 @@ class DataMigrationRun(Document):
 			self.complete()
 
 	def enqueue_next_mapping(self):
-		next_mapping_name, percent_mappings_complete = self.get_next_mapping_and_percent_mappings_complete()
+		next_mapping_name = self.get_next_mapping_name()
 		if next_mapping_name:
 			next_mapping = self.get_mapping(next_mapping_name)
 			self.db_set(dict(
@@ -134,17 +134,17 @@ class DataMigrationRun(Document):
 					return m
 		return frappe.get_doc('Data Migration Mapping', mapping_name)
 
-	def get_next_mapping_and_percent_mappings_complete(self):
+	def get_next_mapping_name(self):
 		plan = self.get_plan()
 		if not self.current_mapping:
 			# first
-			return plan.mappings[0].mapping, 0
+			return plan.mappings[0].mapping
 		for i, d in enumerate(plan.mappings):
 			if i == len(plan.mappings) - 1:
 				# last
-				return None, 100
+				return None
 			if d.mapping == self.current_mapping:
-				return plan.mappings[i+1].mapping, (i + 1) * 100 / len(plan.mappings)
+				return plan.mappings[i+1].mapping
 
 		raise frappe.ValidationError('Mapping Broken')
 

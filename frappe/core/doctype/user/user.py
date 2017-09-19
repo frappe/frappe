@@ -42,13 +42,7 @@ class User(Document):
 
 	def before_insert(self):
 		self.flags.in_insert = True
-		self.throttle_user_creation()
-
-	def throttle_user_creation(self):
-		if frappe.flags.in_import:
-			return
-		if frappe.db.get_creation_count('User', 60) > 60:
-			frappe.throw(_('Throttled'))
+		throttle_user_creation()
 
 	def validate(self):
 		self.check_demo()
@@ -984,3 +978,9 @@ def reset_otp_secret(user):
 		return frappe.msgprint(_("OTP Secret has been reset. Re-registration will be required on next login."))
 	else:
 		return frappe.throw(_("OTP secret can only be reset by the Administrator."))
+
+def throttle_user_creation():
+	if frappe.flags.in_import:
+		return
+	if frappe.db.get_creation_count('User', 60) > 60:
+		frappe.throw(_('Throttled'))
