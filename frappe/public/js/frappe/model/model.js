@@ -183,7 +183,7 @@ $.extend(frappe.model, {
 	},
 
 	scrub: function(txt) {
-		return txt.replace(/ /g, "_").toLowerCase();
+		return txt.replace(/ /g, "_").toLowerCase();  // use to slugify or create a slug, a "code-friendly" string
 	},
 
 	unscrub: function(txt) {
