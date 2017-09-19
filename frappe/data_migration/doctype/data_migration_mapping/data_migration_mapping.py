@@ -38,7 +38,7 @@ class DataMigrationMapping(Document):
 			else:
 				value = d.get(f.local_fieldname)
 
-			if not f.is_child_table:
+			if not f.get('is_child_table'):
 				mapped[f.remote_fieldname] = value
 			else:
 				if mapped.get(f.remote_fieldname):
