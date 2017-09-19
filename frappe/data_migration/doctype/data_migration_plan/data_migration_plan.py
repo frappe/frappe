@@ -13,7 +13,7 @@ class DataMigrationPlan(Document):
 		self.make_custom_fields_for_mappings()
 
 	def on_update(self):
-		if frappe.flags.in_import:
+		if frappe.flags.in_import or frappe.flags.in_test:
 			return
 
 		if frappe.local.conf.get('developer_mode'):

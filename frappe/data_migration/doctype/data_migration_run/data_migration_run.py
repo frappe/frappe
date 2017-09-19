@@ -34,7 +34,7 @@ class DataMigrationRun(Document):
 				current_mapping_delete_start = 0,
 				current_mapping_action = 'Insert'
 			), notify=True, commit=True)
-			frappe.enqueue_doc(self.doctype, self.name, 'run_current_mapping')
+			frappe.enqueue_doc(self.doctype, self.name, 'run_current_mapping', now=frappe.flags.in_test)
 		else:
 			self.complete()
 
@@ -54,7 +54,7 @@ class DataMigrationRun(Document):
 			fields['current_mapping_delete_start'] = delete_start
 
 		self.db_set(fields, notify=True, commit=True)
-		frappe.enqueue_doc(self.doctype, self.name, 'run_current_mapping')
+		frappe.enqueue_doc(self.doctype, self.name, 'run_current_mapping', now=frappe.flags.in_test)
 
 	def run_current_mapping(self):
 		try:

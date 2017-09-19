@@ -34,7 +34,7 @@ class DataMigrationMapping(Document):
 				value = f.local_fieldname[1:-1]
 			elif f.formula and d.get(f.local_fieldname):
 				value = frappe.safe_eval(f.formula.format(d.get(f.local_fieldname)),
-					dict(frappe=frappe));
+					dict(frappe=frappe))
 			else:
 				value = d.get(f.local_fieldname)
 
