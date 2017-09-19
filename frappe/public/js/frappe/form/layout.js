@@ -441,7 +441,12 @@ frappe.ui.form.Layout = Class.extend({
 		var parent = this.frm ? this.frm.doc : null;
 
 		if(expression.substr(0,5)=='eval:') {
-			out = eval(expression.substr(5));
+			try {
+				out = eval(expression.substr(5));
+			} catch(e) {
+				frappe.throw(_('Invalid "depends_on" expression'))
+			}
+
 		} else if(expression.substr(0,3)=='fn:' && this.frm) {
 			out = this.frm.script_manager.trigger(expression.substr(3), this.doctype, this.docname);
 		} else {
