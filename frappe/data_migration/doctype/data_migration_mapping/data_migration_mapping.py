@@ -36,14 +36,7 @@ class DataMigrationMapping(Document):
 				value = frappe.safe_eval(f.formula.format(d.get(f.local_fieldname)),
 					dict(frappe=frappe));
 			else:
-				meta = frappe.get_meta(self.local_doctype)
-				if f.local_fieldname in [d.fieldname for d in meta.get_image_fields()] and d.get(f.local_fieldname):
-					img_path = os.path.abspath(d.get(f.local_fieldname))
-					with open(img_path) as f:
-						img_content = f.read()
-						value = base64.b64encode(img_content)
-				else:
-					value = d.get(f.local_fieldname)
+				value = d.get(f.local_fieldname)
 
 			if not f.is_child_table:
 				mapped[f.remote_fieldname] = value
