@@ -233,6 +233,8 @@ def prepare_to_notify(doc, print_html=None, print_format=None, attachments=None)
 		doc.content += get_attach_link(doc, print_format)
 
 	set_incoming_outgoing_accounts(doc)
+	if doc.sent_or_received == "Sent":
+		doc.db_set("email_account", doc.outgoing_email_account.name)
 
 	if not doc.sender:
 		doc.sender = doc.outgoing_email_account.email_id
