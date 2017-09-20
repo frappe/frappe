@@ -8,6 +8,7 @@ import json, requests
 from frappe import _
 from frappe.model.document import Document
 from six.moves.urllib.parse import urlparse
+from time import sleep
 
 class Webhook(Document):
 	def autoname(self):
@@ -36,28 +37,34 @@ class Webhook(Document):
 
 		if len(webhook_data)!= len(set(webhook_data)):
 			frappe.throw(_("Same Field is entered more than once"))
-	def request(self, doc):
-		headers = {}
-		data = {}
-		if self.webhook_headers:
-			for h in self.webhook_headers:
-				if h.get("key") and h.get("value"):
-					headers[h.get("key")] = h.get("value")
-		if self.webhook_data:
-			for k, v in doc.as_dict().items():
-				for w in self.webhook_data:
-					if k == w.fieldname:
-						data[w.key] = v
-		r = requests.post(self.request_url, data=json.dumps(data), headers=headers, timeout=5)
-		r.raise_for_status()
-		frappe.logger().debug({"webhook_success":r.text})
 
 def enqueue_webhook(doc, webhook):
 	webhook = frappe.get_doc("Webhook", webhook.get("name"))
-	try:
-		webhook.request(doc)
-	except Exception as e:
-		frappe.throw(_("Error in Webhook"), exc=e)
+	headers = {}
+	data = {}
+	if webhook.webhook_headers:
+		for h in webhook.webhook_headers:
+			if h.get("key") and h.get("value"):
+				headers[h.get("key")] = h.get("value")
+	if webhook.webhook_data:
+		for w in webhook.webhook_data:
+			for k, v in doc.as_dict().items():
+				if k == w.fieldname:
+					data[w.key] = v
+	error_status = []
+	for i in range(3):
+		try:
+			r = requests.post(webhook.request_url, data=json.dumps(data), headers=headers, timeout=5)
+			r.raise_for_status()
+			frappe.logger().debug({"webhook_success":r.text})
+			break
+		except Exception as e:
+			frappe.logger().debug({"webhook_error":e, "try": i+1})
+			sleep(3*i + 1)
+			if i !=2:
+				continue
+			else:
+				raise e
 
 def run_webhooks(doc, method):
 	'''Run webhooks for this method'''
@@ -71,7 +78,7 @@ def run_webhooks(doc, method):
 		webhooks = frappe.cache().hget('webhooks', doc.doctype)
 		if webhooks==None:
 			webhooks = frappe.get_all('Webhook',
-				fields=["name", "webhook_docevent"])
+				fields=["name", "webhook_docevent", "webhook_doctype"])
 			frappe.cache().hset('webhooks', doc.doctype, webhooks)
 		doc.flags.webhooks = webhooks
 
@@ -92,5 +99,5 @@ def run_webhooks(doc, method):
 
 	for webhook in doc.flags.webhooks:
 		event = method if method in event_list else None
-		if event and webhook.webhook_docevent == event:
+		if event and webhook.webhook_docevent == event and webhook.webhook_doctype == doc.doctype:
 			_webhook_request(webhook)
