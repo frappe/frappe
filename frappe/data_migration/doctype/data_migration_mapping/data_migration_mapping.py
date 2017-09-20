@@ -5,8 +5,15 @@
 from __future__ import unicode_literals
 import frappe, os, base64
 from frappe.model.document import Document
+from frappe.modules.export_file import export_to_files
 
 class DataMigrationMapping(Document):
+	def on_update(self):
+		if frappe.local.conf.get('developer_mode'):
+			record_list =[['Data Migration Mapping', self.name]]
+
+			export_to_files(record_list=record_list, record_module=self.module)
+
 	def get_filters(self):
 		if self.condition:
 			return frappe.safe_eval(self.condition, dict(frappe=frappe))
