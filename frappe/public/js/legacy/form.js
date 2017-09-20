@@ -195,7 +195,12 @@ _f.Frm.prototype.watch_model_updates = function() {
 	frappe.model.on(me.doctype, "*", function(fieldname, value, doc) {
 		// set input
 		if(doc.name===me.docname) {
-			me.dirty();
+			if (!value && !doc[value]) {
+				// both the incoming and outgoing values are falsy
+				// so don't trigger dirty
+			} else {
+				me.dirty();
+			}
 			me.fields_dict[fieldname]
 				&& me.fields_dict[fieldname].refresh(fieldname);
 

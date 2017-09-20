@@ -2,11 +2,15 @@
 // MIT License. See license.txt
 
 
-frappe.provide("frappe.ui")
+frappe.provide("frappe.ui");
 frappe.ui.app_icon = {
 	get_html: function(module, small) {
 		var icon = module.icon;
 		var color = module.color;
+		if (icon
+			&& icon.match(/([\uE000-\uF8FF]|\uD83C[\uDF00-\uDFFF]|\uD83D[\uDC00-\uDDFF])/g)) {
+			module.emoji = module.icon;
+		}
 		var icon_style = "";
 		if(module.reverse) {
 			icon_style = "color: #36414C;";
@@ -17,10 +21,10 @@ frappe.ui.app_icon = {
 		}
 
 		// first letter
-		if(!icon) {
+		if(!icon || module.emoji) {
 			icon = '<span class="inner" ' +
 				(module.reverse ? ('style="' + icon_style + '"') : '')
-				+ '>' + module._label[0].toUpperCase() + '</span>';
+				+ '>' + (module.emoji || module._label[0].toUpperCase()) + '</span>';
 		} else if(icon.split(".").slice(-1)[0]==="svg") {
 			$.ajax({
 				url: frappe.urllib.get_full_url(icon),
@@ -29,13 +33,13 @@ frappe.ui.app_icon = {
 				success: function(data) {
 					icon = data;
 				}
-			})
+			});
 			icon = '<object>'+ icon+'</object>';
 		} else {
 			icon = '<i class="'+ icon+'" title="' + module._label + '" style="'+ icon_style + '"></i>';
 		}
 
 		return '<div class="app-icon'+ (small ? " app-icon-small" : "")
-			+'" style="background-color: '+ color +'" title="'+ module._label +'">'+icon+'</div>'
+			+'" style="background-color: '+ color +'" title="'+ module._label +'">'+icon+'</div>';
 	}
-}
+};

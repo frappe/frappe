@@ -318,10 +318,19 @@ frappe.socketio.SocketIOUploader = class SocketIOUploader {
 	}
 
 	start({file=null, is_private=0, filename='', callback=null, on_progress=null,
-		chunk_size=100000} = {}) {
+		chunk_size=100000, fallback=null} = {}) {
 
 		if (this.reader) {
 			frappe.throw(__('File Upload in Progress. Please try again in a few moments.'));
+		}
+
+		if (!frappe.socketio.socket.connected) {
+			if (fallback) {
+				fallback();
+				return;
+			} else {
+				frappe.throw(__('Socketio is not connected. Cannot upload'));
+			}
 		}
 
 		this.reader = new FileReader();
