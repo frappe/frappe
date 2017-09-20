@@ -9,6 +9,11 @@ class TestDataMigrationRun(unittest.TestCase):
 	def test_push(self):
 		self.create_plan()
 
+		# delete all entries from Note
+		frappe.db.sql('''
+			truncate tabNote;
+		''')
+
 		description = 'Data migration todo'
 		new_todo = frappe.get_doc({
 			'doctype': 'ToDo',
