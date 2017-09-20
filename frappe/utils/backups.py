@@ -61,12 +61,13 @@ class BackupGenerator:
 		import random
 
 		todays_date = now_datetime().strftime('%Y%m%d_%H%M%S')
-		random_string = frappe.generate_hash(length=8)
+		site = frappe.local.site or frappe.generate_hash(length=8)
+		site = site.replace('.', '_')
 
 		#Generate a random name using today's date and a 8 digit random number
-		for_db = todays_date + "_" + random_string + "_database.sql.gz"
-		for_public_files = todays_date + "_" + random_string + "_files.tar"
-		for_private_files = todays_date + "_" + random_string + "_private_files.tar"
+		for_db = todays_date + "-" + site + "-database.sql.gz"
+		for_public_files = todays_date + "-" + site + "-files.tar"
+		for_private_files = todays_date + "-" + site + "-private-files.tar"
 		backup_path = get_backup_path()
 
 		if not self.backup_path_db:
