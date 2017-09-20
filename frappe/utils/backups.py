@@ -65,9 +65,9 @@ class BackupGenerator:
 		site = site.replace('.', '_')
 
 		#Generate a random name using today's date and a 8 digit random number
-		for_db = todays_date + "_" + site + "_database.sql.gz"
-		for_public_files = todays_date + "_" + site + "_files.tar"
-		for_private_files = todays_date + "_" + site + "_private_files.tar"
+		for_db = todays_date + "-" + site + "-database.sql.gz"
+		for_public_files = todays_date + "-" + site + "-files.tar"
+		for_private_files = todays_date + "-" + site + "-private-files.tar"
 		backup_path = get_backup_path()
 
 		if not self.backup_path_db:
