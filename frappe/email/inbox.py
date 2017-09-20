@@ -55,7 +55,7 @@ def create_email_flag_queue(names, action):
 		else:
 			_seen = json.loads(doc._seen or '[]')
 			_seen = [user for user in _seen if frappe.session.user != user]
-			doc.db_set('_seen', json.dumps(_seen))
+			doc.db_set('_seen', json.dumps(_seen), update_modified=False)
 
 	if not all([names, action]):
 		return
