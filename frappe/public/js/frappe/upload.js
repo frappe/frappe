@@ -279,6 +279,17 @@ frappe.upload = {
 			file: fileobj,
 			filename: args.filename,
 			is_private: args.is_private,
+			fallback: () => {
+				// if fails, use old filereader
+				let freader = new FileReader();
+				freader.onload = function() {
+					var dataurl = freader.result;
+					args.filedata = freader.result.split(",")[1];
+					args.file_size = fileobj.size;
+					frappe.upload._upload_file(fileobj, args, opts, dataurl);
+				}
+				freader.readAsDataURL(fileobj);
+			},
 			callback: (data) => {
 				args.file_url = data.file_url;
 				frappe.upload._upload_file(fileobj, args, opts);
