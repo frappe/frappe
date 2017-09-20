@@ -265,8 +265,8 @@ class EmailAccount(Document):
 				uid_reindexed = emails.get("uid_reindexed", False)
 
 			for idx, msg in enumerate(incoming_mails):
+				uid = None if not uid_list else uid_list[idx]
 				try:
-					uid = None if not uid_list else uid_list[idx]
 					args = {
 						"uid": uid,
 						"seen": None if not seen_status else get_seen(seen_status.get(uid, None)),
@@ -282,7 +282,7 @@ class EmailAccount(Document):
 					frappe.db.rollback()
 					log('email_account.receive')
 					if self.use_imap:
-						self.handle_bad_emails(email_server, msg[1], msg[0], frappe.get_traceback())
+						self.handle_bad_emails(email_server, uid, msg, frappe.get_traceback())
 					exceptions.append(frappe.get_traceback())
 
 				else:
@@ -309,13 +309,14 @@ class EmailAccount(Document):
 				message_id = "can't be parsed"
 
 			unhandled_email = frappe.get_doc({
-				"doctype": "Unhandled Email",
-				"email_account": email_server.settings.email_account,
+				"raw": raw,
 				"uid": uid,
+				"reason":reason,
 				"message_id": message_id,
-				"reason":reason
+				"doctype": "Unhandled Email",
+				"email_account": email_server.settings.email_account
 			})
-			unhandled_email.save()
+			unhandled_email.insert(ignore_permissions=True)
 			frappe.db.commit()
 
 	def insert_communication(self, msg, args={}):
