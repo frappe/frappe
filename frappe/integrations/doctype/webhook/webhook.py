@@ -51,7 +51,6 @@ def enqueue_webhook(doc, webhook):
 			for k, v in doc.as_dict().items():
 				if k == w.fieldname:
 					data[w.key] = v
-	error_status = []
 	for i in range(3):
 		try:
 			r = requests.post(webhook.request_url, data=json.dumps(data), headers=headers, timeout=5)
