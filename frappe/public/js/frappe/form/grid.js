@@ -142,8 +142,6 @@ frappe.ui.form.Grid = Class.extend({
 				grid: this
 			});
 		}
-		// to hide checkbox if grid is not editable
-		this.header_row.toggle_check();
 	},
 	refresh: function(force) {
 		!this.wrapper && this.make();
@@ -173,6 +171,8 @@ frappe.ui.form.Grid = Class.extend({
 			// redraw
 			var _scroll_y = $(document).scrollTop();
 			this.make_head();
+			// to hide checkbox if grid is not editable
+			this.header_row && this.header_row.toggle_check();
 
 			if(!this.grid_rows) {
 				this.grid_rows = [];
