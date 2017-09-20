@@ -1,17 +1,20 @@
 <div class="list-item">
     {%= main %}
 
-    <!-- id -->
+    <!-- id
     {% if (meta.title_field && !settings.hide_name_column) {
         var is_different = data.name !== data[meta.title_field];
-    %}
+    %} -->
+
+
+    <!-- BAZZ IS NOT INTERESTED IN COMMENTS
     <div class="list-item__content list-item__content--id hidden-xs hidden-sm ellipsis">
         {% if (is_different) { %}
         <a class="text-muted ellipsis" href="#Form/{%= data._doctype_encoded %}/{%= data._name_encoded %}">
             {%= data.name %}</a>
         {% } %}
     </div>
-    {% } %}
+    {% } %} -->
 
     <!-- comment -->
     {% if (!data._hide_activity) { %}

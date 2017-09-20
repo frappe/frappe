@@ -47,6 +47,9 @@ frappe.views.ListRenderer = Class.extend({
 	},
 	init_settings: function () {
 		this.settings = frappe.listview_settings[this.doctype] || {};
+		if(!("selectable" in this.settings)) {
+			this.settings.selectable = true;
+		}
 		this.init_user_settings();
 
 		this.order_by = this.user_settings.order_by || this.settings.order_by;
@@ -156,7 +159,7 @@ frappe.views.ListRenderer = Class.extend({
 		var me = this;
 		this.columns = [];
 		var name_column = {
-			colspan: this.settings.colwidths && this.settings.colwidths.subject || 6,
+			colspan: this.settings.colwidths && this.settings.colwidths.subject || 3,
 			type: 'Subject',
 			title: 'Name'
 		};
@@ -168,7 +171,7 @@ frappe.views.ListRenderer = Class.extend({
 		if (frappe.has_indicator(this.doctype)) {
 			// indicator
 			this.columns.push({
-				colspan: this.settings.colwidths && this.settings.colwidths.indicator || 3,
+				colspan: this.settings.colwidths && this.settings.colwidths.indicator || 2,
 				type: 'Indicator',
 				title: 'Status'
 			});
@@ -231,10 +234,13 @@ frappe.views.ListRenderer = Class.extend({
 		this.columns = this.columns.uniqBy(col => col.title);
 
 		// Remove TextEditor field columns
-		this.columns = this.columns.filter(col => col.fieldtype !== 'Text Editor')
+		this.columns = this.columns.filter(col => col.fieldtype !== 'Text Editor');
 
-		// Limit number of columns to 4
-		this.columns = this.columns.slice(0, 4);
+		// Remove color field
+		this.columns = this.columns.filter(col => col.fieldtype !== 'Color');
+
+		// Limit number of columns to 5
+		this.columns = this.columns.slice(0, 5);
 	},
 	add_column: function (df) {
 		// field width
@@ -499,7 +505,8 @@ frappe.views.ListRenderer = Class.extend({
 		}
 
 		// whether to hide likes/comments/assignees
-		data._hide_activity = 0;
+		// BAZZ IS NOT INTERESTED IN ACTIVITY
+		data._hide_activity = 1;
 
 		data._assign_list = JSON.parse(data._assign || '[]');
 
