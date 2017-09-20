@@ -26,38 +26,39 @@ class TestDataMigrationRun(unittest.TestCase):
 		self.assertEqual(run.db_get('items_inserted'), frappe.db.count('ToDo'))
 
 		todo = frappe.get_doc('ToDo', new_todo.name)
-		self.assertEqual(todo.todo_sync_id, description)
+		self.assertTrue(todo.todo_sync_id)
 
-		note = frappe.get_doc('Note', description)
-		self.assertEqual(note.title, description)
+		event = frappe.get_doc('Event', todo.todo_sync_id)
+		self.assertEqual(event.subject, description)
 
-	# def test_push_update(self):
-	# 	todo_list = frappe.get_list('ToDo', filters={'description': 'Data migration todo'}, fields=['name'])
-	# 	todo_name = todo_list[0].name
+	def test_push_update(self):
+		todo_list = frappe.get_list('ToDo', filters={'description': 'Data migration todo'}, fields=['name'])
+		todo_name = todo_list[0].name
 
-	# 	todo = frappe.get_doc('ToDo', todo_name)
-	# 	todo.description = 'Data migration todo updated'
-	# 	todo.save()
+		todo = frappe.get_doc('ToDo', todo_name)
+		todo.description = 'Data migration todo updated'
+		todo.save()
 
-	# 	run = frappe.get_doc({
-	# 		'doctype': 'Data Migration Run',
-	# 		'data_migration_plan': 'ToDo Sync',
-	# 		'data_migration_connector': 'Local Connector'
-	# 	}).insert()
+		run = frappe.get_doc({
+			'doctype': 'Data Migration Run',
+			'data_migration_plan': 'ToDo Sync',
+			'data_migration_connector': 'Local Connector'
+		}).insert()
 
-	# 	run.run()
-	# 	self.assertEqual(run.db_get('status'), 'Success')
-	# 	self.assertEqual(run.db_get('items_updated'), 1)
+		run.run()
+		self.assertEqual(run.db_get('status'), 'Success')
+		self.assertEqual(run.db_get('items_updated'), 1)
 
 	def create_plan(self):
 		frappe.get_doc({
 			'doctype': 'Data Migration Mapping',
-			'mapping_name': 'Todo to Note',
-			'remote_objectname': 'Note',
-			'remote_primary_key': 'title',
+			'mapping_name': 'Todo to Event',
+			'remote_objectname': 'Event',
+			'remote_primary_key': 'name',
 			'local_doctype': 'ToDo',
 			'fields': [
-				{ 'remote_fieldname': 'title', 'local_fieldname': 'description' }
+				{ 'remote_fieldname': 'subject', 'local_fieldname': 'description' },
+				{ 'remote_fieldname': 'starts_on', 'local_fieldname': 'eval:frappe.utils.get_datetime_str(frappe.utils.get_datetime())' }
 			]
 		}).insert()
 
@@ -66,7 +67,7 @@ class TestDataMigrationRun(unittest.TestCase):
 			'plan_name': 'ToDo sync',
 			'module': 'Core',
 			'mappings': [
-				{ 'mapping': 'Todo to Note' }
+				{ 'mapping': 'Todo to Event' }
 			]
 		}).insert()
 
