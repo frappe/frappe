@@ -15,7 +15,7 @@ frappe.listview_settings['Communication'] = {
 			list_view.call_for_selected_items(method, { action: "Read" });
 		});
 		list_view.page.add_menu_item(__("Mark as Unread"), function() {
-			list_view.call_for_selected_items(method, { action: "Unread", flag: "(\\UNSEEN)" });
+			list_view.call_for_selected_items(method, { action: "Unread" });
 		});
 	},
 
