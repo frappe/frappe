@@ -233,8 +233,6 @@ def prepare_to_notify(doc, print_html=None, print_format=None, attachments=None)
 		doc.content += get_attach_link(doc, print_format)
 
 	set_incoming_outgoing_accounts(doc)
-	if doc.sent_or_received == "Sent":
-		doc.db_set("email_account", doc.outgoing_email_account.name)
 
 	if not doc.sender:
 		doc.sender = doc.outgoing_email_account.email_id
@@ -290,6 +288,9 @@ def set_incoming_outgoing_accounts(doc):
 		doc.outgoing_email_account = frappe.db.get_value("Email Account",
 			{"default_outgoing": 1, "enable_outgoing": 1},
 			["email_id", "always_use_account_email_id_as_sender", "name", "send_unsubscribe_message"], as_dict=True) or frappe._dict()
+
+	if doc.sent_or_received == "Sent":
+		doc.db_set("email_account", doc.outgoing_email_account.name)
 
 def get_recipients(doc, fetched_from_email_account=False):
 	"""Build a list of email addresses for To"""
