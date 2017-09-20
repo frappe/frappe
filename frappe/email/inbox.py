@@ -46,7 +46,7 @@ def get_email_accounts(user=None):
 	}
 
 @frappe.whitelist()
-def create_email_flag_queue(names, action, flag="(\\Seen)"):
+def create_email_flag_queue(names, action, flag="(\\SEEN)"):
 	""" create email flag queue to mark email either as read or unread """
 	class Found(Exception):
 		pass
@@ -66,7 +66,7 @@ def create_email_flag_queue(names, action, flag="(\\Seen)"):
 		if (action =='Read' and seen_status == 0) or (action =='Unread' and seen_status == 1):
 			try:
 				queue = frappe.db.sql("""select name, action, flag from `tabEmail Flag Queue`
-					where communication = %(name)s""", {"name":name}, as_dict=True)
+					where communication = %(name)s and is_completed=0""", {"name":name}, as_dict=True)
 				for q in queue:
 					# is same email with same flag
 					if q.flag == flag:
@@ -83,7 +83,7 @@ def create_email_flag_queue(names, action, flag="(\\Seen)"):
 					"doctype": "Email Flag Queue",
 					"email_account": email_account
 				})
-				flag_queue.save(ignore_permissions=True);
+				flag_queue.save(ignore_permissions=True)
 				frappe.db.set_value("Communication", name, "seen", seen, 
 					update_modified=False)
 			except Found:
