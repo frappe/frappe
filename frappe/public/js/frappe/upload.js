@@ -287,7 +287,7 @@ frappe.upload = {
 					args.filedata = freader.result.split(",")[1];
 					args.file_size = fileobj.size;
 					frappe.upload._upload_file(fileobj, args, opts, dataurl);
-				}
+				};
 				freader.readAsDataURL(fileobj);
 			},
 			callback: (data) => {
