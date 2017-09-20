@@ -23,7 +23,8 @@ class TestDataMigrationRun(unittest.TestCase):
 
 		run.run()
 		self.assertEqual(run.db_get('status'), 'Success')
-		self.assertEqual(run.db_get('items_inserted'), frappe.db.count('ToDo'))
+		self.assertEqual(run.db_get('items_inserted'), frappe.db.count('ToDo',
+			filters={'todo_sync_id': ('!=', '')}))
 
 		todo = frappe.get_doc('ToDo', new_todo.name)
 		self.assertTrue(todo.todo_sync_id)
