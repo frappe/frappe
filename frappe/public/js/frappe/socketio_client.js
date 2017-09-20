@@ -329,7 +329,7 @@ frappe.socketio.SocketIOUploader = class SocketIOUploader {
 				fallback();
 				return;
 			} else {
-				frappe.throw(__('Socketio is not connected. Cannot upload'))
+				frappe.throw(__('Socketio is not connected. Cannot upload'));
 			}
 		}
 
