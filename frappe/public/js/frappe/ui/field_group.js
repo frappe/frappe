@@ -33,11 +33,15 @@ frappe.ui.FieldGroup = frappe.ui.form.Layout.extend({
 			}
 
 			$(this.body).find('input').on('change', function() {
-				me.refresh_dependency();
+				frappe.run_serially([
+					() => me.refresh_dependency()
+				]);
 			})
 
 			$(this.body).find('select').on("change", function() {
-				me.refresh_dependency();
+				frappe.run_serially([
+					() => me.refresh_dependency()
+				]);
 			})
 		}
 	},
