@@ -88,14 +88,17 @@ class DataMigrationRun(Document):
 		return condition
 
 	def begin(self):
+		plan_active_mappings = [m for m in self.get_plan().mappings if m.enabled]
 		self.mappings = [frappe.get_doc(
-			'Data Migration Mapping', m.mapping) for m in self.get_plan().mappings]
+			'Data Migration Mapping', m.mapping) for m in plan_active_mappings]
 
 		total_pages = 0
-		for m in self.mappings:
+		for m in [mapping for mapping in self.mappings if mapping.mapping_type == 'Push']:
 			count = float(self.get_count(m))
 			page_count = math.ceil(count / m.page_length)
 			total_pages += page_count
+
+		total_pages = 10
 
 		self.db_set(dict(
 			status = 'Started',
@@ -135,16 +138,16 @@ class DataMigrationRun(Document):
 		return frappe.get_doc('Data Migration Mapping', mapping_name)
 
 	def get_next_mapping_name(self):
-		plan = self.get_plan()
+		mappings = [m for m in self.get_plan().mappings if m.enabled]
 		if not self.current_mapping:
 			# first
-			return plan.mappings[0].mapping
-		for i, d in enumerate(plan.mappings):
-			if i == len(plan.mappings) - 1:
+			return mappings[0].mapping
+		for i, d in enumerate(mappings):
+			if i == len(mappings) - 1:
 				# last
 				return None
 			if d.mapping == self.current_mapping:
-				return plan.mappings[i+1].mapping
+				return mappings[i+1].mapping
 
 		raise frappe.ValidationError('Mapping Broken')
 
@@ -211,6 +214,8 @@ class DataMigrationRun(Document):
 		return self.connection
 
 	def push(self):
+		self.db_set('current_mapping_type', 'Push')
+
 		mapping = self.get_mapping(self.current_mapping)
 		start = self.current_mapping_start
 		connection = self.get_connection()
@@ -262,4 +267,27 @@ class DataMigrationRun(Document):
 		return False
 
 	def pull(self):
-		pass
+		self.db_set('current_mapping_type', 'Pull')
+
+		mapping = self.get_mapping(self.current_mapping)
+		start = self.current_mapping_start
+		page_length = mapping.page_length
+		filters = mapping.get_filters() or {}
+
+		connection = self.get_connection()
+		doc_list = []
+
+		response = connection.get_list(mapping.remote_objectname, ["*"], filters, start, page_length)
+		if response.ok:
+			doc_list = response.list
+			for doc in doc_list:
+				mapping.insert_mapped_record(doc)
+
+		if len(doc_list) < mapping.page_length:
+			if self.current_mapping_action == 'Insert':
+				self.db_set('current_mapping_action', 'Delete')
+				return False
+			elif self.current_mapping_action == 'Delete':
+				return True
+
+		return False
