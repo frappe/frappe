@@ -9,7 +9,6 @@ from frappe.utils import cint
 @frappe.whitelist()
 def add(doctype, name, user=None, read=1, write=0, share=0, everyone=0, flags=None, notify=0):
 	"""Share the given document with a user."""
-	print notify, share
 	if not user:
 		user = frappe.session.user
 
