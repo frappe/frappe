@@ -162,12 +162,12 @@ frappe.upload = {
 					<div class="list-item__content list-item__content--flex-2 ellipsis">
 						<span>${file.name}</span>
 						<span style="margin-top: 1px; margin-left: 5px;"
-							class="fa fa-fw text-warning ${file.is_private ? 'fa-lock': 'fa-unlock-alt'}">
+							class="fa fa-fw text-warning fa-lock">
 						</span>
 					</div>
 					${show_private?
 						`<div class="list-item__content file-public-column ellipsis">
-							<input type="checkbox" ${!file.is_private ? 'checked' : ''}/></div>`
+							<input type="checkbox"/></div>`
 					: ''}
 					<div class="list-item__content list-item__content--activity ellipsis" style="flex: 0 0 32px;">
 					<button class="btn btn-default btn-xs text-muted uploaded-file-remove">
@@ -252,7 +252,7 @@ frappe.upload = {
 					frappe.upload.upload_to_server(fileobj, args, opts);
 				}, __("Private or Public?"));
 			} else {
-				if ("is_private" in opts) {
+				if (!("is_private" in args) && "is_private" in opts) {
 					args["is_private"] = opts.is_private;
 				}
 
