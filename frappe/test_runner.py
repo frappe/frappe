@@ -223,8 +223,6 @@ def make_test_records(doctype, verbose=0, force=False):
 			continue
 
 		if not options in frappe.local.test_objects:
-			if options in frappe.local.test_objects:
-				print("No test records or circular reference for {0}".format(options))
 			frappe.local.test_objects[options] = []
 			make_test_records(options, verbose, force)
 			make_test_records_for_doctype(options, verbose, force)
@@ -298,8 +296,10 @@ def make_test_objects(doctype, test_records=None, verbose=None, reset=False):
 
 		if doc.get('name'):
 			d.name = doc.get('name')
+		else:
+			d.set_new_name()
 
-		if frappe.local.test_objects.get(d.doctype) and not reset:
+		if d.name in (frappe.local.test_objects.get(d.doctype) or []) and not reset:
 			# do not create test records, if already exists
 			return []
 
