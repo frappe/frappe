@@ -50,22 +50,22 @@ class FrappeConnection(BaseConnection):
 				ok=True
 			))
 		except FrappeException as e:
-			frappe.msgprint(e.args[0])
-			return frappe._dict(dict(
-				ok=False,
-				error=e.args[0]
-			))
+			self.return_error(e)
 
-	def get_list(self, doctype, fields='"*"', filters=None, limit_start=0, limit_page_length=20):
+	def get_list(self, doctype, fields='"*"', filters=None, start=0, page_length=20):
 		try:
-			doc_list = self.connection.get_list(doctype, fields, filters, limit_start, limit_page_length)
+			doc_list = self.connection.get_list(doctype, fields=fields, filters=filters,
+				limit_start=start, limit_page_length=page_length)
 			return frappe._dict(dict(
-				list= doc_list,
+				data=doc_list,
 				ok=True
 			))
 		except FrappeException as e:
-			frappe.msgprint(e.args[0])
-			return frappe._dict(dict(
-				ok=False,
-				error=e.args[0]
-			))
+			self.return_error(e)
+
+	def return_error(self, e):
+		frappe.msgprint(e.args[0])
+		return frappe._dict(dict(
+			ok=False,
+			error=e.args[0]
+		))

@@ -28,15 +28,21 @@ class DataMigrationMapping(Document):
 
 	def get_mapped_record(self, d):
 		mapped = frappe._dict()
+
+		key_fieldname = 'remote_fieldname'
+		value_fieldname = 'local_fieldname'
+		if self.mapping_type == 'Pull':
+			key_fieldname, value_fieldname = value_fieldname, key_fieldname
+
 		for f in self.fields:
-			value = get_field_value(f, 'local_fieldname', d)
+			value = get_field_value(f, value_fieldname, d)
 			if not f.get('is_child_table'):
-				mapped[f.remote_fieldname] = value
+				mapped[f.get(key_fieldname)] = value
 			else:
-				if mapped.get(f.remote_fieldname):
-					mapped[f.remote_fieldname]['child_docs'].append()
+				if mapped.get(f.get(key_fieldname)):
+					mapped[f.get(key_fieldname)]['child_docs'].append()
 				else:
-					remote_child_docs = mapped[f.remote_fieldname]
+					remote_child_docs = mapped[f.get(key_fieldname)]
 					remote_child_docs = frappe._dict()
 					remote_child_docs['doctype'] = []
 

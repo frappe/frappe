@@ -152,6 +152,7 @@ class DataMigrationRun(Document):
 		raise frappe.ValidationError('Mapping Broken')
 
 	def get_data(self, mapping, start=0):
+		'''Fetch data from local using `frappe.get_all`. Used during Push'''
 		filters = mapping.get_filters() or {}
 		or_filters = self.get_or_filters(mapping)
 
@@ -165,6 +166,16 @@ class DataMigrationRun(Document):
 				start=self.current_mapping_delete_start,
 				page_length=mapping.page_length
 			)
+
+	def get_remote_data(self, mapping, start=0):
+		'''Fetch data from remote using `connection.get_list`. Used during Pull'''
+		page_length = mapping.page_length
+		filters = mapping.get_filters() or {}
+		connection = self.get_connection()
+
+		return connection.get_list(mapping.remote_objectname,
+			fields=["*"], filters=filters, start=start,
+			page_length=mapping.page_length)
 
 	def get_deleted_docs(self, mapping, start, page_length):
 		filters = dict(
@@ -271,19 +282,14 @@ class DataMigrationRun(Document):
 
 		mapping = self.get_mapping(self.current_mapping)
 		start = self.current_mapping_start
-		page_length = mapping.page_length
-		filters = mapping.get_filters() or {}
 
-		connection = self.get_connection()
-		doc_list = []
-
-		response = connection.get_list(mapping.remote_objectname, ["*"], filters, start, page_length)
+		response = self.get_remote_data(mapping, start)
 		if response.ok:
-			doc_list = response.list
-			for doc in doc_list:
-				mapping.insert_mapped_record(doc)
+			data = response.data
+			for d in data:
+				self.insert_doc(mapping, d)
 
-		if len(doc_list) < mapping.page_length:
+		if len(data) < mapping.page_length:
 			if self.current_mapping_action == 'Insert':
 				self.db_set('current_mapping_action', 'Delete')
 				return False
@@ -291,3 +297,29 @@ class DataMigrationRun(Document):
 				return True
 
 		return False
+
+	def insert_doc(self, mapping, remote_doc):
+		if mapping.pre_process:
+			print('Pre-processing...')
+			remote_doc = process_doc(remote_doc, mapping.pre_process)
+
+		print('Remote doc')
+		print(remote_doc)
+
+		if not frappe.db.exists(mapping.local_doctype,
+			{mapping.local_primary_key: remote_doc[mapping.local_primary_key]}):
+			doc = mapping.get_mapped_record(remote_doc)
+			if not doc.doctype:
+				doc.doctype = mapping.local_doctype
+			doc = frappe.get_doc(doc).insert()
+
+			if mapping.post_process:
+				print('Post-processing...')
+				process_doc(remote_doc, mapping.post_process)
+
+	def update_doc(self):
+		pass
+
+def process_doc(doc, exec_statement):
+	exec exec_statement in locals()
+	return modified_doc
