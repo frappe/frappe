@@ -355,7 +355,7 @@ frappe.Application = Class.extend({
 	},
 	make_nav_bar: function() {
 		// toolbar
-		if(frappe.boot) {
+		if(frappe.boot && !frappe.boot.in_setup_wizard) {
 			frappe.frappe_toolbar = new frappe.ui.toolbar.Toolbar();
 		}
 

@@ -26,11 +26,7 @@ frappe.setup = {
 }
 
 frappe.pages['setup-wizard'].on_page_load = function(wrapper) {
-	// setup page ui
-	$(".navbar:first").toggle(false);
-
-	var requires = ["/assets/frappe/css/animate.min.css"].concat(
-		frappe.boot.setup_wizard_requires || []);
+	var requires = (frappe.boot.setup_wizard_requires || []);
 
 	frappe.require(requires, function() {
 		frappe.call({
@@ -38,7 +34,7 @@ frappe.pages['setup-wizard'].on_page_load = function(wrapper) {
 			freeze: true,
 			callback: function(r) {
 				frappe.setup.data.lang = r.message;
-				
+
 				frappe.setup.run_event("before_load");
 				var wizard_settings = {
 					parent: wrapper,
@@ -181,8 +177,8 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 					localStorage.setItem("session_last_route", frappe.setup.welcome_page);
 				}
 				setTimeout(function() {
-					// frappe.ui.toolbar.clear_cache();
-					window.location = "/desk";
+					// Reload
+					window.location.href = '';
 				}, 2000);
 				setTimeout(()=> {
 					$('body').removeClass('setup-state');
