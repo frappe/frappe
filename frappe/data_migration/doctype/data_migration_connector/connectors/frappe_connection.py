@@ -57,7 +57,6 @@ class FrappeConnection(BaseConnection):
 			))
 
 	def get_list(self, doctype, fields='"*"', filters=None, limit_start=0, limit_page_length=20):
-		print(doctype, fields, filters, limit_start, limit_page_length)
 		try:
 			doc_list = self.connection.get_list(doctype, fields, filters, limit_start, limit_page_length)
 			return frappe._dict(dict(
