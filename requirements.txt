@@ -25,7 +25,7 @@ ipython
 html2text
 email_reply_parser
 click
-num2words==0.5.4
+num2words==0.5.5
 watchdog==0.8.0
 bleach
 bleach-whitelist

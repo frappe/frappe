@@ -234,7 +234,7 @@ frappe.verify_password = function(callback) {
 	}, __("Verify Password"), __("Verify"))
 }
 
-frappe.show_progress = function(title, count, total) {
+frappe.show_progress = function(title, count, total=100, description) {
 	if(frappe.cur_progress && frappe.cur_progress.title === title
 			&& frappe.cur_progress.$wrapper.is(":visible")) {
 		var dialog = frappe.cur_progress;
@@ -242,7 +242,10 @@ frappe.show_progress = function(title, count, total) {
 		var dialog = new frappe.ui.Dialog({
 			title: title,
 		});
-		dialog.progress = $('<div class="progress"><div class="progress-bar"></div></div>')
+		dialog.progress = $(`<div class="progress">
+			<div class="progress-bar"></div>
+			<p class="description text-muted small"></p>
+		</div>`)
 			.appendTo(dialog.body);
 		dialog.progress_bar = dialog.progress.css({"margin-top": "10px"})
 			.find(".progress-bar");
@@ -250,7 +253,12 @@ frappe.show_progress = function(title, count, total) {
 		dialog.show();
 		frappe.cur_progress = dialog;
 	}
-	dialog.progress_bar.css({"width": cint(flt(count) * 100 / total) + "%" });
+	if (description) {
+		dialog.progress.find('.description').text(description);
+	}
+	dialog.percent = cint(flt(count) * 100 / total);
+	dialog.progress_bar.css({"width": dialog.percent + "%" });
+	return dialog;
 }
 
 frappe.hide_progress = function() {

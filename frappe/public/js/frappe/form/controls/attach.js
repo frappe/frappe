@@ -9,10 +9,10 @@ frappe.ui.form.ControlAttach = frappe.ui.form.ControlData.extend({
 			});
 		this.$value = $('<div style="margin-top: 5px;">\
 			<div class="ellipsis" style="display: inline-block; width: 90%;">\
-				<i class="fa fa-paper-clip"></i> \
+				<i class="fa fa-paperclip"></i> \
 				<a class="attached-file" target="_blank"></a>\
 			</div>\
-			<a class="close">&times;</a></div>')
+			<a class="close" style="position: absolute; right: 15px;">&times;</a></div>')
 			.prependTo(me.input_area)
 			.toggle(false);
 		this.input = this.$input.get(0);

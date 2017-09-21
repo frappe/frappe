@@ -180,30 +180,12 @@ frappe.activity.render_heatmap = function(page) {
 		method: "frappe.desk.page.activity.activity.get_heatmap_data",
 		callback: function(r) {
 			if(r.message) {
-				var legend = [];
-				var max = Math.max.apply(this, $.map(r.message, function(v) { return v }));
-				var legend = [cint(max/5), cint(max*2/5), cint(max*3/5), cint(max*4/5)];
-				var heatmap = new CalHeatMap();
-				heatmap.init({
-					itemSelector: ".heatmap",
-					domain: "month",
-					subDomain: "day",
-					start: moment().subtract(1, 'year').add(1, 'month').toDate(),
-					cellSize: 9,
-					cellPadding: 2,
-					domainGutter: 2,
-					range: 12,
-					domainLabelFormat: function(date) {
-						return moment(date).format("MMM").toUpperCase();
-					},
-					displayLegend: false,
-					legend: legend,
-					tooltip: true,
-					subDomainTitleFormat: {
-						empty: "{date}",
-						filled: "{count} actions on {date}"
-					},
-					subDomainDateFormat: "%d-%b"
+				var heatmap = new frappe.ui.HeatMap({
+					parent: $(".heatmap"),
+					height: 100,
+					start: new Date(moment().subtract(1, 'year').toDate()),
+					count_label: "actions",
+					discrete_domains: 0
 				});
 
 				heatmap.update(r.message);

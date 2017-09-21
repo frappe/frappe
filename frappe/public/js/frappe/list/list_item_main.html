@@ -32,6 +32,8 @@
             data-filter="{%= col.fieldname %},=,{%= value %}">
         {% if(formatters && formatters[col.fieldname]) { %}
             {{ formatters[col.fieldname](value, col.df, data) }}
+        {% } else if(col.fieldtype == "Code") { %}
+            {{ value }}
         {% } else { %}
             {{ frappe.format(value, col.df, null, data) }}
         {% } %}
