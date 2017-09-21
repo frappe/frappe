@@ -12,6 +12,9 @@ frappe.upload = {
 
 		// whether to show public/private checkbox or not
 		opts.show_private = !("is_private" in opts);
+		
+		// make private by default
+		opts.is_private = 1;
 
 		var d = null;
 		// create new dialog if no parent given
@@ -195,6 +198,8 @@ frappe.upload = {
 		$(document).on('upload_complete', on_upload);
 
 		function upload_next() {
+			
+			debugger;
 			if(files) {
 				i += 1;
 				var file = files[i];
@@ -237,7 +242,6 @@ frappe.upload = {
 		if (args.file_size) {
 			frappe.upload.validate_max_file_size(args.file_size);
 		}
-
 		if(opts.on_attach) {
 			opts.on_attach(args)
 		} else {
