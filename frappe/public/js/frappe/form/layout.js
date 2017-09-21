@@ -444,7 +444,7 @@ frappe.ui.form.Layout = Class.extend({
 			try {
 				out = eval(expression.substr(5));
 			} catch(e) {
-				frappe.throw(_('Invalid "depends_on" expression'))
+				frappe.throw(__('Invalid "depends_on" expression'));
 			}
 
 		} else if(expression.substr(0,3)=='fn:' && this.frm) {
