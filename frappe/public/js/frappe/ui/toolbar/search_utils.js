@@ -51,7 +51,7 @@ frappe.search.utils = {
 			var out = {
 				route: match[1]
 			}
-			if(match[1][0]==='Form') {
+			if(match[1][0]==='Form' && match[1][2]) {
 				if(match[1][1] !== match[1][2]) {
 					out.label = __(match[1][1]) + " " + match[1][2].bold();
 					out.value = __(match[1][1]) + " " + match[1][2];

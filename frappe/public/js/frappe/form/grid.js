@@ -653,7 +653,7 @@ frappe.ui.form.Grid = Class.extend({
 		var btn = this.custom_buttons[label];
 		if(!btn) {
 			btn = $('<button class="btn btn-default btn-xs btn-custom">' + label + '</button>')
-				.css('margin-right', '10px')
+				.css('margin-right', '4px')
 				.prependTo(this.grid_buttons)
 				.on('click', click);
 			this.custom_buttons[label] = btn;
