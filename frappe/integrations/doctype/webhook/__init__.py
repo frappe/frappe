@@ -13,12 +13,16 @@ def run_webhooks(doc, method):
 		frappe.local.webhooks_executed = []
 
 	if doc.flags.webhooks == None:
-		webhooks = frappe.cache().hget('webhooks', doc.doctype)
+		webhooks = frappe.cache().get_value('webhooks')
 		if webhooks==None:
-			webhooks = frappe.get_all('Webhook',
+			webhooks_list = frappe.get_all('Webhook',
 				fields=["name", "webhook_docevent", "webhook_doctype"])
-			frappe.cache().hset('webhooks', doc.doctype, webhooks)
-		doc.flags.webhooks = webhooks
+
+			webhooks = {}
+			for w in webhooks_list:
+				webhooks.setdefault(w.webhook_doctype, []).append(w)
+			frappe.cache().set_value('webhooks', webhooks)
+		doc.flags.webhooks = webhooks.get(doc.doctype, None)
 
 	if not doc.flags.webhooks:
 		return
@@ -37,5 +41,5 @@ def run_webhooks(doc, method):
 
 	for webhook in doc.flags.webhooks:
 		event = method if method in event_list else None
-		if event and webhook.webhook_docevent == event and webhook.webhook_doctype == doc.doctype:
+		if event and webhook.webhook_docevent == event:
 			_webhook_request(webhook)

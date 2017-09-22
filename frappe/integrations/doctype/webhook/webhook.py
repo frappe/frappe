@@ -19,6 +19,9 @@ class Webhook(Document):
 		self.validate_request_url()
 		self.validate_repeating_fields()
 
+	def on_update(self):
+		frappe.cache().delete_value('webhooks')
+
 	def validate_docevent(self):
 		if self.webhook_doctype:
 			is_submittable = frappe.get_value("DocType", self.webhook_doctype, "is_submittable")
