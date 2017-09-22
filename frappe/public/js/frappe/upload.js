@@ -198,8 +198,6 @@ frappe.upload = {
 		$(document).on('upload_complete', on_upload);
 
 		function upload_next() {
-			
-			debugger;
 			if(files) {
 				i += 1;
 				var file = files[i];
