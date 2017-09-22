@@ -62,6 +62,7 @@ def watch(no_compress):
 	# 	time.sleep(3)
 
 def make_asset_dirs(make_copy=False, make_copy_force=False):
+	# don't even think of making assets_path absolute - rm -rf ahead.
 	assets_path = os.path.join(frappe.local.sites_path, "assets")
 	for dir_path in [
 			os.path.join(assets_path, 'js'),
@@ -82,16 +83,25 @@ def make_asset_dirs(make_copy=False, make_copy_force=False):
 		for source, target in symlinks:
 			source = os.path.abspath(source)
 			if os.path.exists(source):
-				if os.path.exists(target):
-					if make_copy_force:
-						if not make_copy:
+				if make_copy_force:
+					if os.path.exists(target):
+						if os.path.islink(target):
 							os.unlink(target)
-							shutil.copytree(source, target)
 						else:
-							warnings.warn('Target {target} already exists.'.format(target = target))
-							pass # if exists, don't make copy.
+							shutil.rmtree(target)
+						shutil.copytree(source, target)
+				elif make_copy:
+					if os.path.exists(target):
+						warnings.warn('Target {target} already exists.'.format(target = target))
 					else:
-						os.symlink(source, target)
+						shutil.copytree(source, target)
+				else:
+					if os.path.exists(target):
+						if os.path.islink(target):
+							os.unlink(target)
+						else:
+							shutil.rmtree(target)
+					os.symlink(source, target)
 			else:
 				warnings.warn('Source {source} does not exists.'.format(source = source))
 
