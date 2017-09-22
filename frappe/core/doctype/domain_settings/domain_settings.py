@@ -7,8 +7,45 @@ import frappe
 from frappe.model.document import Document
 
 class DomainSettings(Document):
+	def set_active_domains(self, domains):
+		self.active_domains = []
+		for d in domains:
+			self.append('active_domains', dict(domain=d))
+		self.save()
+
 	def on_update(self):
-		clear_domain_cache()
+		for d in self.active_domains:
+			domain = frappe.get_doc('Domain', d.domain)
+			domain.setup_domain()
+
+		self.restrict_roles_and_modules()
+		frappe.clear_cache()
+
+	def get_all_domains(self):
+		'''Return all domains'''
+		return (frappe.get_hooks('domains') or {}).keys()
+
+	def restrict_roles_and_modules(self):
+		'''Disable all restricted roles and set `restrict_to_domain` property in Module Def'''
+		active_domains = frappe.get_active_domains()
+
+		def remove_role(role):
+			frappe.db.sql('delete from `tabHas Role` where role=%s', role)
+			frappe.set_value('Role', role, 'disabled', 1)
+
+		for domain in self.get_all_domains():
+			data = frappe.get_domain_data(domain)
+			if 'modules' in data:
+				for module in data.get('modules'):
+					frappe.db.set_value('Module Def', module, 'restrict_to_domain', domain)
+
+			if 'restricted_roles' in data:
+				for role in data['restricted_roles']:
+					frappe.db.set_value('Role', role, 'restrict_to_domain', domain)
+
+					if domain not in active_domains:
+						remove_role(role)
+
 
 def get_active_domains():
 	""" get the domains set in the Domain Settings as active domain """
@@ -33,6 +70,3 @@ def get_active_modules():
 		return active_modules
 
 	return frappe.cache().get_value('active_modules', _get_active_modules)
-
-def clear_domain_cache():
-	frappe.cache().delete_key(['active_domains', 'active_modules'])
