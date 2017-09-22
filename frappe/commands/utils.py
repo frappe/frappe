@@ -7,13 +7,14 @@ from frappe.commands import pass_context, get_site
 
 @click.command('build')
 @click.option('--make-copy', is_flag=True, default=False, help='Copy the files instead of symlinking')
+@click.option('--make-copy-force', is_flag=True, default=False, help='Copy the files instead of symlinking with force')
 @click.option('--verbose', is_flag=True, default=False, help='Verbose')
-def build(make_copy=False, verbose=False):
+def build(make_copy=False, make_copy_force = False, verbose=False):
 	"Minify + concatenate JS and CSS files, build translations"
 	import frappe.build
 	import frappe
 	frappe.init('')
-	frappe.build.bundle(False, make_copy=make_copy, verbose=verbose)
+	frappe.build.bundle(False, make_copy=make_copy, make_copy_force = make_copy_force, verbose=verbose)
 
 @click.command('watch')
 def watch():
