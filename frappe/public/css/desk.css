@@ -522,7 +522,7 @@ a.progress-small .progress-bar {
   background-color: #98d85b;
 }
 li.user-progress .progress-chart {
-  width: 60px;
+  width: 50px;
   margin-top: 8px;
 }
 li.user-progress .progress {
@@ -543,6 +543,9 @@ li.user-progress .progress-bar {
   .nav-stacked > li + li {
     margin-top: 0px;
     margin-left: 2px;
+  }
+  li.user-progress .progress-chart {
+    width: 25px;
   }
 }
 .msg-box {
