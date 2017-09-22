@@ -48,18 +48,6 @@ class DataMigrationMapping(Document):
 
 		return mapped
 
-	def insert_mapped_record(self, doc):
-		if self.pre_process:
-			doc = process_doc(doc, self.pre_process)
-		if not frappe.db.exists(self.local_doctype, {self.local_primary_key: doc[self.local_primary_key]}):
-			d = frappe.new_doc(self.local_doctype)
-			for f in self.fields:
-				value = get_field_value(f, 'remote_fieldname', doc)
-				d.set(f.local_fieldname, doc[f.remote_fieldname])
-			d.save(ignore_permissions=True)
-			if self.post_process:
-				process_doc(d.as_dict(), self.post_process)
-
 def get_field_value(field_map, field_name, doc):
 	current_val = field_map.get(field_name)
 	if current_val.startswith('eval:'):
@@ -67,15 +55,8 @@ def get_field_value(field_map, field_name, doc):
 	elif current_val[0] in ('"', "'"):
 		value = current_val[1:-1]
 	elif field_map.formula and doc.get(current_val):
-		value = frappe.safe_eval(field_map.formula.format(doc.get(current_val)),
-			dict(frappe=frappe))
+		exec field_map.formula in locals()
+		value = modified_field_value
 	else:
 		value = doc.get(current_val)
 	return value
-
-def process_doc(doc, process_str):
-	for key in doc:
-		if doc[key] is None:
-			doc[key] = ''
-	code = process_str.format(json.dumps(doc))
-	return json.loads(frappe.safe_eval(code, dict(frappe=frappe)))
