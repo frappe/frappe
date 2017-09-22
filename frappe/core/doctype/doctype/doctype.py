@@ -753,6 +753,9 @@ def validate_permissions(doctype, for_remove=False):
 def make_module_and_roles(doc, perm_fieldname="permissions"):
 	"""Make `Module Def` and `Role` records if already not made. Called while installing."""
 	try:
+		if doc.restrict_to_domain and not frappe.db.exists('Domain', doc.restrict_to_domain):
+			frappe.get_doc(doctype='Domain', domain=doc.restrict_to_domain).insert()
+
 		if not frappe.db.exists("Module Def", doc.module):
 			m = frappe.get_doc({"doctype": "Module Def", "module_name": doc.module})
 			m.app_name = frappe.local.module_app[frappe.scrub(doc.module)]
