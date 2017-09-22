@@ -232,15 +232,16 @@ class DataMigrationRun(Document):
 		connection = self.get_connection()
 
 		data = self.get_data(mapping, start)
-		failed_items = json.loads(self.failed_log or '[]')
+		failed_log = json.loads(self.failed_log or '[]')
 
 		for d in data:
 			migration_id_value = d.get(mapping.migration_id_field)
 
 			if d.get('to_delete'):
+				# local doc deleted, delete from remote
 				response = connection.delete(mapping.remote_objectname, migration_id_value)
 				if not response.ok:
-					failed_items.append(d)
+					failed_log.append(d)
 				else:
 					self.items_deleted += 1
 					frappe.db.set_value('Deleted Document',
@@ -248,25 +249,31 @@ class DataMigrationRun(Document):
 						mapping.migration_id_field, migration_id_value,
 						update_modified=False)
 			else:
+				doc = mapping.get_mapped_record(d)
 				if not migration_id_value:
-					response = connection.insert(mapping.remote_objectname,
-						mapping.get_mapped_record(d))
+					# no migration_id_value, insert doc
+					response = connection.insert(
+						mapping.remote_objectname, doc)
 				else:
-					response = connection.update(mapping.remote_objectname,
-						mapping.get_mapped_record(d), migration_id_value)
-				if response.ok:
+					# migration_id_value exists, update doc
+					response = connection.update(
+						mapping.remote_objectname, doc, migration_id_value)
+
+				if not response.ok:
+					# insert/update fail
+					failed_log.append(doc)
+				else:
+					# insert/update success
 					if not migration_id_value:
 						self.items_inserted += 1
 						frappe.db.set_value(mapping.local_doctype, d.name,
-							mapping.migration_id_field, response.doc['name'],
+							mapping.migration_id_field, response.migration_id_value,
 							update_modified=False)
 						frappe.db.commit()
 					else:
 						self.items_updated += 1
-				else:
-					failed_items.append(response.doc)
 
-		self.db_set('failed_log', json.dumps(failed_items))
+		self.db_set('failed_log', json.dumps(failed_log))
 
 		if len(data) < mapping.page_length:
 			if self.current_mapping_action == 'Insert':

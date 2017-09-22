@@ -14,7 +14,8 @@ class FrappeConnection(BaseConnection):
 		try:
 			response_doc = self.connection.insert(doc)
 			return frappe._dict(dict(
-				doc=response_doc,
+				data=response_doc,
+				migration_id_value=response_doc['name'],
 				ok=True
 			))
 		except FrappeException as e:
@@ -50,7 +51,7 @@ class FrappeConnection(BaseConnection):
 				ok=True
 			))
 		except FrappeException as e:
-			self.return_error(e)
+			return handle_error(e)
 
 	def get_list(self, doctype, fields='"*"', filters=None, start=0, page_length=20):
 		try:
@@ -61,11 +62,11 @@ class FrappeConnection(BaseConnection):
 				ok=True
 			))
 		except FrappeException as e:
-			self.return_error(e)
+			return handle_error(e)
 
-	def return_error(self, e):
-		frappe.msgprint(e.args[0])
-		return frappe._dict(dict(
-			ok=False,
-			error=e.args[0]
-		))
+def handle_error(e):
+	frappe.msgprint(e.args[0])
+	return frappe._dict(dict(
+		ok=False,
+		error=e.args[0]
+	))
