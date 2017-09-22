@@ -741,7 +741,7 @@ class Database:
 		frappe.local.rollback_observers = []
 		self.flush_realtime_log()
 		self.enqueue_global_search()
-		self.execute_enqueued_jobs()
+		execute_enqueued_jobs()
 		flush_local_link_count()
 
 	def enqueue_global_search(self):
@@ -897,9 +897,10 @@ class Database:
 
 		return s
 
-	def execute_enqueued_jobs(self):
-		if frappe.flags.enqueue_after_commit and len(frappe.flags.enqueue_after_commit) > 0:
-			for job in frappe.flags.enqueue_after_commit:
-				q = get_queue(job.get("queue"), async=job.get("async"))
-				q.enqueue_call(execute_job, timeout=job.get("timeout"),
-								kwargs=job.get("queue_args"))
+def execute_enqueued_jobs():
+	if frappe.flags.enqueue_after_commit and len(frappe.flags.enqueue_after_commit) > 0:
+		for job in frappe.flags.enqueue_after_commit:
+			q = get_queue(job.get("queue"), async=job.get("async"))
+			q.enqueue_call(execute_job, timeout=job.get("timeout"),
+							kwargs=job.get("queue_args"))
+		frappe.flags.enqueue_after_commit = []
