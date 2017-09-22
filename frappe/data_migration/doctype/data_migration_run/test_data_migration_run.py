@@ -12,17 +12,19 @@ class TestDataMigrationRun(unittest.TestCase):
 
 		description = 'Data migration todo'
 
-		new_todo = frappe.get_doc({
-			'doctype': 'ToDo',
-			'description': description
-		}).insert()
+		new_todo = frappe.get_doc(dict(
+			doctype= 'ToDo',
+			description= description
+		)).insert()
 
-		task_subject = 'Data migration task'
-		new_task = frappe.get_doc({
-			'doctype': 'Task',
-			'subject': task_subject,
-			'exp_start_date': today()
-		}).insert()
+		event_subject = 'Data migration event'
+
+		new_event = frappe.get_doc(dict(
+			doctype='Event',
+			subject=event_subject,
+			repeat_on='Every Month',
+			starts_on=frappe.utils.now_datetime()
+		)).insert()
 
 		run = frappe.get_doc({
 			'doctype': 'Data Migration Run',
@@ -38,11 +40,11 @@ class TestDataMigrationRun(unittest.TestCase):
 		todo = frappe.get_doc('ToDo', new_todo.name)
 		self.assertTrue(todo.todo_sync_id)
 
-		todo_event = frappe.get_doc('Event', todo.todo_sync_id)
-		self.assertEqual(todo_event.subject, description)
+		created_todo = frappe.get_doc('Event', todo.todo_sync_id)
+		self.assertEqual(created_todo.subject, description)
 
-		task_event = frappe.get_doc('Event', {'subject': task_subject})
-		self.assertEqual(task_event.subject, task_subject)
+		created_event = frappe.get_doc('Todo', {'description': event_subject})
+		self.assertEqual(created_event.subject, event_subject)
 
 	def test_push_update(self):
 		todo_list = frappe.get_list('ToDo', filters={'description': 'Data migration todo'}, fields=['name'])
@@ -70,7 +72,6 @@ class TestDataMigrationRun(unittest.TestCase):
 			'remote_primary_key': 'name',
 			'local_doctype': 'ToDo',
 			'mapping_type': 'Push',
-			'module': 'Core',
 			'fields': [
 				{ 'remote_fieldname': 'subject', 'local_fieldname': 'description' },
 				{ 'remote_fieldname': 'starts_on', 'local_fieldname': 'eval:frappe.utils.get_datetime_str(frappe.utils.get_datetime())' }
@@ -79,26 +80,23 @@ class TestDataMigrationRun(unittest.TestCase):
 
 		frappe.get_doc({
 			'doctype': 'Data Migration Mapping',
-			'mapping_name': 'Task to Event',
-			'remote_objectname': 'Task',
+			'mapping_name': 'Event to ToDo',
+			'remote_objectname': 'Event',
 			'remote_primary_key': 'name',
-			'local_doctype': 'Event',
+			'local_doctype': 'ToDo',
 			'mapping_type': 'Pull',
-			'module': 'Core',
 			'fields': [
-				{ 'remote_fieldname': 'subject', 'local_fieldname': 'subject' },
-				{ 'remote_fieldname': 'exp_start_date', 'local_fieldname': 'starts_on' },
-				{ 'remote_fieldname': "Public", 'local_fieldname': 'event_type' }
+				{ 'remote_fieldname': 'description', 'local_fieldname': 'subject' }
 			]
 		}).insert()
 
 		frappe.get_doc({
 			'doctype': 'Data Migration Plan',
-			'plan_name': 'Event sync',
+			'plan_name': 'Event Sync',
 			'module': 'Core',
 			'mappings': [
 				{ 'mapping': 'Todo to Event' },
-				{ 'mapping': 'Task to Event' }
+				{ 'mapping': 'Event to Todo' }
 			]
 		}).insert()
 
