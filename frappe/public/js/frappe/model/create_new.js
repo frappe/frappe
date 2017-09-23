@@ -328,7 +328,8 @@ frappe.new_doc = function (doctype, opts, init_callback) {
 				frappe.set_route(frappe.create_routes[doctype])
 					.then(() => resolve());
 			} else {
-				frappe.ui.form.make_quick_entry(doctype, null, init_callback)
+				var after_insert = opts && $.isPlainObject(opts) ? opts.after_quick_insert : null;
+				frappe.ui.form.make_quick_entry(doctype, after_insert, init_callback)
 					.then(() => resolve());
 			}
 		});
