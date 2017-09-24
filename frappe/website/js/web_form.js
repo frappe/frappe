@@ -350,7 +350,7 @@ frappe.ready(function() {
 				}
 			});
 		}
-	})
+	});
 
 	// setup datepicker in all inputs within the given element
 	var setup_date_picker = function(ele) {
@@ -362,7 +362,10 @@ frappe.ready(function() {
 			$dates.datepicker({
 				language: "en",
 				autoClose: true,
-				dateFormat: frappe.datepicker_format
+				dateFormat: frappe.datepicker_format,
+				onSelect: function(date, date_str, e) {
+					e.$el.trigger('change');
+				},
 			});
 
 			// initialize dates from YYYY-MM-DD to user format
@@ -408,7 +411,7 @@ frappe.ready(function() {
 			});
 		});
 
-	}
+	};
 	setup_text_editor();
 });
 
