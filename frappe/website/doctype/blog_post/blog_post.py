@@ -190,7 +190,7 @@ def get_blog_list(doctype, txt=None, filters=None, limit_start=0, limit_page_len
 		post.category = frappe.db.get_value('Blog Category', post.blog_category,
 			['route', 'title'], as_dict=True)
 
-		if (not "http:" in post.avatar or "https:" in post.avatar) and not post.avatar.startswith("/"):
+		if post.avatar and (not "http:" in post.avatar and not "https:" in post.avatar) and not post.avatar.startswith("/"):
 			post.avatar = "/" + post.avatar
 
 	return posts
