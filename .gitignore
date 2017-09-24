@@ -9,3 +9,4 @@ locale
 dist/
 build/
 frappe/docs/current
+.vscode
