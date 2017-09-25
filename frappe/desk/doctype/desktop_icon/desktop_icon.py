@@ -413,7 +413,7 @@ def hide(name, user = None):
 	try:
 		set_hidden(name, user, hidden = 1)
 		clear_desktop_icons_cache()
-	except:
+	except Exception as e:
 		return False
 
 	return True

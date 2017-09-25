@@ -40,8 +40,7 @@ frappe.ui.form.ControlColor = frappe.ui.form.ControlData.extend({
 		const contrast    = frappe.ui.color.get_contrast_color(value);
 
 		this.$input.css({
-			"background-color": value,
-					   "color": contrast
+			"background-color": value, "color": contrast
 		});
 	},
 	bind_events: function () {

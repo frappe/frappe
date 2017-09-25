@@ -148,12 +148,12 @@ $.extend(frappe.desktop, {
 			return doctype;
 		}));
 		
-		const clearWiggle   = ($close) => {
+		const clearWiggle   = () => {
 			const $closes   = $cases.find('.module-remove');
 			$closes.hide();
-			 $notis.show();
+			$notis.show();
 
-			 $icons.trigger('stopRumble');
+			$icons.trigger('stopRumble');
 		};
 
 		// initiate wiggling.
@@ -178,21 +178,21 @@ $.extend(frappe.desktop, {
 								</b>
 							</div>
 						</div>
-					`
+					`;
 
 					$case.append(template);
 					const $close  = $case.find('.module-remove');
 					const name    = $case.attr('title');
-					$close.click((event) => {
+					$close.click(() => {
 						// good enough to create dynamic dialogs?
 						const dialog = new frappe.ui.Dialog({
 							title: __(`Hide ${name}?`)
 						});
 						dialog.set_primary_action(__('Hide'), () => {
 							frappe.call({
-								  method: 'frappe.desk.doctype.desktop_icon.desktop_icon.hide',
-								    args: { name: name },
-							  	  freeze: true,
+								method: 'frappe.desk.doctype.desktop_icon.desktop_icon.hide',
+								args: { name: name },
+							  	freeze: true,
 								callback: (response) => 
 								{
 									if ( response.message ) {
