@@ -7,8 +7,8 @@ import frappe
 import smtplib
 import email.utils
 import _socket, sys
-from frappe.utils import cint
 from frappe import _
+from frappe.utils import cint, parse_addr
 
 def send(email, append_to=None, retry=1):
 	"""Deprecated: Send the message or add it to Outbox Email"""
@@ -35,22 +35,32 @@ def send(email, append_to=None, retry=1):
 
 	_send(retry)
 
-def get_outgoing_email_account(raise_exception_not_set=True, append_to=None):
+def get_outgoing_email_account(raise_exception_not_set=True, append_to=None, sender=None):
 	"""Returns outgoing email account based on `append_to` or the default
 		outgoing account. If default outgoing account is not found, it will
 		try getting settings from `site_config.json`."""
 
+	full_name, sender_email_id = None, None
+	if sender:
+		full_name, sender_email_id = parse_addr(sender) or [None, None]
+
 	if not getattr(frappe.local, "outgoing_email_account", None):
 		frappe.local.outgoing_email_account = {}
 
-	if not frappe.local.outgoing_email_account.get(append_to or "default"):
+	if not frappe.local.outgoing_email_account.get(append_to or sender_email_id or "default"):
 		email_account = None
 
 		if append_to:
 			# append_to is only valid when enable_incoming is checked
 			email_account = _get_email_account({"enable_outgoing": 1, "enable_incoming": 1, "append_to": append_to})
 
+		if not email_account and sender_email_id:
+			# check if the sender has email account with enable_outgoing
+			email_account = _get_email_account({"enable_outgoing": 1, "email_id": sender_email_id})
+
 		if not email_account:
+			# sender don't have the outging email account
+			sender_email_id = None
 			email_account = get_default_outgoing_email_account(raise_exception_not_set=raise_exception_not_set)
 
 		if not email_account and raise_exception_not_set:
@@ -65,9 +75,9 @@ def get_outgoing_email_account(raise_exception_not_set=True, append_to=None):
 				email_account.password = email_account.get_password(raise_exception=raise_exception)
 			email_account.default_sender = email.utils.formataddr((email_account.name, email_account.get("email_id")))
 
-		frappe.local.outgoing_email_account[append_to or "default"] = email_account
+		frappe.local.outgoing_email_account[append_to or sender_email_id or "default"] = email_account
 
-	return frappe.local.outgoing_email_account[append_to or "default"]
+	return frappe.local.outgoing_email_account[append_to or sender_email_id or "default"]
 
 def get_default_outgoing_email_account(raise_exception_not_set=True):
 	'''conf should be like:
@@ -136,8 +146,8 @@ class SMTPServer:
 		else:
 			self.setup_email_account(append_to)
 
-	def setup_email_account(self, append_to=None):
-		self.email_account = get_outgoing_email_account(raise_exception_not_set=False, append_to=append_to)
+	def setup_email_account(self, append_to=None, sender=None):
+		self.email_account = get_outgoing_email_account(raise_exception_not_set=False, append_to=append_to, sender=sender)
 		if self.email_account:
 			self.server = self.email_account.smtp_server
 			self.login = getattr(self.email_account, "login_id", None) or self.email_account.email_id

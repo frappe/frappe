@@ -73,14 +73,14 @@ class EMail:
 		self.cc = cc or []
 		self.html_set = False
 
-		self.email_account = email_account or get_outgoing_email_account()
+		self.email_account = email_account or get_outgoing_email_account(sender=sender)
 
 	def set_html(self, message, text_content = None, footer=None, print_html=None,
 		formatted=None, inline_images=None, header=None):
 		"""Attach message in the html portion of multipart/alternative"""
 		if not formatted:
 			formatted = get_formatted_html(self.subject, message, footer, print_html,
-				email_account=self.email_account, header=header)
+				email_account=self.email_account, header=header, sender=self.sender)
 
 		# this is the first html part of a multi-part message,
 		# convert to text well
@@ -234,9 +234,9 @@ class EMail:
 		return self.msg_root.as_string()
 
 def get_formatted_html(subject, message, footer=None, print_html=None,
-		email_account=None, header=None, unsubscribe_link=None):
+		email_account=None, header=None, unsubscribe_link=None, sender=None):
 	if not email_account:
-		email_account = get_outgoing_email_account(False)
+		email_account = get_outgoing_email_account(False, sender=sender)
 
 	rendered_email = frappe.get_template("templates/emails/standard.html").render({
 		"header": get_header(header),
