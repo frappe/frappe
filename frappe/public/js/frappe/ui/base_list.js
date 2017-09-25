@@ -157,7 +157,12 @@ frappe.ui.BaseList = Class.extend({
 						}
 					});
 				}
-				frappe.new_doc(doctype, true);
+				frappe.new_doc(doctype, {
+					after_quick_insert: function(){
+						me.dirty = true;
+						me.refresh();
+					}
+				});
 			}
 		});
 	},
