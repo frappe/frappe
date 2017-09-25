@@ -13,7 +13,14 @@
     </h5>
 </div>
 
-[![Build Status](https://travis-ci.org/frappe/frappe.png)](https://travis-ci.org/frappe/frappe)
+<div align="center">
+    <a href="https://travis-ci.org/frappe/frappe">
+        <img src="https://img.shields.io/travis/frappe/frappe.svg?style=flat-square">
+    </a>
+    <a href='https://frappe.io/docs'>
+        <img src='https://img.shields.io/badge/docs-📖-7575FF.svg?style=flat-square'/>
+    </a>
+</div>
 
 Full-stack web application framework that uses Python and MariaDB on the server side and a tightly integrated client side library. Built for [ERPNext](https://erpnext.com)
 
