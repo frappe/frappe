@@ -34,15 +34,15 @@ frappe.ui.form.ControlColor = frappe.ui.form.ControlData.extend({
 		return `<div class="color-box" data-color="${hex}" style="background-color: ${hex}"></div>`;
 	},
 	set_formatted_input: function(value) {
-		this._super(value)
+		this._super(value);
 
-		if (!value) value = '#FFFFFF'
-		const contrast    = frappe.ui.color.get_contrast_color(value)
+		if (!value) value = '#FFFFFF';
+		const contrast    = frappe.ui.color.get_contrast_color(value);
 
 		this.$input.css({
 			"background-color": value,
 					   "color": contrast
-		})
+		});
 	},
 	bind_events: function () {
 		var mousedown_happened = false;
