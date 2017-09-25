@@ -12,9 +12,11 @@ from six import StringIO, string_types
 
 
 # return xlsx file object
-def make_xlsx(data, sheet_name):
+def make_xlsx(data, sheet_name, wb=None):
 
-	wb = openpyxl.Workbook(write_only=True)
+	if wb is None:
+		wb = openpyxl.Workbook(write_only=True)
+
 	ws = wb.create_sheet(sheet_name, 0)
 
 	row1 = ws.row_dimensions[1]

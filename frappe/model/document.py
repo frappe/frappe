@@ -170,7 +170,6 @@ class Document(BaseDocument):
 			return
 
 		self.flags.email_alerts_executed = []
-		setattr(frappe.local, 'webhooks_executed', [])
 
 		if ignore_permissions!=None:
 			self.flags.ignore_permissions = ignore_permissions
@@ -244,7 +243,6 @@ class Document(BaseDocument):
 			return
 
 		self.flags.email_alerts_executed = []
-		setattr(frappe.local, 'webhooks_executed', [])
 
 		if ignore_permissions!=None:
 			self.flags.ignore_permissions = ignore_permissions
