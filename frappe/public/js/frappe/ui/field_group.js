@@ -32,13 +32,13 @@ frappe.ui.FieldGroup = frappe.ui.form.Layout.extend({
 				this.catch_enter_as_submit();
 			}
 
-			$(this.body).find('input').on('change', function() {
-				me.refresh_dependency();
-			})
+			$(this.body).find('input, select').on('change', function() {
+				frappe.run_serially([
+					() => frappe.timeout(0.1),
+					() => me.refresh_dependency()
+				]);
+			});
 
-			$(this.body).find('select').on("change", function() {
-				me.refresh_dependency();
-			})
 		}
 	},
 	add_fields: function(fields) {
