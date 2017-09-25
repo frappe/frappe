@@ -182,11 +182,11 @@ $.extend(frappe.desktop, {
 
 					$case.append(template);
 					const $close  = $case.find('.module-remove');
-					const name    = $case.data('name');
+					const name    = $case.attr('title');
 					$close.click((event) => {
 						// good enough to create dynamic dialogs?
 						const dialog = new frappe.ui.Dialog({
-							title: __(`Hide ${name}`)
+							title: __(`Hide ${name}?`)
 						});
 						dialog.set_primary_action(__('Hide'), () => {
 							frappe.call({
