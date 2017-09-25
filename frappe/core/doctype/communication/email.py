@@ -289,6 +289,9 @@ def set_incoming_outgoing_accounts(doc):
 			{"default_outgoing": 1, "enable_outgoing": 1},
 			["email_id", "always_use_account_email_id_as_sender", "name", "send_unsubscribe_message"], as_dict=True) or frappe._dict()
 
+	if doc.sent_or_received == "Sent":
+		doc.db_set("email_account", doc.outgoing_email_account.name)
+
 def get_recipients(doc, fetched_from_email_account=False):
 	"""Build a list of email addresses for To"""
 	# [EDGE CASE] doc.recipients can be None when an email is sent as BCC

@@ -26,17 +26,16 @@ class Communication(Document):
 		if self.communication_type == "Communication" and self.communication_medium == "Email" \
 			and self.sent_or_received == "Received" and self.uid and self.uid != -1:
 			
-			flag = frappe.db.get_value("Email Flag Queue", {
+			email_flag_queue = frappe.db.get_value("Email Flag Queue", {
 				"communication": self.name,
 				"is_completed": 0})
-			if flag:
+			if email_flag_queue:
 				return
 
 			frappe.get_doc({
 				"doctype": "Email Flag Queue",
 				"action": "Read",
 				"communication": self.name,
-				"flag": "(\\SEEN)",
 				"uid": self.uid,
 				"email_account": self.email_account
 			}).insert(ignore_permissions=True)
