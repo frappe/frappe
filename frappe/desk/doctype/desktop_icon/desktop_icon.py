@@ -404,3 +404,16 @@ palette = (
 	('#4F8EA8', 1),
 	('#428B46', 1)
 )
+
+@frappe.whitelist()
+def hide(name, user = None):
+	if not user:
+		user = frappe.session.user
+
+	try:
+		set_hidden(name, user, hidden = 1)
+		clear_desktop_icons_cache()
+	except:
+		return False
+
+	return True
