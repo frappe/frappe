@@ -23,7 +23,6 @@ class CleanCommand(Clean):
 
         for relpath in ['build', '.cache', '.coverage', 'dist', 'frappe.egg-info']:
             abspath = os.path.join(basedir, relpath)
-            
             if os.path.exists(abspath):
                 if os.path.isfile(abspath):
                     os.remove(abspath)

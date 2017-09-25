@@ -192,7 +192,7 @@ $.extend(frappe.desktop, {
 							frappe.call({
 								method: 'frappe.desk.doctype.desktop_icon.desktop_icon.hide',
 								args: { name: name },
-							  	freeze: true,
+								freeze: true,
 								callback: (response) => 
 								{
 									if ( response.message ) {
