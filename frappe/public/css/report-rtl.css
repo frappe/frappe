@@ -1,3 +1,6 @@
 .grid-report {
   direction: ltr;
 }
+.page-form .awesomplete > ul {
+    min-width: 100%;
+}
