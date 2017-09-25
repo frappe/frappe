@@ -92,17 +92,23 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 	}
 
 	setup_keyboard_nav() {
-		this.container.on('keydown',  (e) => {
-			if(e.which === 13) {
-				var $target = $(e.target);
-				if($target.hasClass('prev-btn')) {
-					$target.trigger('click');
-				} else {
-					this.container.find('.next-btn').trigger('click');
-					e.preventDefault();
-				}
+		$('body').on('keydown', this.handle_enter_press.bind(this));
+	}
+
+	disable_keyboard_nav() {
+		$('body').off('keydown', this.handle_enter_press.bind(this));
+	}
+
+	handle_enter_press(e) {
+		if (e.which === frappe.ui.keyCode.ENTER) {
+			var $target = $(e.target);
+			if($target.hasClass('prev-btn')) {
+				$target.trigger('click');
+			} else {
+				this.container.find('.next-btn').trigger('click');
+				e.preventDefault();
 			}
-		});
+		}
 	}
 
 	before_show_slide() {
@@ -114,6 +120,11 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 	}
 
 	show_slide(id) {
+		if (id === this.slides.length) {
+			// show_slide called on last slide
+			this.action_on_complete();
+			return;
+		}
 		super.show_slide(id);
 		frappe.set_route(this.page_name, id + "");
 	}
@@ -168,6 +179,7 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 		if (!this.current_slide.set_values()) return;
 		this.update_values();
 		this.show_working_state();
+		this.disable_keyboard_nav();
 		return frappe.call({
 			method: "frappe.desk.page.setup_wizard.setup_wizard.setup_complete",
 			args: {args: this.values},
@@ -237,6 +249,13 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 	}
 
 	get_message(title, message="", loading=false) {
+		const loading_html = loading
+			? '<div style="width:100%;height:100%" class="lds-rolling state-icon"><div></div></div>'
+			: `<div style="width:100%;height:100%" class="state-icon">
+				<i class="fa fa-check-circle text-extra-muted"
+					style="font-size: 64px; margin-top: -8px;"></i>
+			</div>`;
+
 		return $(`<div class="page-card-container" data-state="setup">
 			<div class="page-card">
 				<div class="page-card-head">
@@ -245,12 +264,7 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 				</div>
 				<p>${message}</p>
 				<div class="state-icon-container">
-				${loading
-					? '<div style="width:100%;height:100%" class="lds-rolling state-icon"><div></div></div>'
-					: `<div style="width:100%;height:100%" class="state-icon"><i class="fa fa-check-circle text-extra-muted"
-						style="font-size: 64px; margin-top: -8px;">
-					</i></div>`
-				}
+				${loading_html}
 				</div>
 			</div>
 		</div>`);
