@@ -32,7 +32,6 @@ class CleanCommand(Clean):
         for dirpath, dirnames, filenames in os.walk(basedir):
             for filename in filenames:
                 _, extension = os.path.splitext(filename)
-                
                 if extension in ['.pyc']:
                     abspath = os.path.join(dirpath, filename)
                     os.remove(abspath)
