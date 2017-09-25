@@ -1,4 +1,17 @@
-## Frappé Framework
+<div align="center">
+    <img src=".github/logo.png" height="256">
+    <h1>
+        <a href="https://frappe.io">
+            frappé
+        </a>
+    </h1>
+    <h3>
+        a web framework with <a href="https://www.youtube.com/watch?v=LOjk3m0wTwg">"batteries included"
+    </h3>
+    <h5>
+        it's pronounced - <em>fra-pay</em>
+    </h5>
+</div>
 
 [![Build Status](https://travis-ci.org/frappe/frappe.png)](https://travis-ci.org/frappe/frappe)
 

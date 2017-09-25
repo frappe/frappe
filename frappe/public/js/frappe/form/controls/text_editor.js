@@ -7,6 +7,19 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 		this.setup_image_dialog();
 		this.setting_count = 0;
 	},
+	render_camera_button: (context) => {
+		var ui     = $.summernote.ui;
+		var button = ui.button({
+			contents: '<i class="fa fa-camera"/>',
+			tooltip: 'Camera',
+			click: () => {
+				const camera = new frappe.ui.Camera();
+				camera.show();
+			}
+		});
+
+		return button.render();
+	},
 	make_editor: function() {
 		var me = this;
 		this.editor = $("<div>").appendTo(this.input_area);
@@ -25,9 +38,12 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 				['color', ['color']],
 				['para', ['ul', 'ol', 'paragraph', 'hr']],
 				//['height', ['height']],
-				['media', ['link', 'picture', 'video', 'table']],
+				['media', ['link', 'picture', 'camera', 'video', 'table']],
 				['misc', ['fullscreen', 'codeview']]
 			],
+			buttons: {
+				camera: this.render_camera_button,
+			},
 			keyMap: {
 				pc: {
 					'CTRL+ENTER': ''
@@ -80,6 +96,7 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 				'outdent': 'fa fa-outdent',
 				'arrowsAlt': 'fa fa-arrows-alt',
 				'bold': 'fa fa-bold',
+				'camera': 'fa fa-camera',
 				'caret': 'caret',
 				'circle': 'fa fa-circle',
 				'close': 'fa fa-close',
