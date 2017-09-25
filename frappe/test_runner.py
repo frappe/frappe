@@ -294,6 +294,10 @@ def make_test_objects(doctype, test_records=None, verbose=None, reset=False):
 
 		d = frappe.copy_doc(doc)
 
+		if d.meta.get_field("naming_series"):
+			if not d.naming_series:
+				d.naming_series = "_T-" + d.doctype + "-"
+
 		if doc.get('name'):
 			d.name = doc.get('name')
 		else:
@@ -302,10 +306,6 @@ def make_test_objects(doctype, test_records=None, verbose=None, reset=False):
 		if d.name in (frappe.local.test_objects.get(d.doctype) or []) and not reset:
 			# do not create test records, if already exists
 			return []
-
-		if d.meta.get_field("naming_series"):
-			if not d.naming_series:
-				d.naming_series = "_T-" + d.doctype + "-"
 
 		# submit if docstatus is set to 1 for test record
 		docstatus = d.docstatus
