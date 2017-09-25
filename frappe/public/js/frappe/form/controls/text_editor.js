@@ -13,8 +13,12 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 			contents: '<i class="fa fa-camera"/>',
 			tooltip: 'Camera',
 			click: () => {
-				const camera = new frappe.ui.Camera();
-				camera.show();
+				const capture = new frappe.ui.Capture();
+				capture.open();
+
+				capture.click((data) => {
+					context.invoke('editor.insertImage', data);
+				});
 			}
 		});
 

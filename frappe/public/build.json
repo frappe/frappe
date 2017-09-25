@@ -24,7 +24,7 @@
 	],
 	"js/control.min.js": [
 
-		"public/js/frappe/ui/camera.js",
+		"public/js/frappe/ui/capture.js",
 
 		"public/js/frappe/form/controls/base_control.js",
 		"public/js/frappe/form/controls/base_input.js",
@@ -67,7 +67,7 @@
 		"public/js/frappe/form/multi_select_dialog.js",
 		"public/js/frappe/ui/dialog.js",
 
-		"public/js/frappe/ui/camera.js",
+		"public/js/frappe/ui/capture.js",
 
 		"public/js/frappe/form/controls/base_control.js",
 		"public/js/frappe/form/controls/base_input.js",
@@ -179,7 +179,7 @@
 		"public/js/frappe/form/multi_select_dialog.js",
 		"public/js/frappe/ui/dialog.js",
 
-		"public/js/frappe/ui/camera.js",
+		"public/js/frappe/ui/capture.js",
 
 		"public/js/frappe/ui/app_icon.js",
 
