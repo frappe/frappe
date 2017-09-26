@@ -624,13 +624,14 @@ frappe.views.ReportView = frappe.ui.BaseList.extend({
 			this.data.pop();
 		}
 
-		var total_flag = "";
+		var existing_total_row = null;
 		if(this.add_totals_row) {
 			var totals_row = {_totals_row: 1};
 			if(this.data.length) {
 				this.data.forEach(function(row, ri) {
-					if(row._totals_row && !total_flag)
-						total_flag = ri;
+					if(row._totals_row && !existing_total_row) {
+						existing_total_row = ri;
+					}
 					else {
 						$.each(row, function(key, value) {
 							if($.isNumeric(value)) {
@@ -640,8 +641,9 @@ frappe.views.ReportView = frappe.ui.BaseList.extend({
 					}
 				});
 			}
-			if(total_flag)
-				this.data.splice(total_flag, 1);
+			if(existing_total_row) {
+				this.data.splice(existing_total_row, 1);
+			}
 			this.data.push(totals_row);
 		}
 	},
