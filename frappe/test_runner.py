@@ -287,7 +287,7 @@ def make_test_objects(doctype, test_records=None, verbose=None, reset=False):
 	records = []
 
 	def revert_naming(d):
-		if getattr(d, 'naming_series'):
+		if getattr(d, 'naming_series', None):
 			revert_series_if_last(d.naming_series, d.name)
 
 
