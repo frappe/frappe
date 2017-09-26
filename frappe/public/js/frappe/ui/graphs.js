@@ -688,6 +688,14 @@ frappe.ui.HeatMap = class HeatMap extends frappe.ui.Graph {
 		this.month_weeks[this.current_month] = 0;
 		this.month_start_points.push(13);
 
+		this.date_values = {};
+
+		Object.keys(this.data).map(key => {
+			let date = new Date(key * 1000);
+			let date_str = this.get_dd_mm_yyyy(date);
+			this.date_values[date_str] = this.data[key];
+		});
+
 		for(var i = 0; i < no_of_weeks; i++) {
 			let data_group, month_change = 0;
 			let day = new Date(current_week_sunday);
@@ -721,16 +729,15 @@ frappe.ui.HeatMap = class HeatMap extends frappe.ui.Graph {
 			let data_value = 0;
 			let color_index = 0;
 
-			// TODO: More foolproof for any data
-			let timestamp = Math.floor(current_date.getTime()/1000).toFixed(1);
+			let timestamp = this.get_dd_mm_yyyy(current_date);
 
-			if(this.data[timestamp]) {
-				data_value = this.data[timestamp];
+			if(this.date_values[timestamp]) {
+				data_value = this.date_values[timestamp];
 				color_index = this.get_max_checkpoint(data_value, this.distribution);
 			}
 
-			if(this.data[Math.round(timestamp)]) {
-				data_value = this.data[Math.round(timestamp)];
+			if(this.date_values[Math.round(timestamp)]) {
+				data_value = this.date_values[Math.round(timestamp)];
 				color_index = this.get_max_checkpoint(data_value, this.distribution);
 			}
 
@@ -832,11 +839,8 @@ frappe.ui.HeatMap = class HeatMap extends frappe.ui.Graph {
 
 	get_max_checkpoint(value, distribution) {
 		return distribution.filter((d, i) => {
-			if(i === 1) {
-				return distribution[0] < value;
-			}
-			return d <= value;
-		}).length - 1;
+			return value > d;
+		}).length;
 	}
 
 	// TODO: date utils, move these out
