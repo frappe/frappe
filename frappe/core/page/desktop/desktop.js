@@ -154,6 +154,8 @@ $.extend(frappe.desktop, {
 			$notis.show();
 
 			$icons.trigger('stopRumble');
+
+			wiggling = false;
 		};
 
 		// initiate wiggling.
