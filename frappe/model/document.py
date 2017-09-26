@@ -1004,7 +1004,7 @@ class Document(BaseDocument):
 
 	def get_signature(self):
 		"""Returns signature (hash) for private URL."""
-		return hashlib.sha224(get_datetime_str(self.creation)).hexdigest()
+		return hashlib.sha224(get_datetime_str(self.creation).encode()).hexdigest()
 
 	def get_liked_by(self):
 		liked_by = getattr(self, "_liked_by", None)
