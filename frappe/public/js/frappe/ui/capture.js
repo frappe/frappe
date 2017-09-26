@@ -91,4 +91,4 @@ frappe.ui.Capture = class
 frappe.ui.Capture.DEFAULT_OPTIONS = 
 {
 	width: 480, height: 320, flip_horiz: true
-}
+};

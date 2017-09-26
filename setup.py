@@ -35,7 +35,6 @@ class CleanCommand(Clean):
                 if extension in ['.pyc']:
                     abspath = os.path.join(dirpath, filename)
                     os.remove(abspath)
-                
             for dirname in dirnames:
                 if dirname in ['__pycache__']:
                     abspath = os.path.join(dirpath,  dirname)
