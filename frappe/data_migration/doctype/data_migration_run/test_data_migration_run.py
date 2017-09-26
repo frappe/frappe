@@ -76,7 +76,7 @@ class TestDataMigrationRun(unittest.TestCase):
 				{ 'remote_fieldname': 'subject', 'local_fieldname': 'description' },
 				{ 'remote_fieldname': 'starts_on', 'local_fieldname': 'eval:frappe.utils.get_datetime_str(frappe.utils.get_datetime())' }
 			]
-		}).insert()
+		}).insert(ignore_if_duplicate=True)
 
 		frappe.get_doc({
 			'doctype': 'Data Migration Mapping',
@@ -88,7 +88,7 @@ class TestDataMigrationRun(unittest.TestCase):
 			'fields': [
 				{ 'remote_fieldname': 'description', 'local_fieldname': 'subject' }
 			]
-		}).insert()
+		}).insert(ignore_if_duplicate=True)
 
 		frappe.get_doc({
 			'doctype': 'Data Migration Plan',
@@ -98,7 +98,7 @@ class TestDataMigrationRun(unittest.TestCase):
 				{ 'mapping': 'Todo to Event' },
 				{ 'mapping': 'Event to Todo' }
 			]
-		}).insert()
+		}).insert(ignore_if_duplicate=True)
 
 		frappe.get_doc({
 			'doctype': 'Data Migration Connector',
@@ -107,5 +107,5 @@ class TestDataMigrationRun(unittest.TestCase):
 			'hostname': 'http://localhost:8000',
 			'username': 'Administrator',
 			'password': 'admin'
-		}).insert()
+		}).insert(ignore_if_duplicate=True)
 

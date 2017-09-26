@@ -3,9 +3,8 @@
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
-import frappe, os, base64, json
+import frappe, base64, json
 from frappe.model.document import Document
-from frappe.modules.export_file import export_to_files
 
 class DataMigrationMapping(Document):
 	def get_filters(self):
