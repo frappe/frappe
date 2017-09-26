@@ -38,7 +38,7 @@ frappe.pages['setup-wizard'].on_page_load = function(wrapper) {
 			freeze: true,
 			callback: function(r) {
 				frappe.setup.data.lang = r.message;
-				
+
 				frappe.setup.run_event("before_load");
 				var wizard_settings = {
 					parent: wrapper,
@@ -244,14 +244,16 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 		return $(`<div class="page-card-container" data-state="setup">
 			<div class="page-card">
 				<div class="page-card-head">
-					<span class="indicator blue">
-						${title}</span>
+					${loading
+						? '<span class="indicator orange">${title}</span>'
+						: `<span class="indicator green">${title}</span>`
+					}
 				</div>
 				<p>${message}</p>
 				<div class="state-icon-container">
 				${loading
 					? '<div style="width:100%;height:100%" class="lds-rolling state-icon"><div></div></div>'
-					: `<div style="width:100%;height:100%" class="state-icon"><i class="fa fa-check-circle text-extra-muted"
+					: `<div style="width:100%;height:100%" class="state-icon"><i class="fa fa-check-circle text-success"
 						style="font-size: 64px; margin-top: -8px;">
 					</i></div>`
 				}
