@@ -1,13 +1,9 @@
-frappe.ui.Capture     = class
+frappe.ui.Capture = class
 {
-    constructor (options)
+    constructor (options = { })
     {
-        this.options  = 
-        {
-            width: 480, height: 320, flip_horiz: true
-        };
-
-        this.dialog   = new frappe.ui.Dialog();
+        this.options = Object.assign({}, frappe.ui.Capture.DEFAULT_OPTIONS, options);
+        this.dialog = new frappe.ui.Dialog();
         this.template = 
         `
             <div class="text-center">
@@ -92,3 +88,7 @@ frappe.ui.Capture     = class
         $(this.dialog.$wrapper).remove();
     }
 };
+frappe.ui.Capture.DEFAULT_OPTIONS = 
+{
+    width: 480, height: 320, flip_horiz: true
+}
