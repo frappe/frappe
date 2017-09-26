@@ -166,7 +166,7 @@ def handle_exception(e):
 
 		frappe.respond_as_web_page("Server Error",
 			traceback, http_status_code=http_status_code,
-			indicator_color='red')
+			indicator_color='red', width=640)
 		return_as_message = True
 
 	if e.__class__ == frappe.AuthenticationError:
@@ -214,11 +214,11 @@ def serve(port=8000, profile=False, site=None, sites_path='.'):
 
 	if not os.environ.get('NO_STATICS'):
 		application = SharedDataMiddleware(application, {
-			b'/assets': os.path.join(sites_path, 'assets'),
+			'/assets': os.path.join(sites_path, 'assets'),
 		})
 
 		application = StaticDataMiddleware(application, {
-			b'/files': os.path.abspath(sites_path)
+			'/files': os.path.abspath(sites_path)
 		})
 
 	application.debug = True

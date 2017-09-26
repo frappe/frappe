@@ -29,7 +29,7 @@ frappe.Application = Class.extend({
 		this.startup();
 	},
 	startup: function() {
-		frappe.socket.init();
+		frappe.socketio.init();
 		frappe.model.init();
 
 		if(frappe.boot.status==='failed') {
@@ -45,7 +45,6 @@ frappe.Application = Class.extend({
 		this.make_nav_bar();
 		this.set_favicon();
 		this.setup_analytics();
-		this.setup_beforeunload();
 		frappe.ui.keys.setup();
 		this.set_rtl();
 
@@ -479,23 +478,6 @@ frappe.Application = Class.extend({
 				"$email": frappe.session.user
 			});
 		}
-	},
-
-	setup_beforeunload: function() {
-		if (frappe.defaults.get_default('in_selenium') || frappe.boot.developer_mode) {
-			return;
-		}
-		window.onbeforeunload = function () {
-			if (frappe.flags.in_test) return null;
-			var unsaved_docs = [];
-			for (const doctype in locals) {
-				for (const name in locals[doctype]) {
-					var doc = locals[doctype][name];
-					if(doc.__unsaved) { unsaved_docs.push(doc.name); }
-				}
-			}
-			return unsaved_docs.length ? true : null;
-		};
 	},
 
 	show_notes: function() {

@@ -67,6 +67,10 @@ body {
   #navbar-breadcrumbs {
     margin: 0px;
     display: inline-block;
+    max-width: 150px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
   }
   #navbar-breadcrumbs > li,
   #navbar-breadcrumbs > li > a {
@@ -187,11 +191,8 @@ body {
   }
 }
 @media (max-width: 991px) and (max-width: 480px) {
-  #navbar-breadcrumbs li a {
+  #navbar-breadcrumbs li > a {
     width: 100px;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
   }
 }
 @media (max-width: 767px) {

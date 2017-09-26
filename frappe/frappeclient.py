@@ -292,3 +292,37 @@ class FrappeClient(object):
 			return rjson['data']
 		else:
 			return None
+
+class FrappeOAuth2Client(FrappeClient):
+	def __init__(self, url, access_token, verify=True):
+		self.access_token = access_token
+		self.headers = {
+			"Authorization": "Bearer " + access_token,
+			"content-type": "application/x-www-form-urlencoded"
+		}
+		self.verify = verify
+		self.session = OAuth2Session(self.headers)
+		self.url = url
+
+	def get_request(self, params):
+		res = requests.get(self.url, params=self.preprocess(params), headers=self.headers, verify=self.verify)
+		res = self.post_process(res)
+		return res
+
+	def post_request(self, data):
+		res = requests.post(self.url, data=self.preprocess(data), headers=self.headers, verify=self.verify)
+		res = self.post_process(res)
+		return res
+
+class OAuth2Session():
+	def __init__(self, headers):
+		self.headers = headers
+	def get(self, url, params, verify):
+		res = requests.get(url, params=params, headers=self.headers, verify=verify)
+		return res
+	def post(self, url, data, verify):
+		res = requests.post(url, data=data, headers=self.headers, verify=verify)
+		return res
+	def put(self, url, data, verify):
+		res = requests.put(url, data=data, headers=self.headers, verify=verify)
+		return res

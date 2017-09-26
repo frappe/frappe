@@ -12,7 +12,7 @@ from pyqrcode import create as qrcreate
 from six import StringIO
 from base64 import b64encode, b32encode
 from frappe.utils import get_url, get_datetime, time_diff_in_seconds
-from six import string_types
+from six import iteritems, string_types
 
 class ExpiredLoginException(Exception): pass
 
@@ -26,6 +26,12 @@ def toggle_two_factor_auth(state, roles=[]):
 def two_factor_is_enabled(user=None):
 	'''Returns True if 2FA is enabled.'''
 	enabled = int(frappe.db.get_value('System Settings', None, 'enable_two_factor_auth') or 0)
+	if enabled:
+		bypass_two_factor_auth = int(frappe.db.get_value('System Settings', None, 'bypass_2fa_for_retricted_ip_users') or 0)
+		if bypass_two_factor_auth:
+			restrict_ip = frappe.db.get_value("User", filters={"name": user}, fieldname="restrict_ip")
+			if restrict_ip and bypass_two_factor_auth:
+				enabled = False
 	if not user or not enabled:
 		return enabled
 	return two_factor_is_enabled_for_(user)
@@ -68,7 +74,7 @@ def cache_2fa_data(user, token, otp_secret, tmp_id):
 		frappe.cache().expire(tmp_id + '_token', expiry_time)
 	else:
 		expiry_time = 180
-	for k, v in {'_usr': user, '_pwd': pwd, '_otp_secret': otp_secret}.iteritems():
+	for k, v in iteritems({'_usr': user, '_pwd': pwd, '_otp_secret': otp_secret}):
 		frappe.cache().set("{0}{1}".format(tmp_id, k), v)
 		frappe.cache().expire("{0}{1}".format(tmp_id, k), expiry_time)
 
@@ -85,7 +91,6 @@ def two_factor_is_enabled_for_(user):
 
 	query = """select name from `tabRole` where two_factor_auth=1
 		and name in ({0}) limit 1""".format(', '.join('\"{}\"'.format(i) for i in roles))
-
 	if len(frappe.db.sql(query)) > 0:
 		return True
 

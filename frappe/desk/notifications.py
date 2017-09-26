@@ -14,7 +14,7 @@ def get_notifications():
 
 	config = get_notification_config()
 
-	groups = config.get("for_doctype").keys() + config.get("for_module").keys()
+	groups = list(config.get("for_doctype").keys()) + list(config.get("for_module").keys())
 	cache = frappe.cache()
 
 	notification_count = {}
@@ -156,13 +156,12 @@ def get_notifications_for_targets(config, notification_percent):
 
 	return doc_target_percents
 
-
 def clear_notifications(user=None):
 	if frappe.flags.in_install:
 		return
 
 	config = get_notification_config()
-	groups = config.get("for_doctype").keys() + config.get("for_module").keys()
+	groups = list(config.get("for_doctype").keys()) + list(config.get("for_module").keys())
 	cache = frappe.cache()
 
 	for name in groups:

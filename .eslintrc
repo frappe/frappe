@@ -49,7 +49,6 @@
 		"moment": true,
 		"hljs": true,
 		"Awesomplete": true,
-		"CalHeatMap": true,
 		"Sortable": true,
 		"Showdown": true,
 		"Taggle": true,

@@ -4,9 +4,15 @@ import unittest, os, frappe, time
 
 class TestTestRunner(unittest.TestCase):
 	def test_test_runner(self):
+		if frappe.flags.run_setup_wizard_ui_test:
+			for setup_wizard_test in frappe.get_hooks("setup_wizard_test"):
+				passed = frappe.get_attr(setup_wizard_test)()
+				self.assertTrue(passed)
+			return
+
 		driver = TestDriver()
-		driver.login()
 		frappe.db.set_default('in_selenium', '1')
+		driver.login()
 		for test in get_tests():
 			if test.startswith('#'):
 				continue
@@ -16,7 +22,7 @@ class TestTestRunner(unittest.TestCase):
 				test, comment = test.split('#')
 				test = test.strip()
 				if comment.strip()=='long':
-					timeout = 240
+					timeout = 300
 
 			print('Running {0}...'.format(test))
 
@@ -26,6 +32,7 @@ class TestTestRunner(unittest.TestCase):
 			driver.set_route('Form', 'Test Runner')
 			driver.click_primary_action()
 			driver.wait_for('#frappe-qunit-done', timeout=timeout)
+
 			console = driver.get_console()
 			passed = 'Tests Passed' in console
 			if frappe.flags.tests_verbose or not passed:
@@ -62,4 +69,3 @@ def get_tests_for(app):
 		with open(tests_path, 'r') as fileobj:
 			tests = fileobj.read().strip().splitlines()
 	return tests
-

@@ -94,9 +94,6 @@ body[data-route^="Module"] .main-menu .form-sidebar {
   position: absolute;
   right: 5px;
 }
-.form-sidebar .attachment-row a.close {
-  margin-top: -5px;
-}
 .form-sidebar .form-shared .share-doc-btn,
 .form-sidebar .form-viewers .share-doc-btn {
   cursor: pointer;

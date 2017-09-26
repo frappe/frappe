@@ -14,7 +14,7 @@ import os, sys, importlib, inspect, json
 from .exceptions import *
 from .utils.jinja import get_jenv, get_template, render_template, get_email_from_template
 
-__version__ = '8.10.9'
+__version__ = '9.0.0'
 __title__ = "Frappe Framework"
 
 local = Local()
@@ -1022,7 +1022,8 @@ def compare(val1, condition, val2):
 	return frappe.utils.compare(val1, condition, val2)
 
 def respond_as_web_page(title, html, success=None, http_status_code=None,
-	context=None, indicator_color=None, primary_action='/', primary_label = None, fullpage=False):
+	context=None, indicator_color=None, primary_action='/', primary_label = None, fullpage=False,
+	width=None):
 	"""Send response as a web page with a message rather than JSON. Used to show permission errors etc.
 
 	:param title: Page title and heading.
@@ -1033,7 +1034,9 @@ def respond_as_web_page(title, html, success=None, http_status_code=None,
 	:param indicator_color: color of indicator in title
 	:param primary_action: route on primary button (default is `/`)
 	:param primary_label: label on primary button (defaut is "Home")
-	:param fullpage: hide header / footer"""
+	:param fullpage: hide header / footer
+	:param width: Width of message in pixels
+	"""
 	local.message_title = title
 	local.message = html
 	local.response['type'] = 'page'
@@ -1057,6 +1060,8 @@ def respond_as_web_page(title, html, success=None, http_status_code=None,
 	context['primary_action'] = primary_action
 	context['error_code'] = http_status_code
 	context['fullpage'] = fullpage
+	if width:
+		context['card_width'] = width
 
 	local.response['context'] = context
 
@@ -1174,7 +1179,7 @@ def as_json(obj, indent=1):
 	return json.dumps(obj, indent=indent, sort_keys=True, default=json_handler)
 
 def are_emails_muted():
-	from utils import cint
+	from frappe.utils import cint
 	return flags.mute_emails or cint(conf.get("mute_emails") or 0) or False
 
 def get_test_records(doctype):
@@ -1344,7 +1349,7 @@ def safe_eval(code, eval_globals=None, eval_locals=None):
 	whitelisted_globals = {
 		"int": int,
 		"float": float,
-		"long": long,
+		"long": int,
 		"round": round
 	}
 
@@ -1360,7 +1365,7 @@ def safe_eval(code, eval_globals=None, eval_locals=None):
 	return eval(code, eval_globals, eval_locals)
 
 def get_system_settings(key):
-	if not local.system_settings.has_key(key):
+	if key not in local.system_settings:
 		local.system_settings.update({key: db.get_single_value('System Settings', key)})
 	return local.system_settings.get(key)
 

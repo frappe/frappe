@@ -76,6 +76,7 @@ class File(NestedSet):
 
 		if frappe.db.exists('File', {'name': self.name, 'is_folder': 0}):
 			if not self.is_folder and (self.is_private != self.db_get('is_private')):
+				old_file_url = self.file_url
 				private_files = frappe.get_site_path('private', 'files')
 				public_files = frappe.get_site_path('public', 'files')
 
@@ -90,6 +91,11 @@ class File(NestedSet):
 						os.path.join(private_files, self.file_name))
 
 					self.file_url = "/private/files/{0}".format(self.file_name)
+
+			# update documents image url with new file url
+			if self.attached_to_doctype and self.attached_to_name and \
+				frappe.db.get_value(self.attached_to_doctype, self.attached_to_name, "image") == old_file_url:
+				frappe.db.set_value(self.attached_to_doctype, self.attached_to_name, "image", self.file_url)
 
 	def set_folder_size(self):
 		"""Set folder size if folder"""
@@ -170,7 +176,7 @@ class File(NestedSet):
 		super(File, self).on_trash()
 		self.delete_file()
 
-	def make_thumbnail(self, set_as_thumbnail=True, width=300, height=300, suffix="small"):
+	def make_thumbnail(self, set_as_thumbnail=True, width=300, height=300, suffix="small", crop=False):
 		if self.file_url:
 			if self.file_url.startswith("/files"):
 				try:
@@ -185,7 +191,10 @@ class File(NestedSet):
 					return
 
 			size = width, height
-			image.thumbnail(size)
+			if crop:
+				image = ImageOps.fit(image, size, Image.ANTIALIAS)
+			else:
+				image.thumbnail(size, Image.ANTIALIAS)
 
 			thumbnail_url = filename + "_" + suffix + "." + extn
 

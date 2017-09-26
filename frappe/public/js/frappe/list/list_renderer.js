@@ -47,6 +47,9 @@ frappe.views.ListRenderer = Class.extend({
 	},
 	init_settings: function () {
 		this.settings = frappe.listview_settings[this.doctype] || {};
+		if(!("selectable" in this.settings)) {
+			this.settings.selectable = true;
+		}
 		this.init_user_settings();
 
 		this.order_by = this.user_settings.order_by || this.settings.order_by;
@@ -231,7 +234,10 @@ frappe.views.ListRenderer = Class.extend({
 		this.columns = this.columns.uniqBy(col => col.title);
 
 		// Remove TextEditor field columns
-		this.columns = this.columns.filter(col => col.fieldtype !== 'Text Editor')
+		this.columns = this.columns.filter(col => col.fieldtype !== 'Text Editor');
+
+		// Remove color field
+		this.columns = this.columns.filter(col => col.fieldtype !== 'Color');
 
 		// Limit number of columns to 4
 		this.columns = this.columns.slice(0, 4);

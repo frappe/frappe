@@ -332,7 +332,7 @@ class DocType(Document):
 		"""Make boilerplate controller template."""
 		make_boilerplate("controller._py", self)
 
-		if not (self.istable or self.issingle):
+		if not self.istable:
 			make_boilerplate("test_controller._py", self.as_dict())
 
 		if not self.istable:
@@ -451,7 +451,7 @@ def validate_fields(meta):
 
 	def check_dynamic_link_options(d):
 		if d.fieldtype=="Dynamic Link":
-			doctype_pointer = filter(lambda df: df.fieldname==d.options, fields)
+			doctype_pointer = list(filter(lambda df: df.fieldname==d.options, fields))
 			if not doctype_pointer or (doctype_pointer[0].fieldtype not in ("Link", "Select")) \
 				or (doctype_pointer[0].fieldtype=="Link" and doctype_pointer[0].options!="DocType"):
 				frappe.throw(_("Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType'"))

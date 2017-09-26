@@ -13,3 +13,4 @@ frappe/custom/doctype/customize_form/test_customize_form.js
 frappe/desk/doctype/event/test_event.js
 frappe/workflow/doctype/workflow/tests/test_workflow_create.js
 frappe/workflow/doctype/workflow/tests/test_workflow_test.js
+frappe/tests/ui/test_control_html.js
