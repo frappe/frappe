@@ -13,18 +13,18 @@
 			<div class="image-field"
 				data-name="{{ data.name }}"
 				style="
-				{% if (!item_image) { %}
+				{% if (!data._image_url) { %}
 					background-color: {{ color }};
 				{% } %}
 				border: 0px;"
 			>
-				{% if (!item_image) { %}
+				{% if (!data._image_url) { %}
 				<span class="placeholder-text">
 					{%= frappe.get_abbr(data._title) %}
 				</span>
 				{% } %}
-				{% if (item_image) { %}
-				<img data-name="{{ data.name }}" src="{{ item_image }}" alt="{{data.title}}">
+				{% if (data._image_url) { %}
+				<img data-name="{{ data.name }}" src="{{ data._image_url }}" alt="{{data.title}}">
 				{% } %}
 				<button class="btn btn-default zoom-view" data-name="{{data.name}}">
 					<i class="fa fa-search-plus"></i>
