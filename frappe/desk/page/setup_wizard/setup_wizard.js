@@ -245,7 +245,7 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 			<div class="page-card">
 				<div class="page-card-head">
 					${loading
-						? '<span class="indicator orange">${title}</span>'
+						? `<span class="indicator orange">${title}</span>`
 						: `<span class="indicator green">${title}</span>`
 					}
 				</div>
