@@ -361,7 +361,7 @@ frappe.ready(function() {
 				}
 			});
 		}
-	})
+	});
 
 	// setup datepicker in all inputs within the given element
 	var setup_date_picker = function(ele) {

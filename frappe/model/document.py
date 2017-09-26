@@ -334,12 +334,17 @@ class Document(BaseDocument):
 			self._doc_before_save = frappe.get_doc(self.doctype, self.name)
 		return self._doc_before_save
 
-	def set_new_name(self):
+	def set_new_name(self, force=False):
 		"""Calls `frappe.naming.se_new_name` for parent and child docs."""
+		if self.flags.name_set and not force:
+			return
+
 		set_new_name(self)
 		# set name for children
 		for d in self.get_all_children():
 			set_new_name(d)
+
+		self.flags.name_set = True
 
 	def get_title(self):
 		'''Get the document title based on title_field or `title` or `name`'''
