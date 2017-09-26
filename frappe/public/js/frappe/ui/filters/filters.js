@@ -64,6 +64,7 @@ frappe.ui.FilterList = Class.extend({
 				|| (condition==='=' && base_filter.df.condition==='like'))) {
 			// if filter exists in base_list, then exit
 			this.base_list.page.fields_dict[fieldname].set_input(value);
+			this.base_list.refresh(true);
 			return;
 		}
 
@@ -105,8 +106,8 @@ frappe.ui.FilterList = Class.extend({
 
 		return filter;
 	},
-	push_new_filter: function(doctype, fieldname, condition, value) {
-		if(this.filter_exists(doctype, fieldname, condition, value)) {
+	push_new_filter: function(doctype, fieldname, condition, value, field=null) {
+		if(this.filter_exists(doctype, fieldname, condition, value, field)) {
 			return;
 		}
 
@@ -128,16 +129,19 @@ frappe.ui.FilterList = Class.extend({
 		return filter;
 	},
 
-	filter_exists: function(doctype, fieldname, condition, value) {
+	filter_exists: function(doctype, fieldname, condition, value, field=null) {
 		var flag = false;
+		if(field){
+			var formatted_value = this.get_formatted_value(field, value);
+		}
 		for(var i in this.filters) {
 			if(this.filters[i].field) {
 				var f = this.filters[i].get_value();
 				var val = this.get_formatted_value(this.filters[i].field, f[3]);
 
-				if(f[0]==doctype && f[1]==fieldname && f[2]==condition && val==value) {
+				if(f[0]==doctype && f[1]==fieldname && f[2]==condition && val==formatted_value) {
 					flag = true;
-				} else if($.isArray(value) && frappe.utils.arrays_equal(value, f[3])) {
+				} else if($.isArray(formatted_value) && frappe.utils.arrays_equal(formatted_value, val)) {
 					flag = true;
 				}
 			}
@@ -263,8 +267,7 @@ frappe.ui.Filter = Class.extend({
 	apply: function() {
 		var f = this.get_value();
 		this.flist.filters.pop();
-		var val = this.flist.get_formatted_value(this.field, f[3]);
-		this.flist.push_new_filter(f[0], f[1], f[2], val);
+		this.flist.push_new_filter(f[0], f[1], f[2], f[3], this.field);
 		this.wrapper.remove();
 	},
 
