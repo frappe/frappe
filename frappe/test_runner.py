@@ -13,6 +13,7 @@ import frappe.utils.scheduler
 import cProfile, pstats
 from six import StringIO
 from six.moves import reload_module
+from frappe.model.naming import revert_series_if_last
 
 unittest_runner = unittest.TextTestRunner
 
@@ -320,11 +321,13 @@ def make_test_objects(doctype, test_records=None, verbose=None, reset=False):
 				d.submit()
 
 		except frappe.NameError:
-			pass
+			if d.naming_series:
+				revert_series_if_last(d.naming_series, d.name)
 
 		except Exception as e:
 			if d.flags.ignore_these_exceptions_in_test and e.__class__ in d.flags.ignore_these_exceptions_in_test:
-				pass
+				if d.naming_series:
+					revert_series_if_last(d.naming_series, d.name)
 
 			else:
 				raise
