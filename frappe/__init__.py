@@ -476,10 +476,14 @@ def only_for(roles):
 		raise PermissionError
 
 def get_domain_data(module):
-	if local.flags.in_test:
-		return _dict()
-	else:
+	try:
 		return _dict(get_attr(get_hooks('domains')[module][0] + '.data'))
+	except ImportError:
+		if local.flags.in_test:
+			return _dict()
+		else:
+			raise
+
 
 def clear_cache(user=None, doctype=None):
 	"""Clear **User**, **DocType** or global cache.

@@ -15,13 +15,21 @@ class Domain(Document):
 	def setup_domain(self):
 		'''Setup domain icons, permissions, custom fields etc.'''
 		self.setup_data()
-		self.setup_desktop_icons()
 		self.setup_properties()
 		self.set_values()
-		self.setup_sidebar_items()
+		if not int(frappe.db.get_single_value('System Settings', 'setup_complete') or 0):
+			# if setup not complete, setup desktop etc.
+			self.setup_sidebar_items()
+			self.setup_desktop_icons()
+			self.set_default_portal_role()
+
 		if self.data.custom_fields:
 			create_custom_fields(self.data.custom_fields)
-		self.set_default_portal_role()
+
+		if self.data.on_setup:
+			# custom on_setup method
+			frappe.get_attr(self.data.on_setup)()
+
 
 	def setup_data(self, domain=None):
 		'''Load domain info via hooks'''
