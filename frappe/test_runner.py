@@ -286,6 +286,11 @@ def make_test_objects(doctype, test_records=None, verbose=None, reset=False):
 	'''Make test objects from given list of `test_records` or from `test_records.json`'''
 	records = []
 
+	def revert_naming(d):
+		if getattr(d, 'naming_series'):
+			revert_series_if_last(d.naming_series, d.name)
+
+
 	if test_records is None:
 		test_records = frappe.get_test_records(doctype)
 
@@ -321,14 +326,11 @@ def make_test_objects(doctype, test_records=None, verbose=None, reset=False):
 				d.submit()
 
 		except frappe.NameError:
-			if d.naming_series:
-				revert_series_if_last(d.naming_series, d.name)
+			revert_naming(d)
 
 		except Exception as e:
 			if d.flags.ignore_these_exceptions_in_test and e.__class__ in d.flags.ignore_these_exceptions_in_test:
-				if d.naming_series:
-					revert_series_if_last(d.naming_series, d.name)
-
+				revert_naming(d)
 			else:
 				raise
 
