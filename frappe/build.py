@@ -26,12 +26,12 @@ def setup():
 		except ImportError: pass
 	app_paths = [os.path.dirname(pymodule.__file__) for pymodule in pymodules]
 
-def bundle(no_compress, make_copy=False, make_copy_force=False, verbose=False):
+def bundle(no_compress, make_copy=False, reset=False, verbose=False):
 	"""concat / minify js files"""
 	# build js files
 	setup()
 
-	make_asset_dirs(make_copy=make_copy, make_copy_force = make_copy_force)
+	make_asset_dirs(make_copy=make_copy, reset = reset)
 
 	# new nodejs build system
 	command = 'node --use_strict ../apps/frappe/frappe/build.js --build'
@@ -61,7 +61,7 @@ def watch(no_compress):
 
 	# 	time.sleep(3)
 
-def make_asset_dirs(make_copy=False, make_copy_force=False):
+def make_asset_dirs(make_copy=False, reset=False):
 	# don't even think of making assets_path absolute - rm -rf ahead.
 	assets_path = os.path.join(frappe.local.sites_path, "assets")
 	for dir_path in [
@@ -83,7 +83,7 @@ def make_asset_dirs(make_copy=False, make_copy_force=False):
 		for source, target in symlinks:
 			source = os.path.abspath(source)
 			if os.path.exists(source):
-				if make_copy_force:
+				if reset:
 					if os.path.exists(target):
 						if os.path.islink(target):
 							os.unlink(target)
