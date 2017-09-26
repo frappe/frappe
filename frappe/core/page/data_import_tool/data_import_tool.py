@@ -36,7 +36,7 @@ def import_file_by_path(path, ignore_links=False, overwrite=False, submit=False,
 
 def export_csv(doctype, path):
 	from frappe.core.page.data_import_tool.exporter import get_template
-	with open(path, "w") as csvfile:
+	with open(path, "wb") as csvfile:
 		get_template(doctype=doctype, all_doctypes="Yes", with_data="Yes")
 		csvfile.write(frappe.response.result.encode("utf-8"))
 
