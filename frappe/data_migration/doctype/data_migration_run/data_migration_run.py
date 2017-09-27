@@ -250,6 +250,10 @@ class DataMigrationRun(Document):
 						update_modified=False)
 			else:
 				doc = mapping.get_mapped_record(d)
+
+				# pre process before insert/update
+				doc = self.pre_process_doc(doc)
+
 				if not migration_id_value:
 					# no migration_id_value, insert doc
 					response = connection.insert(
@@ -272,6 +276,9 @@ class DataMigrationRun(Document):
 						frappe.db.commit()
 					else:
 						self.items_updated += 1
+
+					# post process only when action is success
+					self.post_process_doc(doc)
 
 		self.db_set('failed_log', json.dumps(failed_log))
 
