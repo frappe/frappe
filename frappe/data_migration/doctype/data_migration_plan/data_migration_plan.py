@@ -46,52 +46,28 @@ class DataMigrationPlan(Document):
 		# Create custom field in Deleted Document
 		create_custom_field('Deleted Document', df)
 
-	# def store_mapped_data(self, target):
-	# 	""" mapping source field to target field """
-	# 	# Iterating through each field to map
-	# 	for field in self.mapping.mapping_details:
-	# 		source_field = field.remote_fieldname
+	def pre_process_doc(mapping_name, doc):
+		module = self.get_mapping_module(mapping_name)
 
-	# 		# If source field contains a dot linkage, then its a foreign key relation
-	# 		if '.' in  source_field:
-	# 			arr = source_field.split('.')
-	# 			join_data = self.connector.get_join_objects(self.mapping.remote_objectname, field, self.source.get('id'))
+		if module and hasattr(module, 'pre_process'):
+			return module.pre_process(doc)
+		return doc
 
-	# 			if len(join_data) > 1:
-	# 				join_data = join_data[0:1] # ManyToOne mapping, taking the first value only
+	def post_process_doc(mapping_name, doc):
+		module = self.get_mapping_module(mapping_name)
 
-	# 			target.set(field.local_fieldname, join_data[0][arr[1]])
-	# 		else:
-	# 			# Else its a simple column to column mapping
-	# 			target.set(field.local_fieldname, frappe.as_unicode(self.source.get(source_field)))
+		if module and hasattr(module, 'post_process'):
+			return module.post_process(doc)
+		return doc
 
-	# 	# post process
-	# 	if self.mapping.post_process:
-	# 		exec self.mapping.post_process in locals()
+	def get_mapping_module(mapping_name):
+		try:
+			module = frappe.get_module('erpnext.{module}.data_migration_mapping.{mapping_name}'.format(
+				module=frappe.scrub(self.module),
+				mapping_name=frappe.scrub(mapping_name)
+			))
+			return module
+		except ImportError:
+			return None
 
-	# 	try:
-	# 		target.save()
-	# 	except frappe.DuplicateEntryError:
-	# 		target.save()
-
-	# def fetch_doctype(self):
-	# 	""" Returns correct doctype type - new or existing """
-	# 	flag = frappe.db.get_value(self.mapping.local_doctype, {'migration_key': self.source.get('id')})
-
-	# 	if flag:
-	# 		# If it is, then fetch that docktype
-	# 		return frappe.get_doc(self.mapping.local_doctype, flag)
-	# 	else:
-	# 		# If not, then check if a data by that name already exist or not
-	# 		primary_name = self.mapping.mapping_details[0].local_fieldname
-	# 		primary_value = self.source.get(self.mapping.mapping_details[0].remote_fieldname)
-
-	# 		flag_2 = frappe.db.get_value(self.mapping.local_doctype, {primary_name: primary_value})
-
-	# 		if flag_2:
-	# 			# If same name is found, fetch that doctype
-	# 			return frappe.get_doc(self.mapping.local_doctype, flag_2)
-	# 		else :
-	# 			#  Else create a new doctype for current data object
-	# 			return frappe.new_doc(self.mapping.local_doctype)
 

@@ -294,7 +294,11 @@ class DataMigrationRun(Document):
 		if response.ok:
 			data = response.data
 			for d in data:
-				self.insert_doc(mapping, d)
+				doc = self.pre_process_doc(d)
+
+				self.insert_doc(mapping, doc)
+
+				self.post_process_doc(d)
 
 		if len(data) < mapping.page_length:
 			if self.current_mapping_action == 'Insert':
@@ -306,27 +310,24 @@ class DataMigrationRun(Document):
 		return False
 
 	def insert_doc(self, mapping, remote_doc):
-		if mapping.pre_process:
-			print('Pre-processing...')
-			remote_doc = process_doc(remote_doc, mapping.pre_process)
-
-		print('Remote doc')
-		print(remote_doc)
-
 		if not frappe.db.exists(mapping.local_doctype,
 			{mapping.local_primary_key: remote_doc[mapping.local_primary_key]}):
 			doc = mapping.get_mapped_record(remote_doc)
 			if not doc.doctype:
 				doc.doctype = mapping.local_doctype
 			doc = frappe.get_doc(doc).insert()
+		else:
+			self.update_doc(mapping, remote_doc)
 
-			if mapping.post_process:
-				print('Post-processing...')
-				process_doc(remote_doc, mapping.post_process)
-
-	def update_doc(self):
+	def update_doc(self, mapping, remote_doc):
 		pass
 
-def process_doc(doc, exec_statement):
-	exec exec_statement in locals()
-	return modified_doc
+	def pre_process_doc(doc):
+		plan = self.get_plan()
+		doc = plan.pre_process_doc(self.current_mapping, doc)
+		return doc
+
+	def post_process_doc(doc):
+		plan = self.get_plan()
+		doc = plan.post_process_doc(self.current_mapping, doc)
+		return doc

@@ -25,37 +25,28 @@ class DataMigrationMapping(Document):
 
 		return fields
 
-	def get_mapped_record(self, d):
+	def get_mapped_record(self, doc):
 		mapped = frappe._dict()
 
 		key_fieldname = 'remote_fieldname'
 		value_fieldname = 'local_fieldname'
+
 		if self.mapping_type == 'Pull':
 			key_fieldname, value_fieldname = value_fieldname, key_fieldname
 
-		for f in self.fields:
-			value = get_field_value(f, value_fieldname, d)
-			if not f.get('is_child_table'):
-				mapped[f.get(key_fieldname)] = value
-			else:
-				if mapped.get(f.get(key_fieldname)):
-					mapped[f.get(key_fieldname)]['child_docs'].append()
-				else:
-					remote_child_docs = mapped[f.get(key_fieldname)]
-					remote_child_docs = frappe._dict()
-					remote_child_docs['doctype'] = []
+		for field_map in self.fields:
+			value = get_value_from_fieldname(field_map, value_fieldname, doc)
+			mapped[field_map.get(key_fieldname)] = value
 
 		return mapped
 
-def get_field_value(field_map, field_name, doc):
-	current_val = field_map.get(field_name)
-	if current_val.startswith('eval:'):
-		value = frappe.safe_eval(current_val[5:], dict(frappe=frappe))
-	elif current_val[0] in ('"', "'"):
-		value = current_val[1:-1]
-	elif field_map.formula and doc.get(current_val):
-		exec field_map.formula in locals()
-		value = modified_field_value
+def get_value_from_fieldname(field_map, fieldname_field, doc):
+	field_name = field_map.get(fieldname_field)
+
+	if field_name.startswith('eval:'):
+		value = frappe.safe_eval(field_name[5:], dict(frappe=frappe))
+	elif field_name[0] in ('"', "'"):
+		value = field_name[1:-1]
 	else:
-		value = doc.get(current_val)
+		value = doc.get(field_name)
 	return value
