@@ -46,21 +46,21 @@ class DataMigrationPlan(Document):
 		# Create custom field in Deleted Document
 		create_custom_field('Deleted Document', df)
 
-	def pre_process_doc(mapping_name, doc):
+	def pre_process_doc(self, mapping_name, doc):
 		module = self.get_mapping_module(mapping_name)
 
 		if module and hasattr(module, 'pre_process'):
 			return module.pre_process(doc)
 		return doc
 
-	def post_process_doc(mapping_name, doc):
+	def post_process_doc(self, mapping_name, doc):
 		module = self.get_mapping_module(mapping_name)
 
 		if module and hasattr(module, 'post_process'):
 			return module.post_process(doc)
 		return doc
 
-	def get_mapping_module(mapping_name):
+	def get_mapping_module(self, mapping_name):
 		try:
 			module = frappe.get_module('erpnext.{module}.data_migration_mapping.{mapping_name}'.format(
 				module=frappe.scrub(self.module),
@@ -69,5 +69,3 @@ class DataMigrationPlan(Document):
 			return module
 		except ImportError:
 			return None
-
-

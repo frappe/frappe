@@ -329,12 +329,12 @@ class DataMigrationRun(Document):
 	def update_doc(self, mapping, remote_doc):
 		pass
 
-	def pre_process_doc(doc):
+	def pre_process_doc(self, doc):
 		plan = self.get_plan()
 		doc = plan.pre_process_doc(self.current_mapping, doc)
 		return doc
 
-	def post_process_doc(doc):
+	def post_process_doc(self, doc):
 		plan = self.get_plan()
 		doc = plan.post_process_doc(self.current_mapping, doc)
 		return doc
