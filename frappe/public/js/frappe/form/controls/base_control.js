@@ -101,7 +101,7 @@ frappe.ui.form.Control = Class.extend({
 		}
 	},
 	set_value: function(value) {
-		return this.validate_and_set_in_model(value);
+		return this.parse_validate_and_set_in_model(value);
 	},
 	parse_validate_and_set_in_model: function(value, e) {
 		if(this.parse) {
