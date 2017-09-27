@@ -35,6 +35,5 @@ apps/frappe/frappe/core/page/modules_setup/modules_setup.html +32,Global Setting
 DocType: Feedback Request,Feedback Rating,Rating de Feedback
 DocType: Dynamic Link,Link Title,Título del Enlace
 DocType: Website Settings,&lt;head&gt; HTML,HTML
-DocType: OAuth Client,Grant Type,Tipo de Subvención
 DocType: Workflow State,facetime-video,Vídeo FaceTime
 DocType: Payment Gateway,Gateway,Puerta de Entrada

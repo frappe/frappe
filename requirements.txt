@@ -37,7 +37,7 @@ cryptography
 pyopenssl
 ndg-httpsclient
 pyasn1
-zxcvbn
+zxcvbn-python
 psutil
 unittest-xml-reporting
 oauthlib

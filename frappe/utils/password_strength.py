@@ -3,14 +3,14 @@
 
 from __future__ import unicode_literals
 
-import zxcvbn
+from zxcvbn import zxcvbn
 import frappe
 from frappe import _
 
 def test_password_strength(password, user_inputs=None):
 	'''Wrapper around zxcvbn.password_strength'''
-	result = zxcvbn.password_strength(password, user_inputs)
-	result['feedback'] = get_feedback(result['score'], result['match_sequence'])
+	result = zxcvbn(password, user_inputs)
+	result['feedback'] = get_feedback(result['score'], result['sequence'])
 	return result
 
 # NOTE: code modified for frappe translations
@@ -37,7 +37,7 @@ def get_feedback (score, sequence):
 	"""
 	Returns the feedback dictionary consisting of ("warning","suggestions") for the given sequences.
 	"""
-	minimum_password_score = frappe.db.get_single_value("System Settings", "minimum_password_score")
+	minimum_password_score = int(frappe.db.get_single_value("System Settings", "minimum_password_score"))
 
 	global default_feedback
 	# Starting feedback

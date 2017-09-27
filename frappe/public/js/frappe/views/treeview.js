@@ -286,7 +286,7 @@ frappe.views.TreeView = Class.extend({
 			frappe.msgprint(__("You are not allowed to print this report"));
 			return false;
 		}
-		var tree = $(".tree:visible").html(); 
+		var tree = $(".tree:visible").html();
 		var me = this;
 		frappe.ui.get_print_settings(false, function(print_settings) {
 			var title =  __(me.docname || me.doctype);
@@ -339,7 +339,15 @@ frappe.views.TreeView = Class.extend({
 			if (has_perm) {
 				me.page.add_menu_item(menu_item["label"], menu_item["action"]);
 			}
-		})
+		});
+
+		// last menu item
+		me.page.add_menu_item(__('Add to Desktop'), () => {
+			const label = me.doctype === 'Account' ?
+				__('Chart of Accounts') :
+				__(me.doctype);
+			frappe.add_to_desktop(label, me.doctype);
+		});
 	}
 });
 
