@@ -232,7 +232,7 @@ class DataMigrationRun(Document):
 		connection = self.get_connection()
 
 		data = self.get_data(mapping, start)
-		failed_log = json.loads(self.failed_log or '[]')
+		failed_log = json.loads(self.db_get('failed_log') or '[]')
 
 		for d in data:
 			migration_id_value = d.get(mapping.migration_id_field)
@@ -296,6 +296,7 @@ class DataMigrationRun(Document):
 
 		mapping = self.get_mapping(self.current_mapping)
 		start = self.current_mapping_start
+		failed_log = json.loads(self.db_get('failed_log') or '[]')
 
 		response = self.get_remote_data(mapping, start)
 		if response.ok:
@@ -303,9 +304,14 @@ class DataMigrationRun(Document):
 			for d in data:
 				doc = self.pre_process_doc(d)
 
-				self.insert_doc(mapping, doc)
+				local_doc = self.insert_doc(mapping, doc)
 
-				self.post_process_doc(d)
+				if local_doc:
+					self.post_process_doc(remote_doc=doc, local_doc=local_doc)
+				else:
+					failed_log.append(d)
+
+		self.db_set('failed_log', json.dumps(failed_log))
 
 		if len(data) < mapping.page_length:
 			if self.current_mapping_action == 'Insert':
@@ -317,14 +323,24 @@ class DataMigrationRun(Document):
 		return False
 
 	def insert_doc(self, mapping, remote_doc):
-		if not frappe.db.exists(mapping.local_doctype,
-			{mapping.local_primary_key: remote_doc[mapping.local_primary_key]}):
-			doc = mapping.get_mapped_record(remote_doc)
-			if not doc.doctype:
-				doc.doctype = mapping.local_doctype
-			doc = frappe.get_doc(doc).insert()
-		else:
-			self.update_doc(mapping, remote_doc)
+		name_field = mapping.local_primary_key
+		name_value = remote_doc[mapping.local_primary_key]
+
+		try:
+			if not frappe.db.exists(mapping.local_doctype,
+				{name_field: name_value}):
+				doc = mapping.get_mapped_record(remote_doc)
+				if not doc.doctype:
+					doc.doctype = mapping.local_doctype
+				doc = frappe.get_doc(doc).insert()
+			else:
+				doc = frappe.get_doc(mapping.local_doctype, name_value)
+				self.update_doc(mapping, remote_doc)
+
+		except Exception:
+			return None
+
+		return doc
 
 	def update_doc(self, mapping, remote_doc):
 		pass
