@@ -168,7 +168,7 @@ def build_page(path):
 		frappe.local.path = path
 
 	context = get_context(path)
-	if "{{" in context.title:
+	if context.title and "{{" in context.title:
 		title_template = context.pop('title')
 		context.title = frappe.render_template(title_template, context)
 
