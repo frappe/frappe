@@ -33,7 +33,10 @@ def get_meta(doctype, cached=True):
 				lambda: Meta(doctype))
 		return frappe.local.meta_cache[doctype]
 	else:
-		return Meta(doctype)
+		return load_meta(doctype)
+
+def load_meta(doctype):
+	return Meta(doctype)
 
 def get_table_columns(doctype):
 	return frappe.cache().hget("table_columns", doctype,
