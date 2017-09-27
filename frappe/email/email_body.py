@@ -415,7 +415,7 @@ def get_filecontent_from_path(path):
 		full_path = path
 
 	if os.path.exists(full_path):
-		with open(full_path) as f:
+		with open(full_path, 'rb') as f:
 			filecontent = f.read()
 
 		return filecontent
