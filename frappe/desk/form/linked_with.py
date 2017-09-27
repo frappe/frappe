@@ -119,7 +119,7 @@ def _get_linked_doctypes(doctype):
 		if not dt in ret:
 			ret[dt] = {"get_parent": True}
 
-	for dt in ret.keys():
+	for dt in list(ret.keys()):
 		try:
 			doctype_module = load_doctype_module(dt)
 		except ImportError:
