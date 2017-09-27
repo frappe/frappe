@@ -291,6 +291,7 @@ frappe.socketio.SocketIOUploader = class SocketIOUploader {
 			}
 
 			this.reader.readAsArrayBuffer(slice);
+			this.started = true;
 			this.keep_alive();
 		});
 
@@ -338,6 +339,8 @@ frappe.socketio.SocketIOUploader = class SocketIOUploader {
 		this.chunk_size = chunk_size;
 		this.callback = callback;
 		this.on_progress = on_progress;
+		this.fallback = fallback;
+		this.started = false;
 
 		this.reader.onload = () => {
 			frappe.socketio.socket.emit('upload-accept-slice', {
@@ -359,8 +362,16 @@ frappe.socketio.SocketIOUploader = class SocketIOUploader {
 			clearTimeout (this.next_check);
 		}
 		this.next_check = setTimeout (() => {
+			if (!this.started) {
+				// upload never started, so try fallback
+				if (this.fallback) {
+					this.fallback();
+				} else {
+					this.disconnect();
+				}
+			}
 			this.disconnect();
-		}, 5000);
+		}, 3000);
 	}
 
 	disconnect(with_message = true) {
