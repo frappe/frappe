@@ -132,7 +132,7 @@ $.extend(frappe.desktop, {
 			}
 		});
 
-		this.setup_wiggle()
+		this.setup_wiggle();
 	},
 
 	setup_wiggle: () => {
