@@ -120,6 +120,7 @@ def get_dict(fortype, name=None):
 
 		message_dict = make_dict_from_messages(messages)
 		message_dict.update(get_dict_from_hooks(fortype, name))
+		message_dict.update(get_user_translations(frappe.local.lang))
 
 		# remove untranslated
 		message_dict = {k:v for k, v in iteritems(message_dict) if k!=v}
@@ -254,7 +255,6 @@ def get_user_translations(lang):
 		frappe.cache().hset('lang_user_translations', lang, out)
 
 	return out
-
 
 def clear_cache():
 	"""Clear all translation assets from :meth:`frappe.cache`"""
