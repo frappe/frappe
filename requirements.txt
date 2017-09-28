@@ -6,7 +6,7 @@ httplib2
 jinja2
 markdown2
 markupsafe
-https://github.com/PyMySQL/mysqlclient-python/archive/master.zip
+mysqlclient==1.3.10
 python-geoip
 python-geoip-geolite2
 python-dateutil
