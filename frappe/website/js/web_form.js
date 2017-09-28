@@ -376,7 +376,7 @@ frappe.ready(function() {
 				dateFormat: frappe.datepicker_format,
 				onSelect: function(date, date_str, e) {
 					e.$el.trigger('change');
-				},
+				}
 			});
 
 			// initialize dates from YYYY-MM-DD to user format

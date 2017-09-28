@@ -260,7 +260,7 @@ frappe.Application = Class.extend({
 		$.each(frappe.boot.notification_info.open_count_doctype, function(doctype, count) {
 			if(count) {
 				$('.open-notification.global[data-doctype="'+ doctype +'"]')
-					.removeClass("hide").html(count > 20 ? "20+" : count);
+					.removeClass("hide").html(count > 99 ? "99+" : count);
 			} else {
 				$('.open-notification.global[data-doctype="'+ doctype +'"]')
 					.addClass("hide");
@@ -355,7 +355,7 @@ frappe.Application = Class.extend({
 	},
 	make_nav_bar: function() {
 		// toolbar
-		if(frappe.boot) {
+		if(frappe.boot && !frappe.boot.in_setup_wizard) {
 			frappe.frappe_toolbar = new frappe.ui.toolbar.Toolbar();
 		}
 

@@ -53,7 +53,7 @@ def clear_global_cache():
 	frappe.model.meta.clear_cache()
 	frappe.cache().delete_value(["app_hooks", "installed_apps",
 		"app_modules", "module_app", "notification_config", 'system_settings'
-		'scheduler_events', 'time_zone'])
+		'scheduler_events', 'time_zone', 'webhooks'])
 	frappe.setup_module_map()
 
 
@@ -163,6 +163,7 @@ def get():
 		# check only when clear cache is done, and don't cache this
 		if frappe.local.request:
 			bootinfo["change_log"] = get_change_log()
+			bootinfo["in_setup_wizard"] = not cint(frappe.db.get_single_value('System Settings', 'setup_complete'))
 			bootinfo["is_first_startup"] = cint(frappe.db.get_single_value('System Settings', 'is_first_startup'))
 
 	bootinfo["metadata_version"] = frappe.cache().get_value("metadata_version")

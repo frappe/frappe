@@ -18,8 +18,8 @@ class CustomField(Document):
 			if not self.label:
 				frappe.throw(_("Label is mandatory"))
 			# remove special characters from fieldname
-			self.fieldname = filter(lambda x: x.isdigit() or x.isalpha() or '_',
-				cstr(self.label).lower().replace(' ','_'))
+			self.fieldname = "".join(filter(lambda x: x.isdigit() or x.isalpha() or '_',
+				cstr(self.label).lower().replace(' ','_')))
 
 		# fieldnames should be lowercase
 		self.fieldname = self.fieldname.lower()

@@ -15,6 +15,7 @@ import hashlib, json
 from frappe.model import optional_fields
 from frappe.utils.file_manager import save_url
 from frappe.utils.global_search import update_global_search
+from frappe.integrations.doctype.webhook import run_webhooks
 
 # once_only validation
 # methods
@@ -333,12 +334,17 @@ class Document(BaseDocument):
 			self._doc_before_save = frappe.get_doc(self.doctype, self.name)
 		return self._doc_before_save
 
-	def set_new_name(self):
+	def set_new_name(self, force=False):
 		"""Calls `frappe.naming.se_new_name` for parent and child docs."""
+		if self.flags.name_set and not force:
+			return
+
 		set_new_name(self)
 		# set name for children
 		for d in self.get_all_children():
 			set_new_name(d)
+
+		self.flags.name_set = True
 
 	def get_title(self):
 		'''Get the document title based on title_field or `title` or `name`'''
@@ -671,6 +677,7 @@ class Document(BaseDocument):
 		out = Document.hook(fn)(self, *args, **kwargs)
 
 		self.run_email_alerts(method)
+		run_webhooks(self, method)
 
 		return out
 
@@ -997,7 +1004,7 @@ class Document(BaseDocument):
 
 	def get_signature(self):
 		"""Returns signature (hash) for private URL."""
-		return hashlib.sha224(get_datetime_str(self.creation)).hexdigest()
+		return hashlib.sha224(get_datetime_str(self.creation).encode()).hexdigest()
 
 	def get_liked_by(self):
 		liked_by = getattr(self, "_liked_by", None)

@@ -15,7 +15,7 @@ DocType: User,Facebook Username,Facebook používateľské meno
 DocType: System Settings,Note: Multiple sessions will be allowed in case of mobile device,Poznámka: Viac relácií budú môcť v prípade mobilného zariadenia
 apps/frappe/frappe/core/doctype/user/user.py +654,Enabled email inbox for user {users},Povolené e-mailová schránka pre užívateľov {Užívatelia}
 apps/frappe/frappe/email/queue.py +241,Cannot send this email. You have crossed the sending limit of {0} emails for this month.,Nemožno odoslať e-mail. Ste prekročili odosielajúci limit {0} e-mailov pre tento mesiac.
-apps/frappe/frappe/public/js/legacy/form.js +756,Permanently Submit {0}?,Vložit na trvalo: {0}?
+apps/frappe/frappe/public/js/legacy/form.js +761,Permanently Submit {0}?,Vložit na trvalo: {0}?
 apps/frappe/frappe/desk/page/backups/backups.js +12,Download Files Backup,Stiahnite si súbory zálohovania
 DocType: Address,County,grófstva
 DocType: Workflow,If Checked workflow status will not override status in list view,Ak je zaškrtnuté stav pracovného postupu nebude prepísať stav v zobrazení zoznamu
@@ -33,7 +33,6 @@ DocType: Contact,Department,Oddělení
 DocType: DocField,Options,Možnosti
 apps/frappe/frappe/client.py +95,Cannot edit standard fields,Nelze upravit standardní pole
 DocType: Print Format,Print Format Builder,Print Format Builder
-apps/frappe/frappe/public/js/frappe/ui/page.js +4,Form,Forma
 DocType: Report,Report Manager,Manažer výpisů
 DocType: Workflow,Document States,Štádiá dokumentu
 apps/frappe/frappe/public/js/frappe/views/pageview.js +104,Sorry! I could not find what you were looking for.,"Je nám líto! Nemohl jsem najít to, co jste hledali."
@@ -42,7 +41,7 @@ DocType: Custom DocPerm,This role update User Permissions for a user,Tato role a
 apps/frappe/frappe/public/js/frappe/model/model.js +506,Rename {0},Pemenovať: {0}
 DocType: Workflow State,zoom-out,Zmenšiť
 apps/frappe/frappe/public/js/legacy/form.js +66,Cannot open {0} when its instance is open,Nemůžete otevřít: {0} když je otevřena instance
-apps/frappe/frappe/model/document.py +935,Table {0} cannot be empty,Tabuľka: {0} nemôže byť prázdna
+apps/frappe/frappe/model/document.py +942,Table {0} cannot be empty,Tabuľka: {0} nemôže byť prázdna
 DocType: SMS Parameter,Parameter,Parametr
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +852,With Ledgers,S deníky
 apps/frappe/frappe/public/js/frappe/views/image/image_view.js +15,Images,snímky
@@ -51,7 +50,7 @@ DocType: Currency,Smallest circulating fraction unit (coin). For e.g. 1 cent for
 DocType: Social Login Keys,GitHub,GitHub
 apps/frappe/frappe/model/base_document.py +573,"{0}, Row {1}","{0}, Riadok {1}"
 apps/frappe/frappe/www/feedback.html +93,Please give a fullname.,Uveďte celé meno.
-apps/frappe/frappe/model/document.py +909,Beginning with,Začínajúc s
+apps/frappe/frappe/model/document.py +916,Beginning with,Začínajúc s
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +53,Data Import Template,Šablona importu dat
 apps/frappe/frappe/public/js/frappe/model/model.js +31,Parent,Rodič
 DocType: System Settings,"If enabled, the password strength will be enforced based on the Minimum Password Score value. A value of 2 being medium strong and 4 being very strong.","Ak je táto možnosť povolená, intenzita hesla sa vynucuje na základe hodnoty skóre minimálneho hesla. Hodnota 2 je stredne silná a 4 sú veľmi silné."
@@ -65,28 +64,28 @@ DocType: Auto Email Report,Monthly,Měsíčně
 DocType: Address,Uttarakhand,Uttarakhand
 DocType: Email Account,Enable Incoming,Povolení příchozích
 apps/frappe/frappe/core/doctype/version/version_view.html +47,Danger,Nebezpečí
-apps/frappe/frappe/www/login.html +22,Email Address,E-mailová adresa
+apps/frappe/frappe/www/login.html +85,Email Address,E-mailová adresa
 DocType: Workflow State,th-large,th-large
 DocType: Communication,Unread Notification Sent,Neprečítané oznámenia Odoslané
 apps/frappe/frappe/public/js/frappe/misc/tools.js +8,Export not allowed. You need {0} role to export.,Export není povolen. Potřebujete roli {0} pro exportování.
 DocType: DocType,Is Published Field,Je publikovaný Field
 DocType: Email Group,Email Group,email Group
 DocType: Note,Seen By,Videné kým
-apps/frappe/frappe/public/js/frappe/form/templates/grid_body.html +15,Add Multiple,Pridať viac
-apps/frappe/frappe/public/js/frappe/ui/filters/filters.js +480,Not Like,Nie ako
+apps/frappe/frappe/public/js/frappe/form/templates/grid_body.html +17,Add Multiple,Pridať viac
+apps/frappe/frappe/public/js/frappe/ui/filters/filters.js +497,Not Like,Nie ako
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +212,Set the display label for the field,Nastavit zobrazované označení pole
-apps/frappe/frappe/model/document.py +926,Incorrect value: {0} must be {1} {2},Nesprávná hodnota: {0} musí být {1} {2}
+apps/frappe/frappe/model/document.py +933,Incorrect value: {0} must be {1} {2},Nesprávná hodnota: {0} musí být {1} {2}
 apps/frappe/frappe/config/setup.py +218,"Change field properties (hide, readonly, permission etc.)","Změnit vlastnosti pole (skrýt, jen pro čtení, práva atd.)"
 apps/frappe/frappe/integrations/oauth2.py +108,Define Frappe Server URL in Social Login Keys,Definovať frapé URL servera v sociálnych Prihlásenie Keys
 DocType: Workflow State,lock,zámek
 apps/frappe/frappe/config/website.py +78,Settings for Contact Us Page.,Nastavenie stránky Kontaktujte nás.
-apps/frappe/frappe/core/doctype/user/user.py +873,Administrator Logged In,Administrátor prihlásený
+apps/frappe/frappe/core/doctype/user/user.py +878,Administrator Logged In,Administrátor prihlásený
 DocType: Contact Us Settings,"Contact options, like ""Sales Query, Support Query"" etc each on a new line or separated by commas.","Možnosti kontaktu, např.: ""Dotaz prodeje, dotaz podpory"" atd., každý na novém řádku nebo oddělené čárkami."
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +30,2. Download,2. Download
-apps/frappe/frappe/public/js/frappe/form/controls/text_editor.js +222,Insert,Vložit
+apps/frappe/frappe/public/js/frappe/form/controls/text_editor.js +223,Insert,Vložit
 apps/frappe/frappe/public/js/frappe/form/link_selector.js +22,Select {0},Vyberte {0}
 DocType: DocField,Color,Barva
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +54,For ranges,Pro rozsahy
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +55,For ranges,Pro rozsahy
 DocType: Workflow State,indent-right,indent-right
 DocType: Has Role,Has Role,má role
 DocType: System Settings,Time in seconds to retain QR code image on server. Min:<strong>240</strong>,Čas v sekundách na zachovanie obrazu kódu QR na serveri. Min: <strong>240</strong>
@@ -96,9 +95,10 @@ apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +46,1 minute ago,pred 1 
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +46,"Recommended bulk editing records via import, or understanding the import format.","Doporučená hromadné editaci záznamů přes dovoz, nebo pochopení formát importu."
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +36,"Apart from System Manager, roles with Set User Permissions right can set permissions for other users for that Document Type.","Na rozdíl od správce systému, role se sadou Oprávnění uživatele právo lze nastavit oprávnění pro ostatní uživatele pro daný typ dokumentu."
 DocType: Company History,Company History,Historie organizace
-apps/frappe/frappe/website/doctype/portal_settings/portal_settings.js +9,Reset,Reštartovať
+apps/frappe/frappe/website/doctype/portal_settings/portal_settings.js +19,Reset,Reštartovať
 DocType: Workflow State,volume-up,volume-up
 apps/frappe/frappe/core/page/data_import_tool/importer.py +57,Only allowed {0} rows in one import,Je povoleno pouze {0} řádků v jednom importu
+apps/frappe/frappe/config/integrations.py +78,Webhooks calling API requests into web apps,"Webhook, ktorý volá žiadosti API do webových aplikácií"
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +4,"To import or update records, you must first download the template for importing.","Chcete-li importovat nebo aktualizovat záznamy, musíte nejprve stáhnout pro import šablony."
 DocType: DocType,Default Print Format,Výchozí formát tisku
 DocType: Workflow State,Tags,tagy
@@ -123,7 +123,7 @@ DocType: Translation,Translation,preklad
 apps/frappe/frappe/desk/page/applications/application_row.html +18,Install,Instalovat
 apps/frappe/frappe/desk/page/setup_wizard/install_fixtures.py +16,Mr,Pan
 DocType: Custom Script,Client,Klient
-apps/frappe/frappe/public/js/legacy/form.js +463,This form has been modified after you have loaded it,"Tento formulár bol zmenený potom, čo ste naložil"
+apps/frappe/frappe/public/js/legacy/form.js +468,This form has been modified after you have loaded it,"Tento formulár bol zmenený potom, čo ste naložil"
 DocType: User Permission for Page and Report,User Permission for Page and Report,Užívateľ Privilégiá stránky a správa
 DocType: Address,Himachal Pradesh,Himachal Pradesh
 DocType: System Settings,"If not set, the currency precision will depend on number format","Ak nie je nastavená, presnosť meny bude závisieť od formátu čísla"
@@ -133,7 +133,7 @@ apps/frappe/frappe/email/doctype/newsletter/newsletter.js +9,Send,Odoslať
 DocType: Workflow Action,Workflow Action Name,Název akce toku (workflow)
 apps/frappe/frappe/core/doctype/doctype/doctype.py +287,DocType can not be merged,DocType nemůže být sloučen
 DocType: Web Form Field,Fieldtype,Typ pole
-apps/frappe/frappe/core/doctype/file/file.py +253,Not a zip file,Nejedná sa o súbor zip
+apps/frappe/frappe/core/doctype/file/file.py +259,Not a zip file,Nejedná sa o súbor zip
 apps/frappe/frappe/public/js/frappe/form/save.js +141,"Mandatory fields required in table {0}, Row {1}","Povinné údaje požadované v tabuľke {0}, riadok {1}"
 apps/frappe/frappe/utils/password_strength.py +173,Capitalization doesn't help very much.,Kapitalizácie nepomôže moc.
 DocType: Error Snapshot,Friendly Title,Friendly Názov
@@ -146,25 +146,26 @@ DocType: Email Account,UNSEEN,nevidený
 apps/frappe/frappe/config/desktop.py +19,File Manager,Správca súborov
 DocType: OAuth Bearer Token,Refresh Token,obnoviť Token
 DocType: Address,Goa,goa
+DocType: Webhook,Doc Event,Event Doc
 apps/frappe/frappe/public/js/frappe/misc/user.js +61,You,Vy
 DocType: Website Theme,lowercase,malá písmena
 DocType: Print Format,Helvetica,Helvetica
 DocType: Address,Jharkhand,Jharkhand
-apps/frappe/frappe/email/doctype/newsletter/newsletter.py +39,Newsletter has already been sent,Newsletter bol už odoslaný
-apps/frappe/frappe/twofactor.py +116,"Login session expired, refresh page to retry","Platnosť relácie prihlásenia vypršala, obnovte stránku a skúste to znova"
+apps/frappe/frappe/email/doctype/newsletter/newsletter.py +40,Newsletter has already been sent,Newsletter bol už odoslaný
+apps/frappe/frappe/twofactor.py +124,"Login session expired, refresh page to retry","Platnosť relácie prihlásenia vypršala, obnovte stránku a skúste to znova"
 DocType: Unhandled Email,Reason,Důvod
 apps/frappe/frappe/core/report/permitted_documents_for_user/permitted_documents_for_user.py +33,Please specify user,Prosím specifikujte uživatele
 DocType: Email Unsubscribe,Email Unsubscribe,Email Odhlásiť
 DocType: Website Settings,Select an image of approx width 150px with a transparent background for best results.,Zvolte obrázek s šířkou okolo 150px a s transparentním pozadím pro nejlepší výsledek.
 apps/frappe/frappe/www/third_party_apps.html +3,Third Party Apps,Aplikácie tretích strán
-apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +360,The first user will become the System Manager (you can change this later).,Prvý používateľ bude System Manager (toto sa dá neskôr zmeniť).
+apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +384,The first user will become the System Manager (you can change this later).,Prvý používateľ bude System Manager (toto sa dá neskôr zmeniť).
+apps/frappe/frappe/integrations/doctype/webhook/webhook.py +29,DocType must be Submittable for the selected Doc Event,DocType musí byť predložiteľný pre vybranú udalosť Doc
 ,App Installer,App Installer
 DocType: Workflow State,circle-arrow-up,circle-arrow-up
-apps/frappe/frappe/public/js/frappe/upload.js +296,Uploading...,Nahrávám...
 DocType: Email Domain,Email Domain,email Domain
 DocType: Workflow State,italic,italic
 apps/frappe/frappe/core/page/modules_setup/modules_setup.html +7,For Everyone,Pre každého
-apps/frappe/frappe/core/doctype/doctype/doctype.py +712,{0}: Cannot set Import without Create,{0}: Nie je možné nastaviť Import bez vytvorenia
+apps/frappe/frappe/core/doctype/doctype/doctype.py +722,{0}: Cannot set Import without Create,{0}: Nie je možné nastaviť Import bez vytvorenia
 DocType: SMS Settings,Enter url parameter for message,Zadejte url parametr zprávy
 apps/frappe/frappe/templates/emails/auto_email_report.html +45,View report in your browser,Zobraziť prehľad v prehliadači
 apps/frappe/frappe/config/desk.py +26,Event and other calendars.,Event a iné kalendáre.
@@ -175,7 +176,7 @@ apps/frappe/frappe/public/js/frappe/form/print.js +101,Start,Štart
 DocType: Contact,First Name,Meno
 DocType: LDAP Settings,LDAP Username Field,LDAP Meno Field
 DocType: Portal Settings,Standard Sidebar Menu,Štandardné Sidebar Menu
-apps/frappe/frappe/core/doctype/file/file.py +167,Cannot delete Home and Attachments folders,Nemožno odstrániť Domov a prílohy zložky
+apps/frappe/frappe/core/doctype/file/file.py +173,Cannot delete Home and Attachments folders,Nemožno odstrániť Domov a prílohy zložky
 apps/frappe/frappe/config/desk.py +19,Files,súbory
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +6,Permissions get applied on Users based on what Roles they are assigned.,Práva se aplikují na uživatele na základě přiřazené role.
 apps/frappe/frappe/public/js/frappe/views/communication.js +469,You are not allowed to send emails related to this document,Nemáte povoleno odesílat emaily související s tímto dokumentem
@@ -183,6 +184,7 @@ apps/frappe/frappe/model/db_query.py +522,Please select atleast 1 column from {0
 DocType: PayPal Settings,Check this if you are testing your payment using the Sandbox API,"Zaškrtnite, ak sa testuje platby pomocou API Sandbox"
 apps/frappe/frappe/website/doctype/website_theme/website_theme.py +30,You are not allowed to delete a standard Website Theme,Nemáte povolenie vymazať štandardnú Tému webstránky
 DocType: Feedback Trigger,Example,Příklad
+DocType: Webhook Header,Webhook Header,Hlavička Webhook
 DocType: Workflow State,gift,dárek
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +238,Reqd,Vyžadováno
 apps/frappe/frappe/core/doctype/communication/email.py +264,Unable to find attachment {0},Nemohu najít přílohu: {0}
@@ -200,7 +202,8 @@ DocType: Bulk Update,Bulk Update,Hromadná aktualizácia
 DocType: Workflow State,chevron-up,chevron-up
 DocType: DocType,Allow Guest to View,Dovoliť hosťami zobraziť
 apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html +64,Documentation,Dokumentácia
-apps/frappe/frappe/public/js/frappe/list/list_view.js +854,Delete {0} items permanently?,Zmazať {0} položky natrvalo?
+DocType: Webhook,on_change,on_change
+apps/frappe/frappe/public/js/frappe/list/list_view.js +856,Delete {0} items permanently?,Zmazať {0} položky natrvalo?
 apps/frappe/frappe/core/doctype/user/user.py +92,Not Allowed,Není povoleno
 DocType: DocShare,Internal record of document shares,Interní záznam akcií dokumentů
 DocType: Workflow State,Comment,Komentář
@@ -214,6 +217,7 @@ apps/frappe/frappe/public/js/frappe/form/layout.js +125,Show more details,Zobraz
 DocType: System Settings,Run scheduled jobs only if checked,Spouštět plánované operace pouze když je zaškrtnuto
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +408,Will only be shown if section headings are enabled,"Sa zobrazí len vtedy, ak sú povolené sekcie nadpisy"
 apps/frappe/frappe/public/js/frappe/views/kanban/kanban_column.html +9,Archive,Archív
+apps/frappe/frappe/public/js/frappe/socketio_client.js +373,File Upload,Nahranie súboru
 DocType: User,"Enter default value fields (keys) and values. If you add multiple values for a field, the first one will be picked. These defaults are also used to set ""match"" permission rules. To see list of fields, go to ""Customize Form"".","Zadajte polia predvolenú hodnotu (klávesy) a hodnoty. Ak máte pridať viac hodnoty pre polia, bude prvý, kto sa zdvihol. Tieto východiskové hodnoty sú taktiež použité na nastavenie &quot;stretnutie&quot; pravidlá oprávnenia. Ak chcete zobraziť zoznam polí, choďte na &quot;Upraviť Form&quot;."
 DocType: Communication,Message,Správa
 DocType: Communication,Rating,Rating
@@ -242,10 +246,10 @@ DocType: Workflow,Defines workflow states and rules for a document.,Vymezuje jed
 DocType: Workflow State,Filter,filtr
 apps/frappe/frappe/model/db_schema.py +564,Fieldname {0} cannot have special characters like {1},Fieldname {0} nemôže mať špeciálne znaky ako {1}
 apps/frappe/frappe/config/setup.py +114,Update many values at one time.,Aktualizujte mnoho hodnôt naraz.
-apps/frappe/frappe/model/document.py +543,Error: Document has been modified after you have opened it,"Chyba: Dokument bol upravený potom, ako ste ho otvorili"
+apps/frappe/frappe/model/document.py +549,Error: Document has been modified after you have opened it,"Chyba: Dokument bol upravený potom, ako ste ho otvorili"
 apps/frappe/frappe/core/doctype/communication/feed.py +63,{0} logged out: {1},{0} odhlásený: {1}
 DocType: Address,West Bengal,Západný Bengálsko
-apps/frappe/frappe/core/doctype/doctype/doctype.py +733,{0}: Cannot set Assign Submit if not Submittable,"{0}: Nie je možné nastaviť Pridelené odoslanie, ak nie je Odoslateľné"
+apps/frappe/frappe/core/doctype/doctype/doctype.py +743,{0}: Cannot set Assign Submit if not Submittable,"{0}: Nie je možné nastaviť Pridelené odoslanie, ak nie je Odoslateľné"
 DocType: Social Login Keys,Facebook,Facebook
 apps/frappe/frappe/www/list.py +66,"Filtered by ""{0}""",Vyfiltrované podľa &quot;{0}&quot;
 DocType: Salutation,Administrator,Správce
@@ -291,6 +295,7 @@ DocType: Desktop Icon,Module,Modul
 DocType: Email Alert,Send Alert On,Odeslat upozornění (kdy)
 DocType: Customize Form,"Customize Label, Print Hide, Default etc.","Přizpůsobit popisek, skrýt tisk, výchozí atd."
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder_start.html +16,Create a New Format,Vytvořit nový formát
+DocType: Webhook,Request URL,Požiadajte URL
 DocType: Customize Form,Is Table,je Tabuľka
 DocType: Email Account,Total number of emails to sync in initial sync process ,Celkový počet e-mailov pre synchronizáciu v počiatočnom synchronizačného procesu
 DocType: Website Settings,Set Banner from Image,Nastaviť banner z obrázku
@@ -354,6 +359,7 @@ DocType: Blogger,Will be used in url (usually first name).,Bude použité v url 
 DocType: Auto Email Report,Day of Week,Deň v týždni
 DocType: Note,Expire Notification On,Vyprší Upozornenie na
 apps/frappe/frappe/public/js/frappe/ui/comment.js +40,Ctrl+Enter to add comment,Ctrl + Enter pridať komentár
+apps/frappe/frappe/public/js/frappe/socketio_client.js +324,File Upload in Progress. Please try again in a few moments.,Priebeh nahrávania súboru. Skúste to znova o pár minút.
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder_layout.html +8,Edit Heading,Upravit záhlaví
 DocType: File,File URL,Adresa URL souboru
 DocType: Version,Table HTML,Tabuľka HTML
@@ -385,7 +391,7 @@ apps/frappe/frappe/email/doctype/email_alert/email_alert.js +67,Get Alerts for T
 apps/frappe/frappe/core/doctype/doctype/doctype.py +280,DocType can only be renamed by Administrator,DOCTYPE možno premenovať iba užívateľ Administrator
 apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +454,changed value of {0},Zmenená hodnota {0}
 DocType: Report,JSON,JSON
-apps/frappe/frappe/core/doctype/user/user.py +755,Please check your email for verification,Skontrolujte svoj e-mail pre overenie
+apps/frappe/frappe/core/doctype/user/user.py +760,Please check your email for verification,Skontrolujte svoj e-mail pre overenie
 apps/frappe/frappe/core/doctype/doctype/doctype.py +513,Fold can not be at the end of the form,Fold nemůže být na konci formuláře
 DocType: Communication,Bounced,Odrazené
 DocType: Deleted Document,Deleted Name,vypúšťa Name
@@ -401,19 +407,20 @@ apps/frappe/frappe/utils/data.py +581,{0} and {1},{0} a {1}
 DocType: Print Settings,"Always add ""Draft"" Heading for printing draft documents",Vždy pridať &quot;Koncept&quot; Okruh pre tlač konceptov dokumentov
 apps/frappe/frappe/core/doctype/communication/communication.js +229,Email has been marked as spam,E-mail bol označený ako spam
 DocType: About Us Settings,Website Manager,Správce webu
-apps/frappe/frappe/public/js/frappe/list/list_view.js +696,You selected Draft or Cancelled documents,Vybrali ste si Koncept alebo Zrušené dokumenty
-apps/frappe/frappe/model/document.py +1049,Document Queued,dokument vo fronte
+apps/frappe/frappe/public/js/frappe/socketio_client.js +374,File Upload Disconnected. Please try again.,Odovzdanie súboru odpojené. Prosím skúste znova.
+apps/frappe/frappe/public/js/frappe/list/list_view.js +698,You selected Draft or Cancelled documents,Vybrali ste si Koncept alebo Zrušené dokumenty
+apps/frappe/frappe/model/document.py +1056,Document Queued,dokument vo fronte
 DocType: GSuite Templates,Destination ID,ID miesta určenia
 DocType: Desktop Icon,List,seznam
 DocType: Communication,Link Name,link Name
 apps/frappe/frappe/core/doctype/doctype/doctype.py +437,Field {0} in row {1} cannot be hidden and mandatory without default,Pole {0} na řádku {1} nemůže být skryté a povinné bez výchozí hodnoty
 DocType: System Settings,mm/dd/yyyy,mm/dd/rrrr
-apps/frappe/frappe/core/doctype/user/user.py +889,Invalid Password: ,Nesprávne heslo:
-apps/frappe/frappe/core/doctype/user/user.py +889,Invalid Password: ,Nesprávne heslo:
+apps/frappe/frappe/core/doctype/user/user.py +894,Invalid Password: ,Nesprávne heslo:
+apps/frappe/frappe/core/doctype/user/user.py +894,Invalid Password: ,Nesprávne heslo:
 DocType: Print Settings,Send document web view link in email,Odoslať dokument odkaz web zobraziť v e-mailu
 apps/frappe/frappe/www/feedback.html +114,Your Feedback for document {0} is saved successfully,Váš názor na dokument {0} bol úspešne uložený
 apps/frappe/frappe/public/js/frappe/ui/slides.js +317,Previous,Predchádzajúci
-apps/frappe/frappe/email/doctype/email_account/email_account.py +557,Re:,Re:
+apps/frappe/frappe/email/doctype/email_account/email_account.py +558,Re:,Re:
 apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +508,{0} rows for {1},{0} riadky pre {1}
 DocType: Currency,"Sub-currency. For e.g. ""Cent""","Sub-měna. Pro např ""Cent """
 apps/frappe/frappe/public/js/frappe/form/footer/attachments.js +220,Select uploaded file,Vyberte pridaný súbor
@@ -421,12 +428,13 @@ DocType: Letter Head,Check this to make this the default letter head in all prin
 DocType: Print Format,Server,Server
 apps/frappe/frappe/public/js/frappe/list/list_sidebar.js +191,New Kanban Board,New Kanban Board
 DocType: Desktop Icon,Link,Odkaz
-apps/frappe/frappe/utils/file_manager.py +97,No file attached,Žádný soubor nepřiložen
+apps/frappe/frappe/utils/file_manager.py +111,No file attached,Žádný soubor nepřiložen
 DocType: Version,Version,Verze
 DocType: User,Fill Screen,Vyplnit obrazovku
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +710,"Unable to display this tree report, due to missing data. Most likely, it is being filtered out due to permissions.","Nelze zobrazit tento stromový výpis, jelikož chybí data. Pravděpodobně, byla odfiltrována za základě oprávnění."
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +711,"Unable to display this tree report, due to missing data. Most likely, it is being filtered out due to permissions.","Nelze zobrazit tento stromový výpis, jelikož chybí data. Pravděpodobně, byla odfiltrována za základě oprávnění."
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +67,1. Select File,1. Vyberte súbor
-apps/frappe/frappe/public/js/frappe/form/grid.js +605,Edit via Upload,Upravená pomocou Vkladanie
+apps/frappe/frappe/public/js/frappe/socketio_client.js +309,Upload Failed,Nahrávanie zlyhalo
+apps/frappe/frappe/public/js/frappe/form/grid.js +606,Edit via Upload,Upravená pomocou Vkladanie
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +135,"document type..., e.g. customer","typ dokumentu ..., napr zákazník"
 apps/frappe/frappe/core/doctype/feedback_trigger/feedback_trigger.py +29,The Condition '{0}' is invalid,Stavom &#39;{0}&#39; je neplatná
 DocType: Workflow State,barcode,Barcode
@@ -437,6 +445,7 @@ apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +5,
 DocType: Event,Wednesday,Středa
 apps/frappe/frappe/core/doctype/doctype/doctype.py +564,Image field must be a valid fieldname,Pole Obrázok musí byť platný fieldname
 DocType: OAuth Client,Token,žetón
+apps/frappe/frappe/email/smtp.py +57,Please setup default Email Account from Setup &gt; Email &gt; Email Account,"Prosím, nastavte predvolený e-mailový účet z Setup&gt; Email&gt; Email Account"
 DocType: Property Setter,ID (name) of the entity whose property is to be set,ID (název) entity jejíž vlastnost bude nastavena
 apps/frappe/frappe/limits.py +84,"To renew, {0}.","Ak chcete obnoviť, {0}."
 DocType: Website Settings,Website Theme Image Link,Internetové stránky Téma Image Link
@@ -471,7 +480,7 @@ DocType: DocField,Collapsible,Skladacie
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +790,Saved,Uložené
 apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html +57,What do you need help with?,S čím potrebujete pomôcť?
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +63,Options for select. Each option on a new line.,Voľby pre vybrané. Každá voľba na nový riadok.
-apps/frappe/frappe/public/js/legacy/form.js +784,Permanently Cancel {0}?,Zrušit natrvalo: {0}?
+apps/frappe/frappe/public/js/legacy/form.js +789,Permanently Cancel {0}?,Zrušit natrvalo: {0}?
 DocType: Workflow State,music,Hudba
 apps/frappe/frappe/www/qrcode.html +3,QR Code,QR kód
 DocType: Web Page,Settings,Nastavenia
@@ -482,12 +491,12 @@ apps/frappe/frappe/public/js/frappe/ui/base_list.js +81,More,Viac
 DocType: Contact,Sales Manager,Manažér predaja
 apps/frappe/frappe/public/js/frappe/model/model.js +512,Rename,Premenovať
 DocType: Print Format,Format Data,Formát dat
-apps/frappe/frappe/public/js/frappe/ui/filters/filters.js +480,Like,Jako
+apps/frappe/frappe/public/js/frappe/ui/filters/filters.js +497,Like,Jako
 DocType: Customize Form Field,Customize Form Field,Přizpůsobit formulářové pole
 DocType: OAuth Client,Grant Type,grant Type
 apps/frappe/frappe/config/setup.py +52,Check which Documents are readable by a User,"Podívejte se, které dokumenty jsou čitelné uživatelem"
 apps/frappe/frappe/desk/page/applications/applications.py +72,Listing app not allowed,Aplikácia s výpisom nie je povolená
-apps/frappe/frappe/public/js/frappe/ui/filters/filters.js +231,use % as wildcard,použijete % jako zástupný znak
+apps/frappe/frappe/public/js/frappe/ui/filters/filters.js +247,use % as wildcard,použijete % jako zástupný znak
 apps/frappe/frappe/email/doctype/email_account/email_account.js +151,"Email Domain not configured for this account, Create one?","E-mail domény nie je nakonfigurovaný pre tento účet, vytvoriť jeden?"
 DocType: User,Reset Password Key,Obnovit heslo klíče
 DocType: Email Account,Enable Auto Reply,Povolit automatické odpovědi
@@ -510,13 +519,12 @@ apps/frappe/frappe/utils/nestedset.py +194,Root {0} cannot be deleted,Kořen (ne
 apps/frappe/frappe/website/doctype/blog_post/blog_post.py +75,No comments yet,Zatiaľ bez komentárov
 apps/frappe/frappe/core/doctype/system_settings/system_settings.py +32,"Please setup SMS before setting it as an authentication method, via SMS Settings",Prosím nastavte SMS pred nastavením metódy autentifikácie pomocou SMS Settings
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +126,Both DocType and Name required,Jak DOCTYPE tak Jméno je vyžadováno
-apps/frappe/frappe/model/document.py +579,Cannot change docstatus from 1 to 0,Nelze změnit docstatus z 1 na 0
+apps/frappe/frappe/model/document.py +585,Cannot change docstatus from 1 to 0,Nelze změnit docstatus z 1 na 0
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.js +40,Take Backup Now,Vezmite zálohovanie Teraz
 apps/frappe/frappe/desk/page/applications/applications.js +95,Installed Apps,Nainštalovaných aplikácií
 DocType: Contact,Open,Otevřít
 DocType: Workflow Transition,Defines actions on states and the next step and allowed roles.,Definuje akce na stavech a další krok a povolené role.
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +11,"As a best practice, do not assign the same set of permission rule to different Roles. Instead, set multiple Roles to the same User.",Nejlepší praxí je NEpřiřazovat stejnou sadu oprávnění různým rolím. Namísto toho nastavte více rolí stejnému uživateli.
-DocType: Web Form,Message to be displayed on successful completion,"Zpráva, která bude zobrazena po úspěšném dokončení"
 apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.py +43,Only {0} emailed reports are allowed per user,Iba {0} e-mailom správy sú povolené pre jednotlivých užívateľov
 DocType: Address,Address Title,Označenie adresy
 DocType: Website Settings,Footer Items,Položky zápatí
@@ -528,24 +536,24 @@ apps/frappe/frappe/config/setup.py +19,User Roles,Uživatelské role
 DocType: Property Setter,Property Setter overrides a standard DocType or Field property,Konfigurátor vlastností přepisuje standardní DocType nebo vlastnosti pole
 apps/frappe/frappe/core/doctype/user/user.py +692,Cannot Update: Incorrect / Expired Link.,Nie je možné obnoviť: Neplatný / expirovaný odkaz.
 apps/frappe/frappe/utils/password_strength.py +58,Better add a few more letters or another word,Lepšie pridať niekoľko ďalších písmen alebo ďalšie slovo
-apps/frappe/frappe/twofactor.py +220,One Time Password (OTP) Registration Code from {},Registračný kód jednorazového hesla (OTP) od {}
+apps/frappe/frappe/twofactor.py +228,One Time Password (OTP) Registration Code from {},Registračný kód jednorazového hesla (OTP) od {}
 DocType: DocField,Set Only Once,Nastaviť len raz
 DocType: Email Queue Recipient,Email Queue Recipient,Email Fronta Príjemca
 DocType: Address,Nagaland,Nagaland
 apps/frappe/frappe/core/doctype/user/user.py +408,Username {0} already exists,Užívateľské meno {0} už existuje
-apps/frappe/frappe/core/doctype/doctype/doctype.py +739,{0}: Cannot set import as {1} is not importable,"{0}: Nie je možné nastaviť Import, pretože {1} nie je importovateľné"
+apps/frappe/frappe/core/doctype/doctype/doctype.py +749,{0}: Cannot set import as {1} is not importable,"{0}: Nie je možné nastaviť Import, pretože {1} nie je importovateľné"
 apps/frappe/frappe/contacts/doctype/address/address.py +111,There is an error in your Address Template {0},Tam je chyba v adrese šablóne {0}
 DocType: Footer Item,"target = ""_blank""","target = ""_blank"""
 DocType: Workflow State,hdd,hdd
 DocType: Integration Request,Host,Hostiteľ
 apps/frappe/frappe/desk/doctype/kanban_board/kanban_board.py +45,Column <b>{0}</b> already exist.,Stĺpec <b>{0}</b> už existujú.
 DocType: ToDo,High,Vysoké
-DocType: User,Male,Muž
-apps/frappe/frappe/core/doctype/user/user.py +972,OTP Secret has been reset. Re-registration will be required on next login.,Služba OTP Secret bola vynulovaná. Pri ďalšom prihlásení sa bude vyžadovať opätovná registrácia.
+apps/frappe/frappe/desk/page/setup_wizard/install_fixtures.py +15,Male,Muž
+apps/frappe/frappe/core/doctype/user/user.py +977,OTP Secret has been reset. Re-registration will be required on next login.,Služba OTP Secret bola vynulovaná. Pri ďalšom prihlásení sa bude vyžadovať opätovná registrácia.
 DocType: Communication,From Full Name,Od Celé meno
 apps/frappe/frappe/desk/query_report.py +21,You don't have access to Report: {0},Nemáte přístup k Reportu: {0}
 DocType: User,Send Welcome Email,Odoslať uvítací e-mail
-apps/frappe/frappe/public/js/frappe/ui/filters/filters.js +450,Remove Filter,Odebrat filtr
+apps/frappe/frappe/public/js/frappe/ui/filters/filters.js +474,Remove Filter,Odebrat filtr
 DocType: Address,Daman and Diu,Daman a Diu
 DocType: Address,Personal,Osobné
 apps/frappe/frappe/config/setup.py +106,Bulk Rename,Hromadné premenovanie
@@ -561,7 +569,7 @@ apps/frappe/frappe/core/doctype/page/page.py +37,Not in Developer Mode,Nie v re�
 apps/frappe/frappe/desk/page/backups/backups.py +79,File backup is ready,Zálohovanie súborov je pripravené
 DocType: DocField,In Global Search,V globálnom vyhľadávaní
 DocType: Workflow State,indent-left,indent-left
-apps/frappe/frappe/utils/file_manager.py +292,It is risky to delete this file: {0}. Please contact your System Manager.,"Je to riskantné zmazať tento súbor: {0}. Prosím, obráťte sa na správcu systému."
+apps/frappe/frappe/utils/file_manager.py +257,It is risky to delete this file: {0}. Please contact your System Manager.,"Je to riskantné zmazať tento súbor: {0}. Prosím, obráťte sa na správcu systému."
 DocType: Currency,Currency Name,Názov meny
 apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js +151,No Emails,žiadne e-maily
 DocType: Report,Javascript,Javascript
@@ -581,12 +589,12 @@ apps/frappe/frappe/core/doctype/doctype/doctype.py +445,'In List View' not allow
 DocType: Custom Field,Select the label after which you want to insert new field.,"Zvolte popisek, za kterým chcete vložit nové pole."
 ,Document Share Report,Dokument Share Report
 DocType: User,Last Login,Posledné prihlásenie
-apps/frappe/frappe/core/doctype/doctype/doctype.py +610,Fieldname is required in row {0},Název pole je vyžadován v řádku: {0}
+apps/frappe/frappe/core/doctype/doctype/doctype.py +619,Fieldname is required in row {0},Název pole je vyžadován v řádku: {0}
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder_column_selector.html +4,Column,Sloupec
 DocType: Custom Field,Adds a custom field to a DocType,Přidá přizpůsobené pole do DocType
 DocType: File,Is Home Folder,Je Domovská zložka
 apps/frappe/frappe/email/doctype/email_group/email_group.py +87,{0} is not a valid Email Address,{0} nie je platná e-mailová adresa
-apps/frappe/frappe/public/js/frappe/list/list_view.js +734,Select atleast 1 record for printing,Zvoľte aspoň 1 záznamov pre tlač
+apps/frappe/frappe/public/js/frappe/list/list_view.js +736,Select atleast 1 record for printing,Zvoľte aspoň 1 záznamov pre tlač
 apps/frappe/frappe/core/doctype/has_role/has_role.py +12,User '{0}' already has the role '{1}',Užívateľ &#39;{0}&#39; už má za úlohu &#39;{1}&#39;
 DocType: System Settings,Two Factor Authentication method,Metóda overovania dvoch faktorov
 apps/frappe/frappe/public/js/frappe/form/share.js +36,Shared with {0},Spoločná pracovisko s {0}
@@ -609,16 +617,16 @@ DocType: Email Group,Newsletter Manager,Newsletter Manažér
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +63,Option 1,Možnosť 1
 apps/frappe/frappe/public/js/frappe/form/formatters.js +129,{0} to {1},{0} až {1}
 apps/frappe/frappe/config/setup.py +82,Log of error during requests.,Prihlásiť sa chyby počas požiadaviek.
-apps/frappe/frappe/email/doctype/newsletter/newsletter.py +198,{0} has been successfully added to the Email Group.,{0} bol úspešne pridaný do e-mailovej skupiny.
-apps/frappe/frappe/twofactor.py +208,Login Verification Code from {},Prihlasovací verifikačný kód od {}
+apps/frappe/frappe/email/doctype/newsletter/newsletter.py +219,{0} has been successfully added to the Email Group.,{0} bol úspešne pridaný do e-mailovej skupiny.
+apps/frappe/frappe/twofactor.py +216,Login Verification Code from {},Prihlasovací verifikačný kód od {}
 DocType: Address,Uttar Pradesh,Uttar Pradesh
 DocType: Address,Pondicherry,Pondicherry
-apps/frappe/frappe/public/js/frappe/upload.js +364,Make file(s) private or public?,"Urobiť súbor (y), súkromný alebo verejný?"
-apps/frappe/frappe/email/doctype/newsletter/newsletter.py +34,Scheduled to send to {0},Plánované poslat na {0}
+apps/frappe/frappe/public/js/frappe/upload.js +374,Make file(s) private or public?,"Urobiť súbor (y), súkromný alebo verejný?"
+apps/frappe/frappe/email/doctype/newsletter/newsletter.py +35,Scheduled to send to {0},Plánované poslat na {0}
 DocType: Kanban Board Column,Indicator,indikátor
 DocType: DocShare,Everyone,Všichni
 DocType: Workflow State,backward,pospiatky
-apps/frappe/frappe/core/doctype/doctype/doctype.py +686,"{0}: Only one rule allowed with the same Role, Level and {1}","{0}: Len jedno pravidlo povolené s rovnakou Úlohou, Úrovňou a {1}"
+apps/frappe/frappe/core/doctype/doctype/doctype.py +696,"{0}: Only one rule allowed with the same Role, Level and {1}","{0}: Len jedno pravidlo povolené s rovnakou Úlohou, Úrovňou a {1}"
 DocType: Email Queue,Add Unsubscribe Link,Pridať odkaz pre odhlásenie
 apps/frappe/frappe/templates/includes/comments/comments.html +7,No comments yet. Start a new discussion.,Zatiaľ žiadne komentáre. Začať novú diskusiu.
 DocType: Workflow State,share,zdielanie
@@ -627,6 +635,7 @@ apps/frappe/frappe/config/setup.py +100,Set numbering series for transactions.,N
 apps/frappe/frappe/desk/like.py +38,You cannot like something that you created,"Môžete nepáči niečo, čo ste vytvorili"
 DocType: User,Last IP,Posledná IP
 apps/frappe/frappe/core/page/usage_info/usage_info.js +20,Renew / Upgrade,Obnoviť / upgrade
+apps/frappe/frappe/share.py +148,A new document {0} has been shared by with you {1}.,Nový dokument {0} bol s vami zdieľaný {1}.
 DocType: Custom DocPerm,Filter records based on User Permissions defined for a user,Filtrovat záznamy za základě uživatelských oprávnění definovaných pro uživatele
 DocType: Note,Notify Users On Every Login,Informujte používateľov pri každom prihlásení
 DocType: Note,Notify Users On Every Login,Informujte používateľov pri každom prihlásení
@@ -635,14 +644,15 @@ apps/frappe/frappe/custom/doctype/custom_field/custom_field.py +40,Fieldname not
 apps/frappe/frappe/public/js/frappe/model/model.js +22,Last Updated By,Naposledy aktualizované kým
 apps/frappe/frappe/public/js/frappe/form/workflow.js +117,is not allowed.,není povoleno.
 apps/frappe/frappe/email/doctype/email_group/email_group.js +6,View Subscribers,Zobraziť Odberatelia
-apps/frappe/frappe/core/doctype/file/file.py +232,Cannot delete file as it belongs to {0} {1} for which you do not have permissions,"Nie je možné odstrániť súbor, pretože patrí do {0} {1}, pre ktorý nemáte povolenia"
+DocType: Webhook,after_insert,after_insert
+apps/frappe/frappe/core/doctype/file/file.py +238,Cannot delete file as it belongs to {0} {1} for which you do not have permissions,"Nie je možné odstrániť súbor, pretože patrí do {0} {1}, pre ktorý nemáte povolenia"
 apps/frappe/frappe/desk/page/setup_wizard/install_fixtures.py +16,Ms,Paní
 DocType: Website Theme,Background Color,Farba pozadia
 apps/frappe/frappe/public/js/frappe/views/communication.js +527,There were errors while sending email. Please try again.,Narazili jsme na problémy při odesílání emailu. Prosím zkuste to znovu.
 DocType: Portal Settings,Portal Settings,Nastavenie portálu
 DocType: Web Page,0 is highest,0 je najvyššie
 apps/frappe/frappe/core/doctype/communication/communication.js +117,Are you sure you want to relink this communication to {0}?,"Ste si istí, že chcete znovu zostaviť toto oznámenie {0}?"
-apps/frappe/frappe/www/login.html +104,Send Password,Poslať heslo
+apps/frappe/frappe/www/login.html +101,Send Password,Poslať heslo
 DocType: Email Queue,Attachments,Přílohy
 apps/frappe/frappe/website/doctype/web_form/web_form.py +133,You don't have the permissions to access this document,Nemáte oprávnenie pre prístup k tejto dokumentu
 DocType: Language,Language Name,Názov jazyka
@@ -667,25 +677,26 @@ apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js +176,Searching ...,Vyh�
 apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js +176,Searching ...,Vyhľadávanie ...
 DocType: Workflow State,text-width,text-width
 apps/frappe/frappe/public/js/legacy/form.js +142,Maximum Attachment Limit for this record reached.,Bylo dosaženo maximálního limitu příloh pro tento záznam.
-apps/frappe/frappe/website/js/web_form.js +313,The following mandatory fields must be filled:<br>,Nasledovné povinné údaje musia byť vyplnené: <br>
+apps/frappe/frappe/website/js/web_form.js +324,The following mandatory fields must be filled:<br>,Nasledovné povinné údaje musia byť vyplnené: <br>
 DocType: Email Alert,View Properties (via Customize Form),Zobrazenie vlastností (cez Vlastné forma)
 DocType: Note Seen By,Note Seen By,Poznámka videný
 apps/frappe/frappe/utils/password_strength.py +78,Try to use a longer keyboard pattern with more turns,Skúste použiť dlhší klávesnica vzor s viacerými závitov
 DocType: Feedback Trigger,Check Communication,kontrola komunikácie
 DocType: Address,Rajasthan,Rajasthan
 apps/frappe/frappe/core/doctype/report/report.js +5,Report Builder reports are managed directly by the report builder. Nothing to do.,Výpisy konfigurátoru výpisů jsou spravovány přímo konfigurátorem výpisů. Nelze provést žádnou akci.
-apps/frappe/frappe/email/doctype/newsletter/newsletter.py +168,Please verify your Email Address,Skontrolujte prosím e-mailovú adresu
-apps/frappe/frappe/model/document.py +908,none of,žiadne z
+apps/frappe/frappe/email/doctype/newsletter/newsletter.py +189,Please verify your Email Address,Skontrolujte prosím e-mailovú adresu
+apps/frappe/frappe/model/document.py +915,none of,žiadne z
 apps/frappe/frappe/public/js/frappe/views/communication.js +65,Send Me A Copy,Poslať kópiu mne
 DocType: Dropbox Settings,App Secret Key,App Secret Key
+DocType: Webhook,on_submit,on_submit
 apps/frappe/frappe/config/website.py +7,Web Site,web Site
 apps/frappe/frappe/core/page/desktop/all_applications_dialog.html +8,Checked items will be shown on desktop,Zaškrtnuté položky sa zobrazia na pracovnej ploche
-apps/frappe/frappe/core/doctype/doctype/doctype.py +729,{0} cannot be set for Single types,{0} nemôže byť nastavené pre Samotné typy
+apps/frappe/frappe/core/doctype/doctype/doctype.py +739,{0} cannot be set for Single types,{0} nemôže byť nastavené pre Samotné typy
 apps/frappe/frappe/public/js/frappe/views/kanban/kanban_board.js +872,Kanban Board {0} does not exist.,Kanban stena {0} neexistuje.
 apps/frappe/frappe/public/js/frappe/form/form_viewers.js +55,{0} are currently viewing this document,{0} práve prezerajú tento dokument
 DocType: ToDo,Assigned By Full Name,Pridelené Celé meno
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +153,{0} updated,{0}: aktualizované
-apps/frappe/frappe/core/doctype/doctype/doctype.py +719,Report cannot be set for Single types,Výpis nemůže být nastaven pro typy osamocené
+apps/frappe/frappe/core/doctype/doctype/doctype.py +729,Report cannot be set for Single types,Výpis nemůže být nastaven pro typy osamocené
 apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +51,{0} days ago,{0} dni
 DocType: Email Account,Awaiting Password,čaká sa Heslo
 DocType: Address,Address Line 1,Riadok adresy 1
@@ -696,7 +707,7 @@ apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js +152,Compose Email
 apps/frappe/frappe/config/setup.py +202,"States for workflow (e.g. Draft, Approved, Cancelled).","Stavy toků jako např.: Rozpracováno, Schváleno, Zrušeno."
 DocType: Print Settings,Allow Print for Draft,Umožňujú tlač pre Draft
 apps/frappe/frappe/public/js/frappe/form/link_selector.js +142,Set Quantity,Nastaviť Množstvo
-apps/frappe/frappe/public/js/legacy/form.js +338,Submit this document to confirm,Predloží dokument potvrdiť
+apps/frappe/frappe/public/js/legacy/form.js +343,Submit this document to confirm,Predloží dokument potvrdiť
 DocType: Contact,Unsubscribed,Odhlášen z odběru
 apps/frappe/frappe/config/setup.py +44,Set custom roles for page and report,Nastaviť vlastné role pre stránky a správy
 apps/frappe/frappe/public/js/frappe/misc/rating_icons.html +2,Rating: ,hodnotenie:
@@ -704,7 +715,7 @@ apps/frappe/frappe/email/receive.py +197,Can not find UIDVALIDITY in imap status
 ,Data Import Tool,Nástroj importování dat
 DocType: Address,Dadra and Nagar Haveli,Dadra a Nagar Haveli
 apps/frappe/frappe/website/js/web_form.js +259,Uploading files please wait for a few seconds.,"Nahrávanie súborov, prosím čakajte niekoľko sekúnd."
-apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +353,Attach Your Picture,Pripojiť svoj obrázok
+apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +377,Attach Your Picture,Pripojiť svoj obrázok
 apps/frappe/frappe/core/doctype/version/version_view.html +69,Row Values Changed,Riadok Hodnoty Zmenil
 DocType: Workflow State,Stop,Stop
 DocType: Footer Item,Link to the page you want to open. Leave blank if you want to make it a group parent.,"Odkaz na stránku, ktorú chcete otvoriť. Ponechajte prázdne, ak chcete, aby to skupina rodič."
@@ -714,7 +725,6 @@ apps/frappe/frappe/email/queue.py +317,{0} has left the conversation in {1} {2},
 DocType: Blogger,User ID of a Blogger,ID uživatele bloggera
 apps/frappe/frappe/core/doctype/user/user.py +290,There should remain at least one System Manager,Měl by zde zbýt alespoň jeden systémový administrátor
 DocType: GSuite Settings,Authorization Code,autorizačný kód
-apps/frappe/frappe/contacts/doctype/address/address.py +190,No default Address Template found. Please create a new one from Setup &gt; Printing and Branding &gt; Address Template.,Neboli nájdené žiadne predvolené adresy. Vytvorte nový z ponuky Nastavenie&gt; Tlač a branding&gt; Šablóna adresy.
 DocType: PayPal Settings,Mention transaction completion page URL,Spomenúť transakcie dokončenie URL stránky
 DocType: Help Article,Expert,odborník
 DocType: Workflow State,circle-arrow-right,circle-arrow-right
@@ -743,7 +753,7 @@ apps/frappe/frappe/core/doctype/communication/communication_list.js +17,Mark as 
 apps/frappe/frappe/public/js/frappe/list/list_permission_footer.html +12,{0} is not set,{0} nie je nastavená
 DocType: Authentication Log,Operation,Operace
 DocType: Customize Form,Change Label (via Custom Translation),Zmena Label (cez vlastné preklad)
-apps/frappe/frappe/share.py +136,No permission to {0} {1} {2},Žiadne povolenie na {0} {1} {2}
+apps/frappe/frappe/share.py +137,No permission to {0} {1} {2},Žiadne povolenie na {0} {1} {2}
 DocType: Address,Permanent,stály
 DocType: Address,Permanent,stály
 apps/frappe/frappe/public/js/frappe/form/workflow.js +42,Note: Other permission rules may also apply,Poznámka: Jiná pravidla oprávnění mohou být také aplikována
@@ -770,11 +780,10 @@ DocType: Role,Desk Access,bezbariérový prístup
 DocType: Workflow State,minus,mínus
 apps/frappe/frappe/public/js/frappe/request.js +139,Server Error: Please check your server logs or contact tech support.,Serverová chyba: Prosím skontrolujte serverové záznamy alebo kontaktujte technickú podporu.
 apps/frappe/frappe/core/doctype/user/user.py +191,Welcome email sent,Uvítací email odeslán
-apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +292,Let's prepare the system for first use.,Pripravíme systém pre prvé použitie.
+apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +310,Let's prepare the system for first use.,Pripravíme systém pre prvé použitie.
 apps/frappe/frappe/desk/page/applications/applications.js +129,Featured,Odporúčané
 apps/frappe/frappe/core/doctype/user/user.py +730,Already Registered,Již registrováno
 DocType: System Settings,Float Precision,Počet desetinných míst
-apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +54,&gt; {0} year(s) ago,&gt; {0} rok (roky)
 apps/frappe/frappe/core/doctype/page/page.py +41,Only Administrator can edit,Len Administrátor môže editovať
 apps/frappe/frappe/public/js/frappe/upload.js +64,Filename,Názov súboru
 apps/frappe/frappe/public/js/frappe/upload.js +64,Filename,Názov súboru
@@ -784,13 +793,13 @@ DocType: Web Form,Allow Print,umožňujú tlač
 apps/frappe/frappe/desk/page/applications/applications.js +25,No Apps Installed,Žádné Apps Instalovaný
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +239,Mark the field as Mandatory,Označit pole ako povinné
 DocType: Communication,Clicked,Clicked
-apps/frappe/frappe/public/js/legacy/form.js +963,No permission to '{0}' {1},Bez oprávnění k: '{0}' {1}
+apps/frappe/frappe/public/js/legacy/form.js +968,No permission to '{0}' {1},Bez oprávnění k: '{0}' {1}
 DocType: User,Google User ID,Google ID uživatele
 apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.js +38,Scheduled to send,naplánované odosielať
 DocType: DocType,Track Seen,track Videné
 apps/frappe/frappe/desk/form/utils.py +56,This method can only be used to create a Comment,Túto metódu možno použiť len na vytvorenie komentár
 DocType: Kanban Board Column,orange,oranžový
-apps/frappe/frappe/public/js/frappe/list/list_renderer.js +592,No {0} found,{0}: nenájdené
+apps/frappe/frappe/public/js/frappe/list/list_renderer.js +595,No {0} found,{0}: nenájdené
 apps/frappe/frappe/config/setup.py +240,Add custom forms.,Pridať vlastné formuláre.
 apps/frappe/frappe/desk/like.py +84,{0}: {1} in {2},{0}: {1} na {2}
 apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +431,submitted this document,predložený tento dokument
@@ -806,7 +815,6 @@ apps/frappe/frappe/core/doctype/user/user_list.js +12,Active,Aktívny
 apps/frappe/frappe/public/js/frappe/form/templates/grid_form.html +13,Insert Below,Vložit pod
 DocType: Kanban Board Column,Blue,Modrý
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +167,All customizations will be removed. Please confirm.,Všechna přizpůsobení budou odebrána. Prosím potvrďte.
-apps/frappe/frappe/www/login.html +20,Email address or Mobile number,E-mailová adresa alebo číslo mobilného telefónu
 DocType: Page,Page HTML,HTML kód stránky
 apps/frappe/frappe/public/js/frappe/views/treeview.js +262,Further nodes can be only created under 'Group' type nodes,"Další uzly mohou být pouze vytvořena v uzlech typu ""skupiny"""
 DocType: Web Page,Header,Záhlavie
@@ -885,7 +893,7 @@ apps/frappe/frappe/desk/page/setup_wizard/install_fixtures.py +16,Madam,pani
 apps/frappe/frappe/desk/page/activity/activity_row.html +21,Updated {0}: {1},Aktualizovaný {0}: {1}
 apps/frappe/frappe/desk/page/setup_wizard/install_fixtures.py +16,Master,Hlavné
 DocType: DocType,User Cannot Create,Uživatel nemůže Vytvořit
-apps/frappe/frappe/core/doctype/file/file.py +303,Folder {0} does not exist,Zložky {0} neexistuje
+apps/frappe/frappe/core/doctype/file/file.py +309,Folder {0} does not exist,Zložky {0} neexistuje
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +266,Dropbox access is approved!,Prístup Dropbox je schválený!
 DocType: Customize Form,Enter Form Type,Vložte typ formuláře
 apps/frappe/frappe/public/js/frappe/list/list_sidebar_stat.html +5,No records tagged.,Není oštítkován žádný záznam
@@ -919,7 +927,7 @@ apps/frappe/frappe/public/js/frappe/form/templates/grid_form.html +4,Editing Row
 DocType: Workflow Action,Workflow Action Master,Akce hlavních toků
 DocType: Custom Field,Field Type,Typ pole
 apps/frappe/frappe/utils/data.py +484,only.,pouze.
-apps/frappe/frappe/core/doctype/user/user.py +974,OTP secret can only be reset by the Administrator.,OTP tajomstvo môže byť obnovené len správcom.
+apps/frappe/frappe/core/doctype/user/user.py +979,OTP secret can only be reset by the Administrator.,OTP tajomstvo môže byť obnovené len správcom.
 apps/frappe/frappe/utils/password_strength.py +117,Avoid years that are associated with you.,"Vyhnúť sa roky, ktoré sú spojené s vami."
 DocType: GSuite Templates,GSuite Templates,Šablóny GSuite
 apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +665,Descending,Sestupně
@@ -934,13 +942,14 @@ apps/frappe/frappe/utils/password_strength.py +116,Avoid recent years.,Vyhnite s
 apps/frappe/frappe/utils/nestedset.py +229,Multiple root nodes not allowed.,Není povoleno více kořenových uzlů (uzlů nejvyšší úrovně).
 DocType: Note,"If enabled, users will be notified every time they login. If not enabled, users will only be notified once.","Ak je povolené, používatelia budú upovedomení pri každom prihlásení. Ak nie je povolené, používatelia budú upovedomení iba raz."
 DocType: Note,"If enabled, users will be notified every time they login. If not enabled, users will only be notified once.","Ak je povolené, budú používatelia upovedomení pri každom prihlásení. Ak nie je povolené, používatelia budú upovedomení iba raz."
+apps/frappe/frappe/core/doctype/doctype/doctype.py +605,Invalid {0} condition,Neplatná podmienka {0}
 DocType: OAuth Client,"If checked, users will not see the Confirm Access dialog.","Ak je zaškrtnuté, užívatelia nebudú vidieť dialógové okno Potvrdiť prístup."
 apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +543,ID field is required to edit values using Report. Please select the ID field using the Column Picker,ID pole je vyžadováno pro úpravu hodnot použitím výpisu. Prosím zvolte ID pole použitím výběru sloupce
 apps/frappe/frappe/public/js/frappe/model/model.js +25,Comments,Komentáře
 apps/frappe/frappe/public/js/frappe/ui/modal.html +17,Confirm,Potvrdit
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +50,Collapse All,zbaliť všetko
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +51,Collapse All,zbaliť všetko
 apps/frappe/frappe/desk/page/applications/applications.js +164,Install {0}?,Nainštalujte {0}?
-apps/frappe/frappe/www/login.html +76,Forgot Password?,Zabudli ste heslo?
+apps/frappe/frappe/www/login.html +73,Forgot Password?,Zabudli ste heslo?
 DocType: System Settings,yyyy-mm-dd,rrrr-mm-dd
 apps/frappe/frappe/desk/report/todo/todo.py +19,ID,ID
 apps/frappe/frappe/integrations/doctype/razorpay_settings/razorpay_settings.py +98,Server Error,Chyba servera
@@ -949,7 +958,7 @@ DocType: Website Slideshow,Website Slideshow,Promítání obrázků na www strá
 apps/frappe/frappe/public/js/frappe/form/templates/grid_body.html +6,No Data,No Data
 DocType: Website Settings,"Link that is the website home page. Standard Links (index, login, products, blog, about, contact)","Odkaz na domovskú www stránku. Štandardné odkazy (index, prihlásenie, produkty, blog, o nás, kontakt)"
 apps/frappe/frappe/email/doctype/email_account/email_account.py +171,Authentication failed while receiving emails from Email Account {0}. Message from server: {1},Overovanie pri prijímaní e-mailov z e-mailového konta {0} zlyhalo. Správa zo servera: {1}
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +54,values and dates,hodnoty a data
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +55,values and dates,hodnoty a data
 DocType: Custom Field,Custom Field,Přizpůsobené pole
 apps/frappe/frappe/email/doctype/email_alert/email_alert.py +31,Please specify which date field must be checked,Prosím specifikujte které datum musí být prověřeno
 DocType: Custom DocPerm,Set User Permissions,Nastavit práva
@@ -959,7 +968,7 @@ apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +21
 DocType: File,old_parent,old_parent
 apps/frappe/frappe/config/desk.py +54,"Newsletters to contacts, leads.",Newsletter kontaktom a obchodným iniciatívam
 DocType: Email Account,"e.g. ""Support"", ""Sales"", ""Jerry Yang""","napríklad ""Podpora "","" Predaj"","" Jerry Yang """
-apps/frappe/frappe/twofactor.py +123,Incorrect Verification code,Nesprávny kód overovania
+apps/frappe/frappe/twofactor.py +131,Incorrect Verification code,Nesprávny kód overovania
 apps/frappe/frappe/public/js/frappe/form/workflow.js +115,Document Status transition from,Dokument stavu přechod z
 DocType: DocField,Description,Popis
 DocType: Print Settings,Repeat Header and Footer in PDF,Opakovať hlavičky a päty vo formáte PDF
@@ -977,7 +986,7 @@ apps/frappe/frappe/core/doctype/version/version_view.html +73,Table Field,Tabuľ
 apps/frappe/frappe/public/js/frappe/list/list_sidebar.js +162,Columns based on,Stĺpy na báze
 apps/frappe/frappe/config/integrations.py +68,Enter keys to enable integration with Google GSuite,"Zadajte klávesy, ktoré umožnia integráciu so službou Google GSuite"
 DocType: Workflow State,move,Stěhovat
-apps/frappe/frappe/model/document.py +1092,Action Failed,akcie zlyhalo
+apps/frappe/frappe/model/document.py +1099,Action Failed,akcie zlyhalo
 apps/frappe/frappe/core/page/modules_setup/modules_setup.html +8,For User,pre Užívateľa
 DocType: Address,Assam,Assam
 apps/frappe/frappe/email/doctype/email_domain/email_domain.py +57,Outgoing email account not correct,Odchádzajúci e-mailový účet nie je správny
@@ -987,7 +996,7 @@ apps/frappe/frappe/contacts/doctype/contact/contact.py +78,Please set Email Addr
 DocType: User,"If the user has any role checked, then the user becomes a ""System User"". ""System User"" has access to the desktop","V prípade, že používateľ nemá žiadnu úlohu skontrolovať, užívateľ sa stáva &quot;System User&quot;. &quot;System User&quot; má prístup k ploche"
 DocType: System Settings,Date and Number Format,Formát čísel a data
 apps/frappe/frappe/website/doctype/web_form/templates/web_form.html +169,Max attachment size is {0}MB,Maximálna veľkosť prílohy je {0} MB
-apps/frappe/frappe/model/document.py +907,one of,jeden z
+apps/frappe/frappe/model/document.py +914,one of,jeden z
 apps/frappe/frappe/core/doctype/file/file_list.js +135,Please select file to copy,"Vyberte súbor, ktorý chcete skopírovať"
 apps/frappe/frappe/public/js/frappe/desk.js +151,Checking one moment,Kontrola jeden okamih
 apps/frappe/frappe/public/js/frappe/list/list_sidebar_stat.html +21,Show Tags,Zobrazit štítky
@@ -1002,7 +1011,7 @@ apps/frappe/frappe/public/js/frappe/ui/field_group.js +106,Following fields have
 apps/frappe/frappe/app.py +152,You do not have enough permissions to complete the action,Nemáte dostatočné oprávnenia na dokončenie akcie
 apps/frappe/frappe/public/js/frappe/form/link_selector.js +103,No Results,Žiadne výsledky
 DocType: System Settings,Security,Bezpečnost
-apps/frappe/frappe/email/doctype/newsletter/newsletter.py +53,Scheduled to send to {0} recipients,Plánované poslat na {0} příjemci
+apps/frappe/frappe/email/doctype/newsletter/newsletter.py +54,Scheduled to send to {0} recipients,Plánované poslat na {0} příjemci
 apps/frappe/frappe/model/rename_doc.py +79,renamed from {0} to {1},premenovaná z {0} až {1}
 DocType: Currency,**Currency** Master,** Mena ** Hlavná
 DocType: Email Account,No of emails remaining to be synced,"Počet e-mailov, ktoré zostáva synchronizované"
@@ -1018,6 +1027,8 @@ apps/frappe/frappe/core/page/permission_manager/permission_manager.js +49,Select
 apps/frappe/frappe/utils/nestedset.py +201,Cannot delete {0} as it has child nodes,Nelze smazat {0} jelikož to má podřízené uzly
 apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +47,{0} minutes ago,Pred {0} minúty
 DocType: Kanban Board Column,lightblue,svetlo modrá
+apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js +357,<p>No results found for '</p>,<p> Neboli nájdené žiadne výsledky pre ' </p>
+apps/frappe/frappe/integrations/doctype/webhook/webhook.py +46,Same Field is entered more than once,Rovnaké pole sa zadáva viac ako raz
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +18,1. Select Columns,1. Vyberte stĺpce
 apps/frappe/frappe/templates/includes/list/filters.html +19,clear,jasný
 apps/frappe/frappe/desk/doctype/event/event.py +31,Every day events should finish on the same day.,Denní události by měly skončit ve stejný den.
@@ -1027,13 +1038,13 @@ DocType: Workflow State,download-alt,download-alt
 apps/frappe/frappe/desk/page/applications/applications.py +113,Downloading App {0},Stiahnutie aplikácie {0}
 DocType: Communication,Feedback Request,Spätná väzba Request
 apps/frappe/frappe/website/doctype/web_form/web_form.py +55,Following fields are missing:,Nasledujúce polia chýba:
-apps/frappe/frappe/www/login.html +30,Sign in,Prihlásiť sa
+apps/frappe/frappe/www/login.html +27,Sign in,Prihlásiť sa
 DocType: Web Page,Main Section,Hlavná sekcia
 DocType: Page,Icon,ikona
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +55,to filter values between 5 & 10,pro filtrování hodnot mezi 5 & 10
-apps/frappe/frappe/core/doctype/user/user.py +888,"Hint: Include symbols, numbers and capital letters in the password","Tip: Zahrňte do hesla symboly, čísla a veľké písmená"
-apps/frappe/frappe/core/doctype/user/user.py +888,"Hint: Include symbols, numbers and capital letters in the password","Tip: Zahrňte do hesla symboly, čísla a veľké písmená"
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +85,PDF,PDF
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +56,to filter values between 5 & 10,pro filtrování hodnot mezi 5 & 10
+apps/frappe/frappe/core/doctype/user/user.py +893,"Hint: Include symbols, numbers and capital letters in the password","Tip: Zahrňte do hesla symboly, čísla a veľké písmená"
+apps/frappe/frappe/core/doctype/user/user.py +893,"Hint: Include symbols, numbers and capital letters in the password","Tip: Zahrňte do hesla symboly, čísla a veľké písmená"
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +86,PDF,PDF
 DocType: System Settings,dd/mm/yyyy,dd/mm/rrrr
 apps/frappe/frappe/integrations/doctype/gsuite_settings/gsuite_settings.js +32,GSuite script test,Test GSuite skriptov
 DocType: System Settings,Backups,Zálohy
@@ -1043,7 +1054,6 @@ apps/frappe/frappe/public/js/frappe/form/layout.js +133,Hide Details,Skrýt podr
 apps/frappe/frappe/www/qrcode.py +32,Page has expired!,Platnosť stránky vypršala!
 DocType: Workflow State,Tasks,úkoly
 DocType: Event,Tuesday,Úterý
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +33,Setup &gt; User Permissions Manager,Nastavenie&gt; Správca povolení používateľov
 DocType: Blog Settings,Blog Settings,Nastavenie blogu
 apps/frappe/frappe/templates/emails/new_user.html +16,You can also copy-paste this link in your browser,Můžete také kopírovat - vložit tento odkaz do Vašeho prohlížeče
 DocType: Workflow State,bullhorn,megafon
@@ -1061,7 +1071,7 @@ apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +433,cancelled this 
 apps/frappe/frappe/core/doctype/report/report.js +16,Write a Python file in the same folder where this is saved and return column and result.,Zapíše soubor Pythonu ve stejném adresáři kde je toto uloženo a vrátí sloupec a výsledek.
 DocType: DocType,Sort Field,Pole zoradenia
 DocType: Razorpay Settings,Razorpay Settings,nastavenie Razorpay
-apps/frappe/frappe/public/js/frappe/ui/filters/filters.js +447,Edit Filter,Upraviť filter
+apps/frappe/frappe/public/js/frappe/ui/filters/filters.js +471,Edit Filter,Upraviť filter
 apps/frappe/frappe/core/doctype/doctype/doctype.py +419,Field {0} of type {1} cannot be mandatory,Pole {0} typu {1} nemůže být povinné
 apps/frappe/frappe/public/js/frappe/ui/slides.js +29,Add More,Pridať viac
 apps/frappe/frappe/public/js/frappe/ui/charts.js +101,Hide Chart,skryť graf
@@ -1076,7 +1086,7 @@ DocType: User Permission,Allow,dovoliť
 apps/frappe/frappe/utils/password_strength.py +94,Let's avoid repeated words and characters,Poďme sa zabránilo opakovanému slová a znaky
 DocType: Communication,Delayed,Oneskorené
 apps/frappe/frappe/config/setup.py +121,List of backups available for download,Zoznam záloh k dispozícii na stiahnutie
-apps/frappe/frappe/www/login.html +89,Sign up,Zaregistrovať sa
+apps/frappe/frappe/www/login.html +86,Sign up,Zaregistrovať sa
 DocType: Test Runner,Output,Výkon
 DocType: Email Alert,Set Property After Alert,Nastaviť vlastnosť po upozornení
 apps/frappe/frappe/config/setup.py +224,Add fields to forms.,Přidat pole do formulářů.
@@ -1133,6 +1143,7 @@ DocType: Customize Form,Customize Form,Prispôsobiť formulár
 apps/frappe/frappe/core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.js +104,Mandatory field: set role for,Povinné polia: nastavený role
 DocType: Currency,A symbol for this currency. For e.g. $,"Symbol této měny,  např. $"
 apps/frappe/frappe/public/js/frappe/ui/toolbar/about.js +4,Frappe Framework,Frappe Framework
+apps/frappe/frappe/email/doctype/newsletter/newsletter.py +114,Permission Error,Chyba povolenia
 apps/frappe/frappe/model/naming.py +181,Name of {0} cannot be {1},Názov {0} nemôže byť {1}
 apps/frappe/frappe/config/setup.py +39,Show or hide modules globally.,Zobrazit nebo skrýt moduly globálně.
 apps/frappe/frappe/core/report/feedback_ratings/feedback_ratings.js +33,From Date,Od data
@@ -1157,6 +1168,7 @@ DocType: User Permission,"If you un-check this, you will have to apply manually 
 apps/frappe/frappe/model/db_schema.py +142,Reverting length to {0} for '{1}' in '{2}'; Setting the length as {3} will cause truncation of data.,Návrat dĺžku {0} pre &#39;{1}&#39; do &#39;{2}&#39;; Nastavenie dĺžky ako {3} spôsobí skrátenie dát.
 DocType: Print Format,Custom CSS,Přizpůsobené CSS
 apps/frappe/frappe/public/js/frappe/ui/comment.js +32,Add a comment,Pridať komentár
+DocType: Webhook,on_update,on_update
 apps/frappe/frappe/model/rename_doc.py +376,Ignored: {0} to {1},Ignorovať: {0} až {1}
 DocType: Address,Gujarat,Gujarat
 apps/frappe/frappe/config/setup.py +77,Log of error on automated events (scheduler).,Log chyb automatických událostí (plánovač).
@@ -1171,7 +1183,7 @@ apps/frappe/frappe/core/doctype/user/user.py +728,Registered but disabled,"Regis
 DocType: DocType,Hide Copy,Skrýt kopii
 apps/frappe/frappe/public/js/frappe/roles_editor.js +38,Clear all roles,Odebrat všechny role
 apps/frappe/frappe/model/base_document.py +360,{0} must be unique,{0} musí byť jedinečný
-apps/frappe/frappe/public/js/frappe/list/list_renderer.js +517,Row,Řádek
+apps/frappe/frappe/public/js/frappe/list/list_renderer.js +520,Row,Řádek
 DocType: DocType,Track Changes,Sledovanie zmien
 DocType: Workflow State,Check,Check
 DocType: Razorpay Settings,API Key,kľúč API
@@ -1227,7 +1239,7 @@ DocType: Communication,Expired,Vypršela
 DocType: Customize Form Field,Number of columns for a field in a Grid (Total Columns in a grid should be less than 11),Počet stĺpcov pre pole v mriežke (Celkový počet stĺpcov v mriežke by mala byť menšia ako 11)
 DocType: DocType,System,Systém
 DocType: Web Form,Max Attachment Size (in MB),Maximálna veľkosť príloh (v MB)
-apps/frappe/frappe/www/login.html +93,Have an account? Login,Máte účet? Prihlásiť sa
+apps/frappe/frappe/www/login.html +90,Have an account? Login,Máte účet? Prihlásiť sa
 apps/frappe/frappe/public/js/legacy/print_format.js +148,Unknown Print Format: {0},Unknown Print Format: {0}
 DocType: Workflow State,arrow-down,šipka-dolů
 apps/frappe/frappe/public/js/frappe/ui/tree.js +130,Collapse,Sbalit
@@ -1239,7 +1251,7 @@ DocType: Website Settings,Top Bar,Horní panel
 DocType: GSuite Settings,Script Code,Skriptový kód
 apps/frappe/frappe/core/doctype/user/user.js +110,Create User Email,Vytvoriť e-mail používateľa
 apps/frappe/frappe/core/doctype/user/user.js +110,Create User Email,Vytvoriť e-mail používateľa
-apps/frappe/frappe/core/doctype/doctype/doctype.py +657,No Permissions Specified,Nie sú uvedené žiadne povolenia
+apps/frappe/frappe/core/doctype/doctype/doctype.py +667,No Permissions Specified,Nie sú uvedené žiadne povolenia
 apps/frappe/frappe/core/page/modules_setup/modules_setup.html +32,Global Settings: Users will only be able to choose checked icons,Globálne nastavenia: Užívatelia budú môcť vybrať kontrolovať ikon
 apps/frappe/frappe/desk/doctype/desktop_icon/desktop_icon.py +295,{0} not found,{0} sa nenašiel
 DocType: Custom Role,Custom Role,Custom Role
@@ -1250,20 +1262,20 @@ apps/frappe/frappe/public/js/frappe/ui/messages.js +219,Enter your password,Zada
 DocType: Dropbox Settings,Dropbox Access Secret,Dropbox Access Secret
 apps/frappe/frappe/templates/includes/comments/comments.html +119,Add Another Comment,Pridať ďalší komentár
 apps/frappe/frappe/public/js/frappe/form/toolbar.js +178,Edit DocType,editovať DOCTYPE
-apps/frappe/frappe/email/doctype/newsletter/newsletter.py +139,Unsubscribed from Newsletter,Odhlásený z Spravodajcu
+apps/frappe/frappe/email/doctype/newsletter/newsletter.py +160,Unsubscribed from Newsletter,Odhlásený z Spravodajcu
 apps/frappe/frappe/core/doctype/doctype/doctype.py +511,Fold must come before a Section Break,Zložiť musí prísť pred koniec oddielu
 apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html +13,Under Development,Vo vývoji
 apps/frappe/frappe/public/js/frappe/model/meta.js +190,Last Modified By,Naposledy menené kým
 DocType: Workflow State,hand-down,hand-down
 DocType: Address,GST State,Štát GST
-apps/frappe/frappe/core/doctype/doctype/doctype.py +705,{0}: Cannot set Cancel without Submit,{0}: Nie je možné nastaviť Zrušiť bez odoslania
+apps/frappe/frappe/core/doctype/doctype/doctype.py +715,{0}: Cannot set Cancel without Submit,{0}: Nie je možné nastaviť Zrušiť bez odoslania
 DocType: Website Theme,Theme,Téma
-apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +184,There were errors.,Byly tam chyby.
+apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +200,There were errors.,Byly tam chyby.
 DocType: OAuth Authorization Code,Redirect URI Bound To Auth Code,Presmerovanie URI Bound auth zákonníka
 DocType: DocType,Is Submittable,Je Odeslatelné
 apps/frappe/frappe/core/doctype/communication/comment.py +100,New Mention,Nové zmienky
 apps/frappe/frappe/custom/doctype/property_setter/property_setter.js +7,Value for a check field can be either 0 or 1,Hodnota pro zaškrtávací pole může být 0 nebo 1
-apps/frappe/frappe/model/document.py +639,Could not find {0},Nemohu najít: {0}
+apps/frappe/frappe/model/document.py +645,Could not find {0},Nemohu najít: {0}
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +54,Download in Excel File Format,Stiahnite si vo formáte súboru programu Excel
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +266,Column Labels:,Označení sloupce:
 apps/frappe/frappe/model/naming.py +67,Naming Series mandatory,Číselné rady sú povinné
@@ -1283,13 +1295,13 @@ apps/frappe/frappe/core/doctype/system_settings/system_settings.py +27,Session E
 DocType: Website Sidebar Item,Group,Skupina
 DocType: Footer Item,"Select target = ""_blank"" to open in a new page.","Zvolte cíl (target) = ""_blank"" pro otevření na nové stránce."
 apps/frappe/frappe/public/js/frappe/model/model.js +486,Permanently delete {0}?,Smazat na trvalo: {0}?
-apps/frappe/frappe/core/doctype/file/file.py +151,Same file has already been attached to the record,Stejný soubor již byl k záznamu přiložen
+apps/frappe/frappe/core/doctype/file/file.py +157,Same file has already been attached to the record,Stejný soubor již byl k záznamu přiložen
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +93,Ignore encoding errors.,Ignorovat kódování chyby.
 DocType: Workflow State,wrench,wrench
 apps/frappe/frappe/desk/page/applications/applications.js +45,Not Set,Nenastavené
 DocType: Authentication Log,Date,Datum
 DocType: Website Settings,Disable Signup,Vypnout registrování
-apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +218,Sit tight while your system is being setup. This may take a few moments.,"Vydržte, kým sa váš systém nastaví. Môže to pár chvíľ trvať."
+apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +234,Sit tight while your system is being setup. This may take a few moments.,"Vydržte, kým sa váš systém nastaví. Môže to pár chvíľ trvať."
 DocType: Email Queue,Email Queue,email fronty
 apps/frappe/frappe/core/page/desktop/desktop.py +12,Add Employees to Manage Them,"Pridať zamestnancov, aby spravovať"
 DocType: Address,Haryana,Haryana
@@ -1297,9 +1309,9 @@ apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +7,
 apps/frappe/frappe/templates/includes/comments/comments.html +25,Add Comment,Pridať komentár
 DocType: DocField,Mandatory,Povinné
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +88,Module to Export,Modul pre export
-apps/frappe/frappe/core/doctype/doctype/doctype.py +669,{0}: No basic permissions set,{0}:Žiadne základné oprávnenia nastavené
+apps/frappe/frappe/core/doctype/doctype/doctype.py +679,{0}: No basic permissions set,{0}:Žiadne základné oprávnenia nastavené
 apps/frappe/frappe/limits.py +80,Your subscription will expire on {0}.,Váš odber vyprší {0}.
-apps/frappe/frappe/utils/backups.py +159,Download link for your backup will be emailed on the following email address: {0},Download link pro zálohování bude zasláno na e-mailovou adresu: {0}
+apps/frappe/frappe/utils/backups.py +160,Download link for your backup will be emailed on the following email address: {0},Download link pro zálohování bude zasláno na e-mailovou adresu: {0}
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +14,"Meaning of Submit, Cancel, Amend","Význam pojmů Vložit, Zrušit, Změnit"
 apps/frappe/frappe/desk/doctype/todo/todo_list.js +7,To Do,Úkoly
 DocType: Test Runner,Module Path,Modul Cesta
@@ -1310,13 +1322,13 @@ DocType: Desktop Icon,query-report,query-report
 apps/frappe/frappe/desk/doctype/todo/todo.py +20,Assigned to {0}: {1},Zadal {0}: {1}
 apps/frappe/frappe/public/js/frappe/views/kanban/kanban_board.js +129,Filters saved,filtre uložené
 DocType: DocField,Percent,Percento
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +446,Please set filters,Prosím nastavte filtre
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +447,Please set filters,Prosím nastavte filtre
 apps/frappe/frappe/public/js/frappe/form/linked_with.js +29,Linked With,Provázáno s
 apps/frappe/frappe/templates/emails/auto_email_report.html +48,Edit Auto Email Report Settings,Upraviť nastavenia automatického prehľadu e-mailov
 DocType: Workflow State,book,kniha
 DocType: Website Settings,Landing Page,Úvodná stránka
 apps/frappe/frappe/public/js/frappe/form/script_manager.js +163,Error in Custom Script,Chyba vo vlastnej skript
-apps/frappe/frappe/public/js/frappe/form/quick_entry.js +78,{0} Name,{0} Name
+apps/frappe/frappe/public/js/frappe/form/quick_entry.js +79,{0} Name,{0} Name
 apps/frappe/frappe/core/page/data_import_tool/data_import_tool.js +132,"Import Request Queued. This may take a few moments, please be patient.","Dovoz Request vo fronte. To môže trvať niekoľko okamihov, prosím, buďte trpezliví."
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +167,No Permissions set for this criteria.,Žádná oprávnění nastavena pro toto kritérium.
 DocType: Auto Email Report,Auto Email Report,Auto Email Report
@@ -1353,7 +1365,7 @@ apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +16,Dele
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +67,Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish.,Pouze povinná pole jsou potřeba pro nové záznamy. Můžete smazat nepovinné sloupce přejete-li si.
 apps/frappe/frappe/public/js/frappe/views/calendar/calendar.js +268,Unable to update event,Nie je možné aktualizovať udalosť
 apps/frappe/frappe/website/doctype/web_form/templates/web_form.html +304,Payment Complete,platba Complete
-apps/frappe/frappe/twofactor.py +196,Verification code has been sent to your registered email address.,Overovací kód bol odoslaný na vašu registrovanú e-mailovú adresu.
+apps/frappe/frappe/twofactor.py +204,Verification code has been sent to your registered email address.,Overovací kód bol odoslaný na vašu registrovanú e-mailovú adresu.
 apps/frappe/frappe/utils/data.py +747,"Filter must have 4 values (doctype, fieldname, operator, value): {0}","Filter musí mať 4 hodnoty (doctype, názov poľa, operátor, hodnota): {0}"
 apps/frappe/frappe/utils/bot.py +89,show,zobraziť
 DocType: Address Template,Address Template,Šablona adresy
@@ -1374,11 +1386,11 @@ apps/frappe/frappe/model/rename_doc.py +360,Please select a valid csv file with 
 apps/frappe/frappe/core/doctype/docshare/docshare.py +56,{0} un-shared this document with {1},{0} už nezdieľa tento dokument s {1}
 apps/frappe/frappe/public/js/frappe/form/workflow.js +118,Document Status transition from {0} to {1} is not allowed,Stav dokumentu přechod z {0} na {1} není povolen
 DocType: DocType,"Make ""name"" searchable in Global Search","Urobiť ""názov"" vyhľadateľný  v globálnom vyhľadávaní"
-apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +217,Setting Up,Nastavenia
+apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +233,Setting Up,Nastavenia
 apps/frappe/frappe/core/doctype/version/version_view.html +74,Row # ,Row #
 apps/frappe/frappe/templates/emails/auto_reply.html +5,This is an automatically generated reply,To je automaticky generovaný odpověď
 DocType: Help Category,Category Description,Kategória Opis
-apps/frappe/frappe/model/document.py +531,Record does not exist,Záznam neexistuje
+apps/frappe/frappe/model/document.py +537,Record does not exist,Záznam neexistuje
 apps/frappe/frappe/core/doctype/version/version_view.html +13,Original Value,pôvodná hodnota
 DocType: Help Category,Help Category,help Kategórie
 apps/frappe/frappe/utils/oauth.py +289,User {0} is disabled,Uživatel {0} je zakázána
@@ -1392,9 +1404,9 @@ apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js +376,Search the docs,H�
 apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js +376,Search the docs,Hľadať v dokumentoch
 DocType: OAuth Authorization Code,Valid,platný
 apps/frappe/frappe/public/js/frappe/form/controls/link.js +14,Open Link,Otevrít odkaz
-apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +295,Your Language,Tvoj jazyk
+apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +313,Your Language,Tvoj jazyk
 apps/frappe/frappe/desk/form/load.py +46,Did not load,Nebylo nahráno
-apps/frappe/frappe/public/js/frappe/form/templates/grid_body.html +18,Add Row,Pridať riadok
+apps/frappe/frappe/public/js/frappe/form/templates/grid_body.html +20,Add Row,Pridať riadok
 DocType: Tag Category,Doctypes,Doctypes
 apps/frappe/frappe/desk/query_report.py +88,Query must be a SELECT,Dotaz musí být SELECT
 DocType: Integration Request,Completed,Dokončeno
@@ -1407,8 +1419,8 @@ DocType: Feedback Request,Is Feedback request triggered manually ?,Požiadavka F
 DocType: Address,Lakshadweep Islands,Lakshadweep ostrovy
 apps/frappe/frappe/public/js/frappe/form/templates/set_sharing.html +6,Can Write,Dokáže napísať
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +16,"Certain documents, like an Invoice, should not be changed once final. The final state for such documents is called Submitted. You can restrict which roles can Submit.","Některé dokumenty, například faktura, nemůže být změněna pokud je dokončena. Finální stav pro takové dokumenty se nazývá Vloženo. Můžete omezit, které role mohou vkládat."
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +883,You are not allowed to export this report,Nemáte povolené exportovať tento report
-apps/frappe/frappe/public/js/frappe/list/list_view.js +805,1 item selected,1 vybraná položka
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +884,You are not allowed to export this report,Nemáte povolené exportovať tento report
+apps/frappe/frappe/public/js/frappe/list/list_view.js +807,1 item selected,1 vybraná položka
 DocType: Newsletter,Test Email Address,Test E-mailová adresa
 DocType: ToDo,Sender,Odosielateľ
 DocType: GSuite Settings,Google Apps Script,Skript Google Apps
@@ -1449,6 +1461,7 @@ apps/frappe/frappe/public/js/frappe/form/save.js +144,Mandatory fields required 
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +100,Reset Permissions for {0}?,Obnoviť oprávnenia pre: {0}?
 apps/frappe/frappe/core/doctype/version/version_view.html +32,Rows Removed,riadky Odstránené
 apps/frappe/frappe/permissions.py +409,{0} {1} not found,{0} {1} nenájdené
+apps/frappe/frappe/www/login.py +37,Mobile Number,Telefónne číslo
 DocType: Communication,Attachment Removed,Príloha bola odobraná
 apps/frappe/frappe/utils/password_strength.py +114,Recent years are easy to guess.,V posledných rokoch je možné ľahko uhádnuť.
 DocType: System Settings,Show Full Error and Allow Reporting of Issues to the Developer,Zobraziť plnú chybu a povoliť hlásenie problémov vývojárom
@@ -1468,7 +1481,7 @@ DocType: Event,Friday,Pátek
 apps/frappe/frappe/public/js/frappe/views/kanban/kanban_board.js +772,Edit in full page,Úpravy v plnom stránku
 DocType: Authentication Log,User Details,Užívateľské Podrobnosti
 DocType: Report,Add Total Row,Přidat řádek celkem
-apps/frappe/frappe/twofactor.py +193,Please check your registered email address for instructions on how to proceed. Do not close this window as you will have to return to it.,"Skontrolujte registrovanú e-mailovú adresu, kde nájdete pokyny, ako postupovať. Nezatvorte toto okno, pretože sa budete musieť vrátiť k nemu."
+apps/frappe/frappe/twofactor.py +201,Please check your registered email address for instructions on how to proceed. Do not close this window as you will have to return to it.,"Skontrolujte registrovanú e-mailovú adresu, kde nájdete pokyny, ako postupovať. Nezatvorte toto okno, pretože sa budete musieť vrátiť k nemu."
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +19,For example if you cancel and amend INV004 it will become a new document INV004-1. This helps you to keep track of each amendment.,"Například, pokud zrušíte a pozměnit INV004 se stane nový dokument INV004-1. To vám pomůže udržet přehled o každé změny."
 apps/frappe/frappe/config/setup.py +159,Setup Reports to be emailed at regular intervals,"Nastavenie Správy, ktoré majú byť e-mailom v pravidelných intervaloch"
 DocType: Workflow Document State,0 - Draft; 1 - Submitted; 2 - Cancelled,0 - Rozpracované; 1 - Odoslané; 2 - Zrušené
@@ -1495,13 +1508,13 @@ DocType: DocField,Text Editor,Editor textu
 apps/frappe/frappe/config/website.py +73,Settings for About Us Page.,Nastavenia stránky O nás.
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +679,Edit Custom HTML,Upravit vlastní HTML
 DocType: Error Snapshot,Error Snapshot,Chyba Snapshot
-apps/frappe/frappe/public/js/frappe/ui/filters/filters.js +480,In,V
+apps/frappe/frappe/public/js/frappe/ui/filters/filters.js +497,In,V
 DocType: Email Alert,Value Change,Změnit hodnotu
 DocType: Standard Reply,Standard Reply,Štandardná odpoveď
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +233,Width of the input box,Šířka vstupního pole
 DocType: Address,Subsidiary,Dceřiný
 DocType: System Settings,In Hours,V hodinách
-apps/frappe/frappe/public/js/frappe/list/list_view.js +705,With Letterhead,šířka Letterhead
+apps/frappe/frappe/public/js/frappe/list/list_view.js +707,With Letterhead,šířka Letterhead
 apps/frappe/frappe/email/smtp.py +192,Invalid Outgoing Mail Server or Port,Neplatný odchozí Mail Server nebo Port
 DocType: Custom DocPerm,Write,Zapsat
 apps/frappe/frappe/core/doctype/report/report.py +37,Only Administrator allowed to create Query / Script Reports,Pouze administrátor má povoleno vytvářet Dotazy (query) / skriptované výpisy (script reports)
@@ -1513,10 +1526,10 @@ apps/frappe/frappe/email/doctype/email_group/email_group.js +13,Import Email Fro
 apps/frappe/frappe/contacts/doctype/contact/contact.js +20,Invite as User,Pozvať ako Užívateľ
 apps/frappe/frappe/public/js/frappe/views/communication.js +82,Select Attachments,Vyberte prílohy
 apps/frappe/frappe/model/naming.py +95, for {0},pre {0}
-apps/frappe/frappe/website/js/web_form.js +293,There were errors. Please report this.,Došlo k chybám. Ohláste to.
+apps/frappe/frappe/website/js/web_form.js +297,There were errors. Please report this.,Došlo k chybám. Ohláste to.
 apps/frappe/frappe/public/js/legacy/form.js +174,You are not allowed to print this document,Nemáte povolené tlačiť tento dokument
 apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.py +120,Please set filters value in Report Filter table.,Prosím nastaviť filtre hodnotu Report filtra tabuľky.
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +390,Loading Report,Nahrávám Report
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +391,Loading Report,Nahrávám Report
 apps/frappe/frappe/limits.py +74,Your subscription will expire today.,Vaše predplatné vyprší dnes.
 DocType: Page,Standard,Štandard
 apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html +50,Attach File,Priložiť Súbor
@@ -1533,7 +1546,7 @@ apps/frappe/frappe/public/js/frappe/form/templates/grid_form.html +10,Insert Abo
 apps/frappe/frappe/utils/password_strength.py +169,Common names and surnames are easy to guess.,Bežná mená a priezviská sú ľahko uhádnuť.
 apps/frappe/frappe/public/js/frappe/model/indicator.js +54,Draft,Návrh
 apps/frappe/frappe/utils/password_strength.py +159,This is similar to a commonly used password.,To je podobné bežne používané heslo.
-DocType: User,Female,Žena
+apps/frappe/frappe/desk/page/setup_wizard/install_fixtures.py +15,Female,Žena
 apps/frappe/frappe/desk/page/applications/applications.js +61,Search Results,Výsledky vyhľadávania
 apps/frappe/frappe/public/js/frappe/model/indicator.js +19,Not Saved,Nie je uložené
 apps/frappe/frappe/www/third_party_apps.html +51,Revoke,odvolať
@@ -1552,7 +1565,7 @@ apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +25,Unselect
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +199,You cannot unset 'Read Only' for field {0},Nemôžete odstavenie &quot;len na čítanie&quot; pre pole {0}
 DocType: Auto Email Report,Zero means send records updated at anytime,Nula znamená odosielať záznamy kedykoľvek aktualizované
 DocType: Auto Email Report,Zero means send records updated at anytime,Nula znamená odosielať záznamy kedykoľvek aktualizované
-apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +47,Complete Setup,Dokončiť nastavenie
+apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +49,Complete Setup,Dokončiť nastavenie
 DocType: Workflow State,asterisk,asterisk
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +63,Please do not change the template headings.,Prosím neměňte nadpis šablony.
 DocType: Communication,Linked,Súvisí
@@ -1564,8 +1577,8 @@ apps/frappe/frappe/public/js/frappe/views/gantt/gantt_view.js +99,Week,týždeň
 DocType: Social Login Keys,Google,Google
 DocType: Email Domain,Example Email Address,Príklad E-mailová adresa
 apps/frappe/frappe/public/js/frappe/ui/sort_selector.js +182,Most Used,most Použité
-apps/frappe/frappe/email/doctype/newsletter/newsletter.py +135,Unsubscribe from Newsletter,Odhlásiť z newsletteru
-apps/frappe/frappe/www/login.html +101,Forgot Password,Zabudol si heslo
+apps/frappe/frappe/email/doctype/newsletter/newsletter.py +156,Unsubscribe from Newsletter,Odhlásiť z newsletteru
+apps/frappe/frappe/www/login.html +98,Forgot Password,Zabudol si heslo
 DocType: Dropbox Settings,Backup Frequency,Frekvencia zálohovania
 DocType: Workflow State,Inverse,Invertovat
 DocType: DocField,User permissions should not apply for this Link,Uživatelská oprávnění by neměla být aplikována na tento odkaz
@@ -1577,7 +1590,7 @@ apps/frappe/frappe/public/js/frappe/desk.js +16,Browser not supported,Prehliada�
 apps/frappe/frappe/templates/pages/integrations/stripe_checkout.py +27,Some information is missing,Niektoré informácie chýbajú
 DocType: Custom DocPerm,Cancel,Zrušit
 apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +111,Add to Desktop,Pridať na plochu
-apps/frappe/frappe/core/doctype/file/file.py +136,File {0} does not exist,Súbor {0} neexistuje
+apps/frappe/frappe/core/doctype/file/file.py +142,File {0} does not exist,Súbor {0} neexistuje
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +100,Leave blank for new records,Nechajte prázdne pre nové záznamy
 apps/frappe/frappe/config/website.py +63,List of themes for Website.,Zoznam tém pre webové stránky.
 apps/frappe/frappe/core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.js +84,Successfully Updated,Úspešne aktualizované
@@ -1596,7 +1609,7 @@ apps/frappe/frappe/core/doctype/doctype/doctype.py +580,Timeline field must be a
 DocType: Currency,Symbol,Symbol
 apps/frappe/frappe/model/base_document.py +533,Row #{0}:,Řádek #{0}:
 apps/frappe/frappe/core/doctype/user/user.py +143,New password emailed,Nové heslo zaslané emailom
-apps/frappe/frappe/auth.py +258,Login not allowed at this time,Přihlášení není povoleno v tuto dobu
+apps/frappe/frappe/auth.py +261,Login not allowed at this time,Přihlášení není povoleno v tuto dobu
 DocType: Email Account,Email Sync Option,E-mail Sync Option
 DocType: Async Task,Runtime,Runtime
 DocType: Contact Us Settings,Introduction,Úvod
@@ -1610,7 +1623,7 @@ apps/frappe/frappe/config/setup.py +244,Custom Tags,vlastné Tagy
 apps/frappe/frappe/desk/page/applications/applications.js +147,No matching apps found,Neboli nájdené žiadne zodpovedajúce aplikácie
 DocType: Communication,Submitted,Potvrdené
 DocType: System Settings,Email Footer Address,Adresa v päte emailu
-apps/frappe/frappe/public/js/frappe/form/grid.js +603,Table updated,Tabuľka aktualizované
+apps/frappe/frappe/public/js/frappe/form/grid.js +604,Table updated,Tabuľka aktualizované
 DocType: Communication,Timeline DocType,Časová os DOCTYPE
 DocType: DocField,Text,Text
 apps/frappe/frappe/config/setup.py +154,Standard replies to common queries.,Standardní odpovědi na běžné dotazy.
@@ -1640,6 +1653,7 @@ DocType: Async Task,Task Name,Meno Task
 apps/frappe/frappe/app.py +146,"Your session has expired, please login again to continue.","Platnosť vašej relácie vypršala. Ak chcete pokračovať, prihláste sa znova."
 apps/frappe/frappe/app.py +146,"Your session has expired, please login again to continue.","Platnosť vašej relácie vypršala. Ak chcete pokračovať, prihláste sa znova."
 DocType: Communication,Workflow,Toky (workflow)
+DocType: Webhook,Webhook Headers,Záhlavie Webhook
 apps/frappe/frappe/desk/page/applications/applications.py +100,Queued for backup and removing {0},Vo fronte pre zálohovanie a odstraňovanie {0}
 DocType: Workflow State,Upload,Nahrať
 DocType: System Settings,Date Format,Formát data
@@ -1672,7 +1686,7 @@ apps/frappe/frappe/desk/page/activity/activity.js +89,Show Likes,Show likes
 DocType: DocType,UPPER CASE,VEĽKÉ PÍSMENÁ
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +189,Custom HTML,Vlastní HTML
 apps/frappe/frappe/core/doctype/file/file_list.js +77,Enter folder name,Zadajte názov zložky
-apps/frappe/frappe/auth.py +221,Unknown User,Neznámy používateľ
+apps/frappe/frappe/auth.py +224,Unknown User,Neznámy používateľ
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +55,Select Role,Vyberte rolu
 DocType: Communication,Deleted,Vypouští se
 DocType: Workflow State,adjust,adjust
@@ -1683,7 +1697,7 @@ DocType: Workflow State,arrow-left,šipka-vlevo
 apps/frappe/frappe/desk/page/applications/applications.js +77,Installed,Instalováno
 apps/frappe/frappe/desk/page/applications/applications.js +47,Developer Tools,Nástroje pre vývojárov
 DocType: Workflow State,fullscreen,celá obrazovka
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +215,You are not allowed to make PDF for this report,"Tie sú nie je dovolené, aby PDF pre túto správu"
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +216,You are not allowed to make PDF for this report,"Tie sú nie je dovolené, aby PDF pre túto správu"
 apps/frappe/frappe/templates/emails/feedback_request_url.html +8,1 star being lowest & 5 stars being highest rating,1 hviezdička je najnižšia a 5 hviezdičiek je najvyššie hodnotenie
 DocType: Event,Ref Name,Název reference
 DocType: Web Page,Center,Střed
@@ -1747,6 +1761,7 @@ apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +492,Added,Pridané
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +81,"Update only, do not insert new records.",Aktualizovať iba nevkladajte nové záznamy.
 apps/frappe/frappe/templates/emails/upcoming_events.html +8,Daily Event Digest is sent for Calendar Events where reminders are set.,Denní přehled událostí je zasílán pro kalendářní události kde je nastaveno připomínání.
 apps/frappe/frappe/website/doctype/website_settings/website_settings.js +3,View Website,Prejsť na webstránku
+DocType: Web Form,Message to be displayed on successful completion (only for Guest users),"Správa, ktorá sa zobrazí po úspešnom dokončení (len pre hostí)"
 DocType: Workflow State,remove,Odstranit
 DocType: Email Account,If non standard port (e.g. 587),Není-li na standardním portu (např.: 587)
 apps/frappe/frappe/public/js/frappe/form/toolbar.js +152,Reload,Znovu načítať
@@ -1759,7 +1774,7 @@ apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +84,Export Cu
 DocType: DocType,User Cannot Search,Uživatel nemůže vyhledávat
 apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.py +84,Invalid Output Format,Neplatný Výstupný formát
 DocType: Custom DocPerm,Apply this rule if the User is the Owner,"Použiť toto pravidlo v prípade, že používateľ je vlastníkom"
-apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +356,Will be your login ID,Bude to vaše prihlasovacie ID
+apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +380,Will be your login ID,Bude to vaše prihlasovacie ID
 apps/frappe/frappe/desk/page/activity/activity.js +76,Build Report,Sestav Report
 DocType: Note,Notify users with a popup when they log in,"Informovať užívateľa s pop-up, keď sa prihlási"
 apps/frappe/frappe/model/rename_doc.py +117,"{0} {1} does not exist, select a new target to merge","{0} {1} neexistuje, vyberte nový cieľ pre zlúčenie"
@@ -1773,11 +1788,11 @@ apps/frappe/frappe/config/integrations.py +73,Google GSuite Templates to integra
 apps/frappe/frappe/public/js/frappe/ui/messages.js +234,Verify Password,Potvrďte Heslo
 apps/frappe/frappe/public/js/frappe/form/footer/attachments.js +138,There were errors,Vyskytly se chyby
 apps/frappe/frappe/core/doctype/communication/communication.js +42,Close,Zavrieť
-apps/frappe/frappe/model/document.py +569,Cannot change docstatus from 0 to 2,Nelze změnit docstatus z 0 na 2
+apps/frappe/frappe/model/document.py +575,Cannot change docstatus from 0 to 2,Nelze změnit docstatus z 0 na 2
 DocType: User Permission for Page and Report,Roles Permission,role Oprávnenie
 apps/frappe/frappe/core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.js +14,Update,Aktualizovat
 DocType: Error Snapshot,Snapshot View,Snapshot View
-apps/frappe/frappe/email/doctype/newsletter/newsletter.py +105,Please save the Newsletter before sending,Uložte Newsletter před odesláním
+apps/frappe/frappe/email/doctype/newsletter/newsletter.py +106,Please save the Newsletter before sending,Uložte Newsletter před odesláním
 apps/frappe/frappe/core/doctype/doctype/doctype.py +430,Options must be a valid DocType for field {0} in row {1},Možnosti musí být validní DocType pro pole{0} na řádku {1}
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +167,Edit Properties,Upraviť vlastnosti
 DocType: Patch Log,List of patches executed,Seznam provedených záplat
@@ -1797,7 +1812,7 @@ apps/frappe/frappe/core/doctype/user/user.py +234,Password Update,Aktualizovať 
 DocType: Workflow State,trash,koš
 DocType: System Settings,Older backups will be automatically deleted,Staršie zálohy budú automaticky zmazané
 DocType: Event,Leave blank to repeat always,Nechajte prázdne pre opakovanie vždy
-apps/frappe/frappe/email/doctype/newsletter/newsletter.py +197,Confirmed,Potvrdené
+apps/frappe/frappe/email/doctype/newsletter/newsletter.py +218,Confirmed,Potvrdené
 DocType: Event,Ends on,Končí
 DocType: Payment Gateway,Gateway,Brána
 apps/frappe/frappe/public/js/frappe/form/linked_with.js +116,Not enough permission to see links,Nedostatok povolenia na zobrazenie odkazov
@@ -1828,6 +1843,7 @@ DocType: Desktop Icon,Blocked,upchatý
 DocType: Contact Us Settings,"Default: ""Contact Us""","Výchozí: ""Kontaktujte nás"""
 DocType: Contact,Purchase Manager,Manažér nákupu
 DocType: Custom Script,Sample,Vzorka
+apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +54,&gt; {0} year(s) ago,&gt; {0} rok (roky)
 DocType: Event,Every Week,Týdně
 apps/frappe/frappe/limits.py +197,Click here to check your usage or upgrade to a higher plan,Kliknite tu pre kontrolu využitie alebo upgrade na vyššiu plán
 DocType: Custom Field,Is Mandatory Field,Je Povinné Pole
@@ -1841,8 +1857,9 @@ apps/frappe/frappe/config/setup.py +95,Import / Export Data from .csv files.,Imp
 DocType: Auto Email Report,Only Send Records Updated in Last X Hours,Iba odoslané záznamy boli aktualizované v posledných X hodinách
 DocType: Auto Email Report,Only Send Records Updated in Last X Hours,Iba odoslané záznamy boli aktualizované v posledných X hodinách
 DocType: Communication,Feedback,Zpětná vazba
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +72,You are not allowed to create / edit reports,Nemáte povolenie vytvárať / upravovať reporty
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +73,You are not allowed to create / edit reports,Nemáte povolenie vytvárať / upravovať reporty
 DocType: Workflow State,Icon will appear on the button,Ikona se zobrazí na tlačítku
+apps/frappe/frappe/public/js/frappe/socketio_client.js +332,Socketio is not connected. Cannot upload,Socketio nie je pripojený. Nemožno nahrať
 DocType: Website Settings,Website Settings,Nastavení www stránky
 apps/frappe/frappe/public/js/frappe/views/gantt/gantt_view.js +99,Month,Měsíc
 DocType: Email Account,ProTip: Add <code>Reference: {{ reference_doctype }} {{ reference_name }}</code> to send document reference,Protipo: Pridať <code>Reference: {{ reference_doctype }} {{ reference_name }}</code> poslať referenčný dokument
@@ -1888,7 +1905,7 @@ DocType: Property Setter,Property Type,Typ vlastnosti
 DocType: Workflow State,screenshot,snímka obrazovky
 apps/frappe/frappe/core/doctype/report/report.py +33,Only Administrator can save a standard report. Please rename and save.,Pouze administrátor může uložit standardní výpis. Prosím přejmenujte a uložte.
 DocType: System Settings,Background Workers,Pracovníci v pozadí
-apps/frappe/frappe/core/doctype/doctype/doctype.py +789,Fieldname {0} conflicting with meta object,"Názov poľa {0}, ktorý je v konflikte s objektom meta"
+apps/frappe/frappe/core/doctype/doctype/doctype.py +799,Fieldname {0} conflicting with meta object,"Názov poľa {0}, ktorý je v konflikte s objektom meta"
 DocType: Deleted Document,Data,Data
 apps/frappe/frappe/public/js/frappe/model/model.js +27,Document Status,Stav dokumentu
 apps/frappe/frappe/core/page/desktop/desktop_help_message.html +5,You have made {0} of {1},Vykonali ste {0} z {1}
@@ -1919,7 +1936,6 @@ apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +325,Fieldtyp
 apps/frappe/frappe/public/js/frappe/roles_editor.js +195,Role Permissions,Oprávnění rolí
 DocType: Help Article,Intermediate,prechodný
 apps/frappe/frappe/public/js/frappe/form/templates/set_sharing.html +5,Can Read,Môže Prečítajte si
-apps/frappe/frappe/email/smtp.py +57,Please setup default Email Account from Setup &gt; Email &gt; Email Account,Prosím nastavte predvolený e-mailový účet z Setup&gt; Email&gt; Email Account
 DocType: Custom Role,Response,Odpověď
 apps/frappe/frappe/public/js/frappe/form/workflow.js +41,Workflow will start after saving.,Tok (workflow) započne po uložení.
 apps/frappe/frappe/public/js/frappe/form/templates/set_sharing.html +7,Can Share,Môžu zdieľať
@@ -1967,7 +1983,7 @@ apps/frappe/frappe/core/page/usage_info/usage_info.html +4,Renew before: {0},Obn
 ,Permitted Documents For User,Povolené dokumenty uživatele
 apps/frappe/frappe/core/doctype/docshare/docshare.py +40,"You need to have ""Share"" permission","Musíte mít ""Sdílet"" oprávnění"
 DocType: Communication,Assignment Completed,priradenie Dokončené
-apps/frappe/frappe/public/js/frappe/form/grid.js +616,Bulk Edit {0},Hromadná Upraviť {0}
+apps/frappe/frappe/public/js/frappe/form/grid.js +617,Bulk Edit {0},Hromadná Upraviť {0}
 DocType: Email Alert Recipient,Email Alert Recipient,Příjemce upozornění emailem
 apps/frappe/frappe/workflow/doctype/workflow/workflow_list.js +7,Not active,Neaktívny
 DocType: About Us Settings,Settings for the About Us Page,Nastavenie stránky O nás
@@ -1991,7 +2007,7 @@ apps/frappe/frappe/email/queue.py +496,This email was sent to {0},Tento e-mail b
 DocType: DocField,Remember Last Selected Value,"Nezabudnite, posledný vybraná hodnota"
 DocType: Email Account,Check this to pull emails from your mailbox,"Podívejte se na to, aby vytáhnout e-maily z poštovní schránky"
 apps/frappe/frappe/limits.py +141,click here,kliknite tu
-apps/frappe/frappe/model/document.py +582,Cannot edit cancelled document,Nelze upravovat zrušeno dokument
+apps/frappe/frappe/model/document.py +588,Cannot edit cancelled document,Nelze upravovat zrušeno dokument
 DocType: Unhandled Email,Unhandled Email,neošetrené Email
 DocType: Event,Monday,Pondělí
 apps/frappe/frappe/utils/password_strength.py +85,Make use of longer keyboard patterns,Využívajte dlhších modelov klávesníc
@@ -2005,7 +2021,7 @@ DocType: Website Settings,Brand Image,Logo značky
 DocType: Print Settings,A4,A4
 apps/frappe/frappe/config/website.py +58,"Setup of top navigation bar, footer and logo.","Nastavenie horného navigačného panelu, päty a loga."
 DocType: Web Form Field,Max Value,Max Hodnota
-apps/frappe/frappe/core/doctype/doctype/doctype.py +665,For {0} at level {1} in {2} in row {3},Pro {0} na úrovni {1} v {2} na řádku {3}
+apps/frappe/frappe/core/doctype/doctype/doctype.py +675,For {0} at level {1} in {2} in row {3},Pro {0} na úrovni {1} v {2} na řádku {3}
 DocType: Contact,All,Vše
 DocType: Email Queue,Recipient,Příjemce
 DocType: Communication,Has  Attachment,má prílohu
@@ -2020,11 +2036,11 @@ apps/frappe/frappe/utils/data.py +757,Operator must be one of {0},Operátor mus�
 DocType: Dropbox Settings,Dropbox Access Token,Token prístupu Dropbox
 DocType: Workflow State,align-right,zarovnat-vpravo
 DocType: Auto Email Report,Email To,E-mail na
-apps/frappe/frappe/core/doctype/file/file.py +218,Folder {0} is not empty,Folder {0} nie je prázdny
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +8,Setup &gt; User,Nastavenie&gt; Užívateľ
+apps/frappe/frappe/core/doctype/file/file.py +224,Folder {0} is not empty,Folder {0} nie je prázdny
 DocType: Page,Roles,Role
 apps/frappe/frappe/model/base_document.py +429,Error: Value missing for {0}: {1},Chyba: Chýba hodnota pre {0}: {1}
-apps/frappe/frappe/public/js/frappe/ui/filters/filters.js +288,Field {0} is not selectable.,Pole {0} nemôžete zvoliť.
+apps/frappe/frappe/public/js/frappe/ui/filters/filters.js +312,Field {0} is not selectable.,Pole {0} nemôžete zvoliť.
+DocType: Webhook,Webhook,Webhook
 DocType: System Settings,Session Expiry,Platnosť relácie
 DocType: Workflow State,ban-circle,ban-circle
 DocType: Email Flag Queue,Unread,neprečítaný
@@ -2066,7 +2082,7 @@ DocType: DocField,Signature,Podpis
 apps/frappe/frappe/public/js/frappe/form/share.js +115,Share With,Sdílet s
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +141,Loading,Nahrávám
 apps/frappe/frappe/config/integrations.py +43,"Enter keys to enable login via Facebook, Google, GitHub.","Vložte klúče, ktoré vám umožnia prihlásiť sa pomocou Facebook, Google, GitHub."
-apps/frappe/frappe/core/doctype/file/file.py +359,Unable to read file format for {0},Nie je možné prečítať formát súboru pre {0}
+apps/frappe/frappe/core/doctype/file/file.py +365,Unable to read file format for {0},Nie je možné prečítať formát súboru pre {0}
 DocType: Auto Email Report,Filter Data,Filtrovať údaje
 apps/frappe/frappe/public/js/frappe/ui/tags.js +20,Add a tag,Pridať značku
 apps/frappe/frappe/public/js/frappe/form/controls/select.js +61,Please attach a file first.,Prosím nejdříve přiložte soubor.
@@ -2089,9 +2105,9 @@ apps/frappe/frappe/public/js/frappe/views/communication.js +63,Send As Email,Odo
 DocType: Website Theme,Link Color,Farba odkazu
 apps/frappe/frappe/core/doctype/user/user.py +100,User {0} cannot be disabled,Uživatel: {0} nemůže být vypnut
 apps/frappe/frappe/templates/emails/administrator_logged_in.html +1,"Dear System Manager,","Vážený System Manager,"
-apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +321,Your Country,Tvoja krajina
+apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +345,Your Country,Tvoja krajina
 DocType: Event,Sunday,Nedeľa
-apps/frappe/frappe/core/doctype/doctype/doctype.js +36,In Grid View,V zobrazení mriežky
+apps/frappe/frappe/core/doctype/doctype/doctype.js +39,In Grid View,V zobrazení mriežky
 DocType: Address Template,Template,Šablona
 DocType: Address,Delhi,Delhi
 apps/frappe/frappe/config/integrations.py +48,LDAP Settings,nastavenie LDAP
@@ -2106,7 +2122,7 @@ DocType: Letter Head,Letter Head Name,Letter název záhlaví
 DocType: DocField,Number of columns for a field in a List View or a Grid (Total Columns should be less than 11),Počet stĺpcov pre pole v zobrazení zoznamu alebo mriežke (celkom stĺpce by mala byť menšia ako 11)
 apps/frappe/frappe/config/website.py +18,User editable form on Website.,Užívateľom upraviteľný formulár na stránkach
 DocType: Workflow State,file,soubor
-apps/frappe/frappe/www/login.html +108,Back to Login,Späť na prihlásenie
+apps/frappe/frappe/www/login.html +105,Back to Login,Späť na prihlásenie
 apps/frappe/frappe/model/rename_doc.py +127,You need write permission to rename,Potrebujete oprávnenie k zápisu na premenovanie
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +447,Apply Rule,Použiť pravidlo
 DocType: User,Karma,Karma
@@ -2114,7 +2130,7 @@ DocType: DocField,Table,Tabuľka
 DocType: File,File Size,Velikost souboru
 apps/frappe/frappe/website/doctype/web_form/web_form.py +399,You must login to submit this form,"Musíte sa prihlásiť, aby ste mohli odoslať tento formulár"
 DocType: User,Background Image,Obrázok na pozadí
-apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +319,"Select your Country, Time Zone and Currency","Vyberte svoju krajinu, časové pásmo a menu"
+apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +343,"Select your Country, Time Zone and Currency","Vyberte svoju krajinu, časové pásmo a menu"
 apps/frappe/frappe/desk/page/setup_wizard/install_fixtures.py +16,Mx,mx
 apps/frappe/frappe/public/js/frappe/ui/filters/edit_filter.html +16,Between,medzi
 DocType: Async Task,Queued,Vo fronte
@@ -2129,10 +2145,11 @@ DocType: Dropbox Settings,App Access Key,Access Key App
 DocType: OAuth Bearer Token,Access Token,Přístupový Token
 DocType: About Us Settings,Org History,Historie organizace
 DocType: Workflow,Workflow Name,Názov pracovného toku
-apps/frappe/frappe/public/js/frappe/form/footer/assign_to.js +144,Notify by Email,Upozorniť emailom
+DocType: DocShare,Notify by Email,Upozorniť emailom
 DocType: DocField,In Standard Filter,V štandardnom filtrom
 DocType: Web Form,Allow Edit,Povolit úpravy
 apps/frappe/frappe/core/doctype/file/file_list.js +142,Paste,Paste
+DocType: Webhook,Doc Events,Udalosti dokumentov
 DocType: Auto Email Report,Based on Permissions For User,Založené na povoleniach používateľa
 apps/frappe/frappe/workflow/doctype/workflow/workflow.py +64,Cannot change state of Cancelled Document. Transition row {0},Nelze změnit stav zrušeného dokumentu. řádek transakce: {0}
 DocType: Workflow,"Rules for how states are transitions, like next state and which role is allowed to change state etc.","Pravidla pro přechod stavů, jako následný stav a která role má povoleno změnit stav atd."
@@ -2159,7 +2176,7 @@ apps/frappe/frappe/core/doctype/communication/communication.js +159,Re: {0},Re: 
 DocType: Address,Purchase User,Nákup Uživatel
 DocType: Workflow,"Different ""States"" this document can exist in. Like ""Open"", ""Pending Approval"" etc.","Mohou existovat různé ""stavy"" tohoto dokumentu. Jako ""Otevřeno"", ""Čeká na schválení"" atd."
 apps/frappe/frappe/utils/verified_command.py +44,This link is invalid or expired. Please make sure you have pasted correctly.,"Tento odkaz je neplatný alebo vypršala. Uistite sa, že ste vložili správne."
-apps/frappe/frappe/email/doctype/newsletter/newsletter.py +140,<b>{0}</b> has been successfully unsubscribed from this mailing list.,<b>{0}</b> bol úspešne odhlásil z tohto zoznamu adresátov.
+apps/frappe/frappe/email/doctype/newsletter/newsletter.py +161,<b>{0}</b> has been successfully unsubscribed from this mailing list.,<b>{0}</b> bol úspešne odhlásil z tohto zoznamu adresátov.
 DocType: Web Page,Slideshow,Premietanie obrázkov na webstránke
 apps/frappe/frappe/contacts/doctype/address_template/address_template.py +31,Default Address Template cannot be deleted,Výchozí šablony adresy nemůže být smazán
 DocType: Contact,Maintenance Manager,Správca údržby
@@ -2170,12 +2187,12 @@ apps/frappe/frappe/core/doctype/communication/communication.js +87,Move To Trash
 DocType: Web Form,Web Form Fields,Pole webových formulářů
 DocType: Website Theme,Top Bar Text Color,Top Bar Farba textu
 apps/frappe/frappe/public/js/frappe/model/meta.js +168,Warning: Unable to find {0} in any table related to {1},Varovanie: Nedá nájsť {0} v tabuľke vzťahujúce sa k {1}
-apps/frappe/frappe/model/document.py +1048,This document is currently queued for execution. Please try again,Tento dokument je v súčasnosti zaradený do fronty na vykonanie. Prosím skúste znova
-apps/frappe/frappe/core/doctype/file/file.py +386,File '{0}' not found,Súbor &#39;{0}&#39; nebol nájdený
+apps/frappe/frappe/model/document.py +1055,This document is currently queued for execution. Please try again,Tento dokument je v súčasnosti zaradený do fronty na vykonanie. Prosím skúste znova
+apps/frappe/frappe/core/doctype/file/file.py +392,File '{0}' not found,Súbor &#39;{0}&#39; nebol nájdený
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +411,Remove Section,Odstranit oddíl
 DocType: User,Change Password,Zmen heslo
 apps/frappe/frappe/public/js/frappe/form/controls/data.js +121,Invalid Email: {0},Neplatný email: {0}
-apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +290,Hello!,Ahoj!
+apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +308,Hello!,Ahoj!
 apps/frappe/frappe/desk/doctype/event/event.py +24,Event end must be after start,Konec události musí být po začátku události
 apps/frappe/frappe/www/third_party_apps.html +27,This will log out {0} from all other devices,Odhlási sa {0} zo všetkých ostatných zariadení
 apps/frappe/frappe/desk/query_report.py +24,You don't have permission to get a report on: {0},Nemáte práva přistoupit k výpisu: {0}
@@ -2184,13 +2201,13 @@ DocType: DocField,Allow Bulk Edit,Povoliť hromadnú úpravu
 DocType: DocField,Allow Bulk Edit,Povoliť hromadnú úpravu
 DocType: Blog Post,Blog Post,Příspěvek blogu
 apps/frappe/frappe/public/js/frappe/form/controls/link.js +184,Advanced Search,Rozšírené vyhľadávanie
-apps/frappe/frappe/core/doctype/user/user.py +769,Password reset instructions have been sent to your email,Informace o obnově hesla byly zaslány na Váš email
+apps/frappe/frappe/email/doctype/newsletter/newsletter.py +115,You are not permitted to view the newsletter.,Nemáte povolenie prezerať si newsletter.
+apps/frappe/frappe/core/doctype/user/user.py +774,Password reset instructions have been sent to your email,Informace o obnově hesla byly zaslány na Váš email
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +391,"Level 0 is for document level permissions, \
 								higher levels for field level permissions.","Úroveň 0 je pre oprávnenia na úrovni dokumentu, \ vyššie úrovne pre oprávnenia na úrovni poľa."
 apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +661,Sort By,Zoradiť podľa
 DocType: Workflow,States,Stavy
 DocType: Email Alert,Attach Print,Pripojiť Tlač
-apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js +357,<p>No results found for '</p>,<p> Neboli nájdené žiadne výsledky pre ' </p>
 apps/frappe/frappe/core/doctype/user/user.py +438,Suggested Username: {0},Navrhovaná Užívateľské meno: {0}
 apps/frappe/frappe/public/js/frappe/views/gantt/gantt_view.js +99,Day,deň
 ,Modules,moduly
@@ -2210,13 +2227,13 @@ apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +132,Make a new re
 apps/frappe/frappe/public/js/frappe/ui/toolbar/search_header.html +4,Searching,vyhľadávanie
 DocType: Currency,Fraction,Zlomek
 DocType: LDAP Settings,LDAP First Name Field,LDAP First Name Field
-apps/frappe/frappe/public/js/frappe/form/controls/text_editor.js +270,Select from existing attachments,Vyberte z existujúcich príloh
+apps/frappe/frappe/public/js/frappe/form/controls/text_editor.js +271,Select from existing attachments,Vyberte z existujúcich príloh
 DocType: Custom Field,Field Description,Popis pole
 apps/frappe/frappe/model/naming.py +54,Name not set via Prompt,Název není nastaven pomocí prompt
 apps/frappe/frappe/public/js/frappe/ui/toolbar/search_utils.js +235,Email Inbox,e-mailová schránka
 DocType: Auto Email Report,Filters Display,filtre Display
 DocType: Website Theme,Top Bar Color,Top Bar Color
-apps/frappe/frappe/email/doctype/newsletter/newsletter.py +135,Do you want to unsubscribe from this mailing list?,Chcete sa odhlásiť z tejto e-mailovej konferencie?
+apps/frappe/frappe/email/doctype/newsletter/newsletter.py +156,Do you want to unsubscribe from this mailing list?,Chcete sa odhlásiť z tejto e-mailovej konferencie?
 DocType: Address,Plant,Rostlina
 apps/frappe/frappe/core/doctype/communication/communication.js +65,Reply All,Odpovedať všetkým
 DocType: DocType,Setup,Nastavenie
@@ -2242,6 +2259,7 @@ DocType: Customize Form Field,Is Custom Field,Je Vlastné pole
 DocType: Workflow,"If checked, all other workflows become inactive.","Pakliže je toto zaškrtnuto, všechny ostatní toky (workflow) se stanou neaktivními."
 apps/frappe/frappe/core/doctype/report/report.js +10,[Label]:[Field Type]/[Options]:[Width],[Označenie]:[Typ poľa]/[Možnosti]:[šírka]
 DocType: Workflow State,folder-close,folder-close
+DocType: Print Settings,Print taxes with zero amount,Tlačiť dane s nulovou čiastkou
 apps/frappe/frappe/model/rename_doc.py +130,{0} not allowed to be renamed,{0}: nie je povolené premenovanie
 DocType: Custom Script,Custom Script,Přizpůsobený skript
 DocType: Address,Address Line 2,Riadok adresy 2
@@ -2255,7 +2273,7 @@ apps/frappe/frappe/public/js/frappe/views/kanban/kanban_board.js +77,You are not
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +270,Info:,Informace:
 DocType: Custom Field,Permission Level,úroveň oprávnění
 DocType: User,Send Notifications for Transactions I Follow,Posielať oznámenia pre transakcie sledujem
-apps/frappe/frappe/core/doctype/doctype/doctype.py +708,"{0}: Cannot set Submit, Cancel, Amend without Write","{0}: Nie je možné nastaviť Odoslanie, Zrušenie, Zmenu bez zápisu"
+apps/frappe/frappe/core/doctype/doctype/doctype.py +718,"{0}: Cannot set Submit, Cancel, Amend without Write","{0}: Nie je možné nastaviť Odoslanie, Zrušenie, Zmenu bez zápisu"
 apps/frappe/frappe/public/js/frappe/form/footer/attachments.js +83,Are you sure you want to delete the attachment?,"Jste si jisti, že chcete smazat přílohu?"
 apps/frappe/frappe/model/delete_doc.py +200,"Cannot delete or cancel because {0} <a href=""#Form/{0}/{1}"">{1}</a> is linked with {2} <a href=""#Form/{2}/{3}"">{3}</a>","Nemožno zmazať alebo zrušiť, pretože {0} <a href=""#Form/{0}/{1}"">{1}</a> je spojené s {2} <a href=""#Form/{2}/{3}"">{3}</a>"
 apps/frappe/frappe/__init__.py +1077,Thank you,Děkujeme Vám
@@ -2270,7 +2288,7 @@ DocType: DocField,In List View,V seznamu
 DocType: Email Account,Use TLS,Použít TLS
 apps/frappe/frappe/email/smtp.py +24,Invalid login or password,Neplatné heslo či používateľské meno
 apps/frappe/frappe/config/setup.py +235,Add custom javascript to forms.,Přidat přizpůsobený javascript do formulářů.
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +500,Sr No,Poradové číslo
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +501,Sr No,Poradové číslo
 ,Role Permissions Manager,Správce rolí a oprávnění
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +117,Name of the new Print Format,Názov nového tlačového formátu
 apps/frappe/frappe/public/js/frappe/form/controls/attach.js +58,Clear Attachment,clear Attachment
@@ -2300,7 +2318,7 @@ apps/frappe/frappe/core/doctype/error_log/error_log_list.js +12,Clear Error Logs
 apps/frappe/frappe/templates/emails/feedback_request_url.html +2,Please select a rating,"Prosím, vyberte rating"
 apps/frappe/frappe/core/doctype/user/user.js +81,Reset OTP Secret,Obnoviť OTP Secret
 DocType: Email Account,Notify if unreplied for (in mins),"Upozorniť, ak Nezodpovedaná pre (v min)"
-apps/frappe/frappe/public/js/frappe/list/list_renderer.js +533,2 days ago,Pred dvomi dňami
+apps/frappe/frappe/public/js/frappe/list/list_renderer.js +536,2 days ago,Pred dvomi dňami
 apps/frappe/frappe/config/website.py +47,Categorize blog posts.,Kategorizujte příspěvky blogu.
 DocType: Workflow State,Time,Čas
 DocType: DocField,Attach,Priložiť
@@ -2323,9 +2341,10 @@ apps/frappe/frappe/www/update-password.html +14,Old Password,Staré heslo
 apps/frappe/frappe/website/doctype/blog_post/blog_post.py +106,Posts by {0},Príspevky od {0}
 apps/frappe/frappe/core/doctype/report/report.js +9,"To format columns, give column labels in the query.","Pro formátování sloupců, zadejte označení sloupců v dotazu."
 DocType: Has Domain,Has Domain,Má doménu
-apps/frappe/frappe/www/login.html +72,Don't have an account? Sign up,Ešte nemáte svoj účet? Zaregistrujte sa
-apps/frappe/frappe/core/doctype/doctype/doctype.py +735,{0}: Cannot set Assign Amend if not Submittable,{0}: Nelze nastavit přiřadit Změny když není Odeslatelné
+apps/frappe/frappe/www/login.html +69,Don't have an account? Sign up,Ešte nemáte svoj účet? Zaregistrujte sa
+apps/frappe/frappe/core/doctype/doctype/doctype.py +745,{0}: Cannot set Assign Amend if not Submittable,{0}: Nelze nastavit přiřadit Změny když není Odeslatelné
 DocType: Address,Bihar,Bihar
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +8,Setup &gt; User,Nastavenie&gt; Užívateľ
 DocType: Communication,Link DocType,link DOCTYPE
 DocType: Social Login Keys,Social Login Keys,Přihlašování přes sociální služby
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +76,Remove all customizations?,Odobrať všetky prispôsobenia?
@@ -2363,7 +2382,7 @@ apps/frappe/frappe/templates/includes/contact.js +11,"Please enter both your ema
 				can get back to you. Thanks!","Prosím, zadejte i svůj e-mail a poselství, abychom \
  může dostat zpět k vám. Díky!"
 apps/frappe/frappe/email/smtp.py +170,Could not connect to outgoing email server,Nelze se spojit se serverem odchozí emailové pošty
-apps/frappe/frappe/email/doctype/newsletter/newsletter.py +167,Thank you for your interest in subscribing to our updates,Ďakujeme Vám za Váš záujem o prihlásenie do našich aktualizácií
+apps/frappe/frappe/email/doctype/newsletter/newsletter.py +188,Thank you for your interest in subscribing to our updates,Ďakujeme Vám za Váš záujem o prihlásenie do našich aktualizácií
 apps/frappe/frappe/public/js/frappe/list/list_sidebar.js +169,Custom Column,Custom Column
 DocType: Workflow State,resize-full,resize-full
 DocType: Workflow State,off,off
@@ -2384,6 +2403,7 @@ DocType: DocField,HTML,HTML
 DocType: Error Snapshot,Exception Type,Typ výnimky
 apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +607,Pick Columns,Vybrat sloupce
 DocType: Web Page,Add code as &lt;script&gt;,Přidat kód jako &lt;script&gt;
+DocType: Webhook,Headers,hlavičky
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +7,Select Type,Vyberte typ
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.js +34,Please enter values for App Access Key and App Secret Key,"Prosím, zadajte hodnoty pre App prístupový kľúč a tajný kľúč App"
 DocType: Web Form,Accept Payment,prijímame platby
@@ -2392,7 +2412,7 @@ DocType: Report,Letter Head,Záhlavie
 DocType: DocType,Quick Entry,Rýchly vstup
 DocType: Web Form,Button Label,tlačidlo Label
 DocType: Website Theme,UPPERCASE,VEĽKÉ PÍSMENÁ
-apps/frappe/frappe/public/js/frappe/list/list_view.js +806,{0} items selected,{0} vybrané položky
+apps/frappe/frappe/public/js/frappe/list/list_view.js +808,{0} items selected,{0} vybrané položky
 apps/frappe/frappe/email/doctype/email_queue/email_queue_list.js +16,Suspend Sending,pozastaviť odosielanie
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder_layout.html +3,Drag elements from the sidebar to add. Drag them back to trash.,Přetáhnout prvky z postranního panelu přidat. Přetáhnout zpátky do koše.
 DocType: Workflow State,resize-small,resize-small
@@ -2413,7 +2433,7 @@ DocType: DocType,Auto Name,Automatický název
 apps/frappe/frappe/utils/password_strength.py +108,Avoid sequences like abc or 6543 as they are easy to guess,"Vyhnúť sa sekvencie ako ABC alebo 6543, pretože sú ľahko uhádnuť"
 apps/frappe/frappe/public/js/frappe/request.js +114,Please try again,Prosím skúste znova
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +63,Option 3,Variant 3
-DocType: Unhandled Email,uid,uid
+DocType: Communication,uid,uid
 apps/frappe/frappe/modules/utils.py +76,Customizations exported to {0},Prispôsobenia exportované do {0}
 DocType: Workflow State,Edit,Upraviť
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +227,Permissions can be managed via Setup &gt; Role Permissions Manager,Oprávnění mohou být spravována přes Nastavení &gt; Správce rolí a oprávnění
@@ -2436,7 +2456,7 @@ apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +99,Do not s
 DocType: DocField,Column Break,Zalomení sloupce
 DocType: Event,Thursday,Čtvrtek
 apps/frappe/frappe/utils/response.py +145,You don't have permission to access this file,Nemáte povolenie na prístup tento súbor
-apps/frappe/frappe/model/document.py +644,Cannot link cancelled document: {0},Nelze odkazovat zrušený dokument: {0}
+apps/frappe/frappe/model/document.py +650,Cannot link cancelled document: {0},Nelze odkazovat zrušený dokument: {0}
 apps/frappe/frappe/core/doctype/report/report.py +30,Cannot edit a standard report. Please duplicate and create a new report,"Nemožno upraviť štandardnú správu. Prosím, duplicitné a vytvoriť novú zostavu"
 apps/frappe/frappe/contacts/doctype/address/address.py +56,"Company is mandatory, as it is your company address","Spoločnosť je povinná, pretože to je adresa vašej spoločnosti"
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +698,"For example: If you want to include the document ID, use {0}","Napríklad: Ak chcete zahrnúť ID dokumentu, použite {0}"
@@ -2454,11 +2474,13 @@ apps/frappe/frappe/utils/password_strength.py +122,Dates are often easy to guess
 apps/frappe/frappe/public/js/frappe/form/workflow.js +39,Next actions,Nasledujúce akcie
 DocType: Workflow State,ok,ok
 DocType: User,These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.,Tyto hodnoty budou automaticky aktualizovány v transakcích a rovněž bude užitečné omezit oprávnění pro tohoto uživatele v transakcích obsahujících tyto hodnoty.
-apps/frappe/frappe/twofactor.py +300,Verfication Code,Verifikačný kód
+apps/frappe/frappe/twofactor.py +308,Verfication Code,Verifikačný kód
+DocType: Webhook,Webhook Request,Požiadavka Webhook
 apps/frappe/frappe/desk/page/applications/application_row.html +26,Publisher,Zverejnil
 apps/frappe/frappe/model/rename_doc.py +378,** Failed: {0} to {1}: {2},** Zlyhalo {0} až {1}: {2}
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +23,Select Mandatory,vyberte Povinné
 apps/frappe/frappe/public/js/frappe/ui/upload.html +4,Browse,Prehliadať
+apps/frappe/frappe/email/smtp.py +158,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,E-mailový účet nie je nastavený. Vytvorte nový e-mailový účet z Nastavenia&gt; E-mail&gt; E-mailový účet
 apps/frappe/frappe/core/page/usage_info/usage_info.html +50,Emails Sent,E-maily odoslané
 apps/frappe/frappe/utils/password_strength.py +32,"No need for symbols, digits, or uppercase letters.","Nie je potrebné pre symboly, číslice, alebo veľkými písmenami."
 DocType: DocField,Currency,Mena
@@ -2471,6 +2493,7 @@ DocType: Workflow State,hand-left,hand-left
 apps/frappe/frappe/core/doctype/doctype/doctype.py +476,Fieldtype {0} for {1} cannot be unique,Fieldtype {0} na {1} nemôže byť jedinečné
 DocType: Email Account,Use SSL,Použít SSL
 DocType: Workflow State,play-circle,play-circle
+apps/frappe/frappe/public/js/frappe/form/layout.js +447,"Invalid ""depends_on"" expression",Neplatný výraz &quot;depends_on&quot;
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +82,Select Print Format to Edit,Zvolte formát tisku upravit
 DocType: Address,Shipping,Dodanie
 DocType: Workflow State,circle-arrow-down,circle-arrow-down
@@ -2483,7 +2506,7 @@ DocType: Workflow State,arrow-right,šipka-vpravo
 DocType: Workflow State,Workflow state represents the current state of a document.,Stav toku představuje aktuální stav dokumentu
 apps/frappe/frappe/utils/oauth.py +222,Token is missing,Token chýba
 apps/frappe/frappe/public/js/frappe/misc/utils.js +517,Note: Changing the Page Name will break previous URL to this page.,Poznámka: Zmena názvu stránky rozbije predchádzajúcu adresu URL na túto stránku.
-apps/frappe/frappe/utils/file_manager.py +270,Removed {0},Odebráno: {0}
+apps/frappe/frappe/utils/file_manager.py +235,Removed {0},Odebráno: {0}
 DocType: SMS Settings,SMS Settings,Nastavenie SMS
 DocType: Company History,Highlight,Zvýraznit
 DocType: OAuth Provider Settings,Force,sila
@@ -2498,7 +2521,7 @@ DocType: Page,Page Name,Názov stránky
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +204,Help: Field Properties,Nápoveda: Vlastnosti pole
 apps/frappe/frappe/core/page/data_import_tool/data_import_tool.js +137,Importing...,Importujem ...
 apps/frappe/frappe/core/doctype/file/file.js +27,Unzip,rozopnúť zips
-apps/frappe/frappe/model/document.py +924,Incorrect value in row {0}: {1} must be {2} {3},Nesprávná hodnota na řádku {0}: {1} musí být {2} {3}
+apps/frappe/frappe/model/document.py +931,Incorrect value in row {0}: {1} must be {2} {3},Nesprávná hodnota na řádku {0}: {1} musí být {2} {3}
 apps/frappe/frappe/workflow/doctype/workflow/workflow.py +67,Submitted Document cannot be converted back to draft. Transition row {0},Vložený dokument nemůže být konvertován na stav rozpracováno. řádek transkace {0}
 apps/frappe/frappe/desk/reportview.py +221,Deleting {0},Odstránenie {0}
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder_start.html +2,Select an existing format to edit or start a new format.,"Vyberte existující formát, který chcete upravit, nebo začít nový formát."
@@ -2514,6 +2537,7 @@ apps/frappe/frappe/email/doctype/email_queue/email_queue.py +26,Only Administrat
 apps/frappe/frappe/contacts/doctype/address_template/address_template.py +20,Setting this Address Template as default as there is no other default,"Nastavujem túto šablónu adresy ako predvolenú, lebo nie je k dispozícii žiadna predvolená"
 DocType: Workflow State,Home,Domácí
 DocType: OAuth Provider Settings,Auto,auto
+DocType: System Settings,User can login using Email id or User Name,Používateľ sa môže prihlásiť pomocou ID e-mailu alebo User Name
 DocType: Workflow State,question-sign,question-sign
 DocType: Email Account,Add Signature,Přidat podpis
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +38,Left this conversation,Opustil tento rozhovor
@@ -2522,9 +2546,10 @@ apps/frappe/frappe/core/page/permission_manager/permission_manager.js +489,Did n
 DocType: ToDo,ToDo,Úkoly
 DocType: DocField,No Copy,Žiadna kópia
 DocType: Workflow State,qrcode,qrcode
-apps/frappe/frappe/www/login.html +34,Login with LDAP,Prihlásenie s LDAP
+apps/frappe/frappe/www/login.html +31,Login with LDAP,Prihlásenie s LDAP
 DocType: Web Form,Breadcrumbs,Drobečková navigace (Breadcrumbs)
-apps/frappe/frappe/core/doctype/doctype/doctype.py +681,If Owner,Ak majiteľom
+apps/frappe/frappe/core/doctype/doctype/doctype.py +691,If Owner,Ak majiteľom
+apps/frappe/frappe/contacts/doctype/address/address.py +190,No default Address Template found. Please create a new one from Setup &gt; Printing and Branding &gt; Address Template.,Neboli nájdené žiadne predvolené adresy. Vytvorte nový z ponuky Nastavenie&gt; Tlač a branding&gt; Šablóna adresy.
 DocType: OAuth Authorization Code,Expiration time,doba expirácie
 DocType: Web Page,Website Sidebar,Webové stránky Sidebar
 DocType: Web Form,Show Sidebar,show Sidebar
@@ -2547,7 +2572,7 @@ DocType: Workflow State,briefcase,kufřík
 apps/frappe/frappe/model/base_document.py +559,Value cannot be changed for {0},Hodnota nemůže být změněna pro {0}
 DocType: Feedback Request,Is Manual,je Manual
 DocType: Workflow State,"Style represents the button color: Success - Green, Danger - Red, Inverse - Black, Primary - Dark Blue, Info - Light Blue, Warning - Orange","Styly reprezentující barvy tlačítek: Úspěch - zelená, Nebezpečí - Červená, Inverze - černá, Hlavní – tmavě modrá, Info – světle modrá, Upozornění – oranžová"
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +158,No Report Loaded. Please use query-report/[Report Name] to run a report.,Žádný Report nenalezen. Prosím použijte query-report/[název výpisu] pro spuštění výpisu.
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +159,No Report Loaded. Please use query-report/[Report Name] to run a report.,Žádný Report nenalezen. Prosím použijte query-report/[název výpisu] pro spuštění výpisu.
 DocType: Workflow Transition,Workflow Transition,Přechod toku (workflow)
 apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +53,{0} months ago,{0} mesiacmi
 apps/frappe/frappe/public/js/frappe/model/model.js +18,Created By,Vytvořeno (kým)
@@ -2556,7 +2581,6 @@ DocType: Workflow State,resize-horizontal,resize-horizontal
 DocType: Note,Content,Obsah
 apps/frappe/frappe/public/js/frappe/views/treeview.js +261,Group Node,Group Node
 DocType: Communication,Notification,oznámenia
-DocType: Web Form,Go to this url after completing the form.,Jít na tuto adresu URL po dokončení formuláře.
 DocType: DocType,Document,Dokument
 apps/frappe/frappe/core/doctype/doctype/doctype.py +198,Series {0} already used in {1},Série {0} jsou již použity v {1}
 apps/frappe/frappe/core/page/data_import_tool/importer.py +235,Unsupported File Format,Nepodporovaný formát súboru
@@ -2570,7 +2594,6 @@ apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py +122,
 apps/frappe/frappe/config/setup.py +32,Set Permissions on Document Types and Roles,Nastavit oprávnenia na typy dokumentov a role
 apps/frappe/frappe/model/meta.py +147,No Label,no Label
 apps/frappe/frappe/core/doctype/user_permission/user_permission.py +24,Updating...,Aktualizácie ...
-apps/frappe/frappe/email/smtp.py +158,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,E-mailový účet nie je nastavený. Vytvorte nový e-mailový účet z Nastavenia&gt; E-mail&gt; E-mailový účet
 apps/frappe/frappe/model/meta.py +144,Modified By,pozmenená
 DocType: Address,Tripura,Tripura
 DocType: About Us Settings,"""Company History""","""História organizácie"""
@@ -2592,7 +2615,7 @@ apps/frappe/frappe/core/doctype/communication/communication.js +61,Reply,Odpove�
 apps/frappe/frappe/config/core.py +22,Pages in Desk (place holders),Stránky v Desk (držiaky miesto)
 DocType: DocField,Collapsible Depends On,"Skladacie závisí na tom,"
 DocType: Print Style,Print Style Name,Názov štýlu tlače
-apps/frappe/frappe/website/doctype/blog_post/templates/blog_post_row.html +14,By,Kým
+apps/frappe/frappe/website/doctype/blog_post/templates/blog_post.html +41,By,Kým
 DocType: Print Settings,Allow page break inside tables,Dovoliť koniec stránky vnútri tabuľky
 DocType: Email Account,SMTP Server,SMTP server
 DocType: Print Format,Print Format Help,Nápověda formát tisku
@@ -2638,6 +2661,7 @@ apps/frappe/frappe/desk/form/utils.py +92,No further records,Žiadne ďalšie z�
 DocType: DocField,Long Text,Dlouhý text
 DocType: Workflow State,Primary,Primární
 apps/frappe/frappe/core/page/data_import_tool/importer.py +50,Please do not change the rows above {0},Prosím neměňte řádky výše: {0}
+DocType: Web Form,Go to this URL after completing the form (only for Guest users),Po vyplnení formulára prejdite na túto adresu URL (iba pre používateľov hostí)
 apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html +101,(Ctrl + G),(Ctrl + G)
 DocType: Contact,More Information,Viac informácií
 DocType: Desktop Icon,Desktop Icon,ikona Desktop
@@ -2657,7 +2681,7 @@ apps/frappe/frappe/public/js/frappe/views/communication.js +67,Send Read Receipt
 DocType: Stripe Settings,Stripe Settings,Stripe Settings
 DocType: Stripe Settings,Stripe Settings,Stripe Settings
 DocType: Dropbox Settings,Dropbox Setup via Site Config,Dropbox Setup cez Site Config
-apps/frappe/frappe/www/login.py +64,Invalid Login Token,Neplatný Prihlásenie Token
+apps/frappe/frappe/www/login.py +74,Invalid Login Token,Neplatný Prihlásenie Token
 apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +48,1 hour ago,1 hodina
 DocType: Social Login Keys,Frappe Client ID,Frappe ID klienta
 DocType: Website Settings,Home Page,Domovská stránka
@@ -2703,7 +2727,7 @@ apps/frappe/frappe/www/printview.py +211,Print Format {0} is disabled,Formát ti
 DocType: Email Alert,Send days before or after the reference date,Poslať dní pred alebo po referenčnom dátumom
 DocType: User,Allow user to login only after this hour (0-24),Povolit uživateli se přihlásit pouze po této hodině (0-24)
 apps/frappe/frappe/public/js/frappe/form/link_selector.js +22,Value,Hodnota
-apps/frappe/frappe/email/doctype/newsletter/newsletter.py +170,Click here to verify,Kliknite tu pre overenie
+apps/frappe/frappe/email/doctype/newsletter/newsletter.py +191,Click here to verify,Kliknite tu pre overenie
 apps/frappe/frappe/utils/password_strength.py +178,Predictable substitutions like '@' instead of 'a' don't help very much.,Predvídateľné substitúcia ako &#39;@&#39; miesto &#39;a&#39; nepomôžu moc.
 apps/frappe/frappe/desk/doctype/todo/todo_list.js +22,Assigned By Me,Pridelené mnou
 apps/frappe/frappe/utils/data.py +475,Zero,nula
@@ -2735,7 +2759,7 @@ DocType: DocField,Print Width,Šírka tlače
 ,Setup Wizard,Sprievodca nastavením
 DocType: Address,GST State Number,Číslo štátu GST
 DocType: User,Allow user to login only before this hour (0-24),Povolit uživatelům přihlásit pouze před tuto hodinu (0-24)
-apps/frappe/frappe/core/doctype/file/file.py +125,Folder is mandatory,Zložka je povinné
+apps/frappe/frappe/core/doctype/file/file.py +131,Folder is mandatory,Zložka je povinné
 apps/frappe/frappe/email/doctype/email_alert/email_alert.py +116,"Not allowed to attach {0} document,
 					please enable Allow Print For {0} in Print Settings","Nie je dovolené pripevňovať dokument {0}, povolte povolenie Tlačiť pre {0} v nastaveniach tlače"
 apps/frappe/frappe/email/doctype/email_alert/email_alert.py +116,"Not allowed to attach {0} document,
@@ -2759,23 +2783,24 @@ apps/frappe/frappe/core/doctype/sms_settings/sms_settings.py +76,Please Update S
 DocType: Event,Event Type,Typ události
 DocType: User,Last Known Versions,Posledné známe verzie
 apps/frappe/frappe/config/setup.py +139,Add / Manage Email Accounts.,Pridanie / Správa e-mailových účtov.
-DocType: Blog Category,Published,Zverejnené
+DocType: Newsletter,Published,Zverejnené
 apps/frappe/frappe/templates/emails/auto_reply.html +1,Thank you for your email,Děkujeme za váš e-mail
 DocType: DocField,Small Text,Krátký text
-apps/frappe/frappe/core/doctype/user/user.py +868,Administrator accessed {0} on {1} via IP Address {2}.,Správca prístupné {0} na {1} pomocou IP adresy {2}.
+DocType: Webhook,on_cancel,on_cancel
+apps/frappe/frappe/core/doctype/user/user.py +873,Administrator accessed {0} on {1} via IP Address {2}.,Správca prístupné {0} na {1} pomocou IP adresy {2}.
 apps/frappe/frappe/public/js/frappe/ui/filters/edit_filter.html +6,Equals,Je rovno
 apps/frappe/frappe/core/doctype/doctype/doctype.py +457,Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType',Možnosti pole typu 'Dynamický odkaz' musí odkazovat na jiné provázané pole s možnostmi jako 'DocType'
 DocType: About Us Settings,Team Members Heading,Záhlaví členů týmu
 apps/frappe/frappe/utils/csvutils.py +36,Invalid CSV Format,Neplatný formáte CSV
 apps/frappe/frappe/desk/page/backups/backups.js +8,Set Number of Backups,Nastaviť počet záloh
 DocType: DocField,Do not allow user to change after set the first time,Nepovolit uživateli změnu po prvním nastavení
-apps/frappe/frappe/public/js/frappe/upload.js +252,Private or Public?,Súkromných alebo verejných?
+apps/frappe/frappe/public/js/frappe/upload.js +253,Private or Public?,Súkromných alebo verejných?
 apps/frappe/frappe/utils/data.py +573,1 year ago,1 rokom
 DocType: Contact,Contact,Kontakt
 DocType: User,Third Party Authentication,Ověření třetí stranou
 DocType: Website Settings,Banner is above the Top Menu Bar.,Banner je nad horní lištou menu.
 DocType: Razorpay Settings,API Secret,API Secret
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +916,Export Report: ,Vývoz Report:
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +917,Export Report: ,Vývoz Report:
 apps/frappe/frappe/public/js/frappe/views/kanban/kanban_board.js +709,{0} {1} does not exist,{0} {1} neexistuje
 DocType: Email Account,Port,Port
 DocType: Print Format,Arial,Arial
@@ -2797,7 +2822,7 @@ apps/frappe/frappe/email/doctype/email_group/email_group.js +11,Import Subscribe
 DocType: Print Settings,PDF Settings,Nastavenie PDF
 DocType: Kanban Board Column,Column Name,Názov stĺpca
 DocType: Language,Based On,Založené na
-apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +226,You're all set!,Všetci ste pripravení!
+apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +242,You're all set!,Všetci ste pripravení!
 apps/frappe/frappe/printing/doctype/print_format/print_format.js +34,Make Default,Nastaviť ako predvolený
 apps/frappe/frappe/integrations/doctype/social_login_keys/social_login_keys.py +27,Check Frappe Server URL,"Skontrolujte, či URL Frappe Server"
 apps/frappe/frappe/core/doctype/doctype/doctype.py +499,Fieldtype {0} for {1} cannot be indexed,Fieldtype {0} na {1} nemožno indexovať
@@ -2805,6 +2830,8 @@ DocType: Communication,Email Account,E-mailový účet
 DocType: Workflow State,Download,Stáhnout
 DocType: Blog Post,Blog Intro,Úvod blogu
 DocType: Async Task,Result,Výsledok
+DocType: Webhook,on_update_after_submit,on_update_after_submit
+DocType: System Settings,Allow Login using User Name,Povoliť prihlásenie pomocou používateľského mena
 apps/frappe/frappe/core/doctype/report/report.js +37,Enable Report,Zapnout report
 DocType: DocField,Display Depends On,Zobrazenie závisí od
 DocType: Web Page,Insert Code,Vložit kód
@@ -2833,21 +2860,21 @@ DocType: Print Settings,Send Print as PDF,Odoslať tlač ako PDF
 DocType: Web Form,Amount,Částka
 DocType: Workflow Transition,Allowed,Povoleno
 apps/frappe/frappe/core/doctype/doctype/doctype.py +506,There can be only one Fold in a form,Může být pouze jeden Fold ve formuláři
-apps/frappe/frappe/core/doctype/file/file.py +205,Unable to write file format for {0},Nie je možné zapísať formát súboru pre {0}
-apps/frappe/frappe/website/doctype/portal_settings/portal_settings.js +10,Restore to default settings?,Obnoviť predvolené nastavenia?
+apps/frappe/frappe/core/doctype/file/file.py +211,Unable to write file format for {0},Nie je možné zapísať formát súboru pre {0}
+apps/frappe/frappe/website/doctype/portal_settings/portal_settings.js +20,Restore to default settings?,Obnoviť predvolené nastavenia?
 apps/frappe/frappe/website/doctype/website_settings/website_settings.py +23,Invalid Home Page,Neplatná domovská stránka
 apps/frappe/frappe/templates/includes/login/login.js +217,Invalid Login. Try again.,Nesprávne prihlásenie. Skúste to znova.
 apps/frappe/frappe/core/doctype/doctype/doctype.py +424,Options required for Link or Table type field {0} in row {1},Možnosti požadované pre pole typu odkaz alebo typ tabuľky {0} v riadku {1}
 apps/frappe/frappe/core/doctype/doctype/doctype.py +424,Options required for Link or Table type field {0} in row {1},Možnosti požadované pre pole typu odkaz alebo typ tabuľky {0} v riadku {1}
 DocType: Auto Email Report,Send only if there is any data,"Zaslať iba vtedy, ak existuje údaje"
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +170,Reset Filters,Obnoviť filtre
-apps/frappe/frappe/core/doctype/doctype/doctype.py +698,{0}: Permission at level 0 must be set before higher levels are set,{0}: Oprávnenie na úrovni 0 musí být nastavené pred nastavením vyšších úrovní
+apps/frappe/frappe/core/doctype/doctype/doctype.py +708,{0}: Permission at level 0 must be set before higher levels are set,{0}: Oprávnenie na úrovni 0 musí být nastavené pred nastavením vyšších úrovní
 apps/frappe/frappe/desk/doctype/todo/todo.py +28,Assignment closed by {0},Úkol uzavřen {0}
 DocType: Integration Request,Remote,diaľkový
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +140,Calculate,Vypočítať
 apps/frappe/frappe/printing/doctype/print_format/print_format.js +28,Please select DocType first,"Prosím, vyberte první DocType"
-apps/frappe/frappe/email/doctype/newsletter/newsletter.py +178,Confirm Your Email,Potvrdiť Váš e-mail
-apps/frappe/frappe/www/login.html +42,Or login with,Alebo sa prihláste
+apps/frappe/frappe/email/doctype/newsletter/newsletter.py +199,Confirm Your Email,Potvrdiť Váš e-mail
+apps/frappe/frappe/www/login.html +39,Or login with,Alebo sa prihláste
 DocType: Error Snapshot,Locals,Miestne
 apps/frappe/frappe/desk/page/activity/activity_row.html +19,Communicated via {0} on {1}: {2},Odovzdávané prostredníctvom {0} z {1}: {2}
 apps/frappe/frappe/templates/emails/mentioned_in_comment.html +2,{0} mentioned you in a comment in {1},{0} sa o vás zmienil v komentári v {1}
@@ -2869,10 +2896,10 @@ DocType: Workflow,Don't Override Status,nepotlačí Stav
 apps/frappe/frappe/www/feedback.html +90,Please give a rating.,Uveďte vyhodnotenie.
 apps/frappe/frappe/public/js/frappe/feedback.js +47,{0} Feedback Request,{0} spätnú väzbu Žiadosť
 apps/frappe/frappe/public/js/frappe/form/multi_select_dialog.js +26,Search term,Hľadaný výraz
-apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +349,The First User: You,Prvý používateľ: Vy
+apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +373,The First User: You,Prvý používateľ: Vy
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder_field.html +32,Select Columns,Vyberte stĺpce
 DocType: Translation,Source Text,zdroj Text
-apps/frappe/frappe/www/login.py +55,Missing parameters for login,Chýbajúce parametre pre prihlásenie
+apps/frappe/frappe/www/login.py +65,Missing parameters for login,Chýbajúce parametre pre prihlásenie
 DocType: Workflow State,folder-open,folder-open
 apps/frappe/frappe/core/page/desktop/all_applications_dialog.html +1,Search Application,Hledání aplikací
 DocType: OAuth Authorization Code,Validity,Platnosť
@@ -2881,17 +2908,18 @@ apps/frappe/frappe/public/js/frappe/list/list_sidebar.html +10,Reports,správy
 DocType: Page,No,Nie
 DocType: Property Setter,Set Value,Nastaviť hodnotu
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +247,Hide field in form,Skrýt pole ve formuláři
+DocType: Webhook,Webhook Data,Webhook Data
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +261,Illegal Access Token. Please try again,Nezákonné Access Token. Prosím skúste znova
 apps/frappe/frappe/public/js/frappe/desk.js +93,"The application has been updated to a new version, please refresh this page","Aplikácia bola aktualizovaná na novú verziu, prosím, obnovte túto stránku"
 apps/frappe/frappe/core/doctype/communication/communication.js +35,Resend,Znovu odoslať
 DocType: Feedback Trigger,Optional: The alert will be sent if this expression is true,Volitelné: Upozornění bude zasláno pokud je tento výraz pravdivý
 DocType: Print Settings,Print with letterhead,Tlač s hlavičkový
 DocType: Unhandled Email,Raw Email,Raw Email
-apps/frappe/frappe/public/js/frappe/list/list_view.js +665,Select records for assignment,Vyberte záznamy pre priradenie
+apps/frappe/frappe/public/js/frappe/list/list_view.js +667,Select records for assignment,Vyberte záznamy pre priradenie
 apps/frappe/frappe/core/page/data_import_tool/data_import_tool.js +138,Importing,Import
 DocType: ToDo,Assigned By,pridelené (kým)
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +27,You can use Customize Form to set levels on fields.,Môžete použiť Prisôsobenie formulára pre nastavenie úrovní na poliach.
-apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +317,Select Your Region,Nastavte svoj región
+apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +341,Select Your Region,Nastavte svoj región
 DocType: Custom DocPerm,Level,Úroveň
 DocType: Custom DocPerm,Report,Report
 apps/frappe/frappe/website/doctype/web_form/web_form.py +61,Amount must be greater than 0.,Množstvo musí byť väčšia ako 0 ° C.
@@ -2909,8 +2937,9 @@ DocType: Kanban Board Column,Order,objednať
 DocType: Website Theme,Background,Pozadie
 DocType: Custom DocPerm,"JSON list of DocTypes used to apply User Permissions. If empty, all linked DocTypes will be used to apply User Permissions.","JSON sezam DocTypes použitých pro aplikování uživatelských oprávnění. Pakliže je prázdný, všechny provázané DocTypes budou použity pro aplikování uživatelských oprávnění."
 DocType: Report,Ref DocType,Referenční DocType
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +33,Setup &gt; User Permissions Manager,Nastavenie&gt; Správca povolení používateľov
 apps/frappe/frappe/www/feedback.py +42,Please add a rating,Pridajte hodnotenie
-apps/frappe/frappe/core/doctype/doctype/doctype.py +710,{0}: Cannot set Amend without Cancel,{0}: Nie je možné dopĺňať bez zrušenia
+apps/frappe/frappe/core/doctype/doctype/doctype.py +720,{0}: Cannot set Amend without Cancel,{0}: Nie je možné dopĺňať bez zrušenia
 apps/frappe/frappe/public/js/frappe/form/templates/print_layout.html +25,Full Page,Full Page
 DocType: DocType,Is Child Table,Je podtabulka
 apps/frappe/frappe/utils/csvutils.py +125,{0} must be one of {1},{0} musí byť jedno z {1}
@@ -2920,7 +2949,7 @@ apps/frappe/frappe/core/doctype/user/user.py +230,Password Reset,Obnoviť heslo
 DocType: Communication,Opened,Otvorené
 DocType: Workflow State,chevron-left,chevron-left
 DocType: Communication,Sending,Odosielanie
-apps/frappe/frappe/auth.py +244,Not allowed from this IP Address,Není povoleno z této IP adresy
+apps/frappe/frappe/auth.py +247,Not allowed from this IP Address,Není povoleno z této IP adresy
 DocType: Website Slideshow,This goes above the slideshow.,Toto přijde nad promítání obrázků.
 apps/frappe/frappe/config/setup.py +258,Install Applications.,Instaluje aplikace
 DocType: Contact,Last Name,Priezvisko
@@ -2940,6 +2969,7 @@ DocType: Blog Post,Published On,Zverejnené (kedy)
 DocType: Contact,Gender,Pohlavie
 apps/frappe/frappe/website/doctype/web_form/web_form.py +342,Mandatory Information missing:,Povinné alebo chýbajúce údaje:
 apps/frappe/frappe/core/doctype/doctype/doctype.py +496,Field '{0}' cannot be set as Unique as it has non-unique values,"Pole &#39;{0}&#39; nie je možné nastaviť ako jedinečné, ako to má non-jedinečné hodnoty"
+apps/frappe/frappe/integrations/doctype/webhook/webhook.py +37,Check Request URL,Začiarknite URL požiadavky
 apps/frappe/frappe/client.py +149,Only 200 inserts allowed in one request,Iba 200 vložky povolené v jednej žiadosti
 DocType: Footer Item,URL,URL
 apps/frappe/frappe/www/qrcode.html +15,Return to the Verification screen and enter the code displayed by your authentication app,Vráťte sa na obrazovku Verifikácia a zadajte kód zobrazený vašou autentizačnou aplikáciou
@@ -2947,7 +2977,7 @@ DocType: ToDo,Reference Type,Typ reference
 DocType: Event,Repeat On,Opakovat na
 DocType: SMS Parameter,SMS Parameter,SMS parametrů
 DocType: Communication,Marked As Spam,Označená ako spam
-apps/frappe/frappe/utils/file_manager.py +334,There is some problem with the file url: {0},Tam je nejaký problém s URL súboru: {0}
+apps/frappe/frappe/utils/file_manager.py +299,There is some problem with the file url: {0},Tam je nejaký problém s URL súboru: {0}
 apps/frappe/frappe/public/js/frappe/list/list_sidebar.html +26,Tree,strom
 apps/frappe/frappe/public/js/frappe/views/treeview.js +286,You are not allowed to print this report,Tie sú nie je dovolené tlačiť túto správu
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +30,User Permissions,Uživatelská oprávnění
@@ -2985,7 +3015,7 @@ apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +135,Please save
 apps/frappe/frappe/email/doctype/email_group/email_group.py +42,{0} subscribers added,{0} odberateľov pridaných
 apps/frappe/frappe/public/js/frappe/ui/filters/edit_filter.html +9,Not In,Nie V
 DocType: Workflow State,star,hviezda
-apps/frappe/frappe/public/js/frappe/ui/filters/filters.js +230,values separated by commas,hodnoty oddělené čárkami
+apps/frappe/frappe/public/js/frappe/ui/filters/filters.js +246,values separated by commas,hodnoty oddělené čárkami
 apps/frappe/frappe/core/doctype/doctype/doctype.py +441,Max width for type Currency is 100px in row {0},Max šířka pro typ měny je 100px na řádku {0}
 apps/frappe/frappe/www/feedback.html +68,Please share your feedback for {0},"Prosím, podeľte sa o svoje názory na {0}"
 apps/frappe/frappe/config/website.py +13,Content web page.,Obsah www stránky.
@@ -2995,6 +3025,7 @@ apps/frappe/frappe/templates/includes/login/login.js +218,Oops! Something went w
 DocType: Help Article,Category,Kategórie
 apps/frappe/frappe/config/core.py +37,Client side script extensions in Javascript,Rozšírenie na strane klienta skriptu v jazyku JavaScript
 apps/frappe/frappe/integrations/doctype/ldap_settings/ldap_settings.py +70,Guidelines to install ldap dependancies and python,Pokyny k inštalácii ldap závislé a Python
+DocType: Webhook,on_trash,on_trash
 DocType: Blog Settings,Blog Introduction,Představení blogu
 DocType: Address,Office,Kancelář
 apps/frappe/frappe/public/js/frappe/list/list_sidebar.js +187,This Kanban Board will be private,To Kanban Board budú súkromné
@@ -3019,7 +3050,7 @@ DocType: PayPal Settings,API Username,API Užívateľské meno
 apps/frappe/frappe/public/js/frappe/views/gantt/gantt_view.js +100,Half Day,Pol deň
 DocType: Communication,Communication Type,typ komunikácie
 DocType: DocField,Unique,Jedinečný
-apps/frappe/frappe/public/js/frappe/form/quick_entry.js +199,Ctrl+enter to save,Ctrl + Enter uložiť
+apps/frappe/frappe/public/js/frappe/form/quick_entry.js +200,Ctrl+enter to save,Ctrl + Enter uložiť
 DocType: Email Account,Service,Služba
 DocType: File,File Name,Název souboru
 apps/frappe/frappe/core/page/data_import_tool/importer.py +375,Did not find {0} for {0} ({1}),Nenalezeno {0} pro {0} ({1})
@@ -3032,8 +3063,8 @@ DocType: GSuite Settings,Enable,Zapnout
 apps/frappe/frappe/public/js/frappe/form/toolbar.js +196,New {0} (Ctrl+B),Nová {0} (Ctrl + B)
 apps/frappe/frappe/website/doctype/website_theme/website_theme.py +40,Top Bar Color and Text Color are the same. They should be have good contrast to be readable.,"Top Bar farieb a Farba textu sú rovnaké. Mali by byť mať dobrý kontrast, aby bol čitateľný."
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +69,You can only upload upto 5000 records in one go. (may be less in some cases),Můžete nahrát nejvýše 5000 záznamů najednou. (může být i méně v některých případech)
-apps/frappe/frappe/model/document.py +159,Insufficient Permission for {0},Nedostatočné povolenie pre {0}
-apps/frappe/frappe/model/document.py +159,Insufficient Permission for {0},Nedostatočné povolenie pre {0}
+apps/frappe/frappe/model/document.py +160,Insufficient Permission for {0},Nedostatočné povolenie pre {0}
+apps/frappe/frappe/model/document.py +160,Insufficient Permission for {0},Nedostatočné povolenie pre {0}
 apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +771,Report was not saved (there were errors),Výpis nebyl uložen (byly tam chyby)
 DocType: Print Settings,Print Style,Štýl tlače
 apps/frappe/frappe/public/js/frappe/form/linked_with.js +51,Not Linked to any record,Nie je prepojený s žiadnym záznamom
@@ -3047,19 +3078,20 @@ DocType: SMS Settings,Static Parameters,Statické parametry
 apps/frappe/frappe/public/js/frappe/change_log.html +7,updated to {0},aktualizovaný na {0}
 DocType: User,Desktop Background,Pozadie pracovnej plochy
 DocType: Portal Settings,Custom Menu Items,Položky menu Custom
+apps/frappe/frappe/website/doctype/website_slideshow/website_slideshow.py +26,All Images attached to Website Slideshow should be public,Všetky obrázky pripojené k prezentácii webových stránok by mali byť verejné
 DocType: Workflow State,chevron-right,chevron-right
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +216,"Change type of field. (Currently, Type change is \
 						allowed among 'Currency and Float')","Změňte typ pole. (V současné době, typ změny je \
  povoleno mezi ""měnou a Float"")"
 apps/frappe/frappe/website/doctype/web_form/web_form.py +37,You need to be in developer mode to edit a Standard Web Form,Musíte byť v režime vývojárov upraviť štandardný webový formulár
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +53,"For comparative filters, start with","Pro srovnávací filtrování, začněte s"
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +54,"For comparative filters, start with","Pro srovnávací filtrování, začněte s"
 DocType: Website Theme,Link to Bootstrap CSS,Odkaz na Bootstrap CSS
 DocType: Workflow State,camera,fotoaparát
 DocType: Website Settings,Brand HTML,Značka HTML
 DocType: Desktop Icon,_doctype,_doctype
 DocType: Web Page,Header and Description,Hlavička a opis
 apps/frappe/frappe/templates/includes/login/login.js +24,Both login and password required,"Oboje, prihlasovacie meno a heslo je vyžadované"
-apps/frappe/frappe/model/document.py +545,Please refresh to get the latest document.,Prosím kliknite na obnoviť pre získanie najnovšej verzie dokumentu.
+apps/frappe/frappe/model/document.py +551,Please refresh to get the latest document.,Prosím kliknite na obnoviť pre získanie najnovšej verzie dokumentu.
 DocType: User,Security Settings,Bezpečnostné nastavenia
 apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +863,Add Column,Přidat sloupec
 ,Desktop,Pracovná plocha
@@ -3074,6 +3106,7 @@ DocType: Async Task,Failed,Nepodarilo
 apps/frappe/frappe/core/page/data_import_tool/importer.py +55,No data found,Nenašli sa žiadne údaje
 DocType: Web Form,Allow Comments,Povolit komentáře
 DocType: User,Background Style,Štýl pozadia
+DocType: System Settings,Bypass Two Factor Auth for users who login from restricted IP Address,"Odstráňte dva faktory Auth pre používateľov, ktorí sa prihlásia z obmedzenej adresy IP"
 apps/frappe/frappe/email/queue.py +259,{0} to stop receiving emails of this type,"{0}, aby ste prestali dostávať e-maily tohto typu"
 apps/frappe/frappe/www/qrcode.html +13,Open your authentication app on your mobile phone.,Otvorte svoju autentizačnú aplikáciu na mobilnom telefóne.
 apps/frappe/frappe/model/rename_doc.py +77,merged {0} into {1},zlúčené {0} do {1}
@@ -3088,6 +3121,6 @@ DocType: Bulk Update,Max 500 records at a time,Max 500 záznamov naraz
 DocType: Translation,"If your data is in HTML, please copy paste the exact HTML code with the tags.","Ak vaše dáta je vo formáte HTML, skopírujte, prosím vložte presne kód HTML s tagy."
 apps/frappe/frappe/utils/csvutils.py +36,Unable to open attached file. Did you export it as CSV?,"Nemožno otvoriť priložený súbor. Vedeli ste, že export vo formáte CSV?"
 DocType: DocField,Ignore User Permissions,Ignorovat uživatelská oprávnění
-apps/frappe/frappe/core/doctype/user/user.py +757,Please ask your administrator to verify your sign-up,Požiadajte správcu overiť vaše znamenie-up
+apps/frappe/frappe/core/doctype/user/user.py +762,Please ask your administrator to verify your sign-up,Požiadajte správcu overiť vaše znamenie-up
 DocType: Domain Settings,Active Domains,Aktívne domény
 apps/frappe/frappe/public/js/integrations/razorpay.js +21,Show Log,show Log

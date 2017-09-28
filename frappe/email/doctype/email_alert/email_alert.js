@@ -48,7 +48,14 @@ frappe.ui.form.on("Email Alert", {
 					"istable": 0
 				}
 			}
-		})
+		});
+		frm.set_query("print_format", function() {
+			return {
+				"filters": {
+					"doc_type": frm.doc.document_type
+				}
+			}
+		});
 	},
 	refresh: function(frm) {
 		frappe.email_alert.setup_fieldname_select(frm);

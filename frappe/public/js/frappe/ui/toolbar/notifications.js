@@ -43,7 +43,7 @@ frappe.ui.notifications = {
 
 		// switch colour on the navbar and disable if no notifications
 		$(".navbar-new-comments")
-			.html(this.total > 20 ? '20+' : this.total)
+			.html(this.total > 99 ? '99+' : this.total)
 			.toggleClass("navbar-new-comments-true", this.total ? true : false)
 			.parent().toggleClass("disabled", this.total ? false : true);
 	},

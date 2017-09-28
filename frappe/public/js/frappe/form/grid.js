@@ -170,8 +170,9 @@ frappe.ui.form.Grid = Class.extend({
 		} else {
 			// redraw
 			var _scroll_y = $(document).scrollTop();
-
 			this.make_head();
+			// to hide checkbox if grid is not editable
+			this.header_row && this.header_row.toggle_check();
 
 			if(!this.grid_rows) {
 				this.grid_rows = [];
@@ -652,7 +653,7 @@ frappe.ui.form.Grid = Class.extend({
 		var btn = this.custom_buttons[label];
 		if(!btn) {
 			btn = $('<button class="btn btn-default btn-xs btn-custom">' + label + '</button>')
-				.css('margin-right', '10px')
+				.css('margin-right', '4px')
 				.prependTo(this.grid_buttons)
 				.on('click', click);
 			this.custom_buttons[label] = btn;
