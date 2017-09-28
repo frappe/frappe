@@ -53,12 +53,11 @@ class DataMigrationPlan(Document):
 			return module.pre_process(doc)
 		return doc
 
-	def post_process_doc(self, mapping_name, doc):
+	def post_process_doc(self, mapping_name, local_doc=None, remote_doc=None):
 		module = self.get_mapping_module(mapping_name)
 
 		if module and hasattr(module, 'post_process'):
-			return module.post_process(doc)
-		return doc
+			return module.post_process(local_doc=local_doc, remote_doc=remote_doc)
 
 	def get_mapping_module(self, mapping_name):
 		try:

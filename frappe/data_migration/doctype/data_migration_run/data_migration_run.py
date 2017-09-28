@@ -151,7 +151,7 @@ class DataMigrationRun(Document):
 
 		raise frappe.ValidationError('Mapping Broken')
 
-	def get_data(self, mapping, start=0):
+	def get_local_data(self, mapping, start=0):
 		'''Fetch data from local using `frappe.get_all`. Used during Push'''
 		filters = mapping.get_filters() or {}
 		or_filters = self.get_or_filters(mapping)
@@ -169,7 +169,6 @@ class DataMigrationRun(Document):
 
 	def get_remote_data(self, mapping, start=0):
 		'''Fetch data from remote using `connection.get_list`. Used during Pull'''
-		page_length = mapping.page_length
 		filters = mapping.get_filters() or {}
 		connection = self.get_connection()
 
@@ -231,7 +230,7 @@ class DataMigrationRun(Document):
 		start = self.current_mapping_start
 		connection = self.get_connection()
 
-		data = self.get_data(mapping, start)
+		data = self.get_local_data(mapping, start)
 		failed_log = json.loads(self.db_get('failed_log') or '[]')
 
 		for d in data:
@@ -278,7 +277,7 @@ class DataMigrationRun(Document):
 						self.items_updated += 1
 
 					# post process only when action is success
-					self.post_process_doc(doc)
+					self.post_process_doc(local_doc=doc)
 
 		self.db_set('failed_log', json.dumps(failed_log))
 
@@ -299,7 +298,7 @@ class DataMigrationRun(Document):
 		failed_log = json.loads(self.db_get('failed_log') or '[]')
 
 		response = self.get_remote_data(mapping, start)
-		if response.ok:
+		if response.ok and response.data:
 			data = response.data
 			for d in data:
 				doc = self.pre_process_doc(d)
@@ -307,37 +306,42 @@ class DataMigrationRun(Document):
 				local_doc = self.insert_doc(mapping, doc)
 
 				if local_doc:
-					self.post_process_doc(remote_doc=doc, local_doc=local_doc)
+					self.post_process_doc(remote_doc=d, local_doc=local_doc)
 				else:
 					failed_log.append(d)
 
-		self.db_set('failed_log', json.dumps(failed_log))
+			self.db_set('failed_log', json.dumps(failed_log))
 
-		if len(data) < mapping.page_length:
-			if self.current_mapping_action == 'Insert':
-				self.db_set('current_mapping_action', 'Delete')
-				return False
-			elif self.current_mapping_action == 'Delete':
-				return True
+			if len(data) < mapping.page_length:
+				if self.current_mapping_action == 'Insert':
+					self.db_set('current_mapping_action', 'Delete')
+					return False
+				elif self.current_mapping_action == 'Delete':
+					return True
 
-		return False
+			return False
+
+		# response not ok, skip pull
+		return True
 
 	def insert_doc(self, mapping, remote_doc):
 		name_field = mapping.local_primary_key
 		name_value = remote_doc[mapping.local_primary_key]
 
 		try:
-			if not frappe.db.exists(mapping.local_doctype,
-				{name_field: name_value}):
-				doc = mapping.get_mapped_record(remote_doc)
-				if not doc.doctype:
-					doc.doctype = mapping.local_doctype
-				doc = frappe.get_doc(doc).insert()
-			else:
-				doc = frappe.get_doc(mapping.local_doctype, name_value)
-				self.update_doc(mapping, remote_doc)
-
+			# insert new doc
+			doc = mapping.get_mapped_record(remote_doc)
+			if not doc.doctype:
+				doc.doctype = mapping.local_doctype
+			doc = frappe.get_doc(doc).insert()
+		except frappe.DuplicateEntryError:
+			# try updating
+			# TODO: fix me
+			doc = frappe.get_doc(mapping.local_doctype, name_value)
+			self.update_doc(mapping, remote_doc)
 		except Exception:
+			print('Data Migration Run failed: Error in Pull')
+			print(frappe.get_traceback())
 			return None
 
 		return doc
@@ -350,7 +354,7 @@ class DataMigrationRun(Document):
 		doc = plan.pre_process_doc(self.current_mapping, doc)
 		return doc
 
-	def post_process_doc(self, doc):
+	def post_process_doc(self, local_doc=None, remote_doc=None):
 		plan = self.get_plan()
-		doc = plan.post_process_doc(self.current_mapping, doc)
+		doc = plan.post_process_doc(self.current_mapping, local_doc=local_doc, remote_doc=remote_doc)
 		return doc

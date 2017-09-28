@@ -10,6 +10,7 @@ class FrappeConnection(BaseConnection):
 			self.connector.username, self.connector.password)
 
 	def insert(self, doctype, doc):
+		doc = frappe._dict(doc)
 		doc.doctype = doctype
 		try:
 			response_doc = self.connection.insert(doc)
@@ -28,6 +29,7 @@ class FrappeConnection(BaseConnection):
 			# raise frappe.ValidationError
 
 	def update(self, doctype, doc, migration_id):
+		doc = frappe._dict(doc)
 		doc.doctype = doctype
 		doc.name = migration_id
 		try:
