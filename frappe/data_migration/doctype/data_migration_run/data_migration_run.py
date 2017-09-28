@@ -308,7 +308,7 @@ class DataMigrationRun(Document):
 				if migration_id_value:
 					if not local_doc_exists(mapping, migration_id_value):
 						# insert new local doc
-						local_doc = self.insert_doc(mapping, doc)
+						local_doc = insert_doc(mapping, doc)
 
 						# set migration id
 						frappe.db.set_value(mapping.local_doctype, local_doc.name,
@@ -317,7 +317,7 @@ class DataMigrationRun(Document):
 						frappe.db.commit()
 					else:
 						# update doc
-						local_doc = self.update_doc(mapping, doc, migration_id_value)
+						local_doc = update_doc(mapping, doc, migration_id_value)
 
 				if local_doc:
 					# post process doc after success
@@ -339,35 +339,6 @@ class DataMigrationRun(Document):
 		# response not ok, skip pull
 		return True
 
-	def insert_doc(self, mapping, remote_doc):
-		try:
-			# insert new doc
-			doc = mapping.get_mapped_record(remote_doc)
-			if not doc.doctype:
-				doc.doctype = mapping.local_doctype
-			doc = frappe.get_doc(doc).insert()
-			return doc
-		except Exception:
-			print('Data Migration Run failed: Error in Pull insert')
-			print(frappe.get_traceback())
-			return None
-
-	def update_doc(self, mapping, remote_doc, migration_id_value):
-		try:
-			# migration id value is set in migration_id_field in mapping.local_doctype
-			docname = frappe.db.get_value(mapping.local_doctype,
-				filters={ mapping.migration_id_field: migration_id_value })
-
-			doc = frappe.get_doc(mapping.local_doctype, docname)
-			doc.update(remote_doc)
-			doc.save()
-			return doc
-		except Exception:
-			print('Data Migration Run failed: Error in Pull update')
-			print(frappe.get_traceback())
-			return None
-
-
 	def pre_process_doc(self, doc):
 		plan = self.get_plan()
 		doc = plan.pre_process_doc(self.current_mapping, doc)
@@ -377,6 +348,34 @@ class DataMigrationRun(Document):
 		plan = self.get_plan()
 		doc = plan.post_process_doc(self.current_mapping, local_doc=local_doc, remote_doc=remote_doc)
 		return doc
+
+def insert_doc(mapping, remote_doc):
+	try:
+		# insert new doc
+		doc = mapping.get_mapped_record(remote_doc)
+		if not doc.doctype:
+			doc.doctype = mapping.local_doctype
+		doc = frappe.get_doc(doc).insert()
+		return doc
+	except Exception:
+		print('Data Migration Run failed: Error in Pull insert')
+		print(frappe.get_traceback())
+		return None
+
+def update_doc(mapping, remote_doc, migration_id_value):
+	try:
+		# migration id value is set in migration_id_field in mapping.local_doctype
+		docname = frappe.db.get_value(mapping.local_doctype,
+			filters={ mapping.migration_id_field: migration_id_value })
+
+		doc = frappe.get_doc(mapping.local_doctype, docname)
+		doc.update(remote_doc)
+		doc.save()
+		return doc
+	except Exception:
+		print('Data Migration Run failed: Error in Pull update')
+		print(frappe.get_traceback())
+		return None
 
 def local_doc_exists(mapping, migration_id_value):
 	return frappe.db.exists(mapping.local_doctype, {
