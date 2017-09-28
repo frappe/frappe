@@ -317,7 +317,7 @@ class DataMigrationRun(Document):
 						frappe.db.commit()
 					else:
 						# update doc
-						local_doc = self.update_doc(mapping, doc)
+						local_doc = self.update_doc(mapping, doc, migration_id_value)
 
 				if local_doc:
 					# post process doc after success
@@ -340,9 +340,6 @@ class DataMigrationRun(Document):
 		return True
 
 	def insert_doc(self, mapping, remote_doc):
-		name_field = mapping.local_primary_key
-		name_value = remote_doc[mapping.local_primary_key]
-
 		try:
 			# insert new doc
 			doc = mapping.get_mapped_record(remote_doc)
@@ -357,8 +354,9 @@ class DataMigrationRun(Document):
 
 	def update_doc(self, mapping, remote_doc, migration_id_value):
 		try:
-			doc = frappe.get_doc(mapping.local_doctype, name_value)
-			self.update_doc(mapping, remote_doc)
+			doc = frappe.get_doc(mapping.local_doctype, migration_id_value)
+			doc.update(remote_doc)
+			doc.save()
 			return doc
 		except Exception:
 			print('Data Migration Run failed: Error in Pull update')
