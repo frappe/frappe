@@ -354,7 +354,11 @@ class DataMigrationRun(Document):
 
 	def update_doc(self, mapping, remote_doc, migration_id_value):
 		try:
-			doc = frappe.get_doc(mapping.local_doctype, migration_id_value)
+			# migration id value is set in migration_id_field in mapping.local_doctype
+			docname = frappe.db.get_value(mapping.local_doctype,
+				filters={ mapping.migration_id_field: migration_id_value })
+
+			doc = frappe.get_doc(mapping.local_doctype, docname)
 			doc.update(remote_doc)
 			doc.save()
 			return doc
