@@ -309,6 +309,7 @@ class DataMigrationRun(Document):
 			for d in data:
 				migration_id_value = d[response.migration_id_field]
 				doc = self.pre_process_doc(d)
+				doc = mapping.get_mapped_record(doc)
 
 				if migration_id_value:
 					if not local_doc_exists(mapping, migration_id_value):
@@ -361,14 +362,13 @@ class DataMigrationRun(Document):
 		log[key] = value
 		self.db_set('log', json.dumps(log))
 
-	def get_log(self, key, default):
+	def get_log(self, key, default=None):
 		log = json.loads(self.db_get('log') or '{}')
 		return log.get(key, default)
 
-def insert_doc(mapping, remote_doc):
+def insert_doc(mapping, doc):
 	try:
 		# insert new doc
-		doc = mapping.get_mapped_record(remote_doc)
 		if not doc.doctype:
 			doc.doctype = mapping.local_doctype
 		doc = frappe.get_doc(doc).insert()

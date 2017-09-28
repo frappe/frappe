@@ -64,7 +64,7 @@ class TestDataMigrationRun(unittest.TestCase):
 
 		# Update
 		self.assertEqual(run.db_get('status'), 'Success')
-		self.assertEqual(run.db_get('items_updated'), 1)
+		self.assertEqual(cint(run.get_log('push:update')), 1)
 
 def create_plan():
 	frappe.get_doc({
