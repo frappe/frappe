@@ -61,6 +61,7 @@ class FrappeConnection(BaseConnection):
 				limit_start=start, limit_page_length=page_length)
 			return frappe._dict(dict(
 				data=doc_list,
+				migration_id_field='name',
 				ok=True
 			))
 		except FrappeException as e:

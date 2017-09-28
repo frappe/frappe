@@ -300,12 +300,27 @@ class DataMigrationRun(Document):
 		response = self.get_remote_data(mapping, start)
 		if response.ok and response.data:
 			data = response.data
+
 			for d in data:
+				migration_id_value = d[response.migration_id_field]
 				doc = self.pre_process_doc(d)
 
-				local_doc = self.insert_doc(mapping, doc)
+				if migration_id_value:
+					if not local_doc_exists(mapping, migration_id_value):
+						# insert new local doc
+						local_doc = self.insert_doc(mapping, doc)
+
+						# set migration id
+						frappe.db.set_value(mapping.local_doctype, local_doc.name,
+							mapping.migration_id_field, migration_id_value,
+							update_modified=False)
+						frappe.db.commit()
+					else:
+						# update doc
+						local_doc = self.update_doc(mapping, doc)
 
 				if local_doc:
+					# post process doc after success
 					self.post_process_doc(remote_doc=d, local_doc=local_doc)
 				else:
 					failed_log.append(d)
@@ -334,20 +349,22 @@ class DataMigrationRun(Document):
 			if not doc.doctype:
 				doc.doctype = mapping.local_doctype
 			doc = frappe.get_doc(doc).insert()
-		except frappe.DuplicateEntryError:
-			# try updating
-			# TODO: fix me
-			doc = frappe.get_doc(mapping.local_doctype, name_value)
-			self.update_doc(mapping, remote_doc)
+			return doc
 		except Exception:
-			print('Data Migration Run failed: Error in Pull')
+			print('Data Migration Run failed: Error in Pull insert')
 			print(frappe.get_traceback())
 			return None
 
-		return doc
+	def update_doc(self, mapping, remote_doc, migration_id_value):
+		try:
+			doc = frappe.get_doc(mapping.local_doctype, name_value)
+			self.update_doc(mapping, remote_doc)
+			return doc
+		except Exception:
+			print('Data Migration Run failed: Error in Pull update')
+			print(frappe.get_traceback())
+			return None
 
-	def update_doc(self, mapping, remote_doc):
-		pass
 
 	def pre_process_doc(self, doc):
 		plan = self.get_plan()
@@ -358,3 +375,8 @@ class DataMigrationRun(Document):
 		plan = self.get_plan()
 		doc = plan.post_process_doc(self.current_mapping, local_doc=local_doc, remote_doc=remote_doc)
 		return doc
+
+def local_doc_exists(mapping, migration_id_value):
+	return frappe.db.exists(mapping.local_doctype, {
+		mapping.migration_id_field: migration_id_value
+	})
