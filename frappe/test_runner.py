@@ -309,7 +309,8 @@ def make_test_objects(doctype, test_records=None, verbose=None, reset=False):
 		else:
 			d.set_new_name()
 
-		if d.name in (frappe.local.test_objects.get(d.doctype) or []) and not reset:
+		if frappe.db.exists(d.doctype, d.name) and not reset:
+			frappe.db.rollback()
 			# do not create test records, if already exists
 			return []
 
@@ -336,7 +337,7 @@ def make_test_objects(doctype, test_records=None, verbose=None, reset=False):
 
 		records.append(d.name)
 
-	frappe.db.commit()
+		frappe.db.commit()
 
 	return records
 

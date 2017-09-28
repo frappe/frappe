@@ -1141,9 +1141,6 @@ input[type="checkbox"]:checked:before {
 .slides-wrapper .footer .btn:not(:last-child) {
   margin-right: 3px;
 }
-.slides-wrapper .footer a.btn.make-btn {
-  margin-right: 7px;
-}
 .slides-wrapper .footer a.make-btn.disabled {
   background-color: #b1bdca;
   color: #fff;

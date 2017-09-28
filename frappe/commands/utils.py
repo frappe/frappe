@@ -4,6 +4,7 @@ import json, os, sys
 from distutils.spawn import find_executable
 import frappe
 from frappe.commands import pass_context, get_site
+from frappe.utils import update_progress_bar
 
 @click.command('build')
 @click.option('--make-copy', is_flag=True, default=False, help='Copy the files instead of symlinking')
@@ -484,6 +485,24 @@ def setup_help(context):
 		finally:
 			frappe.destroy()
 
+@click.command('rebuild-global-search')
+@pass_context
+def rebuild_global_search(context):
+	'''Setup help table in the current site (called after migrate)'''
+	from frappe.utils.global_search import (get_doctypes_with_global_search, rebuild_for_doctype)
+
+	for site in context.sites:
+		try:
+			frappe.init(site)
+			frappe.connect()
+			doctypes = get_doctypes_with_global_search()
+			for i, doctype in enumerate(doctypes):
+				rebuild_for_doctype(doctype)
+				update_progress_bar('Rebuilding Global Search', i, len(doctypes))
+
+		finally:
+			frappe.destroy()
+
 
 commands = [
 	build,
@@ -512,5 +531,6 @@ commands = [
 	_bulk_rename,
 	add_to_email_queue,
 	setup_global_help,
-	setup_help
+	setup_help,
+	rebuild_global_search
 ]

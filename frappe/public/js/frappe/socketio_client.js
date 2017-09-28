@@ -291,6 +291,7 @@ frappe.socketio.SocketIOUploader = class SocketIOUploader {
 			}
 
 			this.reader.readAsArrayBuffer(slice);
+			this.started = true;
 			this.keep_alive();
 		});
 
@@ -318,7 +319,7 @@ frappe.socketio.SocketIOUploader = class SocketIOUploader {
 	}
 
 	start({file=null, is_private=0, filename='', callback=null, on_progress=null,
-		chunk_size=100000, fallback=null} = {}) {
+		chunk_size=24576, fallback=null} = {}) {
 
 		if (this.reader) {
 			frappe.throw(__('File Upload in Progress. Please try again in a few moments.'));
@@ -338,6 +339,8 @@ frappe.socketio.SocketIOUploader = class SocketIOUploader {
 		this.chunk_size = chunk_size;
 		this.callback = callback;
 		this.on_progress = on_progress;
+		this.fallback = fallback;
+		this.started = false;
 
 		this.reader.onload = () => {
 			frappe.socketio.socket.emit('upload-accept-slice', {
@@ -359,6 +362,14 @@ frappe.socketio.SocketIOUploader = class SocketIOUploader {
 			clearTimeout (this.next_check);
 		}
 		this.next_check = setTimeout (() => {
+			if (!this.started) {
+				// upload never started, so try fallback
+				if (this.fallback) {
+					this.fallback();
+				} else {
+					this.disconnect();
+				}
+			}
 			this.disconnect();
 		}, 3000);
 	}
