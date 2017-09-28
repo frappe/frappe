@@ -157,10 +157,17 @@ class DataMigrationRun(Document):
 		or_filters = self.get_or_filters(mapping)
 
 		if self.current_mapping_action == 'Insert':
-			return frappe.get_all(mapping.local_doctype,
-				fields=mapping.get_fields(),
+			data = []
+			for d in frappe.get_all(mapping.local_doctype,
+				fields=['*'],
 				filters=filters, or_filters=or_filters,
-				start=start, page_length=mapping.page_length, debug=True)
+				start=start, page_length=mapping.page_length, debug=True):
+
+				doc = frappe.get_doc(mapping.local_doctype, d['name'])
+
+				data.append(doc.as_dict())
+			return data
+
 		elif self.current_mapping_action == 'Delete':
 			return self.get_deleted_docs(mapping,
 				start=self.current_mapping_delete_start,

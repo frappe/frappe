@@ -35,10 +35,22 @@ class DataMigrationMapping(Document):
 			key_fieldname, value_fieldname = value_fieldname, key_fieldname
 
 		for field_map in self.fields:
-			value = get_value_from_fieldname(field_map, value_fieldname, doc)
-			mapped[field_map.get(key_fieldname)] = value
-
+			if not field_map.is_child_table:
+				value = get_value_from_fieldname(field_map, value_fieldname, doc)
+				mapped[field_map.get(key_fieldname)] = value
+			else:
+				mapping_name = field_map.child_table_mapping
+				value = get_mapped_child_records(mapping_name, doc.get(field_map.get(value_fieldname)))
+				mapped[field_map.get(key_fieldname)] = value
 		return mapped
+
+def get_mapped_child_records(mapping_name, child_docs):
+	mapped_child_docs = []
+	mapping = frappe.get_doc('Data Migration Mapping', mapping_name)
+	for child_doc in child_docs:
+		mapped_child_docs.append(mapping.get_mapped_record(child_doc))
+
+	return mapped_child_docs
 
 def get_value_from_fieldname(field_map, fieldname_field, doc):
 	field_name = field_map.get(fieldname_field)
