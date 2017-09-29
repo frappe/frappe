@@ -631,7 +631,7 @@ class Document(BaseDocument):
 			name=self.name))
 
 	def _validate_links(self):
-		if self.flags.ignore_links:
+		if self.flags.ignore_links or self._action == "cancel":
 			return
 
 		invalid_links, cancelled_links = self.get_invalid_links()
