@@ -4,7 +4,8 @@
 
 from __future__ import unicode_literals
 import frappe
-from frappe.modules.export_file import export_to_files
+from frappe.modules import scrub, get_module_path, scrub_dt_dn
+from frappe.modules.export_file import export_to_files, create_init_py
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 from frappe.model.document import Document
 
@@ -23,6 +24,10 @@ class DataMigrationPlan(Document):
 				record_list.append(['Data Migration Mapping', m.mapping])
 
 			export_to_files(record_list=record_list, record_module=self.module)
+
+			for m in self.mappings:
+				dt, dn = scrub_dt_dn('Data Migration Mapping', m.mapping)
+				create_init_py(get_module_path(self.module), dt, dn)
 
 	def make_custom_fields_for_mappings(self):
 		label = self.name + ' ID'
@@ -61,7 +66,9 @@ class DataMigrationPlan(Document):
 
 	def get_mapping_module(self, mapping_name):
 		try:
-			module = frappe.get_module('erpnext.{module}.data_migration_mapping.{mapping_name}'.format(
+			module_def = frappe.get_doc("Module Def", self.module)
+			module = frappe.get_module('{app}.{module}.data_migration_mapping.{mapping_name}'.format(
+				app= module_def.app_name,
 				module=frappe.scrub(self.module),
 				mapping_name=frappe.scrub(mapping_name)
 			))

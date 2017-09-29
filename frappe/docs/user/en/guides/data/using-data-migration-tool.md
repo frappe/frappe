@@ -15,31 +15,43 @@ Let's make a new *Data Migration Plan*. Set the plan name as 'Atlas Sync'. We al
 
 
 ### Data Migration Mapping
-A Data Migration Mapping is a set of rules that specify field-to-field mapping. You can also pre and post process the data if required.
+A Data Migration Mapping is a set of rules that specify field-to-field mapping.
 
 Make a new *Data Migration Mapping*. Call it 'Item to Atlas Item'.
 
-There are a couple of fields which define the Local and Source Data.
+To define a mapping, we need to put in some values that define the structure of local and remote data.
 
-1. Remote Objectname - A name that identifies the remote object e.g Atlas Item
-1. Remote primary key - This is the name of the primary key for Atlas Item e.g id
-1. Local DocType - The DocType which will be used for syncing e.g Item
-1. Mapping Type - Push/Pull/Sync (Sync is a combination of Push and Pull)
-1. Page Length - This defines the batch size of the sync.
+1. Remote Objectname: A name that identifies the remote object e.g Atlas Item
+1. Remote primary key: This is the name of the primary key for Atlas Item e.g id
+1. Local DocType: The DocType which will be used for syncing e.g Item
+1. Mapping Type: A Mapping can be of type 'Push' or 'Pull', depending on whether the data is to be mapped remotely or locally. It can also be 'Sync', which will perform both push and pull operations in a single cycle.
+1. Page Length: This defines the batch size of the sync.
 
 <img class="screenshot" alt="New Data Migration Mapping" src="/docs/assets/img/data-migration/new-data-migration-mapping.png">
 
-Now, let's add the field mappings:
+#### Specifying field mappings:
+
+The most basic form of a field mapping would be to specify fieldnames of the remote and local object. However, if the mapping is one-way (push or pull), the source field name can also take literal values in quotes (for e.g `"GadgetTech"`) and eval statements (for e.g `"eval:frappe.db.get_value('Company', 'Gadget Tech', 'default_currency')"`). For example, in the case of a push mapping, the local fieldname can be set to a string in quotes or an `eval` expression, instead of a field name from the local doctype. (This is not possible with a sync mapping, where both local and remote fieldnames serve as a target destination at a some point, and thus cannot be a literal value).
+
+Let's add the field mappings and save:
 
 <img class="screenshot" alt="Add fields in Data Migration Mapping" src="/docs/assets/img/data-migration/new-data-migration-mapping-fields.png">
 
-As the name suggests, the Remote fieldname identifies the fields in the Remote Object. Now this can be a column in a table, or property of a JSON object.
-
-The Local Fieldname can take fields from DocType (for e.g `item_name`), literal values in quotes (for e.g `"GadgetTech"`) and eval statements (for e.g `"eval:frappe.db.get_value('Company', 'Gadget Tech', 'default_currency')"`)
-
-Let's go back to our Data Migration Plan and save it.
+We can now add the 'Item to Atlas Item' mapping to our Data Migration Plan and save it.
 
 <img class="screenshot" alt="Save Atlas Sync Plan" src="/docs/assets/img/data-migration/atlas-sync-plan.png">
+
+#### Additional layer of control with pre and post process:
+
+Migrating data frequently involves more steps in addition to one-to-one mapping. For a Data Migration Mapping that is added to a Plan, a mapping module is generated in the module specified in that plan.
+
+In our case, an `item_to_atlas_item` module is created under the `data_migration_mapping` directory in `Integrations` (module for the 'Atlas Sync' plan).
+
+<img class="screenshot" alt="Mapping __init__.py" src="/docs/assets/img/data-migration/mapping-init-py.png">
+
+You can implement the `pre_process` (receives the source doc) and `post_process` (receives both source and target docs, as well as any additional arguments) methods, to extend the mapping process. Here's what some operations could look like:
+
+<img class="screenshot" alt="Pre and Post Process" src="/docs/assets/img/data-migration/mapping-pre-and-post-process.png">
 
 ### Data Migration Connector
 Now, to connect to the remote source, we need to create a *Data Migration Connector*.
