@@ -190,6 +190,7 @@ class Document(BaseDocument):
 		self.validate_higher_perm_levels()
 
 		self.flags.in_insert = True
+		self._validate_links()
 		self.run_before_save_methods()
 		self._validate()
 		self.set_docstatus()
@@ -261,6 +262,7 @@ class Document(BaseDocument):
 		self.check_if_latest()
 		self.set_parent_in_children()
 		self.validate_higher_perm_levels()
+		self._validate_links()
 		self.run_before_save_methods()
 
 		if self._action != "cancel":
@@ -408,7 +410,6 @@ class Document(BaseDocument):
 
 	def _validate(self):
 		self._validate_mandatory()
-		self._validate_links()
 		self._validate_selects()
 		self._validate_constants()
 		self._validate_length()
@@ -630,7 +631,7 @@ class Document(BaseDocument):
 			name=self.name))
 
 	def _validate_links(self):
-		if self.flags.ignore_links:
+		if self.flags.ignore_links or self._action == "cancel":
 			return
 
 		invalid_links, cancelled_links = self.get_invalid_links()

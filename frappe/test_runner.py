@@ -312,7 +312,7 @@ def make_test_objects(doctype, test_records=None, verbose=None, reset=False):
 		if frappe.db.exists(d.doctype, d.name) and not reset:
 			frappe.db.rollback()
 			# do not create test records, if already exists
-			return []
+			continue
 
 		# submit if docstatus is set to 1 for test record
 		docstatus = d.docstatus

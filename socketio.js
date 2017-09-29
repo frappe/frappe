@@ -38,6 +38,11 @@ io.on('connection', function(socket) {
 	}
 
 	// console.log("connection!");
+	if (!socket.request.headers.cookie) {
+		return;
+	}
+
+
 	var sid = cookie.parse(socket.request.headers.cookie).sid
 	if(!sid) {
 		return;
