@@ -81,7 +81,9 @@ def notify_mentions(doc):
 			return
 
 		sender_fullname = get_fullname(frappe.session.user)
-		parent_doc_label = "{0} {1}".format(_(doc.reference_doctype), doc.reference_name)
+		title_field = frappe.get_meta(doc.reference_doctype).get_title_field()
+		parent_doc_label = "{0}: {1}".format(_(doc.reference_doctype),
+			frappe.db.get_value(doc.reference_doctype, doc.reference_name, title_field))
 		subject = _("{0} mentioned you in a comment").format(sender_fullname)
 
 		recipients = [frappe.db.get_value("User", {"enabled": 1, "username": username, "user_type": "System User"})
