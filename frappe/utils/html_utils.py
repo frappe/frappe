@@ -2,6 +2,17 @@ import json
 import bleach, bleach_whitelist.bleach_whitelist as bleach_whitelist
 from six import string_types
 
+def clean_html(html):
+	if not isinstance(html, string_types):
+		return html
+
+	return bleach.clean(html,
+		tags=['div', 'p', 'br', 'ul', 'ol', 'li', 'b', 'i', 'em',
+			'table', 'thead', 'tbody', 'td', 'tr'],
+		attributes=[],
+		styles=['color', 'border', 'border-color'],
+		strip=True, strip_comments=True)
+
 def sanitize_html(html, linkify=False):
 	"""
 	Sanitize HTML tags, attributes and style to prevent XSS attacks
