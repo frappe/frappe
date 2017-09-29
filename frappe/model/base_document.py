@@ -135,11 +135,6 @@ class BaseDocument(object):
 			if not self.__dict__.get(key):
 				self.__dict__[key] = []
 			value = self._init_child(value, key)
-
-			# append will always add as a new row
-			if value.get("name"):
-				value.name = None
-
 			self.__dict__[key].append(value)
 
 			# reference parent document
