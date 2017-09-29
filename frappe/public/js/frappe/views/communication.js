@@ -149,7 +149,7 @@ frappe.views.CommunicationComposer = Class.extend({
 				if (this.frm.subject_field && this.frm.doc[this.frm.subject_field]) {
 					this.subject = __("Re: {0}", [this.frm.doc[this.frm.subject_field]]);
 				} else {
-					this.subject = __(this.frm.doctype) + ': ' + this.frm.docname;
+					this.subject = __(this.frm.doctype) + ': ' + this.frm[this.frm.meta.title_field || name];
 				}
 			}
 		}
