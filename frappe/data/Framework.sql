@@ -117,6 +117,7 @@ CREATE TABLE `tabDocType` (
   `editable_grid` int(1) NOT NULL DEFAULT 1,
   `track_changes` int(1) NOT NULL DEFAULT 0,
   `module` varchar(255) DEFAULT NULL,
+  `restrict_to_domain` varchar(255) DEFAULT NULL,
   `app` varchar(255) DEFAULT NULL,
   `autoname` varchar(255) DEFAULT NULL,
   `name_case` varchar(255) DEFAULT NULL,
