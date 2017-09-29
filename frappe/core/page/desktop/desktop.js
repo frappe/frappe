@@ -112,7 +112,7 @@ $.extend(frappe.desktop, {
 	},
 
 	setup_module_click: function() {
-		this.wiggling = false; // wiggle, wiggle, wiggle.
+		frappe.desktop.wiggling = false;
 
 		if(frappe.list_desktop) {
 			frappe.desktop.wrapper.on("click", ".desktop-list-item", function() {
@@ -120,7 +120,7 @@ $.extend(frappe.desktop, {
 			});
 		} else {
 			frappe.desktop.wrapper.on("click", ".app-icon", function() {
-				if ( !this.wiggling ) {
+				if ( !frappe.desktop.wiggling ) {
 					frappe.desktop.open_module($(this).parent());
 				}
 			});
@@ -132,7 +132,7 @@ $.extend(frappe.desktop, {
 			}
 		});
 
-		this.setup_wiggle();
+		frappe.desktop.setup_wiggle();
 	},
 
 	setup_wiggle: () => {
@@ -159,7 +159,7 @@ $.extend(frappe.desktop, {
 
 			$icons.trigger('stopRumble');
 
-			this.wiggling = false;
+			frappe.desktop.wiggling   = false;
 		};
 
 		// initiate wiggling.
@@ -169,7 +169,7 @@ $.extend(frappe.desktop, {
 
 		frappe.desktop.wrapper.on('mousedown', '.app-icon', () => {
 			timer_id     = setTimeout(() => {
-				this.wiggling = true;
+				frappe.desktop.wiggling = true;
 				// hide all notifications.
 				$notis.hide();
 				
@@ -231,7 +231,7 @@ $.extend(frappe.desktop, {
 
 		// also stop wiggling if clicked elsewhere.
 		$('body').click((event) => {
-			if ( this.wiggling ) {
+			if ( frappe.desktop.wiggling ) {
 				const $target = $(event.target);
 				// our target shouldn't be .app-icons or .close
 				const $parent = $target.parents('.case-wrapper');
