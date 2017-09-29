@@ -57,6 +57,8 @@ frappe.ui.FilterList = Class.extend({
 	},
 
 	add_filter: function(doctype, fieldname, condition, value, hidden) {
+		// adds a new filter, returns true if filter has been added
+
 		// allow equal to be used as like
 		let base_filter = this.base_list.page.fields_dict[fieldname];
 		if (base_filter
@@ -64,7 +66,8 @@ frappe.ui.FilterList = Class.extend({
 				|| (condition==='=' && base_filter.df.condition==='like'))) {
 			// if filter exists in base_list, then exit
 			this.base_list.page.fields_dict[fieldname].set_input(value);
-			return;
+
+			return true;
 		}
 
 		if(doctype && fieldname
@@ -75,7 +78,7 @@ frappe.ui.FilterList = Class.extend({
 				title: 'Invalid Filter',
 				indicator: 'red'
 			});
-			return;
+			return false;
 		}
 
 		this.wrapper.find('.show_filters').toggle(true);
@@ -83,7 +86,7 @@ frappe.ui.FilterList = Class.extend({
 
 		if (is_new_filter && this.wrapper.find(".is-new-filter:visible").length) {
 			// only allow 1 new filter at a time!
-			return;
+			return false;
 		}
 
 		var filter = this.push_new_filter(doctype, fieldname, condition, value);
@@ -103,7 +106,7 @@ frappe.ui.FilterList = Class.extend({
 			filter.$btn_group.addClass("hide");
 		}
 
-		return filter;
+		return true;
 	},
 	push_new_filter: function(doctype, fieldname, condition, value) {
 		if(this.filter_exists(doctype, fieldname, condition, value)) {
