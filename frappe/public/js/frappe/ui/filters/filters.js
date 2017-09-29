@@ -128,6 +128,19 @@ frappe.ui.FilterList = Class.extend({
 		return filter;
 	},
 
+	remove: function(filter) {
+		// remove `filter` from flist
+		for (var i in this.filters) {
+			if (this.filters[i] === filter) {
+				break;
+			}
+		}
+		if (i!==undefined) {
+			// remove index
+			this.splice(i, 1);
+		}
+	},
+
 	filter_exists: function(doctype, fieldname, condition, value) {
 		var flag = false;
 		for(var i in this.filters) {
@@ -261,9 +274,11 @@ frappe.ui.Filter = Class.extend({
 
 	apply: function() {
 		var f = this.get_value();
-		this.flist.filters.pop();
+
+		this.flist.remove(this);
 		this.flist.push_new_filter(f[0], f[1], f[2], f[3]);
 		this.wrapper.remove();
+		this.flist.update_filters();
 	},
 
 	remove: function(dont_run) {
