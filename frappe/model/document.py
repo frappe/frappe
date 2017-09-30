@@ -20,13 +20,13 @@ from frappe.integrations.doctype.webhook import run_webhooks
 # once_only validation
 # methods
 
-def get_doc(arg1, arg2=None):
+def get_doc(*args, **kwargs):
 	"""returns a frappe.model.Document object.
 
 	:param arg1: Document dict or DocType name.
 	:param arg2: [optional] document name.
 
-	There are two ways to call `get_doc`
+	There are multiple ways to call `get_doc`
 
 		# will fetch the latest user object (with child table) from the database
 		user = get_doc("User", "test@example.com")
@@ -39,23 +39,39 @@ def get_doc(arg1, arg2=None):
 				{"role": "System Manager"}
 			]
 		})
+
+		# create new object with keyword arguments
+		user = get_doc(doctype='User', email_id='test@example.com')
 	"""
-	if isinstance(arg1, BaseDocument):
-		return arg1
-	elif isinstance(arg1, string_types):
-		doctype = arg1
-	else:
-		doctype = arg1.get("doctype")
+	if args:
+		if isinstance(args[0], BaseDocument):
+			# already a document
+			return args[0]
+		elif isinstance(args[0], string_types):
+			doctype = args[0]
+
+		elif isinstance(args[0], dict):
+			# passed a dict
+			kwargs = args[0]
+
+		else:
+			raise ValueError('First non keyword argument must be a string or dict')
+
+	if kwargs:
+		if 'doctype' in kwargs:
+			doctype = kwargs['doctype']
+		else:
+			raise ValueError('"doctype" is a required key')
 
 	controller = get_controller(doctype)
 	if controller:
-		return controller(arg1, arg2)
+		return controller(*args, **kwargs)
 
-	raise ImportError(arg1)
+	raise ImportError(doctype)
 
 class Document(BaseDocument):
 	"""All controllers inherit from `Document`."""
-	def __init__(self, arg1, arg2=None):
+	def __init__(self, *args, **kwargs):
 		"""Constructor.
 
 		:param arg1: DocType name as string or document **dict**
@@ -68,29 +84,37 @@ class Document(BaseDocument):
 		self._default_new_docs = {}
 		self.flags = frappe._dict()
 
-		if arg1 and isinstance(arg1, string_types):
-			if not arg2:
+		if args and args[0] and isinstance(args[0], string_types):
+			# first arugment is doctype
+			if len(args)==1:
 				# single
-				self.doctype = self.name = arg1
+				self.doctype = self.name = args[0]
 			else:
-				self.doctype = arg1
-				if isinstance(arg2, dict):
+				self.doctype = args[0]
+				if isinstance(args[1], dict):
 					# filter
-					self.name = frappe.db.get_value(arg1, arg2, "name")
+					self.name = frappe.db.get_value(args[0], args[1], "name")
 					if self.name is None:
-						frappe.throw(_("{0} {1} not found").format(_(arg1), arg2), frappe.DoesNotExistError)
+						frappe.throw(_("{0} {1} not found").format(_(args[0]), args[1]),
+							frappe.DoesNotExistError)
 				else:
-					self.name = arg2
+					self.name = args[1]
 
 			self.load_from_db()
+			return
 
-		elif isinstance(arg1, dict):
-			super(Document, self).__init__(arg1)
+		if args and args[0] and isinstance(args[0], dict):
+			# first argument is a dict
+			kwargs = args[0]
+
+		if kwargs:
+			# init base document
+			super(Document, self).__init__(kwargs)
 			self.init_valid_columns()
 
 		else:
 			# incorrect arguments. let's not proceed.
-			raise frappe.DataError("Document({0}, {1})".format(arg1, arg2))
+			raise ValueError('Illegal arguments')
 
 	def reload(self):
 		"""Reload document from database"""
