@@ -166,9 +166,6 @@ def _notify(doc, print_html=None, print_format=None, attachments=None,
 
 def update_parent_status(doc):
 	"""Update status of parent document based on who is replying."""
-	if doc.communication_type != "Communication":
-		return
-
 	parent = doc.get_parent_doc()
 	if not parent:
 		return
