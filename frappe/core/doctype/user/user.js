@@ -58,7 +58,7 @@ frappe.ui.form.on('User', {
 			&& frappe.all_timezones
 			&& (doc.language || frappe.boot.user.language)
 			&& doc.language !== frappe.boot.user.language) {
-			frappe.msgprint(__("Reload_docing..."));
+			frappe.msgprint(__("Refreshing..."));
 			window.location.reload();
 		}
 
