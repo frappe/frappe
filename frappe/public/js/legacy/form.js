@@ -4,7 +4,7 @@
 /* Form page structure
 
 	+ this.parent (either FormContainer or Dialog)
- 		+ this.wrapper
+		+ this.wrapper
 			+ this.toolbar
 			+ this.form_wrapper
 					+ this.head
@@ -928,12 +928,12 @@ _f.Frm.prototype.clear_custom_buttons = function() {
 
 //Remove specific custom button by button Label
 _f.Frm.prototype.remove_custom_buttons = function(buttons) {
-    if(buttons){
-        for (var i=0; i<buttons.length; i++) {
-            if($.isArray(buttons[i]))
-                this.page.remove_inner_button(buttons[i][0], buttons[i][1]);
-        }
-    }
+	if(buttons){
+		for (var i=0; i<buttons.length; i++) {
+			if($.isArray(buttons[i]))
+				this.page.remove_inner_button(buttons[i][0], buttons[i][1]);
+		}
+	}
 };
 
 _f.Frm.prototype.add_fetch = function(link_field, src_field, tar_field) {

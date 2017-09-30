@@ -328,12 +328,11 @@ frappe.ui.Page = Class.extend({
 		if(group) {
 			var $group = this.get_inner_group_button(__(group), false);
 			if($group.length) {
-                var $group = this.get_inner_group_button(__(group), false);
-                buttons = $group.find(".dropdown-menu li");
-                buttons.filter(function() { return $.text([this]) === __(label); }).remove();
-            }
+				var buttons = $group.find(".dropdown-menu li");
+				buttons.filter(function() { return $.text([this]) === __(label); }).remove();
+			}
 		} else {
-            this.inner_toolbar.find("button").filter(function() { return $.text([this]) === __(label); }).remove();
+			this.inner_toolbar.find("button").filter(function() { return $.text([this]) === __(label); }).remove();
 		}
 	},
 
