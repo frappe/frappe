@@ -17,7 +17,23 @@ frappe.ui.form.on('User', {
 		}
 
 	},
+	role_name: function(frm) {
+		if(frm.doc.role_name) {
+			frappe.call({
+				"method": "frappe.client.get",
+				args: {
+					doctype: "Role Profile",
+					name: frm.doc.role_name
+				},
+				callback: function (data) {
+					frm.set_value('roles', data.message.roles);
+					frm.roles_editor.show();
+				}
+			});
+		}
+	},
 	onload: function(frm) {
+
 		if(has_common(frappe.user_roles, ["Administrator", "System Manager"]) && !frm.doc.__islocal) {
 			if(!frm.roles_editor) {
 				var role_area = $('<div style="min-height: 300px">')
@@ -27,19 +43,22 @@ frappe.ui.form.on('User', {
 				var module_area = $('<div style="min-height: 300px">')
 					.appendTo(frm.fields_dict.modules_html.wrapper);
 				frm.module_editor = new frappe.ModuleEditor(frm, module_area)
-			} else {
+			}
+			else {
 				frm.roles_editor.show();
 			}
 		}
 	},
 	refresh: function(frm) {
 		var doc = frm.doc;
-
+		if(!frm.doc.islocal && !frm.roles_editor) {
+			frm.reload_doc();
+		}
 		if(doc.name===frappe.session.user && !doc.__unsaved
 			&& frappe.all_timezones
 			&& (doc.language || frappe.boot.user.language)
 			&& doc.language !== frappe.boot.user.language) {
-			frappe.msgprint(__("Refreshing..."));
+			frappe.msgprint(__("Reload_docing..."));
 			window.location.reload();
 		}
 
