@@ -146,28 +146,64 @@ class DataMigrationRun(Document):
 
 		raise frappe.ValidationError('Mapping Broken')
 
-	def get_local_data(self, mapping, start=0):
-		'''Fetch data from local using `frappe.get_all`. Used during Push'''
-		filters = mapping.get_filters() or {}
+	def get_data(self, filters, or_filters, start, page_length):
+		mapping = self.get_mapping(self.current_mapping)
 		or_filters = self.get_or_filters(mapping)
+		start = self.current_mapping_start
 
-		if self.current_mapping_action == 'Insert':
-			data = []
-			for d in frappe.get_all(mapping.local_doctype,
-				fields=['*'],
-				filters=filters, or_filters=or_filters,
-				start=start, page_length=mapping.page_length, debug=True):
+		data = []
+		doclist = frappe.get_all(mapping.local_doctype,
+			filters=filters, or_filters=or_filters,
+			start=start, page_length=mapping.page_length, debug=True)
 
-				doc = frappe.get_doc(mapping.local_doctype, d['name'])
+		for d in doclist:
+			doc = frappe.get_doc(mapping.local_doctype, d['name'])
+			data.append(doc.as_dict())
+		return data
 
-				data.append(doc.as_dict())
-			return data
+	def get_new_local_data(self):
+		'''Fetch newly inserted local data using `frappe.get_all`. Used during Push'''
+		mapping = self.get_mapping(self.current_mapping)
+		filters = mapping.get_filters() or {}
 
-		elif self.current_mapping_action == 'Delete':
-			return self.get_deleted_docs(mapping,
-				start=self.current_mapping_delete_start,
-				page_length=mapping.page_length
-			)
+		# new docs dont have migration field set
+		filters.update({
+			mapping.migration_id_field: ''
+		})
+
+		return self.get_data(filters)
+
+	def get_updated_local_data(self):
+		'''Fetch local updated data using `frappe.get_all`. Used during Push'''
+		mapping = self.get_mapping(self.current_mapping)
+		filters = mapping.get_filters() or {}
+
+		# existing docs must have migration field set
+		filters.update({
+			mapping.migration_id_field: ('!=', '')
+		})
+
+		return self.get_data(filters)
+
+	def get_deleted_local_data(self):
+		'''Fetch local deleted data using `frappe.get_all`. Used during Push'''
+		mapping = self.get_mapping(self.current_mapping)
+		filters = dict(
+			deleted_doctype=mapping.local_doctype
+		)
+
+		data = frappe.get_all('Deleted Document', fields=['data'],
+			filters=filters, or_filters=or_filters, debug=True)
+
+		_data = []
+		for d in data:
+			doc = json.loads(d.data)
+			if doc.get(mapping.migration_id_field):
+				doc['_deleted_document_name'] = d.name
+				_data.append(doc)
+
+		return _data
+
 
 	def get_remote_data(self, mapping, start=0):
 		'''Fetch data from remote using `connection.get_list`. Used during Pull'''
@@ -177,24 +213,6 @@ class DataMigrationRun(Document):
 		return connection.get_list(mapping.remote_objectname,
 			fields=["*"], filters=filters, start=start,
 			page_length=mapping.page_length)
-
-	def get_deleted_docs(self, mapping, start, page_length):
-		filters = dict(
-			deleted_doctype=mapping.local_doctype
-		)
-		data = frappe.get_all('Deleted Document', fields=['data'],
-			filters=filters, or_filters=self.get_or_filters(mapping), debug=True)
-
-		_data = []
-		for d in data:
-			doc = json.loads(d.data)
-			if doc.get(mapping.migration_id_field):
-				doc['to_delete'] = 1
-				doc['_deleted_document_name'] = d.name
-				_data.append(doc)
-
-		return _data
-
 
 	def get_count(self, mapping):
 		filters = mapping.get_filters() or {}
@@ -229,70 +247,162 @@ class DataMigrationRun(Document):
 		self.db_set('current_mapping_type', 'Push')
 
 		mapping = self.get_mapping(self.current_mapping)
-		start = self.current_mapping_start
 		connection = self.get_connection()
 
-		data = self.get_local_data(mapping, start)
+		if self.current_mapping_action == 'Insert':
+			data = self.get_new_local_data()
 
-		failed_items = self.get_log('failed_items', [])
-
-		for d in data:
-			migration_id_value = d.get(mapping.migration_id_field)
-
-			if d.get('to_delete'):
-				# local doc deleted, delete from remote
-				response = connection.delete(mapping.remote_objectname, migration_id_value)
-				if not response.ok:
-					failed_items.append(d)
-				else:
-					self.set_log('push:deleted_items', cint(self.get_log('push:deleted_items', 0)) + 1)
-					frappe.db.set_value('Deleted Document',
-						d.get('_deleted_document_name'),
-						mapping.migration_id_field, migration_id_value,
-						update_modified=False)
-			else:
+			for d in data:
+				# pre process before insert
+				doc = self.pre_process_doc(d)
 				doc = mapping.get_mapped_record(d)
 
-				# pre process before insert/update
-				doc = self.pre_process_doc(doc)
-
-				if not migration_id_value:
-					# no migration_id_value, insert doc
-					response = connection.insert(
-						mapping.remote_objectname, doc)
-				else:
-					# migration_id_value exists, update doc
-					response = connection.update(
-						mapping.remote_objectname, doc, migration_id_value)
-
-				if not response.ok:
-					# insert/update fail
-					failed_items.append(doc)
-				else:
-					# insert/update success
-					if not migration_id_value:
-						self.set_log('push:insert', cint(self.get_log('push:insert', 0)) + 1)
-
-						frappe.db.set_value(mapping.local_doctype, d.name,
+				try:
+					response_doc = connection.insert(mapping.remote_objectname, doc)
+					# TODO: log
+					frappe.db.set_value(mapping.local_doctype, d.name,
 							mapping.migration_id_field, response.migration_id_value,
 							update_modified=False)
 						frappe.db.commit()
-					else:
-						self.set_log('push:update', cint(self.get_log('push:update', 0)) + 1)
-
 					# post process only when action is success
 					self.post_process_doc(local_doc=doc)
+				except Exception:
+					# TODO: log
+					pass
 
-		self.set_log('failed_items', failed_items)
+			# update page_start
+			self.db_set('current_mapping_start',
+				self.current_mapping_start + mapping.page_length)
 
-		if len(data) < mapping.page_length:
-			if self.current_mapping_action == 'Insert':
-				self.db_set('current_mapping_action', 'Delete')
+			if len(data) < mapping.page_length:
+				# done, no more new data to insert
+				self.db_set({
+					'current_mapping_action': 'Update',
+					'current_mapping_start': 0
+				})
+				# not done with this mapping
 				return False
-			elif self.current_mapping_action == 'Delete':
+
+		elif self.current_mapping_action == 'Update':
+			data = self.get_updated_local_data()
+
+			for d in data:
+				migration_id_value = d.get(mapping.migration_id_field)
+				# pre process before update
+				doc = self.pre_process_doc(d)
+				doc = mapping.get_mapped_record(d)
+				try:
+					response = connection.update(mapping.remote_objectname, doc, migration_id_value)
+					# post process only when action is success
+					self.post_process_doc(local_doc=doc)
+					# TODO: log
+				except Exception:
+					# TODO: log
+					pass
+
+			# update page_start
+			self.db_set('current_mapping_start',
+				self.current_mapping_start + mapping.page_length)
+
+			if len(data) < mapping.page_length:
+				# done, no more data to update
+				self.db_set({
+					'current_mapping_action': 'Delete',
+					'current_mapping_start': 0
+				})
+				# not done with this mapping
+				return False
+
+		elif self.current_mapping_action == 'Delete':
+			data = self.get_deleted_local_data()
+
+			for d in data:
+				# Deleted Document also has a custom field for migration_id
+				migration_id_value = d.get(mapping.migration_id_field)
+				# pre process before update
+				doc = self.pre_process_doc(d)
+				try:
+					response = connection.delete(mapping.remote_objectname, migration_id_value)
+					# post process only when action is success
+					self.post_process_doc(local_doc=doc)
+					# TODO: log
+				except Exception:
+					# TODO: log
+					pass
+
+			# update page_start
+			self.db_set('current_mapping_start',
+				self.current_mapping_start + mapping.page_length)
+
+			if len(data) < mapping.page_length:
+				# done, no more new data to delete
+				# done with this mapping
 				return True
 
-		return False
+		# just because
+		return True
+
+		# data = self.get_local_data()
+
+		# failed_items = self.get_log('failed_items', [])
+
+		# for d in data:
+		# 	migration_id_value = d.get(mapping.migration_id_field)
+
+		# 	if d.get('to_delete'):
+		# 		# local doc deleted, delete from remote
+		# 		response = connection.delete(mapping.remote_objectname, migration_id_value)
+		# 		if not response.ok:
+		# 			failed_items.append(d)
+		# 		else:
+		# 			self.set_log('push:deleted_items', cint(self.get_log('push:deleted_items', 0)) + 1)
+		# 			frappe.db.set_value('Deleted Document',
+		# 				d.get('_deleted_document_name'),
+		# 				mapping.migration_id_field, migration_id_value,
+		# 				update_modified=False)
+		# 	else:
+		# 		doc = mapping.get_mapped_record(d)
+
+		# 		# pre process before insert/update
+		# 		doc = self.pre_process_doc(doc)
+
+		# 		if not migration_id_value:
+		# 			# no migration_id_value, insert doc
+		# 			response = connection.insert(
+		# 				mapping.remote_objectname, doc)
+		# 		else:
+		# 			# migration_id_value exists, update doc
+		# 			response = connection.update(
+		# 				mapping.remote_objectname, doc, migration_id_value)
+
+		# 		if not response.ok:
+		# 			# insert/update fail
+		# 			failed_items.append(doc)
+		# 		else:
+		# 			# insert/update success
+		# 			if not migration_id_value:
+		# 				self.set_log('push:insert', cint(self.get_log('push:insert', 0)) + 1)
+
+		# 				frappe.db.set_value(mapping.local_doctype, d.name,
+		# 					mapping.migration_id_field, response.migration_id_value,
+		# 					update_modified=False)
+		# 				frappe.db.commit()
+		# 			else:
+		# 				self.set_log('push:update', cint(self.get_log('push:update', 0)) + 1)
+
+		# 			# post process only when action is success
+		# 			self.post_process_doc(local_doc=doc)
+
+		# self.set_log('failed_items', failed_items)
+
+		# if len(data) < mapping.page_length:
+		# 	if self.current_mapping_action == 'Insert':
+		# 		self.db_set('current_mapping_action', 'Delete')
+		# 		return False
+		# 	elif self.current_mapping_action == 'Delete':
+		# 		return True
+
+		# return False
 
 	def pull(self):
 		self.db_set('current_mapping_type', 'Pull')
