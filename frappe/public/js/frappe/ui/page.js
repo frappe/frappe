@@ -275,9 +275,9 @@ frappe.ui.Page = Class.extend({
 		return $('<li class="divider"></li>').appendTo(this.menu);
 	},
 
-	get_inner_group_button: function(label) {
+	get_inner_group_button: function(label, add_if_not_exists) {
 		var $group = this.inner_toolbar.find('.btn-group[data-label="'+label+'"]');
-		if(!$group.length) {
+		if(!$group.length && add_if_not_exists) {
 			$group = $('<div class="btn-group" data-label="'+label+'" style="margin-left: 10px;">\
 				<button type="button" class="btn btn-default dropdown-toggle btn-xs" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">\
 				'+label+' <span class="caret"></span></button>\
@@ -287,7 +287,7 @@ frappe.ui.Page = Class.extend({
 	},
 
 	set_inner_btn_group_as_primary: function(label) {
-		this.get_inner_group_button(label).find("button").removeClass("btn-default").addClass("btn-primary");
+		this.get_inner_group_button(label, true).find("button").removeClass("btn-default").addClass("btn-primary");
 	},
 
 	btn_disable_enable: function(btn, response) {
@@ -312,7 +312,7 @@ frappe.ui.Page = Class.extend({
 			me.btn_disable_enable(btn, response);
 		};
 		if(group) {
-			var $group = this.get_inner_group_button(group);
+			var $group = this.get_inner_group_button(group, true);
 			$(this.inner_toolbar).removeClass("hide");
 			return $('<li><a>'+label+'</a></li>')
 				.on('click', _action)
@@ -321,6 +321,19 @@ frappe.ui.Page = Class.extend({
 			return $('<button class="btn btn-default btn-xs" style="margin-left: 10px;">'+__(label)+'</btn>')
 				.on("click", _action)
 				.appendTo(this.inner_toolbar.removeClass("hide"));
+		}
+	},
+
+	remove_inner_button: function(label, group) {
+		if(group) {
+			var $group = this.get_inner_group_button(__(group), false);
+			if($group.length) {
+                var $group = this.get_inner_group_button(__(group), false);
+                buttons = $group.find(".dropdown-menu li");
+                buttons.filter(function() { return $.text([this]) === __(label); }).remove();
+            }
+		} else {
+            this.inner_toolbar.find("button").filter(function() { return $.text([this]) === __(label); }).remove();
 		}
 	},
 
