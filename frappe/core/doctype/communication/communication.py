@@ -25,7 +25,7 @@ class Communication(Document):
 		"""create email flag queue"""
 		if self.communication_type == "Communication" and self.communication_medium == "Email" \
 			and self.sent_or_received == "Received" and self.uid and self.uid != -1:
-			
+
 			email_flag_queue = frappe.db.get_value("Email Flag Queue", {
 				"communication": self.name,
 				"is_completed": 0})
@@ -69,7 +69,7 @@ class Communication(Document):
 	def after_insert(self):
 		if not (self.reference_doctype and self.reference_name):
 			return
-		
+
 		if self.reference_doctype == "Communication" and self.sent_or_received == "Sent":
 			frappe.db.set_value("Communication", self.reference_name, "status", "Replied")
 
@@ -264,7 +264,7 @@ def has_permission(doc, ptype, user):
 		if (doc.reference_doctype == "Communication" and doc.reference_name == doc.name) \
 			or (doc.timeline_doctype == "Communication" and doc.timeline_name == doc.name):
 				return
-				
+
 		if doc.reference_doctype and doc.reference_name:
 			if frappe.has_permission(doc.reference_doctype, ptype="read", doc=doc.reference_name):
 				return True
@@ -277,7 +277,9 @@ def get_permission_query_conditions_for_communication(user):
 
 	if not user: user = frappe.session.user
 
-	if "Super Email User" in frappe.get_roles(user):
+	roles = frappe.get_roles(user)
+
+	if "Super Email User" in roles or "System Manager" in roles:
 		return None
 	else:
 		accounts = frappe.get_all("User Email", filters={ "parent": user },

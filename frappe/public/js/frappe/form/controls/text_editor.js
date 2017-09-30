@@ -6,6 +6,11 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 		this.setup_drag_drop();
 		this.setup_image_dialog();
 		this.setting_count = 0;
+
+		$(document).on('form-refresh', () => {
+			// reset last keystroke when a new form is loaded
+			this.last_keystroke_on = null;
+		})
 	},
 	make_editor: function() {
 		var me = this;
@@ -54,7 +59,7 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 					me.parse_validate_and_set_in_model(value);
 				},
 				onKeydown: function(e) {
-					me._last_change_on = new Date();
+					me.last_keystroke_on = new Date();
 					var key = frappe.ui.keys.get_key(e);
 					// prevent 'New DocType (Ctrl + B)' shortcut in editor
 					if(['ctrl+b', 'meta+b'].indexOf(key) !== -1) {
@@ -184,20 +189,30 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 
 		if(this.setting_count > 2) {
 			// we don't understand how the internal triggers work,
-			// so if someone is setting the value third time, then quit
+			// so if someone is setting the value third time in 500ms,
+			// then quit
 			return;
 		}
 
 		this.setting_count += 1;
 
-		let time_since_last_keystroke = moment() - moment(this._last_change_on);
+		let time_since_last_keystroke = moment() - moment(this.last_keystroke_on);
 
-		if(!this._last_change_on || (time_since_last_keystroke > 3000)) {
+		if(!this.last_keystroke_on || (time_since_last_keystroke > 3000)) {
+			// if 3 seconds have passed since the last keystroke and
+			// we have not set any value in the last 1 second, do this
 			setTimeout(() => this.setting_count = 0, 500);
 			this.editor.summernote('code', value || '');
+			this.last_keystroke_on = null;
 		} else {
+			// user is probably still in the middle of typing
+			// so lets not mess up the html by re-updating it
+			// keep checking every second if our 3 second barrier
+			// has been completed, so that we can refresh the html
 			this._setting_value = setInterval(() => {
 				if(time_since_last_keystroke > 3000) {
+					// 3 seconds done! lets refresh
+					// safe to update
 					if(this.last_value !== this.get_input_value()) {
 						// if not already in sync, reset
 						this.editor.summernote('code', this.last_value || '');
@@ -205,6 +220,9 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 					clearInterval(this._setting_value);
 					this._setting_value = null;
 					this.setting_count = 0;
+
+					// clear timestamp of last keystroke
+					this.last_keystroke_on = null;
 				}
 			}, 1000);
 		}

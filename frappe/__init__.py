@@ -602,7 +602,7 @@ def set_value(doctype, docname, fieldname, value=None):
 	import frappe.client
 	return frappe.client.set_value(doctype, docname, fieldname, value)
 
-def get_doc(arg1, arg2=None):
+def get_doc(*args, **kwargs):
 	"""Return a `frappe.model.document.Document` object of the given type and name.
 
 	:param arg1: DocType name as string **or** document JSON.
@@ -619,7 +619,7 @@ def get_doc(arg1, arg2=None):
 
 	"""
 	import frappe.model.document
-	return frappe.model.document.get_doc(arg1, arg2)
+	return frappe.model.document.get_doc(*args, **kwargs)
 
 def get_last_doc(doctype):
 	"""Get last created document of this type."""

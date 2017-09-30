@@ -73,7 +73,7 @@ frappe.socketio = {
 			frappe.socketio.doc_subscribe(frm.doctype, frm.docname);
 		});
 
-		$(document).on("form_refresh", function(e, frm) {
+		$(document).on("form-refresh", function(e, frm) {
 			if (frm.is_new()) {
 				return;
 			}
