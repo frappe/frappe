@@ -184,7 +184,8 @@ def get_link_fields(doctype):
 	link_fields = frappe.db.sql("""\
 		select parent, fieldname,
 			(select issingle from tabDocType dt
-			where dt.name = df.parent) as issingle
+			where dt.name = df.parent) as issingle,
+			link_to_cancelled
 		from tabDocField df
 		where
 			df.options=%s and df.fieldtype='Link'""", (doctype,), as_dict=1)
@@ -193,7 +194,8 @@ def get_link_fields(doctype):
 	custom_link_fields = frappe.db.sql("""\
 		select dt as parent, fieldname,
 			(select issingle from tabDocType dt
-			where dt.name = df.dt) as issingle
+			where dt.name = df.dt) as issingle,
+			link_to_cancelled
 		from `tabCustom Field` df
 		where
 			df.options=%s and df.fieldtype='Link'""", (doctype,), as_dict=1)

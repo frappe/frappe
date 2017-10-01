@@ -502,7 +502,7 @@ class BaseDocument(object):
 				if not values.name:
 					invalid_links.append((df.fieldname, docname, get_msg(df, docname)))
 
-				elif (df.fieldname != "amended_from"
+				elif ((df.fieldname != "amended_from" and not df.link_to_cancelled)
 					and (is_submittable or self.meta.is_submittable) and frappe.get_meta(doctype).is_submittable
 					and cint(frappe.db.get_value(doctype, docname, "docstatus"))==2):
 

@@ -3,14 +3,15 @@
 
 import frappe
 
-# select doctypes that are accessed by the user (not read_only) first, so that the 
-# the validation message shows the user-facing doctype first. 
+# select doctypes that are accessed by the user (not read_only) first, so that the
+# the validation message shows the user-facing doctype first.
 # For example Journal Entry should be validated before GL Entry (which is an internal doctype)
 
 dynamic_link_queries =  [
 	"""select tabDocField.parent,
 		`tabDocType`.read_only, `tabDocType`.in_create,
-		tabDocField.fieldname, tabDocField.options
+		tabDocField.fieldname, tabDocField.options,
+		tabDocField.link_to_cancelled
 	from tabDocField, `tabDocType`
 	where `tabDocField`.fieldtype='Dynamic Link' and
 	`tabDocType`.name=`tabDocField`.parent
@@ -18,7 +19,8 @@ dynamic_link_queries =  [
 
 	"""select `tabCustom Field`.dt as parent,
 		`tabDocType`.read_only, `tabDocType`.in_create,
-		`tabCustom Field`.fieldname, `tabCustom Field`.options
+		`tabCustom Field`.fieldname, `tabCustom Field`.options,
+		`tabCustom Field`.link_to_cancelled
 	from `tabCustom Field`, `tabDocType`
 	where `tabCustom Field`.fieldtype='Dynamic Link' and
 	`tabDocType`.name=`tabCustom Field`.dt
