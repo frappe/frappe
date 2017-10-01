@@ -6,13 +6,24 @@ frappe.email_alert = {
 		}
 
 		frappe.model.with_doctype(frm.doc.document_type, function() {
-			var get_select_options = function(df) {
+			let get_select_options = function(df) {
 				return {value: df.fieldname, label: df.fieldname + " (" + __(df.label) + ")"};
 			}
 
-			var fields = frappe.get_doc("DocType", frm.doc.document_type).fields;
+			let get_date_change_options = function() {
+				let date_options = $.map(fields, function(d) {
+					return (d.fieldtype=="Date" || d.fieldtype=="Datetime")?
+						get_select_options(d) : null;
+				});
+				// append creation and modified date to Date Change field
+				return date_options.concat([
+					{ value: "creation", label: `creation (${__('Created On')})` },
+					{ value: "modified", label: `modified (${__('Last Modified Date')})` }
+				]);
+			}
 
-			var options = $.map(fields,
+			let fields = frappe.get_doc("DocType", frm.doc.document_type).fields;
+			let options = $.map(fields,
 				function(d) { return in_list(frappe.model.no_value_type, d.fieldtype) ?
 					null : get_select_options(d); });
 
@@ -21,11 +32,9 @@ frappe.email_alert = {
 			frm.set_df_property("set_property_after_alert", "options", [""].concat(options));
 
 			// set date changed options
-			frm.set_df_property("date_changed", "options", $.map(fields,
-				function(d) { return (d.fieldtype=="Date" || d.fieldtype=="Datetime") ?
-					get_select_options(d) : null; }));
+			frm.set_df_property("date_changed", "options", get_date_change_options());
 
-			var email_fields = $.map(fields,
+			let email_fields = $.map(fields,
 				function(d) { return (d.options == "Email" ||
 					(d.options=='User' && d.fieldtype=='Link')) ?
 					get_select_options(d) : null; });
