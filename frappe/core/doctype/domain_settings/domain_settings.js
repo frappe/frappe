@@ -17,6 +17,17 @@ frappe.ui.form.on('Domain Settings', {
 		if(frm.domain_editor) {
 			frm.domain_editor.set_items_in_table();
 		}
+		var domains = frm.domain_editor.get_selected_unselected_items().checked_items;
+		console.log(domains);
+		frappe.call({
+			method: "frappe.core.doctype.domain_settings.domain_settings.set_roles",
+			args: {
+				active_domains: domains
+			},
+			callback: function(r){
+				console.log('called');
+			}
+		});
 	},
 });
 
