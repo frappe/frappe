@@ -4,7 +4,6 @@
  "allow_import": 1, 
  "allow_rename": 0, 
  "beta": 0, 
- "controlled_document": "0", 
  "creation": "2013-01-10 16:34:01", 
  "custom": 0, 
  "description": "Adds a custom field to a DocType", 
