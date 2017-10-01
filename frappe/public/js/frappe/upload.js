@@ -14,7 +14,7 @@ frappe.upload = {
 		opts.show_private = !("is_private" in opts);
 		
 		// make private by default
-		if (!("options" in opts) || ("options" in opts && 
+		if (!("options" in opts) || ("options" in opts &&
 			(!opts.options.toLowerCase()=="public" && !opts.options.toLowerCase()=="image"))) {
 			opts.is_private = 1;
 		}
