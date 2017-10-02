@@ -147,10 +147,9 @@ $.extend(frappe.desktop, {
 		const $icons        = frappe.desktop.wrapper.find('.app-icon');
 		const $notis        = $(frappe.desktop.wrapper.find('.circle').toArray().filter((object) => {
 			// This hack is so bad, I should punch myself.
-			// Seriously, punch yourself.
-			const text      = $(object).find('.circle-text').html();
+			const doctype   = $(object).data('doctype');
 			
-			return text;
+			return doctype;
 		}));
 		
 		const clearWiggle   = () => {
