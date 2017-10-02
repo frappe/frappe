@@ -44,6 +44,13 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 				search_modal.find('#modal-search').focus();
 			}, 300);
 		});
+		//change to full screen mode
+		$(document).on("click", '[data-toggle="full-screen"]', function() {
+		  return screenfull.enabled && screenfull.toggle(), !1;
+		});
+		screenfull.enabled && document.addEventListener(screenfull.raw.fullscreenchange, function() {
+		  $('[data-toggle="full-screen"]').toggleClass("active", screenfull.isFullscreen);
+		});
 	},
 
 	setup_sidebar: function () {
