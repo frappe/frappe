@@ -156,7 +156,7 @@ $.extend(frappe.desktop, {
 		const clearWiggle   = () => {
 			const $closes   = $cases.find('.module-remove');
 			$closes.hide();
-			 $notis.show();
+			$notis.show();
 
 			$icons.trigger('stopRumble');
 
