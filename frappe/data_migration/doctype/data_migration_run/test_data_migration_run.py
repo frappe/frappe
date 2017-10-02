@@ -3,7 +3,6 @@
 # See license.txt
 from __future__ import unicode_literals
 import frappe, unittest
-from frappe.utils import cint
 
 class TestDataMigrationRun(unittest.TestCase):
 	def test_run(self):
@@ -32,7 +31,7 @@ class TestDataMigrationRun(unittest.TestCase):
 		run.run()
 		self.assertEqual(run.db_get('status'), 'Success')
 
-		run_push_count = cint(run.get_log('push:insert')) + cint(run.get_log('pull:insert'))
+		run_push_count = run.db_get('push_insert') + run.db_get('pull_insert')
 		todo_count = frappe.db.count('ToDo', filters={'todo_sync_id': ('!=', '')})
 		self.assertEqual(run_push_count, todo_count)
 
@@ -64,7 +63,7 @@ class TestDataMigrationRun(unittest.TestCase):
 
 		# Update
 		self.assertEqual(run.db_get('status'), 'Success')
-		self.assertEqual(cint(run.get_log('push:update')), 1)
+		self.assertEqual(run.db_get('push_update'), 1)
 
 def create_plan():
 	frappe.get_doc({
@@ -108,7 +107,7 @@ def create_plan():
 		'doctype': 'Data Migration Connector',
 		'connector_name': 'Local Connector',
 		'connector_type': 'Frappe',
-		'hostname': 'http://localhost:8000',
+		'hostname': 'http://frappe.test:8000',
 		'username': 'Administrator',
-		'password': 'admin'
+		'password': 'qwe'
 	}).insert()
