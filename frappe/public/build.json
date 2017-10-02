@@ -347,14 +347,14 @@
 	"css/report.min.css": [
 		"public/css/report.css",
 		"public/css/tree_grid.css",
-		"public/css/datatable.css",
+		"public/css/regrid.css",
 
 		"public/js/lib/slickgrid/slick.grid.css",
 		"public/js/lib/slickgrid/slick-default-theme.css",
 		"public/css/slickgrid.css"
 	],
 	"js/report.min.js": [
-		"public/js/lib/datatable/datatable.js",
+		"public/js/lib/regrid.js",
 		"public/js/frappe/views/reports/reportview.js",
 		"public/js/frappe/views/reports/reportview_footer.html",
 		"public/js/frappe/views/reports/query_report.js",
