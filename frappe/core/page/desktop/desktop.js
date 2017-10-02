@@ -148,7 +148,7 @@ $.extend(frappe.desktop, {
 		const $notis        = $(frappe.desktop.wrapper.find('.circle').toArray().filter((object) => {
 			// This hack is so bad, I should punch myself.
 			// Seriously, punch yourself.
-			const text      = $(object).find('.circle-text').html()
+			const text      = $(object).find('.circle-text').html();
 			
 			return text
 		}));
