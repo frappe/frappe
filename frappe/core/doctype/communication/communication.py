@@ -94,9 +94,10 @@ class Communication(Document):
 
 	def on_update(self):
 		"""Update parent status as `Open` or `Replied`."""
-		update_parent_status(self)
-		update_comment_in_doc(self)
-		self.bot_reply()
+		if self.comment_type != 'Updated':
+			update_parent_status(self)
+			update_comment_in_doc(self)
+			self.bot_reply()
 
 	def on_trash(self):
 		if (not self.flags.ignore_permissions
