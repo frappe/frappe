@@ -139,13 +139,9 @@ def get_monthly_goal_graph_data(title, doctype, docname, goal_value_field, goal_
 			'labels': months
 		},
 
+		'x_type': 'timeseries',
+
 		'format_lambdas': {},
-
-		# 'x': {
-		# 	'values': months,
-		# 	'formatted': months_formatted
-		# },
-
 		'specific_values': specific_values,
 		'summary': summary_values
 	}
