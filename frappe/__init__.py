@@ -477,7 +477,11 @@ def only_for(roles):
 
 def get_domain_data(module):
 	try:
-		return _dict(get_attr(get_hooks('domains')[module][0] + '.data'))
+		domain_data = get_hooks('domains')
+		if module in domain_data:
+			return _dict(get_attr(get_hooks('domains')[module][0] + '.data'))
+		else:
+			return _dict()
 	except ImportError:
 		if local.flags.in_test:
 			return _dict()

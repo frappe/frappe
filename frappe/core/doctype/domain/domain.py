@@ -8,10 +8,10 @@ import frappe
 from frappe.model.document import Document
 from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
 
-'''Domain documents are created automatically when DocTypes with "Restricted" domains
-are imported during installation or migration'''
-
 class Domain(Document):
+	'''Domain documents are created automatically when DocTypes
+	with "Restricted" domains are imported during
+	installation or migration'''
 	def setup_domain(self):
 		'''Setup domain icons, permissions, custom fields etc.'''
 		self.setup_data()
