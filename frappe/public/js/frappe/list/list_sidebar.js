@@ -29,7 +29,8 @@ frappe.views.ListSidebar = Class.extend({
 		this.setup_kanban_boards();
 		this.setup_email_inbox();
 
-		if(frappe.boot.limits.upgrade_url) {
+		let limits = frappe.boot.limits;
+		if(limits.upgrade_url && limits.expiry) {
 			this.setup_upgrade_box();
 		}
 	},
