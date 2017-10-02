@@ -31,9 +31,8 @@ class TestDataMigrationRun(unittest.TestCase):
 		run.run()
 		self.assertEqual(run.db_get('status'), 'Success')
 
-		run_push_count = run.db_get('push_insert') + run.db_get('pull_insert')
-		todo_count = frappe.db.count('ToDo', filters={'todo_sync_id': ('!=', '')})
-		self.assertEqual(run_push_count, todo_count)
+		self.assertEqual(run.db_get('push_insert'), 1)
+		self.assertEqual(run.db_get('pull_insert'), 1)
 
 		todo = frappe.get_doc('ToDo', new_todo.name)
 		self.assertTrue(todo.todo_sync_id)
@@ -64,6 +63,7 @@ class TestDataMigrationRun(unittest.TestCase):
 		# Update
 		self.assertEqual(run.db_get('status'), 'Success')
 		self.assertEqual(run.db_get('push_update'), 1)
+		self.assertEqual(run.db_get('pull_update'), 1)
 
 def create_plan():
 	frappe.get_doc({
