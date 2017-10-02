@@ -259,7 +259,7 @@ def get_stats(stats, doctype, filters=[]):
 				stats[tag] = scrub_user_tags(tagcount)
 				stats[tag].append([_("No Tags"), frappe.get_list(doctype,
 					fields=[tag, "count(*)"],
-					filters=filters +["({0} = ',' or {0} is null)".format(tag)], as_list=True)[0][1]])
+					filters=filters +["({0} = ',' or {0} = '' or {0} is null)".format(tag)], as_list=True)[0][1]])
 			else:
 				stats[tag] = tagcount
 
@@ -269,7 +269,6 @@ def get_stats(stats, doctype, filters=[]):
 		except MySQLdb.OperationalError:
 			# raised when _user_tags column is added on the fly
 			pass
-
 	return stats
 
 @frappe.whitelist()
