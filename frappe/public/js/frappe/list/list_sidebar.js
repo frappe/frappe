@@ -28,6 +28,10 @@ frappe.views.ListSidebar = Class.extend({
 		this.setup_views();
 		this.setup_kanban_boards();
 		this.setup_email_inbox();
+
+		if(frappe.boot.limits.upgrade_url) {
+			this.setup_upgrade_box();
+		}
 	},
 	setup_views: function() {
 		var show_list_link = false;
@@ -300,6 +304,24 @@ frappe.views.ListSidebar = Class.extend({
 		var me = this;
 		this.page.sidebar.find(".assigned-to-me a").on("click", function() {
 			me.list_view.assigned_to_me();
+		});
+	},
+	setup_upgrade_box: function() {
+		let upgrade_box = $(`<div style="
+				border: 1px solid #d1d8dd;
+				margin-top: 30px;
+				padding: 0px 10px;
+				border-radius: 4px;
+			">
+			<h5>Go Premium</h5>
+			<div style="margin: 15px 0px;">
+				Upgrade to a premium plan with more users, storage and priority support.
+			</div>
+			<button class="btn btn-sm btn-primary" style="margin-bottom: 10px;">Upgrade</button>
+		</div>`).appendTo(this.page.sidebar.find('.list-sidebar'));
+
+		upgrade_box.find('.btn-primary').on('click', () => {
+			window.open(frappe.boot.limits.upgrade_url);
 		});
 	},
 	get_cat_tags:function(){
