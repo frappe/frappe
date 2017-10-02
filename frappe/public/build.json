@@ -340,6 +340,7 @@
 		"public/css/slickgrid.css"
 	],
 	"js/report.min.js": [
+		"public/js/lib/clusterize.min.js",
 		"public/js/lib/regrid.js",
 		"public/js/frappe/views/reports/reportview.js",
 		"public/js/frappe/views/reports/reportview_footer.html",
