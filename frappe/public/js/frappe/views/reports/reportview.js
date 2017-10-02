@@ -523,6 +523,7 @@ frappe.views.ReportView = frappe.ui.BaseList.extend({
 			wrapper: this.wrapper.find('.result-list'),
 			data: { columns, rows },
 			enableLogs: false,
+			enableClusterize: true,
 			editing: (colIndex, rowIndex, value, parent) => {
 				const control = me.render_editing_input(colIndex, value, parent);
 				if (!control) return false;
