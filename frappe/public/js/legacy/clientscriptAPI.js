@@ -238,7 +238,7 @@ _f.Frm.prototype.set_query = function(fieldname, opt1, opt2) {
 }
 
 _f.Frm.prototype.set_value_if_missing = function(field, value) {
-	this.set_value(field, value, true);
+	return this.set_value(field, value, true);
 }
 
 _f.Frm.prototype.clear_table = function(fieldname) {
