@@ -124,9 +124,8 @@ function pack(output_path, inputs, minify) {
 
 function babelify(content, path, minify) {
 	let presets = ['env'];
-// 	if(minify) {
-// 		presets.push('minify');
-// 	}
+	// Minification doesn't work when loading Frappe Desk
+	// Avoid for now, trace the error and come back.
 	try {
 		return babel.transform(content, {
 			presets: presets,
