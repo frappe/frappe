@@ -2,12 +2,12 @@
 // MIT License. See license.txt
 
 frappe.start_app = function() {
-	if(!frappe.Application)
+	if(!frappe.Application || !frappe.boot)
 		return;
 	frappe.assets.check();
 	frappe.provide('frappe.app');
 	frappe.app = new frappe.Application();
-}
+};
 
 $(document).ready(function() {
 	if(!frappe.utils.supportsES6) {

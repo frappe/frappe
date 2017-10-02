@@ -8,6 +8,7 @@ import frappe
 from frappe import _
 import json
 import random
+import os
 from frappe.model.document import Document
 from six import iteritems, string_types
 
@@ -318,10 +319,8 @@ def sync_desktop_icons():
 
 def sync_from_app(app):
 	'''Sync desktop icons from app. To be called during install'''
-	try:
-		modules = frappe.get_attr(app + '.config.desktop.get_data')() or {}
-	except ImportError:
-		return []
+
+	modules = get_desktop_icons_from_file(app)
 
 	if isinstance(modules, dict):
 		modules_list = []
@@ -353,6 +352,24 @@ def sync_from_app(app):
 		desktop_icon.save()
 
 	return modules_list
+
+def get_desktop_icons_from_file(app):
+	out = []
+	path = frappe.get_app_path(app, 'config', 'desktop.json')
+
+	if os.path.exists(path):
+		with open(path, 'r') as f:
+			data = json.loads(f.read())
+			for d in data:
+				if 'label' in d:
+					d['_label'] = _(d['label'])
+			out = data
+	else:
+		try:
+			out = frappe.get_attr(app + '.config.desktop.get_data')() or {}
+		except ImportError:
+			return []
+	return out
 
 palette = (
 	('#FFC4C4',),

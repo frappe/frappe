@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<!-- Built on Frappe. https://frappe.io/ -->
+<html lang="en">
+
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title> Login </title>
+	<meta name="generator" content="frappe">
+
+
+	<link rel="shortcut icon" href="/assets/erpnext/images/favicon.png" type="image/x-icon">
+	<link rel="icon" href="/assets/erpnext/images/favicon.png" type="image/x-icon">
+
+
+
+	<link type="text/css" rel="stylesheet" href="/assets/frappe/css/bootstrap.css">
+	<link type="text/css" rel="stylesheet" href="/assets/frappe/css/login.css">
+	<link type="text/css" rel="stylesheet" href="/assets/css/frappe-web.css">
+
+	<script>
+		window.frappe = {};
+		frappe.ready_events = [];
+		frappe.ready = function (fn) {
+			frappe.ready_events.push(fn);
+		}
+		window.dev_server = 1;
+	</script>
+</head>
+
+<body data-path="login">
+	<div class="main-section">
+		<div>
+			<div class="hero-and-content">
+				<div data-html-block="hero"></div>
+				<div class="container">
+					<div class="page-container" id="page-login" data-path="login">
+						<div class="page-content without-sidebar">
+							<div class="page-content-wrapper">
+								<div class="page_content" style="height: 100vh;">
+									<!-- login.html -->
+									<section class='for-login' style="display: block">
+										<div class="login-content page-card">
+											<form class="form-signin form-login" role="form">
+												<div class="page-card-head">
+													<span class="indicator blue" data-text="Sign In">Sign In</span>
+												</div>
+
+												<input type="text" id="login_email" class="form-control" placeholder="Email address" required autofocus>
+
+
+												<input type="password" id="login_password" class="form-control" placeholder="Password" required>
+
+												<button class="btn btn-sm btn-primary btn-block btn-login" type="submit">Sign in</button>
+											</form>
+										</div>
+
+									</section>
+
+								</div>
+							</div>
+						</div>
+					</div>
+
+				</div>
+			</div>
+		</div>
+
+	</div>
+
+	<!-- js should be loaded in body! -->
+	<script type="text/javascript" src="/assets/frappe/js/lib/jquery/jquery.min.js"></script>
+	<script type="text/javascript" src="/assets/js/frappe-web.min.js"></script>
+	<script>
+		$(function() {
+			$('.form-signin').on('submit', () => {
+				fetch('/api/auth', {
+					method: 'POST'
+				})
+				.then(r => r.json())
+				.then(() => {
+					window.location.href = '/desk';
+				});
+			});
+		});
+	</script>
+</body>
+
+</html>
