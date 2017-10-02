@@ -150,7 +150,7 @@ $.extend(frappe.desktop, {
 			// Seriously, punch yourself.
 			const text      = $(object).find('.circle-text').html();
 			
-			return text
+			return text;
 		}));
 		
 		const clearWiggle   = () => {
