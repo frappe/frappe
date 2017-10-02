@@ -591,7 +591,7 @@ frappe.views.QueryReport = Class.extend({
 			newrow.id = newrow.name ? newrow.name : ("_" + newrow._id);
 			this.data.push(newrow);
 		}
-		if(this.report_doc.add_total_row) {
+		if(this.data.length && this.report_doc.add_total_row) {
 			this.total_row_id = this.data[this.data.length - 1].id;
 		}
 	},
