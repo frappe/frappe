@@ -6,7 +6,6 @@ from __future__ import unicode_literals
 import frappe, json, math
 from frappe.model.document import Document
 from frappe import _
-from frappe.utils import cint
 
 class DataMigrationRun(Document):
 
@@ -284,7 +283,7 @@ class DataMigrationRun(Document):
 				frappe.db.commit()
 				self.set_log('push_insert', push_insert + 1)
 				# post process after insert
-				self.post_process_doc(local_doc=doc)
+				self.post_process_doc(local_doc=d, remote_doc=response_doc)
 			except Exception:
 				push_failed.append(d.as_json())
 				self.set_log('push_failed', push_failed)
@@ -317,10 +316,10 @@ class DataMigrationRun(Document):
 			doc = self.pre_process_doc(d)
 			doc = mapping.get_mapped_record(doc)
 			try:
-				response = connection.update(mapping.remote_objectname, doc, migration_id_value)
+				response_doc = connection.update(mapping.remote_objectname, doc, migration_id_value)
 				self.set_log('push_update', push_update + 1)
 				# post process after update
-				self.post_process_doc(local_doc=doc)
+				self.post_process_doc(local_doc=d, remote_doc=response_doc)
 			except Exception:
 				push_failed.append(d.as_json())
 				self.set_log('push_failed', push_failed)
@@ -351,12 +350,12 @@ class DataMigrationRun(Document):
 			# Deleted Document also has a custom field for migration_id
 			migration_id_value = d.get(mapping.migration_id_field)
 			# pre process before update
-			doc = self.pre_process_doc(d)
+			self.pre_process_doc(d)
 			try:
-				response = connection.delete(mapping.remote_objectname, migration_id_value)
+				response_doc = connection.delete(mapping.remote_objectname, migration_id_value)
 				self.set_log('push_delete', push_delete + 1)
 				# post process only when action is success
-				self.post_process_doc(local_doc=doc)
+				self.post_process_doc(local_doc=d, remote_doc=response_doc)
 			except Exception:
 				push_failed.append(d.as_json())
 				self.set_log('push_failed', push_failed)
@@ -413,7 +412,6 @@ class DataMigrationRun(Document):
 		if len(data) < mapping.page_length:
 			# last page, done with pull
 			return True
-
 
 	def pre_process_doc(self, doc):
 		plan = self.get_plan()

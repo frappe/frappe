@@ -4,7 +4,7 @@
 
 from __future__ import unicode_literals
 import frappe
-from frappe.modules import scrub, get_module_path, scrub_dt_dn
+from frappe.modules import get_module_path, scrub_dt_dn
 from frappe.modules.export_file import export_to_files, create_init_py
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 from frappe.model.document import Document
