@@ -173,6 +173,11 @@ def update_parent_status(doc):
 	if not parent:
 		return
 
+	# update parent status only if we create the Email communication
+	# ignore in case of only Comment is added
+	if doc.communication_type == "Comment":
+		return
+
 	status_field = parent.meta.get_field("status")
 
 	if status_field:
