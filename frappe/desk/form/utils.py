@@ -29,15 +29,8 @@ def validate_link():
 		frappe.response['message'] = 'Ok'
 		return
 
-	#if enabled/disabled field is present
- 	condition = ""
- 	if frappe.get_meta(options).get_field('disabled'):
- 		condition = " and `disabled` = 0"
- 	elif frappe.get_meta(options).get_field('enabled'):
- 		condition = " and `enabled` = 1"
-
- 	valid_value = frappe.db.sql("select name from `tab{0}` where name=%s {1}".format(frappe.db.escape(options),
- 		condition), (value,))
+	valid_value = frappe.db.sql("select name from `tab%s` where name=%s" % (frappe.db.escape(options),
+		'%s'), (value,))
 
 	if valid_value:
 		valid_value = valid_value[0][0]
