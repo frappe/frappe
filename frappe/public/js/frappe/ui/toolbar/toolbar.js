@@ -46,10 +46,12 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 		});
 		//change to full screen mode
 		$(document).on("click", '[data-toggle="full-screen"]', function() {
-		  return screenfull.enabled && screenfull.toggle(), !1;
+			if (screenfull.enabled) {
+				screenfull.toggle();
+			}
 		});
-		screenfull.enabled && document.addEventListener(screenfull.raw.fullscreenchange, function() {
-		  $('[data-toggle="full-screen"]').toggleClass("active", screenfull.isFullscreen);
+		document.addEventListener(screenfull.raw.fullscreenchange, function() {
+			$('[data-toggle="full-screen"]').toggleClass("active", screenfull.isFullscreen);
 		});
 	},
 
