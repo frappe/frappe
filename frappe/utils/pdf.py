@@ -64,9 +64,7 @@ def prepare_options(html, options):
 
 		# defaults
 		'margin-right': '15mm',
-		'margin-left': '15mm',
-		'margin-top': '15mm',
-		'margin-bottom': '15mm',
+		'margin-left': '15mm'
 	})
 
 	html, html_options = read_options_from_html(html)
