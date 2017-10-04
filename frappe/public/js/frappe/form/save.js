@@ -18,6 +18,7 @@ frappe.ui.form.save = function (frm, action, callback, btn) {
 	var freeze_message = working_label ? __(working_label) : "";
 
 	var save = function () {
+		remove_empty_rows();
 		check_name(function () {
 			$(frm.wrapper).addClass('validated-form');
 			if (check_mandatory()) {
