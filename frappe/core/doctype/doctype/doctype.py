@@ -627,6 +627,7 @@ def validate_fields(meta):
 	check_timeline_field(meta)
 	check_is_published_field(meta)
 	check_sort_field(meta)
+	check_image_field(meta)
 
 def validate_permissions_for_doctype(doctype, for_remove=False):
 	"""Validates if permissions are set correctly."""
