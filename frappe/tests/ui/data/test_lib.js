@@ -8,8 +8,7 @@ frappe.tests = {
 			() => frappe.set_route('List', doctype),
 			() => frappe.new_doc(doctype),
 			() => {
-				if (frappe.quick_entry)
-				{
+				if (frappe.quick_entry) {
 					frappe.quick_entry.dialog.$wrapper.find('.edit-full').click();
 					return frappe.timeout(1);
 				}

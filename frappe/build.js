@@ -60,11 +60,11 @@ function watch() {
 				io.emit('reload_css', filename);
 			}
 		});
-		watch_js(function (filename) {
-			if(socket_connection) {
-				io.emit('reload_js', filename);
-			}
-		});
+		// watch_js(function (filename) {
+		// 	if(socket_connection) {
+		// 		io.emit('reload_js', filename);
+		// 	}
+		// });
 		watch_build_json();
 	});
 
