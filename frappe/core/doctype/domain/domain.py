@@ -15,6 +15,7 @@ class Domain(Document):
 	def setup_domain(self):
 		'''Setup domain icons, permissions, custom fields etc.'''
 		self.setup_data()
+		self.setup_roles()
 		self.setup_properties()
 		self.set_values()
 		if not int(frappe.db.get_single_value('System Settings', 'setup_complete') or 0):
@@ -30,6 +31,14 @@ class Domain(Document):
 			# custom on_setup method
 			frappe.get_attr(self.data.on_setup)()
 
+
+	def setup_roles(self):
+		'''Enable roles that are restricted to this domain'''
+		if self.data.restricted_roles:
+			for role_name in self.data.restricted_roles:
+				role = frappe.get_doc('Role', role_name)
+				role.disabled = 0
+				role.save()
 
 	def setup_data(self, domain=None):
 		'''Load domain info via hooks'''
