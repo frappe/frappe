@@ -63,10 +63,8 @@ frappe.ui.form.save = function (frm, action, callback, btn) {
 					return cint(df.in_list_view) === 1;
 				});
 
-				var empty_rows = []
-
 				var is_empty_row = function(cells) {
-					for (i=0; i < cells.length; i++){
+					for (var i=0; i < cells.length; i++){
 						if(locals[doc.doctype][doc.name][cells[i].fieldname]){
 							return false;
 						}
