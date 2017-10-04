@@ -32,6 +32,11 @@ def get_data():
 					"name": "Dropbox Settings",
 					"description": _("Dropbox backup settings"),
 				},
+				{
+					"type": "doctype",
+					"name": "S3 Backup Settings",
+					"description": _("S3 Backup Settings"),
+				},
 			]
 		},
 		{
