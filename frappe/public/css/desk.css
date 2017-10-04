@@ -398,9 +398,9 @@ fieldset[disabled] .form-control {
   width: 100%;
 }
 .awesomplete > ul {
-  z-index: 1041;
+  z-index: 1041 !important;
   transition: none;
-  background: #fff;
+  background-color: #fff;
   max-height: 200px;
   overflow-y: auto;
   overflow-x: hidden;
@@ -623,6 +623,9 @@ li.user-progress .progress-bar {
 .frappe-rtl input,
 .frappe-rtl textarea {
   direction: rtl;
+}
+.frappe-rtl .checkbox .disp-area {
+  margin-right: -20px;
 }
 .text-editor {
   height: 400px;

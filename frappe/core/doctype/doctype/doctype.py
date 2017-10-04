@@ -595,6 +595,15 @@ def validate_fields(meta):
 					frappe.throw(_("Sort field {0} must be a valid fieldname").format(fieldname),
 						InvalidFieldNameError)
 
+	def check_illegal_depends_on_conditions(docfield):
+		''' assignment operation should not be allowed in the depends on condition.'''
+		depends_on_fields = ["depends_on", "collapsible_depends_on"]
+		for field in depends_on_fields:
+			depends_on = docfield.get(field, None)
+			if depends_on and ("=" in depends_on) and \
+				re.match("""[\w\.:_]+\s*={1}\s*[\w\.@'"]+""", depends_on):
+				frappe.throw(_("Invalid {0} condition").format(frappe.unscrub(field)), frappe.ValidationError)
+
 	fields = meta.get("fields")
 	fieldname_list = [d.fieldname for d in fields]
 
@@ -620,6 +629,7 @@ def validate_fields(meta):
 		check_in_global_search(d)
 		check_illegal_default(d)
 		check_unique_and_text(d)
+		check_illegal_depends_on_conditions(d)
 
 	check_fold(fields)
 	check_search_fields(meta, fields)
@@ -753,6 +763,9 @@ def validate_permissions(doctype, for_remove=False):
 def make_module_and_roles(doc, perm_fieldname="permissions"):
 	"""Make `Module Def` and `Role` records if already not made. Called while installing."""
 	try:
+		if doc.restrict_to_domain and not frappe.db.exists('Domain', doc.restrict_to_domain):
+			frappe.get_doc(dict(doctype='Domain', domain=doc.restrict_to_domain)).insert()
+
 		if not frappe.db.exists("Module Def", doc.module):
 			m = frappe.get_doc({"doctype": "Module Def", "module_name": doc.module})
 			m.app_name = frappe.local.module_app[frappe.scrub(doc.module)]

@@ -1,3 +1,11 @@
 .grid-report {
   direction: ltr;
 }
+
+.chart_area{
+	direction: ltr;
+}
+
+.grid-report .show-zero{
+	direction: rtl ;
+}

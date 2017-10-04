@@ -23,6 +23,7 @@
 		"public/js/frappe/misc/rating_icons.html"
 	],
 	"js/control.min.js": [
+		"public/js/frappe/ui/capture.js",
 		"public/js/frappe/form/controls/base_control.js",
 		"public/js/frappe/form/controls/base_input.js",
 		"public/js/frappe/form/controls/data.js",
@@ -55,12 +56,15 @@
 	"js/dialog.min.js": [
 		"public/js/frappe/dom.js",
 		"public/js/frappe/ui/modal.html",
+
 		"public/js/frappe/form/formatters.js",
 		"public/js/frappe/form/layout.js",
 		"public/js/frappe/ui/field_group.js",
 		"public/js/frappe/form/link_selector.js",
 		"public/js/frappe/form/multi_select_dialog.js",
 		"public/js/frappe/ui/dialog.js",
+		"public/js/frappe/ui/capture.js",
+
 		"public/js/frappe/form/controls/base_control.js",
 		"public/js/frappe/form/controls/base_input.js",
 		"public/js/frappe/form/controls/data.js",
@@ -130,7 +134,9 @@
 		"public/js/lib/jSignature.min.js",
 		"public/js/frappe/translate.js",
 		"public/js/lib/datepicker/datepicker.min.js",
-		"public/js/lib/datepicker/locale-all.js"
+		"public/js/lib/datepicker/locale-all.js",
+		"public/js/lib/jquery.jrumble.min.js",
+		"public/js/lib/webcam.min.js"
 	],
 	"js/desk.min.js": [
 		"public/js/frappe/class.js",
@@ -168,6 +174,7 @@
 		"public/js/frappe/form/link_selector.js",
 		"public/js/frappe/form/multi_select_dialog.js",
 		"public/js/frappe/ui/dialog.js",
+		"public/js/frappe/ui/capture.js",
 		"public/js/frappe/ui/app_icon.js",
 
 		"public/js/frappe/model/model.js",

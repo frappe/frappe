@@ -72,6 +72,12 @@ def get_data():
 					"name": "GSuite Templates",
 					"description": _("Google GSuite Templates to integration with DocTypes"),
 				},
+				{
+					"type": "doctype",
+					"name": "Webhook",
+					"description": _("Webhooks calling API requests into web apps"),
+				}
+
 			]
 		}
 	]

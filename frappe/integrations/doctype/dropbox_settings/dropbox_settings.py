@@ -146,7 +146,7 @@ def upload_from_folder(path, dropbox_folder, dropbox_client, did_not_upload, err
 def upload_file_to_dropbox(filename, folder, dropbox_client):
 	create_folder_if_not_exists(folder, dropbox_client)
 	chunk_size = 4 * 1024 * 1024
-	file_size = os.path.getsize(filename)
+	file_size = os.path.getsize(encode(filename))
 	mode = (dropbox.files.WriteMode.overwrite)
 
 	f = open(encode(filename), 'rb')
