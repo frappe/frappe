@@ -684,36 +684,27 @@ def pull(now=False):
 			frappe.cache().set_value("workers:no-internet", False)
 		else:
 			return
-
 	queued_jobs = get_jobs(site=frappe.local.site, key='job_name')[frappe.local.site]
-	email_accounts = frappe.db.sql_list("""select name from `tabEmail Account` where
-		enable_incoming=1 and awaiting_password=0""")
+	for email_account in frappe.get_list("Email Account",
+		filters={"enable_incoming": 1, "awaiting_password": 0}):
+		if now:
+			pull_from_email_account(email_account.name)
 
-	# No incoming email account available
-	if not email_accounts:
-		return
+		else:
+			# job_name is used to prevent duplicates in queue
+			job_name = 'pull_from_email_account|{0}'.format(email_account.name)
 
-	if now:
-		pull_from_email_accounts(email_accounts)
-	else:
-		# job_name is used to prevent duplicates in queue
-		job_name = 'pull_from_email_accounts|{0}'.format(",".join(email_accounts))
+			if job_name not in queued_jobs:
+				enqueue(pull_from_email_account, 'short', event='all', job_name=job_name,
+					email_account=email_account.name)
 
-		if job_name not in queued_jobs:
-			enqueue(pull_from_email_accounts, 'short', event='all', job_name=job_name,
-				email_accounts=email_accounts)
-
-def pull_from_email_accounts(email_accounts):
+def pull_from_email_account(email_account):
 	'''Runs within a worker process'''
-	if not email_accounts:
-		return
+	email_account = frappe.get_doc("Email Account", email_account)
+	email_account.receive()
 
-	for email_account in email_accounts:
-		email_account = frappe.get_doc("Email Account", email_account)
-		email_account.receive()
-
-		# mark Email Flag Queue mail as read
-		email_account.mark_emails_as_read_unread()
+	# mark Email Flag Queue mail as read
+	email_account.mark_emails_as_read_unread()
 
 def get_max_email_uid(email_account):
 	# get maximum uid of emails
