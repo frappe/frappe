@@ -12,7 +12,13 @@ frappe.upload = {
 
 		// whether to show public/private checkbox or not
 		opts.show_private = !("is_private" in opts);
-
+		
+		// make private by default
+		if (!("options" in opts) || ("options" in opts &&
+			(!opts.options.toLowerCase()=="public" && !opts.options.toLowerCase()=="image"))) {
+			opts.is_private = 1;
+		}
+		
 		var d = null;
 		// create new dialog if no parent given
 		if(!opts.parent) {
@@ -237,7 +243,6 @@ frappe.upload = {
 		if (args.file_size) {
 			frappe.upload.validate_max_file_size(args.file_size);
 		}
-
 		if(opts.on_attach) {
 			opts.on_attach(args)
 		} else {
@@ -252,7 +257,7 @@ frappe.upload = {
 					frappe.upload.upload_to_server(fileobj, args, opts);
 				}, __("Private or Public?"));
 			} else {
-				if ("is_private" in opts) {
+				if (!("is_private" in args) && "is_private" in opts) {
 					args["is_private"] = opts.is_private;
 				}
 

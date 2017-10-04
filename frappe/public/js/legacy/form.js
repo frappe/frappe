@@ -497,7 +497,7 @@ _f.Frm.prototype.render_form = function(is_a_different_doc) {
 
 		// trigger global trigger
 		// to use this
-		$(document).trigger('form_refresh', [this]);
+		$(document).trigger('form-refresh', [this]);
 
 		// fields
 		this.refresh_fields();

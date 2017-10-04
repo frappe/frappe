@@ -9,3 +9,5 @@ locale
 dist/
 build/
 frappe/docs/current
+.vscode
+node_modules

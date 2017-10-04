@@ -112,13 +112,17 @@ $.extend(frappe.desktop, {
 	},
 
 	setup_module_click: function() {
+		frappe.desktop.wiggling = false;
+
 		if(frappe.list_desktop) {
 			frappe.desktop.wrapper.on("click", ".desktop-list-item", function() {
 				frappe.desktop.open_module($(this));
 			});
 		} else {
 			frappe.desktop.wrapper.on("click", ".app-icon", function() {
-				frappe.desktop.open_module($(this).parent());
+				if ( !frappe.desktop.wiggling ) {
+					frappe.desktop.open_module($(this).parent());
+				}
 			});
 		}
 		frappe.desktop.wrapper.on("click", ".circle", function() {
@@ -127,6 +131,116 @@ $.extend(frappe.desktop, {
 				frappe.ui.notifications.show_open_count_list(doctype);
 			}
 		});
+
+		frappe.desktop.setup_wiggle();
+	},
+
+	setup_wiggle: () => {
+		// Wiggle, Wiggle, Wiggle.
+		const DURATION_LONG_PRESS = 1000;
+		// lesser the antidode, more the wiggle (like your drunk uncle)
+		// 75 seems good to replicate the iOS feels.
+		const WIGGLE_ANTIDODE     = 75;
+
+		var   timer_id      = 0;
+		const $cases        = frappe.desktop.wrapper.find('.case-wrapper');
+		const $icons        = frappe.desktop.wrapper.find('.app-icon');
+		const $notis        = $(frappe.desktop.wrapper.find('.circle').toArray().filter((object) => {
+			// This hack is so bad, I should punch myself.
+			// Seriously, punch yourself.
+			const text      = $(object).find('.circle-text').html();
+			
+			return text;
+		}));
+		
+		const clearWiggle   = () => {
+			const $closes   = $cases.find('.module-remove');
+			$closes.hide();
+			$notis.show();
+
+			$icons.trigger('stopRumble');
+
+			frappe.desktop.wiggling   = false;
+		};
+
+		// initiate wiggling.
+		$icons.jrumble({
+			speed: WIGGLE_ANTIDODE // seems neat enough to match the iOS way
+		});
+
+		frappe.desktop.wrapper.on('mousedown', '.app-icon', () => {
+			timer_id     = setTimeout(() => {
+				frappe.desktop.wiggling = true;
+				// hide all notifications.
+				$notis.hide();
+				
+				$cases.each((i) => {
+					const $case    = $($cases[i]);
+					const template = 
+					`
+						<div class="circle module-remove" style="background-color:#E0E0E0; color:#212121">
+							<div class="circle-text">
+								<b>
+									&times
+								</b>
+							</div>
+						</div>
+					`;
+
+					$case.append(template);
+					const $close  = $case.find('.module-remove');
+					const name    = $case.attr('title');
+					$close.click(() => {
+						// good enough to create dynamic dialogs?
+						const dialog = new frappe.ui.Dialog({
+							title: __(`Hide ${name}?`)
+						});
+						dialog.set_primary_action(__('Hide'), () => {
+							frappe.call({
+								method: 'frappe.desk.doctype.desktop_icon.desktop_icon.hide',
+								args: { name: name },
+								freeze: true,
+								callback: (response) => 
+								{
+									if ( response.message ) {
+										location.reload();
+									}
+								}
+							})
+
+							dialog.hide();
+							
+							clearWiggle();
+						});
+						// Hacks, Hacks and Hacks.
+						var $cancel = dialog.get_close_btn();
+						$cancel.click(() => {
+							clearWiggle();
+						});
+						$cancel.html(__(`Cancel`));
+
+						dialog.show();
+					});
+				});
+			
+				$icons.trigger('startRumble');
+			}, DURATION_LONG_PRESS);
+		});
+		frappe.desktop.wrapper.on('mouseup mouseleave', '.app-icon', () => {
+			clearTimeout(timer_id);
+		});
+
+		// also stop wiggling if clicked elsewhere.
+		$('body').click((event) => {
+			if ( frappe.desktop.wiggling ) {
+				const $target = $(event.target);
+				// our target shouldn't be .app-icons or .close
+				const $parent = $target.parents('.case-wrapper');
+				if ( $parent.length == 0 )
+					clearWiggle();
+			}
+		});
+		// end wiggle
 	},
 
 	open_module: function(parent) {
