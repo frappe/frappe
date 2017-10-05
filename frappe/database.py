@@ -738,7 +738,7 @@ class Database:
 		self.sql("commit")
 		frappe.local.rollback_observers = []
 		self.flush_realtime_log()
-		execute_enqueued_jobs()
+		enqueue_jobs_after_commit()
 		flush_local_link_count()
 
 	def flush_realtime_log(self):
@@ -883,7 +883,7 @@ class Database:
 
 		return s
 
-def execute_enqueued_jobs():
+def enqueue_jobs_after_commit():
 	if frappe.flags.enqueue_after_commit and len(frappe.flags.enqueue_after_commit) > 0:
 		for job in frappe.flags.enqueue_after_commit:
 			q = get_queue(job.get("queue"), async=job.get("async"))
