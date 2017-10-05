@@ -18,12 +18,9 @@ frappe.pages['usage-info'].on_page_load = function(wrapper) {
 			$(frappe.render_template("usage_info", usage_info)).appendTo(page.main);
 
 			var btn_text = usage_info.limits.users == 1 ? __("Upgrade") : __("Renew / Upgrade");
-
-			if(usage_info.upgrade_url) {
-				page.set_primary_action(btn_text, function() {
-					window.open(usage_info.upgrade_url);
-				});
-			}
+			$(page.main).find('.btn-primary').html(btn_text).on('click', () => {
+				window.open(usage_info.upgrade_url);
+			});
 		}
 	});
 
