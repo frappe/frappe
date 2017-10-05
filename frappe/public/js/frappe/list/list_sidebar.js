@@ -28,6 +28,12 @@ frappe.views.ListSidebar = Class.extend({
 		this.setup_views();
 		this.setup_kanban_boards();
 		this.setup_email_inbox();
+
+		let limits = frappe.boot.limits;
+
+		if(limits.upgrade_url && limits.expiry && !frappe.flags.upgrade_dismissed) {
+			this.setup_upgrade_box();
+		}
 	},
 	setup_views: function() {
 		var show_list_link = false;
@@ -66,7 +72,7 @@ frappe.views.ListSidebar = Class.extend({
 
 		//enable link for Kanban view
 		this.sidebar.find('.list-link[data-view="Kanban"] a, .list-link[data-view="Inbox"] a')
-			.attr('disabled', null).removeClass('disabled')
+			.attr('disabled', null).removeClass('disabled');
 
 		// show image link if image_view
 		if(this.list_view.meta.image_field) {
@@ -97,7 +103,7 @@ frappe.views.ListSidebar = Class.extend({
 						added.push(route);
 
 						if(!divider) {
-							$('<li role="separator" class="divider"></li>').appendTo(dropdown);
+							me.get_divider().appendTo(dropdown);
 							divider = true;
 						}
 
@@ -129,7 +135,7 @@ frappe.views.ListSidebar = Class.extend({
 		boards.forEach(function(board) {
 			var route = ["List", board.reference_doctype, "Kanban", board.name].join('/');
 			if(!divider) {
-				$('<li role="separator" class="divider"></li>').appendTo($dropdown);
+				me.get_divider().appendTo($dropdown);
 				divider = true;
 			}
 			$(`<li><a href="#${route}">
@@ -284,7 +290,7 @@ frappe.views.ListSidebar = Class.extend({
 			var email_account = (account.email_id == "All Accounts")? "All Accounts": account.email_account;
 			var route = ["List", "Communication", "Inbox", email_account].join('/');
 			if(!divider) {
-				$('<li role="separator" class="divider"></li>').appendTo($dropdown);
+				this.get_divider().appendTo($dropdown);
 				divider = true;
 			}
 			$('<li><a href="#'+ route + '">'+account.email_id+'</a></li>').appendTo($dropdown);
@@ -293,7 +299,7 @@ frappe.views.ListSidebar = Class.extend({
 		});
 
 		$dropdown.find('.new-email-account').click(function() {
-			frappe.new_doc("Email Account")
+			frappe.new_doc("Email Account");
 		});
 	},
 	setup_assigned_to_me: function() {
@@ -302,11 +308,32 @@ frappe.views.ListSidebar = Class.extend({
 			me.list_view.assigned_to_me();
 		});
 	},
+	setup_upgrade_box: function() {
+		let upgrade_list = $(`<ul class="list-unstyled sidebar-menu"></ul>`).appendTo(this.sidebar);
+		let upgrade_box = $(`<div class="border" style="
+				padding: 0px 10px;
+				border-radius: 3px;
+			">
+			<a><i class="octicon octicon-x pull-right close" style="margin-top: 10px;"></i></a>
+			<h5>Go Premium</h5>
+			<p>Upgrade to a premium plan with more users, storage and priority support.</p>
+			<button class="btn btn-sm btn-default" style="margin-bottom: 10px;">Upgrade</button>
+		</div>`).appendTo(upgrade_list);
+
+		upgrade_box.find('.btn-primary').on('click', () => {
+			window.open(frappe.boot.limits.upgrade_url);
+		});
+
+		upgrade_box.find('.close').on('click', () => {
+			upgrade_list.remove();
+			frappe.flags.upgrade_dismissed = 1;
+		});
+	},
 	get_cat_tags:function(){
 		return this.cat_tags;
 	},
 	get_stats: function() {
-		var me = this
+		var me = this;
 		frappe.call({
 			method: 'frappe.desk.reportview.get_sidebar_stats',
 			args: {
@@ -421,4 +448,7 @@ frappe.views.ListSidebar = Class.extend({
 		this.sidebar.find(".sidebar-stat").remove();
 		this.get_stats();
 	},
+	get_divider: function() {
+		return $('<li role="separator" class="divider"></li>');
+	}
 });

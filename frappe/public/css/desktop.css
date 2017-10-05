@@ -59,7 +59,6 @@ body[data-route="desktop"] .navbar-default {
   width: 32px;
 }
 .app-icon path {
-  fill: #fafbfc;
   transition: 0.2s;
   -webkit-transition: 0.2s;
 }
@@ -79,9 +78,6 @@ body[data-route="desktop"] .navbar-default {
   text-shadow: none;
   letter-spacing: normal;
   cursor: pointer;
-}
-.app-icon:hover path {
-  fill: #fff;
 }
 .app-icon:hover i,
 .app-icon:hover {

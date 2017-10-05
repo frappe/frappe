@@ -9,11 +9,6 @@ import frappe, os, json
 import frappe.utils
 from frappe import _
 
-lower_case_files_for = ['DocType', 'Page', 'Report',
-	"Workflow", 'Module Def', 'Desktop Item', 'Workflow State',
-	'Workflow Action', 'Print Format', "Website Theme", 'Web Form',
-	'Email Alert', 'Print Style']
-
 def export_module_json(doc, is_standard, module):
 	"""Make a folder for the given doc and add its json file (make it a standard
 		object that will be synced)"""
@@ -134,11 +129,7 @@ def scrub(txt):
 
 def scrub_dt_dn(dt, dn):
 	"""Returns in lowercase and code friendly names of doctype and name for certain types"""
-	ndt, ndn = dt, dn
-	if dt in lower_case_files_for:
-		ndt, ndn = scrub(dt), scrub(dn)
-
-	return ndt, ndn
+	return scrub(dt), scrub(dn)
 
 def get_module_path(module):
 	"""Returns path of the given module"""
