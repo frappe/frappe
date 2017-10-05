@@ -110,7 +110,7 @@ doc_events = {
 	"*": {
 		"on_update": [
 			"frappe.desk.notifications.clear_doctype_notifications",
-			"frappe.core.doctype.communication.feed.update_feed"
+			"frappe.core.doctype.activity_log.feed.update_feed"
 		],
 		"after_rename": "frappe.desk.notifications.clear_doctype_notifications",
 		"on_cancel": [
