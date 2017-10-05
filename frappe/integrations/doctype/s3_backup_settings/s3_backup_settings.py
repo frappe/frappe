@@ -18,12 +18,14 @@ class S3BackupSettings(Document):
 	def validate(self):
 		bucket_lower = str(self.bucket).lower()	
 		
-		try:
-			conn = boto3.client(
+		conn = boto3.client(
 			's3',
 			aws_access_key_id=self.access_key_id,
 			aws_secret_access_key=self.get_password('secret_access_key'),
 			)
+
+		try:
+			conn.list_buckets()
 
 		except:
 			frappe.throw(_("Invalid Access Key or Secret Key."))
@@ -118,8 +120,6 @@ def backup_to_s3():
 def upload_file_to_s3(filename, folder, conn, bucket):
 
 	destpath = os.path.join(folder, os.path.basename(filename))
-	doc = frappe.get_single("S3 Backup Settings")
-
 	try:
 		print "Uploading file:", filename
 		conn.upload_file(filename, bucket, destpath)
