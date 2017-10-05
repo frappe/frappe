@@ -49,6 +49,15 @@ def enqueue(method, queue='default', timeout=300, event=None,
 			"kwargs": kwargs
 		})
 
+def enqueue_doc(doctype, name=None, method=None, queue='default', timeout=300,
+	now=False, **kwargs):
+	'''Enqueue a method to be run on a document'''
+	enqueue('frappe.utils.background_jobs.run_doc_method', doctype=doctype, name=name,
+		doc_method=method, queue=queue, timeout=timeout, now=now, **kwargs)
+
+def run_doc_method(doctype, name, doc_method, **kwargs):
+	getattr(frappe.get_doc(doctype, name), doc_method)(**kwargs)
+
 def execute_job(site, method, event, job_name, kwargs, user=None, async=True, retry=0):
 	'''Executes job in a worker, performs commit/rollback and logs if there is any error'''
 	from frappe.utils.scheduler import log

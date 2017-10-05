@@ -867,6 +867,46 @@ class Document(BaseDocument):
 			not self.meta.get("istable"):
 			frappe.publish_realtime("list_update", {"doctype": self.doctype}, after_commit=True)
 
+	def db_set(self, fieldname, value=None, update_modified=True, notify=False, commit=False):
+		'''Set a value in the document object, update the timestamp and update the database.
+
+		WARNING: This method does not trigger controller validations and should
+		be used very carefully.
+
+		:param fieldname: fieldname of the property to be updated, or a {"field":"value"} dictionary
+		:param value: value of the property to be updated
+		:param update_modified: default True. updates the `modified` and `modified_by` properties
+		:param notify: default False. run doc.notify_updated() to send updates via socketio
+		:param commit: default False. run frappe.db.commit()
+		'''
+		if isinstance(fieldname, dict):
+			self.update(fieldname)
+		else:
+			self.set(fieldname, value)
+
+		if update_modified and (self.doctype, self.name) not in frappe.flags.currently_saving:
+			# don't update modified timestamp if called from post save methods
+			# like on_update or on_submit
+			self.set("modified", now())
+			self.set("modified_by", frappe.session.user)
+
+		# to trigger email alert on value change
+		self.run_method('before_change')
+
+		frappe.db.set_value(self.doctype, self.name, fieldname, value,
+			self.modified, self.modified_by, update_modified=update_modified)
+
+		self.run_method('on_change')
+
+		if notify:
+			self.notify_update()
+
+		if commit:
+			frappe.db.commit()
+
+	def db_get(self, fieldname):
+		'''get database vale for this fieldname'''
+		return frappe.db.get_value(self.doctype, self.name, fieldname)
 
 	def check_no_back_links_exist(self):
 		"""Check if document links to any active document before Cancel."""

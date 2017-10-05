@@ -70,7 +70,12 @@ frappe.pages['setup-wizard'].on_page_show = function(wrapper) {
 
 frappe.setup.on("before_load", function() {
 	// load slides
-	frappe.setup.slides_settings.map(frappe.setup.add_slide);
+	frappe.setup.slides_settings.forEach((s) => {
+		if(!(s.name==='user' && frappe.boot.developer_mode)) {
+			// if not user slide with developer mode
+			frappe.setup.add_slide(s);
+		}
+	});
 });
 
 frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
@@ -232,6 +237,7 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 		this.working_state_message = this.get_message(
 			__("Setting Up"),
 			__("Sit tight while your system is being setup. This may take a few moments."),
+			'orange',
 			true
 		).appendTo(this.parent);
 
@@ -239,7 +245,8 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 		this.current_slide = null;
 		this.completed_state_message = this.get_message(
 			__("Setup Complete"),
-			__("You're all set!")
+			__("You're all set!"),
+			'green'
 		);
 	}
 
