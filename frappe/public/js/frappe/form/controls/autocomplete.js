@@ -17,7 +17,7 @@ frappe.ui.form.ControlAutocomplete = frappe.ui.form.ControlData.extend({
 					item = {
 						label: item,
 						value: item
-					}
+					};
 				}
 
 				return {
@@ -42,7 +42,7 @@ frappe.ui.form.ControlAutocomplete = frappe.ui.form.ControlData.extend({
 
 		this.$input.on('awesomplete-selectcomplete', () => {
 			this.$input.trigger('change');
-		})
+		});
 	},
 
 	get_data() {
