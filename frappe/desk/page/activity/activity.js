@@ -40,8 +40,8 @@ frappe.pages['activity'].on_page_load = function(wrapper) {
 					}
 				} else {
 					return {}
-				}
-			}
+				
+}			}
 		});
 
 		me.page.list.run();
@@ -188,7 +188,6 @@ frappe.activity.render_heatmap = function(page) {
 					count_label: "actions",
 					discrete_domains: 0
 				});
-
 				heatmap.update(r.message);
 			}
 		}
