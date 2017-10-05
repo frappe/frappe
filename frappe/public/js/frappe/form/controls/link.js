@@ -134,74 +134,11 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		});
 
 		this.$input.on("input", function(e) {
-			var doctype = me.get_options();
-			if(!doctype) return;
-			if (!me.$input.cache[doctype]) {
-				me.$input.cache[doctype] = {};
-			}
-
-			var term = e.target.value;
-
-			if (me.$input.cache[doctype][term]!=null) {
-				// immediately show from cache
-				me.awesomplete.list = me.$input.cache[doctype][term];
-			}
-
-			var args = {
-				'txt': term,
-				'doctype': doctype,
-			};
-
-			me.set_custom_query(args);
-
-			frappe.call({
-				type: "GET",
-				method:'frappe.desk.search.search_link',
-				no_spinner: true,
-				args: args,
-				callback: function(r) {
-					if(!me.$input.is(":focus")) {
-						return;
-					}
-
-					if(!me.df.only_select) {
-						if(frappe.model.can_create(doctype)
-							&& me.df.fieldtype !== "Dynamic Link") {
-							// new item
-							r.results.push({
-								label: "<span class='text-primary link-option'>"
-									+ "<i class='fa fa-plus' style='margin-right: 5px;'></i> "
-									+ __("Create a new {0}", [__(me.df.options)])
-									+ "</span>",
-								value: "create_new__link_option",
-								action: me.new_doc
-							});
-						}
-						// advanced search
-						r.results.push({
-							label: "<span class='text-primary link-option'>"
-								+ "<i class='fa fa-search' style='margin-right: 5px;'></i> "
-								+ __("Advanced Search")
-								+ "</span>",
-							value: "advanced_search__link_option",
-							action: me.open_advanced_search
-						});
-					}
-					me.$input.cache[doctype][term] = r.results;
-					me.awesomplete.list = me.$input.cache[doctype][term];
-				}
-			});
+			me.search_link_value(e.target.value);
 		});
 
 		this.$input.on("blur", function() {
-			if(me.selected) {
-				me.selected = false;
-				return;
-			}
-			var value = me.get_input_value();
-			if(value!==me.last_value) {
-				me.parse_validate_and_set_in_model(value);
-			}
+			me.set_selected_value();
 		});
 
 		this.$input.on("awesomplete-open", function() {
@@ -251,6 +188,86 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 				me.$input.val("");
 			}
 		});
+	},
+	search_link_value: function(search_value) {
+		var me = this;
+		var doctype = me.get_options();
+		if(!doctype) return;
+		if (!me.$input.cache[doctype]) {
+			me.$input.cache[doctype] = {};
+		}
+
+		var term = search_value;
+
+		if (me.$input.cache[doctype][term]!=null) {
+			// immediately show from cache
+			me.awesomplete.list = me.$input.cache[doctype][term];
+		}
+
+		var args = {
+			'txt': term,
+			'doctype': doctype,
+		};
+
+		me.set_custom_query(args);
+
+		frappe.call({
+			type: "GET",
+			method:'frappe.desk.search.search_link',
+			no_spinner: true,
+			args: args,
+			error: function() {
+				if (frappe.offline_data[doctype] && me.search_in_cache) {
+					me.search_in_cache(doctype, term);
+				}
+			},
+			callback: function(r) {
+				if(!me.$input.is(":focus")) {
+					return;
+				}
+
+				me.update_awesomplete_list(doctype, term, r.results);
+			}
+		});
+	},
+	update_awesomplete_list: function(doctype, term, results) {
+		var me = this;
+		if(!me.df.only_select) {
+			if(frappe.model.can_create(doctype)
+				&& me.df.fieldtype !== "Dynamic Link") {
+				// new item
+				results.push({
+					label: "<span class='text-primary link-option'>"
+						+ "<i class='fa fa-plus' style='margin-right: 5px;'></i> "
+						+ __("Create a new {0}", [__(me.df.options)])
+						+ "</span>",
+					value: "create_new__link_option",
+					action: me.new_doc
+				});
+			}
+			// advanced search
+			results.push({
+				label: "<span class='text-primary link-option'>"
+					+ "<i class='fa fa-search' style='margin-right: 5px;'></i> "
+					+ __("Advanced Search")
+					+ "</span>",
+				value: "advanced_search__link_option",
+				action: me.open_advanced_search
+			});
+		}
+		me.$input.cache[doctype][term] = results;
+		me.awesomplete.list = me.$input.cache[doctype][term];
+	},
+	set_selected_value: function() {
+		var me = this;
+		if(me.selected) {
+			me.selected = false;
+			return;
+		}
+		var value = me.get_input_value();
+		if(value!==me.last_value) {
+			me.parse_validate_and_set_in_model(value);
+		}
 	},
 	set_custom_query: function(args) {
 		var set_nulls = function(obj) {
