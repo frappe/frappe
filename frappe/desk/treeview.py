@@ -59,7 +59,7 @@ def make_tree_args(**kwarg):
 	
 	doctype = kwarg['doctype']
 	parent_field = 'parent_' + doctype.lower().replace(' ', '_')
-	name_field = doctype.lower().replace(' ', '_') + '_name'
+	name_field = kwarg.get('name_field', doctype.lower().replace(' ', '_') + '_name')
 	
 	kwarg.update({
 		name_field: kwarg[name_field],
