@@ -4,7 +4,6 @@
 
 from __future__ import unicode_literals
 import os
-import re
 import os.path
 import frappe
 from frappe import _
