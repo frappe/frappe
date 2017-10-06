@@ -308,7 +308,10 @@ frappe.ui.form.GridRow = Class.extend({
 		} else {
 			this.row.toggleClass('editable-row', false);
 			this.columns_list.forEach(function(column) {
-				column.static_area.toggle(true);
+				if (column.df.hidden == false) {
+					column.static_area.toggle(true);
+				}
+
 				column.field_area && column.field_area.toggle(false);
 			});
 			frappe.ui.form.editable_row = null;

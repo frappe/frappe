@@ -353,6 +353,34 @@ frappe.ui.form.Grid = Class.extend({
 			}
 		} else {
 			this.get_docfield(fieldname).hidden = show ? 0 : 1;
+			var fname = fieldname;
+		}
+
+		//Hide columns for editable grids
+		if (this.is_editable()) {
+			this.grid_rows.forEach(function(row) {
+				row.columns_list.forEach(function(column) {
+					//Hide the column specified
+					if (column.df.fieldname == fname) {
+						//Show the static area and hide field area if it is not the editable row
+						if (show && (row != frappe.ui.form.editable_row)) {
+							column.static_area.show();
+							column.field_area && column.field_area.toggle(false);
+						}
+						else {
+							//Hide the static area but show the field area if it is the editable row
+							column.static_area.hide();
+							column.field_area && column.field_area.toggle(true);
+
+							//Format the editable column appropriately if it is now visible
+							if (column.field) {
+								column.field.refresh();
+								if (column.field.$input) column.field.$input.toggleClass('input-sm', true);
+							}
+						}
+					}
+				});
+			});
 		}
 
 		this.refresh(true);
