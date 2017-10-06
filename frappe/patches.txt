@@ -194,3 +194,4 @@ frappe.patches.v8_5.patch_event_colors
 frappe.patches.v8_7.update_email_queue_status
 frappe.patches.v8_10.delete_static_web_page_from_global_search
 frappe.patches.v8_x.add_bgn_xaf_xof_currencies
+frappe.patches.v9_x.set_custom_docperm_parent_doctype
