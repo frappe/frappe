@@ -84,7 +84,7 @@ class Report(Document):
 
 		if self.is_standard == 'Yes' and (frappe.local.conf.get('developer_mode') or 0) == 1:
 			export_to_files(record_list=[['Report', self.name]],
-				record_module=self.module)
+				record_module=self.module, create_init=True)
 
 			self.create_report_py()
 
