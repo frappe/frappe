@@ -10,7 +10,7 @@ from frappe.modules import scrub, get_module_path, scrub_dt_dn
 def export_doc(doc):
 	export_to_files([[doc.doctype, doc.name]])
 
-def export_to_files(record_list=None, record_module=None, verbose=0, create_init=None):
+def export_to_files(record_list=None, record_module=None, verbose=0, create_init=True):
 	"""
 		Export record_list to files. record_list is a list of lists ([doctype],[docname] )  ,
 	"""
