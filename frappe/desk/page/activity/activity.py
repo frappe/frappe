@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe.utils import cint
-from frappe.core.doctype.communication.feed import get_feed_match_conditions
+from frappe.core.doctype.activity_log.feed import get_feed_match_conditions
 
 @frappe.whitelist()
 def get_feed(start, page_length, show_likes=False):
