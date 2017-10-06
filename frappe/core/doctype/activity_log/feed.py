@@ -60,7 +60,7 @@ def logout_feed(user, reason):
 def get_feed_match_conditions(user=None, force=True):
 	if not user: user = frappe.session.user
 
-	conditions = ['`tabActivity Log`.owner="{user}" or `tabActivity Log`.reference_owner="{user}"'.format(user=frappe.db.escape(user))]
+	conditions = ['`tabCommunication`.owner="{user}" or `tabCommunication`.reference_owner="{user}"'.format(user=frappe.db.escape(user))]
 
 	user_permissions = frappe.permissions.get_user_permissions(user)
 	can_read = frappe.get_user().get_can_read()
@@ -69,9 +69,9 @@ def get_feed_match_conditions(user=None, force=True):
 		list(set(can_read) - set(user_permissions.keys()))]
 
 	if can_read_doctypes:
-		conditions += ["""(`tabActivity Log`.reference_doctype is null
-			or `tabActivity Log`.reference_doctype = ''
-			or `tabActivity Log`.reference_doctype in ({}))""".format(", ".join(can_read_doctypes))]
+		conditions += ["""(`tabCommunication`.reference_doctype is null
+			or `tabCommunication`.reference_doctype = ''
+			or `tabCommunication`.reference_doctype in ({}))""".format(", ".join(can_read_doctypes))]
 
 		if user_permissions:
 			can_read_docs = []
@@ -80,7 +80,7 @@ def get_feed_match_conditions(user=None, force=True):
 					can_read_docs.append('"{}|{}"'.format(doctype, frappe.db.escape(n)))
 
 			if can_read_docs:
-				conditions.append("concat_ws('|', `tabActivity Log`.reference_doctype, `tabActivity Log`.reference_name) in ({})".format(
+				conditions.append("concat_ws('|', `tabCommunication`.reference_doctype, `tabCommunication`.reference_name) in ({})".format(
 					", ".join(can_read_docs)))
 
 	return "(" + " or ".join(conditions) + ")"
