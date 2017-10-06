@@ -19,7 +19,7 @@ import frappe
 from ast import literal_eval
 
 class TestDriver(object):
-	def __init__(self, port='8000'):
+	def __init__(self, port=frappe.get_site_config().webserver_port):
 		self.port = port
 
 		chrome_options = Options()
