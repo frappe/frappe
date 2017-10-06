@@ -672,7 +672,7 @@ frappe.views.GridReportWithPlot = frappe.views.GridReport.extend({
 		}
 		var chart_data = this.get_chart_data ? this.get_chart_data() : null;
 
-		this.chart = new FrappeChart({
+		this.chart = new frappe.chart.FrappeChart({
 			parent: ".chart",
 			height: 200,
 			data: chart_data,

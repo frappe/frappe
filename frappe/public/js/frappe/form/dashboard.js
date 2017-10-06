@@ -334,7 +334,7 @@ frappe.ui.form.Dashboard = Class.extend({
 	// heatmap
 	render_heatmap: function() {
 		if(!this.heatmap) {
-			this.heatmap = new FrappeChart({
+			this.heatmap = new frappe.chart.FrappeChart({
 				parent: "#heatmap-" + frappe.model.scrub(this.frm.doctype),
 				type: 'heatmap',
 				height: 100,
@@ -412,7 +412,7 @@ frappe.ui.form.Dashboard = Class.extend({
 		});
 		this.show();
 
-		this.chart = new FrappeChart(args);
+		this.chart = new frappe.chart.FrappeChart(args);
 		if(!this.chart) {
 			this.hide();
 		}

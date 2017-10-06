@@ -16,7 +16,7 @@
 
 // Validate all arguments, check passed data format, set defaults
 
-class FrappeChart {
+frappe.chart.FrappeChart = class {
 	constructor({
 		parent = "",
 		height = 240,
@@ -33,15 +33,15 @@ class FrappeChart {
 
 		type = ''
 	}) {
-		if(Object.getPrototypeOf(this) === FrappeChart.prototype) {
+		if(Object.getPrototypeOf(this) === frappe.chart.FrappeChart.prototype) {
 			if(type === 'line') {
-				return new LineGraph(arguments[0]);
+				return new frappe.chart.LineChart(arguments[0]);
 			} else if(type === 'bar') {
-				return new BarGraph(arguments[0]);
+				return new frappe.chart.BarChart(arguments[0]);
 			} else if(type === 'percentage') {
-				return new PercentageGraph(arguments[0]);
+				return new frappe.chart.PercentageChart(arguments[0]);
 			} else if(type === 'heatmap') {
-				return new HeatMap(arguments[0]);
+				return new frappe.chart.HeatMap(arguments[0]);
 			}
 		}
 
@@ -161,7 +161,7 @@ class FrappeChart {
 	}
 
 	make_tooltip() {
-		this.tip = new SvgTip({
+		this.tip = new frappe.chart.SvgTip({
 			parent: this.chart_wrapper,
 		});
 		this.bind_tooltip();
@@ -279,7 +279,7 @@ class FrappeChart {
 	}
 }
 
-class AxisGraph extends FrappeChart {
+frappe.chart.AxisChart = class AxisChart extends frappe.chart.FrappeChart {
 	constructor(args) {
 		super(args);
 
@@ -302,7 +302,7 @@ class AxisGraph extends FrappeChart {
 
 	setup_x() {
 		this.set_avg_unit_width_and_x_offset();
-		this.x_axis_values = this.x.map((d, i) => frappe.chart_utils.float_2(this.x_offset + i * this.avg_unit_width));
+		this.x_axis_values = this.x.map((d, i) => frappe.chart.utils.float_2(this.x_offset + i * this.avg_unit_width));
 	}
 
 	setup_y() {
@@ -590,7 +590,7 @@ class AxisGraph extends FrappeChart {
 
 	animate_for_equilength_data(elements_to_animate) {
 		this.y.map((d, i) => {
-			d.y_tops = d.values.map(val => frappe.chart_utils.float_2(this.height - val * this.multiplier));
+			d.y_tops = d.values.map(val => frappe.chart.utils.float_2(this.height - val * this.multiplier));
 			d.svg_units.map((unit, j) => {
 				elements_to_animate.push(this.animate[this.unit_args.type](
 					{unit:unit, array:d.svg_units, index: j}, // unit, with info to replace from data
@@ -651,7 +651,7 @@ class AxisGraph extends FrappeChart {
 
 	calc_all_y_tops() {
 		this.y.map(d => {
-			d.y_tops = d.values.map( val => frappe.chart_utils.float_2(this.height - val * this.multiplier));
+			d.y_tops = d.values.map( val => frappe.chart.utils.float_2(this.height - val * this.multiplier));
 		});
 	}
 
@@ -667,7 +667,7 @@ class AxisGraph extends FrappeChart {
 	}
 }
 
-class BarGraph extends AxisGraph {
+frappe.chart.BarChart = class BarChart extends frappe.chart.AxisChart {
 	constructor(args) {
 		super(arguments[0]);
 
@@ -731,10 +731,10 @@ class BarGraph extends AxisGraph {
 	}
 }
 
-class LineGraph extends AxisGraph {
+frappe.chart.LineChart = class LineChart extends frappe.chart.AxisChart {
 	constructor(args) {
 		super(args);
-		if(Object.getPrototypeOf(this) !== LineGraph.prototype) {
+		if(Object.getPrototypeOf(this) !== frappe.chart.LineChart.prototype) {
 			return;
 		}
 
@@ -766,7 +766,7 @@ class LineGraph extends AxisGraph {
 	}
 }
 
-class RegionGraph extends LineGraph {
+frappe.chart.RegionChart = class RegionChart extends frappe.chart.LineChart {
 	constructor(args) {
 		super(args);
 
@@ -776,7 +776,7 @@ class RegionGraph extends LineGraph {
 	}
 }
 
-class PercentageGraph extends FrappeChart {
+frappe.chart.PercentageChart = class PercentageChart extends frappe.chart.FrappeChart {
 	constructor(args) {
 		super(args);
 
@@ -883,7 +883,7 @@ class PercentageGraph extends FrappeChart {
 	}
 }
 
-class HeatMap extends FrappeChart {
+frappe.chart.HeatMap = class HeatMap extends frappe.chart.FrappeChart {
 	constructor({
 		start = new Date(moment().subtract(1, 'year').toDate()),
 		domain = '',
@@ -1162,7 +1162,7 @@ class HeatMap extends FrappeChart {
 	get_month_name() {}
 }
 
-class SvgTip {
+frappe.chart.SvgTip = class {
 	constructor({
 		parent = null
 	}) {
@@ -1273,7 +1273,7 @@ class SvgTip {
 	}
 }
 
-function map_c3(chart) {
+frappe.chart.map_c3 = (chart) => {
 	if (chart.data) {
 		let data = chart.data;
 		let type = chart.chart_type || 'line';
@@ -1346,8 +1346,8 @@ function map_c3(chart) {
 }
 
 // Helpers
-frappe.chart_utils = {};
-frappe.chart_utils.float_2 = d => parseFloat(d.toFixed(2));
+frappe.chart.utils = {};
+frappe.chart.utils.float_2 = d => parseFloat(d.toFixed(2));
 function $$(expr, con) {
 	return typeof expr === "string"? (con || document).querySelector(expr) : expr || null;
 }
