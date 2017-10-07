@@ -6,11 +6,12 @@ from __future__ import unicode_literals
 import os
 import os.path
 import frappe
+import boto3
 from frappe import _
 from frappe.model.document import Document
 from frappe.utils import cint, split_emails
 from frappe.utils.background_jobs import enqueue
-import boto3
+from botocore.exceptions import ClientError
 
 class S3BackupSettings(Document):
 
@@ -26,13 +27,13 @@ class S3BackupSettings(Document):
 		try:
 			conn.list_buckets()
 
-		except:
+		except ClientError:
 			frappe.throw(_("Invalid Access Key ID or Secret Access Key."))
 
 		try:
 			conn.create_bucket(Bucket=bucket_lower)
-		except:
-			frappe.throw(_("Unable to create bucket {0}. Change it to a more unique ").format(bucket_lower))
+		except ClientError:
+			frappe.throw(_("Unable to create bucket: {0}. Change it to a more unique name.").format(bucket_lower))
 
 
 @frappe.whitelist()
@@ -131,7 +132,7 @@ def upload_file_to_s3(filename, folder, conn, bucket):
 def delete_old_backups(limit, bucket):
 	all_backups = list()
 	doc = frappe.get_single("S3 Backup Settings")
-	backup_limit = int(doc.backup_limit)
+	backup_limit = int(limit)
 
 	s3 = boto3.resource(
 			's3',
@@ -149,4 +150,5 @@ def delete_old_backups(limit, bucket):
 	if len(all_backups) > backup_limit:
 		print "Deleting Backup: {0}".format(oldest_backup)
 		for obj in bucket.objects.filter(Prefix=oldest_backup):
+			# delete all keys that are inside the oldest_backup
 			s3.Object(bucket.name, obj.key).delete()
