@@ -23,17 +23,8 @@ frappe.views.ReportViewPage = Class.extend({
 		var me = this;
 		frappe.model.with_doctype(this.doctype, function() {
 			me.make_report_view();
-			if(me.docname) {
-				frappe.model.with_doc('Report', me.docname, function(r) {
-					me.parent.reportview.set_columns_and_filters(
-						JSON.parse(frappe.get_doc("Report", me.docname).json || '{}'));
-					me.parent.reportview.set_route_filters();
-					me.parent.reportview.run();
-				});
-			} else {
-				me.parent.reportview.set_route_filters();
-				me.parent.reportview.run();
-			}
+			me.parent.reportview.set_route_filters();
+			me.parent.reportview.run();
 		});
 	},
 	make_page: function() {
@@ -65,9 +56,8 @@ frappe.views.ReportViewPage = Class.extend({
 
 frappe.views.ReportView = frappe.ui.BaseList.extend({
 	init: function(opts) {
-		var me = this;
 		$.extend(this, opts);
-		this.can_delete = frappe.model.can_delete(me.doctype);
+		this.can_delete = frappe.model.can_delete(this.doctype);
 		this.tab_name = '`tab'+this.doctype+'`';
 		this.setup();
 	},
@@ -150,8 +140,10 @@ frappe.views.ReportView = frappe.ui.BaseList.extend({
 				}
 			});
 		}
-		if(!columns.length) {
-			var columns = [['name', this.doctype],];
+
+		if(columns.length === 0) {
+			// build default columns
+			var columns = [['name', this.doctype]];
 			$.each(frappe.meta.docfield_list[this.doctype], function(i, df) {
 				if((df.in_standard_filter || df.in_list_view) && df.fieldname!='naming_series'
 					&& !in_list(frappe.model.no_value_type, df.fieldtype)
@@ -511,19 +503,19 @@ frappe.views.ReportView = frappe.ui.BaseList.extend({
 			return columns[col_index].docfield.fieldname;
 		}
 
-		if (this.regrid) {
+		if (this.datatable) {
 			const data = { columns, rows };
-			this.regrid.refresh(data);
+			this.datatable.refresh(data);
 			return;
 		}
 
 		var me = this;
 
-		this.regrid = new ReGrid({
-			wrapper: this.wrapper.find('.result-list'),
+		this.datatable = new DataTable(this.wrapper.find('.result-list'), {
 			data: { columns, rows },
 			enableLogs: false,
 			enableClusterize: true,
+			addCheckbox: this.can_delete,
 			editing: (colIndex, rowIndex, value, parent) => {
 				const control = me.render_editing_input(colIndex, value, parent);
 				if (!control) return false;
@@ -554,7 +546,7 @@ frappe.views.ReportView = frappe.ui.BaseList.extend({
 	},
 
 	render_editing_input: function(colIndex, value, parent) {
-		const col = this.regrid.data.columns[colIndex];
+		const col = this.datatable.data.columns[colIndex];
 
 		if (!this.validate_cell_editing(col.docfield)) {
 			return false;
@@ -719,20 +711,7 @@ frappe.views.ReportView = frappe.ui.BaseList.extend({
 	// },
 
 	get_columns: function() {
-		var std_columns = [{id:'_idx', field:'_idx', name: 'Sr.', width: 40, maxWidth: 40}];
-		if(this.can_delete) {
-			std_columns = std_columns.concat([{
-				id:'_check', field:'_check', name: "", width: 30, maxWidth: 30,
-				formatter: function(row, cell, value, columnDef, dataContext) {
-					return repl("<input type='checkbox' \
-						data-row='%(row)s' %(checked)s>", {
-							row: row,
-							checked: (dataContext.selected ? "checked=\"checked\"" : "")
-						});
-				}
-			}]);
-		}
-		return std_columns.concat(this.build_columns());
+		return this.build_columns();
 	},
 
 	// setup column picker
@@ -921,16 +900,11 @@ frappe.views.ReportView = frappe.ui.BaseList.extend({
 	make_delete: function() {
 		var me = this;
 		if(this.can_delete) {
-			$(this.parent).on("click", "input[type='checkbox'][data-row]", function() {
-				me.data[$(this).attr("data-row")].selected
-					= this.checked ? true : false;
-			});
-
 			this.page.add_menu_item(__("Delete"), function() {
 				var delete_list = $.map(me.get_checked_items(), function(d) { return d.name; });
 				if(!delete_list.length)
 					return;
-				if(frappe.confirm(__("This is PERMANENT action and you cannot undo. Continue?"),
+				frappe.confirm(__("This is PERMANENT action and you cannot undo. Continue?"),
 					function() {
 						return frappe.call({
 							method: 'frappe.desk.reportview.delete_items',
@@ -942,7 +916,7 @@ frappe.views.ReportView = frappe.ui.BaseList.extend({
 								me.refresh();
 							}
 						});
-					}));
+					})
 
 			}, true);
 		}
@@ -968,16 +942,11 @@ frappe.views.ReportView = frappe.ui.BaseList.extend({
 	},
 
 	get_checked_items: function() {
-		var me = this;
-		var selected_records = []
+		const checked_rows = this.datatable.getCheckedRows();
 
-		$.each(me.data, function(i, d) {
-			if(d.selected && d.name) {
-				selected_records.push(d);
-			}
-		});
-
-		return selected_records
+		return this.data.filter(
+			(d, i) => d.name && checked_rows.includes(i)
+		);
 	}
 });
 
