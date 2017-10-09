@@ -18,6 +18,7 @@ frappe.ui.form.save = function (frm, action, callback, btn) {
 	var freeze_message = working_label ? __(working_label) : "";
 
 	var save = function () {
+		remove_empty_rows();
 		check_name(function () {
 			$(frm.wrapper).addClass('validated-form');
 			if (check_mandatory()) {
@@ -39,6 +40,43 @@ frappe.ui.form.save = function (frm, action, callback, btn) {
 			}
 		});
 
+	};
+
+	var remove_empty_rows = function() {
+		/**
+		This function removes empty rows. Note that in this function, a row is considered
+		empty if the fields with `in_list_view: 1` are undefined or falsy because that's
+		what users also consider to be an empty row
+		 */
+		const docs = frappe.model.get_all_docs(frm.doc);
+
+		// we should only worry about table data
+		const tables = docs.filter(function(d){
+			return frappe.model.is_table(d.doctype);
+		});
+
+		tables.map(
+			function(doc){
+				const cells = frappe.meta.docfield_list[doc.doctype] || [];
+
+				const in_list_view_cells = cells.filter(function(df) {
+					return cint(df.in_list_view) === 1;
+				});
+
+				var is_empty_row = function(cells) {
+					for (var i=0; i < cells.length; i++){
+						if(locals[doc.doctype][doc.name][cells[i].fieldname]){
+							return false;
+						}
+					}
+					return true;
+				}
+
+				if (is_empty_row(in_list_view_cells)) {
+					frappe.model.clear_doc(doc.doctype, doc.name);
+				}
+			}
+		);
 	};
 
 	var cancel = function () {
