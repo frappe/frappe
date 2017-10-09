@@ -6,8 +6,8 @@ from __future__ import unicode_literals
 # BEWARE don't put anything in this file except exceptions
 
 from werkzeug.exceptions import NotFound
-from MySQLdb import ProgrammingError as SQLError, Error
-from MySQLdb import OperationalError as DatabaseOperationalError
+from pymysql.err import ProgrammingError as SQLError, Error
+from pymysql.err import OperationalError as DatabaseOperationalError
 
 
 class ValidationError(Exception):

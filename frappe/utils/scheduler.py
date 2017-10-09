@@ -14,7 +14,6 @@ import frappe
 import json
 import schedule
 import time
-import MySQLdb
 import frappe.utils
 import os
 from frappe.utils import get_sites
@@ -24,6 +23,7 @@ from frappe.limits import has_expired
 from frappe.utils.data import get_datetime, now_datetime
 from frappe.core.doctype.user.user import STANDARD_USERS
 from frappe.installer import update_site_config
+from frappe.exceptions import DatabaseOperationalError
 from six import string_types
 
 DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S'
@@ -273,7 +273,7 @@ def reset_enabled_scheduler_events(login_manager):
 	if login_manager.info.user_type == "System User":
 		try:
 			frappe.db.set_global('enabled_scheduler_events', None)
-		except MySQLdb.OperationalError as e:
+		except DatabaseOperationalError as e:
 			if e.args[0]==1205:
 				frappe.log_error(frappe.get_traceback(), "Error in reset_enabled_scheduler_events")
 			else:

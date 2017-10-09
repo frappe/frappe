@@ -5,9 +5,9 @@ from rq.logutils import setup_loghandlers
 from frappe.utils import cstr
 from collections import defaultdict
 import frappe
-import MySQLdb
 import os, socket, time
 from frappe import _
+from frappe.exceptions import DatabaseOperationalError
 from six import string_types
 
 default_timeout = 300
@@ -79,7 +79,7 @@ def execute_job(site, method, event, job_name, kwargs, user=None, async=True, re
 	try:
 		method(**kwargs)
 
-	except (MySQLdb.OperationalError, frappe.RetryBackgroundJobError) as e:
+	except (DatabaseOperationalError, frappe.RetryBackgroundJobError) as e:
 		frappe.db.rollback()
 
 		if (retry < 5 and

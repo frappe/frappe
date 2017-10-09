@@ -82,10 +82,10 @@ def guess_type(m):
 	"""
 		Returns fieldtype depending on the MySQLdb Description
 	"""
-	import MySQLdb
-	if m in MySQLdb.NUMBER:
+	import pymysql
+	if m in pymysql.NUMBER:
 		return 'Currency'
-	elif m in MySQLdb.DATE:
+	elif m in pymysql.DATE:
 		return 'Date'
 	else:
 		return 'Data'

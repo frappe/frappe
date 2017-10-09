@@ -5,8 +5,7 @@
 # --------------------
 
 from __future__ import unicode_literals
-import MySQLdb
-from MySQLdb.times import DateTimeDeltaType
+from pymysql.times import TimeDelta
 from markdown2 import UnicodeWithAttrs
 import warnings
 import datetime
@@ -52,7 +51,7 @@ class Database:
 
 	def connect(self):
 		"""Connects to a database as set in `site_config.json`."""
-		warnings.filterwarnings('ignore', category=MySQLdb.Warning)
+		warnings.filterwarnings('ignore', category=pymysql.Warning)
 		usessl = 0
 		if frappe.conf.db_ssl_ca and frappe.conf.db_ssl_cert and frappe.conf.db_ssl_key:
 			usessl = 1
@@ -62,15 +61,15 @@ class Database:
 				'key':frappe.conf.db_ssl_key
 			}
 		if usessl:
-			self._conn = MySQLdb.connect(self.host, self.user or '', self.password or '',
-				use_unicode=True, charset='utf8mb4', ssl=self.ssl)
+			self._conn = pymysql.connect(self.host, self.user or '', self.password or '',
+				charset='utf8mb4', ssl=self.ssl)
 		else:
-			self._conn = MySQLdb.connect(self.host, self.user or '', self.password or '',
-				use_unicode=True, charset='utf8mb4')
+			self._conn = pymysql.connect(self.host, self.user or '', self.password or '',
+				charset='utf8mb4')
 		self._conn.converter[246]=float
 		self._conn.converter[12]=get_datetime
 		self._conn.encoders[UnicodeWithAttrs] = self._conn.encoders[text_type]
-		self._conn.encoders[DateTimeDeltaType] = self._conn.encoders[binary_type]
+		self._conn.encoders[TimeDelta] = self._conn.encoders[binary_type]
 
 		MYSQL_OPTION_MULTI_STATEMENTS_OFF = 1
 		self._conn.set_server_option(MYSQL_OPTION_MULTI_STATEMENTS_OFF)
@@ -884,7 +883,7 @@ class Database:
 		if isinstance(s, text_type):
 			s = (s or "").encode("utf-8")
 
-		s = text_type(MySQLdb.escape_string(s), "utf-8").replace("`", "\\`")
+		s = text_type(pymysql.escape_string(s), "utf-8").replace("`", "\\`")
 
 		# NOTE separating % escape, because % escape should only be done when using LIKE operator
 		# or when you use python format string to generate query that already has a %s

@@ -4,7 +4,6 @@
 from __future__ import unicode_literals
 
 import os
-import MySQLdb
 from six import iteritems
 import logging
 
@@ -24,6 +23,7 @@ import frappe.website.render
 from frappe.utils import get_site_name
 from frappe.middlewares import StaticDataMiddleware
 from frappe.utils.error import make_error_snapshot
+from frappe.exceptions import DatabaseOperationalError
 from frappe.core.doctype.communication.comment import update_comments_in_parent_after_request
 from frappe import _
 
@@ -134,7 +134,7 @@ def handle_exception(e):
 		response = frappe.utils.response.report_error(http_status_code)
 
 	elif (http_status_code==500
-		and isinstance(e, MySQLdb.OperationalError)
+		and isinstance(e, DatabaseOperationalError)
 		and e.args[0] in (1205, 1213)):
 			# 1205 = lock wait timeout
 			# 1213 = deadlock

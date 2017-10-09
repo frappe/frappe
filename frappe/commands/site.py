@@ -3,7 +3,8 @@ import click
 import hashlib, os, sys, compileall
 import frappe
 from frappe import _
-from _mysql_exceptions import ProgrammingError
+# from _mysql_exceptions import ProgrammingError
+from pymysql.err import ProgrammingError
 from frappe.commands import pass_context, get_site
 from frappe.commands.scheduler import _is_scheduler_enabled
 from frappe.limits import update_limits, get_limits
