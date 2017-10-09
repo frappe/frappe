@@ -7,4 +7,7 @@ import frappe
 from frappe.model.document import Document
 
 class CustomDocPerm(Document):
-	pass
+	def before_save(self):
+		doctype = self.parent_doctype or self.parent
+		self.parent = doctype
+		self.parent_doctype = doctype
