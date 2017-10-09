@@ -13,7 +13,7 @@ import os
 import frappe
 from frappe import _
 from frappe.utils import cstr, cint, flt
-from frappe.exception import DatabaseOperationalError
+from frappe.exceptions import DatabaseOperationalError
 
 class InvalidColumnName(frappe.ValidationError): pass
 
