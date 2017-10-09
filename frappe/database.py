@@ -63,14 +63,14 @@ class Database:
 			}
 		if usessl:
 			self._conn = pymysql.connect(self.host, self.user or '', self.password or '',
-				charset='utf8mb4', ssl=self.ssl)
+				charset='utf8mb4', use_unicode = True, ssl=self.ssl)
 		else:
 			self._conn = pymysql.connect(self.host, self.user or '', self.password or '',
-				charset='utf8mb4')
-		self._conn.converters[246]=float
-		self._conn.converters[12]=get_datetime
-		self._conn.encoders[UnicodeWithAttrs] = self._conn.encoders[text_type]
-		self._conn.encoders[TimeDelta] = self._conn.encoders[binary_type]
+				charset='utf8mb4', use_unicode = True)
+		# self._conn.converters[246]=float
+		# self._conn.converters[12]=get_datetime
+		# self._conn.encoders[UnicodeWithAttrs] = self._conn.encoders[text_type]
+		# self._conn.encoders[TimeDelta] = self._conn.encoders[binary_type]
 
 		# MYSQL_OPTION_MULTI_STATEMENTS_OFF = 1
 		# self._conn.set_server_option(MYSQL_OPTION_MULTI_STATEMENTS_OFF)
