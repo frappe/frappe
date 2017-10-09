@@ -874,7 +874,7 @@ class Database:
 	def close(self):
 		"""Close database connection."""
 		if self._conn:
-			self._cursor.close()
+			# self._cursor.close()
 			self._conn.close()
 			self._cursor = None
 			self._conn = None
