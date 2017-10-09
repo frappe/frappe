@@ -131,7 +131,7 @@ frappe.upload = {
 
 
 		if(!opts.btn) {
-			opts.btn = $('<button class="btn btn-default btn-sm">' + __("Attach")
+			opts.btn = $('<button class="btn btn-default btn-sm attach-btn">' + __("Attach")
 				+ '</div>').appendTo($upload);
 		} else {
 			$(opts.btn).unbind("click");
@@ -280,20 +280,29 @@ frappe.upload = {
 
 		let start_complete = frappe.cur_progress ? frappe.cur_progress.percent : 0;
 
+		var upload_with_filedata = function() {
+			let freader = new FileReader();
+			freader.onload = function() {
+				var dataurl = freader.result;
+				args.filedata = freader.result.split(",")[1];
+				args.file_size = fileobj.size;
+				frappe.upload._upload_file(fileobj, args, opts, dataurl);
+			};
+			freader.readAsDataURL(fileobj);
+		}
+
+		if (opts.no_socketio) {
+			upload_with_filedata();
+			return;
+		}
+
 		frappe.socketio.uploader.start({
 			file: fileobj,
 			filename: args.filename,
 			is_private: args.is_private,
 			fallback: () => {
 				// if fails, use old filereader
-				let freader = new FileReader();
-				freader.onload = function() {
-					var dataurl = freader.result;
-					args.filedata = freader.result.split(",")[1];
-					args.file_size = fileobj.size;
-					frappe.upload._upload_file(fileobj, args, opts, dataurl);
-				};
-				freader.readAsDataURL(fileobj);
+				upload_with_filedata();
 			},
 			callback: (data) => {
 				args.file_url = data.file_url;
