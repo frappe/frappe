@@ -7,7 +7,7 @@ class FrappeConnection(BaseConnection):
 	def __init__(self, connector):
 		self.connector = connector
 		self.connection = FrappeClient(self.connector.hostname,
-			self.connector.username, self.connector.password)
+			self.connector.username, self.get_password())
 		self.name_field = 'name'
 
 	def insert(self, doctype, doc):
