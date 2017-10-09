@@ -5,6 +5,7 @@
 # --------------------
 
 from __future__ import unicode_literals
+import pymysql
 from pymysql.times import TimeDelta
 from markdown2 import UnicodeWithAttrs
 import warnings
