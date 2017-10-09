@@ -138,7 +138,6 @@
 		"public/js/lib/datepicker/locale-all.js",
 		"public/js/lib/jquery.jrumble.min.js",
 		"public/js/lib/webcam.min.js",
-		"public/js/lib/quagga.min.js",
 		"public/js/lib/JsBarcode.all.min.js"
 	],
 	"js/desk.min.js": [
