@@ -7,6 +7,8 @@
 from __future__ import unicode_literals
 import pymysql
 from pymysql.times import TimeDelta
+from pymysql.constants import FIELD_TYPE
+from pymysql.converters import conversions as _conv
 from markdown2 import UnicodeWithAttrs
 import warnings
 import datetime
@@ -61,16 +63,20 @@ class Database:
 				'cert':frappe.conf.db_ssl_cert,
 				'key':frappe.conf.db_ssl_key
 			}
+
+		converters = {
+			FIELD_TYPE.NEWDECIMAL: float,
+			FIELD_TYPE.DATETIME: get_datetime,
+			datetime.timedelta: _conv[binary_type],
+			UnicodeWithAttrs: _conv[text_type]
+		}
+
 		if usessl:
 			self._conn = pymysql.connect(self.host, self.user or '', self.password or '',
-				charset='utf8mb4', use_unicode = True, ssl=self.ssl)
+				charset='utf8mb4', use_unicode = True, ssl=self.ssl, conv = converters)
 		else:
 			self._conn = pymysql.connect(self.host, self.user or '', self.password or '',
-				charset='utf8mb4', use_unicode = True)
-		# self._conn.converters[246]=float
-		# self._conn.converters[12]=get_datetime
-		# self._conn.encoders[UnicodeWithAttrs] = self._conn.encoders[text_type]
-		# self._conn.encoders[TimeDelta] = self._conn.encoders[binary_type]
+				charset='utf8mb4', use_unicode = True, conv = converters)
 
 		# MYSQL_OPTION_MULTI_STATEMENTS_OFF = 1
 		# self._conn.set_server_option(MYSQL_OPTION_MULTI_STATEMENTS_OFF)
