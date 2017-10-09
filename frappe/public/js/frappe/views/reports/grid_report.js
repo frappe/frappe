@@ -676,8 +676,7 @@ frappe.views.GridReportWithPlot = frappe.views.GridReport.extend({
 			parent: ".chart",
 			height: 200,
 			data: chart_data,
-			type: 'line',
-			x_type: 'timeseries'
+			type: 'line'
 		});
 	},
 
@@ -711,7 +710,8 @@ frappe.views.GridReportWithPlot = frappe.views.GridReport.extend({
 		});
 
 		var data = {
-			labels: plottable_cols
+			labels: plottable_cols,
+			datasets: []
 		};
 
 		$.each(this.data, function(i, item) {

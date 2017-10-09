@@ -1,13 +1,13 @@
 // specific_values = [
 // 	{
-// 		name: "Average",
+// 		title: "Average",
 // 		line_type: "dashed",	// "dashed" or "solid"
 // 		value: 10
 // 	},
 
 // summary = [
 // 	{
-// 		name: "Total",
+// 		title: "Total",
 // 		color: 'blue',		// Indicator colors: 'grey', 'blue', 'red', 'green', 'orange',
 // 					// 'purple', 'darkgrey', 'black', 'yellow', 'lightblue'
 // 		value: 80
@@ -48,7 +48,6 @@ frappe.chart.FrappeChart = class {
 		}
 
 		this.parent = document.querySelector(parent);
-
 		this.title = title;
 		this.subtitle = subtitle;
 
@@ -108,7 +107,13 @@ frappe.chart.FrappeChart = class {
 	}
 
 	set_width() {
-		this.base_width = this.parent.offsetWidth;
+		let special_values_width = 0;
+		this.specific_values.map(val => {
+			if(this.get_strwidth(val.title) > special_values_width) {
+				special_values_width = this.get_strwidth(val.title);
+			}
+		});
+		this.base_width = this.parent.offsetWidth - special_values_width;
 		this.width = this.base_width - this.translate_x * 2;
 	}
 
@@ -175,7 +180,7 @@ frappe.chart.FrappeChart = class {
 		this.summary.map(d => {
 			let stats = $$.create('div', {
 				className: 'stats',
-				innerHTML: `<span class="indicator ${d.color}">${d.name}: ${d.value}</span>`
+				innerHTML: `<span class="indicator ${d.color}">${d.title}: ${d.value}</span>`
 			});
 			this.stats_wrapper.appendChild(stats);
 		});
@@ -298,6 +303,9 @@ frappe.chart.AxisChart = class AxisChart extends frappe.chart.FrappeChart {
 	}
 
 	setup_values() {
+		this.data.datasets.map(d => {
+			d.values = d.values.map(val => (!isNaN(val) ? val : 0));
+		});
 		this.setup_x();
 		this.setup_y();
 	}
@@ -424,13 +432,14 @@ frappe.chart.AxisChart = class AxisChart extends frappe.chart.FrappeChart {
 	draw_graph() {
 		// TODO: Don't animate on refresh
 		let data = [];
+		this.svg_units_group.textContent = '';
 		this.y.map((d, i) => {
 			// Anim: Don't draw initial values, store them and update later
 			d.y_tops = new Array(d.values.length).fill(this.height); // no value
 			data.push({values: d.values});
 			d.svg_units = [];
 
-			this.make_new_units(d.y_tops, d.color || this.colors[i], i);
+			this.make_new_units_for_dataset(d.y_tops, d.color || this.colors[i], i);
 			this.make_path && this.make_path(d, d.color || this.colors[i]);
 		});
 
@@ -450,9 +459,8 @@ frappe.chart.AxisChart = class AxisChart extends frappe.chart.FrappeChart {
 		}, 1000);
 	}
 
-	make_new_units(y_values, color, dataset_index) {
+	make_new_units_for_dataset(y_values, color, dataset_index) {
 		this.y[dataset_index].svg_units = [];
-		this.svg_units_group.textContent = '';
 
 		let d = this.unit_args;
 		y_values.map((y, i) => {
@@ -473,8 +481,8 @@ frappe.chart.AxisChart = class AxisChart extends frappe.chart.FrappeChart {
 			let line = $$.createSVG('line', {
 				className: d.line_type === "dashed" ? "dashed": "",
 				x1: 0,
-				x2: 0,
-				y1: this.width,
+				x2: this.width,
+				y1: 0,
 				y2: 0
 			});
 
@@ -483,7 +491,7 @@ frappe.chart.AxisChart = class AxisChart extends frappe.chart.FrappeChart {
 				x: this.width + 5,
 				y: 0,
 				dy: '.32em',
-				innerHTML: d.name.toUpperCase()
+				innerHTML: d.title.toUpperCase()
 			});
 
 			let specific_y_level = $$.createSVG('g', {
@@ -556,7 +564,6 @@ frappe.chart.AxisChart = class AxisChart extends frappe.chart.FrappeChart {
 
 		let elements_to_animate = [];
 		elements_to_animate = this.animate_for_equilength_data(elements_to_animate);
-		this.calc_min_tops();
 
 		// create new x,y pair string and animate path
 		if(this.y[0].path) {
@@ -601,6 +608,7 @@ frappe.chart.AxisChart = class AxisChart extends frappe.chart.FrappeChart {
 				));
 			});
 		});
+		this.calc_min_tops();
 		return elements_to_animate;
 	}
 
@@ -855,7 +863,7 @@ frappe.chart.PercentageChart = class PercentageChart extends frappe.chart.Frappe
 			part.addEventListener('mouseenter', () => {
 				let g_off = this.chart_wrapper.offset(), p_off = part.offset();
 
-				let x = p_off.left - g_off.left + part.width()/2;
+				let x = p_off.left - g_off.left + part.offsetWidth/2;
 				let y = p_off.top - g_off.top - 6;
 				let title = (this.x.formatted && this.x.formatted.length>0
 					? this.x.formatted[i] : this.x[i]) + ': ';
@@ -896,6 +904,8 @@ frappe.chart.HeatMap = class HeatMap extends frappe.chart.FrappeChart {
 	}) {
 		super(arguments[0]);
 
+		this.type = 'heatmap';
+
 		this.domain = domain;
 		this.subdomain = subdomain;
 		this.start = start;
@@ -904,6 +914,8 @@ frappe.chart.HeatMap = class HeatMap extends frappe.chart.FrappeChart {
 		this.count_label = count_label;
 
 		this.legend_colors = ['#ebedf0', '#c6e48b', '#7bc96f', '#239a3b', '#196127'];
+
+		this.translate_x = 0;
 		this.setup();
 	}
 
@@ -942,6 +954,8 @@ frappe.chart.HeatMap = class HeatMap extends frappe.chart.FrappeChart {
 	}
 
 	setup_values() {
+		this.domain_label_group.textContent = '';
+		this.data_groups.textContent = '';
 		this.distribution = this.get_distribution(this.data, this.legend_colors);
 		this.month_names = ["January", "February", "March", "April", "May", "June",
 			"July", "August", "September", "October", "November", "December"
@@ -1055,6 +1069,11 @@ frappe.chart.HeatMap = class HeatMap extends frappe.chart.FrappeChart {
 		// let last_month_start = this.month_start_points.pop();
 		// render last month if
 
+		this.months.shift();
+		this.month_start_points.shift();
+		this.months.pop();
+		this.month_start_points.pop();
+
 		this.month_start_points.map((start, i) => {
 			let month_name =  this.month_names[this.months[i]].substring(0, 3);
 
@@ -1081,29 +1100,33 @@ frappe.chart.HeatMap = class HeatMap extends frappe.chart.FrappeChart {
 	}
 
 	bind_tooltip() {
-		this.chart_wrapper.addEventListener('mouseenter', (e) => {
-			let subdomain = $(e.target);
-			let count = subdomain.attr('data-value');
-			let date_parts = subdomain.attr('data-date').split('-');
+		Array.prototype.slice.call(
+			document.querySelectorAll(".data-group .day")
+		).map(el => {
+			el.addEventListener('mouseenter', (e) => {
+				let count = e.target.getAttribute('data-value');
+				let date_parts = e.target.getAttribute('data-date').split('-');
 
-			let month = this.month_names[parseInt(date_parts[1])-1].substring(0, 3);
+				let month = this.month_names[parseInt(date_parts[1])-1].substring(0, 3);
 
-			let g_off = this.chart_wrapper.offset(), p_off = subdomain.offset();
+				let g_off = this.chart_wrapper.getBoundingClientRect(), p_off = e.target.getBoundingClientRect();
 
-			let width = parseInt(subdomain.attr('width'));
-			let x = p_off.left - g_off.left + (width+2)/2;
-			let y = p_off.top - g_off.top - (width+2)/2;
-			let value = count + ' ' + this.count_label;
-			let name = ' on ' + month + ' ' + date_parts[0] + ', ' + date_parts[2];
+				let width = parseInt(e.target.getAttribute('width'));
+				let x = p_off.left - g_off.left + (width+2)/2;
+				let y = p_off.top - g_off.top - (width+2)/2;
+				let value = count + ' ' + this.count_label;
+				let name = ' on ' + month + ' ' + date_parts[0] + ', ' + date_parts[2];
 
-			this.tip.set_values(x, y, name, value, [], 1);
-			this.tip.show_tip();
+				this.tip.set_values(x, y, name, value, [], 1);
+				this.tip.show_tip();
+			});
 		});
 	}
 
 	update(data) {
 		this.data = data;
 		this.setup_values();
+		this.bind_tooltip();
 	}
 
 	get_distribution(data={}, mapper_array) {
