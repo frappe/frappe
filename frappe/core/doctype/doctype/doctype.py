@@ -15,7 +15,7 @@ from frappe.desk.notifications import delete_notification_count_for
 from frappe.modules import make_boilerplate
 from frappe.model.db_schema import validate_column_name, validate_column_length
 import frappe.website.render
-from frappe.exception import DatabaseOperationalError
+from frappe.exceptions import DatabaseOperationalError
 
 class InvalidFieldNameError(frappe.ValidationError): pass
 
