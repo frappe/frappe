@@ -1,29 +1,35 @@
 frappe.ui.form.ControlBarcode = frappe.ui.form.ControlData.extend({
 	make_wrapper() {
+		// Create the elements
 		this._super();
 		this.$wrapper.find('.control-input').css({'display': 'flex'});
-		// this.cam_buttom = $(`<button class="cam-button btn btn-sm btn-default text-muted" style="
-		// 	margin-left: 5px;
-		// "><i class="octicon octicon-device-camera"></i></button>`).appendTo(this.$wrapper.find('.control-input'));
-		this.barcode_area = $(`<div class="barcode-wrapper like-disabled-input"
-		"><svg id="barcode"></svg></div>`).appendTo(this.$wrapper.find('.control-input-wrapper'));
+		this.barcode_area = $(`<div class="barcode-wrapper like-disabled-input"></div>`)
+			.appendTo(this.$wrapper.find('.control-input-wrapper'));
 	},
 
-	validate(value) {
-		return this.render_barcode(value, 2);
+	parse(value) {
+		// Parse raw value
+		return this.get_barcode_html(value, 2);
 	},
 
-	render_barcode(value, width) {
-		this.numeric_val = value;
-		JsBarcode("#barcode", value, {
-			format: "CODE128",
+	set_formatted_input(value) {
+		// Set values to display
+		const svg = value;
+		const barcode_value = $(svg).attr('data-barcode-value');
+		this.$input.val(barcode_value);
+		this.barcode_area.html(svg);
+	},
+
+	get_barcode_html(value, width) {
+		// Get svg
+		const $div = $('<div><svg></svg></div>');
+		const svg = $div.find('svg')[0];
+		JsBarcode(svg, value, {
 			background:'#f5f7fa',
 			width: width,
 			height: 40
 		});
-		let html = this.barcode_area.html();
-		this.set_value(html);
-		return html;
+		$(svg).attr('data-barcode-value', value);
+		return $div.html();
 	}
-
 });
