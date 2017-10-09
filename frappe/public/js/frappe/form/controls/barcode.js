@@ -3,7 +3,7 @@ frappe.ui.form.ControlBarcode = frappe.ui.form.ControlData.extend({
 		// Create the elements
 		this._super();
 		this.$wrapper.find('.control-input').css({'display': 'flex'});
-		this.barcode_area = $(`<div class="barcode-wrapper like-disabled-input"></div>`)
+		this.barcode_area = $(`<div class="barcode-wrapper like-disabled-input"><svg></svg></div>`)
 			.appendTo(this.$wrapper.find('.control-input-wrapper'));
 	},
 
@@ -22,14 +22,13 @@ frappe.ui.form.ControlBarcode = frappe.ui.form.ControlData.extend({
 
 	get_barcode_html(value, width) {
 		// Get svg
-		const $div = $('<div><svg></svg></div>');
-		const svg = $div.find('svg')[0];
+		const svg = this.barcode_area.find('svg')[0];
 		JsBarcode(svg, value, {
 			background:'#f5f7fa',
 			width: width,
 			height: 40
 		});
 		$(svg).attr('data-barcode-value', value);
-		return $div.html();
+		return this.barcode_area.html();
 	}
 });
