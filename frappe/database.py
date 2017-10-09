@@ -151,12 +151,12 @@ class Database:
 					except TypeError:
 						frappe.errprint([query, values])
 
-				if (frappe.conf.get("logging") or False)==2:
-					frappe.log("<<<< query")
-					frappe.log(query)
-					frappe.log("with values:")
-					frappe.log(values)
-					frappe.log(">>>>")
+				# if (frappe.conf.get("logging") or False)==2:
+				frappe.log("<<<< query")
+				frappe.log(query)
+				frappe.log("with values:")
+				frappe.log(values)
+				frappe.log(">>>>")
 				self._cursor.execute(query, values)
 
 			else:
