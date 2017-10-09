@@ -17,7 +17,8 @@ def export_module_json(doc, is_standard, module):
 		from frappe.modules.export_file import export_to_files
 
 		# json
-		export_to_files(record_list=[[doc.doctype, doc.name]], record_module=module)
+		export_to_files(record_list=[[doc.doctype, doc.name]], record_module=module,
+			create_init=is_standard)
 
 		path = os.path.join(frappe.get_module_path(module), scrub(doc.doctype),
 			scrub(doc.name), scrub(doc.name))

@@ -321,7 +321,7 @@ class DocType(Document):
 	def export_doc(self):
 		"""Export to standard folder `[module]/doctype/[name]/[name].json`."""
 		from frappe.modules.export_file import export_to_files
-		export_to_files(record_list=[['DocType', self.name]])
+		export_to_files(record_list=[['DocType', self.name]], create_init=True)
 
 	def import_doc(self):
 		"""Import from standard folder `[module]/doctype/[name]/[name].json`."""
