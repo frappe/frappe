@@ -48,22 +48,9 @@ def get_feed(start, page_length, show_likes=False):
 
 @frappe.whitelist()
 def get_heatmap_data():
-	return (frappe.db.sql("""select X.*
-			from (select
-	  			unix_timestamp(date(creation)),
-	 	  		count(name)
-				from `tabCommunication`
-				where
-				communication_type in ("Communication", "Comment")
-	 			and communication_medium != "Email"
-	 			and date(creation) > subdate(curdate(), interval 1 year)
-
-				union
-
-				select unix_timestamp(date(creation)),
-	 		    count(name)
-				from `tabActivity Log`
-				where date(creation) > subdate(curdate(), interval 1 year)) X
-
-			group by date(X.creation)
-			order by X.creation asc"""))
+	return dict(frappe.db.sql("""select unix_timestamp(date(creation)), count(name)
+		from `tabActivity Log`
+		where
+			date(creation) > subdate(curdate(), interval 1 year)
+		group by date(creation)
+		order by creation asc"""))

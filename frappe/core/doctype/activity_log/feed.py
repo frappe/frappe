@@ -4,7 +4,6 @@
 from __future__ import unicode_literals
 import frappe
 import frappe.permissions
-from frappe.model.document import Document
 from frappe.utils import get_fullname
 from frappe import _
 from frappe.core.doctype.authentication_log.authentication_log import add_authentication_log
