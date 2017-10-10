@@ -40,3 +40,7 @@ class TestAddress(unittest.TestCase):
 		address = get_party_shipping_address('Contact', '_Test Contact For _Test Customer')
 		self.assertIn(address, ['_Test Address 2 Title-Shipping', '_Test Address 3 Title-Shipping'])
 		self.assertEqual(address, '_Test Address 3 Title-Shipping')
+
+	def test_get_party_shipping_address_fallback_to_billing(self):
+		address = get_party_shipping_address('Contact', '_Test Contact For _Test Supplier')
+		self.assertEqual(address, '_Test Address 4 Title-Billing')
