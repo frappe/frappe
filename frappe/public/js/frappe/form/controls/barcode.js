@@ -1,10 +1,13 @@
 frappe.ui.form.ControlBarcode = frappe.ui.form.ControlData.extend({
 	make_wrapper() {
-		// Create the elements
+		// Create the elements for barcode area
 		this._super();
+
 		let $input_wrapper = this.$wrapper.find('.control-input-wrapper');
-		this.barcode_area = $(`<div class="barcode-wrapper border"><svg height=80></svg></div>`)
-			.appendTo($input_wrapper);
+		this.barcode_area = $(`<div class="barcode-wrapper border"><svg height=80></svg></div>`);
+		frappe.require("assets/frappe/js/lib/JsBarcode.all.min.js", () => {
+			this.barcode_area.appendTo($input_wrapper);
+		});
 	},
 
 	parse(value) {
@@ -16,6 +19,7 @@ frappe.ui.form.ControlBarcode = frappe.ui.form.ControlData.extend({
 		// Set values to display
 		const svg = value;
 		const barcode_value = $(svg).attr('data-barcode-value');
+
 		this.$input.val(barcode_value);
 		this.barcode_area.html(svg);
 	},
