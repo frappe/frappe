@@ -17,21 +17,17 @@ frappe.ui.form.on('User', {
 		}
 
 	},
+
 	role_name: function(frm) {
 		if(frm.doc.role_name) {
-			frappe.call({
-				"method": "frappe.client.get",
-				args: {
-					doctype: "Role Profile",
-					name: frm.doc.role_name
-				},
-				callback: function (data) {
-					frm.set_value('roles', data.message.roles);
-					frm.roles_editor.show();
-				}
+			frappe.model.with_doc("Role Profile", frm.doc.role_name, function(){
+				var role = frappe.model.get_doc("Role Profile", frm.doc.role_name);
+				frm.set_value("roles", role.roles)
+				frm.roles_editor.show();
 			});
-		}
+		};
 	},
+
 	onload: function(frm) {
 
 		if(has_common(frappe.user_roles, ["Administrator", "System Manager"]) && !frm.doc.__islocal) {

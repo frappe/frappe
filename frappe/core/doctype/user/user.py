@@ -984,3 +984,18 @@ def throttle_user_creation():
 		return
 	if frappe.db.get_creation_count('User', 60) > 60:
 		frappe.throw(_('Throttled'))
+
+@frappe.whitelist()
+def update_roles(role_name):
+	users = frappe.get_all('User', filters={'role_name': role_name})
+	role_profile = frappe.get_doc('Role Profile', role_name)
+	roles = [role.role for role in role_profile.roles]
+
+	for d in users:
+		user = frappe.get_doc('User', d)
+		user_roles = [role.role for role in user.roles]
+
+		add_roles = [role for role in roles if role not in user_roles]
+		remove_roles = [role for role in user_roles if role not in roles]
+		user.add_roles(*add_roles)
+		user.remove_roles(*remove_roles)
