@@ -15,6 +15,11 @@ from frappe.desk.notifications import delete_notification_count_for
 from frappe.modules import make_boilerplate
 from frappe.model.db_schema import validate_column_name, validate_column_length
 import frappe.website.render
+
+# imports - third-party imports
+from pymysql.constants import ER
+
+# imports - module imports
 from frappe.exceptions import DatabaseOperationalError
 
 class InvalidFieldNameError(frappe.ValidationError): pass
@@ -483,7 +488,7 @@ def validate_fields(meta):
 						doctype=d.parent, fieldname=d.fieldname))
 
 				except DatabaseOperationalError as e:
-					if e.args and e.args[0]==1054:
+					if e.args and e.args[0]==ER.BAD_FIELD_ERROR:
 						# ignore if missing column, else raise
 						# this happens in case of Custom Field
 						pass

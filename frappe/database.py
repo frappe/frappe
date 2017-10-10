@@ -5,11 +5,6 @@
 # --------------------
 
 from __future__ import unicode_literals
-import pymysql
-from pymysql.times import TimeDelta
-from pymysql.constants import FIELD_TYPE
-from pymysql.converters import conversions as _conv
-from markdown2 import UnicodeWithAttrs
 import warnings
 import datetime
 import frappe
@@ -20,11 +15,24 @@ import redis
 import frappe.model.meta
 from frappe.utils import now, get_datetime, cstr
 from frappe import _
-from six import text_type, binary_type, string_types, integer_types
 from frappe.utils.global_search import sync_global_search
 from frappe.model.utils.link_count import flush_local_link_count
-from six import iteritems, text_type
 
+# imports - compatibility imports
+from six import (
+	integer_types,
+	string_types,
+	binary_types,
+	text_type,
+	iteritems
+)
+
+# imports - third-party imports
+from markdown2 import UnicodeWithAttrs
+from pymysql.times import TimeDelta
+from pymysql.constants 	import FIELD_TYPE
+from pymysql.converters import conversions
+import pymysql
 
 class Database:
 	"""
@@ -67,9 +75,11 @@ class Database:
 		converters = {
 			FIELD_TYPE.NEWDECIMAL: float,
 			FIELD_TYPE.DATETIME: get_datetime,
-			datetime.timedelta: _conv[binary_type],
-			UnicodeWithAttrs: _conv[text_type]
+			TimeDelta: conversions[binary_type],
+			UnicodeWithAttrs: conversions[text_type]
 		}
+
+		print(converters)
 
 		if usessl:
 			self._conn = pymysql.connect(self.host, self.user or '', self.password or '',
