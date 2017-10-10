@@ -17,6 +17,11 @@ import frappe.email.smtp
 import time
 from frappe import _
 from frappe.utils.background_jobs import enqueue
+
+# imports - third-party imports
+from pymysql.constants import ER
+
+# imports - module imports
 from frappe.exceptions import DatabaseOperationalError
 
 @frappe.whitelist()
@@ -438,7 +443,7 @@ def sendmail(communication_name, print_html=None, print_format=None, attachments
 
 			except DatabaseOperationalError as e:
 				# deadlock, try again
-				if e.args[0]==1213:
+				if e.args[0]==ER.LOCK_DEADLOCK:
 					frappe.db.rollback()
 					time.sleep(1)
 					continue
