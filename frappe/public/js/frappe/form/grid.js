@@ -561,6 +561,7 @@ frappe.ui.form.Grid = Class.extend({
 			me.setup_download();
 
 			// upload
+			frappe.flags.no_socketio = true;
 			$(this.wrapper).find(".grid-upload").removeClass("hide").on("click", function() {
 				frappe.prompt({fieldtype:"Attach", label:"Upload File"},
 					function(data) {
