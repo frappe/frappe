@@ -22,7 +22,7 @@ from frappe.model.utils.link_count import flush_local_link_count
 from six import (
 	integer_types,
 	string_types,
-	binary_types,
+	binary_type,
 	text_type,
 	iteritems
 )
@@ -75,7 +75,7 @@ class Database:
 		converters = {
 			FIELD_TYPE.NEWDECIMAL: float,
 			FIELD_TYPE.DATETIME: get_datetime,
-			TimeDelta: conversions[binary_types],
+			TimeDelta: conversions[binary_type],
 			UnicodeWithAttrs: conversions[text_type]
 		}
 
