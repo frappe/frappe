@@ -64,9 +64,7 @@ def prepare_options(html, options):
 
 		# defaults
 		'margin-right': '15mm',
-		'margin-left': '15mm',
-		'margin-top': '15mm',
-		'margin-bottom': '15mm',
+		'margin-left': '15mm'
 	})
 
 	html, html_options = read_options_from_html(html)
@@ -135,6 +133,11 @@ def prepare_header_footer(soup):
 
 			# {"header-html": "/tmp/frappe-pdf-random.html"}
 			options[html_id] = fname
+		else:
+			if html_id == "header-html":
+				options["margin-top"] = "15mm"
+			elif html_id == "footer-html":
+				options["margin-bottom"] = "15mm"
 
 	return options
 

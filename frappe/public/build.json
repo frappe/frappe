@@ -51,7 +51,8 @@
 		"public/js/frappe/form/controls/read_only.js",
 		"public/js/frappe/form/controls/button.js",
 		"public/js/frappe/form/controls/html.js",
-		"public/js/frappe/form/controls/heading.js"
+		"public/js/frappe/form/controls/heading.js",
+		"public/js/frappe/form/controls/autocomplete.js"
 	],
 	"js/dialog.min.js": [
 		"public/js/frappe/dom.js",
@@ -150,6 +151,7 @@
 		"public/js/frappe/ui/keyboard.js",
 		"public/js/frappe/ui/emoji.js",
 		"public/js/frappe/ui/colors.js",
+		"public/js/frappe/ui/sidebar.js",
 
 		"public/js/frappe/request.js",
 		"public/js/frappe/socketio_client.js",
@@ -269,7 +271,7 @@
 		"public/js/frappe/form/linked_with.js",
 		"public/js/frappe/form/workflow.js",
 		"public/js/frappe/form/print.js",
-		"public/js/frappe/form/sidebar.js",
+		"public/js/frappe/form/form_sidebar.js",
 		"public/js/frappe/form/user_image.js",
 		"public/js/frappe/form/share.js",
 		"public/js/frappe/form/form_viewers.js",

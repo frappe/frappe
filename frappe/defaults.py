@@ -92,7 +92,19 @@ def set_default(key, value, parent, parenttype="__default"):
 	:param value: Default value.
 	:param parent: Usually, **User** to whom the default belongs.
 	:param parenttype: [optional] default is `__default`."""
-	frappe.db.sql("""delete from `tabDefaultValue` where defkey=%s and parent=%s""", (key, parent))
+	if frappe.db.sql('''
+		select
+			defkey
+		from
+			tabDefaultValue
+		where
+			defkey=%s and parent=%s
+		for update''', (key, parent)):
+		frappe.db.sql("""
+			delete from
+				`tabDefaultValue`
+			where
+				defkey=%s and parent=%s""", (key, parent))
 	if value != None:
 		add_default(key, value, parent)
 
