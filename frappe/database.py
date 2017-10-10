@@ -141,8 +141,8 @@ class Database:
 					values = dict(values)
 
 				# MySQL-python==1.2.5 hack!
-				# if not isinstance(values, (dict, tuple, list)):
-				# 	values = (values,)
+				if not isinstance(values, (dict, tuple, list)):
+					values = (values,)
 
 				if debug:
 					try:
@@ -157,8 +157,6 @@ class Database:
 					frappe.log("with values:")
 					frappe.log(values)
 					frappe.log(">>>>")
-
-				print(values)
 				
 				self._cursor.execute(query, values)
 

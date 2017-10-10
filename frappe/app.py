@@ -23,9 +23,14 @@ import frappe.website.render
 from frappe.utils import get_site_name
 from frappe.middlewares import StaticDataMiddleware
 from frappe.utils.error import make_error_snapshot
-from frappe.exceptions import DatabaseOperationalError
 from frappe.core.doctype.communication.comment import update_comments_in_parent_after_request
 from frappe import _
+
+# imports - third-party imports
+from pymysql.constants import ER
+
+# imports - module imports
+from frappe.exceptions import DatabaseOperationalError
 
 local_manager = LocalManager([frappe.local])
 
@@ -135,10 +140,7 @@ def handle_exception(e):
 
 	elif (http_status_code==500
 		and isinstance(e, DatabaseOperationalError)
-		and e.args[0] in (1205, 1213)):
-			# 1205 = lock wait timeout
-			# 1213 = deadlock
-			# code 409 represents conflict
+		and e.args[0] in (ER.LOCK_WAIT_TIMEOUT, ER.LOCK_DEADLOCK)):
 			http_status_code = 508
 
 	elif http_status_code==401:
