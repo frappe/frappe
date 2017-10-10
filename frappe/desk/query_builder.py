@@ -10,6 +10,9 @@ from frappe.utils import cint
 import frappe.defaults
 from six import text_type
 
+# imports - third-party imports
+import pymysql
+
 def get_sql_tables(q):
 	if q.find('WHERE') != -1:
 		tl = q.split('FROM')[1].split('WHERE')[0].split(',')
@@ -82,7 +85,6 @@ def guess_type(m):
 	"""
 		Returns fieldtype depending on the MySQLdb Description
 	"""
-	import pymysql
 	if m in pymysql.NUMBER:
 		return 'Currency'
 	elif m in pymysql.DATE:
