@@ -80,6 +80,7 @@ def get_party_shipping_address(doctype, name):
 	"""
 	Returns an Address name (best guess) for the given doctype and name for which `address_type == 'Shipping'` is true.
 	Where there are multiple matching records, Addresses for which `is_shipping_address = 1` is given priority.
+	If these still do not yield anything, it tries to fall back to a billing address.
 	It returns an empty string if there is no matching record.
 
 	:param doctype: Party Doctype
@@ -93,7 +94,7 @@ def get_party_shipping_address(doctype, name):
 		'dl.link_doctype=%s '
 		'and dl.link_name=%s '
 		'and dl.parenttype="Address" '
-		'and ta.address_type="Shipping" order by ta.is_shipping_address desc limit 1',
+		'order by ta.is_shipping_address, ta.address_type desc limit 1',
 		(doctype, name)
 	)
 	if out:
