@@ -22,6 +22,7 @@ from frappe.model.utils.link_count import flush_local_link_count
 from six import (
 	integer_types,
 	string_types,
+	binary_types,
 	text_type,
 	iteritems
 )
