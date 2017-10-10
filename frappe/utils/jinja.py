@@ -2,6 +2,8 @@
 # MIT License. See license.txt
 from __future__ import unicode_literals
 
+import os
+
 def get_jenv():
 	import frappe
 
@@ -57,16 +59,40 @@ def render_template(template, context, is_path=None):
 	:param context: dict of properties to pass to the template
 	:param is_path: (optional) assert that the `template` parameter is a path'''
 
+	from frappe import _, get_doc
+	from frappe.model.document import Document
+
 	if not template:
 		return ""
 
 	# if it ends with .html then its a freaking path, not html
-	if (is_path
+	
+	_doc = None
+	
+	if isinstance(context, Document):
+		_doc = context
+	elif isinstance(context, dict):
+		if "doc" in context:
+			_doc = context["doc"]
+		elif "doctype" in context and "docname" in context:
+			_doc = get_doc(context["doctype"], context["docname"])
+	elif hasattr(context, "doc"):
+		_doc = context.doc
+	elif hasattr(context, "doctype") and hasattr(context, "docname"):
+		_doc = get_doc(context.doctype, context.docname)
+
+	if _doc:
+		_doc = get_doc(_doc.as_dict(translated=True))
+		_doc.flags.in_print = True
+
+	if _doc:
+		if (is_path
 		or template.startswith("templates/")
 		or (template.endswith('.html') and '\n' not in template)):
-		return get_jenv().get_template(template).render(context)
-	else:
-		return get_jenv().from_string(template).render(context)
+			with open(template, 'rb') as f:
+				template = f.read()
+	
+	return get_jenv().from_string(_(template)).render(context)
 
 def get_allowed_functions_for_jenv():
 	import os, json

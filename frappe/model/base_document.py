@@ -181,10 +181,17 @@ class BaseDocument(object):
 
 		return value
 
-	def get_valid_dict(self, sanitize=True):
+	def get_valid_dict(self, sanitize=True, translated=False):
 		d = frappe._dict()
+		link_fields = [f.fieldname for f in self.meta.get_link_fields()]
 		for fieldname in self.meta.get_valid_columns():
-			d[fieldname] = self.get(fieldname)
+			value = self.get(fieldname)
+			if not translated \
+				or (not isinstance(value, string_types) 
+					and value not in link_fields): 
+				d[fieldname] = value
+			else:
+				d[fieldname] = _(value)
 
 			# if no need for sanitization and value is None, continue
 			if not sanitize and d[fieldname] is None:
@@ -244,12 +251,12 @@ class BaseDocument(object):
 	def is_new(self):
 		return self.get("__islocal")
 
-	def as_dict(self, no_nulls=False, no_default_fields=False):
-		doc = self.get_valid_dict()
+	def as_dict(self, no_nulls=False, no_default_fields=False, translated=False):
+		doc = self.get_valid_dict(translated=translated)
 		doc["doctype"] = self.doctype
 		for df in self.meta.get_table_fields():
 			children = self.get(df.fieldname) or []
-			doc[df.fieldname] = [d.as_dict(no_nulls=no_nulls) for d in children]
+			doc[df.fieldname] = [d.as_dict(no_nulls=no_nulls, translated=translated) for d in children]
 
 		if no_nulls:
 			for k in doc.keys():
