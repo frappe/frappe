@@ -2,8 +2,7 @@ frappe.ui.form.ControlBarcode = frappe.ui.form.ControlData.extend({
 	make_wrapper() {
 		// Create the elements
 		this._super();
-		this.$wrapper.find('.control-input').css({'display': 'flex'});
-		this.barcode_area = $(`<div class="barcode-wrapper like-disabled-input"><svg></svg></div>`)
+		this.barcode_area = $(`<div class="barcode-wrapper border"><svg height=80></svg></div>`)
 			.appendTo(this.$wrapper.find('.control-input-wrapper'));
 	},
 
