@@ -17,6 +17,11 @@ def get_data():
 					"type": "doctype",
 					"name": "Role",
 					"description": _("User Roles")
+				},
+				{
+					"type": "doctype",
+					"name": "Role Profile",
+					"description": _("Role Profile")
 				}
 			]
 		},

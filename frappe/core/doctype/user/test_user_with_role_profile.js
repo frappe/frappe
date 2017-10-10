@@ -6,17 +6,18 @@ QUnit.test("test: Set role profile in user", function (assert) {
 	assert.expect(3);
 
 	frappe.run_serially([
-		// insert a new User
+
+		// Insert a new user
 		() => frappe.tests.make('User', [
-			{email: 'test@test1.com'},
-			{first_name: 'Test'},
+			{email: 'test@test2.com'},
+			{first_name: 'Test 2'},
 			{send_welcome_email: 0}
 		]),
 
 		() => frappe.timeout(2),
 		() => {
 			return frappe.tests.set_form_values(cur_frm, [
-				{role_name:'Test 1'}
+				{role_name:'Test 2'}
 			]);
 		},
 
@@ -24,7 +25,6 @@ QUnit.test("test: Set role profile in user", function (assert) {
 		() => frappe.timeout(2),
 
 		() => {
-			// assert.equal(cur_frm.doc.roles[0].role, 'value');
 			assert.equal($('input.box')[0].checked, true);
 			assert.equal($('input.box')[2].checked, true);
 			assert.equal($('input.box')[4].checked, true);
