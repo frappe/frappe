@@ -75,7 +75,7 @@ class Database:
 		converters = {
 			FIELD_TYPE.NEWDECIMAL: float,
 			FIELD_TYPE.DATETIME: get_datetime,
-			TimeDelta: conversions[binary_type],
+			TimeDelta: conversions[binary_types],
 			UnicodeWithAttrs: conversions[text_type]
 		}
 
