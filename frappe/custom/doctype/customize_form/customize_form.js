@@ -146,6 +146,7 @@ frappe.customize_form.set_primary_action = function(frm) {
 			return frm.call({
 				doc: frm.doc,
 				freeze: true,
+				btn: frm.page.btn_primary,
 				method: "save_customization",
 				callback: function(r) {
 					if(!r.exc) {
