@@ -239,12 +239,12 @@ frappe.upload = {
 		}
 	},
 
-	_upload_file: function(fileobj, args, opts) {
+	_upload_file: function(fileobj, args, opts, dataurl) {
 		if (args.file_size) {
 			frappe.upload.validate_max_file_size(args.file_size);
 		}
 		if(opts.on_attach) {
-			opts.on_attach(args)
+			opts.on_attach(args, dataurl)
 		} else {
 			if (opts.confirm_is_private) {
 				frappe.prompt({
@@ -291,7 +291,7 @@ frappe.upload = {
 			freader.readAsDataURL(fileobj);
 		}
 
-		if (opts.no_socketio) {
+		if (opts.no_socketio || frappe.flags.no_socketio) {
 			upload_with_filedata();
 			return;
 		}
