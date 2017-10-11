@@ -75,6 +75,34 @@ class Address(Document):
 
 		return False
 
+
+def get_party_shipping_address(doctype, name):
+	"""
+	Returns an Address name (best guess) for the given doctype and name for which `address_type == 'Shipping'` is true.
+	Where there are multiple matching records, Addresses for which `is_shipping_address = 1` is given priority.
+	If these still do not yield anything, it tries to fall back to a billing address.
+	It returns an empty string if there is no matching record.
+
+	:param doctype: Party Doctype
+	:param name: Party name
+	:return: String
+	"""
+	out = frappe.db.sql(
+		'SELECT dl.parent '
+		'from `tabDynamic Link` dl join `tabAddress` ta on dl.parent=ta.name '
+		'where '
+		'dl.link_doctype=%s '
+		'and dl.link_name=%s '
+		'and dl.parenttype="Address" '
+		'order by ta.is_shipping_address, ta.address_type desc limit 1',
+		(doctype, name)
+	)
+	if out:
+		return out[0][0]
+	else:
+		return ''
+
+
 @frappe.whitelist()
 def get_default_address(doctype, name, sort_key='is_primary_address'):
 	'''Returns default Address name for the given doctype, name'''

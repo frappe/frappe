@@ -1,0 +1,64 @@
+[
+  {
+    "doctype": "Address",
+    "address_type": "Billing",
+    "address_line1": "Address line 1",
+    "address_title": "_Test Address 1 Title",
+    "city": "Lagos",
+    "Country": "Nigeria",
+    "links": [
+      {
+        "link_doctype": "Contact",
+        "link_name": "_Test Contact For _Test Customer",
+        "doctype": "Dynamic Link"
+      }
+    ]
+  },
+  {
+    "doctype": "Address",
+    "address_type": "Shipping",
+    "address_line1": "Address line 2",
+    "address_title": "_Test Address 2 Title",
+    "city": "Lagos",
+    "Country": "Nigeria",
+    "links": [
+      {
+        "link_doctype": "Contact",
+        "link_name": "_Test Contact For _Test Customer",
+        "doctype": "Dynamic Link"
+      }
+    ]
+  },
+  {
+    "doctype": "Address",
+    "address_type": "Shipping",
+    "address_line1": "Address line 3",
+    "address_title": "_Test Address 3 Title",
+    "city": "Lagos",
+    "Country": "Nigeria",
+    "is_shipping_address": "1",
+    "links": [
+      {
+        "link_doctype": "Contact",
+        "link_name": "_Test Contact For _Test Customer",
+        "doctype": "Dynamic Link"
+      }
+    ]
+  },
+  {
+    "doctype": "Address",
+    "address_type": "Billing",
+    "address_line1": "Address line 4",
+    "address_title": "_Test Address 4 Title",
+    "city": "Lagos",
+    "Country": "Nigeria",
+    "is_shipping_address": "1",
+    "links": [
+      {
+        "link_doctype": "Contact",
+        "link_name": "_Test Contact For _Test Supplier",
+        "doctype": "Dynamic Link"
+      }
+    ]
+  }
+]

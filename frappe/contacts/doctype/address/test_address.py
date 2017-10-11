@@ -4,7 +4,11 @@
 from __future__ import unicode_literals
 
 import frappe, unittest
-from frappe.contacts.doctype.address.address import get_address_display
+from frappe.contacts.doctype.address.address import get_address_display, get_party_shipping_address
+
+
+test_dependencies = ['Contact']
+
 
 class TestAddress(unittest.TestCase):
 	def test_template_works(self):
@@ -31,3 +35,12 @@ class TestAddress(unittest.TestCase):
 		address = frappe.get_list("Address")[0].name
 		display = get_address_display(frappe.get_doc("Address", address).as_dict())
 		self.assertTrue(display)
+
+	def test_get_party_shipping_address(self):
+		address = get_party_shipping_address('Contact', '_Test Contact For _Test Customer')
+		self.assertIn(address, ['_Test Address 2 Title-Shipping', '_Test Address 3 Title-Shipping'])
+		self.assertEqual(address, '_Test Address 3 Title-Shipping')
+
+	def test_get_party_shipping_address_fallback_to_billing(self):
+		address = get_party_shipping_address('Contact', '_Test Contact For _Test Supplier')
+		self.assertEqual(address, '_Test Address 4 Title-Billing')
