@@ -276,24 +276,23 @@ frappe.views.ListSidebar = Class.extend({
 		if(this.doctype != "Communication")
 			return;
 
-		var $dropdown = this.page.sidebar.find('.email-account-dropdown');
-		var divider = false;
+		let $dropdown = this.page.sidebar.find('.email-account-dropdown');
+		let divider = false;
 
 		if(has_common(frappe.user_roles, ["System Manager", "Administrator"])) {
-			$('<li class="new-email-account"><a>'+ __("New Email Account") +'</a></li>')
+			$(`<li class="new-email-account"><a>${__("New Email Account")}</a></li>`)
 				.appendTo($dropdown)
 		}
 
-		var accounts = frappe.boot.email_accounts;
-
-		accounts.forEach(function(account) {
-			var email_account = (account.email_id == "All Accounts")? "All Accounts": account.email_account;
-			var route = ["List", "Communication", "Inbox", email_account].join('/');
+		let accounts = frappe.boot.email_accounts;
+		accounts.forEach((account) => {
+			let email_account = (account.email_id == "All Accounts")? "All Accounts": account.email_account;
+			let route = ["List", "Communication", "Inbox", email_account].join('/');
 			if(!divider) {
 				this.get_divider().appendTo($dropdown);
 				divider = true;
 			}
-			$('<li><a href="#'+ route + '">'+account.email_id+'</a></li>').appendTo($dropdown);
+			$(`<li><a href="#${route}">${account.email_id}</a></li>`).appendTo($dropdown);
 			if(account.email_id === "Sent Mail")
 				divider = false
 		});
