@@ -175,6 +175,17 @@ def update_parent_mins_to_first_response(doc):
 	if doc.communication_type == "Comment":
 		return
 
+	status_field = parent.meta.get_field("status")
+	if status_field:
+		options = (status_field.options or '').splitlines()
+
+		# if status has a "Replied" option, then update the status for received communication
+		if ('Replied' in options) and doc.sent_or_received=="Received":
+			parent.db_set("status", "Open")
+		else:
+			# update the modified date for document
+			parent.update_modified()
+
 	update_mins_to_first_communication(parent, doc)
 	parent.run_method('notify_communication', doc)
 	parent.notify_update()
