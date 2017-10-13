@@ -350,11 +350,11 @@ frappe.ui.form.Grid = Class.extend({
 			for(var i=0, l=fieldname.length; i<l; i++) {
 				var fname = fieldname[i];
 				me.get_docfield(fname).hidden = show ? 0 : 1;
-				set_editable_grid_column_disp(fname, show);
+				this.set_editable_grid_column_disp(fname, show);
 			}
 		} else {
 			this.get_docfield(fieldname).hidden = show ? 0 : 1;
-			set_editable_grid_column_disp(fieldname, show);
+			this.set_editable_grid_column_disp(fieldname, show);
 		}
 
 		this.refresh(true);
