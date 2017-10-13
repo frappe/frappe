@@ -288,7 +288,7 @@ frappe.ui.form.GridRow = Class.extend({
 		// whether grid is editable
 		if(this.grid.allow_on_grid_editing() && this.grid.is_editable() && this.doc && show !== false) {
 
-			// disable other editale row
+			// disable other editable row
 			if(frappe.ui.form.editable_row
 				&& frappe.ui.form.editable_row !== this) {
 				frappe.ui.form.editable_row.toggle_editable_row(false);
