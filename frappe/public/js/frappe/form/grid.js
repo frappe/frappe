@@ -345,15 +345,17 @@ frappe.ui.form.Grid = Class.extend({
 		return data;
 	},
 	set_column_disp: function(fieldname, show) {
+		var fname = "";
+
 		if($.isArray(fieldname)) {
 			var me = this;
 			for(var i=0, l=fieldname.length; i<l; i++) {
-				var fname = fieldname[i];
+				fname = fieldname[i];
 				me.get_docfield(fname).hidden = show ? 0 : 1;
 			}
 		} else {
 			this.get_docfield(fieldname).hidden = show ? 0 : 1;
-			var fname = fieldname;
+			fname = fieldname;
 		}
 
 		//Hide columns for editable grids
