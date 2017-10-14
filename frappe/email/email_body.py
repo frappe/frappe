@@ -10,6 +10,7 @@ from frappe.utils import (get_url, scrub_urls, strip, expand_relative_urls, cint
 import email.utils
 from six import iteritems, text_type, string_types
 from email.mime.multipart import MIMEMultipart
+from email.header import Header
 
 
 def get_email(recipients, sender='', msg='', subject='[No Subject]',
@@ -183,7 +184,7 @@ class EMail:
 		if cint(self.email_account.always_use_account_email_id_as_sender):
 			self.set_header('X-Original-From', self.sender)
 			sender_name, sender_email = parse_addr(self.sender)
-			self.sender = email.utils.formataddr((sender_name or self.email_account.name, self.email_account.email_id))
+			self.sender = email.utils.formataddr((str(Header(sender_name or self.email_account.name, 'utf-8')), self.email_account.email_id))
 
 	def set_message_id(self, message_id, is_notification=False):
 		if message_id:
