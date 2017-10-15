@@ -9,7 +9,7 @@ import pyotp, os
 from frappe.utils.background_jobs import enqueue
 from jinja2 import Template
 from pyqrcode import create as qrcreate
-from six import StringIO
+from six import BytesIO
 from base64 import b64encode, b32encode
 from frappe.utils import get_url, get_datetime, time_diff_in_seconds
 from six import iteritems, string_types
@@ -318,11 +318,11 @@ def get_qr_svg_code(totp_uri):
 	'''Get SVG code to display Qrcode for OTP.'''
 	url = qrcreate(totp_uri)
 	svg = ''
-	stream = StringIO()
+	stream = BytesIO()
 	try:
 		url.svg(stream, scale=4, background="#eee", module_color="#222")
-		svg = stream.getvalue().replace('\n', '')
-		svg = b64encode(bytes(svg))
+		svg = stream.getvalue().decode().replace('\n', '')
+		svg = b64encode(svg.encode())
 	finally:
 		stream.close()
 	return svg
