@@ -4,9 +4,11 @@ frappe.ui.form.ControlMap = frappe.ui.form.ControlData.extend({
 		this._super();
 
 		let $input_wrapper = this.$wrapper.find('.control-input-wrapper');
-		this.map_area = $(`<div class="map-wrapper border">
-								<div id="map-control" style="min-height: 400px; z-index: 1"></div>
-							</div>`);
+		this.map_area = $(
+			`<div class="map-wrapper border">
+				<div id="map-control" style="min-height: 400px; z-index: 1"></div>
+			</div>`
+		);
 		frappe.require([
 				"assets/frappe/js/lib/leaflet/leaflet.css",
 				"assets/frappe/js/lib/leaflet/leaflet.js",
@@ -21,12 +23,8 @@ frappe.ui.form.ControlMap = frappe.ui.form.ControlData.extend({
 				attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
 			}).addTo(map);
 
-
-			var editableLayers = L.geoJson({
-				type: "LineString",
-				coordinates: [ [ 40, 5 ], [ 41, 6 ] ]
-			}).addTo(map);
-
+			var editableLayers = new L.FeatureGroup();
+			map.addLayer(editableLayers);
 			var options = {
 				position: 'topleft',
 				draw: {
@@ -60,35 +58,29 @@ frappe.ui.form.ControlMap = frappe.ui.form.ControlData.extend({
 			};
 			var drawControl = new L.Control.Draw(options);
 			map.addControl(drawControl);
-			/*
 
 			map.on('draw:created', function(e) {
 				var type = e.layerType,
-					layer = e.layer;
+				layer = e.layer;
 				if (type === 'marker') {
 					layer.bindPopup('A popup!');
 				}
 				editableLayers.addLayer(layer);
 				//console.log("The editable layer is {0}", [JSON.stringify(editableLayers.toGeoJSON())])
-				frm.doc.coordinate_options = JSON.stringify(editableLayers.toGeoJSON())
-
 			});
 
 			map.on('draw:deleted', function(e) {
 				var type = e.layerType,
-					layer = e.layer;
+				layer = e.layer;
 				editableLayers.removeLayer(layer);
-				frm.doc.coordinate_options = JSON.stringify(editableLayers.toGeoJSON())
 			});
 
 			map.on('draw:edited', function(e) {
 				var type = e.layerType,
-					layer = e.layer;
+				layer = e.layer;
 				editableLayers.removeLayer(layer);
-				frm.doc.coordinate_options = JSON.stringify(editableLayers.toGeoJSON())
 			});
 			this.$wrapper.find('.control-input').hide();
-			*/
 		});
 	}
 });
