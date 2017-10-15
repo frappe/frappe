@@ -38,7 +38,7 @@
 	</tbody>
 </table>
 {% endif %}
-{% if not frappe.db.get_value("System Settings", "System Settings", "hide_footer_in_auto_email_reports") %}
+{% if not frappe.db.get_value("System Settings", "System Settings", "hide_footer_in_auto_email_reports")|int %}
 <table class="more-info" border="0" cellpadding="0" cellspacing="0" width="100%">
 	<tr>
 		<td>
