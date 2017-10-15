@@ -5,11 +5,13 @@ frappe.ui.form.ControlMap = frappe.ui.form.ControlData.extend({
 
 		let $input_wrapper = this.$wrapper.find('.control-input-wrapper');
 		this.map_area = $(`<div class="map-wrapper border">
-								<div id="map-control" style="height: 180px; z-index: 1"></div>
+								<div id="map-control" style="min-height: 400px; z-index: 1"></div>
 							</div>`);
 		frappe.require([
+				"assets/frappe/js/lib/leaflet/leaflet.css",
 				"assets/frappe/js/lib/leaflet/leaflet.js",
-				"assets/frappe/js/lib/leaflet/leaflet.css"
+				"assets/frappe/js/lib/leaflet/leaflet.draw.css",
+				"assets/frappe/js/lib/leaflet/leaflet.draw.js",
 			], () => {
 			this.map_area.prependTo($input_wrapper);
 
@@ -19,19 +21,74 @@ frappe.ui.form.ControlMap = frappe.ui.form.ControlData.extend({
 				attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
 			}).addTo(map);
 
-			var MyCustomMarker = L.Icon.extend({
-				options: {
-				shadowUrl: null,
-				iconAnchor: new L.Point(12, 12),
-				iconSize: new L.Point(24, 24),
-				iconUrl: 'assets/frappe/images/leaflet/marker-icon.png'
+
+			var editableLayers = L.geoJson({
+				type: "LineString",
+				coordinates: [ [ 40, 5 ], [ 41, 6 ] ]
+			}).addTo(map);
+
+			var options = {
+				position: 'topleft',
+				draw: {
+					polyline: {
+						shapeOptions: {
+							color: '#f357a1',
+							weight: 10
+						}
+					},
+					polygon: {
+						allowIntersection: false, // Restricts shapes to simple polygons
+						drawError: {
+							color: '#e1e100', // Color the shape will turn when intersects
+							message: '<strong>Oh snap!<strong> you can\'t draw that!' // Message that will show when intersect
+						},
+						shapeOptions: {
+							color: '#f357a1'
+						}
+					},
+					circle: true,
+					rectangle: {
+						shapeOptions: {
+							clickable: false
+						}
+					}
+				},
+				edit: {
+					featureGroup: editableLayers, //REQUIRED!!
+					remove: true
 				}
+			};
+			var drawControl = new L.Control.Draw(options);
+			map.addControl(drawControl);
+			/*
+
+			map.on('draw:created', function(e) {
+				var type = e.layerType,
+					layer = e.layer;
+				if (type === 'marker') {
+					layer.bindPopup('A popup!');
+				}
+				editableLayers.addLayer(layer);
+				//console.log("The editable layer is {0}", [JSON.stringify(editableLayers.toGeoJSON())])
+				frm.doc.coordinate_options = JSON.stringify(editableLayers.toGeoJSON())
+
 			});
 
-			L.marker([19.0800, 72.8961], { icon: new MyCustomMarker() }).addTo(map)
-				.bindPopup('Map Center')
-				.openPopup();
+			map.on('draw:deleted', function(e) {
+				var type = e.layerType,
+					layer = e.layer;
+				editableLayers.removeLayer(layer);
+				frm.doc.coordinate_options = JSON.stringify(editableLayers.toGeoJSON())
+			});
+
+			map.on('draw:edited', function(e) {
+				var type = e.layerType,
+					layer = e.layer;
+				editableLayers.removeLayer(layer);
+				frm.doc.coordinate_options = JSON.stringify(editableLayers.toGeoJSON())
+			});
 			this.$wrapper.find('.control-input').hide();
+			*/
 		});
 	}
 });
