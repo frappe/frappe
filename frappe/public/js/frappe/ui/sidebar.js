@@ -13,7 +13,7 @@ frappe.ui.Sidebar = class Sidebar {
 			</div>
 		`);
 
-		this.$sidebar = this.wrapper.find(this.css_class);
+		this.$sidebar = this.wrapper.find('.' + this.css_class);
 	}
 
 	add_item(item, section) {
