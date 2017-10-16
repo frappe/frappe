@@ -14,6 +14,8 @@ frappe.ui.form.ControlMap = frappe.ui.form.ControlData.extend({
 				"assets/frappe/js/lib/leaflet/leaflet.js",
 				"assets/frappe/js/lib/leaflet/leaflet.draw.css",
 				"assets/frappe/js/lib/leaflet/leaflet.draw.js",
+				"assets/frappe/js/lib/leaflet/L.Control.Locate.css",
+				"assets/frappe/js/lib/leaflet/L.Control.Locate.js"
 		], () => {
 			L.Icon.Default.imagePath = 'assets/frappe/images/leaflet';
 			this.map_area.prependTo($input_wrapper);
@@ -87,7 +89,13 @@ frappe.ui.form.ControlMap = frappe.ui.form.ControlData.extend({
 				editableLayers.removeLayer(layer);
 				this.set_value(JSON.stringify(editableLayers.toGeoJSON()));
 			});
-			this.$wrapper.find('.control-input').hide();
+
+			// create control and add to map
+			var lc = L.control.locate().addTo(map);
+
+			// request location update and set location
+			lc.start();
+			this.$wrapper.find('.control-input').addClass("hidden");
 		});
 	}
 });
