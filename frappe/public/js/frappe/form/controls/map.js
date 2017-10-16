@@ -15,15 +15,20 @@ frappe.ui.form.ControlMap = frappe.ui.form.ControlData.extend({
 				"assets/frappe/js/lib/leaflet/leaflet.draw.css",
 				"assets/frappe/js/lib/leaflet/leaflet.draw.js",
 			], () => {
+			L.Icon.Default.imagePath = 'assets/erpnext/images/leaflet';
 			this.map_area.prependTo($input_wrapper);
-
-			var map = L.map('map-control').setView([19.0800, 72.8961], 13);
+			map = L.map('map-control').setView([19.0800, 72.8961], 13);
 
 			L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
 				attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
 			}).addTo(map);
 
 			var editableLayers = new L.FeatureGroup();
+
+			if((this.value != undefined) || (this.value != null)){
+				editableLayers = L.geoJson(JSON.parse(this.value)).addTo(map);
+			}
+
 			map.addLayer(editableLayers);
 			var options = {
 				position: 'topleft',
@@ -59,26 +64,28 @@ frappe.ui.form.ControlMap = frappe.ui.form.ControlData.extend({
 			var drawControl = new L.Control.Draw(options);
 			map.addControl(drawControl);
 
-			map.on('draw:created', function(e) {
+			map.on('draw:created', (e) => {
 				var type = e.layerType,
 				layer = e.layer;
 				if (type === 'marker') {
 					layer.bindPopup('A popup!');
 				}
 				editableLayers.addLayer(layer);
-				//console.log("The editable layer is {0}", [JSON.stringify(editableLayers.toGeoJSON())])
+				this.set_value(JSON.stringify(editableLayers.toGeoJSON()));
 			});
 
-			map.on('draw:deleted', function(e) {
+			map.on('draw:deleted', (e) => {
 				var type = e.layerType,
 				layer = e.layer;
 				editableLayers.removeLayer(layer);
+				this.set_value(JSON.stringify(editableLayers.toGeoJSON()));
 			});
 
-			map.on('draw:edited', function(e) {
+			map.on('draw:edited', (e) => {
 				var type = e.layerType,
 				layer = e.layer;
 				editableLayers.removeLayer(layer);
+				this.set_value(JSON.stringify(editableLayers.toGeoJSON()));
 			});
 			this.$wrapper.find('.control-input').hide();
 		});
