@@ -14,8 +14,8 @@ frappe.ui.form.ControlMap = frappe.ui.form.ControlData.extend({
 				"assets/frappe/js/lib/leaflet/leaflet.js",
 				"assets/frappe/js/lib/leaflet/leaflet.draw.css",
 				"assets/frappe/js/lib/leaflet/leaflet.draw.js",
-			], () => {
-			L.Icon.Default.imagePath = 'assets/erpnext/images/leaflet';
+		], () => {
+			L.Icon.Default.imagePath = 'assets/frappe/images/leaflet';
 			this.map_area.prependTo($input_wrapper);
 			map = L.map('map-control').setView([19.0800, 72.8961], 13);
 
