@@ -844,3 +844,10 @@ def to_markdown(html):
 		pass
 
 	return text
+
+def get_source_value(source, key):
+	'''Get value from source (object or dict) based on key'''
+	if isinstance(source, dict):
+		return source.get(key)
+	else:
+		return getattr(source, key)

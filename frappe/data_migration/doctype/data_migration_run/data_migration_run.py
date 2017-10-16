@@ -6,6 +6,7 @@ from __future__ import unicode_literals
 import frappe, json, math
 from frappe.model.document import Document
 from frappe import _
+from frappe.utils import get_source_value
 
 class DataMigrationRun(Document):
 
@@ -381,16 +382,8 @@ class DataMigrationRun(Document):
 		pull_update = self.get_log('pull_update', 0)
 		pull_failed = self.get_log('pull_failed', [])
 
-		def get_migration_id_value(source, key):
-			value = None
-			try:
-				value = source[key]
-			except:
-				value = getattr(source, key)
-			return value
-
 		for d in data:
-			migration_id_value = get_migration_id_value(d, connection.name_field)
+			migration_id_value = get_source_value(d, connection.name_field)
 			doc = self.pre_process_doc(d)
 			doc = mapping.get_mapped_record(doc)
 
