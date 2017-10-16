@@ -6,6 +6,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
 from frappe import _
+from .connectors.base import BaseConnection
 from .connectors.postgres import PostGresConnection
 from .connectors.frappe_connection import FrappeConnection
 
@@ -16,14 +17,14 @@ class DataMigrationConnector(Document):
 
 		if self.python_module:
 			try:
-				frappe.get_module(self.python_module)
+				get_connection_class(self.python_module)
 			except:
 				frappe.throw(frappe._('Invalid module path'))
 
 	def get_connection(self):
 		if self.python_module:
-			module = frappe.get_module(self.python_module)
-			return module.get_connection(self)
+			_class = get_connection_class(self.python_module)
+			return _class(self)
 		else:
 			if self.connector_type == 'Frappe':
 				self.connection = FrappeConnection(self)
@@ -32,8 +33,20 @@ class DataMigrationConnector(Document):
 
 		return self.connection
 
-	def get_objects(self, object_type, condition=None, selection="*"):
-		return self.connector.get_objects(object_type, condition, selection)
+def get_connection_class(python_module):
+	filename = python_module.rsplit('.', 1)[-1]
+	classname = frappe.unscrub(filename).replace(' ', '')
+	module = frappe.get_module(python_module)
 
-	def get_join_objects(self, object_type, join_type, primary_key):
-		return self.connector.get_join_objects(object_type, join_type, primary_key)
+	raise_error = False
+	if hasattr(module, classname):
+		_class = getattr(module, classname)
+		if not issubclass(_class, BaseConnection):
+			raise_error = True
+	else:
+		raise_error = True
+
+	if raise_error:
+		raise ImportError(filename)
+
+	return _class
