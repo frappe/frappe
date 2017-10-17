@@ -296,12 +296,12 @@ frappe.socketio.SocketIOUploader = class SocketIOUploader {
 		});
 
 		frappe.socketio.socket.on('upload-end', (data) => {
+			this.reader = null;
+			this.file = null;
 			if (data.file_url.substr(0, 7)==='/public') {
 				data.file_url = data.file_url.substr(7);
 			}
 			this.callback(data);
-			this.reader = null;
-			this.file = null;
 		});
 
 		frappe.socketio.socket.on('upload-error', (data) => {
