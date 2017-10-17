@@ -113,6 +113,7 @@ class TestFeedbackTrigger(unittest.TestCase):
 			reference_doctype="ToDo", reference_name=todo.name, feedback="Thank You !!", rating=4, fullname="Test User")
 
 		# auto feedback request should trigger only once
+		todo.reload()
 		todo.save(ignore_permissions=True)
 		email_queue = frappe.db.sql("""select name from `tabEmail Queue` where
 			reference_doctype='ToDo' and reference_name='{0}'""".format(todo.name))
