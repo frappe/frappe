@@ -31,4 +31,4 @@ class TestGoal(unittest.TestCase):
 		frappe.db.set_value('Event', docname, 'description', 1)
 		data = get_monthly_goal_graph_data('Test', 'Event', docname, 'description', 'description', 'description',
 			'Event', '', 'description', 'creation', 'starts_on = "2014-01-01"', 'count')
-		self.assertEquals(float(data['y'][0]['values'][-1]), 1)
+		self.assertEquals(float(data['data']['datasets'][0]['values'][-1]), 1)

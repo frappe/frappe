@@ -14,6 +14,12 @@ frappe.views.ImageView = frappe.views.ListRenderer.extend({
 		this._super();
 		this.page_title = this.page_title + ' ' + __('Images');
 	},
+	prepare_data: function(data) {
+		data = this._super(data);
+		// absolute url if cordova, else relative
+		data._image_url = this.get_image_url(data);
+		return data;
+	},
 	render_image_view: function () {
 		var html = this.items.map(this.render_item.bind(this)).join("");
 		this.container = $('<div>')
@@ -22,14 +28,12 @@ frappe.views.ImageView = frappe.views.ListRenderer.extend({
 		this.container.append(html);
 	},
 	render_item: function (item) {
-		var image_url = this.get_image_url(item);
 		var indicator = this.get_indicator_html(item);
 		return frappe.render_template("image_view_item_row", {
 			data: item,
 			indicator: indicator,
 			subject: this.get_subject_html(item, true),
 			additional_columns: this.additional_columns,
-			item_image: image_url,
 			color: frappe.get_palette(item.item_name)
 		});
 	},
@@ -112,8 +116,8 @@ frappe.views.GalleryView = Class.extend({
 			}
 
 			return {
-				src: i.image,
-				msrc: i.image,
+				src: i._image_url,
+				msrc: i._image_url,
 				name: i.name,
 				w: width,
 				h: height,

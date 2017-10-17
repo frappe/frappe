@@ -21,9 +21,9 @@ This is the text version of this email
 '''
 
 		img_path = os.path.abspath('assets/frappe/images/favicon.png')
-		with open(img_path) as f:
+		with open(img_path, 'rb') as f:
 			img_content = f.read()
-			img_base64 = base64.b64encode(img_content)
+			img_base64 = base64.b64encode(img_content).decode()
 
 		# email body keeps 76 characters on one line
 		self.img_base64 = fixed_column_width(img_base64, 76)

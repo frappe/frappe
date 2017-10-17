@@ -73,7 +73,7 @@ frappe.socketio = {
 			frappe.socketio.doc_subscribe(frm.doctype, frm.docname);
 		});
 
-		$(document).on("form_refresh", function(e, frm) {
+		$(document).on("form-refresh", function(e, frm) {
 			if (frm.is_new()) {
 				return;
 			}
@@ -222,17 +222,19 @@ frappe.socketio = {
 			}, 5);
 		});
 		// js files show alert
-		frappe.socketio.file_watcher.on('reload_js', function(filename) {
-			filename = "assets/" + filename;
-			var msg = $(`
-				<span>${filename} changed <a data-action="reload">Click to Reload</a></span>
-			`)
-			msg.find('a').click(frappe.ui.toolbar.clear_cache);
-			frappe.show_alert({
-				indicator: 'orange',
-				message: msg
-			}, 5);
-		});
+
+		// commenting as this kills a branch change
+		// frappe.socketio.file_watcher.on('reload_js', function(filename) {
+		// 	filename = "assets/" + filename;
+		// 	var msg = $(`
+		// 		<span>${filename} changed <a data-action="reload">Click to Reload</a></span>
+		// 	`)
+		// 	msg.find('a').click(frappe.ui.toolbar.clear_cache);
+		// 	frappe.show_alert({
+		// 		indicator: 'orange',
+		// 		message: msg
+		// 	}, 5);
+		// });
 	},
 	process_response: function(data, method) {
 		if(!data) {
@@ -291,16 +293,17 @@ frappe.socketio.SocketIOUploader = class SocketIOUploader {
 			}
 
 			this.reader.readAsArrayBuffer(slice);
+			this.started = true;
 			this.keep_alive();
 		});
 
 		frappe.socketio.socket.on('upload-end', (data) => {
+			this.reader = null;
+			this.file = null;
 			if (data.file_url.substr(0, 7)==='/public') {
 				data.file_url = data.file_url.substr(7);
 			}
 			this.callback(data);
-			this.reader = null;
-			this.file = null;
 		});
 
 		frappe.socketio.socket.on('upload-error', (data) => {
@@ -318,7 +321,7 @@ frappe.socketio.SocketIOUploader = class SocketIOUploader {
 	}
 
 	start({file=null, is_private=0, filename='', callback=null, on_progress=null,
-		chunk_size=100000, fallback=null} = {}) {
+		chunk_size=24576, fallback=null} = {}) {
 
 		if (this.reader) {
 			frappe.throw(__('File Upload in Progress. Please try again in a few moments.'));
@@ -338,6 +341,8 @@ frappe.socketio.SocketIOUploader = class SocketIOUploader {
 		this.chunk_size = chunk_size;
 		this.callback = callback;
 		this.on_progress = on_progress;
+		this.fallback = fallback;
+		this.started = false;
 
 		this.reader.onload = () => {
 			frappe.socketio.socket.emit('upload-accept-slice', {
@@ -359,6 +364,14 @@ frappe.socketio.SocketIOUploader = class SocketIOUploader {
 			clearTimeout (this.next_check);
 		}
 		this.next_check = setTimeout (() => {
+			if (!this.started) {
+				// upload never started, so try fallback
+				if (this.fallback) {
+					this.fallback();
+				} else {
+					this.disconnect();
+				}
+			}
 			this.disconnect();
 		}, 3000);
 	}

@@ -20,6 +20,7 @@ class TestDomainification(unittest.TestCase):
 
 	def tearDown(self):
 		frappe.db.sql("delete from tabRole where name='_Test Role'")
+		frappe.db.sql("delete from `tabHas Role` where role='_Test Role'")
 		frappe.db.sql("delete from tabDomain where name in ('_Test Domain 1', '_Test Domain 2')")
 		frappe.delete_doc('DocType', 'Test Domainification')
 

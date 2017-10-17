@@ -128,7 +128,7 @@ def handle_exception(e):
 	http_status_code = getattr(e, "http_status_code", 500)
 	return_as_message = False
 
-	if frappe.local.is_ajax or 'application/json' in frappe.local.request.headers.get('Accept', ''):
+	if frappe.local.is_ajax or 'application/json' in frappe.get_request_header('Accept'):
 		# handle ajax responses first
 		# if the request is ajax, send back the trace or error message
 		response = frappe.utils.response.report_error(http_status_code)

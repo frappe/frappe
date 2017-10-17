@@ -44,7 +44,7 @@ frappe.views.QueryReport = Class.extend({
 		this.wrapper = $("<div>").appendTo(this.page.main);
 		$('<div class="waiting-area" style="display: none;"></div>\
 		<div class="no-report-area msg-box no-border" style="display: none;"></div>\
-		<div class="chart_area" style="border-bottom: 1px solid #d1d8dd; padding: 0px 5%"></div>\
+		<div class="chart-area" style="border-bottom: 1px solid #d1d8dd; margin: 0px 3%"></div>\
 		<div class="results" style="display: none;">\
 			<div class="result-area" style="height:70vh;"></div>\
 			<button class="btn btn-secondary btn-default btn-xs expand-all hidden" style="margin: 10px;">'+__('Expand All')+'</button>\
@@ -57,7 +57,7 @@ frappe.views.QueryReport = Class.extend({
 		</div>').appendTo(this.wrapper);
 		this.wrapper.find(".expand-all").on("click", function() { me.toggle_all(false);});
 		this.wrapper.find(".collapse-all").on("click", function() { me.toggle_all(true);});
-		this.chart_area = this.wrapper.find(".chart_area");
+		this.chart_area = this.wrapper.find(".chart-area");
 		this.make_toolbar();
 	},
 	toggle_expand_collapse_buttons: function(show) {
@@ -591,7 +591,7 @@ frappe.views.QueryReport = Class.extend({
 			newrow.id = newrow.name ? newrow.name : ("_" + newrow._id);
 			this.data.push(newrow);
 		}
-		if(this.report_doc.add_total_row) {
+		if(this.data.length && this.report_doc.add_total_row) {
 			this.total_row_id = this.data[this.data.length - 1].id;
 		}
 	},
@@ -939,12 +939,13 @@ frappe.views.QueryReport = Class.extend({
 		}
 
 		$.extend(opts, {
-			wrapper: this.chart_area,
+			parent: ".chart-area",
+			height: 200
 		});
 
-		this.chart = new frappe.ui.Chart(opts);
-		if(this.chart && opts.data && opts.data.rows && opts.data.rows.length) {
+		if(opts.data && opts.data.labels && opts.data.labels.length) {
 			this.chart_area.toggle(true);
+			this.chart = new frappe.chart.FrappeChart(opts);
 		}
 	},
 

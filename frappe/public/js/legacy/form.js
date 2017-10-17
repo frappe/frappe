@@ -225,7 +225,7 @@ _f.Frm.prototype.watch_model_updates = function() {
 };
 
 _f.Frm.prototype.setup_std_layout = function() {
-	this.form_wrapper = $('<div></div>').appendTo(this.layout_main);
+	this.form_wrapper 	= $('<div></div>').appendTo(this.layout_main);
 	this.body 			= $('<div></div>').appendTo(this.form_wrapper);
 
 	// only tray
@@ -497,7 +497,7 @@ _f.Frm.prototype.render_form = function(is_a_different_doc) {
 
 		// trigger global trigger
 		// to use this
-		$(document).trigger('form_refresh', [this]);
+		$(document).trigger('form-refresh', [this]);
 
 		// fields
 		this.refresh_fields();

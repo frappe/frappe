@@ -1,6 +1,15 @@
 .grid-report {
   direction: ltr;
 }
+
 .page-form .awesomplete > ul {
-    min-width: 100%;
+    left: auto;
+}
+
+.chart_area{
+	direction: ltr;
+}
+
+.grid-report .show-zero{
+	direction: rtl;
 }

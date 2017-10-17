@@ -238,7 +238,7 @@ _f.Frm.prototype.set_query = function(fieldname, opt1, opt2) {
 }
 
 _f.Frm.prototype.set_value_if_missing = function(field, value) {
-	this.set_value(field, value, true);
+	return this.set_value(field, value, true);
 }
 
 _f.Frm.prototype.clear_table = function(fieldname) {
@@ -492,7 +492,8 @@ _f.Frm.prototype.make_new = function(doctype) {
 				}
 			});
 
-			frappe.set_route('Form', doctype, new_doc.name);
+			frappe.ui.form.make_quick_entry(doctype, null, null, new_doc);
+			// frappe.set_route('Form', doctype, new_doc.name);
 		});
 	}
 }

@@ -60,11 +60,11 @@ function watch() {
 				io.emit('reload_css', filename);
 			}
 		});
-		watch_js(function (filename) {
-			if(socket_connection) {
-				io.emit('reload_js', filename);
-			}
-		});
+		// watch_js(function (filename) {
+		// 	if(socket_connection) {
+		// 		io.emit('reload_js', filename);
+		// 	}
+		// });
 		watch_build_json();
 	});
 
@@ -123,10 +123,9 @@ function pack(output_path, inputs, minify) {
 }
 
 function babelify(content, path, minify) {
-	let presets = ['es2015', 'es2016'];
-	// if(minify) {
-	// 	presets.push('babili'); // new babel minifier
-	// }
+	let presets = ['env'];
+	// Minification doesn't work when loading Frappe Desk
+	// Avoid for now, trace the error and come back.
 	try {
 		return babel.transform(content, {
 			presets: presets,

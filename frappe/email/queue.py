@@ -64,7 +64,7 @@ def send(recipients=None, sender=None, subject=None, message=None, text_content=
 	if isinstance(send_after, int):
 		send_after = add_days(nowdate(), send_after)
 
-	email_account = get_outgoing_email_account(True, append_to=reference_doctype)
+	email_account = get_outgoing_email_account(True, append_to=reference_doctype, sender=sender)
 	if not sender or sender == "Administrator":
 		sender = email_account.default_sender
 
@@ -401,7 +401,7 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False, from_test=Fals
 	try:
 		if not frappe.flags.in_test:
 			if not smtpserver: smtpserver = SMTPServer()
-			smtpserver.setup_email_account(email.reference_doctype)
+			smtpserver.setup_email_account(email.reference_doctype, sender=email.sender)
 
 		for recipient in recipients_list:
 			if recipient.status != "Not Sent":
@@ -478,7 +478,7 @@ def prepare_message(email, recipient, recipients_list):
 	if email.add_unsubscribe_link and email.reference_doctype: # is missing the check for unsubscribe message but will not add as there will be no unsubscribe url
 		unsubscribe_url = get_unsubcribed_url(email.reference_doctype, email.reference_name, recipient,
 		email.unsubscribe_method, email.unsubscribe_params)
-		message = message.replace("<!--unsubscribe url-->", quopri.encodestring(unsubscribe_url))
+		message = message.replace("<!--unsubscribe url-->", quopri.encodestring(unsubscribe_url.encode()).decode())
 
 	if email.expose_recipients == "header":
 		pass
@@ -494,7 +494,7 @@ def prepare_message(email, recipient, recipients_list):
 				email_sent_message = _("This email was sent to {0} and copied to {1}").format(email_sent_to,email_sent_cc)
 			else:
 				email_sent_message = _("This email was sent to {0}").format(email_sent_to)
-			message = message.replace("<!--cc message-->", quopri.encodestring(email_sent_message))
+			message = message.replace("<!--cc message-->", quopri.encodestring(email_sent_message.encode()).decode())
 
 		message = message.replace("<!--recipient-->", recipient)
 

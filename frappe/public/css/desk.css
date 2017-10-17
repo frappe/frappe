@@ -522,7 +522,7 @@ a.progress-small .progress-bar {
   background-color: #98d85b;
 }
 li.user-progress .progress-chart {
-  width: 60px;
+  width: 50px;
   margin-top: 8px;
 }
 li.user-progress .progress {
@@ -543,6 +543,9 @@ li.user-progress .progress-bar {
   .nav-stacked > li + li {
     margin-top: 0px;
     margin-left: 2px;
+  }
+  li.user-progress .progress-chart {
+    width: 25px;
   }
 }
 .msg-box {
@@ -620,6 +623,13 @@ li.user-progress .progress-bar {
 .frappe-rtl input,
 .frappe-rtl textarea {
   direction: rtl;
+}
+.frappe-rtl .checkbox .disp-area {
+  margin-right: -20px;
+  margin-left: 0px;
+}
+.checkbox .disp-area {
+  margin-left: -20px;
 }
 .text-editor {
   height: 400px;
@@ -1134,9 +1144,6 @@ input[type="checkbox"]:checked:before {
 }
 .slides-wrapper .footer .btn:not(:last-child) {
   margin-right: 3px;
-}
-.slides-wrapper .footer a.btn.make-btn {
-  margin-right: 7px;
 }
 .slides-wrapper .footer a.make-btn.disabled {
   background-color: #b1bdca;

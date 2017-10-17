@@ -734,7 +734,7 @@ def get_filter(doctype, f):
 	from frappe.model import default_fields, optional_fields
 
 	if isinstance(f, dict):
-		key, value = f.items()[0]
+		key, value = next(iter(f.items()))
 		f = make_filter_tuple(doctype, key, value)
 
 	if not isinstance(f, (list, tuple)):
@@ -791,7 +791,7 @@ def expand_relative_urls(html):
 	def _expand_relative_urls(match):
 		to_expand = list(match.groups())
 
-		if not to_expand[2].startswith('mailto'):
+		if not to_expand[2].startswith('mailto') and not to_expand[2].startswith('data:'):
 			if not to_expand[2].startswith("/"):
 				to_expand[2] = "/" + to_expand[2]
 			to_expand.insert(2, url)

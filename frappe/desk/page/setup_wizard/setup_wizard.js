@@ -70,7 +70,12 @@ frappe.pages['setup-wizard'].on_page_show = function(wrapper) {
 
 frappe.setup.on("before_load", function() {
 	// load slides
-	frappe.setup.slides_settings.map(frappe.setup.add_slide);
+	frappe.setup.slides_settings.forEach((s) => {
+		if(!(s.name==='user' && frappe.boot.developer_mode)) {
+			// if not user slide with developer mode
+			frappe.setup.add_slide(s);
+		}
+	});
 });
 
 frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
@@ -232,6 +237,7 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 		this.working_state_message = this.get_message(
 			__("Setting Up"),
 			__("Sit tight while your system is being setup. This may take a few moments."),
+			'orange',
 			true
 		).appendTo(this.parent);
 
@@ -239,7 +245,8 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 		this.current_slide = null;
 		this.completed_state_message = this.get_message(
 			__("Setup Complete"),
-			__("You're all set!")
+			__("You're all set!"),
+			'green'
 		);
 	}
 
@@ -259,8 +266,10 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 		return $(`<div class="page-card-container" data-state="setup">
 			<div class="page-card">
 				<div class="page-card-head">
-					<span class="indicator blue">
-						${title}</span>
+					${loading
+						? `<span class="indicator orange">${title}</span>`
+						: `<span class="indicator green">${title}</span>`
+					}
 				</div>
 				<p>${message}</p>
 				<div class="state-icon-container">
@@ -499,19 +508,22 @@ frappe.setup.utils = {
 
 	bind_language_events: function(slide) {
 		slide.get_input("language").unbind("change").on("change", function() {
-			var lang = $(this).val() || "English";
-			frappe._messages = {};
-			frappe.call({
-				method: "frappe.desk.page.setup_wizard.setup_wizard.load_messages",
-				freeze: true,
-				args: {
-					language: lang
-				},
-				callback: function(r) {
-					frappe.setup._from_load_messages = true;
-					frappe.wizard.refresh_slides();
-				}
-			});
+			clearTimeout (slide.language_call_timeout);
+			slide.language_call_timeout = setTimeout (() => {
+				var lang = $(this).val() || "English";
+				frappe._messages = {};
+				frappe.call({
+					method: "frappe.desk.page.setup_wizard.setup_wizard.load_messages",
+					freeze: true,
+					args: {
+						language: lang
+					},
+					callback: function(r) {
+						frappe.setup._from_load_messages = true;
+						frappe.wizard.refresh_slides();
+					}
+				});
+			}, 500);
 		});
 	},
 

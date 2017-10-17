@@ -13,6 +13,7 @@ import frappe.utils.scheduler
 import cProfile, pstats
 from six import StringIO
 from six.moves import reload_module
+from frappe.model.naming import revert_series_if_last
 
 unittest_runner = unittest.TextTestRunner
 
@@ -285,6 +286,11 @@ def make_test_objects(doctype, test_records=None, verbose=None, reset=False):
 	'''Make test objects from given list of `test_records` or from `test_records.json`'''
 	records = []
 
+	def revert_naming(d):
+		if getattr(d, 'naming_series', None):
+			revert_series_if_last(d.naming_series, d.name)
+
+
 	if test_records is None:
 		test_records = frappe.get_test_records(doctype)
 
@@ -294,18 +300,19 @@ def make_test_objects(doctype, test_records=None, verbose=None, reset=False):
 
 		d = frappe.copy_doc(doc)
 
+		if d.meta.get_field("naming_series"):
+			if not d.naming_series:
+				d.naming_series = "_T-" + d.doctype + "-"
+
 		if doc.get('name'):
 			d.name = doc.get('name')
 		else:
 			d.set_new_name()
 
-		if d.name in (frappe.local.test_objects.get(d.doctype) or []) and not reset:
+		if frappe.db.exists(d.doctype, d.name) and not reset:
+			frappe.db.rollback()
 			# do not create test records, if already exists
-			return []
-
-		if d.meta.get_field("naming_series"):
-			if not d.naming_series:
-				d.naming_series = "_T-" + d.doctype + "-"
+			continue
 
 		# submit if docstatus is set to 1 for test record
 		docstatus = d.docstatus
@@ -320,18 +327,17 @@ def make_test_objects(doctype, test_records=None, verbose=None, reset=False):
 				d.submit()
 
 		except frappe.NameError:
-			pass
+			revert_naming(d)
 
 		except Exception as e:
 			if d.flags.ignore_these_exceptions_in_test and e.__class__ in d.flags.ignore_these_exceptions_in_test:
-				pass
-
+				revert_naming(d)
 			else:
 				raise
 
 		records.append(d.name)
 
-	frappe.db.commit()
+		frappe.db.commit()
 
 	return records
 

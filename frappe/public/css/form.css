@@ -612,6 +612,9 @@ select.form-control {
   font-weight: 500;
   color: #8D99A6;
 }
+.attach-btn {
+  margin-top: 10px;
+}
 @media (min-width: 768px) {
   .layout-main .form-column.col-sm-12 > form > .input-max-width {
     max-width: 50%;

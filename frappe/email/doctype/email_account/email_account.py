@@ -273,7 +273,6 @@ class EmailAccount(Document):
 						"uid_reindexed": uid_reindexed
 					}
 					communication = self.insert_communication(msg, args=args)
-					#self.notify_update()
 
 				except SentEmailInInbox:
 					frappe.db.rollback()

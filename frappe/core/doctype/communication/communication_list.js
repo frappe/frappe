@@ -9,13 +9,13 @@ frappe.listview_settings['Communication'] = {
 	filters: [["status", "=", "Open"]],
 
 	onload: function(list_view) {
-		var method = "frappe.email.inbox.create_email_flag_queue"
+		let method = "frappe.email.inbox.create_email_flag_queue"
 
 		list_view.page.add_menu_item(__("Mark as Read"), function() {
-			list_view.call_for_selected_items(method, { action: "Read" })
+			list_view.call_for_selected_items(method, { action: "Read" });
 		});
 		list_view.page.add_menu_item(__("Mark as Unread"), function() {
-			list_view.call_for_selected_items(method, { action: "Unread" })
+			list_view.call_for_selected_items(method, { action: "Unread" });
 		});
 	},
 

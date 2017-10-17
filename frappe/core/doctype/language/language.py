@@ -14,7 +14,7 @@ def export_languages_json():
 	languages = frappe.db.get_all('Language', fields=['name', 'language_name'])
 	languages = [{'name': d.language_name, 'code': d.name} for d in languages]
 
-	languages.sort(lambda a,b: 1 if a['code'] > b['code'] else -1)
+	languages.sort(key = lambda a: a['code'])
 
 	with open(frappe.get_app_path('frappe', 'geo', 'languages.json'), 'w') as f:
 		f.write(frappe.as_json(languages))

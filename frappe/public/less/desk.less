@@ -350,7 +350,7 @@ a.progress-small {
 
 li.user-progress {
 	.progress-chart {
-		width: 60px;
+		width: 50px;
 		margin-top: 8px;
 	}
 
@@ -376,6 +376,10 @@ li.user-progress {
 	.nav-stacked > li + li {
 	  margin-top: 0px;
 	  margin-left: 2px;
+	}
+
+	li.user-progress .progress-chart {
+		width: 25px;
 	}
 }
 
@@ -475,7 +479,16 @@ li.user-progress {
 }
 
 .frappe-rtl input ,.frappe-rtl textarea {
-	direction: rtl
+	direction: rtl;
+}
+
+.frappe-rtl .checkbox .disp-area {
+	margin-right: -20px;
+	margin-left: 0px;
+}
+
+.checkbox .disp-area {
+	margin-left: -20px;
 }
 
 .text-editor {
@@ -1082,10 +1095,6 @@ input[type="checkbox"] {
 
 		.btn:not(:last-child) {
 			margin-right: 3px;
-		}
-
-		a.btn.make-btn {
-			margin-right: 7px;
 		}
 
 		a.make-btn.disabled {

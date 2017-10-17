@@ -6,7 +6,7 @@ globals attached to frappe module
 """
 from __future__ import unicode_literals, print_function
 
-from six import iteritems, text_type, string_types
+from six import iteritems, binary_type, text_type, string_types
 from werkzeug.local import Local, release_local
 import os, sys, importlib, inspect, json
 
@@ -14,7 +14,7 @@ import os, sys, importlib, inspect, json
 from .exceptions import *
 from .utils.jinja import get_jenv, get_template, render_template, get_email_from_template
 
-__version__ = '8.10.8'
+__version__ = '9.1.7'
 __title__ = "Frappe Framework"
 
 local = Local()
@@ -61,7 +61,7 @@ def as_unicode(text, encoding='utf-8'):
 		return text
 	elif text==None:
 		return ''
-	elif isinstance(text, string_types):
+	elif isinstance(text, binary_type):
 		return text_type(text, encoding)
 	else:
 		return text_type(text)
@@ -475,13 +475,26 @@ def only_for(roles):
 	if not roles.intersection(myroles):
 		raise PermissionError
 
+def get_domain_data(module):
+	try:
+		domain_data = get_hooks('domains')
+		if module in domain_data:
+			return _dict(get_attr(get_hooks('domains')[module][0] + '.data'))
+		else:
+			return _dict()
+	except ImportError:
+		if local.flags.in_test:
+			return _dict()
+		else:
+			raise
+
+
 def clear_cache(user=None, doctype=None):
 	"""Clear **User**, **DocType** or global cache.
 
 	:param user: If user is given, only user cache is cleared.
 	:param doctype: If doctype is given, only DocType cache is cleared."""
 	import frappe.sessions
-	from frappe.core.doctype.domain_settings.domain_settings import clear_domain_cache
 	if doctype:
 		import frappe.model.meta
 		frappe.model.meta.clear_cache(doctype)
@@ -493,7 +506,6 @@ def clear_cache(user=None, doctype=None):
 		frappe.sessions.clear_cache()
 		translate.clear_cache()
 		reset_metadata_version()
-		clear_domain_cache()
 		local.cache = {}
 		local.new_doc_templates = {}
 
@@ -602,7 +614,7 @@ def set_value(doctype, docname, fieldname, value=None):
 	import frappe.client
 	return frappe.client.set_value(doctype, docname, fieldname, value)
 
-def get_doc(arg1, arg2=None):
+def get_doc(*args, **kwargs):
 	"""Return a `frappe.model.document.Document` object of the given type and name.
 
 	:param arg1: DocType name as string **or** document JSON.
@@ -619,7 +631,7 @@ def get_doc(arg1, arg2=None):
 
 	"""
 	import frappe.model.document
-	return frappe.model.document.get_doc(arg1, arg2)
+	return frappe.model.document.get_doc(*args, **kwargs)
 
 def get_last_doc(doctype):
 	"""Get last created document of this type."""
@@ -1318,6 +1330,20 @@ def enqueue(*args, **kwargs):
 	'''
 	import frappe.utils.background_jobs
 	return frappe.utils.background_jobs.enqueue(*args, **kwargs)
+
+def enqueue_doc(*args, **kwargs):
+	'''
+		Enqueue method to be executed using a background worker
+
+		:param doctype: DocType of the document on which you want to run the event
+		:param name: Name of the document on which you want to run the event
+		:param method: method string or method object
+		:param queue: (optional) should be either long, default or short
+		:param timeout: (optional) should be set according to the functions
+		:param kwargs: keyword arguments to be passed to the method
+	'''
+	import frappe.utils.background_jobs
+	return frappe.utils.background_jobs.enqueue_doc(*args, **kwargs)
 
 def get_doctype_app(doctype):
 	def _get_doctype_app():

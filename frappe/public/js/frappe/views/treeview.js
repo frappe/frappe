@@ -43,6 +43,7 @@ frappe.views.TreeView = Class.extend({
 			this.get_root();
 		}
 
+		this.onload();
 		this.set_menu_item();
 		this.set_primary_action();
 	},
@@ -79,6 +80,10 @@ frappe.views.TreeView = Class.extend({
 		} else {
 			this.body = this.page.main;
 		}
+	},
+	onload: function() {
+		var me = this;
+		this.opts.onload && this.opts.onload(me);
 	},
 	make_filters: function(){
 		var me = this;
@@ -286,7 +291,7 @@ frappe.views.TreeView = Class.extend({
 			frappe.msgprint(__("You are not allowed to print this report"));
 			return false;
 		}
-		var tree = $(".tree:visible").html(); 
+		var tree = $(".tree:visible").html();
 		var me = this;
 		frappe.ui.get_print_settings(false, function(print_settings) {
 			var title =  __(me.docname || me.doctype);
@@ -339,7 +344,15 @@ frappe.views.TreeView = Class.extend({
 			if (has_perm) {
 				me.page.add_menu_item(menu_item["label"], menu_item["action"]);
 			}
-		})
+		});
+
+		// last menu item
+		me.page.add_menu_item(__('Add to Desktop'), () => {
+			const label = me.doctype === 'Account' ?
+				__('Chart of Accounts') :
+				__(me.doctype);
+			frappe.add_to_desktop(label, me.doctype);
+		});
 	}
 });
 
