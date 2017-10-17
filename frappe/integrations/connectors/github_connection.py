@@ -1,6 +1,4 @@
 from __future__ import unicode_literals
-import frappe
-from frappe.frappeclient import FrappeClient
 from frappe.data_migration.doctype.data_migration_connector.connectors.base import BaseConnection
 from github import Github
 
@@ -19,7 +17,7 @@ class GithubConnection(BaseConnection):
 	def delete(self, doctype, migration_id):
 		pass
 
-	def get(self, remote_objectname, fields='"*"', filters=None, start=0, page_length=20):
+	def get(self, remote_objectname, fields=None, filters=None, start=0, page_length=10):
 		repo = filters.get('repo')
 
 		if remote_objectname == 'Milestone':
