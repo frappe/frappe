@@ -419,7 +419,6 @@ def get_filecontent_from_path(path):
 
 		return filecontent
 	else:
-		print(full_path + ' doesn\'t exists')
 		return None
 
 
