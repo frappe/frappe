@@ -29,12 +29,26 @@ from croniter import croniter
 
 DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 
+SOBSTITUTIONS = {
+    "yearly": "0 0 1 1 *",
+    "anually": "0 0 1 1 *",
+    "monthly": "0 0 1 * *",
+    "monthly_long": "0 0 1 * *",
+    "weekly": "0 0 * * 0",
+    "weekly_long": "0 0 * * 0",
+    "daily": "0 0 * * *",
+    "daily_long": "0 0 * * *",
+    "midnight": "0 0 * * *",
+    "hourly": "0 * * * *",
+    "hourly_long": "0 * * * *",
+    "all": "0/" + str((frappe.get_conf().scheduler_interval or 240) // 60) + " * * * *",
+}
+
 def start_scheduler():
 	'''Run enqueue_events_for_all_sites every 2 minutes (default).
 	Specify scheduler_interval in seconds in common_site_config.json'''
 
-	interval = frappe.get_conf().scheduler_interval or 240
-	schedule.every(interval).seconds.do(enqueue_events_for_all_sites)
+	schedule.every(60).seconds.do(enqueue_events_for_all_sites)
 
 	while True:
 		schedule.run_pending()
@@ -106,42 +120,18 @@ def enqueue_applicable_events(site, nowtime, last, queued_jobs=()):
 
 	enabled_events = get_enabled_scheduler_events()
 
-	def trigger_if_enabled(site, event):
-		if event in enabled_events:
-			trigger(site, event, last, queued_jobs)
-			_log(event)
+	def trigger_if_enabled(site, event, last, queued_jobs):
+		trigger(site, event, last, queued_jobs)
+		_log(event)
 
 	def _log(event):
 		out.append("{time} - {event} - queued".format(time=nowtime_str, event=event))
 
-	if nowtime.day != last.day:
-		# if first task of the day execute daily tasks
-		trigger_if_enabled(site, "daily")
-		trigger_if_enabled(site, "daily_long")
+	for event in enabled_events:
+		trigger_if_enabled(site, event, last, queued_jobs)
 
-		if nowtime.month != last.month:
-			trigger_if_enabled(site, "monthly")
-			trigger_if_enabled(site, "monthly_long")
-
-		if nowtime.weekday()==0:
-			trigger_if_enabled(site, "weekly")
-			trigger_if_enabled(site, "weekly_long")
-
-		if "all" not in enabled_events:
-			trigger(site, "all", queued_jobs)
-
-		if "hourly" not in enabled_events:
-			trigger(site, "hourly", queued_jobs)
-
-	if nowtime.hour != last.hour:
-		trigger_if_enabled(site, "hourly")
-		trigger_if_enabled(site, "hourly_long")
-
-		if "all" not in enabled_events:
-			trigger(site, "all", queued_jobs)
-
-	trigger_if_enabled(site, "all")
-	trigger_if_enabled(site, "cron")
+	if "all" not in enabled_events:
+		trigger_if_enabled(site, "all", last, queued_jobs)
 
 	return out
 
@@ -171,7 +161,8 @@ def trigger(site, event, last, queued_jobs=(), now=False):
                     'Exception in Trigger Events for Site {0}, Cron String {1}'.format(site, e))
 
     else:
-        events = events_from_hooks
+        if croniter(SOBSTITUTIONS[event], last).get_next(datetime) <= frappe.utils.now_datetime():
+            events.extend(events_from_hooks)
 
     for handler in events:
         if not now:
