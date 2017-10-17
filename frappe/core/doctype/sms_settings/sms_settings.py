@@ -78,13 +78,17 @@ def send_sms(receiver_list, msg, sender_name = '', success_msg = True):
 def send_via_gateway(arg):
 	ss = frappe.get_doc('SMS Settings', 'SMS Settings')
 	args = {ss.message_parameter: arg.get('message')}
+	headers={'Accept': "text/plain, text/html, */*"}
 	for d in ss.get("parameters"):
+		if d.header == 1:
+			headers.update({d.parameter: d.value})
+			continue
 		args[d.parameter] = d.value
 
 	success_list = []
 	for d in arg.get('receiver_list'):
 		args[ss.receiver_parameter] = d
-		status = send_request(ss.sms_gateway_url, args)
+		status = send_request(ss.sms_gateway_url, headers, args, ss.use_post)
 
 		if 200 <= status < 300:
 			success_list.append(d)
@@ -96,9 +100,12 @@ def send_via_gateway(arg):
 			frappe.msgprint(_("SMS sent to following numbers: {0}").format("\n" + "\n".join(success_list)))
 
 
-def send_request(gateway_url, params):
+def send_request(gateway_url, headers, params, use_post=False):
 	import requests
-	response = requests.get(gateway_url, params = params, headers={'Accept': "text/plain, text/html, */*"})
+	if use_post:
+		response = requests.post(gateway_url, headers=headers, data=params)
+	else:
+		response = requests.get(gateway_url, headers=headers, params=params)
 	response.raise_for_status()
 	return response.status_code
 
