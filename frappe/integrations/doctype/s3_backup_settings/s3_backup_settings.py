@@ -20,7 +20,7 @@ class S3BackupSettings(Document):
 			's3',
 			aws_access_key_id=self.access_key_id,
 			aws_secret_access_key=self.get_password('secret_access_key'),
-			)
+		)
 
 		bucket_lower = str(self.bucket).lower()
 
@@ -140,8 +140,7 @@ def delete_old_backups(limit, bucket):
 			aws_secret_access_key=doc.get_password('secret_access_key'),
 			)
 	bucket = s3.Bucket(bucket)
-	objects = bucket.meta.client.list_objects_v2(Bucket=bucket.name,
-										 Delimiter='/')
+	objects = bucket.meta.client.list_objects_v2(Bucket=bucket.name, Delimiter='/')
 	for obj in objects.get('CommonPrefixes'):
 		all_backups.append(obj.get('Prefix'))
 
