@@ -10,10 +10,11 @@ from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 from frappe.model.document import Document
 
 class DataMigrationPlan(Document):
-	def after_insert(self):
-		self.make_custom_fields_for_mappings()
 
 	def on_update(self):
+		# update custom fields in mappings
+		self.make_custom_fields_for_mappings()
+
 		if frappe.flags.in_import or frappe.flags.in_test:
 			return
 

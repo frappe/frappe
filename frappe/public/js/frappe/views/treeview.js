@@ -43,6 +43,7 @@ frappe.views.TreeView = Class.extend({
 			this.get_root();
 		}
 
+		this.onload();
 		this.set_menu_item();
 		this.set_primary_action();
 	},
@@ -79,6 +80,10 @@ frappe.views.TreeView = Class.extend({
 		} else {
 			this.body = this.page.main;
 		}
+	},
+	onload: function() {
+		var me = this;
+		this.opts.onload && this.opts.onload(me);
 	},
 	make_filters: function(){
 		var me = this;

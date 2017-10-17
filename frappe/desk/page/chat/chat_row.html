@@ -29,7 +29,7 @@
 		{% if (data.owner==user) { %}
 		<div>
 			<a class="delete text-extra-muted" data-name="{%= data.name %}"
-				onclick="frappe.desk.pages.messages.delete(this)">Delete</a>
+				onclick="frappe.pages.chat.chat.delete(this)">Delete</a>
 		</div>
 		{% } %}
 	</div>
