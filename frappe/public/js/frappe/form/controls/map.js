@@ -98,7 +98,9 @@ frappe.ui.form.ControlMap = frappe.ui.form.ControlData.extend({
 
 	format_for_input(value) {
 		if(value){
+			this.map.removeLayer(this.editableLayers);
 			this.editableLayers = L.geoJson(JSON.parse(value)).addTo(this.map);
+			this.map.addLayer(this.editableLayers);
 		}
 	},
 
