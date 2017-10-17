@@ -8,7 +8,7 @@ QUnit.test("test: Role Profile", function (assert) {
 	frappe.run_serially([
 		// insert a new user
 		() => frappe.tests.make('Role Profile', [
-			{role_name: 'Test 2'}
+			{role_profile: 'Test 2'}
 		]),
 
 		() => {
