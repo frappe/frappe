@@ -322,9 +322,9 @@ def add_attachment(fname, fcontent, content_type=None,
 	# Set the filename parameter
 	if fname:
 		attachment_type = 'inline' if inline else 'attachment'
-		part.add_header(b'Content-Disposition', attachment_type, filename=text_type(fname))
+		part.add_header('Content-Disposition', attachment_type, filename=text_type(fname))
 	if content_id:
-		part.add_header(b'Content-ID', '<{0}>'.format(content_id))
+		part.add_header('Content-ID', '<{0}>'.format(content_id))
 
 	parent.attach(part)
 
@@ -415,7 +415,7 @@ def get_filecontent_from_path(path):
 		full_path = path
 
 	if os.path.exists(full_path):
-		with open(full_path) as f:
+		with open(full_path, 'rb') as f:
 			filecontent = f.read()
 
 		return filecontent
