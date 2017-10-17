@@ -17,7 +17,7 @@ QUnit.test("test: Set role profile in user", function (assert) {
 		() => frappe.timeout(2),
 		() => {
 			return frappe.tests.set_form_values(cur_frm, [
-				{role_name:'Test 2'}
+				{role_profile_name:'Test 2'}
 			]);
 		},
 

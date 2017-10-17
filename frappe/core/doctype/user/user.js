@@ -18,10 +18,10 @@ frappe.ui.form.on('User', {
 
 	},
 
-	role_name: function(frm) {
-		if(frm.doc.role_name) {
-			frappe.model.with_doc("Role Profile", frm.doc.role_name, function(){
-				var role = frappe.model.get_doc("Role Profile", frm.doc.role_name);
+	role_profile_name: function(frm) {
+		if(frm.doc.role_profile_name) {
+			frappe.model.with_doc("Role Profile", frm.doc.role_profile_name, function(){
+				var role = frappe.model.get_doc("Role Profile", frm.doc.role_profile_name);
 				frm.set_value("roles", role.roles);
 				frm.roles_editor.show();
 			});

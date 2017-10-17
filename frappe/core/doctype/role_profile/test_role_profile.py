@@ -7,9 +7,9 @@ import unittest
 
 class TestRoleProfile(unittest.TestCase):
 	def test_make_new_role_profile(self):
-		new_role_profile = frappe.get_doc(dict(doctype='Role Profile', role_name='Test 1')).insert()
+		new_role_profile = frappe.get_doc(dict(doctype='Role Profile', role_profile='Test 1')).insert()
 
-		self.assertEquals(new_role_profile.role_name, 'Test 1')
+		self.assertEquals(new_role_profile.role_profile, 'Test 1')
 
 		# add role
 		new_role_profile.append("roles", {
