@@ -19,27 +19,24 @@ frappe.ui.form.save = function (frm, action, callback, btn) {
 
 	var save = function () {
 		remove_empty_rows();
-		check_name(function () {
-			$(frm.wrapper).addClass('validated-form');
-			if (check_mandatory()) {
-				_call({
-					method: "frappe.desk.form.save.savedocs",
-					args: { doc: frm.doc, action: action },
-					callback: function (r) {
-						$(document).trigger("save", [frm.doc]);
-						callback(r);
-					},
-					error: function (r) {
-						callback(r);
-					},
-					btn: btn,
-					freeze_message: freeze_message
-				});
-			} else {
-				$(btn).prop("disabled", false);
-			}
-		});
-
+		$(frm.wrapper).addClass('validated-form');
+		if (check_mandatory()) {
+			_call({
+				method: "frappe.desk.form.save.savedocs",
+				args: { doc: frm.doc, action: action },
+				callback: function (r) {
+					$(document).trigger("save", [frm.doc]);
+					callback(r);
+				},
+				error: function (r) {
+					callback(r);
+				},
+				btn: btn,
+				freeze_message: freeze_message
+			});
+		} else {
+			$(btn).prop("disabled", false);
+		}
 	};
 
 	var remove_empty_rows = function() {
@@ -105,36 +102,6 @@ frappe.ui.form.save = function (frm, action, callback, btn) {
 			btn: btn,
 			freeze_message: freeze_message
 		});
-	};
-
-	var check_name = function (callback) {
-		var doc = frm.doc;
-		var meta = locals.DocType[doc.doctype];
-		if (doc.__islocal && (meta && meta.autoname
-			&& meta.autoname.toLowerCase() == 'prompt')) {
-			var d = frappe.prompt(__("Name"), function (values) {
-				var newname = values.value;
-				if (newname) {
-					doc.__newname = strip(newname);
-				} else {
-					frappe.msgprint(__("Name is required"));
-					throw "name required";
-				}
-
-				callback();
-
-			}, __('Enter the name of the new {0}', [doc.doctype]), __("Create"));
-
-			if (doc.__newname) {
-				d.set_value("value", doc.__newname);
-			}
-
-			d.onhide = function () {
-				$(btn).prop("disabled", false);
-			}
-		} else {
-			callback();
-		}
 	};
 
 	var check_mandatory = function () {

@@ -222,17 +222,19 @@ frappe.socketio = {
 			}, 5);
 		});
 		// js files show alert
-		frappe.socketio.file_watcher.on('reload_js', function(filename) {
-			filename = "assets/" + filename;
-			var msg = $(`
-				<span>${filename} changed <a data-action="reload">Click to Reload</a></span>
-			`)
-			msg.find('a').click(frappe.ui.toolbar.clear_cache);
-			frappe.show_alert({
-				indicator: 'orange',
-				message: msg
-			}, 5);
-		});
+
+		// commenting as this kills a branch change
+		// frappe.socketio.file_watcher.on('reload_js', function(filename) {
+		// 	filename = "assets/" + filename;
+		// 	var msg = $(`
+		// 		<span>${filename} changed <a data-action="reload">Click to Reload</a></span>
+		// 	`)
+		// 	msg.find('a').click(frappe.ui.toolbar.clear_cache);
+		// 	frappe.show_alert({
+		// 		indicator: 'orange',
+		// 		message: msg
+		// 	}, 5);
+		// });
 	},
 	process_response: function(data, method) {
 		if(!data) {

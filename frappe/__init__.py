@@ -475,13 +475,26 @@ def only_for(roles):
 	if not roles.intersection(myroles):
 		raise PermissionError
 
+def get_domain_data(module):
+	try:
+		domain_data = get_hooks('domains')
+		if module in domain_data:
+			return _dict(get_attr(get_hooks('domains')[module][0] + '.data'))
+		else:
+			return _dict()
+	except ImportError:
+		if local.flags.in_test:
+			return _dict()
+		else:
+			raise
+
+
 def clear_cache(user=None, doctype=None):
 	"""Clear **User**, **DocType** or global cache.
 
 	:param user: If user is given, only user cache is cleared.
 	:param doctype: If doctype is given, only DocType cache is cleared."""
 	import frappe.sessions
-	from frappe.core.doctype.domain_settings.domain_settings import clear_domain_cache
 	if doctype:
 		import frappe.model.meta
 		frappe.model.meta.clear_cache(doctype)
@@ -493,7 +506,6 @@ def clear_cache(user=None, doctype=None):
 		frappe.sessions.clear_cache()
 		translate.clear_cache()
 		reset_metadata_version()
-		clear_domain_cache()
 		local.cache = {}
 		local.new_doc_templates = {}
 

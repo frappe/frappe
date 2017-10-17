@@ -225,7 +225,7 @@ _f.Frm.prototype.watch_model_updates = function() {
 };
 
 _f.Frm.prototype.setup_std_layout = function() {
-	this.form_wrapper = $('<div></div>').appendTo(this.layout_main);
+	this.form_wrapper 	= $('<div></div>').appendTo(this.layout_main);
 	this.body 			= $('<div></div>').appendTo(this.form_wrapper);
 
 	// only tray
