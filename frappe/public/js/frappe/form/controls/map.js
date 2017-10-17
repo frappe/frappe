@@ -69,7 +69,7 @@ frappe.ui.form.ControlMap = frappe.ui.form.ControlData.extend({
 	bind_draw_create(){
 		this.map.on('draw:created', (e) => {
 			var type = e.layerType,
-			layer = e.layer;
+				layer = e.layer;
 			if (type === 'marker') {
 				layer.bindPopup('Marker');
 			}
@@ -81,7 +81,7 @@ frappe.ui.form.ControlMap = frappe.ui.form.ControlData.extend({
 	bind_draw_delete(){
 		this.map.on('draw:deleted', (e) => {
 			var type = e.layerType,
-			layer = e.layer;
+				layer = e.layer;
 			this.editableLayers.removeLayer(layer);
 			this.set_value(JSON.stringify(this.editableLayers.toGeoJSON()));
 		});
@@ -90,15 +90,15 @@ frappe.ui.form.ControlMap = frappe.ui.form.ControlData.extend({
 	bind_draw_edit(){
 		this.map.on('draw:edited', (e) => {
 			var type = e.layerType,
-			layer = e.layer;
+				layer = e.layer;
 			this.editableLayers.removeLayer(layer);
 			this.set_value(JSON.stringify(this.editableLayers.toGeoJSON()));
 		});
 	},
 
 	format_for_input(value) {
+		this.map.removeLayer(this.editableLayers);
 		if(value){
-			this.map.removeLayer(this.editableLayers);
 			this.editableLayers = L.geoJson(JSON.parse(value)).addTo(this.map);
 			this.map.addLayer(this.editableLayers);
 		}
