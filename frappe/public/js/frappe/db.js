@@ -2,6 +2,13 @@
 // MIT License. See license.txt
 
 frappe.db = {
+	exists: function(doctype, name) {
+		return new Promise ((resolve) => {
+			frappe.db.get_value(doctype, {name: name}, 'name').then((r) => {
+				(r.message && r.message.name) ? resolve(true) : resolve(false);
+			});
+		});
+	},
 	get_value: function(doctype, filters, fieldname, callback) {
 		return frappe.call({
 			method: "frappe.client.get_value",
