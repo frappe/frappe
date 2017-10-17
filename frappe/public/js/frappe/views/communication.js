@@ -195,11 +195,12 @@ frappe.views.CommunicationComposer = Class.extend({
 				method: 'frappe.email.doctype.standard_reply.standard_reply.get_standard_reply',
 				args: {
 					template_name: standard_reply,
-					doc: me.frm.doc
+					doc: me.frm.doc,
+					_lang: me.dialog.get_value("language_sel")
 				},
 				callback: function(r) {
 					prepend_reply(r.message);
-				}
+				},
 			});
 		}
 	},
