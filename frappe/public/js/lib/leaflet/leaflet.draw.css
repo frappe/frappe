@@ -25,12 +25,12 @@
 }
 
 .leaflet-draw-toolbar a {
-    background-image: url('assets/frappe/images/leaflet/spritesheet.png');
+    background-image: url('/assets/frappe/images/leaflet/spritesheet.png');
     background-repeat: no-repeat;
 }
 
 .leaflet-retina .leaflet-draw-toolbar a {
-    background-image: url('assets/frappe/images/leaflet/spritesheet-2x.png');
+    background-image: url('/assets/frappe/images/leaflet/spritesheet-2x.png');
     background-size: 270px 30px;
 }
 
