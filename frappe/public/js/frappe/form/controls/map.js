@@ -31,7 +31,7 @@ frappe.ui.form.ControlMap = frappe.ui.form.ControlData.extend({
 			draw: {
 				polyline: {
 					shapeOptions: {
-						color: '#f357a1',
+						color: '#7573fc',
 						weight: 10
 					}
 				},
@@ -42,7 +42,7 @@ frappe.ui.form.ControlMap = frappe.ui.form.ControlData.extend({
 						message: '<strong>Oh snap!<strong> you can\'t draw that!' // Message that will show when intersect
 					},
 					shapeOptions: {
-						color: '#f357a1'
+						color: '#7573fc'
 					}
 				},
 				circle: true,
