@@ -1,5 +1,6 @@
 frappe.ui.form.ControlMap = frappe.ui.form.ControlData.extend({
 	loading: false,
+	saving: false,
 	make_wrapper() {
 		// Create the elements for barcode area
 		this._super();
@@ -11,18 +12,20 @@ frappe.ui.form.ControlMap = frappe.ui.form.ControlData.extend({
 				</div>`
 			);
 		this.map_area.prependTo($input_wrapper);
-		L.Icon.Default.imagePath = 'assets/frappe/images/leaflet';
+		this.$wrapper.find('.control-input').addClass("hidden");
+		this.bind_leaflet();
+	},
+
+	bind_leaflet(){
+		L.Icon.Default.imagePath = '/assets/frappe/images/leaflet/';
 		this.map = L.map('map-control').setView([19.0800, 72.8961], 13);
 
 		L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
 			attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
 		}).addTo(this.map);
 
-		this.$wrapper.find('.control-input').addClass("hidden");
+		this.editableLayers = new L.FeatureGroup();
 
-		if (this.editableLayers === undefined){
-			this.set_editable_layers();
-		}
 		var options = {
 			position: 'topleft',
 			draw: {
@@ -57,16 +60,9 @@ frappe.ui.form.ControlMap = frappe.ui.form.ControlData.extend({
 		var drawControl = new L.Control.Draw(options);
 		this.map.addControl(drawControl);
 		// create control and add to map
-		this.bind_draw_create();
-		this.bind_draw_delete();
-		this.bind_draw_edit();
 		var lc = L.control.locate().addTo(this.map);
-
 		// request location update and set location, sets current geolocation on load
 		// lc.start();
-	},
-
-	bind_draw_create(){
 		this.map.on('draw:created', (e) => {
 			var type = e.layerType,
 				layer = e.layer;
@@ -76,18 +72,14 @@ frappe.ui.form.ControlMap = frappe.ui.form.ControlData.extend({
 			this.editableLayers.addLayer(layer);
 			this.set_value(JSON.stringify(this.editableLayers.toGeoJSON()));
 		});
-	},
 
-	bind_draw_delete(){
 		this.map.on('draw:deleted', (e) => {
 			var type = e.layerType,
 				layer = e.layer;
 			this.editableLayers.removeLayer(layer);
 			this.set_value(JSON.stringify(this.editableLayers.toGeoJSON()));
 		});
-	},
 
-	bind_draw_edit(){
 		this.map.on('draw:edited', (e) => {
 			var type = e.layerType,
 				layer = e.layer;
@@ -102,9 +94,5 @@ frappe.ui.form.ControlMap = frappe.ui.form.ControlData.extend({
 			this.editableLayers = L.geoJson(JSON.parse(value)).addTo(this.map);
 			this.map.addLayer(this.editableLayers);
 		}
-	},
-
-	set_editable_layers(){
-		this.editableLayers = new L.FeatureGroup();
 	}
 });
