@@ -11,7 +11,7 @@ frappe.ui.form.ControlAttach = frappe.ui.form.ControlData.extend({
 			`<div class="attached-file">
 				<div class="ellipsis">
 					<i class="fa fa-paperclip"></i>
-					<a class="attached-file" target="_blank"></a>
+					<a class="attached-file-link" target="_blank"></a>
 				</div>
 				<a class="close">&times;</a>
 			</div>`)
@@ -158,7 +158,7 @@ frappe.ui.form.ControlAttach = frappe.ui.form.ControlData.extend({
 				var filename = parts[0];
 				dataurl = parts[1];
 			}
-			this.$value.toggle(true).find(".attached-file")
+			this.$value.toggle(true).find(".attached-file-link")
 				.html(filename || this.value)
 				.attr("href", dataurl || this.value);
 		} else {
