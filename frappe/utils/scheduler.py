@@ -29,9 +29,9 @@ from croniter import croniter
 
 DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 
-SOBSTITUTIONS = {
+cron_map = {
     "yearly": "0 0 1 1 *",
-    "anually": "0 0 1 1 *",
+    "annual": "0 0 1 1 *",
     "monthly": "0 0 1 * *",
     "monthly_long": "0 0 1 * *",
     "weekly": "0 0 * * 0",
@@ -163,7 +163,7 @@ def trigger(site, event, last=None, queued_jobs=(), now=False):
                     frappe.logger(__name__).error('Exception in Trigger Events for Site {0}, Cron String {1}'.format(site, e))
 
         else:
-            if croniter(SOBSTITUTIONS[event], last).get_next(datetime) <= frappe.utils.now_datetime():
+            if croniter(cron_map[event], last).get_next(datetime) <= frappe.utils.now_datetime():
                 events.extend(events_from_hooks)
 
     for handler in events:
