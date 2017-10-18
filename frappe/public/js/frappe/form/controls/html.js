@@ -2,9 +2,6 @@ frappe.ui.form.ControlHTML = frappe.ui.form.Control.extend({
 	make: function() {
 		this._super();
 		this.disp_area = this.wrapper;
-		$(document).on('change', () => {
-			setTimeout(() => this.refresh_input(), 500);
-		});
 	},
 	refresh_input: function() {
 		var content = this.get_content();
