@@ -97,8 +97,18 @@ frappe.ui.form.ControlMap = frappe.ui.form.ControlData.extend({
 	format_for_input(value) {
 		this.map.removeLayer(this.editableLayers);
 		if(value){
-			this.editableLayers = L.geoJson(JSON.parse(value)).addTo(this.map);
+			this.add_non_group_layers(L.geoJson(JSON.parse(value)), this.editableLayers);
 			this.map.addLayer(this.editableLayers);
+		}
+	},
+
+	add_non_group_layers(source_layer, target_group) {
+		if (source_layer instanceof L.LayerGroup) {
+			source_layer.eachLayer((layer)=>{
+				this.add_non_group_layers(layer, target_group);
+			});
+		} else {
+			target_group.addLayer(source_layer);
 		}
 	}
 });
