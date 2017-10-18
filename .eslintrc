@@ -1,10 +1,14 @@
 {
+    "ecmaFeatures": {
+        "modules": true
+    },
 	"env": {
 		"browser": true,
 		"node": true,
 		"es6": true
 	},
 	"extends": "eslint:recommended",
+    "parser": "babel-eslint",
 	"rules": {
 		"indent": [
 			"error",
@@ -120,6 +124,8 @@
 		"get_url_arg": true,
 		"QUnit": true,
 		"Snap": true,
-		"mina": true
+		"mina": true,
+		"describe": true,
+		"it": true
 	}
 }

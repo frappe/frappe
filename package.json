@@ -1,7 +1,8 @@
 {
   "name": "frappe",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha --require babel-core/register frappe/ui/tests",
+    "build": "webpack"
   },
   "repository": {
     "type": "git",
@@ -19,15 +20,20 @@
     "redis": "^2.7.1",
     "socket.io": "^2.0.1",
     "superagent": "^3.5.2",
-    "touch": "^3.1.0"
+    "touch": "^3.1.0",
+    "walk": "^2.3.9"
   },
   "devDependencies": {
+    "babel": "^6.23.0",
     "babel-core": "^6.26.0",
+    "babel-eslint": "^8.0.1",
     "babel-preset-env": "^1.6.0",
     "babel-preset-minify": "^0.2.0",
     "chokidar": "^1.7.0",
     "chromedriver": "^2.32.3",
     "less": "^2.7.2",
-    "nightwatch": "^0.9.16"
+    "eslint": "^4.9.0",
+    "mocha": "^4.0.1",
+    "webpack": "^3.8.1"
   }
 }

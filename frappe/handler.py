@@ -18,6 +18,10 @@ def handle():
 	cmd = frappe.local.form_dict.cmd
 	data = None
 
+
+	if 'cmd' in frappe.local.form_dict:
+		del frappe.local.form_dict['cmd']
+
 	if cmd!='login':
 		data = execute_cmd(cmd)
 

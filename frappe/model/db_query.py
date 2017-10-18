@@ -571,3 +571,8 @@ def get_order_by(doctype, meta):
 		order_by = "`tab{0}`.docstatus asc, {1}".format(doctype, order_by)
 
 	return order_by
+
+@frappe.whitelist()
+def get_list(doctype, *args, **kwargs):
+	'''wrapper for DatabaseQuery'''
+	return DatabaseQuery(doctype).execute(None, *args, **kwargs)

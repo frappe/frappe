@@ -31,38 +31,3 @@ def copytables(srctype, src, srcfield, tartype, tar, tarfield, srcfields, tarfie
 
 def db_exists(dt, dn):
 	return frappe.db.exists(dt, dn)
-
-def delete_fields(args_dict, delete=0):
-	"""
-		Delete a field.
-		* Deletes record from `tabDocField`
-		* If not single doctype: Drops column from table
-		* If single, deletes record from `tabSingles`
-
-		args_dict = { dt: [field names] }
-	"""
-	import frappe.utils
-	for dt in args_dict.keys():
-		fields = args_dict[dt]
-		if not fields: continue
-
-		frappe.db.sql("""\
-			DELETE FROM `tabDocField`
-			WHERE parent=%s AND fieldname IN (%s)
-		""" % ('%s', ", ".join(['"' + f + '"' for f in fields])), dt)
-
-		# Delete the data / column only if delete is specified
-		if not delete: continue
-
-		if frappe.db.get_value("DocType", dt, "issingle"):
-			frappe.db.sql("""\
-				DELETE FROM `tabSingles`
-				WHERE doctype=%s AND field IN (%s)
-			""" % ('%s', ", ".join(['"' + f + '"' for f in fields])), dt)
-		else:
-			existing_fields = frappe.db.sql("desc `tab%s`" % dt)
-			existing_fields = existing_fields and [e[0] for e in existing_fields] or []
-			query = "ALTER TABLE `tab%s` " % dt + \
-				", ".join(["DROP COLUMN `%s`" % f for f in fields if f in existing_fields])
-			frappe.db.commit()
-			frappe.db.sql(query)
