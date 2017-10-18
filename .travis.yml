@@ -45,7 +45,7 @@ before_script:
 
   - cd ~/frappe-bench/apps/frappe
   - git checkout develop
-  - cd ~frappe-bench
+  - cd ~/frappe-bench
   - bench use test_site
   - bench reinstall --yes
   - bench setup-help
