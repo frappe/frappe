@@ -181,9 +181,9 @@ def check_if_doc_is_linked(doc, method="Delete"):
 	"""
 	from frappe.model.rename_doc import get_link_fields
 	link_fields = get_link_fields(doc.doctype)
-	link_fields = [[lf['parent'], lf['fieldname'], lf['issingle']] for lf in link_fields]
+	link_fields = [[lf['parent'], lf['fieldname'], lf['issingle'], lf['link_to_cancelled']] for lf in link_fields]
 
-	for link_dt, link_field, issingle in link_fields:
+	for link_dt, link_field, issingle, link_to_cancelled in link_fields:
 		if not issingle:
 			for item in frappe.db.get_values(link_dt, {link_field:doc.name},
 				["name", "parent", "parenttype", "docstatus"], as_dict=True):
@@ -193,7 +193,7 @@ def check_if_doc_is_linked(doc, method="Delete"):
 					continue
 
 				if item and ((item.parent or item.name) != doc.name) \
-						and ((method=="Delete" and item.docstatus<2) or (method=="Cancel" and item.docstatus==1)):
+						and ((method=="Delete" and item.docstatus<2) or (method=="Cancel" and item.docstatus==1 and not link_to_cancelled)):
 					# raise exception only if
 					# linked to an non-cancelled doc when deleting
 					# or linked to a submitted doc when cancelling
@@ -228,7 +228,7 @@ def check_if_doc_is_dynamically_linked(doc, method="Delete"):
 			for refdoc in frappe.db.sql("""select name, docstatus{table} from `tab{parent}` where
 				{options}=%s and {fieldname}=%s""".format(**df), (doc.doctype, doc.name), as_dict=True):
 
-				if ((method=="Delete" and refdoc.docstatus < 2) or (method=="Cancel" and refdoc.docstatus==1)):
+				if ((method=="Delete" and refdoc.docstatus < 2) or (method=="Cancel" and refdoc.docstatus==1 and not df.link_to_cancelled)):
 					# raise exception only if
 					# linked to an non-cancelled doc when deleting
 					# or linked to a submitted doc when cancelling
