@@ -1,8 +1,9 @@
 frappe.RoleEditor = Class.extend({
-	init: function(wrapper, frm) {
+	init: function(wrapper, frm, disable) {
 		var me = this;
 		this.frm = frm;
 		this.wrapper = wrapper;
+		this.disable = disable;
 		$(wrapper).html('<div class="help">' + __("Loading") + '...</div>')
 		return frappe.call({
 			method: 'frappe.core.doctype.user.user.get_all_roles',
@@ -65,9 +66,7 @@ frappe.RoleEditor = Class.extend({
 	},
 	show: function() {
 		var me = this;
-		if(frappe.get_route()[1] == 'User'){
-			$('.box').attr('disabled', "disabled");
-		}
+		$('.box').attr('disabled', this.disable);
 
 		// uncheck all roles
 		$(this.wrapper).find('input[type="checkbox"]')

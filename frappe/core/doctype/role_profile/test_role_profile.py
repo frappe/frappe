@@ -13,8 +13,8 @@ class TestRoleProfile(unittest.TestCase):
 
 		# add role
 		new_role_profile.append("roles", {
-							"role": '_Test Role 2'
-						})
+			"role": '_Test Role 2'
+		})
 		new_role_profile.save()
 		self.assertEquals(new_role_profile.roles[0].role, '_Test Role 2')
 

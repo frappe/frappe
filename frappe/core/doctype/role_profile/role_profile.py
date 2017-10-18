@@ -7,7 +7,7 @@ from frappe.model.document import Document
 
 class RoleProfile(Document):
 	def autoname(self):
-		"""set name as Role Name"""
+		"""set name as Role Profile name"""
 		self.name = self.role_profile
 
 	def on_update(self):

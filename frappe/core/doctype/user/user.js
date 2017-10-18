@@ -20,10 +20,19 @@ frappe.ui.form.on('User', {
 
 	role_profile_name: function(frm) {
 		if(frm.doc.role_profile_name) {
-			frappe.model.with_doc("Role Profile", frm.doc.role_profile_name, function(){
-				var role = frappe.model.get_doc("Role Profile", frm.doc.role_profile_name);
-				frm.set_value("roles", role.roles);
-				frm.roles_editor.show();
+			frappe.call({
+				"method": "frappe.core.doctype.user.user.get_role_profile",
+				args: {
+					role_profile: frm.doc.role_profile_name
+				},
+				callback: function (data) {
+					frm.set_value("roles", []);
+					$.each(data.message || [], function(i, v){
+						var d = frm.add_child("roles");
+						d.role = v.role;
+					});
+					frm.roles_editor.show();
+				}
 			});
 		}
 	},
@@ -34,7 +43,7 @@ frappe.ui.form.on('User', {
 			if(!frm.roles_editor) {
 				var role_area = $('<div style="min-height: 300px">')
 					.appendTo(frm.fields_dict.roles_html.wrapper);
-				frm.roles_editor = new frappe.RoleEditor(role_area, frm);
+				frm.roles_editor = new frappe.RoleEditor(role_area, frm, true);
 
 				var module_area = $('<div style="min-height: 300px">')
 					.appendTo(frm.fields_dict.modules_html.wrapper);
