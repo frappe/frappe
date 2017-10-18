@@ -52,7 +52,8 @@
 		"public/js/frappe/form/controls/button.js",
 		"public/js/frappe/form/controls/html.js",
 		"public/js/frappe/form/controls/heading.js",
-		"public/js/frappe/form/controls/autocomplete.js"
+		"public/js/frappe/form/controls/autocomplete.js",
+		"public/js/frappe/form/controls/barcode.js"
 	],
 	"js/dialog.min.js": [
 		"public/js/frappe/dom.js",
