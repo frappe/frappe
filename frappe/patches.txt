@@ -7,7 +7,7 @@ frappe.patches.v7_1.rename_scheduler_log_to_error_log
 frappe.patches.v6_1.rename_file_data
 frappe.patches.v7_0.re_route #2016-06-27
 frappe.patches.v7_2.remove_in_filter
-execute:frappe.reload_doc('core', 'doctype', 'doctype', force=True) #2017-03-09
+execute:frappe.reload_doc('core', 'doctype', 'doctype', force=True) #2017-10-18
 frappe.patches.v8_0.drop_in_dialog
 execute:frappe.reload_doc('core', 'doctype', 'docfield', force=True) #2017-03-03
 execute:frappe.reload_doc('core', 'doctype', 'docperm') #2017-03-03
