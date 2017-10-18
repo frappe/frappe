@@ -13,4 +13,6 @@ def execute():
 			"parameter": "sender_name",
 			"value": sms_sender_name
 		})
+		sms_settings.flags.ignore_mandatory = True
+		sms_settings.flags.ignore_permissions = True
 		sms_settings.save()
