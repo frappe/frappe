@@ -135,8 +135,9 @@ def enqueue_applicable_events(site, nowtime, last, queued_jobs=()):
 
 	return out
 
-def trigger(site, event, last, queued_jobs=(), now=False):
+def trigger(site, event, last=None, queued_jobs=(), now=False):
     """Trigger method in hooks.scheduler_events."""
+
     queue = 'long' if event.endswith('_long') else 'short'
     timeout = queue_timeout[queue]
     if not queued_jobs and not now:
@@ -149,20 +150,21 @@ def trigger(site, event, last, queued_jobs=(), now=False):
     if not events_from_hooks:
         return
 
-    events = []
-    if event == "cron":
-        for e in events_from_hooks:
-            if croniter.is_valid(e):
-                if croniter(e, last).get_next(datetime) <= frappe.utils.now_datetime():
-                    events.extend(events_from_hooks[e])
-            else:
-                frappe.log_error("Cron string " + e + " is not valid", "Error triggering cron job")
-                frappe.logger(__name__).error(
-                    'Exception in Trigger Events for Site {0}, Cron String {1}'.format(site, e))
+    events = events_from_hooks
+    if not now:
+        events = []
+        if event == "cron":
+            for e in events_from_hooks:
+                if croniter.is_valid(e):
+                    if croniter(e, last).get_next(datetime) <= frappe.utils.now_datetime():
+                        events.extend(events_from_hooks[e])
+                else:
+                    frappe.log_error("Cron string " + e + " is not valid", "Error triggering cron job")
+                    frappe.logger(__name__).error('Exception in Trigger Events for Site {0}, Cron String {1}'.format(site, e))
 
-    else:
-        if croniter(SOBSTITUTIONS[event], last).get_next(datetime) <= frappe.utils.now_datetime():
-            events.extend(events_from_hooks)
+        else:
+            if croniter(SOBSTITUTIONS[event], last).get_next(datetime) <= frappe.utils.now_datetime():
+                events.extend(events_from_hooks)
 
     for handler in events:
         if not now:
