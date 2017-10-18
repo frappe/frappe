@@ -155,6 +155,7 @@ def trigger(site, event, last=None, queued_jobs=(), now=False):
         events = []
         if event == "cron":
             for e in events_from_hooks:
+                e = cron_map.get(e, e)
                 if croniter.is_valid(e):
                     if croniter(e, last).get_next(datetime) <= frappe.utils.now_datetime():
                         events.extend(events_from_hooks[e])
