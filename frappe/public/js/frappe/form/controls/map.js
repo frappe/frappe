@@ -74,7 +74,7 @@ frappe.ui.form.ControlMap = frappe.ui.form.ControlData.extend({
 			if (type === 'marker') {
 				layer.bindPopup('Marker');
 			}
-			this.editableLayers = new L.FeatureGroup();
+			this.add_non_group_layers(new L.FeatureGroup(), this.editableLayers);
 			this.editableLayers.addLayer(layer);
 			this.set_value(JSON.stringify(this.editableLayers.toGeoJSON()));
 		});
@@ -103,6 +103,8 @@ frappe.ui.form.ControlMap = frappe.ui.form.ControlData.extend({
 	},
 
 	add_non_group_layers(source_layer, target_group) {
+		// https://gis.stackexchange.com/a/203773
+		// Would benefit from https://github.com/Leaflet/Leaflet/issues/4461
 		if (source_layer instanceof L.LayerGroup) {
 			source_layer.eachLayer((layer)=>{
 				this.add_non_group_layers(layer, target_group);
