@@ -84,6 +84,10 @@ def read_options_from_html(html):
 	options = {}
 	soup = BeautifulSoup(html, "html5lib")
 
+	options.update(prepare_header_footer(soup))
+
+	toggle_visible_pdf(soup)
+
 	# extract pdfkit options from html
 	for html_id in ("margin-top", "margin-bottom", "margin-left", "margin-right", "page-size"):
 		try:
@@ -92,10 +96,6 @@ def read_options_from_html(html):
 				options[html_id] = tag.contents
 		except:
 			pass
-
-	options.update(prepare_header_footer(soup))
-
-	toggle_visible_pdf(soup)
 
 	return soup.prettify(), options
 
