@@ -7,10 +7,10 @@ frappe.ui.form.ControlMap = frappe.ui.form.ControlData.extend({
 
 		let $input_wrapper = this.$wrapper.find('.control-input-wrapper');
 		this.map_area = $(
-				`<div class="map-wrapper border">
-					<div id="` + this.df.fieldname + `" style="min-height: 400px; z-index: 1"></div>
-				</div>`
-			);
+			`<div class="map-wrapper border">
+				<div id="` + this.df.fieldname + `" style="min-height: 400px; z-index: 1"></div>
+			</div>`
+		);
 		this.map_area.prependTo($input_wrapper);
 		this.$wrapper.find('.control-input').addClass("hidden");
 		this.bind_leaflet();
@@ -57,12 +57,17 @@ frappe.ui.form.ControlMap = frappe.ui.form.ControlData.extend({
 				remove: true
 			}
 		};
+
+		// create control and add to map
 		var drawControl = new L.Control.Draw(options);
 		this.map.addControl(drawControl);
-		// create control and add to map
-		var lc = L.control.locate().addTo(this.map);
-		// request location update and set location, sets current geolocation on load
+
+		// Manually set location on click of locate button
+		L.control.locate().addTo(this.map);
+		// To request location update and set location, sets current geolocation on load
+		// var lc = L.control.locate().addTo(this.map);
 		// lc.start();
+
 		this.map.on('draw:created', (e) => {
 			var type = e.layerType,
 				layer = e.layer;
