@@ -14,22 +14,17 @@ frappe.ui.form.ControlMap = frappe.ui.form.ControlData.extend({
 		this.map_area.prependTo($input_wrapper);
 		this.$wrapper.find('.control-input').addClass("hidden");
 		this.bind_leaflet_map();
-		this.bind_leaflet_draw_control();
+		this.bind_leaflet_edit_control();
 	},
 
 	format_for_input(value) {
+		this._super(value);
 		// render raw value from db into map
-		this.map.removeLayer(this.editableLayers);
-		if(value) {
-			this.editableLayers = new L.FeatureGroup();
-			this.add_non_group_layers(L.geoJson(JSON.parse(value)), this.editableLayers)
-			this.editableLayers.addTo(this.map);
-		}
 	},
 
 	bind_leaflet_map() {
 		L.Icon.Default.imagePath = '/assets/frappe/images/leaflet/';
-		this.map = L.map(this.df.fieldname).setView([19.0800, 72.8961], 13);
+		this.map = L.map(this.df.fieldname, {editable: true}).setView([19.0800, 72.8961], 13);
 
 		L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
 			attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
@@ -42,84 +37,107 @@ frappe.ui.form.ControlMap = frappe.ui.form.ControlData.extend({
 		// lc.start();
 	},
 
-	bind_leaflet_draw_control() {
-		this.editableLayers = new L.FeatureGroup();
+	bind_leaflet_edit_control() {
+		var me = this;
+		L.EditControl = L.Control.extend({
 
-		var options = {
-			position: 'topleft',
-			draw: {
-				polyline: {
-					shapeOptions: {
-						color: '#7573fc',
-						weight: 10
-					}
-				},
-				polygon: {
-					allowIntersection: false, // Restricts shapes to simple polygons
-					drawError: {
-						color: '#e1e100', // Color the shape will turn when intersects
-						message: '<strong>Oh snap!<strong> you can\'t draw that!' // Message that will show when intersect
-					},
-					shapeOptions: {
-						color: '#7573fc'
-					}
-				},
-				circle: true,
-				rectangle: {
-					shapeOptions: {
-						clickable: false
-					}
-				}
+			options: {
+				position: 'topleft',
+				callback: null,
+				kind: '',
+				html: ''
 			},
-			edit: {
-				featureGroup: this.editableLayers, //REQUIRED!!
-				remove: true
+
+			onAdd: function (map) {
+				var container = L.DomUtil.create('div', 'leaflet-control leaflet-bar'),
+					link = L.DomUtil.create('a', '', container);
+
+				link.href = '#';
+				link.title = 'Create a new ' + this.options.kind;
+				link.innerHTML = this.options.html;
+				L.DomEvent.on(link, 'click', L.DomEvent.stop)
+						  .on(link, 'click', () => {
+							window.LAYER = this.options.callback.call(map.editTools);
+						  }, this);
+
+				return container;
 			}
-		};
+		});
 
-		// create control and add to map
-		var drawControl = new L.Control.Draw(options);
+		L.NewLineControl = L.EditControl.extend({
 
-		this.map.addControl(drawControl);
-
-		this.map.on('draw:created', (e) => {
-			var type = e.layerType,
-				layer = e.layer;
-			if (type === 'marker') {
-				layer.bindPopup('Marker');
+			options: {
+				position: 'topleft',
+				callback: this.map.editTools.startPolyline,
+				kind: 'line',
+				html: '\\/\\'
 			}
-			//this.editableLayers.addLayer(layer);
-			this.set_value(JSON.stringify(layer.toGeoJSON()));
+
 		});
 
-		this.map.on('draw:deleted', (e) => {
-			var type = e.layerType,
-				layer = e.layer;
-			this.editableLayers.removeLayer(layer);
-			this.set_value(JSON.stringify(this.editableLayers.toGeoJSON()));
+		L.NewPolygonControl = L.EditControl.extend({
+
+			options: {
+				position: 'topleft',
+				callback: this.map.editTools.startPolygon,
+				kind: 'polygon',
+				html: '▰'
+			}
+
 		});
 
-		this.map.on('draw:edited', (e) => {
-			var type = e.layerType,
-				layer = e.layer;
-			this.editableLayers.removeLayer(layer);
-			this.set_value(JSON.stringify(this.editableLayers.toGeoJSON()));
-		});
-	},
+		L.NewMarkerControl = L.EditControl.extend({
 
-	add_non_group_layers(source_layer, target_group) {
-		// https://gis.stackexchange.com/a/203773
-		// Would benefit from https://github.com/Leaflet/Leaflet/issues/4461
-		if (source_layer instanceof L.LayerGroup) {
-			source_layer.eachLayer((layer)=>{
-				this.add_non_group_layers(layer, target_group);
-			});
-		} else {
-			target_group.addLayer(source_layer);
+			options: {
+				position: 'topleft',
+				callback: this.map.editTools.startMarker,
+				kind: 'marker',
+				html: '🖈'
+			}
+
+		});
+
+		L.NewRectangleControl = L.EditControl.extend({
+
+			options: {
+				position: 'topleft',
+				callback: this.map.editTools.startRectangle,
+				kind: 'rectangle',
+				html: '⬛'
+			}
+
+		});
+
+		L.NewCircleControl = L.EditControl.extend({
+
+			options: {
+				position: 'topleft',
+				callback: this.map.editTools.startCircle,
+				kind: 'circle',
+				html: '⬤'
+			}
+
+		});
+
+		this.map.addControl(new L.NewMarkerControl());
+		this.map.addControl(new L.NewLineControl());
+		this.map.addControl(new L.NewPolygonControl());
+		this.map.addControl(new L.NewRectangleControl());
+		this.map.addControl(new L.NewCircleControl());
+
+		var deleteShape = function(e) {
+			if ((e.originalEvent.ctrlKey || e.originalEvent.metaKey) && this.editEnabled()) {
+				me.map.removeLayer(this);
+			}
 		}
-	},
 
-	get_input_value: function() {
-		return JSON.stringify(this.editableLayers.toGeoJSON());
+		this.map.on('layeradd', function (e) {
+			e.layer.on('click', function(e){
+				if ((e.originalEvent.ctrlKey || e.originalEvent.metaKey)) {
+					me.map.removeLayer(this);
+				}
+			});
+			if (e.layer instanceof L.Path) e.layer.on('dblclick', L.DomEvent.stop).on('dblclick', e.layer.toggleEdit);
+		});
 	}
 });
