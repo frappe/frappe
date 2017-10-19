@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 
 import frappe
 import re
+import redis
 from frappe.utils import cint, strip_html_tags
 from frappe.model.base_document import get_controller
 from six import text_type
@@ -232,6 +233,18 @@ def update_global_search(doc):
 		frappe.flags.update_global_search.append(
 			dict(doctype=doc.doctype, name=doc.name, content=' ||| '.join(content or ''),
 				published=published, title=doc.get_title(), route=doc.get('route')))
+		enqueue_global_search()
+
+def enqueue_global_search():
+	if frappe.flags.update_global_search:
+		try:
+			frappe.enqueue('frappe.utils.global_search.sync_global_search',
+				now=frappe.flags.in_test or frappe.flags.in_install or frappe.flags.in_migrate,
+				flags=frappe.flags.update_global_search, enqueue_after_commit=True)
+		except redis.exceptions.ConnectionError:
+			sync_global_search()
+
+		frappe.flags.update_global_search = []
 
 def get_formatted_value(value, field):
 	'''Prepare field from raw data'''
