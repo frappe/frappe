@@ -25,7 +25,7 @@ install:
   - sudo pip install -e ~/bench
 
   - rm $TRAVIS_BUILD_DIR/.git/shallow
-  - cd ~/ && bench init frappe-bench --frappe-path $TRAVIS_BUILD_DIR
+  - cd ~/ && bench init frappe-bench --frappe-path $TRAVIS_BUILD_DIR --frappe-branch v7.x.x
   - cp -r $TRAVIS_BUILD_DIR/test_sites/test_site ~/frappe-bench/sites/
 
 before_script:
@@ -42,6 +42,9 @@ before_script:
   - echo "USE mysql;\nCREATE USER 'test_frappe'@'localhost' IDENTIFIED BY 'test_frappe';\nFLUSH PRIVILEGES;\n" | mysql -u root -ptravis
   - echo "USE mysql;\nGRANT ALL PRIVILEGES ON \`test_frappe\`.* TO 'test_frappe'@'localhost';\n" | mysql -u root -ptravis
 
+
+  - cd ~/frappe-bench/apps/frappe
+  - git checkout develop
   - cd ~/frappe-bench
   - bench use test_site
   - bench reinstall --yes
