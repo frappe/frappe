@@ -22,8 +22,24 @@ frappe.ui.form.ControlMap = frappe.ui.form.ControlData.extend({
 		this.map.removeLayer(this.editableLayers);
 		if(value){
 			this.editableLayers = L.geoJson(JSON.parse(value));
+			// this.add_non_group_layers(L.geoJson(JSON.parse(value)),this.editableLayers);
 			this.map.addLayer(this.editableLayers);
 		}
+	},
+
+	set_formatted_input(value){
+		this._super(value);
+		if (value !== this.get_input_value()) {
+			this.map.eachLayer((layer) => {
+				if(layer instanceof L.Path || layer instanceof L.Marker){
+					this.map.removeLayer(layer);
+				}
+			});
+		}
+	},
+
+	get_input_value(){
+		return JSON.stringify(this.editableLayers.toGeoJSON());
 	},
 
 	bind_leaflet_map() {
@@ -133,23 +149,46 @@ frappe.ui.form.ControlMap = frappe.ui.form.ControlData.extend({
 		var deleteShape = function(e) {
 			if ((e.originalEvent.ctrlKey || e.originalEvent.metaKey) && this.editEnabled()) {
 				me.map.removeLayer(this);
+				me.editableLayers.removeLayer(this);
+				me.set_value(JSON.stringify(me.editableLayers.toGeoJSON()));
 			}
 		}
 
-		this.map.on('layeradd', function (e) {
+		this.map.on('layeradd', (e) => {
 			if(e.layer instanceof L.Marker) {
-				console.log("instanceof marker");
 				e.layer.on('click', function(e){
 					if ((e.originalEvent.ctrlKey || e.originalEvent.metaKey)) {
 						me.map.removeLayer(this);
+						me.editableLayers.removeLayer(this);
+						me.set_value(JSON.stringify(me.editableLayers.toGeoJSON()));
+
 					}
 				});
 			}
 			if (e.layer instanceof L.Path) {
-				console.log("instanceof path");
 				e.layer.on('click', L.DomEvent.stop).on('click', deleteShape, e.layer);
 				e.layer.on('dblclick', L.DomEvent.stop).on('dblclick', e.layer.toggleEdit);
 			}
 		});
+
+		this.map.on('editable:drawing:commit', (e) => {
+			this.editableLayers.addLayer(e.layer);
+			this.set_value(JSON.stringify(this.editableLayers.toGeoJSON()));
+		});
+
+		this.map.on('editable:disable', (e) => {
+			this.editableLayers.addLayer(e.layer);
+			this.set_value(JSON.stringify(this.editableLayers.toGeoJSON()));
+		});
+	},
+
+	add_non_group_layers(source_layer, target_group) {
+		if (source_layer instanceof L.LayerGroup) {
+			source_layer.eachLayer((layer) => {
+				this.add_non_group_layers(layer, target_group);
+			});
+		} else {
+			target_group.addLayer(source_layer);
+		}
 	}
 });
