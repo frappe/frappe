@@ -74,9 +74,10 @@ frappe.ui.form.ControlMap = frappe.ui.form.ControlData.extend({
 			if (type === 'marker') {
 				layer.bindPopup('Marker');
 			}
-			this.add_non_group_layers(new L.FeatureGroup(), this.editableLayers);
-			this.editableLayers.addLayer(layer);
-			this.set_value(JSON.stringify(this.editableLayers.toGeoJSON()));
+			var createdLayers = editableLayers = new L.FeatureGroup();
+			createdLayers.addLayer(layer);
+			this.add_non_group_layers(createdLayers, editableLayers);
+			this.set_value(JSON.stringify(editableLayers.toGeoJSON()));
 		});
 
 		this.map.on('draw:deleted', (e) => {
