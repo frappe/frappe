@@ -50,3 +50,4 @@ pypng
 premailer
 psycopg2
 croniter
+googlemaps
