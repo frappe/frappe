@@ -18,8 +18,12 @@ frappe.ui.form.ControlMap = frappe.ui.form.ControlData.extend({
 	},
 
 	format_for_input(value) {
-		this._super(value);
 		// render raw value from db into map
+		this.map.removeLayer(this.editableLayers);
+		if(value){
+			this.editableLayers = L.geoJson(JSON.parse(value));
+			this.map.addLayer(this.editableLayers);
+		}
 	},
 
 	bind_leaflet_map() {
@@ -39,6 +43,7 @@ frappe.ui.form.ControlMap = frappe.ui.form.ControlData.extend({
 
 	bind_leaflet_edit_control() {
 		var me = this;
+		this.editableLayers = new L.FeatureGroup();
 		L.EditControl = L.Control.extend({
 
 			options: {
@@ -132,12 +137,19 @@ frappe.ui.form.ControlMap = frappe.ui.form.ControlData.extend({
 		}
 
 		this.map.on('layeradd', function (e) {
-			e.layer.on('click', function(e){
-				if ((e.originalEvent.ctrlKey || e.originalEvent.metaKey)) {
-					me.map.removeLayer(this);
-				}
-			});
-			if (e.layer instanceof L.Path) e.layer.on('dblclick', L.DomEvent.stop).on('dblclick', e.layer.toggleEdit);
+			if(e.layer instanceof L.Marker) {
+				console.log("instanceof marker");
+				e.layer.on('click', function(e){
+					if ((e.originalEvent.ctrlKey || e.originalEvent.metaKey)) {
+						me.map.removeLayer(this);
+					}
+				});
+			}
+			if (e.layer instanceof L.Path) {
+				console.log("instanceof path");
+				e.layer.on('click', L.DomEvent.stop).on('click', deleteShape, e.layer);
+				e.layer.on('dblclick', L.DomEvent.stop).on('dblclick', e.layer.toggleEdit);
+			}
 		});
 	}
 });
