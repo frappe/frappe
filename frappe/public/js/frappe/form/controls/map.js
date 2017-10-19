@@ -13,10 +13,21 @@ frappe.ui.form.ControlMap = frappe.ui.form.ControlData.extend({
 		);
 		this.map_area.prependTo($input_wrapper);
 		this.$wrapper.find('.control-input').addClass("hidden");
-		this.bind_leaflet();
+		this.bind_leaflet_map();
+		this.bind_leaflet_draw_control();
 	},
 
-	bind_leaflet(){
+	format_for_input(value) {
+		// render raw value from db into map
+		this.map.removeLayer(this.editableLayers);
+		if(value) {
+			this.editableLayers = new L.FeatureGroup();
+			this.add_non_group_layers(L.geoJson(JSON.parse(value)), this.editableLayers)
+			this.editableLayers.addTo(this.map);
+		}
+	},
+
+	bind_leaflet_map() {
 		L.Icon.Default.imagePath = '/assets/frappe/images/leaflet/';
 		this.map = L.map(this.df.fieldname).setView([19.0800, 72.8961], 13);
 
@@ -24,6 +35,14 @@ frappe.ui.form.ControlMap = frappe.ui.form.ControlData.extend({
 			attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
 		}).addTo(this.map);
 
+		// Manually set location on click of locate button
+		L.control.locate().addTo(this.map);
+		// To request location update and set location, sets current geolocation on load
+		// var lc = L.control.locate().addTo(this.map);
+		// lc.start();
+	},
+
+	bind_leaflet_draw_control() {
 		this.editableLayers = new L.FeatureGroup();
 
 		var options = {
@@ -60,13 +79,8 @@ frappe.ui.form.ControlMap = frappe.ui.form.ControlData.extend({
 
 		// create control and add to map
 		var drawControl = new L.Control.Draw(options);
-		this.map.addControl(drawControl);
 
-		// Manually set location on click of locate button
-		L.control.locate().addTo(this.map);
-		// To request location update and set location, sets current geolocation on load
-		// var lc = L.control.locate().addTo(this.map);
-		// lc.start();
+		this.map.addControl(drawControl);
 
 		this.map.on('draw:created', (e) => {
 			var type = e.layerType,
@@ -74,10 +88,8 @@ frappe.ui.form.ControlMap = frappe.ui.form.ControlData.extend({
 			if (type === 'marker') {
 				layer.bindPopup('Marker');
 			}
-			var createdLayers = editableLayers = new L.FeatureGroup();
-			createdLayers.addLayer(layer);
-			this.add_non_group_layers(createdLayers, editableLayers);
-			this.set_value(JSON.stringify(editableLayers.toGeoJSON()));
+			//this.editableLayers.addLayer(layer);
+			this.set_value(JSON.stringify(layer.toGeoJSON()));
 		});
 
 		this.map.on('draw:deleted', (e) => {
@@ -95,14 +107,6 @@ frappe.ui.form.ControlMap = frappe.ui.form.ControlData.extend({
 		});
 	},
 
-	format_for_input(value) {
-		this.map.removeLayer(this.editableLayers);
-		if(value){
-			this.add_non_group_layers(L.geoJson(JSON.parse(value)), this.editableLayers);
-			this.map.addLayer(this.editableLayers);
-		}
-	},
-
 	add_non_group_layers(source_layer, target_group) {
 		// https://gis.stackexchange.com/a/203773
 		// Would benefit from https://github.com/Leaflet/Leaflet/issues/4461
@@ -113,5 +117,9 @@ frappe.ui.form.ControlMap = frappe.ui.form.ControlData.extend({
 		} else {
 			target_group.addLayer(source_layer);
 		}
+	},
+
+	get_input_value: function() {
+		return JSON.stringify(this.editableLayers.toGeoJSON());
 	}
 });
