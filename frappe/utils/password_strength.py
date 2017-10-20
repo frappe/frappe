@@ -97,13 +97,13 @@ def get_match_feedback(match, is_sole_match):
 		return feedback
 
 	def fun_repeat():
-		feedback ={
+		feedback = {
 			"warning": _('Repeats like "abcabcabc" are only slightly harder to guess than "abc"'),
 			"suggestions":[
 				_("Try to avoid repeated words and characters")
 			],
 		}
-		if len(match["repeated_char"]) == 1:
+		if len(match.get("repeated_char")) == 1:
 			feedback = {
 				"warning": _('Repeats like "aaa" are easy to guess'),
 				"suggestions":[
