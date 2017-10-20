@@ -1,6 +1,4 @@
 frappe.ui.form.ControlMap = frappe.ui.form.ControlData.extend({
-	loading: false,
-	saving: false,
 	make_wrapper() {
 		// Create the elements for barcode area
 		this._super();
@@ -36,7 +34,17 @@ frappe.ui.form.ControlMap = frappe.ui.form.ControlData.extend({
 					}
 				}));
 			this.add_non_group_layers(data_layers, this.editableLayers)
+			try {
+				this.map.flyToBounds(this.editableLayers.getBounds(), {
+					paddingBottomRight: [320,0]
+				});
+			}
+			catch(err) {
+				// suppress error if layer has a point.
+			}
 			this.editableLayers.addTo(this.map);
+		} else if ((value===undefined) || (value == JSON.stringify(new L.FeatureGroup().toGeoJSON()))) {
+			this.locate_control.start();
 		}
 	},
 
@@ -77,8 +85,7 @@ frappe.ui.form.ControlMap = frappe.ui.form.ControlData.extend({
 		// Manually set location on click of locate button
 		L.control.locate().addTo(this.map);
 		// To request location update and set location, sets current geolocation on load
-		// var lc = L.control.locate().addTo(this.map);
-		// lc.start();
+		this.locate_control = L.control.locate().addTo(this.map);
 	},
 
 	bind_leaflet_draw_control() {
