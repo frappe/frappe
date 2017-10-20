@@ -103,6 +103,7 @@
 		"public/js/lib/awesomplete/awesomplete.css",
 		"public/js/lib/summernote/summernote.css",
 		"public/js/lib/leaflet/leaflet.css",
+		"public/js/lib/leaflet/leaflet.draw.css",
 		"public/js/lib/leaflet/L.Control.Locate.css",
 		"public/css/bootstrap.css",
 		"public/css/font-awesome.css",
@@ -143,7 +144,7 @@
 		"public/js/lib/jquery.jrumble.min.js",
 		"public/js/lib/webcam.min.js",
 		"public/js/lib/leaflet/leaflet.js",
-		"public/js/lib/leaflet/Leaflet.Editable.js",
+		"public/js/lib/leaflet/leaflet.draw.js",
 		"public/js/lib/leaflet/L.Control.Locate.js"
 	],
 	"js/desk.min.js": [

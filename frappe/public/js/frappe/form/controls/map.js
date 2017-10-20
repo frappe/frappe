@@ -14,37 +14,22 @@ frappe.ui.form.ControlMap = frappe.ui.form.ControlData.extend({
 		this.map_area.prependTo($input_wrapper);
 		this.$wrapper.find('.control-input').addClass("hidden");
 		this.bind_leaflet_map();
-		this.bind_leaflet_edit_control();
+		this.bind_leaflet_draw_control();
 	},
 
 	format_for_input(value) {
 		// render raw value from db into map
 		this.map.removeLayer(this.editableLayers);
-		if(value){
-			this.editableLayers = L.geoJson(JSON.parse(value));
-			// this.add_non_group_layers(L.geoJson(JSON.parse(value)),this.editableLayers);
-			this.map.addLayer(this.editableLayers);
+		if(value) {
+			this.editableLayers = new L.FeatureGroup();
+			this.add_non_group_layers(L.geoJson(JSON.parse(value)), this.editableLayers)
+			this.editableLayers.addTo(this.map);
 		}
-	},
-
-	set_formatted_input(value){
-		this._super(value);
-		if (value !== this.get_input_value()) {
-			this.map.eachLayer((layer) => {
-				if(layer instanceof L.Path || layer instanceof L.Marker){
-					this.map.removeLayer(layer);
-				}
-			});
-		}
-	},
-
-	get_input_value(){
-		return JSON.stringify(this.editableLayers.toGeoJSON());
 	},
 
 	bind_leaflet_map() {
 		L.Icon.Default.imagePath = '/assets/frappe/images/leaflet/';
-		this.map = L.map(this.df.fieldname, {editable: true}).setView([19.0800, 72.8961], 13);
+		this.map = L.map(this.df.fieldname).setView([19.0800, 72.8961], 13);
 
 		L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
 			attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
@@ -57,138 +42,84 @@ frappe.ui.form.ControlMap = frappe.ui.form.ControlData.extend({
 		// lc.start();
 	},
 
-	bind_leaflet_edit_control() {
-		var me = this;
+	bind_leaflet_draw_control() {
 		this.editableLayers = new L.FeatureGroup();
-		L.EditControl = L.Control.extend({
 
-			options: {
-				position: 'topleft',
-				callback: null,
-				kind: '',
-				html: ''
-			},
-
-			onAdd: function (map) {
-				var container = L.DomUtil.create('div', 'leaflet-control leaflet-bar'),
-					link = L.DomUtil.create('a', '', container);
-
-				link.href = '#';
-				link.title = 'Create a new ' + this.options.kind;
-				link.innerHTML = this.options.html;
-				L.DomEvent.on(link, 'click', L.DomEvent.stop)
-						  .on(link, 'click', () => {
-							window.LAYER = this.options.callback.call(map.editTools);
-						  }, this);
-
-				return container;
-			}
-		});
-
-		L.NewLineControl = L.EditControl.extend({
-
-			options: {
-				position: 'topleft',
-				callback: this.map.editTools.startPolyline,
-				kind: 'line',
-				html: '\\/\\'
-			}
-
-		});
-
-		L.NewPolygonControl = L.EditControl.extend({
-
-			options: {
-				position: 'topleft',
-				callback: this.map.editTools.startPolygon,
-				kind: 'polygon',
-				html: '▰'
-			}
-
-		});
-
-		L.NewMarkerControl = L.EditControl.extend({
-
-			options: {
-				position: 'topleft',
-				callback: this.map.editTools.startMarker,
-				kind: 'marker',
-				html: '🖈'
-			}
-
-		});
-
-		L.NewRectangleControl = L.EditControl.extend({
-
-			options: {
-				position: 'topleft',
-				callback: this.map.editTools.startRectangle,
-				kind: 'rectangle',
-				html: '⬛'
-			}
-
-		});
-
-		L.NewCircleControl = L.EditControl.extend({
-
-			options: {
-				position: 'topleft',
-				callback: this.map.editTools.startCircle,
-				kind: 'circle',
-				html: '⬤'
-			}
-
-		});
-
-		this.map.addControl(new L.NewMarkerControl());
-		this.map.addControl(new L.NewLineControl());
-		this.map.addControl(new L.NewPolygonControl());
-		this.map.addControl(new L.NewRectangleControl());
-		this.map.addControl(new L.NewCircleControl());
-
-		var deleteShape = function(e) {
-			if ((e.originalEvent.ctrlKey || e.originalEvent.metaKey) && this.editEnabled()) {
-				me.map.removeLayer(this);
-				me.editableLayers.removeLayer(this);
-				me.set_value(JSON.stringify(me.editableLayers.toGeoJSON()));
-			}
-		}
-
-		this.map.on('layeradd', (e) => {
-			if(e.layer instanceof L.Marker) {
-				e.layer.on('click', function(e){
-					if ((e.originalEvent.ctrlKey || e.originalEvent.metaKey)) {
-						me.map.removeLayer(this);
-						me.editableLayers.removeLayer(this);
-						me.set_value(JSON.stringify(me.editableLayers.toGeoJSON()));
-
+		var options = {
+			position: 'topleft',
+			draw: {
+				polyline: {
+					shapeOptions: {
+						color: '#7573fc',
+						weight: 10
 					}
-				});
+				},
+				polygon: {
+					allowIntersection: false, // Restricts shapes to simple polygons
+					drawError: {
+						color: '#e1e100', // Color the shape will turn when intersects
+						message: '<strong>Oh snap!<strong> you can\'t draw that!' // Message that will show when intersect
+					},
+					shapeOptions: {
+						color: '#7573fc'
+					}
+				},
+				circle: true,
+				rectangle: {
+					shapeOptions: {
+						clickable: false
+					}
+				}
+			},
+			edit: {
+				featureGroup: this.editableLayers, //REQUIRED!!
+				remove: true
 			}
-			if (e.layer instanceof L.Path) {
-				e.layer.on('click', L.DomEvent.stop).on('click', deleteShape, e.layer);
-				e.layer.on('dblclick', L.DomEvent.stop).on('dblclick', e.layer.toggleEdit);
+		};
+
+		// create control and add to map
+		var drawControl = new L.Control.Draw(options);
+
+		this.map.addControl(drawControl);
+
+		this.map.on('draw:created', (e) => {
+			var type = e.layerType,
+				layer = e.layer;
+			if (type === 'marker') {
+				layer.bindPopup('Marker');
 			}
+			//this.editableLayers.addLayer(layer);
+			this.set_value(JSON.stringify(layer.toGeoJSON()));
 		});
 
-		this.map.on('editable:drawing:commit', (e) => {
-			this.editableLayers.addLayer(e.layer);
+		this.map.on('draw:deleted', (e) => {
+			var type = e.layerType,
+				layer = e.layer;
+			this.editableLayers.removeLayer(layer);
 			this.set_value(JSON.stringify(this.editableLayers.toGeoJSON()));
 		});
 
-		this.map.on('editable:disable', (e) => {
-			this.editableLayers.addLayer(e.layer);
+		this.map.on('draw:edited', (e) => {
+			var type = e.layerType,
+				layer = e.layer;
+			this.editableLayers.removeLayer(layer);
 			this.set_value(JSON.stringify(this.editableLayers.toGeoJSON()));
 		});
 	},
 
 	add_non_group_layers(source_layer, target_group) {
+		// https://gis.stackexchange.com/a/203773
+		// Would benefit from https://github.com/Leaflet/Leaflet/issues/4461
 		if (source_layer instanceof L.LayerGroup) {
-			source_layer.eachLayer((layer) => {
+			source_layer.eachLayer((layer)=>{
 				this.add_non_group_layers(layer, target_group);
 			});
 		} else {
 			target_group.addLayer(source_layer);
 		}
+	},
+
+	get_input_value: function() {
+		return JSON.stringify(this.editableLayers.toGeoJSON());
 	}
 });
