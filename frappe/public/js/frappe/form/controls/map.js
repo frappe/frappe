@@ -8,7 +8,7 @@ frappe.ui.form.ControlMap = frappe.ui.form.ControlData.extend({
 		let $input_wrapper = this.$wrapper.find('.control-input-wrapper');
 		this.map_area = $(
 			`<div class="map-wrapper border">
-				<div id="` + this.df.fieldname + `" style="min-height: 400px; z-index: 1"></div>
+				<div id="` + this.df.fieldname + `" style="min-height: 400px; z-index: 1; max-width:100%"></div>
 			</div>`
 		);
 		this.map_area.prependTo($input_wrapper);
@@ -22,13 +22,49 @@ frappe.ui.form.ControlMap = frappe.ui.form.ControlData.extend({
 		// render raw value from db into map
 		this.clear_editable_layers();
 		if(value) {
-			data_layers = new L.FeatureGroup().addLayer(L.geoJson(JSON.parse(value)));
+			data_layers = new L.FeatureGroup()
+				.addLayer(L.geoJson(JSON.parse(value),{
+					pointToLayer: function(geoJsonPoint, latlng) {
+						if (geoJsonPoint.properties.point_type == "circle"){
+							return L.circle(latlng, {radius: geoJsonPoint.properties.radius});
+						} else if (geoJsonPoint.properties.point_type == "circlemarker") {
+							return L.circleMarker(latlng, {radius: geoJsonPoint.properties.radius});
+						}
+						else {
+							return L.marker(latlng);
+						}
+					}
+				}));
 			this.add_non_group_layers(data_layers, this.editableLayers)
 			this.editableLayers.addTo(this.map);
 		}
 	},
 
 	bind_leaflet_map() {
+
+		var circleToGeoJSON = L.Circle.prototype.toGeoJSON;
+		L.Circle.include({
+			toGeoJSON: function() {
+				var feature = circleToGeoJSON.call(this);
+				feature.properties = {
+					point_type: 'circle',
+					radius: this.getRadius()
+				};
+				return feature;
+			}
+		});
+
+		L.CircleMarker.include({
+			toGeoJSON: function() {
+				var feature = circleToGeoJSON.call(this);
+				feature.properties = {
+					point_type: 'circlemarker',
+					radius: this.getRadius()
+				};
+				return feature;
+			}
+		});
+
 		L.Icon.Default.imagePath = '/assets/frappe/images/leaflet/';
 		this.map = L.map(this.df.fieldname).setView([19.0800, 72.8961], 13);
 
