@@ -36,7 +36,7 @@ frappe.ui.form.ControlMap = frappe.ui.form.ControlData.extend({
 			this.add_non_group_layers(data_layers, this.editableLayers)
 			try {
 				this.map.flyToBounds(this.editableLayers.getBounds(), {
-					paddingBottomRight: [320,0]
+					padding: [50,50]
 				});
 			}
 			catch(err) {
