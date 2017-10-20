@@ -1,6 +1,6 @@
 frappe.ui.form.ControlMap = frappe.ui.form.ControlData.extend({
 	make_wrapper() {
-		// Create the elements for barcode area
+		// Create the elements for map area
 		this._super();
 
 		let $input_wrapper = this.$wrapper.find('.control-input-wrapper');
@@ -82,10 +82,9 @@ frappe.ui.form.ControlMap = frappe.ui.form.ControlData.extend({
 	},
 
 	bind_leaflet_locate_control() {
-		// Manually set location on click of locate button
-		L.control.locate().addTo(this.map);
 		// To request location update and set location, sets current geolocation on load
-		this.locate_control = L.control.locate().addTo(this.map);
+		this.locate_control = L.control.locate()
+		this.locate_control.addTo(this.map);
 	},
 
 	bind_leaflet_draw_control() {
