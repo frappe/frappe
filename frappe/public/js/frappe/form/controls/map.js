@@ -15,14 +15,15 @@ frappe.ui.form.ControlMap = frappe.ui.form.ControlData.extend({
 		this.$wrapper.find('.control-input').addClass("hidden");
 		this.bind_leaflet_map();
 		this.bind_leaflet_draw_control();
+		this.bind_leaflet_locate_control();
 	},
 
 	format_for_input(value) {
 		// render raw value from db into map
-		this.map.removeLayer(this.editableLayers);
+		this.clear_editable_layers();
 		if(value) {
-			this.editableLayers = new L.FeatureGroup();
-			this.add_non_group_layers(L.geoJson(JSON.parse(value)), this.editableLayers)
+			data_layers = new L.FeatureGroup().addLayer(L.geoJson(JSON.parse(value)));
+			this.add_non_group_layers(data_layers, this.editableLayers)
 			this.editableLayers.addTo(this.map);
 		}
 	},
@@ -34,7 +35,9 @@ frappe.ui.form.ControlMap = frappe.ui.form.ControlData.extend({
 		L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
 			attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
 		}).addTo(this.map);
+	},
 
+	bind_leaflet_locate_control() {
 		// Manually set location on click of locate button
 		L.control.locate().addTo(this.map);
 		// To request location update and set location, sets current geolocation on load
@@ -88,18 +91,11 @@ frappe.ui.form.ControlMap = frappe.ui.form.ControlData.extend({
 			if (type === 'marker') {
 				layer.bindPopup('Marker');
 			}
-			//this.editableLayers.addLayer(layer);
-			this.set_value(JSON.stringify(layer.toGeoJSON()));
-		});
-
-		this.map.on('draw:deleted', (e) => {
-			var type = e.layerType,
-				layer = e.layer;
-			this.editableLayers.removeLayer(layer);
+			this.editableLayers.addLayer(layer);
 			this.set_value(JSON.stringify(this.editableLayers.toGeoJSON()));
 		});
 
-		this.map.on('draw:edited', (e) => {
+		this.map.on('draw:deleted draw:edited', (e) => {
 			var type = e.layerType,
 				layer = e.layer;
 			this.editableLayers.removeLayer(layer);
@@ -119,7 +115,9 @@ frappe.ui.form.ControlMap = frappe.ui.form.ControlData.extend({
 		}
 	},
 
-	get_input_value: function() {
-		return JSON.stringify(this.editableLayers.toGeoJSON());
+	clear_editable_layers: function() {
+		this.editableLayers.eachLayer((l)=>{
+			this.editableLayers.removeLayer(l);
+		});
 	}
 });
