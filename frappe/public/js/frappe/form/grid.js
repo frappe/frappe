@@ -622,6 +622,7 @@ frappe.ui.form.Grid = Class.extend({
 
 								if(!blank_row) {
 									var d = me.frm.add_child(me.df.fieldname);
+									delete d.__islocal;
 									$.each(row, function(ci, value) {
 										var fieldname = fieldnames[ci];
 										var df = frappe.meta.get_docfield(me.df.options, fieldname);
