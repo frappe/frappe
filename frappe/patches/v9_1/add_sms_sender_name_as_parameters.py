@@ -7,7 +7,7 @@ import frappe
 def execute():
 	sms_sender_name = frappe.db.get_single_value("SMS Settings", "sms_sender_name")
 	if sms_sender_name:
-		frappe.reload_doctype("SMS Settings")
+		frappe.reload_doc("core", "doctype", "sms_settings")
 		sms_settings = frappe.get_doc("SMS Settings")
 		sms_settings.append("parameters", {
 			"parameter": "sender_name",
