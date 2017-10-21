@@ -20,7 +20,7 @@ frappe.ui.form.ControlMap = frappe.ui.form.ControlData.extend({
 		// render raw value from db into map
 		this.clear_editable_layers();
 		if(value) {
-			data_layers = new L.FeatureGroup()
+			var data_layers = new L.FeatureGroup()
 				.addLayer(L.geoJson(JSON.parse(value),{
 					pointToLayer: function(geoJsonPoint, latlng) {
 						if (geoJsonPoint.properties.point_type == "circle"){
