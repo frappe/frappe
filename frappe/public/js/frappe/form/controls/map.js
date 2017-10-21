@@ -14,6 +14,7 @@ frappe.ui.form.ControlMap = frappe.ui.form.ControlData.extend({
 		this.bind_leaflet_map();
 		this.bind_leaflet_draw_control();
 		this.bind_leaflet_locate_control();
+		this.bind_leaflet_refresh_button();
 	},
 
 	format_for_input(value) {
@@ -33,7 +34,7 @@ frappe.ui.form.ControlMap = frappe.ui.form.ControlData.extend({
 						}
 					}
 				}));
-			this.add_non_group_layers(data_layers, this.editableLayers)
+			this.add_non_group_layers(data_layers, this.editableLayers);
 			try {
 				this.map.flyToBounds(this.editableLayers.getBounds(), {
 					padding: [50,50]
@@ -83,7 +84,7 @@ frappe.ui.form.ControlMap = frappe.ui.form.ControlData.extend({
 
 	bind_leaflet_locate_control() {
 		// To request location update and set location, sets current geolocation on load
-		this.locate_control = L.control.locate()
+		this.locate_control = L.control.locate({position:'topright'});
 		this.locate_control.addTo(this.map);
 	},
 
@@ -145,6 +146,23 @@ frappe.ui.form.ControlMap = frappe.ui.form.ControlData.extend({
 		});
 	},
 
+	bind_leaflet_refresh_button() {
+		L.easyButton({
+			id: 'refresh-map-'+this.df.fieldname,
+			position: 'topright',
+			type: 'replace',
+			leafletClasses: true,
+			states:[{
+				stateName: 'refresh-map',
+				onClick: function(button, map){
+					map._onResize();
+				},
+				title: 'Refresh map',
+				icon: 'fa fa-refresh'
+			}]
+		}).addTo(this.map);
+	},
+
 	add_non_group_layers(source_layer, target_group) {
 		// https://gis.stackexchange.com/a/203773
 		// Would benefit from https://github.com/Leaflet/Leaflet/issues/4461
@@ -157,7 +175,7 @@ frappe.ui.form.ControlMap = frappe.ui.form.ControlData.extend({
 		}
 	},
 
-	clear_editable_layers: function() {
+	clear_editable_layers() {
 		this.editableLayers.eachLayer((l)=>{
 			this.editableLayers.removeLayer(l);
 		});
