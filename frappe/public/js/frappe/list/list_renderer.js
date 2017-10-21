@@ -15,6 +15,7 @@ frappe.views.ListRenderer = Class.extend({
 		this.init_settings();
 		this.set_defaults();
 		this.set_fields();
+		// debugger
 		this.set_columns();
 		this.setup_cache();
 	},
@@ -377,8 +378,7 @@ frappe.views.ListRenderer = Class.extend({
 		var main = this.columns.map(column =>
 			frappe.render_template('list_item_main_head', {
 				col: column,
-				_checkbox: ((frappe.model.can_delete(this.doctype) || this.settings.selectable)
-					&& !this.no_delete)
+				_checkbox: this.can_delete() && !this.no_delete
 			})
 		).join("");
 
@@ -450,7 +450,7 @@ frappe.views.ListRenderer = Class.extend({
 
 		data.doctype = this.doctype;
 		data._liked_by = JSON.parse(data._liked_by || '[]');
-		data._checkbox = (frappe.model.can_delete(this.doctype) || this.settings.selectable) && !this.no_delete
+		data._checkbox = this.can_delete() && !this.no_delete;
 
 		data._doctype_encoded = encodeURIComponent(data.doctype);
 		data._name = data.name.replace(/'/g, '\'');
@@ -598,4 +598,7 @@ frappe.views.ListRenderer = Class.extend({
 
 		return no_result_message;
 	},
+	can_delete: function() {
+		return frappe.model.can_delete(this.doctype) || this.settings.selectable;
+	}
 });
