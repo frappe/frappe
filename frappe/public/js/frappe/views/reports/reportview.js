@@ -54,7 +54,7 @@ frappe.views.ReportViewPage = Class.extend({
 	}
 });
 
-frappe.views.ReportView = frappe.ui.BaseList.extend({
+frappe.views.ReportView2 = frappe.ui.BaseList.extend({
 	init: function(opts) {
 		$.extend(this, opts);
 		this.can_delete = frappe.model.can_delete(this.doctype);
@@ -309,7 +309,7 @@ frappe.views.ReportView = frappe.ui.BaseList.extend({
 		}
 	},
 
-	// build columns for slickgrid
+	// build columns for datatable
 	build_columns: function() {
 		var me = this;
 		return $.map(this.columns, function(c) {
@@ -325,11 +325,14 @@ frappe.views.ReportView = frappe.ui.BaseList.extend({
 			}
 			if(!docfield) return;
 
+			const title = __(docfield ? docfield.label : toTitle(c[0]));
+
 			let coldef = {
 				id: c[0],
 				field: c[0],
 				docfield: docfield,
-				name: __(docfield ? docfield.label : toTitle(c[0])),
+				name: title,
+				content: title, // required by datatable
 				width: (docfield ? cint(docfield.width) : 120) || 120,
 				formatter: function(row, cell, value, columnDef, dataContext, for_print) {
 					var docfield = columnDef.docfield;

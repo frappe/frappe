@@ -116,7 +116,10 @@ frappe.views.set_list_as_dirty = function (doctype) {
 	}
 }
 
-frappe.views.view_modes = ['List', 'Gantt', 'Kanban', 'Calendar', 'Image', 'Inbox'];
+frappe.views.view_modes = ['List', 'Gantt', 'Kanban', 'Calendar', 'Image', 'Inbox', 'Report'];
+
+// utility function to validate view modes
+frappe.views.is_valid = view_mode => frappe.views.view_modes.includes(view_mode);
 
 frappe.views.ListView = frappe.ui.BaseList.extend({
 	init: function (opts) {
@@ -204,18 +207,14 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 			list_view: this
 		}
 
+		if (!frappe.views.is_valid(this.current_view)) {
+			frappe.throw(__('Invalid List View: {0}', [this.current_view]));
+		}
+
 		if (this.current_view === 'List') {
 			this.list_renderer = new frappe.views.ListRenderer(opts);
-		} else if (this.current_view === 'Gantt') {
-			this.list_renderer = new frappe.views.GanttView(opts);
-		} else if (this.current_view === 'Calendar') {
-			this.list_renderer = new frappe.views.CalendarView(opts);
-		} else if (this.current_view === 'Image') {
-			this.list_renderer = new frappe.views.ImageView(opts);
-		} else if (this.current_view === 'Kanban') {
-			this.list_renderer = new frappe.views.KanbanView(opts);
-		} else if (this.current_view === 'Inbox') {
-			this.list_renderer = new frappe.views.InboxView(opts)
+		} else {
+			this.list_renderer = new frappe.views[this.current_view + 'View'](opts);
 		}
 	},
 
@@ -235,7 +234,7 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 		var us = frappe.get_user_settings(this.doctype);
 		var route = ['List', this.doctype];
 
-		if (us.last_view && frappe.views.view_modes.includes(us.last_view)) {
+		if (us.last_view && frappe.views.is_valid(us.last_view)) {
 			route.push(us.last_view);
 
 			if (us.last_view === 'Kanban') {
@@ -462,7 +461,7 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 
 		// save last view
 		if (user_settings_common.last_view !== this.current_view
-			&& frappe.views.view_modes.includes(this.current_view)) {
+			&& frappe.views.is_valid(this.current_view)) {
 			user_settings_common.last_view = this.current_view;
 			different = true;
 		}
@@ -498,7 +497,7 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 
 		if (!this.list_renderer.settings.use_route) {
 			var route = frappe.get_route();
-			if (route[2] && !frappe.views.view_modes.includes(route[2])) {
+			if (route[2] && !frappe.views.is_valid(route[2])) {
 				$.each(frappe.utils.get_args_dict_from_url(route[2]), function (key, val) {
 					me.set_filter(key, val, true);
 				});
