@@ -79,14 +79,17 @@ class Database:
 			UnicodeWithAttrs: conversions[text_type]
 		}
 
-		print(converters)
-
 		if usessl:
 			self._conn = pymysql.connect(self.host, self.user or '', self.password or '',
 				charset='utf8mb4', use_unicode = True, ssl=self.ssl, conv = converters)
 		else:
 			self._conn = pymysql.connect(self.host, self.user or '', self.password or '',
 				charset='utf8mb4', use_unicode = True, conv = converters)
+
+		self._conn.decoders[FIELD_TYPE.NEWDECIMAL] = float
+		self._conn.decoders[FIELD_TYPE.DATETIME] = get_datetime
+		self._conn.encoders[UnicodeWithAttrs] = self._conn.encoders[UnicodeType]
+		self._conn.encoders[TimeDelta] = self._conn.encoders[StringType]
 
 		# MYSQL_OPTION_MULTI_STATEMENTS_OFF = 1
 		# self._conn.set_server_option(MYSQL_OPTION_MULTI_STATEMENTS_OFF)
