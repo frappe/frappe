@@ -50,6 +50,15 @@ frappe.avatar = function(user, css_class, title) {
 	}
 }
 
+frappe.ui.scroll = function(element, animate, additional_offset) {
+	var header_offset = $(".navbar").height() + $(".page-head").height();
+	var top = $(element).offset().top - header_offset - cint(additional_offset);
+	if (animate) {
+		$("html, body").animate({ scrollTop: top });
+	} else {
+		$(window).scrollTop(top);
+	}
+};
 
 frappe.get_palette = function(txt) {
 	return '#fafbfc';

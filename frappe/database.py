@@ -14,15 +14,13 @@ import frappe
 import frappe.defaults
 import frappe.async
 import re
-import redis
 import frappe.model.meta
 from frappe.utils import now, get_datetime, cstr
 from frappe import _
 from six import text_type, binary_type, string_types, integer_types
-from frappe.utils.global_search import sync_global_search
 from frappe.model.utils.link_count import flush_local_link_count
 from six import iteritems, text_type
-
+from frappe.utils.background_jobs import execute_job, get_queue
 
 class Database:
 	"""
@@ -740,19 +738,8 @@ class Database:
 		self.sql("commit")
 		frappe.local.rollback_observers = []
 		self.flush_realtime_log()
-		self.enqueue_global_search()
+		enqueue_jobs_after_commit()
 		flush_local_link_count()
-
-	def enqueue_global_search(self):
-		if frappe.flags.update_global_search:
-			try:
-				frappe.enqueue('frappe.utils.global_search.sync_global_search',
-					now=frappe.flags.in_test or frappe.flags.in_install or frappe.flags.in_migrate,
-					flags=frappe.flags.update_global_search)
-			except redis.exceptions.ConnectionError:
-				sync_global_search()
-
-			frappe.flags.update_global_search = []
 
 	def flush_realtime_log(self):
 		for args in frappe.local.realtime_log:
@@ -895,3 +882,11 @@ class Database:
 			s = s.replace("%", "%%")
 
 		return s
+
+def enqueue_jobs_after_commit():
+	if frappe.flags.enqueue_after_commit and len(frappe.flags.enqueue_after_commit) > 0:
+		for job in frappe.flags.enqueue_after_commit:
+			q = get_queue(job.get("queue"), async=job.get("async"))
+			q.enqueue_call(execute_job, timeout=job.get("timeout"),
+							kwargs=job.get("queue_args"))
+		frappe.flags.enqueue_after_commit = []

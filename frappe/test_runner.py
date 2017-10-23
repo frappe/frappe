@@ -198,6 +198,11 @@ def _add_test(app, path, filename, verbose, test_suite=None, ui_tests=False):
 			relative_path=relative_path.replace('/', '.'), module_name=filename[:-3])
 
 	module = importlib.import_module(module_name)
+
+	if hasattr(module, "test_dependencies"):
+		for doctype in module.test_dependencies:
+			make_test_records(doctype, verbose=verbose)
+
 	is_ui_test = True if hasattr(module, 'TestDriver') else False
 
 	if is_ui_test != ui_tests:

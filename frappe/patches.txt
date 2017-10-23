@@ -7,10 +7,11 @@ frappe.patches.v7_1.rename_scheduler_log_to_error_log
 frappe.patches.v6_1.rename_file_data
 frappe.patches.v7_0.re_route #2016-06-27
 frappe.patches.v7_2.remove_in_filter
-execute:frappe.reload_doc('core', 'doctype', 'doctype', force=True) #2017-03-09
-frappe.patches.v8_0.drop_in_dialog
+frappe.patches.v8_0.drop_in_dialog #2017-09-22
+execute:frappe.reload_doc('core', 'doctype', 'doctype', force=True) #2017-09-22
 execute:frappe.reload_doc('core', 'doctype', 'docfield', force=True) #2017-03-03
 execute:frappe.reload_doc('core', 'doctype', 'docperm') #2017-03-03
+execute:frappe.reload_doc('core', 'doctype', 'module_def') #2017-09-22
 frappe.patches.v8_0.drop_is_custom_from_docperm
 frappe.patches.v8_0.update_records_in_global_search #11-05-2017
 frappe.patches.v8_0.update_published_in_global_search
@@ -191,6 +192,6 @@ frappe.patches.v8_1.delete_custom_docperm_if_doctype_not_exists
 frappe.patches.v8_5.delete_email_group_member_with_invalid_emails
 frappe.patches.v8_x.update_user_permission
 frappe.patches.v8_5.patch_event_colors
-frappe.patches.v8_7.update_email_queue_status
 frappe.patches.v8_10.delete_static_web_page_from_global_search
 frappe.patches.v8_x.add_bgn_xaf_xof_currencies
+frappe.patches.v9_1.add_sms_sender_name_as_parameters

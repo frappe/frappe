@@ -762,6 +762,10 @@ select.form-control {
 	color: @text-muted;
 }
 
+.attach-btn {
+	margin-top: 10px;
+}
+
 // above mobile
 @media (min-width: 768px) {
 	.layout-main .form-column.col-sm-12 > form > .input-max-width {
@@ -909,4 +913,15 @@ body[data-route^="Form/Communication"] textarea[data-fieldname="subject"] {
 	height: 80px !important;
 }
 
+.frappe-control[data-fieldtype="Attach"] {
+	.attached-file {
+		position: relative;
+		margin-top: 5px;
 
+		.close {
+			position: absolute;
+			top: 0;
+			right: 0;
+		}
+	}
+}

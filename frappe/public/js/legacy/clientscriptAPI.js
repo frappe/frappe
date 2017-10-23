@@ -492,7 +492,8 @@ _f.Frm.prototype.make_new = function(doctype) {
 				}
 			});
 
-			frappe.set_route('Form', doctype, new_doc.name);
+			frappe.ui.form.make_quick_entry(doctype, null, null, new_doc);
+			// frappe.set_route('Form', doctype, new_doc.name);
 		});
 	}
 }
