@@ -8,14 +8,10 @@ frappe.views.CalendarView = frappe.views.ListRenderer.extend({
 	name: 'Calendar',
 	render_view: function() {
 		var me = this;
-		var options = {
-			doctype: this.doctype,
-			parent: this.wrapper,
-			page: this.list_view.page,
-			list_view: this.list_view
-		}
-		$.extend(options, frappe.views.calendar[this.doctype]);
-		this.calendar = new frappe.views.Calendar(options);
+		this.get_calendar_options()
+			.then(options => {
+				this.calendar = new frappe.views.Calendar(options);
+			});
 	},
 	set_defaults: function() {
 		this._super();
@@ -26,6 +22,47 @@ frappe.views.CalendarView = frappe.views.ListRenderer.extend({
 	},
 	get_header_html: function() {
 		return null;
+	},
+	get_calendar_options: function() {
+		let calendar_view = this.user_settings.last_calendar_view;
+
+		if (!calendar_view) {
+			calendar_view = frappe.get_route()[3] || 'Default';
+		}
+
+		// save in user_settings
+		frappe.model.user_settings.save(this.doctype, 'Calendar', {
+			last_calendar_view: calendar_view
+		});
+
+		const options = {
+			doctype: this.doctype,
+			parent: this.wrapper,
+			page: this.list_view.page,
+			list_view: this.list_view
+		}
+
+		return new Promise(resolve => {
+			if (calendar_view === 'Default') {
+				Object.assign(options, frappe.views.calendar[this.doctype])
+				resolve(options);
+			} else {
+
+				frappe.model.with_doc('Calendar View', calendar_view, (name, r) => {
+					const doc = frappe.get_doc('Calendar View', calendar_view);
+					Object.assign(options, {
+						field_map: {
+							id: "name",
+							start: doc.start_date_field,
+							end: doc.end_date_field,
+							title: doc.subject_field
+						}
+					});
+
+					resolve(options);
+				});
+			}
+		})
 	},
 	required_libs: [
 		'assets/frappe/js/lib/fullcalendar/fullcalendar.min.css',
@@ -127,6 +164,7 @@ frappe.views.Calendar = Class.extend({
 					args: me.get_args(start, end),
 					callback: function(r) {
 						var events = r.message;
+						console.log(events);
 						events = me.prepare_events(events);
 						callback(events);
 					}
@@ -202,7 +240,8 @@ frappe.views.Calendar = Class.extend({
 			doctype: this.doctype,
 			start: this.get_system_datetime(start),
 			end: this.get_system_datetime(end),
-			filters: this.list_view.filter_list.get_filters()
+			filters: this.list_view.filter_list.get_filters(),
+			field_map: this.field_map
 		};
 		return args;
 	},

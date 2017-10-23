@@ -24,3 +24,20 @@ def get_event_conditions(doctype, filters=None):
 		frappe.throw(_("Not Permitted"), frappe.PermissionError)
 
 	return get_filters_cond(doctype, filters, [], with_match_conditions = True)
+
+@frappe.whitelist()
+def get_events(doctype, start, end, field_map, filters=None, fields=None):
+	field_map = frappe._dict(json.loads(field_map))
+
+	if filters:
+		filters = json.loads(filters or '')
+
+	if not fields:
+		fields = [field_map.start, field_map.end, field_map.title, 'name']
+
+	filters += [
+		[doctype, field_map.start, '<=', end],
+		[doctype, field_map.end, '>=', start],
+	]
+
+	return frappe.get_list(doctype, fields=fields, filters=filters)
