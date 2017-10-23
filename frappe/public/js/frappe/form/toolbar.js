@@ -265,7 +265,7 @@ frappe.ui.form.Toolbar = Class.extend({
 		} else if (this.can_save()) {
 			if (!this.frm.save_disabled) {
 				//Show the save button if there is no workflow or if there is a workflow and there are changes
-				if (!this.has_workflow() || (this.has_workflow() && this.frm.doc.__unsaved)) {
+				if (this.has_workflow() ? this.frm.doc.__unsaved : true) {
 					status = "Save";
 				}
 			}
