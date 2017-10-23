@@ -80,15 +80,20 @@ class Database:
 			UnicodeWithAttrs: conversions[text_type]
 		}
 
+		conversions.update(converters)
+		
+		import pprint
+		pprint.pprint(conversions)
+
 		if usessl:
 			self._conn = pymysql.connect(self.host, self.user or '', self.password or '',
-				charset='utf8mb4', use_unicode = True, ssl=self.ssl, conv = converters)
+				charset='utf8mb4', use_unicode = True, ssl=self.ssl, conv = conversions)
 		else:
 			self._conn = pymysql.connect(self.host, self.user or '', self.password or '',
-				charset='utf8mb4', use_unicode = True, conv = converters)
-		from types import StringType
-		self._conn.encoders[UnicodeWithAttrs] = self._conn.encoders[StringType]
-		self._conn.encoders[TimeDelta] = self._conn.encoders[text_type]
+				charset='utf8mb4', use_unicode = True, conv = conversions)
+		# from types import StringType
+		# self._conn.encoders[UnicodeWithAttrs] = self._conn.encoders[StringType]
+		# self._conn.encoders[TimeDelta] = self._conn.encoders[text_type]
 
 		# MYSQL_OPTION_MULTI_STATEMENTS_OFF = 1
 		# self._conn.set_server_option(MYSQL_OPTION_MULTI_STATEMENTS_OFF)
