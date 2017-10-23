@@ -90,12 +90,13 @@ class DataMigrationRun(Document):
 			'Data Migration Mapping', m.mapping) for m in plan_active_mappings]
 
 		total_pages = 0
-		for m in [mapping for mapping in self.mappings if mapping.mapping_type == 'Push']:
-			count = float(self.get_count(m))
-			page_count = math.ceil(count / m.page_length)
-			total_pages += page_count
-
-		total_pages = 10
+		for m in [mapping for mapping in self.mappings]:
+			if m.mapping_type == 'Push':
+				count = float(self.get_count(m))
+				page_count = math.ceil(count / m.page_length)
+				total_pages += page_count
+			if m.mapping_type == 'Pull':
+				total_pages += 10
 
 		self.db_set(dict(
 			status = 'Started',

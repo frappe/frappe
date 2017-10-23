@@ -111,6 +111,10 @@ def create_custom_fields(custom_fields):
 
 	:param custom_fields: example `{'Sales Invoice': [dict(fieldname='test')]}`'''
 	for doctype, fields in custom_fields.items():
+		if isinstance(fields, dict):
+			# only one field
+			fields = [fields]
+
 		for df in fields:
 			field = frappe.db.get_value("Custom Field", {"dt": doctype, "fieldname": df["fieldname"]})
 			if not field:

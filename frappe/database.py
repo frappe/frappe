@@ -14,6 +14,7 @@ import re
 import frappe.model.meta
 from frappe.utils import now, get_datetime, cstr
 from frappe import _
+<<<<<<< HEAD
 from frappe.utils.global_search import sync_global_search
 from frappe.model.utils.link_count import flush_local_link_count
 from frappe.utils.background_jobs import execute_job, get_queue
@@ -34,6 +35,12 @@ from pymysql.constants 	import FIELD_TYPE
 from pymysql.converters import conversions
 import pymysql
 
+=======
+from six import text_type, binary_type, string_types, integer_types
+from frappe.model.utils.link_count import flush_local_link_count
+from six import iteritems, text_type
+from frappe.utils.background_jobs import execute_job, get_queue
+>>>>>>> develop
 
 class Database:
 	"""

@@ -1,3 +1,4 @@
+boto3
 chardet
 cssmin
 dropbox==7.3.1

@@ -145,6 +145,7 @@ frappe.request.call = function(opts) {
 			frappe.msgprint({message:__("Server Error: Please check your server logs or contact tech support."), title:__('Something went wrong'), indicator: 'red'});
 			try {
 				opts.error_callback && opts.error_callback();
+				frappe.request.report_error(xhr, opts);
 			} catch (e) {
 				frappe.request.report_error(xhr, opts);
 			}

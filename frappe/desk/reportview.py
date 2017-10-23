@@ -352,7 +352,7 @@ def get_filters_cond(doctype, filters, conditions, ignore_permissions=None, with
 			for f in filters:
 				if isinstance(f[1], string_types) and f[1][0] == '!':
 					flt.append([doctype, f[0], '!=', f[1][1:]])
-				elif isinstance(f[1], list) and \
+				elif isinstance(f[1], (list, tuple)) and \
 					f[1][0] in (">", "<", ">=", "<=", "like", "not like", "in", "not in", "between"):
 
 					flt.append([doctype, f[0], f[1][0], f[1][1]])

@@ -52,7 +52,8 @@
 		"public/js/frappe/form/controls/button.js",
 		"public/js/frappe/form/controls/html.js",
 		"public/js/frappe/form/controls/heading.js",
-		"public/js/frappe/form/controls/autocomplete.js"
+		"public/js/frappe/form/controls/autocomplete.js",
+		"public/js/frappe/form/controls/barcode.js"
 	],
 	"js/dialog.min.js": [
 		"public/js/frappe/dom.js",
@@ -102,7 +103,6 @@
 		"public/css/bootstrap.css",
 		"public/css/font-awesome.css",
 		"public/css/octicons/octicons.css",
-		"public/css/c3.min.css",
 		"public/css/desk.css",
 		"public/css/indicator.css",
 		"public/css/avatar.css",
@@ -114,7 +114,7 @@
 		"public/css/form.css",
 		"public/css/mobile.css",
 		"public/css/kanban.css",
-		"public/css/graphs.css"
+		"public/css/charts.css"
 	],
 	"css/frappe-rtl.css": [
 		"public/css/bootstrap-rtl.css",
@@ -231,15 +231,10 @@
 		"public/js/frappe/query_string.js",
 
 		"public/js/frappe/ui/charts.js",
-		"public/js/frappe/ui/graphs.js",
 		"public/js/frappe/ui/comment.js",
 		"public/js/frappe/misc/rating_icons.html",
 
 		"public/js/frappe/feedback.js"
-	],
-	"js/d3.min.js": [
-		"public/js/lib/d3.min.js",
-		"public/js/lib/c3.min.js"
 	],
 	"css/module.min.css": [
 		"public/css/module.css"

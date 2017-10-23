@@ -20,7 +20,7 @@ QUnit.test("Test ControlHTML", function(assert) {
 				{dt: 'ToDo'},
 				{fieldtype: 'HTML'},
 				{label: random_name + "_template"},
-				{options: '<h3> Test {%= doc.status %} </h3>'}
+				{options: '<h3> Test {{ doc.status }} </h3>'}
 			]);
 		},
 		() => frappe.set_route('List', 'ToDo'),
@@ -34,16 +34,22 @@ QUnit.test("Test ControlHTML", function(assert) {
 		},
 		() => {
 			const control = $(`.frappe-control[data-fieldname="${random_name}"]`)[0];
+
 			return assert.ok(control.innerHTML === '<h3> Test </h3>');
 		},
 		() => {
 			const control = $(`.frappe-control[data-fieldname="${random_name}_template"]`)[0];
+			// refresh input must be called independently
+			cur_frm.get_field(`${random_name}_template`).refresh_input();
+
 			return assert.ok(control.innerHTML === '<h3> Test Open </h3>');
 		},
 		() => frappe.tests.set_control("status", "Closed"),
 		() => frappe.timeout(1),
 		() => {
 			const control = $(`.frappe-control[data-fieldname="${random_name}_template"]`)[0];
+			// refresh input must be called independently
+			cur_frm.get_field(`${random_name}_template`).refresh_input();
 			return assert.ok(control.innerHTML === '<h3> Test Closed </h3>');
 		},
 		() => done()
