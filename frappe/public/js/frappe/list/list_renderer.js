@@ -74,6 +74,13 @@ frappe.views.ListRenderer = Class.extend({
 	should_refresh: function() {
 		return this.list_view.current_view !== this.list_view.last_view;
 	},
+	load_last_view: function() {
+		// this function should handle loading the last view of your list_renderer,
+		// If you have a last view (for e.g last kanban board in Kanban View),
+		// load it using frappe.set_route and return true
+		// else return false
+		return false;
+	},
 	set_wrapper: function () {
 		this.wrapper = this.list_view.wrapper && this.list_view.wrapper.find('.result-list');
 	},
