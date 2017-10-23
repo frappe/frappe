@@ -270,7 +270,6 @@ def send_token_via_sms(otpsecret, token=None, phone_no=None):
 
 	hotp = pyotp.HOTP(otpsecret)
 	args = {
-		ss.sms_sender_name: otp_issuer,
 		ss.message_parameter: 'Your verification code is {}'.format(hotp.at(int(token)))
 	}
 
