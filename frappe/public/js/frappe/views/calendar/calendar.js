@@ -271,6 +271,15 @@ frappe.views.Calendar = Class.extend({
 			d.start = frappe.datetime.convert_to_user_tz(d.start);
 			d.end = frappe.datetime.convert_to_user_tz(d.end);
 
+			// show event on single day if start or end date is invalid
+			if (!frappe.datetime.validate(d.start) && d.end) {
+				d.start = frappe.datetime.add_days(d.end, -1);
+			}
+
+			if (d.start && !frappe.datetime.validate(d.end)) {
+				d.end = frappe.datetime.add_days(d.start, 1);
+			}
+
 			me.fix_end_date_for_event_render(d);
 			me.prepare_colors(d);
 			return d;
