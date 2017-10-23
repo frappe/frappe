@@ -35,6 +35,8 @@ from pymysql.constants 	import FIELD_TYPE
 from pymysql.converters import conversions
 import pymysql
 
+from types import StringType, UnicodeType
+
 class Database:
 	"""
 	   Open a database connection with the given parmeters, if use_default is True, use the
@@ -62,38 +64,51 @@ class Database:
 		return ac_name
 
 	def connect(self):
-		"""Connects to a database as set in `site_config.json`."""
 		warnings.filterwarnings('ignore', category=pymysql.Warning)
-		usessl = 0
-		if frappe.conf.db_ssl_ca and frappe.conf.db_ssl_cert and frappe.conf.db_ssl_key:
-			usessl = 1
-			self.ssl = {
-				'ca':frappe.conf.db_ssl_ca,
-				'cert':frappe.conf.db_ssl_cert,
-				'key':frappe.conf.db_ssl_key
-			}
+		self._conn = pymysql.connect(user=self.user, host=self.host, passwd=self.password,
+			use_unicode=True, charset='utf8mb4')
+		self._conn.decoders[FIELD_TYPE.NEWDECIMAL] = float
+		self._conn.decoders[FIELD_TYPE.DATETIME] = get_datetime
+		# self._conn.converter[246]=float
+		# self._conn.converter[12]=get_datetime
+		self._conn.encoders[UnicodeWithAttrs] = self._conn.encoders[UnicodeType]
+		self._conn.encoders[TimeDelta] = self._conn.encoders[StringType]
 
-		converters = {
-			FIELD_TYPE.NEWDECIMAL: float,
-			FIELD_TYPE.DATETIME: get_datetime,
-			TimeDelta: conversions[binary_type],
-			UnicodeWithAttrs: conversions[text_type]
-		}
+		MYSQL_OPTION_MULTI_STATEMENTS_OFF = 1
 
-		conversions.update(converters)
+
+		# """Connects to a database as set in `site_config.json`."""
+		# warnings.filterwarnings('ignore', category=pymysql.Warning)
+		# usessl = 0
+		# if frappe.conf.db_ssl_ca and frappe.conf.db_ssl_cert and frappe.conf.db_ssl_key:
+		# 	usessl = 1
+		# 	self.ssl = {
+		# 		'ca':frappe.conf.db_ssl_ca,
+		# 		'cert':frappe.conf.db_ssl_cert,
+		# 		'key':frappe.conf.db_ssl_key
+		# 	}
+
+		# converters = {
+		# 	FIELD_TYPE.NEWDECIMAL: float,
+		# 	FIELD_TYPE.DATETIME: get_datetime,
+		# 	TimeDelta: conversions[binary_type],
+		# 	UnicodeWithAttrs: conversions[text_type]
+		# }
+
+		# conversions.update(converters)
 		
-		import pprint
-		pprint.pprint(conversions)
+		# import pprint
+		# pprint.pprint(conversions)
 
-		if usessl:
-			self._conn = pymysql.connect(self.host, self.user or '', self.password or '',
-				charset='utf8mb4', use_unicode = True, ssl=self.ssl, conv = conversions)
-		else:
-			self._conn = pymysql.connect(self.host, self.user or '', self.password or '',
-				charset='utf8mb4', use_unicode = True, conv = conversions)
+		# if usessl:
+		# 	self._conn = pymysql.connect(self.host, self.user or '', self.password or '',
+		# 		charset='utf8mb4', use_unicode = True, ssl=self.ssl, conv = conversions)
+		# else:
+		# 	self._conn = pymysql.connect(self.host, self.user or '', self.password or '',
+		# 		charset='utf8mb4', use_unicode = True, conv = conversions)
 
-		# MYSQL_OPTION_MULTI_STATEMENTS_OFF = 1
-		# self._conn.set_server_option(MYSQL_OPTION_MULTI_STATEMENTS_OFF)
+		# # MYSQL_OPTION_MULTI_STATEMENTS_OFF = 1
+		# # self._conn.set_server_option(MYSQL_OPTION_MULTI_STATEMENTS_OFF)
 
 		self._cursor = self._conn.cursor()
 		if self.user != 'root':
@@ -187,7 +202,6 @@ class Database:
 
 		except Exception as e:
 			# ignore data definition errors
-			print(e.args[0])
 			if ignore_ddl and e.args[0] in (1146,1054,1091):
 				pass
 
