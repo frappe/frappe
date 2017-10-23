@@ -43,7 +43,12 @@ frappe.views.CalendarView = frappe.views.ListRenderer.extend({
 		if(!should_refresh) {
 			this.last_calendar_view = this.current_calendar_view || '';
 			this.current_calendar_view = this.get_calendar_view();
-			this.page_title = __(this.get_calendar_view());
+
+			if (this.current_calendar_view !== 'Default') {
+				this.page_title = __(this.current_calendar_view);
+			} else {
+				this.page_title = this.doctype + ' ' + __('Calendar');
+			}
 
 			should_refresh = this.current_calendar_view !== this.last_calendar_view;
 		}

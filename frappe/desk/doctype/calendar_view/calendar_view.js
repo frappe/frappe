@@ -5,6 +5,12 @@ frappe.ui.form.on('Calendar View', {
 	onload: function(frm) {
 		frm.trigger('reference_doctype');
 	},
+	refresh: function(frm) {
+		if (!frm.is_new()) {
+			frm.add_custom_button(__('Show Calendar'),
+				() => frappe.set_route('List', frm.doc.reference_doctype, 'Calendar', frm.doc.name))
+		}
+	},
 	reference_doctype: function(frm) {
 		const { reference_doctype } = frm.doc;
 		if (!reference_doctype) return;
