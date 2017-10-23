@@ -87,11 +87,9 @@ class Database:
 			self._conn = pymysql.connect(self.host, self.user or '', self.password or '',
 				charset='utf8mb4', use_unicode = True, conv = converters)
 
-		self._conn.decoders[FIELD_TYPE.NEWDECIMAL] = float
-		self._conn.decoders[FIELD_TYPE.DATETIME] = get_datetime
-		from types import StringType, UnicodeType
-		self._conn.encoders[UnicodeWithAttrs] = self._conn.encoders[UnicodeType]
-		self._conn.encoders[TimeDelta] = self._conn.encoders[StringType]
+		from six import string_types, text_type
+		self._conn.encoders[UnicodeWithAttrs] = self._conn.encoders[string_types]
+		self._conn.encoders[TimeDelta] = self._conn.encoders[text_type]
 
 		# MYSQL_OPTION_MULTI_STATEMENTS_OFF = 1
 		# self._conn.set_server_option(MYSQL_OPTION_MULTI_STATEMENTS_OFF)
