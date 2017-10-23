@@ -87,7 +87,6 @@ class Database:
 			self._conn = pymysql.connect(self.host, self.user or '', self.password or '',
 				charset='utf8mb4', use_unicode = True, conv = converters)
 
-		from six import string_types, text_type
 		self._conn.encoders[UnicodeWithAttrs] = self._conn.encoders[string_types]
 		self._conn.encoders[TimeDelta] = self._conn.encoders[text_type]
 
