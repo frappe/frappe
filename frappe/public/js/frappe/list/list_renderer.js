@@ -355,6 +355,29 @@ frappe.views.ListRenderer = Class.extend({
 			this.render_tags($item_container, value);
 		});
 
+		this.render_count(values.length);
+	},
+
+	render_count: function(current_count) {
+		console.log(this)
+		const $header_right = this.list_view.list_header.find('.list-item__content--activity');
+
+		frappe.call({
+			method: 'frappe.model.db_query.get_count',
+			args: {
+				doctype: this.doctype,
+				filters: this.list_view.get_filters_args()
+			}
+		}).then(r => {
+			const count = r.message;
+			const $html = $(`<span>${current_count} of ${count}</span>`);
+
+			$html.css({
+				marginRight: '10px'
+			})
+			$header_right.addClass('text-muted');
+			$header_right.html($html);
+		})
 	},
 
 	// returns html for a data item,

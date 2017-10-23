@@ -781,6 +781,16 @@ def make_filter_tuple(doctype, key, value):
 	else:
 		return [doctype, key, "=", value]
 
+def make_filter_dict(filters):
+	'''convert this [[doctype, key, operator, value], ..]
+	to this { key: (operator, value), .. }
+	'''
+	_filter = frappe._dict()
+	for f in filters:
+		_filter[f[1]] = (f[2], f[3])
+
+	return _filter
+
 def scrub_urls(html):
 	html = expand_relative_urls(html)
 	# encoding should be responsibility of the composer

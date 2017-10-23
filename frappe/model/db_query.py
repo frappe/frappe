@@ -578,3 +578,13 @@ def get_list(doctype, *args, **kwargs):
 	'''wrapper for DatabaseQuery'''
 	kwargs.pop('cmd', None)
 	return DatabaseQuery(doctype).execute(None, *args, **kwargs)
+
+@frappe.whitelist()
+def get_count(doctype, filters=None):
+	if filters:
+		filters = json.loads(filters)
+
+	if isinstance(filters, list):
+		filters = frappe.utils.make_filter_dict(filters)
+
+	return frappe.db.count(doctype, filters=filters)
