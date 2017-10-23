@@ -89,6 +89,7 @@ class Database:
 
 		self._conn.decoders[FIELD_TYPE.NEWDECIMAL] = float
 		self._conn.decoders[FIELD_TYPE.DATETIME] = get_datetime
+		from types import StringType, UnicodeType
 		self._conn.encoders[UnicodeWithAttrs] = self._conn.encoders[UnicodeType]
 		self._conn.encoders[TimeDelta] = self._conn.encoders[StringType]
 
