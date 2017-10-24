@@ -359,7 +359,6 @@ frappe.views.ListRenderer = Class.extend({
 	},
 
 	render_count: function(current_count) {
-		console.log(this)
 		const $header_right = this.list_view.list_header.find('.list-item__content--activity');
 
 		frappe.call({

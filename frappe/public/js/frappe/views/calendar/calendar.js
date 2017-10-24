@@ -74,11 +74,11 @@ frappe.views.CalendarView = frappe.views.ListRenderer.extend({
 
 		return new Promise(resolve => {
 			if (calendar_view === 'Default') {
-				Object.assign(options, frappe.views.calendar[this.doctype])
+				Object.assign(options, frappe.views.calendar[this.doctype]);
 				resolve(options);
 			} else {
 
-				frappe.model.with_doc('Calendar View', calendar_view, (name, r) => {
+				frappe.model.with_doc('Calendar View', calendar_view, () => {
 					const doc = frappe.get_doc('Calendar View', calendar_view);
 					Object.assign(options, {
 						field_map: {
