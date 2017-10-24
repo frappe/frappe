@@ -45,7 +45,7 @@ type_map = {
 	,'Signature':	('longtext', '')
 	,'Color':		('varchar', varchar_len)
 	,'Barcode':		('longtext', '')
-	,'Map':			('longtext', '')
+	,'Geolocation':	('longtext', '')
 }
 
 default_columns = ['name', 'creation', 'modified', 'modified_by', 'owner',

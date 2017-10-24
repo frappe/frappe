@@ -1,6 +1,6 @@
 QUnit.module('controls');
 
-QUnit.test("Test ControlMap", function(assert) {
+QUnit.test("Test ControlGeolocation", function(assert) {
 	assert.expect(1);
 
 	const random_name = frappe.utils.get_random(3).toLowerCase();
@@ -16,7 +16,7 @@ QUnit.test("Test ControlMap", function(assert) {
 		() => {
 			return frappe.tests.make('Custom Field', [
 				{dt: 'ToDo'},
-				{fieldtype: 'Map'},
+				{fieldtype: 'Geolocation'},
 				{label: random_name},
 			]);
 		},
@@ -32,7 +32,7 @@ QUnit.test("Test ControlMap", function(assert) {
 		() => {
 			const control = $(`.frappe-control[data-fieldname="${random_name}"]`);
 
-			return assert.ok(control.data('fieldtype') === 'Map');
+			return assert.ok(control.data('fieldtype') === 'Geolocation');
 		},
 		() => done()
 	]);
