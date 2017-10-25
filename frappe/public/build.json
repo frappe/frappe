@@ -53,7 +53,8 @@
 		"public/js/frappe/form/controls/html.js",
 		"public/js/frappe/form/controls/heading.js",
 		"public/js/frappe/form/controls/autocomplete.js",
-		"public/js/frappe/form/controls/barcode.js"
+		"public/js/frappe/form/controls/barcode.js",
+		"public/js/frappe/form/controls/geolocation.js"
 	],
 	"js/dialog.min.js": [
 		"public/js/frappe/dom.js",
@@ -94,12 +95,17 @@
 		"public/js/frappe/form/controls/read_only.js",
 		"public/js/frappe/form/controls/button.js",
 		"public/js/frappe/form/controls/html.js",
-		"public/js/frappe/form/controls/heading.js"
+		"public/js/frappe/form/controls/heading.js",
+		"public/js/frappe/form/controls/geolocation.js"
 	],
 	"css/desk.min.css": [
 		"public/js/lib/datepicker/datepicker.min.css",
 		"public/js/lib/awesomplete/awesomplete.css",
 		"public/js/lib/summernote/summernote.css",
+		"public/js/lib/leaflet/leaflet.css",
+		"public/js/lib/leaflet/leaflet.draw.css",
+		"public/js/lib/leaflet/L.Control.Locate.css",
+		"public/js/lib/leaflet/easy-button.css",
 		"public/css/bootstrap.css",
 		"public/css/font-awesome.css",
 		"public/css/octicons/octicons.css",
@@ -137,7 +143,11 @@
 		"public/js/lib/datepicker/datepicker.min.js",
 		"public/js/lib/datepicker/locale-all.js",
 		"public/js/lib/jquery.jrumble.min.js",
-		"public/js/lib/webcam.min.js"
+		"public/js/lib/webcam.min.js",
+		"public/js/lib/leaflet/leaflet.js",
+		"public/js/lib/leaflet/leaflet.draw.js",
+		"public/js/lib/leaflet/L.Control.Locate.js",
+		"public/js/lib/leaflet/easy-button.js"
 	],
 	"js/desk.min.js": [
 		"public/js/frappe/class.js",

@@ -10,6 +10,11 @@ frappe.dom = {
 	by_id: function(id) {
 		return document.getElementById(id);
 	},
+	get_unique_id: function() {
+		const id = 'unique-' + frappe.dom.id_count;
+		frappe.dom.id_count++;
+		return id;
+	},
 	set_unique_id: function(ele) {
 		var $ele = $(ele);
 		if($ele.attr('id')) {
