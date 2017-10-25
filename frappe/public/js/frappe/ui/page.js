@@ -9,7 +9,6 @@
  * @param {string} opts.parent [HTMLElement] Parent element
  * @param {boolean} opts.single_column Whether to include sidebar
  * @param {string} [opts.title] Page title
- * @param {Object} [opts.required_libs] resources to load
  * @param {Object} [opts.make_page]
  *
  * @returns {frappe.ui.Page}
@@ -42,10 +41,10 @@ frappe.ui.Page = Class.extend({
 
 	make: function() {
 		this.wrapper = $(this.parent);
-		this.setup_render();
+		this.add_main_section();
 	},
 
-	get_empty_state: function({title, message, primary_action}) {
+	get_empty_state: function(title, message, primary_action) {
 		let $empty_state = $(`<div class="page-card-container">
 			<div class="page-card">
 				<div class="page-card-head">
@@ -53,28 +52,13 @@ frappe.ui.Page = Class.extend({
 						${title}</span>
 				</div>
 				<p>${message}</p>
-				<div><a href="/login" class="btn btn-primary btn-sm">${primary_action.label}</a></div>
+				<div>
+					<button class="btn btn-primary btn-sm">${primary_action}</button>
+				</div>
 			</div>
 		</div>`);
 
-		$empty_state.find('.btn-primary').on('click', () => {
-			primary_action.on_click();
-		});
-
 		return $empty_state;
-	},
-
-	setup_render: function() {
-		var lib_exists = (typeof this.required_libs === 'string' && this.required_libs)
-			|| ($.isArray(this.required_libs) && this.required_libs.length);
-
-		if (lib_exists) {
-			this.load_lib(() => {
-				this.add_main_section();
-			});
-		} else {
-			this.add_main_section();
-		}
 	},
 
 	load_lib: function (callback) {
@@ -512,13 +496,3 @@ frappe.ui.Page = Class.extend({
 		this.wrapper.trigger('view-change');
 	},
 });
-
-frappe.ui.scroll = function(element, animate, additional_offset) {
-	var header_offset = $(".navbar").height() + $(".page-head").height();
-	var top = $(element).offset().top - header_offset - cint(additional_offset);
-	if (animate) {
-		$("html, body").animate({ scrollTop: top });
-	} else {
-		$(window).scrollTop(top);
-	}
-}

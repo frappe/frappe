@@ -593,7 +593,7 @@ frappe.provide("frappe.views");
 		function make_dom() {
 			var opts = {
 				name: card.name,
-				title: card.title
+				title: remove_img_tags(card.title)
 			};
 			self.$card = $(frappe.render_template('kanban_card', opts))
 				.appendTo(wrapper);
@@ -1115,5 +1115,11 @@ frappe.provide("frappe.views");
 				flag = true;
 		});
 		return flag;
+	}
+
+	function remove_img_tags(html) {
+		const $temp = $(`<div>${html}</div>`)
+		$temp.find('img').remove();
+		return $temp.html();
 	}
 })();

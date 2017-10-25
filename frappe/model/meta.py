@@ -93,6 +93,9 @@ class Meta(Document):
 		return self.get("fields", {"fieldtype": "Select", "options":["not in",
 			["[Select]", "Loading..."]]})
 
+	def get_image_fields(self):
+		return self.get("fields", {"fieldtype": "Attach Image"})
+
 	def get_table_fields(self):
 		if not hasattr(self, "_table_fields"):
 			if self.name!="DocType":
@@ -215,7 +218,7 @@ class Meta(Document):
 		title_field = getattr(self, 'title_field', None)
 		if not title_field and self.has_field('title'):
 			title_field = 'title'
-		else:
+		if not title_field:
 			title_field = 'name'
 
 		return title_field

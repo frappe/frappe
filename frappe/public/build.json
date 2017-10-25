@@ -51,7 +51,9 @@
 		"public/js/frappe/form/controls/read_only.js",
 		"public/js/frappe/form/controls/button.js",
 		"public/js/frappe/form/controls/html.js",
-		"public/js/frappe/form/controls/heading.js"
+		"public/js/frappe/form/controls/heading.js",
+		"public/js/frappe/form/controls/autocomplete.js",
+		"public/js/frappe/form/controls/barcode.js"
 	],
 	"js/dialog.min.js": [
 		"public/js/frappe/dom.js",
@@ -101,7 +103,6 @@
 		"public/css/bootstrap.css",
 		"public/css/font-awesome.css",
 		"public/css/octicons/octicons.css",
-		"public/css/c3.min.css",
 		"public/css/desk.css",
 		"public/css/indicator.css",
 		"public/css/avatar.css",
@@ -113,7 +114,7 @@
 		"public/css/form.css",
 		"public/css/mobile.css",
 		"public/css/kanban.css",
-		"public/css/graphs.css"
+		"public/css/charts.css"
 	],
 	"css/frappe-rtl.css": [
 		"public/css/bootstrap-rtl.css",
@@ -150,6 +151,7 @@
 		"public/js/frappe/ui/keyboard.js",
 		"public/js/frappe/ui/emoji.js",
 		"public/js/frappe/ui/colors.js",
+		"public/js/frappe/ui/sidebar.js",
 
 		"public/js/frappe/request.js",
 		"public/js/frappe/socketio_client.js",
@@ -229,15 +231,10 @@
 		"public/js/frappe/query_string.js",
 
 		"public/js/frappe/ui/charts.js",
-		"public/js/frappe/ui/graphs.js",
 		"public/js/frappe/ui/comment.js",
 		"public/js/frappe/misc/rating_icons.html",
 
 		"public/js/frappe/feedback.js"
-	],
-	"js/d3.min.js": [
-		"public/js/lib/d3.min.js",
-		"public/js/lib/c3.min.js"
 	],
 	"css/module.min.css": [
 		"public/css/module.css"
@@ -269,7 +266,7 @@
 		"public/js/frappe/form/linked_with.js",
 		"public/js/frappe/form/workflow.js",
 		"public/js/frappe/form/print.js",
-		"public/js/frappe/form/sidebar.js",
+		"public/js/frappe/form/form_sidebar.js",
 		"public/js/frappe/form/user_image.js",
 		"public/js/frappe/form/share.js",
 		"public/js/frappe/form/form_viewers.js",

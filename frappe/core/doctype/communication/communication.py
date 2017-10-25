@@ -9,7 +9,7 @@ from frappe.utils import validate_email_add, get_fullname, strip_html, cstr
 from frappe.core.doctype.communication.comment import (notify_mentions,
 	update_comment_in_doc, on_trash)
 from frappe.core.doctype.communication.email import (validate_email,
-	notify, _notify, update_parent_status)
+	notify, _notify, update_parent_mins_to_first_response)
 from frappe.utils.bot import BotReply
 from frappe.utils import parse_addr
 
@@ -95,7 +95,7 @@ class Communication(Document):
 	def on_update(self):
 		"""Update parent status as `Open` or `Replied`."""
 		if self.comment_type != 'Updated':
-			update_parent_status(self)
+			update_parent_mins_to_first_response(self)
 			update_comment_in_doc(self)
 			self.bot_reply()
 

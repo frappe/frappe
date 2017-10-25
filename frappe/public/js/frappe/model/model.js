@@ -327,17 +327,23 @@ $.extend(frappe.model, {
 	set_value: function(doctype, docname, fieldname, value, fieldtype) {
 		/* help: Set a value locally (if changed) and execute triggers */
 
-		var doc = locals[doctype] && locals[doctype][docname];
+		var doc;
+		if ($.isPlainObject(doctype)) {
+			// first parameter is the doc, shift parameters to the left
+			doc = doctype; fieldname = docname; value = fieldname;
+		} else {
+			doc = locals[doctype] && locals[doctype][docname];
+		}
 
-		var to_update = fieldname;
+		let to_update = fieldname;
 		let tasks = [];
 		if(!$.isPlainObject(to_update)) {
 			to_update = {};
 			to_update[fieldname] = value;
 		}
 
-		$.each(to_update, function(key, value) {
-			if(doc && doc[key] !== value) {
+		$.each(to_update, (key, value) => {
+			if (doc && doc[key] !== value) {
 				if(doc.__unedited && !(!doc[key] && !value)) {
 					// unset unedited flag for virgin rows
 					doc.__unedited = false;

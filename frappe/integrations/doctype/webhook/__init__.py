@@ -37,7 +37,8 @@ def run_webhooks(doc, method):
 
 	def _webhook_request(webhook):
 		if not webhook.name in frappe.flags.webhooks_executed.get(doc.name, []):
-			frappe.enqueue("frappe.integrations.doctype.webhook.webhook.enqueue_webhook", doc=doc, webhook=webhook)
+			frappe.enqueue("frappe.integrations.doctype.webhook.webhook.enqueue_webhook", 
+				enqueue_after_commit=True, doc=doc, webhook=webhook)
 
 			# keep list of webhooks executed for this doc in this request
 			# so that we don't run the same webhook for the same document multiple times
