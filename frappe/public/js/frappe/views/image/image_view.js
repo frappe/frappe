@@ -68,8 +68,7 @@ frappe.views.ImageView = frappe.views.ListRenderer.extend({
 		return frappe.call({
 			method: 'frappe.core.doctype.file.file.get_attached_images',
 			args: { doctype: this.doctype, names: this.items.map(i => i.name) }
-		})
-		.then(r => {
+		}).then(r => {
 			this.images_map = Object.assign(this.images_map || {}, r.message);
 		});
 	},
@@ -199,7 +198,7 @@ frappe.views.GalleryView = Class.extend({
 	browse_images: function() {
 		const $more_items = this.pswp_root.find('.pswp__more-items');
 		const images_map = this.images_map;
-		let last_hide_timeout = null
+		let last_hide_timeout = null;
 
 		this.pswp.listen('afterChange', function() {
 			const images = images_map[this.currItem.name];
