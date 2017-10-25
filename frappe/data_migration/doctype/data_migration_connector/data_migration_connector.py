@@ -34,32 +34,33 @@ class DataMigrationConnector(Document):
 
 		return self.connection
 
-	def create_new_connection(self, module, connection_name):
-		if not frappe.conf.get('developer_mode'):
-			frappe.msgprint(_('Please enable developer mode to create new connection'))
-			return
-		# create folder
-		module_path = frappe.get_module_path(module)
-		connectors_folder = os.path.join(module_path, 'connectors')
-		frappe.create_folder(connectors_folder)
+@frappe.whitelist()
+def create_new_connection(module, connection_name):
+	if not frappe.conf.get('developer_mode'):
+		frappe.msgprint(_('Please enable developer mode to create new connection'))
+		return
+	# create folder
+	module_path = frappe.get_module_path(module)
+	connectors_folder = os.path.join(module_path, 'connectors')
+	frappe.create_folder(connectors_folder)
 
-		# create init py
-		create_init_py(module_path, 'connectors', '')
+	# create init py
+	create_init_py(module_path, 'connectors', '')
 
-		connection_class = connection_name.replace(' ', '')
-		file_name = frappe.scrub(connection_name) + '.py'
-		file_path = os.path.join(module_path, 'connectors', file_name)
+	connection_class = connection_name.replace(' ', '')
+	file_name = frappe.scrub(connection_name) + '.py'
+	file_path = os.path.join(module_path, 'connectors', file_name)
 
-		# create boilerplate file
-		with open(file_path, 'w') as f:
-			f.write(connection_boilerplate.format(connection_class=connection_class))
+	# create boilerplate file
+	with open(file_path, 'w') as f:
+		f.write(connection_boilerplate.format(connection_class=connection_class))
 
-		# get python module string from file_path
-		app_name = frappe.db.get_value('Module Def', module, 'app_name')
-		python_module = os.path.relpath(
-			file_path, '../apps/{0}'.format(app_name)).replace(os.path.sep, '.')[:-3]
+	# get python module string from file_path
+	app_name = frappe.db.get_value('Module Def', module, 'app_name')
+	python_module = os.path.relpath(
+		file_path, '../apps/{0}'.format(app_name)).replace(os.path.sep, '.')[:-3]
 
-		return python_module
+	return python_module
 
 def get_connection_class(python_module):
 	filename = python_module.rsplit('.', 1)[-1]
