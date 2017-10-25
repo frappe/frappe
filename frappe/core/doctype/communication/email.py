@@ -22,7 +22,7 @@ from frappe.utils.background_jobs import enqueue
 @frappe.whitelist()
 def make(doctype=None, name=None, content=None, subject=None, sent_or_received = "Sent",
 	sender=None, sender_full_name=None, recipients=None, communication_medium="Email", send_email=False,
-	print_html=None, print_format=None, attachments='[]', send_me_a_copy=False, cc=None, flags=None,read_receipt=None):
+	print_html=None, print_format=None, attachments='[]', send_me_a_copy=False, cc=None, bcc=None, flags=None,read_receipt=None):
 	"""Make a new communication.
 
 	:param doctype: Reference DocType.
@@ -58,6 +58,7 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 		"sender_full_name":sender_full_name,
 		"recipients": recipients,
 		"cc": cc or None,
+		"bcc": bcc or None,
 		"communication_medium": communication_medium,
 		"sent_or_received": sent_or_received,
 		"reference_doctype": doctype,
@@ -102,10 +103,13 @@ def validate_email(doc):
 	for email in split_emails(doc.cc):
 		validate_email_add(email, throw=True)
 
+	for email in split_emails(doc.bcc):
+		validate_email_add(email, throw=True)
+
 	# validate sender
 
 def notify(doc, print_html=None, print_format=None, attachments=None,
-	recipients=None, cc=None, fetched_from_email_account=False):
+	recipients=None, cc=None, bcc=None, fetched_from_email_account=False):
 	"""Calls a delayed task 'sendmail' that enqueus email in Email Queue queue
 
 	:param print_html: Send given value as HTML attachment
@@ -113,10 +117,11 @@ def notify(doc, print_html=None, print_format=None, attachments=None,
 	:param attachments: A list of filenames that should be attached when sending this email
 	:param recipients: Email recipients
 	:param cc: Send email as CC to
+	:param bcc: Send email as BCC to
 	:param fetched_from_email_account: True when pulling email, the notification shouldn't go to the main recipient
 
 	"""
-	recipients, cc = get_recipients_and_cc(doc, recipients, cc,
+	recipients, cc, bcc = get_recipients_cc_and_bcc(doc, recipients, cc, bcc,
 		fetched_from_email_account=fetched_from_email_account)
 
 	if not recipients:
@@ -127,16 +132,16 @@ def notify(doc, print_html=None, print_format=None, attachments=None,
 	if frappe.flags.in_test:
 		# for test cases, run synchronously
 		doc._notify(print_html=print_html, print_format=print_format, attachments=attachments,
-			recipients=recipients, cc=cc)
+			recipients=recipients, cc=cc, bcc=None)
 	else:
 		check_email_limit(list(set(doc.sent_email_addresses)))
 		enqueue(sendmail, queue="default", timeout=300, event="sendmail",
 			communication_name=doc.name,
 			print_html=print_html, print_format=print_format, attachments=attachments,
-			recipients=recipients, cc=cc, lang=frappe.local.lang, session=frappe.local.session)
+			recipients=recipients, cc=cc, bcc=bcc, lang=frappe.local.lang, session=frappe.local.session)
 
 def _notify(doc, print_html=None, print_format=None, attachments=None,
-	recipients=None, cc=None):
+	recipients=None, cc=None, bcc=None):
 
 	prepare_to_notify(doc, print_html, print_format, attachments)
 
@@ -148,6 +153,7 @@ def _notify(doc, print_html=None, print_format=None, attachments=None,
 	frappe.sendmail(
 		recipients=(recipients or []),
 		cc=(cc or []),
+		bcc=(bcc or []),
 		expose_recipients="header",
 		sender=doc.sender,
 		reply_to=doc.incoming_email_account,
@@ -190,7 +196,7 @@ def update_parent_mins_to_first_response(doc):
 	parent.run_method('notify_communication', doc)
 	parent.notify_update()
 
-def get_recipients_and_cc(doc, recipients, cc, fetched_from_email_account=False):
+def get_recipients_cc_and_bcc(doc, recipients, cc, bcc, fetched_from_email_account=False):
 	doc.all_email_addresses = []
 	doc.sent_email_addresses = []
 	doc.previous_email_sender = None
@@ -200,6 +206,9 @@ def get_recipients_and_cc(doc, recipients, cc, fetched_from_email_account=False)
 
 	if not cc:
 		cc = get_cc(doc, recipients, fetched_from_email_account=fetched_from_email_account)
+
+	if not bcc:
+		bcc = get_bcc(doc, recipients, fetched_from_email_account=fetched_from_email_account)
 
 	if fetched_from_email_account:
 		# email was already sent to the original recipient by the sender's email service
@@ -216,10 +225,13 @@ def get_recipients_and_cc(doc, recipients, cc, fetched_from_email_account=False)
 		# don't cc to people who already received the mail from sender's email service
 		cc = list(set(cc) - set(original_cc) - set(original_recipients))
 
+		original_bcc = split_emails(doc.bcc)
+		bcc = list(set(bcc) - set(original_bcc) - set(original_recipients))
+
 	if 'Administrator' in recipients:
 		recipients.remove('Administrator')
 
-	return recipients, cc
+	return recipients, cc, bcc
 
 def prepare_to_notify(doc, print_html=None, print_format=None, attachments=None):
 	"""Prepare to make multipart MIME Email
@@ -345,6 +357,34 @@ def get_cc(doc, recipients=None, fetched_from_email_account=False):
 
 	return cc
 
+def get_bcc(doc, recipients=None, fetched_from_email_account=False):
+	"""Build a list of email addresses for CC"""
+	bcc = split_emails(doc.bcc)
+
+	if doc.reference_doctype and doc.reference_name:
+		if fetched_from_email_account:
+			bcc.append(get_owner_email(doc))
+			bcc += get_assignees(doc)
+
+	if getattr(doc, "send_me_a_copy", False) and doc.sender not in bcc:
+		bcc.append(doc.sender)
+
+	if bcc:
+		exclude = []
+		exclude += [d[0] for d in frappe.db.get_all("User", ["name"], {"thread_notify": 0}, as_list=True)]
+		exclude += [(parse_addr(email)[1] or "").lower() for email in recipients]
+
+		if fetched_from_email_account:
+			# exclude sender when pulling email
+			exclude += [parse_addr(doc.sender)[1]]
+
+		if doc.reference_doctype and doc.reference_name:
+			exclude += [d[0] for d in frappe.db.get_all("Email Unsubscribe", ["email"],
+				{"reference_doctype": doc.reference_doctype, "reference_name": doc.reference_name}, as_list=True)]
+
+		bcc = filter_email_list(doc, bcc, exclude, is_bcc=True)
+
+	return bcc
 
 def add_attachments(name, attachments):
 	'''Add attachments to the given Communiction'''
@@ -360,7 +400,7 @@ def add_attachments(name, attachments):
 			save_url(attach.file_url, attach.file_name, "Communication", name,
 				"Home/Attachments", attach.is_private)
 
-def filter_email_list(doc, email_list, exclude, is_cc=False):
+def filter_email_list(doc, email_list, exclude, is_cc=False, is_bcc=False):
 	# temp variables
 	filtered = []
 	email_address_list = []
@@ -380,6 +420,11 @@ def filter_email_list(doc, email_list, exclude, is_cc=False):
 			is_user_enabled = frappe.db.get_value("User", email_address, "enabled")
 			if is_user_enabled==0:
 				# don't send to disabled users
+				continue
+
+		if is_bcc:
+			is_user_enabled = frappe.db.get_value("User", email_address, "enabled")
+			if is_user_enabled==0:
 				continue
 
 		# make sure of case-insensitive uniqueness of email address
@@ -416,7 +461,7 @@ def get_attach_link(doc, print_format):
 	})
 
 def sendmail(communication_name, print_html=None, print_format=None, attachments=None,
-	recipients=None, cc=None, lang=None, session=None):
+	recipients=None, cc=None, bcc=None, lang=None, session=None):
 	try:
 
 		if lang:
@@ -432,7 +477,7 @@ def sendmail(communication_name, print_html=None, print_format=None, attachments
 			try:
 				communication = frappe.get_doc("Communication", communication_name)
 				communication._notify(print_html=print_html, print_format=print_format, attachments=attachments,
-					recipients=recipients, cc=cc)
+					recipients=recipients, cc=cc, bcc=bcc)
 
 			except MySQLdb.OperationalError as e:
 				# deadlock, try again
@@ -453,6 +498,7 @@ def sendmail(communication_name, print_html=None, print_format=None, attachments
 			"attachments": attachments,
 			"recipients": recipients,
 			"cc": cc,
+			"bcc": bcc,
 			"lang": lang
 		}))
 		frappe.logger(__name__).error(traceback)

@@ -450,7 +450,6 @@ frappe.views.CommunicationComposer = Class.extend({
 				if ( form_values[df.fieldname] ) {
 					form_values.cc = ( form_values.cc ? (form_values.cc + ", ") : "" ) + df.fieldname;
 					form_values.bcc = ( form_values.bcc ? (form_values.bcc + ", ") : "" ) + df.fieldname;
-					
 				}
 
 				delete form_values[df.fieldname];
