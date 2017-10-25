@@ -445,7 +445,7 @@ def validate_fields(meta):
 			frappe.throw(_("'In List View' not allowed for type {0} in row {1}").format(d.fieldtype, d.idx))
 
 	def check_in_global_search(d):
-		if d.in_global_search and d.fieldtype in no_value_fields:
+		if d.get('in_global_search') and d.get('fieldtype') in no_value_fields:
 			frappe.throw(_("'In Global Search' not allowed for type {0} in row {1}")
 				.format(d.fieldtype, d.idx))
 
@@ -764,7 +764,7 @@ def validate_permissions(doctype, for_remove=False):
 def make_module_and_roles(doc, perm_fieldname="permissions"):
 	"""Make `Module Def` and `Role` records if already not made. Called while installing."""
 	try:
-		if doc.restrict_to_domain and not frappe.db.exists('Domain', doc.restrict_to_domain):
+		if doc.get('restrict_to_domain') and not frappe.db.exists('Domain', doc.restrict_to_domain):
 			frappe.get_doc(dict(doctype='Domain', domain=doc.restrict_to_domain)).insert()
 
 		if not frappe.db.exists("Module Def", doc.module):
