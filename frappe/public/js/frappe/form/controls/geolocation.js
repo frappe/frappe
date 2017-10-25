@@ -4,9 +4,10 @@ frappe.ui.form.ControlGeolocation = frappe.ui.form.ControlData.extend({
 		this._super();
 
 		let $input_wrapper = this.$wrapper.find('.control-input-wrapper');
+		this.map_id = frappe.dom.get_unique_id();
 		this.map_area = $(
 			`<div class="map-wrapper border">
-				<div id="` + this.df.fieldname + `" style="min-height: 400px; z-index: 1; max-width:100%"></div>
+				<div id="` + this.map_id + `" style="min-height: 400px; z-index: 1; max-width:100%"></div>
 			</div>`
 		);
 		this.map_area.prependTo($input_wrapper);
@@ -75,7 +76,7 @@ frappe.ui.form.ControlGeolocation = frappe.ui.form.ControlData.extend({
 		});
 
 		L.Icon.Default.imagePath = '/assets/frappe/images/leaflet/';
-		this.map = L.map(this.df.fieldname).setView([19.0800, 72.8961], 13);
+		this.map = L.map(this.map_id).setView([19.0800, 72.8961], 13);
 
 		L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
 			attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
@@ -96,18 +97,18 @@ frappe.ui.form.ControlGeolocation = frappe.ui.form.ControlData.extend({
 			draw: {
 				polyline: {
 					shapeOptions: {
-						color: '#7573fc',
+						color: frappe.ui.color.get('blue'),
 						weight: 10
 					}
 				},
 				polygon: {
 					allowIntersection: false, // Restricts shapes to simple polygons
 					drawError: {
-						color: '#e1e100', // Color the shape will turn when intersects
+						color: frappe.ui.color.get('orange'), // Color the shape will turn when intersects
 						message: '<strong>Oh snap!<strong> you can\'t draw that!' // Message that will show when intersect
 					},
 					shapeOptions: {
-						color: '#7573fc'
+						color: frappe.ui.color.get('blue')
 					}
 				},
 				circle: true,
@@ -139,8 +140,7 @@ frappe.ui.form.ControlGeolocation = frappe.ui.form.ControlData.extend({
 		});
 
 		this.map.on('draw:deleted draw:edited', (e) => {
-			var type = e.layerType,
-				layer = e.layer;
+			var layer = e.layer;
 			this.editableLayers.removeLayer(layer);
 			this.set_value(JSON.stringify(this.editableLayers.toGeoJSON()));
 		});
