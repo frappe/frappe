@@ -287,7 +287,8 @@ frappe.views.ListSidebar = Class.extend({
 			let default_link = '';
 			if (frappe.views.calendar[this.doctype]) {
 				// has standard calendar view
-				default_link = `<li><a href="#List/${doctype}/Calendar/Default">${ __("Default") }</a></li>`
+				default_link = `<li><a href="#List/${doctype}/Calendar/Default">
+					${ __("Default") }</a></li>`;
 			}
 			const other_links = calendar_views.map(
 				calendar_view => `<li><a href="#List/${doctype}/Calendar/${calendar_view.name}">
