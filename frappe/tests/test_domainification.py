@@ -23,6 +23,7 @@ class TestDomainification(unittest.TestCase):
 		frappe.db.sql("delete from `tabHas Role` where role='_Test Role'")
 		frappe.db.sql("delete from tabDomain where name in ('_Test Domain 1', '_Test Domain 2')")
 		frappe.delete_doc('DocType', 'Test Domainification')
+		self.remove_from_active_domains(remove_all=True)
 
 	def add_active_domain(self, domain):
 		""" add domain in active domain """
