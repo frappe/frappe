@@ -358,7 +358,7 @@ def get_cc(doc, recipients=None, fetched_from_email_account=False):
 	return cc
 
 def get_bcc(doc, recipients=None, fetched_from_email_account=False):
-	"""Build a list of email addresses for CC"""
+	"""Build a list of email addresses for BCC"""
 	bcc = split_emails(doc.bcc)
 
 	if doc.reference_doctype and doc.reference_name:
