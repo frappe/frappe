@@ -9,7 +9,7 @@ QUnit.test("Test ControlGeolocation", function(assert) {
 
 	// geolocation alert dialog suppressed (only secure origins or localhost allowed)
 	window.alert = function() {
-		console.log.apply(console, arguments);
+		console.log.apply(console, arguments); //eslint-disable-line
 	};
 
 	frappe.run_serially([
