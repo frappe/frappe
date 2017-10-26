@@ -5,6 +5,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
+from frappe import _
 
 class DomainSettings(Document):
 	def set_active_domains(self, domains):
@@ -31,6 +32,7 @@ class DomainSettings(Document):
 			frappe.set_value('Role', role, 'disabled', 1)
 
 		for domain in all_domains:
+			domain = _(domain)
 			data = frappe.get_domain_data(domain)
 			if not frappe.db.get_value('Domain', domain):
 				frappe.get_doc(dict(doctype='Domain', domain=domain)).insert()
