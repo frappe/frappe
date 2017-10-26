@@ -96,6 +96,9 @@ frappe.views.TreeView = Class.extend({
 			me.page.add_field(filter).$input
 				.on('change blur', function() {
 					var val = $(this).val();
+					if(!val && me.set_root){
+						val = me.opts.root_label;
+					}
 					if(val) {
 						me.args[$(this).attr("data-fieldname")] = val;
 						frappe.treeview_settings.filters = me.args;
