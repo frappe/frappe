@@ -349,24 +349,32 @@ frappe.views.ListSidebar = Class.extend({
 	},
 	setup_upgrade_box: function() {
 		let upgrade_list = $(`<ul class="list-unstyled sidebar-menu"></ul>`).appendTo(this.sidebar);
-		let upgrade_box = $(`<div class="border" style="
-				padding: 0px 10px;
-				border-radius: 3px;
-			">
-			<a><i class="octicon octicon-x pull-right close" style="margin-top: 10px;"></i></a>
-			<h5>Go Premium</h5>
-			<p>Upgrade to a premium plan with more users, storage and priority support.</p>
-			<button class="btn btn-sm btn-default" style="margin-bottom: 10px;">Upgrade</button>
-		</div>`).appendTo(upgrade_list);
 
-		upgrade_box.find('.btn-primary').on('click', () => {
-			window.open(frappe.boot.limits.upgrade_url);
-		});
+		// Show Renew/Upgrade button,
+		// if account is holding one user free plan or
+		// if account's expiry date within range of 30 days from today's date
 
-		upgrade_box.find('.close').on('click', () => {
-			upgrade_list.remove();
-			frappe.flags.upgrade_dismissed = 1;
-		});
+		let upgrade_date = frappe.datetime.add_days(get_today(), 30);
+		if (frappe.boot.limits.users === 1 || upgrade_date >= frappe.boot.limits.expiry) {
+			let upgrade_box = $(`<div class="border" style="
+					padding: 0px 10px;
+					border-radius: 3px;
+				">
+				<a><i class="octicon octicon-x pull-right close" style="margin-top: 10px;"></i></a>
+				<h5>Go Premium</h5>
+				<p>Upgrade to a premium plan with more users, storage and priority support.</p>
+				<button class="btn btn-sm btn-primary" style="margin-bottom: 10px;"> Renew / Upgrade </button>
+				</div>`).appendTo(upgrade_list);
+
+			upgrade_box.find('.btn-primary').on('click', () => {
+				frappe.set_route('usage-info');
+			});
+
+			upgrade_box.find('.close').on('click', () => {
+				upgrade_list.remove();
+				frappe.flags.upgrade_dismissed = 1;
+			});
+		}
 	},
 	get_cat_tags:function(){
 		return this.cat_tags;
