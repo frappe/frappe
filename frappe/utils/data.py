@@ -218,7 +218,11 @@ def formatdate(string_date=None, format_string=None):
 		 * mm-dd-yyyy
 		 * dd/mm/yyyy
 	"""
-	date = getdate(string_date) if string_date else now_datetime().date()
+
+	if not string_date:
+		return ''
+
+	date = getdate(string_date)
 	if not format_string:
 		format_string = get_user_format().replace("mm", "MM")
 
