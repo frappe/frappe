@@ -45,6 +45,7 @@ frappe.ui.form.ControlGeolocation = frappe.ui.form.ControlData.extend({
 				// suppress error if layer has a point.
 			}
 			this.editableLayers.addTo(this.map);
+			this.map._onResize();
 		} else if ((value===undefined) || (value == JSON.stringify(new L.FeatureGroup().toGeoJSON()))) {
 			this.locate_control.start();
 		}
