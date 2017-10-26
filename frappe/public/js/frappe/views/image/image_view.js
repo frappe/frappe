@@ -202,7 +202,10 @@ frappe.views.GalleryView = Class.extend({
 
 		this.pswp.listen('afterChange', function() {
 			const images = images_map[this.currItem.name];
-			if (!images || images.length === 1) return;
+			if (!images || images.length === 1) {
+				$more_items.html('');
+				return;
+			}
 
 			hide_more_items_after_2s();
 			const html = images.map(img_html).join("");
