@@ -94,7 +94,7 @@ frappe.views.TreeView = Class.extend({
 			}
 
 			me.page.add_field(filter).$input
-				.on('change', function() {
+				.on('change blur', function() {
 					var val = $(this).val();
 					if(val) {
 						me.args[$(this).attr("data-fieldname")] = val;
