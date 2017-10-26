@@ -2,6 +2,11 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on('Data Migration Connector', {
+	onload(frm) {
+		if(frappe.boot.developer_mode) {
+			frm.add_custom_button(__('New Connection'), () => frm.events.new_connection(frm));
+		}
+	},
 	new_connection(frm) {
 		const d = new frappe.ui.Dialog({
 			title: __('New Connection'),
@@ -22,7 +27,7 @@ frappe.ui.form.on('Data Migration Connector', {
 								.trim();
 
 							frm.set_value('connector_name', connector_name);
-							frm.set_value('is_custom', 1);
+							frm.set_value('connector_type', 'Custom');
 							frm.set_value('python_module', r.message);
 							frm.save();
 							frappe.show_alert(__(`New module created ${r.message}`));
@@ -33,7 +38,6 @@ frappe.ui.form.on('Data Migration Connector', {
 		});
 
 		d.show();
-
 	},
 	create_new_connection(module, connection_name) {
 		return frappe.call('frappe.data_migration.doctype.data_migration_connector.data_migration_connector.create_new_connection', {
