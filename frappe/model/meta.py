@@ -483,7 +483,7 @@ def trim_tables(doctype=None):
 	if doctype:
 		filters["name"] = doctype
 
-	for doctype in frappe.db.get_all("DocType", filters={"issingle": 0}):
+	for doctype in frappe.db.get_all("DocType", filters=filters):
 		doctype = doctype.name
 		columns = frappe.db.get_table_columns(doctype)
 		fields = frappe.get_meta(doctype).get_fieldnames_with_value()
