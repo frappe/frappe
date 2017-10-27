@@ -14,9 +14,7 @@ import re
 import frappe.model.meta
 from frappe.utils import now, get_datetime, cstr
 from frappe import _
-from frappe.utils.global_search import sync_global_search
 from frappe.model.utils.link_count import flush_local_link_count
-from frappe.utils.background_jobs import execute_job, get_queue
 from frappe.utils.background_jobs import execute_job, get_queue
 
 # imports - compatibility imports
@@ -35,7 +33,7 @@ from pymysql.constants 	import FIELD_TYPE
 from pymysql.converters import conversions
 import pymysql
 
-from types import StringType, UnicodeType
+from types import UnicodeType
 
 class Database:
 	"""
@@ -161,7 +159,6 @@ class Database:
 						frappe.errprint(query % values)
 					except TypeError:
 						frappe.errprint([query, values])
-				
 				if (frappe.conf.get("logging") or False)==2:
 					frappe.log("<<<< query")
 					frappe.log(query)
