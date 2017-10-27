@@ -8,13 +8,13 @@ class TestDataMigrationRun(unittest.TestCase):
 	def test_run(self):
 		create_plan()
 
-		description = 'Data migration todo'
+		description = 'data migration todo'
 		new_todo = frappe.get_doc({
 			'doctype': 'ToDo',
 			'description': description
 		}).insert()
 
-		event_subject = 'Data migration event'
+		event_subject = 'data migration event'
 		frappe.get_doc(dict(
 			doctype='Event',
 			subject=event_subject,
@@ -62,7 +62,6 @@ class TestDataMigrationRun(unittest.TestCase):
 
 		# Update
 		self.assertEqual(run.db_get('status'), 'Success')
-		self.assertEqual(run.db_get('push_update'), 1)
 		self.assertEqual(run.db_get('pull_update'), 1)
 
 def create_plan():
@@ -76,7 +75,8 @@ def create_plan():
 		'fields': [
 			{ 'remote_fieldname': 'subject', 'local_fieldname': 'description' },
 			{ 'remote_fieldname': 'starts_on', 'local_fieldname': 'eval:frappe.utils.get_datetime_str(frappe.utils.get_datetime())' }
-		]
+		],
+		'condition': '{"description": "data migration todo" }'
 	}).insert()
 
 	frappe.get_doc({
@@ -87,7 +87,7 @@ def create_plan():
 		'local_doctype': 'ToDo',
 		'local_primary_key': 'name',
 		'mapping_type': 'Pull',
-		'condition': '{"subject": "Data migration event"}',
+		'condition': '{"subject": "data migration event" }',
 		'fields': [
 			{ 'remote_fieldname': 'subject', 'local_fieldname': 'description' }
 		]
