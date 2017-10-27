@@ -53,7 +53,7 @@ def clear_global_cache():
 	frappe.model.meta.clear_cache()
 	frappe.cache().delete_value(["app_hooks", "installed_apps",
 		"app_modules", "module_app", "notification_config", 'system_settings'
-		'scheduler_events', 'time_zone', 'webhooks'])
+		'scheduler_events', 'time_zone', 'webhooks', 'active_domains', 'active_modules'])
 	frappe.setup_module_map()
 
 

@@ -1,3 +1,4 @@
+boto3
 chardet
 cssmin
 dropbox==7.3.1
@@ -49,3 +50,4 @@ pyqrcode
 pypng
 premailer
 psycopg2
+croniter

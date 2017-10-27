@@ -107,6 +107,7 @@ frappe.DataImportTool = Class.extend({
 	make_upload: function() {
 		var me = this;
 		frappe.upload.make({
+			no_socketio: true,
 			parent: this.page.main.find(".upload-area"),
 			btn: this.page.main.find(".btn-import"),
 			get_params: function() {

@@ -74,7 +74,7 @@ frappe.ui.form.set_viewers = function(data) {
 		current: viewers
 	});
 
-	if (cur_frm.doc && cur_frm.doc.doctype===doctype && cur_frm.doc.name==docname) {
+	if (cur_frm && cur_frm.doc && cur_frm.doc.doctype===doctype && cur_frm.doc.name==docname) {
 		cur_frm.viewers.refresh(true);
 	}
 }

@@ -440,6 +440,9 @@ fieldset[disabled] .form-control {
     top: 26px;
   }
 }
+.barcode-wrapper {
+  text-align: center;
+}
 @media (min-width: 768px) {
   .video-modal .modal-dialog {
     width: 700px;

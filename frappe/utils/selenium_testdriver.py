@@ -19,8 +19,8 @@ import frappe
 from ast import literal_eval
 
 class TestDriver(object):
-	def __init__(self, port='8000'):
-		self.port = port
+	def __init__(self, port=None):
+		self.port = port or frappe.get_site_config().webserver_port or '8000'
 
 		chrome_options = Options()
 		capabilities = DesiredCapabilities.CHROME
@@ -84,16 +84,19 @@ class TestDriver(object):
 			time.sleep(0.2)
 
 	def set_field(self, fieldname, text):
-		elem = self.find(xpath='//input[@data-fieldname="{0}"]'.format(fieldname))
-		elem[0].send_keys(text)
+		elem = self.wait_for(xpath='//input[@data-fieldname="{0}"]'.format(fieldname))
+		time.sleep(0.2)
+		elem.send_keys(text)
 
 	def set_select(self, fieldname, text):
-		elem = self.find(xpath='//select[@data-fieldname="{0}"]'.format(fieldname))
-		elem[0].send_keys(text)
+		elem = self.wait_for(xpath='//select[@data-fieldname="{0}"]'.format(fieldname))
+		time.sleep(0.2)
+		elem.send_keys(text)
 
 	def set_text_editor(self, fieldname, text):
-		elem = self.find(xpath='//div[@data-fieldname="{0}"]//div[@contenteditable="true"]'.format(fieldname))
-		elem[0].send_keys(text)
+		elem = self.wait_for(xpath='//div[@data-fieldname="{0}"]//div[@contenteditable="true"]'.format(fieldname))
+		time.sleep(0.2)
+		elem.send_keys(text)
 
 	def find(self, selector=None, everywhere=False, xpath=None):
 		if xpath:
@@ -164,7 +167,11 @@ class TestDriver(object):
 		self.wait_for(xpath='//div[@data-page-route="{0}"]'.format('/'.join(args)), timeout=4)
 
 	def click(self, css_selector, xpath=None):
-		self.wait_till_clickable(css_selector, xpath).click()
+		element = self.wait_till_clickable(css_selector, xpath)
+		self.scroll_to(css_selector)
+		time.sleep(0.5)
+		element.click()
+		return element
 
 	def click_primary_action(self):
 		selector = ".page-actions .primary-action"
@@ -200,6 +207,7 @@ class TestDriver(object):
 
 		return self.get_wait().until(EC.element_to_be_clickable(
 			(by, selector)))
+
 
 	def execute_script(self, js):
 		self.driver.execute_script(js)

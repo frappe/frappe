@@ -191,7 +191,9 @@ def write_file(content, fname, is_private=0):
 	# create directory (if not exists)
 	frappe.create_folder(file_path)
 	# write the file
-	with open(os.path.join(file_path.encode('utf-8'), fname.encode('utf-8')), 'w+') as f:
+	if isinstance(content, text_type):
+		content = content.encode()
+	with open(os.path.join(file_path.encode('utf-8'), fname.encode('utf-8')), 'wb+') as f:
 		f.write(content)
 
 	return get_files_path(fname, is_private=is_private)

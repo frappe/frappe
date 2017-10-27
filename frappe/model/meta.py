@@ -218,7 +218,7 @@ class Meta(Document):
 		title_field = getattr(self, 'title_field', None)
 		if not title_field and self.has_field('title'):
 			title_field = 'title'
-		else:
+		if not title_field:
 			title_field = 'name'
 
 		return title_field
@@ -483,7 +483,7 @@ def trim_tables(doctype=None):
 	if doctype:
 		filters["name"] = doctype
 
-	for doctype in frappe.db.get_all("DocType", filters={"issingle": 0}):
+	for doctype in frappe.db.get_all("DocType", filters=filters):
 		doctype = doctype.name
 		columns = frappe.db.get_table_columns(doctype)
 		fields = frappe.get_meta(doctype).get_fieldnames_with_value()

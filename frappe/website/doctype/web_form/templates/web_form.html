@@ -98,9 +98,9 @@
 	{% if field.hidden %}
 	<input type="hidden" data-doctype="{{ field.parent }}"
 		name="{{ field.fieldname }}" value="{{ value(field, _doc) }}">
-	{% elif field.fieldtype == "HTML" and field.options %}
-	<div class="form-group">
-		{{ field.options }}
+	{% elif field.fieldtype == "HTML" %}
+	<div class="form-group" data-label="{{ field.label }}">
+		{% if field.options %}{{ field.options }}{% endif %}
 	</div>
 	{% elif field.fieldtype in ("Data", "Date", "Datetime", "Int", "Float") %}
 	<div class="form-group{% if field.reqd %} has-error{% endif %}">

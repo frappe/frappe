@@ -350,12 +350,52 @@ frappe.ui.form.Grid = Class.extend({
 			for(var i=0, l=fieldname.length; i<l; i++) {
 				var fname = fieldname[i];
 				me.get_docfield(fname).hidden = show ? 0 : 1;
+				this.set_editable_grid_column_disp(fname, show);
 			}
 		} else {
 			this.get_docfield(fieldname).hidden = show ? 0 : 1;
+			this.set_editable_grid_column_disp(fieldname, show);
 		}
 
 		this.refresh(true);
+	},
+	set_editable_grid_column_disp: function(fieldname, show) {
+		//Hide columns for editable grids
+		if (this.meta.editable_grid) {
+			this.grid_rows.forEach(function(row) {
+				row.columns_list.forEach(function(column) {
+					//Hide the column specified
+					if (column.df.fieldname == fieldname) {
+						if (show) {
+							column.df.hidden = false;
+
+							//Show the static area and hide field area if it is not the editable row
+							if  (row != frappe.ui.form.editable_row) {
+								column.static_area.show();
+								column.field_area && column.field_area.toggle(false);
+							}
+							//Hide the static area and show field area if it is the editable row
+							else {
+								column.static_area.hide();
+								column.field_area && column.field_area.toggle(true);
+
+								//Format the editable column appropriately if it is now visible
+								if (column.field) {
+									column.field.refresh();
+									if (column.field.$input) column.field.$input.toggleClass('input-sm', true);
+								}
+							}
+						}
+						else {
+							column.df.hidden = true;
+							column.static_area.hide();
+						}
+					}
+				});
+			});
+		}
+
+		this.refresh();
 	},
 	toggle_reqd: function(fieldname, reqd) {
 		this.get_docfield(fieldname).reqd = reqd;
@@ -571,7 +611,7 @@ frappe.ui.form.Grid = Class.extend({
 
 						me.frm.clear_table(me.df.fieldname);
 						$.each(data, function(i, row) {
-							if(i > 4) {
+							if(i > 6) {
 								var blank_row = true;
 								$.each(row, function(ci, value) {
 									if(value) {
@@ -619,6 +659,8 @@ frappe.ui.form.Grid = Class.extend({
 			data.push([]);
 			data.push([]);
 			data.push([]);
+			data.push([__("The CSV format is case sensitive")]);
+			data.push([__("Do not edit headers which are preset in the template")]);
 			data.push(["------"]);
 			$.each(frappe.get_meta(me.df.options).fields, function(i, df) {
 				if(frappe.model.is_value_type(df.fieldtype)) {

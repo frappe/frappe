@@ -177,7 +177,7 @@ frappe.views.GridReport = Class.extend({
 			frappe.ui.get_print_settings(false, function(print_settings) {
 				frappe.render_grid({grid: me.grid, title: me.page.title, print_settings: print_settings });
 			});
-			
+
 		}, true);
 
 		// range
@@ -672,10 +672,11 @@ frappe.views.GridReportWithPlot = frappe.views.GridReport.extend({
 		}
 		var chart_data = this.get_chart_data ? this.get_chart_data() : null;
 
-		this.chart = new frappe.ui.Chart({
-			wrapper: this.chart_area,
+		this.chart = new frappe.chart.FrappeChart({
+			parent: ".chart",
+			height: 200,
 			data: chart_data,
-			x_type: 'timeseries'
+			type: 'line'
 		});
 	},
 
@@ -701,29 +702,30 @@ frappe.views.GridReportWithPlot = frappe.views.GridReport.extend({
 
 	get_chart_data: function() {
 		var me = this;
-
 		var plottable_cols = [];
 		$.each(me.columns, function(idx, col) {
 			if(col.formatter==me.currency_formatter && !col.hidden && col.plot!==false) {
 				plottable_cols.push(col.field);
 			}
-		})
+		});
 
 		var data = {
-			x: 'x',
-			'columns': [['x'].concat(plottable_cols)]
+			labels: plottable_cols,
+			datasets: []
 		};
 
 		$.each(this.data, function(i, item) {
 			if (item.checked) {
-				var data_points = [item.name];
+				let dataset = {};
+				dataset.title = item.name;
+				dataset.values = [];
 				$.each(plottable_cols, function(idx, col) {
-					data_points.push(item[col]);
-				})
-				data["columns"].push(data_points);
+					dataset.values.push(item[col]);
+				});
+				data["datasets"].push(dataset);
 			}
 		});
-		return data
+		return data;
 	}
 });
 
