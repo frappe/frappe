@@ -7,6 +7,12 @@ frappe.views.ReportView = frappe.views.ListRenderer.extend({
 	name: 'Report',
 
 	render_view(values) {
+
+		if (this.datatable) {
+			this.datatable.update(this.get_data(values));
+			return;
+		}
+
 		this.datatable = new DataTable(this.wrapper, {
 			data: this.get_data(values),
 			enableLogs: false,
@@ -81,6 +87,8 @@ frappe.views.ReportView = frappe.views.ListRenderer.extend({
 			});
 		}
 
+		console.log(columns);
+
 		this.columns = this.build_columns(columns);
 
 		// this.page.footer.on('click', '.show-all-data', function() {
@@ -91,25 +99,26 @@ frappe.views.ReportView = frappe.views.ListRenderer.extend({
 
 	build_columns(columns) {
 		return columns.map(c => {
+			let [fieldname, doctype] = c;
+			let docfield = frappe.meta.docfield_map[doctype || this.doctype][fieldname];
 
-			var docfield = frappe.meta.docfield_map[c[1] || this.doctype][c[0]];
 			if(!docfield) {
-				var docfield = frappe.model.get_std_field(c[0]);
+				docfield = frappe.model.get_std_field(fieldname);
 
 				if(docfield) {
 					docfield.parent = this.doctype;
-					if(c[0]=="name") {
+					if(fieldname == "name") {
 						docfield.options = this.doctype;
 					}
 				}
 			}
 			if(!docfield) return;
 
-			const title = __(docfield ? docfield.label : toTitle(c[0]));
+			const title = __(docfield ? docfield.label : toTitle(fieldname));
 
 			return {
-				id: c[0],
-				field: c[0],
+				id: fieldname,
+				field: fieldname,
 				docfield: docfield,
 				name: title,
 				content: title, // required by datatable
