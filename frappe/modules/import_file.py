@@ -95,10 +95,12 @@ ignore_doctypes = [""]
 
 def import_doc(docdict, force=False, data_import=False, pre_process=None,
 		ignore_version=None, reset_permissions=False):
+		
 
 	frappe.flags.in_import = True
 	docdict["__islocal"] = 1
 	doc = frappe.get_doc(docdict)
+
 	doc.flags.ignore_version = ignore_version
 	if pre_process:
 		pre_process(doc)
@@ -122,11 +124,15 @@ def import_doc(docdict, force=False, data_import=False, pre_process=None,
 		# delete old
 		frappe.delete_doc(doc.doctype, doc.name, force=1, ignore_doctypes=ignore, for_reload=True)
 
+	
+
 	doc.flags.ignore_children_type = ignore
 	doc.flags.ignore_links = True
 	if not data_import:
 		doc.flags.ignore_validate = True
 		doc.flags.ignore_permissions = True
 		doc.flags.ignore_mandatory = True
+		
 	doc.insert()
+
 	frappe.flags.in_import = False

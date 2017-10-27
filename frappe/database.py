@@ -75,17 +75,25 @@ class Database:
 				'key':frappe.conf.db_ssl_key
 			}
 
+<<<<<<< Updated upstream
 		converters = {
+=======
+		conversions.update({
+>>>>>>> Stashed changes
 			FIELD_TYPE.NEWDECIMAL: float,
 			FIELD_TYPE.DATETIME: get_datetime,
 			TimeDelta: conversions[binary_type],
 			UnicodeWithAttrs: conversions[text_type]
+<<<<<<< Updated upstream
 		}
 
 		conversions.update(converters)
 		
 		import pprint
 		pprint.pprint(conversions)
+=======
+		})
+>>>>>>> Stashed changes
 
 		if usessl:
 			self._conn = pymysql.connect(self.host, self.user or '', self.password or '',
@@ -94,7 +102,11 @@ class Database:
 			self._conn = pymysql.connect(self.host, self.user or '', self.password or '',
 				charset='utf8mb4', use_unicode = True, conv = conversions)
 
+<<<<<<< Updated upstream
 		# # MYSQL_OPTION_MULTI_STATEMENTS_OFF = 1
+=======
+		# MYSQL_OPTION_MULTI_STATEMENTS_OFF = 1
+>>>>>>> Stashed changes
 		# # self._conn.set_server_option(MYSQL_OPTION_MULTI_STATEMENTS_OFF)
 
 		self._cursor = self._conn.cursor()
@@ -166,7 +178,7 @@ class Database:
 						frappe.errprint(query % values)
 					except TypeError:
 						frappe.errprint([query, values])
-
+				
 				if (frappe.conf.get("logging") or False)==2:
 					frappe.log("<<<< query")
 					frappe.log(query)
@@ -188,8 +200,8 @@ class Database:
 				self._cursor.execute(query)
 
 		except Exception as e:
-			# ignore data definition errors
-			if ignore_ddl and e.args[0] in (1146,1054,1091):
+			if ignore_ddl and e.args[0] in (pymysql.constants.ER.BAD_FIELD_ERROR, pymysql.constants.ER.NO_SUCH_TABLE,
+				pymysql.constants.ER.CANT_DROP_FIELD_OR_KEY):
 				pass
 
 			# NOTE: causes deadlock
@@ -200,7 +212,6 @@ class Database:
 			# 		as_dict=as_dict, as_list=as_list, formatted=formatted,
 			# 		debug=debug, ignore_ddl=ignore_ddl, as_utf8=as_utf8,
 			# 		auto_commit=auto_commit, update=update)
-
 			else:
 				raise
 

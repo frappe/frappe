@@ -316,7 +316,6 @@ class BaseDocument(object):
 					raise
 			else:
 				raise
-
 		self.set("__islocal", False)
 
 	def db_update(self):
