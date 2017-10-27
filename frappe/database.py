@@ -75,25 +75,12 @@ class Database:
 				'key':frappe.conf.db_ssl_key
 			}
 
-<<<<<<< Updated upstream
-		converters = {
-=======
 		conversions.update({
->>>>>>> Stashed changes
 			FIELD_TYPE.NEWDECIMAL: float,
 			FIELD_TYPE.DATETIME: get_datetime,
 			TimeDelta: conversions[binary_type],
 			UnicodeWithAttrs: conversions[text_type]
-<<<<<<< Updated upstream
-		}
-
-		conversions.update(converters)
-		
-		import pprint
-		pprint.pprint(conversions)
-=======
 		})
->>>>>>> Stashed changes
 
 		if usessl:
 			self._conn = pymysql.connect(self.host, self.user or '', self.password or '',
@@ -102,11 +89,7 @@ class Database:
 			self._conn = pymysql.connect(self.host, self.user or '', self.password or '',
 				charset='utf8mb4', use_unicode = True, conv = conversions)
 
-<<<<<<< Updated upstream
-		# # MYSQL_OPTION_MULTI_STATEMENTS_OFF = 1
-=======
 		# MYSQL_OPTION_MULTI_STATEMENTS_OFF = 1
->>>>>>> Stashed changes
 		# # self._conn.set_server_option(MYSQL_OPTION_MULTI_STATEMENTS_OFF)
 
 		self._cursor = self._conn.cursor()
