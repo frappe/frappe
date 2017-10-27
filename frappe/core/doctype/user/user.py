@@ -78,10 +78,8 @@ class User(Document):
 	def validate_roles(self):
 		if self.role_profile_name:
 				role_profile = frappe.get_doc('Role Profile', self.role_profile_name)
-				roles = [role.role for role in role_profile.roles]
-				self.set('roles',[])
-				add_roles = [role for role in roles if role not in self.roles]
-				self.append_roles(*add_roles)
+				self.set('roles', [])
+				self.append_roles(*[role.role for role in role_profile.roles])
 
 	def on_update(self):
 		# clear new password
@@ -1006,6 +1004,5 @@ def update_roles(role_profile):
 	roles = [role.role for role in role_profile.roles]
 	for d in users:
 		user = frappe.get_doc('User', d)
-		user.set('roles',[])
-		add_roles = [role for role in roles]
-		user.add_roles(*add_roles)
+		user.set('roles', [])
+		user.add_roles(*roles)
