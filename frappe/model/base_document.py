@@ -530,6 +530,10 @@ class BaseDocument(object):
 		if frappe.flags.in_install:
 			return
 
+		if self.meta.issingle:
+			# single doctype value type is mediumtext
+			return
+
 		for fieldname, value in iteritems(self.get_valid_dict()):
 			df = self.meta.get_field(fieldname)
 			if df and df.fieldtype in type_map and type_map[df.fieldtype][0]=="varchar":
