@@ -581,10 +581,24 @@ def get_list(doctype, *args, **kwargs):
 
 @frappe.whitelist()
 def get_count(doctype, filters=None):
-	if filters:
-		filters = json.loads(filters)
-
 	if isinstance(filters, list):
 		filters = frappe.utils.make_filter_dict(filters)
 
 	return frappe.db.count(doctype, filters=filters)
+
+@frappe.whitelist()
+def set_filters(doctype, filters=None):
+    count = []
+    if filters:
+        filters = json.loads(filters)
+
+    for d in filters:
+        filt = []
+        if d[0] != doctype:
+            doctype = d[0]
+        filt.append(d)
+
+        count.append(get_count(doctype, filt))
+    if count:
+        return min(count)
+    return count
