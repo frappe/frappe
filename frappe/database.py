@@ -29,7 +29,7 @@ from six import (
 # imports - third-party imports
 from markdown2 import UnicodeWithAttrs
 from pymysql.times import TimeDelta
-from pymysql.constants 	import FIELD_TYPE
+from pymysql.constants 	import ER, FIELD_TYPE
 from pymysql.converters import conversions
 import pymysql
 
@@ -176,8 +176,8 @@ class Database:
 				self._cursor.execute(query)
 
 		except Exception as e:
-			if ignore_ddl and e.args[0] in (pymysql.constants.ER.BAD_FIELD_ERROR, pymysql.constants.ER.NO_SUCH_TABLE,
-				pymysql.constants.ER.CANT_DROP_FIELD_OR_KEY):
+			if ignore_ddl and e.args[0] in (ER.BAD_FIELD_ERROR, ER.NO_SUCH_TABLE,
+				ER.CANT_DROP_FIELD_OR_KEY):
 				pass
 
 			# NOTE: causes deadlock

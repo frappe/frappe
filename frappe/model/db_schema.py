@@ -14,6 +14,10 @@ import frappe
 from frappe import _
 from frappe.utils import cstr, cint, flt
 
+# imports - third-party imports
+import pymysql
+from pymysql.constants import ER
+
 class InvalidColumnName(frappe.ValidationError): pass
 
 varchar_len = '140'
@@ -120,8 +124,8 @@ class DbTable:
 					max_length = frappe.db.sql("""select max(char_length(`{fieldname}`)) from `tab{doctype}`"""\
 						.format(fieldname=col.fieldname, doctype=self.doctype))
 
-				except Exception as e:
-					if e.args[0]==1054:
+				except pymysql.InternalError as e:
+					if e.args[0] == ER.BAD_FIELD_ERROR:
 						# Unknown column 'column_name' in 'field list'
 						continue
 

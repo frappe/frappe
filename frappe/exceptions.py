@@ -45,7 +45,6 @@ class Redirect(Exception):
 class CSRFTokenError(Exception):
 	http_status_code = 400
 
-
 class ImproperDBConfigurationError(Error):
 	"""
 	Used when frappe detects that database or tables are not properly
@@ -56,8 +55,7 @@ class ImproperDBConfigurationError(Error):
 			msg = "MariaDb is not properly configured"
 		super(ImproperDBConfigurationError, self).__init__(msg)
 		self.reason = reason
-
-
+		
 class DuplicateEntryError(NameError):pass
 class DataError(ValidationError): pass
 class UnknownDomainError(Exception): pass

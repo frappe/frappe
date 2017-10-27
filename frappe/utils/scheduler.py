@@ -23,9 +23,12 @@ from frappe.limits import has_expired
 from frappe.utils.data import get_datetime, now_datetime
 from frappe.core.doctype.user.user import STANDARD_USERS
 from frappe.installer import update_site_config
-from frappe.exceptions import DatabaseOperationalError
 from six import string_types
 from croniter import croniter
+
+# imports - third-party libraries
+import pymysql
+from pymysql.constants import ER
 
 DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 
@@ -283,8 +286,8 @@ def reset_enabled_scheduler_events(login_manager):
 	if login_manager.info.user_type == "System User":
 		try:
 			frappe.db.set_global('enabled_scheduler_events', None)
-		except DatabaseOperationalError as e:
-			if e.args[0]==1205:
+		except pymysql.InternalError as e:
+			if e.args[0]==ER.LOCK_WAIT_TIMEOUT:
 				frappe.log_error(frappe.get_traceback(), "Error in reset_enabled_scheduler_events")
 			else:
 				raise
