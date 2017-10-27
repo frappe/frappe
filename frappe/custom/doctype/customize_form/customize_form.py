@@ -68,7 +68,7 @@ allowed_fieldtype_change = (('Currency', 'Float', 'Percent'), ('Small Text', 'Da
 	('Text', 'Data'), ('Text', 'Text Editor', 'Code', 'Signature'), ('Data', 'Select'),
 	('Text', 'Small Text'), ('Text', 'Data', 'Barcode'))
 
-allowed_fieldtype_for_options_change = ('Read Only', 'HTML', 'Select',)
+allowed_fieldtype_for_options_change = ('Read Only', 'HTML', 'Select', 'Data')
 
 class CustomizeForm(Document):
 	def on_update(self):
@@ -199,8 +199,7 @@ class CustomizeForm(Document):
 						frappe.msgprint(_("You cannot unset 'Read Only' for field {0}").format(df.label))
 						continue
 
-					elif property == "options" and df.get("fieldtype") not in allowed_fieldtype_for_options_change \
-						and self.get("title_field") != df.fieldname:
+					elif property == "options" and df.get("fieldtype") not in allowed_fieldtype_for_options_change:
 						frappe.msgprint(_("You can't set 'Options' for field {0}").format(df.label))
 						continue
 
