@@ -218,7 +218,11 @@ def formatdate(string_date=None, format_string=None):
 		 * mm-dd-yyyy
 		 * dd/mm/yyyy
 	"""
-	date = getdate(string_date) if string_date else now_datetime().date()
+
+	if not string_date:
+		return ''
+
+	date = getdate(string_date)
 	if not format_string:
 		format_string = get_user_format().replace("mm", "MM")
 
@@ -776,6 +780,16 @@ def make_filter_tuple(doctype, key, value):
 		return [doctype, key, value[0], value[1]]
 	else:
 		return [doctype, key, "=", value]
+
+def make_filter_dict(filters):
+	'''convert this [[doctype, key, operator, value], ..]
+	to this { key: (operator, value), .. }
+	'''
+	_filter = frappe._dict()
+	for f in filters:
+		_filter[f[1]] = (f[2], f[3])
+
+	return _filter
 
 def scrub_urls(html):
 	html = expand_relative_urls(html)
