@@ -199,8 +199,7 @@ class CustomizeForm(Document):
 						frappe.msgprint(_("You cannot unset 'Read Only' for field {0}").format(df.label))
 						continue
 
-					elif property == "options" and df.get("fieldtype") not in allowed_fieldtype_for_options_change \
-                        and df.get(property):
+					elif property == "options" and df.get("fieldtype") not in allowed_fieldtype_for_options_change:
 						frappe.msgprint(_("You can't set 'Options' for field {0}").format(df.label))
 						continue
 
