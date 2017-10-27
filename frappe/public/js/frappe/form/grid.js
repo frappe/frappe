@@ -611,7 +611,7 @@ frappe.ui.form.Grid = Class.extend({
 
 						me.frm.clear_table(me.df.fieldname);
 						$.each(data, function(i, row) {
-							if(i > 7) {
+							if(i > 6) {
 								var blank_row = true;
 								$.each(row, function(ci, value) {
 									if(value) {
@@ -661,7 +661,6 @@ frappe.ui.form.Grid = Class.extend({
 			data.push([]);
 			data.push([__("The CSV format is case sensitive")]);
 			data.push([__("Do not edit headers which are preset in the template")]);
-			data.push([__("For upload, please enter exact values in ERPNext to be updated")]);
 			data.push(["------"]);
 			$.each(frappe.get_meta(me.df.options).fields, function(i, df) {
 				if(frappe.model.is_value_type(df.fieldtype)) {
