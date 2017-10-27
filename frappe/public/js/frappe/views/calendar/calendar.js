@@ -8,14 +8,25 @@ frappe.views.CalendarView = frappe.views.ListRenderer.extend({
 	name: 'Calendar',
 	render_view: function() {
 		var me = this;
-		var options = {
-			doctype: this.doctype,
-			parent: this.wrapper,
-			page: this.list_view.page,
-			list_view: this.list_view
+		this.get_calendar_options()
+			.then(options => {
+				this.calendar = new frappe.views.Calendar(options);
+			});
+	},
+	load_last_view: function() {
+		const route = frappe.get_route();
+
+		if (!route[3]) {
+			// routed to Calendar view, check last calendar_view
+			let calendar_view = this.user_settings.last_calendar_view;
+
+			if (calendar_view) {
+				frappe.set_route('List', this.doctype, 'Calendar', calendar_view);
+				return true;
+			}
 		}
-		$.extend(options, frappe.views.calendar[this.doctype]);
-		this.calendar = new frappe.views.Calendar(options);
+
+		return false;
 	},
 	set_defaults: function() {
 		this._super();
@@ -26,6 +37,62 @@ frappe.views.CalendarView = frappe.views.ListRenderer.extend({
 	},
 	get_header_html: function() {
 		return null;
+	},
+	should_refresh: function() {
+		var should_refresh = this._super();
+		if(!should_refresh) {
+			this.last_calendar_view = this.current_calendar_view || '';
+			this.current_calendar_view = this.get_calendar_view();
+
+			if (this.current_calendar_view !== 'Default') {
+				this.page_title = __(this.current_calendar_view);
+			} else {
+				this.page_title = this.doctype + ' ' + __('Calendar');
+			}
+
+			should_refresh = this.current_calendar_view !== this.last_calendar_view;
+		}
+		return should_refresh;
+	},
+	get_calendar_view: function() {
+		return frappe.get_route()[3];
+	},
+	get_calendar_options: function() {
+		const calendar_view = frappe.get_route()[3] || 'Default';
+
+		// save in user_settings
+		frappe.model.user_settings.save(this.doctype, 'Calendar', {
+			last_calendar_view: calendar_view
+		});
+
+		const options = {
+			doctype: this.doctype,
+			parent: this.wrapper,
+			page: this.list_view.page,
+			list_view: this.list_view
+		}
+
+		return new Promise(resolve => {
+			if (calendar_view === 'Default') {
+				Object.assign(options, frappe.views.calendar[this.doctype]);
+				resolve(options);
+			} else {
+
+				frappe.model.with_doc('Calendar View', calendar_view, () => {
+					const doc = frappe.get_doc('Calendar View', calendar_view);
+					Object.assign(options, {
+						field_map: {
+							id: "name",
+							start: doc.start_date_field,
+							end: doc.end_date_field,
+							title: doc.subject_field
+						}
+					});
+
+					resolve(options);
+				});
+			}
+		})
 	},
 	required_libs: [
 		'assets/frappe/js/lib/fullcalendar/fullcalendar.min.css',
@@ -202,7 +269,8 @@ frappe.views.Calendar = Class.extend({
 			doctype: this.doctype,
 			start: this.get_system_datetime(start),
 			end: this.get_system_datetime(end),
-			filters: this.list_view.filter_list.get_filters()
+			filters: this.list_view.filter_list.get_filters(),
+			field_map: this.field_map
 		};
 		return args;
 	},
@@ -232,6 +300,15 @@ frappe.views.Calendar = Class.extend({
 			d.start = frappe.datetime.convert_to_user_tz(d.start);
 			d.end = frappe.datetime.convert_to_user_tz(d.end);
 
+			// show event on single day if start or end date is invalid
+			if (!frappe.datetime.validate(d.start) && d.end) {
+				d.start = frappe.datetime.add_days(d.end, -1);
+			}
+
+			if (d.start && !frappe.datetime.validate(d.end)) {
+				d.end = frappe.datetime.add_days(d.start, 1);
+			}
+
 			me.fix_end_date_for_event_render(d);
 			me.prepare_colors(d);
 			return d;
@@ -241,10 +318,8 @@ frappe.views.Calendar = Class.extend({
 		let color, color_name;
 		if(this.get_css_class) {
 			color_name = this.color_map[this.get_css_class(d)];
-			color_name =
-				frappe.ui.color.validate_hex(color_name) ?
-					color_name :
-					'blue';
+			color_name = frappe.ui.color.validate_hex(color_name) ?
+				color_name : 'blue';
 			d.backgroundColor = frappe.ui.color.get(color_name, 'extra-light');
 			d.textColor = frappe.ui.color.get(color_name, 'dark');
 		} else {

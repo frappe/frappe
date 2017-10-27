@@ -21,7 +21,7 @@ class EmailLimitCrossedError(frappe.ValidationError): pass
 
 def send(recipients=None, sender=None, subject=None, message=None, text_content=None, reference_doctype=None,
 		reference_name=None, unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None,
-		attachments=None, reply_to=None, cc=[], message_id=None, in_reply_to=None, send_after=None,
+		attachments=None, reply_to=None, cc=[], bcc=[], message_id=None, in_reply_to=None, send_after=None,
 		expose_recipients=None, send_priority=1, communication=None, now=False, read_receipt=None,
 		queue_separately=False, is_notification=False, add_unsubscribe_link=1, inline_images=None,
 		header=None):
@@ -60,6 +60,9 @@ def send(recipients=None, sender=None, subject=None, message=None, text_content=
 
 	if isinstance(cc, string_types):
 		cc = split_emails(cc)
+
+	if isinstance(bcc, string_types):
+		bcc = split_emails(bcc)
 
 	if isinstance(send_after, int):
 		send_after = add_days(nowdate(), send_after)
@@ -112,6 +115,7 @@ def send(recipients=None, sender=None, subject=None, message=None, text_content=
 		attachments=attachments,
 		reply_to=reply_to,
 		cc=cc,
+		bcc=bcc,
 		message_id=message_id,
 		in_reply_to=in_reply_to,
 		send_after=send_after,
@@ -158,10 +162,12 @@ def get_email_queue(recipients, sender, subject, **kwargs):
 	e.priority = kwargs.get('send_priority')
 	attachments = kwargs.get('attachments')
 	if attachments:
-		# store attachments with fid, to be attached on-demand later
+		# store attachments with fid or print format details, to be attached on-demand later
 		_attachments = []
 		for att in attachments:
 			if att.get('fid'):
+				_attachments.append(att)
+			elif att.get("print_format_attachment") == 1:
 				_attachments.append(att)
 		e.attachments = json.dumps(_attachments)
 
@@ -174,6 +180,7 @@ def get_email_queue(recipients, sender, subject, **kwargs):
 			attachments=kwargs.get('attachments'),
 			reply_to=kwargs.get('reply_to'),
 			cc=kwargs.get('cc'),
+			bcc=kwargs.get('bcc'),
 			email_account=kwargs.get('email_account'),
 			expose_recipients=kwargs.get('expose_recipients'),
 			inline_images=kwargs.get('inline_images'),
@@ -194,7 +201,7 @@ def get_email_queue(recipients, sender, subject, **kwargs):
 		frappe.log_error('Invalid Email ID Sender: {0}, Recipients: {1}'.format(mail.sender,
 			', '.join(mail.recipients)), 'Email Not Sent')
 
-	e.set_recipients(recipients + kwargs.get('cc', []))
+	e.set_recipients(recipients + kwargs.get('cc', []) + kwargs.get('bcc', []))
 	e.reference_doctype = kwargs.get('reference_doctype')
 	e.reference_name = kwargs.get('reference_name')
 	e.add_unsubscribe_link = kwargs.get("add_unsubscribe_link")
@@ -204,6 +211,7 @@ def get_email_queue(recipients, sender, subject, **kwargs):
 	e.communication = kwargs.get('communication')
 	e.send_after = kwargs.get('send_after')
 	e.show_as_cc = ",".join(kwargs.get('cc', []))
+	e.show_as_bcc = ",".join(kwargs.get('bcc', []))
 	e.insert(ignore_permissions=True)
 
 	return e
@@ -511,17 +519,22 @@ def prepare_message(email, recipient, recipients_list):
 	for attachment in attachments:
 		if attachment.get('fcontent'): continue
 
-		fid = attachment.get('fid')
-		if not fid: continue
+		fid = attachment.get("fid")
+		if fid:
+			fname, fcontent = get_file(fid)
+			attachment.update({
+				'fname': fname,
+				'fcontent': fcontent,
+				'parent': msg_obj
+			})
+			attachment.pop("fid", None)
+			add_attachment(**attachment)
 
-		fname, fcontent = get_file(fid)
-		attachment.update({
-			'fname': fname,
-			'fcontent': fcontent,
-			'parent': msg_obj
-		})
-		attachment.pop("fid", None)
-		add_attachment(**attachment)
+		elif attachment.get("print_format_attachment") == 1:
+			attachment.pop("print_format_attachment", None)
+			print_format_file = frappe.attach_print(**attachment)
+			print_format_file.update({"parent": msg_obj})
+			add_attachment(**print_format_file)
 
 	return msg_obj.as_string()
 

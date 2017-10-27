@@ -91,8 +91,6 @@ frappe.ui.form.QuickEntryForm = Class.extend({
 			fields: this.mandatory,
 		});
 		this.dialog.doc = this.doc;
-		// refresh dependencies etc
-		this.dialog.refresh();
 
 		this.register_primary_action();
 		this.render_edit_in_full_page_link();

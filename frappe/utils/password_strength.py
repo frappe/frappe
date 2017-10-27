@@ -7,6 +7,7 @@ from zxcvbn import zxcvbn
 import frappe
 from frappe import _
 
+
 def test_password_strength(password, user_inputs=None):
 	'''Wrapper around zxcvbn.password_strength'''
 	result = zxcvbn(password, user_inputs)
@@ -34,6 +35,7 @@ default_feedback = {
 		_("No need for symbols, digits, or uppercase letters."),
 	],
 }
+
 
 def get_feedback(score, sequence):
 	"""
@@ -66,6 +68,7 @@ def get_feedback(score, sequence):
 		}
 	return feedback
 
+
 def get_match_feedback(match, is_sole_match):
 	"""
 	Returns feedback as a dictionary for a certain match
@@ -81,32 +84,32 @@ def get_match_feedback(match, is_sole_match):
 	def fun_spatial():
 		feedback = {
 			"warning": _('Short keyboard patterns are easy to guess'),
-			"suggestions":[
-				 _("Make use of longer keyboard patterns")
+			"suggestions": [
+				_("Make use of longer keyboard patterns")
 			],
 		}
 
 		if match.get("turns") == 1:
 			feedback = {
 				"warning": _('Straight rows of keys are easy to guess'),
-				"suggestions":[
-					 _("Try to use a longer keyboard pattern with more turns")
+				"suggestions": [
+					_("Try to use a longer keyboard pattern with more turns")
 				],
 			}
 
 		return feedback
 
 	def fun_repeat():
-		feedback ={
+		feedback = {
 			"warning": _('Repeats like "abcabcabc" are only slightly harder to guess than "abc"'),
-			"suggestions":[
+			"suggestions": [
 				_("Try to avoid repeated words and characters")
 			],
 		}
-		if len(match["repeated_char"]) == 1:
+		if len(match.get("repeated_char")) == 1:
 			feedback = {
 				"warning": _('Repeats like "aaa" are easy to guess'),
-				"suggestions":[
+				"suggestions": [
 					_("Let's avoid repeated words and characters")
 				],
 			}
@@ -114,7 +117,7 @@ def get_match_feedback(match, is_sole_match):
 
 	def fun_sequence():
 		return {
-			"suggestions":[
+			"suggestions": [
 				_("Avoid sequences like abc or 6543 as they are easy to guess")
 			],
 		}
@@ -123,7 +126,7 @@ def get_match_feedback(match, is_sole_match):
 		if match["regex_name"] == "recent_year":
 			return {
 				"warning": _("Recent years are easy to guess."),
-				"suggestions":[
+				"suggestions": [
 					_("Avoid recent years."),
 					_("Avoid years that are associated with you.")
 				],
@@ -132,7 +135,7 @@ def get_match_feedback(match, is_sole_match):
 	def fun_date():
 		return {
 			"warning": _("Dates are often easy to guess."),
-			"suggestions":[
+			"suggestions": [
 				_("Avoid dates and years that are associated with you.")
 			],
 		}

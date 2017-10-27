@@ -17,7 +17,9 @@ def restore(name):
 	try:
 		doc.insert()
 	except frappe.DocstatusTransitionError:
-		frappe.throw(_("Cannot restore Cancelled Document"))
+		frappe.msgprint(_("Cancelled Document restored as Draft"))
+        doc.docstatus = 0
+        doc.insert()
 
 	doc.add_comment('Edit', _('restored {0} as {1}').format(deleted.deleted_name, doc.name))
 
