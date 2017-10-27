@@ -120,7 +120,7 @@ class DbTable:
 					max_length = frappe.db.sql("""select max(char_length(`{fieldname}`)) from `tab{doctype}`"""\
 						.format(fieldname=col.fieldname, doctype=self.doctype))
 
-				except DatabaseOperationalError as e:
+				except Exception as e:
 					if e.args[0]==1054:
 						# Unknown column 'column_name' in 'field list'
 						continue
