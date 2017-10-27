@@ -93,16 +93,20 @@ frappe.views.TreeView = Class.extend({
 				filter.default = frappe.route_options[filter.fieldname]
 			}
 
-			me.page.add_field(filter).$input
-				.on('change', function() {
-					var val = $(this).val();
-					if(val) {
-						me.args[$(this).attr("data-fieldname")] = val;
-						frappe.treeview_settings.filters = me.args;
+			filter.change = function() {
+				var val = this.get_value();
+				if(!val && me.set_root){
+					val = me.opts.root_label;
+				}
+				if(val){
+					me.args[filter.fieldname] = val;
+						frappe.treeview_setting
 						me.make_tree();
 						me.page.set_title(val);
-					}
-				})
+				}
+			}
+
+			me.page.add_field(filter);
 
 			if (filter.default) {
 				$("[data-fieldname='"+filter.fieldname+"']").trigger("change");

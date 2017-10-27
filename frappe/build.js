@@ -20,6 +20,7 @@ const apps = apps_contents.split('\n');
 const app_paths = apps.map(app => path_join(apps_path, app, app)) // base_path of each app
 const assets_path = path_join(sites_path, 'assets');
 let build_map = make_build_map();
+let compiled_js_cache = {}; // cache each js file after it is compiled
 const file_watcher_port = get_conf().file_watcher_port;
 
 // command line args
@@ -60,11 +61,12 @@ function watch() {
 				io.emit('reload_css', filename);
 			}
 		});
-		// watch_js(function (filename) {
-		// 	if(socket_connection) {
-		// 		io.emit('reload_js', filename);
-		// 	}
-		// });
+		watch_js(//function (filename) {
+			// if(socket_connection) {
+			// 	io.emit('reload_js', filename);
+			// }
+		//}
+		);
 		watch_build_json();
 	});
 
@@ -77,9 +79,7 @@ function watch() {
 	});
 }
 
-function pack(output_path, inputs, minify) {
-	const output_type = output_path.split('.').pop();
-
+function pack(output_path, inputs, minify, file_changed) {
 	let output_txt = '';
 	for (const file of inputs) {
 
@@ -88,25 +88,18 @@ function pack(output_path, inputs, minify) {
 			continue;
 		}
 
-		let file_content = fs.readFileSync(file, 'utf-8');
-
-		if (file.endsWith('.html') && output_type === 'js') {
-			file_content = html_to_js_template(file, file_content);
+		let force_compile = false;
+		if (file_changed) {
+			// if file_changed is passed and is equal to file, force_compile it
+			force_compile = file_changed === file;
 		}
 
-		if(file.endsWith('class.js')) {
-			file_content = minify_js(file_content, file);
-		}
-
-		if (file.endsWith('.js') && !file.includes('/lib/') && output_type === 'js' && !file.endsWith('class.js')) {
-			file_content = babelify(file_content, file, minify);
-		}
+		let file_content = get_compiled_file(file, output_path, minify, force_compile);
 
 		if(!minify) {
 			output_txt += `\n/*\n *\t${file}\n */\n`
 		}
 		output_txt += file_content;
-
 		output_txt = output_txt.replace(/['"]use strict['"];/, '');
 	}
 
@@ -120,6 +113,38 @@ function pack(output_path, inputs, minify) {
 		console.log('Error writing to file', output_path);
 		console.log(e);
 	}
+}
+
+function get_compiled_file(file, output_path, minify, force_compile) {
+	const output_type = output_path.split('.').pop();
+
+	let file_content;
+
+	if (force_compile === false) {
+		// force compile is false
+		// attempt to get from cache
+		file_content = compiled_js_cache[file];
+		if (file_content) {
+			return file_content;
+		}
+	}
+
+	file_content = fs.readFileSync(file, 'utf-8');
+
+	if (file.endsWith('.html') && output_type === 'js') {
+		file_content = html_to_js_template(file, file_content);
+	}
+
+	if(file.endsWith('class.js')) {
+		file_content = minify_js(file_content, file);
+	}
+
+	if (file.endsWith('.js') && !file.includes('/lib/') && output_type === 'js' && !file.endsWith('class.js')) {
+		file_content = babelify(file_content, file, minify);
+	}
+
+	compiled_js_cache[file] = file_content;
+	return file_content;
 }
 
 function babelify(content, path, minify) {
@@ -262,7 +287,7 @@ function watch_js(ondirty) {
 		for (const target in build_map) {
 			const sources = build_map[target];
 			if (sources.includes(filename)) {
-				pack(target, sources);
+				pack(target, sources, null, filename);
 				ondirty && ondirty(target);
 				// break;
 			}
