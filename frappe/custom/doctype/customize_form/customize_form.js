@@ -176,6 +176,7 @@ frappe.customize_form.confirm = function(msg, frm) {
 						frappe.msgprint(r.exc);
 					} else {
 						d.hide();
+						frappe.show_alert({message:__('Customizations Reset'), indicator:'green'});
 						frappe.customize_form.clear_locals_and_refresh(frm);
 					}
 				}
