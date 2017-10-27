@@ -68,7 +68,7 @@ allowed_fieldtype_change = (('Currency', 'Float', 'Percent'), ('Small Text', 'Da
 	('Text', 'Data'), ('Text', 'Text Editor', 'Code', 'Signature'), ('Data', 'Select'),
 	('Text', 'Small Text'), ('Text', 'Data', 'Barcode'), ('Code', 'Geolocation'))
 
-allowed_fieldtype_for_options_change = ('Read Only', 'HTML', 'Select',)
+allowed_fieldtype_for_options_change = ('Read Only', 'HTML', 'Select', 'Data')
 
 class CustomizeForm(Document):
 	def on_update(self):
