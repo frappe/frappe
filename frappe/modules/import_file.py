@@ -95,8 +95,6 @@ ignore_doctypes = [""]
 
 def import_doc(docdict, force=False, data_import=False, pre_process=None,
 		ignore_version=None, reset_permissions=False):
-		
-
 	frappe.flags.in_import = True
 	docdict["__islocal"] = 1
 	doc = frappe.get_doc(docdict)

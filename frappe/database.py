@@ -33,8 +33,6 @@ from pymysql.constants 	import FIELD_TYPE
 from pymysql.converters import conversions
 import pymysql
 
-from types import UnicodeType
-
 class Database:
 	"""
 	   Open a database connection with the given parmeters, if use_default is True, use the
@@ -165,9 +163,7 @@ class Database:
 					frappe.log("with values:")
 					frappe.log(values)
 					frappe.log(">>>>")
-				
 				self._cursor.execute(query, values)
-
 			else:
 				if debug:
 					self.explain_query(query)
