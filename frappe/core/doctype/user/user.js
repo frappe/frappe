@@ -17,24 +17,48 @@ frappe.ui.form.on('User', {
 		}
 
 	},
+
+	role_profile_name: function(frm) {
+		if(frm.doc.role_profile_name) {
+			frappe.call({
+				"method": "frappe.core.doctype.user.user.get_role_profile",
+				args: {
+					role_profile: frm.doc.role_profile_name
+				},
+				callback: function (data) {
+					frm.set_value("roles", []);
+					$.each(data.message || [], function(i, v){
+						var d = frm.add_child("roles");
+						d.role = v.role;
+					});
+					frm.roles_editor.show();
+				}
+			});
+		}
+	},
+
 	onload: function(frm) {
+
 		if(has_common(frappe.user_roles, ["Administrator", "System Manager"]) && !frm.doc.__islocal) {
 			if(!frm.roles_editor) {
 				var role_area = $('<div style="min-height: 300px">')
 					.appendTo(frm.fields_dict.roles_html.wrapper);
-				frm.roles_editor = new frappe.RoleEditor(role_area, frm);
+				frm.roles_editor = new frappe.RoleEditor(role_area, frm, true);
 
 				var module_area = $('<div style="min-height: 300px">')
 					.appendTo(frm.fields_dict.modules_html.wrapper);
 				frm.module_editor = new frappe.ModuleEditor(frm, module_area)
-			} else {
+			}
+			else {
 				frm.roles_editor.show();
 			}
 		}
 	},
 	refresh: function(frm) {
 		var doc = frm.doc;
-
+		if(!frm.doc.islocal && !frm.roles_editor) {
+			frm.reload_doc();
+		}
 		if(doc.name===frappe.session.user && !doc.__unsaved
 			&& frappe.all_timezones
 			&& (doc.language || frappe.boot.user.language)

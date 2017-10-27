@@ -67,12 +67,19 @@ class User(Document):
 		self.remove_disabled_roles()
 		self.validate_user_email_inbox()
 		ask_pass_update()
+		self.validate_roles()
 
 		if self.language == "Loading...":
 			self.language = None
 
 		if (self.name not in ["Administrator", "Guest"]) and (not self.frappe_userid):
 			self.frappe_userid = frappe.generate_hash(length=39)
+
+	def validate_roles(self):
+		if self.role_profile_name:
+				role_profile = frappe.get_doc('Role Profile', self.role_profile_name)
+				self.set('roles', [])
+				self.append_roles(*[role.role for role in role_profile.roles])
 
 	def on_update(self):
 		# clear new password
@@ -83,6 +90,7 @@ class User(Document):
 		self.send_password_notification(self.__new_password)
 		if self.name not in ('Administrator', 'Guest') and not self.user_image:
 			frappe.enqueue('frappe.core.doctype.user.user.update_gravatar', name=self.name)
+
 
 	def has_website_permission(self, ptype, verbose=False):
 		"""Returns true if current user is the session user"""
@@ -984,3 +992,17 @@ def throttle_user_creation():
 		return
 	if frappe.db.get_creation_count('User', 60) > 60:
 		frappe.throw(_('Throttled'))
+
+@frappe.whitelist()
+def get_role_profile(role_profile):
+	roles = frappe.get_doc('Role Profile', {'role_profile': role_profile})
+	return roles.roles
+
+def update_roles(role_profile):
+	users = frappe.get_all('User', filters={'role_profile_name': role_profile})
+	role_profile = frappe.get_doc('Role Profile', role_profile)
+	roles = [role.role for role in role_profile.roles]
+	for d in users:
+		user = frappe.get_doc('User', d)
+		user.set('roles', [])
+		user.add_roles(*roles)

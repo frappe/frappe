@@ -15,3 +15,5 @@ frappe/workflow/doctype/workflow/tests/test_workflow_create.js
 frappe/workflow/doctype/workflow/tests/test_workflow_test.js
 frappe/tests/ui/test_control_html.js
 frappe/tests/ui/test_control_geolocation.js
+frappe/core/doctype/role_profile/test_role_profile.js
+frappe/core/doctype/user/test_user_with_role_profile.js
