@@ -6,6 +6,7 @@ from __future__ import unicode_literals
 import frappe, json, math
 from frappe.model.document import Document
 from frappe import _
+from frappe.utils import get_source_value
 
 class DataMigrationRun(Document):
 
@@ -233,7 +234,8 @@ class DataMigrationRun(Document):
 	def get_or_filters(self, mapping):
 		or_filters = self.get_last_modified_condition()
 
-		# include docs whose migration_id_field is not set
+		# docs whose migration_id_field is not set
+		# failed in the previous run, include those too
 		or_filters.update({
 			mapping.migration_id_field: ('=', '')
 		})
@@ -268,9 +270,6 @@ class DataMigrationRun(Document):
 		connection = self.get_connection()
 		data = self.get_new_local_data()
 
-		push_insert = self.get_log('push_insert', 0)
-		push_failed = self.get_log('push_failed', [])
-
 		for d in data:
 			# pre process before insert
 			doc = self.pre_process_doc(d)
@@ -282,12 +281,11 @@ class DataMigrationRun(Document):
 						mapping.migration_id_field, response_doc[connection.name_field],
 						update_modified=False)
 				frappe.db.commit()
-				self.set_log('push_insert', push_insert + 1)
+				self.update_log('push_insert', 1)
 				# post process after insert
 				self.post_process_doc(local_doc=d, remote_doc=response_doc)
 			except Exception:
-				push_failed.append(d.as_json())
-				self.set_log('push_failed', push_failed)
+				self.update_log('push_failed', d.name)
 
 		# update page_start
 		self.db_set('current_mapping_start',
@@ -308,9 +306,6 @@ class DataMigrationRun(Document):
 		connection = self.get_connection()
 		data = self.get_updated_local_data()
 
-		push_update = self.get_log('push_update', 0)
-		push_failed = self.get_log('push_failed', [])
-
 		for d in data:
 			migration_id_value = d.get(mapping.migration_id_field)
 			# pre process before update
@@ -318,12 +313,11 @@ class DataMigrationRun(Document):
 			doc = mapping.get_mapped_record(doc)
 			try:
 				response_doc = connection.update(mapping.remote_objectname, doc, migration_id_value)
-				self.set_log('push_update', push_update + 1)
+				self.update_log('push_update', 1)
 				# post process after update
 				self.post_process_doc(local_doc=d, remote_doc=response_doc)
 			except Exception:
-				push_failed.append(d.as_json())
-				self.set_log('push_failed', push_failed)
+				self.update_log('push_failed', d.name)
 
 		# update page_start
 		self.db_set('current_mapping_start',
@@ -344,9 +338,6 @@ class DataMigrationRun(Document):
 		connection = self.get_connection()
 		data = self.get_deleted_local_data()
 
-		push_delete = self.get_log('push_delete', 0)
-		push_failed = self.get_log('push_failed', [])
-
 		for d in data:
 			# Deleted Document also has a custom field for migration_id
 			migration_id_value = d.get(mapping.migration_id_field)
@@ -354,12 +345,11 @@ class DataMigrationRun(Document):
 			self.pre_process_doc(d)
 			try:
 				response_doc = connection.delete(mapping.remote_objectname, migration_id_value)
-				self.set_log('push_delete', push_delete + 1)
+				self.update_log('push_delete', 1)
 				# post process only when action is success
 				self.post_process_doc(local_doc=d, remote_doc=response_doc)
 			except Exception:
-				push_failed.append(d.as_json())
-				self.set_log('push_failed', push_failed)
+				self.update_log('push_failed', d.name)
 
 		# update page_start
 		self.db_set('current_mapping_start',
@@ -377,46 +367,32 @@ class DataMigrationRun(Document):
 		mapping = self.get_mapping(self.current_mapping)
 		data = self.get_remote_data()
 
-		pull_insert = self.get_log('pull_insert', 0)
-		pull_update = self.get_log('pull_update', 0)
-		pull_failed = self.get_log('pull_failed', [])
-
-		def get_migration_id_value(source, key):
-			value = None
-			try:
-				value = source[key]
-			except:
-				value = getattr(source, key)
-			return value
-
 		for d in data:
-			migration_id_value = get_migration_id_value(d, connection.name_field)
+			migration_id_value = get_source_value(d, connection.name_field)
 			doc = self.pre_process_doc(d)
 			doc = mapping.get_mapped_record(doc)
 
 			if migration_id_value:
-				if not local_doc_exists(mapping, migration_id_value):
-					# insert new local doc
-					local_doc = insert_local_doc(mapping, doc)
+				try:
+					if not local_doc_exists(mapping, migration_id_value):
+						# insert new local doc
+						local_doc = insert_local_doc(mapping, doc)
 
-					self.set_log('pull_insert', pull_insert + 1)
-					# set migration id
-					frappe.db.set_value(mapping.local_doctype, local_doc.name,
-						mapping.migration_id_field, migration_id_value,
-						update_modified=False)
-					frappe.db.commit()
-				else:
-					# update doc
-					local_doc = update_local_doc(mapping, doc, migration_id_value)
-					self.set_log('pull_update', pull_update + 1)
-
-			if local_doc:
-				# post process doc after success
-				self.post_process_doc(remote_doc=d, local_doc=local_doc)
-			else:
-				# failed, append to log
-				pull_failed.append(d)
-				self.set_log('pull_failed', pull_failed)
+						self.update_log('pull_insert', 1)
+						# set migration id
+						frappe.db.set_value(mapping.local_doctype, local_doc.name,
+							mapping.migration_id_field, migration_id_value,
+							update_modified=False)
+						frappe.db.commit()
+					else:
+						# update doc
+						local_doc = update_local_doc(mapping, doc, migration_id_value)
+						self.update_log('pull_update', 1)
+					# post process doc after success
+					self.post_process_doc(remote_doc=d, local_doc=local_doc)
+				except Exception:
+					# failed, append to log
+					self.update_log('pull_failed', migration_id_value)
 
 		if len(data) < mapping.page_length:
 			# last page, done with pull
@@ -435,6 +411,19 @@ class DataMigrationRun(Document):
 	def set_log(self, key, value):
 		value = json.dumps(value) if '_failed' in key else value
 		self.db_set(key, value)
+
+	def update_log(self, key, value=None):
+		'''
+		Helper for updating logs,
+		push_failed and pull_failed are stored as json,
+		other keys are stored as int
+		'''
+		if '_failed' in key:
+			# json
+			self.set_log(key, self.get_log(key, []) + [value])
+		else:
+			# int
+			self.set_log(key, self.get_log(key, 0) + (value or 1))
 
 	def get_log(self, key, default=None):
 		value = self.db_get(key)
