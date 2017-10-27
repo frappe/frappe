@@ -50,4 +50,4 @@ pyqrcode
 pypng
 premailer
 psycopg2
-
+croniter
