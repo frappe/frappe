@@ -98,6 +98,7 @@ frappe.views.ReportView = frappe.ui.BaseList.extend({
 		this.make_column_picker();
 		this.make_sorter();
 		this.make_totals_row_button();
+		this.make_check_all_button();
 		this.setup_print();
 		this.make_export();
 		this.setup_auto_email();
@@ -616,6 +617,14 @@ frappe.views.ReportView = frappe.ui.BaseList.extend({
 			me.render_view();
 		});
 	},
+	
+	make_check_all_button: function() {
+                var me = this;
+
+                this.page.add_inner_button(__('Select All'), function() {
+                        $(me.parent).find('.l1.r1 input').click();
+                });
+        },
 
 	set_totals_row: function(data) {
 		if(this.add_totals_row) {
