@@ -106,7 +106,7 @@ def sync_customizations_for_doctype(data):
 	def sync(key, custom_doctype, doctype_fieldname):
 		doctypes = list(set(map(lambda row: row.get(doctype_fieldname), data[key])))
 		frappe.db.sql('delete from `tab{0}` where `{1}` in ({2})'.format(
-			custom_doctype, doctype_fieldname, ",".join(["'%s'"%dt for dt in doctypes])))
+			custom_doctype, doctype_fieldname, ",".join(["'%s'" % dt for dt in doctypes])))
 
 		for d in data[key]:
 			d['doctype'] = custom_doctype
