@@ -621,7 +621,7 @@ frappe.views.ReportView = frappe.ui.BaseList.extend({
 	make_check_all_button: function() {
                 var me = this;
 
-                this.page.add_inner_button(__('Un/Check All'), function() {
+                this.page.add_inner_button(__('Select All'), function() {
                         $(me.parent).find('.l1.r1 input').click();
                 });
         },
