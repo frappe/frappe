@@ -15,7 +15,9 @@ frappe.ui.color_map = {
 	skyblue: ["#d2f1ff", "#a6e4ff", "#78d6ff", "#4f8ea8"],
 	blue: ["#d2d2ff", "#a3a3ff", "#7575ff", "#4d4da8"],
 	purple: ["#dac7ff", "#b592ff", "#8e58ff", "#5e3aa8"],
-	pink: ["#f8d4f8", "#f3aaf0", "#ec7dea", "#934f92"]
+	pink: ["#f8d4f8", "#f3aaf0", "#ec7dea", "#934f92"],
+	white: ["", "", "#F7FAFC", ""],
+	black: ["", "", "#212a33", ""]
 };
 
 frappe.ui.color = {
