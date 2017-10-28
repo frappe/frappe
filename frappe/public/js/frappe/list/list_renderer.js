@@ -362,7 +362,7 @@ frappe.views.ListRenderer = Class.extend({
 		const $header_right = this.list_view.list_header.find('.list-item__content--activity');
 
 		frappe.call({
-			method: 'frappe.model.db_query.set_filters',
+			method: 'frappe.model.db_query.get_count',
 			args: {
 				doctype: this.doctype,
 				filters: this.list_view.get_filters_args()

@@ -581,24 +581,43 @@ def get_list(doctype, *args, **kwargs):
 
 @frappe.whitelist()
 def get_count(doctype, filters=None):
+	if filters:
+		filters = json.loads(filters)
+
+	if is_parent_only_filter(doctype, filters):
+		if isinstance(filters, list):
+			filters = frappe.utils.make_filter_dict(filters)
+
+		return frappe.db.count(doctype, filters=filters)
+
+	else:
+		# If filters contain child table as well as parent doctype - Join
+		tables, conditions = ['`tab{0}`'.format(doctype)], []
+		for f in filters:
+			fieldname = '`tab{0}`.{1}'.format(f[0], f[1])
+			table = '`tab{0}`'.format(f[0])
+
+			if table not in tables:
+				tables.append(table)
+
+			conditions.append('{fieldname} {operator} "{value}"'.format(fieldname=fieldname,
+				operator=f[2], value=f[3]))
+
+			if doctype != f[0]:
+				join_condition = '`tab{child_doctype}`.parent =`tab{doctype}`.name'.format(child_doctype=f[0], doctype=doctype)
+				if join_condition not in conditions:
+					conditions.append(join_condition)
+
+		return frappe.db.sql_list("""select count(*) from {0}
+			where {1}""".format(','.join(tables), ' and '.join(conditions)), debug=1)
+
+def is_parent_only_filter(doctype, filters):
+	#check if filters contains only parent doctype
+	only_parent_doctype = True
+
 	if isinstance(filters, list):
-		filters = frappe.utils.make_filter_dict(filters)
+		for flt in filters:
+			if doctype not in flt:
+				only_parent_doctype = False
 
-	return frappe.db.count(doctype, filters=filters)
-
-@frappe.whitelist()
-def set_filters(doctype, filters=None):
-    count = []
-    if filters:
-        filters = json.loads(filters)
-
-    for d in filters:
-        filt = []
-        if d[0] != doctype:
-            doctype = d[0]
-        filt.append(d)
-
-        count.append(get_count(doctype, filt))
-    if count:
-        return min(count)
-    return count
+	return only_parent_doctype
