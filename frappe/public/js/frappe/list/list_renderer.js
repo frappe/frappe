@@ -15,7 +15,6 @@ frappe.views.ListRenderer = Class.extend({
 		this.init_settings();
 		this.set_defaults();
 		this.set_fields();
-		// debugger
 		this.set_columns();
 		this.setup_cache();
 	},

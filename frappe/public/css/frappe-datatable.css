@@ -1,5 +1,15 @@
 .data-table {
-  font-size: 14px;
+  font-size: 12px;
+}
+.data-table .data-table-col .edit-cell {
+  padding: 0;
+}
+.data-table .data-table-col .edit-cell input {
+  font-size: inherit;
+  height: 32px;
+}
+.data-table .data-table-col.editing .edit-cell {
+  border: 2px solid #7679FC;
 }
 .data-table .frappe-control {
   margin: 0;
@@ -12,13 +22,10 @@
   border: none;
 }
 .data-table .link-btn {
-  top: 9px;
+  top: 6px;
 }
 .data-table select {
-  height: 36px;
-}
-.data-table .edit-cell {
-  border: 2px solid #7679FC;
+  height: 32px;
 }
 .data-table .checkbox {
   margin-top: 8px;

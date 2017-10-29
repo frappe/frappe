@@ -1,7 +1,20 @@
 @import "variables.less";
 
 .data-table {
-	font-size: 14px;
+	font-size: 12px;
+
+	.data-table-col .edit-cell {
+		padding: 0;
+
+		input {
+			font-size: inherit;
+			height: 32px;
+		}
+	}
+
+	.data-table-col.editing .edit-cell {
+		border: 2px solid @blue;
+	}
 
 	.frappe-control {
 		margin: 0;
@@ -14,14 +27,12 @@
 		border: none;
 	}
 	.link-btn {
-		top: 9px;
+		top: 6px;
 	}
 	select {
-		height: 36px;
+		height: 32px;
 	}
-	.edit-cell {
-		border: 2px solid @blue;
-	}
+
 	.checkbox {
 		margin-top: 8px;
 		margin-bottom: 8px;
