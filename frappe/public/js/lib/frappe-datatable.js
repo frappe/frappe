@@ -88,7 +88,7 @@ var _datatable = __webpack_require__(1);
 
 var _datatable2 = _interopRequireDefault(_datatable);
 
-var _package = __webpack_require__(8);
+var _package = __webpack_require__(9);
 
 var _package2 = _interopRequireDefault(_package);
 
@@ -115,7 +115,13 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _utils = __webpack_require__(2);
 
-__webpack_require__(3);
+var _datamanager = __webpack_require__(3);
+
+var _datamanager2 = _interopRequireDefault(_datamanager);
+
+__webpack_require__(4);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -127,9 +133,10 @@ var DEFAULT_OPTIONS = {
   },
   editing: null,
   addSerialNoColumn: true,
+  addCheckboxColumn: true,
   enableClusterize: true,
   enableLogs: false,
-  addCheckbox: true
+  takeAvailableSpace: false
 };
 
 var DataTable = function () {
@@ -142,7 +149,12 @@ var DataTable = function () {
     }
 
     this.options = Object.assign({}, DEFAULT_OPTIONS, options);
+    // custom user events
     this.events = this.options.events;
+    // map of checked rows
+    this.checkMap = [];
+
+    this.datamanager = new _datamanager2.default(this.options);
 
     if (this.options.data) {
       this.refresh(this.options.data);
@@ -162,18 +174,13 @@ var DataTable = function () {
   }, {
     key: 'refresh',
     value: function refresh(data) {
-      this.data = this.prepareData(data);
+      this.datamanager.init(data);
       this.render();
     }
   }, {
-    key: 'update',
-    value: function update(data) {
-      var _prepareData = this.prepareData(data),
-          columns = _prepareData.columns,
-          rows = _prepareData.rows;
-
-      this.data.columns.concat(columns);
-      this.data.rows.concat(rows);
+    key: 'appendRows',
+    value: function appendRows(rows) {
+      this.datamanager.appendRows(rows);
       this.render();
     }
   }, {
@@ -192,8 +199,9 @@ var DataTable = function () {
   }, {
     key: 'renderHeader',
     value: function renderHeader() {
-      // fixed header
-      this.header.html((0, _utils.getHeaderHTML)(this.data.columns));
+      var columns = this.datamanager.getColumns();
+
+      this.header.html((0, _utils.getHeaderHTML)(columns));
     }
   }, {
     key: 'renderBody',
@@ -207,12 +215,15 @@ var DataTable = function () {
   }, {
     key: 'renderBodyHTML',
     value: function renderBodyHTML() {
-      // scrollable body
-      this.bodyScrollable.html('\n      <table class="data-table-body table table-bordered">\n        ' + (0, _utils.getBodyHTML)(this.data.rows) + '\n      </table>\n    ');
+      var rows = this.datamanager.getRows();
+
+      this.bodyScrollable.html('\n      <table class="data-table-body table table-bordered">\n        ' + (0, _utils.getBodyHTML)(rows) + '\n      </table>\n    ');
     }
   }, {
     key: 'renderBodyWithClusterize',
     value: function renderBodyWithClusterize() {
+      var self = this;
+
       // empty body
       this.bodyScrollable.html('\n      <table class="data-table-body table table-bordered">\n        ' + (0, _utils.getBodyHTML)([]) + '\n      </table>\n    ');
 
@@ -220,12 +231,10 @@ var DataTable = function () {
       this.pageLength = 1000;
       this.end = this.start + this.pageLength;
 
-      var initialData = this.getDataForClusterize(
-      // only append ${this.pageLength} rows in the beginning
-      // defer remaining rows
-      this.data.rows.slice(this.start, this.end));
-
-      var self = this;
+      // only append ${this.pageLength} rows in the beginning,
+      // defer remaining
+      var rows = this.datamanager.getRows(this.start, this.end);
+      var initialData = this.getDataForClusterize(rows);
 
       this.clusterize = new Clusterize({
         rows: initialData,
@@ -245,15 +254,16 @@ var DataTable = function () {
     value: function appendRemainingData() {
       var dataAppended = this.pageLength;
       var promises = [];
+      var rowCount = this.datamanager.getRowCount();
 
-      while (dataAppended + this.pageLength < this.data.rows.length) {
+      while (dataAppended + this.pageLength < rowCount) {
         this.start = this.end;
         this.end = this.start + this.pageLength;
         promises.push(this.appendNextPagePromise(this.start, this.end));
         dataAppended += this.pageLength;
       }
 
-      if (this.data.rows.length % this.pageLength > 0) {
+      if (rowCount % this.pageLength > 0) {
         // last page
         this.start = this.end;
         this.end = this.start + this.pageLength;
@@ -271,7 +281,7 @@ var DataTable = function () {
 
       return new Promise(function (resolve) {
         setTimeout(function () {
-          var rows = _this.data.rows.slice(start, end);
+          var rows = _this.datamanager.getRows(start, end);
           var data = _this.getDataForClusterize(rows);
 
           _this.clusterize.append(data);
@@ -311,56 +321,6 @@ var DataTable = function () {
       $cell.replaceWith($newCell);
     }
   }, {
-    key: 'prepareData',
-    value: function prepareData(data) {
-      // cache original data passed
-      this._data = data;
-      var columns = data.columns,
-          rows = data.rows;
-
-
-      if (this.options.addSerialNoColumn) {
-        var serialNoColumn = {
-          content: 'Sr. No',
-          resizable: false
-        };
-
-        columns.unshift(serialNoColumn);
-
-        rows = rows.map(function (row, i) {
-          var val = i + 1 + '';
-
-          return [val].concat(row);
-        });
-      }
-
-      if (this.options.addCheckbox) {
-        var addCheckboxColumn = {
-          content: '<input type="checkbox" />',
-          resizable: false,
-          sortable: false,
-          editable: false
-        };
-
-        columns.unshift(addCheckboxColumn);
-
-        rows = rows.map(function (row, i) {
-          // make copy of object, else it will be mutated
-          var val = Object.assign({}, addCheckboxColumn);
-
-          return [val].concat(row);
-        });
-      }
-
-      var _columns = (0, _utils.prepareRowHeader)(columns);
-      var _rows = (0, _utils.prepareRows)(rows);
-
-      return {
-        columns: _columns,
-        rows: _rows
-      };
-    }
-  }, {
     key: 'bindEvents',
     value: function bindEvents() {
       this.bindFocusCell();
@@ -374,10 +334,15 @@ var DataTable = function () {
     value: function setDimensions() {
       var self = this;
 
-      // setting width as 0 will ensure that the
-      // header doesn't take the available space
+      if (!this.options.takeAvailableSpace) {
+        // setting width as 0 will ensure that the
+        // header doesn't take the available space
+        this.header.css({
+          width: 0
+        });
+      }
+
       this.header.css({
-        width: 0,
         margin: 0
       });
 
@@ -418,10 +383,14 @@ var DataTable = function () {
         'margin-top': this.header.height() + 1 + 'px'
       });
 
-      // hide edit cells by default
-      this.setStyle('.data-table .body-scrollable .edit-cell', {
-        display: 'none'
-      });
+      // center align Sr. No column
+      if (this.options.addSerialNoColumn) {
+        var index = this.getSerialColumnIndex();
+
+        this.setStyle('.data-table [data-col-index="' + index + '"]', {
+          'text-align': 'center'
+        });
+      }
 
       this.bodyScrollable.find('.table').css('margin', 0);
     }
@@ -437,7 +406,7 @@ var DataTable = function () {
         var _self$getCellAttr2 = self.getCellAttr($cell),
             colIndex = _self$getCellAttr2.colIndex;
 
-        if (self.options.addCheckbox && colIndex === 0) {
+        if (self.options.addCheckboxColumn && colIndex === 0) {
           return;
         }
 
@@ -461,7 +430,6 @@ var DataTable = function () {
       $(document.body).on('keypress', function (e) {
         // enter keypress on focused cell
         if (e.which === 13 && _this2.$focusedCell && !_this2.$editingCell) {
-          _this2.log('editingCell');
           _this2.activateEditing(_this2.$focusedCell);
           e.stopImmediatePropagation();
         }
@@ -478,7 +446,9 @@ var DataTable = function () {
 
       $(document.body).on('click', function (e) {
         if ($(e.target).is('.edit-cell, .edit-cell *')) return;
-        self.bodyScrollable.find('.edit-cell').hide();
+        if (!_this2.$editingCell) return;
+
+        _this2.$editingCell.removeClass('editing');
         _this2.$editingCell = null;
       });
     }
@@ -507,6 +477,8 @@ var DataTable = function () {
       }
 
       this.$editingCell = $cell;
+      $cell.addClass('editing');
+
       var $editCell = $cell.find('.edit-cell').empty();
       var cell = this.getCell(rowIndex, colIndex);
       var editing = this.getEditingObject(colIndex, rowIndex, cell.content, $editCell);
@@ -515,7 +487,6 @@ var DataTable = function () {
         this.currentCellEditing = editing;
         // initialize editing input with cell value
         editing.initValue(cell.content);
-        $editCell.show();
       }
     }
   }, {
@@ -628,7 +599,7 @@ var DataTable = function () {
 
       this.header.on('click', '.data-table-col .content span', function () {
         var $cell = $(this).closest('.data-table-col');
-        var sortAction = (0, _utils.getDefault)($cell.attr('data-sort-action'), 'none');
+        var sortOrder = (0, _utils.getDefault)($cell.attr('data-sort-order'), 'none');
         var colIndex = $cell.attr('data-col-index');
         var col = self.getColumn(colIndex);
 
@@ -638,65 +609,40 @@ var DataTable = function () {
 
         // reset sort indicator
         self.header.find('.sort-indicator').text('');
-        self.header.find('.data-table-col').attr('data-sort-action', 'none');
+        self.header.find('.data-table-col').attr('data-sort-order', 'none');
 
-        if (sortAction === 'none') {
-          $cell.attr('data-sort-action', 'asc');
+        if (sortOrder === 'none') {
+          $cell.attr('data-sort-order', 'asc');
           $cell.find('.sort-indicator').text('▲');
-        } else if (sortAction === 'asc') {
-          $cell.attr('data-sort-action', 'desc');
+        } else if (sortOrder === 'asc') {
+          $cell.attr('data-sort-order', 'desc');
           $cell.find('.sort-indicator').text('▼');
-        } else if (sortAction === 'desc') {
-          $cell.attr('data-sort-action', 'none');
+        } else if (sortOrder === 'desc') {
+          $cell.attr('data-sort-order', 'none');
           $cell.find('.sort-indicator').text('');
         }
 
         // sortWith this action
-        var sortWith = $cell.attr('data-sort-action');
+        sortOrder = $cell.attr('data-sort-order');
 
         if (self.events && self.events.onSort) {
-          self.events.onSort(colIndex, sortWith);
+          self.events.onSort(colIndex, sortOrder);
         } else {
-          self.sortRows(colIndex, sortWith);
+          self.sortRows(colIndex, sortOrder);
           self.refreshRows();
         }
       });
     }
   }, {
     key: 'sortRows',
-    value: function sortRows(colIndex) {
-      var sortAction = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 'none';
-
-      colIndex = +colIndex;
-
-      this.data.rows.sort(function (a, b) {
-        var _aIndex = a[0].rowIndex;
-        var _bIndex = b[0].rowIndex;
-        var _a = a[colIndex].content;
-        var _b = b[colIndex].content;
-
-        if (sortAction === 'none') {
-          return _aIndex - _bIndex;
-        } else if (sortAction === 'asc') {
-          if (_a < _b) return -1;
-          if (_a > _b) return 1;
-          if (_a === _b) return 0;
-        } else if (sortAction === 'desc') {
-          if (_a < _b) return 1;
-          if (_a > _b) return -1;
-          if (_a === _b) return 0;
-        }
-        return 0;
-      });
+    value: function sortRows(colIndex, sortOrder) {
+      this.datamanager.sortRows(colIndex, sortOrder);
     }
   }, {
     key: 'bindCheckbox',
     value: function bindCheckbox() {
-      if (!this.options.addCheckbox) return;
+      if (!this.options.addCheckboxColumn) return;
       var self = this;
-
-      // map of checked rows
-      this.checkMap = [];
 
       this.wrapper.on('click', '.data-table-col[data-col-index="0"] [type="checkbox"]', function () {
         var $checkbox = $(this);
@@ -718,6 +664,7 @@ var DataTable = function () {
   }, {
     key: 'getCheckedRows',
     value: function getCheckedRows() {
+
       return this.checkMap.map(function (c, rowIndex) {
         if (c) {
           return rowIndex;
@@ -832,9 +779,10 @@ var DataTable = function () {
         return;
       }
 
-      var deltaWidth = (availableWidth - headerWidth) / this.data.columns.length;
+      var columns = this.datamanager.getColumns();
+      var deltaWidth = (availableWidth - headerWidth) / this.datamanager.getColumnCount();
 
-      this.data.columns.map(function (col) {
+      columns.map(function (col) {
         var width = _this5.getColumnHeaderElement(col.colIndex).width();
         var finalWidth = width + deltaWidth - 16;
 
@@ -850,7 +798,7 @@ var DataTable = function () {
   }, {
     key: 'setBodyWidth',
     value: function setBodyWidth() {
-      this.bodyScrollable.css('width', parseInt(this.header.css('width'), 10) + 1);
+      this.bodyScrollable.css('width', parseInt(this.header.css('width'), 10));
     }
   }, {
     key: 'setStyle',
@@ -868,27 +816,17 @@ var DataTable = function () {
   }, {
     key: 'getColumn',
     value: function getColumn(colIndex) {
-      colIndex = +colIndex;
-      return this.data.columns.find(function (col) {
-        return col.colIndex === colIndex;
-      });
+      return this.datamanager.getColumn(colIndex);
     }
   }, {
     key: 'getRow',
     value: function getRow(rowIndex) {
-      rowIndex = +rowIndex;
-      return this.data.rows.find(function (row) {
-        return row[0].rowIndex === rowIndex;
-      });
+      return this.datamanager.getRow(rowIndex);
     }
   }, {
     key: 'getCell',
     value: function getCell(rowIndex, colIndex) {
-      rowIndex = +rowIndex;
-      colIndex = +colIndex;
-      return this.data.rows.find(function (row) {
-        return row[0].rowIndex === rowIndex;
-      })[colIndex];
+      return this.datamanager.getCell(rowIndex, colIndex);
     }
   }, {
     key: 'getColumnHeaderElement',
@@ -911,7 +849,16 @@ var DataTable = function () {
   }, {
     key: 'getTotalRows',
     value: function getTotalRows() {
-      return this.data.rows.length;
+      return this.datamanager.getRowCount();
+    }
+  }, {
+    key: 'getSerialColumnIndex',
+    value: function getSerialColumnIndex() {
+      var columns = this.datamanager.getColumns();
+
+      return columns.findIndex(function (column) {
+        return column.content.includes('Sr. No');
+      });
     }
   }, {
     key: 'log',
@@ -1020,7 +967,7 @@ function prepareColumns(columns) {
   var _columns = columns.map(prepareColumn);
 
   return _columns.map(function (col) {
-    return Object.assign(col, props);
+    return Object.assign({}, col, props);
   });
 }
 
@@ -1134,10 +1081,284 @@ module.exports = exports['default'];
 /* 3 */
 /***/ (function(module, exports, __webpack_require__) {
 
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var DataManager = function () {
+  function DataManager(options) {
+    _classCallCheck(this, DataManager);
+
+    this.options = options;
+    this.rowCount = 0;
+    this.currentSort = {
+      sortBy: -1, // colIndex
+      sortOrder: 'none' // asc, desc, none
+    };
+  }
+
+  _createClass(DataManager, [{
+    key: 'init',
+    value: function init(data) {
+      var columns = data.columns,
+          rows = data.rows;
+
+
+      this.columns = this.prepareColumns(columns);
+      this.rows = this.prepareRows(rows);
+    }
+  }, {
+    key: 'prepareColumns',
+    value: function prepareColumns(columns) {
+      if (!Array.isArray(columns)) {
+        throw new TypeError('`columns` must be an array');
+      }
+
+      if (this.options.addSerialNoColumn && !this._serialNoColumnAdded) {
+        var val = {
+          content: 'Sr. No',
+          editable: false,
+          resizable: false
+        };
+
+        columns = [val].concat(columns);
+        this._serialNoColumnAdded = true;
+      }
+
+      if (this.options.addCheckboxColumn && !this._checkboxColumnAdded) {
+        var _val = {
+          content: '<input type="checkbox" />',
+          editable: false,
+          resizable: false
+        };
+
+        columns = [_val].concat(columns);
+        this._checkboxColumnAdded = true;
+      }
+
+      // wrap the title in span
+      columns = columns.map(function (column) {
+        if (typeof column === 'string') {
+          column = '<span>' + column + '</span>';
+        } else if ((typeof column === 'undefined' ? 'undefined' : _typeof(column)) === 'object') {
+          column.content = '<span>' + column.content + '</span>';
+        }
+
+        return column;
+      });
+
+      return _prepareColumns(columns, {
+        isHeader: 1
+      });
+    }
+  }, {
+    key: 'prepareRows',
+    value: function prepareRows(rows) {
+      var _this = this;
+
+      if (!Array.isArray(rows) || !Array.isArray(rows[0])) {
+        throw new TypeError('`rows` must be an array of arrays');
+      }
+
+      rows = rows.map(function (row, i) {
+        var index = _this._getNextRowCount();
+
+        if (row.length < _this.columns.length) {
+          if (_this._serialNoColumnAdded) {
+            var val = index + 1 + '';
+
+            row = [val].concat(row);
+          }
+
+          if (_this._checkboxColumnAdded) {
+            var _val2 = '<input type="checkbox" />';
+
+            row = [_val2].concat(row);
+          }
+        }
+
+        return prepareRow(row, index);
+      });
+
+      return rows;
+    }
+  }, {
+    key: 'appendRows',
+    value: function appendRows(rows) {
+      if (Array.isArray(rows) && !Array.isArray(rows[0])) {
+        rows = [rows];
+      }
+      var _rows = this.prepareRows(rows);
+
+      this.rows = this.rows.concat(_rows);
+    }
+  }, {
+    key: 'sortRows',
+    value: function sortRows(colIndex) {
+      var sortOrder = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 'none';
+
+      colIndex = +colIndex;
+
+      if (this.currentSort.colIndex === colIndex) {
+        // reverse the array if only sortOrder changed
+        if (this.currentSort.sortOrder === 'asc' && sortOrder === 'desc' || this.currentSort.sortOrder === 'desc' && sortOrder === 'asc') {
+          this.reverseArray(this.rows);
+          this.currentSort.sortOrder = sortOrder;
+          return;
+        }
+      }
+
+      this.rows.sort(function (a, b) {
+        var _aIndex = a[0].rowIndex;
+        var _bIndex = b[0].rowIndex;
+        var _a = a[colIndex].content;
+        var _b = b[colIndex].content;
+
+        if (sortOrder === 'none') {
+          return _aIndex - _bIndex;
+        } else if (sortOrder === 'asc') {
+          if (_a < _b) return -1;
+          if (_a > _b) return 1;
+          if (_a === _b) return 0;
+        } else if (sortOrder === 'desc') {
+          if (_a < _b) return 1;
+          if (_a > _b) return -1;
+          if (_a === _b) return 0;
+        }
+        return 0;
+      });
+
+      this.currentSort.colIndex = colIndex;
+      this.currentSort.sortOrder = sortOrder;
+    }
+  }, {
+    key: 'reverseArray',
+    value: function reverseArray(array) {
+      var left = null;
+      var right = null;
+      var length = array.length;
+
+      for (left = 0, right = length - 1; left < right; left += 1, right -= 1) {
+        var temporary = array[left];
+
+        array[left] = array[right];
+        array[right] = temporary;
+      }
+    }
+  }, {
+    key: 'getRowCount',
+    value: function getRowCount() {
+      return this.rowCount;
+    }
+  }, {
+    key: '_getNextRowCount',
+    value: function _getNextRowCount() {
+      var val = this.rowCount;
+
+      this.rowCount++;
+      return val;
+    }
+  }, {
+    key: 'getRows',
+    value: function getRows(start, end) {
+      return this.rows.slice(start, end);
+    }
+  }, {
+    key: 'getColumns',
+    value: function getColumns() {
+      return this.columns;
+    }
+  }, {
+    key: 'getColumnCount',
+    value: function getColumnCount() {
+      return this.columns.length;
+    }
+  }, {
+    key: 'getColumn',
+    value: function getColumn(colIndex) {
+      colIndex = +colIndex;
+      return this.columns.find(function (col) {
+        return col.colIndex === colIndex;
+      });
+    }
+  }, {
+    key: 'getRow',
+    value: function getRow(rowIndex) {
+      rowIndex = +rowIndex;
+      return this.rows.find(function (row) {
+        return row[0].rowIndex === rowIndex;
+      });
+    }
+  }, {
+    key: 'getCell',
+    value: function getCell(rowIndex, colIndex) {
+      rowIndex = +rowIndex;
+      colIndex = +colIndex;
+      return this.rows.find(function (row) {
+        return row[0].rowIndex === rowIndex;
+      })[colIndex];
+    }
+  }, {
+    key: 'get',
+    value: function get() {
+      return {
+        columns: this.columns,
+        rows: this.rows
+      };
+    }
+  }]);
+
+  return DataManager;
+}();
+
+exports.default = DataManager;
+
+
+function _prepareColumns(columns) {
+  var props = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+  var _columns = columns.map(prepareCell);
+
+  return _columns.map(function (col) {
+    return Object.assign({}, col, props);
+  });
+}
+
+function prepareRow(row, i) {
+  return _prepareColumns(row, {
+    rowIndex: i
+  });
+}
+
+function prepareCell(col, i) {
+  if (typeof col === 'string') {
+    col = {
+      content: col
+    };
+  }
+  return Object.assign(col, {
+    colIndex: i
+  });
+}
+module.exports = exports['default'];
+
+/***/ }),
+/* 4 */
+/***/ (function(module, exports, __webpack_require__) {
+
 // style-loader: Adds some css to the DOM by adding a <style> tag
 
 // load the styles
-var content = __webpack_require__(4);
+var content = __webpack_require__(5);
 if(typeof content === 'string') content = [[module.i, content, '']];
 // Prepare cssTransformation
 var transform;
@@ -1145,7 +1366,7 @@ var transform;
 var options = {}
 options.transform = transform
 // add the styles to the DOM
-var update = __webpack_require__(6)(content, options);
+var update = __webpack_require__(7)(content, options);
 if(content.locals) module.exports = content.locals;
 // Hot Module Replacement
 if(false) {
@@ -1162,21 +1383,21 @@ if(false) {
 }
 
 /***/ }),
-/* 4 */
+/* 5 */
 /***/ (function(module, exports, __webpack_require__) {
 
-exports = module.exports = __webpack_require__(5)(undefined);
+exports = module.exports = __webpack_require__(6)(undefined);
 // imports
 
 
 // module
-exports.push([module.i, ".table {\n  width: 100%;\n  max-width: 100%;\n  margin-bottom: 1rem;\n  background-color: transparent; }\n  .table th,\n  .table td {\n    padding: 0.75rem;\n    vertical-align: top;\n    border-top: 1px solid #e9ecef; }\n  .table thead th {\n    vertical-align: bottom;\n    border-bottom: 2px solid #e9ecef; }\n  .table tbody + tbody {\n    border-top: 2px solid #e9ecef; }\n  .table .table {\n    background-color: #fff; }\n\n.table-sm th,\n.table-sm td {\n  padding: 0.3rem; }\n\n.table-bordered {\n  border: 1px solid #e9ecef; }\n  .table-bordered th,\n  .table-bordered td {\n    border: 1px solid #e9ecef; }\n  .table-bordered thead th,\n  .table-bordered thead td {\n    border-bottom-width: 2px; }\n\n.table-striped tbody tr:nth-of-type(odd) {\n  background-color: rgba(0, 0, 0, 0.05); }\n\n.table-hover tbody tr:hover {\n  background-color: rgba(0, 0, 0, 0.075); }\n\n.table-primary,\n.table-primary > th,\n.table-primary > td {\n  background-color: #b8daff; }\n\n.table-hover .table-primary:hover {\n  background-color: #9fcdff; }\n  .table-hover .table-primary:hover > td,\n  .table-hover .table-primary:hover > th {\n    background-color: #9fcdff; }\n\n.table-secondary,\n.table-secondary > th,\n.table-secondary > td {\n  background-color: #dddfe2; }\n\n.table-hover .table-secondary:hover {\n  background-color: #cfd2d6; }\n  .table-hover .table-secondary:hover > td,\n  .table-hover .table-secondary:hover > th {\n    background-color: #cfd2d6; }\n\n.table-success,\n.table-success > th,\n.table-success > td {\n  background-color: #c3e6cb; }\n\n.table-hover .table-success:hover {\n  background-color: #b1dfbb; }\n  .table-hover .table-success:hover > td,\n  .table-hover .table-success:hover > th {\n    background-color: #b1dfbb; }\n\n.table-info,\n.table-info > th,\n.table-info > td {\n  background-color: #bee5eb; }\n\n.table-hover .table-info:hover {\n  background-color: #abdde5; }\n  .table-hover .table-info:hover > td,\n  .table-hover .table-info:hover > th {\n    background-color: #abdde5; }\n\n.table-warning,\n.table-warning > th,\n.table-warning > td {\n  background-color: #ffeeba; }\n\n.table-hover .table-warning:hover {\n  background-color: #ffe8a1; }\n  .table-hover .table-warning:hover > td,\n  .table-hover .table-warning:hover > th {\n    background-color: #ffe8a1; }\n\n.table-danger,\n.table-danger > th,\n.table-danger > td {\n  background-color: #f5c6cb; }\n\n.table-hover .table-danger:hover {\n  background-color: #f1b0b7; }\n  .table-hover .table-danger:hover > td,\n  .table-hover .table-danger:hover > th {\n    background-color: #f1b0b7; }\n\n.table-light,\n.table-light > th,\n.table-light > td {\n  background-color: #fdfdfe; }\n\n.table-hover .table-light:hover {\n  background-color: #ececf6; }\n  .table-hover .table-light:hover > td,\n  .table-hover .table-light:hover > th {\n    background-color: #ececf6; }\n\n.table-dark,\n.table-dark > th,\n.table-dark > td {\n  background-color: #c6c8ca; }\n\n.table-hover .table-dark:hover {\n  background-color: #b9bbbe; }\n  .table-hover .table-dark:hover > td,\n  .table-hover .table-dark:hover > th {\n    background-color: #b9bbbe; }\n\n.table-active,\n.table-active > th,\n.table-active > td {\n  background-color: rgba(0, 0, 0, 0.075); }\n\n.table-hover .table-active:hover {\n  background-color: rgba(0, 0, 0, 0.075); }\n  .table-hover .table-active:hover > td,\n  .table-hover .table-active:hover > th {\n    background-color: rgba(0, 0, 0, 0.075); }\n\n.thead-inverse th {\n  color: #fff;\n  background-color: #212529; }\n\n.thead-default th {\n  color: #495057;\n  background-color: #e9ecef; }\n\n.table-inverse {\n  color: #fff;\n  background-color: #212529; }\n  .table-inverse th,\n  .table-inverse td,\n  .table-inverse thead th {\n    border-color: #32383e; }\n  .table-inverse.table-bordered {\n    border: 0; }\n  .table-inverse.table-striped tbody tr:nth-of-type(odd) {\n    background-color: rgba(255, 255, 255, 0.05); }\n  .table-inverse.table-hover tbody tr:hover {\n    background-color: rgba(255, 255, 255, 0.075); }\n\n@media (max-width: 991px) {\n  .table-responsive {\n    display: block;\n    width: 100%;\n    overflow-x: auto;\n    -ms-overflow-style: -ms-autohiding-scrollbar; }\n    .table-responsive.table-bordered {\n      border: 0; } }\n\n.data-table {\n  width: 100%;\n  position: relative;\n  overflow: auto; }\n  .data-table .table {\n    border-collapse: collapse; }\n  .data-table .table > thead > tr > td, .data-table .table > tbody > tr > td {\n    padding: 0; }\n\n.body-scrollable {\n  max-height: 500px;\n  overflow: auto;\n  border-bottom: 1px solid #e9ecef; }\n\n.data-table-header {\n  position: absolute;\n  top: 0;\n  left: 0;\n  background-color: white;\n  font-weight: bold;\n  cursor: col-resize; }\n  .data-table-header .content span {\n    cursor: pointer; }\n  .data-table-header .sort-indicator {\n    position: absolute;\n    right: 8px;\n    top: 9px; }\n\n.data-table-col {\n  position: relative; }\n  .data-table-col .content {\n    padding: 8px;\n    border: 1px solid transparent; }\n  .data-table-col.selected .content {\n    border: 1px solid #007bff; }\n  .data-table-col .content.ellipsis {\n    text-overflow: ellipsis;\n    white-space: nowrap;\n    overflow: hidden; }\n\n.data-table-row.row-highlight {\n  background-color: #f8f9fa; }\n\n.edit-cell {\n  position: absolute;\n  top: -1px;\n  left: -1px;\n  background: white;\n  z-index: 1; }\n  .edit-cell input {\n    outline: none;\n    padding: 8px;\n    font-size: inherit;\n    font-family: inherit;\n    width: inherit;\n    height: inherit;\n    border: 2px solid #007bff; }\n\n.noselect {\n  -webkit-touch-callout: none;\n  -webkit-user-select: none;\n  -khtml-user-select: none;\n  -moz-user-select: none;\n  -ms-user-select: none;\n  user-select: none; }\n", ""]);
+exports.push([module.i, ".table {\n  width: 100%;\n  max-width: 100%;\n  margin-bottom: 1rem;\n  background-color: transparent; }\n  .table th,\n  .table td {\n    padding: 0.75rem;\n    vertical-align: top;\n    border-top: 1px solid #e9ecef; }\n  .table thead th {\n    vertical-align: bottom;\n    border-bottom: 2px solid #e9ecef; }\n  .table tbody + tbody {\n    border-top: 2px solid #e9ecef; }\n  .table .table {\n    background-color: #fff; }\n\n.table-sm th,\n.table-sm td {\n  padding: 0.3rem; }\n\n.table-bordered {\n  border: 1px solid #e9ecef; }\n  .table-bordered th,\n  .table-bordered td {\n    border: 1px solid #e9ecef; }\n  .table-bordered thead th,\n  .table-bordered thead td {\n    border-bottom-width: 2px; }\n\n.table-striped tbody tr:nth-of-type(odd) {\n  background-color: rgba(0, 0, 0, 0.05); }\n\n.table-hover tbody tr:hover {\n  background-color: rgba(0, 0, 0, 0.075); }\n\n.table-primary,\n.table-primary > th,\n.table-primary > td {\n  background-color: #b8daff; }\n\n.table-hover .table-primary:hover {\n  background-color: #9fcdff; }\n  .table-hover .table-primary:hover > td,\n  .table-hover .table-primary:hover > th {\n    background-color: #9fcdff; }\n\n.table-secondary,\n.table-secondary > th,\n.table-secondary > td {\n  background-color: #dddfe2; }\n\n.table-hover .table-secondary:hover {\n  background-color: #cfd2d6; }\n  .table-hover .table-secondary:hover > td,\n  .table-hover .table-secondary:hover > th {\n    background-color: #cfd2d6; }\n\n.table-success,\n.table-success > th,\n.table-success > td {\n  background-color: #c3e6cb; }\n\n.table-hover .table-success:hover {\n  background-color: #b1dfbb; }\n  .table-hover .table-success:hover > td,\n  .table-hover .table-success:hover > th {\n    background-color: #b1dfbb; }\n\n.table-info,\n.table-info > th,\n.table-info > td {\n  background-color: #bee5eb; }\n\n.table-hover .table-info:hover {\n  background-color: #abdde5; }\n  .table-hover .table-info:hover > td,\n  .table-hover .table-info:hover > th {\n    background-color: #abdde5; }\n\n.table-warning,\n.table-warning > th,\n.table-warning > td {\n  background-color: #ffeeba; }\n\n.table-hover .table-warning:hover {\n  background-color: #ffe8a1; }\n  .table-hover .table-warning:hover > td,\n  .table-hover .table-warning:hover > th {\n    background-color: #ffe8a1; }\n\n.table-danger,\n.table-danger > th,\n.table-danger > td {\n  background-color: #f5c6cb; }\n\n.table-hover .table-danger:hover {\n  background-color: #f1b0b7; }\n  .table-hover .table-danger:hover > td,\n  .table-hover .table-danger:hover > th {\n    background-color: #f1b0b7; }\n\n.table-light,\n.table-light > th,\n.table-light > td {\n  background-color: #fdfdfe; }\n\n.table-hover .table-light:hover {\n  background-color: #ececf6; }\n  .table-hover .table-light:hover > td,\n  .table-hover .table-light:hover > th {\n    background-color: #ececf6; }\n\n.table-dark,\n.table-dark > th,\n.table-dark > td {\n  background-color: #c6c8ca; }\n\n.table-hover .table-dark:hover {\n  background-color: #b9bbbe; }\n  .table-hover .table-dark:hover > td,\n  .table-hover .table-dark:hover > th {\n    background-color: #b9bbbe; }\n\n.table-active,\n.table-active > th,\n.table-active > td {\n  background-color: rgba(0, 0, 0, 0.075); }\n\n.table-hover .table-active:hover {\n  background-color: rgba(0, 0, 0, 0.075); }\n  .table-hover .table-active:hover > td,\n  .table-hover .table-active:hover > th {\n    background-color: rgba(0, 0, 0, 0.075); }\n\n.thead-inverse th {\n  color: #fff;\n  background-color: #212529; }\n\n.thead-default th {\n  color: #495057;\n  background-color: #e9ecef; }\n\n.table-inverse {\n  color: #fff;\n  background-color: #212529; }\n  .table-inverse th,\n  .table-inverse td,\n  .table-inverse thead th {\n    border-color: #32383e; }\n  .table-inverse.table-bordered {\n    border: 0; }\n  .table-inverse.table-striped tbody tr:nth-of-type(odd) {\n    background-color: rgba(255, 255, 255, 0.05); }\n  .table-inverse.table-hover tbody tr:hover {\n    background-color: rgba(255, 255, 255, 0.075); }\n\n@media (max-width: 991px) {\n  .table-responsive {\n    display: block;\n    width: 100%;\n    overflow-x: auto;\n    -ms-overflow-style: -ms-autohiding-scrollbar; }\n    .table-responsive.table-bordered {\n      border: 0; } }\n\n*, *::after, *::before {\n  box-sizing: border-box; }\n\nbutton, input {\n  overflow: visible;\n  font-family: inherit;\n  font-size: inherit;\n  line-height: inherit;\n  margin: 0; }\n\n.data-table * {\n  outline: none; }\n\n.data-table {\n  width: 100%;\n  position: relative;\n  overflow: auto; }\n  .data-table .table {\n    border-collapse: collapse; }\n  .data-table .table > thead > tr > td, .data-table .table > tbody > tr > td {\n    padding: 0; }\n\n.body-scrollable {\n  max-height: 500px;\n  overflow: auto;\n  border-bottom: 1px solid #e9ecef; }\n\n.data-table-header {\n  position: absolute;\n  top: 0;\n  left: 0;\n  background-color: white;\n  font-weight: bold;\n  cursor: col-resize; }\n  .data-table-header .content span {\n    cursor: pointer; }\n  .data-table-header .sort-indicator {\n    position: absolute;\n    right: 8px;\n    top: 9px; }\n\n.data-table-col {\n  position: relative; }\n  .data-table-col .content {\n    padding: 8px;\n    border: 1px solid transparent; }\n    .data-table-col .content.ellipsis {\n      text-overflow: ellipsis;\n      white-space: nowrap;\n      overflow: hidden; }\n  .data-table-col .edit-cell {\n    display: none;\n    position: absolute;\n    padding: 8px;\n    background: #fff;\n    z-index: 1;\n    height: 100%; }\n    .data-table-col .edit-cell input {\n      outline: none;\n      width: 100%;\n      border: none;\n      height: 1em; }\n  .data-table-col.selected .content {\n    border: 1px solid #007bff; }\n  .data-table-col.editing .content {\n    display: none; }\n  .data-table-col.editing .edit-cell {\n    border: 2px solid #007bff;\n    display: block; }\n\n.data-table-row.row-highlight {\n  background-color: #f8f9fa; }\n\n.noselect {\n  -webkit-touch-callout: none;\n  -webkit-user-select: none;\n  -khtml-user-select: none;\n  -moz-user-select: none;\n  -ms-user-select: none;\n  user-select: none; }\n", ""]);
 
 // exports
 
 
 /***/ }),
-/* 5 */
+/* 6 */
 /***/ (function(module, exports) {
 
 /*
@@ -1258,7 +1479,7 @@ function toComment(sourceMap) {
 
 
 /***/ }),
-/* 6 */
+/* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /*
@@ -1304,7 +1525,7 @@ var singleton = null;
 var	singletonCounter = 0;
 var	stylesInsertedAtTop = [];
 
-var	fixUrls = __webpack_require__(7);
+var	fixUrls = __webpack_require__(8);
 
 module.exports = function(list, options) {
 	if (typeof DEBUG !== "undefined" && DEBUG) {
@@ -1617,7 +1838,7 @@ function updateLink (link, options, obj) {
 
 
 /***/ }),
-/* 7 */
+/* 8 */
 /***/ (function(module, exports) {
 
 
@@ -1712,7 +1933,7 @@ module.exports = function (css) {
 
 
 /***/ }),
-/* 8 */
+/* 9 */
 /***/ (function(module, exports) {
 
 module.exports = {"name":"frappe-datatable","version":"0.0.1","description":"A modern datatable library for the web","main":"lib/frappe-datatable.js","scripts":{"build":"webpack --env build","dev":"webpack --progress --colors --watch --env dev","test":"mocha --compilers js:babel-core/register --colors ./test/*.spec.js","test:watch":"mocha --compilers js:babel-core/register --colors -w ./test/*.spec.js"},"devDependencies":{"babel-cli":"6.24.1","babel-core":"6.24.1","babel-eslint":"7.2.3","babel-loader":"7.0.0","babel-plugin-add-module-exports":"0.2.1","babel-preset-es2015":"6.24.1","chai":"3.5.0","css-loader":"^0.28.7","eslint":"3.19.0","eslint-loader":"1.7.1","mocha":"3.3.0","node-sass":"^4.5.3","sass-loader":"^6.0.6","style-loader":"^0.18.2","webpack":"^3.1.0","yargs":"7.1.0"},"repository":{"type":"git","url":"https://github.com/frappe/datatable.git"},"keywords":["webpack","es6","starter","library","universal","umd","commonjs"],"author":"Faris Ansari","license":"MIT","bugs":{"url":"https://github.com/frappe/datatable/issues"},"homepage":"https://frappe.github.io/datatable","dependencies":{"bootstrap":"^4.0.0-beta","popper.js":"^1.12.5"}}

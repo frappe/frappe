@@ -7,9 +7,8 @@ frappe.views.ReportView = frappe.views.ListRenderer.extend({
 	name: 'Report',
 
 	render_view(values) {
-
 		if (this.datatable) {
-			this.datatable.update(this.get_data(values));
+			this.datatable.appendRows(this.build_rows(values));
 			return;
 		}
 
@@ -18,37 +17,72 @@ frappe.views.ReportView = frappe.views.ListRenderer.extend({
 			enableLogs: false,
 			enableClusterize: true,
 			addCheckbox: this.can_delete(),
-			// editing: (colIndex, rowIndex, value, parent) => {
-			// 	const control = me.render_editing_input(colIndex, value, parent);
-			// 	if (!control) return false;
+			editing: (colIndex, rowIndex, value, parent) => {
+				const control = this.render_editing_input(colIndex, value, parent);
+				if (!control) return false;
 
-			// 	return {
-			// 		initValue: (value) => {
-			// 			return control.set_value(value);
-			// 		},
-			// 		setValue: (value) => {
-			// 			return me.update_value_on_server(
-			// 				this.doctype,
-			// 				get_docname(rowIndex),
-			// 				get_fieldname(colIndex),
-			// 				value
-			// 			).then(r => {
-			// 				if(r.message) {
-			// 					const updated_value = r.message[get_fieldname(colIndex)];
-			// 					return control.set_value(value);
-			// 				}
-			// 			});
-			// 		},
-			// 		getValue: () => {
-			// 			return control.get_value();
-			// 		}
-			// 	}
-			// }
+				return {
+					initValue: (value) => {
+						return control.set_value(value);
+					},
+					setValue: (value) => {
+						const cell = this.datatable.getCell(rowIndex, colIndex);
+						let fieldname = this.datatable.getColumn(colIndex).docfield.fieldname;
+						let docname = cell.name;
+
+						return frappe.db.set_value(this.doctype, docname, fieldname, value)
+							.then(r => {
+								if(r.message) {
+									const doc = r.message;
+									const updated_value = doc[fieldname];
+									return control.set_value(value);
+								}
+							});
+					},
+					getValue: () => {
+						return control.get_value();
+					}
+				}
+			}
 		});
 	},
 
+	render_editing_input(colIndex, value, parent) {
+		const col = this.datatable.getColumn(colIndex);
+
+		if (!this.validate_cell_editing(col.docfield)) {
+			return false;
+		}
+
+		// make control
+		const control = frappe.ui.form.make_control({
+			df: col.docfield,
+			parent: parent,
+			render_input: true
+		});
+		control.set_value(value);
+		control.toggle_label(false);
+		control.toggle_description(false);
+
+		return control;
+	},
+
+	validate_cell_editing(docfield) {
+		console.log(docfield);
+		if(!docfield || docfield.fieldname !== "idx"
+			&& frappe.model.std_fields_list.includes(docfield.fieldname)) {
+			return false;
+		} else if(!frappe.boot.user.can_write.includes(this.doctype)) {
+			frappe.throw({
+				title:__('Not Permitted'),
+				message:__("No permission to edit")
+			});
+			return false;
+		}
+		return true;
+	},
+
 	get_data(values) {
-		// this.make_columns();
 		return {
 			columns: this.columns,
 			rows: this.build_rows(values)
@@ -87,8 +121,6 @@ frappe.views.ReportView = frappe.views.ListRenderer.extend({
 			});
 		}
 
-		console.log(columns);
-
 		this.columns = this.build_columns(columns);
 
 		// this.page.footer.on('click', '.show-all-data', function() {
@@ -122,7 +154,8 @@ frappe.views.ReportView = frappe.views.ListRenderer.extend({
 				docfield: docfield,
 				name: title,
 				content: title, // required by datatable
-				width: (docfield ? cint(docfield.width) : 120) || 120
+				width: (docfield ? cint(docfield.width) : 120) || 120,
+				editable: fieldname !== 'name'
 			}
 		});
 	},
@@ -136,6 +169,7 @@ frappe.views.ReportView = frappe.views.ListRenderer.extend({
 				if (col.field in d) {
 					const value = d[col.field];
 					return {
+						name: d.name,
 						content: value,
 						format: function(value) {
 							return frappe.format(value, col.docfield, {always_show_decimals: true});
