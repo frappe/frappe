@@ -609,7 +609,7 @@ def get_count(doctype, filters=None):
 					conditions.append(join_condition)
 
 		return frappe.db.sql_list("""select count(*) from {0}
-			where {1}""".format(','.join(tables), ' and '.join(conditions)), debug=1)
+			where {1}""".format(','.join(tables), ' and '.join(conditions)), debug=0)
 
 def is_parent_only_filter(doctype, filters):
 	#check if filters contains only parent doctype
