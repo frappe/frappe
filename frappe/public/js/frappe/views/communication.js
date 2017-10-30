@@ -629,7 +629,7 @@ frappe.views.CommunicationComposer = Class.extend({
 		});
 		var delay_timer;
 		var $input = $(input);
-		$input.on("input", function(e) {
+		$input.on("input click", function(e) {
 			clearTimeout(delay_timer);
 			delay_timer = setTimeout(function() {
 				var term = e.target.value;

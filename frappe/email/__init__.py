@@ -15,6 +15,9 @@ def get_contact_list(txt):
 	def get_users():
 		return filter(None, frappe.db.sql_list('select email from tabUser where email like %s',
 			('%' + txt + '%')))
+	def get_contact():
+		return filter(None, frappe.db.sql_list("""select distinct email_id from `tabContact`"""))
+
 	try:
 		out = filter(None, frappe.db.sql_list("""select distinct email_id from `tabContact` 
 			where email_id like %(txt)s or concat(first_name, " ", last_name) like %(txt)s order by
@@ -26,6 +29,8 @@ def get_contact_list(txt):
 		)
 		if not out:
 			out = get_users()
+		if not out:
+			out = get_contact()
 	except Exception as e:
 		if e.args[0]==1146:
 			# no Contact, use User
