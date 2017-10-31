@@ -21,7 +21,8 @@ from six import text_type, string_types
 
 @frappe.whitelist()
 def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, no_email=True, overwrite=None,
-	update_only = None, ignore_links=False, pre_process=None, via_console=False, from_data_import="No"):
+	update_only = None, ignore_links=False, pre_process=None, via_console=False, from_data_import="No",
+	skip_errors = True):
 	"""upload data"""
 
 	frappe.flags.in_import = True
@@ -341,13 +342,14 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 					doc.submit()
 					log('Submitted row (#%d) %s' % (row_idx + 1, as_link(doc.doctype, doc.name)))
 		except Exception as e:
-			error = True
-			if doc:
-				frappe.errprint(doc if isinstance(doc, dict) else doc.as_dict())
-			err_msg = frappe.local.message_log and "\n\n".join(frappe.local.message_log) or cstr(e)
-			log('Error for row (#%d) %s : %s' % (row_idx + 1,
-				len(row)>1 and row[1] or "", err_msg))
-			frappe.errprint(frappe.get_traceback())
+			if not skip_errors:
+				error = True
+				if doc:
+					frappe.errprint(doc if isinstance(doc, dict) else doc.as_dict())
+				err_msg = frappe.local.message_log and "\n\n".join(frappe.local.message_log) or cstr(e)
+				log('Error for row (#%d) %s : %s' % (row_idx + 1,
+					len(row)>1 and row[1] or "", err_msg))
+				frappe.errprint(frappe.get_traceback())
 		finally:
 			frappe.local.message_log = []
 

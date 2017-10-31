@@ -66,7 +66,7 @@ docfield_properties = {
 
 allowed_fieldtype_change = (('Currency', 'Float', 'Percent'), ('Small Text', 'Data'),
 	('Text', 'Data'), ('Text', 'Text Editor', 'Code', 'Signature'), ('Data', 'Select'),
-	('Text', 'Small Text'))
+	('Text', 'Small Text'), ('Text', 'Data', 'Barcode'))
 
 allowed_fieldtype_for_options_change = ('Read Only', 'HTML', 'Select',)
 

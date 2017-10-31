@@ -259,6 +259,7 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 			max_width: this.df.max_width,
 			max_height: this.df.max_height,
 			options: "Image",
+			no_socketio: true,
 			btn: this.image_dialog.set_primary_action(__("Insert")),
 			on_no_attach: function() {
 				// if no attachmemts,

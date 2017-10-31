@@ -148,7 +148,7 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 0, 
- "modified": "2017-07-27 22:55:58.647315", 
+ "modified": "2017-10-26 09:51:47.663104", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "User Permission", 
@@ -176,7 +176,7 @@
    "write": 1
   }
  ], 
- "quick_entry": 1, 
+ "quick_entry": 0, 
  "read_only": 0, 
  "read_only_onload": 0, 
  "show_name_in_global_search": 0, 

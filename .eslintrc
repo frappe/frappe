@@ -119,7 +119,6 @@
 		"getCookies": true,
 		"get_url_arg": true,
 		"QUnit": true,
-		"Snap": true,
-		"mina": true
+		"JsBarcode": true
 	}
 }

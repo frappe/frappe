@@ -8,10 +8,16 @@ frappe.request.url = '/';
 frappe.request.ajax_count = 0;
 frappe.request.waiting_for_ajax = [];
 
-
-
 // generic server call (call page, object)
 frappe.call = function(opts) {
+	if (typeof arguments[0]==='string') {
+		opts = {
+			method: arguments[0],
+			args: arguments[1],
+			callback: arguments[2]
+		}
+	}
+
 	if(opts.quiet) {
 		opts.no_spinner = true;
 	}
@@ -139,6 +145,7 @@ frappe.request.call = function(opts) {
 			frappe.msgprint({message:__("Server Error: Please check your server logs or contact tech support."), title:__('Something went wrong'), indicator: 'red'});
 			try {
 				opts.error_callback && opts.error_callback();
+				frappe.request.report_error(xhr, opts);
 			} catch (e) {
 				frappe.request.report_error(xhr, opts);
 			}
