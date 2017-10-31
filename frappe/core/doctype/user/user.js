@@ -22,11 +22,11 @@ frappe.ui.form.on('User', {
 			if(!frm.roles_editor) {
 				var role_area = $('<div style="min-height: 300px">')
 					.appendTo(frm.fields_dict.roles_html.wrapper);
-				frm.roles_editor = new frappe.RoleEditor(role_area, frm);
+				frm.roles_editor = new frappe.RoleEditor(role_area, frm, frm.doc.role_profile_name ? 1 : 0);
 
 				var module_area = $('<div style="min-height: 300px">')
 					.appendTo(frm.fields_dict.modules_html.wrapper);
-				frm.module_editor = new frappe.ModuleEditor(frm, module_area)
+				frm.module_editor = new frappe.ModuleEditor(frm, module_area);
 			} else {
 				frm.roles_editor.show();
 			}
@@ -89,7 +89,11 @@ frappe.ui.form.on('User', {
 
 			frm.trigger('enabled');
 
-			frm.roles_editor && frm.roles_editor.show();
+			if (frm.roles_editor) {
+				frm.roles_editor.disabled = frm.doc.role_profile_name ? 1 : 0;
+				frm.roles_editor.show();
+			}
+
 			frm.module_editor && frm.module_editor.refresh();
 
 			if(frappe.session.user==doc.name) {
