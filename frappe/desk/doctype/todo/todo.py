@@ -7,6 +7,7 @@ import json
 
 from frappe.model.document import Document
 from frappe.utils import get_fullname
+from frappe.utils.data import nowdate, get_datetime
 
 subject_field = "description"
 sender_field = "sender"
@@ -97,6 +98,19 @@ def has_permission(doc, user):
 	else:
 		return doc.owner==user or doc.assigned_by==user
 
+def update_overdue():
+	today = nowdate()
+	todos = frappe.db.get_all('ToDo', filters={'status': 'Open'}, fields=['name', 'date'])
+
+	for todo in todos:
+		if todo.get('date'):
+			if get_datetime(today) >= get_datetime(todo.get('date')):
+				doc = frappe.get_doc('ToDo', todo.get('name'))
+				doc.status = 'Overdue'
+				doc.save()
+
+	frappe.db.commit()
+	
 @frappe.whitelist()
 def new_todo(description):
 	frappe.get_doc({
