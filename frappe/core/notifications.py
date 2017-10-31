@@ -24,7 +24,7 @@ def get_things_todo(as_list=False):
 	"""Returns a count of incomplete todos"""
 	data = frappe.get_list("ToDo",
 		fields=["name", "description"] if as_list else "count(*)",
-		filters=[["ToDo", "status", "=", "Open"]],
+		filters=[["ToDo", "status", "in", "Open,Overdue"]],
 		or_filters=[["ToDo", "owner", "=", frappe.session.user],
 			["ToDo", "assigned_by", "=", frappe.session.user]],
 		as_list=True)
