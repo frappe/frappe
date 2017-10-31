@@ -363,7 +363,7 @@ frappe.PermissionEngine = Class.extend({
 				method: "update",
 				args: args,
 				callback: function(r) {
-					if(r.exc) {
+					if(r.exc || r._server_messages) {
 						// exception: reverse
 						chk.prop("checked", !chk.prop("checked"));
 					} else {

@@ -73,6 +73,11 @@ def add(parent, role, permlevel):
 @frappe.whitelist()
 def update(doctype, role, permlevel, ptype, value=None):
 	frappe.only_for("System Manager")
+
+	meta = frappe.get_meta(doctype)
+	if not meta.is_submittable and ptype in ['submit', 'cancel', 'amend']:
+		frappe.msgprint(_('Doctype is not submittable'))
+
 	out = update_permission_property(doctype, role, permlevel, ptype, value)
 	return 'refresh' if out else None
 
