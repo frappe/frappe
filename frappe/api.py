@@ -137,7 +137,7 @@ def handle():
 
 		m = importlib.import_module(path)
 		return getattr(m, last)(frappe.local.response)
-	except Exception, e:
+	except Exception:
 		pass
 
 	return build_response("json")
