@@ -119,8 +119,7 @@
 		"public/css/desktop.css",
 		"public/css/form.css",
 		"public/css/mobile.css",
-		"public/css/kanban.css",
-		"public/css/charts.css"
+		"public/css/kanban.css"
 	],
 	"css/frappe-rtl.css": [
 		"public/css/bootstrap-rtl.css",
@@ -142,6 +141,7 @@
 		"public/js/frappe/translate.js",
 		"public/js/lib/datepicker/datepicker.min.js",
 		"public/js/lib/datepicker/locale-all.js",
+		"public/js/lib/frappe-charts/frappe-charts.min.js",
 		"public/js/lib/jquery.jrumble.min.js",
 		"public/js/lib/webcam.min.js",
 		"public/js/lib/leaflet/leaflet.js",
@@ -240,7 +240,6 @@
 		"public/js/frappe/desk.js",
 		"public/js/frappe/query_string.js",
 
-		"public/js/frappe/ui/charts.js",
 		"public/js/frappe/ui/comment.js",
 		"public/js/frappe/misc/rating_icons.html",
 
