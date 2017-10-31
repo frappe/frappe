@@ -362,7 +362,7 @@ class Meta(Document):
 		data = frappe._dict()
 		try:
 			module = load_doctype_module(self.name, suffix='_dashboard')
-			dashboard_method = frappe.get_hooks('get_dashboard_data').get(self.name)
+			dashboard_method = frappe.get_hooks('get_dashboard_data', {}).get(self.name)
 
 			if dashboard_method:
 				import importlib
