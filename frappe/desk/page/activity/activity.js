@@ -180,7 +180,7 @@ frappe.activity.render_heatmap = function(page) {
 		method: "frappe.desk.page.activity.activity.get_heatmap_data",
 		callback: function(r) {
 			if(r.message) {
-				var heatmap = new frappe.chart.HeatMap({
+				var heatmap = new Chart({
 					parent: ".heatmap",
 					type: 'heatmap',
 					height: 100,
