@@ -137,9 +137,9 @@ def handle():
 
 		m = importlib.import_module(path)
 		return getattr(m, last)(frappe.local.response)
-	except Exception:
+	except Exception, e:
 		pass
-	
+
 	return build_response("json")
 
 def validate_oauth():
