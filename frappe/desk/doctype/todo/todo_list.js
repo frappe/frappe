@@ -2,7 +2,7 @@ frappe.listview_settings['ToDo'] = {
 	onload: function(me) {
 		frappe.route_options = {
 			"owner": frappe.session.user,
-			"status": "Open"
+			"status": ["in", ["Open", "Overdue"]]
 		};
 		me.page.set_title(__("To Do"));
 
