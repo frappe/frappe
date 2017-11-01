@@ -132,7 +132,8 @@ scheduler_events = {
 		"frappe.email.doctype.email_account.email_account.notify_unreplied",
 		"frappe.oauth.delete_oauth2_data",
 		"frappe.integrations.doctype.razorpay_settings.razorpay_settings.capture_payment",
-		"frappe.twofactor.delete_all_barcodes_for_users"
+		"frappe.twofactor.delete_all_barcodes_for_users",
+		"frappe.desk.doctype.todo.todo.update_overdue"
 	],
 	"hourly": [
 		"frappe.model.utils.link_count.update_link_count",
@@ -153,8 +154,7 @@ scheduler_events = {
 		"frappe.utils.scheduler.restrict_scheduler_events_if_dormant",
 		"frappe.email.doctype.auto_email_report.auto_email_report.send_daily",
 		"frappe.core.doctype.feedback_request.feedback_request.delete_feedback_request",
-		"frappe.core.doctype.authentication_log.authentication_log.clear_authentication_logs",
-		"frappe.desk.doctype.todo.todo.update_overdue"
+		"frappe.core.doctype.authentication_log.authentication_log.clear_authentication_logs"
 	],
 	"daily_long": [
 		"frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backups_daily",
