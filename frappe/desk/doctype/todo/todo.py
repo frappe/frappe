@@ -24,7 +24,8 @@ class ToDo(Document):
 
 		else:
 			# NOTE the previous value is only available in validate method
-			if self.get_db_value("status") != self.status:
+			# if self.get_db_value("status") != self.status:
+			if self.get_db_value("status") != self.status and not self.status in ['Open', 'Overdue']:
 				self._assignment = {
 					"text": frappe._("Assignment closed by {0}".format(get_fullname(frappe.session.user))),
 					"comment_type": "Assignment Completed"
@@ -58,7 +59,7 @@ class ToDo(Document):
 				filters={
 					"reference_type": self.reference_type,
 					"reference_name": self.reference_name,
-					"status": "Open"
+					"status": ["in", ["Open","Overdue"]]
 				},
 				fields=["owner"], as_list=True)]
 
@@ -77,7 +78,7 @@ class ToDo(Document):
 				self.update_in_reference()
 
 			else:
-				raise
+				frappe.throw(e)
 
 # NOTE: todo is viewable if either owner or assigned_to or System Manager in roles
 def on_doctype_update():
