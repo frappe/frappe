@@ -58,7 +58,7 @@ class ToDo(Document):
 				filters={
 					"reference_type": self.reference_type,
 					"reference_name": self.reference_name,
-					"status": "Open"
+					"status": ["in", ["Open","Overdue"]]
 				},
 				fields=["owner"], as_list=True)]
 
