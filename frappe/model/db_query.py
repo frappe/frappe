@@ -308,15 +308,7 @@ class DatabaseQuery(object):
 			if f.operator.lower() == 'between' and \
 				(f.fieldname in ('creation', 'modified') or (df and (df.fieldtype=="Date" or df.fieldtype=="Datetime"))):
 
-				from_date = None
-				to_date = None
-				if f.value and isinstance(f.value, (list, tuple)):
-					if len(f.value) >= 1: from_date = f.value[0]
-					if len(f.value) >= 2: to_date = f.value[1]
-
-				value = "'%s' AND '%s'" % (
-					add_to_date(get_datetime(from_date),days=-1).strftime("%Y-%m-%d %H:%M:%S.%f"),
-					get_datetime(to_date).strftime("%Y-%m-%d %H:%M:%S.%f"))
+				value = get_between_date_filter(f.value)
 				fallback = "'0000-00-00 00:00:00'"
 
 			elif df and df.fieldtype=="Date":
@@ -619,5 +611,21 @@ def is_parent_only_filter(doctype, filters):
 		for flt in filters:
 			if doctype not in flt:
 				only_parent_doctype = False
+			if 'Between' in flt:
+				flt[3] = get_between_date_filter(flt[3])
 
 	return only_parent_doctype
+
+def get_between_date_filter(value):
+	from_date = None
+	to_date = None
+
+	if value and isinstance(value, (list, tuple)):
+		if len(value) >= 1: from_date = value[0]
+		if len(value) >= 2: to_date = value[1]
+
+	data = "'%s' AND '%s'" % (
+		add_to_date(get_datetime(from_date),days=-1).strftime("%Y-%m-%d %H:%M:%S.%f"),
+		get_datetime(to_date).strftime("%Y-%m-%d %H:%M:%S.%f"))
+
+	return data
