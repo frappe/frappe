@@ -145,7 +145,7 @@ class User(Document):
 
 	def email_new_password(self, new_password=None):
 		if new_password and not self.flags.in_insert:
-			_update_password(self.name, new_password)
+			_update_password(user=self.name, pwd=new_password, logout_all_sessions=self.logout_all_sessions)
 
 			if self.send_password_update_notification:
 				self.password_update_mail(new_password)
@@ -191,7 +191,8 @@ class User(Document):
 				if self.name not in STANDARD_USERS:
 					if new_password:
 						# new password given, no email required
-						_update_password(self.name, new_password)
+						_update_password(user=self.name, pwd=new_password,
+							logout_all_sessions=self.logout_all_sessions)
 
 					if not self.flags.no_welcome_mail and self.send_welcome_email:
 						self.send_welcome_mail_to_user()
