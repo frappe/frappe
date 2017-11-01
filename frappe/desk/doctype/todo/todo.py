@@ -24,7 +24,7 @@ class ToDo(Document):
 
 		else:
 			# NOTE the previous value is only available in validate method
-			if self.get_db_value("status") != self.status:
+			if self.get_db_value("status") != self.status and not self.status in ['Open','Overdue']:
 				self._assignment = {
 					"text": frappe._("Assignment closed by {0}".format(get_fullname(frappe.session.user))),
 					"comment_type": "Assignment Completed"
