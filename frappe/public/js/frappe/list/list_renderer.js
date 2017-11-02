@@ -368,7 +368,7 @@ frappe.views.ListRenderer = Class.extend({
 				filters: this.list_view.get_filters_args()
 			}
 		}).then(r => {
-			const count = r.message;
+			const count = r.message ? r.message : current_count;
 			const $html = $(`<span>${current_count} of ${count}</span>`);
 
 			$html.css({
