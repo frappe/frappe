@@ -62,6 +62,7 @@ class ToDo(Document):
 				},
 				fields=["owner"], as_list=True)]
 
+			assignments = list(set(assignments))
 			assignments.reverse()
 			frappe.db.set_value(self.reference_type, self.reference_name,
 				"_assign", json.dumps(assignments), update_modified=False)
