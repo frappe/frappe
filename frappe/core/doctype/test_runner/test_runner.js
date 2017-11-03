@@ -60,7 +60,7 @@ frappe.ui.form.on('Test Runner', {
 
 				details.assertions.map(a => {
 					// eslint-disable-next-line
-					console.log(`${a.result ? '✔' : '✗'}  ${a.message}`);
+					console.log(`${a.result ? '✔' : '✗'}  ${a.message || ''}`);
 				});
 
 			});
