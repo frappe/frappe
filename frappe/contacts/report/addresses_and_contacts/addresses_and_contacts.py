@@ -37,10 +37,11 @@ def get_data(filters):
 	data = []
 	party_type = filters.get("party_type")
 	party = filters.get("party_name")
+	party_group = filters.get("party_group")
 
-	return get_party_addresses_and_contact(party_type, party)
+	return get_party_addresses_and_contact(party_type, party, party_group)
 
-def get_party_addresses_and_contact(party_type, party):
+def get_party_addresses_and_contact(party_type, party, party_group):
 	data = []
 	filters = None
 	party_details = []
@@ -50,7 +51,17 @@ def get_party_addresses_and_contact(party_type, party):
 
 	if party:
 		filters = { "name": party }
-		
+
+	if party_group:
+		group_condition = {"customer_group": party_group} if party_type == 'Customer'\
+			else {"supplier_type": party_group}
+
+		if filters:
+			filters.update(group_condition)
+		else:
+			filters = group_condition
+
+
 	party_details = frappe.get_list(party_type, filters=filters, fields=["name"], as_list=True)
 	for party_detail in map(list, party_details):
 		docname = party_detail[0]
