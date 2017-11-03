@@ -30,9 +30,6 @@ def make_xlsx(data, sheet_name, wb=None):
 			else:
 				value = item
 
-			if isinstance(value, basestring):
-				value = value.encode('unicode_escape').decode('utf-8')
-
 			clean_row.append(value)
 
 		ws.append(clean_row)
