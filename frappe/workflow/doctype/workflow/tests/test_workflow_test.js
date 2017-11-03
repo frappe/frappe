@@ -11,9 +11,8 @@ QUnit.test("Test Workflow", function(assert) {
 			cur_frm.set_value('email', 'test1@testmail.com');
 			cur_frm.set_value('first_name', 'Test Name');
 			cur_frm.set_value('send_welcome_email', 0);
-			cur_frm.save();
+			return cur_frm.save();
 		},
-		() => frappe.timeout(2),
 		() => frappe.tests.click_button('Actions'),
 		() => frappe.timeout(0.5),
 		() => {
@@ -32,10 +31,9 @@ QUnit.test("Test Workflow", function(assert) {
 		},
 		() => frappe.timeout(1),
 		() => {
-			cur_frm.set_value('last_name', 'Test');
-			cur_frm.save();
+			cur_frm.set_value('role_profile_name', 'Test 2');
+			return cur_frm.save();
 		},
-		() => frappe.timeout(2),
 		() => frappe.tests.click_button('Actions'),
 		() => frappe.timeout(1),
 		() => {
