@@ -21,7 +21,7 @@ frappe.ui.form.ControlAutocomplete = frappe.ui.form.ControlData.extend({
 			maxItems: 99,
 			autoFirst: true,
 			list: this.get_data()
-		}
+		};
 	},
 
 	setup_awesomplete() {
