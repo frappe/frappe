@@ -18,3 +18,4 @@ frappe/tests/ui/test_control_geolocation.js
 frappe/core/doctype/role_profile/test_role_profile.js
 frappe/core/doctype/user/test_user_with_role_profile.js
 frappe/tests/ui/test_list_count.js
+frappe/desk/doctype/calendar_view/test_calendar_view.js
