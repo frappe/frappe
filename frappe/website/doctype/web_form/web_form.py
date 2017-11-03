@@ -255,7 +255,7 @@ def get_context(context):
 
 			js_path = os.path.join(os.path.dirname(self.web_form_module.__file__), scrub(self.name) + '.js')
 			if os.path.exists(js_path):
-				context.script = frappe.render_template(open(js_path, 'r').read(), context)
+				context.script = frappe.render_template(open(js_path, 'r').read().decode('utf-8'), context)
 
 			css_path = os.path.join(os.path.dirname(self.web_form_module.__file__), scrub(self.name) + '.css')
 			if os.path.exists(css_path):
