@@ -930,7 +930,7 @@ def send_token_via_sms(tmp_id,phone_no=None,user=None):
 			return False
 
 	args[ss.receiver_parameter] = usr_phone
-	status = send_request(ss.sms_gateway_url, args)
+	status = send_request(ss.sms_gateway_url, args, use_post=ss.use_post)
 
 	if 200 <= status < 300:
 		frappe.cache().delete(tmp_id + '_token')
