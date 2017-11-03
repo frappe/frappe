@@ -32,18 +32,18 @@ QUnit.test("Test Workflow", function(assert) {
 		},
 		() => frappe.timeout(1),
 		() => {
-			$('.user-role input:eq(5)').click();
+			cur_frm.set_value('last_name', 'Test');
 			cur_frm.save();
 		},
-		() => frappe.timeout(0.5),
+		() => frappe.timeout(2),
 		() => frappe.tests.click_button('Actions'),
-		() => frappe.timeout(0.5),
+		() => frappe.timeout(1),
 		() => {
 			let reject = $(`.dropdown-menu li:contains("Reject"):visible`).size();
-			assert.equal(reject, 1, "Review Action exists");
+			assert.equal(reject, 1, "Reject Action exists");
 		},
 		() => frappe.tests.click_dropdown_item('Reject'),
-		() => frappe.timeout(0.5),
+		() => frappe.timeout(1),
 		() =>	{
 			if(frappe.tests.click_button('Close'))
 				assert.equal(1, 1, "Reject action works");
