@@ -12,7 +12,9 @@ def get_contact_list():
 	"""Returns contacts (from autosuggest)"""
 
 	try:
-		out = filter(None, frappe.db.sql_list("""select distinct email_id from `tabContact`"""))
+		out = frappe.db.sql_list("""select concat(email_id, " < ", concat(first_name,
+			" ", ifnull(last_name, "")) , " >") from `tabContact`""")
+		out = filter(None, out)
 
 	except Exception as e:
 		raise
@@ -61,3 +63,5 @@ def get_communication_doctype(doctype, txt, searchfield, start, page_len, filter
 		if txt.lower().replace("%", "") in dt.lower() and dt in can_read:
 			out.append([dt])
 	return out
+
+

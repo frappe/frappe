@@ -13,7 +13,8 @@ frappe.ui.form.ControlMultiSelect = frappe.ui.form.ControlAutocomplete.extend({
 
 			replace: function(text) {
 				const before = this.input.value.match(/^.+,\s*|/)[0];
-				this.input.value = before + text + ", ";
+				const value = before + text;
+				this.input.value = (value.includes(" <") ? value.split(' <')[0] : value) + ", ";
 			}
 		});
 	},
