@@ -357,13 +357,24 @@ class Meta(Document):
 
 	def get_dashboard_data(self):
 		'''Returns dashboard setup related to this doctype.
-
 		This method will return the `data` property in the
 		`[doctype]_dashboard.py` file in the doctype folder'''
 		data = frappe._dict()
 		try:
 			module = load_doctype_module(self.name, suffix='_dashboard')
-			if hasattr(module, 'get_data'):
+			dashboard_method = frappe.get_hooks('get_dashboard_data', {}).get(self.name)
+
+			if dashboard_method:
+				import importlib
+
+				method_splitted = dashboard_method[0].split('.')
+				last = method_splitted.pop()
+				path = '.'.join(method_splitted)
+
+				m = importlib.import_module(path)
+
+				data = frappe._dict(getattr(m, last)())
+			elif hasattr(module, 'get_data'):
 				data = frappe._dict(module.get_data())
 		except ImportError:
 			pass

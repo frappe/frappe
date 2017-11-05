@@ -61,7 +61,7 @@
    "label": "Status", 
    "length": 0, 
    "no_copy": 0, 
-   "options": "Open\nClosed", 
+   "options": "Open\nOverdue\nClosed", 
    "permlevel": 0, 
    "print_hide": 0, 
    "print_hide_if_no_value": 0, 

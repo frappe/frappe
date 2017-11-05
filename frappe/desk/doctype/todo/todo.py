@@ -7,6 +7,7 @@ import json
 
 from frappe.model.document import Document
 from frappe.utils import get_fullname
+from frappe.utils.data import nowdate, get_datetime
 
 subject_field = "description"
 sender_field = "sender"
@@ -23,7 +24,8 @@ class ToDo(Document):
 
 		else:
 			# NOTE the previous value is only available in validate method
-			if self.get_db_value("status") != self.status:
+			# if self.get_db_value("status") != self.status:
+			if self.get_db_value("status") != self.status and not self.status in ['Open', 'Overdue']:
 				self._assignment = {
 					"text": frappe._("Assignment closed by {0}".format(get_fullname(frappe.session.user))),
 					"comment_type": "Assignment Completed"
@@ -57,10 +59,11 @@ class ToDo(Document):
 				filters={
 					"reference_type": self.reference_type,
 					"reference_name": self.reference_name,
-					"status": "Open"
+					"status": ["in", ["Open","Overdue"]]
 				},
 				fields=["owner"], as_list=True)]
 
+			assignments = list(set(assignments))
 			assignments.reverse()
 			frappe.db.set_value(self.reference_type, self.reference_name,
 				"_assign", json.dumps(assignments), update_modified=False)
@@ -76,7 +79,7 @@ class ToDo(Document):
 				self.update_in_reference()
 
 			else:
-				raise
+				frappe.throw(e)
 
 # NOTE: todo is viewable if either owner or assigned_to or System Manager in roles
 def on_doctype_update():
@@ -97,6 +100,19 @@ def has_permission(doc, user):
 	else:
 		return doc.owner==user or doc.assigned_by==user
 
+def update_overdue():
+	today = nowdate()
+	todos = frappe.db.get_all('ToDo', filters={'status': 'Open'}, fields=['name', 'date'])
+
+	for todo in todos:
+		if todo.get('date'):
+			if get_datetime(today) >= get_datetime(todo.get('date')):
+				doc = frappe.get_doc('ToDo', todo.get('name'))
+				doc.status = 'Overdue'
+				doc.save()
+
+	frappe.db.commit()
+	
 @frappe.whitelist()
 def new_todo(description):
 	frappe.get_doc({

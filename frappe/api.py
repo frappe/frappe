@@ -78,8 +78,12 @@ def handle():
 						raise frappe.PermissionError
 					frappe.local.response.update({"data": doc})
 
-				if frappe.local.request.method=="PUT":
-					data = json.loads(frappe.local.form_dict.data)
+				if frappe.local.request.method=="PUT":					
+					try:
+ 						data = json.loads(frappe.local.form_dict.data)
+ 					except ValueError:
+ 						data = frappe.local.form_dict
+					
 					doc = frappe.get_doc(doctype, name)
 
 					if "flags" in data:
@@ -111,7 +115,11 @@ def handle():
 							doctype, **frappe.local.form_dict)})
 
 				if frappe.local.request.method=="POST":
-					data = json.loads(frappe.local.form_dict.data)
+					try:
+ 						data = json.loads(frappe.local.form_dict.data)
+ 					except ValueError:
+ 						data = frappe.local.form_dict
+						
 					data.update({
 						"doctype": doctype
 					})
@@ -125,6 +133,21 @@ def handle():
 	else:
 		raise frappe.DoesNotExistError
 
+	try:
+		custom_api_response = frappe.get_hooks('custom_api_responses').get(doctype)
+
+		if custom_api_response:
+			import importlib
+
+		method_splitted = custom_api_response[0].split('.')
+		last = method_splitted.pop()
+		path = '.'.join(method_splitted)
+
+		m = importlib.import_module(path)
+		return getattr(m, last)(frappe.local.response)
+	except Exception:
+		pass
+		
 	return build_response("json")
 
 def validate_oauth():

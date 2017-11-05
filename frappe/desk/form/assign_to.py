@@ -19,7 +19,7 @@ def get(args=None):
 	get_docinfo(frappe.get_doc(args.get("doctype"), args.get("name")))
 
 	return frappe.db.sql("""select owner, description from `tabToDo`
-		where reference_type=%(doctype)s and reference_name=%(name)s and status="Open"
+		where reference_type=%(doctype)s and reference_name=%(name)s and status in ("Open", "Overdue")
 		order by modified desc limit 5""", args, as_dict=True)
 
 @frappe.whitelist()
@@ -37,7 +37,7 @@ def add(args=None):
 		args = frappe.local.form_dict
 
 	if frappe.db.sql("""select owner from `tabToDo`
-		where reference_type=%(doctype)s and reference_name=%(name)s and status="Open"
+		where reference_type=%(doctype)s and reference_name=%(name)s and status in ("Open", "Overdue")
 		and owner=%(assign_to)s""", args):
 		frappe.throw(_("Already in user's To Do list"), DuplicateToDoError)
 
@@ -90,7 +90,7 @@ def add_multiple(args=None):
 		add(args)
 
 def remove_from_todo_if_already_assigned(doctype, docname):
-	owner = frappe.db.get_value("ToDo", {"reference_type": doctype, "reference_name": docname, "status":"Open"}, "owner")
+	owner = frappe.db.get_value("ToDo", {"reference_type": doctype, "reference_name": docname, "status": ["in", ["Open","Overdue"]]}, "owner")
 	if owner:
 		remove(doctype, docname, owner)
 
@@ -98,7 +98,7 @@ def remove_from_todo_if_already_assigned(doctype, docname):
 def remove(doctype, name, assign_to):
 	"""remove from todo"""
 	try:
-		todo = frappe.db.get_value("ToDo", {"reference_type":doctype, "reference_name":name, "owner":assign_to, "status":"Open"})
+		todo = frappe.db.get_value("ToDo", {"reference_type":doctype, "reference_name":name, "owner":assign_to, "status": ["in", ["Open","Overdue"]]})
 		if todo:
 			todo = frappe.get_doc("ToDo", todo)
 			todo.status = "Closed"
