@@ -95,7 +95,7 @@ def get_sessions_to_clear(user=None, keep_current=False, device=None):
 		(user, device))
 
 def delete_session(sid=None, user=None, reason="Session Expired"):
-	from frappe.core.doctype.communication.feed import logout_feed
+	from frappe.core.doctype.activity_log.feed import logout_feed
 
 	frappe.cache().hdel("session", sid)
 	frappe.cache().hdel("last_db_session_update", sid)

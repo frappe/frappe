@@ -4,7 +4,7 @@ def execute():
 	frappe.reload_doc("core", "doctype", "communication")
 	frappe.reload_doc("core", "doctype", "activity_log")
 
-	communication_data = frappe.get_all('Communication'', filters= {'comment_type': 'Updated'}')
+	communication_data = frappe.get_all('Communication', filters= {'comment_type': 'Updated'})
 	activity_log_field = frappe.get_meta('Activity Log').fields
 
 	for d in communication_data:
