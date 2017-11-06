@@ -122,8 +122,6 @@ def import_doc(docdict, force=False, data_import=False, pre_process=None,
 		# delete old
 		frappe.delete_doc(doc.doctype, doc.name, force=1, ignore_doctypes=ignore, for_reload=True)
 
-	
-
 	doc.flags.ignore_children_type = ignore
 	doc.flags.ignore_links = True
 	if not data_import:

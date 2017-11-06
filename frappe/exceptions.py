@@ -8,7 +8,7 @@ from werkzeug.exceptions import NotFound
 
 # imports - third-party imports
 from pymysql import ProgrammingError as SQLError, Error
-from pymysql import OperationalError as DatabaseOperationalError
+# from pymysql import OperationalError as DatabaseOperationalError
 
 class ValidationError(Exception):
 	http_status_code = 417
