@@ -57,6 +57,8 @@ class File(NestedSet):
 		self.update_parent_folder_size()
 
 	def after_rename(self, olddn, newdn, merge=False):
+		super(File, self).after_rename(olddn, newdn, merge)
+
 		for successor in self.get_successor():
 			setup_folder_path(successor, self.name)
 
