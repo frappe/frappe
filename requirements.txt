@@ -39,7 +39,6 @@ pyopenssl
 ndg-httpsclient
 pyasn1
 zxcvbn-python
-psutil
 unittest-xml-reporting
 oauthlib
 PyJWT
