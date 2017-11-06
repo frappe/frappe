@@ -56,7 +56,7 @@ class ImproperDBConfigurationError(Error):
 			msg = "MariaDb is not properly configured"
 		super(ImproperDBConfigurationError, self).__init__(msg)
 		self.reason = reason
-		
+
 class DuplicateEntryError(NameError):pass
 class DataError(ValidationError): pass
 class UnknownDomainError(Exception): pass
