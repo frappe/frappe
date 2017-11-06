@@ -31,6 +31,26 @@ def download_multi_pdf(doctype, name, format=None):
 	frappe.local.response.filecontent = read_multi_pdf(output)
 	frappe.local.response.type = "download"
 
+@frappe.whitelist()
+def download_mixed_pdf(doctype, name, format=None):
+	# name can include names of many docs of the same doctype.
+	# doctype can include all kind of doctypes
+	
+	import json
+	from collections import OrderedDict
+
+	doctype_result = json.loads(doctype, object_pairs_hook=OrderedDict)
+	name_result = json.loads(name, object_pairs_hook=OrderedDict)
+
+	# Concatenating pdf files
+	output = PdfFileWriter()
+	for i, ss in enumerate(name_result):
+		output = frappe.get_print(doctype_result[i], ss, format, as_pdf=True, output=output)
+
+	frappe.local.response.filename = "{doctype}.pdf".format(doctype=doctype.replace(" ", "-").replace("/", "-"))
+	frappe.local.response.filecontent = read_multi_pdf(output)
+	frappe.local.response.type = "download"
+	
 def read_multi_pdf(output):
 	# Get the content of the merged pdf files
 	fname = os.path.join("/tmp", "frappe-pdf-{0}.pdf".format(frappe.generate_hash()))
