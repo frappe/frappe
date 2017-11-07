@@ -58,7 +58,7 @@ frappe.views.TranslationManager = Class.extend({
             frappe.call({
                 'method': 'frappe.translate.update_record_translation',
                 'args': {
-                    'translation': translated
+                    'translated': translated
                 },
                 'callback': function(res){
                     if (!res.exc){
