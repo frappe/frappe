@@ -50,7 +50,7 @@ def download_mixed_pdf(doctype, name, format=None):
 	frappe.local.response.filename = "{doctype}.pdf".format(doctype=doctype.replace(" ", "-").replace("/", "-"))
 	frappe.local.response.filecontent = read_multi_pdf(output)
 	frappe.local.response.type = "download"
-	
+
 def read_multi_pdf(output):
 	# Get the content of the merged pdf files
 	fname = os.path.join("/tmp", "frappe-pdf-{0}.pdf".format(frappe.generate_hash()))
