@@ -196,7 +196,7 @@ frappe.ui.form.ControlGeolocation = frappe.ui.form.ControlCode.extend({
 					$('div.leaflet-control-locate.leaflet-bar.leaflet-control').hide();
 					$('#unique-0 > div.leaflet-control-container > div.leaflet-top.leaflet-right > div:nth-child(3)').hide();
 					button.state('stop-trip');	
-					intervalId = setInterval(geolocEveryMin, 6*1000);
+					intervalId = setInterval(geolocEveryMin, 60*1000);
 				}
 				}, {
 				stateName: 'stop-trip',
