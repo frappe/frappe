@@ -94,6 +94,47 @@ frappe.ui.form.Control = Class.extend({
 			&& this.$wrapper.toggleClass("hide-control", this.disp_status=="None")
 			&& this.refresh_input
 			&& this.refresh_input();
+		
+		var options = this.df.options,
+			value = this.get_value();
+
+		// Disable translation non-string fields or special string fields
+		if (!value
+			|| !frappe.user_roles.includes('Translator')
+			|| !(['Data', 'Select', 'Text', 'Small Text', 'Text Editor'].includes(this.df.fieldtype))
+			|| !this.frm ) return;
+		
+		// Disable translation in website
+		if (!frappe.views
+			|| !frappe.views.TranslationManager) return;
+		
+		// At least two languages needs to be enabled to translation works
+		if (frappe.boot.translate_languages.length < 2) return;
+
+		if (!$('.clearfix .btn-open', this.$wrapper).length){
+			var me = this,
+				translated = (this.doc
+							  && this.doc.__onload
+							  && this.doc.__onload.translations
+							  && this.doc.__onload.translations[value]);
+			
+			$(format('<a class="btn-open no-decoration text-muted" title="{0}">\
+				<i class="fa fa-globe {1}"></i></a>', [
+					__('Open Translation'), (translated) ? "text-warning": ""
+				])).appendTo(this.$wrapper.find('.clearfix'))
+			
+			this.$wrapper.find('.btn-open').on('click', function(){
+				if (!me.doc.__islocal){
+					new frappe.views.TranslationManager({
+						'df': me.df,
+						'source_text': value,
+						'target_language': me.doc.language,
+						'doc': me.doc
+					});
+				}
+			});
+		}
+		
 	},
 	get_doc: function() {
 		return this.doctype && this.docname

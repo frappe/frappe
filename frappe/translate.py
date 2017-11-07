@@ -83,6 +83,14 @@ def get_all_languages():
 		return frappe.db.sql_list('select name from tabLanguage')
 	return frappe.cache().get_value('languages', _get)
 
+def get_enabled_languages():
+	"""Returns a list of languages that are enabled"""
+	def _get():
+		if not frappe.db:
+			frappe.connect()
+		return frappe.db.sql_list('select name from tabLanguage where enabled=1')
+	return frappe.cache().get_value('languages_enabled', _get)
+
 def get_lang_dict():
 	"""Returns all languages in dict format, full name is the key e.g. `{"english":"en"}`"""
 	return dict(frappe.db.sql('select language_name, name from tabLanguage'))
@@ -388,6 +396,29 @@ def get_messages_from_workflow(doctype=None, app_name=None):
 			for action in actions if is_translatable(action['action'])])
 
 	return messages
+
+
+def get_message_from_record(doc, handler=None):
+	def get_translations( d, rec=doc ):
+		'''Fetch all available translations from the database base on the active'''
+		ret = {}
+		for fieldname, value in d.items():
+			if isinstance(d, list):
+				for c in value:
+					if isinstance(c, dict):
+						ret.update( get_translations( c ), rec.get(c.get('parentfield'), {'name': c.get('parent')})[0] )
+			if isinstance( value, string_types ) and \
+				rec.meta.get_field(fieldname) not in ('Link', 'Dynamic Link', 'Code') and \
+				frappe.db.exists('Translation', {'source_name': value}):
+				for translation in frappe.get_all('Translation', ['*'], {'source_name': value}):
+					if value not in ret:
+						ret.setdefault(value, {})
+					ret[value][translation.language] = translation
+		return ret
+
+	if not doc.is_new():
+		doc.get('__onload').translations = get_translations(doc.as_dict())
+
 
 def get_messages_from_custom_fields(app_name):
 	fixtures = frappe.get_hooks('fixtures', app_name=app_name) or []
@@ -700,3 +731,24 @@ def rename_language(old_name, new_name):
 
 	frappe.db.sql("""update `tabUser` set language=%(new_name)s where language=%(old_name)s""",
 		{ "old_name": old_name, "new_name": new_name })
+
+
+@frappe.whitelist()
+def update_record_translation(translated):
+	if isinstance(translated, string_types):
+		translated = json.loads(translated)
+
+	source = translated['source']
+	language = translated['language']
+
+	for lang, target in translated.items():
+		if lang == 'source':
+			continue
+
+		frappe.get_doc({
+			'doctype': 'Translation',
+			'language': lang,
+			'source_name': source
+		}).update({
+			'target_name': target
+		}).save()

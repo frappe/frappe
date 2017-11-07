@@ -108,6 +108,9 @@ standard_queries = {
 
 doc_events = {
 	"*": {
+		"onload": [
+			"frappe.translate.get_message_from_record"
+		],
 		"on_update": [
 			"frappe.desk.notifications.clear_doctype_notifications",
 			"frappe.core.doctype.communication.feed.update_feed"
