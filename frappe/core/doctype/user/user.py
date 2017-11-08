@@ -983,6 +983,5 @@ def throttle_user_creation():
 	if frappe.flags.in_import:
 		return
 
-	# bring creation_throttling_limit from site_config.json key
-	if frappe.db.get_creation_count('User', 60) > frappe.local.conf.get("creation_throttling_limit", 60):
+	if frappe.db.get_creation_count('User', 60) > frappe.local.conf.get("throttle_user_limit", 60):
 		frappe.throw(_('Throttled'))
