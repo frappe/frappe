@@ -200,6 +200,10 @@ def check_if_doc_is_linked(doc, method="Delete"):
 					frappe.throw(_('Cannot delete or cancel because {0} <a href="#Form/{0}/{1}">{1}</a> is linked with {2} <a href="#Form/{2}/{3}">{3}</a>')
 						.format(doc.doctype, doc.name, linked_doctype,
 						item.parent or item.name), frappe.LinkExistsError)
+		else:
+			if frappe.db.get_value(link_dt, None, link_field) == doc.name:
+				frappe.throw(_('Cannot delete {0} <a href="#Form/{0}/{1}">{1}</a> is linked with <a href="#Form/{2}/{2}">{2}</a>')
+					.format(doc.doctype, doc.name, link_dt), frappe.LinkExistsError)
 
 def check_if_doc_is_dynamically_linked(doc, method="Delete"):
 	'''Raise `frappe.LinkExistsError` if the document is dynamically linked'''
