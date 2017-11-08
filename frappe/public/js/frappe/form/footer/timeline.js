@@ -92,7 +92,6 @@ frappe.ui.form.Timeline = Class.extend({
 	},
 
 	setup_collapse_button: function() {
-		var me = this;
 		this.collapse_button = this.wrapper.find('.btn-collapse-all')
 			.on("click", function() {
 				$('.timeline-item-collapsible .collapse').collapse('toggle');
