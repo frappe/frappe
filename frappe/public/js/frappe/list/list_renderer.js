@@ -355,11 +355,12 @@ frappe.views.ListRenderer = Class.extend({
 			this.render_tags($item_container, value);
 		});
 
-		this.render_count(values.length);
+		this.render_count();
 	},
 
-	render_count: function(current_count) {
+	render_count: function() {
 		const $header_right = this.list_view.list_header.find('.list-item__content--activity');
+		const current_count = this.list_view.data.length;
 
 		frappe.call({
 			method: 'frappe.model.db_query.get_count',
@@ -368,8 +369,9 @@ frappe.views.ListRenderer = Class.extend({
 				filters: this.list_view.get_filters_args()
 			}
 		}).then(r => {
-			const count = r.message ? r.message : current_count;
-			const $html = $(`<span>${current_count} of ${count}</span>`);
+			const count = r.message || current_count;
+			const str = __('{0} of {1}', [current_count, count]);
+			const $html = $(`<span>${str}</span>`);
 
 			$html.css({
 				marginRight: '10px'
