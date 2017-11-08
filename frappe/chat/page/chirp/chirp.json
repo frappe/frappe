@@ -1,0 +1,20 @@
+{
+ "content": null, 
+ "creation": "2017-11-08 14:55:47.986307", 
+ "docstatus": 0, 
+ "doctype": "Page", 
+ "icon": "octicon octicon-comment", 
+ "idx": 0, 
+ "modified": "2017-11-08 15:38:53.093831", 
+ "modified_by": "Administrator", 
+ "module": "Chat", 
+ "name": "chirp", 
+ "owner": "Administrator", 
+ "page_name": "chirp", 
+ "roles": [], 
+ "script": null, 
+ "standard": "Yes", 
+ "style": null, 
+ "system_page": 0, 
+ "title": "Chirp"
+}
