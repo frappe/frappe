@@ -74,6 +74,11 @@ frappe.RoleEditor = Class.extend({
 				.find('[data-user-role="'+user_role.role+'"] input[type="checkbox"]').get(0);
 			if(checkbox) checkbox.checked = true;
 		});
+
+		this.set_enable_disable();
+	},
+	set_enable_disable: function() {
+		$('.box').attr('disabled', this.disable ? true : false);
 	},
 	set_roles_in_table: function() {
 		var opts = this.get_roles();

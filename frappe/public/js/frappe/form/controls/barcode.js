@@ -27,8 +27,30 @@ frappe.ui.form.ControlBarcode = frappe.ui.form.ControlData.extend({
 	get_barcode_html(value) {
 		// Get svg
 		const svg = this.barcode_area.find('svg')[0];
-		JsBarcode(svg, value, {height: 40});
+		JsBarcode(svg, value, this.get_options(value));
 		$(svg).attr('data-barcode-value', value);
 		return this.barcode_area.html();
+	},
+
+	get_options(value) {
+		// get JsBarcode options
+		let options = JSON.parse('{ "height" : 40 }');
+		if (this.isValidJson(this.df.options)) {
+			options = JSON.parse(this.df.options);
+			if (options.format && options.format === "EAN") {
+				options.format = value.length == 8 ? "EAN8" : "EAN13";
+			}
+		}
+		return options;
+	},
+
+	isValidJson(jsonData) {
+		try {
+			JSON.parse(jsonData);
+			return true;
+		} catch (e) {
+			return false;
+		}
 	}
+
 });
