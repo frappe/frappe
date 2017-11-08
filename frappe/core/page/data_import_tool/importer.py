@@ -41,6 +41,8 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 		update_only = True
 	if params.get('from_data_import'):
 		from_data_import = params.get('from_data_import')
+	if not params.get('skip_errors'):
+		skip_errors = params.get('skip_errors')
 
 	frappe.flags.mute_emails = no_email
 

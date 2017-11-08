@@ -237,7 +237,6 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 		this.working_state_message = this.get_message(
 			__("Setting Up"),
 			__("Sit tight while your system is being setup. This may take a few moments."),
-			'orange',
 			true
 		).appendTo(this.parent);
 
@@ -245,8 +244,7 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 		this.current_slide = null;
 		this.completed_state_message = this.get_message(
 			__("Setup Complete"),
-			__("You're all set!"),
-			'green'
+			__("You're all set!")
 		);
 	}
 
@@ -259,7 +257,7 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 		const loading_html = loading
 			? '<div style="width:100%;height:100%" class="lds-rolling state-icon"><div></div></div>'
 			: `<div style="width:100%;height:100%" class="state-icon">
-				<i class="fa fa-check-circle text-extra-muted"
+				<i class="fa fa-check-circle text-success"
 					style="font-size: 64px; margin-top: -8px;"></i>
 			</div>`;
 
