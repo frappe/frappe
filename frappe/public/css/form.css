@@ -319,7 +319,6 @@ h6.uppercase,
   padding: 10px 15px 8px 13px;
   margin: 0px;
   color: #8D99A6;
-  border-bottom: 1px solid #EBEFF2;
 }
 .timeline-item.user-content .comment-header.links-active {
   padding-right: 77px;
@@ -346,6 +345,7 @@ h6.uppercase,
 .timeline-item.user-content .reply {
   padding: 15px;
   overflow: auto;
+  border-bottom: 1px solid #EBEFF2;
 }
 .timeline-item.user-content .reply > div > p:first-child {
   margin-top: 0px;
