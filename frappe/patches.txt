@@ -196,4 +196,4 @@ frappe.patches.v8_5.patch_event_colors
 frappe.patches.v8_10.delete_static_web_page_from_global_search
 frappe.patches.v8_x.add_bgn_xaf_xof_currencies
 frappe.patches.v9_1.add_sms_sender_name_as_parameters
-execute:frappe.get_single('Domain Settings').save()
+frappe.patches.v9_1.resave_domain_settings
