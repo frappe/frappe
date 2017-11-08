@@ -7,16 +7,17 @@ frappe.views.ReportView = frappe.views.ListRenderer.extend({
 	name: 'Report',
 
 	render_view(values) {
-		if (this.datatable) {
-			this.datatable.appendRows(this.build_rows(values));
-			return;
-		}
+		console.log('render', values)
+		// if (this.datatable) {
+		// 	this.datatable.appendRows(this.build_rows(values));
+		// 	return;
+		// }
 
-		this.datatable = new DataTable(this.wrapper, {
+		this.datatable = new DataTable(this.wrapper[0], {
 			data: this.get_data(values),
-			enableLogs: false,
 			enableClusterize: true,
 			addCheckbox: this.can_delete(),
+			takeAvailableSpace: true,
 			editing: (colIndex, rowIndex, value, parent) => {
 				const control = this.render_editing_input(colIndex, value, parent);
 				if (!control) return false;
@@ -26,9 +27,11 @@ frappe.views.ReportView = frappe.views.ListRenderer.extend({
 						return control.set_value(value);
 					},
 					setValue: (value) => {
-						const cell = this.datatable.getCell(rowIndex, colIndex);
+						const cell = this.datatable.getCell(colIndex, rowIndex);
 						let fieldname = this.datatable.getColumn(colIndex).docfield.fieldname;
 						let docname = cell.name;
+
+						console.log(cell);
 
 						return frappe.db.set_value(this.doctype, docname, fieldname, value)
 							.then(r => {
