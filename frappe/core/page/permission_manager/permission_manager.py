@@ -73,6 +73,7 @@ def add(parent, role, permlevel):
 @frappe.whitelist()
 def update(doctype, role, permlevel, ptype, value=None):
 	frappe.only_for("System Manager")
+
 	out = update_permission_property(doctype, role, permlevel, ptype, value)
 	return 'refresh' if out else None
 
@@ -111,3 +112,8 @@ def get_standard_permissions(doctype):
 	module = frappe.db.get_value("DocType", doctype, "module")
 	path = get_file_path(module, "DocType", doctype)
 	return read_doc_from_file(path).get("permissions")
+
+@frappe.whitelist()
+def check_if_submittable(doctype):
+	meta = frappe.get_meta(doctype)
+	return meta.is_submittable

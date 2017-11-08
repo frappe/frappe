@@ -156,6 +156,7 @@ frappe.PermissionEngine = Class.extend({
 			},
 			callback: function(r) {
 				me.render(r.message);
+				me.disable_checkbox(me.get_doctype());
 			}
 		});
 	},
@@ -363,7 +364,7 @@ frappe.PermissionEngine = Class.extend({
 				method: "update",
 				args: args,
 				callback: function(r) {
-					if(r.exc) {
+					if(r.exc || r._server_messages) {
 						// exception: reverse
 						chk.prop("checked", !chk.prop("checked"));
 					} else {
@@ -524,5 +525,22 @@ frappe.PermissionEngine = Class.extend({
 	get_link_fields: function(doctype) {
 		return frappe.get_children("DocType", doctype, "fields",
 			{fieldtype:"Link", options:["not in", ["User", '[Select]']]});
+	},
+	disable_checkbox: function(dt) {
+		frappe.call({
+			module: "frappe.core",
+			page: "permission_manager",
+			method: "check_if_submittable",
+			args: {
+				doctype: dt,
+			},
+			callback: function(r) {
+				if(!r.message){
+					$.each(['submit', 'cancel', 'amend'], function(i,k){
+						$(`input[type="checkbox"][data-ptype="${k}"]`).prop('disabled', true);
+					});
+				}
+			}
+		});
 	}
 });
