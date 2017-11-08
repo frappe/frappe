@@ -132,7 +132,7 @@
 					{%= data.content_html %}
 				</div>
 				{% if(data.attachments && data.attachments.length) { %}
-				<div style="margin: 10px 0px">
+				<div style="margin: 10px 15px;">
 					{% $.each(data.attachments, function(i, a) { %}
 					<div class="ellipsis">
 						<a href="{%= encodeURI(a.file_url).replace(/#/g, \'%23\') %}"
