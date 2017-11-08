@@ -434,7 +434,8 @@ h6.uppercase,
   border-radius: 50%;
   top: 5px;
 }
-.timeline-item .reply-link {
+.timeline-item .reply-link,
+.timeline-item .collapse-link {
   margin-left: 15px;
   font-size: 12px;
 }
