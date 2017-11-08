@@ -343,9 +343,8 @@ h6.uppercase,
   cursor: pointer;
 }
 .timeline-item.user-content .reply {
-  padding: 15px;
   overflow: auto;
-  border-bottom: 1px solid #EBEFF2;
+  border-top: 1px solid #EBEFF2;
 }
 .timeline-item.user-content .reply > div > p:first-child {
   margin-top: 0px;
@@ -438,6 +437,9 @@ h6.uppercase,
 .timeline-item .collapse-link {
   margin-left: 15px;
   font-size: 12px;
+}
+.timeline-item .timeline-item-content {
+  padding: 15px; 
 }
 .timeline-head {
   background-color: white;
