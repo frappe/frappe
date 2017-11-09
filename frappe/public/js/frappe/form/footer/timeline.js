@@ -126,7 +126,7 @@ frappe.ui.form.Timeline = Class.extend({
 			});
 
 		// more btn
-		if (this.more===undefined && communications.length===20) {
+		if (this.more===undefined && communications.length) {
 			this.more = true;
 		}
 
