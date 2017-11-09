@@ -11,12 +11,13 @@ frappe.ui.Dialog = frappe.ui.FieldGroup.extend({
 		this.display = false;
 		this.is_dialog = true;
 
-		$.extend(this, opts);
+		$.extend(this, { animate: true, type: 'large' }, opts);
 		this._super();
 		this.make();
 	},
 	make: function() {
 		this.$wrapper = frappe.get_modal("", "");
+
 		this.wrapper = this.$wrapper.find('.modal-dialog')
 			.get(0);
 		this.make_head();
@@ -95,6 +96,11 @@ frappe.ui.Dialog = frappe.ui.FieldGroup.extend({
 	},
 	show: function() {
 		// show it
+		if ( this.animate ) {
+			this.$wrapper.addClass('fade')
+		} else {
+			this.$wrapper.removeClass('fade')
+		}
 		this.$wrapper.modal("show");
 		this.primary_action_fulfilled = false;
 	},

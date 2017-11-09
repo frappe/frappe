@@ -1,251 +1,271 @@
 frappe.pages.chirp.on_page_load = (parent) => {
-	const page = new frappe.ui.Page({
-		parent: parent,
-		 title: 'Chat'
-	})
+    const page = new frappe.ui.Page({
+        parent: parent,
+         title: 'Chat'
+    })
 
-	frappe.pages.chirp.chirp = new frappe.Chirp(parent)
+    frappe.pages.chirp.chirp = new frappe.Chirp(parent)
 }
 
-frappe.Chirp = class {
-	constructor (parent) {
-		this.$parent  = $(parent)
-		
-		this.$sidebar = this.$parent.find('.layout-side-section')
-		
-		this.make()
-	}
+frappe.Component = class {
+    constructor (parent, props) {
+        this.parent  = $(parent)
+        this.props   = Object.assign({ }, props)
+    }
 
-	make ( ) {
-		this.make_sidebar()
-	}
-
-	make_sidebar ( ) {
-		this.make_sidebar_header()
-		this.make_sidebar_room_list()
-	}
-
-	make_sidebar_header ( ) {
-		this.make_sidebar_user()
-		this.make_sidebar_searchbar()
-	}
-
-	make_sidebar_user ( ) {
-		const template =
-		`
-		<div class="dropdown">
-			<button class="btn btn-default btn-sm btn-block dropdown-toggle" data-toggle="dropdown">
-				
-			</button>
-			<ul class="dropdown-menu">
-				${ frappe.Chirp.STATUSES.map((status) => `<li><a data-status="${status.name}"><span class="indicator ${status.color}"></span> ${status.name}</a></li>`).join("") }
-			</ul>
-		</div>
-		`
-		const that = this
-		this.$sidebar_dropdown_status = $(template)
-		this.$sidebar_dropdown_status.css({
-			'margin-top': '15px'
-		})
-		this.$sidebar_dropdown_status.find('.dropdown-menu li a').click(function () {
-			const status = $(this).data('status')
-			that.set_user_status(status)
-		})
-
-		frappe.call({
-			method: 'frappe.chat.setting.get_user_status',
-			args: {
-				user: frappe.session.user
-			},
-			callback: (r) => {
-				const status = r.message
-				this.set_user_status(status)
-			}
-		})
-
-		this.$sidebar.append(this.$sidebar_dropdown_status)
-	}
-
-	set_user_status (status) {
-		frappe.call({
-			method: 'frappe.chat.setting.set_user_status',
-			args: {
-				user: frappe.session.user,
-				status: status
-			},
-			callback: (r) => {
-				this.make_user_status(status)
-			},
-			error: ( ) => {
-				// TODO: Handle.
-			}
-		})
-	}
-
-	make_user_status (status) {
-		const meta = frappe.Chirp.STATUSES.find(s => s.name === status)
-		this.$sidebar_dropdown_status.find('.btn').html(
-			`<span class="indicator ${meta.color}"></span> ${meta.name}`
-		)
-	}
-
-	make_sidebar_searchbar ( ) {
-		const template = 
-		`
-		<form>
-			<div class="input-group input-group-sm">
-
-				<input class="form-control" placeholder="Search"/>
-				<div class="input-group-btn">
-					<button class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
-						<i class="octicon octicon-pencil"/>
-					</button>
-					<div class="dropdown-menu dropdown-menu-right">
-						<li>
-							<a data-action="new-message">
-								<span class="octicon octicon-comment"/> New Message
-							</a>
-						</li>
-						<li>
-							<a data-action="new-group">
-								<span class="octicon octicon-organization"/> New Group
-							</a>
-						</li>
-					</div>
-				</div>
-			</div>
-		</form>
-		`
-		this.$sidebar_searchbar = $(template)
-		this.$sidebar_searchbar.css({
-			'margin-top': 15,
-		})
-		this.$sidebar_searchbar.find('.dropdown-menu').css({
-			'min-width': 150
-		})
-
-		this.$sidebar_searchbar.submit((e) => {
-			if ( !e.isDefaultPrevented() )
-				e.preventDefault()
-		})
-
-		const that = this
-		this.$sidebar_searchbar.find('.dropdown-menu li a').click(function ( ) {
-			const action = $(this).data('action')
-
-			if ( action === 'new-message' ) {
-				that.on_click_new_message()
-			} else if ( action === 'new-group' ) {
-				that.on_click_new_group()
-			}
-		})
-
-		this.$sidebar.append(this.$sidebar_searchbar)
-	}
-
-	make_sidebar_room_list ( ) {
-		frappe.call({
-			method: 'frappe.chat.doctype.chat_room.chat_room.get',
-			callback: (r) => {
-				const rooms    = r.message
-				const template =
-				`
-				<div class="list-group">
-					${ rooms.map(room => this.render_sidebar_room_list_item(room)).join("") }
-				</div>
-				`
-
-				this.$sidebar_room_list = $(template)
-				this.$sidebar_room_list.css({
-					'margin-top': '15px'
-				})
-
-				this.$sidebar.append(this.$sidebar_room_list)
-			},
-			error: ( ) => {
-				// TODO: Handle.
-			}
-		})
-	}
-
-	render_sidebar_room_list_item (room) {
-		const template = 
-		`
-		<a class="list-group-item">
-			${room.name}
-		</a>
-		`
-
-		return template
-	}
-
-	on_click_new_message ( ) {
-		frappe.call({
-			method: 'frappe.chat.user.get_contact_list',
-			callback: (r) => {
-				if ( r.message ) {
-					const contacts = r.message
-					const template = $(this.render_contact_list(contacts))
-					
-					const dialog = new frappe.ui.Dialog({
-						title: __(`New Message`)
-					})
-					$(dialog.body).append(template)
-
-					dialog.set_primary_action(() => {
-						
-					})
-					dialog.show()
-				}
-			}
-		})
-	}
-
-	render_contact_list (contacts) {
-		const template = 
-		`
-		<div class="list-group">
-			${ contacts.map(contact => 
-				`<a class="list-group-item">
-					<div class="h6">
-						${contact.first_name} ${contact.last_name !== null ? contact.last_name : ""}
-					</div>
-					${contact.last_active ? `<small>${contact.last_active}</small>` : ""}
-				</a>
-				`
-			).join("")
-			}
-		</div>
-		`
-
-		return template
-	}
-
-	on_click_new_group ( ) {
-		const dialog = new frappe.ui.Dialog({
-			title: __(`New Group`)
-		})
-		dialog.set_primary_action(() => {
-			console.log('New Group')
-		})
-		dialog.show()
-	}
+    set_state (state) {
+        this.state   = Object.assign({ }, this.state, state)
+        this.render()
+    }
 }
-frappe.Chirp.STATUSES = [
-	{
-		 name: 'Online',
-		color: 'green'
-	},
-	{
-		 name: 'Away',
-		color: 'yellow'
-	},
-	{
-		 name: 'Busy',
-		color: 'red'
-	},
-	{
-		 name: 'Invisible',
-		color: 'grey'
-	}
+
+frappe.Component.on_click  = (strdom, callback) => {
+    const unique_id = frappe.dom.get_unique_id()
+    const $element  = $(strdom).attr('id', unique_id)
+
+    $(document).on('click', `#${unique_id}`, callback)
+
+    return $element.prop('outerHTML')
+}
+frappe.Component.on_change = (strdom, callback) => {
+    const unique_id = frappe.dom.get_unique_id()
+    const $element  = $(strdom).attr('id', unique_id)
+
+    $(document).on('change', `#${unique_id}`, callback)
+
+    return $element.prop('outerHTML')
+}
+frappe.Component.on_submit = (strdom, callback) => {
+    const unique_id = frappe.dom.get_unique_id()
+    const $element  = $(strdom).attr('id', unique_id)
+
+    $(document).on('submit', `#${unique_id}`, callback)
+
+    return $element.prop('outerHTML')
+}
+
+frappe.Chirp = class extends frappe.Component {
+    constructor (parent, props = null) {
+        super (parent, props)
+
+        this.$parent   = $(parent)
+        this.state     = frappe.Chirp.DEFAULT_STATES
+
+        this.create()
+    }
+
+    get_user_details () {
+        frappe.call({
+              method: 'frappe.chat.user.get',
+            callback: response => this.set_state({ user: response.message })
+        })
+    }
+
+    create ( ) {
+        this.get_user_details()
+
+        frappe.realtime.on('chat:user:status', (response) => {
+            const { user, first_name, status } = response
+            frappe.show_alert({
+                  message: `${first_name || user} is currently <b>${status.toLowerCase()}</b>`,
+                indicator: frappe.Chirp.get_status_color(status)
+            }, 1.5)
+        })
+
+        frappe.realtime.on('chat:room:update', (response) => {
+            this.get_user_details()
+        })
+    }
+
+    on_change (e) {
+        this.set_state({
+            [e.target.name]: e.target.value
+        })
+    }
+    
+    on_submit (e) {
+        if ( !e.isDefaultPrevented() )
+            e.preventDefault()
+    }
+
+    on_click_room (room) {
+        frappe.call({
+              method: 'frappe.chat.doctype.chat_room.chat_room.get',
+                args: { name: room.name },
+            callback: response => this.set_state({ room: response.message })
+        })
+    }
+
+    on_click_call ( ) {
+        const dialog = new frappe.ui.Dialog({
+            animate: false
+        })
+
+        dialog.show()
+    }
+
+    render ( ) {
+        const { state, style } = this
+        const template_sidebar = 
+        `
+        <div class="fc-sb-user" >
+            <div class="dropdown">
+                <button class="btn btn-default btn-block dropdown-toggle" data-toggle="dropdown">
+                    <span class="indicator ${frappe.Chirp.get_status_color(state.user.status)}"></span> ${state.user.status}
+                </button>
+                <div class="dropdown-menu">
+                    ${ frappe.Chirp.USER_STATUSES.map(s => 
+                        `<li>
+                            ${frappe.Component.on_click(`<a><span class="indicator ${frappe.Chirp.get_status_color(s.name)}"></span> ${s.name}</a>`, () => {
+                                if ( state.user.status != s.name ) {
+                                    frappe.call({
+                                        method: 'frappe.chat.user.set_status',
+                                            args: { status: s.name },
+                                        callback: this.set_state({
+                                            user: { ...state.user, status: s.name }
+                                        })
+                                    })
+                                }
+                            })}
+                        </li>
+                        `
+                    ).join('') }
+                </div>
+            </div>
+
+            ${frappe.Component.on_submit(`<form class="fc-sb-search">
+                <div class="input-group input-group-sm">
+                    <input class="form-control" placeholder="Search"/>
+                    <div class="input-group-btn">
+                        <button class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
+                            <i class="octicon octicon-plus"/>
+                        </button>
+                        <ul class="fc-sb-search-dropdown-menu dropdown-menu dropdown-menu-right">
+                            <li>
+                                ${frappe.Component.on_click(`<a><i class="octicon octicon-comment"/> New Message</a>`, () => {
+                                    const dialog = new frappe.ui.Dialog({
+                                        animate: false
+                                    })
+
+                                    dialog.show()
+                                })}
+                            </li>
+                            <li>
+                                ${frappe.Component.on_click(`<a><i class="octicon octicon-organization"/> New Group</a>`, () => {
+                                    const dialog = new frappe.ui.Dialog({
+                                        animate: false
+                                    })
+
+                                    dialog.show()
+                                })}
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </form>`, e => e.preventDefault())}
+
+            <div class="fc-sb-list">
+                <ul class="nav nav-pills nav-stacked">
+                    ${ state.user.rooms.map(r => 
+                    `
+                    <li>
+                        ${frappe.Component.on_click(`<a>${r.room_name}</a>`, () => {
+                            this.on_click_room(r)
+                        })}
+                    </li>
+                    `).join("") }
+                </ul>
+            </div>
+        </div>
+        `
+        const template_room = 
+        `
+        <div class="fs-room">
+            <div class="panel panel-default">
+                ${
+                    state.room.room_name ?
+                        `
+                        <div class="panel-heading">
+                            <div class="row">
+                                <div class="col-xs-7">
+                                    <div>
+                                        <b class="h5">${state.room.room_name || ''}</b>
+                                    </div>
+                                    <small>
+                                        ${
+                                            state.room.type === 'Direct' ? 
+                                                `last seen `
+                                                : 
+                                                `${state.room.users.length} member${state.room.users.length == 1 ? '' : 's'}`
+                                        }
+                                    </small>
+                                </div>
+                                <div class="col-xs-5">
+                                    <div class="text-right">
+                                        ${frappe.Component.on_click(`<a><i class="fa fa-fw fa-phone"/></a>`, this.on_click_call)}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        ` : ''
+                }
+                <div class="panel-body">
+                    ${
+                        state.room.room_name ?
+                            frappe.Component.on_submit(`<form>
+                                <div class="input-group">
+                                    ${frappe.Component.on_change(
+                                        `<textarea
+                                            rows="1"
+                                            name="message"
+                                            value="${state.message}"
+                                            class="form-control"
+                                            placeholder="Type a message"/>`, this.on_change)}
+                                        <span class="input-group-addon btn btn-default" type="submit">
+                                            <i class="fa fa-fw fa-send"/>
+                                        </span>
+                                </div>
+                            </form>`, this.on_submit) : ''
+                    }
+                </div>
+            </div>
+        </div>
+        `
+        
+        this.$parent.find('.layout-side-section').html(template_sidebar)
+        this.$parent.find('.layout-main-section-wrapper').html(template_room)
+    }
+}
+frappe.Chirp.USER_STATUSES    = [
+    {
+        name: 'Online',
+       color: 'green'
+    },
+    {
+        name: 'Away',
+       color: 'yellow'
+    },
+    {
+        name: 'Busy',
+       color: 'red'
+    },
+    {
+        name: 'Invisible',
+       color: 'grey'
+    }
 ]
+frappe.Chirp.DEFAULT_STATES   = {
+    user: {
+        status: null
+    },
+    room: {
+        room_name: null,
+            users: [ ]
+    },
+    message: null
+}
+frappe.Chirp.get_status_color = (status) => {
+    const meta = frappe.Chirp.USER_STATUSES.find(s => s.name === status)
+
+    return meta.color
+}
