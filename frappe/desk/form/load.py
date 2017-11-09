@@ -170,7 +170,7 @@ def get_communication_data(doctype, name, start=0, limit=20, after=None, fields=
 		where {conditions} {group_by}
 		order by creation desc limit %(start)s, %(limit)s""".format(
 			fields = fields, conditions=conditions, group_by=group_by or ""),
-			{ "doctype": doctype, "name": name, "start": frappe.utils.cint(start), "limit": limit },
+			{ "doctype": doctype, "name": name, "start": frappe.utils.cint(start), "limit": frappe.utils.cint(limit) },
 			as_dict=as_dict)
 
 	return communications
