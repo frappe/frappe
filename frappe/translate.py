@@ -739,10 +739,8 @@ def update_record_translation(translated):
 		translated = json.loads(translated)
 
 	source = translated['source']
-	language = translated['language']
-
 	for lang, target in translated.items():
-		if lang == 'source':
+		if lang in ('source', 'language'):
 			continue
 
 		frappe.get_doc({

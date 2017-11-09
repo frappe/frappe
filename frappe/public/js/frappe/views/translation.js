@@ -9,14 +9,14 @@ frappe.views.TranslationManager = Class.extend({
             'title': [__('Translate'), this.fieldname],
             'no_submit_on_enter': true,
             'primary_action_label': __('Translate'),
-            'primary_action': this.translate_action
+            'primary_action': this.translate_action.bind(this)
         });
         this.dialog.show();
     },
     prepare: function(){
         var fields = [
             {'fieldname': 'source', 'fieldtype': 'HTML', 'options': 
-                format('<pre>{0}</pre>', [decodeURIComponent(this.source_text)])
+                format('<code>{0}</code>', [this.source_text])
             }
         ],
         me = this;
@@ -43,31 +43,28 @@ frappe.views.TranslationManager = Class.extend({
     },
     translate_action: function(args){
         var 
-            me = this,
+            self = this,
             translated = {
                 'source': self.source_text, 
-                'source_language': frappe.defaults.get_global_default('language')
-            },
-            prefix = ['trans', md5(self.source_text)].join('_') + '_';
+                'language': frappe.defaults.get_global_default('language')
+            }, key, splitted;
 
-        frappe.boot.translate_languages.forEach(function(lang){
-            var fieldname = prefix + lang;
-            if (!!args[fieldname]){
-                translated[lang] = args[fieldname];
-            }
-            frappe.call({
-                'method': 'frappe.translate.update_record_translation',
-                'args': {
-                    'translated': translated
-                },
-                'callback': function(res){
-                    if (!res.exc){
-                        cur_dialog.hide();
-                        frappe.msgprint('Translations added successfull!');
-                        cur_frm.reload_doc();
-                    }
+        for (key in args){
+            splitted = key.split("_");
+            translated[splitted[splitted.length - 1]] = args[key];
+        }
+        frappe.call({
+            'method': 'frappe.translate.update_record_translation',
+            'args': {
+                'translated': translated
+            },
+            'callback': function(res){
+                if (!res.exc){
+                    cur_dialog.hide();
+                    frappe.msgprint('Translations added successfull!');
+                    cur_frm.reload_doc();
                 }
-            });
+            }
         });
     }
 });
