@@ -164,7 +164,7 @@ frappe.views.TreeView = Class.extend({
 					return !node.root && me.can_read;
 				},
 				click: function(node) {
-					var node_name = node.data.name ? node.data.name : node.data.value;
+					var node_name = node.data.name || node.data.value;
 					frappe.set_route("Form", me.doctype, node_name);
 				}
 			},
@@ -180,7 +180,7 @@ frappe.views.TreeView = Class.extend({
 				label:__("Rename"),
 				condition: function(node) { return !node.root && me.can_write && me.allow_rename; },
 				click: function(node) {
-					var node_name = node.data.name ? node.data.name : node.data.value;
+					var node_name = node.data.name || node.data.value;
 					frappe.model.rename_doc(me.doctype, node_name, function(new_name) {
 						node.tree_link.find('a').text(new_name);
 						node.label = new_name;
@@ -192,7 +192,7 @@ frappe.views.TreeView = Class.extend({
 				label:__("Delete"),
 				condition: function(node) { return !node.root && me.can_delete; },
 				click: function(node) {
-					var node_name = node.data.name ? node.data.name : node.data.value;
+					var node_name = node.data.name || node.data.value;
 					frappe.model.delete_doc(me.doctype, node_name, function() {
 						node.parent.remove();
 					});
@@ -239,7 +239,7 @@ frappe.views.TreeView = Class.extend({
 			if(!v) return;
 
 			var node = me.tree.get_selected_node();
-			v.parent = node.data.name ? node.data.name : node.label;
+			v.parent = node.data.name || node.label;
 			v.doctype = me.doctype;
 
 			if(node.root) {
