@@ -11,6 +11,10 @@ frappe/core/doctype/report/test_query_report.js
 frappe/tests/ui/test_linked_with.js
 frappe/custom/doctype/customize_form/test_customize_form.js
 frappe/desk/doctype/event/test_event.js
+frappe/tests/ui/test_control_html.js
+frappe/tests/ui/test_control_geolocation.js
+frappe/core/doctype/role_profile/test_role_profile.js
+frappe/core/doctype/user/test_user_with_role_profile.js
+frappe/tests/ui/test_list_count.js
 frappe/workflow/doctype/workflow/tests/test_workflow_create.js
 frappe/workflow/doctype/workflow/tests/test_workflow_test.js
-frappe/tests/ui/test_control_html.js

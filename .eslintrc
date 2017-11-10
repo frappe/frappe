@@ -119,6 +119,8 @@
 		"getCookies": true,
 		"get_url_arg": true,
 		"QUnit": true,
-		"JsBarcode": true
+		"JsBarcode": true,
+		"L": true,
+		"Chart": true
 	}
 }

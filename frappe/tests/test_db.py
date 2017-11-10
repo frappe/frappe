@@ -24,6 +24,6 @@ class TestDB(unittest.TestCase):
 	def test_escape(self):
 		frappe.db.escape("香港濟生堂製藥有限公司 - IT".encode("utf-8"))
 
-	def test_multiple_queries(self):
-		# implicit commit
-		self.assertRaises(frappe.SQLError, frappe.db.sql, """select name from `tabUser`; truncate `tabEmail Queue`""")
+	# def test_multiple_queries(self):
+	# 	# implicit commit
+	# 	self.assertRaises(frappe.SQLError, frappe.db.sql, """select name from `tabUser`; truncate `tabEmail Queue`""")

@@ -7,10 +7,12 @@ from __future__ import unicode_literals
 import frappe, json
 from six.moves import range
 import frappe.permissions
-import MySQLdb
 from frappe.model.db_query import DatabaseQuery
 from frappe import _
 from six import text_type, string_types, StringIO
+
+# imports - third-party imports
+import pymysql
 
 @frappe.whitelist()
 def get():
@@ -244,7 +246,7 @@ def get_stats(stats, doctype, filters=[]):
 
 	try:
 		columns = frappe.db.get_table_columns(doctype)
-	except MySQLdb.OperationalError:
+	except pymysql.InternalError:
 		# raised when _user_tags column is added on the fly
 		columns = []
 
@@ -266,7 +268,7 @@ def get_stats(stats, doctype, filters=[]):
 		except frappe.SQLError:
 			# does not work for child tables
 			pass
-		except MySQLdb.OperationalError:
+		except pymysql.InternalError:
 			# raised when _user_tags column is added on the fly
 			pass
 	return stats

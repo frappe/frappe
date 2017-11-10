@@ -3,13 +3,18 @@ import click
 import hashlib, os, sys, compileall
 import frappe
 from frappe import _
-from _mysql_exceptions import ProgrammingError
 from frappe.commands import pass_context, get_site
 from frappe.commands.scheduler import _is_scheduler_enabled
 from frappe.limits import update_limits, get_limits
 from frappe.installer import update_site_config
 from frappe.utils import touch_file, get_site_path
 from six import text_type
+
+# imports - third-party imports
+from pymysql.constants import ER
+
+# imports - module imports
+from frappe.exceptions import SQLError
 
 @click.command('new-site')
 @click.argument('site')
@@ -348,8 +353,8 @@ def _drop_site(site, root_login='root', root_password=None, archived_sites_path=
 
 	try:
 		scheduled_backup(ignore_files=False, force=True)
-	except ProgrammingError as err:
-		if err[0] == 1146:
+	except SQLError as err:
+		if err[0] == ER.NO_SUCH_TABLE:
 			if force:
 				pass
 			else:

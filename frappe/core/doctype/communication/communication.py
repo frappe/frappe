@@ -189,7 +189,7 @@ class Communication(Document):
 		self.notify(print_html, print_format, attachments, recipients)
 
 	def notify(self, print_html=None, print_format=None, attachments=None,
-		recipients=None, cc=None, fetched_from_email_account=False):
+		recipients=None, cc=None, bcc=None,fetched_from_email_account=False):
 		"""Calls a delayed task 'sendmail' that enqueus email in Email Queue queue
 
 		:param print_html: Send given value as HTML attachment
@@ -200,13 +200,13 @@ class Communication(Document):
 		:param fetched_from_email_account: True when pulling email, the notification shouldn't go to the main recipient
 
 		"""
-		notify(self, print_html, print_format, attachments, recipients, cc,
+		notify(self, print_html, print_format, attachments, recipients, cc, bcc,
 			fetched_from_email_account)
 
 	def _notify(self, print_html=None, print_format=None, attachments=None,
-		recipients=None, cc=None):
+		recipients=None, cc=None, bcc=None):
 
-		_notify(self, print_html, print_format, attachments, recipients, cc)
+		_notify(self, print_html, print_format, attachments, recipients, cc, bcc)
 
 	def bot_reply(self):
 		if self.comment_type == 'Bot' and self.communication_type == 'Chat':

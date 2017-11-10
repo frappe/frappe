@@ -8,6 +8,8 @@
 	{%- elif df.fieldtype in ("Image", "Attach Image", "Attach", "Signature")
 		and (guess_mimetype(doc[df.fieldname])[0] or "").startswith("image/")  -%}
 		{{ render_image(df, doc) }}
+	{%- elif df.fieldtype=="Geolocation" -%}
+		{{ render_geolocation(df, doc) }}
 	{%- else -%}
 		{{ render_field_with_label(df, doc) }}
 	{%- endif -%}
@@ -97,6 +99,10 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 {%- macro render_image(df, doc) -%}
 	{{ print_value(df, doc) }}
 {% endmacro %}
+
+{%- macro render_geolocation(df, doc) -%}
+	{{ "" }}
+{%- endmacro -%}
 
 {%- macro print_value(df, doc, parent_doc=None, visible_columns=None) -%}
     {% if doc.print_templates and

@@ -308,15 +308,7 @@ class DatabaseQuery(object):
 			if f.operator.lower() == 'between' and \
 				(f.fieldname in ('creation', 'modified') or (df and (df.fieldtype=="Date" or df.fieldtype=="Datetime"))):
 
-				from_date = None
-				to_date = None
-				if f.value and isinstance(f.value, (list, tuple)):
-					if len(f.value) >= 1: from_date = f.value[0]
-					if len(f.value) >= 2: to_date = f.value[1]
-
-				value = "'%s' AND '%s'" % (
-					add_to_date(get_datetime(from_date),days=-1).strftime("%Y-%m-%d %H:%M:%S.%f"),
-					get_datetime(to_date).strftime("%Y-%m-%d %H:%M:%S.%f"))
+				value = get_between_date_filter(f.value)
 				fallback = "'0000-00-00 00:00:00'"
 
 			elif df and df.fieldtype=="Date":
@@ -571,3 +563,69 @@ def get_order_by(doctype, meta):
 		order_by = "`tab{0}`.docstatus asc, {1}".format(doctype, order_by)
 
 	return order_by
+
+
+@frappe.whitelist()
+def get_list(doctype, *args, **kwargs):
+	'''wrapper for DatabaseQuery'''
+	kwargs.pop('cmd', None)
+	return DatabaseQuery(doctype).execute(None, *args, **kwargs)
+
+@frappe.whitelist()
+def get_count(doctype, filters=None):
+	if filters:
+		filters = json.loads(filters)
+
+	if is_parent_only_filter(doctype, filters):
+		if isinstance(filters, list):
+			filters = frappe.utils.make_filter_dict(filters)
+
+		return frappe.db.count(doctype, filters=filters)
+
+	else:
+		# If filters contain child table as well as parent doctype - Join
+		tables, conditions = ['`tab{0}`'.format(doctype)], []
+		for f in filters:
+			fieldname = '`tab{0}`.{1}'.format(f[0], f[1])
+			table = '`tab{0}`'.format(f[0])
+
+			if table not in tables:
+				tables.append(table)
+
+			conditions.append('{fieldname} {operator} "{value}"'.format(fieldname=fieldname,
+				operator=f[2], value=f[3]))
+
+			if doctype != f[0]:
+				join_condition = '`tab{child_doctype}`.parent =`tab{doctype}`.name'.format(child_doctype=f[0], doctype=doctype)
+				if join_condition not in conditions:
+					conditions.append(join_condition)
+
+		return frappe.db.sql_list("""select count(*) from {0}
+			where {1}""".format(','.join(tables), ' and '.join(conditions)), debug=0)
+
+def is_parent_only_filter(doctype, filters):
+	#check if filters contains only parent doctype
+	only_parent_doctype = True
+
+	if isinstance(filters, list):
+		for flt in filters:
+			if doctype not in flt:
+				only_parent_doctype = False
+			if 'Between' in flt:
+				flt[3] = get_between_date_filter(flt[3])
+
+	return only_parent_doctype
+
+def get_between_date_filter(value):
+	from_date = None
+	to_date = None
+
+	if value and isinstance(value, (list, tuple)):
+		if len(value) >= 1: from_date = value[0]
+		if len(value) >= 2: to_date = value[1]
+
+	data = "'%s' AND '%s'" % (
+		add_to_date(get_datetime(from_date),days=-1).strftime("%Y-%m-%d %H:%M:%S.%f"),
+		get_datetime(to_date).strftime("%Y-%m-%d %H:%M:%S.%f"))
+
+	return data
