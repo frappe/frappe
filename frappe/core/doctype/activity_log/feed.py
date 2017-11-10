@@ -6,7 +6,7 @@ import frappe
 import frappe.permissions
 from frappe.utils import get_fullname
 from frappe import _
-from frappe.core.doctype.authentication_log.authentication_log import add_authentication_log
+from frappe.core.doctype.activity_log.activity_log import add_authentication_log
 from six import string_types
 
 def update_feed(doc, method=None):

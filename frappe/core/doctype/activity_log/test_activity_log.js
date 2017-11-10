@@ -9,13 +9,16 @@ QUnit.test("test: Activity Log", function (assert) {
 	assert.expect(1);
 
 	frappe.run_serially([
-		// insert a new Activity Log
-		() => frappe.tests.make('Activity Log', [
-			// values to be set
-			{key: 'value'}
-		]),
+		// Update a DocType to update feed
+		() => frappe.set_route('Form', 'DocType', 'Supplier'),
+		() => cur_frm.save(),
+
+		() => frappe.timeout(2),
+		() => frappe.set_route('List','Activity Log'),
+
+		() => frappe.timeout(1),
 		() => {
-			assert.equal(cur_frm.doc.key, 'value');
+			assert.ok(cur_list.data[0].subject == 'Supplier');
 		},
 		() => done()
 	]);
