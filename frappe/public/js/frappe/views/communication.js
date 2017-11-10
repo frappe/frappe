@@ -12,7 +12,7 @@ frappe.views.CommunicationComposer = Class.extend({
 		var ans = frappe.call({
 			method:'frappe.email.get_contact_list',
 			callback: function(r) {
-				contacts = r.message || [];
+				me.make_contacts(r.message);
 				me.make();
 			}
 		});
@@ -51,14 +51,15 @@ frappe.views.CommunicationComposer = Class.extend({
 		})
 		this.prepare();
 		this.dialog.show();
+		this.trigger_multiselect_field();
 	},
 
 	get_fields: function() {
 		var fields= [
-			{label:__("To"), fieldtype:"MultiSelect", reqd: 0, fieldname:"recipients", options:contacts},
+			{label:__("To"), fieldtype:"MultiSelect", reqd: 0, fieldname:"recipients", options:Object.keys(contacts)},
 			{fieldtype: "Section Break", collapsible: 1, label: __("CC, BCC & Standard Reply")},
-			{label:__("CC"), fieldtype:"MultiSelect", fieldname:"cc", options:contacts},
-			{label:__("BCC"), fieldtype:"MultiSelect", fieldname:"bcc", options:contacts},
+			{label:__("CC"), fieldtype:"MultiSelect", fieldname:"cc", options:Object.keys(contacts)},
+			{label:__("BCC"), fieldtype:"MultiSelect", fieldname:"bcc", options:Object.keys(contacts)},
 			{label:__("Standard Reply"), fieldtype:"Link", options:"Standard Reply",
 				fieldname:"standard_reply"},
 			{fieldtype: "Section Break"},
@@ -602,4 +603,28 @@ frappe.views.CommunicationComposer = Class.extend({
 		}
 		fields.content.set_value(content);
 	},
+	make_contacts: function(data) {
+		data.map(function(r){
+			var concat = "";
+			concat += r[0] + " &lt;" + r[1] + (r[2] ? " " + r[2] : "") + "&gt;";
+			contacts[concat] = r[0];
+		})
+	},
+	trigger_multiselect_field: function() {
+		var me = this;
+
+		['recipients', 'cc', 'bcc'].map(function(k) {
+			var input = $(me.dialog.wrapper).find(`[data-fieldname="${k}"]`);
+			var val = "";
+			input.on('change', function() {
+				if(this.value) {
+					var last_added = (this.value).split(', ').slice(-2, -1)[0];
+					if(contacts[last_added]) {
+						val += contacts[last_added] + ", ";
+						me.dialog.set_value(k, val);
+					}
+				}
+			});
+		});
+	}
 });

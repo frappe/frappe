@@ -12,8 +12,7 @@ def get_contact_list():
 	"""Returns contacts (from autosuggest)"""
 
 	try:
-		out = frappe.db.sql_list("""select concat(email_id, " < ", concat(first_name,
-			" ", ifnull(last_name, "")) , " >") from `tabContact`""")
+		out = frappe.db.sql("""select email_id, first_name, last_name from `tabContact`""")
 		out = filter(None, out)
 
 	except Exception as e:
