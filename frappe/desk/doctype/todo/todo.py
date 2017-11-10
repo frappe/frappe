@@ -101,7 +101,7 @@ def has_permission(doc, user):
 
 def update_overdue():
 	today = nowdate()
-	todos = frappe.db.get_all('ToDo', filters={'status': 'Open'}, fields=['name', 'date'])
+	todos = frappe.db.get_all('ToDo', filters={'status': 'Open', 'date': ['<', today]}, fields=['name', 'date'])
 
 	for todo in todos:
 		if todo.get('date'):
