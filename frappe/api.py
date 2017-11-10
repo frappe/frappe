@@ -125,6 +125,21 @@ def handle():
 	else:
 		raise frappe.DoesNotExistError
 
+	try:
+		custom_api_response = frappe.get_hooks('custom_api_responses').get(doctype)
+
+		if custom_api_response:
+			import importlib
+
+		method_splitted = custom_api_response[0].split('.')
+		last = method_splitted.pop()
+		path = '.'.join(method_splitted)
+
+		m = importlib.import_module(path)
+		return getattr(m, last)(frappe.local.response)
+	except Exception:
+		pass
+
 	return build_response("json")
 
 def validate_oauth():
