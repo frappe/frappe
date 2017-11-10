@@ -8,7 +8,7 @@ class ChatRoom(Document):
 			type = self.type,
 			name = self.name,
 			room_name = self.room_name,
-		))
+		), after_commit = True)
 
 @frappe.whitelist()
 def create(kind, name = ''):
