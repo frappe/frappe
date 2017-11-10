@@ -42,7 +42,8 @@ def build_response(response_type=None):
 		'json': as_json,
 		'page': as_page,
 		'redirect': redirect,
-		'binary': as_binary
+		'binary': as_binary,
+		'text':as_text
 	}
 
 	return response_type_map[frappe.response.get('type') or response_type]()
@@ -79,6 +80,13 @@ def as_binary():
 	response.mimetype = 'application/octet-stream'
 	response.headers[b"Content-Disposition"] = ("filename=\"%s\"" % frappe.response['filename'].replace(' ', '_')).encode("utf-8")
 	response.data = frappe.response['filecontent']
+	return response
+
+def as_text():
+	response = Response()
+	response.mimetype = 'text/plain'
+	response.charset = 'utf-8'
+	response.data = frappe.local.response.message
 	return response
 
 def make_logs(response = None):
