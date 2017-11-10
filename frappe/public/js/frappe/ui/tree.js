@@ -232,7 +232,7 @@ frappe.ui.TreeNode = Class.extend({
 	load: function(callback) {
 		var node = this;
 		var args = $.extend(this.tree.args || {}, {
-			parent: this.data.value
+			parent: this.data.name || this.data.value
 		});
 
 		return frappe.call({
