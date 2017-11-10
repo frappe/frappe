@@ -4,7 +4,7 @@ frappe.pages.chirp.on_page_load = (parent) => {
          title: 'Chat'
     })
 
-    const $element = $(parent).find('.layout-side-section')
+    const $element = $(parent).find('.layout-main')
     
     frappe.pages.chirp.chirp = new frappe.Chirp()
     frappe.Component.mount(frappe.pages.chirp.chirp, $element)
@@ -41,6 +41,26 @@ frappe.Component.on_click = (strdom, callback) => {
 
     return strdom
 }
+frappe.Component.on_change = (strdom, callback) => {
+    const unique_id = frappe.dom.get_unique_id()
+    const $element  = $(strdom).attr('id', unique_id)
+
+    $(document).on('change', `#${unique_id}`, callback)
+
+    strdom = $element.prop('outerHTML')
+
+    return strdom
+}
+frappe.Component.on_submit = (strdom, callback) => {
+    const unique_id = frappe.dom.get_unique_id()
+    const $element  = $(strdom).attr('id', unique_id)
+
+    $(document).on('submit', `#${unique_id}`, callback)
+
+    strdom = $element.prop('outerHTML')
+
+    return strdom
+}
 
 frappe.Component.mount = (component, element) => {
     const $parent  = $(element)
@@ -70,7 +90,7 @@ frappe.component.Select = class extends frappe.Component {
     constructor (props) {
         super (props)
 
-        this.on_change = this.on_change.bind(this)
+        this.on_change  = this.on_change.bind(this)
     }
 
     get_option (value) {
@@ -189,12 +209,17 @@ frappe.Chirp = class extends frappe.Component {
     }
 
     make ( ) {
+        const that = this
+
         frappe.Chirp.Action.get_user(user => this.set_state({ user: user }))
         frappe.realtime.on('chat:user:status', (user) => {
             frappe.show_alert(`
                 ${new frappe.component.Indicator({
                     color: frappe.Chirp.get_status_color(user.status)
                 }).render()} ${user.first_name || user.name} is currently <b>${user.status}</b>`, 1.5)
+        })
+        frappe.realtime.on('chat:room:update', (room) => {
+            frappe.Chirp.Action.get_user(user => this.set_state({ user: user }))
         })
     }
 
@@ -206,7 +231,6 @@ frappe.Chirp = class extends frappe.Component {
 
     on_select_room (room) {
         const { state } = this
-        console.log(room)
     }
 
     render ( ) {
@@ -214,11 +238,18 @@ frappe.Chirp = class extends frappe.Component {
 
         return `
             <div class="fc">
-                ${new frappe.Chirp.AppBar({
-                    user: state.user,
-                    on_change_user_status: this.on_change_user_status,
-                    on_select_room: this.on_select_room
-                }).render()}
+                <div class="layout-sidebar-section col-sm-3 col-md-2 ">
+                    ${new frappe.Chirp.AppBar({
+                        user: state.user,
+                        on_change_user_status: this.on_change_user_status,
+                        on_select_room: this.on_select_room
+                    }).render()}
+                </div>
+                <div class="layout-main-section-wrapper col-md-10 col-sm-9">
+                    ${new frappe.Chirp.Room({
+                        name: state.room.room_name,
+                    }).render()}
+                </div>
             </div>
         `
     }
@@ -234,6 +265,9 @@ frappe.Chirp.DEFAULT_STATES = {
     user: {
         status: "",
          rooms: [ ]
+    },
+    room: {
+        room_name: ""
     }
 }
 
@@ -300,6 +334,24 @@ frappe.Chirp.AppBar = class extends frappe.Component {
                     }).render() : ''
             }
         </div>
+        `
+    }
+}
+
+frappe.Chirp.Room = class extends frappe.Component {
+    render ( ) {
+        const { props } = this
+
+        return `
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <b class="h5">${props.name}</b>
+                    
+                </div>
+                <div class="panel-body">
+
+                </div>
+            </div>
         `
     }
 }

@@ -5,8 +5,8 @@ from   frappe.model.document import Document
 class ChatRoom(Document):
 	def on_update(self):
 		frappe.publish_realtime('chat:room:update', dict(
-			type 	  = self.type,
-			name      = self.name,
+			type = self.type,
+			name = self.name,
 			room_name = self.room_name,
 		))
 

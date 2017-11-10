@@ -28,20 +28,3 @@ def set_status(status, user = None):
 			chat_status = status
 		))
 		doc.save()
-
-		# frappe.cache().hset({
-			# unique key -> hget ->
-		#})
-
-		# users = frappe.get_all('User')
-		# pub_users = [u for u in users if u.name != user]
-
-		# for pub_user in pub_users:
-		# 	# TODO: Check if user currently holds a session.
-		# 	response = dict(
-		# 		user = doc.name,
-		# 		first_name = doc.first_name,
-		# 		status = doc.chat_status
-		# 	)
-
-		# 	frappe.publish_realtime('chat:user:status', response, room = )
