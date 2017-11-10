@@ -22,8 +22,6 @@ class ActivityLog(Document):
 
 		if self.reference_doctype and self.reference_name:
 			self.status = "Linked"
-		else:
-			self.status = "Closed"
 
 	def on_trash(self): # pylint: disable=no-self-use
 		frappe.throw(_("Sorry! You cannot delete auto-generated comments"))
@@ -39,5 +37,5 @@ def add_authentication_log(subject, user, operation="Login", status="Success"):
 
 def clear_authentication_logs():
 	"""clear 100 day old authentication logs"""
-	frappe.db.sql("""delete from `tabActivity Log` where 
+	frappe.db.sql("""delete from `tabActivity Log` where \
 	creation<DATE_SUB(NOW(), INTERVAL 100 DAY)""")
