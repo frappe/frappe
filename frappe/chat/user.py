@@ -28,3 +28,4 @@ def set_status(status, user = None):
 			chat_status = status
 		))
 		doc.save()
+

@@ -120,7 +120,8 @@
 		"public/css/desktop.css",
 		"public/css/form.css",
 		"public/css/mobile.css",
-		"public/css/kanban.css"
+		"public/css/kanban.css",
+		"public/css/chat.css"
 	],
 	"css/frappe-rtl.css": [
 		"public/css/bootstrap-rtl.css",

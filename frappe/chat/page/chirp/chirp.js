@@ -10,6 +10,17 @@ frappe.pages.chirp.on_page_load = (parent) => {
     frappe.Component.mount(frappe.pages.chirp.chirp, $element)
 }
 
+// 
+frappe.pluralize = (string, count) => {
+    if ( count == 1 ) {
+        return string
+    } else {
+        // This is incomplete. Do more parsing. - <achilles@frappe.io>
+        return `${string}s`
+    }
+}
+//
+
 frappe.Component = class {
     constructor (props = { }) {
         this.props = Object.assign({ }, frappe.Component.DEFAULT_PROPS, props)
@@ -77,9 +88,7 @@ frappe.component.Indicator = class extends frappe.Component {
     render ( ) {
         const { props } = this
 
-        return `
-            <span class="indicator ${props.color}"/>
-        `
+        return `<span class="indicator ${props.color}"/>`
     }
 }
 frappe.component.Select = class extends frappe.Component {
@@ -173,16 +182,17 @@ frappe.component.List.Item = class extends frappe.Component {
 
     on_click ( ) {
         const { props } = this
+        this.set_state({ active: true })
 
         props.on_click(props.value)
     }
 
     render ( ) {
-        const { props } = this
+        const { props, state } = this
 
         return `
             <li>
-                ${frappe.Component.on_click(`<a>${props.label}</a>`, this.on_click)}
+                ${frappe.Component.on_click(`<a class="h6">${props.label}</a>`, this.on_click)}
             </li>
         `
     }
@@ -201,17 +211,15 @@ frappe.Chirp = class extends frappe.Component {
     }
 
     make ( ) {
-        const that = this
-
-        frappe.Chirp.Action.get_user(user => this.set_state({ user: user }))
-        frappe.realtime.on('chat:user:status', (user) => {
+        frappe.Chirp.Action.get_user(null, user => this.set_state({ user: user }))
+        frappe.realtime.on('chat:user:status', user => 
             frappe.show_alert(`
                 ${new frappe.component.Indicator({
                     color: frappe.Chirp.get_status_color(user.status)
                 }).render()} ${user.first_name || user.name} is currently <b>${user.status}</b>`, 1.5)
-        })
+        )
         frappe.realtime.on('chat:room:update', (room) => {
-            frappe.Chirp.Action.get_user(user => this.set_state({ user: user }))
+            frappe.Chirp.Action.get_user(null, user => this.set_state({ user: user }))
         })
     }
 
@@ -240,8 +248,9 @@ frappe.Chirp = class extends frappe.Component {
                 </div>
                 <div class="layout-main-section-wrapper col-md-10 col-sm-9">
                     ${new frappe.Chirp.Room({
-                        type: state.room.type,
-                        name: state.room.room_name,
+                         type: state.room.type,
+                         name: state.room.room_name,
+                        users: state.room.users
                     }).render()}
                 </div>
             </div>
@@ -249,11 +258,15 @@ frappe.Chirp = class extends frappe.Component {
     }
 }
 frappe.Chirp.Action = { }
-frappe.Chirp.Action.get_user = (callback) => {
-    frappe.call('frappe.chat.user.get', null, r => callback(r.message))
+frappe.Chirp.Action.get_user = (user, callback) => {
+    frappe.call('frappe.chat.user.get',
+        { user: user || frappe.session.user },
+            r => callback(r.message))
 }
 frappe.Chirp.Action.set_user_status = (status, callback) => {
-    frappe.call('frappe.chat.user.set_status', { status: status }, r => callback(status))
+    frappe.call('frappe.chat.user.set_status',
+        { status: status },
+            r => callback(status))
 }
 frappe.Chirp.Action.get_room = (room, callback) => {
     frappe.call('frappe.chat.doctype.chat_room.chat_room.get',
@@ -302,9 +315,10 @@ frappe.Chirp.AppBar = class extends frappe.Component {
                 color: o.color
             }
         })
+
         const rooms     = props.user.rooms.map(r => {
             return {
-                label: r.room_name,
+                label: r.type === "Direct" ? props.user.first_name || props.user.name : r.room_name,
                 value: r.name
             }
         })
@@ -313,40 +327,135 @@ frappe.Chirp.AppBar = class extends frappe.Component {
         <div class="fc-ab">
             ${
                 props.user.status ?
-                    new frappe.component.Select({
-                             name: "fc-user-status",
-                            value: props.user.status,
-                          options: options,
-                        on_change: props.on_change_user_status
-                    }).render() : ''
+                    `
+                    <div class="fc-ab-status">
+                        ${new frappe.component.Select({
+                                name: "fc-user-status",
+                                value: props.user.status,
+                            options: options,
+                            on_change: props.on_change_user_status
+                        }).render()}
+                    </div>
+                    ` : ''
             }
+
+            ${new frappe.Chirp.RoomSearchBar({
+
+            }).render() }
 
             ${
                 rooms ?
-                    new frappe.component.List({
-                           items: rooms,
-                        on_click: props.on_select_room
-                    }).render() : ''
+                    `
+                    <div class="fc-ab-rl">
+                        ${new frappe.component.List({
+                            items: rooms,
+                            on_click: props.on_select_room
+                        }).render()}
+                    </div>
+                    ` : ''
             }
         </div>
         `
     }
 }
 
+frappe.Chirp.RoomSearchBar = class extends frappe.Component {
+    constructor (props) {
+        super (props)
+
+        this.on_submit = this.on_submit.bind(this)
+    }
+
+    on_submit ( ) {
+
+    }
+
+    render ( ) {
+        return frappe.Component.on_submit(`
+            <form class="fc-ab-sb">
+                <div class="input-group input-group-sm">
+                    <input
+                        class="form-control"
+                        placeholder="Search"/>
+                    <div class="input-group-btn">
+                        <button class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
+                            <i class="octicon octicon-plus"/>
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-right">
+                            <li>
+                                ${frappe.Component.on_click(`
+                                    <a>
+                                        <span class="octicon octicon-comment"/> New Message
+                                    </a>`
+                                , () => {
+                                    const dialog = new frappe.ui.Dialog({
+                                        animate: false
+                                    })
+                                    dialog.show()
+                                })}
+                            </li>
+                            <li>
+                                ${frappe.Component.on_click(`
+                                    <a>
+                                        <span class="octicon octicon-organization"/> New Group
+                                    </a>`
+                                , () => {
+                                    const dialog = new frappe.ui.Dialog({
+                                        animate: false
+                                    })
+                                    dialog.show()
+                                })}
+                            </li>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        `, this.on_submit)
+    }
+}
+
 frappe.Chirp.Room = class extends frappe.Component {
     render ( ) {
         const { props } = this
-
-        return props.name ? 
+        
+        return props.type ? 
         `
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    <b class="h5">${props.name}</b>
-                </div>
-                <div class="panel-body">
-                    ${ new frappe.Chirp.ChatForm({
+            <div class="fc-cr">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <div class="row">
+                            <div class="col-md-7">
+                                <b class="h5">
+                                    ${
+                                        props.type === "Direct" ?
+                                            props.users[0].user
+                                            :
+                                            props.name
+                                    }
+                                </b>
+                            </div>
+                            <div class="col-md-5">
+                                <div class="text-right">
 
+                                </div>
+                            </div>
+                        </div>
+                        <small>
+                            ${ props.type == "Direct" ?
+                                `last seen` 
+                                :
+                                `${props.users.length} ${frappe.pluralize(`member`, props.users.length)}`
+                            }
+                        </small>
+                    </div>
+                    ${ new frappe.Chirp.MessageList({
+                        messages: [ ]
                     }).render() }
+                    <div class="panel-body">
+                        ${ new frappe.Chirp.ChatForm({
+                            
+                        }).render() }
+                    </div>
                 </div>
             </div>
         ` : 
@@ -356,6 +465,36 @@ frappe.Chirp.Room = class extends frappe.Component {
                 <i class="octicon octicon-comment"/>
             </p>
             <small>Select a chat to start messaging</small>
+        </div>
+        `
+    }
+}
+
+frappe.Chirp.MessageList = class extends frappe.Component {
+    render ( ) {
+        const { props } = this
+        const items     = props.messages.map(m => 
+            new frappe.Chirp.MessageList.Item({
+                content: m.content
+            })
+        ).join("")
+
+        return `
+            <div class="fc-ml">
+                <div class="list-group">
+                    ${items}
+                </div>
+            </div>
+        `
+    }
+}
+frappe.Chirp.MessageList.Item = class extends frappe.Component {
+    render ( ) {
+        const { props } = this
+
+        return `
+        <div class="list-group-item">
+            
         </div>
         `
     }
