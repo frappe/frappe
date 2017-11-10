@@ -29,6 +29,23 @@ frappe.query_reports["Addresses And Contacts"] = {
 				}
 				return party_type;
 			}
+		},
+		{
+			"fieldname":"party_group",
+			"label": __("Party Group"),
+			"fieldtype": "Dynamic Link",
+			"get_options": function() {
+				var party_type = frappe.query_report_filters_by_name.party_type.get_value();
+				if(!party_type) {
+					frappe.throw(__("Please select Party Type first"));
+				}
+				if(party_type=='Customer'){
+					return party_type + " Group";
+				}
+				if(party_type=='Supplier'){
+					return party_type + " Type";
+				}
+			}
 		}
 	]
 }
