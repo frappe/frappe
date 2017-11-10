@@ -5,13 +5,13 @@ def execute():
 	frappe.reload_doc("core", "doctype", "activity_log")
 
 	communication_data = frappe.get_all('Communication', filters= {'comment_type': 'Updated'})
-	activity_log_field = frappe.get_meta('Activity Log').fields
+	activity_log_fields = frappe.get_meta('Activity Log').fields
 
 	for d in communication_data:
 		communication_doc = frappe.get_doc('Communication', d)
 
 		activity_data = {'doctype': 'Activity Log'}
-		for x in activity_log_field:
+		for x in activity_log_fields:
 			activity_data[x.fieldname] = communication_doc.get_value(x.fieldname)
 
 		activity_doc = frappe.get_doc(activity_data)
