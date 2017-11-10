@@ -85,7 +85,7 @@ def get_data():
 			]
 		},
 		{
-			"label": _("Other"),
+			"label": _("Maps"),
 			"items": [
 				{
 					"type": "doctype",
