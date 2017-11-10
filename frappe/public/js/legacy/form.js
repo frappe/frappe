@@ -4,7 +4,7 @@
 /* Form page structure
 
 	+ this.parent (either FormContainer or Dialog)
- 		+ this.wrapper
+		+ this.wrapper
 			+ this.toolbar
 			+ this.form_wrapper
 					+ this.head
@@ -939,8 +939,8 @@ _f.Frm.prototype.remove_custom_button = function(buttons) {
 	if(buttons){
 		for (var i=0; i<buttons.length; i++) {
 			if($.isArray(buttons[i])){
-			    label = buttons[i][0];
-			    group = buttons[i][1];
+				var label = buttons[i][0];
+				var group = buttons[i][1];
 				this.page.remove_inner_button(label, group);
 			}
 		}
