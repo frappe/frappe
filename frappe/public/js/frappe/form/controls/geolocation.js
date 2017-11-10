@@ -13,6 +13,7 @@ frappe.ui.form.ControlGeolocation = frappe.ui.form.ControlCode.extend({
 		this.map_area.prependTo($input_wrapper);
 		this.$wrapper.find('.control-input').addClass("hidden");
 		this.bind_leaflet_map();
+		this.bind_leaflet_trip_button();
 		this.bind_leaflet_draw_control();
 		this.bind_leaflet_locate_control();
 		this.bind_leaflet_refresh_button();
@@ -77,11 +78,13 @@ frappe.ui.form.ControlGeolocation = frappe.ui.form.ControlCode.extend({
 		});
 
 		L.Icon.Default.imagePath = '/assets/frappe/images/leaflet/';
+	
 		this.map = L.map(this.map_id).setView([19.0800, 72.8961], 13);
 
 		L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
 			attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
 		}).addTo(this.map);
+
 	},
 
 	bind_leaflet_locate_control() {
@@ -160,6 +163,57 @@ frappe.ui.form.ControlGeolocation = frappe.ui.form.ControlCode.extend({
 				},
 				title: 'Refresh map',
 				icon: 'fa fa-refresh'
+			}]
+		}).addTo(this.map);
+	},
+
+	bind_leaflet_trip_button () {
+		var coord_arr = [];
+		var intervalId;
+		var me = this;
+
+		function showPosition(position){
+						console.log(position.coords.latitude + " " + position.coords.longitude);
+						coord_arr.push([position.coords.longitude, position.coords.latitude]);
+					}
+
+		function geolocEveryMin() {
+			navigator.geolocation.getCurrentPosition(showPosition)
+		}
+
+		L.easyButton({
+			id: 'trip-'+this.df.fieldname,
+			position: 'topright',
+			leafletClasses: true,
+			states:[{
+				stateName: 'start-trip',
+				title: 'start-trip',
+				icon: 'fa fa-play-circle',
+				onClick: function(button, map) {
+					coord_arr = [];
+					console.log('trip started');
+					$('div.leaflet-draw-section').hide();
+					$('div.leaflet-control-locate.leaflet-bar.leaflet-control').hide();
+					$('#unique-0 > div.leaflet-control-container > div.leaflet-top.leaflet-right > div:nth-child(3)').hide();
+					button.state('stop-trip');	
+					intervalId = setInterval(geolocEveryMin, 60*1000);
+				}
+				}, {
+				stateName: 'stop-trip',
+				title: 'stop-trip',
+				icon: 'fa fa-stop',
+				onClick: function(button, map) {
+					console.log('trip stopped');
+					$('div.leaflet-draw-section').show();
+					$('div.leaflet-control-locate.leaflet-bar.leaflet-control').show();
+					$('#unique-0 > div.leaflet-control-container > div.leaflet-top.leaflet-right > div:nth-child(3)').show();
+					button.state('start-trip');	
+					clearInterval(intervalId);
+					coord_arr.push(coord_arr[0]);
+					var polygon = turf.polygon([coord_arr]);
+					me.editableLayers.addLayer(L.geoJson(polygon));
+					me.set_value(JSON.stringify(me.editableLayers.toGeoJSON()));
+				}
 			}]
 		}).addTo(this.map);
 	},
