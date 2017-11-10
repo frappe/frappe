@@ -70,10 +70,10 @@ frappe.ui.form.Sidebar = Class.extend({
 	},
 
 	refresh_comments: function() {
-		var comments = $.map(this.frm.timeline.get_communications(), function(c) {
+		$.map(this.frm.timeline.get_communications(), function(c) {
 			return (c.communication_type==="Communication" || (c.communication_type=="Comment" && c.comment_type==="Comment")) ? c : null;
 		});
-		this.comments.find(".n-comments").html(comments.length);
+		this.comments.find(".n-comments").html(this.frm.get_docinfo().total_comments);
 	},
 
 	make_tags: function() {
