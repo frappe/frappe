@@ -15,7 +15,7 @@ frappe.ui.Tree = Class.extend({
 			label: this.label,
 			parent_label: null,
 			expandable: true,
-			root: true,
+			is_root: true,
 			data: {
 				value: this.label,
 				parent: this.label,
@@ -221,8 +221,11 @@ frappe.ui.TreeNode = Class.extend({
 	load_all: function(callback) {
 		var  me = this;
 		let args = $.extend({}, this.tree.args);
+
 		args.parent = this.data.value;
 		args.tree_method = this.tree.method;
+		args.is_root = this.is_root;
+
 		return frappe.call({
 			method: 'frappe.desk.treeview.get_all_nodes',
 			args: args,
@@ -239,6 +242,8 @@ frappe.ui.TreeNode = Class.extend({
 		var args = $.extend(this.tree.args || {}, {
 			parent: this.data.value
 		});
+
+		args.is_root = this.is_root;
 
 		return frappe.call({
 			method: this.tree.method,
