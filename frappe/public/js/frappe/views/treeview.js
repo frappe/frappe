@@ -95,15 +95,9 @@ frappe.views.TreeView = Class.extend({
 
 			filter.change = function() {
 				var val = this.get_value();
-				if(!val && me.set_root){
-					val = me.opts.root_label;
-				}
-				if(val){
-					me.args[filter.fieldname] = val;
-						frappe.treeview_setting
-						me.make_tree();
-						me.page.set_title(val);
-				}
+				me.args[filter.fieldname] = val;
+				me.make_tree();
+				me.page.set_title(val);
 			}
 
 			me.page.add_field(filter);
@@ -176,7 +170,17 @@ frappe.views.TreeView = Class.extend({
 			},
 			{
 				label:__("Rename"),
-				condition: function(node) { return !node.root && me.can_write; },
+				condition: function(node) {
+					let allow_rename = true;
+					if (me.doctype && frappe.get_meta(me.doctype)) {
+						let autoname = frappe.get_meta(me.doctype).autoname;
+
+						// only allow renaming if doctye is set and
+						// autoname property is "prompt"
+						allow_rename = autoname && autoname.toLowerCase()==='prompt';
+					}
+					return !node.root && me.can_write && allow_rename;
+				},
 				click: function(node) {
 					frappe.model.rename_doc(me.doctype, node.label, function(new_name) {
 						node.tree_link.find('a').text(new_name);
