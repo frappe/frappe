@@ -4,10 +4,9 @@ frappe.pages.chirp.on_page_load = (parent) => {
          title: 'Chat'
     })
 
-    const $element = $(parent).find('.layout-main')
-    
+    const $app = $(parent).find('.layout-main')
     frappe.pages.chirp.chirp = new frappe.Chirp()
-    frappe.Component.mount(frappe.pages.chirp.chirp, $element)
+    frappe.Component.mount(frappe.pages.chirp.chirp, $app)
 }
 
 // 
@@ -23,11 +22,11 @@ frappe.pluralize = (string, count) => {
 
 frappe.Component = class {
     constructor (props = { }) {
-        this.props = Object.assign({ }, frappe.Component.DEFAULT_PROPS, props)
+        this.props = Object.assign({ }, frappe.Component.defaultProps, props)
     }
 
     set_state (state) {
-        this.state   = Object.assign({ }, this.state, state)
+        this.state = Object.assign({ }, this.state, state)
         this.render()
 
         if ( this.parent )
@@ -40,7 +39,7 @@ frappe.Component = class {
         return this
     }
 }
-frappe.Component.DEFAULT_PROPS = { }
+frappe.Component.defaultProps = { }
 
 frappe.Component.on_click = (strdom, callback) => {
     const unique_id = frappe.dom.get_unique_id()
