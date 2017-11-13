@@ -1,7 +1,10 @@
 import frappe
 
 def execute():
+	domains = ['Education', 'Healthcare', 'Hospitality']
 	try:
-		frappe.get_single('Domain Settings').save()
+		for d in domains:
+			domain = frappe.get_doc('Domain', d)
+			domain.setup_domain()
 	except frappe.LinkValidationError:
 		pass
