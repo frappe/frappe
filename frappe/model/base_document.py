@@ -3,6 +3,7 @@
 
 from __future__ import unicode_literals
 from six import iteritems, string_types
+import datetime
 import frappe, sys
 from frappe import _
 from frappe.utils import (cint, flt, now, cstr, strip_html, getdate, get_datetime, to_timedelta,
@@ -181,7 +182,7 @@ class BaseDocument(object):
 
 		return value
 
-	def get_valid_dict(self, sanitize=True, translated=False):
+	def get_valid_dict(self, sanitize=True, convert_dates_to_str=False, translated=False):
 		d = frappe._dict()
 		link_fields = [f.fieldname for f in self.meta.get_link_fields()]
 		for fieldname in self.meta.get_valid_columns():
@@ -222,6 +223,9 @@ class BaseDocument(object):
 				if isinstance(d[fieldname], list) and df.fieldtype != 'Table':
 					frappe.throw(_('Value for {0} cannot be a list').format(_(df.label)))
 
+				if convert_dates_to_str and isinstance(d[fieldname], (datetime.datetime, datetime.time)):
+					d[fieldname] = str(d[fieldname])
+
 		return d
 
 	def init_valid_columns(self):
@@ -251,8 +255,8 @@ class BaseDocument(object):
 	def is_new(self):
 		return self.get("__islocal")
 
-	def as_dict(self, no_nulls=False, no_default_fields=False, translated=False):
-		doc = self.get_valid_dict(translated=translated)
+	def as_dict(self, no_nulls=False, no_default_fields=False, convert_dates_to_str=False, translated=False):
+		doc = self.get_valid_dict(convert_dates_to_str=convert_dates_to_str, translated=translated)
 		doc["doctype"] = self.doctype
 		for df in self.meta.get_table_fields():
 			children = self.get(df.fieldname) or []
@@ -323,7 +327,6 @@ class BaseDocument(object):
 					raise
 			else:
 				raise
-
 		self.set("__islocal", False)
 
 	def db_update(self):
@@ -535,6 +538,10 @@ class BaseDocument(object):
 
 	def _validate_length(self):
 		if frappe.flags.in_install:
+			return
+
+		if self.meta.issingle:
+			# single doctype value type is mediumtext
 			return
 
 		for fieldname, value in iteritems(self.get_valid_dict()):

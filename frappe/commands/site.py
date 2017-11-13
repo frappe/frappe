@@ -3,13 +3,18 @@ import click
 import hashlib, os, sys, compileall
 import frappe
 from frappe import _
-from _mysql_exceptions import ProgrammingError
 from frappe.commands import pass_context, get_site
 from frappe.commands.scheduler import _is_scheduler_enabled
 from frappe.limits import update_limits, get_limits
 from frappe.installer import update_site_config
 from frappe.utils import touch_file, get_site_path
 from six import text_type
+
+# imports - third-party imports
+from pymysql.constants import ER
+
+# imports - module imports
+from frappe.exceptions import SQLError
 
 @click.command('new-site')
 @click.argument('site')
@@ -348,8 +353,8 @@ def _drop_site(site, root_login='root', root_password=None, archived_sites_path=
 
 	try:
 		scheduled_backup(ignore_files=False, force=True)
-	except ProgrammingError as err:
-		if err[0] == 1146:
+	except SQLError as err:
+		if err[0] == ER.NO_SUCH_TABLE:
 			if force:
 				pass
 			else:
@@ -400,8 +405,9 @@ def move(dest_dir, site):
 
 @click.command('set-admin-password')
 @click.argument('admin-password')
+@click.option('--logout-all-sessions', help='Logout from all sessions', is_flag=True, default=False)
 @pass_context
-def set_admin_password(context, admin_password):
+def set_admin_password(context, admin_password, logout_all_sessions=False):
 	"Set Administrator password for a site"
 	import getpass
 	from frappe.utils.password import update_password
@@ -414,7 +420,7 @@ def set_admin_password(context, admin_password):
 				admin_password = getpass.getpass("Administrator's password for {0}: ".format(site))
 
 			frappe.connect()
-			update_password('Administrator', admin_password)
+			update_password(user='Administrator', pwd=admin_password, logout_all_sessions=logout_all_sessions)
 			frappe.db.commit()
 			admin_password = None
 		finally:

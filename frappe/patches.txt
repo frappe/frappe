@@ -17,12 +17,13 @@ frappe.patches.v8_0.update_records_in_global_search #11-05-2017
 frappe.patches.v8_0.update_published_in_global_search
 execute:frappe.reload_doc('core', 'doctype', 'custom_docperm')
 execute:frappe.reload_doc('core', 'doctype', 'deleted_document')
+execute:frappe.reload_doc('core', 'doctype', 'domain_settings')
 execute:frappe.reload_doc('core', 'doctype', 'version') #2017-04-01
 frappe.patches.v8_0.rename_page_role_to_has_role #2017-03-16
 frappe.patches.v7_2.setup_custom_perms #2017-01-19
 frappe.patches.v8_0.set_user_permission_for_page_and_report #2017-03-20
 execute:frappe.reload_doc('core', 'doctype', 'role') #2017-05-23
-execute:frappe.reload_doc('core', 'doctype', 'user')
+execute:frappe.reload_doc('core', 'doctype', 'user') #2017-10-27
 execute:frappe.reload_doc('custom', 'doctype', 'custom_field') #2015-10-19
 execute:frappe.reload_doc('core', 'doctype', 'page') #2013-13-26
 execute:frappe.reload_doc('core', 'doctype', 'report') #2014-06-03
@@ -195,3 +196,4 @@ frappe.patches.v8_5.patch_event_colors
 frappe.patches.v8_10.delete_static_web_page_from_global_search
 frappe.patches.v8_x.add_bgn_xaf_xof_currencies
 frappe.patches.v9_1.add_sms_sender_name_as_parameters
+frappe.patches.v9_1.resave_domain_settings

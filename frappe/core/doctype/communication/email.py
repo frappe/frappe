@@ -14,10 +14,13 @@ from frappe.email.queue import check_email_limit
 from frappe.utils.scheduler import log
 from frappe.email.email_body import get_message_id
 import frappe.email.smtp
-import MySQLdb
 import time
 from frappe import _
 from frappe.utils.background_jobs import enqueue
+
+# imports - third-party imports
+import pymysql
+from pymysql.constants import ER
 
 @frappe.whitelist()
 def make(doctype=None, name=None, content=None, subject=None, sent_or_received = "Sent",
@@ -259,8 +262,8 @@ def prepare_to_notify(doc, print_html=None, print_format=None, attachments=None)
 	doc.attachments = []
 
 	if print_html or print_format:
-		doc.attachments.append(frappe.attach_print(doc.reference_doctype, doc.reference_name,
-			print_format=print_format, html=print_html))
+		doc.attachments.append({"print_format_attachment":1, "doctype":doc.reference_doctype,
+			"name":doc.reference_name, "print_format":print_format, "html":print_html})
 
 	if attachments:
 		if isinstance(attachments, string_types):
@@ -270,8 +273,11 @@ def prepare_to_notify(doc, print_html=None, print_format=None, attachments=None)
 			if isinstance(a, string_types):
 				# is it a filename?
 				try:
+					# keep this for error handling
 					file = get_file(a)
-					doc.attachments.append({"fname": file[0], "fcontent": file[1]})
+					# these attachments will be attached on-demand
+					# and won't be stored in the message
+					doc.attachments.append({"fid": a})
 				except IOError:
 					frappe.throw(_("Unable to find attachment {0}").format(a))
 			else:
@@ -479,9 +485,9 @@ def sendmail(communication_name, print_html=None, print_format=None, attachments
 				communication._notify(print_html=print_html, print_format=print_format, attachments=attachments,
 					recipients=recipients, cc=cc, bcc=bcc)
 
-			except MySQLdb.OperationalError as e:
+			except pymysql.InternalError as e:
 				# deadlock, try again
-				if e.args[0]==1213:
+				if e.args[0] == ER.LOCK_DEADLOCK:
 					frappe.db.rollback()
 					time.sleep(1)
 					continue

@@ -1,8 +1,9 @@
 frappe.RoleEditor = Class.extend({
-	init: function(wrapper, frm) {
+	init: function(wrapper, frm, disable) {
 		var me = this;
 		this.frm = frm;
 		this.wrapper = wrapper;
+		this.disable = disable;
 		$(wrapper).html('<div class="help">' + __("Loading") + '...</div>')
 		return frappe.call({
 			method: 'frappe.core.doctype.user.user.get_all_roles',
@@ -21,33 +22,35 @@ frappe.RoleEditor = Class.extend({
 	show_roles: function() {
 		var me = this;
 		$(this.wrapper).empty();
-		var role_toolbar = $('<p><button class="btn btn-default btn-add btn-sm" style="margin-right: 5px;"></button>\
-			<button class="btn btn-sm btn-default btn-remove"></button></p>').appendTo($(this.wrapper));
+		if(me.frm.doctype != 'User') {
+			var role_toolbar = $('<p><button class="btn btn-default btn-add btn-sm" style="margin-right: 5px;"></button>\
+				<button class="btn btn-sm btn-default btn-remove"></button></p>').appendTo($(this.wrapper));
 
-		role_toolbar.find(".btn-add")
-			.html(__('Add all roles'))
-			.on("click", function () {
-				$(me.wrapper).find('input[type="checkbox"]').each(function (i, check) {
-					if (!$(check).is(":checked")) {
-						check.checked = true;
-					}
+			role_toolbar.find(".btn-add")
+				.html(__('Add all roles'))
+				.on("click", function () {
+					$(me.wrapper).find('input[type="checkbox"]').each(function (i, check) {
+						if (!$(check).is(":checked")) {
+							check.checked = true;
+						}
+					});
 				});
-			});
 
-		role_toolbar.find(".btn-remove")
-			.html(__('Clear all roles'))
-			.on("click", function() {
-				$(me.wrapper).find('input[type="checkbox"]').each(function(i, check) {
-					if($(check).is(":checked")) {
-						check.checked = false;
-					}
+			role_toolbar.find(".btn-remove")
+				.html(__('Clear all roles'))
+				.on("click", function() {
+					$(me.wrapper).find('input[type="checkbox"]').each(function(i, check) {
+						if($(check).is(":checked")) {
+							check.checked = false;
+						}
+					});
 				});
-			});
+		}
 
 		$.each(this.roles, function(i, role) {
 			$(me.wrapper).append(repl('<div class="user-role" \
 				data-user-role="%(role_value)s">\
-				<input type="checkbox" style="margin-top:0px;"> \
+				<input type="checkbox" style="margin-top:0px;" class="box"> \
 				<a href="#" class="grey role">%(role_display)s</a>\
 			</div>', {role_value: role,role_display:__(role)}));
 		});
@@ -63,6 +66,7 @@ frappe.RoleEditor = Class.extend({
 	},
 	show: function() {
 		var me = this;
+		$('.box').attr('disabled', this.disable);
 
 		// uncheck all roles
 		$(this.wrapper).find('input[type="checkbox"]')
@@ -74,6 +78,11 @@ frappe.RoleEditor = Class.extend({
 				.find('[data-user-role="'+user_role.role+'"] input[type="checkbox"]').get(0);
 			if(checkbox) checkbox.checked = true;
 		});
+
+		this.set_enable_disable();
+	},
+	set_enable_disable: function() {
+		$('.box').attr('disabled', this.disable ? true : false);
 	},
 	set_roles_in_table: function() {
 		var opts = this.get_roles();

@@ -13,6 +13,10 @@ from frappe.modules.utils import export_module_json, get_doc_module
 from markdown2 import markdown
 from six import string_types
 
+# imports - third-party imports
+import pymysql
+from pymysql.constants import ER
+
 class EmailAlert(Document):
 	def onload(self):
 		'''load message'''
@@ -117,7 +121,8 @@ def get_context(context):
 					please enable Allow Print For {0} in Print Settings""".format(status)),
 					title=_("Error in Email Alert"))
 			else:
-				return [frappe.attach_print(doc.doctype, doc.name, None, self.print_format)]
+				return [{"print_format_attachment":1, "doctype":doc.doctype, "name": doc.name,
+					"print_format":self.print_format}]
 
 		context = get_context(doc)
 		recipients = []
@@ -237,8 +242,8 @@ def evaluate_alert(doc, alert, event):
 		if event=="Value Change" and not doc.is_new():
 			try:
 				db_value = frappe.db.get_value(doc.doctype, doc.name, alert.value_changed)
-			except frappe.DatabaseOperationalError as e:
-				if e.args[0]==1054:
+			except pymysql.InternalError as e:
+				if e.args[0]== ER.BAD_FIELD_ERROR:
 					alert.db_set('enabled', 0)
 					frappe.log_error('Email Alert {0} has been disabled due to missing field'.format(alert.name))
 					return

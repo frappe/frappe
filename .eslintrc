@@ -120,6 +120,7 @@
 		"get_url_arg": true,
 		"QUnit": true,
 		"JsBarcode": true,
-		"L": true
+		"L": true,
+		"Chart": true
 	}
 }

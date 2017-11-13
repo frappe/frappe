@@ -5,6 +5,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
+from frappe.utils import get_source_value
 
 class DataMigrationMapping(Document):
 	def get_filters(self):
@@ -26,6 +27,7 @@ class DataMigrationMapping(Document):
 		return fields
 
 	def get_mapped_record(self, doc):
+		'''Build a mapped record using information from the fields table'''
 		mapped = frappe._dict()
 
 		key_fieldname = 'remote_fieldname'
@@ -35,13 +37,19 @@ class DataMigrationMapping(Document):
 			key_fieldname, value_fieldname = value_fieldname, key_fieldname
 
 		for field_map in self.fields:
+			key = get_source_value(field_map, key_fieldname)
+
 			if not field_map.is_child_table:
+				# field to field mapping
 				value = get_value_from_fieldname(field_map, value_fieldname, doc)
-				mapped[field_map.get(key_fieldname)] = value
 			else:
+				# child table mapping
 				mapping_name = field_map.child_table_mapping
-				value = get_mapped_child_records(mapping_name, doc.get(field_map.get(value_fieldname)))
-				mapped[field_map.get(key_fieldname)] = value
+				value = get_mapped_child_records(mapping_name,
+					doc.get(get_source_value(field_map, value_fieldname)))
+
+			mapped[key] = value
+
 		return mapped
 
 def get_mapped_child_records(mapping_name, child_docs):
@@ -53,12 +61,12 @@ def get_mapped_child_records(mapping_name, child_docs):
 	return mapped_child_docs
 
 def get_value_from_fieldname(field_map, fieldname_field, doc):
-	field_name = field_map.get(fieldname_field)
+	field_name = get_source_value(field_map, fieldname_field)
 
 	if field_name.startswith('eval:'):
 		value = frappe.safe_eval(field_name[5:], dict(frappe=frappe))
 	elif field_name[0] in ('"', "'"):
 		value = field_name[1:-1]
 	else:
-		value = doc.get(field_name)
+		value = get_source_value(doc, field_name)
 	return value

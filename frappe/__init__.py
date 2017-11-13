@@ -14,7 +14,7 @@ import os, sys, importlib, inspect, json
 from .exceptions import *
 from .utils.jinja import get_jenv, get_template, render_template, get_email_from_template
 
-__version__ = '9.2.2'
+__version__ = '9.2.11'
 __title__ = "Frappe Framework"
 
 local = Local()
@@ -310,6 +310,10 @@ def msgprint(msg, title=None, raise_exception=0, as_table=False, indicator=None,
 
 def clear_messages():
 	local.message_log = []
+
+def clear_last_message():
+	if len(local.message_log) > 0:
+		local.message_log = local.message_log[:-1]
 
 def throw(msg, exc=ValidationError, title=None):
 	"""Throw execption and show message (`msgprint`).
@@ -1220,7 +1224,7 @@ def format(*args, **kwargs):
 	import frappe.utils.formatters
 	return frappe.utils.formatters.format_value(*args, **kwargs)
 
-def get_print(doctype=None, name=None, print_format=None, style=None, html=None, as_pdf=False, doc=None, output = None):
+def get_print(doctype=None, name=None, print_format=None, style=None, html=None, as_pdf=False, doc=None, output = None, no_letterhead = 0):
 	"""Get Print Format for given document.
 
 	:param doctype: DocType of document.
@@ -1236,6 +1240,7 @@ def get_print(doctype=None, name=None, print_format=None, style=None, html=None,
 	local.form_dict.format = print_format
 	local.form_dict.style = style
 	local.form_dict.doc = doc
+	local.form_dict.no_letterhead = no_letterhead
 
 	if not html:
 		html = build_page("printview")
