@@ -493,8 +493,8 @@ class Document(BaseDocument):
 		else:
 			# check all child entries
 			for i, d in enumerate(original_value):
-				new_child = value[i].as_dict()
-				original_child = d.as_dict()
+				new_child = value[i].as_dict(convert_dates_to_str = True)
+				original_child = d.as_dict(convert_dates_to_str = True)
 
 				# all fields must be same other than modified and modified_by
 				for key in ('modified', 'modified_by', 'creation'):
@@ -502,7 +502,6 @@ class Document(BaseDocument):
 					del original_child[key]
 
 				if original_child != new_child:
-					print(original_child, new_child)
 					same = False
 					break
 
