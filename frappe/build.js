@@ -49,6 +49,11 @@ function build(minify) {
 let socket_connection = false;
 
 function watch() {
+	if (process.env.CI) {
+		// don't watch inside CI
+		return;
+	}
+
 	http.listen(file_watcher_port, function () {
 		console.log('file watching on *:', file_watcher_port);
 	});
@@ -60,11 +65,11 @@ function watch() {
 				io.emit('reload_css', filename);
 			}
 		});
-		// watch_js(function (filename) {
-		// 	if(socket_connection) {
-		// 		io.emit('reload_js', filename);
-		// 	}
-		// });
+		watch_js(/*function (filename) {
+			if(socket_connection) {
+				io.emit('reload_js', filename);
+			}
+		}*/);
 		watch_build_json();
 	});
 
