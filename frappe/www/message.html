@@ -40,6 +40,8 @@ html, body {
 		if(window.location.hash) {
 			localStorage.setItem('session_last_route', window.location.hash.substr(1));
 		}
+		
+		$('.btn-primary').focus();
 	});
 </script>
 {% endblock %}
