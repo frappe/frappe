@@ -361,7 +361,7 @@ frappe.ui.form.Grid = Class.extend({
 	},
 	set_editable_grid_column_disp: function(fieldname, show) {
 		//Hide columns for editable grids
-		if (this.meta.editable_grid) {
+		if (this.meta.editable_grid && this.grid_rows) {
 			this.grid_rows.forEach(function(row) {
 				row.columns_list.forEach(function(column) {
 					//Hide the column specified
