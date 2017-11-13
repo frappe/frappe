@@ -354,7 +354,7 @@ frappe.views.CommunicationComposer = Class.extend({
 		var fields = this.dialog.fields_dict;
 		var attach = $(fields.select_attachments.wrapper).find(".attach-list").empty();
 
-		if (this.attachments.length) {
+		if (undefined !== this.attachments && this.attachments.length) {
 			var files = this.attachments;
 		} else if (cur_frm) {
 			var files = cur_frm.get_files();
