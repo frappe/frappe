@@ -49,14 +49,14 @@ function build(minify) {
 let socket_connection = false;
 
 function watch() {
+	http.listen(file_watcher_port, function () {
+		console.log('file watching on *:', file_watcher_port);
+	});
+
 	if (process.env.CI) {
 		// don't watch inside CI
 		return;
 	}
-
-	http.listen(file_watcher_port, function () {
-		console.log('file watching on *:', file_watcher_port);
-	});
 
 	compile_less().then(() => {
 		build();
