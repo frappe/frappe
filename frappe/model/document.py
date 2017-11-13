@@ -470,23 +470,7 @@ class Document(BaseDocument):
 				original_value = self._doc_before_save.get(field.fieldname)
 
 				if field.fieldtype=='Table':
-					if len(original_value) != len(value):
-						fail = True
-					else:
-						# check all child entries
-						for i, d in enumerate(original_value):
-							new_child = value[i].as_dict()
-							original_child = d.as_dict()
-
-							# all fields must be same other than modified and modified_by
-							for key in ('modified', 'modified_by'):
-								del new_child[key]
-								del original_child[key]
-
-							if original_child != new_child:
-								fail = True
-								break
-
+					fail = not self.is_child_table_same(field.fieldname)
 				elif field.fieldtype in ('Date', 'Datetime', 'Time'):
 					fail = str(value) != str(original_value)
 				else:
@@ -497,6 +481,31 @@ class Document(BaseDocument):
 						frappe.CannotChangeConstantError)
 
 		return False
+
+	def is_child_table_same(self, fieldname):
+		'''Validate child table is same as original table before saving'''
+		value = self.get(fieldname)
+		original_value = self._doc_before_save.get(fieldname)
+		same = True
+
+		if len(original_value) != len(value):
+			same = False
+		else:
+			# check all child entries
+			for i, d in enumerate(original_value):
+				new_child = value[i].as_dict()
+				original_child = d.as_dict()
+
+				# all fields must be same other than modified and modified_by
+				for key in ('modified', 'modified_by'):
+					del new_child[key]
+					del original_child[key]
+
+				if original_child != new_child:
+					same = False
+					break
+
+		return same
 
 	def apply_fieldlevel_read_permissions(self):
 		'''Remove values the user is not allowed to read (called when loading in desk)'''
