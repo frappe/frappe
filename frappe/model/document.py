@@ -361,6 +361,7 @@ class Document(BaseDocument):
 				self._doc_before_save = frappe.get_doc(self.doctype, self.name)
 			except frappe.DoesNotExistError:
 				self._doc_before_save = None
+				frappe.clear_last_message()
 		return self._doc_before_save
 
 	def set_new_name(self, force=False):

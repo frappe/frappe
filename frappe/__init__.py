@@ -311,6 +311,10 @@ def msgprint(msg, title=None, raise_exception=0, as_table=False, indicator=None,
 def clear_messages():
 	local.message_log = []
 
+def clear_last_message():
+	if len(local.message_log) > 0:
+		local.message_log = local.message_log[:-1]
+
 def throw(msg, exc=ValidationError, title=None):
 	"""Throw execption and show message (`msgprint`).
 
