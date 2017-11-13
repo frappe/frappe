@@ -340,7 +340,8 @@ frappe.ui.form.Dashboard = Class.extend({
 				height: 100,
 				start: new Date(moment().subtract(1, 'year').toDate()),
 				count_label: frappe.model.scrub(this.frm.doctype) + "s",
-				discrete_domains: 0
+				discrete_domains: 0,
+				data: {}
 			});
 
 			// center the heatmap
