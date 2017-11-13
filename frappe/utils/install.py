@@ -53,6 +53,7 @@ def install_basic_docs():
 			'roles': [{'role': 'Guest'}]
 		},
 		{'doctype': "Role", "role_name": "Report Manager"},
+		{'doctype': "Role", "role_name": "Translator"},
 		{'doctype': "Workflow State", "workflow_state_name": "Pending",
 			"icon": "question-sign", "style": ""},
 		{'doctype': "Workflow State", "workflow_state_name": "Approved",
