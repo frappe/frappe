@@ -448,7 +448,6 @@ frappe.Chirp.RoomSearchBar = class extends frappe.Component {
 frappe.Chirp.Room = class extends frappe.Component {
     render ( ) {
         const { props } = this
-        console.log(props)
         
         return props.type ? 
         `
@@ -578,5 +577,3 @@ frappe.Chirp.ChatForm = class extends frappe.Component {
         `, this.on_submit)
     }
 }
-
-frappe._$ = 

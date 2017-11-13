@@ -3,9 +3,9 @@
  "creation": "2017-11-08 14:55:47.986307", 
  "docstatus": 0, 
  "doctype": "Page", 
- "icon": "octicon octicon-comment", 
+ "icon": "octicon octiocn-comment", 
  "idx": 0, 
- "modified": "2017-11-08 15:38:53.093831", 
+ "modified": "2017-11-13 16:39:13.666661", 
  "modified_by": "Administrator", 
  "module": "Chat", 
  "name": "chirp", 
@@ -16,5 +16,5 @@
  "standard": "Yes", 
  "style": null, 
  "system_page": 0, 
- "title": "Chirp"
+ "title": "Chat"
 }
