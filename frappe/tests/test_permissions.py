@@ -197,11 +197,41 @@ class TestPermissions(unittest.TestCase):
 
 	def test_set_only_once(self):
 		blog_post = frappe.get_meta("Blog Post")
-		blog_post.get_field("title").set_only_once = 1
 		doc = frappe.get_doc("Blog Post", "-test-blog-post-1")
+		doc.db_set('title', 'Old')
+		blog_post.get_field("title").set_only_once = 1
 		doc.title = "New"
 		self.assertRaises(frappe.CannotChangeConstantError, doc.save)
 		blog_post.get_field("title").set_only_once = 0
+
+	def test_set_only_once_child_table_rows(self):
+		blog_post = frappe.get_meta("DocType")
+		blog_post.get_field("fields").set_only_once = 1
+		doc = frappe.get_doc("DocType", "Blog Post")
+
+		# remove last one
+		doc.fields = doc.fields[:-1]
+		self.assertRaises(frappe.CannotChangeConstantError, doc.save)
+		blog_post.get_field("fields").set_only_once = 0
+
+	def test_set_only_once_child_table_row_value(self):
+		blog_post = frappe.get_meta("DocType")
+		blog_post.get_field("fields").set_only_once = 1
+		doc = frappe.get_doc("DocType", "Blog Post")
+
+		# change one property from the child table
+		doc.fields[-1].fieldtype = 'HTML'
+		self.assertRaises(frappe.CannotChangeConstantError, doc.save)
+		blog_post.get_field("fields").set_only_once = 0
+
+	def test_set_only_once_child_table_okay(self):
+		blog_post = frappe.get_meta("DocType")
+		blog_post.get_field("fields").set_only_once = 1
+		doc = frappe.get_doc("DocType", "Blog Post")
+
+		doc.load_doc_before_save()
+		self.assertFalse(doc.validate_set_only_once())
+		blog_post.get_field("fields").set_only_once = 0
 
 	def test_user_permission_doctypes(self):
 		add_user_permission("Blog Category", "_Test Blog Category 1",
