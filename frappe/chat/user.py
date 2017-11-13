@@ -29,3 +29,14 @@ def set_status(status, user = None):
 		))
 		doc.save()
 
+		users = frappe.get_list('User')
+		pub_users = [u for u in users if u.name != doc.name]
+		
+
+		for pub_user in pub_users:
+			frappe.publish_realtime('chat:user:status', dict(
+				name	   = doc.name,
+				first_name = doc.first_name,
+				status 	   = doc.chat_status
+			), user = pub_user.name)
+

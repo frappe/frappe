@@ -22,7 +22,7 @@ frappe.ui.form.ControlPassword = frappe.ui.form.ControlData.extend({
 	get_password_strength: function(value) {
 		var me = this;
 		frappe.call({
-			type: 'GET',
+			type: 'POST',
 			method: 'frappe.core.doctype.user.user.test_password_strength',
 			args: {
 				new_password: value || ''

@@ -4,9 +4,9 @@ frappe.pages.chirp.on_page_load = (parent) => {
          title: 'Chat'
     })
 
-    const $app = $(parent).find('.layout-main')
+    const $container = $(parent).find('.layout-main')
     frappe.pages.chirp.chirp = new frappe.Chirp()
-    frappe.Component.mount(frappe.pages.chirp.chirp, $app)
+    frappe.Component.mount(frappe.pages.chirp.chirp, $container)
 }
 
 // 
@@ -203,6 +203,7 @@ frappe.Chirp = class extends frappe.Component {
 
         this.on_change_user_status = this.on_change_user_status.bind(this)
         this.on_select_room        = this.on_select_room.bind(this)
+        this.on_message            = this.on_message.bind(this)
 
         this.state = frappe.Chirp.DEFAULT_STATES
 
@@ -211,14 +212,24 @@ frappe.Chirp = class extends frappe.Component {
 
     make ( ) {
         frappe.Chirp.Action.get_user(null, user => this.set_state({ user: user }))
-        frappe.realtime.on('chat:user:status', user => 
-            frappe.show_alert(`
-                ${new frappe.component.Indicator({
-                    color: frappe.Chirp.get_status_color(user.status)
-                }).render()} ${user.first_name || user.name} is currently <b>${user.status}</b>`, 1.5)
-        )
+        frappe.realtime.on('chat:user:status', (user) => {
+            // frappe.show_alert(`
+            //     ${new frappe.component.Indicator({
+            //         color: frappe.Chirp.get_status_color(user.status)
+            //     }).render()} ${user.first_name || user.name} is currently <b>${user.status}</b>`, 1.5)
+        })
         frappe.realtime.on('chat:room:update', (room) => {
-            frappe.Chirp.Action.get_user(null, user => this.set_state({ user: user }))
+            frappe.Chirp.Action.get_user(null, user => { this.set_state({ user: user })} )
+        })
+        frappe.realtime.on('chat:message', (response) =>  {
+            const { room , content } = response
+            if ( room === this.state.room.name ) {
+                const new_messages = this.state.messages.splice()
+                new_messages.push({
+                    content: content
+                })
+                this.set_state({ messages:  new_messages })
+            }
         })
     }
 
@@ -231,6 +242,12 @@ frappe.Chirp = class extends frappe.Component {
     on_select_room (room) {
         const { state } = this
         frappe.Chirp.Action.get_room(room , data => this.set_state({ room: data }))
+    }
+
+    on_message(room, message) {
+        frappe.Chirp.Action.send_message(room, message, (response) => {
+            
+        })
     }
 
     render ( ) {
@@ -248,8 +265,13 @@ frappe.Chirp = class extends frappe.Component {
                 <div class="layout-main-section-wrapper col-md-10 col-sm-9">
                     ${new frappe.Chirp.Room({
                          type: state.room.type,
+                           id: state.room.name,
                          name: state.room.room_name,
-                        users: state.room.users
+                        users: state.room.users,
+                        messages: state.room.messages,
+                        on_message: (room, message) => {
+                            this.on_message(room, message)
+                        }
                     }).render()}
                 </div>
             </div>
@@ -272,14 +294,24 @@ frappe.Chirp.Action.get_room = (room, callback) => {
         { name: room },
             r => callback(r.message))
 }
+
+frappe.Chirp.Action.send_message = (room, message, callback) => {
+    frappe.call('frappe.chat.doctype.chat_message.chat_message.send', 
+        { room: room, message: message },
+            r => callback(r))
+}
+
 frappe.Chirp.DEFAULT_STATES = {
     user: {
         status: "",
          rooms: [ ]
     },
     room: {
-        room_name: ""
-    }
+        name: "",
+        room_name: "",
+        messages: [ ]
+    },
+    messages: [ ]
 }
 
 frappe.Chirp.USER_STATUSES = [
@@ -416,6 +448,7 @@ frappe.Chirp.RoomSearchBar = class extends frappe.Component {
 frappe.Chirp.Room = class extends frappe.Component {
     render ( ) {
         const { props } = this
+        console.log(props)
         
         return props.type ? 
         `
@@ -448,11 +481,13 @@ frappe.Chirp.Room = class extends frappe.Component {
                         </small>
                     </div>
                     ${ new frappe.Chirp.MessageList({
-                        messages: [ ]
+                        messages: props.messages
                     }).render() }
                     <div class="panel-body">
                         ${ new frappe.Chirp.ChatForm({
-                            
+                            on_message: (message) => {
+                                props.on_message(props.id, message)
+                            }
                         }).render() }
                     </div>
                 </div>
@@ -472,10 +507,11 @@ frappe.Chirp.Room = class extends frappe.Component {
 frappe.Chirp.MessageList = class extends frappe.Component {
     render ( ) {
         const { props } = this
+
         const items     = props.messages.map(m => 
             new frappe.Chirp.MessageList.Item({
-                content: m.content
-            })
+                content: m.message_content
+            }).render()
         ).join("")
 
         return `
@@ -493,7 +529,7 @@ frappe.Chirp.MessageList.Item = class extends frappe.Component {
 
         return `
         <div class="list-group-item">
-            
+            ${props.content}
         </div>
         `
     }
@@ -503,7 +539,17 @@ frappe.Chirp.ChatForm = class extends frappe.Component {
     constructor (props) {
         super (props)
 
+        this.on_click  = this.on_click.bind(this)
         this.on_submit = this.on_submit.bind(this)
+    }
+
+    on_click (e) {
+        const value = $("#chat-form-msg").val()
+        const props = this.props
+
+        $("#chat-form-msg").val("")
+
+        props.on_message(value)
     }
 
     on_submit (e) {
@@ -518,13 +564,19 @@ frappe.Chirp.ChatForm = class extends frappe.Component {
             <form>
                 <div class="input-group">
                     <textarea
+                        id="chat-form-msg"
+                        name="message"
                         class="form-control"
                         placeholder="Type a message"/>
-                    <span class="input-group-addon btn btn-default">
-                        <i class="octicon octicon-pencil"/>
-                    </span>
+                    ${frappe.Component.on_click(`
+                        <span class="input-group-addon btn btn-default">
+                            <i class="octicon octicon-pencil"/>
+                        </span>
+                    `, this.on_click)}
                 </div>
             </form>
         `, this.on_submit)
     }
 }
+
+frappe._$ = 

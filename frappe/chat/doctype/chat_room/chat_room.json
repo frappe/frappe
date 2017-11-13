@@ -238,7 +238,7 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 0, 
- "modified": "2017-11-10 23:36:31.644522", 
+ "modified": "2017-11-13 12:46:40.223089", 
  "modified_by": "achilles@erpnext.com", 
  "module": "Chat", 
  "name": "Chat Room", 
@@ -260,7 +260,7 @@
    "read": 1, 
    "report": 1, 
    "role": "System Manager", 
-   "set_user_permissions": 0, 
+   "set_user_permissions": 1, 
    "share": 1, 
    "submit": 0, 
    "write": 1
