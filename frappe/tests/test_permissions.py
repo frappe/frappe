@@ -207,7 +207,7 @@ class TestPermissions(unittest.TestCase):
 		# remove last one
 		doc.fields = doc.fields[:-1]
 		self.assertRaises(frappe.CannotChangeConstantError, doc.save)
-		frappe.clear_cache(doctype='Blog Post')
+		frappe.clear_cache(doctype='DocType')
 
 	def test_set_only_once_child_table_row_value(self):
 		doctype_meta = frappe.get_meta("DocType")
@@ -217,7 +217,7 @@ class TestPermissions(unittest.TestCase):
 		# change one property from the child table
 		doc.fields[-1].fieldtype = 'HTML'
 		self.assertRaises(frappe.CannotChangeConstantError, doc.save)
-		frappe.clear_cache(doctype='Blog Post')
+		frappe.clear_cache(doctype='DocType')
 
 	def test_set_only_once_child_table_okay(self):
 		doctype_meta = frappe.get_meta("DocType")
@@ -226,7 +226,7 @@ class TestPermissions(unittest.TestCase):
 
 		doc.load_doc_before_save()
 		self.assertFalse(doc.validate_set_only_once())
-		frappe.clear_cache(doctype='Blog Post')
+		frappe.clear_cache(doctype='DocType')
 
 	def test_user_permission_doctypes(self):
 		add_user_permission("Blog Category", "_Test Blog Category 1",
