@@ -205,8 +205,11 @@ class BaseDocument(object):
 				elif df.fieldtype in ("Currency", "Float", "Percent") and not isinstance(d[fieldname], float):
 					d[fieldname] = flt(d[fieldname])
 
-				elif df.fieldtype in ("Datetime", "Date") and d[fieldname]=="":
-					d[fieldname] = None
+				elif df.fieldtype in ("Datetime", "Date"):
+					if d[fieldname]=="":
+						d[fieldname] = None
+					else:
+						d[fieldname] = str(d[fieldname])
 
 				elif df.get("unique") and cstr(d[fieldname]).strip()=="":
 					# unique empty field should be set to None

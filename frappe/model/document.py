@@ -497,11 +497,12 @@ class Document(BaseDocument):
 				original_child = d.as_dict()
 
 				# all fields must be same other than modified and modified_by
-				for key in ('modified', 'modified_by'):
+				for key in ('modified', 'modified_by', 'creation'):
 					del new_child[key]
 					del original_child[key]
 
 				if original_child != new_child:
+					print(original_child, new_child)
 					same = False
 					break
 
