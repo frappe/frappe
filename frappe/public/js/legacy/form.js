@@ -274,6 +274,11 @@ _f.Frm.prototype.email_doc = function(message) {
 	});
 };
 
+//get next prev doc
+_f.Frm.prototype.get_nxt_prev_doc = function(state) {
+
+};
+
 // rename the form
 _f.Frm.prototype.rename_doc = function() {
 	frappe.model.rename_doc(this.doctype, this.docname);

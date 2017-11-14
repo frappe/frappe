@@ -12,6 +12,7 @@ frappe.ui.form.Toolbar = Class.extend({
 	refresh: function() {
 		this.make_menu();
 		this.set_title();
+		this.set_arrow_action();
 		this.page.clear_user_actions();
 		this.show_title_as_dirty();
 		this.set_primary_action();
@@ -26,6 +27,18 @@ frappe.ui.form.Toolbar = Class.extend({
 				this.page.show_menu();
 				this.print_icon && this.print_icon.removeClass("hide");
 			}
+		}
+	},
+	set_arrow_action: function() {
+		var me = this;
+		if(!this.frm.doc.__islocal && !this.frm.meta.issingle){
+			this.arrow_icon = this.page.add_action_icon("fa fa-chevron-left", function() {
+				me.frm.get_nxt_prev_doc('prev')
+				console.log("####")
+			});
+			this.arrow_icon = this.page.add_action_icon("fa fa-chevron-right", function() {
+				me.frm.get_nxt_prev_doc('nxt')				
+			});
 		}
 	},
 	set_title: function() {
