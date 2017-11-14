@@ -36,14 +36,13 @@ def sales_invoice():
 
     result = []
     remark = ''
-    minus = 0
-
     for salinv in sales_invoice_data:
         if salinv.reference_doctype == 'Sales Invoice':
-            index = getcurrentindex()
             status = 0
-            minus += 1
-            previous_hash = frappe.db.sql("SELECT chaining_hash FROM `tabTransactionLog` WHERE row_index = {0}".format(index - minus))
+            row_index = int(salinv.row_index)
+            if row_index > 1:
+                row_index = int(salinv.row_index) - 1
+            previous_hash = frappe.db.sql("SELECT chaining_hash FROM `tabTransactionLog` WHERE row_index = {0}".format(row_index))
             if previous_hash:
                 remark = doc_check(salinv.reference_doctype, salinv.document_name, previous_hash)
 
@@ -65,18 +64,18 @@ def payment_entry():
 
     result = []
     remark = ''
-    minus = 0
     for ped in payment_entry_data:
         if ped.reference_doctype == 'Payment Entry':
-            status = 0
-            minus += 1
-            index = getcurrentindex()
-            previous_hash = frappe.db.sql("SELECT chaining_hash FROM `tabTransactionLog` WHERE row_index = {0}".format(index - minus))
+            row_index = int(ped.row_index)
+            if row_index > 1:
+                row_index = int(ped.row_index) - 1
+
+            previous_hash = frappe.db.sql("SELECT chaining_hash FROM `tabTransactionLog` WHERE row_index = {0}".format(row_index))
             if previous_hash:
                 remark = doc_check(ped.reference_doctype, ped.document_name, previous_hash)
 
             row = [remark, ped.creation, ped.owner, ped.modified_by, ped.document_name,
-                   ped.reference_doctype,ped.customer_name, ped.base_paid_amount, ped.company, ped.posting_date,
+                   ped.reference_doctype,ped.party, ped.base_paid_amount, ped.company, ped.posting_date,
                    ped.currency,ped.company_address, ped.base_received_amount, ped.net_total, ped.payment_type]
 
             result.append(row)
@@ -89,13 +88,13 @@ def full_data():
     f_data = frappe.db.sql("SELECT * FROM tabTransactionLog order by creation desc ", as_dict=1)
     result = []
     remark = ''
-    minus = 0
     for fd in f_data:
         data = fd.data.split()
-        index = getcurrentindex()
-        status = 0
-        minus += 1
-        previous_hash = frappe.db.sql("SELECT chaining_hash FROM `tabTransactionLog` WHERE row_index = {0}".format(index - minus))
+        row_index = int(fd.row_index)
+        if row_index > 1:
+            row_index = int(fd.row_index) - 1
+
+        previous_hash = frappe.db.sql("SELECT chaining_hash FROM `tabTransactionLog` WHERE row_index = {0}".format(row_index))
         if previous_hash:
             remark = doc_check(fd.reference_doctype, fd.document_name, previous_hash)
 
@@ -107,24 +106,18 @@ def full_data():
         else:
             list = [data[79], data[9], data[63], data[52], data[07], data[58], data[03]]
             row = [ remark, fd.creation, fd.owner, fd.modified_by, fd.document_name, fd.reference_doctype,
-                    data[79].split("'")[1], data[9], data[63], data[52], data[07], '', data[58], '', data[03]  ]
+                    data[79], data[9], data[63], data[52], data[07], '', data[58], '', data[03]  ]
         # list[0].split("'")[1]
-        # row = [remarks, fd.creation, fd.owner, fd.modified_by, fd.document_name,
-        #        fd.reference_doctype,
-        # data[62],data[01], data[52], data[34], data[10], data[20], data[38], data[12], data[22]
-        #        fd.customer_name, fd.base_total, fd.company, fd.posting_date, fd.currency,
-        #        fd.company_address, fd.paid_amount, fd.net_total, fd.status]
-
         result.append(row)
 
     return result
 
-def getcurrentindex():
-    current = frappe.db.sql("SELECT `current` FROM tabSeries WHERE name='TRANSACTLOG' FOR UPDATE")
-    if current and current[0][0] is not None:
-        current = current[0][0]
-
-    return current
+# def getcurrentindex():
+#     current = frappe.db.sql("SELECT `current` FROM tabSeries WHERE name='TRANSACTLOG'")
+#     if current and current[0][0] is not None:
+#         current = current[0][0]
+#
+#     return current
 
 def doc_check(reference_doctype, doc_name, previous_hash):
 
@@ -133,23 +126,28 @@ def doc_check(reference_doctype, doc_name, previous_hash):
         s_invoice = frappe.db.sql("""Select si.name from tabTransactionLog trl, `tabSales Invoice` si
             	      where trl.document_name = si.name
             	      ORDER BY trl.creation desc""", as_dict=1)
-        for s_inv in s_invoice:
-            if doc_name in s_inv.name:
-                remarks = 'Chaining successful'
-                break
-            else:
-                remarks = 'Document missing'
+        if s_invoice:
+            for s_inv in s_invoice:
+                if doc_name in s_inv.name:
+                    remarks = 'Chaining successful'
+                    break
+                else:
+                    remarks = 'Document missing'
+        else:
+            remarks = 'Document Missing'
     else:
         p_entry = frappe.db.sql("""SELECT pe.name from tabTransactionLog trl, `tabPayment Entry` pe
                       where trl.document_name = pe.name
                       ORDER BY trl.creation desc """, as_dict=1)
-        for p_ent in p_entry:
-            if doc_name in p_ent.name:
-                remarks = 'Chaining successful'
-                break
-            else:
-                remarks = 'Document missing'
-
+        if p_entry:
+            for p_ent in p_entry:
+                if doc_name in p_ent.name:
+                    remarks = 'Chaining successful'
+                    break
+                else:
+                    remarks = 'Document missing'
+        else:
+            remarks = 'Document Missing'
     return remarks
 
 def hash_check(previous_hash):
