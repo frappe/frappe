@@ -53,6 +53,11 @@ function watch() {
 		console.log('file watching on *:', file_watcher_port);
 	});
 
+	if (process.env.CI) {
+		// don't watch inside CI
+		return;
+	}
+
 	compile_less().then(() => {
 		build();
 		watch_less(function (filename) {
@@ -60,11 +65,11 @@ function watch() {
 				io.emit('reload_css', filename);
 			}
 		});
-		// watch_js(function (filename) {
-		// 	if(socket_connection) {
-		// 		io.emit('reload_js', filename);
-		// 	}
-		// });
+		watch_js(/*function (filename) {
+			if(socket_connection) {
+				io.emit('reload_js', filename);
+			}
+		}*/);
 		watch_build_json();
 	});
 

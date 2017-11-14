@@ -23,7 +23,7 @@ selenium
 -e git+https://github.com/frappe/python-pdfkit.git#egg=pdfkit
 babel
 ipython
-html2text
+html2text==2016.9.19
 email_reply_parser
 click
 num2words==0.5.5

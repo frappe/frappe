@@ -795,9 +795,8 @@ class Document(BaseDocument):
 		- `before_update_after_submit` for **Update after Submit**
 
 		Will also update title_field if set"""
-		self.set_title_field()
-		self.reset_seen()
 
+		self.reset_seen()
 		self._doc_before_save = None
 		if not self.is_new() and getattr(self.meta, 'track_changes', False):
 			self.get_doc_before_save()
@@ -815,6 +814,8 @@ class Document(BaseDocument):
 			self.run_method("before_cancel")
 		elif self._action=="update_after_submit":
 			self.run_method("before_update_after_submit")
+
+		self.set_title_field()
 
 	def run_post_save_methods(self):
 		"""Run standard methods after `INSERT` or `UPDATE`. Standard Methods are:
