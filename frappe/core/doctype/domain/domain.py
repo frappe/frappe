@@ -49,10 +49,10 @@ class Domain(Document):
 					custom_fields = [custom_fields]
 
 				for custom_field_detail in custom_fields:
-					custom_field = frappe.get_doc('Custom Field',
+					custom_field_name = frappe.db.get_value('Custom Field',
 						dict(dt=doctype, fieldname=custom_field_detail.get('fieldname')))
-					custom_field.delete()
-
+					if custom_field_name:
+						frappe.delete_doc('Custom Field', custom_field_name)
 
 	def setup_roles(self):
 		'''Enable roles that are restricted to this domain'''
