@@ -14,14 +14,20 @@ session = frappe.session
 # TODOs
 # [ ] Deleting User should also delete its Chat Profile.
 # [x] Link Chat Profile DocType to User when User is created.
-# [ ] Once done, add a validator to check Chat Profile has been
+# [x] Once done, add a validator to check Chat Profile has been
 #     created only once. Should be done on `validate`.
 # [ ] Users can view other Users Chat Profile, but not update the same.
 # [ ] Not sure, but circular link would be helpful.
-
-# /api/resource -> ReST ?
+# [ ] Ensuring username is mandatory when User has been created.
 
 class ChatProfile(Document):
+    def validate(self):
+        user = session.user
+        user = get_user_doc()
+
+        if user.chat_profile != self.name:
+            frappe.throw(_("Sorry! You don't have permission to update this profile."))
+
     def on_update(self):
         # Triggered everytime "Save" has been clicked.
         # For now, simply publish_realtime the updated field.
@@ -46,7 +52,8 @@ def get_user_chat_profile(user = None, fields = None):
         username   = user.username,
         first_name = user.first_name, 
         last_name  = user.last_name,
-        avatar 	   = user.user_image, 
+        avatar 	   = user.user_image,
+        bio        = user.bio,
         status	   = prof.status,
         chat_bg    = prof.chat_background
     )
@@ -97,8 +104,6 @@ def get(user = None, fields = None):
     '''
     Returns a user's Chat Profile.
     '''
-    # ISSUE - Why does frappe.call not accept list as args?
-    # HACK  - using ast's literal_eval.
     fields = safe_literal_eval(fields)
     prof   = get_user_chat_profile(user, fields)
 
@@ -106,8 +111,6 @@ def get(user = None, fields = None):
 
 @frappe.whitelist()
 def update(user, data):
-    # ISSUE - Why does frappe.call not accept Object as args?
-    # HACK  - using ast's literal_eval.
     data = safe_literal_eval(data)
     user = get_user_doc(user)
 

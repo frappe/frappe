@@ -1,5 +1,4 @@
 {
- "_user_tags": ",", 
  "allow_copy": 0, 
  "allow_guest_to_view": 0, 
  "allow_import": 0, 
@@ -87,8 +86,8 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 0, 
- "modified": "2017-11-14 15:11:29.217299", 
- "modified_by": "Administrator", 
+ "modified": "2017-11-14 23:22:20.157702", 
+ "modified_by": "achilles@erpnext.com", 
  "module": "Chat", 
  "name": "Chat Profile", 
  "name_case": "", 

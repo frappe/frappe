@@ -46,13 +46,11 @@ def user_exist(user):
 	except DoesNotExistError:
 		return False
 
-def create_test_user(module_name):
+def create_test_user(module):
 	try:
 		test_user = frappe.new_doc('User')
-		test_user.first_name = 'Test User Chat Profile'
-		test_user.email      = 'testuser.{module_name}@example.com'.format(
-			module_name = module_name
-		)
+		test_user.first_name = '{module}'.format(module = module)
+		test_user.email      = 'testuser.{module}@example.com'.format(module = module)
 		test_user.save()
 	except DuplicateEntryError:
 		frappe.log('Test User Chat Profile exists.')

@@ -6,58 +6,37 @@ from   frappe import _
 session = frappe.session
 
 # TODOs
-# [ ] Validation for more than one 
-# [ ] Ensure Group name exist
+
+def get_chat_room_user_set(users):
+	seen  = set()
+	news  = [ ]
+
+	for u in users:
+		if u.user not in seen:
+			news.append(u)
+
+			seen.add(u.user)
+
+	return news
 
 class ChatRoom(Document):
 	def validate(self):
 		# Validation Kinds
-		# 1. Direct must have 2 users only.
-		# 2. Groups must have 1 or more users.
+		# [x] Direct must have 2 users only.
+		# [x] Groups must have 1 or more users.
+		# [x] Ensure group name exists.
 
-		# First, check if user isn't stupid by adding many users or himself.
+		# First, check if user isn't stupid by adding many users or himself/herself.
 		# C'mon yo, you're the owner.
-		users = doc.users
-		
+		users = get_chat_room_user_set(self.users)
+		users = [u for u in users if u.user != session.user]
 
-		if self.type in ("Direct", "Visitor") and len(self.users) > 1:
-			frappe.throw(_('Direct room must have atmost one user only.'))
+		self.update(dict(
+			users = users
+		))
 
-		
+		if self.type in ("Direct", "Visitor") and len(users) != 1:
+			frappe.throw(_('Direct room must have atmost one user.'))
 
-	def on_update(self):
-		# publish to users who belong only.
-		# frappe.publish_realtime('chat:room:update', dict(
-		# 	type = self.type,
-		# 	name = self.name,
-		# 	room_name = self.room_name,
-		# 	messages  = frappe.get_all('Chat Message', filters = {'room': name},	
-		# 		fields = ['name', 'message_content'])
-		# ), after_commit = True)
-		pass
-
-	def on_trash(self):
-		pass
-
-@frappe.whitelist()
-def create(kind, name = '', users = [ ]):
-	doc	= frappe.new_doc('Chat Room')
-	doc.type = kind
-	doc.room_name = name
-	
-	doc.insert()
-
-@frappe.whitelist()
-def get(name = None):
-	if not name:
-		resp = frappe.get_all('Chat Room')
-	else:
-		resp = frappe.get_doc('Chat Room', name)
-		resp = dict(
-			type = resp.type, users = resp.users,
-			name = resp.name, room_name = resp.room_name, 
-			messages = frappe.get_all('Chat Message', filters = { 'room': name},
-				fields = ['name', 'message_content'])
-		)
-
-	return resp
+		if self.type == "Group" and not self.room_name:
+			frappe.throw(_('Group name cannot be empty.'))
