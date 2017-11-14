@@ -136,6 +136,7 @@ class LoginManager:
 		self.validate_hour()
 		self.make_session()
 		self.set_user_info()
+		self.run_trigger('on_after_login')
 
 	def set_user_info(self, resume=False):
 		# set sid again
