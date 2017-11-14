@@ -786,6 +786,12 @@ class BaseDocument(object):
 			for df in self.meta.get("fields", {"fieldtype": ('=', "Text Editor")}):
 				extract_images_from_doc(self, df.fieldname)
 
+	def __eq__(self, other):
+		return self.name == other.name
+
+	def __hash__(self):
+		return hash((self.name))
+
 def _filter(data, filters, limit=None):
 	"""pass filters as:
 		{"key": "val", "key": ["!=", "val"],
