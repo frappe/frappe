@@ -31,6 +31,28 @@ class Domain(Document):
 			# custom on_setup method
 			frappe.get_attr(self.data.on_setup)()
 
+	def remove_domain(self):
+		'''Unset domain settings'''
+		self.setup_data()
+		for role_name in self.data.restricted_roles:
+			if frappe.db.exists('Role', role_name):
+				role = frappe.get_doc('Role', role_name)
+				role.disabled = 1
+				role.save()
+
+		if self.data.custom_fields:
+			for doctype in self.data.custom_fields:
+				custom_fields = self.data.custom_fields[doctype]
+
+				# custom_fields can be a list or dict
+				if isinstance(custom_fields, dict):
+					custom_fields = [custom_fields]
+
+				for custom_field_detail in custom_fields:
+					custom_field = frappe.get_doc('Custom Field',
+						dict(dt=doctype, fieldname=custom_field_detail.get('fieldname')))
+					custom_field.delete()
+
 
 	def setup_roles(self):
 		'''Enable roles that are restricted to this domain'''
