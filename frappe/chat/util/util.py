@@ -1,9 +1,16 @@
-# imports - standard imports
+# imports - compatibility imports
 import six
+
+# imports - standard imports
+try:
+	from urlparse import urlparse 	  # PY2
+except ImportError:
+	from urllib.parse import urlparse # PY3
 import ast
 
 # imports - module imports
 from   frappe.model.document import Document
+from   frappe.exceptions import DoesNotExistError
 import frappe
 
 session = frappe.session
@@ -22,3 +29,19 @@ def safe_literal_eval(what):
 		what = ast.literal_eval(what)
 	
 	return what
+
+def check_url(what, raise_err = False):
+	if not urlparse(what).scheme:
+		if raise_err:
+			raise ValueError('{what} not a valid URL.')
+		else:
+			return False
+	
+	return True
+
+def user_exist(user):
+	try:
+		user = get_user_doc(user)
+		return True
+	except DoesNotExistError:
+		return False

@@ -17,6 +17,7 @@ session = frappe.session
 # [ ] Once done, add a validator to check Chat Profile has been
 #     created only once. Should be done on `validate`.
 # [ ] Users can view other Users Chat Profile, but not update the same.
+# [ ] Not sure, but circular link would be helpful.
 
 class ChatProfile(Document):
     def on_update(self):
