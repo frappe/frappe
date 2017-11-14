@@ -33,11 +33,10 @@ frappe.ui.form.Toolbar = Class.extend({
 		var me = this;
 		if(!this.frm.doc.__islocal && !this.frm.meta.issingle){
 			this.arrow_icon = this.page.add_action_icon("fa fa-chevron-left", function() {
-				me.frm.get_nxt_prev_doc('prev')
-				console.log("####")
+				me.frm.get_nxt_prev_doc('prev');
 			});
 			this.arrow_icon = this.page.add_action_icon("fa fa-chevron-right", function() {
-				me.frm.get_nxt_prev_doc('nxt')				
+				me.frm.get_nxt_prev_doc('nxt');				
 			});
 		}
 	},
