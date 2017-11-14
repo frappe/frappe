@@ -3,21 +3,13 @@ import unittest
 
 # imports - module imports
 import frappe
-from   frappe.exceptions import DuplicateEntryError
 
 # imports - frappe module imports
 from frappe.chat.doctype.chat_profile import chat_profile
 from frappe.chat.util import get_user_doc
 
-session = frappe.session
-
-try:
-	test_user = frappe.new_doc('User')
-	test_user.first_name = 'Test User Chat Profile'
-	test_user.email      = 'testuser.chatprofile@example.com'
-	test_user.save()
-except DuplicateEntryError:
-	frappe.log('Test User Chat Profile exists.')
+session   = frappe.session
+test_user = create_test_user(__name__)
 
 class TestChatProfile(unittest.TestCase):
 	def test_create(self):
@@ -54,6 +46,8 @@ class TestChatProfile(unittest.TestCase):
 			))
 
 		user = get_user_doc(session.user)
+		prev = chat_profile.get(user.name) 
+
 		chat_profile.update(user.name, data = dict(
 			status = 'Offline'
 		))
@@ -61,5 +55,5 @@ class TestChatProfile(unittest.TestCase):
 		self.assertEquals(prof.status, 'Offline')
 		# revert
 		chat_profile.update(user.name, data = dict(
-			status = 'Online'
+			status = prev.status
 		))

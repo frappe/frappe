@@ -10,7 +10,7 @@ import ast
 
 # imports - module imports
 from   frappe.model.document import Document
-from   frappe.exceptions import DoesNotExistError
+from   frappe.exceptions import DoesNotExistError, DuplicateEntryError
 import frappe
 
 session = frappe.session
@@ -45,3 +45,14 @@ def user_exist(user):
 		return True
 	except DoesNotExistError:
 		return False
+
+def create_test_user(module_name):
+	try:
+		test_user = frappe.new_doc('User')
+		test_user.first_name = 'Test User Chat Profile'
+		test_user.email      = 'testuser.{module_name}@example.com'.format(
+			module_name = module_name
+		)
+		test_user.save()
+	except DuplicateEntryError:
+		frappe.log('Test User Chat Profile exists.')

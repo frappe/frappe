@@ -43,8 +43,8 @@ def get_message_mentions(content):
 		if text.startswith('@'):
 			username = text[1:]
 
-			if username_exist(user):
-				mentions.append(user)	
+			if user_exist(user):
+				mentions.append(user)
 
 def get_message_meta(content):
 	'''
@@ -77,6 +77,10 @@ def get_new_chat_message_doc(user, room, content):
 @frappe.whitelist()
 def send(user, room, content):
 	mess = get_new_chat_message_doc(user, room, content)
+
+@frappe.whitelist()
+def send_attachment(user, room, unknown_field):
+	pass
 	
 @frappe.whitelist()
 def delete():

@@ -19,6 +19,8 @@ session = frappe.session
 # [ ] Users can view other Users Chat Profile, but not update the same.
 # [ ] Not sure, but circular link would be helpful.
 
+# /api/resource -> ReST ?
+
 class ChatProfile(Document):
     def on_update(self):
         # Triggered everytime "Save" has been clicked.
