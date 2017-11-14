@@ -29,9 +29,6 @@ def setup_complete(args):
 	try:
 		if args.language and args.language != "english":
 			set_default_language(get_language_code(args.lang))
-		frappe.get_doc("Language", {"name": get_language_code(args.lang)}).update({
-			"active": 1
-		}).save()
 
 		frappe.clear_cache()
 

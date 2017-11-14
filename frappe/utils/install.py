@@ -25,6 +25,9 @@ def after_install():
 
 	from frappe.core.doctype.language.language import sync_languages
 	sync_languages()
+	frappe.get_doc("Language", frappe.db.get_default("lang")).update({
+		"enabled": 1
+	}).save()
 
 	# save default print setting
 	print_settings = frappe.get_doc("Print Settings")
