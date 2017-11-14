@@ -54,6 +54,11 @@ function watch() {
 		console.log('file watching on *:', file_watcher_port);
 	});
 
+	if (process.env.CI) {
+		// don't watch inside CI
+		return;
+	}
+
 	compile_less().then(() => {
 		build();
 		watch_less(function (filename) {

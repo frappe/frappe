@@ -22,7 +22,7 @@ class S3BackupSettings(Document):
 			aws_secret_access_key=self.get_password('secret_access_key'),
 		)
 
-		bucket_lower = str(self.bucket).lower()
+		bucket_lower = str(self.bucket)
 
 		try:
 			conn.list_buckets()

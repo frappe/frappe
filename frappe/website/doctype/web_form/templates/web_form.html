@@ -238,7 +238,7 @@
 <div class="text-center slide-progress text-extra-muted">
 	{% for page in layout %}
 	<i data-idx="{{ loop.index }}" data-toggle="tooltip" data-placement="top"
-		title="{{ page.label or _("Page {0}").format(loop.index) }}" class="fa-fw
+		title="{{ _(page.label) or _("Page {0}").format(loop.index) }}" class="fa-fw
 		{% if loop.index==1 %}fa fa-circle{% else %}fa fa-circle-o{% endif %}"></i>
 	{% endfor %}
 </div>
@@ -263,10 +263,10 @@
 		data-idx="{{ loop.index }}"
 		data-label="{{ page.label or _("Page {0}").format(loop.index) }}">
 		{% if page.label %}
-			<h2 class='text-center'>{{ page.label }}</h2>
+			<h2 class='text-center'>{{ _(page.label) }}</h2>
 		{% endif %}
 		{% if page.description %}
-			<p class='text-center text-muted small'>{{ page.description }}</p>
+			<p class='text-center text-muted small'>{{ _(page.description) }}</p>
 			<br>
 		{% endif %}
 

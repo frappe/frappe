@@ -140,7 +140,7 @@ class TestDriver(object):
 		for entry in self.driver.get_log('browser'):
 			source, line_no, message = entry.get('message').split(' ', 2)
 
-			if message[0] in ('"', "'"):
+			if message and message[0] in ('"', "'"):
 				# message is a quoted/escaped string
 				message = literal_eval(message)
 
