@@ -328,10 +328,6 @@ frappe.views.QueryReport = Class.extend({
 						me.trigger_refresh();
 					}
 				}
-
-				// This is specifically done true earlier due to some reason. Please update if anyone finds that.
-				// Done false as the api can be used in the script reports which can break due to invalid links
-				df.ignore_link_validation = false;
 			}
 		});
 
