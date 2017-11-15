@@ -1,6 +1,5 @@
 frappe.pages.chirp.on_page_load = (wrapper) => {
     const $wrapper = $(wrapper)
-
     const page = new frappe.ui.Page({
         parent: $wrapper,
          title: __(`Chat`)

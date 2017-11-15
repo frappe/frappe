@@ -12,13 +12,16 @@ from   frappe.chat.util import (
 session = frappe.session
 
 # TODOs
+# User
 # [ ] Deleting User should also delete its Chat Profile.
+# [ ] Ensuring username is mandatory when User has been created.
+
+# Chat Profile
 # [x] Link Chat Profile DocType to User when User is created.
 # [x] Once done, add a validator to check Chat Profile has been
 #     created only once. Should be done on `validate`.
-# [ ] Users can view other Users Chat Profile, but not update the same.
-# [ ] Not sure, but circular link would be helpful.
-# [ ] Ensuring username is mandatory when User has been created.
+# [x] Users can view other Users Chat Profile, but not update the same.
+#     Not sure, but circular link would be helpful.
 
 class ChatProfile(Document):
     def validate(self):
@@ -82,8 +85,9 @@ def get_new_chat_profile_doc(user = None):
     return prof
 
 @frappe.whitelist()
-def create(user):
-    user = get_user_doc(user)
+def create(user, exist = False):
+    exist = safe_literal_eval(exist.capitalize()) if exist else False
+    user  = get_user_doc(user)
 
     if user.name != session.user:
         frappe.throw(_("Sorry! You don't have permission to create {user}'s profile.".format(
@@ -91,13 +95,18 @@ def create(user):
         )))
 
     if user.chat_profile:
-        frappe.throw(_("Sorry! You cannot create more than one Chat Profile."))
+        if not exist:
+            frappe.throw(_("Sorry! You cannot create more than one Chat Profile."))
+        
+        prof = get_user_chat_profile(user)
     else:
         prof = get_new_chat_profile_doc(user)
         user.update(dict(
             chat_profile = prof.name
         ))
         user.save()
+
+    return _dict(prof)
 
 @frappe.whitelist()
 def get(user = None, fields = None):
