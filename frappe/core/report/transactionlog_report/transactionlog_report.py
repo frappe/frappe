@@ -2,7 +2,7 @@
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
-import frappe
+import frappe, json
 from  frappe import msgprint, _
 from frappe.utils import now, cint
 
@@ -38,7 +38,6 @@ def sales_invoice():
     remark = ''
     for salinv in sales_invoice_data:
         if salinv.reference_doctype == 'Sales Invoice':
-            status = 0
             row_index = int(salinv.row_index)
             if row_index > 1:
                 row_index = int(salinv.row_index) - 1
@@ -89,7 +88,7 @@ def full_data():
     result = []
     remark = ''
     for fd in f_data:
-        data = fd.data.split()
+        data = json.loads(fd.data)
         row_index = int(fd.row_index)
         if row_index > 1:
             row_index = int(fd.row_index) - 1
@@ -98,26 +97,22 @@ def full_data():
         if previous_hash:
             remark = doc_check(fd.reference_doctype, fd.document_name, previous_hash)
 
-
+# update base_paid_amount and status from sales invoice doctype
 
         if fd.reference_doctype == 'Sales Invoice':
             row = [remark, fd.creation, fd.owner, fd.modified_by, fd.document_name, fd.reference_doctype,
-                   data[60], data[01], data[51], data[34], data[10], data[20], data[38], data[12], data[22]]
+                   data['self.customer'], data['self.base_net_total'], data['self.company'],
+                   data['self.posting_date'], data['self.company_currency'],
+                   data['self.company_address'], data['self.base_paid_amount'], data['self.net_total'], data['self.status'] ]
         else:
-            list = [data[79], data[9], data[63], data[52], data[07], data[58], data[03]]
             row = [ remark, fd.creation, fd.owner, fd.modified_by, fd.document_name, fd.reference_doctype,
-                    data[79], data[9], data[63], data[52], data[07], '', data[58], '', data[03]  ]
-        # list[0].split("'")[1]
+                    data['self.party_name'], data['self.base_paid_amount'], data['self.company'],
+                    data['self.posting_date'], data['self.company_currency'], '',
+                    data['self.paid_amount'], data['self.total_allocated_amount'], data['self.payment_type'] ]
+
         result.append(row)
 
     return result
-
-# def getcurrentindex():
-#     current = frappe.db.sql("SELECT `current` FROM tabSeries WHERE name='TRANSACTLOG'")
-#     if current and current[0][0] is not None:
-#         current = current[0][0]
-#
-#     return current
 
 def doc_check(reference_doctype, doc_name, previous_hash):
 
@@ -169,8 +164,8 @@ def hash_check(previous_hash):
 
 def getColumn():
     columns = [
-        _("Remarks") + "::180",_("Creation") + "::150",_("Owner") + "::100",_("Modified By") + "::100", _("Document Name") + "::100",
-         _("Reference Doctype") + "::150", _("Customer Name") + "::100",_("Base Total") + "::100",
+        _("Remarks") + "::180",_("Creation") + "::150",_("Owner") + "::100",_("Modified By") + "::100", _("Document Name") + "::130",
+         _("Reference Doctype") + "::150", _("Customer Name") + "::150",_("Base Total") + "::100",
         _("Company") + "::100",_("Posting Date") + "::100",_("Currency") + "::100", _("Company Address") + "::180",
         _("Paid Amount") + "::100", _("Net Total") + "::100", _("Status") + "::100"
     ]
