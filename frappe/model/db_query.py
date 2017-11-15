@@ -628,6 +628,7 @@ def get_between_date_filter(value):
 		if len(value) >= 1: from_date = value[0]
 		if len(value) >= 2: to_date = value[1]
 
+	data = "'%s' AND '%s'" % (
 		get_datetime(from_date).strftime("%Y-%m-%d %H:%M:%S.%f"),
 		add_to_date(get_datetime(to_date),days=1).strftime("%Y-%m-%d %H:%M:%S.%f"))
 
