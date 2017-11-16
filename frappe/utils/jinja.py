@@ -2,8 +2,6 @@
 # MIT License. See license.txt
 from __future__ import unicode_literals
 
-import os
-
 def get_jenv():
 	import frappe
 
@@ -66,7 +64,6 @@ def render_template(template, context, is_path=None):
 		return ""
 
 	# if it ends with .html then its a freaking path, not html
-	
 	_doc = None
 	
 	if isinstance(context, Document):

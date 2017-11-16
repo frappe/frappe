@@ -188,8 +188,8 @@ class BaseDocument(object):
 		for fieldname in self.meta.get_valid_columns():
 			value = self.get(fieldname)
 			if not translated \
-				or (not isinstance(value, string_types) 
-					and value not in link_fields): 
+				or (not isinstance(value, string_types)
+					and value not in link_fields):
 				d[fieldname] = value
 			else:
 				d[fieldname] = _(value)
