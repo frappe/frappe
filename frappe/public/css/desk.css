@@ -475,6 +475,11 @@ fieldset[disabled] .form-control {
 .modal-title {
   margin-top: 5px;
 }
+.btn-primary.disabled {
+  background-color: #b1bdca;
+  color: #fff;
+  border-color: #b1bdca;
+}
 .form-control {
   position: relative;
 }

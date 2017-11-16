@@ -86,6 +86,12 @@ frappe.ui.Dialog = frappe.ui.FieldGroup.extend({
 				click.apply(me, [values]);
 			});
 	},
+	disable_primary_action: function() {
+		this.get_primary_btn().addClass('disabled');
+	},
+	enable_primary_action: function() {
+		this.get_primary_btn().removeClass('disabled');
+	},
 	make_head: function() {
 		var me = this;
 		this.set_title(this.title);
