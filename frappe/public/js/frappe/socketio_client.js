@@ -40,6 +40,13 @@ frappe.socketio = {
 			eval(message);
 		});
 
+		frappe.socketio.socket.on('reconnect', function (m) {
+			// frappe.socketio.socket.disconnect()
+			// frappe.socketio.socket.connect()
+			
+			frappe.socketio.socket.emit('rejoin_rooms', frappe.boot.sid)
+		})
+
 		frappe.socketio.socket.on('progress', function(data) {
 			if(data.progress) {
 				data.percent = flt(data.progress[0]) / data.progress[1] * 100;

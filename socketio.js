@@ -60,24 +60,8 @@ io.on('connection', function(socket) {
 	socket.files = {};
 
 	// console.log("firing get_user_info");
-	request.get(get_url(socket, '/api/method/frappe.async.get_user_info'))
-		.type('form')
-		.query({
-			sid: sid
-		})
-		.end(function(err, res) {
-			if(err) {
-				console.log(err);
-				return;
-			}
-			if(res.status == 200) {
-				var room = get_user_room(socket, res.body.message.user);
-				// console.log('joining', room);
-				socket.join(room);
-				socket.join(get_site_room(socket));
-			}
-		});
-
+	join_rooms(socket, sid)
+	
 	socket.on('disconnect', function() {
 		delete socket.files;
 	})
@@ -155,6 +139,10 @@ io.on('connection', function(socket) {
 		});
 	});
 
+	socket.on('rejoin_rooms', function (sid) {
+		join_rooms(socket, sid)
+	})
+
 	socket.on('upload-accept-slice', (data) => {
 		try {
 			if (!socket.files[data.name]) {
@@ -217,6 +205,32 @@ function send_existing_lines(task_id, socket) {
 	});
 }
 
+function join_rooms (socket, sid) {
+	request.get(get_url(socket, '/api/method/frappe.async.get_user_info'))
+	.type('form')
+	.query({
+		sid: sid
+	})
+	.end(function(err, res) {
+		if(err) {
+			console.log(err);
+			return;
+		}
+		if(res.status == 200) {
+			// console.log('joining', room);
+			socket.join(get_user_room(socket, res.body.message.user));
+			socket.join(get_site_room(socket));
+
+			if (res.body.message.rooms) {
+				for (let room of res.body.message.rooms)  {
+					console.log(room);
+					socket.join(get_other_room(socket, room));
+				}
+			}
+		}
+	});
+}
+
 function get_doc_room(socket, doctype, docname) {
 	return get_site_name(socket) + ':doc:'+ doctype + '/' + docname;
 }
@@ -227,6 +241,10 @@ function get_open_doc_room(socket, doctype, docname) {
 
 function get_user_room(socket, user) {
 	return get_site_name(socket) + ':user:' + user;
+}
+
+function get_other_room(socket, room) {
+	return get_site_name(socket) + ':room:' + room;
 }
 
 function get_site_room(socket) {

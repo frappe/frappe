@@ -68,15 +68,19 @@ def get_new_chat_message_doc(user, room, content):
 
 	meta = get_message_meta(content)
 	mess = frappe.new_doc('Chat Message')
-	mess.user	 = room.user
+	mess.user	 = user.name
 	mess.room 	 = room.name
 	mess.content = content
 
 	return mess
 
+def get_new_chat_message(user, room, content):
+	mess = get_new_chat_message_doc(user, room, content)
+	mess.save()
+
 @frappe.whitelist()
 def send(user, room, content):
-	mess = get_new_chat_message_doc(user, room, content)
+	mess = get_new_chat_message(user, room, content)
 
 @frappe.whitelist()
 def send_attachment(user, room, unknown_field):

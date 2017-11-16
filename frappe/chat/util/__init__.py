@@ -4,5 +4,7 @@ from frappe.chat.util.util import (
 	safe_literal_eval,
 	check_url,
 	user_exist,
-	create_test_user
+	create_test_user,
+	_dictify,
+	squashify
 )

@@ -63,6 +63,8 @@ before_tests = "frappe.utils.install.before_tests"
 
 email_append_to = ["Event", "ToDo", "Communication"]
 
+get_rooms = 'frappe.chat.doctype.chat_room.chat_room.get_rooms'
+
 calendars = ["Event"]
 
 # login
