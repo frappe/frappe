@@ -165,7 +165,7 @@ frappe.views.TreeView = Class.extend({
 			{
 				label:__(me.can_write? "Edit": "Details"),
 				condition: function(node) {
-					return !node.root && me.can_read;
+					return !node.is_root && me.can_read;
 				},
 				click: function(node) {
 					frappe.set_route("Form", me.doctype, node.label);
@@ -190,7 +190,7 @@ frappe.views.TreeView = Class.extend({
 						// autoname property is "prompt"
 						allow_rename = autoname && autoname.toLowerCase()==='prompt';
 					}
-					return !node.root && me.can_write && allow_rename;
+					return !node.is_root && me.can_write && allow_rename;
 				},
 				click: function(node) {
 					frappe.model.rename_doc(me.doctype, node.label, function(new_name) {
@@ -202,7 +202,7 @@ frappe.views.TreeView = Class.extend({
 			},
 			{
 				label:__("Delete"),
-				condition: function(node) { return !node.root && me.can_delete; },
+				condition: function(node) { return !node.is_root && me.can_delete; },
 				click: function(node) {
 					frappe.model.delete_doc(me.doctype, node.label, function() {
 						node.parent.remove();
