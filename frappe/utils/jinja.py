@@ -65,7 +65,7 @@ def render_template(template, context, is_path=None):
 
 	# if it ends with .html then its a freaking path, not html
 	_doc = None
-	
+
 	if isinstance(context, Document):
 		_doc = context
 	elif isinstance(context, dict):

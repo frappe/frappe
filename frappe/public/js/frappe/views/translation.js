@@ -1,7 +1,7 @@
 frappe.views.TranslationManager = Class.extend({
 	init: function(opts){
 		$.extend(this, opts);
-		this.make()
+		this.make();
 	},
 	make: function(){
 		this.dialog = new frappe.ui.Dialog({
