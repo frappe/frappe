@@ -617,6 +617,10 @@ def is_parent_only_filter(doctype, filters):
 	return only_parent_doctype
 
 def get_between_date_filter(value):
+	'''
+		return the formattted date as per the given example
+		[u'2017-11-01', u'2017-11-03'] => '2017-11-01 00:00:00.000000' AND '2017-11-04 00:00:00.000000'
+	'''
 	from_date = None
 	to_date = None
 
@@ -625,7 +629,7 @@ def get_between_date_filter(value):
 		if len(value) >= 2: to_date = value[1]
 
 	data = "'%s' AND '%s'" % (
-		add_to_date(get_datetime(from_date),days=-1).strftime("%Y-%m-%d %H:%M:%S.%f"),
-		get_datetime(to_date).strftime("%Y-%m-%d %H:%M:%S.%f"))
+		get_datetime(from_date).strftime("%Y-%m-%d %H:%M:%S.%f"),
+		add_to_date(get_datetime(to_date),days=1).strftime("%Y-%m-%d %H:%M:%S.%f"))
 
 	return data
