@@ -7,6 +7,7 @@ from   frappe.model.document import Document
 from   frappe import _, _dict
 
 # imports - frappe module imports
+from   frappe.core.doctype.version.version import get_diff
 from   frappe.chat.doctype.chat_message.chat_message import get_messages
 from   frappe.chat.util import (
     get_user_doc,
@@ -59,10 +60,38 @@ class ChatRoom(Document):
         if self.type == "Group" and not self.room_name:
             frappe.throw(_('Group name cannot be empty.'))
 
+    # This method isn't called explicit.
+    def before_save(self):
+        self.get_doc_before_save()
+
     def on_update(self):
-        user = session.user
+        user   = session.user
         if self.owner != user:
             frappe.throw(_("Sorry! You don't have permission to update this room."))
+
+        before = self.get_doc_before_save()
+        after  = self
+
+        # TODO
+        # [ ] Check if DocType is itself updated. WARN if not.
+        diff   = _dictify(get_diff(before, after)) # whoever you are, thank you for this.
+        if diff:
+            # notify only if there is an update.
+            update = dict(name = self.name) # Update Goodies.
+            # Types of Differences
+            # 1. Changes
+            for changed in diff.changed:
+                field, old, new = changed
+
+                update.update({
+                    field: new
+                })
+            # 2. Added or Removed
+            # TODO
+            # [ ] Handle users.
+
+            frappe.publish_realtime('frappe.chat:room:update', update,
+                room = self.name, after_commit = True)
 
 def is_one_on_one(owner, other):
     '''

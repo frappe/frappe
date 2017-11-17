@@ -16,6 +16,9 @@ from frappe.chat.util import (
 
 session = frappe.session
 
+# TODO
+# [ ] Link Timestamp to Chat Room
+
 class ChatMessage(Document):
 	pass
 

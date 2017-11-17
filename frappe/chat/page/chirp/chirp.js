@@ -124,6 +124,8 @@ class extends Component {
         this.on_change_status = this.on_change_status.bind(this)
         this.on_select_room   = this.on_select_room.bind(this)
 
+        this.update_room      = this.update_room.bind(this)
+
         this.state = frappe.Chat.defaultState
 
         this.make()
@@ -149,6 +151,28 @@ class extends Component {
         })
     }
 
+    update_room (name, update) {
+        // Update Room List
+        const { state } = this
+        const rooms     = frappe.copy_array(state.rooms)
+
+        for (var i in rooms) {
+            if (rooms[i].name === name) {
+                // bingo!
+                rooms[i] = Object.assign({ }, rooms[i], update)
+            }
+        }
+
+        this.setState({ rooms: rooms })
+
+        // Update Room View
+        if ( state.room.name === name ) {
+            const room = Object.assign({ }, state.room, update)
+
+            this.setState({ room: room })
+        }
+    }
+
     bind ( ) {
         frappe.realtime.on('frappe.chat:profile:update', (response) => {
             const { user, data } = response
@@ -158,6 +182,10 @@ class extends Component {
                 const alert = `<span class="indicator ${color}"/> ${frappe.user.full_name(user)} is currently <b>${data.status}</b>`
                 frappe.show_alert(alert, 3)
             }
+        })
+
+        frappe.realtime.on('frappe.chat:room:update', (r) => {
+            this.update_room(r.name, r)
         })
 
         frappe.realtime.on('frappe.chat:message:new', (r) => {
@@ -590,10 +618,9 @@ frappe.Chat.ChatList.Item
 class extends Component {
     render ( ) {
         const { props } = this
-        console.log(props)
 
         return (
-            h("li", { class: "list-group-item" },
+            h("li", { class: "list-group-item", style: "border: none !important;" },
                 h(frappe.Chat.ChatList.Bubble, props)
             )
         )
