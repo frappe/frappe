@@ -438,7 +438,8 @@ h6.uppercase,
   margin-left: 15px;
   font-size: 12px;
 }
-.timeline-item .timeline-item-content {
+.timeline-item .timeline-item-content,
+.timeline-item .timeline-editing-area {
   padding: 15px; 
 }
 .timeline-head {
