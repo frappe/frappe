@@ -29,7 +29,7 @@ frappe.Application = Class.extend({
 		this.startup();
 	},
 	startup: function() {
-		frappe.socketio.init();
+		frappe.socketio.init()
 		frappe.model.init();
 
 		if(frappe.boot.status==='failed') {

@@ -60,7 +60,19 @@ io.on('connection', function(socket) {
 	socket.files = {};
 
 	// console.log("firing get_user_info");
-	join_rooms(socket, sid)
+	subscribe_rooms(socket, sid)
+
+	// frappe.chat
+	socket.on("frappe.chat:subscribe", function (rooms) {
+		// console.log('frappe.chat: Rooms to publish in ' + JSON.stringify(rooms))
+		for (var room of rooms) {
+			console.log('frappe.chat: Subscribing ' + socket.user + ' to room ' + room.name)
+			room = get_site_name(socket) + ":room:" + room.name
+			
+			socket.join(room)
+		}
+	})
+	// end frappe.chat
 	
 	socket.on('disconnect', function() {
 		delete socket.files;
@@ -139,10 +151,6 @@ io.on('connection', function(socket) {
 		});
 	});
 
-	socket.on('rejoin_rooms', function (sid) {
-		join_rooms(socket, sid)
-	})
-
 	socket.on('upload-accept-slice', (data) => {
 		try {
 			if (!socket.files[data.name]) {
@@ -205,28 +213,16 @@ function send_existing_lines(task_id, socket) {
 	});
 }
 
-function join_rooms (socket, sid) {
-	request.get(get_url(socket, '/api/method/frappe.async.get_user_info'))
-	.type('form')
-	.query({
-		sid: sid
-	})
-	.end(function(err, res) {
-		if(err) {
+function subscribe_rooms (socket) {
+	const url = get_url(socket, '/api/method/frappe.async.get_user_info')
+	request.get(url).type('form')
+	.end(function (err, response) {
+		if ( err ) {
 			console.log(err);
-			return;
-		}
-		if(res.status == 200) {
-			// console.log('joining', room);
-			socket.join(get_user_room(socket, res.body.message.user));
-			socket.join(get_site_room(socket));
+		} else if ( response.status === 200 ) {
 
-			if (res.body.message.rooms) {
-				for (let room of res.body.message.rooms)  {
-					console.log(room);
-					socket.join(get_other_room(socket, room));
-				}
-			}
+			socket.join(get_user_room(socket, response.body.message.user));
+			socket.join(get_site_room(socket))
 		}
 	});
 }

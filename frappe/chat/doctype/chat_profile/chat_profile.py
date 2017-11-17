@@ -1,15 +1,14 @@
-# imports - standard imports
-import json
-
 # imports - module imports
 from   frappe.model.document import Document
 from   frappe import _, _dict # <- the best thing ever happened to frappe
 import frappe
 
 # imports - frappe module imports
-from   frappe.chat.doctype.chat_room.chat_room import get_user_chat_room
+from   frappe.chat.doctype.chat_room.chat_room import get_user_chat_rooms
 from   frappe.chat.util import (
-    get_user_doc
+    get_user_doc,
+    safe_json_loads,
+    _dictify
 )
 
 session = frappe.session
@@ -48,9 +47,9 @@ def get_user_chat_profile(user = None, fields = None):
     prof = get_user_chat_profile_doc(user)
 
     data = dict(
-        name 	   = user.name, 
+        name 	   = user.name,
         username   = user.username,
-        first_name = user.first_name, 
+        first_name = user.first_name,
         last_name  = user.last_name,
         avatar 	   = user.user_image,
         bio        = user.bio,
@@ -75,15 +74,15 @@ def get_user_chat_profile(user = None, fields = None):
 
 def get_new_chat_profile_doc(user = None):
     user = get_user_doc(user)
-
     prof = frappe.new_doc('Chat Profile')
+    prof.save()
 
     return prof
 
 @frappe.whitelist()
 def create(user, exist_ok = False, fields = None):
-    exist  = json.loads(exist_ok)
-    fields = json.loads(fields)
+    exist  = safe_json_loads(exist_ok)
+    fields = safe_json_loads(fields)
 
     user   = get_user_doc(user)
 
@@ -99,7 +98,6 @@ def create(user, exist_ok = False, fields = None):
         prof = get_user_chat_profile(user, fields)
     else:
         prof = get_new_chat_profile_doc(user)
-        prof.save()
 
         user.update(dict(
             chat_profile = prof.name
@@ -108,41 +106,41 @@ def create(user, exist_ok = False, fields = None):
 
         prof = get_user_chat_profile(user, fields)
 
-    return _dict(prof)
+    return _dictify(prof)
 
 @frappe.whitelist()
 def get(user = None, fields = None):
     '''
     Returns a user's Chat Profile.
     '''
-    fields = json.loads(fields)
+    fields = safe_json_loads(fields)
     prof   = get_user_chat_profile(user, fields)
 
-    return _dict(prof)
+    return _dictify(prof)
 
 @frappe.whitelist()
 def update(user, data):
-    data = json.loads(data)
-    user = get_user_doc(user)
+    data  = safe_json_loads(data)
+    user  = get_user_doc(user)
 
     if user.name != session.user:
         frappe.throw(_("Sorry! You don't have permission to update {user}'s profile.".format(
             user = user.name
         )))
 
-    prof = get_user_chat_profile_doc(user.name)
+    prof  = get_user_chat_profile_doc(user.name)
     prof.update(data)
     prof.save()
 
     # only send that has been updated.
-    prof = get_user_chat_profile(user.name, fields = data.keys())
-    resp = dict(
+    prof  = get_user_chat_profile(user, fields = data.keys())
+    resp  = dict(
         user = user.name,
         data = prof
     )
 
-    room = get_user_chat_room(user) # one or more, okay?
-    for r in room:
-        if r.type in ('Direct', 'Vistor'):
-            frappe.publish_realtime('frappe.chat:profile:update', resp,
-                room = r.name)
+    if 'status' in data:
+        rooms = get_user_chat_rooms(user) # one or more, okay?
+        rooms = [r for r in rooms if r.type in ('Direct', 'Visitor')]
+        for room in rooms:
+            frappe.publish_realtime('frappe.chat:profile:update', resp, room = room.name)

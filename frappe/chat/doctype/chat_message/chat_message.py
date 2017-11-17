@@ -3,7 +3,6 @@ from bs4 import BeautifulSoup as Soup
 
 # imports - module imports
 from   frappe.model.document import Document
-from   frappe.exceptions import DoesNotExistError
 from   frappe import _, _dict
 import frappe
 
@@ -11,6 +10,7 @@ import frappe
 from frappe.chat.util import (
 	get_user_doc,
 	check_url,
+	_dictify,
 	user_exist
 )
 
@@ -57,7 +57,7 @@ def get_message_meta(content):
 	)
 
 	meta.content  = content
-	meta.links	  = get_message_urls(content)
+	meta.urls	  = get_message_urls(content)
 	meta.mentions = get_message_mentions(content)
 	
 	return meta
@@ -68,9 +68,13 @@ def get_new_chat_message_doc(user, room, content):
 
 	meta = get_message_meta(content)
 	mess = frappe.new_doc('Chat Message')
-	mess.user	 = user.name
-	mess.room 	 = room.name
-	mess.content = content
+	mess.type     = room.type
+	mess.room 	  = room.name
+	mess.content  = content
+	mess.user	  = user.name
+
+	mess.mentions = meta.mentions
+	mess.urls     = ','.join(meta.urls)
 
 	return mess
 
@@ -78,9 +82,24 @@ def get_new_chat_message(user, room, content):
 	mess = get_new_chat_message_doc(user, room, content)
 	mess.save()
 
+	resp = dict(
+		name     = mess.name,
+		user     = mess.user,
+		room     = mess.room,
+		content  = mess.content,
+		urls     = mess.urls,
+		mentions = mess.mentions
+	)
+
+	return resp
+
 @frappe.whitelist()
 def send(user, room, content):
 	mess = get_new_chat_message(user, room, content)
+	
+	frappe.publish_realtime('frappe.chat:message:new', mess, room = room)
+
+	# return _dictify(mess)
 
 @frappe.whitelist()
 def send_attachment(user, room, unknown_field):
@@ -89,3 +108,25 @@ def send_attachment(user, room, unknown_field):
 @frappe.whitelist()
 def delete():
 	pass
+
+# This is fine for now. If you're "ReST"-ing it,
+# make sure you don't let the user see them.
+# Come again, Why are we even passing user?
+def get_messages(room, user = None, fields = None, pagination = 20):
+	user = get_user_doc(user)
+
+	room = frappe.get_doc('Chat Room', room)
+	mess = frappe.get_list('Chat Message',
+		filters = [
+			('Chat Message', 'room', '=', room.name),
+			('Chat Message', 'type', '=', room.type)
+		],
+		fields  = fields if fields else [
+			'name', 'type',
+			'room', 'content',
+			'user', 'mentions', 'urls',
+			'creation'
+		]
+	)
+
+	return mess

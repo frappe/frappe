@@ -32,6 +32,17 @@ frappe.socketio = {
 			return;
 		}
 
+		// frappe.chat
+		// client ping the server
+		frappe.socketio.socket.on("frappe.chat", () => {
+			// pong
+			console.log(`frappe.chat: ${frappe.session.user} connected.`)
+			// subscribe
+			frappe.socketio.socket.emit("frappe.chat:subscribe", frappe.session.user)
+			console.log(`frappe.chat: ${frappe.session.user} emitted a subscribe request.`)
+		})
+		// end frappe.chat - for now
+
 		frappe.socketio.socket.on('msgprint', function(message) {
 			frappe.msgprint(message);
 		});
@@ -39,13 +50,6 @@ frappe.socketio = {
 		frappe.socketio.socket.on('eval_js', function(message) {
 			eval(message);
 		});
-
-		frappe.socketio.socket.on('reconnect', function (m) {
-			// frappe.socketio.socket.disconnect()
-			// frappe.socketio.socket.connect()
-			
-			frappe.socketio.socket.emit('rejoin_rooms', frappe.boot.sid)
-		})
 
 		frappe.socketio.socket.on('progress', function(data) {
 			if(data.progress) {
@@ -106,6 +110,7 @@ frappe.socketio = {
 			if (cur_frm.doc) {
 				frappe.socketio.doc_close(cur_frm.doctype, cur_frm.docname);
 			}
+
 		}
 	},
 	get_host: function() {

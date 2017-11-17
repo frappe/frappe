@@ -7,7 +7,7 @@ try:
 	from urlparse import urlparse 	  # PY2
 except ImportError:
 	from urllib.parse import urlparse # PY3
-import ast
+import json
 
 # imports - module imports
 from   frappe.model.document import Document
@@ -32,12 +32,14 @@ def squashify(what):
 
 	return what
 
-def safe_literal_eval(*args):
+def safe_json_loads(*args):
 	results = [ ]
 
 	for arg in args:
-		if arg and isinstance(arg, (six.string_types, six.text_type)):
-			arg = ast.literal_eval(arg)
+		try:
+			arg = json.loads(arg)
+		except Exception as e:
+			pass
 		results.append(arg)
 	
 	return squashify(results)

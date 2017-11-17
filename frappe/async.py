@@ -179,23 +179,23 @@ def can_subscribe_doc(doctype, docname, sid):
 	return True
 
 @frappe.whitelist(allow_guest=True)
-def get_user_info(sid):
+def get_user_info():
 	from frappe.sessions import Session
-
+	
 	# get the session from sid (this method is not authenticated)
 	session = Session(None, resume=True).get_session_data()
-	rooms = []
+	# rooms = []
 
-	try:
-		# get additional rooms defined by chat and other applications
-		for method_name in frappe.get_hooks('get_rooms'):
-			rooms += frappe.get_attr(method_name)() or []
-	except:
-		print(frappe.get_traceback())
+	# try:
+	# 	# get additional rooms defined by chat and other applications
+	# 	for method_name in frappe.get_hooks('get_rooms'):
+	# 		rooms += frappe.get_attr(method_name)() or []
+	# except:
+	# 	print(frappe.get_traceback())
 
 	return {
-		'user': session.user,
-		'rooms': rooms
+		'user': session.user
+		# 'rooms': rooms
 	}
 
 def get_doc_room(doctype, docname):
