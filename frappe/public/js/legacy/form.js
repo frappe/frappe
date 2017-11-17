@@ -206,9 +206,6 @@ _f.Frm.prototype.watch_model_updates = function() {
 
 			me.layout.refresh_dependency();
 			let object = me.script_manager.trigger(fieldname, doc.doctype, doc.name);
-			if(object instanceof Promise) {
-				me.promises.push(object);
-			}
 			return object;
 		}
 	});
@@ -590,8 +587,6 @@ _f.Frm.prototype.setnewdoc = function() {
 	// this.check_doctype_conflict(docname);
 	var me = this;
 
-	this.promises = [];
-
 	// hide any open grid
 	this.script_manager.trigger("before_load", this.doctype, this.docname)
 		.then(() => {
@@ -702,9 +697,7 @@ _f.Frm.prototype.save = function(save_action, callback, btn, on_error) {
 
 		// let any pending js process finish
 		setTimeout(function() {
-			Promise.all(me.promises).then(() => {
-				me._save(save_action, callback, btn, on_error, resolve);
-			});
+			me._save(save_action, callback, btn, on_error, resolve);
 		}, 100);
 	});
 };
