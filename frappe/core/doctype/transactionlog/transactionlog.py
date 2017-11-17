@@ -14,18 +14,12 @@ class TransactionLog(Document):
 		self.row_index = index
 		self.timestamp = now()
 		if index != 1:
-			self.previous_hash = frappe.db.sql("SELECT chaining_hash FROM `tabTransactionLog` WHERE row_index = {0}".format(index - 1))
+			prev_hash = frappe.db.sql("SELECT chaining_hash FROM `tabTransactionLog` WHERE row_index = {0}".format(index - 1))
+			self.previous_hash = prev_hash[0][0]
 		else:
 			self.previous_hash = self.hash_line()
 		self.transaction_hash = self.hash_line()
 		self.chaining_hash = self.hash_chain()
-		# if self.chaining_hash:
-		# 	if self.reference_doctype == 'Sales Invoice':
-		# 		frappe.db.sql("Update `tabSales Invoice` set chaining_hash ='{0}' where name = '{1}' ".format(self.chaining_hash, self.document_name))
-		# 	else:
-		# 		frappe.db.sql("Update `tabPayment Entry` set chaining_hash ='{0}' where name = '{1}' ".format(self.chaining_hash, self.document_name))
-
-		self.name = self.chaining_hash
 		self.checksum_version = "v1.0.0"
 
 	def hash_line(self):
