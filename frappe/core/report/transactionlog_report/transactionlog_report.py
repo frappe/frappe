@@ -106,11 +106,16 @@ def full_data(): #function to get the Full data
 
         if fd.reference_doctype == 'Sales Invoice':
             s_invoice = frappe.db.sql("SELECT status, base_paid_amount FROM `tabSales Invoice` where name= '{0}' ".format(fd.document_name),as_dict=1)
-
+            if s_invoice:
+                paid_amount = s_invoice[0].base_paid_amount
+                status = s_invoice[0].status
+            else:
+                paid_amount = 0
+                status = 'Unpaid'
             row = [remark, fd.creation, fd.owner, fd.modified_by, fd.document_name, fd.reference_doctype,
                    data['self.customer'], data['self.base_net_total'], data['self.company'],
                    data['self.posting_date'], data['self.company_currency'],
-                   data['self.company_address'], s_invoice[0].base_paid_amount, data['self.net_total'], s_invoice[0].status ]
+                   data['self.company_address'], paid_amount, data['self.net_total'], status ]
         else:
             row = [ remark, fd.creation, fd.owner, fd.modified_by, fd.document_name, fd.reference_doctype,
                     data['self.party_name'], data['self.base_paid_amount'], data['self.company'],
