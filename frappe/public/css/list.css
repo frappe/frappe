@@ -186,25 +186,6 @@
 .listview-main-section .octicon-heart {
   cursor: pointer;
 }
-.listview-main-section .page-form {
-  padding-left: 17px;
-}
-@media (max-width: 991px) {
-  .listview-main-section .page-form {
-    padding-left: 25px;
-  }
-}
-.listview-main-section .page-form .octicon-search {
-  float: left;
-  padding-top: 7px;
-  margin-left: -4px;
-  margin-right: -4px;
-}
-@media (max-width: 991px) {
-  .listview-main-section .page-form .octicon-search {
-    margin-left: -12px;
-  }
-}
 .like-action.octicon-heart {
   color: #ff5858;
 }
