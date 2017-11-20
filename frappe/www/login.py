@@ -22,8 +22,15 @@ def get_context(context):
 	context.for_test = 'login.html'
 	context["title"] = "Login"
 	context["disable_signup"] = frappe.utils.cint(frappe.db.get_value("Website Settings", "Website Settings", "disable_signup"))
-
-	for provider in ("google", "github", "facebook", "frappe"):
+	filters = [
+		["enable_social_login", "=", 1],
+		["client_id", "!=", None],
+		["client_secret", "!=", None]
+	]
+	providers = [i.name for i in frappe.get_all("Social Login Key", filters=filters)]
+	for x in xrange(1,10):
+		print(providers)
+	for provider in providers:
 		if get_oauth_keys(provider):
 			context["{provider}_login".format(provider=provider)] = get_oauth2_authorize_url(provider)
 			context["social_login"] = True

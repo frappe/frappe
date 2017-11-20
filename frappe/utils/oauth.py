@@ -11,84 +11,28 @@ from six import string_types
 class SignupDisabledError(frappe.PermissionError): pass
 
 def get_oauth2_providers():
-	out = {
-		"google": {
+	out = {}
+	providers = frappe.get_all("Social Login Key", fields=["*"])
+	for provider in providers:
+		authorize_url, access_token_url = provider.authorize_url, provider.access_token_url
+		if provider.custom_base_url:
+			authorize_url = provider.base_url + provider.authorize_url
+			access_token_url = provider.base_url + provider.access_token_url
+		out[provider.name] = {
 			"flow_params": {
-				"name": "google",
-				"authorize_url": "https://accounts.google.com/o/oauth2/auth",
-				"access_token_url": "https://accounts.google.com/o/oauth2/token",
-				"base_url": "https://www.googleapis.com",
+				"name": provider.name,
+				"authorize_url": authorize_url,
+				"access_token_url": access_token_url,
+				"base_url": provider.base_url
 			},
-
-			"redirect_uri": "/api/method/frappe.www.login.login_via_google",
-
-			"auth_url_data": {
-				"scope": "https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email",
-				"response_type": "code"
-			},
-
-			# relative to base_url
-			"api_endpoint": "oauth2/v2/userinfo"
-		},
-
-		"github": {
-			"flow_params": {
-				"name": "github",
-				"authorize_url": "https://github.com/login/oauth/authorize",
-				"access_token_url": "https://github.com/login/oauth/access_token",
-				"base_url": "https://api.github.com/"
-			},
-
-			"redirect_uri": "/api/method/frappe.www.login.login_via_github",
-
-			# relative to base_url
-			"api_endpoint": "user"
-		},
-
-		"facebook": {
-			"flow_params": {
-				"name": "facebook",
-				"authorize_url": "https://www.facebook.com/dialog/oauth",
-				"access_token_url": "https://graph.facebook.com/oauth/access_token",
-				"base_url": "https://graph.facebook.com"
-			},
-
-			"redirect_uri": "/api/method/frappe.www.login.login_via_facebook",
-
-			"auth_url_data": {
-				"display": "page",
-				"response_type": "code",
-				"scope": "email,public_profile"
-			},
-
-			# relative to base_url
-			"api_endpoint": "/v2.5/me",
-			"api_endpoint_args": {
-				"fields": "first_name,last_name,email,gender,location,verified,picture"
-			},
+			"redirect_uri": provider.redirect_url,
+			"api_endpoint": provider.api_endpoint,
 		}
-	}
+		if provider.auth_url_data:
+			out[provider.name]["auth_url_data"] = json.loads(provider.auth_url_data)
 
-	frappe_server_url = frappe.db.get_value("Social Login Keys", None, "frappe_server_url")
-	if frappe_server_url:
-		out['frappe'] = {
-			"flow_params": {
-				"name": "frappe",
-				"authorize_url": frappe_server_url + "/api/method/frappe.integrations.oauth2.authorize",
-				"access_token_url": frappe_server_url + "/api/method/frappe.integrations.oauth2.get_token",
-				"base_url": frappe_server_url
-			},
-
-			"redirect_uri": "/api/method/frappe.www.login.login_via_frappe",
-
-			"auth_url_data": {
-				"response_type": "code",
-				"scope": "openid"
-			},
-
-			# relative to base_url
-			"api_endpoint": "/api/method/frappe.integrations.oauth2.openid_profile"
-		}
+		if provider.api_endpoint_args:
+			out[provider.name]["api_endpoint_args"] = json.loads(provider.api_endpoint_args)
 
 	return out
 
@@ -100,17 +44,12 @@ def get_oauth_keys(provider):
 
 	if not keys:
 		# try database
-		social = frappe.get_doc("Social Login Keys", "Social Login Keys")
-		keys = {}
-		for fieldname in ("client_id", "client_secret"):
-			value = social.get("{provider}_{fieldname}".format(provider=provider, fieldname=fieldname))
-			if not value:
-				keys = {}
-				break
-			keys[fieldname] = value
-
+		client_id, client_secret = frappe.get_value("Social Login Key", provider, ["client_id", "client_secret"])
+		keys = {
+			"client_id": client_id,
+			"client_secret": client_secret
+		}
 		return keys
-
 	else:
 		return {
 			"client_id": keys["client_id"],
