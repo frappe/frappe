@@ -1,0 +1,23 @@
+{
+ "access_token_url": "https://accounts.google.com/o/oauth2/token", 
+ "api_endpoint": "oauth2/v2/userinfo", 
+ "api_endpoint_args": "", 
+ "auth_url_data": "{\"scope\":\"https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email\",\"response_type\": \"code\"}", 
+ "authorize_url": "https://accounts.google.com/o/oauth2/auth", 
+ "base_url": "https://www.googleapis.com/", 
+ "creation": "2017-11-20 13:36:16.021763", 
+ "custom": 0, 
+ "custom_base_url": 0, 
+ "docstatus": 0, 
+ "doctype": "Social Login Key", 
+ "enable_social_login": 1, 
+ "icon": "fa fa-google", 
+ "icon_type": "DOM Class", 
+ "idx": 0, 
+ "modified": "2017-11-20 17:43:02.776634", 
+ "modified_by": "Administrator", 
+ "name": "google", 
+ "owner": "Administrator", 
+ "provider_name": "Google", 
+ "redirect_url": "/api/method/frappe.www.login.login_via_google"
+}

@@ -1,0 +1,23 @@
+{
+ "access_token_url": "https://github.com/login/oauth/access_token", 
+ "api_endpoint": "user", 
+ "authorize_url": "https://github.com/login/oauth/authorize", 
+ "base_url": "https://api.github.com/", 
+ "client_id": "", 
+ "client_secret": "", 
+ "creation": "2017-11-20 13:36:16.094627", 
+ "custom": 0, 
+ "custom_base_url": 0, 
+ "docstatus": 0, 
+ "doctype": "Social Login Key", 
+ "enable_social_login": 1, 
+ "icon": "fa fa-github", 
+ "icon_type": "DOM Class", 
+ "idx": 0, 
+ "modified": "2017-11-20 17:41:57.296424", 
+ "modified_by": "Administrator", 
+ "name": "github", 
+ "owner": "Administrator", 
+ "provider_name": "Github", 
+ "redirect_url": "/api/method/frappe.www.login.login_via_github"
+}

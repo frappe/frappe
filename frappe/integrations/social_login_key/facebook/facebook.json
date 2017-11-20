@@ -1,0 +1,23 @@
+{
+ "access_token_url": "https://graph.facebook.com/oauth/access_token", 
+ "api_endpoint": "v2.5/me", 
+ "api_endpoint_args": "{\"fields\": \"first_name,last_name,email,gender,location,verified,picture\"}", 
+ "auth_url_data": "{\"display\": \"page\",\"response_type\": \"code\",\"scope\": \"email,public_profile\"}", 
+ "authorize_url": "https://www.facebook.com/dialog/oauth", 
+ "base_url": "https://graph.facebook.com/", 
+ "creation": "2017-11-20 13:36:16.087266", 
+ "custom": 0, 
+ "custom_base_url": 0, 
+ "docstatus": 0, 
+ "doctype": "Social Login Key", 
+ "enable_social_login": 1, 
+ "icon": "fa fa-facebook", 
+ "icon_type": "DOM Class", 
+ "idx": 0, 
+ "modified": "2017-11-20 17:42:18.366355", 
+ "modified_by": "Administrator", 
+ "name": "facebook", 
+ "owner": "Administrator", 
+ "provider_name": "Facebook", 
+ "redirect_url": "/api/method/frappe.www.login.login_via_facebook"
+}
