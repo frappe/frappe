@@ -4,12 +4,10 @@
 
 QUnit.test("test: Calendar View", function (assert) {
 	let done = assert.async();
-
 	// number of asserts
 	assert.expect(4);
 
-	const calendar_view = 'Test Calendar View ' + frappe.utils.get_random(5)
-
+	const calendar_view = 'Test Calendar View ' + frappe.utils.get_random(5);
 	frappe.run_serially([
 		// insert a new Calendar View
 		() => frappe.tests.make('Calendar View', [
@@ -24,10 +22,9 @@ QUnit.test("test: Calendar View", function (assert) {
 			assert.equal(cur_frm.doc.name, calendar_view);
 			assert.equal(cur_frm.doc.subject_field, 'subject');
 		},
-		() => frappe.tests.click_button('Show Calendar'),
+		() => frappe.set_route('List', 'Event', 'Calendar', calendar_view),
 		() => frappe.timeout(2),
 		() => {
-			console.log(frappe.get_route_str())
 			assert.equal(frappe.get_route_str(), `List/Event/Calendar/${calendar_view}`, 'Route set correctly')
 			assert.ok($(`.page-title:visible:contains("${calendar_view}")`).length, 'Page title set correctly');
 		},
