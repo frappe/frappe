@@ -2,7 +2,7 @@ from __future__ import unicode_literals
 import frappe
 
 def execute():
-	frappe.reload_doc("integrations", "doctype", "social_login_keys")
+	frappe.reload_doc("integrations", "doctype", "social_login_key")
 	existing_providers = [
 		{
 			"name": "google",
@@ -29,9 +29,10 @@ def execute():
 	delete_user_fields()
 
 	for key in existing_providers:
-		key_doc = frappe.get_doc("Social Login Key", key.get("name"))
-		key_doc.client_id = key.client_id
-		key_doc.client_secret = key.client_secret
+		key_doc = frappe.new_doc("Social Login Key")
+		key_doc.provider_name = key.get("name").title()
+		key_doc.client_id = key.get("client_id")
+		key_doc.client_secret = key.get("client_secret")
 		if key.get("base_url"):
 			key_doc.base_url = key.get("base_url")
 		key_doc.save()
