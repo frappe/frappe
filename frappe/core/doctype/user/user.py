@@ -145,7 +145,7 @@ class User(Document):
 
 	def email_new_password(self, new_password=None):
 		if new_password and not self.flags.in_insert:
-			_update_password(self.name, new_password)
+			_update_password(user=self.name, pwd=new_password, logout_all_sessions=self.logout_all_sessions)
 
 			if self.send_password_update_notification:
 				self.password_update_mail(new_password)
@@ -191,7 +191,8 @@ class User(Document):
 				if self.name not in STANDARD_USERS:
 					if new_password:
 						# new password given, no email required
-						_update_password(self.name, new_password)
+						_update_password(user=self.name, pwd=new_password,
+							logout_all_sessions=self.logout_all_sessions)
 
 					if not self.flags.no_welcome_mail and self.send_welcome_email:
 						self.send_welcome_mail_to_user()
@@ -938,7 +939,7 @@ def send_token_via_sms(tmp_id,phone_no=None,user=None):
 			return False
 
 	args[ss.receiver_parameter] = usr_phone
-	status = send_request(ss.sms_gateway_url, args)
+	status = send_request(ss.sms_gateway_url, args, use_post=ss.use_post)
 
 	if 200 <= status < 300:
 		frappe.cache().delete(tmp_id + '_token')
@@ -990,7 +991,8 @@ def reset_otp_secret(user):
 def throttle_user_creation():
 	if frappe.flags.in_import:
 		return
-	if frappe.db.get_creation_count('User', 60) > 60:
+
+	if frappe.db.get_creation_count('User', 60) > frappe.local.conf.get("throttle_user_limit", 60):
 		frappe.throw(_('Throttled'))
 
 @frappe.whitelist()

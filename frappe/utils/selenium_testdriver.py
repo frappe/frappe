@@ -140,7 +140,7 @@ class TestDriver(object):
 		for entry in self.driver.get_log('browser'):
 			source, line_no, message = entry.get('message').split(' ', 2)
 
-			if message[0] in ('"', "'"):
+			if message and message[0] in ('"', "'"):
 				# message is a quoted/escaped string
 				message = literal_eval(message)
 
@@ -166,8 +166,8 @@ class TestDriver(object):
 
 		self.wait_for(xpath='//div[@data-page-route="{0}"]'.format('/'.join(args)), timeout=4)
 
-	def click(self, css_selector, xpath=None):
-		element = self.wait_till_clickable(css_selector, xpath)
+	def click(self, css_selector, xpath=None, timeout=20):
+		element = self.wait_till_clickable(css_selector, xpath, timeout)
 		self.scroll_to(css_selector)
 		time.sleep(0.5)
 		element.click()
@@ -196,7 +196,7 @@ class TestDriver(object):
 			if elem.is_displayed():
 				return elem
 
-	def wait_till_clickable(self, selector=None, xpath=None):
+	def wait_till_clickable(self, selector=None, xpath=None, timeout=20):
 		if self.cur_route:
 			selector = self.cur_route + " " + selector
 
@@ -205,7 +205,7 @@ class TestDriver(object):
 			by = By.XPATH
 			selector = xpath
 
-		return self.get_wait().until(EC.element_to_be_clickable(
+		return self.get_wait(timeout).until(EC.element_to_be_clickable(
 			(by, selector)))
 
 

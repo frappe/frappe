@@ -64,18 +64,17 @@ def send_sms(receiver_list, msg, sender_name = '', success_msg = True):
 
 def send_via_gateway(arg):
 	ss = frappe.get_doc('SMS Settings', 'SMS Settings')
+	headers = get_headers(ss)
+
 	args = {ss.message_parameter: arg.get('message')}
-	headers={'Accept': "text/plain, text/html, */*"}
 	for d in ss.get("parameters"):
-		if d.header == 1:
-			headers.update({d.parameter: d.value})
-			continue
-		args[d.parameter] = d.value
+		if not d.header:
+			args[d.parameter] = d.value
 
 	success_list = []
 	for d in arg.get('receiver_list'):
 		args[ss.receiver_parameter] = d
-		status = send_request(ss.sms_gateway_url, headers, args, ss.use_post)
+		status = send_request(ss.sms_gateway_url, args, headers, ss.use_post)
 
 		if 200 <= status < 300:
 			success_list.append(d)
@@ -86,9 +85,23 @@ def send_via_gateway(arg):
 		if arg.get('success_msg'):
 			frappe.msgprint(_("SMS sent to following numbers: {0}").format("\n" + "\n".join(success_list)))
 
+def get_headers(sms_settings=None):
+	if not sms_settings:
+		sms_settings = frappe.get_doc('SMS Settings', 'SMS Settings')
 
-def send_request(gateway_url, headers, params, use_post=False):
+	headers={'Accept': "text/plain, text/html, */*"}
+	for d in sms_settings.get("parameters"):
+		if d.header == 1:
+			headers.update({d.parameter: d.value})
+
+	return headers
+
+def send_request(gateway_url, params, headers=None, use_post=False):
 	import requests
+
+	if not headers:
+		headers = get_headers()
+
 	if use_post:
 		response = requests.post(gateway_url, headers=headers, data=params)
 	else:

@@ -14,10 +14,13 @@ from frappe.email.queue import check_email_limit
 from frappe.utils.scheduler import log
 from frappe.email.email_body import get_message_id
 import frappe.email.smtp
-import MySQLdb
 import time
 from frappe import _
 from frappe.utils.background_jobs import enqueue
+
+# imports - third-party imports
+import pymysql
+from pymysql.constants import ER
 
 @frappe.whitelist()
 def make(doctype=None, name=None, content=None, subject=None, sent_or_received = "Sent",
@@ -482,9 +485,9 @@ def sendmail(communication_name, print_html=None, print_format=None, attachments
 				communication._notify(print_html=print_html, print_format=print_format, attachments=attachments,
 					recipients=recipients, cc=cc, bcc=bcc)
 
-			except MySQLdb.OperationalError as e:
+			except pymysql.InternalError as e:
 				# deadlock, try again
-				if e.args[0]==1213:
+				if e.args[0] == ER.LOCK_DEADLOCK:
 					frappe.db.rollback()
 					time.sleep(1)
 					continue

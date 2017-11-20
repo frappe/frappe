@@ -51,6 +51,10 @@ frappe.ui.form.Timeline = Class.extend({
 							var communications = me.get_communications().concat(new_communications);
 							frappe.model.set_docinfo(me.frm.doc.doctype, me.frm.doc.name, "communications", communications);
 
+							if (new_communications.length < 20) {
+								me.more = false;
+							}
+
 						} else {
 							me.more = false;
 						}

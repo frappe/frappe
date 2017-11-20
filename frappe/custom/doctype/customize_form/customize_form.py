@@ -108,7 +108,7 @@ class CustomizeForm(Document):
 		'''Create, update custom translation for this doctype'''
 		current = self.get_name_translation()
 		if current:
-			if self.label and current!=self.label:
+			if self.label and current.target_name != self.label:
 				frappe.db.set_value('Translation', current.name, 'target_name', self.label)
 				frappe.translate.clear_cache()
 			else:

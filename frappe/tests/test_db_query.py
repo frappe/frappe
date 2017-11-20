@@ -59,30 +59,37 @@ class TestReportview(unittest.TestCase):
 
 		# create events to test the between operator filter
 		todays_event = create_event()
-		event = create_event(starts_on="2016-07-06 12:00:00")
+		event1 = create_event(starts_on="2016-07-05 23:59:59")
+		event2 = create_event(starts_on="2016-07-06 00:00:00")
+		event3 = create_event(starts_on="2016-07-07 23:59:59")
+		event4 = create_event(starts_on="2016-07-08 00:00:01")
 
-		# if the values are not passed in filters then todays event should be return
+		# if the values are not passed in filters then event should be filter as current datetime
 		data = DatabaseQuery("Event").execute(
 			filters={"starts_on": ["between", None]}, fields=["name"])
 
-		self.assertTrue({ "name": todays_event.name } in data)
-		self.assertTrue({ "name": event.name } not in data)
+		self.assertTrue({ "name": event1.name } not in data)
 
 		# if both from and to_date values are passed
 		data = DatabaseQuery("Event").execute(
-			filters={"starts_on": ["between", ["2016-07-05 12:00:00", "2016-07-07 12:00:00"]]},
+			filters={"starts_on": ["between", ["2016-07-06", "2016-07-07"]]},
 			fields=["name"])
 
-		self.assertTrue({ "name": event.name } in data)
-		self.assertTrue({ "name": todays_event.name } not in data)
+		self.assertTrue({ "name": event2.name } in data)
+		self.assertTrue({ "name": event3.name } in data)
+		self.assertTrue({ "name": event1.name } not in data)
+		self.assertTrue({ "name": event4.name } not in data)
 
 		# if only one value is passed in the filter
 		data = DatabaseQuery("Event").execute(
-			filters={"starts_on": ["between", ["2016-07-05 12:00:00"]]},
+			filters={"starts_on": ["between", ["2016-07-07"]]},
 			fields=["name"])
 
+		self.assertTrue({ "name": event3.name } in data)
+		self.assertTrue({ "name": event4.name } in data)
 		self.assertTrue({ "name": todays_event.name } in data)
-		self.assertTrue({ "name": event.name } in data)
+		self.assertTrue({ "name": event1.name } not in data)
+		self.assertTrue({ "name": event2.name } not in data)
 
 	def test_ignore_permissions_for_get_filters_cond(self):
 		frappe.set_user('test1@example.com')
