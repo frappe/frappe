@@ -21,18 +21,19 @@ def get_context(context):
 	context.no_header = True
 	context.for_test = 'login.html'
 	context["title"] = "Login"
+	context["provider_logins"] = []
 	context["disable_signup"] = frappe.utils.cint(frappe.db.get_value("Website Settings", "Website Settings", "disable_signup"))
-	filters = [
-		["enable_social_login", "=", 1],
-		["client_id", "!=", None],
-		["client_secret", "!=", None]
-	]
-	providers = [i.name for i in frappe.get_all("Social Login Key", filters=filters)]
-	for x in xrange(1,10):
-		print(providers)
+	providers = [i.name for i in frappe.get_all("Social Login Key", filters={"enable_social_login":1})]
 	for provider in providers:
-		if get_oauth_keys(provider):
-			context["{provider}_login".format(provider=provider)] = get_oauth2_authorize_url(provider)
+		client_id, client_secret = frappe.get_value("Social Login Key", provider, ["client_id", "client_secret"])
+		if get_oauth_keys(provider) and client_secret and client_id:
+			context.provider_logins.append({
+				"name": provider,
+				"provider_name": frappe.get_value("Social Login Key", provider, "provider_name"),
+				"auth_url": get_oauth2_authorize_url(provider),
+				"icon_type": frappe.get_value("Social Login Key", provider, "icon_type"),
+				"icon": frappe.get_value("Social Login Key", provider, "icon")
+			})
 			context["social_login"] = True
 
 	ldap_settings = get_ldap_settings()
