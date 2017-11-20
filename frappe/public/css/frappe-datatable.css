@@ -1,4 +1,7 @@
 .data-table {
+  --primary-color: #7679FC !important;
+  margin-left: -1px;
+  margin-top: -1px;
   font-size: 12px;
 }
 .data-table .data-table-col .edit-cell {
@@ -6,10 +9,7 @@
 }
 .data-table .data-table-col .edit-cell input {
   font-size: inherit;
-  height: 32px;
-}
-.data-table .data-table-col.editing .edit-cell {
-  border: 2px solid #7679FC;
+  height: 34px;
 }
 .data-table .frappe-control {
   margin: 0;
@@ -25,7 +25,7 @@
   top: 6px;
 }
 .data-table select {
-  height: 32px;
+  height: 34px;
 }
 .data-table .checkbox {
   margin-top: 8px;
@@ -35,6 +35,6 @@
 .data-table [data-fieldtype="Color"] .control-input {
   overflow: hidden;
 }
-.data-table .data-table-col.selected .content {
-  border-color: #7679FC;
+.data-table .body-scrollable::-webkit-scrollbar {
+  display: none;
 }

@@ -1,4 +1,3 @@
-/* global DataTable */
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
@@ -23,8 +22,17 @@ frappe.views.ReportViewPage = Class.extend({
 		var me = this;
 		frappe.model.with_doctype(this.doctype, function() {
 			me.make_report_view();
-			me.parent.reportview.set_route_filters();
-			me.parent.reportview.run();
+			if(me.docname) {
+				frappe.model.with_doc('Report', me.docname, function(r) {
+					me.parent.reportview.set_columns_and_filters(
+						JSON.parse(frappe.get_doc("Report", me.docname).json || '{}'));
+					me.parent.reportview.set_route_filters();
+					me.parent.reportview.run();
+				});
+			} else {
+				me.parent.reportview.set_route_filters();
+				me.parent.reportview.run();
+			}
 		});
 	},
 	make_page: function() {
@@ -46,7 +54,7 @@ frappe.views.ReportViewPage = Class.extend({
 		var module = locals.DocType[this.doctype].module;
 		frappe.breadcrumbs.add(module, this.doctype);
 
-		this.parent.reportview = new frappe.views.ReportView({
+		this.parent.reportview = new frappe.views.ReportView2({
 			doctype: this.doctype,
 			docname: this.docname,
 			parent: this.parent
@@ -56,8 +64,9 @@ frappe.views.ReportViewPage = Class.extend({
 
 frappe.views.ReportView2 = frappe.ui.BaseList.extend({
 	init: function(opts) {
+		var me = this;
 		$.extend(this, opts);
-		this.can_delete = frappe.model.can_delete(this.doctype);
+		this.can_delete = frappe.model.can_delete(me.doctype);
 		this.tab_name = '`tab'+this.doctype+'`';
 		this.setup();
 	},
@@ -69,7 +78,7 @@ frappe.views.ReportView2 = frappe.ui.BaseList.extend({
 		this.page = this.parent.page;
 		this.meta = frappe.get_meta(this.doctype);
 		this._body = $('<div>').appendTo(this.page.main);
-		this.page_title = __('Report') + ': ' + (this.docname ?
+		this.page_title = __('Report')+ ': ' + (this.docname ?
 			__(this.doctype) + ' - ' + __(this.docname) : __(this.doctype));
 		this.page.set_title(this.page_title);
 		this.init_user_settings();
@@ -140,10 +149,8 @@ frappe.views.ReportView2 = frappe.ui.BaseList.extend({
 				}
 			});
 		}
-
-		if(columns.length === 0) {
-			// build default columns
-			var columns = [['name', this.doctype]];
+		if(!columns.length) {
+			var columns = [['name', this.doctype],];
 			$.each(frappe.meta.docfield_list[this.doctype], function(i, df) {
 				if((df.in_standard_filter || df.in_list_view) && df.fieldname!='naming_series'
 					&& !in_list(frappe.model.no_value_type, df.fieldtype)
@@ -309,7 +316,7 @@ frappe.views.ReportView2 = frappe.ui.BaseList.extend({
 		}
 	},
 
-	// build columns for datatable
+	// build columns for slickgrid
 	build_columns: function() {
 		var me = this;
 		return $.map(this.columns, function(c) {
@@ -325,14 +332,11 @@ frappe.views.ReportView2 = frappe.ui.BaseList.extend({
 			}
 			if(!docfield) return;
 
-			const title = __(docfield ? docfield.label : toTitle(c[0]));
-
 			let coldef = {
 				id: c[0],
 				field: c[0],
 				docfield: docfield,
-				name: title,
-				content: title, // required by datatable
+				name: __(docfield ? docfield.label : toTitle(c[0])),
 				width: (docfield ? cint(docfield.width) : 120) || 120,
 				formatter: function(row, cell, value, columnDef, dataContext, for_print) {
 					var docfield = columnDef.docfield;
@@ -385,217 +389,82 @@ frappe.views.ReportView2 = frappe.ui.BaseList.extend({
 	// render data
 	render_view: function() {
 		var me = this;
-		this.set_totals_row();
 		var data = this.get_unique_data(this.column_info);
-		var columns = this.column_info;
 
-		this.render_datatable(columns, data);
+		this.set_totals_row(data);
 
 		// add sr in data
-		// $.each(data, function(i, v) {
-		// 	// add index
-		// 	v._idx = i+1;
-		// 	v.id = v._idx;
-		// });
-
-		// var options = {
-		// 	enableCellNavigation: true,
-		// 	enableColumnReorder: false,
-		// };
-
-
-		// if(this.slickgrid_options) {
-		// 	$.extend(options, this.slickgrid_options);
-		// }
-
-		// this.dataView = new Slick.Data.DataView();
-		// this.set_data(data);
-
-		// var grid_wrapper = this.wrapper.find('.result-list').addClass("slick-wrapper");
-
-		// set height if not auto
-		// if(!options.autoHeight)
-		// 	grid_wrapper.css('height', '500px');
-
-		// this.grid = new Slick.Grid(grid_wrapper
-		// 	.get(0), this.dataView,
-		// 	this.column_info, options);
-
-		// if (!frappe.dom.is_touchscreen()) {
-		// 	this.grid.setSelectionModel(new Slick.CellSelectionModel());
-		// 	this.grid.registerPlugin(new Slick.CellExternalCopyManager({
-		// 		dataItemColumnValueExtractor: function(item, columnDef, value) {
-		// 			return item[columnDef.field];
-		// 		}
-		// 	}));
-		// }
-
-		// update column width on resize
-		// frappe.slickgrid_tools.add_property_setter_on_resize(this.grid);
-
-		// if(this.start!=0 && !options.autoHeight) {
-		// 	this.grid.scrollRowIntoView(data.length-1);
-		// }
-
-		// this.grid.onDblClick.subscribe(function(e, args) {
-		// 	var row = me.dataView.getItem(args.row);
-		// 	var cell = me.grid.getColumns()[args.cell];
-		// 	me.edit_cell(row, cell.docfield);
-		// });
-
-		// this.dataView.onRowsChanged.subscribe(function (e, args) {
-		// 	me.grid.invalidateRows(args.rows);
-		// 	me.grid.render();
-		// });
-
-		// this.grid.onHeaderClick.subscribe(function(e, args) {
-		// 	if(e.target.className === "slick-resizable-handle")
-		// 		return;
-
-
-		// 	var df = args.column.docfield,
-		// 		sort_by = df.parent + "." + df.fieldname;
-
-		// 	if(sort_by===me.sort_by_select.val()) {
-		// 		me.sort_order_select.val(me.sort_order_select.val()==="asc" ? "desc" : "asc");
-		// 	} else {
-		// 		me.sort_by_select.val(df.parent + "." + df.fieldname);
-		// 		me.sort_order_select.val("asc");
-		// 	}
-
-		// 	me.run();
-		// });
-	},
-
-	render_datatable(columns, data) {
-
-		columns = columns.map(col => {
-			col.content = col.name;
-			if (['_idx', '_check'].includes(col.id)) {
-				col.resizable = false;
-			}
-			return col;
+		$.each(data, function(i, v) {
+			// add index
+			v._idx = i+1;
+			v.id = v._idx;
 		});
 
-		const rows = data.map((d, i) => {
-			return columns.map(col => {
-				if(col.name === 'Sr.') {
-					return { content: i };
-				}
-				if(col.field in d) {
-					const value = d[col.field];
-					return {
-						content: value,
-						format: function(value) {
-							return frappe.format(value, col.docfield, {always_show_decimals: true});
-						}
-					}
-				}
-				return {
-					content: ''
-				};
-			});
-		});
-
-		const get_docname = (row_index) => {
-			const row = data[row_index];
-			return row.name;
-		}
-
-		const get_fieldname = (col_index) => {
-			return columns[col_index].docfield.fieldname;
-		}
-
-		if (this.datatable) {
-			const data = { columns, rows };
-			this.datatable.refresh(data);
-			return;
-		}
-
-		var me = this;
-
-		this.datatable = new DataTable(this.wrapper.find('.result-list'), {
-			data: { columns, rows },
-			enableLogs: false,
-			enableClusterize: true,
-			addCheckbox: this.can_delete,
-			editing: (colIndex, rowIndex, value, parent) => {
-				const control = me.render_editing_input(colIndex, value, parent);
-				if (!control) return false;
-
-				return {
-					initValue: (value) => {
-						return control.set_value(value);
-					},
-					setValue: (value) => {
-						return me.update_value_on_server(
-							this.doctype,
-							get_docname(rowIndex),
-							get_fieldname(colIndex),
-							value
-						).then(r => {
-							if(r.message) {
-								const updated_value = r.message[get_fieldname(colIndex)];
-								return control.set_value(value);
-							}
-						});
-					},
-					getValue: () => {
-						return control.get_value();
-					}
-				}
-			}
-		});
-	},
-
-	render_editing_input: function(colIndex, value, parent) {
-		const col = this.datatable.data.columns[colIndex];
-
-		if (!this.validate_cell_editing(col.docfield)) {
-			return false;
-		}
-
-		// make control
-		const control = frappe.ui.form.make_control({
-			df: col.docfield,
-			parent: parent,
-			render_input: true
-		});
-		control.set_value(value);
-		control.toggle_label(false);
-		control.toggle_description(false);
-
-		return control;
-	},
-
-	validate_cell_editing: function(docfield) {
-		if(!docfield || docfield.fieldname !== "idx"
-			&& frappe.model.std_fields_list.includes(docfield.fieldname)) {
-			return false;
-		} else if(!frappe.boot.user.can_write.includes(this.doctype)) {
-			frappe.throw({
-				title:__('Not Permitted'),
-				message:__("No permission to edit")
-			});
-			return false;
-		}
-		return true;
-	},
-
-	update_value_on_server: function(doctype, docname, field, value) {
-		var args = {
-			doctype: doctype,
-			name: docname,
-			fieldname: field,
-			value: value
+		var options = {
+			enableCellNavigation: true,
+			enableColumnReorder: false,
 		};
 
-		return frappe.call({
-			method: "frappe.client.set_value",
-			args: args
+		if(this.slickgrid_options) {
+			$.extend(options, this.slickgrid_options);
+		}
+
+		this.dataView = new Slick.Data.DataView();
+		this.set_data(data);
+
+		var grid_wrapper = this.wrapper.find('.result-list').addClass("slick-wrapper");
+
+		// set height if not auto
+		if(!options.autoHeight)
+			grid_wrapper.css('height', '500px');
+
+		this.grid = new Slick.Grid(grid_wrapper
+			.get(0), this.dataView,
+			this.column_info, options);
+
+		if (!frappe.dom.is_touchscreen()) {
+			this.grid.setSelectionModel(new Slick.CellSelectionModel());
+			this.grid.registerPlugin(new Slick.CellExternalCopyManager({
+				dataItemColumnValueExtractor: function(item, columnDef, value) {
+					return item[columnDef.field];
+				}
+			}));
+		}
+
+		frappe.slickgrid_tools.add_property_setter_on_resize(this.grid);
+		if(this.start!=0 && !options.autoHeight) {
+			this.grid.scrollRowIntoView(data.length-1);
+		}
+
+		this.grid.onDblClick.subscribe(function(e, args) {
+			var row = me.dataView.getItem(args.row);
+			var cell = me.grid.getColumns()[args.cell];
+			me.edit_cell(row, cell.docfield);
+		});
+
+		this.dataView.onRowsChanged.subscribe(function (e, args) {
+			me.grid.invalidateRows(args.rows);
+			me.grid.render();
+		});
+
+		this.grid.onHeaderClick.subscribe(function(e, args) {
+			if(e.target.className === "slick-resizable-handle")
+				return;
+
+
+			var df = args.column.docfield,
+				sort_by = df.parent + "." + df.fieldname;
+
+			if(sort_by===me.sort_by_select.val()) {
+				me.sort_order_select.val(me.sort_order_select.val()==="asc" ? "desc" : "asc");
+			} else {
+				me.sort_by_select.val(df.parent + "." + df.fieldname);
+				me.sort_order_select.val("asc");
+			}
+
+			me.run();
 		});
 	},
-
 
 	has_child_column: function() {
 		var me = this;
@@ -707,14 +576,27 @@ frappe.views.ReportView2 = frappe.ui.BaseList.extend({
 		});
 	},
 
-	// set_data: function(data) {
-	// 	this.dataView.beginUpdate();
-	// 	this.dataView.setItems(data);
-	// 	this.dataView.endUpdate();
-	// },
+	set_data: function(data) {
+		this.dataView.beginUpdate();
+		this.dataView.setItems(data);
+		this.dataView.endUpdate();
+	},
 
 	get_columns: function() {
-		return this.build_columns();
+		var std_columns = [{id:'_idx', field:'_idx', name: 'Sr.', width: 40, maxWidth: 40}];
+		if(this.can_delete) {
+			std_columns = std_columns.concat([{
+				id:'_check', field:'_check', name: "", width: 30, maxWidth: 30,
+				formatter: function(row, cell, value, columnDef, dataContext) {
+					return repl("<input type='checkbox' \
+						data-row='%(row)s' %(checked)s>", {
+							row: row,
+							checked: (dataContext.selected ? "checked=\"checked\"" : "")
+						});
+				}
+			}]);
+		}
+		return std_columns.concat(this.build_columns());
 	},
 
 	// setup column picker
@@ -903,11 +785,16 @@ frappe.views.ReportView2 = frappe.ui.BaseList.extend({
 	make_delete: function() {
 		var me = this;
 		if(this.can_delete) {
+			$(this.parent).on("click", "input[type='checkbox'][data-row]", function() {
+				me.data[$(this).attr("data-row")].selected
+					= this.checked ? true : false;
+			});
+
 			this.page.add_menu_item(__("Delete"), function() {
 				var delete_list = $.map(me.get_checked_items(), function(d) { return d.name; });
 				if(!delete_list.length)
 					return;
-				frappe.confirm(__("This is PERMANENT action and you cannot undo. Continue?"),
+				if(frappe.confirm(__("This is PERMANENT action and you cannot undo. Continue?"),
 					function() {
 						return frappe.call({
 							method: 'frappe.desk.reportview.delete_items',
@@ -919,7 +806,7 @@ frappe.views.ReportView2 = frappe.ui.BaseList.extend({
 								me.refresh();
 							}
 						});
-					})
+					}));
 
 			}, true);
 		}
@@ -945,11 +832,16 @@ frappe.views.ReportView2 = frappe.ui.BaseList.extend({
 	},
 
 	get_checked_items: function() {
-		const checked_rows = this.datatable.getCheckedRows();
+		var me = this;
+		var selected_records = []
 
-		return this.data.filter(
-			(d, i) => d.name && checked_rows.includes(i)
-		);
+		$.each(me.data, function(i, d) {
+			if(d.selected && d.name) {
+				selected_records.push(d);
+			}
+		});
+
+		return selected_records
 	}
 });
 
