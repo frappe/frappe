@@ -302,7 +302,7 @@ frappe.ui.BaseList = Class.extend({
 	},
 
 	run: function(more) {
-		setTimeout(() => this._run(more), 100);
+		this._run(more);
 	},
 
 	_run: function (more) {

@@ -84,7 +84,7 @@ $(document).on('save', function (event, doc) {
 	frappe.views.set_list_as_dirty(doc.doctype);
 });
 
-frappe.views.set_list_as_dirty = function (doctype) {
+frappe.views.set_list_as_dirty = function ({ doctype, name, user }) {
 	if (frappe.views.trees[doctype]) {
 		frappe.views.trees[doctype].tree.refresh();
 	}
@@ -93,26 +93,18 @@ frappe.views.set_list_as_dirty = function (doctype) {
 	var current_view = route[2] || 'List';
 
 	var list_renderer = frappe.views.list_renderers[doctype];
-	if (list_renderer
-		&& list_renderer[current_view]
-		&& list_renderer[current_view].no_realtime) {
-		return;
+	if (list_renderer && list_renderer[current_view]) {
+		const clr = list_renderer[current_view];
+		if (clr.no_realtime || !clr.refresh_on_dirty(name, user)) {
+			return;
+		}
 	}
 
 	var list_page = 'List/' + doctype;
 	if (frappe.pages[list_page]) {
 		if (frappe.pages[list_page].list_view) {
-			if (frappe.pages[list_page].list_view.dirty) {
-				// already refreshing...
-				return;
-			}
 			frappe.pages[list_page].list_view.dirty = true;
 		}
-	}
-	if (route[0] === 'List' && route[1] === doctype) {
-		setTimeout(function () {
-			frappe.pages[list_page].list_view.refresh();
-		}, 100);
 	}
 }
 
@@ -182,6 +174,16 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 		this.init_filters();
 		this.set_title();
 		this.init_headers();
+
+		this.setup_list_refresh_interval();
+	},
+
+	setup_list_refresh_interval: function() {
+		this.list_refresh_interval = setInterval(() => {
+			if (this.dirty) {
+				this.refresh(this.dirty);
+			}
+		}, 3000);
 	},
 
 	refresh_surroundings: function() {
@@ -423,7 +425,7 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 		} else {
 			if (new Date() - (this.last_updated_on || 0) > 30000) {
 				// older than 5 mins, refresh
-				this.run();
+				this.dirty = true;
 			}
 		}
 	},
@@ -487,10 +489,6 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 		// set filter from route
 		var me = this;
 
-		if (this.fresh && !more) {
-			return;
-		}
-
 		if (this.list_renderer.settings.before_run) {
 			this.list_renderer.settings.before_run(this);
 		}
@@ -511,18 +509,6 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 
 		this.last_updated_on = new Date();
 		this.dirty = false;
-		// set a fresh so that multiple refreshes do not happen
-		// at the same time. This is true when deleting.
-		// AJAX response will try to refresh and list_update notification
-		// via async will also try to update.
-		// It is not possible to guess which will reach first
-		// (most probably async will) but this is a forced way
-		// to prevent instant refreshes on mutilple triggers
-		// in a loosly coupled way.
-		this.fresh = true;
-		setTimeout(function () {
-			me.fresh = false;
-		}, 1000);
 
 		this._super(more);
 

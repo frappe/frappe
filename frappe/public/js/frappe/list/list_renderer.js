@@ -81,6 +81,11 @@ frappe.views.ListRenderer = Class.extend({
 		// else return false
 		return false;
 	},
+	refresh_on_dirty: function(docname, user) {
+		// called when a doc is modified, deleted by a user
+		// return true if you want list to be refreshed else false
+		return true;
+	},
 	set_wrapper: function () {
 		this.wrapper = this.list_view.wrapper && this.list_view.wrapper.find('.result-list');
 	},
