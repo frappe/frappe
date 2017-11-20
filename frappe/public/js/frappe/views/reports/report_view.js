@@ -19,36 +19,46 @@ frappe.views.ReportView = frappe.views.ListRenderer.extend({
 			enableClusterize: true,
 			addCheckbox: this.can_delete(),
 			takeAvailableSpace: true,
-			editing: (colIndex, rowIndex, value, parent) => {
-				const control = this.render_editing_input(colIndex, value, parent);
-				if (!control) return false;
-
-				return {
-					initValue: (value) => {
-						return control.set_value(value);
-					},
-					setValue: (value) => {
-						const cell = this.datatable.getCell(colIndex, rowIndex);
-						let fieldname = this.datatable.getColumn(colIndex).docfield.fieldname;
-						let docname = cell.name;
-
-						console.log(cell);
-
-						return frappe.db.set_value(this.doctype, docname, fieldname, value)
-							.then(r => {
-								if(r.message) {
-									const doc = r.message;
-									const updated_value = doc[fieldname];
-									return control.set_value(value);
-								}
-							});
-					},
-					getValue: () => {
-						return control.get_value();
-					}
-				}
-			}
+			editing: this.get_editing_object.bind(this)
 		});
+	},
+
+	get_editing_object(colIndex, rowIndex, value, parent) {
+		const control = this.render_editing_input(colIndex, value, parent);
+		if (!control) return false;
+
+		return {
+			initValue: (value) => {
+				control.set_focus();
+				return control.set_value(value);
+			},
+			setValue: (value) => {
+				const cell = this.datatable.getCell(colIndex, rowIndex);
+				let fieldname = this.datatable.getColumn(colIndex).docfield.fieldname;
+				let docname = cell.name;
+
+				control.set_value(value);
+				return this.set_control_value(docname, fieldname, value);
+			},
+			getValue: () => {
+				return control.get_value();
+			}
+		}
+	},
+
+	set_control_value(docname, fieldname, value) {
+		this.last_updated_doc = docname;
+		return new Promise((resolve, reject) => {
+			frappe.db.set_value(this.doctype, docname, fieldname, value)
+				.then(r => {
+					if (r.message) {
+						resolve();
+					} else {
+						reject();
+					}
+				})
+				.fail(reject);
+		})
 	},
 
 	render_editing_input(colIndex, value, parent) {
@@ -86,6 +96,10 @@ frappe.views.ReportView = frappe.views.ListRenderer.extend({
 			return false;
 		}
 		return true;
+	},
+
+	refresh_on_dirty(docname, user) {
+		return this.last_updated_doc !== docname && user !== frappe.session.user;
 	},
 
 	get_data(values) {
