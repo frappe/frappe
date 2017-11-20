@@ -70,7 +70,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 5);
+/******/ 	return __webpack_require__(__webpack_require__.s = 4);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -434,8 +434,7 @@ function isNumeric(val) {
 }
 
 /***/ }),
-/* 2 */,
-/* 3 */
+/* 2 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -455,7 +454,7 @@ exports.getEditCellHTML = getEditCellHTML;
 
 var _utils = __webpack_require__(1);
 
-var _keyboard = __webpack_require__(8);
+var _keyboard = __webpack_require__(7);
 
 var _keyboard2 = _interopRequireDefault(_keyboard);
 
@@ -1189,7 +1188,7 @@ function cellSelector(colIndex, rowIndex) {
 }
 
 /***/ }),
-/* 4 */
+/* 3 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1209,7 +1208,7 @@ var _dom2 = _interopRequireDefault(_dom);
 
 var _utils = __webpack_require__(1);
 
-var _cellmanager = __webpack_require__(3);
+var _cellmanager = __webpack_require__(2);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -1327,10 +1326,23 @@ var RowManager = function () {
       var $row = this.getRow$(rowIndex);
       if (!$row) return;
 
+      if (!toggle && this.bodyScrollable.classList.contains('row-highlight-all')) {
+        $row.classList.add('row-unhighlight');
+        return;
+      }
+
+      if (toggle && $row.classList.contains('row-unhighlight')) {
+        $row.classList.remove('row-unhighlight');
+      }
+
+      this._highlightedRows = this._highlightedRows || {};
+
       if (toggle) {
         $row.classList.add('row-highlight');
+        this._highlightedRows[rowIndex] = $row;
       } else {
         $row.classList.remove('row-highlight');
+        delete this._highlightedRows[rowIndex];
       }
     }
   }, {
@@ -1342,6 +1354,11 @@ var RowManager = function () {
         this.bodyScrollable.classList.add('row-highlight-all');
       } else {
         this.bodyScrollable.classList.remove('row-highlight-all');
+        for (var rowIndex in this._highlightedRows) {
+          var $row = this._highlightedRows[rowIndex];
+          $row.classList.remove('row-highlight');
+        }
+        this._highlightedRows = {};
       }
     }
   }, {
@@ -1382,7 +1399,7 @@ function getRowHTML(columns, props) {
 }
 
 /***/ }),
-/* 5 */
+/* 4 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1392,11 +1409,11 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _datatable = __webpack_require__(6);
+var _datatable = __webpack_require__(5);
 
 var _datatable2 = _interopRequireDefault(_datatable);
 
-var _package = __webpack_require__(16);
+var _package = __webpack_require__(15);
 
 var _package2 = _interopRequireDefault(_package);
 
@@ -1408,7 +1425,7 @@ exports.default = _datatable2.default;
 module.exports = exports['default'];
 
 /***/ }),
-/* 6 */
+/* 5 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1426,27 +1443,27 @@ var _dom = __webpack_require__(0);
 
 var _dom2 = _interopRequireDefault(_dom);
 
-var _datamanager = __webpack_require__(7);
+var _datamanager = __webpack_require__(6);
 
 var _datamanager2 = _interopRequireDefault(_datamanager);
 
-var _cellmanager = __webpack_require__(3);
+var _cellmanager = __webpack_require__(2);
 
 var _cellmanager2 = _interopRequireDefault(_cellmanager);
 
-var _columnmanager = __webpack_require__(9);
+var _columnmanager = __webpack_require__(8);
 
 var _columnmanager2 = _interopRequireDefault(_columnmanager);
 
-var _rowmanager = __webpack_require__(4);
+var _rowmanager = __webpack_require__(3);
 
 var _rowmanager2 = _interopRequireDefault(_rowmanager);
 
-var _style = __webpack_require__(10);
+var _style = __webpack_require__(9);
 
 var _style2 = _interopRequireDefault(_style);
 
-__webpack_require__(11);
+__webpack_require__(10);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -1692,7 +1709,7 @@ function getBodyHTML(rows) {
 }
 
 /***/ }),
-/* 7 */
+/* 6 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1715,7 +1732,6 @@ var DataManager = function () {
     _classCallCheck(this, DataManager);
 
     this.options = options;
-    this.rowCount = 0;
     this.currentSort = {
       sortBy: -1, // colIndex
       sortOrder: 'none' // asc, desc, none
@@ -1728,6 +1744,10 @@ var DataManager = function () {
       var columns = data.columns,
           rows = data.rows;
 
+
+      this.rowCount = 0;
+      this.columns = [];
+      this.rows = [];
 
       this.columns = this.prepareColumns(columns);
       this.rows = this.prepareRows(rows);
@@ -2011,7 +2031,7 @@ function prepareCell(col, i) {
 module.exports = exports['default'];
 
 /***/ }),
-/* 8 */
+/* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2089,7 +2109,7 @@ exports.default = {
 module.exports = exports['default'];
 
 /***/ }),
-/* 9 */
+/* 8 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2105,7 +2125,7 @@ var _dom = __webpack_require__(0);
 
 var _dom2 = _interopRequireDefault(_dom);
 
-var _rowmanager = __webpack_require__(4);
+var _rowmanager = __webpack_require__(3);
 
 var _utils = __webpack_require__(1);
 
@@ -2456,7 +2476,7 @@ exports.default = ColumnManager;
 module.exports = exports['default'];
 
 /***/ }),
-/* 10 */
+/* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2513,13 +2533,13 @@ exports.default = Style;
 module.exports = exports['default'];
 
 /***/ }),
-/* 11 */
+/* 10 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // style-loader: Adds some css to the DOM by adding a <style> tag
 
 // load the styles
-var content = __webpack_require__(12);
+var content = __webpack_require__(11);
 if(typeof content === 'string') content = [[module.i, content, '']];
 // Prepare cssTransformation
 var transform;
@@ -2527,7 +2547,7 @@ var transform;
 var options = {}
 options.transform = transform
 // add the styles to the DOM
-var update = __webpack_require__(14)(content, options);
+var update = __webpack_require__(13)(content, options);
 if(content.locals) module.exports = content.locals;
 // Hot Module Replacement
 if(false) {
@@ -2544,21 +2564,21 @@ if(false) {
 }
 
 /***/ }),
-/* 12 */
+/* 11 */
 /***/ (function(module, exports, __webpack_require__) {
 
-exports = module.exports = __webpack_require__(13)(undefined);
+exports = module.exports = __webpack_require__(12)(undefined);
 // imports
 
 
 // module
-exports.push([module.i, "/* variables */\n.data-table {\n  --border-color: #d1d8dd;\n  --primary-color: #5292f7;\n  --light-bg: #f5f7fa; }\n\n/* resets */\n*, *::after, *::before {\n  box-sizing: border-box; }\n\nbutton, input {\n  overflow: visible;\n  font-family: inherit;\n  font-size: inherit;\n  line-height: inherit;\n  margin: 0; }\n\n/* styling */\n.data-table * {\n  outline: none; }\n\n.data-table {\n  width: 100%;\n  position: relative;\n  overflow: auto; }\n  .data-table table {\n    border-collapse: collapse; }\n  .data-table table td {\n    padding: 0;\n    border: 1px solid var(--border-color); }\n  .data-table thead td {\n    border-bottom-width: 2px; }\n\n.body-scrollable {\n  max-height: 500px;\n  overflow: auto;\n  border-bottom: 1px solid var(--border-color); }\n  .body-scrollable.row-highlight-all .data-table-row {\n    background-color: var(--light-bg); }\n\n.data-table-header {\n  position: absolute;\n  top: 0;\n  left: 0;\n  background-color: white;\n  font-weight: bold;\n  cursor: col-resize; }\n  .data-table-header .content span {\n    cursor: pointer; }\n  .data-table-header .sort-indicator {\n    position: absolute;\n    right: 8px;\n    top: 9px; }\n\n.data-table-col {\n  position: relative; }\n  .data-table-col .content {\n    padding: 8px;\n    border: 2px solid transparent; }\n    .data-table-col .content.ellipsis {\n      text-overflow: ellipsis;\n      white-space: nowrap;\n      overflow: hidden; }\n  .data-table-col .edit-cell {\n    display: none;\n    padding: 8px;\n    background: #fff;\n    z-index: 1;\n    height: 100%; }\n    .data-table-col .edit-cell input {\n      outline: none;\n      width: 100%;\n      border: none;\n      height: 1em; }\n  .data-table-col.selected .content {\n    border: 2px solid var(--primary-color); }\n  .data-table-col.editing .content {\n    display: none; }\n  .data-table-col.editing .edit-cell {\n    border: 2px solid var(--primary-color);\n    display: block; }\n  .data-table-col.highlight {\n    background-color: var(--light-bg); }\n\n.data-table-row.row-highlight {\n  background-color: var(--light-bg); }\n\n.noselect {\n  -webkit-touch-callout: none;\n  -webkit-user-select: none;\n  -khtml-user-select: none;\n  -moz-user-select: none;\n  -ms-user-select: none;\n  user-select: none; }\n", ""]);
+exports.push([module.i, "/* variables */\n.data-table {\n  --border-color: #d1d8dd;\n  --primary-color: #5292f7;\n  --light-bg: #f5f7fa; }\n\n/* resets */\n*, *::after, *::before {\n  box-sizing: border-box; }\n\nbutton, input {\n  overflow: visible;\n  font-family: inherit;\n  font-size: inherit;\n  line-height: inherit;\n  margin: 0; }\n\n/* styling */\n.data-table * {\n  outline: none; }\n\n.data-table {\n  width: 100%;\n  position: relative;\n  overflow: auto; }\n  .data-table table {\n    border-collapse: collapse; }\n  .data-table table td {\n    padding: 0;\n    border: 1px solid var(--border-color); }\n  .data-table thead td {\n    border-bottom-width: 2px; }\n\n.body-scrollable {\n  max-height: 500px;\n  overflow: auto;\n  border-bottom: 1px solid var(--border-color); }\n  .body-scrollable.row-highlight-all .data-table-row:not(.row-unhighlight) {\n    background-color: var(--light-bg); }\n\n.data-table-header {\n  position: absolute;\n  top: 0;\n  left: 0;\n  background-color: white;\n  font-weight: bold;\n  cursor: col-resize; }\n  .data-table-header .content span {\n    cursor: pointer; }\n  .data-table-header .sort-indicator {\n    position: absolute;\n    right: 8px;\n    top: 9px; }\n\n.data-table-col {\n  position: relative; }\n  .data-table-col .content {\n    padding: 8px;\n    border: 2px solid transparent; }\n    .data-table-col .content.ellipsis {\n      text-overflow: ellipsis;\n      white-space: nowrap;\n      overflow: hidden; }\n  .data-table-col .edit-cell {\n    display: none;\n    padding: 8px;\n    background: #fff;\n    z-index: 1;\n    height: 100%; }\n    .data-table-col .edit-cell input {\n      outline: none;\n      width: 100%;\n      border: none;\n      height: 1em; }\n  .data-table-col.selected .content {\n    border: 2px solid var(--primary-color); }\n  .data-table-col.editing .content {\n    display: none; }\n  .data-table-col.editing .edit-cell {\n    border: 2px solid var(--primary-color);\n    display: block; }\n  .data-table-col.highlight {\n    background-color: var(--light-bg); }\n\n.data-table-row.row-highlight {\n  background-color: var(--light-bg); }\n\n.noselect {\n  -webkit-touch-callout: none;\n  -webkit-user-select: none;\n  -khtml-user-select: none;\n  -moz-user-select: none;\n  -ms-user-select: none;\n  user-select: none; }\n", ""]);
 
 // exports
 
 
 /***/ }),
-/* 13 */
+/* 12 */
 /***/ (function(module, exports) {
 
 /*
@@ -2640,7 +2660,7 @@ function toComment(sourceMap) {
 
 
 /***/ }),
-/* 14 */
+/* 13 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /*
@@ -2686,7 +2706,7 @@ var singleton = null;
 var	singletonCounter = 0;
 var	stylesInsertedAtTop = [];
 
-var	fixUrls = __webpack_require__(15);
+var	fixUrls = __webpack_require__(14);
 
 module.exports = function(list, options) {
 	if (typeof DEBUG !== "undefined" && DEBUG) {
@@ -2999,7 +3019,7 @@ function updateLink (link, options, obj) {
 
 
 /***/ }),
-/* 15 */
+/* 14 */
 /***/ (function(module, exports) {
 
 
@@ -3094,7 +3114,7 @@ module.exports = function (css) {
 
 
 /***/ }),
-/* 16 */
+/* 15 */
 /***/ (function(module, exports) {
 
 module.exports = {"name":"frappe-datatable","version":"0.0.1","description":"A modern datatable library for the web","main":"lib/frappe-datatable.js","scripts":{"build":"webpack --env build","dev":"webpack --progress --colors --watch --env dev","test":"mocha --compilers js:babel-core/register --colors ./test/*.spec.js","test:watch":"mocha --compilers js:babel-core/register --colors -w ./test/*.spec.js"},"devDependencies":{"babel-cli":"6.24.1","babel-core":"6.24.1","babel-eslint":"7.2.3","babel-loader":"7.0.0","babel-plugin-add-module-exports":"0.2.1","babel-preset-env":"^1.6.1","chai":"3.5.0","css-loader":"^0.28.7","eslint":"3.19.0","eslint-loader":"1.7.1","mocha":"3.3.0","node-sass":"^4.5.3","sass-loader":"^6.0.6","style-loader":"^0.18.2","webpack":"^3.1.0","yargs":"7.1.0"},"repository":{"type":"git","url":"https://github.com/frappe/datatable.git"},"keywords":["webpack","es6","starter","library","universal","umd","commonjs"],"author":"Faris Ansari","license":"MIT","bugs":{"url":"https://github.com/frappe/datatable/issues"},"homepage":"https://frappe.github.io/datatable","dependencies":{"clusterize.js":"^0.18.0"}}

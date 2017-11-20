@@ -7,11 +7,12 @@ frappe.views.ReportView = frappe.views.ListRenderer.extend({
 	name: 'Report',
 
 	render_view(values) {
-		console.log('render', values)
-		// if (this.datatable) {
-		// 	this.datatable.appendRows(this.build_rows(values));
-		// 	return;
-		// }
+
+		if (this.datatable && this.wrapper.find('.data-table').length) {
+			const rows = this.build_rows(values);
+			this.datatable.appendRows(rows);
+			return;
+		}
 
 		this.datatable = new DataTable(this.wrapper[0], {
 			data: this.get_data(values),
@@ -71,9 +72,11 @@ frappe.views.ReportView = frappe.views.ListRenderer.extend({
 	},
 
 	validate_cell_editing(docfield) {
-		console.log(docfield);
-		if(!docfield || docfield.fieldname !== "idx"
-			&& frappe.model.std_fields_list.includes(docfield.fieldname)) {
+		if (!docfield) return false;
+
+		const is_standard_field = frappe.model.std_fields_list.includes(docfield.fieldname);
+		const is_read_only = docfield.read_only;
+		if(docfield.fieldname !== "idx" && is_standard_field || is_read_only) {
 			return false;
 		} else if(!frappe.boot.user.can_write.includes(this.doctype)) {
 			frappe.throw({
@@ -150,6 +153,7 @@ frappe.views.ReportView = frappe.views.ListRenderer.extend({
 			if(!docfield) return;
 
 			const title = __(docfield ? docfield.label : toTitle(fieldname));
+			const editable = fieldname !== 'name' && !docfield.read_only;
 
 			return {
 				id: fieldname,
@@ -158,7 +162,7 @@ frappe.views.ReportView = frappe.views.ListRenderer.extend({
 				name: title,
 				content: title, // required by datatable
 				width: (docfield ? cint(docfield.width) : 120) || 120,
-				editable: fieldname !== 'name'
+				editable: editable
 			}
 		});
 	},
