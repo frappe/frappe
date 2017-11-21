@@ -61,7 +61,7 @@ frappe.views.TranslationManager = Class.extend({
 			'callback': function(res){
 				if (!res.exc){
 					cur_dialog.hide();
-					frappe.msgprint('Translations added successfull!');
+					frappe.show_alert({messsage: __("Translations updated"), indicator:"green"})
 					cur_frm.reload_doc();
 				}
 			}
