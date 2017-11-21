@@ -266,13 +266,6 @@ def delete_dynamic_links(doctype, name):
 			and reference_doctype=%s
 			and reference_name=%s""", (doctype, name))
 
-	# unlink activity_log
-	frappe.db.sql("""update `tabActivity Log`
-		set reference_doctype=null, reference_name=null
-		where
-			reference_doctype=%s
-			and reference_name=%s""", (doctype, name))
-
 	# unlink secondary references
 	frappe.db.sql("""update `tabCommunication`
 		set link_doctype=null, link_name=null
@@ -283,10 +276,17 @@ def delete_dynamic_links(doctype, name):
 		set timeline_doctype=null, timeline_name=null
 		where timeline_doctype=%s and timeline_name=%s""", (doctype, name))
 
-	# unlink feed
-	# frappe.db.sql("""update `tabActivity Log`
-	# 	set timeline_doctype=null, timeline_name=null
-	# 	where timeline_doctype=%s and timeline_name=%s""", (doctype, name))
+	# unlink activity_log reference_doctype
+	frappe.db.sql("""update `tabActivity Log`
+		set reference_doctype=null, reference_name=null
+		where
+			reference_doctype=%s
+			and reference_name=%s""", (doctype, name))
+
+	# unlink activity_log timeline_doctype
+	frappe.db.sql("""update `tabActivity Log`
+		set timeline_doctype=null, timeline_name=null
+		where timeline_doctype=%s and timeline_name=%s""", (doctype, name))
 
 def insert_feed(doc):
 	from frappe.utils import get_fullname

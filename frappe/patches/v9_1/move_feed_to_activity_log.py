@@ -15,14 +15,11 @@ def execute():
 			if communication_doc.get(field.fieldname):
 				activity_data[field.fieldname] = communication_doc.get_value(field.fieldname)
 
-		activity_data['creation'] = communication_doc.creation
-		activity_data['modified'] = communication_doc.modified
-
 		activity_doc = frappe.get_doc(activity_data)
 		activity_doc.insert()
 
-		# frappe.db.set_value('Activity Log', activity_doc.name, 'creation', communication_doc.creation)
-		# frappe.db.set_value('Activity Log', activity_doc.name, 'modified', communication_doc.modified)
-		frappe.db.sql("""delete from `tabCommunication` where name='{0}'""".format(communication_doc.name))
+		frappe.db.sql("""update `tabActivity Log` set creation = %s,\
+			modified = %s where name = %s""", (communication_doc.creation,communication_doc.modified,activity_doc.name))
 
+		frappe.db.sql("""delete from `tabCommunication` where name='{0}'""".format(communication_doc.name))
 	frappe.delete_doc("DocType", "Authentication Log")
