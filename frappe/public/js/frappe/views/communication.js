@@ -3,26 +3,24 @@
 
 frappe.last_edited_communication = {};
 frappe.standard_replies = {};
-var contacts = [];
 
 frappe.views.CommunicationComposer = Class.extend({
 	init: function(opts) {
 		$.extend(this, opts);
 		var me = this;
-		var ans = frappe.call({
+		frappe.call({
 			method:'frappe.email.get_contact_list',
 			callback: function(r) {
-				me.make_contacts(r.message);
-				me.make();
+				me.make(r.message);
 			}
 		});
 	},
-	make: function() {
+	make: function(contact_list) {
 		var me = this;
 		this.dialog = new frappe.ui.Dialog({
 			title: (this.title || this.subject || __("New Email")),
 			no_submit_on_enter: true,
-			fields: this.get_fields(),
+			fields: this.get_fields(contact_list),
 			primary_action_label: __("Send"),
 			primary_action: function() {
 				me.send_action();
@@ -51,15 +49,14 @@ frappe.views.CommunicationComposer = Class.extend({
 		})
 		this.prepare();
 		this.dialog.show();
-		this.trigger_multiselect_field();
 	},
 
-	get_fields: function() {
+	get_fields: function(contact_list) {
 		var fields= [
-			{label:__("To"), fieldtype:"MultiSelect", reqd: 0, fieldname:"recipients", options:Object.keys(contacts)},
+			{label:__("To"), fieldtype:"MultiSelect", reqd: 0, fieldname:"recipients", options:contact_list},
 			{fieldtype: "Section Break", collapsible: 1, label: __("CC, BCC & Standard Reply")},
-			{label:__("CC"), fieldtype:"MultiSelect", fieldname:"cc", options:Object.keys(contacts)},
-			{label:__("BCC"), fieldtype:"MultiSelect", fieldname:"bcc", options:Object.keys(contacts)},
+			{label:__("CC"), fieldtype:"MultiSelect", fieldname:"cc", options:contact_list},
+			{label:__("BCC"), fieldtype:"MultiSelect", fieldname:"bcc", options:contact_list},
 			{label:__("Standard Reply"), fieldtype:"Link", options:"Standard Reply",
 				fieldname:"standard_reply"},
 			{fieldtype: "Section Break"},
@@ -603,28 +600,4 @@ frappe.views.CommunicationComposer = Class.extend({
 		}
 		fields.content.set_value(content);
 	},
-	make_contacts: function(data) {
-		data.map(function(r){
-			var concat = "";
-			concat += r[0] + " &lt;" + r[1] + (r[2] ? " " + r[2] : "") + "&gt;";
-			contacts[concat] = r[0];
-		})
-	},
-	trigger_multiselect_field: function() {
-		var me = this;
-
-		['recipients', 'cc', 'bcc'].map(function(k) {
-			var input = $(me.dialog.wrapper).find(`[data-fieldname="${k}"]`);
-			var val = "";
-			input.on('change', function() {
-				if(this.value) {
-					var last_added = (this.value).split(', ').slice(-2, -1)[0];
-					if(contacts[last_added]) {
-						val += contacts[last_added] + ", ";
-						me.dialog.set_value(k, val);
-					}
-				}
-			});
-		});
-	}
 });
