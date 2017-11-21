@@ -15,7 +15,10 @@ class TransactionLog(Document):
 		self.timestamp = now()
 		if index != 1:
 			prev_hash = frappe.db.sql("SELECT chaining_hash FROM `tabTransactionLog` WHERE row_index = {0}".format(index - 1))
-			self.previous_hash = prev_hash[0][0]
+			if prev_hash:
+				self.previous_hash = prev_hash[0][0]
+			else:
+				frappe.throw('Indexing is out of Order')
 		else:
 			self.previous_hash = self.hash_line()
 		self.transaction_hash = self.hash_line()
@@ -44,8 +47,8 @@ def getcurrentindex():
 		current = 1
 	return current
 
+@frappe.whitelist()
 def create_transaction_log(doctype, document, data):
-
 	transaction_log = frappe.get_doc({
 		"doctype": "TransactionLog",
 		"reference_doctype": doctype,

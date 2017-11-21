@@ -3,14 +3,5 @@
 /* eslint-disable */
 
 frappe.query_reports["TransactionLog Report"] = {
-	"filters": [
-		{
-            'fieldname':'transaction_type',
-            'label': 'Transaction Type',
-            'fieldtype': 'Select',
-            'options': 'Full\nSales\nPayments',
-            'reqd':1
-		}
 
-	]
 };
