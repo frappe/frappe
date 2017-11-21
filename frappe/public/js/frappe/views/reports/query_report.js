@@ -328,7 +328,6 @@ frappe.views.QueryReport = Class.extend({
 						me.trigger_refresh();
 					}
 				}
-				df.ignore_link_validation = true;
 			}
 		});
 

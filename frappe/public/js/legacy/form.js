@@ -205,7 +205,8 @@ _f.Frm.prototype.watch_model_updates = function() {
 				&& me.fields_dict[fieldname].refresh(fieldname);
 
 			me.layout.refresh_dependency();
-			return me.script_manager.trigger(fieldname, doc.doctype, doc.name);
+			let object = me.script_manager.trigger(fieldname, doc.doctype, doc.name);
+			return object;
 		}
 	});
 

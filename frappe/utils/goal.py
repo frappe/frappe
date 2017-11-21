@@ -136,10 +136,10 @@ def get_monthly_goal_graph_data(title, doctype, docname, goal_value_field, goal_
 					'formatted': values_formatted
 				}
 			],
-			'labels': months
+			'labels': months,
+			'specific_values': specific_values,
 		},
 
-		'specific_values': specific_values,
 		'summary': summary_values
 	}
 
