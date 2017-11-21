@@ -7,6 +7,7 @@ from six import string_types
 import frappe
 import json
 from email.utils import formataddr
+from frappe.core.utils import get_parent_doc
 from frappe.utils import (get_url, get_formatted_email, cint,
 	validate_email_add, split_emails, time_diff_in_seconds, parse_addr)
 from frappe.utils.file_manager import get_file
@@ -175,7 +176,8 @@ def _notify(doc, print_html=None, print_format=None, attachments=None,
 
 def update_parent_mins_to_first_response(doc):
 	"""Update mins_to_first_communication of parent document based on who is replying."""
-	parent = doc.get_parent_doc()
+
+	parent = get_parent_doc(doc)
 	if not parent:
 		return
 
@@ -444,7 +446,7 @@ def filter_email_list(doc, email_list, exclude, is_cc=False, is_bcc=False):
 	return filtered
 
 def get_owner_email(doc):
-	owner = doc.get_parent_doc().owner
+	owner = get_parent_doc(doc).owner
 	return get_formatted_email(owner) or owner
 
 def get_assignees(doc):
@@ -463,7 +465,7 @@ def get_attach_link(doc, print_format):
 		"doctype": doc.reference_doctype,
 		"name": doc.reference_name,
 		"print_format": print_format,
-		"key": doc.get_parent_doc().get_signature()
+		"key": get_parent_doc(doc).get_signature()
 	})
 
 def sendmail(communication_name, print_html=None, print_format=None, attachments=None,
