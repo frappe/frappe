@@ -7,10 +7,10 @@
 // 		get_items
 //  	add_btn_label
 // 		remove_btn_label
-//		field_mapper: 
+//		field_mapper:
 //			cdt
 //			child_table_field
-//			item_field 		
+//			item_field
 // 		attribute
 
 frappe.CheckboxEditor = Class.extend({
@@ -20,7 +20,7 @@ frappe.CheckboxEditor = Class.extend({
 		this.doctype = this.field_mapper.cdt;
 		this.fieldname = this.field_mapper.child_table_field;
 		this.item_fieldname = this.field_mapper.item_field;
-		
+
 		$(this.wrapper).html('<div class="help">' + __("Loading") + '...</div>');
 
 		if(this.get_items) {
@@ -35,6 +35,7 @@ frappe.CheckboxEditor = Class.extend({
 			let toolbar = $('<p><button class="btn btn-default btn-add btn-sm" style="margin-right: 5px;"></button>\
 				<button class="btn btn-sm btn-default btn-remove"></button></p>').appendTo($(this.wrapper));
 
+			// Check All
 			toolbar.find(".btn-add")
 				.html(__(this.add_btn_label))
 				.on("click", function() {
@@ -45,6 +46,7 @@ frappe.CheckboxEditor = Class.extend({
 				});
 			});
 
+			// Uncheck All
 			toolbar.find(".btn-remove")
 				.html(__(this.remove_btn_label))
 				.on("click", function() {
