@@ -277,6 +277,7 @@ exports.buildCSSRule = buildCSSRule;
 exports.removeCSSRule = removeCSSRule;
 exports.copyTextToClipboard = copyTextToClipboard;
 exports.isNumeric = isNumeric;
+exports.throttle = throttle;
 function camelCaseToDash(str) {
   return str.replace(/([A-Z])/g, function (g) {
     return '-' + g[0].toLowerCase();
@@ -432,6 +433,41 @@ function copyTextToClipboard(text) {
 function isNumeric(val) {
   return !isNaN(val);
 }
+
+// https://stackoverflow.com/a/27078401
+function throttle(func, wait, options) {
+  var context, args, result;
+  var timeout = null;
+  var previous = 0;
+  if (!options) options = {};
+
+  var later = function later() {
+    previous = options.leading === false ? 0 : Date.now();
+    timeout = null;
+    result = func.apply(context, args);
+    if (!timeout) context = args = null;
+  };
+
+  return function () {
+    var now = Date.now();
+    if (!previous && options.leading === false) previous = now;
+    var remaining = wait - (now - previous);
+    context = this;
+    args = arguments;
+    if (remaining <= 0 || remaining > wait) {
+      if (timeout) {
+        clearTimeout(timeout);
+        timeout = null;
+      }
+      previous = now;
+      result = func.apply(context, args);
+      if (!timeout) context = args = null;
+    } else if (!timeout && options.trailing !== false) {
+      timeout = setTimeout(later, remaining);
+    }
+    return result;
+  };
+};
 
 /***/ }),
 /* 2 */
@@ -663,10 +699,12 @@ var CellManager = function () {
         mouseDown = false;
       });
 
-      _dom2.default.on(this.bodyScrollable, 'mousemove', '.data-table-col', function (e) {
+      var selectArea = function selectArea(e) {
         if (!mouseDown) return;
         _this5.selectArea((0, _dom2.default)(e.delegatedTarget));
-      });
+      };
+
+      _dom2.default.on(this.bodyScrollable, 'mousemove', '.data-table-col', (0, _utils.throttle)(selectArea, 100));
     }
   }, {
     key: 'focusCell',
@@ -680,16 +718,16 @@ var CellManager = function () {
       // don't focus if already editing cell
       if ($cell === this.$editingCell) return;
 
-      // don't focus checkbox cell
-      if (this.options.addCheckboxColumn && colIndex === 0) {
-        return;
-      }
-
       var _$$data3 = _dom2.default.data($cell),
           colIndex = _$$data3.colIndex,
           isHeader = _$$data3.isHeader;
 
-      if (this.isStandardCell(colIndex) || isHeader) {
+      if (isHeader) {
+        return;
+      }
+
+      var column = this.columnmanager.getColumn(colIndex);
+      if (column.focusable === false) {
         return;
       }
 
@@ -882,7 +920,7 @@ var CellManager = function () {
           rowIndex = _$$data7.rowIndex,
           colIndex = _$$data7.colIndex;
 
-      var col = this.instance.columnmanager.getColumn(colIndex);
+      var col = this.columnmanager.getColumn(colIndex);
 
       if (col && col.editable === false) {
         return;
@@ -1533,6 +1571,12 @@ var DataTable = function () {
       this.render();
     }
   }, {
+    key: 'destroy',
+    value: function destroy() {
+      this.wrapper.innerHTML = '';
+      this.style.destroy();
+    }
+  }, {
     key: 'appendRows',
     value: function appendRows(rows) {
       this.datamanager.appendRows(rows);
@@ -1693,6 +1737,11 @@ var DataTable = function () {
       return this.viewportHeight;
     }
   }, {
+    key: 'scrollToLastColumn',
+    value: function scrollToLastColumn() {
+      this.datatableWrapper.scrollLeft = 9999;
+    }
+  }, {
     key: 'log',
     value: function log() {
       if (this.options.enableLogs) {
@@ -1769,7 +1818,8 @@ var DataManager = function () {
           content: 'Sr. No',
           editable: false,
           resizable: false,
-          align: 'center'
+          align: 'center',
+          focusable: false
         };
 
         columns = [val].concat(columns);
@@ -1781,7 +1831,8 @@ var DataManager = function () {
           content: '<input type="checkbox" />',
           editable: false,
           resizable: false,
-          sortable: false
+          sortable: false,
+          focusable: false
         };
 
         columns = [_val].concat(columns);
@@ -2296,6 +2347,19 @@ var ColumnManager = function () {
       _dom2.default.style(this.header, {
         margin: 0
       });
+
+      // don't show resize cursor on nonResizable columns
+      var nonResizableColumnsSelector = this.datamanager.getColumns().filter(function (col) {
+        return col.resizable !== undefined && !col.resizable;
+      }).map(function (col) {
+        return col.colIndex;
+      }).map(function (i) {
+        return '.data-table-header [data-col-index="' + i + '"]';
+      }).join();
+
+      this.style.setStyle(nonResizableColumnsSelector, {
+        cursor: 'pointer'
+      });
     }
   }, {
     key: 'setupMinWidth',
@@ -2355,9 +2419,13 @@ var ColumnManager = function () {
         return;
       }
 
-      var deltaWidth = (wrapperWidth - headerWidth) / this.datamanager.getColumnCount(true);
+      var resizableColumns = this.datamanager.getColumns().filter(function (col) {
+        return col.resizable === undefined || col.resizable;
+      });
 
-      this.datamanager.getColumns(true).map(function (col) {
+      var deltaWidth = (wrapperWidth - headerWidth) / resizableColumns.length;
+
+      resizableColumns.map(function (col) {
         var width = _dom2.default.style(_this5.getColumnHeaderElement(col.colIndex), 'width');
         var finalWidth = Math.min(width + deltaWidth) - 2;
 
@@ -2502,10 +2570,16 @@ var Style = function () {
     var styleEl = document.createElement('style');
 
     document.head.appendChild(styleEl);
+    this.styleEl = styleEl;
     this.styleSheet = styleEl.sheet;
   }
 
   _createClass(Style, [{
+    key: 'destroy',
+    value: function destroy() {
+      document.head.removeChild(this.styleEl);
+    }
+  }, {
     key: 'setStyle',
     value: function setStyle(rule, styleMap) {
       var index = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : -1;

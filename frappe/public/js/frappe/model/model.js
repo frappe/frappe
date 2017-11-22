@@ -573,6 +573,11 @@ $.extend(frappe.model, {
 		}
 		return all;
 	},
+
+	get_full_column_name: function(fieldname, doctype) {
+		if (fieldname.includes('`tab')) return fieldname;
+		return '`tab' + doctype + '`.`' + fieldname + '`';
+	}
 });
 
 // legacy
