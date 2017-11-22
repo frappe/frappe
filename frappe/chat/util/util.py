@@ -2,10 +2,10 @@
 import six
 
 # imports - standard imports
-import collections
-try:
+from   collections import MutableSequence, Mapping, MutableMapping
+if six.PY2:
 	from urlparse import urlparse 	  # PY2
-except ImportError:
+else:
 	from urllib.parse import urlparse # PY3
 import json
 
@@ -27,7 +27,7 @@ def get_user_doc(user = None):
 	return user
 
 def squashify(what):
-	if isinstance(what, collections.MutableSequence) and len(what) == 1:
+	if isinstance(what, MutableSequence) and len(what) == 1:
 		return what[0]
 
 	return what
@@ -40,9 +40,23 @@ def safe_json_loads(*args):
 			arg = json.loads(arg)
 		except Exception as e:
 			pass
+			
 		results.append(arg)
 	
 	return squashify(results)
+
+def filter_dict(what, keys, ignore = False):
+	copy = dict()
+
+	for k in keys:
+		if k not in what and not ignore:
+			raise KeyError('{key} not in dict.'.format(key = k))
+		else:
+			copy.update({
+				k: what[k]
+			})
+
+	return copy
 
 def check_url(what, raise_err = False):
 	if not urlparse(what).scheme:
@@ -70,10 +84,10 @@ def create_test_user(module):
 		frappe.log('Test User Chat Profile exists.')
 
 def _dictify(arg):
-	if isinstance(arg, collections.MutableSequence):
+	if isinstance(arg, MutableSequence):
 		for i, a in enumerate(arg):
 			arg[i] = _dictify(a)
-	elif isinstance(arg, collections.MutableMapping):
+	elif isinstance(arg, MutableMapping):
 		arg = _dict(arg)
 
 	return arg

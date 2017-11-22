@@ -37,7 +37,7 @@ io.on('connection', function(socket) {
 		return;
 	}
 
-	// console.log("connection!");
+	console.log("connection!");
 	if (!socket.request.headers.cookie) {
 		return;
 	}
@@ -59,12 +59,27 @@ io.on('connection', function(socket) {
 	socket.user = cookie.parse(socket.request.headers.cookie).user_id;
 	socket.files = {};
 
-	// console.log("firing get_user_info");
-	subscribe_rooms(socket, sid)
+	console.log("firing get_user_info");
+	request.get(get_url(socket, '/api/method/frappe.async.get_user_info'))
+		.type('form')
+		.query({
+			sid: sid
+		})
+		.end(function(err, res) {
+			if(err) {
+				console.log(err);
+				return;
+			}
+			if(res.status == 200) {
+				var room = get_user_room(socket, res.body.message.user);
+				console.log('joining', room);
+				socket.join(room);
+				socket.join(get_site_room(socket));
+			}
+		});
 
 	// frappe.chat
 	socket.on("frappe.chat:subscribe", function (rooms) {
-		// console.log('frappe.chat: Rooms to publish in ' + JSON.stringify(rooms))
 		for (var room of rooms) {
 			console.log('frappe.chat: Subscribing ' + socket.user + ' to room ' + room.name)
 			room = get_site_name(socket) + ":room:" + room.name
@@ -73,7 +88,7 @@ io.on('connection', function(socket) {
 		}
 	})
 	// end frappe.chat
-	
+
 	socket.on('disconnect', function() {
 		delete socket.files;
 	})
@@ -95,7 +110,7 @@ io.on('connection', function(socket) {
 	});
 
 	socket.on('doc_subscribe', function(doctype, docname) {
-		// console.log('trying to subscribe', doctype, docname)
+		console.log('trying to subscribe', doctype, docname)
 		can_subscribe_doc({
 			socket: socket,
 			sid: sid,
@@ -103,7 +118,7 @@ io.on('connection', function(socket) {
 			docname: docname,
 			callback: function(err, res) {
 				var room = get_doc_room(socket, doctype, docname);
-				// console.log('joining', room)
+				console.log('joining', room)
 				socket.join(room);
 			}
 		});
@@ -128,7 +143,7 @@ io.on('connection', function(socket) {
 			docname: docname,
 			callback: function(err, res) {
 				var room = get_open_doc_room(socket, doctype, docname);
-				// console.log('joining', room)
+				console.log('joining', room)
 				socket.join(room);
 
 				send_viewers({
@@ -196,7 +211,7 @@ io.on('connection', function(socket) {
 subscriber.on("message", function(channel, message) {
 	message = JSON.parse(message);
 	io.to(message.room).emit(message.event, message.message);
-	// console.log(message.room, message.event, message.message)
+	console.log(message.room, message.event, message.message)
 });
 
 subscriber.subscribe("events");
@@ -213,20 +228,6 @@ function send_existing_lines(task_id, socket) {
 	});
 }
 
-function subscribe_rooms (socket) {
-	const url = get_url(socket, '/api/method/frappe.async.get_user_info')
-	request.get(url).type('form')
-	.end(function (err, response) {
-		if ( err ) {
-			console.log(err);
-		} else if ( response.status === 200 ) {
-
-			socket.join(get_user_room(socket, response.body.message.user));
-			socket.join(get_site_room(socket))
-		}
-	});
-}
-
 function get_doc_room(socket, doctype, docname) {
 	return get_site_name(socket) + ':doc:'+ doctype + '/' + docname;
 }
@@ -237,10 +238,6 @@ function get_open_doc_room(socket, doctype, docname) {
 
 function get_user_room(socket, user) {
 	return get_site_name(socket) + ':user:' + user;
-}
-
-function get_other_room(socket, room) {
-	return get_site_name(socket) + ':room:' + room;
 }
 
 function get_site_room(socket) {
@@ -375,5 +372,3 @@ function get_conf() {
 
 	return conf;
 }
-
-

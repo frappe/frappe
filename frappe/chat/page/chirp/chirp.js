@@ -13,6 +13,7 @@ frappe.fuzzy_search = (query, dataset, options) => {
           maxPatternLength: 32
     }
     options       = Object.assign({ }, DEFAULT, options)
+    
     const fuse    = new Fuse(dataset, options)
     const result  = fuse.search(query)
 
@@ -44,7 +45,7 @@ frappe.copy_array = (array) => {
     return copied
 }
 
-frappe.components           = { }
+frappe.components = { }
 frappe.components.Indicator
 =
 class extends Component {
@@ -55,16 +56,17 @@ class extends Component {
     }
 }
 
+// corresponding LESS - avatar.less
 frappe.components.Avatar
 =
 class extends Component {
     render ( ) {
         const { props } = this
-        const abbr      = props.abbr || props.title.substr(0, 1)
-        const size      = props.size === "small" ? "avatar-small" : "";
+        const abbr = props.abbr || props.title.substr(0, 1)
+        const size = props.size === "small" ? "avatar-small" : "";
 
         return (
-            h("span", { class: `avatar ${size}` }, // do something about the size. lol, did.
+            h("span", { class: `avatar ${size}` },
                 props.image ?
                     h("img", { class: "media-object", src: props.image })
                     :
@@ -84,11 +86,13 @@ class extends Component {
         return (
             h("div", { class: "dropdown" },
                 h("button", { class: "btn btn-sm btn-default btn-block dropdown-toggle", "data-toggle": "dropdown" },
-                    selected ?
-                        h(frappe.components.Indicator, { color: selected.color }) : null, selected ? selected.label : null
+                    selected.color ?
+                        h(frappe.components.Indicator, { color: selected.color }) : null,
+                    selected.label ?
+                        selected.label : null
                 ),
                 h("ul", { class: "dropdown-menu" },
-                    props.options.map(o => h(frappe.components.Select.Option, {...o, click: props.click }))
+                    props.options.map(o => h(frappe.components.Select.Option, { ...o, click: props.click }))
                 )
             )
         )
@@ -126,7 +130,7 @@ class extends Component {
 
         this.update_room      = this.update_room.bind(this)
 
-        this.state = frappe.Chat.defaultState
+        this.state            = frappe.Chat.defaultState
 
         this.make()
         this.bind()
@@ -134,19 +138,16 @@ class extends Component {
 
     make ( ) {
         frappe.Chat.Action.create_chat_profile(["status"], profile => {
-            this.setState({
-                profile: profile
-            })
+            this.setState({ profile })
 
             frappe.Chat.Action.get_user_room(null, rooms => {
                 if ( !frappe.is_array(rooms) )
                     rooms = [rooms]
 
+                console.log(`Requesting to subscribe ${frappe.session.user} to rooms ${JSON.stringify(rooms)}`)
                 frappe.Chat.Action.subscribe_rooms(rooms)
 
-                this.setState({
-                    rooms: rooms
-                })
+                this.setState({ rooms })
             })
         })
     }
@@ -154,22 +155,19 @@ class extends Component {
     update_room (name, update) {
         // Update Room List
         const { state } = this
-        const rooms     = frappe.copy_array(state.rooms)
+        const rooms     = state.rooms.map(r => {
+            if ( r.name === name )
+                return Object.assign({ }, r, update)
+            return r
+        })
 
-        for (var i in rooms) {
-            if (rooms[i].name === name) {
-                // bingo!
-                rooms[i] = Object.assign({ }, rooms[i], update)
-            }
-        }
-
-        this.setState({ rooms: rooms })
+        this.setState({ rooms })
 
         // Update Room View
         if ( state.room.name === name ) {
             const room = Object.assign({ }, state.room, update)
 
-            this.setState({ room: room })
+            this.setState({ room })
         }
     }
 
@@ -177,16 +175,22 @@ class extends Component {
         frappe.realtime.on('frappe.chat:profile:update', (response) => {
             const { user, data } = response
 
-            if ( data.status && user != frappe.session.user ) {
-                const color = frappe.Chat.CHAT_PROFILE_STATUSES.find(s => s.name === data.status).color
-                const alert = `<span class="indicator ${color}"/> ${frappe.user.full_name(user)} is currently <b>${data.status}</b>`
-                frappe.show_alert(alert, 3)
+            if ( data.status ) {
+                if ( user === frappe.session.user ) {
+                    this.setState({
+                        profile: { ...this.state.profile, status: data.status }
+                    })
+                } else {
+                    const status = frappe.Chat.CHAT_PROFILE_STATUSES.find(s => s.name === data.status)
+                    const color  = status.color
+
+                    const alert  = `<span class="indicator ${color}"/> ${frappe.user.full_name(user)} is currently <b>${data.status}</b>`
+                    frappe.show_alert(alert, 3)
+                }
             }
         })
 
-        frappe.realtime.on('frappe.chat:room:update', (r) => {
-            this.update_room(r.name, r)
-        })
+        frappe.realtime.on('frappe.chat:room:update', r => this.update_room(r.name, r))
 
         frappe.realtime.on('frappe.chat:message:new', (r) => {
             const { state } = this
@@ -200,11 +204,7 @@ class extends Component {
     }
 
     on_change_status (status) {
-        frappe.Chat.Action.update_chat_profile({ status: status }, () =>
-            this.setState({
-                profile: { ...this.state.profile, status: status }
-            })
-        )
+        frappe.Chat.Action.update_chat_profile({ status: status })
     }
 
     on_select_room (name) {
@@ -223,7 +223,7 @@ class extends Component {
         
         return (
             h("div", { class: "frappe-chat" },
-                h("div", { class: "col-md-2  col-sm-3 layout-side-section" },
+                h("div", { class: "col-md-2 col-sm-3 layout-side-section" },
                     state.profile ?
                         h(frappe.Chat.AppBar, {
                                        status: state.profile.status,
@@ -246,22 +246,28 @@ frappe.Chat.defaultState = {
 }
 frappe.Chat.Action = { }
 frappe.Chat.Action.create_chat_profile
-= 
+=
 (fields, fn) =>
     frappe.call('frappe.chat.doctype.chat_profile.chat_profile.create',
-        { user: frappe.session.user, exist_ok: true, fields: fields },
+        { user: frappe.session.user, exists_ok: true, fields: fields },
             r => fn(r.message))
 frappe.Chat.Action.update_chat_profile
 = 
 (data, fn) =>
     frappe.call('frappe.chat.doctype.chat_profile.chat_profile.update',
         { user: frappe.session.user, data: data },
-            r => fn())
+            r => fn && fn())
+frappe.Chat.Action.create_room
+=
+(kind, owner, users, name) =>
+    frappe.call('frappe.chat.doctype.chat_room.chat_room.create',
+        { kind: kind, user: owner || frappe.session.user, users: users, name: name })
+
 frappe.Chat.Action.get_user_room
 =
 (names, fn) =>
     frappe.call('frappe.chat.doctype.chat_room.chat_room.get',
-        { user: frappe.session.user, room: names || null },
+        { user: frappe.session.user, room: names },
             r => fn(r.message))
 frappe.Chat.Action.get_room_history
 =
@@ -287,17 +293,71 @@ class extends Component {
         super (props)
 
         this.search_rooms = this.search_rooms.bind(this)
+
+        this.on_click_new_message = this.on_click_new_message.bind(this)
+        this.on_click_new_group   = this.on_click_new_group.bind(this)
+
         this.state        = frappe.Chat.AppBar.defaultState
     }
 
     search_rooms (query) {
         const props   = this.props
-        const dataset = props.rooms.map(r => r.room_name || frappe.user.full_name(frappe.squash(r.users)))
+        const dataset = props.rooms.map(r => {
+            if ( r.room_name )
+                return r.room_name
+            else
+                if ( r.owner === frappe.session.user )
+                    return frappe.user.full_name(frappe.squash(r.users))
+                else
+                    return frappe.user.full_name(r.owner)
+        })
         const results = frappe.fuzzy_search(query, dataset)
 
         const rooms   = results.map(i => props.rooms[i])
 
         return rooms
+    }
+
+    on_click_new_message ( ) {
+        const dialog = new frappe.ui.Dialog({
+              title: __(`New Message`),
+            animate: false,
+             fields: [
+                {   
+                        label: "Select User",
+                    fieldname: "user",
+                    fieldtype: "Link",
+                      options: "User",
+                         reqd: true,
+                      filters: { "name": ["!=", frappe.session.user] }
+                }
+             ],
+            primary_action_label: __(`Create`),
+            primary_action: ({ user }) => {
+                frappe.Chat.Action.create_room("Direct", frappe.session.user, user)
+            }
+        })
+        dialog.show()
+    }
+
+    on_click_new_group ( ) {
+        const dialog = new frappe.ui.Dialog({
+              title: __(`New Group`),
+            animate: false,
+             fields: [
+                {   
+                        label: "Select Users",
+                    fieldname: "user",
+                    fieldtype: "MultiSelect",
+                      options: [ ], // Hmm, how does this work?
+                }
+             ],
+            primary_action_label: __(`Create`),
+            primary_action: (data) => {
+                
+            }
+        })
+        dialog.show()
     }
 
     render ( ) {
@@ -307,13 +367,16 @@ class extends Component {
         return (
             h("div", { class: "frappe-chat__app-bar" },
                 h("div", { class: "frappe-chat__app-bar-account" },
-                    h(frappe.Chat.AppBar.Account, { status: props.status, on_change_status: props.on_change_status })
+                    h(frappe.Chat.AppBar.Account, {
+                                  status: props.status,
+                        on_change_status: props.on_change_status
+                    })
                 ),
                 h("div", { class: "frappe-chat__app-bar-search" },
                     h(frappe.Chat.AppBar.SearchBar, {
-                              on_query: query => this.setState({ query: query }),
-                        // on_new_message: props.on_new_message,
-                        //   on_new_group: props.on_new_group
+                                    on_query: query => this.setState({ query: query }),
+                        on_click_new_message: this.on_click_new_message,
+                        on_click_new_group:   this.on_click_new_group
                     })
                 ),
                 h("div", { class: "frappe-chat__app-bar-room-list" },
@@ -371,13 +434,10 @@ class extends Component {
     constructor (props) {
         super (props)
 
-        this.on_change      = this.on_change.bind(this)
-        this.on_submit      = this.on_submit.bind(this)
+        this.on_change = this.on_change.bind(this)
+        this.on_submit = this.on_submit.bind(this)
 
-        this.on_new_message = this.on_new_message.bind(this)
-        this.on_new_group   = this.on_new_group.bind(this)
-
-        this.state          = frappe.Chat.AppBar.SearchBar.defaultState
+        this.state     = frappe.Chat.AppBar.SearchBar.defaultState
     }
 
     on_change (e) {
@@ -394,16 +454,8 @@ class extends Component {
         this.props.on_submit(this.state)
     }
 
-    on_new_message ( ) {
-        
-    }
-
-    on_new_group ( ) {
-        
-    }
-
     render ( ) {
-        const { state } = this
+        const { props, state } = this
 
         return (
             h("form", { oninput: this.on_change, onsubmit: this.on_submit },
@@ -415,12 +467,12 @@ class extends Component {
                         ),
                         h("ul", { class: "dropdown-menu dropdown-menu-right" },
                             h("li", null,
-                                h("a", { onclick: this.on_new_message },
+                                h("a", { onclick: props.on_click_new_message },
                                     h("i", { class: "octicon octicon-comment" }), " New Message"
                                 )
                             ),
                             h("li", null,
-                                h("a", { onclick: this.on_new_group },
+                                h("a", { onclick: props.on_click_new_group },
                                     h("i", { class: "octicon octicon-organization" }), " New Group"
                                 )
                             )

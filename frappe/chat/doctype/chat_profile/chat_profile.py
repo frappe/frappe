@@ -8,20 +8,21 @@ from   frappe.chat.doctype.chat_room.chat_room import get_user_chat_rooms
 from   frappe.chat.util import (
     get_user_doc,
     safe_json_loads,
+    filter_dict,
     _dictify
 )
 
 session = frappe.session
 
-# TODOs
+# TODO
 # User
-# [ ] Deleting User should also delete its Chat Profile.
+# [ ] Deleting a User should also delete its Chat Profile.
 # [ ] Ensuring username is mandatory when User has been created.
 
 # Chat Profile
-# [x] Link Chat Profile DocType to User when User is created.
+# [x] Link Chat Profile DocType to User when User has been created.
 # [x] Once done, add a validator to check Chat Profile has been
-#     created only once. Should be done on `validate`.
+#     created only once.
 # [x] Users can view other Users Chat Profile, but not update the same.
 #     Not sure, but circular link would be helpful.
 
@@ -48,27 +49,21 @@ def get_user_chat_profile(user = None, fields = None):
 
     data = dict(
         name 	   = user.name,
-        username   = user.username,
+        email      = user.email,
         first_name = user.first_name,
         last_name  = user.last_name,
+        username   = user.username,
         avatar 	   = user.user_image,
         bio        = user.bio,
+
         status	   = prof.status,
         chat_bg    = prof.chat_background
     )
 
-    if fields:
-        copy = dict()
-        for field in fields:
-            if field not in data:
-                frappe.throw(_("No field {field} found in Chat Profile.".format(
-                    field = field
-                )))
-            else:
-                copy.update({
-                    field: data[field]
-                })
-        data = copy
+    try:
+        data = filter_dict(data, fields)
+    except KeyError as e:
+        frappe.throw(str(e))
 
     return data
 
@@ -80,25 +75,24 @@ def get_new_chat_profile_doc(user = None):
     return prof
 
 @frappe.whitelist()
-def create(user, exist_ok = False, fields = None):
-    exist  = safe_json_loads(exist_ok)
-    fields = safe_json_loads(fields)
+def create(user, exists_ok = False, fields = None):
+    exists, fields = safe_json_loads(exists_ok, fields)
+    user           = get_user_doc(user)
 
-    user   = get_user_doc(user)
-
-    if user.name != session.user:
-        frappe.throw(_("Sorry! You don't have permission to create {user}'s profile.".format(
-            user = user.name
+    # I know the two checks below seem redundant but I cannot seem
+    # to figure the workflow yet. Once I do, I'll have them removed.
+    if user.name  != session.user:
+        frappe.throw(_("Sorry! You don't have permission to create a profile for user {name}.".format(
+            name   = user.username
         )))
 
     if user.chat_profile:
-        if not exist_ok:
+        if not exists:
             frappe.throw(_("Sorry! You cannot create more than one Chat Profile."))
         
         prof = get_user_chat_profile(user, fields)
     else:
         prof = get_new_chat_profile_doc(user)
-
         user.update(dict(
             chat_profile = prof.name
         ))
@@ -124,8 +118,8 @@ def update(user, data):
     user  = get_user_doc(user)
 
     if user.name != session.user:
-        frappe.throw(_("Sorry! You don't have permission to update {user}'s profile.".format(
-            user = user.name
+        frappe.throw(_("Sorry! You don't have permission to update Chat Profile for user {name}.".format(
+            name  = user.username
         )))
 
     prof  = get_user_chat_profile_doc(user.name)

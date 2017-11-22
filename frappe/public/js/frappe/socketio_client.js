@@ -32,17 +32,6 @@ frappe.socketio = {
 			return;
 		}
 
-		// frappe.chat
-		// client ping the server
-		frappe.socketio.socket.on("frappe.chat", () => {
-			// pong
-			console.log(`frappe.chat: ${frappe.session.user} connected.`)
-			// subscribe
-			frappe.socketio.socket.emit("frappe.chat:subscribe", frappe.session.user)
-			console.log(`frappe.chat: ${frappe.session.user} emitted a subscribe request.`)
-		})
-		// end frappe.chat - for now
-
 		frappe.socketio.socket.on('msgprint', function(message) {
 			frappe.msgprint(message);
 		});
@@ -110,7 +99,6 @@ frappe.socketio = {
 			if (cur_frm.doc) {
 				frappe.socketio.doc_close(cur_frm.doctype, cur_frm.docname);
 			}
-
 		}
 	},
 	get_host: function() {
@@ -175,6 +163,7 @@ frappe.socketio = {
 		// notify that the user has closed this doc
 		frappe.socketio.socket.emit('doc_close', doctype, docname);
 	},
+
 	setup_listeners: function() {
 		frappe.socketio.socket.on('task_status_change', function(data) {
 			frappe.socketio.process_response(data, data.status.toLowerCase());
@@ -402,5 +391,4 @@ frappe.socketio.SocketIOUploader = class SocketIOUploader {
 			}
 		}
 	}
-
 }

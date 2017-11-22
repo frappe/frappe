@@ -25,12 +25,11 @@ session = frappe.session
 
 class ChatRoom(Document):
     def validate(self):
-        # TODO - Validation Kinds
-        # [x] Direct must have 2 users only.
-        # [x] Groups must have 1 or more users.
-        # [x] Ensure group name exists.
-        # [x] Check if the direct group between 2 users exists.
-        # [ ] Don't display # ChatRoom-Issue-1
+        # TODO - Validations
+        # [x] Direct/Visitor must have 2 users only.
+        # [x] Groups must have 1 (1 being ther session user) or more users.
+        # [x] Ensure group has a name.
+        # [x] Check if there is a one-to-one conversation between 2 users (if Direct/Visitor).
 
         # First, check if user isn't stupid by adding many users or himself/herself.
         # C'mon yo, you're the owner.
@@ -47,27 +46,29 @@ class ChatRoom(Document):
                     type = self.type
                 )))
             
-            # Check if room exists between these two users.
+            # squash to a single object if it's a list.
             other = squashify(users)
-            # I could add another parameter called "bidirectional = True" but man, who gives a damn?
-            # ChatRoom-Issue-1
+
+            # I don't know which idiot would make username not unique.
+            # Remember, this entire app assumes validation based on user's email.
+
             # Okay, this must go only during creation. But alas, on click "Save" it does the same.
-            if is_one_on_one(self.owner, other.user) or is_one_on_one(other.user, self.owner):
+            if is_one_on_one(self.owner, other.user, bidirectional = True):
                 frappe.throw(_('Direct room with {other} already exists.'.format(
                     other = other.user
                 )))
 
         if self.type == "Group" and not self.room_name:
             frappe.throw(_('Group name cannot be empty.'))
-
-    # This method isn't called explicit.
+    
+    # trigger from DocType
     def before_save(self):
         self.get_doc_before_save()
 
     def on_update(self):
         user   = session.user
         if self.owner != user:
-            frappe.throw(_("Sorry! You don't have permission to update this room."))
+            frappe.throw(_("Sorry! You don't enough permissions to update this room."))
 
         before = self.get_doc_before_save()
         after  = self
@@ -93,26 +94,37 @@ class ChatRoom(Document):
             frappe.publish_realtime('frappe.chat:room:update', update,
                 room = self.name, after_commit = True)
 
-def is_one_on_one(owner, other):
+def is_one_on_one(owner, other, bidirectional = True):
     '''
     checks if the owner and other have a direct conversation room.
     '''
-    room = frappe.get_list('Chat Room', filters = [
-        ['Chat Room', 	   'type' , 'in', ('Direct', 'Visitor')],
-        ['Chat Room', 	   'owner', '=' , owner],
-        ['Chat Room User', 'user' , '=' , other]
-    ], distinct = True)
+    def get_room(owner, other):
+        room = frappe.get_list('Chat Room', filters = [
+            ['Chat Room', 	   'type' , 'in', ('Direct', 'Visitor')],
+            ['Chat Room', 	   'owner', '=' , owner],
+            ['Chat Room User', 'user' , '=' , other]
+        ], distinct = True)
 
-    return len(room) == 1
+        return room
+
+    one_on_one = len(get_room(owner, other)) == 1
+    if one_on_one and bidirectional:
+        one_on_one = one_on_one and len(get_room(other, owner)) == 1
+        
+    return one_on_one
 
 def get_chat_room_user_set(users):
-    seen  = set()
-    news  = [ ]
+    '''
+    Returns a set of Chat Room Users
+
+    :param users: sequence of Chat Room Users
+    :return: set of Chat Room Users
+    '''
+    seen, news = set(), list()
 
     for u in users:
         if u.user not in seen:
             news.append(u)
-
             seen.add(u.user)
 
     return news
@@ -160,7 +172,10 @@ def get_user_chat_rooms(user = None, rooms = None, fields = None):
     return rooms
 
 @frappe.whitelist()
-def create(kind, owner = None, name = None, users = None):
+def create(kind, owner = None, users = None, name = None):
+    if owner != session.user:
+        frappe.throw(_("Sorry! You're not authorized to create a Chat Room."))
+
     room = get_new_chat_room(kind, owner, name, users)
 
 @frappe.whitelist()
