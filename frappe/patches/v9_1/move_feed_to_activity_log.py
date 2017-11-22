@@ -14,6 +14,13 @@ def execute():
 			activity_data = {'doctype': 'Activity Log'}
 			for field in activity_log_fields:
 				if communication_doc.get(field.fieldname):
+					if field.fieldname == "reference_name":
+						if not frappe.db.exists(communication_doc.get("reference_doctype"), communication_doc.get("reference_name")):
+							continue
+					if field.fieldname == "timeline_name":
+						if not frappe.db.exists(communication_doc.get("timeline_doctype"), communication_doc.get("timeline_name")):
+							continue
+
 					activity_data[field.fieldname] = communication_doc.get_value(field.fieldname)
 
 			activity_doc = frappe.get_doc(activity_data)
