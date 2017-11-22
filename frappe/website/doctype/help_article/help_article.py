@@ -41,7 +41,7 @@ class HelpArticle(WebsiteGenerator):
 		context.parents = self.get_parents(context)
 
 	def get_parents(self, context):
-		return [{"title": context.category.category_name, "name":context.category.route}]
+		return [{"title": context.category.category_name, "route":context.category.route}]
 
 def get_list_context(context=None):
 	filters = dict(published=1)

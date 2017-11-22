@@ -197,9 +197,11 @@ def check_if_doc_is_linked(doc, method="Delete"):
 					# raise exception only if
 					# linked to an non-cancelled doc when deleting
 					# or linked to a submitted doc when cancelling
-					frappe.throw(_('Cannot delete or cancel because {0} <a href="#Form/{0}/{1}">{1}</a> is linked with {2} <a href="#Form/{2}/{3}">{3}</a>')
-						.format(doc.doctype, doc.name, linked_doctype,
-						item.parent or item.name), frappe.LinkExistsError)
+					reference_docname = item.parent or item.name
+					raise_link_exists_exception(doc, linked_doctype, reference_docname)
+		else:
+			if frappe.db.get_value(link_dt, None, link_field) == doc.name:
+				raise_link_exists_exception(doc, link_dt, link_dt)
 
 def check_if_doc_is_dynamically_linked(doc, method="Delete"):
 	'''Raise `frappe.LinkExistsError` if the document is dynamically linked'''
@@ -220,8 +222,7 @@ def check_if_doc_is_dynamically_linked(doc, method="Delete"):
 				# raise exception only if
 				# linked to an non-cancelled doc when deleting
 				# or linked to a submitted doc when cancelling
-				frappe.throw(_('Cannot delete or cancel because {0} <a href="#Form/{0}/{1}">{1}</a> is linked with {2} <a href="#Form/{2}/{3}">{3}</a>').format(doc.doctype,
-					doc.name, df.parent, ""), frappe.LinkExistsError)
+				raise_link_exists_exception(doc, df.parent, df.parent)
 		else:
 			# dynamic link in table
 			df["table"] = ", parent, parenttype, idx" if meta.istable else ""
@@ -232,9 +233,23 @@ def check_if_doc_is_dynamically_linked(doc, method="Delete"):
 					# raise exception only if
 					# linked to an non-cancelled doc when deleting
 					# or linked to a submitted doc when cancelling
-					frappe.throw(_('Cannot delete or cancel because {0} <a href="#Form/{0}/{1}">{1}</a> is linked with {2} <a href="#Form/{2}/{3}">{3}</a> {4}')\
-						.format(doc.doctype, doc.name, refdoc.parenttype if meta.istable else df.parent,
-					    refdoc.parent if meta.istable else refdoc.name,"Row: {0}".format(refdoc.idx) if meta.istable else ""), frappe.LinkExistsError)
+
+					reference_doctype = refdoc.parenttype if meta.istable else df.parent
+					reference_docname = refdoc.parent if meta.istable else refdoc.name
+					at_position = "at Row: {0}".format(refdoc.idx) if meta.istable else ""
+
+					raise_link_exists_exception(doc, reference_doctype, reference_docname, at_position)
+
+def raise_link_exists_exception(doc, reference_doctype, reference_docname, row=''):
+	doc_link = '<a href="#Form/{0}/{1}">{1}</a>'.format(doc.doctype, doc.name)
+	reference_link = '<a href="#Form/{0}/{1}">{1}</a>'.format(reference_doctype, reference_docname)
+
+	#hack to display Single doctype only once in message
+	if reference_doctype == reference_docname:
+		reference_doctype = ''
+
+	frappe.throw(_('Cannot delete or cancel because {0} {1} is linked with {2} {3} {4}')
+		.format(doc.doctype, doc_link, reference_doctype, reference_link, row), frappe.LinkExistsError)
 
 def delete_dynamic_links(doctype, name):
 	delete_doc("ToDo", frappe.db.sql_list("""select name from `tabToDo`
