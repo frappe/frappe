@@ -11,9 +11,9 @@ frappe.ui.FilterList = Class.extend({
 		this.set_events();
 	},
 	make: function() {
-		this.wrapper.find('.show_filters, .filter_area').remove();
+		this.wrapper.find('.show-filters, .filter-area').remove();
 		this.wrapper.append(`
-			<div class="show_filters">
+			<div class="show-filters">
 				<div class="set-filters">
 					<button
 						style="margin-right: 10px;"
@@ -21,7 +21,7 @@ frappe.ui.FilterList = Class.extend({
 						${__("Add Filter")}</button>
 				</div>
 			</div>
-			<div class="filter_area"></div>`);
+			<div class="filter-area"></div>`);
 	},
 	set_events: function() {
 		var me = this;
@@ -39,7 +39,7 @@ frappe.ui.FilterList = Class.extend({
 	},
 
 	show_filters: function() {
-		this.wrapper.find('.show_filters').toggle();
+		this.wrapper.find('.show-filters').toggle();
 		if(!this.filters.length) {
 			this.add_filter(this.doctype, 'name');
 			this.filters[0].wrapper.find(".filter_field input").focus();
@@ -81,7 +81,7 @@ frappe.ui.FilterList = Class.extend({
 			return false;
 		}
 
-		this.wrapper.find('.show_filters').toggle(true);
+		this.wrapper.find('.show-filters').toggle(true);
 		var is_new_filter = arguments.length===0;
 
 		if (is_new_filter && this.wrapper.find(".is-new-filter:visible").length) {
@@ -169,7 +169,6 @@ frappe.ui.FilterList = Class.extend({
 				values.push(filter.get_value());
 			}
 		});
-		this.base_list.update_standard_filters(values);
 
 		return values;
 	},
@@ -218,7 +217,7 @@ frappe.ui.Filter = Class.extend({
 	},
 	make: function() {
 		this.wrapper = $(frappe.render_template("edit_filter", {}))
-			.appendTo(this.flist.wrapper.find('.filter_area'));
+			.appendTo(this.flist.wrapper.find('.filter-area'));
 	},
 	make_select: function() {
 		var me = this;
@@ -499,7 +498,7 @@ frappe.ui.Filter = Class.extend({
 		});
 
 		this.$btn_group.find(".toggle-filter").on("click", function() {
-			$(this).closest('.show_filters').find('.filter_area').show()
+			$(this).closest('.show-filters').find('.filter-area').show()
 			me.wrapper.toggle();
 		})
 		this.wrapper.toggle(false);

@@ -111,6 +111,7 @@
 		"public/css/font-awesome.css",
 		"public/css/octicons/octicons.css",
 		"public/css/desk.css",
+		"public/css/flex.css",
 		"public/css/indicator.css",
 		"public/css/avatar.css",
 		"public/css/navbar.css",

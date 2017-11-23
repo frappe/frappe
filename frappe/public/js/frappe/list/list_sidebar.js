@@ -17,7 +17,7 @@ frappe.views.ListSidebar = Class.extend({
 		this.cat_tags = [];
 	},
 	make: function() {
-		var sidebar_content = frappe.render_template("list_sidebar", {doctype: this.list_view.doctype});
+		var sidebar_content = frappe.render_template("list_sidebar", {doctype: this.doctype});
 
 		this.sidebar = $('<div class="list-sidebar overlay-sidebar hidden-xs hidden-sm"></div>')
 			.html(sidebar_content)
@@ -116,8 +116,8 @@ frappe.views.ListSidebar = Class.extend({
 		}
 
 		// from reference doctype
-		if(this.list_view.list_renderer.settings.reports) {
-			add_reports(this.list_view.list_renderer.settings.reports)
+		if(this.list_view.settings.reports) {
+			add_reports(this.list_view.settings.reports)
 		}
 
 		// from specially tagged reports
@@ -386,7 +386,7 @@ frappe.views.ListSidebar = Class.extend({
 			args: {
 				stats: me.stats,
 				doctype: me.doctype,
-				filters:me.default_filters
+				filters: me.default_filters
 			},
 			callback: function(r) {
 				me.defined_category = r.message;
@@ -414,7 +414,6 @@ frappe.views.ListSidebar = Class.extend({
 					//render normal stats
 					me.render_stat("_user_tags", (r.message.stats|| {})["_user_tags"]);
 				}
-				me.list_view.set_sidebar_height();
 			}
 		});
 	},

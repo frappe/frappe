@@ -34,7 +34,7 @@ frappe.listview_settings['File'] = {
 		}
 	},
 	onload: function(doclist) {
-		doclist.filter_area = doclist.wrapper.find(".show_filters");
+		doclist.filter_area = doclist.wrapper.find(".show-filters");
 
 		doclist.breadcrumb = $('<ol class="breadcrumb for-file-list"></ol>')
 			.insertBefore(doclist.filter_area);

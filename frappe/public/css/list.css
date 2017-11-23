@@ -8,15 +8,15 @@
 .sort-selector .dropdown:hover {
   text-decoration: underline;
 }
-.list-filters {
+.filter-list {
   position: relative;
 }
-.list-filters .sort-selector {
+.filter-list .sort-selector {
   position: absolute;
   top: 15px;
   right: 15px;
 }
-.show_filters {
+.show-filters {
   padding: 15px 15px 0px;
   border-bottom: 1px solid #d1d8dd;
 }
