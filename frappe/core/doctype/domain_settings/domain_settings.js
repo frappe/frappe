@@ -3,59 +3,45 @@
 
 frappe.ui.form.on('Domain Settings', {
 	onload: function(frm) {
-
-
-		// let domains = $('<div class="domain-editor">')
-		// 	.appendTo(frm.fields_dict.domains_html.wrapper);
-
-		// if(!frm.domain_editor) {
-		// 	frm.domain_editor = new frappe.DomainsEditor(domains, frm);
-		// }
-
-		// frm.domain_editor.show();
+		frm.fields_dict.domains.get_data = () => {
+			return frappe.boot.all_domains;
+		};
+		frm.fields_dict.domains.refresh_input_area();
 	},
 
 	validate: function(frm) {
-		// if(frm.domain_editor) {
-		// 	frm.domain_editor.set_items_in_table();
-		// }
+		frm.trigger('set_options_in_table');
 	},
-});
 
-frappe.DomainsEditor = frappe.CheckboxEditor.extend({
-	init: function(wrapper, frm) {
-		var opts = {};
-		$.extend(opts, {
-			wrapper: wrapper,
-			frm: frm,
-			field_mapper: {
-				child_table_field: "active_domains",
-				item_field: "domain",
-				cdt: "Has Domain"
-			},
-			attribute: 'data-domain',
-			checkbox_selector: true,
-			get_items: this.get_all_domains,
-			editor_template: this.get_template()
+	set_options_in_table: function(frm) {
+		let selected_options = frm.fields_dict.domains.selected_options;
+		let unselected_options = frm.fields_dict.domains.options.filter(option => {
+			return !selected_options.includes(option);
 		});
 
-		this._super(opts);
-	},
+		let existing_options_map = {};
+		let existing_options_list = [];
+		(frm.doc.active_domains || []).map(row => {
+			existing_options_map[row.domain] = row.name;
+			existing_options_list.push(row.domain);
+		});
 
-	get_template: function() {
-		return `
-			<div class="checkbox" data-domain="{{item}}">
-				<label>
-				<input type="checkbox">
-				<span class="label-area small">{{ __(item) }}</span>
-				</label>
-			</div>
-		`;
-	},
+		// remove unchecked options
+		unselected_options.map(option => {
+			if(existing_options_list.includes(option)) {
+				frappe.model.clear_doc("Has Domain", existing_options_map[option]);
+			}
+		});
 
-	get_all_domains: function() {
-		// return all the domains available in the system
-		this.items = frappe.boot.all_domains;
-		this.render_items();
-	},
+		// add new options that are checked
+		selected_options.map(option => {
+			if(!existing_options_list.includes(option)) {
+				frappe.model.clear_doc("Has Domain", existing_options_map[option]);
+				let row = frappe.model.add_child(frm.doc, "Has Domain", "active_domains");
+				row.domain = option;
+			}
+		});
+
+		refresh_field('active_domains');
+	}
 });
