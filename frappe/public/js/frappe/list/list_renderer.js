@@ -239,8 +239,8 @@ frappe.views.ListRenderer = Class.extend({
 		// Remove color field
 		this.columns = this.columns.filter(col => col.fieldtype !== 'Color');
 
-		// Limit number of columns to 6
-		this.columns = this.columns.slice(0, 6);
+		// Limit number of columns to 7
+		this.columns = this.columns.slice(0, 7);
 	},
 	add_column: function (df) {
 		// field width
