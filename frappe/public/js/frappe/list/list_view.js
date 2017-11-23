@@ -116,6 +116,7 @@ frappe.views.is_valid = view_mode => frappe.views.view_modes.includes(view_mode)
 frappe.views.ListView = frappe.ui.BaseList.extend({
 	init: function (opts) {
 		$.extend(this, opts);
+		console.log(opts);
 
 		if (!frappe.boot.user.all_read.includes(this.doctype)) {
 			frappe.show_not_permitted(frappe.get_route_str());

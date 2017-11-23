@@ -33,6 +33,7 @@ frappe.provide('frappe.ui');
 
 frappe.ui.BaseList = Class.extend({
 	init: function (opts) {
+		console.log(opts);
 		this.opts = opts || {};
 		this.set_defaults();
 		if (opts) {

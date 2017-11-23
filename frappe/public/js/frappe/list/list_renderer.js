@@ -17,6 +17,8 @@ frappe.views.ListRenderer = Class.extend({
 		this.set_fields();
 		this.set_columns();
 		this.setup_cache();
+
+		cur_listrenderer = this;
 	},
 	set_defaults: function () {
 		var me = this;
@@ -55,6 +57,10 @@ frappe.views.ListRenderer = Class.extend({
 		this.order_by = this.user_settings.order_by || this.settings.order_by;
 		this.filters = this.user_settings.filters || this.settings.filters;
 		this.page_length = this.settings.page_length;
+
+		// debugger;
+		console.log(this.filters)
+
 
 		// default filter for submittable doctype
 		if(frappe.model.is_submittable(this.doctype) && (!this.filters || !this.filters.length)) {
