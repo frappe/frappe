@@ -294,6 +294,8 @@ class DocType(Document):
 		`doctype` property for Single type."""
 		if self.issingle:
 			frappe.db.sql("""update tabSingles set doctype=%s where doctype=%s""", (new, old))
+			frappe.db.sql("""update tabSingles set value=%s
+				where doctype=%s and field='name' and value = %s""", (new, new, old))
 		else:
 			frappe.db.sql("rename table `tab%s` to `tab%s`" % (old, new))
 
