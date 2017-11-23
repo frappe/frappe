@@ -1,6 +1,7 @@
 frappe.ui.form.ControlMultiCheck = frappe.ui.form.ControlData.extend({
 	// UI: multiple checkboxes
-	// Value: comma-separated string of options
+	// Value: Comma-separated string of values
+	// Options: Array of label/value option objects
 
 	make_input() {
 		this._super();
@@ -42,23 +43,29 @@ frappe.ui.form.ControlMultiCheck = frappe.ui.form.ControlData.extend({
 
 	refresh_input() {
 		this._super();
-		this.selected_options = this.split(this.value);
-		this.options.forEach(option => {
+		this.selected_options = this.split(this.value || "");
+		this.options.map(option => option.value).forEach(value => {
 			$(this.input_area)
-				.find(`:checkbox[${this.check_field_attr}=${option}]`)
-				.prop("checked", this.selected_options.includes(option));
+				.find(`:checkbox[${this.check_field_attr}=${value}]`)
+				.prop("checked", this.selected_options.includes(value));
 		});
 	},
 
 	parse_df_options() {
-		if(frappe.utils.is_json_string(this.df.options)) {
+		if(Array.isArray(this.df.options)) {
+			this.options = this.df.options;
+		} else if(this.df.options.length>0 && frappe.utils.is_json_string(this.df.options)) {
 			let args = JSON.parse(this.df.options);
-			this.options = this.split(args.options || "");
-			if(args.select_all) {
-				this.select_all = true;
+			if(Array.isArray(args)) {
+				this.options = args;
+			} else {
+				if(args.select_all) {
+					this.select_all = true;
+				}
+				this.options = this.split(args.options || []);
 			}
 		} else {
-			this.options = this.split(this.df.options);
+			this.options = [];
 		}
 	},
 
@@ -102,10 +109,10 @@ frappe.ui.form.ControlMultiCheck = frappe.ui.form.ControlData.extend({
 
 	get_checkbox_element(option) {
 		return $(`
-			<div class="checkbox">
+			<div class="checkbox unit-checkbox" style="color: #36414c;">
 				<label>
-				<input type="checkbox" ${this.check_field_attr}="${option}"></input>
-				<span class="label-area small">${option}</span>
+				<input type="checkbox" ${this.check_field_attr}="${option.value}"></input>
+				<span class="label-area small">${__(option.label)}</span>
 				</label>
 			</div>
 		`);

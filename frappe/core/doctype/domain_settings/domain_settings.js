@@ -4,7 +4,9 @@
 frappe.ui.form.on('Domain Settings', {
 	onload: function(frm) {
 		frm.fields_dict.domains.get_data = () => {
-			return frappe.boot.all_domains;
+			return frappe.boot.all_domains.map(domain => {
+				return { label: domain, value: domain }
+			});
 		};
 		frm.fields_dict.domains.refresh_input_area();
 	},
@@ -19,24 +21,21 @@ frappe.ui.form.on('Domain Settings', {
 			return !selected_options.includes(option);
 		});
 
-		let existing_options_map = {};
-		let existing_options_list = [];
+		let map = {}, list = [];
 		(frm.doc.active_domains || []).map(row => {
-			existing_options_map[row.domain] = row.name;
-			existing_options_list.push(row.domain);
+			map[row.domain] = row.name;
+			list.push(row.domain);
 		});
 
-		// remove unchecked options
 		unselected_options.map(option => {
-			if(existing_options_list.includes(option)) {
-				frappe.model.clear_doc("Has Domain", existing_options_map[option]);
+			if(list.includes(option)) {
+				frappe.model.clear_doc("Has Domain", map[option]);
 			}
 		});
 
-		// add new options that are checked
 		selected_options.map(option => {
-			if(!existing_options_list.includes(option)) {
-				frappe.model.clear_doc("Has Domain", existing_options_map[option]);
+			if(!list.includes(option)) {
+				frappe.model.clear_doc("Has Domain", map[option]);
 				let row = frappe.model.add_child(frm.doc, "Has Domain", "active_domains");
 				row.domain = option;
 			}
