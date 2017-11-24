@@ -5,7 +5,7 @@ frappe.ui.form.on('Domain Settings', {
 	onload: function(frm) {
 		frm.fields_dict.domains.get_data = () => {
 			return frappe.boot.all_domains.map(domain => {
-				return { label: domain, value: domain }
+				return { label: domain, value: domain };
 			});
 		};
 		frm.fields_dict.domains.refresh_input_area();

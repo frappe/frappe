@@ -31,7 +31,7 @@ frappe.ui.form.ControlMultiCheck = frappe.ui.form.ControlData.extend({
 				this.get_data().then(results => {
 					this.options = results;
 					this.make_checkboxes();
-				})
+				});
 			} else {
 				this.options = this.get_data();
 				this.make_checkboxes();
@@ -98,7 +98,7 @@ frappe.ui.form.ControlMultiCheck = frappe.ui.form.ControlData.extend({
 		this.$select_buttons.show();
 		let select_all = (deselect=false) => {
 			$(this.input_area).find(`:checkbox`).prop("checked", deselect).trigger('click');
-		}
+		};
 		this.$select_buttons.find('.select-all').on('click', () => {
 			select_all();
 		});
