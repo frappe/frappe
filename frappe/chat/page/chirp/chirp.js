@@ -144,9 +144,15 @@ frappe.chat = { }
 frappe.chat.create_chat_profile
 =
 (fields, fn) =>
+{
+    if ( typeof fields === 'string' )
+        fields = [fields]
+    
     frappe.call('frappe.chat.doctype.chat_profile.chat_profile.create',
         { user: frappe.session.user, exists_ok: true, fields: fields },
             r => fn(r.message))
+}
+
 frappe.chat.update_chat_profile
 = 
 (data, fn) =>

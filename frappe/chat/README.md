@@ -8,8 +8,20 @@
 
 ##### Client-Side Scripting
 
-###### `/api/method/frappe.chat.doctype.chat_profile.chat_profile.create`
-* Creates a `Chat Profile` for the current logged in user.
+##### `Chat Profile` Create
+
+Creates a `Chat Profile` for the current logged in user.
+
+| URL | Requires Auth |
+|-----|---------------|
+`/api/method/frappe.chat.doctype.chat_profile.chat_profile.create` | yes
+Payload
+| Parameter	   | Example 	   | Required   | Default | Description
+|--------------|---------------|------------|---------|------------
+| `user`	   | `foo@bar.com` | Yes 		|         | The email of the session user.
+| `exists_ok ` | `true`		   | No         | `false` | throws an error if `Chat Profile` already exists.
+| `fields`     | `"status"`    | No         | `null`  | The fields need to be retrieved. By default, retrieves all fields.
+
 ```js
 frappe.chat.create_chat_profile(null, (profile) => {
 	// do something with "profile".
