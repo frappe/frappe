@@ -498,7 +498,8 @@ frappe.views.CommunicationComposer = Class.extend({
 				sender_full_name: form_values.sender?frappe.user.full_name():undefined,
 				attachments: selected_attachments,
 				_lang : me.lang_code,
-				read_receipt:form_values.send_read_receipt
+				read_receipt:form_values.send_read_receipt,
+				no_letterhead: ! $(this.frm.wrapper).find('.print-letterhead').prop('checked')
 			},
 			btn: btn,
 			callback: function(r) {

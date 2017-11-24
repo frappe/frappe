@@ -422,6 +422,7 @@ def sendmail(recipients=[], sender="", subject="No Subject", message="No Message
 		now = True
 
 	from frappe.email import queue
+	print(recipients)
 	queue.send(recipients=recipients, sender=sender,
 		subject=subject, message=message, text_content=text_content,
 		reference_doctype = doctype or reference_doctype, reference_name = name or reference_name,
@@ -1230,6 +1231,8 @@ def get_print(doctype=None, name=None, print_format=None, style=None, html=None,
 	:param as_pdf: Return as PDF. Default False."""
 	from frappe.website.render import build_page
 	from frappe.utils.pdf import get_pdf
+	
+	print("get_print", no_letterhead)
 
 	local.form_dict.doctype = doctype
 	local.form_dict.name = name
@@ -1246,7 +1249,7 @@ def get_print(doctype=None, name=None, print_format=None, style=None, html=None,
 	else:
 		return html
 
-def attach_print(doctype, name, file_name=None, print_format=None, style=None, html=None, doc=None):
+def attach_print(doctype, name, file_name=None, print_format=None, style=None, html=None, doc=None, no_letterhead=False):
 	from frappe.utils import scrub_urls
 
 	if not file_name: file_name = name
@@ -1259,12 +1262,12 @@ def attach_print(doctype, name, file_name=None, print_format=None, style=None, h
 	if int(print_settings.send_print_as_pdf or 0):
 		out = {
 			"fname": file_name + ".pdf",
-			"fcontent": get_print(doctype, name, print_format=print_format, style=style, html=html, as_pdf=True, doc=doc)
+			"fcontent": get_print(doctype, name, print_format=print_format, style=style, html=html, as_pdf=True, doc=doc, no_letterhead=no_letterhead)
 		}
 	else:
 		out = {
 			"fname": file_name + ".html",
-			"fcontent": scrub_urls(get_print(doctype, name, print_format=print_format, style=style, html=html, doc=doc)).encode("utf-8")
+			"fcontent": scrub_urls(get_print(doctype, name, print_format=print_format, style=style, html=html, doc=doc, no_letterhead=no_letterhead)).encode("utf-8")
 		}
 
 	local.flags.ignore_print_permissions = False
