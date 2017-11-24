@@ -178,7 +178,7 @@ def get_email_queue(recipients, sender, subject, **kwargs):
 			expose_recipients=kwargs.get('expose_recipients'),
 			inline_images=kwargs.get('inline_images'),
 			header=kwargs.get('header'))
-
+		print(mail)
 		mail.set_message_id(kwargs.get('message_id'),kwargs.get('is_notification'))
 		if kwargs.get('read_receipt'):
 			mail.msg_root["Disposition-Notification-To"] = sender
