@@ -272,8 +272,8 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 0, 
- "modified": "2017-11-16 23:05:38.185383", 
- "modified_by": "achilles@erpnext.com", 
+ "modified": "2017-11-23 15:48:59.389280", 
+ "modified_by": "faris@erpnext.com", 
  "module": "Chat", 
  "name": "Chat Room", 
  "name_case": "", 
@@ -300,7 +300,7 @@
    "write": 1
   }
  ], 
- "quick_entry": 1, 
+ "quick_entry": 0, 
  "read_only": 0, 
  "read_only_onload": 0, 
  "search_fields": "room_name", 

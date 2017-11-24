@@ -1,6 +1,6 @@
 var app = require('express')();
-var http = require('http').Server(app);
-var io = require('socket.io')(http);
+var server = require('http').Server(app);
+var io = require('socket.io')(server);
 var cookie = require('cookie')
 var fs = require('fs');
 var path = require('path');
@@ -22,7 +22,7 @@ var files_struct = {
 var subscriber = redis.createClient(conf.redis_socketio || conf.redis_async_broker_port);
 
 // serve socketio
-http.listen(conf.socketio_port, function() {
+server.listen(conf.socketio_port, function() {
   console.log('listening on *:', conf.socketio_port); //eslint-disable-line
 });
 
@@ -33,38 +33,66 @@ app.get('/', function(req, res) {
 
 // on socket connection
 io.on('connection', function(socket) {
+	
+	console.log(socket.request.headers)
+
 	if (get_hostname(socket.request.headers.host) != get_hostname(socket.request.headers.origin)) {
 		return;
 	}
 
-	console.log("connection!");
 	if (!socket.request.headers.cookie) {
 		return;
 	}
-
 
 	var sid = cookie.parse(socket.request.headers.cookie).sid
 	if(!sid) {
 		return;
 	}
 
+	
+	
+	
 	if(flags[sid]) {
 		// throttle this function
 		return;
 	}
-
+	
 	flags[sid] = sid;
 	setTimeout(function() { flags[sid] = null; }, 10000);
-
+	
 	socket.user = cookie.parse(socket.request.headers.cookie).user_id;
 	socket.files = {};
 
+	console.log('frappe.chat.subscribe - listener')
+	// frappe.chat
+	socket.on("frappe.chat:subscribe", function (rooms) {
+		for (var room of rooms) {
+			console.log('frappe.chat: Subscribing ' + socket.user + ' to room  ' + room.name)
+			room = get_chat_room(socket, room.name)
+
+			console.log('frappe.chat: Subscribing ' + socket.user + ' to event ' + room)
+			socket.join(room)
+		}
+	})
+
+	// socket.on("frappe.chat:room:typing", function (data) {
+	// 	const room  = data.room
+	// 	const user  = data.user
+	// 	const which = get_chat_room(socket, room)
+
+	// 	console.log('frappe.chat: Dispatching ' + user + ' typing to room ' + which)
+		
+	// 	// redis? nah.
+	// 	io.to(which).emit('frappe.chat:room:update', { name: room, typing: user })
+	// })
+	// end frappe.chat
+	
 	console.log("firing get_user_info");
 	request.get(get_url(socket, '/api/method/frappe.async.get_user_info'))
-		.type('form')
-		.query({
-			sid: sid
-		})
+	.type('form')
+	.query({
+		sid: sid
+	})
 		.end(function(err, res) {
 			if(err) {
 				console.log(err);
@@ -78,16 +106,7 @@ io.on('connection', function(socket) {
 			}
 		});
 
-	// frappe.chat
-	socket.on("frappe.chat:subscribe", function (rooms) {
-		for (var room of rooms) {
-			console.log('frappe.chat: Subscribing ' + socket.user + ' to room ' + room.name)
-			room = get_site_name(socket) + ":room:" + room.name
-			
-			socket.join(room)
-		}
-	})
-	// end frappe.chat
+	
 
 	socket.on('disconnect', function() {
 		delete socket.files;
@@ -208,10 +227,10 @@ io.on('connection', function(socket) {
 	});
 });
 
-subscriber.on("message", function(channel, message) {
-	message = JSON.parse(message);
-	io.to(message.room).emit(message.event, message.message);
-	console.log(message.room, message.event, message.message)
+subscriber.on("message", function (channel, message, room) {
+	message = JSON.parse(message)
+	console.log(message)
+	io.to(message.room).emit(message.event, message.message)
 });
 
 subscriber.subscribe("events");
@@ -246,6 +265,15 @@ function get_site_room(socket) {
 
 function get_task_room(socket, task_id) {
 	return get_site_name(socket) + ':task_progress:' + task_id;
+}
+
+// frappe.chat
+// If you're thinking on multi-site or anything, please
+// update frappe.async as well.
+function get_chat_room (socket, room) {
+	var room = get_site_name(socket) + ":room:" + room;
+
+	return room
 }
 
 function get_site_name(socket) {

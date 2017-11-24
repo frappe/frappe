@@ -89,11 +89,10 @@ def publish_realtime(event=None, message=None, room=None,
 			room = get_user_room(user)
 		elif doctype and docname:
 			room = get_doc_room(doctype, docname)
-		else:
-			room = get_site_room()
 	else:
-		 # namespace the room with the sitename
-		 room = get_other_room(room)
+		# frappe.chat
+		room = get_chat_room(room)
+		# end frappe.chat
 
 	if after_commit:
 		params = [event, message, room]
@@ -113,7 +112,7 @@ def emit_via_redis(event, message, room):
 	try:
 		r.publish('events', frappe.as_json({'event': event, 'message': message, 'room': room}))
 	except redis.exceptions.ConnectionError:
-		# print frappe.get_traceback()
+		# print(frappe.get_traceback())
 		pass
 
 def put_log(line_no, line, task_id=None):
@@ -179,36 +178,28 @@ def can_subscribe_doc(doctype, docname, sid):
 	return True
 
 @frappe.whitelist(allow_guest=True)
-def get_user_info():
+def get_user_info(sid):
 	from frappe.sessions import Session
-	
-	# get the session from sid (this method is not authenticated)
 	session = Session(None, resume=True).get_session_data()
-	# rooms = []
-
-	# try:
-	# 	# get additional rooms defined by chat and other applications
-	# 	for method_name in frappe.get_hooks('get_rooms'):
-	# 		rooms += frappe.get_attr(method_name)() or []
-	# except:
-	# 	print(frappe.get_traceback())
-
 	return {
-		'user': session.user
-		# 'rooms': rooms
+		'user': session.user,
 	}
 
 def get_doc_room(doctype, docname):
 	return ''.join([frappe.local.site, ':doc:', doctype, '/', docname])
 
-def get_site_room(room = 'all'):
-	return frappe.local.site + ':' + room
-
-def get_other_room(room):
-	return frappe.local.site + ':room:' + room
-
 def get_user_room(user):
-	return frappe.local.site + ':user:' + user
+	return ''.join([frappe.local.site, ':user:', user])
+
+def get_site_room():
+	return ''.join([frappe.local.site, ':all'])
 
 def get_task_progress_room(task_id):
 	return "".join([frappe.local.site, ":task_progress:", task_id])
+
+# frappe.chat
+def get_chat_room(room):
+	room = ''.join([frappe.local.site, ":room:", room])
+	
+	return room
+# end frappe.chat room

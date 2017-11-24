@@ -151,7 +151,8 @@
 		"public/js/lib/leaflet/L.Control.Locate.js",
 		"public/js/lib/leaflet/easy-button.js",
 		"public/js/lib/vdom.min.js",
-		"public/js/lib/fuse.min.js"
+		"public/js/lib/fuse.min.js",
+		"public/js/lib/peer.min.js"
 	],
 	"js/desk.min.js": [
 		"public/js/frappe/class.js",

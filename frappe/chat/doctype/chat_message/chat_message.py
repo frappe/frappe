@@ -91,7 +91,8 @@ def get_new_chat_message(user, room, content):
 		room     = mess.room,
 		content  = mess.content,
 		urls     = mess.urls,
-		mentions = mess.mentions
+		mentions = mess.mentions,
+		creation = mess.creation
 	)
 
 	return resp
@@ -100,9 +101,8 @@ def get_new_chat_message(user, room, content):
 def send(user, room, content):
 	mess = get_new_chat_message(user, room, content)
 	
-	frappe.publish_realtime('frappe.chat:message:new', mess, room = room)
-
-	# return _dictify(mess)
+	frappe.publish_realtime('frappe.chat:message:new', mess, room = room,
+		after_commit = True)
 
 @frappe.whitelist()
 def send_attachment(user, room, unknown_field):
