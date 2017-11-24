@@ -67,10 +67,16 @@ def get_user_chat_profile(user = None, fields = None):
 
     return data
 
-def get_new_chat_profile_doc(user = None):
+def get_new_chat_profile_doc(user = None, link = True):
     user = get_user_doc(user)
     prof = frappe.new_doc('Chat Profile')
     prof.save()
+
+    if link:
+        user.update(dict(
+            chat_profile = prof.name
+        ))
+        user.save()
 
     return prof
 
@@ -79,11 +85,9 @@ def create(user, exists_ok = False, fields = None):
     exists, fields = safe_json_loads(exists_ok, fields)
     user           = get_user_doc(user)
 
-    # I know the two checks below seem redundant but I cannot seem
-    # to figure the workflow yet. Once I do, I'll have them removed.
     if user.name  != session.user:
         frappe.throw(_("Sorry! You don't have permission to create a profile for user {name}.".format(
-            name   = user.username
+            name   = user.name
         )))
 
     if user.chat_profile:
@@ -93,11 +97,6 @@ def create(user, exists_ok = False, fields = None):
         prof = get_user_chat_profile(user, fields)
     else:
         prof = get_new_chat_profile_doc(user)
-        user.update(dict(
-            chat_profile = prof.name
-        ))
-        user.save()
-
         prof = get_user_chat_profile(user, fields)
 
     return _dictify(prof)
@@ -119,7 +118,7 @@ def update(user, data):
 
     if user.name != session.user:
         frappe.throw(_("Sorry! You don't have permission to update Chat Profile for user {name}.".format(
-            name  = user.username
+            name  = user.name
         )))
 
     prof  = get_user_chat_profile_doc(user.name)

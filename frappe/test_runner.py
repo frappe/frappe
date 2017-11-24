@@ -14,6 +14,7 @@ import cProfile, pstats
 from six import StringIO
 from six.moves import reload_module
 from frappe.model.naming import revert_series_if_last
+from coverage import Coverage
 
 unittest_runner = unittest.TextTestRunner
 
@@ -25,7 +26,7 @@ def xmlrunner_wrapper(output):
 	return _runner
 
 def main(app=None, module=None, doctype=None, verbose=False, tests=(),
-	force=False, profile=False, junit_xml_output=None, ui_tests=False):
+	force=False, profile=False, junit_xml_output=None, ui_tests=False, coverage=False):
 	global unittest_runner
 
 	xmloutput_fh = None
@@ -56,11 +57,11 @@ def main(app=None, module=None, doctype=None, verbose=False, tests=(),
 			frappe.get_attr(fn)()
 
 		if doctype:
-			ret = run_tests_for_doctype(doctype, verbose, tests, force, profile)
+			ret = run_tests_for_doctype(doctype, verbose, tests, force, profile, coverage = coverage)
 		elif module:
-			ret = run_tests_for_module(module, verbose, tests, profile)
+			ret = run_tests_for_module(module, verbose, tests, profile, coverage = coverage)
 		else:
-			ret = run_all_tests(app, verbose, profile, ui_tests)
+			ret = run_all_tests(app, verbose, profile, ui_tests, coverage = coverage)
 
 		frappe.db.commit()
 
@@ -119,7 +120,7 @@ def run_all_tests(app=None, verbose=False, profile=False, ui_tests=False):
 
 	return out
 
-def run_tests_for_doctype(doctype, verbose=False, tests=(), force=False, profile=False):
+def run_tests_for_doctype(doctype, verbose=False, tests=(), force=False, profile=False, coverage=False):
 	module = frappe.db.get_value("DocType", doctype, "module")
 	if not module:
 		print('Invalid doctype {0}'.format(doctype))
@@ -131,9 +132,9 @@ def run_tests_for_doctype(doctype, verbose=False, tests=(), force=False, profile
 			frappe.delete_doc(doctype, name, force=True)
 	make_test_records(doctype, verbose=verbose, force=force)
 	module = importlib.import_module(test_module)
-	return _run_unittest(module, verbose=verbose, tests=tests, profile=profile)
+	return _run_unittest(module, verbose=verbose, tests=tests, profile=profile, coverage=coverage)
 
-def run_tests_for_module(module, verbose=False, tests=(), profile=False):
+def run_tests_for_module(module, verbose=False, tests=(), profile=False, coverage=False):
 	module = importlib.import_module(module)
 	if hasattr(module, "test_dependencies"):
 		for doctype in module.test_dependencies:
@@ -146,14 +147,14 @@ def run_setup_wizard_ui_test(app=None, verbose=False, profile=False):
 	frappe.flags.run_setup_wizard_ui_test = 1
 	return run_ui_tests(app, None, verbose, profile)
 
-def run_ui_tests(app=None, test=None, verbose=False, profile=False):
+def run_ui_tests(app=None, test=None, verbose=False, profile=False, coverage=False):
 	'''Run a single unit test for UI using test_test_runner'''
 	module = importlib.import_module('frappe.tests.ui.test_test_runner')
 	frappe.flags.ui_test_app = app
 	frappe.flags.ui_test_path = test
-	return _run_unittest(module=module, verbose=verbose, tests=(), profile=profile)
+	return _run_unittest(module=module, verbose=verbose, tests=(), profile=profile, coverage = coverage)
 
-def _run_unittest(module, verbose=False, tests=(), profile=False):
+def _run_unittest(module, verbose=False, tests=(), profile=False, coverage=False):
 	test_suite = unittest.TestSuite()
 	module_test_cases = unittest.TestLoader().loadTestsFromModule(module)
 	if tests:
@@ -170,7 +171,13 @@ def _run_unittest(module, verbose=False, tests=(), profile=False):
 
 	frappe.flags.tests_verbose = verbose
 
+	cov = Coverage()
+	cov.start()
+
 	out = unittest_runner(verbosity=1+(verbose and 1 or 0)).run(test_suite)
+
+	cov.stop()
+	print(cov.report(omit = ['*env*', '*test_*']))
 
 	if profile:
 		pr.disable()
@@ -180,7 +187,6 @@ def _run_unittest(module, verbose=False, tests=(), profile=False):
 		print(s.getvalue())
 
 	return out
-
 
 def _add_test(app, path, filename, verbose, test_suite=None, ui_tests=False):
 	import os

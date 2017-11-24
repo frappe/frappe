@@ -6,7 +6,7 @@ import frappe
 
 # imports - frappe module imports
 from frappe.chat.doctype.chat_profile import chat_profile
-from frappe.chat.util import get_user_doc
+from frappe.chat.util import get_user_doc, create_test_user
 
 session   = frappe.session
 test_user = create_test_user(__name__)

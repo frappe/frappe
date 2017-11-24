@@ -303,12 +303,13 @@ def console(context):
 @click.option('--test', multiple=True, help="Specific test")
 @click.option('--driver', help="For Travis")
 @click.option('--ui-tests', is_flag=True, default=False, help="Run UI Tests")
+@click.option('--coverage', is_flag=True, default=False, help='Display Coverage Report')
 @click.option('--module', help="Run tests in a module")
 @click.option('--profile', is_flag=True, default=False)
 @click.option('--junit-xml-output', help="Destination file path for junit xml report")
 @pass_context
 def run_tests(context, app=None, module=None, doctype=None, test=(),
-	driver=None, profile=False, junit_xml_output=False, ui_tests = False):
+	driver=None, profile=False, junit_xml_output=False, ui_tests = False, coverage = False):
 	"Run tests"
 	import frappe.test_runner
 	tests = test
@@ -318,7 +319,7 @@ def run_tests(context, app=None, module=None, doctype=None, test=(),
 
 	ret = frappe.test_runner.main(app, module, doctype, context.verbose, tests=tests,
 		force=context.force, profile=profile, junit_xml_output=junit_xml_output,
-		ui_tests = ui_tests)
+		ui_tests = ui_tests, coverage = coverage)
 	if len(ret.failures) == 0 and len(ret.errors) == 0:
 		ret = 0
 

@@ -1,5 +1,7 @@
 // frappe.Chat
 // Author - Achilles Rasquinha
+// Dependencies
+// * momentjs
 const { h, render, Component } = preact
 
 frappe.is_array     = (what) => 
@@ -141,10 +143,14 @@ class extends Component {
 // same as frappe.components.Select.
 
 frappe.chat = { }
-frappe.chat.create_chat_profile
+frappe.chat.profile = { }
+frappe.chat.profile.create
 =
 (fields, fn) =>
 {
+    if ( typeof fields === 'function' )
+        fields = null
+    else
     if ( typeof fields === 'string' )
         fields = [fields]
     
@@ -165,12 +171,33 @@ frappe.chat.create_room
     frappe.call('frappe.chat.doctype.chat_room.chat_room.create',
         { kind: kind, user: owner || frappe.session.user, users: users, name: name })
 
-frappe.chat.get_user_room
+frappe.chat.room = { }
+frappe.chat.room.get
 =
-(names, fn) =>
+(names, fields, fn) =>
+{
+    if ( typeof names === 'function' ) {
+        fn     = names
+        names  = null
+        fields = null
+    }
+    else
+    if ( typeof names === 'string' ) {
+        names  = [names]
+        if ( typeof fields === 'function' ) {
+            fn     = fields
+            fields = null
+        }
+        else
+        if ( typeof fields === 'string' )
+            fields = [fields]
+    }
+
     frappe.call('frappe.chat.doctype.chat_room.chat_room.get',
-        { user: frappe.session.user, room: names },
+        { user: frappe.session.user, room: names, fields: fields },
             r => fn(r.message))
+}
+
 frappe.chat.get_room_history
 =
 (name, fn) =>
@@ -187,7 +214,7 @@ frappe.chat.send_message
 (message) =>
     frappe.call('frappe.chat.doctype.chat_message.chat_message.send',
         { ...message })
-frappe.chat.subscribe_rooms
+frappe.chat.room.subscribe
 =
 (rooms) =>
     frappe.realtime.publish('frappe.chat:subscribe', rooms)
@@ -209,24 +236,21 @@ class extends Component {
     }
 
     make ( ) {
-        frappe.chat.create_chat_profile(["status"], profile => {
+        frappe.chat.profile.create("status", profile => {
             this.setState({ profile })
 
-            frappe.chat.get_user_room(null, rooms => {
+            frappe.chat.room.get(rooms => {
                 if ( rooms ) { // if you're not a loner
+                    frappe.chat.room.subscribe(rooms, (rooms) => {
+                        if ( !frappe.is_array(rooms) ) {
+                            rooms = [rooms]
+                        }
+                        
+                        this.setState({ rooms })
 
-                    if ( !frappe.is_array(rooms) ) {
-                        rooms = [rooms]
-                    }
-
-                    frappe.chat.subscribe_rooms(rooms)
-    
-                    // I think this is really a bad idea. Why would you render rooms that
-                    // you're not sure you've been subscribed to?
-                    this.setState({ rooms })
-
-                    // Bind events now that we have everything on plate.
-                    this.bind()
+                        // Bind events now that we have everything on plate.
+                        this.bind()
+                    })
                 }
             })
         })
@@ -323,15 +347,15 @@ class extends Component {
         )
     }
 }
-frappe.Chat.Layout = 
-{
-    PAGE: 'page', COLLAPSIBLE: 'collapsible'
-}
-
 frappe.Chat.defaultState = {
     profile: null,
       rooms: [ ],
        room: { name: null, messages: [ ], typing: null }
+}
+
+frappe.Chat.Layout = 
+{
+    PAGE: 'page', COLLAPSIBLE: 'collapsible'
 }
 
 
