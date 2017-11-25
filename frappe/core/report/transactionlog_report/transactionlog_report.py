@@ -18,74 +18,8 @@ def execute(filters=None):
 
 def getData(filters=None):
 
-    # if filters.transaction_type == 'Sales':
-    #     si = sales_invoice()
-    #     return si
-    # elif filters.transaction_type == 'Payments':
-    #     pe = payment_entry()
-    #     return pe
-    # else:
     full = full_data()
     return full
-
-
-# def sales_invoice(): #function to get Sales invoice data
-#
-#     sales_invoice_data = frappe.db.sql("""Select * from tabTransactionLog trl
-#                 left join `tabSales Invoice` si
-#                 on trl.document_name = si.name
-#                 ORDER BY trl.creation""", as_dict=1)
-#
-#     result = []
-#     remark = ''
-#     for salinv in sales_invoice_data:
-#         if salinv.reference_doctype == 'Sales Invoice':
-#             row_index = int(salinv.row_index)
-#             if row_index > 1:
-#                 row_index = int(salinv.row_index) - 1
-#
-#             previous_hash = frappe.db.sql("SELECT chaining_hash FROM `tabTransactionLog` WHERE row_index = {0}".format(row_index))
-#             remark = doc_check(salinv.reference_doctype, salinv.document_name, previous_hash)
-#
-#             if remark[0] == 'Previous Document Missing':
-#                 if remark[1]:
-#                     remark = remark[0]
-#
-#             row = [remark, salinv.creation, salinv.owner, salinv.modified_by, salinv.document_name ,salinv.reference_doctype,
-#                    salinv.customer_name, salinv.base_total, salinv.company, salinv.posting_date, salinv.currency,
-#                    salinv.address_display, salinv.paid_amount, salinv.net_total, salinv.status]
-#
-#             result.append(row)
-#     return result
-
-
-# def payment_entry(): #function to Payment entry data
-#
-#     payment_entry_data = frappe.db.sql("""SELECT * from tabTransactionLog trl
-#                     left join `tabPayment Entry` pe
-#                     on trl.document_name = pe.name
-#                     ORDER BY trl.creation""", as_dict=1)
-#
-#     result = []
-#     remark = ''
-#     for ped in payment_entry_data:
-#         if ped.reference_doctype == 'Payment Entry':
-#             row_index = int(ped.row_index)
-#             if row_index > 1:
-#                 row_index = int(ped.row_index) - 1
-#
-#             previous_hash = frappe.db.sql("SELECT chaining_hash FROM `tabTransactionLog` WHERE row_index = {0}".format(row_index))
-#             remark = doc_check(ped.reference_doctype, ped.document_name, previous_hash)
-#             if remark[0] == 'Previous Document Missing':
-#                 if remark[1]:
-#                     remark = remark[0]
-#             row = [remark, ped.creation, ped.owner, ped.modified_by, ped.document_name,
-#                    ped.reference_doctype,ped.party, ped.base_paid_amount, ped.company, ped.posting_date,
-#                    ped.paid_from_account_currency, ped.company_address, ped.base_received_amount, ped.base_total_allocated_amount, ped.payment_type]
-#
-#             result.append(row)
-#     return result
-
 
 def full_data(): #function to get the Full data
 
@@ -100,10 +34,10 @@ def full_data(): #function to get the Full data
 
         previous_hash = frappe.db.sql("SELECT chaining_hash FROM `tabTransactionLog` WHERE row_index = {0}".format(row_index))
         remark = doc_check(fd.reference_doctype, fd.document_name, previous_hash)
-        if remark[0] == 'Previous Document Missing':
-            if remark[1]:
-                remark = remark[0]
-
+        if remark:
+            if remark[0]== 'Previous Document Missing':
+                if remark[1]:
+                    remark = remark[0]
         if fd.reference_doctype == 'Sales Invoice':
             s_invoice = frappe.db.sql("SELECT status, base_paid_amount FROM `tabSales Invoice` where name= '{0}' ".format(fd.document_name),as_dict=1)
             if s_invoice:
@@ -112,15 +46,28 @@ def full_data(): #function to get the Full data
             else:
                 paid_amount = 0
                 status = 'Unpaid'
-            row = [remark, fd.creation, fd.owner, fd.modified_by, fd.document_name, fd.reference_doctype,
-                   data['self.customer'], data['self.base_net_total'], data['self.company'],
-                   data['self.posting_date'], data['self.company_currency'],
-                   paid_amount, data['self.total_taxes_and_charges'], data['self.net_total'], status ]
+            if data['printed'] == 'YES':
+                row = [remark, fd.creation, fd.owner, fd.modified_by, fd.document_name, data['printed'],
+                       fd.reference_doctype,
+                       data['customer'], status, data['company'],
+                       data['posting_date'], data['currency'],
+                       paid_amount, data['total_taxes_and_charges'], data['base_net_total'], data['net_total']]
+            else:
+                row = [remark, fd.creation, fd.owner, fd.modified_by, fd.document_name, data['printed'], fd.reference_doctype,
+                   data['party'], status, data['company'],
+                   data['posting_date'], data['account_currency'],
+                   paid_amount, data['total_taxes_and_charges'], data['base_net_total'], data['net_total'] ]
         else:
-            row = [ remark, fd.creation, fd.owner, fd.modified_by, fd.document_name, fd.reference_doctype,
-                    data['self.party_name'], data['self.base_paid_amount'], data['self.company'],
-                    data['self.posting_date'], data['self.company_currency'],
-                    data['self.paid_amount'], '', data['self.total_allocated_amount'], data['self.payment_type'] ]
+            if data['printed'] == 'YES':
+                row = [remark, fd.creation, fd.owner, fd.modified_by, fd.document_name, data['printed'],
+                       fd.reference_doctype, data['party'], data['payment_type'], data['company'],
+                       data['posting_date'], data['paid_from_account_currency'],
+                       data['paid_amount'], 0, data['total_allocated_amount'], data['paid_amount']]
+            else:
+                row = [ remark, fd.creation, fd.owner, fd.modified_by, fd.document_name, data['printed'], fd.reference_doctype,
+                    data['party'],data['payment_type'],  data['company'],
+                    data['posting_date'], data['account_currency'],
+                    data['paid_amount'], 0, data['total_allocated_amount'], data['paid_amount'] ]
 
         result.append(row)
     return result
@@ -184,16 +131,17 @@ def integrity_chain(): #function to check the chain integrity
 
     f_data = frappe.db.sql("SELECT group_concat(row_index) as index_list "
                            "FROM tabTransactionLog order by creation desc ", as_dict=1)
-
+    remarks = ''
     current_index = getcurrentindex()
     missing_index_list = missing_elements(f_data[0].index_list, current_index)
     if missing_index_list:
-        remarks = ''
         a = hash_chain(missing_index_list)
         for match_hash_list in a:
             if match_hash_list[0] != match_hash_list[1]:
                 remarks = 'Previous Document Missing'
-        return remarks, missing_index_list
+    else:
+        remarks = 'Previous Document Missing'
+    return remarks, missing_index_list
 
 
 def getcurrentindex():  #function for getting current index from tabseries
@@ -246,8 +194,8 @@ def hash_chain(missing_index_list): #function created for generating and compari
 def getColumn():
     columns = [
         _("Remarks") + "::180",_("Creation") + "::150",_("Owner") + "::100",_("Modified By") + "::100", _("Document Name") + "::130",
-         _("Reference Doctype") + "::150", _("Customer Name") + "::150",_("Base Total") + "::100",
+        _("Printed") + "::100",_("Reference Doctype") + "::150", _("Customer Name") + "::150",_("Status") + "::100",
         _("Company") + "::100",_("Posting Date") + "::100",_("Currency") + "::100",
-        _("Paid Amount") + "::100",  _("Total Taxes and Charges") + "::180", _("Net Total") + "::100", _("Status") + "::100"
+        _("Paid Amount") + "::100",  _("Total Taxes and Charges") + "::180", _("Base Total") + "::100", _("Net Total") + "::100"
     ]
     return columns
