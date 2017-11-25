@@ -180,6 +180,34 @@ _f.Frm.prototype.print_doc = function() {
 	this.print_preview.set_user_lang();
 };
 
+_f.Frm.prototype.set_cur_list = function(data) {
+	var list = [];
+	if(data) {
+		$.each(data.data, function(r) {
+			list.push(data.data[r].name);
+		});
+		frappe.cur_list = list;
+	}
+};
+
+_f.Frm.prototype.next_doc = function(data, doctype) {
+	var x = frappe.cur_list.indexOf(data);
+
+	if(x<0)
+		frappe.cur_list.unshift(data);
+	if(x+1 <= frappe.cur_list.length)
+		frappe.set_route('Form', doctype, frappe.cur_list[x+1]);
+};
+
+_f.Frm.prototype.previous_doc = function(data, doctype) {
+	var x = frappe.cur_list.indexOf(data);
+
+	if(x<0)
+		frappe.cur_list.unshift(data);
+	if(x-1 >= 0)
+		frappe.set_route('Form', doctype, frappe.cur_list[x-1]);
+};
+
 _f.Frm.prototype.hide_print = function() {
 	if(this.setup_done && this.page.current_view_name==="print") {
 		this.page.set_view(this.page.previous_view_name==="print" ?
