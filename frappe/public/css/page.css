@@ -99,6 +99,8 @@
   margin: 0px;
   padding-right: 15px;
   padding-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
   border-bottom: 1px solid #d1d8dd;
   background-color: #F7FAFC;
 }

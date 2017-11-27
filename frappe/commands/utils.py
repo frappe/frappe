@@ -327,7 +327,7 @@ def run_tests(context, app=None, module=None, doctype=None, test=(),
 
 @click.command('run-ui-tests')
 @click.option('--app', help="App to run tests on, leave blank for all apps")
-@click.option('--test', help="File name of the test you want to run")
+@click.option('--test', help="Path to the specific test you want to run")
 @click.option('--profile', is_flag=True, default=False)
 @pass_context
 def run_ui_tests(context, app=None, test=False, profile=False):

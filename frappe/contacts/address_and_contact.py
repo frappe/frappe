@@ -26,18 +26,17 @@ def load_address_and_contact(doc, key=None):
 	doc.set_onload('addr_list', address_list)
 
 	contact_list = []
-	if doc.doctype != "Lead":
-		filters = [
-			["Dynamic Link", "link_doctype", "=", doc.doctype],
-			["Dynamic Link", "link_name", "=", doc.name],
-			["Dynamic Link", "parenttype", "=", "Contact"],
-		]
-		contact_list = frappe.get_all("Contact", filters=filters, fields=["*"])
+	filters = [
+		["Dynamic Link", "link_doctype", "=", doc.doctype],
+		["Dynamic Link", "link_name", "=", doc.name],
+		["Dynamic Link", "parenttype", "=", "Contact"],
+	]
+	contact_list = frappe.get_all("Contact", filters=filters, fields=["*"])
 
-		contact_list = sorted(contact_list,
-			lambda a, b:
-				(int(a.is_primary_contact - b.is_primary_contact)) or
-				(1 if a.modified - b.modified else 0), reverse=True)
+	contact_list = sorted(contact_list,
+		lambda a, b:
+			(int(a.is_primary_contact - b.is_primary_contact)) or
+			(1 if a.modified - b.modified else 0), reverse=True)
 
 	doc.set_onload('contact_list', contact_list)
 
