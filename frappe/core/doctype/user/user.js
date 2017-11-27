@@ -38,8 +38,9 @@ frappe.ui.form.on('User', {
 	},
 
 	onload: function(frm) {
+		frm.can_edit_roles = has_common(frappe.user_roles, ["Administrator", "System Manager"]);
 
-		if(has_common(frappe.user_roles, ["Administrator", "System Manager"]) && !frm.doc.__islocal) {
+		if(frm.can_edit_roles && !frm.is_new()) {
 			if(!frm.roles_editor) {
 				var role_area = $('<div style="min-height: 300px">')
 					.appendTo(frm.fields_dict.roles_html.wrapper);
@@ -55,8 +56,9 @@ frappe.ui.form.on('User', {
 	},
 	refresh: function(frm) {
 		var doc = frm.doc;
-		if(!frm.doc.islocal && !frm.roles_editor) {
+		if(!frm.is_new() && !frm.roles_editor && frm.can_edit_roles) {
 			frm.reload_doc();
+			return;
 		}
 		if(doc.name===frappe.session.user && !doc.__unsaved
 			&& frappe.all_timezones
@@ -68,7 +70,7 @@ frappe.ui.form.on('User', {
 
 		frm.toggle_display(['sb1', 'sb3', 'modules_access'], false);
 
-		if(!doc.__islocal){
+		if(!frm.is_new()) {
 			frm.add_custom_button(__("Set Desktop Icons"), function() {
 				frappe.route_options = {
 					"user": doc.name
@@ -112,8 +114,8 @@ frappe.ui.form.on('User', {
 
 			frm.trigger('enabled');
 
-			if (frm.roles_editor) {
-				frm.roles_editor.disabled = frm.doc.role_profile_name ? 1 : 0;
+			if (frm.roles_editor && frm.can_edit_roles) {
+				frm.roles_editor.disable = frm.doc.role_profile_name ? 1 : 0;
 				frm.roles_editor.show();
 			}
 
@@ -156,13 +158,13 @@ frappe.ui.form.on('User', {
 	},
 	enabled: function(frm) {
 		var doc = frm.doc;
-		if(!doc.__islocal && has_common(frappe.user_roles, ["Administrator", "System Manager"])) {
+		if(!frm.is_new() && has_common(frappe.user_roles, ["Administrator", "System Manager"])) {
 			frm.toggle_display(['sb1', 'sb3', 'modules_access'], doc.enabled);
 			frm.set_df_property('enabled', 'read_only', 0);
 		}
 
 		if(frappe.session.user!=="Administrator") {
-			frm.toggle_enable('email', doc.__islocal);
+			frm.toggle_enable('email', frm.is_new());
 		}
 	},
 	create_user_email:function(frm) {

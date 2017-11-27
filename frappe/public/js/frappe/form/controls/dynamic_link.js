@@ -9,7 +9,11 @@ frappe.ui.form.ControlDynamicLink = frappe.ui.form.ControlLink.extend({
 		}
 		if (cur_frm==null && cur_list){
 			//for list page
-			return cur_list.wrapper.find("input[data-fieldname*="+this.df.options+"]").val();
+			let list_filter = cur_list.wrapper.find("input[data-fieldname*="+this.df.options+"]");
+			if(list_filter.length > 0) {
+				return list_filter.val();
+			}
+			return $(cur_page.page).find("input[data-fieldname*="+this.df.options+"]").val();
 		}
 		var options = frappe.model.get_value(this.df.parent, this.docname, this.df.options);
 		// if(!options) {

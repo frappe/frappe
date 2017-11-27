@@ -18,6 +18,7 @@ class TestTestRunner(unittest.TestCase):
 				continue
 
 			timeout = 60
+			passed = False
 			if '#' in test:
 				test, comment = test.split('#')
 				test = test.strip()
@@ -30,17 +31,19 @@ class TestTestRunner(unittest.TestCase):
 			frappe.db.commit()
 			driver.refresh()
 			driver.set_route('Form', 'Test Runner')
-			driver.click_primary_action()
-			driver.wait_for('#frappe-qunit-done', timeout=timeout)
+			try:
+				driver.click_primary_action()
+				driver.wait_for('#frappe-qunit-done', timeout=timeout)
 
-			console = driver.get_console()
-			passed = 'Tests Passed' in console
-			if frappe.flags.tests_verbose or not passed:
-				for line in console:
-					print(line)
-				print('-' * 40)
-			self.assertTrue(passed)
-			time.sleep(1)
+				console = driver.get_console()
+				passed = 'Tests Passed' in console
+			finally:
+				if frappe.flags.tests_verbose or not passed:
+					for line in console:
+						print(line)
+					print('-' * 40)
+				self.assertTrue(passed)
+				time.sleep(1)
 		frappe.db.set_default('in_selenium', None)
 		driver.close()
 

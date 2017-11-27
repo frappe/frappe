@@ -405,8 +405,9 @@ def move(dest_dir, site):
 
 @click.command('set-admin-password')
 @click.argument('admin-password')
+@click.option('--logout-all-sessions', help='Logout from all sessions', is_flag=True, default=False)
 @pass_context
-def set_admin_password(context, admin_password):
+def set_admin_password(context, admin_password, logout_all_sessions=False):
 	"Set Administrator password for a site"
 	import getpass
 	from frappe.utils.password import update_password
@@ -419,7 +420,7 @@ def set_admin_password(context, admin_password):
 				admin_password = getpass.getpass("Administrator's password for {0}: ".format(site))
 
 			frappe.connect()
-			update_password('Administrator', admin_password)
+			update_password(user='Administrator', pwd=admin_password, logout_all_sessions=logout_all_sessions)
 			frappe.db.commit()
 			admin_password = None
 		finally:

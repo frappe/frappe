@@ -44,11 +44,6 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		this.translate_values = true;
 		this.setup_buttons();
 		this.setup_awesomeplete();
-		if(this.df.change) {
-			this.$input.on("change", function() {
-				me.df.change.apply(this);
-			});
-		}
 	},
 	get_options: function() {
 		return this.df.options;
