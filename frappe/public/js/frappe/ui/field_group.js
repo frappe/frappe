@@ -63,7 +63,7 @@ frappe.ui.FieldGroup = frappe.ui.form.Layout.extend({
 	focus_on_first_input: function() {
 		if(this.no_focus) return;
 		$.each(this.fields_list, function(i, f) {
-			if(!in_list(['Date', 'Datetime', 'Time'], f.df.fieldtype) && f.set_focus) {
+			if(!in_list(['Date', 'Datetime', 'Time', 'Check'], f.df.fieldtype) && f.set_focus) {
 				f.set_focus();
 				return false;
 			}
