@@ -304,7 +304,9 @@
 		"public/js/frappe/ui/base_list.js",
 
 		"public/js/frappe/model/indicator.js",
-		"public/js/frappe/ui/filters/filters.js",
+		"public/js/frappe/ui/filters/filter.js",
+		"public/js/frappe/ui/filters/filter_list.js",
+		"public/js/frappe/ui/filters/field_select.js",
 		"public/js/frappe/ui/filters/edit_filter.html",
 		"public/js/frappe/ui/tags.js",
 		"public/js/frappe/ui/like.js",

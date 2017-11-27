@@ -23,7 +23,7 @@ QUnit.test("Test List Count", function(assert) {
 		() => cur_list.filter_list.clear_filters(),
 		() => frappe.timeout(1),
 		() => {
-			cur_list.filter_list.push_new_filter('DocField', 'fieldname', 'like', 'owner');
+			cur_list.filter_list.add_new_filter('DocField', 'fieldname', 'like', 'owner');
 			frappe.click_button('Apply');
 			let count = $('.list-row-right').text().split(' ')[0];
 			assert.equal(cur_list.data.length, count, "Correct Count");

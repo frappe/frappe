@@ -13,28 +13,28 @@
   top: 15px;
   right: 15px;
 }
-.show-filters {
+.tag-filters-area {
   padding: 15px 15px 0px;
   border-bottom: 1px solid #d1d8dd;
 }
-.set-filters {
+.active-tag-filters {
   padding-bottom: 4px;
   padding-right: 120px;
 }
 @media (max-width: 767px) {
-  .set-filters {
+  .active-tag-filters {
     padding-right: 80px;
   }
 }
-.set-filters .btn {
+.active-tag-filters .btn {
   margin-bottom: 10px;
 }
-.set-filters .btn-group {
-  margin-right: 10px;
+.active-tag-filters .btn-group {
+  margin-left: 10px;
   white-space: nowrap;
   font-size: 0;
 }
-.set-filters .btn-group .btn-default {
+.active-tag-filters .btn-group .btn-default {
   background-color: transparent;
   border: 1px solid #d1d8dd;
   color: #8D99A6;
@@ -48,21 +48,21 @@
   margin-top: 6px;
   margin-left: 15px;
 }
-.filter-box .filter_field {
+.filter-box .filter-field {
   padding-right: 15px;
   width: calc(64%);
 }
-.filter-box .filter_field .frappe-control {
+.filter-box .filter-field .frappe-control {
   position: relative;
 }
 @media (min-width: 767px) {
   .filter-box .row > div[class*="col-sm-"] {
     padding-right: 0px;
   }
-  .filter_field {
+  .filter-field {
     width: 65% !important;
   }
-  .filter_field .frappe-control {
+  .filter-field .frappe-control {
     position: relative;
   }
 }
