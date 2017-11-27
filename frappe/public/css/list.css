@@ -1,9 +1,6 @@
+.result,
 .no-result {
-  padding: 150px 15px;
-  color: #8D99A6;
-}
-.result-list {
-  min-height: 400px;
+  min-height: calc(100vh - 284px);
 }
 .sort-selector .dropdown:hover {
   text-decoration: underline;
@@ -70,118 +67,64 @@
   }
 }
 .list-row {
-  padding: 9px 15px;
+  padding: 12px 15px;
+  height: 40px;
   border-bottom: 1px solid #d1d8dd;
   cursor: pointer;
   transition: color 0.2s;
   -webkit-transition: color 0.2s;
 }
-.list-row .h6 {
-  margin-top: 0px;
-  margin-bottom: 0px;
-}
-.list-row-head {
+.list-row:hover {
   background-color: #F7FAFC;
-  border-bottom: 1px solid #d1d8dd !important;
-}
-.list-row:hover,
-.grid-row:hover {
-  background-color: #F7FAFC;
-}
-.no-hover:hover {
-  background-color: transparent !important;
 }
 .list-row:last-child {
   border-bottom: 0px;
 }
+.list-row .level-left {
+  flex: 3;
+}
+.list-row .level-right {
+  flex: 1;
+}
 .list-row-head {
   background-color: #F7FAFC;
   border-bottom: 1px solid #d1d8dd !important;
 }
-.list-row .h6 {
-  margin-top: 0px;
-  margin-bottom: 0px;
+.list-row-head .list-subject {
+  font-weight: normal;
 }
-.list-item-col {
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  height: 30px;
-  padding-top: 3px;
+.list-row-col {
+  flex: 1;
+  margin-right: 15px;
+}
+.list-subject {
+  flex: 2;
+  font-weight: bold;
+  justify-content: start;
+}
+.list-subject .level-item {
+  margin-right: 8px;
+}
+.list-subject.seen {
+  font-weight: normal;
+}
+.list-row-activity {
+  justify-content: flex-end;
+  min-width: 120px;
+}
+.list-row-activity span {
+  display: inline-block;
+  margin-left: 5px;
 }
 .list-paging-area {
   padding: 10px 15px;
   border-top: 1px solid #d1d8dd;
 }
-.list-value {
-  display: table;
-  vertical-align: middle;
-}
-.list-value .list-row-checkbox,
-.list-value .liked-by,
-.list-value .list-id,
-.list-value .list-select-all {
-  display: table-cell;
-  vertical-align: middle;
-}
-.list-value .list-row-checkbox,
-.list-value .list-select-all {
-  margin: 0;
-  margin-right: 7px;
-}
-.list-value .liked-by {
-  padding-top: 2px;
-}
-.list-value .list-col-title {
-  vertical-align: middle;
-}
-.progress {
-  height: 10px;
-}
-.doclist-row {
-  font-size: 12px;
-}
 .likes-count {
-  display: inline-block;
-  width: 15px;
-  margin-left: -5px;
-  color: #8D99A6;
-  font-size: 12px;
-}
-.doclist-row .docstatus .octicon {
-  font-size: 12px;
-}
-.doclist-row .progress {
-  margin-top: 12px;
+  display: none;
 }
 .filterable {
   cursor: pointer;
-}
-.doclist-row .label {
-  margin-right: 8px;
-}
-.list-info-row {
-  float: left;
-  margin-top: 1px;
-}
-.list-row-right .modified {
-  margin-top: 3px;
-}
-.list-row-right .list-row-modified {
-  margin-right: 9px;
-  margin-top: 3px;
-}
-.list-row-right {
-  margin-top: -2px;
-  margin-bottom: -4px;
-}
-.list-row-right .indicator {
-  margin-left: 10px;
-  margin-right: -5px;
-}
-.side-panel {
-  border-bottom: 1px solid #d1d8dd;
-  margin: 0px -15px;
-  padding: 5px 15px;
 }
 .listview-main-section .octicon-heart {
   cursor: pointer;
@@ -207,18 +150,6 @@
 }
 .like-action.octicon-heart {
   color: #ff5858;
-}
-.list-id {
-  font-weight: bold;
-}
-.list-id.seen {
-  font-weight: normal;
-}
-.list-col {
-  height: 20px;
-}
-.list-value {
-  vertical-align: middle;
 }
 @media (max-width: 767px) {
   .doclist-row {

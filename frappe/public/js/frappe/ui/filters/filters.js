@@ -33,7 +33,7 @@ frappe.ui.FilterList = Class.extend({
 		this.wrapper.find('.clear-filters').bind('click', function() {
 			me.clear_filters();
 			$('.date-range-picker').val('')
-			me.base_list.run();
+			// me.base_list.run();
 			$(this).addClass("hide");
 		});
 	},
@@ -242,7 +242,7 @@ frappe.ui.Filter = Class.extend({
 
 		this.wrapper.find(".set-filter-and-run").on("click", function() {
 			me.wrapper.removeClass("is-new-filter");
-			me.flist.base_list.run();
+			// me.flist.base_list.run();
 			me.apply();
 		});
 
@@ -290,7 +290,7 @@ frappe.ui.Filter = Class.extend({
 		this.flist.update_filters();
 
 		if(!dont_run) {
-			this.flist.base_list.refresh(true);
+			// this.flist.base_list.refresh(true);
 		}
 	},
 
@@ -370,7 +370,7 @@ frappe.ui.Filter = Class.extend({
 		// run on enter
 		$(me.field.wrapper).find(':input').keydown(function(ev) {
 			if(ev.which==13) {
-				me.flist.base_list.run();
+				// me.flist.base_list.run();
 			}
 		})
 	},

@@ -312,6 +312,7 @@
 		"public/html/print_template.html",
 
 		"public/js/frappe/list/list_view.js",
+		"public/js/frappe/list/new_base_list.js",
 		"public/js/frappe/list/new_list_view.js",
 
 		"public/js/frappe/list/list_sidebar.js",

@@ -33,7 +33,7 @@ frappe.views.ListFactory = frappe.views.Factory.extend({
 		this.set_module_breadcrumb();
 		this._super();
 		this.set_cur_list();
-		cur_list && cur_list.refresh();
+		cur_list && cur_list.show();
 	},
 	re_route_to_view: function() {
 		var route = frappe.get_route();
@@ -51,10 +51,10 @@ frappe.views.ListFactory = frappe.views.Factory.extend({
 				// Step 2: User hits "back" comes back to #List/Item
 				// Step 3: Now we cannot send the user back to #List/Item/List so go back one more step
 				window.history.go(-1);
+				return true;
 			} else {
-				frappe.views.list_view[doctype].load_last_view();
+				return false;
 			}
-			return true;
 		}
 	},
 	set_module_breadcrumb: function () {

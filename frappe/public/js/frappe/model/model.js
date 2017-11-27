@@ -27,6 +27,8 @@ $.extend(frappe.model, {
 		{fieldname:'docstatus', fieldtype:'Int', label:__('Document Status')},
 	],
 
+	numeric_fieldtypes: ["Int", "Float", "Currency", "Percent"],
+
 	std_fields_table: [
 		{fieldname:'parent', fieldtype:'Data', label:__('Parent')},
 	],
@@ -577,6 +579,10 @@ $.extend(frappe.model, {
 	get_full_column_name: function(fieldname, doctype) {
 		if (fieldname.includes('`tab')) return fieldname;
 		return '`tab' + doctype + '`.`' + fieldname + '`';
+	},
+
+	is_numeric_field: function(df) {
+		return frappe.model.numeric_fieldtypes.includes(df && df.fieldtype);
 	}
 });
 

@@ -1,12 +1,7 @@
 @import "variables.less";
 
-.no-result {
-	padding: 150px 15px;
-	color: @text-muted;
-}
-
-.result-list {
-	min-height: 400px;
+.result, .no-result {
+	min-height: ~"calc(100vh - 284px)";
 }
 
 .sort-selector {
@@ -92,142 +87,180 @@
 }
 
 .list-row {
-	padding: 9px 15px;
+	padding: 12px 15px;
+	height: 40px;
 	border-bottom: 1px solid @border-color;
 	cursor: pointer;
 	transition: color 0.2s;
 	-webkit-transition: color 0.2s;
+
+	&:hover {
+		background-color: @panel-bg;
+	}
+	&:last-child {
+		border-bottom: 0px;
+	}
+
+	.level-left {
+		flex: 3;
+	}
+	.level-right {
+		flex: 1;
+	}
 }
 
-.list-row .h6 {
-	margin-top: 0px;
-	margin-bottom: 0px;
-}
+// .list-row .h6 {
+// 	margin-top: 0px;
+// 	margin-bottom: 0px;
+// }
+
+// .list-row:hover, .grid-row:hover {
+// 	background-color: @panel-bg;
+// }
+
+// .no-hover:hover {
+// 	background-color: transparent !important;
+// }
 
 .list-row-head {
 	background-color: @panel-bg;
 	border-bottom: 1px solid @border-color !important;
+
+	.list-subject {
+		font-weight: normal;
+	}
 }
 
-.list-row:hover, .grid-row:hover {
-	background-color: @panel-bg;
+.list-row-col {
+	flex: 1;
+	margin-right: 15px;
 }
 
-.no-hover:hover {
-	background-color: transparent !important;
+.list-subject {
+	flex: 2;
+	font-weight: bold;
+	justify-content: start;
+
+	.level-item {
+		margin-right: 8px;
+	}
+
+	&.seen {
+		font-weight: normal;
+	}
 }
 
-.list-row:last-child {
-	border-bottom: 0px;
-}
+.list-row-activity {
+	justify-content: flex-end;
+	min-width: 120px;
 
-.list-row-head {
-	background-color: @panel-bg;
-	border-bottom: 1px solid @border-color !important;
+	span {
+		display: inline-block;
+		margin-left: 5px;
+	}
 }
+// .list-row .h6 {
+// 	margin-top: 0px;
+// 	margin-bottom: 0px;
+// }
 
-.list-row .h6 {
-	margin-top: 0px;
-	margin-bottom: 0px;
-}
-
-.list-item-col {
-	white-space: nowrap;
-	text-overflow: ellipsis;
-	height: 30px;
-	padding-top: 3px;
-}
+// .list-item-col {
+// 	white-space: nowrap;
+// 	text-overflow: ellipsis;
+// 	height: 30px;
+// 	padding-top: 3px;
+// }
 
 .list-paging-area {
 	padding: 10px 15px;
 	border-top: 1px solid @border-color;
 }
 
-.list-value {
-	display: table;
-	vertical-align: middle;
+// .list-value {
+// 	display: table;
+// 	vertical-align: middle;
 
-	.list-row-checkbox, .liked-by, .list-id, .list-select-all {
-		display: table-cell;
-		vertical-align: middle;
-	}
+// 	.list-row-checkbox, .liked-by, .list-id, .list-select-all {
+// 		display: table-cell;
+// 		vertical-align: middle;
+// 	}
 
-	.list-row-checkbox, .list-select-all {
-		margin: 0;
-		margin-right: 7px;
-	}
+// 	.list-row-checkbox, .list-select-all {
+// 		margin: 0;
+// 		margin-right: 7px;
+// 	}
 
-	.liked-by {
-		padding-top: 2px;
-	}
+// 	.liked-by {
+// 		padding-top: 2px;
+// 	}
 
-	.list-col-title {
-		vertical-align: middle;
-	}
-}
+// 	.list-col-title {
+// 		vertical-align: middle;
+// 	}
+// }
 
-.progress {
-	height: 10px;
-}
+// .progress {
+// 	height: 10px;
+// }
 
-.doclist-row {
-	font-size: 12px;
-}
+// .doclist-row {
+// 	font-size: 12px;
+// }
 
 .likes-count {
-	display: inline-block;
-	width: 15px;
-	margin-left: -5px;
-	color: @text-muted;
-	font-size: 12px;
+	display: none;
+	// display: inline-block;
+	// width: 15px;
+	// margin-left: -5px;
+	// color: @text-muted;
+	// font-size: 12px;
 }
 
-.doclist-row .docstatus .octicon {
-	font-size: 12px;
-}
+// .doclist-row .docstatus .octicon {
+// 	font-size: 12px;
+// }
 
-.doclist-row .progress {
-	margin-top: 12px;
-}
+// .doclist-row .progress {
+// 	margin-top: 12px;
+// }
 
 .filterable {
 	cursor: pointer;
 }
 
+// .doclist-row .label {
+// 	margin-right: 8px;
+// }
 
-.doclist-row .label {
-	margin-right: 8px;
-}
+// .list-info-row {
+// 	float: left;
+// 	margin-top: 1px;
+// }
 
-.list-info-row {
-	float: left;
-	margin-top: 1px;
-}
+// .list-row-right .modified {
+// 	margin-top: 3px;
+// }
 
-.list-row-right .modified {
-	margin-top: 3px;
-}
+// .list-row-right .list-row-modified {
+// 	margin-right: 9px;
+// 	margin-top: 3px;
+// }
 
-.list-row-right .list-row-modified {
-	margin-right: 9px;
-	margin-top: 3px;
-}
+// .list-row-right {
+// 	margin-top: -2px;
+// 	margin-bottom: -4px;
+// }
 
-.list-row-right {
-	margin-top: -2px;
-	margin-bottom: -4px;
-}
+// .list-row-right .indicator {
+// 	margin-left: 10px;
+// 	margin-right: -5px;
+// }
 
-.list-row-right .indicator {
-	margin-left: 10px;
-	margin-right: -5px;
-}
-
-.side-panel {
-	border-bottom: 1px solid @border-color;
-	margin: 0px -15px;
-	padding: 5px 15px;
-}
+// .side-panel {
+// 	border-bottom: 1px solid @border-color;
+// 	margin: 0px -15px;
+// 	padding: 5px 15px;
+// }
 
 .listview-main-section {
 	.octicon-heart {
@@ -256,21 +289,15 @@
 	color: @heart-color;
 }
 
-.list-id {
-	font-weight: bold;
-}
 
-.list-id.seen {
-	font-weight: normal;
-}
 
-.list-col {
-	height: 20px;
-}
+// .list-col {
+// 	height: 20px;
+// }
 
-.list-value {
-	vertical-align: middle;
-}
+// .list-value {
+// 	vertical-align: middle;
+// }
 
 @media(max-width: 767px) {
 	.doclist-row {
