@@ -187,20 +187,38 @@ frappe.chat.profile.update
 }
 
 frappe.chat.profile.on = { }
+
 frappe.chat.profile.on.update
 = // You should use . and not :, use . for event, : for query.
 (fn) => frappe.realtime.on('frappe.chat.profile.update', r => fn(r.user, r.data))
 
-frappe.chat.update_chat_profile
-= 
-(data, fn) =>
-frappe.chat.create_room
-=
-(kind, owner, users, name) =>
-    frappe.call('frappe.chat.doctype.chat_room.chat_room.create',
-        { kind: kind, user: owner || frappe.session.user, users: users, name: name })
 
 frappe.chat.room = { }
+
+frappe.chat.room.create
+=
+(kind, owner, users, name, fn) =>
+{
+    if ( typeof name === 'function' )
+    {
+        fn   = name
+        name = null
+    }
+    
+    return new Promise(resolve =>
+    {
+        frappe.call('frappe.chat.doctype.chat_room.chat_room.create',
+            { kind: kind, owner: owner || frappe.session.user, users: users, name: name },
+            r =>
+            {
+                if ( fn )
+                    fn(r.message)
+
+                resolve(r.message)
+            })
+    })
+}
+
 frappe.chat.room.get
 =
 (names, fields, fn) =>
@@ -249,26 +267,21 @@ frappe.chat.room.history
     {
         frappe.call('frappe.chat.doctype.chat_room.chat_room.get_history',
             { room: name },
-                response => 
+                r => 
                 {
-                    const response = r.message ? r.message : [ ] // frappe.api BOGZ!
+                    const messages = r.message ? r.message : [ ] // frappe.api BOGZ!
 
                     if ( fn )
-                        fn(response)
+                        fn(messages)
                     
-                    resolve(response)
+                    resolve(messages)
                 })
     })
 }
-
-frappe.chat.get_room_history
+frappe.chat.room.on = { }
+frappe.chat.room.on.update
 =
-(name, fn) =>
-frappe.chat.send_message
-=
-(message) =>
-    frappe.call('frappe.chat.doctype.chat_message.chat_message.send',
-        { ...message })
+(fn) => frappe.realtime.on('frappe.chat.room.update', r => fn(r.room, r.data))
 
 frappe.Chat
 =
@@ -324,8 +337,12 @@ class extends Component {
                 }
             }
         })
-        
-        frappe.realtime.on('frappe.chat:room:update', r => this.update_room(r.name, r))
+
+        frappe.chat.room.on.update((room, update) => {
+            console.log(room, update)
+
+            this.update_room(room, update)
+        })
         
         frappe.realtime.on('frappe.chat:message:new', (r) => {
             console.log(`Message Recieved - ${JSON.stringify(r)}`)
@@ -346,37 +363,38 @@ class extends Component {
             status: status
         })
     }
+    
+    on_select_room (name) {
+        frappe.chat.room.history(name, m => 
+        {
+            const { state } = this
+            const room      = state.rooms.find(r => r.name === name)
 
-    update_room (name, update) {
-        // Update Room List
+            this.setState({
+                 room: { ...state.room, ...room, messages: m }
+            })
+        })
+    }
+
+    update_room (room, update) {
+        // update list
         const { state } = this
         const rooms     = state.rooms.map(r => {
-            if ( r.name === name )
+            if ( r.name === room )
                 return Object.assign({ }, r, update)
             return r
         })
 
         this.setState({ rooms })
 
-        // Update Room View
-        if ( state.room.name === name ) {
+        // update room
+        if ( state.room.name === room ) {
             const room = Object.assign({ }, state.room, update)
 
             this.setState({ room })
         }
     }
 
-    on_select_room (name) {
-        frappe.chat.room.history(name, m => 
-        {
-            const { state } = this
-            const room      = this.state.rooms.find(r => r.name === name)
-
-            this.setState({
-                room: { ...state.room, ...room, messages: m }
-            })
-        })
-    }
     
     render ( ) {
         const { state } = this
@@ -390,6 +408,12 @@ class extends Component {
                                        status: state.profile.status,
                                         rooms: state.rooms,
                              on_change_status: this.on_change_status,
+                               on_new_message: (user) => {
+                                    frappe.chat.room.create("Direct", null, user, (room) =>
+                                    {
+                                        console.log(room)
+                                    })
+                               },
                                on_select_room: this.on_select_room
                         }) : null
                 ),
@@ -405,6 +429,24 @@ frappe.Chat.defaultState = {
       rooms: [ ],
        room: { name: null, messages: [ ] }
 }
+frappe.Chat.CHAT_PROFILE_STATUSES = [
+    {
+         name: 'Online',
+        color: 'green'
+    },
+    {
+         name: 'Away',
+        color: 'yellow'
+    },
+    {
+         name: 'Busy',
+        color: 'red'
+    },
+    {
+         name: 'Offline',
+        color: 'grey'
+    }
+]
 
 frappe.Chat.AppBar
 =
@@ -439,7 +481,8 @@ class extends Component {
     }
 
     on_click_new_message ( ) {
-        const dialog = new frappe.ui.Dialog({
+        const { props } = this
+        const dialog    = new frappe.ui.Dialog({
               title: __(`New Message`),
             animate: false,
              fields: [
@@ -454,7 +497,9 @@ class extends Component {
              ],
             primary_action_label: __(`Create`),
             primary_action: ({ user }) => {
-                frappe.chat.create_room("Direct", frappe.session.user, user)
+                dialog.hide()
+
+                props.on_new_message(user)
             }
         })
         dialog.show()
@@ -496,7 +541,7 @@ class extends Component {
                     h(frappe.Chat.AppBar.SearchBar, {
                                     on_query: query => this.setState({ query: query }),
                         on_click_new_message: this.on_click_new_message,
-                        on_click_new_group:   this.on_click_new_group
+                          on_click_new_group: this.on_click_new_group
                     })
                 ),
                 h("div", { class: "frappe-chat__app-bar-room-list" },
@@ -510,24 +555,6 @@ frappe.Chat.AppBar.defaultState   = {
     query: null
 }
 
-frappe.Chat.CHAT_PROFILE_STATUSES = [
-    {
-         name: 'Online',
-        color: 'green'
-    },
-    {
-         name: 'Away',
-        color: 'yellow'
-    },
-    {
-         name: 'Busy',
-        color: 'red'
-    },
-    {
-         name: 'Offline',
-        color: 'grey'
-    }
-]
 frappe.Chat.AppBar.Account
 =
 class extends Component {

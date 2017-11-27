@@ -81,7 +81,7 @@ class ChatRoom(Document):
             diff   = _dictify(get_diff(before, after)) # whoever you are, thank you for this.
             if diff:
                 # notify only if there is an update.
-                update = dict(name = self.name) # Update Goodies.
+                update = dict() # Update Goodies.
                 # Types of Differences
                 # 1. Changes
                 for changed in diff.changed:
@@ -93,11 +93,25 @@ class ChatRoom(Document):
                 # 2. Added or Removed
                 # TODO
                 # [ ] Handle users.
+                # I personally feel this could be done better by either creating a new event
+                # or attaching to the below event. Questions like Who removed Whom? Who added Whom? etc.
+                # For first-cut, let's simply update the latest user list.
+                # This is because the Version DocType already handles it.
+                
+                if diff.added or diff.removed:
+                    update.update({
+                        'users': [u.user for u in self.users]
+                    })
 
-                frappe.publish_realtime('frappe.chat:room:update', update,
+                resp   = dict(
+                    room = self.name,
+                    data = update
+                )
+
+                frappe.publish_realtime('frappe.chat.room.update', resp,
                     room = self.name, after_commit = True)
 
-def is_one_on_one(owner, other, bidirectional = True):
+def is_one_on_one(owner, other, bidirectional = False):
     '''
     checks if the owner and other have a direct conversation room.
     '''
@@ -110,11 +124,11 @@ def is_one_on_one(owner, other, bidirectional = True):
 
         return room
 
-    one_on_one = len(get_room(owner, other)) == 1
-    if one_on_one and bidirectional:
-        one_on_one = one_on_one and len(get_room(other, owner)) == 1
-        
-    return one_on_one
+    exists = len(get_room(owner, other)) == 1
+    if bidirectional:
+        exists = exists or len(get_room(other, owner)) == 1
+    
+    return exists
 
 def get_chat_room_user_set(users):
     '''
@@ -132,17 +146,31 @@ def get_chat_room_user_set(users):
 
     return news
 
-def get_new_chat_room_doc(kind, owner = None, name = None, users = None):
+def get_new_chat_room_doc(kind, owner, users = None, name = None):
     room = frappe.new_doc('Chat Room')
     room.type  	   = kind
     room.owner 	   = owner
     room.room_name = name
+
+    users          = users if isinstance(users, list) or users is None else [users]
+    docs           = [ ]
+    if users:
+        for user in users:
+            doc      = frappe.new_doc('Chat Room User')
+            doc.user = user
+
+            docs.append(doc)
+    
+    room.users     = docs
+    room.save()
     
     return room
 
-def get_new_chat_room(kind, owner = None, name = None, users = None):
-    room = get_new_chat_room_doc(kind, owner, name, users)
-    room.save()
+def get_new_chat_room(kind, owner, users = None, name = None):
+    room = get_new_chat_room_doc(kind, owner, users = users, name = name)
+    room = get_user_chat_rooms(owner, rooms = room.name)
+
+    return room
 
 @frappe.whitelist()
 def get_user_chat_rooms(user = None, rooms = None, fields = None):
@@ -184,11 +212,14 @@ def get_user_chat_rooms(user = None, rooms = None, fields = None):
     return rooms
 
 @frappe.whitelist()
-def create(kind, owner = None, users = None, name = None):
+def create(kind, owner, users = None, name = None):
     if owner != session.user:
         frappe.throw(_("Sorry! You're not authorized to create a Chat Room."))
 
-    room = get_new_chat_room(kind, owner, name, users)
+    room = get_new_chat_room(kind, owner, users = users, name = name)
+    room = squashify(room)
+
+    return _dictify(room)
 
 @frappe.whitelist()
 def get(user, rooms = None, fields = None):
