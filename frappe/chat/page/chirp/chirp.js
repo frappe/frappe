@@ -148,15 +148,23 @@ frappe.chat.profile.create
 =
 (fields, fn) =>
 {
-    if ( typeof fields === 'function' )
-        fields = null
-    else
-    if ( typeof fields === 'string' )
-        fields = [fields]
-    
-    frappe.call('frappe.chat.doctype.chat_profile.chat_profile.create',
-        { user: frappe.session.user, exists_ok: true, fields: fields },
-            r => fn(r.message))
+    return new Promise(resolve => {
+        if ( typeof fields === 'function' ) {
+            fn     = fields
+            fields = null
+        } else
+        if ( typeof fields === 'string' )
+            fields = [fields]
+        
+        frappe.call('frappe.chat.doctype.chat_profile.chat_profile.create',
+            { user: frappe.session.user, exists_ok: true, fields: fields },
+                r => {
+                    if ( fn )
+                        fn(r.message)
+                    
+                    resolve(r.message)
+                })
+    })
 }
 
 frappe.chat.update_chat_profile
@@ -640,7 +648,7 @@ class extends Component {
             h("div", { class: "frappe-chat__room" },
                 props.name ?
                     h("div", { class: "panel panel-default", style: "height: 720px; overflow-y: scroll;" },
-                        h(frappe.Chat.Room.Header, { ...props }),
+                        h(frappe.Chat.Room.Header, { ...props, click_phone: null }),
                         h(frappe.Chat.ChatList, {
                             messages: props.messages
                         }),
@@ -705,7 +713,7 @@ class extends Component {
                         h("div", { class: "text-right" },
                             // Button ToolBar
                             h("a", null,
-                                h("i", { class: "fa fa-fw fa-phone" })
+                                h("i", { class: "fa fa-fw fa-phone", onclick: props.click_phone })
                             )
                         )
                     )
@@ -936,4 +944,4 @@ frappe.pages.chirp.on_page_load   = (parent) => {
     render(h(frappe.Chat), $container[0])
 }
 
-frappe.Peer.boot()
+// frappe.Peer.boot()

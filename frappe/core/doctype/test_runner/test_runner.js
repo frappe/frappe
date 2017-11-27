@@ -56,7 +56,7 @@ frappe.ui.form.on('Test Runner', {
 				// };
 
 				// eslint-disable-next-line
-				console.log(JSON.stringify(result, null, 2));
+				// console.log(JSON.stringify(result, null, 2));
 
 				details.assertions.map(a => {
 					// eslint-disable-next-line

@@ -41,20 +41,23 @@ def safe_json_loads(*args):
 		except Exception as e:
 			pass
 			
-		results.append(arg)
+		results.append(arg
 	
 	return squashify(results)
 
 def filter_dict(what, keys, ignore = False):
 	copy = dict()
 
-	for k in keys:
-		if k not in what and not ignore:
-			raise KeyError('{key} not in dict.'.format(key = k))
-		else:
-			copy.update({
-				k: what[k]
-			})
+	if keys:
+		for k in keys:
+			if k not in what and not ignore:
+				raise KeyError('{key} not in dict.'.format(key = k))
+			else:
+				copy.update({
+					k: what[k]
+				})
+	else:
+		copy = what.copy()
 
 	return copy
 

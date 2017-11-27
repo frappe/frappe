@@ -152,6 +152,7 @@ frappe.ui.form.ScriptManager = Class.extend({
 		// js
 		var cs = doctype.__js;
 		if(cs) {
+			console.log(cs)
 			var tmp = eval(cs);
 		}
 
