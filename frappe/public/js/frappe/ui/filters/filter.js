@@ -66,18 +66,23 @@ frappe.ui.Filter = Class.extend({
 		}
 	},
 
+	setup_state(is_new, hidden) {
+		is_new ? this.wrapper.addClass("new-filter") : this.freeze();
+		if(hidden) this.$filter_tag.hide();
+	},
+
 	apply() {
 		var f = this.get_value();
 
-		this.flist = this.flist.filter(f => f !== this); // remove filter
-		this.flist.add_new_filter(f[0], f[1], f[2], f[3]);
+		this.flist = this.flist.filters.filter(f => f !== this); // remove filter
+		this.flist.push_new_filter(f[0], f[1], f[2], f[3]);
 		this.wrapper.remove();
 		this.flist.update_filters();
 	},
 
 	remove(dont_run) {
 		this.wrapper.remove();
-		this.$btn_group && this.$btn_group.remove();
+		this.$filter_tag && this.$filter_tag.remove();
 		this.field = null;
 		this.flist.update_filters();
 
@@ -263,7 +268,7 @@ frappe.ui.Filter = Class.extend({
 	},
 
 	freeze() {
-		if(this.$btn_group) {
+		if(this.$filter_tag) {
 			// already made, just hide the condition setter
 			this.set_filter_button_text();
 			this.wrapper.toggle(false);
@@ -273,7 +278,7 @@ frappe.ui.Filter = Class.extend({
 		var me = this;
 
 		// add a button for new filter if missing
-		this.$btn_group = $(`<div class="btn-group">
+		this.$filter_tag = $(`<div class="filter-tag btn-group">
 			<button class="btn btn-default btn-xs toggle-filter"
 				title="${ __("Edit Filter") }">
 			</button>
@@ -285,11 +290,11 @@ frappe.ui.Filter = Class.extend({
 
 		this.set_filter_button_text();
 
-		this.$btn_group.find(".remove-filter").on("click", function() {
+		this.$filter_tag.find(".remove-filter").on("click", function() {
 			me.remove();
 		});
 
-		this.$btn_group.find(".toggle-filter").on("click", function() {
+		this.$filter_tag.find(".toggle-filter").on("click", function() {
 			$(this).closest('.tag-filters-area').find('.filter-update-area').show()
 			me.wrapper.toggle();
 		})
@@ -300,15 +305,15 @@ frappe.ui.Filter = Class.extend({
 		var value = this.get_selected_value();
 		value = this.flist.get_formatted_value(this.field, value);
 
-		// for translations
-		// __("like"), __("not like"), __("in")
+		// for translations: __("like"), __("not like"), __("in")
 
-		this.$btn_group.find(".toggle-filter")
+		this.$filter_tag.find(".toggle-filter")
 			.html(repl('%(label)s %(condition)s "%(value)s"', {
 				label: __(this.field.df.label),
 				condition: __(this.get_condition()),
 				value: __(value),
 			}));
-	}
+	},
+
 
 });

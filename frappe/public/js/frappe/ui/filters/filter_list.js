@@ -1,6 +1,3 @@
-// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-// MIT License. See license.txt
-
 frappe.ui.FilterList = Class.extend({
 	init(opts) {
 		$.extend(this, opts);
@@ -23,62 +20,44 @@ frappe.ui.FilterList = Class.extend({
 	add_filter(doctype, fieldname, condition, value, hidden) {
 		// adds a new filter, returns true if filter has been added
 
-		// allow equal to be used as like
-		let base_filter = this.base_list.page.fields_dict[fieldname];
-		if (base_filter
-			&& (base_filter.df.condition==condition
-				|| (condition==='=' && base_filter.df.condition==='like'))) {
-			// if filter exists in base_list, then exit
-			this.base_list.page.fields_dict[fieldname].set_input(value);
-
-			return true;
-		}
+		// {}: Add in page filter if exists and return ('=' => 'like')
 
 		if(doctype && fieldname
 			&& !frappe.meta.has_field(doctype, fieldname)
-			&& !in_list(frappe.model.std_fields_list, fieldname)) {
-			frappe.msgprint({
-				message: __('Filter {0} missing', [fieldname.bold()]),
-				title: 'Invalid Filter',
-				indicator: 'red'
-			});
-			return false;
+			&& !frappe.model.std_fields_list.includes(fieldname)) {
+
+				frappe.msgprint({
+					message: __('Filter {0} missing', [fieldname.bold()]),
+					title: 'Invalid Filter',
+					indicator: 'red'
+				});
+				return false;
 		}
 
-		this.wrapper.find('.tag-filters-area').toggle(true);
-		var is_new_filter = arguments.length===0;
-
+		const is_new_filter = arguments.length===0;
 		if (is_new_filter && this.wrapper.find(".new-filter:visible").length) {
 			// only allow 1 new filter at a time!
 			return false;
-		}
-
-		var filter = this.add_new_filter(doctype, fieldname, condition, value);
-		if (!filter) return;
-
-		if (filter && is_new_filter) {
-			filter.wrapper.addClass("new-filter");
 		} else {
-			filter.freeze();
+			let args = [doctype, fieldname, condition, value];
+			return this.push_new_filter(args, is_new_filter, hidden);
 		}
-
-		if (hidden) {
-			filter.$btn_group.addClass("hide");
-		}
-
-		return true;
 	},
 
-	add_new_filter(doctype, fieldname, condition, value) {
-		if(this.filter_exists([doctype, fieldname, condition, value])) {
-			return;
-		}
+	push_new_filter(args, is_new_filter=false, hidden=false) {
+		// args: [doctype, fieldname, condition, value]
+		if(this.filter_exists(args)) return;
+
 		// {}: Clear page filter fieldname field
-		this._add_new_filter(doctype, fieldname, condition, value);
+
+		let filter = this._push_new_filter(...args);
+
+		filter && filter.setup_state(is_new_filter, hidden);
+		return filter;
 	},
 
-	_add_new_filter(doctype, fieldname, condition, value) {
-		var filter = new frappe.ui.Filter({
+	_push_new_filter(doctype, fieldname, condition, value) {
+		let filter = new frappe.ui.Filter({
 			flist: this,
 			_doctype: doctype,
 			fieldname: fieldname,
