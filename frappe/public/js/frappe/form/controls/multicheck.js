@@ -1,6 +1,6 @@
 frappe.ui.form.ControlMultiCheck = frappe.ui.form.ControlData.extend({
 	// UI: multiple checkboxes
-	// Value: Comma-separated string of values
+	// Value: Array of values
 	// Options: Array of label/value option objects
 
 	make_input() {
@@ -43,12 +43,21 @@ frappe.ui.form.ControlMultiCheck = frappe.ui.form.ControlData.extend({
 
 	refresh_input() {
 		this._super();
-		this.selected_options = this.split(this.value || "");
+		this.selected_options = this.get_input_value();
 		this.options.map(option => option.value).forEach(value => {
 			$(this.input_area)
 				.find(`:checkbox[${this.check_field_attr}=${value}]`)
 				.prop("checked", this.selected_options.includes(value));
 		});
+	},
+
+	set_input(array) {
+		let value = JSON.stringify(array);
+		this._super(value);
+	},
+
+	get_input_value() {
+		return this.$input ? JSON.parse(this.$input.val()) : [];
 	},
 
 	parse_df_options() {
@@ -58,11 +67,11 @@ frappe.ui.form.ControlMultiCheck = frappe.ui.form.ControlData.extend({
 			let args = JSON.parse(this.df.options);
 			if(Array.isArray(args)) {
 				this.options = args;
-			} else {
+			} else if(Array.isArray(args.options)) {
 				if(args.select_all) {
 					this.select_all = true;
 				}
-				this.options = this.split(args.options || []);
+				this.options = args.options;
 			}
 		} else {
 			this.options = [];
@@ -90,7 +99,7 @@ frappe.ui.form.ControlMultiCheck = frappe.ui.form.ControlData.extend({
 				let index = this.selected_options.indexOf(option);
 				this.selected_options.splice(index, 1);
 			}
-			this.set_value(this.selected_options.join(','));
+			this.set_value(this.selected_options);
 		});
 	},
 
@@ -123,9 +132,5 @@ frappe.ui.form.ControlMultiCheck = frappe.ui.form.ControlData.extend({
 			style="margin-right: 5px;">${__("Select All")}</button>
 			<button class="btn btn-xs btn-default deselect-all">
 		${__("Unselect All")}</button></div>`);
-	},
-
-	split(str) {
-		return str.split(',').filter(option => option.length > 0);
 	}
 });

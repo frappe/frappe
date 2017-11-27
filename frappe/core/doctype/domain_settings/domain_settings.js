@@ -16,10 +16,12 @@ frappe.ui.form.on('Domain Settings', {
 	},
 
 	set_options_in_table: function(frm) {
-		let selected_options = frm.fields_dict.domains.selected_options;
-		let unselected_options = frm.fields_dict.domains.options.filter(option => {
-			return !selected_options.includes(option);
-		});
+		let selected_options = frm.doc.domains;
+		let unselected_options = frm.fields_dict.domains.options
+			.map(option => option.value)
+			.filter(value => {
+				return !selected_options.includes(value);
+			});
 
 		let map = {}, list = [];
 		(frm.doc.active_domains || []).map(row => {
