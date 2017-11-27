@@ -66,6 +66,10 @@ io.on('connection', function(socket) {
 	console.log('frappe.chat.subscribe - listener')
 	// frappe.chat
 	socket.on("frappe.chat:subscribe", function (rooms) {
+		if ( !Array.isArray(rooms) ) {
+			rooms = [rooms]
+		}
+		
 		for (var room of rooms) {
 			console.log('frappe.chat: Subscribing ' + socket.user + ' to room  ' + room.name)
 			room = get_chat_room(socket, room.name)

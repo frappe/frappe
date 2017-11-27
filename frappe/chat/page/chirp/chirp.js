@@ -283,6 +283,12 @@ frappe.chat.room.on.update
 =
 (fn) => frappe.realtime.on('frappe.chat.room.update', r => fn(r.room, r.data))
 
+frappe.chat.message = { }
+frappe.chat.message.on = { }
+frappe.chat.message.on.new
+=
+(fn) => null
+
 frappe.Chat
 =
 class extends Component {
@@ -292,6 +298,7 @@ class extends Component {
         this.on_change_status = this.on_change_status.bind(this)
         this.on_select_room   = this.on_select_room.bind(this)
 
+        this.add_room         = this.add_room.bind(this)
         this.update_room      = this.update_room.bind(this)
 
         this.state            = frappe.Chat.defaultState
@@ -339,8 +346,6 @@ class extends Component {
         })
 
         frappe.chat.room.on.update((room, update) => {
-            console.log(room, update)
-
             this.update_room(room, update)
         })
         
@@ -395,7 +400,20 @@ class extends Component {
         }
     }
 
-    
+    add_room (room)
+    {
+        frappe.chat.room.subscribe(room.name)
+        
+        const { state } = this
+        const rooms     = state.rooms.slice()
+        // push? update based on creation/update timestamp.
+        rooms.push(room)
+
+        this.setState({
+            rooms: rooms
+        })
+    }
+
     render ( ) {
         const { state } = this
         
@@ -408,12 +426,20 @@ class extends Component {
                                        status: state.profile.status,
                                         rooms: state.rooms,
                              on_change_status: this.on_change_status,
-                               on_new_message: (user) => {
+                               on_new_message: (user) => 
+                               {
                                     frappe.chat.room.create("Direct", null, user, (room) =>
                                     {
-                                        console.log(room)
+                                        this.add_room(room)
                                     })
                                },
+                                 on_new_group: (name, users) => 
+                                 {
+                                    frappe.chat.room.create("Group", null, users, name, (room) => 
+                                    {
+                                        this.add_room(room)
+                                    })
+                                 },
                                on_select_room: this.on_select_room
                         }) : null
                 ),
@@ -506,20 +532,38 @@ class extends Component {
     }
 
     on_click_new_group ( ) {
-        const dialog = new frappe.ui.Dialog({
+        const { props } = this
+        const dialog    = new frappe.ui.Dialog({
               title: __(`New Group`),
             animate: false,
              fields: [
+                {
+                        label: "Name",
+                    fieldname: "name",
+                    fieldtype: "Data",
+                         reqd: true
+                },
                 {   
                         label: "Select Users",
-                    fieldname: "user",
+                    fieldname: "users",
                     fieldtype: "MultiSelect",
-                      options: [ ], // Hmm, how does this work?
+                      options: Object.keys(frappe.boot.user_info).map(key => frappe.boot.user_info[key].email)
                 }
              ],
             primary_action_label: __(`Create`),
             primary_action: (data) => {
-                
+                dialog.hide()
+
+                const name  = data.name
+                var   users = [ ]
+
+                if ( data.users ) 
+                {
+                    users = data.users.split(", ")
+                    users = users.slice(0, users.length - 1)
+                }
+
+                props.on_new_group(name, users)
             }
         })
         dialog.show()
@@ -980,7 +1024,6 @@ class extends Component {
         )
     }
 }
-
 frappe.Chat.ChatForm.defaultState = {
     content: null
 }

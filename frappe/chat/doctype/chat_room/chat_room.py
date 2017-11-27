@@ -213,11 +213,12 @@ def get_user_chat_rooms(user = None, rooms = None, fields = None):
 
 @frappe.whitelist()
 def create(kind, owner, users = None, name = None):
+    users = safe_json_loads(users)
     if owner != session.user:
         frappe.throw(_("Sorry! You're not authorized to create a Chat Room."))
 
-    room = get_new_chat_room(kind, owner, users = users, name = name)
-    room = squashify(room)
+    room  = get_new_chat_room(kind, owner, users = users, name = name)
+    room  = squashify(room)
 
     return _dictify(room)
 
