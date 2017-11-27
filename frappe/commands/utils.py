@@ -328,9 +328,10 @@ def run_tests(context, app=None, module=None, doctype=None, test=(),
 @click.command('run-ui-tests')
 @click.option('--app', help="App to run tests on, leave blank for all apps")
 @click.option('--test', help="Path to the specific test you want to run")
+@click.option('--test-list', help="Path to the txt file with the list of test cases")
 @click.option('--profile', is_flag=True, default=False)
 @pass_context
-def run_ui_tests(context, app=None, test=False, profile=False):
+def run_ui_tests(context, app=None, test=False, test_list=False, profile=False):
 	"Run UI tests"
 	import frappe.test_runner
 
@@ -338,7 +339,7 @@ def run_ui_tests(context, app=None, test=False, profile=False):
 	frappe.init(site=site)
 	frappe.connect()
 
-	ret = frappe.test_runner.run_ui_tests(app=app, test=test, verbose=context.verbose,
+	ret = frappe.test_runner.run_ui_tests(app=app, test=test, test_list=test_list, verbose=context.verbose,
 		profile=profile)
 	if len(ret.failures) == 0 and len(ret.errors) == 0:
 		ret = 0

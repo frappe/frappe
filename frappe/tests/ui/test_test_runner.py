@@ -51,23 +51,31 @@ def get_tests():
 	'''Get tests base on flag'''
 	frappe.db.set_value('Test Runner', None, 'app', frappe.flags.ui_test_app or '')
 
-	if frappe.flags.ui_test_path:
+	if frappe.flags.ui_test_list:
+		# list of tests
+		return get_tests_for(test_list=frappe.flags.ui_test_list)
+	elif frappe.flags.ui_test_path:
 		# specific test
 		return (frappe.flags.ui_test_path,)
 	elif frappe.flags.ui_test_app:
 		# specific app
-		return get_tests_for(frappe.flags.ui_test_app)
+		return get_tests_for(app=frappe.flags.ui_test_app)
 	else:
 		# all apps
 		tests = []
 		for app in frappe.get_installed_apps():
-			tests.extend(get_tests_for(app))
+			tests.extend(get_tests_for(app=app))
 		return tests
 
-def get_tests_for(app):
-	'''Get all tests for a particular app'''
+def get_tests_for(test_list=None, app=None):
 	tests = []
-	tests_path = frappe.get_app_path(app, 'tests', 'ui', 'tests.txt')
+	if test_list:
+		# Get all tests from a particular txt file
+		app, test_list = test_list.split(os.path.sep, 1)
+		tests_path = frappe.get_app_path(app, test_list)
+	else:
+		# Get all tests for a particular app
+		tests_path = frappe.get_app_path(app, 'tests', 'ui', 'tests.txt')
 	if os.path.exists(tests_path):
 		with open(tests_path, 'r') as fileobj:
 			tests = fileobj.read().strip().splitlines()
