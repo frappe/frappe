@@ -13,7 +13,8 @@ from frappe.chat.util import (
     get_user_doc,
     safe_json_loads,
     _dictify,
-    squashify
+    squashify,
+    assign_if_none
 )
 
 session = frappe.session
@@ -151,25 +152,34 @@ def get_user_chat_rooms(user = None, rooms = None, fields = None):
     if user is None, defaults to session user.
     if room is None, returns the entire list of rooms subscribed by user.
     '''
-    user  = get_user_doc(user)
-    rooms = frappe.get_list('Chat Room',
+    user   = get_user_doc(user)
+    
+    rooms  = assign_if_none(rooms, [ ])
+    fields = assign_if_none(fields, [ ])
+
+    param  = [f for f in fields if f != 'users']
+    
+    rooms  = frappe.get_list('Chat Room',
         or_filters = [
             ['Chat Room', 'owner', '=', user.name],
             ['Chat Room User', 'user', '=', user.name]
         ],
-        fields     = fields if fields else [
+        filters    = [
+            ['Chat Room', 'name', 'in', rooms]
+        ] if rooms else None,
+        fields     = param if param or 'users' in fields else [
             'type', 'name', 'owner', 'room_name', 'avatar'
         ],
         distinct   = True
     )
 
-    # get information from child table.
-    for i, r in enumerate(rooms):
-        doc_room		  = frappe.get_doc('Chat Room', r.name)
-        rooms[i]['users'] = [ ]
+    if not fields or 'users' in fields:
+        for i, r in enumerate(rooms):
+            doc_room		  = frappe.get_doc('Chat Room', r.name)
+            rooms[i]['users'] = [ ]
 
-        for user in doc_room.users:
-            rooms[i]['users'].append(user.user)
+            for user in doc_room.users:
+                rooms[i]['users'].append(user.user)
 
     return rooms
 
@@ -181,8 +191,8 @@ def create(kind, owner = None, users = None, name = None):
     room = get_new_chat_room(kind, owner, name, users)
 
 @frappe.whitelist()
-def get(user, room = None, fields = None):
-    room   = safe_json_loads(room)
+def get(user, rooms = None, fields = None):
+    rooms  = safe_json_loads(rooms)
     fields = safe_json_loads(fields)
 
     user   = get_user_doc(user)
@@ -190,7 +200,7 @@ def get(user, room = None, fields = None):
     if user.name != frappe.session.user:
         frappe.throw(_("You're not authorized to view this room."))
 
-    data = get_user_chat_rooms(user, room)
+    data = get_user_chat_rooms(user, rooms, fields)
     resp = squashify(data) # <- you're welcome - achilles@frappe.io
     
     return _dictify(resp)

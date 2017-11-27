@@ -136,4 +136,4 @@ def update(user, data):
         rooms = get_user_chat_rooms(user) # one or more, okay?
         rooms = [r for r in rooms if r.type in ('Direct', 'Visitor')]
         for room in rooms:
-            frappe.publish_realtime('frappe.chat:profile:update', resp, room = room.name, after_commit = True)
+            frappe.publish_realtime('frappe.chat.profile.update', resp, room = room.name, after_commit = True)

@@ -148,31 +148,52 @@ frappe.chat.profile.create
 =
 (fields, fn) =>
 {
-    return new Promise(resolve => {
-        if ( typeof fields === 'function' ) {
-            fn     = fields
-            fields = null
-        } else
-        if ( typeof fields === 'string' )
-            fields = [fields]
-        
+    if ( typeof fields === 'function' ) {
+        fn     = fields
+        fields = null
+    } else
+    if ( typeof fields === 'string' )
+        fields = [fields]
+
+    return new Promise(resolve =>
+    {
         frappe.call('frappe.chat.doctype.chat_profile.chat_profile.create',
             { user: frappe.session.user, exists_ok: true, fields: fields },
-                r => {
+                response => 
+                {
                     if ( fn )
-                        fn(r.message)
+                        fn(response.message)
                     
-                    resolve(r.message)
+                    resolve(response.message)
+                })
+    })
+}
+frappe.chat.profile.update
+=
+(user, update, fn) =>
+{
+    return new Promise(resolve => 
+    {
+        frappe.call('frappe.chat.doctype.chat_profile.chat_profile.update',
+            { user: user || frappe.session.user, data: update },
+                response => 
+                {
+                    if ( fn )
+                        fn(response.message)
+                    
+                    resolve(response.message)
                 })
     })
 }
 
+frappe.chat.profile.on = { }
+frappe.chat.profile.on.update
+= // You should use . and not :, use . for event, : for query.
+(fn) => frappe.realtime.on('frappe.chat.profile.update', r => fn(r.user, r.data))
+
 frappe.chat.update_chat_profile
 = 
 (data, fn) =>
-    frappe.call('frappe.chat.doctype.chat_profile.chat_profile.update',
-        { user: frappe.session.user, data: data },
-            r => fn && fn())
 frappe.chat.create_room
 =
 (kind, owner, users, name) =>
@@ -192,6 +213,7 @@ frappe.chat.room.get
     else
     if ( typeof names === 'string' ) {
         names  = [names]
+
         if ( typeof fields === 'function' ) {
             fn     = fields
             fields = null
@@ -201,31 +223,52 @@ frappe.chat.room.get
             fields = [fields]
     }
 
-    frappe.call('frappe.chat.doctype.chat_room.chat_room.get',
-        { user: frappe.session.user, room: names, fields: fields },
-            r => fn(r.message))
+    return new Promise(resolve => 
+    {
+
+        frappe.call('frappe.chat.doctype.chat_room.chat_room.get',
+            { user: frappe.session.user, rooms: names, fields: fields },
+                response =>
+                {
+                    if ( fn )
+                        fn(response.message)
+
+                    resolve(response.message)
+                })
+    })
+}
+frappe.chat.room.subscribe
+=
+(rooms) => frappe.realtime.publish('frappe.chat:subscribe', rooms)
+
+frappe.chat.room.history
+=
+(name, fn) =>
+{
+    return new Promise(resolve =>
+    {
+        frappe.call('frappe.chat.doctype.chat_room.chat_room.get_history',
+            { room: name },
+                response => 
+                {
+                    const response = r.message ? r.message : [ ] // frappe.api BOGZ!
+
+                    if ( fn )
+                        fn(response)
+                    
+                    resolve(response)
+                })
+    })
 }
 
 frappe.chat.get_room_history
 =
 (name, fn) =>
-    frappe.call('frappe.chat.doctype.chat_room.chat_room.get_history',
-        { room: name },
-            r => {
-                if ( r.message ) // frappe.api BOGZ!
-                    fn(r.message)
-                else
-                    fn([])
-            })
 frappe.chat.send_message
 =
 (message) =>
     frappe.call('frappe.chat.doctype.chat_message.chat_message.send',
         { ...message })
-frappe.chat.room.subscribe
-=
-(rooms) =>
-    frappe.realtime.publish('frappe.chat:subscribe', rooms)
 
 frappe.Chat
 =
@@ -244,40 +287,39 @@ class extends Component {
     }
 
     make ( ) {
-        frappe.chat.profile.create("status", profile => {
+        frappe.chat.profile.create("status", profile =>
+        {
             this.setState({ profile })
 
             frappe.chat.room.get(rooms => {
                 if ( rooms ) { // if you're not a loner
-                    frappe.chat.room.subscribe(rooms, (rooms) => {
-                        if ( !frappe.is_array(rooms) ) {
-                            rooms = [rooms]
-                        }
-                        
-                        this.setState({ rooms })
+                    frappe.chat.room.subscribe(rooms) // don't, what if node isn't ready yet?
 
-                        // Bind events now that we have everything on plate.
-                        this.bind()
-                    })
+                    if ( !frappe.is_array(rooms) ) {
+                        rooms = [rooms]
+                    }
+                    
+                    this.setState({ rooms })
+
+                    // Bind events now that we have everything on plate.
+                    this.bind()
                 }
             })
         })
     }
     
     bind ( ) {
-        frappe.realtime.on('frappe.chat:profile:update', (response) => {
-            const { user, data } = response
-            
-            if ( data.status ) {
+        frappe.chat.profile.on.update((user, update) => {
+            if ( update.status ) {
                 if ( user === frappe.session.user ) {
                     this.setState({
-                        profile: { ...this.state.profile, status: data.status }
+                        profile: { ...this.state.profile, status: update.status }
                     })
                 } else {
-                    const status = frappe.Chat.CHAT_PROFILE_STATUSES.find(s => s.name === data.status)
+                    const status = frappe.Chat.CHAT_PROFILE_STATUSES.find(s => s.name === update.status)
                     const color  = status.color
                     
-                    const alert  = `<span class="indicator ${color}"/> ${frappe.user.full_name(user)} is currently <b>${data.status}</b>`
+                    const alert  = `<span class="indicator ${color}"/> ${frappe.user.full_name(user)} is currently <b>${update.status}</b>`
                     frappe.show_alert(alert, 3)
                 }
             }
@@ -299,6 +341,12 @@ class extends Component {
         })
     }
     
+    on_change_status (status) {
+        frappe.chat.profile.update(null, {
+            status: status
+        })
+    }
+
     update_room (name, update) {
         // Update Room List
         const { state } = this
@@ -312,19 +360,15 @@ class extends Component {
 
         // Update Room View
         if ( state.room.name === name ) {
-            console.log(update)
             const room = Object.assign({ }, state.room, update)
 
             this.setState({ room })
         }
     }
-    
-    on_change_status (status) {
-        frappe.chat.update_chat_profile({ status: status })
-    }
 
     on_select_room (name) {
-        frappe.chat.get_room_history(name, m => {
+        frappe.chat.room.history(name, m => 
+        {
             const { state } = this
             const room      = this.state.rooms.find(r => r.name === name)
 
@@ -341,7 +385,8 @@ class extends Component {
             h("div", { class: "frappe-chat" },
                 h("div", { class: "col-md-2 col-sm-3 layout-side-section" },
                     state.profile ?
-                        h(frappe.Chat.AppBar, {
+                        h(frappe.Chat.AppBar,
+                        {
                                        status: state.profile.status,
                                         rooms: state.rooms,
                              on_change_status: this.on_change_status,
@@ -358,14 +403,8 @@ class extends Component {
 frappe.Chat.defaultState = {
     profile: null,
       rooms: [ ],
-       room: { name: null, messages: [ ], typing: null }
+       room: { name: null, messages: [ ] }
 }
-
-frappe.Chat.Layout = 
-{
-    PAGE: 'page', COLLAPSIBLE: 'collapsible'
-}
-
 
 frappe.Chat.AppBar
 =
@@ -933,9 +972,8 @@ frappe.Chat.get_datetime_string   = (date) => {
     }
 }
 
-frappe.pages.chirp.on_page_load   = (parent) => {
-    const page =
-    new frappe.ui.Page({
+frappe.pages.chirp.on_page_load = (parent) => {
+    const page       = new frappe.ui.Page({
         parent: parent, title: __(`Chat`)
     })
     const $container = $(parent).find(".layout-main")
@@ -943,5 +981,3 @@ frappe.pages.chirp.on_page_load   = (parent) => {
 
     render(h(frappe.Chat), $container[0])
 }
-
-// frappe.Peer.boot()
