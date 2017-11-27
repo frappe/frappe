@@ -335,34 +335,45 @@ frappe.views.QueryReport = Class.extend({
 		var $filters = $(this.parent).find('.page-form .filters');
 		$(this.parent).find('.page-form').toggle($filters.length ? true : false);
 
+		//  set the field 'query_report_filters_by_name' first as they can be used in
+		//     setting/triggering the filters
+		this.set_filters_by_name();
+
 		this.setting_filters = true;
 		this.set_route_filters();
 		this.setting_filters = false;
 
-		this.set_filters_by_name();
 		this.flags.filters_set = true;
 	},
 	clear_filters: function() {
 		this.filters = [];
 		$(this.parent).find('.page-form .filters').remove();
 	},
-	set_route_filters: function() {
-		var me = this;
-		if(frappe.route_options) {
-			$.each(this.filters || [], function(i, f) {
-				if(frappe.route_options[f.df.fieldname]!=null) {
-					f.set_value(frappe.route_options[f.df.fieldname]);
-				}
-			});
-		}
-		frappe.route_options = null;
-	},
 	set_filters_by_name: function() {
 		frappe.query_report_filters_by_name = {};
-
 		for(var i in this.filters) {
 			frappe.query_report_filters_by_name[this.filters[i].df.fieldname] = this.filters[i];
 		}
+	},
+	set_route_filters: function() {
+		var me = this;
+		if(frappe.route_options) {
+			const fields = Object.keys(frappe.route_options);
+			const filters_to_set = this.filters.filter(f => fields.includes(f.df.fieldname));
+
+			const promises = filters_to_set.map(f => {
+				return () => {
+					const value = frappe.route_options[f.df.fieldname];
+					return f.set_value(value);
+				}
+			});
+			promises.push(() => {
+				frappe.route_options = null;
+			});
+
+			return frappe.run_serially(promises);
+		}
+
 	},
 	refresh: function() {
 		// throttle
