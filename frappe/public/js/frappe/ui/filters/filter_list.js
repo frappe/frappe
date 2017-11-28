@@ -3,7 +3,6 @@ frappe.ui.FilterList = Class.extend({
 		$.extend(this, opts);
 		this.wrapper = this.parent;
 		this.filters = [];
-		this.stats = [];
 		this.make();
 	},
 
@@ -14,25 +13,15 @@ frappe.ui.FilterList = Class.extend({
 	},
 
 	set_events() {
-		this.wrapper.find('.add-filter').bind('click', this.add_filter.bind(this));
+		this.wrapper.find('.add-filter').on('click', this.add_filter.bind(this));
 	},
 
 	add_filter(doctype, fieldname, condition, value, hidden) {
 		// adds a new filter, returns true if filter has been added
 
-		// {}: Add in page filter if exists and return ('=' => 'like')
+		// {}: Add in page filter by fieldname if exists ('=' => 'like')
 
-		if(doctype && fieldname
-			&& !frappe.meta.has_field(doctype, fieldname)
-			&& !frappe.model.std_fields_list.includes(fieldname)) {
-
-				frappe.msgprint({
-					message: __('Filter {0} missing', [fieldname.bold()]),
-					title: 'Invalid Filter',
-					indicator: 'red'
-				});
-				return false;
-		}
+		if(!this.validate_args(doctype, fieldname)) return false;
 
 		const is_new_filter = arguments.length===0;
 		if (is_new_filter && this.wrapper.find(".new-filter:visible").length) {
@@ -42,6 +31,17 @@ frappe.ui.FilterList = Class.extend({
 			let args = [doctype, fieldname, condition, value];
 			return this.push_new_filter(args, is_new_filter, hidden);
 		}
+	},
+
+	validate_args(doctype, fieldname) {
+		if(doctype && fieldname
+			&& !frappe.meta.has_field(doctype, fieldname)
+			&& !frappe.model.std_fields_list.includes(fieldname)) {
+
+				frappe.throw(__(`Invalid filter: "${[fieldname.bold()]}"`));
+				return false;
+		}
+		return true;
 	},
 
 	push_new_filter(args, is_new_filter=false, hidden=false) {
@@ -57,6 +57,7 @@ frappe.ui.FilterList = Class.extend({
 	},
 
 	_push_new_filter(doctype, fieldname, condition, value) {
+		console.log("this in push", doctype, this);
 		let filter = new frappe.ui.Filter({
 			flist: this,
 			_doctype: doctype,
@@ -98,7 +99,7 @@ frappe.ui.FilterList = Class.extend({
 	},
 
 	clear_filters() {
-		$.each(this.filters, function(i, f) { f.remove(true); });
+		this.filters.map(f => { f.remove(true); });
 		// {}: Clear page filters, .date-range-picker (called list run())
 		this.filters = [];
 	},

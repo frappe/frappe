@@ -6,10 +6,10 @@ frappe.ui.FieldSelect = Class.extend({
 		$.extend(this, opts);
 		this.fields_by_name = {};
 		this.options = [];
-		this.$select = $('<input class="form-control">')
+		this.$input = $('<input class="form-control">')
 			.appendTo(this.parent)
 			.on("click", function () { $(this).select(); });
-		this.select_input = this.$select.get(0);
+		this.select_input = this.$input.get(0);
 		this.awesomplete = new Awesomplete(this.select_input, {
 			minChars: 0,
 			maxItems: 99,
@@ -21,7 +21,7 @@ frappe.ui.FieldSelect = Class.extend({
 				.get(0);
 			}
 		});
-		this.$select.on("awesomplete-select", function(e) {
+		this.$input.on("awesomplete-select", function(e) {
 			var o = e.originalEvent;
 			var value = o.text.value;
 			var item = me.awesomplete.get_item(value);
@@ -29,11 +29,11 @@ frappe.ui.FieldSelect = Class.extend({
 			me.selected_fieldname = item.fieldname;
 			if(me.select) me.select(item.doctype, item.fieldname);
 		});
-		this.$select.on("awesomplete-selectcomplete", function(e) {
+		this.$input.on("awesomplete-selectcomplete", function(e) {
 			var o = e.originalEvent;
 			var value = o.text.value;
 			var item = me.awesomplete.get_item(value);
-			me.$select.val(item.label);
+			me.$input.val(item.label);
 		});
 
 		if(this.filter_fields) {
@@ -43,7 +43,6 @@ frappe.ui.FieldSelect = Class.extend({
 			this.build_options();
 		}
 		this.set_value(this.doctype, "name");
-		window.last_filter = this;
 	},
 	get_value() {
 		return this.selected_doctype ? this.selected_doctype + "." + this.selected_fieldname : null;
@@ -58,7 +57,7 @@ frappe.ui.FieldSelect = Class.extend({
 	clear() {
 		this.selected_doctype = null;
 		this.selected_fieldname = null;
-		this.$select.val("");
+		this.$input.val("");
 	},
 	set_value(doctype, fieldname) {
 		var me = this;
@@ -76,7 +75,7 @@ frappe.ui.FieldSelect = Class.extend({
 			if(v.doctype===doctype && v.fieldname===fieldname) {
 				me.selected_doctype = doctype;
 				me.selected_fieldname = fieldname;
-				me.$select.val(v.label);
+				me.$input.val(v.label);
 				return false;
 			}
 		});

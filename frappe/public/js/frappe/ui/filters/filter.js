@@ -73,9 +73,9 @@ frappe.ui.Filter = Class.extend({
 
 	apply() {
 		var f = this.get_value();
-
+		console.log("this in filter apply", this);
 		this.flist = this.flist.filters.filter(f => f !== this); // remove filter
-		this.flist.push_new_filter(f[0], f[1], f[2], f[3]);
+		this.flist.push_new_filter(f);
 		this.wrapper.remove();
 		this.flist.update_filters();
 	},
@@ -277,16 +277,8 @@ frappe.ui.Filter = Class.extend({
 
 		var me = this;
 
-		// add a button for new filter if missing
-		this.$filter_tag = $(`<div class="filter-tag btn-group">
-			<button class="btn btn-default btn-xs toggle-filter"
-				title="${ __("Edit Filter") }">
-			</button>
-			<button class="btn btn-default btn-xs remove-filter"
-				title="${ __("Remove Filter") }">
-				<i class="fa fa-remove text-muted"></i>
-			</button></div>`)
-			.insertAfter(this.flist.wrapper.find(".active-tag-filters .add-filter"));
+		this.$filter_tag = this.get_filter_tag_element();
+		this.$filter_tag.insertAfter(this.flist.wrapper.find(".active-tag-filters .add-filter"));
 
 		this.set_filter_button_text();
 
@@ -306,14 +298,19 @@ frappe.ui.Filter = Class.extend({
 		value = this.flist.get_formatted_value(this.field, value);
 
 		// for translations: __("like"), __("not like"), __("in")
-
 		this.$filter_tag.find(".toggle-filter")
-			.html(repl('%(label)s %(condition)s "%(value)s"', {
-				label: __(this.field.df.label),
-				condition: __(this.get_condition()),
-				value: __(value),
-			}));
+			.html(`${__(this.field.df.label)} ${__(this.get_condition())} ${__(value)}`);
 	},
 
-
+	get_filter_tag_element() {
+		return $(`<div class="filter-tag btn-group">
+			<button class="btn btn-default btn-xs toggle-filter"
+				title="${ __("Edit Filter") }">
+			</button>
+			<button class="btn btn-default btn-xs remove-filter"
+				title="${ __("Remove Filter") }">
+				<i class="fa fa-remove text-muted"></i>
+			</button>
+		</div>`);
+	}
 });
