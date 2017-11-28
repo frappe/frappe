@@ -10,7 +10,7 @@ import frappe
 from frappe.chat.util import (
 	get_user_doc,
 	check_url,
-	_dictify,
+	dictify,
 	user_exist
 )
 
@@ -101,7 +101,7 @@ def get_new_chat_message(user, room, content):
 def send(user, room, content):
 	mess = get_new_chat_message(user, room, content)
 	
-	frappe.publish_realtime('frappe.chat:message:new', mess, room = room,
+	frappe.publish_realtime('frappe.chat.message.create', mess, room = room,
 		after_commit = True)
 
 @frappe.whitelist()

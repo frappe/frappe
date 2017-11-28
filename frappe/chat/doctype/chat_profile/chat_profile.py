@@ -9,7 +9,7 @@ from   frappe.chat.util import (
     get_user_doc,
     safe_json_loads,
     filter_dict,
-    _dictify
+    dictify
 )
 
 session = frappe.session
@@ -99,7 +99,7 @@ def create(user, exists_ok = False, fields = None):
         prof = get_new_chat_profile_doc(user)
         prof = get_user_chat_profile(user, fields)
 
-    return _dictify(prof)
+    return dictify(prof)
 
 @frappe.whitelist()
 def get(user = None, fields = None):
@@ -109,7 +109,7 @@ def get(user = None, fields = None):
     fields = safe_json_loads(fields)
     prof   = get_user_chat_profile(user, fields)
 
-    return _dictify(prof)
+    return dictify(prof)
 
 @frappe.whitelist()
 def update(user, data):

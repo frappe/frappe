@@ -66,6 +66,20 @@ def assign_if_none(a, b):
 		a = b
 	return a
 	
+def listify(arg):
+	if not isinstance(arg, list):
+		arg = [arg]
+	return arg
+
+def dictify(arg):
+	if isinstance(arg, MutableSequence):
+		for i, a in enumerate(arg):
+			arg[i] = dictify(a)
+	elif isinstance(arg, MutableMapping):
+		arg = _dict(arg)
+
+	return arg
+
 def check_url(what, raise_err = False):
 	if not urlparse(what).scheme:
 		if raise_err:
@@ -91,11 +105,3 @@ def create_test_user(module):
 	except DuplicateEntryError:
 		frappe.log('Test User Chat Profile exists.')
 
-def _dictify(arg):
-	if isinstance(arg, MutableSequence):
-		for i, a in enumerate(arg):
-			arg[i] = _dictify(a)
-	elif isinstance(arg, MutableMapping):
-		arg = _dict(arg)
-
-	return arg

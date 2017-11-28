@@ -5,10 +5,9 @@ from frappe.chat.util.util import (
 	safe_json_loads,
 	filter_dict,
 	assign_if_none,
-
+	listify,
+	dictify,
 	check_url,
 	user_exist,
-	create_test_user,
-	_dictify,
-	squashify
+	create_test_user
 )
