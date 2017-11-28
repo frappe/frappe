@@ -444,26 +444,27 @@ class extends Component {
                     {
                         frappe.chat.room.create("Direct", null, user, (room) =>
                         {
-                            this.add_room(room)
+                            // this.add_room(room)
                         })
                     },
                         on_new_group: (name, users) => 
                         {
                         frappe.chat.room.create("Group", null, users, name, (room) => 
                         {
-                            this.add_room(room)
+                            // this.add_room(room)
                         })
                         },
                     on_select_room: this.on_select_room
             })
         ) : null
-        const Room             = h(frappe.Chat.Room, { ...state.room })
+        const Room             = h(frappe.Chat.Room, { ...state.room, layout: props.layout })
         
         return (
             h("div", { class: "frappe-chat" },
                 props.layout === frappe.Chat.Layout.COLLAPSIBLE ?
-                    h(frappe.Chat.Widget, null,
-                        AppBar
+                    h(frappe.Chat.Widget, { room: state.room.name ? true : false },
+                        state.room.name ?
+                            Room : AppBar
                     )
                     :
                     null,
@@ -472,7 +473,7 @@ class extends Component {
                         AppBar
                     ),
                     h("div", { class: "col-md-10 col-sm-9 layout-main-section-wrapper" },
-                        Room
+                        // h(frappe.Chat.Room, { ...state.room })
                     )
                 )
             )
@@ -795,7 +796,7 @@ class extends Component {
         return (
             h("div", { class: "frappe-chat__room" },
                 props.name ?
-                    h("div", { class: "panel panel-default", style: "height: 720px; overflow-y: scroll;" },
+                    h("div", { class: "panel panel-default", style: `${props.layout === frappe.Chat.Layout.COLLAPSIBLE ? "" : "height: 720px;"}` + "overflow-y: scroll;" },
                         h(frappe.Chat.Room.Header, { ...props, click_phone: null }),
                         h(frappe.Chat.ChatList, {
                             messages: props.messages
@@ -861,7 +862,7 @@ class extends Component {
                         h("div", { class: "text-right" },
                             // Button ToolBar
                             h("a", null,
-                                h("i", { class: "fa fa-fw fa-phone", onclick: props.click_phone })
+                                h("i", { class: "", onclick: props.click_phone })
                             )
                         )
                     )
@@ -1069,24 +1070,51 @@ frappe.Chat.ChatForm.defaultState = {
 frappe.Chat.Widget
 =
 class extends Component {
+    constructor (props) {
+        super (props)
+
+        this.state    = frappe.Chat.Widget.defaultState
+    }
+
     render ( ) {
+        const { props, state } = this
+
+        const component = props.room ?
+            h("span", null, this.props.children)
+            :
+            h("div", { class: "panel panel-default" },
+                h("div", { class: "panel-body" },
+                    this.props.children
+                )
+            )
+        
         return (
-            h("div", { class: "frappe-chat__widget__collapse" },
-                h("div", { class: "dropup" },
-                    h("button", { class: "frappe-chat__fab btn btn-primary btn-block dropdown-toggle", "data-toggle": "dropdown" },
+            h("div", { class: "frappe-chat__widget" },
+                // // h("div", { class: "dropup" },
+                    h("button", { class: "frappe-chat__fab btn btn-primary btn-block dropdown-toggle", "data-toggle": "dropdown",
+                        onclick: () => {
+                            console.log('clicked')
+                            const active = state.active ? false : true
+
+                            this.setState({
+                                active: active
+                            })
+                        }},
                         h("i", { class: "octicon octicon-comment" })
                     ),
-                    h("ul", { class: "dropdown-menu dropdown-menu-right", onclick: e => e.stopPropagation() },
-                        h("div", { class: "panel panel-default" },
-                            h("div", { class: "panel-body" },
-                                this.props.children
-                            )
-                        )
+
+                state.active ?
+                    h("div", { class: "frappe-chat__widget__collapse" },
+                        component
                     )
-                )
+                    :
+                    null
             )
         )
     }
+}
+frappe.Chat.Widget.defaultState   = {
+    active: false
 }
 
 frappe.Chat.get_datetime_string   = (date) => {
