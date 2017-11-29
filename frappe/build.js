@@ -283,7 +283,10 @@ function watch_less(ondirty) {
 }
 
 function watch_js(ondirty) {
-	const watcher = chokidar.watch(path_join(apps_path, '**', '*.js')).on('change', (filename, stats) => {
+	chokidar.watch([
+		path_join(apps_path, '**', '*.js'),
+		path_join(apps_path, '**', '*.html')
+	]).on('change', (filename) => {
 		// build the target js file for which this js/html file is input
 		for (const target in build_map) {
 			const sources = build_map[target];
