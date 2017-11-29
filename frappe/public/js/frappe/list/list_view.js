@@ -14,13 +14,23 @@ frappe.views.ListFactory = frappe.views.Factory.extend({
 			if (locals['DocType'][doctype].issingle) {
 				frappe.set_re_route('Form', doctype);
 			} else {
-				if (!frappe.views.list_view[doctype]) {
-					frappe.views.list_view[doctype] = new frappe.views.ListView({
+				if (route.length === 2) {
+					// List/{doctype} => List/{doctype}/{last_view} or List
+					const user_settings = frappe.get_user_settings(doctype);
+					frappe.set_route('List', doctype, user_settings.last_view || 'List');
+					return;
+				}
+				const view_name = route[2]; // List / Gantt / Kanban / etc
+				frappe.provide('frappe.views.list_view.' + doctype);
+				const page_name = frappe.get_route_str();
+
+				if (!frappe.views.list_view[doctype][view_name]) {
+					frappe.views.list_view[doctype][view_name] = new frappe.views[view_name + 'View']({
 						doctype: doctype,
-						parent: me.make_page(true, 'List/' + doctype)
+						parent: me.make_page(true, page_name)
 					});
 				} else {
-					frappe.container.change_to(frappe.views.list_view[doctype].page_name);
+					frappe.container.change_to(page_name);
 				}
 				me.set_cur_list();
 			}
@@ -72,7 +82,7 @@ frappe.views.ListFactory = frappe.views.Factory.extend({
 	},
 	set_cur_list: function () {
 		var route = frappe.get_route();
-		cur_list = frappe.container.page && frappe.container.page.list_view;
+		cur_list = frappe.views.list_view[route[1]] && frappe.views.list_view[route[1]][route[2]]
 		if (cur_list && cur_list.doctype !== route[1]) {
 			// changing...
 			cur_list = null;

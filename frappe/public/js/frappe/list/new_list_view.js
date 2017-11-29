@@ -1,69 +1,58 @@
 frappe.provide('frappe.views');
 
 frappe.views.ListView = class ListView extends frappe.views.BaseList {
-	constructor(opts) {
-		super(opts);
-		this.parent.list_view = this;
-
-		if (this.load_last_view()) {
-			return;
-		}
-		// route has a view
-		this.view = this.route[2];
-		if (this.view !== this.view_name) {
-			return new frappe.views[this.view + 'View']({
-				doctype: this.doctype,
-				parent: this.parent
-			});
-		}
-
-		// required to set cur_list
-		this.parent.list_view = this;
-		this.show();
-	}
 
 	get view_name() {
 		return 'List';
 	}
 
 	show() {
-		if (this.load_last_view()) {
-			return;
-		}
 		super.show();
+		frappe.model.user_settings.save(this.doctype, 'last_view', this.view_name);
 	}
 
-	load_last_view() {
-		const re_route = this.build_route();
-		if (re_route) {
-			frappe.set_route(this.route);
-			return true;
-		}
-		return false;
+	init() {
+		super.init();
+		// throttle refresh for 1s
+		this.refresh = frappe.utils.throttle(this.refresh, 1000);
+
+		this.load_lib = new Promise(resolve => {
+			if (this.required_libs) {
+				frappe.require(this.required_libs, resolve);
+			}
+			resolve();
+		});
 	}
 
-	build_route() {
-		//TODO: remember to load last kanban board and last email inbox from user_settings
-		this.route = frappe.get_route();
-		const user_settings = frappe.get_user_settings(this.doctype);
+	setup_page_head() {
+		super.setup_page_head();
+		this.set_primary_action();
+	}
 
-		if (this.route.length === 2) {
-			// routed to List/{doctype}
-			//   -> route to last_view [OR]
-			//   -> route to List/{doctype}/List
-			const last_view = frappe.views.is_valid(user_settings.last_view)
-				&& user_settings.last_view;
-
-			this.route.push(last_view || 'List');
-			return true;
+	set_primary_action() {
+		if (this.can_create) {
+			this.page.set_primary_action(__('New'), () => {
+				this.make_new_doc();
+			}, 'octicon octicon-plus');
 		} else {
-			return false;
+			this.page.clear_primary_action();
 		}
+	}
+
+	make_new_doc() {
+		const doctype = this.doctype;
+		const options = {};
+		this.filter_area.get().forEach(f => {
+			if (f[2] === "=" && frappe.model.is_non_std_field(f[1])) {
+				options[f[1]] = f[3];
+			}
+		});
+		frappe.new_doc(doctype);
 	}
 
 	setup_view() {
 		this.setup_columns();
-		this.setup_filterable();
+		this.setup_events();
 	}
 
 	setup_columns() {
@@ -117,6 +106,18 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			.toggle(this.data.length >= this.page_length);
 	}
 
+	get_no_result_message() {
+		const new_button = this.can_create ?
+			`<p><button class="btn btn-primary btn-sm btn-new-doc">
+				${__('Make a new {0}', [__(this.doctype)])}
+			</button></p>` : '';
+
+		return `<div class="msg-box no-border">
+			<p>${__('No {0} found', [__(this.doctype)])}</p>
+			${new_button}
+		</div>`;
+	}
+
 	render() {
 		this.toggle_result_area();
 
@@ -140,7 +141,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	get_header_html() {
 		const subject_field = this.columns[0].df;
 		let subject_html = `
-			<input class="level-item list-select-all hidden-xs" type="checkbox" title="${__("Select All")}" style="margin-top: 0">
+			<input class="level-item list-check-all hidden-xs" type="checkbox" title="${__("Select All")}" style="margin-top: 0">
 			<span class="level-item list-liked-by" style="margin-bottom: 1px;">
 				<i class="octicon octicon-heart text-extra-muted" title="${__("Likes")}"></i>
 			</span>
@@ -165,8 +166,14 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		return `
 			<header class="level list-row list-row-head text-muted small">
-				<div class="level-left">
+				<div class="level-left list-header-subject">
 					${$columns}
+				</div>
+				<div class="level-left checkbox-actions">
+					<div class="level list-subject">
+						<input class="level-item list-check-all hidden-xs" type="checkbox" title="${__("Select All")}" style="margin-top: 0">
+						<span class="level-item list-header-meta"></span>
+					</div>
 				</div>
 				<div class="level-right">
 					<span class="list-count"></span>
@@ -184,7 +191,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				<div class="level-left">
 					${$columns}
 				</div>
-				<div class="level-right text-muted">
+				<div class="level-right text-muted ellipsis">
 					${$meta}
 				</div>
 			</div>
@@ -337,7 +344,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	get_subject_html(doc) {
 		let user = frappe.session.user;
 		let subject_field = this.columns[0].df;
-		let subject = doc[subject_field.fieldname];
+		let subject = strip_html(doc[subject_field.fieldname]);
 
 		const liked_by = JSON.parse(doc._liked_by || '[]');
 		let heart_class = liked_by.includes(user) ?
@@ -365,7 +372,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			</span>
 			<span class="level-item ${seen} ellipsis" title="${subject}">
 				<a class="ellipsis" href="${this.get_form_link(doc)}" title="${subject}">
-				${strip_html(subject)}
+				${subject}
 				</a>
 			</span>
 		`;
@@ -390,7 +397,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		return `<span class='indicator ${indicator[1]}' title='${__(indicator[0])}'></span>`;
 	}
 
-	setup_filterable() {
+	setup_events() {
 		this.$result.on('click', '.filterable', e => {
 			e.stopPropagation();
 			const $this = $(e.currentTarget);
@@ -415,19 +422,112 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			}
 		});
 
-		this.$result.on('click', '.list-row', function (e) {
-			// don't open in case of checkbox, like, filterable
-			if ($(e.target).hasClass('filterable')
-				|| $(e.target).hasClass('octicon-heart')
-				|| $(e.target).is(':checkbox')
-				|| $(e.target).is('a')
+		this.$result.on('click', '.list-row', (e) => {
+			const $target = $(e.target);
+
+			// don't open form when checkbox, like, filterable are clicked
+			if ($target.hasClass('filterable')
+				|| $target.hasClass('octicon-heart')
+				|| $target.is(':checkbox')
+				|| $target.is('a')
 			) {
 				return;
 			}
 
+			// open form
 			const link = $(this).find('.list-subject a').get(0);
-			window.location.href = link.href;
-			return false;
+			if (link) {
+				window.location.href = link.href;
+				return false;
+			}
 		});
+
+		this.$no_result.find('.btn-new-doc').click(() => this.make_new_doc());
+
+		this.setup_check_events();
+	}
+
+	setup_check_events() {
+		this.$result.on('change', 'input[type=checkbox]', e => {
+			const $target = $(e.currentTarget);
+
+			if ($target.is('.list-header-subject .list-check-all')) {
+				const $check = this.$result.find('.checkbox-actions .list-check-all');
+				$check.prop('checked', $target.prop('checked'));
+				$check.trigger('change');
+			}
+			else if ($target.is('.checkbox-actions .list-check-all')) {
+				const $check = this.$result.find('.list-header-subject .list-check-all');
+				$check.prop('checked', $target.prop('checked'));
+
+				this.$result.find('.list-row-checkbox')
+					.prop('checked', $target.prop('checked'));
+			}
+
+			this.on_row_checked();
+		});
+	}
+
+	on_row_checked() {
+		this.$list_head_subject = this.$list_head_subject || this.$result.find('header .list-header-subject');
+		this.$checkbox_actions = this.$checkbox_actions || this.$result.find('header .checkbox-actions');
+
+		const $checks = this.$result.find('.list-row-checkbox:checked');
+
+
+		this.$list_head_subject.toggle($checks.length === 0);
+		this.$checkbox_actions.toggle($checks.length > 0);
+
+		if ($checks.length === 0) {
+			this.$list_head_subject.find('.list-select-all').prop('checked', false);
+		} else {
+			this.$checkbox_actions.find('.list-header-meta').html(
+				__('{0} items selected', [$checks.length])
+			);
+			this.$checkbox_actions.show();
+			this.$list_head_subject.hide();
+		}
+
+		if (this.can_delete) {
+			this.toggle_delete_button($checks.length > 0);
+		}
+	}
+
+	toggle_delete_button(toggle) {
+		if (toggle) {
+			this.page.set_primary_action(__('Delete'),
+				() => this.delete_items(),
+				'octicon octicon-trashcan'
+			).addClass('btn-danger');
+		} else {
+			this.page.btn_primary.removeClass('btn-danger');
+			this.set_primary_action();
+		}
+	}
+
+	delete_items() {
+		const docnames = this.get_checked_values();
+
+		frappe.confirm(__('Delete {0} items permanently?', [docnames.length]),
+			() => {
+				frappe.call({
+					method: 'frappe.desk.reportview.delete_items',
+					freeze: true,
+					args: {
+						items: docnames,
+						doctype: this.doctype
+					}
+				})
+					.then(() => {
+						frappe.utils.play_sound('delete');
+						this.refresh(true);
+					});
+			}
+		);
+	}
+
+	get_checked_values() {
+		return Array.from(this.$result.find('.list-row-checkbox:checked'))
+			.map(check => $(check).data().name);
 	}
 }

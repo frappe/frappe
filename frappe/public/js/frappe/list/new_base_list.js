@@ -3,10 +3,7 @@ frappe.provide('frappe.views');
 frappe.views.BaseList = class BaseList {
 	constructor(opts) {
 		Object.assign(this, opts);
-
-		// required to set cur_list
-		// this.parent.list_view = this;
-		// this.show();
+		this.show();
 	}
 
 	show() {
@@ -26,25 +23,11 @@ frappe.views.BaseList = class BaseList {
 		this.setup_main_section();
 		this.setup_view();
 
-		// throttle refresh for 1s
-		this.refresh = frappe.utils.throttle(this.refresh, 1000);
-
-		this.load_lib = new Promise(resolve => {
-			if (this.required_libs) {
-				frappe.require(this.required_libs, resolve);
-			}
-			resolve();
-		});
-
 		this._setup = true;
 	}
 
-	load_lib() {
-		return
-	}
-
 	setup_defaults() {
-		this.page_name = 'List/' + this.doctype;
+		this.page_name = frappe.get_route_str();
 		this.page_title = this.page_title || __(this.doctype);
 		this.meta = frappe.get_meta(this.doctype);
 		this.settings = frappe.listview_settings[this.doctype] || {};
@@ -55,6 +38,9 @@ frappe.views.BaseList = class BaseList {
 		this.page_length = 20;
 		this.data = [];
 		this.method = 'frappe.desk.reportview.get';
+
+		this.can_create = frappe.model.can_create(this.doctype);
+		this.can_delete = frappe.model.can_delete(this.doctype);
 
 		this.set_stats();
 		this.set_fields();
@@ -225,10 +211,6 @@ frappe.views.BaseList = class BaseList {
 		this.$frappe_list.append(this.$result);
 	}
 
-	get_no_result_message() {
-		return __('Nothing to show');
-	}
-
 	setup_no_result_area() {
 		this.$no_result = $(`
 			<div class="no-result text-muted flex justify-center align-center">
@@ -236,6 +218,10 @@ frappe.views.BaseList = class BaseList {
 			</div>
 		`).hide();
 		this.$frappe_list.append(this.$no_result);
+	}
+
+	get_no_result_message() {
+		return __('Nothing to show');
 	}
 
 	setup_paging_area() {

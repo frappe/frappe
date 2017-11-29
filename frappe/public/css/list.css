@@ -93,6 +93,9 @@
 .list-row-head .list-subject {
   font-weight: normal;
 }
+.list-row-head .checkbox-actions {
+  display: none;
+}
 .list-row-col {
   flex: 1;
   margin-right: 15px;
@@ -119,6 +122,9 @@
 .list-paging-area {
   padding: 10px 15px;
   border-top: 1px solid #d1d8dd;
+}
+.progress {
+  height: 10px;
 }
 .likes-count {
   display: none;
