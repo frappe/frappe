@@ -25,7 +25,7 @@ def xmlrunner_wrapper(output):
 	return _runner
 
 def main(app=None, module=None, doctype=None, verbose=False, tests=(),
-	force=False, profile=False, junit_xml_output=None, ui_tests=False):
+	force=False, profile=False, junit_xml_output=None, ui_tests=False, doctype_list=None):
 	global unittest_runner
 
 	xmloutput_fh = None
@@ -55,7 +55,9 @@ def main(app=None, module=None, doctype=None, verbose=False, tests=(),
 		for fn in frappe.get_hooks("before_tests", app_name=app):
 			frappe.get_attr(fn)()
 
-		if doctype:
+		if doctype_list:
+			ret = run_sequen_doctype_tests(doctype_list, verbose, tests, force, profile)
+		elif doctype:
 			ret = run_tests_for_doctype(doctype, verbose, tests, force, profile)
 		elif module:
 			ret = run_tests_for_module(module, verbose, tests, profile)
@@ -82,6 +84,51 @@ def set_test_email_config():
 		"mail_password": "test",
 		"admin_password": "admin"
 	})
+
+def run_sequen_doctype_tests(doctype_list, verbose=False, tests=(), force=False, profile=False):
+	# check if doctype file exsts
+	import os
+
+	app, doctype_list = doctype_list.split(os.path.sep, 1)
+	doctype_list = frappe.get_app_path(app, doctype_list)
+	if os.path.exists(doctype_list):
+		with open(doctype_list) as fileObj:
+			doctypes = fileObj.read().strip().splitlines()
+	else:
+		print('Invalid file {0}'.format(doctype_list))
+		sys.exit(1)
+
+	test_suite = unittest.TestSuite()
+	for doctype in doctypes:
+		module = frappe.db.get_value("DocType", doctype, "module")
+		if not module:
+			print('Invalid doctype {0}'.format(doctype))
+			sys.exit(1)
+
+		test_module = get_module_name(doctype, module, "test_")
+		if force:
+			for name in frappe.db.sql_list("select name from `tab%s`" % doctype):
+				frappe.delete_doc(doctype, name, force=True)
+		make_test_records(doctype, verbose=verbose, force=force)
+
+		module = importlib.import_module(test_module)
+		module_test_cases = unittest.TestLoader().loadTestsFromModule(module)
+		test_suite.addTest(module_test_cases)
+
+	if profile:
+		pr = cProfile.Profile()
+		pr.enable()
+
+	out = unittest_runner(verbosity=1+(verbose and 1 or 0)).run(test_suite)
+
+	if profile:
+		pr.disable()
+		s = StringIO()
+		ps = pstats.Stats(pr, stream=s).sort_stats('cumulative')
+		ps.print_stats()
+		print(s.getvalue())
+
+	return out
 
 def run_all_tests(app=None, verbose=False, profile=False, ui_tests=False):
 	import os
