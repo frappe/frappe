@@ -12,6 +12,7 @@ from werkzeug.local import LocalManager
 from werkzeug.exceptions import HTTPException, NotFound
 from werkzeug.contrib.profiler import ProfilerMiddleware
 from werkzeug.wsgi import SharedDataMiddleware
+import jinja2
 
 import frappe
 import frappe.handler
@@ -120,8 +121,16 @@ def init_request(request):
 
 	frappe.local.http_request = frappe.auth.HTTPRequest()
 
+def safe_unicode(x):
+	try:
+		x = x.decode('utf-8')
+	except UnicodeDecodeError as e:
+		pass
+
+	return x
+
 def make_form_dict(request):
-	frappe.local.form_dict = frappe._dict({ k:v[0] if isinstance(v, (list, tuple)) else v \
+	frappe.local.form_dict = frappe._dict({ k: safe_unicode(jinja2.escape(v[0])) if isinstance(v, (list, tuple)) else safe_unicode(jinja2.escape(v)) \
 		for k, v in iteritems(request.form or request.args) })
 
 	if "_" in frappe.local.form_dict:
