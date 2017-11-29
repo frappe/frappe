@@ -4,11 +4,17 @@
 
 from __future__ import unicode_literals
 import frappe
+from frappe import _
 from frappe.model.document import Document
 import datetime
 
 class GoogleMaps(Document):
-	pass
+	def validate(self):
+		if self.enabled:
+			if not self.client_key:
+				frappe.throw(_("Client key is required"))
+			if not self.home_address:
+				frappe.throw(_("Home Address is required"))
 
 def round_timedelta(td, period):
 	"""Round timedelta"""
@@ -20,7 +26,7 @@ def round_timedelta(td, period):
 	else:
 		return datetime.timedelta(seconds=td.total_seconds() - remainder)
 
-def customer_address_format(address):
+def format_address(address):
 	"""Customer Address format """
 	address = frappe.get_doc('Address', address)
 	return '{}, {}, {}, {}'.format(address.address_line1, address.city, address.pincode, address.country)
