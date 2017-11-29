@@ -178,12 +178,12 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 	def validate_naming(doc):
 		autoname = frappe.get_meta(doc['doctype']).autoname
 
-		if ".#####" in autoname or "hash" in autoname:
+		if ".#" in autoname or "hash" in autoname:
 			autoname = ""
 		elif autoname[0:5] == 'field':
 			autoname = autoname[6:]
-		elif ":" in autoname:
-			autoname = autoname[:len(autoname)-1]
+		elif autoname=='naming_series:':
+			autoname = 'naming_series'
 
 		if autoname and not doc[autoname]:
 			frappe.throw(_("{0} is a mandatory field".format(autoname)))
