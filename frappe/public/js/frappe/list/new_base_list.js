@@ -15,6 +15,8 @@ frappe.views.BaseList = class BaseList {
 
 	init(opts) {
 		this.setup_defaults();
+		this.set_stats();
+		this.set_fields();
 
 		// make view
 		this.setup_page();
@@ -42,17 +44,9 @@ frappe.views.BaseList = class BaseList {
 		this.can_create = frappe.model.can_create(this.doctype);
 		this.can_delete = frappe.model.can_delete(this.doctype);
 		this.can_write = frappe.model.can_write(this.doctype);
-
-		this.set_stats();
-		this.set_fields();
 	}
 
 	set_fields() {
-		if (this.user_settings.fields) {
-			this._fields = this.user_settings.fields;
-			this.build_fields();
-			return;
-		}
 
 		this._fields = [];
 		const add_field = f => this._add_field(f);
@@ -78,12 +72,7 @@ frappe.views.BaseList = class BaseList {
 		std_fields.map(add_field);
 
 		// fields in_list_view
-		const fields = this.meta.fields.filter(df => {
-			return df.in_list_view
-				&& frappe.perm.has_perm(this.doctype, df.permlevel, 'read')
-				&& frappe.model.is_value_type(df.fieldtype)
-		});
-		this.fields_in_list_view = fields;
+		const fields = this.get_fields_in_list_view();
 		fields.map(add_field);
 
 		// currency fields
@@ -113,15 +102,19 @@ frappe.views.BaseList = class BaseList {
 		this.build_fields();
 	}
 
+	get_fields_in_list_view() {
+		return this.meta.fields.filter(df => {
+			return df.in_list_view
+				&& frappe.perm.has_perm(this.doctype, df.permlevel, 'read')
+				&& frappe.model.is_value_type(df.fieldtype)
+		});
+	}
+
 	build_fields() {
 		//de-dup
 		this._fields = this._fields.uniqBy(f => f[0] + f[1]);
 		// build this.fields
 		this.fields = this._fields.map(f => frappe.model.get_full_column_name(f[0], f[1]));
-		// save in user_settings
-		frappe.model.user_settings.save(this.doctype, this.view, {
-			fields: this._fields
-		});
 	}
 
 	_add_field(fieldname) {

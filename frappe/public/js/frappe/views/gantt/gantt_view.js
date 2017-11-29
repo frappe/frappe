@@ -1,9 +1,6 @@
 frappe.provide('frappe.views');
 
 frappe.views.GanttView = class GanttView extends frappe.views.ListView {
-	get view_name() {
-		return 'Gantt';
-	}
 
 	setup_defaults() {
 		super.setup_defaults();
@@ -105,7 +102,7 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 			},
 			on_view_change: function (mode) {
 				// save view mode
-				frappe.model.user_settings.save(me.doctype, 'Gantt', {
+				me.save_view_user_settings({
 					gantt_view_mode: mode
 				});
 			},

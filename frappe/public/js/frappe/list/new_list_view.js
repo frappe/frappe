@@ -3,7 +3,8 @@ frappe.provide('frappe.views');
 frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	get view_name() {
-		return 'List';
+		// ListView -> List
+		return this.constructor.name.split('View')[0];
 	}
 
 	show() {
@@ -28,6 +29,25 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	setup_defaults() {
 		super.setup_defaults();
 		this.view_user_settings = this.user_settings[this.view_name] || {};
+	}
+
+	set_fields() {
+		// get from user_settings
+		if (this.view_user_settings.fields) {
+			this._fields = this.view_user_settings.fields;
+			this.build_fields();
+			return;
+		}
+		// build from meta
+		super.set_fields();
+	}
+
+	build_fields() {
+		super.build_fields();
+		// save in user_settings
+		this.save_view_user_settings({
+			fields: this._fields
+		});
 	}
 
 	setup_page_head() {
@@ -91,7 +111,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			});
 		}
 
-		const fields_in_list_view = this.fields_in_list_view;
+		const fields_in_list_view = this.get_fields_in_list_view();
 		// Add rest from in_list_view docfields
 		this.columns = this.columns.concat(
 			fields_in_list_view.map(df => ({
@@ -526,5 +546,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	get_checked_values() {
 		return Array.from(this.$result.find('.list-row-checkbox:checked'))
 			.map(check => $(check).data().name);
+	}
+
+	save_view_user_settings(obj) {
+		return frappe.model.user_settings.save(this.doctype, this.view_name, obj);
 	}
 }

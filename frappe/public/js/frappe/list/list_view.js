@@ -21,6 +21,13 @@ frappe.views.ListFactory = frappe.views.Factory.extend({
 					return;
 				}
 				const view_name = route[2]; // List / Gantt / Kanban / etc
+
+				const view_class = frappe.views[view_name + 'View'];
+				if (view_class && view_class.load_last_view && view_class.load_last_view()) {
+					// view can have custom routing logic
+					return;
+				}
+
 				frappe.provide('frappe.views.list_view.' + doctype);
 				const page_name = frappe.get_route_str();
 
