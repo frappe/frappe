@@ -21,7 +21,9 @@ frappe.views.CalendarView = frappe.views.ListRenderer.extend({
 			let calendar_view = this.user_settings.last_calendar_view;
 
 			if (calendar_view) {
-				frappe.set_route('List', this.doctype, 'Calendar', calendar_view);
+				frappe.set_route('List', this.doctype, 'Calendar', calendar_view)
+					.then(() => frappe.pages['List/' + this.doctype].list_view.refresh())
+
 				return true;
 			}
 		}
@@ -59,6 +61,7 @@ frappe.views.CalendarView = frappe.views.ListRenderer.extend({
 	},
 	get_calendar_options: function() {
 		const calendar_view = frappe.get_route()[3] || 'Default';
+		const view_mode = this.user_settings[calendar_view] || 'month';
 
 		// save in user_settings
 		frappe.model.user_settings.save(this.doctype, 'Calendar', {
@@ -69,7 +72,9 @@ frappe.views.CalendarView = frappe.views.ListRenderer.extend({
 			doctype: this.doctype,
 			parent: this.wrapper,
 			page: this.list_view.page,
-			list_view: this.list_view
+			list_view: this.list_view,
+			calendar_view: calendar_view,
+			view_mode: view_mode,
 		}
 
 		return new Promise(resolve => {
@@ -187,6 +192,7 @@ frappe.views.Calendar = Class.extend({
 			selectable: true,
 			selectHelper: true,
 			forceEventDuration: true,
+			defaultView: this.view_mode,
 			events: function(start, end, timezone, callback) {
 				return frappe.call({
 					method: me.get_events_method || "frappe.desk.calendar.get_events",
@@ -257,6 +263,17 @@ frappe.views.Calendar = Class.extend({
 					$date_cell.addClass('date-clicked');
 				}
 				return false;
+			},
+			viewRender: function(view) {
+				// store last view_mode for each calendar,
+				// with the calendar_view as the key
+				//	{
+				//		Default: 'month'
+				//		Custom Calendar: 'agendaDay'
+				//	}
+				frappe.model.user_settings.save(me.doctype, 'Calendar', {
+					[me.calendar_view]: view.name
+				});
 			}
 		};
 
