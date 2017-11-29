@@ -3,7 +3,7 @@
 	<div class="upgrade-message padding" style="border-bottom: 1px solid #d0d8dc;">
 		{% if limits.expiry %}
 			<h4>{{ __("You have {0} days left in your subscription", [days_to_expiry]) }}</h4>
-		{%elif%}
+		{% else %}
 			<h4>{{ __("You have subscribed for one user free plan") }}</h4>
 		{% endif %}
 
