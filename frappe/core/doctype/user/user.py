@@ -524,15 +524,8 @@ def get_perm_info(role):
 	from frappe.permissions import get_all_perms
 	return get_all_perms(role)
 
-def to_bool(value):
-	valid = {'true': True, 'false': False}
-	lower_value = value.lower()
-	return valid[lower_value]
-
-
 @frappe.whitelist(allow_guest=True)
 def update_password(new_password, logout_all_sessions=False, key=None, old_password=None):
-	logout_all_sessions = to_bool(logout_all_sessions.encode('utf-8'))
 	result = test_password_strength(new_password, key, old_password)
 	feedback = result.get("feedback", None)
 
@@ -545,7 +538,7 @@ def update_password(new_password, logout_all_sessions=False, key=None, old_passw
 	else:
 		user = res['user']
 
-	_update_password(user, new_password, logout_all_sessions=logout_all_sessions)
+	_update_password(user, new_password, logout_all_sessions=int(logout_all_sessions))
 
 	user_doc, redirect_url = reset_user_data(user)
 
