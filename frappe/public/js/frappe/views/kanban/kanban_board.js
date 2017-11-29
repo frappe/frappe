@@ -33,11 +33,6 @@ frappe.provide("frappe.views");
 						});
 						var columns = prepare_columns(board.columns);
 
-						// save kanban board name in user_settings
-						frappe.model.user_settings.save(opts.doctype, 'Kanban', {
-							last_kanban_board: opts.board_name
-						});
-
 						updater.set({
 							doctype: opts.doctype,
 							board: board,
