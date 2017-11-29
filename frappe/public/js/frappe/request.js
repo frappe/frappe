@@ -10,6 +10,7 @@ frappe.request.waiting_for_ajax = [];
 
 // generic server call (call page, object)
 frappe.call = function(opts) {
+
 	if (typeof arguments[0]==='string') {
 		opts = {
 			method: arguments[0],

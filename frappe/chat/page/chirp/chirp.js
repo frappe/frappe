@@ -1,10 +1,6 @@
 // frappe.Chat
-// Author - Achilles Rasquinha
-// Dependencies
-// * fuse
-// * momentjs
-
-const { h, render, Component } = preact
+// Author - Achilles Rasquinha <achilles@frappe.io>
+const { render, Component, h } = preact
 
 frappe.fuzzy_search = (query, dataset, options) => {
     const DEFAULT   = {
@@ -432,13 +428,13 @@ class extends Component {
 
     render ( ) {
         const { props, state } = this
-        const layout           = props.layout
 
         const AppBar           = state.profile ? (
             h(frappe.Chat.AppBar,
             {
                             status: state.profile.status,
                             rooms: state.rooms,
+                            layout: props.layout,
                     on_change_status: this.on_change_status,
                     on_new_message: (user) => 
                     {
@@ -611,16 +607,21 @@ class extends Component {
 
     render ( ) {
         const { props, state } = this
+        console.log(props)
         const rooms            = state.query ? this.search_rooms(state.query) : props.rooms
+
 
         return (
             h("div", { class: "frappe-chat__app-bar" },
-                h("div", { class: "frappe-chat__app-bar-account" },
-                    h(frappe.Chat.AppBar.Account, {
-                                  status: props.status,
-                        on_change_status: props.on_change_status
-                    })
-                ),
+                props.layout !== frappe.Chat.Layout.COLLAPSIBLE ?
+                    h("div", { class: "frappe-chat__app-bar-account" },
+                        h(frappe.Chat.AppBar.Account, {
+                                    status: props.status,
+                            on_change_status: props.on_change_status
+                        })
+                    )
+                    :
+                    null,
                 h("div", { class: "frappe-chat__app-bar-search" },
                     h(frappe.Chat.AppBar.SearchBar, {
                                     on_query: query => this.setState({ query: query }),
@@ -986,6 +987,9 @@ class extends Component {
         this.on_change = this.on_change.bind(this)
         this.on_submit = this.on_submit.bind(this)
 
+        this.on_click_camera = this.on_click_camera.bind(this)
+        this.on_click_file = this.on_click_file.bind(this)
+
         this.state     = frappe.Chat.ChatForm.defaultState
     }
 
@@ -1009,6 +1013,35 @@ class extends Component {
         }
     }
 
+    on_click_camera ( ) {
+        const capture = new frappe.ui.Capture()
+        console.log(capture)
+        capture.open()
+        catpure.click((dataURI) => {
+            console.log(dataURI)
+        })
+    }
+
+    on_click_file ( ) {
+        console.log('clicked')
+        const dialog = new frappe.ui.Dialog({
+            title: __("Upload"),
+            fields: [
+                {fieldtype:"HTML", fieldname:"upload_area"},
+                {fieldtype:"HTML", fieldname:"or_attach", options: __("Or")},
+                {fieldtype:"Select", fieldname:"select", label:__("Select from existing attachments") },
+                {fieldtype:"Button", fieldname:"clear",
+                    label:__("Clear Attachment"), click: function() {
+                        // me.clear_attachment();
+                        dialog.hide();
+                    }
+                },
+            ]
+        })
+
+        dialog.show();
+    }
+
     render ( ) {
         const { state } = this
 
@@ -1024,12 +1057,12 @@ class extends Component {
                                     ),
                                     h("div", { class: "dropdown-menu", style: "min-width: 150px" },
                                         h("li", null,
-                                            h("a", null,
+                                            h("a", { onclick: this.on_click_camera },
                                                 h("i", { class: "octicon octicon-device-camera" }), ' Camera'
                                             )
                                         ),
                                         h("li", null,
-                                            h("a", null,
+                                            h("a", { onclick: this.on_click_file },
                                                 h("i", { class: "fa fa-fw fa-file" }), ' File'
                                             )
                                         )
@@ -1049,9 +1082,27 @@ class extends Component {
                                  }
                             }),
                             h("div", { class: "input-group-btn" },
-                                h("button", { class: "btn btn-primary" },
-                                    h("i", { class: "fa fa-fw fa-smile-o" })
-                                ),
+                                // h("button", { class: "btn btn-primary" },
+                                //     h("i", { class: "fa fa-fw fa-smile-o" })
+                                // ),
+                                    h("div", { class: "btn-group dropup" },
+                                        h("button", { class: "btn btn-primary dropdown-toggle", "data-toggle": "dropdown" },
+                                            h("i", { class: "fa fa-fw fa-smile-o" })
+                                        ),
+                                        h("div", { class: "dropdown-menu dropdown-menu-right", style: "min-width: 150px" },
+                                            h(frappe.Chat.EmojiPicker)
+                                            // h("li", null,
+                                            //     h("a", { onclick: this.on_click_camera },
+                                            //         h("i", { class: "octicon octicon-device-camera" }), ' Camera'
+                                            //     )
+                                            // ),
+                                            // h("li", null,
+                                            //     h("a", { onclick: this.on_click_file },
+                                            //         h("i", { class: "fa fa-fw fa-file" }), ' File'
+                                            //     )
+                                            // )
+                                        )
+                                    ),
                                 h("button", { class: "btn btn-primary", type: "submit" },
                                     h("i", { class: "fa fa-fw fa-send" })
                                 )
@@ -1065,6 +1116,20 @@ class extends Component {
 }
 frappe.Chat.ChatForm.defaultState = {
     content: null
+}
+
+frappe.Chat.EmojiPicker 
+=
+class extends Component {
+    render ( ) {
+        return (
+            h("div", { class: "panel panel-default" },
+                h("div", { class: "panel-body" },
+            
+                )
+            )
+        )
+    }
 }
 
 frappe.Chat.Widget
