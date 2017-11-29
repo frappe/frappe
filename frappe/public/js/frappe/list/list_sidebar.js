@@ -323,7 +323,7 @@ frappe.views.ListSidebar = Class.extend({
 				<a><i class="octicon octicon-x pull-right close" style="margin-top: 10px;"></i></a>
 				<h5>Go Premium</h5>
 				<p>Upgrade to a premium plan with more users, storage and priority support.</p>
-				<button class="btn btn-sm btn-primary" style="margin-bottom: 10px;"> Renew / Upgrade </button>
+				<button class="btn btn-xs btn-default" style="margin-bottom: 10px;"> Renew / Upgrade </button>
 				</div>`).appendTo(upgrade_list);
 
 			upgrade_box.find('.btn-primary').on('click', () => {
