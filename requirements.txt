@@ -49,4 +49,4 @@ pyotp
 pyqrcode
 pypng
 premailer
-psycopg2
+
