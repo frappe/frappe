@@ -41,6 +41,7 @@ frappe.views.BaseList = class BaseList {
 
 		this.can_create = frappe.model.can_create(this.doctype);
 		this.can_delete = frappe.model.can_delete(this.doctype);
+		this.can_write = frappe.model.can_write(this.doctype);
 
 		this.set_stats();
 		this.set_fields();
@@ -252,8 +253,10 @@ frappe.views.BaseList = class BaseList {
 			.find(`.btn-paging[data-value="${this.page_length}"]`)
 			.addClass('btn-info');
 
-		this.$paging_area.on('click', '.btn', e => {
+		this.$paging_area.on('click', '.btn-paging, .btn-more', e => {
 			const $this = $(e.currentTarget);
+
+			console.log('called')
 
 			if ($this.is('.btn-paging')) {
 				// set active button
@@ -305,6 +308,7 @@ frappe.views.BaseList = class BaseList {
 		// render
 		.then(r => {
 			this.update_data(r);
+			this.toggle_result_area();
 			this.render();
 		});
 	}
@@ -322,6 +326,14 @@ frappe.views.BaseList = class BaseList {
 
 	render() {
 		// for child classes
+	}
+
+	toggle_result_area() {
+		this.$result.toggle(this.data.length > 0);
+		this.$paging_area.toggle(this.data.length > 0);
+		this.$no_result.toggle(this.data.length == 0);
+		this.$paging_area.find('.btn-more')
+			.toggle(this.data.length >= this.page_length);
 	}
 }
 

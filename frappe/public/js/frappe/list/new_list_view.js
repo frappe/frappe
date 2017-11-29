@@ -19,9 +19,15 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.load_lib = new Promise(resolve => {
 			if (this.required_libs) {
 				frappe.require(this.required_libs, resolve);
+			} else {
+				resolve();
 			}
-			resolve();
 		});
+	}
+
+	setup_defaults() {
+		super.setup_defaults();
+		this.view_user_settings = this.user_settings[this.view_name] || {};
 	}
 
 	setup_page_head() {
@@ -98,14 +104,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.columns = this.columns.slice(0, 4);
 	}
 
-	toggle_result_area() {
-		this.$result.toggle(this.data.length > 0);
-		this.$paging_area.toggle(this.data.length > 0);
-		this.$no_result.toggle(this.data.length == 0);
-		this.$paging_area.find('.btn-more')
-			.toggle(this.data.length >= this.page_length);
-	}
-
 	get_no_result_message() {
 		const new_button = this.can_create ?
 			`<p><button class="btn btn-primary btn-sm btn-new-doc">
@@ -119,7 +117,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	render() {
-		this.toggle_result_area();
 
 		if (!this.start === 0) {
 			// append new rows

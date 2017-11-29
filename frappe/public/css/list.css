@@ -361,6 +361,9 @@
 .pswp__more-item img {
   max-height: 100%;
 }
+.list-paging-area .gantt-view-mode {
+  margin-left: 15px;
+}
 .gantt .details-container .heading {
   margin-bottom: 10px;
   font-size: 12px;
