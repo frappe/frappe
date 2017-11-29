@@ -525,9 +525,9 @@ def get_perm_info(role):
 	return get_all_perms(role)
 
 def to_bool(value):
-    valid = {'true': True, 'false': False}
-    lower_value = value.lower()
-    return valid[lower_value]
+	valid = {'true': True, 'false': False}
+	lower_value = value.lower()
+	return valid[lower_value]
 
 
 @frappe.whitelist(allow_guest=True)
