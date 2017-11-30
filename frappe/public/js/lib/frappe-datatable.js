@@ -2529,6 +2529,8 @@ var DataManager = function () {
       this.rowCount = 0;
       this.columns = [];
       this.rows = [];
+      this._serialNoColumnAdded = false;
+      this._checkboxColumnAdded = false;
 
       this.columns = this.prepareColumns(columns);
       this.rows = this.prepareRows(rows);
