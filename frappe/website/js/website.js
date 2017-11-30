@@ -5,12 +5,10 @@ frappe.provide("website");
 frappe.provide("frappe.awesome_bar_path");
 cur_frm = null;
 
-// it's sanitise, not sanitize - http://grammarist.com/spelling/sanitise-sanitize
-frappe.xss_sanitise = function (string) {
+frappe.utils.xss_sanitise = function (string) {
 	// Reference - https://www.owasp.org/index.php/XSS_(Cross_Site_Scripting)_Prevention_Cheat_Sheet
-	let   sanitised       = string
-	const HTML_ESCAPE_MAP = 
-	{
+	let sanitised = string
+	const HTML_ESCAPE_MAP = {
 		'&': '&amp',
 		'<': '&lt',
 		'>': '&gt',
@@ -22,7 +20,7 @@ frappe.xss_sanitise = function (string) {
 	// By far, the best thing that has ever happened to JS - Object.keys
 	Object.keys(HTML_ESCAPE_MAP).map((char, escape) => {
 		const regex = new RegExp(char, "g")
-		sanitised 	= sanitised.replace(regex, escape)
+		sanitised = sanitised.replace(regex, escape)
 	})
 
 	return sanitised
@@ -133,9 +131,9 @@ $.extend(frappe, {
 			server_messages = $.map(server_messages, function(v) {
 				// temp fix for messages sent as dict
 				try {
-					return frappe.xss_sanitise(JSON.parse(v).message);
+					return frappe.utils.xss_sanitise(JSON.parse(v).message);
 				} catch (e) {
-					return frappe.xss_sanitise(v);
+					return frappe.utils.xss_sanitise(v);
 				}
 			}).join('<br>');
 
