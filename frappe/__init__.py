@@ -9,7 +9,6 @@ from __future__ import unicode_literals, print_function
 from six import iteritems, binary_type, text_type, string_types
 from werkzeug.local import Local, release_local
 import os, sys, importlib, inspect, json
-import jinja2
 
 # public
 from .exceptions import *
@@ -317,9 +316,6 @@ def throw(msg, exc=ValidationError, title=None):
 
 	:param msg: Message.
 	:param exc: Exception class. Default `frappe.ValidationError`"""
-	msg = str(jinja2.escape(msg))
-	title = str(jinja2.escape(title))
-
 	msgprint(msg, raise_exception=exc, title=title, indicator='red')
 
 def emit_js(js, user=False, **kwargs):
