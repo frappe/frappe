@@ -955,7 +955,7 @@ frappe.views.QueryReport = Class.extend({
 
 		if(opts.data && opts.data.labels && opts.data.labels.length) {
 			this.chart_area.toggle(true);
-			this.chart = new frappe.chart.FrappeChart(opts);
+			this.chart = new Chart(opts);
 		}
 	},
 

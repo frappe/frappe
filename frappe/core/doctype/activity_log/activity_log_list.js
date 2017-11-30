@@ -1,4 +1,4 @@
-frappe.listview_settings['Authentication Log'] = {
+frappe.listview_settings['Activity Log'] = {
 	get_indicator: function(doc) {
 		if(doc.operation == "Login" && doc.status == "Success")
 			return [__(doc.status), "green"];

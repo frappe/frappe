@@ -34,11 +34,14 @@
 }
 .set-filters .btn-group {
   margin-right: 10px;
+  white-space: nowrap;
+  font-size: 0;
 }
 .set-filters .btn-group .btn-default {
   background-color: transparent;
   border: 1px solid #d1d8dd;
   color: #8D99A6;
+  float: none;
 }
 .filter-box {
   border-bottom: 1px solid #d1d8dd;
@@ -404,6 +407,22 @@
 }
 .pswp__bg {
   background-color: #fff !important;
+}
+.pswp__more-items {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.pswp__more-item {
+  display: inline-block;
+  margin: 5px;
+  height: 100px;
+  cursor: pointer;
+  border: 1px solid #d1d8dd;
+}
+.pswp__more-item img {
+  max-height: 100%;
 }
 .gantt .details-container .heading {
   margin-bottom: 10px;

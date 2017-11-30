@@ -195,9 +195,10 @@ _f.Frm.prototype.watch_model_updates = function() {
 	frappe.model.on(me.doctype, "*", function(fieldname, value, doc) {
 		// set input
 		if(doc.name===me.docname) {
-			if (!value && !doc[value]) {
+			if ((value==='' || value===null) && !doc[value]) {
 				// both the incoming and outgoing values are falsy
-				// so don't trigger dirty
+				// the texteditor, summernote, changes nulls to empty strings on render, 
+				// so ignore those changes
 			} else {
 				me.dirty();
 			}
@@ -205,7 +206,8 @@ _f.Frm.prototype.watch_model_updates = function() {
 				&& me.fields_dict[fieldname].refresh(fieldname);
 
 			me.layout.refresh_dependency();
-			return me.script_manager.trigger(fieldname, doc.doctype, doc.name);
+			let object = me.script_manager.trigger(fieldname, doc.doctype, doc.name);
+			return object;
 		}
 	});
 
@@ -955,8 +957,8 @@ _f.Frm.prototype.validate_form_action = function(action, resolve) {
 	// Allow submit, write, cancel and create permissions for read only documents that are assigned by
 	// workflows if the user already have those permissions. This is to allow for users to
 	// continue through the workflow states and to allow execution of functions like Duplicate.
-	if (!frappe.workflow.is_read_only(this.doctype, this.docname) && (perms["write"] ||
-		perms["create"] || perms["submit"] || perms["cancel"])) {
+	if ((frappe.workflow.is_read_only(this.doctype, this.docname) && (perms["write"] ||
+		perms["create"] || perms["submit"] || perms["cancel"])) || !frappe.workflow.is_read_only(this.doctype, this.docname)) {
 		var allowed_for_workflow = true;
 	}
 

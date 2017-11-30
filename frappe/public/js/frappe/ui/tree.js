@@ -15,7 +15,7 @@ frappe.ui.Tree = Class.extend({
 			label: this.label,
 			parent_label: null,
 			expandable: true,
-			root: true,
+			is_root: true,
 			data: {
 				value: this.label,
 				parent: this.label,
@@ -100,7 +100,11 @@ frappe.ui.TreeNode = Class.extend({
 		if(this.tree.get_label) {
 			return this.tree.get_label(this);
 		}
-		return __(this.label);
+		if (this.title && this.title != this.label) {
+			return __(this.title) + ` <span class='text-muted'>(${this.label})</span>`;
+		} else {
+			return __(this.title || this.label);
+		}
 	},
 	toggle: function(callback) {
 		if(this.expandable && this.tree.method && !this.loaded) {
@@ -170,11 +174,13 @@ frappe.ui.TreeNode = Class.extend({
 	addnode: function(data) {
 		var $li = $('<li class="tree-node">');
 		if(this.tree.drop) $li.draggable({revert:true});
+
 		return new frappe.ui.TreeNode({
 			tree: this.tree,
 			parent: $li.appendTo(this.$ul),
 			parent_label: this.label,
 			label: data.value,
+			title: data.title,
 			expandable: data.expandable,
 			data: data
 		});
@@ -210,17 +216,19 @@ frappe.ui.TreeNode = Class.extend({
 		this.load();
 	},
 	reload_parent: function() {
-		this.parent_node.load_all();
+		this.parent_node && this.parent_node.load_all();
 	},
 	load_all: function(callback) {
 		var  me = this;
+		let args = $.extend({}, this.tree.args);
+
+		args.parent = this.data.value;
+		args.tree_method = this.tree.method;
+		args.is_root = this.is_root;
+
 		return frappe.call({
 			method: 'frappe.desk.treeview.get_all_nodes',
-			args: {
-				tree_args: this.tree.args,
-				tree_method: this.tree.method,
-				parent: this.data.value
-			},
+			args: args,
 			callback: function(r) {
 				$.each(r.message, function(i, d) {
 					me.render_expand_node(me.tree.nodes[d.parent], d.data);
@@ -234,6 +242,8 @@ frappe.ui.TreeNode = Class.extend({
 		var args = $.extend(this.tree.args || {}, {
 			parent: this.data.value
 		});
+
+		args.is_root = this.is_root;
 
 		return frappe.call({
 			method: this.tree.method,

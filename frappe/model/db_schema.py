@@ -13,7 +13,10 @@ import os
 import frappe
 from frappe import _
 from frappe.utils import cstr, cint, flt
-import MySQLdb
+
+# imports - third-party imports
+import pymysql
+from pymysql.constants import ER
 
 class InvalidColumnName(frappe.ValidationError): pass
 
@@ -26,25 +29,26 @@ type_map = {
 	,'Float':		('decimal', '18,6')
 	,'Percent':		('decimal', '18,6')
 	,'Check':		('int', '1')
-	,'Small Text':	('text', '')
-	,'Long Text':	('longtext', '')
+	,'Small Text':		('text', '')
+	,'Long Text':		('longtext', '')
 	,'Code':		('longtext', '')
-	,'Text Editor':	('longtext', '')
+	,'Text Editor':		('longtext', '')
 	,'Date':		('date', '')
-	,'Datetime':	('datetime', '6')
+	,'Datetime':		('datetime', '6')
 	,'Time':		('time', '6')
 	,'Text':		('text', '')
 	,'Data':		('varchar', varchar_len)
 	,'Link':		('varchar', varchar_len)
-	,'Dynamic Link':('varchar', varchar_len)
-	,'Password':	('varchar', varchar_len)
+	,'Dynamic Link':	('varchar', varchar_len)
+	,'Password':		('varchar', varchar_len)
 	,'Select':		('varchar', varchar_len)
-	,'Read Only':	('varchar', varchar_len)
+	,'Read Only':		('varchar', varchar_len)
 	,'Attach':		('text', '')
-	,'Attach Image':('text', '')
-	,'Signature':	('longtext', '')
+	,'Attach Image':	('text', '')
+	,'Signature':		('longtext', '')
 	,'Color':		('varchar', varchar_len)
 	,'Barcode':		('longtext', '')
+	,'Geolocation':		('longtext', '')
 }
 
 default_columns = ['name', 'creation', 'modified', 'modified_by', 'owner',
@@ -120,8 +124,8 @@ class DbTable:
 					max_length = frappe.db.sql("""select max(char_length(`{fieldname}`)) from `tab{doctype}`"""\
 						.format(fieldname=col.fieldname, doctype=self.doctype))
 
-				except MySQLdb.OperationalError as e:
-					if e.args[0]==1054:
+				except pymysql.InternalError as e:
+					if e.args[0] == ER.BAD_FIELD_ERROR:
 						# Unknown column 'column_name' in 'field list'
 						continue
 

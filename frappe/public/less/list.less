@@ -45,12 +45,15 @@
 
 .set-filters .btn-group {
 	margin-right: 10px;
+	white-space: nowrap;
+	font-size: 0;
 }
 
 .set-filters .btn-group .btn-default {
 	background-color: transparent;
 	border: 1px solid @border-color;
 	color: @text-muted;
+	float: none;
 }
 
 .filter-box {
@@ -485,6 +488,25 @@
 
 .pswp__bg {
 	background-color: #fff !important;
+}
+
+.pswp__more-items {
+	position: absolute;
+	bottom: 12px;
+	left: 50%;
+	transform: translateX(-50%);
+}
+
+.pswp__more-item {
+	display: inline-block;
+	margin: 5px;
+	height: 100px;
+	cursor: pointer;
+	border: 1px solid @border-color;
+
+	img {
+		max-height: 100%;
+	}
 }
 
 // gantt
