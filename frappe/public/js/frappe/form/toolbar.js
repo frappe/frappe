@@ -5,7 +5,6 @@ frappe.provide("frappe.ui.form");
 frappe.ui.form.Toolbar = Class.extend({
 	init: function(opts) {
 		$.extend(this, opts);
-		this.frm.set_cur_list(frappe.views.list_view[this.frm.doctype]);
 		this.refresh();
 		this.add_update_button_on_dirty();
 		this.setup_editable_title();
@@ -125,7 +124,8 @@ frappe.ui.form.Toolbar = Class.extend({
 		}
 
 		// Navigate
-		if(!me.frm.doc.__islocal && frappe.views.list_view[me.frm.doctype]) {
+		if(!me.frm.doc.__islocal) {
+			this.frm.set_cur_list(this.frm.doctype);
 			this.print_icon = this.page.add_action_icon("fa fa-chevron-left", function() {
 				me.frm.previous_doc(me.frm.docname, me.frm.doctype);
 			});
