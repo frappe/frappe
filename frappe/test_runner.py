@@ -56,7 +56,7 @@ def main(app=None, module=None, doctype=None, verbose=False, tests=(),
 			frappe.get_attr(fn)()
 
 		if doctype_list:
-			ret = run_sequen_doctype_tests(doctype_list, verbose, tests, force, profile)
+			ret = run_doctype_test_list(doctype_list, verbose, tests, force, profile)
 		elif doctype:
 			ret = run_tests_for_doctype(doctype, verbose, tests, force, profile)
 		elif module:
@@ -85,7 +85,7 @@ def set_test_email_config():
 		"admin_password": "admin"
 	})
 
-def run_sequen_doctype_tests(doctype_list, verbose=False, tests=(), force=False, profile=False):
+def run_doctype_test_list(doctype_list, verbose=False, tests=(), force=False, profile=False):
 	# check if doctype file exsts
 	import os
 
