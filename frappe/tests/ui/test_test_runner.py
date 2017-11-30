@@ -59,15 +59,15 @@ def get_tests():
 		return (frappe.flags.ui_test_path,)
 	elif frappe.flags.ui_test_app:
 		# specific app
-		return get_tests_for(app=frappe.flags.ui_test_app)
+		return get_tests_for(frappe.flags.ui_test_app)
 	else:
 		# all apps
 		tests = []
 		for app in frappe.get_installed_apps():
-			tests.extend(get_tests_for(app=app))
+			tests.extend(get_tests_for(app))
 		return tests
 
-def get_tests_for(test_list=None, app=None):
+def get_tests_for(app=None, test_list=None):
 	tests = []
 	if test_list:
 		# Get all tests from a particular txt file
