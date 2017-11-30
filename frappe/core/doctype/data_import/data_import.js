@@ -12,7 +12,6 @@ frappe.ui.form.on('Data Import', {
 	
 	onload: function(frm) {
 		frm.disable_save();
-		console.log("save disabled");
 		frappe.realtime.on("data_import", function(data) {
 			if(data.progress) {
 				frappe.hide_msgprint(true);
@@ -26,17 +25,6 @@ frappe.ui.form.on('Data Import', {
 		var download_dialog = new frappe.ui.Dialog({
 			title: __('Download Template'),
 			fields: [
-				{
-					"label": "Download in Excel File Format",
-					"fieldname": "download_in_xlsx",
-					"fieldtype": "Check",
-					"default": "1"
-				},
-				{
-					"label": "Download with Data",
-					"fieldname": "with_data",
-					"fieldtype": "Check"
-				},
 				{
 					"label": "Document Fields",
 					"fieldname": "document_fields",
@@ -58,19 +46,31 @@ frappe.ui.form.on('Data Import', {
 								});
 								$(frappe.render_template("export_template", {doctype_list: doctype_list}))
 									.appendTo(frm.$dialog_wrapper.empty());
-							}
+								}
 						});
 						if (this.value === "Select All") {
 							frm.$dialog_wrapper.addClass("hidden");
 							frm.$dialog_wrapper.find('.select-column-check').prop('checked', true);
 						} else if (this.value === "Select Mandatory") {
-							frm.$dialog_wrapper.addClass("hidden");							
+							frm.$dialog_wrapper.addClass("hidden");
 							frm.$dialog_wrapper.find('.select-column-check').prop('checked', false);
 							frm.$dialog_wrapper.find('.select-column-check[data-reqd="1"]').prop('checked', true);
 						} else if (this.value === "Select Manually") {
-							frm.$dialog_wrapper.removeClass("hidden");						
+							frm.$dialog_wrapper.removeClass("hidden");
 						}
 					}
+				},
+				{
+					"label": "File Type",
+					"fieldname": "file_type",
+					"fieldtype": "Select",
+					"options": "Excel\nCSV",
+					"default": "Excel"
+				},
+				{
+					"label": "Download with Data",
+					"fieldname": "with_data",
+					"fieldtype": "Check"
 				},
 				{
 					"label": "",
@@ -98,10 +98,10 @@ frappe.ui.form.on('Data Import', {
 							with_data: data.with_data ? 'Yes' : 'No',
 							all_doctypes: 'Yes',
 							from_data_import: 'Yes',
-							excel_format: data.download_in_xlsx ? 'Yes' : 'No'
+							excel_format: data.file_type === 'Excel' ? 'Yes' : 'No'
 						}
 					};
-					let get_template_url = '/api/method/frappe.core.doctype.export_template.export_template.get_template';
+					let get_template_url = '/api/method/frappe.core.doctype.data_import.exporter.get_template';
 					open_url_post(get_template_url, export_params());
 				} else {
 					frappe.msgprint(__("Please select the Document Type."))
