@@ -4,13 +4,16 @@ frappe.ui.form.ControlMultiSelect = frappe.ui.form.ControlAutocomplete.extend({
 
 		return Object.assign(settings, {
 			filter: function(text, input) {
-				return Awesomplete.FILTER_CONTAINS(text, input.match(/[^,]*$/)[0]);
+				var d = this.get_item(text.value);
+				var v = Awesomplete.FILTER_CONTAINS(d.label, input.match(/[^,]*$/)[0]);
+				if(!v && d.value){
+					v = Awesomplete.FILTER_CONTAINS(d.value, input.match(/[^,]*$/)[0]);
+				}
+				if(!v && d.description){
+					v = Awesomplete.FILTER_CONTAINS(d.description, input.match(/[^,]*$/)[0]);
+				}
+				return v;
 			},
-
-			item: function(text, input) {
-				return Awesomplete.ITEM(text, input.match(/[^,]*$/)[0]);
-			},
-
 			replace: function(text) {
 				const before = this.input.value.match(/^.+,\s*|/)[0];
 				this.input.value = before + text + ", ";

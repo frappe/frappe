@@ -8,30 +8,16 @@ def sendmail_to_system_managers(subject, content):
 	frappe.sendmail(recipients=get_system_managers(), subject=subject, content=content)
 
 @frappe.whitelist()
-def get_contact_list(txt):
+def get_contact_list():
 	"""Returns contacts (from autosuggest)"""
-	txt = txt.replace('%', '')
 
-	def get_users():
-		return filter(None, frappe.db.sql_list('select email from tabUser where email like %s',
-			('%' + txt + '%')))
 	try:
-		out = filter(None, frappe.db.sql_list("""select distinct email_id from `tabContact` 
-			where email_id like %(txt)s or concat(first_name, " ", last_name) like %(txt)s order by
-			if (locate( %(_txt)s, concat(first_name, " ", last_name)), locate( %(_txt)s, concat(first_name, " ", last_name)), 99999),
-			if (locate( %(_txt)s, email_id), locate( %(_txt)s, email_id), 99999)""",
-		        {'txt': "%%%s%%" % frappe.db.escape(txt),
-	            '_txt': txt.replace("%", "")
-		        })
-		)
-		if not out:
-			out = get_users()
+		out = frappe.db.sql("""select email_id as value, concat(first_name, " ", ifnull(last_name, ""))
+			as description from `tabContact`""", as_dict=True)
+		out = filter(None, out)
+
 	except Exception as e:
-		if e.args[0]==1146:
-			# no Contact, use User
-			out = get_users()
-		else:
-			raise
+		raise
 
 	return out
 
@@ -77,3 +63,5 @@ def get_communication_doctype(doctype, txt, searchfield, start, page_len, filter
 		if txt.lower().replace("%", "") in dt.lower() and dt in can_read:
 			out.append([dt])
 	return out
+
+

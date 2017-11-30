@@ -20,7 +20,25 @@ frappe.ui.form.ControlAutocomplete = frappe.ui.form.ControlData.extend({
 			minChars: 0,
 			maxItems: 99,
 			autoFirst: true,
-			list: this.get_data()
+			list: [],
+			data: function (item) {
+				return {
+					label: item.label || item.value,
+					value: item.value,
+				};
+			},
+			filter: function() {
+				return true;
+			},
+			item: function (item, input) {
+				var d = this.get_item(item.value);
+				if(!d.label) {	d.label = d.value; }
+
+				var html = "<strong>" + d.label + "</strong>";
+				html += '<br><span class="small">' + d.description + '</span>';
+
+				return Awesomplete.ITEM(html, input.match(/[^,]*$/)[0]);
+			},
 		};
 	},
 
