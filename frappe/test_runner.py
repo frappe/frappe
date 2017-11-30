@@ -125,6 +125,7 @@ def run_all_tests(app=None, verbose=False, profile=False, ui_tests=False):
 	return out
 
 def run_tests_for_doctype(doctypes, verbose=False, tests=(), force=False, profile=False):
+	modules = []
 	if not isinstance(doctypes, (list, tuple)):
 		doctypes = [doctypes]
 
@@ -139,11 +140,9 @@ def run_tests_for_doctype(doctypes, verbose=False, tests=(), force=False, profil
 			for name in frappe.db.sql_list("select name from `tab%s`" % doctype):
 				frappe.delete_doc(doctype, name, force=True)
 		make_test_records(doctype, verbose=verbose, force=force)
-		module = importlib.import_module(test_module)
-		failed = _run_unittest(module, verbose=verbose, tests=tests, profile=profile)
-		if failed:
-			return failed
-	return 0
+		modules.append(importlib.import_module(test_module))
+
+	return _run_unittest(modules, verbose=verbose, tests=tests, profile=profile)
 
 def run_tests_for_module(module, verbose=False, tests=(), profile=False):
 	module = importlib.import_module(module)
@@ -165,16 +164,21 @@ def run_ui_tests(app=None, test=None, verbose=False, profile=False):
 	frappe.flags.ui_test_path = test
 	return _run_unittest(module=module, verbose=verbose, tests=(), profile=profile)
 
-def _run_unittest(module, verbose=False, tests=(), profile=False):
+def _run_unittest(modules, verbose=False, tests=(), profile=False):
 	test_suite = unittest.TestSuite()
-	module_test_cases = unittest.TestLoader().loadTestsFromModule(module)
-	if tests:
-		for each in module_test_cases:
-			for test_case in each.__dict__["_tests"]:
-				if test_case.__dict__["_testMethodName"] in tests:
-					test_suite.addTest(test_case)
-	else:
-		test_suite.addTest(module_test_cases)
+
+	if not isinstance(modules, (list, tuple)):
+		modules = [modules]
+
+	for module in modules:
+		module_test_cases = unittest.TestLoader().loadTestsFromModule(module)
+		if tests:
+			for each in module_test_cases:
+				for test_case in each.__dict__["_tests"]:
+					if test_case.__dict__["_testMethodName"] in tests:
+						test_suite.addTest(test_case)
+		else:
+			test_suite.addTest(module_test_cases)
 
 	if profile:
 		pr = cProfile.Profile()
