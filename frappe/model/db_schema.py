@@ -49,7 +49,6 @@ type_map = {
 	,'Color':		('varchar', varchar_len)
 	,'Barcode':		('longtext', '')
 	,'Geolocation':		('longtext', '')
-	,'Multi Check':		('longtext', '')
 }
 
 default_columns = ['name', 'creation', 'modified', 'modified_by', 'owner',

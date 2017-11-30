@@ -2,13 +2,29 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on('Domain Settings', {
-	onload: function(frm) {
-		frm.fields_dict.domains.get_data = () => {
-			return frappe.boot.all_domains.map(domain => {
-				return { label: domain, value: domain };
-			});
-		};
-		frm.fields_dict.domains.refresh_input_area();
+	before_load: function(frm) {
+		frm.layout.add_fields([
+			{
+				fieldname: "active_domains_sb",
+				fieldtype: "Section Break",
+				label: __("Active Domains")
+			},
+			{
+				fieldname: "domains",
+				fieldtype: "MultiCheck",
+				label: __("Active Domains"),
+				get_data: () => {
+					return frappe.boot.all_domains.map(domain => {
+						return {
+							label: domain,
+							value: domain,
+							checked: frappe.boot.active_domains.includes(domain)
+						};
+					});
+				}
+			}
+		]);
+		frm.fields_dict.domains.refresh_input();
 	},
 
 	validate: function(frm) {
@@ -16,7 +32,7 @@ frappe.ui.form.on('Domain Settings', {
 	},
 
 	set_options_in_table: function(frm) {
-		let selected_options = frm.doc.domains;
+		let selected_options = frm.fields_dict.domains.get_value();
 		let unselected_options = frm.fields_dict.domains.options
 			.map(option => option.value)
 			.filter(value => {
