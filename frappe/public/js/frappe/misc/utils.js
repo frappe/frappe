@@ -41,7 +41,7 @@ frappe.utils = {
 	is_md: function() {
 		return $(document).width() < 1199 && $(document).width() >= 991;
 	},
-	is_json_string: function(str) {
+	is_json: function(str) {
 		try {
 			JSON.parse(str);
 		} catch (e) {

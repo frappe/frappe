@@ -63,7 +63,7 @@ frappe.ui.form.ControlMultiCheck = frappe.ui.form.ControlData.extend({
 	parse_df_options() {
 		if(Array.isArray(this.df.options)) {
 			this.options = this.df.options;
-		} else if(this.df.options.length>0 && frappe.utils.is_json_string(this.df.options)) {
+		} else if(this.df.options.length>0 && frappe.utils.is_json(this.df.options)) {
 			let args = JSON.parse(this.df.options);
 			if(Array.isArray(args)) {
 				this.options = args;
@@ -118,18 +118,17 @@ frappe.ui.form.ControlMultiCheck = frappe.ui.form.ControlData.extend({
 
 	get_checkbox_element(option) {
 		return $(`
-			<div class="checkbox unit-checkbox" style="color: #36414c;">
+			<div class="checkbox unit-checkbox">
 				<label>
 				<input type="checkbox" ${this.check_field_attr}="${option.value}"></input>
 				<span class="label-area small">${__(option.label)}</span>
 				</label>
-			</div>
-		`);
+			</div>`);
 	},
 
 	get_select_buttons() {
-		return $(`<div><button class="btn btn-xs btn-default select-all"
-			style="margin-right: 5px;">${__("Select All")}</button>
+		return $(`<div><button class="btn btn-xs btn-default select-all">
+			${__("Select All")}</button>
 			<button class="btn btn-xs btn-default deselect-all">
 		${__("Unselect All")}</button></div>`);
 	}
