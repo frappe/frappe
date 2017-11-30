@@ -67,16 +67,30 @@ frappe.views.CommunicationComposer = Class.extend({
 				const $container = $(dialog.body)
 				const options    = Object.keys(frappe.boot.user_info).map((name) => {
 					const  user  = frappe.boot.user_info[name]
-					const  pair  = { label: frappe.user.full_name(name), value: user.email }
+					const  label = `
+						<div class="row">
+							<div class="col-md-4">
+								<div class="ellipsis">
+									${frappe.user.full_name(name)}
+								</div>
+							</div>
+							<div class="col-md-8">
+								<div class="ellipsis text-muted">
+									${user.email}
+								</div>
+							</div>
+						</div>
+					`
+					const  pair  = { label: label, value: user.email }
 					return pair
 				})
 				const checklist  = new frappe.ui.CheckList($container, options)
 
 				dialog.set_primary_action(__('Select'), () => {
 					const values = checklist.val()
-					dialog.hide()
-
 					mcomposer.fields_dict[fieldname].set_value(values.join(", "))
+
+					dialog.hide()
 				})
 
 				dialog.show()
