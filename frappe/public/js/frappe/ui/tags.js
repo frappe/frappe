@@ -12,8 +12,24 @@ frappe.ui.TagEditor = Class.extend({
 		- docname
 		*/
 		$.extend(this, opts);
+
+		this.setup_taggle();
+
+		if (!this.user_tags) {
+			this.user_tags = "";
+		}
+		this.initialized = true;
+		this.refresh(this.user_tags);
+	},
+	setup_taggle: function() {
 		var me = this;
-		this.wrapper = $('<div class="tag-line" style="position: relative">').appendTo(this.parent)
+
+		// hidden form, does not have parent
+		if (!this.parent) {
+			return;
+		}
+
+		this.wrapper = $('<div class="tag-line" style="position: relative">').appendTo(this.parent);
 		if(!this.wrapper.length) return;
 		var id = frappe.dom.set_unique_id(this.wrapper);
 		this.taggle = new Taggle(id, {
@@ -48,12 +64,8 @@ frappe.ui.TagEditor = Class.extend({
 				}
 			}
 		});
-		if (!this.user_tags) {
-			this.user_tags = "";
-		}
-		this.initialized = true;
-		this.refresh(this.user_tags);
 		this.setup_awesomplete();
+		this.setup_complete = true;
 	},
 	setup_awesomplete: function() {
 		var me = this;
@@ -100,8 +112,7 @@ frappe.ui.TagEditor = Class.extend({
 	},
 	refresh: function(user_tags) {
 		var me = this;
-		if(!me.initialized || me.refreshing)
-			return;
+		if (!this.initialized || !this.setup_complete || this.refreshing) return;
 
 		me.refreshing = true;
 		try {
