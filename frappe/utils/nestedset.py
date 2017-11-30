@@ -43,7 +43,7 @@ def update_nsm(doc):
 
 	# set old parent
 	doc.set(opf, p)
-	frappe.db.set_value(doc.doctype, doc.name, opf, p or '')
+	frappe.db.set_value(doc.doctype, doc.name, opf, p or '', update_modified=False)
 
 	doc.reload()
 
