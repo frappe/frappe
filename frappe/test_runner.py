@@ -144,13 +144,16 @@ def run_tests_for_module(module, verbose=False, tests=(), profile=False):
 def run_setup_wizard_ui_test(app=None, verbose=False, profile=False):
 	'''Run setup wizard UI test using test_test_runner'''
 	frappe.flags.run_setup_wizard_ui_test = 1
-	return run_ui_tests(app, None, verbose, profile)
+	return run_ui_tests(app=app, test=None, verbose=verbose, profile=profile)
 
-def run_ui_tests(app=None, test=None, verbose=False, profile=False):
+def run_ui_tests(app=None, test=None, test_list=None, verbose=False, profile=False):
 	'''Run a single unit test for UI using test_test_runner'''
 	module = importlib.import_module('frappe.tests.ui.test_test_runner')
 	frappe.flags.ui_test_app = app
-	frappe.flags.ui_test_path = test
+	if test_list:
+		frappe.flags.ui_test_list = test_list
+	else:
+		frappe.flags.ui_test_path = test
 	return _run_unittest(module=module, verbose=verbose, tests=(), profile=profile)
 
 def _run_unittest(module, verbose=False, tests=(), profile=False):
