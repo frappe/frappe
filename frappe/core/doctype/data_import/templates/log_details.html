@@ -1,0 +1,26 @@
+<div>
+	<div class="table-responsive">
+		<table class="table table-bordered table-hover log-details-table">
+				<tr>
+					<th> Row No </th>
+					<th> Document </th>
+					<th> Action </th>
+				</tr>
+
+			{% for (var k = 0; k < data.length; k++) { %}				
+				<tr>
+				{% for (var i = 0; i < data[k].length; i++) { %}
+					{% if (i != 2) { %}
+						<td> {{ __(data[k][i]) }} </td>
+					{% } else { %}
+						<span class="indicator green">
+							<td> {{ __(data[k][i]) }} </td>
+						</span>
+					{% } %}
+				{% } %}
+				</tr>
+
+			{% } %}
+		</table>
+	</div>
+</div>
