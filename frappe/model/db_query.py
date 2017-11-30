@@ -580,7 +580,8 @@ def get_count(doctype, filters=None):
 		if isinstance(filters, list):
 			filters = frappe.utils.make_filter_dict(filters)
 
-		return frappe.db.count(doctype, filters=filters)
+		count = frappe.db.count(doctype, filters=filters)
+		names = frappe.db.get_values(doctype, filters, 'name')
 
 	else:
 		# If filters contain child table as well as parent doctype - Join
@@ -600,8 +601,14 @@ def get_count(doctype, filters=None):
 				if join_condition not in conditions:
 					conditions.append(join_condition)
 
-		return frappe.db.sql_list("""select count(*) from {0}
+		count = frappe.db.sql_list("""select count(*) from {0}
 			where {1}""".format(','.join(tables), ' and '.join(conditions)), debug=0)
+		names = frappe.db.sql_list("""select `tab{2}`.name from {0}
+			where {1}""".format(','.join(tables), ' and '.join(conditions), doctype), debug=0)
+
+	save_curList(doctype, names)
+
+	return count
 
 def is_parent_only_filter(doctype, filters):
 	#check if filters contains only parent doctype
@@ -633,3 +640,12 @@ def get_between_date_filter(value):
 		add_to_date(get_datetime(to_date),days=1).strftime("%Y-%m-%d %H:%M:%S.%f"))
 
 	return data
+
+def save_curList(doctype, names):
+	# update cur_list in user_settings
+	if any( isinstance(e, (list, tuple)) for e in names ):
+		names = [e[0] for e in names]
+
+	user_settings = json.loads(get_user_settings(doctype))
+	user_settings['cur_list'] = names
+	update_user_settings(doctype, user_settings)

@@ -94,3 +94,9 @@ def get_next(doctype, value, prev, filters=None, order_by="modified desc"):
 	else:
 		return res[0][0]
 
+@frappe.whitelist()
+def get_user_settings(doctype):
+	user_settings = frappe.cache().hget('_user_settings',
+		'{0}::{1}'.format(doctype, frappe.session.user))
+
+	return json.loads(user_settings)
