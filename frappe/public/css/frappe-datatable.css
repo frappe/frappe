@@ -36,3 +36,10 @@
 .data-table .body-scrollable::-webkit-scrollbar {
   display: none;
 }
+.data-table .data-table-header {
+  background-color: #F7FAFC;
+  color: #8D99A6;
+}
+.data-table .data-table-row.row-highlight {
+  background-color: #fffdf4;
+}

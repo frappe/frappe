@@ -28,6 +28,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	setup_defaults() {
 		super.setup_defaults();
+		this.listview_settings = frappe.listview_settings[this.doctype] || {};
 		this.view_user_settings = this.user_settings[this.view_name] || {};
 	}
 
@@ -35,7 +36,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		// get from user_settings
 		if (this.view_user_settings.fields) {
 			this._fields = this.view_user_settings.fields;
-			this.build_fields();
 			return;
 		}
 		// build from meta
@@ -523,7 +523,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	delete_items() {
-		const docnames = this.get_checked_values();
+		const docnames = this.get_checked_items();
 
 		frappe.confirm(__('Delete {0} items permanently?', [docnames.length]),
 			() => {
@@ -543,9 +543,13 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		);
 	}
 
-	get_checked_values() {
-		return Array.from(this.$result.find('.list-row-checkbox:checked'))
+	get_checked_items(only_docnames) {
+		const docnames = Array.from(this.$result.find('.list-row-checkbox:checked'))
 			.map(check => $(check).data().name);
+
+		if (only_docnames) return docnames;
+
+		return this.data.filter(d => docnames.includes(d.name));
 	}
 
 	save_view_user_settings(obj) {

@@ -3,38 +3,58 @@
  */
 frappe.provide('frappe.views');
 
-frappe.views.ReportView = frappe.views.ListRenderer.extend({
-	name: 'Report',
+frappe.views.ReportView = class ReportView extends frappe.views.ListView {
+	setup_defaults() {
+		super.setup_defaults();
+		this.page_title = __('Report:') + ' ' + this.page_title;
+	}
 
-	render_view(values) {
+	setup_view() {
+		this.setup_columns();
+	}
 
-		if (this.datatable && this.wrapper.find('.data-table').length) {
-			const rows = this.build_rows(values);
-			this.datatable.appendRows(rows);
-			return;
-		}
-
-		this.setup_datatable(values);
-		this.setup_column_picker();
-	},
+	render() {
+		this.setup_datatable(this.data);
+	}
 
 	setup_datatable(values) {
-		this.datatable = new DataTable(this.wrapper[0], {
+		this.datatable = new DataTable(this.$result[0], {
 			data: this.get_data(values),
 			enableClusterize: true,
-			addCheckbox: this.can_delete(),
+			addCheckbox: this.can_delete,
 			takeAvailableSpace: true,
-			editing: this.get_editing_object.bind(this)
-		});
+			editing: this.get_editing_object.bind(this),
+			events: {
+				onRemoveColumn: (column) => {
+					this.remove_column_from_datatable(column);
+				},
+				onSwitchColumn: (column1, column2) => {
+					this.switch_column(column1, column2);
+				}
+			},
+			headerDropdown: [{
+				label: 'Add column',
+				action: (column) => {
+					const options = this.get_remaining_columns()
+						.map(d => ({label:d.label, value: d.fieldname}));
 
-		this.list_view.wrapper.one('render-complete', () => {
-			if (this.last_action === 'add_column') {
-				// if new column was added, scroll to it
-				this.datatable.scrollToLastColumn();
-			}
-			this.last_action = 'refresh';
+					const d = new frappe.ui.Dialog({
+						title: __('Add column'),
+						fields: [
+							{ label: __('Column Name'), fieldtype: 'Select', options: options }
+						],
+						primary_action: (values) => {
+							if (!values.column_name) return;
+							this.add_column_to_datatable(values.column_name, column.colIndex);
+							d.hide();
+						}
+					});
+
+					d.show();
+				}
+			}]
 		});
-	},
+	}
 
 	get_editing_object(colIndex, rowIndex, value, parent) {
 		const control = this.render_editing_input(colIndex, value, parent);
@@ -57,7 +77,7 @@ frappe.views.ReportView = frappe.views.ListRenderer.extend({
 				return control.get_value();
 			}
 		}
-	},
+	}
 
 	set_control_value(docname, fieldname, value) {
 		this.last_updated_doc = docname;
@@ -72,7 +92,7 @@ frappe.views.ReportView = frappe.views.ListRenderer.extend({
 				})
 				.fail(reject);
 		})
-	},
+	}
 
 	render_editing_input(colIndex, value, parent) {
 		const col = this.datatable.getColumn(colIndex);
@@ -92,59 +112,41 @@ frappe.views.ReportView = frappe.views.ListRenderer.extend({
 		control.toggle_description(false);
 
 		return control;
-	},
+	}
 
 	validate_cell_editing(docfield) {
 		if (!docfield) return false;
-
 		const is_standard_field = frappe.model.std_fields_list.includes(docfield.fieldname);
 		const is_read_only = docfield.read_only;
-		if(docfield.fieldname !== "idx" && is_standard_field || is_read_only) {
+		if (docfield.fieldname !== "idx" && is_standard_field || is_read_only) {
 			return false;
-		} else if(!frappe.boot.user.can_write.includes(this.doctype)) {
+		} else if (!frappe.boot.user.can_write.includes(this.doctype)) {
 			frappe.throw({
-				title:__('Not Permitted'),
-				message:__("No permission to edit")
+				title: __('Not Permitted'),
+				message: __("No permission to edit")
 			});
 			return false;
 		}
 		return true;
-	},
-
-	refresh_on_dirty(docname, user) {
-		return this.last_updated_doc !== docname && user !== frappe.session.user;
-	},
+	}
 
 	get_data(values) {
 		return {
 			columns: this.columns,
 			rows: this.build_rows(values)
 		}
-	},
+	}
 
 	set_fields() {
-		this.stats = ['_user_tags'];
-
-		if (this.user_settings.fields) {
-			this._fields = this.user_settings.fields;
-			this.build_fields();
+		// get from user_settings
+		if (this.view_user_settings.fields) {
+			this._fields = this.view_user_settings.fields;
 			return;
 		}
 
+		// get fields from meta
 		this._fields = [];
-
-		const add_field = fieldname => {
-			if (!fieldname) return;
-			let doctype = this.doctype;
-			if (typeof fieldname === 'object') {
-				// df is passed
-				const df = fieldname;
-				fieldname = df.fieldname;
-				doctype = df.parent;
-			}
-
-			this._fields.push([fieldname, doctype]);
-		}
+		const add_field = f => this._add_field(f);
 
 		// default fields
 		[
@@ -157,7 +159,7 @@ frappe.views.ReportView = frappe.views.ListRenderer.extend({
 		const fields = this.meta.fields.filter(df => {
 			return (df.in_list_view || df.in_standard_filter)
 				&& frappe.perm.has_perm(this.doctype, df.permlevel, 'read')
-				&& !frappe.model.no_value_type.includes(df.fieldtype)
+				&& frappe.model.is_value_type(df.fieldtype)
 				&& !df.report_hide
 		});
 
@@ -186,92 +188,44 @@ frappe.views.ReportView = frappe.views.ListRenderer.extend({
 		});
 
 		// fields in listview_settings
-		this.settings.add_fields.map(add_field);
+		(this.settings.add_fields || []).map(add_field);
+	}
 
-		this.build_fields();
-	},
-
-	build_fields() {
-		//de-dup
-		this._fields = this._fields.uniqBy(f => f[0] + f[1]);
-		// build this.fields
-		this.fields = this._fields.map(f => frappe.model.get_full_column_name(f[0], f[1]));
-		// save in user_settings
-		frappe.model.user_settings.save(this.doctype, 'Report', {
-			fields: this._fields
-		});
-	},
-
-	set_columns() {
-		this.columns = this._fields.map(this.build_column);
-		this.add_add_column();
-	},
-
-	add_add_column() {
-		const dropdown_html =`<div class="btn-group btn-add-column">
-				<span class="octicon octicon-plus dropdown-toggle" data-toggle="dropdown"></span>
-				<ul class="dropdown-menu"></ul>
-			</div>
-		`;
-		const extra_column = {
-			content: dropdown_html,
-			editable: false,
-			sortable: false,
-			resizable: false,
-			focusable: false
-		}
-		this.columns.push(extra_column);
-	},
-
-	setup_column_picker() {
-		const $header = $(this.datatable.header);
-		const $btn_add_column = $header
-			.find('.data-table-col .btn-add-column')
-		const $content = $btn_add_column.closest('.content');
-		$content.css('overflow', 'visible');
-		$content.find('ul').css({
-			right: 0,
-			left: 'auto'
-		});
-
-		this.update_column_picker_dropdown();
-
-		// friendly click
-		$btn_add_column
-			.closest('.data-table-col')
-			.on('click', '.content, li', (e) => {
-				const $target = $(e.currentTarget);
-				if ($target.is('.content')) {
-					$btn_add_column.toggleClass('open');
-					e.stopPropagation();
-				}
-				if ($target.is('li')) {
-					const { fieldname } = $target.data();
-					this.add_column_to_datatable(fieldname);
-				}
-			});
-	},
-
-	add_column_to_datatable(fieldname) {
+	add_column_to_datatable(fieldname, col_index) {
 		const field = [fieldname, this.doctype];
-		this._fields.push(field);
+		this._fields.splice(col_index - 1, 0, field);
 
 		this.build_fields();
-		this.set_columns();
+		this.setup_columns();
 
 		this.datatable.destroy();
-		this.last_action = 'add_column';
+		this.refresh(true);
+	}
 
-		this.list_view.refresh(true);
-	},
+	remove_column_from_datatable(column) {
+		const index = this._fields.findIndex(f => column.field === f[0]);
+		if (index === undefined) return;
+		const field = this._fields[index];
+		if (field[0] === 'name') {
+			this.refresh(true);
+			frappe.throw(__('Cannot remove name field'));
+		}
+		this._fields.splice(index, 1);
+		this.build_fields();
+	}
 
-	update_column_picker_dropdown() {
-		if (!this.datatable) return;
-		const $header = $(this.datatable.header);
-		const remaining_columns = this.get_remaining_columns();
-		const html = remaining_columns.map(df => `<li data-fieldname="${df.fieldname}"><a>${df.label}</a></li>`);
-		$header.find('ul').html(html);
-	},
+	switch_column(col1, col2) {
+		const index1 = this._fields.findIndex(f => col1.field === f[0]);
+		const index2 = this._fields.findIndex(f => col2.field === f[0]);
+		const _fields = this._fields.slice();
+
+		let temp = _fields[index1];
+		_fields[index1] = _fields[index2];
+		_fields[index2] = temp;
+
+		this._fields = _fields;
+		this.build_fields();
+	}
 
 	get_remaining_columns() {
 		const valid_fields = frappe.meta.docfield_list[this.doctype].filter(df =>
@@ -281,26 +235,30 @@ frappe.views.ReportView = frappe.views.ListRenderer.extend({
 		);
 		const shown_fields = this.columns.map(c => c.docfield && c.docfield.fieldname);
 		return valid_fields.filter(df => !shown_fields.includes(df.fieldname));
-	},
+	}
+
+	setup_columns() {
+		this.columns = this._fields.map(this.build_column);
+	}
 
 	build_column(c) {
 		let [fieldname, doctype] = c;
 		let docfield = frappe.meta.docfield_map[doctype || this.doctype][fieldname];
 
-		if(!docfield) {
+		if (!docfield) {
 			docfield = frappe.model.get_std_field(fieldname);
 
-			if(docfield) {
+			if (docfield) {
 				docfield.parent = this.doctype;
-				if(fieldname == "name") {
+				if (fieldname == "name") {
 					docfield.options = this.doctype;
 				}
 			}
 		}
-		if(!docfield) return;
+		if (!docfield) return;
 
 		const title = __(docfield ? docfield.label : toTitle(fieldname));
-		const editable = fieldname !== 'name' && !docfield.read_only;
+		const editable = frappe.model.is_non_std_field(fieldname) && !docfield.read_only;
 
 		return {
 			id: fieldname,
@@ -311,7 +269,7 @@ frappe.views.ReportView = frappe.views.ListRenderer.extend({
 			width: (docfield ? cint(docfield.width) : 120) || 120,
 			editable: editable
 		}
-	},
+	}
 
 	build_rows(data) {
 		return data.map(d => {
@@ -324,8 +282,8 @@ frappe.views.ReportView = frappe.views.ListRenderer.extend({
 					return {
 						name: d.name,
 						content: value,
-						format: function(value) {
-							return frappe.format(value, col.docfield, {always_show_decimals: true});
+						format: function (value) {
+							return frappe.format(value, col.docfield, { always_show_decimals: true });
 						}
 					}
 				}
@@ -334,22 +292,5 @@ frappe.views.ReportView = frappe.views.ListRenderer.extend({
 				};
 			});
 		});
-	},
-
-	get_column_info_from_field(t) {
-		if(t.indexOf('.')===-1) {
-			return [strip(t, '`'), this.doctype];
-		} else {
-			var parts = t.split('.');
-			return [strip(parts[1], '`'), strip(parts[0], '`').substr(3)];
-		}
-	},
-
-	set_defaults() {
-		this._super();
-		this.page_title = __('Report:') + ' ' +  this.page_title;
-	},
-	get_header_html() {
-		return '';
 	}
-});
+}

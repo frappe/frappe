@@ -16,7 +16,7 @@ frappe.views.BaseList = class BaseList {
 	init(opts) {
 		this.setup_defaults();
 		this.set_stats();
-		this.set_fields();
+		this.setup_fields();
 
 		// make view
 		this.setup_page();
@@ -44,6 +44,11 @@ frappe.views.BaseList = class BaseList {
 		this.can_create = frappe.model.can_create(this.doctype);
 		this.can_delete = frappe.model.can_delete(this.doctype);
 		this.can_write = frappe.model.can_write(this.doctype);
+	}
+
+	setup_fields() {
+		this.set_fields();
+		this.build_fields();
 	}
 
 	set_fields() {
@@ -99,7 +104,6 @@ frappe.views.BaseList = class BaseList {
 
 		// fields in listview_settings
 		(this.settings.add_fields || []).map(add_field);
-		this.build_fields();
 	}
 
 	get_fields_in_list_view() {
@@ -256,6 +260,7 @@ frappe.views.BaseList = class BaseList {
 				this.$paging_area.find('.btn-paging').removeClass('btn-info');
 				$this.addClass('btn-info');
 
+				this.start = 0;
 				this.page_length = $this.data().value;
 				this.refresh();
 			} else if ($this.is('.btn-more')) {
@@ -288,7 +293,6 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	refresh() {
-		console.log('refresh called')
 		// fetch data from server
 		const args = this.get_args();
 		return frappe.call({
@@ -313,7 +317,7 @@ frappe.views.BaseList = class BaseList {
 		if (this.start === 0) {
 			this.data = data;
 		} else {
-			this.data.concat(data);
+			this.data = this.data.concat(data);
 		}
 	}
 
@@ -325,8 +329,10 @@ frappe.views.BaseList = class BaseList {
 		this.$result.toggle(this.data.length > 0);
 		this.$paging_area.toggle(this.data.length > 0);
 		this.$no_result.toggle(this.data.length == 0);
+
+		const show_more = (this.start + this.page_length) <= this.data.length;
 		this.$paging_area.find('.btn-more')
-			.toggle(this.data.length >= this.page_length);
+			.toggle(show_more);
 	}
 }
 
@@ -514,7 +520,7 @@ class ListMenu {
 	make_bulk_assignment() {
 		// bulk assignment
 		this.page.add_menu_item(__('Assign To'), () => {
-			const docnames = this.list_view.get_checked_items().map(doc => doc.name);
+			const docnames = this.list_view.get_checked_items(true);
 
 			if (docnames.length > 0) {
 				const dialog = new frappe.ui.form.AssignToDialog({
