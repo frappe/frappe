@@ -21,7 +21,6 @@ frappe.views.ListFactory = frappe.views.Factory.extend({
 					return;
 				}
 				const view_name = route[2]; // List / Gantt / Kanban / etc
-
 				const view_class = frappe.views[view_name + 'View'];
 				if (view_class && view_class.load_last_view && view_class.load_last_view()) {
 					// view can have custom routing logic
@@ -31,8 +30,8 @@ frappe.views.ListFactory = frappe.views.Factory.extend({
 				frappe.provide('frappe.views.list_view.' + doctype);
 				const page_name = frappe.get_route_str();
 
-				if (!frappe.views.list_view[doctype][view_name]) {
-					frappe.views.list_view[doctype][view_name] = new frappe.views[view_name + 'View']({
+				if (!frappe.views.list_view[page_name]) {
+					frappe.views.list_view[page_name] = new frappe.views[view_name + 'View']({
 						doctype: doctype,
 						parent: me.make_page(true, page_name)
 					});
@@ -89,7 +88,8 @@ frappe.views.ListFactory = frappe.views.Factory.extend({
 	},
 	set_cur_list: function () {
 		var route = frappe.get_route();
-		cur_list = frappe.views.list_view[route[1]] && frappe.views.list_view[route[1]][route[2]]
+		var page_name = frappe.get_route_str();
+		cur_list = frappe.views.list_view[page_name];
 		if (cur_list && cur_list.doctype !== route[1]) {
 			// changing...
 			cur_list = null;
