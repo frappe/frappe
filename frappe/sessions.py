@@ -57,15 +57,21 @@ def clear_global_cache():
 	frappe.setup_module_map()
 
 
-def clear_sessions(user=None, keep_current=False, device=None):
+def clear_sessions(user=None, keep_current=False, device=None, force=False):
 	'''Clear other sessions of the current user. Called at login / logout
 
 	:param user: user name (default: current user)
 	:param keep_current: keep current session (default: false)
 	:param device: delete sessions of this device (default: desktop)
+	:param force: triggered by the user (default false)
 	'''
+
+	reason = "Logged In From Another Session"
+	if force:
+		reason = "Force Logged out by the user"
+
 	for sid in get_sessions_to_clear(user, keep_current, device):
-		delete_session(sid, reason="Logged In From Another Session")
+		delete_session(sid, reason=reason)
 
 def get_sessions_to_clear(user=None, keep_current=False, device=None):
 	'''Returns sessions of the current user. Called at login / logout
@@ -95,7 +101,7 @@ def get_sessions_to_clear(user=None, keep_current=False, device=None):
 		(user, device))
 
 def delete_session(sid=None, user=None, reason="Session Expired"):
-	from frappe.core.doctype.communication.feed import logout_feed
+	from frappe.core.doctype.activity_log.feed import logout_feed
 
 	frappe.cache().hdel("session", sid)
 	frappe.cache().hdel("last_db_session_update", sid)

@@ -9,6 +9,7 @@ from __future__ import unicode_literals, print_function
 from six import iteritems, binary_type, text_type, string_types
 from werkzeug.local import Local, release_local
 import os, sys, importlib, inspect, json
+import jinja2
 
 # public
 from .exceptions import *
@@ -311,11 +312,20 @@ def msgprint(msg, title=None, raise_exception=0, as_table=False, indicator=None,
 def clear_messages():
 	local.message_log = []
 
+def clear_last_message():
+	if len(local.message_log) > 0:
+		local.message_log = local.message_log[:-1]
+
 def throw(msg, exc=ValidationError, title=None):
 	"""Throw execption and show message (`msgprint`).
 
 	:param msg: Message.
 	:param exc: Exception class. Default `frappe.ValidationError`"""
+	# escape to prevent XSS -> frappe.msgprint attaches html to DOM.
+	# Server Side Sanitization.
+	msg = str(jinja2.escape(msg))
+	title = str(jinja2.escape(title))
+
 	msgprint(msg, raise_exception=exc, title=title, indicator='red')
 
 def emit_js(js, user=False, **kwargs):
@@ -378,7 +388,7 @@ def sendmail(recipients=[], sender="", subject="No Subject", message="No Message
 		as_markdown=False, delayed=True, reference_doctype=None, reference_name=None,
 		unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None,
 		attachments=None, content=None, doctype=None, name=None, reply_to=None,
-		cc=[], message_id=None, in_reply_to=None, send_after=None, expose_recipients=None,
+		cc=[], bcc=[], message_id=None, in_reply_to=None, send_after=None, expose_recipients=None,
 		send_priority=1, communication=None, retry=1, now=None, read_receipt=None, is_notification=False,
 		inline_images=None, template=None, args=None, header=None):
 	"""Send email using user's default **Email Account** or global default **Email Account**.
@@ -426,7 +436,7 @@ def sendmail(recipients=[], sender="", subject="No Subject", message="No Message
 		subject=subject, message=message, text_content=text_content,
 		reference_doctype = doctype or reference_doctype, reference_name = name or reference_name,
 		unsubscribe_method=unsubscribe_method, unsubscribe_params=unsubscribe_params, unsubscribe_message=unsubscribe_message,
-		attachments=attachments, reply_to=reply_to, cc=cc, message_id=message_id, in_reply_to=in_reply_to,
+		attachments=attachments, reply_to=reply_to, cc=cc, bcc=bcc, message_id=message_id, in_reply_to=in_reply_to,
 		send_after=send_after, expose_recipients=expose_recipients, send_priority=send_priority,
 		communication=communication, now=now, read_receipt=read_receipt, is_notification=is_notification,
 		inline_images=inline_images, header=header)

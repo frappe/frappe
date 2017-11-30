@@ -78,12 +78,12 @@ frappe.pages['activity'].on_page_load = function(wrapper) {
 		}, 'fa fa-th')
 	}
 
-	this.page.add_menu_item(__('Authentication Log'), function() {
+	this.page.add_menu_item(__('Activity Log'), function() {
 		frappe.route_options = {
 			"user": frappe.session.user
 		}
 
-		frappe.set_route('Report', "Authentication Log");
+		frappe.set_route('Report', "Activity Log");
 	}, 'fa fa-th')
 
 	this.page.add_menu_item(__('Show Likes'), function() {
@@ -180,12 +180,14 @@ frappe.activity.render_heatmap = function(page) {
 		method: "frappe.desk.page.activity.activity.get_heatmap_data",
 		callback: function(r) {
 			if(r.message) {
-				var heatmap = new frappe.ui.HeatMap({
-					parent: $(".heatmap"),
+				var heatmap = new Chart({
+					parent: ".heatmap",
+					type: 'heatmap',
 					height: 100,
 					start: new Date(moment().subtract(1, 'year').toDate()),
 					count_label: "actions",
-					discrete_domains: 0
+					discrete_domains: 0,
+					data: {}
 				});
 
 				heatmap.update(r.message);

@@ -63,14 +63,14 @@ class TestDriver(object):
 			self.driver.quit()
 		self.driver = None
 
-	def login(self, wait_for_id="#page-desktop"):
+	def login(self, wait_for_id="#page-desktop", animate=0, scroll_offset=0):
 		if self.logged_in:
 			return
 		self.get('login')
 		self.wait_for("#login_email")
 		self.set_input("#login_email", "Administrator")
 		self.set_input("#login_password", "admin")
-		self.click('.btn-login')
+		self.click('.btn-login', animate=animate, offset=scroll_offset)
 		self.wait_for(wait_for_id)
 		self.logged_in = True
 
@@ -157,8 +157,8 @@ class TestDriver(object):
 	def get_wait(self, timeout=20):
 		return WebDriverWait(self.driver, timeout)
 
-	def scroll_to(self, selector):
-		self.execute_script("frappe.ui.scroll('{0}')".format(selector))
+	def scroll_to(self, selector, animate=0, offset=0):
+		self.execute_script("frappe.ui.scroll('{0}', {1}, {2})".format(selector, animate, offset))
 
 	def set_route(self, *args):
 		self.execute_script('frappe.set_route({0})'\
@@ -166,9 +166,9 @@ class TestDriver(object):
 
 		self.wait_for(xpath='//div[@data-page-route="{0}"]'.format('/'.join(args)), timeout=4)
 
-	def click(self, css_selector, xpath=None):
-		element = self.wait_till_clickable(css_selector, xpath)
-		self.scroll_to(css_selector)
+	def click(self, css_selector, xpath=None, timeout=20, animate=0, offset=0):
+		element = self.wait_till_clickable(css_selector, xpath, timeout)
+		self.scroll_to(css_selector, animate, offset)
 		time.sleep(0.5)
 		element.click()
 		return element
@@ -196,7 +196,7 @@ class TestDriver(object):
 			if elem.is_displayed():
 				return elem
 
-	def wait_till_clickable(self, selector=None, xpath=None):
+	def wait_till_clickable(self, selector=None, xpath=None, timeout=20):
 		if self.cur_route:
 			selector = self.cur_route + " " + selector
 
@@ -205,7 +205,7 @@ class TestDriver(object):
 			by = By.XPATH
 			selector = xpath
 
-		return self.get_wait().until(EC.element_to_be_clickable(
+		return self.get_wait(timeout).until(EC.element_to_be_clickable(
 			(by, selector)))
 
 

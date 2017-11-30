@@ -64,7 +64,7 @@ class Communication(Document):
 		self.set_status()
 		self.set_sender_full_name()
 		validate_email(self)
-		self.set_timeline_doc()
+		set_timeline_doc(self)
 
 	def after_insert(self):
 		if not (self.reference_doctype and self.reference_name):
@@ -149,35 +149,6 @@ class Communication(Document):
 				self.sender = sender_email
 				self.sender_full_name = sender_name or get_fullname(frappe.session.user) if frappe.session.user!='Administrator' else None
 
-	def get_parent_doc(self):
-		"""Returns document of `reference_doctype`, `reference_doctype`"""
-		if not hasattr(self, "parent_doc"):
-			if self.reference_doctype and self.reference_name:
-				self.parent_doc = frappe.get_doc(self.reference_doctype, self.reference_name)
-			else:
-				self.parent_doc = None
-		return self.parent_doc
-
-	def set_timeline_doc(self):
-		"""Set timeline_doctype and timeline_name"""
-		parent_doc = self.get_parent_doc()
-		if (self.timeline_doctype and self.timeline_name) or not parent_doc:
-			return
-
-		timeline_field = parent_doc.meta.timeline_field
-		if not timeline_field:
-			return
-
-		doctype = parent_doc.meta.get_link_doctype(timeline_field)
-		name = parent_doc.get(timeline_field)
-
-		if doctype and name:
-			self.timeline_doctype = doctype
-			self.timeline_name = name
-
-		else:
-			return
-
 	def send(self, print_html=None, print_format=None, attachments=None,
 		send_me_a_copy=False, recipients=None):
 		"""Send communication via Email.
@@ -189,7 +160,7 @@ class Communication(Document):
 		self.notify(print_html, print_format, attachments, recipients)
 
 	def notify(self, print_html=None, print_format=None, attachments=None,
-		recipients=None, cc=None, fetched_from_email_account=False):
+		recipients=None, cc=None, bcc=None,fetched_from_email_account=False):
 		"""Calls a delayed task 'sendmail' that enqueus email in Email Queue queue
 
 		:param print_html: Send given value as HTML attachment
@@ -200,13 +171,13 @@ class Communication(Document):
 		:param fetched_from_email_account: True when pulling email, the notification shouldn't go to the main recipient
 
 		"""
-		notify(self, print_html, print_format, attachments, recipients, cc,
+		notify(self, print_html, print_format, attachments, recipients, cc, bcc,
 			fetched_from_email_account)
 
 	def _notify(self, print_html=None, print_format=None, attachments=None,
-		recipients=None, cc=None):
+		recipients=None, cc=None, bcc=None):
 
-		_notify(self, print_html, print_format, attachments, recipients, cc)
+		_notify(self, print_html, print_format, attachments, recipients, cc, bcc)
 
 	def bot_reply(self):
 		if self.comment_type == 'Bot' and self.communication_type == 'Chat':
@@ -252,6 +223,35 @@ class Communication(Document):
 
 			if commit:
 				frappe.db.commit()
+
+def get_parent_doc(doc):
+	"""Returns document of `reference_doctype`, `reference_doctype`"""
+	if not hasattr(doc, "parent_doc"):
+		if doc.reference_doctype and doc.reference_name:
+			doc.parent_doc = frappe.get_doc(doc.reference_doctype, doc.reference_name)
+		else:
+			doc.parent_doc = None
+	return doc.parent_doc
+
+def set_timeline_doc(doc):
+	"""Set timeline_doctype and timeline_name"""
+	parent_doc = get_parent_doc(doc)
+	if (doc.timeline_doctype and doc.timeline_name) or not parent_doc:
+		return
+
+	timeline_field = parent_doc.meta.timeline_field
+	if not timeline_field:
+		return
+
+	doctype = parent_doc.meta.get_link_doctype(timeline_field)
+	name = parent_doc.get(timeline_field)
+
+	if doctype and name:
+		doc.timeline_doctype = doctype
+		doc.timeline_name = name
+
+	else:
+		return
 
 def on_doctype_update():
 	"""Add indexes in `tabCommunication`"""

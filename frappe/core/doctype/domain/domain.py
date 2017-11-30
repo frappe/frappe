@@ -97,6 +97,7 @@ class Domain(Document):
 		'''set values based on `data.set_value`'''
 		if self.data.set_value:
 			for args in self.data.set_value:
+				frappe.reload_doctype(args[0])
 				doc = frappe.get_doc(args[0], args[1] or args[0])
 				doc.set(args[2], args[3])
 				doc.save()

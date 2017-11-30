@@ -6,10 +6,8 @@ from __future__ import unicode_literals
 import frappe
 import unittest
 
-# test_records = frappe.get_test_records('Authentication Log')
-
-class TestAuthenticationLog(unittest.TestCase):
-	def test_authentication_log(self):
+class TestActivityLog(unittest.TestCase):
+	def test_activity_log(self):
 		from frappe.auth import LoginManager, CookieManager
 
 		# test user login log
@@ -40,10 +38,10 @@ class TestAuthenticationLog(unittest.TestCase):
 		frappe.local.form_dict = frappe._dict()
 
 	def get_auth_log(self, operation='Login'):
-		names = frappe.db.sql_list("""select name from `tabAuthentication Log`
+		names = frappe.db.sql_list("""select name from `tabActivity Log`
 					where user='Administrator' and operation='{operation}' order by
 					creation desc""".format(operation=operation))
 
 		name = names[0]
-		auth_log = frappe.get_doc('Authentication Log', name)
+		auth_log = frappe.get_doc('Activity Log', name)
 		return auth_log
