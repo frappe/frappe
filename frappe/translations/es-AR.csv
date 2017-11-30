@@ -2454,7 +2454,7 @@ DocType: DocType,Title Case,Zona de título
 DocType: DocType,Title Field,Campo de título
 DocType: Website Settings,Title Prefix,Prefijo de título
 apps/frappe/frappe/core/doctype/doctype/doctype.py +537,Title field must be a valid fieldname,El campo del título debe ser un nombre válido
-DocType: Communication,To,a
+DocType: Communication,To,Hasta
 apps/frappe/frappe/core/report/feedback_ratings/feedback_ratings.js +40,To Date,Hasta la fecha
 apps/frappe/frappe/desk/doctype/todo/todo_list.js +7,To Do,Tareas
 DocType: Feedback Trigger,"To add dynamic subject, use jinja tags like
