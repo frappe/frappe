@@ -150,7 +150,7 @@ def run_tests_for_module(module, verbose=False, tests=(), profile=False):
 		for doctype in module.test_dependencies:
 			make_test_records(doctype, verbose=verbose)
 
-	return _run_unittest(module=module, verbose=verbose, tests=tests, profile=profile)
+	return _run_unittest(module, verbose=verbose, tests=tests, profile=profile)
 
 def run_setup_wizard_ui_test(app=None, verbose=False, profile=False):
 	'''Run setup wizard UI test using test_test_runner'''
@@ -162,7 +162,7 @@ def run_ui_tests(app=None, test=None, verbose=False, profile=False):
 	module = importlib.import_module('frappe.tests.ui.test_test_runner')
 	frappe.flags.ui_test_app = app
 	frappe.flags.ui_test_path = test
-	return _run_unittest(module=module, verbose=verbose, tests=(), profile=profile)
+	return _run_unittest(module, verbose=verbose, tests=(), profile=profile)
 
 def _run_unittest(modules, verbose=False, tests=(), profile=False):
 	test_suite = unittest.TestSuite()
