@@ -470,6 +470,9 @@ def money_in_words(number, main_currency = None, fraction_currency=None):
 	in_million = True
 	if number_format == "#,##,###.##": in_million = False
 
+	if main_currency == "ARS":
+		main_currency = "Son Pesos"
+
 	# 0.00
 	if main == '0' and fraction in ['00', '000']:
 		out = "{0} {1}".format(main_currency, _('Zero'))
@@ -480,8 +483,8 @@ def money_in_words(number, main_currency = None, fraction_currency=None):
 		out = main_currency + ' ' + _(in_words(main, in_million).title())
 		if cint(fraction):
 			out = out + ' ' + _('and') + ' ' + _(in_words(fraction, in_million).title()) + ' ' + fraction_currency
-
-	return out + ' ' + _('only.')
+	print(main_currency)
+	return out + _('.')
 
 #
 # convert number to words
