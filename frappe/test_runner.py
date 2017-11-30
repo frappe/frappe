@@ -4,7 +4,7 @@
 from __future__ import unicode_literals, print_function
 
 import frappe
-import unittest, json, sys
+import unittest, json, sys, os
 import xmlrunner
 import importlib
 from frappe.modules import load_doctype_module, get_module_name
@@ -25,8 +25,13 @@ def xmlrunner_wrapper(output):
 	return _runner
 
 def main(app=None, module=None, doctype=None, verbose=False, tests=(),
-	force=False, profile=False, junit_xml_output=None, ui_tests=False):
+	force=False, profile=False, junit_xml_output=None, ui_tests=False, doctype_list_path=None):
 	global unittest_runner
+
+	if doctype_list_path:
+		app, doctype_list_path = doctype_list_path.split(os.path.sep, 1)
+		with open(frappe.get_app_path(app, doctype_list_path), 'r') as f:
+			doctype = f.read().strip().splitlines()
 
 	xmloutput_fh = None
 	if junit_xml_output:
@@ -119,19 +124,26 @@ def run_all_tests(app=None, verbose=False, profile=False, ui_tests=False):
 
 	return out
 
-def run_tests_for_doctype(doctype, verbose=False, tests=(), force=False, profile=False):
-	module = frappe.db.get_value("DocType", doctype, "module")
-	if not module:
-		print('Invalid doctype {0}'.format(doctype))
-		sys.exit(1)
+def run_tests_for_doctype(doctypes, verbose=False, tests=(), force=False, profile=False):
+	if not isinstance(doctypes, (list, tuple)):
+		doctypes = [doctypes]
 
-	test_module = get_module_name(doctype, module, "test_")
-	if force:
-		for name in frappe.db.sql_list("select name from `tab%s`" % doctype):
-			frappe.delete_doc(doctype, name, force=True)
-	make_test_records(doctype, verbose=verbose, force=force)
-	module = importlib.import_module(test_module)
-	return _run_unittest(module, verbose=verbose, tests=tests, profile=profile)
+	for doctype in doctypes:
+		module = frappe.db.get_value("DocType", doctype, "module")
+		if not module:
+			print('Invalid doctype {0}'.format(doctype))
+			sys.exit(1)
+
+		test_module = get_module_name(doctype, module, "test_")
+		if force:
+			for name in frappe.db.sql_list("select name from `tab%s`" % doctype):
+				frappe.delete_doc(doctype, name, force=True)
+		make_test_records(doctype, verbose=verbose, force=force)
+		module = importlib.import_module(test_module)
+		failed = _run_unittest(module, verbose=verbose, tests=tests, profile=profile)
+		if failed:
+			return failed
+	return 0
 
 def run_tests_for_module(module, verbose=False, tests=(), profile=False):
 	module = importlib.import_module(module)
