@@ -25,6 +25,8 @@ frappe.ui.form.Toolbar = Class.extend({
 			} else {
 				this.page.show_menu();
 				this.print_icon && this.print_icon.removeClass("hide");
+				this.previous && this.previous.addClass("btn btn-default btn-sm");
+				this.next && this.next.addClass("btn btn-default btn-sm");
 			}
 		}
 	},
@@ -126,10 +128,10 @@ frappe.ui.form.Toolbar = Class.extend({
 		// Navigate
 		if(!me.frm.doc.__islocal) {
 			this.frm.set_cur_list(this.frm.doctype);
-			this.print_icon = this.page.add_action_icon("fa fa-chevron-left", function() {
+			this.previous = this.page.add_action_icon("fa fa-chevron-left", function() {
 				me.frm.previous_doc(me.frm.docname, me.frm.doctype);
 			});
-			this.print_icon = this.page.add_action_icon("fa fa-chevron-right", function() {
+			this.next = this.page.add_action_icon("fa fa-chevron-right", function() {
 				me.frm.next_doc(me.frm.docname, me.frm.doctype);
 			});
 		}
