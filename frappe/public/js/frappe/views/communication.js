@@ -52,10 +52,12 @@ frappe.views.CommunicationComposer = Class.extend({
 		const $modal    = $(this.dialog.body)
 		// NOTE - if you're updating fields, you better update this too.
 		// I should stop writing brutal hacks like below.
-		const accepted = [__("To"), __("CC"), __("BCC")]
+		const accepted = ["recipients", "cc", "bcc"]
 
-		accepted.map((label) => {
-			const $label = $modal.find(`label:contains('${label}')`)
+		accepted.map((fieldname) => {
+			const $control = $modal.find(`.frappe-control[data-fieldname="${fieldname}"]`)
+			const $label   = $control.find('label')
+			
 			$label.css({ 'cursor': 'pointer' })
 			$label.click(function ( ) {
 				const dialog = new frappe.ui.Dialog({
@@ -71,11 +73,7 @@ frappe.views.CommunicationComposer = Class.extend({
 				const checklist  = new frappe.ui.CheckList($container, options)
 
 				dialog.set_primary_action(__('Select'), () => {
-					const values    = checklist.val()
-					// I'm going to cry for writing this.
-					const $control  = $label.closest('.frappe-control')
-					const fieldname = $control.attr('data-fieldname')
-
+					const values = checklist.val()
 					dialog.hide()
 
 					mcomposer.fields_dict[fieldname].set_value(values.join(", "))
