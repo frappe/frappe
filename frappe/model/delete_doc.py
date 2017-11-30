@@ -116,7 +116,8 @@ def add_to_deleted_document(doc):
 			doctype='Deleted Document',
 			deleted_doctype=doc.doctype,
 			deleted_name=doc.name,
-			data=doc.as_json()
+			data=doc.as_json(),
+			owner=frappe.session.user
 		)).db_insert()
 
 def update_naming_series(doc):
