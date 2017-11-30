@@ -212,13 +212,13 @@ class NestedSet(Document):
 				raise
 
 	def before_rename(self, olddn, newdn, merge=False, group_fname="is_group"):
-		if merge and self.get(group_fname):
+		if merge and hasattr(self, group_fname):
 			is_group = frappe.db.get_value(self.doctype, newdn, group_fname)
 			if self.get(group_fname) != is_group:
 				frappe.throw(_("Merging is only possible between Group-to-Group or Leaf Node-to-Leaf Node"), NestedSetInvalidMergeError)
 
 	def after_rename(self, olddn, newdn, merge=False):
-		if(not self.nsm_parent_field):
+		if not self.nsm_parent_field:
 			parent_field = "parent_" + self.doctype.replace(" ", "_").lower()
 		else:
 			parent_field = self.nsm_parent_field
