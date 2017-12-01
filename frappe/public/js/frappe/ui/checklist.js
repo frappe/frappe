@@ -103,4 +103,4 @@ frappe.ui.CheckList = class
 frappe.ui.CheckList.OPTIONS = 
 {
 	has_checkall: true
-}
+};
