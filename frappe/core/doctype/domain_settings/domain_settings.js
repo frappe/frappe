@@ -14,11 +14,12 @@ frappe.ui.form.on('Domain Settings', {
 				fieldtype: "MultiCheck",
 				label: __("Active Domains"),
 				get_data: () => {
+					let active_domains = (frm.doc.active_domains || []).map(row => row.domain);
 					return frappe.boot.all_domains.map(domain => {
 						return {
 							label: domain,
 							value: domain,
-							checked: frappe.boot.active_domains.includes(domain)
+							checked: active_domains.includes(domain)
 						};
 					});
 				}
