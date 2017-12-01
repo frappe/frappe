@@ -139,7 +139,9 @@ class AutoEmailReport(Document):
 			recipients = self.email_to.split(),
 			subject = self.name,
 			message = message,
-			attachments = attachments
+			attachments = attachments,
+			reference_doctype = self.doctype,
+			reference_name = self.name
 		)
 
 @frappe.whitelist()

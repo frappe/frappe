@@ -265,7 +265,7 @@
 		"public/js/frappe/form/templates/form_links.html",
 		"public/js/frappe/views/formview.js",
 		"public/js/legacy/form.js",
-		"public/js/legacy/clientscriptAPI.js",
+		"public/js/legacy/client_script_helpers.js",
 		"public/js/frappe/form/toolbar.js",
 		"public/js/frappe/form/dashboard.js",
 		"public/js/frappe/form/document_flow.js",

@@ -244,7 +244,7 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 		this.current_slide = null;
 		this.completed_state_message = this.get_message(
 			__("Setup Complete"),
-			__("You're all set!")
+			__("Refreshing...")
 		);
 	}
 
