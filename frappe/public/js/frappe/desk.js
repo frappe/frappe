@@ -7,6 +7,10 @@ frappe.start_app = function() {
 	frappe.assets.check();
 	frappe.provide('frappe.app');
 	frappe.app = new frappe.Application();
+
+	// frappe.Chat
+	frappe.chat = new frappe.Chat()
+	// end frappe.Chat
 }
 
 $(document).ready(function() {

@@ -248,7 +248,8 @@
 		"public/js/frappe/ui/comment.js",
 		"public/js/frappe/misc/rating_icons.html",
 
-		"public/js/frappe/feedback.js"
+		"public/js/frappe/feedback.js",
+		"public/js/frappe/chat.js"
 	],
 	"css/module.min.css": [
 		"public/css/module.css"
