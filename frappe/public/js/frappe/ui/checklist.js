@@ -66,7 +66,6 @@ frappe.ui.CheckList = class
 				</div>
 			`);
 			const $input = this.$checkall.find('input');
-			const me     = this;
 			$input.on('change', function ( ) {
 				const checked = $(this).prop('checked');
 				if ( checked ) {
@@ -100,7 +99,7 @@ frappe.ui.CheckList = class
 
 		return values;
 	}
-}
+};
 frappe.ui.CheckList.OPTIONS = 
 {
 	has_checkall: true

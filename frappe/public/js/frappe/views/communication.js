@@ -44,29 +44,29 @@ frappe.views.CommunicationComposer = Class.extend({
 		this.prepare();
 		this.dialog.show();
 
-		this.setup_contact_select()
+		this.setup_contact_checklist();
 	},
 
-	setup_contact_select: function ( ) {
-		const mcomposer = this.dialog // reference, modal composer
-		const $modal    = $(this.dialog.body)
+	setup_contact_checklist: function ( ) {
+		const mcomposer = this.dialog; // reference, modal composer
+		const $modal    = $(this.dialog.body);
 		// NOTE - if you're updating fields, you better update this too.
 		// I should stop writing brutal hacks like below.
-		const accepted = ["recipients", "cc", "bcc"]
+		const accepted = ["recipients", "cc", "bcc"];
 
 		accepted.map((fieldname) => {
-			const $control = $modal.find(`.frappe-control[data-fieldname="${fieldname}"]`)
-			const $label   = $control.find('label')
+			const $control = $modal.find(`.frappe-control[data-fieldname="${fieldname}"]`);
+			const $label   = $control.find('label');
 			
-			$label.css({ 'cursor': 'pointer' })
+			$label.css({ 'cursor': 'pointer' });
 			$label.click(function ( ) {
 				const dialog = new frappe.ui.Dialog({
 					title: __('Select Contacts')
-				})
+				});
 
-				const $container = $(dialog.body)
+				const $container = $(dialog.body);
 				const options    = Object.keys(frappe.boot.user_info).map((name) => {
-					const  user  = frappe.boot.user_info[name]
+					const  user  = frappe.boot.user_info[name];
 					const  label = `
 						<div class="row">
 							<div class="col-md-4">
@@ -80,22 +80,22 @@ frappe.views.CommunicationComposer = Class.extend({
 								</div>
 							</div>
 						</div>
-					`
-					const  pair  = { label: label, value: user.email }
-					return pair
-				})
-				const checklist  = new frappe.ui.CheckList($container, options)
+					`;
+					const  pair  = { label: label, value: user.email };
+					return pair;
+				});
+				const checklist  = new frappe.ui.CheckList($container, options);
 
 				dialog.set_primary_action(__('Select'), () => {
-					const values = checklist.val()
-					mcomposer.fields_dict[fieldname].set_value(values.join(", "))
+					const values = checklist.val();
+					mcomposer.fields_dict[fieldname].set_value(values.join(", "));
 
-					dialog.hide()
-				})
+					dialog.hide();
+				});
 
-				dialog.show()
-			})
-		})
+				dialog.show();
+			});
+		});
 	},
 
 	get_fields: function() {
