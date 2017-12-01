@@ -555,7 +555,7 @@ def write_csv_file(path, app_messages, lang_dict):
 	:param app_messages: Translatable strings for this app.
 	:param lang_dict: Full translated dict.
 	"""
-	app_messages.sort(lambda x,y: cmp(x[1], y[1]))
+	app_messages.sort(key = lambda x: x[1])
 	from csv import writer
 	with open(path, 'wb') as msgfile:
 		w = writer(msgfile, lineterminator='\n')
@@ -684,7 +684,7 @@ def deduplicate_messages(messages):
 	op = operator.itemgetter(1)
 	messages = sorted(messages, key=op)
 	for k, g in itertools.groupby(messages, op):
-		ret.append(g.next())
+		ret.append(next(g))
 	return ret
 
 def get_bench_dir():

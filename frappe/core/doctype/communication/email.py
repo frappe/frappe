@@ -164,30 +164,30 @@ def _notify(doc, print_html=None, print_format=None, attachments=None,
 		is_notification=True if doc.sent_or_received =="Received" else False
 	)
 
-def update_parent_status(doc):
-	"""Update status of parent document based on who is replying."""
-	if doc.communication_type != "Communication":
-		return
-
+def update_parent_mins_to_first_response(doc):
+	"""Update mins_to_first_communication of parent document based on who is replying."""
 	parent = doc.get_parent_doc()
 	if not parent:
 		return
 
-	status_field = parent.meta.get_field("status")
+	# update parent mins_to_first_communication only if we create the Email communication
+	# ignore in case of only Comment is added
+	if doc.communication_type == "Comment":
+		return
 
+	status_field = parent.meta.get_field("status")
 	if status_field:
 		options = (status_field.options or '').splitlines()
 
-		# if status has a "Replied" option, then update the status
-		if 'Replied' in options:
-			to_status = "Open" if doc.sent_or_received=="Received" else "Replied"
-
-			if to_status in options:
-				parent.db_set("status", to_status)
+		# if status has a "Replied" option, then update the status for received communication
+		if ('Replied' in options) and doc.sent_or_received=="Received":
+			parent.db_set("status", "Open")
+		else:
+			# update the modified date for document
+			parent.update_modified()
 
 	update_mins_to_first_communication(parent, doc)
 	parent.run_method('notify_communication', doc)
-
 	parent.notify_update()
 
 def get_recipients_and_cc(doc, recipients, cc, fetched_from_email_account=False):
@@ -287,7 +287,16 @@ def set_incoming_outgoing_accounts(doc):
 	if not doc.outgoing_email_account:
 		doc.outgoing_email_account = frappe.db.get_value("Email Account",
 			{"default_outgoing": 1, "enable_outgoing": 1},
+			["email_id", "always_use_account_email_id_as_sender", "name", "send_unsubscribe_message"],as_dict=True) or frappe._dict()
+
+	if not doc.outgoing_email_account:
+		# if from address is not the default email account
+		doc.outgoing_email_account = frappe.db.get_value("Email Account",
+			{"email_id": doc.sender, "enable_outgoing": 1},
 			["email_id", "always_use_account_email_id_as_sender", "name", "send_unsubscribe_message"], as_dict=True) or frappe._dict()
+
+	if doc.sent_or_received == "Sent":
+		doc.db_set("email_account", doc.outgoing_email_account.name)
 
 def get_recipients(doc, fetched_from_email_account=False):
 	"""Build a list of email addresses for To"""

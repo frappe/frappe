@@ -42,9 +42,11 @@ frappe.DomainsEditor = frappe.CheckboxEditor.extend({
 
 	get_template: function() {
 		return `
-			<div class="user-role" data-domain="{{item}}">
-				<input type="checkbox" style="margin-top:0px;">
-				{{__(item)}}
+			<div class="checkbox" data-domain="{{item}}">
+				<label>
+				<input type="checkbox">
+				<span class="label-area small">{{ __(item) }}</span>
+				</label>
 			</div>
 		`;
 	},

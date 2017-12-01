@@ -49,12 +49,12 @@
 		"moment": true,
 		"hljs": true,
 		"Awesomplete": true,
-		"CalHeatMap": true,
 		"Sortable": true,
 		"Showdown": true,
 		"Taggle": true,
 		"Gantt": true,
 		"Slick": true,
+		"Webcam": true,
 		"PhotoSwipe": true,
 		"PhotoSwipeUI_Default": true,
 		"fluxify": true,
@@ -119,7 +119,6 @@
 		"getCookies": true,
 		"get_url_arg": true,
 		"QUnit": true,
-		"Snap": true,
-		"mina": true
+		"JsBarcode": true
 	}
 }

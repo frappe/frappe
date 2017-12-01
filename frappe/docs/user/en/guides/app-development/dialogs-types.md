@@ -1,14 +1,17 @@
 # Dialogs Types
 
-Frappé provide a group of standard dialogs that are very usefull while coding.
+Frappé provides a group of standard dialogs that are very useful while coding.
 
 ## Alert Dialog
 
-<img class="screenshot" src="/docs/assets/img/app-development/show_alert.png">
+<img class="screenshot" src="/docs/assets/img/app-development/show-alert.png">
 
-Is helpfull for show a non-obstructive message.
+Alert Dialog is used for showing non-obstructive messages.
 
-This dialog have 2 parameters `txt`that is the message and `seconds` that is the time that the message will be showed for the user, the standard is `3 seconds`.
+It has 2 parameters:
+
+- **txt:** The message to be shown in the `Alert Dialog`
+- **seconds:** The duration that the message will be displayed. The default is `3 seconds`.
 
 ### Example
 
@@ -20,12 +23,12 @@ This dialog have 2 parameters `txt`that is the message and `seconds` that is the
 
 <img class="screenshot" src="/docs/assets/img/app-development/prompt.png">
 
-Is helpful for ask a value for the user
+Prompt Dialog is used for collecting data from users.
 
-This dialog have 4 parameters, they are:
+It has 4 parameters:
 
 - **fields:** a list with the fields objects
-- **callback:** the function that manage the received values
+- **callback:** a function to process the data in the dialog
 - **title:** the title of the dialog
 - **primary_label:** the label of the primary button
 
@@ -46,11 +49,11 @@ This dialog have 4 parameters, they are:
 
 <img class="screenshot" src="/docs/assets/img/app-development/confirm-dialog.png">
 
-Usefull to get a confirmation from the user before do an action
+Confirm Dialog is used to get a confirmation from the user before executing an action.
 
-This dialog have 3 arguments, they are:
+It has 3 arguments:
 
-- **mesage:**  The message content
+- **mesage:**  The message to display in the dialog
 - **onyes:** The callback on positive confirmation
 - **oncancel:** The callback on negative confirmation
 
@@ -72,11 +75,11 @@ This dialog have 3 arguments, they are:
 
 <img class="screenshot" src="/docs/assets/img/app-development/msgprint.png">
 
-Is helpfull for show a informational dialog for the user;
+Message Print is used for showing information to users.
 
-This dialog have 2 arguments, they are:
+It has 2 arguments:
 
-- **message:** The message content, can be a HTML string too
+- **message:** The message to display. It can be a HTML string
 - **title:** The title of the dialog
 
 ### Example
@@ -95,9 +98,7 @@ This dialog have 2 arguments, they are:
 
 <img class="screenshot" src="/docs/assets/img/app-development/dialog.png">
 
-Frappé provide too a `Class` that you can extend and build your own custom dialogs
-
-`frappe.ui.Dialog`
+You can extend and build your own custom dialogs using `frappe.ui.Dialog`
 
 ### Example
 

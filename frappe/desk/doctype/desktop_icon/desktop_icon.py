@@ -95,7 +95,7 @@ def get_desktop_icons(user=None):
 				icon.hidden = 1
 
 		# sort by idx
-		user_icons.sort(lambda a, b: 1 if a.idx > b.idx else -1)
+		user_icons.sort(key = lambda a: a.idx)
 
 		# translate
 		for d in user_icons:
@@ -404,3 +404,16 @@ palette = (
 	('#4F8EA8', 1),
 	('#428B46', 1)
 )
+
+@frappe.whitelist()
+def hide(name, user = None):
+	if not user:
+		user = frappe.session.user
+
+	try:
+		set_hidden(name, user, hidden = 1)
+		clear_desktop_icons_cache()
+	except Exception:
+		return False
+
+	return True

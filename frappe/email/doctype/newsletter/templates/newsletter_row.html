@@ -1,0 +1,15 @@
+<div class="web-list-item transaction-list-item">
+	<a href = "{{ route }}/">
+		<div class="row">
+			<div class="col-sm-8 text-left bold">
+				{{ doc.subject }}
+			</div>
+			<div class="col-sm-4">
+				<div class="text-muted text-right"
+					title="{{ frappe.utils.format_datetime(doc.modified, "medium") }}">
+					{{ frappe.utils.pretty_date(doc.modified) }}
+				</div>
+			</div>
+		</div>
+	</a>
+</div>

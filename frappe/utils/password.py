@@ -109,7 +109,7 @@ def get_encryption_key():
 	from frappe.installer import update_site_config
 
 	if 'encryption_key' not in frappe.local.conf:
-		encryption_key = Fernet.generate_key()
+		encryption_key = Fernet.generate_key().decode()
 		update_site_config('encryption_key', encryption_key)
 		frappe.local.conf.encryption_key = encryption_key
 

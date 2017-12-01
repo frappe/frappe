@@ -361,6 +361,11 @@
 	display: flex;
 	flex-wrap: wrap;
 
+	.image-view-row {
+		display: flex;
+		border-bottom: 1px solid #ebeff2;
+	}
+
 	.image-view-item {
 		flex: 0 0 100%/4;
 		padding: 15px;
@@ -428,6 +433,21 @@
 	// 3 columns for small screen
 	@media(max-width: @screen-sm) {
 		.image-view-container.three-column;
+	}
+}
+
+.item-selector {
+	border: 1px solid @border-color;
+
+	.image-view-row {
+		width: 100%;
+	}
+	.image-field {
+		height: 120px;
+	}
+
+	.placeholder-text {
+		font-size: 48px;
 	}
 }
 

@@ -238,7 +238,7 @@ _f.Frm.prototype.set_query = function(fieldname, opt1, opt2) {
 }
 
 _f.Frm.prototype.set_value_if_missing = function(field, value) {
-	this.set_value(field, value, true);
+	return this.set_value(field, value, true);
 }
 
 _f.Frm.prototype.clear_table = function(fieldname) {
@@ -457,8 +457,10 @@ _f.Frm.prototype.can_create = function(doctype) {
 	}
 
 	if(this.custom_make_buttons && this.custom_make_buttons[doctype]) {
+		// custom buttons are translated and so are the keys
+		const key = __(this.custom_make_buttons[doctype]);
 		// if the button is present, then show make
-		return !!this.custom_buttons[this.custom_make_buttons[doctype]];
+		return !!this.custom_buttons[key];
 	}
 
 	if(this.can_make_methods && this.can_make_methods[doctype]) {
@@ -492,7 +494,8 @@ _f.Frm.prototype.make_new = function(doctype) {
 				}
 			});
 
-			frappe.set_route('Form', doctype, new_doc.name);
+			frappe.ui.form.make_quick_entry(doctype, null, null, new_doc);
+			// frappe.set_route('Form', doctype, new_doc.name);
 		});
 	}
 }

@@ -3,6 +3,7 @@
 
 frappe.provide("frappe.views");
 frappe.provide("frappe.query_reports");
+frappe.provide("frappe.ui.graphs");
 
 frappe.standard_pages["query-report"] = function() {
 	var wrapper = frappe.container.add_page('query-report');
@@ -43,9 +44,9 @@ frappe.views.QueryReport = Class.extend({
 		this.wrapper = $("<div>").appendTo(this.page.main);
 		$('<div class="waiting-area" style="display: none;"></div>\
 		<div class="no-report-area msg-box no-border" style="display: none;"></div>\
-		<div class="chart_area" style="border-bottom: 1px solid #d1d8dd; padding: 0px 5%"></div>\
+		<div class="chart-area" style="border-bottom: 1px solid #d1d8dd; margin: 0px 3%"></div>\
 		<div class="results" style="display: none;">\
-			<div class="result-area" style="height:400px;"></div>\
+			<div class="result-area" style="height:70vh;"></div>\
 			<button class="btn btn-secondary btn-default btn-xs expand-all hidden" style="margin: 10px;">'+__('Expand All')+'</button>\
 			<button class="btn btn-secondary btn-default btn-xs collapse-all hidden" style="margin: 10px; margin-left: 0px;">'+__('Collapse All')+'</button>\
 			<p class="help-msg alert alert-warning text-center" style="margin: 15px; margin-top: 0px;"></p>\
@@ -56,7 +57,7 @@ frappe.views.QueryReport = Class.extend({
 		</div>').appendTo(this.wrapper);
 		this.wrapper.find(".expand-all").on("click", function() { me.toggle_all(false);});
 		this.wrapper.find(".collapse-all").on("click", function() { me.toggle_all(true);});
-		this.chart_area = this.wrapper.find(".chart_area");
+		this.chart_area = this.wrapper.find(".chart-area");
 		this.make_toolbar();
 	},
 	toggle_expand_collapse_buttons: function(show) {
@@ -327,7 +328,6 @@ frappe.views.QueryReport = Class.extend({
 						me.trigger_refresh();
 					}
 				}
-				df.ignore_link_validation = true;
 			}
 		});
 
@@ -335,34 +335,45 @@ frappe.views.QueryReport = Class.extend({
 		var $filters = $(this.parent).find('.page-form .filters');
 		$(this.parent).find('.page-form').toggle($filters.length ? true : false);
 
+		//  set the field 'query_report_filters_by_name' first as they can be used in
+		//     setting/triggering the filters
+		this.set_filters_by_name();
+
 		this.setting_filters = true;
 		this.set_route_filters();
 		this.setting_filters = false;
 
-		this.set_filters_by_name();
 		this.flags.filters_set = true;
 	},
 	clear_filters: function() {
 		this.filters = [];
 		$(this.parent).find('.page-form .filters').remove();
 	},
-	set_route_filters: function() {
-		var me = this;
-		if(frappe.route_options) {
-			$.each(this.filters || [], function(i, f) {
-				if(frappe.route_options[f.df.fieldname]!=null) {
-					f.set_value(frappe.route_options[f.df.fieldname]);
-				}
-			});
-		}
-		frappe.route_options = null;
-	},
 	set_filters_by_name: function() {
 		frappe.query_report_filters_by_name = {};
-
 		for(var i in this.filters) {
 			frappe.query_report_filters_by_name[this.filters[i].df.fieldname] = this.filters[i];
 		}
+	},
+	set_route_filters: function() {
+		var me = this;
+		if(frappe.route_options) {
+			const fields = Object.keys(frappe.route_options);
+			const filters_to_set = this.filters.filter(f => fields.includes(f.df.fieldname));
+
+			const promises = filters_to_set.map(f => {
+				return () => {
+					const value = frappe.route_options[f.df.fieldname];
+					return f.set_value(value);
+				}
+			});
+			promises.push(() => {
+				frappe.route_options = null;
+			});
+
+			return frappe.run_serially(promises);
+		}
+
 	},
 	refresh: function() {
 		// throttle
@@ -590,7 +601,7 @@ frappe.views.QueryReport = Class.extend({
 			newrow.id = newrow.name ? newrow.name : ("_" + newrow._id);
 			this.data.push(newrow);
 		}
-		if(this.report_doc.add_total_row) {
+		if(this.data.length && this.report_doc.add_total_row) {
 			this.total_row_id = this.data[this.data.length - 1].id;
 		}
 	},
@@ -938,12 +949,13 @@ frappe.views.QueryReport = Class.extend({
 		}
 
 		$.extend(opts, {
-			wrapper: this.chart_area,
+			parent: ".chart-area",
+			height: 200
 		});
 
-		this.chart = new frappe.ui.Chart(opts);
-		if(this.chart && opts.data && opts.data.rows && opts.data.rows.length) {
+		if(opts.data && opts.data.labels && opts.data.labels.length) {
 			this.chart_area.toggle(true);
+			this.chart = new frappe.chart.FrappeChart(opts);
 		}
 	},
 

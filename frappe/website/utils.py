@@ -19,7 +19,7 @@ def delete_page_cache(path):
 def find_first_image(html):
 	m = re.finditer("""<img[^>]*src\s?=\s?['"]([^'"]*)['"]""", html)
 	try:
-		return m.next().groups()[0]
+		return next(m).groups()[0]
 	except StopIteration:
 		return None
 

@@ -391,7 +391,7 @@ frappe.views.ReportView = frappe.ui.BaseList.extend({
 		var me = this;
 		var data = this.get_unique_data(this.column_info);
 
-		this.set_totals_row();
+		this.set_totals_row(data);
 
 		// add sr in data
 		$.each(data, function(i, v) {
@@ -475,25 +475,24 @@ frappe.views.ReportView = frappe.ui.BaseList.extend({
 
 	get_unique_data: function(columns) {
 		// if child columns are selected, show parent data only once
-
-		var me = this;
-		if (this.show_all_data || !this.has_child_column()) {
-			return this.data;
-		}
+		let has_child_column = this.has_child_column();
 
 		var data = [], prev_row = null;
-		this.data.forEach(function(d) {
-			if(prev_row && d.name == prev_row.name) {
+		this.data.forEach((d) => {
+			if (this.show_all_data || !has_child_column) {
+				data.push(d);
+			} else if (prev_row && d.name == prev_row.name) {
 				var new_row = {};
-				columns.forEach(function(c) {
-					if(!c.docfield || c.docfield.parent!==me.doctype) {
+				columns.forEach((c) => {
+					if(!c.docfield || c.docfield.parent!==this.doctype) {
 						var val = d[c.field];
 						// add child table row name for update
-						if(c.docfield && c.docfield.parent!==me.doctype) {
+						if(c.docfield && c.docfield.parent!==this.doctype) {
 							new_row[c.docfield.parent+":name"] = d[c.docfield.parent+":name"];
 						}
 					} else {
 						var val = '';
+						new_row.__is_repeat = true;
 					}
 					new_row[c.field] = val;
 				});
@@ -613,21 +612,16 @@ frappe.views.ReportView = frappe.ui.BaseList.extend({
 		var me = this;
 
 		this.page.add_inner_button(__('Show Totals'), function() {
-			me.add_totals_row = 1 - (me.add_totals_row ? me.add_totals_row : 0);
+			me.add_totals_row = !!!me.add_totals_row;
 			me.render_view();
 		});
 	},
 
-	set_totals_row: function() {
-		// remove existing totals row
-		if(this.data.length && this.data[this.data.length-1]._totals_row) {
-			this.data.pop();
-		}
-
+	set_totals_row: function(data) {
 		if(this.add_totals_row) {
 			var totals_row = {_totals_row: 1};
-			if(this.data.length) {
-				this.data.forEach(function(row, ri) {
+			if(data.length) {
+				data.forEach(function(row, ri) {
 					$.each(row, function(key, value) {
 						if($.isNumeric(value)) {
 							totals_row[key] = (totals_row[key] || 0) + value;
@@ -635,7 +629,7 @@ frappe.views.ReportView = frappe.ui.BaseList.extend({
 					});
 				});
 			}
-			this.data.push(totals_row);
+			data.push(totals_row);
 		}
 	},
 

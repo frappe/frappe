@@ -47,6 +47,10 @@ frappe.ui.form.Control = Class.extend({
 	// returns "Read", "Write" or "None"
 	// as strings based on permissions
 	get_status: function(explain) {
+		if (this.df.get_status) {
+			return this.df.get_status(this);
+		}
+
 		if(!this.doctype && !this.docname) {
 			// like in case of a dialog box
 			if (cint(this.df.hidden)) {

@@ -12,6 +12,8 @@ from frappe.utils import cstr
 import frappe.utils.scheduler
 import cProfile, pstats
 from six import StringIO
+from six.moves import reload_module
+from frappe.model.naming import revert_series_if_last
 
 unittest_runner = unittest.TextTestRunner
 
@@ -139,6 +141,11 @@ def run_tests_for_module(module, verbose=False, tests=(), profile=False):
 
 	return _run_unittest(module=module, verbose=verbose, tests=tests, profile=profile)
 
+def run_setup_wizard_ui_test(app=None, verbose=False, profile=False):
+	'''Run setup wizard UI test using test_test_runner'''
+	frappe.flags.run_setup_wizard_ui_test = 1
+	return run_ui_tests(app, None, verbose, profile)
+
 def run_ui_tests(app=None, test=None, verbose=False, profile=False):
 	'''Run a single unit test for UI using test_test_runner'''
 	module = importlib.import_module('frappe.tests.ui.test_test_runner')
@@ -191,6 +198,11 @@ def _add_test(app, path, filename, verbose, test_suite=None, ui_tests=False):
 			relative_path=relative_path.replace('/', '.'), module_name=filename[:-3])
 
 	module = importlib.import_module(module_name)
+
+	if hasattr(module, "test_dependencies"):
+		for doctype in module.test_dependencies:
+			make_test_records(doctype, verbose=verbose)
+
 	is_ui_test = True if hasattr(module, 'TestDriver') else False
 
 	if is_ui_test != ui_tests:
@@ -217,8 +229,6 @@ def make_test_records(doctype, verbose=0, force=False):
 			continue
 
 		if not options in frappe.local.test_objects:
-			if options in frappe.local.test_objects:
-				print("No test records or circular reference for {0}".format(options))
 			frappe.local.test_objects[options] = []
 			make_test_records(options, verbose, force)
 			make_test_records_for_doctype(options, verbose, force)
@@ -228,7 +238,7 @@ def get_modules(doctype):
 	try:
 		test_module = load_doctype_module(doctype, module, "test_")
 		if test_module:
-			reload(test_module)
+			reload_module(test_module)
 	except ImportError:
 		test_module = None
 
@@ -281,6 +291,11 @@ def make_test_objects(doctype, test_records=None, verbose=None, reset=False):
 	'''Make test objects from given list of `test_records` or from `test_records.json`'''
 	records = []
 
+	def revert_naming(d):
+		if getattr(d, 'naming_series', None):
+			revert_series_if_last(d.naming_series, d.name)
+
+
 	if test_records is None:
 		test_records = frappe.get_test_records(doctype)
 
@@ -290,16 +305,19 @@ def make_test_objects(doctype, test_records=None, verbose=None, reset=False):
 
 		d = frappe.copy_doc(doc)
 
-		if doc.get('name'):
-			d.name = doc.get('name')
-
-		if frappe.local.test_objects.get(d.doctype) and not reset:
-			# do not create test records, if already exists
-			return []
-
 		if d.meta.get_field("naming_series"):
 			if not d.naming_series:
 				d.naming_series = "_T-" + d.doctype + "-"
+
+		if doc.get('name'):
+			d.name = doc.get('name')
+		else:
+			d.set_new_name()
+
+		if frappe.db.exists(d.doctype, d.name) and not reset:
+			frappe.db.rollback()
+			# do not create test records, if already exists
+			continue
 
 		# submit if docstatus is set to 1 for test record
 		docstatus = d.docstatus
@@ -314,18 +332,17 @@ def make_test_objects(doctype, test_records=None, verbose=None, reset=False):
 				d.submit()
 
 		except frappe.NameError:
-			pass
+			revert_naming(d)
 
 		except Exception as e:
 			if d.flags.ignore_these_exceptions_in_test and e.__class__ in d.flags.ignore_these_exceptions_in_test:
-				pass
-
+				revert_naming(d)
 			else:
 				raise
 
 		records.append(d.name)
 
-	frappe.db.commit()
+		frappe.db.commit()
 
 	return records
 

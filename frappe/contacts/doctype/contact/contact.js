@@ -38,6 +38,7 @@ frappe.ui.form.on("Contact", {
 				}
 			}
 		});
+		frm.refresh_field("links");
 	},
 	validate: function(frm) {
 		// clear linked customer / supplier / sales partner on saving...

@@ -82,7 +82,7 @@ def update_system_settings(args):
 	system_settings.save()
 
 def update_user_name(args):
-	first_name, last_name = args.get('full_name'), ''
+	first_name, last_name = args.get('full_name', ''), ''
 	if ' ' in first_name:
 		first_name, last_name = first_name.split(' ', 1)
 
@@ -106,7 +106,7 @@ def update_user_name(args):
 		frappe.flags.mute_emails = _mute_emails
 		update_password(args.get("email"), args.get("password"))
 
-	else:
+	elif first_name:
 		args.update({
 			"name": frappe.session.user,
 			"first_name": first_name,
@@ -123,7 +123,8 @@ def update_user_name(args):
 			fileurl = save_file(filename, content, "User", args.get("name"), decode=True).file_url
 			frappe.db.set_value("User", args.get("name"), "user_image", fileurl)
 
-	add_all_roles_to(args.get("name"))
+	if args.get('name'):
+		add_all_roles_to(args.get("name"))
 
 def process_args(args):
 	if not args:
@@ -151,6 +152,7 @@ def add_all_roles_to(name):
 def disable_future_access():
 	frappe.db.set_default('desktop:home_page', 'desktop')
 	frappe.db.set_value('System Settings', 'System Settings', 'setup_complete', 1)
+	frappe.db.set_value('System Settings', 'System Settings', 'is_first_startup', 1)
 
 	if not frappe.flags.in_test:
 		# remove all roles and add 'Administrator' to prevent future access
@@ -201,6 +203,10 @@ def load_user_details():
 		"full_name": frappe.cache().hget("full_name", "signup"),
 		"email": frappe.cache().hget("email", "signup")
 	}
+
+@frappe.whitelist()
+def reset_is_first_startup():
+	frappe.db.set_value('System Settings', 'System Settings', 'is_first_startup', 0)
 
 def prettify_args(args):
 	# remove attachments

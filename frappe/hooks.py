@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 from . import __version__ as app_version
 
+
 app_name = "frappe"
 app_title = "Frappe Framework"
 app_publisher = "Frappe Technologies"
@@ -10,7 +11,7 @@ app_color = "orange"
 source_link = "https://github.com/frappe/frappe"
 app_license = "MIT"
 
-develop_version = '8.x.x-beta'
+develop_version = '9.x.x-develop'
 
 app_email = "info@frappe.io"
 
@@ -29,7 +30,6 @@ app_include_js = [
 	"assets/js/form.min.js",
 	"assets/js/control.min.js",
 	"assets/js/report.min.js",
-	"assets/js/d3.min.js",
 	"assets/frappe/js/frappe/toolbar.js"
 ]
 app_include_css = [
@@ -48,9 +48,11 @@ bootstrap = "assets/frappe/css/bootstrap.css"
 web_include_css = [
 	"assets/css/frappe-web.css"
 ]
+
 website_route_rules = [
 	{"from_route": "/blog/<category>", "to_route": "Blog Post"},
-	{"from_route": "/kb/<category>", "to_route": "Help Article"}
+	{"from_route": "/kb/<category>", "to_route": "Help Article"},
+	{"from_route": "/newsletters", "to_route": "Newsletter"}
 ]
 
 write_file_keys = ["file_url", "file_name"]
@@ -154,15 +156,19 @@ scheduler_events = {
 		"frappe.core.doctype.authentication_log.authentication_log.clear_authentication_logs"
 	],
 	"daily_long": [
-		"frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backups_daily"
+		"frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backups_daily",
+		"frappe.integrations.doctype.s3_backup_settings.s3_backup_settings.take_backups_daily"
 	],
 	"weekly_long": [
-		"frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backups_weekly"
+		"frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backups_weekly",
+		"frappe.integrations.doctype.s3_backup_settings.s3_backup_settings.take_backups_weekly"
 	],
 	"monthly": [
 		"frappe.email.doctype.auto_email_report.auto_email_report.send_monthly"
+	],
+	"monthly_long": [
+		"frappe.integrations.doctype.s3_backup_settings.s3_backup_settings.take_backups_monthly"
 	]
-
 }
 
 get_translated_dict = {

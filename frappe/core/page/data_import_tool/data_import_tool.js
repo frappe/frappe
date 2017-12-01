@@ -107,12 +107,14 @@ frappe.DataImportTool = Class.extend({
 	make_upload: function() {
 		var me = this;
 		frappe.upload.make({
+			no_socketio: true,
 			parent: this.page.main.find(".upload-area"),
 			btn: this.page.main.find(".btn-import"),
 			get_params: function() {
 				return {
 					submit_after_import: me.page.main.find('[name="submit_after_import"]').prop("checked"),
 					ignore_encoding_errors: me.page.main.find('[name="ignore_encoding_errors"]').prop("checked"),
+					skip_errors: me.page.main.find('[name="skip_errors"]').prop("checked"),
 					overwrite: !me.page.main.find('[name="always_insert"]').prop("checked"),
 					update_only: me.page.main.find('[name="update_only"]').prop("checked"),
 					no_email: me.page.main.find('[name="no_email"]').prop("checked"),

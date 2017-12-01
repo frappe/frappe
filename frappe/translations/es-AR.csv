@@ -445,6 +445,7 @@ DocType: DocField,Columns,columnas
 apps/frappe/frappe/public/js/frappe/list/list_sidebar.js +162,Columns based on,Columnas basadas en
 DocType: Communication,Comment,Comentario
 DocType: Communication,Comment Type,Tipo de Comentario
+apps/frappe/frappe/public/js/frappe/form/controls/attach.js +58,Clear Attachment,Limpiar Adjunto
 apps/frappe/frappe/desk/page/activity/activity_row.html +17,Commented on {0}: {1},Comentado {0}: {1}
 apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html +33,Comments,Comentarios
 DocType: DocType,Comments and Communications will be associated with this linked document,Comentarios y Comunicaciones estarán asociados con este documento vinculado
@@ -2411,10 +2412,10 @@ apps/frappe/frappe/model/document.py +1043,This document is currently queued for
 apps/frappe/frappe/email/queue.py +496,This email was sent to {0},Este correo electrónico fue enviado a {0}
 apps/frappe/frappe/email/queue.py +494,This email was sent to {0} and copied to {1},Este correo electrónico fue enviado a {0} y copiado a {1}
 apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html +13,This feature is brand new and still experimental,Esta característica es nuevo y todavía experimental
-DocType: Customize Form Field,"This field will appear only if the fieldname defined here has value OR the rules are true (examples): 
+DocType: Customize Form Field,"This field will appear only if the fieldname defined here has value OR the rules are true (examples):
 myfield
 eval:doc.myfield=='My Value'
-eval:doc.age&gt;18","This field will appear only if the fieldname defined here has value OR the rules are true (examples): 
+eval:doc.age&gt;18","This field will appear only if the fieldname defined here has value OR the rules are true (examples):
 myfield
 eval:doc.myfield=='My Value'
 eval:doc.age&gt;18"

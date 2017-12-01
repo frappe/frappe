@@ -524,7 +524,7 @@ frappe.ui.BaseList = Class.extend({
 					if (me.list_header) {
 						me.list_header.find(".list-select-all").prop("checked", false);
 					}
-					me.refresh();
+					me.refresh(true);
 				}
 			}
 		});

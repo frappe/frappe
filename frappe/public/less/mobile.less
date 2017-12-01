@@ -90,15 +90,14 @@ body {
 	#navbar-breadcrumbs {
 		margin: 0px;
 		display: inline-block;
+		max-width: 150px;
+		overflow: hidden;
+		white-space: nowrap;
+		text-overflow: ellipsis;
 
 		@media(max-width: 480px) {
-			li {
-				a {
-					width: 100px;
-					overflow: hidden;
-					white-space: nowrap;
-					text-overflow: ellipsis;
-				}
+			li > a {
+				width: 100px;
 			}
 		}
 	}
@@ -457,7 +456,7 @@ body {
 				}
 				.reply {
 					padding: 10px;
-				}	
+				}
 				.commented-on-small{
 					display: inline-block;
 				}

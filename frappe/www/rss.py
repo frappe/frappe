@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 import frappe
 import urllib
 from frappe.utils import escape_html, get_request_site_address, now, cstr
-from six.moves.urllib.parse import quote
+from six.moves.urllib.parse import quote, urljoin
 
 no_cache = 1
 base_template_path = "templates/www/rss.xml"
@@ -22,7 +22,7 @@ def get_context(context):
 
 	for blog in blog_list:
 		blog_page = cstr(quote(blog.name.encode("utf-8")))
-		blog.link = urllib.basejoin(host, blog_page)
+		blog.link = urljoin(host, blog_page)
 		blog.content = escape_html(blog.content or "")
 
 	if blog_list:

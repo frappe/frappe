@@ -111,7 +111,7 @@ class TestEmailAccount(unittest.TestCase):
 		frappe.sendmail(sender="test_sender@example.com", recipients="test_recipient@example.com",
 			content="test mail 001", subject="test-mail-001", delayed=False)
 
-		sent_mail = email.message_from_string(frappe.flags.sent_mail)
+		sent_mail = email.message_from_string(frappe.flags.sent_mail.decode())
 		self.assertTrue("test-mail-001" in sent_mail.get("Subject"))
 
 	def test_print_format(self):

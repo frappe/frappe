@@ -18,7 +18,7 @@ queue_timeout = {
 }
 
 def enqueue(method, queue='default', timeout=300, event=None,
-	async=True, job_name=None, now=False, **kwargs):
+	async=True, job_name=None, now=False, enqueue_after_commit=False, **kwargs):
 	'''
 		Enqueue method to be executed using a background worker
 
@@ -37,17 +37,38 @@ def enqueue(method, queue='default', timeout=300, event=None,
 	q = get_queue(queue, async=async)
 	if not timeout:
 		timeout = queue_timeout.get(queue) or 300
+	queue_args = {
+		"site": frappe.local.site,
+		"user": frappe.session.user,
+		"method": method,
+		"event": event,
+		"job_name": job_name or cstr(method),
+		"async": async,
+		"kwargs": kwargs
+	}
+	if enqueue_after_commit:
+		if not frappe.flags.enqueue_after_commit:
+			frappe.flags.enqueue_after_commit = []
 
-	return q.enqueue_call(execute_job, timeout=timeout,
-		kwargs={
-			"site": frappe.local.site,
-			"user": frappe.session.user,
-			"method": method,
-			"event": event,
-			"job_name": job_name or cstr(method),
+		frappe.flags.enqueue_after_commit.append({
+			"queue": queue,
 			"async": async,
-			"kwargs": kwargs
+			"timeout": timeout,
+			"queue_args":queue_args
 		})
+		return frappe.flags.enqueue_after_commit
+	else:
+		return q.enqueue_call(execute_job, timeout=timeout,
+			kwargs=queue_args)
+
+def enqueue_doc(doctype, name=None, method=None, queue='default', timeout=300,
+	now=False, **kwargs):
+	'''Enqueue a method to be run on a document'''
+	enqueue('frappe.utils.background_jobs.run_doc_method', doctype=doctype, name=name,
+		doc_method=method, queue=queue, timeout=timeout, now=now, **kwargs)
+
+def run_doc_method(doctype, name, doc_method, **kwargs):
+	getattr(frappe.get_doc(doctype, name), doc_method)(**kwargs)
 
 def execute_job(site, method, event, job_name, kwargs, user=None, async=True, retry=0):
 	'''Executes job in a worker, performs commit/rollback and logs if there is any error'''

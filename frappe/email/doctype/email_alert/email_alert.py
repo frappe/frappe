@@ -117,7 +117,7 @@ def get_context(context):
 					please enable Allow Print For {0} in Print Settings""".format(status)),
 					title=_("Error in Email Alert"))
 			else:
-				return [frappe.attach_print(doc.doctype, doc.name)]
+				return [frappe.attach_print(doc.doctype, doc.name, None, self.print_format)]
 
 		context = get_context(doc)
 		recipients = []

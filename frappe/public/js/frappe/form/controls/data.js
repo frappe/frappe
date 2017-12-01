@@ -28,9 +28,9 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 	setup_autoname_check: function() {
 		if (!this.df.parent) return;
 		this.meta = frappe.get_meta(this.df.parent);
-		if (this.meta && this.meta.autoname
+		if (this.meta && ((this.meta.autoname
 			&& this.meta.autoname.substr(0, 6)==='field:'
-			&& this.meta.autoname.substr(6) === this.df.fieldname) {
+			&& this.meta.autoname.substr(6) === this.df.fieldname) || this.df.fieldname==='__newname') ) {
 			this.$input.on('keyup', () => {
 				this.set_description('');
 				if (this.doc && this.doc.__islocal) {

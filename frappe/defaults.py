@@ -42,7 +42,7 @@ def get_user_default_as_list(key, user=None):
 		else:
 			d = user_defaults.get(frappe.scrub(key), None)
 
-	return filter(None, (not isinstance(d, (list, tuple))) and [d] or d)
+	return list(filter(None, (not isinstance(d, (list, tuple))) and [d] or d))
 
 def is_a_user_permission_key(key):
 	return ":" not in key and key != frappe.scrub(key)
@@ -92,7 +92,19 @@ def set_default(key, value, parent, parenttype="__default"):
 	:param value: Default value.
 	:param parent: Usually, **User** to whom the default belongs.
 	:param parenttype: [optional] default is `__default`."""
-	frappe.db.sql("""delete from `tabDefaultValue` where defkey=%s and parent=%s""", (key, parent))
+	if frappe.db.sql('''
+		select
+			defkey
+		from
+			tabDefaultValue
+		where
+			defkey=%s and parent=%s
+		for update''', (key, parent)):
+		frappe.db.sql("""
+			delete from
+				`tabDefaultValue`
+			where
+				defkey=%s and parent=%s""", (key, parent))
 	if value != None:
 		add_default(key, value, parent)
 

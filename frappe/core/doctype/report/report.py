@@ -84,7 +84,7 @@ class Report(Document):
 
 		if self.is_standard == 'Yes' and (frappe.local.conf.get('developer_mode') or 0) == 1:
 			export_to_files(record_list=[['Report', self.name]],
-				record_module=self.module)
+				record_module=self.module, create_init=True)
 
 			self.create_report_py()
 
@@ -147,10 +147,12 @@ class Report(Document):
 				limit=limit,
 				user=user)
 
-			meta = frappe.get_meta(self.ref_doctype)
-
-			columns = [meta.get_field(c[0]) or frappe._dict(label=meta.get_label(c[0]), fieldname=c[0])
-				for c in columns]
+			_columns = []
+			for column in columns:
+				meta = frappe.get_meta(column[1])
+				field = [meta.get_field(column[0]) or frappe._dict(label=meta.get_label(column[0]), fieldname=column[0])]
+				_columns.extend(field)
+			columns = _columns
 
 			out = out + [list(d) for d in result]
 

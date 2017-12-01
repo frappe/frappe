@@ -32,6 +32,11 @@ def get_data():
 					"name": "Dropbox Settings",
 					"description": _("Dropbox backup settings"),
 				},
+				{
+					"type": "doctype",
+					"name": "S3 Backup Settings",
+					"description": _("S3 Backup Settings"),
+				},
 			]
 		},
 		{
@@ -72,6 +77,12 @@ def get_data():
 					"name": "GSuite Templates",
 					"description": _("Google GSuite Templates to integration with DocTypes"),
 				},
+				{
+					"type": "doctype",
+					"name": "Webhook",
+					"description": _("Webhooks calling API requests into web apps"),
+				}
+
 			]
 		}
 	]

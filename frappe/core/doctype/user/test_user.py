@@ -162,18 +162,13 @@ class TestUser(unittest.TestCase):
 	# 	from frappe.frappeclient import FrappeClient
 	# 	update_site_config('deny_multiple_sessions', 0)
 	#
-	# 	print 'conn1'
 	# 	conn1 = FrappeClient(get_url(), "test@example.com", "Eastern_43A1W", verify=False)
 	# 	test_request(conn1)
 	#
-	# 	print 'conn2'
 	# 	conn2 = FrappeClient(get_url(), "test@example.com", "Eastern_43A1W", verify=False)
 	# 	test_request(conn2)
 	#
 	# 	update_site_config('deny_multiple_sessions', 1)
-	#
-	# 	print 'conn3'
-	#
 	# 	conn3 = FrappeClient(get_url(), "test@example.com", "Eastern_43A1W", verify=False)
 	# 	test_request(conn3)
 	#

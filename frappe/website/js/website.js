@@ -322,6 +322,9 @@ $.extend(frappe, {
 	},
 	is_user_logged_in: function() {
 		return window.full_name ? true : false;
+	},
+	add_switch_to_desk: function() {
+		$('.switch-to-desk').removeClass('hidden');
 	}
 });
 
@@ -372,10 +375,7 @@ $(document).ready(function() {
 
 	// switch to app link
 	if(getCookie("system_user")==="yes" && logged_in) {
-		$("#website-post-login .dropdown-menu").append('<li><a href="/desk">'
-			+__('Switch To Desk')+'</a></li>');
-		$(".navbar-header .dropdown:not(.dropdown-submenu) > .dropdown-menu")
-			.append('<li><a href="/desk">'+__('Switch To Desk')+'</a></li>');
+		frappe.add_switch_to_desk();
 	}
 
 	frappe.render_user();
