@@ -2,11 +2,11 @@ frappe.ui.CheckList = class
 {
 	constructor (container, data, options)
 	{
-		this.$container = $(container)
-		this.data       = data
-		this.options    = Object.assign({ }, frappe.ui.CheckList.OPTIONS, options)
+		this.$container = $(container);
+		this.data       = data;
+		this.options    = Object.assign({ }, frappe.ui.CheckList.OPTIONS, options);
 
-		this.make()
+		this.make();
 	}
 
 	make ( )
@@ -25,33 +25,33 @@ frappe.ui.CheckList = class
 					   
 				 </a>
 				`
-			)
+			);
 			$dom.click(function ( ) {
-				$(this).toggleClass('active')
+				$(this).toggleClass('active');
 
-				const active = $(this).hasClass('active')
-				const $input = $(this).find('input[type=checkbox]')
-				$input.prop('checked', active)
-			})
-			$dom.css({ 'font-weight': 'bold', 'font-size': '12px' })
+				const active = $(this).hasClass('active');
+				const $input = $(this).find('input[type=checkbox]');
+				$input.prop('checked', active);
+			});
+			$dom.css({ 'font-weight': 'bold', 'font-size': '12px' });
 
-			return $dom
+			return $dom;
 		})).map(function ( ) { return this.toArray(); }); // convert array of $ objects to $ object
 
 		this.$panel     = $(`
 			<div class="panel panel-default">
 				<div class="panel-body"/>
 			</div>
-		`)
-		this.$panel.css({ 'font-size': '12px' })
+		`);
+		this.$panel.css({ 'font-size': '12px' });
 		
-		this.$checklist = $(`<div class="list-group"/>`)
-		this.$checklist.css({ 'max-height': '400px', 'overflow-y': 'scroll' })
-		this.$checklist.append($options)
+		this.$checklist = $(`<div class="list-group"/>`);
+		this.$checklist.css({ 'max-height': '400px', 'overflow-y': 'scroll' });
+		this.$checklist.append($options);
 		
-		const $checks   = $options.find('input[type=checkbox]')
+		const $checks   = $options.find('input[type=checkbox]');
 		
-		this.$panel.append(this.$checklist)
+		this.$panel.append(this.$checklist);
 
 		if ( this.options.has_checkall )
 		{
@@ -64,41 +64,41 @@ frappe.ui.CheckList = class
 						${__("Select All")}
 					</div>
 				</div>
-			`)
-			const $input = this.$checkall.find('input')
-			const me     = this
+			`);
+			const $input = this.$checkall.find('input');
+			const me     = this;
 			$input.on('change', function ( ) {
-				const checked = $(this).prop('checked')
+				const checked = $(this).prop('checked');
 				if ( checked ) {
-					$options.addClass('active')
+					$options.addClass('active');
 				} else {
-					$options.removeClass('active')
+					$options.removeClass('active');
 				}
 
-				$checks.prop('checked', checked)
-			})
+				$checks.prop('checked', checked);
+			});
 
-			this.$panel.find('.panel-body').append(this.$checkall)
+			this.$panel.find('.panel-body').append(this.$checkall);
 		}
 
-		this.$container.append(this.$panel)
+		this.$container.append(this.$panel);
 	}
 
 	val ( )
 	{
 		// Not the best way, but I have no time.
-		const $options = this.$checklist.find('.checklist-item')
-		var   values   = [ ]
+		const $options = this.$checklist.find('.checklist-item');
+		var   values   = [ ];
 		$options.each(i => {
-			const $option = $($options[i])
+			const $option = $($options[i]);
 			
 			if ( $option.hasClass('active') ) {
-				const value = $option.attr('data-value')
-				values.push(value)
+				const value = $option.attr('data-value');
+				values.push(value);
 			}
-		})
+		});
 
-		return values
+		return values;
 	}
 }
 frappe.ui.CheckList.OPTIONS = 
