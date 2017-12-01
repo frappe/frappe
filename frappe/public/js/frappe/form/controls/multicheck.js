@@ -10,7 +10,6 @@ frappe.ui.form.ControlMultiCheck = frappe.ui.form.Control.extend({
 		this.$select_buttons = this.get_select_buttons().appendTo(this.wrapper);
 		this.$load_state.appendTo(this.wrapper);
 
-		this.check_field_attr = 'data-' + this.df.fieldname.slice(0, -1);
 		this.$checkbox_area = $('<div class="checkbox-options"></div>').appendTo(this.wrapper);
 		this.set_options();
 		this.bind_checkboxes();
@@ -19,7 +18,7 @@ frappe.ui.form.ControlMultiCheck = frappe.ui.form.Control.extend({
 	refresh_input() {
 		this.options.map(option => option.value).forEach(value => {
 			$(this.wrapper)
-				.find(`:checkbox[${this.check_field_attr}=${value}]`)
+				.find(`:checkbox[data-unit=${value}]`)
 				.prop("checked", this.selected_options.includes(value));
 		});
 	},
@@ -77,7 +76,7 @@ frappe.ui.form.ControlMultiCheck = frappe.ui.form.Control.extend({
 	bind_checkboxes() {
 		$(this.wrapper).on('change', ':checkbox', e => {
 			const $checkbox = $(e.target);
-			const option_name = $checkbox.attr(this.check_field_attr);
+			const option_name = $checkbox.attr("data-unit");
 			if($checkbox.is(':checked')) {
 				this.selected_options.push(option_name);
 			} else {
@@ -124,9 +123,9 @@ frappe.ui.form.ControlMultiCheck = frappe.ui.form.Control.extend({
 		return $(`
 			<div class="checkbox unit-checkbox">
 				<label>
-				<input type="checkbox" ${this.check_field_attr}="${option.value}">
+				<input type="checkbox" data-unit="${option.value}">
 				</input>
-				<span class="label-area small">${__(option.label)}</span>
+				<span class="label-area small" data-unit="${option.value}">${__(option.label)}</span>
 				</label>
 			</div>`);
 	},
