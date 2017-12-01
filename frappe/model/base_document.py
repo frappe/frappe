@@ -791,6 +791,9 @@ def _filter(data, filters, limit=None):
 
 	out, _filters = [], {}
 
+	if not data:
+		return out
+
 	# setup filters as tuples
 	if filters:
 		for f in filters:
