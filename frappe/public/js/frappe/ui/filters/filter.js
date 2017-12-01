@@ -2,19 +2,20 @@ frappe.ui.Filter = Class.extend({
 	init(opts) {
 		$.extend(this, opts);
 
-		this.doctype = this.flist.doctype;
+		this.doctype = this.filter_group.doctype;
 		this.make();
 		this.make_select();
 		this.set_events();
+
 	},
 	make() {
-		this.wrapper = $(frappe.render_template("edit_filter", {}))
-			.appendTo(this.flist.wrapper.find('.filter-update-area'));
+		this.filter_edit_area = $(frappe.render_template("edit_filter", {}))
+			.appendTo(this.filter_group.wrapper.find('.filter-edit-area'));
 	},
 	make_select() {
 		var me = this;
 		this.fieldselect = new frappe.ui.FieldSelect({
-			parent: this.wrapper.find('.fieldname_select_area'),
+			parent: this.filter_edit_area.find('.fieldname-select-area'),
 			doctype: this.doctype,
 			filter_fields: this.filter_fields,
 			select(doctype, fieldname) {
@@ -28,18 +29,18 @@ frappe.ui.Filter = Class.extend({
 	set_events() {
 		var me = this;
 
-		this.wrapper.find("a.remove-filter").on("click", function() {
+		this.filter_edit_area.find("a.remove-filter").on("click", function() {
 			me.remove();
 		});
 
-		this.wrapper.find(".set-filter-and-run").on("click", function() {
-			me.wrapper.removeClass("new-filter");
-			me.flist.base_list.run();
+		this.filter_edit_area.find(".set-filter-and-run").on("click", function() {
+			me.filter_edit_area.removeClass("new-filter");
+			me.filter_group.base_list.run();
 			me.apply();
 		});
 
 		// add help for "in" codition
-		me.wrapper.find('.condition').change(function() {
+		me.filter_edit_area.find('.condition').change(function() {
 			if(!me.field) return;
 			var condition = $(this).val();
 			if(in_list(["in", "like", "not in", "not like"], condition)) {
@@ -67,27 +68,26 @@ frappe.ui.Filter = Class.extend({
 	},
 
 	setup_state(is_new, hidden) {
-		is_new ? this.wrapper.addClass("new-filter") : this.freeze();
+		is_new ? this.filter_edit_area.addClass("new-filter") : this.freeze();
 		if(hidden) this.$filter_tag.hide();
 	},
 
 	apply() {
 		var f = this.get_value();
-		console.log("this in filter apply", this);
-		this.flist = this.flist.filters.filter(f => f !== this); // remove filter
-		this.flist.push_new_filter(f);
-		this.wrapper.remove();
-		this.flist.update_filters();
+		this.filter_group.filters = this.filter_group.filters.filter(f => f !== this); // remove filter
+		this.filter_group.push_new_filter(f);
+		this.filter_edit_area.remove();
+		this.filter_group.update_filters();
 	},
 
 	remove(dont_run) {
-		this.wrapper.remove();
+		this.filter_edit_area.remove();
 		this.$filter_tag && this.$filter_tag.remove();
 		this.field = null;
-		this.flist.update_filters();
+		this.filter_group.update_filters();
 
 		if(!dont_run) {
-			this.flist.base_list.refresh(true);
+			this.filter_group.base_list.refresh(true);
 		}
 	},
 
@@ -102,7 +102,7 @@ frappe.ui.Filter = Class.extend({
 		}
 
 		if(condition) {
-			this.wrapper.find('.condition').val(condition).change();
+			this.filter_edit_area.find('.condition').val(condition).change();
 		}
 		if(value!=null) {
 			return this.field.set_value(value);
@@ -151,7 +151,7 @@ frappe.ui.Filter = Class.extend({
 			old_text = me.field.get_value();
 		}
 
-		var field_area = me.wrapper.find('.filter-field').empty().get(0);
+		var field_area = me.filter_edit_area.find('.filter-field').empty().get(0);
 		var f = frappe.ui.form.make_control({
 			df: df,
 			parent: field_area,
@@ -167,7 +167,7 @@ frappe.ui.Filter = Class.extend({
 		// run on enter
 		$(me.field.wrapper).find(':input').keydown(function(ev) {
 			if(ev.which==13) {
-				me.flist.base_list.run();
+				me.filter_group.base_list.run();
 			}
 		})
 	},
@@ -202,13 +202,13 @@ frappe.ui.Filter = Class.extend({
 		} else if(['Text','Small Text','Text Editor','Code','Tag','Comments',
 			'Dynamic Link','Read Only','Assign'].indexOf(df.fieldtype)!=-1) {
 			df.fieldtype = 'Data';
-		} else if(df.fieldtype=='Link' && ['=', '!='].indexOf(this.wrapper.find('.condition').val())==-1) {
+		} else if(df.fieldtype=='Link' && ['=', '!='].indexOf(this.filter_edit_area.find('.condition').val())==-1) {
 			df.fieldtype = 'Data';
 		}
 		if(df.fieldtype==="Data" && (df.options || "").toLowerCase()==="email") {
 			df.options = null;
 		}
-		if(this.wrapper.find('.condition').val()== "Between" && (df.fieldtype == 'Date' || df.fieldtype == 'Datetime')){
+		if(this.filter_edit_area.find('.condition').val()== "Between" && (df.fieldtype == 'Date' || df.fieldtype == 'Datetime')){
 			df.fieldtype = 'DateRange';
 		}
 	},
@@ -217,11 +217,11 @@ frappe.ui.Filter = Class.extend({
 		if(!fieldtype) {
 			// set as "like" for data fields
 			if (df.fieldtype == 'Data') {
-				this.wrapper.find('.condition').val('like');
+				this.filter_edit_area.find('.condition').val('like');
 			} else if (df.fieldtype == 'Date' || df.fieldtype == 'Datetime'){
-				this.wrapper.find('.condition').val('Between');
+				this.filter_edit_area.find('.condition').val('Between');
 			}else{
-				this.wrapper.find('.condition').val('=');
+				this.filter_edit_area.find('.condition').val('=');
 			}
 		}
 	},
@@ -264,21 +264,21 @@ frappe.ui.Filter = Class.extend({
 	},
 
 	get_condition() {
-		return this.wrapper.find('.condition').val();
+		return this.filter_edit_area.find('.condition').val();
 	},
 
 	freeze() {
 		if(this.$filter_tag) {
 			// already made, just hide the condition setter
 			this.set_filter_button_text();
-			this.wrapper.toggle(false);
+			this.filter_edit_area.toggle(false);
 			return;
 		}
 
 		var me = this;
 
 		this.$filter_tag = this.get_filter_tag_element();
-		this.$filter_tag.insertAfter(this.flist.wrapper.find(".active-tag-filters .add-filter"));
+		this.$filter_tag.insertAfter(this.filter_group.wrapper.find(".active-tag-filters .add-filter"));
 
 		this.set_filter_button_text();
 
@@ -287,15 +287,15 @@ frappe.ui.Filter = Class.extend({
 		});
 
 		this.$filter_tag.find(".toggle-filter").on("click", function() {
-			$(this).closest('.tag-filters-area').find('.filter-update-area').show()
-			me.wrapper.toggle();
+			$(this).closest('.tag-filters-area').find('.filter-edit-area').show()
+			me.filter_edit_area.toggle();
 		})
-		this.wrapper.toggle(false);
+		this.filter_edit_area.toggle(false);
 	},
 
 	set_filter_button_text() {
 		var value = this.get_selected_value();
-		value = this.flist.get_formatted_value(this.field, value);
+		value = this.filter_group.get_formatted_value(this.field, value);
 
 		// for translations: __("like"), __("not like"), __("in")
 		this.$filter_tag.find(".toggle-filter")

@@ -311,7 +311,7 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 
 	init_filters: function () {
 		this.make_standard_filters();
-		this.filter_list = new frappe.ui.FilterList({
+		this.filter_list = new frappe.ui.FilterGroup({
 			base_list: this,
 			parent: this.wrapper.find('.list-filters').show(),
 			doctype: this.doctype,

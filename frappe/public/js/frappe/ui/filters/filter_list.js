@@ -1,13 +1,13 @@
-frappe.ui.FilterList = Class.extend({
+frappe.ui.FilterGroup = Class.extend({
 	init(opts) {
 		$.extend(this, opts);
 		this.wrapper = this.parent;
 		this.filters = [];
 		this.make();
+		// this.set_events();
 	},
 
 	make() {
-		console.log("this", this);
 		this.wrapper.append(this.get_container_template());
 		this.set_events();
 	},
@@ -57,14 +57,14 @@ frappe.ui.FilterList = Class.extend({
 	},
 
 	_push_new_filter(doctype, fieldname, condition, value) {
-		console.log("this in push", doctype, this);
-		let filter = new frappe.ui.Filter({
-			flist: this,
+		let args = {
+			filter_group: this,
 			_doctype: doctype,
 			fieldname: fieldname,
 			condition: condition,
 			value: value
-		});
+		};
+		let filter = new frappe.ui.Filter(args);
 		this.filters.push(filter);
 		return filter;
 	},
@@ -127,6 +127,6 @@ frappe.ui.FilterList = Class.extend({
 				</button>
 			</div>
 		</div>
-		<div class="filter-update-area"></div>`);
+		<div class="filter-edit-area"></div>`);
 	}
 });
