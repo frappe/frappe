@@ -5,9 +5,12 @@ frappe.provide("website");
 frappe.provide("frappe.awesome_bar_path");
 cur_frm = null;
 
-frappe.utils.xss_sanitise = function (string) {
+frappe.utils.xss_sanitise = function (string, options) {
 	// Reference - https://www.owasp.org/index.php/XSS_(Cross_Site_Scripting)_Prevention_Cheat_Sheet
-	let sanitised = string
+	let sanitised = string; // un-sanitised string.
+	const DEFAULT_OPTIONS = {
+		strategies: ['html', 'js'] // use all strategies.
+	}
 	const HTML_ESCAPE_MAP = {
 		'&': '&amp',
 		'<': '&lt',
@@ -15,15 +18,26 @@ frappe.utils.xss_sanitise = function (string) {
 		'"': '&quot',
 		"'": '&#x27',
 		'/': '&#x2F'
+	};
+	const REGEX_SCRIPT     = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi; // used in jQuery 1.7.2 src/ajax.js Line 14
+	options          	   = Object.assign({ }, DEFAULT_OPTIONS, options); // don't deep copy, immutable beauty.
+	console.log(options.strategies.includes('js'))
+
+	// Rule 1
+	if ( options.strategies.includes('html') ) {
+		// By far, the best thing that has ever happened to JS - Object.keys
+		Object.keys(HTML_ESCAPE_MAP).map((char, escape) => {
+			const regex = new RegExp(char, "g");
+			sanitised = sanitised.replace(regex, escape);
+		});
+	}
+	
+	// Rule 3 - TODO: Check event handlers?
+	if ( options.strategies.includes('js') ) {
+		sanitised = sanitised.replace(REGEX_SCRIPT, "");
 	}
 
-	// By far, the best thing that has ever happened to JS - Object.keys
-	Object.keys(HTML_ESCAPE_MAP).map((char, escape) => {
-		const regex = new RegExp(char, "g")
-		sanitised = sanitised.replace(regex, escape)
-	})
-
-	return sanitised
+	return sanitised;
 }
 
 $.extend(frappe, {
@@ -131,9 +145,9 @@ $.extend(frappe, {
 			server_messages = $.map(server_messages, function(v) {
 				// temp fix for messages sent as dict
 				try {
-					return frappe.utils.xss_sanitise(JSON.parse(v).message);
+					return JSON.parse(v).message;
 				} catch (e) {
-					return frappe.utils.xss_sanitise(v);
+					return v;
 				}
 			}).join('<br>');
 
@@ -206,6 +220,9 @@ $.extend(frappe, {
 		if($.isArray(html)) {
 			html = html.join("<hr>")
 		}
+
+		html = frappe.utils.xss_sanitise(html, { strategies: ['js'] })
+
 		return frappe.get_modal(title || "Message", html).modal("show");
 	},
 	send_message: function(opts, btn) {
