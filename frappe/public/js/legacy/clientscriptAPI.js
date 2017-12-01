@@ -457,8 +457,10 @@ _f.Frm.prototype.can_create = function(doctype) {
 	}
 
 	if(this.custom_make_buttons && this.custom_make_buttons[doctype]) {
+		// custom buttons are translated and so are the keys
+		const key = __(this.custom_make_buttons[doctype]);
 		// if the button is present, then show make
-		return !!this.custom_buttons[this.custom_make_buttons[doctype]];
+		return !!this.custom_buttons[key];
 	}
 
 	if(this.can_make_methods && this.can_make_methods[doctype]) {
