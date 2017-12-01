@@ -362,6 +362,10 @@ class FilterArea {
 		this.filter_list.add_filter(...args);
 	}
 
+	remove(fieldname) {
+		this.filter_list.get_filter(fieldname).remove();
+	}
+
 	make_standard_filters() {
 		$(
 			`<div class="flex justify-center align-center">

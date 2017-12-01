@@ -28,7 +28,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	setup_defaults() {
 		super.setup_defaults();
-		this.listview_settings = frappe.listview_settings[this.doctype] || {};
 		this.view_user_settings = this.user_settings[this.view_name] || {};
 	}
 
@@ -159,7 +158,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const subject_field = this.columns[0].df;
 		let subject_html = `
 			<input class="level-item list-check-all hidden-xs" type="checkbox" title="${__("Select All")}" style="margin-top: 0">
-			<span class="level-item list-liked-by" style="margin-bottom: 1px;">
+			<span class="level-item list-liked-by-me" style="margin-bottom: 1px;">
 				<i class="octicon octicon-heart text-extra-muted" title="${__("Likes")}"></i>
 			</span>
 			<span class="level-item">${__(subject_field.label)}</span>
@@ -365,7 +364,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		const liked_by = JSON.parse(doc._liked_by || '[]');
 		let heart_class = liked_by.includes(user) ?
-			'liked-by-user' : 'text-extra-muted';
+			'liked-by' : 'text-extra-muted not-liked';
 
 		const seen = JSON.parse(doc._seen || '[]')
 			.includes(user) ? 'seen' : '';
@@ -375,12 +374,12 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				type="checkbox" style="margin-top: 0"
 				data-name="${doc.name}"
 			>
-			<span class="level-item list-row-like"
+			<span class="level-item"
 				style="margin-bottom: 1px;"
-				data-liked-by="${doc._liked_by || "[]"}"
 			>
-				<i class="octicon octicon-heart ${heart_class}"
-					data-name="{{ _name }}" data-doctype="{{ doctype }}"
+				<i class="octicon octicon-heart like-action ${heart_class}"
+					data-name="${doc.name}" data-doctype="${this.doctype}"
+					data-liked-by="${encodeURI(doc._liked_by) || '[]'}"
 				>
 				</i>
 				<span class="likes-count">
@@ -462,6 +461,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.$no_result.find('.btn-new-doc').click(() => this.make_new_doc());
 
 		this.setup_check_events();
+		this.setup_like();
 	}
 
 	setup_check_events() {
@@ -483,6 +483,22 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 			this.on_row_checked();
 		});
+	}
+
+	setup_like() {
+		this.$result.on('click', '.like-action', frappe.ui.click_toggle_like);
+		this.$result.on('click', '.list-liked-by-me', e => {
+			const $this = $(e.currentTarget);
+			$this.toggleClass('active');
+
+			if ($this.hasClass('active')) {
+				this.filter_area.add(this.doctype, '_liked_by', 'like', '%' + frappe.session.user + '%');
+			} else {
+				this.filter_area.remove('_liked_by');
+			}
+		});
+
+		frappe.ui.setup_like_popover(this.$result, '.liked-by');
 	}
 
 	on_row_checked() {

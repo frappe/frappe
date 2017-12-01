@@ -55,7 +55,7 @@
 .filter-box .filter_field .frappe-control {
   position: relative;
 }
-@media (min-width: 768px) {
+@media (min-width: 767px) {
   .filter-box .row > div[class*="col-sm-"] {
     padding-right: 0px;
   }
