@@ -21,8 +21,7 @@ frappe.utils.xss_sanitise = function (string, options) {
 	};
 	const REGEX_SCRIPT     = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi; // used in jQuery 1.7.2 src/ajax.js Line 14
 	options          	   = Object.assign({ }, DEFAULT_OPTIONS, options); // don't deep copy, immutable beauty.
-	console.log(options.strategies.includes('js'))
-
+	
 	// Rule 1
 	if ( options.strategies.includes('html') ) {
 		// By far, the best thing that has ever happened to JS - Object.keys
