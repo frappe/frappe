@@ -3,10 +3,10 @@ frappe.ui.Filter = Class.extend({
 		$.extend(this, opts);
 
 		this.doctype = this.filter_group.doctype;
+		this.utils = frappe.ui.filter_utils;
 		this.make();
 		this.make_select();
 		this.set_events();
-
 	},
 	make() {
 		this.filter_edit_area = $(frappe.render_template("edit_filter", {}))
@@ -232,74 +232,46 @@ frappe.ui.Filter = Class.extend({
 	},
 
 	get_selected_value() {
-		var val = this.field.get_value();
-
-		if(typeof val==='string') {
-			val = strip(val);
-		}
-
-		if(this.field.df.original_type == 'Check') {
-			val = (val=='Yes' ? 1 :0);
-		}
-
-		if(this.get_condition().indexOf('like', 'not like')!==-1) {
-			// automatically append wildcards
-			if(val) {
-				if(val.slice(0,1) !== "%") {
-					val = "%" + val;
-				}
-				if(val.slice(-1) !== "%") {
-					val = val + "%";
-				}
-			}
-		} else if(in_list(["in", "not in"], this.get_condition())) {
-			if(val) {
-				val = $.map(val.split(","), function(v) { return strip(v); });
-			}
-		} if(val === '%') {
-			val = "";
-		}
-
-		return val;
+		return this.utils.get_selected_value(this.field, this.get_condition());
 	},
 
 	get_condition() {
 		return this.filter_edit_area.find('.condition').val();
 	},
 
+	set_condition(condition) {
+		this.filter_edit_area.find('.condition').val(condition);
+	},
+
 	freeze() {
-		if(this.$filter_tag) {
-			// already made, just hide the condition setter
-			this.set_filter_button_text();
-			this.filter_edit_area.toggle(false);
-			return;
-		}
+		!this.$filter_tag ? this.make_tag() : this.set_filter_button_text();
+		this.filter_edit_area.hide();
+	},
 
-		var me = this;
-
-		this.$filter_tag = this.get_filter_tag_element();
-		this.$filter_tag.insertAfter(this.filter_group.wrapper.find(".active-tag-filters .add-filter"));
-
+	make_tag() {
+		this.$filter_tag = this.get_filter_tag_element()
+			.insertAfter(this.filter_group.wrapper.find(".active-tag-filters .add-filter"));
 		this.set_filter_button_text();
+		this.bind_tag();
+	},
 
-		this.$filter_tag.find(".remove-filter").on("click", function() {
-			me.remove();
-		});
+	bind_tag() {
+		this.$filter_tag.find(".remove-filter").on("click", this.remove.bind(this));
 
-		this.$filter_tag.find(".toggle-filter").on("click", function() {
-			$(this).closest('.tag-filters-area').find('.filter-edit-area').show()
-			me.filter_edit_area.toggle();
+		let filter_button = this.$filter_tag.find(".toggle-filter");
+		filter_button.on("click", () => {
+			filter_button.closest('.tag-filters-area').find('.filter-edit-area').show()
+			this.filter_edit_area.toggle();
 		})
-		this.filter_edit_area.toggle(false);
 	},
 
 	set_filter_button_text() {
-		var value = this.get_selected_value();
-		value = this.filter_group.get_formatted_value(this.field, value);
+		this.$filter_tag.find(".toggle-filter").html(this.get_filter_button_text());
+	},
 
-		// for translations: __("like"), __("not like"), __("in")
-		this.$filter_tag.find(".toggle-filter")
-			.html(`${__(this.field.df.label)} ${__(this.get_condition())} ${__(value)}`);
+	get_filter_button_text() {
+		let value = this.utils.get_formatted_value(this.field, this.get_selected_value());
+		return `${__(this.field.df.label)} ${__(this.get_condition())} ${__(value)}`;
 	},
 
 	get_filter_tag_element() {
@@ -312,5 +284,48 @@ frappe.ui.Filter = Class.extend({
 				<i class="fa fa-remove text-muted"></i>
 			</button>
 		</div>`);
-	}
+	},
 });
+
+frappe.ui.filter_utils = {
+	get_formatted_value(field, value) {
+		if(field.df.fieldname==="docstatus") {
+			value = {0:"Draft", 1:"Submitted", 2:"Cancelled"}[value] || value;
+		} else if(field.df.original_type==="Check") {
+			value = {0:"No", 1:"Yes"}[cint(value)];
+		}
+		return frappe.format(value, field.df, {only_value: 1});
+	},
+
+	get_selected_value(field, condition) {
+		var val = field.get_value();
+
+		if(typeof val==='string') {
+			val = strip(val);
+		}
+
+		if(field.df.original_type == 'Check') {
+			val = (val=='Yes' ? 1 :0);
+		}
+
+		if(condition.indexOf('like', 'not like')!==-1) {
+			// automatically append wildcards
+			if(val) {
+				if(val.slice(0,1) !== "%") {
+					val = "%" + val;
+				}
+				if(val.slice(-1) !== "%") {
+					val = val + "%";
+				}
+			}
+		} else if(in_list(["in", "not in"], condition)) {
+			if(val) {
+				val = $.map(val.split(","), function(v) { return strip(v); });
+			}
+		} if(val === '%') {
+			val = "";
+		}
+
+		return val;
+	},
+}

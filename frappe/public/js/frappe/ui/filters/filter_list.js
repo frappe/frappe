@@ -110,15 +110,6 @@ frappe.ui.FilterGroup = Class.extend({
 		})[0];
 	},
 
-	get_formatted_value(field, value){
-		if(field.df.fieldname==="docstatus") {
-			value = {0:"Draft", 1:"Submitted", 2:"Cancelled"}[value] || value;
-		} else if(field.df.original_type==="Check") {
-			value = {0:"No", 1:"Yes"}[cint(value)];
-		}
-		return frappe.format(value, field.df, {only_value: 1});
-	},
-
 	get_container_template() {
 		return $(`<div class="tag-filters-area">
 			<div class="active-tag-filters">
