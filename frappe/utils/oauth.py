@@ -228,26 +228,24 @@ def update_oauth_user(user, data, provider):
 			frappe.respond_as_web_page(_('Not Allowed'), _('User {0} is disabled').format(user.email))
 			return False
 
-	if provider=="facebook" and not user.get("fb_userid"):
+	if provider=="facebook" and not user.get_social_login_userid(provider):
 		save = True
+		user.set_social_login_userid(provider, userid=data["id"], username=data.get("username"))
 		user.update({
-			"fb_username": data.get("username"),
-			"fb_userid": data["id"],
 			"user_image": "https://graph.facebook.com/{id}/picture".format(id=data["id"])
 		})
 
-	elif provider=="google" and not user.get("google_userid"):
+	elif provider=="google" and not user.get_social_login_userid(provider):
 		save = True
-		user.google_userid = data["id"]
+		user.set_social_login_userid(provider, userid=data["id"])
 
-	elif provider=="github" and not user.get("github_userid"):
+	elif provider=="github" and not user.get_social_login_userid(provider):
 		save = True
-		user.github_userid = data["id"]
-		user.github_username = data["login"]
+		user.set_social_login_userid(provider, userid=data["id"], username=data.get("login"))
 
-	elif provider=="frappe" and not user.get("frappe_userid"):
+	elif provider=="frappe" and not user.get_social_login_userid(provider):
 		save = True
-		user.frappe_userid = data["sub"]
+		user.set_social_login_userid(provider, userid=data["sub"])
 
 	if save:
 		user.flags.ignore_permissions = True
