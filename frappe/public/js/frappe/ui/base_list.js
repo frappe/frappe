@@ -167,11 +167,13 @@ frappe.ui.BaseList = Class.extend({
 		this.make_standard_filters();
 
 		this.filter_list = new frappe.ui.FilterGroup({
-			base_list: this,
 			parent: this.wrapper.find('.list-filters').show(),
 			doctype: this.doctype,
 			filter_fields: this.filter_fields,
-			default_filters: this.default_filters || []
+			default_filters: this.default_filters || [],
+			on_change: () => {
+				this.run();
+			}
 		});
 		// default filter for submittable doctype
 		if (frappe.model.is_submittable(this.doctype)) {

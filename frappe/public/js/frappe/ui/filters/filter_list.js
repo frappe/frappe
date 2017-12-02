@@ -57,12 +57,15 @@ frappe.ui.FilterGroup = class {
 
 	_push_new_filter(doctype, fieldname, condition, value) {
 		let args = {
-			filter_group: this,
 			parent: this.wrapper,
 			doctype: this.doctype,
 			fieldname: fieldname,
 			condition: condition,
-			value: value
+			value: value,
+			on_change: (update) => {
+				if(update) this.update_filters();
+				this.on_change();
+			}
 		};
 		let filter = new frappe.ui.Filter(args);
 		this.filters.push(filter);
@@ -91,7 +94,7 @@ frappe.ui.FilterGroup = class {
 			f.freeze();
 			return f.get_value();
 		});
-		// {}: this.base_list.update_standard_filters(values);
+		// {}: this.list.update_standard_filters(values);
 	}
 
 	update_filters() {
