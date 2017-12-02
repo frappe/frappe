@@ -1,20 +1,19 @@
-frappe.ui.FilterGroup = Class.extend({
-	init(opts) {
+frappe.ui.FilterGroup = class {
+	constructor(opts) {
 		$.extend(this, opts);
 		this.wrapper = this.parent;
 		this.filters = [];
 		this.make();
-		// this.set_events();
-	},
+	}
 
 	make() {
 		this.wrapper.append(this.get_container_template());
 		this.set_events();
-	},
+	}
 
 	set_events() {
 		this.wrapper.find('.add-filter').on('click', this.add_filter.bind(this));
-	},
+	}
 
 	add_filter(doctype, fieldname, condition, value, hidden) {
 		// adds a new filter, returns true if filter has been added
@@ -23,7 +22,7 @@ frappe.ui.FilterGroup = Class.extend({
 
 		if(!this.validate_args(doctype, fieldname)) return false;
 
-		const is_new_filter = arguments.length === 1;
+		const is_new_filter = arguments.length < 2;
 		if (is_new_filter && this.wrapper.find(".new-filter:visible").length) {
 			// only allow 1 new filter at a time!
 			return false;
@@ -31,7 +30,7 @@ frappe.ui.FilterGroup = Class.extend({
 			let args = [doctype, fieldname, condition, value];
 			return this.push_new_filter(args, is_new_filter, hidden);
 		}
-	},
+	}
 
 	validate_args(doctype, fieldname) {
 		if(doctype && fieldname
@@ -42,7 +41,7 @@ frappe.ui.FilterGroup = Class.extend({
 				return false;
 		}
 		return true;
-	},
+	}
 
 	push_new_filter(args, is_new_filter=false, hidden=false) {
 		// args: [doctype, fieldname, condition, value]
@@ -54,12 +53,12 @@ frappe.ui.FilterGroup = Class.extend({
 
 		filter && filter.setup_state(is_new_filter, hidden);
 		return filter;
-	},
+	}
 
 	_push_new_filter(doctype, fieldname, condition, value) {
 		let args = {
 			filter_group: this,
-			parent: this.wrapper.find('.filter-edit-area'),
+			parent: this.wrapper,
 			doctype: this.doctype,
 			fieldname: fieldname,
 			condition: condition,
@@ -68,7 +67,7 @@ frappe.ui.FilterGroup = Class.extend({
 		let filter = new frappe.ui.Filter(args);
 		this.filters.push(filter);
 		return filter;
-	},
+	}
 
 	filter_exists(filter_value) {
 		// filter_value of form: [doctype, fieldname, condition, value]
@@ -85,7 +84,7 @@ frappe.ui.FilterGroup = Class.extend({
 				}
 		});
 		return exists;
-	},
+	}
 
 	get_filters() {
 		return this.filters.filter(f => f.field).map(f => {
@@ -93,23 +92,23 @@ frappe.ui.FilterGroup = Class.extend({
 			return f.get_value();
 		});
 		// {}: this.base_list.update_standard_filters(values);
-	},
+	}
 
 	update_filters() {
 		this.filters = this.filters.filter(f => f.field); // remove hidden filters
-	},
+	}
 
 	clear_filters() {
 		this.filters.map(f => { f.remove(true); });
 		// {}: Clear page filters, .date-range-picker (called list run())
 		this.filters = [];
-	},
+	}
 
 	get_filter(fieldname) {
 		return this.filters.filter(f => {
 			return (f.field && f.field.df.fieldname==fieldname);
 		})[0];
-	},
+	}
 
 	get_container_template() {
 		return $(`<div class="tag-filters-area">
@@ -121,4 +120,4 @@ frappe.ui.FilterGroup = Class.extend({
 		</div>
 		<div class="filter-edit-area"></div>`);
 	}
-});
+};

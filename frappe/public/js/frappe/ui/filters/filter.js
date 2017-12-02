@@ -1,16 +1,19 @@
-frappe.ui.Filter = Class.extend({
-	init(opts) {
+frappe.ui.Filter = class {
+	constructor(opts) {
 		$.extend(this, opts);
 
 		this.utils = frappe.ui.filter_utils;
 		this.make();
 		this.make_select();
 		this.set_events();
-	},
+		this.setup();
+	}
+
 	make() {
 		this.filter_edit_area = $(frappe.render_template("edit_filter", {}))
-			.appendTo(this.parent);
-	},
+			.appendTo(this.parent.find('.filter-edit-area'));
+	}
+
 	make_select() {
 		this.fieldselect = new frappe.ui.FieldSelect({
 			parent: this.filter_edit_area.find('.fieldname-select-area'),
@@ -24,38 +27,33 @@ frappe.ui.Filter = Class.extend({
 		if(this.fieldname) {
 			this.fieldselect.set_value(this.doctype, this.fieldname);
 		}
-	},
+	}
+
 	set_events() {
-		let me = this;
-
-		this.filter_edit_area.find("a.remove-filter").on("click", function() {
-			me.remove();
+		this.filter_edit_area.find("a.remove-filter").on("click", () => {
+			this.remove();
 		});
 
-		this.filter_edit_area.find(".set-filter-and-run").on("click", function() {
-			me.filter_edit_area.removeClass("new-filter");
-			me.filter_group.base_list.run();
+		this.filter_edit_area.find(".set-filter-and-run").on("click", () => {
+			this.filter_edit_area.removeClass("new-filter");
+			this.filter_group.base_list.run();
 		});
 
-		// add help for "in" codition
-		me.filter_edit_area.find('.condition').change(function() {
-			if(!me.field) return;
-			let condition = $(this).val();
-			if(in_list(["in", "like", "not in", "not like"], condition)) {
-				me.set_field(me.field.df.parent, me.field.df.fieldname, 'Data', condition);
-				if(!me.field.desc_area) {
-					me.field.desc_area = $('<div class="text-muted small">').appendTo(me.field.wrapper);
-				}
-				// set description
-				me.field.desc_area.html((in_list(["in", "not in"], condition)==="in"
-					? __("values separated by commas")
-					: __("use % as wildcard"))+'</div>');
-			} else {
-				//if condition selected after refresh
-				me.set_field(me.field.df.parent, me.field.df.fieldname, null, condition);
+		this.filter_edit_area.find('.condition').change(() => {
+			if(!this.field) return;
+
+			let condition = this.get_condition();
+			let fieldtype = null;
+
+			if(["in", "like", "not in", "not like"].includes(condition)) {
+				fieldtype = 'Data';
+				this.add_condition_help(condition);
 			}
+			this.set_field(this.field.df.parent, this.field.df.fieldname, fieldtype, condition);
 		});
+	}
 
+	setup() {
 		// set the field
 		if(this.fieldname) {
 			// pre-sets given (could be via tags!)
@@ -63,22 +61,26 @@ frappe.ui.Filter = Class.extend({
 		} else {
 			this.set_field(this.doctype, 'name');
 		}
-	},
+	}
 
 	setup_state(is_new, hidden) {
 		is_new ? this.filter_edit_area.addClass("new-filter") : this.freeze();
 		if(hidden) this.$filter_tag.hide();
-	},
+	}
+
+	freeze() {
+		!this.$filter_tag ? this.make_tag() : this.set_filter_button_text();
+		this.filter_edit_area.hide();
+	}
 
 	remove() {
 		this.filter_edit_area.remove();
 		this.$filter_tag && this.$filter_tag.remove();
-
-		let g = this.filter_group.filters;
 		this.field = null;
+
 		this.filter_group.update_filters();
 		this.filter_group.base_list.refresh(true);
-	},
+	}
 
 	set_values(doctype, fieldname, condition, value) {
 		// presents given (could be via tags!)
@@ -89,7 +91,7 @@ frappe.ui.Filter = Class.extend({
 		}
 		if(condition) this.set_condition(condition, true);
 		if(value) this.field.set_value(value);
-	},
+	}
 
 	set_field(doctype, fieldname, fieldtype, condition) {
 		// set in fieldname (again)
@@ -124,7 +126,7 @@ frappe.ui.Filter = Class.extend({
 		this.fieldselect.selected_fieldname = fieldname;
 
 		this.make_field(df, cur.fieldtype);
-	},
+	}
 
 	make_field(df, old_fieldtype) {
 		let old_text = this.field ? this.field.get_value() : null;
@@ -143,43 +145,38 @@ frappe.ui.Filter = Class.extend({
 		}
 
 		// run on enter
-		$(this.field.wrapper).find(':input').keydown(function(e) {
+		$(this.field.wrapper).find(':input').keydown(e => {
 			if(e.which==13) {
 				this.filter_group.base_list.run();
 			}
 		})
-	},
+	}
 
 	get_value() {
 		return [this.fieldselect.selected_doctype,
 			this.field.df.fieldname, this.get_condition(), this.get_selected_value()];
-	},
+	}
 
 	get_selected_value() {
 		return this.utils.get_selected_value(this.field, this.get_condition());
-	},
+	}
 
 	get_condition() {
 		return this.filter_edit_area.find('.condition').val();
-	},
+	}
 
-	set_condition(condition, change=false) {
+	set_condition(condition, trigger_change=false) {
 		let $condition_field = this.filter_edit_area.find('.condition');
 		$condition_field.val(condition);
-		if(change) $condition_field.change();
-	},
-
-	freeze() {
-		!this.$filter_tag ? this.make_tag() : this.set_filter_button_text();
-		this.filter_edit_area.hide();
-	},
+		if(trigger_change) $condition_field.change();
+	}
 
 	make_tag() {
 		this.$filter_tag = this.get_filter_tag_element()
-			.insertAfter(this.filter_group.wrapper.find(".active-tag-filters .add-filter"));
+			.insertAfter(this.parent.find(".active-tag-filters .add-filter"));
 		this.set_filter_button_text();
 		this.bind_tag();
-	},
+	}
 
 	bind_tag() {
 		this.$filter_tag.find(".remove-filter").on("click", this.remove.bind(this));
@@ -189,16 +186,16 @@ frappe.ui.Filter = Class.extend({
 			filter_button.closest('.tag-filters-area').find('.filter-edit-area').show()
 			this.filter_edit_area.toggle();
 		})
-	},
+	}
 
 	set_filter_button_text() {
 		this.$filter_tag.find(".toggle-filter").html(this.get_filter_button_text());
-	},
+	}
 
 	get_filter_button_text() {
 		let value = this.utils.get_formatted_value(this.field, this.get_selected_value());
 		return `${__(this.field.df.label)} ${__(this.get_condition())} ${__(value)}`;
-	},
+	}
 
 	get_filter_tag_element() {
 		return $(`<div class="filter-tag btn-group">
@@ -210,8 +207,19 @@ frappe.ui.Filter = Class.extend({
 				<i class="fa fa-remove text-muted"></i>
 			</button>
 		</div>`);
-	},
-});
+	}
+
+	add_condition_help(condition) {
+		let $desc = this.field.desc_area;
+		if(!$desc) {
+			$desc = $('<div class="text-muted small">').appendTo(this.field.wrapper);
+		}
+		// set description
+		$desc.html((in_list(["in", "not in"], condition)==="in"
+			? __("values separated by commas")
+			: __("use % as wildcard"))+'</div>');
+	}
+};
 
 frappe.ui.filter_utils = {
 	get_formatted_value(field, value) {
