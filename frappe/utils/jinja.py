@@ -153,6 +153,7 @@ def get_allowed_functions_for_jenv():
 		out['frappe']["db"] = {
 			"get_value": frappe.db.get_value,
 			"get_default": frappe.db.get_default,
+			"escape": frappe.db.escape,
 		}
 
 	return out

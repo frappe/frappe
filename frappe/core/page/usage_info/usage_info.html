@@ -1,12 +1,14 @@
 <div>
-	{% if limits.expiry %}
+	{% if limits.upgrade_url %}
 	<div class="upgrade-message padding" style="border-bottom: 1px solid #d0d8dc;">
-		<h4>{{ __("You have {0} days left in your subscription", [days_to_expiry]) }}</h4>
+		{% if limits.expiry %}
+			<h4>{{ __("You have {0} days left in your subscription", [days_to_expiry]) }}</h4>
+		{% else %}
+			<h4>{{ __("You have subscribed for one user free plan") }}</h4>
+		{% endif %}
 
-		{% if limits.upgrade_url %}
 		<p>Upgrade to a premium plan with more users, storage and priority support.</p>
 		<button class="btn btn-primary btn-sm primary-action">Upgrade</button>
-		{% endif %}
 	</div>
 	{% endif %}
 

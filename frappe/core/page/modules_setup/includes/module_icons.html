@@ -5,7 +5,7 @@
 	    <label>
 	      <input type="checkbox" data-module="{{ icon.module_name }}" class="module-select"
 					{% if not (icon.hidden if user else icon.blocked) %}checked{% endif %}>
-					{{ _(icon.label or icon.module_name) }}
+					{{ frappe.db.escape(_(icon.label or icon.module_name)) }}
 	    </label>
 	  </div>
 	</div>

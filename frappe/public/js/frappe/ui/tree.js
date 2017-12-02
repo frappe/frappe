@@ -216,7 +216,7 @@ frappe.ui.TreeNode = Class.extend({
 		this.load();
 	},
 	reload_parent: function() {
-		this.parent_node.load_all();
+		this.parent_node && this.parent_node.load_all();
 	},
 	load_all: function(callback) {
 		var  me = this;

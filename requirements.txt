@@ -48,5 +48,5 @@ pyotp
 pyqrcode
 pypng
 premailer
-psycopg2
 croniter
+googlemaps

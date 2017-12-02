@@ -4,7 +4,7 @@
 from __future__ import unicode_literals, print_function
 
 import frappe
-import unittest, json, sys
+import unittest, json, sys, os
 import xmlrunner
 import importlib
 from frappe.modules import load_doctype_module, get_module_name
@@ -25,8 +25,13 @@ def xmlrunner_wrapper(output):
 	return _runner
 
 def main(app=None, module=None, doctype=None, verbose=False, tests=(),
-	force=False, profile=False, junit_xml_output=None, ui_tests=False):
+	force=False, profile=False, junit_xml_output=None, ui_tests=False, doctype_list_path=None):
 	global unittest_runner
+
+	if doctype_list_path:
+		app, doctype_list_path = doctype_list_path.split(os.path.sep, 1)
+		with open(frappe.get_app_path(app, doctype_list_path), 'r') as f:
+			doctype = f.read().strip().splitlines()
 
 	xmloutput_fh = None
 	if junit_xml_output:
@@ -119,19 +124,25 @@ def run_all_tests(app=None, verbose=False, profile=False, ui_tests=False):
 
 	return out
 
-def run_tests_for_doctype(doctype, verbose=False, tests=(), force=False, profile=False):
-	module = frappe.db.get_value("DocType", doctype, "module")
-	if not module:
-		print('Invalid doctype {0}'.format(doctype))
-		sys.exit(1)
+def run_tests_for_doctype(doctypes, verbose=False, tests=(), force=False, profile=False):
+	modules = []
+	if not isinstance(doctypes, (list, tuple)):
+		doctypes = [doctypes]
 
-	test_module = get_module_name(doctype, module, "test_")
-	if force:
-		for name in frappe.db.sql_list("select name from `tab%s`" % doctype):
-			frappe.delete_doc(doctype, name, force=True)
-	make_test_records(doctype, verbose=verbose, force=force)
-	module = importlib.import_module(test_module)
-	return _run_unittest(module, verbose=verbose, tests=tests, profile=profile)
+	for doctype in doctypes:
+		module = frappe.db.get_value("DocType", doctype, "module")
+		if not module:
+			print('Invalid doctype {0}'.format(doctype))
+			sys.exit(1)
+
+		test_module = get_module_name(doctype, module, "test_")
+		if force:
+			for name in frappe.db.sql_list("select name from `tab%s`" % doctype):
+				frappe.delete_doc(doctype, name, force=True)
+		make_test_records(doctype, verbose=verbose, force=force)
+		modules.append(importlib.import_module(test_module))
+
+	return _run_unittest(modules, verbose=verbose, tests=tests, profile=profile)
 
 def run_tests_for_module(module, verbose=False, tests=(), profile=False):
 	module = importlib.import_module(module)
@@ -139,30 +150,38 @@ def run_tests_for_module(module, verbose=False, tests=(), profile=False):
 		for doctype in module.test_dependencies:
 			make_test_records(doctype, verbose=verbose)
 
-	return _run_unittest(module=module, verbose=verbose, tests=tests, profile=profile)
+	return _run_unittest(module, verbose=verbose, tests=tests, profile=profile)
 
 def run_setup_wizard_ui_test(app=None, verbose=False, profile=False):
 	'''Run setup wizard UI test using test_test_runner'''
 	frappe.flags.run_setup_wizard_ui_test = 1
-	return run_ui_tests(app, None, verbose, profile)
+	return run_ui_tests(app=app, test=None, verbose=verbose, profile=profile)
 
-def run_ui_tests(app=None, test=None, verbose=False, profile=False):
+def run_ui_tests(app=None, test=None, test_list=None, verbose=False, profile=False):
 	'''Run a single unit test for UI using test_test_runner'''
 	module = importlib.import_module('frappe.tests.ui.test_test_runner')
 	frappe.flags.ui_test_app = app
-	frappe.flags.ui_test_path = test
-	return _run_unittest(module=module, verbose=verbose, tests=(), profile=profile)
-
-def _run_unittest(module, verbose=False, tests=(), profile=False):
-	test_suite = unittest.TestSuite()
-	module_test_cases = unittest.TestLoader().loadTestsFromModule(module)
-	if tests:
-		for each in module_test_cases:
-			for test_case in each.__dict__["_tests"]:
-				if test_case.__dict__["_testMethodName"] in tests:
-					test_suite.addTest(test_case)
+	if test_list:
+		frappe.flags.ui_test_list = test_list
 	else:
-		test_suite.addTest(module_test_cases)
+		frappe.flags.ui_test_path = test
+	return _run_unittest(module, verbose=verbose, tests=(), profile=profile)
+
+def _run_unittest(modules, verbose=False, tests=(), profile=False):
+	test_suite = unittest.TestSuite()
+
+	if not isinstance(modules, (list, tuple)):
+		modules = [modules]
+
+	for module in modules:
+		module_test_cases = unittest.TestLoader().loadTestsFromModule(module)
+		if tests:
+			for each in module_test_cases:
+				for test_case in each.__dict__["_tests"]:
+					if test_case.__dict__["_testMethodName"] in tests:
+						test_suite.addTest(test_case)
+		else:
+			test_suite.addTest(module_test_cases)
 
 	if profile:
 		pr = cProfile.Profile()
