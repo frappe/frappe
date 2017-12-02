@@ -23,7 +23,7 @@ frappe.ui.FilterGroup = Class.extend({
 
 		if(!this.validate_args(doctype, fieldname)) return false;
 
-		const is_new_filter = arguments.length===0;
+		const is_new_filter = arguments.length === 1;
 		if (is_new_filter && this.wrapper.find(".new-filter:visible").length) {
 			// only allow 1 new filter at a time!
 			return false;
@@ -59,7 +59,8 @@ frappe.ui.FilterGroup = Class.extend({
 	_push_new_filter(doctype, fieldname, condition, value) {
 		let args = {
 			filter_group: this,
-			_doctype: doctype,
+			parent: this.wrapper.find('.filter-edit-area'),
+			doctype: this.doctype,
 			fieldname: fieldname,
 			condition: condition,
 			value: value
