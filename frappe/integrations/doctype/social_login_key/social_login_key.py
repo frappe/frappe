@@ -3,10 +3,9 @@
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
-import frappe, os, json
+import frappe, json
 from frappe import _
 from frappe.model.document import Document
-from frappe.modules.utils import export_module_json
 
 class SocialLoginKey(Document):
 
@@ -16,6 +15,12 @@ class SocialLoginKey(Document):
 	def validate(self):
 		if self.custom_base_url and not self.base_url:
 			frappe.throw(_("Please enter Base URL"))
+		if not self.authorize_url:
+			frappe.throw(_("Please enter Authorize URL"))
+		if not self.access_token_url:
+			frappe.throw(_("Please enter Access Token URL"))
+		if not self.redirect_url:
+			frappe.throw(_("Please enter Redirect URL"))
 
 	def get_social_login_provider(self, provider):
 		providers = {}
@@ -48,7 +53,7 @@ class SocialLoginKey(Document):
 			"api_endpoint": "oauth2/v2/userinfo",
 			"api_endpoint_args":None,
 			"auth_url_data": json.dumps({
-				"scope": "https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email", 
+				"scope": "https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email",
 				"response_type": "code"
 			})
 		}
@@ -68,8 +73,8 @@ class SocialLoginKey(Document):
 				"fields": "first_name,last_name,email,gender,location,verified,picture"
 			}),
 			"auth_url_data": json.dumps({
-				"display": "page", 
-				"response_type": "code", 
+				"display": "page",
+				"response_type": "code",
 				"scope": "email,public_profile"
 			})
 		}
