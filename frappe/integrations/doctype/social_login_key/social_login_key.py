@@ -3,7 +3,8 @@
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
-import frappe, os
+import frappe, os, json
+from frappe import _
 from frappe.model.document import Document
 from frappe.modules.utils import export_module_json
 
@@ -12,10 +13,74 @@ class SocialLoginKey(Document):
 	def autoname(self):
 		self.name = frappe.scrub(self.provider_name)
 
-	def after_insert(self):
-		# Create `User Social Login` Child Table Row on `User` with fields Provider, Username and User ID
-		pass
+	def get_social_login_provider(self, provider):
+		providers = {}
 
-	def on_trash(self):
-		# Delete Related User Social Login cdt on User
-		pass
+		providers["GitHub"] = {
+			"provider_name":"GitHub",
+			"base_url":"https://api.github.com/",
+			"custom_base_url":0,
+			"icon_type":"DOM Class",
+			"icon":"fa fa-github",
+			"authorize_url":"https://github.com/login/oauth/authorize",
+			"access_token_url":"https://github.com/login/oauth/access_token",
+			"redirect_url":"/api/method/frappe.www.login.login_via_github",
+			"api_endpoint":"user",
+			"api_endpoint_args":None,
+			"auth_url_data":None
+		}
+
+		providers["Google"] = {
+			"provider_name": "Google",
+			"base_url": "https://www.googleapis.com",
+			"custom_base_url": 0,
+			"icon_type":"DOM Class",
+			"icon":"fa fa-google",
+			"authorize_url": "https://accounts.google.com/o/oauth2/auth",
+			"access_token_url": "https://accounts.google.com/o/oauth2/token",
+			"redirect_url": "/api/method/frappe.www.login.login_via_google",
+			"api_endpoint": "oauth2/v2/userinfo",
+			"api_endpoint_args":None,
+			"auth_url_data": json.dumps({
+				"scope": "https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email", 
+				"response_type": "code"
+			})
+		}
+
+		providers["Facebook"] = {
+			"provider_name": "Facebook",
+			"base_url": "https://graph.facebook.com",
+			"custom_base_url": 0,
+			"icon_type": "DOM Class",
+			"icon": "fa fa-facebook",
+			"authorize_url": "https://www.facebook.com/dialog/oauth",
+			"access_token_url": "https://graph.facebook.com/oauth/access_token",
+			"redirect_url": "/api/method/frappe.www.login.login_via_facebook",
+			"api_endpoint": "/v2.5/me",
+			"api_endpoint_args": json.dumps({
+				"fields": "first_name,last_name,email,gender,location,verified,picture"
+			}),
+			"auth_url_data": json.dumps({
+				"display": "page", 
+				"response_type": "code", 
+				"scope": "email,public_profile"
+			})
+		}
+		providers["Frappe"] = {
+			"provider_name": "Frappe",
+			"custom_base_url": 1,
+			"icon_type":"Image",
+			"icon":"/assets/images/favicon.png",
+			"redirect_url": "/api/method/frappe.www.login.login_via_frappe",
+			"api_endpoint": "/api/method/frappe.integrations.oauth2.openid_profile",
+			"api_endpoint_args":None,
+			"auth_url_data": json.dumps({
+				"response_type": "code",
+				"scope": "openid"
+			})
+			# "base_url": self.base_url,
+			# "authorize_url": self.base_url + "/api/method/frappe.integrations.oauth2.authorize",
+			# "access_token_url": self.base_url + "/api/method/frappe.integrations.oauth2.get_token",
+		}
+
+		return providers.get(provider) if provider else providers

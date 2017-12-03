@@ -1,26 +1,51 @@
 // Copyright (c) 2017, Frappe Technologies and contributors
 // For license information, please see license.txt
+const fields = [
+	"provider_name", "base_url", "custom_base_url", "icon_type",
+	"icon", "authorize_url", "access_token_url", "redirect_url",
+	"api_endpoint", "api_endpoint_args", "auth_url_data"
+];
 
 frappe.ui.form.on('Social Login Key', {
-	refresh: function(frm) {
-		if(frappe.session.user !== "Administrator" || !frappe.boot.developer_mode) {
-			if(frm.is_new()) {
-				frm.set_value("custom", 1);
-			}
-			frm.toggle_enable("custom", 0);
-			// make the document read-only
-			for (var key of Object.keys(frm.fields_dict)) {
-				if (frm.doc.custom_base_url && key == "base_url" ||
-					["client_id", "client_secret"].includes(key)) {
-					continue;
-				} else {
-					frm.toggle_enable(key, 0);
+	refresh(frm) {
+		enable_custom_base_url(frm);
+	},
+
+	social_login_provider(frm) {
+		if(frm.doc.social_login_provider != "Custom"){
+			frappe.call({
+				"doc": frm.doc,
+				"method": "get_social_login_provider",
+				"args": {
+					"provider": frm.doc.social_login_provider
+				}
+			}).done((r)=>{
+				const provider = r.message;
+				for(var field of Object.keys(frm.fields_dict)){
+					if (fields.includes(field)) {
+						frm.set_value(field, provider[field]);
+						frm.set_df_property(field, "read_only", 1);
+					}
+				}
+			});
+		} else {
+			for(var field of Object.keys(frm.fields_dict)){
+				if (fields.includes(field)) {
+					frm.set_value(field, "");
+					frm.set_df_property(field, "read_only", 0);
 				}
 			}
 		}
 	},
 
-	custom: function(frm) {
-		if (frm.doc.custom) frm.set_value("enable_social_login", 0);
+	custom_base_url(frm) {
+		enable_custom_base_url(frm);
 	}
 });
+
+function enable_custom_base_url (frm){
+	if(frm.doc.custom_base_url) {
+		frm.set_value("base_url", "");
+		frm.set_df_property("base_url", "read_only", 0);
+	}
+}
