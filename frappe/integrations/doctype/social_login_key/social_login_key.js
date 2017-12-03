@@ -8,7 +8,7 @@ const fields = [
 
 frappe.ui.form.on('Social Login Key', {
 	refresh(frm) {
-		enable_custom_base_url(frm);
+		setup_fields(frm);
 	},
 
 	social_login_provider(frm) {
@@ -33,18 +33,26 @@ frappe.ui.form.on('Social Login Key', {
 				if (fields.includes(field)) {
 					frm.set_value(field, "");
 					frm.set_df_property(field, "read_only", 0);
+					setup_fields(frm);
 				}
 			}
 		}
 	},
 
 	custom_base_url(frm) {
-		enable_custom_base_url(frm);
+		setup_fields(frm);
 	}
 });
 
-function enable_custom_base_url (frm){
-	if(frm.doc.custom_base_url) {
-		frm.set_df_property("base_url", "read_only", 0);
+function setup_fields(frm) {
+	for(var f of fields){
+		if(frm.doc.social_login_provider == "Custom"){
+			frm.set_value("custom_base_url", 1);
+			frm.set_df_property("custom_base_url", "read_only", 1);
+		}
+		if(frm.doc.social_login_provider != "Custom")
+			frm.set_df_property(f, "read_only", 1);
+		if(frm.doc.custom_base_url)
+			frm.set_df_property("base_url", "read_only", 0);
 	}
 }
