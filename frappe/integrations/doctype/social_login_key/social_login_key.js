@@ -45,7 +45,6 @@ frappe.ui.form.on('Social Login Key', {
 
 function enable_custom_base_url (frm){
 	if(frm.doc.custom_base_url) {
-		frm.set_value("base_url", "");
 		frm.set_df_property("base_url", "read_only", 0);
 	}
 }

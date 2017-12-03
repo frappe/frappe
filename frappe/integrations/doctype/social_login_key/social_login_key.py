@@ -13,11 +13,16 @@ class SocialLoginKey(Document):
 	def autoname(self):
 		self.name = frappe.scrub(self.provider_name)
 
+	def validate(self):
+		if self.custom_base_url and not self.base_url:
+			frappe.throw(_("Please enter Base URL"))
+
 	def get_social_login_provider(self, provider):
 		providers = {}
 
 		providers["GitHub"] = {
 			"provider_name":"GitHub",
+			"enable_social_login": 1,
 			"base_url":"https://api.github.com/",
 			"custom_base_url":0,
 			"icon_type":"DOM Class",
@@ -32,6 +37,7 @@ class SocialLoginKey(Document):
 
 		providers["Google"] = {
 			"provider_name": "Google",
+			"enable_social_login": 1,
 			"base_url": "https://www.googleapis.com",
 			"custom_base_url": 0,
 			"icon_type":"DOM Class",
@@ -49,6 +55,7 @@ class SocialLoginKey(Document):
 
 		providers["Facebook"] = {
 			"provider_name": "Facebook",
+			"enable_social_login": 1,
 			"base_url": "https://graph.facebook.com",
 			"custom_base_url": 0,
 			"icon_type": "DOM Class",
@@ -68,19 +75,19 @@ class SocialLoginKey(Document):
 		}
 		providers["Frappe"] = {
 			"provider_name": "Frappe",
+			"enable_social_login": 1,
 			"custom_base_url": 1,
 			"icon_type":"Image",
-			"icon":"/assets/images/favicon.png",
+			"icon":"/assets/frappe/images/favicon.png",
 			"redirect_url": "/api/method/frappe.www.login.login_via_frappe",
 			"api_endpoint": "/api/method/frappe.integrations.oauth2.openid_profile",
 			"api_endpoint_args":None,
+			"authorize_url": "/api/method/frappe.integrations.oauth2.authorize",
+			"access_token_url": "/api/method/frappe.integrations.oauth2.get_token",
 			"auth_url_data": json.dumps({
 				"response_type": "code",
 				"scope": "openid"
 			})
-			# "base_url": self.base_url,
-			# "authorize_url": self.base_url + "/api/method/frappe.integrations.oauth2.authorize",
-			# "access_token_url": self.base_url + "/api/method/frappe.integrations.oauth2.get_token",
 		}
 
 		return providers.get(provider) if provider else providers

@@ -492,10 +492,12 @@ class User(Document):
 			frappe.throw(_("Email Account added multiple times"))
 
 	def get_social_login_userid(self, provider):
-		for p in self.social_logins:
-			if p.provider == provider:
-				return p.userid
-		return None
+		try:
+			for p in self.social_logins:
+				if p.provider == provider:
+					return p.userid
+		except Exception as e:
+			return None
 
 	def set_social_login_userid(self, provider, userid, username=None):
 		social_logins = {
