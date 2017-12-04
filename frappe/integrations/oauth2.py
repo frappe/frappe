@@ -103,9 +103,9 @@ def get_token(*args, **kwargs):
 	headers = r.headers
 	
 	#Check whether frappe server URL is set
-	frappe_server_url = frappe.db.get_value("Social Login Keys", None, "frappe_server_url") or None
+	frappe_server_url = frappe.db.get_value("Social Login Key", "frappe", "base_url") or None
 	if not frappe_server_url:
-		frappe.throw(_("Define Frappe Server URL in Social Login Keys"))
+		frappe.throw(_("Please set Base URL in Social Login Key for Frappe"))
 
 	try:
 		headers, body, status = get_oauth_server().create_token_response(uri, http_method, body, headers, frappe.flags.oauth_credentials)
