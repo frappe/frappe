@@ -6,7 +6,7 @@ frappe.ui.DropZone = class
 		this.$container = $(selector);
 		this.$wrapper   = $(frappe.ui.DropZone.TEMPLATE);
 
-		this.make()
+		this.make();
 	}
 
 	make ( ) {
@@ -15,20 +15,17 @@ frappe.ui.DropZone = class
 		const $title    = $dropzone.find('.dropzone-title');
 		$title.html(this.options.title);
 
-		$dropzone.on('dragover',
-		function (e) {
+		$dropzone.on('dragover', function (e) {
 			e.preventDefault();
 
 			$title.html('Drop');
 		});
-		$dropzone.on('dragleave',
-		function (e) {
+		$dropzone.on('dragleave', function (e) {
 			e.preventDefault();
 
 			$title.html(me.options.title);
 		});
-		$dropzone.on('drop',
-		function (e) {
+		$dropzone.on('drop', function (e) {
 			e.preventDefault();
 
 			const files = e.originalEvent.dataTransfer.files;
@@ -53,8 +50,8 @@ frappe.ui.DropZone.TEMPLATE =
 		</div>
 	</div>
 </div>
-`
+`;
 frappe.ui.DropZone.OPTIONS  = 
 {
 	title: 'Drop Here'
-}
+};

@@ -43,11 +43,11 @@ frappe.upload = {
 
 		// dropzone upload
 		const $dropzone = $('<div style="padding: 20px 10px 0px 10px;"/>');
-		const dropzone  = new frappe.ui.DropZone($dropzone, {
+		new frappe.ui.DropZone($dropzone, {
 			drop: function (files) {
 				$dropzone.hide();
 
-				opts.files = opts.files ? [...opts.files, ...files] : files
+				opts.files = opts.files ? [...opts.files, ...files] : files;
 
 				$file_input.trigger('change');
 			}
@@ -73,7 +73,7 @@ frappe.upload = {
 				$upload.find(".web-link-wrapper").addClass("hidden");
 				$upload.find(".btn-browse").removeClass("btn-primary").addClass("btn-default");
 				$uploaded_files_wrapper.removeClass('hidden').empty();
-				$uploaded_files_wrapper.css({ 'margin-bottom': '25px' })
+				$uploaded_files_wrapper.css({ 'margin-bottom': '25px' });
 
 				file_array = file_array.map(
 					file => Object.assign(file, {is_private: opts.is_private ? 1 : 0})
