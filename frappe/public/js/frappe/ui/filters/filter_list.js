@@ -12,10 +12,23 @@ frappe.ui.FilterGroup = class {
 	}
 
 	set_events() {
-		this.wrapper.find('.add-filter').on('click', this.add_filter.bind(this));
+		this.wrapper.find('.add-filter').on('click', () => {
+			this.add_filter(this.doctype, 'name');
+		});
+	}
+
+	add_filters(filters) {
+		let promises = [];
+
+		for (const filter of filters) {
+			promises.push(this.add_filter(...filter));
+		}
+
+		return Promise.all(promises);
 	}
 
 	add_filter(doctype, fieldname, condition, value, hidden) {
+		if (!fieldname) return Promise.resolve();
 		// adds a new filter, returns true if filter has been added
 
 		// {}: Add in page filter by fieldname if exists ('=' => 'like')
@@ -25,10 +38,11 @@ frappe.ui.FilterGroup = class {
 		const is_new_filter = arguments.length < 2;
 		if (is_new_filter && this.wrapper.find(".new-filter:visible").length) {
 			// only allow 1 new filter at a time!
-			return false;
+			return Promise.resolve();
 		} else {
 			let args = [doctype, fieldname, condition, value];
-			return this.push_new_filter(args, is_new_filter, hidden);
+			const promise = this.push_new_filter(args, is_new_filter, hidden);
+			return (promise && promise.then) ? promise : Promise.resolve();
 		}
 	}
 
@@ -51,8 +65,10 @@ frappe.ui.FilterGroup = class {
 
 		let filter = this._push_new_filter(...args);
 
-		filter && filter.setup_state(is_new_filter, hidden);
-		return filter;
+		if (filter && filter.value) {
+			filter.setup_state(is_new_filter, hidden);
+			return filter._filter_value_set; // internal promise
+		}
 	}
 
 	_push_new_filter(doctype, fieldname, condition, value) {

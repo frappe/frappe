@@ -414,6 +414,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	setup_events() {
+		// filterable events
 		this.$result.on('click', '.filterable', e => {
 			e.stopPropagation();
 			const $this = $(e.currentTarget);
@@ -428,14 +429,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				}
 				return [this.doctype, f[0], f[1], f.slice(2).join(',')]
 			});
-
-			filters_to_apply.map(f => {
-				this.filter_area.add(...f);
-			});
-
-			if (filters_to_apply.length > 0) {
-				this.refresh(true);
-			}
+			this.filter_area.add(filters_to_apply);
 		});
 
 		this.$result.on('click', '.list-row', (e) => {

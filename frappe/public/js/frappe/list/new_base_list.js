@@ -293,6 +293,7 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	refresh() {
+		console.log('refresh called');
 		// fetch data from server
 		const args = this.get_args();
 		return frappe.call({
@@ -359,7 +360,12 @@ class FilterArea {
 	}
 
 	add(...args) {
-		this.filter_list.add_filter(...args);
+		let promise;
+		if (Array.isArray(args[0])) {
+			promise = this.filter_list.add_filters(...args);
+		}
+		promise = this.filter_list.add_filter(...args);
+		return promise.then(() => this.list_view.refresh());
 	}
 
 	remove(fieldname) {
@@ -455,11 +461,14 @@ class FilterArea {
 	}
 
 	make_filter_list() {
-		this.filter_list = new frappe.ui.FilterList({
+		this.filter_list = new frappe.ui.FilterGroup({
 			base_list: this.list_view,
 			parent: this.$filter_list_wrapper,
 			doctype: this.list_view.doctype,
-			default_filters: []
+			default_filters: [],
+			on_change: () => {
+				this.list_view.refresh();
+			}
 		});
 	}
 }

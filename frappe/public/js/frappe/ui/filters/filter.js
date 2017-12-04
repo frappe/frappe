@@ -54,23 +54,25 @@ frappe.ui.Filter = class {
 	}
 
 	setup() {
+		const fieldname = this.fieldname || 'name';
 		// set the field
-		if(this.fieldname) {
-			// pre-sets given (could be via tags!)
-			this.set_values(this.doctype, this.fieldname, this.condition, this.value);
-		} else {
-			this.set_field(this.doctype, 'name');
-		}
+		return this.set_values(this.doctype, fieldname, this.condition, this.value);
 	}
 
 	setup_state(is_new, hidden) {
-		is_new ? this.filter_edit_area.addClass("new-filter") : this.freeze();
+		is_new ? this.filter_edit_area.addClass("new-filter") : this.update_filter_tag();
 		if(hidden) this.$filter_tag.hide();
 	}
 
 	freeze() {
-		!this.$filter_tag ? this.make_tag() : this.set_filter_button_text();
-		this.filter_edit_area.hide();
+		this.update_filter_tag();
+	}
+
+	update_filter_tag() {
+		this._filter_value_set.then(() => {
+			!this.$filter_tag ? this.make_tag() : this.set_filter_button_text();
+			this.filter_edit_area.hide();
+		});
 	}
 
 	remove() {
@@ -88,7 +90,13 @@ frappe.ui.Filter = class {
 			value = (value==1) ? 'Yes' : 'No';
 		}
 		if(condition) this.set_condition(condition, true);
-		if(value) this.field.set_value(value);
+
+		// set value can be asynchronous, so update_filter_tag should happen after field is set
+		this._filter_value_set = Promise.resolve();
+		if(value) {
+			this._filter_value_set = this.field.set_value(value);
+		}
+		return this._filter_value_set;
 	}
 
 	set_field(doctype, fieldname, fieldtype, condition) {
