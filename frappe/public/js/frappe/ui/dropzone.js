@@ -36,7 +36,7 @@ frappe.ui.DropZone = class
 
 		this.$container.html(this.$wrapper);
 	}
-}
+};
 frappe.ui.DropZone.TEMPLATE =
 `
 <div class="panel panel-default"
