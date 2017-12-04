@@ -113,7 +113,7 @@ def prepare_filters(doctype, controller, kwargs):
 				filters[key] = val
 
 	# filter the filters to include valid fields only
-	for fieldname, val in filters.items():
+	for fieldname, val in list(filters.items()):
 		if not meta.has_field(fieldname):
 			del filters[fieldname]
 

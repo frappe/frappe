@@ -8,7 +8,12 @@ frappe.ui.form.ControlHTML = frappe.ui.form.Control.extend({
 		if(content) this.$wrapper.html(content);
 	},
 	get_content: function() {
-		return this.df.options || "";
+		var content = this.df.options || "";
+		try {
+			return frappe.render(content, this);
+		} catch (e) {
+			return content;
+		}
 	},
 	html: function(html) {
 		this.$wrapper.html(html || this.get_content());

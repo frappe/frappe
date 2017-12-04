@@ -12,8 +12,9 @@ from babel.core import UnknownLocaleError
 from dateutil import parser
 from num2words import num2words
 from six.moves import html_parser as HTMLParser
-from six.moves.urllib.parse import quote
+from six.moves.urllib.parse import quote, urljoin
 from html2text import html2text
+from markdown2 import markdown, MarkdownError
 from six import iteritems, text_type, string_types, integer_types
 
 DATE_FORMAT = "%Y-%m-%d"
@@ -218,7 +219,11 @@ def formatdate(string_date=None, format_string=None):
 		 * mm-dd-yyyy
 		 * dd/mm/yyyy
 	"""
-	date = getdate(string_date) if string_date else now_datetime().date()
+
+	if not string_date:
+		return ''
+
+	date = getdate(string_date)
 	if not format_string:
 		format_string = get_user_format().replace("mm", "MM")
 
@@ -657,7 +662,7 @@ def get_url(uri=None, full_address=False):
 	if frappe.conf.http_port:
 		host_name = host_name + ':' + str(frappe.conf.http_port)
 
-	url = urllib.basejoin(host_name, uri) if uri else host_name
+	url = urljoin(host_name, uri) if uri else host_name
 
 	return url
 
@@ -737,7 +742,7 @@ def get_filter(doctype, f):
 	from frappe.model import default_fields, optional_fields
 
 	if isinstance(f, dict):
-		key, value = f.items()[0]
+		key, value = next(iter(f.items()))
 		f = make_filter_tuple(doctype, key, value)
 
 	if not isinstance(f, (list, tuple)):
@@ -794,7 +799,7 @@ def expand_relative_urls(html):
 	def _expand_relative_urls(match):
 		to_expand = list(match.groups())
 
-		if not to_expand[2].startswith('mailto'):
+		if not to_expand[2].startswith('mailto') and not to_expand[2].startswith('data:'):
 			if not to_expand[2].startswith("/"):
 				to_expand[2] = "/" + to_expand[2]
 			to_expand.insert(2, url)
@@ -843,3 +848,19 @@ def to_markdown(html):
 		pass
 
 	return text
+
+def to_html(markdown_text):
+	html = None
+	try:
+		html = markdown(markdown_text)
+	except MarkdownError:
+		pass
+
+	return html
+
+def get_source_value(source, key):
+	'''Get value from source (object or dict) based on key'''
+	if isinstance(source, dict):
+		return source.get(key)
+	else:
+		return getattr(source, key)

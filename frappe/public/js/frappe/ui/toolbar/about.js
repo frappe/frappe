@@ -35,10 +35,10 @@ frappe.ui.misc.about = function() {
 				var v = versions[key];
 				if(v.branch) {
 					var text = $.format('<p><b>{0}:</b> v{1} ({2})<br></p>',
-							[v.title, v.branch_version || v.version, v.branch])
+						[v.title, v.branch_version || v.version, v.branch])
 				} else {
 					var text = $.format('<p><b>{0}:</b> v{1}<br></p>',
-							[v.title, v.version])
+						[v.title, v.version])
 				}
 				$(text).appendTo($wrap);
 			});

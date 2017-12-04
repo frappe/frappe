@@ -329,7 +329,8 @@ frappe.ui.form.Timeline = Class.extend({
 		if(c.subject && c.communication_type==="Communication") {
 			if(this.frm.doc.subject && !this.frm.doc.subject.includes(c.subject)) {
 				c.show_subject = true;
-			} else if(this.frm.meta.title_field && !!this.frm.doc[this.frm.meta.title_field].includes(c.subject)) {
+			} else if(this.frm.meta.title_field && this.frm.doc[this.frm.meta.title_field]
+				&& !!this.frm.doc[this.frm.meta.title_field].includes(c.subject)) {
 				c.show_subject = true;
 			} else if(!this.frm.doc.name.includes(c.subject)) {
 				c.show_subject = true;
@@ -657,7 +658,7 @@ frappe.ui.form.Timeline = Class.extend({
 		var valid_users = Object.keys(frappe.boot.user_info)
 			.filter(user => !["Administrator", "Guest"].includes(user));
 
-		return valid_users.map(user => frappe.boot.user_info[user].username);
+		return valid_users.map(user => frappe.boot.user_info[user].username || frappe.boot.user_info[user].name);
 	},
 
 	setup_comment_like: function() {

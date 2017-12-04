@@ -7,7 +7,7 @@ from frappe import _
 from frappe.utils import cint
 
 @frappe.whitelist()
-def add(doctype, name, user=None, read=1, write=0, share=0, everyone=0, flags=None):
+def add(doctype, name, user=None, read=1, write=0, share=0, everyone=0, flags=None, notify=0):
 	"""Share the given document with a user."""
 	if not user:
 		user = frappe.session.user
@@ -39,6 +39,7 @@ def add(doctype, name, user=None, read=1, write=0, share=0, everyone=0, flags=No
 	})
 
 	doc.save(ignore_permissions=True)
+	notify_assignment(user, doctype, name, description=None, notify=notify)
 
 	return doc
 
@@ -134,3 +135,20 @@ def check_share_permission(doctype, name):
 	"""Check if the user can share with other users"""
 	if not frappe.has_permission(doctype, ptype="share", doc=name):
 		frappe.throw(_("No permission to {0} {1} {2}".format("share", doctype, name)), frappe.PermissionError)
+
+def notify_assignment(shared_by, doc_type, doc_name, description=None, notify=0):
+
+	if not (shared_by and doc_type and doc_name): return
+
+	from frappe.utils import get_link_to_form
+	document = get_link_to_form(doc_type, doc_name, label="%s: %s" % (doc_type, doc_name))
+
+	arg = {
+		'contact': shared_by,
+		'txt': _("A new document {0} has been shared by with you {1}.").format(document,
+				shared_by),
+		'notify': notify
+	}
+
+	from frappe.desk.page.chat import chat
+	chat.post(**arg)

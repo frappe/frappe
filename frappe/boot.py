@@ -30,6 +30,7 @@ def get_bootinfo():
 	get_user(bootinfo)
 
 	# system info
+	bootinfo.sitename = frappe.local.site
 	bootinfo.sysdefaults = frappe.defaults.get_defaults()
 	bootinfo.user_permissions = get_user_permissions()
 	bootinfo.server_date = frappe.utils.nowdate()
@@ -137,8 +138,10 @@ def get_user_page_or_report(parent):
 			and tab{parent}.name not in (
 				select `tabCustom Role`.{field} from `tabCustom Role`
 				where `tabCustom Role`.{field} is not null)
-		""".format(parent=parent, column=column,
-			roles = ', '.join(['%s']*len(roles)), field=parent.lower()), roles, as_dict=True)
+			{condition}
+		""".format(parent=parent, column=column, roles = ', '.join(['%s']*len(roles)),
+			field=parent.lower(), condition="and tabReport.disabled=0" if parent == "Report" else ""),
+			roles, as_dict=True)
 
 	for p in standard_roles:
 		if p.name not in has_role:

@@ -44,6 +44,7 @@ type_map = {
 	,'Attach Image':('text', '')
 	,'Signature':	('longtext', '')
 	,'Color':		('varchar', varchar_len)
+	,'Barcode':		('longtext', '')
 }
 
 default_columns = ['name', 'creation', 'modified', 'modified_by', 'owner',

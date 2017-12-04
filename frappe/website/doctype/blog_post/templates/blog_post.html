@@ -11,13 +11,12 @@
 	border-top: 1px solid {{ style.border_color }};
 }
 .blog-info {
-	text-align:center;
 	margin-top: 30px;
 }
 .blog-text {
 	padding-top: 50px;
 	padding-bottom: 50px;
-	font-size: 18px;
+	font-size: 16px;
 	line-height: 1.5;
 }
 .blog-text p {
@@ -28,13 +27,13 @@
 	padding-bottom: 50px;
 }
 .blogger-name {
-	margin-top: 0px;
+	margin-top: 5px;
 }
 </style>
 <div class="blog-container">
 <article class="blog-content" itemscope itemtype="http://schema.org/BlogPosting">
-	<meta  itemprop="datePublished" content="{{ frappe.format_date(published_on) }}"></meta>
-	<meta  itemprop="author" content="{{ full_name }}"></meta>
+	<meta itemprop="datePublished" content="{{ frappe.format_date(published_on) }}"></meta>
+	<meta itemprop="author" content="{{ full_name }}"></meta>
 	<!-- begin blog content -->
 	<div class="blog-info">
 	<h1 itemprop="headline" class="blog-header">{{ title }}</h1>

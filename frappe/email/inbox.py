@@ -46,48 +46,54 @@ def get_email_accounts(user=None):
 	}
 
 @frappe.whitelist()
-def create_email_flag_queue(names, action, flag="(\\Seen)"):
+def create_email_flag_queue(names, action):
 	""" create email flag queue to mark email either as read or unread """
-	class Found(Exception):
-		pass
+	def mark_as_seen_unseen(name, action):
+		doc = frappe.get_doc("Communication", name)
+		if action == "Read":
+			doc.add_seen()
+		else:
+			_seen = json.loads(doc._seen or '[]')
+			_seen = [user for user in _seen if frappe.session.user != user]
+			doc.db_set('_seen', json.dumps(_seen), update_modified=False)
 
-	if not all([names, action, flag]):
+	if not all([names, action]):
 		return
 
 	for name in json.loads(names or []):
 		uid, seen_status, email_account = frappe.db.get_value("Communication", name, 
 			["ifnull(uid, -1)", "ifnull(seen, 0)", "email_account"])
 
+		# can not mark email SEEN or UNSEEN without uid
 		if not uid or uid == -1:
 			continue
 
 		seen = 1 if action == "Read" else 0
 		# check if states are correct
 		if (action =='Read' and seen_status == 0) or (action =='Unread' and seen_status == 1):
-			try:
-				queue = frappe.db.sql("""select name, action, flag from `tabEmail Flag Queue`
-					where communication = %(name)s""", {"name":name}, as_dict=True)
-				for q in queue:
-					# is same email with same flag
-					if q.flag == flag:
-						# to prevent flag local and server states being out of sync
-						if q.action != action:
-							frappe.delete_doc("Email Flag Queue", q.name)
-						raise Found
+			create_new = True
+			email_flag_queue = frappe.db.sql("""select name, action from `tabEmail Flag Queue`
+				where communication = %(name)s and is_completed=0""", {"name":name}, as_dict=True)
 
+			for queue in email_flag_queue:
+				if queue.action != action:
+					frappe.delete_doc("Email Flag Queue", queue.name, ignore_permissions=True)
+				elif queue.action == action:
+					# Read or Unread request for email is already available
+					create_new = False
+
+			if create_new:
 				flag_queue = frappe.get_doc({
 					"uid": uid,
-					"flag": flag,
 					"action": action,
 					"communication": name,
 					"doctype": "Email Flag Queue",
 					"email_account": email_account
 				})
-				flag_queue.save(ignore_permissions=True);
+				flag_queue.save(ignore_permissions=True)
 				frappe.db.set_value("Communication", name, "seen", seen, 
 					update_modified=False)
-			except Found:
-				pass
+				mark_as_seen_unseen(name, action)
 
 @frappe.whitelist()
 def mark_as_trash(communication):

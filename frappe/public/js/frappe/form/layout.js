@@ -25,7 +25,7 @@ frappe.ui.form.Layout = Class.extend({
 		this.wrapper = $('<div class="form-layout">').appendTo(this.parent);
 		this.message = $('<div class="form-message text-muted small hidden"></div>').appendTo(this.wrapper);
 		if(!this.fields) {
-			this.fields = frappe.meta.sort_docfields(frappe.meta.docfield_map[this.doctype]);
+			this.fields = this.get_doctype_fields();
 		}
 		this.setup_tabbing();
 		this.render();
@@ -34,6 +34,28 @@ frappe.ui.form.Layout = Class.extend({
 		if(!(this.wrapper.find(".frappe-control:visible").length || this.wrapper.find(".section-head.collapsed").length)) {
 			this.show_message(__("This form does not have any input"));
 		}
+	},
+	get_doctype_fields: function() {
+		let fields = [
+			{
+				parent: this.frm.doctype,
+				fieldtype: 'Data',
+				fieldname: '__newname',
+				reqd: 1,
+				hidden: 1,
+				label: __('Name'),
+				get_status: function(field) {
+					if (field.frm && field.frm.is_new()
+						&& field.frm.meta.autoname
+						&& ['prompt', 'name'].includes(field.frm.meta.autoname.toLowerCase())) {
+						return 'Write';
+					}
+					return 'None';
+				}
+			}
+		];
+		fields = fields.concat(frappe.meta.sort_docfields(frappe.meta.docfield_map[this.doctype]));
+		return fields;
 	},
 	show_message: function(html) {
 		if(html) {
@@ -441,7 +463,12 @@ frappe.ui.form.Layout = Class.extend({
 		var parent = this.frm ? this.frm.doc : null;
 
 		if(expression.substr(0,5)=='eval:') {
-			out = eval(expression.substr(5));
+			try {
+				out = eval(expression.substr(5));
+			} catch(e) {
+				frappe.throw(__('Invalid "depends_on" expression'));
+			}
+
 		} else if(expression.substr(0,3)=='fn:' && this.frm) {
 			out = this.frm.script_manager.trigger(expression.substr(3), this.doctype, this.docname);
 		} else {

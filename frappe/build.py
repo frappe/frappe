@@ -4,6 +4,7 @@
 from __future__ import unicode_literals, print_function
 from frappe.utils.minify import JavascriptMinify
 import subprocess
+import warnings
 
 from six import iteritems, text_type
 
@@ -25,12 +26,12 @@ def setup():
 		except ImportError: pass
 	app_paths = [os.path.dirname(pymodule.__file__) for pymodule in pymodules]
 
-def bundle(no_compress, make_copy=False, verbose=False):
+def bundle(no_compress, make_copy=False, restore=False, verbose=False):
 	"""concat / minify js files"""
 	# build js files
 	setup()
 
-	make_asset_dirs(make_copy=make_copy)
+	make_asset_dirs(make_copy=make_copy, restore=restore)
 
 	# new nodejs build system
 	command = 'node --use_strict ../apps/frappe/frappe/build.js --build'
@@ -60,7 +61,8 @@ def watch(no_compress):
 
 	# 	time.sleep(3)
 
-def make_asset_dirs(make_copy=False):
+def make_asset_dirs(make_copy=False, restore=False):
+	# don't even think of making assets_path absolute - rm -rf ahead.
 	assets_path = os.path.join(frappe.local.sites_path, "assets")
 	for dir_path in [
 			os.path.join(assets_path, 'js'),
@@ -80,11 +82,28 @@ def make_asset_dirs(make_copy=False):
 
 		for source, target in symlinks:
 			source = os.path.abspath(source)
-			if not os.path.exists(target) and os.path.exists(source):
-				if make_copy:
-					shutil.copytree(source, target)
+			if os.path.exists(source):
+				if restore:
+					if os.path.exists(target):
+						if os.path.islink(target):
+							os.unlink(target)
+						else:
+							shutil.rmtree(target)
+						shutil.copytree(source, target)
+				elif make_copy:
+					if os.path.exists(target):
+						warnings.warn('Target {target} already exists.'.format(target = target))
+					else:
+						shutil.copytree(source, target)
 				else:
+					if os.path.exists(target):
+						if os.path.islink(target):
+							os.unlink(target)
+						else:
+							shutil.rmtree(target)
 					os.symlink(source, target)
+			else:
+				warnings.warn('Source {source} does not exists.'.format(source = source))
 
 def build(no_compress=False, verbose=False):
 	assets_path = os.path.join(frappe.local.sites_path, "assets")

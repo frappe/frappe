@@ -67,15 +67,6 @@ frappe.ui.Dialog = frappe.ui.FieldGroup.extend({
 			});
 
 	},
-	focus_on_first_input: function() {
-		if(this.no_focus) return;
-		$.each(this.fields_list, function(i, f) {
-			if(!in_list(['Date', 'Datetime', 'Time'], f.df.fieldtype) && f.set_focus) {
-				f.set_focus();
-				return false;
-			}
-		});
-	},
 	get_primary_btn: function() {
 		return this.$wrapper.find(".modal-header .btn-primary");
 	},

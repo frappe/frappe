@@ -12,13 +12,11 @@ frappe.ui.form.ControlPassword = frappe.ui.form.ControlData.extend({
 		this.indicator = this.$wrapper.find('.password-strength-indicator');
 		this.message = this.$wrapper.find('.help-box');
 
-		this.$input.on('input', () => {
-			var $this = $(this);
-			clearTimeout($this.data('timeout'));
-			$this.data('timeout', setTimeout(() => {
-				var txt = me.$input.val();
-				me.get_password_strength(txt);
-			}), 300);
+		this.$input.on('keyup', () => {
+			clearTimeout(this.check_password_timeout);
+			this.check_password_timeout = setTimeout (() => {
+				me.get_password_strength(me.$input.val());
+			}, 500);
 		});
 	},
 	get_password_strength: function(value) {

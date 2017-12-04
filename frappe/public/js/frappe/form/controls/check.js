@@ -5,7 +5,7 @@ frappe.ui.form.ControlCheck = frappe.ui.form.ControlData.extend({
 			<div class="checkbox">\
 				<label>\
 					<span class="input-area"></span>\
-					<span class="disp-area" style="display:none; margin-left: -20px;"></span>\
+					<span class="disp-area"></span>\
 					<span class="label-area small"></span>\
 				</label>\
 				<p class="help-box small text-muted"></p>\
