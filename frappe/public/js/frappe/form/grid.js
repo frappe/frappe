@@ -311,7 +311,7 @@ frappe.ui.form.Grid = Class.extend({
 		}
 
 		new Sortable($rows.get(0), {
-			group: {name: 'row'},
+			group: {name: me.df.fieldname},
 			handle: '.sortable-handle',
 			draggable: '.grid-row',
 			filter: 'li, a',
