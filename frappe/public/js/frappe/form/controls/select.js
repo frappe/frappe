@@ -3,6 +3,9 @@ frappe.ui.form.ControlSelect = frappe.ui.form.ControlData.extend({
 	make_input: function() {
 		this._super();
 		this.set_options();
+		if (this.df.autocomplete_select){
+			this.selectize();
+		}
 	},
 	set_formatted_input: function(value) {
 		// refresh options first - (new ones??)
@@ -61,5 +64,10 @@ frappe.ui.form.ControlSelect = frappe.ui.form.ControlData.extend({
 			this.set_description(__("Please attach a file first."));
 			return [""];
 		}
-	}
+	},
+	selectize: function () {
+		this.$input.selectize({
+			create: false
+		});
+    }
 });
