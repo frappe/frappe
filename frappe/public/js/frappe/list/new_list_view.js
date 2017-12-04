@@ -75,6 +75,15 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		frappe.new_doc(doctype);
 	}
 
+	setup_filter_area() {
+		super.setup_filter_area();
+		// initialize with saved filters
+		const saved_filters = this.view_user_settings.filters;
+		if (saved_filters && saved_filters.length > 0) {
+			this._setup = this.filter_area.add(saved_filters);
+		}
+	}
+
 	setup_view() {
 		this.setup_columns();
 		this.setup_events();
@@ -133,6 +142,44 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			<p>${__('No {0} found', [__(this.doctype)])}</p>
 			${new_button}
 		</div>`;
+	}
+
+	freeze(toggle) {
+		if (this.view_name !== 'List') return;
+
+		this.$freeze.toggle(toggle);
+		this.$result.toggle(!toggle);
+
+		const columns = this.columns;
+		if (toggle) {
+			if (this.$freeze.find('.freeze-row').length > 0) return;
+
+			const html = `
+				${this.get_header_html()}
+				${Array.from(new Array(10)).map(loading_row).join('')}
+			`;
+			this.$freeze.html(html);
+		}
+
+		function loading_row() {
+			return `
+				<div class="list-row freeze-row level">
+					<div class="level-left">
+						<div class="list-row-col list-subject"></div>
+						${columns.slice(1).map(c =>
+							`<div class="list-row-col"></div>`
+						).join('')}
+					</div>
+					<div class="level-right"></div>
+				</div>
+			`;
+		}
+	}
+
+	before_render() {
+		this.save_view_user_settings({
+			filters: this.filter_area.get()
+		});
 	}
 
 	render() {

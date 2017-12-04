@@ -1,6 +1,29 @@
 .result,
-.no-result {
+.no-result,
+.freeze {
   min-height: calc(100vh - 284px);
+}
+.freeze-row .level-left,
+.freeze-row .level-right,
+.freeze-row .list-row-col {
+  height: 100%;
+  width: 100%;
+}
+.freeze-row .list-row-col {
+  background-color: #d1d8dd;
+  border-radius: 2px;
+  animation: 2s breathe infinite;
+}
+@keyframes breathe {
+  0% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 0.2;
+  }
 }
 .sort-selector .dropdown:hover {
   text-decoration: underline;

@@ -1,7 +1,34 @@
 @import "variables.less";
 
-.result, .no-result {
+.result, .no-result, .freeze {
 	min-height: ~"calc(100vh - 284px)";
+}
+
+.freeze-row {
+	.level-left, .level-right, .list-row-col {
+		height: 100%;
+		width: 100%;
+	}
+
+	.list-row-col {
+		background-color: @border-color;
+		border-radius: 2px;
+		animation: 2s breathe infinite;
+	}
+}
+
+@keyframes breathe {
+	0% {
+		opacity: 0.2;
+	}
+
+	50% {
+		opacity: 0.5;
+	}
+
+	100% {
+		opacity: 0.2;
+	}
 }
 
 .sort-selector {

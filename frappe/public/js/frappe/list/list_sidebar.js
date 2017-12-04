@@ -386,7 +386,7 @@ frappe.views.ListSidebar = Class.extend({
 			args: {
 				stats: me.stats,
 				doctype: me.doctype,
-				filters: me.default_filters
+				filters: me.default_filters || []
 			},
 			callback: function(r) {
 				me.defined_category = r.message;

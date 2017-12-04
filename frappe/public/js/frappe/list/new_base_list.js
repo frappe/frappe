@@ -10,7 +10,7 @@ frappe.views.BaseList = class BaseList {
 		if (!this._setup) {
 			this.init();
 		}
-		this.refresh();
+		this._setup.then(() => this.refresh());
 	}
 
 	init(opts) {
@@ -25,7 +25,11 @@ frappe.views.BaseList = class BaseList {
 		this.setup_main_section();
 		this.setup_view();
 
-		this._setup = true;
+		// assign a promise to this._setup
+		// it can also be chained
+		// so that refresh is called only when
+		// this._setup resolves
+		this._setup = this._setup || Promise.resolve();
 	}
 
 	setup_defaults() {
@@ -172,7 +176,6 @@ frappe.views.BaseList = class BaseList {
 			stats: this.stats,
 			parent: this.$page.find('.layout-side-section'),
 			// set_filter: this.set_filter.bind(this),
-			default_filters: this.filters,
 			page: this.page,
 			list_view: this
 		});
@@ -180,10 +183,11 @@ frappe.views.BaseList = class BaseList {
 
 	setup_main_section() {
 		this.setup_list_wrapper();
-		this.setup_filters();
+		this.setup_filter_area();
 		this.setup_sort_selector();
 		this.setup_result_area();
 		this.setup_no_result_area();
+		this.setup_freeze_area();
 		this.setup_paging_area();
 	}
 
@@ -191,7 +195,7 @@ frappe.views.BaseList = class BaseList {
 		this.$frappe_list = $('<div class="frappe-list">').appendTo(this.page.main);
 	}
 
-	setup_filters() {
+	setup_filter_area() {
 		this.filter_area = new FilterArea(this);
 	}
 
@@ -216,6 +220,11 @@ frappe.views.BaseList = class BaseList {
 			</div>
 		`).hide();
 		this.$frappe_list.append(this.$no_result);
+	}
+
+	setup_freeze_area() {
+		this.$freeze = $('<div class="freeze"></div>').hide();
+		this.$frappe_list.append(this.$freeze);
 	}
 
 	get_no_result_message() {
@@ -253,8 +262,6 @@ frappe.views.BaseList = class BaseList {
 		this.$paging_area.on('click', '.btn-paging, .btn-more', e => {
 			const $this = $(e.currentTarget);
 
-			console.log('called')
-
 			if ($this.is('.btn-paging')) {
 				// set active button
 				this.$paging_area.find('.btn-paging').removeClass('btn-info');
@@ -267,8 +274,6 @@ frappe.views.BaseList = class BaseList {
 				this.start = this.start + this.page_length;
 				this.refresh();
 			}
-
-			console.log(this.start, this.page_length);
 		});
 	}
 
@@ -293,20 +298,20 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	refresh() {
-		console.log('refresh called');
+		this.freeze(true);
 		// fetch data from server
 		const args = this.get_args();
 		return frappe.call({
 			method: this.method,
 			type: 'GET',
-			args: args,
-			freeze: true,
-			freeze_message: __('Loading') + '...'
+			args: args
 		})
 		// render
 		.then(r => {
+			this.freeze(false);
 			this.update_data(r);
 			this.toggle_result_area();
+			this.before_render();
 			this.render();
 		});
 	}
@@ -320,6 +325,14 @@ frappe.views.BaseList = class BaseList {
 		} else {
 			this.data = this.data.concat(data);
 		}
+	}
+
+	freeze(toggle) {
+		// show a freeze message while data is loading
+	}
+
+	before_render() {
+
 	}
 
 	render() {
