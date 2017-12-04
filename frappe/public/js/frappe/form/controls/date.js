@@ -126,8 +126,7 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 			$format = $timepicker.find('input[name="format"]');
 
 			if ( !$ampm.length ) {
-				$timepicker.find('.datepicker--time-current')
-							.append('<span class="datepicker--time-current-ampm"/>');
+				$timepicker.find('.datepicker--time-current').append('<span class="datepicker--time-current-ampm"/>');
 			}
 			$ampm   = $timepicker.find('.datepicker--time-current-ampm');
 			$ampm.hide();
