@@ -27,6 +27,7 @@ frappe.upload = {
 				primary_action_label: __('Attach'),
 				primary_action: function() {}
 			});
+
 			opts.parent = d.body;
 			opts.btn = d.get_primary_btn();
 			d.show();
@@ -39,6 +40,21 @@ frappe.upload = {
 		// bind pseudo browse button
 		$upload.find(".btn-browse").on("click",
 			function() { $file_input.click(); });
+
+		// dropzone upload
+		const $dropzone = $('<div style="padding: 20px 10px 0px 10px;"/>');
+		const dropzone  = new frappe.ui.DropZone($dropzone, {
+			drop: function (files) {
+				$dropzone.hide();
+
+				opts.files = opts.files ? [...opts.files, ...files] : files
+
+				$file_input.trigger('change');
+			}
+		});
+		// end dropzone
+		
+		$upload.append($dropzone);
 
 		$file_input.on("change", function() {
 			if (this.files.length > 0 || opts.files) {
@@ -57,6 +73,7 @@ frappe.upload = {
 				$upload.find(".web-link-wrapper").addClass("hidden");
 				$upload.find(".btn-browse").removeClass("btn-primary").addClass("btn-default");
 				$uploaded_files_wrapper.removeClass('hidden').empty();
+				$uploaded_files_wrapper.css({ 'margin-bottom': '25px' })
 
 				file_array = file_array.map(
 					file => Object.assign(file, {is_private: opts.is_private ? 1 : 0})
