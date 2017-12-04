@@ -22,10 +22,10 @@ apps/frappe/frappe/website/doctype/blog_post/blog_post.py +78,1 comment,1 coment
 apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +48,1 hour ago,Hace una hora
 apps/frappe/frappe/public/js/frappe/list/list_view.js +805,1 item selected,1 elemento seleccionado
 apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +46,1 minute ago,Hace un minuto
-apps/frappe/frappe/utils/data.py +569,1 month ago,Hace 1 mes
+apps/frappe/frappe/utils/data.py +572,1 month ago,Hace 1 mes
 apps/frappe/frappe/templates/emails/feedback_request_url.html +8,1 star being lowest & 5 stars being highest rating,1 estrella es más bajo y 5 estrellas es  la calificación más alta
-apps/frappe/frappe/utils/data.py +565,1 weeks ago,hace 1 semana
-apps/frappe/frappe/utils/data.py +573,1 year ago,hace 1 año
+apps/frappe/frappe/utils/data.py +568,1 weeks ago,hace 1 semana
+apps/frappe/frappe/utils/data.py +576,1 year ago,hace 1 año
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +18,1. Select Columns,1. Seleccionar Columnas
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +67,1. Select File,1. Seleccione Archivo
 apps/frappe/frappe/public/js/frappe/list/list_renderer.js +537,2 days ago,Hace 2 días
@@ -903,8 +903,8 @@ DocType: User,Fill Screen,Pantalla completa
 apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.js +63,Filter,Filtro
 DocType: Auto Email Report,Filter Data,Filtrar datos
 DocType: Auto Email Report,Filter Meta,Filtro Meta
-apps/frappe/frappe/utils/data.py +741,Filter must be a tuple or list (in a list),Filtro debe ser una tupla o lista (en una lista)
-apps/frappe/frappe/utils/data.py +747,"Filter must have 4 values (doctype, fieldname, operator, value): {0}","Filtro debe tener 4 valores (doctype, fieldname, operator, value): {0}"
+apps/frappe/frappe/utils/data.py +744,Filter must be a tuple or list (in a list),Filtro debe ser una tupla o lista (en una lista)
+apps/frappe/frappe/utils/data.py +750,"Filter must have 4 values (doctype, fieldname, operator, value): {0}","Filtro debe tener 4 valores (doctype, fieldname, operator, value): {0}"
 DocType: Custom DocPerm,Filter records based on User Permissions defined for a user,Filtrar los registros basados en permisos de usuario definidos para un usuario
 apps/frappe/frappe/public/js/frappe/ui/filters/filters.js +74,Filter {0} missing,Filtro {0} falta
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder_sidebar.html +3,Filter...,Filtro...
@@ -1619,7 +1619,7 @@ apps/frappe/frappe/www/qrcode.html +13,Open your authentication app on your mobi
 apps/frappe/frappe/public/js/frappe/ui/toolbar/search_utils.js +217,Open {0},Abrir {0}
 DocType: Communication,Opened,Abierto
 DocType: Authentication Log,Operation,Operación
-apps/frappe/frappe/utils/data.py +757,Operator must be one of {0},El Operador debe ser uno de {0}
+apps/frappe/frappe/utils/data.py +760,Operator must be one of {0},El Operador debe ser uno de {0}
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +63,Option 1,Opción 1
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +63,Option 2,Opción 2
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +63,Option 3,Opción 3
@@ -2772,7 +2772,7 @@ apps/frappe/frappe/limits.py +80,Your subscription will expire on {0}.,Su suscri
 apps/frappe/frappe/limits.py +74,Your subscription will expire today.,Su suscripción expira hoy.
 apps/frappe/frappe/limits.py +77,Your subscription will expire tomorrow.,Su suscripción expirará mañana.
 apps/frappe/frappe/utils/response.py +177,Your system is being updated. Please refresh again after a few moments,"Su sistema se está actualizando. Por favor, actualice de nuevo después de unos momentos"
-apps/frappe/frappe/utils/data.py +475,Zero,Cero
+apps/frappe/frappe/utils/data.py +478,Zero,Cero
 DocType: Auto Email Report,Zero means send records updated at anytime,Cero significa enviar registros actualizados en cualquier momento
 apps/frappe/frappe/core/doctype/report/report.js +10,[Label]:[Field Type]/[Options]:[Width],[Etiqueta]:[Tipo de Campo]/[Opciones]:[Ancho]
 DocType: Desktop Icon,_doctype,_doctype
@@ -2910,7 +2910,6 @@ DocType: Workflow State,ok-circle,ok- círculo
 DocType: Workflow State,ok-sign,ok- signo
 DocType: File,old_parent,old_parent
 apps/frappe/frappe/model/document.py +902,one of,uno de
-apps/frappe/frappe/utils/data.py +484,only.,solo.
 apps/frappe/frappe/public/js/frappe/ui/upload.html +8,or,o
 DocType: Kanban Board Column,orange,naranja
 DocType: Desktop Icon,page,page
@@ -3005,7 +3004,7 @@ apps/frappe/frappe/public/js/frappe/form/link_selector.js +146,{0} added,{0} añ
 apps/frappe/frappe/public/js/frappe/form/controls/data.js +46,{0} already exists. Select another name,{0} already exists. Select another name
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +21,{0} already unsubscribed,{0} ya ha sido dado de baja
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +31,{0} already unsubscribed for {1} {2},{0} ya ha sido dado de baja para {1} {2}
-apps/frappe/frappe/utils/data.py +581,{0} and {1},{0} y {1}
+apps/frappe/frappe/utils/data.py +584,{0} and {1},{0} y {1}
 apps/frappe/frappe/public/js/frappe/form/form_viewers.js +55,{0} are currently viewing this document,{0} están viendo actualmente este documento
 apps/frappe/frappe/templates/includes/comments/comments.py +48,{0} by {1},{0} por {1}
 apps/frappe/frappe/core/doctype/doctype/doctype.py +729,{0} cannot be set for Single types,{0} no puede establecerse para tipos individuales
@@ -3019,7 +3018,7 @@ apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +443,{0} from {1} to
 apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +472,{0} from {1} to {2} in row #{3},{0} de {1} a {2} en fila # {3}
 apps/frappe/frappe/email/doctype/newsletter/newsletter.py +198,{0} has been successfully added to the Email Group.,{0} ha sido añadido al grupo de correo electrónico.
 apps/frappe/frappe/email/queue.py +317,{0} has left the conversation in {1} {2},{0} ha dejado la conversación en {1} {2}
-apps/frappe/frappe/utils/data.py +559,{0} hours ago,Hace {0} horas
+apps/frappe/frappe/utils/data.py +562,{0} hours ago,Hace {0} horas
 apps/frappe/frappe/website/doctype/website_settings/website_settings.py +38,{0} in row {1} cannot have both URL and child items,{0} en la fila {1} no puede tener tanto URL como elementos hijos
 apps/frappe/frappe/public/js/frappe/form/form_viewers.js +35,{0} is currently viewing this document,{0} se encuentra viendo actualmente este documento
 apps/frappe/frappe/email/doctype/email_account/email_account.py +78,{0} is mandatory,{0} es obligatorio
@@ -3042,7 +3041,7 @@ apps/frappe/frappe/model/base_document.py +360,{0} must be unique,{0} debe ser �
 apps/frappe/frappe/workflow/doctype/workflow/workflow.py +57,{0} not a valid State,{0} no es un estado válido
 apps/frappe/frappe/model/rename_doc.py +130,{0} not allowed to be renamed,{0} no puede ser renombrado
 apps/frappe/frappe/desk/doctype/desktop_icon/desktop_icon.py +295,{0} not found,{0} no encontrado
-apps/frappe/frappe/utils/data.py +578,{0} or {1},{0} o {1}
+apps/frappe/frappe/utils/data.py +581,{0} or {1},{0} o {1}
 apps/frappe/frappe/desk/doctype/bulk_update/bulk_update.py +44,{0} records updated,{0} registros actualizados
 apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +508,{0} rows for {1},{0} filas de {1}
 apps/frappe/frappe/core/doctype/docshare/docshare.py +47,{0} shared this document with everyone,{0} ha compartido este documento con todos
