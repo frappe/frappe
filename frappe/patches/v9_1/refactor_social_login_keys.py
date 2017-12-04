@@ -24,7 +24,7 @@ def execute():
 			})
 			save = True
 
-		if user.github_userid and github_username:
+		if user.github_userid and user.github_username:
 			user.update("social_logins", {
 				"provider": "github",
 				"userid": user.github_userid,
