@@ -632,7 +632,7 @@ apps/frappe/frappe/core/page/permission_manager/permission_manager.js +335,Did n
 apps/frappe/frappe/desk/form/save.py +34,Did not save,No se pudo guardar.
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +489,Did not set,No se estableció
 DocType: Workflow,"Different ""States"" this document can exist in. Like ""Open"", ""Pending Approval"" etc.","Pueden existir diferentes estados para este documento: 'Abierto', 'Pendiente de Aprobación', etc."
-DocType: Address,Dirección del Flete,
+DocType: Address,Dirección del Flete,Dirección del Flete
 DocType: Website Settings,Disable Customer Signup link in Login page,Desactivar registro de clientes en la página de inicio de sesión
 apps/frappe/frappe/core/doctype/report/report.js +37,Disable Report,Desactivar reporte
 DocType: Website Settings,Disable Signup,Deshabilitar registro
@@ -935,7 +935,7 @@ apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot_list.js +11,First 
 DocType: Contact,First Name,Nombre
 apps/frappe/frappe/core/page/data_import_tool/exporter.py +64,First data column must be blank.,La primera columna de datos debe estar en blanco.
 DocType: Language,Flag,Flag
-DocType: Address,Flete,
+DocType: Address,Flete,Flete
 DocType: DocField,Float,Coma Flotante
 DocType: System Settings,Float Precision,Factor de Redondeo
 DocType: DocField,Fold,Plegar
