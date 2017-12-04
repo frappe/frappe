@@ -88,7 +88,7 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 
 		// Helper function.
 		const get_timepicker_options = function (timepicker, format) {
-			const options = { }
+			const options = { };
 
 			if ( format == 12 ) {
 				// AM - PM.
@@ -104,7 +104,7 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 			}
 
 			return options;
-		}
+		};
 
 		const datepicker  = this.datepicker;
 		// Set it up here, not at datetime.js, because we're initializing it here.
@@ -121,7 +121,7 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 					<div class="datepicker--time-row">
 						<input name="format" type="range" value="0" min="0" max="1" step="1"/>
 					</div>
-				`)
+				`);
 			}
 			$format = $timepicker.find('input[name="format"]');
 
@@ -137,7 +137,7 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 				// BRUTAL HACK! SO BRUTAL.
 				// The thing is, the $ampm DOM from timepicker is not set, raising an undefined.
 				// We'll to this shit manually.
-				var   options = { }
+				var   options = { };
 				const value   = $(this).val();
 
 				if ( value == 1 ) {
