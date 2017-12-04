@@ -22,7 +22,7 @@ class SocialLoginKey(Document):
 		if not self.redirect_url:
 			frappe.throw(_("Please enter Redirect URL"))
 
-	def get_social_login_provider(self, provider):
+	def get_social_login_provider(self, provider, initialize=False):
 		providers = {}
 
 		providers["GitHub"] = {
@@ -78,6 +78,7 @@ class SocialLoginKey(Document):
 				"scope": "email,public_profile"
 			})
 		}
+
 		providers["Frappe"] = {
 			"provider_name": "Frappe",
 			"enable_social_login": 1,
@@ -94,5 +95,12 @@ class SocialLoginKey(Document):
 				"scope": "openid"
 			})
 		}
+
+		# Initialize the doc and return, used in patch
+		# Or can be used for creating key from controller
+		if initialize and provider:
+			for k, v in providers[provider].items():
+				setattr(self,k,v)
+			return
 
 		return providers.get(provider) if provider else providers
