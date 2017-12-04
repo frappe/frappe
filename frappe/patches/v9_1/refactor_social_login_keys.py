@@ -4,13 +4,14 @@ import frappe
 def execute():
 	# Move User Data into DocType
 	frappe.reload_doc("core", "doctype", "user", force=True)
+	frappe.reload_doc("core", "doctype", "user_social_login", force=True)
 	users = frappe.get_all("User", filters=[["username", "not in", ["Guest","Administrator"]]])
 	for u in users:
 		user = frappe.get_doc("User", u.get("name"))
 		save = False
 
 		if user.fb_userid and user.fb_username:
-			user.update("social_logins", {
+			user.append("social_logins", {
 				"provider": "facebook",
 				"userid": user.fb_userid,
 				"username": user.fb_username
@@ -18,14 +19,14 @@ def execute():
 			save = True
 
 		if user.frappe_userid:
-			user.update("social_logins", {
+			user.append("social_logins", {
 				"provider": "frappe",
 				"userid": user.frappe_userid
 			})
 			save = True
 
 		if user.github_userid and user.github_username:
-			user.update("social_logins", {
+			user.append("social_logins", {
 				"provider": "github",
 				"userid": user.github_userid,
 				"username": user.github_username,
@@ -33,7 +34,7 @@ def execute():
 			save = True
 
 		if user.google_userid:
-			user.update("social_logins", {
+			user.append("social_logins", {
 				"provider": "google",
 				"userid": user.google_userid,
 			})
@@ -43,6 +44,8 @@ def execute():
 			user.save()
 
 	# Create Social Login Key(s) from Social Login Keys
+	frappe.reload_doc("integrations", "doctype", "social_login_key", force=True)
+
 	social_login_keys = frappe.get_doc("Social Login Keys", "Social Login Keys")
 	if social_login_keys.facebook_client_id or social_login_keys.facebook_client_secret:
 		facebook_login_key = frappe.new_doc("Social Login Key")
