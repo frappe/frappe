@@ -28,7 +28,7 @@ apps/frappe/frappe/utils/data.py +568,1 weeks ago,hace 1 semana
 apps/frappe/frappe/utils/data.py +576,1 year ago,hace 1 año
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +18,1. Select Columns,1. Seleccionar Columnas
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +67,1. Select File,1. Seleccione Archivo
-apps/frappe/frappe/public/js/frappe/list/list_renderer.js +537,2 days ago,Hace 2 días
+apps/frappe/frappe/public/js/frappe/list/list_renderer.js +538,2 days ago,Hace 2 días
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +30,2. Download,2. Descargar
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +71,2. Upload,2. Subir
 apps/frappe/frappe/desk/doctype/bulk_update/bulk_update.py +23,; not allowed in condition,no se permite ; en condición
@@ -1354,7 +1354,7 @@ DocType: DocType,"Make ""name"" searchable in Global Search","Hacer el ""nombre"
 apps/frappe/frappe/printing/doctype/print_format/print_format.js +34,Make Default,Hacer por Defecto
 apps/frappe/frappe/public/js/frappe/form/multi_select_dialog.js +58,Make a new ,
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +132,Make a new record,Crear un nuevo registro
-apps/frappe/frappe/public/js/frappe/list/list_renderer.js +591,Make a new {0},Crear: {0}
+apps/frappe/frappe/public/js/frappe/list/list_renderer.js +592,Make a new {0},Crear: {0}
 apps/frappe/frappe/public/js/frappe/upload.js +364,Make file(s) private or public?,Hacer archivo (s) privado o público?
 apps/frappe/frappe/utils/password_strength.py +85,Make use of longer keyboard patterns,Hacer uso de patrones de teclado más largos
 DocType: User,Male,Masculino
@@ -1523,7 +1523,7 @@ apps/frappe/frappe/model/db_query.py +383,No permission to read {0},No tiene per
 apps/frappe/frappe/share.py +136,No permission to {0} {1} {2},No tiene permiso para {0} {1} {2}
 apps/frappe/frappe/public/js/frappe/list/list_sidebar_stat.html +5,No records tagged.,No hay registros etiquetados.
 apps/frappe/frappe/www/printview.py +225,No template found at path: {0},No se encontraron plantillas en la ruta: {0}
-apps/frappe/frappe/public/js/frappe/list/list_renderer.js +596,No {0} found,No hay {0}
+apps/frappe/frappe/public/js/frappe/list/list_renderer.js +597,No {0} found,No hay {0}
 apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js +137,No {0} mail,No {0} electrónico
 apps/frappe/frappe/www/printview.py +199,No {0} permission,{0} No tiene permiso
 apps/frappe/frappe/public/js/frappe/form/workflow.js +33,None: End of Workflow,Ninguno: Fin del flujo de trabajo
@@ -2001,7 +2001,7 @@ DocType: User Permission for Page and Report,Roles Permission,Permisos de Roles
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +7,Roles can be set for users from their User page.,Los roles para los usuarios se pueden configurar desde la página de usuario.
 apps/frappe/frappe/utils/nestedset.py +194,Root {0} cannot be deleted,Root {0} no se puede eliminar
 DocType: DocType,Route,Ruta
-apps/frappe/frappe/public/js/frappe/list/list_renderer.js +521,Row,Línea
+apps/frappe/frappe/public/js/frappe/list/list_renderer.js +522,Row,Línea
 apps/frappe/frappe/core/doctype/version/version_view.html +74,Row #,Row #
 apps/frappe/frappe/model/base_document.py +533,Row #{0}:,Línea #{0}:
 apps/frappe/frappe/core/doctype/version/version_view.html +69,Row Values Changed,Valores de Fila Modificados
@@ -2699,7 +2699,7 @@ DocType: Email Account,Yahoo Mail,Correo de Yahoo
 DocType: Email Account,Yandex.Mail,Yandex.Mail
 DocType: Company History,Year,Año
 DocType: Page,Yes,Sí
-apps/frappe/frappe/public/js/frappe/list/list_renderer.js +534,Yesterday,Ayer
+apps/frappe/frappe/public/js/frappe/list/list_renderer.js +535,Yesterday,Ayer
 apps/frappe/frappe/public/js/frappe/misc/user.js +61,You,Usted
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +72,You are not allowed to create / edit reports,No se le permite crear / editar reportes
 apps/frappe/frappe/public/js/frappe/views/kanban/kanban_board.js +77,You are not allowed to create columns,No se le permite crear columnas
