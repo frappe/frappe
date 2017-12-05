@@ -3,17 +3,12 @@
 
 frappe.ui.form.on('Domain Settings', {
 	before_load: function(frm) {
-		if(!frm.fields_dict.domains) {
-			frm.layout.add_fields([
-				{
-					fieldname: "active_domains_sb",
-					fieldtype: "Section Break",
-					label: __("Active Domains")
-				},
-				{
-					fieldname: "domains",
+		if(!frm.domains_multicheck) {
+			frm.domains_multicheck = frappe.ui.form.make_control({
+				parent: frm.fields_dict.domains_html.$wrapper,
+				df: {
+					fieldname: "domains_multicheck",
 					fieldtype: "MultiCheck",
-					label: __("Active Domains"),
 					get_data: () => {
 						let active_domains = (frm.doc.active_domains || []).map(row => row.domain);
 						return frappe.boot.all_domains.map(domain => {
@@ -24,9 +19,10 @@ frappe.ui.form.on('Domain Settings', {
 							};
 						});
 					}
-				}
-			]);
-			frm.fields_dict.domains.refresh_input();
+				},
+				render_input: true
+			});
+			frm.domains_multicheck.refresh_input();
 		}
 	},
 
@@ -35,8 +31,8 @@ frappe.ui.form.on('Domain Settings', {
 	},
 
 	set_options_in_table: function(frm) {
-		let selected_options = frm.fields_dict.domains.get_value();
-		let unselected_options = frm.fields_dict.domains.options
+		let selected_options = frm.domains_multicheck.get_value();
+		let unselected_options = frm.domains_multicheck.options
 			.map(option => option.value)
 			.filter(value => {
 				return !selected_options.includes(value);
