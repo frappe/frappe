@@ -105,12 +105,12 @@ frappe.utils = {
 		}
 
 		// already there
-		if(y==$('html, body').scrollTop()) {
+		if(y==$('body').scrollTop()) {
 			return;
 		}
 
 		if (animate!==false) {
-			$("html, body").animate({ scrollTop: y });
+			$("body").animate({ scrollTop: y });
 		} else {
 			$(window).scrollTop(y);
 		}

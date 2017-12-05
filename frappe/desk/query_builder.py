@@ -128,7 +128,7 @@ def build_description_standard(meta, tl):
 			coloptions.append(desc[2] or '')
 			colwidths.append(desc[3] or '100')
 
-		elif fn in meta.get(dt,{}):
+		elif meta.get(dt,{}).has_key(fn):
 			# type specified for a multi-table join
 			# usually from Report Builder
 

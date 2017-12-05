@@ -9,10 +9,10 @@ import pyotp, os
 from frappe.utils.background_jobs import enqueue
 from jinja2 import Template
 from pyqrcode import create as qrcreate
-from six import BytesIO
+from six import StringIO
 from base64 import b64encode, b32encode
 from frappe.utils import get_url, get_datetime, time_diff_in_seconds
-from six import iteritems, string_types
+from six import string_types
 
 class ExpiredLoginException(Exception): pass
 
@@ -26,12 +26,6 @@ def toggle_two_factor_auth(state, roles=[]):
 def two_factor_is_enabled(user=None):
 	'''Returns True if 2FA is enabled.'''
 	enabled = int(frappe.db.get_value('System Settings', None, 'enable_two_factor_auth') or 0)
-	if enabled:
-		bypass_two_factor_auth = int(frappe.db.get_value('System Settings', None, 'bypass_2fa_for_retricted_ip_users') or 0)
-		if bypass_two_factor_auth:
-			restrict_ip = frappe.db.get_value("User", filters={"name": user}, fieldname="restrict_ip")
-			if restrict_ip and bypass_two_factor_auth:
-				enabled = False
 	if not user or not enabled:
 		return enabled
 	return two_factor_is_enabled_for_(user)
@@ -74,7 +68,7 @@ def cache_2fa_data(user, token, otp_secret, tmp_id):
 		frappe.cache().expire(tmp_id + '_token', expiry_time)
 	else:
 		expiry_time = 180
-	for k, v in iteritems({'_usr': user, '_pwd': pwd, '_otp_secret': otp_secret}):
+	for k, v in {'_usr': user, '_pwd': pwd, '_otp_secret': otp_secret}.iteritems():
 		frappe.cache().set("{0}{1}".format(tmp_id, k), v)
 		frappe.cache().expire("{0}{1}".format(tmp_id, k), expiry_time)
 
@@ -91,6 +85,7 @@ def two_factor_is_enabled_for_(user):
 
 	query = """select name from `tabRole` where two_factor_auth=1
 		and name in ({0}) limit 1""".format(', '.join('\"{}\"'.format(i) for i in roles))
+
 	if len(frappe.db.sql(query)) > 0:
 		return True
 
@@ -255,6 +250,7 @@ def get_link_for_qrcode(user, totp_uri):
 
 def send_token_via_sms(otpsecret, token=None, phone_no=None):
 	'''Send token as sms to user.'''
+	otp_issuer = frappe.db.get_value('System Settings', 'System Settings', 'otp_issuer_name')
 	try:
 		from frappe.core.doctype.sms_settings.sms_settings import send_request
 	except:
@@ -269,6 +265,7 @@ def send_token_via_sms(otpsecret, token=None, phone_no=None):
 
 	hotp = pyotp.HOTP(otpsecret)
 	args = {
+		ss.sms_sender_name: otp_issuer,
 		ss.message_parameter: 'Your verification code is {}'.format(hotp.at(int(token)))
 	}
 
@@ -279,8 +276,7 @@ def send_token_via_sms(otpsecret, token=None, phone_no=None):
 
 	sms_args = {
 		'params': args,
-		'gateway_url': ss.sms_gateway_url,
-		'use_post': ss.use_post
+		'gateway_url': ss.sms_gateway_url
 	}
 	enqueue(method=send_request, queue='short', timeout=300, event=None,
 		async=True, job_name=None, now=False, **sms_args)
@@ -317,11 +313,11 @@ def get_qr_svg_code(totp_uri):
 	'''Get SVG code to display Qrcode for OTP.'''
 	url = qrcreate(totp_uri)
 	svg = ''
-	stream = BytesIO()
+	stream = StringIO()
 	try:
 		url.svg(stream, scale=4, background="#eee", module_color="#222")
-		svg = stream.getvalue().decode().replace('\n', '')
-		svg = b64encode(svg.encode())
+		svg = stream.getvalue().replace('\n', '')
+		svg = b64encode(bytes(svg))
 	finally:
 		stream.close()
 	return svg

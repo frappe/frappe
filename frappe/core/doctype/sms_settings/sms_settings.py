@@ -28,6 +28,18 @@ def validate_receiver_nos(receiver_list):
 
 	return validated_receiver_list
 
+
+def get_sender_name():
+	"returns name as SMS sender"
+	sender_name = frappe.db.get_single_value('SMS Settings', 'sms_sender_name') or \
+		'ERPNXT'
+	if len(sender_name) > 6 and \
+			frappe.db.get_default("country") == "India":
+		throw("""As per TRAI rule, sender name must be exactly 6 characters.
+			Kindly change sender name in Setup --> Global Defaults.
+			Note: Hyphen, space, numeric digit, special characters are not allowed.""")
+	return sender_name
+
 @frappe.whitelist()
 def get_contact_number(contact_name, ref_doctype, ref_name):
 	"returns mobile number of the contact"
@@ -54,6 +66,7 @@ def send_sms(receiver_list, msg, sender_name = '', success_msg = True):
 	arg = {
 		'receiver_list' : receiver_list,
 		'message'		: unicode(msg).encode('utf-8'),
+		'sender_name'	: sender_name or get_sender_name(),
 		'success_msg'	: success_msg
 	}
 
@@ -64,17 +77,14 @@ def send_sms(receiver_list, msg, sender_name = '', success_msg = True):
 
 def send_via_gateway(arg):
 	ss = frappe.get_doc('SMS Settings', 'SMS Settings')
-	headers = get_headers(ss)
-
 	args = {ss.message_parameter: arg.get('message')}
 	for d in ss.get("parameters"):
-		if not d.header:
-			args[d.parameter] = d.value
+		args[d.parameter] = d.value
 
 	success_list = []
 	for d in arg.get('receiver_list'):
 		args[ss.receiver_parameter] = d
-		status = send_request(ss.sms_gateway_url, args, headers, ss.use_post)
+		status = send_request(ss.sms_gateway_url, args)
 
 		if 200 <= status < 300:
 			success_list.append(d)
@@ -85,27 +95,10 @@ def send_via_gateway(arg):
 		if arg.get('success_msg'):
 			frappe.msgprint(_("SMS sent to following numbers: {0}").format("\n" + "\n".join(success_list)))
 
-def get_headers(sms_settings=None):
-	if not sms_settings:
-		sms_settings = frappe.get_doc('SMS Settings', 'SMS Settings')
 
-	headers={'Accept': "text/plain, text/html, */*"}
-	for d in sms_settings.get("parameters"):
-		if d.header == 1:
-			headers.update({d.parameter: d.value})
-
-	return headers
-
-def send_request(gateway_url, params, headers=None, use_post=False):
+def send_request(gateway_url, params):
 	import requests
-
-	if not headers:
-		headers = get_headers()
-
-	if use_post:
-		response = requests.post(gateway_url, headers=headers, data=params)
-	else:
-		response = requests.get(gateway_url, headers=headers, params=params)
+	response = requests.get(gateway_url, params = params, headers={'Accept': "text/plain, text/html, */*"})
 	response.raise_for_status()
 	return response.status_code
 
@@ -114,6 +107,7 @@ def send_request(gateway_url, params, headers=None, use_post=False):
 # =========================================================
 def create_sms_log(args, sent_to):
 	sl = frappe.new_doc('SMS Log')
+	sl.sender_name = args['sender_name']
 	sl.sent_on = nowdate()
 	sl.message = args['message'].decode('utf-8')
 	sl.no_of_requested_sms = len(args['receiver_list'])

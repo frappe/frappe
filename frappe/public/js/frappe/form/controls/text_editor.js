@@ -6,28 +6,6 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 		this.setup_drag_drop();
 		this.setup_image_dialog();
 		this.setting_count = 0;
-
-		$(document).on('form-refresh', () => {
-			// reset last keystroke when a new form is loaded
-			this.last_keystroke_on = null;
-		})
-	},
-	render_camera_button: (context) => {
-		var ui     = $.summernote.ui;
-		var button = ui.button({
-			contents: '<i class="fa fa-camera"/>',
-			tooltip: 'Camera',
-			click: () => {
-				const capture = new frappe.ui.Capture();
-				capture.open();
-
-				capture.click((data) => {
-					context.invoke('editor.insertImage', data);
-				});
-			}
-		});
-
-		return button.render();
 	},
 	make_editor: function() {
 		var me = this;
@@ -47,12 +25,9 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 				['color', ['color']],
 				['para', ['ul', 'ol', 'paragraph', 'hr']],
 				//['height', ['height']],
-				['media', ['link', 'picture', 'camera', 'video', 'table']],
+				['media', ['link', 'picture', 'video', 'table']],
 				['misc', ['fullscreen', 'codeview']]
 			],
-			buttons: {
-				camera: this.render_camera_button,
-			},
 			keyMap: {
 				pc: {
 					'CTRL+ENTER': ''
@@ -79,7 +54,7 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 					me.parse_validate_and_set_in_model(value);
 				},
 				onKeydown: function(e) {
-					me.last_keystroke_on = new Date();
+					me._last_change_on = new Date();
 					var key = frappe.ui.keys.get_key(e);
 					// prevent 'New DocType (Ctrl + B)' shortcut in editor
 					if(['ctrl+b', 'meta+b'].indexOf(key) !== -1) {
@@ -105,7 +80,6 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 				'outdent': 'fa fa-outdent',
 				'arrowsAlt': 'fa fa-arrows-alt',
 				'bold': 'fa fa-bold',
-				'camera': 'fa fa-camera',
 				'caret': 'caret',
 				'circle': 'fa fa-circle',
 				'close': 'fa fa-close',
@@ -163,17 +137,17 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 			});
 	},
 	get_image: function (fileobj, callback) {
-		var reader = new FileReader();
+		var freader = new FileReader();
 
-		reader.onload = function() {
-			var dataurl = reader.result;
+		freader.onload = function() {
+			var dataurl = freader.result;
 			// add filename to dataurl
 			var parts = dataurl.split(",");
 			parts[0] += ";filename=" + fileobj.name;
 			dataurl = parts[0] + ',' + parts[1];
 			callback(dataurl);
 		};
-		reader.readAsDataURL(fileobj);
+		freader.readAsDataURL(fileobj);
 	},
 	hide_elements_on_mobile: function() {
 		this.note_editor.find('.note-btn-underline,\
@@ -210,30 +184,20 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 
 		if(this.setting_count > 2) {
 			// we don't understand how the internal triggers work,
-			// so if someone is setting the value third time in 500ms,
-			// then quit
+			// so if someone is setting the value third time, then quit
 			return;
 		}
 
 		this.setting_count += 1;
 
-		let time_since_last_keystroke = moment() - moment(this.last_keystroke_on);
+		let time_since_last_keystroke = moment() - moment(this._last_change_on);
 
-		if(!this.last_keystroke_on || (time_since_last_keystroke > 3000)) {
-			// if 3 seconds have passed since the last keystroke and
-			// we have not set any value in the last 1 second, do this
+		if(!this._last_change_on || (time_since_last_keystroke > 3000)) {
 			setTimeout(() => this.setting_count = 0, 500);
 			this.editor.summernote('code', value || '');
-			this.last_keystroke_on = null;
 		} else {
-			// user is probably still in the middle of typing
-			// so lets not mess up the html by re-updating it
-			// keep checking every second if our 3 second barrier
-			// has been completed, so that we can refresh the html
 			this._setting_value = setInterval(() => {
 				if(time_since_last_keystroke > 3000) {
-					// 3 seconds done! lets refresh
-					// safe to update
 					if(this.last_value !== this.get_input_value()) {
 						// if not already in sync, reset
 						this.editor.summernote('code', this.last_value || '');
@@ -241,9 +205,6 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 					clearInterval(this._setting_value);
 					this._setting_value = null;
 					this.setting_count = 0;
-
-					// clear timestamp of last keystroke
-					this.last_keystroke_on = null;
 				}
 			}, 1000);
 		}
@@ -259,7 +220,6 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 			max_width: this.df.max_width,
 			max_height: this.df.max_height,
 			options: "Image",
-			no_socketio: true,
 			btn: this.image_dialog.set_primary_action(__("Insert")),
 			on_no_attach: function() {
 				// if no attachmemts,

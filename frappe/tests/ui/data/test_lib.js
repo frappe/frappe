@@ -1,11 +1,15 @@
 frappe.tests = {
 	data: {},
+	get_fixture_names: (doctype) => {
+		return Object.keys(frappe.test_data[doctype]);
+	},
 	make: function(doctype, data) {
 		return frappe.run_serially([
 			() => frappe.set_route('List', doctype),
 			() => frappe.new_doc(doctype),
 			() => {
-				if (frappe.quick_entry) {
+				if (frappe.quick_entry)
+				{
 					frappe.quick_entry.dialog.$wrapper.find('.edit-full').click();
 					return frappe.timeout(1);
 				}
@@ -32,8 +36,7 @@ frappe.tests = {
 					}
 				};
 				tasks.push(task);
-				tasks.push(frappe.after_ajax);
-				tasks.push(() => frappe.timeout(0.4));
+				tasks.push(() => frappe.timeout(0.2));
 			}
 		});
 
@@ -65,8 +68,7 @@ frappe.tests = {
 							return frappe.model.set_value(grid_row.doc.doctype,
 								grid_row.doc.name, child_key, child_value[child_key]);
 						});
-						grid_value_tasks.push(frappe.after_ajax);
-						grid_value_tasks.push(() => frappe.timeout(0.4));
+						grid_value_tasks.push(() => frappe.timeout(0.2));
 					}
 				});
 
@@ -75,13 +77,13 @@ frappe.tests = {
 		});
 		return frappe.run_serially(grid_row_tasks);
 	},
-	setup_doctype: (doctype, data) => {
+	setup_doctype: (doctype) => {
 		return frappe.run_serially([
 			() => frappe.set_route('List', doctype),
 			() => frappe.timeout(1),
 			() => {
 				frappe.tests.data[doctype] = [];
-				let expected = Object.keys(data);
+				let expected = frappe.tests.get_fixture_names(doctype);
 				cur_list.data.forEach((d) => {
 					frappe.tests.data[doctype].push(d.name);
 					if(expected.indexOf(d.name) !== -1) {
@@ -94,7 +96,7 @@ frappe.tests = {
 				expected.forEach(function(d) {
 					if(d) {
 						tasks.push(() => frappe.tests.make(doctype,
-							data[d]));
+							frappe.test_data[doctype][d]));
 					}
 				});
 

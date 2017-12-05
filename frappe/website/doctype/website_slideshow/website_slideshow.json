@@ -1,6 +1,5 @@
 {
  "allow_copy": 0, 
- "allow_guest_to_view": 0, 
  "allow_import": 0, 
  "allow_rename": 0, 
  "autoname": "field:slideshow_name", 
@@ -14,7 +13,6 @@
  "editable_grid": 0, 
  "fields": [
   {
-   "allow_bulk_edit": 0, 
    "allow_on_submit": 0, 
    "bold": 0, 
    "collapsible": 0, 
@@ -25,8 +23,7 @@
    "ignore_user_permissions": 0, 
    "ignore_xss_filter": 0, 
    "in_filter": 0, 
-   "in_global_search": 0, 
-   "in_list_view": 1, 
+   "in_list_view": 0, 
    "in_standard_filter": 0, 
    "label": "Slideshow Name", 
    "length": 0, 
@@ -43,7 +40,6 @@
    "unique": 0
   }, 
   {
-   "allow_bulk_edit": 0, 
    "allow_on_submit": 0, 
    "bold": 0, 
    "collapsible": 0, 
@@ -56,7 +52,6 @@
    "ignore_user_permissions": 0, 
    "ignore_xss_filter": 0, 
    "in_filter": 0, 
-   "in_global_search": 0, 
    "in_list_view": 0, 
    "in_standard_filter": 0, 
    "label": "", 
@@ -74,7 +69,6 @@
    "unique": 0
   }, 
   {
-   "allow_bulk_edit": 0, 
    "allow_on_submit": 0, 
    "bold": 0, 
    "collapsible": 0, 
@@ -86,7 +80,6 @@
    "ignore_user_permissions": 0, 
    "ignore_xss_filter": 0, 
    "in_filter": 0, 
-   "in_global_search": 0, 
    "in_list_view": 0, 
    "in_standard_filter": 0, 
    "label": "Slideshow Items", 
@@ -105,7 +98,6 @@
    "unique": 0
   }, 
   {
-   "allow_bulk_edit": 0, 
    "allow_on_submit": 0, 
    "bold": 0, 
    "collapsible": 0, 
@@ -118,7 +110,6 @@
    "ignore_user_permissions": 0, 
    "ignore_xss_filter": 0, 
    "in_filter": 0, 
-   "in_global_search": 0, 
    "in_list_view": 0, 
    "in_standard_filter": 0, 
    "label": "Header", 
@@ -136,18 +127,18 @@
    "unique": 0
   }
  ], 
- "has_web_view": 0, 
  "hide_heading": 0, 
  "hide_toolbar": 0, 
  "icon": "fa fa-play", 
  "idx": 1, 
  "image_view": 0, 
  "in_create": 0, 
+ "in_dialog": 0, 
  "is_submittable": 0, 
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 10, 
- "modified": "2017-10-05 18:56:20.094625", 
+ "modified": "2016-12-29 14:40:39.690960", 
  "modified_by": "Administrator", 
  "module": "Website", 
  "name": "Website Slideshow", 
@@ -163,6 +154,7 @@
    "export": 0, 
    "if_owner": 0, 
    "import": 0, 
+   "is_custom": 0, 
    "permlevel": 0, 
    "print": 1, 
    "read": 1, 
@@ -177,7 +169,6 @@
  "quick_entry": 0, 
  "read_only": 0, 
  "read_only_onload": 0, 
- "show_name_in_global_search": 0, 
  "track_changes": 1, 
  "track_seen": 0
 }

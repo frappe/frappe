@@ -1,0 +1,274 @@
+/* graphs */
+.graph-container .graph-focus-margin {
+  margin: 0px 5%;
+}
+.graph-container .graph-graphics {
+  margin-top: 10px;
+  padding: 10px 0px;
+  position: relative;
+}
+.graph-container .graph-stats-group {
+  display: flex;
+  justify-content: space-around;
+  flex: 1;
+}
+.graph-container .graph-stats-container {
+  display: flex;
+  justify-content: space-around;
+  padding-top: 10px;
+}
+.graph-container .graph-stats-container .stats {
+  padding-bottom: 15px;
+}
+.graph-container .graph-stats-container .stats-title {
+  color: #8D99A6;
+}
+.graph-container .graph-stats-container .stats-value {
+  font-size: 20px;
+  font-weight: 300;
+}
+.graph-container .graph-stats-container .stats-description {
+  font-size: 12px;
+  color: #8D99A6;
+}
+.graph-container .graph-stats-container .graph-data .stats-value {
+  color: #98d85b;
+}
+.graph-container .bar-graph .axis,
+.graph-container .line-graph .axis {
+  font-size: 10px;
+  fill: #6a737d;
+}
+.graph-container .bar-graph .axis line,
+.graph-container .line-graph .axis line {
+  stroke: rgba(27, 31, 35, 0.1);
+}
+.graph-container .percentage-graph {
+  margin-top: 35px;
+}
+.graph-container .percentage-graph .progress {
+  margin-bottom: 0px;
+}
+.graph-container .graph-data-points circle {
+  stroke: #fff;
+  stroke-width: 2;
+}
+.graph-container .graph-data-points path {
+  fill: none;
+  stroke-opacity: 1;
+  stroke-width: 2px;
+}
+.graph-container line.graph-dashed {
+  stroke-dasharray: 5,3;
+}
+.graph-container .tick.x-axis-label {
+  display: block;
+}
+.graph-container .tick .specific-value {
+  text-anchor: start;
+}
+.graph-container .tick .y-value-text {
+  text-anchor: end;
+}
+.graph-container .tick .x-value-text {
+  text-anchor: middle;
+}
+.graph-container .graph-svg-tip {
+  position: absolute;
+  z-index: 99999;
+  padding: 10px;
+  font-size: 12px;
+  color: #959da5;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.8);
+  border-radius: 3px;
+}
+.graph-container .graph-svg-tip.comparison {
+  padding: 0;
+  text-align: left;
+  pointer-events: none;
+}
+.graph-container .graph-svg-tip.comparison .title {
+  display: block;
+  padding: 10px;
+  margin: 0;
+  font-weight: 600;
+  line-height: 1;
+  pointer-events: none;
+}
+.graph-container .graph-svg-tip.comparison ul {
+  margin: 0;
+  white-space: nowrap;
+  list-style: none;
+}
+.graph-container .graph-svg-tip.comparison li {
+  display: inline-block;
+  padding: 5px 10px;
+}
+.graph-container .graph-svg-tip ul,
+.graph-container .graph-svg-tip ol {
+  padding-left: 0;
+  display: flex;
+}
+.graph-container .graph-svg-tip ul.data-point-list li {
+  min-width: 90px;
+  flex: 1;
+}
+.graph-container .graph-svg-tip strong {
+  color: #dfe2e5;
+}
+.graph-container .graph-svg-tip::after {
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  margin: 0 0 0 -5px;
+  content: " ";
+  border: 5px solid transparent;
+  border-top-color: rgba(0, 0, 0, 0.8);
+}
+.graph-container .stroke.grey {
+  stroke: #F0F4F7;
+}
+.graph-container .stroke.blue {
+  stroke: #5e64ff;
+}
+.graph-container .stroke.red {
+  stroke: #ff5858;
+}
+.graph-container .stroke.light-green {
+  stroke: #98d85b;
+}
+.graph-container .stroke.green {
+  stroke: #28a745;
+}
+.graph-container .stroke.orange {
+  stroke: #ffa00a;
+}
+.graph-container .stroke.purple {
+  stroke: #743ee2;
+}
+.graph-container .stroke.darkgrey {
+  stroke: #b8c2cc;
+}
+.graph-container .stroke.black {
+  stroke: #36414C;
+}
+.graph-container .stroke.yellow {
+  stroke: #FEEF72;
+}
+.graph-container .stroke.light-blue {
+  stroke: #7CD6FD;
+}
+.graph-container .stroke.lightblue {
+  stroke: #7CD6FD;
+}
+.graph-container .fill.grey {
+  fill: #F0F4F7;
+}
+.graph-container .fill.blue {
+  fill: #5e64ff;
+}
+.graph-container .fill.red {
+  fill: #ff5858;
+}
+.graph-container .fill.light-green {
+  fill: #98d85b;
+}
+.graph-container .fill.green {
+  fill: #28a745;
+}
+.graph-container .fill.orange {
+  fill: #ffa00a;
+}
+.graph-container .fill.purple {
+  fill: #743ee2;
+}
+.graph-container .fill.darkgrey {
+  fill: #b8c2cc;
+}
+.graph-container .fill.black {
+  fill: #36414C;
+}
+.graph-container .fill.yellow {
+  fill: #FEEF72;
+}
+.graph-container .fill.light-blue {
+  fill: #7CD6FD;
+}
+.graph-container .fill.lightblue {
+  fill: #7CD6FD;
+}
+.graph-container .background.grey {
+  background: #F0F4F7;
+}
+.graph-container .background.blue {
+  background: #5e64ff;
+}
+.graph-container .background.red {
+  background: #ff5858;
+}
+.graph-container .background.light-green {
+  background: #98d85b;
+}
+.graph-container .background.green {
+  background: #28a745;
+}
+.graph-container .background.orange {
+  background: #ffa00a;
+}
+.graph-container .background.purple {
+  background: #743ee2;
+}
+.graph-container .background.darkgrey {
+  background: #b8c2cc;
+}
+.graph-container .background.black {
+  background: #36414C;
+}
+.graph-container .background.yellow {
+  background: #FEEF72;
+}
+.graph-container .background.light-blue {
+  background: #7CD6FD;
+}
+.graph-container .background.lightblue {
+  background: #7CD6FD;
+}
+.graph-container .border-top.grey {
+  border-top: 3px solid #F0F4F7;
+}
+.graph-container .border-top.blue {
+  border-top: 3px solid #5e64ff;
+}
+.graph-container .border-top.red {
+  border-top: 3px solid #ff5858;
+}
+.graph-container .border-top.light-green {
+  border-top: 3px solid #98d85b;
+}
+.graph-container .border-top.green {
+  border-top: 3px solid #28a745;
+}
+.graph-container .border-top.orange {
+  border-top: 3px solid #ffa00a;
+}
+.graph-container .border-top.purple {
+  border-top: 3px solid #743ee2;
+}
+.graph-container .border-top.darkgrey {
+  border-top: 3px solid #b8c2cc;
+}
+.graph-container .border-top.black {
+  border-top: 3px solid #36414C;
+}
+.graph-container .border-top.yellow {
+  border-top: 3px solid #FEEF72;
+}
+.graph-container .border-top.light-blue {
+  border-top: 3px solid #7CD6FD;
+}
+.graph-container .border-top.lightblue {
+  border-top: 3px solid #7CD6FD;
+}

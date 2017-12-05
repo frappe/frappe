@@ -1,4 +1,3 @@
-boto3
 chardet
 cssmin
 dropbox==7.3.1
@@ -7,7 +6,7 @@ httplib2
 jinja2
 markdown2
 markupsafe
--e git+https://github.com/frappe/mysqlclient-python.git@1.3.12#egg=mysqlclient
+mysqlclient==1.3.10
 python-geoip
 python-geoip-geolite2
 python-dateutil
@@ -23,10 +22,10 @@ selenium
 -e git+https://github.com/frappe/python-pdfkit.git#egg=pdfkit
 babel
 ipython
-html2text==2016.9.19
+html2text
 email_reply_parser
 click
-num2words==0.5.5
+num2words==0.5.4
 watchdog==0.8.0
 bleach
 bleach-whitelist
@@ -38,7 +37,7 @@ cryptography
 pyopenssl
 ndg-httpsclient
 pyasn1
-zxcvbn-python
+zxcvbn
 psutil
 unittest-xml-reporting
 oauthlib
@@ -49,4 +48,4 @@ pyotp
 pyqrcode
 pypng
 premailer
-psycopg2
+

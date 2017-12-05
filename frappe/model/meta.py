@@ -33,10 +33,7 @@ def get_meta(doctype, cached=True):
 				lambda: Meta(doctype))
 		return frappe.local.meta_cache[doctype]
 	else:
-		return load_meta(doctype)
-
-def load_meta(doctype):
-	return Meta(doctype)
+		return Meta(doctype)
 
 def get_table_columns(doctype):
 	return frappe.cache().hget("table_columns", doctype,
@@ -92,9 +89,6 @@ class Meta(Document):
 	def get_select_fields(self):
 		return self.get("fields", {"fieldtype": "Select", "options":["not in",
 			["[Select]", "Loading..."]]})
-
-	def get_image_fields(self):
-		return self.get("fields", {"fieldtype": "Attach Image"})
 
 	def get_table_fields(self):
 		if not hasattr(self, "_table_fields"):
@@ -218,7 +212,7 @@ class Meta(Document):
 		title_field = getattr(self, 'title_field', None)
 		if not title_field and self.has_field('title'):
 			title_field = 'title'
-		if not title_field:
+		else:
 			title_field = 'name'
 
 		return title_field
@@ -483,7 +477,7 @@ def trim_tables(doctype=None):
 	if doctype:
 		filters["name"] = doctype
 
-	for doctype in frappe.db.get_all("DocType", filters=filters):
+	for doctype in frappe.db.get_all("DocType", filters={"issingle": 0}):
 		doctype = doctype.name
 		columns = frappe.db.get_table_columns(doctype)
 		fields = frappe.get_meta(doctype).get_fieldnames_with_value()

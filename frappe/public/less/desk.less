@@ -195,9 +195,9 @@ textarea.form-control {
 	width: 100%;
 
 	&> ul {
-		z-index: 1041 !important;
+		z-index: 1041;
 		transition: none;
-		background-color: #fff;
+		background: #fff;
 		max-height: 200px;
 		overflow-y: auto;
 		overflow-x: hidden;
@@ -245,12 +245,8 @@ textarea.form-control {
 	}
 }
 
-.barcode-wrapper {
-	text-align: center;
-}
-
 @media (min-width: 768px) {
-	.video-modal .modal-dialog {
+	.video-modal {
 		width: 700px;
 	}
 }
@@ -337,7 +333,7 @@ textarea.form-control {
 
 a.progress-small {
 	.progress-chart {
-		width: 40px;
+		width: 60px;
 		margin-top: 4px;
 		float: right;
 	}
@@ -347,25 +343,6 @@ a.progress-small {
 	}
 
 	.progress-bar {
-		transition: unset;
-		background-color: #98d85b;
-	}
-}
-
-li.user-progress {
-	.progress-chart {
-		width: 50px;
-		margin-top: 8px;
-	}
-
-	.progress {
-		margin-bottom: 0;
-		background-color: #fff;
-		border: 1px solid #e5e7e9;
-	}
-
-	.progress-bar {
-		transition: unset;
 		background-color: #98d85b;
 	}
 }
@@ -380,10 +357,6 @@ li.user-progress {
 	.nav-stacked > li + li {
 	  margin-top: 0px;
 	  margin-left: 2px;
-	}
-
-	li.user-progress .progress-chart {
-		width: 25px;
 	}
 }
 
@@ -483,16 +456,7 @@ li.user-progress {
 }
 
 .frappe-rtl input ,.frappe-rtl textarea {
-	direction: rtl;
-}
-
-.frappe-rtl .checkbox .disp-area {
-	margin-right: -20px;
-	margin-left: 0px;
-}
-
-.checkbox .disp-area {
-	margin-left: -20px;
+	direction: rtl
 }
 
 .text-editor {
@@ -1040,97 +1004,4 @@ input[type="checkbox"] {
 		border: 1px solid rgba(0,0,0, 0.25);
 
 	}
-}
-
-// Slides
-.slides-wrapper {
-	&:focus {
-		outline: none;
-	}
-	.fa-circle {
-		font-size: 10px;
-		margin: 0px 2px;
-		&.active {
-			color: #5e64ff;
-		}
-		&.link {
-			cursor: pointer;
-		}
-	}
-	.slide-wrapper {
-		&:focus {
-			outline: none;
-		}
-	}
-	.form {
-		margin-top: 30px;
-		.form-layout {
-			margin-top: 0px;
-			margin-bottom: 0px;
-		}
-		.form-section {
-			padding: 0px 7px;
-			border: none;
-		}
-	}
-	.add-more {
-		margin-bottom: 30px;
-	}
-	.lead {
-		margin-top: 20px;
-	}
-	.success-state {
-		margin-bottom: 20px;
-	}
-	.next-steps-links {
-		.title {
-			text-transform: uppercase;
-			color: #8D99A6;
-			font-size: 11px;
-		}
-
-	}
-	.btn-primary {
-		font-weight: bold;
-	}
-	.footer {
-		margin-top: 15px;
-		padding: 0px 7px;
-
-		.btn:not(:last-child) {
-			margin-right: 3px;
-		}
-
-		a.make-btn.disabled {
-			background-color: #b1bdca;
-			color: #fff;
-			border-color: #b1bdca;
-		}
-	}
-}
-
-// User Progress Dialog
-.user-progress-dialog {
-	.slides-progress {
-		margin-top: 15px;
-	}
-
-	.done-state {
-		.check-container {
-			font-size: 64px;
-			margin: 40px;
-		}
-
-		.title {
-			font-weight: normal;
-		}
-
-		.help-links {
-
-			a {
-				margin: 0px 10px;
-			}
-		}
-	}
-
 }

@@ -6,7 +6,7 @@ globals attached to frappe module
 """
 from __future__ import unicode_literals, print_function
 
-from six import iteritems, binary_type, text_type, string_types
+from six import iteritems, text_type, string_types
 from werkzeug.local import Local, release_local
 import os, sys, importlib, inspect, json
 
@@ -14,7 +14,7 @@ import os, sys, importlib, inspect, json
 from .exceptions import *
 from .utils.jinja import get_jenv, get_template, render_template, get_email_from_template
 
-__version__ = '9.2.20'
+__version__ = '8.10.8'
 __title__ = "Frappe Framework"
 
 local = Local()
@@ -61,7 +61,7 @@ def as_unicode(text, encoding='utf-8'):
 		return text
 	elif text==None:
 		return ''
-	elif isinstance(text, binary_type):
+	elif isinstance(text, string_types):
 		return text_type(text, encoding)
 	else:
 		return text_type(text)
@@ -475,26 +475,13 @@ def only_for(roles):
 	if not roles.intersection(myroles):
 		raise PermissionError
 
-def get_domain_data(module):
-	try:
-		domain_data = get_hooks('domains')
-		if module in domain_data:
-			return _dict(get_attr(get_hooks('domains')[module][0] + '.data'))
-		else:
-			return _dict()
-	except ImportError:
-		if local.flags.in_test:
-			return _dict()
-		else:
-			raise
-
-
 def clear_cache(user=None, doctype=None):
 	"""Clear **User**, **DocType** or global cache.
 
 	:param user: If user is given, only user cache is cleared.
 	:param doctype: If doctype is given, only DocType cache is cleared."""
 	import frappe.sessions
+	from frappe.core.doctype.domain_settings.domain_settings import clear_domain_cache
 	if doctype:
 		import frappe.model.meta
 		frappe.model.meta.clear_cache(doctype)
@@ -506,6 +493,7 @@ def clear_cache(user=None, doctype=None):
 		frappe.sessions.clear_cache()
 		translate.clear_cache()
 		reset_metadata_version()
+		clear_domain_cache()
 		local.cache = {}
 		local.new_doc_templates = {}
 
@@ -614,7 +602,7 @@ def set_value(doctype, docname, fieldname, value=None):
 	import frappe.client
 	return frappe.client.set_value(doctype, docname, fieldname, value)
 
-def get_doc(*args, **kwargs):
+def get_doc(arg1, arg2=None):
 	"""Return a `frappe.model.document.Document` object of the given type and name.
 
 	:param arg1: DocType name as string **or** document JSON.
@@ -631,7 +619,7 @@ def get_doc(*args, **kwargs):
 
 	"""
 	import frappe.model.document
-	return frappe.model.document.get_doc(*args, **kwargs)
+	return frappe.model.document.get_doc(arg1, arg2)
 
 def get_last_doc(doctype):
 	"""Get last created document of this type."""
@@ -1034,8 +1022,7 @@ def compare(val1, condition, val2):
 	return frappe.utils.compare(val1, condition, val2)
 
 def respond_as_web_page(title, html, success=None, http_status_code=None,
-	context=None, indicator_color=None, primary_action='/', primary_label = None, fullpage=False,
-	width=None):
+	context=None, indicator_color=None, primary_action='/', primary_label = None, fullpage=False):
 	"""Send response as a web page with a message rather than JSON. Used to show permission errors etc.
 
 	:param title: Page title and heading.
@@ -1046,9 +1033,7 @@ def respond_as_web_page(title, html, success=None, http_status_code=None,
 	:param indicator_color: color of indicator in title
 	:param primary_action: route on primary button (default is `/`)
 	:param primary_label: label on primary button (defaut is "Home")
-	:param fullpage: hide header / footer
-	:param width: Width of message in pixels
-	"""
+	:param fullpage: hide header / footer"""
 	local.message_title = title
 	local.message = html
 	local.response['type'] = 'page'
@@ -1072,8 +1057,6 @@ def respond_as_web_page(title, html, success=None, http_status_code=None,
 	context['primary_action'] = primary_action
 	context['error_code'] = http_status_code
 	context['fullpage'] = fullpage
-	if width:
-		context['card_width'] = width
 
 	local.response['context'] = context
 
@@ -1191,7 +1174,7 @@ def as_json(obj, indent=1):
 	return json.dumps(obj, indent=indent, sort_keys=True, default=json_handler)
 
 def are_emails_muted():
-	from frappe.utils import cint
+	from utils import cint
 	return flags.mute_emails or cint(conf.get("mute_emails") or 0) or False
 
 def get_test_records(doctype):
@@ -1220,7 +1203,7 @@ def format(*args, **kwargs):
 	import frappe.utils.formatters
 	return frappe.utils.formatters.format_value(*args, **kwargs)
 
-def get_print(doctype=None, name=None, print_format=None, style=None, html=None, as_pdf=False, doc=None, output = None, no_letterhead = 0):
+def get_print(doctype=None, name=None, print_format=None, style=None, html=None, as_pdf=False, doc=None, output = None):
 	"""Get Print Format for given document.
 
 	:param doctype: DocType of document.
@@ -1236,7 +1219,6 @@ def get_print(doctype=None, name=None, print_format=None, style=None, html=None,
 	local.form_dict.format = print_format
 	local.form_dict.style = style
 	local.form_dict.doc = doc
-	local.form_dict.no_letterhead = no_letterhead
 
 	if not html:
 		html = build_page("printview")
@@ -1332,20 +1314,6 @@ def enqueue(*args, **kwargs):
 	import frappe.utils.background_jobs
 	return frappe.utils.background_jobs.enqueue(*args, **kwargs)
 
-def enqueue_doc(*args, **kwargs):
-	'''
-		Enqueue method to be executed using a background worker
-
-		:param doctype: DocType of the document on which you want to run the event
-		:param name: Name of the document on which you want to run the event
-		:param method: method string or method object
-		:param queue: (optional) should be either long, default or short
-		:param timeout: (optional) should be set according to the functions
-		:param kwargs: keyword arguments to be passed to the method
-	'''
-	import frappe.utils.background_jobs
-	return frappe.utils.background_jobs.enqueue_doc(*args, **kwargs)
-
 def get_doctype_app(doctype):
 	def _get_doctype_app():
 		doctype_module = local.db.get_value("DocType", doctype, "module")
@@ -1376,7 +1344,7 @@ def safe_eval(code, eval_globals=None, eval_locals=None):
 	whitelisted_globals = {
 		"int": int,
 		"float": float,
-		"long": int,
+		"long": long,
 		"round": round
 	}
 
@@ -1392,7 +1360,7 @@ def safe_eval(code, eval_globals=None, eval_locals=None):
 	return eval(code, eval_globals, eval_locals)
 
 def get_system_settings(key):
-	if key not in local.system_settings:
+	if not local.system_settings.has_key(key):
 		local.system_settings.update({key: db.get_single_value('System Settings', key)})
 	return local.system_settings.get(key)
 

@@ -17,7 +17,7 @@ class TestBlogPost(unittest.TestCase):
 
 		self.assertTrue(response.status_code, 200)
 
-		html = response.get_data().decode()
+		html = response.get_data()
 		self.assertTrue('<article class="blog-content" itemscope itemtype="http://schema.org/BlogPosting">' in html)
 
 	def test_generator_not_found(self):

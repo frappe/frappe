@@ -14,15 +14,9 @@ frappe.ui.form.ControlTime = frappe.ui.form.ControlData.extend({
 			onShow: function() {
 				$('.datepicker--button:visible').text(__('Now'));
 			},
-			keyboardNav: false,
-			todayButton: true
+			todayButton: frappe.datetime.now_time(true)
 		});
 		this.datepicker = this.$input.data('datepicker');
-		this.datepicker.$datepicker
-			.find('[data-action="today"]')
-			.click(() => {
-				this.datepicker.selectDate(frappe.datetime.now_time(true));
-			});
 		this.refresh();
 	},
 	set_input: function(value) {

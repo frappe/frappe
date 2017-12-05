@@ -97,7 +97,6 @@ class Page(Document):
 	def load_assets(self):
 		from frappe.modules import get_module_path, scrub
 		import os
-		self.script = ''
 
 		page_name = scrub(self.name)
 

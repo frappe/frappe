@@ -10,7 +10,6 @@ from frappe.utils import (get_url, scrub_urls, strip, expand_relative_urls, cint
 import email.utils
 from six import iteritems, text_type, string_types
 from email.mime.multipart import MIMEMultipart
-from email.header import Header
 
 
 def get_email(recipients, sender='', msg='', subject='[No Subject]',
@@ -52,7 +51,7 @@ class EMail:
 	Also sets all messages as multipart/alternative for cleaner reading in text-only clients
 	"""
 	def __init__(self, sender='', recipients=(), subject='', alternative=0, reply_to=None, cc=(), email_account=None, expose_recipients=None):
-		from email import charset as Charset
+		from email import Charset
 		Charset.add_charset('utf-8', Charset.QP, Charset.QP, 'utf-8')
 
 		if isinstance(recipients, string_types):
@@ -74,14 +73,14 @@ class EMail:
 		self.cc = cc or []
 		self.html_set = False
 
-		self.email_account = email_account or get_outgoing_email_account(sender=sender)
+		self.email_account = email_account or get_outgoing_email_account()
 
 	def set_html(self, message, text_content = None, footer=None, print_html=None,
 		formatted=None, inline_images=None, header=None):
 		"""Attach message in the html portion of multipart/alternative"""
 		if not formatted:
 			formatted = get_formatted_html(self.subject, message, footer, print_html,
-				email_account=self.email_account, header=header, sender=self.sender)
+				email_account=self.email_account, header=header)
 
 		# this is the first html part of a multi-part message,
 		# convert to text well
@@ -184,7 +183,7 @@ class EMail:
 		if cint(self.email_account.always_use_account_email_id_as_sender):
 			self.set_header('X-Original-From', self.sender)
 			sender_name, sender_email = parse_addr(self.sender)
-			self.sender = email.utils.formataddr((str(Header(sender_name or self.email_account.name, 'utf-8')), self.email_account.email_id))
+			self.sender = email.utils.formataddr((sender_name or self.email_account.name, self.email_account.email_id))
 
 	def set_message_id(self, message_id, is_notification=False):
 		if message_id:
@@ -220,7 +219,10 @@ class EMail:
 			frappe.get_attr(hook)(self)
 
 	def set_header(self, key, value):
-		if key in self.msg_root:
+		key = encode(key)
+		value = encode(value)
+
+		if self.msg_root.has_key(key):
 			del self.msg_root[key]
 
 		self.msg_root[key] = value
@@ -232,9 +234,9 @@ class EMail:
 		return self.msg_root.as_string()
 
 def get_formatted_html(subject, message, footer=None, print_html=None,
-		email_account=None, header=None, unsubscribe_link=None, sender=None):
+		email_account=None, header=None, unsubscribe_link=None):
 	if not email_account:
-		email_account = get_outgoing_email_account(False, sender=sender)
+		email_account = get_outgoing_email_account(False)
 
 	rendered_email = frappe.get_template("templates/emails/standard.html").render({
 		"header": get_header(header),
@@ -322,9 +324,9 @@ def add_attachment(fname, fcontent, content_type=None,
 	# Set the filename parameter
 	if fname:
 		attachment_type = 'inline' if inline else 'attachment'
-		part.add_header('Content-Disposition', attachment_type, filename=text_type(fname))
+		part.add_header(b'Content-Disposition', attachment_type, filename=text_type(fname))
 	if content_id:
-		part.add_header('Content-ID', '<{0}>'.format(content_id))
+		part.add_header(b'Content-ID', '<{0}>'.format(content_id))
 
 	parent.attach(part)
 
@@ -415,11 +417,12 @@ def get_filecontent_from_path(path):
 		full_path = path
 
 	if os.path.exists(full_path):
-		with open(full_path, 'rb') as f:
+		with open(full_path) as f:
 			filecontent = f.read()
 
 		return filecontent
 	else:
+		print(full_path + ' doesn\'t exists')
 		return None
 
 

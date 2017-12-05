@@ -80,7 +80,7 @@ def is_static_file(path):
 	if ('.' not in path):
 		return False
 	extn = path.rsplit('.', 1)[-1]
-	if extn in ('html', 'md', 'js', 'xml', 'css', 'txt'):
+	if extn in ('html', 'md', 'js', 'xml', 'css'):
 		return False
 
 	for app in frappe.get_installed_apps():
@@ -100,6 +100,7 @@ def get_static_file_reponse():
 	response = Response(wrap_file(frappe.local.request.environ, f), direct_passthrough=True)
 	response.mimetype = mimetypes.guess_type(frappe.flags.file_path)[0] or b'application/octet-stream'
 	return response
+
 
 def build_response(path, data, http_status_code, headers=None):
 	# build response
@@ -167,9 +168,6 @@ def build_page(path):
 		frappe.local.path = path
 
 	context = get_context(path)
-	if context.title and "{{" in context.title:
-		title_template = context.pop('title')
-		context.title = frappe.render_template(title_template, context)
 
 	if context.source:
 		html = frappe.render_template(context.source, context)
