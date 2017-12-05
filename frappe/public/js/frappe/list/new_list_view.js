@@ -612,4 +612,30 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	save_view_user_settings(obj) {
 		return frappe.model.user_settings.save(this.doctype, this.view_name, obj);
 	}
+
+	on_update(data) {
+		if (data.doctype === this.doctype) {
+			this.refresh();
+		}
+	}
+
+	static trigger_list_update(data) {
+		const doctype = data.doctype;
+		if (!doctype) return;
+
+		// refresh tree view
+		if (frappe.views.trees[doctype]) {
+			frappe.views.trees[doctype].tree.refresh();
+			return;
+		}
+
+		// refresh list view
+		const page_name = frappe.get_route_str();
+		const list_view = frappe.views.list_view[page_name];
+		list_view && list_view.on_update(data);
+	}
 }
+
+$(document).on('save', function (event, doc) {
+	frappe.views.ListView.trigger_list_update(doc);
+});

@@ -41,7 +41,7 @@ $.extend(frappe.model, {
 		// setup refresh if the document is updated somewhere else
 		frappe.realtime.on("doc_update", function(data) {
 			// set list dirty
-			frappe.views.set_list_as_dirty(data.doctype);
+			frappe.views.ListView.trigger_list_update(doc);
 			var doc = locals[data.doctype] && locals[data.doctype][data.name];
 			if(doc) {
 				// current document is dirty, show message if its not me
@@ -63,7 +63,7 @@ $.extend(frappe.model, {
 		});
 
 		frappe.realtime.on("list_update", function(data) {
-			frappe.views.set_list_as_dirty(data);
+			frappe.views.ListView.trigger_list_update(data);
 		});
 
 	},
