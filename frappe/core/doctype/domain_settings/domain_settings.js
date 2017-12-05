@@ -3,29 +3,31 @@
 
 frappe.ui.form.on('Domain Settings', {
 	before_load: function(frm) {
-		frm.layout.add_fields([
-			{
-				fieldname: "active_domains_sb",
-				fieldtype: "Section Break",
-				label: __("Active Domains")
-			},
-			{
-				fieldname: "domains",
-				fieldtype: "MultiCheck",
-				label: __("Active Domains"),
-				get_data: () => {
-					let active_domains = (frm.doc.active_domains || []).map(row => row.domain);
-					return frappe.boot.all_domains.map(domain => {
-						return {
-							label: domain,
-							value: domain,
-							checked: active_domains.includes(domain)
-						};
-					});
+		if(!frm.fields_dict.domains) {
+			frm.layout.add_fields([
+				{
+					fieldname: "active_domains_sb",
+					fieldtype: "Section Break",
+					label: __("Active Domains")
+				},
+				{
+					fieldname: "domains",
+					fieldtype: "MultiCheck",
+					label: __("Active Domains"),
+					get_data: () => {
+						let active_domains = (frm.doc.active_domains || []).map(row => row.domain);
+						return frappe.boot.all_domains.map(domain => {
+							return {
+								label: domain,
+								value: domain,
+								checked: active_domains.includes(domain)
+							};
+						});
+					}
 				}
-			}
-		]);
-		frm.fields_dict.domains.refresh_input();
+			]);
+			frm.fields_dict.domains.refresh_input();
+		}
 	},
 
 	validate: function(frm) {
