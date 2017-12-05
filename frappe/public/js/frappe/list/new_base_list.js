@@ -382,13 +382,37 @@ class FilterArea {
 			.uniqBy(JSON.stringify);
 	}
 
-	add(...args) {
-		let promise;
-		if (Array.isArray(args[0])) {
-			promise = this.filter_list.add_filters(...args);
+	add(filters) {
+		if (typeof filters === 'string') {
+			// passed in the format of doctype, field, condition, value
+			const filter = Array.from(arguments);
+			filters = [filter];
 		}
-		promise = this.filter_list.add_filter(...args);
-		return promise.then(() => this.list_view.refresh());
+
+		const non_standard_filters = this.set_standard_filter(filters);
+		if (non_standard_filters.length === 0) {
+			return;
+		}
+
+		return this.filter_list.add_filters(non_standard_filters)
+			.then(() => this.list_view.refresh());
+	}
+
+	set_standard_filter(filters) {
+		const fields_dict = this.list_view.page.fields_dict;
+
+		return filters.filter(filter => {
+			const [dt, fieldname, condition, value] = filter;
+
+			if (fields_dict[fieldname] && condition === '=') {
+				// standard filter
+				fields_dict[fieldname].set_value(value);
+				return false;
+			} else {
+				// filter out non standard filters
+				return true;
+			}
+		});
 	}
 
 	remove(fieldname) {
