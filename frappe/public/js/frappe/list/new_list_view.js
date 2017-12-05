@@ -89,6 +89,19 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.setup_events();
 	}
 
+	setup_footnote_area() {
+		const match_rules_list = frappe.perm.get_match_rules(this.doctype);
+		const perm = frappe.perm.get_perm(this.doctype);
+
+		if (match_rules_list.length) {
+			this.$footnote_area =
+				frappe.utils.set_footnote(this.$footnote_area, this.$frappe_list,
+					frappe.render_template('list_permission_footer', {
+						condition_list: match_rules_list
+					}));
+		}
+	}
+
 	setup_columns() {
 		// setup columns for list view
 		this.columns = [];
@@ -273,7 +286,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const df = col.df || {};
 		const label = df.label;
 		const fieldname = df.fieldname;
-		const value = doc[fieldname];
+		const value = doc[fieldname] || '';
 
 		// listview_setting formatter
 		const formatters = this.settings.formatters;

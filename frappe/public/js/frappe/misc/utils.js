@@ -187,13 +187,11 @@ frappe.utils = {
 	},
 	set_footnote: function(footnote_area, wrapper, txt) {
 		if(!footnote_area) {
-			footnote_area = $('<div class="text-muted footnote-area">')
+			footnote_area = $('<div class="text-muted footnote-area level">')
 				.appendTo(wrapper);
 		}
 
 		if(txt) {
-			if(!txt.includes('<p>'))
-				txt = '<p>' + txt + '</p>';
 			footnote_area.html(txt);
 		} else {
 			footnote_area.remove();
