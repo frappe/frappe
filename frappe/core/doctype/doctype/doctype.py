@@ -321,7 +321,7 @@ class DocType(Document):
 	def export_doc(self):
 		"""Export to standard folder `[module]/doctype/[name]/[name].json`."""
 		from frappe.modules.export_file import export_to_files
-		export_to_files(record_list=[['DocType', self.name]], create_init=True)
+		export_to_files(record_list=[['DocType', self.name]])
 
 	def import_doc(self):
 		"""Import from standard folder `[module]/doctype/[name]/[name].json`."""
@@ -332,7 +332,7 @@ class DocType(Document):
 		"""Make boilerplate controller template."""
 		make_boilerplate("controller._py", self)
 
-		if not self.istable:
+		if not (self.istable or self.issingle):
 			make_boilerplate("test_controller._py", self.as_dict())
 
 		if not self.istable:
@@ -451,7 +451,7 @@ def validate_fields(meta):
 
 	def check_dynamic_link_options(d):
 		if d.fieldtype=="Dynamic Link":
-			doctype_pointer = list(filter(lambda df: df.fieldname==d.options, fields))
+			doctype_pointer = filter(lambda df: df.fieldname==d.options, fields)
 			if not doctype_pointer or (doctype_pointer[0].fieldtype not in ("Link", "Select")) \
 				or (doctype_pointer[0].fieldtype=="Link" and doctype_pointer[0].options!="DocType"):
 				frappe.throw(_("Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType'"))
@@ -595,15 +595,6 @@ def validate_fields(meta):
 					frappe.throw(_("Sort field {0} must be a valid fieldname").format(fieldname),
 						InvalidFieldNameError)
 
-	def check_illegal_depends_on_conditions(docfield):
-		''' assignment operation should not be allowed in the depends on condition.'''
-		depends_on_fields = ["depends_on", "collapsible_depends_on"]
-		for field in depends_on_fields:
-			depends_on = docfield.get(field, None)
-			if depends_on and ("=" in depends_on) and \
-				re.match("""[\w\.:_]+\s*={1}\s*[\w\.@'"]+""", depends_on):
-				frappe.throw(_("Invalid {0} condition").format(frappe.unscrub(field)), frappe.ValidationError)
-
 	fields = meta.get("fields")
 	fieldname_list = [d.fieldname for d in fields]
 
@@ -629,7 +620,6 @@ def validate_fields(meta):
 		check_in_global_search(d)
 		check_illegal_default(d)
 		check_unique_and_text(d)
-		check_illegal_depends_on_conditions(d)
 
 	check_fold(fields)
 	check_search_fields(meta, fields)
@@ -637,7 +627,6 @@ def validate_fields(meta):
 	check_timeline_field(meta)
 	check_is_published_field(meta)
 	check_sort_field(meta)
-	check_image_field(meta)
 
 def validate_permissions_for_doctype(doctype, for_remove=False):
 	"""Validates if permissions are set correctly."""
@@ -764,9 +753,6 @@ def validate_permissions(doctype, for_remove=False):
 def make_module_and_roles(doc, perm_fieldname="permissions"):
 	"""Make `Module Def` and `Role` records if already not made. Called while installing."""
 	try:
-		if doc.restrict_to_domain and not frappe.db.exists('Domain', doc.restrict_to_domain):
-			frappe.get_doc(dict(doctype='Domain', domain=doc.restrict_to_domain)).insert()
-
 		if not frappe.db.exists("Module Def", doc.module):
 			m = frappe.get_doc({"doctype": "Module Def", "module_name": doc.module})
 			m.app_name = frappe.local.module_app[frappe.scrub(doc.module)]

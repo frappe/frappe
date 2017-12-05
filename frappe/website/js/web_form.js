@@ -280,14 +280,10 @@ frappe.ready(function() {
 			callback: function(data) {
 				if(!data.exc) {
 					frappe.doc_name = data.message;
-					if(!frappe.login_required) {
-						show_success_message();
-					}
-
-					if(frappe.is_new && frappe.login_required) {
-						// reload page (with ID)
-						window.location.href = window.location.pathname + "?name=" + frappe.doc_name;
-					}
+					$form.addClass("hide");
+					$(".comments, .introduction, .page-head").addClass("hide");
+					scroll(0, 0);
+					set_message(frappe.success_link, true);
 
 					if(for_payment && data.message) {
 						// redirect to payment
@@ -302,13 +298,6 @@ frappe.ready(function() {
 			}
 		});
 		return true;
-	}
-
-	function show_success_message() {
-		$form.addClass("hide");
-		$(".comments, .introduction, .page-head").addClass("hide");
-		scroll(0, 0);
-		set_message(frappe.success_link, true);
 	}
 
 	function show_mandatory_missing() {
@@ -361,7 +350,7 @@ frappe.ready(function() {
 				}
 			});
 		}
-	});
+	})
 
 	// setup datepicker in all inputs within the given element
 	var setup_date_picker = function(ele) {
@@ -373,10 +362,7 @@ frappe.ready(function() {
 			$dates.datepicker({
 				language: "en",
 				autoClose: true,
-				dateFormat: frappe.datepicker_format,
-				onSelect: function(date, date_str, e) {
-					e.$el.trigger('change');
-				}
+				dateFormat: frappe.datepicker_format
 			});
 
 			// initialize dates from YYYY-MM-DD to user format
@@ -422,7 +408,7 @@ frappe.ready(function() {
 			});
 		});
 
-	};
+	}
 	setup_text_editor();
 });
 

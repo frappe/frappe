@@ -9,6 +9,11 @@ import frappe, os, json
 import frappe.utils
 from frappe import _
 
+lower_case_files_for = ['DocType', 'Page', 'Report',
+	"Workflow", 'Module Def', 'Desktop Item', 'Workflow State',
+	'Workflow Action', 'Print Format', "Website Theme", 'Web Form',
+	'Email Alert', 'Print Style']
+
 def export_module_json(doc, is_standard, module):
 	"""Make a folder for the given doc and add its json file (make it a standard
 		object that will be synced)"""
@@ -17,8 +22,7 @@ def export_module_json(doc, is_standard, module):
 		from frappe.modules.export_file import export_to_files
 
 		# json
-		export_to_files(record_list=[[doc.doctype, doc.name]], record_module=module,
-			create_init=is_standard)
+		export_to_files(record_list=[[doc.doctype, doc.name]], record_module=module)
 
 		path = os.path.join(frappe.get_module_path(module), scrub(doc.doctype),
 			scrub(doc.name), scrub(doc.name))
@@ -100,9 +104,8 @@ def sync_customizations_for_doctype(data):
 	update_schema = False
 
 	def sync(key, custom_doctype, doctype_fieldname):
-		doctypes = list(set(map(lambda row: row.get(doctype_fieldname), data[key])))
-		frappe.db.sql('delete from `tab{0}` where `{1}` in ({2})'.format(
-			custom_doctype, doctype_fieldname, ",".join(["'%s'" % dt for dt in doctypes])))
+		frappe.db.sql('delete from `tab{0}` where `{1}`=%s'.format(custom_doctype, doctype_fieldname),
+			doctype)
 
 		for d in data[key]:
 			d['doctype'] = custom_doctype
@@ -131,7 +134,11 @@ def scrub(txt):
 
 def scrub_dt_dn(dt, dn):
 	"""Returns in lowercase and code friendly names of doctype and name for certain types"""
-	return scrub(dt), scrub(dn)
+	ndt, ndn = dt, dn
+	if dt in lower_case_files_for:
+		ndt, ndn = scrub(dt), scrub(dn)
+
+	return ndt, ndn
 
 def get_module_path(module):
 	"""Returns path of the given module"""

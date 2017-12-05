@@ -83,15 +83,13 @@ class RazorpaySettings(Document):
 			frappe.throw(_("Please select another payment method. Razorpay does not support transactions in currency '{0}'").format(currency))
 
 	def get_payment_url(self, **kwargs):
-		integration_request = create_request_log(kwargs, "Host", "Razorpay")
-		return get_url("./integrations/razorpay_checkout?token={0}".format(integration_request.name))
+		return get_url("./integrations/razorpay_checkout?{0}".format(urlencode(kwargs)))
 
 	def create_request(self, data):
 		self.data = frappe._dict(data)
 
 		try:
-			self.integration_request = frappe.get_doc("Integration Request", self.data.token)
-			self.integration_request.update_status(self.data, 'Queued')
+			self.integration_request = create_request_log(self.data, "Host", "Razorpay")
 			return self.authorize_payment()
 
 		except Exception:

@@ -57,7 +57,7 @@ def get_value(doctype, fieldname, filters=None, as_dict=True, debug=False):
 	:param filters: dict or string for identifying the record'''
 
 	if not frappe.has_permission(doctype):
-		frappe.throw(_("No permission for {0}".format(doctype)), frappe.PermissionError)
+		frappe.throw(_("Not permitted"), frappe.PermissionError)
 
 	try:
 		filters = json.loads(filters)

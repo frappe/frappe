@@ -148,9 +148,9 @@ class OAuthWebRequestValidator(RequestValidator):
 			oc = frappe.get_doc("OAuth Client", request.client_id)
 		else:
 			#Extract token, instantiate OAuth Bearer Token and use clientid from there.
-			if "refresh_token" in frappe.form_dict:
+			if frappe.form_dict.has_key("refresh_token"):
 				oc = frappe.get_doc("OAuth Client", frappe.db.get_value("OAuth Bearer Token", {"refresh_token": frappe.form_dict["refresh_token"]}, 'client'))
-			elif "token" in frappe.form_dict:
+			elif frappe.form_dict.has_key("token"):
 				oc = frappe.get_doc("OAuth Client", frappe.db.get_value("OAuth Bearer Token", frappe.form_dict["token"], 'client'))
 			else:
 				oc = frappe.get_doc("OAuth Client", frappe.db.get_value("OAuth Bearer Token", frappe.get_request_header("Authorization").split(" ")[1], 'client'))
@@ -206,10 +206,7 @@ class OAuthWebRequestValidator(RequestValidator):
 
 		otoken = frappe.new_doc("OAuth Bearer Token")
 		otoken.client = request.client['name']
-		try:
-			otoken.user = request.user if request.user else frappe.db.get_value("OAuth Bearer Token", {"refresh_token":request.body.get("refresh_token")}, "user")
-		except Exception as e:
-			otoken.user = frappe.session.user
+		otoken.user = request.user if request.user else frappe.db.get_value("OAuth Bearer Token", {"refresh_token":request.body.get("refresh_token")}, "user")
 		otoken.scopes = get_url_delimiter().join(request.scopes)
 		otoken.access_token = token['access_token']
 		otoken.refresh_token = token.get('refresh_token')

@@ -61,13 +61,12 @@ class BackupGenerator:
 		import random
 
 		todays_date = now_datetime().strftime('%Y%m%d_%H%M%S')
-		site = frappe.local.site or frappe.generate_hash(length=8)
-		site = site.replace('.', '_')
+		random_string = frappe.generate_hash(length=8)
 
 		#Generate a random name using today's date and a 8 digit random number
-		for_db = todays_date + "-" + site + "-database.sql.gz"
-		for_public_files = todays_date + "-" + site + "-files.tar"
-		for_private_files = todays_date + "-" + site + "-private-files.tar"
+		for_db = todays_date + "_" + random_string + "_database.sql.gz"
+		for_public_files = todays_date + "_" + random_string + "_files.tar"
+		for_private_files = todays_date + "_" + random_string + "_private_files.tar"
 		backup_path = get_backup_path()
 
 		if not self.backup_path_db:
@@ -180,13 +179,11 @@ def delete_temp_backups(older_than=24):
 	"""
 		Cleans up the backup_link_path directory by deleting files older than 24 hours
 	"""
-	backup_path = get_backup_path()
-	if os.path.exists(backup_path):
-		file_list = os.listdir(get_backup_path())
-		for this_file in file_list:
-			this_file_path = os.path.join(get_backup_path(), this_file)
-			if is_file_old(this_file_path, older_than):
-				os.remove(this_file_path)
+	file_list = os.listdir(get_backup_path())
+	for this_file in file_list:
+		this_file_path = os.path.join(get_backup_path(), this_file)
+		if is_file_old(this_file_path, older_than):
+			os.remove(this_file_path)
 
 def is_file_old(db_file_name, older_than=24):
 		"""

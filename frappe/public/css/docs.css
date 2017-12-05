@@ -133,7 +133,6 @@
   background-color: #ff5858;
 }
 .navbar-form .awesomplete {
-  margin-left: -15px;
   width: 300px;
 }
 @media (max-width: 1199px) {
@@ -196,14 +195,13 @@
 }
 #navbar-breadcrumbs > li > a {
   padding: 6px 15px 10px 0px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  max-width: 170px;
 }
 @media (min-width: 991px) and (max-width: 1199px) {
   #navbar-breadcrumbs > li > a {
-    max-width: 120px;
+    max-width: 143px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 }
 .toolbar-user-fullname {

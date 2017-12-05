@@ -81,7 +81,7 @@ def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data
 			if field and ((select_columns and f[0] in select_columns[dt]) or not select_columns):
 				tablecolumns.append(field)
 
-		tablecolumns.sort(key = lambda a: int(a.idx))
+		tablecolumns.sort(lambda a, b: int(a.idx - b.idx))
 
 		_column_start_end = frappe._dict(start=0)
 

@@ -12,13 +12,7 @@ frappe.upload = {
 
 		// whether to show public/private checkbox or not
 		opts.show_private = !("is_private" in opts);
-		
-		// make private by default
-		if (!("options" in opts) || ("options" in opts &&
-			(opts.options && !opts.options.toLowerCase()=="public" && !opts.options.toLowerCase()=="image"))) {
-			opts.is_private = 1;
-		}
-		
+
 		var d = null;
 		// create new dialog if no parent given
 		if(!opts.parent) {
@@ -131,7 +125,7 @@ frappe.upload = {
 
 
 		if(!opts.btn) {
-			opts.btn = $('<button class="btn btn-default btn-sm attach-btn">' + __("Attach")
+			opts.btn = $('<button class="btn btn-default btn-sm">' + __("Attach")
 				+ '</div>').appendTo($upload);
 		} else {
 			$(opts.btn).unbind("click");
@@ -193,7 +187,7 @@ frappe.upload = {
 	},
 	upload_multiple_files: function(files /*FileData array*/, args, opts) {
 		var i = -1;
-		frappe.upload.total_files = files ? files.length : 0;
+
 		// upload the first file
 		upload_next();
 		// subsequent files will be uploaded after
@@ -206,7 +200,7 @@ frappe.upload = {
 				var file = files[i];
 				args.is_private = file.is_private;
 				if(!opts.progress) {
-					frappe.show_progress(__('Uploading'), i, files.length);
+					frappe.show_progress(__('Uploading'), i+1, files.length);
 				}
 			}
 			frappe.upload.upload_file(file, args, opts);
@@ -231,11 +225,10 @@ frappe.upload = {
 			return;
 		}
 
-		if(fileobj) {
-			frappe.upload.read_file(fileobj, args, opts);
-		} else {
-			// with file_url
+		if(args.file_url) {
 			frappe.upload._upload_file(fileobj, args, opts);
+		} else {
+			frappe.upload.read_file(fileobj, args, opts);
 		}
 	},
 
@@ -243,6 +236,7 @@ frappe.upload = {
 		if (args.file_size) {
 			frappe.upload.validate_max_file_size(args.file_size);
 		}
+
 		if(opts.on_attach) {
 			opts.on_attach(args, dataurl)
 		} else {
@@ -254,73 +248,55 @@ frappe.upload = {
 					"default": 1
 				}, function(values) {
 					args["is_private"] = values.is_private;
-					frappe.upload.upload_to_server(fileobj, args, opts);
+					frappe.upload.upload_to_server(fileobj, args, opts, dataurl);
 				}, __("Private or Public?"));
 			} else {
-				if (!("is_private" in args) && "is_private" in opts) {
+				if ("is_private" in opts) {
 					args["is_private"] = opts.is_private;
 				}
 
-				frappe.upload.upload_to_server(fileobj, args, opts);
+				frappe.upload.upload_to_server(fileobj, args, opts, dataurl);
 			}
 
 		}
 	},
 
 	read_file: function(fileobj, args, opts) {
-		args.filename = fileobj.name.split(' ').join('_');
-		args.file_url = null;
+		var freader = new FileReader();
 
-		if(opts.options && opts.options.toLowerCase()=="image") {
-			if(!frappe.utils.is_image_file(args.filename)) {
-				frappe.msgprint(__("Only image extensions (.gif, .jpg, .jpeg, .tiff, .png, .svg) allowed"));
-				return;
+		freader.onload = function() {
+			args.filename = fileobj.name.split(' ').join('_');
+			if(opts.options && opts.options.toLowerCase()=="image") {
+				if(!frappe.utils.is_image_file(args.filename)) {
+					frappe.msgprint(__("Only image extensions (.gif, .jpg, .jpeg, .tiff, .png, .svg) allowed"));
+					return;
+				}
 			}
-		}
 
-		let start_complete = frappe.cur_progress ? frappe.cur_progress.percent : 0;
-
-		var upload_with_filedata = function() {
-			let freader = new FileReader();
-			freader.onload = function() {
+			if((opts.max_width || opts.max_height) && frappe.utils.is_image_file(args.filename)) {
+				frappe.utils.resize_image(freader, function(_dataurl) {
+					var dataurl = _dataurl;
+					args.filedata = _dataurl.split(",")[1];
+					args.file_size = Math.round(args.filedata.length * 3 / 4);
+					console.log("resized!")
+					frappe.upload._upload_file(fileobj, args, opts, dataurl);
+				})
+			} else {
 				var dataurl = freader.result;
 				args.filedata = freader.result.split(",")[1];
 				args.file_size = fileobj.size;
 				frappe.upload._upload_file(fileobj, args, opts, dataurl);
-			};
-			freader.readAsDataURL(fileobj);
-		}
-
-		if (opts.no_socketio || frappe.flags.no_socketio) {
-			upload_with_filedata();
-			return;
-		}
-
-		frappe.socketio.uploader.start({
-			file: fileobj,
-			filename: args.filename,
-			is_private: args.is_private,
-			fallback: () => {
-				// if fails, use old filereader
-				upload_with_filedata();
-			},
-			callback: (data) => {
-				args.file_url = data.file_url;
-				frappe.upload._upload_file(fileobj, args, opts);
-			},
-			on_progress: (percent_complete) => {
-				let increment = (flt(percent_complete) / frappe.upload.total_files);
-				frappe.show_progress(__('Uploading'),
-					start_complete + increment);
 			}
-		});
+		};
+
+		freader.readAsDataURL(fileobj);
 	},
 
-	upload_to_server: function(file, args, opts) {
+	upload_to_server: function(fileobj, args, opts, dataurl) {
+		// var msgbox =	frappe.msgprint(__("Uploading..."));
 		if(opts.start) {
 			opts.start();
 		}
-
 		var ajax_args = {
 			"method": "uploadfile",
 			args: args,
@@ -392,7 +368,7 @@ frappe.upload = {
 				d.hide();
 				opts.loopcallback = function (){
 					if (i < j) {
-						args.is_private = d.fields_dict[fileobjs[i].name + "_is_private"].get_value();
+						args.is_private = d.fields_dict[fileobjs[i].name + "_is_private"].get_value()
 						frappe.upload.upload_file(fileobjs[i], args, opts);
 						i++;
 					}

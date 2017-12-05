@@ -265,14 +265,15 @@ class EmailAccount(Document):
 				uid_reindexed = emails.get("uid_reindexed", False)
 
 			for idx, msg in enumerate(incoming_mails):
-				uid = None if not uid_list else uid_list[idx]
 				try:
+					uid = None if not uid_list else uid_list[idx]
 					args = {
 						"uid": uid,
 						"seen": None if not seen_status else get_seen(seen_status.get(uid, None)),
 						"uid_reindexed": uid_reindexed
 					}
 					communication = self.insert_communication(msg, args=args)
+					#self.notify_update()
 
 				except SentEmailInInbox:
 					frappe.db.rollback()
@@ -281,7 +282,7 @@ class EmailAccount(Document):
 					frappe.db.rollback()
 					log('email_account.receive')
 					if self.use_imap:
-						self.handle_bad_emails(email_server, uid, msg, frappe.get_traceback())
+						self.handle_bad_emails(email_server, msg[1], msg[0], frappe.get_traceback())
 					exceptions.append(frappe.get_traceback())
 
 				else:
@@ -308,14 +309,13 @@ class EmailAccount(Document):
 				message_id = "can't be parsed"
 
 			unhandled_email = frappe.get_doc({
-				"raw": raw,
-				"uid": uid,
-				"reason":reason,
-				"message_id": message_id,
 				"doctype": "Unhandled Email",
-				"email_account": email_server.settings.email_account
+				"email_account": email_server.settings.email_account,
+				"uid": uid,
+				"message_id": message_id,
+				"reason":reason
 			})
-			unhandled_email.insert(ignore_permissions=True)
+			unhandled_email.save()
 			frappe.db.commit()
 
 	def insert_communication(self, msg, args={}):

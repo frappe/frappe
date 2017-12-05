@@ -5,11 +5,9 @@ frappe.ui.form.ControlDatetime = frappe.ui.form.ControlDate.extend({
 		this.date_format = moment.defaultDatetimeFormat;
 		$.extend(this.datepicker_options, {
 			timepicker: true,
-			timeFormat: "hh:ii:ss"
+			timeFormat: "hh:ii:ss",
+			todayButton: frappe.datetime.now_datetime(true)
 		});
-	},
-	get_now_date: function() {
-		return frappe.datetime.now_datetime(true);
 	},
 	set_description: function() {
 		const { description } = this.df;

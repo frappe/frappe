@@ -45,15 +45,21 @@ frappe.ui.form.on("Address", {
 		]);
 	},
 	flete: function (frm) {
-		frappe.call({
-			method: "erpnext.selling.doctype.freight.freight.get_address",
-			args: { name: frm.doc.flete },
-			callback: function (r, rt) {
-				if(r.message){
-					frm.set_value("flete_address", r.message);
-					frm.refresh_fields();
+		if(frm.doc.flete){
+			frappe.call({
+				method: "erpnext.selling.doctype.freight.freight.get_address",
+				args: { name: frm.doc.flete },
+				callback: function (r, rt) {
+					if(r.message){
+
+						frm.set_value("flete_address", r.message.address);
+						frm.set_value("flete_city", r.message.city);
+						frm.set_value("flete_state", r.message.state);
+
+						frm.refresh_fields();
+					}
 				}
-            }
-		});
+			});
+		}
     }
 });

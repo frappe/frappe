@@ -17,21 +17,15 @@ def get_context(context):
 	context.no_cache = 1
 	context.api_key = get_api_key()
 
-	try:
-		doc = frappe.get_doc("Integration Request", frappe.form_dict['token'])
-		payment_details = json.loads(doc.data)
-
+	# all these keys exist in form_dict
+	if not (set(expected_keys) - set(frappe.form_dict.keys())):
 		for key in expected_keys:
-			context[key] = payment_details[key]
+			context[key] = frappe.form_dict[key]
 
-		context['token'] = frappe.form_dict['token']
 		context['amount'] = flt(context['amount'])
 
-	except Exception:
-		frappe.redirect_to_message(_('Invalid Token'),
-			_('Seems token you are using is invalid!'),
-			http_status_code=400, indicator_color='red')
-
+	else:
+		frappe.redirect_to_message(_('Some information is missing'), _('Looks like someone sent you to an incomplete URL. Please ask them to look into it.'))
 		frappe.local.flags.redirect_location = frappe.local.response.location
 		raise frappe.Redirect
 
@@ -43,7 +37,7 @@ def get_api_key():
 	return api_key
 
 @frappe.whitelist(allow_guest=True)
-def make_payment(razorpay_payment_id, options, reference_doctype, reference_docname, token):
+def make_payment(razorpay_payment_id, options, reference_doctype, reference_docname):
 	data = {}
 
 	if isinstance(options, string_types):
@@ -52,8 +46,7 @@ def make_payment(razorpay_payment_id, options, reference_doctype, reference_docn
 	data.update({
 		"razorpay_payment_id": razorpay_payment_id,
 		"reference_docname": reference_docname,
-		"reference_doctype": reference_doctype,
-		"token": token
+		"reference_doctype": reference_doctype
 	})
 
 	data =  frappe.get_doc("Razorpay Settings").create_request(data)

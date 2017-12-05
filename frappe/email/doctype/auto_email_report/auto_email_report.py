@@ -103,7 +103,7 @@ class AutoEmailReport(Document):
 
 	@staticmethod
 	def get_spreadsheet_data(columns, data):
-		out = [[_(df.label) for df in columns], ]
+		out = [[df.label for df in columns], ]
 		for row in data:
 			new_row = []
 			out.append(new_row)

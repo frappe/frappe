@@ -128,7 +128,7 @@ def handle_exception(e):
 	http_status_code = getattr(e, "http_status_code", 500)
 	return_as_message = False
 
-	if frappe.local.is_ajax or 'application/json' in frappe.get_request_header('Accept'):
+	if frappe.local.is_ajax or 'application/json' in frappe.local.request.headers.get('Accept', ''):
 		# handle ajax responses first
 		# if the request is ajax, send back the trace or error message
 		response = frappe.utils.response.report_error(http_status_code)
@@ -166,7 +166,7 @@ def handle_exception(e):
 
 		frappe.respond_as_web_page("Server Error",
 			traceback, http_status_code=http_status_code,
-			indicator_color='red', width=640)
+			indicator_color='red')
 		return_as_message = True
 
 	if e.__class__ == frappe.AuthenticationError:
@@ -214,11 +214,11 @@ def serve(port=8000, profile=False, site=None, sites_path='.'):
 
 	if not os.environ.get('NO_STATICS'):
 		application = SharedDataMiddleware(application, {
-			'/assets': os.path.join(sites_path, 'assets'),
+			b'/assets': os.path.join(sites_path, 'assets'),
 		})
 
 		application = StaticDataMiddleware(application, {
-			'/files': os.path.abspath(sites_path)
+			b'/files': os.path.abspath(sites_path)
 		})
 
 	application.debug = True

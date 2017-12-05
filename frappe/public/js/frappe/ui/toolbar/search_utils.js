@@ -50,27 +50,24 @@ frappe.search.utils = {
 		find(values, keywords, function(match) {
 			var out = {
 				route: match[1]
-			};
-			if (match[1][0]==='Form') {
-				if (match[1].length > 2 && match[1][1] !== match[1][2]) {
+			}
+			if(match[1][0]==='Form') {
+				if(match[1][1] !== match[1][2]) {
 					out.label = __(match[1][1]) + " " + match[1][2].bold();
 					out.value = __(match[1][1]) + " " + match[1][2];
 				} else {
 					out.label = __(match[1][1]).bold();
 					out.value = __(match[1][1]);
 				}
-			} else if (in_list(['List', 'Report', 'Tree', 'modules', 'query-report'], match[1][0]) && (match[1].length > 1)) {
+			} else if(in_list(['List', 'Report', 'Tree', 'modules', 'query-report'], match[1][0])) {
 				var type = match[1][0], label = type;
 				if(type==='modules') label = 'Module';
 				else if(type==='query-report') label = 'Report';
 				out.label = __(match[1][1]).bold() + " " + __(label);
 				out.value = __(match[1][1]) + " " + __(label);
-			} else if (match[0]) {
+			} else {
 				out.label = match[0].bold();
 				out.value = match[0];
-			} else {
-				// eslint-disable-next-line
-				console.log('Illegal match', match);
 			}
 			out.index = 80;
 			return out;
@@ -493,8 +490,6 @@ frappe.search.utils = {
 			// 0 - 6 for fuzzy contain
 
 		// **Specific use-case step**
-		keywords = keywords || '';
-
 		var item = __(_item || '').replace(/-/g, " ");
 
 		var ilen = item.length;

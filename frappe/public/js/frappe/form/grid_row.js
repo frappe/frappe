@@ -2,10 +2,10 @@ frappe.ui.form.GridRow = Class.extend({
 	init: function(opts) {
 		this.on_grid_fields_dict = {};
 		this.on_grid_fields = [];
+		this.row_check_html = '<input type="checkbox" class="grid-row-check pull-left">';
 		this.columns = {};
 		this.columns_list = [];
 		$.extend(this, opts);
-		this.row_check_html = '<input type="checkbox" class="grid-row-check pull-left">';
 		this.make();
 	},
 	make: function() {
@@ -121,8 +121,6 @@ frappe.ui.form.GridRow = Class.extend({
 		if(this.grid_form) {
 			this.grid_form.layout && this.grid_form.layout.refresh(this.doc);
 		}
-
-		this.toggle_check();
 	},
 	render_template: function() {
 		this.set_row_index();
@@ -288,7 +286,7 @@ frappe.ui.form.GridRow = Class.extend({
 		// whether grid is editable
 		if(this.grid.allow_on_grid_editing() && this.grid.is_editable() && this.doc && show !== false) {
 
-			// disable other editable row
+			// disable other editale row
 			if(frappe.ui.form.editable_row
 				&& frappe.ui.form.editable_row !== this) {
 				frappe.ui.form.editable_row.toggle_editable_row(false);
@@ -308,10 +306,7 @@ frappe.ui.form.GridRow = Class.extend({
 		} else {
 			this.row.toggleClass('editable-row', false);
 			this.columns_list.forEach(function(column) {
-				if (!column.df.hidden) {
-					column.static_area.toggle(true);
-				}
-
+				column.static_area.toggle(true);
 				column.field_area && column.field_area.toggle(false);
 			});
 			frappe.ui.form.editable_row = null;

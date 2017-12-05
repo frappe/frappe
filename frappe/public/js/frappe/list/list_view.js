@@ -620,9 +620,7 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 		}
 
 		this.make_bulk_assignment();
-		if(frappe.model.can_print(this.doctype)) {
-			this.make_bulk_printing();
-		}
+		this.make_bulk_printing();
 
 		// add to desktop
 		this.page.add_menu_item(__('Add to Desktop'), function () {
@@ -779,7 +777,7 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 
 	setup_delete: function () {
 		var me = this;
-		if (!this.can_delete) {
+		if (!(this.can_delete || this.list_renderer.settings.selectable)) {
 			return;
 		}
 		this.$page.on('change', '.list-row-checkbox, .list-select-all', function() {

@@ -136,11 +136,6 @@
 
 .form-heatmap {
 
-	.heatmap {
-		display: flex;
-		justify-content: center;
-	}
-
 	.heatmap-message {
 		margin-top: 10px;
 	}
@@ -749,9 +744,11 @@ select.form-control {
 .control-code, .control-code.bold {
 	height: 400px;
 	font-family: Monaco, "Courier New", monospace;
-	color: @text-color;
+	background-color: black;
+	color: @light-yellow;
 	font-size: 12px;
 	line-height: 1.7em;
+	border: none;
 }
 
 .delivery-status-indicator {
@@ -760,10 +757,6 @@ select.form-control {
 	margin-left: 1px;
 	font-weight: 500;
 	color: @text-muted;
-}
-
-.attach-btn {
-	margin-top: 10px;
 }
 
 // above mobile
@@ -913,15 +906,4 @@ body[data-route^="Form/Communication"] textarea[data-fieldname="subject"] {
 	height: 80px !important;
 }
 
-.frappe-control[data-fieldtype="Attach"] {
-	.attached-file {
-		position: relative;
-		margin-top: 5px;
 
-		.close {
-			position: absolute;
-			top: 0;
-			right: 0;
-		}
-	}
-}
