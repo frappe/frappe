@@ -168,6 +168,11 @@ frappe.views.BaseList = class BaseList {
 	setup_page_head() {
 		this.page.set_title(this.page_title);
 		this.menu = new ListMenu(this);
+		this.set_breadcrumbs();
+	}
+
+	set_breadcrumbs() {
+		frappe.breadcrumbs.add(this.meta.module, this.doctype);
 	}
 
 	setup_side_bar() {
