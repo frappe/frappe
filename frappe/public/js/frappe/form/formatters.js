@@ -28,7 +28,6 @@ frappe.form.formatters = {
 			// options points to a currency field, but expects precision of float!
 			docfield.precision = precision;
 			return frappe.form.formatters.Currency(value, docfield, options, doc);
-
 		} else {
 			// show 1.000000 as 1
 			if (!(options || {}).always_show_decimals && !is_null(value)) {
@@ -56,16 +55,22 @@ frappe.form.formatters = {
 		if (precision > 2) {
 			let parts = cstr(value).split('.');
 			let decimals = parts.length > 1 ? parts[1] : '';
-			if (decimals.length < 3) {
+
+			// If you ever change the code below, it's going to hurt someone from UAE, a lot.
+
+			if ( decimals.length < precision ) {
+				// If the value stored in DB is less than expected currency precision.
+				const fraction = frappe.model.get_value(":Currency", currency, "fraction_units") || 100; // brutal, but okay.
+				precision      = cstr(precision).length - 1;
+				
+			} else if (decimals.length < 3) {
 				// min precision 2
 				precision = 2;
-			} else if (decimals.length < precision) {
-				// or min decimals
-				precision = decimals.length;
-			}
+			} 
 		}
 		value = (value==null || value==="") ?
 			"" : format_currency(value, currency, precision);
+		
 		if (options && options.only_value) {
 			return value;
 		} else {
