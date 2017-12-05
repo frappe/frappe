@@ -217,8 +217,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	get_header_html() {
 		const subject_field = this.columns[0].df;
 		let subject_html = `
-			<input class="level-item list-check-all hidden-xs" type="checkbox" title="${__("Select All")}" style="margin-top: 0">
-			<span class="level-item list-liked-by-me" style="margin-bottom: 1px;">
+			<input class="level-item list-check-all hidden-xs" type="checkbox" title="${__("Select All")}">
+			<span class="level-item list-liked-by-me">
 				<i class="octicon octicon-heart text-extra-muted" title="${__("Likes")}"></i>
 			</span>
 			<span class="level-item">${__(subject_field.label)}</span>
@@ -247,7 +247,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				</div>
 				<div class="level-left checkbox-actions">
 					<div class="level list-subject">
-						<input class="level-item list-check-all hidden-xs" type="checkbox" title="${__("Select All")}" style="margin-top: 0">
+						<input class="level-item list-check-all hidden-xs" type="checkbox" title="${__("Select All")}">
 						<span class="level-item list-header-meta"></span>
 					</div>
 				</div>
@@ -430,13 +430,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			.includes(user) ? 'seen' : '';
 
 		let subject_html = `
-			<input class="level-item list-row-checkbox hidden-xs"
-				type="checkbox" style="margin-top: 0"
-				data-name="${doc.name}"
-			>
-			<span class="level-item"
-				style="margin-bottom: 1px;"
-			>
+			<input class="level-item list-row-checkbox hidden-xs" type="checkbox" data-name="${doc.name}">
+			<span class="level-item" style="margin-bottom: 1px;">
 				<i class="octicon octicon-heart like-action ${heart_class}"
 					data-name="${doc.name}" data-doctype="${this.doctype}"
 					data-liked-by="${encodeURI(doc._liked_by) || '[]'}"

@@ -192,6 +192,14 @@
 	display: none;
 }
 
+.list-liked-by-me {
+	margin-bottom: 1px;
+}
+
+input.list-check-all, input.list-row-checkbox {
+	margin-top: 0px;
+}
+
 .filterable {
 	cursor: pointer;
 }
@@ -325,6 +333,7 @@
 		padding: 15px;
 		border-bottom: 1px solid @light-border-color;
 		border-right: 1px solid @light-border-color;
+		max-width: 100%/4;
 	}
 
 	.image-view-item:nth-child(4n) {
@@ -360,6 +369,10 @@
 
 		img {
 			max-height: 100%;
+		}
+
+		&.no-image {
+			background-color: @light-bg;
 		}
 	}
 
@@ -408,6 +421,7 @@
 .image-view-container.three-column {
 	.image-view-item {
 		flex: 0 0 100%/3;
+		max-width: 100%/3;
 	}
 
 	.image-view-item:nth-child(3n) {
