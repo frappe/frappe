@@ -110,7 +110,7 @@ frappe.provide("frappe.views");
 			save_filters: function (updater) {
 				if(saving_filters) return;
 				saving_filters = true;
-				var filters = JSON.stringify(this.cur_list.filter_list.get_filters());
+				var filters = JSON.stringify(this.cur_list.filter_area.get());
 				frappe.call({
 					method: method_prefix + 'save_filters',
 					args: {
@@ -1047,9 +1047,9 @@ frappe.provide("frappe.views");
 		return new Promise(function(resolve, reject) {
 			setTimeout(function() {
 				// sometimes the filter_list is not initiated, so early return
-				if(!cur_list.filter_list) resolve(false);
+				if (!cur_list.filter_area) resolve(false);
 
-				var list_filters = JSON.stringify(cur_list.filter_list.get_filters());
+				var list_filters = JSON.stringify(cur_list.filter_area.get());
 				resolve(list_filters !== board.filters);
 			}, 2000);
 		})

@@ -18,9 +18,8 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 			route.push(user_settings.last_kanban_board);
 			frappe.set_route(route);
 			return true;
-		} else {
-			return false;
 		}
+		return false;
 	}
 
 	setup_defaults() {
@@ -31,7 +30,6 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 
 	show() {
 		super.show();
-		// debugger;
 		this.save_view_user_settings({
 			last_kanban_board: this.board_name
 		});
@@ -41,6 +39,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		const board_name = this.board_name;
 		if(this.kanban && board_name === this.kanban.board_name) {
 			this.kanban.update(this.data);
+			this.kanban.$kanban_board.trigger('after-refresh');
 			return;
 		}
 
@@ -52,6 +51,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 			cur_list: this,
 			user_settings: this.view_user_settings
 		});
+		this.kanban.$kanban_board.trigger('after-refresh');
 	}
 
 	get required_libs() {
