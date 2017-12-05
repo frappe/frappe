@@ -3,10 +3,12 @@ import frappe
 from frappe.utils.global_search import web_search
 from html2text import html2text
 from frappe import _
+from jinja2 import utils
 
 def get_context(context):
 	context.no_cache = 1
 	if frappe.form_dict.q:
+		frappe.form_dict.q = str(utils.escape(frappe.form_dict.q))
 		context.title = _('Search Results for "{0}"').format(frappe.form_dict.q)
 		context.update(get_search_results(frappe.form_dict.q))
 	else:
