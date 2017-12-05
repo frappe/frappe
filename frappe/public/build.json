@@ -301,8 +301,6 @@
 	"js/list.min.js": [
 		"public/js/frappe/ui/listing.html",
 
-		"public/js/frappe/ui/base_list.js",
-
 		"public/js/frappe/model/indicator.js",
 		"public/js/frappe/ui/filters/filter.js",
 		"public/js/frappe/ui/filters/filter_list.js",
@@ -313,9 +311,9 @@
 		"public/js/frappe/ui/liked_by.html",
 		"public/html/print_template.html",
 
+		"public/js/frappe/list/base_list.js",
 		"public/js/frappe/list/list_view.js",
-		"public/js/frappe/list/new_base_list.js",
-		"public/js/frappe/list/new_list_view.js",
+		"public/js/frappe/list/list_factory.js",
 
 		"public/js/frappe/list/list_sidebar.js",
 		"public/js/frappe/list/list_sidebar.html",
@@ -327,7 +325,6 @@
 		"public/js/frappe/list/list_item_subject.html",
 		"public/js/frappe/list/list_permission_footer.html",
 
-		"public/js/frappe/list/list_renderer.js",
 		"public/js/frappe/views/gantt/gantt_view.js",
 		"public/js/frappe/views/calendar/calendar.js",
 		"public/js/frappe/views/image/image_view.js",
