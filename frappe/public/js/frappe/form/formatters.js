@@ -61,7 +61,7 @@ frappe.form.formatters = {
 			if ( decimals.length < precision ) {
 				// If the value stored in DB is less than expected currency precision.
 				const fraction = frappe.model.get_value(":Currency", currency, "fraction_units") || 100; // brutal, but okay.
-				precision      = cstr(precision).length - 1;
+				precision      = cstr(fraction).length - 1;
 				
 			} else if (decimals.length < 3) {
 				// min precision 2
