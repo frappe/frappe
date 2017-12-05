@@ -9,30 +9,46 @@ frappe.ui.form.on('Data Import', {
 		}
 		frm.get_field('reference_doctype').df.options = doctype_options;
 	},
-	
+
 	onload: function(frm) {
-		frm.disable_save();
-		frappe.realtime.on("data_import", function(data) {
-			if(data.progress) {
-				frappe.hide_msgprint(true);
-				frappe.show_progress(__("Importing"), data.progress[0],
-				data.progress[1]);
+		frappe.realtime.on("data_import_progress", function(data) {
+			if (data.data_import === frm.doc.name) {
+				if (data.reload && data.reload === true) {
+					frm.reload_doc();
+				}
+				if (data.progress) {
+					let progress_bar = $(cur_frm.dashboard.progress_area).find(".progress-bar");
+					if (progress_bar) {
+						$(progress_bar).removeClass("progress-bar-danger").addClass("progress-bar-success progress-bar-striped");
+						$(progress_bar).css("width", data.progress+"%");
+					}
+				}
 			}
-		});		
+		});
 	},
-				
+
 	refresh: function(frm) {
+		frm.disable_save();
+		if (frm.doc.import_status) {
+			frm.dashboard.clear_headline();
+			frm.dashboard.add_comment(frm.doc.import_status);
+		}
+		if (frm.doc.import_status==="In Progress") {
+			frm.dashboard.add_progress("Data Import Progress", "0");
+			frm.set_read_only();
+		}
+
 		var download_dialog = new frappe.ui.Dialog({
 			title: __('Download Template'),
 			fields: [
 				{
-					"label": "Document Fields",
-					"fieldname": "document_fields",
+					"label": "Select Columns",
+					"fieldname": "select_columns",
 					"fieldtype": "Select",
-					"options": "Select All\nSelect Mandatory\nSelect Manually",
+					"options": "All\nMandatory\nManually",
 					"reqd": 1,
 					"onchange": function() {
-						frm.$dialog_wrapper = $(download_dialog.fields_dict.doctype_columns.wrapper).empty();						
+						frm.$dialog_wrapper = $(download_dialog.fields_dict.doctype_columns.wrapper).empty();
 						frappe.model.with_doctype(frm.doc.reference_doctype, function() {
 							if(frm.doc.reference_doctype) {
 								// render select columns
@@ -48,14 +64,14 @@ frappe.ui.form.on('Data Import', {
 									.appendTo(frm.$dialog_wrapper.empty());
 								}
 						});
-						if (this.value === "Select All") {
+						if (this.value === "All") {
 							frm.$dialog_wrapper.addClass("hidden");
 							frm.$dialog_wrapper.find('.select-column-check').prop('checked', true);
-						} else if (this.value === "Select Mandatory") {
+						} else if (this.value === "Mandatory") {
 							frm.$dialog_wrapper.addClass("hidden");
 							frm.$dialog_wrapper.find('.select-column-check').prop('checked', false);
 							frm.$dialog_wrapper.find('.select-column-check[data-reqd="1"]').prop('checked', true);
-						} else if (this.value === "Select Manually") {
+						} else if (this.value === "Manually") {
 							frm.$dialog_wrapper.removeClass("hidden");
 						}
 					}
@@ -81,7 +97,7 @@ frappe.ui.form.on('Data Import', {
 			primary_action: function() {
 				var data = download_dialog.get_values();
 				if (frm.doc.reference_doctype) {
-					var export_params = ()  => {
+					var export_params = () => {
 						let columns = {};
 						frm.$dialog_wrapper.find('.select-column-check:checked').each(function() {
 							let _doctype = $(this).attr('data-doctype');
@@ -105,7 +121,7 @@ frappe.ui.form.on('Data Import', {
 					open_url_post(get_template_url, export_params());
 				} else {
 					frappe.msgprint(__("Please select the Document Type."))
-				}			
+				}
 				download_dialog.hide();
 			},
 			primary_action_label: __('Download')
@@ -114,28 +130,27 @@ frappe.ui.form.on('Data Import', {
 			frappe.help.show_video("6wiriRKPhmg");
 		});
 
-		if(frm.doc.reference_doctype) {
+		if(frm.doc.reference_doctype && frm.doc.docstatus === 0) {
 			frm.add_custom_button(__("Download template"), function() {
 				download_dialog.show();
 			});
 		}
-		
-		if (frm.doc.reference_doctype && frm.doc.import_file) {
-			frm.add_custom_button(__("Validate Template"), function() {
-				frm.events.data_import(frm, true);
-			});
+
+		if (frm.doc.reference_doctype && frm.doc.import_file && frm.doc.total_rows  && frm.doc.docstatus === 0) {
 			frm.add_custom_button(__("Start Import"), function() {
-				frm.events.data_import(frm, false);
+				frappe.call({
+					method: "frappe.core.doctype.data_import.data_import.import_data",
+					args: {
+						data_import: frm.doc.name
+					}
+				});
 			}).addClass('btn btn-primary');
 		}
-		
+
 		if (frm.doc.log_details) {
 			frm.events.write_messages(frm);
-			// if (frm.doc.import_status == "Success") {
-			// 	frm.disable_save();
-			// } else {
-			// 	frm.enable_save();
-			// }
+		} else {
+			var $log_wrapper = $(frm.fields_dict.import_log.wrapper).empty();
 		}
 	},
 	
@@ -171,33 +186,10 @@ frappe.ui.form.on('Data Import', {
 		frm.save();
 	},
 
-	data_import: function(frm, validate) {
-		frappe.call({
-			method: "import_data",
-			doc: frm.doc,
-			args: {
-				validate: validate
-			},
-			callback: function(r) {
-				frm.refresh();
-			}
-		});
-	},
-
 	write_messages: function(frm) {
 		msg = JSON.parse(frm.doc.log_details);
 		var $log_wrapper = $(frm.fields_dict.import_log.wrapper).empty();
-		
-		frappe.hide_msgprint(true);
-		frappe.hide_progress();
-
-		if (msg.error == false) {
-			$(frappe.render_template("log_detail_template", {data:msg.messages}))
-				.appendTo($log_wrapper);	
-		}
-		else {
-			$(frappe.render_template("log_detail_template", {data:msg.messages}))
-				.appendTo($log_wrapper);
-		}
+		$(frappe.render_template("log_details", {data: msg.messages}))
+			.appendTo($log_wrapper);
 	}
 });
