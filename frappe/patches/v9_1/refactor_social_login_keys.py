@@ -50,6 +50,7 @@ def execute():
 	if social_login_keys.facebook_client_id or social_login_keys.facebook_client_secret:
 		facebook_login_key = frappe.new_doc("Social Login Key")
 		facebook_login_key.get_social_login_provider("Facebook", initialize=True)
+		facebook_login_key.social_login_provider = "Facebook"
 		facebook_login_key.client_id = social_login_keys.facebook_client_id
 		facebook_login_key.client_secret = social_login_keys.facebook_client_secret
 		facebook_login_key.save()
@@ -57,6 +58,7 @@ def execute():
 	if social_login_keys.frappe_server_url:
 		frappe_login_key = frappe.new_doc("Social Login Key")
 		frappe_login_key.get_social_login_provider("Frappe", initialize=True)
+		frappe_login_key.social_login_provider = "Frappe"
 		frappe_login_key.base_url = social_login_keys.frappe_server_url
 		frappe_login_key.client_id = social_login_keys.frappe_client_id
 		frappe_login_key.client_secret = social_login_keys.frappe_client_secret
@@ -65,6 +67,7 @@ def execute():
 	if social_login_keys.github_client_id or social_login_keys.github_client_secret:
 		github_login_key = frappe.new_doc("Social Login Key")
 		github_login_key.get_social_login_provider("GitHub", initialize=True)
+		github_login_key.social_login_provider = "GitHub"
 		github_login_key.client_id = social_login_keys.github_client_id
 		github_login_key.client_secret = social_login_keys.github_client_secret
 		github_login_key.save()
@@ -72,6 +75,7 @@ def execute():
 	if social_login_keys.google_client_id or social_login_keys.google_client_secret:
 		google_login_key = frappe.new_doc("Social Login Key")
 		google_login_key.get_social_login_provider("Google", initialize=True)
+		google_login_key.social_login_provider = "Google"
 		google_login_key.client_id = social_login_keys.google_client_id
 		google_login_key.client_secret = social_login_keys.google_client_secret
 		google_login_key.save()
