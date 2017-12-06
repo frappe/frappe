@@ -592,4 +592,12 @@ frappe.ui.form.GridRow = Class.extend({
 	toggle_editable: function(fieldname, editable) {
 		this.set_field_property(fieldname, 'read_only', editable ? 0 : 1);
 	},
+
+	toggle_check: function() {
+		// to hide checkbox if grid is not editable
+		// BAZZ need checkboxes not hidden when grid is not editable
+		/**this.wrapper
+			.find('.grid-row-check')
+			.css("display", this.grid.is_editable()? 'block':'none');*/
+	}
 });
