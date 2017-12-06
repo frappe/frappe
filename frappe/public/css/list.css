@@ -138,7 +138,10 @@
   justify-content: flex-end;
   min-width: 120px;
 }
-.list-row-activity span {
+.list-row-activity .avatar:not(.avatar-empty) {
+  margin: 0;
+}
+.list-row-activity > span {
   display: inline-block;
   margin-left: 10px;
   margin-right: 0;

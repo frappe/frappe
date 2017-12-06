@@ -171,7 +171,11 @@
 	justify-content: flex-end;
 	min-width: 120px;
 
-	span {
+	.avatar:not(.avatar-empty) {
+		margin: 0;
+	}
+
+	&> span {
 		display: inline-block;
 		margin-left: 10px;
 		margin-right: 0;

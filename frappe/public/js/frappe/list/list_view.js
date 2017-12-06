@@ -489,6 +489,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	setup_events() {
 		// filterable events
 		this.$result.on('click', '.filterable', e => {
+			if (e.metaKey || e.ctrlKey) return;
 			e.stopPropagation();
 			const $this = $(e.currentTarget);
 			const filters = $this.attr('data-filter').split('|');
@@ -508,11 +509,20 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.$result.on('click', '.list-row', (e) => {
 			const $target = $(e.target);
 
+			// tick checkbox if Ctrl/Meta key is pressed
+			if (e.ctrlKey || e.metaKey && !$target.is('a')) {
+				const $list_row = $(e.currentTarget);
+				const $check = $list_row.find('.list-row-checkbox');
+				$check.prop('checked', !$check.prop('checked'));
+				e.preventDefault();
+				return;
+			}
+
 			// don't open form when checkbox, like, filterable are clicked
-			if ($target.hasClass('filterable')
-				|| $target.hasClass('octicon-heart')
-				|| $target.is(':checkbox')
-				|| $target.is('a')
+			if ($target.hasClass('filterable') ||
+				$target.hasClass('octicon-heart') ||
+				$target.is(':checkbox') ||
+				$target.is('a')
 			) {
 				return;
 			}
@@ -539,8 +549,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				const $check = this.$result.find('.checkbox-actions .list-check-all');
 				$check.prop('checked', $target.prop('checked'));
 				$check.trigger('change');
-			}
-			else if ($target.is('.checkbox-actions .list-check-all')) {
+			} else if ($target.is('.checkbox-actions .list-check-all')) {
 				const $check = this.$result.find('.list-header-subject .list-check-all');
 				$check.prop('checked', $target.prop('checked'));
 
@@ -549,6 +558,29 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			}
 
 			this.on_row_checked();
+		});
+
+		this.$result.on('click', '.list-row-checkbox', e => {
+			const $target = $(e.currentTarget);
+
+			// shift select checkboxes
+			if (e.shiftKey && this.$checkbox_cursor && !$target.is(this.$checkbox_cursor)) {
+				const name_1 = this.$checkbox_cursor.data().name;
+				const name_2 = $target.data().name;
+				const index_1 = this.data.findIndex(d => d.name === name_1);
+				const index_2 = this.data.findIndex(d => d.name === name_2);
+				let [min_index, max_index] = [index_1, index_2];
+
+				if (min_index > max_index) {
+					[min_index, max_index] = [max_index, min_index];
+				}
+
+				let docnames = this.data.slice(min_index + 1, max_index).map(d => d.name);
+				const selector = docnames.map(name => `.list-row-checkbox[data-name="${name}"]`).join(',');
+				this.$result.find(selector).prop('checked', true);
+			}
+
+			this.$checkbox_cursor = $target;
 		});
 	}
 
@@ -573,7 +605,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.$checkbox_actions = this.$checkbox_actions || this.$result.find('header .checkbox-actions');
 
 		const $checks = this.$result.find('.list-row-checkbox:checked');
-
 
 		this.$list_head_subject.toggle($checks.length === 0);
 		this.$checkbox_actions.toggle($checks.length > 0);
@@ -611,13 +642,13 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		frappe.confirm(__('Delete {0} items permanently?', [docnames.length]),
 			() => {
 				frappe.call({
-					method: 'frappe.desk.reportview.delete_items',
-					freeze: true,
-					args: {
-						items: docnames,
-						doctype: this.doctype
-					}
-				})
+						method: 'frappe.desk.reportview.delete_items',
+						freeze: true,
+						args: {
+							items: docnames,
+							doctype: this.doctype
+						}
+					})
 					.then((r) => {
 						const failed = r.message;
 						if (failed && failed.length && !r._server_messages) {
