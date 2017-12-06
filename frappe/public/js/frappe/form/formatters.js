@@ -50,23 +50,24 @@ frappe.form.formatters = {
 	Percent: function(value, docfield, options) {
 		return frappe.form.formatters._right(flt(value, 2) + "%", options)
 	},
-	Currency: function(value, docfield, options, doc) {
-		var currency = frappe.meta.get_field_currency(docfield, doc);
+	Currency: function (value, docfield, options, doc) {
+		var currency  = frappe.meta.get_field_currency(docfield, doc);
 		var precision = docfield.precision || cint(frappe.boot.sysdefaults.currency_precision) || 2;
+
+		// If you change anything below, it's going to hurt a company in UAE, a bit.
 		if (precision > 2) {
-			let parts = cstr(value).split('.');
-			let decimals = parts.length > 1 ? parts[1] : '';
-			if (decimals.length < 3) {
-				// min precision 2
-				precision = 2;
-			} else if (decimals.length < precision) {
-				// or min decimals
-				precision = decimals.length;
+			var parts	 = cstr(value).split("."); // should be minimum 2, comes from the DB
+			var decimals = parts.length > 1 ? parts[1] : ""; // parts.length == 2 ???
+			
+			if ( decimals.length < 3 || decimals.length < precision ) {
+				const fraction = frappe.model.get_value(":Currency", currency, "fraction_units") || 100; // if not set, minimum 2.
+				precision      = cstr(fraction).length - 1;
 			}
 		}
-		value = (value==null || value==="") ?
-			"" : format_currency(value, currency, precision);
-		if (options && options.only_value) {
+		
+		value = (value == null || value == "") ? "" : format_currency(value, currency, precision);
+		
+		if ( options && options.only_value ) {
 			return value;
 		} else {
 			return frappe.form.formatters._right(value, options);
