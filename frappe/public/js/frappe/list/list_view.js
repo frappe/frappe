@@ -12,9 +12,12 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		frappe.model.user_settings.save(this.doctype, 'last_view', this.view_name);
 	}
 
+	get view_user_settings() {
+		return this.user_settings[this.view_name] || {};
+	}
+
 	setup_defaults() {
 		super.setup_defaults();
-		this.view_user_settings = this.user_settings[this.view_name] || {};
 		// throttle refresh for 1s
 		this.refresh = frappe.utils.throttle(this.refresh, 1000);
 		this.load_lib = new Promise(resolve => {

@@ -203,7 +203,15 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		this.setup_columns();
 
 		this.datatable.destroy();
+		this.datatable = null;
 		this.refresh(true);
+	}
+
+	build_fields() {
+		super.build_fields();
+		this.save_view_user_settings({
+			fields: this._fields
+		});
 	}
 
 	remove_column_from_datatable(column) {
