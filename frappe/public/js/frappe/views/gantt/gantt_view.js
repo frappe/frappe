@@ -140,13 +140,11 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 		const active_class = view_mode => view_mode === this.gantt_view_mode ? 'btn-info' : '';
 		const html =
 			`<div class="btn-group gantt-view-mode">
-				${view_modes.map(value =>
-					`<button type="button"
+				${view_modes.map(value => `<button type="button"
 						class="btn btn-default btn-sm btn-view-mode ${active_class(value)}"
 						data-value="${value}">
 						${__(value)}
-					</button>`
-			).join('')}
+					</button>`).join('')}
 			</div>`;
 
 		this.$paging_area.find('.level-left').append(html);

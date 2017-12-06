@@ -80,7 +80,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			getValue: () => {
 				return control.get_value();
 			}
-		}
+		};
 	}
 
 	set_control_value(docname, fieldname, value) {
@@ -95,7 +95,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 					}
 				})
 				.fail(reject);
-		})
+		});
 	}
 
 	render_editing_input(colIndex, value, parent) {
@@ -138,7 +138,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		return {
 			columns: this.columns,
 			rows: this.build_rows(values)
-		}
+		};
 	}
 
 	set_fields() {
@@ -164,7 +164,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			return (df.in_list_view || df.in_standard_filter)
 				&& frappe.perm.has_perm(this.doctype, df.permlevel, 'read')
 				&& frappe.model.is_value_type(df.fieldtype)
-				&& !df.report_hide
+				&& !df.report_hide;
 		});
 
 		fields.map(add_field);
@@ -177,17 +177,6 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				add_field(df.options.split(':')[1]);
 			} else {
 				add_field(df.options);
-			}
-		});
-
-		// image fields
-		const image_fields = fields.filter(
-			df => df.fieldtype === 'Image'
-		).map(df => {
-			if (df.options) {
-				add_field(df.options);
-			} else {
-				add_field(df.fieldname);
 			}
 		});
 
@@ -280,15 +269,12 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			content: title, // required by datatable
 			width: (docfield ? cint(docfield.width) : 120) || 120,
 			editable: editable
-		}
+		};
 	}
 
 	build_rows(data) {
 		return data.map(d => {
 			return this.columns.map(col => {
-				if (col.name === 'Sr.') {
-					return { content: i };
-				}
 				if (col.field in d) {
 					const value = d[col.field];
 					return {
@@ -297,7 +283,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 						format: function (value) {
 							return frappe.format(value, col.docfield, { always_show_decimals: true });
 						}
-					}
+					};
 				}
 				return {
 					content: ''
@@ -305,4 +291,4 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			});
 		});
 	}
-}
+};

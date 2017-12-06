@@ -110,7 +110,7 @@ frappe.ui.Filter = class {
 	set_field(doctype, fieldname, fieldtype, condition) {
 		// set in fieldname (again)
 		let cur = {};
-		if(this.field) for(k in this.field.df) cur[k] = this.field.df[k];
+		if(this.field) for(let k in this.field.df) cur[k] = this.field.df[k];
 
 		let original_docfield = this.fieldselect.fields_by_name[doctype][fieldname];
 		if(!original_docfield) {

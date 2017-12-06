@@ -52,10 +52,8 @@ frappe.provide("frappe.views");
 			},
 			update_cards: function (updater, cards) {
 				var state = this;
-				var _cards =
-					cards.map(card => {
-						return prepare_card(card, state);
-					})
+				var _cards = cards
+					.map(card => prepare_card(card, state))
 					.concat(this.cards)
 					.uniqBy(card => card.name);
 
@@ -203,8 +201,7 @@ frappe.provide("frappe.views");
 							columns: columns
 						});
 					}
-				})
-				.fail(function(e) {
+				}).fail(function(e) {
 					// revert original order
 					updater.set({
 						cards: _cards,
@@ -370,8 +367,8 @@ frappe.provide("frappe.views");
 		function setup_restore_columns() {
 			var cur_list = store.getState().cur_list;
 			var columns = store.getState().columns;
-			var list_row_right =
-				cur_list.$page.find(`[data-list-renderer='Kanban'] .list-row-right`)
+			var list_row_right = cur_list.$page
+				.find(`[data-list-renderer='Kanban'] .list-row-right`)
 				.css('margin-right', '15px');
 			list_row_right.empty();
 

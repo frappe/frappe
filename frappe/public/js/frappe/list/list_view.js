@@ -180,9 +180,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				<div class="list-row freeze-row level">
 					<div class="level-left">
 						<div class="list-row-col list-subject"></div>
-						${columns.slice(1).map(c =>
-							`<div class="list-row-col"></div>`
-						).join('')}
+						${columns.slice(1).map(c => `<div class="list-row-col"></div>`).join('')}
 					</div>
 					<div class="level-right"></div>
 				</div>
@@ -242,10 +240,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 			return `
 				<div class="${classes}">
-					${col.type === 'Subject' ?
-					subject_html :
-					`<span>${__(col.df && col.df.label || col.type)}</span>`
-				}
+					${col.type === 'Subject' ? subject_html : `
+					<span>${__(col.df && col.df.label || col.type)}</span>`}
 				</div>
 			`;
 		}).join('');
@@ -642,23 +638,22 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		frappe.confirm(__('Delete {0} items permanently?', [docnames.length]),
 			() => {
 				frappe.call({
-						method: 'frappe.desk.reportview.delete_items',
-						freeze: true,
-						args: {
-							items: docnames,
-							doctype: this.doctype
-						}
-					})
-					.then((r) => {
-						const failed = r.message;
-						if (failed && failed.length && !r._server_messages) {
-							frappe.throw(__('Cannot delete {0}', [failed.map(f => f.bold()).join(', ')]))
-						}
-						if (failed.length < docnames.length) {
-							frappe.utils.play_sound('delete');
-							this.refresh(true);
-						}
-					});
+					method: 'frappe.desk.reportview.delete_items',
+					freeze: true,
+					args: {
+						items: docnames,
+						doctype: this.doctype
+					}
+				}).then((r) => {
+					const failed = r.message;
+					if (failed && failed.length && !r._server_messages) {
+						frappe.throw(__('Cannot delete {0}', [failed.map(f => f.bold()).join(', ')]))
+					}
+					if (failed.length < docnames.length) {
+						frappe.utils.play_sound('delete');
+						this.refresh(true);
+					}
+				});
 			}
 		);
 	}

@@ -255,12 +255,12 @@ frappe.views.BaseList = class BaseList {
 			`<div class="list-paging-area level">
 				<div class="level-left">
 					<div class="btn-group">
-						${paging_values.map(value =>
-							`<button type="button" class="btn btn-default btn-sm btn-paging"
+						${paging_values.map(value => `
+							<button type="button" class="btn btn-default btn-sm btn-paging"
 								data-value="${value}">
 								${value}
-							</button>`
-						).join('')}
+							</button>
+						`).join('')}
 					</div>
 				</div>
 				<div class="level-right">
@@ -329,9 +329,8 @@ frappe.views.BaseList = class BaseList {
 			method: this.method,
 			type: 'GET',
 			args: args
-		})
-		// render
-		.then(r => {
+		}).then(r => {
+			// render
 			this.freeze(false);
 			this.update_data(r);
 			this.toggle_result_area();

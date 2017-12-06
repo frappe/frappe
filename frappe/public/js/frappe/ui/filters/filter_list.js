@@ -51,8 +51,8 @@ frappe.ui.FilterGroup = class {
 			&& !frappe.meta.has_field(doctype, fieldname)
 			&& !frappe.model.std_fields_list.includes(fieldname)) {
 
-				frappe.throw(__(`Invalid filter: "${[fieldname.bold()]}"`));
-				return false;
+			frappe.throw(__(`Invalid filter: "${[fieldname.bold()]}"`));
+			return false;
 		}
 		return true;
 	}
@@ -97,11 +97,9 @@ frappe.ui.FilterGroup = class {
 			let value = filter_value[3];
 			let equal = frappe.utils.arrays_equal;
 
-			if(equal(f_value, filter_value) ||
-				(Array.isArray(value) &&
-				equal(value, f_value[3]))) {
-					exists = true;
-				}
+			if(equal(f_value, filter_value) || (Array.isArray(value) && equal(value, f_value[3]))) {
+				exists = true;
+			}
 		});
 		return exists;
 	}
