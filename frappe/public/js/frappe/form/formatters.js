@@ -65,7 +65,7 @@ frappe.form.formatters = {
 			}
 		}
 		
-		value = value ? "" : format_currency(value, currency, precision);
+		value = (value == null || value == "") ? "" : format_currency(value, currency, precision);
 		
 		if ( options && options.only_value ) {
 			return value;
