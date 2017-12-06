@@ -239,6 +239,26 @@ frappe.ui.form.Layout = Class.extend({
 		});
 	},
 
+	refresh_fields: function(fields) {
+		let fieldnames = fields.map((field) => {
+			if(field.fieldname) return field.fieldname;
+		});
+
+		this.fields_list.map(fieldobj => {
+			if(fieldnames.includes(fieldobj.df.fieldname)) {
+				fieldobj.refresh();
+				if(fieldobj.df["default"]) {
+					fieldobj.set_input(fieldobj.df["default"]);
+				}
+			}
+		});
+	},
+
+	add_fields: function(fields) {
+		this.render(fields);
+		this.refresh_fields(fields);
+	},
+
 	refresh_section_collapse: function() {
 		if(!this.doc) return;
 
