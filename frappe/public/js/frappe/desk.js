@@ -9,7 +9,7 @@ frappe.start_app = function() {
 	frappe.app = new frappe.Application();
 
 	// frappe.Chat
-	new frappe.Chat()
+	const chat = new frappe.Chat()
 	// end frappe.Chat
 }
 

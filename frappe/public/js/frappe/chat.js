@@ -1,8 +1,8 @@
 // frappe.Chat.Widget
 // Author - Achilles Rasquinha <achilles@frappe.io>
 
-// utils
-frappe.utils.fuzzy_search = (query, dataset, options) => {
+// frappe._ (General Helper functions for frappe)
+frappe._.fuzzy_search = function (query, dataset, options) {
     const DEFAULT = {
                 shouldSort: true,
                  threshold: 0.6,
@@ -12,16 +12,22 @@ frappe.utils.fuzzy_search = (query, dataset, options) => {
           maxPatternLength: 32
     };
     options       = Object.assign({ }, DEFAULT, options);
-    
+
+    // Client-Side fuzzy search is important, hence Fuse.js
     const fuse    = new Fuse(dataset, options);
     const result  = fuse.search(query);
 
     return result;
 };
 
-frappe.utils.pluralize = (what, count)  => {
-    if ( !what.endsWith('s') && count != 1 )
-        return `${what}s`;
+frappe._.lower     = function (word) {
+
+};
+
+frappe._.pluralize = function (word, count) {
+    if ( count !== 1 ) {
+        var token  = frappe._.lower(word);
+    }
 
     return what;
 }
