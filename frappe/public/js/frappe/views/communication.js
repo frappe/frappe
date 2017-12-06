@@ -354,12 +354,12 @@ frappe.views.CommunicationComposer = Class.extend({
 		var fields = this.dialog.fields_dict;
 		var attach = $(fields.select_attachments.wrapper).find(".attach-list").empty();
 
-		if (undefined !== this.attachments && this.attachments.length) {
-			var files = this.attachments;
-		} else if (cur_frm) {
-			var files = cur_frm.get_files();
-		} else {
-			var files = [];
+		var files = []
+		if (this.attachments && this.attachments.length) {
+			files = files.concat(this.attachments);
+		}
+		if (cur_frm) {
+			files = files.concat(cur_frm.get_files());
 		}
 
 		if(files.length) {
