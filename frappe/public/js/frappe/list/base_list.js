@@ -308,10 +308,13 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	get_args() {
+		// filters might have a fifth param called hidden,
+		// we don't want to pass that server side
+		const filters = this.filter_area.get().map(filter => filter.slice(0, 4));
 		return {
 			doctype: this.doctype,
 			fields: this.get_fields(),
-			filters: this.filter_area.get(),
+			filters: filters,
 			order_by: this.sort_selector.get_sql_string(),
 			start: this.start,
 			page_length: this.page_length

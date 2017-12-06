@@ -59,9 +59,17 @@ frappe.ui.Filter = class {
 		return this.set_values(this.doctype, fieldname, this.condition, this.value);
 	}
 
-	setup_state(is_new, hidden) {
-		is_new ? this.filter_edit_area.addClass("new-filter") : this.update_filter_tag();
-		if(hidden) this.$filter_tag.hide();
+	setup_state(is_new) {
+		let promise = Promise.resolve();
+		if (is_new) {
+			this.filter_edit_area.addClass("new-filter")
+		} else {
+			promise = this.update_filter_tag();
+		}
+
+		if(this.hidden) {
+			promise.then(() => this.$filter_tag.hide());
+		}
 	}
 
 	freeze() {
@@ -69,7 +77,7 @@ frappe.ui.Filter = class {
 	}
 
 	update_filter_tag() {
-		this._filter_value_set.then(() => {
+		return this._filter_value_set.then(() => {
 			!this.$filter_tag ? this.make_tag() : this.set_filter_button_text();
 			this.filter_edit_area.hide();
 		});
@@ -159,8 +167,13 @@ frappe.ui.Filter = class {
 	}
 
 	get_value() {
-		return [this.fieldselect.selected_doctype,
-			this.field.df.fieldname, this.get_condition(), this.get_selected_value()];
+		return [
+			this.fieldselect.selected_doctype,
+			this.field.df.fieldname,
+			this.get_condition(),
+			this.get_selected_value(),
+			this.hidden
+		];
 	}
 
 	get_selected_value() {
