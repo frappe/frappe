@@ -114,28 +114,15 @@ frappe.views.ImageView = class ImageView extends frappe.views.ListView {
 	}
 
 	get_header_html() {
-		return `
-			<header class="level list-row list-row-head text-muted small">
-				<div class="level-left list-header-subject">
-					<div class="list-row-col list-subject level ">
-						<input class="level-item list-check-all hidden-xs" type="checkbox" title="Select All">
-						<span class="level-item list-liked-by-me">
-							<i class="octicon octicon-heart text-extra-muted" title="Likes"></i>
-						</span>
-						<span class="level-item"></span>
-					</div>
-				</div>
-				<div class="level-left checkbox-actions">
-					<div class="level list-subject">
-						<input class="level-item list-check-all hidden-xs" type="checkbox" title="${__("Select All")}">
-						<span class="level-item list-header-meta"></span>
-					</div>
-				</div>
-				<div class="level-right">
-					<span class="list-count"></span>
-				</div>
-			</header>
-		`;
+		return this.get_header_html_skeleton(`
+			<div class="list-row-col list-subject level ">
+				<input class="level-item list-check-all hidden-xs" type="checkbox" title="Select All">
+				<span class="level-item list-liked-by-me">
+					<i class="octicon octicon-heart text-extra-muted" title="Likes"></i>
+				</span>
+				<span class="level-item"></span>
+			</div>
+		`);
 	}
 
 	setup_gallery() {

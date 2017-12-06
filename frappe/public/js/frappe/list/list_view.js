@@ -74,7 +74,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				options[f[1]] = f[3];
 			}
 		});
-		frappe.new_doc(doctype);
+		frappe.new_doc(doctype, options);
 	}
 
 	setup_view() {
@@ -190,6 +190,13 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		}
 	}
 
+	toggle_result_area() {
+		super.toggle_result_area();
+		this.toggle_delete_button(
+			this.$result.find('.list-row-check:checked').length > 0
+		);
+	}
+
 	before_render() {
 		this.save_view_user_settings({
 			fields: this._fields,
@@ -243,10 +250,14 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			`;
 		}).join('');
 
+		return this.get_header_html_skeleton($columns, '<span class="list-count"></span>')
+	}
+
+	get_header_html_skeleton(left = '', right = '') {
 		return `
 			<header class="level list-row list-row-head text-muted small">
 				<div class="level-left list-header-subject">
-					${$columns}
+					${left}
 				</div>
 				<div class="level-left checkbox-actions">
 					<div class="level list-subject">
@@ -255,7 +266,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					</div>
 				</div>
 				<div class="level-right">
-					<span class="list-count"></span>
+					${right}
 				</div>
 			</header>
 		`;
@@ -265,13 +276,17 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const $columns = this.columns.map(col => this.get_column_html(col, doc)).join('');
 		const $meta = this.get_meta_html(doc);
 
+		return this.get_list_row_html_skeleton($columns, $meta);
+	}
+
+	get_list_row_html_skeleton(left = '', right = '') {
 		return `
 			<div class="level list-row small">
 				<div class="level-left">
-					${$columns}
+					${left}
 				</div>
 				<div class="level-right text-muted ellipsis">
-					${$meta}
+					${right}
 				</div>
 			</div>
 		`;
@@ -591,7 +606,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	delete_items() {
-		const docnames = this.get_checked_items();
+		const docnames = this.get_checked_items(true);
 
 		frappe.confirm(__('Delete {0} items permanently?', [docnames.length]),
 			() => {
@@ -603,9 +618,15 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 						doctype: this.doctype
 					}
 				})
-					.then(() => {
-						frappe.utils.play_sound('delete');
-						this.refresh(true);
+					.then((r) => {
+						const failed = r.message;
+						if (failed && failed.length && !r._server_messages) {
+							frappe.throw(__('Cannot delete {0}', [failed.map(f => f.bold()).join(', ')]))
+						}
+						if (failed.length < docnames.length) {
+							frappe.utils.play_sound('delete');
+							this.refresh(true);
+						}
 					});
 			}
 		);

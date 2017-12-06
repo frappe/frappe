@@ -41,8 +41,9 @@ $.extend(frappe.model, {
 		// setup refresh if the document is updated somewhere else
 		frappe.realtime.on("doc_update", function(data) {
 			// set list dirty
-			frappe.views.ListView.trigger_list_update(doc);
+			frappe.views.ListView.trigger_list_update(data);
 			var doc = locals[data.doctype] && locals[data.doctype][data.name];
+
 			if(doc) {
 				// current document is dirty, show message if its not me
 				if(frappe.get_route()[0]==="Form" && cur_frm.doc.doctype===doc.doctype && cur_frm.doc.name===doc.name) {

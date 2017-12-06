@@ -612,6 +612,9 @@ frappe.utils = {
 			}
 			return result;
 		};
+	},
+	get_form_link: function(doctype, name) {
+		return ['#Form', doctype, name].join('/');
 	}
 };
 
