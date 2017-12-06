@@ -93,6 +93,13 @@ class TestDriver(object):
 		time.sleep(0.2)
 		elem.send_keys(text)
 
+	def set_multicheck(self, fieldname, values):
+		for value in values:
+			path = '//div[@data-fieldname="{0}"]//span[@data-unit="{1}"]'.format(fieldname, value)
+			elem = self.wait_for(xpath=path)
+			time.sleep(0.2)
+			elem.click()
+
 	def set_text_editor(self, fieldname, text):
 		elem = self.wait_for(xpath='//div[@data-fieldname="{0}"]//div[@contenteditable="true"]'.format(fieldname))
 		time.sleep(0.2)
