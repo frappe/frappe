@@ -6,7 +6,10 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 		super.setup_defaults();
 		this.page_title = this.page_title + ' ' + __('Gantt');
 		this.calendar_settings = frappe.views.calendar[this.doctype] || {};
-		this.default_order_by = this.calendar_settings.field_map.start + ' asc';
+	}
+
+	setup_order_by() {
+		this.order_by = this.view_user_settings.order_by || this.calendar_settings.field_map.start + ' asc';
 	}
 
 	setup_view() {

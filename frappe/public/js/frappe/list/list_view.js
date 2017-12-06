@@ -36,20 +36,16 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		super.set_fields();
 	}
 
-	build_fields() {
-		super.build_fields();
-		// save in user_settings
-		this.save_view_user_settings({
-			fields: this._fields
-		});
-	}
-
 	setup_filters() {
 		// initialize with saved filters
 		const saved_filters = this.view_user_settings.filters;
 		if (saved_filters && saved_filters.length > 0) {
 			this.filters = saved_filters;
 		}
+	}
+
+	setup_order_by() {
+		this.order_by = this.view_user_settings.order_by || 'modified desc';
 	}
 
 	setup_page_head() {
@@ -193,7 +189,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	before_render() {
 		this.save_view_user_settings({
-			filters: this.filter_area.get()
+			fields: this._fields,
+			filters: this.filter_area.get(),
+			order_by: this.sort_selector.get_sql_string()
 		});
 	}
 

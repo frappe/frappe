@@ -23,6 +23,7 @@ frappe.views.BaseList = class BaseList {
 		this.set_stats();
 		this.setup_fields();
 		this.setup_filters();
+		this.setup_order_by();
 
 		// make view
 		this.setup_page();
@@ -40,7 +41,6 @@ frappe.views.BaseList = class BaseList {
 		this.meta = frappe.get_meta(this.doctype);
 		this.settings = frappe.listview_settings[this.doctype] || {};
 		this.user_settings = frappe.get_user_settings(this.doctype);
-		this.default_order_by = 'modified desc';
 
 		this.start = 0;
 		this.page_length = 20;
@@ -59,6 +59,10 @@ frappe.views.BaseList = class BaseList {
 
 	setup_filters() {
 		this.filters = [];
+	}
+
+	setup_order_by() {
+		this.order_by = 'modified desc';
 	}
 
 	set_fields() {
@@ -217,7 +221,7 @@ frappe.views.BaseList = class BaseList {
 		this.sort_selector = new frappe.ui.SortSelector({
 			parent: this.filter_area.$filter_list_wrapper,
 			doctype: this.doctype,
-			args: this.default_order_by,
+			args: this.order_by,
 			onchange: () => this.refresh(true)
 		});
 	}
