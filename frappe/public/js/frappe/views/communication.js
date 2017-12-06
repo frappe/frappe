@@ -354,7 +354,7 @@ frappe.views.CommunicationComposer = Class.extend({
 		var fields = this.dialog.fields_dict;
 		var attach = $(fields.select_attachments.wrapper).find(".attach-list").empty();
 
-		var files = []
+		var files = [];
 		if (this.attachments && this.attachments.length) {
 			files = files.concat(this.attachments);
 		}
