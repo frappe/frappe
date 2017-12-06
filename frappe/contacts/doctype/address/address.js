@@ -44,6 +44,13 @@ frappe.ui.form.on("Address", {
 			}
 		]);
 	},
+	address_type: function (frm) {
+		frm.set_value("address_line1", null);
+		frm.set_value("city", null);
+		frm.set_value("state", null);
+		frm.set_value("phone", null);
+		frm.set_value("flete", null);
+    },
 	flete: function (frm) {
 		if(frm.doc.flete){
 			frappe.call({
@@ -52,9 +59,10 @@ frappe.ui.form.on("Address", {
 				callback: function (r, rt) {
 					if(r.message){
 
-						frm.set_value("flete_address", r.message.address);
-						frm.set_value("flete_city", r.message.city);
-						frm.set_value("flete_state", r.message.state);
+						frm.set_value("address_line1", r.message.address);
+						frm.set_value("city", r.message.city);
+						frm.set_value("state", r.message.state);
+						frm.set_value("phone", r.message.phone_number);
 
 						frm.refresh_fields();
 					}
