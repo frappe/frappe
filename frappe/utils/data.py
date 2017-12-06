@@ -371,18 +371,19 @@ def fmt_money(amount, precision=None, currency=None):
 	# 40,000 -> 40,000.00
 	# 40,000.00000 -> 40,000.00
 	# 40,000.23000 -> 40,000.23
+	
 	if decimal_str:
 		parts = str(amount).split(decimal_str)
 		decimals = parts[1] if len(parts) > 1 else ''
-
 		if precision > 2:
-			digits = len(decimals)
-			if digits < precision or digits < 3:
+			if len(decimals) < 3:
 				if currency:
 					fraction  = frappe.db.get_value("Currency", currency, "fraction_units") or 100
 					precision = len(cstr(fraction)) - 1
 				else:
 					precision = 2
+			elif len(decimals) < precision:
+				precision = len(decimals)
 
 	amount = '%.*f' % (precision, flt(amount))
 	if amount.find('.') == -1:
@@ -785,6 +786,16 @@ def make_filter_tuple(doctype, key, value):
 		return [doctype, key, value[0], value[1]]
 	else:
 		return [doctype, key, "=", value]
+
+def make_filter_dict(filters):
+	'''convert this [[doctype, key, operator, value], ..]
+	to this { key: (operator, value), .. }
+	'''
+	_filter = frappe._dict()
+	for f in filters:
+		_filter[f[1]] = (f[2], f[3])
+
+	return _filter
 
 def scrub_urls(html):
 	html = expand_relative_urls(html)
