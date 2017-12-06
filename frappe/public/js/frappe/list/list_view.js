@@ -12,11 +12,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		frappe.model.user_settings.save(this.doctype, 'last_view', this.view_name);
 	}
 
-	init() {
-		super.init();
+	setup_defaults() {
+		super.setup_defaults();
+		this.view_user_settings = this.user_settings[this.view_name] || {};
 		// throttle refresh for 1s
 		this.refresh = frappe.utils.throttle(this.refresh, 1000);
-
 		this.load_lib = new Promise(resolve => {
 			if (this.required_libs) {
 				frappe.require(this.required_libs, resolve);
@@ -24,11 +24,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				resolve();
 			}
 		});
-	}
-
-	setup_defaults() {
-		super.setup_defaults();
-		this.view_user_settings = this.user_settings[this.view_name] || {};
 	}
 
 	set_fields() {
@@ -47,6 +42,14 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.save_view_user_settings({
 			fields: this._fields
 		});
+	}
+
+	setup_filters() {
+		// initialize with saved filters
+		const saved_filters = this.view_user_settings.filters;
+		if (saved_filters && saved_filters.length > 0) {
+			this.filters = saved_filters;
+		}
 	}
 
 	setup_page_head() {
@@ -73,15 +76,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			}
 		});
 		frappe.new_doc(doctype);
-	}
-
-	setup_filter_area() {
-		super.setup_filter_area();
-		// initialize with saved filters
-		const saved_filters = this.view_user_settings.filters;
-		if (saved_filters && saved_filters.length > 0) {
-			this._setup = this.filter_area.add(saved_filters);
-		}
 	}
 
 	setup_view() {
@@ -155,6 +149,14 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			<p>${__('No {0} found', [__(this.doctype)])}</p>
 			${new_button}
 		</div>`;
+	}
+
+	get_args() {
+		const args = super.get_args();
+
+		return Object.assign(args, {
+			with_comment_count: true
+		});
 	}
 
 	freeze(toggle) {
@@ -630,6 +632,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	static trigger_list_update(data) {
 		const doctype = data.doctype;
 		if (!doctype) return;
+		frappe.provide('frappe.views.trees');
 
 		// refresh tree view
 		if (frappe.views.trees[doctype]) {

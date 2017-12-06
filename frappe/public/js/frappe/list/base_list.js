@@ -7,16 +7,22 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	show() {
-		if (!this._setup) {
-			this.init();
-		}
-		this._setup.then(() => this.refresh());
+		this.init();
+		this.init_promise.then(() => this.refresh());
 	}
 
-	init(opts) {
+	init() {
+		// assign a promise to this.init_promise
+		// it can also be chained
+		// so that refresh is called only when
+		// this.init_promise resolves
+		this.init_promise = Promise.resolve();
+		if (this._setup) return this.init_promise;
+
 		this.setup_defaults();
 		this.set_stats();
 		this.setup_fields();
+		this.setup_filters();
 
 		// make view
 		this.setup_page();
@@ -25,11 +31,7 @@ frappe.views.BaseList = class BaseList {
 		this.setup_main_section();
 		this.setup_view();
 
-		// assign a promise to this._setup
-		// it can also be chained
-		// so that refresh is called only when
-		// this._setup resolves
-		this._setup = this._setup || Promise.resolve();
+		this._setup = true;
 	}
 
 	setup_defaults() {
@@ -53,6 +55,10 @@ frappe.views.BaseList = class BaseList {
 	setup_fields() {
 		this.set_fields();
 		this.build_fields();
+	}
+
+	setup_filters() {
+		this.filters = [];
 	}
 
 	set_fields() {
@@ -203,6 +209,8 @@ frappe.views.BaseList = class BaseList {
 
 	setup_filter_area() {
 		this.filter_area = new FilterArea(this);
+		this.init_promise = this.init_promise
+			.then(() => this.filter_area.add(this.filters, false));
 	}
 
 	setup_sort_selector() {
@@ -301,7 +309,6 @@ frappe.views.BaseList = class BaseList {
 			fields: this.get_fields(),
 			filters: this.filter_area.get(),
 			order_by: this.sort_selector.get_sql_string(),
-			with_comment_count: true,
 			start: this.start,
 			page_length: this.page_length
 		};
@@ -382,37 +389,50 @@ class FilterArea {
 			.uniqBy(JSON.stringify);
 	}
 
-	add(filters) {
+	add(filters, refresh = true) {
+		if (!filters) return;
+
 		if (typeof filters === 'string') {
 			// passed in the format of doctype, field, condition, value
 			const filter = Array.from(arguments);
 			filters = [filter];
 		}
 
-		const non_standard_filters = this.set_standard_filter(filters);
+		const { non_standard_filters, promise } = this.set_standard_filter(filters);
 		if (non_standard_filters.length === 0) {
-			return;
+			return promise;
 		}
 
-		return this.filter_list.add_filters(non_standard_filters)
-			.then(() => this.list_view.refresh());
+		return promise
+			.then(() => this.filter_list.add_filters(non_standard_filters))
+			.then(() => {
+				if (refresh) return this.list_view.refresh()
+			});
 	}
 
 	set_standard_filter(filters) {
 		const fields_dict = this.list_view.page.fields_dict;
+		const non_standard_filters = [];
+		const standard_filters = [];
 
-		return filters.filter(filter => {
+		let out = filters.reduce((out, filter) => {
 			const [dt, fieldname, condition, value] = filter;
+			out.promise = out.promise || Promise.resolve();
+			out.non_standard_filters = out.non_standard_filters || [];
 
 			if (fields_dict[fieldname] && condition === '=') {
 				// standard filter
-				fields_dict[fieldname].set_value(value);
-				return false;
+				out.promise = out.promise.then(
+					() => fields_dict[fieldname].set_value(value)
+				);
 			} else {
 				// filter out non standard filters
-				return true;
+				out.non_standard_filters.push(filter);
 			}
-		});
+			return out;
+		}, {});
+
+		return out;
 	}
 
 	remove(fieldname) {
