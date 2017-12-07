@@ -329,14 +329,25 @@ frappe.ui.Page = Class.extend({
 	},
 
 	remove_inner_button: function(label, group) {
-		if(group) {
+		if (typeof label === 'string') {
+			label = [label];
+		}
+		// translate
+		label = label.map(l => __(l));
+
+		if (group) {
 			var $group = this.get_inner_group_button(__(group));
 			if($group.length) {
-				var buttons = $group.find(".dropdown-menu li");
-				buttons.filter(function() { return $.text([this]) === __(label); }).remove();
+				$group.find('.dropdown-menu li a')
+					.filter((i, btn) => label.includes($(btn).text()))
+					.remove();
 			}
+			if ($group.find('.dropdown-menu li a').length === 0) $group.remove();
 		} else {
-			this.inner_toolbar.find("button").filter(function() { return $.text([this]) === __(label); }).remove();
+
+			this.inner_toolbar.find('button')
+				.filter((i, btn) =>  label.includes($(btn).text()))
+				.remove();
 		}
 	},
 
