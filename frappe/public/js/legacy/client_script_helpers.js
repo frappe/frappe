@@ -482,7 +482,7 @@ _f.Frm.prototype.make_new = function(doctype) {
 	if(this.make_methods && this.make_methods[doctype]) {
 		return this.make_methods[doctype](this);
 	} else if(this.custom_make_buttons && this.custom_make_buttons[doctype]) {
-		this.custom_buttons[this.custom_make_buttons[doctype]].trigger('click');
+		this.custom_buttons[__(this.custom_make_buttons[doctype])].trigger('click');
 	} else {
 		frappe.model.with_doctype(doctype, function() {
 			var new_doc = frappe.model.get_new_doc(doctype);
