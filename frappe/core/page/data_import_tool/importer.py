@@ -119,6 +119,9 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 								fieldname = column_idx_to_fieldname[(dt, parentfield)][column_idx]
 								fieldtype = column_idx_to_fieldtype[(dt, parentfield)][column_idx]
 
+								if not fieldname:
+									continue
+
 								d[fieldname] = rows[idx][column_idx]
 								if fieldtype in ("Int", "Check"):
 									d[fieldname] = cint(d[fieldname])
@@ -184,6 +187,8 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 			autoname = autoname[6:]
 		elif autoname=='naming_series:':
 			autoname = 'naming_series'
+		else:
+			return True
 
 		if autoname and not doc[autoname]:
 			frappe.throw(_("{0} is a mandatory field".format(autoname)))
