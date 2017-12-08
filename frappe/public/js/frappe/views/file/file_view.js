@@ -37,6 +37,72 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 		this.current_folder = route.slice(2).join('/');
 		this.filters = [['File', 'folder', '=', this.current_folder, true]];
 		this.order_by = this.view_user_settings.order_by || 'file_name asc';
+
+		this.menu_items = this.menu_items.concat(this.file_menu_items());
+	}
+
+	file_menu_items() {
+		const items = [
+			{
+				label: __('Cut'),
+				action: () => {
+					frappe.file_manager.cut(this.get_checked_items(), this.current_folder);
+				},
+				class: 'cut-menu-button hide'
+			},
+			{
+				label: __('Paste'),
+				action: () => {
+					frappe.file_manager.paste(this.current_folder);
+				},
+				class: 'paste-menu-button hide'
+			},
+			{
+				label: __('New Folder'),
+				action: () => {
+					const d = frappe.prompt(__('Name'), (values) => {
+						if((values.value.indexOf("/") > -1)) {
+							frappe.throw(__("Folder name should not include '/' (slash)"));
+						}
+						const data =  {
+							file_name: values.value,
+							folder: this.current_folder
+						};
+						frappe.call({
+							method: "frappe.core.doctype.file.file.create_new_folder",
+							args: data
+						});
+					}, __('Enter folder name'), __('Create'));
+				}
+			},
+			{
+				label: __('Import Zip'),
+				action: () => {
+					// make upload dialog
+					frappe.ui.get_upload_dialog({
+						args: {
+							folder: this.current_folder,
+							from_form: 1
+						},
+						callback: (attachment, r) => {
+							frappe.call({
+								method: 'frappe.core.doctype.file.file.unzip_file',
+								args: {
+									name: r.message.name,
+								},
+								callback: function (r) {
+									if(r.exc) {
+										frappe.msgprint(__('Error in uploading files' + r.exc));
+									}
+								}
+							});
+						},
+					});
+				}
+			}
+		];
+
+		return items;
 	}
 
 	set_fields() {
@@ -69,6 +135,20 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 			`;
 			return d;
 		});
+
+		// Bring folders to the top
+		const { sort_by } = this.sort_selector;
+		if (sort_by === 'file_name') {
+			this.data.sort((a, b) => {
+				if (a.is_folder && !b.is_folder) {
+					return -1;
+				}
+				if (!a.is_folder &&b.is_folder) {
+					return 1;
+				}
+				return 0;
+			});
+		}
 	}
 
 	before_render() {
@@ -127,5 +207,60 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 			},
 			callback:() => this.refresh()
 		});
+	}
+
+	setup_events() {
+		super.setup_events();
+		this.setup_drag_drop();
+	}
+
+	setup_drag_drop() {
+		this.$result.on('dragenter dragover', false)
+			.on('drop', e => {
+				var dataTransfer = e.originalEvent.dataTransfer;
+				if (!(dataTransfer && dataTransfer.files && dataTransfer.files.length > 0)) {
+					return;
+				}
+				e.stopPropagation();
+				e.preventDefault();
+				frappe.upload.make({
+					files: dataTransfer.files,
+					"args": {
+						"folder": this.current_folder,
+						"from_form": 1
+					}
+				});
+			});
+	}
+
+	toggle_result_area() {
+		super.toggle_result_area();
+		this.toggle_cut_paste_buttons();
+	}
+
+	on_row_checked() {
+		super.on_row_checked();
+		this.toggle_cut_paste_buttons();
+	}
+
+	toggle_cut_paste_buttons() {
+		// paste btn
+		const $paste_btn = this.page.menu_btn_group.find('.paste-menu-button')
+		const hide = !frappe.file_manager.can_paste ||
+			frappe.file_manager.old_folder === this.current_folder;
+
+		if (hide) {
+			$paste_btn.addClass('hide');
+		} else {
+			$paste_btn.removeClass('hide');
+		}
+
+		// cut btn
+		const $cut_btn = this.page.menu_btn_group.find('.cut-menu-button');
+		if (this.$checks && this.$checks.length > 0) {
+			$cut_btn.removeClass('hide');
+		} else {
+			$cut_btn.addClass('hide');
+		}
 	}
 };

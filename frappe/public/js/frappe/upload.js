@@ -12,13 +12,13 @@ frappe.upload = {
 
 		// whether to show public/private checkbox or not
 		opts.show_private = !("is_private" in opts);
-		
+
 		// make private by default
 		if (!("options" in opts) || ("options" in opts &&
 			(opts.options && !opts.options.toLowerCase()=="public" && !opts.options.toLowerCase()=="image"))) {
 			opts.is_private = 1;
 		}
-		
+
 		var d = null;
 		// create new dialog if no parent given
 		if(!opts.parent) {
@@ -375,7 +375,7 @@ frappe.upload = {
 			frappe.throw(__("File size exceeded the maximum allowed size of {0} MB", [max_file_size / 1048576]));
 		}
 	},
-	multifile_upload:function(fileobjs, args, opts) {
+	multifile_upload:function(fileobjs, args, opts={}) {
 		//loop through filenames and checkboxes then append to list
 		var fields = [];
 		for (var i =0,j = fileobjs.length;i<j;i++) {

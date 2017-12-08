@@ -20,8 +20,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	show() {
-		super.show();
-		frappe.model.user_settings.save(this.doctype, 'last_view', this.view_name);
+		this.init();
+		if (this.filters.length === 0) {
+			this.refresh();
+		}
 	}
 
 	get view_user_settings() {
@@ -210,6 +212,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	before_render() {
+		frappe.model.user_settings.save(this.doctype, 'last_view', this.view_name);
 		this.save_view_user_settings({
 			fields: this._fields,
 			filters: this.filter_area.get(),
@@ -530,6 +533,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				const $check = $list_row.find('.list-row-checkbox');
 				$check.prop('checked', !$check.prop('checked'));
 				e.preventDefault();
+				this.on_row_checked();
 				return;
 			}
 
@@ -619,23 +623,23 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.$list_head_subject = this.$list_head_subject || this.$result.find('header .list-header-subject');
 		this.$checkbox_actions = this.$checkbox_actions || this.$result.find('header .checkbox-actions');
 
-		const $checks = this.$result.find('.list-row-checkbox:checked');
+		this.$checks = this.$result.find('.list-row-checkbox:checked');
 
-		this.$list_head_subject.toggle($checks.length === 0);
-		this.$checkbox_actions.toggle($checks.length > 0);
+		this.$list_head_subject.toggle(this.$checks.length === 0);
+		this.$checkbox_actions.toggle(this.$checks.length > 0);
 
-		if ($checks.length === 0) {
+		if (this.$checks.length === 0) {
 			this.$list_head_subject.find('.list-select-all').prop('checked', false);
 		} else {
 			this.$checkbox_actions.find('.list-header-meta').html(
-				__('{0} items selected', [$checks.length])
+				__('{0} items selected', [this.$checks.length])
 			);
 			this.$checkbox_actions.show();
 			this.$list_head_subject.hide();
 		}
 
 		if (this.can_delete) {
-			this.toggle_delete_button($checks.length > 0);
+			this.toggle_delete_button(this.$checks.length > 0);
 		}
 	}
 
@@ -678,7 +682,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	get_checked_items(only_docnames) {
-		const docnames = Array.from(this.$result.find('.list-row-checkbox:checked'))
+		const docnames = Array.from(this.$checks)
 			.map(check => $(check).data().name);
 
 		if (only_docnames) return docnames;

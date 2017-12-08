@@ -247,7 +247,8 @@ frappe.views.BaseList = class BaseList {
 	setup_filter_area() {
 		this.filter_area = new FilterArea(this);
 		this.init_promise = this.init_promise
-			.then(() => this.filter_area.add(this.filters, false));
+			.then(() => this.filter_area.add(this.filters))
+			.then(() => this.filters = []);
 	}
 
 	setup_sort_selector() {
@@ -355,6 +356,7 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	refresh() {
+		console.log('refresh called')
 		this.freeze(true);
 		// fetch data from server
 		const args = this.get_args();
