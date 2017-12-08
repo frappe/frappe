@@ -17,17 +17,23 @@ frappe.breadcrumbs = {
 	},
 
 	add: function(module, doctype, type) {
-		frappe.breadcrumbs.all[frappe.breadcrumbs.current_page()] = {module:module, doctype:doctype, type:type};
+		let obj;
+		if (typeof module === 'object') {
+			obj = module;
+		} else {
+			obj = {
+				module:module,
+				doctype:doctype,
+				type:type
+			}
+		}
+
+		frappe.breadcrumbs.all[frappe.breadcrumbs.current_page()] = obj;
 		frappe.breadcrumbs.update();
 	},
 
 	current_page: function() {
-		var route = frappe.get_route();
-		// for List/DocType/{?} return List/DocType
-		if (route[0] === 'List') {
-			route = route.slice(0, 2);
-		}
-		return route.join("/");
+		return frappe.get_route_str();
 	},
 
 	update: function() {
@@ -38,8 +44,16 @@ frappe.breadcrumbs = {
 		}
 
 		var $breadcrumbs = $("#navbar-breadcrumbs").empty();
+
 		if(!breadcrumbs) {
 			$("body").addClass("no-breadcrumbs");
+			return;
+		}
+
+		if (breadcrumbs.type === 'Custom') {
+			const html = `<li><a href="${breadcrumbs.route}">${breadcrumbs.label}</a></li>`;
+			$breadcrumbs.append(html);
+			$("body").removeClass("no-breadcrumbs");
 			return;
 		}
 

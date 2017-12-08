@@ -13,14 +13,12 @@ frappe.views.ListFactory = frappe.views.Factory.extend({
 			if (locals['DocType'][doctype].issingle) {
 				frappe.set_re_route('Form', doctype);
 			} else {
-				if (route.length === 2) {
-					// List/{doctype} => List/{doctype}/{last_view} or List
-					const user_settings = frappe.get_user_settings(doctype);
-					frappe.set_route('List', doctype, user_settings.last_view || 'List');
-					return;
-				}
-				const view_name = route[2]; // List / Gantt / Kanban / etc
-				const view_class = frappe.views[view_name + 'View'];
+				// List / Gantt / Kanban / etc
+				// File is a special view
+				const view_name = doctype !== 'File' ? route[2] : 'File';
+				let view_class = frappe.views[view_name + 'View'];
+				if (!view_class) view_class = frappe.views.ListView;
+
 				if (view_class && view_class.load_last_view && view_class.load_last_view()) {
 					// view can have custom routing logic
 					return;
@@ -30,7 +28,7 @@ frappe.views.ListFactory = frappe.views.Factory.extend({
 				const page_name = frappe.get_route_str();
 
 				if (!frappe.views.list_view[page_name]) {
-					frappe.views.list_view[page_name] = new frappe.views[view_name + 'View']({
+					frappe.views.list_view[page_name] = new view_class({
 						doctype: doctype,
 						parent: me.make_page(true, page_name)
 					});

@@ -6,9 +6,6 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 		super.setup_defaults();
 		this.page_title = this.page_title + ' ' + __('Gantt');
 		this.calendar_settings = frappe.views.calendar[this.doctype] || {};
-	}
-
-	setup_order_by() {
 		this.order_by = this.view_user_settings.order_by || this.calendar_settings.field_map.start + ' asc';
 	}
 
@@ -16,6 +13,11 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 		this.$result
 			.css('overflow', 'auto')
 			.append('<svg class="gantt-container" width="20" height="20"></svg>');
+	}
+
+	update_data(data) {
+		super.update_data(data);
+		this.prepare_tasks();
 	}
 
 	prepare_tasks() {
@@ -62,7 +64,6 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 	}
 
 	render() {
-		this.prepare_tasks();
 		this.load_lib.then(() => {
 			this.render_gantt();
 		});
@@ -70,12 +71,12 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 
 	render_gantt() {
 		const me = this;
-		this.gantt_view_mode = this.view_user_settings.gantt_view_mode || 'Day';
+		const gantt_view_mode = this.view_user_settings.gantt_view_mode || 'Day';
 		const field_map = this.calendar_settings.field_map;
 		const date_format = 'YYYY-MM-DD';
 
 		this.gantt = new Gantt(".gantt-container", this.tasks, {
-			view_mode: this.gantt_view_mode,
+			view_mode: gantt_view_mode,
 			date_format: "YYYY-MM-DD",
 			on_click: function (task) {
 				frappe.set_route('Form', task.doctype, task.id);
@@ -137,7 +138,7 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 		if ($btn_group.length > 0) return;
 
 		const view_modes = this.gantt.config.view_modes || [];
-		const active_class = view_mode => view_mode === this.gantt_view_mode ? 'btn-info' : '';
+		const active_class = view_mode => this.gantt.view_is(view_mode) ? 'btn-info' : '';
 		const html =
 			`<div class="btn-group gantt-view-mode">
 				${view_modes.map(value => `<button type="button"

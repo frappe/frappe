@@ -39,16 +39,13 @@ frappe.views.InboxView = class InboxView extends frappe.views.ListView {
 		super.setup_defaults();
 		this.email_account = frappe.get_route()[3];
 		this.page_title = this.email_account;
+		this.filters = this.get_inbox_filters();
 	}
 
 	get is_sent_emails() {
 		const f = this.filter_area.get()
 			.find(filter => filter[1] === 'sent_or_received');
 		return f && f[3] === 'Sent';
-	}
-
-	setup_filters() {
-		this.filters = this.get_inbox_filters();
 	}
 
 	render() {

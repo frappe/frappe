@@ -12,15 +12,18 @@ frappe.views.ImageView = class ImageView extends frappe.views.ListView {
 
 	set_fields() {
 		this._fields = [
-			['name', this.doctype],
-			[this.meta.title_field, this.doctype],
-			[this.meta.image_field, this.doctype]
+			'name',
+			this.meta.title_field,
+			this.meta.image_field
 		];
 	}
 
-	render() {
+	update_data(data) {
+		super.update_data(data);
 		this.items = this.data.map(this.prepare_data.bind(this));
+	}
 
+	render() {
 		this.get_attached_images()
 			.then(() => {
 				this.render_image_view();

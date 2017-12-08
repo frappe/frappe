@@ -1,63 +1,63 @@
 frappe.provide("frappe.ui");
 
 frappe.listview_settings['File'] = {
-	hide_name_column: true,
-	use_route: true,
-	add_fields: ["is_folder", "file_name", "file_url", "folder", "is_private"],
-	formatters: {
-		file_size: function(value) {
-			// formatter for file size
-			if(value > 1048576) {
-				value = flt(flt(value) / 1048576, 1) + "M";
-			} else if (value > 1024) {
-				value = flt(flt(value) / 1024, 1) + "K";
-			}
-			return value;
-		}
-	},
-	prepare_data: function(data) {
-		// set image icons
-		var icon = "";
+	// hide_name_column: true,
+	// use_route: true,
+	// add_fields: ["is_folder", "file_name", "file_url", "folder", "is_private"],
+	// formatters: {
+	// 	file_size: function(value) {
+	// 		// formatter for file size
+	// 		if(value > 1048576) {
+	// 			value = flt(flt(value) / 1048576, 1) + "M";
+	// 		} else if (value > 1024) {
+	// 			value = flt(flt(value) / 1024, 1) + "K";
+	// 		}
+	// 		return value;
+	// 	}
+	// },
+	// prepare_data: function(data) {
+	// 	// set image icons
+	// 	var icon = "";
 
-		if(data.is_folder) {
-			icon += '<i class="fa fa-folder-close-alt fa-fw"></i> ';
-		} else if(frappe.utils.is_image_file(data.file_name)) {
-			icon += '<i class="fa fa-picture fa-fw"></i> ';
-		} else {
-			icon += '<i class="fa fa-file-alt fa-fw"></i> ';
-		}
+	// 	if(data.is_folder) {
+	// 		icon += '<i class="fa fa-folder-close-alt fa-fw"></i> ';
+	// 	} else if(frappe.utils.is_image_file(data.file_name)) {
+	// 		icon += '<i class="fa fa-picture fa-fw"></i> ';
+	// 	} else {
+	// 		icon += '<i class="fa fa-file-alt fa-fw"></i> ';
+	// 	}
 
-		data._title = icon + (data.file_name ? data.file_name : data.file_url);
+	// 	data._title = icon + (data.file_name ? data.file_name : data.file_url);
 
-		if (data.is_private) {
-			data._title += ' <i class="fa fa-lock fa-fw text-warning"></i>';
-		}
-	},
-	onload: function(doclist) {
-		doclist.filter_area = doclist.wrapper.find(".tag-filters-area");
+	// 	if (data.is_private) {
+	// 		data._title += ' <i class="fa fa-lock fa-fw text-warning"></i>';
+	// 	}
+	// },
+	// onload: function(doclist) {
+	// 	doclist.filter_area = doclist.wrapper.find(".tag-filters-area");
 
-		doclist.breadcrumb = $('<ol class="breadcrumb for-file-list"></ol>')
-			.insertBefore(doclist.filter_area);
-		doclist.list_renderer.settings.setup_menu(doclist);
-		doclist.list_renderer.settings.setup_dragdrop(doclist);
+	// 	doclist.breadcrumb = $('<ol class="breadcrumb for-file-list"></ol>')
+	// 		.insertBefore(doclist.filter_area);
+	// 	doclist.list_renderer.settings.setup_menu(doclist);
+	// 	doclist.list_renderer.settings.setup_dragdrop(doclist);
 
-		doclist.$page.on("click", ".list-row-checkbox", function(event) {
-			doclist.list_renderer.settings.add_menu_item_copy(doclist);
-		});
-	},
-	list_view_doc:function(doclist){
-		$(doclist.wrapper).on("click", 'button[list_view_doc="'+doclist.doctype+'"]', function() {
-			frappe.ui.get_upload_dialog({
-				"args": {
-					"folder": doclist.current_folder,
-					"from_form": 1
-				},
-				callback: function() {
-					doclist.refresh();
-				}
-			});
-		});
-	},
+	// 	doclist.$page.on("click", ".list-row-checkbox", function(event) {
+	// 		doclist.list_renderer.settings.add_menu_item_copy(doclist);
+	// 	});
+	// },
+	// list_view_doc:function(doclist){
+	// 	$(doclist.wrapper).on("click", 'button[list_view_doc="'+doclist.doctype+'"]', function() {
+	// 		frappe.ui.get_upload_dialog({
+	// 			"args": {
+	// 				"folder": doclist.current_folder,
+	// 				"from_form": 1
+	// 			},
+	// 			callback: function() {
+	// 				doclist.refresh();
+	// 			}
+	// 		});
+	// 	});
+	// },
 	setup_menu: function(doclist) {
 		doclist.page.add_menu_item(__("New Folder"), function() {
 			var d = frappe.prompt(__("Name"), function(values) {

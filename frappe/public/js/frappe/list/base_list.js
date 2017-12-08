@@ -22,8 +22,6 @@ frappe.views.BaseList = class BaseList {
 		this.setup_defaults();
 		this.set_stats();
 		this.setup_fields();
-		this.setup_filters();
-		this.setup_order_by();
 
 		// make view
 		this.setup_page();
@@ -50,19 +48,27 @@ frappe.views.BaseList = class BaseList {
 		this.can_create = frappe.model.can_create(this.doctype);
 		this.can_delete = frappe.model.can_delete(this.doctype);
 		this.can_write = frappe.model.can_write(this.doctype);
+
+		this.filters = [];
+		this.order_by = 'modified desc';
+
+		// Setup buttons
+		this.primary_action = null;
+		this.secondary_action = {
+			label: __('Refresh'),
+			action: () => this.refresh()
+		};
+
+		this.menu_items = [{
+			label: __('Refresh'),
+			action: () => this.refresh(),
+			class: 'visible-xs'
+		}];
 	}
 
 	setup_fields() {
 		this.set_fields();
 		this.build_fields();
-	}
-
-	setup_filters() {
-		this.filters = [];
-	}
-
-	setup_order_by() {
-		this.order_by = 'modified desc';
 	}
 
 	set_fields() {
@@ -129,6 +135,13 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	build_fields() {
+		// fill in missing doctype
+		this._fields = this._fields.map(f => {
+			if (typeof f === 'string') {
+				f = [f, this.doctype];
+			}
+			return f;
+		});
 		//de-dup
 		this._fields = this._fields.uniqBy(f => f[0] + f[1]);
 		// build this.fields
@@ -177,8 +190,28 @@ frappe.views.BaseList = class BaseList {
 
 	setup_page_head() {
 		this.page.set_title(this.page_title);
-		this.menu = new ListMenu(this);
+		this.set_menu_items();
 		this.set_breadcrumbs();
+	}
+
+	set_menu_items() {
+		const $secondary_action = this.page.set_secondary_action(
+			this.secondary_action.label,
+			this.secondary_action.action,
+			this.secondary_action.icon
+		);
+		if (!this.secondary_action.icon) {
+			$secondary_action.addClass('hidden-xs');
+		} else {
+			$secondary_action.addClass('visible-xs');
+		}
+
+		this.menu_items.map(item => {
+			const $item = this.page.add_menu_item(item.label, item.action, item.standard);
+			if (item.class) {
+				$item.addClass(item.class);
+			}
+		});
 	}
 
 	set_breadcrumbs() {
@@ -332,17 +365,18 @@ frappe.views.BaseList = class BaseList {
 		}).then(r => {
 			// render
 			this.freeze(false);
-			this.update_data(r);
+
+			let data = r.message || {};
+			data = frappe.utils.dict(data.keys, data.values);
+			this.update_data(data);
+
 			this.toggle_result_area();
 			this.before_render();
 			this.render();
 		});
 	}
 
-	update_data(r) {
-		let data = r.message || {};
-		data = frappe.utils.dict(data.keys, data.values);
-
+	update_data(data) {
 		if (this.start === 0) {
 			this.data = data;
 		} else {
@@ -396,9 +430,9 @@ class FilterArea {
 	}
 
 	add(filters, refresh = true) {
-		if (!filters) return;
+		if (!filters || Array.isArray(filters) && filters.length === 0) return;
 
-		if (typeof filters === 'string') {
+		if (typeof filters[0] === 'string') {
 			// passed in the format of doctype, field, condition, value
 			const filter = Array.from(arguments);
 			filters = [filter];
@@ -543,146 +577,6 @@ class FilterArea {
 				this.list_view.refresh();
 			}
 		});
-	}
-}
-
-class ListMenu {
-	constructor(list_view) {
-		this.list_view = list_view;
-		this.doctype = this.list_view.doctype;
-		this.page = this.list_view.page;
-		this.setup();
-	}
-
-	setup() {
-		const doctype = this.doctype;
-		// Refresh button for large screens
-		this.page.set_secondary_action(__('Refresh'), () => {
-			this.list_view.refresh(true);
-		}, 'octicon octicon-sync').addClass('hidden-xs');
-
-		// Refresh button as menu item in small screens
-		this.page.add_menu_item(__('Refresh'), () => {
-			this.list_view.refresh(true);
-		}, 'octicon octicon-sync').addClass('visible-xs');
-
-		if (frappe.model.can_import(doctype)) {
-			this.page.add_menu_item(__('Import'), () => {
-				frappe.set_route('data-import-tool', { doctype });
-			}, true);
-		}
-		if (frappe.model.can_set_user_permissions(doctype)) {
-			this.page.add_menu_item(__('User Permissions'), () => {
-				frappe.set_route('List', 'User Permission', { allow: doctype });
-			}, true);
-		}
-		if (frappe.user_roles.includes('System Manager')) {
-			this.page.add_menu_item(__('Role Permissions Manager'), () => {
-				frappe.set_route('permission-manager', { doctype });
-			}, true);
-			this.page.add_menu_item(__('Customize'), () => {
-				frappe.set_route('Form', 'Customize Form', { doc_type: doctype });
-			}, true);
-		}
-
-		this.make_bulk_assignment();
-		if (frappe.model.can_print(doctype)) {
-			this.make_bulk_printing();
-		}
-
-		// add to desktop
-		this.page.add_menu_item(__('Add to Desktop'), () => {
-			frappe.add_to_desktop(doctype, doctype);
-		}, true);
-
-		if (frappe.user.has_role('System Manager') && frappe.boot.developer_mode === 1) {
-			// edit doctype
-			this.page.add_menu_item(__('Edit DocType'), () => {
-				frappe.set_route('Form', 'DocType', doctype);
-			}, true);
-		}
-	}
-
-	make_bulk_assignment() {
-		// bulk assignment
-		this.page.add_menu_item(__('Assign To'), () => {
-			const docnames = this.list_view.get_checked_items(true);
-
-			if (docnames.length > 0) {
-				const dialog = new frappe.ui.form.AssignToDialog({
-					obj: this.list_view,
-					method: 'frappe.desk.form.assign_to.add_multiple',
-					doctype: this.doctype,
-					docname: docnames,
-					bulk_assign: true,
-					re_assign: true,
-					callback: () => this.list_view.refresh(true)
-				});
-				dialog.clear();
-				dialog.show();
-			}
-			else {
-				frappe.msgprint(__('Select records for assignment'))
-			}
-		}, true);
-
-	}
-
-	make_bulk_printing() {
-		const print_settings = frappe.model.get_doc(':Print Settings', 'Print Settings');
-		const allow_print_for_draft = cint(print_settings.allow_print_for_draft);
-		const is_submittable = frappe.model.is_submittable(this.doctype);
-		const allow_print_for_cancelled = cint(print_settings.allow_print_for_cancelled);
-
-		this.page.add_menu_item(__('Print'), () => {
-			const items = this.list_view.get_checked_items();
-
-			const valid_docs = items.filter(doc => {
-				return !is_submittable || doc.docstatus === 1 ||
-					(allow_print_for_cancelled && doc.docstatus == 2) ||
-					(allow_print_for_draft && doc.docstatus == 0) ||
-					frappe.user.has_role('Administrator')
-			}).map(doc => doc.name);
-
-			var invalid_docs = items.filter(doc => !valid_docs.includes(doc.name));
-
-			if (invalid_docs.length > 0) {
-				frappe.msgprint(__('You selected Draft or Cancelled documents'));
-				return;
-			}
-
-			if (valid_docs.length > 0) {
-				const dialog = new frappe.ui.Dialog({
-					title: __('Print Documents'),
-					fields: [
-						{ 'fieldtype': 'Check', 'label': __('With Letterhead'), 'fieldname': 'with_letterhead' },
-						{ 'fieldtype': 'Select', 'label': __('Print Format'), 'fieldname': 'print_sel', options: frappe.meta.get_print_formats(this.doctype) },
-					]
-				});
-
-				dialog.set_primary_action(__('Print'), args => {
-					if (!args) return;
-					const default_print_format = frappe.get_meta(this.doctype).default_print_format;
-					const with_letterhead = args.with_letterhead ? 1 : 0;
-					const print_format = args.print_sel ? args.print_sel : default_print_format;
-					const json_string = JSON.stringify(valid_docs);
-
-					const w = window.open('/api/method/frappe.utils.print_format.download_multi_pdf?'
-						+ 'doctype=' + encodeURIComponent(this.doctype)
-						+ '&name=' + encodeURIComponent(json_string)
-						+ '&format=' + encodeURIComponent(print_format)
-						+ '&no_letterhead=' + (with_letterhead ? '0' : '1'));
-					if (!w) {
-						frappe.msgprint(__('Please enable pop-ups')); return;
-					}
-				});
-
-				dialog.show();
-			}
-			else {
-				frappe.msgprint(__('Select atleast 1 record for printing'))
-			}
-		}, true);
 	}
 }
 
