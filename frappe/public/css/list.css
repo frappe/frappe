@@ -89,10 +89,14 @@
     position: relative;
   }
 }
+.list-row-container {
+  border-bottom: 1px solid #d1d8dd;
+  display: flex;
+  flex-direction: column;
+}
 .list-row {
   padding: 12px 15px;
   height: 40px;
-  border-bottom: 1px solid #d1d8dd;
   cursor: pointer;
   transition: color 0.2s;
   -webkit-transition: color 0.2s;
@@ -193,26 +197,17 @@ input.list-row-checkbox {
 .like-action.octicon-heart {
   color: #ff5858;
 }
-@media (max-width: 767px) {
-  .doclist-row {
-    font-size: 14px;
-  }
-  .doclist-row [type='checkbox'] {
-    display: none;
-  }
-  .doclist-row .list-row-right .list-row-modified {
-    display: none;
-  }
-}
 .list-comment-count {
   display: inline-block;
   width: 37px;
   text-align: left;
 }
+.result.tags-shown .tag-row {
+  display: block;
+}
 .tag-row {
-  padding-left: 55px;
-  margin-bottom: 0px;
-  margin-top: -5px;
+  display: none;
+  margin-left: 50px;
 }
 .taggle_placeholder {
   top: 0;

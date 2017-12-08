@@ -21,6 +21,12 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	show() {
 		this.init();
+
+		if (frappe.route_options) {
+			this.set_filters_from_route_options();
+			return;
+		}
+
 		if (this.filters.length === 0) {
 			this.refresh();
 		}
@@ -34,8 +40,18 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		super.setup_defaults();
 		// initialize with saved filters
 		const saved_filters = this.view_user_settings.filters;
-		if (saved_filters && saved_filters.length > 0) {
+		if (saved_filters) {
 			this.filters = saved_filters;
+		} else {
+			// filters in listview_settings
+			const filters = (this.settings.filters || []).map(f => {
+				if (f.length === 3) {
+					f = [this.doctype, f[0], f[1], f[2]]
+				}
+				return f;
+			});
+
+			this.filters = filters;
 		}
 		// initialize with saved order by
 		this.order_by = this.view_user_settings.order_by || 'modified desc';
@@ -96,6 +112,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	setup_view() {
 		this.setup_columns();
 		this.setup_events();
+		this.settings.onload && this.settings.onload(this);
 	}
 
 	setup_footnote_area() {
@@ -144,10 +161,12 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const fields_in_list_view = this.get_fields_in_list_view();
 		// Add rest from in_list_view docfields
 		this.columns = this.columns.concat(
-			fields_in_list_view.map(df => ({
-				type: 'Field',
-				df
-			}))
+			fields_in_list_view
+				.filter(df => df.fieldname !== 'status')
+				.map(df => ({
+					type: 'Field',
+					df
+				}))
 		);
 
 		// limit to 4 columns
@@ -212,6 +231,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	before_render() {
+		this.settings.before_render && this.settings.before_render();
 		frappe.model.user_settings.save(this.doctype, 'last_view', this.view_name);
 		this.save_view_user_settings({
 			fields: this._fields,
@@ -233,10 +253,44 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			`;
 			this.$result.html(html);
 		}
+		this.render_count();
+		this.render_tags();
+	}
+
+	render_count() {
 		this.get_count_html()
 			.then(html => {
 				this.$result.find('.list-count').html(html);
 			});
+	}
+
+	render_tags() {
+		const $list_rows = this.$result.find('.list-row-container');
+
+		this.data.forEach((d, i) => {
+			let tag_html = $(`<div class='tag-row'>
+				<div class='list-tag hidden-xs'></div>
+			</div>`).appendTo($list_rows.get(i));
+
+			// add tags
+			let tag_editor = new frappe.ui.TagEditor({
+				parent: tag_html.find('.list-tag'),
+				frm: {
+					doctype: this.doctype,
+					docname: d.name
+				},
+				list_sidebar: this.list_sidebar,
+				user_tags: d._user_tags,
+				on_change: function (user_tags) {
+					d._user_tags = user_tags;
+				}
+			});
+
+			tag_editor.wrapper.on('click', '.tagit-label', (e) => {
+				const $this = $(e.currentTarget);
+				this.filter_area.add(this.doctype, '_user_tags', '=', $this.text());
+			});
+		});
 	}
 
 	get_header_html() {
@@ -250,7 +304,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		`;
 		const $columns = this.columns.map(col => {
 			let classes = [
-				'list-row-col',
+				'list-row-col ellipsis',
 				col.type == 'Subject' ? 'list-subject level' : 'hidden-xs',
 				frappe.model.is_numeric_field(col.df) ? 'text-right' : ''
 			].join(' ');
@@ -299,12 +353,14 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	get_list_row_html_skeleton(left = '', right = '') {
 		return `
-			<div class="level list-row small">
-				<div class="level-left">
-					${left}
-				</div>
-				<div class="level-right text-muted ellipsis">
-					${right}
+			<div class="list-row-container">
+				<div class="level list-row small">
+					<div class="level-left">
+						${left}
+					</div>
+					<div class="level-right text-muted ellipsis">
+						${right}
+					</div>
 				</div>
 			</div>
 		`;
@@ -554,6 +610,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			}
 		});
 
+		// toggle tags
+		this.list_sidebar.parent.on('click', '.list-tag-preview', () => {
+			this.toggle_tags();
+		});
+
 		this.$no_result.find('.btn-new-doc').click(() => this.make_new_doc());
 
 		this.setup_check_events();
@@ -653,6 +714,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			this.page.btn_primary.removeClass('btn-danger');
 			this.set_primary_action();
 		}
+	}
+
+	toggle_tags() {
+		this.$result.toggleClass('tags-shown');
 	}
 
 	delete_items() {
@@ -858,6 +923,40 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				standard: true
 			};
 		}
+	}
+
+	set_filters_from_route_options() {
+		const filters = [];
+		for (let field in frappe.route_options) {
+			var value = frappe.route_options[field];
+			var doctype = null;
+
+			// if `Child DocType.fieldname`
+			if (field.includes('.')) {
+				doctype = field.split('.')[0];
+				field = field.split('.')[1];
+			}
+
+			// find the table in which the key exists
+			// for example the filter could be {"item_code": "X"}
+			// where item_code is in the child table.
+
+			// we can search all tables for mapping the doctype
+			if (!doctype) {
+				doctype = frappe.meta.get_doctype_for_field(this.doctype, field);
+			}
+
+			if (doctype) {
+				if ($.isArray(value)) {
+					filters.push([doctype, field, value[0], value[1]]);
+				} else {
+					filters.push([doctype, field, "=", value]);
+				}
+			}
+		}
+		frappe.route_options = null;
+
+		this.filter_area.add(filters);
 	}
 
 	static trigger_list_update(data) {

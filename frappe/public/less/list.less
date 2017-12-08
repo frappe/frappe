@@ -112,10 +112,15 @@
 	}
 }
 
+.list-row-container {
+	border-bottom: 1px solid @border-color;
+	display: flex;
+	flex-direction: column;
+}
+
 .list-row {
 	padding: 12px 15px;
 	height: 40px;
-	border-bottom: 1px solid @border-color;
 	cursor: pointer;
 	transition: color 0.2s;
 	-webkit-transition: color 0.2s;
@@ -236,20 +241,6 @@ input.list-check-all, input.list-row-checkbox {
 	color: @heart-color;
 }
 
-@media(max-width: 767px) {
-	.doclist-row {
-		font-size: @text-regular;
-	}
-
-	.doclist-row [type='checkbox'] {
-		display: none;
-	}
-
-	.doclist-row .list-row-right .list-row-modified {
-		display: none;
-	}
-}
-
 .list-comment-count {
 	display: inline-block;
 	width: 37px;
@@ -258,10 +249,15 @@ input.list-check-all, input.list-row-checkbox {
 
 // tags
 
+.result.tags-shown {
+	.tag-row {
+		display: block;
+	}
+}
+
 .tag-row {
-	padding-left: 55px;
-	margin-bottom: 0px;
-	margin-top: -5px;
+	display: none;
+	margin-left: 50px;
 }
 
 .taggle_placeholder {

@@ -407,6 +407,21 @@ frappe.views.BaseList = class BaseList {
 		this.$paging_area.find('.btn-more')
 			.toggle(show_more);
 	}
+
+	call_for_selected_items(method, args = {}) {
+		args.names = this.get_checked_items(true);
+
+		frappe.call({
+			method: method,
+			args: args,
+			freeze: true,
+			callback: r => {
+				if (!r.exc) {
+					this.refresh();
+				}
+			}
+		});
+	}
 }
 
 class FilterArea {
@@ -454,8 +469,6 @@ class FilterArea {
 
 	set_standard_filter(filters) {
 		const fields_dict = this.list_view.page.fields_dict;
-		const non_standard_filters = [];
-		const standard_filters = [];
 
 		let out = filters.reduce((out, filter) => {
 			const [dt, fieldname, condition, value] = filter;
@@ -479,6 +492,16 @@ class FilterArea {
 
 	remove(fieldname) {
 		this.filter_list.get_filter(fieldname).remove();
+	}
+
+	clear() {
+		this.filter_list.clear_filters();
+
+		const fields_dict = this.list_view.page.fields_dict;
+		for (let key in fields_dict) {
+			const field = this.list_view.page.fields_dict[key];
+			field.set_value('');
+		}
 	}
 
 	make_standard_filters() {

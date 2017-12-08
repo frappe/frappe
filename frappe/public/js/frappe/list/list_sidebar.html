@@ -10,7 +10,7 @@
 			    {{ __("Reports") }} <span class="caret"></span>
 			  </a>
 				<ul class="dropdown-menu reports-dropdown" style="max-height: 300px; overflow-y: auto;">
-					<li><a href="#Report/{{ doctype }}">{{ __("Report Builder") }}</a></li>
+					<li><a href="#List/{{ doctype }}/Report">{{ __("Report Builder") }}</a></li>
 				</ul>
 			</div>
 		</li>
@@ -18,8 +18,6 @@
 	<li class="divider"></li>
 	<li class="list-link" data-view="List">
 		<a href="#List/{%= doctype %}/List">{%= __("List") %}</a></li>
-	<li class="list-link" data-view="Report">
-		<a href="#List/{%= doctype %}/Report">{%= __("Report") %}</a></li>
 	<li class="hide list-link" data-view="Image">
 		<a href="#List/{%= doctype %}/Image">{%= __("Images") %}</a></li>
 	<li class="hide list-link" data-view="Gantt">
