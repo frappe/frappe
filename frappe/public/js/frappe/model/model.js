@@ -586,8 +586,12 @@ $.extend(frappe.model, {
 		return '`tab' + doctype + '`.`' + fieldname + '`';
 	},
 
-	is_numeric_field: function(df) {
-		return frappe.model.numeric_fieldtypes.includes(df && df.fieldtype);
+	is_numeric_field: function(fieldtype) {
+		if (!fieldtype) return;
+		if (typeof fieldtype === 'object') {
+			fieldtype = fieldtype.fieldtype;
+		}
+		return frappe.model.numeric_fieldtypes.includes(fieldtype);
 	}
 });
 

@@ -7,30 +7,34 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	show() {
-		this.init();
-		this.init_promise.then(() => this.refresh());
+		this.init().then(() => this.refresh());
 	}
 
 	init() {
-		// assign a promise to this.init_promise
-		// it can also be chained
-		// so that refresh is called only when
-		// this.init_promise resolves
-		this.init_promise = Promise.resolve();
-		if (this._setup) return this.init_promise;
 
-		this.setup_defaults();
-		this.set_stats();
-		this.setup_fields();
+		if (this.init_promise) return this.init_promise;
 
-		// make view
-		this.setup_page();
-		this.setup_page_head();
-		this.setup_side_bar();
-		this.setup_main_section();
-		this.setup_view();
+		let tasks = [
+			this.setup_defaults,
+			this.set_stats,
+			this.setup_fields,
+			// make view
+			this.setup_page,
+			this.setup_page_head,
+			this.setup_side_bar,
+			this.setup_list_wrapper,
+			this.setup_filter_area,
+			this.setup_sort_selector,
+			this.setup_result_area,
+			this.setup_no_result_area,
+			this.setup_freeze_area,
+			this.setup_paging_area,
+			this.setup_footnote_area,
+			this.setup_view,
+		].map(fn => fn.bind(this));
 
-		this._setup = true;
+		this.init_promise = frappe.run_serially(tasks);
+		return this.init_promise;
 	}
 
 	setup_defaults() {
@@ -246,9 +250,10 @@ frappe.views.BaseList = class BaseList {
 
 	setup_filter_area() {
 		this.filter_area = new FilterArea(this);
-		this.init_promise = this.init_promise
-			.then(() => this.filter_area.add(this.filters))
-			.then(() => this.filters = []);
+
+		if (this.filters.length > 0) {
+			return this.filter_area.set(this.filters);
+		}
 	}
 
 	setup_sort_selector() {
@@ -356,7 +361,7 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	refresh() {
-		console.log('refresh called')
+		// debugger;
 		this.freeze(true);
 		// fetch data from server
 		const args = this.get_args();
@@ -429,6 +434,7 @@ class FilterArea {
 		this.list_view = list_view;
 		this.standard_filters_wrapper = this.list_view.page.page_form;
 		this.$filter_list_wrapper = $('<div class="filter-list">').appendTo(this.list_view.$frappe_list);
+		this.trigger_refresh = true;
 		this.setup();
 	}
 
@@ -446,8 +452,18 @@ class FilterArea {
 			.uniqBy(JSON.stringify);
 	}
 
+	set(filters) {
+		// use to method to set filters without triggering refresh
+		this.trigger_refresh = false;
+		return this.add(filters, false)
+			.then(() => {
+				this.trigger_refresh = true;
+			});
+	}
+
 	add(filters, refresh = true) {
-		if (!filters || Array.isArray(filters) && filters.length === 0) return;
+		if (!filters || Array.isArray(filters) && filters.length === 0)
+			return Promise.resolve();
 
 		if (typeof filters[0] === 'string') {
 			// passed in the format of doctype, field, condition, value
@@ -465,6 +481,12 @@ class FilterArea {
 			.then(() => {
 				if (refresh) return this.list_view.refresh()
 			});
+	}
+
+	refresh_list_view() {
+		if (this.trigger_refresh) {
+			this.list_view.refresh();
+		}
 	}
 
 	set_standard_filter(filters) {
@@ -524,7 +546,7 @@ class FilterArea {
 				label: 'ID',
 				condition: 'like',
 				fieldname: 'name',
-				onchange: () => this.list_view.refresh(true)
+				onchange: () => this.refresh_list_view()
 			}
 		];
 
@@ -554,7 +576,7 @@ class FilterArea {
 				options: options,
 				fieldname: df.fieldname,
 				condition: condition,
-				onchange: () => this.list_view.refresh(true)
+				onchange: () => this.refresh_list_view()
 			};
 		}));
 
@@ -598,9 +620,7 @@ class FilterArea {
 			parent: this.$filter_list_wrapper,
 			doctype: this.list_view.doctype,
 			default_filters: [],
-			on_change: () => {
-				this.list_view.refresh();
-			}
+			on_change: () => this.refresh_list_view()
 		});
 	}
 }

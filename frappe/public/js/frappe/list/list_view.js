@@ -20,16 +20,14 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	show() {
-		this.init();
-
-		if (frappe.route_options) {
-			this.set_filters_from_route_options();
-			return;
-		}
-
-		if (this.filters.length === 0) {
-			this.refresh();
-		}
+		this.init().then(() => {
+			if (frappe.route_options) {
+				this.set_filters_from_route_options();
+				return;
+			} else {
+				this.refresh();
+			}
+		});
 	}
 
 	get view_user_settings() {
@@ -193,35 +191,35 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		});
 	}
 
-	freeze(toggle) {
-		if (this.view_name !== 'List') return;
+	// freeze(toggle) {
+	// 	if (this.view_name !== 'List') return;
 
-		this.$freeze.toggle(toggle);
-		this.$result.toggle(!toggle);
+	// 	this.$freeze.toggle(toggle);
+	// 	this.$result.toggle(!toggle);
 
-		const columns = this.columns;
-		if (toggle) {
-			if (this.$freeze.find('.freeze-row').length > 0) return;
+	// 	const columns = this.columns;
+	// 	if (toggle) {
+	// 		if (this.$freeze.find('.freeze-row').length > 0) return;
 
-			const html = `
-				${this.get_header_html()}
-				${Array.from(new Array(10)).map(loading_row).join('')}
-			`;
-			this.$freeze.html(html);
-		}
+	// 		const html = `
+	// 			${this.get_header_html()}
+	// 			${Array.from(new Array(10)).map(loading_row).join('')}
+	// 		`;
+	// 		this.$freeze.html(html);
+	// 	}
 
-		function loading_row() {
-			return `
-				<div class="list-row freeze-row level">
-					<div class="level-left">
-						<div class="list-row-col list-subject"></div>
-						${columns.slice(1).map(c => `<div class="list-row-col"></div>`).join('')}
-					</div>
-					<div class="level-right"></div>
-				</div>
-			`;
-		}
-	}
+	// 	function loading_row() {
+	// 		return `
+	// 			<div class="list-row freeze-row level">
+	// 				<div class="level-left">
+	// 					<div class="list-row-col list-subject"></div>
+	// 					${columns.slice(1).map(c => `<div class="list-row-col"></div>`).join('')}
+	// 				</div>
+	// 				<div class="level-right"></div>
+	// 			</div>
+	// 		`;
+	// 	}
+	// }
 
 	toggle_result_area() {
 		super.toggle_result_area();
@@ -733,8 +731,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 						doctype: this.doctype
 					}
 				}).then((r) => {
-					const failed = r.message;
-					if (failed && failed.length && !r._server_messages) {
+					let failed = r.message;
+					if (!failed) failed = [];
+
+					if (failed.length && !r._server_messages) {
 						frappe.throw(__('Cannot delete {0}', [failed.map(f => f.bold()).join(', ')]))
 					}
 					if (failed.length < docnames.length) {
@@ -747,7 +747,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	get_checked_items(only_docnames) {
-		const docnames = Array.from(this.$checks)
+		const docnames = Array.from(this.$checks || [])
 			.map(check => $(check).data().name);
 
 		if (only_docnames) return docnames;
