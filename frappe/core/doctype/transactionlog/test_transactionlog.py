@@ -7,8 +7,6 @@ import frappe.utils
 from frappe.utils import cint
 import hashlib
 
-test_dependencies = ["Item"]
-
 class TestTransactionLog(unittest.TestCase):
 	def test_chaining_hash(self):
 
