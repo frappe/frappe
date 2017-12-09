@@ -300,6 +300,7 @@ def console(context):
 @click.command('run-tests')
 @click.option('--app', help="For App")
 @click.option('--doctype', help="For DocType")
+@click.option('--doctype-list-path', help="Path to .txt file for list of doctypes. Example erpnext/tests/server/agriculture.txt")
 @click.option('--test', multiple=True, help="Specific test")
 @click.option('--driver', help="For Travis")
 @click.option('--ui-tests', is_flag=True, default=False, help="Run UI Tests")
@@ -308,7 +309,7 @@ def console(context):
 @click.option('--junit-xml-output', help="Destination file path for junit xml report")
 @pass_context
 def run_tests(context, app=None, module=None, doctype=None, test=(),
-	driver=None, profile=False, junit_xml_output=False, ui_tests = False):
+	driver=None, profile=False, junit_xml_output=False, ui_tests = False, doctype_list_path=None):
 	"Run tests"
 	import frappe.test_runner
 	tests = test
@@ -318,7 +319,7 @@ def run_tests(context, app=None, module=None, doctype=None, test=(),
 
 	ret = frappe.test_runner.main(app, module, doctype, context.verbose, tests=tests,
 		force=context.force, profile=profile, junit_xml_output=junit_xml_output,
-		ui_tests = ui_tests)
+		ui_tests = ui_tests, doctype_list_path = doctype_list_path)
 	if len(ret.failures) == 0 and len(ret.errors) == 0:
 		ret = 0
 
@@ -327,10 +328,11 @@ def run_tests(context, app=None, module=None, doctype=None, test=(),
 
 @click.command('run-ui-tests')
 @click.option('--app', help="App to run tests on, leave blank for all apps")
-@click.option('--test', help="File name of the test you want to run")
+@click.option('--test', help="Path to the specific test you want to run")
+@click.option('--test-list', help="Path to the txt file with the list of test cases")
 @click.option('--profile', is_flag=True, default=False)
 @pass_context
-def run_ui_tests(context, app=None, test=False, profile=False):
+def run_ui_tests(context, app=None, test=False, test_list=False, profile=False):
 	"Run UI tests"
 	import frappe.test_runner
 
@@ -338,7 +340,7 @@ def run_ui_tests(context, app=None, test=False, profile=False):
 	frappe.init(site=site)
 	frappe.connect()
 
-	ret = frappe.test_runner.run_ui_tests(app=app, test=test, verbose=context.verbose,
+	ret = frappe.test_runner.run_ui_tests(app=app, test=test, test_list=test_list, verbose=context.verbose,
 		profile=profile)
 	if len(ret.failures) == 0 and len(ret.errors) == 0:
 		ret = 0

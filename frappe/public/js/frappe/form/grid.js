@@ -311,7 +311,7 @@ frappe.ui.form.Grid = Class.extend({
 		}
 
 		new Sortable($rows.get(0), {
-			group: {name: 'row'},
+			group: {name: me.df.fieldname},
 			handle: '.sortable-handle',
 			draggable: '.grid-row',
 			filter: 'li, a',
@@ -480,8 +480,6 @@ frappe.ui.form.Grid = Class.extend({
 	},
 
 	setup_visible_columns: function() {
-		if(this.visible_columns) return;
-
 		var total_colsize = 1,
 			fields = this.editable_fields || this.docfields;
 

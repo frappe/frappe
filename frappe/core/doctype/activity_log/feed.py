@@ -4,22 +4,19 @@
 from __future__ import unicode_literals
 import frappe
 import frappe.permissions
-from frappe.model.document import Document
 from frappe.utils import get_fullname
 from frappe import _
-from frappe.core.doctype.communication.comment import add_info_comment
-from frappe.core.doctype.authentication_log.authentication_log import add_authentication_log
+from frappe.core.doctype.activity_log.activity_log import add_authentication_log
 from six import string_types
 
 def update_feed(doc, method=None):
-	"adds a new communication with comment_type='Updated'"
 	if frappe.flags.in_patch or frappe.flags.in_install or frappe.flags.in_import:
 		return
 
 	if doc._action!="save" or doc.flags.ignore_feed:
 		return
 
-	if doc.doctype == "Communication" or doc.meta.issingle:
+	if doc.doctype == "Activity Log" or doc.meta.issingle:
 		return
 
 	if hasattr(doc, "get_feed"):
@@ -34,16 +31,12 @@ def update_feed(doc, method=None):
 			name = feed.name or doc.name
 
 			# delete earlier feed
-			frappe.db.sql("""delete from `tabCommunication`
+			frappe.db.sql("""delete from `tabActivity Log`
 				where
 					reference_doctype=%s and reference_name=%s
-					and communication_type='Comment'
-					and comment_type='Updated'""", (doctype, name))
-
+					and link_doctype=%s""", (doctype, name,feed.link_doctype))
 			frappe.get_doc({
-				"doctype": "Communication",
-				"communication_type": "Comment",
-				"comment_type": "Updated",
+				"doctype": "Activity Log",
 				"reference_doctype": doctype,
 				"reference_name": name,
 				"subject": feed.subject,
@@ -75,9 +68,9 @@ def get_feed_match_conditions(user=None, force=True):
 		list(set(can_read) - set(user_permissions.keys()))]
 
 	if can_read_doctypes:
-		conditions += ["""(tabCommunication.reference_doctype is null
-			or tabCommunication.reference_doctype = ''
-			or tabCommunication.reference_doctype in ({}))""".format(", ".join(can_read_doctypes))]
+		conditions += ["""(`tabCommunication`.reference_doctype is null
+			or `tabCommunication`.reference_doctype = ''
+			or `tabCommunication`.reference_doctype in ({}))""".format(", ".join(can_read_doctypes))]
 
 		if user_permissions:
 			can_read_docs = []
@@ -86,7 +79,7 @@ def get_feed_match_conditions(user=None, force=True):
 					can_read_docs.append('"{}|{}"'.format(doctype, frappe.db.escape(n)))
 
 			if can_read_docs:
-				conditions.append("concat_ws('|', tabCommunication.reference_doctype, tabCommunication.reference_name) in ({})".format(
+				conditions.append("concat_ws('|', `tabCommunication`.reference_doctype, `tabCommunication`.reference_name) in ({})".format(
 					", ".join(can_read_docs)))
 
 	return "(" + " or ".join(conditions) + ")"

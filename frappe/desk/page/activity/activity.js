@@ -78,12 +78,12 @@ frappe.pages['activity'].on_page_load = function(wrapper) {
 		}, 'fa fa-th')
 	}
 
-	this.page.add_menu_item(__('Authentication Log'), function() {
+	this.page.add_menu_item(__('Activity Log'), function() {
 		frappe.route_options = {
 			"user": frappe.session.user
 		}
 
-		frappe.set_route('Report', "Authentication Log");
+		frappe.set_route('Report', "Activity Log");
 	}, 'fa fa-th')
 
 	this.page.add_menu_item(__('Show Likes'), function() {

@@ -8,7 +8,6 @@ from frappe.model.document import Document
 from frappe import _
 from frappe.modules.export_file import create_init_py
 from .connectors.base import BaseConnection
-from .connectors.postgres import PostGresConnection
 from .connectors.frappe_connection import FrappeConnection
 
 class DataMigrationConnector(Document):
@@ -27,10 +26,7 @@ class DataMigrationConnector(Document):
 			_class = get_connection_class(self.python_module)
 			return _class(self)
 		else:
-			if self.connector_type == 'Frappe':
-				self.connection = FrappeConnection(self)
-			elif self.connector_type == 'PostGres':
-				self.connection = PostGresConnection(self.as_dict())
+			self.connection = FrappeConnection(self)
 
 		return self.connection
 

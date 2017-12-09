@@ -43,7 +43,7 @@ def update_nsm(doc):
 
 	# set old parent
 	doc.set(opf, p)
-	frappe.db.set_value(doc.doctype, doc.name, opf, p or '')
+	frappe.db.set_value(doc.doctype, doc.name, opf, p or '', update_modified=False)
 
 	doc.reload()
 
@@ -212,13 +212,16 @@ class NestedSet(Document):
 				raise
 
 	def before_rename(self, olddn, newdn, merge=False, group_fname="is_group"):
-		if merge:
+		if merge and hasattr(self, group_fname):
 			is_group = frappe.db.get_value(self.doctype, newdn, group_fname)
 			if self.get(group_fname) != is_group:
 				frappe.throw(_("Merging is only possible between Group-to-Group or Leaf Node-to-Leaf Node"), NestedSetInvalidMergeError)
 
 	def after_rename(self, olddn, newdn, merge=False):
-		parent_field = "parent_" + self.doctype.replace(" ", "_").lower()
+		if not self.nsm_parent_field:
+			parent_field = "parent_" + self.doctype.replace(" ", "_").lower()
+		else:
+			parent_field = self.nsm_parent_field
 
 		# set old_parent for children
 		frappe.db.sql("update `tab{0}` set old_parent=%s where {1}=%s"

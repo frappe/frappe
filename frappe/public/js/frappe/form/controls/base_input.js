@@ -38,6 +38,7 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 		} else {
 			this.label_area = this.label_span = this.$wrapper.find("label").get(0);
 			this.input_area = this.$wrapper.find(".control-input").get(0);
+			this.$input_wrapper = this.$wrapper.find(".control-input-wrapper");
 			// keep a separate display area to rendered formatted values
 			// like links, currencies, HTMLs etc.
 			this.disp_area = this.$wrapper.find(".control-value").get(0);
