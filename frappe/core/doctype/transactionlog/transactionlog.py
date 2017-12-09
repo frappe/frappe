@@ -50,7 +50,7 @@ def getcurrentindex():
 
 @frappe.whitelist()
 def create_transaction_log(doctype, document, data):
-	transaction_log = frappe.get_doc({
+	frappe.get_doc({
 		"doctype": "TransactionLog",
 		"reference_doctype": doctype,
 		"document_name": document,

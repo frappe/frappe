@@ -3,9 +3,10 @@
 
 from __future__ import unicode_literals
 import frappe, json
-from  frappe import msgprint, _
-from frappe.utils import now, cint
+from  frappe import _
+from frappe.utils import cint
 import hashlib
+import ast
 
 def execute(filters=None):
 	columns, data = [], []
@@ -154,7 +155,7 @@ def getcurrentindex():  #function for getting current index from tabseries
 
 
 def missing_elements(L, end): #function for getting missing indexes
-	l = eval(L)
+	l = ast.literal_eval(L)
 	start = l[0]
 	# start, end = l[0], l[-1]
 	return sorted(set(range(start, end + 1)).difference(l))
