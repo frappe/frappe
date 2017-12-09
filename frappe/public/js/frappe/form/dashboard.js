@@ -339,7 +339,7 @@ frappe.ui.form.Dashboard = Class.extend({
 				type: 'heatmap',
 				height: 100,
 				start: new Date(moment().subtract(1, 'year').toDate()),
-				count_label: frappe.model.scrub(this.frm.doctype) + "s",
+				count_label: "interactions",
 				discrete_domains: 0,
 				data: {}
 			});
@@ -409,7 +409,8 @@ frappe.ui.form.Dashboard = Class.extend({
 		$.extend(args, {
 			parent: '.form-graph',
 			type: 'line',
-			height: 140
+			height: 140,
+			colors: ['green']
 		});
 		this.show();
 

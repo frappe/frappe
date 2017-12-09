@@ -7,6 +7,7 @@ frappe.setup = {
 	events: {},
 	data: {},
 	utils: {},
+	domains: [],
 
 	on: function(event, fn) {
 		if(!frappe.setup.events[event]) {
@@ -26,7 +27,8 @@ frappe.setup = {
 }
 
 frappe.pages['setup-wizard'].on_page_load = function(wrapper) {
-	var requires = (frappe.boot.setup_wizard_requires || []);
+	let requires = (frappe.boot.setup_wizard_requires || []);
+
 
 	frappe.require(requires, function() {
 		frappe.call({
@@ -216,10 +218,10 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 	get_setup_slides_filtered_by_domain() {
 		var filtered_slides = [];
 		frappe.setup.slides.forEach(function(slide) {
-			if(frappe.setup.domain) {
-				var domains = slide.domains;
-				if (domains.indexOf('all') !== -1 ||
-					domains.indexOf(frappe.setup.domain.toLowerCase()) !== -1) {
+			if(frappe.setup.domains) {
+				let active_domains = frappe.setup.domains;
+				if (!slide.domains ||
+					slide.domains.filter(d => active_domains.includes(d)).length > 0) {
 					filtered_slides.push(slide);
 				}
 			} else {
@@ -244,7 +246,7 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 		this.current_slide = null;
 		this.completed_state_message = this.get_message(
 			__("Setup Complete"),
-			__("You're all set!")
+			__("Refreshing...")
 		);
 	}
 
@@ -311,7 +313,6 @@ frappe.setup.slides_settings = [
 	{
 		// Welcome (language) slide
 		name: "welcome",
-		domains: ["all"],
 		title: __("Hello!"),
 		icon: "fa fa-world",
 		// help: __("Let's prepare the system for first use."),
@@ -344,7 +345,6 @@ frappe.setup.slides_settings = [
 	{
 		// Region slide
 		name: 'region',
-		domains: ["all"],
 		title: __("Select Your Region"),
 		icon: "fa fa-flag",
 		// help: __("Select your Country, Time Zone and Currency"),
@@ -376,7 +376,6 @@ frappe.setup.slides_settings = [
 	{
 		// Profile slide
 		name: 'user',
-		domains: ["all"],
 		title: __("The First User: You"),
 		icon: "fa fa-user",
 		fields: [

@@ -166,10 +166,10 @@ _f.Frm.prototype.field_map = function(fnames, fn) {
 	}
 	for (var i=0, l=fnames.length; i<l; i++) {
 		var fieldname = fnames[i];
-		var field = frappe.meta.get_docfield(cur_frm.doctype, fieldname, cur_frm.docname);
+		var field = frappe.meta.get_docfield(cur_frm.doctype, fieldname, this.docname);
 		if(field) {
 			fn(field);
-			cur_frm.refresh_field(fieldname);
+			this.refresh_field(fieldname);
 		}
 	}
 }
@@ -189,7 +189,7 @@ _f.Frm.prototype.set_df_property = function(fieldname, property, value, docname,
 	if (!docname && !table_field){
 		var df = this.get_docfield(fieldname);
 	} else {
-		var grid = cur_frm.fields_dict[table_field].grid,
+		var grid = this.fields_dict[table_field].grid,
 			fname = frappe.utils.filter_dict(grid.docfields, {'fieldname': fieldname});
 		if (fname && fname.length)
 			var df = frappe.meta.get_docfield(fname[0].parent, fieldname, docname);
@@ -201,25 +201,25 @@ _f.Frm.prototype.set_df_property = function(fieldname, property, value, docname,
 }
 
 _f.Frm.prototype.toggle_enable = function(fnames, enable) {
-	cur_frm.field_map(fnames, function(field) {
+	this.field_map(fnames, function(field) {
 		field.read_only = enable ? 0 : 1; });
 }
 
 _f.Frm.prototype.toggle_reqd = function(fnames, mandatory) {
-	cur_frm.field_map(fnames, function(field) { field.reqd = mandatory ? true : false; });
+	this.field_map(fnames, function(field) { field.reqd = mandatory ? true : false; });
 }
 
 _f.Frm.prototype.toggle_display = function(fnames, show) {
-	cur_frm.field_map(fnames, function(field) { field.hidden = show ? 0 : 1; });
+	this.field_map(fnames, function(field) { field.hidden = show ? 0 : 1; });
 }
 
 _f.Frm.prototype.call_server = function(method, args, callback) {
-	return $c_obj(cur_frm.doc, method, args, callback);
+	return $c_obj(this.doc, method, args, callback);
 }
 
 _f.Frm.prototype.get_files = function() {
-	return cur_frm.attachments
-		? frappe.utils.sort(cur_frm.attachments.get_attachments(), "file_name", "string")
+	return this.attachments
+		? frappe.utils.sort(this.attachments.get_attachments(), "file_name", "string")
 		: [] ;
 }
 
@@ -355,18 +355,18 @@ _f.Frm.prototype.call = function(opts, args, callback) {
 }
 
 _f.Frm.prototype.get_field = function(field) {
-	return cur_frm.fields_dict[field];
+	return this.fields_dict[field];
 };
 
 
 _f.Frm.prototype.set_read_only = function() {
 	var perm = [];
-	var docperms = frappe.perm.get_perm(cur_frm.doc.doctype);
+	var docperms = frappe.perm.get_perm(this.doc.doctype);
 	for (var i=0, l=docperms.length; i<l; i++) {
 		var p = docperms[i];
 		perm[p.permlevel || 0] = {read:1, print:1, cancel:1};
 	}
-	cur_frm.perm = perm;
+	this.perm = perm;
 }
 
 _f.Frm.prototype.trigger = function(event) {
@@ -457,8 +457,10 @@ _f.Frm.prototype.can_create = function(doctype) {
 	}
 
 	if(this.custom_make_buttons && this.custom_make_buttons[doctype]) {
+		// custom buttons are translated and so are the keys
+		const key = __(this.custom_make_buttons[doctype]);
 		// if the button is present, then show make
-		return !!this.custom_buttons[this.custom_make_buttons[doctype]];
+		return !!this.custom_buttons[key];
 	}
 
 	if(this.can_make_methods && this.can_make_methods[doctype]) {
@@ -480,7 +482,7 @@ _f.Frm.prototype.make_new = function(doctype) {
 	if(this.make_methods && this.make_methods[doctype]) {
 		return this.make_methods[doctype](this);
 	} else if(this.custom_make_buttons && this.custom_make_buttons[doctype]) {
-		this.custom_buttons[this.custom_make_buttons[doctype]].trigger('click');
+		this.custom_buttons[__(this.custom_make_buttons[doctype])].trigger('click');
 	} else {
 		frappe.model.with_doctype(doctype, function() {
 			var new_doc = frappe.model.get_new_doc(doctype);

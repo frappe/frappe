@@ -122,30 +122,33 @@ def upload_from_folder(path, dropbox_folder, dropbox_client, did_not_upload, err
 		else:
 			raise
 
-	for filename in os.listdir(path):
-		filename = cstr(filename)
+	for root, directory, files in os.walk(path):
+		for filename in files:
+			filename = cstr(filename)
+			filepath = os.path.join(root, filename)
 
-		if filename in ignore_list:
-			continue
+			if filename in ignore_list:
+				continue
 
-		found = False
-		filepath = os.path.join(path, filename)
-		for file_metadata in response.entries:
-			if (os.path.basename(filepath) == file_metadata.name
-				and os.stat(encode(filepath)).st_size == int(file_metadata.size)):
-				found = True
-				break
+			found = False
+			for file_metadata in response.entries:
+				if (os.path.basename(filepath) == file_metadata.name
+					and os.stat(encode(filepath)).st_size == int(file_metadata.size)):
+					found = True
+					break
 
-		if not found:
-			try:
-				upload_file_to_dropbox(filepath, dropbox_folder, dropbox_client)
-			except Exception:
-				did_not_upload.append(filename)
-				error_log.append(frappe.get_traceback())
+			if not found:
+				try:
+					upload_file_to_dropbox(filepath, dropbox_folder, dropbox_client)
+				except Exception:
+					did_not_upload.append(filepath)
+					error_log.append(frappe.get_traceback())
 
 def upload_file_to_dropbox(filename, folder, dropbox_client):
+	"""upload files with chunk of 15 mb to reduce session append calls"""
+
 	create_folder_if_not_exists(folder, dropbox_client)
-	chunk_size = 4 * 1024 * 1024
+	chunk_size = 15 * 1024 * 1024
 	file_size = os.path.getsize(encode(filename))
 	mode = (dropbox.files.WriteMode.overwrite)
 

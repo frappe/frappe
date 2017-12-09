@@ -52,12 +52,13 @@ frappe.ui.form.QuickEntryForm = Class.extend({
 			return false;
 		}
 
+		this.validate_for_prompt_autoname();
+
 		if (this.too_many_mandatory_fields() || this.has_child_table()
 			|| !this.mandatory.length) {
 			return false;
 		}
 
-		this.validate_for_prompt_autoname();
 		return true;
 	},
 

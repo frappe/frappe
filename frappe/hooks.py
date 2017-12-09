@@ -68,7 +68,7 @@ calendars = ["Event"]
 # login
 
 on_session_creation = [
-	"frappe.core.doctype.communication.feed.login_feed",
+	"frappe.core.doctype.activity_log.feed.login_feed",
 	"frappe.core.doctype.user.user.notify_admin_access_to_system_manager",
 	"frappe.limits.check_if_expired",
 	"frappe.utils.scheduler.reset_enabled_scheduler_events",
@@ -110,7 +110,7 @@ doc_events = {
 	"*": {
 		"on_update": [
 			"frappe.desk.notifications.clear_doctype_notifications",
-			"frappe.core.doctype.communication.feed.update_feed"
+			"frappe.core.doctype.activity_log.feed.update_feed"
 		],
 		"after_rename": "frappe.desk.notifications.clear_doctype_notifications",
 		"on_cancel": [
@@ -153,7 +153,7 @@ scheduler_events = {
 		"frappe.utils.scheduler.restrict_scheduler_events_if_dormant",
 		"frappe.email.doctype.auto_email_report.auto_email_report.send_daily",
 		"frappe.core.doctype.feedback_request.feedback_request.delete_feedback_request",
-		"frappe.core.doctype.authentication_log.authentication_log.clear_authentication_logs"
+		"frappe.core.doctype.activity_log.activity_log.clear_authentication_logs"
 	],
 	"daily_long": [
 		"frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backups_daily",

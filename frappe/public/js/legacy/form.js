@@ -4,7 +4,7 @@
 /* Form page structure
 
 	+ this.parent (either FormContainer or Dialog)
- 		+ this.wrapper
+		+ this.wrapper
 			+ this.toolbar
 			+ this.form_wrapper
 					+ this.head
@@ -195,9 +195,10 @@ _f.Frm.prototype.watch_model_updates = function() {
 	frappe.model.on(me.doctype, "*", function(fieldname, value, doc) {
 		// set input
 		if(doc.name===me.docname) {
-			if (!value && !doc[value]) {
+			if ((value==='' || value===null) && !doc[value]) {
 				// both the incoming and outgoing values are falsy
-				// so don't trigger dirty
+				// the texteditor, summernote, changes nulls to empty strings on render, 
+				// so ignore those changes
 			} else {
 				me.dirty();
 			}
@@ -205,7 +206,8 @@ _f.Frm.prototype.watch_model_updates = function() {
 				&& me.fields_dict[fieldname].refresh(fieldname);
 
 			me.layout.refresh_dependency();
-			return me.script_manager.trigger(fieldname, doc.doctype, doc.name);
+			let object = me.script_manager.trigger(fieldname, doc.doctype, doc.name);
+			return object;
 		}
 	});
 
@@ -919,10 +921,16 @@ _f.Frm.prototype.add_custom_button = function(label, fn, group) {
 	return btn;
 };
 
+//Remove all custom buttons
 _f.Frm.prototype.clear_custom_buttons = function() {
 	this.page.clear_inner_toolbar();
 	this.page.clear_user_actions();
 	this.custom_buttons = {};
+};
+
+//Remove specific custom button by button Label
+_f.Frm.prototype.remove_custom_button = function(label, group) {
+	this.page.remove_inner_button(label, group);
 };
 
 _f.Frm.prototype.add_fetch = function(link_field, src_field, tar_field) {
