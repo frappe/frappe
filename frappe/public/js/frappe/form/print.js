@@ -165,14 +165,14 @@ frappe.ui.form.PrintPreview = Class.extend({
 			delete d["sales_team"], delete d["payments"], delete d["packed_items"], delete d["items"], delete d["advances"],
 			delete d["other_charges_calculation"], delete d["address_display"], delete d["company_address_display"], delete d["shipping_address"] ;
 			frappe.call({
-				 method: "frappe.core.doctype.transactionlog.transactionlog.create_transaction_log",
-				 args: {
+				method: "frappe.core.doctype.transactionlog.transactionlog.create_transaction_log",
+				args: {
 					"doctype": me.frm.doctype,
 					"document": me.frm.docname,
 					"data": d
-							}
-					});
-		 }
+						}
+			});
+		}
 	},
 	new_page_preview: function (printit) {
 		var me = this;

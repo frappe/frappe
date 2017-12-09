@@ -4,7 +4,6 @@
 from __future__ import unicode_literals
 import frappe, json
 from  frappe import _
-from frappe.utils import cint
 import hashlib
 import ast
 
