@@ -4,6 +4,7 @@
 
 from __future__ import unicode_literals
 import frappe
+from frappe import _
 from frappe.model.document import Document
 from frappe.utils import now, cint
 import hashlib
@@ -18,7 +19,7 @@ class TransactionLog(Document):
 			if prev_hash:
 				self.previous_hash = prev_hash[0][0]
 			else:
-				frappe.throw('Indexing is out of Order')
+				self.previous_hash = _("Indexing broken")
 		else:
 			self.previous_hash = self.hash_line()
 		self.transaction_hash = self.hash_line()
@@ -55,4 +56,3 @@ def create_transaction_log(doctype, document, data):
 		"document_name": document,
 		"data": data
 	}).insert(ignore_permissions = True)
-
