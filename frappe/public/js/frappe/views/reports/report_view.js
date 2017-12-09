@@ -25,6 +25,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 					this.filters = this.report_doc.json.filters;
 					this.order_by = this.report_doc.json.order_by;
 					this.add_totals_row = this.report_doc.json.add_totals_row;
+					this.page_title = this.report_name;
 				});
 		}
 	}
