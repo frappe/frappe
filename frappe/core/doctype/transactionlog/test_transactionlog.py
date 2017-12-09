@@ -5,8 +5,6 @@ import frappe
 import unittest
 import frappe.utils
 from frappe.utils import cint
-from erpnext.accounts.doctype.sales_invoice.test_sales_invoice import create_sales_invoice
-from erpnext.accounts.doctype.payment_entry.test_payment_entry import get_payment_entry
 import hashlib
 
 test_dependencies = ["Item"]
