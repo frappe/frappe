@@ -170,7 +170,7 @@ frappe.ui.form.PrintPreview = Class.extend({
 					"doctype": me.frm.doctype,
 					"document": me.frm.docname,
 					"data": d
-					}
+				}
 			});
 		}
 	},
