@@ -119,6 +119,9 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 								fieldname = column_idx_to_fieldname[(dt, parentfield)][column_idx]
 								fieldtype = column_idx_to_fieldtype[(dt, parentfield)][column_idx]
 
+								if not fieldname:
+									continue
+
 								d[fieldname] = rows[idx][column_idx]
 								if fieldtype in ("Int", "Check"):
 									d[fieldname] = cint(d[fieldname])
@@ -173,7 +176,23 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 			return doc
 
 	def main_doc_empty(row):
-		return not (row and ((len(row) > 1 and row[1]) or (len(row) > 2 and row[2])))
+		return not (row and filter(None, row))
+
+	def validate_naming(doc):
+		autoname = frappe.get_meta(doc['doctype']).autoname
+
+		if ".#" in autoname or "hash" in autoname:
+			autoname = ""
+		elif autoname[0:5] == 'field':
+			autoname = autoname[6:]
+		elif autoname=='naming_series:':
+			autoname = 'naming_series'
+		else:
+			return True
+
+		if autoname and not doc[autoname]:
+			frappe.throw(_("{0} is a mandatory field".format(autoname)))
+		return True
 
 	users = frappe.db.sql_list("select name from tabUser")
 	def prepare_for_insert(doc):
@@ -307,6 +326,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 
 		try:
 			doc = get_doc(row_idx)
+			validate_naming(doc)
 			if pre_process:
 				pre_process(doc)
 

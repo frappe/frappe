@@ -275,7 +275,7 @@ frappe.ui.Page = Class.extend({
 		return $('<li class="divider"></li>').appendTo(this.menu);
 	},
 
-	get_inner_group_button: function(label) {
+	get_or_add_inner_group_button: function(label) {
 		var $group = this.inner_toolbar.find('.btn-group[data-label="'+label+'"]');
 		if(!$group.length) {
 			$group = $('<div class="btn-group" data-label="'+label+'" style="margin-left: 10px;">\
@@ -286,8 +286,12 @@ frappe.ui.Page = Class.extend({
 		return $group;
 	},
 
+	get_inner_group_button: function(label) {
+		return this.inner_toolbar.find('.btn-group[data-label="'+label+'"]');
+	},
+
 	set_inner_btn_group_as_primary: function(label) {
-		this.get_inner_group_button(label).find("button").removeClass("btn-default").addClass("btn-primary");
+		this.get_or_add_inner_group_button(label).find("button").removeClass("btn-default").addClass("btn-primary");
 	},
 
 	btn_disable_enable: function(btn, response) {
@@ -312,7 +316,7 @@ frappe.ui.Page = Class.extend({
 			me.btn_disable_enable(btn, response);
 		};
 		if(group) {
-			var $group = this.get_inner_group_button(group);
+			var $group = this.get_or_add_inner_group_button(group);
 			$(this.inner_toolbar).removeClass("hide");
 			return $('<li><a>'+label+'</a></li>')
 				.on('click', _action)
@@ -321,6 +325,29 @@ frappe.ui.Page = Class.extend({
 			return $('<button class="btn btn-default btn-xs" style="margin-left: 10px;">'+__(label)+'</btn>')
 				.on("click", _action)
 				.appendTo(this.inner_toolbar.removeClass("hide"));
+		}
+	},
+
+	remove_inner_button: function(label, group) {
+		if (typeof label === 'string') {
+			label = [label];
+		}
+		// translate
+		label = label.map(l => __(l));
+
+		if (group) {
+			var $group = this.get_inner_group_button(__(group));
+			if($group.length) {
+				$group.find('.dropdown-menu li a')
+					.filter((i, btn) => label.includes($(btn).text()))
+					.remove();
+			}
+			if ($group.find('.dropdown-menu li a').length === 0) $group.remove();
+		} else {
+
+			this.inner_toolbar.find('button')
+				.filter((i, btn) =>  label.includes($(btn).text()))
+				.remove();
 		}
 	},
 

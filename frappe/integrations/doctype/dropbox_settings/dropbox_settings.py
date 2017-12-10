@@ -145,8 +145,10 @@ def upload_from_folder(path, dropbox_folder, dropbox_client, did_not_upload, err
 					error_log.append(frappe.get_traceback())
 
 def upload_file_to_dropbox(filename, folder, dropbox_client):
+	"""upload files with chunk of 15 mb to reduce session append calls"""
+
 	create_folder_if_not_exists(folder, dropbox_client)
-	chunk_size = 4 * 1024 * 1024
+	chunk_size = 15 * 1024 * 1024
 	file_size = os.path.getsize(encode(filename))
 	mode = (dropbox.files.WriteMode.overwrite)
 
