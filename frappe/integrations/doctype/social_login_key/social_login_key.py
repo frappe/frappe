@@ -7,6 +7,11 @@ import frappe, json
 from frappe import _
 from frappe.model.document import Document
 
+class BaseUrlNotSetError(frappe.ValidationError): pass
+class AuthorizeUrlNotSetError(frappe.ValidationError): pass
+class AccessTokenUrlNotSetError(frappe.ValidationError): pass
+class RedirectUrlNotSetError(frappe.ValidationError): pass
+
 class SocialLoginKey(Document):
 
 	def autoname(self):
@@ -14,13 +19,13 @@ class SocialLoginKey(Document):
 
 	def validate(self):
 		if self.custom_base_url and not self.base_url:
-			frappe.throw(_("Please enter Base URL"))
+			frappe.throw(_("Please enter Base URL"), exc=BaseUrlNotSetError)
 		if not self.authorize_url:
-			frappe.throw(_("Please enter Authorize URL"))
+			frappe.throw(_("Please enter Authorize URL"), exc=AuthorizeUrlNotSetError)
 		if not self.access_token_url:
-			frappe.throw(_("Please enter Access Token URL"))
+			frappe.throw(_("Please enter Access Token URL"), exc=AccessTokenUrlNotSetError)
 		if not self.redirect_url:
-			frappe.throw(_("Please enter Redirect URL"))
+			frappe.throw(_("Please enter Redirect URL"), exc=RedirectUrlNotSetError)
 
 	def get_social_login_provider(self, provider, initialize=False):
 		providers = {}
