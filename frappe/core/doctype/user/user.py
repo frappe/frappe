@@ -496,7 +496,7 @@ class User(Document):
 			for p in self.social_logins:
 				if p.provider == provider:
 					return p.userid
-		except Exception as e:
+		except:
 			return None
 
 	def set_social_login_userid(self, provider, userid, username=None):
