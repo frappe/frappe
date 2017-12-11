@@ -500,22 +500,6 @@ frappe.ui.form.Grid = Class.extend({
 					df.colsize=df.columns;
 				}
 				else {
-					var colsize=2;
-					switch(df.fieldtype) {
-						case"Text":
-						case"Small Text":
-							colsize=3;
-							break;
-						case"Check":
-							colsize=1
-					}
-					df.colsize=colsize;
-				}
-
-				if(df.columns) {
-					df.colsize=df.columns;
-				}
-				else {
 					var colsize = 2;
 					switch(df.fieldtype) {
 						case "Text":
