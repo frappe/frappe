@@ -71,4 +71,14 @@ def get_data():
 			"color": '#FFAEDB',
 			"hidden": 1,
 		},
+		{
+			"module_name": "Data Import",
+			"color": "#FFF168",
+			"doctype": "Data Import",
+			"icon": "octicon octicon-cloud-upload",
+			"label": _("Data Import"),
+			"link": "List/Data Import",
+			"type": "list",
+			"hidden": 1
+		}
 	]
