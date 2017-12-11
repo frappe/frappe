@@ -12,17 +12,6 @@ from frappe.core.doctype.data_import.importer import upload
 from frappe.utils.background_jobs import enqueue
 
 
-@frappe.whitelist()
-def get_data_keys():
-    return frappe._dict({
-        "data_separator": _('Start entering data below this line'),
-        "main_table": _("Table") + ":",
-        "parent_table": _("Parent Table") + ":",
-        "columns": _("Column Name") + ":",
-        "doctype": _("DocType") + ":"
-    })
-
-
 class DataImport(Document):
 	def autoname(self):
 		self.name = "Import on "+ format_datetime(self.creation)
@@ -37,6 +26,7 @@ class DataImport(Document):
 		# if there is total_rows in the doc, it means that the template is already validated and error free
 		if self.import_file and not self.total_rows:
 			upload(data_import_doc=self, from_data_import="Yes", validate_template=True)
+
 
 @frappe.whitelist()
 def import_data(data_import):
