@@ -2,7 +2,7 @@
 // Author - Achilles Rasquinha <achilles@frappe.io>
 
 // frappe._
-// frappe"s utility namespace.
+// frappe's utility namespace.
 
 /**
  * @description Fuzzy Searching
@@ -135,6 +135,7 @@ frappe.Chat.OPTIONS
 };
 
 // frappe.components
+// frappe's component namespace.
 frappe.components = { };
 
 /**
@@ -152,7 +153,7 @@ class extends Component
             h("button", { ...props, class: `btn btn-${props.type} ${props.block ? "btn-block" : ""} ${props.class}` },
                 props.children
             )
-        )
+        );
     }
 };
 frappe.components.Button.defaultProps =
@@ -161,6 +162,11 @@ frappe.components.Button.defaultProps =
     block: true
 };
 
+/**
+ * @description FAB Component
+ * 
+ * @extends frappe.components.Button
+ */
 frappe.components.FAB
 =
 class extends frappe.components.Button
@@ -168,13 +174,13 @@ class extends frappe.components.Button
     render ( )
     {
         const { props } = this;
-        const style     = frappe.components.FAB;
-
+        const size      = frappe.components.FAB.SIZE[props.size];
+        
         return (
-            h(frappe.components.Button, props,
+            h(frappe.components.Button, {...props, class: `${props.class} ${size.class}`},
                 h("i", { class: props.icon })
             )
-        )
+        );
     }
 };
 frappe.components.FAB.defaultProps
@@ -182,110 +188,42 @@ frappe.components.FAB.defaultProps
 {
     icon: "octicon octicon-plus"
 };
-
-// frappe.components.Indicator
-// Props
-// color - (Required) color for the indicator
-frappe.components.Indicator
+frappe.components.FAB.SIZE
 =
-class extends Component
 {
-    render ( ) {
-        const { props } = this;
-
-        return props.color ? (
-            h("span", { class: `indicator ${props.color}` })
-        ) : null;
-    }
-};
-
-// frappe.components.Avatar
-// NOTE  - styles at avatar.less
-// title - (Required) title for the avatar.
-// abbr  - (Optional) abbreviation for the avatar, defaults to the first letter of the title.
-// size  - (Optional) size of the avatar to be displayed.
-// image - (Optional) image for the avatar, defaults to the first letter of the title.
-frappe.components.Avatar
-=
-class extends Component {
-    render ( ) {
-        const { props } = this
-        const abbr = props.abbr || props.title.substr(0, 1)
-        const size = props.size === "small" ? "avatar-small" : "";
-
-        return (
-            h("span", { class: `avatar ${size}` },
-                props.image ?
-                    h("img", { class: "media-object", src: props.image })
-                    :
-                    h("div", { class: "standard-image" }, abbr)
-            )
-        )
+    large:
+    {
+        class: "frappe-fab-lg"
     }
 }
-
-// frappe.components.Select
-// options - (Required) array of options of the format
-// {
-//    label: "foo",
-//    value: "bar"
-// }
-// value   - (Required) default value.
-// click   - (Optional) click handler on click event.
-frappe.components.Select
-=
-class extends Component {
-    render ( ) {
-        const { props } = this
-        const selected  = props.options.find(o => o.value === props.value)
-
-        return (
-            h("div", { class: "dropdown" },
-                h("button", { class: "btn btn-sm btn-default btn-block dropdown-toggle", "data-toggle": "dropdown" },
-                    selected.color ?
-                        h(frappe.components.Indicator, { color: selected.color }) : null,
-                    selected.label ?
-                        selected.label : selected.value,
-                ),
-                h("ul", { class: "dropdown-menu" },
-                    props.options.map(o => h(frappe.components.Select.Option, { ...o, click: props.click }))
-                )
-            )
-        )
-    }
-}
-
-frappe.components.Select.Option
-=
-class extends Component {
-    render ( ) {
-        const { props } = this
-
-        return (
-            h("li", null,
-                h("a", { onclick: () => props.click(props.value) },
-                    props.color ?
-                        h(frappe.components.Indicator, { color: props.color }) : null, 
-                    props.label ?
-                        props.label : props.value
-                )
-            )
-        )
-    }
-}
-// frappe.components.Select.Option props
-// same as frappe.components.Select.
 
 // frappe.chat
 frappe.chat = { }
 
 // frappe.chat.profile
 frappe.chat.profile = { }
+/**
+ * @description Create a Chat Profile
+ * 
+ * @param   {string|array} fields - (Optional) fields to be retrieved after creating a Chat Profile.
+ * @param   {function}     fn     - (Optional) callback with the returned Chat Profile.
+ * 
+ * @returns {Promise}
+ * 
+ * @example
+ * frappe.chat.profile.create(function (profile) {
+ *      // do stuff
+ * });
+ * frappe.chat.profile.create("status").then(function (profile) {
+ *      console.log(profile); // { status: "Online" }
+ * });
+ */
 frappe.chat.profile.create
 =
-(fields, fn) =>
+function (fields, fn)
 {
-    if ( typeof fields === "function" ) {
+    if ( typeof fields === "function" ) 
+    {
         fn     = fields
         fields = null
     } else
@@ -296,7 +234,7 @@ frappe.chat.profile.create
     {
         frappe.call("frappe.chat.doctype.chat_profile.chat_profile.create",
             { user: frappe.session.user, exists_ok: true, fields: fields },
-                response => 
+                response =>
                 {
                     if ( fn )
                         fn(response.message)
@@ -305,6 +243,7 @@ frappe.chat.profile.create
                 })
     })
 }
+
 frappe.chat.profile.update
 =
 (user, update, fn) =>
@@ -1300,7 +1239,7 @@ class extends Component {
                 // h("div", { class: "dropup" },
                     h(frappe.components.FAB, {
                           class: "frappe-fab",
-                           icon: "octicon octicon-comment",
+                           icon: state.active ? "fa fa-fw fa-times" : "octicon octicon-comment",
                            size: "large",
                            type: "primary", "data-toggle": "dropdown",
                         onclick: () => {
@@ -1340,3 +1279,96 @@ frappe.Chat.Widget.get_datetime_string   = (date) => {
         return today.format("DD/MM/YYYY")
     }
 }
+
+// frappe.components.Indicator
+// Props
+// color - (Required) color for the indicator
+frappe.components.Indicator
+=
+class extends Component
+{
+    render ( ) {
+        const { props } = this;
+
+        return props.color ? (
+            h("span", { class: `indicator ${props.color}` })
+        ) : null;
+    }
+};
+
+// frappe.components.Avatar
+// NOTE  - styles at avatar.less
+// title - (Required) title for the avatar.
+// abbr  - (Optional) abbreviation for the avatar, defaults to the first letter of the title.
+// size  - (Optional) size of the avatar to be displayed.
+// image - (Optional) image for the avatar, defaults to the first letter of the title.
+frappe.components.Avatar
+=
+class extends Component {
+    render ( ) {
+        const { props } = this
+        const abbr = props.abbr || props.title.substr(0, 1)
+        const size = props.size === "small" ? "avatar-small" : "";
+
+        return (
+            h("span", { class: `avatar ${size}` },
+                props.image ?
+                    h("img", { class: "media-object", src: props.image })
+                    :
+                    h("div", { class: "standard-image" }, abbr)
+            )
+        )
+    }
+}
+
+// frappe.components.Select
+// options - (Required) array of options of the format
+// {
+//    label: "foo",
+//    value: "bar"
+// }
+// value   - (Required) default value.
+// click   - (Optional) click handler on click event.
+frappe.components.Select
+=
+class extends Component {
+    render ( ) {
+        const { props } = this
+        const selected  = props.options.find(o => o.value === props.value)
+
+        return (
+            h("div", { class: "dropdown" },
+                h("button", { class: "btn btn-sm btn-default btn-block dropdown-toggle", "data-toggle": "dropdown" },
+                    selected.color ?
+                        h(frappe.components.Indicator, { color: selected.color }) : null,
+                    selected.label ?
+                        selected.label : selected.value,
+                ),
+                h("ul", { class: "dropdown-menu" },
+                    props.options.map(o => h(frappe.components.Select.Option, { ...o, click: props.click }))
+                )
+            )
+        )
+    }
+}
+
+frappe.components.Select.Option
+=
+class extends Component {
+    render ( ) {
+        const { props } = this
+
+        return (
+            h("li", null,
+                h("a", { onclick: () => props.click(props.value) },
+                    props.color ?
+                        h(frappe.components.Indicator, { color: props.color }) : null, 
+                    props.label ?
+                        props.label : props.value
+                )
+            )
+        )
+    }
+}
+// frappe.components.Select.Option props
+// same as frappe.components.Select.
