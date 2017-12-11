@@ -1,49 +1,74 @@
-// frappe.Chat.Widget
+// frappe Chat
 // Author - Achilles Rasquinha <achilles@frappe.io>
 
-// frappe._ (General Helper functions for frappe)
-frappe._.fuzzy_search = function (query, dataset, options) {
+// frappe._
+// frappe's utility namespace.
+
+/**
+ * @description Fuzzy Searching
+ * @param {string} query   - A query string.
+ * @param {array}  dataset - A dataset to search in, can contain singletons or Objects.
+ * @param {object} options - Options as per fuze.js
+ * 
+ * @example
+ * frappe._.fuzzy_search("foo", [{ key: "foobar" }, { key: "tootifrooti" }]);
+ * // returns [{ key: "foobar" }]
+ */
+frappe._.fuzzy_search = function (query, dataset, options)
+{
     const DEFAULT = {
                 shouldSort: true,
                  threshold: 0.6,
                   location: 0,
                   distance: 100,
-        minMatchCharLength: 1, 
+        minMatchCharLength: 1,
           maxPatternLength: 32
     };
     options       = Object.assign({ }, DEFAULT, options);
 
-    // Client-Side fuzzy search is important, hence Fuse.js
     const fuse    = new Fuse(dataset, options);
     const result  = fuse.search(query);
 
     return result;
 };
 
-frappe._.lower     = function (word) {
-
+/**
+ * @description Return an array to a list if needed.
+ * @param   {array}        list - An array to squash.
+ * @returns {array|object} Returns an array if there's more than 1 object else the first object itself.
+ * 
+ * @example
+ * frappe._.squash(["foo"]);
+ * // returns "foo"
+ * frappe._.squash(["foo", "bar"]);
+ * // returns ["foo", "bar"];
+ */
+frappe._.squash = (list) => 
+{
+    if ( Array.isArray(list) && list.length === 1 )
+        return list[0];
+    return list;
 };
 
-frappe._.pluralize = function (word, count) {
-    if ( count !== 1 ) {
-        var token  = frappe._.lower(word);
-    }
+const { h, Component, render } = hyper;
 
-    return what;
-}
-
-frappe.utils.squash = (what) => {
-    if ( Array.isArray(what) && what.length === 1 )
-        return what[0];
-    return what;
-}
-
-const { h, Component, render } = hyper
-
+/**
+ * @access public
+ * @description Frappe Chat Object.
+ * 
+ * @example
+ * const chat = new frappe.Chat(options); // appends to 'body';
+ * const chat = new frappe.Chat('.selector', options);
+ */
 frappe.Chat
 =
 class
 {
+    /**
+     * @description Frappe Chat Object.
+     * @param {string} selector - A query selector, HTML Element or jQuery object.
+     * @param {object} options  - Optional configurations.
+     */
     constructor (selector, options)
     {
         if ( typeof selector !== 'string' ) {
@@ -51,16 +76,35 @@ class
             selector = null;
         }
 
-        this.options    = Object.assign({ }, frappe.Chat.OPTIONS, options);
-        this.$container = selector ? $(selector) : $('body');
-        this.render()
+        this.set_wrapper(selector ? selector : 'body');
+        this.set_options(options);
+
+        this.render();
+    }
+
+    /**
+     * Set 
+     * @param {*} selector
+     */
+    set_wrapper (selector)
+    {
+        this.$wrapper  = $(selector);
+    }
+
+    set_options (options)
+    {
+        this.options   = Object.assign({ }, this.options);
     }
 
     render ( ) {
-        const $container = this.$container
-        render(h(frappe.Chat.Widget, {
-            layout: this.options.layout
-        }), $container[0]);
+        const $wrapper = this.$wrapper;
+        const options  = this.options;
+
+        const component  = h(frappe.Chat.Widget, {
+            layout: options.layout
+        });
+
+        hyper.render(component, $wrapper[0]);
     }
 };
 frappe.Chat.Layout
@@ -74,22 +118,66 @@ frappe.Chat.OPTIONS
     layout: frappe.Chat.Layout.COLLAPSIBLE
 };
 
-frappe.components = { }
+frappe.components = { };
+
+// Base Components
+frappe.components.Button
+=
+class extends Component
+{
+    render ( )
+    {
+        return (
+            h("button", { class: "btn btn-default" },
+                props.children
+            )
+        )
+    }
+};
+
+// frappe.components.FAB
+// Props
+frappe.components.FAB
+=
+class extends frappe.components.Button
+{
+    constructor (props)
+    {
+        super (...frappe.components.FAB.defaultProps, ...props)
+    }
+
+    render ( )
+    {
+        const { props } = this
+
+        return (
+            h(frappe.components.Button,
+                h("i", { class: props.icon })
+            )
+        )
+    }
+};
+frappe.components.FAB.defaultProps = 
+{
+    icon: "octicon octicon-plus"
+};
+
 
 // frappe.components.Indicator
 // Props
 // color - (Required) color for the indicator
 frappe.components.Indicator
 =
-class extends Component {
+class extends Component
+{
     render ( ) {
-        const { props } = this
+        const { props } = this;
 
         return props.color ? (
             h("span", { class: `indicator ${props.color}` })
-        ) : null
+        ) : null;
     }
-}
+};
 
 // frappe.components.Avatar
 // NOTE  - styles at avatar.less
@@ -220,6 +308,27 @@ frappe.chat.profile.on = { }
 frappe.chat.profile.on.update
 = // You should use . and not :, use . for event, : for query.
 (fn) => frappe.realtime.on('frappe.chat.profile.update', r => fn(r.user, r.data))
+
+frappe.chat.profile.STATUSES
+=
+[
+    {
+        name: 'Online',
+       color: 'green'
+    },
+    {
+         name: 'Away',
+        color: 'yellow'
+    },
+    {
+         name: 'Busy',
+        color: 'red'
+    },
+    {
+         name: 'Offline',
+        color: 'darkgrey'
+    }
+]
 
 
 frappe.chat.room = { }
@@ -377,7 +486,7 @@ class extends Component {
                         profile: { ...this.state.profile, status: update.status }
                     })
                 } else {
-                    const status = frappe.Chat.Widget.CHAT_PROFILE_STATUSES.find(s => s.name === update.status)
+                    const status = frappe.chat.profile.STATUSES.find(s => s.name === update.status)
                     const color  = status.color
                     
                     const alert  = `<span class="indicator ${color}"/> ${frappe.user.full_name(user)} is currently <b>${update.status}</b>`
@@ -526,26 +635,6 @@ frappe.Chat.Widget.defaultProps = {
     layout: frappe.Chat.Layout.COLLAPSIBLE
 }
 
-
-frappe.Chat.Widget.CHAT_PROFILE_STATUSES = [
-    {
-         name: 'Online',
-        color: 'green'
-    },
-    {
-         name: 'Away',
-        color: 'yellow'
-    },
-    {
-         name: 'Busy',
-        color: 'red'
-    },
-    {
-         name: 'Offline',
-        color: 'grey'
-    }
-]
-
 frappe.Chat.Widget.AppBar
 =
 class extends Component {
@@ -567,11 +656,11 @@ class extends Component {
                 return r.room_name
             else
                 if ( r.owner === frappe.session.user )
-                    return frappe.user.full_name(frappe.utils.squash(r.users))
+                    return frappe.user.full_name(frappe._.squash(r.users))
                 else
                     return frappe.user.full_name(r.owner)
         })
-        const results = frappe.utils.fuzzy_search(query, dataset)
+        const results = frappe._.fuzzy_search(query, dataset)
 
         const rooms   = results.map(i => props.rooms[i])
 
@@ -680,7 +769,7 @@ frappe.Chat.Widget.AppBar.Account
 class extends Component {
     render ( ) {
         const { props } = this
-        const statuses  = frappe.Chat.Widget.CHAT_PROFILE_STATUSES.map(s => {
+        const statuses  = frappe.chat.profile.STATUSES.map(s => {
             return {
                 value: s.name,
                 label: s.name,
@@ -784,12 +873,12 @@ class extends Component {
                     h(frappe.Chat.Widget.MediaProfile, {
                         title: props.type === "Group" ? props.room_name :
                             props.owner === frappe.session.user ?
-                                frappe.user.full_name(frappe.utils.squash(props.users))
+                                frappe.user.full_name(frappe._.squash(props.users))
                                 :
                                 frappe.user.full_name(props.owner),
                         image: props.type === "Group" ? props.avatar    :
                             props.owner === frappe.session.user ?
-                                frappe.user.image(frappe.utils.squash(props.users))
+                                frappe.user.image(frappe._.squash(props.users))
                                 :
                                 frappe.user.image(props.owner),
                          size: "small",
@@ -869,12 +958,12 @@ class extends Component {
                             h(frappe.Chat.Widget.MediaProfile, {
                                 title: props.type === "Group" ? props.room_name :
                                     props.owner === frappe.session.user ?
-                                        frappe.user.full_name(frappe.utils.squash(props.users))
+                                        frappe.user.full_name(frappe._.squash(props.users))
                                         :
                                         frappe.user.full_name(props.owner),
                                 image: props.type === "Group" ? props.avatar    :
                                     props.owner === frappe.session.user ?
-                                        frappe.user.image(frappe.utils.squash(props.users))
+                                        frappe.user.image(frappe._.squash(props.users))
                                         :
                                         frappe.user.image(props.owner),
                                 abbr: props.type !== "Group" ? frappe.user.abbr : null,
@@ -1189,16 +1278,17 @@ class extends Component {
         return (
             h("div", { class: "frappe-chat__widget" },
                 // // h("div", { class: "dropup" },
-                    h("button", { class: "frappe-chat__fab btn btn-primary btn-block dropdown-toggle", "data-toggle": "dropdown",
-                        onclick: () => {
-                            const active = state.active ? false : true
+                    // h("button", { class: "frappe-chat__fab btn btn-primary btn-block dropdown-toggle", "data-toggle": "dropdown",
+                    //     onclick: () => {
+                    //         const active = state.active ? false : true
 
-                            this.setState({
-                                active: active
-                            })
-                        }},
-                        h("i", { class: "octicon octicon-comment" })
-                    ),
+                    //         this.setState({
+                    //             active: active
+                    //         })
+                    //     }},
+                    //     h("i", { class: "octicon octicon-comment" })
+                    // ),
+                    h(frappe.components.FAB, { icon: "octicon octicon-comment" }),
 
                 state.active ?
                     h("div", { class: "frappe-chat__widget__collapse" },
