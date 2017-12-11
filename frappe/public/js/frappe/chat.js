@@ -7,12 +7,17 @@
 /**
  * @description Fuzzy Searching
  * @param {string} query   - A query string.
- * @param {array}  dataset - A dataset to search in, can contain singletons or Objects.
+ * @param {array}  dataset - A dataset to search within, can contain singletons or Objects.
  * @param {object} options - Options as per fuze.js
  * 
  * @example
+ * frappe._.fuzzy_search("foo", ["foobar", "bartender"]);
+ * // returns "foobar"
+ * 
  * frappe._.fuzzy_search("foo", [{ key: "foobar" }, { key: "tootifrooti" }]);
  * // returns [{ key: "foobar" }]
+ * 
+ * @see http://fusejs.io
  */
 frappe._.fuzzy_search = function (query, dataset, options)
 {
@@ -33,9 +38,28 @@ frappe._.fuzzy_search = function (query, dataset, options)
 };
 
 /**
- * @description Return an array to a list if needed.
+ * @description Converts a singleton to an array, if required.
+ * 
+ * @param {object} item - An object
+ * 
+ * @example
+ * frappe._.as_array("foo");
+ * // returns ["foo"];
+ * 
+ * frappe._.as_array(["foo"]);
+ * // returns ["foo"];
+ */
+frappe._.as_array    = function (item)
+{
+    if ( !Array.isArray(what) )
+        return [what];
+    return what;
+};
+
+/**
+ * @description Return an singleton if array contains a single element.
  * @param   {array}        list - An array to squash.
- * @returns {array|object} Returns an array if there"s more than 1 object else the first object itself.
+ * @returns {array|object} Returns an array if there's more than 1 object else the first object itself.
  * 
  * @example
  * frappe._.squash(["foo"]);
@@ -43,22 +67,115 @@ frappe._.fuzzy_search = function (query, dataset, options)
  * frappe._.squash(["foo", "bar"]);
  * // returns ["foo", "bar"];
  */
-frappe._.squash = (list) => 
+frappe._.squash    = function (list)
 {
     if ( Array.isArray(list) && list.length === 1 )
         return list[0];
     return list;
 };
 
+/**
+ * @description Returns true, if the current device is a mobile device.
+ * 
+ * @example
+ * frappe._.is_mobile();
+ * // returns true|false;
+ * 
+ * @see https://developer.mozilla.org/en-US/docs/Web/HTTP/Browser_detection_using_the_user_agent
+ */
+frappe._.is_mobile   = function ( )
+{
+    const regex      = new RegExp("Mobi", "i");
+    const user_agent = navigator.userAgent;
+    const mobile     = regex.test(user_agent);
+
+    return mobile;
+};
+
 const { h, Component, render } = hyper;
 
+// frappe.components
+// frappe's component namespace.
+frappe.components = { };
+
 /**
- * @access public
+ * @description Button Component
+ * 
+ * @extends Component
+ */
+frappe.components.Button
+=
+class extends Component
+{
+    render ( )
+    {
+        const { props } = this;
+
+        return (
+            h("button", { ...props, class: `btn btn-${props.type} ${props.block ? "btn-block" : ""} ${props.class}` },
+                props.children
+            )
+        );
+    }
+};
+frappe.components.Button.defaultProps =
+{
+     type: "default",
+    block: false
+};
+
+/**
+ * @description FAB Component
+ * 
+ * @extends frappe.components.Button
+ */
+frappe.components.FAB
+=
+class extends frappe.components.Button
+{
+    render ( )
+    {
+        const { props } = this;
+        const size      = frappe.components.FAB.SIZE[props.size];
+        
+        return (
+            h(frappe.components.Button, {...props, class: `${props.class} ${size && size.class}`},
+                h("i", { class: props.icon })
+            )
+        );
+    }
+};
+frappe.components.FAB.defaultProps
+=
+{
+    icon: "octicon octicon-plus"
+};
+frappe.components.FAB.SIZE
+=
+{
+    small:
+    {
+        class: "frappe-fab-sm"
+    },
+    large:
+    {
+        class: "frappe-fab-lg"
+    }
+};
+
+/**
  * @description Frappe Chat Object.
  * 
  * @example
  * const chat = new frappe.Chat(options); // appends to "body";
+ * chat.render();
  * const chat = new frappe.Chat(".selector", options);
+ * chat.render();
+ * 
+ * const chat = new frappe.Chat();
+ * chat.set_wrapper('.selector')
+ *     .set_options(options)
+ *     .render();
  */
 frappe.Chat
 =
@@ -134,69 +251,6 @@ frappe.Chat.OPTIONS
     layout: frappe.Chat.Layout.COLLAPSIBLE
 };
 
-// frappe.components
-// frappe's component namespace.
-frappe.components = { };
-
-/**
- * @description Button Component
- */
-frappe.components.Button
-=
-class extends Component
-{
-    render ( )
-    {
-        const { props } = this;
-
-        return (
-            h("button", { ...props, class: `btn btn-${props.type} ${props.block ? "btn-block" : ""} ${props.class}` },
-                props.children
-            )
-        );
-    }
-};
-frappe.components.Button.defaultProps =
-{
-     type: "default",
-    block: true
-};
-
-/**
- * @description FAB Component
- * 
- * @extends frappe.components.Button
- */
-frappe.components.FAB
-=
-class extends frappe.components.Button
-{
-    render ( )
-    {
-        const { props } = this;
-        const size      = frappe.components.FAB.SIZE[props.size];
-        
-        return (
-            h(frappe.components.Button, {...props, class: `${props.class} ${size.class}`},
-                h("i", { class: props.icon })
-            )
-        );
-    }
-};
-frappe.components.FAB.defaultProps
-=
-{
-    icon: "octicon octicon-plus"
-};
-frappe.components.FAB.SIZE
-=
-{
-    large:
-    {
-        class: "frappe-fab-lg"
-    }
-}
-
 // frappe.chat
 frappe.chat = { }
 
@@ -222,13 +276,13 @@ frappe.chat.profile.create
 =
 function (fields, fn)
 {
-    if ( typeof fields === "function" ) 
+    if ( typeof fields === "function" )
     {
         fn     = fields
         fields = null
     } else
     if ( typeof fields === "string" )
-        fields = [fields]
+        fields = frappe._.as_array(fields);
 
     return new Promise(resolve =>
     {
@@ -287,9 +341,9 @@ frappe.chat.profile.STATUSES
          name: "Offline",
         color: "darkgrey"
     }
-]
+];
 
-
+// frappe.chat.room
 frappe.chat.room = { }
 
 frappe.chat.room.create
@@ -316,9 +370,34 @@ frappe.chat.room.create
     })
 }
 
+/**
+ * @description Returns Chat Room(s)
+ * 
+ * @param   {string|array} names  - (Optional) Chat Room(s) to retrieve.
+ * @param   {string|array} fields - (Optional) fields to be retrieved for each Chat Room.
+ * @param   {function}     fn     - (Optional) callback with the returned Chat Room(s).
+ * 
+ * @returns {Promise}
+ * 
+ * @example
+ * frappe.chat.room.get(function (rooms) {
+ *      // do stuff
+ * });
+ * frappe.chat.room.get().then(function (rooms) {
+ *      // do stuff
+ * });
+ * 
+ * frappe.chat.room.get(null, ["room_name", "avatar"], function (rooms) {
+ *      // do stuff
+ * });
+ * 
+ * frappe.chat.room.get("CR00001", "room_name", function (room) {
+ *      // do stuff
+ * });
+ */
 frappe.chat.room.get
 =
-(names, fields, fn) =>
+function (names, fields, fn)
 {
     if ( typeof names === "function" ) {
         fn     = names
@@ -327,7 +406,7 @@ frappe.chat.room.get
     }
     else
     if ( typeof names === "string" ) {
-        names  = [names]
+        names  = frappe._.as_array(names);
 
         if ( typeof fields === "function" ) {
             fn     = fields
@@ -335,10 +414,10 @@ frappe.chat.room.get
         }
         else
         if ( typeof fields === "string" )
-            fields = [fields]
+            fields = frappe._.as_array(fields);
     }
 
-    return new Promise(resolve => 
+    return new Promise(resolve =>
     {
 
         frappe.call("frappe.chat.doctype.chat_room.chat_room.get",
@@ -349,9 +428,20 @@ frappe.chat.room.get
                         fn(response.message)
 
                     resolve(response.message)
-                })
-    })
-}
+                });
+    });
+};
+
+/**
+ * @description Subscribe current user to said Chat Room(s)
+ * 
+ * @param   {string|array} rooms  - Chat Room(s).
+ * 
+ * @example
+ * frappe.chat.room.get(function (rooms) {
+ *      frappe.chat.room.subscribe(rooms);
+ * });
+ */
 frappe.chat.room.subscribe
 =
 (rooms) => frappe.realtime.publish("frappe.chat:subscribe", rooms)
@@ -398,8 +488,9 @@ frappe.chat.message.on.create
 =
 (fn) => frappe.realtime.on("frappe.chat.message.create", r => fn(r))
 
-// frappe.Chat.Widget Component
-// The base chat component.
+/**
+ * @description The base HOC component for Frappe Chat
+ */
 frappe.Chat.Widget
 =
 class extends Component {
@@ -422,13 +513,13 @@ class extends Component {
         {
             this.setState({ profile })
 
-            frappe.chat.room.get(rooms => 
+            frappe.chat.room.get(rooms =>
             {
                 if ( rooms )
                 {
                     frappe.chat.room.subscribe(rooms)
 
-                    rooms = Array.isArray(rooms) ? rooms : [rooms]
+                    rooms = frappe._.as_array(rooms)
                     this.setState({ rooms })
 
                     this.bind()
@@ -1213,13 +1304,17 @@ class extends Component {
     }
 }
 
+/**
+ * @description Collapsible Chat Widget Popper.
+ */
 frappe.Chat.Widget.Popper
 =
-class extends Component {
+class extends Component
+{
     constructor (props) {
         super (props)
 
-        this.state    = frappe.Chat.Widget.Popper.defaultState
+        this.state = frappe.Chat.Widget.Popper.defaultState
     }
 
     render ( ) {
@@ -1235,36 +1330,34 @@ class extends Component {
             )
         
         return (
-            h("div", { class: "frappe-chat__widget" },
-                // h("div", { class: "dropup" },
-                    h(frappe.components.FAB, {
-                          class: "frappe-fab",
-                           icon: state.active ? "fa fa-fw fa-times" : "octicon octicon-comment",
-                           size: "large",
-                           type: "primary", "data-toggle": "dropdown",
-                        onclick: () => {
-                            const active = state.active ? false : true
+            h("div", { class: "frappe-chat-popper" },
+                h(frappe.components.FAB, {
+                        class: "frappe-fab",
+                        icon: state.active ? "fa fa-fw fa-times" : "octicon octicon-comment",
+                        size: frappe._.is_mobile() ? "small" : "large",
+                        type: "primary", "data-toggle": "dropdown",
+                    onclick: () => {
+                        const active = state.active ? false : true
 
-                            this.setState({
-                                active: active
-                            })
-                        }},
-                    ),
-                    // h(frappe.components.FAB, { icon: "octicon octicon-comment" }),
-
+                        this.setState({
+                            active: active
+                        })
+                    }},
+                ),
                 state.active ?
-                    h("div", { class: "frappe-chat__widget__collapse" },
+                    h("div", { class: "frappe-chat-popper-collapse" },
                         component
                     )
                     :
                     null
             )
-        )
+        );
     }
-}
-frappe.Chat.Widget.Popper.defaultState   = {
+};
+frappe.Chat.Widget.Popper.defaultState =
+{
     active: false
-}
+};
 
 frappe.Chat.Widget.get_datetime_string   = (date) => {
     const instance = moment(date)

@@ -3,8 +3,8 @@
   margin: 20px;
   bottom: 0px;
   right: 0px;
-  width: 40px;
-  height: 40px;
+  width: 48px;
+  height: 48px;
   z-index: 1035;
   border-radius: 50%;
   box-shadow: 0px 3px 6px 0px rgba(0, 0, 0, 0.25);
@@ -12,18 +12,22 @@
 .frappe-fab:hover {
   box-shadow: 0px 5px 9px 0px rgba(0, 0, 0, 0.25);
 }
+.frappe-fab.frappe-fab-sm {
+  width: 40px;
+  height: 40px;
+}
 .frappe-fab.frappe-fab-lg {
   width: 56px;
   height: 56px;
 }
-.frappe-chat__widget__collapse {
+.frappe-chat-popper-collapse {
   position: fixed;
   bottom: 0px;
   right: 0px;
   margin: 20px;
   z-index: 1000;
 }
-.frappe-chat__widget__collapse .panel {
+.frappe-chat-popper-collapse .panel {
   margin-bottom: 72px;
   max-width: 350px;
   min-height: 500px;

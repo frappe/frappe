@@ -1,7 +1,7 @@
 // variables
 @frappe-fab-margin:										20px;
-@frappe-fab-width:										40px;
-@frappe-fab-height:										40px;
+@frappe-fab-width:										48px;
+@frappe-fab-height:										48px;
 
 // https://github.com/twbs/bootstrap/blob/v3.3.7/less/variables.less#L278
 // Keep z-index of the FAB button higher than others, lower than modal background.
@@ -10,6 +10,7 @@
 @frappe-fab-box-shadow-hover:							0px 5px 9px 0px rgba(0,0,0,.25);
 
 @frappe-fab-lg:											56px;
+@frappe-fab-sm:											40px;
 
 .frappe-fab
 {
@@ -28,10 +29,16 @@
 		box-shadow: @frappe-fab-box-shadow-hover;
 	}
 
+	&.frappe-fab-sm
+	{
+		 width: @frappe-fab-sm;
+		height: @frappe-fab-sm;
+	}
+
 	&.frappe-fab-lg
 	{
-			width: @frappe-fab-lg;
-		   height: @frappe-fab-lg;
+		 width: @frappe-fab-lg;
+		height: @frappe-fab-lg;
 	}
 }
 
@@ -41,7 +48,7 @@
 
 
 
-.frappe-chat__widget__collapse  { position: fixed; bottom: 0px; right: 0px; margin: 20px; z-index: 1000;
+.frappe-chat-popper-collapse  { position: fixed; bottom: 0px; right: 0px; margin: 20px; z-index: 1000;
 
 	.panel { margin-bottom: 72px; max-width: 350px; min-height: 500px; box-shadow: 0px 3px 6px 0px rgba(0,0,0,.25); }
 }
