@@ -261,7 +261,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 		else:
 			frappe.throw(_("Unsupported File Format"))
 
-	start_row = get_start_row() # there is a throw inset in the try exception
+	start_row = get_start_row()
 	header = rows[:start_row]
 	data = rows[start_row:]
 	doctype = get_header_row(get_data_keys_definition().main_table)[1]
@@ -387,10 +387,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 			error_trace = frappe.get_traceback()
 			if error_trace:
 				error_log_doc = frappe.log_error(error_trace)
-				if error_log_doc.get("name"):
-					error_link = get_link("Error Log", error_log_doc.name)
-				else:
-					error_link = None
+				error_link = get_link("Error Log", error_log_doc.name)
 			else:
 				error_link = None
 			log(**{"row": row_idx + 1, "title":'Error for row %s' % (len(row)>1 and row[1] or ""), "message": err_msg,
@@ -411,12 +408,12 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 	frappe.flags.mute_emails = False
 	frappe.flags.in_import = False
 
+	log_message = {"messages": import_log, "error": error_flag}
 	if data_import_doc:
-		log_message = {"messages": import_log, "error": error_flag}
 		data_import_doc.log_details = json.dumps(log_message)
 
 		import_status = None
-		if error_flag and data_import_doc.skip_errors and len(data) != len(error_data_file):
+		if error_flag and data_import_doc.skip_errors and len(data) != len(data_rows_with_error):
 			import_status = "Partially Successful"
 			# write the file with the faulty row
 			from frappe.utils.file_manager import save_file
@@ -430,7 +427,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 				file_data = to_csv(data_rows_with_error)
 			error_data_file = save_file(file_name, file_data, "Data Import",
 				data_import_doc.name,  "Home/Attachments")
-			data_import_doc.error_file = error_data_file.file_url	
+			data_import_doc.error_file = error_data_file.file_url
 
 		elif error_flag:
 			import_status = "Failed"
@@ -447,7 +444,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 		frappe.publish_realtime("data_import_progress", {"progress": "100",
 			"data_import": data_import_doc.name, "reload": True}, user=frappe.session.user)
 	else:
-		return {"messages": import_log, "error": error_flag}
+		return log_message
 
 def get_parent_field(doctype, parenttype):
 	parentfield = None

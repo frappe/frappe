@@ -62,7 +62,7 @@ frappe.ui.form.on('Data Import', {
 								});
 								$(frappe.render_template("export_template", {doctype_list: doctype_list}))
 									.appendTo(frm.$dialog_wrapper.empty());
-								}
+							}
 						});
 						if (this.value === "All") {
 							frm.$dialog_wrapper.addClass("hidden");
@@ -115,12 +115,12 @@ frappe.ui.form.on('Data Import', {
 							all_doctypes: 'Yes',
 							from_data_import: 'Yes',
 							excel_format: data.file_type === 'Excel' ? 'Yes' : 'No'
-						}
+						};
 					};
 					let get_template_url = '/api/method/frappe.core.doctype.data_import.exporter.get_template';
 					open_url_post(get_template_url, export_params());
 				} else {
-					frappe.msgprint(__("Please select the Document Type."))
+					frappe.msgprint(__("Please select the Document Type."));
 				}
 				download_dialog.hide();
 			},
@@ -150,7 +150,7 @@ frappe.ui.form.on('Data Import', {
 		if (frm.doc.log_details) {
 			frm.events.write_messages(frm);
 		} else {
-			var $log_wrapper = $(frm.fields_dict.import_log.wrapper).empty();
+			$(frm.fields_dict.import_log.wrapper).empty();
 		}
 	},
 	
@@ -187,9 +187,8 @@ frappe.ui.form.on('Data Import', {
 	},
 
 	write_messages: function(frm) {
-		msg = JSON.parse(frm.doc.log_details);
+		let msg = JSON.parse(frm.doc.log_details);
 		var $log_wrapper = $(frm.fields_dict.import_log.wrapper).empty();
-		$(frappe.render_template("log_details", {data: msg.messages}))
-			.appendTo($log_wrapper);
+		$(frappe.render_template("log_details", {data: msg.messages})).appendTo($log_wrapper);
 	}
 });
