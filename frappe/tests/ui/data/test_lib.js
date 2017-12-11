@@ -13,7 +13,7 @@ frappe.tests = {
 					for (const key in cur_tree.nodes) {
 						if (cur_tree.nodes[key].parent_label && cur_tree.nodes[key].expandable) {
 							root_node = cur_tree.nodes[key].label;
-							break
+							break;
 						}
 					}
 				}
@@ -41,7 +41,7 @@ frappe.tests = {
 				if(cur_dialog && (!cur_frm || cur_frm.doc.doctype !== doctype)) {
 					frappe.tests.click_button('Create New');
 				} else {
-					frappe.quick_entry ? frappe.quick_entry.insert() : cur_frm.save()
+					frappe.quick_entry ? frappe.quick_entry.insert() : cur_frm.save();
 				}
 			}
 		]);
@@ -83,11 +83,11 @@ frappe.tests = {
 				let task = () => {
 					let value = item[key];
 					return dialog.set_value(key, value);
-				}
+				};
 				tasks.push(task);
 				tasks.push(frappe.after_ajax);
 				tasks.push(() => frappe.timeout(0.4));
-			};
+			}
 		});
 
 		return frappe.run_serially(tasks);
