@@ -537,6 +537,8 @@ frappe.utils = {
 	},
 
 	is_image_file: function(filename) {
+		// url can have query params
+		filename = filename.split('?')[0];
 		return (/\.(gif|jpg|jpeg|tiff|png|svg)$/i).test(filename);
 	},
 
