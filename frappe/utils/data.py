@@ -371,12 +371,17 @@ def fmt_money(amount, precision=None, currency=None):
 	# 40,000 -> 40,000.00
 	# 40,000.00000 -> 40,000.00
 	# 40,000.23000 -> 40,000.23
+
 	if decimal_str:
 		parts = str(amount).split(decimal_str)
 		decimals = parts[1] if len(parts) > 1 else ''
 		if precision > 2:
 			if len(decimals) < 3:
-				precision = 2
+				if currency:
+					fraction  = frappe.db.get_value("Currency", currency, "fraction_units") or 100
+					precision = len(cstr(fraction)) - 1
+				else:
+					precision = 2
 			elif len(decimals) < precision:
 				precision = len(decimals)
 
@@ -781,7 +786,7 @@ def make_filter_tuple(doctype, key, value):
 		return [doctype, key, value[0], value[1]]
 	else:
 		return [doctype, key, "=", value]
-
+	
 def scrub_urls(html):
 	html = expand_relative_urls(html)
 	# encoding should be responsibility of the composer
