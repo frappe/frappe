@@ -74,6 +74,7 @@ def get_data():
 		{
 			"module_name": "Data Import",
 			"color": "#FFF168",
+			"reverse": 1,
 			"doctype": "Data Import",
 			"icon": "octicon octicon-cloud-upload",
 			"label": _("Data Import"),

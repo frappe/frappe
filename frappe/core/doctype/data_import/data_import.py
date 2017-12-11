@@ -12,6 +12,17 @@ from frappe.core.doctype.data_import.importer import upload
 from frappe.utils.background_jobs import enqueue
 
 
+@frappe.whitelist()
+def get_data_keys():
+    return frappe._dict({
+        "data_separator": _('Start entering data below this line'),
+        "main_table": _("Table") + ":",
+        "parent_table": _("Parent Table") + ":",
+        "columns": _("Column Name") + ":",
+        "doctype": _("DocType") + ":"
+    })
+
+
 class DataImport(Document):
 	def autoname(self):
 		self.name = "Import on "+ format_datetime(self.creation)
@@ -57,7 +68,6 @@ def import_doc(path, overwrite=False, ignore_links=False, ignore_insert=False,
 
 def import_file_by_path(path, ignore_links=False, overwrite=False, submit=False, pre_process=None, no_email=True):
 	from frappe.utils.csvutils import read_csv_content
-	from frappe.core.doctype.data_import.importer import upload
 	print("Importing " + path)
 	with open(path, "r") as infile:
 		upload(rows = read_csv_content(infile.read()), ignore_links=ignore_links, no_email=no_email, overwrite=overwrite,
@@ -101,3 +111,14 @@ def export_csv(doctype, path):
 	with open(path, "wb") as csvfile:
 		get_template(doctype=doctype, all_doctypes="Yes", with_data="Yes")
 		csvfile.write(frappe.response.result.encode("utf-8"))
+
+
+@frappe.whitelist()
+def export_fixture(doctype, app):
+	if frappe.session.user != "Administrator":
+		raise frappe.PermissionError
+
+	if not os.path.exists(frappe.get_app_path(app, "fixtures")):
+		os.mkdir(frappe.get_app_path(app, "fixtures"))
+
+	export_json(doctype, frappe.get_app_path(app, "fixtures", frappe.scrub(doctype) + ".json"))

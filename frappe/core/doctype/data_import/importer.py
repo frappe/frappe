@@ -16,7 +16,7 @@ from frappe.utils.dateutils import parse_date
 from frappe.utils.file_manager import save_url
 
 from frappe.utils import cint, cstr, flt, getdate, get_datetime, get_url
-from frappe.core.page.data_import_tool.data_import_tool import get_data_keys
+from frappe.core.doctype.data_import.data_import import get_data_keys
 from six import text_type, string_types
 
 
