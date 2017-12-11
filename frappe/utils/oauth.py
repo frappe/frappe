@@ -121,7 +121,7 @@ def get_info_via_oauth(provider, code, decoder=None, id_token=False):
 	args = {
 		"data": {
 			"code": code,
-			"redirect_uri": "http://test.local.com:8000/api/method/frappe.www.login.login_via_office365",#get_redirect_uri(provider),
+			"redirect_uri": get_redirect_uri(provider),
 			"grant_type": "authorization_code"
 		}
 	}
