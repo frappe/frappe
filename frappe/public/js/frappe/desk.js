@@ -10,6 +10,7 @@ frappe.start_app = function() {
 
 	// frappe.Chat
 	const chat = new frappe.Chat()
+	chat.render();
 	// end frappe.Chat
 }
 

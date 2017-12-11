@@ -1,3 +1,18 @@
+.frappe-fab {
+  position: fixed;
+  margin: 20px;
+  bottom: 0px;
+  right: 0px;
+  width: 40px;
+  height: 40px;
+  z-index: 1035;
+  border-radius: 50%;
+  box-shadow: 0px 3px 6px 0px rgba(0, 0, 0, 0.25);
+}
+.frappe-fab .frappe-fab-lg {
+  width: 56px;
+  height: 56px;
+}
 .frappe-chat__widget__collapse {
   position: fixed;
   bottom: 0px;
@@ -9,19 +24,6 @@
   margin-bottom: 72px;
   max-width: 350px;
   min-height: 500px;
-  box-shadow: 0px 3px 6px 0px rgba(0, 0, 0, 0.25);
-}
-.frappe-chat__fab {
-  position: fixed;
-  bottom: 0px;
-  right: 0px;
-  margin: 20px;
-  z-index: 1010;
-}
-.frappe-chat__fab {
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
   box-shadow: 0px 3px 6px 0px rgba(0, 0, 0, 0.25);
 }
 .frappe-chat__app-bar-account {
