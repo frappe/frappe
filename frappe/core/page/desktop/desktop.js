@@ -149,10 +149,10 @@ $.extend(frappe.desktop, {
 			// This hack is so bad, I should punch myself.
 			// Seriously, punch yourself.
 			const text      = $(object).find('.circle-text').html();
-			
+
 			return text;
 		}));
-		
+
 		const clearWiggle   = () => {
 			const $closes   = $cases.find('.module-remove');
 			$closes.hide();
@@ -173,10 +173,10 @@ $.extend(frappe.desktop, {
 				frappe.desktop.wiggling = true;
 				// hide all notifications.
 				$notis.hide();
-				
+
 				$cases.each((i) => {
 					const $case    = $($cases[i]);
-					const template = 
+					const template =
 					`
 						<div class="circle module-remove" style="background-color:#E0E0E0; color:#212121">
 							<div class="circle-text">
@@ -200,7 +200,7 @@ $.extend(frappe.desktop, {
 								method: 'frappe.desk.doctype.desktop_icon.desktop_icon.hide',
 								args: { name: name },
 								freeze: true,
-								callback: (response) => 
+								callback: (response) =>
 								{
 									if ( response.message ) {
 										location.reload();
@@ -209,7 +209,7 @@ $.extend(frappe.desktop, {
 							})
 
 							dialog.hide();
-							
+
 							clearWiggle();
 						});
 						// Hacks, Hacks and Hacks.
@@ -222,7 +222,7 @@ $.extend(frappe.desktop, {
 						dialog.show();
 					});
 				});
-			
+
 				$icons.trigger('startRumble');
 			}, DURATION_LONG_PRESS);
 		});
@@ -269,6 +269,7 @@ $.extend(frappe.desktop, {
 		}
 
 		new Sortable($("#icon-grid").get(0), {
+			animation: 150,
 			onUpdate: function(event) {
 				var new_order = [];
 				$("#icon-grid .case-wrapper").each(function(i, e) {

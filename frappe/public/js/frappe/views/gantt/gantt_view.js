@@ -31,14 +31,15 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 			if (field_map.progress && $.isFunction(field_map.progress)) {
 				progress = field_map.progress(item);
 			} else if (field_map.progress) {
-				progress = item[field_map.progress]
+				progress = item[field_map.progress];
 			}
 
 			// title
+			var label;
 			if (meta.title_field) {
-				var label = $.format("{0} ({1})", [item[meta.title_field], item.name]);
+				label = $.format("{0} ({1})", [item[meta.title_field], item.name]);
 			} else {
-				var label = item[field_map.title];
+				label = item[field_map.title];
 			}
 
 			var r = {
@@ -198,4 +199,4 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 			"assets/frappe/js/lib/frappe-gantt/frappe-gantt.js"
 		];
 	}
-}
+};

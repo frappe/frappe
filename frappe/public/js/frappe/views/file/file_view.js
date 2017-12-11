@@ -4,7 +4,7 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 	static load_last_view() {
 		const route = frappe.get_route();
 		if (route.length === 2) {
-			const view_user_settings = frappe.get_user_settings('File', 'File')
+			const view_user_settings = frappe.get_user_settings('File', 'File');
 			frappe.set_route('List', 'File', view_user_settings.last_folder || frappe.boot.home_folder);
 			return true;
 		}
@@ -60,7 +60,7 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 			{
 				label: __('New Folder'),
 				action: () => {
-					const d = frappe.prompt(__('Name'), (values) => {
+					frappe.prompt(__('Name'), (values) => {
 						if((values.value.indexOf("/") > -1)) {
 							frappe.throw(__("Folder name should not include '/' (slash)"));
 						}
@@ -169,11 +169,11 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 			</div>
 		`;
 
-		return this.get_header_html_skeleton(subject_html, '<span class="list-count"></span>')
+		return this.get_header_html_skeleton(subject_html, '<span class="list-count"></span>');
 	}
 
 	get_left_html(file) {
-		const file_size = frappe.form.formatters.FileSize(file.file_size)
+		const file_size = frappe.form.formatters.FileSize(file.file_size);
 		const route_url = file.is_folder ? '#List/File/' + file.name : this.get_form_link(file);
 
 		return `
@@ -245,7 +245,7 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 
 	toggle_cut_paste_buttons() {
 		// paste btn
-		const $paste_btn = this.page.menu_btn_group.find('.paste-menu-button')
+		const $paste_btn = this.page.menu_btn_group.find('.paste-menu-button');
 		const hide = !frappe.file_manager.can_paste ||
 			frappe.file_manager.old_folder === this.current_folder;
 

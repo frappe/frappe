@@ -44,7 +44,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			// filters in listview_settings
 			const filters = (this.settings.filters || []).map(f => {
 				if (f.length === 3) {
-					f = [this.doctype, f[0], f[1], f[2]]
+					f = [this.doctype, f[0], f[1], f[2]];
 				}
 				return f;
 			});
@@ -115,7 +115,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	setup_footnote_area() {
 		const match_rules_list = frappe.perm.get_match_rules(this.doctype);
-		const perm = frappe.perm.get_perm(this.doctype);
 
 		if (match_rules_list.length) {
 			this.$footnote_area =
@@ -315,7 +314,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			`;
 		}).join('');
 
-		return this.get_header_html_skeleton($columns, '<span class="list-count"></span>')
+		return this.get_header_html_skeleton($columns, '<span class="list-count"></span>');
 	}
 
 	get_header_html_skeleton(left = '', right = '') {
@@ -389,7 +388,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			} else {
 				return frappe.format(value, df, null, doc);
 			}
-		}
+		};
 
 		const field_html = () => {
 			let html;
@@ -420,12 +419,12 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				title="${label + ': ' + value}">
 				${html}
 			</span>`;
-		}
+		};
 
 		const class_map = {
 			Subject: 'list-subject level',
 			Field: 'hidden-xs'
-		}
+		};
 		const css_class = [
 			'list-row-col ellipsis',
 			class_map[col.type],
@@ -435,7 +434,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const html_map = {
 			Subject: this.get_subject_html(doc),
 			Field: field_html()
-		}
+		};
 		const column_html = html_map[col.type];
 
 		return `
@@ -573,7 +572,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				} else if (f[2] == 'User') {
 					f[2] = frappe.session.user;
 				}
-				return [this.doctype, f[0], f[1], f.slice(2).join(',')]
+				return [this.doctype, f[0], f[1], f.slice(2).join(',')];
 			});
 			this.filter_area.add(filters_to_apply);
 		});
@@ -735,7 +734,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					if (!failed) failed = [];
 
 					if (failed.length && !r._server_messages) {
-						frappe.throw(__('Cannot delete {0}', [failed.map(f => f.bold()).join(', ')]))
+						frappe.throw(__('Cannot delete {0}', [failed.map(f => f.bold()).join(', ')]));
 					}
 					if (failed.length < docnames.length) {
 						frappe.utils.play_sound('delete');
@@ -776,7 +775,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					doctype
 				}),
 				standard: true
-			})
+			});
 		}
 		if (frappe.model.can_set_user_permissions(doctype)) {
 			items.push({
@@ -849,11 +848,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 						dialog.clear();
 						dialog.show();
 					} else {
-						frappe.msgprint(__('Select records for assignment'))
+						frappe.msgprint(__('Select records for assignment'));
 					}
 				},
 				standard: true
-			}
+			};
 		}
 
 		function bulk_printing() {
@@ -871,7 +870,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 						return !is_submittable || doc.docstatus === 1 ||
 							(allow_print_for_cancelled && doc.docstatus == 2) ||
 							(allow_print_for_draft && doc.docstatus == 0) ||
-							frappe.user.has_role('Administrator')
+							frappe.user.has_role('Administrator');
 					}).map(doc => doc.name);
 
 					var invalid_docs = items.filter(doc => !valid_docs.includes(doc.name));
@@ -917,7 +916,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 						dialog.show();
 					} else {
-						frappe.msgprint(__('Select atleast 1 record for printing'))
+						frappe.msgprint(__('Select atleast 1 record for printing'));
 					}
 				},
 				standard: true
@@ -975,7 +974,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const list_view = frappe.views.list_view[page_name];
 		list_view && list_view.on_update(data);
 	}
-}
+};
 
 $(document).on('save', function (event, doc) {
 	frappe.views.ListView.trigger_list_update(doc);

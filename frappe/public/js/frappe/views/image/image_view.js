@@ -62,7 +62,7 @@ frappe.views.ImageView = class ImageView extends frappe.views.ListView {
 			`<img data-name="${encoded_name}" src="${ item._image_url }" alt="${ title }">` :
 			`<span class="placeholder-text">
 				${ frappe.get_abbr(title) }
-			</span>`
+			</span>`;
 
 		return `
 			<div class="image-view-item">
@@ -99,7 +99,7 @@ frappe.views.ImageView = class ImageView extends frappe.views.ListView {
 			url = frappe.base_url + url;
 		}
 		if (url) {
-			return url
+			return url;
 		}
 		return null;
 	}
@@ -145,7 +145,7 @@ frappe.views.ImageView = class ImageView extends frappe.views.ListView {
 			return false;
 		});
 	}
-}
+};
 
 frappe.views.GalleryView = Class.extend({
 	init: function (opts) {
@@ -198,7 +198,7 @@ frappe.views.GalleryView = Class.extend({
 					w: width,
 					h: height,
 					el: el
-				}
+				};
 			});
 			this.pswp_items = items;
 			resolve();
@@ -236,7 +236,7 @@ frappe.views.GalleryView = Class.extend({
 			history: false,
 			shareEl: false,
 			showHideOpacity: true
-		}
+		};
 
 		// init
 		this.pswp = new PhotoSwipe(

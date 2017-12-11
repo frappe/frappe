@@ -51,7 +51,7 @@ frappe.views.CalendarView = class CalendarView extends frappe.views.ListView {
 			parent: this.$result,
 			page: this.page,
 			list_view: this
-		}
+		};
 		const calendar_name = this.calendar_name;
 
 		return new Promise(resolve => {
@@ -72,7 +72,7 @@ frappe.views.CalendarView = class CalendarView extends frappe.views.ListView {
 					resolve(options);
 				});
 			}
-		})
+		});
 	}
 
 	get required_libs() {
@@ -80,9 +80,9 @@ frappe.views.CalendarView = class CalendarView extends frappe.views.ListView {
 			'assets/frappe/js/lib/fullcalendar/fullcalendar.min.css',
 			'assets/frappe/js/lib/fullcalendar/fullcalendar.min.js',
 			'assets/frappe/js/lib/fullcalendar/locale-all.js'
-		]
+		];
 	}
-}
+};
 
 frappe.views.Calendar = Class.extend({
 	init: function(options) {
@@ -106,11 +106,10 @@ frappe.views.Calendar = Class.extend({
 
 		$(this.parent).on("show", function() {
 			me.$cal.fullCalendar("refetchEvents");
-		})
+		});
 	},
 
 	make: function() {
-		var me = this;
 		this.$wrapper = this.parent;
 		this.$cal = $("<div>").appendTo(this.$wrapper);
 		this.footnote_area = frappe.utils.set_footnote(this.footnote_area, this.$wrapper,
@@ -129,9 +128,9 @@ frappe.views.Calendar = Class.extend({
 		this.$wrapper.find(".fc-button-group").addClass("btn-group");
 
 		this.$wrapper.find('.fc-prev-button span')
-			.attr('class', '').addClass('fa fa-chevron-left')
+			.attr('class', '').addClass('fa fa-chevron-left');
 		this.$wrapper.find('.fc-next-button span')
-			.attr('class', '').addClass('fa fa-chevron-right')
+			.attr('class', '').addClass('fa fa-chevron-right');
 
 		var btn_group = this.$wrapper.find(".fc-button-group");
 		btn_group.find(".fc-state-active").addClass("active");
@@ -180,22 +179,22 @@ frappe.views.Calendar = Class.extend({
 						events = me.prepare_events(events);
 						callback(events);
 					}
-				})
+				});
 			},
 			eventRender: function(event, element) {
 				element.attr('title', event.tooltip);
 			},
-			eventClick: function(event, jsEvent, view) {
+			eventClick: function(event) {
 				// edit event description or delete
 				var doctype = event.doctype || me.doctype;
 				if(frappe.model.can_read(doctype)) {
 					frappe.set_route("Form", doctype, event.name);
 				}
 			},
-			eventDrop: function(event, delta, revertFunc, jsEvent, ui, view) {
+			eventDrop: function(event, delta, revertFunc) {
 				me.update_event(event, revertFunc);
 			},
-			eventResize: function(event, delta, revertFunc, jsEvent, ui, view) {
+			eventResize: function(event, delta, revertFunc) {
 				me.update_event(event, revertFunc);
 			},
 			select: function(startDate, endDate, jsEvent, view) {
@@ -367,4 +366,4 @@ frappe.views.Calendar = Class.extend({
 			event.end = event.end ? $.fullCalendar.moment(event.end).add(1, "day").stripTime() : null;
 		}
 	}
-})
+});

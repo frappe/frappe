@@ -10,9 +10,9 @@ frappe.views.InboxView = class InboxView extends frappe.views.ListView {
 		if (!route[3] && frappe.boot.email_accounts.length) {
 			let email_account;
 			if (frappe.boot.email_accounts[0].email_id == "All Accounts") {
-				email_account = "All Accounts"
+				email_account = "All Accounts";
 			} else {
-				email_account = frappe.boot.email_accounts[0].email_account
+				email_account = frappe.boot.email_accounts[0].email_account;
 			}
 			frappe.set_route("List", "Communication", "Inbox", email_account);
 			return true;
@@ -24,7 +24,7 @@ frappe.views.InboxView = class InboxView extends frappe.views.ListView {
 		return false;
 
 		function is_valid(email_account) {
-			return frappe.boot.email_accounts.find(d => d.email_account === email_account)
+			return frappe.boot.email_accounts.find(d => d.email_account === email_account);
 		}
 	}
 	show() {
@@ -63,8 +63,6 @@ frappe.views.InboxView = class InboxView extends frappe.views.ListView {
 	}
 
 	get_header_html() {
-		var header = ""
-
 		return this.get_header_html_skeleton(`
 			<div class="list-row-col list-subject level">
 				<input class="level-item list-check-all hidden-xs" type="checkbox" title="Select All">
@@ -78,7 +76,7 @@ frappe.views.InboxView = class InboxView extends frappe.views.ListView {
 
 	render_email_row(email) {
 		if (!email.css_seen && email.seen)
-			email.css_seen = "seen"
+			email.css_seen = "seen";
 
 		const columns_html = `
 			<div class="list-row-col list-subject level">
@@ -124,30 +122,30 @@ frappe.views.InboxView = class InboxView extends frappe.views.ListView {
 		var default_filters = [
 			["Communication", "communication_type", "=", "Communication", true],
 			["Communication", "communication_medium", "=", "Email", true],
-		]
-		var filters = []
+		];
+		var filters = [];
 		if (email_account === "Sent") {
 			filters = default_filters.concat([
 				["Communication", "sent_or_received", "=", "Sent", true],
 				["Communication", "email_status", "not in", "Spam,Trash", true],
-			])
+			]);
 		} else if (in_list(["Spam", "Trash"], email_account)) {
 			filters = default_filters.concat([
 				["Communication", "email_status", "=", email_account, true],
 				["Communication", "email_account", "in", frappe.boot.all_accounts, true]
-			])
+			]);
 		} else {
-			var op = "="
+			var op = "=";
 			if (email_account == "All Accounts") {
 				op = "in";
-				email_account = frappe.boot.all_accounts
+				email_account = frappe.boot.all_accounts;
 			}
 
 			filters = default_filters.concat([
 				["Communication", "sent_or_received", "=", "Received", true],
 				["Communication", "email_account", op, email_account, true],
 				["Communication", "email_status", "not in", "Spam,Trash", true],
-			])
+			]);
 		}
 
 		return filters;
@@ -157,21 +155,21 @@ frappe.views.InboxView = class InboxView extends frappe.views.ListView {
 		var email_account = this.email_account;
 		var args;
 		if (in_list(["Spam", "Trash"], email_account)) {
-			return __("No {0} mail", [email_account])
+			return __("No {0} mail", [email_account]);
 		} else if (!email_account && !frappe.boot.email_accounts.length) {
 			// email account is not configured
 			args = {
 				doctype: "Email Account",
 				msg: __("No Email Account"),
 				label: __("New Email Account"),
-			}
+			};
 		} else {
 			// no sent mail
 			args = {
 				doctype: "Communication",
 				msg: __("No Emails"),
 				label: __("Compose Email")
-			}
+			};
 		}
 
 		const html = frappe.model.can_create(args.doctype) ?
@@ -182,7 +180,7 @@ frappe.views.InboxView = class InboxView extends frappe.views.ListView {
 				</button>
 			</p>
 			` :
-			`<p>${ __("No Email Accounts Assigned") }</p>`
+			`<p>${ __("No Email Accounts Assigned") }</p>`;
 
 		return `
 			<div class="msg-box no-border">
@@ -195,12 +193,12 @@ frappe.views.InboxView = class InboxView extends frappe.views.ListView {
 		if (!this.email_account && !frappe.boot.email_accounts.length) {
 			frappe.route_options = {
 				'email_id': frappe.session.user_email
-			}
-			frappe.new_doc('Email Account')
+			};
+			frappe.new_doc('Email Account');
 		} else {
 			new frappe.views.CommunicationComposer({
 				doc: {}
-			})
+			});
 		}
 	}
-}
+};

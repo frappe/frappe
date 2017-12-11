@@ -62,7 +62,7 @@ frappe.ui.Filter = class {
 	setup_state(is_new) {
 		let promise = Promise.resolve();
 		if (is_new) {
-			this.filter_edit_area.addClass("new-filter")
+			this.filter_edit_area.addClass("new-filter");
 		} else {
 			promise = this.update_filter_tag();
 		}
@@ -123,7 +123,7 @@ frappe.ui.Filter = class {
 		// filter field shouldn't be read only or hidden
 		df.read_only = 0; df.hidden = 0;
 
-		let c = condition ? condition : this.utils.get_default_condition(df)
+		let c = condition ? condition : this.utils.get_default_condition(df);
 		this.set_condition(c);
 
 		this.utils.set_fieldtype(df, fieldtype, this.get_condition());
@@ -150,7 +150,7 @@ frappe.ui.Filter = class {
 			df: df,
 			parent: field_area,
 			only_input: true,
-		})
+		});
 		f.refresh();
 
 		this.field = f;
@@ -163,7 +163,7 @@ frappe.ui.Filter = class {
 			if(e.which==13) {
 				this.on_change();
 			}
-		})
+		});
 	}
 
 	get_value() {
@@ -202,9 +202,9 @@ frappe.ui.Filter = class {
 
 		let filter_button = this.$filter_tag.find(".toggle-filter");
 		filter_button.on("click", () => {
-			filter_button.closest('.tag-filters-area').find('.filter-edit-area').show()
+			filter_button.closest('.tag-filters-area').find('.filter-edit-area').show();
 			this.filter_edit_area.toggle();
-		})
+		});
 	}
 
 	set_filter_button_text() {
@@ -315,7 +315,7 @@ frappe.ui.filter_utils = {
 				{value:0, label:__("Draft")},
 				{value:1, label:__("Submitted")},
 				{value:2, label:__("Cancelled")}
-			]
+			];
 		} else if(df.fieldtype=='Check') {
 			df.fieldtype='Select';
 			df.options='No\nYes';
@@ -332,4 +332,4 @@ frappe.ui.filter_utils = {
 			df.fieldtype = 'DateRange';
 		}
 	}
-}
+};

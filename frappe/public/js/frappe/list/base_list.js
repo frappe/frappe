@@ -134,7 +134,7 @@ frappe.views.BaseList = class BaseList {
 		return this.meta.fields.filter(df => {
 			return df.in_list_view
 				&& frappe.perm.has_perm(this.doctype, df.permlevel, 'read')
-				&& frappe.model.is_value_type(df.fieldtype)
+				&& frappe.model.is_value_type(df.fieldtype);
 		});
 	}
 
@@ -373,9 +373,7 @@ frappe.views.BaseList = class BaseList {
 			// render
 			this.freeze(false);
 
-			let data = r.message || {};
-			data = frappe.utils.dict(data.keys, data.values);
-			this.update_data(data);
+			this.update_data(r);
 
 			this.toggle_result_area();
 			this.before_render();
@@ -383,7 +381,10 @@ frappe.views.BaseList = class BaseList {
 		});
 	}
 
-	update_data(data) {
+	update_data(r) {
+		let data = r.message || {};
+		data = frappe.utils.dict(data.keys, data.values);
+
 		if (this.start === 0) {
 			this.data = data;
 		} else {
@@ -391,7 +392,7 @@ frappe.views.BaseList = class BaseList {
 		}
 	}
 
-	freeze(toggle) {
+	freeze() {
 		// show a freeze message while data is loading
 	}
 
@@ -427,7 +428,7 @@ frappe.views.BaseList = class BaseList {
 			}
 		});
 	}
-}
+};
 
 class FilterArea {
 	constructor(list_view) {
@@ -479,7 +480,7 @@ class FilterArea {
 		return promise
 			.then(() => this.filter_list.add_filters(non_standard_filters))
 			.then(() => {
-				if (refresh) return this.list_view.refresh()
+				if (refresh) return this.list_view.refresh();
 			});
 	}
 
@@ -493,6 +494,7 @@ class FilterArea {
 		const fields_dict = this.list_view.page.fields_dict;
 
 		let out = filters.reduce((out, filter) => {
+			// eslint-disable-next-line
 			const [dt, fieldname, condition, value] = filter;
 			out.promise = out.promise || Promise.resolve();
 			out.non_standard_filters = out.non_standard_filters || [];

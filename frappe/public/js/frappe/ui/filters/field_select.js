@@ -15,10 +15,10 @@ frappe.ui.FieldSelect = Class.extend({
 			maxItems: 99,
 			autoFirst: true,
 			list: me.options,
-			item(item, input) {
+			item(item) {
 				return $(repl('<li class="filter-field-select"><p>%(label)s</p></li>', item))
-				.data("item.autocomplete", item)
-				.get(0);
+					.data("item.autocomplete", item)
+					.get(0);
 			}
 		});
 		this.$input.on("awesomplete-select", function(e) {
@@ -38,7 +38,7 @@ frappe.ui.FieldSelect = Class.extend({
 
 		if(this.filter_fields) {
 			for(var i in this.filter_fields)
-				this.add_field_option(this.filter_fields[i])
+				this.add_field_option(this.filter_fields[i]);
 		} else {
 			this.build_options();
 		}
@@ -84,7 +84,7 @@ frappe.ui.FieldSelect = Class.extend({
 		var me = this;
 		me.table_fields = [];
 		var std_filters = $.map(frappe.model.std_fields, function(d) {
-			var opts = {parent: me.doctype}
+			var opts = {parent: me.doctype};
 			if(d.fieldname=="name") opts.options = me.doctype;
 			return $.extend(copy_dict(d), opts);
 		});
@@ -105,7 +105,7 @@ frappe.ui.FieldSelect = Class.extend({
 			this.options.push({
 				label:"",
 				value:"",
-			})
+			});
 		}
 
 		// main table
@@ -131,13 +131,14 @@ frappe.ui.FieldSelect = Class.extend({
 
 	add_field_option(df) {
 		var me = this;
+		var label, table;
 		if(me.doctype && df.parent==me.doctype) {
-			var label = __(df.label);
-			var table = me.doctype;
+			label = __(df.label);
+			table = me.doctype;
 			if(df.fieldtype=='Table') me.table_fields.push(df);
 		} else {
-			var label = __(df.label) + ' (' + __(df.parent) + ')';
-			var table = df.parent;
+			label = __(df.label) + ' (' + __(df.parent) + ')';
+			table = df.parent;
 		}
 		if(frappe.model.no_value_type.indexOf(df.fieldtype) == -1 &&
 			!(me.fields_by_name[df.parent] && me.fields_by_name[df.parent][df.fieldname])) {
@@ -151,4 +152,4 @@ frappe.ui.FieldSelect = Class.extend({
 			me.fields_by_name[df.parent][df.fieldname] = df;
 		}
 	},
-})
+});

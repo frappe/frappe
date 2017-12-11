@@ -60,4 +60,4 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 			'assets/frappe/js/frappe/views/kanban/kanban_board.js'
 		];
 	}
-}
+};

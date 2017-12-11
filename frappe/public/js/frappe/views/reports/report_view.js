@@ -92,6 +92,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				}
 			}]
 		});
+
 	}
 
 	get_editing_object(colIndex, rowIndex, value, parent) {
@@ -391,7 +392,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				}
 			});
 
-		}
+		};
 
 		if(this.report_name && save_type == "save") {
 			_save_report(this.report_name);
@@ -405,7 +406,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	get_report_doc() {
 		return new Promise(resolve => {
 			frappe.model.with_doc('Report', this.report_name, () => {
-				resolve(frappe.get_doc('Report', this.report_name))
+				resolve(frappe.get_doc('Report', this.report_name));
 			});
 		});
 	}
@@ -507,7 +508,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 					this.doctype, this.report_name
 				);
 			}
-		})
+		});
 
 		return items.map(i => Object.assign(i, { standard: true }));
 	}
