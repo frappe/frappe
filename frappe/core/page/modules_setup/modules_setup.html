@@ -11,11 +11,11 @@
 		<div class="col-sm-3">
 			<select class="form-control" name="user">
 				{% for user in users %}
-				<option value="{{ user.name }}"
+				<option value="{{ user.name | e }}"
 					{% if user.name == frappe.user %}selected{% endif %}>
 					<!-- {{ variable | e }} "e" or "escape(s)" will escape the characters such "<, >, &, '"
 					in the HTML text (http://jinja.pocoo.org/docs/dev/templates/#escape) -->
-					{{ (user.first_name or "") | e }} {{ (user.last_name or "") | e }} ({{ user.name }})</option>
+					{{ (user.first_name or "") | e }} {{ (user.last_name or "") | e }} ({{ user.name | e }})</option>
 				{% endfor %}
 			</select>
 		</div>
