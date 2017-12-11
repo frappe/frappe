@@ -4,8 +4,9 @@
 from __future__ import unicode_literals
 import frappe
 import frappe.utils
-import json
+import json, jwt
 from frappe import _
+from frappe.utils.password import get_decrypted_password
 from six import string_types
 
 class SignupDisabledError(frappe.PermissionError): pass
@@ -45,6 +46,7 @@ def get_oauth_keys(provider):
 	if not keys:
 		# try database
 		client_id, client_secret = frappe.get_value("Social Login Key", provider, ["client_id", "client_secret"])
+		client_secret = get_decrypted_password("Social Login Key", provider, "client_secret")
 		keys = {
 			"client_id": client_id,
 			"client_secret": client_secret
@@ -108,14 +110,18 @@ def login_via_oauth2(provider, code, state, decoder=None):
 	info = get_info_via_oauth(provider, code, decoder)
 	login_oauth_user(info, provider=provider, state=state)
 
-def get_info_via_oauth(provider, code, decoder=None):
+def login_via_oauth2_id_token(provider, code, state, decoder=None):
+	info = get_info_via_oauth(provider, code, decoder, id_token=True)
+	login_oauth_user(info, provider=provider, state=state)
+
+def get_info_via_oauth(provider, code, decoder=None, id_token=False):
 	flow = get_oauth2_flow(provider)
 	oauth2_providers = get_oauth2_providers()
 
 	args = {
 		"data": {
 			"code": code,
-			"redirect_uri": get_redirect_uri(provider),
+			"redirect_uri": "http://test.local.com:8000/api/method/frappe.www.login.login_via_office365",#get_redirect_uri(provider),
 			"grant_type": "authorization_code"
 		}
 	}
@@ -125,9 +131,14 @@ def get_info_via_oauth(provider, code, decoder=None):
 
 	session = flow.get_auth_session(**args)
 
-	api_endpoint = oauth2_providers[provider].get("api_endpoint")
-	api_endpoint_args = oauth2_providers[provider].get("api_endpoint_args")
-	info = session.get(api_endpoint, params=api_endpoint_args).json()
+	if id_token:
+		parsed_access = json.loads(session.access_token_response.text)
+		token = parsed_access['id_token']
+		info = jwt.decode(token, flow.client_secret, verify=False)
+	else:
+		api_endpoint = oauth2_providers[provider].get("api_endpoint")
+		api_endpoint_args = oauth2_providers[provider].get("api_endpoint_args")
+		info = session.get(api_endpoint, params=api_endpoint_args).json()
 
 	if (("verified_email" in info and not info.get("verified_email"))
 		or ("verified" in info and not info.get("verified"))):
@@ -244,6 +255,10 @@ def update_oauth_user(user, data, provider):
 		user.set_social_login_userid(provider, userid=data["id"], username=data.get("login"))
 
 	elif provider=="frappe" and not user.get_social_login_userid(provider):
+		save = True
+		user.set_social_login_userid(provider, userid=data["sub"])
+
+	elif provider=="office_365" and not user.get_social_login_userid(provider):
 		save = True
 		user.set_social_login_userid(provider, userid=data["sub"])
 

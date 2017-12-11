@@ -30,6 +30,24 @@ class SocialLoginKey(Document):
 	def get_social_login_provider(self, provider, initialize=False):
 		providers = {}
 
+		providers["Office 365"] = {
+			"provider_name": "Office 365",
+			"enable_social_login": 1,
+			"base_url": "https://login.microsoftonline.com",
+			"custom_base_url": 0,
+			"icon_type":"DOM Class",
+			"icon":"fa fa-windows",
+			"authorize_url": "https://login.microsoftonline.com/common/oauth2/authorize",
+			"access_token_url": "https://login.microsoftonline.com/common/oauth2/token",
+			"redirect_url": "/api/method/frappe.www.login.login_via_office365",
+			"api_endpoint": None,
+			"api_endpoint_args":None,
+			"auth_url_data": json.dumps({
+				"response_type": "code",
+				"scope":"openid"
+			})
+		}
+
 		providers["GitHub"] = {
 			"provider_name":"GitHub",
 			"enable_social_login": 1,
