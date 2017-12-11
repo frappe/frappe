@@ -597,7 +597,7 @@ class EmailAccount(Document):
 
 		flags = frappe.db.sql("""select name, communication, uid, action from
 			`tabEmail Flag Queue` where is_completed=0 and email_account='{email_account}'
-			""".format(email_account=self.name), as_dict=True)
+			""".format(email_account=frappe.db.escape(self.name)), as_dict=True)
 
 		uid_list = { flag.get("uid", None): flag.get("action", "Read") for flag in flags }
 		if flags and uid_list:
