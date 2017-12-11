@@ -39,7 +39,7 @@ frappe.tests = {
 
 			() => {
 				if(cur_dialog && (!cur_frm || cur_frm.doc.doctype !== doctype)) {
-					frappe.tests.click_button('Create New');
+					cur_dialog.get_primary_btn().click();
 				} else {
 					frappe.quick_entry ? frappe.quick_entry.insert() : cur_frm.save();
 				}
