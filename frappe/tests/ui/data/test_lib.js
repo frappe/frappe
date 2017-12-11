@@ -18,10 +18,11 @@ frappe.tests = {
 					}
 				}
 
-				if (root_node){
-					frappe.tests.open_add_child_dialog(root_node);
-				} else if (frappe.quick_entry) {
+				// Check for quick_entry first because quick_entry is also a dialog
+				if (frappe.quick_entry) {
 					frappe.quick_entry.dialog.$wrapper.find('.edit-full').click();
+				} else if (root_node){
+					frappe.tests.open_add_child_dialog(root_node);
 				}
 				return frappe.timeout(1);
 			},
