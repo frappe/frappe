@@ -480,8 +480,6 @@ frappe.ui.form.Grid = Class.extend({
 	},
 
 	setup_visible_columns: function() {
-		if(this.visible_columns) return;
-
 		var total_colsize = 1,
 			fields = this.editable_fields || this.docfields;
 
@@ -497,22 +495,6 @@ frappe.ui.form.Grid = Class.extend({
 				&& (this.editable_fields || df.in_list_view)
 				&& (this.frm && this.frm.get_perm(df.permlevel, "read") || !this.frm)
 				&& !in_list(frappe.model.layout_fields, df.fieldtype)) {
-
-				if(df.columns) {
-					df.colsize=df.columns;
-				}
-				else {
-					var colsize=2;
-					switch(df.fieldtype) {
-						case"Text":
-						case"Small Text":
-							colsize=3;
-							break;
-						case"Check":
-							colsize=1
-					}
-					df.colsize=colsize;
-				}
 
 				if(df.columns) {
 					df.colsize=df.columns;
