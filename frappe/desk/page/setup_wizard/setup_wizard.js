@@ -187,11 +187,19 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 		this.update_values();
 		this.show_working_state();
 		this.disable_keyboard_nav();
+		frappe.realtime.on("setup_task", (data) => {
+			if(data.progress) {
+				this.working_state_message.find('.setup-message')
+					// .html('Process '+ data.progress[0] + ' of ' + data.progress[1] + ': ' + data.stage_status);
+					.html(data.stage_status + ' ...');
+			}
+		})
 		return frappe.call({
 			method: "frappe.desk.page.setup_wizard.setup_wizard.setup_complete",
 			args: {args: this.values},
 			callback: function() {
 				me.show_setup_complete_state();
+
 				if(frappe.setup.welcome_page) {
 					localStorage.setItem("session_last_route", frappe.setup.welcome_page);
 				}
@@ -238,7 +246,7 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 
 		this.working_state_message = this.get_message(
 			__("Setting Up"),
-			__("Sit tight while your system is being setup. This may take a few moments."),
+			__("Starting setup ..."),
 			true
 		).appendTo(this.parent);
 
@@ -271,7 +279,7 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 						: `<span class="indicator green">${title}</span>`
 					}
 				</div>
-				<p>${message}</p>
+				<p class="setup-message">${message}</p>
 				<div class="state-icon-container">
 				${loading_html}
 				</div>

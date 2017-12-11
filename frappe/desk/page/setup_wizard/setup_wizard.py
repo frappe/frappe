@@ -19,44 +19,70 @@ def setup_complete(args):
 	and clears cache. If wizard breaks, calls `setup_wizard_exception` hook"""
 
 	if cint(frappe.db.get_single_value('System Settings', 'setup_complete')):
-		# do not throw an exception if setup is already complete
-		# let the user continue to desk
+		# Setup complete: do not throw an exception, let the user continue to desk
 		return
-		#frappe.throw(_('Setup already complete'))
 
-	args = process_args(args)
+	args = parse_args(args)
+
+	update_global_settings(args)
+	run_setup_complete_hook(args)
 
 	try:
-		if args.language and args.language != "english":
-			set_default_language(get_language_code(args.language))
-
-		frappe.clear_cache()
-
-		# update system settings
-		update_system_settings(args)
-		update_user_name(args)
-
-		for method in frappe.get_hooks("setup_wizard_complete"):
-			frappe.get_attr(method)(args)
-
 		disable_future_access()
-
 		frappe.db.commit()
 		frappe.clear_cache()
 	except:
 		frappe.db.rollback()
-		if args:
-			traceback = frappe.get_traceback()
-			for hook in frappe.get_hooks("setup_wizard_exception"):
-				frappe.get_attr(hook)(traceback, args)
-
 		raise
-
 	else:
 		for hook in frappe.get_hooks("setup_wizard_success"):
 			frappe.get_attr(hook)(args)
 		install_fixtures.install()
 
+def update_global_settings(args):
+	try:
+		if args.language and args.language != "english":
+			set_default_language(get_language_code(args.lang))
+		frappe.clear_cache()
+
+		# update system settings
+		update_system_settings(args)
+		update_user_name(args)
+	except:
+		frappe.db.rollback()
+		frappe.throw("Error in updating system settings")
+
+def run_setup_complete_hook(args):
+	for method in frappe.get_hooks("setup_wizard_complete"):
+		stages = None
+		try:
+			stages = frappe.get_attr(method)(args)
+		except:
+			handle_setup_exception(args)
+
+		if isinstance(stages, list):
+			run_setup_stages(stages, args)
+
+def run_setup_stages(stages, args):
+	for idx, stage in enumerate(stages):
+		# pass stage.get('status') to client
+		frappe.publish_realtime('setup_task', {"progress": [idx, len(stages)],
+			"stage_status": stage.get('status')}, user=frappe.session.user)
+		try:
+			current_task = None
+			for task in stage.get('tasks'):
+				current_task = task
+				task.get('f')(task.get('args'))
+		except:
+			handle_setup_exception(args)
+			frappe.throw(stage.get('error') + ': ' + current_task.get('error_msg'))
+
+def handle_setup_exception(args):
+	frappe.db.rollback()
+	if args:
+		traceback = frappe.get_traceback()
+		for hook in frappe.get_hooks("setup_wizard_exception"):
+			frappe.get_attr(hook)(traceback, args)
 
 def update_system_settings(args):
 	number_format = get_country_info(args.get("country")).get("number_format", "#,###.##")
@@ -126,7 +152,7 @@ def update_user_name(args):
 	if args.get('name'):
 		add_all_roles_to(args.get("name"))
 
-def process_args(args):
+def parse_args(args):
 	if not args:
 		args = frappe.local.form_dict
 	if isinstance(args, string_types):
@@ -274,7 +300,6 @@ def email_setup_wizard_exception(traceback, args):
 
 def get_language_code(lang):
 	return frappe.db.get_value('Language', {'language_name':lang})
-
 
 def enable_twofactor_all_roles():
 	all_role = frappe.get_doc('Role',{'role_name':'All'})
