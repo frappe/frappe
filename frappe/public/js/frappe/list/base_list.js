@@ -384,6 +384,7 @@ frappe.views.BaseList = class BaseList {
 	update_data(r) {
 		let data = r.message || {};
 		data = frappe.utils.dict(data.keys, data.values);
+		data = data.uniqBy(d => d.name);
 
 		if (this.start === 0) {
 			this.data = data;
@@ -515,6 +516,12 @@ class FilterArea {
 	}
 
 	remove(fieldname) {
+		const fields_dict = this.list_view.page.fields_dict;
+
+		if (fieldname in fields_dict) {
+			fields_dict[fieldname].set_value('');
+			return;
+		}
 		this.filter_list.get_filter(fieldname).remove();
 	}
 

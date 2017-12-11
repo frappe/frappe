@@ -252,7 +252,7 @@ frappe.provide("frappe.views");
 			// update cards internally
 			opts.cards = cards;
 
-			if(self.wrapper.find('.kanban').length > 0) {
+			if(self.wrapper.find('.kanban').length > 0 && self.cur_list.start !== 0) {
 				fluxify.doAction('update_cards', cards);
 			} else {
 				init();
@@ -867,11 +867,14 @@ frappe.provide("frappe.views");
 	function is_filters_modified(board, cur_list) {
 		return new Promise(function(resolve) {
 			setTimeout(function() {
-				// sometimes the filter_list is not initiated, so early return
-				if (!cur_list.filter_area) resolve(false);
+				try {
+					var list_filters = JSON.stringify(cur_list.filter_area.get());
+					resolve(list_filters !== board.filters);
+				} catch(e) {
+					// sometimes the filter_list is not initiated
+					resolve(false);
+				}
 
-				var list_filters = JSON.stringify(cur_list.filter_area.get());
-				resolve(list_filters !== board.filters);
 			}, 2000);
 		});
 	}

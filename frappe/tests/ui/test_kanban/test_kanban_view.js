@@ -9,13 +9,15 @@ QUnit.test("Test: Kanban view", function(assert) {
 		() => frappe.set_route("List", "ToDo", "List"),
 		// calculate number of element in list
 		() => frappe.timeout(1),
-		() => total_elements = cur_list.data.length,
-		() => frappe.set_route("List", "ToDo", "Kanban", "Kanban test"),
-		() => frappe.timeout(1),
 		() => {
-			assert.equal('Kanban', cur_list.current_view,
+			total_elements = cur_list.data.length;
+		},
+		() => frappe.set_route("List", "ToDo", "Kanban", "Kanban test"),
+		() => frappe.timeout(2),
+		() => {
+			assert.equal('Kanban', cur_list.view_name,
 				"Current view is kanban.");
-			assert.equal("Kanban test", cur_list.list_renderer.page_title,
+			assert.equal("Kanban test", cur_list.page_title,
 				"Kanban view opened successfully.");
 			// check if all elements are visible in kanban view
 			assert.equal(total_elements, cur_list.data.length,
