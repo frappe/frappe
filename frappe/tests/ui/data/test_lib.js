@@ -1,48 +1,47 @@
 frappe.tests = {
 	data: {},
 	make: function(doctype, data) {
+		let dialog_is_active = () => {
+			return (
+				cur_dialog && (!cur_frm || cur_frm.doc.doctype != doctype)
+			);
+		};
 		return frappe.run_serially([
 			() => frappe.set_route('List', doctype),
 			() => frappe.new_doc(doctype),
-			() => frappe.timeout(1),
-
 			() => {
-				let root_node;
-				// If Doctype uses tree structure
-				if (cur_tree) {
-					for (const key in cur_tree.nodes) {
-						if (cur_tree.nodes[key].parent_label && cur_tree.nodes[key].expandable) {
-							root_node = cur_tree.nodes[key].label;
-							break;
-						}
-					}
-				}
-
-				// Check for quick_entry first because quick_entry is also a dialog
 				if (frappe.quick_entry) {
 					frappe.quick_entry.dialog.$wrapper.find('.edit-full').click();
-				} else if (root_node){
-					frappe.tests.open_add_child_dialog(root_node);
+					return frappe.timeout(1);
+				} else {
+					let root_node;
+					if (cur_tree) {
+						for (const key in cur_tree.nodes) {
+							if (cur_tree.nodes[key].parent_label && cur_tree.nodes[key].expandable) {
+								root_node = cur_tree.nodes[key].label;
+								break;
+							}
+						}
+					}
+					if (root_node){
+						frappe.tests.open_add_child_dialog(root_node);
+						return frappe.timeout(1);
+					}
 				}
-				return frappe.timeout(1);
 			},
-
 			() => {
-				// sometimes a stale cur_frm object is still present globally
-				if(cur_dialog && (!cur_frm || cur_frm.doc.doctype != doctype)) {
+				if(dialog_is_active()) {
 					return frappe.tests.set_dialog_values(cur_dialog, data);
 				} else {
 					return frappe.tests.set_form_values(cur_frm, data);
 				}
 			},
 
-			() => frappe.timeout(1),
-
 			() => {
-				if(cur_dialog && (!cur_frm || cur_frm.doc.doctype !== doctype)) {
-					cur_dialog.get_primary_btn().click();
+				if(dialog_is_active()) {
+					return cur_dialog.get_primary_btn().click();
 				} else {
-					frappe.quick_entry ? frappe.quick_entry.insert() : cur_frm.save();
+					return frappe.quick_entry ? frappe.quick_entry.insert() : cur_frm.save();
 				}
 			}
 		]);
