@@ -11,7 +11,7 @@ frappe.ui.Dialog = frappe.ui.FieldGroup.extend({
 		this.display = false;
 		this.is_dialog = true;
 
-		$.extend(this, { animate: true, type: 'large' }, opts);
+		$.extend(this, { animate: true, size: null }, opts);
 		this._super();
 		this.make();
 	},
@@ -20,6 +20,11 @@ frappe.ui.Dialog = frappe.ui.FieldGroup.extend({
 
 		this.wrapper = this.$wrapper.find('.modal-dialog')
 			.get(0);
+		if ( this.size == "small" )
+			$(this.wrapper).addClass("modal-sm");
+		else if ( this.size == "large" )
+			$(this.wrapper).addClass("modal-lg");
+
 		this.make_head();
 		this.body = this.$wrapper.find(".modal-body").get(0);
 		this.header = this.$wrapper.find(".modal-header");
@@ -28,12 +33,13 @@ frappe.ui.Dialog = frappe.ui.FieldGroup.extend({
 		this._super();
 
 		// show footer
-		if(this.primary_action) {
-			this.set_primary_action(this.primary_action_label || __("Submit"), this.primary_action);
+		this.action = this.action || { primary: { }, secondary: { } };
+		if(this.primary_action || this.action.primary) {
+			this.set_primary_action(this.primary_action_label || this.action.primary.label || __("Submit"), this.primary_action || this.action.primary.click);
 		}
 
-		if (this.secondary_action_label) {
-			this.get_close_btn().html(this.secondary_action_label);
+		if (this.secondary_action_label || this.action.secondary.label) {
+			this.get_close_btn().html(this.secondary_action_label || this.action.secondary.label);
 		}
 
 		var me = this;

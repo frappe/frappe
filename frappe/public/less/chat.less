@@ -10,6 +10,10 @@
 
 @frappe-chat-popper-z-index: 							1035;
 @frappe-chat-popper-margin: 							20px;
+@frappe-chat-popper-panel-width:						350px;
+@frappe-chat-popper-panel-box-shadow:					@frappe-fab-box-shadow;
+// z-index greater than FAB, lesser than modal.
+@frappe-chat-popper-panel-span-z-index:					1037;
 
 .frappe-fab
 {
@@ -51,6 +55,25 @@
 		        right: 0px;
 		       margin: @frappe-chat-popper-margin;
 		margin-bottom: calc(@frappe-chat-popper-margin + 50px);
+
+		.panel
+		{
+				 width: @frappe-chat-popper-panel-width;
+			box-shadow: @frappe-chat-popper-panel-box-shadow;
+		};
+
+		.panel-span
+		{
+			position: fixed;
+			   width: 100%;
+			  height: 100%;
+			     top: 0px;
+			    left: 0px;
+			  bottom: 0px;
+			   right: 0px;
+			 z-index: @frappe-chat-popper-panel-span-z-index;
+			overflow: auto;
+		};
 	};
 };
 
@@ -60,10 +83,10 @@
 
 
 
-// .frappe-chat-popper-collapse  { position: fixed; bottom: 0px; right: 0px; margin: 20px; z-index: 1000;
 
-// 	.panel { margin-bottom: 72px; max-width: 350px; min-height: 500px; box-shadow: 0px 3px 6px 0px rgba(0,0,0,.25); }
-// }
+
+
+
 
 .frappe-chat__app-bar-account 	{ margin-top: 15px; }
 .frappe-chat__app-bar-search  	{ margin-top: 15px; }
