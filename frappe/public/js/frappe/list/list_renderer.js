@@ -168,8 +168,8 @@ frappe.views.ListRenderer = Class.extend({
 		}
 		this.columns.push(name_column);
 
-		// not show state column in Customer list view
-		if (frappe.has_indicator(this.doctype) && this.doctype != "Customer") {
+		// not show state column in Customer and Supplier list view
+		if (frappe.has_indicator(this.doctype) && this.doctype != "Customer" && this.doctype != "Supplier") {
 			// indicator
 			this.columns.push({
 				colspan: this.settings.colwidths && this.settings.colwidths.indicator || 2,
