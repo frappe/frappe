@@ -2,21 +2,18 @@
 # MIT License. See license.txt
 from __future__ import unicode_literals
 
-import unittest, frappe, requests, time
-from frappe.test_runner import make_test_records
+import unittest, frappe, time
 from frappe.utils.selenium_testdriver import TestDriver
-from six.moves.urllib.parse import urlparse, parse_qs
 
 class TestSocialLoginKeyButtons(unittest.TestCase):
 	def setUp(self):
 		try:
 			frappe_login_key = frappe.get_doc("Social Login Key", "frappe")
-		except:
+		except frappe.DoesNotExistError:
 			frappe_login_key = frappe.new_doc("Social Login Key")
 		frappe_login_key.get_social_login_provider("Frappe", initialize=True)
 		frappe_login_key.base_url = "http://localhost:8000"
 		frappe_login_key.save()
-		frappe.db.commit()
 
 		self.driver = TestDriver()
 

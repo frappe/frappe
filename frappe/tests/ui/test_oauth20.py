@@ -17,7 +17,7 @@ class TestOAuth20(unittest.TestCase):
 		# Set Frappe server URL reqired for id_token generation
 		try:
 			frappe_login_key = frappe.get_doc("Social Login Key", "frappe")
-		except:
+		except frappe.DoesNotExistError:
 			frappe_login_key = frappe.new_doc("Social Login Key")
 		frappe_login_key.get_social_login_provider("Frappe", initialize=True)
 		frappe_login_key.base_url = "http://localhost:8000"
