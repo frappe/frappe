@@ -182,11 +182,45 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 	}
 
 	action_on_complete() {
-		var me = this;
 		if (!this.current_slide.set_values()) return;
 		this.update_values();
 		this.show_working_state();
 		this.disable_keyboard_nav();
+		this.listen_for_setup_stages();
+
+		return frappe.call({
+			method: "frappe.desk.page.setup_wizard.setup_wizard.setup_complete",
+			args: {args: this.values},
+			callback: this.post_setup_success.bind(this),
+			error: this.abort_setup.bind(this)
+		});
+	}
+
+	post_setup_success() {
+		this.show_setup_complete_state();
+
+		if(frappe.setup.welcome_page) {
+			localStorage.setItem("session_last_route", frappe.setup.welcome_page);
+		}
+		setTimeout(function() {
+			// Reload
+			window.location.href = '';
+		}, 2000);
+		setTimeout(()=> {
+			$('body').removeClass('setup-state');
+		}, 20000);
+	}
+
+	abort_setup() {
+		var d = frappe.msgprint(__("There were errors."));
+		d.custom_onhide = () => {
+			$(this.parent).find('.setup-in-progress').remove();
+			this.container.show();
+			frappe.set_route(this.page_name, this.slides.length - 1);
+		};
+	}
+
+	listen_for_setup_stages() {
 		frappe.realtime.on("setup_task", (data) => {
 			if(data.progress) {
 				this.working_state_message.find('.setup-message')
@@ -194,33 +228,6 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 					.html(data.stage_status + ' ...');
 			}
 		})
-		return frappe.call({
-			method: "frappe.desk.page.setup_wizard.setup_wizard.setup_complete",
-			args: {args: this.values},
-			callback: function() {
-				me.show_setup_complete_state();
-
-				if(frappe.setup.welcome_page) {
-					localStorage.setItem("session_last_route", frappe.setup.welcome_page);
-				}
-				setTimeout(function() {
-					// Reload
-					window.location.href = '';
-				}, 2000);
-				setTimeout(()=> {
-					$('body').removeClass('setup-state');
-				}, 20000);
-			},
-			error: function() {
-				var d = frappe.msgprint(__("There were errors."));
-				d.custom_onhide = function() {
-					$(me.parent).find('.page-card-container').remove();
-					$('body').removeClass('setup-state');
-					me.container.show();
-					frappe.set_route(me.page_name, me.slides.length - 1);
-				};
-			}
-		});
 	}
 
 	get_setup_slides_filtered_by_domain() {
@@ -241,12 +248,11 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 
 	show_working_state() {
 		this.container.hide();
-		$('body').addClass('setup-state');
 		frappe.set_route(this.page_name);
 
 		this.working_state_message = this.get_message(
-			__("Setting Up"),
-			__("Starting setup ..."),
+			__("Setting up your system"),
+			__("Starting Frappé ..."),
 			true
 		).appendTo(this.parent);
 
@@ -271,18 +277,11 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 					style="font-size: 64px; margin-top: -8px;"></i>
 			</div>`;
 
-		return $(`<div class="page-card-container" data-state="setup">
-			<div class="page-card">
-				<div class="page-card-head">
-					${loading
-						? `<span class="indicator orange">${title}</span>`
-						: `<span class="indicator green">${title}</span>`
-					}
-				</div>
-				<p class="setup-message">${message}</p>
-				<div class="state-icon-container">
-				${loading_html}
-				</div>
+		return $(`<div class="slides-wrapper setup-wizard-slide setup-in-progress">
+			<div class="content text-center">
+				<p class="title lead">${title}</p>
+				<div class="state-icon-container">${loading_html}</div>
+				<p class="setup-message text-muted" style="margin: 30px 0px;">${message}</p>
 			</div>
 		</div>`);
 	}
