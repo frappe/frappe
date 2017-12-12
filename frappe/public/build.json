@@ -3,7 +3,9 @@
 		"public/css/font-awesome.css",
 		"public/css/octicons/octicons.css",
 		"public/css/website.css",
-		"public/css/avatar.css"
+		"public/css/avatar.css",
+
+		"public/css/chat.css"
 	],
 	"js/frappe-web.min.js": [
 		"public/js/frappe/class.js",
@@ -20,7 +22,11 @@
 		"public/js/lib/microtemplate.js",
 		"public/js/frappe/query_string.js",
 		"website/js/website.js",
-		"public/js/frappe/misc/rating_icons.html"
+		"public/js/frappe/misc/rating_icons.html",
+
+		"public/js/lib/hyper.min.js",
+		"public/js/lib/fuse.min.js",
+		"public/js/frappe/chat.js"
 	],
 	"js/control.min.js": [
 		"public/js/frappe/ui/capture.js",
@@ -121,6 +127,7 @@
 		"public/css/form.css",
 		"public/css/mobile.css",
 		"public/css/kanban.css",
+		
 		"public/css/chat.css"
 	],
 	"css/frappe-rtl.css": [
@@ -150,9 +157,10 @@
 		"public/js/lib/leaflet/leaflet.draw.js",
 		"public/js/lib/leaflet/L.Control.Locate.js",
 		"public/js/lib/leaflet/easy-button.js",
-		"public/js/lib/vdom.min.js",
+
+		"public/js/lib/hyper.min.js",
 		"public/js/lib/fuse.min.js",
-		"public/js/lib/peer.min.js"
+		"public/js/frappe/chat.js"
 	],
 	"js/desk.min.js": [
 		"public/js/frappe/class.js",
@@ -249,6 +257,7 @@
 		"public/js/frappe/misc/rating_icons.html",
 
 		"public/js/frappe/feedback.js",
+
 		"public/js/frappe/chat.js"
 	],
 	"css/module.min.css": [

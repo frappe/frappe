@@ -42,7 +42,7 @@ def get_user_chat_profile_doc(user = None):
 
 def get_user_chat_profile(user = None, fields = None):
     '''
-    Returns the Chat Profile of a given user.
+    Returns the Chat Profile for a given user.
     '''
     user = get_user_doc(user)
     prof = get_user_chat_profile_doc(user)
@@ -57,7 +57,9 @@ def get_user_chat_profile(user = None, fields = None):
         bio        = user.bio,
 
         status	   = prof.status,
-        chat_bg    = prof.chat_background
+        chat_bg    = prof.chat_background,
+        
+        conversation_tones = prof.conversation_tones == 1
     )
 
     try:
@@ -82,6 +84,9 @@ def get_new_chat_profile_doc(user = None, link = True):
 
 @frappe.whitelist()
 def create(user, exists_ok = False, fields = None):
+    '''
+    Creates a Chat Profile for the current session user, throws error if exists.
+    '''
     exists, fields = safe_json_loads(exists_ok, fields)
     user           = get_user_doc(user)
 
