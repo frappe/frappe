@@ -8,24 +8,26 @@
 				</tr>
 			
 			{% for row in data %}
-			<tr>
-				<td>
-					<span>{{ row.row }} </span> 
-				</td>
-				<td>
-					<span class="indicator {{ row.indicator }}"> {{ row.title }} </span>
-				</td>
-				<td>
-					<span> {{ row.message }} </span>
-					{% if row.link %}
-						<span style="width: 10%; float:right;">
-							<a class="btn-open no-decoration" title="Open Link" href="{{ row.link }}">
-								<i class="octicon octicon-arrow-right"></i>
-							</a>
-						</span>
-					{% endif %}
-				</td>
-			</tr>
+				{% if (!show_only_errors) || (show_only_errors && row.indicator == "red") %}
+				<tr>
+					<td>
+						<span>{{ row.row }} </span> 
+					</td>
+					<td>
+						<span class="indicator {{ row.indicator }}"> {{ row.title }} </span>
+					</td>
+					<td>
+						<span> {{ row.message }} </span>
+						{% if row.link %}
+							<span style="width: 10%; float:right;">
+								<a class="btn-open no-decoration" title="Open Link" href="{{ row.link }}">
+									<i class="octicon octicon-arrow-right"></i>
+								</a>
+							</span>
+						{% endif %}
+					</td>
+				</tr>
+				{% endif %}
 			{% endfor %}
 		</table>
 	</div>
