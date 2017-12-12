@@ -336,6 +336,13 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 	def get_link(doctype, name):
 		return "#Form/{0}/{1}".format(doctype, name)
 
+	# publish realtime task update
+	def publish_progress(achieved, reload=False):
+		if data_import_doc:
+			frappe.publish_realtime("data_import_progress", {"progress": str(int(100.0*achieved/total)),
+				"data_import": data_import_doc.name, "reload": reload}, user=frappe.session.user)
+
+
 	error_flag = rollback_flag = False
 	for i, row in enumerate(data):
 		# bypass empty rows
@@ -345,9 +352,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 		row_idx = i + start_row
 		doc = None
 
-		# publish task_update
-		frappe.publish_realtime("data_import_progress", {"progress": str(int(100.0*i/total)),
-			"data_import": data_import_doc.name, "reload": False}, user=frappe.session.user)
+		publish_progress(i)
 
 		try:
 			doc = get_doc(row_idx)
@@ -452,8 +457,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 		if data_import_doc.import_status in ["Successful", "Partially Successful"]:
 			data_import_doc.submit()
 		frappe.db.commit()
-		frappe.publish_realtime("data_import_progress", {"progress": "100",
-			"data_import": data_import_doc.name, "reload": True}, user=frappe.session.user)
+		publish_progress(100, True)
 	else:
 		return log_message
 
