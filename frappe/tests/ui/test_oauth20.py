@@ -15,11 +15,13 @@ class TestOAuth20(unittest.TestCase):
 		self.client_id = frappe.get_all("OAuth Client", fields=["*"])[0].get("client_id")
 
 		# Set Frappe server URL reqired for id_token generation
-		frappe_login_key = frappe.new_doc("Social Login Key")
+		try:
+			frappe_login_key = frappe.get_doc("Social Login Key", "frappe")
+		except:
+			frappe_login_key = frappe.new_doc("Social Login Key")
 		frappe_login_key.get_social_login_provider("Frappe", initialize=True)
 		frappe_login_key.base_url = "http://localhost:8000"
 		frappe_login_key.save()
-		frappe.db.commit()
 
 	def test_login_using_authorization_code(self):
 
@@ -116,3 +118,6 @@ class TestOAuth20(unittest.TestCase):
 		self.assertTrue(response_url.get("expires_in"))
 		self.assertTrue(response_url.get("scope"))
 		self.assertTrue(response_url.get("token_type"))
+
+	def tearDown(self):
+		self.driver.close()
