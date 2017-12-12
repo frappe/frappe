@@ -10,7 +10,7 @@ module.exports = {
 	'Welcome': browser => {
 		let slide_selector = '[data-slide-name="welcome"]';
 		browser
-			.assert.title('Frappe Desk')
+			.assert.title('Bazz')
 			.pause(5000)
 			.assert.visible(slide_selector, 'Check if welcome slide is visible')
 			.assert.value('select[data-fieldname="language"]', 'English')
