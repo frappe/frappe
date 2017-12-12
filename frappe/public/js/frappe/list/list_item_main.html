@@ -27,6 +27,10 @@
     {% } else if(col.fieldtype==="Link") { %}
         <a class="filterable text-muted grey ellipsis"
             data-filter="{%= col.fieldname %},=,{%= value %}">{%= value %}</a>
+
+    {% } else if(col.fieldname === "customer_name") { %}
+        <a class="filterable list-id ellipsis"
+            data-filter="{%= col.fieldname %},=,{%= value %}">{%= value %}</a>
     {% } else if (col.fieldtype==="Currency") { %}
         <a class="filterable list-id ellipsis"
             data-filter="{%= col.fieldname %},=,{%= value %}">{{ frappe.format(value, col.df, null, data) }}</a>
