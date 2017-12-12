@@ -220,8 +220,6 @@ $.extend(frappe, {
 			html = html.join("<hr>")
 		}
 
-		html = frappe.utils.xss_sanitise(html, { strategies: ['js'] });
-
 		return frappe.get_modal(title || "Message", html).modal("show");
 	},
 	send_message: function(opts, btn) {
