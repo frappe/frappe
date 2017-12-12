@@ -7,8 +7,8 @@ QUnit.test("Test: Creation [Kanban view]", function(assert) {
 	frappe.run_serially([
 		() => frappe.set_route("List", "ToDo", "List"),
 		// click kanban in side bar
-		() => frappe.click_link('Kanban'),
-		() => frappe.click_link('New Kanban Board'),
+		() => frappe.tests.click_link('Kanban'),
+		() => frappe.tests.click_link('New Kanban Board'),
 		() => frappe.timeout(0.5),
 		// create new kanban
 		() => {

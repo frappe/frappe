@@ -10,7 +10,6 @@ with open('build.json', mode = 'r') as f:
 		fname = source.split('/')[1]
 
 		if source.split('/')[0] == 'js':
-
 			with open(osp.join('js/webpack', fname), mode = 'w') as f:
 				imports = [ ]
 				for t in targets:
@@ -23,6 +22,6 @@ with open('build.json', mode = 'r') as f:
 
 					imports.append(t)
 
-					for i in imports:
-						f.write('import "{path}"'.format(path = i))
-						f.write("\n");
+				for i in imports:
+					f.write('import "{path}"'.format(path = i))
+					f.write("\n");

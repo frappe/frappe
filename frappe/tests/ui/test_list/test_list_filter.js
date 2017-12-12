@@ -23,7 +23,7 @@ QUnit.test("Test list filters", function(assert) {
 			assert.deepEqual(['List', 'ToDo', 'List'], frappe.get_route(),
 				"List opened successfully.");
 			//set filter values
-			return frappe.set_control('priority', 'Low');
+			return frappe.tests.set_control('priority', 'Low');
 		},
 		() => frappe.timeout(0.5),
 		() => cur_list.page.btn_secondary.click(),

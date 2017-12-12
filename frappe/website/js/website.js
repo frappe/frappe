@@ -160,7 +160,7 @@ $.extend(frappe, {
 				+text+'</div>').appendTo(document.body);
 	},
 	get_sid: function() {
-		var sid = getCookie("sid");
+		var sid = frappe.get_cookie("sid");
 		return sid && sid !== "Guest";
 	},
 	get_modal: function(title, body_html) {
@@ -267,7 +267,7 @@ $.extend(frappe, {
 		// set in select
 		$(".filter").each(function() {
 			var key = $(this).attr("data-key");
-			var val = get_url_arg(key).replace(/\+/g, " ");
+			var val = frappe.utils.get_url_arg(key).replace(/\+/g, " ");
 
 			if(val) $(this).val(val);
 		});
@@ -365,8 +365,8 @@ function ask_to_login() {
 
 // check if logged in?
 $(document).ready(function() {
-	window.full_name = getCookie("full_name");
-	var logged_in = getCookie("sid") && getCookie("sid") !== "Guest";
+	window.full_name = frappe.get_cookie("full_name");
+	var logged_in = frappe.get_cookie("sid") && frappe.get_cookie("sid") !== "Guest";
 	$("#website-login").toggleClass("hide", logged_in ? true : false);
 	$("#website-post-login").toggleClass("hide", logged_in ? false : true);
 	$(".logged-in").toggleClass("hide", logged_in ? false : true);
@@ -374,7 +374,7 @@ $(document).ready(function() {
 	frappe.bind_navbar_search();
 
 	// switch to app link
-	if(getCookie("system_user")==="yes" && logged_in) {
+	if(frappe.get_cookie("system_user")==="yes" && logged_in) {
 		frappe.add_switch_to_desk();
 	}
 
@@ -393,7 +393,7 @@ $(document).on("page-change", function() {
 		$(this).parent().parent().parent().addClass('open');
 	})
 
-	$.extend(frappe, getCookies());
+	$.extend(frappe, frappe.get_cookies());
 	frappe.session = {'user': frappe.user_id};
 
 	frappe.datetime.refresh_when();

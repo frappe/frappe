@@ -108,6 +108,7 @@ function repl(s, dict) {
 	}
 	return s;
 }
+window.repl = repl;
 
 function replace_all(s, t1, t2) {
 	return s.split(t1).join(t2);
@@ -146,13 +147,11 @@ var rstrip = function(s, chars) {
 	return s;
 }
 
-function getCookie(name) {
-	return getCookies()[name];
+frappe.get_cookie = function getCookie(name) {
+	return frappe.get_cookies()[name];
 }
 
-frappe.get_cookie = getCookie;
-
-function getCookies() {
+frappe.get_cookies = function getCookies() {
 	var c = document.cookie, v = 0, cookies = {};
 	if (document.cookie.match(/^\s*\$Version=(?:"1"|1);\s*(.*)/)) {
 		c = RegExp.$1;
