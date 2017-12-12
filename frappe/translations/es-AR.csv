@@ -409,8 +409,7 @@ apps/frappe/frappe/core/page/desktop/all_applications_dialog.html +8,Checked ite
 apps/frappe/frappe/public/js/frappe/desk.js +152,Checking one moment,Comprobando un momento
 DocType: DocType,Child Tables are shown as a Grid in other DocTypes.,Las tablas secundarias se muestran como una cuadrícula en los 'DocType'
 DocType: System Settings,Choose authentication method to be used by all users,Choose authentication method to be used by all users
-DocType: Contact Us Settings,City,Ciudad
-DocType: Address,City/Town,Ciudad / Pueblo
+DocType: Address,City,Ciudad
 apps/frappe/frappe/public/js/frappe/form/controls/attach.js +58,Clear Attachment,Limpiar Adjunto
 apps/frappe/frappe/core/doctype/error_log/error_log_list.js +12,Clear Error Logs,Limpiar Registros de Errores
 apps/frappe/frappe/templates/includes/search_box.html +11,Clear Search,Borrar búsqueda
@@ -967,6 +966,7 @@ DocType: Social Login Keys,Frappe Client Secret,Código Secreto de Cliente de Fr
 apps/frappe/frappe/public/js/frappe/ui/toolbar/about.js +4,Frappe Framework,Frappe Framework
 DocType: Social Login Keys,Frappe Server URL,URL del servidor frappe
 DocType: User,Frappe User ID,Frappe ID de usuario
+DocType: Address,Freight,Flete
 DocType: Auto Email Report,Frequency,Frecuencia
 DocType: Event,Friday,Viernes
 DocType: Error Snapshot,Friendly Title,Título Amistoso
@@ -1439,7 +1439,7 @@ apps/frappe/frappe/desk/page/setup_wizard/install_fixtures.py +16,Mx,Mx
 apps/frappe/frappe/templates/includes/web_sidebar.html +33,My Account,Mi Cuenta
 apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html +28,My Settings,Mi Configuración
 DocType: DocType,MyISAM,MyISAM
-DocType: DocField,Name,Nombre
+DocType: Province,Name,Nombre
 DocType: DocType,Name Case,Nombre del Caso
 apps/frappe/frappe/model/naming.py +186,Name cannot contain special characters like {0},El nombre no puede contener caracteres especiales como {0}
 apps/frappe/frappe/public/js/frappe/form/save.js +82,Name is required,El nombre es necesario
@@ -1833,6 +1833,7 @@ DocType: Property Setter,Property,Propiedad
 DocType: Property Setter,Property Setter,Property Setter
 DocType: Property Setter,Property Setter overrides a standard DocType or Field property,Property Setter overrides a standard DocType or Field property
 DocType: Property Setter,Property Type,Tipo de inmueble
+DocType: Address,Province,Provincia
 DocType: Event,Public,Público
 DocType: Stripe Settings,Publishable Key,Clave publicable
 DocType: Blog Category,Published,Publicado
@@ -2300,7 +2301,7 @@ apps/frappe/frappe/public/js/frappe/form/print.js +101,Start,Iniciar
 apps/frappe/frappe/core/page/data_import_tool/data_import_tool.py +13,Start entering data below this line,Comience ingresando datos debajo de esta línea
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +162,Start new Format,Crear un nuevo formato
 DocType: Event,Starts on,Comienza el
-DocType: Address,State,Estado
+DocType: Contact Us Settings,State,Estado
 DocType: Workflow,States,Estados
 apps/frappe/frappe/config/setup.py +202,"States for workflow (e.g. Draft, Approved, Cancelled).","Diferentes estados para el flujo de trabajo (Por ejemplo: Borrador, Aprobado, Cancelado)"
 DocType: SMS Settings,Static Parameters,Parámetros estáticos
