@@ -2,15 +2,17 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on('Data Import', {	
-	setup: function(frm) {
-		var doctype_options = "";
-		for (var i=0, l=frappe.boot.user.can_import.sort().length; i<l; i++) {
-			doctype_options = doctype_options + "\n" + frappe.boot.user.can_import[i];
-		}
-		frm.get_field('reference_doctype').df.options = doctype_options;
-	},
-
 	onload: function(frm) {
+		frm.set_query("reference_doctype", function() {
+			return {
+				"filters": {
+					"issingle": 0,
+					"istable": 0,
+					"name": ['in', frappe.boot.user.can_import]
+				}
+			};
+		});
+
 		frappe.realtime.on("data_import_progress", function(data) {
 			if (data.data_import === frm.doc.name) {
 				if (data.reload && data.reload === true) {
