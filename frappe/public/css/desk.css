@@ -1012,7 +1012,6 @@ li.user-progress .progress-bar {
   text-align: right;
 }
 input[type="checkbox"] {
-  visibility: hidden;
   position: relative;
 }
 input[type="checkbox"]:before {
@@ -1031,11 +1030,20 @@ input[type="checkbox"]:before {
   -webkit-transition: 150ms color;
   -o-transition: 150ms color;
   transition: 150ms color;
+  background-color: white;
+  padding: 1px;
+  margin: -1px;
+}
+input[type="checkbox"]:focus:before {
+  color: #8D99A6;
 }
 input[type="checkbox"]:checked:before {
   content: '\f14a';
   font-size: 13px;
   color: #3b99fc;
+}
+input[type="checkbox"]:focus {
+  outline: none;
 }
 .multiselect-empty-state {
   min-height: 300px;
