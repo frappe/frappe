@@ -112,7 +112,7 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 		<img src="{{ doc[df.fieldname] }}" class="signature-img img-responsive"
 			{%- if df.print_width %} style="width: {{ get_width(df) }};"{% endif %}>
 	{% elif df.fieldtype in ("Attach", "Attach Image") and doc[df.fieldname]
-		and (guess_mimetype(doc[df.fieldname])[0] or "").startswith("image/") %}
+		and frappe.utils.is_image(doc[df.fieldname]) %}
 		<img src="{{ doc[df.fieldname] }}" class="img-responsive"
 			{%- if df.print_width %} style="width: {{ get_width(df) }};"{% endif %}>
     {% elif df.fieldtype=="HTML" %}
