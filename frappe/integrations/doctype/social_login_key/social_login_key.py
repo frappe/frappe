@@ -11,6 +11,8 @@ class BaseUrlNotSetError(frappe.ValidationError): pass
 class AuthorizeUrlNotSetError(frappe.ValidationError): pass
 class AccessTokenUrlNotSetError(frappe.ValidationError): pass
 class RedirectUrlNotSetError(frappe.ValidationError): pass
+class ClientIDNotSetError(frappe.ValidationError): pass
+class ClientSecretNotSetError(frappe.ValidationError): pass
 
 class SocialLoginKey(Document):
 
@@ -26,6 +28,10 @@ class SocialLoginKey(Document):
 			frappe.throw(_("Please enter Access Token URL"), exc=AccessTokenUrlNotSetError)
 		if not self.redirect_url:
 			frappe.throw(_("Please enter Redirect URL"), exc=RedirectUrlNotSetError)
+		if self.enable_social_login and not self.client_id:
+			frappe.throw(_("Please enter Client ID before social login is enabled"), exc=ClientIDNotSetError)
+		if self.enable_social_login and not self.client_secret:
+			frappe.throw(_("Please enter Client Secret before social login is enabled"), exc=ClientSecretNotSetError)
 
 	def get_social_login_provider(self, provider, initialize=False):
 		providers = {}

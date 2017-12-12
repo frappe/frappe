@@ -13,6 +13,9 @@ class TestSocialLoginKeyButtons(unittest.TestCase):
 			frappe_login_key = frappe.new_doc("Social Login Key")
 		frappe_login_key.get_social_login_provider("Frappe", initialize=True)
 		frappe_login_key.base_url = "http://localhost:8000"
+		frappe_login_key.enable_social_login = 1
+		frappe_login_key.client_id = "test_client_id"
+		frappe_login_key.client_secret = "test_client_secret"
 		frappe_login_key.save()
 
 		self.driver = TestDriver()

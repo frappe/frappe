@@ -9,6 +9,7 @@ import json
 from frappe import _
 from frappe.auth import LoginManager
 from frappe.integrations.doctype.ldap_settings.ldap_settings import get_ldap_settings
+from frappe.utils.password import get_decrypted_password
 
 no_cache = True
 
@@ -25,7 +26,8 @@ def get_context(context):
 	context["disable_signup"] = frappe.utils.cint(frappe.db.get_value("Website Settings", "Website Settings", "disable_signup"))
 	providers = [i.name for i in frappe.get_all("Social Login Key", filters={"enable_social_login":1})]
 	for provider in providers:
-		client_id, client_secret, base_url = frappe.get_value("Social Login Key", provider, ["client_id", "client_secret", "base_url"])
+		client_id, base_url = frappe.get_value("Social Login Key", provider, ["client_id", "base_url"])
+		client_secret = get_decrypted_password("Social Login Key", provider, "client_secret")
 		if (get_oauth_keys(provider) and client_secret and client_id and base_url):
 			context.provider_logins.append({
 				"name": provider,

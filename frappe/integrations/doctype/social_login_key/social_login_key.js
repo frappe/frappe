@@ -7,7 +7,11 @@ const fields = [
 ];
 
 frappe.ui.form.on('Social Login Key', {
-	custom_base_url (frm) {
+	refresh(frm) {
+		frm.trigger("setup_fields");
+	},
+
+	custom_base_url(frm) {
 		frm.trigger("setup_fields");
 	},
 
