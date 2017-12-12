@@ -1012,13 +1012,11 @@ li.user-progress .progress-bar {
   text-align: right;
 }
 input[type="checkbox"] {
-  visibility: hidden;
   position: relative;
 }
 input[type="checkbox"]:before {
   position: absolute;
   font-family: 'FontAwesome';
-  content: '\f096';
   visibility: visible;
   font-style: normal;
   font-weight: normal;
