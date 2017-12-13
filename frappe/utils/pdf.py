@@ -20,10 +20,10 @@ def get_pdf(html, options=None, output = None, password = None):
 			password = str(password).encode('utf-8')
 			fname_out = os.path.join("/tmp", "encrypted-pdf-{0}.pdf".format(frappe.generate_hash()))
 			writer = PdfFileWriter()
-			input = PdfFileReader(file(fname, "rb"))
+			reader = PdfFileReader(file(fname, "rb"))
 
-			for pagenum in range(input.numPages):
-				writer.addPage(input.getPage(pagenum))
+			for pagenum in range(reader.numPages):
+				writer.addPage(reader.getPage(pagenum))
 			
 			output_stream = file(fname_out, "wb")
 			writer.encrypted(password)
