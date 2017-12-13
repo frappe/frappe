@@ -62,7 +62,7 @@ frappe._.fuzzy_search = function (query, dataset, options)
 frappe._.copy_array = function (array)
 {
     if ( Array.isArray(array) )
-        return array.splice();
+        return array.slice();
     else
         throw frappe.err.TypeError(`Expected Array, recieved ${typeof array} instead.`);
 };
@@ -549,12 +549,19 @@ function (names, fields, fn)
                 response =>
                 {
                     var rooms = response.message
-                    rooms = rooms.map(room =>
+                    if ( rooms )
                     {
-                        return { ...room, creation: moment(room.creation),
-                            last_message_timestamp: room.last_message_timestamp && moment(room.last_message_timestamp) }
-                    });
-                    rooms = frappe._.squash(rooms)
+                        rooms = rooms.map(room =>
+                        {
+                            return { ...room, creation: moment(room.creation),
+                                last_message_timestamp: room.last_message_timestamp && moment(room.last_message_timestamp) }
+                        });
+                        rooms = frappe._.squash(rooms)
+                    }
+                    else
+                    {
+                        rooms = [ ];
+                    }
 
                     if ( fn )
                         fn(rooms)
@@ -629,18 +636,18 @@ class extends Component
         super (props);
 
         this.room           = { };
-        this.room.add       = function (room)
+        this.room.add       = (room) =>
         {
             // ping to server for chat room update.
             frappe.chat.room.subscribe(room.name);
             
             const { state } = this;
-            var rooms       = frappe._.copy_array(state.rooms);
+            const rooms     = frappe._.copy_array(state.rooms);
             rooms.push(room);
 
             this.setState({ rooms });
         };
-        this.room.update    = function (room)
+        this.room.update    = (room) =>
         {
             
         };
@@ -1102,12 +1109,16 @@ class extends Component
         {
             if ( a.last_message_timestamp && b.last_message_timestamp )
                 return frappe._.compare(a.last_message_timestamp, b.last_message_timestamp);
-            
-            if ( a.last_message_timestamp )
-                return frappe._.compare(a.last_message_timestamp, b.creation);
-
-            if ( b.last_message_timestamp )
-                return frappe._.compare(b.last_message_timestamp, a.creation);
+            else
+            {
+                if ( a.last_message_timestamp )
+                    return frappe._.compare(a.last_message_timestamp, b.creation);
+                else
+                if ( b.last_message_timestamp )
+                    return frappe._.compare(b.last_message_timestamp, a.creation);
+                else
+                    return frappe._.compare(a.creation, b.creation);
+            }
         });
 
         return rooms.length ?
