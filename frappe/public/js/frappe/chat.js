@@ -399,6 +399,55 @@ frappe.chat.profile.STATUSES
 frappe.provide('frappe.chat.room');
 
 /**
+ * @description Creates a Chat Room
+ * 
+ * @param   {string|array} kind   - (Required) "Direct", "Group" or "Visitor"
+ * @param   {string|array} fields - (Optional) fields to be retrieved for each Chat Room.
+ * @param   {function}     fn     - (Optional) callback with the returned Chat Room(s).
+ * 
+ * @returns {Promise}
+ * 
+ * @example
+ * frappe.chat.room.get(function (rooms) {
+ *      // do stuff
+ * });
+ * frappe.chat.room.get().then(function (rooms) {
+ *      // do stuff
+ * });
+ * 
+ * frappe.chat.room.get(null, ["room_name", "avatar"], function (rooms) {
+ *      // do stuff
+ * });
+ * 
+ * frappe.chat.room.get("CR00001", "room_name", function (room) {
+ *      // do stuff
+ * });
+ */
+frappe.chat.room.create
+=
+(kind, owner, users, name, fn) =>
+{
+    if ( typeof name === "function" )
+    {
+        fn   = name;
+        name = null;
+    }
+    
+    return new Promise(resolve =>
+    {
+        frappe.call("frappe.chat.doctype.chat_room.chat_room.create",
+            { kind: kind, owner: owner || frappe.session.user, users: users, name: name },
+            r =>
+            {
+                if ( fn )
+                    fn(r.message);
+
+                resolve(r.message);
+            });
+    });
+};
+
+/**
  * @description Returns Chat Room(s)
  * 
  * @param   {string|array} names  - (Optional) Chat Room(s) to retrieve.
@@ -504,9 +553,7 @@ function (query, rooms)
 }
 
 /**
- * @description The base HOC (Higher Order Component) for Frappe Chat
- * 
- * @extends Component
+ * @description The base Component for Frappe Chat
  */
 frappe.Chat.Widget
 =
@@ -564,7 +611,7 @@ class extends Component
                     const status = frappe.chat.profile.STATUSES.find(s => s.name === update.status);
                     const color  = status.color;
                     
-                    const alert  = `<span class="indicator ${color}"/> ${frappe.user.full_name(user)} is currently <b>${update.status}</b>`
+                    const alert  = `<span class="indicator ${color}"/> ${frappe.user.full_name(user)} is currently <b>${update.status}</b>`;
                     frappe.show_alert(alert, 3);
                 }
             }
@@ -729,7 +776,7 @@ class extends Component
                                     {
                                         dialog.hide();
 
-                                        console.log(name, users);
+
                                     }
                                 },
                                 secondary:
@@ -870,7 +917,7 @@ frappe.Chat.Widget.Popper.defaultState =
 };
 
 /**
- * @description Chat Action Bar HOC
+ * @description Chat.Widget Action Bar Component
  */
 frappe.Chat.Widget.ActionBar
 =
@@ -1574,30 +1621,6 @@ function (user, update, fn)
                 });
     });
 };
-
-frappe.chat.room.create
-=
-(kind, owner, users, name, fn) =>
-{
-    if ( typeof name === "function" )
-    {
-        fn   = name
-        name = null
-    }
-    
-    return new Promise(resolve =>
-    {
-        frappe.call("frappe.chat.doctype.chat_room.chat_room.create",
-            { kind: kind, owner: owner || frappe.session.user, users: users, name: name },
-            r =>
-            {
-                if ( fn )
-                    fn(r.message)
-
-                resolve(r.message)
-            })
-    })
-}
 
 frappe.chat.room.history
 =

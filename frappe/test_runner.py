@@ -14,7 +14,6 @@ import cProfile, pstats
 from six import StringIO
 from six.moves import reload_module
 from frappe.model.naming import revert_series_if_last
-from coverage import Coverage
 
 unittest_runner = unittest.TextTestRunner
 
@@ -62,11 +61,11 @@ def main(app=None, module=None, doctype=None, verbose=False, tests=(),
 			frappe.get_attr(fn)()
 
 		if doctype:
-			ret = run_tests_for_doctype(doctype, verbose, tests, force, profile, coverage = coverage)
+			ret = run_tests_for_doctype(doctype, verbose, tests, force, profile)
 		elif module:
-			ret = run_tests_for_module(module, verbose, tests, profile, coverage = coverage)
+			ret = run_tests_for_module(module, verbose, tests, profile)
 		else:
-			ret = run_all_tests(app, verbose, profile, ui_tests, coverage = coverage)
+			ret = run_all_tests(app, verbose, profile, ui_tests)
 
 		frappe.db.commit()
 
@@ -145,7 +144,7 @@ def run_tests_for_doctype(doctypes, verbose=False, tests=(), force=False, profil
 
 	return _run_unittest(modules, verbose=verbose, tests=tests, profile=profile)
 
-def run_tests_for_module(module, verbose=False, tests=(), profile=False, coverage=False):
+def run_tests_for_module(module, verbose=False, tests=(), profile=False):
 	module = importlib.import_module(module)
 	if hasattr(module, "test_dependencies"):
 		for doctype in module.test_dependencies:
@@ -190,13 +189,8 @@ def _run_unittest(modules, verbose=False, tests=(), profile=False):
 
 	frappe.flags.tests_verbose = verbose
 
-	cov = Coverage()
-	cov.start()
-
 	out = unittest_runner(verbosity=1+(verbose and 1 or 0)).run(test_suite)
 
-	cov.stop()
-	print(cov.report(omit = ['*env*', '*test_*']))
 
 	if profile:
 		pr.disable()
