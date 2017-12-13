@@ -229,7 +229,6 @@ def update_global_search(doc):
 	"""
 	Add values marked with `in_global_search` to
 	`frappe.flags.update_global_search` from given doc
-	
 	:param doc: Document to be added to global search
 	"""
 
