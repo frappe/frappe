@@ -28,7 +28,7 @@
         <a class="filterable text-muted grey ellipsis"
             data-filter="{%= col.fieldname %},=,{%= value %}">{%= value %}</a>
 
-    {% } else if(col.fieldname === "customer_name" || col.fieldname === "code" ) { %}
+    {% } else if(col.fieldname === "customer_name" || col.fieldname === "supplier_name" ) { %}
         <a class="filterable list-id ellipsis"
             data-filter="{%= col.fieldname %},=,{%= value %}">{%= value %}</a>
     {% } else if (col.fieldtype === "Currency") { %}
