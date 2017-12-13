@@ -681,7 +681,8 @@ class extends Component
                         dialog.show();
                     }
                 }
-            ]
+            ],
+            change: console.log
         });
 
         const RoomList   = h(frappe.Chat.Widget.RoomList, { rooms: state.rooms });
@@ -811,34 +812,39 @@ class extends Component
     {
         super (props);
 ;
-        this.on_change = this.on_change.bind(this);
-        this.on_submit = this.on_submit.bind(this);
+        this.change = this.change.bind(this);
+        this.submit = this.submit.bind(this);
 
-        this.state     = frappe.Chat.Widget.ActionBar.defaultState;
+        this.state  = frappe.Chat.Widget.ActionBar.defaultState;
     }
 
-    on_change (e)
+    change (e)
     {
+        const { props, state } = this;
+
         this.setState({
             [e.target.name]: e.target.value
         });
 
-        this.props.on_change(this.state.query);
+        props.change(state.query);
     }
 
-    on_submit (e)
+    submit (e)
     {
+        const { props, state } = this;
+        
         e.preventDefault();
 
-        this.props.on_submit(this.state);
+        props.submit(state.query);
     }
 
     render ( )
     {
         const { props, state } = this;
+        console.log(props)
 
         return (
-            h("form", { oninput: this.on_change, onsubmit: this.on_submit },
+            h("form", { oninput: this.change, onsubmit: this.submit },
                 h("div", { class: "form-group" },
                     h("div", { class: "input-group input-group-sm" },
                         h("div", { class: "input-group-addon" },
