@@ -11,11 +11,11 @@
  * @param   {array}  dataset - A dataset to search within, can contain singletons or Objects.
  * @param   {object} options - Options as per fuze.js
  * 
- * @returns {object}         - The fuzzy matched object within the dataset.
+ * @returns {object|integer} - The fuzzy matched object within the dataset.
  * 
  * @example
  * frappe._.fuzzy_search("foo", ["foobar", "bartender"]);
- * // returns "foobar"
+ * // returns 0
  * 
  * frappe._.fuzzy_search("foo", [{ key: "foobar" }, { key: "tootifrooti" }]);
  * // returns [{ key: "foobar" }]
@@ -446,6 +446,32 @@ function (rooms)
 };
 
 /**
+ * @description Searchs Rooms based on a query.
+ * 
+ * @param {string} query - the query string
+ * @param {array}  rooms - array of Chat Rooms.
+ */
+frappe.chat.room.search
+=
+function (query, rooms)
+{
+    const dataset = rooms.map(r => 
+    {
+        if ( r.room_name )
+            return r.room_name
+        else
+            if ( r.owner === frappe.session.user )
+                return frappe.user.full_name(frappe._.squash(r.users))
+            else
+                return frappe.user.full_name(r.owner)
+    });
+    const results = frappe._.fuzzy_search(query, dataset)
+    rooms         = results.map(i => rooms[i])
+
+    return rooms
+}
+
+/**
  * @description The base HOC (Higher Order Component) for Frappe Chat
  * 
  * @extends Component
@@ -594,9 +620,11 @@ class extends Component
         })
     }
 
-    render ( ) {
+    render ( )
+    {
         const { props, state } = this;
-
+        const me               = this;
+        
         const ActionBar = h(frappe.Chat.Widget.ActionBar,
         {
             actions:
@@ -682,10 +710,17 @@ class extends Component
                     }
                 }
             ],
-            change: console.log
+            change: function (query)
+            {
+                me.setState({
+                    query: query
+                });
+            }
         });
 
-        const RoomList   = h(frappe.Chat.Widget.RoomList, { rooms: state.rooms });
+        const rooms      = state.query ? frappe.chat.room.search(state.query, state.rooms) : state.rooms
+        
+        const RoomList   = h(frappe.Chat.Widget.RoomList, { rooms: rooms });
         const Room       = h(frappe.Chat.Widget.Room, { ...state.room, layout: props.layout });
 
         const component  = props.layout === frappe.Chat.Layout.POPPER ?
@@ -721,6 +756,7 @@ class extends Component
 frappe.Chat.Widget.defaultStates
 = 
 {
+      query: "",
     profile: { },
       rooms: [ ],
        room: 
@@ -841,7 +877,6 @@ class extends Component
     render ( )
     {
         const { props, state } = this;
-        console.log(props)
 
         return (
             h("form", { oninput: this.change, onsubmit: this.submit },
@@ -1067,136 +1102,7 @@ class extends Component {
     }
 };
 
-frappe.Chat.Widget.AppBar
-=
-class extends Component {
-    constructor (props) {
-        super (props)
-
-        this.search_rooms = this.search_rooms.bind(this)
-
-        this.on_click_new_message = this.on_click_new_message.bind(this)
-        this.on_click_new_group   = this.on_click_new_group.bind(this)
-
-        this.state        = frappe.Chat.Widget.AppBar.defaultState
-    }
-
-    search_rooms (query) {
-        const props   = this.props
-        const dataset = props.rooms.map(r => {
-            if ( r.room_name )
-                return r.room_name
-            else
-                if ( r.owner === frappe.session.user )
-                    return frappe.user.full_name(frappe._.squash(r.users))
-                else
-                    return frappe.user.full_name(r.owner)
-        })
-        const results = frappe._.fuzzy_search(query, dataset)
-
-        const rooms   = results.map(i => props.rooms[i])
-
-        return rooms
-    }
-
-    on_click_new_message ( ) {
-        const { props } = this
-        const dialog    = new frappe.ui.Dialog({
-              title: __(`New Message`),
-            animate: false,
-             fields: [
-                {   
-                        label: "Select User",
-                    fieldname: "user",
-                    fieldtype: "Link",
-                      options: "User",
-                         reqd: true,
-                      filters: { "name": ["!=", frappe.session.user] }
-                }
-             ],
-            primary_action_label: __(`Create`),
-            primary_action: ({ user }) => {
-                dialog.hide()
-
-                props.on_new_message(user)
-            }
-        })
-        dialog.show()
-    }
-
-    on_click_new_group ( ) {
-        const { props } = this
-        const dialog    = new frappe.ui.Dialog({
-              title: __(`New Group`),
-            animate: false,
-             fields: [
-                {
-                        label: "Name",
-                    fieldname: "name",
-                    fieldtype: "Data",
-                         reqd: true
-                },
-                {   
-                        label: "Select Users",
-                    fieldname: "users",
-                    fieldtype: "MultiSelect",
-                      options: Object.keys(frappe.boot.user_info).map(key => frappe.boot.user_info[key].email)
-                }
-             ],
-            primary_action_label: __(`Create`),
-            primary_action: (data) => {
-                dialog.hide()
-
-                const name  = data.name
-                var   users = [ ]
-
-                if ( data.users ) 
-                {
-                    users = data.users.split(", ")
-                    users = users.slice(0, users.length - 1)
-                }
-
-                props.on_new_group(name, users)
-            }
-        })
-        dialog.show()
-    }
-
-    render ( ) {
-        const { props, state } = this
-        const rooms            = state.query ? this.search_rooms(state.query) : props.rooms
-
-
-        return (
-            h("div", { class: "frappe-chat__app-bar" },
-                props.layout !== frappe.Chat.Layout.POPPER ?
-                    h("div", { class: "frappe-chat__app-bar-account" },
-                        h(frappe.Chat.Widget.AppBar.Account, {
-                                    status: props.status,
-                            on_change_status: props.on_change_status
-                        })
-                    )
-                    :
-                    null,
-                h("div", { class: "frappe-chat__app-bar-search" },
-                    h(frappe.Chat.Widget.ActionBar, {
-                                    on_query: query => this.setState({ query: query }),
-                        on_click_new_message: this.on_click_new_message,
-                          on_click_new_group: this.on_click_new_group
-                    })
-                ),
-                h("div", { class: "frappe-chat__app-bar-room-list" },
-                    h(frappe.Chat.Widget.RoomList, { rooms: rooms, on_select_room: props.on_select_room })
-                )
-            )
-        )
-    }
-}
-frappe.Chat.Widget.AppBar.defaultState   = {
-    query: null
-}
-
-frappe.Chat.Widget.AppBar.Account
+frappe.Chat.Widget.Account
 =
 class extends Component {
     render ( ) {
