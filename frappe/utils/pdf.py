@@ -67,11 +67,12 @@ def get_pdf(html, options=None, output = None, password = None):
 
 	return filedata
 
-def append_pdf(input,output, password = None):
-	# Merging multiple pdf files
-	if password and input.isEncrypted:
+def append_pdf(input,output, password = None):	
+	if password and input.isEncrypted:		
 		input.decrypt(password)
-    [output.addPage(input.getPage(page_num)) for page_num in range(input.numPages)]
+		
+	# Merging multiple pdf files
+	[output.addPage(input.getPage(page_num)) for page_num in range(input.numPages)]
 
 def prepare_options(html, options):
 	if not options:
