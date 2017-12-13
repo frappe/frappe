@@ -1,3 +1,5 @@
+import io from "socket.io-client";
+
 frappe.socketio = {
 	open_tasks: {},
 	open_docs: [],

@@ -1,5 +1,8 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
+// console.log(moment);
+import moment from 'moment-timezone';
+window.moment = moment;
 
 frappe.provide('frappe.datetime');
 
@@ -11,6 +14,13 @@ moment.defaultFormat = moment.defaultDateFormat;
 frappe.provide("frappe.datetime");
 
 $.extend(frappe.datetime, {
+	localify: function() {
+		moment.locale("en");
+		moment.user_utc_offset = moment().utcOffset();
+		if(frappe.boot.timezone_info) {
+			moment.tz.add(frappe.boot.timezone_info);
+		}
+	},
 	convert_to_user_tz: function(date, format) {
 		// format defaults to true
 		if(frappe.sys_defaults.time_zone) {

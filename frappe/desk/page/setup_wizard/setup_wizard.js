@@ -428,12 +428,14 @@ frappe.setup.slides_settings = [
 			if(frappe.setup.data.email) {
 				let email = frappe.setup.data.email;
 				slide.form.fields_dict.email.set_input(email);
-				if (frappe.get_gravatar(email, 200)) {
-					var $attach_user_image = slide.form.fields_dict.attach_user_image.$wrapper;
-					$attach_user_image.find(".missing-image").toggle(false);
-					$attach_user_image.find("img").attr("src", frappe.get_gravatar(email, 200));
-					$attach_user_image.find(".img-container").toggle(true);
-				}
+				frappe.get_gravatar(email, 200)
+					.then(url => {
+						if (!url) return;
+						var $attach_user_image = slide.form.fields_dict.attach_user_image.$wrapper;
+						$attach_user_image.find(".missing-image").toggle(false);
+						$attach_user_image.find("img").attr("src", url);
+						$attach_user_image.find(".img-container").toggle(true);
+					});
 			}
 		},
 	}

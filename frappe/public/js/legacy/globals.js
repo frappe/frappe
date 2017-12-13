@@ -34,5 +34,17 @@ var _p = {};
 var _r = {};
 
 // API globals
-var frms={};
+var frms = {};
 var cur_frm=null;
+
+Object.assign(window, {
+	NEWLINE,
+	TAB,
+	UP_ARROW,
+	DOWN_ARROW,
+	_f,
+	_p,
+	_r,
+	frms,
+	cur_frm
+});

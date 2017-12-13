@@ -28,7 +28,7 @@ $.extend(frappe.model, {
 					frappe.meta.sync(d);
 				}
 
-				if(cur_frm && cur_frm.doctype==d.doctype && cur_frm.docname==d.name) {
+				if(window.cur_frm && cur_frm.doctype==d.doctype && cur_frm.docname==d.name) {
 					cur_frm.doc = d;
 				}
 

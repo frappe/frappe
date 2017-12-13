@@ -54,9 +54,7 @@
 
 	</script>
 
-	{% for include in include_js %}
-	<script type="text/javascript" src="{{ include }}?ver={{ build_version }}"></script>
-	{% endfor %}
+	<script type="text/javascript" src="/assets/frappe/js/dist/index.bundle.js"></script>
     {% include "templates/includes/app_analytics/google_analytics.html" %}
     {% include "templates/includes/app_analytics/mixpanel_analytics.html" %}
 
