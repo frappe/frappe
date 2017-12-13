@@ -614,11 +614,23 @@ function (query, rooms)
     return rooms
 };
 
+
 // frappe.chat.room.on trigger namespace.
 frappe.provide('frappe.chat.room.on');
 
 /**
+ * @description Triggers on Chat Room updated.
+ * 
+ * @param {function} fn - callback with the Chat Room and Update.
+ */
+frappe.chat.room.on.update
+=
+(fn) => frappe.realtime.on("frappe.chat.room.update", r => fn(r.room, r.data))
+
+/**
  * @description Triggers on Chat Room created.
+ * 
+ * @param {function} fn - callback with the created Chat Room.
  */
 frappe.chat.room.on.create
 =
@@ -649,7 +661,22 @@ class extends Component
         };
         this.room.update    = (room) =>
         {
-            
+            // update list
+            const { state } = this
+            const rooms     = state.rooms.map(r => {
+                if ( r.name === room )
+                    return Object.assign({ }, r, update)
+                return r
+            })
+
+            this.setState({ rooms })
+
+            // update room
+            if ( state.room.name === room ) {
+                const room = Object.assign({ }, state.room, update)
+
+                this.setState({ room })
+            }
         };
         
         this.state          = frappe.Chat.Widget.defaultStates;
@@ -712,7 +739,7 @@ class extends Component
         });
 
         frappe.chat.room.on.update((room, update) => {
-            this.update_room(room, update)
+            this.room.update(room, update)
         })
         
         frappe.chat.message.on.create((r) => 
@@ -747,25 +774,6 @@ class extends Component
                  room: { ...state.room, ...room, messages: m }
             })
         })
-    }
-
-    update_room (room, update) {
-        // update list
-        const { state } = this
-        const rooms     = state.rooms.map(r => {
-            if ( r.name === room )
-                return Object.assign({ }, r, update)
-            return r
-        })
-
-        this.setState({ rooms })
-
-        // update room
-        if ( state.room.name === room ) {
-            const room = Object.assign({ }, state.room, update)
-
-            this.setState({ room })
-        }
     }
 
     render ( )
@@ -1738,9 +1746,7 @@ function (name, fn)
     });
 };
 
-frappe.chat.room.on.update
-=
-(fn) => frappe.realtime.on("frappe.chat.room.update", r => fn(r.room, r.data))
+
 
 frappe.chat.message = { }
 frappe.chat.message.send 
