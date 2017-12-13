@@ -18,7 +18,7 @@ def get_pdf(html, options=None, output = None, password = None):
 
 		if password:
 			password = str(password).encode('utf-8')
-			fname_out = os.path.join("/tmp", "encrypted-pdf-{0}.pdf".format(frappe.generate_hash()))
+			fname_out = os.path.join("/tmp", "frappe-pdf-{0}.pdf".format(frappe.generate_hash()))
 			writer = PdfFileWriter()
 			reader = PdfFileReader(file(fname, "rb"))
 
