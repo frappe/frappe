@@ -53,6 +53,8 @@ def execute():
 		facebook_login_key.social_login_provider = "Facebook"
 		facebook_login_key.client_id = social_login_keys.facebook_client_id
 		facebook_login_key.client_secret = social_login_keys.facebook_client_secret
+		if not (facebook_login_key.client_secret and facebook_login_key.client_id):
+			facebook_login_key.enable_social_login = 0
 		facebook_login_key.save()
 
 	if social_login_keys.frappe_server_url:
@@ -62,6 +64,8 @@ def execute():
 		frappe_login_key.base_url = social_login_keys.frappe_server_url
 		frappe_login_key.client_id = social_login_keys.frappe_client_id
 		frappe_login_key.client_secret = social_login_keys.frappe_client_secret
+		if not (frappe_login_key.client_secret and frappe_login_key.client_id and frappe_login_key.base_url):
+			frappe_login_key.enable_social_login = 0
 		frappe_login_key.save()
 
 	if social_login_keys.github_client_id or social_login_keys.github_client_secret:
@@ -70,6 +74,8 @@ def execute():
 		github_login_key.social_login_provider = "GitHub"
 		github_login_key.client_id = social_login_keys.github_client_id
 		github_login_key.client_secret = social_login_keys.github_client_secret
+		if not (github_login_key.client_secret and github_login_key.client_id):
+			github_login_key.enable_social_login = 0
 		github_login_key.save()
 
 	if social_login_keys.google_client_id or social_login_keys.google_client_secret:
@@ -78,6 +84,8 @@ def execute():
 		google_login_key.social_login_provider = "Google"
 		google_login_key.client_id = social_login_keys.google_client_id
 		google_login_key.client_secret = social_login_keys.google_client_secret
+		if not (google_login_key.client_secret and google_login_key.client_id):
+			google_login_key.enable_social_login = 0
 		google_login_key.save()
 
 	frappe.delete_doc("DocType", "Social Login Keys")
