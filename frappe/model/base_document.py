@@ -212,8 +212,8 @@ class BaseDocument(object):
 					# unique empty field should be set to None
 					d[fieldname] = None
 
-				if isinstance(d[fieldname], list) and df.fieldtype != 'Table':
-					frappe.throw(_('Value for {0} cannot be a list').format(_(df.label)))
+				#if isinstance(d[fieldname], list) and df.fieldtype != 'Table':
+					#frappe.throw(_('Value for {0} cannot be a list').format(_(df.label)))
 
 		return d
 
