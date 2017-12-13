@@ -401,25 +401,21 @@ frappe.provide('frappe.chat.room');
 /**
  * @description Creates a Chat Room
  * 
- * @param   {string|array} kind   - (Required) "Direct", "Group" or "Visitor"
- * @param   {string|array} fields - (Optional) fields to be retrieved for each Chat Room.
- * @param   {function}     fn     - (Optional) callback with the returned Chat Room(s).
+ * @param   {string}       kind  - (Required) "Direct", "Group" or "Visitor"
+ * @param   {string}       owner - (Optional) Chat Room owner (defaults to current user).
+ * @param   {string|array} users - (Required for "Direct" and "Visitor", Optional for "Group") User(s) within Chat Room.
+ * @param   {string}       name  - Chat Room name
+ * @param   {function}     fn    - callback with created Chat Room.
  * 
  * @returns {Promise}
  * 
  * @example
- * frappe.chat.room.get(function (rooms) {
+ * frappe.chat.room.create("Direct", frappe.session.user, "foo@bar.com", function (room)
+ * {
  *      // do stuff
  * });
- * frappe.chat.room.get().then(function (rooms) {
- *      // do stuff
- * });
- * 
- * frappe.chat.room.get(null, ["room_name", "avatar"], function (rooms) {
- *      // do stuff
- * });
- * 
- * frappe.chat.room.get("CR00001", "room_name", function (room) {
+ * frappe.chat.room.create("Group",  frappe.session.user, ["santa@gmail.com", "banta@gmail.com"], "Santa and Banta", function (room)
+ * {
  *      // do stuff
  * });
  */
@@ -731,9 +727,11 @@ class extends Component
                                 primary:
                                 {
                                     label: __("Create"),
-                                    click: function (user)
+                                    click: function ({ user })
                                     {
                                         dialog.hide();
+
+                                        frappe.chat.room.create("Direct", null, user);
                                     }
                                 },
                                 secondary:
@@ -775,8 +773,15 @@ class extends Component
                                     click: function ({ name, users })
                                     {
                                         dialog.hide();
+                                        
+                                        // MultiSelect, y u no JSON? :(
+                                        if ( users )
+                                        {
+                                            users = users.split(", ")
+                                            users = users[users.length - 1];
+                                        }
 
-
+                                        frappe.chat.room.create("Group", null, users, name);
                                     }
                                 },
                                 secondary:
