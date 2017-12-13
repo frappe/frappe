@@ -184,8 +184,6 @@ def get_new_chat_room(kind, owner, users = None, name = None):
 	return room
 
 def get_user_chat_rooms(user = None, rooms = None, fields = None):
-	# TODO
-	# [ ] Query based on room name.
 	'''
 	if user is None, defaults to session user.
 	if room is None, returns the entire list of rooms subscribed by user.
@@ -206,7 +204,7 @@ def get_user_chat_rooms(user = None, rooms = None, fields = None):
 			['Chat Room', 'name', 'in', rooms]
 		] if rooms else None,
 		fields     = param + ['name'] if param or 'users' in fields else [
-			'type', 'name', 'owner', 'room_name', 'avatar'
+			'type', 'name', 'owner', 'room_name', 'avatar', 'creation', 'last_message_timestamp'
 		],
 		distinct   = True
 	)
