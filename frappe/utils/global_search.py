@@ -43,9 +43,14 @@ def get_doctypes_with_global_search(with_child_tables=True):
 				global_search_doctypes.append(d)
 
 		installed_apps = frappe.get_installed_apps()
+		module_app = frappe.local.module_app
 
-		doctypes = [d.name for d in global_search_doctypes
-			if frappe.local.module_app[frappe.scrub(d.module)] in installed_apps]
+		doctypes = [
+			d.name for d in global_search_doctypes
+			if module_app.get(frappe.scrub(d.module))
+			and module_app[frappe.scrub(d.module)] in installed_apps
+		]
+
 		return doctypes
 
 	return frappe.cache().get_value('doctypes_with_global_search', _get)
