@@ -407,3 +407,11 @@ $(document).on("page-change", function() {
 		element && element.scrollIntoView(true);
 	}
 });
+
+
+$(document).ready(function ( ) {
+	// frappe.Chat
+	const chat = new frappe.Chat();
+	chat.render();
+	// end frappe.Chat
+});

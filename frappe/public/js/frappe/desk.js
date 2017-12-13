@@ -7,6 +7,11 @@ frappe.start_app = function() {
 	frappe.assets.check();
 	frappe.provide('frappe.app');
 	frappe.app = new frappe.Application();
+	
+	// frappe.Chat
+	const chat = new frappe.Chat()
+	chat.render();
+	// end frappe.Chat
 }
 
 $(document).ready(function() {
@@ -29,7 +34,7 @@ frappe.Application = Class.extend({
 		this.startup();
 	},
 	startup: function() {
-		frappe.socketio.init();
+		frappe.socketio.init()
 		frappe.model.init();
 
 		if(frappe.boot.status==='failed') {

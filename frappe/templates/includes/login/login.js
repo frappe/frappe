@@ -114,6 +114,7 @@ login.signup = function() {
 // Login
 login.call = function(args, callback) {
 	login.set_indicator("{{ _('Verifying...') }}", 'blue');
+
 	return frappe.call({
 		type: "POST",
 		args: args,

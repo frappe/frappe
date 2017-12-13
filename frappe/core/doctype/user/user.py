@@ -16,6 +16,9 @@ from frappe.limits import get_limits
 from frappe.website.utils import is_signup_enabled
 from frappe.utils.background_jobs import enqueue
 
+# imports - frappe.chat
+from frappe.chat.doctype.chat_profile.chat_profile import get_user_chat_profile_doc
+
 STANDARD_USERS = ("Guest", "Administrator")
 
 class MaxUsersReachedError(frappe.ValidationError): pass
