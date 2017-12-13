@@ -500,7 +500,7 @@ class extends Component
                 {
                     this.setState({
                         profile: { ...this.state.profile, status: update.status }
-                    })
+                    });
                 } else
                 {
                     const status = frappe.chat.profile.STATUSES.find(s => s.name === update.status);
@@ -676,50 +676,23 @@ class extends Component
                 }
             ]
         });
+        const RoomList   = h(frappe.Chat.Widget.RoomList, { rooms: state.rooms });
 
-        const AppBar           = state.profile ? (
-            h(frappe.Chat.Widget.AppBar,
-            {
-                            status: state.profile.status,
-                            rooms: state.rooms,
-                            layout: props.layout,
-                    on_change_status: this.on_change_status,
-                    on_new_message: (user) => 
-                    {
-                        frappe.chat.room.create("Direct", null, user, (room) =>
-                        {
-                            // this.add_room(room)
-                        })
-                    },
-                        on_new_group: (name, users) => 
-                        {
-                        frappe.chat.room.create("Group", null, users, name, (room) => 
-                        {
-                            // this.add_room(room)
-                        })
-                        },
-                    on_select_room: this.on_select_room
-            })
-        ) : null
-
-        
-
-
-        const room       = h(frappe.Chat.Widget.Room, { ...state.room, layout: props.layout });
+        const Room       = h(frappe.Chat.Widget.Room, { ...state.room, layout: props.layout });
 
         const component  = props.layout === frappe.Chat.Layout.POPPER ?
             h(frappe.Chat.Widget.Popper,
                 props.room ?
-                    room
+                    Room
                     :
                     h("span", null,
-                        ActionBar
+                        ActionBar, RoomList
                     )
             )
             :
             h("div", { class: "row" },
                 h("div", { class: "col-md-2  col-sm-3" },
-                    ActionBar
+                    ActionBar, RoomList
                 ),
                 h("div", { class: "col-md-10 col-sm-9" },
 
@@ -855,20 +828,22 @@ class extends Component
 
         return (
             h("form", { oninput: this.on_change, onsubmit: this.on_submit },
-                h("div", { class: "input-group input-group-sm" },
-                    h("div", { class: "input-group-addon" },
-                        h(frappe.components.Octicon, { type: "search" })
-                    ),
-                    h("input", { class: "form-control", name: "query", value: state.query, placeholder: "Search" }),
-                    h("div", { class: "input-group-btn" },
-                        h(frappe.components.Button, { type: "primary", class: "dropdown-toggle", "data-toggle": "dropdown" },
-                            h(frappe.components.Octicon, { type: "plus" })
+                h("div", { class: "form-group" },
+                    h("div", { class: "input-group input-group-sm" },
+                        h("div", { class: "input-group-addon" },
+                            h(frappe.components.Octicon, { type: "search" })
                         ),
-                        h("ul", { class: "dropdown-menu dropdown-menu-right" },
-                            props.actions.map(action =>
-                                h("li", null,
-                                    h("a", { onclick: action.click },
-                                        h(frappe.Chat.Widget.ActionBar.Action, { ...action })
+                        h("input", { class: "form-control", name: "query", value: state.query, placeholder: "Search" }),
+                        h("div", { class: "input-group-btn" },
+                            h(frappe.components.Button, { type: "primary", class: "dropdown-toggle", "data-toggle": "dropdown" },
+                                h(frappe.components.Octicon, { type: "plus" })
+                            ),
+                            h("ul", { class: "dropdown-menu dropdown-menu-right" },
+                                props.actions.map(action =>
+                                    h("li", null,
+                                        h("a", { onclick: action.click },
+                                            h(frappe.Chat.Widget.ActionBar.Action, { ...action })
+                                        )
                                     )
                                 )
                             )
@@ -906,6 +881,62 @@ class extends Component
         );
     }
 };
+
+/**
+ * @description Room List HOC
+ */
+frappe.Chat.Widget.RoomList
+=
+class extends Component {
+    render ( ) {
+        const { props } = this
+        const rooms     = props.rooms
+
+        return rooms.length ?
+            h("ul", { class: "nav nav-pills nav-stacked" },
+                rooms.map(room => h(frappe.Chat.Widget.RoomList.Item, { ...room, click: props.click }))
+            )
+            :
+            null
+    }
+}
+
+/**
+ * @description Room List Item
+ * 
+ */
+frappe.Chat.Widget.RoomList.Item
+=
+class extends Component {
+    constructor (props) 
+    {
+        super (props);
+    }
+
+    render ( ) {
+        const { props } = this;
+
+        return (
+            h("li", null,
+                h("a", { class: props.active ? "active": "", onclick: () => props.click(props.name) },
+                    h(frappe.Chat.Widget.MediaProfile, {
+                        title: props.type === "Group" ? props.room_name :
+                            props.owner === frappe.session.user ?
+                                frappe.user.full_name(frappe._.squash(props.users))
+                                :
+                                frappe.user.full_name(props.owner),
+                        image: props.type === "Group" ? props.avatar    :
+                            props.owner === frappe.session.user ?
+                                frappe.user.image(frappe._.squash(props.users))
+                                :
+                                frappe.user.image(props.owner),
+                         size: "small",
+                    })
+                )
+            )
+        )
+    }
+}
 
 /**
  * @description Chat Room HOC
@@ -1138,7 +1169,7 @@ class extends Component {
                     })
                 ),
                 h("div", { class: "frappe-chat__app-bar-room-list" },
-                    h(frappe.Chat.Widget.AppBar.RoomList, { rooms: rooms, on_select_room: props.on_select_room })
+                    h(frappe.Chat.Widget.RoomList, { rooms: rooms, on_select_room: props.on_select_room })
                 )
             )
         )
@@ -1169,52 +1200,6 @@ class extends Component {
     }
 }
 
-
-frappe.Chat.Widget.AppBar.RoomList
-=
-class extends Component {
-    render ( ) {
-        const { props } = this
-        const rooms     = props.rooms
-
-        return (
-            h("ul", { class: "nav nav-pills nav-stacked" },
-                rooms.map(room => h(frappe.Chat.Widget.AppBar.RoomList.Item, {...room, click: props.on_select_room }))
-            )
-        )
-    }
-}
-frappe.Chat.Widget.AppBar.RoomList.Item
-=
-class extends Component {
-    constructor (props) {
-        super (props)
-    }
-
-    render ( ) {
-        const { props } = this
-
-        return (
-            h("li", null,
-                h("a", { class: props.active ? "active": "", onclick: () => props.click(props.name) },
-                    h(frappe.Chat.Widget.MediaProfile, {
-                        title: props.type === "Group" ? props.room_name :
-                            props.owner === frappe.session.user ?
-                                frappe.user.full_name(frappe._.squash(props.users))
-                                :
-                                frappe.user.full_name(props.owner),
-                        image: props.type === "Group" ? props.avatar    :
-                            props.owner === frappe.session.user ?
-                                frappe.user.image(frappe._.squash(props.users))
-                                :
-                                frappe.user.image(props.owner),
-                         size: "small",
-                    })
-                )
-            )
-        )
-    }
-}
 
 
 
@@ -1256,6 +1241,11 @@ class extends Component {
     }
 }
 
+/**
+ * @description Chat List HOC
+ * 
+ * 
+ */
 frappe.Chat.Widget.ChatList
 =
 class extends Component {
@@ -1613,23 +1603,6 @@ class extends Component {
 }
 // frappe.components.Select.Option props
 // same as frappe.components.Select.
-
-// props.layout === frappe.Chat.Layout.POPPER ?
-                //     h(frappe.Chat.Widget.Popper, { room: state.room.name ? true : false },
-                //         state.room.name ?
-                //             Room : AppBar
-                //     )
-                //     :
-                //     h("span", null,
-                //         h("div", { class: "col-md-2 col-sm-3 layout-side-section" },
-                //             AppBar
-                //         ),
-                //         h("div", { class: "col-md-10 col-sm-9 layout-main-section-wrapper" },
-                //             h(frappe.Chat.Widget.Room, { ...state.room })
-                //         )
-                //     )
-
-
 
 frappe.chat.profile.update
 =
