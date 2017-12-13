@@ -159,8 +159,7 @@
 		"public/js/lib/leaflet/easy-button.js",
 
 		"public/js/lib/hyper.min.js",
-		"public/js/lib/fuse.min.js",
-		"public/js/frappe/chat.js"
+		"public/js/lib/fuse.min.js"
 	],
 	"js/desk.min.js": [
 		"public/js/frappe/class.js",

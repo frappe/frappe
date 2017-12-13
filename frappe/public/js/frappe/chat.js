@@ -3,15 +3,16 @@
 
 // frappe._
 // frappe's utility namespace.
+frappe.provide('frappe._');
 
 /**
  * @description Fuzzy Searching
  * 
  * @param   {string} query   - A query string.
- * @param   {array}  dataset - A dataset to search within, can contain singletons or Objects.
+ * @param   {array}  dataset - A dataset to search within, can contain singletons or objects.
  * @param   {object} options - Options as per fuze.js
  * 
- * @returns {object|integer} - The fuzzy matched object within the dataset.
+ * @returns {integer|object} - The fuzzy matched index/object within the dataset.
  * 
  * @example
  * frappe._.fuzzy_search("foo", ["foobar", "bartender"]);
@@ -33,7 +34,7 @@ frappe._.fuzzy_search = function (query, dataset, options)
         minMatchCharLength: 1,
           maxPatternLength: 32
     };
-    options       = Object.assign({ }, DEFAULT, options);
+    options       = { ...DEFAULT, ...options };
 
     const fuse    = new Fuse(dataset, options);
     const result  = fuse.search(query);
@@ -61,7 +62,7 @@ frappe._.as_array = function (item)
 };
 
 /**
- * @description Return an singleton if array contains a single element.
+ * @description Return a singleton if array contains a single element.
  * 
  * @param   {array}        list - An array to squash.
  * 
@@ -98,11 +99,11 @@ frappe._.is_mobile = function ( )
     return mobile;
 };
 
-const { h, Component, render } = hyper;
+const { h, Component } = hyper;
 
 // frappe.components
 // frappe's component namespace.
-frappe.components = { };
+frappe.provide('frappe.components');
 
 /**
  * @description Button Component
@@ -170,7 +171,7 @@ frappe.components.FAB.SIZE
 };
 
 /**
- * @description Octicon Component.
+ * @description Octicon Component
  */
 frappe.components.Octicon
 =
@@ -180,7 +181,10 @@ class extends Component
     {
         const { props } = this;
 
-        return h("i", { class: `octicon octicon-${props.type}`})
+        return props.type ?
+            h("i", { class: `octicon octicon-${props.type}`})
+            :
+            null;
     }
 };
 
@@ -215,6 +219,8 @@ class
             selector = null;
         }
 
+        this.options = frappe.Chat.OPTIONS;
+
         this.set_wrapper(selector ? selector : "body");
         this.set_options(options);
     }
@@ -237,21 +243,45 @@ class
     /**
      * Set the configurations for the chat interface.
      * @param {object} options
+     * 
+     * @example
+     * const chat = new frappe.Chat();
+     * chat.set_options({ layout: frappe.Chat.Layout.PAGE });
      */
     set_options (options)
     {
-        this.options  = Object.assign({ }, this.options, options);
+        this.options = { ...this.options, options };
 
         return this;
     }
 
     /**
-     * Render the chat widget component onto destined wrapper.
+     * @description Destory the chat widget.
      * 
-     * @todo render does not destroy previous component on re-render.
+     * @example
+     * const chat = new frappe.Chat();
+     * chat.render()
+     *     .destroy();
+     */
+    destroy ( )
+    {
+        const $wrapper = this.$wrapper;
+        $wrapper.remove(".frappe-chat");
+
+        return this;
+    }
+
+    /**
+     * @description Render the chat widget component onto destined wrapper.
+     * 
+     * @example
+     * const chat = new frappe.Chat();
+     * chat.render();
      */
     render ( )
     {
+        this.destroy();
+
         const $wrapper = this.$wrapper;
         const options  = this.options;
 
@@ -260,6 +290,8 @@ class
         });
 
         hyper.render(component, $wrapper[0]);
+
+        return this;
     }
 };
 frappe.Chat.Layout
@@ -274,10 +306,10 @@ frappe.Chat.OPTIONS
 };
 
 // frappe.chat
-frappe.chat = { };
+frappe.provide('frappe.chat');
 
 // frappe.chat.profile
-frappe.chat.profile = { }
+frappe.provide('frappe.chat.profile');
 /**
  * @description Create a Chat Profile
  * 
@@ -320,7 +352,7 @@ function (fields, fn)
     });
 };
 
-frappe.chat.profile.on = { };
+frappe.provide('frappe.chat.profile.on');
 
 /**
  * @description Triggers on a Chat Profile update of a subscribed user.
@@ -364,7 +396,7 @@ frappe.chat.profile.STATUSES
 ];
 
 // frappe.chat.room
-frappe.chat.room = { }
+frappe.provide('frappe.chat.room');
 
 /**
  * @description Returns Chat Room(s)
@@ -939,10 +971,12 @@ class extends Component
  */
 frappe.Chat.Widget.RoomList
 =
-class extends Component {
-    render ( ) {
+class extends Component
+{
+    render ( )
+    {
         const { props } = this
-        const rooms     = props.rooms
+        const rooms     = props.rooms;
 
         return rooms.length ?
             h("ul", { class: "nav nav-pills nav-stacked" },
@@ -955,17 +989,13 @@ class extends Component {
 
 /**
  * @description Room List Item
- * 
  */
 frappe.Chat.Widget.RoomList.Item
 =
-class extends Component {
-    constructor (props) 
+class extends Component
+{
+    render ( )
     {
-        super (props);
-    }
-
-    render ( ) {
         const { props } = this;
 
         return (
