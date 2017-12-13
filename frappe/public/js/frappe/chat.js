@@ -471,7 +471,7 @@ class extends Component
 
     make ( ) {
         frappe.chat.profile.create([
-            "status"
+            "status", "display_widget"
         ], profile =>
         {
             this.setState({ profile });
@@ -484,17 +484,17 @@ class extends Component
 
                     rooms = frappe._.as_array(rooms);
                     this.setState({ rooms });
-
-                    this.bind();
                 }
             });
+
+            this.bind();
         });
     }
     
     bind ( ) {
         frappe.chat.profile.on.update((user, update) =>
         {
-            if ( update.status )
+            if ( 'status' in update )
             {
                 if ( user === frappe.session.user )
                 {
@@ -509,6 +509,13 @@ class extends Component
                     const alert  = `<span class="indicator ${color}"/> ${frappe.user.full_name(user)} is currently <b>${update.status}</b>`
                     frappe.show_alert(alert, 3);
                 }
+            }
+
+            if ( 'display_widget' in update )
+            {
+                this.setState({
+                    profile: { ...this.state.profile, display_widget: update.display_widget }
+                });
             }
         });
 
@@ -676,19 +683,22 @@ class extends Component
                 }
             ]
         });
-        const RoomList   = h(frappe.Chat.Widget.RoomList, { rooms: state.rooms });
 
+        const RoomList   = h(frappe.Chat.Widget.RoomList, { rooms: state.rooms });
         const Room       = h(frappe.Chat.Widget.Room, { ...state.room, layout: props.layout });
 
         const component  = props.layout === frappe.Chat.Layout.POPPER ?
-            h(frappe.Chat.Widget.Popper,
-                props.room ?
-                    Room
-                    :
-                    h("span", null,
-                        ActionBar, RoomList
-                    )
-            )
+            state.profile.display_widget ?
+                h(frappe.Chat.Widget.Popper,
+                    state.room.name ?
+                        Room
+                        :
+                        h("span", null,
+                            ActionBar, RoomList
+                        )
+                )
+                :
+                null
             :
             h("div", { class: "row" },
                 h("div", { class: "col-md-2  col-sm-3" },
@@ -699,17 +709,18 @@ class extends Component
                 )
             );
         
-        return (
+        return component ?
             h("div", { class: "frappe-chat" },
                 component
             )
-        )
+            :
+            null
     }
 }
 frappe.Chat.Widget.defaultStates
 = 
 {
-    profile: null,
+    profile: { },
       rooms: [ ],
        room: 
        {

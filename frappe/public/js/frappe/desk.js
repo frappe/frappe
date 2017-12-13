@@ -7,7 +7,7 @@ frappe.start_app = function() {
 	frappe.assets.check();
 	frappe.provide('frappe.app');
 	frappe.app = new frappe.Application();
-
+	
 	// frappe.Chat
 	const chat = new frappe.Chat()
 	chat.render();

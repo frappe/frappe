@@ -4,6 +4,7 @@ from   frappe import _, _dict # <- the best thing ever happened to frappe
 import frappe
 
 # imports - frappe module imports
+from   frappe.core.doctype.version.version import get_diff
 from   frappe.chat.doctype.chat_room.chat_room import get_user_chat_rooms
 from   frappe.chat.util import (
     get_user_doc,
@@ -27,12 +28,51 @@ session = frappe.session
 #     Not sure, but circular link would be helpful.
 
 class ChatProfile(Document):
+    # trigger from DocType
+    def before_save(self):
+        if not self.is_new():
+            self.get_doc_before_save()
+
     def on_update(self):
         user = get_user_doc()
 
         if user.chat_profile:
             if user.chat_profile != self.name:
                 frappe.throw(_("Sorry! You don't have permission to update this profile."))
+            else:
+                if not self.is_new():
+                    before = self.get_doc_before_save()
+                    after  = self
+
+                    diff   = dictify(get_diff(before, after))
+                    if diff:
+                        fields = [change[0] for change in diff.changed]
+
+                        # NOTE: Version DocType is the best thing ever. Selective Updates to Chat Rooms/Users FTW.
+
+                        # status update are dispatched to current user and Direct Chat Rooms.
+                        if 'status' in fields:
+                            # TODO: you can add filters within get_user_chat_rooms
+                            rooms = get_user_chat_rooms(user)
+                            rooms = [r for r in rooms if r.type == 'Direct']
+                            resp  = dict(
+                                user = user.name,
+                                data = dict(
+                                    status = self.status
+                                )
+                            )
+
+                            for room in rooms:
+                                frappe.publish_realtime('frappe.chat.profile.update', resp, room = room.name, after_commit = True)
+
+                        if 'display_widget' in fields:
+                            resp  = dict(
+                                user = user.name,
+                                data = dict(
+                                    display_widget = bool(self.display_widget)
+                                )
+                            )
+                            frappe.publish_realtime('frappe.chat.profile.update', resp, user = user.name, after_commit = True)
 
 def get_user_chat_profile_doc(user = None):
     user = get_user_doc(user)
@@ -58,8 +98,11 @@ def get_user_chat_profile(user = None, fields = None):
 
         status	   = prof.status,
         chat_bg    = prof.chat_background,
+
         
-        conversation_tones = prof.conversation_tones == 1
+        conversation_tones  = bool(prof.conversation_tones), # frappe, y u no jsonify 0,1 bools? :(
+
+        display_widget      = bool(prof.display_widget)
     )
 
     try:
@@ -126,19 +169,6 @@ def update(user, data):
             name  = user.name
         )))
 
-    prof  = get_user_chat_profile_doc(user.name)
+    prof  = get_user_chat_profile_doc(user)
     prof.update(data)
     prof.save()
-
-    # only send that has been updated.
-    prof  = get_user_chat_profile(user, fields = data.keys())
-    resp  = dict(
-        user = user.name,
-        data = prof
-    )
-
-    if 'status' in data:
-        rooms = get_user_chat_rooms(user) # one or more, okay?
-        rooms = [r for r in rooms if r.type in ('Direct', 'Visitor')]
-        for room in rooms:
-            frappe.publish_realtime('frappe.chat.profile.update', resp, room = room.name, after_commit = True)
