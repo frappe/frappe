@@ -109,3 +109,4 @@ class TestScheduler(TestCase):
 
 	def tearDown(self):
 		frappe.flags.ran_schedulers = []
+		frappe.delete_doc('User', 'test_scheduler@example.com')
