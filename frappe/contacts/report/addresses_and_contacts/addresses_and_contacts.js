@@ -15,15 +15,14 @@ frappe.query_reports["Addresses And Contacts"] = {
 						"name": ["in","Customer,Supplier,Sales Partner"],
 					}
 				}
-			},
-			"default": "Customer"
+			}
 		},
 		{
 			"fieldname":"party_name",
 			"label": __("Party Name"),
 			"fieldtype": "Dynamic Link",
 			"get_options": function() {
-				var party_type = frappe.query_report_filters_by_name.party_type.get_value();
+				let party_type = frappe.query_report_filters_by_name.party_type.get_value();
 				if(!party_type) {
 					frappe.throw(__("Please select Party Type first"));
 				}
