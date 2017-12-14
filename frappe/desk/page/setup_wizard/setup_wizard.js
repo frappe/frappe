@@ -191,7 +191,13 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 		return frappe.call({
 			method: "frappe.desk.page.setup_wizard.setup_wizard.setup_complete",
 			args: {args: this.values},
-			callback: this.post_setup_success.bind(this),
+			callback: (r) => {
+				if(r.message.status === 'ok') {
+					this.post_setup_success();
+				} else if(r.message.error !== undefined) {
+					this.abort_setup(r.message.error)
+				}
+			},
 			error: this.abort_setup.bind(this)
 		});
 	}
@@ -211,23 +217,32 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 		}, 20000);
 	}
 
-	abort_setup() {
-		var d = frappe.msgprint(__("There were errors."));
-		d.custom_onhide = () => {
-			$(this.parent).find('.setup-in-progress').remove();
-			this.container.show();
-			frappe.set_route(this.page_name, this.slides.length - 1);
-		};
+	abort_setup(error_msg) {
+		this.$working_state.find('.state-icon-container').html(this.get_error_icon);
+		error_msg = error_msg ? error_msg : "";
+		this.update_setup_message('Could not start up: ' + error_msg);
+
+		this.$working_state.find('.title').html('Setup failed');
+
+		this.$abort_btn.show();
 	}
 
 	listen_for_setup_stages() {
 		frappe.realtime.on("setup_task", (data) => {
-			if(data.progress) {
-				this.working_state_message.find('.setup-message')
-					// .html('Process '+ data.progress[0] + ' of ' + data.progress[1] + ': ' + data.stage_status);
-					.html(data.stage_status + ' ...');
+			// console.log('data', data);
+			if(data.stage_status) {
+				// .html('Process '+ data.progress[0] + ' of ' + data.progress[1] + ': ' + data.stage_status);
+				this.update_setup_message(data.stage_status);
+				this.set_setup_load_percent((data.progress[0]+1)/data.progress[1] * 100);
+			}
+			if(data.error_msg) {
+				this.abort_setup(data.error_msg);
 			}
 		})
+	}
+
+	update_setup_message(message) {
+		this.$working_state.find('.setup-message').html(message);
 	}
 
 	get_setup_slides_filtered_by_domain() {
@@ -250,11 +265,13 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 		this.container.hide();
 		frappe.set_route(this.page_name);
 
-		this.working_state_message = this.get_message(
+		this.$working_state = this.get_message(
 			__("Setting up your system"),
 			__("Starting Frappé ..."),
 			true
 		).appendTo(this.parent);
+
+		this.attach_abort_button();
 
 		this.current_id = this.slides.length;
 		this.current_slide = null;
@@ -265,17 +282,42 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 	}
 
 	show_setup_complete_state() {
-		this.working_state_message.hide();
+		this.$working_state.hide();
 		this.completed_state_message.appendTo(this.parent);
 	}
 
+	attach_abort_button() {
+		this.$abort_btn = $(`<button class='btn btn-default btn-xs text-muted'
+			style="margin-bottom: 30px;">${__('Retry')}</button>`);
+		this.$working_state.find('.content').append(this.$abort_btn);
+
+		this.$abort_btn.on('click', () => {
+			$(this.parent).find('.setup-in-progress').remove();
+			this.container.show();
+			frappe.set_route(this.page_name, this.slides.length - 1);
+		});
+
+		this.$abort_btn.hide();
+	}
+
 	get_message(title, message="", loading=false) {
+		// let success_icon = `<div style="width:100%;height:100%" class="icon-success state-icon">
+		// 	<i class="fa fa-check-circle text-success"
+		// 		style="font-size: 64px;"></i>
+		// </div>`;
+		let success_icon = `<div style="width:100%;height:100%" class="icon-success state-icon">
+			<i class="fa fa-check-circle text-success"
+				style="font-size: 64px;"></i>
+		</div>`;
+		//let load_icon = '<div style="width:100%;height:100%" class="lds-rolling state-icon"><div></div></div>';
+		let load_icon = `<div class="progress-chart" style ="width: 150px;">
+			<div class="progress" style="margin-top: 70px; margin-bottom: 0px">
+				<div class="progress-bar" style="width: 0%;"></div>
+			</div>
+		</div>`;
 		const loading_html = loading
-			? '<div style="width:100%;height:100%" class="lds-rolling state-icon"><div></div></div>'
-			: `<div style="width:100%;height:100%" class="state-icon">
-				<i class="fa fa-check-circle text-success"
-					style="font-size: 64px; margin-top: -8px;"></i>
-			</div>`;
+			? load_icon
+			: success_icon;
 
 		return $(`<div class="slides-wrapper setup-wizard-slide setup-in-progress">
 			<div class="content text-center">
@@ -284,6 +326,18 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 				<p class="setup-message text-muted" style="margin: 30px 0px;">${message}</p>
 			</div>
 		</div>`);
+	}
+
+	set_setup_load_percent(percent) {
+		this.$working_state.find('.progress-bar').css({"width": percent + "%"});
+	}
+
+	get_error_icon() {
+		// return $(`<div style="width:100%;height:100%" class="icon-failure state-icon">
+		// 	<i class="fa fa-times-circle text-extra-muted"
+		// 		style="font-size: 64px;"></i>
+		// </div>`);
+		return $('');
 	}
 };
 
