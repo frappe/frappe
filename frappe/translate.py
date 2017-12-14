@@ -98,6 +98,8 @@ def get_dict(fortype, name=None):
 	asset_key = fortype + ":" + (name or "-")
 	translation_assets = cache.hget("translation_assets", frappe.local.lang, shared=True) or {}
 
+	print(translation_assets)
+
 	if not asset_key in translation_assets:
 		if fortype=="doctype":
 			messages = get_messages_from_doctype(name)
@@ -121,8 +123,12 @@ def get_dict(fortype, name=None):
 		message_dict = make_dict_from_messages(messages)
 		message_dict.update(get_dict_from_hooks(fortype, name))
 
+		print(message_dict)
+
 		# remove untranslated
 		message_dict = {k:v for k, v in iteritems(message_dict) if k!=v}
+
+		print(message_dict)
 
 		translation_assets[asset_key] = message_dict
 
@@ -163,6 +169,8 @@ def make_dict_from_messages(messages, full_dict=None):
 	for m in messages:
 		if m[1] in full_dict:
 			out[m[1]] = full_dict[m[1]]
+
+	print(out)
 	return out
 
 def get_lang_js(fortype, name):

@@ -5,12 +5,12 @@ frappe.ui.form.ControlMultiCheck = frappe.ui.form.Control.extend({
 
 	make() {
 		this._super();
-		// this.$label = $(`<label class="control-label">${this.df.label}</label>`).appendTo(this.wrapper);
+		this.$label = $(`<label class="control-label">${this.df.label || ''}</label>`).appendTo(this.wrapper);
 		this.$load_state = $('<div class="load-state text-muted small">' + __("Loading") + '...</div>');
 		this.$select_buttons = this.get_select_buttons().appendTo(this.wrapper);
 		this.$load_state.appendTo(this.wrapper);
 
-		this.$checkbox_area = $('<div class="checkbox-options"></div>').appendTo(this.wrapper);
+		this.$checkbox_area = $('<div class="checkbox-options row"></div>').appendTo(this.wrapper);
 		this.set_options();
 		this.bind_checkboxes();
 	},
@@ -120,8 +120,9 @@ frappe.ui.form.ControlMultiCheck = frappe.ui.form.Control.extend({
 	},
 
 	get_checkbox_element(option) {
+		const column_size = 12 / (this.df.columns || 1);
 		return $(`
-			<div class="checkbox unit-checkbox">
+			<div class="checkbox unit-checkbox col-sm-${column_size}">
 				<label>
 				<input type="checkbox" data-unit="${option.value}">
 				</input>

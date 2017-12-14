@@ -457,10 +457,8 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 		else:
 			import_status = "Successful"
 
-		frappe.db.set_value("Data Import", data_import_doc.name, "docstatus", 0, None, None, False)
 		data_import_doc.import_status = import_status
 		data_import_doc.save()
-
 		if data_import_doc.import_status in ["Successful", "Partially Successful"]:
 			data_import_doc.submit()
 		frappe.db.commit()

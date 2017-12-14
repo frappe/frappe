@@ -359,7 +359,7 @@ _f.Frm.prototype.get_field = function(field) {
 };
 
 
-_f.Frm.prototype.set_read_only = function() {
+_f.Frm.prototype.set_read_only = function(refresh_fields = false) {
 	var perm = [];
 	var docperms = frappe.perm.get_perm(this.doc.doctype);
 	for (var i=0, l=docperms.length; i<l; i++) {
@@ -367,6 +367,13 @@ _f.Frm.prototype.set_read_only = function() {
 		perm[p.permlevel || 0] = {read:1, print:1, cancel:1};
 	}
 	this.perm = perm;
+
+	if (refresh_fields) {
+		this.fields.map(f => {
+			f.perm = this.perm;
+			f.refresh();
+		});
+	}
 }
 
 _f.Frm.prototype.trigger = function(event) {

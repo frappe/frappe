@@ -30,8 +30,7 @@ class DataImport(Document):
 
 @frappe.whitelist()
 def import_data(data_import):
-	frappe.db.set_value("Data Import", data_import, "import_status", "In Progress", None, None, False)
-	frappe.db.set_value("Data Import", data_import, "docstatus", 1, None, None, False)
+	frappe.db.set_value("Data Import", data_import, "import_status", "In Progress")
 	frappe.publish_realtime("data_import_progress", {"progress": "0",
 		"data_import": data_import, "reload": True}, user=frappe.session.user)
 	enqueue(upload, queue='default', timeout=6000, event='data_import',
