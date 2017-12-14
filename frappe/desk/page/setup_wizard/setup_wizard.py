@@ -34,7 +34,7 @@ def get_setup_stages(args):
 	stages.append({
 		# post executing hooks
 		'status': 'Wrapping up',
-		'error_msg': '',
+		'error_msg': 'Failed to complete setup',
 		'tasks': [
 			{
 				'fn': run_post_setup_complete,
@@ -69,9 +69,9 @@ def setup_complete(args):
 				current_task = task
 				task.get('fn')(task.get('args'))
 
-	except:
+	except Exception:
 		handle_setup_exception(args)
-		return {'error': current_task.get('error_msg') or ''}
+		return {'error': current_task.get('error_msg')}
 	else:
 		run_setup_success(args)
 		return {'status': 'ok'}
