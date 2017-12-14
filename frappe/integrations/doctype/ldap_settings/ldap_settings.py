@@ -43,18 +43,6 @@ def get_ldap_settings():
 		# this will return blank settings
 		return frappe._dict()
 
-@frappe.whitelist(allow_guest=True)
-def login():
-	#### LDAP LOGIN LOGIC #####
-	args = frappe.form_dict
-	user = authenticate_ldap_user(frappe.as_unicode(args.usr), frappe.as_unicode(args.pwd))
-
-	frappe.local.login_manager.user = user.name
-	frappe.local.login_manager.post_login()
-
-	# because of a GET request!
-	frappe.db.commit()
-
 def authenticate_ldap_user(user=None, password=None):
 	dn = None
 	params = {}
