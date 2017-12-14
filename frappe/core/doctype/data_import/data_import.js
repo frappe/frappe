@@ -19,7 +19,7 @@ frappe.ui.form.on('Data Import', {
 					frm.reload_doc();
 				}
 				if (data.progress) {
-					let progress_bar = $(cur_frm.dashboard.progress_area).find(".progress-bar");
+					let progress_bar = $(frm.dashboard.progress_area).find(".progress-bar");
 					if (progress_bar) {
 						$(progress_bar).removeClass("progress-bar-danger").addClass("progress-bar-success progress-bar-striped");
 						$(progress_bar).css("width", data.progress+"%");
@@ -44,7 +44,7 @@ frappe.ui.form.on('Data Import', {
 			title: __('Download Template'),
 			fields: [
 				{
-					"label": "Select Columns",
+					"label": __("Select Columns"),
 					"fieldname": "select_columns",
 					"fieldtype": "Select",
 					"options": "All\nMandatory\nManually",
@@ -79,14 +79,14 @@ frappe.ui.form.on('Data Import', {
 					}
 				},
 				{
-					"label": "File Type",
+					"label": __("File Type"),
 					"fieldname": "file_type",
 					"fieldtype": "Select",
 					"options": "Excel\nCSV",
 					"default": "Excel"
 				},
 				{
-					"label": "Download with Data",
+					"label": __("Download with Data"),
 					"fieldname": "with_data",
 					"fieldtype": "Check"
 				},
@@ -96,8 +96,8 @@ frappe.ui.form.on('Data Import', {
 					"fieldtype": "HTML"
 				}
 			],
-			primary_action: function() {
-				var data = download_dialog.get_values();
+			primary_action: function(values) {
+				var data = values;
 				if (frm.doc.reference_doctype) {
 					var export_params = () => {
 						let columns = {};
@@ -162,11 +162,14 @@ frappe.ui.form.on('Data Import', {
 		}
 	},
 
-	import_file: function(frm) {
-		frm.save();
-	},
+	// import_file: function(frm) {
+	// 	frm.save();
+	// },
 
-	only_new_records: function(frm) {
+	overwrite: function(frm) {
+		if (frm.doc.overwrite === 0) {
+			frm.doc.only_update = 0;
+		}
 		frm.save();
 	},
 
@@ -197,7 +200,7 @@ frappe.ui.form.on('Data Import', {
 	create_log_table: function(frm) {
 		let msg = JSON.parse(frm.doc.log_details);
 		var $log_wrapper = $(frm.fields_dict.import_log.wrapper).empty();
-		$(frappe.render_template("log_details", {data: msg.messages, skip_errors: frm.doc.skip_errors,
-			show_only_errors: frm.doc.show_only_errors})).appendTo($log_wrapper);
+		$(frappe.render_template("log_details", {data: msg.messages, show_only_errors: frm.doc.show_only_errors,
+			import_status: frm.doc.import_status})).appendTo($log_wrapper);
 	}
 });
