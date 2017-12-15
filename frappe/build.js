@@ -225,6 +225,11 @@ function compile_less() {
 			if (!fs.existsSync(less_path)) continue;
 
 			const files = fs.readdirSync(less_path);
+
+			// create a .gitignore file in public/css
+			console.log('creating a .gitignore file within public/css');
+			fs.closeSync(fs.openSync(path_join(public_path, 'css', '.gitignore'), 'w'));
+
 			for (const file of files) {
 				if(file.includes('variables.less')) continue;
 				promises.push(compile_less_file(file, less_path, public_path))
@@ -243,6 +248,8 @@ function compile_less_file(file, less_path, public_path) {
 	const output_file = file.split('.')[0] + '.css';
 	console.log('compiling', file);
 
+	const gitignore    = path_join(public_path, 'css', '.gitignore');
+
 	return less.render(file_content, {
 		paths: [less_path],
 		filename: file,
@@ -250,6 +257,9 @@ function compile_less_file(file, less_path, public_path) {
 	}).then(output => {
 		const out_css = path_join(public_path, 'css', output_file);
 		fs.writeFileSync(out_css, output.css);
+
+		fs.appendFileSync(gitignore, output_file + '\n');
+
 		return out_css;
 	}).catch(e => {
 		console.log('Error compiling ', file);
