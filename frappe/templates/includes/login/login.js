@@ -184,6 +184,8 @@ login.login_handlers = (function() {
 					login.set_indicator("{{ _("Not a valid user") }}", 'red');
 				} else if (data.message=='not allowed') {
 					login.set_indicator("{{ _("Not Allowed") }}", 'red');
+				} else if (data.message=='disabled') {
+					login.set_indicator("{{ _("Not Allowed: Disabled User") }}", 'red');
 				} else {
 					login.set_indicator("{{ _("Instructions Emailed") }}", 'green');
 				}
