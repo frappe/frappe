@@ -1,7 +1,0 @@
-<ul class="module-sidebar-nav overlay-sidebar nav nav-pills nav-stacked">
-    {% for (var i=0, l= modules.length; i < l; i++) { var item = modules[i];
-			if(item.type==="module" && !item.blocked) { %}
-			{{ frappe.render_template("modules_sidebar_item", {"item": item}) }}
-    {% }; } %}
-	<li class="divider"></li>
-</ul>
