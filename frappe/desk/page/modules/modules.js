@@ -165,7 +165,7 @@ frappe.pages['modules'].on_page_load = function(wrapper) {
 
 frappe.pages['modules'].on_page_show = function(wrapper) {
 	let route = frappe.get_route();
-	let modules = frappe.modules_page.get_page_modules().map(d => d._label);
+	let modules = frappe.modules_page.get_page_modules().map(d => d.module_name);
 	$("body").attr("data-sidebar", 1);
 	if(route.length > 1) {
 		// activate section based on route
