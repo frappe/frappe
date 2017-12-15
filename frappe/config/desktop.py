@@ -70,5 +70,5 @@ def get_data():
 			"icon": "octicon octicon-book",
 			"color": '#FFAEDB',
 			"hidden": 1,
-		},
+		}
 	]

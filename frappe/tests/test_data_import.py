@@ -3,8 +3,8 @@
 from __future__ import unicode_literals
 
 import frappe, unittest
-from frappe.core.page.data_import_tool import exporter
-from frappe.core.page.data_import_tool import importer
+from frappe.core.doctype.data_import import exporter
+from frappe.core.doctype.data_import import importer
 from frappe.utils.csvutils import read_csv_content
 
 class TestDataImport(unittest.TestCase):

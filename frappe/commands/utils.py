@@ -162,12 +162,12 @@ def export_doc(context, doctype, docname):
 @pass_context
 def export_json(context, doctype, path, name=None):
 	"Export doclist as json to the given path, use '-' as name for Singles."
-	from frappe.core.page.data_import_tool import data_import_tool
+	from frappe.core.doctype.data_import import data_import
 	for site in context.sites:
 		try:
 			frappe.init(site=site)
 			frappe.connect()
-			data_import_tool.export_json(doctype, path, name=name)
+			data_import.export_json(doctype, path, name=name)
 		finally:
 			frappe.destroy()
 
@@ -177,12 +177,12 @@ def export_json(context, doctype, path, name=None):
 @pass_context
 def export_csv(context, doctype, path):
 	"Export data import template with data for DocType"
-	from frappe.core.page.data_import_tool import data_import_tool
+	from frappe.core.doctype.data_import import data_import
 	for site in context.sites:
 		try:
 			frappe.init(site=site)
 			frappe.connect()
-			data_import_tool.export_csv(doctype, path)
+			data_import.export_csv(doctype, path)
 		finally:
 			frappe.destroy()
 
@@ -204,7 +204,7 @@ def export_fixtures(context):
 @pass_context
 def import_doc(context, path, force=False):
 	"Import (insert/update) doclist. If the argument is a directory, all files ending with .json are imported"
-	from frappe.core.page.data_import_tool import data_import_tool
+	from frappe.core.doctype.data_import import data_import
 
 	if not os.path.exists(path):
 		path = os.path.join('..', path)
@@ -216,7 +216,7 @@ def import_doc(context, path, force=False):
 		try:
 			frappe.init(site=site)
 			frappe.connect()
-			data_import_tool.import_doc(path, overwrite=context.force)
+			data_import.import_doc(path, overwrite=context.force)
 		finally:
 			frappe.destroy()
 
@@ -229,8 +229,8 @@ def import_doc(context, path, force=False):
 
 @pass_context
 def import_csv(context, path, only_insert=False, submit_after_import=False, ignore_encoding_errors=False, no_email=True):
-	"Import CSV using data import tool"
-	from frappe.core.page.data_import_tool import importer
+	"Import CSV using data import"
+	from frappe.core.doctype.data_import import importer
 	from frappe.utils.csvutils import read_csv_content
 	site = get_site(context)
 
