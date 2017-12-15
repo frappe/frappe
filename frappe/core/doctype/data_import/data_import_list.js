@@ -1,16 +1,24 @@
 frappe.listview_settings['Data Import'] = {
 	add_fields: ["import_status"],
+	has_indicator_for_draft: 1,
 	get_indicator: function(doc) {
-		if (doc.import_status=="Successful") {
-			return [__("Data imported"), "blue", "import_status,=,Successful"];
-		} else if(doc.import_status == "Partially Successful") {
-			return [__("Data partially imported"), "blue", "import_status,=,Partially Successful"];
-		} else if(doc.import_status == "In Process") {
-			return [__("Data import in progress"), "orange", "import_status,=,In Process"];
-		} else if(doc.import_status == "Failed") {
-			return [__("Data import failed"), "red", "import_status,=,Failed"];
-		} else {
-			return [__("Data import pending"), "green", "import_status,=,"];
+
+		let status = {
+			'Successful': [__("Success"), "green", "import_status,=,Successful"],
+			'Partially Successful': [__("Partial Success"), "blue", "import_status,=,Partially Successful"],
+			'In Progress': [__("In Progress"), "orange", "import_status,=,In Progress"],
+			'Failed': [__("Failed"), "red", "import_status,=,Failed"],
+			'Pending': [__("Pending"), "orange", "import_status,=,"]
 		}
+
+		if (doc.import_status) {
+			return status[doc.import_status];
+		}
+
+		if (doc.docstatus == 0) {
+			return status['Pending'];
+		}
+
+		return status['Pending'];
 	}
 };
