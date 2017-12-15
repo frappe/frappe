@@ -57,6 +57,7 @@ class AutoEmailReport(Document):
 			self.filters = json.loads(self.filters) if self.filters else {}
 			self.filters['modified'] = ('>', frappe.utils.now_datetime() - timedelta(hours=self.data_modified_till))
 
+		print ("get report content ==  print the user of the report", self.user)
 		columns, data = report.get_data(limit=self.no_of_rows or 100, user = self.user,
 			filters = self.filters, as_dict=True)
 
