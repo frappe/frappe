@@ -10,7 +10,8 @@ frappe.ui.form.ControlMultiCheck = frappe.ui.form.Control.extend({
 		this.$select_buttons = this.get_select_buttons().appendTo(this.wrapper);
 		this.$load_state.appendTo(this.wrapper);
 
-		this.$checkbox_area = $('<div class="checkbox-options row"></div>').appendTo(this.wrapper);
+		const row = this.get_column_size() === 12 ? '' : 'row';
+		this.$checkbox_area = $(`<div class="checkbox-options ${row}"></div>`).appendTo(this.wrapper);
 		this.set_options();
 		this.bind_checkboxes();
 	},
@@ -120,7 +121,7 @@ frappe.ui.form.ControlMultiCheck = frappe.ui.form.Control.extend({
 	},
 
 	get_checkbox_element(option) {
-		const column_size = 12 / (this.df.columns || 1);
+		const column_size = this.get_column_size();
 		return $(`
 			<div class="checkbox unit-checkbox col-sm-${column_size}">
 				<label>
@@ -136,5 +137,9 @@ frappe.ui.form.ControlMultiCheck = frappe.ui.form.Control.extend({
 			${__("Select All")}</button>
 			<button class="btn btn-xs btn-default deselect-all">
 		${__("Unselect All")}</button></div>`);
+	},
+
+	get_column_size() {
+		return 12 / (+this.df.columns || 1);
 	}
 });
