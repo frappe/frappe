@@ -153,7 +153,7 @@ function get_compiled_file(file, output_path, minify, force_compile) {
 }
 
 function babelify(content, path, minify) {
-	let presets = ['env', 'flow'];
+	let presets = ['env'];
 	const plugins = ['transform-object-rest-spread']
 	// Minification doesn't work when loading Frappe Desk
 	// Avoid for now, trace the error and come back.

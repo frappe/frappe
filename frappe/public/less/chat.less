@@ -1,4 +1,6 @@
 // variables
+@color-white:											#FFF;
+
 @frappe-fab-width:										48px;
 @frappe-fab-height:										48px;
 @frappe-fab-lg:											56px;
@@ -8,6 +10,8 @@
 @frappe-fab-box-shadow:									0px 3px 6px 0px rgba(0,0,0,.25);
 @frappe-fab-box-shadow-hover:							0px 5px 9px 0px rgba(0,0,0,.25);
 
+@frappe-chat-panel-heading-box-shadow:					0px 2px 2px 0px rgba(0,0,0,.14);
+
 @frappe-chat-popper-z-index: 							1035;
 @frappe-chat-popper-margin: 							20px;
 @frappe-chat-popper-panel-width:						350px;
@@ -15,6 +19,9 @@
 @frappe-chat-popper-panel-box-shadow:					@frappe-fab-box-shadow;
 // z-index greater than FAB, lesser than modal.
 @frappe-chat-popper-panel-span-z-index:					1037;
+
+@frappe-chat-emoji-width:								250px;
+@frappe-chat-emoji-height:								300px;
 
 .cursor-pointer
 {
@@ -46,6 +53,17 @@
 	};
 };
 
+.frappe-chat
+{
+	& > .panel
+	{
+		.panel-heading
+		{
+			box-shadow: @frappe-chat-panel-heading-box-shadow;
+		}
+	}
+}
+
 .frappe-chat-popper
 {
 	position: fixed;
@@ -62,11 +80,18 @@
 		       margin: @frappe-chat-popper-margin;
 		margin-bottom: calc(@frappe-chat-popper-margin + 50px);
 
-		.panel
+		& > .panel
 		{
+			  position: relative;
 				 width: @frappe-chat-popper-panel-width;
 				height: @frappe-chat-popper-panel-height;
 			box-shadow: @frappe-chat-popper-panel-box-shadow;
+
+			.panel-footer
+			{
+				position: absolute;
+				  bottom: 0px;
+			}
 		};
 
 		.panel-span
@@ -80,20 +105,28 @@
 			   		right: 0px;
 			 	  z-index: @frappe-chat-popper-panel-span-z-index;
 				 overflow: auto;
-			border-radius: none !important;
+			border-radius: none;
 		};
 	};
 };
 
+.frappe-chat-emoji
+{
+	.dropdown-menu
+	{
+		 min-width: @frappe-chat-emoji-width;
+		background: none !important;
+		    border: none !important;
+	}
 
+	.panel
+	{
+		margin-bottom: 0 !important;
+		       height: @frappe-chat-emoji-height;
 
-
-
-
-
-
-
-
-
-.frappe-chat__room 				{ position: relative; margin-top: 15px; }
-.frappe-chat__form              { position: absolute; bottom: 0px; left: 0px; right: 0px; margin: 15px; }
+		.form-group
+		{
+			margin-bottom: 0 !important;
+		}
+	}
+};

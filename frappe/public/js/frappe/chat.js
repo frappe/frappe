@@ -165,9 +165,14 @@ frappe._.fuzzy_search = function (query, dataset, options)
  * 
  * @todo Handle more edge cases.
  */
-frappe._.pluralize = function (word, count = 0, suffix = 's')
+frappe._.pluralize  = function (word, count = 0, suffix = 's')
 {
     return `${word}${count === 1 ? '' : suffix}`;
+};
+
+frappe._.capitalize = function (word)
+{
+    return `${word.charAt(0).toUpperCase()}${word.slice(1)}`;
 };
 
 /**
@@ -626,7 +631,7 @@ frappe.components.Button = class extends Component
         const { props } = this;
 
         return (
-            h("button", { ...props, class: `btn btn-${props.type} ${props.block ? "btn-block" : ""} ${props.class}` },
+            h("button", { ...props, class: `btn btn-${props.type} ${props.block ? "btn-block" : ""} ${props.class ? props.class : ""}` },
                 props.children
             )
         );
@@ -696,6 +701,31 @@ class extends Component
             h("span", { class: `indicator ${props.color}` })
         ) : null;
     }
+};
+
+/**
+ * @description FontAwesome Component
+ * 
+ * @extends frappe.Component
+ */
+frappe.components.FontAwesome
+=
+class extends Component
+{
+    render ( )
+    {
+        const { props } = this;
+
+        return props.type ?
+            h("i", { class: `fa ${props.fixed ? "fa-fw" : ""} fa-${props.type}` })
+            :
+            null;
+    }
+};
+frappe.components.FontAwesome.defaultProps
+=
+{
+    fixed: false
 };
 
 /**
@@ -901,7 +931,7 @@ class extends Component
         {   
             const state     = [ ];
             rooms           = frappe._.as_array(rooms);
-            names           = rooms.map(r => r.name);
+            const names     = rooms.map(r => r.name);
 
             frappe.log.debug(`Subscribing ${frappe.session.user} to Chat Rooms ${names.join(", ")}.`);
             frappe.chat.room.subscribe(names);
@@ -1204,7 +1234,7 @@ class extends Component
                         props.page ?
                             props.page
                             :
-                        h("div", { class: `panel panel-default ${frappe._.is_mobile() ? "panel-span" : ""}` },
+                        h("div", { class: `panel panel-primary ${frappe._.is_mobile() ? "panel-span" : ""}` },
                             frappe._.is_mobile() ?
                                 h("div", { class: "panel-heading" },
                                     h("div", { class: "row" },
@@ -1289,20 +1319,21 @@ class extends Component
                             h(frappe.components.Octicon, { type: "search" })
                         ),
                         h("input", { class: "form-control", name: "query", value: state.query, placeholder: "Search" }),
-                        h("div", { class: "input-group-btn" },
-                            h(frappe.components.Button, { type: "primary", class: "dropdown-toggle", "data-toggle": "dropdown" },
-                                h(frappe.components.Octicon, { type: "plus" })
-                            ),
-                            h("ul", { class: "dropdown-menu dropdown-menu-right" },
-                                props.actions.map(action =>
-                                    h("li", null,
-                                        h("a", { onclick: action.click },
-                                            h(frappe.Chat.Widget.ActionBar.Action, { ...action })
+                        Array.isArray(props.actions) ?
+                            h("div", { class: "input-group-btn" },
+                                h(frappe.components.Button, { type: "primary", class: "dropdown-toggle", "data-toggle": "dropdown" },
+                                    h(frappe.components.Octicon, { type: "plus" })
+                                ),
+                                h("ul", { class: "dropdown-menu dropdown-menu-right" },
+                                    props.actions.map(action =>
+                                        h("li", null,
+                                            h("a", { onclick: action.click },
+                                                h(frappe.Chat.Widget.ActionBar.Action, { ...action })
+                                            )
                                         )
                                     )
                                 )
-                            )
-                        )
+                            ) : null
                     )
                 )
             )
@@ -1419,8 +1450,8 @@ class extends Component
                 position.class === "media-left"  ? avatar : null,
                 h("div", { class: "media-body" },
                     h("div", { class: "media-heading h6 ellipsis", style: `max-width: ${props.width_title || "100%"}; display: inline-block;` }, props.title),
-                    props.content  ? h("div", null, h("small", { class: "h6" },            props.content))  : null,
-                    props.subtitle ? h("div", null, h("small", { class: "h6 text-muted" }, props.subtitle)) : null
+                    props.content  ? h("div", null, h("small", { class: "h6" }, props.content))  : null,
+                    props.subtitle ? h("div", null, h("small", { class: "h6" }, props.subtitle)) : null
                 ),
                 position.class === "media-right" ? avatar : null
             )
@@ -1446,15 +1477,16 @@ class extends Component
         const { props, state } = this;
 
         return (
-            h("div", { class: "frappe-chat-room" },
-                h("div", { class: `panel panel-default ${frappe._.is_mobile() ? "panel-span" : ""}` },
-                    h(frappe.Chat.Widget.Room.Header, { ...props, back: props.destroy }),
-                    h(frappe.Chat.Widget.ChatList, {
-                        messages: props.messages
-                    }),
-                    h("div", { class: "panel-body" },
-                        // h(frappe.Chat.Widget.ChatForm)
-                    )
+            h("div", { class: `panel panel-primary ${frappe._.is_mobile() ? "panel-span" : ""}` },
+                h(frappe.Chat.Widget.Room.Header, { ...props, back: props.destroy }),
+                h(frappe.Chat.Widget.ChatList, {
+                    messages: props.messages
+                }),
+                h("div", { class: "panel-body" },
+                    
+                ),
+                h("div", { class: "panel-footer" },
+                    h(frappe.Chat.Widget.ChatForm)
                 )
             )
         );
@@ -1467,9 +1499,9 @@ class extends Component
 {
     render ( )
     {
-        const { props } = this;
+        const { props }    = this;
 
-        const item      = { };
+        const item         = { };
         
         if ( props.type === "Group" ) {
             item.route     = `Form/Chat Room/${props.name}`
@@ -1486,7 +1518,7 @@ class extends Component
             item.image     = frappe.user.image(user);
         }
 
-        const popper    = props.layout === frappe.Chat.Layout.POPPER || frappe._.is_mobile();
+        const popper       = props.layout === frappe.Chat.Layout.POPPER || frappe._.is_mobile();
         
         return (
             h("div", { class: "panel-heading" },
@@ -1515,6 +1547,1062 @@ class extends Component
         )
     }
 };
+
+/**
+ * @description Chat Form Component
+ */
+frappe.Chat.Widget.ChatForm
+=
+class extends Component {
+    constructor (props) {
+        super (props)
+
+        this.change = this.change.bind(this)
+        this.submit = this.submit.bind(this)
+
+        this.state  = frappe.Chat.Widget.ChatForm.defaultState
+    }
+
+    change (e)
+    {
+        this.setState({
+            [e.target.name]: e.target.value
+        });
+
+        this.props.change(this.state);
+    }
+
+    submit (e)
+    {
+        e.preventDefault()
+
+        if ( this.state.content )
+        {
+            this.props.submit(this.state);
+
+            this.setState({
+                content: null
+            });
+        }
+    }
+
+    render ( ) {
+        const { state } = this;
+
+        return (
+            h("div", { class: "frappe-chat-form" },
+                h("form", { oninput: this.change, onsubmit: this.submit },
+                    h("div", { class: "input-group input-group-sm" },
+                        h("textarea",
+                        {
+                                    class: "form-control",
+                                    name: "content",
+                                    value: state.content,
+                            placeholder: "Type a message",
+                                autofocus: true,
+                                onkeypress: (e) =>
+                                {
+                                    if ( e.which === 13 && !e.shiftKey )
+                                    this.submit(e)
+                                }
+                        }),
+                        h("div", { class: "input-group-btn" },
+                            // h(frappe.Chat.Widget.EmojiPicker, { class: "btn-group" }),
+                            h(frappe.components.Button, { type: "primary", class: "dropdown-toggle", "data-toggle": "dropdown" },
+                                h(frappe.components.FontAwesome, { type: "send", fixed: true })
+                            ),
+                        )
+                    )
+                )
+            )
+        )
+    }
+}
+frappe.Chat.Widget.ChatForm.defaultState
+=
+{
+    content: null
+};
+
+frappe.Chat.Widget.EmojiPicker
+=
+class extends Component 
+{
+    render ( )
+    {
+        const { props } = this;
+
+        return (
+            h("div", { class: `frappe-chat-emoji dropup ${props.class}` },
+                h(frappe.components.Button, { type: "primary", class: "dropdown-toggle", "data-toggle": "dropdown" },
+                    h(frappe.components.FontAwesome, { type: "smile-o", fixed: true })
+                ),
+                h("div", { class: "dropdown-menu dropdown-menu-right", onclick: e => e.stopPropagation() },
+                    h("div", { class: "panel panel-default" },
+                        h(frappe.Chat.Widget.EmojiPicker.List)
+                    )
+                )
+            )
+        );
+    }
+};
+frappe.Chat.Widget.EmojiPicker.List
+=
+class extends Component
+{
+    render ( )
+    {
+        const { props } = this;
+
+        return (
+            h("div", { class: "list-group" },
+                frappe.ui.Emoji.map((category) =>
+                {
+                    return (
+                        h("div", { class: "list-group-item" },
+                            h("div", { class: "h6" }, frappe._.capitalize(category.name)),
+                            h("div", null,
+                                
+                            )
+                        )
+                    )
+                })
+            )
+        )
+    }
+}
+
+frappe.ui.Emoji
+=
+[
+    {
+          name: "people",
+        emojis:
+        [
+            { 
+                emoji: "😀"
+            },
+            { 
+                emoji: "😃"
+            },
+            { 
+                emoji: "😄"
+            },
+            { 
+                emoji: "😁"
+            },
+            { 
+                emoji: "😆"
+            },
+            { 
+                emoji: "😅"
+            },
+            { 
+                emoji: "😂"
+            },
+            { 
+                emoji: "🤣"
+            },
+            { 
+                emoji: "☺️"
+            },
+            { 
+                emoji: "😊"
+            },
+            { 
+                emoji: "😇"
+            },
+            { 
+                emoji: "🙂"
+            },
+            { 
+                emoji: "🙃"
+            },
+            { 
+                emoji: "😉"
+            },
+            { 
+                emoji: "😌"
+            },
+            { 
+                emoji: "😍"
+            },
+            { 
+                emoji: "😘"
+            },
+            { 
+                emoji: "😗"
+            },
+            { 
+                emoji: "😙"
+            },
+            { 
+                emoji: "😚"
+            },
+            { 
+                emoji: "😋"
+            },
+            { 
+                emoji: "😜"
+            },
+            { 
+                emoji: "😝"
+            },
+            { 
+                emoji: "😛"
+            },
+            { 
+                emoji: "🤑"
+            },
+            { 
+                emoji: "🤗"
+            },
+            { 
+                emoji: "🤓"
+            },
+            { 
+                emoji: "😎"
+            },
+            { 
+                emoji: "🤡"
+            },
+            { 
+                emoji: "🤠"
+            },
+            { 
+                emoji: "😏"
+            },
+            { 
+                emoji: "😒"
+            },
+            { 
+                emoji: "😞"
+            },
+            { 
+                emoji: "😔"
+            },
+            { 
+                emoji: "😟"
+            },
+            { 
+                emoji: "😕"
+            },
+            { 
+                emoji: "🙁"
+            },
+            { 
+                emoji: "☹️"
+            },
+            { 
+                emoji: "😣"
+            },
+            { 
+                emoji: "😖"
+            },
+            { 
+                emoji: "😫"
+            },
+            { 
+                emoji: "😩"
+            },
+            { 
+                emoji: "😤"
+            },
+            { 
+                emoji: "😠"
+            },
+            { 
+                emoji: "😡"
+            },
+            { 
+                emoji: "😶"
+            },
+            { 
+                emoji: "😐"
+            },
+            { 
+                emoji: "😑"
+            },
+            { 
+                emoji: "😯"
+            },
+            { 
+                emoji: "😦"
+            },
+            { 
+                emoji: "😧"
+            },
+            { 
+                emoji: "😮"
+            },
+            { 
+                emoji: "😲"
+            },
+            { 
+                emoji: "😵"
+            },
+            { 
+                emoji: "😳"
+            },
+            { 
+                emoji: "😱"
+            },
+            { 
+                emoji: "😨"
+            },
+            { 
+                emoji: "😰"
+            },
+            { 
+                emoji: "😢"
+            },
+            { 
+                emoji: "😥"
+            },
+            { 
+                emoji: "🤤"
+            },
+            { 
+                emoji: "😭"
+            },
+            { 
+                emoji: "😓"
+            },
+            { 
+                emoji: "😪"
+            },
+            { 
+                emoji: "😴"
+            },
+            { 
+                emoji: "🙄"
+            },
+            { 
+                emoji: "🤔"
+            },
+            { 
+                emoji: "🤥"
+            },
+            { 
+                emoji: "😬"
+            },
+            { 
+                emoji: "🤐"
+            },
+            { 
+                emoji: "🤢"
+            },
+            { 
+                emoji: "🤧"
+            },
+            { 
+                emoji: "😷"
+            },
+            { 
+                emoji: "🤒"
+            },
+            { 
+                emoji: "🤕"
+            },
+            { 
+                emoji: "😈"
+            },
+            { 
+                emoji: "👿"
+            },
+            { 
+                emoji: "👹"
+            },
+            { 
+                emoji: "👺"
+            },
+            { 
+                emoji: "💩"
+            },
+            { 
+                emoji: "👻"
+            },
+            { 
+                emoji: "💀"
+            },
+            { 
+                emoji: "☠️"
+            },
+            { 
+                emoji: "👽"
+            },
+            { 
+                emoji: "👾"
+            },
+            { 
+                emoji: "🤖"
+            },
+            { 
+                emoji: "🎃"
+            },
+            { 
+                emoji: "😺"
+            },
+            { 
+                emoji: "😸"
+            },
+            { 
+                emoji: "😹"
+            },
+            { 
+                emoji: "😻"
+            },
+            { 
+                emoji: "😼"
+            },
+            { 
+                emoji: "😽"
+            },
+            { 
+                emoji: "🙀"
+            },
+            { 
+                emoji: "😿"
+            },
+            { 
+                emoji: "😾"
+            },
+            { 
+                emoji: "👐"
+            },
+            { 
+                emoji: "🙌"
+            },
+            { 
+                emoji: "👏"
+            },
+            { 
+                emoji: "🙏"
+            },
+            { 
+                emoji: "🤝"
+            },
+            { 
+                emoji: "👍"
+            },
+            { 
+                emoji: "👎"
+            },
+            { 
+                emoji: "👊"
+            },
+            { 
+                emoji: "✊"
+            },
+            { 
+                emoji: "🤛"
+            },
+            { 
+                emoji: "🤜"
+            },
+            { 
+                emoji: "🤞"
+            },
+            { 
+                emoji: "✌️"
+            },
+            { 
+                emoji: "🤘"
+            },
+            { 
+                emoji: "👌"
+            },
+            { 
+                emoji: "👈"
+            },
+            { 
+                emoji: "👉"
+            },
+            { 
+                emoji: "👆"
+            },
+            { 
+                emoji: "👇"
+            },
+            { 
+                emoji: "☝️"
+            },
+            { 
+                emoji: "✋"
+            },
+            { 
+                emoji: "🤚"
+            },
+            { 
+                emoji: "🖐"
+            },
+            { 
+                emoji: "🖖"
+            },
+            { 
+                emoji: "👋"
+            },
+            { 
+                emoji: "🤙"
+            },
+            { 
+                emoji: "💪"
+            },
+            { 
+                emoji: "🖕"
+            },
+            { 
+                emoji: "✍️"
+            },
+            { 
+                emoji: "🤳"
+            },
+            { 
+                emoji: "💅"
+            },
+            { 
+                emoji: "🖖"
+            },
+            { 
+                emoji: "💄"
+            },
+            { 
+                emoji: "💋"
+            },
+            { 
+                emoji: "👄"
+            },
+            { 
+                emoji: "👅"
+            },
+            { 
+                emoji: "👂"
+            },
+            { 
+                emoji: "👃"
+            },
+            { 
+                emoji: "👣"
+            },
+            { 
+                emoji: "👁"
+            },
+            { 
+                emoji: "👀"
+            },
+            { 
+                emoji: "🗣"
+            },
+            { 
+                emoji: "👤"
+            },
+            { 
+                emoji: "👥"
+            },
+            { 
+                emoji: "👶"
+            },
+            { 
+                emoji: "👦"
+            },
+            { 
+                emoji: "👧"
+            },
+            { 
+                emoji: "👨"
+            },
+            { 
+                emoji: "👩"
+            },
+            { 
+                emoji: "👱‍♀️"
+            },
+            { 
+                emoji: "👱"
+            },
+            { 
+                emoji: "👴"
+            },
+            { 
+                emoji: "👵"
+            },
+            { 
+                emoji: "👲"
+            },
+            { 
+                emoji: "👳‍♀️"
+            },
+            { 
+                emoji: "👳"
+            },
+            { 
+                emoji: "👮‍♀️"
+            },
+            { 
+                emoji: "👮"
+            },
+            { 
+                emoji: "👷‍♀️"
+            },
+            { 
+                emoji: "👷"
+            },
+            { 
+                emoji: "💂‍♀️"
+            },
+            { 
+                emoji: "💂"
+            },
+            { 
+                emoji: "🕵️‍♀️"
+            },
+            { 
+                emoji: "🕵️"
+            },
+            { 
+                emoji: "👩‍⚕️"
+            },
+            { 
+                emoji: "👨‍⚕️"
+            },
+            { 
+                emoji: "👩‍🌾"
+            },
+            { 
+                emoji: "👨‍🌾"
+            },
+            { 
+                emoji: "👩‍🍳"
+            },
+            { 
+                emoji: "👨‍🍳"
+            },
+            { 
+                emoji: "👩‍🎓"
+            },
+            { 
+                emoji: "👨‍🎓"
+            },
+            { 
+                emoji: "👩‍🎤"
+            },
+            { 
+                emoji: "👨‍🎤"
+            },
+            { 
+                emoji: "👩‍🏫"
+            },
+            { 
+                emoji: "👨‍🏫"
+            },
+            { 
+                emoji: "👩‍🏭"
+            },
+            { 
+                emoji: "👨‍🏭"
+            },
+            { 
+                emoji: "👩‍💻"
+            },
+            { 
+                emoji: "👨‍💻"
+            },
+            { 
+                emoji: "👩‍💼"
+            },
+            { 
+                emoji: "👨‍💼"
+            },
+            { 
+                emoji: "👩‍🔧"
+            },
+            { 
+                emoji: "👨‍🔧"
+            },
+            { 
+                emoji: "👩‍🔬"
+            },
+            { 
+                emoji: "👨‍🔬"
+            },
+            { 
+                emoji: "👩‍🎨"
+            },
+            { 
+                emoji: "👨‍🎨"
+            },
+            { 
+                emoji: "👩‍🚒"
+            },
+            { 
+                emoji: "👨‍🚒"
+            },
+            { 
+                emoji: "👩‍✈️"
+            },
+            { 
+                emoji: "👨‍✈️"
+            },
+            { 
+                emoji: "👩‍🚀"
+            },
+            { 
+                emoji: "👨‍🚀"
+            },
+            { 
+                emoji: "👩‍⚖️"
+            },
+            { 
+                emoji: "👨‍⚖️"
+            },
+            { 
+                emoji: "🤶"
+            },
+            { 
+                emoji: "🎅"
+            },
+            { 
+                emoji: "👸"
+            },
+            { 
+                emoji: "🤴"
+            },
+            { 
+                emoji: "👰"
+            },
+            { 
+                emoji: "🤵"
+            },
+            { 
+                emoji: "👼"
+            },
+            { 
+                emoji: "🤰"
+            },
+            { 
+                emoji: "🙇‍♀️"
+            },
+            { 
+                emoji: "🙇"
+            },
+            { 
+                emoji: "💁"
+            },
+            { 
+                emoji: "💁‍♂️"
+            },
+            { 
+                emoji: "🙅"
+            },
+            { 
+                emoji: "🙅‍♂️"
+            },
+            { 
+                emoji: "🙆"
+            },
+            { 
+                emoji: "🙆‍♂️"
+            },
+            { 
+                emoji: "🙋"
+            },
+            { 
+                emoji: "🙋‍♂️"
+            },
+            { 
+                emoji: "🤦‍♀️"
+            },
+            { 
+                emoji: "🤦‍♂️"
+            },
+            { 
+                emoji: "🤷‍♀️"
+            },
+            { 
+                emoji: "🤷‍♂️"
+            },
+            { 
+                emoji: "🙎"
+            },
+            { 
+                emoji: "🙎‍♂️"
+            },
+            { 
+                emoji: "🙍"
+            },
+            { 
+                emoji: "🙍‍♂️"
+            },
+            { 
+                emoji: "💇"
+            },
+            { 
+                emoji: "💇‍♂️"
+            },
+            { 
+                emoji: "💆"
+            },
+            { 
+                emoji: "💆‍♂️"
+            },
+            { 
+                emoji: "🕴"
+            },
+            { 
+                emoji: "💃"
+            },
+            { 
+                emoji: "🕺"
+            },
+            { 
+                emoji: "👯"
+            },
+            { 
+                emoji: "👯‍♂️"
+            },
+            { 
+                emoji: "🚶‍♀️"
+            },
+            { 
+                emoji: "🚶"
+            },
+            { 
+                emoji: "🏃‍♀️"
+            },
+            { 
+                emoji: "🏃"
+            },
+            { 
+                emoji: "👫"
+            },
+            { 
+                emoji: "👭"
+            },
+            { 
+                emoji: "👬"
+            },
+            { 
+                emoji: "💑"
+            },
+            { 
+                emoji: "👩‍❤️‍👩"
+            },
+            { 
+                emoji: "👨‍❤️‍👨"
+            },
+            { 
+                emoji: "💏"
+            },
+            { 
+                emoji: "👩‍❤️‍💋‍👩"
+            },
+            { 
+                emoji: "👨‍❤️‍💋‍👨"
+            },
+            { 
+                emoji: "👪"
+            },
+            { 
+                emoji: "👨‍👩‍👧"
+            },
+            { 
+                emoji: "👨‍👩‍👧‍👦"
+            },
+            { 
+                emoji: "👨‍👩‍👦‍👦"
+            },
+            { 
+                emoji: "👨‍👩‍👧‍👧"
+            },
+            { 
+                emoji: "👩‍👩‍👦"
+            },
+            { 
+                emoji: "👩‍👩‍👧"
+            },
+            { 
+                emoji: "👩‍👩‍👧‍👦"
+            },
+            { 
+                emoji: "👩‍👩‍👦‍👦"
+            },
+            { 
+                emoji: "👩‍👩‍👧‍👧"
+            },
+            { 
+                emoji: "👨‍👨‍👦"
+            },
+            { 
+                emoji: "👨‍👨‍👧"
+            },
+            { 
+                emoji: "👨‍👨‍👧‍👦"
+            },
+            { 
+                emoji: "👨‍👨‍👦‍👦"
+            },
+            { 
+                emoji: "👨‍👨‍👧‍👧"
+            },
+            { 
+                emoji: "👩‍👦"
+            },
+            { 
+                emoji: "👩‍👧"
+            },
+            { 
+                emoji: "👩‍👧‍👦"
+            },
+            { 
+                emoji: "👩‍👦‍👦"
+            },
+            { 
+                emoji: "👩‍👧‍👧"
+            },
+            { 
+                emoji: "👨‍👦"
+            },
+            { 
+                emoji: "👨‍👧"
+            },
+            { 
+                emoji: "👨‍👧‍👦"
+            },
+            { 
+                emoji: "👨‍👦‍👦"
+            },
+            { 
+                emoji: "👨‍👧‍👧"
+            },
+            { 
+                emoji: "👚"
+            },
+            { 
+                emoji: "👕"
+            },
+            { 
+                emoji: "👖"
+            },
+            { 
+                emoji: "👔"
+            },
+            { 
+                emoji: "👗"
+            },
+            { 
+                emoji: "👙"
+            },
+            { 
+                emoji: "👘"
+            },
+            { 
+                emoji: "👠"
+            },
+            { 
+                emoji: "👡"
+            },
+            { 
+                emoji: "👢"
+            },
+            { 
+                emoji: "👞"
+            },
+            { 
+                emoji: "👟"
+            },
+            { 
+                emoji: "👒"
+            },
+            { 
+                emoji: "🎩"
+            },
+            { 
+                emoji: "🎓"
+            },
+            { 
+                emoji: "👑"
+            },
+            { 
+                emoji: "⛑"
+            },
+            { 
+                emoji: "🎒"
+            },
+            { 
+                emoji: "👝"
+            },
+            { 
+                emoji: "👛"
+            },
+            { 
+                emoji: "👜"
+            },
+            { 
+                emoji: "💼"
+            },
+            { 
+                emoji: "👓"
+            },
+            { 
+                emoji: "🕶"
+            },
+            { 
+                emoji: "🌂"
+            },
+            { 
+                emoji: "☂"
+            }
+        ]
+    },
+    {
+          name: "nature",
+        emojis:
+        [
+
+        ]
+    }
+]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 frappe.Chat.Widget.Account
 =
@@ -1582,7 +2670,7 @@ frappe.Chat.Widget.ChatList.Bubble
 =
 class extends Component {
     render ( ) {
-        const { props } = this
+        const { props } = this;
         const bubble    = (
             h(frappe.Chat.Widget.MediaProfile, {
                       title: frappe.user.full_name(props.user),
@@ -1592,7 +2680,7 @@ class extends Component {
                 width_title: "100%",
                    position: frappe.user.full_name(props.user) === "You" ? "right" : "left"
             })
-        )
+        );
 
         return (
             h("div", { class: "row" },
@@ -1605,167 +2693,13 @@ class extends Component {
                         )
                     )
             )
-        )
+        );
     }
-}
-frappe.Chat.Widget.ChatList.Bubble.defaultState = {
-    creation: ""
-}
-
-frappe.Chat.Widget.ChatForm
-=
-class extends Component {
-    constructor (props) {
-        super (props)
-
-        this.on_change = this.on_change.bind(this)
-        this.on_submit = this.on_submit.bind(this)
-
-        this.on_click_camera = this.on_click_camera.bind(this)
-        this.on_click_file = this.on_click_file.bind(this)
-
-        this.state     = frappe.Chat.Widget.ChatForm.defaultState
-    }
-
-    on_change (e) {
-        this.setState({
-            [e.target.name]: e.target.value
-        })
-
-        this.props.on_change(this.state)
-    }
-
-    on_submit (e) {
-        e.preventDefault()
-
-        if ( this.state.content ) {
-            this.props.on_submit(this.state)
-
-            this.setState({
-                content: null
-            })
-        }
-    }
-
-    on_click_camera ( ) {
-        const capture = new frappe.ui.Capture()
-        capture.open()
-        catpure.click((dataURI) => {
-            console.log(dataURI)
-        })
-    }
-
-    on_click_file ( ) {
-        const dialog = new frappe.ui.Dialog({
-            title: __("Upload"),
-            fields: [
-                {fieldtype:"HTML", fieldname:"upload_area"},
-                {fieldtype:"HTML", fieldname:"or_attach", options: __("Or")},
-                {fieldtype:"Select", fieldname:"select", label:__("Select from existing attachments") },
-                {fieldtype:"Button", fieldname:"clear",
-                    label:__("Clear Attachment"), click: function() {
-                        // me.clear_attachment();
-                        dialog.hide();
-                    }
-                },
-            ]
-        })
-
-        dialog.show();
-    }
-
-    render ( ) {
-        const { state } = this
-
-        return (
-            h("div", { class: "frappe-chat__form" },
-                h("form", { oninput: this.on_change, onsubmit: this.on_submit },
-                    h("div", { class: "form-group" },
-                        h("div", { class: "input-group input-group-sm" },
-                            h("div", { class: "input-group-btn" },
-                                h("div", { class: "btn-group dropup" },
-                                    h("button", { class: "btn btn-primary dropdown-toggle", "data-toggle": "dropdown" },
-                                        h("i", { class: "fa fa-fw fa-paperclip" })
-                                    ),
-                                    h("div", { class: "dropdown-menu", style: "min-width: 150px" },
-                                        h("li", null,
-                                            h("a", { onclick: this.on_click_camera },
-                                                h("i", { class: "octicon octicon-device-camera" }), " Camera"
-                                            )
-                                        ),
-                                        h("li", null,
-                                            h("a", { onclick: this.on_click_file },
-                                                h("i", { class: "fa fa-fw fa-file" }), " File"
-                                            )
-                                        )
-                                    )
-                                )
-                            ),
-                            h("textarea", {
-                                      class: "form-control",
-                                       name: "content",
-                                      value: state.content,
-                                placeholder: "Type a message",
-                                  autofocus: true,
-                                 onkeypress: (e) => {
-                                     if ( e.which === 13 && !e.shiftKey ) { // is not "shift" + "return"
-                                        this.on_submit(e)                   // submit that shit.
-                                     }
-                                 }
-                            }),
-                            h("div", { class: "input-group-btn" },
-                                // h("button", { class: "btn btn-primary" },
-                                //     h("i", { class: "fa fa-fw fa-smile-o" })
-                                // ),
-                                    h("div", { class: "btn-group dropup" },
-                                        h("button", { class: "btn btn-primary dropdown-toggle", "data-toggle": "dropdown" },
-                                            h("i", { class: "fa fa-fw fa-smile-o" })
-                                        ),
-                                        h("div", { class: "dropdown-menu dropdown-menu-right", style: "min-width: 150px" },
-                                            h(frappe.Chat.Widget.EmojiPicker)
-                                            // h("li", null,
-                                            //     h("a", { onclick: this.on_click_camera },
-                                            //         h("i", { class: "octicon octicon-device-camera" }), " Camera"
-                                            //     )
-                                            // ),
-                                            // h("li", null,
-                                            //     h("a", { onclick: this.on_click_file },
-                                            //         h("i", { class: "fa fa-fw fa-file" }), " File"
-                                            //     )
-                                            // )
-                                        )
-                                    ),
-                                h("button", { class: "btn btn-primary", type: "submit" },
-                                    h("i", { class: "fa fa-fw fa-send" })
-                                )
-                            )
-                        )
-                    )
-                )
-            )
-        )
-    }
-}
-frappe.Chat.Widget.ChatForm.defaultState
-=
-{
-    content: null
 };
-
-
-frappe.Chat.Widget.EmojiPicker 
-=
-class extends Component {
-    render ( ) {
-        return (
-            h("div", { class: "panel panel-default" },
-                h("div", { class: "panel-body" },
-            
-                )
-            )
-        )
-    }
-}
+frappe.Chat.Widget.ChatList.Bubble.defaultState =
+{
+    creation: ""
+};
 
 
 
@@ -1842,7 +2776,25 @@ class extends Component {
 //         })
 //     }
 // })
-
+// h("div", { class: "input-group-btn" },
+// h("div", { class: "btn-group dropup" },
+//     h("button", { class: "btn btn-primary dropdown-toggle", "data-toggle": "dropdown" },
+//         h("i", { class: "fa fa-fw fa-paperclip" })
+//     ),
+//     h("div", { class: "dropdown-menu", style: "min-width: 150px" },
+//         h("li", null,
+//             h("a", { onclick: this.on_click_camera },
+//                 h("i", { class: "octicon octicon-device-camera" }), " Camera"
+//             )
+//         ),
+//         h("li", null,
+//             h("a", { onclick: this.on_click_file },
+//                 h("i", { class: "fa fa-fw fa-file" }), " File"
+//             )
+//         )
+//     )
+// )
+// ),
 
 // :
 // h("div", { style: "margin-top: 240px;" },
@@ -1866,6 +2818,34 @@ frappe.Chat.Widget.get_datetime_string   = (date) => {
     }
 }
 
+
+
+// on_click_camera ( ) {
+//     const capture = new frappe.ui.Capture()
+//     capture.open()
+//     catpure.click((dataURI) => {
+//         console.log(dataURI)
+//     })
+// }
+
+// on_click_file ( ) {
+//     const dialog = new frappe.ui.Dialog({
+//         title: __("Upload"),
+//         fields: [
+//             {fieldtype:"HTML", fieldname:"upload_area"},
+//             {fieldtype:"HTML", fieldname:"or_attach", options: __("Or")},
+//             {fieldtype:"Select", fieldname:"select", label:__("Select from existing attachments") },
+//             {fieldtype:"Button", fieldname:"clear",
+//                 label:__("Clear Attachment"), click: function() {
+//                     // me.clear_attachment();
+//                     dialog.hide();
+//                 }
+//             },
+//         ]
+//     })
+
+//     dialog.show();
+// }
 
 
 // frappe.components.Select
