@@ -9,6 +9,6 @@ To create a new Role, go to:
 
 > Setup > Users > Role > New
 
-<img class="screenshot" alt="Adding Roles" src="{{docs_base_url}}/assets/img/roles_creation.png">
+<img class="screenshot" alt="Adding Roles" src="/docs/assets/img/roles_creation.png">
 
 {next}

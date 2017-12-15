@@ -6,24 +6,55 @@ import frappe, json
 from frappe import _
 from frappe.utils import cstr
 from frappe.model import default_fields
+from six import string_types
+
+@frappe.whitelist()
+def make_mapped_doc(method, source_name, selected_children=None):
+	'''Returns the mapped document calling the given mapper method.
+	Sets selected_children as flags for the `get_mapped_doc` method.
+
+	Called from `open_mapped_doc` from create_new.js'''
+	method = frappe.get_attr(method)
+
+	if method not in frappe.whitelisted:
+		raise frappe.PermissionError
+
+	if selected_children:
+		selected_children = json.loads(selected_children)
+
+	frappe.flags.selected_children = selected_children or None
+
+	return method(source_name)
+
+@frappe.whitelist()
+def map_docs(method, source_names, target_doc):
+	'''Returns the mapped document calling the given mapper method
+	with each of the given source docs on the target doc'''
+	method = frappe.get_attr(method)
+	if method not in frappe.whitelisted:
+		raise frappe.PermissionError
+
+	for src in json.loads(source_names):
+		target_doc = method(src, target_doc)
+	return target_doc
 
 def get_mapped_doc(from_doctype, from_docname, table_maps, target_doc=None,
 		postprocess=None, ignore_permissions=False, ignore_child_tables=False):
+
+	# main
+	if not target_doc:
+		target_doc = frappe.new_doc(table_maps[from_doctype]["doctype"])
+	elif isinstance(target_doc, string_types):
+		target_doc = frappe.get_doc(json.loads(target_doc))
+
+	if not ignore_permissions and not target_doc.has_permission("create"):
+		target_doc.raise_no_permission_to("create")
 
 	source_doc = frappe.get_doc(from_doctype, from_docname)
 
 	if not ignore_permissions:
 		if not source_doc.has_permission("read"):
 			source_doc.raise_no_permission_to("read")
-
-	# main
-	if not target_doc:
-		target_doc = frappe.new_doc(table_maps[from_doctype]["doctype"])
-	elif isinstance(target_doc, basestring):
-		target_doc = frappe.get_doc(json.loads(target_doc))
-
-	if not ignore_permissions and not target_doc.has_permission("create"):
-		target_doc.raise_no_permission_to("create")
 
 	map_doc(source_doc, target_doc, table_maps[source_doc.doctype])
 
@@ -50,6 +81,13 @@ def get_mapped_doc(from_doctype, from_docname, table_maps, target_doc=None,
 					if "condition" in table_map:
 						if not table_map["condition"](source_d):
 							continue
+
+					# if children are selected (checked from UI) for this table type,
+					# and this record is not in the selected children, then continue
+					if (frappe.flags.selected_children
+						and (df.fieldname in frappe.flags.selected_children)
+						and source_d.name not in frappe.flags.selected_children[df.fieldname]):
+						continue
 
 					target_child_doctype = table_map["doctype"]
 					target_parentfield = target_doc.get_parentfield_of_doctype(target_child_doctype)

@@ -1,3 +1,4 @@
+from __future__ import print_function
 import frappe
 
 def execute():
@@ -21,7 +22,7 @@ def execute():
 		try:
 			file.save()
 		except:
-			print frappe.get_traceback()
+			print(frappe.get_traceback())
 			raise
 
 	from frappe.utils.nestedset import rebuild_tree

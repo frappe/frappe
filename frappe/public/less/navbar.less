@@ -160,13 +160,22 @@
 	background-color: @indicator-red;
 }
 
-#navbar-search {
+.navbar-form .awesomplete {
+	margin-left: -15px;
 	width: 300px;
-	background-color: rgba(255, 255, 255, 0.9);
+
+	@media (max-width: @screen-md) {
+		width: 280px;
+	}
 
 	@media (max-width: @screen-sm) {
 		width: 250px;
 	}
+}
+
+#navbar-search {
+	width: 100%;
+	background-color: rgba(255, 255, 255, 0.9);
 }
 
 .navbar .navbar-search-icon {
@@ -210,22 +219,19 @@
 
 #navbar-breadcrumbs > li > a {
 	padding: 6px 15px 10px 0px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	max-width: 170px;
 
 	@media (min-width:991px) and (max-width: 1199px) {
-		max-width: 143px;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
+		max-width: 120px;
 	}
 }
 
 .toolbar-user-fullname {
-	max-width: 200px;
+	max-width: 150px;
 	display: inline-block;
-}
-
-.navbar-brand {
-	padding: 10px;
 }
 
 .navbar-brand > img {

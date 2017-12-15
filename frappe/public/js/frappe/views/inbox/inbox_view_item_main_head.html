@@ -1,0 +1,24 @@
+<div class="list-row list-row-head" data-list-renderer="Inbox">
+    <div class="row doclist-row">
+        <div class="col-sm-10 list-row-left">
+            <!-- title + columns -->
+			<div class="row">
+				<div class="col-sm-8 col-xs-12 list-col ellipsis h6 text-muted">
+					<div class="list-value">
+						{% if (_checkbox) { %}
+						<input class="list-select-all" type="checkbox"
+							title="{%= __("Select All") %}">
+						{% } %}
+						<span class="list-col-title">{%= __("Subject") %}</span>
+					</div>
+				</div>
+				<div class="col-sm-4 hidden-xs list-col ellipsis h6 text-muted">
+					<div class="list-value">
+						<span class="list-col-title">{%= __(is_sent_emails ? "To": "From") %}</span>
+					</div>
+				</div>
+			</div>
+        </div>
+        <div class="col-sm-2 hidden-xs list-row-right"></div>
+    </div>
+</div>

@@ -1,97 +1,13 @@
 @import "variables.less";
 
+// gantt
 .gantt {
-	#grid {
-		.grid-background {
-			fill: none;
+	.bar-milestone {
+		.bar {
+			fill: @red-light;
 		}
-		.grid-header {
-			fill: #fff;
-			stroke: #e0e0e0;
-			stroke-width: 1.4;
+		.bar-progress {
+			fill: @red;
 		}
-		.row-odd {
-			fill: #ffffff;
-		}
-		.row-even {
-			fill: #f5f5f5;
-		}
-		.row-line {
-			stroke: #EBEFF2;
-		}
-		.tick {
-			stroke: #aaa;
-			stroke-width: 0.2;
-			&.thick {
-				stroke-width: 0.4;
-			}
-		}
-	}
-
-	#arrow {
-		fill: none;
-		stroke: #333;
-		stroke-width: 1.4;
-	}
-
-	.bar {
-		fill: #b8c2cc;
-		stroke: #8D99A6;
-		stroke-width: 0;
-		transition: stroke-width .3s ease;
-	}
-	.bar-label {
-		fill: #fff;
-		dominant-baseline: central;
-		text-anchor: middle;
-		font-size: 12px;
-		font-weight: lighter;
-		letter-spacing: 0.8px;
-
-		&.big {
-			fill: #555;
-			text-anchor: start;
-		}
-	}
-
-	.handle {
-		fill: #ddd;
-		cursor: ew-resize;
-		opacity: 0;
-		visibility: hidden;
-		transition: opacity .3s ease;
-	}
-
-	.bar-wrapper {
-		cursor: pointer;
-
-		&:hover {
-			.bar {
-				stroke-width: 2;
-			}
-
-			.handle {
-				visibility: visible;
-				opacity: 1;
-			}
-		}
-
-		&.active {
-			.bar {
-				stroke-width: 2;
-			}
-		}
-	}
-
-	.primary-text, .secondary-text {
-		font-size: 12px;
-		text-anchor: middle;
-	}
-	.primary-text {
-		fill: #999;
-	}
-	.secondary-text {
-		fill: #555;
 	}
 }
-

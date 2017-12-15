@@ -1,14 +1,13 @@
-Use Facebook, Google or GitHub authentication to login to Frappe, and your users will be spared from remembering another password.
+# How To Enable Social Logins
 
-The system uses the **Email ID** supplied by these services to **match with an existing user** in Frappe. If no such user is found, **a new user is created** of the default type **Website User**, if Signup is not disabled in Website Settings. Any System Manager can later change the user type from **Website User** to **System User**, so that the user can access the Desktop.
+Use Facebook, Google or GitHub authentication to login to Frappé, and your users will be spared from remembering another password.
 
-<figure class="text-center">
-	<img src="/assets/img/social-logins-1.jpg"
-		alt="Login screen with Social Logins enabled">
-	<figcaption>Login screen with Social Logins enabled</figcaption>
-</figure>
+The system uses the **Email Address** supplied by these services to **match with an existing user** in Frappé. If no such user is found, **a new user is created** of the default type **Website User**, if Signup is not disabled in Website Settings. Any System Manager can later change the user type from **Website User** to **System User**, so that the user can access the Desktop.
 
-To enable these signups, you need to have **Client ID** and **Client Secret** from these authentication services for your Frappe site. The Client ID and Client Secret are to be set in Website > Setup > Social Login Keys. Here are the steps to obtain these credentials.
+#### Login screen with Social Logins enabled
+<img class="screenshot" alt="Login screen with Social Logins enabled" src="/docs/assets/img/social-logins.png">
+
+To enable these signups, you need to have **Client ID** and **Client Secret** from these authentication services for your Frappé site. The Client ID and Client Secret are to be set in Website > Setup > Social Login Keys. Here are the steps to obtain these credentials.
 
 > Use **https://{{ yoursite }}** if your site is HTTPS enabled.
 

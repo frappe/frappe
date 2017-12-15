@@ -27,7 +27,8 @@ doctype_properties = {
 	'quick_entry': 'Check',
 	'editable_grid': 'Check',
 	'max_attachments': 'Int',
-	'image_view': 'Check'
+	'image_view': 'Check',
+	'track_changes': 'Check',
 }
 
 docfield_properties = {
@@ -41,8 +42,10 @@ docfield_properties = {
 	'reqd': 'Check',
 	'unique': 'Check',
 	'ignore_user_permissions': 'Check',
-	'in_filter': 'Check',
 	'in_list_view': 'Check',
+	'in_standard_filter': 'Check',
+	'in_global_search': 'Check',
+	'bold': 'Check',
 	'hidden': 'Check',
 	'collapsible': 'Check',
 	'collapsible_depends_on': 'Data',
@@ -56,12 +59,16 @@ docfield_properties = {
 	'precision': 'Select',
 	'read_only': 'Check',
 	'length': 'Int',
-	'columns': 'Int'
+	'columns': 'Int',
+	'remember_last_selected_value': 'Check',
+	'allow_bulk_edit': 'Check',
 }
 
 allowed_fieldtype_change = (('Currency', 'Float', 'Percent'), ('Small Text', 'Data'),
-	('Text', 'Data'), ('Text', 'Text Editor', 'Code'), ('Data', 'Select'),
-	('Text', 'Small Text'))
+	('Text', 'Data'), ('Text', 'Text Editor', 'Code', 'Signature'), ('Data', 'Select'),
+	('Text', 'Small Text'), ('Text', 'Data', 'Barcode'), ('Code', 'Geolocation'))
+
+allowed_fieldtype_for_options_change = ('Read Only', 'HTML', 'Select', 'Data')
 
 class CustomizeForm(Document):
 	def on_update(self):
@@ -94,14 +101,14 @@ class CustomizeForm(Document):
 	def get_name_translation(self):
 		'''Get translation object if exists of current doctype name in the default language'''
 		return frappe.get_value('Translation',
-			{'source_name': self.doc_type, 'language_code': frappe.local.lang or 'en'},
+			{'source_name': self.doc_type, 'language': frappe.local.lang or 'en'},
 			['name', 'target_name'], as_dict=True)
 
 	def set_name_translation(self):
 		'''Create, update custom translation for this doctype'''
 		current = self.get_name_translation()
 		if current:
-			if self.label and current!=self.label:
+			if self.label and current.target_name != self.label:
 				frappe.db.set_value('Translation', current.name, 'target_name', self.label)
 				frappe.translate.clear_cache()
 			else:
@@ -131,12 +138,19 @@ class CustomizeForm(Document):
 		if not self.doc_type:
 			return
 
+		self.flags.update_db = False
+
 		self.set_property_setters()
 		self.update_custom_fields()
 		self.set_name_translation()
 		validate_fields_for_doctype(self.doc_type)
 
-		frappe.msgprint(_("{0} updated").format(_(self.doc_type)))
+		if self.flags.update_db:
+			from frappe.model.db_schema import updatedb
+			updatedb(self.doc_type)
+
+		if not hasattr(self, 'hide_success') or not self.hide_success:
+			frappe.msgprint(_("{0} updated").format(_(self.doc_type)))
 		frappe.clear_cache(doctype=self.doc_type)
 		self.fetch_to_customize()
 
@@ -148,18 +162,14 @@ class CustomizeForm(Document):
 				self.make_property_setter(property=property, value=self.get(property),
 					property_type=doctype_properties[property])
 
-		update_db = False
 		for df in self.get("fields"):
-			if df.get("__islocal"):
-				continue
-
 			meta_df = meta.get("fields", {"fieldname": df.fieldname})
 
 			if not meta_df or meta_df[0].get("is_custom_field"):
 				continue
 
 			for property in docfield_properties:
-				if property != "idx" and df.get(property) != meta_df[0].get(property):
+				if property != "idx" and (df.get(property) or '') != (meta_df[0].get(property) or ''):
 					if property == "fieldtype":
 						self.validate_fieldtype_change(df, meta_df[0].get(property), df.get(property))
 
@@ -168,17 +178,17 @@ class CustomizeForm(Document):
 							.format(df.idx))
 						continue
 					elif property == "in_list_view" and df.get(property) \
-						and df.fieldtype!="Image" and df.fieldtype in no_value_fields:
+						and df.fieldtype!="Attach Image" and df.fieldtype in no_value_fields:
 								frappe.msgprint(_("'In List View' not allowed for type {0} in row {1}")
 									.format(df.fieldtype, df.idx))
 								continue
 
 					elif property == "precision" and cint(df.get("precision")) > 6 \
 							and cint(df.get("precision")) > cint(meta_df[0].get("precision")):
-						update_db = True
+						self.flags.update_db = True
 
 					elif property == "unique":
-						update_db = True
+						self.flags.update_db = True
 
 					elif (property == "read_only" and cint(df.get("read_only"))==0
 						and frappe.db.get_value("DocField", {"parent": self.doc_type, "fieldname": df.fieldname}, "read_only")==1):
@@ -186,19 +196,21 @@ class CustomizeForm(Document):
 						frappe.msgprint(_("You cannot unset 'Read Only' for field {0}").format(df.label))
 						continue
 
+					elif property == "options" and df.get("fieldtype") not in allowed_fieldtype_for_options_change:
+						frappe.msgprint(_("You can't set 'Options' for field {0}").format(df.label))
+						continue
+
 					self.make_property_setter(property=property, value=df.get(property),
 						property_type=docfield_properties[property], fieldname=df.fieldname)
 
-		if update_db:
-			from frappe.model.db_schema import updatedb
-			updatedb(self.doc_type)
-
 	def update_custom_fields(self):
 		for i, df in enumerate(self.get("fields")):
-			if df.get("__islocal"):
-				self.add_custom_field(df, i)
-			else:
-				self.update_in_custom_field(df, i)
+			if df.get("is_custom_field"):
+				if not frappe.db.exists('Custom Field', {'dt': self.doc_type, 'fieldname': df.fieldname}):
+					self.add_custom_field(df, i)
+					self.flags.update_db = True
+				else:
+					self.update_in_custom_field(df, i)
 
 		self.delete_custom_fields()
 
@@ -209,8 +221,8 @@ class CustomizeForm(Document):
 
 		for property in docfield_properties:
 			d.set(property, df.get(property))
-		
-		if i!=0:	
+
+		if i!=0:
 			d.insert_after = self.fields[i-1].fieldname
 		d.idx = i
 
@@ -221,6 +233,7 @@ class CustomizeForm(Document):
 		meta = frappe.get_meta(self.doc_type)
 		meta_df = meta.get("fields", {"fieldname": df.fieldname})
 		if not (meta_df and meta_df[0].get("is_custom_field")):
+			# not a custom field
 			return
 
 		custom_field = frappe.get_doc("Custom Field", meta_df[0].name)
@@ -242,8 +255,9 @@ class CustomizeForm(Document):
 				changed = True
 
 		if changed:
-			custom_field.flags.ignore_validate = True
-			custom_field.save()
+			custom_field.db_update()
+			self.flags.update_db = True
+			#custom_field.save()
 
 	def delete_custom_fields(self):
 		meta = frappe.get_meta(self.doc_type)
@@ -290,7 +304,7 @@ class CustomizeForm(Document):
 		else:
 			try:
 				property_value = frappe.db.get_value("DocType", self.doc_type, property_name)
-			except Exception, e:
+			except Exception as e:
 				if e.args[0]==1054:
 					property_value = None
 				else:
@@ -303,6 +317,7 @@ class CustomizeForm(Document):
 		for allowed_changes in allowed_fieldtype_change:
 			if (old_value in allowed_changes and new_value in allowed_changes):
 				allowed = True
+				break
 		if not allowed:
 			frappe.throw(_("Fieldtype cannot be changed from {0} to {1} in row {2}").format(old_value, new_value, df.idx))
 
@@ -311,6 +326,6 @@ class CustomizeForm(Document):
 			return
 
 		frappe.db.sql("""delete from `tabProperty Setter` where doc_type=%s
-			and ifnull(field_name, '')!='naming_series'""", self.doc_type)
+			and !(`field_name`='naming_series' and `property`='options')""", self.doc_type)
 		frappe.clear_cache(doctype=self.doc_type)
 		self.fetch_to_customize()

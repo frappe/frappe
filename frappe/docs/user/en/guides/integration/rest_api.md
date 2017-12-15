@@ -1,6 +1,6 @@
 # REST API
 
-Frappe ships with an HTTP API. There are two parts of this API.
+Frappé ships with an HTTP API. There are two parts of this API.
 
 1. Remote Procedure Calls (RPC)
 2. REST
@@ -28,7 +28,7 @@ _Response:_
 
 ## 2. REST
 
-All documents in Frappe are available via a RESTful API with prefix
+All documents in Frappé are available via a RESTful API with prefix
 `/api/resource/`.
 
 ### Login
@@ -210,6 +210,8 @@ _Response:_
 		"parentfield": null
 	  }
 	}
+	
+Note: `POST` requests are to be sent along with `X-Frappe-CSRF-Token:<csrf-token>` header.
 
 #### Read
 

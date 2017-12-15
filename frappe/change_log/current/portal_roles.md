@@ -1,2 +1,0 @@
-- Portal Users (Customers, Supplier, Students) can now have roles
-- Sidebar in portal view will be rendered as per roles and can be configured from Portal Settings

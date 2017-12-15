@@ -5,7 +5,7 @@
 
 frappe.user_info = function(uid) {
 	if(!uid)
-		uid = user;
+		uid = frappe.session.user;
 
 	if(uid.toLowerCase()==="bot") {
 		return {
@@ -55,9 +55,9 @@ frappe.ui.set_user_background = function(src, selector, style) {
 frappe.provide('frappe.user');
 
 $.extend(frappe.user, {
-	name: (frappe.boot ? frappe.boot.user.name : 'Guest'),
+	name: 'Guest',
 	full_name: function(uid) {
-		return uid===user ?
+		return uid === frappe.session.user ?
 			__("You") :
 			frappe.user_info(uid).fullname;
 	},
@@ -77,35 +77,29 @@ $.extend(frappe.user, {
 	},
 	get_desktop_items: function() {
 		// hide based on permission
-		modules_list = $.map(frappe.boot.desktop_icons, function(icon) {
+		var modules_list = $.map(frappe.boot.desktop_icons, function(icon) {
 			var m = icon.module_name;
 			var type = frappe.modules[m] && frappe.modules[m].type;
 
 			if(frappe.boot.user.allow_modules.indexOf(m) === -1) return null;
 
 			var ret = null;
-			switch(type) {
-				case "module":
-					if(frappe.boot.user.allow_modules.indexOf(m)!=-1 || frappe.modules[m].is_help)
-						ret = m;
-					break;
-				case "page":
-					if(frappe.boot.allowed_pages.indexOf(frappe.modules[m].link)!=-1)
-						ret = m;
-					break;
-				case "list":
-					if(frappe.model.can_read(frappe.modules[m]._doctype))
-						ret = m;
-					break;
-				case "view":
+			if (type === "module") {
+				if(frappe.boot.user.allow_modules.indexOf(m)!=-1 || frappe.modules[m].is_help)
 					ret = m;
-					break;
-				case "setup":
-					if(frappe.user.has_role("System Manager") || frappe.user.has_role("Administrator"))
-						ret = m;
-					break;
-				default:
+			} else if (type === "page") {
+				if(frappe.boot.allowed_pages.indexOf(frappe.modules[m].link)!=-1)
 					ret = m;
+			} else if (type === "list") {
+				if(frappe.model.can_read(frappe.modules[m]._doctype))
+					ret = m;
+			} else if (type === "view") {
+				ret = m;
+			} else if (type === "setup") {
+				if(frappe.user.has_role("System Manager") || frappe.user.has_role("Administrator"))
+					ret = m;
+			} else {
+				ret = m;
 			}
 
 			return ret;
@@ -147,6 +141,19 @@ $.extend(frappe.user, {
 				quote: quote
 			});
 		}
+	},
+
+	/* Normally frappe.user is an object
+	 * having properties and methods.
+	 * But in the following case
+	 * 
+	 * if (frappe.user === 'Administrator')
+	 * 
+	 * frappe.user will cast to a string
+	 * returning frappe.user.name
+	 */
+	toString: function() {
+		return this.name;
 	}
 });
 

@@ -6,7 +6,7 @@ import frappe
 from frappe import _
 from frappe.utils import get_request_site_address, encode
 from frappe.model.document import Document
-from urllib import quote
+from six.moves.urllib.parse import quote
 from frappe.website.router import resolve_route
 from frappe.website.doctype.website_theme.website_theme import add_website_theme
 
@@ -74,16 +74,17 @@ def get_website_settings():
 		'top_bar_items': get_items('top_bar_items'),
 		'footer_items': get_items('footer_items'),
 		"post_login": [
-			{"label": "My Account", "url": "/me"},
+			{"label": _("My Account"), "url": "/me"},
 #			{"class": "divider"},
-			{"label": "Logout", "url": "/?cmd=web_logout"}
+			{"label": _("Logout"), "url": "/?cmd=web_logout"}
 		]
 	})
 
-	settings = frappe.get_doc("Website Settings", "Website Settings")
+	settings = frappe.get_single("Website Settings")
 	for k in ["banner_html", "brand_html", "copyright", "twitter_share_via",
 		"facebook_share", "google_plus_one", "twitter_share", "linked_in_share",
-		"disable_signup", "hide_footer_signup", "head_html"]:
+		"disable_signup", "hide_footer_signup", "head_html", "title_prefix",
+		"navbar_search"]:
 		if hasattr(settings, k):
 			context[k] = settings.get(k)
 

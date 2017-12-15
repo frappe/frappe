@@ -3,17 +3,9 @@
 @import "avatar.less";
 @import "indicator.less";
 
-// html, body {
-// 	font-family: "Open Sans", "Helvetica Neue", Serif;
-// 	color: @text-light;
-// }
-
 body {
-	font-family: -apple-system, BlinkMacSystemFont,
-	    "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell",
-	    "Fira Sans", "Droid Sans", "Helvetica Neue",
-	    sans-serif;
-		color: @text-color;
+	font-family: @font-stack;
+	color: @text-color;
 }
 
 a& {
@@ -35,6 +27,10 @@ h1, h2, h3, h4, h5, h6 {
 		text-decoration: none;
 	}
 
+}
+
+li {
+	line-height: 1.7em;
 }
 
 
@@ -63,8 +59,11 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .banner {
-	margin-top: 20px;
-	padding: 0px 20px;
+	padding: 10px 0px;
+
+	img {
+		max-height: 50px;
+	}
 }
 
 .no-border {
@@ -92,6 +91,19 @@ h1, h2, h3, h4, h5, h6 {
 	border-top: none;
 }
 
+.navbar-search {
+    max-width: 400px;
+    display: inline-block;
+    margin: 10px;
+    margin-top: 9px;
+    padding: 2px 6px;
+    height: 26px;
+}
+
+.dropdown-menu .navbar-search {
+	max-width: 180px;
+}
+
 .social-icons i {
 	font-size: 120%;
 }
@@ -110,6 +122,11 @@ h1, h2, h3, h4, h5, h6 {
 	padding: 60px 0px;
 	min-height: 140px;
 	border-top: 1px solid @light-border-color;
+}
+
+.page_content {
+	padding-top: 30px;
+	padding-bottom: 30px;
 }
 
 .carousel-control .icon {
@@ -165,6 +182,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .page-head {
+	margin-bottom: -30px;
 	h1, h2 {
 		margin-top: 0px;
 	}
@@ -205,9 +223,13 @@ fieldset {
 }
 
 .page-container {
-	padding: 0px;
+	display: flex;
 	max-width: 970px;
-	margin: auto;
+	margin: 0 auto;
+
+	@media(max-width: @screen-xs) {
+		flex-direction: column-reverse;
+	}
 }
 
 .page-max-width {
@@ -225,12 +247,11 @@ fieldset {
 .web-sidebar {
 	position: relative;
 
-	.sidebar-item {
+	.sidebar-item:not(:last-child) {
 		margin: 0px;
-		padding: 12px 0px;
+		padding-bottom: 12px;
 		border: none;
 		color: @text-muted;
-		font-size: 12px;
 
 		.badge {
 			font-weight: normal;
@@ -238,28 +259,22 @@ fieldset {
 
 	}
 
-	.sidebar-item:first-child {
-		padding-top: 10px;
-	}
-	.sidebar-item:last-child {
-		padding-bottom: 10px;
-	}
-
 	.sidebar-item a {
 		color: @text-muted;
-	}
 
-	.sidebar-item a.active {
-		color: @text-color !important;
-		font-weight:500 !important;
+		&.active {
+			color: @text-color;
+		}
 	}
 
 	.sidebar-items {
-		// margin-top:30px;
-		margin-bottom:30px;
 		.title{
 			font-size: 14px;
 			font-weight: bold;
+		}
+
+		ul {
+			margin-bottom: 0;
 		}
 	}
 }
@@ -308,7 +323,9 @@ fieldset {
 }
 
 .web-list-item {
-	padding: 15px 0px;
+	padding-top: 10px;
+	padding-bottom: 10px;
+
 	border-bottom: 1px solid @light-border-color;
 
 	h1, h2, h3 {
@@ -320,92 +337,30 @@ fieldset {
 	border-bottom: 0px;
 }
 
-// .web-list-item:hover {
-// 	background: @panel-bg;
-// }
-
-.blog-info {
-	text-align:center;
-	margin-top: 30px;
-}
-
-.post-description {
-	padding-bottom: 8px;
-	p {
-		margin-bottom: 8px;
-	}
-}
-
-
-.blog-footer {
-	padding: 5px 15px;
-	border-top: 1px solid @light-border-color;
-	margin: 0px -15px -20px -15px;
-}
-
-.blog-list-content .website-list .result {
+.website-list .result {
 	border: 0px;
 }
 
-.blog-list-content .web-list-item:hover {
+.web-list-item:hover {
 	background: transparent;
 }
 
-.blog-category {
-	letter-spacing: 0.5px;
-	text-align: center;
-	margin-bottom: 30px;
-}
-
-.author {
-	letter-spacing: 0.5px;
-	border-bottom: 1px solid @light-border-color;
-	padding-bottom:30px;
-}
-
-.blogger {
-	padding-top: 0px;
-	padding-bottom: 50px;
-}
-
-.blog-dot:before{
+.spacer-dot:before{
 	padding-right:8px;
 	padding-left:8px;
 	content:"\2022";
-}
-
-.blog-list-item {
-	margin-top: 30px;
-	margin-bottom: 30px;
-
-	.blog-header {
-		font-size: 1.6em;
-	}
-}
-
-.blog-header {
-	font-weight: 700;
-	font-size: 2em;
 }
 
 .add-comment-section {
 	padding-bottom: 30px;
 }
 
-.blog-comments,
-.help-article-comments {
-}
-.blog-comments {
-	position: relative;
-	border-top: 1px solid @border-color;
-}
-
-.blog-comment-row {
+.comment-row {
 	margin: 0px -15px;
 	padding: 15px;
 }
 
-.blog-comment-row:last-child {
+.comment-row:last-child {
 	margin-bottom: 30px;
 	border-bottom: 0px;
 }
@@ -429,15 +384,9 @@ textarea {
 	}
 }
 
-@media (max-width: 767px) {
-	.visible-xs {
-		display: inline-block !important;
-	}
-}
 
 .more-block {
-	margin: 0px -15px;
-	padding: 0px 15px 30px;
+	padding-bottom: 30px;
 }
 
 .btn-more {
@@ -519,23 +468,64 @@ a.active {
 .page-head h1 {
 	letter-spacing: 0.5px;
 	font-size: 24px;
+
+	@media (max-width: @screen-xs) {
+		font-size: 16px;
+	}
 }
 
 .btn-next-wrapper {
 	margin-top: 60px;
 }
 
-.sidebar-block, .page-content {
-	padding-top: 50px;
-	padding-bottom: 50px;
+.sidebar-block {
+	flex: 1;
+	font-size: @text-medium;
+	border-right: 1px solid @border-color;
+	padding: 30px;
+	padding-left: 0px;
+
+	@media(max-width: @screen-xs) {
+		font-size: @text-regular;
+		border-right: none;
+		border-top: 1px solid @border-color;
+		padding-left: 20px;
+	}
 }
+
+.page-content {
+	flex: 6;
+
+	h1:first-child {
+		margin-top: 0;
+	}
+}
+
+.page-content.with-sidebar {
+	padding: 30px;
+	padding-left: 40px;
+}
+
+.page-content.without-sidebar {
+	padding-top: 30px;
+}
+
 .your-account-info {
 	margin-top: 30px;
 }
 
-.page-content.with-sidebar {
-	padding-left: 50px;
-	padding-right: 50px;
+@media (max-width: 767px) {
+	.visible-xs {
+		display: inline-block !important;
+	}
+	.sidebar-block {
+		width: 100%;
+	}
+	.page-content.with-sidebar {
+		width: 100%;
+		padding-left: 20px;
+		padding-right: 20px;
+	}
 }
 
 @media screen and (max-width: 480px) {
@@ -553,34 +543,22 @@ a.active {
 	padding-bottom:20px;
 }
 
+.footer-group {
+	margin-bottom: 1em;
+}
+
 .footer-group-label {
 	display:inline-block;
-	font-size: 11px;
 }
 
 
-li .footer-child-item {
-	margin: 15px 0px !important;
+.footer-parent-item {
+	font-weight: bold;
+	margin-bottom: 20px;
 }
 
-.blog-info {
-	text-align:center;
-	margin-top: 30px;
-}
-
-.blog-text {
-	padding-top: 50px;
-	padding-bottom: 50px;
-	font-size: 18px;
-	line-height: 1.5;
-	p {
-		margin-bottom: 30px;
-	}
-}
-
-.blogger-name {
-	margin-bottom:0px;
-	margin-top:0px;
+li.footer-child-item {
+	margin: 15px 0px;
 }
 
 .comment-view {
@@ -596,6 +574,10 @@ li .footer-child-item {
 	border-bottom: 1px solid @border-color;
 	width: 100%;
 
+	.input-wrapper {
+		margin-right: 30px;
+	}
+
 	.item-search-input {
 		position: relative;
 		outline: none;
@@ -603,28 +585,46 @@ li .footer-child-item {
 		margin-right: 5px;
 		padding: 7px;
 		padding-left: 0px;
-		width: 80px;
+		width: 100%;
+
+		@media (max-width: @screen-xs) {
+			padding: 0;
+		}
 	}
+
 	i {
-		padding: 10px 10px 10px 0;
+		margin-right: -30px;
+		margin-top: -25px;
+
+		@media (max-width: @screen-xs) {
+			margin-right: -25px;
+			margin-top: -18px;
+			font-size: 12px;
+		}
 	}
 }
 
 .vert-line {overflow:hidden;}
-.vert-line>div+div{border-left:1px solid @light-border-color;}
+.vert-line>div+div{border-left:1px solid @border-color;}
 .vert-line>div{
         padding-bottom:2000px; margin-bottom:-2000px;}
 
 .shopping-cart {
+	.cart-icon {
+		.dropdown-toggle {
+			text-decoration: none !important;
+		}
+	}
 	margin-top:12px;
 	margin-bottom:8px;
 	padding-right:15px;
 	border-right: 1px solid @border-color;
 }
 .badge-wrapper {
-	min-height: 17px;
-	min-width: 17px;
 	display: inline-block;
+	margin-left: 7px;
+	margin-top: -3px;
+	padding: 2px 7px;
 	border: 1px solid @border-color;
 	border-radius: 3px;
 	color: #7575ff;
@@ -643,4 +643,60 @@ li .footer-child-item {
 	font-weight: 500;
 	margin-top: -10px;
 	margin-right: -8px;
+}
+
+.page-card {
+    max-width: 360px;
+	padding: 15px;
+	margin: 70px auto;
+	border: 1px solid @border-color;
+	border-radius: 4px;
+	background-color: #fff;
+	box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.1);
+
+	.page-card-head {
+		padding: 10px 15px;
+		margin: -15px;
+		margin-bottom: 15px;
+		border-bottom: 1px solid @border-color;
+
+		.indicator {
+			color: @text-color;
+			font-size: 14px;
+		}
+
+		.indicator::before {
+		    margin: 0 6px 0.5px 0px;
+		}
+	}
+
+	.btn {
+		margin-top: 30px;
+	}
+}
+
+.bordered {
+	border: 1px solid @border-color;
+	padding: 10px;
+	border-radius: 4px;
+}
+
+// docs
+.docfields {
+	pre {
+		background-color: transparent;
+		border: none;
+	}
+}
+
+.screenshot {
+	border: 1px solid @border-color;
+	box-shadow: 1px 1px 7px rgba(0,0,0,0.15);
+	margin: 15px 0px;
+	max-width: 100%;
+}
+
+.blog-list-item {
+	padding-top: 30px;
+	padding-bottom: 30px;
 }

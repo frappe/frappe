@@ -1,49 +1,36 @@
-# Contributing to Frappe / ERPNext
+### Introduction (first timers)
 
-## Reporting issues
+Thank you for your interest in raising an Issue with ERPNext. An Issue could mean a bug report or a request for a missing feature. By raising a bug report, you are contributing to the development of ERPNext and this is the first step of participating in the community. Bug reports are very helpful for developers as they quickly fix the issue before other users start facing it.
 
-We only accept issues that are bug reports or feature requests. Bugs must be isolated and reproducible problems. Please read the following guidelines before opening any issue.
+Feature requests are also a great way to take the product forward. New ideas can come in any user scenario and the issue list also acts a roadmap of future features.
 
-1. **Search for existing issues:** We want to avoid duplication, and you'd help us out a lot by first checking if someone else has reported the same issue. The issue may have already been resolved with a fix available.
+When you are raising an Issue, you should keep a few things in mind. Remember that the developer does not have access to your machine so you must give all the information you can while raising an Issue. If you are suggesting a feature, you should be very clear about what you want.
+
+The Issue list is not the right place to ask a question or start a general discussion. If you want to do that , then the right place is the forum [https://discuss.erpnext.com](https://discuss.erpnext.com).
+
+### Reply and Closing Policy
+
+If your issue is not clear or does not meet the guidelines, then it will be closed. If it is closed, please supply the information asked and re-open it.
+
+### General Issue Guidelines
+
+1. **Search existing Issues:** Before raising a Issue, search if it has been raised before. Maybe add a 👍 or give additional help by creating a mockup if it is not already created.
 1. **Report each issue separately:** Don't club multiple, unreleated issues in one note.
-1. **Mention the version number:** Please mention the application, browser and platform version numbers.
+1. **Brief:** Please don't include long explanations. Use screenshots and bullet points instead of descriptive paragraphs.
 
-### Issues
+### Bug Report Guidelines
 
-1. **Share as much information as possible:** Include operating system and version, browser and version, when did you last update ERPNext, how is it customized, etc. where appropriate. Also include steps to reproduce the bug.
-1. **Include Screenshots if possible:** Consider adding screenshots annotated with what goes wrong.
-1. **Find and post the trace for bugs:** If you are reporting an issue from the browser, Open the Javascript Console and paste us any error messages you see.
-1. **Security Issues:** If you are reporting a security issue, please send a private email to <info@frappe.io>.
+1. **Steps to Reproduce:** The bug report must have a list of steps needed to reproduce a bug. If we cannot reproduce it, then we cannot solve it.
+1. **Version Number:** Please add the version number in your report. Often a bug is fixed in the latest version
+1. **Clear Title:** Add a clear subject to your bug report like "Unable to submit Purchase Order without Basic Rate" instead of just "Cannot Submit"
+1. **Screenshots:** Screenshots are a great way of communicating the issues. Try adding annotations or using LiceCAP to take a screencast in `gif`.
 
-### Feature Requests
+### Feature Request Guidelines
 
-1. We need as much information you can to consider a feature request. 
-1. Think about **how** you want us to build the feature. Consider including:
-	1. Mockups (wireframes of features)
-	1. Screenshots (annotated with what should change)
-	1. Screenshots from other products if you want us to implement features present in other products.
-1. Basically, the more you help us, the faster your request is likely to be completed.
-1. A one line feature request like **Implement Capacity Planning** will be closed.
+1. **Clarity:** Clearly specify how do you want the feature to behave. Don't just say "I would like multiple PDF formats", say that "Ability to add multiple print formats for customers with different languages".
+1. **Solution:** Try and identify how the feature should look like.
+1. **Mockups:** Mockups are a great way to explain your requirement.
 
-## Pull Requests
+### What if my Issue is closed
 
-General guidelines for sending pull requests:
-
-#### Don't Repeat Yourself (DRY)
-
-We believe that the most effective way to manage a product like this is to ensure that
-there is minimum repetition of code. So before contributing a function, please make sure
-that such a feature or function does not exist else where. If it does, the try and extend
-that function to accommodate your use case.
-
-#### Don't create new DocTypes Unless Absolutely Necessary
-
-DocTypes are easy to create but hard to maintain. If you find that there is a another DocType with a similar functionality, then please try and extend that functionality. For example, by adding a "type" field to classify the new type of record.
-
-#### Tabs or spaces?
-
-Tabs!
-
-### Copyright
-
-Please see README.md
+Don't worry, take the feedback, supply the correct information and re-open it!

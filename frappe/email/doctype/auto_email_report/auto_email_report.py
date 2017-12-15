@@ -3,11 +3,13 @@
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
-import frappe
+import frappe, json
 from frappe import _
 from frappe.model.document import Document
+from datetime import timedelta
 import frappe.utils
-from frappe.utils.xlsutils import get_xls
+from frappe.utils import now, global_date_format, format_time
+from frappe.utils.xlsxutils import make_xlsx
 from frappe.utils.csvutils import to_csv
 
 max_reports_per_user = 3
@@ -19,6 +21,7 @@ class AutoEmailReport(Document):
 	def validate(self):
 		self.validate_report_count()
 		self.validate_emails()
+		self.validate_report_format()
 
 	def validate_emails(self):
 		'''Cleanup list of emails'''
@@ -36,66 +39,109 @@ class AutoEmailReport(Document):
 	def validate_report_count(self):
 		'''check that there are only 3 enabled reports per user'''
 		count = frappe.db.sql('select count(*) from `tabAuto Email Report` where user=%s and enabled=1', self.user)[0][0]
-		if count > max_reports_per_user:
+		if count > max_reports_per_user + (-1 if self.flags.in_insert else 0):
 			frappe.throw(_('Only {0} emailed reports are allowed per user').format(max_reports_per_user))
+
+	def validate_report_format(self):
+		""" check if user has select correct report format """
+		valid_report_formats = ["HTML", "XLSX", "CSV"]
+		if self.format not in valid_report_formats:
+			frappe.throw(_("%s is not a valid report format. Report format should \
+				one of the following %s"%(frappe.bold(self.format), frappe.bold(", ".join(valid_report_formats)))))
 
 	def get_report_content(self):
 		'''Returns file in for the report in given format'''
 		report = frappe.get_doc('Report', self.report)
-		raw = report.get_data(limit=self.no_of_rows or 100, user = self.user, filters = self.filters)
 
-		if len(raw)==1 and self.send_if_data:
+		if self.report_type=='Report Builder' and self.data_modified_till:
+			self.filters = json.loads(self.filters) if self.filters else {}
+			self.filters['modified'] = ('>', frappe.utils.now_datetime() - timedelta(hours=self.data_modified_till))
+
+		columns, data = report.get_data(limit=self.no_of_rows or 100, user = self.user,
+			filters = self.filters, as_dict=True)
+
+		# add serial numbers
+		columns.insert(0, frappe._dict(fieldname='idx', label='', width='30px'))
+		for i in range(len(data)):
+			data[i]['idx'] = i+1
+
+		if len(data)==0 and self.send_if_data:
 			return None
 
 		if self.format == 'HTML':
-			return self.get_html_table(raw)
+			return self.get_html_table(columns, data)
 
-		elif self.format == 'XLS':
-			return get_xls(raw)
+		elif self.format == 'XLSX':
+			spreadsheet_data = self.get_spreadsheet_data(columns, data)
+			xlsx_file = make_xlsx(spreadsheet_data, "Auto Email Report")
+			return xlsx_file.getvalue()
 
 		elif self.format == 'CSV':
-			return to_csv(raw)
+			spreadsheet_data = self.get_spreadsheet_data(columns, data)
+			return to_csv(spreadsheet_data)
 
 		else:
 			frappe.throw(_('Invalid Output Format'))
 
-	def get_html_table(self, data):
-		return frappe.render_template('frappe/templates/includes/print_table.html', {
-			'headings': data[0],
-			'data': data[1:]
+	def get_html_table(self, columns=None, data=None):
+
+		date_time = global_date_format(now()) + ' ' + format_time(now())
+		report_doctype = frappe.db.get_value('Report', self.report, 'ref_doctype')
+
+		return frappe.render_template('frappe/templates/emails/auto_email_report.html', {
+			'title': self.name,
+			'description': self.description,
+			'date_time': date_time,
+			'columns': columns,
+			'data': data,
+			'report_url': frappe.utils.get_url_to_report(self.report,
+				self.report_type, report_doctype),
+			'report_name': self.report,
+			'edit_report_settings': frappe.utils.get_link_to_form('Auto Email Report',
+				self.name)
 		})
+
+	@staticmethod
+	def get_spreadsheet_data(columns, data):
+		out = [[_(df.label) for df in columns], ]
+		for row in data:
+			new_row = []
+			out.append(new_row)
+			for df in columns:
+				new_row.append(frappe.format(row[df.fieldname], df, row))
+
+		return out
 
 	def get_file_name(self):
 		return "{0}.{1}".format(self.report.replace(" ", "-").replace("/", "-"), self.format.lower())
 
 	def send(self):
+		if self.filter_meta and not self.filters:
+			frappe.throw(_("Please set filters value in Report Filter table."))
+
 		data = self.get_report_content()
 		if not data:
 			return
 
 		attachments = None
-		message = '<p>{0}</p>'.format(_('{0} generated on {1}')\
-				.format(frappe.bold(self.name),
-					frappe.utils.format_datetime(frappe.utils.now_datetime())))
-
-		if self.description:
-			message += '<hr>' + self.description
-
-		if self.format=='HTML':
-			message += '<hr>' + data
+		if self.format == "HTML":
+			message = data
 		else:
+			message = self.get_html_table()
+
+		if not self.format=='HTML':
 			attachments = [{
 				'fname': self.get_file_name(),
 				'fcontent': data
 			}]
 
-		message += '<hr><p style="font-size: 10px;"> Edit Auto Email Report Settings: {0}</p>'.format(frappe.utils.get_link_to_form('Auto Email Report', self.name))
-
 		frappe.sendmail(
 			recipients = self.email_to.split(),
 			subject = self.name,
 			message = message,
-			attachments = attachments
+			attachments = attachments,
+			reference_doctype = self.doctype,
+			reference_name = self.name
 		)
 
 @frappe.whitelist()
@@ -130,7 +176,7 @@ def send_daily():
 		# if not correct weekday, skip
 		if auto_email_report.frequency=='Weekly':
 			if now.weekday()!={'Monday':0,'Tuesday':1,'Wednesday':2,
-				'Thursday':3,'Friday':4,'Saturday':5,'Sunday':6}[auto_email_report.weekday]:
+				'Thursday':3,'Friday':4,'Saturday':5,'Sunday':6}[auto_email_report.day_of_week]:
 				continue
 
 		auto_email_report.send()

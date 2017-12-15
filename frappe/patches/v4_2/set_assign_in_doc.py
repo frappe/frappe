@@ -6,6 +6,6 @@ def execute():
 		where ifnull(reference_type, '')!='' and ifnull(reference_name, '')!=''"""):
 		try:
 			frappe.get_doc("ToDo", name).on_update()
-		except Exception, e:
+		except Exception as e:
 			if e.args[0]!=1146:
 				raise

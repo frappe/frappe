@@ -37,7 +37,7 @@ frappe.pages['modules_setup'].on_page_load = function(wrapper) {
 	// save action
 	page.set_primary_action('Save', function() {
 		var hidden_list = [];
-		page.wrapper.find('input[type="checkbox"]').each(function() {
+		page.wrapper.find('input.module-select').each(function() {
 			if(!$(this).is(":checked")) {
 				hidden_list.push($(this).attr('data-module'));
 			}
@@ -59,11 +59,16 @@ frappe.pages['modules_setup'].on_page_load = function(wrapper) {
 	};
 
 	// application installer
-	if(frappe.boot.user.roles.indexOf('System Manager')!==-1) {
+	if(frappe.user_roles.includes('System Manager')) {
 		page.add_inner_button('Install Apps', function() {
 			frappe.set_route('applications');
 		});
 	}
+
+	// setup select all
+	$('.check-all').on('click', function() {
+		$(wrapper).find('input.module-select').prop('checked', $(this).prop('checked'));
+	});
 }
 
 frappe.pages['modules_setup'].on_page_show = function(wrapper) {

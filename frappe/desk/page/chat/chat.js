@@ -40,10 +40,10 @@ frappe.Chat = Class.extend({
 	setup_realtime: function() {
 		var me = this;
 		frappe.realtime.on('new_message', function(comment) {
-			if(comment.modified_by !== user || comment.communication_type === 'Bot') {
+			if(comment.modified_by !== frappe.session.user || comment.communication_type === 'Bot') {
 				if(frappe.get_route()[0] === 'chat') {
 					var current_contact = $(cur_page.page).find('[data-contact]').data('contact');
-					var on_broadcast_page = current_contact === user;
+					var on_broadcast_page = current_contact === frappe.session.user;
 					if ((current_contact == comment.owner)
 						|| (on_broadcast_page && comment.broadcast)
 						|| current_contact === 'Bot' && comment.communication_type === 'Bot') {
@@ -58,10 +58,8 @@ frappe.Chat = Class.extend({
 	},
 
 	prepend_comment: function(comment) {
-		var $row = $('<div class="list-row"/>');
 		frappe.pages.chat.chat.list.data.unshift(comment);
-		frappe.pages.chat.chat.list.render_row($row, comment);
-		frappe.pages.chat.chat.list.wrapper.prepend($row);
+		this.render_row(comment, true);
 	},
 
 	make_sidebar: function() {
@@ -156,7 +154,7 @@ frappe.Chat = Class.extend({
 	make_message_list: function(contact) {
 		var me = this;
 
-		this.list = new frappe.ui.Listing({
+		this.list = new frappe.ui.BaseList({
 			parent: this.page.main.find(".message-list"),
 			page: this.page,
 			method: 'frappe.desk.page.chat.chat.get_list',
@@ -165,15 +163,29 @@ frappe.Chat = Class.extend({
 			},
 			hide_refresh: true,
 			freeze: false,
-			render_row: function(wrapper, data) {
-				me.prepare(data);
-				var row = $(frappe.render_template("chat_row", {
-					data: data
-				})).appendTo(wrapper);
-				row.find(".avatar, .indicator").tooltip();
-			}
-
+			render_view: function (values) {
+				values.map(function (value) {
+					me.render_row(value);
+				});
+			},
 		});
+	},
+
+	render_row: function(value, prepend) {
+		this.prepare(value)
+
+		var wrapper = $('<div class="list-row">')
+			.data("data", this.meta)
+
+		if(!prepend)
+			wrapper.appendTo($(".result-list")).get(0);
+		else
+			wrapper.prependTo($(".result-list")).get(0);
+
+		var row = $(frappe.render_template("chat_row", {
+			data: value
+		})).appendTo(wrapper)
+		row.find(".avatar, .indicator").tooltip();
 	},
 
 	delete: function(ele) {
@@ -208,7 +220,7 @@ frappe.Chat = Class.extend({
 		if(data.owner==data.reference_name
 			&& data.communication_type!=="Notification"
 			&& data.comment_type!=="Bot") {
-				data.is_public = true;
+			data.is_public = true;
 		}
 
 		if(data.owner==data.reference_name && data.communication_type !== "Bot") {
@@ -219,7 +231,7 @@ frappe.Chat = Class.extend({
 			data.owner = 'bot';
 		}
 
-		data.content = frappe.markdown(data.content);
+		data.content = frappe.markdown(data.content.substr(0, 1000));
 	}
 
 

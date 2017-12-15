@@ -1,10 +1,12 @@
 <!-- title: {{ doctype }} -->
+<!-- add-breadcrumbs -->
 
 {% from "templates/autodoc/macros.html" import automodule, version,
   source_link, doctype_link %}
 {% set doc = frappe.get_doc("DocType", doctype) %}
 {% set controller = autodoc.get_controller(doctype) %}
 
+<h1>{{ doctype }}</h1>
 <div class="dev-header">
 {{ version(doctype) }}
 {{ source_link(app, app.name + "/" + scrub(doc.module)
@@ -22,7 +24,7 @@
 
 <h3>Fields</h3>
 
-<table class="table table-bordered">
+<table class="table table-bordered docfields">
     <thead>
         <tr>
             <th style="width: 5%">Sr</th>

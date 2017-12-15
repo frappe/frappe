@@ -20,8 +20,8 @@ def get(name):
 		return docs
 	else:
 		frappe.response['403'] = 1
-		raise frappe.PermissionError, 'No read permission for Page %s' % \
-			(page.title or name)
+		raise frappe.PermissionError('No read permission for Page %s' %(page.title or name))
+
 
 @frappe.whitelist(allow_guest=True)
 def getpage():
@@ -53,5 +53,5 @@ def has_permission(page):
 		# check if there are any user_permissions
 		return False
 	else:
-		# hack for home pages! if no page roles, allow everyone to see!
+		# hack for home pages! if no Has Roles, allow everyone to see!
 		return True

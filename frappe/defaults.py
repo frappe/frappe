@@ -42,31 +42,16 @@ def get_user_default_as_list(key, user=None):
 		else:
 			d = user_defaults.get(frappe.scrub(key), None)
 
-	return filter(None, (not isinstance(d, (list, tuple))) and [d] or d)
+	return list(filter(None, (not isinstance(d, (list, tuple))) and [d] or d))
 
 def is_a_user_permission_key(key):
 	return ":" not in key and key != frappe.scrub(key)
 
 def get_user_permissions(user=None):
-	if not user:
-		user = frappe.session.user
-
-	return build_user_permissions(user)
-
-def build_user_permissions(user):
-	out = frappe.cache().hget("user_permissions", user)
-	if out==None:
-		out = {}
-		for key, value in frappe.db.sql("""select defkey, ifnull(defvalue, '') as defvalue
-			from tabDefaultValue where parent=%s and parenttype='User Permission'""", (user,)):
-			out.setdefault(key, []).append(value)
-
-		# add profile match
-		if user not in out.get("User", []):
-			out.setdefault("User", []).append(user)
-
-		frappe.cache().hset("user_permissions", user, out)
-	return out
+	from frappe.core.doctype.user_permission.user_permission \
+		import get_user_permissions as _get_user_permissions
+	'''Return frappe.core.doctype.user_permissions.user_permissions._get_user_permissions (kept for backward compatibility)'''
+	return _get_user_permissions(user)
 
 def get_defaults(user=None):
 	globald = get_defaults_for()
@@ -107,7 +92,19 @@ def set_default(key, value, parent, parenttype="__default"):
 	:param value: Default value.
 	:param parent: Usually, **User** to whom the default belongs.
 	:param parenttype: [optional] default is `__default`."""
-	frappe.db.sql("""delete from `tabDefaultValue` where defkey=%s and parent=%s""", (key, parent))
+	if frappe.db.sql('''
+		select
+			defkey
+		from
+			tabDefaultValue
+		where
+			defkey=%s and parent=%s
+		for update''', (key, parent)):
+		frappe.db.sql("""
+			delete from
+				`tabDefaultValue`
+			where
+				defkey=%s and parent=%s""", (key, parent))
 	if value != None:
 		add_default(key, value, parent)
 
@@ -163,7 +160,7 @@ def clear_default(key=None, value=None, parent=None, name=None, parenttype=None)
 		clear_cache("__global")
 
 	if not conditions:
-		raise Exception, "[clear_default] No key specified."
+		raise Exception("[clear_default] No key specified.")
 
 	frappe.db.sql("""delete from tabDefaultValue where {0}""".format(" and ".join(conditions)),
 		tuple(values))

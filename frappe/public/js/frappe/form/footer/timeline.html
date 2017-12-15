@@ -1,20 +1,16 @@
 <div class="timeline">
-    <div class="timeline-head">
-		<div class="comment-input-header">
-			<span class="small text-muted">{%= __("Add a comment") %}</span>
-    		<button class="btn btn-default btn-comment btn-xs pull-right">
-    			{%= __("Comment") %}
-    		</button>
-		</div>
-        <div class="comment-input-container">
-    		<textarea class="form-control comment-input"></textarea>
-			<input type="data" class="hidden mention-input">
-        </div>
-    </div>
+	<div class="timeline-head">
+	</div>
 	<div class="timeline-new-email">
-		<button class="btn btn-default btn-new-email btn-xs">
+		{% if(doctype === "Communication") { %}
+			<button class="btn btn-default btn-reply-email btn-xs">
+				{%= __("Reply") %}
+			</button>
+		{% } else { %}
+			<button class="btn btn-default btn-new-email btn-xs">
 			{%= __("New Email") %}
 		</button>
+		{% } %}
 	</div>
     <div class="timeline-items">
 

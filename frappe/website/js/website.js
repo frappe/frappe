@@ -2,15 +2,17 @@
 // MIT License. See license.txt
 
 frappe.provide("website");
-frappe.provide("frappe.search_path");
+frappe.provide("frappe.awesome_bar_path");
 cur_frm = null;
 
 $.extend(frappe, {
-	boot: {},
+	boot: {
+		lang: 'en'
+	},
 	_assets_loaded: [],
 	require: function(url) {
 		if(frappe._assets_loaded.indexOf(url)!==-1) return;
-		$.ajax({
+		return $.ajax({
 			url: url,
 			async: false,
 			dataType: "text",
@@ -60,7 +62,11 @@ $.extend(frappe, {
 
 			// executed before statusCode functions
 			if(data.responseText) {
-				data = JSON.parse(data.responseText);
+				try {
+					data = JSON.parse(data.responseText);
+				} catch (e) {
+					data = {};
+				}
 			}
 			frappe.process_response(opts, data);
 		});
@@ -118,10 +124,10 @@ $.extend(frappe, {
 		}
 
 		if(data.exc) {
-			if(opts.btn) {
-				$(opts.btn).addClass($(opts.btn).is('button') || $(opts.btn).hasClass('btn') ? "btn-danger" : "text-danger");
-				setTimeout(function() { $(opts.btn).removeClass("btn-danger text-danger"); }, 1000);
-			}
+			// if(opts.btn) {
+			// 	$(opts.btn).addClass($(opts.btn).is('button') || $(opts.btn).hasClass('btn') ? "btn-danger" : "text-danger");
+			// 	setTimeout(function() { $(opts.btn).removeClass("btn-danger text-danger"); }, 1000);
+			// }
 			try {
 				var err = JSON.parse(data.exc);
 				if($.isArray(err)) {
@@ -133,10 +139,10 @@ $.extend(frappe, {
 			}
 
 		} else{
-			if(opts.btn) {
-				$(opts.btn).addClass($(opts.btn).is('button') || $(opts.btn).hasClass('btn') ? "btn-success" : "text-success");
-				setTimeout(function() { $(opts.btn).removeClass("btn-success text-success"); }, 1000);
-			}
+			// if(opts.btn) {
+			// 	$(opts.btn).addClass($(opts.btn).is('button') || $(opts.btn).hasClass('btn') ? "btn-success" : "text-success");
+			// 	setTimeout(function() { $(opts.btn).removeClass("btn-success text-success"); }, 1000);
+			// }
 		}
 		if(opts.msg && data.message) {
 			$(opts.msg).html(data.message).toggle(true);
@@ -147,18 +153,15 @@ $.extend(frappe, {
 		}
 	},
 	show_message: function(text, icon) {
-		if(!icon) icon="icon-refresh icon-spin";
+		if(!icon) icon="fa fa-refresh fa-spin";
 		frappe.hide_message();
 		$('<div class="message-overlay"></div>')
 			.html('<div class="content"><i class="'+icon+' text-muted"></i><br>'
 				+text+'</div>').appendTo(document.body);
 	},
-	hide_message: function(text) {
-		$('.message-overlay').remove();
-	},
 	get_sid: function() {
 		var sid = getCookie("sid");
-		return sid && sid!=="Guest";
+		return sid && sid !== "Guest";
 	},
 	get_modal: function(title, body_html) {
 		var modal = $('<div class="modal" style="overflow: auto;" tabindex="-1">\
@@ -182,6 +185,7 @@ $.extend(frappe, {
 		if($.isArray(html)) {
 			html = html.join("<hr>")
 		}
+
 		return frappe.get_modal(title || "Message", html).modal("show");
 	},
 	send_message: function(opts, btn) {
@@ -248,17 +252,11 @@ $.extend(frappe, {
 	},
 
 	trigger_ready: function() {
-		var ready_functions = frappe.page_ready_events[location.pathname];
-		if (ready_functions && ready_functions.length) {
-			for (var i=0, l=ready_functions.length; i < l; i++) {
-				var ready = ready_functions[i];
-				ready && ready();
-			}
-		}
-
-		// remove them so that they aren't fired again and again!
-		delete frappe.page_ready_events[location.pathname];
+		frappe.ready_events.forEach(function(fn) {
+			fn();
+		});
 	},
+
 	highlight_code_blocks: function() {
 		if(hljs) {
 			$('pre code').each(function(i, block) {
@@ -301,13 +299,13 @@ $.extend(frappe, {
 		});
 	},
 	do_search: function(val) {
-		var path = (frappe.search_path && frappe.search_path[location.pathname]
+		var path = (frappe.awesome_bar_path && frappe.awesome_bar_path[location.pathname]
 			|| window.search_path || location.pathname);
 
 		window.location.href = path + "?txt=" + encodeURIComponent(val);
 	},
 	set_search_path: function(path) {
-		frappe.search_path[location.pathname] = path;
+		frappe.awesome_bar_path[location.pathname] = path;
 	},
 	make_navbar_active: function() {
 		var pathname = window.location.pathname;
@@ -325,6 +323,9 @@ $.extend(frappe, {
 	},
 	is_user_logged_in: function() {
 		return window.full_name ? true : false;
+	},
+	add_switch_to_desk: function() {
+		$('.switch-to-desk').removeClass('hidden');
 	}
 });
 
@@ -333,7 +334,6 @@ $.extend(frappe, {
 
 function valid_email(id) {
 	return (id.toLowerCase().search("[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?")==-1) ? 0 : 1;
-
 }
 
 var validate_email = valid_email;
@@ -367,7 +367,7 @@ function ask_to_login() {
 // check if logged in?
 $(document).ready(function() {
 	window.full_name = getCookie("full_name");
-	window.logged_in = getCookie("sid") && getCookie("sid")!=="Guest";
+	var logged_in = getCookie("sid") && getCookie("sid") !== "Guest";
 	$("#website-login").toggleClass("hide", logged_in ? true : false);
 	$("#website-post-login").toggleClass("hide", logged_in ? false : true);
 	$(".logged-in").toggleClass("hide", logged_in ? false : true);
@@ -376,9 +376,7 @@ $(document).ready(function() {
 
 	// switch to app link
 	if(getCookie("system_user")==="yes" && logged_in) {
-		$("#website-post-login .dropdown-menu").append('<li><a href="/desk">Switch To Desk</a></li>');
-		$(".navbar-header .dropdown:not(.dropdown-submenu) > .dropdown-menu")
-			.append('<li><a href="/desk">Switch To Desk</a></li>');
+		frappe.add_switch_to_desk();
 	}
 
 	frappe.render_user();

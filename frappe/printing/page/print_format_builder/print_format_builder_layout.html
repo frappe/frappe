@@ -1,0 +1,24 @@
+<div class="padding">
+	<div class="text-muted text-center">
+		{%= __("Drag elements from the sidebar to add. Drag them back to trash.") %}<br><br>
+	</div>
+	<div class="print-format-builder-header">
+		<div class="text-right">
+			<a class="edit-heading btn btn-default btn-xs">
+				{%= __("Edit Heading") %}</a>
+		</div>
+		<div class="print-format-builder-print-heading">
+			{{ me.print_heading_template }}
+		</div>
+	</div>
+	<div class="print-format-builder-layout">
+		{% for(var i=0; i < data.length; i++) { %}
+			{%= frappe.render_template("print_format_builder_section",
+				{section: data[i], me:me}) %}
+		{% } %}
+	</div>
+	<div class="print-format-builder-add-section text-muted text-center">
+		<span class="octicon octicon-plus"></span>
+		<a class="grey">Add a new section</a>
+	</div>
+</div>

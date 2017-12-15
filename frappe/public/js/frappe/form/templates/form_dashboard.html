@@ -1,13 +1,11 @@
-<div class="form-dashboard hidden">
-	<h4 class="form-headline hidden form-dashboard-section">
-	</h4>
+<div class="form-dashboard-wrapper">
 	<div class="progress-area hidden form-dashboard-section">
 	</div>
 	<div class="form-heatmap hidden form-dashboard-section">
-		<div id="heatmap-{{ frm.doctype }}"></div>
+		<div id="heatmap-{{ frappe.model.scrub(frm.doctype) }}" class="heatmap"></div>
 		<div class="text-muted small heatmap-message hidden"></div>
 	</div>
-	<div class="form-chart form-dashboard-section hidden"></div>
+	<div class="form-graph form-dashboard-section hidden"></div>
 	<div class="form-stats form-dashboard-section hidden">
 		<div class="row"></div>
 	</div>

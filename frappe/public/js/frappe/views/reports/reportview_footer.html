@@ -1,0 +1,18 @@
+<div class="row">
+	<div class="col-md-6">
+		{% if has_child_column %}
+			<div class="checkbox">
+			    <label>
+			        <input type="checkbox" class="show-all-data"
+						style="margin-top: 2px"
+						{{ show_all_data ? "checked" : "" }}>
+						{{ __("Show all data") }}
+			    </label>
+			</div>
+		{% endif %}
+	</div>
+	{% if can_write %}
+	<div class="col-md-6 text-right"><p class="text-muted">
+		{{ __("Tip:  Double click cell to edit") }}</p></div>
+	{% endif %}
+</div>

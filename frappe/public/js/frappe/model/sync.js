@@ -8,14 +8,14 @@ $.extend(frappe.model, {
 			extract docs, docinfo (attachments, comments, assignments)
 			from incoming request and set in `locals` and `frappe.model.docinfo`
 		*/
-
+		var isPlain;
 		if(!r.docs && !r.docinfo) r = {docs:r};
 
-		if($.isPlainObject(r.docs)) r.docs = [r.docs];
+		isPlain = $.isPlainObject(r.docs);
+		if(isPlain) r.docs = [r.docs];
 
 		if(r.docs) {
 			var last_parent_name = null;
-			var dirty = [];
 
 			for(var i=0, l=r.docs.length; i<l; i++) {
 				var d = r.docs[i];
@@ -45,7 +45,7 @@ $.extend(frappe.model, {
 				}
 			}
 
-			if(cur_frm && dirty.indexOf(cur_frm.doctype)!==-1) cur_frm.dirty();
+			if(cur_frm && isPlain) cur_frm.dirty();
 
 		}
 

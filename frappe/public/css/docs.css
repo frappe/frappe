@@ -1,3 +1,4 @@
+/* the element that this class is applied to, should have a max width for this to work*/
 .navbar .dropdown-toggle {
   padding-top: 8px;
   padding-bottom: 8px;
@@ -131,14 +132,23 @@
 .navbar-new-comments-true {
   background-color: #ff5858;
 }
-#navbar-search {
+.navbar-form .awesomplete {
+  margin-left: -15px;
   width: 300px;
-  background-color: rgba(255, 255, 255, 0.9);
+}
+@media (max-width: 1199px) {
+  .navbar-form .awesomplete {
+    width: 280px;
+  }
 }
 @media (max-width: 991px) {
-  #navbar-search {
+  .navbar-form .awesomplete {
     width: 250px;
   }
+}
+#navbar-search {
+  width: 100%;
+  background-color: rgba(255, 255, 255, 0.9);
 }
 .navbar .navbar-search-icon {
   color: #6C7680;
@@ -186,21 +196,19 @@
 }
 #navbar-breadcrumbs > li > a {
   padding: 6px 15px 10px 0px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 170px;
 }
 @media (min-width: 991px) and (max-width: 1199px) {
   #navbar-breadcrumbs > li > a {
-    max-width: 143px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    max-width: 120px;
   }
 }
 .toolbar-user-fullname {
-  max-width: 200px;
+  max-width: 150px;
   display: inline-block;
-}
-.navbar-brand {
-  padding: 10px;
 }
 .navbar-brand > img {
   display: inline-block;
@@ -372,13 +380,22 @@ pre {
   color: #4f4fa4;
 }
 .navbar {
-  max-width: 870px;
+  background-color: #36414C !important;
   margin-left: auto;
   margin-right: auto;
+}
+.navbar .container {
+  max-width: 870px;
+}
+.navbar .brand-logo {
+  width: 30px;
+  margin-top: -4px;
+  margin-right: 7px;
 }
 .navbar a {
   font-size: 16px;
   font-weight: normal;
+  color: #fff !important;
 }
 .navbar a.navbar-brand {
   font-weight: bold;
@@ -581,10 +598,4 @@ a.edit:visited,
 }
 .page-content-wrapper > .row .col-sm-4 {
   display: none;
-}
-.screenshot {
-  border: 2px solid #d1d8dd;
-  box-shadow: 1px 1px 7px rgba(0, 0, 0, 0.15);
-  margin: 15px 0px;
-  max-width: 100%;
 }

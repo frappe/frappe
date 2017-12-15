@@ -45,7 +45,7 @@ $.extend(frappe.perm, {
 			return perm;
 		}
 
-		if (user==="Administrator" || user_roles.indexOf("Administrator")!==-1) {
+		if (frappe.session.user === "Administrator" || frappe.user_roles.includes("Administrator")) {
 			perm[0].read = 1;
 		}
 
@@ -62,7 +62,7 @@ $.extend(frappe.perm, {
 
 			// if owner
 			if(!$.isEmptyObject(perm[0].if_owner)) {
-				if(doc.owner===user) {
+				if(doc.owner === frappe.session.user) {
 					$.extend(perm[0], perm[0].if_owner);
 				} else {
 					// not owner, remove permissions
@@ -78,7 +78,7 @@ $.extend(frappe.perm, {
 			if(docinfo && docinfo.shared) {
 				for(var i=0; i<docinfo.shared.length; i++) {
 					var s = docinfo.shared[i];
-					if(s.user===user) {
+					if(s.user === frappe.session.user) {
 						perm[0]["read"] = perm[0]["read"] || s.read;
 						perm[0]["write"] = perm[0]["write"] || s.write;
 						perm[0]["share"] = perm[0]["share"] || s.share;
@@ -109,7 +109,7 @@ $.extend(frappe.perm, {
 
 		$.each(meta.permissions || [], function(i, p) {
 			// if user has this role
-			if(user_roles.indexOf(p.role)!==-1) {
+			if(frappe.user_roles.includes(p.role)) {
 				var permlevel = cint(p.permlevel);
 				if(!perm[permlevel]) {
 					perm[permlevel] = {};
@@ -198,7 +198,7 @@ $.extend(frappe.perm, {
 		}
 
 		if (perm[0].if_owner && perm[0].read) {
-			match_rules.push({"Owner": user});
+			match_rules.push({"Owner": frappe.session.user});
 		}
 
 		return match_rules;
@@ -255,11 +255,16 @@ $.extend(frappe.perm, {
 	},
 
 	get_field_display_status: function(df, doc, perm, explain) {
-		if(!doc) {
+		// returns the display status of a particular field
+		// returns one of "Read", "Write" or "None"
+		if(!perm && doc) {
+			perm = frappe.perm.get_perm(doc.doctype, doc);
+		}
+
+		if(!perm) {
 			return (df && (cint(df.hidden) || cint(df.hidden_due_to_dependency))) ? "None": "Write";
 		}
 
-		perm = perm || frappe.perm.get_perm(doc.doctype, doc);
 		if(!df.permlevel) df.permlevel = 0;
 		var p = perm[df.permlevel];
 		var status = "None";
@@ -281,6 +286,10 @@ $.extend(frappe.perm, {
 		// hidden due to dependency
 		if(cint(df.hidden_due_to_dependency)) status = "None";
 		if(explain) console.log("By Hidden Due To Dependency:" + status);
+
+		if(!doc) {
+			return status;
+		}
 
 		// submit
 		if(status==="Write" && cint(doc.docstatus) > 0) status = "Read";

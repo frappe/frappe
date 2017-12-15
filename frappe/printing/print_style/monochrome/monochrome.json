@@ -1,0 +1,15 @@
+{
+ "creation": "2017-08-17 02:16:20.992989", 
+ "css": ".print-format * {\n\tcolor: #000 !important;\n}\n\n.print-format .alert {\n\tbackground-color: inherit;\n\tborder: 1px dashed #333;\n}\n\n.print-format .table-bordered,\n.print-format .table-bordered > thead > tr > th,\n.print-format .table-bordered > tbody > tr > th,\n.print-format .table-bordered > tfoot > tr > th,\n.print-format .table-bordered > thead > tr > td,\n.print-format .table-bordered > tbody > tr > td,\n.print-format .table-bordered > tfoot > tr > td {\n\tborder: 1px solid #333;\n}\n\n.print-format hr {\n\tborder-top: 1px solid #333;\n}\n\n.print-heading {\n\tborder-bottom: 2px solid #333;\n}\n", 
+ "disabled": 0, 
+ "docstatus": 0, 
+ "doctype": "Print Style", 
+ "idx": 0, 
+ "modified": "2017-08-18 00:44:25.023898", 
+ "modified_by": "Administrator", 
+ "name": "Monochrome", 
+ "owner": "Administrator", 
+ "preview": "/assets/frappe/images/help/print-style-monochrome.png", 
+ "print_style_name": "Monochrome", 
+ "standard": 1
+}

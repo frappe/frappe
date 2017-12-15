@@ -1,267 +1,299 @@
-frappe.provide("frappe.wiz");
-frappe.provide("frappe.wiz.events");
+frappe.provide("frappe.setup");
+frappe.provide("frappe.setup.events");
+frappe.provide("frappe.ui");
 
-frappe.wiz = {
+frappe.setup = {
 	slides: [],
 	events: {},
-	remove_app_slides: [],
+	data: {},
+	utils: {},
+	domains: [],
+
 	on: function(event, fn) {
-		if(!frappe.wiz.events[event]) {
-			frappe.wiz.events[event] = [];
+		if(!frappe.setup.events[event]) {
+			frappe.setup.events[event] = [];
 		}
-		frappe.wiz.events[event].push(fn);
+		frappe.setup.events[event].push(fn);
 	},
 	add_slide: function(slide) {
-		frappe.wiz.slides.push(slide);
+		frappe.setup.slides.push(slide);
 	},
 
 	run_event: function(event) {
-		$.each(frappe.wiz.events[event] || [], function(i, fn) {
+		$.each(frappe.setup.events[event] || [], function(i, fn) {
 			fn();
 		});
 	}
 }
 
 frappe.pages['setup-wizard'].on_page_load = function(wrapper) {
-	// setup page ui
-	$(".navbar:first").toggle(false);
-	$("body").css({"padding-top":"30px"});
+	let requires = (frappe.boot.setup_wizard_requires || []);
 
-	var requires = ["/assets/frappe/css/animate.min.css"].concat(frappe.boot.setup_wizard_requires || []);
 
 	frappe.require(requires, function() {
-		frappe.wiz.run_event("before_load");
-		var wizard_settings = {
-			page_name: "setup-wizard",
-			parent: wrapper,
-			slides: frappe.wiz.slides,
-			title: __("Welcome")
-		}
+		frappe.call({
+			method: "frappe.desk.page.setup_wizard.setup_wizard.load_languages",
+			freeze: true,
+			callback: function(r) {
+				frappe.setup.data.lang = r.message;
 
-		frappe.wizard = new frappe.wiz.Wizard(wizard_settings);
-		frappe.wiz.run_event("after_load");
+				frappe.setup.run_event("before_load");
+				var wizard_settings = {
+					parent: wrapper,
+					slides: frappe.setup.slides,
+					slide_class: frappe.setup.SetupWizardSlide,
+					unidirectional: 1,
+					before_load: ($footer) => {
+						$footer.find('.next-btn').removeClass('btn-default')
+							.addClass('btn-primary');
+						$footer.find('.text-right').prepend(
+							$(`<a class="complete-btn btn btn-sm primary">
+						${__("Complete Setup")}</a>`));
 
-		// frappe.wizard.values = test_values_edu;
-
-		var route = frappe.get_route();
-		if(route) {
-			frappe.wizard.show(route[1]);
-		}
+					}
+				}
+				frappe.wizard = new frappe.setup.SetupWizard(wizard_settings);
+				frappe.setup.run_event("after_load");
+				// frappe.wizard.values = test_values_edu;
+				let route = frappe.get_route();
+				if(route) {
+					frappe.wizard.show_slide(route[1]);
+				}
+			}
+		});
 	});
-}
+};
 
 frappe.pages['setup-wizard'].on_page_show = function(wrapper) {
 	if(frappe.get_route()[1]) {
-		frappe.wizard && frappe.wizard.show(frappe.get_route()[1]);
+		frappe.wizard && frappe.wizard.show_slide(frappe.get_route()[1]);
 	}
-}
+};
 
-frappe.wiz.Wizard = Class.extend({
-	init: function(opts) {
-		$.extend(this, opts);
-		this.make();
-		this.slides;
-		this.slide_dict = {};
-		this.values = {};
+frappe.setup.on("before_load", function() {
+	// load slides
+	frappe.setup.slides_settings.forEach((s) => {
+		if(!(s.name==='user' && frappe.boot.developer_mode)) {
+			// if not user slide with developer mode
+			frappe.setup.add_slide(s);
+		}
+	});
+});
+
+frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
+	constructor(args = {}) {
+		super(args);
+		$.extend(this, args);
+
 		this.welcomed = true;
+		this.page_name = "setup-wizard";
 		frappe.set_route("setup-wizard/0");
-	},
-	make: function() {
-		this.parent = $('<div class="setup-wizard-wrapper">').appendTo(this.parent);
-	},
-	get_message: function(html) {
-		return $(repl('<div data-state="setup-complete">\
-			<div style="padding: 40px;" class="text-center">%(html)s</div>\
-		</div>', {html:html}))
-	},
-	show_working: function() {
-		this.hide_current_slide();
-		frappe.set_route(this.page_name);
-		this.current_slide = {"$wrapper": this.get_message(this.working_html()).appendTo(this.parent)};
-	},
-	show_complete: function() {
-		this.hide_current_slide();
-		this.current_slide = {"$wrapper": this.get_message(this.complete_html()).appendTo(this.parent)};
-	},
-	show: function(id) {
+	}
+
+	make() {
+		super.make();
+		this.container.addClass("container setup-wizard-slide with-form");
+		this.$next_btn.addClass('action');
+		this.$complete_btn = this.$footer.find('.complete-btn').addClass('action');
+		this.setup_keyboard_nav();
+	}
+
+	setup_keyboard_nav() {
+		$('body').on('keydown', this.handle_enter_press.bind(this));
+	}
+
+	disable_keyboard_nav() {
+		$('body').off('keydown', this.handle_enter_press.bind(this));
+	}
+
+	handle_enter_press(e) {
+		if (e.which === frappe.ui.keyCode.ENTER) {
+			var $target = $(e.target);
+			if($target.hasClass('prev-btn')) {
+				$target.trigger('click');
+			} else {
+				this.container.find('.next-btn').trigger('click');
+				e.preventDefault();
+			}
+		}
+	}
+
+	before_show_slide() {
 		if(!this.welcomed) {
 			frappe.set_route(this.page_name);
+			return false;
+		}
+		return true;
+	}
+
+	show_slide(id) {
+		if (id === this.slides.length) {
+			// show_slide called on last slide
+			this.action_on_complete();
 			return;
 		}
-		id = cint(id);
-		if(this.current_slide && this.current_slide.id===id) {
-			return;
+		super.show_slide(id);
+		frappe.set_route(this.page_name, id + "");
+	}
+
+	show_hide_prev_next(id) {
+		super.show_hide_prev_next(id);
+		if (id + 1 === this.slides.length){
+			this.$next_btn.removeClass("btn-primary").hide();
+			this.$complete_btn.addClass("btn-primary").show()
+				.on('click', this.action_on_complete.bind(this));
+
+		} else {
+			this.$next_btn.addClass("btn-primary").show();
+			this.$complete_btn.removeClass("btn-primary").hide();
 		}
+	}
 
-		this.update_values();
-
-		if(!this.slide_dict[id]) {
-			this.slide_dict[id] = new frappe.wiz.WizardSlide($.extend(this.slides[id], {wiz:this, id:id}));
-			this.slide_dict[id].make();
-		}
-
-		this.hide_current_slide();
-
-		this.current_slide = this.slide_dict[id];
-		this.current_slide.$wrapper.removeClass("hidden");
-	},
-	hide_current_slide: function() {
-		if(this.current_slide) {
-			this.current_slide.$wrapper.addClass("hidden");
-			this.current_slide = null;
-		}
-	},
-	get_values: function() {
-		var values = {};
-		$.each(this.slide_dict, function(id, slide) {
-			if(slide.values) {
-				$.extend(values, slide.values);
-			}
-		});
-		return values;
-	},
-	working_html: function() {
-		var msg = $(frappe.render_template("setup_wizard_message", {
-			image: "/assets/frappe/images/ui/bubble-tea-smile.svg",
-			title: __("Setting Up"),
-			message: __('Sit tight while your system is being setup. This may take a few moments.')
-		}));
-		msg.find(".setup-wizard-message-image").addClass("animated infinite bounce");
-		return msg.html();
-	},
-
-	complete_html: function() {
-		return frappe.render_template("setup_wizard_message", {
-			image: "/assets/frappe/images/ui/bubble-tea-happy.svg",
-			title: __('Setup Complete'),
-			message: ""
-		});
-	},
-
-	on_complete: function() {
-		var me = this;
-		this.update_values();
-		this.show_working();
-		return frappe.call({
-			method: "frappe.desk.page.setup_wizard.setup_wizard.setup_complete",
-			args: {args: this.values},
-			callback: function(r) {
-				me.show_complete();
-				if(frappe.wiz.welcome_page) {
-					localStorage.setItem("session_last_route", frappe.wiz.welcome_page);
-				}
-				setTimeout(function() {
-					window.location = "/desk";
-				}, 2000);
-			},
-			error: function(r) {
-				var d = msgprint(__("There were errors."));
-				d.custom_onhide = function() {
-					frappe.set_route(me.page_name, me.slides.length - 1);
-				};
-			}
-		});
-	},
-
-	update_values: function() {
-		this.values = $.extend(this.values, this.get_values());
-	},
-
-	refresh_slides: function() {
-		// reset all slides so that labels are translated
-		var me = this;
-		if(this.in_refresh_slides) {
+	refresh_slides() {
+		// For Translations, etc.
+		if(this.in_refresh_slides || !this.current_slide.set_values()) {
 			return;
 		}
 		this.in_refresh_slides = true;
 
-		if(!this.current_slide.set_values()) {
-			return;
-		}
-
 		this.update_values();
+		frappe.setup.slides = [];
+		frappe.setup.run_event("before_load");
 
-		frappe.wiz.slides = [];
-		frappe.wiz.run_event("before_load");
+		frappe.setup.slides = this.get_setup_slides_filtered_by_domain();
 
-		// remove slides listed in remove_app_slides
-		var new_slides = [];
-		frappe.wiz.slides.forEach(function(slide) {
-			if(frappe.wiz.domain) {
-				var domains = slide.domains;
-				if (domains.indexOf('all') !== -1 ||
-					domains.indexOf(frappe.wiz.domain.toLowerCase()) !== -1) {
-					new_slides.push(slide);
-				}
-			} else {
-				new_slides.push(slide);
+		this.slides = frappe.setup.slides;
+		frappe.setup.run_event("after_load");
+
+		// re-render all slide, only remake made slides
+		$.each(this.slide_dict, (id, slide) => {
+			if(slide.made) {
+				this.made_slide_ids.push(id);
 			}
-		})
-		frappe.wiz.slides = new_slides;
+		});
+		this.made_slide_ids.push(this.current_id);
+		this.setup();
 
-		this.slides = frappe.wiz.slides;
-		frappe.wiz.run_event("after_load");
-
-		// re-render all slides
-		this.slide_dict = {};
-
-		var current_id = this.current_slide.id;
-		this.current_slide.destroy();
-
-		this.show(current_id);
+		this.show_slide(this.current_id);
+		setTimeout(() => {
+			this.container.find('.form-control').first().focus();
+		}, 200);
 		this.in_refresh_slides = false;
 	}
-});
 
-frappe.wiz.WizardSlide = Class.extend({
-	init: function(opts) {
-		$.extend(this, opts);
-		this.$wrapper = $('<div class="slide-wrapper hidden"></div>')
-			.appendTo(this.wiz.parent)
-			.attr("data-slide-id", this.id);
-	},
-	make: function() {
+	action_on_complete() {
 		var me = this;
-		if(this.$body) this.$body.remove();
+		if (!this.current_slide.set_values()) return;
+		this.update_values();
+		this.show_working_state();
+		this.disable_keyboard_nav();
+		return frappe.call({
+			method: "frappe.desk.page.setup_wizard.setup_wizard.setup_complete",
+			args: {args: this.values},
+			callback: function() {
+				me.show_setup_complete_state();
+				if(frappe.setup.welcome_page) {
+					localStorage.setItem("session_last_route", frappe.setup.welcome_page);
+				}
+				setTimeout(function() {
+					// Reload
+					window.location.href = '';
+				}, 2000);
+				setTimeout(()=> {
+					$('body').removeClass('setup-state');
+				}, 20000);
+			},
+			error: function() {
+				var d = frappe.msgprint(__("There were errors."));
+				d.custom_onhide = function() {
+					$(me.parent).find('.page-card-container').remove();
+					$('body').removeClass('setup-state');
+					me.container.show();
+					frappe.set_route(me.page_name, me.slides.length - 1);
+				};
+			}
+		});
+	}
 
-		if(this.before_load) {
-			this.before_load(this);
-		}
+	get_setup_slides_filtered_by_domain() {
+		var filtered_slides = [];
+		frappe.setup.slides.forEach(function(slide) {
+			if(frappe.setup.domains) {
+				let active_domains = frappe.setup.domains;
+				if (!slide.domains ||
+					slide.domains.filter(d => active_domains.includes(d)).length > 0) {
+					filtered_slides.push(slide);
+				}
+			} else {
+				filtered_slides.push(slide);
+			}
+		})
+		return filtered_slides;
+	}
 
-		this.$body = $(frappe.render_template("setup_wizard_page", {
-				help: __(this.help),
-				title:__(this.title),
-				main_title:__(this.wiz.title),
-				step: this.id + 1,
-				name: this.name,
-				css_class: this.css_class || "",
-				slides_count: this.wiz.slides.length
-			})).appendTo(this.$wrapper);
+	show_working_state() {
+		this.container.hide();
+		$('body').addClass('setup-state');
+		frappe.set_route(this.page_name);
 
-		this.body = this.$body.find(".form")[0];
+		this.working_state_message = this.get_message(
+			__("Setting Up"),
+			__("Sit tight while your system is being setup. This may take a few moments."),
+			true
+		).appendTo(this.parent);
 
-		if(this.fields) {
-			this.form = new frappe.ui.FieldGroup({
-				fields: this.fields,
-				body: this.body,
-				no_submit_on_enter: true
-			});
-			this.form.make();
-		} else {
-			$(this.body).html(this.html);
-		}
+		this.current_id = this.slides.length;
+		this.current_slide = null;
+		this.completed_state_message = this.get_message(
+			__("Setup Complete"),
+			__("Refreshing...")
+		);
+	}
 
+	show_setup_complete_state() {
+		this.working_state_message.hide();
+		this.completed_state_message.appendTo(this.parent);
+	}
+
+	get_message(title, message="", loading=false) {
+		const loading_html = loading
+			? '<div style="width:100%;height:100%" class="lds-rolling state-icon"><div></div></div>'
+			: `<div style="width:100%;height:100%" class="state-icon">
+				<i class="fa fa-check-circle text-success"
+					style="font-size: 64px; margin-top: -8px;"></i>
+			</div>`;
+
+		return $(`<div class="page-card-container" data-state="setup">
+			<div class="page-card">
+				<div class="page-card-head">
+					${loading
+						? `<span class="indicator orange">${title}</span>`
+						: `<span class="indicator green">${title}</span>`
+					}
+				</div>
+				<p>${message}</p>
+				<div class="state-icon-container">
+				${loading_html}
+				</div>
+			</div>
+		</div>`);
+	}
+};
+
+frappe.setup.SetupWizardSlide = class SetupWizardSlide extends frappe.ui.Slide {
+	constructor(slide = null) {
+		super(slide);
+	}
+
+	make() {
+		super.make();
 		this.set_init_values();
-		this.make_prev_next_buttons();
+		this.reset_action_button_state();
+	}
 
-		if(this.onload) {
-			this.onload(this);
-		}
-
-	},
-	set_init_values: function() {
+	set_init_values () {
 		var me = this;
-		// set values from frappe.wiz.values
+		// set values from frappe.setup.values
 		if(frappe.wizard.values && this.fields) {
 			this.fields.forEach(function(f) {
 				var value = frappe.wizard.values[f.fieldname];
@@ -270,117 +302,212 @@ frappe.wiz.WizardSlide = Class.extend({
 				}
 			});
 		}
-	},
+	}
 
-	set_values: function() {
-		this.values = this.form.get_values();
-		if(this.values===null) {
-			return false;
-		}
-		if(this.validate && !this.validate()) {
-			return false;
-		}
-		return true;
-	},
+};
 
-	make_prev_next_buttons: function() {
-		var me = this;
+// Frappe slides settings
+// ======================================================
 
-		// prev
-		if(this.id > 0) {
-			this.$prev = this.$body.find('.prev-btn').removeClass("hide")
-				.click(function() {
-					frappe.set_route(me.wiz.page_name, me.id-1 + "");
-				})
-				.css({"margin-right": "10px"});
-		}
-
-		// next or complete
-		if(this.id+1 < this.wiz.slides.length) {
-			this.$next = this.$body.find('.next-btn').removeClass("hide")
-				.click(function() {
-					if(me.set_values()) {
-						frappe.set_route(me.wiz.page_name, me.id+1 + "");
-					}
-				});
-		} else {
-			this.$complete = this.$body.find('.complete-btn').removeClass("hide")
-				.click(function() {
-					if(me.set_values()) {
-						me.wiz.on_complete(me.wiz);
-					}
-				});
-		}
-	},
-	get_input: function(fn) {
-		return this.form.get_input(fn);
-	},
-	get_field: function(fn) {
-		return this.form.get_field(fn);
-	},
-	destroy: function() {
-		this.$body.remove();
-		if(frappe.wizard.current_slide===this) {
-			frappe.wizard.current_slide = null;
-		}
-	},
-});
-
-function load_frappe_slides() {
-	// language selection
-	frappe.wiz.welcome = {
+frappe.setup.slides_settings = [
+	{
+		// Welcome (language) slide
 		name: "welcome",
-		domains: ["all"],
-		title: __("Welcome"),
-		icon: "icon-world",
-		help: __("Let's prepare the system for first use."),
+		title: __("Hello!"),
+		icon: "fa fa-world",
+		// help: __("Let's prepare the system for first use."),
 
 		fields: [
-			{ fieldname: "language", label: __("Select Your Language"), reqd:1,
-				fieldtype: "Select", "default": "english" },
+			{ fieldname: "language", label: __("Your Language"),
+				fieldtype: "Select", reqd: 1}
 		],
 
 		onload: function(slide) {
-			if (!frappe.wiz.welcome.data) {
-				frappe.wiz.welcome.load_languages(slide);
-			} else {
-				frappe.wiz.welcome.setup_fields(slide);
+			this.setup_fields(slide);
+
+			var language_field = slide.get_field("language");
+
+			language_field.set_input(frappe.setup.data.default_language || "English");
+
+			if (!frappe.setup._from_load_messages) {
+				language_field.$input.trigger("change");
 			}
-		},
-
-		css_class: "single-column",
-		load_languages: function(slide) {
-			frappe.call({
-				method: "frappe.desk.page.setup_wizard.setup_wizard.load_languages",
-				freeze: true,
-				callback: function(r) {
-					frappe.wiz.welcome.data = r.message;
-					frappe.wiz.welcome.setup_fields(slide);
-
-					var language_field = slide.get_field("language");
-					language_field.set_input(frappe.wiz.welcome.data.default_language || "english");
-
-					if (!frappe.wiz._from_load_messages) {
-						language_field.$input.trigger("change");
-					}
-
-					delete frappe.wiz._from_load_messages;
-
-					moment.locale("en");
-				}
-			});
+			delete frappe.setup._from_load_messages;
+			moment.locale("en");
 		},
 
 		setup_fields: function(slide) {
-			var select = slide.get_field("language");
-			select.df.options = frappe.wiz.welcome.data.languages;
-			select.refresh();
-			frappe.wiz.welcome.bind_events(slide);
+			frappe.setup.utils.setup_language_field(slide);
+			frappe.setup.utils.bind_language_events(slide);
+		},
+	},
+
+	{
+		// Region slide
+		name: 'region',
+		title: __("Select Your Region"),
+		icon: "fa fa-flag",
+		// help: __("Select your Country, Time Zone and Currency"),
+		fields: [
+			{ fieldname: "country", label: __("Your Country"), reqd:1,
+				fieldtype: "Select" },
+			{ fieldtype: "Section Break" },
+			{ fieldname: "timezone", label: __("Time Zone"), reqd:1,
+				fieldtype: "Select" },
+			{ fieldtype: "Column Break" },
+			{ fieldname: "currency", label: __("Currency"), reqd:1,
+				fieldtype: "Select" }
+		],
+
+		onload: function(slide) {
+			if(frappe.setup.data.regional_data) {
+				this.setup_fields(slide);
+			} else {
+				frappe.setup.utils.load_regional_data(slide, this.setup_fields);
+			}
 		},
 
-		bind_events: function(slide) {
-			slide.get_input("language").unbind("change").on("change", function() {
-				var lang = $(this).val() || "english";
+		setup_fields: function(slide) {
+			frappe.setup.utils.setup_region_fields(slide);
+			frappe.setup.utils.bind_region_events(slide);
+		}
+	},
+
+	{
+		// Profile slide
+		name: 'user',
+		title: __("The First User: You"),
+		icon: "fa fa-user",
+		fields: [
+			{ "fieldtype":"Attach Image", "fieldname":"attach_user_image",
+				label: __("Attach Your Picture"), is_private: 0, align: 'center'},
+			{ "fieldname": "full_name", "label": __("Full Name"), "fieldtype": "Data",
+				reqd:1},
+			{ "fieldname": "email", "label": __("Email Address") + ' (' + __("Will be your login ID") + ')',
+				"fieldtype": "Data", "options":"Email"},
+			{ "fieldname": "password", "label": __("Password"), "fieldtype": "Password" }
+		],
+		// help: __('The first user will become the System Manager (you can change this later).'),
+		onload: function(slide) {
+			if(frappe.session.user!=="Administrator") {
+				slide.form.fields_dict.email.$wrapper.toggle(false);
+				slide.form.fields_dict.password.$wrapper.toggle(false);
+
+				// remove password field
+				delete slide.form.fields_dict.password;
+
+				if(frappe.boot.user.first_name || frappe.boot.user.last_name) {
+					slide.form.fields_dict.full_name.set_input(
+						[frappe.boot.user.first_name, frappe.boot.user.last_name].join(' ').trim());
+				}
+
+				var user_image = frappe.get_cookie("user_image");
+				var $attach_user_image = slide.form.fields_dict.attach_user_image.$wrapper;
+
+				if(user_image) {
+					$attach_user_image.find(".missing-image").toggle(false);
+					$attach_user_image.find("img").attr("src", decodeURIComponent(user_image));
+					$attach_user_image.find(".img-container").toggle(true);
+				}
+				delete slide.form.fields_dict.email;
+
+			} else {
+				slide.form.fields_dict.email.df.reqd = 1;
+				slide.form.fields_dict.email.refresh();
+				slide.form.fields_dict.password.df.reqd = 1;
+				slide.form.fields_dict.password.refresh();
+
+				frappe.setup.utils.load_user_details(slide, this.setup_fields);
+			}
+		},
+
+		setup_fields: function(slide) {
+			if(frappe.setup.data.full_name) {
+				slide.form.fields_dict.full_name.set_input(frappe.setup.data.full_name);
+			}
+			if(frappe.setup.data.email) {
+				let email = frappe.setup.data.email;
+				slide.form.fields_dict.email.set_input(email);
+				if (frappe.get_gravatar(email, 200)) {
+					var $attach_user_image = slide.form.fields_dict.attach_user_image.$wrapper;
+					$attach_user_image.find(".missing-image").toggle(false);
+					$attach_user_image.find("img").attr("src", frappe.get_gravatar(email, 200));
+					$attach_user_image.find(".img-container").toggle(true);
+				}
+			}
+		},
+	}
+];
+
+frappe.setup.utils = {
+	load_regional_data: function(slide, callback) {
+		frappe.call({
+			method:"frappe.geo.country_info.get_country_timezone_info",
+			callback: function(data) {
+				frappe.setup.data.regional_data = data.message;
+				callback(slide);
+			}
+		});
+	},
+
+	load_user_details: function(slide, callback) {
+		frappe.call({
+			method: "frappe.desk.page.setup_wizard.setup_wizard.load_user_details",
+			freeze: true,
+			callback: function(r) {
+				frappe.setup.data.full_name = r.message.full_name;
+				frappe.setup.data.email = r.message.email;
+				callback(slide);
+			}
+		})
+	},
+
+	setup_language_field: function(slide) {
+		var language_field = slide.get_field("language");
+		language_field.df.options = frappe.setup.data.lang.languages;
+		language_field.refresh();
+	},
+
+	setup_region_fields: function(slide) {
+		/*
+			Set a slide's country, timezone and currency fields
+		*/
+		var data = frappe.setup.data.regional_data;
+
+		var country_field = slide.get_field('country');
+
+		slide.get_input("country").empty()
+			.add_options([""].concat(Object.keys(data.country_info).sort()));
+
+		slide.get_input("currency").empty()
+			.add_options(frappe.utils.unique([""].concat($.map(data.country_info,
+				function(opts, country) { return opts.currency; }))).sort());
+
+		slide.get_input("timezone").empty()
+			.add_options([""].concat(data.all_timezones));
+
+		// set values if present
+		if(frappe.wizard.values.country) {
+			country_field.set_input(frappe.wizard.values.country);
+		} else if (data.default_country) {
+			country_field.set_input(data.default_country);
+		}
+
+		if(frappe.wizard.values.currency) {
+			slide.get_field("currency").set_input(frappe.wizard.values.currency);
+		}
+
+		if(frappe.wizard.values.timezone) {
+			slide.get_field("timezone").set_input(frappe.wizard.values.timezone);
+		}
+
+	},
+
+	bind_language_events: function(slide) {
+		slide.get_input("language").unbind("change").on("change", function() {
+			clearTimeout (slide.language_call_timeout);
+			slide.language_call_timeout = setTimeout (() => {
+				var lang = $(this).val() || "English";
 				frappe._messages = {};
 				frappe.call({
 					method: "frappe.desk.page.setup_wizard.setup_wizard.load_messages",
@@ -389,169 +516,59 @@ function load_frappe_slides() {
 						language: lang
 					},
 					callback: function(r) {
-						frappe.wiz._from_load_messages = true;
+						frappe.setup._from_load_messages = true;
 						frappe.wizard.refresh_slides();
 					}
 				});
-			});
-		}
+			}, 500);
+		});
 	},
 
-	// region selection
-	frappe.wiz.region = {
-		domains: ["all"],
-		title: __("Region"),
-		icon: "icon-flag",
-		help: __("Select your Country, Time Zone and Currency"),
-		fields: [
-			{ fieldname: "country", label: __("Country"), reqd:1,
-				fieldtype: "Select" },
-			{ fieldname: "timezone", label: __("Time Zone"), reqd:1,
-				fieldtype: "Select" },
-			{ fieldname: "currency", label: __("Currency"), reqd:1,
-				fieldtype: "Select" },
-		],
+	bind_region_events: function(slide) {
+		/*
+			Bind a slide's country, timezone and currency fields
+		*/
+		slide.get_input("country").on("change", function() {
+			var country = slide.get_input("country").val();
+			var $timezone = slide.get_input("timezone");
+			var data = frappe.setup.data.regional_data;
 
-		onload: function(slide) {
-			var _setup = function() {
-				frappe.wiz.region.setup_fields(slide);
-				frappe.wiz.region.bind_events(slide);
-			};
+			$timezone.empty();
 
-			if(frappe.wiz.regional_data) {
-				_setup();
-			} else {
-				frappe.call({
-					method:"frappe.geo.country_info.get_country_timezone_info",
-					callback: function(data) {
-						frappe.wiz.regional_data = data.message;
-						_setup();
-					}
-				});
-			}
-		},
-		css_class: "single-column",
-		setup_fields: function(slide) {
-			var data = frappe.wiz.regional_data;
-
-			slide.get_input("country").empty()
-				.add_options([""].concat(keys(data.country_info).sort()));
-
-
-			slide.get_input("currency").empty()
-				.add_options(frappe.utils.unique([""].concat($.map(data.country_info,
-					function(opts, country) { return opts.currency; }))).sort());
-
-			slide.get_input("timezone").empty()
-				.add_options([""].concat(data.all_timezones));
-
-			// set values if present
-			if(frappe.wizard.values.country) {
-				slide.get_field("country").set_input(frappe.wizard.values.country);
-			} else if (data.default_country) {
-				slide.get_field("country").set_input(data.default_country);
+			// add country specific timezones first
+			if(country) {
+				var timezone_list = data.country_info[country].timezones || [];
+				$timezone.add_options(timezone_list.sort());
+				slide.get_field("currency").set_input(data.country_info[country].currency);
+				slide.get_field("currency").$input.trigger("change");
 			}
 
-			if(frappe.wizard.values.currency) {
-				slide.get_field("currency").set_input(frappe.wizard.values.currency);
-			}
+			// add all timezones at the end, so that user has the option to change it to any timezone
+			$timezone.add_options([""].concat(data.all_timezones));
 
-			if(frappe.wizard.values.timezone) {
-				slide.get_field("timezone").set_input(frappe.wizard.values.timezone);
-			}
+			slide.get_field("timezone").set_input($timezone.val());
 
-		},
+			// temporarily set date format
+			frappe.boot.sysdefaults.date_format = (data.country_info[country].date_format
+				|| "dd-mm-yyyy");
+		});
 
-		bind_events: function(slide) {
-			slide.get_input("country").on("change", function() {
-				var country = slide.get_input("country").val();
-				var $timezone = slide.get_input("timezone");
-				var data = frappe.wiz.regional_data;
-
-				$timezone.empty();
-
-				// add country specific timezones first
-				if(country) {
-					var timezone_list = data.country_info[country].timezones || [];
-					$timezone.add_options(timezone_list.sort());
-					slide.get_field("currency").set_input(data.country_info[country].currency);
-					slide.get_field("currency").$input.trigger("change");
+		slide.get_input("currency").on("change", function() {
+			var currency = slide.get_input("currency").val();
+			if (!currency) return;
+			frappe.model.with_doc("Currency", currency, function() {
+				frappe.provide("locals.:Currency." + currency);
+				var currency_doc = frappe.model.get_doc("Currency", currency);
+				var number_format = currency_doc.number_format;
+				if (number_format==="#.###") {
+					number_format = "#.###,##";
+				} else if (number_format==="#,###") {
+					number_format = "#,###.##"
 				}
 
-				// add all timezones at the end, so that user has the option to change it to any timezone
-				$timezone.add_options([""].concat(data.all_timezones));
-
-				slide.get_field("timezone").set_input($timezone.val());
-
-				// temporarily set date format
-				frappe.boot.sysdefaults.date_format = (data.country_info[country].date_format
-					|| "dd-mm-yyyy");
+				frappe.boot.sysdefaults.number_format = number_format;
+				locals[":Currency"][currency] = $.extend({}, currency_doc);
 			});
-
-			slide.get_input("currency").on("change", function() {
-				var currency = slide.get_input("currency").val();
-				if (!currency) return;
-				frappe.model.with_doc("Currency", currency, function() {
-					frappe.provide("locals.:Currency." + currency);
-					var currency_doc = frappe.model.get_doc("Currency", currency);
-					var number_format = currency_doc.number_format;
-					if (number_format==="#.###") {
-						number_format = "#.###,##";
-					} else if (number_format==="#,###") {
-						number_format = "#,###.##"
-					}
-
-					frappe.boot.sysdefaults.number_format = number_format;
-					locals[":Currency"][currency] = $.extend({}, currency_doc);
-				});
-			});
-		}
+		});
 	},
-
-
-	frappe.wiz.user = {
-		domains: ["all"],
-		title: __("The First User: You"),
-		icon: "icon-user",
-		fields: [
-			{"fieldname": "first_name", "label": __("First Name"), "fieldtype": "Data",
-				reqd:1},
-			{"fieldname": "last_name", "label": __("Last Name"), "fieldtype": "Data"},
-			{"fieldname": "email", "label": __("Email Address"), "fieldtype": "Data",
-				reqd:1, "description": __("You will use it to Login"), "options":"Email"},
-			{"fieldname": "password", "label": __("Password"), "fieldtype": "Password",
-				reqd:1},
-			{fieldtype:"Attach Image", fieldname:"attach_user",
-				label: __("Attach Your Picture"), is_private: 0},
-		],
-		help: __('The first user will become the System Manager (you can change this later).'),
-		onload: function(slide) {
-			if(user!=="Administrator") {
-				slide.form.fields_dict.password.$wrapper.toggle(false);
-				slide.form.fields_dict.email.$wrapper.toggle(false);
-				slide.form.fields_dict.first_name.set_input(frappe.boot.user.first_name);
-				slide.form.fields_dict.last_name.set_input(frappe.boot.user.last_name);
-
-				var user_image = frappe.get_cookie("user_image");
-				if(user_image) {
-					var $attach_user = slide.form.fields_dict.attach_user.$wrapper;
-					$attach_user.find(".missing-image").toggle(false);
-					$attach_user.find("img").attr("src", decodeURIComponent(user_image)).toggle(true);
-				}
-
-				delete slide.form.fields_dict.email;
-				delete slide.form.fields_dict.password;
-			}
-		},
-		css_class: "single-column"
-	};
 };
-
-frappe.wiz.on("before_load", function() {
-	load_frappe_slides();
-
-	// add welcome slide
-	frappe.wiz.add_slide(frappe.wiz.welcome);
-	frappe.wiz.add_slide(frappe.wiz.region);
-	frappe.wiz.add_slide(frappe.wiz.user);
-});

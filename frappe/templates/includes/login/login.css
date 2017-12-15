@@ -1,5 +1,10 @@
 /* login-css */
 
+.hero-and-content {
+	/*background-color: #f5f7fa;*/
+	background-color: #fafbfc;
+}
+
 .page-sidebar, #wrap-footer, .page-header {
 	display: none;
 }
@@ -7,20 +12,6 @@
 .page-content {
 	right: 0%;
 	width: 100%;
-}
-
-.blue {
-	color: #7575ff;
-}
-
-.icon-facebook, .icon-facebook-sign{
-    color: #3b5998;
-}
-.icon-google-plus, .icon-google-plus-sign{
-    color: #C63D2D;
-}
-.icon-github, .icon-github-sign{
-    color: black;
 }
 
 .icon-twitter, .icon-twitter-sign{
@@ -35,15 +26,18 @@
 	background-color: #7575ff;
 }
 
-.form-signin {
-  max-width: 360px;
-  padding-right: 30px;
-  padding-left: 30px;
-  padding-top: 50px;
-  margin: 0 auto;
-  border-radius: 5px;
-  background-color: #fff;
+.for-login {
+	display: none;
 }
+
+.for-forgot {
+	display: none;
+}
+
+.for-signup {
+	display: none;
+}
+
 .form-signin .form-signin-heading,
 .form-signin .checkbox {
   margin-bottom: 10px;
@@ -58,7 +52,7 @@
      -moz-box-sizing: border-box;
           box-sizing: border-box;
   padding: 6px;
-  font-size: 16px;
+  font-size: 14px;
   margin-bottom: 10px;
 }
 .form-signin .form-control:focus {
@@ -69,6 +63,26 @@
 	margin: 10px;
 }
 
+.social-logins .fa {
+	margin-right: 5px;
+	color: #8D99A6;
+}
+
+.form-footer {
+	margin-top: -45px;
+	text-align: center;
+}
+
+.form-footer, .form-footer a, .form-footer h6 {
+	font-size: 12px;
+	color: #8D99A6;
+	font-weight: bold;
+}
+
+.form-footer .btn-default {
+	color: #36414C;
+}
+
 h5 {
   position: relative;
   text-align: center;
@@ -76,46 +90,11 @@ h5 {
   margin-bottom:20px;
 }
 
-h5 span {
-  background: #fff;
-  padding: 0 15px;
-  position: relative;
-  z-index: 1;
-}
-
-h5:before {
-  background: #ddd;
-  content: "";
-  display: block;
-  height: 1px;
-  position: absolute;
-    top: 50%;
-  width: 100%;
-}
-h5:before {
-  left: 0;
-}
-.login_header{
-	font-size: 36px;
-    position: relative;
-    text-align: center;
-	margin-bottom:20px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-	font-weight: 300;
-}
-
-p{
+p {
 	margin-bottom:20px;
 }
-.btn-login, .btn-signup, .btn-forgot {
-	background: #7575ff;
-	color: white;
-}
 
-.btn-login {
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    font-weight: 400;
+.login-content .btn {
 	font-size: 14px;
+	margin-top: 45px;
 }

@@ -1,7 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 """
 	Execute Patch Files
 
@@ -78,7 +78,7 @@ def execute_patch(patchmodule, method=None, methodargs=None):
 				frappe.flags.final_patches.append(patchmodule)
 			else:
 				if patchmodule.startswith("execute:"):
-					exec patchmodule.split("execute:")[1] in globals()
+					exec(patchmodule.split("execute:")[1],globals())
 				else:
 					frappe.get_attr(patchmodule.split()[0] + ".execute")()
 				update_patch_log(patchmodule)
@@ -98,7 +98,7 @@ def execute_patch(patchmodule, method=None, methodargs=None):
 
 def update_patch_log(patchmodule):
 	"""update patch_file in patch log"""
-	frappe.get_doc({"doctype": "Patch Log", "patch": patchmodule}).insert()
+	frappe.get_doc({"doctype": "Patch Log", "patch": patchmodule}).insert(ignore_permissions=True)
 
 def executed(patchmodule):
 	"""return True if is executed"""
@@ -125,4 +125,4 @@ def check_session_stopped():
 		raise frappe.SessionStopped('Session Stopped')
 
 def log(msg):
-	print msg
+	print (msg)

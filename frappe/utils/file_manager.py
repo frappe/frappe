@@ -6,13 +6,15 @@ import frappe
 import os, base64, re
 import hashlib
 import mimetypes
-from frappe.utils import get_site_path, get_hook_method, get_files_path, random_string, encode, cstr, call_hook_method, cint
+from frappe.utils import get_hook_method, get_files_path, random_string, encode, cstr, call_hook_method, cint
 from frappe import _
 from frappe import conf
 from copy import copy
-import urllib
+from six.moves.urllib.parse import unquote
+from six import text_type
 
 class MaxFileSizeReachedError(frappe.ValidationError): pass
+
 
 def get_file_url(file_data_name):
 	data = frappe.db.get_value("File", file_data_name, ["file_name", "file_url"], as_dict=True)
@@ -22,36 +24,50 @@ def upload():
 	# get record details
 	dt = frappe.form_dict.doctype
 	dn = frappe.form_dict.docname
-	folder = frappe.form_dict.folder
 	file_url = frappe.form_dict.file_url
 	filename = frappe.form_dict.filename
-	is_private = cint(frappe.form_dict.is_private)
+	frappe.form_dict.is_private = cint(frappe.form_dict.is_private)
 
 	if not filename and not file_url:
 		frappe.msgprint(_("Please select a file or url"),
 			raise_exception=True)
 
-	# save
-	if filename:
-		filedata = save_uploaded(dt, dn, folder, is_private)
-	elif file_url:
-		filedata = save_url(file_url, dt, dn, folder)
+	file_doc = get_file_doc()
 
 	comment = {}
 	if dt and dn:
 		comment = frappe.get_doc(dt, dn).add_comment("Attachment",
-			_("Added {0}").format("<a href='{file_url}' target='_blank'>{file_name}</a>{icon}".format(**{
-				"icon": ' <i class="icon icon-lock text-warning"></i>' if filedata.is_private else "",
-				"file_url": filedata.file_url.replace("#", "%23") if filedata.file_name else filedata.file_url,
-				"file_name": filedata.file_name or filedata.file_url
+			_("added {0}").format("<a href='{file_url}' target='_blank'>{file_name}</a>{icon}".format(**{
+				"icon": ' <i class="fa fa-lock text-warning"></i>' \
+					if file_doc.is_private else "",
+				"file_url": file_doc.file_url.replace("#", "%23") \
+					if file_doc.file_name else file_doc.file_url,
+				"file_name": file_doc.file_name or file_doc.file_url
 			})))
 
 	return {
-		"name": filedata.name,
-		"file_name": filedata.file_name,
-		"file_url": filedata.file_url,
+		"name": file_doc.name,
+		"file_name": file_doc.file_name,
+		"file_url": file_doc.file_url,
+		"is_private": file_doc.is_private,
 		"comment": comment.as_dict() if comment else {}
 	}
+
+def get_file_doc(dt=None, dn=None, folder=None, is_private=None):
+	'''returns File object (Document) from given parameters or form_dict'''
+	r = frappe.form_dict
+
+	if dt is None: dt = r.doctype
+	if dn is None: dn = r.docname
+	if folder is None: folder = r.folder
+	if is_private is None: is_private = r.is_private
+
+	if r.filedata:
+		file_doc = save_uploaded(dt, dn, folder, is_private)
+	elif r.file_url:
+		file_doc = save_url(r.file_url, r.filename, dt, dn, folder, is_private)
+
+	return file_doc
 
 def save_uploaded(dt, dn, folder, is_private):
 	fname, content = get_uploaded_content()
@@ -60,19 +76,21 @@ def save_uploaded(dt, dn, folder, is_private):
 	else:
 		raise Exception
 
-def save_url(file_url, dt, dn, folder):
+def save_url(file_url, filename, dt, dn, folder, is_private):
 	# if not (file_url.startswith("http://") or file_url.startswith("https://")):
 	# 	frappe.msgprint("URL must start with 'http://' or 'https://'")
 	# 	return None, None
 
-	file_url = urllib.unquote(file_url)
+	file_url = unquote(file_url)
 
 	f = frappe.get_doc({
 		"doctype": "File",
 		"file_url": file_url,
+		"file_name": filename,
 		"attached_to_doctype": dt,
 		"attached_to_name": dn,
-		"folder": folder
+		"folder": folder,
+		"is_private": is_private
 	})
 	f.flags.ignore_permissions = True
 	try:
@@ -93,58 +111,9 @@ def get_uploaded_content():
 		frappe.msgprint(_('No file attached'))
 		return None, None
 
-def extract_images_from_doc(doc, fieldname):
-	content = doc.get(fieldname)
-	content = extract_images_from_html(doc, content)
-	if frappe.flags.has_dataurl:
-		doc.set(fieldname, content)
-
-def extract_images_from_html(doc, content):
-	frappe.flags.has_dataurl = False
-
-	def _save_file(match):
-		data = match.group(1)
-		data = data.split("data:")[1]
-		headers, content = data.split(",")
-
-		if "filename=" in headers:
-			filename = headers.split("filename=")[-1]
-
-			# decode filename
-			if not isinstance(filename, unicode):
-				filename = unicode(filename, 'utf-8')
-		else:
-			mtype = headers.split(";")[0]
-			filename = get_random_filename(content_type=mtype)
-
-		doctype = doc.parenttype if doc.parent else doc.doctype
-		name = doc.parent or doc.name
-
-		# TODO fix this
-		file_url = save_file(filename, content, doctype, name, decode=True).get("file_url")
-		if not frappe.flags.has_dataurl:
-			frappe.flags.has_dataurl = True
-
-		return '<img src="{file_url}"'.format(file_url=file_url)
-
-	if content:
-		content = re.sub('<img[^>]*src\s*=\s*["\'](?=data:)(.*?)["\']', _save_file, content)
-
-	return content
-
-def get_random_filename(extn=None, content_type=None):
-	if extn:
-		if not extn.startswith("."):
-			extn = "." + extn
-
-	elif content_type:
-		extn = mimetypes.guess_extension(content_type)
-
-	return random_string(7) + (extn or "")
-
 def save_file(fname, content, dt, dn, folder=None, decode=False, is_private=0):
 	if decode:
-		if isinstance(content, unicode):
+		if isinstance(content, text_type):
 			content = content.encode("utf-8")
 
 		if "," in content:
@@ -222,18 +191,20 @@ def write_file(content, fname, is_private=0):
 	# create directory (if not exists)
 	frappe.create_folder(file_path)
 	# write the file
-	with open(os.path.join(file_path.encode('utf-8'), fname.encode('utf-8')), 'w+') as f:
+	if isinstance(content, text_type):
+		content = content.encode()
+	with open(os.path.join(file_path.encode('utf-8'), fname.encode('utf-8')), 'wb+') as f:
 		f.write(content)
 
 	return get_files_path(fname, is_private=is_private)
 
-def remove_all(dt, dn):
+def remove_all(dt, dn, from_delete=False):
 	"""remove all files in a transaction"""
 	try:
 		for fid in frappe.db.sql_list("""select name from `tabFile` where
 			attached_to_doctype=%s and attached_to_name=%s""", (dt, dn)):
-			remove_file(fid, dt, dn)
-	except Exception, e:
+			remove_file(fid, dt, dn, from_delete)
+	except Exception as e:
 		if e.args[0]!=1054: raise # (temp till for patched)
 
 def remove_file_by_url(file_url, doctype=None, name=None):
@@ -246,7 +217,7 @@ def remove_file_by_url(file_url, doctype=None, name=None):
 	if fid:
 		return remove_file(fid)
 
-def remove_file(fid, attached_to_doctype=None, attached_to_name=None):
+def remove_file(fid, attached_to_doctype=None, attached_to_name=None, from_delete=False):
 	"""Remove file and File entry"""
 	file_name = None
 	if not (attached_to_doctype and attached_to_name):
@@ -256,9 +227,11 @@ def remove_file(fid, attached_to_doctype=None, attached_to_name=None):
 			attached_to_doctype, attached_to_name, file_name = attached
 
 	ignore_permissions, comment = False, None
-	if attached_to_doctype and attached_to_name:
+	if attached_to_doctype and attached_to_name and not from_delete:
 		doc = frappe.get_doc(attached_to_doctype, attached_to_name)
 		ignore_permissions = doc.has_permission("write") or False
+		if frappe.flags.in_web_form:
+			ignore_permissions = True
 		if not file_name:
 			file_name = frappe.db.get_value("File", fid, "file_name")
 		comment = doc.add_comment("Attachment Removed", _("Removed {0}").format(file_name))
@@ -330,6 +303,8 @@ def get_file_path(file_name):
 	return file_path
 
 def get_content_hash(content):
+	if isinstance(content, text_type):
+		content = content.encode()
 	return hashlib.md5(content).hexdigest()
 
 def get_file_name(fname, optional_suffix):
@@ -345,3 +320,71 @@ def get_file_name(fname, optional_suffix):
 			partial, extn = f[0], "." + f[1]
 		return '{partial}{suffix}{extn}'.format(partial=partial, extn=extn, suffix=optional_suffix)
 	return fname
+
+@frappe.whitelist()
+def download_file(file_url):
+	"""
+	Download file using token and REST API. Valid session or
+	token is required to download private files.
+
+	Method : GET
+	Endpoint : frappe.utils.file_manager.download_file
+	URL Params : file_name = /path/to/file relative to site path
+	"""
+	file_doc = frappe.get_doc("File", {"file_url":file_url})
+	file_doc.check_permission("read")
+
+	with open(getattr(frappe.local, "site_path", None) + file_url, "rb") as fileobj:
+		filedata = fileobj.read()
+	frappe.local.response.filename = file_url[file_url.rfind("/")+1:]
+	frappe.local.response.filecontent = filedata
+	frappe.local.response.type = "download"
+
+def extract_images_from_doc(doc, fieldname):
+	content = doc.get(fieldname)
+	content = extract_images_from_html(doc, content)
+	if frappe.flags.has_dataurl:
+		doc.set(fieldname, content)
+
+def extract_images_from_html(doc, content):
+	frappe.flags.has_dataurl = False
+
+	def _save_file(match):
+		data = match.group(1)
+		data = data.split("data:")[1]
+		headers, content = data.split(",")
+
+		if "filename=" in headers:
+			filename = headers.split("filename=")[-1]
+
+			# decode filename
+			if not isinstance(filename, text_type):
+				filename = text_type(filename, 'utf-8')
+		else:
+			mtype = headers.split(";")[0]
+			filename = get_random_filename(content_type=mtype)
+
+		doctype = doc.parenttype if doc.parent else doc.doctype
+		name = doc.parent or doc.name
+
+		# TODO fix this
+		file_url = save_file(filename, content, doctype, name, decode=True).get("file_url")
+		if not frappe.flags.has_dataurl:
+			frappe.flags.has_dataurl = True
+
+		return '<img src="{file_url}"'.format(file_url=file_url)
+
+	if content:
+		content = re.sub('<img[^>]*src\s*=\s*["\'](?=data:)(.*?)["\']', _save_file, content)
+
+	return content
+
+def get_random_filename(extn=None, content_type=None):
+	if extn:
+		if not extn.startswith("."):
+			extn = "." + extn
+
+	elif content_type:
+		extn = mimetypes.guess_extension(content_type)
+
+	return random_string(7) + (extn or "")

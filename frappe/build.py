@@ -1,8 +1,12 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 from frappe.utils.minify import JavascriptMinify
+import subprocess
+import warnings
+
+from six import iteritems, text_type
 
 """
 Build the `public` folders and setup languages
@@ -22,30 +26,43 @@ def setup():
 		except ImportError: pass
 	app_paths = [os.path.dirname(pymodule.__file__) for pymodule in pymodules]
 
-def bundle(no_compress, make_copy=False, verbose=False):
+def bundle(no_compress, make_copy=False, restore=False, verbose=False):
 	"""concat / minify js files"""
 	# build js files
 	setup()
 
-	make_asset_dirs(make_copy=make_copy)
-	build(no_compress, verbose)
+	make_asset_dirs(make_copy=make_copy, restore=restore)
+
+	# new nodejs build system
+	command = 'node --use_strict ../apps/frappe/frappe/build.js --build'
+	if not no_compress:
+		command += ' --minify'
+	subprocess.call(command.split(' '))
+
+	# build(no_compress, verbose)
 
 def watch(no_compress):
 	"""watch and rebuild if necessary"""
-	setup()
 
-	import time
-	compile_less()
-	build(no_compress=True)
+	# new nodejs file watcher
+	command = 'node --use_strict ../apps/frappe/frappe/build.js --watch'
+	subprocess.call(command.split(' '))
 
-	while True:
-		compile_less()
-		if files_dirty():
-			build(no_compress=True)
+	# setup()
 
-		time.sleep(3)
+	# import time
+	# compile_less()
+	# build(no_compress=True)
 
-def make_asset_dirs(make_copy=False):
+	# while True:
+	# 	compile_less()
+	# 	if files_dirty():
+	# 		build(no_compress=True)
+
+	# 	time.sleep(3)
+
+def make_asset_dirs(make_copy=False, restore=False):
+	# don't even think of making assets_path absolute - rm -rf ahead.
 	assets_path = os.path.join(frappe.local.sites_path, "assets")
 	for dir_path in [
 			os.path.join(assets_path, 'js'),
@@ -65,16 +82,33 @@ def make_asset_dirs(make_copy=False):
 
 		for source, target in symlinks:
 			source = os.path.abspath(source)
-			if not os.path.exists(target) and os.path.exists(source):
-				if make_copy:
-					shutil.copytree(source, target)
+			if os.path.exists(source):
+				if restore:
+					if os.path.exists(target):
+						if os.path.islink(target):
+							os.unlink(target)
+						else:
+							shutil.rmtree(target)
+						shutil.copytree(source, target)
+				elif make_copy:
+					if os.path.exists(target):
+						warnings.warn('Target {target} already exists.'.format(target = target))
+					else:
+						shutil.copytree(source, target)
 				else:
+					if os.path.exists(target):
+						if os.path.islink(target):
+							os.unlink(target)
+						else:
+							shutil.rmtree(target)
 					os.symlink(source, target)
+			else:
+				warnings.warn('Source {source} does not exists.'.format(source = source))
 
 def build(no_compress=False, verbose=False):
 	assets_path = os.path.join(frappe.local.sites_path, "assets")
 
-	for target, sources in get_build_maps().iteritems():
+	for target, sources in iteritems(get_build_maps()):
 		pack(os.path.join(assets_path, target), sources, no_compress, verbose)
 
 def get_build_maps():
@@ -87,7 +121,7 @@ def get_build_maps():
 		if os.path.exists(path):
 			with open(path) as f:
 				try:
-					for target, sources in json.loads(f.read()).iteritems():
+					for target, sources in iteritems(json.loads(f.read())):
 						# update app path
 						source_paths = []
 						for source in sources:
@@ -98,16 +132,15 @@ def get_build_maps():
 							source_paths.append(s)
 
 						build_maps[target] = source_paths
-				except ValueError, e:
-					print path
-					print 'JSON syntax error {0}'.format(str(e))
-
+				except ValueError as e:
+					print(path)
+					print('JSON syntax error {0}'.format(str(e)))
 	return build_maps
 
 timestamps = {}
 
 def pack(target, sources, no_compress, verbose):
-	from cStringIO import StringIO
+	from six import StringIO
 
 	outtype, outtxt = target.split(".")[-1], ''
 	jsm = JavascriptMinify()
@@ -116,12 +149,12 @@ def pack(target, sources, no_compress, verbose):
 		suffix = None
 		if ':' in f: f, suffix = f.split(':')
 		if not os.path.exists(f) or os.path.isdir(f):
-			print "did not find " + f
+			print("did not find " + f)
 			continue
 		timestamps[f] = os.path.getmtime(f)
 		try:
 			with open(f, 'r') as sourcefile:
-				data = unicode(sourcefile.read(), 'utf-8', errors='ignore')
+				data = text_type(sourcefile.read(), 'utf-8', errors='ignore')
 
 			extn = f.rsplit(".", 1)[1]
 
@@ -130,10 +163,10 @@ def pack(target, sources, no_compress, verbose):
 				jsm.minify(tmpin, tmpout)
 				minified = tmpout.getvalue()
 				if minified:
-					outtxt += unicode(minified or '', 'utf-8').strip('\n') + ';'
+					outtxt += text_type(minified or '', 'utf-8').strip('\n') + ';'
 
 				if verbose:
-					print "{0}: {1}k".format(f, int(len(minified) / 1024))
+					print("{0}: {1}k".format(f, int(len(minified) / 1024)))
 			elif outtype=="js" and extn=="html":
 				# add to frappe.templates
 				outtxt += html_to_js_template(f, data)
@@ -142,8 +175,8 @@ def pack(target, sources, no_compress, verbose):
 				outtxt += '\n' + data + '\n'
 
 		except Exception:
-			print "--Error in:" + f + "--"
-			print frappe.get_traceback()
+			print("--Error in:" + f + "--")
+			print(frappe.get_traceback())
 
 	if not no_compress and outtype == 'css':
 		pass
@@ -152,25 +185,30 @@ def pack(target, sources, no_compress, verbose):
 	with open(target, 'w') as f:
 		f.write(outtxt.encode("utf-8"))
 
-	print "Wrote %s - %sk" % (target, str(int(os.path.getsize(target)/1024)))
+	print("Wrote %s - %sk" % (target, str(int(os.path.getsize(target)/1024))))
 
 def html_to_js_template(path, content):
+	'''returns HTML template content as Javascript code, adding it to `frappe.templates`'''
+	return """frappe.templates["{key}"] = '{content}';\n""".format(\
+		key=path.rsplit("/", 1)[-1][:-5], content=scrub_html_template(content))
+
+def scrub_html_template(content):
+	'''Returns HTML content with removed whitespace and comments'''
 	# remove whitespace to a single space
 	content = re.sub("\s+", " ", content)
 
 	# strip comments
 	content =  re.sub("(<!--.*?-->)", "", content)
 
-	return """frappe.templates["{key}"] = '{content}';\n""".format(\
-		key=path.rsplit("/", 1)[-1][:-5], content=content.replace("'", "\'"))
+	return content.replace("'", "\'")
 
 def files_dirty():
-	for target, sources in get_build_maps().iteritems():
+	for target, sources in iteritems(get_build_maps()):
 		for f in sources:
 			if ':' in f: f, suffix = f.split(':')
 			if not os.path.exists(f) or os.path.isdir(f): continue
 			if os.path.getmtime(f) != timestamps.get(f):
-				print f + ' dirty'
+				print(f + ' dirty')
 				return True
 	else:
 		return False
@@ -192,7 +230,7 @@ def compile_less():
 
 					timestamps[fpath] = mtime
 
-					print "compiling {0}".format(fpath)
+					print("compiling {0}".format(fpath))
 
 					css_path = os.path.join(path, "public", "css", fname.rsplit(".", 1)[0] + ".css")
 					os.system("lessc {0} > {1}".format(fpath, css_path))

@@ -3,10 +3,9 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _
-from frappe.utils import get_url, flt
-import json, urllib
-
-from frappe.integrations.razorpay import Controller
+from frappe.utils import flt, cint
+import json
+from six import string_types
 
 no_cache = 1
 no_sitemap = 1
@@ -16,33 +15,47 @@ expected_keys = ('amount', 'title', 'description', 'reference_doctype', 'referen
 
 def get_context(context):
 	context.no_cache = 1
-	context.api_key = Controller().get_settings().api_key
+	context.api_key = get_api_key()
 
-	context.brand_image = './assets/erpnext/images/erp-icon.svg'
+	try:
+		doc = frappe.get_doc("Integration Request", frappe.form_dict['token'])
+		payment_details = json.loads(doc.data)
 
-	# all these keys exist in form_dict
-	if not (set(expected_keys) - set(frappe.form_dict.keys())):
 		for key in expected_keys:
-			context[key] = frappe.form_dict[key]
+			context[key] = payment_details[key]
 
+		context['token'] = frappe.form_dict['token']
 		context['amount'] = flt(context['amount'])
 
-	else:
-		frappe.redirect_to_message(_('Some information is missing'), _('Looks like someone sent you to an incomplete URL. Please ask them to look into it.'))
+	except Exception:
+		frappe.redirect_to_message(_('Invalid Token'),
+			_('Seems token you are using is invalid!'),
+			http_status_code=400, indicator_color='red')
+
 		frappe.local.flags.redirect_location = frappe.local.response.location
 		raise frappe.Redirect
 
+def get_api_key():
+	api_key = frappe.db.get_value("Razorpay Settings", None, "api_key")
+	if cint(frappe.form_dict.get("use_sandbox")):
+		api_key = frappe.conf.sandbox_api_key
+
+	return api_key
+
 @frappe.whitelist(allow_guest=True)
-def make_payment(razorpay_payment_id, options, reference_doctype, reference_docname):
+def make_payment(razorpay_payment_id, options, reference_doctype, reference_docname, token):
 	data = {}
-	
-	if isinstance(options, basestring):
+
+	if isinstance(options, string_types):
 		data = json.loads(options)
-	
+
 	data.update({
 		"razorpay_payment_id": razorpay_payment_id,
 		"reference_docname": reference_docname,
-		"reference_doctype": reference_doctype
+		"reference_doctype": reference_doctype,
+		"token": token
 	})
-	
-	return Controller().create_request(data)
+
+	data =  frappe.get_doc("Razorpay Settings").create_request(data)
+	frappe.db.commit()
+	return data

@@ -10,6 +10,7 @@ class ModuleDef(Document):
 	def on_update(self):
 		"""If in `developer_mode`, create folder for module and
 			add in `modules.txt` of app if missing."""
+		frappe.clear_cache()
 		if frappe.conf.get("developer_mode"):
 			self.create_modules_folder()
 			self.add_to_modules_txt()
@@ -29,7 +30,7 @@ class ModuleDef(Document):
 			with open(frappe.get_app_path(self.app_name, "modules.txt"), "r") as f:
 				content = f.read()
 				if not self.name in content.splitlines():
-					modules = filter(None, content.splitlines())
+					modules = list(filter(None, content.splitlines()))
 					modules.append(self.name)
 
 			if modules:

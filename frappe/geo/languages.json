@@ -1,5 +1,9 @@
 [
  {
+  "code": "af", 
+  "name": "Afrikaans"
+ }, 
+ {
   "code": "am", 
   "name": "\u12a0\u121b\u122d\u129b"
  }, 
@@ -9,7 +13,7 @@
  }, 
  {
   "code": "bg", 
-  "name": "b\u01celgarski"
+  "name": "B\u01celgarski"
  }, 
  {
   "code": "bn", 
@@ -21,11 +25,11 @@
  }, 
  {
   "code": "bs", 
-  "name": "bosanski"
+  "name": "Bosanski"
  }, 
  {
   "code": "ca", 
-  "name": "catal\u00e0"
+  "name": "Catal\u00e0"
  }, 
  {
   "code": "cs", 
@@ -33,7 +37,7 @@
  }, 
  {
   "code": "da", 
-  "name": "dansk"
+  "name": "Dansk"
  }, 
  {
   "code": "da-DK", 
@@ -41,7 +45,7 @@
  }, 
  {
   "code": "de", 
-  "name": "deutsch"
+  "name": "Deutsch"
  }, 
  {
   "code": "el", 
@@ -49,7 +53,11 @@
  }, 
  {
   "code": "en", 
-  "name": "english"
+  "name": "English"
+ }, 
+ {
+  "code": "en-GB", 
+  "name": "English (United Kingdom)"
  }, 
  {
   "code": "en-US", 
@@ -57,15 +65,31 @@
  }, 
  {
   "code": "es", 
-  "name": "espa\u00f1ol"
+  "name": "Espa\u00f1ol"
  }, 
  {
   "code": "es-AR", 
   "name": "Espa\u00f1ol (Argentina)"
  }, 
  {
+  "code": "es-BO", 
+  "name": "Espa\u00f1ol (Bolivia)"
+ }, 
+ {
   "code": "es-CL", 
   "name": "Espa\u00f1ol (Chile)"
+ }, 
+ {
+  "code": "es-CO", 
+  "name": "Espa\u00f1ol (Colombia)"
+ }, 
+ {
+  "code": "es-DO", 
+  "name": "Espa\u00f1ol (Rep\u00fablica Dominicana)"
+ }, 
+ {
+  "code": "es-EC", 
+  "name": "Espa\u00f1ol (Ecuador)"
  }, 
  {
   "code": "es-GT", 
@@ -85,7 +109,7 @@
  }, 
  {
   "code": "et", 
-  "name": "eesti"
+  "name": "Eesti"
  }, 
  {
   "code": "fa", 
@@ -93,15 +117,15 @@
  }, 
  {
   "code": "fi", 
-  "name": "suomalainen"
+  "name": "Suomi"
  }, 
  {
   "code": "fr", 
-  "name": "fran\u00e7ais"
+  "name": "Fran\u00e7ais"
  }, 
  {
   "code": "fr-CA", 
-  "name": "fran\u00e7ais canadien"
+  "name": "Fran\u00e7ais Canadien"
  }, 
  {
   "code": "gu", 
@@ -117,11 +141,11 @@
  }, 
  {
   "code": "hr", 
-  "name": "hrvatski"
+  "name": "Hrvatski"
  }, 
  {
   "code": "hu", 
-  "name": "magyar"
+  "name": "Magyar"
  }, 
  {
   "code": "id", 
@@ -133,7 +157,7 @@
  }, 
  {
   "code": "it", 
-  "name": "italiano"
+  "name": "Italiano"
  }, 
  {
   "code": "ja", 
@@ -161,11 +185,11 @@
  }, 
  {
   "code": "lt", 
-  "name": "lietuvi\u0173 kalba"
+  "name": "Lietuvi\u0173 kalba"
  }, 
  {
   "code": "lv", 
-  "name": "latvie\u0161u valoda"
+  "name": "Latvie\u0161u valoda"
  }, 
  {
   "code": "mk", 
@@ -189,15 +213,15 @@
  }, 
  {
   "code": "nl", 
-  "name": "nederlands"
+  "name": "Nederlands"
  }, 
  {
   "code": "no", 
-  "name": "norsk"
+  "name": "Norsk"
  }, 
  {
   "code": "pl", 
-  "name": "polski"
+  "name": "Polski"
  }, 
  {
   "code": "ps", 
@@ -205,15 +229,15 @@
  }, 
  {
   "code": "pt", 
-  "name": "portugu\u00eas"
+  "name": "Portugu\u00eas"
  }, 
  {
   "code": "pt-BR", 
-  "name": "portugu\u00eas brasileiro"
+  "name": "Portugu\u00eas Brasileiro"
  }, 
  {
   "code": "ro", 
-  "name": "rom\u00e2n"
+  "name": "Rom\u00e2n"
  }, 
  {
   "code": "ru", 
@@ -229,15 +253,15 @@
  }, 
  {
   "code": "sk", 
-  "name": "sloven\u010dina (Slovak)"
+  "name": "Sloven\u010dina (Slovak)"
  }, 
  {
   "code": "sl", 
-  "name": "sloven\u0161\u010dina (Slovene)"
+  "name": "Sloven\u0161\u010dina (Slovene)"
  }, 
  {
   "code": "sq", 
-  "name": "shqiptar"
+  "name": "Shqiptar"
  }, 
  {
   "code": "sr", 
@@ -245,11 +269,15 @@
  }, 
  {
   "code": "sr-SP", 
-  "name": "srpski"
+  "name": "Srpski"
  }, 
  {
   "code": "sv", 
-  "name": "svenska"
+  "name": "Svenska"
+ }, 
+ {
+  "code": "sw", 
+  "name": "Swahili"
  }, 
  {
   "code": "ta", 
@@ -276,8 +304,12 @@
   "name": "\u0627\u0631\u062f\u0648"
  }, 
  {
+  "code": "uz", 
+  "name": "\u040e\u0437\u0431\u0435\u043a"
+ }, 
+ {
   "code": "vi", 
-  "name": "vi\u1ec7t"
+  "name": "Vi\u1ec7t"
  }, 
  {
   "code": "zh", 

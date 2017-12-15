@@ -1,7 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: GNU General Public License v3. See license.txt
 
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 
 import frappe
 import hashlib
@@ -13,10 +13,11 @@ import os
 from markdown2 import markdown
 from bs4 import BeautifulSoup
 import jinja2.exceptions
+from six import text_type
 
 def sync():
 	# make table
-	print 'Syncing help database...'
+	print('Syncing help database...')
 	help_db = HelpDatabase()
 	help_db.make_database()
 	help_db.connect()
@@ -31,6 +32,23 @@ def get_help(text):
 @frappe.whitelist()
 def get_help_content(path):
 	return HelpDatabase().get_content(path)
+
+def get_improve_page_html(app_name, target):
+	docs_config = frappe.get_module(app_name + ".config.docs")
+	source_link = docs_config.source_link
+	branch = getattr(docs_config, "branch", "develop")
+	html = '''<div class="page-container">
+				<div class="page-content">
+				<div class="edit-container text-center">
+					<i class="fa fa-smile text-muted"></i>
+					<a class="edit text-muted" href="{source_link}/blob/{branch}/{target}">
+						Improve this page
+					</a>
+				</div>
+				</div>
+			</div>'''.format(source_link=source_link, app_name=app_name, target=target, branch=branch)
+	return html
+
 
 class HelpDatabase(object):
 	def __init__(self):
@@ -51,7 +69,7 @@ class HelpDatabase(object):
 		if not self.help_db_name in dbman.get_database_list():
 			try:
 				dbman.create_user(self.help_db_name, self.help_db_name)
-			except Exception, e:
+			except Exception as e:
 				# user already exists
 				if e.args[0] != 1396: raise
 			dbman.create_database(self.help_db_name)
@@ -82,8 +100,8 @@ class HelpDatabase(object):
 	def search(self, words):
 		self.connect()
 		return self.db.sql('''
-			select title, intro, path from help where title like '%{term}%' union
-			select title, intro, path from help where match(content) against ('{term}') limit 10'''.format(term=words))
+			select title, intro, path from help where title like %s union
+			select title, intro, path from help where match(content) against (%s) limit 10''', ('%'+words+'%', words))
 
 	def get_content(self, path):
 		self.connect()
@@ -102,7 +120,9 @@ class HelpDatabase(object):
 	def sync_pages(self):
 		self.db.sql('truncate help')
 		doc_contents = '<ol>'
-		for app in os.listdir('../apps'):
+		apps = os.listdir('../apps') if self.global_help_setup else frappe.get_installed_apps()
+
+		for app in apps:
 			docs_folder = '../apps/{app}/{app}/docs/user'.format(app=app)
 			self.out_base_path = '../apps/{app}/{app}/docs'.format(app=app)
 			if os.path.exists(docs_folder):
@@ -117,7 +137,7 @@ class HelpDatabase(object):
 							fpath = os.path.join(basepath, fname)
 							with open(fpath, 'r') as f:
 								try:
-									content = frappe.render_template(unicode(f.read(), 'utf-8'),
+									content = frappe.render_template(text_type(f.read(), 'utf-8'),
 										{'docs_base_url': '/assets/{app}_docs'.format(app=app)})
 
 									relpath = self.get_out_path(fpath)
@@ -129,7 +149,7 @@ class HelpDatabase(object):
 									self.db.sql('''insert into help(path, content, title, intro, full_path)
 										values (%s, %s, %s, %s, %s)''', (relpath, content, title, intro, fpath))
 								except jinja2.exceptions.TemplateSyntaxError:
-									print "Invalid Jinja Template for {0}. Skipping".format(fpath)
+									print("Invalid Jinja Template for {0}. Skipping".format(fpath))
 
 		doc_contents += "</ol>"
 		self.db.sql('''insert into help(path, content, title, intro, full_path) values (%s, %s, %s, %s, %s)''',
@@ -163,17 +183,8 @@ class HelpDatabase(object):
 
 		target = path.split('/', 3)[-1]
 		app_name = path.split('/', 3)[2]
-		html += '''
-			<div class="page-container">
-				<div class="page-content">
-				<div class="edit-container text-center">
-					<i class="icon icon-smile text-muted"></i>
-					<a class="edit text-muted" href="https://github.com/frappe/{app_name}/blob/develop/{target}">
-						Improve this page
-					</a>
-				</div>
-				</div>
-			</div>'''.format(app_name=app_name, target=target)
+		html += get_improve_page_html(app_name, target)
+
 
 		soup = BeautifulSoup(html, 'html.parser')
 

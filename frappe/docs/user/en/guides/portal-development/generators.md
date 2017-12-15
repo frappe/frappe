@@ -22,7 +22,7 @@ We added `published`, `route` in the DocType
 
 **Note:** The field `route` is mandatory
 
-![Generator fields]({{ docs_base_path }}/img/generators.png)
+<img class="screenshot" alt="Generator fields" src="/docs/assets/img/generators.png">
 
 #### 2. Added Website Generator to Hooks
 
@@ -86,3 +86,4 @@ If you add a method `get_list_view` in the controller file (job_opening.py), you
 	def get_list_context(context):
 		context.title = _("Jobs")
 		context.introduction = _('Current Job Openings')
+{next}

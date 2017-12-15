@@ -1,14 +1,14 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 
 import frappe, os, re
 from frappe.utils import touch_file, encode, cstr
 
 def make_boilerplate(dest, app_name):
 	if not os.path.exists(dest):
-		print "Destination directory does not exist"
+		print("Destination directory does not exist")
 		return
 
 	# app_name should be in snake_case
@@ -38,10 +38,10 @@ def make_boilerplate(dest, app_name):
 					hook_val = defaults[hook_key]
 
 			if hook_key=="app_name" and hook_val.lower().replace(" ", "_") != hook_val:
-				print "App Name must be all lowercase and without spaces"
-  				hook_val = ""
+				print("App Name must be all lowercase and without spaces")
+				hook_val = ""
 			elif hook_key=="app_title" and not re.match("^(?![\W])[^\d_\s][\w -]+$", hook_val, re.UNICODE):
-				print "App Title should start with a letter and it can only consist of letters, numbers, spaces and underscores"
+				print("App Title should start with a letter and it can only consist of letters, numbers, spaces and underscores")
 				hook_val = ""
 
 		hooks[hook_key] = hook_val
@@ -53,10 +53,12 @@ def make_boilerplate(dest, app_name):
 	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "templates",
 		"pages"), with_init=True)
 	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "templates",
-		"generators"), with_init=True)
-	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "templates",
 		"includes"))
 	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "config"), with_init=True)
+	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "public",
+		"css"))
+	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "public",
+		"js"))
 
 	with open(os.path.join(dest, hooks.app_name, hooks.app_name, "__init__.py"), "w") as f:
 		f.write(encode(init_template))
@@ -94,7 +96,7 @@ def make_boilerplate(dest, app_name):
 	with open(os.path.join(dest, hooks.app_name, hooks.app_name, "config", "docs.py"), "w") as f:
 		f.write(encode(docs_template.format(**hooks)))
 
-	print "'{app}' created at {path}".format(app=app_name, path=os.path.join(dest, app_name))
+	print("'{app}' created at {path}".format(app=app_name, path=os.path.join(dest, app_name)))
 
 
 manifest_template = """include MANIFEST.in
@@ -146,6 +148,15 @@ app_license = "{app_license}"
 # include js, css files in header of web template
 # web_include_css = "/assets/{app_name}/css/{app_name}.css"
 # web_include_js = "/assets/{app_name}/js/{app_name}.js"
+
+# include js in page
+# page_js = {{"page" : "public/js/file.js"}}
+
+# include js in doctype views
+# doctype_js = {{"doctype" : "public/js/doctype.js"}}
+# doctype_list_js = {{"doctype" : "public/js/doctype_list.js"}}
+# doctype_tree_js = {{"doctype" : "public/js/doctype_tree.js"}}
+# doctype_calendar_js = {{"doctype" : "public/js/doctype_calendar.js"}}
 
 # Home Pages
 # ----------

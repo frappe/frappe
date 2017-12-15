@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe.desk.doctype.desktop_icon.desktop_icon import set_hidden_list, get_desktop_icons
 from frappe.utils.user import UserPermissions
+from frappe import _
 
 @frappe.whitelist()
 def update(hidden_list, user=None):
@@ -13,7 +14,7 @@ def update(hidden_list, user=None):
 		frappe.only_for('System Manager')
 
 	set_hidden_list(hidden_list, user)
-	frappe.msgprint(frappe._('Updated'))
+	frappe.msgprint(frappe._('Updated'), indicator='green', title=_('Success'), alert=True)
 
 def get_context(context):
 	context.icons = get_user_icons(frappe.session.user)

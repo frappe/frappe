@@ -11,7 +11,8 @@ from frappe.utils import format_datetime, cint
 colors = {
 	'queued': 'orange',
 	'failed': 'red',
-	'started': 'green'
+	'started': 'blue',
+	'finished': 'green'
 }
 
 @frappe.whitelist()
@@ -22,7 +23,7 @@ def get_info(show_failed=False):
 	jobs = []
 
 	def add_job(j, name):
-		if j.kwargs.get('site')==frappe.local.site or True:
+		if j.kwargs.get('site')==frappe.local.site:
 			jobs.append({
 				'job_name': j.kwargs.get('kwargs', {}).get('playbook_method') \
 					or str(j.kwargs.get('job_name')),
@@ -46,6 +47,5 @@ def get_info(show_failed=False):
 		for q in queues:
 			if q.name == 'failed':
 				for j in q.get_jobs()[:10]: add_job(j, q.name)
-
 
 	return jobs

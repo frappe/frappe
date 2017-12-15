@@ -1,8 +1,8 @@
 # Scheduled Tasks
 
-Finally, an application also has to send email notifications and do other kind of scheduled tasks. In Frappe, if you have setup the bench, the task / scheduler is setup via Celery using Redis Queue.
+Finally, an application also has to send email notifications and do other kind of scheduled tasks. In Frappé, if you have setup the bench, the task / scheduler is setup via RQ using Redis Queue.
 
-To add a new task handler, go to `hooks.py` and add a new handler. Default handlers are `all`, `daily`, `weekly`, `monthly`. The `all` handler is called every 3 minutes by default.
+To add a new task handler, go to `hooks.py` and add a new handler. Default handlers are `all`, `daily`, `weekly`, `monthly`, `cron`. The `all` handler is called every 4 minutes by default.
 
 	# Scheduled Tasks
 	# ---------------
@@ -11,16 +11,33 @@ To add a new task handler, go to `hooks.py` and add a new handler. Default handl
 		"daily": [
 			"library_management.tasks.daily"
 		],
+		"cron": {
+			"0/10 * * * *": [
+				"library_management.task.run_every_ten_mins"
+			],
+			"15 18 * * *": [
+				"library_management.task.every_day_at_18_15"
+			]
+		}
+			
 	}
 
 Here we can point to a Python function and that function will be executed every day. Let us look what this function looks like:
 
-	# Copyright (c) 2013, Frappe
+	# Copyright (c) 2013, Frappé
 	# For license information, please see license.txt
 
 	from __future__ import unicode_literals
 	import frappe
 	from frappe.utils import datediff, nowdate, format_date, add_days
+	
+	def every_ten_minutes():
+		# stuff to do every 10 minutes
+		pass
+		
+	def every_day_at_18_15():
+		# stuff to do every day at 6:15pm
+		pass
 
 	def daily():
 		loan_period = frappe.db.get_value("Library Management Settings",

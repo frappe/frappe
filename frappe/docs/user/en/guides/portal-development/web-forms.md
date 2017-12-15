@@ -1,8 +1,8 @@
 # Customizing Web Forms
 
-Web Forms are a powerful way to add forms to your website. Web forms are powerful and scriptable and from Version 7.1+ they also include tables, paging and other utilties
+Web Forms are a powerful way to add forms to your website. Web forms are powerful and scriptable and from Version 7.1+ they also include tables, paging and other utilities
 
-<img class="screenshot" src="assets/frappe/img/portals/sample-web-form.png">
+<img class="screenshot" alt="Web Form" src="/docs/assets/img/portals/sample-web-form.png">
 
 ### Standard Web Forms
 

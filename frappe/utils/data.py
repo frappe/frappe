@@ -6,13 +6,16 @@ from __future__ import unicode_literals
 # IMPORTANT: only import safe functions as this module will be included in jinja environment
 import frappe
 import operator
-import re, urllib, datetime, math
+import re, urllib, datetime, math, time
 import babel.dates
+from babel.core import UnknownLocaleError
 from dateutil import parser
 from num2words import num2words
-import HTMLParser
+from six.moves import html_parser as HTMLParser
+from six.moves.urllib.parse import quote, urljoin
 from html2text import html2text
-
+from markdown2 import markdown, MarkdownError
+from six import iteritems, text_type, string_types, integer_types
 
 DATE_FORMAT = "%Y-%m-%d"
 TIME_FORMAT = "%H:%M:%S.%f"
@@ -55,10 +58,13 @@ def get_datetime(datetime_str=None):
 	if not datetime_str or (datetime_str or "").startswith("0000-00-00"):
 		return None
 
-	return parser.parse(datetime_str)
+	try:
+		return datetime.datetime.strptime(datetime_str, DATETIME_FORMAT)
+	except ValueError:
+		return parser.parse(datetime_str)
 
 def to_timedelta(time_str):
-	if isinstance(time_str, basestring):
+	if isinstance(time_str, string_types):
 		t = parser.parse(time_str)
 		return datetime.timedelta(hours=t.hour, minutes=t.minute, seconds=t.second, microseconds=t.microsecond)
 
@@ -75,7 +81,7 @@ def add_to_date(date, years=0, months=0, days=0, hours=0, as_string=False, as_da
 	if hours:
 		as_datetime = True
 
-	if isinstance(date, basestring):
+	if isinstance(date, string_types):
 		as_string = True
 		if " " in date:
 			as_datetime = True
@@ -115,6 +121,9 @@ def time_diff_in_hours(string_ed_date, string_st_date):
 def now_datetime():
 	dt = convert_utc_to_user_timezone(datetime.datetime.utcnow())
 	return dt.replace(tzinfo=None)
+
+def get_timestamp(date):
+	return time.mktime(getdate(date).timetuple())
 
 def get_eta(from_time, percent_complete):
 	diff = time_diff(now_datetime(), from_time).total_seconds()
@@ -188,7 +197,7 @@ def get_time(time_str):
 		return parser.parse(time_str).time()
 
 def get_datetime_str(datetime_obj):
-	if isinstance(datetime_obj, basestring):
+	if isinstance(datetime_obj, string_types):
 		datetime_obj = get_datetime(datetime_obj)
 
 	return datetime_obj.strftime(DATETIME_FORMAT)
@@ -210,14 +219,26 @@ def formatdate(string_date=None, format_string=None):
 		 * mm-dd-yyyy
 		 * dd/mm/yyyy
 	"""
-	date = getdate(string_date) if string_date else now_datetime().date()
+
+	if not string_date:
+		return ''
+
+	date = getdate(string_date)
 	if not format_string:
 		format_string = get_user_format().replace("mm", "MM")
 
-	return babel.dates.format_date(date, format_string, locale=(frappe.local.lang or "").replace("-", "_"))
+	try:
+		formatted_date = babel.dates.format_date(date, format_string, locale=(frappe.local.lang or "").replace("-", "_"))
+	except UnknownLocaleError:
+		formatted_date = date.strftime("%Y-%m-%d")
+	return formatted_date
 
 def format_time(txt):
-	return babel.dates.format_time(get_time(txt), locale=(frappe.local.lang or "").replace("-", "_"))
+	try:
+		formatted_time = babel.dates.format_time(get_time(txt), locale=(frappe.local.lang or "").replace("-", "_"))
+	except UnknownLocaleError:
+		formatted_time = get_time(txt).strftime("%H:%M:%S")
+	return formatted_time
 
 def format_datetime(datetime_string, format_string=None):
 	if not datetime_string:
@@ -227,12 +248,17 @@ def format_datetime(datetime_string, format_string=None):
 	if not format_string:
 		format_string = get_user_format().replace("mm", "MM") + " HH:mm:ss"
 
-	return babel.dates.format_datetime(datetime, format_string, locale=(frappe.local.lang or "").replace("-", "_"))
+	try:
+		formatted_datetime = babel.dates.format_datetime(datetime, format_string, locale=(frappe.local.lang or "").replace("-", "_"))
+	except UnknownLocaleError:
+		formatted_datetime = datetime.strftime('%Y-%m-%d %H:%M:%S')
+	return formatted_datetime
 
 def global_date_format(date):
-	"""returns date as 1 January 2012"""
-	formatted_date = getdate(date).strftime("%d %B %Y")
-	return formatted_date.startswith("0") and formatted_date[1:] or formatted_date
+	"""returns localized date in the form of January 1, 2012"""
+	date = getdate(date)
+	formatted_date = babel.dates.format_date(date, locale=(frappe.local.lang or "en").replace("-", "_"), format="long")
+	return formatted_date
 
 def has_common(l1, l2):
 	"""Returns truthy value if there are common elements in lists l1 and l2"""
@@ -240,7 +266,7 @@ def has_common(l1, l2):
 
 def flt(s, precision=None):
 	"""Convert to float (ignore commas)"""
-	if isinstance(s, basestring):
+	if isinstance(s, string_types):
 		s = s.replace(',','')
 
 	try:
@@ -258,15 +284,8 @@ def cint(s):
 	except: num = 0
 	return num
 
-def cstr(s):
-	if isinstance(s, unicode):
-		return s
-	elif s==None:
-		return ''
-	elif isinstance(s, basestring):
-		return unicode(s, 'utf-8')
-	else:
-		return unicode(s)
+def cstr(s, encoding='utf-8'):
+	return frappe.as_unicode(s, encoding)
 
 def rounded(num, precision=0):
 	"""round method for round halfs to nearest even algorithm aka banker's rounding - compatible with python3"""
@@ -316,12 +335,12 @@ def encode(obj, encoding="utf-8"):
 	if isinstance(obj, list):
 		out = []
 		for o in obj:
-			if isinstance(o, unicode):
+			if isinstance(o, text_type):
 				out.append(o.encode(encoding))
 			else:
 				out.append(o)
 		return out
-	elif isinstance(obj, unicode):
+	elif isinstance(obj, text_type):
 		return obj.encode(encoding)
 	else:
 		return obj
@@ -329,10 +348,10 @@ def encode(obj, encoding="utf-8"):
 def parse_val(v):
 	"""Converts to simple datatypes from SQL query results"""
 	if isinstance(v, (datetime.date, datetime.datetime)):
-		v = unicode(v)
+		v = text_type(v)
 	elif isinstance(v, datetime.timedelta):
-		v = ":".join(unicode(v).split(":")[:2])
-	elif isinstance(v, long):
+		v = ":".join(text_type(v).split(":")[:2])
+	elif isinstance(v, integer_types):
 		v = int(v)
 	return v
 
@@ -340,17 +359,31 @@ def fmt_money(amount, precision=None, currency=None):
 	"""
 	Convert to string with commas for thousands, millions etc
 	"""
-	number_format = None
-	if currency:
-		number_format = frappe.db.get_value("Currency", currency, "number_format", cache=True)
-
-	if not number_format:
-		number_format = frappe.db.get_default("number_format") or "#,###.##"
+	number_format = frappe.db.get_default("number_format") or "#,###.##"
+	if precision is None:
+		precision = cint(frappe.db.get_default('currency_precision')) or None
 
 	decimal_str, comma_str, number_format_precision = get_number_format_info(number_format)
 
 	if precision is None:
 		precision = number_format_precision
+
+	# 40,000 -> 40,000.00
+	# 40,000.00000 -> 40,000.00
+	# 40,000.23000 -> 40,000.23
+
+	if decimal_str:
+		parts = str(amount).split(decimal_str)
+		decimals = parts[1] if len(parts) > 1 else ''
+		if precision > 2:
+			if len(decimals) < 3:
+				if currency:
+					fraction  = frappe.db.get_value("Currency", currency, "fraction_units") or 100
+					precision = len(cstr(fraction)) - 1
+				else:
+					precision = 2
+			elif len(decimals) < precision:
+				precision = len(decimals)
 
 	amount = '%.*f' % (precision, flt(amount))
 	if amount.find('.') == -1:
@@ -414,7 +447,14 @@ def money_in_words(number, main_currency = None, fraction_currency=None):
 	from frappe.utils import get_defaults
 	_ = frappe._
 
-	if not number or flt(number) < 0:
+	try:
+		# note: `flt` returns 0 for invalid input and we don't want that
+		number = float(number)
+	except ValueError:
+		return ""
+
+	number = flt(number)
+	if number < 0:
 		return ""
 
 	d = get_defaults()
@@ -423,20 +463,33 @@ def money_in_words(number, main_currency = None, fraction_currency=None):
 	if not fraction_currency:
 		fraction_currency = frappe.db.get_value("Currency", main_currency, "fraction") or _("Cent")
 
-	n = "%.2f" % flt(number)
-	main, fraction = n.split('.')
-	if len(fraction)==1: fraction += '0'
-
-
 	number_format = frappe.db.get_value("Currency", main_currency, "number_format", cache=True) or \
 		frappe.db.get_default("number_format") or "#,###.##"
+
+	fraction_length = get_number_format_info(number_format)[2]
+
+	n = "%.{0}f".format(fraction_length) % number
+
+	numbers = n.split('.')
+	main, fraction =  numbers if len(numbers) > 1 else [n, '00']
+
+	if len(fraction) < fraction_length:
+		zeros = '0' * (fraction_length - len(fraction))
+		fraction += zeros
 
 	in_million = True
 	if number_format == "#,##,###.##": in_million = False
 
-	out = main_currency + ' ' + in_words(main, in_million).title()
-	if cint(fraction):
-		out = out + ' ' + _('and') + ' ' + in_words(fraction, in_million).title() + ' ' + fraction_currency
+	# 0.00
+	if main == '0' and fraction in ['00', '000']:
+		out = "{0} {1}".format(main_currency, _('Zero'))
+	# 0.XX
+	elif main == '0':
+		out = _(in_words(fraction, in_million).title()) + ' ' + fraction_currency
+	else:
+		out = main_currency + ' ' + _(in_words(main, in_million).title())
+		if cint(fraction):
+			out = out + ' ' + _('and') + ' ' + _(in_words(fraction, in_million).title()) + ' ' + fraction_currency
 
 	return out + ' ' + _('only.')
 
@@ -463,6 +516,13 @@ def is_html(text):
 			break
 	return out
 
+def is_image(filepath):
+	from mimetypes import guess_type
+
+	# filepath can be https://example.com/bed.jpg?v=129
+	filepath = filepath.split('?')[0]
+	return (guess_type(filepath)[0] or "").startswith("image/")
+
 
 # from Jinja2 code
 _striptags_re = re.compile(r'(<!--.*?-->|<[^>]*>)')
@@ -487,10 +547,11 @@ def pretty_date(iso_datetime):
 		long ago the date represents.
 		Ported from PrettyDate by John Resig
 	"""
+	from frappe import _
 	if not iso_datetime: return ''
 	import math
 
-	if isinstance(iso_datetime, basestring):
+	if isinstance(iso_datetime, string_types):
 		iso_datetime = datetime.datetime.strptime(iso_datetime, DATETIME_FORMAT)
 	now_dt = datetime.datetime.strptime(now(), DATETIME_FORMAT)
 	dt_diff = now_dt - iso_datetime
@@ -504,25 +565,31 @@ def pretty_date(iso_datetime):
 
 	# differnt cases
 	if dt_diff_seconds < 60.0:
-		return 'just now'
+		return _('just now')
 	elif dt_diff_seconds < 120.0:
-		return '1 minute ago'
+		return _('1 minute ago')
 	elif dt_diff_seconds < 3600.0:
-		return '%s minutes ago' % cint(math.floor(dt_diff_seconds / 60.0))
+		return _('{0} minutes ago').format(cint(math.floor(dt_diff_seconds / 60.0)))
 	elif dt_diff_seconds < 7200.0:
-		return '1 hour ago'
+		return _('1 hour ago')
 	elif dt_diff_seconds < 86400.0:
-		return '%s hours ago' % cint(math.floor(dt_diff_seconds / 3600.0))
+		return _('{0} hours ago').format(cint(math.floor(dt_diff_seconds / 3600.0)))
 	elif dt_diff_days == 1.0:
-		return 'Yesterday'
+		return _('Yesterday')
 	elif dt_diff_days < 7.0:
-		return '%s days ago' % cint(dt_diff_days)
+		return _('{0} days ago').format(cint(dt_diff_days))
+	elif dt_diff_days < 12:
+		return _('1 weeks ago')
 	elif dt_diff_days < 31.0:
-		return '%s week(s) ago' % cint(math.ceil(dt_diff_days / 7.0))
+		return _('{0} weeks ago').format(cint(math.ceil(dt_diff_days / 7.0)))
+	elif dt_diff_days < 46:
+		return _('1 month ago')
 	elif dt_diff_days < 365.0:
-		return '%s months ago' % cint(math.ceil(dt_diff_days / 30.0))
+		return _('{0} months ago').format(cint(math.ceil(dt_diff_days / 30.0)))
+	elif dt_diff_days < 550.0:
+		return _('1 year ago')
 	else:
-		return 'more than %s year(s) ago' % cint(math.floor(dt_diff_days / 365.0))
+		return '{0} years ago'.format(cint(math.floor(dt_diff_days / 365.0)))
 
 def comma_or(some_list):
 	return comma_sep(some_list, frappe._("{0} or {1}"))
@@ -533,7 +600,7 @@ def comma_and(some_list):
 def comma_sep(some_list, pattern):
 	if isinstance(some_list, (list, tuple)):
 		# list(some_list) is done to preserve the existing list
-		some_list = [unicode(s) for s in list(some_list)]
+		some_list = [text_type(s) for s in list(some_list)]
 		if not some_list:
 			return ""
 		elif len(some_list) == 1:
@@ -547,7 +614,7 @@ def comma_sep(some_list, pattern):
 def new_line_sep(some_list):
 	if isinstance(some_list, (list, tuple)):
 		# list(some_list) is done to preserve the existing list
-		some_list = [unicode(s) for s in list(some_list)]
+		some_list = [text_type(s) for s in list(some_list)]
 		if not some_list:
 			return ""
 		elif len(some_list) == 1:
@@ -601,7 +668,10 @@ def get_url(uri=None, full_address=False):
 	if not uri and full_address:
 		uri = frappe.get_request_header("REQUEST_URI", "")
 
-	url = urllib.basejoin(host_name, uri) if uri else host_name
+	if frappe.conf.http_port:
+		host_name = host_name + ':' + str(frappe.conf.http_port)
+
+	url = urljoin(host_name, uri) if uri else host_name
 
 	return url
 
@@ -619,29 +689,35 @@ def get_url_to_form(doctype, name):
 def get_url_to_list(doctype):
 	return get_url(uri = "desk#List/{0}".format(quoted(doctype)))
 
+def get_url_to_report(name, report_type = None, doctype = None):
+	if report_type == "Report Builder":
+		return get_url(uri = "desk#Report/{0}/{1}".format(quoted(doctype), quoted(name)))
+	else:
+		return get_url(uri = "desk#query-report/{0}".format(quoted(name)))
+
 operator_map = {
 	# startswith
-	"^": lambda (a, b): (a or "").startswith(b),
+	"^": lambda a, b: (a or "").startswith(b),
 
 	# in or not in a list
-	"in": lambda (a, b): operator.contains(b, a),
-	"not in": lambda (a, b): not operator.contains(b, a),
+	"in": lambda a, b: operator.contains(b, a),
+	"not in": lambda a, b: not operator.contains(b, a),
 
 	# comparison operators
-	"=": lambda (a, b): operator.eq(a, b),
-	"!=": lambda (a, b): operator.ne(a, b),
-	">": lambda (a, b): operator.gt(a, b),
-	"<": lambda (a, b): operator.lt(a, b),
-	">=": lambda (a, b): operator.ge(a, b),
-	"<=": lambda (a, b): operator.le(a, b),
-	"not None": lambda (a, b): a and True or False,
-	"None": lambda (a, b): (not a) and True or False
+	"=": lambda a, b: operator.eq(a, b),
+	"!=": lambda a, b: operator.ne(a, b),
+	">": lambda a, b: operator.gt(a, b),
+	"<": lambda a, b: operator.lt(a, b),
+	">=": lambda a, b: operator.ge(a, b),
+	"<=": lambda a, b: operator.le(a, b),
+	"not None": lambda a, b: a and True or False,
+	"None": lambda a, b: (not a) and True or False
 }
 
 def evaluate_filters(doc, filters):
 	'''Returns true if doc matches filters'''
 	if isinstance(filters, dict):
-		for key, value in filters.iteritems():
+		for key, value in iteritems(filters):
 			f = get_filter(None, {key:value})
 			if not compare(doc.get(f.fieldname), f.operator, f.value):
 				return False
@@ -658,7 +734,7 @@ def evaluate_filters(doc, filters):
 def compare(val1, condition, val2):
 	ret = False
 	if condition in operator_map:
-		ret = operator_map[condition]((val1, val2))
+		ret = operator_map[condition](val1, val2)
 
 	return ret
 
@@ -675,17 +751,17 @@ def get_filter(doctype, f):
 	from frappe.model import default_fields, optional_fields
 
 	if isinstance(f, dict):
-		key, value = f.items()[0]
+		key, value = next(iter(f.items()))
 		f = make_filter_tuple(doctype, key, value)
 
 	if not isinstance(f, (list, tuple)):
-		frappe.throw("Filter must be a tuple or list (in a list)")
+		frappe.throw(frappe._("Filter must be a tuple or list (in a list)"))
 
 	if len(f) == 3:
 		f = (doctype, f[0], f[1], f[2])
 
 	elif len(f) != 4:
-		frappe.throw("Filter must have 4 values (doctype, fieldname, operator, value): {0}".format(str(f)))
+		frappe.throw(frappe._("Filter must have 4 values (doctype, fieldname, operator, value): {0}").format(str(f)))
 
 	f = frappe._dict(doctype=f[0], fieldname=f[1], operator=f[2], value=f[3])
 
@@ -693,9 +769,9 @@ def get_filter(doctype, f):
 		# if operator is missing
 		f.operator = "="
 
-	valid_operators = ("=", "!=", ">", "<", ">=", "<=", "like", "not like", "in", "not in")
-	if f.operator not in valid_operators:
-		frappe.throw("Operator must be one of {0}".format(", ".join(valid_operators)))
+	valid_operators = ("=", "!=", ">", "<", ">=", "<=", "like", "not like", "in", "not in", "between")
+	if f.operator.lower() not in valid_operators:
+		frappe.throw(frappe._("Operator must be one of {0}").format(", ".join(valid_operators)))
 
 
 	if f.doctype and (f.fieldname not in default_fields + optional_fields):
@@ -718,6 +794,16 @@ def make_filter_tuple(doctype, key, value):
 	else:
 		return [doctype, key, "=", value]
 
+def make_filter_dict(filters):
+	'''convert this [[doctype, key, operator, value], ..]
+	to this { key: (operator, value), .. }
+	'''
+	_filter = frappe._dict()
+	for f in filters:
+		_filter[f[1]] = (f[2], f[3])
+
+	return _filter
+
 def scrub_urls(html):
 	html = expand_relative_urls(html)
 	# encoding should be responsibility of the composer
@@ -731,9 +817,11 @@ def expand_relative_urls(html):
 
 	def _expand_relative_urls(match):
 		to_expand = list(match.groups())
-		if not to_expand[2].startswith("/"):
-			to_expand[2] = "/" + to_expand[2]
-		to_expand.insert(2, url)
+
+		if not to_expand[2].startswith('mailto') and not to_expand[2].startswith('data:'):
+			if not to_expand[2].startswith("/"):
+				to_expand[2] = "/" + to_expand[2]
+			to_expand.insert(2, url)
 
 		if 'url' in to_expand[0] and to_expand[1].startswith('(') and to_expand[-1].endswith(')'):
 			# background-image: url('/assets/...') - workaround for wkhtmltopdf print-media-type
@@ -749,7 +837,7 @@ def expand_relative_urls(html):
 	return html
 
 def quoted(url):
-	return cstr(urllib.quote(encode(url), safe=b"~@#$&()*!+=:;,.?/'"))
+	return cstr(quote(encode(url), safe=b"~@#$&()*!+=:;,.?/'"))
 
 def quote_urls(html):
 	def _quote_url(match):
@@ -779,3 +867,19 @@ def to_markdown(html):
 		pass
 
 	return text
+
+def to_html(markdown_text):
+	html = None
+	try:
+		html = markdown(markdown_text)
+	except MarkdownError:
+		pass
+
+	return html
+
+def get_source_value(source, key):
+	'''Get value from source (object or dict) based on key'''
+	if isinstance(source, dict):
+		return source.get(key)
+	else:
+		return getattr(source, key)

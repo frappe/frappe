@@ -20,7 +20,7 @@ function $c_obj(doc, method, arg, callback, no_spinner, freeze_msg, btn) {
 
 	if(arg && typeof arg!='string') arg = JSON.stringify(arg);
 
-	args = {
+	var args = {
 		cmd:'runserverobj',
 		args: arg,
 		method: method
@@ -62,8 +62,17 @@ function $c_obj_csv(doc, method, arg) {
 	open_url_post(frappe.request.url, args);
 }
 
-// call a url as POST
 function open_url_post(URL, PARAMS, new_window) {
+	if (window.cordova) {
+		let url = URL + 'api/method/' + PARAMS.cmd + frappe.utils.make_query_string(PARAMS, false);
+		window.location.href = url;
+	} else {
+		// call a url as POST
+		_open_url_post(URL, PARAMS, new_window);
+	}
+}
+
+function _open_url_post(URL, PARAMS, new_window) {
 	var temp=document.createElement("form");
 	temp.action=URL;
 	temp.method="POST";

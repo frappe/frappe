@@ -1,0 +1,49 @@
+<div class="list-row">
+	<div class="row doclist-row {% if (data._checkbox) { %} has-checkbox {% } %}">
+		<div class="col-sm-10 col-xs-10 list-row-left">
+			<div class="row">
+				<div class="col-sm-8 list-col ellipsis h6 text-muted">
+					<span class="list-value">
+						{% if (data._checkbox) { %}
+						<input class="list-row-checkbox" type="checkbox" data-name="{{data.name}}">
+						{% } %}
+						<a class="grey list-id {{ data.css_seen }} inbox-value" href="#Form/{%= data._doctype_encoded %}/{%= data._name_encoded %}">
+							{%= data.subject %}
+						</a>
+					</span>
+				</div>
+				<div class="col-sm-4  hidden-xs list-col ellipsis h6 text-muted">
+					<span class="filterable text-muted" data-filter="sender,=,{%= data.sender %} inbox-value">
+						{%= is_sent_emails? data.recipients: data.sender %}
+					</span>
+				</div>
+			</div>
+		</div>
+		<div class="col-sm-2 col-xs-2 text-right list-row-right" style="padding-left:0px">
+			<div class="visible-xs">
+				<span class="text-muted inbox-attachment inbox-value">
+					{% if(data.has_attachment) { %}
+					<i class="fa fa-paperclip fa-large"></i>
+					{% } %}
+				</span>
+			</div>
+			<div class="hidden-xs">
+				<span class="text-muted inbox-attachment inbox-value">
+					{% if(data.reference_doctype && data.reference_name) { %}
+						<a class="text-muted grey" href="#Form/{%= data.reference_doctype %}/{%= data.reference_name %}">
+							<i class="fa fa-link fa-large"></i>
+						</a>
+					{% } %}
+				</span>
+				<span class="text-muted inbox-attachment inbox-value">
+					{% if(data.has_attachment) { %}
+					<i class="fa fa-paperclip fa-large"></i>
+					{% } %}
+				</span>
+				<span class="list-row-modified text-muted inbox-value">
+					{%= comment_when(data.modified, true) %}
+				</span>
+			</div>
+		</div>
+	</div>
+</div>

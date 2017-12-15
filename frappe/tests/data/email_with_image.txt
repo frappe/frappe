@@ -46,7 +46,7 @@ From: Sukh Dugal <sukh@yyy.com>
 Content-Type: multipart/alternative; boundary="Apple-Mail=_932090B1-CF85-48AE-A8FA-95F2EEB1A521"
 Message-Id: <444FBF29-EE23-4698-A38F-DD1081ABB362@yyy.com>
 Mime-Version: 1.0 (Mac OS X Mail 9.2 \(3112\))
-Subject: Re: 1 minute review
+Subject: Re: 1 minute review 🦄🌈😎
 Date: Mon, 7 Mar 2016 19:15:12 +0530
 References: <7c38972ae7@frappe.xxx.com>
 To: support@xxx.com

@@ -31,7 +31,7 @@
     </p>{% endif %}
 	<p class="docs-attr-name">
         <a name="{{ full_name }}" href="#{{ full_name }}" class="text-muted small">
-            <i class="icon-link small" style="color: #ccc;"></i></a>
+            <i class="fa fa-link small" style="color: #ccc;"></i></a>
 		{{ module_name.replace(".__init__", "") + "." if module_name else "" }}<b>{{ obj.name }}</b>
         <i class="text-muted">({{ print_args(obj.args) if obj.args else "" }})</i>
     </p>
@@ -59,7 +59,7 @@
 {% macro doctype_link(app, doctype) %}
 {% set module = frappe.db.get_value("DocType", doctype, "module") %}
 {% if doctype and module %}
-<a href="{{ app.docs_base_url }}/{{ app.docs_version }}/models/{{
+<a href="/docs/{{ app.docs_version }}/models/{{
 		scrub(module) }}/{{ scrub(doctype) }}">{{ doctype }}</a>
 {% endif %}
 {% endmacro %}

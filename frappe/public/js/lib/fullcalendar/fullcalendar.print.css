@@ -1,7 +1,7 @@
 /*!
- * FullCalendar v2.8.0 Print Stylesheet
- * Docs & License: http://fullcalendar.io/
- * (c) 2016 Adam Shaw
+ * FullCalendar v3.4.0 Print Stylesheet
+ * Docs & License: https://fullcalendar.io/
+ * (c) 2017 Adam Shaw
  */
 
 /*
@@ -32,11 +32,11 @@
 /* Table & Day-Row Restyling
 --------------------------------------------------------------------------------------------------*/
 
-th,
-td,
-hr,
-thead,
-tbody,
+.fc th,
+.fc td,
+.fc hr,
+.fc thead,
+.fc tbody,
 .fc-row {
 	border-color: #ccc !important;
 	background: #fff !important;

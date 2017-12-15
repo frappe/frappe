@@ -1,0 +1,3 @@
+DocType: Communication,Comment Type,Tipo de Comentario
+apps/frappe/frappe/public/js/frappe/form/controls/attach.js +60,Clear Attachment,Limpiar Adjunto
+DocType: Communication,Communication,Comunicacion

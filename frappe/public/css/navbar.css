@@ -1,3 +1,4 @@
+/* the element that this class is applied to, should have a max width for this to work*/
 .navbar .dropdown-toggle {
   padding-top: 8px;
   padding-bottom: 8px;
@@ -131,14 +132,23 @@
 .navbar-new-comments-true {
   background-color: #ff5858;
 }
-#navbar-search {
+.navbar-form .awesomplete {
+  margin-left: -15px;
   width: 300px;
-  background-color: rgba(255, 255, 255, 0.9);
+}
+@media (max-width: 1199px) {
+  .navbar-form .awesomplete {
+    width: 280px;
+  }
 }
 @media (max-width: 991px) {
-  #navbar-search {
+  .navbar-form .awesomplete {
     width: 250px;
   }
+}
+#navbar-search {
+  width: 100%;
+  background-color: rgba(255, 255, 255, 0.9);
 }
 .navbar .navbar-search-icon {
   color: #6C7680;
@@ -186,21 +196,19 @@
 }
 #navbar-breadcrumbs > li > a {
   padding: 6px 15px 10px 0px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 170px;
 }
 @media (min-width: 991px) and (max-width: 1199px) {
   #navbar-breadcrumbs > li > a {
-    max-width: 143px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    max-width: 120px;
   }
 }
 .toolbar-user-fullname {
-  max-width: 200px;
+  max-width: 150px;
   display: inline-block;
-}
-.navbar-brand {
-  padding: 10px;
 }
 .navbar-brand > img {
   display: inline-block;

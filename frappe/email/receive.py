@@ -2,15 +2,19 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
-import time, _socket, poplib, imaplib, email, email.utils, datetime, chardet, re
+
+from six import iteritems, text_type
+from six.moves import range
+import time, _socket, poplib, imaplib, email, email.utils, datetime, chardet, re, hashlib
 from email_reply_parser import EmailReplyParser
 from email.header import decode_header
 import frappe
 from frappe import _
 from frappe.utils import (extract_email_id, convert_utc_to_user_timezone, now,
-	cint, cstr, strip, markdown)
+	cint, cstr, strip, markdown, parse_addr)
 from frappe.utils.scheduler import log
 from frappe.utils.file_manager import get_random_filename, save_file, MaxFileSizeReachedError
+import re
 
 class EmailSizeExceededError(frappe.ValidationError): pass
 class EmailTimeoutError(frappe.ValidationError): pass
@@ -57,7 +61,7 @@ class EmailServer:
 			frappe.msgprint(_('Invalid Mail Server. Please rectify and try again.'))
 			raise
 
-		except Exception, e:
+		except Exception as e:
 			frappe.msgprint(_('Cannot connect: {0}').format(str(e)))
 			raise
 
@@ -76,14 +80,14 @@ class EmailServer:
 			return True
 
 		except _socket.error:
-			# log performs rollback and logs error in scheduler log
+			# log performs rollback and logs error in Error Log
 			log("receive.connect_pop")
 
 			# Invalid mail server -- due to refusing connection
 			frappe.msgprint(_('Invalid Mail Server. Please rectify and try again.'))
 			raise
 
-		except poplib.error_proto, e:
+		except poplib.error_proto as e:
 			if self.is_temporary_system_problem(e):
 				return False
 
@@ -99,18 +103,26 @@ class EmailServer:
 		frappe.db.commit()
 
 		if not self.connect():
-			return []
+			return
+
+		uid_list = []
 
 		try:
 			# track if errors arised
 			self.errors = False
 			self.latest_messages = []
+			self.seen_status = {}
+			self.uid_reindexed = False
 
-			email_list = self.get_new_mails()
+			uid_list = email_list = self.get_new_mails()
+
+			if not email_list:
+				return
+
 			num = num_copy = len(email_list)
 
 			# WARNING: Hard coded max no. of messages to be popped
-			if num > 20: num = 20
+			if num > 50: num = 50
 
 			# size limits
 			self.total_size = 0
@@ -126,16 +138,15 @@ class EmailServer:
 					self.retrieve_message(message_meta, i+1)
 				except (TotalSizeExceededError, EmailTimeoutError, LoginLimitExceeded):
 					break
-
 			# WARNING: Mark as read - message number 101 onwards from the pop list
 			# This is to avoid having too many messages entering the system
 			num = num_copy
 			if not cint(self.settings.use_imap):
 				if num > 100 and not self.errors:
-					for m in xrange(101, num+1):
+					for m in range(101, num+1):
 						self.pop.dele(m)
 
-		except Exception, e:
+		except Exception as e:
 			if self.has_login_limit_exceeded(e):
 				pass
 
@@ -149,18 +160,77 @@ class EmailServer:
 			else:
 				self.pop.quit()
 
-		return self.latest_messages
+		out = { "latest_messages": self.latest_messages }
+		if self.settings.use_imap:
+			out.update({
+				"uid_list": uid_list,
+				"seen_status": self.seen_status,
+				"uid_reindexed": self.uid_reindexed
+			})
+
+		return out
 
 	def get_new_mails(self):
 		"""Return list of new mails"""
 		if cint(self.settings.use_imap):
-			self.imap.select("Inbox")
-			response, message = self.imap.uid('search', None, "UNSEEN")
-			email_list =  message[0].split()
+			email_list = []
+			self.check_imap_uidvalidity()
+
+			readonly = False if self.settings.email_sync_rule == "UNSEEN" else True
+
+			self.imap.select("Inbox", readonly=readonly)
+			response, message = self.imap.uid('search', None, self.settings.email_sync_rule)
+			if message[0]:
+				email_list =  message[0].split()
 		else:
 			email_list = self.pop.list()[1]
 
 		return email_list
+
+	def check_imap_uidvalidity(self):
+		# compare the UIDVALIDITY of email account and imap server
+		uid_validity = self.settings.uid_validity
+
+		responce, message = self.imap.status("Inbox", "(UIDVALIDITY UIDNEXT)")
+		current_uid_validity = self.parse_imap_responce("UIDVALIDITY", message[0])
+		if not current_uid_validity:
+			frappe.throw(_("Can not find UIDVALIDITY in imap status response"))
+
+		uidnext = int(self.parse_imap_responce("UIDNEXT", message[0]) or "1")
+		frappe.db.set_value("Email Account", self.settings.email_account, "uidnext", uidnext)
+
+		if not uid_validity or uid_validity != current_uid_validity:
+			# uidvalidity changed & all email uids are reindexed by server
+			frappe.db.sql(
+				"""update `tabCommunication` set uid=-1 where communication_medium='Email'
+				and email_account=%s""", (self.settings.email_account,)
+			)
+			frappe.db.sql(
+				"""update `tabEmail Account` set uidvalidity=%s, uidnext=%s where
+				name=%s""", (current_uid_validity, uidnext, self.settings.email_account)
+			)
+
+			# uid validity not found pulling emails for first time
+			if not uid_validity:
+				self.settings.email_sync_rule = "UNSEEN"
+				return
+
+			sync_count = 100 if uid_validity else int(self.settings.initial_sync_count)
+			from_uid = 1 if uidnext < (sync_count + 1) or (uidnext - sync_count) < 1 else uidnext - sync_count
+			# sync last 100 email
+			self.settings.email_sync_rule = "UID {}:{}".format(from_uid, uidnext)
+			self.uid_reindexed = True
+
+		elif uid_validity == current_uid_validity:
+			return
+
+	def parse_imap_responce(self, cmd, responce):
+		pattern = r"(?<={cmd} )[0-9]*".format(cmd=cmd)
+		match = re.search(pattern, responce, re.U | re.I)
+		if match:
+			return match.group(0)
+		else:
+			return None
 
 	def retrieve_message(self, message_meta, msg_num=None):
 		incoming_mail = None
@@ -168,24 +238,26 @@ class EmailServer:
 			self.validate_message_limits(message_meta)
 
 			if cint(self.settings.use_imap):
-				status, message = self.imap.uid('fetch', message_meta, '(RFC822)')
-				self.latest_messages.append(message[0][1])
+				status, message = self.imap.uid('fetch', message_meta, '(BODY.PEEK[] BODY.PEEK[HEADER] FLAGS)')
+				raw, header, ignore = message
+
+				self.get_email_seen_status(message_meta, raw[0])
+				self.latest_messages.append(raw[1])
 			else:
 				msg = self.pop.retr(msg_num)
 				self.latest_messages.append(b'\n'.join(msg[1]))
-
 		except (TotalSizeExceededError, EmailTimeoutError):
 			# propagate this error to break the loop
 			self.errors = True
 			raise
 
-		except Exception, e:
+		except Exception as e:
 			if self.has_login_limit_exceeded(e):
 				self.errors = True
-				raise LoginLimitExceeded, e
+				raise LoginLimitExceeded(e)
 
 			else:
-				# log performs rollback and logs error in scheduler log
+				# log performs rollback and logs error in Error Log
 				log("receive.get_messages", self.make_error_msg(msg_num, incoming_mail))
 				self.errors = True
 				frappe.db.rollback()
@@ -193,14 +265,32 @@ class EmailServer:
 				if not cint(self.settings.use_imap):
 					self.pop.dele(msg_num)
 				else:
-					# mark as seen
-					self.imap.uid('STORE', message_meta, '+FLAGS', '(\\SEEN)')
+					# mark as seen if email sync rule is UNSEEN (syncing only unseen mails)
+					if self.settings.email_sync_rule == "UNSEEN":
+						self.imap.uid('STORE', message_meta, '+FLAGS', '(\\SEEN)')
 		else:
 			if not cint(self.settings.use_imap):
 				self.pop.dele(msg_num)
 			else:
-				# mark as seen
-				self.imap.uid('STORE', message_meta, '+FLAGS', '(\\SEEN)')
+				# mark as seen if email sync rule is UNSEEN (syncing only unseen mails)
+				if self.settings.email_sync_rule == "UNSEEN":
+					self.imap.uid('STORE', message_meta, '+FLAGS', '(\\SEEN)')
+
+	def get_email_seen_status(self, uid, flag_string):
+		""" parse the email FLAGS response """
+		if not flag_string:
+			return None
+
+		flags = []
+		for flag in imaplib.ParseFlags(flag_string) or []:
+			pattern = re.compile("\w+")
+			match = re.search(pattern, flag)
+			flags.append(match.group(0))
+
+		if "Seen" in flags:
+			self.seen_status.update({ uid: "SEEN" })
+		else:
+			self.seen_status.update({ uid: "UNSEEN" })
 
 	def has_login_limit_exceeded(self, e):
 		return "-ERR Exceeded the login limit" in strip(cstr(e.message))
@@ -245,6 +335,25 @@ class EmailServer:
 
 		return error_msg
 
+	def update_flag(self, uid_list={}):
+		""" set all uids mails the flag as seen  """
+
+		if not uid_list:
+			return
+
+		if not self.connect():
+			return
+
+		self.imap.select("Inbox")
+		for uid, operation in iteritems(uid_list):
+			if not uid: continue
+
+			op = "+FLAGS" if operation == "Read" else "-FLAGS"
+			try:
+				self.imap.uid('STORE', uid, op, '(\\SEEN)')
+			except Exception as e:
+				continue
+
 class Email:
 	"""Wrapper for an email."""
 	def __init__(self, content):
@@ -262,12 +371,18 @@ class Email:
 		self.set_content_and_type()
 		self.set_subject()
 		self.set_from()
+		self.message_id = (self.mail.get('Message-ID') or "").strip(" <>")
 
 		if self.mail["Date"]:
-			utc = email.utils.mktime_tz(email.utils.parsedate_tz(self.mail["Date"]))
-			utc_dt = datetime.datetime.utcfromtimestamp(utc)
-			self.date = convert_utc_to_user_timezone(utc_dt).strftime('%Y-%m-%d %H:%M:%S')
+			try:
+				utc = email.utils.mktime_tz(email.utils.parsedate_tz(self.mail["Date"]))
+				utc_dt = datetime.datetime.utcfromtimestamp(utc)
+				self.date = convert_utc_to_user_timezone(utc_dt).strftime('%Y-%m-%d %H:%M:%S')
+			except:
+				self.date = now()
 		else:
+			self.date = now()
+		if self.date > now():
 			self.date = now()
 
 	def parse(self):
@@ -283,7 +398,7 @@ class Email:
 			self.subject = self.subject.decode(_subject[0][1])
 		else:
 			# assume that the encoding is utf-8
-			self.subject = self.subject.decode("utf-8")
+			self.subject = self.subject.decode("utf-8")[:140]
 
 		if not self.subject:
 			self.subject = "No Subject"
@@ -291,23 +406,35 @@ class Email:
 	def set_from(self):
 		# gmail mailing-list compatibility
 		# use X-Original-Sender if available, as gmail sometimes modifies the 'From'
-		_from_email = self.mail.get("X-Original-From") or self.mail["From"]
-		_from_email, encoding = decode_header(_from_email)[0]
+		_from_email = self.decode_email(self.mail.get("X-Original-From") or self.mail["From"])
+		_reply_to = self.decode_email(self.mail.get("Reply-To"))
 
-		if encoding:
-			_from_email = _from_email.decode(encoding)
+		if _reply_to and not frappe.db.get_value('Email Account', {"email_id":_reply_to}, 'email_id'):
+			self.from_email = extract_email_id(_reply_to)
 		else:
-			_from_email = _from_email.decode('utf-8')
+			self.from_email = extract_email_id(_from_email)
 
-		self.from_email = extract_email_id(_from_email)
-		self.from_real_name = email.utils.parseaddr(_from_email)[0]
+		if self.from_email:
+			self.from_email = self.from_email.lower()
+
+		self.from_real_name = parse_addr(_from_email)[0] if "@" in _from_email else _from_email
+
+	def decode_email(self, email):
+		if not email: return
+		decoded = ""
+		for part, encoding in decode_header(frappe.as_unicode(email).replace("\""," ").replace("\'"," ")):
+			if encoding:
+				decoded += part.decode(encoding)
+			else:
+				decoded += part.decode('utf-8')
+		return decoded
 
 	def set_content_and_type(self):
 		self.content, self.content_type = '[Blank Email]', 'text/plain'
 		if self.html_content:
 			self.content, self.content_type = self.html_content, 'text/html'
 		else:
-			self.content, self.content_type = EmailReplyParser.parse_reply(self.text_content), 'text/plain'
+			self.content, self.content_type = EmailReplyParser.read(self.text_content).text.replace("\n","\n\n"), 'text/plain'
 
 	def process_part(self, part):
 		"""Parse email `part` and set it to `text_content`, `html_content` or `attachments`."""
@@ -322,7 +449,7 @@ class Email:
 			# sent by outlook when another email is sent as an attachment to this email
 			self.show_attached_email_headers_in_content(part)
 
-		elif part.get_filename():
+		elif part.get_filename() or 'image' in content_type:
 			self.get_attachment(part)
 
 	def show_attached_email_headers_in_content(self, part):
@@ -355,12 +482,12 @@ class Email:
 		charset = self.get_charset(part)
 
 		try:
-			return unicode(part.get_payload(decode=True), str(charset), "ignore")
+			return text_type(part.get_payload(decode=True), str(charset), "ignore")
 		except LookupError:
 			return part.get_payload()
 
 	def get_attachment(self, part):
-		charset = self.get_charset(part)
+		#charset = self.get_charset(part)
 		fcontent = part.get_payload(decode=True)
 
 		if fcontent:
@@ -368,6 +495,7 @@ class Email:
 			fname = part.get_filename()
 			if fname:
 				try:
+					fname = fname.replace('\n', ' ').replace('\r', '')
 					fname = cstr(decode_header(fname)[0][0])
 				except:
 					fname = get_random_filename(content_type=content_type)

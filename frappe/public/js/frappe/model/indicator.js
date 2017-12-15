@@ -21,33 +21,30 @@ frappe.get_indicator = function(doc, doctype) {
 
 	if(!doctype) doctype = doc.doctype;
 
+	var workflow = frappe.workflow.workflows[doctype];
+	var without_workflow = workflow ? workflow['override_status'] : true;
+
 	var settings = frappe.listview_settings[doctype] || {};
 
 	var is_submittable = frappe.model.is_submittable(doctype),
 		workflow_fieldname = frappe.workflow.get_state_fieldname(doctype);
 
-	if(doc.docstatus==3) {
-		return [__("Queued for saving"), "orange", "docstatus,=,3"];
-	}
-
-	if(doc.docstatus==4) {
-		return [__("Queued for submission"), "orange", "docstatus,=,4"];
-	}
-
-	if(doc.docstatus==5) {
-		return [__("Queued for cancellation"), "orange", "docstatus,=,5"];
-	}
-
 	// workflow
-	if(workflow_fieldname) {
+	if(workflow_fieldname && !without_workflow) {
 		var value = doc[workflow_fieldname];
 		if(value) {
-			var colour = {
-				"Success": "green",
-				"Warning": "orange",
-				"Danger": "red",
-				"Primary": "blue",
-			}[locals["Workflow State"][value].style] || "darkgrey";
+			var colour = "";
+
+			if(locals["Workflow State"][value] && locals["Workflow State"][value].style) {
+				var colour = {
+					"Success": "green",
+					"Warning": "orange",
+					"Danger": "red",
+					"Primary": "blue",
+				}[locals["Workflow State"][value].style];
+			}
+			if(!colour) colour = "darkgrey";
+
 			return [__(value), colour, workflow_fieldname + ',=,' + value];
 		}
 	}
@@ -80,18 +77,18 @@ frappe.get_indicator = function(doc, doctype) {
 	// based on enabled
 	if(frappe.meta.has_field(doctype, 'enabled')) {
 		if(doc.enabled) {
-			return [__('Enabled'), 'blue', 'enabled=1'];
+			return [__('Enabled'), 'blue', 'enabled,=,1'];
 		} else {
-			return [__('Disabled'), 'grey', 'enabled=0'];
+			return [__('Disabled'), 'grey', 'enabled,=,0'];
 		}
 	}
 
 	// based on disabled
 	if(frappe.meta.has_field(doctype, 'disabled')) {
 		if(doc.disabled) {
-			return [__('Disabled'), 'grey', 'disabled=1'];
+			return [__('Disabled'), 'grey', 'disabled,=,1'];
 		} else {
-			return [__('Enabled'), 'blue', 'disabled=0'];
+			return [__('Enabled'), 'blue', 'disabled,=,0'];
 		}
 	}
 }

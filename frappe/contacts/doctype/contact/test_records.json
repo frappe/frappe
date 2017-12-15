@@ -1,0 +1,19 @@
+[
+ {
+  "doctype": "Contact",
+  "salutation": "Mr",
+  "email_id": "test_conctact@example.com",
+  "first_name": "_Test Contact For _Test Customer",
+  "is_primary_contact": 1,
+  "phone": "+91 0000000000",
+  "status": "Open"
+ },
+ {
+  "doctype": "Contact",
+  "email_id": "test_contact@example.com",
+  "first_name": "_Test Contact For _Test Supplier",
+  "is_primary_contact": 1,
+  "phone": "+91 0000000000",
+  "status": "Open"
+ }
+]

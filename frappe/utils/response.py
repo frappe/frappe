@@ -18,9 +18,14 @@ from werkzeug.wrappers import Response
 from werkzeug.exceptions import NotFound, Forbidden
 from frappe.core.doctype.file.file import check_file_permission
 from frappe.website.render import render
+from frappe.utils import cint
+from six import text_type
 
 def report_error(status_code):
-	if (status_code!=404 or frappe.conf.logging) and not frappe.local.flags.disable_traceback:
+	'''Build error. Show traceback in developer mode'''
+	if (cint(frappe.db.get_system_setting('allow_error_traceback'))
+		and (status_code!=404 or frappe.conf.logging)
+		and not frappe.local.flags.disable_traceback):
 		frappe.errprint(frappe.utils.get_traceback())
 
 	response = build_response("json")
@@ -36,7 +41,8 @@ def build_response(response_type=None):
 		'download': as_raw,
 		'json': as_json,
 		'page': as_page,
-		'redirect': redirect
+		'redirect': redirect,
+		'binary': as_binary
 	}
 
 	return response_type_map[frappe.response.get('type') or response_type]()
@@ -68,6 +74,13 @@ def as_json():
 	response.data = json.dumps(frappe.local.response, default=json_handler, separators=(',',':'))
 	return response
 
+def as_binary():
+	response = Response()
+	response.mimetype = 'application/octet-stream'
+	response.headers[b"Content-Disposition"] = ("filename=\"%s\"" % frappe.response['filename'].replace(' ', '_')).encode("utf-8")
+	response.data = frappe.response['filecontent']
+	return response
+
 def make_logs(response = None):
 	"""make strings for msgprint and errprint"""
 	if not response:
@@ -84,14 +97,17 @@ def make_logs(response = None):
 	if frappe.debug_log and frappe.conf.get("logging") or False:
 		response['_debug_messages'] = json.dumps(frappe.local.debug_log)
 
+	if frappe.flags.error_message:
+		response['_error_message'] = frappe.flags.error_message
+
 def json_handler(obj):
 	"""serialize non-serializable data for json"""
 	# serialize date
 	if isinstance(obj, (datetime.date, datetime.timedelta, datetime.datetime)):
-		return unicode(obj)
+		return text_type(obj)
 
 	elif isinstance(obj, LocalProxy):
-		return unicode(obj)
+		return text_type(obj)
 
 	elif isinstance(obj, frappe.model.document.BaseDocument):
 		doc = obj.as_dict(no_nulls=True)
@@ -102,8 +118,8 @@ def json_handler(obj):
 		return repr(obj)
 
 	else:
-		raise TypeError, """Object of type %s with value of %s is not JSON serializable""" % \
-			(type(obj), repr(obj))
+		raise TypeError("""Object of type %s with value of %s is not JSON serializable""" % \
+						(type(obj), repr(obj)))
 
 def as_page():
 	"""print web page"""
@@ -157,14 +173,7 @@ def send_private_file(path):
 	return response
 
 def handle_session_stopped():
-	response = Response("""<html>
-							<body style="background-color: #EEE;">
-									<h3 style="width: 900px; background-color: #FFF; border: 2px solid #AAA; padding: 20px; font-family: Arial; margin: 20px auto">
-											Updating.
-											We will be back in a few moments...
-									</h3>
-							</body>
-					</html>""")
-	response.status_code = 503
-	response.content_type = 'text/html'
-	return response
+	frappe.respond_as_web_page(_("Updating"),
+		_("Your system is being updated. Please refresh again after a few moments"),
+		http_status_code=503, indicator_color='orange', fullpage = True, primary_action=None)
+	return frappe.website.render.render("message", http_status_code=503)

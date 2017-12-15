@@ -1,0 +1,73 @@
+{% extends "templates/web.html" %}
+
+{% block page_content %}
+<style>
+.blog-header {
+	font-weight: 700;
+	font-size: 2em;
+}
+.blog-comments {
+	position: relative;
+	border-top: 1px solid {{ style.border_color }};
+}
+.blog-info {
+	margin-top: 30px;
+}
+.blog-text {
+	padding-top: 50px;
+	padding-bottom: 50px;
+	font-size: 16px;
+	line-height: 1.5;
+}
+.blog-text p {
+	margin-bottom: 30px;
+}
+.blogger {
+	padding-top: 0px;
+	padding-bottom: 50px;
+}
+.blogger-name {
+	margin-top: 5px;
+}
+</style>
+<div class="blog-container">
+<article class="blog-content" itemscope itemtype="http://schema.org/BlogPosting">
+	<meta itemprop="datePublished" content="{{ frappe.format_date(published_on) }}"></meta>
+	<meta itemprop="author" content="{{ full_name }}"></meta>
+	<!-- begin blog content -->
+	<div class="blog-info">
+	<h1 itemprop="headline" class="blog-header">{{ title }}</h1>
+	<p class="post-by text-muted">
+		<a href="/blog?blogger={{ blogger }}" class="no-decoration">{{ _("By") }} {{ blogger_info and blogger_info.full_name or full_name }}</a>
+		<i class="spacer-dot"></i> {{ frappe.format_date(published_on) }}
+		<i class="spacer-dot"></i> <a href="/blog?blog_category={{ blog_category }}" class="no-decoration">{{ category.title }}</a>
+		<i class="spacer-dot"></i> {{ comment_text }}
+	</p>
+	</div>
+	<div itemprop="articleBody" class="longform blog-text">
+	{{ content }}
+	</div>
+	<!-- end blog content -->
+</article>
+{% if blogger_info %}
+{% include "templates/includes/blog/blogger.html" %}
+{% endif %}
+<div class="blog-comments">
+	{% include 'templates/includes/comments/comments.html' %}
+</div>
+</div>
+<script>
+    frappe.ready(function() { frappe.set_search_path("/blog"); })
+</script>
+{% endblock %}
+{% block style %}
+<style>
+.blog-container {
+	max-width: 720px;
+	margin: auto;
+}
+.page-content {
+	padding-bottom: 0px;
+}
+</style>
+{% endblock %}

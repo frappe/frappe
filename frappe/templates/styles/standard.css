@@ -12,6 +12,11 @@
 	    margin: auto;
 	}
 
+	.print-format.landscape {
+		max-width: 11.69in;
+		padding: 0.2in;
+	}
+
 	.page-break {
 		padding: 30px 0px;
 		border-bottom: 1px dashed #888;
@@ -49,6 +54,10 @@
 	margin-bottom: 5px;
 }
 
+.data-field .value {
+	word-wrap: break-word;
+}
+
 .important .value {
 	font-size: 120%;
 	font-weight: bold;
@@ -69,9 +78,13 @@
 	padding: 50% 0;
 	background-size: contain;
 	/*background-size: cover;*/
-	background-repeat: no-repeat;
+	background-repeat: no-repeat !important;
 	background-position: center center;
 	border-radius: 4px;
+}
+
+.print-item-image {
+	object-fit: contain;
 }
 
 .pdf-variables,
@@ -129,8 +142,10 @@ table.no-border, table.no-border td {
 }
 
 table td div {
+	{% if not print_settings.allow_page_break_inside_tables %}
 	/* needed to avoid partial cutting of text between page break in wkhtmltopdf */
 	page-break-inside: avoid !important;
+	{% endif %}
 }
 
 /* hack for webkit specific browser */
@@ -141,3 +156,11 @@ table td div {
 [document-status] {
 	margin-bottom: 5mm;
 }
+
+.signature-img {
+	background: #fff;
+	border-radius: 3px;
+	margin-top: 5px;
+	max-height: 150px;
+}
+

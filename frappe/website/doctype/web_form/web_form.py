@@ -9,14 +9,15 @@ from frappe.utils import cstr
 from frappe.utils.file_manager import save_file, remove_file_by_url
 from frappe.website.utils import get_comment_list
 from frappe.custom.doctype.customize_form.customize_form import docfield_properties
-from frappe.integration_broker.doctype.integration_service.integration_service import get_integration_controller
 from frappe.utils.file_manager import get_max_file_size
+from frappe.modules.utils import export_module_json, get_doc_module
+from six.moves.urllib.parse import urlencode
+from frappe.integrations.utils import get_payment_gateway_controller
+from six import iteritems
+
 
 class WebForm(WebsiteGenerator):
 	website = frappe._dict(
-		template = "templates/generators/web_form.html",
-		condition_field = "published",
-		page_title_field = "title",
 		no_cache = 1
 	)
 
@@ -34,6 +35,31 @@ class WebForm(WebsiteGenerator):
 		if (not (frappe.flags.in_install or frappe.flags.in_patch or frappe.flags.in_test or frappe.flags.in_fixtures)
 			and self.is_standard and not frappe.conf.developer_mode):
 			frappe.throw(_("You need to be in developer mode to edit a Standard Web Form"))
+
+		if not frappe.flags.in_import:
+			self.validate_fields()
+
+		if self.accept_payment:
+			self.validate_payment_amount()
+
+	def validate_fields(self):
+		'''Validate all fields are present'''
+		from frappe.model import no_value_fields
+		missing = []
+		meta = frappe.get_meta(self.doc_type)
+		for df in self.web_form_fields:
+			if df.fieldname and (df.fieldtype not in no_value_fields and not meta.has_field(df.fieldname)):
+				missing.append(df.fieldname)
+
+		if missing:
+			frappe.throw(_('Following fields are missing:') + '<br>' + '<br>'.join(missing))
+
+	def validate_payment_amount(self):
+		if self.amount_based_on_field and not self.amount_field:
+			frappe.throw(_("Please select a Amount Field."))
+		elif not self.amount_based_on_field and not self.amount > 0:
+			frappe.throw(_("Amount must be greater than 0."))
+
 
 	def reset_field_parent(self):
 		'''Convert link fields to select with names as options'''
@@ -65,16 +91,9 @@ class WebForm(WebsiteGenerator):
 			Writes the .txt for this page and if write_content is checked,
 			it will write out a .html file
 		"""
-		if not frappe.flags.in_import and getattr(frappe.get_conf(),'developer_mode', 0) and self.is_standard:
-			from frappe.modules.export_file import export_to_files
-			from frappe.modules import get_module_path
+		path = export_module_json(self, self.is_standard, self.module)
 
-			# json
-			export_to_files(record_list=[['Web Form', self.name]], record_module=self.module)
-
-			# write files
-			path = os.path.join(get_module_path(self.module), 'web_form', scrub(self.name), scrub(self.name))
-
+		if path:
 			# js
 			if not os.path.exists(path + '.js'):
 				with open(path + '.js', 'w') as f:
@@ -98,14 +117,16 @@ def get_context(context):
 		'''Build context to render the `web_form.html` template'''
 		self.set_web_form_module()
 
-		logged_in = frappe.session.user != "Guest"
+		context._login_required = False
+		if self.login_required and frappe.session.user == "Guest":
+			context._login_required = True
 
 		doc, delimeter = make_route_string(frappe.form_dict)
 		context.doc = doc
 		context.delimeter = delimeter
 
 		# check permissions
-		if not logged_in and frappe.form_dict.name:
+		if frappe.session.user == "Guest" and frappe.form_dict.name:
 			frappe.throw(_("You need to be logged in to access this {0}.").format(self.doc_type), frappe.PermissionError)
 
 		if frappe.form_dict.name and not has_web_form_permission(self.doc_type, frappe.form_dict.name):
@@ -116,16 +137,16 @@ def get_context(context):
 		if self.is_standard:
 			self.use_meta_fields()
 
-		if self.login_required and logged_in:
+		if not context._login_required:
 			if self.allow_edit:
 				if self.allow_multiple:
 					if not frappe.form_dict.name and not frappe.form_dict.new:
 						self.build_as_list(context)
 				else:
-					name = frappe.db.get_value(self.doc_type, {"owner": frappe.session.user}, "name")
-					if name:
-						frappe.form_dict.name = name
-					else:
+					if frappe.session.user != 'Guest' and not frappe.form_dict.name:
+						frappe.form_dict.name = frappe.db.get_value(self.doc_type, {"owner": frappe.session.user}, "name")
+
+					if not frappe.form_dict.name:
 						# only a single doc allowed and no existing doc, hence new
 						frappe.form_dict.new = 1
 
@@ -137,24 +158,24 @@ def get_context(context):
 		context.parents = self.get_parents(context)
 
 		if self.breadcrumbs:
-			context.parents = eval(self.breadcrumbs)
+			context.parents = frappe.safe_eval(self.breadcrumbs, { "_": _ })
 
 		context.has_header = ((frappe.form_dict.name or frappe.form_dict.new)
 			and (frappe.session.user!="Guest" or not self.login_required))
 
 		if context.success_message:
-			context.success_message = context.success_message.replace("\n",
-				"<br>").replace("'", "\'")
+			context.success_message = frappe.db.escape(context.success_message.replace("\n",
+				"<br>"))
 
 		self.add_custom_context_and_script(context)
-		self.add_payment_gateway_url(context)
-		context.max_attachment_size = get_max_file_size()
+		if not context.max_attachment_size:
+			context.max_attachment_size = get_max_file_size() / 1024 / 1024
 
 	def load_document(self, context):
 		'''Load document `doc` and `layout` properties for template'''
 		if frappe.form_dict.name or frappe.form_dict.new:
 			context.layout = self.get_layout()
-			context.parents = [{"route": self.route, "title": self.title }]
+			context.parents = [{"route": self.route, "label": _(self.title) }]
 
 		if frappe.form_dict.name:
 			context.doc = frappe.get_doc(self.doc_type, frappe.form_dict.name)
@@ -177,36 +198,52 @@ def get_context(context):
 		frappe.form_dict.doctype = self.doc_type
 		frappe.flags.web_form = self
 
+		self.update_params_from_form_dict(context)
 		self.update_list_context(context)
 		get_list_context(context)
 		context.is_list = True
 
+	def update_params_from_form_dict(self, context):
+		'''Copy params from list view to new view'''
+		context.params_from_form_dict = ''
+
+		params = {}
+		for key, value in iteritems(frappe.form_dict):
+			if frappe.get_meta(self.doc_type).get_field(key):
+				params[key] = value
+
+		if params:
+			context.params_from_form_dict = '&' + urlencode(params)
+
+
 	def update_list_context(self, context):
 		'''update list context for stanard modules'''
-		if self.web_form_module and hasattr(self.web_form_module, 'get_list_context'):
+		if hasattr(self, 'web_form_module') and hasattr(self.web_form_module, 'get_list_context'):
 			self.web_form_module.get_list_context(context)
 
-	def add_payment_gateway_url(self, context):
-		if context.doc and self.accept_payment:
-			controller = get_integration_controller(self.payment_gateway)
+	def get_payment_gateway_url(self, doc):
+		if self.accept_payment:
+			controller = get_payment_gateway_controller(self.payment_gateway)
 
-			title = "Payment for {0} {1}".format(context.doc.doctype, context.doc.name)
-
+			title = "Payment for {0} {1}".format(doc.doctype, doc.name)
+			amount = self.amount
+			if self.amount_based_on_field:
+				amount = doc.get(self.amount_field)
 			payment_details = {
-				"amount": self.amount,
+				"amount": amount,
 				"title": title,
 				"description": title,
-				"reference_doctype": context.doc.doctype,
-				"reference_docname": context.doc.name,
+				"reference_doctype": doc.doctype,
+				"reference_docname": doc.name,
 				"payer_email": frappe.session.user,
 				"payer_name": frappe.utils.get_fullname(frappe.session.user),
-				"order_id": context.doc.name,
+				"order_id": doc.name,
 				"currency": self.currency,
 				"redirect_to": frappe.utils.get_url(self.route)
 			}
 
 			# Redirect the user to this url
-			context.payment_url = controller.get_payment_url(**payment_details)
+			return controller.get_payment_url(**payment_details)
 
 	def add_custom_context_and_script(self, context):
 		'''Update context from module if standard and append script'''
@@ -218,7 +255,7 @@ def get_context(context):
 
 			js_path = os.path.join(os.path.dirname(self.web_form_module.__file__), scrub(self.name) + '.js')
 			if os.path.exists(js_path):
-				context.script = open(js_path, 'r').read()
+				context.script = frappe.render_template(open(js_path, 'r').read().decode('utf-8'), context)
 
 			css_path = os.path.join(os.path.dirname(self.web_form_module.__file__), scrub(self.name) + '.css')
 			if os.path.exists(css_path):
@@ -230,7 +267,7 @@ def get_context(context):
 			new_page = {'sections': []}
 			layout.append(new_page)
 			if df and df.fieldtype=='Page Break':
-				new_page['label'] = df.label
+				new_page.update(df.as_dict())
 
 			return new_page
 
@@ -238,7 +275,7 @@ def get_context(context):
 			new_section = {'columns': []}
 			layout[-1]['sections'].append(new_section)
 			if df and df.fieldtype=='Section Break':
-				new_section['label'] = df.label
+				new_section.update(df.as_dict())
 
 			return new_section
 
@@ -271,7 +308,7 @@ def get_context(context):
 				if not section:
 					section = add_section()
 					column = None
-				if not column:
+				if column==None:
 					column = add_column()
 				column.append(df)
 
@@ -290,20 +327,28 @@ def get_context(context):
 	def set_web_form_module(self):
 		'''Get custom web form module if exists'''
 		if self.is_standard:
-			module_name = "{app}.{module}.web_form.{name}.{name}".format(
-					app = frappe.local.module_app[scrub(self.module)],
-					module = scrub(self.module),
-					name = scrub(self.name)
-			)
-			self.web_form_module = frappe.get_module(module_name)
+			self.web_form_module = get_doc_module(self.module, self.doctype, self.name)
 		else:
 			self.web_form_module = None
 
+	def validate_mandatory(self, doc):
+		'''Validate mandatory web form fields'''
+		missing = []
+		for f in self.web_form_fields:
+			if f.reqd and doc.get(f.fieldname) in (None, [], ''):
+				missing.append(f)
+
+		if missing:
+			frappe.throw(_('Mandatory Information missing:') + '<br><br>'
+				+ '<br>'.join(['{0} ({1})'.format(d.label, d.fieldtype) for d in missing]))
+
 
 @frappe.whitelist(allow_guest=True)
-def accept(web_form, data):
+def accept(web_form, data, for_payment=False):
+	'''Save the web form'''
 	data = frappe._dict(json.loads(data))
 	files = []
+	files_to_delete = []
 
 	web_form = frappe.get_doc("Web Form", web_form)
 	if data.doctype != web_form.doc_type:
@@ -311,6 +356,8 @@ def accept(web_form, data):
 
 	elif data.name and not web_form.allow_edit:
 		frappe.throw(_("You are not allowed to update this Web Form Document"))
+
+	frappe.flags.in_web_form = True
 
 	if data.name:
 		# update
@@ -320,17 +367,24 @@ def accept(web_form, data):
 		doc = frappe.new_doc(data.doctype)
 
 	# set values
-	for fieldname, value in data.iteritems():
+	for fieldname, value in iteritems(data):
 		if value and isinstance(value, dict):
 			try:
 				if "__file_attachment" in value:
 					files.append((fieldname, value))
 					continue
+				if '__no_attachment' in value:
+					files_to_delete.append(doc.get(fieldname))
+					value = ''
 
 			except ValueError:
 				pass
 
 		doc.set(fieldname, value)
+
+	if for_payment:
+		web_form.validate_mandatory(doc)
+		doc.run_method('validate_payment')
 
 	if doc.name:
 		if has_web_form_permission(doc.doctype, doc.name, "write"):
@@ -351,7 +405,7 @@ def accept(web_form, data):
 		for f in files:
 			fieldname, filedata = f
 
-			# remove earlier attachmed file (if exists)
+			# remove earlier attached file (if exists)
 			if doc.get(fieldname):
 				remove_file_by_url(doc.get(fieldname), doc.doctype, doc.name)
 
@@ -364,7 +418,17 @@ def accept(web_form, data):
 
 		doc.save()
 
-	return doc.name
+	if files_to_delete:
+		for f in files_to_delete:
+			if f:
+				remove_file_by_url(f, doc.doctype, doc.name)
+
+	frappe.flags.web_form_doc = doc
+
+	if for_payment:
+		return web_form.get_payment_gateway_url(doc)
+	else:
+		return doc.name
 
 @frappe.whitelist()
 def delete(web_form, name):
@@ -374,7 +438,7 @@ def delete(web_form, name):
 	if frappe.session.user == owner and web_form.allow_delete:
 		frappe.delete_doc(web_form.doc_type, name, ignore_permissions=True)
 	else:
-		raise frappe.PermissionError, "Not Allowed"
+		raise frappe.PermissionError("Not Allowed")
 
 def has_web_form_permission(doctype, name, ptype='read'):
 	if frappe.session.user=="Guest":
@@ -384,7 +448,7 @@ def has_web_form_permission(doctype, name, ptype='read'):
 	elif frappe.db.get_value(doctype, name, "owner")==frappe.session.user:
 		return True
 
-	elif frappe.has_website_permission(doctype, ptype=ptype, doc=name):
+	elif frappe.has_website_permission(name, ptype=ptype, doctype=doctype):
 		return True
 
 	elif check_webform_perm(doctype, name):
@@ -400,14 +464,15 @@ def check_webform_perm(doctype, name):
 		if doc.has_webform_permission():
 			return True
 
-def get_web_form_list(doctype, txt, filters, limit_start, limit_page_length=20):
+def get_web_form_list(doctype, txt, filters, limit_start, limit_page_length=20, order_by=None):
 	from frappe.www.list import get_list
 	if not filters:
 		filters = {}
 
 	filters["owner"] = frappe.session.user
 
-	return get_list(doctype, txt, filters, limit_start, limit_page_length, ignore_permissions=True)
+	return get_list(doctype, txt, filters, limit_start, limit_page_length, order_by=order_by,
+		ignore_permissions=True)
 
 def make_route_string(parameters):
 	route_string = ""

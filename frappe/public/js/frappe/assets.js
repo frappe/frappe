@@ -45,7 +45,7 @@ frappe.assets = {
 		});
 
 		// clear assets
-		for(key in localStorage) {
+		for(var key in localStorage) {
 			if(key.indexOf("desk_assets:")===0 || key.indexOf("_page:")===0
 				|| key.indexOf("_doctype:")===0 || key.indexOf("preferred_breadcrumbs:")===0) {
 				localStorage.removeItem(key);
@@ -85,7 +85,7 @@ frappe.assets = {
 				frappe.assets.executed_.push(path)
 			}
 		}
-		callback();
+		callback && callback();
 	},
 
 	// check if the asset exists in

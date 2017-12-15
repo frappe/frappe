@@ -1,0 +1,170 @@
+/* csslint ignore:start */
+body {
+  line-height: 1.5;
+  color: #36414C;
+}
+p {
+  margin: 1em 0 !important;
+}
+hr {
+  border-top: 1px solid #d1d8dd;
+}
+.body-table {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+}
+.body-table td {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+}
+.email-header,
+.email-body,
+.email-footer {
+  width: 100% !important;
+  min-width: 100% !important;
+}
+.email-body {
+  font-size: 14px;
+}
+.email-footer {
+  border-top: 1px solid #d1d8dd;
+  font-size: 12px;
+}
+.email-header {
+  border: 1px solid #d1d8dd;
+  border-radius: 4px 4px 0 0;
+}
+.email-header .brand-image {
+  width: 24px;
+  height: 24px;
+  display: block;
+}
+.email-header-title {
+  font-weight: bold;
+}
+.body-table.has-header .email-body {
+  border: 1px solid #d1d8dd;
+  border-radius: 0 0 4px 4px;
+  border-top: none;
+}
+.body-table.has-header .email-footer {
+  border-top: none;
+}
+.email-footer-container {
+  margin-top: 30px;
+}
+.email-footer-container > div:not(:last-child) {
+  margin-bottom: 5px;
+}
+.email-unsubscribe a {
+  color: #8D99A6;
+  text-decoration: underline;
+}
+.btn {
+  text-decoration: none;
+  padding: 7px 10px;
+  font-size: 12px;
+  border: 1px solid;
+  border-radius: 3px;
+}
+.btn.btn-default {
+  color: #fff;
+  background-color: #f0f4f7;
+  border-color: transparent;
+}
+.btn.btn-primary {
+  color: #fff;
+  background-color: #5E64FF;
+  border-color: #444bff;
+}
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.table td,
+.table th {
+  padding: 8px;
+  line-height: 1.42857143;
+  vertical-align: top;
+  border-top: 1px solid #d1d8dd;
+  text-align: left;
+}
+.table th {
+  font-weight: bold;
+}
+.table > thead > tr > th {
+  vertical-align: middle;
+  border-bottom: 2px solid #d1d8dd;
+}
+.table > thead:first-child > tr:first-child > th {
+  border-top: none;
+}
+.table.table-bordered {
+  border: 1px solid #d1d8dd;
+}
+.table.table-bordered td,
+.table.table-bordered th {
+  border: 1px solid #d1d8dd;
+}
+.more-info {
+  font-size: 80% !important;
+  color: #8D99A6 !important;
+  border-top: 1px solid #EBEFF2;
+  padding-top: 10px;
+}
+.text-right {
+  text-align: right !important;
+}
+.text-center {
+  text-align: center !important;
+}
+.text-muted {
+  color: #8D99A6 !important;
+}
+.text-extra-muted {
+  color: #d1d8dd !important;
+}
+.text-regular {
+  font-size: 14px;
+}
+.text-medium {
+  font-size: 12px;
+}
+.text-small {
+  font-size: 10px;
+}
+.text-bold {
+  font-weight: bold;
+}
+.indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 8px;
+  background-color: #b8c2cc;
+  display: inline-block;
+  margin-right: 5px;
+}
+.indicator.indicator-blue {
+  background-color: #5e64ff;
+}
+.indicator.indicator-green {
+  background-color: #98d85b;
+}
+.indicator.indicator-orange {
+  background-color: #ffa00a;
+}
+.indicator.indicator-red {
+  background-color: #ff5858;
+}
+.indicator.indicator-yellow {
+  background-color: #FEEF72;
+}
+.screenshot {
+  box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.1);
+  border: 1px solid #d1d8dd;
+  margin: 8px 0;
+  max-width: 100%;
+}
+/* auto email report */
+.report-title {
+  margin-bottom: 20px;
+}
+/* csslint ignore:end */

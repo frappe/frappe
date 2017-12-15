@@ -6,7 +6,7 @@ import frappe
 
 def execute():
 	changed = (
-		("desk", ("feed", "event", "event_role", "todo", "note")),
+		("desk", ("feed", "event", "todo", "note")),
 		("custom", ("custom_field", "custom_script", "customize_form",
 			 "customize_form_field", "property_setter")),
 		("email", ("email_queue", "email_alert", "email_alert_recipient", "standard_reply")),

@@ -6,6 +6,7 @@ import frappe
 import frappe.defaults
 import datetime
 from frappe.utils import get_datetime
+from six import string_types
 
 # global values -- used for caching
 dateformats = {
@@ -29,8 +30,8 @@ def user_to_str(date, date_format=None):
 	try:
 		return datetime.datetime.strptime(date,
 			dateformats[date_format]).strftime('%Y-%m-%d')
-	except ValueError, e:
-		raise ValueError, "Date %s must be in format %s" % (date, date_format)
+	except ValueError as e:
+		raise ValueError("Date %s must be in format %s" % (date, date_format))
 
 def parse_date(date):
 	"""tries to parse given date to system's format i.e. yyyy-mm-dd. returns a string"""
@@ -49,13 +50,13 @@ def parse_date(date):
 			parsed_date = user_to_str(date, f)
 			if parsed_date:
 				break
-		except ValueError, e:
+		except ValueError as e:
 			pass
 
 	if not parsed_date:
-		raise Exception, """Cannot understand date - '%s'.
-			Try formatting it like your default format - '%s'""" % \
-			(date, get_user_date_format())
+		raise Exception("""Cannot understand date - '%s'.
+			Try formatting it like your default format - '%s'""" % (date, get_user_date_format())
+		)
 
 	return parsed_date
 
@@ -68,7 +69,7 @@ def get_user_date_format():
 def datetime_in_user_format(date_time):
 	if not date_time:
 		return ""
-	if isinstance(date_time, basestring):
+	if isinstance(date_time, string_types):
 		date_time = get_datetime(date_time)
 	from frappe.utils import formatdate
 	return formatdate(date_time.date()) + " " + date_time.strftime("%H:%M")

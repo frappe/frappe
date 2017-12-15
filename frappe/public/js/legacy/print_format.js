@@ -34,7 +34,7 @@ _p.go = function(html) {
 _p.preview = function(html) {
 	var w = window.open();
 	if(!w) {
-		msgprint(__("Please enable pop-ups"));
+		frappe.msgprint(__("Please enable pop-ups"));
 		return;
 	}
 	w.document.write(html);
@@ -113,7 +113,7 @@ $.extend(_p, {
 			fmtname= "Standard";
 		}
 
-		args = {
+		var args = {
 			fmtname: fmtname,
 			onload: onload,
 			no_letterhead: no_letterhead,
@@ -121,12 +121,12 @@ $.extend(_p, {
 		};
 
 		if(!cur_frm) {
-			msgprint(__("No document selected"));
+			frappe.msgprint(__("No document selected"));
 			return;
 		}
 
 		if(!frappe.model.can_print(cur_frm.doctype, cur_frm)) {
-			msgprint(__("You are not allowed to print this document"));
+			frappe.msgprint(__("You are not allowed to print this document"));
 			return;
 		}
 
@@ -145,7 +145,7 @@ $.extend(_p, {
 		} else {
 			var print_format_doc = locals["Print Format"][args.fmtname];
 			if(!print_format_doc) {
-				msgprint(__("Unknown Print Format: {0}", [args.fmtname]));
+				frappe.msgprint(__("Unknown Print Format: {0}", [args.fmtname]));
 				return;
 			}
 			args.onload(_p.render({
@@ -220,7 +220,7 @@ $.extend(_p, {
 		}
 
 		if(args.doc && cint(args.doc.docstatus)==0 && is_doctype_submittable) {
-			draft = _p.head_banner_format();
+			var draft = _p.head_banner_format();
 			draft = draft.replace("{{HEAD}}", "DRAFT");
 			draft = draft.replace("{{DESCRIPTION}}", "This box will go away after the document is submitted.");
 			return draft;
@@ -236,7 +236,7 @@ $.extend(_p, {
 	*/
 	show_archived: function(args) {
 		if(args.doc && args.doc.__archived) {
-			archived = _p.head_banner_format();
+			var archived = _p.head_banner_format();
 			archived = archived.replace("{{HEAD}}", "ARCHIVED");
 			archived = archived.replace("{{DESCRIPTION}}", "You must restore this document to make it editable.");
 			return archived;
@@ -252,7 +252,7 @@ $.extend(_p, {
 	*/
 	show_cancelled: function(args) {
 		if(args.doc && args.doc.docstatus==2) {
-			cancelled = _p.head_banner_format();
+			var cancelled = _p.head_banner_format();
 			cancelled = cancelled.replace("{{HEAD}}", "CANCELLED");
 			cancelled = cancelled.replace("{{DESCRIPTION}}", "You must amend this document to make it editable.");
 			return cancelled;
@@ -267,7 +267,7 @@ $.extend(_p, {
 		var body_style = '';
 		var style_list = container.getElementsByTagName('style');
 		while(style_list && style_list.length>0) {
-			for(i in style_list) {
+			for(var i in style_list) {
 				if(style_list[i] && style_list[i].innerHTML) {
 					body_style += style_list[i].innerHTML;
 					var parent = style_list[i].parentNode;
@@ -282,7 +282,7 @@ $.extend(_p, {
 		}
 
 		// Concatenate all styles
-		style_concat =  (args.only_body ? '' : _p.def_print_style_body)
+		var style_concat =  (args.only_body ? '' : _p.def_print_style_body)
 				+ _p.def_print_style_other + args.style + body_style;
 
 		return style_concat;
@@ -404,7 +404,7 @@ $.extend(_p, {
 	get_letter_head: function() {
 		var lh = '';
 		if(cur_frm.doc.letter_head) {
-			lh = cstr(frappe.boot.letter_heads[cur_frm.doc.letter_head]);
+			lh = cstr(frappe.boot.letter_heads[cur_frm.doc.letter_head].header);
 		} else if (frappe.boot.sysdefaults.default_letter_head_content) {
 			lh = frappe.boot.sysdefaults.default_letter_head_content;
 		}
@@ -625,7 +625,7 @@ $.extend(_p, {
 			// If only one table is passed
 			layout.cur_cell.appendChild(t);
 		} else {
-			page_break = '\n\
+			var page_break = '\n\
 				<div style = "page-break-after: always;" \
 				class = "page_break"></div><div class="page-settings"></div>';
 
@@ -662,7 +662,7 @@ $.extend(_p, {
 				// If value or a numeric type then proceed
 
 				// Add field table
-				row = _p.field_tab(layout.cur_cell);
+				var row = _p.field_tab(layout.cur_cell);
 
 				// Add label
 				row.cells[0].innerHTML = __(f.label ? f.label : f.fieldname);

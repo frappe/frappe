@@ -55,8 +55,8 @@ frappe.ui.form.off = function(doctype, fieldname, handler) {
 }
 
 
-frappe.ui.form.trigger = function(doctype, fieldname, callback) {
-	cur_frm.script_manager.trigger(fieldname, doctype, null, callback);
+frappe.ui.form.trigger = function(doctype, fieldname) {
+	cur_frm.script_manager.trigger(fieldname, doctype);
 }
 
 frappe.ui.form.ScriptManager = Class.extend({
@@ -64,30 +64,84 @@ frappe.ui.form.ScriptManager = Class.extend({
 		$.extend(this, opts);
 	},
 	make: function(ControllerClass) {
-		this.frm.cscript = $.extend(this.frm.cscript, new ControllerClass({frm: this.frm}));
+		this.frm.cscript = $.extend(this.frm.cscript,
+			new ControllerClass({frm: this.frm}));
 	},
-	trigger: function(event_name, doctype, name, callback) {
-		var me = this;
+	trigger: function(event_name, doctype, name) {
+		// trigger all the form level events that
+		// are bound to this event_name
+		let me = this;
 		doctype = doctype || this.frm.doctype;
 		name = name || this.frm.docname;
-		handlers = this.get_handlers(event_name, doctype, name, callback);
-		if(callback) handlers.push(callback);
 
-		return $.when.apply($, $.map(handlers, function(fn) { return fn(); }));
+		let tasks = [];
+		let handlers = this.get_handlers(event_name, doctype);
+
+		// helper for child table
+		this.frm.selected_doc = frappe.get_doc(doctype, name);
+
+		let runner = (_function, is_old_style) => {
+			let _promise = null;
+			if(is_old_style) {
+				// old style arguments (doc, cdt, cdn)
+				_promise = me.frm.cscript[_function](me.frm.doc, doctype, name);
+			} else {
+				// new style (frm, doctype, name)
+				_promise = _function(me.frm, doctype, name);
+			}
+
+			// if the trigger returns a promise, return it,
+			// or use the default promise frappe.after_ajax
+			if (_promise && _promise.then) {
+				return _promise;
+			} else {
+				return frappe.after_server_call();
+			}
+		};
+
+		// make list of functions to be run serially
+		handlers.new_style.forEach((_function) => {
+			if(event_name==='setup') {
+				// setup must be called immediately
+				runner(_function, false);
+			} else {
+				tasks.push(() => runner(_function, false));
+			}
+		});
+
+		handlers.old_style.forEach((_function) => {
+			if(event_name==='setup') {
+				// setup must be called immediately
+				runner(_function, true);
+			} else {
+				tasks.push(() => runner(_function, true));
+			}
+		});
+
+		// run them serially
+		return frappe.run_serially(tasks);
 	},
-	get_handlers: function(event_name, doctype, name, callback) {
-		var handlers = [];
-		var me = this;
+	has_handlers: function(event_name, doctype) {
+		let handlers = this.get_handlers(event_name, doctype);
+		return handlers && (handlers.old_style.length || handlers.new_style.length);
+	},
+	get_handlers: function(event_name, doctype) {
+		// returns list of all functions to be called (old style and new style)
+		let me = this;
+		let handlers = {
+			old_style: [],
+			new_style: []
+		};
 		if(frappe.ui.form.handlers[doctype] && frappe.ui.form.handlers[doctype][event_name]) {
 			$.each(frappe.ui.form.handlers[doctype][event_name], function(i, fn) {
-				handlers.push(function() { return fn(me.frm, doctype, name) });
+				handlers.new_style.push(fn);
 			});
 		}
 		if(this.frm.cscript[event_name]) {
-			handlers.push(function() { return me.frm.cscript[event_name](me.frm.doc, doctype, name); });
+			handlers.old_style.push(event_name);
 		}
 		if(this.frm.cscript["custom_" + event_name]) {
-			handlers.push(function() { return me.frm.cscript["custom_" + event_name](me.frm.doc, doctype, name); });
+			handlers.old_style.push("custom_" + event_name);
 		}
 		return handlers;
 	},
@@ -101,8 +155,21 @@ frappe.ui.form.ScriptManager = Class.extend({
 			var tmp = eval(cs);
 		}
 
+		if(doctype.__custom_js) {
+			try {
+				eval(doctype.__custom_js);
+			} catch(e) {
+				frappe.msgprint({
+					title: __('Error in Custom Script'),
+					indicator: 'orange',
+					message: '<pre class="small"><code>' + e.stack  + '</code></pre>'
+				});
+			}
+		}
+
 		function setup_add_fetch(df) {
-			if((df.fieldtype==="Read Only" || df.read_only==1)
+			if((['Data', 'Read Only', 'Text', 'Small Text',
+				'Text Editor', 'Code'].includes(df.fieldtype) || df.read_only==1)
 				&& df.options && df.options.indexOf(".")!=-1) {
 				var parts = df.options.split(".");
 				me.frm.add_fetch(parts[0], parts[1], df.fieldname);
@@ -125,7 +192,7 @@ frappe.ui.form.ScriptManager = Class.extend({
 		this.trigger('setup');
 	},
 	log_error: function(caller, e) {
-		show_alert("Error in Client Script.");
+		frappe.show_alert("Error in Client Script.");
 		console.group && console.group();
 		console.log("----- error in client script -----");
 		console.log("method: " + caller);
@@ -135,50 +202,17 @@ frappe.ui.form.ScriptManager = Class.extend({
 		console.log("----- end of error message -----");
 		console.group && console.groupEnd();
 	},
-	validate_link_and_fetch: function(df, doctype, docname, value, callback) {
-		var me = this;
-
-		if(value) {
-			var fetch = '';
-
-			if(this.frm && this.frm.fetch_dict[df.fieldname])
-				fetch = this.frm.fetch_dict[df.fieldname].columns.join(', ');
-
-			return frappe.call({
-				method:'frappe.desk.form.utils.validate_link',
-				type: "GET",
-				args: {
-					'value': value,
-					'options': doctype,
-					'fetch': fetch
-				},
-				no_spinner: true,
-				callback: function(r) {
-					if(r.message=='Ok') {
-						if(r.fetch_values)
-							me.set_fetch_values(df, docname, r.fetch_values);
-						if(callback) callback(r.valid_value);
-					} else {
-						if(callback) callback("");
-					}
-				}
-			});
-		} else if(callback) {
-			callback(value);
-		}
-	},
-	set_fetch_values: function(df, docname, fetch_values) {
-		var fl = this.frm.fetch_dict[df.fieldname].fields;
-		for(var i=0; i < fl.length; i++) {
-			frappe.model.set_value(df.parent, docname, fl[i], fetch_values[i], df.fieldtype);
-		}
-	},
 	copy_from_first_row: function(parentfield, current_row, fieldnames) {
-		var doclist = this.frm.doc[parentfield];
-		if(doclist.length===1 || doclist[0]===current_row) return;
+		var data = this.frm.doc[parentfield];
+		if(data.length===1 || data[0]===current_row) return;
+
+		if(typeof fieldnames==='string') {
+			fieldnames = [fieldnames];
+		}
 
 		$.each(fieldnames, function(i, fieldname) {
-			current_row[fieldname] = doclist[0][fieldname];
+			frappe.model.set_value(current_row.doctype, current_row.name, fieldname,
+				data[0][fieldname]);
 		});
 	}
 });

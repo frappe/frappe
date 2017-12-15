@@ -1,3 +1,5 @@
+# How To Migrate Doctype Changes To Production
+
 #### 1. DocType / Schema Changes
 
 If you are in `developer_mode`, the `.json` files for each **DocType** are automatically updated.

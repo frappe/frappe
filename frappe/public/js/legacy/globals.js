@@ -7,8 +7,8 @@ frappe.provide('frappe.utils');
 frappe.provide('frappe.model');
 frappe.provide('frappe.user');
 frappe.provide('frappe.session');
-frappe.provide('locals')
-frappe.provide('locals.DocType')
+frappe.provide('locals');
+frappe.provide('locals.DocType');
 
 // for listviews
 frappe.provide("frappe.listview_settings");
@@ -23,14 +23,7 @@ var TAB = 9;
 var UP_ARROW = 38;
 var DOWN_ARROW = 40;
 
-// user
-var user=null;
-var user=null;
-var user_defaults=null;
-var user_roles=null;
-var user_fullname=null;
-var user_email=null;
-var user_img = {};
+// proxy for user globals defined in desk.js
 
 // Name Spaces
 // ============
@@ -39,7 +32,6 @@ var user_img = {};
 var _f = {};
 var _p = {};
 var _r = {};
-var FILTER_SEP = '\1';
 
 // API globals
 var frms={};

@@ -8,10 +8,11 @@ frappe.utils.autodoc
 Inspect elements of a given module and return its objects
 """
 
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 
 import inspect, importlib, re, frappe
 from frappe.model.document import get_controller
+from six import text_type
 
 
 def automodule(name):
@@ -49,7 +50,7 @@ def automodule(name):
 
 installed = None
 def get_version(name):
-	print name
+	print(name)
 	global installed
 
 	if not installed:
@@ -137,10 +138,21 @@ def parse(docs):
 def strip_leading_tabs(docs):
 	"""Strip leading tabs from __doc__ text."""
 	lines = docs.splitlines()
+
+	# remove empty lines in the front
+	start = 0
+	for line in lines:
+		if line != '': break
+		start += 1
+	if start:
+		lines = lines[start:]
+
+	# remove default indentation
 	if len(lines) > 1:
 		start_line = 1
 		ref_line = lines[start_line]
 		while not ref_line:
+			# find reference line for indentations (the first line that is nonempty (false))
 			start_line += 1
 			if start_line > len(lines): break
 			ref_line = lines[start_line]
@@ -158,6 +170,6 @@ def automodel(doctype):
 def get_obj_doc(obj):
 	'''Return `__doc__` of the given object as unicode'''
 	doc = getattr(obj, "__doc__", "") or ''
-	if not isinstance(doc, unicode):
-		doc = unicode(doc, 'utf-8')
+	if not isinstance(doc, text_type):
+		doc = text_type(doc, 'utf-8')
 	return doc

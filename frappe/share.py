@@ -7,7 +7,7 @@ from frappe import _
 from frappe.utils import cint
 
 @frappe.whitelist()
-def add(doctype, name, user=None, read=1, write=0, share=0, everyone=0, flags=None):
+def add(doctype, name, user=None, read=1, write=0, share=0, everyone=0, flags=None, notify=0):
 	"""Share the given document with a user."""
 	if not user:
 		user = frappe.session.user
@@ -39,6 +39,7 @@ def add(doctype, name, user=None, read=1, write=0, share=0, everyone=0, flags=No
 	})
 
 	doc.save(ignore_permissions=True)
+	notify_assignment(user, doctype, name, description=None, notify=notify)
 
 	return doc
 
@@ -73,8 +74,6 @@ def set_permission(doctype, name, user, permission_to, value=1, everyone=0):
 			# un-set higher-order permissions too
 			if permission_to=="read":
 				share.read = share.write = share.share = 0
-			elif permission_to=="write":
-				share.write = share.share = 0
 
 		share.save()
 
@@ -85,12 +84,14 @@ def set_permission(doctype, name, user, permission_to, value=1, everyone=0):
 	return share
 
 @frappe.whitelist()
-def get_users(doctype, name, fields="*"):
+def get_users(doctype, name):
 	"""Get list of users with which this document is shared"""
-	if isinstance(fields, (tuple, list)):
-		fields = "`{0}`".format("`, `".join(fields))
-
-	return frappe.db.sql("select {0} from tabDocShare where share_doctype=%s and share_name=%s".format(fields),
+	return frappe.db.sql("""select
+			`name`, `user`, `read`, `write`, `share`, `everyone`
+		from
+			tabDocShare
+		where
+			share_doctype=%s and share_name=%s""",
 		(doctype, name), as_dict=True)
 
 def get_shared(doctype, user=None, rights=None):
@@ -134,3 +135,20 @@ def check_share_permission(doctype, name):
 	"""Check if the user can share with other users"""
 	if not frappe.has_permission(doctype, ptype="share", doc=name):
 		frappe.throw(_("No permission to {0} {1} {2}".format("share", doctype, name)), frappe.PermissionError)
+
+def notify_assignment(shared_by, doc_type, doc_name, description=None, notify=0):
+
+	if not (shared_by and doc_type and doc_name): return
+
+	from frappe.utils import get_link_to_form
+	document = get_link_to_form(doc_type, doc_name, label="%s: %s" % (doc_type, doc_name))
+
+	arg = {
+		'contact': shared_by,
+		'txt': _("A new document {0} has been shared by with you {1}.").format(document,
+				shared_by),
+		'notify': notify
+	}
+
+	from frappe.desk.page.chat import chat
+	chat.post(**arg)

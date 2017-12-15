@@ -58,7 +58,7 @@ Here is how the General Ledger Report is built:
 
 Here is what the report looks like:
 
-![General Ledger](/assets/frappe_io/images/how-to/general-ledger.png)
+<img class="screenshot" alt="General Ledger" src="/docs/assets/img/general-ledger.png">
 
 ##### Comments:
 

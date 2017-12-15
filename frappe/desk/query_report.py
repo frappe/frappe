@@ -9,13 +9,15 @@ import os, json
 from frappe import _
 from frappe.modules import scrub, get_module_path
 from frappe.utils import flt, cint, get_html_format, cstr
+from frappe.model.utils import render_include
 from frappe.translate import send_translations
 import frappe.desk.reportview
 from frappe.permissions import get_role_permissions
+from six import string_types
 
 def get_report_doc(report_name):
 	doc = frappe.get_doc("Report", report_name)
-	if not doc.has_permission("read"):
+	if not doc.is_permitted():
 		frappe.throw(_("You don't have access to Report: {0}").format(report_name), frappe.PermissionError)
 
 	if not frappe.has_permission(doc.ref_doctype, "report"):
@@ -55,12 +57,13 @@ def get_script(report_name):
 		send_translations(frappe.get_lang_dict("report", report_name))
 
 	return {
-		"script": script,
+		"script": render_include(script),
 		"html_format": html_format
 	}
 
 @frappe.whitelist()
 def run(report_name, filters=None, user=None):
+
 	report = get_report_doc(report_name)
 	if not user:
 		user = frappe.session.user
@@ -68,14 +71,14 @@ def run(report_name, filters=None, user=None):
 	if not filters:
 		filters = []
 
-	if filters and isinstance(filters, basestring):
+	if filters and isinstance(filters, string_types):
 		filters = json.loads(filters)
 
 	if not frappe.has_permission(report.ref_doctype, "report"):
 		frappe.msgprint(_("Must have report permission to access this report."),
 			raise_exception=True)
 
-	columns, result, message, chart = [], [], None, {}
+	columns, result, message, chart, data_to_be_printed = [], [], None, None, None
 	if report.report_type=="Query Report":
 		if not report.query:
 			frappe.msgprint(_("Must specify a Query to run"), raise_exception=True)
@@ -97,6 +100,8 @@ def run(report_name, filters=None, user=None):
 				message = res[2]
 			if len(res) > 3:
 				chart = res[3]
+			if len(res) > 4:
+				data_to_be_printed = res[4]
 
 	if report.apply_user_permissions and result:
 		result = get_filtered_data(report.ref_doctype, columns, result, user)
@@ -108,24 +113,90 @@ def run(report_name, filters=None, user=None):
 		"result": result,
 		"columns": columns,
 		"message": message,
-		"chart": chart
+		"chart": chart,
+		"data_to_be_printed": data_to_be_printed
 	}
+
+
+@frappe.whitelist()
+def export_query():
+	"""export from query reports"""
+
+	data = frappe._dict(frappe.local.form_dict)
+
+	del data["cmd"]
+	if "csrf_token" in data:
+		del data["csrf_token"]
+
+	if isinstance(data.get("filters"), string_types):
+		filters = json.loads(data["filters"])
+	if isinstance(data.get("report_name"), string_types):
+		report_name = data["report_name"]
+	if isinstance(data.get("file_format_type"), string_types):
+		file_format_type = data["file_format_type"]
+	if isinstance(data.get("visible_idx"), string_types):
+		visible_idx = json.loads(data.get("visible_idx"))
+	else:
+		visible_idx = None
+
+	if file_format_type == "Excel":
+
+		data = run(report_name, filters)
+		data = frappe._dict(data)
+		columns = get_columns_dict(data.columns)
+
+		result = [[]]
+
+		# add column headings
+		for idx in range(len(data.columns)):
+			result[0].append(columns[idx]["label"])
+
+		# build table from dict
+		if isinstance(data.result[0], dict):
+			for i,row in enumerate(data.result):
+				# only rows which are visible in the report
+				if row and (i+1 in visible_idx):
+					row_list = []
+					for idx in range(len(data.columns)):
+						row_list.append(row.get(columns[idx]["fieldname"],""))
+					result.append(row_list)
+				elif not row:
+					result.append([])
+		else:
+			result = result + [d for i,d in enumerate(data.result) if (i+1 in visible_idx)]
+
+		from frappe.utils.xlsxutils import make_xlsx
+		xlsx_file = make_xlsx(result, "Query Report")
+
+		frappe.response['filename'] = report_name + '.xlsx'
+		frappe.response['filecontent'] = xlsx_file.getvalue()
+		frappe.response['type'] = 'binary'
+
 
 def get_report_module_dotted_path(module, report_name):
 	return frappe.local.module_app[scrub(module)] + "." + scrub(module) \
 		+ ".report." + scrub(report_name) + "." + scrub(report_name)
 
-def add_total_row(result, columns):
+def add_total_row(result, columns, meta = None):
 	total_row = [""]*len(columns)
 	has_percent = []
 	for i, col in enumerate(columns):
 		fieldtype, options = None, None
-		if isinstance(col, basestring):
-			col = col.split(":")
-			if len(col) > 1:
-				fieldtype = col[1]
-				if "/" in fieldtype:
-					fieldtype, options = fieldtype.split("/")
+		if isinstance(col, string_types):
+			if meta:
+				# get fieldtype from the meta
+				field = meta.get_field(col)
+				if field:
+					fieldtype = meta.get_field(col).fieldtype
+			else:
+				col = col.split(":")
+				if len(col) > 1:
+					if col[1]:
+						fieldtype = col[1]
+						if "/" in fieldtype:
+							fieldtype, options = fieldtype.split("/")
+					else:
+						fieldtype = "Data"
 		else:
 			fieldtype = col.get("fieldtype")
 			options = col.get("options")
@@ -141,17 +212,17 @@ def add_total_row(result, columns):
 			total_row[i] = result[0][i]
 
 	for i in has_percent:
-		total_row[i] = total_row[i] / len(result)
+		total_row[i] = flt(total_row[i]) / len(result)
 
 	first_col_fieldtype = None
-	if isinstance(columns[0], basestring):
+	if isinstance(columns[0], string_types):
 		first_col = columns[0].split(":")
 		if len(first_col) > 1:
 			first_col_fieldtype = first_col[1].split("/")[0]
 	else:
 		first_col_fieldtype = columns[0].get("fieldtype")
 
-	if first_col_fieldtype not in ["Currency", "Int", "Float", "Percent"]:
+	if first_col_fieldtype not in ["Currency", "Int", "Float", "Percent", "Date"]:
 		if first_col_fieldtype == "Link":
 			total_row[0] = "'" + _("Total") + "'"
 		else:
@@ -159,6 +230,7 @@ def add_total_row(result, columns):
 
 	result.append(total_row)
 	return result
+
 
 def get_filtered_data(ref_doctype, columns, data, user):
 	result = []
@@ -182,6 +254,7 @@ def get_filtered_data(ref_doctype, columns, data, user):
 		result = list(data)
 
 	return result
+
 
 def has_match(row, linked_doctypes, doctype_match_filters, ref_doctype, if_owner, columns_dict, user):
 	"""Returns True if after evaluating permissions for each linked doctype
@@ -220,7 +293,7 @@ def has_match(row, linked_doctypes, doctype_match_filters, ref_doctype, if_owner
 					if dt=="User" and columns_dict[idx]==columns_dict.get("owner"):
 						continue
 
-					if dt in match_filters and row[idx] not in match_filters[dt]:
+					if dt in match_filters and row[idx] not in match_filters[dt] and frappe.db.exists(dt, row[idx]):
 						match = False
 						break
 
@@ -247,7 +320,7 @@ def get_linked_doctypes(columns, data):
 	for idx, col in enumerate(columns):
 		df = columns_dict[idx]
 		if df.get("fieldtype")=="Link":
-			if isinstance(col, basestring):
+			if isinstance(col, string_types):
 				linked_doctypes[df["options"]] = idx
 			else:
 				# dict
@@ -278,12 +351,12 @@ def get_columns_dict(columns):
 		The keys for the dict are both idx and fieldname,
 		so either index or fieldname can be used to search for a column's docfield properties
 	"""
-	columns_dict = {}
+	columns_dict = frappe._dict()
 	for idx, col in enumerate(columns):
-		col_dict = {}
+		col_dict = frappe._dict()
 
 		# string
-		if isinstance(col, basestring):
+		if isinstance(col, string_types):
 			col = col.split(":")
 			if len(col) > 1:
 				if "/" in col[1]:
@@ -291,6 +364,7 @@ def get_columns_dict(columns):
 				else:
 					col_dict["fieldtype"] = col[1]
 
+			col_dict["label"] = col[0]
 			col_dict["fieldname"] = frappe.scrub(col[0])
 
 		# dict

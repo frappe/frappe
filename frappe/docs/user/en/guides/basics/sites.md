@@ -2,7 +2,7 @@
 
 ## Sites Directory
 
-Frappe is a multitenant platform and each tenant is called a site. Sites exist
+Frappé is a multitenant platform and each tenant is called a site. Sites exist
 in a directory called `sites_dir`, assumed as the current working directory when
 running a frappe command or other services like Celery worker or a WSGI server.
 
@@ -13,10 +13,10 @@ Apart from the sites, the `sites_dir` should contain the following.
 
 #### apps.txt
 
-`apps.txt` contain a list of Python packages to treat as Frappe apps. Every
+`apps.txt` contain a list of Python packages to treat as Frappé apps. Every
 frappe app that you intend to use in you site should have an entry in this file.
 Also, they should be in the `PYTHONPATH`. For more information, refer
-[Frappe Apps](/help/apps).
+[Frappé Apps](/help/apps).
 
 #### common\_site\_config.json
 
@@ -35,7 +35,7 @@ generated using the `bench build` command.
 
 ## Site
 
-A site is a directory in `sites_dir` which represents a tenant in Frappe Platform.
+A site is a directory in `sites_dir` which represents a tenant in Frappé Platform.
 
 
 ### Directory Structure
@@ -63,14 +63,14 @@ Presently, it is limited only to backups.
 
 ### Site Config
 
-[See configuration options for `site_config.json`](/docs/user-guide/site_config.md)
+[See configuration options for `site_config.json`](/frappe/user/en/guides/basics/site_config)
 
 ### Site Resolution
 
 While responding to an HTTP request, a site is automatically selected based on,
 
 * `Host` header in the HTTP request matches a site
-* `X-Frappe-Site-Name` header in the HTTP request matches a site
+* `X-Frappé-Site-Name` header in the HTTP request matches a site
 
 It is also possible to force the development server to serve a specific site by
 starting it with the following command.

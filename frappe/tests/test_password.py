@@ -34,11 +34,12 @@ class TestPassword(unittest.TestCase):
 		if not frappe.db.exists('Email Account', name):
 			return frappe.get_doc({
 				'doctype': 'Email Account',
+				'domain': 'example.com',
 				'email_account_name': name,
 				'append_to': 'Communication',
 				'smtp_server': 'test.example.com',
 				'pop3_server': 'pop.test.example.com',
-				'email_id': 'test@example.com',
+				'email_id': 'test-password@example.com',
 				'password': 'password',
 			}).insert()
 
@@ -46,8 +47,8 @@ class TestPassword(unittest.TestCase):
 			return frappe.get_doc('Email Account', name)
 
 	def test_hashed_password(self, user='test@example.com'):
-		old_password = 'testpassword'
-		new_password = 'testpassword-new'
+		old_password = 'Eastern_43A1W'
+		new_password = 'Eastern_43A1W-new'
 
 		update_password(user, new_password)
 

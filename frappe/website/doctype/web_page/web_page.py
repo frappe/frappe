@@ -1,25 +1,19 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 import frappe, re
 import requests, requests.exceptions
 from frappe.utils import strip_html
 from frappe.website.website_generator import WebsiteGenerator
 from frappe.website.router import resolve_route
 from frappe.website.doctype.website_slideshow.website_slideshow import get_slideshow
-from frappe.website.utils import find_first_image, get_comment_list
+from frappe.website.utils import find_first_image, get_comment_list, extract_title
 from frappe.utils.jinja import render_template
 from jinja2.exceptions import TemplateSyntaxError
+from frappe import _
 
 class WebPage(WebsiteGenerator):
-	save_versions = True
-	website = frappe._dict(
-		template = "templates/generators/web_page.html",
-		condition_field = "published",
-		page_title_field = "title",
-	)
-
 	def get_feed(self):
 		return self.title
 
@@ -68,7 +62,9 @@ class WebPage(WebsiteGenerator):
 					raise
 
 	def set_breadcrumbs(self, context):
-		"""Build breadcrumbs template (deprecated)"""
+		"""Build breadcrumbs template """
+		if self.breadcrumbs:
+			context.parents = frappe.safe_eval(self.breadcrumbs, { "_": _ })
 		if not "no_breadcrumbs" in context:
 			if "<!-- no-breadcrumbs -->" in context.main_section:
 				context.no_breadcrumbs = 1
@@ -79,11 +75,8 @@ class WebPage(WebsiteGenerator):
 			if "<!-- no-header -->" in context.main_section:
 				context.no_header = 1
 
-		if "<!-- title:" in context.main_section:
-			context.title = re.findall('<!-- title:([^>]*) -->', context.main_section)[0].strip()
-
-		if context.get("page_titles") and context.page_titles.get(context.pathname):
-			context.title = context.page_titles.get(context.pathname)[0]
+		if not context.title:
+			context.title = extract_title(context.main_section, context.path_name)
 
 		# header
 		if context.no_header and "header" in context:
@@ -141,14 +134,14 @@ def check_broken_links():
 					res = frappe._dict({"status_code": "Connection Error"})
 
 				if res.status_code!=200:
-					print "[{0}] {1}: {2}".format(res.status_code, p.name, link)
+					print("[{0}] {1}: {2}".format(res.status_code, p.name, link))
 					cnt += 1
 			else:
 				link = link[1:] # remove leading /
 				link = link.split("#")[0]
 
 				if not resolve_route(link):
-					print p.name + ":" + link
+					print(p.name + ":" + link)
 					cnt += 1
 
-	print "{0} links broken".format(cnt)
+	print("{0} links broken".format(cnt))

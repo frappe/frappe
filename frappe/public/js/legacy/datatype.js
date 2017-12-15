@@ -8,7 +8,7 @@ frappe.utils.full_name = function(fn, ln) {
 function fmt_money(v, format){
 	// deprecated!
 	// for backward compatibility
-	return format_number(v, format);
+	return format_currency(v, format);
 }
 
 
@@ -17,7 +17,7 @@ function toTitle(str){
 	var word_in = str.split(" ");
 	var word_out = [];
 
-	for(w in word_in){
+	for(var w in word_in){
 		word_out[w] = word_in[w].charAt(0).toUpperCase() + word_in[w].slice(1);
 	}
 
@@ -76,12 +76,6 @@ var crop = function(s, len) {
 }
 
 
-function keys(obj) {
-	var mykeys=[];
-	for (var key in obj) mykeys[mykeys.length]=key;
-	return mykeys;
-}
-
 function has_words(list, item) {
 	if(!item) return true;
 	if(!list) return false;
@@ -100,7 +94,6 @@ function has_common(list1, list2) {
 	return false;
 }
 
-var inList = in_list; // bc
 function add_lists(l1, l2) {
 	return [].concat(l1).concat(l2);
 }

@@ -11,18 +11,36 @@
 // 	}
 // })
 
-cur_frm.cscript.refresh = function(doc, cdt, cdn) {
-	if(doc.__islocal && (user !== "Administrator" || !frappe.boot.developer_mode)) {
-		cur_frm.set_value("custom", 1);
-		cur_frm.toggle_enable("custom", 0);
-	}
+frappe.ui.form.on('DocType', {
+	refresh: function(frm) {
+		if(frappe.session.user !== "Administrator" || !frappe.boot.developer_mode) {
+			if(frm.is_new()) {
+				frm.set_value("custom", 1);
+			}
+			frm.toggle_enable("custom", 0);
+			frm.toggle_enable("beta", 0);
+		}
 
-	if(!frappe.boot.developer_mode && !doc.custom) {
-		// make the document read-only
-		cur_frm.set_read_only();
-	}
-}
+		if(!frappe.boot.developer_mode && !frm.doc.custom) {
+			// make the document read-only
+			frm.set_read_only();
+		}
 
+		if(frm.is_new()) {
+			if (!(frm.doc.permissions && frm.doc.permissions.length)) {
+				frm.add_child('permissions', {role: 'System Manager'});
+			}
+		} else {
+			frm.toggle_enable("engine", 0);
+		}
+
+		// set label for "In List View" for child tables
+		frm.get_docfield('fields', 'in_list_view').label = frm.doc.istable ?
+			__('In Grid View') : __('In List View');
+	}
+})
+
+// for legacy... :)
 cur_frm.cscript.validate = function(doc, cdt, cdn) {
 	doc.server_code_compiled = null;
 }

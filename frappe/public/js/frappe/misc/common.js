@@ -4,7 +4,6 @@ frappe.avatar = function(user, css_class, title) {
 	if(user) {
 		// desk
 		var user_info = frappe.user_info(user);
-		var image = frappe.utils.get_file_link(user_info.image);
 	} else {
 		// website
 		user_info = {
@@ -30,7 +29,7 @@ frappe.avatar = function(user, css_class, title) {
 
 		return repl('<span class="avatar %(css_class)s" title="%(title)s">\
 			<span class="avatar-frame" style="background-image: url(%(image)s)"\
-			 title="%(title)s"></span></span>', {
+			title="%(title)s"></span></span>', {
 				image: image,
 				title: title,
 				abbr: user_info.abbr,
@@ -51,15 +50,24 @@ frappe.avatar = function(user, css_class, title) {
 	}
 }
 
+frappe.ui.scroll = function(element, animate, additional_offset) {
+	var header_offset = $(".navbar").height() + $(".page-head").height();
+	var top = $(element).offset().top - header_offset - cint(additional_offset);
+	if (animate) {
+		$("html, body").animate({ scrollTop: top });
+	} else {
+		$(window).scrollTop(top);
+	}
+};
 
 frappe.get_palette = function(txt) {
 	return '#fafbfc';
-	//return '#8D99A6';
-	if(txt==='Administrator') return '#36414C';
-	// get color palette selection from md5 hash
-	var idx = cint((parseInt(md5(txt).substr(4,2), 16) + 1) / 5.33);
-	if(idx > 47) idx = 47;
-	return frappe.palette[idx][0]
+	// //return '#8D99A6';
+	// if(txt==='Administrator') return '#36414C';
+	// // get color palette selection from md5 hash
+	// var idx = cint((parseInt(md5(txt).substr(4,2), 16) + 1) / 5.33);
+	// if(idx > 47) idx = 47;
+	// return frappe.palette[idx][0]
 }
 
 frappe.get_abbr = function(txt, max_length) {
@@ -82,9 +90,11 @@ frappe.get_abbr = function(txt, max_length) {
 }
 
 frappe.gravatars = {};
-frappe.get_gravatar = function(email_id) {
+frappe.get_gravatar = function(email_id, size = 0) {
+	var param = size ? ('s=' + size) : 'd=retro';
 	if(!frappe.gravatars[email_id]) {
-		frappe.gravatars[email_id] = "https://secure.gravatar.com/avatar/" + md5(email_id) + "?d=retro";
+		// TODO: check if gravatar exists
+		frappe.gravatars[email_id] = "https://secure.gravatar.com/avatar/" + md5(email_id) + "?" + param;
 	}
 	return frappe.gravatars[email_id];
 }
@@ -93,7 +103,7 @@ frappe.get_gravatar = function(email_id) {
 
 function repl(s, dict) {
 	if(s==null)return '';
-	for(key in dict) {
+	for(var key in dict) {
 		s = s.split("%("+key+")s").join(dict[key]);
 	}
 	return s;
@@ -162,8 +172,8 @@ function getCookies() {
 		c.match(/(?:^|\s+)([!#$%&'*+\-.0-9A-Z^`a-z|~]+)=([!#$%&'*+\-.0-9A-Z^`a-z|~]*|"(?:[\x20-\x7E\x80\xFF]|\\[\x00-\x7F])*")(?=\s*[,;]|$)/g).map(function($0, $1) {
 			var name = $0,
 				value = $1.charAt(0) === '"'
-						  ? $1.substr(1, -1).replace(/\\(.)/g, "$1")
-						  : $1;
+						? $1.substr(1, -1).replace(/\\(.)/g, "$1")
+						: $1;
 			cookies[name] = value;
 		});
 	}
@@ -245,3 +255,36 @@ frappe.is_mobile = function() {
 	return $(document).width() < 768;
 }
 
+frappe.utils.xss_sanitise = function (string, options) {
+	// Reference - https://www.owasp.org/index.php/XSS_(Cross_Site_Scripting)_Prevention_Cheat_Sheet
+	let sanitised = string; // un-sanitised string.
+	const DEFAULT_OPTIONS = {
+		strategies: ['html', 'js'] // use all strategies.
+	}
+	const HTML_ESCAPE_MAP = {
+		'&': '&amp',
+		'<': '&lt',
+		'>': '&gt',
+		'"': '&quot',
+		"'": '&#x27',
+		'/': '&#x2F'
+	};
+	const REGEX_SCRIPT     = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi; // used in jQuery 1.7.2 src/ajax.js Line 14
+	options          	   = Object.assign({ }, DEFAULT_OPTIONS, options); // don't deep copy, immutable beauty.
+	
+	// Rule 1
+	if ( options.strategies.includes('html') ) {
+		// By far, the best thing that has ever happened to JS - Object.keys
+		Object.keys(HTML_ESCAPE_MAP).map((char, escape) => {
+			const regex = new RegExp(char, "g");
+			sanitised = sanitised.replace(regex, escape);
+		});
+	}
+	
+	// Rule 3 - TODO: Check event handlers?
+	if ( options.strategies.includes('js') ) {
+		sanitised = sanitised.replace(REGEX_SCRIPT, "");
+	}
+
+	return sanitised;
+}

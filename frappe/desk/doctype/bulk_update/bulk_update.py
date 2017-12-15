@@ -20,7 +20,7 @@ def update(doctype, field, value, condition='', limit=500):
 		condition = ' where ' + condition
 
 	if ';' in condition:
-		frappe.throw('; not allowed in condition')
+		frappe.throw(_('; not allowed in condition'))
 
 	items = frappe.db.sql_list('''select name from `tab{0}`{1} limit 0, {2}'''.format(doctype,
 		condition, limit), debug=1)
@@ -32,7 +32,7 @@ def update(doctype, field, value, condition='', limit=500):
 
 		try:
 			doc.save()
-		except Exception, e:
+		except Exception as e:
 			frappe.msgprint(_("Validation failed for {0}").format(frappe.bold(doc.name)))
 			raise e
 
