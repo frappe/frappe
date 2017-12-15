@@ -1,3 +1,6 @@
+.cursor-pointer {
+  cursor: pointer;
+}
 .frappe-fab {
   width: 48px;
   height: 48px;
@@ -44,6 +47,7 @@
   right: 0px;
   z-index: 1037;
   overflow: auto;
+  border-radius: none !important;
 }
 .frappe-chat__room {
   position: relative;

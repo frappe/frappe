@@ -63,21 +63,21 @@ io.on('connection', function(socket) {
 	socket.user = cookie.parse(socket.request.headers.cookie).user_id;
 	socket.files = {};
 
-	console.log('frappe.chat.subscribe - listener')
 	// frappe.chat
 	socket.on("frappe.chat:subscribe", function (rooms) {
 		if ( !Array.isArray(rooms) ) {
-			rooms = [rooms]
+			rooms = [rooms];
 		}
 		
 		for (var room of rooms) {
-			console.log('frappe.chat: Subscribing ' + socket.user + ' to room  ' + room.name)
-			room = get_chat_room(socket, room.name)
+			console.log(room);
+			console.log('frappe.chat: Subscribing ' + socket.user + ' to room '  + room);
+			room = get_chat_room(socket, room);
 
-			console.log('frappe.chat: Subscribing ' + socket.user + ' to event ' + room)
-			socket.join(room)
+			console.log('frappe.chat: Subscribing ' + socket.user + ' to event ' + room);
+			socket.join(room);
 		}
-	})
+	});
 
 	// socket.on("frappe.chat:room:typing", function (data) {
 	// 	const room  = data.room

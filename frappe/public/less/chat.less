@@ -16,6 +16,11 @@
 // z-index greater than FAB, lesser than modal.
 @frappe-chat-popper-panel-span-z-index:					1037;
 
+.cursor-pointer
+{
+	cursor: pointer;
+}
+
 .frappe-fab
 {
 		    width: @frappe-fab-width;
@@ -66,15 +71,16 @@
 
 		.panel-span
 		{
-			position: fixed;
-			   width: 100%;
-			  height: 100%;
-			     top: 0px;
-			    left: 0px;
-			  bottom: 0px;
-			   right: 0px;
-			 z-index: @frappe-chat-popper-panel-span-z-index;
-			overflow: auto;
+				 position: fixed;
+			   		width: 100%;
+			  	   height: 100%;
+			     	  top: 0px;
+			    	 left: 0px;
+			  	   bottom: 0px;
+			   		right: 0px;
+			 	  z-index: @frappe-chat-popper-panel-span-z-index;
+				 overflow: auto;
+			border-radius: none !important;
 		};
 	};
 };

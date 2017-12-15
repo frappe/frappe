@@ -109,7 +109,7 @@ class ChatRoom(Document):
 					data = update
 				)
 
-				frappe.publish_realtime('frappe.chat.room.update', resp,
+				frappe.publish_realtime('frappe.chat.room:update', resp,
 					room = self.name, after_commit = True)
 
 	def on_trash(self):

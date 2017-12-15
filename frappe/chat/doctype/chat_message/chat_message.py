@@ -20,7 +20,10 @@ session = frappe.session
 # [ ] Link Timestamp to Chat Room
 
 class ChatMessage(Document):
-	pass
+	def on_update(self):
+		room = frappe.get_doc('Chat Room', self.room)
+		room.last_message_timestamp = self.creation
+		room.save()
 
 def get_message_urls(content):
 	soup     = Soup(content, 'html.parser')
@@ -65,7 +68,7 @@ def get_message_meta(content):
 	
 	return meta
 
-def get_new_chat_message_doc(user, room, content):
+def get_new_chat_message_doc(user, room, content, link = True):
 	user = get_user_doc(user)
 	room = frappe.get_doc('Chat Room', room)
 
@@ -78,12 +81,16 @@ def get_new_chat_message_doc(user, room, content):
 
 	mess.mentions = meta.mentions
 	mess.urls     = ','.join(meta.urls)
+	mess.save()
+
+	if link:
+		room.last_message_timestamp = mess.creation
+		room.save()
 
 	return mess
 
 def get_new_chat_message(user, room, content):
 	mess = get_new_chat_message_doc(user, room, content)
-	mess.save()
 
 	resp = dict(
 		name     = mess.name,

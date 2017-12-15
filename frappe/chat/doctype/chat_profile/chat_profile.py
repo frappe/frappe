@@ -63,7 +63,7 @@ class ChatProfile(Document):
                             )
 
                             for room in rooms:
-                                frappe.publish_realtime('frappe.chat.profile.update', resp, room = room.name, after_commit = True)
+                                frappe.publish_realtime('frappe.chat.profile:update', resp, room = room.name, after_commit = True)
 
                         if 'display_widget' in fields:
                             resp  = dict(
@@ -72,7 +72,7 @@ class ChatProfile(Document):
                                     display_widget = bool(self.display_widget)
                                 )
                             )
-                            frappe.publish_realtime('frappe.chat.profile.update', resp, user = user.name, after_commit = True)
+                            frappe.publish_realtime('frappe.chat.profile:update', resp, user = user.name, after_commit = True)
 
 def get_user_chat_profile_doc(user = None):
     user = get_user_doc(user)
@@ -98,10 +98,8 @@ def get_user_chat_profile(user = None, fields = None):
 
         status	   = prof.status,
         chat_bg    = prof.chat_background,
-
         
         conversation_tones  = bool(prof.conversation_tones), # frappe, y u no jsonify 0,1 bools? :(
-
         display_widget      = bool(prof.display_widget)
     )
 
