@@ -185,6 +185,7 @@ $.extend(frappe, {
 		if($.isArray(html)) {
 			html = html.join("<hr>")
 		}
+
 		return frappe.get_modal(title || "Message", html).modal("show");
 	},
 	send_message: function(opts, btn) {
