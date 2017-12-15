@@ -17,8 +17,8 @@ login.bind_events = function() {
 		event.preventDefault();
 		var args = {};
 		args.cmd = "login";
-		args.usr = ($("#login_email").val() || "").trim();
-		args.pwd = $("#login_password").val();
+		args.usr = frappe.utils.xss_sanitise(($("#login_email").val() || "").trim());
+		args.pwd = frappe.utils.xss_sanitise($("#login_password").val());
 		args.device = "desktop";
 		if(!args.usr || !args.pwd) {
 			frappe.msgprint("{{ _("Both login and password required") }}");
@@ -184,6 +184,8 @@ login.login_handlers = (function() {
 					login.set_indicator("{{ _("Not a valid user") }}", 'red');
 				} else if (data.message=='not allowed') {
 					login.set_indicator("{{ _("Not Allowed") }}", 'red');
+				} else if (data.message=='disabled') {
+					login.set_indicator("{{ _("Not Allowed: Disabled User") }}", 'red');
 				} else {
 					login.set_indicator("{{ _("Instructions Emailed") }}", 'green');
 				}
