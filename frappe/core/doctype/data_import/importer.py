@@ -187,7 +187,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 				else:
 					break
 
-			return doc
+			return doc, last_error_row_idx
 		else:
 			doc = frappe._dict(zip(columns, rows[start_idx][1:]))
 			doc['doctype'] = doctype
@@ -354,7 +354,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 		publish_progress(i)
 
 		try:
-			doc = get_doc(row_idx)
+			doc, last_error_row_idx = get_doc(row_idx)
 			validate_naming(doc)
 			if pre_process:
 				pre_process(doc)
@@ -417,7 +417,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 				"indicator": "red", "link":error_link})
 			# data with error to create a new file
 			if skip_errors:
-				data_rows_with_error += data[row_idx:last_error_row_idx]
+				data_rows_with_error += rows[row_idx:last_error_row_idx]
 			else:
 				rollback_flag = True
 		finally:
