@@ -40,7 +40,8 @@ frappe.ui.form.on('Data Import', {
 
 				if (frm.doc.import_status==="In Progress") {
 					frm.dashboard.add_progress("Data Import Progress", "0");
-					frm.set_read_only(true);
+					frm.set_read_only();
+					frm.refresh_fields();
 				}
 			}
 		}
