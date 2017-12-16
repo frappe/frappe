@@ -15,7 +15,6 @@ from email.utils import parseaddr, formataddr
 from frappe.utils.data import *
 from six.moves.urllib.parse import quote
 from six import text_type, string_types
-from hashlib import md5
 
 default_fields = ['doctype', 'name', 'owner', 'creation', 'modified', 'modified_by',
 	'parent', 'parentfield', 'parenttype', 'idx', 'docstatus']
@@ -152,7 +151,7 @@ def has_gravatar(email):
 		return ''
 
 def get_gravatar_url(email, size = 0):
-	email = md5(email).hexdigest()
+	email = hashlib.md5(email).hexdigest()
 	param = ('s=' + size) if size else 'd=retro'
 	url   = 'https://secure.gravatar.com/avatar/' + str(email) + '?' + param
 

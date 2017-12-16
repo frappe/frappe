@@ -5,7 +5,6 @@
 from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
-from hashlib import md5
 
 class UserEmail(Document):
 	pass
