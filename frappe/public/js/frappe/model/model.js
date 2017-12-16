@@ -67,6 +67,9 @@ $.extend(frappe.model, {
 	},
 
 	is_value_type: function(fieldtype) {
+		if (typeof fieldtype == 'object') {
+			fieldtype = fieldtype.fieldtype;
+		}
 		// not in no-value type
 		return frappe.model.no_value_type.indexOf(fieldtype)===-1;
 	},

@@ -75,6 +75,30 @@ body[data-route=""] .navbar-default, body[data-route="desktop"] .navbar-default 
 	-webkit-transition: 0.2s;
 }
 
+@-webkit-keyframes wiggle {
+    0% {-webkit-transform:rotate(3deg);}
+    50% {-webkit-transform:rotate(-3deg);}
+    100% {-webkit-transform:rotate(3deg);}
+}
+
+@-moz-keyframes wiggle {
+    0% {-moz-transform:rotate(3deg);}
+    50% {-moz-transform:rotate(-3deg);}
+    100% {-moz-transform:rotate(3deg);}
+}
+
+@keyframes wiggle {
+    0% {transform:rotate(3deg);}
+    50% {transform:rotate(-3deg);}
+    100% {transform:rotate(3deg);}
+}
+
+.wiggle {
+	-webkit-animation: wiggle 0.2s linear infinite;
+	-moz-animation: wiggle 0.2s linear infinite;
+	animation: wiggle 0.2s linear infinite;
+}
+
 .circle {
 	position: absolute;
 	right: 20px;
