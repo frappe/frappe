@@ -68,6 +68,7 @@ class Report(Document):
 			return True
 
 		roles = frappe.get_roles()
+		print("getting the roles of the session user", frappe.session.user, roles, allowed)
 
 		if has_common(roles, allowed):
 			return True

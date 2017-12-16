@@ -63,7 +63,7 @@ def get_script(report_name):
 
 @frappe.whitelist()
 def run(report_name, filters=None, user=None):
-
+	print ("run the query report", user)
 	report = get_report_doc(report_name)
 	if not user:
 		user = frappe.session.user
