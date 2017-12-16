@@ -89,14 +89,20 @@ frappe.get_abbr = function(txt, max_length) {
 	return abbr || "?";
 }
 
-frappe.gravatars = {};
-frappe.get_gravatar = function(email_id, size = 0) {
-	var param = size ? ('s=' + size) : 'd=retro';
-	if(!frappe.gravatars[email_id]) {
-		// TODO: check if gravatar exists
-		frappe.gravatars[email_id] = "https://secure.gravatar.com/avatar/" + md5(email_id) + "?" + param;
-	}
-	return frappe.gravatars[email_id];
+frappe.provide('frappe.gravatars');
+frappe.get_gravatar = function(email, size = 0, fn) {
+	if ( !frappe.gravatars[email] )
+		frappe.call({
+			method: 'frappe.core.doctype.user_email.user_email.get_gravatar_url',
+				args: { email: email, size: size },
+			callback: (r) => {
+				frappe.gravatars[email] = r.message;
+
+				fn(frappe.gravatars[email]);
+			}
+		});
+	else
+		fn(frappe.gravatars[email]);
 }
 
 // string commons
