@@ -1,4 +1,4 @@
-frappe.pages['chirp'].on_page_load = function (container)
+frappe.pages.chat.on_page_load = function (container)
 {
     const page = new frappe.ui.Page({
         title: __('Chat'), parent: container

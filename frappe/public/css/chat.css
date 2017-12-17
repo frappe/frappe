@@ -41,6 +41,9 @@
   height: 500px;
   box-shadow: 0px 3px 6px 0px rgba(0, 0, 0, 0.25);
 }
+.frappe-chat-popper .frappe-chat-popper-collapse > .panel > .panel-heading a {
+  color: #FFF;
+}
 .frappe-chat-popper .frappe-chat-popper-collapse > .panel .panel-footer {
   position: absolute;
   bottom: 0px;

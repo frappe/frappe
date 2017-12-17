@@ -11,7 +11,7 @@ QUnit.test("test: Chat", function (assert)
 
 	// test - frappe.chat.profile.create
 	frappe.run_serially([
-		() => frappe.set_route('chirp'),
+		() => frappe.set_route('chat'),
 		// empty promise
 		() => frappe.chat.profile.create(),
 		(profile) => {
