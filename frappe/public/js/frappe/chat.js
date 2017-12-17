@@ -1,72 +1,8 @@
 // frappe Chat
 // Author - Achilles Rasquinha <achilles@frappe.io>
 
-// frappe.loggers - A registry for frappe loggers.
-frappe.loggers = Object();
-
 /**
- * @description Frappe's Logger Class
- * 
- * @example
- * frappe.log       = frappe.Logger.get('foobar');
- * frappe.log.level = frappe.Logger.DEBUG;
- * 
- * frappe.log.debug('foobar');
- * // prints 'foobar:foobar'
- */
-frappe.Logger = class
-{
-    /**
-     * @description Frappe's Logger Class's constructor.
-     * 
-     * @param {string} name - Name of the logger.
-     */
-    constructor (name)
-    {
-        if ( typeof name !== 'string' )
-            throw new frappe.TypeError(`Expected string for name, got ${typeof name} instead.`);
-
-        this.name  = name;
-        this.level = frappe.Logger.NOTSET;
-    }
-
-    /**
-     * @description Set the level of the logger.
-     * 
-     * @param {level} level - Level of the logger.
-     * 
-     * @example
-     * frappe.log = new frappe.get_logger('foobar');
-     * frappe.log.set_level(frappe.Logger.DEBUG);
-     */
-    set_level (level)
-    {
-        this.level = level;
-    }
-
-    debug (message)
-    {
-        if ( this.level === frappe.Logger.DEBUG )
-            console.log(`${this.name}: ${message}`);
-    }
-};
-
-frappe.Logger.NOTSET =  0
-frappe.Logger.DEBUG  = 10
-
-frappe.get_logger    = function (name)
-{
-    if ( !(name in frappe.loggers) )
-        frappe.loggers[name] = new frappe.Logger(name);
-    
-    return frappe.loggers[name];
-};
-
-frappe.log = frappe.get_logger('frappe.chat');
-frappe.log.set_level(frappe.Logger.DEBUG);
-
-/**
- * @description FrappeError
+ * @description The base class for all Frappe Errors.
  * 
  * @example
  * try
@@ -74,36 +10,36 @@ frappe.log.set_level(frappe.Logger.DEBUG);
  * catch (e)
  *      console.log(e.name); // returns FrappeError
  */
-frappe.Error   = class extends Error
+frappe.Error = class extends Error
 {
     constructor (message)
     {
         super (message);
 
-        this.name  = 'FrappeError';
-        this.stack = (new Error()).stack;
+        this.name = 'FrappeError';
+
+        if ( typeof Error.captureStackTrace === 'function' )
+            Error.captureStackTrace(this, this.constructor);
+        else
+            this.stack = (new Error(message)).stack;
     }
 };
 
 /**
  * @description TypeError
- * 
- * @example
- * try
- *      throw new frappe.TypeError("foobar");
- * catch (e)
- *      console.log(e.name); // returns TypeError
  */
- frappe.TypeError = class extends TypeError { };
+frappe.TypeError  = class extends frappe.Error
+{
+    constructor (message)
+    {
+        super (message);
+
+        this.name = this.constructor.name;
+    }
+};
 
 /**
  * @description ValueError
- * 
- * @example
- * try
- *      throw new frappe.ValueError("foobar");
- * catch (e)
- *      console.log(e.name); // returns ValueError
  */
 frappe.ValueError = class extends frappe.Error
 {
@@ -111,14 +47,85 @@ frappe.ValueError = class extends frappe.Error
     {
         super (message);
 
-        this.name     = 'ValueError';
-        this.stack    = (new Error()).stack;
+        this.name = this.constructor.name;
     }
+};
+
+/**
+ * @description ImportError
+ */
+frappe.ImportError = class extends frappe.Error
+{
+    constructor (message)
+    {
+        super (message);
+
+        this.name = this.constructor.name;
+    }
+};
+
+// frappe.datetime
+frappe.provide('frappe.datetime');
+/**
+ * @description Frappe's datetime object.
+ * 
+ * @example
+ * const datetime = new frappe.datetime.datetime();
+ */
+frappe.datetime.datetime = class
+{
+    /**
+     * @description Frappe's datetime Class's constructor.
+     */
+    constructor ( )
+    {
+        if ( typeof moment === 'undefined' )
+            throw new frappe.ImportError(`Moment.js not installed.`);
+
+        this.moment = moment();
+    }
+
+    format (format)
+    {
+        const  formatted = this.moment.format(format);
+        return formatted;
+    }
+};
+
+/**
+ * @description Returns the current datetime.
+ * 
+ * @example
+ * const datetime = new frappe.datetime.now();
+ */
+frappe.datetime.now = function ( )
+{
+    const  datetime = new frappe.datetime.datetime();
+
+    return datetime;
 };
 
 // frappe._
 // frappe's utility namespace.
 frappe.provide('frappe._');
+
+/**
+ * @description Python-inspired format extension for string objects.
+ * 
+ * @param {string} string - A string with placeholders.
+ * @param {object} object - An object with placeholder, value pairs.
+ * 
+ * @example
+ * frappe._.format('{foo} {bar}', { bar: 'foo', foo: 'bar' });
+ * // returns "bar foo"
+ */
+frappe._.format = function (string, object)
+{
+    for (const key in object)
+        string  = string.replace(`{${key}}`, object[key]);
+
+    return string;
+};
 
 /**
  * @description Fuzzy Search a given query within a dataset.
@@ -195,9 +202,26 @@ frappe._.copy_array = function (array)
         throw frappe.TypeError(`Expected Array, recieved ${typeof array} instead.`);
 };
 
-frappe._.is_empty   = function (what)
+/**
+ * @description - Check whether an array|string|object is empty.
+ * 
+ * @param   {any}     value - The value to be checked on.
+ * 
+ * @returns {boolean}       - Returns if the object is empty. 
+ * 
+ * @todo Handle other cases.
+ */
+frappe._.is_empty   = function (value)
 {
-    return Object.keys(what).length === 0;
+    let empty = false;
+
+    if ( Array.isArray(value) || typeof value === 'string' )
+        empty = value.length === 0;
+    else
+    if ( typeof value === 'object' )
+        empty = value.length === 0;
+
+    return empty;
 };
 
 /**
@@ -231,6 +255,7 @@ frappe._.as_array = function (item)
  * @example
  * frappe._.squash(["foo"]);
  * // returns "foo"
+ * 
  * frappe._.squash(["foo", "bar"]);
  * // returns ["foo", "bar"]
  */
@@ -260,7 +285,7 @@ frappe._.is_mobile = function ( )
 };
 
 /**
- * @description Returns 1, 0 or -1 if a < b, a > b or a == b respectively.
+ * @description Returns 1, 0 or -1 if a < b, a > b or a == b respectively (a, b must be logically comparable).
  * 
  * @returns {number} 1, 0 or -1
  * 
@@ -283,8 +308,81 @@ frappe._.compare = function (a, b)
         return  0;
 };
 
+// frappe.loggers - A registry for frappe loggers.
+frappe.provide('frappe.loggers');
+
+/**
+ * @description Frappe's Logger Class
+ * 
+ * @example
+ * frappe.log       = frappe.Logger.get('foobar');
+ * frappe.log.level = frappe.Logger.DEBUG;
+ * 
+ * frappe.log.info('foobar');
+ * // prints '[timestamp] foobar: foobar'
+ */
+frappe.Logger = class
+{
+    /**
+     * @description Frappe's Logger Class's constructor.
+     * 
+     * @param {string} name - Name of the logger.
+     */
+    constructor (name)
+    {
+        if ( typeof name !== 'string' )
+            throw new frappe.TypeError(`Expected string for name, got ${typeof name} instead.`);
+
+        this.name   = name;
+        this.level  = frappe.Logger.NOTSET;
+        this.format = frappe.Logger.FORMAT;
+    }
+
+    /**
+     * @description Get instance of frappe.Logger (return registered one if declared).
+     * 
+     * @param {string} name - Name of the logger.
+     */
+    static get (name)
+    {
+        if ( !(name in frappe.loggers) )
+            frappe.loggers[name] = new frappe.Logger(name);
+        return frappe.loggers[name];
+    }
+
+    debug (message) { this.log(message, frappe.Logger.DEBUG); }
+    info  (message) { this.log(message, frappe.Logger.INFO);  }
+    warn  (message) { this.log(message, frappe.Logger.WARN);  }
+    error (message) { this.log(message, frappe.Logger.ERROR); }
+
+    log (message, level)
+    {
+        const timestamp   = frappe.datetime.now();
+
+        if ( level.value <= this.level.value )
+        {
+            const format  = frappe._.format(this.format, {
+                time: timestamp.format('HH:mm:ss'),
+                name: this.name
+            });
+            console.log(`%c ${format}:`, `color: ${level.color}`, message);
+        }
+    }
+};
+
+frappe.Logger.DEBUG  = { value: 10, color: '#616161', name: 'DEBUG'  };
+frappe.Logger.INFO   = { value: 20, color: '#2196F3', name: 'INFO'   };
+frappe.Logger.WARN   = { value: 30, color: '#FFC107', name: 'WARN'   };
+frappe.Logger.ERROR  = { value: 40, color: '#F44336', name: 'ERROR'  };
+frappe.Logger.NOTSET = { value: 99,                   name: 'NOTSET' };
+
+frappe.Logger.FORMAT = '{time} {name}';
+
 // frappe.chat
 frappe.provide('frappe.chat');
+
+frappe.log           = frappe.Logger.get('frappe.chat');
+frappe.log.level     = frappe.Logger.ERROR;
 
 // frappe.chat.profile
 frappe.provide('frappe.chat.profile');
@@ -329,7 +427,7 @@ frappe.chat.profile.create = function (fields, fn)
     });
 };
 
-// frappe.chat.profile.on.
+// frappe.chat.profile.on
 frappe.provide('frappe.chat.profile.on');
 
 /**
@@ -349,7 +447,6 @@ frappe.chat.profile.on.update = function (fn)
 {
     frappe.realtime.on("frappe.chat.profile:update", r => fn(r.user, r.data));
 };
-
 frappe.chat.profile.STATUSES
 =
 [
@@ -440,7 +537,7 @@ frappe.chat.room.create = function (kind, owner, users, name, fn)
  *      // do stuff
  * });
  * 
- * frappe.chat.room.get(["CR00001", "CR00002"], ["room_name", "last_message_timestamp"], function (rooms) {
+ * frappe.chat.room.get(["CR00001", "CR00002"], ["room_name", "last_message"], function (rooms) {
  * 
  * });
  */
@@ -473,20 +570,19 @@ frappe.chat.room.get = function (names, fields, fn)
             { user: frappe.session.user, rooms: names, fields: fields },
                 response =>
                 {
-                    var rooms = response.message;
+                    let rooms = response.message;
                     if ( rooms ) // frappe.api BOGZ! (emtpy arrays are falsified, not good design).
                     {
                         rooms = rooms.map(room =>
                         {
                             return { ...room, creation: moment(room.creation),
-                                last_message_timestamp: room.last_message_timestamp && moment(room.last_message_timestamp) };
+                                last_message: room.last_message ? { ...room.last_message, creation: moment(room.last_message.creation) } : null
+                            };
                         });
                         rooms = frappe._.squash(rooms);
                     }
                     else
-                    {
                         rooms = [ ];
-                    }
 
                     if ( fn )
                         fn(rooms);
@@ -504,7 +600,7 @@ frappe.chat.room.get = function (names, fields, fn)
  * @example
  * frappe.chat.room.subscribe("CR00001");
  */
-frappe.chat.room.subscribe = function (rooms)
+frappe.chat.room.subscribe    = function (rooms)
 {
     frappe.realtime.publish("frappe.chat:subscribe", rooms);
 };
@@ -576,15 +672,15 @@ frappe.chat.room.sort = function (rooms, compare = null)
 {
     compare = compare || function (a, b)
     {
-        if ( a.last_message_timestamp && b.last_message_timestamp )
-            return frappe._.compare(a.last_message_timestamp, b.last_message_timestamp);
+        if ( a.last_message && b.last_message )
+            return frappe._.compare(a.last_message.creation, b.last_message.creation);
         else
         {
-            if ( a.last_message_timestamp )
-                return frappe._.compare(a.last_message_timestamp, b.creation);
+            if ( a.last_message )
+                return frappe._.compare(a.last_message.creation, b.creation);
             else
-            if ( b.last_message_timestamp )
-                return frappe._.compare(b.last_message_timestamp, a.creation);
+            if ( b.last_message )
+                return frappe._.compare(b.last_message.creation, a.creation);
             else
                 return frappe._.compare(a.creation, b.creation);
         }
@@ -614,21 +710,35 @@ frappe.chat.room.on.create = function (fn)
     frappe.realtime.on("frappe.chat.room.create", r => fn(r));
 };
 
+frappe.provide('frappe.chat.sound');
+frappe.chat.sound.play  = function (value)
+{
+    frappe.utils.play_sound(`chat-${value}`);
+};
+
 // frappe.chat.emoji
-frappe.chat.emojis = Object();
+frappe.chat.emojis = [ ];
 frappe.chat.emoji  = function (fn)
 {
     return new Promise(resolve => {
         if ( !frappe._.is_empty(frappe.chat.emojis) )
-            fn(frappe.chat.emojis);
-        else
-            $.get('https://api.github.com/emojis', (data) => {
-                frappe.chat.emojis = data;
-
+        {
+            if ( fn )
                 fn(frappe.chat.emojis);
-            })
-    })
-}
+
+            resolve(frappe.chat.emojis);
+        }
+        else
+            $.get('https://cdn.rawgit.com/achillesrasquinha/emoji/master/emoji', (data) => {
+                frappe.chat.emojis = data;
+                
+                if ( fn )
+                    fn(frappe.chat.emojis);
+
+                resolve(frappe.chat.emojis);
+            });
+    });
+};
 
 const { h, Component } = hyper;
 
@@ -641,10 +751,10 @@ frappe.provide('frappe.components');
  * 
  * @prop {string}  type  - (Optional) "default", "primary", "info", "success", "warning", "danger" (defaults to "default")
  * @prop {boolean} block - (Optional) Render a button block (defaults to false).
- * 
- * @extends Component
  */
-frappe.components.Button = class extends Component
+frappe.components.Button
+=
+class extends Component
 {
     render ( )
     {
@@ -705,8 +815,6 @@ frappe.components.FAB.SIZE
 
 /**
  * @description Octicon Component
- * 
- * @extends frappe.Component
  *
  * @prop color - (Required) color for the indicator
  */
@@ -725,8 +833,6 @@ class extends Component
 
 /**
  * @description FontAwesome Component
- * 
- * @extends frappe.Component
  */
 frappe.components.FontAwesome
 =
@@ -736,10 +842,9 @@ class extends Component
     {
         const { props } = this;
 
-        return props.type ?
-            h("i", { class: `fa ${props.fixed ? "fa-fw" : ""} fa-${props.type}` })
-            :
-            null;
+        return props.type ? (
+            h("i", { class: `fa ${props.fixed ? "fa-fw" : ""} fa-${props.type}`, ...props })
+        ) : null;
     }
 };
 frappe.components.FontAwesome.defaultProps
@@ -761,10 +866,9 @@ class extends Component
     {
         const { props } = this;
 
-        return props.type ?
-            h("i", { class: `octicon octicon-${props.type}`})
-            :
-            null;
+        return props.type ? (
+            h("i", { class: `octicon octicon-${props.type}`, ...props })
+        ) : null;
     }
 };
 
@@ -782,8 +886,8 @@ class extends Component
 {
     render ( )
     {
-        const { props } = this
-        const abbr      = props.abbr || props.title.substr(0, 1)
+        const { props } = this;
+        const abbr      = props.abbr || props.title.substr(0, 1);
         const size      = frappe.components.Avatar.SIZE[props.size] || { class: "avatar-medium" };
 
         return (
@@ -835,9 +939,9 @@ class
      */
     constructor (selector, options)
     {
-        if ( typeof selector !== "string" )
+        if ( !(typeof selector === "string" || selector instanceof $ || selector instanceof HTMLElement) )
         {
-            options  = options;
+            options  = selector;
             selector = null;
         }
 
@@ -876,7 +980,7 @@ class
      */
     set_options (options)
     {
-        this.options = { ...this.options, options };
+        this.options = { ...this.options, ...options };
 
         return this;
     }
@@ -953,14 +1057,14 @@ class extends Component
             rooms           = frappe._.as_array(rooms);
             const names     = rooms.map(r => r.name);
 
-            frappe.log.debug(`Subscribing ${frappe.session.user} to Chat Rooms ${names.join(", ")}.`);
+            frappe.log.info(`Subscribing ${frappe.session.user} to Chat Rooms ${names.join(", ")}.`);
             frappe.chat.room.subscribe(names);
 
-            for (const room of rooms )
+            for (const room of rooms)
             {
-                if ( room.type === "Group" || room.owner === frappe.session.user || room.last_message_timestamp )
+                if ( room.type === "Group" || room.owner === frappe.session.user || room.last_message )
                 {
-                    frappe.log.debug(`Adding ${room.name} to component.`);
+                    frappe.log.info(`Adding ${room.name} to component.`);
                     state.push(room);
                 }
             }
@@ -973,7 +1077,15 @@ class extends Component
             const rooms     = state.rooms.map(r =>
             {
                 if ( r.name === room )
+                {
+                    if ( update.last_message )
+                    {
+                        frappe.log.info(`Updating Last Message for Chat Room ${r.name}`)
+                        // momentify
+                        update = { ...update, last_message: { ...update.last_message, creation: moment(update.last_message.creation) } }
+                    }
                     return { ...r, ...update };
+                }
                 return r;
             });
 
@@ -1013,12 +1125,13 @@ class extends Component
     make ( ) {
         frappe.chat.profile.create(["status", "display_widget"], profile =>
         {
-            frappe.log.debug(`Chat Profile created for User ${frappe.session.user}.`)
+            frappe.log.info(`Chat Profile created for User ${frappe.session.user}.`)
             this.setState({ profile });
 
             frappe.chat.room.get(rooms =>
             {
-                frappe.log.debug(`User ${frappe.session.user} is subscribed to ${rooms.length} rooms.`);
+                rooms = frappe._.as_array(rooms);
+                frappe.log.info(`User ${frappe.session.user} is subscribed to ${rooms.length} ${frappe._.pluralize('room', rooms.length)}.`);
 
                 if ( rooms.length )
                     this.room.add(rooms);
@@ -1031,6 +1144,8 @@ class extends Component
     bind ( ) {
         frappe.chat.profile.on.update((user, update) =>
         {
+            frappe.log.warn(`TRIGGER: Chat Profile update ${JSON.stringify(update)} of User ${user}.`);
+
             if ( 'status' in update )
             {
                 if ( user === frappe.session.user )
@@ -1058,13 +1173,45 @@ class extends Component
 
         frappe.chat.room.on.create((room) =>
         {
+            frappe.log.warn(`TRIGGER: Chat Room ${room.name} created.`);
+
             this.room.add(room);
         });
 
         frappe.chat.room.on.update((room, update) =>
         {
-            frappe.log.debug(`Chat Room ${room} update ${JSON.stringify(update)} recieved.`);
+            frappe.log.warn(`TRIGGER: Chat Room ${room} update ${JSON.stringify(update)} recieved.`);
+
             this.room.update(room, update);
+        });
+
+        frappe.chat.message.on.create((r) => 
+        {
+            // Play Sound.
+            frappe.chat.sound.play('message');
+
+            const { state } = this
+            if ( r.room === state.room.name ) {
+                const mess  = frappe._.copy_array(state.room.messages);
+                mess.push(r)
+                
+                this.setState({
+                    room: { ...state.room, messages: mess }
+                })
+            }
+            
+            // update list
+            const rooms = state.rooms.map((room) => {
+                if ( room === r.room )
+                {
+                    room.last_message = r;
+                }
+
+                return room
+            });
+            this.setState({
+                rooms: rooms
+            })
         });
     }
 
@@ -1073,7 +1220,7 @@ class extends Component
         const { props, state } = this;
         const me               = this;
         
-        const ActionBar = h(frappe.Chat.Widget.ActionBar,
+        const ActionBar        = h(frappe.Chat.Widget.ActionBar,
         {
             actions:
             [
@@ -1193,25 +1340,29 @@ class extends Component
                     h("span", null,
                         ActionBar, RoomList
                     )
-                )
-                :
-                null
+                ) : null
             :
             h("div", { class: "row" },
-                h("div", { class: "col-md-2  col-sm-3" },
+                h("div", { class: "col-md-2  col-sm-3 layout-side-section" },
                     ActionBar, RoomList
                 ),
-                h("div", { class: "col-md-10 col-sm-9" },
-
+                h("div", { class: "col-md-10 col-sm-9 layout-main-section-wrapper" },
+                    state.room.name ?
+                        Room : (
+                            h("div", { style: "margin-top: 240px;" },
+                                h("div", { class: "text-center text-extra-muted" },
+                                    h(frappe.components.Octicon, { type: "comment-discussion", style: "font-size: 48px" }),
+                                    h("p", null, __("Select a chat to start messaging."))
+                                )
+                            )
+                        )
                 )
             );
         
         return component ?
             h("div", { class: "frappe-chat" },
                 component
-            )
-            :
-            null
+            ) : null;
     }
 };
 frappe.Chat.Widget.defaultProps =
@@ -1229,7 +1380,20 @@ class extends Component
     constructor (props) {
         super (props);
 
-        this.state = frappe.Chat.Widget.Popper.defaultState;
+        this.toggle = this.toggle.bind(this);
+
+        this.state  = frappe.Chat.Widget.Popper.defaultState;
+    }
+
+    toggle  (active)
+    {
+        let toggle;
+        if ( arguments.length === 1 )
+            toggle = active;
+        else
+            toggle = this.state.active ? false : true;
+        
+        this.setState({ active: toggle });
     }
 
     render  ( )
@@ -1244,47 +1408,37 @@ class extends Component
                        icon: state.active ? "fa fa-fw fa-times" : "octicon octicon-comment",
                        size: frappe._.is_mobile() ? null : "large",
                        type: "primary", "data-toggle": "dropdown",
-                    onclick: () =>
-                    {
-                        const active = state.active ? false : true;
-
-                        this.setState({ active });
-                    }},
-                ),
+                    onclick: () => this.toggle(),
+                }),
                 state.active ?
                     h("div", { class: "frappe-chat-popper-collapse" },
-                        props.page ?
-                            props.page
-                            :
-                        h("div", { class: `panel panel-primary ${frappe._.is_mobile() ? "panel-span" : ""}` },
-                            h("div", { class: "panel-heading" },
-                                h("div", { class: "row" },
-                                    h("div", { class: "col-xs-9" }),
-                                    h("div", { class: "col-xs-3" },
-                                        h("div", { class: "text-right" },
-                                            frappe._.is_mobile() ?
-                                                h("a", { onclick: () =>
-                                                {
-                                                    this.setState({ active: false });
-                                                }},
+                        props.page ? props.page : (
+                            h("div", { class: `panel panel-primary ${frappe._.is_mobile() ? "panel-span" : ""}` },
+                                h("div", { class: "panel-heading" },
+                                    h("div", { class: "row" },
+                                        h("div", { class: "col-xs-9" }),
+                                        h("div", { class: "col-xs-3" },
+                                            h("div", { class: "text-right" },
+                                                h("a", { class: "action", onclick: () =>
+                                                    {
+                                                        frappe.set_route('chat');
+                                                        this.toggle(false);
+                                                    }},
+                                                    h(frappe.components.FontAwesome, { type: "expand", fixed: true })
+                                                ),
+                                                h("a", { class: "action", onclick: () => this.toggle(false) },
                                                     h(frappe.components.Octicon, { type: "x" })
                                                 )
-                                                :
-                                                h("a", { onclick: () =>
-                                                {
-                                                    frappe.set_route('chat');
-                                                }},
-                                                    h(frappe.components.FontAwesome, { type: "expand", fixed: true })
-                                                )
+                                            )
                                         )
                                     )
+                                ),
+                                h("div", { class: "panel-body" },
+                                    props.children
                                 )
-                            ),
-                            h("div", { class: "panel-body" },
-                                props.children
                             )
                         )
-                    ) : null
+                ) : null
             )
         ) : null;
     }
@@ -1306,7 +1460,7 @@ class extends Component
     constructor (props)
     {
         super (props);
-;
+        
         this.change = this.change.bind(this);
         this.submit = this.submit.bind(this);
 
@@ -1407,12 +1561,11 @@ class extends Component
         const { props } = this;
         const rooms     = props.rooms;
 
-        return rooms.length ?
+        return rooms.length ? (
             h("ul", { class: "nav nav-pills nav-stacked" },
                 rooms.map(room => h(frappe.Chat.Widget.RoomList.Item, { ...room, click: props.click }))
             )
-            :
-            null;
+        ) : null;
     }
 }
 
@@ -1425,18 +1578,20 @@ class extends Component
 {
     render ( )
     {
-        const { props } = this;
-        const item      = { };
+        const { props }   = this;
+        const item        = { };
 
         if ( props.type === "Group" ) {
-            item.title  = props.room_name;
-            item.image  = props.avatar;
+            item.title    = props.room_name;
+            item.image    = props.avatar;
+            item.subtitle = props.last_message ? props.last_message.content : "";
         } else {
             const user  = props.owner === frappe.session.user ? frappe._.squash(props.users) : props.owner;
 
-            item.title  = frappe.user.full_name(user);
-            item.image  = frappe.user.image(user);
-            item.abbr   = frappe.user.abbr(user);
+            item.title    = frappe.user.full_name(user);
+            item.image    = frappe.user.image(user);
+            item.abbr     = frappe.user.abbr(user);
+            item.subtitle = props.last_message ? props.last_message.content : "";
         }
 
         return (
@@ -1477,14 +1632,13 @@ class extends Component
                 h("div", { class: "media-body" },
                     h("div", { class: "media-heading h6 ellipsis", style: `max-width: ${props.width_title || "100%"}; display: inline-block;` }, props.title),
                     props.content  ? h("div", null, h("small", { class: "h6" }, props.content))  : null,
-                    props.subtitle ? h("div", null, h("small", { class: "h6" }, props.subtitle)) : null
+                    props.subtitle ? h("div", null, h("small", { class: "h6 text-muted" }, props.subtitle)) : null
                 ),
                 position.class === "media-right" ? avatar : null
             )
         );
     }
 };
-
 frappe.Chat.Widget.MediaProfile.POSITION
 =
 {
@@ -1501,6 +1655,40 @@ class extends Component
     render ( )
     {
         const { props, state } = this;
+        const attach           = [
+            {
+                 icon: "camera",
+                label: "Camera",
+                click: ( ) => {
+                    const capture = new frappe.ui.Capture();
+                    capture.open();
+                    catpure.click((dataURI) => {
+                        console.log(dataURI)
+                    });
+                }
+            },
+            {
+                 icon: "file",
+                label: "File",
+                click: ( ) => {
+                    const dialog = new frappe.ui.Dialog({
+                        title: __("Upload"),
+                        fields: [
+                            {fieldtype:"HTML", fieldname:"upload_area"},
+                            {fieldtype:"HTML", fieldname:"or_attach", options: __("Or")},
+                            {fieldtype:"Select", fieldname:"select", label:__("Select from existing attachments") },
+                            {fieldtype:"Button", fieldname:"clear",
+                                label:__("Clear Attachment"), click: function() {
+                                    dialog.hide();
+                                }
+                            },
+                        ]
+                    })
+                
+                    dialog.show();
+                }
+            }
+        ];
 
         return (
             h("div", { class: `panel panel-primary ${frappe._.is_mobile() ? "panel-span" : ""}` },
@@ -1513,8 +1701,11 @@ class extends Component
                 ),
                 h("div", { class: "panel-footer" },
                     h(frappe.Chat.Widget.ChatForm, {
-                        change: console.log,
-                        submit: console.log,
+                        attach: attach,
+                        change: () => { },
+                        submit: (message) => {
+                            frappe.chat.message.send(props.name, message)
+                        },
                           hint:
                           {
                                 match: /^(@\w*)|(:[a-z]*)$/,
@@ -1601,9 +1792,7 @@ class extends Component
                     popper ?
                         h("div", { class: "col-xs-1" },
                             h("a", { onclick: props.back }, h(frappe.components.Octicon, { type: "chevron-left" }))
-                        )
-                        :
-                        null,
+                        ) : null,
                     h("div", { class: popper ? "col-xs-10" : "col-xs-9" },
                         h("div", { class: "panel-title" },
                             h("div", { class: "cursor-pointer", onclick: () => { frappe.set_route(item.route) }},
@@ -1618,8 +1807,7 @@ class extends Component
                     )
                 )
             )
-            
-        )
+        );
     }
 };
 
@@ -1682,7 +1870,7 @@ class extends Component {
 
         if ( this.state.content )
         {
-            this.props.submit(this.state);
+            this.props.submit(this.state.content);
 
             this.setState({
                 content: null
@@ -1707,6 +1895,24 @@ class extends Component {
                     ) : null,
                 h("form", { oninput: this.change, onsubmit: this.submit },
                     h("div", { class: "input-group input-group-sm" },
+                        h("div", { class: "input-group-btn" },
+                            h("div", { class: `btn-group dropup` },
+                                h(frappe.components.Button, { type: "primary", class: "dropdown-toggle", "data-toggle": "dropdown" },
+                                    h(frappe.components.FontAwesome, { type: "paperclip", fixed: true })
+                                ),
+                                h("div", { class: "dropdown-menu dropdown-menu-left", onclick: e => e.stopPropagation() },
+                                    props.attach.length && props.attach.map((action) => {
+                                        return (
+                                            h("li", null,
+                                                h("a", { onclick: action.click },
+                                                    h(frappe.components.FontAwesome, { type: action.icon, fixed: true }), ` ${action.label}`,
+                                                )
+                                            )
+                                        )
+                                    })
+                                )
+                            )
+                        ),
                         h("textarea",
                         {
                                     class: "form-control",
@@ -1721,8 +1927,7 @@ class extends Component {
                                }
                         }),
                         h("div", { class: "input-group-btn" },
-                            // h(frappe.Chat.Widget.EmojiPicker, { class: "btn-group" }),
-                            h(frappe.components.Button, { type: "primary", class: "dropdown-toggle", "data-toggle": "dropdown" },
+                            h(frappe.components.Button, { type: "primary", class: "dropdown-toggle", "data-toggle": "dropdown", onclick: this.submit },
                                 h(frappe.components.FontAwesome, { type: "send", fixed: true })
                             ),
                         )
@@ -1942,14 +2147,6 @@ frappe.Chat.Widget.ChatList.Bubble.defaultState =
 //         :
 //         "",
 
-// constructor (props)
-// {
-//     super (props);
-
-//     this.on_typing = this.on_typing.bind(this);
-//     this.on_submit = this.on_submit.bind(this);
-// }
-
 // on_typing (what) {
 //     // const { props } = this
 
@@ -1957,71 +2154,11 @@ frappe.Chat.Widget.ChatList.Bubble.defaultState =
 //     //     { room: props.name, user: frappe.session.user })
 // }
 
-// on_submit (message) {
-//     const { props } = this
-//     const room      = props.name
-
-//     frappe.chat.message.send(room, message)
-// }
-
-// h(frappe.Chat.Widget.ChatForm, {
-//     on_change: this.on_typing,
-//     on_submit: this.on_submit
-// })
-
 // on_change_status (status) {
 //     frappe.chat.profile.update(null, {
 //         status: status
 //     })
 // }
-
-// on_select_room (name) {
-//     frappe.chat.room.history(name, m => 
-//     {
-//         const { state } = this
-//         const room      = state.rooms.find(r => r.name === name)
-
-//         this.setState({
-//              room: { ...state.room, ...room, messages: m }
-//         })
-//     })
-// }?
-
-        
-// frappe.chat.message.on.create((r) => 
-// {
-//     console.log(`Message Recieved - ${JSON.stringify(r)}`)
-
-//     const { state } = this
-//     if ( r.room === state.room.name ) {
-//         const mess  = state.room.messages.slice()
-//         mess.push(r)
-        
-//         this.setState({
-//             room: { ...state.room, messages: mess }
-//         })
-//     }
-// })
-// h("div", { class: "input-group-btn" },
-// h("div", { class: "btn-group dropup" },
-//     h("button", { class: "btn btn-primary dropdown-toggle", "data-toggle": "dropdown" },
-//         h("i", { class: "fa fa-fw fa-paperclip" })
-//     ),
-//     h("div", { class: "dropdown-menu", style: "min-width: 150px" },
-//         h("li", null,
-//             h("a", { onclick: this.on_click_camera },
-//                 h("i", { class: "octicon octicon-device-camera" }), " Camera"
-//             )
-//         ),
-//         h("li", null,
-//             h("a", { onclick: this.on_click_file },
-//                 h("i", { class: "fa fa-fw fa-file" }), " File"
-//             )
-//         )
-//     )
-// )
-// ),
-
 // :
 // h("div", { style: "margin-top: 240px;" },
 //     h("div", { class: "text-center" },
@@ -2043,35 +2180,6 @@ frappe.Chat.Widget.get_datetime_string   = (date) => {
         return today.format("DD/MM/YYYY")
     }
 }
-
-
-
-// on_click_camera ( ) {
-//     const capture = new frappe.ui.Capture()
-//     capture.open()
-//     catpure.click((dataURI) => {
-//         console.log(dataURI)
-//     })
-// }
-
-// on_click_file ( ) {
-//     const dialog = new frappe.ui.Dialog({
-//         title: __("Upload"),
-//         fields: [
-//             {fieldtype:"HTML", fieldname:"upload_area"},
-//             {fieldtype:"HTML", fieldname:"or_attach", options: __("Or")},
-//             {fieldtype:"Select", fieldname:"select", label:__("Select from existing attachments") },
-//             {fieldtype:"Button", fieldname:"clear",
-//                 label:__("Clear Attachment"), click: function() {
-//                     // me.clear_attachment();
-//                     dialog.hide();
-//                 }
-//             },
-//         ]
-//     })
-
-//     dialog.show();
-// }
 
 
 // frappe.components.Select
@@ -2143,16 +2251,17 @@ function (user, update, fn)
                 });
     });
 };
+
 frappe.chat.message = { }
 frappe.chat.message.send 
 =
 (room, message) =>
 {
     frappe.call("frappe.chat.doctype.chat_message.chat_message.send",
-        { user: frappe.session.user, room: room, content: message.content })
+        { user: frappe.session.user, room: room, content: message })
 }
 
 frappe.chat.message.on   = { }
 frappe.chat.message.on.create
 =
-(fn) => frappe.realtime.on("frappe.chat.message.create", r => fn(r))
+(fn) => frappe.realtime.on("frappe.chat.message:create", r => fn(r))

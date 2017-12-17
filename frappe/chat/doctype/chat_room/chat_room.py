@@ -55,10 +55,11 @@ class ChatRoom(Document):
 			# Remember, this entire app assumes validation based on user's email.
 
 			# Okay, this must go only during creation. But alas, on click "Save" it does the same.
-			if is_one_on_one(self.owner, other.user, bidirectional = True):
-				frappe.throw(_('Direct room with {other} already exists.'.format(
-					other = other.user
-				)))
+			if self.is_new():
+				if is_one_on_one(self.owner, other.user, bidirectional = True):
+					frappe.throw(_('Direct room with {other} already exists.'.format(
+						other = other.user
+					)))
 
 		if self.type == "Group" and not self.room_name:
 			frappe.throw(_('Group name cannot be empty.'))
@@ -88,9 +89,27 @@ class ChatRoom(Document):
 				for changed in diff.changed:
 					field, old, new = changed
 
-					update.update({
-						field: new
-					})
+					print('\n' * 10)
+					print(field)
+					print('\n' * 10)
+
+					if field == 'last_message':
+						doc_message = frappe.get_doc('Chat Message', new)
+						update.update({
+							field: dict(
+								name     = doc_message.name,
+								user     = doc_message.user,
+								room     = doc_message.room,
+								content  = doc_message.content,
+								urls     = doc_message.urls,
+								mentions = doc_message.mentions,
+								creation = doc_message.creation
+							)
+						})
+					else:
+						update.update({
+							field: new
+						})
 				# 2. Added or Removed
 				# TODO
 				# [ ] Handle users.
@@ -193,7 +212,7 @@ def get_user_chat_rooms(user = None, rooms = None, fields = None):
 	rooms  = assign_if_none(rooms, [ ])
 	fields = assign_if_none(fields, [ ])
 
-	param  = [f for f in fields if f != 'users']
+	param  = [f for f in fields if f != 'users' or f != 'last_message']
 	
 	rooms  = frappe.get_list('Chat Room',
 		or_filters = [
@@ -204,7 +223,7 @@ def get_user_chat_rooms(user = None, rooms = None, fields = None):
 			['Chat Room', 'name', 'in', rooms]
 		] if rooms else None,
 		fields     = param + ['name'] if param or 'users' in fields else [
-			'type', 'name', 'owner', 'room_name', 'avatar', 'creation', 'last_message_timestamp'
+			'type', 'name', 'owner', 'room_name', 'avatar', 'creation'
 		],
 		distinct   = True
 	)
@@ -216,6 +235,23 @@ def get_user_chat_rooms(user = None, rooms = None, fields = None):
 
 			for user in doc_room.users:
 				rooms[i]['users'].append(user.user)
+
+	if not fields or 'last_message' in fields:
+		for i, r in enumerate(rooms):
+			doc_room     = frappe.get_doc('Chat Room', r.name)
+			if doc_room.last_message:
+				doc_message              = frappe.get_doc('Chat Message', doc_room.last_message)
+				rooms[i]['last_message'] = dict(
+					name     = doc_message.name,
+					user     = doc_message.user,
+					room     = doc_message.room,
+					content  = doc_message.content,
+					urls     = doc_message.urls,
+					mentions = doc_message.mentions,
+					creation = doc_message.creation
+				)
+			else:
+				rooms[i]['last_message'] = None
 
 	rooms = dictify(rooms)
 	

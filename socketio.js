@@ -70,7 +70,6 @@ io.on('connection', function(socket) {
 		}
 		
 		for (var room of rooms) {
-			console.log(room);
 			console.log('frappe.chat: Subscribing ' + socket.user + ' to room '  + room);
 			room = get_chat_room(socket, room);
 
@@ -236,6 +235,7 @@ subscriber.on("message", function (channel, message, room) {
 	console.log(message)
 	io.to(message.room).emit(message.event, message.message)
 });
+
 
 subscriber.subscribe("events");
 

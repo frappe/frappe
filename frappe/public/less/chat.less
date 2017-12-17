@@ -11,6 +11,7 @@
 @frappe-fab-box-shadow-hover:							0px 5px 9px 0px rgba(0,0,0,.25);
 
 @frappe-chat-panel-heading-box-shadow:					0px 2px 2px 0px rgba(0,0,0,.14);
+@frappe-chat-panel-heading-action-padding:				5px;
 
 @frappe-chat-popper-z-index: 							1035;
 @frappe-chat-popper-margin: 							20px;
@@ -55,7 +56,7 @@
 
 .frappe-chat
 {
-	& > .panel
+	.panel
 	{
 		.panel-heading
 		{
@@ -89,9 +90,21 @@
 
 			& > .panel-heading
 			{
+				box-shadow: @frappe-chat-panel-heading-box-shadow;
+
+				.action
+				{
+					padding: @frappe-chat-panel-heading-action-padding;
+				}
+				
 				a 
 				{
 					color: @color-white;
+				}
+
+				.text-muted
+				{
+					color: @color-white !important;
 				}
 			}
 
