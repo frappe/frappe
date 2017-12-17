@@ -77,12 +77,12 @@ frappe.datetime.datetime = class
     /**
      * @description Frappe's datetime Class's constructor.
      */
-    constructor ( )
+    constructor (instance)
     {
         if ( typeof moment === 'undefined' )
             throw new frappe.ImportError(`Moment.js not installed.`);
 
-        this.moment = moment();
+        this.moment = instance ? moment(instance) : moment();
     }
 
     format (format)
@@ -98,11 +98,25 @@ frappe.datetime.datetime = class
  * @example
  * const datetime = new frappe.datetime.now();
  */
-frappe.datetime.now = function ( )
+frappe.datetime.now     = function ( )
 {
-    const  datetime = new frappe.datetime.datetime();
+    const  datetime     = new frappe.datetime.datetime();
 
     return datetime;
+};
+
+frappe.datetime.compare = function (a, b)
+{
+    a = a.moment;
+    b = b.moment;
+
+    if ( a.isBefore(b) )
+        return  1;
+    else
+    if ( b.isBefore(a) )
+        return -1;
+    else
+        return  0;
 };
 
 // frappe._
@@ -282,30 +296,6 @@ frappe._.is_mobile = function ( )
     const mobile   = regex.test(agent);
 
     return mobile;
-};
-
-/**
- * @description Returns 1, 0 or -1 if a < b, a > b or a == b respectively (a, b must be logically comparable).
- * 
- * @returns {number} 1, 0 or -1
- * 
- * @example
- * frappe._.compare(1, 2);
- * // returns  1
- * frappe._.compare(2, 1);
- * // returns -1
- * frappe._.compare(1, 1);
- * // returns  0
- */
-frappe._.compare = function (a, b)
-{
-    if ( a < b )
-        return  1;
-    else
-    if ( a > b )
-        return -1;
-    else
-        return  0;
 };
 
 // frappe.loggers - A registry for frappe loggers.
@@ -575,8 +565,8 @@ frappe.chat.room.get = function (names, fields, fn)
                     {
                         rooms = rooms.map(room =>
                         {
-                            return { ...room, creation: moment(room.creation),
-                                last_message: room.last_message ? { ...room.last_message, creation: moment(room.last_message.creation) } : null
+                            return { ...room, creation: new frappe.datetime.datetime(room.creation),
+                                last_message: room.last_message ? { ...room.last_message, creation: new frappe.datetime.datetime(room.last_message.creation) } : null
                             };
                         });
                         rooms = frappe._.squash(rooms);
@@ -673,17 +663,15 @@ frappe.chat.room.sort = function (rooms, compare = null)
     compare = compare || function (a, b)
     {
         if ( a.last_message && b.last_message )
-            return frappe._.compare(a.last_message.creation, b.last_message.creation);
+            return frappe.datetime.compare(a.last_message.creation, b.last_message.creation);
         else
-        {
-            if ( a.last_message )
-                return frappe._.compare(a.last_message.creation, b.creation);
-            else
-            if ( b.last_message )
-                return frappe._.compare(b.last_message.creation, a.creation);
-            else
-                return frappe._.compare(a.creation, b.creation);
-        }
+        if ( a.last_message )
+            return frappe.datetime.compare(a.last_message.creation, b.creation);
+        else
+        if ( b.last_message )
+            return frappe.datetime.compare(a.creation, b.last_message.creation);
+        else
+            return frappe.datetime.compare(a.creation, b.creation);
     };
     rooms.sort(compare);
 
@@ -707,7 +695,7 @@ frappe.chat.room.on.update = fn => frappe.realtime.on("frappe.chat.room:update",
  */
 frappe.chat.room.on.create = function (fn)
 {
-    frappe.realtime.on("frappe.chat.room.create", r => fn(r));
+    frappe.realtime.on("frappe.chat.room.create", r => fn({ ...r, creation: new frappe.datetime.datetime(r.creation) }));
 };
 
 frappe.provide('frappe.chat.sound');
@@ -1082,7 +1070,7 @@ class extends Component
                     {
                         frappe.log.info(`Updating Last Message for Chat Room ${r.name}`)
                         // momentify
-                        update = { ...update, last_message: { ...update.last_message, creation: moment(update.last_message.creation) } }
+                        update = { ...update, last_message: { ...update.last_message, creation: new frappe.datetime.datetime(update.last_message.creation) } }
                     }
                     return { ...r, ...update };
                 }
@@ -1192,7 +1180,7 @@ class extends Component
 
             const { state } = this
             if ( r.room === state.room.name ) {
-                const mess  = frappe._.copy_array(state.room.messages);
+                const mess  = state.room.messages.slice();
                 mess.push(r)
                 
                 this.setState({
@@ -1419,13 +1407,14 @@ class extends Component
                                         h("div", { class: "col-xs-9" }),
                                         h("div", { class: "col-xs-3" },
                                             h("div", { class: "text-right" },
-                                                h("a", { class: "action", onclick: () =>
-                                                    {
-                                                        frappe.set_route('chat');
-                                                        this.toggle(false);
-                                                    }},
-                                                    h(frappe.components.FontAwesome, { type: "expand", fixed: true })
-                                                ),
+                                                !frappe._.is_mobile() ?
+                                                    h("a", { class: "action", onclick: () =>
+                                                        {
+                                                            frappe.set_route('chat');
+                                                            this.toggle(false);
+                                                        }},
+                                                        h(frappe.components.FontAwesome, { type: "expand", fixed: true })
+                                                    ) : null,
                                                 h("a", { class: "action", onclick: () => this.toggle(false) },
                                                     h(frappe.components.Octicon, { type: "x" })
                                                 )
@@ -1578,26 +1567,38 @@ class extends Component
 {
     render ( )
     {
-        const { props }   = this;
-        const item        = { };
+        const { props }    = this;
+        const item         = { };
 
         if ( props.type === "Group" ) {
-            item.title    = props.room_name;
-            item.image    = props.avatar;
-            item.subtitle = props.last_message ? props.last_message.content : "";
+            item.title     = props.room_name;
+            item.image     = props.avatar;
         } else {
-            const user  = props.owner === frappe.session.user ? frappe._.squash(props.users) : props.owner;
+            const user     = props.owner === frappe.session.user ? frappe._.squash(props.users) : props.owner;
 
-            item.title    = frappe.user.full_name(user);
-            item.image    = frappe.user.image(user);
-            item.abbr     = frappe.user.abbr(user);
-            item.subtitle = props.last_message ? props.last_message.content : "";
+            item.title     = frappe.user.full_name(user);
+            item.image     = frappe.user.image(user);
+            item.abbr      = frappe.user.abbr(user);
+        }
+
+        if ( props.last_message )
+        {
+            item.subtitle  = props.last_message.content;
+            item.timestamp = frappe.chat.pretty_datetime(props.last_message);
         }
 
         return (
             h("li", null,
                 h("a", { class: props.active ? "active": "", onclick: () => props.click(props.name) },
-                    h(frappe.Chat.Widget.MediaProfile, { ...item })
+                    h("div", { class: "row" },
+                        h("div", { class: "col-xs-9" },
+                            h(frappe.Chat.Widget.MediaProfile, { ...item })
+                        ),
+                        h("div", { class: "col-xs-3 text-right" },
+                            h("div", { class: "text-extra-muted", style: { "font-size": "9px" } }, item.timestamp)
+                        ),
+                    )
+                    
                 )
             )
         );
@@ -2168,7 +2169,7 @@ frappe.Chat.Widget.ChatList.Bubble.defaultState =
 // )
 
 frappe.Chat.Widget.get_datetime_string   = (date) => {
-    const instance = moment(date)
+    const instance = moment(date.moment ? date.moment : date)
     const today    = moment()
     
     if ( today.isSame(instance, "d") ) {
@@ -2180,7 +2181,7 @@ frappe.Chat.Widget.get_datetime_string   = (date) => {
         return today.format("DD/MM/YYYY")
     }
 }
-
+frappe.chat.pretty_datetime = frappe.Chat.Widget.get_datetime_string;
 
 // frappe.components.Select
 // options - (Required) array of options of the format
@@ -2264,4 +2265,4 @@ frappe.chat.message.send
 frappe.chat.message.on   = { }
 frappe.chat.message.on.create
 =
-(fn) => frappe.realtime.on("frappe.chat.message:create", r => fn(r))
+(fn) => frappe.realtime.on("frappe.chat.message:create", r => fn(frappe._.as_array(r)))
