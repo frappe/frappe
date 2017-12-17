@@ -781,6 +781,8 @@ def reset_password(user):
 
 	try:
 		user = frappe.get_doc("User", user)
+		if not user.enabled:
+			return 'disabled'
 		user.validate_reset_password()
 		user.reset_password(send_email=True)
 

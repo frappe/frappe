@@ -129,7 +129,6 @@
 		"public/css/mobile.css",
 		"public/css/kanban.css",
 		"public/css/controls.css",
-		
 		"public/css/chat.css"
 	],
 	"css/frappe-rtl.css": [
@@ -140,7 +139,6 @@
 	"js/libs.min.js": [
 		"public/js/lib/awesomplete/awesomplete.min.js",
 		"public/js/lib/Sortable.min.js",
-		"public/js/lib/taggle/taggle.min.js",
 		"public/js/lib/jquery/jquery.hotkeys.js",
 		"public/js/lib/summernote/summernote.js",
 		"public/js/lib/bootstrap.min.js",
@@ -305,7 +303,6 @@
 		"public/js/frappe/form/quick_entry.js"
 	],
 	"css/list.min.css": [
-		"public/js/lib/taggle/taggle.min.css",
 		"public/css/list.css",
 		"public/css/calendar.css",
 		"public/css/role_editor.css",
@@ -320,6 +317,7 @@
 		"public/js/frappe/ui/filters/filters.js",
 		"public/js/frappe/ui/filters/edit_filter.html",
 		"public/js/frappe/ui/tags.js",
+		"public/js/frappe/ui/tag_editor.js",
 		"public/js/frappe/ui/like.js",
 		"public/js/frappe/ui/liked_by.html",
 		"public/html/print_template.html",

@@ -26,10 +26,31 @@ frappe.pages['modules'].on_page_load = function(wrapper) {
 		});
 	}
 
+	page.get_page_modules = () => {
+		return frappe.get_desktop_icons(true)
+			.filter(d => d.type==='module' && !d.blocked)
+			.sort((a, b) => { return (a._label > b._label) ? 1 : -1 });
+	}
+
+	let get_module_sidebar_item = (item) => `<li class="strong module-sidebar-item">
+		<a class="module-link" data-name="${item.module_name}" href="#modules/${item.module_name}">
+			<i class="fa fa-chevron-right pull-right" style="display: none;"></i>
+			<span>${item._label}</span>
+		</a>
+	</li>`;
+
+	let get_sidebar_html = () => {
+		let sidebar_items_html = page.get_page_modules()
+			.map(get_module_sidebar_item.bind(this)).join("");
+
+		return `<ul class="module-sidebar-nav overlay-sidebar nav nav-pills nav-stacked">
+			${sidebar_items_html}
+			<li class="divider"></li>
+		</ul>`;
+	}
+
 	// render sidebar
-	page.sidebar.html(frappe.render_template('modules_sidebar',
-		{modules: frappe.get_desktop_icons(true).sort(
-			function(a, b){ return (a._label > b._label) ? 1 : -1 })}));
+	page.sidebar.html(get_sidebar_html());
 
 	// help click
 	page.main.on("click", '.module-section-link[data-type="help"]', function(event) {
@@ -143,12 +164,18 @@ frappe.pages['modules'].on_page_load = function(wrapper) {
 }
 
 frappe.pages['modules'].on_page_show = function(wrapper) {
-	var route = frappe.get_route();
+	let route = frappe.get_route();
+	let modules = frappe.modules_page.get_page_modules().map(d => d.module_name);
 	$("body").attr("data-sidebar", 1);
 	if(route.length > 1) {
 		// activate section based on route
-		frappe.modules_page.activate_link(
-			frappe.modules_page.sidebar.find('.module-link[data-name="'+ route[1] +'"]'));
+		let module_name = route[1];
+		if(modules.includes(module_name)) {
+			frappe.modules_page.activate_link(
+				frappe.modules_page.sidebar.find('.module-link[data-name="'+ module_name +'"]'));
+		} else {
+			frappe.throw(__(`Module ${module_name} not found.`));
+		}
 	} else if(frappe.modules_page.last_link) {
 		// open last link
 		frappe.set_route('modules', frappe.modules_page.last_link.attr('data-name'))
