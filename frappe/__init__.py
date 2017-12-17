@@ -14,7 +14,7 @@ import os, sys, importlib, inspect, json
 from .exceptions import *
 from .utils.jinja import get_jenv, get_template, render_template, get_email_from_template
 
-__version__ = '9.2.23'
+__version__ = '9.2.24'
 __title__ = "Frappe Framework"
 
 local = Local()
@@ -976,9 +976,9 @@ def make_property_setter(args, ignore_validate=False, validate_fields_for_doctyp
 		ps.insert()
 
 def import_doc(path, ignore_links=False, ignore_insert=False, insert=False):
-	"""Import a file using Data Import Tool."""
-	from frappe.core.page.data_import_tool import data_import_tool
-	data_import_tool.import_doc(path, ignore_links=ignore_links, ignore_insert=ignore_insert, insert=insert)
+	"""Import a file using Data Import."""
+	from frappe.core.doctype.data_import import data_import
+	data_import.import_doc(path, ignore_links=ignore_links, ignore_insert=ignore_insert, insert=insert)
 
 def copy_doc(doc, ignore_no_copy=True):
 	""" No_copy fields also get copied."""
@@ -1366,7 +1366,7 @@ def logger(module=None, with_more_info=True):
 
 def log_error(message=None, title=None):
 	'''Log error to Error Log'''
-	get_doc(dict(doctype='Error Log', error=as_unicode(message or get_traceback()),
+	return get_doc(dict(doctype='Error Log', error=as_unicode(message or get_traceback()),
 		method=title)).insert(ignore_permissions=True)
 
 def get_desk_link(doctype, name):

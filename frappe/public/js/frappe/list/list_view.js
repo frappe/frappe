@@ -601,8 +601,8 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 
 		if (frappe.model.can_import(this.doctype)) {
 			this.page.add_menu_item(__('Import'), function () {
-				frappe.set_route('data-import-tool', {
-					doctype: me.doctype
+				frappe.set_route('List', 'Data Import', {
+					reference_doctype: me.doctype
 				});
 			}, true);
 		}
