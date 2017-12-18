@@ -3,7 +3,7 @@
 
 /**
  * @description The base class for all Frappe Errors.
- * 
+ *
  * @example
  * try
  *      throw new frappe.Error("foobar");

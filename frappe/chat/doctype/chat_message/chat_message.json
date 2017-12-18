@@ -206,7 +206,7 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 0, 
- "modified": "2017-12-14 13:19:04.210990", 
+ "modified": "2017-12-18 23:25:21.309562", 
  "modified_by": "achilles@erpnext.com", 
  "module": "Chat", 
  "name": "Chat Message", 
@@ -241,5 +241,5 @@
  "sort_field": "modified", 
  "sort_order": "DESC", 
  "track_changes": 1, 
- "track_seen": 0
+ "track_seen": 1
 }
