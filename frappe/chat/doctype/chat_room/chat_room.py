@@ -88,11 +88,7 @@ class ChatRoom(Document):
 				# 1. Changes
 				for changed in diff.changed:
 					field, old, new = changed
-
-					print('\n' * 10)
-					print(field)
-					print('\n' * 10)
-
+					
 					if field == 'last_message':
 						doc_message = frappe.get_doc('Chat Message', new)
 						update.update({

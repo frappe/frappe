@@ -1,6 +1,9 @@
 .cursor-pointer {
   cursor: pointer;
 }
+.emoji-no-border .standard-image {
+  border: 0px !important;
+}
 .frappe-fab {
   width: 48px;
   height: 48px;
@@ -20,6 +23,22 @@
 }
 .frappe-chat .panel .panel-heading {
   box-shadow: 0px 2px 2px 0px rgba(0, 0, 0, 0.14);
+}
+.frappe-chat .panel .frappe-chat-room-footer {
+  position: absolute;
+  bottom: 0px;
+}
+.frappe-chat .frappe-chat-form .btn {
+  border-radius: 0px !important;
+}
+.frappe-chat .frappe-chat-form .list-group {
+  margin-bottom: 0px !important;
+  max-height: 150px;
+  overflow-y: auto;
+}
+.frappe-chat .frappe-chat-form .list-group .list-group-item:first-child,
+.frappe-chat .frappe-chat-form .list-group .list-group-item:last-child {
+  border-radius: 0px !important;
 }
 .frappe-chat-popper {
   position: fixed;
@@ -52,10 +71,6 @@
 }
 .frappe-chat-popper .frappe-chat-popper-collapse > .panel > .panel-heading .text-muted {
   color: #FFF !important;
-}
-.frappe-chat-popper .frappe-chat-popper-collapse > .panel .panel-footer {
-  position: absolute;
-  bottom: 0px;
 }
 .frappe-chat-popper .frappe-chat-popper-collapse .panel-span {
   position: fixed;
