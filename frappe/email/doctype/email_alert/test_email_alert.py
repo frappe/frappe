@@ -123,6 +123,7 @@ class TestEmailAlert(unittest.TestCase):
 
 
 	def test_date_changed(self):
+		frappe.set_user('Administrator')
 		event = frappe.new_doc("Event")
 		event.subject = "test",
 		event.event_type = "Private"
@@ -132,7 +133,6 @@ class TestEmailAlert(unittest.TestCase):
 		self.assertFalse(frappe.db.get_value("Email Queue", {"reference_doctype": "Event",
 			"reference_name": event.name, "status":"Not Sent"}))
 
-		print('running scheduler', frappe.session.user)
 		frappe.utils.scheduler.trigger(frappe.local.site, "daily", now=True)
 
 		# not today, so no alert
