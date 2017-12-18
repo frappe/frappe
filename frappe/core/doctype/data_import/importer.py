@@ -127,6 +127,8 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 	def get_doc(start_idx):
 		if doctypes:
 			doc = {}
+			attachments = []
+			last_error_row_idx = None
 			for idx in range(start_idx, len(rows)):
 				last_error_row_idx = idx	# pylint: disable=W0612
 				if (not doc) or main_doc_empty(rows[idx]):
@@ -187,7 +189,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 				else:
 					break
 
-			return doc, last_error_row_idx
+			return doc, attachments, last_error_row_idx
 		else:
 			doc = frappe._dict(zip(columns, rows[start_idx][1:]))
 			doc['doctype'] = doctype
@@ -281,10 +283,8 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 	doctypes = []
 	column_idx_to_fieldname = {}
 	column_idx_to_fieldtype = {}
-	attachments = []
 
 	if skip_errors:
-		last_error_row_idx = None
 		data_rows_with_error = header
 
 	if submit_after_import and not cint(frappe.db.get_value("DocType",
@@ -354,7 +354,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 		publish_progress(i)
 
 		try:
-			doc, last_error_row_idx = get_doc(row_idx)
+			doc, attachments, last_error_row_idx = get_doc(row_idx)
 			validate_naming(doc)
 			if pre_process:
 				pre_process(doc)
