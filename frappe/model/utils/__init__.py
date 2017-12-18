@@ -61,6 +61,10 @@ def render_include(content):
 		else:
 			break
 
+	print('\n' * 10)
+	print(content)
+	print('\n' * 10)
+
 	return content
 
 def get_fetch_values(doctype, fieldname, value):
