@@ -416,7 +416,10 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 			log(**{"row": row_idx + 1, "title":'Error for row %s' % (len(row)>1 and row[1] or ""), "message": err_msg,
 				"indicator": "red", "link":error_link})
 			# data with error to create a new file
+			# include the errored data in the last row as last_error_row_idx will not be updated for the last row
 			if skip_errors:
+				if last_error_row_idx == len(rows)-1:
+					last_error_row_idx = len(rows)
 				data_rows_with_error += rows[row_idx:last_error_row_idx]
 			else:
 				rollback_flag = True
