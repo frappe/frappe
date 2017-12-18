@@ -196,13 +196,6 @@ function precision(fieldname, doc) {
 	}
 }
 
-function in_list(list, item) {
-	if (!list) return false;
-	for (var i = 0, j = list.length; i < j; i++)
-		if (list[i] == item) return true;
-	return false;
-}
-
 // Proxy for in_list
 Object.defineProperty(window, 'inList', {
 	get: function() {

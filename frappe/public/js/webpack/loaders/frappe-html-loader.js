@@ -24,5 +24,7 @@ module.exports = function (source)
 	
 
 	var content = scrub_html_template(source);
-	return `frappe.templates['${key}'] = '${content}';\n`;
+	return `
+		frappe.templates['${key}'] = '${content}';
+	`;
 };

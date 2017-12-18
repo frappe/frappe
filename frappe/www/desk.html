@@ -52,9 +52,28 @@
 
 	frappe.csrf_token = "{{ csrf_token }}";
 
-	</script>
+	// WARNING
+	$(document).ready(function ( ) {
+		var $script = $('script[src$="bundle.js"]');
 
-	<script type="text/javascript" src="/assets/frappe/js/dist/index.bundle.js"></script>
+		var promises = $script.toArray().map((el) => {
+			return new Promise(resolve => {
+				el.onload = resolve;
+			});
+		});
+
+		Promise.all(promises).then(() => {
+			frappe.start_app();
+		});
+	});
+
+	</script>
+	
+
+	{% for js in include_js %}
+		<script type="text/javascript" src="{{ js }}" async></script>
+	{% endfor %}
+	
     {% include "templates/includes/app_analytics/google_analytics.html" %}
     {% include "templates/includes/app_analytics/mixpanel_analytics.html" %}
 

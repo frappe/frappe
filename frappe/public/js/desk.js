@@ -7,13 +7,14 @@ import './frappe/provide';
 import './frappe/assets';
 import './frappe/dom';
 import './frappe/ui/messages';
+import './frappe/ui/keyboard';
 import './frappe/translate';
 
 import './frappe/request';
 import './frappe/socketio_client';
 import './frappe/router';
 import './frappe/defaults';
-import './frappe/roles_editor';
+// import './frappe/roles_editor';
 import './utils/microtemplate';
 
 import './legacy/globals';
@@ -22,7 +23,7 @@ import './legacy/dom';
 import './legacy/handler';
 
 import './frappe/ui/page';
-import './frappe/ui/dialog';
+// import './frappe/ui/dialog';
 import './frappe/ui/app_icon';
 
 import './frappe/model';
@@ -47,8 +48,6 @@ import './frappe/views/pageview';
 
 import './frappe/ui/toolbar';
 
-
-
 import './frappe/desk';
 
 frappe.start_app = function() {
@@ -67,5 +66,6 @@ $(document).ready(function() {
 			message: __('Some of the features might not work in your browser. Please update your browser to the latest version.')
 		});
 	}
+	
 	frappe.start_app();
 });

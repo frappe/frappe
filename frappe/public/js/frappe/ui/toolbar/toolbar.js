@@ -1,6 +1,8 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
+import './search';
+
 frappe.provide("frappe.ui.toolbar");
 frappe.provide('frappe.search');
 
