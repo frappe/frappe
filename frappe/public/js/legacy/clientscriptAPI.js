@@ -417,7 +417,7 @@ _f.Frm.prototype.has_mapper = function() {
 	return this._has_mapper;
 }
 
-_f.Frm.prototype.set_indicator_formatter = function(fieldname, get_color, get_text) {
+_f.Frm.prototype.set_indicator_formatter = function(fieldname, get_color, get_text, indicator = true) {
 	// get doctype from parent
 	var doctype;
 	if(frappe.meta.docfield_map[this.doctype][fieldname]) {
@@ -436,7 +436,8 @@ _f.Frm.prototype.set_indicator_formatter = function(fieldname, get_color, get_te
 	frappe.meta.get_docfield(doctype, fieldname, this.doc.name).formatter =
 		function(value, df, options, doc) {
 			if(value) {
-				return repl('<a class="indicator %(color)s" href="#Form/%(doctype)s/%(name)s">%(label)s</a>', {
+				var prefix = indicator ? '<a class="indicator %(color)s"' : '<a';
+				return repl(prefix + ' href="#Form/%(doctype)s/%(name)s">%(label)s</a>', {
 					color: get_color(doc),
 					doctype: df.options,
 					name: value,
