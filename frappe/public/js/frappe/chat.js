@@ -227,7 +227,7 @@ frappe._.copy_array = function (array)
  */
 frappe._.is_empty = function (value)
 {
-    let empty     = false;
+    let empty = false;
 
     if ( Array.isArray(value) || typeof value === 'string' )
         empty = value.length === 0;
@@ -496,6 +496,8 @@ frappe.chat.room.create = function (kind, owner, users, name, fn)
             { kind: kind, owner: owner || frappe.session.user, users: users, name: name },
             r =>
             {
+                // I haven't "momentified" creation here.
+
                 if ( fn )
                     fn(r.message);
 
@@ -565,6 +567,7 @@ frappe.chat.room.get = function (names, fields, fn)
                     let rooms = response.message;
                     if ( rooms ) // frappe.api BOGZ! (emtpy arrays are falsified, not good design).
                     {
+                        rooms = frappe._.as_array(rooms);
                         rooms = rooms.map(room =>
                         {
                             return { ...room, creation: new frappe.datetime.datetime(room.creation),
@@ -592,7 +595,7 @@ frappe.chat.room.get = function (names, fields, fn)
  * @example
  * frappe.chat.room.subscribe("CR00001");
  */
-frappe.chat.room.subscribe    = function (rooms)
+frappe.chat.room.subscribe = function (rooms)
 {
     frappe.realtime.publish("frappe.chat:subscribe", rooms);
 };
@@ -618,7 +621,8 @@ frappe.chat.room.history = function (name, fn)
             { room: name },
                 r =>
                 {
-                    const messages = r.message ? r.message : [ ] // frappe.api BOGZ! (emtpy arrays are falsified, not good design).
+                    let messages = r.message ? frappe._.as_array(r.message) : [ ]; // frappe.api BOGZ! (emtpy arrays are falsified, not good design).
+                    messages     = messages.map(m => { return { ...m, creation: new frappe.datetime.datetime(m.creation) } });
 
                     if ( fn )
                         fn(messages);
@@ -690,10 +694,11 @@ frappe.provide('frappe.chat.room.on');
  */
 frappe.chat.room.on.update = function (fn)
 {
-    frappe.realtime.on("frappe.chat.room:update", r => {
+    frappe.realtime.on("frappe.chat.room:update", r =>
+    {
         if ( r.data.last_message )
             // creation to frappe.datetime.datetime (easier to manipulate).
-            r.data = { ...r.data, last_message: { ...r.data.last_message, creation: new frappe.datetime.datetime(r.data.last_message) } }
+            r.data = { ...r.data, last_message: { ...r.data.last_message, creation: new frappe.datetime.datetime(r.data.last_message.creation) } }
         
         fn(r.room, r.data);
     });
@@ -711,7 +716,7 @@ frappe.chat.room.on.create = function (fn)
 
 // frappe.chat.message
 frappe.provide('frappe.chat.message');
-frappe.chat.message.send = function (room, message)
+frappe.chat.message.send   = function (room, message)
 {
     frappe.call("frappe.chat.doctype.chat_message.chat_message.send",
         { user: frappe.session.user, room: room, content: message });
@@ -999,6 +1004,8 @@ class
 
         this.set_wrapper(selector ? selector : "body");
         this.set_options(options);
+
+        frappe.chat.emoji();
     }
 
     /**
@@ -1129,7 +1136,7 @@ class extends Component
                 if ( r.name === room )
                 {
                     exists  = true;
-                    return { ...r, update };
+                    return { ...r, ...update };
                 }
                 return r;
             });
