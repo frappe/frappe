@@ -291,7 +291,9 @@ frappe.upload = {
 			freader.readAsDataURL(fileobj);
 		}
 
-		if (opts.no_socketio || frappe.flags.no_socketio) {
+		const file_not_big_enough = fileobj.size <= 24576;
+
+		if (opts.no_socketio || frappe.flags.no_socketio || file_not_big_enough) {
 			upload_with_filedata();
 			return;
 		}

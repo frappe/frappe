@@ -210,6 +210,8 @@ _Response:_
 		"parentfield": null
 	  }
 	}
+	
+Note: `POST` requests are to be sent along with `X-Frappe-CSRF-Token:<csrf-token>` header.
 
 #### Read
 

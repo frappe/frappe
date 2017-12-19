@@ -154,11 +154,13 @@ function get_compiled_file(file, output_path, minify, force_compile) {
 
 function babelify(content, path, minify) {
 	let presets = ['env'];
+	var plugins = ['transform-object-rest-spread']
 	// Minification doesn't work when loading Frappe Desk
 	// Avoid for now, trace the error and come back.
 	try {
 		return babel.transform(content, {
 			presets: presets,
+			plugins: plugins,
 			comments: false
 		}).code;
 	} catch (e) {

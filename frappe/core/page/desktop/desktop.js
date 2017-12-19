@@ -138,9 +138,6 @@ $.extend(frappe.desktop, {
 	setup_wiggle: () => {
 		// Wiggle, Wiggle, Wiggle.
 		const DURATION_LONG_PRESS = 1000;
-		// lesser the antidode, more the wiggle (like your drunk uncle)
-		// 75 seems good to replicate the iOS feels.
-		const WIGGLE_ANTIDODE     = 75;
 
 		var   timer_id      = 0;
 		const $cases        = frappe.desktop.wrapper.find('.case-wrapper');
@@ -158,15 +155,10 @@ $.extend(frappe.desktop, {
 			$closes.hide();
 			$notis.show();
 
-			$icons.trigger('stopRumble');
+			$icons.removeClass('wiggle');
 
 			frappe.desktop.wiggling   = false;
 		};
-
-		// initiate wiggling.
-		$icons.jrumble({
-			speed: WIGGLE_ANTIDODE // seems neat enough to match the iOS way
-		});
 
 		frappe.desktop.wrapper.on('mousedown', '.app-icon', () => {
 			timer_id     = setTimeout(() => {
@@ -223,7 +215,8 @@ $.extend(frappe.desktop, {
 					});
 				});
 
-				$icons.trigger('startRumble');
+				$icons.addClass('wiggle');
+
 			}, DURATION_LONG_PRESS);
 		});
 		frappe.desktop.wrapper.on('mouseup mouseleave', '.app-icon', () => {

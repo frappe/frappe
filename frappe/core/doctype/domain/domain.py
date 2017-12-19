@@ -59,7 +59,9 @@ class Domain(Document):
 	def setup_roles(self):
 		'''Enable roles that are restricted to this domain'''
 		if self.data.restricted_roles:
+			user = frappe.get_doc("User", frappe.session.user)
 			for role_name in self.data.restricted_roles:
+				user.append("roles", {"role": role_name})
 				if not frappe.db.get_value('Role', role_name):
 					frappe.get_doc(dict(doctype='Role', role_name=role_name)).insert()
 					continue
@@ -67,6 +69,7 @@ class Domain(Document):
 				role = frappe.get_doc('Role', role_name)
 				role.disabled = 0
 				role.save()
+			user.save()
 
 	def setup_data(self, domain=None):
 		'''Load domain info via hooks'''

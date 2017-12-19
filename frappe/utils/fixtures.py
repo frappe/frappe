@@ -4,7 +4,7 @@
 from __future__ import unicode_literals, print_function
 
 import frappe, os
-from frappe.core.page.data_import_tool.data_import_tool import import_doc, export_json
+from frappe.core.doctype.data_import.data_import import import_doc, export_json
 
 def sync_fixtures(app=None):
 	"""Import, overwrite fixtures from `[app]/fixtures`"""
