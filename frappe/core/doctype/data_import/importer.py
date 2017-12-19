@@ -210,7 +210,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 		else:
 			return True
 
-		if autoname and not doc[autoname]:
+		if (autoname and autoname not in doc) or (autoname and not doc[autoname]):
 			frappe.throw(_("{0} is a mandatory field".format(autoname)))
 		return True
 
