@@ -1,6 +1,15 @@
 // frappe Chat
 // Author - Achilles Rasquinha <achilles@frappe.io>
 
+// extensions
+frappe.user.first_name = function (user) 
+{
+    let name = frappe.user.full_name(user);
+    name     = name.split(" ")[0];
+
+    return name;
+};
+
 /**
  * @description The base class for all Frappe Errors.
  *
@@ -126,8 +135,10 @@ frappe.provide('frappe._');
 /**
  * @description Python-inspired format extension for string objects.
  * 
- * @param {string} string - A string with placeholders.
- * @param {object} object - An object with placeholder, value pairs.
+ * @param  {string} string - A string with placeholders.
+ * @param  {object} object - An object with placeholder, value pairs.
+ * 
+ * @return {string}        - The formatted string.
  * 
  * @example
  * frappe._.format('{foo} {bar}', { bar: 'foo', foo: 'bar' });
@@ -144,11 +155,11 @@ frappe._.format = function (string, object)
 /**
  * @description Fuzzy Search a given query within a dataset.
  * 
- * @param   {string} query   - A query string.
- * @param   {array}  dataset - A dataset to search within, can contain singletons or objects.
- * @param   {object} options - Options as per fuze.js
+ * @param  {string} query   - A query string.
+ * @param  {array}  dataset - A dataset to search within, can contain singletons or objects.
+ * @param  {object} options - Options as per fuze.js
  * 
- * @returns {array}          - The fuzzy matched index/object within the dataset.
+ * @return {array}          - The fuzzy matched index/object within the dataset.
  * 
  * @example
  * frappe._.fuzzy_search("foobar", ["foobar", "bartender"]);
@@ -178,10 +189,16 @@ frappe._.fuzzy_search = function (query, dataset, options)
 /**
  * @description Pluralizes a given word.
  * 
- * @param   {string} word  - The word to be pluralized.
- * @param   {number} count - The count.
+ * @param  {string} word  - The word to be pluralized.
+ * @param  {number} count - The count.
  * 
- * @returns {string}       - The pluralized string.
+ * @return {string}       - The pluralized string.
+ * 
+ * @example
+ * frappe._.pluralize('member',  1);
+ * // returns "member"
+ * frappe._.pluralize('members', 0);
+ * // returns "members"
  * 
  * @todo Handle more edge cases.
  */
@@ -190,6 +207,17 @@ frappe._.pluralize  = function (word, count = 0, suffix = 's')
     return `${word}${count === 1 ? '' : suffix}`;
 };
 
+/**
+ * @description Captializes a given string.
+ * 
+ * @param   {word}  - The word to be capitalized.
+ * 
+ * @return {string} - The capitalized word.
+ * 
+ * @example
+ * frappe._.capitalize('foobar');
+ * // returns "Foobar"
+ */
 frappe._.capitalize = function (word)
 {
     return `${word.charAt(0).toUpperCase()}${word.slice(1)}`;
@@ -222,6 +250,16 @@ frappe._.copy_array = function (array)
  * @param   {any}     value - The value to be checked on.
  * 
  * @returns {boolean}       - Returns if the object is empty. 
+ * 
+ * @example
+ * frappe._.is_empty([])      // returns true
+ * frappe._.is_empty(["foo"]) // returns false
+ * 
+ * frappe._.is_empty("")      // returns true
+ * frappe._.is_empty("foo")   // returns false
+ * 
+ * frappe._.is_empty({ })     // returns true
+ * frappe._.is_empty({ foo: "bar" }) // returns false
  * 
  * @todo Handle other cases.
  */
@@ -496,12 +534,13 @@ frappe.chat.room.create = function (kind, owner, users, name, fn)
             { kind: kind, owner: owner || frappe.session.user, users: users, name: name },
             r =>
             {
-                // I haven't "momentified" creation here.
+                let room = r.message;
+                room     = { ...room, creation: new frappe.datetime.datetime(room.creation) };
 
                 if ( fn )
-                    fn(r.message);
+                    fn(room);
 
-                resolve(r.message);
+                resolve(room);
             });
     });
 };
@@ -597,7 +636,7 @@ frappe.chat.room.get = function (names, fields, fn)
  */
 frappe.chat.room.subscribe = function (rooms)
 {
-    frappe.realtime.publish("frappe.chat:subscribe", rooms);
+    frappe.realtime.publish("frappe.chat.room:subscribe", rooms);
 };
 
 /**
@@ -711,11 +750,27 @@ frappe.chat.room.on.update = function (fn)
  */
 frappe.chat.room.on.create = function (fn)
 {
-    frappe.realtime.on("frappe.chat.room.create", r => fn({ ...r, creation: new frappe.datetime.datetime(r.creation) }));
+    frappe.realtime.on("frappe.chat.room:create", r => fn({ ...r, creation: new frappe.datetime.datetime(r.creation) }));
+};
+
+/**
+ * @description Triggers when a User is typing in a Chat Room.
+ * 
+ * @param {function} fn - callback with the typing User within the Chat Room.
+ */
+frappe.chat.room.on.typing = function (fn)
+{
+    frappe.realtime.on("frappe.chat.room:typing", r => fn(r.room, r.user));
 };
 
 // frappe.chat.message
 frappe.provide('frappe.chat.message');
+
+frappe.chat.message.typing = function (room, user)
+{
+    frappe.realtime.publish("frappe.chat.message:typing", { user: user || frappe.session.user, room: room });
+};
+
 frappe.chat.message.send   = function (room, message)
 {
     frappe.call("frappe.chat.doctype.chat_message.chat_message.send",
@@ -728,7 +783,7 @@ frappe.chat.message.on.create = function (fn)
     frappe.realtime.on("frappe.chat.message:create", r => fn({ ...r, creation: new frappe.datetime.datetime(r.creation) }))
 };
 
-frappe.chat.pretty_datetime = function (date)
+frappe.chat.pretty_datetime   = function (date)
 {
     const today    = moment();
     const instance = date.moment;
@@ -760,7 +815,7 @@ frappe.chat.sound.play  = function (name, volume = 0.1)
     if  ( $audio.length === 0 )
         $(document).append($audio);
 
-    if  (!$audio.paused )
+    if  ( !$audio.paused )
     {
         frappe.log.info('Stopping sound playing.')
         $audio[0].pause();
@@ -768,7 +823,7 @@ frappe.chat.sound.play  = function (name, volume = 0.1)
     }
 
     frappe.log.info('Playing sound.')
-    $audio.attr('src',   `${frappe.chat.sound.PATH}/chat-${name}.mp3`);
+    $audio.attr('src', `${frappe.chat.sound.PATH}/chat-${name}.mp3`);
     $audio[0].play();
 };
 frappe.chat.sound.PATH  = '/assets/frappe/sounds'
@@ -1005,6 +1060,7 @@ class
         this.set_wrapper(selector ? selector : "body");
         this.set_options(options);
 
+        // Load Emojis.
         frappe.chat.emoji();
     }
 
@@ -1136,6 +1192,16 @@ class extends Component
                 if ( r.name === room )
                 {
                     exists  = true;
+                    if ( update.typing )
+                    {
+                        if ( r.typing )
+                            r.typing.add(update.typing);
+                        else
+                            r.typing = new Set([update.typing]);
+
+                        return r
+                    }
+
                     return { ...r, ...update };
                 }
                 return r;
@@ -1143,8 +1209,8 @@ class extends Component
 
             if ( !exists )
                 frappe.chat.room.get(room, (room) => this.room.add(room));
-                
-            this.setState({ rooms });
+            else
+                this.setState({ rooms });
 
             if ( state.room.name === room )
             {
@@ -1166,20 +1232,14 @@ class extends Component
             });
         }
         
-        this.state          =
-        {
-              query: "",
-            profile: { },
-              rooms: [ ],
-               room: { name: null, messages: [ ] }
-        };
+        this.state = frappe.Chat.Widget.defaultState;
 
         this.make();
     }
 
     make ( ) {
         frappe.chat.profile.create([
-            "status", "display_widget", "conversation_tones"
+            "status", "display_widget", "notification_tones", "conversation_tones"
         ], profile =>
         {
             frappe.log.info(`Chat Profile created for User ${frappe.session.user}.`)
@@ -1242,10 +1302,15 @@ class extends Component
 
         frappe.chat.message.on.create((r) => 
         {
-            // play sound.
-            frappe.chat.sound.play('message');
-
+            
             const { state } = this;
+            
+            // play sound.
+            if ( state.room.name )
+                state.profile.conversation_tones && frappe.chat.sound.play('message');
+            else
+                state.profile.notification_tones && frappe.chat.sound.play('notification');
+            
             if ( r.room === state.room.name )
             {
                 const mess  = frappe._.copy_array(state.room.messages);
@@ -1254,6 +1319,14 @@ class extends Component
                 this.setState({ room: { ...state.room, messages: mess } });
             }
         });
+
+        frappe.chat.room.on.typing((room, user) => {
+            frappe.log.warn(`User ${user} typing in Chat Room ${room}.`);
+            this.room.update(room, { typing: user });
+        });
+
+        // throttle
+        
     }
 
     render ( )
@@ -1405,6 +1478,13 @@ class extends Component
                 component
             ) : null;
     }
+};
+frappe.Chat.Widget.defaultState = 
+{
+      query: "",
+    profile: { },
+      rooms: [ ],
+       room: { name: null, messages: [ ] }
 };
 frappe.Chat.Widget.defaultProps =
 {
@@ -1685,8 +1765,8 @@ class extends Component
                 position.class === "media-left"  ? avatar : null,
                 h("div", { class: "media-body" },
                     h("div", { class: "media-heading h6 ellipsis", style: `max-width: ${props.width_title || "100%"}; display: inline-block;` }, props.title),
-                    props.content  ? h("div", null, h("small", { class: "h6" }, props.content))  : null,
-                    props.subtitle ? h("div", null, h("small", { class: "h6 text-muted" }, props.subtitle)) : null
+                    props.content  ? h("div", null, h("small", { class: "h6" },         props.content))  : null,
+                    props.subtitle ? h("div", null, h("small", { class: "text-muted" }, props.subtitle)) : null
                 ),
                 position.class === "media-right" ? avatar : null
             )
@@ -1756,7 +1836,9 @@ class extends Component
                 h("div", { class: "frappe-chat-room-footer" },
                     h(frappe.Chat.Widget.ChatForm, {
                         attach: attach,
-                        change: () => { },
+                        change: () => {
+                            frappe.chat.message.typing(props.name);
+                        },
                         submit: (message) => {
                             frappe.chat.message.send(props.name, message)
                         },
@@ -1804,25 +1886,34 @@ class extends Component
 {
     render ( )
     {
-        const { props }    = this;
+        const { props }     = this;
 
-        const item         = { };
+        const item          = { };
         
         if ( props.type === "Group" ) {
-            item.route     = `Form/Chat Room/${props.name}`
+            item.route      = `Form/Chat Room/${props.name}`
 
-            item.title     = props.room_name;
-            item.image     = props.avatar;
-            item.subtitle  = __(`${props.users.length} ${frappe._.pluralize('member', props.users.length)}`);
+            item.title      = props.room_name;
+            item.image      = props.avatar;
+
+            if ( props.typing )
+            {
+                const users   = Array.from(props.typing).map(user => frappe.user.first_name(user));
+                item.subtitle = `${users.join(", ")} typing...`;
+            } else
+                item.subtitle = __(`${props.users.length} ${frappe._.pluralize('member', props.users.length)}`);
         }
         else
         {
-            const user     = props.owner === frappe.session.user ? frappe._.squash(props.users) : props.owner;
+            const user      = props.owner === frappe.session.user ? frappe._.squash(props.users) : props.owner;
 
-            item.route     = `Form/User/${user}`;
+            item.route      = `Form/User/${user}`;
 
-            item.title     = frappe.user.full_name(user);
-            item.image     = frappe.user.image(user);
+            item.title      = frappe.user.full_name(user);
+            item.image      = frappe.user.image(user);
+            console.log(props.typing, frappe.session.user);
+            if ( props.typing && props.typing != frappe.session.user )
+                item.subtitle = 'typing...';
         }
 
         const popper       = props.layout === frappe.Chat.Layout.POPPER || frappe._.is_mobile();

@@ -98,7 +98,8 @@ def get_user_chat_profile(user = None, fields = None):
 
         status	   = prof.status,
         chat_bg    = prof.chat_background,
-        
+
+        notification_tones  = bool(prof.notification_tones),
         conversation_tones  = bool(prof.conversation_tones), # frappe, y u no jsonify 0,1 bools? :(
         display_widget      = bool(prof.display_widget)
     )

@@ -64,7 +64,7 @@ io.on('connection', function(socket) {
 	socket.files = {};
 
 	// frappe.chat
-	socket.on("frappe.chat:subscribe", function (rooms) {
+	socket.on("frappe.chat.room:subscribe", function (rooms) {
 		if ( !Array.isArray(rooms) ) {
 			rooms = [rooms];
 		}
@@ -77,18 +77,14 @@ io.on('connection', function(socket) {
 			socket.join(room);
 		}
 	});
+	socket.on("frappe.chat.message:typing", function (data) {
+		const user = data.user;
+		const room = get_chat_room(socket, data.room);
 
-	// socket.on("frappe.chat:room:typing", function (data) {
-	// 	const room  = data.room
-	// 	const user  = data.user
-	// 	const which = get_chat_room(socket, room)
+		console.log('frappe.chat: Dispatching ' + user + ' typing to room ' + room);
 
-	// 	console.log('frappe.chat: Dispatching ' + user + ' typing to room ' + which)
-		
-	// 	// redis? nah.
-	// 	io.to(which).emit('frappe.chat:room:update', { name: room, typing: user })
-	// })
-	// end frappe.chat
+		io.to(room).emit('frappe.chat.room:typing', { room: data.room, user: user });
+	});
 	
 	console.log("firing get_user_info");
 	request.get(get_url(socket, '/api/method/frappe.async.get_user_info'))

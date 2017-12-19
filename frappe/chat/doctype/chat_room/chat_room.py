@@ -264,7 +264,7 @@ def create(kind, owner, users = None, name = None):
 
 	users = [room.owner] + [u for u in room.users]
 	for u in users:
-		frappe.publish_realtime('frappe.chat.room.create', room,
+		frappe.publish_realtime('frappe.chat.room:create', room,
 			user = u, after_commit = True)
 
 	return room

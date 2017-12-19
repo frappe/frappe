@@ -188,8 +188,9 @@ sounds = [
 	# {"name": "alert", "src": "/assets/frappe/sounds/alert.mp3"},
 	# {"name": "chime", "src": "/assets/frappe/sounds/chime.mp3"},
 
-	# frappe Chat sounds
-	{ "name": "chat-message", "src": "/assets/frappe/sounds/chat-message.mp3", "volume": 0.1 }
+	# frappe chat sounds
+	{ "name": "chat-message", 	   "src": "/assets/frappe/sounds/chat-message.mp3",      "volume": 0.1 },
+	{ "name": "chat-notification", "src": "/assets/frappe/sounds/chat-noticication.mp3", "volume": 0.1 }
 ]
 
 bot_parsers = [
