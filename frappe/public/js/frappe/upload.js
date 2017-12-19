@@ -12,13 +12,13 @@ frappe.upload = {
 
 		// whether to show public/private checkbox or not
 		opts.show_private = !("is_private" in opts);
-		
+
 		// make private by default
 		if (!("options" in opts) || ("options" in opts &&
 			(opts.options && !opts.options.toLowerCase()=="public" && !opts.options.toLowerCase()=="image"))) {
 			opts.is_private = 1;
 		}
-		
+
 		var d = null;
 		// create new dialog if no parent given
 		if(!opts.parent) {
@@ -291,7 +291,9 @@ frappe.upload = {
 			freader.readAsDataURL(fileobj);
 		}
 
-		if (opts.no_socketio || frappe.flags.no_socketio) {
+		const file_not_big_enough = fileobj.size <= 24576;
+
+		if (opts.no_socketio || frappe.flags.no_socketio || file_not_big_enough) {
 			upload_with_filedata();
 			return;
 		}
