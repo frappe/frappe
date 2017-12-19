@@ -199,8 +199,9 @@ def set_desktop_icons(visible_list, ignore_duplicate=True):
 	# clear all custom
 	frappe.db.sql('delete from `tabDesktop Icon` where standard=0')
 
-	# set all as blocked
-	frappe.db.sql('update `tabDesktop Icon` set blocked=0, hidden=1')
+	# set all as blocked if setting first active domain
+	if not frappe.flags.keep_desktop_icons:
+		frappe.db.sql('update `tabDesktop Icon` set blocked=0, hidden=1')
 
 	# set as visible if present, or add icon
 	for module_name in visible_list:

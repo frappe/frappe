@@ -18,10 +18,11 @@ class Domain(Document):
 		self.setup_roles()
 		self.setup_properties()
 		self.set_values()
+		# always set the desktop icons while changing the domain settings
+		self.setup_desktop_icons()
 		if not int(frappe.db.get_single_value('System Settings', 'setup_complete') or 0):
 			# if setup not complete, setup desktop etc.
 			self.setup_sidebar_items()
-			self.setup_desktop_icons()
 			self.set_default_portal_role()
 
 		if self.data.custom_fields:
