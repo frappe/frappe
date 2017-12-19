@@ -90,20 +90,45 @@ frappe.get_abbr = function(txt, max_length) {
 }
 
 frappe.provide('frappe.gravatars');
+/**
+ * 
+ * @param {string}   email - (Required) The email of a user.
+ * @param {number}   size  - (Optional) Size of returned gravatar.
+ * @param {function} fn    - (Optional) callback with the returned gravatar email.
+ * 
+ * @return {Promise}
+ * 
+ * @example
+ * frappe.get_gravatar("foobar@gmail.com", 200, function (email) {
+ * 	// do stuff
+ * });
+ * frappe.get_gravatar("foobar@gmail.com", 200).then((email) => {
+ * 	// do stuff
+ * });
+ */
 frappe.get_gravatar = function(email, size = 0, fn) {
-	if ( !frappe.gravatars[email] )
-		frappe.call({
-			method: 'frappe.core.doctype.user_email.user_email.get_gravatar_url',
-				args: { email: email, size: size },
-			callback: (r) => {
-				frappe.gravatars[email] = r.message;
-
+	return new Promise(resolve => {
+		if ( !frappe.gravatars[email] )
+			frappe.call('frappe.core.doctype.user_email.user_email.get_gravatar_url', 
+				{ email: email, size: size },
+				r => {
+					frappe.gravatars[email] = r.message;
+	
+					if ( fn )
+						fn(frappe.gravatars[email]);
+	
+					resolve(frappe.gravatars[email]);
+				}
+			);
+		else
+		{
+			if ( fn )
 				fn(frappe.gravatars[email]);
-			}
-		});
-	else
-		fn(frappe.gravatars[email]);
-}
+	
+			resolve(frappe.gravatars[email]);
+		}
+	});
+};
 
 // string commons
 
