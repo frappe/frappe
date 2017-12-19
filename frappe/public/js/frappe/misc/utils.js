@@ -623,8 +623,12 @@ frappe.utils = {
 			return result;
 		};
 	},
-	get_form_link: function(doctype, name) {
-		return ['#Form', doctype, name].join('/');
+	get_form_link: function(doctype, name, html = false) {
+		const route = ['#Form', doctype, name].join('/');
+		if (html) {
+			return `<a href="${route}">${name}</a>`;
+		}
+		return route;
 	}
 };
 
