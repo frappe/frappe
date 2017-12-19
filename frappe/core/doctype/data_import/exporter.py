@@ -165,6 +165,8 @@ def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data
 			return 'Integer'
 		elif docfield.fieldtype == "Check":
 			return "0 or 1"
+		elif docfield.fieldtype in ["Date", "Datetime"]:
+			return cstr(frappe.defaults.get_defaults().date_format)
 		elif hasattr(docfield, "info"):
 			return docfield.info
 		else:
