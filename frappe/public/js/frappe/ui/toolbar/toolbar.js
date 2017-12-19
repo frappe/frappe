@@ -2,6 +2,8 @@
 // MIT License. See license.txt
 
 import './search';
+import '../../misc/help';
+import '../../misc/help_links';
 
 frappe.provide("frappe.ui.toolbar");
 frappe.provide('frappe.search');

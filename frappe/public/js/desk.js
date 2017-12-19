@@ -33,9 +33,9 @@ import './frappe/misc/common';
 // import './frappe/misc/pretty_date';
 import './frappe/misc/utils';
 
-// import './frappe/misc/tools';
+import './frappe/misc/tools';
 import './frappe/misc/datetime';
-// import './frappe/misc/number_format';
+import './frappe/misc/number_format';
 // import './frappe/misc/help';
 // import './frappe/misc/help_links';
 // import './frappe/misc/address_and_contact';
@@ -66,6 +66,6 @@ $(document).ready(function() {
 			message: __('Some of the features might not work in your browser. Please update your browser to the latest version.')
 		});
 	}
-	
+
 	frappe.start_app();
 });

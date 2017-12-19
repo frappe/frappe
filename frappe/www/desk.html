@@ -68,12 +68,12 @@
 	});
 
 	</script>
-	
+
 
 	{% for js in include_js %}
 		<script type="text/javascript" src="{{ js }}" async></script>
 	{% endfor %}
-	
+
     {% include "templates/includes/app_analytics/google_analytics.html" %}
     {% include "templates/includes/app_analytics/mixpanel_analytics.html" %}
 

@@ -4,7 +4,7 @@ import './field_group';
 
 frappe.provide('frappe.ui');
 
-var cur_dialog;
+window.cur_dialog = null;
 
 frappe.ui.open_dialogs = [];
 frappe.ui.Dialog = frappe.ui.FieldGroup.extend({

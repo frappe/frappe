@@ -259,6 +259,7 @@ frappe.Application = Class.extend({
 		frappe.ui.py_date_format = frappe.boot.sysdefaults.date_format.replace('dd', '%d').replace('mm', '%m').replace('yyyy', '%Y');
 		frappe.boot.user.last_selected_values = {};
 
+		if ('user' in window) return;
 		// Proxy for user globals
 		Object.defineProperties(window, {
 			'user': {

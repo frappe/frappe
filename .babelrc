@@ -1,0 +1,6 @@
+{
+    "sourceMaps": true,
+    "presets": [
+        "env"
+    ]
+}

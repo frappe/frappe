@@ -36,6 +36,7 @@ var _r = {};
 // API globals
 var frms = {};
 var cur_frm=null;
+var cur_dialog=null;
 
 Object.assign(window, {
 	NEWLINE,
@@ -46,5 +47,6 @@ Object.assign(window, {
 	_p,
 	_r,
 	frms,
-	cur_frm
+	cur_frm,
+	cur_dialog
 });

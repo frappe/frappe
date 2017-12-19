@@ -11,7 +11,7 @@ source_link = "https://github.com/frappe/frappe"
 app_license = "MIT"
 
 develop_version = '9.x.x-develop'
- 
+
 app_email = "info@frappe.io"
 
 before_install = "frappe.utils.install.before_install"
@@ -26,7 +26,7 @@ app_include_js = [
 	"assets/frappe/js/dist/common.bundle.js",
 	"assets/frappe/js/dist/desk.bundle.js",
 	"assets/frappe/js/dist/dialog.bundle.js",
-	# "assets/frappe/js/dist/controls.bundle.js"
+	"assets/frappe/js/dist/controls.bundle.js"
 ]
 app_include_css = [
 	"assets/css/desk.min.css",

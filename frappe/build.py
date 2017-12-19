@@ -35,6 +35,7 @@ def bundle(no_compress, make_copy=False, restore=False, verbose=False):
 
 	# new nodejs build system
 	command = 'node --use_strict ../apps/frappe/frappe/build.js --build'
+	# command = 'npm start'
 	if not no_compress:
 		command += ' --minify'
 	subprocess.call(command.split(' '))

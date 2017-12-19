@@ -1,3 +1,7 @@
+
+
+// frappe.require(requires).then(() => {
+
 frappe.provide("frappe.setup");
 frappe.provide("frappe.setup.events");
 frappe.provide("frappe.ui");
@@ -26,42 +30,275 @@ frappe.setup = {
 	}
 }
 
+
+
 frappe.pages['setup-wizard'].on_page_load = function(wrapper) {
 	let requires = (frappe.boot.setup_wizard_requires || []);
+	requires.push('/assets/frappe/js/frappe/ui/slides.js');
 
+	frappe.require(requires)
+		.then(load_languages)
+		.then(show_setup_wizard);
 
-	frappe.require(requires, function() {
-		frappe.call({
+	function load_languages() {
+		return frappe.call({
 			method: "frappe.desk.page.setup_wizard.setup_wizard.load_languages",
 			freeze: true,
 			callback: function(r) {
 				frappe.setup.data.lang = r.message;
-
 				frappe.setup.run_event("before_load");
-				var wizard_settings = {
-					parent: wrapper,
-					slides: frappe.setup.slides,
-					slide_class: frappe.setup.SetupWizardSlide,
-					unidirectional: 1,
-					before_load: ($footer) => {
-						$footer.find('.next-btn').removeClass('btn-default')
-							.addClass('btn-primary');
-						$footer.find('.text-right').prepend(
-							$(`<a class="complete-btn btn btn-sm primary">
-						${__("Complete Setup")}</a>`));
-
-					}
-				}
-				frappe.wizard = new frappe.setup.SetupWizard(wizard_settings);
-				frappe.setup.run_event("after_load");
-				// frappe.wizard.values = test_values_edu;
-				let route = frappe.get_route();
-				if(route) {
-					frappe.wizard.show_slide(route[1]);
-				}
 			}
 		});
-	});
+	}
+
+	function show_setup_wizard() {
+		frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
+			constructor(args = {}) {
+				super(args);
+				$.extend(this, args);
+
+				this.welcomed = true;
+				this.page_name = "setup-wizard";
+				frappe.set_route("setup-wizard/0");
+			}
+
+			make() {
+				super.make();
+				this.container.addClass("container setup-wizard-slide with-form");
+				this.$next_btn.addClass('action');
+				this.$complete_btn = this.$footer.find('.complete-btn').addClass('action');
+				this.setup_keyboard_nav();
+			}
+
+			setup_keyboard_nav() {
+				$('body').on('keydown', this.handle_enter_press.bind(this));
+			}
+
+			disable_keyboard_nav() {
+				$('body').off('keydown', this.handle_enter_press.bind(this));
+			}
+
+			handle_enter_press(e) {
+				if (e.which === frappe.ui.keyCode.ENTER) {
+					var $target = $(e.target);
+					if($target.hasClass('prev-btn')) {
+						$target.trigger('click');
+					} else {
+						this.container.find('.next-btn').trigger('click');
+						e.preventDefault();
+					}
+				}
+			}
+
+			before_show_slide() {
+				if(!this.welcomed) {
+					frappe.set_route(this.page_name);
+					return false;
+				}
+				return true;
+			}
+
+			show_slide(id) {
+				if (id === this.slides.length) {
+					// show_slide called on last slide
+					this.action_on_complete();
+					return;
+				}
+				super.show_slide(id);
+				frappe.set_route(this.page_name, id + "");
+			}
+
+			show_hide_prev_next(id) {
+				super.show_hide_prev_next(id);
+				if (id + 1 === this.slides.length){
+					this.$next_btn.removeClass("btn-primary").hide();
+					this.$complete_btn.addClass("btn-primary").show()
+						.on('click', this.action_on_complete.bind(this));
+
+				} else {
+					this.$next_btn.addClass("btn-primary").show();
+					this.$complete_btn.removeClass("btn-primary").hide();
+				}
+			}
+
+			refresh_slides() {
+				// For Translations, etc.
+				if(this.in_refresh_slides || !this.current_slide.set_values()) {
+					return;
+				}
+				this.in_refresh_slides = true;
+
+				this.update_values();
+				frappe.setup.slides = [];
+				frappe.setup.run_event("before_load");
+
+				frappe.setup.slides = this.get_setup_slides_filtered_by_domain();
+
+				this.slides = frappe.setup.slides;
+				frappe.setup.run_event("after_load");
+
+				// re-render all slide, only remake made slides
+				$.each(this.slide_dict, (id, slide) => {
+					if(slide.made) {
+						this.made_slide_ids.push(id);
+					}
+				});
+				this.made_slide_ids.push(this.current_id);
+				this.setup();
+
+				this.show_slide(this.current_id);
+				setTimeout(() => {
+					this.container.find('.form-control').first().focus();
+				}, 200);
+				this.in_refresh_slides = false;
+			}
+
+			action_on_complete() {
+				var me = this;
+				if (!this.current_slide.set_values()) return;
+				this.update_values();
+				this.show_working_state();
+				this.disable_keyboard_nav();
+				return frappe.call({
+					method: "frappe.desk.page.setup_wizard.setup_wizard.setup_complete",
+					args: {args: this.values},
+					callback: function() {
+						me.show_setup_complete_state();
+						if(frappe.setup.welcome_page) {
+							localStorage.setItem("session_last_route", frappe.setup.welcome_page);
+						}
+						setTimeout(function() {
+							// Reload
+							window.location.href = '';
+						}, 2000);
+						setTimeout(()=> {
+							$('body').removeClass('setup-state');
+						}, 20000);
+					},
+					error: function() {
+						var d = frappe.msgprint(__("There were errors."));
+						d.custom_onhide = function() {
+							$(me.parent).find('.page-card-container').remove();
+							$('body').removeClass('setup-state');
+							me.container.show();
+							frappe.set_route(me.page_name, me.slides.length - 1);
+						};
+					}
+				});
+			}
+
+			get_setup_slides_filtered_by_domain() {
+				var filtered_slides = [];
+				frappe.setup.slides.forEach(function(slide) {
+					if(frappe.setup.domains) {
+						let active_domains = frappe.setup.domains;
+						if (!slide.domains ||
+							slide.domains.filter(d => active_domains.includes(d)).length > 0) {
+							filtered_slides.push(slide);
+						}
+					} else {
+						filtered_slides.push(slide);
+					}
+				})
+				return filtered_slides;
+			}
+
+			show_working_state() {
+				this.container.hide();
+				$('body').addClass('setup-state');
+				frappe.set_route(this.page_name);
+
+				this.working_state_message = this.get_message(
+					__("Setting Up"),
+					__("Sit tight while your system is being setup. This may take a few moments."),
+					true
+				).appendTo(this.parent);
+
+				this.current_id = this.slides.length;
+				this.current_slide = null;
+				this.completed_state_message = this.get_message(
+					__("Setup Complete"),
+					__("Refreshing...")
+				);
+			}
+
+			show_setup_complete_state() {
+				this.working_state_message.hide();
+				this.completed_state_message.appendTo(this.parent);
+			}
+
+			get_message(title, message="", loading=false) {
+				const loading_html = loading
+					? '<div style="width:100%;height:100%" class="lds-rolling state-icon"><div></div></div>'
+					: `<div style="width:100%;height:100%" class="state-icon">
+						<i class="fa fa-check-circle text-success"
+							style="font-size: 64px; margin-top: -8px;"></i>
+					</div>`;
+
+				return $(`<div class="page-card-container" data-state="setup">
+					<div class="page-card">
+						<div class="page-card-head">
+							${loading ? `
+								<span class="indicator orange">${title}</span>` : `
+								<span class="indicator green">${title}</span>`}
+						</div>
+						<p>${message}</p>
+						<div class="state-icon-container">
+						${loading_html}
+						</div>
+					</div>
+				</div>`);
+			}
+		};
+
+		frappe.setup.SetupWizardSlide = class SetupWizardSlide extends frappe.ui.Slide {
+			constructor(slide = null) {
+				super(slide);
+			}
+
+			make() {
+				super.make();
+				this.set_init_values();
+				this.reset_action_button_state();
+			}
+
+			set_init_values () {
+				var me = this;
+				// set values from frappe.setup.values
+				if(frappe.wizard.values && this.fields) {
+					this.fields.forEach(function(f) {
+						var value = frappe.wizard.values[f.fieldname];
+						if(value) {
+							me.get_field(f.fieldname).set_input(value);
+						}
+					});
+				}
+			}
+
+		};
+
+		var wizard_settings = {
+			parent: wrapper,
+			slides: frappe.setup.slides,
+			slide_class: frappe.setup.SetupWizardSlide,
+			unidirectional: 1,
+			before_load: ($footer) => {
+				$footer.find('.next-btn').removeClass('btn-default')
+					.addClass('btn-primary');
+				$footer.find('.text-right').prepend(
+					$(`<a class="complete-btn btn btn-sm primary">
+				${__("Complete Setup")}</a>`));
+			}
+		};
+
+		frappe.wizard = new frappe.setup.SetupWizard(wizard_settings);
+		frappe.setup.run_event("after_load");
+		// frappe.wizard.values = test_values_edu;
+		let route = frappe.get_route();
+		if(route) {
+			frappe.wizard.show_slide(route[1]);
+		}
+	}
 };
 
 frappe.pages['setup-wizard'].on_page_show = function(wrapper) {
@@ -79,232 +316,6 @@ frappe.setup.on("before_load", function() {
 		}
 	});
 });
-
-frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
-	constructor(args = {}) {
-		super(args);
-		$.extend(this, args);
-
-		this.welcomed = true;
-		this.page_name = "setup-wizard";
-		frappe.set_route("setup-wizard/0");
-	}
-
-	make() {
-		super.make();
-		this.container.addClass("container setup-wizard-slide with-form");
-		this.$next_btn.addClass('action');
-		this.$complete_btn = this.$footer.find('.complete-btn').addClass('action');
-		this.setup_keyboard_nav();
-	}
-
-	setup_keyboard_nav() {
-		$('body').on('keydown', this.handle_enter_press.bind(this));
-	}
-
-	disable_keyboard_nav() {
-		$('body').off('keydown', this.handle_enter_press.bind(this));
-	}
-
-	handle_enter_press(e) {
-		if (e.which === frappe.ui.keyCode.ENTER) {
-			var $target = $(e.target);
-			if($target.hasClass('prev-btn')) {
-				$target.trigger('click');
-			} else {
-				this.container.find('.next-btn').trigger('click');
-				e.preventDefault();
-			}
-		}
-	}
-
-	before_show_slide() {
-		if(!this.welcomed) {
-			frappe.set_route(this.page_name);
-			return false;
-		}
-		return true;
-	}
-
-	show_slide(id) {
-		if (id === this.slides.length) {
-			// show_slide called on last slide
-			this.action_on_complete();
-			return;
-		}
-		super.show_slide(id);
-		frappe.set_route(this.page_name, id + "");
-	}
-
-	show_hide_prev_next(id) {
-		super.show_hide_prev_next(id);
-		if (id + 1 === this.slides.length){
-			this.$next_btn.removeClass("btn-primary").hide();
-			this.$complete_btn.addClass("btn-primary").show()
-				.on('click', this.action_on_complete.bind(this));
-
-		} else {
-			this.$next_btn.addClass("btn-primary").show();
-			this.$complete_btn.removeClass("btn-primary").hide();
-		}
-	}
-
-	refresh_slides() {
-		// For Translations, etc.
-		if(this.in_refresh_slides || !this.current_slide.set_values()) {
-			return;
-		}
-		this.in_refresh_slides = true;
-
-		this.update_values();
-		frappe.setup.slides = [];
-		frappe.setup.run_event("before_load");
-
-		frappe.setup.slides = this.get_setup_slides_filtered_by_domain();
-
-		this.slides = frappe.setup.slides;
-		frappe.setup.run_event("after_load");
-
-		// re-render all slide, only remake made slides
-		$.each(this.slide_dict, (id, slide) => {
-			if(slide.made) {
-				this.made_slide_ids.push(id);
-			}
-		});
-		this.made_slide_ids.push(this.current_id);
-		this.setup();
-
-		this.show_slide(this.current_id);
-		setTimeout(() => {
-			this.container.find('.form-control').first().focus();
-		}, 200);
-		this.in_refresh_slides = false;
-	}
-
-	action_on_complete() {
-		var me = this;
-		if (!this.current_slide.set_values()) return;
-		this.update_values();
-		this.show_working_state();
-		this.disable_keyboard_nav();
-		return frappe.call({
-			method: "frappe.desk.page.setup_wizard.setup_wizard.setup_complete",
-			args: {args: this.values},
-			callback: function() {
-				me.show_setup_complete_state();
-				if(frappe.setup.welcome_page) {
-					localStorage.setItem("session_last_route", frappe.setup.welcome_page);
-				}
-				setTimeout(function() {
-					// Reload
-					window.location.href = '';
-				}, 2000);
-				setTimeout(()=> {
-					$('body').removeClass('setup-state');
-				}, 20000);
-			},
-			error: function() {
-				var d = frappe.msgprint(__("There were errors."));
-				d.custom_onhide = function() {
-					$(me.parent).find('.page-card-container').remove();
-					$('body').removeClass('setup-state');
-					me.container.show();
-					frappe.set_route(me.page_name, me.slides.length - 1);
-				};
-			}
-		});
-	}
-
-	get_setup_slides_filtered_by_domain() {
-		var filtered_slides = [];
-		frappe.setup.slides.forEach(function(slide) {
-			if(frappe.setup.domains) {
-				let active_domains = frappe.setup.domains;
-				if (!slide.domains ||
-					slide.domains.filter(d => active_domains.includes(d)).length > 0) {
-					filtered_slides.push(slide);
-				}
-			} else {
-				filtered_slides.push(slide);
-			}
-		})
-		return filtered_slides;
-	}
-
-	show_working_state() {
-		this.container.hide();
-		$('body').addClass('setup-state');
-		frappe.set_route(this.page_name);
-
-		this.working_state_message = this.get_message(
-			__("Setting Up"),
-			__("Sit tight while your system is being setup. This may take a few moments."),
-			true
-		).appendTo(this.parent);
-
-		this.current_id = this.slides.length;
-		this.current_slide = null;
-		this.completed_state_message = this.get_message(
-			__("Setup Complete"),
-			__("Refreshing...")
-		);
-	}
-
-	show_setup_complete_state() {
-		this.working_state_message.hide();
-		this.completed_state_message.appendTo(this.parent);
-	}
-
-	get_message(title, message="", loading=false) {
-		const loading_html = loading
-			? '<div style="width:100%;height:100%" class="lds-rolling state-icon"><div></div></div>'
-			: `<div style="width:100%;height:100%" class="state-icon">
-				<i class="fa fa-check-circle text-success"
-					style="font-size: 64px; margin-top: -8px;"></i>
-			</div>`;
-
-		return $(`<div class="page-card-container" data-state="setup">
-			<div class="page-card">
-				<div class="page-card-head">
-					${loading
-						? `<span class="indicator orange">${title}</span>`
-						: `<span class="indicator green">${title}</span>`
-					}
-				</div>
-				<p>${message}</p>
-				<div class="state-icon-container">
-				${loading_html}
-				</div>
-			</div>
-		</div>`);
-	}
-};
-
-frappe.setup.SetupWizardSlide = class SetupWizardSlide extends frappe.ui.Slide {
-	constructor(slide = null) {
-		super(slide);
-	}
-
-	make() {
-		super.make();
-		this.set_init_values();
-		this.reset_action_button_state();
-	}
-
-	set_init_values () {
-		var me = this;
-		// set values from frappe.setup.values
-		if(frappe.wizard.values && this.fields) {
-			this.fields.forEach(function(f) {
-				var value = frappe.wizard.values[f.fieldname];
-				if(value) {
-					me.get_field(f.fieldname).set_input(value);
-				}
-			});
-		}
-	}
-
-};
 
 // Frappe slides settings
 // ======================================================
@@ -333,7 +344,7 @@ frappe.setup.slides_settings = [
 				language_field.$input.trigger("change");
 			}
 			delete frappe.setup._from_load_messages;
-			moment.locale("en");
+			frappe.datetime.locale("en");
 		},
 
 		setup_fields: function(slide) {
@@ -574,3 +585,5 @@ frappe.setup.utils = {
 		});
 	},
 };
+
+// });

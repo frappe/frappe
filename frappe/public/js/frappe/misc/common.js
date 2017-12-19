@@ -100,15 +100,15 @@ function repl(s, dict) {
 }
 window.repl = repl;
 
-function replace_all(s, t1, t2) {
+window.replace_all = function(s, t1, t2) {
 	return s.split(t1).join(t2);
 }
 
-function strip_html(txt) {
+window.strip_html = function(txt) {
 	return txt.replace(/<[^>]*>/g, "");
 }
 
-var strip = function(s, chars) {
+window.strip = function(s, chars) {
 	if (s) {
 		var s= lstrip(s, chars)
 		s = rstrip(s, chars);
@@ -116,7 +116,7 @@ var strip = function(s, chars) {
 	}
 }
 
-var lstrip = function(s, chars) {
+window.lstrip = function lstrip(s, chars) {
 	if(!chars) chars = ['\n', '\t', ' '];
 	// strip left
 	var first_char = s.substr(0,1);

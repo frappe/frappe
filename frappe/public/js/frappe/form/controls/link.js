@@ -1,3 +1,4 @@
+import Awesomplete from 'awesomplete';
 // special features for link
 // buttons
 // autocomplete
