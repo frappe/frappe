@@ -267,6 +267,9 @@ frappe._.is_empty = function (value)
 {
     let empty = false;
 
+    if ( value === null )
+        empty = true;
+    else
     if ( Array.isArray(value) || typeof value === 'string' )
         empty = value.length === 0;
     else
@@ -1194,16 +1197,17 @@ class extends Component
                     exists  = true;
                     if ( update.typing )
                     {
-                        if ( r.typing )
-                            r.typing.add(update.typing);
-                        else
-                            r.typing = new Set([update.typing]);
-
-                        return r
-                    }
-
-                    return { ...r, ...update };
+                        const user = update.typing;
+                        if ( r.typing && !frappe._.is_empty(r.typing) )
+                        {
+                            if ( !r.typing.includes(user) )
+                                r.typing.push(user);
+                        } else
+                            r.typing = frappe._.as_array(user);
+                    } else
+                        r.typing = [ ];
                 }
+
                 return r;
             });
 
@@ -1214,6 +1218,19 @@ class extends Component
 
             if ( state.room.name === room )
             {
+                if ( update.typing )
+                    if ( state.room.typing )
+                    {
+                        const user    = update.typing;
+
+                        if ( !state.room.typing.includes(user) )
+                        {
+                            update.typing = frappe._.copy_array(state.room.typing);
+                            update.typing.push(user);
+                        }
+                    } else
+                        update.typing = frappe._.as_array(update.typing);
+
                 const room  = { ...state.room, ...update };
 
                 this.setState({ room });
@@ -1323,10 +1340,9 @@ class extends Component
         frappe.chat.room.on.typing((room, user) => {
             frappe.log.warn(`User ${user} typing in Chat Room ${room}.`);
             this.room.update(room, { typing: user });
-        });
 
-        // throttle
-        
+            setTimeout(() => this.room.update(room, { typing: null }), 1000);
+        });
     }
 
     render ( )
@@ -1484,7 +1500,7 @@ frappe.Chat.Widget.defaultState =
       query: "",
     profile: { },
       rooms: [ ],
-       room: { name: null, messages: [ ] }
+       room: { name: null, messages: [ ], typing: [ ] }
 };
 frappe.Chat.Widget.defaultProps =
 {
@@ -1706,18 +1722,26 @@ class extends Component
         if ( props.type === "Group" ) {
             item.title     = props.room_name;
             item.image     = props.avatar;
+
+            if ( props.typing && !frappe._.is_empty(props.typing) )
+            {
+                const users   = props.typing.map(user => frappe.user.first_name(user));
+                item.subtitle = `${users.join(", ")} typing...`;
+            } else
+            if ( props.last_message )
+                item.subtitle = props.last_message.content;
         } else {
             const user     = props.owner === frappe.session.user ? frappe._.squash(props.users) : props.owner;
 
             item.title     = frappe.user.full_name(user);
             item.image     = frappe.user.image(user);
             item.abbr      = frappe.user.abbr(user);
-        }
 
-        if ( props.last_message )
-        {
-            item.subtitle  = props.last_message.content;
-            item.timestamp = frappe.chat.pretty_datetime(props.last_message);
+            if ( props.typing && !frappe._.is_empty(props.typing) && frappe._.squash(props.typing) != frappe.session.user )
+                item.subtitle = 'typing...';
+            else
+            if ( props.last_message )
+                item.subtitle = props.last_message.content;
         }
 
         return (
@@ -1898,7 +1922,7 @@ class extends Component
 
             if ( props.typing )
             {
-                const users   = Array.from(props.typing).map(user => frappe.user.first_name(user));
+                const users   = props.typing.map(user => frappe.user.first_name(user));
                 item.subtitle = `${users.join(", ")} typing...`;
             } else
                 item.subtitle = __(`${props.users.length} ${frappe._.pluralize('member', props.users.length)}`);
@@ -1911,12 +1935,12 @@ class extends Component
 
             item.title      = frappe.user.full_name(user);
             item.image      = frappe.user.image(user);
-            console.log(props.typing, frappe.session.user);
-            if ( props.typing && props.typing != frappe.session.user )
+
+            if ( !frappe._.is_empty(props.typing) && frappe._.squash(props.typing) != frappe.session.user )
                 item.subtitle = 'typing...';
         }
 
-        const popper       = props.layout === frappe.Chat.Layout.POPPER || frappe._.is_mobile();
+        const popper        = props.layout === frappe.Chat.Layout.POPPER || frappe._.is_mobile();
         
         return (
             h("div", { class: "panel-heading" },
@@ -2268,25 +2292,6 @@ frappe.Chat.Widget.ChatList.Bubble.defaultState =
 
 
 
-
-
-
-
-// subtitle: props.typing && props.typing !== frappe.session.user ? // Am I Typing?
-//         props.type === "Group" ?
-//             // show name yo.
-//             `${frappe.user.get_full_name(props.typing)} typing...`
-//             :
-//             "typing..."
-//         :
-//         "",
-
-// on_typing (what) {
-//     // const { props } = this
-
-//     // frappe.realtime.publish("frappe.chat:room:typing",
-//     //     { room: props.name, user: frappe.session.user })
-// }
 
 // on_change_status (status) {
 //     frappe.chat.profile.update(null, {
