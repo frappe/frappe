@@ -325,7 +325,8 @@ frappe.views.ListRenderer = Class.extend({
 			}
 
 			var link = $(this).parent().find('a.list-id').get(0);
-			window.location.href = link.href;
+			if ( link && link.href )
+				window.location.href = link.href;
 			return false;
 		});
 	},
