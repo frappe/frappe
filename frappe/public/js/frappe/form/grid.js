@@ -645,10 +645,15 @@ frappe.ui.form.Grid = Class.extend({
 			data.push([__("Do not edit headers which are preset in the template")]);
 			data.push(["------"]);
 			$.each(frappe.get_meta(me.df.options).fields, function(i, df) {
-				if(frappe.model.is_value_type(df.fieldtype)) {
+				// don't include the hidden field in the template
+				if(frappe.model.is_value_type(df.fieldtype) && !df.hidden) {
 					data[1].push(df.label);
 					data[2].push(df.fieldname);
-					data[3].push(df.description || "");
+					let description = (df.description || "") + ' ';
+					if (df.fieldtype === "Date") {
+						description += frappe.boot.sysdefaults.date_format;
+					}
+					data[3].push(description);
 					docfields.push(df);
 				}
 			});

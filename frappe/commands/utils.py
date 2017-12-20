@@ -15,7 +15,9 @@ def build(make_copy=False, restore = False, verbose=False):
 	import frappe.build
 	import frappe
 	frappe.init('')
-	frappe.build.bundle(False, make_copy=make_copy, restore = restore, verbose=verbose)
+	# don't minify in developer_mode for faster builds
+	no_compress = frappe.local.conf.developer_mode or False
+	frappe.build.bundle(no_compress, make_copy=make_copy, restore = restore, verbose=verbose)
 
 @click.command('watch')
 def watch():

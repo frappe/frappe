@@ -14,4 +14,6 @@ After setting developer mode, clear the cache:
 
 	$ bench clear-cache
 
+To view the full developer options, you must be logged in as the "Administrator" user.
+
 <!-- markdown -->

@@ -127,6 +127,8 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 	def get_doc(start_idx):
 		if doctypes:
 			doc = {}
+			attachments = []
+			last_error_row_idx = None
 			for idx in range(start_idx, len(rows)):
 				last_error_row_idx = idx	# pylint: disable=W0612
 				if (not doc) or main_doc_empty(rows[idx]):
@@ -179,7 +181,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 							if dt == doctype:
 								doc.update(d)
 							else:
-								if not overwrite:
+								if not overwrite and doc.get("name"):
 									d['parent'] = doc["name"]
 								d['parenttype'] = doctype
 								d['parentfield'] = parentfield
@@ -187,7 +189,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 				else:
 					break
 
-			return doc, last_error_row_idx
+			return doc, attachments, last_error_row_idx
 		else:
 			doc = frappe._dict(zip(columns, rows[start_idx][1:]))
 			doc['doctype'] = doctype
@@ -208,7 +210,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 		else:
 			return True
 
-		if autoname and not doc[autoname]:
+		if (autoname and autoname not in doc) or (autoname and not doc[autoname]):
 			frappe.throw(_("{0} is a mandatory field".format(autoname)))
 		return True
 
@@ -281,10 +283,8 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 	doctypes = []
 	column_idx_to_fieldname = {}
 	column_idx_to_fieldtype = {}
-	attachments = []
 
 	if skip_errors:
-		last_error_row_idx = None
 		data_rows_with_error = header
 
 	if submit_after_import and not cint(frappe.db.get_value("DocType",
@@ -354,7 +354,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 		publish_progress(i)
 
 		try:
-			doc, last_error_row_idx = get_doc(row_idx)
+			doc, attachments, last_error_row_idx = get_doc(row_idx)
 			validate_naming(doc)
 			if pre_process:
 				pre_process(doc)
@@ -365,7 +365,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 				doc = parent.append(parentfield, doc)
 				parent.save()
 			else:
-				if overwrite and doc["name"] and frappe.db.exists(doctype, doc["name"]):
+				if overwrite and doc.get("name") and frappe.db.exists(doctype, doc["name"]):
 					original = frappe.get_doc(doctype, doc["name"])
 					original_name = original.name
 					original.update(doc)
@@ -416,7 +416,10 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 			log(**{"row": row_idx + 1, "title":'Error for row %s' % (len(row)>1 and row[1] or ""), "message": err_msg,
 				"indicator": "red", "link":error_link})
 			# data with error to create a new file
+			# include the errored data in the last row as last_error_row_idx will not be updated for the last row
 			if skip_errors:
+				if last_error_row_idx == len(rows)-1:
+					last_error_row_idx = len(rows)
 				data_rows_with_error += rows[row_idx:last_error_row_idx]
 			else:
 				rollback_flag = True
@@ -461,8 +464,10 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 		data_import_doc.save()
 		if data_import_doc.import_status in ["Successful", "Partially Successful"]:
 			data_import_doc.submit()
+			publish_progress(100, True)
+		else:
+			publish_progress(0, True)
 		frappe.db.commit()
-		publish_progress(100, True)
 	else:
 		return log_message
 
