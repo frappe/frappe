@@ -804,46 +804,21 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			});
 		}
 
-		// bulk assignment
-		items.push(bulk_assignment());
-
-		if (frappe.model.can_print(doctype)) {
-			items.push(bulk_printing());
-		}
-
-		// add to desktop
-		items.push({
-			label: __('Add to Desktop'),
-			action: () => frappe.add_to_desktop(doctype, doctype),
-			standard: true
-		});
-
-		if (frappe.user.has_role('System Manager') && frappe.boot.developer_mode === 1) {
-			// edit doctype
-			items.push({
-				label: __('Edit DocType'),
-				action: () => frappe.set_route('Form', 'DocType', doctype),
-				standard: true
-			});
-		}
-
-		return items;
-
 		// utility
-		function bulk_assignment() {
+		const bulk_assignment = () => {
 			return {
 				label: __('Assign To'),
 				action: () => {
-					const docnames = this.list_view.get_checked_items(true);
+					const docnames = this.get_checked_items(true);
 					if (docnames.length > 0) {
 						const dialog = new frappe.ui.form.AssignToDialog({
-							obj: this.list_view,
+							obj: this,
 							method: 'frappe.desk.form.assign_to.add_multiple',
 							doctype: this.doctype,
 							docname: docnames,
 							bulk_assign: true,
 							re_assign: true,
-							callback: () => this.list_view.refresh(true)
+							callback: () => this.refresh(true)
 						});
 						dialog.clear();
 						dialog.show();
@@ -853,9 +828,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				},
 				standard: true
 			};
-		}
+		};
 
-		function bulk_printing() {
+		const bulk_printing = () => {
 			const print_settings = frappe.model.get_doc(':Print Settings', 'Print Settings');
 			const allow_print_for_draft = cint(print_settings.allow_print_for_draft);
 			const is_submittable = frappe.model.is_submittable(this.doctype);
@@ -864,7 +839,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			return {
 				label: __('Print'),
 				action: () => {
-					const items = this.list_view.get_checked_items();
+					const items = this.get_checked_items();
 
 					const valid_docs = items.filter(doc => {
 						return !is_submittable || doc.docstatus === 1 ||
@@ -921,7 +896,32 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				},
 				standard: true
 			};
+		};
+
+		// bulk assignment
+		items.push(bulk_assignment());
+
+		if (frappe.model.can_print(doctype)) {
+			items.push(bulk_printing());
 		}
+
+		// add to desktop
+		items.push({
+			label: __('Add to Desktop'),
+			action: () => frappe.add_to_desktop(doctype, doctype),
+			standard: true
+		});
+
+		if (frappe.user.has_role('System Manager') && frappe.boot.developer_mode === 1) {
+			// edit doctype
+			items.push({
+				label: __('Edit DocType'),
+				action: () => frappe.set_route('Form', 'DocType', doctype),
+				standard: true
+			});
+		}
+
+		return items;
 	}
 
 	set_filters_from_route_options() {
