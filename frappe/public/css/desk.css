@@ -498,6 +498,9 @@ fieldset[disabled] .form-control {
 .form-control input {
   padding: 6px 10px 8px;
 }
+.input-area {
+  position: relative;
+}
 .link-field.ui-front {
   z-index: inherit;
 }
@@ -980,7 +983,7 @@ li.user-progress .progress-bar {
 }
 input[type="checkbox"] {
   position: relative;
-  height: 16px;
+  left: -999999px;
 }
 input[type="checkbox"]:before {
   position: absolute;
@@ -998,9 +1001,7 @@ input[type="checkbox"]:before {
   -webkit-transition: 150ms color;
   -o-transition: 150ms color;
   transition: 150ms color;
-  background-color: white;
-  padding: 1px;
-  margin: -1px;
+  left: 999999px;
 }
 input[type="checkbox"]:focus:before {
   color: #8D99A6;

@@ -304,6 +304,10 @@ textarea.form-control {
 	}
 }
 
+.input-area {
+	position: relative;
+}
+
 .link-field.ui-front {
 	z-index: inherit;
 }
@@ -892,7 +896,7 @@ li.user-progress {
 // custom font awesome checkbox
 input[type="checkbox"] {
 	position: relative;
-	height: 16px;
+	left: -999999px;
 
 	&:before {
 		position: absolute;
@@ -908,9 +912,7 @@ input[type="checkbox"] {
 		font-size: 14px;
 		color: @text-extra-muted;
 		.transition(150ms color);
-		background-color: white;
-		padding: 1px;
-		margin: -1px;
+		left: 999999px;
 	}
 
 	&:focus:before {
