@@ -972,6 +972,7 @@ li.user-progress .progress-bar {
 }
 input[type="checkbox"] {
   position: relative;
+  height: 16px;
 }
 input[type="checkbox"]:before {
   position: absolute;
