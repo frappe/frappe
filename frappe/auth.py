@@ -16,13 +16,11 @@ from frappe.modules.patch_handler import check_session_stopped
 from frappe.translate import get_lang_code
 from frappe.utils.password import check_password
 from frappe.core.doctype.activity_log.activity_log import add_authentication_log
-from frappe.utils.background_jobs import enqueue
 from frappe.twofactor import (should_run_2fa, authenticate_for_2factor,
 	confirm_otp_token, get_cached_user_pass)
 
 from six.moves.urllib.parse import quote
 
-import pyotp, base64, os
 
 class HTTPRequest:
 	def __init__(self):
