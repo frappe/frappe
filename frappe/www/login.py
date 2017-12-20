@@ -72,7 +72,7 @@ def login_via_frappe(code, state):
 	login_via_oauth2("frappe", code, state, decoder=json.loads)
 
 @frappe.whitelist(allow_guest=True)
-def login_via_office365(code, state, **kwargs):
+def login_via_office365(code, state):
 	login_via_oauth2_id_token("office_365", code, state, decoder=json.loads)
 
 @frappe.whitelist(allow_guest=True)
