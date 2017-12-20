@@ -15,6 +15,8 @@ from six import string_types
 
 def get_setup_stages(args):
 
+	# App setup stage functions should not include frappe.db.commit
+	# That is done by frappe after successful completion of all stages
 	stages = [
 		{
 			'status': 'Updating global settings',
