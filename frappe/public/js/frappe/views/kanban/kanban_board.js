@@ -713,7 +713,11 @@ frappe.provide("frappe.views");
 		}
 
 		meta.fields.forEach(function (df) {
-			if (in_list(['Data', 'Text', 'Small Text', 'Text Editor'], df.fieldtype) && !title_field) {
+			const is_valid_field =
+				in_list(['Data', 'Text', 'Small Text', 'Text Editor'], df.fieldtype)
+					&& !df.hidden;
+
+			if (is_valid_field && !title_field) {
 				// can be mapped to textarea
 				title_field = df;
 			}
