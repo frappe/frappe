@@ -1,4 +1,4 @@
-import json
+import json, re
 import bleach, bleach_whitelist.bleach_whitelist as bleach_whitelist
 from six import string_types
 
@@ -47,6 +47,24 @@ def is_json(text):
 		return False
 	else:
 		return True
+
+def get_icon_html(icon, small=False):
+	emoji_pattern = re.compile(u'['
+	u'\U0001F300-\U0001F64F'
+	u'\U0001F680-\U0001F6FF'
+	u'\u2600-\u26FF\u2700-\u27BF]+',
+	re.UNICODE)
+
+	if icon and emoji_pattern.match(icon):
+		return '<span class="text-muted">' + icon + '</span>'
+
+	if icon.split(".")[-1:][0].lower() in ["svg", "png", "jpg", "jpeg", "gif"]:
+		return \
+			'<img style="width: 16px; height: 16px;" src="{icon}">'.format(icon=icon) \
+				if small else \
+			'<img src="{icon}">'.format(icon=icon)
+	else:
+		return "<i class='{icon}'></i>".format(icon=icon)
 
 # adapted from https://raw.githubusercontent.com/html5lib/html5lib-python/4aa79f113e7486c7ec5d15a6e1777bfe546d3259/html5lib/sanitizer.py
 acceptable_elements = [

@@ -10,6 +10,7 @@ from frappe import _
 from frappe.auth import LoginManager
 from frappe.integrations.doctype.ldap_settings.ldap_settings import get_ldap_settings
 from frappe.utils.password import get_decrypted_password
+from frappe.utils.html_utils import get_icon_html
 
 no_cache = True
 
@@ -28,13 +29,14 @@ def get_context(context):
 	for provider in providers:
 		client_id, base_url = frappe.get_value("Social Login Key", provider, ["client_id", "base_url"])
 		client_secret = get_decrypted_password("Social Login Key", provider, "client_secret")
+		icon = get_icon_html(frappe.get_value("Social Login Key", provider, "icon"), small=True)
 		if (get_oauth_keys(provider) and client_secret and client_id and base_url):
 			context.provider_logins.append({
 				"name": provider,
 				"provider_name": frappe.get_value("Social Login Key", provider, "provider_name"),
 				"auth_url": get_oauth2_authorize_url(provider),
 				"icon_type": frappe.get_value("Social Login Key", provider, "icon_type"),
-				"icon": frappe.get_value("Social Login Key", provider, "icon")
+				"icon": icon
 			})
 			context["social_login"] = True
 

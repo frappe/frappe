@@ -1,7 +1,7 @@
 // Copyright (c) 2017, Frappe Technologies and contributors
 // For license information, please see license.txt
 const fields = [
-	"provider_name", "base_url", "custom_base_url", "icon_type",
+	"provider_name", "base_url", "custom_base_url",
 	"icon", "authorize_url", "access_token_url", "redirect_url",
 	"api_endpoint", "api_endpoint_args", "auth_url_data"
 ];

@@ -42,12 +42,7 @@
 				{% for provider in provider_logins %}
 					<a href="{{ provider.auth_url }}"
 						class="btn btn-default btn-xs btn-social btn-{{ provider.name }}">
-						{%- if provider.icon_type == "Image" %}
-							<img style='width: 16px; height: 16px;' src="{{ provider.icon }}"> {{ provider.provider_name }}
-						{%- elif provider.icon_type == "DOM Class" %}
-							<i class="{{ provider.icon }}"></i> {{ provider.provider_name }}
-						{%- endif %}
-					</a>
+							{{ provider.icon }} {{ provider.provider_name }}</a>
 				{% endfor %}
 				</p>
 			{%- endif -%}
