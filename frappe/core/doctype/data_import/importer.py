@@ -181,7 +181,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 							if dt == doctype:
 								doc.update(d)
 							else:
-								if not overwrite:
+								if not overwrite and doc.get("name"):
 									d['parent'] = doc["name"]
 								d['parenttype'] = doctype
 								d['parentfield'] = parentfield
@@ -210,7 +210,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 		else:
 			return True
 
-		if autoname and not doc[autoname]:
+		if (autoname and autoname not in doc) or (autoname and not doc[autoname]):
 			frappe.throw(_("{0} is a mandatory field".format(autoname)))
 		return True
 
@@ -365,7 +365,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 				doc = parent.append(parentfield, doc)
 				parent.save()
 			else:
-				if overwrite and doc["name"] and frappe.db.exists(doctype, doc["name"]):
+				if overwrite and doc.get("name") and frappe.db.exists(doctype, doc["name"]):
 					original = frappe.get_doc(doctype, doc["name"])
 					original_name = original.name
 					original.update(doc)
@@ -464,8 +464,10 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 		data_import_doc.save()
 		if data_import_doc.import_status in ["Successful", "Partially Successful"]:
 			data_import_doc.submit()
+			publish_progress(100, True)
+		else:
+			publish_progress(0, True)
 		frappe.db.commit()
-		publish_progress(100, True)
 	else:
 		return log_message
 
