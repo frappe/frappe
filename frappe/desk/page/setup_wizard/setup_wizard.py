@@ -18,12 +18,12 @@ def get_setup_stages(args):
 	stages = [
 		{
 			'status': 'Updating global settings',
-			'error_msg': 'Failed to update global settings',
+			'fail_msg': 'Failed to update global settings',
 			'tasks': [
 				{
 					'fn': update_global_settings,
 					'args': args,
-					'error_msg': 'Failed to update global settings'
+					'fail_msg': 'Failed to update global settings'
 				}
 			]
 		}
@@ -34,12 +34,12 @@ def get_setup_stages(args):
 	stages.append({
 		# post executing hooks
 		'status': 'Wrapping up',
-		'error_msg': 'Failed to complete setup',
+		'fail_msg': 'Failed to complete setup',
 		'tasks': [
 			{
 				'fn': run_post_setup_complete,
 				'args': args,
-				'error_msg': 'Failed to complete setup'
+				'fail_msg': 'Failed to complete setup'
 			}
 		]
 	})
@@ -71,7 +71,7 @@ def setup_complete(args):
 
 	except Exception:
 		handle_setup_exception(args)
-		return {'error': current_task.get('error_msg')}
+		return {'status': 'fail', 'fail': current_task.get('fail_msg')}
 	else:
 		run_setup_success(args)
 		return {'status': 'ok'}
@@ -105,12 +105,12 @@ def get_setup_complete_hooks(args):
 	for method in frappe.get_hooks("setup_wizard_complete"):
 		stages.append({
 			'status': 'Executing method',
-			'error_msg': 'Failed to execute method',
+			'fail_msg': 'Failed to execute method',
 			'tasks': [
 				{
 					'fn': frappe.get_attr(method),
 					'args': args,
-					'error_msg': 'Failed to execute method'
+					'fail_msg': 'Failed to execute method'
 				}
 			]
 		})

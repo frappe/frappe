@@ -194,11 +194,11 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 			callback: (r) => {
 				if(r.message.status === 'ok') {
 					this.post_setup_success();
-				} else if(r.message.error !== undefined) {
-					this.abort_setup(r.message.error);
+				} else if(r.message.fail !== undefined) {
+					this.abort_setup(r.message.fail);
 				}
 			},
-			error: this.abort_setup.bind(this)
+			error: this.abort_setup.bind(this, "Error in setup", true)
 		});
 	}
 
@@ -213,10 +213,17 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 		}, 2000);
 	}
 
-	abort_setup(error_msg) {
+	abort_setup(fail_msg, error=false) {
 		this.$working_state.find('.state-icon-container').html('');
-		error_msg = error_msg ? error_msg : __("Failed to complete setup");
-		this.update_setup_message('Could not start up: ' + error_msg);
+		fail_msg = fail_msg ? fail_msg : __("Failed to complete setup");
+
+		if(error && !frappe.boot.developer_mode) {
+			frappe.msgprint(`Don't worry. It's not you, it's us. We've
+				received the issue details and will get back to you on the solution.
+				Please feel free to contact us on support@erpnext.com in the meantime.`);
+		}
+
+		this.update_setup_message('Could not start up: ' + fail_msg);
 
 		this.$working_state.find('.title').html('Setup failed');
 
@@ -231,8 +238,8 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 				this.update_setup_message(data.stage_status);
 				this.set_setup_load_percent((data.progress[0]+1)/data.progress[1] * 100);
 			}
-			if(data.error_msg) {
-				this.abort_setup(data.error_msg);
+			if(data.fail_msg) {
+				this.abort_setup(data.fail_msg);
 			}
 		})
 	}
