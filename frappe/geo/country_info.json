@@ -2067,7 +2067,6 @@
   "currency_symbol": "$",
   "currency_name": "Eastern Carribean Dollar",
   "currency": "XCD",
-  "currency": "XCD",
   "number_format": "#,###.##",
   "timezones": [
    "America/St_Lucia"
