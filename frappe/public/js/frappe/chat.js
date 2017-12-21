@@ -1901,6 +1901,7 @@ class extends Component
                         callback(items);
                     });
                },
+                 content: (item) => item.value,
                component: function (item)
                {
                     return (
@@ -2077,7 +2078,9 @@ class extends Component {
 
         if ( props.hint )
         {
-            const tokens = value.split(" ");
+            const tokens =  value.split(" ");
+            const sliced = tokens.slice(0, tokens.length - 1);
+
             const token  = tokens[tokens.length - 1];
 
             if ( token )
@@ -2091,7 +2094,9 @@ class extends Component {
                     {
                         const hints = items.map(item =>
                         {
-                            const content = ``;
+                            // You should stop writing one-liners! >_>
+                            const replace = token.replace(hint.match, hint.content ? hint.content(item) : item);
+                            const content = `${sliced.join(" ")} ${replace}`.trim();
                             item          = { component: hint.component(item), content: content };
 
                             return item;
@@ -2129,7 +2134,7 @@ class extends Component {
                         state.hints.map((item) =>
                         {
                             return (
-                                h("a", { class: "list-group-item", href: "#", onclick: () =>
+                                h("a", { class: "list-group-item", href: "javascript:void(0);", onclick: () =>
                                 {
                                     this.set_state({ content: item.content })
                                 }},
