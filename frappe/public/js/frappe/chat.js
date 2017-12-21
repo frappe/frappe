@@ -1,13 +1,28 @@
 // frappe Chat
 // Author - Achilles Rasquinha <achilles@frappe.io>
 
-// extensions
-frappe.user.first_name = function (user) 
+// frappe extensions
+
+/**
+ * @description Returns the first name of a User.
+ * 
+ * @param {string} user - User
+ * 
+ * @returns The first name of the user.
+ */
+frappe.user.first_name = function (user)
 {
     let name = frappe.user.full_name(user);
     name     = name.split(" ")[0];
 
     return name;
+};
+
+frappe.provide('frappe.ui.keycode');
+frappe.ui.keycode
+=
+{
+    RETURN: 13, LEFT: 37, UP: 38, RIGHT: 39, DOWN: 40
 };
 
 /**
@@ -75,6 +90,7 @@ frappe.ImportError = class extends frappe.Error
 
 // frappe.datetime
 frappe.provide('frappe.datetime');
+
 /**
  * @description Frappe's datetime object.
  * 
@@ -88,7 +104,7 @@ frappe.datetime.datetime = class
      */
     constructor (instance)
     {
-        if ( typeof moment === 'undefined' )
+        if ( typeof moment === undefined )
             throw new frappe.ImportError(`Moment.js not installed.`);
 
         this.moment      = instance ? moment(instance) : moment();
@@ -169,7 +185,7 @@ frappe._.format = function (string, object)
  */
 frappe._.fuzzy_search = function (query, dataset, options)
 {
-    const DEFAULT     =
+    const DEFAULT  =
     {
                 shouldSort: true,
                  threshold: 0.6,
@@ -202,7 +218,7 @@ frappe._.fuzzy_search = function (query, dataset, options)
  * 
  * @todo Handle more edge cases.
  */
-frappe._.pluralize  = function (word, count = 0, suffix = 's')
+frappe._.pluralize = function (word, count = 0, suffix = 's')
 {
     return `${word}${count === 1 ? '' : suffix}`;
 };
@@ -245,7 +261,7 @@ frappe._.copy_array = function (array)
 };
 
 /**
- * @description - Check whether an array|string|object is empty.
+ * @description Check whether an array|string|object is empty.
  * 
  * @param   {any}     value - The value to be checked on.
  * 
@@ -258,7 +274,7 @@ frappe._.copy_array = function (array)
  * frappe._.is_empty("")      // returns true
  * frappe._.is_empty("foo")   // returns false
  * 
- * frappe._.is_empty({ })     // returns true
+ * frappe._.is_empty({ })            // returns true
  * frappe._.is_empty({ foo: "bar" }) // returns false
  * 
  * @todo Handle other cases.
@@ -267,7 +283,7 @@ frappe._.is_empty = function (value)
 {
     let empty = false;
 
-    if ( value === null )
+    if ( value === undefined || value === null )
         empty = true;
     else
     if ( Array.isArray(value) || typeof value === 'string' )
@@ -392,7 +408,8 @@ frappe.Logger = class
 
         if ( level.value <= this.level.value )
         {
-            const format  = frappe._.format(this.format, {
+            const format  = frappe._.format(this.format,
+            {
                 time: timestamp.format('HH:mm:ss'),
                 name: this.name
             });
@@ -457,7 +474,7 @@ frappe.chat.profile.create = function (fields, fn)
                 });
     });
 };
-
+        
 // frappe.chat.profile.on
 frappe.provide('frappe.chat.profile.on');
 
@@ -778,6 +795,21 @@ frappe.chat.message.send   = function (room, message)
 {
     frappe.call("frappe.chat.doctype.chat_message.chat_message.send",
         { user: frappe.session.user, room: room, content: message });
+};
+
+frappe.chat.message.update = function (message, update, fn)
+{
+    return new Promise(resolve => {
+        frappe.call('frappe.chat.doctype.chat_message.chat_message.update',
+            { user: frappe.session.user, message: message, update: update },
+            r => 
+            {
+                if ( fn )
+                    fn(response.message);
+
+                resolve(response.message);
+            });
+    });
 };
 
 frappe.provide('frappe.chat.message.on');
@@ -1184,7 +1216,7 @@ class extends Component
                     state.push(room);
                 }
 
-            this.setState({ rooms: [ ...this.state.rooms, ...state ] });
+            this.set_state({ rooms: [ ...this.state.rooms, ...state ] });
         };
         this.room.update    = (room, update) =>
         {
@@ -1197,15 +1229,20 @@ class extends Component
                     exists  = true;
                     if ( update.typing )
                     {
-                        const user = update.typing;
-                        if ( r.typing && !frappe._.is_empty(r.typing) )
+                        if ( !frappe._.is_empty(r.typing) )
                         {
-                            if ( !r.typing.includes(user) )
-                                r.typing.push(user);
-                        } else
-                            r.typing = frappe._.as_array(user);
-                    } else
-                        r.typing = [ ];
+                            const usr = update.typing;
+                            if ( !r.typing.includes(usr) )
+                            {
+                                update.typing = frappe._.copy_array(r.typing);
+                                update.typing.push(usr);
+                            }
+                        }
+                        else
+                            update.typing = frappe._.as_array(update.typing);
+                    }
+
+                    return { ...r, ...update };
                 }
 
                 return r;
@@ -1214,26 +1251,27 @@ class extends Component
             if ( !exists )
                 frappe.chat.room.get(room, (room) => this.room.add(room));
             else
-                this.setState({ rooms });
+                this.set_state({ rooms });
 
             if ( state.room.name === room )
             {
                 if ( update.typing )
-                    if ( state.room.typing )
+                {
+                    if ( !frappe._.is_empty(state.room.typing) )
                     {
-                        const user    = update.typing;
-
-                        if ( !state.room.typing.includes(user) )
+                        const usr = update.typing;
+                        if ( !state.room.typing.includes(usr) )
                         {
                             update.typing = frappe._.copy_array(state.room.typing);
-                            update.typing.push(user);
+                            update.typing.push(usr);
                         }
                     } else
                         update.typing = frappe._.as_array(update.typing);
+                }
 
                 const room  = { ...state.room, ...update };
 
-                this.setState({ room });
+                this.set_state({ room });
             }
         };
         this.room.select    = (name) =>
@@ -1243,7 +1281,7 @@ class extends Component
                 const  { state } = this;
                 const room       = state.rooms.find(r => r.name === name);
                 
-                this.setState({
+                this.set_state({
                     room: { ...state.room, ...room, messages: messages }
                 });
             });
@@ -1260,7 +1298,7 @@ class extends Component
         ], profile =>
         {
             frappe.log.info(`Chat Profile created for User ${frappe.session.user}.`)
-            this.setState({ profile });
+            this.set_state({ profile });
 
             frappe.chat.room.get(rooms =>
             {
@@ -1284,7 +1322,7 @@ class extends Component
             {
                 if ( user === frappe.session.user )
                 {
-                    this.setState({
+                    this.set_state({
                         profile: { ...this.state.profile, status: update.status }
                     });
                 } else
@@ -1299,7 +1337,7 @@ class extends Component
 
             if ( 'display_widget' in update )
             {
-                this.setState({
+                this.set_state({
                     profile: { ...this.state.profile, display_widget: update.display_widget }
                 });
             }
@@ -1333,15 +1371,18 @@ class extends Component
                 const mess  = frappe._.copy_array(state.room.messages);
                 mess.push(r);
                 
-                this.setState({ room: { ...state.room, messages: mess } });
+                this.set_state({ room: { ...state.room, messages: mess } });
             }
         });
 
         frappe.chat.room.on.typing((room, user) => {
-            frappe.log.warn(`User ${user} typing in Chat Room ${room}.`);
-            this.room.update(room, { typing: user });
-
-            setTimeout(() => this.room.update(room, { typing: null }), 1000);
+            if ( user !== frappe.session.user )
+            {
+                frappe.log.warn(`User ${user} typing in Chat Room ${room}.`);
+                this.room.update(room, { typing: user });
+    
+                setTimeout(() => this.room.update(room, { typing: null }), 1500);
+            }
         });
     }
 
@@ -1449,7 +1490,7 @@ class extends Component
             ],
             change: function (query)
             {
-                me.setState({
+                me.set_state({
                     query: query
                 });
             }
@@ -1459,7 +1500,7 @@ class extends Component
         
         const RoomList   = h(frappe.Chat.Widget.RoomList, { rooms: rooms, click: this.room.select });
         const Room       = h(frappe.Chat.Widget.Room, { ...state.room, layout: props.layout, destroy: () => {
-            this.setState({
+            this.set_state({
                 room: { name: null, messages: [ ] }
             });
         }});
@@ -1530,7 +1571,7 @@ class extends Component
         else
             toggle = this.state.active ? false : true;
         
-        this.setState({ active: toggle });
+        this.set_state({ active: toggle });
     }
 
     render  ( )
@@ -1609,7 +1650,7 @@ class extends Component
     {
         const { props, state } = this;
 
-        this.setState({
+        this.set_state({
             [e.target.name]: e.target.value
         });
 
@@ -1723,10 +1764,11 @@ class extends Component
             item.title     = props.room_name;
             item.image     = props.avatar;
 
-            if ( props.typing && !frappe._.is_empty(props.typing) )
+            if ( !frappe._.is_empty(props.typing) )
             {
-                const users   = props.typing.map(user => frappe.user.first_name(user));
-                item.subtitle = `${users.join(", ")} typing...`;
+                props.typing  = frappe._.as_array(props.typing); // HACK: (BUG) why does typing return a string?
+                const names   = props.typing.map(user => frappe.user.first_name(user));
+                item.subtitle = `${names.join(", ")} typing...`;
             } else
             if ( props.last_message )
                 item.subtitle = props.last_message.content;
@@ -1737,12 +1779,15 @@ class extends Component
             item.image     = frappe.user.image(user);
             item.abbr      = frappe.user.abbr(user);
 
-            if ( props.typing && !frappe._.is_empty(props.typing) && frappe._.squash(props.typing) != frappe.session.user )
+            if ( !frappe._.is_empty(props.typing) )
                 item.subtitle = 'typing...';
             else
             if ( props.last_message )
                 item.subtitle = props.last_message.content;
         }
+
+        if ( props.last_message )
+            item.timestamp = frappe.chat.pretty_datetime(props.last_message.creation);
 
         return (
             h("li", null,
@@ -1813,6 +1858,63 @@ class extends Component
     render ( )
     {
         const { props, state } = this;
+        const hints            =
+        [
+            {
+                 match: /@(\w*)$/,
+                search: function (keyword, callback)
+                {
+                    if ( props.type === 'Group' )
+                    {
+                        const query = keyword.slice(1);
+                        const users = [].concat(frappe._.as_array(props.owner), props.users);
+                        const grep  = users.filter(user => user !== frappe.session.user && user.indexOf(query) === 0);
+
+                        callback(grep);
+                    }
+                },
+                component: function (item)
+                {
+                    return (
+                        h(frappe.Chat.Widget.MediaProfile,
+                        {
+                            title: frappe.user.full_name(item),
+                            image: frappe.user.image(item),
+                             size: "small"
+                        })
+                    );
+                }
+            },
+            {
+                match: /:([a-z]*)$/,
+               search: function (keyword, callback)
+               {
+                    frappe.chat.emoji(function (emojis)
+                    {
+                        const query = keyword.slice(1);
+                        const items = [ ];
+                        for (const emoji of emojis)
+                            for (const alias of emoji.aliases)
+                                if ( alias.indexOf(query) === 0 )
+                                    items.push({ name: alias, value: emoji.emoji });
+
+                        callback(items);
+                    });
+               },
+               component: function (item)
+               {
+                    return (
+                        h(frappe.Chat.Widget.MediaProfile,
+                        {
+                            title: item.name,
+                             abbr: item.value,
+                             size: "small"
+                        })
+                    );
+               }
+           }
+        ];
+
         const attach           = [
             {
                  icon: "camera",
@@ -1866,37 +1968,7 @@ class extends Component
                         submit: (message) => {
                             frappe.chat.message.send(props.name, message)
                         },
-                          hint:
-                          {
-                                match: /^(@\w*)|(:[a-z]*)$/,
-                               search: function (keyword, callback)
-                               {
-                                    if ( keyword.startsWith(':') )
-                                    {
-                                        const query = keyword.slice(1);
-                                        frappe.chat.emoji(function (emojis) {
-                                            const items = [ ];
-                                            for (const emoji of emojis)
-                                                for (const alias of emoji.aliases)
-                                                    if ( alias.indexOf(query) === 0 )
-                                                        items.push({ title: alias, abbr: emoji.emoji, class: "emoji-no-border" });
-
-                                            callback(items);
-                                        });
-                                    } else
-                                    if ( keyword.startsWith('@') )
-                                    {
-                                        const query = keyword.slice(1);
-                                        const items = [ ];
-                                        for (const name in frappe.boot.user_info)
-                                            if ( name.indexOf(query) === 0 )
-                                                items.push({ title: frappe.user.full_name(name), image: frappe.user.image(name) });
-
-                                        callback(items);
-                                    }
-                               },
-                               component: function (item) { return h(frappe.Chat.Widget.MediaProfile, { ...item, size: "small" }) }
-                          }
+                          hint: hints
                     })
                 )
             )
@@ -1920,8 +1992,9 @@ class extends Component
             item.title      = props.room_name;
             item.image      = props.avatar;
 
-            if ( props.typing )
+            if ( !frappe._.is_empty(props.typing) )
             {
+                props.typing  = frappe._.as_array(props.typing); // HACK: (BUG) why does typing return as a string?
                 const users   = props.typing.map(user => frappe.user.first_name(user));
                 item.subtitle = `${users.join(", ")} typing...`;
             } else
@@ -1936,7 +2009,7 @@ class extends Component
             item.title      = frappe.user.full_name(user);
             item.image      = frappe.user.image(user);
 
-            if ( !frappe._.is_empty(props.typing) && frappe._.squash(props.typing) != frappe.session.user )
+            if ( !frappe._.is_empty(props.typing) )
                 item.subtitle = 'typing...';
         }
 
@@ -1976,12 +2049,12 @@ class extends Component {
     constructor (props) {
         super (props);
         
-        this.change = this.change.bind(this);
-        this.submit = this.submit.bind(this);
+        this.change   = this.change.bind(this);
+        this.submit   = this.submit.bind(this);
 
-        this.hint   = this.hint.bind(this);
+        this.hint     = this.hint.bind(this);
 
-        this.state  = frappe.Chat.Widget.ChatForm.defaultState;
+        this.state    = frappe.Chat.Widget.ChatForm.defaultState;
     }
 
     change (e)
@@ -1989,7 +2062,7 @@ class extends Component {
         const { props, state } = this;
         const value            = e.target.value;
 
-        this.setState({
+        this.set_state({
             [e.target.name]: value
         });
 
@@ -2004,21 +2077,33 @@ class extends Component {
 
         if ( props.hint )
         {
-            const hint   = props.hint;
             const tokens = value.split(" ");
+            const token  = tokens[tokens.length - 1];
 
-            if ( tokens.length )
+            if ( token )
             {
-                const query = tokens[tokens.length - 1];
-                if (hint.match.test(query))
-                    hint.search(query, (dataset) => {
-                        const sliced = dataset.slice(0, hint.max || 5);
-                        this.setState({ hint: sliced });
+                props.hint   = frappe._.as_array(props.hint);
+                const hint   = props.hint.find(hint => hint.match.test(token));
+    
+                if ( hint )
+                {
+                    hint.search(token, items =>
+                    {
+                        const hints = items.map(item =>
+                        {
+                            const content = ``;
+                            item          = { component: hint.component(item), content: content };
+
+                            return item;
+                        }).slice(0, hint.max || 5);
+    
+                        this.set_state({ hints });
                     });
+                }
                 else
-                    this.setState({ hint: [ ] });
+                    this.set_state({ hints: [ ] });
             } else
-                this.setState({ hint: [ ] });
+                this.set_state({ hints: [ ] });
         }
     }
 
@@ -2030,9 +2115,7 @@ class extends Component {
         {
             this.props.submit(this.state.content);
 
-            this.setState({
-                content: null
-            });
+            this.set_state({ content: null });
         }
     }
 
@@ -2041,12 +2124,16 @@ class extends Component {
 
         return (
             h("div", { class: "frappe-chat-form" },
-                state.hint.length ?
-                    h("div", { class: "list-group" },
-                        state.hint.map((item) => {
+                state.hints.length ?
+                    h("li", { class: "list-group" },
+                        state.hints.map((item) =>
+                        {
                             return (
-                                h("a", { class: "list-group-item", href: "#" },
-                                    props.hint.component(item)
+                                h("a", { class: "list-group-item", href: "#", onclick: () =>
+                                {
+                                    this.set_state({ content: item.content })
+                                }},
+                                    item.component
                                 )
                             )
                         })
@@ -2080,7 +2167,7 @@ class extends Component {
                                 autofocus: true,
                                onkeypress: (e) =>
                                {
-                                    if ( e.which === 13 && !e.shiftKey )
+                                    if ( e.which === frappe.ui.keycode.RETURN && !e.shiftKey )
                                         this.submit(e)
                                }
                         }),
@@ -2099,7 +2186,7 @@ frappe.Chat.Widget.ChatForm.defaultState
 =
 {
     content: null,
-       hint: [ ],
+      hints: [ ],
 };
 
 frappe.Chat.Widget.EmojiPicker
@@ -2190,7 +2277,15 @@ class extends Component
 
 
 
-
+// return (
+//     h("a", { class: "list-group-item", href: "#", onclick: () => {
+//         this.set_state({
+//             content: `${this.state.content}${item.value}`
+//         })
+//     }},
+//         props.hint.component(item)
+//     )
+// )
 
 
 frappe.Chat.Widget.Account
@@ -2298,16 +2393,6 @@ frappe.Chat.Widget.ChatList.Bubble.defaultState =
 //         status: status
 //     })
 // }
-// :
-// h("div", { style: "margin-top: 240px;" },
-//     h("div", { class: "text-center" },
-//         h("i", { class: "octicon octicon-comment-discussion text-extra-muted", style: "font-size: 48px" }),
-//         h("p", { class: "text-extra-muted" }, "Select a chat to start messaging.")
-//     )
-// )
-
-
-
 
 
 
@@ -2383,3 +2468,58 @@ function (user, update, fn)
                 });
     });
 };
+
+// {
+//     match: /^(@\w*)|(:[a-z]*)$/,
+//    search: function (keyword, callback)
+//    {
+//         if ( keyword.startsWith('@') && props.type === 'Group' )
+//         {
+//             const query     = keyword.slice(1);
+//             const users     = [].concat(frappe._.as_array(props.owner), props.users);
+//             const sanitized = users.filter(user => user !== frappe.session.user && user.indexOf(query) === 0);
+
+//             const items     = sanitized.map(user => {
+//                 const item  = { type: 'user', value: user,
+//                     title: frappe.user.full_name(name), image: frappe.user.image(user) };
+
+//                 return item;
+//             });
+
+//             callback(items);
+//         } else
+//         if ( keyword.startsWith(':') )
+//         {
+//             const query = keyword.slice(1);
+//             frappe.chat.emoji(function (emojis) 
+//             {
+//                 const items = new Array();
+//                 for (const emoji of emojis)
+//                     for (const alias of emoji.aliases)
+//                         if ( alias.indexOf(query) === 0 )
+//                             items.push({ type: 'emoji', value: emoji.emoji,
+//                                 title: alias, abbr: emoji.emoji, class: "emoji-no-border" });
+
+//                 callback(items);
+//             });
+//         }
+//    },
+//     content: (item) =>
+//     {
+//         if ( item.type === 'user'  )
+//             return `@${item.value}`;
+//         else
+//         if ( item.type === 'emoji' )
+//             return item.value;
+//     },
+//    component: (item) => { return h(frappe.Chat.Widget.MediaProfile, { ...item, size: "small" }) },
+// }
+
+//                     hint.search(query, (dataset) => {
+//                         const sliced = dataset.slice(0, hint.max || 5);
+//                         this.set_state({ hint: sliced });
+//                     });
+//                 else
+//                     this.set_state({ hint: [ ] });
+//             } else
+//                 this.set_state({ hint: [ ] });

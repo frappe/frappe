@@ -98,7 +98,8 @@ def get_new_chat_message(user, room, content):
 		content  = mess.content,
 		urls     = mess.urls,
 		mentions = mess.mentions,
-		creation = mess.creation
+		creation = mess.creation,
+		seen     = mess._seen,
 	)
 
 	return resp
@@ -109,14 +110,6 @@ def send(user, room, content):
 	
 	frappe.publish_realtime('frappe.chat.message:create', mess, room = room,
 		after_commit = True)
-
-@frappe.whitelist()
-def send_attachment(user, room, unknown_field):
-	pass
-	
-@frappe.whitelist()
-def delete():
-	pass
 
 # This is fine for now. If you're "ReST"-ing it,
 # make sure you don't let the user see them.

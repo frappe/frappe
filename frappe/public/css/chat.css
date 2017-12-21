@@ -1,8 +1,8 @@
 .cursor-pointer {
   cursor: pointer;
 }
-.emoji-no-border .standard-image {
-  border: 0px !important;
+.avatar {
+  padding: 1px;
 }
 .frappe-fab {
   width: 48px;
