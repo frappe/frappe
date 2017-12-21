@@ -16,7 +16,7 @@ frappe.ui.form.on('Social Login Key', {
 	},
 
 	social_login_provider(frm) {
-		if(frm.doc.social_login_provider != "Custom"){
+		if(frm.doc.social_login_provider != "Custom") {
 			frappe.call({
 				"doc": frm.doc,
 				"method": "get_social_login_provider",
@@ -25,10 +25,10 @@ frappe.ui.form.on('Social Login Key', {
 				}
 			}).done((r) => {
 				const provider = r.message;
-				for(var field of fields){
+				for(var field of fields) {
 					frm.set_value(field, provider[field]);
 					frm.set_df_property(field, "read_only", 1);
-					if (frm.doc.custom_base_url){
+					if (frm.doc.custom_base_url) {
 						frm.toggle_enable("base_url", 1);
 					}
 				}
@@ -41,13 +41,13 @@ frappe.ui.form.on('Social Login Key', {
 
 	setup_fields(frm) {
 		// set custom_base_url to read only for "Custom" provider
-		if(frm.doc.social_login_provider == "Custom"){
+		if(frm.doc.social_login_provider == "Custom") {
 			frm.set_value("custom_base_url", 1);
 			frm.set_df_property("custom_base_url", "read_only", 1);
 		}
 
 		// set fields to read only for providers from template
-		for(var f of fields){
+		for(var f of fields) {
 			if(frm.doc.social_login_provider != "Custom"){
 				frm.set_df_property(f, "read_only", 1);
 			}
@@ -56,6 +56,15 @@ frappe.ui.form.on('Social Login Key', {
 		// enable base_url for providers with custom_base_url
 		if(frm.doc.custom_base_url) {
 			frm.set_df_property("base_url", "read_only", 0);
+			frm.fields_dict["sb_identity_details"].collapse(false)
+		}
+
+		// hide social_login_provider and provider_name for non local
+		if(!frm.doc.__islocal &&
+			(frm.doc.social_login_provider ||
+				frm.doc.provider_name)) {
+			frm.set_df_property("social_login_provider", "hidden", 1);
+			frm.set_df_property("provider_name", "hidden", 1);
 		}
 	},
 
