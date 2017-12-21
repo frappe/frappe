@@ -1,6 +1,6 @@
 # Social Login Key
 
-Webhooks are "user-defined HTTP callbacks". You can create webhook which triggers on Doc Event of the selected DocType. When the `doc_events` occurs, the source site makes an HTTP request to the URI configured for the webhook. Users can configure them to cause events on one site to invoke behaviour on another.
+Add social login providers like Facebook, Frappe, Github, Google, Microsoft, etc and enable social login.
 
 #### Setup Social Logins
 

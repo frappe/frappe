@@ -57,7 +57,7 @@ def get_doc_files(files, start_path, force=0, sync_everything = False, verbose=F
 	"""walk and sync all doctypes and pages"""
 
 	# load in sequence - warning for devs
-	document_types = ['doctype', 'social_login_key', 'page', 'report', 'print_format',
+	document_types = ['doctype', 'page', 'report', 'print_format',
 		'website_theme', 'web_form', 'email_alert', 'print_style',
 		 'data_migration_mapping', 'data_migration_plan']
 	for doctype in document_types:
