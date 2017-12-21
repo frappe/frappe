@@ -361,7 +361,6 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	refresh() {
-		// debugger;
 		this.freeze(true);
 		// fetch data from server
 		const args = this.get_args();

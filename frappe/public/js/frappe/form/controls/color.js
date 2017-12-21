@@ -79,7 +79,6 @@ frappe.ui.form.ControlColor = frappe.ui.form.ControlData.extend({
 		if(is_valid) {
 			return value;
 		}
-		frappe.msgprint(__("{0} is not a valid hex color", [value]));
 		return null;
 	}
 });

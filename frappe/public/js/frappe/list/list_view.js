@@ -61,6 +61,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	patch_refresh_and_load_lib() {
 		// throttle refresh for 1s
+		this.refresh = this.refresh.bind(this);
 		this.refresh = frappe.utils.throttle(this.refresh, 1000);
 		this.load_lib = new Promise(resolve => {
 			if (this.required_libs) {
@@ -69,6 +70,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				resolve();
 			}
 		});
+		// call refresh every 5 minutes
+		const interval = 5 * 60 * 1000;
+		setInterval(this.refresh, interval);
 	}
 
 	set_fields() {

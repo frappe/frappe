@@ -55,6 +55,29 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		this.setup_datatable(this.data);
 	}
 
+	on_update(data) {
+		if (this.doctype === data.doctype) {
+			if (data.name) {
+				frappe.db.get_doc(data.doctype, data.name)
+					.then(doc => this.update_row(doc));
+			}
+		}
+	}
+
+	update_row(doc) {
+		// update this.data
+		const data = this.data.find(d => d.name === doc.name);
+		const rowIndex = this.data.findIndex(d => d.name === doc.name);
+		if (!data) return;
+
+		for (let fieldname in data) {
+			data[fieldname] = doc[fieldname];
+		}
+
+		const new_row = this.build_row(data);
+		this.datatable.refreshRow(new_row, rowIndex);
+	}
+
 	setup_datatable(values) {
 		this.datatable = new DataTable(this.$result[0], {
 			data: this.get_data(values),
@@ -121,7 +144,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	set_control_value(docname, fieldname, value) {
 		this.last_updated_doc = docname;
 		return new Promise((resolve, reject) => {
-			frappe.db.set_value(this.doctype, docname, fieldname, value)
+			frappe.db.set_value(this.doctype, docname, {[fieldname]: value})
 				.then(r => {
 					if (r.message) {
 						resolve();
@@ -136,10 +159,6 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	render_editing_input(colIndex, value, parent) {
 		const col = this.datatable.getColumn(colIndex);
 
-		if (!this.validate_cell_editing(col.docfield)) {
-			return false;
-		}
-
 		// make control
 		const control = frappe.ui.form.make_control({
 			df: col.docfield,
@@ -153,20 +172,16 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		return control;
 	}
 
-	validate_cell_editing(docfield) {
-		if (!docfield) return false;
-		const is_standard_field = frappe.model.std_fields_list.includes(docfield.fieldname);
-		const is_read_only = docfield.read_only;
-		if (docfield.fieldname !== "idx" && is_standard_field || is_read_only) {
-			return false;
-		} else if (!frappe.boot.user.can_write.includes(this.doctype)) {
-			frappe.throw({
-				title: __('Not Permitted'),
-				message: __("No permission to edit")
-			});
-			return false;
-		}
-		return true;
+	is_editable(df, data) {
+		if (!df || data.docstatus !== 0) return false;
+		const is_standard_field = frappe.model.std_fields_list.includes(df.fieldname);
+		const can_edit = !(
+			is_standard_field
+			|| df.read_only
+			|| df.hidden
+			|| !frappe.model.can_write(this.doctype)
+		);
+		return can_edit;
 	}
 
 	get_data(values) {
@@ -194,7 +209,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 		// default fields
 		[
-			'name',
+			'name', 'docstatus',
 			this.meta.title_field,
 			this.meta.image_field
 		].map(add_field);
@@ -222,6 +237,13 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 		// fields in listview_settings
 		(this.settings.add_fields || []).map(add_field);
+	}
+
+	build_fields() {
+		if (!this._fields.includes('docstatus')) {
+			this._fields.push('docstatus');
+		}
+		super.build_fields();
 	}
 
 	add_column_to_datatable(fieldname, col_index) {
@@ -272,7 +294,11 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	}
 
 	setup_columns() {
-		this.columns = this._fields.map(this.build_column);
+		const build_column = this.build_column.bind(this);
+		const hide_columns = ['docstatus'];
+		const fields = this._fields.filter(f => !hide_columns.includes(f[0]));
+
+		this.columns = fields.map(build_column);
 	}
 
 	build_column(c) {
@@ -306,26 +332,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	}
 
 	build_rows(data) {
-		const out = data.map(d => {
-			return this.columns.map(col => {
-				if (col.field in d) {
-					const value = d[col.field];
-					return {
-						name: d.name,
-						content: value,
-						format: value => {
-							if (col.field === 'name') {
-								return frappe.utils.get_form_link(this.doctype, value, true);
-							}
-							return frappe.format(value, col.docfield, { always_show_decimals: true });
-						}
-					};
-				}
-				return {
-					content: ''
-				};
-			});
-		});
+		const out = data.map(d => this.build_row(d));
 
 		if (this.add_totals_row) {
 			const totals_row = data.reduce((totals_row, d) => {
@@ -355,6 +362,28 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		}
 
 		return out;
+	}
+
+	build_row(d) {
+		return this.columns.map(col => {
+			if (col.field in d) {
+				const value = d[col.field];
+				return {
+					name: d.name,
+					content: value,
+					editable: this.is_editable(col.docfield, d),
+					format: value => {
+						if (col.field === 'name') {
+							return frappe.utils.get_form_link(this.doctype, value, true);
+						}
+						return frappe.format(value, col.docfield, { always_show_decimals: true });
+					}
+				};
+			}
+			return {
+				content: ''
+			};
+		});
 	}
 
 	get_checked_items(only_docnames) {
