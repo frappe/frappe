@@ -13,9 +13,16 @@ from frappe.integrations.doctype.ldap_settings.ldap_settings import get_ldap_set
 no_cache = True
 
 def get_context(context):
+
+	if frappe.session.data.user_type=="Website User":
+		frappe.local.flags.redirect_location = "/me"
+		raise frappe.Redirect
+
 	if frappe.session.user != "Guest" and frappe.session.data.user_type=="System User":
 		frappe.local.flags.redirect_location = "/desk"
 		raise frappe.Redirect
+
+
 
 	# get settings from site config
 	context.no_header = True
