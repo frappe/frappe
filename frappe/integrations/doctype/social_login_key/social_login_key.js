@@ -56,7 +56,7 @@ frappe.ui.form.on('Social Login Key', {
 		// enable base_url for providers with custom_base_url
 		if(frm.doc.custom_base_url) {
 			frm.set_df_property("base_url", "read_only", 0);
-			frm.fields_dict["sb_identity_details"].collapse(false)
+			frm.fields_dict["sb_identity_details"].collapse(false);
 		}
 
 		// hide social_login_provider and provider_name for non local
