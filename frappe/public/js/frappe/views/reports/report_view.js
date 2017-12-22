@@ -35,6 +35,10 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	}
 
 	before_render() {
+		this.save_report_settings();
+	}
+
+	save_report_settings() {
 		frappe.model.user_settings.save(this.doctype, 'last_view', this.view_name);
 
 		if (!this.report_name) {
@@ -47,6 +51,17 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		}
 	}
 
+	update_data(r) {
+		let data = r.message || {};
+		data = frappe.utils.dict(data.keys, data.values);
+
+		if (this.start === 0) {
+			this.data = data;
+		} else {
+			this.data = this.data.concat(data);
+		}
+	}
+
 	render() {
 		if (this.datatable) {
 			this.datatable.refresh(this.get_data(this.data));
@@ -56,15 +71,21 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	}
 
 	on_update(data) {
-		if (this.doctype === data.doctype) {
-			if (data.name) {
+		if (this.doctype === data.doctype && data.name) {
+			// flash row when doc is updated by some other user
+			const flash_row = data.user !== frappe.session.user;
+			if (this.data.find(d => d.name === data.name)) {
+				// update existing
 				frappe.db.get_doc(data.doctype, data.name)
-					.then(doc => this.update_row(doc));
+					.then(doc => this.update_row(doc, flash_row));
+			} else {
+				// refresh
+				this.refresh();
 			}
 		}
 	}
 
-	update_row(doc) {
+	update_row(doc, flash_row) {
 		// update this.data
 		const data = this.data.find(d => d.name === doc.name);
 		const rowIndex = this.data.findIndex(d => d.name === doc.name);
@@ -76,6 +97,13 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 		const new_row = this.build_row(data);
 		this.datatable.refreshRow(new_row, rowIndex);
+
+		// indicate row update
+		if (flash_row) {
+			const $row = this.$result.find(`.data-table-row[data-row-index="${rowIndex}"]`);
+			$row.addClass('row-update');
+			setTimeout(() => $row.removeClass('row-update'), 500);
+		}
 	}
 
 	setup_datatable(values) {
@@ -94,19 +122,58 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				}
 			},
 			headerDropdown: [{
-				label: 'Add column',
-				action: (column) => {
-					const options = this.get_remaining_columns()
-						.map(d => ({label:d.label, value: d.fieldname}));
+				label: __('Add Column'),
+				action: (datatabe_col) => {
+					let columns_in_picker = [];
+					const columns = this.get_columns_for_picker();
+
+					columns_in_picker = columns[this.doctype]
+						.filter(df => !this.is_column_added(df))
+						.map(df => ({
+							label: __(df.label),
+							value: df.fieldname
+						}));
+
+					delete columns[this.doctype];
+
+					for (let cdt in columns) {
+						columns[cdt]
+							.filter(df => !this.is_column_added(df))
+							.map(df => ({
+								label: __(df.label) + ` (${cdt})`,
+								value: df.fieldname + ',' + cdt
+							}))
+							.forEach(df => columns_in_picker.push(df));
+					}
 
 					const d = new frappe.ui.Dialog({
-						title: __('Add column'),
+						title: __('Add Column'),
 						fields: [
-							{ label: __('Column Name'), fieldtype: 'Select', options: options }
+							{
+								label: __('Select Column'),
+								fieldname: 'column',
+								fieldtype: 'Autocomplete',
+								options: columns_in_picker
+							},
+							{
+								label: __('Insert Column Before {0}', [datatabe_col.docfield.label.bold()]),
+								fieldname: 'insert_before',
+								fieldtype: 'Check'
+							}
 						],
-						primary_action: (values) => {
-							if (!values.column_name) return;
-							this.add_column_to_datatable(values.column_name, column.colIndex);
+						primary_action: ({ column, insert_before }) => {
+
+							let doctype = this.doctype;
+							if (column.includes(',')) {
+								[column, doctype] = column.split(',');
+							}
+
+							let index = datatabe_col.colIndex;
+							if (insert_before) {
+								index = index - 1;
+							}
+
+							this.add_column_to_datatable(column, doctype, index);
 							d.hide();
 						}
 					});
@@ -240,34 +307,33 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	}
 
 	build_fields() {
-		if (!this._fields.includes('docstatus')) {
-			this._fields.push('docstatus');
-		}
+		this._fields.push(['docstatus', this.doctype]);
 		super.build_fields();
 	}
 
-	add_column_to_datatable(fieldname, col_index) {
-		const field = [fieldname, this.doctype];
-		this._fields.splice(col_index - 1, 0, field);
+	add_column_to_datatable(fieldname, doctype, col_index) {
+		const field = [fieldname, doctype];
+		this._fields.splice(col_index, 0, field);
 
 		this.build_fields();
 		this.setup_columns();
 
 		this.datatable.destroy();
 		this.datatable = null;
-		this.refresh(true);
+		this.refresh();
 	}
 
 	remove_column_from_datatable(column) {
 		const index = this._fields.findIndex(f => column.field === f[0]);
-		if (index === undefined) return;
+		if (index === -1) return;
 		const field = this._fields[index];
 		if (field[0] === 'name') {
-			this.refresh(true);
-			frappe.throw(__('Cannot remove name field'));
+			frappe.throw(__('Cannot remove ID field'));
 		}
 		this._fields.splice(index, 1);
 		this.build_fields();
+		this.setup_columns();
+		this.refresh();
 	}
 
 	switch_column(col1, col2) {
@@ -281,24 +347,93 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 		this._fields = _fields;
 		this.build_fields();
+		this.setup_columns();
+		this.save_report_settings();
 	}
 
-	get_remaining_columns() {
-		const valid_fields = frappe.meta.docfield_list[this.doctype].filter(df =>
+	get_columns_for_picker() {
+		let out = {};
+		let doctype_fields = frappe.meta.get_docfields(this.doctype).filter(df =>
 			!in_list(frappe.model.no_value_type, df.fieldtype) &&
 			!df.report_hide && df.fieldname !== 'naming_series' &&
 			!df.hidden
 		);
-		const shown_fields = this.columns.map(c => c.docfield && c.docfield.fieldname);
-		return valid_fields.filter(df => !shown_fields.includes(df.fieldname));
+
+		doctype_fields = [{
+			label: __('ID'),
+			fieldname: 'name',
+			fieldtype: 'Data'
+		}].concat(doctype_fields);
+
+		out[this.doctype] = doctype_fields;
+
+		const table_fields = frappe.meta.get_table_fields(this.doctype)
+			.filter(df => !df.hidden);
+
+		table_fields.forEach(df => {
+			const cdt = df.options;
+			const child_table_fields =
+				frappe.meta.get_docfields(cdt)
+					.filter(df => df.in_list_view);
+
+			out[cdt] = child_table_fields;
+		});
+
+		return out;
+	}
+
+	get_dialog_fields() {
+		const dialog_fields = [];
+		const columns = this.get_columns_for_picker();
+
+		dialog_fields.push({
+			label: __(this.doctype),
+			fieldname: this.doctype,
+			fieldtype: 'MultiCheck',
+			columns: 2,
+			options: columns[this.doctype]
+				.map(df => ({
+					label: __(df.label),
+					value: df.fieldname,
+					checked: this._fields.find(f => f[0] === df.fieldname)
+				}))
+		});
+
+		delete columns[this.doctype];
+
+		const table_fields = frappe.meta.get_table_fields(this.doctype)
+			.filter(df => !df.hidden);
+
+		table_fields.forEach(df => {
+			const cdt = df.options;
+
+			dialog_fields.push({
+				label: __(df.label) + ` (${__(cdt)})`,
+				fieldname: df.options,
+				fieldtype: 'MultiCheck',
+				columns: 2,
+				options: columns[cdt]
+					.map(df => ({
+						label: __(df.label),
+						value: df.fieldname,
+						checked: this._fields.find(f => f[0] === df.fieldname && f[1] === cdt)
+					}))
+			});
+		});
+
+		return dialog_fields;
+	}
+
+	is_column_added(df) {
+		return Boolean(
+			this._fields.find(f => f[0] === df.fieldname && df.parent === f[1])
+		);
 	}
 
 	setup_columns() {
-		const build_column = this.build_column.bind(this);
 		const hide_columns = ['docstatus'];
 		const fields = this._fields.filter(f => !hide_columns.includes(f[0]));
-
-		this.columns = fields.map(build_column);
+		this.columns = fields.map(f => this.build_column(f));
 	}
 
 	build_column(c) {
@@ -465,6 +600,39 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 							data: this.data
 						});
 					});
+				}
+			},
+			{
+				label: __('Pick Columns'),
+				action: () => {
+					const d = new frappe.ui.Dialog({
+						title: __('Pick Columns'),
+						fields: this.get_dialog_fields(),
+						primary_action: (values) => {
+							// doctype fields
+							let fields = values[this.doctype].map(f => [f, this.doctype]);
+							delete values[this.doctype];
+
+							// child table fields
+							for (let cdt in values) {
+								fields = fields.concat(values[cdt].map(f => [f, cdt]));
+							}
+
+							// this._fields = this._fields.concat(fields);
+							this._fields = fields;
+
+							this.build_fields();
+							this.setup_columns();
+
+							this.datatable.destroy();
+							this.datatable = null;
+							this.refresh();
+
+							d.hide();
+						}
+					});
+
+					d.show();
 				}
 			}
 		];

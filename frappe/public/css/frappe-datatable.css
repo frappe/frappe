@@ -39,6 +39,20 @@
   background-color: #F7FAFC;
   color: #8D99A6;
 }
+.data-table .data-table-row.row-update {
+  animation: 500ms breathe forwards;
+}
 .data-table .data-table-row.row-highlight {
   background-color: #fffdf4;
+}
+@keyframes breathe {
+  0% {
+    background-color: transparent;
+  }
+  50% {
+    background-color: #fffdf4;
+  }
+  100% {
+    background-color: transparent;
+  }
 }

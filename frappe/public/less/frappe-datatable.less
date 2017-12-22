@@ -49,7 +49,23 @@
 		color: @text-muted;
 	}
 
+	.data-table-row.row-update {
+		animation: 500ms breathe forwards;
+	}
+
 	.data-table-row.row-highlight {
 		background-color: @extra-light-yellow;
+	}
+}
+
+@keyframes breathe {
+	0% {
+		background-color: transparent;
+	}
+	50% {
+		background-color: @extra-light-yellow;
+	}
+	100% {
+		background-color: transparent;
 	}
 }
