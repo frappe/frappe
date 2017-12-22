@@ -62,6 +62,7 @@ def handle_html(data):
 	obj.body_width = 0
 	value = obj.handle(h)
 	value = ", ".join(value.split('  \n'))
+	value = ", ".join(value.split('\n'))
 	value = ", ".join(value.split('# '))
 	return value
 
