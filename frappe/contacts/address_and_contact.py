@@ -146,4 +146,11 @@ def filter_dynamic_link_doctypes(doctype, txt, searchfield, start, page_len, fil
 		order_by="dt asc", as_list=True)
 
 	all_doctypes = doctypes + _doctypes
-	return sorted(all_doctypes, key=lambda item: item[0])
+
+	user_roles = frappe.db.get_all('Has Role', {'parent': frappe.session.user}, 'role', as_list=True)
+	valid_doctypes = frappe.db.get_all('DocPerm', {
+			'parent': ('in', [ctype[0] for ctype in all_doctypes]),
+			'role': ('in', [role[0] for role in user_roles])
+		}, 'distinct parent', as_list=True)
+
+	return sorted(valid_doctypes, key=lambda item: item[0])
