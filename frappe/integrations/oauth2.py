@@ -124,7 +124,7 @@ def get_token(*args, **kwargs):
 			id_token = {
 				"aud": token_client,
 				"exp": int((frappe.db.get_value("OAuth Bearer Token", out.access_token, "expiration_time") - frappe.utils.datetime.datetime(1970, 1, 1)).total_seconds()),
-				"sub": frappe.db.get_value("User", token_user, "frappe_userid"),
+				"sub": frappe.db.get_value("User Social Login", {"parent":token_user, "provider": "frappe"}, "userid"),
 				"iss": frappe_server_url,
 				"at_hash": frappe.oauth.calculate_at_hash(out.access_token, hashlib.sha256)
 			}
@@ -156,7 +156,8 @@ def revoke_token(*args, **kwargs):
 @frappe.whitelist()
 def openid_profile(*args, **kwargs):
 	picture = None
-	first_name, last_name, avatar, name, frappe_userid = frappe.db.get_value("User", frappe.session.user, ["first_name", "last_name", "user_image", "name", "frappe_userid"])
+	first_name, last_name, avatar, name = frappe.db.get_value("User", frappe.session.user, ["first_name", "last_name", "user_image", "name"])
+	frappe_userid = frappe.db.get_value("User Social Login", {"parent":frappe.session.user, "provider": "frappe"}, "userid")
 	request_url = urlparse(frappe.request.url)
 
 	if avatar:
