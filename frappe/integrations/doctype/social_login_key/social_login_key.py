@@ -44,7 +44,7 @@ class SocialLoginKey(Document):
 			"icon":"fa fa-windows",
 			"authorize_url": "https://login.microsoftonline.com/common/oauth2/authorize",
 			"access_token_url": "https://login.microsoftonline.com/common/oauth2/token",
-			"redirect_url": "/api/method/frappe.www.login.login_via_office365",
+			"redirect_url": "/api/method/frappe.integrations.oauth2_logins.login_via_office365",
 			"api_endpoint": None,
 			"api_endpoint_args":None,
 			"auth_url_data": json.dumps({
