@@ -194,8 +194,8 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 			callback: (r) => {
 				if(r.message.status === 'ok') {
 					this.post_setup_success();
-				} else if(r.message.fail !== undefined) {
-					this.abort_setup(r.message.fail);
+				} else if(r.message.fail_msg !== undefined) {
+					this.abort_setup(r.message.fail_msg);
 				}
 			},
 			error: this.abort_setup.bind(this, "Error in setup", true)
@@ -231,9 +231,6 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 				// .html('Process '+ data.progress[0] + ' of ' + data.progress[1] + ': ' + data.stage_status);
 				this.update_setup_message(data.stage_status);
 				this.set_setup_load_percent((data.progress[0]+1)/data.progress[1] * 100);
-			}
-			if(data.fail_msg) {
-				this.abort_setup(data.fail_msg);
 			}
 		})
 	}

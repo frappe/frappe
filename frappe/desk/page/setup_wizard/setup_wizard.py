@@ -62,9 +62,11 @@ def setup_complete(args):
 	stages = get_setup_stages(args)
 
 	try:
+		frappe.flags.dont_commit = 1
 		current_task = None
 		for idx, stage in enumerate(stages):
-			frappe.publish_realtime('setup_task', {"progress": [idx, len(stages)],
+			total_stages = len(stages) - 1
+			frappe.publish_realtime('setup_task', {"progress": [idx, total_stages],
 				"stage_status": stage.get('status')}, user=frappe.session.user)
 
 			for task in stage.get('tasks'):
@@ -72,9 +74,11 @@ def setup_complete(args):
 				task.get('fn')(task.get('args'))
 
 	except Exception:
+		frappe.flags.dont_commit = 0
 		handle_setup_exception(args)
-		return {'status': 'fail', 'fail': current_task.get('fail_msg')}
+		return {'status': 'fail', 'fail_msg': current_task.get('fail_msg')}
 	else:
+		frappe.flags.dont_commit = 0
 		run_setup_success(args)
 		return {'status': 'ok'}
 

@@ -611,7 +611,7 @@ class Database:
 		order_by = ("order by " + order_by) if order_by else ""
 
 		r = self.sql("select {0} from `tab{1}` {2} {3} {4}"
-			.format(fl, doctype, "where" if conditions else "", conditions, order_by), values, 
+			.format(fl, doctype, "where" if conditions else "", conditions, order_by), values,
 			as_dict=as_dict, debug=debug, update=update)
 
 		return r
@@ -747,6 +747,8 @@ class Database:
 
 	def commit(self):
 		"""Commit current transaction. Calls SQL `COMMIT`."""
+		if frappe.flags.dont_commit:
+			frappe.throw("Cannot commit.")
 		self.sql("commit")
 		frappe.local.rollback_observers = []
 		self.flush_realtime_log()
