@@ -148,14 +148,14 @@ frappe.request.call = function(opts) {
 			opts.error_callback && opts.error_callback(data, xhr.responseText);
 		},
 		500: function(xhr) {
-			frappe.utils.play_sound("error");
-			frappe.msgprint({message:__("Server Error: Please check your server logs or contact tech support."), title:__('Something went wrong'), indicator: 'red'});
 			try {
 				opts.error_callback && opts.error_callback();
-				frappe.request.report_error(xhr, opts);
 			} catch (e) {
-				frappe.request.report_error(xhr, opts);
+				//
 			}
+			frappe.utils.play_sound("error");
+			frappe.msgprint({message:__("Server Error: Please check your server logs or contact tech support."), title:__('Something went wrong'), indicator: 'red'});
+			frappe.request.report_error(xhr, opts);
 		},
 		504: function(xhr) {
 			frappe.msgprint(__("Request Timed Out"))

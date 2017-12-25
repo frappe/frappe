@@ -62,9 +62,11 @@ def setup_complete(args):
 	stages = get_setup_stages(args)
 
 	try:
+		frappe.flags.dont_commit = 1
 		current_task = None
 		for idx, stage in enumerate(stages):
-			frappe.publish_realtime('setup_task', {"progress": [idx, len(stages)],
+			total_stages = len(stages) - 1
+			frappe.publish_realtime('setup_task', {"progress": [idx, total_stages],
 				"stage_status": stage.get('status')}, user=frappe.session.user)
 
 			for task in stage.get('tasks'):
@@ -72,9 +74,15 @@ def setup_complete(args):
 				task.get('fn')(task.get('args'))
 
 	except Exception:
-		handle_setup_exception(args)
-		return {'status': 'fail', 'fail': current_task.get('fail_msg')}
+		frappe.flags.dont_commit = 0
+		traceback = handle_setup_exception(args)
+		return {
+			'status': 'fail',
+			'fail_msg': current_task.get('fail_msg'),
+			'traceback': traceback
+		}
 	else:
+		frappe.flags.dont_commit = 0
 		run_setup_success(args)
 		return {'status': 'ok'}
 
@@ -120,10 +128,11 @@ def get_setup_complete_hooks(args):
 
 def handle_setup_exception(args):
 	frappe.db.rollback()
+	traceback = frappe.get_traceback()
 	if args:
-		traceback = frappe.get_traceback()
 		for hook in frappe.get_hooks("setup_wizard_exception"):
 			frappe.get_attr(hook)(traceback, args)
+	return traceback
 
 def update_system_settings(args):
 	number_format = get_country_info(args.get("country")).get("number_format", "#,###.##")
