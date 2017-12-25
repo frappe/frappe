@@ -262,7 +262,6 @@ frappe.utils.xss_sanitise = function (string, options) {
 		strategies: ['html', 'js'] // use all strategies.
 	}
 	const HTML_ESCAPE_MAP = {
-		'&': '&amp',
 		'<': '&lt',
 		'>': '&gt',
 		'"': '&quot',
@@ -271,16 +270,16 @@ frappe.utils.xss_sanitise = function (string, options) {
 	};
 	const REGEX_SCRIPT     = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi; // used in jQuery 1.7.2 src/ajax.js Line 14
 	options          	   = Object.assign({ }, DEFAULT_OPTIONS, options); // don't deep copy, immutable beauty.
-	
+
 	// Rule 1
 	if ( options.strategies.includes('html') ) {
-		// By far, the best thing that has ever happened to JS - Object.keys
-		Object.keys(HTML_ESCAPE_MAP).map((char, escape) => {
+		for (let char in HTML_ESCAPE_MAP) {
+			const escape = HTML_ESCAPE_MAP[char];
 			const regex = new RegExp(char, "g");
 			sanitised = sanitised.replace(regex, escape);
-		});
+		}
 	}
-	
+
 	// Rule 3 - TODO: Check event handlers?
 	if ( options.strategies.includes('js') ) {
 		sanitised = sanitised.replace(REGEX_SCRIPT, "");
