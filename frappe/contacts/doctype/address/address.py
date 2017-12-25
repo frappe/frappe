@@ -192,13 +192,17 @@ def get_address_templates(address):
 		return result
 
 @frappe.whitelist()
-def get_shipping_address(company):
+def get_shipping_address(company, address = None):
 	filters = [
 		["Dynamic Link", "link_doctype", "=", "Company"],
 		["Dynamic Link", "link_name", "=", company],
 		["Address", "is_your_company_address", "=", 1]
 	]
 	fields = ["name", "address_line1", "address_line2", "city", "state", "country"]
+	if address and frappe.db.get_value('Dynamic Link',
+		{'parent': address, 'link_name': company}):
+		filters.append(["Address", "name", "=", address])
+
 	address = frappe.get_all("Address", filters=filters, fields=fields) or {}
 
 	if address:
