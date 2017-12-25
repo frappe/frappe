@@ -86,6 +86,13 @@ def get_data():
 					"name": "Error Snapshot",
 					"description": _("Log of error during requests.")
 				},
+				{
+					"type": "doctype",
+					"name": "Domain Settings",
+					"label": _("Domain Settings"),
+					"description": _("Enable / Disable Domains"),
+					"hide_count": True
+				},
 			]
 		},
 		{
