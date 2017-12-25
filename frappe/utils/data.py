@@ -381,7 +381,7 @@ def fmt_money(amount, precision=None, currency=None):
 					fraction  = frappe.db.get_value("Currency", currency, "fraction_units") or 100
 					precision = len(cstr(fraction)) - 1
 				else:
-					precision = 2
+					precision = number_format_precision
 			elif len(decimals) < precision:
 				precision = len(decimals)
 
