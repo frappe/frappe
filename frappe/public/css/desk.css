@@ -475,6 +475,11 @@ fieldset[disabled] .form-control {
 .modal-title {
   margin-top: 5px;
 }
+.btn-primary.disabled {
+  background-color: #b1bdca;
+  color: #fff;
+  border-color: #b1bdca;
+}
 .form-control {
   position: relative;
 }
@@ -965,50 +970,9 @@ li.user-progress .progress-bar {
 .note-editor.note-frame .note-editing-area .note-editable {
   color: #36414C;
 }
-.c3 svg {
-  font-family: inherit;
-  font-size: 10px;
-  color: #36414C;
-}
-.c3-line {
-  stroke-width: 3px;
-}
-.c3-tooltip {
-  box-shadow: 3px 3px 3px rgba(0, 0, 0, 0.1);
-  border-radius: 3px;
-  opacity: 1;
-}
-.c3-tooltip tr {
-  border: none;
-}
-.c3-tooltip th {
-  color: #8D99A6;
-  background-color: #ffffff;
-  font-size: 12px;
-  font-weight: normal;
-  padding: 2px 5px;
-  text-align: left;
-  border: 1px solid #d1d8dd;
-}
-.c3-tooltip td {
-  color: #36414C;
-  font-size: 11px;
-  padding: 3px 6px;
-  background-color: #fff;
-  border: 1px solid #d1d8dd;
-}
-.c3-tooltip td > span {
-  display: inline-block;
-  width: 10px;
-  height: 10px;
-  margin-right: 6px;
-}
-.c3-tooltip td.value {
-  text-align: right;
-}
 input[type="checkbox"] {
-  visibility: hidden;
   position: relative;
+  height: 16px;
 }
 input[type="checkbox"]:before {
   position: absolute;
@@ -1026,11 +990,20 @@ input[type="checkbox"]:before {
   -webkit-transition: 150ms color;
   -o-transition: 150ms color;
   transition: 150ms color;
+  background-color: white;
+  padding: 1px;
+  margin: -1px;
+}
+input[type="checkbox"]:focus:before {
+  color: #8D99A6;
 }
 input[type="checkbox"]:checked:before {
   content: '\f14a';
   font-size: 13px;
   color: #3b99fc;
+}
+input[type="checkbox"]:focus {
+  outline: none;
 }
 .multiselect-empty-state {
   min-height: 300px;

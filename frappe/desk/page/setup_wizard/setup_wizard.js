@@ -7,6 +7,7 @@ frappe.setup = {
 	events: {},
 	data: {},
 	utils: {},
+	domains: [],
 
 	on: function(event, fn) {
 		if(!frappe.setup.events[event]) {
@@ -26,7 +27,8 @@ frappe.setup = {
 }
 
 frappe.pages['setup-wizard'].on_page_load = function(wrapper) {
-	var requires = (frappe.boot.setup_wizard_requires || []);
+	let requires = (frappe.boot.setup_wizard_requires || []);
+
 
 	frappe.require(requires, function() {
 		frappe.call({
@@ -180,46 +182,79 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 	}
 
 	action_on_complete() {
-		var me = this;
 		if (!this.current_slide.set_values()) return;
 		this.update_values();
 		this.show_working_state();
 		this.disable_keyboard_nav();
+		this.listen_for_setup_stages();
+
 		return frappe.call({
 			method: "frappe.desk.page.setup_wizard.setup_wizard.setup_complete",
 			args: {args: this.values},
-			callback: function() {
-				me.show_setup_complete_state();
-				if(frappe.setup.welcome_page) {
-					localStorage.setItem("session_last_route", frappe.setup.welcome_page);
+			callback: (r) => {
+				if(r.message.status === 'ok') {
+					this.post_setup_success();
+				} else if(r.message.fail !== undefined) {
+					this.abort_setup(r.message.fail);
 				}
-				setTimeout(function() {
-					// Reload
-					window.location.href = '';
-				}, 2000);
-				setTimeout(()=> {
-					$('body').removeClass('setup-state');
-				}, 20000);
 			},
-			error: function() {
-				var d = frappe.msgprint(__("There were errors."));
-				d.custom_onhide = function() {
-					$(me.parent).find('.page-card-container').remove();
-					$('body').removeClass('setup-state');
-					me.container.show();
-					frappe.set_route(me.page_name, me.slides.length - 1);
-				};
-			}
+			error: this.abort_setup.bind(this, "Error in setup", true)
 		});
+	}
+
+	post_setup_success() {
+		this.set_setup_complete_message(__("Setup Complete"), __("Refreshing..."));
+		if(frappe.setup.welcome_page) {
+			localStorage.setItem("session_last_route", frappe.setup.welcome_page);
+		}
+		setTimeout(function() {
+			// Reload
+			window.location.href = '';
+		}, 2000);
+	}
+
+	abort_setup(fail_msg, error=false) {
+		this.$working_state.find('.state-icon-container').html('');
+		fail_msg = fail_msg ? fail_msg : __("Failed to complete setup");
+
+		if(error && !frappe.boot.developer_mode) {
+			frappe.msgprint(`Don't worry. It's not you, it's us. We've
+				received the issue details and will get back to you on the solution.
+				Please feel free to contact us on support@erpnext.com in the meantime.`);
+		}
+
+		this.update_setup_message('Could not start up: ' + fail_msg);
+
+		this.$working_state.find('.title').html('Setup failed');
+
+		this.$abort_btn.show();
+	}
+
+	listen_for_setup_stages() {
+		frappe.realtime.on("setup_task", (data) => {
+			// console.log('data', data);
+			if(data.stage_status) {
+				// .html('Process '+ data.progress[0] + ' of ' + data.progress[1] + ': ' + data.stage_status);
+				this.update_setup_message(data.stage_status);
+				this.set_setup_load_percent((data.progress[0]+1)/data.progress[1] * 100);
+			}
+			if(data.fail_msg) {
+				this.abort_setup(data.fail_msg);
+			}
+		})
+	}
+
+	update_setup_message(message) {
+		this.$working_state.find('.setup-message').html(message);
 	}
 
 	get_setup_slides_filtered_by_domain() {
 		var filtered_slides = [];
 		frappe.setup.slides.forEach(function(slide) {
-			if(frappe.setup.domain) {
-				var domains = slide.domains;
-				if (domains.indexOf('all') !== -1 ||
-					domains.indexOf(frappe.setup.domain.toLowerCase()) !== -1) {
+			if(frappe.setup.domains) {
+				let active_domains = frappe.setup.domains;
+				if (!slide.domains ||
+					slide.domains.filter(d => active_domains.includes(d)).length > 0) {
 					filtered_slides.push(slide);
 				}
 			} else {
@@ -231,50 +266,55 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 
 	show_working_state() {
 		this.container.hide();
-		$('body').addClass('setup-state');
 		frappe.set_route(this.page_name);
 
-		this.working_state_message = this.get_message(
-			__("Setting Up"),
-			__("Sit tight while your system is being setup. This may take a few moments."),
-			true
-		).appendTo(this.parent);
+		this.$working_state = this.get_message(
+			__("Setting up your system"),
+			__("Starting Frappé ...")).appendTo(this.parent);
+
+		this.attach_abort_button();
 
 		this.current_id = this.slides.length;
 		this.current_slide = null;
-		this.completed_state_message = this.get_message(
-			__("Setup Complete"),
-			__("You're all set!")
-		);
 	}
 
-	show_setup_complete_state() {
-		this.working_state_message.hide();
-		this.completed_state_message.appendTo(this.parent);
+	attach_abort_button() {
+		this.$abort_btn = $(`<button class='btn btn-default btn-xs text-muted'
+			style="margin-bottom: 30px;">${__('Retry')}</button>`);
+		this.$working_state.find('.content').append(this.$abort_btn);
+
+		this.$abort_btn.on('click', () => {
+			$(this.parent).find('.setup-in-progress').remove();
+			this.container.show();
+			frappe.set_route(this.page_name, this.slides.length - 1);
+		});
+
+		this.$abort_btn.hide();
 	}
 
-	get_message(title, message="", loading=false) {
-		const loading_html = loading
-			? '<div style="width:100%;height:100%" class="lds-rolling state-icon"><div></div></div>'
-			: `<div style="width:100%;height:100%" class="state-icon">
-				<i class="fa fa-check-circle text-success"
-					style="font-size: 64px; margin-top: -8px;"></i>
-			</div>`;
+	get_message(title, message="") {
+		const loading_html = `<div class="progress-chart" style ="width: 150px;">
+			<div class="progress" style="margin-top: 70px; margin-bottom: 0px">
+				<div class="progress-bar" style="width: 2%; background-color: #5e64ff;"></div>
+			</div>
+		</div>`;
 
-		return $(`<div class="page-card-container" data-state="setup">
-			<div class="page-card">
-				<div class="page-card-head">
-					${loading
-						? `<span class="indicator orange">${title}</span>`
-						: `<span class="indicator green">${title}</span>`
-					}
-				</div>
-				<p>${message}</p>
-				<div class="state-icon-container">
-				${loading_html}
-				</div>
+		return $(`<div class="slides-wrapper setup-wizard-slide setup-in-progress">
+			<div class="content text-center">
+				<p class="title lead">${title}</p>
+				<div class="state-icon-container">${loading_html}</div>
+				<p class="setup-message text-muted" style="margin: 30px 0px;">${message}</p>
 			</div>
 		</div>`);
+	}
+
+	set_setup_complete_message(title, message) {
+		this.$working_state.find('.title').html(title);
+		this.$working_state.find('.setup-message').html(message);
+	}
+
+	set_setup_load_percent(percent) {
+		this.$working_state.find('.progress-bar').css({"width": percent + "%"});
 	}
 };
 
@@ -311,7 +351,6 @@ frappe.setup.slides_settings = [
 	{
 		// Welcome (language) slide
 		name: "welcome",
-		domains: ["all"],
 		title: __("Hello!"),
 		icon: "fa fa-world",
 		// help: __("Let's prepare the system for first use."),
@@ -344,7 +383,6 @@ frappe.setup.slides_settings = [
 	{
 		// Region slide
 		name: 'region',
-		domains: ["all"],
 		title: __("Select Your Region"),
 		icon: "fa fa-flag",
 		// help: __("Select your Country, Time Zone and Currency"),
@@ -376,7 +414,6 @@ frappe.setup.slides_settings = [
 	{
 		// Profile slide
 		name: 'user',
-		domains: ["all"],
 		title: __("The First User: You"),
 		icon: "fa fa-user",
 		fields: [

@@ -3,27 +3,28 @@ frappe.patches.v5_0.convert_to_barracuda_and_utf8mb4
 execute:frappe.utils.global_search.setup_global_search_table()
 frappe.patches.v8_0.update_global_search_table
 frappe.patches.v7_0.update_auth
-frappe.patches.v7_1.rename_scheduler_log_to_error_log
-frappe.patches.v6_1.rename_file_data
-frappe.patches.v7_0.re_route #2016-06-27
-frappe.patches.v7_2.remove_in_filter
 frappe.patches.v8_0.drop_in_dialog #2017-09-22
+frappe.patches.v7_2.remove_in_filter
 execute:frappe.reload_doc('core', 'doctype', 'doctype', force=True) #2017-09-22
 execute:frappe.reload_doc('core', 'doctype', 'docfield', force=True) #2017-03-03
 execute:frappe.reload_doc('core', 'doctype', 'docperm') #2017-03-03
 execute:frappe.reload_doc('core', 'doctype', 'module_def') #2017-09-22
+execute:frappe.reload_doc('core', 'doctype', 'version') #2017-04-01
+execute:frappe.reload_doc('core', 'doctype', 'activity_log')
+frappe.patches.v7_1.rename_scheduler_log_to_error_log
+frappe.patches.v6_1.rename_file_data
+frappe.patches.v7_0.re_route #2016-06-27
 frappe.patches.v8_0.drop_is_custom_from_docperm
 frappe.patches.v8_0.update_records_in_global_search #11-05-2017
 frappe.patches.v8_0.update_published_in_global_search
 execute:frappe.reload_doc('core', 'doctype', 'custom_docperm')
 execute:frappe.reload_doc('core', 'doctype', 'deleted_document')
 execute:frappe.reload_doc('core', 'doctype', 'domain_settings')
-execute:frappe.reload_doc('core', 'doctype', 'version') #2017-04-01
 frappe.patches.v8_0.rename_page_role_to_has_role #2017-03-16
 frappe.patches.v7_2.setup_custom_perms #2017-01-19
 frappe.patches.v8_0.set_user_permission_for_page_and_report #2017-03-20
 execute:frappe.reload_doc('core', 'doctype', 'role') #2017-05-23
-execute:frappe.reload_doc('core', 'doctype', 'user')
+execute:frappe.reload_doc('core', 'doctype', 'user') #2017-10-27
 execute:frappe.reload_doc('custom', 'doctype', 'custom_field') #2015-10-19
 execute:frappe.reload_doc('core', 'doctype', 'page') #2013-13-26
 execute:frappe.reload_doc('core', 'doctype', 'report') #2014-06-03
@@ -194,7 +195,9 @@ frappe.patches.v8_5.delete_email_group_member_with_invalid_emails
 frappe.patches.v8_x.update_user_permission
 frappe.patches.v8_5.patch_event_colors
 frappe.patches.v8_10.delete_static_web_page_from_global_search
-frappe.patches.v8_x.add_bgn_xaf_xof_currencies
 frappe.patches.v9_1.add_sms_sender_name_as_parameters
 frappe.patches.v9_1.resave_domain_settings
 frappe.patches.v9_1.revert_domain_settings
+frappe.patches.v9_1.move_feed_to_activity_log
+execute:frappe.delete_doc('Page', 'data-import-tool', ignore_missing=True)
+frappe.patches.v10_0.reload_countries_and_currencies

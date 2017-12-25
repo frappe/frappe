@@ -423,3 +423,24 @@ def unzip_file(name):
 	'''Unzip the given file and make file records for each of the extracted files'''
 	file_obj = frappe.get_doc('File', name)
 	file_obj.unzip()
+
+@frappe.whitelist()
+def get_attached_images(doctype, names):
+	'''get list of image urls attached in form
+	returns {name: ['image.jpg', 'image.png']}'''
+
+	if isinstance(names, string_types):
+		names = json.loads(names)
+
+	img_urls = frappe.db.get_list('File', filters={
+		'attached_to_doctype': doctype,
+		'attached_to_name': ('in', names),
+		'is_folder': 0
+	}, fields=['file_url', 'attached_to_name as docname'])
+
+	out = frappe._dict()
+	for i in img_urls:
+		out[i.docname] = out.get(i.docname, [])
+		out[i.docname].append(i.file_url)
+
+	return out

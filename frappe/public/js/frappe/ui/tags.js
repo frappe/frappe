@@ -1,131 +1,135 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-frappe.ui.TagEditor = Class.extend({
-	init: function(opts) {
-		/* docs:
-		Arguments
+frappe.ui.Tags = class {
+	constructor({
+		parent, placeholder, tagsList,
+		onTagAdd,
+		onTagRemove,
+		onTagClick,
+		onChange
+	}) {
+		this.tagsList = tagsList || [];
+		this.onTagAdd = onTagAdd;
+		this.onTagRemove = onTagRemove;
+		this.onTagClick = onTagClick;
+		this.onChange = onChange;
 
-		- parent
-		- user_tags
-		- doctype
-		- docname
-		*/
-		$.extend(this, opts);
-
-		this.setup_taggle();
-
-		if (!this.user_tags) {
-			this.user_tags = "";
-		}
-		this.initialized = true;
-		this.refresh(this.user_tags);
-	},
-	setup_taggle: function() {
-		var me = this;
-
-		// hidden form, does not have parent
-		if (!this.parent) {
-			return;
-		}
-
-		this.wrapper = $('<div class="tag-line" style="position: relative">').appendTo(this.parent);
-		if(!this.wrapper.length) return;
-		var id = frappe.dom.set_unique_id(this.wrapper);
-		this.taggle = new Taggle(id, {
-			placeholder: __('Add a tag') + "...",
-			onTagAdd: function(e, tag) {
-				if(me.initialized && !me.refreshing) {
-					tag = toTitle(tag);
-					return frappe.call({
-						method: 'frappe.desk.tags.add_tag',
-						args: me.get_args(tag),
-						callback: function(r) {
-							var user_tags = me.user_tags ? me.user_tags.split(",") : [];
-							user_tags.push(tag)
-							me.user_tags = user_tags.join(",");
-							me.on_change && me.on_change(me.user_tags);
-						}
-					});
-				}
-			},
-			onTagRemove: function(e, tag) {
-				if(!me.refreshing) {
-					return frappe.call({
-						method: 'frappe.desk.tags.remove_tag',
-						args: me.get_args(tag),
-						callback: function(r) {
-							var user_tags = me.user_tags.split(",");
-							user_tags.splice(user_tags.indexOf(tag), 1);
-							me.user_tags = user_tags.join(",");
-							me.on_change && me.on_change(me.user_tags);
-						}
-					});
-				}
-			}
-		});
-		this.setup_awesomplete();
-		this.setup_complete = true;
-	},
-	setup_awesomplete: function() {
-		var me = this;
-		var $input = this.wrapper.find("input.taggle_input");
-		var input = $input.get(0);
-		this.awesomplete = new Awesomplete(input, {
-			minChars: 0,
-			maxItems: 99,
-			list: []
-		});
-		$input.on("awesomplete-open", function(e){
-			$input.attr('state', 'open');
-		});
-		$input.on("awesomplete-close", function(e){
-			$input.attr('state', 'closed');
-		});
-		$input.on("input", function(e) {
-			var value = e.target.value;
-			frappe.call({
-				method:"frappe.desk.tags.get_tags",
-				args:{
-					doctype: me.frm.doctype,
-					txt: value.toLowerCase(),
-					cat_tags: me.list_sidebar ?
-						JSON.stringify(me.list_sidebar.get_cat_tags()) : '[]'
-				},
-				callback: function(r) {
-					me.awesomplete.list = r.message;
-				}
-			});
-		});
-		$input.on("focus", function(e) {
-			if($input.attr('state') != 'open') {
-				$input.trigger("input");
-			}
-		});
-	},
-	get_args: function(tag) {
-		return {
-			tag: tag,
-			dt: this.frm.doctype,
-			dn: this.frm.docname,
-		}
-	},
-	refresh: function(user_tags) {
-		var me = this;
-		if (!this.initialized || !this.setup_complete || this.refreshing) return;
-
-		me.refreshing = true;
-		try {
-			me.taggle.removeAll();
-			if(user_tags) {
-				me.taggle.add(user_tags.split(','));
-			}
-		} catch(e) {
-			me.refreshing = false;
-			// wtf bug
-			setTimeout( function() { me.refresh(); }, 100);
-		}
-		me.refreshing = false;
-
+		this.setup(parent, placeholder);
 	}
-})
+
+	setup(parent, placeholder) {
+		this.$wrapper = $(`<div class="tags-wrapper"></div>`).appendTo(parent);
+		this.$ul = $(`<ul class="tags-list"></ul>`).appendTo(this.$wrapper);
+		this.$input = $(`<input class="tags-input"></input>`);
+
+		this.$inputWrapper = this.getListElement(this.$input);
+		this.$placeholder = this.getListElement($(`<span class="tags-placeholder text-muted">${placeholder}</span>`));
+		this.$inputWrapper.appendTo(this.$ul);
+		this.$placeholder.appendTo(this.$ul);
+
+		this.deactivate();
+		this.bind();
+		this.boot();
+	}
+
+	bind() {
+		this.$input.keypress((e) => {
+			if(e.which == 13 || e.keyCode == 13) {
+				this.addTag(this.$input.val());
+				this.$input.val('');
+			}
+		});
+
+		this.$input.on('blur', () => {
+			this.deactivate();
+		});
+
+		this.$placeholder.on('click', () => {
+			this.activate();
+		});
+	}
+
+	boot() {
+		this.addTags(this.tagsList);
+	}
+
+	activate() {
+		this.$placeholder.hide();
+		this.$inputWrapper.show();
+		this.$input.focus();
+	}
+
+	deactivate() {
+		this.$inputWrapper.hide();
+		this.$placeholder.show();
+	}
+
+	refresh() {
+		this.deactivate();
+		this.activate();
+	}
+
+	addTag(label) {
+		if(label && !this.tagsList.includes(label)) {
+			let $tag = this.getTag(label);
+			this.getListElement($tag).insertBefore(this.$inputWrapper);
+			this.tagsList.push(label);
+			this.onTagAdd && this.onTagAdd(label);
+
+			this.refresh();
+		}
+	}
+
+	removeTag(label) {
+		if(this.tagsList.includes(label)) {
+			let $tag = this.$ul.find(`.frappe-tag[data-tag-label="${label}"]`);
+			$tag.remove();
+			this.tagsList = this.tagsList.filter(d => d !== label);
+			this.onTagRemove && this.onTagRemove(label);
+		}
+	}
+
+	addTags(labels) {
+		labels.map(this.addTag.bind(this));
+	}
+
+	clearTags() {
+		this.$ul.find('.frappe-tag').remove();
+		this.tagsList = [];
+	}
+
+	getListElement($element, className) {
+		let $li = $(`<li class="tags-list-item ${className}"></li>`);
+		$element.appendTo($li);
+		return $li;
+	}
+
+	getTag(label) {
+		let $tag = $(`<div class="frappe-tag btn-group" data-tag-label=${label}>
+		<button class="btn btn-default btn-xs toggle-tag"
+			title="${ __("toggle Tag") }"
+			data-tag-label=${label}>${label}
+		</button>
+		<button class="btn btn-default btn-xs remove-tag"
+			title="${ __("Remove Tag") }"
+			data-tag-label=${label}>
+			<i class="fa fa-remove text-muted"></i>
+		</button></div>`);
+
+		let $removeTag = $tag.find(".remove-tag");
+
+		$removeTag.on("click", () => {
+			this.removeTag($removeTag.attr('data-tag-label'));
+		});
+
+		if(this.onTagClick) {
+			let $toggle_tag = $tag.find(".toggle-tag");
+			$toggle_tag.on("click", () => {
+				this.onTagClick($toggle_tag.attr('data-tag-label'));
+			});
+		}
+
+		return $tag;
+	}
+}

@@ -66,9 +66,9 @@ docfield_properties = {
 
 allowed_fieldtype_change = (('Currency', 'Float', 'Percent'), ('Small Text', 'Data'),
 	('Text', 'Data'), ('Text', 'Text Editor', 'Code', 'Signature'), ('Data', 'Select'),
-	('Text', 'Small Text'), ('Text', 'Data', 'Barcode'))
+	('Text', 'Small Text'), ('Text', 'Data', 'Barcode'), ('Code', 'Geolocation'))
 
-allowed_fieldtype_for_options_change = ('Read Only', 'HTML', 'Select',)
+allowed_fieldtype_for_options_change = ('Read Only', 'HTML', 'Select', 'Data')
 
 class CustomizeForm(Document):
 	def on_update(self):
@@ -108,7 +108,7 @@ class CustomizeForm(Document):
 		'''Create, update custom translation for this doctype'''
 		current = self.get_name_translation()
 		if current:
-			if self.label and current!=self.label:
+			if self.label and current.target_name != self.label:
 				frappe.db.set_value('Translation', current.name, 'target_name', self.label)
 				frappe.translate.clear_cache()
 			else:
@@ -163,16 +163,13 @@ class CustomizeForm(Document):
 					property_type=doctype_properties[property])
 
 		for df in self.get("fields"):
-			if df.get("__islocal"):
-				continue
-
 			meta_df = meta.get("fields", {"fieldname": df.fieldname})
 
 			if not meta_df or meta_df[0].get("is_custom_field"):
 				continue
 
 			for property in docfield_properties:
-				if property != "idx" and df.get(property) != meta_df[0].get(property):
+				if property != "idx" and (df.get(property) or '') != (meta_df[0].get(property) or ''):
 					if property == "fieldtype":
 						self.validate_fieldtype_change(df, meta_df[0].get(property), df.get(property))
 
@@ -329,6 +326,6 @@ class CustomizeForm(Document):
 			return
 
 		frappe.db.sql("""delete from `tabProperty Setter` where doc_type=%s
-			and ifnull(field_name, '')!='naming_series'""", self.doc_type)
+			and !(`field_name`='naming_series' and `property`='options')""", self.doc_type)
 		frappe.clear_cache(doctype=self.doc_type)
 		self.fetch_to_customize()

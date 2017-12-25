@@ -92,7 +92,10 @@ frappe.form.formatters = {
 		}
 
 		if(frappe.form.link_formatters[doctype]) {
-			value = frappe.form.link_formatters[doctype](value, doc);
+			// don't apply formatters in case of composite (parent field of same type)
+			if (doc && doctype !== doc.doctype) {
+				value = frappe.form.link_formatters[doctype](value, doc);
+			}
 		}
 
 		if(!value) {

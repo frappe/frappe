@@ -86,6 +86,12 @@ frappe.ui.Dialog = frappe.ui.FieldGroup.extend({
 				click.apply(me, [values]);
 			});
 	},
+	disable_primary_action: function() {
+		this.get_primary_btn().addClass('disabled');
+	},
+	enable_primary_action: function() {
+		this.get_primary_btn().removeClass('disabled');
+	},
 	make_head: function() {
 		var me = this;
 		this.set_title(this.title);
@@ -97,9 +103,11 @@ frappe.ui.Dialog = frappe.ui.FieldGroup.extend({
 		// show it
 		this.$wrapper.modal("show");
 		this.primary_action_fulfilled = false;
+		this.is_visible = true;
 	},
 	hide: function(from_event) {
 		this.$wrapper.modal("hide");
+		this.is_visible = false;
 	},
 	get_close_btn: function() {
 		return this.$wrapper.find(".btn-modal-close");

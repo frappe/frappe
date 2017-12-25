@@ -189,7 +189,7 @@ def check_if_doc_is_linked(doc, method="Delete"):
 			for item in frappe.db.get_values(link_dt, {link_field:doc.name},
 				["name", "parent", "parenttype", "docstatus"], as_dict=True):
 				linked_doctype = item.parenttype if item.parent else link_dt
-				if linked_doctype in ("Communication", "ToDo", "DocShare", "Email Unsubscribe", 'File', 'Version'):
+				if linked_doctype in ("Communication", "ToDo", "DocShare", "Email Unsubscribe", 'File', 'Version', "Activity Log"):
 					# don't check for communication and todo!
 					continue
 
@@ -207,7 +207,7 @@ def check_if_doc_is_linked(doc, method="Delete"):
 def check_if_doc_is_dynamically_linked(doc, method="Delete"):
 	'''Raise `frappe.LinkExistsError` if the document is dynamically linked'''
 	for df in get_dynamic_link_map().get(doc.doctype, []):
-		if df.parent in ("Communication", "ToDo", "DocShare", "Email Unsubscribe", 'File', 'Version'):
+		if df.parent in ("Communication", "ToDo", "DocShare", "Email Unsubscribe", "Activity Log", 'File', 'Version'):
 			# don't check for communication and todo!
 			continue
 
@@ -289,6 +289,18 @@ def delete_dynamic_links(doctype, name):
 
 	# unlink feed
 	frappe.db.sql("""update `tabCommunication`
+		set timeline_doctype=null, timeline_name=null
+		where timeline_doctype=%s and timeline_name=%s""", (doctype, name))
+
+	# unlink activity_log reference_doctype
+	frappe.db.sql("""update `tabActivity Log`
+		set reference_doctype=null, reference_name=null
+		where
+			reference_doctype=%s
+			and reference_name=%s""", (doctype, name))
+
+	# unlink activity_log timeline_doctype
+	frappe.db.sql("""update `tabActivity Log`
 		set timeline_doctype=null, timeline_name=null
 		where timeline_doctype=%s and timeline_name=%s""", (doctype, name))
 

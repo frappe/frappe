@@ -163,6 +163,7 @@ def make_dict_from_messages(messages, full_dict=None):
 	for m in messages:
 		if m[1] in full_dict:
 			out[m[1]] = full_dict[m[1]]
+
 	return out
 
 def get_lang_js(fortype, name):

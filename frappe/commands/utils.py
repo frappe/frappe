@@ -15,7 +15,9 @@ def build(make_copy=False, restore = False, verbose=False):
 	import frappe.build
 	import frappe
 	frappe.init('')
-	frappe.build.bundle(False, make_copy=make_copy, restore = restore, verbose=verbose)
+	# don't minify in developer_mode for faster builds
+	no_compress = frappe.local.conf.developer_mode or False
+	frappe.build.bundle(no_compress, make_copy=make_copy, restore = restore, verbose=verbose)
 
 @click.command('watch')
 def watch():
@@ -162,12 +164,12 @@ def export_doc(context, doctype, docname):
 @pass_context
 def export_json(context, doctype, path, name=None):
 	"Export doclist as json to the given path, use '-' as name for Singles."
-	from frappe.core.page.data_import_tool import data_import_tool
+	from frappe.core.doctype.data_import import data_import
 	for site in context.sites:
 		try:
 			frappe.init(site=site)
 			frappe.connect()
-			data_import_tool.export_json(doctype, path, name=name)
+			data_import.export_json(doctype, path, name=name)
 		finally:
 			frappe.destroy()
 
@@ -177,12 +179,12 @@ def export_json(context, doctype, path, name=None):
 @pass_context
 def export_csv(context, doctype, path):
 	"Export data import template with data for DocType"
-	from frappe.core.page.data_import_tool import data_import_tool
+	from frappe.core.doctype.data_import import data_import
 	for site in context.sites:
 		try:
 			frappe.init(site=site)
 			frappe.connect()
-			data_import_tool.export_csv(doctype, path)
+			data_import.export_csv(doctype, path)
 		finally:
 			frappe.destroy()
 
@@ -204,7 +206,7 @@ def export_fixtures(context):
 @pass_context
 def import_doc(context, path, force=False):
 	"Import (insert/update) doclist. If the argument is a directory, all files ending with .json are imported"
-	from frappe.core.page.data_import_tool import data_import_tool
+	from frappe.core.doctype.data_import import data_import
 
 	if not os.path.exists(path):
 		path = os.path.join('..', path)
@@ -216,7 +218,7 @@ def import_doc(context, path, force=False):
 		try:
 			frappe.init(site=site)
 			frappe.connect()
-			data_import_tool.import_doc(path, overwrite=context.force)
+			data_import.import_doc(path, overwrite=context.force)
 		finally:
 			frappe.destroy()
 
@@ -229,8 +231,8 @@ def import_doc(context, path, force=False):
 
 @pass_context
 def import_csv(context, path, only_insert=False, submit_after_import=False, ignore_encoding_errors=False, no_email=True):
-	"Import CSV using data import tool"
-	from frappe.core.page.data_import_tool import importer
+	"Import CSV using data import"
+	from frappe.core.doctype.data_import import importer
 	from frappe.utils.csvutils import read_csv_content
 	site = get_site(context)
 
@@ -300,6 +302,7 @@ def console(context):
 @click.command('run-tests')
 @click.option('--app', help="For App")
 @click.option('--doctype', help="For DocType")
+@click.option('--doctype-list-path', help="Path to .txt file for list of doctypes. Example erpnext/tests/server/agriculture.txt")
 @click.option('--test', multiple=True, help="Specific test")
 @click.option('--driver', help="For Travis")
 @click.option('--ui-tests', is_flag=True, default=False, help="Run UI Tests")
@@ -308,7 +311,7 @@ def console(context):
 @click.option('--junit-xml-output', help="Destination file path for junit xml report")
 @pass_context
 def run_tests(context, app=None, module=None, doctype=None, test=(),
-	driver=None, profile=False, junit_xml_output=False, ui_tests = False):
+	driver=None, profile=False, junit_xml_output=False, ui_tests = False, doctype_list_path=None):
 	"Run tests"
 	import frappe.test_runner
 	tests = test
@@ -318,7 +321,7 @@ def run_tests(context, app=None, module=None, doctype=None, test=(),
 
 	ret = frappe.test_runner.main(app, module, doctype, context.verbose, tests=tests,
 		force=context.force, profile=profile, junit_xml_output=junit_xml_output,
-		ui_tests = ui_tests)
+		ui_tests = ui_tests, doctype_list_path = doctype_list_path)
 	if len(ret.failures) == 0 and len(ret.errors) == 0:
 		ret = 0
 
@@ -327,10 +330,11 @@ def run_tests(context, app=None, module=None, doctype=None, test=(),
 
 @click.command('run-ui-tests')
 @click.option('--app', help="App to run tests on, leave blank for all apps")
-@click.option('--test', help="File name of the test you want to run")
+@click.option('--test', help="Path to the specific test you want to run")
+@click.option('--test-list', help="Path to the txt file with the list of test cases")
 @click.option('--profile', is_flag=True, default=False)
 @pass_context
-def run_ui_tests(context, app=None, test=False, profile=False):
+def run_ui_tests(context, app=None, test=False, test_list=False, profile=False):
 	"Run UI tests"
 	import frappe.test_runner
 
@@ -338,7 +342,7 @@ def run_ui_tests(context, app=None, test=False, profile=False):
 	frappe.init(site=site)
 	frappe.connect()
 
-	ret = frappe.test_runner.run_ui_tests(app=app, test=test, verbose=context.verbose,
+	ret = frappe.test_runner.run_ui_tests(app=app, test=test, test_list=test_list, verbose=context.verbose,
 		profile=profile)
 	if len(ret.failures) == 0 and len(ret.errors) == 0:
 		ret = 0

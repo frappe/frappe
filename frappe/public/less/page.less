@@ -120,6 +120,8 @@
 	margin: 0px;
 	padding-right: 15px;
 	padding-top: 10px;
+	display: flex;
+	flex-wrap: wrap;
 	border-bottom: 1px solid @border-color;
 	background-color: @panel-bg;
 
@@ -333,6 +335,10 @@ select.input-sm {
 			cursor: pointer;
 		}
 	}
+
+	.progress-bar {
+		background-color: #5e64ff;
+	}
 }
 
 .page-card-container {
@@ -374,50 +380,4 @@ select.input-sm {
 	align-items: center;
 }
 
-@keyframes lds-rolling {
-	0% {
-		-webkit-transform: translate(-50%, -50%) rotate(0deg);
-		transform: translate(-50%, -50%) rotate(0deg);
-	}
-	100% {
-		-webkit-transform: translate(-50%, -50%) rotate(360deg);
-		transform: translate(-50%, -50%) rotate(360deg);
-	}
-}
-@-webkit-keyframes lds-rolling {
-	0% {
-		-webkit-transform: translate(-50%, -50%) rotate(0deg);
-		transform: translate(-50%, -50%) rotate(0deg);
-	}
-	100% {
-		-webkit-transform: translate(-50%, -50%) rotate(360deg);
-		transform: translate(-50%, -50%) rotate(360deg);
-	}
-}
 
-.lds-rolling {
-	-webkit-transform: translate(-100px, -100px) scale(1) translate(100px, 100px);
-	transform: translate(-100px, -100px) scale(1) translate(100px, 100px);
-	div {
-		position: absolute;
-		width: 60px;
-		height: 60px;
-		border: 3px solid #d1d8dd;
-		border-top-color: transparent;
-		border-radius: 50%;
-		-webkit-animation: lds-rolling 1s linear infinite;
-		animation: lds-rolling 1s linear infinite;
-		top: 50px;
-		left: 50px;
-		&:after {
-			position: absolute;
-			width: 60px;
-			height: 60px;
-			border: 3px solid #d1d8dd;
-			border-top-color: transparent;
-			border-radius: 50%;
-			-webkit-transform: rotate(90deg);
-			transform: rotate(90deg);
-		}
-	}
-}

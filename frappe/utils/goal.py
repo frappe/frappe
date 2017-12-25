@@ -98,7 +98,7 @@ def get_monthly_goal_graph_data(title, doctype, docname, goal_value_field, goal_
 	summary_values = [
 		{
 			'title': _("This month"),
-			'color': 'green',
+			'color': '#ffa00a',
 			'value': formatted_value
 		}
 	]
@@ -114,12 +114,12 @@ def get_monthly_goal_graph_data(title, doctype, docname, goal_value_field, goal_
 		summary_values += [
 			{
 				'title': _("Goal"),
-				'color': 'blue',
+				'color': '#5e64ff',
 				'value': formatted_goal
 			},
 			{
 				'title': _("Completed"),
-				'color': 'green',
+				'color': '#28a745',
 				'value': str(int(round(float(current_month_value)/float(goal)*100))) + "%"
 			}
 		]
@@ -131,15 +131,14 @@ def get_monthly_goal_graph_data(title, doctype, docname, goal_value_field, goal_
 		'data': {
 			'datasets': [
 				{
-					'color': 'green',
 					'values': values,
 					'formatted': values_formatted
 				}
 			],
-			'labels': months
+			'labels': months,
+			'specific_values': specific_values,
 		},
 
-		'specific_values': specific_values,
 		'summary': summary_values
 	}
 

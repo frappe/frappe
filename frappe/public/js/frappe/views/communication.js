@@ -48,8 +48,9 @@ frappe.views.CommunicationComposer = Class.extend({
 	get_fields: function() {
 		var fields= [
 			{label:__("To"), fieldtype:"Data", reqd: 0, fieldname:"recipients",length:524288},
-			{fieldtype: "Section Break", collapsible: 1, label: __("CC & Standard Reply")},
+			{fieldtype: "Section Break", collapsible: 1, label: __("CC, BCC & Standard Reply")},
 			{label:__("CC"), fieldtype:"Data", fieldname:"cc", length:524288},
+			{label:__("BCC"), fieldtype:"Data", fieldname:"bcc", length:524288},
 			{label:__("Standard Reply"), fieldtype:"Link", options:"Standard Reply",
 				fieldname:"standard_reply"},
 			{fieldtype: "Section Break"},
@@ -109,6 +110,7 @@ frappe.views.CommunicationComposer = Class.extend({
 
 		this.dialog.fields_dict.recipients.set_value(this.recipients || '');
 		this.dialog.fields_dict.cc.set_value(this.cc || '');
+		this.dialog.fields_dict.bcc.set_value(this.bcc || '');
 
 		if(this.dialog.fields_dict.sender) {
 			this.dialog.fields_dict.sender.set_value(this.sender || '');
@@ -123,6 +125,7 @@ frappe.views.CommunicationComposer = Class.extend({
 		if(!this.forward && !this.recipients && this.last_email) {
 			this.recipients = this.last_email.sender;
 			this.cc = this.last_email.cc;
+			this.bcc = this.last_email.bcc;
 		}
 
 		if(!this.forward && !this.recipients) {
@@ -351,11 +354,14 @@ frappe.views.CommunicationComposer = Class.extend({
 		var fields = this.dialog.fields_dict;
 		var attach = $(fields.select_attachments.wrapper).find(".attach-list").empty();
 
-		if (cur_frm){
-			var files = cur_frm.get_files();
-		}else {
-			var files = this.attachments
+		var files = [];
+		if (this.attachments && this.attachments.length) {
+			files = files.concat(this.attachments);
 		}
+		if (cur_frm) {
+			files = files.concat(cur_frm.get_files());
+		}
+
 		if(files.length) {
 			$.each(files, function(i, f) {
 				if (!f.file_name) return;
@@ -446,6 +452,7 @@ frappe.views.CommunicationComposer = Class.extend({
 				// concat in cc
 				if ( form_values[df.fieldname] ) {
 					form_values.cc = ( form_values.cc ? (form_values.cc + ", ") : "" ) + df.fieldname;
+					form_values.bcc = ( form_values.bcc ? (form_values.bcc + ", ") : "" ) + df.fieldname;
 				}
 
 				delete form_values[df.fieldname];
@@ -484,6 +491,7 @@ frappe.views.CommunicationComposer = Class.extend({
 			args: {
 				recipients: form_values.recipients,
 				cc: form_values.cc,
+				bcc: form_values.bcc,
 				subject: form_values.subject,
 				content: form_values.content,
 				doctype: me.doc.doctype,
@@ -594,7 +602,8 @@ frappe.views.CommunicationComposer = Class.extend({
 		var me = this;
 		[
 			this.dialog.fields_dict.recipients.input,
-			this.dialog.fields_dict.cc.input
+			this.dialog.fields_dict.cc.input,
+			this.dialog.fields_dict.bcc.input
 		].map(function(input) {
 			me.setup_awesomplete_for_input(input);
 		});

@@ -399,6 +399,13 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 
 		if (this.list_renderer.should_refresh()) {
 			this.setup_list_renderer();
+
+			if (this.list_renderer.load_last_view && this.list_renderer.load_last_view()) {
+				// let the list_renderer load the last view for the current view
+				// for e.g last kanban board for kanban view
+				return;
+			}
+
 			this.refresh_surroundings();
 			this.dirty = true;
 		}
@@ -594,8 +601,8 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 
 		if (frappe.model.can_import(this.doctype)) {
 			this.page.add_menu_item(__('Import'), function () {
-				frappe.set_route('data-import-tool', {
-					doctype: me.doctype
+				frappe.set_route('List', 'Data Import', {
+					reference_doctype: me.doctype
 				});
 			}, true);
 		}

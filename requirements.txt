@@ -7,7 +7,7 @@ httplib2
 jinja2
 markdown2
 markupsafe
--e git+https://github.com/frappe/mysqlclient-python.git@1.3.12#egg=mysqlclient
+PyMySQL
 python-geoip
 python-geoip-geolite2
 python-dateutil
@@ -39,7 +39,6 @@ pyopenssl
 ndg-httpsclient
 pyasn1
 zxcvbn-python
-psutil
 unittest-xml-reporting
 oauthlib
 PyJWT
@@ -49,4 +48,5 @@ pyotp
 pyqrcode
 pypng
 premailer
-psycopg2
+croniter
+googlemaps

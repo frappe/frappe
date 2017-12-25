@@ -196,11 +196,13 @@ def set_desktop_icons(visible_list, ignore_duplicate=True):
 	if the desktop icon does not exist and the name is a DocType, then will create
 	an icon for the doctype'''
 
-	# clear all custom
-	frappe.db.sql('delete from `tabDesktop Icon` where standard=0')
+	# clear all custom only if setup is not complete
+	if not int(frappe.defaults.get_defaults().setup_complete or 0):
+		frappe.db.sql('delete from `tabDesktop Icon` where standard=0')
 
-	# set all as blocked
-	frappe.db.sql('update `tabDesktop Icon` set blocked=0, hidden=1')
+	# set standard as blocked and hidden if setting first active domain
+	if not frappe.flags.keep_desktop_icons:
+		frappe.db.sql('update `tabDesktop Icon` set blocked=0, hidden=1 where standard=1')
 
 	# set as visible if present, or add icon
 	for module_name in visible_list:

@@ -138,9 +138,6 @@ $.extend(frappe.desktop, {
 	setup_wiggle: () => {
 		// Wiggle, Wiggle, Wiggle.
 		const DURATION_LONG_PRESS = 1000;
-		// lesser the antidode, more the wiggle (like your drunk uncle)
-		// 75 seems good to replicate the iOS feels.
-		const WIGGLE_ANTIDODE     = 75;
 
 		var   timer_id      = 0;
 		const $cases        = frappe.desktop.wrapper.find('.case-wrapper');
@@ -149,34 +146,29 @@ $.extend(frappe.desktop, {
 			// This hack is so bad, I should punch myself.
 			// Seriously, punch yourself.
 			const text      = $(object).find('.circle-text').html();
-			
+
 			return text;
 		}));
-		
+
 		const clearWiggle   = () => {
 			const $closes   = $cases.find('.module-remove');
 			$closes.hide();
 			$notis.show();
 
-			$icons.trigger('stopRumble');
+			$icons.removeClass('wiggle');
 
 			frappe.desktop.wiggling   = false;
 		};
-
-		// initiate wiggling.
-		$icons.jrumble({
-			speed: WIGGLE_ANTIDODE // seems neat enough to match the iOS way
-		});
 
 		frappe.desktop.wrapper.on('mousedown', '.app-icon', () => {
 			timer_id     = setTimeout(() => {
 				frappe.desktop.wiggling = true;
 				// hide all notifications.
 				$notis.hide();
-				
+
 				$cases.each((i) => {
 					const $case    = $($cases[i]);
-					const template = 
+					const template =
 					`
 						<div class="circle module-remove" style="background-color:#E0E0E0; color:#212121">
 							<div class="circle-text">
@@ -200,7 +192,7 @@ $.extend(frappe.desktop, {
 								method: 'frappe.desk.doctype.desktop_icon.desktop_icon.hide',
 								args: { name: name },
 								freeze: true,
-								callback: (response) => 
+								callback: (response) =>
 								{
 									if ( response.message ) {
 										location.reload();
@@ -209,7 +201,7 @@ $.extend(frappe.desktop, {
 							})
 
 							dialog.hide();
-							
+
 							clearWiggle();
 						});
 						// Hacks, Hacks and Hacks.
@@ -222,8 +214,9 @@ $.extend(frappe.desktop, {
 						dialog.show();
 					});
 				});
-			
-				$icons.trigger('startRumble');
+
+				$icons.addClass('wiggle');
+
 			}, DURATION_LONG_PRESS);
 		});
 		frappe.desktop.wrapper.on('mouseup mouseleave', '.app-icon', () => {

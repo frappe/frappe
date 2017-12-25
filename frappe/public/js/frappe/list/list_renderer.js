@@ -74,6 +74,13 @@ frappe.views.ListRenderer = Class.extend({
 	should_refresh: function() {
 		return this.list_view.current_view !== this.list_view.last_view;
 	},
+	load_last_view: function() {
+		// this function should handle loading the last view of your list_renderer,
+		// If you have a last view (for e.g last kanban board in Kanban View),
+		// load it using frappe.set_route and return true
+		// else return false
+		return false;
+	},
 	set_wrapper: function () {
 		this.wrapper = this.list_view.wrapper && this.list_view.wrapper.find('.result-list');
 	},
@@ -318,7 +325,8 @@ frappe.views.ListRenderer = Class.extend({
 			}
 
 			var link = $(this).parent().find('a.list-id').get(0);
-			window.location.href = link.href;
+			if ( link && link.href )
+				window.location.href = link.href;
 			return false;
 		});
 	},
@@ -348,6 +356,30 @@ frappe.views.ListRenderer = Class.extend({
 			this.render_tags($item_container, value);
 		});
 
+		this.render_count();
+	},
+
+	render_count: function() {
+		const $header_right = this.list_view.list_header.find('.list-item__content--activity');
+		const current_count = this.list_view.data.length;
+
+		frappe.call({
+			method: 'frappe.model.db_query.get_count',
+			args: {
+				doctype: this.doctype,
+				filters: this.list_view.get_filters_args()
+			}
+		}).then(r => {
+			const count = r.message || current_count;
+			const str = __('{0} of {1}', [current_count, count]);
+			const $html = $(`<span>${str}</span>`);
+
+			$html.css({
+				marginRight: '10px'
+			})
+			$header_right.addClass('text-muted');
+			$header_right.html($html);
+		})
 	},
 
 	// returns html for a data item,

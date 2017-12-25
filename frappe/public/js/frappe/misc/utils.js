@@ -41,6 +41,14 @@ frappe.utils = {
 	is_md: function() {
 		return $(document).width() < 1199 && $(document).width() >= 991;
 	},
+	is_json: function(str) {
+		try {
+			JSON.parse(str);
+		} catch (e) {
+			return false;
+		}
+		return true;
+	},
 	strip_whitespace: function(html) {
 		return (html || "").replace(/<p>\s*<\/p>/g, "").replace(/<br>(\s*<br>\s*)+/g, "<br><br>");
 	},

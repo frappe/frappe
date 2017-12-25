@@ -82,7 +82,16 @@ def get_data():
 					"name": "Webhook",
 					"description": _("Webhooks calling API requests into web apps"),
 				}
-
+			]
+		},
+		{
+			"label": _("Maps"),
+			"items": [
+				{
+					"type": "doctype",
+					"name": "Google Maps",
+					"description": _("Google Maps integration"),
+				}
 			]
 		}
 	]

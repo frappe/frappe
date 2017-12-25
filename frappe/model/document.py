@@ -357,7 +357,11 @@ class Document(BaseDocument):
 
 	def get_doc_before_save(self):
 		if not getattr(self, '_doc_before_save', None):
-			self._doc_before_save = frappe.get_doc(self.doctype, self.name)
+			try:
+				self._doc_before_save = frappe.get_doc(self.doctype, self.name)
+			except frappe.DoesNotExistError:
+				self._doc_before_save = None
+				frappe.clear_last_message()
 		return self._doc_before_save
 
 	def set_new_name(self, force=False):
@@ -435,7 +439,6 @@ class Document(BaseDocument):
 	def _validate(self):
 		self._validate_mandatory()
 		self._validate_selects()
-		self._validate_constants()
 		self._validate_length()
 		self._extract_images_from_text_editor()
 		self._sanitize_content()
@@ -444,16 +447,66 @@ class Document(BaseDocument):
 		children = self.get_all_children()
 		for d in children:
 			d._validate_selects()
-			d._validate_constants()
 			d._validate_length()
 			d._extract_images_from_text_editor()
 			d._sanitize_content()
 			d._save_passwords()
 
+		self.validate_set_only_once()
+
 		if self.is_new():
 			# don't set fields like _assign, _comments for new doc
 			for fieldname in optional_fields:
 				self.set(fieldname, None)
+
+	def validate_set_only_once(self):
+		'''Validate that fields are not changed if not in insert'''
+		set_only_once_fields = self.meta.get_set_only_once_fields()
+
+		if set_only_once_fields and self._doc_before_save:
+			# document exists before saving
+			for field in set_only_once_fields:
+				fail = False
+				value = self.get(field.fieldname)
+				original_value = self._doc_before_save.get(field.fieldname)
+
+				if field.fieldtype=='Table':
+					fail = not self.is_child_table_same(field.fieldname)
+				elif field.fieldtype in ('Date', 'Datetime', 'Time'):
+					fail = str(value) != str(original_value)
+				else:
+					fail = value != original_value
+
+				if fail:
+					frappe.throw(_("Value cannot be changed for {0}").format(self.meta.get_label(field.fieldname)),
+						frappe.CannotChangeConstantError)
+
+		return False
+
+	def is_child_table_same(self, fieldname):
+		'''Validate child table is same as original table before saving'''
+		value = self.get(fieldname)
+		original_value = self._doc_before_save.get(fieldname)
+		same = True
+
+		if len(original_value) != len(value):
+			same = False
+		else:
+			# check all child entries
+			for i, d in enumerate(original_value):
+				new_child = value[i].as_dict(convert_dates_to_str = True)
+				original_child = d.as_dict(convert_dates_to_str = True)
+
+				# all fields must be same other than modified and modified_by
+				for key in ('modified', 'modified_by', 'creation'):
+					del new_child[key]
+					del original_child[key]
+
+				if original_child != new_child:
+					same = False
+					break
+
+		return same
 
 	def apply_fieldlevel_read_permissions(self):
 		'''Remove values the user is not allowed to read (called when loading in desk)'''
@@ -796,10 +849,8 @@ class Document(BaseDocument):
 
 		Will also update title_field if set"""
 
+		self.load_doc_before_save()
 		self.reset_seen()
-		self._doc_before_save = None
-		if not self.is_new() and getattr(self.meta, 'track_changes', False):
-			self.get_doc_before_save()
 
 		if self.flags.ignore_validate:
 			return
@@ -816,6 +867,14 @@ class Document(BaseDocument):
 			self.run_method("before_update_after_submit")
 
 		self.set_title_field()
+
+	def load_doc_before_save(self):
+		'''Save load document from db before saving'''
+		self._doc_before_save = None
+		if not (self.is_new()
+			and (getattr(self.meta, 'track_changes', False)
+				or self.meta.get_set_only_once_fields())):
+			self.get_doc_before_save()
 
 	def run_post_save_methods(self):
 		"""Run standard methods after `INSERT` or `UPDATE`. Standard Methods are:

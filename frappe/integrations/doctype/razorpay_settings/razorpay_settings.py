@@ -108,10 +108,7 @@ class RazorpaySettings(Document):
 		until it is explicitly captured by merchant.
 		"""
 		data = json.loads(self.integration_request.data)
-
 		settings = self.get_settings(data)
-		redirect_to = data.get('notes', {}).get('redirect_to') or None
-		redirect_message = data.get('notes', {}).get('redirect_message') or None
 
 		try:
 			resp = make_get_request("https://api.razorpay.com/v1/payments/{0}"
@@ -119,7 +116,7 @@ class RazorpaySettings(Document):
 					settings.api_secret))
 
 			if resp.get("status") == "authorized":
-				self.integration_request.db_set('status', 'Authorized', update_modified=False)
+				self.integration_request.update_status(data, 'Authorized')
 				self.flags.status_changed_to = "Authorized"
 
 			else:
@@ -131,6 +128,9 @@ class RazorpaySettings(Document):
 			pass
 
 		status = frappe.flags.integration_request.status_code
+
+		redirect_to = data.get('notes', {}).get('redirect_to') or None
+		redirect_message = data.get('notes', {}).get('redirect_message') or None
 
 		if self.flags.status_changed_to == "Authorized":
 			if self.data.reference_doctype and self.data.reference_docname:

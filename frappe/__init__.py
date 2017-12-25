@@ -14,7 +14,7 @@ import os, sys, importlib, inspect, json
 from .exceptions import *
 from .utils.jinja import get_jenv, get_template, render_template, get_email_from_template
 
-__version__ = '9.2.25'
+__version__ = '10.0.0'
 __title__ = "Frappe Framework"
 
 local = Local()
@@ -311,6 +311,10 @@ def msgprint(msg, title=None, raise_exception=0, as_table=False, indicator=None,
 def clear_messages():
 	local.message_log = []
 
+def clear_last_message():
+	if len(local.message_log) > 0:
+		local.message_log = local.message_log[:-1]
+
 def throw(msg, exc=ValidationError, title=None):
 	"""Throw execption and show message (`msgprint`).
 
@@ -378,7 +382,7 @@ def sendmail(recipients=[], sender="", subject="No Subject", message="No Message
 		as_markdown=False, delayed=True, reference_doctype=None, reference_name=None,
 		unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None,
 		attachments=None, content=None, doctype=None, name=None, reply_to=None,
-		cc=[], message_id=None, in_reply_to=None, send_after=None, expose_recipients=None,
+		cc=[], bcc=[], message_id=None, in_reply_to=None, send_after=None, expose_recipients=None,
 		send_priority=1, communication=None, retry=1, now=None, read_receipt=None, is_notification=False,
 		inline_images=None, template=None, args=None, header=None):
 	"""Send email using user's default **Email Account** or global default **Email Account**.
@@ -426,7 +430,7 @@ def sendmail(recipients=[], sender="", subject="No Subject", message="No Message
 		subject=subject, message=message, text_content=text_content,
 		reference_doctype = doctype or reference_doctype, reference_name = name or reference_name,
 		unsubscribe_method=unsubscribe_method, unsubscribe_params=unsubscribe_params, unsubscribe_message=unsubscribe_message,
-		attachments=attachments, reply_to=reply_to, cc=cc, message_id=message_id, in_reply_to=in_reply_to,
+		attachments=attachments, reply_to=reply_to, cc=cc, bcc=bcc, message_id=message_id, in_reply_to=in_reply_to,
 		send_after=send_after, expose_recipients=expose_recipients, send_priority=send_priority,
 		communication=communication, now=now, read_receipt=read_receipt, is_notification=is_notification,
 		inline_images=inline_images, header=header)
@@ -972,9 +976,9 @@ def make_property_setter(args, ignore_validate=False, validate_fields_for_doctyp
 		ps.insert()
 
 def import_doc(path, ignore_links=False, ignore_insert=False, insert=False):
-	"""Import a file using Data Import Tool."""
-	from frappe.core.page.data_import_tool import data_import_tool
-	data_import_tool.import_doc(path, ignore_links=ignore_links, ignore_insert=ignore_insert, insert=insert)
+	"""Import a file using Data Import."""
+	from frappe.core.doctype.data_import import data_import
+	data_import.import_doc(path, ignore_links=ignore_links, ignore_insert=ignore_insert, insert=insert)
 
 def copy_doc(doc, ignore_no_copy=True):
 	""" No_copy fields also get copied."""
@@ -1362,7 +1366,7 @@ def logger(module=None, with_more_info=True):
 
 def log_error(message=None, title=None):
 	'''Log error to Error Log'''
-	get_doc(dict(doctype='Error Log', error=as_unicode(message or get_traceback()),
+	return get_doc(dict(doctype='Error Log', error=as_unicode(message or get_traceback()),
 		method=title)).insert(ignore_permissions=True)
 
 def get_desk_link(doctype, name):

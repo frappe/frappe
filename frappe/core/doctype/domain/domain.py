@@ -18,10 +18,11 @@ class Domain(Document):
 		self.setup_roles()
 		self.setup_properties()
 		self.set_values()
-		if not int(frappe.db.get_single_value('System Settings', 'setup_complete') or 0):
+		# always set the desktop icons while changing the domain settings
+		self.setup_desktop_icons()
+		if not int(frappe.defaults.get_defaults().setup_complete or 0):
 			# if setup not complete, setup desktop etc.
 			self.setup_sidebar_items()
-			self.setup_desktop_icons()
 			self.set_default_portal_role()
 
 		if self.data.custom_fields:
@@ -59,7 +60,9 @@ class Domain(Document):
 	def setup_roles(self):
 		'''Enable roles that are restricted to this domain'''
 		if self.data.restricted_roles:
+			user = frappe.get_doc("User", frappe.session.user)
 			for role_name in self.data.restricted_roles:
+				user.append("roles", {"role": role_name})
 				if not frappe.db.get_value('Role', role_name):
 					frappe.get_doc(dict(doctype='Role', role_name=role_name)).insert()
 					continue
@@ -67,6 +70,7 @@ class Domain(Document):
 				role = frappe.get_doc('Role', role_name)
 				role.disabled = 0
 				role.save()
+			user.save()
 
 	def setup_data(self, domain=None):
 		'''Load domain info via hooks'''
@@ -97,6 +101,7 @@ class Domain(Document):
 		'''set values based on `data.set_value`'''
 		if self.data.set_value:
 			for args in self.data.set_value:
+				frappe.reload_doctype(args[0])
 				doc = frappe.get_doc(args[0], args[1] or args[0])
 				doc.set(args[2], args[3])
 				doc.save()

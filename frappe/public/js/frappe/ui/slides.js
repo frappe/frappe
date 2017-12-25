@@ -194,6 +194,10 @@ frappe.ui.Slide = class Slide {
 		return this.form.get_field(fieldname);
 	}
 
+	get_value(fieldname) {
+		return this.form.get_value(fieldname);
+	}
+
 	destroy() {
 		this.$body.remove();
 	}

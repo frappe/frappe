@@ -96,6 +96,12 @@ class Meta(Document):
 	def get_image_fields(self):
 		return self.get("fields", {"fieldtype": "Attach Image"})
 
+	def get_set_only_once_fields(self):
+		'''Return fields with `set_only_once` set'''
+		if not hasattr(self, "_set_only_once_fields"):
+			self._set_only_once_fields = self.get("fields", {"set_only_once": 1})
+		return self._set_only_once_fields
+
 	def get_table_fields(self):
 		if not hasattr(self, "_table_fields"):
 			if self.name!="DocType":

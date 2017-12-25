@@ -15,7 +15,7 @@ from email.header import Header
 
 def get_email(recipients, sender='', msg='', subject='[No Subject]',
 	text_content = None, footer=None, print_html=None, formatted=None, attachments=None,
-	content=None, reply_to=None, cc=[], email_account=None, expose_recipients=None,
+	content=None, reply_to=None, cc=[], bcc=[], email_account=None, expose_recipients=None,
 	inline_images=[], header=None):
 	""" Prepare an email with the following format:
 		- multipart/mixed
@@ -27,7 +27,7 @@ def get_email(recipients, sender='', msg='', subject='[No Subject]',
 				- attachment
 	"""
 	content = content or msg
-	emailobj = EMail(sender, recipients, subject, reply_to=reply_to, cc=cc, email_account=email_account, expose_recipients=expose_recipients)
+	emailobj = EMail(sender, recipients, subject, reply_to=reply_to, cc=cc, bcc=bcc, email_account=email_account, expose_recipients=expose_recipients)
 
 	if not content.strip().startswith("<"):
 		content = markdown(content)
@@ -51,7 +51,7 @@ class EMail:
 	Also provides a clean way to add binary `FileData` attachments
 	Also sets all messages as multipart/alternative for cleaner reading in text-only clients
 	"""
-	def __init__(self, sender='', recipients=(), subject='', alternative=0, reply_to=None, cc=(), email_account=None, expose_recipients=None):
+	def __init__(self, sender='', recipients=(), subject='', alternative=0, reply_to=None, cc=(), bcc=(), email_account=None, expose_recipients=None):
 		from email import charset as Charset
 		Charset.add_charset('utf-8', Charset.QP, Charset.QP, 'utf-8')
 
@@ -72,6 +72,7 @@ class EMail:
 		self.msg_alternative = MIMEMultipart('alternative')
 		self.msg_root.attach(self.msg_alternative)
 		self.cc = cc or []
+		self.bcc = bcc or []
 		self.html_set = False
 
 		self.email_account = email_account or get_outgoing_email_account(sender=sender)
@@ -176,8 +177,9 @@ class EMail:
 
 		self.recipients = [strip(r) for r in self.recipients]
 		self.cc = [strip(r) for r in self.cc]
+		self.bcc = [strip(r) for r in self.bcc]
 
-		for e in self.recipients + (self.cc or []):
+		for e in self.recipients + (self.cc or []) + (self.bcc or []):
 			validate_email_add(e, True)
 
 	def replace_sender(self):
@@ -207,6 +209,7 @@ class EMail:
 			"To":             ', '.join(self.recipients) if self.expose_recipients=="header" else "<!--recipient-->",
 			"Date":           email.utils.formatdate(),
 			"Reply-To":       self.reply_to if self.reply_to else None,
+			"Bcc":            ', '.join(self.bcc) if self.bcc else None,
 			"CC":             ', '.join(self.cc) if self.cc and self.expose_recipients=="header" else None,
 			'X-Frappe-Site':  get_url(),
 		}
