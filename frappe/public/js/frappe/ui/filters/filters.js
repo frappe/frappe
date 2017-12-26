@@ -19,6 +19,10 @@ frappe.ui.FilterList = Class.extend({
 						style="margin-right: 10px;"
 						class="btn btn-default btn-xs new-filter text-muted">
 						${__("Add Filter")}</button>
+					<button
+						style="margin-right: 10px;"
+						class="btn btn-default btn-xs remove-filters text-muted">
+						${__("Clear Filters")}</button>
 				</div>
 			</div>
 			<div class="filter_area"></div>`);
@@ -28,6 +32,11 @@ frappe.ui.FilterList = Class.extend({
 		// show filters
 		this.wrapper.find('.new-filter').bind('click', function() {
 			me.add_filter();
+		});
+
+		this.wrapper.find('.remove-filters').bind('click', function() {
+			me.clear_filters();
+			me.base_list.run();
 		});
 
 		this.wrapper.find('.clear-filters').bind('click', function() {
@@ -490,7 +499,7 @@ frappe.ui.Filter = Class.extend({
 				title="${ __("Remove Filter") }">
 				<i class="fa fa-remove text-muted"></i>
 			</button></div>`)
-			.insertAfter(this.flist.wrapper.find(".set-filters .new-filter"));
+			.insertAfter(this.flist.wrapper.find(".set-filters .remove-filters"));
 
 		this.set_filter_button_text();
 
