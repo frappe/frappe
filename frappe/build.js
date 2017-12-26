@@ -144,7 +144,7 @@ function get_compiled_file(file, output_path, minify, force_compile) {
 		file_content = minify_js(file_content, file);
 	}
 
-	if (file.endsWith('.js') && !file.includes('/lib/') && output_type === 'js' && !file.endsWith('class.js')) {
+	if (minify && file.endsWith('.js') && !file.includes('/lib/') && output_type === 'js' && !file.endsWith('class.js')) {
 		file_content = babelify(file_content, file, minify);
 	}
 

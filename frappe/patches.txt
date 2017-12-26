@@ -195,9 +195,9 @@ frappe.patches.v8_5.delete_email_group_member_with_invalid_emails
 frappe.patches.v8_x.update_user_permission
 frappe.patches.v8_5.patch_event_colors
 frappe.patches.v8_10.delete_static_web_page_from_global_search
-frappe.patches.v8_x.add_bgn_xaf_xof_currencies
 frappe.patches.v9_1.add_sms_sender_name_as_parameters
 frappe.patches.v9_1.resave_domain_settings
 frappe.patches.v9_1.revert_domain_settings
 frappe.patches.v9_1.move_feed_to_activity_log
 execute:frappe.delete_doc('Page', 'data-import-tool', ignore_missing=True)
+frappe.patches.v10_0.reload_countries_and_currencies

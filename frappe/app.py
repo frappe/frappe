@@ -121,8 +121,15 @@ def init_request(request):
 	frappe.local.http_request = frappe.auth.HTTPRequest()
 
 def make_form_dict(request):
+	import json
+
+	if request.content_type == 'application/json':
+		args = json.loads(request.data)
+	else:
+		args = request.form or request.args
+
 	frappe.local.form_dict = frappe._dict({ k:v[0] if isinstance(v, (list, tuple)) else v \
-		for k, v in iteritems(request.form or request.args) })
+		for k, v in iteritems(args) })
 
 	if "_" in frappe.local.form_dict:
 		# _ is passed by $.ajax so that the request is not cached by the browser. So, remove _ from form_dict
