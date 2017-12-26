@@ -110,9 +110,9 @@ $.extend(frappe, {
 			server_messages = $.map(server_messages, function(v) {
 				// temp fix for messages sent as dict
 				try {
-					return JSON.parse(v).message;
+					return frappe.utils.xss_sanitise(JSON.parse(v).message);
 				} catch (e) {
-					return v;
+					return frappe.utils.xss_sanitise(v);
 				}
 			}).join('<br>');
 
