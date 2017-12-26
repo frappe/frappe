@@ -45,7 +45,7 @@ $.extend(frappe.model, {
 				}
 			}
 
-			if(cur_frm && isPlain) cur_frm.dirty();
+
 
 		}
 
