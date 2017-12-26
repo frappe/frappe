@@ -35,7 +35,6 @@ def get_context(context):
 				"name": provider,
 				"provider_name": frappe.get_value("Social Login Key", provider, "provider_name"),
 				"auth_url": get_oauth2_authorize_url(provider),
-				"icon_type": frappe.get_value("Social Login Key", provider, "icon_type"),
 				"icon": icon
 			})
 			context["social_login"] = True
