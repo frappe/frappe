@@ -1,18 +1,11 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-// for license information please see license.txt
-
-// constructor: parent, label, method, args
+frappe.provide('frappe.ui');
 
 frappe.ui.Tree = class {
 	constructor({
-		parent,
-		label,
-		icon_set,
-		toolbar,
-		// editable,
-		// expandable,
+		parent, label, icon_set, toolbar, expandable,
 
 		get_nodes,
 		get_nodes_args,
@@ -20,344 +13,262 @@ frappe.ui.Tree = class {
 		on_render,
 		on_click
 	}) {
-		console.log('args inside new', arguments[0]);
 		$.extend(this, arguments[0]);
-		this.wrapper = $('<div class="tree">').appendTo(this.parent);
-		this.root_node = new frappe.ui.TreeNode({
-			tree: this,
-			parent: this.wrapper,
-			label: this.label, //
-			parent_label: null, //
-			expandable: true,
-			is_root: true,
-			data: {
-				value: this.label,
-				// parent: this.label,
-				// expandable: true
-			}
-		});
-		this.root_node.toggle();
-	}
-
-	refresh() {
-		this.selected_node.reload_parent();
-	}
-
-	get_selected_node() {
-		return this.selected_node;
-	}
-
-	toggle() {
-		this.get_selected_node().toggle();
-	}
-}
-
-frappe.ui.TreeNode = class {
-	constructor({
-		parent,
-		label,
-		parent_label,
-		args,
-		icon
-	}) {
-		$.extend(this, arguments[0]);
-		//
-	}
-
-	make() {}
-
-	make_icon() {}
-
-	make_toolbar() {}
-
-	show_toolbar() {}
-
-	setup_drag_drop() {}
-
-	toggle() {}
-
-	add_node() {}
-
-	load_children(deep=false) {
-		deep ? this.load_children_deep()
-		: this.load_children_shallow();
-	}
-
-	load_children_shallow() {
-		var node = this;
-		var args = $.extend(this.tree.get_nodes_args || {}, {
-			parent: this.data.value
-		});
-
-		args.is_root = this.is_root;
-
-		return new Promise((resolve) => {
-			frappe.call({
-				method: this.tree.get_nodes,
-				args: args,
-				callback: (r) => {
-					node.render_node_children(node, r.message);
-				}
-			})
-		});
-	}
-
-	load_children_deep() {}
-}
-
-
-
-
-frappe.ui.Tree2 = Class.extend({
-// frappe.ui.Tree = Class.extend({
-	init: function(args) {
-		console.log('args inside', args);
-		$.extend(this, args);
+		this.setup_treenode_class();
 		this.nodes = {};
 		this.wrapper = $('<div class="tree">').appendTo(this.parent);
-		this.root_node = new frappe.ui.TreeNode({
-			tree: this,
+		this.root_node = new this.TreeNode({
 			parent: this.wrapper,
 			label: this.label,
 			parent_label: null,
 			expandable: true,
 			is_root: true,
 			data: {
-				value: this.label,
-				parent: this.label,
-				expandable: true
+				value: this.label
 			}
 		});
-		this.root_node.toggle();
-	},
-	refresh: function() {
-		this.selected_node.reload_parent();
-	},
-	get_selected_node: function() {
-		return this.selected_node;
-	},
-	toggle: function() {
-		this.get_selected_node().toggle();
+		this.expand_node(this.root_node);
 	}
-});
 
-frappe.ui.TreeNode1 = Class.extend({
-// frappe.ui.TreeNode = Class.extend({
-	init: function(args) {
-		$.extend(this, args);
-		this.loaded = false;
-		this.expanded = false;
-		this.tree.nodes[this.label] = this;
-		if(this.parent_label)
-			this.parent_node = this.tree.nodes[this.parent_label];
-
-		this.make();
-		this.setup_drag_drop();
-
-		if(this.tree.onrender) {
-			this.tree.onrender(this);
-		}
-	},
-	make: function() {
-		var me = this;
-		this.$tree_link = $('<span class="tree-link">')
-			.click(function(event) {
-				me.tree.selected_node = me;
-				me.tree.wrapper.find(".tree-link.active").removeClass("active");
-				me.$tree_link.addClass("active");
-				if(me.tree.toolbar) {
-					me.show_toolbar();
+	setup_treenode_class() {
+		let tree = this;
+		this.TreeNode = class {
+			constructor({
+				parent, label,
+				parent_label,
+				expandable,
+				is_root,
+				data
+			}) {
+				$.extend(this, arguments[0]);
+				this.loaded = 0;
+				this.expanded = 0;
+				if(this.parent_label){
+					this.parent_node = tree.nodes[this.parent_label];
 				}
-				if(me.tree.click) {
-					me.tree.click(this);
-				}
-				if(me.tree.onclick) {
-					me.tree.onclick(me);
-				}
-			})
-			.data('label', this.label)
-			.data('node', this)
-			.appendTo(this.parent);
 
-		this.$ul = $('<ul class="tree-children">')
-			.toggle(false).appendTo(this.parent);
-
-		this.make_icon();
-
-	},
-	make_icon: function() {
-		// label with icon
-		var me= this;
-		var icon_html = '<i class="octicon octicon-primitive-dot text-extra-muted"></i>';
-		if(this.expandable) {
-			icon_html = '<i class="fa fa-fw fa-folder text-muted" style="font-size: 14px;"></i>';
-		}
-		$(icon_html + ' <a class="tree-label grey h6">' + this.get_label() + "</a>").
-			appendTo(this.$tree_link);
-
-		this.$tree_link.find('i').click(function() {
-			setTimeout(function() { me.toolbar.find(".btn-expand").click(); }, 100);
-		});
-
-		this.$tree_link.find('a').click(function() {
-			if(!me.expanded) setTimeout(function() { me.toolbar.find(".btn-expand").click(); }, 100);
-		});
-	},
-	get_label: function() {
-		if(this.tree.get_label) {
-			return this.tree.get_label(this);
-		}
-		if (this.title && this.title != this.label) {
-			return __(this.title) + ` <span class='text-muted'>(${this.label})</span>`;
-		} else {
-			return __(this.title || this.label);
-		}
-	},
-	toggle: function() {
-		if(this.expandable && this.tree.get_nodes && !this.loaded) {
-			return this.load_children()
-		} else {
-			return this.toggle_node();
-		}
-	},
-	show_toolbar: function() {
-		if(this.tree.cur_toolbar)
-			$(this.tree.cur_toolbar).toggle(false);
-
-		if(!this.toolbar)
-			this.make_toolbar();
-
-		this.tree.cur_toolbar = this.toolbar;
-		this.toolbar.toggle(true);
-	},
-	make_toolbar: function() {
-		var me = this;
-		this.toolbar = $('<span class="tree-node-toolbar btn-group"></span>').insertAfter(this.$tree_link);
-
-		$.each(this.tree.toolbar, function(i, item) {
-			if(item.toggle_btn) {
-				item = {
-					condition: function() { return me.expandable; },
-					get_label: function() { return me.expanded ? __("Collapse") : __("Expand") },
-					click:function(node, btn) {
-						node.toggle().then(function() {
-							$(btn).html(node.expanded ? __("Collapse") : __("Expand"));
-						});
-					},
-					btnClass: "btn-expand hidden-xs"
-				}
+				tree.nodes[this.label] = this;
+				tree.make_node_element(this);
+				tree.on_render && tree.on_render(this);
 			}
-			if(item.condition) {
-				if(!item.condition(me)) return;
-			}
-			var label = item.get_label ? item.get_label() : item.label;
-			var link = $("<button class='btn btn-default btn-xs'></button>")
-				.html(label)
-				.appendTo(me.toolbar)
-				.click(function() { item.click(me, this); return false; });
+		}
+	}
 
-			if(item.btnClass) link.addClass(item.btnClass);
-		})
+	make_node_element(node) {
+		node.$tree_link = $('<span class="tree-link">')
+			.attr('data-label', node.label)
+			.data('node', node)
+			.appendTo(node.parent);
 
-	},
-	setup_drag_drop: function() {
-		// experimental
-		var me = this;
-		if(this.tree.drop && this.parent_label) {
-			this.$ul.droppable({
-				hoverClass: "tree-hover",
-				greedy: true,
-				drop: function(event, ui) {
-					event.preventDefault();
-					var dragged_node = $(ui.draggable).find(".tree-link:first").data("node");
-					var dropped_node = $(this).parent().find(".tree-link:first").data("node");
-					me.tree.drop(dragged_node, dropped_node, $(ui.draggable), $(this));
-					return false;
-				}
-			});
+		node.$ul = $('<ul class="tree-children">')
+			.hide().appendTo(node.parent);
+
+		this.make_icon_and_label(node);
+		if(this.toolbar) {
+			node.$toolbar = this.get_toolbar(node).insertAfter(node.$tree_link);
+		}
+	}
+
+	toggle_node(node) {
+		if(node.expandable && this.get_nodes && !node.loaded) {
+			return this.load_children(node);
 		}
 
-	},
-	add_node: function(data) {
+		// expand children
+		if(node.$ul) {
+			if(node.$ul.children().length) {
+				node.$ul.toggle(!node.expanded);
+			}
+
+			// open close icon
+			node.$tree_link.find('i').removeClass();
+			if(!node.expanded) {
+				node.$tree_link.find('i').addClass('fa fa-fw fa-folder-open text-muted');
+			} else {
+				node.$tree_link.find('i').addClass('fa fa-fw fa-folder text-muted');
+			}
+		}
+	}
+
+	add_node(node, data) {
 		var $li = $('<li class="tree-node">');
-		if(this.tree.drop) $li.draggable({revert:true});
+		// if(this.drop) $li.draggable({revert:true});
 
-		return new frappe.ui.TreeNode({
-			tree: this.tree,
-			parent: $li.appendTo(this.$ul),
-			parent_label: this.label,
+		return new this.TreeNode({
+			parent: $li.appendTo(node.$ul),
+			parent_label: node.label,
 			label: data.value,
 			title: data.title,
 			expandable: data.expandable,
 			data: data
 		});
-	},
-	toggle_node: function() {
-		// expand children
-		if(this.$ul) {
-			if(this.$ul.children().length) {
-				this.$ul.toggle(!this.expanded);
-			}
+	}
 
-			// open close icon
-			this.$tree_link.find('i').removeClass();
-			if(!this.expanded) {
-				this.$tree_link.find('i').addClass('fa fa-fw fa-folder-open text-muted');
-			} else {
-				this.$tree_link.find('i').addClass('fa fa-fw fa-folder text-muted');
-			}
-		}
+	reload_node(node) {
+		this.load_children(node);
+	}
 
-		// select this link
-		this.tree.wrapper.find('.selected')
-			.removeClass('selected');
-		this.$tree_link.toggleClass('selected');
-		this.expanded = !this.expanded;
+	refresh() {
+		this.selected_node.parent_node &&
+			this.load_children_deep(this.selected_node.parent_node);
+	}
 
-		this.parent.toggleClass('opened', this.expanded);
-	},
-	reload: function() {
-		this.load_children();
-	},
-	reload_parent: function() {
-		this.parent_node && this.parent_node.load_children_deep();
-	},
-	load_children_deep: function(callback) {
-		var  me = this;
-		let args = $.extend({}, this.tree.get_nodes_args);
+	load_children(node, deep=false) {
+		deep ? this.load_children_deep(node)
+		: this.load_children_shallow(node);
+	}
 
-		args.parent = this.data.value;
-		args.tree_method = this.tree.get_nodes;
-		args.is_root = this.is_root;
-
-		return frappe.call({
-			method: 'frappe.desk.treeview.get_all_nodes',
-			args: args,
-			callback: function(r) {
-				console.log('load_children_deep r', r.message);
-				$.each(r.message, function(i, d) {
-					me.render_node_children(me.tree.nodes[d.parent], d.data);
-				});
-				if(callback) { callback(); }
-			}
+	load_children_shallow(node) {
+		var args = $.extend(this.get_nodes_args || {}, {
+			parent: node.data.value
 		});
-	},
-	load_children: function(callback) {
 
-	},
-	render_node_children: function(node, data) {
-		node.$ul.empty();
-		if (data) {
-			$.each(data, function(i, v) {
-				var child_node = node.add_node(v);
-				child_node.$tree_link
-					.data('node-data', v)
-					.data('node', child_node);
-			});
+		args.is_root = node.is_root;
+
+		return new Promise(resolve => {
+			frappe.call({
+				method: this.get_nodes,
+				args: args,
+				callback: (r) => {
+					this.render_node_children(node, r.message);
+					resolve();
+				}
+			})
+		});
+	}
+
+	load_children_deep(node) {
+		let args = $.extend({}, this.get_nodes_args);
+
+		args.is_root = node.is_root;
+		args.parent = node.data.value;
+		args.tree_method = this.get_nodes;
+
+		return new Promise(resolve => {
+			frappe.call({
+				method: 'frappe.desk.treeview.get_all_nodes',
+				args: args,
+				callback: (r) => {
+					$.each(r.message, (i, d) => {
+						this.render_node_children(this.nodes[d.parent], d.data);
+					});
+					resolve();
+				}
+			})
+		});
+	}
+
+	render_node_children(node, data_set) {
+		if(node.$ul.is(':empty')) {
+			node.$ul.empty();
+			if (data_set) {
+				$.each(data_set, (i, data) => {
+					var child_node = this.add_node(node, data);
+					child_node.$tree_link
+						.data('node-data', data)
+						.data('node', child_node);
+				});
+			}
 		}
 
 		node.expanded = false;
-		node.toggle_node();
+
+		// As children loaded
 		node.loaded = true;
-	},
-})
+		this.expand_node(node);
+	}
+
+	get_selected_node() {
+		return this.selected_node;
+	}
+
+	set_selected_node(node) {
+		this.selected_node = node;
+		this.on_click && this.on_click();
+	}
+
+	on_node_click(node) {
+		this.expand_node(node);
+
+		// Activate
+		frappe.ui.utils.activate(this.wrapper, node.$tree_link, 'tree-link');
+		if(node.$toolbar) this.show_toolbar(node);
+	}
+
+	expand_node(node) {
+		this.set_selected_node(node);
+		if(node.expandable) {
+			this.toggle_node(node);
+		}
+		this.select_link(node);
+	}
+
+	select_link(node) {
+		// select this link
+		this.wrapper.find('.selected')
+			.removeClass('selected');
+		node.$tree_link.toggleClass('selected');
+		node.expanded = !node.expanded;
+
+		node.parent.toggleClass('opened', node.expanded);
+	}
+
+	show_toolbar(node) {
+		if(this.cur_toolbar)
+			$(this.cur_toolbar).hide();
+		this.cur_toolbar = node.$toolbar;
+			node.$toolbar.show();
+	}
+
+	toggle() {
+		this.get_selected_node().toggle();
+	}
+
+	get_node_label(node) {
+		if(this.get_label) {
+			return this.get_label(node);
+		}
+		if (node.title && node.title != node.label) {
+			return __(node.title) + ` <span class='text-muted'>(${node.label})</span>`;
+		} else {
+			return __(node.title || node.label);
+		}
+	}
+
+	make_icon_and_label(node) {
+		let icon_html = '';
+		if(this.icon_set) {
+			if(node.expandable) {
+				icon_html = `<i class="${this.icon_set.closed} text-muted" style="font-size: 14px;"></i>`;
+			} else {
+				icon_html = `<i class="${this.icon_set.leaf} text-extra-muted"></i>`;
+			}
+		};
+
+		$(icon_html).appendTo(node.$tree_link);
+		$(`<a class="tree-label grey h6"> ${this.get_node_label(node)}</a>`).appendTo(node.$tree_link);
+
+		node.$tree_link.on('click', () => {
+			setTimeout(() => {this.on_node_click(node);}, 100);
+		});
+	}
+
+	get_toolbar(node) {
+		let $toolbar = $('<span class="tree-node-toolbar btn-group"></span>').hide();
+
+		Object.keys(this.toolbar).map(key => {
+			obj = this.toolbar[key];
+			if(!obj.label) return;
+			if(obj.condition && !obj.condition(node)) return;
+
+			var label = obj.get_label ? obj.get_label() : obj.label;
+			var $link = $("<button class='btn btn-default btn-xs'></button>")
+				.html(label)
+				.addClass('tree-toolbar-button ' + (obj.btnClass || ''))
+				.appendTo($toolbar);
+			$link.on('click', () => { obj.click($link, node); return false; });
+		});
+
+		return $toolbar;
+	}
+}

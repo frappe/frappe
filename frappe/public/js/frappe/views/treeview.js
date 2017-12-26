@@ -71,7 +71,7 @@ frappe.views.TreeView = Class.extend({
 		});
 
 		this.page.add_inner_button(__('Expand All'), function() {
-			me.tree.rootnode.load_children(true);
+			me.tree.load_children(me.tree.root_node, true);
 		});
 
 		if(this.opts.view_template) {
@@ -139,19 +139,19 @@ frappe.views.TreeView = Class.extend({
 			label: me.args[me.opts.root_label] || me.root_label || me.opts.root_label,
 			icon_set: {
 				open: 'fa fa-fw fa-folder-open',
-				close: 'fa fa-fw fa-folder',
+				closed: 'fa fa-fw fa-folder',
 				leaf: 'octicon octicon-primitive-dot'
 			},
 			editable: true,
+			toolbar: me.get_toolbar(),
 			// expandable: true,
 			// right_col: true,
 
 			get_nodes: me.get_tree_nodes, // would have the rhs arg
 			get_nodes_args: me.args,
-			toolbar: me.get_toolbar(),
 			get_label: me.opts.get_label,
-			onrender: me.opts.onrender,
-			onclick: function(node) { me.select_node(node) },
+			on_render: me.opts.onrender,
+			on_click: function(node) { me.select_node(node) },
 		});
 		cur_tree = this.tree;
 	},
@@ -270,9 +270,9 @@ frappe.views.TreeView = Class.extend({
 					if(!r.exc) {
 						d.hide();
 						if(node.expanded) {
-							node.toggle_node();
+							me.tree.toggle_node(node);
 						}
-						node.load_children(true);
+						me.tree.load_children(node, true);
 					}
 				}
 			});
