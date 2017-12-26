@@ -66,6 +66,8 @@
   "currency_fraction": "Cent",
   "currency_fraction_units": 100,
   "currency_symbol": "$",
+  "currency_name": "Eastern Carribean Dollar",
+  "currency": "XCD",
   "number_format": "#,###.##",
   "timezones": [
    "America/Anguilla"
@@ -92,6 +94,8 @@
   "currency_fraction": "Cent",
   "currency_fraction_units": 100,
   "currency_symbol": "$",
+  "currency_name": "Eastern Carribean Dollar",
+  "currency": "XCD",
   "number_format": "#,###.##",
   "timezones": [
    "America/Antigua"
@@ -721,6 +725,8 @@
   "currency_fraction": "Cent",
   "currency_fraction_units": 100,
   "currency_symbol": "$",
+  "currency_name": "Eastern Carribean Dollar",
+  "currency": "XCD",
   "number_format": "#,###.##",
   "timezones": [
    "America/Dominica"
@@ -985,6 +991,8 @@
   "currency_fraction": "Cent",
   "currency_fraction_units": 100,
   "currency_symbol": "$",
+  "currency_name": "Eastern Carribean Dollar",
+  "currency": "XCD",
   "number_format": "#,###.##",
   "timezones": [
    "America/Grenada"
@@ -1670,6 +1678,8 @@
   "currency_fraction": "Cent",
   "currency_fraction_units": 100,
   "currency_symbol": "$",
+  "currency_name": "Eastern Carribean Dollar",
+  "currency": "XCD",
   "number_format": "#,###.##",
   "timezones": [
    "America/Montserrat"
@@ -2043,6 +2053,8 @@
   "currency_fraction": "Cent",
   "currency_fraction_units": 100,
   "currency_symbol": "$",
+  "currency_name": "Eastern Carribean Dollar",
+  "currency": "XCD",
   "number_format": "#,###.##",
   "timezones": [
    "America/St_Kitts"
@@ -2053,6 +2065,8 @@
   "currency_fraction": "Cent",
   "currency_fraction_units": 100,
   "currency_symbol": "$",
+  "currency_name": "Eastern Carribean Dollar",
+  "currency": "XCD",
   "number_format": "#,###.##",
   "timezones": [
    "America/St_Lucia"
@@ -2071,6 +2085,8 @@
   "currency_fraction": "Cent",
   "currency_fraction_units": 100,
   "currency_symbol": "$",
+  "currency_name": "Eastern Carribean Dollar",
+  "currency": "XCD",
   "number_format": "#,###.##",
   "timezones": [
    "America/St_Vincent"

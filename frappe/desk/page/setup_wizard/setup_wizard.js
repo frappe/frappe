@@ -217,12 +217,6 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 		this.$working_state.find('.state-icon-container').html('');
 		fail_msg = fail_msg ? fail_msg : __("Failed to complete setup");
 
-		if(error && !frappe.boot.developer_mode) {
-			frappe.msgprint(`Don't worry. It's not you, it's us. We've
-				received the issue details and will get back to you on the solution.
-				Please feel free to contact us on support@erpnext.com in the meantime.`);
-		}
-
 		this.update_setup_message('Could not start up: ' + fail_msg);
 
 		this.$working_state.find('.title').html('Setup failed');

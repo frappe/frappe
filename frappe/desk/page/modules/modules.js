@@ -29,8 +29,8 @@ frappe.pages['modules'].on_page_load = function(wrapper) {
 	page.get_page_modules = () => {
 		return frappe.get_desktop_icons(true)
 			.filter(d => d.type==='module' && !d.blocked)
-			.sort((a, b) => { return (a._label > b._label) ? 1 : -1 });
-	}
+			.sort((a, b) => { return (a._label > b._label) ? 1 : -1; });
+	};
 
 	let get_module_sidebar_item = (item) => `<li class="strong module-sidebar-item">
 		<a class="module-link" data-name="${item.module_name}" href="#modules/${item.module_name}">
@@ -47,19 +47,19 @@ frappe.pages['modules'].on_page_load = function(wrapper) {
 			${sidebar_items_html}
 			<li class="divider"></li>
 		</ul>`;
-	}
+	};
 
 	// render sidebar
 	page.sidebar.html(get_sidebar_html());
 
 	// help click
-	page.main.on("click", '.module-section-link[data-type="help"]', function(event) {
+	page.main.on("click", '.module-section-link[data-type="help"]', function() {
 		frappe.help.show_video($(this).attr("data-youtube-id"));
 		return false;
 	});
 
 	// notifications click
-	page.main.on("click", '.open-notification', function(event) {
+	page.main.on("click", '.open-notification', function() {
 		var doctype = $(this).attr('data-doctype');
 		if(doctype) {
 			frappe.ui.notifications.show_open_count_list(doctype);
@@ -71,9 +71,10 @@ frappe.pages['modules'].on_page_load = function(wrapper) {
 		page.wrapper.find('.module-sidebar-item.active, .module-link.active').removeClass('active');
 		$(link).addClass('active').parent().addClass("active");
 		show_section($(link).attr('data-name'));
-	}
+	};
 
 	var show_section = function(module_name) {
+		if (!module_name) return;
 		if(module_name in page.section_data) {
 			render_section(page.section_data[module_name]);
 		} else {
@@ -94,7 +95,7 @@ frappe.pages['modules'].on_page_load = function(wrapper) {
 			});
 		}
 
-	}
+	};
 
 	var render_section = function(m) {
 		page.set_title(__(m.label));
@@ -109,7 +110,7 @@ frappe.pages['modules'].on_page_load = function(wrapper) {
 
 		//setup_section_toggle();
 		frappe.app.update_notification_count_in_modules();
-	}
+	};
 
 	var process_data = function(module_name, data) {
 		frappe.module_links[module_name] = [];
@@ -124,7 +125,7 @@ frappe.pages['modules'].on_page_load = function(wrapper) {
 				}
 				if(!item.route) {
 					if(item.link) {
-						item.route=strip(item.link, "#")
+						item.route=strip(item.link, "#");
 					}
 					else if(item.type==="doctype") {
 						if(frappe.model.is_single(item.doctype)) {
@@ -133,16 +134,16 @@ frappe.pages['modules'].on_page_load = function(wrapper) {
 							if (item.filters) {
 								frappe.route_options=item.filters;
 							}
-							item.route="List/" + item.doctype
+							item.route="List/" + item.doctype;
 							//item.style = 'font-weight: 500;';
 						}
 						// item.style = 'font-weight: bold;';
 					}
 					else if(item.type==="report" && item.is_query_report) {
-						item.route="query-report/" + item.name
+						item.route="query-report/" + item.name;
 					}
 					else if(item.type==="report") {
-						item.route="Report/" + item.doctype + "/" + item.name
+						item.route="Report/" + item.doctype + "/" + item.name;
 					}
 					else if(item.type==="page") {
 						item.route=item.name;
@@ -151,7 +152,7 @@ frappe.pages['modules'].on_page_load = function(wrapper) {
 
 				if(item.route_options) {
 					item.route += "?" + $.map(item.route_options, function(value, key) {
-						return encodeURIComponent(key) + "=" + encodeURIComponent(value) }).join('&')
+						return encodeURIComponent(key) + "=" + encodeURIComponent(value); }).join('&');
 				}
 
 				if(item.type==="page" || item.type==="help" || item.type==="report" ||
@@ -160,8 +161,8 @@ frappe.pages['modules'].on_page_load = function(wrapper) {
 				}
 			});
 		});
-	}
-}
+	};
+};
 
 frappe.pages['modules'].on_page_show = function(wrapper) {
 	let route = frappe.get_route();
@@ -178,10 +179,10 @@ frappe.pages['modules'].on_page_show = function(wrapper) {
 		}
 	} else if(frappe.modules_page.last_link) {
 		// open last link
-		frappe.set_route('modules', frappe.modules_page.last_link.attr('data-name'))
+		frappe.set_route('modules', frappe.modules_page.last_link.attr('data-name'));
 	} else {
 		// first time, open the first page
 		frappe.modules_page.activate_link(frappe.modules_page.sidebar.find('.module-link:first'));
 	}
-}
+};
 
