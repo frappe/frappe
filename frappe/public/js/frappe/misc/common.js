@@ -82,7 +82,7 @@ frappe.get_abbr = function(txt, max_length) {
 			// continue
 			return true;
 		}
-
+87
 		abbr += w.trim()[0];
 	});
 
