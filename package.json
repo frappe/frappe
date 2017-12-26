@@ -40,7 +40,8 @@
     "summernote": "^0.8.8",
     "superagent": "^3.5.2",
     "taggle": "^1.13.0",
-    "touch": "^3.1.0"
+    "touch": "^3.1.0",
+    "webpack-build": "^1.0.1"
   },
   "devDependencies": {
     "babel-loader": "^7.1.2",

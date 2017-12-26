@@ -5,7 +5,7 @@ const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 const frappe_path = path.resolve(__dirname, '..', 'frappe');
 const source = path.join(frappe_path, 'public/js');
 
-const dev_mode = false;
+const dev_mode = true;
 
 const plugins = [
 	!dev_mode && new UglifyJsPlugin(),
@@ -19,7 +19,7 @@ const plugins = [
 
 ].filter(Boolean);
 
-const entries = [
+let entries = [
 	"desk", "dialog", "controls"
 ].reduce((entry, filename) => {
 	entry[filename] = path.join(source, filename) + '.js';
@@ -32,32 +32,40 @@ const babel_excludes = [
 	/microtemplate\.js/
 ];
 
+module.exports = function (options) {
+	console.log(options);
 
-module.exports = {
-	entry: entries,
-	output: {
-		path: path.join(source, 'dist'),
-		filename: '[name].bundle.js',
-		chunkFilename: '[name].bundle.js'
-	},
-	module: {
-		rules: [
-			{
-				test: /\.js$/,
-				exclude: babel_excludes,
-				loader: 'babel-loader',
-			},
-			{
-				test: /\.html$/,
-				loader: path.resolve(__dirname, 'loaders', 'frappe-html-loader.js')
-			}
-		]
-	},
-	plugins,
-	resolve: {
-		modules: [
-			'node_modules',
-			path.resolve(__dirname)
-		]
+	if ( options.context.entry )
+		entries = options.context.entry;
+
+	var config = {
+		entry: entries,
+		output: {
+			path: path.join(source, 'dist'),
+			filename: '[name].bundle.js',
+			chunkFilename: '[name].bundle.js'
+		},
+		module: {
+			rules: [
+				{
+					test: /\.js$/,
+					exclude: babel_excludes,
+					loader: 'babel-loader',
+				},
+				{
+					test: /\.html$/,
+					loader: path.resolve(__dirname, 'loaders', 'frappe-html-loader.js')
+				}
+			]
+		},
+		plugins,
+		resolve: {
+			modules: [
+				'node_modules',
+				path.resolve(__dirname)
+			]
+		}
 	}
+	
+	return config;
 };

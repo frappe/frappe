@@ -10,11 +10,17 @@ frappe.require = function(items, callback) {
 		items = [items];
 	}
 
+	const FRAPPE_REQUIRE_LOADER = 'frappe-require'
+
+	const resolved_files = items.filter(item => item.startsWith(`${FRAPPE_REQUIRE_LOADER}!`))
+								.map(item => item.replace(`${FRAPPE_REQUIRE_LOADER}!`, ''));
+
 	const js_files = items.filter(item => item.endsWith('.js'));
 	const css_files = items.filter(item => item.endsWith('.css'));
 
 	return Promise.all(
 		[].concat(
+			resolved_files.map(frappe.assets.resolve_file),
 			js_files.map(frappe.assets.load_script),
 			css_files.map(frappe.assets.load_style)
 		)
@@ -180,6 +186,14 @@ frappe.assets = {
 			link.rel = 'stylesheet';
 			link.onload = resolve;
 			document.head.appendChild(link);
+		});
+	},
+
+	resolve_file: function (path) {
+		return new Promise(resovle => {
+			// import(`${path}`).then((mod) => {
+			// 	resolve(mod);
+			// });
 		});
 	},
 

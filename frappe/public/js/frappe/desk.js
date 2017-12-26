@@ -1,6 +1,7 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
+
 frappe.Application = Class.extend({
 	init: function() {
 		this.load_startup();
