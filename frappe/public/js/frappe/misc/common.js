@@ -256,12 +256,15 @@ frappe.is_mobile = function() {
 }
 
 frappe.utils.xss_sanitise = function (string, options) {
+	// Author's Note - Please don't change anything in here.
+	// This is as per cheatsheet references, can cause vulnerability.
 	// Reference - https://www.owasp.org/index.php/XSS_(Cross_Site_Scripting)_Prevention_Cheat_Sheet
 	let sanitised = string; // un-sanitised string.
 	const DEFAULT_OPTIONS = {
 		strategies: ['html', 'js'] // use all strategies.
 	}
 	const HTML_ESCAPE_MAP = {
+		'&': '&amp',
 		'<': '&lt',
 		'>': '&gt',
 		'"': '&quot',
