@@ -43,6 +43,59 @@ frappe.views.CommunicationComposer = Class.extend({
 		})
 		this.prepare();
 		this.dialog.show();
+
+		this.setup_contact_checklist();
+	},
+
+	setup_contact_checklist: function ( ) {
+		const mcomposer = this.dialog; // reference, modal composer
+		const $modal    = $(this.dialog.body);
+		// NOTE - if you're updating fields, you better update this too.
+		// I should stop writing brutal hacks like below.
+		const accepted = ["recipients", "cc", "bcc"];
+
+		accepted.map((fieldname) => {
+			const $control = $modal.find(`.frappe-control[data-fieldname="${fieldname}"]`);
+			const $label   = $control.find('label');
+			
+			$label.css({ 'cursor': 'pointer' });
+			$label.click(function ( ) {
+				const dialog = new frappe.ui.Dialog({
+					title: __('Select Contacts')
+				});
+
+				const $container = $(dialog.body);
+				const options    = Object.keys(frappe.boot.user_info).map((name) => {
+					const  user  = frappe.boot.user_info[name];
+					const  label = `
+						<div class="row">
+							<div class="col-md-4">
+								<div class="ellipsis">
+									${frappe.user.full_name(name)}
+								</div>
+							</div>
+							<div class="col-md-8">
+								<div class="ellipsis text-muted">
+									${user.email}
+								</div>
+							</div>
+						</div>
+					`;
+					const  pair  = { label: label, value: user.email };
+					return pair;
+				});
+				const checklist  = new frappe.ui.CheckList($container, options);
+
+				dialog.set_primary_action(__('Select'), () => {
+					const values = checklist.val();
+					mcomposer.fields_dict[fieldname].set_value(values.join(", "));
+
+					dialog.hide();
+				});
+
+				dialog.show();
+			});
+		});
 	},
 
 	get_fields: function() {
