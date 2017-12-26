@@ -1,8 +1,8 @@
-# Video Tutorials for Frappé Framework
+# Frappé 框架视频教程
 
-This 10-part video tutorial will teach you how to build complex apps in Frappé
+这里的10部视频教程，将教你如何在 Frappé 下构建复杂的应用
 
-Pre-requisites: <a href="/docs/user/en/tutorial/before.html" target="_blank">You must have some understanding of Python, Javascript and MySQL before you start this tutorial.</a>
+必备条件: <a href="/docs/user/en/tutorial/before.html" target="_blank">在你开始该教程前，你必须对  Python、Javascript 以及 MySQL 有一定的了解。</a>
 
 ---
 
