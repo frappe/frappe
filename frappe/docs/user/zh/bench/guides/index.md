@@ -1,5 +1,3 @@
-# Guides
-
-
+# 指南
 
 {index}

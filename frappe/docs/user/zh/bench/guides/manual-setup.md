@@ -1,47 +1,45 @@
-# Manual Setup
+# 手工设置
 
-Manual Setup
+手工设置
 --------------
 
-Install pre-requisites,
+安装必备组件，
 
 * [Python 2.7](https://www.python.org/download/releases/2.7/)
 * [MariaDB](https://mariadb.org/)
 * [Redis](http://redis.io/topics/quickstart)
-* [WKHTMLtoPDF with patched QT](http://wkhtmltopdf.org/downloads.html) (required for pdf generation)
+* [WKHTMLtoPDF with patched QT](http://wkhtmltopdf.org/downloads.html) (生成 pdf 需要)
 
-[Installing pre-requisites on OSX](https://github.com/frappe/bench/wiki/Installing-Bench-Pre-requisites-on-MacOSX)
+[在 OSX 下安装必备组件](https://github.com/frappe/bench/wiki/Installing-Bench-Pre-requisites-on-MacOSX)
 
-Install bench as a *non root* user,
+以*非 root 用户*安装 bench，
 
 		git clone https://github.com/frappe/bench bench-repo
 		sudo pip install -e bench-repo
 
-Note: Please do not remove the bench directory the above commands will create
+提示：请不要删除上述命令将创建的 bench 目录
 
 
-Migrating from existing installation
+从现有安装迁移
 ------------------------------------
 
-If want to migrate from ERPNext version 3, follow the instructions [here](https://github.com/frappe/bench/wiki/Migrating-from-ERPNext-version-3)
+如果想从 ERPNext 版本 3 迁移，请参照[这里](https://github.com/frappe/bench/wiki/Migrating-from-ERPNext-version-3)的说明
 
-If want to migrate from the old bench, follow the instructions [here](https://github.com/frappe/bench/wiki/Migrating-from-old-bench)
+如果想从老版本的 Bench 迁移，请参照[这里](https://github.com/frappe/bench/wiki/Migrating-from-old-bench)的说明
 
 
-Basic Usage
+基本用法
 ===========
 
-* Create a new bench
+* 创建新的 Bench
 
-	The init command will create a bench directory with frappe framework
-	installed. It will be setup for periodic backups and auto updates once
-	a day.
+	命令 init 将创建一个安装了 frappe 框架的 bench 目录。它将被设置为定期备份和每天一次的自动更新。
 
 		bench init frappe-bench && cd frappe-bench
 
-* Add apps
+* 添加应用
 
-	The get-app command gets and installs frappe apps. Examples:
+	命令 get-app 获取并安装 frappe 应用。例如：
 	
 	- [erpnext](https://github.com/frappe/erpnext)
 	- [erpnext_shopify](https://github.com/frappe/erpnext_shopify)
@@ -49,33 +47,29 @@ Basic Usage
 	
 	bench get-app erpnext https://github.com/frappe/erpnext
 
-* Add site
+* 添加站点
 
-	Frappé apps are run by frappe sites and you will have to create at least one
-	site. The new-site command allows you to do that.
+	Frappé 应用由 frappe 站点运行，您需要至少创建一个站点。命令 new-site 可以达到该目的：
 
 		bench new-site site1.local
 
-* Start bench
+* 启动 Bench
 
-	To start using the bench, use the `bench start` command
+	要启动 Bench，使用 `bench start` 命令
 
 		bench start
 
-	To login to Frappé / ERPNext, open your browser and go to `localhost:8000`
+	要登录 Frappé / ERPNext，打开你的浏览器输入 `localhost:8000`
 
-	The default user name is "Administrator" and password is what you set when you created the new site.
+	默认用户名为 "Administrator"，密码则是当你设置新站点时指定的密码。
 
 
-Setting Up ERPNext
+配置 ERPNext
 ==================
 
-To install ERPNext, simply run:
+要安装 ERPNext，只需运行：
 ```
 bench install-app erpnext
 ```
 
-You can now either use `bench start` or [setup the bench for production use](setup-production.html)
-
-
-
+现在你可以使用 `bench start` 启动或[设置生产用 Bench](setup-production.html)

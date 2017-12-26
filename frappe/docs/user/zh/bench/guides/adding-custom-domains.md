@@ -1,21 +1,21 @@
-# Adding Custom Domains to your Site
+# 为站点添加自定义域名
 
-You can add **multiple custom domains** for your site, just run: 
+你可以为站点添加 **多个自定义域名**，只需运行：
 
 	bench setup add-domain [desired-domain]
 
-On running the command you will be asked for which site you want to set the custom domain for. 
+在运行该命令时，将询问你要为哪个站点设置自定义域名。
 
-You can also setup SSL for your custom domain by using the options: 
+你可以使用以下选项为自定义域名设置 SSL：
 
 	--ssl-certificate [path-to-certificate]
 	--ssl-certificate-key [path-to-certificate-key]
 
-Example: 
+例如： 
 
 	bench setup add-domain custom.erpnext.com --ssl-certificate /etc/letsencrypt/live/erpnext.cert --ssl-certificate-key /etc/letsencrypt/live/erpnext.key
 
-Domain configuration is stored in the respective site's site_config.json
+域名配置保存在各站点自己的 site_config.json 配置文件里：
 
 	 "domains": [
 	  {
@@ -25,4 +25,4 @@ Domain configuration is stored in the respective site's site_config.json
 	  }
 	 ],
 
-**You will need to regenerate the nginx configuration by runnning `bench setup nginx` and reload the nginx service put your custom domain in effect**
+**你需要通过运行 `bench setup nginx` 重新生成 Nginx 配置，并重新加载 Nginx 服务使你的自定义域名生效**

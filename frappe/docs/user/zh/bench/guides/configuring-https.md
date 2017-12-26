@@ -1,46 +1,46 @@
-# Configuring HTTPS
+# 配置 HTTPS
 
-### Get the required files
+### 获取必要的文件
 
-You can get a SSL certificate from a trusted Certificate Authority or generate your own. For self signed certificates the browser will show a warning that the certificate is not trusted. [Here's a tutorial for using Let's Encrypt to get a free SSL Certificate](lets-encrypt-ssl-setup.html)
+你可以从受信任的证书颁发机构获得 SSL 证书或生成自己的证书。对于自签名证书，浏览器将显示一个 “该证书不受信任” 的警告。[这里是通过 Let's Encrypt 获取免费 SSL 证书的教程](lets-encrypt-ssl-setup.html)
 
-The files required are
+这些必要的文件包括：
 
-* Certificate (usually with extension .crt)
-* Decrypted private key
+* 证书 (通常后缀名为 .crt)
+* 解密的私钥
 
-If you have multiple certificates (primary and intermediate), you will have to concatenate them. For example,
+如果你有多个证书（初级和中级），你将需要将它们连接起来。例如，
 
 	cat your_certificate.crt CA.crt >> certificate_bundle.crt
 
-Also make sure that your private key is not world readable. Generally, it is owned and readable only by root
+还要确保你的私钥不可读。一般来说，它只有 root 才能是所有者和可读
 
 	chown root private.key
 	chmod 600 private.key
 
-### Move the two files to an appropriate location
+### 将两个文件移动到适当的位置
 
 	mkdir /etc/nginx/conf.d/ssl
 	mv private.key /etc/nginx/conf.d/ssl/private.key
 	mv certificate_bundle.crt /etc/nginx/conf.d/ssl/certificate_bundle.crt
 
-### Setup nginx config
+### 设置 Nginx 配置
 
-Set the paths to the certificate and private key for your site
+为你的站点设置证书和私钥的路径
 	
 	bench set-ssl-certificate site1.local /etc/nginx/conf.d/ssl/certificate_bundle.crt
 	bench set-ssl-key site1.local /etc/nginx/conf.d/ssl/private.key
 
-### Generate nginx config
+### 生成 Nginx 配置
 	
 	bench setup nginx
 
-### Reload nginx
+### 重启 Nginx
 	
 	sudo service nginx reload
 
-or
+或
 
 	systemctl reload nginx # for CentOS 7 
 
-Now that you have configured SSL, all HTTP traffic will be redirected to HTTPS
+现在你已完成了 SSL 的配置，所有 HTTP 通信都将重定向到 HTTPS
