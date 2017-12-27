@@ -418,8 +418,7 @@ frappe.views.CommunicationComposer = Class.extend({
 		if(!form_values) return;
 
 		var selected_attachments =
-			$.map($(me.dialog.wrapper)
-			.find("[data-file-name]:checked"), function (element) {
+			$.map($(me.dialog.wrapper).find("[data-file-name]:checked"), function (element) {
 				return $(element).attr("data-file-name");
 			});
 

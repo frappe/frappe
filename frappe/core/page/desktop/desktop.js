@@ -262,6 +262,7 @@ $.extend(frappe.desktop, {
 		}
 
 		new Sortable($("#icon-grid").get(0), {
+			animation: 150,
 			onUpdate: function(event) {
 				var new_order = [];
 				$("#icon-grid .case-wrapper").each(function(i, e) {

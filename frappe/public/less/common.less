@@ -237,6 +237,17 @@ a.no-decoration& {
 	margin: 15px;
 }
 
+.margin-(@position) {
+	.margin-@{position} {
+		margin-@{position}: 15px;
+	}
+}
+
+.margin-(top);
+.margin-(bottom);
+.margin-(left);
+.margin-(right);
+
 @media (max-width: 767px) {
 	.text-center-xs {
 		text-align: center;
