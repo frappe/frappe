@@ -1,8 +1,9 @@
 {
   "name": "frappe",
   "scripts": {
-    "start": "webpack --config webpack/webpack.config.js --hot --progress --watch",
-    "build": "webpack --env build"
+    "frappe-watch": "webpack --config webpack/webpack.config.js --hot --progress --colors --watch",
+    "frappe-build": "ENV=development && webpack --config webpack/webpack.config.js --env build",
+    "frappe-build-minify": "ENV=production && webpack --config webpack/webpack.config.js --env build"
   },
   "repository": {
     "type": "git",

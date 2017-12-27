@@ -5,7 +5,7 @@ const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 const frappe_path = path.resolve(__dirname, '..', 'frappe');
 const source = path.join(frappe_path, 'public/js');
 
-const dev_mode = true;
+const dev_mode = process.env.ENV === 'development';
 
 const plugins = [
 	!dev_mode && new UglifyJsPlugin(),
@@ -33,12 +33,12 @@ const babel_excludes = [
 ];
 
 module.exports = function (options) {
-	console.log(options);
+	// console.log(options);
 
-	if ( options.context.entry )
-		entries = options.context.entry;
+	// if ( options.context.entry )
+	// 	entries = options.context.entry;
 
-	var config = {
+	return {
 		entry: entries,
 		output: {
 			path: path.join(source, 'dist'),
@@ -65,7 +65,5 @@ module.exports = function (options) {
 				path.resolve(__dirname)
 			]
 		}
-	}
-	
-	return config;
+	};
 };

@@ -26,41 +26,29 @@ def setup():
 		except ImportError: pass
 	app_paths = [os.path.dirname(pymodule.__file__) for pymodule in pymodules]
 
-def bundle(no_compress, make_copy=False, restore=False, verbose=False):
+def bundle(compress=False, make_copy=False, restore=False, verbose=False):
 	"""concat / minify js files"""
 	# build js files
 	setup()
 
 	make_asset_dirs(make_copy=make_copy, restore=restore)
 
-	# new nodejs build system
-	command = 'node --use_strict ../apps/frappe/frappe/build.js --build'
-	# command = 'npm start'
-	if not no_compress:
-		command += ' --minify'
-	subprocess.call(command.split(' '))
+	frappe_app_path = app_paths[0]
+	command = 'npm run frappe-build{0}'.format('-minify' if compress else '')
 
-	# build(no_compress, verbose)
+	p = subprocess.Popen(command.split(' '), cwd=frappe_app_path)
+	out, err = p.communicate()
 
 def watch(no_compress):
 	"""watch and rebuild if necessary"""
 
-	# new nodejs file watcher
-	command = 'node --use_strict ../apps/frappe/frappe/build.js --watch'
-	subprocess.call(command.split(' '))
+	setup()
 
-	# setup()
+	frappe_app_path = app_paths[0]
 
-	# import time
-	# compile_less()
-	# build(no_compress=True)
-
-	# while True:
-	# 	compile_less()
-	# 	if files_dirty():
-	# 		build(no_compress=True)
-
-	# 	time.sleep(3)
+	command = 'npm run frappe-watch'.split(' ')
+	p = subprocess.Popen(command, cwd=frappe_app_path)
+	out, err = p.communicate()
 
 def make_asset_dirs(make_copy=False, restore=False):
 	# don't even think of making assets_path absolute - rm -rf ahead.
