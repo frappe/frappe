@@ -1024,11 +1024,19 @@ input[type="checkbox"]:focus {
 @-moz-document url-prefix() {
   input[type="checkbox"] {
     visibility: visible;
+    left: 0;
+  }
+}
+@supports (-moz-appearance: none) {
+  input[type="checkbox"] {
+    visibility: visible;
+    left: 0;
   }
 }
 @supports (-ms-ime-align:auto) {
   input[type="checkbox"] {
     visibility: visible;
+    left: 0;
   }
 }
 .color-picker {
