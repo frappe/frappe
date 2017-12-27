@@ -1,6 +1,5 @@
+import '../less/desk.less';
 import 'bootstrap';
-
-// console.log(bootstrap);
 
 import './frappe/class';
 import './frappe/provide';

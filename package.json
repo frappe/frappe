@@ -2,8 +2,8 @@
   "name": "frappe",
   "scripts": {
     "frappe-watch": "webpack --config webpack/webpack.config.js --hot --progress --colors --watch",
-    "frappe-build": "ENV=development && webpack --config webpack/webpack.config.js --env build",
-    "frappe-build-minify": "ENV=production && webpack --config webpack/webpack.config.js --env build"
+    "frappe-build": "FRAPPE_ENV=development webpack --config webpack/webpack.config.js --env build",
+    "frappe-build-minify": "FRAPPE_ENV=production webpack --config webpack/webpack.config.js --env build"
   },
   "repository": {
     "type": "git",
@@ -47,6 +47,10 @@
   "devDependencies": {
     "babel-loader": "^7.1.2",
     "babel-preset-env": "^1.6.0",
+    "css-loader": "^0.28.7",
+    "less": "^2.7.3",
+    "less-loader": "^4.0.5",
+    "extract-text-webpack-plugin": "^3.0.2",
     "walk": "^2.3.9",
     "webpack": "^3.10.0"
   }
