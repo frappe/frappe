@@ -17,7 +17,7 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 		// unexpected whitespaces, esp for email replies.
 
 		this.editor.summernote({
-			minHeight: 400,
+			minHeight: 200,
 			toolbar: [
 				['magic', ['style']],
 				['style', ['bold', 'italic', 'underline', 'clear']],
