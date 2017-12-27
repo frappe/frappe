@@ -189,9 +189,10 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		const control = this.render_editing_input(colIndex, value, parent);
 		if (!control) return false;
 
+		control.df.change = () => control.set_focus();
+
 		return {
 			initValue: (value) => {
-				control.set_focus();
 				return control.set_value(value);
 			},
 			setValue: (value) => {
