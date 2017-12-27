@@ -604,7 +604,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			}
 
 			// open form
-			const link = $(this).find('.list-subject a').get(0);
+			const $row = $(e.currentTarget);
+			const link = $row.find('.list-subject a').get(0);
 			if (link) {
 				window.location.href = link.href;
 				return false;
