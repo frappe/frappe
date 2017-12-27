@@ -2142,7 +2142,7 @@ class extends Component {
                             return (
                                 h("a", { class: "list-group-item", href: "javascript:void(0)", onclick: () =>
                                 {
-                                    this.set_state({ content: item.content })
+                                    this.set_state({ content: item.content, hints: [ ] })
                                 }},
                                     item.component
                                 )
