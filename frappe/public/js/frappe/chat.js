@@ -356,6 +356,15 @@ frappe._.is_mobile = () =>
     return mobile
 }
 
+/**
+ * @description Removes falsey values from an array.
+ * 
+ * @example
+ * frappe._.compact([1, 2, false, NaN, ''])
+ * // returns [1, 2]
+ */
+frappe._.compact   = array => array.filter(Boolean)
+
 // frappe.loggers - A registry for frappe loggers.
 frappe.provide('frappe.loggers')
 
@@ -1397,7 +1406,7 @@ class extends Component
         const ActionBar        = h(frappe.Chat.Widget.ActionBar,
         {
              layout: props.layout,
-            actions:
+            actions: 
             [
                 {
                     label: __("New Message"),
@@ -1922,16 +1931,21 @@ class extends Component
            }
         ]
 
-        const attach           = [
+        const actions = frappe._.compact([
+            !frappe._.is_mobile() &&
             {
                  icon: "camera",
                 label: "Camera",
                 click: ( ) => {
-                    const capture = new frappe.ui.Capture()
-                    
-                    capture.open()
-                    catpure.click((dataURI) => {
-                        console.log(dataURI)
+                    const capture = new frappe.ui.Capture({
+                        animate: false,
+                          error: true
+                    })
+                    capture.show()
+
+                    capture.submit(data_url =>
+                    {
+                        // data_url
                     })
                 }
             },
@@ -1939,24 +1953,10 @@ class extends Component
                  icon: "file",
                 label: "File",
                 click: ( ) => {
-                    const dialog = new frappe.ui.Dialog({
-                        title: __("Upload"),
-                        fields: [
-                            {fieldtype:"HTML", fieldname:"upload_area"},
-                            {fieldtype:"HTML", fieldname:"or_attach", options: __("Or")},
-                            {fieldtype:"Select", fieldname:"select", label:__("Select from existing attachments") },
-                            {fieldtype:"Button", fieldname:"clear",
-                                label:__("Clear Attachment"), click: function() {
-                                    dialog.hide()
-                                }
-                            },
-                        ]
-                    })
-                
-                    dialog.show()
+                    
                 }
             }
-        ]
+        ])
 
         return (
             h("div", { class: `panel panel-primary ${frappe._.is_mobile() ? "panel-span" : ""}` },
@@ -1968,8 +1968,7 @@ class extends Component
                     
                 ),
                 h("div", { class: "frappe-chat-room-footer" },
-                    h(frappe.Chat.Widget.ChatForm, {
-                        attach: attach,
+                    h(frappe.Chat.Widget.ChatForm, { actions: actions,
                         change: () => {
                             frappe.chat.message.typing(props.name)
                         },
@@ -2158,7 +2157,7 @@ class extends Component {
                                     h(frappe.components.FontAwesome, { type: "paperclip", fixed: true })
                                 ),
                                 h("div", { class: "dropdown-menu dropdown-menu-left", onclick: e => e.stopPropagation() },
-                                    props.attach.length && props.attach.map((action) => {
+                                    !frappe._.is_empty(props.actions) && props.actions.map((action) => {
                                         return (
                                             h("li", null,
                                                 h("a", { onclick: action.click },
