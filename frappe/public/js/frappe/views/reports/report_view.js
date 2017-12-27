@@ -354,17 +354,19 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 	get_columns_for_picker() {
 		let out = {};
-		let doctype_fields = frappe.meta.get_docfields(this.doctype).filter(df =>
+
+		const standard_fields_filter = df =>
 			!in_list(frappe.model.no_value_type, df.fieldtype) &&
 			!df.report_hide && df.fieldname !== 'naming_series' &&
 			!df.hidden
-		);
+
+		let doctype_fields = frappe.meta.get_docfields(this.doctype).filter(standard_fields_filter);
 
 		doctype_fields = [{
 			label: __('ID'),
 			fieldname: 'name',
 			fieldtype: 'Data'
-		}].concat(doctype_fields);
+		}].concat(doctype_fields, frappe.model.std_fields);
 
 		out[this.doctype] = doctype_fields;
 
@@ -373,9 +375,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 		table_fields.forEach(df => {
 			const cdt = df.options;
-			const child_table_fields =
-				frappe.meta.get_docfields(cdt)
-					.filter(df => df.in_list_view);
+			const child_table_fields = frappe.meta.get_docfields(cdt).filter(standard_fields_filter);
 
 			out[cdt] = child_table_fields;
 		});
