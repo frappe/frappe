@@ -5,7 +5,7 @@ frappe.provide('frappe.ui');
 
 frappe.ui.Tree = class {
 	constructor({
-		parent, label, icon_set, toolbar, expandable,
+		parent, label, icon_set, toolbar, expandable, with_skeleton=1,
 
 		get_nodes,
 		get_nodes_args,
@@ -17,6 +17,8 @@ frappe.ui.Tree = class {
 		this.setup_treenode_class();
 		this.nodes = {};
 		this.wrapper = $('<div class="tree">').appendTo(this.parent);
+		if(with_skeleton) this.wrapper.addClass('with-skeleton');
+
 		this.root_node = new this.TreeNode({
 			parent: this.wrapper,
 			label: this.label,
@@ -81,18 +83,19 @@ frappe.ui.Tree = class {
 			}
 
 			// open close icon
-			node.$tree_link.find('i').removeClass();
-			if(!node.expanded) {
-				node.$tree_link.find('i').addClass('fa fa-fw fa-folder-open text-muted');
-			} else {
-				node.$tree_link.find('i').addClass('fa fa-fw fa-folder text-muted');
+			if(this.icon_set) {
+				node.$tree_link.find('i').removeClass();
+				if(!node.expanded) {
+					node.$tree_link.find('i').addClass(`${this.icon_set.open} node-parent`);
+				} else {
+					node.$tree_link.find('i').addClass(`${this.icon_set.closed} node-parent`);
+				}
 			}
 		}
 	}
 
 	add_node(node, data) {
 		var $li = $('<li class="tree-node">');
-		// if(this.drop) $li.draggable({revert:true});
 
 		return new this.TreeNode({
 			parent: $li.appendTo(node.$ul),
@@ -191,7 +194,7 @@ frappe.ui.Tree = class {
 		this.expand_node(node);
 
 		// Activate
-		frappe.ui.utils.activate(this.wrapper, node.$tree_link, 'tree-link');
+		frappe.ui.dom.activate(this.wrapper, node.$tree_link, 'tree-link');
 		if(node.$toolbar) this.show_toolbar(node);
 	}
 
@@ -201,6 +204,9 @@ frappe.ui.Tree = class {
 			this.toggle_node(node);
 		}
 		this.select_link(node);
+
+		node.expanded = !node.expanded;
+		node.parent.toggleClass('opened', node.expanded);
 	}
 
 	select_link(node) {
@@ -208,9 +214,6 @@ frappe.ui.Tree = class {
 		this.wrapper.find('.selected')
 			.removeClass('selected');
 		node.$tree_link.toggleClass('selected');
-		node.expanded = !node.expanded;
-
-		node.parent.toggleClass('opened', node.expanded);
 	}
 
 	show_toolbar(node) {
@@ -239,9 +242,9 @@ frappe.ui.Tree = class {
 		let icon_html = '';
 		if(this.icon_set) {
 			if(node.expandable) {
-				icon_html = `<i class="${this.icon_set.closed} text-muted" style="font-size: 14px;"></i>`;
+				icon_html = `<i class="${this.icon_set.closed} node-parent"></i>`;
 			} else {
-				icon_html = `<i class="${this.icon_set.leaf} text-extra-muted"></i>`;
+				icon_html = `<i class="${this.icon_set.leaf} node-leaf"></i>`;
 			}
 		};
 

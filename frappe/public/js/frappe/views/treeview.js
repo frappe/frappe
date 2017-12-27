@@ -144,8 +144,7 @@ frappe.views.TreeView = Class.extend({
 			},
 			editable: true,
 			toolbar: me.get_toolbar(),
-			// expandable: true,
-			// right_col: true,
+			expandable: true,
 
 			get_nodes: me.get_tree_nodes, // would have the rhs arg
 			get_nodes_args: me.args,
