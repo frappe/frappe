@@ -1,3 +1,12 @@
+.font-bold {
+  font-weight: 700;
+}
+.font-heavy {
+  font-weight: 900;
+}
+.octicon-lg {
+  font-size: 20px;
+}
 .cursor-pointer {
   cursor: pointer;
 }

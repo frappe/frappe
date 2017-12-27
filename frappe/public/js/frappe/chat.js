@@ -1587,7 +1587,7 @@ class extends Component
             h("div", { class: "frappe-chat-popper" },
                 h(frappe.components.FAB, {
                       class: "frappe-fab",
-                       icon: state.active ? "fa fa-fw fa-times" : "octicon octicon-comment",
+                       icon: state.active ? "fa fa-fw fa-times" : "font-heavy octicon octicon-lg octicon-comment", // done, as per kenneth@frappe.io suggestion (font-heavy, octicon-lg)
                        size: frappe._.is_mobile() ? null : "large",
                        type: "primary", "data-toggle": "dropdown",
                     onclick: () => this.toggle(),
