@@ -62,7 +62,8 @@ def get_file_doc(dt=None, dn=None, folder=None, is_private=None):
 	if folder is None: folder = r.folder
 	if is_private is None: is_private = r.is_private
 
-	if r.filedata:
+	# r.filedata will be '' if file is empty
+	if r.filedata or r.filedata == '':
 		file_doc = save_uploaded(dt, dn, folder, is_private)
 	elif r.file_url:
 		file_doc = save_url(r.file_url, r.filename, dt, dn, folder, is_private)
@@ -71,7 +72,7 @@ def get_file_doc(dt=None, dn=None, folder=None, is_private=None):
 
 def save_uploaded(dt, dn, folder, is_private):
 	fname, content = get_uploaded_content()
-	if content:
+	if content or content == '':
 		return save_file(fname, content, dt, dn, folder, is_private=is_private);
 	else:
 		raise Exception
