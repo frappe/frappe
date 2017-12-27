@@ -1587,7 +1587,7 @@ class extends Component
             h("div", { class: "frappe-chat-popper" },
                 h(frappe.components.FAB, {
                       class: "frappe-fab",
-                       icon: state.active ? "fa fa-fw fa-times" : "font-heavy octicon octicon-lg octicon-comment", // done, as per kenneth@frappe.io suggestion (font-heavy, octicon-lg)
+                       icon: state.active ? "fa fa-fw fa-times" : "font-heavy octicon octicon-comment", // done, as per kenneth@frappe.io suggestion (font-heavy, octicon-lg)
                        size: frappe._.is_mobile() ? null : "large",
                        type: "primary", "data-toggle": "dropdown",
                     onclick: () => this.toggle(),
@@ -1596,9 +1596,9 @@ class extends Component
                     h("div", { class: "frappe-chat-popper-collapse" },
                         props.page ? props.page : (
                             h("div", { class: `panel panel-primary ${frappe._.is_mobile() ? "panel-span" : ""}` },
-                                h("div", { class: "panel-heading" },
+                                h("div", { class: "panel-heading cursor-pointer", onclick: () => this.toggle(false) },
                                     h("div", { class: "row" },
-                                        h("div", { class: "col-xs-9", onclick: () => this.toggle(false)}),
+                                        h("div", { class: "col-xs-9" }),
                                         h("div", { class: "col-xs-3" },
                                             h("div", { class: "text-right" },
                                                 !frappe._.is_mobile() ?
@@ -1928,6 +1928,7 @@ class extends Component
                 label: "Camera",
                 click: ( ) => {
                     const capture = new frappe.ui.Capture()
+                    
                     capture.open()
                     catpure.click((dataURI) => {
                         console.log(dataURI)
@@ -2152,7 +2153,7 @@ class extends Component {
                 h("form", { oninput: this.change, onsubmit: this.submit },
                     h("div", { class: "input-group input-group-sm" },
                         h("div", { class: "input-group-btn" },
-                            h("div", { class: `btn-group dropup` },
+                            h("div", { class: "btn-group dropup" },
                                 h(frappe.components.Button, { class: "dropdown-toggle", "data-toggle": "dropdown" },
                                     h(frappe.components.FontAwesome, { type: "paperclip", fixed: true })
                                 ),

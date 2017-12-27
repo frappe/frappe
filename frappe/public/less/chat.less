@@ -4,8 +4,6 @@
 @font-weight-bold:										700;
 @font-weight-heavy:										900;
 
-@font-size-octicon-lg:									20px;
-
 @frappe-fab-width:										48px;
 @frappe-fab-height:										48px;
 @frappe-fab-lg:											56px;
@@ -27,6 +25,7 @@
 @frappe-chat-popper-panel-span-z-index:					1037;
 
 @frappe-chat-form-list-group-height:					150px;
+@frappe-chat-form-menu-border-radius:					4px;
 
 @frappe-chat-emoji-width:								250px;
 @frappe-chat-emoji-height:								300px;
@@ -39,11 +38,6 @@
 .font-heavy
 {
 	font-weight: @font-weight-heavy;
-}
-
-.octicon-lg
-{
-	font-size: @font-size-octicon-lg;
 }
 
 .cursor-pointer
@@ -99,6 +93,11 @@
 
 	.frappe-chat-form
 	{
+		.dropdown-menu
+		{
+			border-radius: @frappe-chat-form-menu-border-radius;
+		}
+
 		.btn
 		{
 			border-radius: 0px !important;

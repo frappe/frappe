@@ -4,9 +4,6 @@
 .font-heavy {
   font-weight: 900;
 }
-.octicon-lg {
-  font-size: 20px;
-}
 .cursor-pointer {
   cursor: pointer;
 }
@@ -36,6 +33,9 @@
 .frappe-chat .panel .frappe-chat-room-footer {
   position: absolute;
   bottom: 0px;
+}
+.frappe-chat .frappe-chat-form .dropdown-menu {
+  border-radius: 4px;
 }
 .frappe-chat .frappe-chat-form .btn {
   border-radius: 0px !important;
