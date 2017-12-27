@@ -162,11 +162,17 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 							}
 						],
 						primary_action: ({ column, insert_before }) => {
+							if (!columns_in_picker.map(col => col.value).includes(column)) {
+								frappe.show_alert(__('Invalid column'));
+								d.hide();
+								return;
+							}
 
 							let doctype = this.doctype;
 							if (column.includes(',')) {
 								[column, doctype] = column.split(',');
 							}
+
 
 							let index = datatabe_col.colIndex;
 							if (insert_before) {
