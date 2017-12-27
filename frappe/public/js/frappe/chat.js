@@ -1598,7 +1598,7 @@ class extends Component
                             h("div", { class: `panel panel-primary ${frappe._.is_mobile() ? "panel-span" : ""}` },
                                 h("div", { class: "panel-heading" },
                                     h("div", { class: "row" },
-                                        h("div", { class: "col-xs-9" }),
+                                        h("div", { class: "col-xs-9", onclick: () => this.toggle(false)),
                                         h("div", { class: "col-xs-3" },
                                             h("div", { class: "text-right" },
                                                 !frappe._.is_mobile() ?
