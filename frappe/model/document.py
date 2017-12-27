@@ -925,7 +925,12 @@ class Document(BaseDocument):
 
 		if not self.meta.get("read_only") and not self.meta.get("issingle") and \
 			not self.meta.get("istable"):
-			frappe.publish_realtime("list_update", {"doctype": self.doctype}, after_commit=True)
+			data = {
+				"doctype": self.doctype,
+				"name": self.name,
+				"user": frappe.session.user
+			}
+			frappe.publish_realtime("list_update", data, after_commit=True)
 
 	def db_set(self, fieldname, value=None, update_modified=True, notify=False, commit=False):
 		'''Set a value in the document object, update the timestamp and update the database.

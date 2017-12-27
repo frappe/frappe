@@ -17,7 +17,7 @@ frappe.views.ListSidebar = Class.extend({
 		this.cat_tags = [];
 	},
 	make: function() {
-		var sidebar_content = frappe.render_template("list_sidebar", {doctype: this.list_view.doctype});
+		var sidebar_content = frappe.render_template("list_sidebar", {doctype: this.doctype});
 
 		this.sidebar = $('<div class="list-sidebar overlay-sidebar hidden-xs hidden-sm"></div>')
 			.html(sidebar_content)
@@ -96,7 +96,8 @@ frappe.views.ListSidebar = Class.extend({
 			$.each(reports, function(name, r) {
 				if(!r.ref_doctype || r.ref_doctype==me.doctype) {
 					var report_type = r.report_type==='Report Builder'
-						? 'Report/' + r.ref_doctype : 'query-report';
+						? `List/${r.ref_doctype}/Report` : 'query-report';
+
 					var route = r.route || report_type + '/' + (r.title || r.name);
 
 					if(added.indexOf(route)===-1) {
@@ -113,11 +114,11 @@ frappe.views.ListSidebar = Class.extend({
 					}
 				}
 			});
-		}
+		};
 
 		// from reference doctype
-		if(this.list_view.list_renderer.settings.reports) {
-			add_reports(this.list_view.list_renderer.settings.reports)
+		if(this.list_view.settings.reports) {
+			add_reports(this.list_view.settings.reports);
 		}
 
 		// from specially tagged reports
@@ -175,7 +176,7 @@ frappe.views.ListSidebar = Class.extend({
 					fieldname: 'custom_column',
 					label: __('Custom Column'),
 					default: 0,
-					onchange: function(e) {
+					onchange: function() {
 						var checked = d.get_value('custom_column');
 						if(checked) {
 							$(d.body).find('.frappe-control[data-fieldname="field_name"]').hide();
@@ -202,19 +203,19 @@ frappe.views.ListSidebar = Class.extend({
 
 					var custom_column = values.custom_column !== undefined ?
 						values.custom_column : 1;
-
+					var field_name;
 					if(custom_column) {
-						var field_name = 'kanban_column';
+						field_name = 'kanban_column';
 					} else {
-						var field_name =
+						field_name =
 							select_fields
 								.find(df => df.label === values.field_name)
 								.fieldname;
 					}
 
 					me.add_custom_column_field(custom_column)
-						.then(function(custom_column) {
-							return me.make_kanban_board(values.board_name, field_name)
+						.then(function() {
+							return me.make_kanban_board(values.board_name, field_name);
 						})
 						.then(function() {
 							d.hide();
@@ -321,7 +322,7 @@ frappe.views.ListSidebar = Class.extend({
 
 		if(has_common(frappe.user_roles, ["System Manager", "Administrator"])) {
 			$(`<li class="new-email-account"><a>${__("New Email Account")}</a></li>`)
-				.appendTo($dropdown)
+				.appendTo($dropdown);
 		}
 
 		let accounts = frappe.boot.email_accounts;
@@ -334,7 +335,7 @@ frappe.views.ListSidebar = Class.extend({
 			}
 			$(`<li><a href="#${route}">${account.email_id}</a></li>`).appendTo($dropdown);
 			if(account.email_id === "Sent Mail")
-				divider = false
+				divider = false;
 		});
 
 		$dropdown.find('.new-email-account').click(function() {
@@ -354,7 +355,7 @@ frappe.views.ListSidebar = Class.extend({
 		// if account is holding one user free plan or
 		// if account's expiry date within range of 30 days from today's date
 
-		let upgrade_date = frappe.datetime.add_days(get_today(), 30);
+		let upgrade_date = frappe.datetime.add_days(frappe.datetime.get_today(), 30);
 		if (frappe.boot.limits.users === 1 || upgrade_date >= frappe.boot.limits.expiry) {
 			let upgrade_box = $(`<div class="border" style="
 					padding: 0px 10px;
@@ -386,12 +387,12 @@ frappe.views.ListSidebar = Class.extend({
 			args: {
 				stats: me.stats,
 				doctype: me.doctype,
-				filters:me.default_filters
+				filters: me.default_filters || []
 			},
 			callback: function(r) {
 				me.defined_category = r.message;
 				if (r.message.defined_cat ){
-					me.defined_category = r.message.defined_cat
+					me.defined_category = r.message.defined_cat;
 					me.cats = {};
 					//structure the tag categories
 					for (var i in me.defined_category){
@@ -400,10 +401,10 @@ frappe.views.ListSidebar = Class.extend({
 						}else{
 							me.cats[me.defined_category[i].category].push(me.defined_category[i].tag);
 						}
-						me.cat_tags[i]=me.defined_category[i].tag
+						me.cat_tags[i]=me.defined_category[i].tag;
 					}
-					me.tempstats =r.message.stats
-					var len = me.cats.length;
+					me.tempstats =r.message.stats;
+
 					$.each(me.cats, function (i, v) {
 						me.render_stat(i, (me.tempstats || {})["_user_tags"],v);
 					});
@@ -414,19 +415,18 @@ frappe.views.ListSidebar = Class.extend({
 					//render normal stats
 					me.render_stat("_user_tags", (r.message.stats|| {})["_user_tags"]);
 				}
-				me.list_view.set_sidebar_height();
 			}
 		});
 	},
 	render_stat: function(field, stat, tags) {
 		var me = this;
 		var sum = 0;
-		var stats = []
+		var stats = [];
 		var label = frappe.meta.docfield_map[this.doctype][field] ?
 			frappe.meta.docfield_map[this.doctype][field].label : field;
 
-		stat = (stat || []).sort(function(a, b) { return b[1] - a[1] });
-		$.each(stat, function(i,v) { sum = sum + v[1]; })
+		stat = (stat || []).sort(function(a, b) { return b[1] - a[1]; });
+		$.each(stat, function(i,v) { sum = sum + v[1]; });
 
 		if(tags) {
 			for (var t in tags) {
@@ -454,12 +454,12 @@ frappe.views.ListSidebar = Class.extend({
 			sum: sum,
 			label: field==='_user_tags' ?  (tags ? __(label) : __("Tags")) : __(label),
 		};
-		var sidebar_stat = $(frappe.render_template("list_sidebar_stat", context))
+		$(frappe.render_template("list_sidebar_stat", context))
 			.on("click", ".stat-link", function() {
 				var fieldname = $(this).attr('data-field');
 				var label = $(this).attr('data-label');
 				if (label == "No Tags") {
-					me.list_view.filter_list.add_filter(me.list_view.doctype, fieldname, 'not like', '%,%')
+					me.list_view.filter_list.add_filter(me.list_view.doctype, fieldname, 'not like', '%,%');
 					me.list_view.run();
 				} else {
 					me.set_filter(fieldname, label);
@@ -467,7 +467,7 @@ frappe.views.ListSidebar = Class.extend({
 			})
 			.insertBefore(this.sidebar.find(".close-sidebar-button"));
 	},
-	set_fieldtype: function(df, fieldtype) {
+	set_fieldtype: function(df) {
 
 		// scrub
 		if(df.fieldname=="docstatus") {
@@ -476,11 +476,11 @@ frappe.views.ListSidebar = Class.extend({
 				{value:0, label:"Draft"},
 				{value:1, label:"Submitted"},
 				{value:2, label:"Cancelled"},
-			]
+			];
 		} else if(df.fieldtype=='Check') {
 			df.fieldtype='Select';
 			df.options=[{value:0,label:'No'},
-				{value:1,label:'Yes'}]
+				{value:1,label:'Yes'}];
 		} else if(['Text','Small Text','Text Editor','Code','Tag','Comments',
 			'Dynamic Link','Read Only','Assign'].indexOf(df.fieldtype)!=-1) {
 			df.fieldtype = 'Data';
