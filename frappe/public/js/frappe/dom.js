@@ -244,7 +244,7 @@ $(window).on('online', function() {
 	});
 });
 
-$(window).on('offline', function(e) {
+$(window).on('offline', function() {
 	frappe.show_alert({
 		indicator: 'orange',
 		message: __('Connection lost. Some features might not work.')
