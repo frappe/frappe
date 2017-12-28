@@ -200,13 +200,10 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 
 	def validate_naming(doc):
 		autoname = frappe.get_meta(doctype).autoname
-
 		if autoname:
-			if ".#" in autoname or "hash" in autoname:
-				autoname = ""
-			elif autoname[0:5] == 'field':
+			if autoname[0:5] == 'field':
 				autoname = autoname[6:]
-			elif autoname=='naming_series:':
+			elif autoname == 'naming_series:':
 				autoname = 'naming_series'
 			else:
 				return True
