@@ -109,7 +109,7 @@ frappe.ui.Capture = class
 			{
 				const data_url = frappe._.get_data_uri(video)
 				this.hide()
-
+				
 				if (this.callback)
 					this.callback(data_url)
 			})
@@ -154,20 +154,16 @@ frappe.ui.Capture.TEMPLATE 	  =
 `
 <div class="frappe-capture">
 	<div class="panel panel-default">
-		${''/*preview*/}
 		<img class="fc-p img-responsive"/>
-		${''/*stream*/}
 		<div class="fc-s  embed-responsive embed-responsive-16by9">
 			<video class="embed-responsive-item">${frappe.ui.Capture.ERR_MESSAGE}</video>
 		</div>
 	</div>
 	<div>
-		${''/*btn-toolbar-freeze*/}
 		<div class="fc-btf">
 			<div class="row">
 				<div class="col-md-6">
 					<div class="pull-left">
-						${''/*btn-retake*/}
 						<button class="btn btn-default fc-br">
 							<small>${__('Retake')}</small>
 						</button>
@@ -175,7 +171,6 @@ frappe.ui.Capture.TEMPLATE 	  =
 				</div>
 				<div class="col-md-6">
 					<div class="pull-right">
-						${''/*btn-submit*/}
 						<button class="btn btn-primary fc-bs">
 							<small>${__('Submit')}</small>
 						</button>
@@ -183,7 +178,6 @@ frappe.ui.Capture.TEMPLATE 	  =
 				</div>
 			</div>
 		</div>
-		${''/*btn-toolbar-unfreeze*/}
 		<div class="fc-btu">
 			<div class="row">
 				<div class="col-md-6">
@@ -198,7 +192,6 @@ frappe.ui.Capture.TEMPLATE 	  =
 				</div>
 				<div class="col-md-6">
 					<div class="pull-right">
-						${''/*btn-capture-photo*/}
 						<button class="btn btn-default fc-bcp">
 							<small>${__('Take Photo')}</small>
 						</button>

@@ -21,6 +21,47 @@
 frappe.user.first_name = user => frappe.user.full_name(user).split(" ")[0]
 
 // frappe.ui extensions
+frappe.provide('frappe.ui')
+frappe.ui.Uploader = class
+{
+    constructor (wrapper, options = { })
+    {
+        this.options = frappe.ui.Uploader.OPTIONS
+        this.set_wrapper(wrapper)
+        this.set_options(options)
+    }
+
+    set_wrapper (wrapper)
+    {
+        this.$wrapper = $(wrapper)
+
+        return this
+    }
+
+    set_options (options)
+    {
+        this.options = { ...this.options, ...options }
+
+        return this
+    }
+
+    render ( )
+    {
+        const $template = $(frappe.ui.Uploader.TEMPLATE)
+    }
+}
+frappe.ui.Uploader.Layout   = { DIALOG: 'DIALOG' }
+frappe.ui.Uploader.OPTIONS  =
+{
+    layout: frappe.ui.Uploader.Layout.DIALOG
+}
+frappe.ui.Uploader.TEMPLATE =
+`
+<div class="foobar">
+    FooBar
+</div>
+`
+
 frappe.provide('frappe.ui.keycode')
 frappe.ui.keycode = { RETURN: 13 }
 
