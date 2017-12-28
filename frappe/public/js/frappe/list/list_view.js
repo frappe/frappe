@@ -170,9 +170,12 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		// Add rest from in_list_view docfields
 		this.columns = this.columns.concat(
 			fields_in_list_view
-				.filter(df => df.fieldname !== 'status'
-					&& df.fieldname !== this.meta.title_field
-				)
+				.filter(df => {
+					if (frappe.has_indicator(this.doctype) && df.fieldname === 'status') {
+						return false;
+					}
+					return df.fieldname !== this.meta.title_field;
+				})
 				.map(df => ({
 					type: 'Field',
 					df
