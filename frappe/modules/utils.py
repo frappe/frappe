@@ -92,10 +92,10 @@ def sync_customizations(app=None):
 						data = json.loads(f.read())
 
 					if data.get('sync_on_migrate'):
-						sync_customizations_for_doctype(data)
+						sync_customizations_for_doctype(data, folder)
 
 
-def sync_customizations_for_doctype(data):
+def sync_customizations_for_doctype(data, folder):
 	'''Sync doctype customzations for a particular data set'''
 	from frappe.core.doctype.doctype.doctype import validate_fields_for_doctype
 
@@ -104,13 +104,21 @@ def sync_customizations_for_doctype(data):
 
 	def sync(key, custom_doctype, doctype_fieldname):
 		doctypes = list(set(map(lambda row: row.get(doctype_fieldname), data[key])))
-		frappe.db.sql('delete from `tab{0}` where `{1}` in ({2})'.format(
-			custom_doctype, doctype_fieldname, ",".join(["'%s'" % dt for dt in doctypes])))
 
-		for d in data[key]:
-			d['doctype'] = custom_doctype
-			doc = frappe.get_doc(d)
-			doc.db_insert()
+		# sync single doctype exculding the child doctype
+		def sync_single_doctype(doc_type):
+			frappe.db.sql('delete from `tab{0}` where `{1}` =%s'.format(
+				custom_doctype, doctype_fieldname), doc_type)
+			for d in data[key]:
+				if d.get(doctype_fieldname) == doc_type:
+					d['doctype'] = custom_doctype
+					doc = frappe.get_doc(d)
+					doc.db_insert()
+
+		for doc_type in doctypes:
+			# only sync the parent doctype and child doctype if there isn't any other child table json file
+			if doc_type == doctype or not os.path.exists(os.path.join(folder, frappe.scrub(doc_type)+".json")):
+				sync_single_doctype(doc_type)
 
 	if data['custom_fields']:
 		sync('custom_fields', 'Custom Field', 'dt')
