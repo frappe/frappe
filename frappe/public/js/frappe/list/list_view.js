@@ -76,13 +76,12 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	set_fields() {
-		// get from user_settings
 		if (this.view_user_settings.fields) {
+			// get from user_settings
 			this._fields = this.view_user_settings.fields;
-			return;
+		} else {
+			super.set_fields();
 		}
-		// build from meta
-		super.set_fields();
 	}
 
 	setup_page_head() {
@@ -163,7 +162,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		// Add rest from in_list_view docfields
 		this.columns = this.columns.concat(
 			fields_in_list_view
-				.filter(df => df.fieldname !== 'status')
+				.filter(df => df.fieldname !== 'status' && df.fieldtype !== 'Text Editor')
 				.map(df => ({
 					type: 'Field',
 					df
