@@ -8,6 +8,6 @@ from frappe.chat.util.util import (
 	listify,
 	dictify,
 	check_url,
-	user_exist,
-	create_test_user
+	create_test_user,
+	get_emojis
 )

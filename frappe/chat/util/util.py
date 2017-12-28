@@ -1,3 +1,6 @@
+# imports - third-party imports
+import requests
+
 # imports - compatibility imports
 import six
 
@@ -11,7 +14,7 @@ import json
 
 # imports - module imports
 from   frappe.model.document import Document
-from   frappe.exceptions import DoesNotExistError, DuplicateEntryError
+from   frappe.exceptions import DuplicateEntryError
 from   frappe import _dict
 import frappe
 
@@ -89,13 +92,6 @@ def check_url(what, raise_err = False):
 	
 	return True
 
-def user_exist(user):
-	try:
-		user = get_user_doc(user)
-		return True
-	except DoesNotExistError:
-		return False
-
 def create_test_user(module):
 	try:
 		test_user = frappe.new_doc('User')
@@ -105,3 +101,14 @@ def create_test_user(module):
 	except DuplicateEntryError:
 		frappe.log('Test User Chat Profile exists.')
 
+def get_emojis():
+	redis  = frappe.cache()
+	emojis = redis.hget('frappe_emojis', 'emojis')
+
+	if not emojis:
+		resp  = requests.get('http://git.io/frappe-emoji')
+		if resp.ok:
+			emojis = resp.json()
+			redis.hset('frappe_emojis', 'emojis', emojis)
+	
+	return dictify(emojis)

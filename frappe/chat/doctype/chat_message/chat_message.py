@@ -1,4 +1,8 @@
+# imports - standard imports
+import json
+
 # imports - third-party imports
+import requests
 from bs4 import BeautifulSoup as Soup
 
 # imports - module imports
@@ -11,13 +15,10 @@ from frappe.chat.util import (
 	get_user_doc,
 	check_url,
 	dictify,
-	user_exist
+	get_emojis
 )
 
 session = frappe.session
-
-# TODO
-# [ ] Link Timestamp to Chat Room
 
 class ChatMessage(Document):
 	pass
@@ -36,18 +37,19 @@ def get_message_urls(content):
 	return urls
 	
 def get_message_mentions(content):
-	soup     = Soup(content, 'html.parser')
-	anchors  = soup.find_all('a')
 	mentions = [ ]
+	tokens   = content.split(' ')
 
-	for anchor in anchors:
-		text = anchor.text
-	
-		if text.startswith('@'):
-			username = text[1:]
+	for token in tokens:
+		if token.startswith('@'):
+			what = token[1:]
+			if frappe.db.exists('User', what):
+				mentions.append(what)
+		else:
+			if frappe.db.exists('User', token):
+				mentions.append(token)
 
-			if user_exist(user):
-				mentions.append(user)
+	return mentions
 
 def get_message_meta(content):
 	'''
@@ -65,6 +67,22 @@ def get_message_meta(content):
 	
 	return meta
 
+def sanitize_message_content(content):
+	emojis = get_emojis()
+		
+	tokens = content.split(' ')
+	for token in tokens:
+		if token.startswith(':') and token.endswith(':'):
+			what = token[1:-1]
+
+			# Expensive, I know.
+			for emoji in emojis:
+				for alias in emoji.aliases:
+					if what == alias:
+						content = content.replace(token, emoji.emoji)
+
+	return content
+
 def get_new_chat_message_doc(user, room, content, link = True):
 	user = get_user_doc(user)
 	room = frappe.get_doc('Chat Room', room)
@@ -73,10 +91,10 @@ def get_new_chat_message_doc(user, room, content, link = True):
 	mess = frappe.new_doc('Chat Message')
 	mess.type     = room.type
 	mess.room 	  = room.name
-	mess.content  = content
+	mess.content  = sanitize_message_content(content)
 	mess.user	  = user.name
 
-	mess.mentions = meta.mentions
+	mess.mentions = json.dumps(meta.mentions)
 	mess.urls     = ','.join(meta.urls)
 	mess.save()
 
@@ -97,7 +115,7 @@ def get_new_chat_message(user, room, content):
 		room     = mess.room,
 		content  = mess.content,
 		urls     = mess.urls,
-		mentions = mess.mentions,
+		mentions = json.loads(mess.mentions),
 		creation = mess.creation,
 		seen     = mess._seen,
 	)

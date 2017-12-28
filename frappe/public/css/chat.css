@@ -27,12 +27,21 @@
   width: 56px;
   height: 56px;
 }
+.frappe-chat .panel {
+  margin-bottom: 0px !important;
+}
 .frappe-chat .panel .panel-heading {
   box-shadow: 0px 2px 2px 0px rgba(0, 0, 0, 0.14);
+}
+.frappe-chat .panel .panel-body {
+  padding: 10px;
 }
 .frappe-chat .panel .frappe-chat-room-footer {
   position: absolute;
   bottom: 0px;
+}
+.frappe-chat .frappe-chat-form .form-control {
+  font-size: 12px;
 }
 .frappe-chat .frappe-chat-form .dropdown-menu {
   border-radius: 4px;
@@ -61,13 +70,18 @@
   bottom: 0px;
   right: 0px;
   margin: 20px;
-  margin-bottom: calc(70px);
 }
 .frappe-chat-popper .frappe-chat-popper-collapse > .panel {
   position: relative;
+  box-shadow: 0px 3px 6px 0px rgba(0, 0, 0, 0.25);
   width: 350px;
   height: 500px;
-  box-shadow: 0px 3px 6px 0px rgba(0, 0, 0, 0.25);
+  overflow-y: auto;
+}
+.frappe-chat-popper .frappe-chat-popper-collapse > .panel .panel-body {
+  width: 350px;
+  height: 500px;
+  overflow-y: auto;
 }
 .frappe-chat-popper .frappe-chat-popper-collapse > .panel > .panel-heading {
   box-shadow: 0px 2px 2px 0px rgba(0, 0, 0, 0.14);

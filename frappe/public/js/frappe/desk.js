@@ -20,8 +20,9 @@ $(document).ready(function() {
 	frappe.start_app();
 
 	// frappe.Chat
-	const chat = new frappe.Chat()
-	chat.render();
+	// Removing it from here as per rushabh@frappe.io's request.
+	// const chat = new frappe.Chat()
+	// chat.render();
 	// end frappe.Chat
 });
 

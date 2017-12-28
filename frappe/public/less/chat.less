@@ -1,8 +1,14 @@
 // variables
-@color-white:											#FFF;
+@color-white:											#FFF; //
 
-@font-weight-bold:										700;
-@font-weight-heavy:										900;
+@font-weight-bold:										700;	//
+@font-weight-heavy:										900;   	//
+
+@frappe-chat-popper-panel-width:						350px; 	//
+@frappe-chat-popper-panel-height:						500px; 	//
+
+@frappe-chat-form-font-size:							12px;
+
 
 @frappe-fab-width:										48px;
 @frappe-fab-height:										48px;
@@ -13,13 +19,12 @@
 @frappe-fab-box-shadow:									0px 3px 6px 0px rgba(0,0,0,.25);
 @frappe-fab-box-shadow-hover:							0px 5px 9px 0px rgba(0,0,0,.25);
 
-@frappe-chat-panel-heading-box-shadow:					0px 2px 2px 0px rgba(0,0,0,.14);
+@frappe-chat-panel-heading-box-shadow:					0px 2px 2px 0px rgba(0,0,0,.14); //
+@frappe-chat-panel-body-padding:						10px;
 @frappe-chat-panel-heading-action-padding:				5px;
 
 @frappe-chat-popper-z-index: 							1035;
 @frappe-chat-popper-margin: 							20px;
-@frappe-chat-popper-panel-width:						350px;
-@frappe-chat-popper-panel-height:						500px;
 @frappe-chat-popper-panel-box-shadow:					@frappe-fab-box-shadow;
 // z-index greater than FAB, lesser than modal.
 @frappe-chat-popper-panel-span-z-index:					1037;
@@ -79,9 +84,16 @@
 {
 	.panel
 	{
+		margin-bottom: 0px !important;
+
 		.panel-heading
 		{
 			box-shadow: @frappe-chat-panel-heading-box-shadow;
+		}
+
+		.panel-body
+		{
+			padding: @frappe-chat-panel-body-padding;
 		}
 
 		.frappe-chat-room-footer
@@ -93,6 +105,11 @@
 
 	.frappe-chat-form
 	{
+		.form-control
+		{
+			font-size: @frappe-chat-form-font-size;
+		}
+
 		.dropdown-menu
 		{
 			border-radius: @frappe-chat-form-menu-border-radius;
@@ -123,6 +140,7 @@
 	  bottom: 0px;
 	   right: 0px;
 	  margin: @frappe-chat-popper-margin;
+
 	 z-index: @frappe-chat-popper-z-index;
 
 	.frappe-chat-popper-collapse
@@ -131,14 +149,22 @@
 		       bottom: 0px;
 		        right: 0px;
 		       margin: @frappe-chat-popper-margin;
-		margin-bottom: calc(@frappe-chat-popper-margin + 50px);
+		// margin-bottom: calc(@frappe-chat-popper-margin + 50px);
 
 		& > .panel
 		{
 			  position: relative;
+			box-shadow: @frappe-chat-popper-panel-box-shadow;
 				 width: @frappe-chat-popper-panel-width;
 				height: @frappe-chat-popper-panel-height;
-			box-shadow: @frappe-chat-popper-panel-box-shadow;
+			overflow-y: auto;
+
+			.panel-body
+			{
+				 	 width: @frappe-chat-popper-panel-width;
+					height: @frappe-chat-popper-panel-height;
+				overflow-y: auto;
+			}
 
 			& > .panel-heading
 			{

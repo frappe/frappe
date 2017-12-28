@@ -40,7 +40,7 @@ frappe.ui.Uploader = class
 
     set_options (options)
     {
-        this.options = { ...this.options, ...options }
+        this.options  = { ...this.options, ...options }
 
         return this
     }
@@ -48,6 +48,7 @@ frappe.ui.Uploader = class
     render ( )
     {
         const $template = $(frappe.ui.Uploader.TEMPLATE)
+        this.$wrapper.html($template)
     }
 }
 frappe.ui.Uploader.Layout   = { DIALOG: 'DIALOG' }
@@ -1220,8 +1221,10 @@ class
         const $wrapper = this.$wrapper
         const options  = this.options
 
-        const component  = h(frappe.Chat.Widget, {
-            layout: options.layout
+        const component  = h(frappe.Chat.Widget,
+        {
+            layout: options.layout,
+            target: options.target
         })
 
         hyper.render(component, $wrapper[0])
@@ -1410,7 +1413,6 @@ class extends Component
 
         frappe.chat.message.on.create((r) => 
         {
-            
             const { state } = this
             
             // play sound.
@@ -1561,7 +1563,7 @@ class extends Component
 
         const component  = props.layout === frappe.Chat.Layout.POPPER ?
             state.profile.display_widget ?
-                h(frappe.Chat.Widget.Popper, { page: state.room.name && Room },
+                h(frappe.Chat.Widget.Popper, { page: state.room.name && Room, target: props.target },
                     h("span", null,
                         ActionBar, RoomList
                     )
@@ -1615,10 +1617,14 @@ class extends Component
         this.toggle = this.toggle.bind(this)
 
         this.state  = frappe.Chat.Widget.Popper.defaultState
+
+        if ( props.target )
+            $(props.target).click(() => this.toggle())
     }
 
     toggle  (active)
     {
+
         let toggle
         if ( arguments.length === 1 )
             toggle = active
@@ -1632,16 +1638,17 @@ class extends Component
     {
         const { props, state } = this
         
-        return !state.destroy ? 
+        return !state.destroy ?
         (
             h("div", { class: "frappe-chat-popper" },
-                h(frappe.components.FAB, {
-                      class: "frappe-fab",
-                       icon: state.active ? "fa fa-fw fa-times" : "font-heavy octicon octicon-comment", // done, as per kenneth@frappe.io suggestion (font-heavy, octicon-lg)
-                       size: frappe._.is_mobile() ? null : "large",
-                       type: "primary", "data-toggle": "dropdown",
-                    onclick: () => this.toggle(),
-                }),
+                !props.target ?
+                    h(frappe.components.FAB, {
+                          class: "frappe-fab",
+                           icon: state.active ? "fa fa-fw fa-times" : "font-heavy octicon octicon-comment",
+                           size: frappe._.is_mobile() ? null : "large",
+                           type: "primary",
+                        onclick: () => this.toggle(),
+                    }) : null,
                 state.active ?
                     h("div", { class: "frappe-chat-popper-collapse" },
                         props.page ? props.page : (
@@ -1651,14 +1658,14 @@ class extends Component
                                         h("div", { class: "col-xs-9" }),
                                         h("div", { class: "col-xs-3" },
                                             h("div", { class: "text-right" },
-                                                !frappe._.is_mobile() ?
-                                                    h("a", { class: "action", onclick: () =>
-                                                        {
-                                                            frappe.set_route('chat')
-                                                            this.toggle(false)
-                                                        }},
-                                                        h(frappe.components.FontAwesome, { type: "expand", fixed: true })
-                                                    ) : null,
+                                                // !frappe._.is_mobile() ?
+                                                //     h("a", { class: "action", onclick: () =>
+                                                //         {
+                                                //             frappe.set_route('chat')
+                                                //             this.toggle(false)
+                                                //         }},
+                                                //         h(frappe.components.FontAwesome, { type: "expand", fixed: true })
+                                                //     ) : null,
                                                 h("a", { class: "action", onclick: () => this.toggle(false) },
                                                     h(frappe.components.Octicon, { type: "x" })
                                                 )
@@ -1723,9 +1730,10 @@ class extends Component
     render ( )
     {
         const { props, state } = this
+        const popper           =  props.layout === frappe.Chat.Layout.POPPER
 
         return (
-            h("form", { oninput: this.change, onsubmit: this.submit },
+            h("form", { oninput: this.change, onsubmit: this.submit, style: popper ? { "padding-left": "15px", "padding-right": "15px" } : null },
                 h("div", { class: "form-group" },
                     h("div", { class: "input-group input-group-sm" },
                         props.span || props.layout !== frappe.Chat.Layout.PAGE ?
@@ -1876,7 +1884,7 @@ class extends Component
         const position  = frappe.Chat.Widget.MediaProfile.POSITION[props.position || "left"]
         const avatar    = (
             h("div", { class: `${position.class} media-top` },
-                h(frappe.components.Avatar, { ...props, 
+                h(frappe.components.Avatar, { ...props,
                     title: props.title,
                     image: props.image,
                      size: props.size,
@@ -1886,7 +1894,7 @@ class extends Component
         )
 
         return (
-            h("div", { class: "media" },
+            h("div", { class: "media", style: position.class === "media-right" ? { "text-align": "right" } : null },
                 position.class === "media-left"  ? avatar : null,
                 h("div", { class: "media-body" },
                     h("div", { class: "media-heading h6 ellipsis", style: `max-width: ${props.width_title || "100%"} display: inline-block` }, props.title),
@@ -2002,12 +2010,19 @@ class extends Component
         return (
             h("div", { class: `panel panel-primary ${frappe._.is_mobile() ? "panel-span" : ""}` },
                 h(frappe.Chat.Widget.Room.Header, { ...props, back: props.destroy }),
-                h(frappe.Chat.Widget.ChatList, {
-                    messages: props.messages
-                }),
-                h("div", { class: "panel-body" },
-                    
-                ),
+                !frappe._.is_empty(props.messages) ?
+                    h(frappe.Chat.Widget.ChatList, {
+                        messages: props.messages
+                    })
+                    :
+                    h("div", { class: "panel-body" },
+                        h("div", { style: "margin-top: 145px" },
+                            h("div", { class: "text-center text-extra-muted" },
+                                h(frappe.components.Octicon, { type: "comment-discussion", style: "font-size: 48px" }),
+                                h("p", null, __("Start a conversation."))
+                            )
+                        )
+                    ),
                 h("div", { class: "frappe-chat-room-footer" },
                     h(frappe.Chat.Widget.ChatForm, { actions: actions,
                         change: () => {
@@ -2191,26 +2206,24 @@ class extends Component {
                         })
                     ) : null,
                 h("form", { oninput: this.change, onsubmit: this.submit },
-                    h("div", { class: "input-group input-group-sm" },
-                        h("div", { class: "input-group-btn" },
-                            h("div", { class: "btn-group dropup" },
-                                h(frappe.components.Button, { class: "dropdown-toggle", "data-toggle": "dropdown" },
-                                    h(frappe.components.FontAwesome, { type: "paperclip", fixed: true })
-                                ),
-                                h("div", { class: "dropdown-menu dropdown-menu-left", onclick: e => e.stopPropagation() },
-                                    !frappe._.is_empty(props.actions) && props.actions.map((action) => {
-                                        return (
-                                            h("li", null,
-                                                h("a", { onclick: action.click },
-                                                    h(frappe.components.FontAwesome, { type: action.icon, fixed: true }), ` ${action.label}`,
-                                                )
+                    h("div", { class: "input-group input-group-lg" },
+                        h("div", { class: "input-group-btn dropup" },
+                            h(frappe.components.Button, { class: "dropdown-toggle", "data-toggle": "dropdown" },
+                                h(frappe.components.FontAwesome, { type: "paperclip", fixed: true, style: { "font-size": "14px" } })
+                            ),
+                            h("div", { class: "dropdown-menu dropdown-menu-left", onclick: e => e.stopPropagation() },
+                                !frappe._.is_empty(props.actions) && props.actions.map((action) => {
+                                    return (
+                                        h("li", null,
+                                            h("a", { onclick: action.click },
+                                                h(frappe.components.FontAwesome, { type: action.icon, fixed: true }), ` ${action.label}`,
                                             )
                                         )
-                                    })
-                                )
+                                    )
+                                })
                             )
                         ),
-                        h("textarea",
+                        h("input",
                         {
                                     class: "form-control",
                                      name: "content",
@@ -2225,7 +2238,7 @@ class extends Component {
                         }),
                         h("div", { class: "input-group-btn" },
                             h(frappe.components.Button, { type: "primary", class: "dropdown-toggle", "data-toggle": "dropdown", onclick: this.submit },
-                                h(frappe.components.FontAwesome, { type: "send", fixed: true })
+                                h(frappe.components.FontAwesome, { type: "send", fixed: true, style: { "font-size": "14px" } })
                             ),
                         )
                     )
@@ -2407,28 +2420,15 @@ frappe.Chat.Widget.ChatList.Bubble
 class extends Component {
     render ( ) {
         const { props } = this
-        const bubble    = (
+
+        return (
             h(frappe.Chat.Widget.MediaProfile, {
-                      title: frappe.user.full_name(props.user),
-                      image: frappe.user.image(props.user),
+                      title: props.content,
                    subtitle: frappe.chat.pretty_datetime(props.creation),
-                    content: props.content,
+                      image: frappe.user.image(props.user),
                 width_title: "100%",
                    position: frappe.user.full_name(props.user) === "You" ? "right" : "left"
             })
-        )
-
-        return (
-            h("div", { class: "row" },
-                frappe.user.full_name(props.user) !== "You" ?
-                    h("div", { class: "col-md-6" }, bubble)
-                    :
-                    h("div", { class: "col-md-6 col-md-offset-6" },
-                        h("div", { class: "text-right" },
-                            bubble
-                        )
-                    )
-            )
         )
     }
 }
