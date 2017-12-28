@@ -117,7 +117,7 @@ def get_new_chat_message(user, room, content):
 		urls     = mess.urls,
 		mentions = json.loads(mess.mentions),
 		creation = mess.creation,
-		seen     = mess._seen,
+		seen     = json.loads(mess._seen) if mess._seen else [ ],
 	)
 
 	return resp
@@ -128,6 +128,16 @@ def send(user, room, content):
 	
 	frappe.publish_realtime('frappe.chat.message:create', mess, room = room,
 		after_commit = True)
+
+@frappe.whitelist()
+def seen(message, user = None):
+	mess = frappe.get_doc('Chat Message', message)
+	mess.add_seen(user)
+
+	room = mess.room
+	resp = dict(message = message, data = dict(seen = json.loads(mess._seen)))
+	
+	frappe.publish_realtime('frappe.chat.message:update', resp, room = room, after_commit = True)
 
 # This is fine for now. If you're "ReST"-ing it,
 # make sure you don't let the user see them.

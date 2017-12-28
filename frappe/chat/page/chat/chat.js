@@ -6,6 +6,6 @@ frappe.pages.chat.on_page_load = function (container)
     const $container = $(container).find('.layout-main')
     $container.html("")
 
-    const chat = new frappe.Chat($container, { layout: frappe.Chat.Layout.PAGE });
-    chat.render();
+    // const chat = new frappe.Chat($container, { layout: frappe.Chat.Layout.PAGE });
+    // chat.render();
 };

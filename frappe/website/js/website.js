@@ -412,7 +412,7 @@ $(document).on("page-change", function() {
 
 $(document).ready(function ( ) {
 	// frappe.Chat
-	const chat = new frappe.Chat();
-	chat.render();
+	// const chat = new frappe.Chat();
+	// chat.render();
 	// end frappe.Chat
 });

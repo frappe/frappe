@@ -866,10 +866,33 @@ frappe.chat.message.update = function (message, update, fn)
     })
 }
 
+frappe.chat.message.sort   = (messages) =>
+{
+    if ( !frappe._.is_empty(messages) )
+        messages.sort((a, b) => frappe.datetime.compare(b.creation, a.creation));
+
+    return messages
+}
+
+/**
+ * @description Add user to seen (defaults to session.user)
+ */
+frappe.chat.message.seen   = (mess, user) =>
+{
+    frappe.call('frappe.chat.doctype.chat_message.chat_message.seen',
+        { message: mess, user: user || frappe.session.user })
+}
+
 frappe.provide('frappe.chat.message.on')
 frappe.chat.message.on.create = function (fn)
 {
     frappe.realtime.on("frappe.chat.message:create", r => fn({ ...r, creation: new frappe.datetime.datetime(r.creation) }))
+}
+
+
+frappe.chat.message.on.update = function (fn)
+{
+    frappe.realtime.on("frappe.chat.message:update", r => fn(r.message, r.data))
 }
 
 frappe.chat.pretty_datetime   = function (date)
@@ -1410,6 +1433,16 @@ class extends Component
             frappe.log.warn(`TRIGGER: Chat Room ${room} update ${JSON.stringify(update)} recieved.`)
             this.room.update(room, update)
         })
+        
+        frappe.chat.room.on.typing((room, user) => {
+            if ( user !== frappe.session.user )
+            {
+                frappe.log.warn(`User ${user} typing in Chat Room ${room}.`)
+                this.room.update(room, { typing: user })
+    
+                setTimeout(() => this.room.update(room, { typing: null }), 1500)
+            }
+        })
 
         frappe.chat.message.on.create((r) => 
         {
@@ -1430,14 +1463,9 @@ class extends Component
             }
         })
 
-        frappe.chat.room.on.typing((room, user) => {
-            if ( user !== frappe.session.user )
-            {
-                frappe.log.warn(`User ${user} typing in Chat Room ${room}.`)
-                this.room.update(room, { typing: user })
-    
-                setTimeout(() => this.room.update(room, { typing: null }), 1500)
-            }
+        frappe.chat.message.on.update((message, update) =>
+        {
+            frappe.log.warn(`TRIGGER: Chat Message ${message} update ${JSON.stringify(update)} recieved.`)
         })
     }
 
@@ -2007,12 +2035,19 @@ class extends Component
             }
         ])
 
+        if (props.messages)
+        {
+            props.messages = frappe._.as_array(props.messages)
+            for (const message of props.messages)
+                frappe.chat.message.seen(message.name)
+        }
+
         return (
             h("div", { class: `panel panel-primary ${frappe._.is_mobile() ? "panel-span" : ""}` },
                 h(frappe.Chat.Widget.Room.Header, { ...props, back: props.destroy }),
                 !frappe._.is_empty(props.messages) ?
                     h(frappe.Chat.Widget.ChatList, {
-                        messages: props.messages
+                        messages: !frappe._.is_empty(props.messages) && frappe.chat.message.sort(props.messages)
                     })
                     :
                     h("div", { class: "panel-body" },
@@ -2389,15 +2424,13 @@ class extends Component {
     render ( ) {
         const { props } = this
         
-        return props.messages && props.messages.length
-            ?
-            (
-                h("ul", { class: "list-group" },
-                    props.messages.map(m => h(frappe.Chat.Widget.ChatList.Item, {
-                        ...m
-                    }))
-                )
-            ) : null
+        return !frappe._.is_empty(props.messages) ? (
+            h("ul", { class: "list-group" },
+                props.messages.map(m => h(frappe.Chat.Widget.ChatList.Item, {
+                    ...m
+                }))
+            )
+        ) : null
     }
 }
 
@@ -2423,8 +2456,9 @@ class extends Component {
 
         return (
             h(frappe.Chat.Widget.MediaProfile, {
-                      title: props.content,
+                      title: frappe.user.full_name(props.user),
                    subtitle: frappe.chat.pretty_datetime(props.creation),
+                    content: props.content,
                       image: frappe.user.image(props.user),
                 width_title: "100%",
                    position: frappe.user.full_name(props.user) === "You" ? "right" : "left"
@@ -2440,11 +2474,6 @@ frappe.Chat.Widget.ChatList.Bubble.defaultState =
 
 
 
-// on_change_status (status) {
-//     frappe.chat.profile.update(null, {
-//         status: status
-//     })
-// }
 
 
 
