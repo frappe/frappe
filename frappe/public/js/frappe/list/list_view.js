@@ -82,6 +82,15 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		} else {
 			super.set_fields();
 		}
+		const option_fields = this.meta.fields
+			.filter(df => df.default && df.default.includes('{'))
+			.map(df => {
+				const fieldname = this.get_dynamic_field_from_default(df.default);
+				return fieldname;
+			})
+			.filter(fieldname => this.meta.fields.map(df => df.fieldname).includes(fieldname));
+
+		this._fields = this._fields.concat(option_fields);
 	}
 
 	setup_page_head() {
@@ -520,7 +529,15 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	get_subject_html(doc) {
 		let user = frappe.session.user;
 		let subject_field = this.columns[0].df;
-		let subject = strip_html(doc[subject_field.fieldname]);
+		let value = doc[subject_field.fieldname];
+		if (!value && subject_field.default && subject_field.default.includes('{')) {
+			let fieldname = this.get_dynamic_field_from_default(subject_field.default);
+			value = doc[fieldname];
+		}
+		if (!value) {
+			value = doc.name;
+		}
+		let subject = strip_html(value);
 
 		const liked_by = JSON.parse(doc._liked_by || '[]');
 		let heart_class = liked_by.includes(user) ?
@@ -764,6 +781,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		if (only_docnames) return docnames;
 
 		return this.data.filter(d => docnames.includes(d.name));
+	}
+
+	get_dynamic_field_from_default(str) {
+		return str.replace('{', '').replace('}', '');
 	}
 
 	save_view_user_settings(obj) {
