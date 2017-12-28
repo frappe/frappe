@@ -162,7 +162,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		// Add rest from in_list_view docfields
 		this.columns = this.columns.concat(
 			fields_in_list_view
-				.filter(df => df.fieldname !== 'status' && df.fieldtype !== 'Text Editor')
+				.filter(df => df.fieldname !== 'status'
+					&& df.fieldname !== this.meta.title_field
+				)
 				.map(df => ({
 					type: 'Field',
 					df
@@ -395,6 +397,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		const field_html = () => {
 			let html;
+			const _value = strip_html(value);
+
 			if (df.fieldtype === 'Image') {
 				html = df.options ?
 					`<img src="${doc[df.options]}" style="max-height: 30px; max-width: 100%;">` :
@@ -402,15 +406,19 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 						<span class="octicon octicon-circle-slash"></span>
 					</div>`;
 			} else if (df.fieldtype === 'Select') {
-				html = `<span class="filterable indicator ${frappe.utils.guess_colour(value)} ellipsis"
+				html = `<span class="filterable indicator ${frappe.utils.guess_colour(_value)} ellipsis"
 					data-filter="${fieldname},=,${value}">
-					${__(value)}
+					${__(_value)}
 				</span>`;
 			} else if (df.fieldtype === 'Link') {
 				html = `<a class="filterable text-muted ellipsis"
 					data-filter="${fieldname},=,${value}">
-					${value}
+					${_value}
 				</a>`;
+			} else if (df.fieldtype === 'Text Editor') {
+				html = `<span class="text-muted ellipsis">
+					${_value}
+				</span>`;
 			} else {
 				html = `<a class="filterable text-muted ellipsis"
 					data-filter="${fieldname},=,${value}">
@@ -419,7 +427,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			}
 
 			return `<span class="ellipsis"
-				title="${label + ': ' + value}">
+				title="${__(label) + ': ' + _value}">
 				${html}
 			</span>`;
 		};
