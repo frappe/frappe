@@ -8,7 +8,7 @@ frappe.ui.Tree = class {
 		parent, label, icon_set, toolbar, expandable, with_skeleton=1,
 
 		get_nodes,
-		get_nodes_args,
+		get_all_nodes,
 		get_label,
 		on_render,
 		on_click
@@ -113,52 +113,27 @@ frappe.ui.Tree = class {
 
 	refresh() {
 		this.selected_node.parent_node &&
-			this.load_children_deep(this.selected_node.parent_node);
+			this.load_children(this.selected_node.parent_node, true);
 	}
 
 	load_children(node, deep=false) {
-		deep ? this.load_children_deep(node)
-		: this.load_children_shallow(node);
+		let value = node.data.value, is_root = node.is_root;
+
+		if(!deep) {
+			frappe.run_serially([
+				() => {return this.get_nodes(value, is_root);},
+				(data_set) => { this.render_node_children(node, data_set); }
+			]);
+		} else {
+			frappe.run_serially([
+				() => {return this.get_all_nodes(value, is_root);},
+				(data_list) => { this.render_children_of_all_nodes(data_list); }
+			]);
+		}
 	}
 
-	load_children_shallow(node) {
-		var args = $.extend(this.get_nodes_args || {}, {
-			parent: node.data.value
-		});
-
-		args.is_root = node.is_root;
-
-		return new Promise(resolve => {
-			frappe.call({
-				method: this.get_nodes,
-				args: args,
-				callback: (r) => {
-					this.render_node_children(node, r.message);
-					resolve();
-				}
-			})
-		});
-	}
-
-	load_children_deep(node) {
-		let args = $.extend({}, this.get_nodes_args);
-
-		args.is_root = node.is_root;
-		args.parent = node.data.value;
-		args.tree_method = this.get_nodes;
-
-		return new Promise(resolve => {
-			frappe.call({
-				method: 'frappe.desk.treeview.get_all_nodes',
-				args: args,
-				callback: (r) => {
-					$.each(r.message, (i, d) => {
-						this.render_node_children(this.nodes[d.parent], d.data);
-					});
-					resolve();
-				}
-			})
-		});
+	render_children_of_all_nodes(data_list) {
+		data_list.map(d => {this.render_node_children(this.nodes[d.parent], d.data)});
 	}
 
 	render_node_children(node, data_set) {
@@ -260,7 +235,7 @@ frappe.ui.Tree = class {
 		let $toolbar = $('<span class="tree-node-toolbar btn-group"></span>').hide();
 
 		Object.keys(this.toolbar).map(key => {
-			obj = this.toolbar[key];
+			let obj = this.toolbar[key];
 			if(!obj.label) return;
 			if(obj.condition && !obj.condition(node)) return;
 
@@ -269,7 +244,7 @@ frappe.ui.Tree = class {
 				.html(label)
 				.addClass('tree-toolbar-button ' + (obj.btnClass || ''))
 				.appendTo($toolbar);
-			$link.on('click', () => { obj.click($link, node); return false; });
+			$link.on('click', () => { obj.click(node); return false; });
 		});
 
 		return $toolbar;
