@@ -232,16 +232,31 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 	render_editing_input(colIndex, value, parent) {
 		const col = this.datatable.getColumn(colIndex);
+		let control = null;
 
-		// make control
-		const control = frappe.ui.form.make_control({
-			df: col.docfield,
-			parent: parent,
-			render_input: true
-		});
-		control.set_value(value);
-		control.toggle_label(false);
-		control.toggle_description(false);
+		if (col.docfield.fieldtype === 'Text Editor') {
+			const d = new frappe.ui.Dialog({
+				title: __('Edit {0}', [col.docfield.label]),
+				fields: [col.docfield],
+				primary_action: () => {
+					this.datatable.cellmanager.submitEditing();
+					this.datatable.cellmanager.deactivateEditing();
+					d.hide();
+				}
+			});
+			d.show();
+			control = d.fields_dict[col.docfield.fieldname];
+		} else {
+			// make control
+			control = frappe.ui.form.make_control({
+				df: col.docfield,
+				parent: parent,
+				render_input: true
+			});
+			control.set_value(value);
+			control.toggle_label(false);
+			control.toggle_description(false);
+		}
 
 		return control;
 	}
