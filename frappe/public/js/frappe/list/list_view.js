@@ -397,7 +397,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		const field_html = () => {
 			let html;
-			const _value = strip_html(value);
+			const _value = typeof value === 'string' ? strip_html(value) : value;
 
 			if (df.fieldtype === 'Image') {
 				html = df.options ?
