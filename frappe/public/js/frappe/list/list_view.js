@@ -76,13 +76,21 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	set_fields() {
-		// get from user_settings
 		if (this.view_user_settings.fields) {
+			// get from user_settings
 			this._fields = this.view_user_settings.fields;
-			return;
+		} else {
+			super.set_fields();
 		}
-		// build from meta
-		super.set_fields();
+		const option_fields = this.meta.fields
+			.filter(df => df.default && df.default.includes('{'))
+			.map(df => {
+				const fieldname = this.get_dynamic_field_from_default(df.default);
+				return fieldname;
+			})
+			.filter(fieldname => this.meta.fields.map(df => df.fieldname).includes(fieldname));
+
+		this._fields = this._fields.concat(option_fields);
 	}
 
 	setup_page_head() {
@@ -163,7 +171,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		// Add rest from in_list_view docfields
 		this.columns = this.columns.concat(
 			fields_in_list_view
-				.filter(df => df.fieldname !== 'status')
+				.filter(df => df.fieldname !== 'status'
+					&& df.fieldname !== this.meta.title_field
+				)
 				.map(df => ({
 					type: 'Field',
 					df
@@ -396,6 +406,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		const field_html = () => {
 			let html;
+			const _value = typeof value === 'string' ? strip_html(value) : value;
+
 			if (df.fieldtype === 'Image') {
 				html = df.options ?
 					`<img src="${doc[df.options]}" style="max-height: 30px; max-width: 100%;">` :
@@ -403,15 +415,19 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 						<span class="octicon octicon-circle-slash"></span>
 					</div>`;
 			} else if (df.fieldtype === 'Select') {
-				html = `<span class="filterable indicator ${frappe.utils.guess_colour(value)} ellipsis"
+				html = `<span class="filterable indicator ${frappe.utils.guess_colour(_value)} ellipsis"
 					data-filter="${fieldname},=,${value}">
-					${__(value)}
+					${__(_value)}
 				</span>`;
 			} else if (df.fieldtype === 'Link') {
 				html = `<a class="filterable text-muted ellipsis"
 					data-filter="${fieldname},=,${value}">
-					${value}
+					${_value}
 				</a>`;
+			} else if (df.fieldtype === 'Text Editor') {
+				html = `<span class="text-muted ellipsis">
+					${_value}
+				</span>`;
 			} else {
 				html = `<a class="filterable text-muted ellipsis"
 					data-filter="${fieldname},=,${value}">
@@ -420,7 +436,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			}
 
 			return `<span class="ellipsis"
-				title="${label + ': ' + value}">
+				title="${__(label) + ': ' + _value}">
 				${html}
 			</span>`;
 		};
@@ -513,7 +529,15 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	get_subject_html(doc) {
 		let user = frappe.session.user;
 		let subject_field = this.columns[0].df;
-		let subject = strip_html(doc[subject_field.fieldname]);
+		let value = doc[subject_field.fieldname];
+		if (!value && subject_field.default && subject_field.default.includes('{')) {
+			let fieldname = this.get_dynamic_field_from_default(subject_field.default);
+			value = doc[fieldname];
+		}
+		if (!value) {
+			value = doc.name;
+		}
+		let subject = strip_html(value);
 
 		const liked_by = JSON.parse(doc._liked_by || '[]');
 		let heart_class = liked_by.includes(user) ?
@@ -757,6 +781,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		if (only_docnames) return docnames;
 
 		return this.data.filter(d => docnames.includes(d.name));
+	}
+
+	get_dynamic_field_from_default(str) {
+		return str.replace('{', '').replace('}', '');
 	}
 
 	save_view_user_settings(obj) {
