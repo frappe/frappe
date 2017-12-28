@@ -18,6 +18,12 @@ $(document).ready(function() {
 		});
 	}
 	frappe.start_app();
+
+	// frappe.Chat
+	// Removing it from here as per rushabh@frappe.io's request.
+	// const chat = new frappe.Chat()
+	// chat.render();
+	// end frappe.Chat
 });
 
 frappe.Application = Class.extend({
@@ -29,7 +35,7 @@ frappe.Application = Class.extend({
 		this.startup();
 	},
 	startup: function() {
-		frappe.socketio.init();
+		frappe.socketio.init()
 		frappe.model.init();
 
 		if(frappe.boot.status==='failed') {
