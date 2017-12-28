@@ -981,6 +981,12 @@ li.user-progress .progress-bar {
 .note-editor.note-frame .note-editing-area .note-editable {
   color: #36414C;
 }
+.checkbox input[type=checkbox] {
+  margin-left: 0;
+}
+.input-area input[type=checkbox] {
+  margin-left: -20px;
+}
 input[type="checkbox"] {
   position: relative;
   left: -999999px;
@@ -1024,11 +1030,19 @@ input[type="checkbox"]:focus {
 @-moz-document url-prefix() {
   input[type="checkbox"] {
     visibility: visible;
+    left: 0;
+  }
+}
+@supports (-moz-appearance: none) {
+  input[type="checkbox"] {
+    visibility: visible;
+    left: 0;
   }
 }
 @supports (-ms-ime-align:auto) {
   input[type="checkbox"] {
     visibility: visible;
+    left: 0;
   }
 }
 .color-picker {

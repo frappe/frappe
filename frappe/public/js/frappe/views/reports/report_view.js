@@ -162,11 +162,17 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 							}
 						],
 						primary_action: ({ column, insert_before }) => {
+							if (!columns_in_picker.map(col => col.value).includes(column)) {
+								frappe.show_alert(__('Invalid column'));
+								d.hide();
+								return;
+							}
 
 							let doctype = this.doctype;
 							if (column.includes(',')) {
 								[column, doctype] = column.split(',');
 							}
+
 
 							let index = datatabe_col.colIndex;
 							if (insert_before) {
@@ -189,9 +195,10 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		const control = this.render_editing_input(colIndex, value, parent);
 		if (!control) return false;
 
+		control.df.change = () => control.set_focus();
+
 		return {
 			initValue: (value) => {
-				control.set_focus();
 				return control.set_value(value);
 			},
 			setValue: (value) => {
@@ -353,17 +360,19 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 	get_columns_for_picker() {
 		let out = {};
-		let doctype_fields = frappe.meta.get_docfields(this.doctype).filter(df =>
+
+		const standard_fields_filter = df =>
 			!in_list(frappe.model.no_value_type, df.fieldtype) &&
 			!df.report_hide && df.fieldname !== 'naming_series' &&
-			!df.hidden
-		);
+			!df.hidden;
+
+		let doctype_fields = frappe.meta.get_docfields(this.doctype).filter(standard_fields_filter);
 
 		doctype_fields = [{
 			label: __('ID'),
 			fieldname: 'name',
 			fieldtype: 'Data'
-		}].concat(doctype_fields);
+		}].concat(doctype_fields, frappe.model.std_fields);
 
 		out[this.doctype] = doctype_fields;
 
@@ -372,9 +381,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 		table_fields.forEach(df => {
 			const cdt = df.options;
-			const child_table_fields =
-				frappe.meta.get_docfields(cdt)
-					.filter(df => df.in_list_view);
+			const child_table_fields = frappe.meta.get_docfields(cdt).filter(standard_fields_filter);
 
 			out[cdt] = child_table_fields;
 		});

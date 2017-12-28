@@ -534,8 +534,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					${ liked_by.length > 99 ? __("99") + '+' : __(liked_by.length || '')}
 				</span>
 			</span>
-			<span class="level-item ${seen} ellipsis" title="${subject}">
-				<a class="ellipsis" href="${this.get_form_link(doc)}" title="${subject}">
+			<span class="level-item ${seen} ellipsis" title="${encodeURI(subject)}">
+				<a class="ellipsis" href="${this.get_form_link(doc)}" title="${encodeURI(subject)}">
 				${subject}
 				</a>
 			</span>
@@ -604,7 +604,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			}
 
 			// open form
-			const link = $(this).find('.list-subject a').get(0);
+			const $row = $(e.currentTarget);
+			const link = $row.find('.list-subject a').get(0);
 			if (link) {
 				window.location.href = link.href;
 				return false;
