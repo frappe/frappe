@@ -82,15 +82,14 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		} else {
 			super.set_fields();
 		}
-		const option_fields = this.meta.fields
+		// dynamic fields in df meta
+		const dynamic_fields = this.meta.fields
 			.filter(df => df.default && df.default.includes('{'))
-			.map(df => {
-				const fieldname = this.get_dynamic_field_from_default(df.default);
-				return fieldname;
-			})
+			.map(df => this.get_dynamic_field_from_default(df.default))
 			.filter(fieldname => this.meta.fields.map(df => df.fieldname).includes(fieldname));
+		const std_fields = frappe.model.std_fields_list;
 
-		this._fields = this._fields.concat(option_fields);
+		this._fields = this._fields.concat(dynamic_fields, std_fields);
 	}
 
 	setup_page_head() {
@@ -171,9 +170,12 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		// Add rest from in_list_view docfields
 		this.columns = this.columns.concat(
 			fields_in_list_view
-				.filter(df => df.fieldname !== 'status'
-					&& df.fieldname !== this.meta.title_field
-				)
+				.filter(df => {
+					if (frappe.has_indicator(this.doctype) && df.fieldname === 'status') {
+						return false;
+					}
+					return df.fieldname !== this.meta.title_field;
+				})
 				.map(df => ({
 					type: 'Field',
 					df
