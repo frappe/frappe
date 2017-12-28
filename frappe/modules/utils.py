@@ -57,22 +57,20 @@ def export_customizations(module, doctype, sync_on_migrate=0, with_permissions=0
 		custom['custom_perms'] = frappe.get_all('Custom DocPerm',
 			fields='*', filters={'parent': doctype})
 
-	# as the parent and child table's customization is done individually, so keep both tables's
-	# json file separate to avoid custom field deletion and duplicacy
+	# also update the custom fields and property setters for all child tables
+	for d in frappe.get_meta(doctype).get_table_fields():
+		export_customizations(module, d.options, sync_on_migrate, with_permissions)
 
-	# add custom fields and property setters for all child tables
-	# for d in frappe.get_meta(doctype).get_table_fields():
-		# add(d.options)
+	if custom["custom_fields"] or custom["property_setters"] or custom["custom_perms"]:
+		folder_path = os.path.join(get_module_path(module), 'custom')
+		if not os.path.exists(folder_path):
+			os.makedirs(folder_path)
 
-	folder_path = os.path.join(get_module_path(module), 'custom')
-	if not os.path.exists(folder_path):
-		os.makedirs(folder_path)
+		path = os.path.join(folder_path, scrub(doctype)+ '.json')
+		with open(path, 'w') as f:
+			f.write(frappe.as_json(custom))
 
-	path = os.path.join(folder_path, scrub(doctype)+ '.json')
-	with open(path, 'w') as f:
-		f.write(frappe.as_json(custom))
-
-	frappe.msgprint(_('Customizations exported to {0}').format(path))
+		frappe.msgprint(_('Customizations for <b>{0}</b> exported to:<br>{1}').format(doctype,path))
 
 def sync_customizations(app=None):
 	'''Sync custom fields and property setters from custom folder in each app module'''
