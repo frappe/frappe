@@ -174,15 +174,16 @@ frappe.views.TreeView = Class.extend({
 			},
 			editable: true,
 			expandable: true,
-			toolbar: this.get_toolbar(), 	// array of button props
-											// as {label, condition, click, btnClass}
+
+			// array of button props: {label, condition, click, btnClass}
+			toolbar: this.get_toolbar(),
 
 			get_nodes: get_nodes,
 			get_all_nodes: get_all_nodes,
 
 			get_label: this.opts.get_label,
 			on_render: this.opts.onrender,
-			on_click: (node) => { this.select_node(node) },
+			on_click: (node) => { this.select_node(node); },
 		});
 
 		cur_tree = this.tree;

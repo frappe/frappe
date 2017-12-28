@@ -5,13 +5,9 @@ frappe.provide('frappe.ui');
 
 frappe.ui.Tree = class {
 	constructor({
-		parent, label, icon_set, toolbar, expandable, with_skeleton=1,
+		parent, label, icon_set, toolbar, expandable, with_skeleton=1, 	// eslint-disable-line
 
-		get_nodes,
-		get_all_nodes,
-		get_label,
-		on_render,
-		on_click
+		get_nodes, get_all_nodes, get_label, on_render, on_click 		// eslint-disable-line
 	}) {
 		$.extend(this, arguments[0]);
 		this.setup_treenode_class();
@@ -36,11 +32,7 @@ frappe.ui.Tree = class {
 		let tree = this;
 		this.TreeNode = class {
 			constructor({
-				parent, label,
-				parent_label,
-				expandable,
-				is_root,
-				data
+				parent, label, parent_label, expandable, is_root, data // eslint-disable-line
 			}) {
 				$.extend(this, arguments[0]);
 				this.loaded = 0;
@@ -56,6 +48,11 @@ frappe.ui.Tree = class {
 		}
 	}
 
+	refresh() {
+		this.selected_node.parent_node &&
+			this.load_children(this.selected_node.parent_node, true);
+	}
+
 	make_node_element(node) {
 		node.$tree_link = $('<span class="tree-link">')
 			.attr('data-label', node.label)
@@ -69,6 +66,93 @@ frappe.ui.Tree = class {
 		if(this.toolbar) {
 			node.$toolbar = this.get_toolbar(node).insertAfter(node.$tree_link);
 		}
+	}
+
+	add_node(node, data) {
+		var $li = $('<li class="tree-node">');
+
+		return new this.TreeNode({
+			parent: $li.appendTo(node.$ul),
+			parent_label: node.label,
+			label: data.value,
+			title: data.title,
+			expandable: data.expandable,
+			data: data
+		});
+	}
+
+	reload_node(node) {
+		this.load_children(node);
+	}
+
+	toggle() {
+		this.get_selected_node().toggle();
+	}
+
+	get_selected_node() {
+		return this.selected_node;
+	}
+
+	set_selected_node(node) {
+		this.selected_node = node;
+		this.on_click && this.on_click();
+	}
+
+	load_children(node, deep=false) {
+		let value = node.data.value, is_root = node.is_root;
+
+		if(!deep) {
+			frappe.run_serially([
+				() => {return this.get_nodes(value, is_root);},
+				(data_set) => { this.render_node_children(node, data_set); }
+			]);
+		} else {
+			frappe.run_serially([
+				() => {return this.get_all_nodes(value, is_root);},
+				(data_list) => { this.render_children_of_all_nodes(data_list); }
+			]);
+		}
+	}
+
+	render_children_of_all_nodes(data_list) {
+		data_list.map(d => { this.render_node_children(this.nodes[d.parent], d.data); });
+	}
+
+	render_node_children(node, data_set) {
+		if(node.$ul.is(':empty')) {
+			node.$ul.empty();
+			if (data_set) {
+				$.each(data_set, (i, data) => {
+					var child_node = this.add_node(node, data);
+					child_node.$tree_link
+						.data('node-data', data)
+						.data('node', child_node);
+				});
+			}
+		}
+
+		node.expanded = false;
+
+		// As children loaded
+		node.loaded = true;
+		this.expand_node(node);
+	}
+
+	on_node_click(node) {
+		this.expand_node(node);
+		frappe.ui.dom.activate(this.wrapper, node.$tree_link, 'tree-link');
+		if(node.$toolbar) this.show_toolbar(node);
+	}
+
+	expand_node(node) {
+		this.set_selected_node(node);
+		if(node.expandable) {
+			this.toggle_node(node);
+		}
+		this.select_link(node);
+
+		node.expanded = !node.expanded;
+		node.parent.toggleClass('opened', node.expanded);
 	}
 
 	toggle_node(node) {
@@ -94,98 +178,7 @@ frappe.ui.Tree = class {
 		}
 	}
 
-	add_node(node, data) {
-		var $li = $('<li class="tree-node">');
-
-		return new this.TreeNode({
-			parent: $li.appendTo(node.$ul),
-			parent_label: node.label,
-			label: data.value,
-			title: data.title,
-			expandable: data.expandable,
-			data: data
-		});
-	}
-
-	reload_node(node) {
-		this.load_children(node);
-	}
-
-	refresh() {
-		this.selected_node.parent_node &&
-			this.load_children(this.selected_node.parent_node, true);
-	}
-
-	load_children(node, deep=false) {
-		let value = node.data.value, is_root = node.is_root;
-
-		if(!deep) {
-			frappe.run_serially([
-				() => {return this.get_nodes(value, is_root);},
-				(data_set) => { this.render_node_children(node, data_set); }
-			]);
-		} else {
-			frappe.run_serially([
-				() => {return this.get_all_nodes(value, is_root);},
-				(data_list) => { this.render_children_of_all_nodes(data_list); }
-			]);
-		}
-	}
-
-	render_children_of_all_nodes(data_list) {
-		data_list.map(d => {this.render_node_children(this.nodes[d.parent], d.data)});
-	}
-
-	render_node_children(node, data_set) {
-		if(node.$ul.is(':empty')) {
-			node.$ul.empty();
-			if (data_set) {
-				$.each(data_set, (i, data) => {
-					var child_node = this.add_node(node, data);
-					child_node.$tree_link
-						.data('node-data', data)
-						.data('node', child_node);
-				});
-			}
-		}
-
-		node.expanded = false;
-
-		// As children loaded
-		node.loaded = true;
-		this.expand_node(node);
-	}
-
-	get_selected_node() {
-		return this.selected_node;
-	}
-
-	set_selected_node(node) {
-		this.selected_node = node;
-		this.on_click && this.on_click();
-	}
-
-	on_node_click(node) {
-		this.expand_node(node);
-
-		// Activate
-		frappe.ui.dom.activate(this.wrapper, node.$tree_link, 'tree-link');
-		if(node.$toolbar) this.show_toolbar(node);
-	}
-
-	expand_node(node) {
-		this.set_selected_node(node);
-		if(node.expandable) {
-			this.toggle_node(node);
-		}
-		this.select_link(node);
-
-		node.expanded = !node.expanded;
-		node.parent.toggleClass('opened', node.expanded);
-	}
-
 	select_link(node) {
-		// select this link
 		this.wrapper.find('.selected')
 			.removeClass('selected');
 		node.$tree_link.toggleClass('selected');
@@ -195,11 +188,7 @@ frappe.ui.Tree = class {
 		if(this.cur_toolbar)
 			$(this.cur_toolbar).hide();
 		this.cur_toolbar = node.$toolbar;
-			node.$toolbar.show();
-	}
-
-	toggle() {
-		this.get_selected_node().toggle();
+		node.$toolbar.show();
 	}
 
 	get_node_label(node) {
@@ -221,7 +210,7 @@ frappe.ui.Tree = class {
 			} else {
 				icon_html = `<i class="${this.icon_set.leaf} node-leaf"></i>`;
 			}
-		};
+		}
 
 		$(icon_html).appendTo(node.$tree_link);
 		$(`<a class="tree-label grey h6"> ${this.get_node_label(node)}</a>`).appendTo(node.$tree_link);

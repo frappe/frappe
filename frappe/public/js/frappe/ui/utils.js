@@ -6,4 +6,4 @@ frappe.ui.dom = {
 			.removeClass(active_class);
 		$child.addClass(active_class);
 	},
-}
+};
