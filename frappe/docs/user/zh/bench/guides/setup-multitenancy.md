@@ -1,61 +1,59 @@
-# Setup Multitenancy
+# 多租户模式配置
 
-Assuming that you've already got your first site running and you've performed
-the [production deployment steps](setup-production.html), this section explains how to host your second
-site (and more). Your first site is automatically set as default site. You can
-change it with the command,
+假设你已经运行了你的第一个站点，并完成了[生产环境部署](setup-production.html)，这篇文章将展示如何托管你的第二个站点（或更多）。你的第一个站点自动设置为默认站点。你可以通过如下命令更改默认站点，
 	
 	bench use sitename
 
-
-
-
-Port based multitenancy
+基于端口的多租户模式
 -----------------------
 
-You can create a new site and make run it on a different port (while the first
-one runs on port 80).
+你可以创建新的站点并运行在不同的端口上（第一个站点运行在 80 端口）。
 
-* Switch off DNS based multitenancy (once)
+
+* 关闭基于 DNS 的多租户模式 (一次即可)
 
 	`bench config dns_multitenant off`
 
-* Create a new site
+* 新增站点
 
 	`bench new-site site2name`
 
-* Set port
+* 设置端口
 
 	`bench set-nginx-port site2name 82`
 
-* Re generate nginx config
+* 重新生成 Nginx 配置
 
 	`bench setup nginx`
 
-* Reload nginx
+* 重新加载 Nginx 服务
 
 	`sudo service nginx reload`
 
 
-DNS based multitenancy
+基于 DNS 的多租户模式
 ----------------------
 
 You can name your sites as the hostnames that would resolve to it. Thus, all the sites you add to the bench would run on the same port and will be automatically selected based on the hostname. 
 
 To make a new site under DNS based multitenancy, perform the following steps.
 
-* Switch on DNS based multitenancy (once)
+将你的站点命名为主机名（hostname）即可。你的所有站点都将运行在相同的端口上并根据其主机名（hostname）自动选择。
+
+基于DNS的多租户在做一个新的网站，请执行以下步骤。
+
+* 开启基于 DNS 的多租户模式 (一次即可)
 	
 	`bench config dns_multitenant on`
 
-* Create a new site
+* 新增站点
 
 	`bench new-site site2name`
 
-* Re generate nginx config
+* 重新生成 Nginx 配置
 
 	`bench setup nginx`
 
-* Reload nginx
+* 重新加载 Nginx 服务
 
 	`sudo service nginx reload`

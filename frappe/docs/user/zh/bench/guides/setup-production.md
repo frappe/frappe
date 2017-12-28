@@ -1,57 +1,44 @@
-# Setup Production
+# 生产环境部署
 
-You can setup the bench for production use by configuring two programs, Supervisor and nginx. If you want to revert your Production Setup to Development Setup refer to [these commands](https://github.com/frappe/bench/wiki/Stopping-Production-and-starting-Development)
+你可以通过配置 Supervisor、Nginx 来部署生产环境。如果你想把生产环境恢复为开发环境，请参考[这些命令](https://github.com/frappe/bench/wiki/Stopping-Production-and-starting-Development)。
 
-####Easy Production Setup
-These steps are automated if you run `sudo bench setup production`
+#### 自动部署生产环境
+运行命令 `sudo bench setup production` 将自动完成生产环境部署。
 
 
-####Manual Production Setup
+#### 手工部署生产环境
+
 Supervisor
 ----------
 
-Supervisor makes sure that the process that power the Frappé system keep running
-and it restarts them if they happen to crash. You can generate the required
-configuration for supervisor using the command `bench setup supervisor`. The
-configuration will be available in `config/supervisor.conf` directory. You can
-then copy/link this file to the supervisor config directory and reload it for it to
-take effect.
+Supervisor 确保 Frappé 系统进程保持运行并在它发生崩溃后自动重新启动。你可以使用命令 `bench setup supervisor` 生成  Supervisor 所需的配置。该配置可参考`config/supervisor.conf` 文件。你可以将该文件复制或链接到 supervisor 配置目录并重新加载它以使其生效。 
 
-eg,
+例如,
 
 ```
 bench setup supervisor
 sudo ln -s `pwd`/config/supervisor.conf /etc/supervisor/conf.d/frappe-bench.conf
 ```
 
-Note: For CentOS 7, the extension should be `ini`, thus the command becomes
+注意：对于 CentOS 7, 其扩展名应是 `ini`, 因此命令变成了：
+
 ```
 bench setup supervisor
 sudo ln -s `pwd`/config/supervisor.conf /etc/supervisor/conf.d/frappe-bench.ini #for CentOS 7 only
 ```
 
-The bench will also need to restart the processes managed by supervisor when you
-update the apps. To automate this, you will have to setup sudoers using the
-command, `sudo bench setup sudoers $(whoami)`.
+更新 supervisor 配置后需要重启 supervisor 管理的相关进程。要自动完成它，你需要使用命令 `sudo bench setup sudoers $(whoami)` 对 sudoers 进行配置。
 
 Nginx
 -----
 
-Nginx is a web server and we use it to serve static files and proxy rest of the
-requests to frappe. You can generate the required configuration for nginx using
-the command `bench setup nginx`. The configuration will be available in
-`config/nginx.conf` file. You can then copy/link this file to the nginx config
-directory and reload it for it to take effect.
+Nginx 是一个 Web 服务器，我们用它来提供静态文件以及其他对 Frappe 请求的代理。你可以使用命令 `bench setup nginx` 生成  Supervisor 所需的配置。该配置可参考`config/nginx.conf` 文件。你可以将该文件复制或链接到 nginx 配置目录并重新加载它以使其生效。 
 
-eg,
+例如,
 
 ```
 bench setup nginx
 sudo ln -s `pwd`/config/nginx.conf /etc/nginx/conf.d/frappe-bench.conf
 ```
 
-Note: When you restart nginx after the configuration change, it might fail if
-you have another configuration with server block as default for port 80 (in most
-cases for the nginx welcome page). You will have to disable this config.  Most
-probable places for it to exist are `/etc/nginx/conf.d/default.conf` and
-`/etc/nginx/conf.d/default`.
+注意：如果有另一个端口配置为 80 的服务存在，在你更改配置后重新启动 Nginx 可能失败（多数情况下导致 Nginx 的欢迎页出现）。你需要禁用此配置。通常它们位于 `/etc/nginx/conf.d/default.conf` 和 `/etc/nginx/conf.d/default` 中。

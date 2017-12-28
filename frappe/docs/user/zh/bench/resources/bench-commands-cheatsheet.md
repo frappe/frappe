@@ -1,92 +1,94 @@
-# Bench Commands Cheatsheet
+# Bench 命令列表
 
-### General Usage
-* `bench --version` - Show bench version
-* `bench src` - Show bench repo directory
-* `bench --help` - Show all commands and help
-* `bench [command] --help` - Show help for command
-* `bench init [bench-name]` - Create a new bench (Run from home dir)
-* `bench --site [site-name] COMMAND` - Specify site for command
-* `bench update` - Pulls changes for bench-repo and all apps, applies patches, builds JS and CSS, and then migrates.
-  * `--pull`                Pull changes in all the apps in bench
-  * `--patch`               Run migrations for all sites in the bench
-  * `--build`               Build JS and CSS artifacts for the bench
-  * `--bench`               Update bench
-  * `--requirements`        Update requirements
-  * `--restart-supervisor`  restart supervisor processes after update
-  * `--upgrade` Does major upgrade (Eg. ERPNext 6 -> 7)
-  * `--no-backup`			  Don't take a backup before update
-* `bench restart` Restart all bench services 
-* `bench backup` Backup 
-* `bench backup-all-sites` Backup all sites
-  * `--with-files` Backup site with files
-* `bench restore` Restore
-  * `--with-private-files` Restore site with private files (Path to tar file)
-  * `--with-public-files` Restore site with public files (Path to tar file)
-* `bench migrate` Will read JSON files and make changes to the database accordingly
+### 常用
 
-###Config
-* `bench config` - Change bench configuration
-  * `auto_update [on/off]`          Enable/Disable auto update for bench
-  * `dns_multitenant [on/off]`      Enable/Disable DNS Multitenancy
-  * `http_timeout`                  Set http timeout
-  * `restart_supervisor_on_update`  Enable/Disable auto restart of supervisor
-  * `serve_default_site`            Configure nginx to serve the default site on
-  * `update_bench_on_update`        Enable/Disable bench updates on running bench...
-* `bench setup` - Setup components
-  * `auto-update`  Add cronjob for bench auto update
-  * `backups    `  Add cronjob for bench backups
-  * `config     `  overwrite or make config.json
-  * `env        `  Setup virtualenv for bench
-  * `nginx      `  generate config for nginx
-  * `procfile   `  Setup Procfile for bench start
-  * `production `  setup bench for production
-  * `redis      `  generate config for redis cache
-  * `socketio   `  Setup node deps for socketio server
-  * `sudoers    `  Add commands to sudoers list for execution...
-  * `supervisor `  generate config for supervisor
-  * `add-domain `  add custom domain for site
-  * `firewall `    setup firewall and block all ports except 22, 80 and 443
-  * `ssh-port `    change the default ssh connection port
+* `bench --version` - 显示 bench 版本
+* `bench src` - 显示 bench 仓库目录
+* `bench --help` - 显示所有命令和帮助
+* `bench [command] --help` - 显示指定命令的帮助
+* `bench init [bench-name]` - 创建新的工作台(bench) (在 home 目录下运行)
+* `bench --site [site-name] COMMAND` - 指定命令应用的站点
+* `bench update` - 从 bench 仓库和其他所有应用获取更新，应用补丁，重建 JS、CSS，然后执行迁移操作
+  * `--pull`                获取所有应用的更新
+  * `--patch`               执行所有站点的迁移
+  * `--build`               重建 JS、CSS
+  * `--bench`               更新 bench
+  * `--requirements`        更新依赖
+  * `--restart-supervisor`  更新后重启 supervisor 进程
+  * `--upgrade`             进行主版本升级 ( 如 ERPNext 6 -> 7)
+  * `--no-backup`           更新前不进行备份
+* `bench restart` 重启所有 bench 服务 
+* `bench backup` 备份 
+* `bench backup-all-sites` 备份所有站点
+  * `--with-files` 备份站点及其文件
+* `bench restore` 恢复
+  * `--with-private-files` 恢复站点及私有文件 (tar 文件路径)
+  * `--with-public-files` 恢复站点及公共文件 (tar 文件路径)
+* `bench migrate` 读取 JSON 文件并对数据库进行相应的更改
 
+### 配置
+* `bench config` - 更改 bench 配置
+  * `auto_update [on/off]`          启用/禁用 bench 自动更新
+  * `dns_multitenant [on/off]`      启用/禁用 DNS 多租户模式
+  * `http_timeout`                  设置 http 超时时间
+  * `restart_supervisor_on_update`  启用/禁用 更新时自动重启 supervisor
+  * `serve_default_site`            配置 Nginx 默认站点
+  * `update_bench_on_update`        启用/禁用 bench 同步更新
+* `bench setup` - 设置组件
+  * `auto-update`  为 bench 自动更新增加 cronjob 任务
+  * `backups    `  为 bench 备份增加 cronjob 任务
+  * `config     `  重写或生成 config.json
+  * `env        `  生成 bench virtualenv 环境
+  * `nginx      `  生成 nginx 配置文件
+  * `procfile   `  设置 bench 启动过程文件(Procfile)
+  * `production `  设置 bench 为生产环境
+  * `redis      `  生成 redis 缓存配置文件
+  * `socketio   `  设置 socketio 服务所需的 Node 依赖环境
+  * `sudoers    `  增加命令到 sudoers 列表...
+  * `supervisor `  生成 supervisor 配置文件
+  * `add-domain `  增加站点自定义域名
+  * `firewall `    设置防火墙并屏蔽除 22、80、443 之外的所有端口
+  * `ssh-port `    更改 SSH 默认连接端口
 
-###Development
-* `bench new-app [app-name]` Creates a new app 
-* `bench get-app [repo-link]` - Downloads an app from a git repository and installs it
-* `bench install-app [app-name]` Installs existing app
-* `bench remove-from-installed-apps [app-name]` Remove app from the list of apps
-* `bench uninstall-app [app-name]` Delete app and everything linked to the app (Bench needs to be running)
-* `bench remove-app [app-name]` Remove app from the bench entirely
-* `bench --site [sitename] --force reinstall ` Reinstall with fresh database (Caution: Will wipe out old database) 
-* `bench new-site [sitename]` - Creates a new site
-  * `--db-name`                Database name
-  * `--mariadb-root-username`  Root username for MariaDB
-  * `--mariadb-root-password`  Root password for MariaDB
-  * `--admin-password`         Administrator password for new site
-  * `--verbose`                     Verbose
-  * `--force`                       Force restore if site/database already exists
-  * `--source_sql`             Initiate database with a SQL file
-  * `--install-app`            Install app after installation`
-* `bench use [site]` Sets a default site
-* `bench drop-site` Removes site from disk and database completely
+### 开发
+
+* `bench new-app [app-name]` 创建一个新的应用
+* `bench get-app [repo-link]` - 从 git 仓库下载并安装一个应用
+* `bench install-app [app-name]` 安装已有的应用
+* `bench remove-from-installed-apps [app-name]` 从应用列表中移除应用
+* `bench uninstall-app [app-name]` 删除应用及与该应用相关的一切 (须确保 Bench 在运行)
+* `bench remove-app [app-name]` 从 bench 中彻底删除应用
+* `bench --site [sitename] --force reinstall ` 全新数据库重新安装 (小心：将清除老的数据库) 
+* `bench new-site [sitename]` - 创建一个新的站点
+  * `--db-name`                数据库名称
+  * `--mariadb-root-username`  MariaDB 数据库 root 用户名
+  * `--mariadb-root-password`  MariaDB 数据库 root 密码
+  * `--admin-password`         新站点的管理员密码
+  * `--verbose`                显示详细信息
+  * `--force`                  强制恢复 (如果站点已经存在)
+  * `--source_sql`             使用 SQL 文件初始化数据库Initiate database with a SQL file
+  * `--install-app`            站点安装后安装应用
+* `bench use [site]` 设置默认站点
+* `bench drop-site` 从磁盘及数据库中完全移除站点
   * `--root-login` 
   * `--root-password`
-* `bench set-config [key] [value]`   Adds a key-value pair to site's config file 
-* `bench console`   Opens a IPython console in the bench venv
-* `bench execute`   Execute a method inside any app.
-  * Eg : `bench execute frappe.utils.scheduler.enqueue_scheduler_events`
-* `bench mysql`  Opens SQL Console 
-* `bench run-tests`  Run tests
-  * `--app` App Name
-  * `--doctype` DocType to run tests for
-  * `--test` Specific Test
-  * `--module` Run a particular module that has tests 
-  * `--profile` Runs a Python profiler on the test
-* `bench disable-production`  Disables production environment
+* `bench set-config [key] [value]`   为站点配置文件增加键值对
+* `bench console`   打开 bench venv 下的 IPython 终端
+* `bench execute`   执行任何应用内的方法
+  * 例如 : `bench execute frappe.utils.scheduler.enqueue_scheduler_events`
+* `bench mysql`  打开 SQL 终端 
+* `bench run-tests`  运行测试
+  * `--app` 应用名称
+  * `--doctype` 用于测试的 DocType
+  * `--test` 具体测试
+  * `--module` 运行具有测试的特定模块
+  * `--profile` 运行具有测试的 Python 过程文件
+* `bench disable-production`  禁用生产环境
 
+### 计划任务
 
-###Scheduler 
-* `bench enable-scheduler` - Enables Scheduler that will run scheduled tasks
-* `bench doctor` - Get diagnostic info about background workers 
-* `bench show-pending-jobs`- Get pending jobs
-* `bench purge-jobs` - Destroy all pending jobs
+* `bench enable-scheduler` - 启用运行计划任务
+* `bench doctor` - 显示有关后台执行单元的诊断信息
+* `bench show-pending-jobs`- 显示未完成任务
+* `bench purge-jobs` - 销毁所有未完成任务
+
