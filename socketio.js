@@ -33,9 +33,6 @@ app.get('/', function (req, res) {
 
 // on socket connection
 io.on('connection', function (socket) {
-
-	console.log(socket.request.headers)
-
 	if (get_hostname(socket.request.headers.host) != get_hostname(socket.request.headers.origin)) {
 		return;
 	}
@@ -91,7 +88,6 @@ io.on('connection', function (socket) {
 		});
 	});
 
-	console.log("firing get_user_info");
 	request.get(get_url(socket, '/api/method/frappe.async.get_user_info'))
 		.type('form')
 		.query({
@@ -104,7 +100,6 @@ io.on('connection', function (socket) {
 			}
 			if (res.status == 200) {
 				var room = get_user_room(socket, res.body.message.user);
-				console.log('joining', room);
 				socket.join(room);
 				socket.join(get_site_room(socket));
 			}
@@ -133,7 +128,6 @@ io.on('connection', function (socket) {
 	});
 
 	socket.on('doc_subscribe', function (doctype, docname) {
-		console.log('trying to subscribe', doctype, docname)
 		can_subscribe_doc({
 			socket: socket,
 			sid: sid,
@@ -141,7 +135,6 @@ io.on('connection', function (socket) {
 			docname: docname,
 			callback: function (err, res) {
 				var room = get_doc_room(socket, doctype, docname);
-				console.log('joining', room)
 				socket.join(room);
 			}
 		});
@@ -166,7 +159,6 @@ io.on('connection', function (socket) {
 			docname: docname,
 			callback: function (err, res) {
 				var room = get_open_doc_room(socket, doctype, docname);
-				console.log('joining', room)
 				socket.join(room);
 
 				send_viewers({
@@ -233,7 +225,6 @@ io.on('connection', function (socket) {
 
 subscriber.on("message", function (channel, message, room) {
 	message = JSON.parse(message)
-	console.log(message)
 	io.to(message.room).emit(message.event, message.message)
 });
 
