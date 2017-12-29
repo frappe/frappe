@@ -34,7 +34,7 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 
 	setup_chat ( )
 	{
-		const chat = new frappe.Chat({ target: '.navbar .frappe-chat-btn' })
+		const chat = new frappe.Chat({ target: '.navbar .frappe-chat-toggle' })
 		chat.render()
 	},
 
