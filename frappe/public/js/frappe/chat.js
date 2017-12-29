@@ -1505,10 +1505,15 @@ class extends Component
                                     label: __("Create"),
                                     click: function ({ user })
                                     {
-                                        dialog.hide()
-                                        
-                                        // Don't Worry, frappe.chat.room.on.create gets triggered that then subscribes and adds to DOM. :)
-                                        frappe.chat.room.create("Direct", null, user)
+                                        if ( user === frappe.session.user )
+                                            frappe.throw(__('Sorry! You cannot chat with yourself.'))
+                                        else
+                                        {
+                                            dialog.hide()
+                                            
+                                            // Don't Worry, frappe.chat.room.on.create gets triggered that then subscribes and adds to DOM. :)
+                                            frappe.chat.room.create("Direct", null, user)
+                                        }
                                     }
                                 },
                                 secondary:
