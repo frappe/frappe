@@ -220,7 +220,6 @@
 		"public/js/frappe/upload.js",
 		"public/js/integrations/gsuite.js",
 		"public/js/frappe/ui/tree.js",
-		"public/js/frappe/ui/utils.js",
 
 		"public/js/frappe/views/container.js",
 		"public/js/frappe/views/breadcrumbs.js",

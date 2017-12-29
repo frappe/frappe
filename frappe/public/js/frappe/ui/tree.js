@@ -15,17 +15,15 @@ frappe.ui.Tree = class {
 		this.wrapper = $('<div class="tree">').appendTo(this.parent);
 		if(with_skeleton) this.wrapper.addClass('with-skeleton');
 
-		this.root_node = new this.TreeNode({
-			parent: this.wrapper,
-			label: this.label,
-			parent_label: null,
-			expandable: true,
-			is_root: true,
-			data: {
-				value: this.label
-			}
-		});
-		this.expand_node(this.root_node);
+		if(!icon_set) {
+			this.icon_set = {
+				open: 'fa fa-fw fa-folder-open',
+				closed: 'fa fa-fw fa-folder',
+				leaf: 'octicon octicon-primitive-dot'
+			};
+		}
+
+		this.setup_root_node();
 	}
 
 	setup_treenode_class() {
@@ -46,6 +44,20 @@ frappe.ui.Tree = class {
 				tree.on_render && tree.on_render(this);
 			}
 		}
+	}
+
+	setup_root_node() {
+		this.root_node = new this.TreeNode({
+			parent: this.wrapper,
+			label: this.label,
+			parent_label: null,
+			expandable: true,
+			is_root: true,
+			data: {
+				value: this.label
+			}
+		});
+		this.expand_node(this.root_node);
 	}
 
 	refresh() {
@@ -140,7 +152,7 @@ frappe.ui.Tree = class {
 
 	on_node_click(node) {
 		this.expand_node(node);
-		frappe.ui.dom.activate(this.wrapper, node.$tree_link, 'tree-link');
+		frappe.dom.activate(this.wrapper, node.$tree_link, 'tree-link');
 		if(node.$toolbar) this.show_toolbar(node);
 	}
 

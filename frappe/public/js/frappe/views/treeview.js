@@ -167,12 +167,6 @@ frappe.views.TreeView = Class.extend({
 		this.tree = new frappe.ui.Tree({
 			parent: this.body,
 			label: this.args[this.opts.root_label] || this.root_label || this.opts.root_label,
-			icon_set: {
-				open: 'fa fa-fw fa-folder-open',
-				closed: 'fa fa-fw fa-folder',
-				leaf: 'octicon octicon-primitive-dot'
-			},
-			editable: true,
 			expandable: true,
 
 			// array of button props: {label, condition, click, btnClass}
