@@ -32,7 +32,7 @@ QUnit.test("test: Event", function (assert) {
 		() => frappe.set_route('List', 'Event', 'Calendar'),
 		() => frappe.timeout(2),
 		() => {
-			const bg_color = $(`.result-list:visible .fc-day-grid-event:contains("${subject}")`)
+			const bg_color = $(`.result:visible .fc-day-grid-event:contains("${subject}")`)
 				.css('background-color');
 			assert.equal(bg_color, rgb, 'Event background color is set correctly');
 		},

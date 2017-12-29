@@ -200,18 +200,18 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 
 	def validate_naming(doc):
 		autoname = frappe.get_meta(doctype).autoname
+		if autoname:
+			if autoname[0:5] == 'field':
+				autoname = autoname[6:]
+			elif autoname == 'naming_series:':
+				autoname = 'naming_series'
+			else:
+				return True
 
-		if ".#" in autoname or "hash" in autoname:
-			autoname = ""
-		elif autoname[0:5] == 'field':
-			autoname = autoname[6:]
-		elif autoname=='naming_series:':
-			autoname = 'naming_series'
-		else:
-			return True
-
-		if (autoname and autoname not in doc) or (autoname and not doc[autoname]):
-			frappe.throw(_("{0} is a mandatory field".format(autoname)))
+			if (autoname not in doc) or (not doc[autoname]):
+				from frappe.model.base_document import get_controller
+				if not hasattr(get_controller(doctype), "autoname"):
+					frappe.throw(_("{0} is a mandatory field".format(autoname)))
 		return True
 
 	users = frappe.db.sql_list("select name from tabUser")

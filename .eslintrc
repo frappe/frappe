@@ -120,6 +120,7 @@
 		"QUnit": true,
 		"JsBarcode": true,
 		"L": true,
-		"Chart": true
+		"Chart": true,
+		"DataTable": true
 	}
 }

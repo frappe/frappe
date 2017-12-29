@@ -261,11 +261,17 @@ frappe.ui.get_upload_dialog = function(opts){
 			},
 		],
 	});
+
+
+
+
 	var btn = dialog.set_primary_action(__("Attach"));
 	btn.removeClass("btn-primary").addClass("btn-default");
 
 	dialog.show();
-	var upload_area = $('<div style="padding-bottom: 25px;"></div>').prependTo(dialog.body);
+	var upload_area = $('<div></div>').prependTo(dialog.body);
+
+	
 
 	frappe.upload.make({
 		parent: upload_area,
