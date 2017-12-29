@@ -90,7 +90,9 @@ frappe.ui.Dialog = frappe.ui.FieldGroup.extend({
 				// if no values then return
 				var values = me.get_values();
 				if(!values) return;
-				click.apply(me, [values]);
+
+				if ( click )
+					click.apply(me, [values]);
 			});
 	},
 	disable_primary_action: function() {
