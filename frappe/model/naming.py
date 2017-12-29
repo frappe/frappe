@@ -120,6 +120,8 @@ def parse_naming_series(parts, doctype= '', doc = ''):
 			part = today.strftime("%d")
 		elif e=='YYYY':
 			part = today.strftime('%Y')
+		elif e=='FY':
+			part = frappe.defaults.get_user_default("fiscal_year")
 		elif doc and doc.get(e):
 			part = doc.get(e)
 		else: part = e
