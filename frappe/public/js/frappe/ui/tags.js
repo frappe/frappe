@@ -84,7 +84,10 @@ frappe.ui.Tags = class {
 	removeTag(label) {
 		if(this.tagsList.includes(label)) {
 			let $tag = this.$ul.find(`.frappe-tag[data-tag-label="${label}"]`);
-			$tag.remove();
+			
+			// Just don't remove tag, but also the li DOM.
+			$tag.parent('.tags-list-item').remove();
+
 			this.tagsList = this.tagsList.filter(d => d !== label);
 			this.onTagRemove && this.onTagRemove(label);
 		}
