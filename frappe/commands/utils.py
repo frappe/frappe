@@ -306,7 +306,6 @@ def console(context):
 @click.option('--test', multiple=True, help="Specific test")
 @click.option('--driver', help="For Travis")
 @click.option('--ui-tests', is_flag=True, default=False, help="Run UI Tests")
-@click.option('--coverage', is_flag=True, default=False, help='Display Coverage Report')
 @click.option('--module', help="Run tests in a module")
 @click.option('--profile', is_flag=True, default=False)
 @click.option('--junit-xml-output', help="Destination file path for junit xml report")
