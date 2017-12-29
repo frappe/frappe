@@ -1,3 +1,10 @@
+.frappe-chat-toggle {
+  height: 40px;
+  text-align: center;
+}
+.frappe-chat-toggle .octicon {
+  margin-top: 5px;
+}
 .font-bold {
   font-weight: 700;
 }
