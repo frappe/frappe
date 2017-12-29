@@ -18,6 +18,7 @@
  * frappe.user.first_name("Rahul Malhotra")
  * // returns "Rahul"
  */
+frappe.provide('frappe.user')
 frappe.user.first_name = user => frappe.user.full_name(user).split(" ")[0]
 
 // frappe.ui extensions
