@@ -76,6 +76,13 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 				}
 			},
 			{
+				label: __('Toggle Grid View'),
+				action: () => {
+					frappe.views.FileView.grid_view = !frappe.views.FileView.grid_view;
+					this.refresh();
+				}
+			},
+			{
 				label: __('Import Zip'),
 				action: () => {
 					// make upload dialog
@@ -109,7 +116,7 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 		this._fields = this.meta.fields
 			.filter(df => frappe.model.is_value_type(df.fieldtype) && !df.hidden)
 			.map(df => df.fieldname)
-			.concat(['name', 'modified']);
+			.concat(['name', 'modified', 'creation']);
 	}
 
 	update_data(data) {
@@ -127,8 +134,10 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 
 			let title = d.file_name || d.file_url;
 			title = title.slice(0, 60);
+			d._title = title;
+			d.icon_class = icon_class;
 
-			d._title = `
+			d.subject_html = `
 				<i class="${icon_class} text-muted" style="width: 16px;"></i>
 				<span>${title}</span>
 				${d.is_private ? '<i class="fa fa-lock fa-fw text-warning"></i>' : ''}
@@ -153,9 +162,38 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 
 	before_render() {
 		super.before_render();
+		frappe.model.user_settings.save('File', 'grid_view', frappe.views.FileView.grid_view);
 		this.save_view_user_settings({
-			last_folder: this.current_folder
+			last_folder: this.current_folder,
 		});
+	}
+
+	render() {
+		this.$result.removeClass('file-grid');
+		if (frappe.views.FileView.grid_view) {
+			this.render_grid_view();
+		} else {
+			super.render();
+		}
+	}
+
+	render_grid_view() {
+		let html = '';
+
+		html = this.data.map(d => {
+			return `
+				<a href="${this.get_route_url(d)}">
+					<div class="file-wrapper padding flex small">
+						<div class="file-icon text-muted">
+							<span class="${d.icon_class} mega-octicon"></span>
+						</div>
+						<div class="file-title ellipsis">${d._title}</div>
+					</div>
+				</a>
+			`;
+		}).join('');
+		this.$result.addClass('file-grid');
+		this.$result.html(html);
 	}
 
 	get_header_html() {
@@ -164,29 +202,47 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 				<input class="level-item list-check-all hidden-xs" type="checkbox" title="${__("Select All")}">
 				<span class="level-item">${__('File Name')}</span>
 			</div>
-			<div class="list-row-col ellipsis hidden-xs text-right">
+			<div class="list-row-col ellipsis hidden-xs">
 				<span>${__('File Size')}</span>
+			</div>
+			<div class="list-row-col ellipsis hidden-xs">
+				<span>${__('Created On')}</span>
 			</div>
 		`;
 
 		return this.get_header_html_skeleton(subject_html, '<span class="list-count"></span>');
 	}
 
+	get_route_url(file) {
+		return file.is_folder ? '#List/File/' + file.name : this.get_form_link(file);
+	}
+
 	get_left_html(file) {
 		const file_size = frappe.form.formatters.FileSize(file.file_size);
-		const route_url = file.is_folder ? '#List/File/' + file.name : this.get_form_link(file);
+		const route_url = this.get_route_url(file);
+
+		let created_on;
+		const [date] = file.creation.split(' ');
+		if (date === frappe.datetime.now_date()) {
+			created_on = comment_when(file.creation);
+		} else {
+			created_on = frappe.datetime.str_to_user(date);
+		}
 
 		return `
 			<div class="list-row-col ellipsis list-subject level">
 				<input class="level-item list-row-checkbox hidden-xs" type="checkbox" data-name="${file.name}">
 				<span class="level-item  ellipsis" title="${file.file_name}">
 					<a class="ellipsis" href="${route_url}" title="${file.file_name}">
-						${file._title}
+						${file.subject_html}
 					</a>
 				</span>
 			</div>
-			<div class="list-row-col ellipsis hidden-xs text-muted text-right">
+			<div class="list-row-col ellipsis hidden-xs text-muted">
 				<span>${file_size}</span>
+			</div>
+			<div class="list-row-col ellipsis hidden-xs text-muted">
+				<span>${created_on}</span>
 			</div>
 		`;
 	}
@@ -264,3 +320,5 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 		}
 	}
 };
+
+frappe.views.FileView.grid_view = frappe.get_user_settings('File').grid_view || false;

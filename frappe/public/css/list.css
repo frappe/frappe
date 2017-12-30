@@ -109,6 +109,7 @@
 }
 .list-row .level-left {
   flex: 3;
+  width: 75%;
 }
 .list-row .level-right {
   flex: 1;
@@ -498,4 +499,20 @@ input.list-row-checkbox {
 }
 .frappe-timestamp {
   white-space: nowrap;
+}
+.file-grid {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+}
+.file-grid a {
+  height: 100%;
+}
+.file-wrapper {
+  width: 120px;
+  flex-direction: column;
+  align-items: center;
+}
+.file-title {
+  margin-top: 5px;
 }

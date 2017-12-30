@@ -161,6 +161,3 @@ def notify_assignment(assigned_by, owner, doc_type, doc_name, action='CLOSE',
 		}
 
 	arg["parenttype"] = "Assignment"
-
-	from frappe.desk.page.chat import chat
-	chat.post(**arg)

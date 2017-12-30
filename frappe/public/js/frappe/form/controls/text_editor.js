@@ -19,9 +19,9 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 			tooltip: 'Camera',
 			click: () => {
 				const capture = new frappe.ui.Capture();
-				capture.open();
+				capture.show();
 
-				capture.click((data) => {
+				capture.submit((data) => {
 					context.invoke('editor.insertImage', data);
 				});
 			}
