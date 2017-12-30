@@ -253,6 +253,13 @@ frappe.views.TreeView = Class.extend({
 			v.parent = node.label;
 			v.doctype = me.doctype;
 
+			if(node.is_root){
+				v['is_root'] = node.is_root;
+			}
+			else{
+				v['is_root'] = false;
+			}
+
 			$.extend(args, v)
 			return frappe.call({
 				method: me.opts.add_tree_node || "frappe.desk.treeview.add_node",
