@@ -488,7 +488,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			`<span class="avatar avatar-small avatar-empty"></span>`;
 
 		const comment_count =
-			`<span class="${!doc._comment_count ? 'text-extra-muted' : ''}">
+			`<span class="${!doc._comment_count ? 'text-extra-muted' : ''} comment-count">
 				<i class="octicon octicon-comment-discussion"></i>
 				${doc._comment_count > 99 ? "99+" : doc._comment_count}
 			</span>`;

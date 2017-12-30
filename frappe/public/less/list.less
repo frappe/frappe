@@ -183,8 +183,14 @@
 
 	&> span {
 		display: inline-block;
-		margin-left: 10px;
-		margin-right: 0;
+
+		&:not(:last-child) {
+			margin-right: 8px;
+		}
+	}
+
+	.comment-count {
+		min-width: 35px;
 	}
 }
 
