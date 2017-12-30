@@ -597,7 +597,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 						if (col.field === 'name') {
 							return frappe.utils.get_form_link(this.doctype, value, true);
 						}
-						return frappe.format(value, col.docfield, { always_show_decimals: true });
+						return frappe.format(value, col.docfield, { always_show_decimals: true }, d);
 					}
 				};
 			}
