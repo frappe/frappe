@@ -1,11 +1,11 @@
-# Installing the Frappé Bench
+# 安装 Frappé Bench
 
-Easiest way to setup frappe on a Unix Like system is to use frappe-bench. Read the detailed instructions on how to install using Frappé Bench.
+在类 Unix 系统上设置 Frappé 最简单的方法是使用 frappe-bench。 阅读有关如何使用 Frappé Bench 安装的详细说明。
 
 > [https://github.com/frappe/bench](https://github.com/frappe/bench)
 
-With Frappé Bench you will be able to setup and host multiple applications and sites and it will also setup a Python Virtualenv so that you can have an isolated environment to run your applications (and will not have version conflict with other development environments).
+有了 Frappé Bench，您将能够设置并服务多个应用和站点，它还将设置一个 Python Virtualenv，以便您可以有一个独立的环境来运行您的应用 (并不会与其他开发环境的版本冲突)。
 
-The `bench` command line tool will also be installed that will help you in development and management of the installation.
+还将安装 `bench` 命令行工具，这将帮助您开发及管理安装。
 
 {next}

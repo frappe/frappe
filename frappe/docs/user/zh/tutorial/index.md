@@ -1,33 +1,33 @@
-# Frappé Tutorial
+# Frappé 教程
 
-In this guide, we will show you how to create an application from scratch using **Frappé**. Using the example of a Library Management System, we will cover:
+在本指南中，我们将向您展示如何使用 **Frappé** 从头开始创建一个应用。 以图书馆管理系统为例，我们将涵盖：
 
-1. Installation
-1. Making a New App
-1. Making Models
-1. Creating Users and Records
-1. Creating Controllers
-1. Creating Web Views
-1. Setting Hooks and Tasks
+1. 安装
+2. 制作新的应用
+3. 制作模块
+4. 创建用户和记录
+5. 创建控制器
+6. 创建 Web 视图
+7. 配置钩子和任务
 
-## Who is This For?
+## 这是给谁的？
 
-This guide is intended for software developers who are familiar with how the web applications are built and served. Frappé Framework is built on Python and uses MariaDB database and for creating web views, HTML/CSS/Javascript is used. So it would be great if you are familiar with all these technologies. At the minimum, if you have never used Python before, you should take a quick tutorial before your use this Guide.
+本指南适用于熟悉 Web 应用生成和维护的软件开发人员。 Frappé 框架是建立在 Python 上，并使用 MariaDB 数据库以及 HTML/CSS/Javascript 创建 Web 视图。 如果您熟悉所有这些技术将会非常有帮助。 如果您以前从未使用过 Python，则在使用本指南之前，至少应先阅读快速教程。
 
-Frappé uses the git version control system on GitHub. It is also important that you are familiar with basic git and have an account on GitHub to manage your applications.
+Frappé 在 GitHub 上使用 git 版本控制系统。 您熟悉基本的 git 操作，并在 GitHub 上有一个帐户来管理您的应用也同样重要。
 
-## Example
+## 示例
 
-For this guide book, we will build a simple **Library Management** application. In this application we will have models:
+在本指南中，我们将构建一个简单的 **图书馆管理** 应用。 在这个应用中，我们将有如下模型：
 
-1. Article (Book or any other item that can be loaned)
-1. Library Member
-1. Library Transaction (Issue or Return of an article)
-1. Library Membership (A period in which a member is allowed to transact)
-1. Library Management Setting (Global settings like period of loan)
+1. 物品 (可以借出的图书或任何其他物品)
+2. 图书馆用户
+3. 图书馆交易 (借出或归物品)
+4. 图书馆会籍 (允许会员交易期间)
+5. 图书馆管理设置 (如借出期限的全局设置)
 
-The user interface (UI) for the librarian will be the **Frappé Desk**, a built-in browser based UI environment where forms are automatically generated from the models and roles and permissions are also applied.
+图书管理员的用户界面（UI）将会是 **Frappé 桌面**，一个内置的根据模型、角色和权限自动生成的基于浏览器的 UI 环境。
 
-We will also create web views for library where users can browse articles from a website.
+我们还将为图书馆创建 Web 视图，用户可以从网站浏览物品。
 
 {index}
