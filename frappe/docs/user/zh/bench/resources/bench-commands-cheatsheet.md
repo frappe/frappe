@@ -66,7 +66,7 @@
   * `--admin-password`         新站点的管理员密码
   * `--verbose`                显示详细信息
   * `--force`                  强制恢复 (如果站点已经存在)
-  * `--source_sql`             使用 SQL 文件初始化数据库Initiate database with a SQL file
+  * `--source_sql`             使用 SQL 文件初始化数据库
   * `--install-app`            站点安装后安装应用
 * `bench use [site]` 设置默认站点
 * `bench drop-site` 从磁盘及数据库中完全移除站点
