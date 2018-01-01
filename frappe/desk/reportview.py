@@ -54,7 +54,7 @@ def get_form_params():
 			parenttype, fieldname = key.split(".")[0][4:-1], key.split(".")[1].strip("`")
 		else:
 			parenttype = data.doctype
-			fieldname = fieldname.strip("`")
+			fieldname = field.strip("`")
 
 		df = frappe.get_meta(parenttype).get_field(fieldname)
 

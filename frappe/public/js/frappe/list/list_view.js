@@ -511,13 +511,14 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const current_count = this.data.length;
 
 		return frappe.call({
-			method: 'frappe.model.db_query.get_count',
+			method: this.method,
 			args: {
 				doctype: this.doctype,
-				filters: this.filter_area.get()
+				filters: this.get_filters_for_args(),
+				fields: ['count(*)']
 			}
 		}).then(r => {
-			const count = r.message || current_count;
+			const count = r.message.values[0][0] || current_count;
 			const str = __('{0} of {1}', [current_count, count]);
 			const html = `<span>${str}</span>`;
 			return html;

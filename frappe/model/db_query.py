@@ -143,7 +143,11 @@ class DatabaseQuery(object):
 
 		self.set_field_tables()
 
-		args.fields = ', '.join(self.fields)
+		if self.fields and 'count(' in self.fields[0]:
+			# convert tabDoctype.count(*) -> count(tabDoctype.name)
+			args.fields = 'count(`tab{0}`.name)'.format(self.doctype)
+		else:
+			args.fields = ', '.join(self.fields)
 
 		self.set_order_by(args)
 
@@ -570,38 +574,6 @@ def get_list(doctype, *args, **kwargs):
 	'''wrapper for DatabaseQuery'''
 	kwargs.pop('cmd', None)
 	return DatabaseQuery(doctype).execute(None, *args, **kwargs)
-
-@frappe.whitelist()
-def get_count(doctype, filters=None):
-	if filters:
-		filters = json.loads(filters)
-
-	if is_parent_only_filter(doctype, filters):
-		if isinstance(filters, list):
-			filters = frappe.utils.make_filter_dict(filters)
-
-		return frappe.db.count(doctype, filters=filters)
-
-	else:
-		# If filters contain child table as well as parent doctype - Join
-		tables, conditions = ['`tab{0}`'.format(doctype)], []
-		for f in filters:
-			fieldname = '`tab{0}`.{1}'.format(f[0], f[1])
-			table = '`tab{0}`'.format(f[0])
-
-			if table not in tables:
-				tables.append(table)
-
-			conditions.append('{fieldname} {operator} "{value}"'.format(fieldname=fieldname,
-				operator=f[2], value=f[3]))
-
-			if doctype != f[0]:
-				join_condition = '`tab{child_doctype}`.parent =`tab{doctype}`.name'.format(child_doctype=f[0], doctype=doctype)
-				if join_condition not in conditions:
-					conditions.append(join_condition)
-
-		return frappe.db.sql_list("""select count(*) from {0}
-			where {1}""".format(','.join(tables), ' and '.join(conditions)), debug=0)
 
 def is_parent_only_filter(doctype, filters):
 	#check if filters contains only parent doctype
