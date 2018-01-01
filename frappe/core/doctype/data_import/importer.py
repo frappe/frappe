@@ -34,8 +34,12 @@ def get_data_keys():
 @frappe.whitelist()
 def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, no_email=True, overwrite=None,
 	update_only = None, ignore_links=False, pre_process=None, via_console=False, from_data_import="No",
-	skip_errors = True, data_import_doc=None, validate_template=False):
+	skip_errors = True, data_import_doc=None, validate_template=False, user=None):
 	"""upload data"""
+
+	# for translations
+	if user:
+		frappe.set_user_lang(user)
 
 	if data_import_doc and isinstance(data_import_doc, string_types):
 		data_import_doc = frappe.get_doc("Data Import", data_import_doc)
@@ -72,7 +76,6 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 		frappe.throw(_("Please do not change the rows above {0}").format(get_data_keys_definition().data_separator))
 
 	def check_data_length():
-		max_rows = 5000
 		if not data:
 			frappe.throw(_("No data found in the file. Please reattach the new file with data."))
 
