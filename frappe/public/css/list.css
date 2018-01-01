@@ -148,8 +148,12 @@
 }
 .list-row-activity > span {
   display: inline-block;
-  margin-left: 10px;
-  margin-right: 0;
+}
+.list-row-activity > span:not(:last-child) {
+  margin-right: 8px;
+}
+.list-row-activity .comment-count {
+  min-width: 35px;
 }
 .list-paging-area,
 .footnote-area {
