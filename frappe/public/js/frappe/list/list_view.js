@@ -515,7 +515,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			args: {
 				doctype: this.doctype,
 				filters: this.get_filters_for_args(),
-				fields: ['count(*)']
+				fields: [`count(name) as total_count`]
 			}
 		}).then(r => {
 			const count = r.message.values[0][0] || current_count;

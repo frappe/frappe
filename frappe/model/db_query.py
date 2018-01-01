@@ -77,7 +77,6 @@ class DatabaseQuery(object):
 		self.user = user or frappe.session.user
 		self.update = update
 		self.user_settings_fields = copy.deepcopy(self.fields)
-		#self.debug = True
 
 		if user_settings:
 			self.user_settings = json.loads(user_settings)
@@ -143,11 +142,7 @@ class DatabaseQuery(object):
 
 		self.set_field_tables()
 
-		if self.fields and 'count(' in self.fields[0]:
-			# convert tabDoctype.count(*) -> count(tabDoctype.name)
-			args.fields = 'count(`tab{0}`.name)'.format(self.doctype)
-		else:
-			args.fields = ', '.join(self.fields)
+		args.fields = ', '.join(self.fields)
 
 		self.set_order_by(args)
 
