@@ -59,9 +59,6 @@ frappe.ui.form.Grid = Class.extend({
 			me.add_new_row(null, null, true);
 			me.set_focus_on_row();
 
-			// excel like paste.
-			me.setup_paste();
-
 			return false;
 		});
 
@@ -74,68 +71,6 @@ frappe.ui.form.Grid = Class.extend({
 		if(this.df.on_setup) {
 			this.df.on_setup(this);
 		}
-
-		this.setup_paste();
-	},
-
-	setup_paste: function ( ) {
-		const me = this;
-		$(document).ready(function ( ) {
-			const $grid  = $(me.wrapper).find('.form-grid');
-			const $rows  = $grid.find('.grid-body .rows');
-			const $areas = $rows.find('.field-area');
-			$areas.click(function ( ) {
-				// Who even comes up with this BS?
-				if ( $(this).css('display') === 'block' ) {
-					const $input = $(this).find('input');
-					
-					$input.on('paste', function (e) {
-						setTimeout(function ( ) {
-							const value = e.target.value;
-
-							// Do stuff here.
-							const rows  = value.split(' ');
-							if ( rows.length ) {
-								const first = rows[0];
-
-								// Who cares validating? They'll do it for us.
-								const $area = $rows.find('.field-area').last();
-								if ( $area.css('display') === 'block' ) {
-									const $input = $area.find('input');
-									$input.val(first);
-								}
-
-								for (var i = 1 ; i < rows.length ; ++i) {
-									me.add_new_row(null, null, true);
-									me.set_focus_on_row();
-
-									// const $area = $rows.find('.field-area').last();
-									// if ( $area.css('display') === 'block' ) {
-									// 	const $input = $area.find('input');
-									// 	$input.val(rows[i]);
-									// }
-								}
-							}
-
-							// for (var i = 1 ; i < rows.length - 1 ; ++i) {
-							// 	// // Assuming only single column.
-							// 	// const elements = rows[i];
-								
-							// 	// me.add_new_row(null, null, true);
-							// 	// me.set_focus_on_row();
-
-							// 	// // const grid_row = me.grid_rows[me.grid_rows.length - rows.length];
-							// 	// // console.log(me.grid_rows.length);
-							// 	// const grid_row = me.grid_rows[me.grid_rows.length - 1];
-							// 	// console.log(me.grid_rows.length - 1);
-							// }
-							// end stuff
-
-						}, 100); // When you can't even
-					});
-				}
-			});
-		});
 	},
 
 	setup_check: function() {
