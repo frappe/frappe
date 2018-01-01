@@ -67,6 +67,9 @@ def make_tree_args(**kwarg):
 	parent_field = 'parent_' + doctype.lower().replace(' ', '_')
 	name_field = kwarg.get('name_field', doctype.lower().replace(' ', '_') + '_name')
 
+	if kwarg['is_root'] == 'false': kwarg['is_root'] = False
+	if kwarg['is_root'] == 'true': kwarg['is_root'] = True
+
 	kwarg.update({
 		name_field: kwarg[name_field],
 		parent_field: kwarg.get("parent") or kwarg.get(parent_field)
