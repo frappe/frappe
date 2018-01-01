@@ -592,8 +592,14 @@ def get_count(doctype, filters=None):
 			if table not in tables:
 				tables.append(table)
 
-			conditions.append('{fieldname} {operator} "{value}"'.format(fieldname=fieldname,
-				operator=f[2], value=f[3]))
+			if isinstance(f[3], (list, tuple)):
+				value = ("({0})").format(", ".join(['"%s"']*len(f[3])))%tuple(f[3])
+
+				conditions.append('{fieldname} {operator} {value}'.format(fieldname=fieldname,
+					operator=f[2], value=value))
+			else:
+				conditions.append('{fieldname} {operator} "{value}"'.format(fieldname=fieldname,
+					operator=f[2], value=f[3]))
 
 			if doctype != f[0]:
 				join_condition = '`tab{child_doctype}`.parent =`tab{doctype}`.name'.format(child_doctype=f[0], doctype=doctype)
