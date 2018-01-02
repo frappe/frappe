@@ -2,9 +2,9 @@
 import json
 
 # imports - module imports
-import frappe
 from   frappe.model.document import Document
-from   frappe import _, _dict
+from   frappe import _
+import frappe
 
 # imports - frappe module imports
 from frappe.core.doctype.version.version import get_diff
@@ -188,7 +188,7 @@ def get_new_chat_room_doc(kind, owner, users = None, name = None):
 			docs.append(doc)
 	
 	room.users     = docs
-	room.save()
+	room.save(ignore_permissions = True)
 	
 	return room
 
@@ -253,35 +253,9 @@ def get_user_chat_rooms(user = None, rooms = None, fields = None):
 	
 	return rooms
 
-@frappe.whitelist()
-def create(kind, owner, users = None, name = None):
-	users = safe_json_loads(users)
-	if owner != session.user:
-		frappe.throw(_("Sorry! You're not authorized to create a Chat Room."))
 
-	room  = get_new_chat_room(kind = kind, owner = owner, users = users, name = name)
-	room  = squashify(room)
 
-	users = [room.owner] + [u for u in room.users]
-	for u in users:
-		frappe.publish_realtime('frappe.chat.room:create', room,
-			user = u, after_commit = True)
 
-	return room
-
-@frappe.whitelist()
-def get(user, rooms = None, fields = None):
-	rooms  = safe_json_loads(rooms)
-	fields = safe_json_loads(fields)
-
-	user   = get_user_doc(user)
-
-	if user.name != frappe.session.user:
-		frappe.throw(_("You're not authorized to view this room."))
-
-	data = get_user_chat_rooms(user = user, rooms = rooms, fields = fields)
-	
-	return data
 
 # Could we move pagination to a config, but how?
 # One possibility is to add to Chat Profile itself.
@@ -294,3 +268,53 @@ def get_history(room, user = None, pagination = 20):
 	mess = squashify(mess)
 	
 	return dictify(mess)
+
+def authenticate(user):
+	if user != session.user:
+		frappe.throw(_("Sorry, you're not authorized."))
+
+@frappe.whitelist()
+def get(user, rooms = None, fields = None, filters = None):
+	authenticate(user)
+
+	rooms, fields, filters = safe_json_loads(rooms, fields, filters)
+
+	data = get_user_chat_rooms(user = user, rooms = rooms, fields = fields)
+	
+	return data
+
+@frappe.whitelist()
+def create(kind, owner, users = None, name = None):
+	authenticate(owner)
+
+	users = safe_json_loads(users)
+
+	room  = frappe.new_doc('Chat Room')
+	room.type  = kind
+	room.owner = owner
+	dusers     = [ ]
+
+	if users:
+		for user in users:
+			duser 	   = frappe.new_doc('Chat Room User')
+			duser.name = user
+			dusers.append(duser)
+	
+	room.users = dusers
+	room.save(ignore_permissions = True)
+
+	
+
+
+
+
+
+	room  = get_new_chat_room(kind = kind, owner = owner, users = users, name = name)
+	room  = squashify(room)
+
+	users = [room.owner] + [u for u in room.users]
+	for u in users:
+		frappe.publish_realtime('frappe.chat.room:create', room,
+			user = u, after_commit = True)
+
+	return room

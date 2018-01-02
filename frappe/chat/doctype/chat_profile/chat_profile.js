@@ -1,8 +1,9 @@
-// Copyright (c) 2017, Frappe Technologies and contributors
-// For license information, please see license.txt
-
+/* eslint semi: "never" */
 frappe.ui.form.on('Chat Profile', {
-	refresh: function(frm) {
-
+	refresh: (form) => {
+		if ( form.doc.user !== frappe.session.user ) {
+			form.disable_save(true)
+			form.set_read_only(true)
+		}
 	}
 });
