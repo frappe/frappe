@@ -364,13 +364,14 @@ frappe.views.ListRenderer = Class.extend({
 		const current_count = this.list_view.data.length;
 
 		frappe.call({
-			method: 'frappe.model.db_query.get_count',
+			method: 'frappe.desk.reportview.get',
 			args: {
 				doctype: this.doctype,
-				filters: this.list_view.get_filters_args()
+				filters: this.list_view.get_filters_args(),
+				fields: ['count(`tab' + this.doctype + '`.name) as total_count']
 			}
 		}).then(r => {
-			const count = r.message || current_count;
+			const count = r.message.values[0][0] || current_count;
 			const str = __('{0} of {1}', [current_count, count]);
 			const $html = $(`<span>${str}</span>`);
 
