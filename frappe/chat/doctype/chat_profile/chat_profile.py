@@ -29,7 +29,7 @@ class ChatProfile(Document):
                 fields = [changed[0] for changed in diff.changed]
 
                 if 'status' in fields:
-                    rooms  = chat_room.get(user, filters = ['type', '=', 'Direct'])
+                    rooms  = chat_room.get(user, filters = ['Chat Room', 'type', '=', 'Direct'])
                     update = dict(user = user, data = dict(status = self.status))
 
                     for room in rooms:
@@ -53,7 +53,6 @@ def get(user, fields = None):
         username   = duser.username,
         avatar     = duser.user_image,
         bio        = duser.bio,
-
         # Chat Profile
         status             = dprof.status,
         chat_background    = dprof.chat_background,

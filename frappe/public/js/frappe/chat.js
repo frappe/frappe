@@ -1740,8 +1740,7 @@ class extends Component
                                                 // !frappe._.is_mobile() ?
                                                 //     h("a", { class: "action", onclick: () =>
                                                 //         {
-                                                //             frappe.set_route('chat')
-                                                //             this.toggle(false)
+                                                //          
                                                 //         }},
                                                 //         h(frappe.components.FontAwesome, { type: "expand", fixed: true })
                                                 //     ) : null,

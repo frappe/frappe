@@ -5,6 +5,12 @@
 .frappe-chat-toggle .octicon {
   margin-top: 5px;
 }
+.frappe-chat .panel.panel-span {
+  border-radius: 0px;
+}
+.frappe-chat .panel.panel-span .panel-heading {
+  border-radius: 0px;
+}
 .font-bold {
   font-weight: 700;
 }

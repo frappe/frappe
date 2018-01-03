@@ -8,14 +8,14 @@ import frappe
 
 # imports - frappe module imports
 from frappe.core.doctype.version.version import get_diff
-from frappe.chat.doctype.chat_message.chat_message import get_messages
+from frappe.chat.doctype.chat_message	import chat_message
 from frappe.chat.util import (
 	get_user_doc,
 	safe_json_loads,
 	dictify,
 	listify,
 	squashify,
-	assign_if_none
+	assign_if_empty
 )
 
 session = frappe.session
@@ -127,9 +127,9 @@ class ChatRoom(Document):
 				frappe.publish_realtime('frappe.chat.room:update', resp,
 					room = self.name, after_commit = True)
 
-	def on_trash(self):
-		if self.owner != session.user:
-			frappe.throw(_("Sorry, you're not authorized to delete this room."))
+	# def on_trash(self):
+	# 	if self.owner != session.user:
+	# 		frappe.throw(_("Sorry, you're not authorized to delete this room."))
 
 def is_admin(user, room):
 	if user != session.user:
@@ -142,7 +142,7 @@ def is_one_on_one(owner, other, bidirectional = False):
 	checks if the owner and other have a direct conversation room.
 	'''
 	def get_room(owner, other):
-		room = frappe.get_list('Chat Room', filters = [
+		room = frappe.get_all('Chat Room', filters = [
 			['Chat Room', 	   'type' , 'in', ('Direct', 'Visitor')],
 			['Chat Room', 	   'owner', '=' , owner],
 			['Chat Room User', 'user' , '=' , other]
@@ -172,87 +172,6 @@ def get_chat_room_user_set(users):
 
 	return news
 
-def get_new_chat_room_doc(kind, owner, users = None, name = None):
-	room = frappe.new_doc('Chat Room')
-	room.type  	   = kind
-	room.owner 	   = owner
-	room.room_name = name
-
-	users          = users if isinstance(users, list) or users is None else [users]
-	docs           = [ ]
-	if users:
-		for user in users:
-			doc      = frappe.new_doc('Chat Room User')
-			doc.user = user
-
-			docs.append(doc)
-	
-	room.users     = docs
-	room.save(ignore_permissions = True)
-	
-	return room
-
-def get_new_chat_room(kind, owner, users = None, name = None):
-	room = get_new_chat_room_doc(kind = kind, owner = owner, users = users, name = name)
-	room = get_user_chat_rooms(user = owner, rooms = room.name)
-
-	return room
-
-def get_user_chat_rooms(user = None, rooms = None, fields = None):
-	'''
-	if user is None, defaults to session user.
-	if room is None, returns the entire list of rooms subscribed by user.
-	'''
-	user   = get_user_doc(user)
-
-	rooms  = assign_if_none(rooms, [ ])
-	fields = assign_if_none(fields, [ ])
-
-	param  = [f for f in fields if f != 'users' or f != 'last_message']
-	
-	rooms  = frappe.get_list('Chat Room',
-		or_filters = [
-			['Chat Room', 'owner', '=', user.name],
-			['Chat Room User', 'user', '=', user.name]
-		],
-		filters    = [
-			['Chat Room', 'name', 'in', rooms]
-		] if rooms else None,
-		fields     = param + ['name'] if param or 'users' in fields else [
-			'type', 'name', 'owner', 'room_name', 'avatar', 'creation'
-		],
-		distinct   = True
-	)
-
-	if not fields or 'users' in fields:
-		for i, r in enumerate(rooms):
-			doc_room		  = frappe.get_doc('Chat Room', r.name)
-			rooms[i]['users'] = [ ]
-
-			for user in doc_room.users:
-				rooms[i]['users'].append(user.user)
-
-	if not fields or 'last_message' in fields:
-		for i, r in enumerate(rooms):
-			doc_room     = frappe.get_doc('Chat Room', r.name)
-			if doc_room.last_message:
-				doc_message              = frappe.get_doc('Chat Message', doc_room.last_message)
-				rooms[i]['last_message'] = dict(
-					name     = doc_message.name,
-					user     = doc_message.user,
-					room     = doc_message.room,
-					content  = doc_message.content,
-					urls     = doc_message.urls,
-					mentions = doc_message.mentions,
-					creation = doc_message.creation
-				)
-			else:
-				rooms[i]['last_message'] = None
-
-	rooms = dictify(rooms)
-	
-	return rooms
-
 
 
 
@@ -263,7 +182,7 @@ def get_user_chat_rooms(user = None, rooms = None, fields = None):
 @frappe.whitelist()
 def get_history(room, user = None, pagination = 20):
 	user = get_user_doc(user)
-	mess = get_messages(room, pagination = pagination)
+	mess = chat_message.get_messages(room, pagination = pagination)
 
 	mess = squashify(mess)
 	
@@ -275,13 +194,63 @@ def authenticate(user):
 
 @frappe.whitelist()
 def get(user, rooms = None, fields = None, filters = None):
+	# There is this horrible bug out here.
+	# Looks like if frappe.call sends optional arguments (not in right order), the argument turns to an empty string.
+	# I'm not even going to think searching for it.
+	# Hence, the hack was assign_if_empty (previous assign_if_none)
+	# - Achilles Rasquinha achilles@frappe.io
+
 	authenticate(user)
 
 	rooms, fields, filters = safe_json_loads(rooms, fields, filters)
 
-	data = get_user_chat_rooms(user = user, rooms = rooms, fields = fields)
+	rooms   = listify(assign_if_empty(rooms,  [ ]))
+	fields  = listify(assign_if_empty(fields, [ ]))
+
+	const   = [ ] # constraints
+	if rooms:
+		const.append(['Chat Room', 'name', 'in', rooms])
+	if filters:
+		if isinstance(filters[0], list):
+			const = const + filters
+		else:
+			const.append(filters)
+
+	default = ['name', 'type', 'room_name', 'creation', 'owner', 'avatar']
+	handle  = ['users', 'last_message']
 	
-	return data
+	param   = [f for f in fields if f not in handle]
+
+	rooms   = frappe.get_all('Chat Room',
+		or_filters = [
+			['Chat Room', 'owner', '=', user],
+			['Chat Room User', 'user', '=', user]
+		],
+		filters    = filters,
+		fields     = param + ['name'] if param else default,
+		distinct   = True,
+		debug      = True
+	)
+
+	if not fields or 'users' in fields:
+		for i, r in enumerate(rooms):
+			droom = frappe.get_doc('Chat Room', r.name)
+			rooms[i]['users'] = [ ]
+
+			for duser in droom.users:
+				rooms[i]['users'].append(duser.user)
+
+	if not fields or 'last_message' in fields:
+		for i, r in enumerate(rooms):
+			droom = frappe.get_doc('Chat Room', r.name)
+			if droom.last_message:
+				rooms[i]['last_message'] = chat_message.get(droom.last_message)
+			else:
+				rooms[i]['last_message'] = None
+
+	rooms = squashify(dictify(rooms))
+	
+	return rooms
 
 @frappe.whitelist()
 def create(kind, owner, users = None, name = None):
@@ -295,26 +264,19 @@ def create(kind, owner, users = None, name = None):
 	dusers     = [ ]
 
 	if users:
+		users  = listify(users)
 		for user in users:
 			duser 	   = frappe.new_doc('Chat Room User')
-			duser.name = user
+			duser.user = user
 			dusers.append(duser)
 	
 	room.users = dusers
 	room.save(ignore_permissions = True)
 
-	
-
-
-
-
-
-	room  = get_new_chat_room(kind = kind, owner = owner, users = users, name = name)
-	room  = squashify(room)
-
+	room  = get(owner, rooms = room.name)
 	users = [room.owner] + [u for u in room.users]
+
 	for u in users:
-		frappe.publish_realtime('frappe.chat.room:create', room,
-			user = u, after_commit = True)
+		frappe.publish_realtime('frappe.chat.room:create', room, user = u, after_commit = True)
 
 	return room
