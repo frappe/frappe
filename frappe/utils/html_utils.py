@@ -58,7 +58,7 @@ def get_icon_html(icon, small=False):
 	if icon and emoji_pattern.match(icon):
 		return '<span class="text-muted">' + icon + '</span>'
 
-	if icon.split(".")[-1:][0].lower() in ["svg", "png", "jpg", "jpeg", "gif"]:
+	if frappe.utils.is_image(icon):
 		return \
 			'<img style="width: 16px; height: 16px;" src="{icon}">'.format(icon=icon) \
 				if small else \
