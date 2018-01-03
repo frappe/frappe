@@ -73,6 +73,7 @@ frappe.ui.FilterGroup = class {
 
 	_push_new_filter(doctype, fieldname, condition, value, hidden = false) {
 		let args = {
+			flist: this,
 			parent: this.wrapper,
 			doctype: doctype,
 			fieldname: fieldname,
@@ -102,6 +103,18 @@ frappe.ui.FilterGroup = class {
 			}
 		});
 		return exists;
+	}
+
+	remove(filter) {
+		// remove `filter` from flist
+		for (var i in this.filters) {
+			if (this.filters[i] === filter) {
+				break;
+			}
+		}
+		if (i!==undefined) {
+			this.filters.splice(i, 1); // remove index
+		}
 	}
 
 	get_filters() {
