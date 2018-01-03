@@ -46,6 +46,9 @@ def execute():
 	# Create Social Login Key(s) from Social Login Keys
 	frappe.reload_doc("integrations", "doctype", "social_login_key", force=True)
 
+	if not frappe.db.exists('DocType', 'Social Login Keys'):
+		return
+
 	social_login_keys = frappe.get_doc("Social Login Keys", "Social Login Keys")
 	if social_login_keys.facebook_client_id or social_login_keys.facebook_client_secret:
 		facebook_login_key = frappe.new_doc("Social Login Key")
