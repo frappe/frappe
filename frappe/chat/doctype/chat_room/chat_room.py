@@ -20,127 +20,7 @@ from frappe.chat.util import (
 
 session = frappe.session
 
-# TODO
-# [x] Only Owners can edit the DocType Record.
-# [ ] Show Chat Room List that only has session.user in it.
-# [ ] Make Chat Room pagination configurable.
-
-class ChatRoom(Document):
-	def validate(self):
-		# TODO - Validations
-		# [x] Direct/Visitor must have 2 users only.
-		# [x] Groups must have 1 (1 being ther session user) or more users.
-		# [x] Ensure group has a name.
-		# [x] Check if there is a one-to-one conversation between 2 users (if Direct/Visitor).
-
-		# First, check if user isn't stupid by adding many users or himself/herself.
-		# C'mon yo, you're the owner.
-		users = get_chat_room_user_set(self.users)
-		users = [u for u in users if u.user != session.user]
-
-		self.update(dict(
-			users = users
-		))
-
-		if self.type in ("Direct", "Visitor"):
-			if len(users) != 1:
-				frappe.throw(_('{type} room must have atmost one user.'.format(
-					type = self.type
-				)))
-			
-			# squash to a single object if it's a list.
-			other = squashify(users)
-
-			# I don't know which idiot would make username not unique.
-			# Remember, this entire app assumes validation based on user's email.
-
-			# Okay, this must go only during creation. But alas, on click "Save" it does the same.
-			if self.is_new():
-				if is_one_on_one(self.owner, other.user, bidirectional = True):
-					frappe.throw(_('Direct room with {other} already exists.'.format(
-						other = other.user
-					)))
-
-		if self.type == "Group" and not self.room_name:
-			frappe.throw(_('Group name cannot be empty.'))
-	
-	# trigger from DocType
-	def before_save(self):
-		if not self.is_new():
-			self.get_doc_before_save()
-
-	def on_update(self):
-		user = session.user
-		if user != self.owner:
-			frappe.throw(_("Sorry! You don't enough permissions to update this room."))
-
-		if not self.is_new():
-			before = self.get_doc_before_save()
-			after  = self
-
-			# TODO
-			# [ ] Check if DocType is itself updated. WARN if not.
-			diff   = dictify(get_diff(before, after)) # whoever you are, thank you for this.
-			if diff:
-				# notify only if there is an update.
-				update = dict() # Update Goodies.
-				# Types of Differences
-				# 1. Changes
-				for changed in diff.changed:
-					field, old, new = changed
-					
-					if field == 'last_message':
-						doc_message = frappe.get_doc('Chat Message', new)
-						update.update({
-							field: dict(
-								name     = doc_message.name,
-								user     = doc_message.user,
-								room     = doc_message.room,
-								content  = doc_message.content,
-								urls     = doc_message.urls,
-								mentions = doc_message.mentions,
-								creation = doc_message.creation
-							)
-						})
-					else:
-						update.update({
-							field: new
-						})
-				# 2. Added or Removed
-				# TODO
-				# [ ] Handle users.
-				# I personally feel this could be done better by either creating a new event
-				# or attaching to the below event. Questions like Who removed Whom? Who added Whom? etc.
-				# For first-cut, let's simply update the latest user list.
-				# This is because the Version DocType already handles it.
-				
-				if diff.added or diff.removed:
-					update.update({
-						'users': [u.user for u in self.users]
-					})
-
-				resp   = dict(
-					room = self.name,
-					data = update
-				)
-
-				frappe.publish_realtime('frappe.chat.room:update', resp,
-					room = self.name, after_commit = True)
-
-	# def on_trash(self):
-	# 	if self.owner != session.user:
-	# 		frappe.throw(_("Sorry, you're not authorized to delete this room."))
-
-def is_admin(user, room):
-	if user != session.user:
-		frappe.throw(_("Sorry, you're not authorized to view this information."))
-
-	# TODO - I'm tired searching the bug.
-
-def is_one_on_one(owner, other, bidirectional = False):
-	'''
-	checks if the owner and other have a direct conversation room.
-	'''
+def is_direct(owner, other, bidirectional = False):
 	def get_room(owner, other):
 		room = frappe.get_all('Chat Room', filters = [
 			['Chat Room', 	   'type' , 'in', ('Direct', 'Visitor')],
@@ -156,31 +36,74 @@ def is_one_on_one(owner, other, bidirectional = False):
 	
 	return exists
 
-def get_chat_room_user_set(users):
-	'''
-	Returns a set of Chat Room Users
-
-	:param users: sequence of Chat Room Users
-	:return: set of Chat Room Users
-	'''
-	seen, news = set(), list()
+def get_chat_room_user_set(users, filter_ = None):
+	seen, uset = set(), list()
 
 	for u in users:
-		if u.user not in seen:
-			news.append(u)
+		if filter_(u) and u.user not in seen:
+			uset.append(u)
 			seen.add(u.user)
 
-	return news
+	return uset
 
+class ChatRoom(Document):
+	def validate(self):
+		if self.is_new():
+			users = get_chat_room_user_set(self.users, filter_ = lambda u: u.user != session.user)
+			self.update(dict(
+				users = users
+			))
 
+		if self.type in ("Direct", "Visitor"):
+			if len(self.users) != 1:
+				frappe.throw(_('{type} room must have atmost one user.'.format(type = self.type)))
 
+			other = squashify(self.users)
 
+			if self.is_new():
+				if is_direct(self.owner, other.user, bidirectional = True):
+					frappe.throw(_('Direct room with {other} already exists.'.format(
+						other = other.user
+					)))
+
+		if self.type == "Group" and not self.room_name:
+			frappe.throw(_('Group name cannot be empty.'))
+	
+	def before_save(self):
+		if not self.is_new():
+			self.get_doc_before_save()
+
+	def on_update(self):
+		if not self.is_new():
+			before = self.get_doc_before_save()
+			after  = self
+
+			diff   = dictify(get_diff(before, after))
+			if diff:
+				update = { }
+				for changed in diff.changed:
+					field, old, new = changed
+					
+					if field == 'last_message':
+						mess = chat_message.get(new)
+						update.update(dict(last_message = mess))
+					else:
+						update.update({
+							field: new
+						})
+				
+				if diff.added or diff.removed:
+					update.update(dict(users = [u.user for u in self.users]))
+
+				update = dict(room = self.name, data = update)
+
+				frappe.publish_realtime('frappe.chat.room:update', update, room = self.name, after_commit = True)
 
 # Could we move pagination to a config, but how?
 # One possibility is to add to Chat Profile itself.
 # Actually yes.
 @frappe.whitelist()
-def get_history(room, user = None, pagination = 20):
+def history(room, user = None, pagination = 20):
 	user = get_user_doc(user)
 	mess = chat_message.get_messages(room, pagination = pagination)
 
@@ -226,10 +149,10 @@ def get(user, rooms = None, fields = None, filters = None):
 			['Chat Room', 'owner', '=', user],
 			['Chat Room User', 'user', '=', user]
 		],
-		filters    = filters,
-		fields     = param + ['name'] if param else default,
-		distinct   = True,
-		debug      = True
+		filters  = const,
+		fields   = param + ['name'] if param else default,
+		distinct = True,
+		debug    = bool(frappe.conf.get('developer_mode'))
 	)
 
 	if not fields or 'users' in fields:
@@ -259,9 +182,11 @@ def create(kind, owner, users = None, name = None):
 	users = safe_json_loads(users)
 
 	room  = frappe.new_doc('Chat Room')
-	room.type  = kind
-	room.owner = owner
-	dusers     = [ ]
+	room.type 	   = kind
+	room.owner	   = owner
+	room.room_name = name
+
+	dusers     	   = [ ]
 
 	if users:
 		users  = listify(users)

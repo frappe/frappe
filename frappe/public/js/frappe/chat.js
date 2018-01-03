@@ -457,7 +457,10 @@ frappe.Logger = class
             throw new frappe.TypeError(`Expected string for name, got ${typeof name} instead.`)
 
         this.name   = name
-        this.level  = frappe.Logger.NOTSET
+        if ( frappe.boot.developer_mode )
+            this.level  = frappe.Logger.ERROR
+        else
+            this.level  = frappe.Logger.NOTSET
         this.format = frappe.Logger.FORMAT
     }
 
@@ -498,15 +501,14 @@ frappe.Logger.DEBUG  = { value: 10, color: '#616161', name: 'DEBUG'  }
 frappe.Logger.INFO   = { value: 20, color: '#2196F3', name: 'INFO'   }
 frappe.Logger.WARN   = { value: 30, color: '#FFC107', name: 'WARN'   }
 frappe.Logger.ERROR  = { value: 40, color: '#F44336', name: 'ERROR'  }
-frappe.Logger.NOTSET = { value: 99,                   name: 'NOTSET' }
+frappe.Logger.NOTSET = { value:  0,                   name: 'NOTSET' }
 
 frappe.Logger.FORMAT = '{time} {name}'
 
 // frappe.chat
 frappe.provide('frappe.chat')
 
-frappe.log           = frappe.Logger.get('frappe.chat')
-frappe.log.level     = frappe.Logger.ERROR
+frappe.log = frappe.Logger.get('frappe.chat')
 
 // frappe.chat.profile
 frappe.provide('frappe.chat.profile')
@@ -670,9 +672,9 @@ frappe.chat.room.create = function (kind, owner, users, name, fn)
 /**
  * @description Returns Chat Room(s).
  * 
- * @param   {string|array} names  - (Optional) Chat Room(s) to retrieve.
- * @param   {string|array} fields - (Optional) fields to be retrieved for each Chat Room.
- * @param   {function}     fn     - (Optional) callback with the returned Chat Room(s).
+ * @param   {string|array} names   - (Optional) Chat Room(s) to retrieve.
+ * @param   {string|array} fields  - (Optional) fields to be retrieved for each Chat Room.
+ * @param   {function}     fn      - (Optional) callback with the returned Chat Room(s).
  * 
  * @returns {Promise}
  * 
@@ -778,7 +780,7 @@ frappe.chat.room.history = function (name, fn)
 {
     return new Promise(resolve =>
     {
-        frappe.call("frappe.chat.doctype.chat_room.chat_room.get_history",
+        frappe.call("frappe.chat.doctype.chat_room.chat_room.history",
             { room: name },
                 r =>
                 {
