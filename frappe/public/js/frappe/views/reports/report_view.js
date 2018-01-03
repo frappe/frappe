@@ -380,12 +380,28 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		const field = [fieldname, doctype];
 		this._fields.splice(col_index, 0, field);
 
+		this.add_currency_column(fieldname, doctype, col_index);
+
 		this.build_fields();
 		this.setup_columns();
 
 		this.datatable.destroy();
 		this.datatable = null;
 		this.refresh();
+	}
+
+	add_currency_column(fieldname, doctype, col_index) {
+		// Adds dependent currency field if required
+		const df = frappe.meta.get_docfield(doctype, fieldname);
+		if (df && df.fieldtype === 'Currency' && df.options && !df.options.includes(':')) {
+			const field = [df.options, doctype];
+			if (col_index === undefined) {
+				this._fields.push(field);
+			} else {
+				this._fields.splice(col_index, 0, field);
+			}
+			frappe.show_alert(__('Also adding the dependent currency field {0}', [field[0].bold()]));
+		}
 	}
 
 	remove_column_from_datatable(column) {
@@ -704,8 +720,9 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 								fields = fields.concat(values[cdt].map(f => [f, cdt]));
 							}
 
-							// this._fields = this._fields.concat(fields);
 							this._fields = fields;
+
+							this._fields.map(f => this.add_currency_column(f[0], f[1]));
 
 							this.build_fields();
 							this.setup_columns();
