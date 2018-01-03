@@ -99,18 +99,6 @@ class ChatRoom(Document):
 
 				frappe.publish_realtime('frappe.chat.room:update', update, room = self.name, after_commit = True)
 
-# Could we move pagination to a config, but how?
-# One possibility is to add to Chat Profile itself.
-# Actually yes.
-@frappe.whitelist()
-def history(room, user = None, pagination = 20):
-	user = get_user_doc(user)
-	mess = chat_message.get_messages(room, pagination = pagination)
-
-	mess = squashify(mess)
-	
-	return dictify(mess)
-
 def authenticate(user):
 	if user != session.user:
 		frappe.throw(_("Sorry, you're not authorized."))
@@ -205,3 +193,12 @@ def create(kind, owner, users = None, name = None):
 		frappe.publish_realtime('frappe.chat.room:create', room, user = u, after_commit = True)
 
 	return room
+
+@frappe.whitelist()
+def history(room, user = None, pagination = 20):
+	user = get_user_doc(user)
+	mess = chat_message.get_messages(room, pagination = pagination)
+
+	mess = squashify(mess)
+	
+	return dictify(mess)
