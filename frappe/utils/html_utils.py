@@ -1,3 +1,4 @@
+import frappe
 import json, re
 import bleach, bleach_whitelist.bleach_whitelist as bleach_whitelist
 from six import string_types
