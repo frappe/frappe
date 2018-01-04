@@ -179,9 +179,12 @@ class CustomizeForm(Document):
 							.format(df.idx))
 						continue
 
-					elif  property == "reqd" and df.get(property)==0:
-						frappe.msgprint(_("Row {0}: Not allowed to enable Mandatory for standard fields")\
-							.format(df.idx))
+					elif property == "reqd" and \
+						((frappe.db.get_value("DocField", 
+							{"parent":self.doc_type,"fieldname":df.fieldname}, "reqd") == 1) \
+							and (df.get(property) == 0)):
+						frappe.msgprint(_("Row {0}: Not allowed to disable Mandatory for standard fields")\
+								.format(df.idx))
 						continue
 
 					elif property == "in_list_view" and df.get(property) \

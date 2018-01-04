@@ -61,34 +61,45 @@ class TestCustomizeForm(unittest.TestCase):
 	def test_save_customization_property(self):
 		d = self.get_customize_form("User")
 		self.assertEquals(frappe.db.get_value("Property Setter",
-			{"doc_type": "User", "property": "allow_copy"}, "value"), 0)
+			{"doc_type": "User", "property": "allow_copy"}, "value"), None)
 
 		d.allow_copy = 1
 		d.run_method("save_customization")
 		self.assertEquals(frappe.db.get_value("Property Setter",
-			{"doc_type": "User", "property": "allow_copy"}, "value"), 1)
+			{"doc_type": "User", "property": "allow_copy"}, "value"), '1')
 
 		d.allow_copy = 0
 		d.run_method("save_customization")
 		self.assertEquals(frappe.db.get_value("Property Setter",
-			{"doc_type": "User", "property": "allow_copy"}, "value"), 0)
+			{"doc_type": "User", "property": "allow_copy"}, "value"), None)
 
 	def test_save_customization_field_property(self):
 		d = self.get_customize_form("User")
 		self.assertEquals(frappe.db.get_value("Property Setter",
-			{"doc_type": "User", "property": "reqd", "field_name": "location"}, "value"), 0)
+			{"doc_type": "User", "property": "reqd", "field_name": "location"}, "value"), None)
 
 		location_field = d.get("fields", {"fieldname": "location"})[0]
 		location_field.reqd = 1
 		d.run_method("save_customization")
 		self.assertEquals(frappe.db.get_value("Property Setter",
-			{"doc_type": "User", "property": "reqd", "field_name": "location"}, "value"), 1)
+			{"doc_type": "User", "property": "reqd", "field_name": "location"}, "value"), '1')
 
 		location_field = d.get("fields", {"fieldname": "location"})[0]
 		location_field.reqd = 0
 		d.run_method("save_customization")
 		self.assertEquals(frappe.db.get_value("Property Setter",
-			{"doc_type": "User", "property": "reqd", "field_name": "location"}, "value"), 0)
+			{"doc_type": "User", "property": "reqd", "field_name": "location"}, "value"), None)
+
+		# for not allowing to change property of standard fields
+		self.assertEquals(frappe.db.get_value("Property Setter",
+			{"doc_type": "User", "property": "reqd", "field_name": "email"}, "value"), None)
+		
+		email_field = d.get("fields", {"fieldname": "email"})[0]
+		email_field.reqd = 0
+		d.run_method("save_customization")
+
+		self.assertEquals(frappe.db.get_value("Property Setter",
+			{"doc_type": "User", "property": "reqd", "field_name": "email"}, "value"), None)
 
 	def test_save_customization_custom_field_property(self):
 		d = self.get_customize_form("User")
