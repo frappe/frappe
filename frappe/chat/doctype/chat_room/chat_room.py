@@ -8,9 +8,8 @@ import frappe
 
 # imports - frappe module imports
 from frappe.core.doctype.version.version import get_diff
-from frappe.chat.doctype.chat_message	import chat_message
+from frappe.chat.doctype.chat_message	 import chat_message
 from frappe.chat.util import (
-	get_user_doc,
 	safe_json_loads,
 	dictify,
 	listify,
@@ -85,12 +84,9 @@ class ChatRoom(Document):
 					field, old, new = changed
 					
 					if field == 'last_message':
-						mess = chat_message.get(new)
-						update.update(dict(last_message = mess))
-					else:
-						update.update({
-							field: new
-						})
+						new = chat_message.get(new)
+
+					update.update({ field: new })
 				
 				if diff.added or diff.removed:
 					update.update(dict(users = [u.user for u in self.users]))
@@ -110,7 +106,6 @@ def get(user, rooms = None, fields = None, filters = None):
 	# I'm not even going to think searching for it.
 	# Hence, the hack was assign_if_empty (previous assign_if_none)
 	# - Achilles Rasquinha achilles@frappe.io
-
 	authenticate(user)
 
 	rooms, fields, filters = safe_json_loads(rooms, fields, filters)
@@ -134,8 +129,8 @@ def get(user, rooms = None, fields = None, filters = None):
 
 	rooms   = frappe.get_all('Chat Room',
 		or_filters = [
-			['Chat Room', 'owner', '=', user],
-			['Chat Room User', 'user', '=', user]
+			['Chat Room', 	   'owner', '=', user],
+			['Chat Room User', 'user',  '=', user]
 		],
 		filters  = const,
 		fields   = param + ['name'] if param else default,
@@ -196,7 +191,6 @@ def create(kind, owner, users = None, name = None):
 
 @frappe.whitelist()
 def history(room, user = None, pagination = 20):
-	user = get_user_doc(user)
 	mess = chat_message.get_messages(room, pagination = pagination)
 
 	mess = squashify(mess)
