@@ -75,14 +75,13 @@ frappe.ui.CommentArea = class CommentArea {
 						items = this.mentions;
 					} else if (keyword.startsWith(':')) {
 						frappe.chat.emoji(emojis => { // Returns cached, else fetch.
-							const query = keyword.slice(1)
-							const items = [ ]
+							const query = keyword.slice(1);
+							const items = [ ];
 							for (const emoji of emojis)
 								for (const alias of emoji.aliases)
 									if ( alias.indexOf(query) === 0 )
-										items.push({ emoji: true, name: alias, value: emoji.emoji })
-
-							callback(items)
+										items.push({ emoji: true, name: alias, value: emoji.emoji });
+							callback(items);
 						});
 					}
 
