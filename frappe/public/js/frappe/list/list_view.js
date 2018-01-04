@@ -488,7 +488,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			`<span class="avatar avatar-small avatar-empty"></span>`;
 
 		const comment_count =
-			`<span class="${!doc._comment_count ? 'text-extra-muted' : ''}">
+			`<span class="${!doc._comment_count ? 'text-extra-muted' : ''} comment-count">
 				<i class="octicon octicon-comment-discussion"></i>
 				${doc._comment_count > 99 ? "99+" : doc._comment_count}
 			</span>`;
@@ -511,13 +511,15 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const current_count = this.data.length;
 
 		return frappe.call({
-			method: 'frappe.model.db_query.get_count',
+			type: 'GET',
+			method: this.method,
 			args: {
 				doctype: this.doctype,
-				filters: this.filter_area.get()
+				filters: this.get_filters_for_args(),
+				fields: [`count(${frappe.model.get_full_column_name('name', this.doctype)}) as total_count`]
 			}
 		}).then(r => {
-			const count = r.message || current_count;
+			const count = r.message.values[0][0] || current_count;
 			const str = __('{0} of {1}', [current_count, count]);
 			const html = `<span>${str}</span>`;
 			return html;

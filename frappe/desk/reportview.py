@@ -50,11 +50,13 @@ def get_form_params():
 	for field in fields:
 		key = field.split(" as ")[0]
 
+		if key.startswith('count('): continue
+
 		if "." in key:
 			parenttype, fieldname = key.split(".")[0][4:-1], key.split(".")[1].strip("`")
 		else:
 			parenttype = data.doctype
-			fieldname = fieldname.strip("`")
+			fieldname = field.strip("`")
 
 		df = frappe.get_meta(parenttype).get_field(fieldname)
 
