@@ -61,34 +61,34 @@ class TestCustomizeForm(unittest.TestCase):
 	def test_save_customization_property(self):
 		d = self.get_customize_form("User")
 		self.assertEquals(frappe.db.get_value("Property Setter",
-			{"doc_type": "User", "property": "allow_copy"}, "value"), None)
+			{"doc_type": "User", "property": "allow_copy"}, "value"), 0)
 
 		d.allow_copy = 1
 		d.run_method("save_customization")
 		self.assertEquals(frappe.db.get_value("Property Setter",
-			{"doc_type": "User", "property": "allow_copy"}, "value"), '1')
+			{"doc_type": "User", "property": "allow_copy"}, "value"), 1)
 
 		d.allow_copy = 0
 		d.run_method("save_customization")
 		self.assertEquals(frappe.db.get_value("Property Setter",
-			{"doc_type": "User", "property": "allow_copy"}, "value"), None)
+			{"doc_type": "User", "property": "allow_copy"}, "value"), 0)
 
 	def test_save_customization_field_property(self):
 		d = self.get_customize_form("User")
 		self.assertEquals(frappe.db.get_value("Property Setter",
-			{"doc_type": "User", "property": "reqd", "field_name": "location"}, "value"), None)
+			{"doc_type": "User", "property": "reqd", "field_name": "location"}, "value"), 0)
 
 		location_field = d.get("fields", {"fieldname": "location"})[0]
 		location_field.reqd = 1
 		d.run_method("save_customization")
 		self.assertEquals(frappe.db.get_value("Property Setter",
-			{"doc_type": "User", "property": "reqd", "field_name": "location"}, "value"), '1')
+			{"doc_type": "User", "property": "reqd", "field_name": "location"}, "value"), 1)
 
 		location_field = d.get("fields", {"fieldname": "location"})[0]
 		location_field.reqd = 0
 		d.run_method("save_customization")
 		self.assertEquals(frappe.db.get_value("Property Setter",
-			{"doc_type": "User", "property": "reqd", "field_name": "location"}, "value"), None)
+			{"doc_type": "User", "property": "reqd", "field_name": "location"}, "value"), 0)
 
 	def test_save_customization_custom_field_property(self):
 		d = self.get_customize_form("User")
@@ -183,4 +183,3 @@ class TestCustomizeForm(unittest.TestCase):
 		# undo
 		df.default = None
 		d.run_method("save_customization")
-
