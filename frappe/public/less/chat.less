@@ -1,4 +1,5 @@
 @frappe-chat-toggle-height:								40px;
+@frappe-chat-popper-panel-box-shadow:					0 5px 15px rgba(0, 0, 0, .5); // BS modal's box shadow.
 
 .frappe-chat-toggle
 {
@@ -9,6 +10,30 @@
 	{
 		// Hack, somewhat.
 		margin-top: 5px;
+	}
+}
+
+.frappe-chat
+{
+	.frappe-chat-popper
+	{
+		& > .frappe-chat-popper-collapse
+		{
+			& > .panel
+			{
+				box-shadow: @frappe-chat-popper-panel-box-shadow;
+			}
+		}
+	}
+
+	.panel.panel-span
+	{
+		border-radius: 0px;
+		
+		.panel-heading
+		{
+			border-radius: 0px;
+		}
 	}
 }
 
@@ -104,10 +129,10 @@
 	{
 		margin-bottom: 0px !important;
 
-		.panel-heading
-		{
-			box-shadow: @frappe-chat-panel-heading-box-shadow;
-		}
+		// .panel-heading
+		// {
+		// 	box-shadow: @frappe-chat-panel-heading-box-shadow;
+		// }
 
 		.panel-body
 		{
@@ -172,7 +197,7 @@
 		& > .panel
 		{
 			  position: relative;
-			box-shadow: @frappe-chat-popper-panel-box-shadow;
+			// box-shadow: @frappe-chat-popper-panel-box-shadow;
 				 width: @frappe-chat-popper-panel-width;
 				height: @frappe-chat-popper-panel-height;
 			overflow-y: auto;
@@ -186,13 +211,16 @@
 
 			& > .panel-heading
 			{
-				box-shadow: @frappe-chat-panel-heading-box-shadow;
+				// box-shadow: @frappe-chat-panel-heading-box-shadow;
 
 				.action
 				{
 					padding: @frappe-chat-panel-heading-action-padding;
 				}
-				
+			}
+
+			&.panel-primary
+			{
 				a 
 				{
 					color: @color-white;

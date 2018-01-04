@@ -1,4 +1,4 @@
-// frappe Chat
+// Frappe Chat
 // Author - Achilles Rasquinha <achilles@frappe.io>
 
 /* eslint semi: "never" */
@@ -6,66 +6,25 @@
 
 // frappe extensions
 
-// frappe.user extensions
+// frappe.model extensions
+frappe.provide('frappe.model')
 /**
- * @description Returns the first name of a User.
- * 
- * @param {string} user - User
- * 
- * @returns The first name of the user.
+ * @description Subscribe to a model for realtime updates.
  * 
  * @example
- * frappe.user.first_name("Rahul Malhotra")
- * // returns "Rahul"
+ * frappe.model.subscribe('User')
+ * // Subscribe to all User records
+ * 
+ * frappe.model.subscribe('User', 'achilles@frappe.io')
+ * frappe.model.subscribe('User', ['achilles@frappe.io', 'rushabh@frappe.io'])
+ * // Subscribe to User of name(s)
+ * 
+ * frappe.model.subscribe('User', 'achilles@frappe.io', 'username')
+ * frappe.model.subscribe('User', ['achilles@frappe.io', 'rushabh@frappe.io'], ['email', 'username'])
+ * // Subscribe to User of name for field(s)
  */
-frappe.provide('frappe.user')
-frappe.user.first_name = user => frappe.user.full_name(user).split(" ")[0]
-
-// frappe.ui extensions
-frappe.provide('frappe.ui')
-frappe.ui.Uploader = class
-{
-    constructor (wrapper, options = { })
-    {
-        this.options = frappe.ui.Uploader.OPTIONS
-        this.set_wrapper(wrapper)
-        this.set_options(options)
-    }
-
-    set_wrapper (wrapper)
-    {
-        this.$wrapper = $(wrapper)
-
-        return this
-    }
-
-    set_options (options)
-    {
-        this.options  = { ...this.options, ...options }
-
-        return this
-    }
-
-    render ( )
-    {
-        const $template = $(frappe.ui.Uploader.TEMPLATE)
-        this.$wrapper.html($template)
-    }
-}
-frappe.ui.Uploader.Layout   = { DIALOG: 'DIALOG' }
-frappe.ui.Uploader.OPTIONS  =
-{
-    layout: frappe.ui.Uploader.Layout.DIALOG
-}
-frappe.ui.Uploader.TEMPLATE =
-`
-<div class="foobar">
-    FooBar
-</div>
-`
-
-frappe.provide('frappe.ui.keycode')
-frappe.ui.keycode = { RETURN: 13 }
+frappe.model.subscribe = (doctype, name, field) =>
+    frappe.realtime.publish('frappe.model:subscribe', { doctype: doctype, name: name, field: field })
 
 /**
  * @description The base class for all Frappe Errors.
@@ -207,6 +166,8 @@ frappe.datetime.compare = (a, b) =>
 // frappe._
 // frappe's utility namespace.
 frappe.provide('frappe._')
+
+frappe._.head = arr => frappe._.is_empty(arr) ? undefined : arr[0]
 
 /**
  * @description Python-inspired format extension for string objects.
@@ -408,9 +369,71 @@ frappe._.is_mobile = () =>
  */
 frappe._.compact   = array => array.filter(Boolean)
 
+// frappe extensions
+
+// frappe.user extensions
+/**
+ * @description Returns the first name of a User.
+ * 
+ * @param {string} user - User
+ * 
+ * @returns The first name of the user.
+ * 
+ * @example
+ * frappe.user.first_name("Rahul Malhotra")
+ * // returns "Rahul"
+ */
+frappe.provide('frappe.user')
+frappe.user.first_name = user => frappe._.head(frappe.user.full_name(user).split(" "))
+
+// frappe.ui extensions
+frappe.provide('frappe.ui')
+frappe.ui.Uploader = class
+{
+    constructor (wrapper, options = { })
+    {
+        this.options = frappe.ui.Uploader.OPTIONS
+        this.set_wrapper(wrapper)
+        this.set_options(options)
+    }
+
+    set_wrapper (wrapper)
+    {
+        this.$wrapper = $(wrapper)
+
+        return this
+    }
+
+    set_options (options)
+    {
+        this.options  = { ...this.options, ...options }
+
+        return this
+    }
+
+    render ( )
+    {
+        const $template = $(frappe.ui.Uploader.TEMPLATE)
+        this.$wrapper.html($template)
+    }
+}
+frappe.ui.Uploader.Layout   = { DIALOG: 'DIALOG' }
+frappe.ui.Uploader.OPTIONS  =
+{
+    layout: frappe.ui.Uploader.Layout.DIALOG
+}
+frappe.ui.Uploader.TEMPLATE =
+`
+<div class="foobar">
+    FooBar
+</div>
+`
+
+frappe.provide('frappe.ui.keycode')
+frappe.ui.keycode = { RETURN: 13 }
+
 // frappe.loggers - A registry for frappe loggers.
 frappe.provide('frappe.loggers')
-
 /**
  * @description Frappe's Logger Class
  * 
@@ -434,7 +457,10 @@ frappe.Logger = class
             throw new frappe.TypeError(`Expected string for name, got ${typeof name} instead.`)
 
         this.name   = name
-        this.level  = frappe.Logger.NOTSET
+        if ( frappe.boot.developer_mode )
+            this.level  = frappe.Logger.ERROR
+        else
+            this.level  = frappe.Logger.NOTSET
         this.format = frappe.Logger.FORMAT
     }
 
@@ -475,15 +501,14 @@ frappe.Logger.DEBUG  = { value: 10, color: '#616161', name: 'DEBUG'  }
 frappe.Logger.INFO   = { value: 20, color: '#2196F3', name: 'INFO'   }
 frappe.Logger.WARN   = { value: 30, color: '#FFC107', name: 'WARN'   }
 frappe.Logger.ERROR  = { value: 40, color: '#F44336', name: 'ERROR'  }
-frappe.Logger.NOTSET = { value: 99,                   name: 'NOTSET' }
+frappe.Logger.NOTSET = { value:  0,                   name: 'NOTSET' }
 
 frappe.Logger.FORMAT = '{time} {name}'
 
 // frappe.chat
 frappe.provide('frappe.chat')
 
-frappe.log           = frappe.Logger.get('frappe.chat')
-frappe.log.level     = frappe.Logger.ERROR
+frappe.log = frappe.Logger.get('frappe.chat')
 
 // frappe.chat.profile
 frappe.provide('frappe.chat.profile')
@@ -497,14 +522,9 @@ frappe.provide('frappe.chat.profile')
  * @returns {Promise}
  * 
  * @example
- * frappe.chat.profile.create((profile) =>
- * {
- *      // do stuff
- * })
- * frappe.chat.profile.create("status").then((profile) =>
- * {
- *      console.log(profile) // { status: "Online" }
- * })
+ * frappe.chat.profile.create(console.log)
+ * 
+ * frappe.chat.profile.create("status").then(console.log) // { status: "Online" }
  */
 frappe.chat.profile.create = (fields, fn) =>
 {
@@ -520,6 +540,35 @@ frappe.chat.profile.create = (fields, fn) =>
     {
         frappe.call("frappe.chat.doctype.chat_profile.chat_profile.create",
             { user: frappe.session.user, exists_ok: true, fields: fields },
+                response =>
+                {
+                    if ( fn )
+                        fn(response.message)
+                    
+                    resolve(response.message)
+                })
+    })
+}
+
+/**
+ * @description Create a Chat Profile.
+ * 
+ * @param   {string|array} fields - (Optional) fields to be retrieved after creating a Chat Profile.
+ * @param   {function}     fn     - (Optional) callback with the returned Chat Profile.
+ * 
+ * @returns {Promise}
+ * 
+ * @example
+ * frappe.chat.profile.create(console.log)
+ * 
+ * frappe.chat.profile.create("status").then(console.log) // { status: "Online" }
+ */
+frappe.chat.profile.update = (user, update, fn) =>
+{
+    return new Promise(resolve =>
+    {
+        frappe.call("frappe.chat.doctype.chat_profile.chat_profile.update",
+            { user: user || frappe.session.user, data: update },
                 response =>
                 {
                     if ( fn )
@@ -623,9 +672,9 @@ frappe.chat.room.create = function (kind, owner, users, name, fn)
 /**
  * @description Returns Chat Room(s).
  * 
- * @param   {string|array} names  - (Optional) Chat Room(s) to retrieve.
- * @param   {string|array} fields - (Optional) fields to be retrieved for each Chat Room.
- * @param   {function}     fn     - (Optional) callback with the returned Chat Room(s).
+ * @param   {string|array} names   - (Optional) Chat Room(s) to retrieve.
+ * @param   {string|array} fields  - (Optional) fields to be retrieved for each Chat Room.
+ * @param   {function}     fn      - (Optional) callback with the returned Chat Room(s).
  * 
  * @returns {Promise}
  * 
@@ -731,7 +780,7 @@ frappe.chat.room.history = function (name, fn)
 {
     return new Promise(resolve =>
     {
-        frappe.call("frappe.chat.doctype.chat_room.chat_room.get_history",
+        frappe.call("frappe.chat.doctype.chat_room.chat_room.history",
             { room: name },
                 r =>
                 {
@@ -1373,11 +1422,9 @@ class extends Component
     }
 
     make ( ) {
-        frappe.chat.profile.create([
-            "status", "display_widget", "notification_tones", "conversation_tones"
-        ], profile =>
+        frappe.chat.profile.create(["status", "display_widget", "notification_tones", "conversation_tones"]).then(profile =>
         {
-            frappe.log.info(`Chat Profile created for User ${frappe.session.user}.`)
+            frappe.log.info(`Chat Profile created for User ${frappe.session.user} - ${JSON.stringify(profile)}.`)
             this.set_state({ profile })
 
             frappe.chat.room.get(rooms =>
@@ -1686,7 +1733,7 @@ class extends Component
                 state.active ?
                     h("div", { class: "frappe-chat-popper-collapse" },
                         props.page ? props.page : (
-                            h("div", { class: `panel panel-primary ${frappe._.is_mobile() ? "panel-span" : ""}` },
+                            h("div", { class: `panel panel-default ${frappe._.is_mobile() ? "panel-span" : ""}` },
                                 h("div", { class: "panel-heading cursor-pointer", onclick: () => this.toggle(false) },
                                     h("div", { class: "row" },
                                         h("div", { class: "col-xs-9" }),
@@ -1695,8 +1742,7 @@ class extends Component
                                                 // !frappe._.is_mobile() ?
                                                 //     h("a", { class: "action", onclick: () =>
                                                 //         {
-                                                //             frappe.set_route('chat')
-                                                //             this.toggle(false)
+                                                //          
                                                 //         }},
                                                 //         h(frappe.components.FontAwesome, { type: "expand", fixed: true })
                                                 //     ) : null,
@@ -1777,7 +1823,7 @@ class extends Component
                         h("input", { class: "form-control", name: "query", value: state.query, placeholder: "Search" }),
                         Array.isArray(props.actions) ?
                             h("div", { class: "input-group-btn" },
-                                h(frappe.components.Button, { type: "primary", class: "dropdown-toggle", "data-toggle": "dropdown" },
+                                h(frappe.components.Button, { type: "default", class: "dropdown-toggle", "data-toggle": "dropdown" },
                                     h(frappe.components.Octicon, { type: "plus" })
                                 ),
                                 h("ul", { class: "dropdown-menu dropdown-menu-right" },
@@ -2049,7 +2095,7 @@ class extends Component
         }
 
         return (
-            h("div", { class: `panel panel-primary ${frappe._.is_mobile() ? "panel-span" : ""}` },
+            h("div", { class: `panel panel-default ${frappe._.is_mobile() ? "panel-span" : ""}` },
                 h(frappe.Chat.Widget.Room.Header, { ...props, back: props.destroy }),
                 !frappe._.is_empty(props.messages) ?
                     h(frappe.Chat.Widget.ChatList, {
@@ -2538,20 +2584,3 @@ class extends Component {
 // frappe.components.Select.Option props
 // same as frappe.components.Select.
 
-frappe.chat.profile.update
-=
-function (user, update, fn)
-{
-    return new Promise(resolve => 
-    {
-        frappe.call("frappe.chat.doctype.chat_profile.chat_profile.update",
-            { user: user || frappe.session.user, data: update },
-                response => 
-                {
-                    if ( fn )
-                        fn(response.message)
-                    
-                    resolve(response.message)
-                })
-    })
-}

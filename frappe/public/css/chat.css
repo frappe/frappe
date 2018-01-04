@@ -5,6 +5,15 @@
 .frappe-chat-toggle .octicon {
   margin-top: 5px;
 }
+.frappe-chat .frappe-chat-popper > .frappe-chat-popper-collapse > .panel {
+  box-shadow: 0px 3px 6px 0px rgba(0, 0, 0, 0.25);
+}
+.frappe-chat .panel.panel-span {
+  border-radius: 0px;
+}
+.frappe-chat .panel.panel-span .panel-heading {
+  border-radius: 0px;
+}
 .font-bold {
   font-weight: 700;
 }
@@ -36,9 +45,6 @@
 }
 .frappe-chat .panel {
   margin-bottom: 0px !important;
-}
-.frappe-chat .panel .panel-heading {
-  box-shadow: 0px 2px 2px 0px rgba(0, 0, 0, 0.14);
 }
 .frappe-chat .panel .panel-body {
   padding: 10px;
@@ -80,7 +86,6 @@
 }
 .frappe-chat-popper .frappe-chat-popper-collapse > .panel {
   position: relative;
-  box-shadow: 0px 3px 6px 0px rgba(0, 0, 0, 0.25);
   width: 350px;
   height: 500px;
   overflow-y: auto;
@@ -90,16 +95,13 @@
   height: 500px;
   overflow-y: auto;
 }
-.frappe-chat-popper .frappe-chat-popper-collapse > .panel > .panel-heading {
-  box-shadow: 0px 2px 2px 0px rgba(0, 0, 0, 0.14);
-}
 .frappe-chat-popper .frappe-chat-popper-collapse > .panel > .panel-heading .action {
   padding: 5px;
 }
-.frappe-chat-popper .frappe-chat-popper-collapse > .panel > .panel-heading a {
+.frappe-chat-popper .frappe-chat-popper-collapse > .panel.panel-primary a {
   color: #FFF;
 }
-.frappe-chat-popper .frappe-chat-popper-collapse > .panel > .panel-heading .text-muted {
+.frappe-chat-popper .frappe-chat-popper-collapse > .panel.panel-primary .text-muted {
   color: #FFF !important;
 }
 .frappe-chat-popper .frappe-chat-popper-collapse .panel-span {
