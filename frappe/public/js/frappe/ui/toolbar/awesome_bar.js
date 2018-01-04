@@ -158,7 +158,6 @@ frappe.search.AwesomeBar = Class.extend({
 	add_defaults: function(txt) {
 		this.make_global_search(txt);
 		this.make_search_in_current(txt);
-		this.make_calculator(txt);
 	},
 
 	build_options: function(txt) {
@@ -240,30 +239,5 @@ frappe.search.AwesomeBar = Class.extend({
 				match: txt
 			});
 		}
-	},
-
-	make_calculator: function(txt) {
-		var first = txt.substr(0,1);
-		if(first==parseInt(first) || first==="(" || first==="=") {
-			if(first==="=") {
-				txt = txt.substr(1);
-			}
-			try {
-				var val = eval(txt);
-				var formatted_value = __('{0} = {1}', [txt, (val + '').bold()]);
-				this.options.push({
-					label: formatted_value,
-					value: __('{0} = {1}', [txt, val]),
-					match: val,
-					index: 80,
-					default: "Calculator",
-					onclick: function() {
-						frappe.msgprint(formatted_value, "Result");
-					}
-				});
-			} catch(e) {
-				// pass
-			}
-		}
-	},
+	}
 });

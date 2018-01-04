@@ -4,6 +4,8 @@
 from __future__ import unicode_literals
 
 import frappe, json, os
+from frappe import _
+from frappe.modules import scrub
 from frappe.utils import strip, cint
 from frappe.translate import (set_default_language, get_dict, send_translations)
 from frappe.geo.country_info import get_country_info
@@ -19,32 +21,19 @@ def get_setup_stages(args):
 	# That is done by frappe after successful completion of all stages
 	stages = [
 		{
-			'status': 'Updating global settings',
-			'fail_msg': 'Failed to update global settings',
+			'status': _('Updating global settings'),
+			'fail_msg': _('Failed to update global settings'),
 			'tasks': [
 				{
 					'fn': update_global_settings,
 					'args': args,
-					'fail_msg': 'Failed to update global settings'
+					'fail_msg': _('Failed to update global settings')
 				}
 			]
 		}
 	]
 
 	stages += get_stages_hooks(args) + get_setup_complete_hooks(args)
-
-	stages.append({
-		# post executing hooks
-		'status': 'Wrapping up',
-		'fail_msg': 'Failed to complete setup',
-		'tasks': [
-			{
-				'fn': run_post_setup_complete,
-				'args': args,
-				'fail_msg': 'Failed to complete setup'
-			}
-		]
-	})
 
 	return stages
 
@@ -60,9 +49,9 @@ def setup_complete(args):
 	args = parse_args(args)
 
 	stages = get_setup_stages(args)
+	frappe.flags.dont_commit = 1
 
 	try:
-		frappe.flags.dont_commit = 1
 		current_task = None
 		for idx, stage in enumerate(stages):
 			total_stages = len(stages) - 1
@@ -71,7 +60,9 @@ def setup_complete(args):
 
 			for task in stage.get('tasks'):
 				current_task = task
-				task.get('fn')(task.get('args'))
+				records = task.get('fn')(task.get('args'))
+				if isinstance(records, (list, tuple)):
+					insert_records(records)
 
 	except Exception:
 		frappe.flags.dont_commit = 0
@@ -83,7 +74,10 @@ def setup_complete(args):
 		}
 	else:
 		frappe.flags.dont_commit = 0
+		frappe.publish_realtime('setup_task', {"progress": [total_stages, total_stages],
+			"stage_status": _('Wrapping up')}, user=frappe.session.user)
 		run_setup_success(args)
+		run_post_setup_complete(args)
 		return {'status': 'ok'}
 
 def update_global_settings(args):
@@ -94,15 +88,15 @@ def update_global_settings(args):
 	update_system_settings(args)
 	update_user_name(args)
 
-def run_post_setup_complete(args):
-	disable_future_access()
-	frappe.db.commit()
-	frappe.clear_cache()
-
 def run_setup_success(args):
 	for hook in frappe.get_hooks("setup_wizard_success"):
 		frappe.get_attr(hook)(args)
 	install_fixtures.install()
+
+def run_post_setup_complete(args):
+	disable_future_access()
+	frappe.db.commit()
+	frappe.clear_cache()
 
 def get_stages_hooks(args):
 	stages = []
@@ -238,6 +232,29 @@ def disable_future_access():
 		page.flags.do_not_update_json = True
 		page.flags.ignore_permissions = True
 		page.save()
+
+def insert_records(records):
+	for r in records:
+		doc = frappe.new_doc(r.get("doctype"))
+		doc.update(r)
+
+		# ignore mandatory for root
+		parent_link_field = ("parent_" + scrub(doc.doctype))
+		if doc.meta.get_field(parent_link_field) and not doc.get(parent_link_field):
+			doc.flags.ignore_mandatory = True
+
+		try:
+			doc.insert(ignore_permissions=True, ignore_if_duplicate=True)
+		except frappe.DuplicateEntryError as e:
+			# pass DuplicateEntryError and continue
+			frappe.clear_messages()
+			if e.args and e.args[0]==doc.doctype and e.args[1]==doc.name:
+				# make sure DuplicateEntryError is for the exact same doc and not a related doc
+				pass
+			else:
+				raise
+		except frappe.NameError:
+			pass
 
 @frappe.whitelist()
 def load_messages(language):
