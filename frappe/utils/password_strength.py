@@ -3,7 +3,11 @@
 
 from __future__ import unicode_literals
 
-from zxcvbn import zxcvbn
+try:
+	from zxcvbn import zxcvbn
+except Exception as e:
+	import zxcvbn
+
 import frappe
 from frappe import _
 
