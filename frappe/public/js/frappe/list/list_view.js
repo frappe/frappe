@@ -408,7 +408,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		const field_html = () => {
 			let html;
-			const _value = typeof value === 'string' ? strip_html(value) : value;
+			const _value = typeof value === 'string' ? frappe.utils.escape_html(value) : value;
 
 			if (df.fieldtype === 'Image') {
 				html = df.options ?
@@ -542,6 +542,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			value = doc.name;
 		}
 		let subject = strip_html(value);
+		let escaped_subject = frappe.utils.escape_html(value);
 
 		const liked_by = JSON.parse(doc._liked_by || '[]');
 		let heart_class = liked_by.includes(user) ?
@@ -562,8 +563,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					${ liked_by.length > 99 ? __("99") + '+' : __(liked_by.length || '')}
 				</span>
 			</span>
-			<span class="level-item ${seen} ellipsis" title="${encodeURI(subject)}">
-				<a class="ellipsis" href="${this.get_form_link(doc)}" title="${encodeURI(subject)}">
+			<span class="level-item ${seen} ellipsis" title="${escaped_subject}">
+				<a class="ellipsis" href="${this.get_form_link(doc)}" title="${escaped_subject}">
 				${subject}
 				</a>
 			</span>

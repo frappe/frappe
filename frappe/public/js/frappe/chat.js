@@ -952,14 +952,14 @@ frappe.chat.pretty_datetime   = function (date)
 {
     const today    = moment()
     const instance = date.moment
-    
+        
     if ( today.isSame(instance, "d") )
-        return today.format("hh:mm A")
+        return instance.format("hh:mm A")
     else
     if ( today.isSame(instance, "week") )
-        return today.format("dddd")
+        return instance.format("dddd")
     else
-        return today.format("DD/MM/YYYY")
+        return instance.format("DD/MM/YYYY")
 }
 
 // frappe.chat.sound
