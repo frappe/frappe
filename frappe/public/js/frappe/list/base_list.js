@@ -76,65 +76,30 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	set_fields() {
-
 		this._fields = [];
-		const add_field = f => this._add_field(f);
 
-		// default fields
-		const std_fields = [
-			'name',
-			'owner',
-			'docstatus',
-			'_user_tags',
-			'_comments',
-			'modified',
-			'modified_by',
-			'_assign',
-			'_liked_by',
-			'_seen',
-			'enabled',
-			'disabled',
-			this.meta.title_field,
-			this.meta.image_field
-		];
+		let fields = [].concat(
+			frappe.model.std_fields_list,
+			this.get_fields_in_list_view(),
+			[this.meta.title_field, this.meta.image_field],
+			(this.settings.add_fields || [])
+		);
 
-		std_fields.map(add_field);
-
-		// fields in_list_view
-		const fields = this.get_fields_in_list_view();
-		fields.map(add_field);
-
-		// currency fields
-		fields.filter(
-			df => df.fieldtype === 'Currency' && df.options
-		).map(df => {
-			if (df.options.includes(':')) {
-				add_field(df.options.split(':')[1]);
-			} else {
-				add_field(df.options);
-			}
-		});
-
-		// image fields
-		fields.filter(
-			df => df.fieldtype === 'Image'
-		).map(df => {
-			if (df.options) {
-				add_field(df.options);
-			} else {
-				add_field(df.fieldname);
-			}
-		});
-
-		// fields in listview_settings
-		(this.settings.add_fields || []).map(add_field);
+		fields.forEach(f => this._add_field(f));
 	}
 
 	get_fields_in_list_view() {
 		return this.meta.fields.filter(df => {
-			return df.in_list_view
+			return frappe.model.is_value_type(df.fieldtype) && (
+				df.in_list_view
 				&& frappe.perm.has_perm(this.doctype, df.permlevel, 'read')
-				&& frappe.model.is_value_type(df.fieldtype);
+			) || (
+				df.fieldtype === 'Currency'
+				&& df.options
+				&& !df.options.includes(':')
+			) || (
+				df.fieldname === 'status'
+			);
 		});
 	}
 
