@@ -1931,9 +1931,7 @@ class extends Component
         }
 
         if ( props.last_message )
-        {
             item.timestamp = frappe.chat.pretty_datetime(props.last_message.creation)
-        }
 
         return (
             h("li", null,
