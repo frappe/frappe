@@ -167,7 +167,7 @@ frappe.datetime.compare = (a, b) =>
 // frappe's utility namespace.
 frappe.provide('frappe._')
 
-frappe._.head = arr => frappe._.is_empty(arr) ? undefined : arr[0]
+frappe.utils.head = arr => frappe.utils.is_empty(arr) ? undefined : arr[0]
 
 /**
  * @description Python-inspired format extension for string objects.
@@ -178,10 +178,10 @@ frappe._.head = arr => frappe._.is_empty(arr) ? undefined : arr[0]
  * @return {string}        - The formatted string.
  * 
  * @example
- * frappe._.format('{foo} {bar}', { bar: 'foo', foo: 'bar' })
+ * frappe.utils.format('{foo} {bar}', { bar: 'foo', foo: 'bar' })
  * // returns "bar foo"
  */
-frappe._.format = (string, object) =>
+frappe.utils.format = (string, object) =>
 {
     for (const key in object)
         string  = string.replace(`{${key}}`, object[key])
@@ -199,12 +199,12 @@ frappe._.format = (string, object) =>
  * @return {array}          - The fuzzy matched index/object within the dataset.
  * 
  * @example
- * frappe._.fuzzy_search("foobar", ["foobar", "bartender"])
+ * frappe.utils.fuzzy_search("foobar", ["foobar", "bartender"])
  * // returns [0, 1]
  * 
  * @see http://fusejs.io
  */
-frappe._.fuzzy_search = (query, dataset, options) =>
+frappe.utils.fuzzy_search = (query, dataset, options) =>
 {
     const DEFAULT  =
     {
@@ -232,14 +232,14 @@ frappe._.fuzzy_search = (query, dataset, options) =>
  * @return {string}       - The pluralized string.
  * 
  * @example
- * frappe._.pluralize('member',  1)
+ * frappe.utils.pluralize('member',  1)
  * // returns "member"
- * frappe._.pluralize('members', 0)
+ * frappe.utils.pluralize('members', 0)
  * // returns "members"
  * 
  * @todo Handle more edge cases.
  */
-frappe._.pluralize = (word, count = 0, suffix = 's') => `${word}${count === 1 ? '' : suffix}`
+frappe.utils.pluralize = (word, count = 0, suffix = 's') => `${word}${count === 1 ? '' : suffix}`
 
 /**
  * @description Captializes a given string.
@@ -249,10 +249,10 @@ frappe._.pluralize = (word, count = 0, suffix = 's') => `${word}${count === 1 ? 
  * @return {string} - The capitalized word.
  * 
  * @example
- * frappe._.capitalize('foobar')
+ * frappe.utils.capitalize('foobar')
  * // returns "Foobar"
  */
-frappe._.capitalize = word => `${word.charAt(0).toUpperCase()}${word.slice(1)}`
+frappe.utils.capitalize = word => `${word.charAt(0).toUpperCase()}${word.slice(1)}`
 
 /**
  * @description Returns a copy of the given array (shallow).
@@ -262,12 +262,12 @@ frappe._.capitalize = word => `${word.charAt(0).toUpperCase()}${word.slice(1)}`
  * @returns {array}       - The copied array.
  * 
  * @example
- * frappe._.copy_array(["foobar", "barfoo"])
+ * frappe.utils.copy_array(["foobar", "barfoo"])
  * // returns ["foobar", "barfoo"]
  * 
  * @todo Add optional deep copy.
  */
-frappe._.copy_array = array =>
+frappe.utils.copy_array = array =>
 {
     if ( Array.isArray(array) )
         return array.slice()
@@ -283,18 +283,18 @@ frappe._.copy_array = array =>
  * @returns {boolean}       - Returns if the object is empty. 
  * 
  * @example
- * frappe._.is_empty([])      // returns true
- * frappe._.is_empty(["foo"]) // returns false
+ * frappe.utils.is_empty([])      // returns true
+ * frappe.utils.is_empty(["foo"]) // returns false
  * 
- * frappe._.is_empty("")      // returns true
- * frappe._.is_empty("foo")   // returns false
+ * frappe.utils.is_empty("")      // returns true
+ * frappe.utils.is_empty("foo")   // returns false
  * 
- * frappe._.is_empty({ })            // returns true
- * frappe._.is_empty({ foo: "bar" }) // returns false
+ * frappe.utils.is_empty({ })            // returns true
+ * frappe.utils.is_empty({ foo: "bar" }) // returns false
  * 
  * @todo Handle other cases.
  */
-frappe._.is_empty = value =>
+frappe.utils.is_empty = value =>
 {
     let empty = false
 
@@ -316,15 +316,15 @@ frappe._.is_empty = value =>
  * @param {object} item - An object
  * 
  * @example
- * frappe._.as_array("foo")
+ * frappe.utils.as_array("foo")
  * // returns ["foo"]
  * 
- * frappe._.as_array(["foo"])
+ * frappe.utils.as_array(["foo"])
  * // returns ["foo"]
  * 
  * @see https://docs.oracle.com/javase/8/docs/api/java/util/Arrays.html#asList-T...-
  */
-frappe._.as_array = item => Array.isArray(item) ? item : [item]
+frappe.utils.as_array = item => Array.isArray(item) ? item : [item]
 
 /**
  * @description Return a singleton if array contains a single element.
@@ -334,24 +334,24 @@ frappe._.as_array = item => Array.isArray(item) ? item : [item]
  * @returns {array|object}      - Returns an array if there's more than 1 object else the first object itself.
  * 
  * @example
- * frappe._.squash(["foo"])
+ * frappe.utils.squash(["foo"])
  * // returns "foo"
  * 
- * frappe._.squash(["foo", "bar"])
+ * frappe.utils.squash(["foo", "bar"])
  * // returns ["foo", "bar"]
  */
-frappe._.squash = list => Array.isArray(list) && list.length === 1 ? list[0] : list
+frappe.utils.squash = list => Array.isArray(list) && list.length === 1 ? list[0] : list
 
 /**
  * @description Returns true, if the current device is a mobile device.
  * 
  * @example
- * frappe._.is_mobile()
+ * frappe.utils.is_mobile()
  * // returns true|false
  * 
  * @see https://developer.mozilla.org/en-US/docs/Web/HTTP/Browser_detection_using_the_user_agent
  */
-frappe._.is_mobile = () =>
+frappe.utils.is_mobile = () =>
 {
     const regex    = new RegExp("Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini", "i")
     const agent    = navigator.userAgent
@@ -364,10 +364,10 @@ frappe._.is_mobile = () =>
  * @description Removes falsey values from an array.
  * 
  * @example
- * frappe._.compact([1, 2, false, NaN, ''])
+ * frappe.utils.compact([1, 2, false, NaN, ''])
  * // returns [1, 2]
  */
-frappe._.compact   = array => array.filter(Boolean)
+frappe.utils.compact   = array => array.filter(Boolean)
 
 // frappe extensions
 
@@ -384,7 +384,7 @@ frappe._.compact   = array => array.filter(Boolean)
  * // returns "Rahul"
  */
 frappe.provide('frappe.user')
-frappe.user.first_name = user => frappe._.head(frappe.user.full_name(user).split(" "))
+frappe.user.first_name = user => frappe.utils.head(frappe.user.full_name(user).split(" "))
 
 // frappe.ui extensions
 frappe.provide('frappe.ui')
@@ -487,7 +487,7 @@ frappe.Logger = class
 
         if ( level.value <= this.level.value )
         {
-            const format  = frappe._.format(this.format,
+            const format  = frappe.utils.format(this.format,
             {
                 time: timestamp.format('HH:mm:ss'),
                 name: this.name
@@ -534,7 +534,7 @@ frappe.chat.profile.create = (fields, fn) =>
         fields = null
     } else
     if ( typeof fields === "string" )
-        fields = frappe._.as_array(fields)
+        fields = frappe.utils.as_array(fields)
 
     return new Promise(resolve =>
     {
@@ -650,7 +650,7 @@ frappe.chat.room.create = function (kind, owner, users, name, fn)
         name = null
     }
 
-    users    = frappe._.as_array(users)
+    users    = frappe.utils.as_array(users)
     
     return new Promise(resolve =>
     {
@@ -709,7 +709,7 @@ frappe.chat.room.get = function (names, fields, fn)
     else
     if ( typeof names === "string" )
     {
-        names  = frappe._.as_array(names)
+        names  = frappe.utils.as_array(names)
 
         if ( typeof fields === "function" ) {
             fn     = fields
@@ -717,7 +717,7 @@ frappe.chat.room.get = function (names, fields, fn)
         }
         else
         if ( typeof fields === "string" )
-            fields = frappe._.as_array(fields)
+            fields = frappe.utils.as_array(fields)
     }
 
     return new Promise(resolve =>
@@ -730,14 +730,14 @@ frappe.chat.room.get = function (names, fields, fn)
                     let rooms = response.message
                     if ( rooms ) // frappe.api BOGZ! (emtpy arrays are falsified, not good design).
                     {
-                        rooms = frappe._.as_array(rooms)
+                        rooms = frappe.utils.as_array(rooms)
                         rooms = rooms.map(room =>
                         {
                             return { ...room, creation: new frappe.datetime.datetime(room.creation),
                                 last_message: room.last_message ? { ...room.last_message, creation: new frappe.datetime.datetime(room.last_message.creation) } : null
                             }
                         })
-                        rooms = frappe._.squash(rooms)
+                        rooms = frappe.utils.squash(rooms)
                     }
                     else
                         rooms = [ ]
@@ -784,7 +784,7 @@ frappe.chat.room.history = function (name, fn)
             { room: name },
                 r =>
                 {
-                    let messages = r.message ? frappe._.as_array(r.message) : [ ] // frappe.api BOGZ! (emtpy arrays are falsified, not good design).
+                    let messages = r.message ? frappe.utils.as_array(r.message) : [ ] // frappe.api BOGZ! (emtpy arrays are falsified, not good design).
                     messages     = messages.map(m => { return { ...m, creation: new frappe.datetime.datetime(m.creation) } })
 
                     if ( fn )
@@ -811,11 +811,11 @@ frappe.chat.room.search = function (query, rooms)
             return r.room_name
         else
             if ( r.owner === frappe.session.user )
-                return frappe.user.full_name(frappe._.squash(r.users))
+                return frappe.user.full_name(frappe.utils.squash(r.users))
             else
                 return frappe.user.full_name(r.owner)
     })
-    const results = frappe._.fuzzy_search(query, dataset)
+    const results = frappe.utils.fuzzy_search(query, dataset)
     rooms         = results.map(i => rooms[i])
 
     return rooms
@@ -918,7 +918,7 @@ frappe.chat.message.update = function (message, update, fn)
 
 frappe.chat.message.sort   = (messages) =>
 {
-    if ( !frappe._.is_empty(messages) )
+    if ( !frappe.utils.is_empty(messages) )
         messages.sort((a, b) => frappe.datetime.compare(b.creation, a.creation));
 
     return messages
@@ -995,7 +995,7 @@ frappe.chat.emojis = [ ]
 frappe.chat.emoji  = function (fn)
 {
     return new Promise(resolve => {
-        if ( !frappe._.is_empty(frappe.chat.emojis) )
+        if ( !frappe.utils.is_empty(frappe.chat.emojis) )
         {
             if ( fn )
                 fn(frappe.chat.emojis)
@@ -1330,7 +1330,7 @@ class extends Component
         this.room           = { }
         this.room.add       = (rooms) =>
         {   
-            rooms           = frappe._.as_array(rooms)
+            rooms           = frappe.utils.as_array(rooms)
             const names     = rooms.map(r => r.name)
             
             frappe.log.info(`Subscribing ${frappe.session.user} to Chat Rooms ${names.join(", ")}.`)
@@ -1358,17 +1358,17 @@ class extends Component
                     exists  = true
                     if ( update.typing )
                     {
-                        if ( !frappe._.is_empty(r.typing) )
+                        if ( !frappe.utils.is_empty(r.typing) )
                         {
                             const usr = update.typing
                             if ( !r.typing.includes(usr) )
                             {
-                                update.typing = frappe._.copy_array(r.typing)
+                                update.typing = frappe.utils.copy_array(r.typing)
                                 update.typing.push(usr)
                             }
                         }
                         else
-                            update.typing = frappe._.as_array(update.typing)
+                            update.typing = frappe.utils.as_array(update.typing)
                     }
 
                     return { ...r, ...update }
@@ -1386,16 +1386,16 @@ class extends Component
             {
                 if ( update.typing )
                 {
-                    if ( !frappe._.is_empty(state.room.typing) )
+                    if ( !frappe.utils.is_empty(state.room.typing) )
                     {
                         const usr = update.typing
                         if ( !state.room.typing.includes(usr) )
                         {
-                            update.typing = frappe._.copy_array(state.room.typing)
+                            update.typing = frappe.utils.copy_array(state.room.typing)
                             update.typing.push(usr)
                         }
                     } else
-                        update.typing = frappe._.as_array(update.typing)
+                        update.typing = frappe.utils.as_array(update.typing)
                 }
 
                 const room  = { ...state.room, ...update }
@@ -1429,8 +1429,8 @@ class extends Component
 
             frappe.chat.room.get(rooms =>
             {
-                rooms = frappe._.as_array(rooms)
-                frappe.log.info(`User ${frappe.session.user} is subscribed to ${rooms.length} ${frappe._.pluralize('room', rooms.length)}.`)
+                rooms = frappe.utils.as_array(rooms)
+                frappe.log.info(`User ${frappe.session.user} is subscribed to ${rooms.length} ${frappe.utils.pluralize('room', rooms.length)}.`)
 
                 if ( rooms.length )
                     this.room.add(rooms)
@@ -1504,7 +1504,7 @@ class extends Component
             
             if ( r.room === state.room.name )
             {
-                const mess  = frappe._.copy_array(state.room.messages)
+                const mess  = frappe.utils.copy_array(state.room.messages)
                 mess.push(r)
                 
                 this.set_state({ room: { ...state.room, messages: mess } })
@@ -1565,7 +1565,7 @@ class extends Component
                                 },
                                 secondary:
                                 {
-                                    label: frappe._.is_mobile() ? "<b>&times</b>" : __(`Cancel`)
+                                    label: frappe.utils.is_mobile() ? "<b>&times</b>" : __(`Cancel`)
                                 }
                              }
                         })
@@ -1616,7 +1616,7 @@ class extends Component
                                 },
                                 secondary:
                                 {
-                                    label: frappe._.is_mobile() ? "<b>&times</b>" : __(`Cancel`)
+                                    label: frappe.utils.is_mobile() ? "<b>&times</b>" : __(`Cancel`)
                                 }
                              }
                         })
@@ -1726,20 +1726,20 @@ class extends Component
                     h(frappe.components.FAB, {
                           class: "frappe-fab",
                            icon: state.active ? "fa fa-fw fa-times" : "font-heavy octicon octicon-comment",
-                           size: frappe._.is_mobile() ? null : "large",
+                           size: frappe.utils.is_mobile() ? null : "large",
                            type: "primary",
                         onclick: () => this.toggle(),
                     }) : null,
                 state.active ?
                     h("div", { class: "frappe-chat-popper-collapse" },
                         props.page ? props.page : (
-                            h("div", { class: `panel panel-default ${frappe._.is_mobile() ? "panel-span" : ""}` },
+                            h("div", { class: `panel panel-default ${frappe.utils.is_mobile() ? "panel-span" : ""}` },
                                 h("div", { class: "panel-heading cursor-pointer", onclick: () => this.toggle(false) },
                                     h("div", { class: "row" },
                                         h("div", { class: "col-xs-9" }),
                                         h("div", { class: "col-xs-3" },
                                             h("div", { class: "text-right" },
-                                                // !frappe._.is_mobile() ?
+                                                // !frappe.utils.is_mobile() ?
                                                 //     h("a", { class: "action", onclick: () =>
                                                 //         {
                                                 //          
@@ -1908,22 +1908,22 @@ class extends Component
             item.title     = props.room_name
             item.image     = props.avatar
 
-            if ( !frappe._.is_empty(props.typing) )
+            if ( !frappe.utils.is_empty(props.typing) )
             {
-                props.typing  = frappe._.as_array(props.typing) // HACK: (BUG) why does typing return a string?
+                props.typing  = frappe.utils.as_array(props.typing) // HACK: (BUG) why does typing return a string?
                 const names   = props.typing.map(user => frappe.user.first_name(user))
                 item.subtitle = `${names.join(", ")} typing...`
             } else
             if ( props.last_message )
                 item.subtitle = props.last_message.content
         } else {
-            const user     = props.owner === frappe.session.user ? frappe._.squash(props.users) : props.owner
+            const user     = props.owner === frappe.session.user ? frappe.utils.squash(props.users) : props.owner
 
             item.title     = frappe.user.full_name(user)
             item.image     = frappe.user.image(user)
             item.abbr      = frappe.user.abbr(user)
 
-            if ( !frappe._.is_empty(props.typing) )
+            if ( !frappe.utils.is_empty(props.typing) )
                 item.subtitle = 'typing...'
             else
             if ( props.last_message )
@@ -2011,7 +2011,7 @@ class extends Component
                     if ( props.type === 'Group' )
                     {
                         const query = keyword.slice(1)
-                        const users = [].concat(frappe._.as_array(props.owner), props.users)
+                        const users = [].concat(frappe.utils.as_array(props.owner), props.users)
                         const grep  = users.filter(user => user !== frappe.session.user && user.indexOf(query) === 0)
 
                         callback(grep)
@@ -2060,8 +2060,8 @@ class extends Component
            }
         ]
 
-        const actions = frappe._.compact([
-            !frappe._.is_mobile() &&
+        const actions = frappe.utils.compact([
+            !frappe.utils.is_mobile() &&
             {
                  icon: "camera",
                 label: "Camera",
@@ -2089,17 +2089,17 @@ class extends Component
 
         if (props.messages)
         {
-            props.messages = frappe._.as_array(props.messages)
+            props.messages = frappe.utils.as_array(props.messages)
             for (const message of props.messages)
                 frappe.chat.message.seen(message.name)
         }
 
         return (
-            h("div", { class: `panel panel-default ${frappe._.is_mobile() ? "panel-span" : ""}` },
+            h("div", { class: `panel panel-default ${frappe.utils.is_mobile() ? "panel-span" : ""}` },
                 h(frappe.Chat.Widget.Room.Header, { ...props, back: props.destroy }),
-                !frappe._.is_empty(props.messages) ?
+                !frappe.utils.is_empty(props.messages) ?
                     h(frappe.Chat.Widget.ChatList, {
-                        messages: !frappe._.is_empty(props.messages) && frappe.chat.message.sort(props.messages)
+                        messages: !frappe.utils.is_empty(props.messages) && frappe.chat.message.sort(props.messages)
                     })
                     :
                     h("div", { class: "panel-body" },
@@ -2142,28 +2142,28 @@ class extends Component
             item.title      = props.room_name
             item.image      = props.avatar
 
-            if ( !frappe._.is_empty(props.typing) )
+            if ( !frappe.utils.is_empty(props.typing) )
             {
-                props.typing  = frappe._.as_array(props.typing) // HACK: (BUG) why does typing return as a string?
+                props.typing  = frappe.utils.as_array(props.typing) // HACK: (BUG) why does typing return as a string?
                 const users   = props.typing.map(user => frappe.user.first_name(user))
                 item.subtitle = `${users.join(", ")} typing...`
             } else
-                item.subtitle = __(`${props.users.length} ${frappe._.pluralize('member', props.users.length)}`)
+                item.subtitle = __(`${props.users.length} ${frappe.utils.pluralize('member', props.users.length)}`)
         }
         else
         {
-            const user      = props.owner === frappe.session.user ? frappe._.squash(props.users) : props.owner
+            const user      = props.owner === frappe.session.user ? frappe.utils.squash(props.users) : props.owner
 
             item.route      = `Form/User/${user}`
 
             item.title      = frappe.user.full_name(user)
             item.image      = frappe.user.image(user)
 
-            if ( !frappe._.is_empty(props.typing) )
+            if ( !frappe.utils.is_empty(props.typing) )
                 item.subtitle = 'typing...'
         }
 
-        const popper        = props.layout === frappe.Chat.Layout.POPPER || frappe._.is_mobile()
+        const popper        = props.layout === frappe.Chat.Layout.POPPER || frappe.utils.is_mobile()
         
         return (
             h("div", { class: "panel-heading" },
@@ -2234,7 +2234,7 @@ class extends Component {
 
             if ( token )
             {
-                props.hint   = frappe._.as_array(props.hint)
+                props.hint   = frappe.utils.as_array(props.hint)
                 const hint   = props.hint.find(hint => hint.match.test(token))
     
                 if ( hint )
@@ -2299,7 +2299,7 @@ class extends Component {
                                 h(frappe.components.FontAwesome, { type: "paperclip", fixed: true, style: { "font-size": "14px" } })
                             ),
                             h("div", { class: "dropdown-menu dropdown-menu-left", onclick: e => e.stopPropagation() },
-                                !frappe._.is_empty(props.actions) && props.actions.map((action) => {
+                                !frappe.utils.is_empty(props.actions) && props.actions.map((action) => {
                                     return (
                                         h("li", null,
                                             h("a", { onclick: action.click },
@@ -2377,7 +2377,7 @@ class extends Component
                 {
                     return (
                         h("div", { class: "list-group-item" },
-                            h("div", { class: "h6" }, frappe._.capitalize(category.name)),
+                            h("div", { class: "h6" }, frappe.utils.capitalize(category.name)),
                             h("div", null,
                                 
                             )
@@ -2476,7 +2476,7 @@ class extends Component {
     render ( ) {
         const { props } = this
         
-        return !frappe._.is_empty(props.messages) ? (
+        return !frappe.utils.is_empty(props.messages) ? (
             h("ul", { class: "list-group" },
                 props.messages.map(m => h(frappe.Chat.Widget.ChatList.Item, {
                     ...m
