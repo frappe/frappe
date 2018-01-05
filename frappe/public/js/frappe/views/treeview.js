@@ -184,11 +184,7 @@ frappe.views.TreeView = Class.extend({
 				condition: function(node) {
 					let allow_rename = true;
 					if (me.doctype && frappe.get_meta(me.doctype)) {
-						let autoname = frappe.get_meta(me.doctype).autoname;
-
-						// only allow renaming if doctye is set and
-						// autoname property is "prompt"
-						allow_rename = autoname && autoname.toLowerCase()==='prompt';
+						if(!frappe.get_meta(me.doctype).allow_rename) allow_rename = false;
 					}
 					return !node.is_root && me.can_write && allow_rename;
 				},
