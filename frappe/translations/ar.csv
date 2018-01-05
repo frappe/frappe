@@ -2325,7 +2325,7 @@ DocType: Email Account,Use TLS,استخدام TLS
 apps/frappe/frappe/email/smtp.py +24,Invalid login or password,تسجيل الدخول أو كلمة المرور غير صالحة
 apps/frappe/frappe/core/doctype/data_import/data_import.js +58,Download Template,تنزيل نموذج
 apps/frappe/frappe/config/setup.py +247,Add custom javascript to forms.,إضافة جافا سكريبت الى (forms)
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +511,Sr No,م
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +511,Sr No, رقم التسلسل
 apps/frappe/frappe/email/smtp.py +172,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,لم يتم إعداد حساب البريد الإلكتروني. يرجى إنشاء حساب بريد إلكتروني جديد من الإعداد&gt; البريد الإلكتروني&gt; حساب البريد الإلكتروني
 ,Role Permissions Manager,مدير ضوابط الأدوار
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +117,Name of the new Print Format,اسم الشكل الجديد طباعة
@@ -2788,7 +2788,7 @@ DocType: Auto Email Report,Weekly,الأسبوعية
 DocType: SMS Settings,Eg. smsgateway.com/api/send_sms.cgi,على سبيل المثال. smsgateway.com / API / send_sms.cgi
 DocType: Communication,In Reply To,ردا على
 DocType: DocType,Allow Import (via Data Import Tool),السماح بالاستيراد (عبر أداة استيراد البيانات)
-apps/frappe/frappe/templates/print_formats/standard_macros.html +32,Sr,ريال سعودى
+apps/frappe/frappe/templates/print_formats/standard_macros.html +32,Sr, رقم التسلسل
 DocType: DocField,Float,رقم عشري
 DocType: Print Settings,Page Settings,إعدادات الصفحة
 apps/frappe/frappe/www/update-password.html +71,Invalid Password,رمز مرور خاطئ
