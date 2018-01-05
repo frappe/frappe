@@ -3,9 +3,10 @@
 
 frappe.provide('frappe.views');
 
-// Renders customized list
-// usually based on `in_list_view` property
-
+/**
+* Renders customized list. Usually based on `in_list_view` property.
+* It carries information that is used in frappe.views.ListView
+*/
 frappe.views.ListRenderer = Class.extend({
 	name: 'List',
 	init: function (opts) {
