@@ -1978,7 +1978,7 @@ class extends Component
                 position.class === "media-left"  ? avatar : null,
                 h("div", { class: "media-body" },
                     h("div", { class: "media-heading h6 ellipsis", style: `max-width: ${props.width_title || "100%"} display: inline-block` }, props.title),
-                    props.content  ? h("div", null, h("small", { class: "h6" },         props.content))  : null,
+                    props.content  ? h("div", null, h("small", '',  props.content))  : null,
                     props.subtitle ? h("div", null, h("small", { class: "text-muted" }, props.subtitle)) : null
                 ),
                 position.class === "media-right" ? avatar : null
