@@ -240,11 +240,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	render() {
-
-		if (!this.start === 0) {
-			// append new rows
-		}
-
 		if (this.data.length > 0) {
 			const html = `
 				${this.get_header_html()}

@@ -349,13 +349,14 @@ frappe.views.BaseList = class BaseList {
 	prepare_data(r) {
 		let data = r.message || {};
 		data = frappe.utils.dict(data.keys, data.values);
-		data = data.uniqBy(d => d.name);
 
 		if (this.start === 0) {
 			this.data = data;
 		} else {
 			this.data = this.data.concat(data);
 		}
+
+		this.data = this.data.uniqBy(d => d.name);
 	}
 
 	freeze() {
