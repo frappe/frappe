@@ -82,6 +82,9 @@ frappe.ui.FilterGroup = class {
 			on_change: (update) => {
 				if(update) this.update_filters();
 				this.on_change();
+			},
+			filter_items: (doctype, fieldname) => {
+				return !this.filter_exists([doctype, fieldname]);
 			}
 		};
 		let filter = new frappe.ui.Filter(args);
@@ -94,10 +97,15 @@ frappe.ui.FilterGroup = class {
 		let exists = false;
 		this.filters.filter(f => f.field).map(f => {
 			let f_value = f.get_value();
+			if (filter_value.length === 2) {
+				exists = filter_value[0] === f_value[0] && filter_value[1] === f_value[1];
+				return;
+			}
+
 			let value = filter_value[3];
 			let equal = frappe.utils.arrays_equal;
 
-			if(equal(f_value, filter_value) || (Array.isArray(value) && equal(value, f_value[3]))) {
+			if(equal(f_value.slice(0, 4), filter_value.slice(0, 4)) || (Array.isArray(value) && equal(value, f_value[3]))) {
 				exists = true;
 			}
 		});
