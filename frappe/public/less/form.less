@@ -390,6 +390,14 @@ h6.uppercase, .h6.uppercase {
 }
 
 .timeline-items {
+	.timeline-content-show {
+		-webkit-transition: max-height .35s ease;
+		-moz-transition: max-height .35s ease;
+		-ms-transition: max-height .35s ease;
+		-o-transition: max-height .35s ease;
+		transition: max-height .35s ease;
+	}
+
 	.collapse {
 		display: block !important;
 		visibility: visible !important;
@@ -397,12 +405,12 @@ h6.uppercase, .h6.uppercase {
 		max-height: 150px;
 	
 		&.in {
-			max-height: fit-content;
+			max-height: 10000px;
 		}
 	}
 
 	.collapsing {
-		max-height: fit-content;
+		max-height: 10000px;
 		height: auto !important;
 	}
 }
