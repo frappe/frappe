@@ -518,11 +518,10 @@ class FilterArea {
 
 		let fields = [
 			{
-				fieldtype: 'Link',
+				fieldtype: 'Data',
 				label: 'ID',
 				condition: 'like',
 				fieldname: 'name',
-				options: this.list_view.doctype,
 				onchange: () => this.refresh_list_view()
 			}
 		];
