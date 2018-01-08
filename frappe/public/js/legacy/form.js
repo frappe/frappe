@@ -178,6 +178,8 @@ _f.Frm.prototype.print_doc = function() {
 	this.print_preview.refresh_print_options().trigger("change");
 	this.page.set_view("print");
 	this.print_preview.set_user_lang();
+	this.print_preview.set_default_print_language();
+	this.print_preview.preview();
 };
 
 _f.Frm.prototype.hide_print = function() {
