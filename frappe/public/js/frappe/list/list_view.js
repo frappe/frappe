@@ -75,23 +75,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		setInterval(this.refresh, interval);
 	}
 
-	set_fields() {
-		if (this.view_user_settings.fields) {
-			// get from user_settings
-			this._fields = this.view_user_settings.fields;
-		} else {
-			super.set_fields();
-		}
-		// dynamic fields in df meta
-		const dynamic_fields = this.meta.fields
-			.filter(df => df.default && df.default.includes('{'))
-			.map(df => this.get_dynamic_field_from_default(df.default))
-			.filter(fieldname => this.meta.fields.map(df => df.fieldname).includes(fieldname));
-		const std_fields = frappe.model.std_fields_list;
-
-		this._fields = this._fields.concat(dynamic_fields, std_fields);
-	}
-
 	setup_page_head() {
 		super.setup_page_head();
 		this.set_primary_action();
@@ -172,6 +155,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			fields_in_list_view
 				.filter(df => {
 					if (frappe.has_indicator(this.doctype) && df.fieldname === 'status') {
+						return false;
+					}
+					if (!df.in_list_view) {
 						return false;
 					}
 					return df.fieldname !== this.meta.title_field;
@@ -533,14 +519,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	get_subject_html(doc) {
 		let user = frappe.session.user;
 		let subject_field = this.columns[0].df;
-		let value = doc[subject_field.fieldname];
-		if (!value && subject_field.default && subject_field.default.includes('{')) {
-			let fieldname = this.get_dynamic_field_from_default(subject_field.default);
-			value = doc[fieldname];
-		}
-		if (!value) {
-			value = doc.name;
-		}
+		let value = doc[subject_field.fieldname] || doc.name;
 		let subject = strip_html(value);
 		let escaped_subject = frappe.utils.escape_html(value);
 
@@ -786,10 +765,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		if (only_docnames) return docnames;
 
 		return this.data.filter(d => docnames.includes(d.name));
-	}
-
-	get_dynamic_field_from_default(str) {
-		return str.replace('{', '').replace('}', '');
 	}
 
 	save_view_user_settings(obj) {
