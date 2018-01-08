@@ -369,6 +369,9 @@ frappe._.is_mobile = () =>
  */
 frappe._.compact   = array => array.filter(Boolean)
 
+// extend utils to base.
+frappe.utils       = { ...frappe.utils, ...frappe._ }
+
 // frappe extensions
 
 // frappe.user extensions
@@ -972,7 +975,7 @@ frappe.provide('frappe.chat.sound')
  */
 frappe.chat.sound.play  = function (name, volume = 0.1)
 {
-    // frappe.utils.play_sound(`chat-${name}`)
+    // frappe._.play_sound(`chat-${name}`)
     const $audio = $(`<audio class="chat-audio" volume="${volume}"/>`)
     if  ( $audio.length === 0 )
         $(document).append($audio)
