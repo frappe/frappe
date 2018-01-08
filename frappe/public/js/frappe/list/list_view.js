@@ -349,7 +349,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		return `
 			<div class="list-row-container">
 				<div class="level list-row small">
-					<div class="level-left">
+					<div class="level-left ellipsis">
 						${left}
 					</div>
 					<div class="level-right text-muted ellipsis">
