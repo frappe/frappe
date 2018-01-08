@@ -52,26 +52,11 @@
 
 	frappe.csrf_token = "{{ csrf_token }}";
 
-	// WARNING
-	$(document).ready(function ( ) {
-		var $script = $('script[src$="bundle.js"]');
-
-		var promises = $script.toArray().map((el) => {
-			return new Promise(resolve => {
-				el.onload = resolve;
-			});
-		});
-
-		Promise.all(promises).then(() => {
-			frappe.start_app();
-		});
-	});
-
 	</script>
 
 
 	{% for js in include_js %}
-		<script type="text/javascript" src="{{ js }}" async></script>
+		<script type="text/javascript" src="{{ js }}"></script>
 	{% endfor %}
 
     {% include "templates/includes/app_analytics/google_analytics.html" %}

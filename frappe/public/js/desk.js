@@ -1,4 +1,4 @@
-import '../less/desk.less';
+// import '../less/desk.less';
 import 'bootstrap';
 
 import './frappe/class';
@@ -13,7 +13,6 @@ import './frappe/request';
 import './frappe/socketio_client';
 import './frappe/router';
 import './frappe/defaults';
-// import './frappe/roles_editor';
 import './utils/microtemplate';
 
 import './legacy/globals';
