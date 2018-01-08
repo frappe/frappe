@@ -784,8 +784,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		if (frappe.model.can_import(doctype)) {
 			items.push({
 				label: __('Import'),
-				action: () => frappe.set_route('data-import-tool', {
-					doctype
+				action: () => frappe.set_route('List', 'Data Import', {
+					reference_doctype: doctype
 				}),
 				standard: true
 			});
