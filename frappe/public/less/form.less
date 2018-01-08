@@ -396,6 +396,21 @@ h6.uppercase, .h6.uppercase {
 		-ms-transition: max-height .35s ease;
 		-o-transition: max-height .35s ease;
 		transition: max-height .35s ease;
+
+		&:before {
+			content: '';
+			width: 100%;
+			height: 100%;    
+			position: absolute;
+			left: 0;
+			top: 0;
+			background: linear-gradient(transparent 150px, white);
+			pointer-events: none;
+		}
+
+		&.in:before {
+		    display: none;
+		}
 	}
 
 	.collapse {
