@@ -389,6 +389,24 @@ h6.uppercase, .h6.uppercase {
 	}
 }
 
+.timeline-items {
+	.collapse {
+		display: block !important;
+		visibility: visible !important;
+		height: auto !important;
+		max-height: 150px;
+	
+		&.in {
+			max-height: fit-content;
+		}
+	}
+
+	.collapsing {
+		max-height: fit-content;
+		height: auto !important;
+	}
+}
+
 .timeline-item.user-content {
 	margin: 30px 0px 30px 27px;
 
