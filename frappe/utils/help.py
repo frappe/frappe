@@ -33,6 +33,23 @@ def get_help(text):
 def get_help_content(path):
 	return HelpDatabase().get_content(path)
 
+def get_improve_page_html(app_name, target):
+	docs_config = frappe.get_module(app_name + ".config.docs")
+	source_link = docs_config.source_link
+	branch = getattr(docs_config, "branch", "develop")
+	html = '''<div class="page-container">
+				<div class="page-content">
+				<div class="edit-container text-center">
+					<i class="fa fa-smile text-muted"></i>
+					<a class="edit text-muted" href="{source_link}/blob/{branch}/{target}">
+						Improve this page
+					</a>
+				</div>
+				</div>
+			</div>'''.format(source_link=source_link, app_name=app_name, target=target, branch=branch)
+	return html
+
+
 class HelpDatabase(object):
 	def __init__(self):
 		self.global_help_setup = frappe.conf.get('global_help_setup')
@@ -166,17 +183,8 @@ class HelpDatabase(object):
 
 		target = path.split('/', 3)[-1]
 		app_name = path.split('/', 3)[2]
-		html += '''
-			<div class="page-container">
-				<div class="page-content">
-				<div class="edit-container text-center">
-					<i class="fa fa-smile text-muted"></i>
-					<a class="edit text-muted" href="https://github.com/frappe/{app_name}/blob/develop/{target}">
-						Improve this page
-					</a>
-				</div>
-				</div>
-			</div>'''.format(app_name=app_name, target=target)
+		html += get_improve_page_html(app_name, target)
+
 
 		soup = BeautifulSoup(html, 'html.parser')
 

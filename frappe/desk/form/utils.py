@@ -60,6 +60,17 @@ def add_comment(doc):
 	return doc.as_dict()
 
 @frappe.whitelist()
+def update_comment(name, content):
+	"""allow only owner to update comment"""
+	doc = frappe.get_doc('Communication', name)
+
+	if frappe.session.user not in ['Administrator', doc.owner]:
+		frappe.throw(_('Comment can only be edited by the owner'), frappe.PermissionError)
+
+	doc.content = content
+	doc.save(ignore_permissions=True)
+
+@frappe.whitelist()
 def get_next(doctype, value, prev, filters=None, order_by="modified desc"):
 
 	prev = not int(prev)

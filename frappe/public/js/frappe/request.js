@@ -10,6 +10,13 @@ frappe.request.waiting_for_ajax = [];
 
 // generic server call (call page, object)
 frappe.call = function(opts) {
+	if (!frappe.is_online()) {
+		frappe.show_alert({
+			indicator: 'orange',
+			message: __('You are not connected to Internet. Retry after sometime.')
+		}, 3);
+		return;
+	}
 	if (typeof arguments[0]==='string') {
 		opts = {
 			method: arguments[0],

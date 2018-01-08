@@ -11,7 +11,7 @@
 		<div class="navbar-center ellipsis" style="display: none;"></div>
 
 		<ul class="nav navbar-nav navbar-right">
-			<li class="user-progress hide">
+			<li class="user-progress hide" title="Your Setup Progress">
 				<a class="dropdown-toggle" data-toggle="dropdown" href="#" onclick="return false;"  style="height: 40px;">
 					<div class="progress-chart" style"width: 50px; margin-top: 8px;"><div class="progress">
 						<div class="progress-bar"></div>
@@ -68,6 +68,16 @@
 						{%= __("About") %}</a></li>
 				</ul>
 			</li>
+
+			<!-- Frappe Chat -->
+			<li class="dropdown">
+				<a class="dropdown-toggle frappe-chat-toggle" data-toggle="dropdown">
+					<div>
+						<i class="octicon octicon-comment-discussion"/>
+					</div>
+				</a>
+			</li>
+			<!-- end Frappe Chat -->
 
 			<li class="dropdown dropdown-navbar-new-comments dropdown-mobile">
 				<a class="btn dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">

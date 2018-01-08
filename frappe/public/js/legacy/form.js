@@ -4,7 +4,7 @@
 /* Form page structure
 
 	+ this.parent (either FormContainer or Dialog)
- 		+ this.wrapper
+		+ this.wrapper
 			+ this.toolbar
 			+ this.form_wrapper
 					+ this.head
@@ -197,7 +197,7 @@ _f.Frm.prototype.watch_model_updates = function() {
 		if(doc.name===me.docname) {
 			if ((value==='' || value===null) && !doc[value]) {
 				// both the incoming and outgoing values are falsy
-				// the texteditor, summernote, changes nulls to empty strings on render, 
+				// the texteditor, summernote, changes nulls to empty strings on render,
 				// so ignore those changes
 			} else {
 				me.dirty();
@@ -385,6 +385,8 @@ _f.Frm.prototype.refresh = function(docname) {
 			frappe.utils.scroll_to(0);
 			this.hide_print();
 		}
+		// reset visible columns, since column headings can change in different docs
+		this.grids.forEach(grid_obj => grid_obj.grid.visible_columns = null);
 		frappe.ui.form.close_grid_form();
 		this.docname = docname;
 	}
@@ -921,10 +923,16 @@ _f.Frm.prototype.add_custom_button = function(label, fn, group) {
 	return btn;
 };
 
+//Remove all custom buttons
 _f.Frm.prototype.clear_custom_buttons = function() {
 	this.page.clear_inner_toolbar();
 	this.page.clear_user_actions();
 	this.custom_buttons = {};
+};
+
+//Remove specific custom button by button Label
+_f.Frm.prototype.remove_custom_button = function(label, group) {
+	this.page.remove_inner_button(label, group);
 };
 
 _f.Frm.prototype.add_fetch = function(link_field, src_field, tar_field) {

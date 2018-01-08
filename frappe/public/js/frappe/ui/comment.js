@@ -18,6 +18,10 @@ frappe.ui.CommentArea = class CommentArea {
 		this.no_wrapper = no_wrapper;
 
 		this.make();
+		
+		// Load emojis initially from https://git.io/frappe-emoji
+		frappe.chat.emoji();
+		// All good.
 	}
 
 	make() {
@@ -70,24 +74,31 @@ frappe.ui.CommentArea = class CommentArea {
 						keyword = keyword.substr(1);
 						items = this.mentions;
 					} else if (keyword.startsWith(':')) {
-						items = frappe.ui.emoji_keywords
-							.filter(k => k.startsWith(keyword))
-							.slice(0, 7);
+						frappe.chat.emoji(emojis => { // Returns cached, else fetch.
+							const query = keyword.slice(1);
+							const items = [ ];
+							for (const emoji of emojis)
+								for (const alias of emoji.aliases)
+									if ( alias.indexOf(query) === 0 )
+										items.push({ emoji: true, name: alias, value: emoji.emoji });
+							callback(items);
+						});
 					}
+
 					callback($.grep(items, function (item) {
 						return item.indexOf(keyword) == 0;
 					}));
 				},
 				template: function (item) {
-					if (item.startsWith(':')) {
-						return frappe.ui.get_emoji(item) + ' ' + item;
+					if ( item.emoji ) {
+						return item.value + ' ' + item.name;
 					} else {
 						return item;
 					}
 				},
 				content: function (item) {
-					if(item.startsWith(':')) {
-						return frappe.ui.get_emoji(item);
+					if ( item.emoji ) {
+						return item.value;
 					} else {
 						return '@' + item;
 					}

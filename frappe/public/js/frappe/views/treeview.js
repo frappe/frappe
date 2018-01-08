@@ -71,7 +71,7 @@ frappe.views.TreeView = Class.extend({
 		});
 
 		this.page.add_inner_button(__('Expand All'), function() {
-			me.tree.rootnode.load_all();
+			me.tree.load_children(me.tree.root_node, true);
 		});
 
 		if(this.opts.view_template) {
@@ -131,21 +131,58 @@ frappe.views.TreeView = Class.extend({
 		})
 	},
 	make_tree: function() {
-		var me = this;
-		$(me.parent).find(".tree").remove();
+		$(this.parent).find(".tree").remove();
+		let get_nodes = (value, is_root) => {
+			var args = Object.assign({}, this.args);
+			args.parent = value;
+			args.is_root = is_root;
+
+			return new Promise(resolve => {
+				frappe.call({
+					method: this.get_tree_nodes,
+					args: args,
+					callback: (r) => { resolve(r.message); }
+				})
+			});
+		}
+
+		let get_all_nodes = (value, is_root) => {
+			var args = Object.assign({}, this.args);
+			args.parent = value;
+			args.is_root = is_root;
+
+			args.tree_method = this.get_tree_nodes;
+
+			return new Promise(resolve => {
+				frappe.call({
+					method: 'frappe.desk.treeview.get_all_nodes',
+					args: args,
+					callback: (r) => {
+						resolve(r.message);
+					}
+				})
+			});
+		}
 
 		this.tree = new frappe.ui.Tree({
-			parent: me.body,
-			label: me.args[me.opts.root_label] || me.root_label || me.opts.root_label,
-			args: me.args,
-			method: me.get_tree_nodes,
-			toolbar: me.get_toolbar(),
-			get_label: me.opts.get_label,
-			onrender: me.opts.onrender,
-			onclick: function(node) { me.select_node(node) },
+			parent: this.body,
+			label: this.args[this.opts.root_label] || this.root_label || this.opts.root_label,
+			expandable: true,
+
+			// array of button props: {label, condition, click, btnClass}
+			toolbar: this.get_toolbar(),
+
+			get_nodes: get_nodes,
+			get_all_nodes: get_all_nodes,
+
+			get_label: this.opts.get_label,
+			on_render: this.opts.onrender,
+			on_click: (node) => { this.select_node(node); },
 		});
+
 		cur_tree = this.tree;
 	},
+
 	select_node: function(node) {
 		var me = this;
 		if(this.opts.click) {
@@ -161,7 +198,6 @@ frappe.views.TreeView = Class.extend({
 		var me = this;
 
 		var toolbar = [
-			{toggle_btn: true},
 			{
 				label:__(me.can_write? "Edit": "Details"),
 				condition: function(node) {
@@ -253,6 +289,13 @@ frappe.views.TreeView = Class.extend({
 			v.parent = node.label;
 			v.doctype = me.doctype;
 
+			if(node.is_root){
+				v['is_root'] = node.is_root;
+			}
+			else{
+				v['is_root'] = false;
+			}
+
 			$.extend(args, v)
 			return frappe.call({
 				method: me.opts.add_tree_node || "frappe.desk.treeview.add_node",
@@ -261,9 +304,9 @@ frappe.views.TreeView = Class.extend({
 					if(!r.exc) {
 						d.hide();
 						if(node.expanded) {
-							node.toggle_node();
+							me.tree.toggle_node(node);
 						}
-						node.load_all();
+						me.tree.load_children(node, true);
 					}
 				}
 			});

@@ -21,10 +21,21 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 	make: function() {
 		this.setup_sidebar();
 		this.setup_help();
+
+		// Frappe Chat (added to toolbar as per rushabh@frappe.io request)
+		this.setup_chat()
+		// end Frappe Chat
+
 		this.setup_progress_dialog();
 		this.bind_events();
 
 		$(document).trigger('toolbar_setup');
+	},
+
+	setup_chat ( )
+	{
+		const chat = new frappe.Chat({ target: '.navbar .frappe-chat-toggle' })
+		chat.render()
 	},
 
 	bind_events: function() {

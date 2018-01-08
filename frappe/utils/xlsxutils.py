@@ -61,13 +61,10 @@ def handle_html(data):
 	obj.ignore_links = True
 	obj.body_width = 0
 	value = obj.handle(h)
-	value = value.split('\n', 1)
-	value = value[0].split('# ',1)
-	if len(value) < 2:
-		return value[0]
-	else:
-		return value[1]
-
+	value = ", ".join(value.split('  \n'))
+	value = " ".join(value.split('\n'))
+	value = ", ".join(value.split('# '))
+	return value
 
 def read_xlsx_file_from_attached_file(file_id=None, fcontent=None):
 	if file_id:

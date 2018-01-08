@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import frappe
 
 def execute():
+	frappe.reload_doc("core", "doctype", "sms_parameter")
 	sms_sender_name = frappe.db.get_single_value("SMS Settings", "sms_sender_name")
 	if sms_sender_name:
 		frappe.reload_doc("core", "doctype", "sms_settings")

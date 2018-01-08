@@ -50,11 +50,13 @@ def get_form_params():
 	for field in fields:
 		key = field.split(" as ")[0]
 
+		if key.startswith('count('): continue
+
 		if "." in key:
 			parenttype, fieldname = key.split(".")[0][4:-1], key.split(".")[1].strip("`")
 		else:
 			parenttype = data.doctype
-			fieldname = fieldname.strip("`")
+			fieldname = field.strip("`")
 
 		df = frappe.get_meta(parenttype).get_field(fieldname)
 
@@ -215,6 +217,8 @@ def delete_items():
 	il = json.loads(frappe.form_dict.get('items'))
 	doctype = frappe.form_dict.get('doctype')
 
+	failed = []
+
 	for i, d in enumerate(il):
 		try:
 			frappe.delete_doc(doctype, d)
@@ -223,7 +227,9 @@ def delete_items():
 					dict(progress=[i+1, len(il)], title=_('Deleting {0}').format(doctype)),
 					user=frappe.session.user)
 		except Exception:
-			pass
+			failed.append(d)
+
+	return failed
 
 @frappe.whitelist()
 def get_sidebar_stats(stats, doctype, filters=[]):

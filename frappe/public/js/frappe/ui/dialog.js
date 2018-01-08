@@ -11,14 +11,20 @@ frappe.ui.Dialog = frappe.ui.FieldGroup.extend({
 		this.display = false;
 		this.is_dialog = true;
 
-		$.extend(this, opts);
+		$.extend(this, { animate: true, size: null }, opts);
 		this._super();
 		this.make();
 	},
 	make: function() {
 		this.$wrapper = frappe.get_modal("", "");
+
 		this.wrapper = this.$wrapper.find('.modal-dialog')
 			.get(0);
+		if ( this.size == "small" )
+			$(this.wrapper).addClass("modal-sm");
+		else if ( this.size == "large" )
+			$(this.wrapper).addClass("modal-lg");
+
 		this.make_head();
 		this.body = this.$wrapper.find(".modal-body").get(0);
 		this.header = this.$wrapper.find(".modal-header");
@@ -27,12 +33,13 @@ frappe.ui.Dialog = frappe.ui.FieldGroup.extend({
 		this._super();
 
 		// show footer
-		if(this.primary_action) {
-			this.set_primary_action(this.primary_action_label || __("Submit"), this.primary_action);
+		this.action = this.action || { primary: { }, secondary: { } };
+		if(this.primary_action || !frappe.utils.is_empty(this.action.primary)) {
+			this.set_primary_action(this.primary_action_label || this.action.primary.label || __("Submit"), this.primary_action || this.action.primary.click);
 		}
 
-		if (this.secondary_action_label) {
-			this.get_close_btn().html(this.secondary_action_label);
+		if (this.secondary_action_label || this.action.secondary.label) {
+			this.get_close_btn().html(this.secondary_action_label || this.action.secondary.label);
 		}
 
 		var me = this;
@@ -83,7 +90,7 @@ frappe.ui.Dialog = frappe.ui.FieldGroup.extend({
 				// if no values then return
 				var values = me.get_values();
 				if(!values) return;
-				click.apply(me, [values]);
+				click && click.apply(me, [values]);
 			});
 	},
 	disable_primary_action: function() {
@@ -101,11 +108,18 @@ frappe.ui.Dialog = frappe.ui.FieldGroup.extend({
 	},
 	show: function() {
 		// show it
+		if ( this.animate ) {
+			this.$wrapper.addClass('fade')
+		} else {
+			this.$wrapper.removeClass('fade')
+		}
 		this.$wrapper.modal("show");
 		this.primary_action_fulfilled = false;
+		this.is_visible = true;
 	},
 	hide: function(from_event) {
 		this.$wrapper.modal("hide");
+		this.is_visible = false;
 	},
 	get_close_btn: function() {
 		return this.$wrapper.find(".btn-modal-close");

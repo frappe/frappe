@@ -1,0 +1,271 @@
+@frappe-chat-toggle-height:								40px;
+@frappe-chat-popper-panel-box-shadow:					0 5px 15px rgba(0, 0, 0, .5); // BS modal's box shadow.
+
+.frappe-chat-toggle
+{
+	height: @frappe-chat-toggle-height;
+	text-align: center;
+
+	.octicon
+	{
+		// Hack, somewhat.
+		margin-top: 5px;
+	}
+}
+
+.frappe-chat
+{
+	.frappe-chat-popper
+	{
+		& > .frappe-chat-popper-collapse
+		{
+			& > .panel
+			{
+				box-shadow: @frappe-chat-popper-panel-box-shadow;
+			}
+		}
+	}
+
+	.panel.panel-span
+	{
+		border-radius: 0px;
+		
+		.panel-heading
+		{
+			border-radius: 0px;
+		}
+	}
+}
+
+
+
+
+
+// variables
+@color-white:											#FFF; //
+
+@font-weight-bold:										700;	//
+@font-weight-heavy:										900;   	//
+
+@frappe-chat-popper-panel-width:						350px; 	//
+@frappe-chat-popper-panel-height:						500px; 	//
+
+@frappe-chat-form-font-size:							12px;
+
+
+@frappe-fab-width:										48px;
+@frappe-fab-height:										48px;
+@frappe-fab-lg:											56px;
+@frappe-fab-sm:											40px;
+// https://github.com/twbs/bootstrap/blob/v3.3.7/less/variables.less#L278
+// Keep z-index of the FAB button higher than others, lower than modal background.
+@frappe-fab-box-shadow:									0px 3px 6px 0px rgba(0,0,0,.25);
+@frappe-fab-box-shadow-hover:							0px 5px 9px 0px rgba(0,0,0,.25);
+
+@frappe-chat-panel-heading-box-shadow:					0px 2px 2px 0px rgba(0,0,0,.14); //
+@frappe-chat-panel-body-padding:						10px;
+@frappe-chat-panel-heading-action-padding:				5px;
+
+@frappe-chat-popper-z-index: 							1035;
+@frappe-chat-popper-margin: 							20px;
+@frappe-chat-popper-panel-box-shadow:					@frappe-fab-box-shadow;
+// z-index greater than FAB, lesser than modal.
+@frappe-chat-popper-panel-span-z-index:					1037;
+
+@frappe-chat-form-list-group-height:					150px;
+@frappe-chat-form-menu-border-radius:					4px;
+
+@frappe-chat-emoji-width:								250px;
+@frappe-chat-emoji-height:								300px;
+
+.font-bold
+{
+	font-weight: @font-weight-bold;
+}
+
+.font-heavy
+{
+	font-weight: @font-weight-heavy;
+}
+
+.cursor-pointer
+{
+	cursor: pointer;
+}
+
+.avatar
+{
+	padding: 1px;
+}
+
+.frappe-fab
+{
+		    width: @frappe-fab-width;
+		   height: @frappe-fab-height;
+	border-radius: 50%;
+	   box-shadow: @frappe-fab-box-shadow;
+
+	&:hover
+	{
+		box-shadow: @frappe-fab-box-shadow-hover;
+	};
+
+	&.frappe-fab-sm
+	{
+		 width: @frappe-fab-sm;
+		height: @frappe-fab-sm;
+	};
+
+	&.frappe-fab-lg
+	{
+		 width: @frappe-fab-lg;
+		height: @frappe-fab-lg;
+	};
+};
+
+.frappe-chat
+{
+	.panel
+	{
+		margin-bottom: 0px !important;
+
+		// .panel-heading
+		// {
+		// 	box-shadow: @frappe-chat-panel-heading-box-shadow;
+		// }
+
+		.panel-body
+		{
+			padding: @frappe-chat-panel-body-padding;
+		}
+
+		.frappe-chat-room-footer
+		{
+			position: absolute;
+			  bottom: 0px;
+		}
+	}
+
+	.frappe-chat-form
+	{
+		.form-control
+		{
+			font-size: @frappe-chat-form-font-size;
+		}
+
+		.dropdown-menu
+		{
+			border-radius: @frappe-chat-form-menu-border-radius;
+		}
+
+		.btn
+		{
+			border-radius: 0px !important;
+		}
+
+		.list-group
+		{
+			margin-bottom: 0px !important;
+			   max-height: @frappe-chat-form-list-group-height;
+		 	   overflow-y: auto;
+			
+			.list-group-item:first-child, .list-group-item:last-child
+			{
+				border-radius: 0px !important;
+			}
+		}
+	}
+}
+
+.frappe-chat-popper
+{
+	position: fixed;
+	  bottom: 0px;
+	   right: 0px;
+	  margin: @frappe-chat-popper-margin;
+
+	 z-index: @frappe-chat-popper-z-index;
+
+	.frappe-chat-popper-collapse
+	{
+		     position: fixed;
+		       bottom: 0px;
+		        right: 0px;
+		       margin: @frappe-chat-popper-margin;
+		// margin-bottom: calc(@frappe-chat-popper-margin + 50px);
+
+		& > .panel
+		{
+			  position: relative;
+			// box-shadow: @frappe-chat-popper-panel-box-shadow;
+				 width: @frappe-chat-popper-panel-width;
+				height: @frappe-chat-popper-panel-height;
+			overflow-y: auto;
+
+			.panel-body
+			{
+				 	 width: @frappe-chat-popper-panel-width;
+					height: @frappe-chat-popper-panel-height;
+				overflow-y: auto;
+			}
+
+			& > .panel-heading
+			{
+				// box-shadow: @frappe-chat-panel-heading-box-shadow;
+
+				.action
+				{
+					padding: @frappe-chat-panel-heading-action-padding;
+				}
+			}
+
+			&.panel-primary
+			{
+				a 
+				{
+					color: @color-white;
+				}
+
+				.text-muted
+				{
+					color: @color-white !important;
+				}
+			}
+		};
+
+		.panel-span
+		{
+				 position: fixed;
+			   		width: 100%;
+			  	   height: 100%;
+			     	  top: 0px;
+			    	 left: 0px;
+			  	   bottom: 0px;
+			   		right: 0px;
+			 	  z-index: @frappe-chat-popper-panel-span-z-index;
+				 overflow: auto;
+			border-radius: none;
+		};
+	};
+};
+
+.frappe-chat-emoji
+{
+	.dropdown-menu
+	{
+		 min-width: @frappe-chat-emoji-width;
+		background: none !important;
+		    border: none !important;
+	}
+
+	.panel
+	{
+		margin-bottom: 0 !important;
+		       height: @frappe-chat-emoji-height;
+
+		.form-group
+		{
+			margin-bottom: 0 !important;
+		}
+	}
+};

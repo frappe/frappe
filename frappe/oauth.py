@@ -387,7 +387,7 @@ class OAuthWebRequestValidator(RequestValidator):
 		    - OpenIDConnectImplicit
 		    - OpenIDConnectHybrid
 		"""
-		if id_token_hint and id_token_hint == frappe.get_value("User", frappe.session.user, "frappe_userid"):
+		if id_token_hint and id_token_hint == frappe.db.get_value("User Social Login", {"parent":frappe.session.user, "provider": "frappe"}, "userid"):
 			return True
 		else:
 			return False
