@@ -106,6 +106,7 @@ frappe.ui.form.Grid = Class.extend({
 
 			tasks.push(() => {
 				if (dirty) me.refresh();
+				if (me.frm) me.frm.refresh();
 			});
 
 			frappe.run_serially(tasks);
