@@ -1562,7 +1562,7 @@ class extends Component
                                             dialog.hide()
                                             
                                             // Don't Worry, frappe.chat.room.on.create gets triggered that then subscribes and adds to DOM. :)
-                                            frappe.chat.room.create("Direct",null,user)
+                                            frappe.chat.room.create("Direct", null, user)
                                         }
                                     }
                                 },
@@ -1614,7 +1614,7 @@ class extends Component
                                         }
                                         
                                         // Don't Worry, frappe.chat.room.on.create gets triggered that then subscribes and adds to DOM. :)
-                                        frappe.chat.room.create("Group",null,users, name)
+                                        frappe.chat.room.create("Group", null, users, name)
                                     }
                                 },
                                 secondary:
@@ -1823,7 +1823,7 @@ class extends Component
         const popper           =  props.layout === frappe.Chat.Layout.POPPER
 
         return (
-            h("form", { class: "frappe-chat-action-bar", oninput: this.change, onsubmit: this.submit },
+            h("form", { oninput: this.change, onsubmit: this.submit },
                 h("div", { class: "form-group" },
                     h("div", { class: "input-group input-group-sm" },
                         props.span || props.layout !== frappe.Chat.Layout.PAGE ?
@@ -2395,11 +2395,6 @@ class extends Component
 frappe.Chat.Widget.ChatList
 =
 class extends Component {
-    constructor (props)
-    {
-        super (props)
-    }
-
     render ( ) {
         const { props } = this
         
