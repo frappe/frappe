@@ -266,6 +266,15 @@ h6.uppercase,
 .timeline-item .gmail_extra {
   display: none;
 }
+.timeline-item .reply-link,
+.timeline-item .collapse-link {
+  margin-left: 15px;
+  font-size: 12px;
+}
+.timeline-item .timeline-item-content,
+.timeline-item .timeline-editing-area {
+  padding: 15px;
+}
 .timeline-items {
   position: relative;
 }
@@ -288,6 +297,19 @@ h6.uppercase,
   .timeline::before {
     bottom: -64px;
   }
+}
+.timeline-items .collapse {
+  display: block !important;
+  visibility: visible !important;
+  height: auto !important;
+  max-height: 150px;
+}
+.timeline-items .collapse.in {
+  max-height: fit-content;
+}
+.timeline-items .collapsing {
+  max-height: fit-content;
+  height: auto !important;
 }
 .timeline-item.user-content {
   margin: 30px 0px 30px 27px;
@@ -432,15 +454,6 @@ h6.uppercase,
   left: 40px;
   border-radius: 50%;
   top: 5px;
-}
-.timeline-item .reply-link,
-.timeline-item .collapse-link {
-  margin-left: 15px;
-  font-size: 12px;
-}
-.timeline-item .timeline-item-content,
-.timeline-item .timeline-editing-area {
-  padding: 15px; 
 }
 .timeline-head {
   background-color: white;
