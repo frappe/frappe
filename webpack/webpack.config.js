@@ -5,8 +5,10 @@ const { sites_path, bundle_map } = require('./utils');
 
 // plugins
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
-// const ExtractTextPlugin = require("extract-text-webpack-plugin");
-
+const ExtractTextPlugin = require("extract-text-webpack-plugin");
+const extractCSS = new ExtractTextPlugin({
+	filename: "[name].css"
+});
 // environment
 const dev_mode = process.env.FRAPPE_ENV === 'development';
 
@@ -15,7 +17,7 @@ module.exports = function () {
 		entry: bundle_map,
 
 		output: {
-			path: path.join(sites_path, 'dist'),
+			path: path.join(sites_path, 'assets/bundles'),
 			filename: '[name].bundle.js',
 			chunkFilename: '[name].bundle.js'
 		},
@@ -35,16 +37,24 @@ module.exports = function () {
 					test: /\.html$/,
 					loader: path.resolve(__dirname, 'loaders', 'frappe-html-loader.js')
 				},
-				// {
-				// 	test: /\.less$/,
-				// 	use: ExtractTextPlugin.extract({
-				// 		use: [{
-				// 			loader: "css-loader"
-				// 		}, {
-				// 			loader: "less-loader"
-				// 		}]
-				// 	})
-				// }
+				{
+					test: /\.css$/,
+					use: extractCSS.extract({
+						use: [{
+							loader: "css-loader"
+						}]
+					})
+				},
+				{
+					test: /\.less$/,
+					use: extractCSS.extract({
+						use: [{
+							loader: "css-loader"
+						}, {
+							loader: "less-loader"
+						}]
+					})
+				}
 			]
 		},
 
@@ -57,9 +67,7 @@ module.exports = function () {
 				minChunks: 2
 			}),
 
-			// new ExtractTextPlugin({
-			// 	filename: "[name].css"
-			// })
+			extractCSS
 
 		].filter(Boolean),
 

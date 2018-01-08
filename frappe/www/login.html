@@ -1,11 +1,5 @@
 {% extends "templates/web.html" %}
 
-{% block style %}
-<style>
-	{% include "templates/includes/login/login.css" %}
-</style>
-{% endblock %}
-
 {% block page_content %}
 <!-- {{ for_test }} -->
 <section class='for-login'>
@@ -105,10 +99,6 @@
 		<a href="#login">{{ _("Back to Login") }}</a>
 	</div>
 </section>
-{% endblock %}
-
-{% block script %}
-	<script>{% include "templates/includes/login/login.js" %}</script>
 {% endblock %}
 
 {% block sidebar %}{% endblock %}

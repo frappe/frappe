@@ -42,7 +42,7 @@ web_include_js = [
 
 bootstrap = "assets/frappe/css/bootstrap.css"
 web_include_css = [
-	"assets/css/frappe-web.css"
+	"assets/bundles/frappe/frappe-web.css"
 ]
 
 website_route_rules = [
