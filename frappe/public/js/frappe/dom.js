@@ -124,6 +124,11 @@ frappe.dom = {
 		}
 		return ele;
 	},
+	activate: function($parent, $child, common_class, active_class='active') {
+		$parent.find(`.${common_class}.${active_class}`)
+			.removeClass(active_class);
+		$child.addClass(active_class);
+	},
 	freeze: function(msg, css_class) {
 		// blur
 		if(!$('#freeze').length) {
@@ -224,6 +229,33 @@ frappe.scrub = function(text) {
 frappe.get_modal = function(title, content) {
 	return $(frappe.render_template("modal", {title:title, content:content})).appendTo(document.body);
 };
+
+frappe.is_online = function() {
+	if (frappe.boot.developer_mode == 1) {
+		// always online in developer_mode
+		return true;
+	}
+	if ('onLine' in navigator) {
+		return navigator.onLine;
+	}
+	return true;
+};
+
+// bind online/offline events
+$(window).on('online', function() {
+	frappe.show_alert({
+		indicator: 'green',
+		message: __('You are connected to internet.')
+	});
+});
+
+$(window).on('offline', function() {
+	frappe.show_alert({
+		indicator: 'orange',
+		message: __('Connection lost. Some features might not work.')
+	});
+});
+
 
 // add <option> list to <select>
 (function($) {

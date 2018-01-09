@@ -144,7 +144,7 @@ function get_compiled_file(file, output_path, minify, force_compile) {
 		file_content = minify_js(file_content, file);
 	}
 
-	if (file.endsWith('.js') && !file.includes('/lib/') && output_type === 'js' && !file.endsWith('class.js')) {
+	if (minify && file.endsWith('.js') && !file.includes('/lib/') && output_type === 'js' && !file.endsWith('class.js')) {
 		file_content = babelify(file_content, file, minify);
 	}
 
@@ -154,7 +154,7 @@ function get_compiled_file(file, output_path, minify, force_compile) {
 
 function babelify(content, path, minify) {
 	let presets = ['env'];
-	var plugins = ['transform-object-rest-spread']
+	const plugins = ['transform-object-rest-spread']
 	// Minification doesn't work when loading Frappe Desk
 	// Avoid for now, trace the error and come back.
 	try {

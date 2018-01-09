@@ -149,6 +149,3 @@ def notify_assignment(shared_by, doc_type, doc_name, description=None, notify=0)
 				shared_by),
 		'notify': notify
 	}
-
-	from frappe.desk.page.chat import chat
-	chat.post(**arg)

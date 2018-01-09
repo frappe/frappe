@@ -39,7 +39,7 @@ class Database:
 	   login details from `conf.py`. This is called by the request handler and is accessible using
 	   the `db` global variable. the `sql` method is also global to run queries
 	"""
-	def __init__(self, host=None, user=None, password=None, ac_name=None, use_default = 0):
+	def __init__(self, host=None, user=None, password=None, ac_name=None, use_default = 0, local_infile = 0):
 		self.host = host or frappe.conf.db_host or 'localhost'
 		self.user = user or frappe.conf.db_name
 		self._conn = None
@@ -55,6 +55,12 @@ class Database:
 
 		self.password = password or frappe.conf.db_password
 		self.value_cache = {}
+
+		# this param is to load CSV's with LOCAL keyword.
+		# it can be set in site_config as > bench set-config local_infile 1
+		# once the local-infile is set on MySql Server, the client needs to connect with this option
+		# Connections without this option leads to: 'The used command is not allowed with this MariaDB version' error
+		self.local_infile = local_infile or frappe.conf.local_infile
 
 	def get_db_login(self, ac_name):
 		return ac_name
@@ -80,10 +86,10 @@ class Database:
 
 		if usessl:
 			self._conn = pymysql.connect(self.host, self.user or '', self.password or '',
-				charset='utf8mb4', use_unicode = True, ssl=self.ssl, conv = conversions)
+				charset='utf8mb4', use_unicode = True, ssl=self.ssl, conv = conversions, local_infile = self.local_infile)
 		else:
 			self._conn = pymysql.connect(self.host, self.user or '', self.password or '',
-				charset='utf8mb4', use_unicode = True, conv = conversions)
+				charset='utf8mb4', use_unicode = True, conv = conversions, local_infile = self.local_infile)
 
 		# MYSQL_OPTION_MULTI_STATEMENTS_OFF = 1
 		# # self._conn.set_server_option(MYSQL_OPTION_MULTI_STATEMENTS_OFF)

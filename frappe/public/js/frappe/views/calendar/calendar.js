@@ -4,82 +4,63 @@
 frappe.provide("frappe.views.calendar");
 frappe.provide("frappe.views.calendars");
 
-frappe.views.CalendarView = frappe.views.ListRenderer.extend({
-	name: 'Calendar',
-	render_view: function() {
-		var me = this;
-		this.get_calendar_options()
+frappe.views.CalendarView = class CalendarView extends frappe.views.ListView {
+	static load_last_view() {
+		const route = frappe.get_route();
+		if (route.length === 3) {
+			const doctype = route[1];
+			const user_settings = frappe.get_user_settings(doctype)['Calendar'] || {};
+			route.push(user_settings.last_calendar_view || 'Default');
+			frappe.set_route(route);
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	setup_defaults() {
+		super.setup_defaults();
+		this.page_title = this.page_title + ' ' + __('Calendar');
+		this.calendar_settings = frappe.views.calendar[this.doctype] || {};
+		this.calendar_name = frappe.get_route()[3];
+	}
+
+	before_render() {
+		super.before_render();
+		this.save_view_user_settings({
+			last_calendar: this.calendar_name
+		});
+	}
+
+	render() {
+		if (this.calendar) {
+			this.calendar.refresh();
+			return;
+		}
+
+		this.load_lib
+			.then(() => this.get_calendar_options())
 			.then(options => {
 				this.calendar = new frappe.views.Calendar(options);
 			});
-	},
-	load_last_view: function() {
-		const route = frappe.get_route();
+	}
 
-		if (!route[3]) {
-			// routed to Calendar view, check last calendar_view
-			let calendar_view = this.user_settings.last_calendar_view;
-
-			if (calendar_view) {
-				frappe.set_route('List', this.doctype, 'Calendar', calendar_view);
-				return true;
-			}
-		}
-
-		return false;
-	},
-	set_defaults: function() {
-		this._super();
-		this.page_title = this.page_title + ' ' + __('Calendar');
-		this.no_realtime = true;
-		this.show_no_result = false;
-		this.hide_sort_selector = true;
-	},
-	get_header_html: function() {
-		return null;
-	},
-	should_refresh: function() {
-		var should_refresh = this._super();
-		if(!should_refresh) {
-			this.last_calendar_view = this.current_calendar_view || '';
-			this.current_calendar_view = this.get_calendar_view();
-
-			if (this.current_calendar_view !== 'Default') {
-				this.page_title = __(this.current_calendar_view);
-			} else {
-				this.page_title = this.doctype + ' ' + __('Calendar');
-			}
-
-			should_refresh = this.current_calendar_view !== this.last_calendar_view;
-		}
-		return should_refresh;
-	},
-	get_calendar_view: function() {
-		return frappe.get_route()[3];
-	},
-	get_calendar_options: function() {
-		const calendar_view = frappe.get_route()[3] || 'Default';
-
-		// save in user_settings
-		frappe.model.user_settings.save(this.doctype, 'Calendar', {
-			last_calendar_view: calendar_view
-		});
-
+	get_calendar_options() {
 		const options = {
 			doctype: this.doctype,
-			parent: this.wrapper,
-			page: this.list_view.page,
-			list_view: this.list_view
-		}
+			parent: this.$result,
+			page: this.page,
+			list_view: this
+		};
+		const calendar_name = this.calendar_name;
 
 		return new Promise(resolve => {
-			if (calendar_view === 'Default') {
+			if (calendar_name === 'Default') {
 				Object.assign(options, frappe.views.calendar[this.doctype]);
 				resolve(options);
 			} else {
-
-				frappe.model.with_doc('Calendar View', calendar_view, () => {
-					const doc = frappe.get_doc('Calendar View', calendar_view);
+				frappe.model.with_doc('Calendar View', calendar_name, () => {
+					const doc = frappe.get_doc('Calendar View', calendar_name);
 					Object.assign(options, {
 						field_map: {
 							id: "name",
@@ -88,18 +69,20 @@ frappe.views.CalendarView = frappe.views.ListRenderer.extend({
 							title: doc.subject_field
 						}
 					});
-
 					resolve(options);
 				});
 			}
-		})
-	},
-	required_libs: [
-		'assets/frappe/js/lib/fullcalendar/fullcalendar.min.css',
-		'assets/frappe/js/lib/fullcalendar/fullcalendar.min.js',
-		'assets/frappe/js/lib/fullcalendar/locale-all.js'
-	]
-})
+		});
+	}
+
+	get required_libs() {
+		return [
+			'assets/frappe/js/lib/fullcalendar/fullcalendar.min.css',
+			'assets/frappe/js/lib/fullcalendar/fullcalendar.min.js',
+			'assets/frappe/js/lib/fullcalendar/locale-all.js'
+		];
+	}
+};
 
 frappe.views.Calendar = Class.extend({
 	init: function(options) {
@@ -123,11 +106,10 @@ frappe.views.Calendar = Class.extend({
 
 		$(this.parent).on("show", function() {
 			me.$cal.fullCalendar("refetchEvents");
-		})
+		});
 	},
 
 	make: function() {
-		var me = this;
 		this.$wrapper = this.parent;
 		this.$cal = $("<div>").appendTo(this.$wrapper);
 		this.footnote_area = frappe.utils.set_footnote(this.footnote_area, this.$wrapper,
@@ -146,9 +128,9 @@ frappe.views.Calendar = Class.extend({
 		this.$wrapper.find(".fc-button-group").addClass("btn-group");
 
 		this.$wrapper.find('.fc-prev-button span')
-			.attr('class', '').addClass('fa fa-chevron-left')
+			.attr('class', '').addClass('fa fa-chevron-left');
 		this.$wrapper.find('.fc-next-button span')
-			.attr('class', '').addClass('fa fa-chevron-right')
+			.attr('class', '').addClass('fa fa-chevron-right');
 
 		var btn_group = this.$wrapper.find(".fc-button-group");
 		btn_group.find(".fc-state-active").addClass("active");
@@ -197,22 +179,22 @@ frappe.views.Calendar = Class.extend({
 						events = me.prepare_events(events);
 						callback(events);
 					}
-				})
+				});
 			},
 			eventRender: function(event, element) {
 				element.attr('title', event.tooltip);
 			},
-			eventClick: function(event, jsEvent, view) {
+			eventClick: function(event) {
 				// edit event description or delete
 				var doctype = event.doctype || me.doctype;
 				if(frappe.model.can_read(doctype)) {
 					frappe.set_route("Form", doctype, event.name);
 				}
 			},
-			eventDrop: function(event, delta, revertFunc, jsEvent, ui, view) {
+			eventDrop: function(event, delta, revertFunc) {
 				me.update_event(event, revertFunc);
 			},
-			eventResize: function(event, delta, revertFunc, jsEvent, ui, view) {
+			eventResize: function(event, delta, revertFunc) {
 				me.update_event(event, revertFunc);
 			},
 			select: function(startDate, endDate, jsEvent, view) {
@@ -269,7 +251,7 @@ frappe.views.Calendar = Class.extend({
 			doctype: this.doctype,
 			start: this.get_system_datetime(start),
 			end: this.get_system_datetime(end),
-			filters: this.list_view.filter_list.get_filters(),
+			filters: this.list_view.filter_area.get(),
 			field_map: this.field_map
 		};
 		return args;
@@ -384,4 +366,4 @@ frappe.views.Calendar = Class.extend({
 			event.end = event.end ? $.fullCalendar.moment(event.end).add(1, "day").stripTime() : null;
 		}
 	}
-})
+});
