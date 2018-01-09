@@ -339,25 +339,24 @@ frappe.views.BaseList = class BaseList {
 		}).then(r => {
 			// render
 			this.freeze(false);
-
-			this.update_data(r);
-
+			this.prepare_data(r);
 			this.toggle_result_area();
 			this.before_render();
 			this.render();
 		});
 	}
 
-	update_data(r) {
+	prepare_data(r) {
 		let data = r.message || {};
 		data = frappe.utils.dict(data.keys, data.values);
-		data = data.uniqBy(d => d.name);
 
 		if (this.start === 0) {
 			this.data = data;
 		} else {
 			this.data = this.data.concat(data);
 		}
+
+		this.data = this.data.uniqBy(d => d.name);
 	}
 
 	freeze() {
@@ -440,6 +439,10 @@ class FilterArea {
 			filters = [filter];
 		}
 
+		filters = filters.filter(f => {
+			return !this.exists(f);
+		});
+
 		const { non_standard_filters, promise } = this.set_standard_filter(filters);
 		if (non_standard_filters.length === 0) {
 			return promise;
@@ -458,7 +461,37 @@ class FilterArea {
 		}
 	}
 
+	exists(f) {
+		let exists = false;
+		// check in standard filters
+		const fields_dict = this.list_view.page.fields_dict;
+		if (f[2] === '=' && f[1] in fields_dict) {
+			const value = fields_dict[f[1]].get_value();
+			if (value) {
+				exists = true;
+			}
+		}
+
+		// check in filter area
+		if (!exists) {
+			exists = this.filter_list.filter_exists(f);
+		}
+
+		if (exists) {
+			frappe.show_alert(__('Filter already exists.'));
+		}
+
+		return exists;
+	}
+
 	set_standard_filter(filters) {
+		if (filters.length === 0) {
+			return {
+				non_standard_filters: [],
+				promise: Promise.resolve()
+			};
+		}
+
 		const fields_dict = this.list_view.page.fields_dict;
 
 		let out = filters.reduce((out, filter) => {

@@ -240,11 +240,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	render() {
-
-		if (!this.start === 0) {
-			// append new rows
-		}
-
 		if (this.data.length > 0) {
 			const html = `
 				${this.get_header_html()}
@@ -354,7 +349,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		return `
 			<div class="list-row-container">
 				<div class="level list-row small">
-					<div class="level-left">
+					<div class="level-left ellipsis">
 						${left}
 					</div>
 					<div class="level-right text-muted ellipsis">

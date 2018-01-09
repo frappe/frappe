@@ -15,8 +15,8 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 			.append('<svg class="gantt-container" width="20" height="20"></svg>');
 	}
 
-	update_data(data) {
-		super.update_data(data);
+	prepare_data(data) {
+		super.prepare_data(data);
 		this.prepare_tasks();
 	}
 
