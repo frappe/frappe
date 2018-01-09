@@ -5,6 +5,7 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 		this.set_datepicker();
 		this.set_t_for_today();
 	},
+
 	set_formatted_input: function(value) {
 		this._super(value);
 		if(!value) return;
@@ -43,6 +44,7 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 			dateFormat: (frappe.boot.sysdefaults.date_format || 'yyyy-mm-dd'),
 			startDate: frappe.datetime.now_date(true),
 			keyboardNav: false,
+
 			onSelect: () => {
 				this.$input.trigger('change');
 			},
@@ -79,7 +81,93 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 			.click(() => {
 				this.datepicker.selectDate(this.get_now_date());
 			});
+
+		// setup timeformat.
+		// Okay, for some reason I am unable to get the context for datepicker anywhere beyond this scope.
+		// Hence, adding it here. Also, datepicker seems to be a bit buggy. - Achilles <achilles@frappe.io>
+
+		// Helper function.
+		const get_timepicker_options = function (timepicker, format) {
+			const options = { };
+
+			if ( format == 12 ) {
+				// AM - PM.
+				if ( timepicker.hours > 12 ) {
+					options.hours  = timepicker.hours - 12;
+					options.period = 'PM';
+				} else {
+					options.hours  = timepicker.hours == 0 ? 12 : timepicker.hours;
+					options.period = 'AM';
+				}
+			} else {
+				options.hours = timepicker.hours;
+			}
+
+			return options;
+		};
+
+		const datepicker  = this.datepicker;
+		// Set it up here, not at datetime.js, because we're initializing it here.
+		const options     = this.datepicker_options; // magic of the class attribute, I don't know where the fuck this get's initialised.
+		if ( options.timepicker ) {
+			const  timepicker = datepicker.timepicker;
+			const $timepicker = timepicker.$timepicker;
+			var   $format     = $timepicker.find('input[name="format"]');
+			var   $ampm		  = $timepicker.find('.datepicker--time-current-ampm');
+			
+			// Set DOMs, these things don't build after datetime_options change.
+			if ( !$format.length ) {
+				$timepicker.find('.datepicker--time-sliders').append(`
+					<div class="datepicker--time-row">
+						<input name="format" type="range" value="0" min="0" max="1" step="1"/>
+					</div>
+				`);
+			}
+			$format = $timepicker.find('input[name="format"]');
+
+			if ( !$ampm.length ) {
+				$timepicker.find('.datepicker--time-current').append('<span class="datepicker--time-current-ampm"/>');
+			}
+			$ampm   = $timepicker.find('.datepicker--time-current-ampm');
+			$ampm.hide();
+
+			// Trigger AM PM
+			$format.change(function ( ) {
+				// BRUTAL HACK! SO BRUTAL.
+				// The thing is, the $ampm DOM from timepicker is not set, raising an undefined.
+				// We'll to this shit manually.
+				var   options = { };
+				const value   = $(this).val();
+
+				if ( value == 1 ) {
+					options   = get_timepicker_options(timepicker, 12);
+					$ampm.html(options.period);
+					$ampm.show();
+				} else {
+					// 24 Hours.
+					options   = get_timepicker_options(timepicker, 24);
+					$ampm.hide();
+				}
+
+				timepicker.$hours.val(timepicker.hours); // always be 24-hour.
+				timepicker.$hoursText.html(`${parseInt(options.hours) < 10 ? '0' : ''}${options.hours}`);
+				
+				// Also, when it changes.
+				timepicker.$hours.on('input change', function ( ) {
+					if ( value == 1 ) {
+						options = get_timepicker_options(timepicker, 12);
+						$ampm.html(options.period);
+					} else {
+						options = get_timepicker_options(timepicker, 24);
+					}
+
+					timepicker.$hoursText.html(`${parseInt(options.hours) < 10 ? '0' : ''}${options.hours}`);
+				});
+			});
+		}
+		// end setup timeformat
 	},
+
 	get_now_date: function() {
 		return frappe.datetime.now_date(true);
 	},
