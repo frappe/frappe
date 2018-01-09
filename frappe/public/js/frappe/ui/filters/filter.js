@@ -36,6 +36,7 @@ frappe.ui.Filter = class {
 
 		this.filter_edit_area.find(".set-filter-and-run").on("click", () => {
 			this.filter_edit_area.removeClass("new-filter");
+			this.apply();
 			this.on_change();
 		});
 
@@ -88,6 +89,13 @@ frappe.ui.Filter = class {
 		this.$filter_tag && this.$filter_tag.remove();
 		this.field = null;
 		this.on_change(true);
+	}
+
+	apply() {
+		var f = this.get_value();
+		this.flist.remove(this);
+		this.flist.push_new_filter(f);
+		this.filter_edit_area.remove();
 	}
 
 	set_values(doctype, fieldname, condition, value) {
