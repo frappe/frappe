@@ -168,7 +168,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 									# added file to attachments list
 									attachments.append(d[fieldname])
 
-								elif fieldtype in ("Link", "Dynamic Link") and d[fieldname]:
+								elif fieldtype in ("Link", "Dynamic Link", "Data") and d[fieldname]:
 									# as fields can be saved in the number format(long type) in data import template
 									d[fieldname] = cstr(d[fieldname])
 
