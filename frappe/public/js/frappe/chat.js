@@ -1425,7 +1425,9 @@ class extends Component
     }
 
     make ( ) {
-        frappe.chat.profile.create(["status", "display_widget", "notification_tones", "conversation_tones"]).then(profile =>
+        frappe.chat.profile.create([
+            "status", "display_widget", "message_preview", "notification_tones", "conversation_tones"
+        ]).then(profile =>
         {
             frappe.log.info(`Chat Profile created for User ${frappe.session.user} - ${JSON.stringify(profile)}.`)
             this.set_state({ profile })
@@ -1504,6 +1506,21 @@ class extends Component
                 state.profile.conversation_tones && frappe.chat.sound.play('message')
             else
                 state.profile.notification_tones && frappe.chat.sound.play('notification')
+
+            if ( r.user !== frappe.session.user && state.profile.message_preview && !state.toggle )
+            {
+                const $element = $('body').find('.frappe-chat-alert')
+                $element.remove();
+
+                const  alert   = // TODO: ellipses content
+                `
+                <span>
+                    <span class="indicator yellow"/> <b>${frappe.user.first_name(r.user)}</b>: ${r.content}
+                </span>
+                `
+
+                frappe.show_alert(alert, 3)
+            }
             
             if ( r.room === state.room.name )
             {
@@ -1654,7 +1671,8 @@ class extends Component
 
         const component  = props.layout === frappe.Chat.Layout.POPPER ?
             state.profile.display_widget ?
-                h(frappe.Chat.Widget.Popper, { page: state.room.name && Room, target: props.target },
+                h(frappe.Chat.Widget.Popper, { page: state.room.name && Room, target: props.target,
+                    toggle: (t) => this.set_state({ toggle: t }) },
                     h("span", null,
                         ActionBar, RoomList
                     )
@@ -1688,7 +1706,8 @@ frappe.Chat.Widget.defaultState =
       query: "",
     profile: { },
       rooms: [ ],
-       room: { name: null, messages: [ ], typing: [ ] }
+       room: { name: null, messages: [ ], typing: [ ] },
+     toggle: false
 }
 frappe.Chat.Widget.defaultProps =
 {
@@ -1715,7 +1734,6 @@ class extends Component
 
     toggle  (active)
     {
-
         let toggle
         if ( arguments.length === 1 )
             toggle = active
@@ -1723,9 +1741,11 @@ class extends Component
             toggle = this.state.active ? false : true
         
         this.set_state({ active: toggle })
+
+        this.props.toggle(toggle)
     }
 
-    render  ( )
+    render  ( ) 
     {
         const { props, state } = this
         
