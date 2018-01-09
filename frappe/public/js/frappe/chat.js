@@ -1495,7 +1495,7 @@ class extends Component
             }
         })
 
-        frappe.chat.message.on.create((r) => 
+        frappe.chat.message.on.create((r) =>
         {
             const { state } = this
             
@@ -2395,6 +2395,18 @@ class extends Component
 frappe.Chat.Widget.ChatList
 =
 class extends Component {
+    on_mounted ( )
+    {
+        const $element = $('.frappe-chat').find('.chat-list')
+        $element.scrollTop($element[0].scrollHeight)
+    }
+
+    on_updated ( )
+    {
+        const $element = $('.frappe-chat').find('.chat-list')
+        $element.scrollTop($element[0].scrollHeight)
+    }
+
     render ( ) {
         const { props } = this
         
