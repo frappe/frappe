@@ -1507,8 +1507,7 @@ class extends Component
             else
                 state.profile.notification_tones && frappe.chat.sound.play('notification')
 
-            if ( r.user !== frappe.session.user && state.profile.message_preview && !state.toggle )
-            {
+            if ( r.user !== frappe.session.user && state.profile.message_preview && !state.toggle ) {
                 const $element = $('body').find('.frappe-chat-alert')
                 $element.remove();
 
@@ -1522,8 +1521,7 @@ class extends Component
                 frappe.show_alert(alert, 3)
             }
             
-            if ( r.room === state.room.name )
-            {
+            if ( r.room === state.room.name ) {
                 const mess  = frappe._.copy_array(state.room.messages)
                 mess.push(r)
                 
