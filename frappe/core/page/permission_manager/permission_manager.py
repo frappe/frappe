@@ -62,6 +62,9 @@ def get_permissions(doctype=None, role=None):
 		if not d.parent in linked_doctypes:
 			linked_doctypes[d.parent] = get_linked_doctypes(d.parent)
 		d.linked_doctypes = linked_doctypes[d.parent]
+		meta = frappe.get_meta(d.parent)
+		if meta:
+			d.is_submittable = meta.is_submittable
 
 	return out
 
