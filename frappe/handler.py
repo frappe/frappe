@@ -9,6 +9,7 @@ import frappe.async
 import frappe.sessions
 import frappe.utils.file_manager
 import frappe.desk.form.run_method
+from frappe.translate import get_lang_code
 from frappe.utils.response import build_response
 from werkzeug.wrappers import Response
 from six import string_types
@@ -49,6 +50,12 @@ def execute_cmd(cmd, from_async=False):
 		method = method.queue
 
 	is_whitelisted(method)
+
+	if frappe.local.form_dict._lang:
+		lang = get_lang_code(frappe.local.form_dict._lang)
+		print "Language Code: {0}".format(lang)
+		if lang:
+			frappe.local.lang = lang
 
 	return frappe.call(method, **frappe.form_dict)
 
