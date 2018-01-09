@@ -150,8 +150,12 @@ def has_gravatar(email):
 	except requests.exceptions.ConnectionError:
 		return ''
 
-def get_gravatar_url(email):
-	return "https://secure.gravatar.com/avatar/{hash}?d=mm&s=200".format(hash=hashlib.md5(email).hexdigest())
+def get_gravatar_url(email, size = 0):
+	email = hashlib.md5(email).hexdigest()
+	param = ('s=' + size) if size else 'd=retro'
+	url   = 'https://secure.gravatar.com/avatar/' + str(email) + '?' + param
+
+	return url
 
 def get_gravatar(email):
 	gravatar_url = has_gravatar(email)

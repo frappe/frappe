@@ -208,7 +208,6 @@
 		"public/js/frappe/model/workflow.js",
 		"public/js/frappe/model/user_settings.js",
 
-		"public/js/lib/md5.min.js",
 		"public/js/frappe/misc/user.js",
 		"public/js/frappe/misc/common.js",
 		"public/js/frappe/misc/pretty_date.js",
