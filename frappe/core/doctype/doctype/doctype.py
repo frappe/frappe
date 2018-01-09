@@ -441,6 +441,10 @@ def validate_fields(meta):
 		if d.hidden and d.reqd and not d.default:
 			frappe.throw(_("Field {0} in row {1} cannot be hidden and mandatory without default").format(d.label, d.idx))
 
+	def check_read_only_and_mandatory(d):
+		if d.read_only and d.reqd:
+			frappe.throw(_("Field {0} in row {1} cannot be read_only and mandatory").format(d.label, d.idx))
+
 	def check_width(d):
 		if d.fieldtype == "Currency" and cint(d.width) < 100:
 			frappe.throw(_("Max width for type Currency is 100px in row {0}").format(d.idx))
@@ -630,6 +634,7 @@ def validate_fields(meta):
 		check_link_table_options(d)
 		check_dynamic_link_options(d)
 		check_hidden_and_mandatory(d)
+		check_read_only_and_mandatory(d)
 		check_in_list_view(d)
 		check_in_global_search(d)
 		check_illegal_default(d)
