@@ -1493,7 +1493,7 @@ class extends Component
                 frappe.log.warn(`User ${user} typing in Chat Room ${room}.`)
                 this.room.update(room, { typing: user })
     
-                setTimeout(() => this.room.update(room, { typing: null }), 1500)
+                setTimeout(() => this.room.update(room, { typing: null }), 5000)
             }
         })
 

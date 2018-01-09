@@ -117,37 +117,51 @@
 	.panel
 	{
 		margin-bottom: 0px !important;
-	}
 
-	.frappe-chat-form
-	{
-		margin: 1px; // Hack.
-		
-		.form-control
+		.frappe-chat-room-list
 		{
-			font-size: @frappe-chat-form-font-size;
+			.media-body
+			{
+				// HACK: Truncates ChatMessage content.
+				// NOTE: "text-overflow: ellipsis" doesn't work. That's because
+				// 		 media-body has a "display: table-cell" to it.
+				//		 Wouldn't like to mess up BS.
+				// https://github.com/twbs/bootstrap/issues/15958
+				white-space: nowrap;
+			}
 		}
 
-		.dropdown-menu
+		.frappe-chat-form
 		{
-			border-radius: @frappe-chat-form-menu-border-radius;
-		}
-
-		.btn
-		{
-			border-radius: 0px !important;
-		}
-
-		// Hints
-		.hint-list.list-group
-		{
-			margin-bottom: 0px !important;
-			   max-height: @frappe-chat-form-list-group-height;
-		 	   overflow-y: auto;
+			// HACK: Wraps the ChatForm within the panel.
+			margin: 1px;
 			
-			.hint-list.list-group-item:first-child, .hint-list.list-group-item:last-child
+			.form-control
+			{
+				font-size: @frappe-chat-form-font-size;
+			}
+	
+			.dropdown-menu
+			{
+				border-radius: @frappe-chat-form-menu-border-radius;
+			}
+	
+			.btn
 			{
 				border-radius: 0px !important;
+			}
+	
+			// Hints
+			.hint-list.list-group
+			{
+				margin-bottom: 0px !important;
+				   max-height: @frappe-chat-form-list-group-height;
+					overflow-y: auto;
+				
+				.hint-list.list-group-item:first-child, .hint-list.list-group-item:last-child
+				{
+					border-radius: 0px !important;
+				}
 			}
 		}
 	}

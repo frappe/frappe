@@ -60,24 +60,27 @@
 .frappe-chat .panel {
   margin-bottom: 0px !important;
 }
-.frappe-chat .frappe-chat-form {
+.frappe-chat .panel .frappe-chat-room-list .media-body {
+  white-space: nowrap;
+}
+.frappe-chat .panel .frappe-chat-form {
   margin: 1px;
 }
-.frappe-chat .frappe-chat-form .form-control {
+.frappe-chat .panel .frappe-chat-form .form-control {
   font-size: 12px;
 }
-.frappe-chat .frappe-chat-form .dropdown-menu {
+.frappe-chat .panel .frappe-chat-form .dropdown-menu {
   border-radius: 4px;
 }
-.frappe-chat .frappe-chat-form .btn {
+.frappe-chat .panel .frappe-chat-form .btn {
   border-radius: 0px !important;
 }
-.frappe-chat .frappe-chat-form .hint-list.list-group {
+.frappe-chat .panel .frappe-chat-form .hint-list.list-group {
   margin-bottom: 0px !important;
   max-height: 150px;
   overflow-y: auto;
 }
-.frappe-chat .frappe-chat-form .hint-list.list-group .hint-list.list-group-item:first-child,
-.frappe-chat .frappe-chat-form .hint-list.list-group .hint-list.list-group-item:last-child {
+.frappe-chat .panel .frappe-chat-form .hint-list.list-group .hint-list.list-group-item:first-child,
+.frappe-chat .panel .frappe-chat-form .hint-list.list-group .hint-list.list-group-item:last-child {
   border-radius: 0px !important;
 }
