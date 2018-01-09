@@ -302,7 +302,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	}
 
 	set_fields() {
-		if (this.report_name) {
+		if (this.report_name && this.report_doc.json._fields) {
 			this._fields = this.report_doc.json._fields;
 			return;
 		}
