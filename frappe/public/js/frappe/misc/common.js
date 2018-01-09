@@ -120,10 +120,10 @@ frappe.get_gravatar = function(email, size = 0, fn) {
 					resolve(frappe.gravatars[email]);
 				}
 			);
-		else
-		{
-			if ( fn )
+		else {
+			if ( fn ) {
 				fn(frappe.gravatars[email]);
+			}
 	
 			resolve(frappe.gravatars[email]);
 		}
