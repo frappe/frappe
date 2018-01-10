@@ -61,5 +61,16 @@
 		"recipients": [
 			{ "email_by_document_field": "owner" }
 		]
+	},
+	{
+		"doctype": "Email Alert",
+		"subject":"_Test Email Alert 6",
+		"document_type": "User",
+		"event": "New",
+		"attach_print": 0,
+		"message": "New user {{ doc.name }} created",
+		"recipients": [
+			{ "email_by_document_field": "owner", "cc": "{{ doc.email }}" }
+		]
 	}
 ]
