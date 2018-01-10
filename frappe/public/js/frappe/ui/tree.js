@@ -245,7 +245,10 @@ frappe.ui.Tree = class {
 				.html(label)
 				.addClass('tree-toolbar-button ' + (obj.btnClass || ''))
 				.appendTo($toolbar);
-			$link.on('click', () => { obj.click(node); return false; });
+			$link.on('click', () => {
+				obj.click(node);
+				this.refresh();
+			});
 		});
 
 		return $toolbar;
