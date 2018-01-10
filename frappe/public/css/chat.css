@@ -1,0 +1,83 @@
+.font-bold {
+  font-weight: 700;
+}
+.font-heavy {
+  font-weight: 900;
+}
+.cursor-pointer {
+  cursor: pointer;
+}
+.avatar {
+  padding: 1px;
+}
+.navbar .frappe-chat-toggle {
+  height: 40px;
+  text-align: center;
+}
+.navbar .octicon {
+  margin-top: 5px;
+}
+.frappe-chat > .frappe-chat-popper {
+  position: fixed;
+  bottom: 0px;
+  right: 0px;
+  margin: 20px;
+  z-index: 1035;
+}
+.frappe-chat > .frappe-chat-popper > .frappe-chat-popper-collapse > .panel {
+  width: 350px;
+  height: 500px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+}
+.frappe-chat > .frappe-chat-popper > .frappe-chat-popper-collapse > .panel .panel-body .frappe-chat-room-list {
+  height: 400px;
+  overflow-y: auto;
+}
+.frappe-chat > .frappe-chat-popper > .frappe-chat-popper-collapse > .panel .chat-list.list-group {
+  height: 390px;
+  overflow-y: scroll;
+}
+.frappe-chat > .frappe-chat-popper > .frappe-chat-popper-collapse > .panel .frappe-chat-room-footer {
+  position: absolute;
+  left: 0px;
+  right: 0px;
+  bottom: 0px;
+}
+.frappe-chat > .frappe-chat-popper > .frappe-chat-popper-collapse > .panel.panel-span {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  top: 0px;
+  left: 0px;
+  bottom: 0px;
+  right: 0px;
+  overflow: auto;
+  border-radius: 0px;
+}
+.frappe-chat > .frappe-chat-popper > .frappe-chat-popper-collapse > .panel.panel-span .panel-heading {
+  border-radius: 0px;
+}
+.frappe-chat .panel {
+  margin-bottom: 0px !important;
+}
+.frappe-chat .frappe-chat-form {
+  margin: 1px;
+}
+.frappe-chat .frappe-chat-form .form-control {
+  font-size: 12px;
+}
+.frappe-chat .frappe-chat-form .dropdown-menu {
+  border-radius: 4px;
+}
+.frappe-chat .frappe-chat-form .btn {
+  border-radius: 0px !important;
+}
+.frappe-chat .frappe-chat-form .hint-list.list-group {
+  margin-bottom: 0px !important;
+  max-height: 150px;
+  overflow-y: auto;
+}
+.frappe-chat .frappe-chat-form .hint-list.list-group .hint-list.list-group-item:first-child,
+.frappe-chat .frappe-chat-form .hint-list.list-group .hint-list.list-group-item:last-child {
+  border-radius: 0px !important;
+}

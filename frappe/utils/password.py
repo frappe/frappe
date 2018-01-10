@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.utils import cstr, encode
-from cryptography.fernet import Fernet, InvalidToken 
+from cryptography.fernet import Fernet, InvalidToken
 
 def get_decrypted_password(doctype, name, fieldname='password', raise_exception=True):
 	auth = frappe.db.sql('''select `password` from `__Auth`
@@ -57,7 +57,6 @@ def update_password(user, pwd, doctype='User', fieldname='password', logout_all_
 		:param fieldname: fieldname (in given doctype) (for encryption)
 		:param logout_all_session: delete all other session
 	'''
-
 	salt = frappe.generate_hash()
 	frappe.db.sql("""insert into __Auth (doctype, name, fieldname, `password`, salt, encrypted)
 		values (%(doctype)s, %(name)s, %(fieldname)s, password(concat(%(pwd)s, %(salt)s)), %(salt)s, 0)

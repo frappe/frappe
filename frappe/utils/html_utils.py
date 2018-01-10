@@ -1,4 +1,5 @@
-import json
+import frappe
+import json, re
 import bleach, bleach_whitelist.bleach_whitelist as bleach_whitelist
 from six import string_types
 
@@ -47,6 +48,28 @@ def is_json(text):
 		return False
 	else:
 		return True
+
+def get_icon_html(icon, small=False):
+	from frappe.utils import is_image
+
+	emoji_pattern = re.compile(
+		u"(\ud83d[\ude00-\ude4f])|"
+		u"(\ud83c[\udf00-\uffff])|"
+		u"(\ud83d[\u0000-\uddff])|"
+		u"(\ud83d[\ude80-\udeff])|"
+		u"(\ud83c[\udde0-\uddff])"
+		"+", flags=re.UNICODE)
+
+	if icon and emoji_pattern.match(icon):
+		return '<span class="text-muted">' + icon + '</span>'
+
+	if is_image(icon):
+		return \
+			'<img style="width: 16px; height: 16px;" src="{icon}">'.format(icon=icon) \
+				if small else \
+			'<img src="{icon}">'.format(icon=icon)
+	else:
+		return "<i class='{icon}'></i>".format(icon=icon)
 
 # adapted from https://raw.githubusercontent.com/html5lib/html5lib-python/4aa79f113e7486c7ec5d15a6e1777bfe546d3259/html5lib/sanitizer.py
 acceptable_elements = [

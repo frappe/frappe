@@ -17,7 +17,7 @@ frappe.ui.Sidebar = class Sidebar {
 	}
 
 	add_item(item, section) {
-		let $section;
+		let $section, $li_item;
 		if(!section && this.wrapper.find('.sidebar-menu').length === 0) {
 			// if no section, add section with no heading
 			$section = this.get_section();
@@ -25,11 +25,16 @@ frappe.ui.Sidebar = class Sidebar {
 			$section = this.get_section(section);
 		}
 
-		const $li_item = $(`
-			<li><a ${item.href ? `href="${item.href}"` : ''}>${item.label}</a></li>
-		`).click(
-			() => item.on_click && item.on_click()
-		);
+		if(item instanceof jQuery) {
+			$li_item = $(`<li>`);
+			item.appendTo($li_item);
+		} else {
+			$li_item = $(`
+				<li><a ${item.href ? `href="${item.href}"` : ''}>${item.label}</a></li>
+			`).click(
+				() => item.on_click && item.on_click()
+			);
+		}
 
 		$section.append($li_item);
 	}

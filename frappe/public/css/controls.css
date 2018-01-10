@@ -3,6 +3,12 @@
   margin-top: 5px;
   margin-bottom: 5px;
 }
+.unit-checkbox label {
+  position: relative;
+}
+.unit-checkbox input[type=checkbox] {
+  margin-left: 0;
+}
 .unit-checkbox + .checkbox {
   margin-top: 5px;
   margin-bottom: 5px;

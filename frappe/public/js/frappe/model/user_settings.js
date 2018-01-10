@@ -5,6 +5,7 @@ $.extend(frappe.model.user_settings, {
 		var user_settings = frappe.model.user_settings[doctype] || {};
 
 		if ($.isPlainObject(value)) {
+			user_settings[key] = user_settings[key] || {};
 			$.extend(user_settings[key], value);
 		} else {
 			user_settings[key] = value;

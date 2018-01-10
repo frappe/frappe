@@ -58,6 +58,7 @@ frappe.ui.form.Grid = Class.extend({
 		this.wrapper.find(".grid-add-row").click(function() {
 			me.add_new_row(null, null, true);
 			me.set_focus_on_row();
+
 			return false;
 		});
 
@@ -70,8 +71,8 @@ frappe.ui.form.Grid = Class.extend({
 		if(this.df.on_setup) {
 			this.df.on_setup(this);
 		}
-
 	},
+
 	setup_check: function() {
 		var me = this;
 		this.wrapper.on('click', '.grid-row-check', function(e) {
