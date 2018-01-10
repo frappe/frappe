@@ -64,8 +64,8 @@ def filter_dict(what, keys, ignore = False):
 
 	return copy
 
-def assign_if_none(a, b):
-	if a is None:
+def assign_if_empty(a, b):
+	if not a:
 		a = b
 	return a
 	

@@ -143,7 +143,7 @@ frappe.pages['modules'].on_page_load = function(wrapper) {
 						item.route="query-report/" + item.name;
 					}
 					else if(item.type==="report") {
-						item.route="Report/" + item.doctype + "/" + item.name;
+						item.route="List/" + item.doctype + "/Report/" + item.name;
 					}
 					else if(item.type==="page") {
 						item.route=item.name;

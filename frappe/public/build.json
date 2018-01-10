@@ -170,7 +170,6 @@
 		"public/js/frappe/dom.js",
 		"public/js/frappe/ui/messages.js",
 		"public/js/frappe/ui/keyboard.js",
-		"public/js/frappe/ui/emoji.js",
 		"public/js/frappe/ui/colors.js",
 		"public/js/frappe/ui/sidebar.js",
 
@@ -367,7 +366,7 @@
 	"js/report.min.js": [
 		"public/js/lib/clusterize.min.js",
 		"public/js/lib/frappe-datatable.js",
-		"public/js/frappe/views/reports/reportview.js",
+		"public/js/frappe/views/reports/report_factory.js",
 		"public/js/frappe/views/reports/report_view.js",
 		"public/js/frappe/views/reports/reportview_footer.html",
 		"public/js/frappe/views/reports/query_report.js",

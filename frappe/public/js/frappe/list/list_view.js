@@ -75,23 +75,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		setInterval(this.refresh, interval);
 	}
 
-	set_fields() {
-		if (this.view_user_settings.fields) {
-			// get from user_settings
-			this._fields = this.view_user_settings.fields;
-		} else {
-			super.set_fields();
-		}
-		// dynamic fields in df meta
-		const dynamic_fields = this.meta.fields
-			.filter(df => df.default && df.default.includes('{'))
-			.map(df => this.get_dynamic_field_from_default(df.default))
-			.filter(fieldname => this.meta.fields.map(df => df.fieldname).includes(fieldname));
-		const std_fields = frappe.model.std_fields_list;
-
-		this._fields = this._fields.concat(dynamic_fields, std_fields);
-	}
-
 	setup_page_head() {
 		super.setup_page_head();
 		this.set_primary_action();
@@ -174,6 +157,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					if (frappe.has_indicator(this.doctype) && df.fieldname === 'status') {
 						return false;
 					}
+					if (!df.in_list_view) {
+						return false;
+					}
 					return df.fieldname !== this.meta.title_field;
 				})
 				.map(df => ({
@@ -254,11 +240,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	render() {
-
-		if (!this.start === 0) {
-			// append new rows
-		}
-
 		if (this.data.length > 0) {
 			const html = `
 				${this.get_header_html()}
@@ -368,7 +349,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		return `
 			<div class="list-row-container">
 				<div class="level list-row small">
-					<div class="level-left">
+					<div class="level-left ellipsis">
 						${left}
 					</div>
 					<div class="level-right text-muted ellipsis">
@@ -408,7 +389,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		const field_html = () => {
 			let html;
-			const _value = typeof value === 'string' ? strip_html(value) : value;
+			const _value = typeof value === 'string' ? frappe.utils.escape_html(value) : value;
 
 			if (df.fieldtype === 'Image') {
 				html = df.options ?
@@ -511,13 +492,15 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const current_count = this.data.length;
 
 		return frappe.call({
-			method: 'frappe.model.db_query.get_count',
+			type: 'GET',
+			method: this.method,
 			args: {
 				doctype: this.doctype,
-				filters: this.filter_area.get()
+				filters: this.get_filters_for_args(),
+				fields: [`count(${frappe.model.get_full_column_name('name', this.doctype)}) as total_count`]
 			}
 		}).then(r => {
-			const count = r.message || current_count;
+			const count = r.message.values[0][0] || current_count;
 			const str = __('{0} of {1}', [current_count, count]);
 			const html = `<span>${str}</span>`;
 			return html;
@@ -531,15 +514,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	get_subject_html(doc) {
 		let user = frappe.session.user;
 		let subject_field = this.columns[0].df;
-		let value = doc[subject_field.fieldname];
-		if (!value && subject_field.default && subject_field.default.includes('{')) {
-			let fieldname = this.get_dynamic_field_from_default(subject_field.default);
-			value = doc[fieldname];
-		}
-		if (!value) {
-			value = doc.name;
-		}
+		let value = doc[subject_field.fieldname] || doc.name;
 		let subject = strip_html(value);
+		let escaped_subject = frappe.utils.escape_html(value);
 
 		const liked_by = JSON.parse(doc._liked_by || '[]');
 		let heart_class = liked_by.includes(user) ?
@@ -560,8 +537,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					${ liked_by.length > 99 ? __("99") + '+' : __(liked_by.length || '')}
 				</span>
 			</span>
-			<span class="level-item ${seen} ellipsis" title="${encodeURI(subject)}">
-				<a class="ellipsis" href="${this.get_form_link(doc)}" title="${encodeURI(subject)}">
+			<span class="level-item ${seen} ellipsis" title="${escaped_subject}">
+				<a class="ellipsis" href="${this.get_form_link(doc)}" title="${escaped_subject}">
 				${subject}
 				</a>
 			</span>
@@ -785,10 +762,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		return this.data.filter(d => docnames.includes(d.name));
 	}
 
-	get_dynamic_field_from_default(str) {
-		return str.replace('{', '').replace('}', '');
-	}
-
 	save_view_user_settings(obj) {
 		return frappe.model.user_settings.save(this.doctype, this.view_name, obj);
 	}
@@ -806,8 +779,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		if (frappe.model.can_import(doctype)) {
 			items.push({
 				label: __('Import'),
-				action: () => frappe.set_route('data-import-tool', {
-					doctype
+				action: () => frappe.set_route('List', 'Data Import', {
+					reference_doctype: doctype
 				}),
 				standard: true
 			});

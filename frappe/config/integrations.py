@@ -44,7 +44,7 @@ def get_data():
 			"items": [
 				{
 					"type": "doctype",
-					"name": "Social Login Keys",
+					"name": "Social Login Key",
 					"description": _("Enter keys to enable login via Facebook, Google, GitHub."),
 				},
 				{
