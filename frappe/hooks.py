@@ -29,6 +29,7 @@ app_include_js = [
 	"assets/bundles/frappe/js/controls.bundle.js"
 ]
 app_include_css = [
+	"assets/bundles/common.css",
 	"assets/bundles/frappe/css/desk.css",
 	"assets/bundles/frappe/css/list.css",
 	"assets/bundles/frappe/css/form.css",
@@ -40,8 +41,8 @@ web_include_js = [
 	"website_script.js"
 ]
 
-bootstrap = "assets/frappe/css/bootstrap.css"
 web_include_css = [
+	"assets/bundles/common.css",
 	"assets/bundles/frappe/css/frappe-web.css"
 ]
 

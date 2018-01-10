@@ -19,7 +19,7 @@
 		href="{{ favicon or "/assets/frappe/images/favicon.png" }}" type="image/x-icon">
 	<link rel="icon"
 		href="{{ favicon or "/assets/frappe/images/favicon.png" }}" type="image/x-icon">
-		{% for include in include_css -%}
+	{% for include in include_css -%}
 	<link type="text/css" rel="stylesheet" href="{{ include }}?ver={{ build_version }}">
 	{%- endfor -%}
 </head>

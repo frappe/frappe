@@ -1,5 +1,7 @@
+import "../css/bootstrap.css";
 import "../css/font-awesome.css";
 import "../css/octicons/octicons.css";
+
 import "../css/website.css";
 import "../css/avatar.css";
 
