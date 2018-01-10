@@ -1,4 +1,3 @@
-import Sortable from 'sortablejs';
 
 frappe.provide('frappe.desktop');
 
@@ -267,14 +266,14 @@ $.extend(frappe.desktop, {
 			return;
 		}
 
-		import('sortablejs').then((Sortable) => {
+		if (window.Sortable) {
 			new Sortable($("#icon-grid").get(0), {
 				onUpdate: function(event) {
 					var new_order = [];
 					$("#icon-grid .case-wrapper").each(function(i, e) {
 						new_order.push($(this).attr("data-name"));
 					});
-	
+
 					frappe.call({
 						method: 'frappe.desk.doctype.desktop_icon.desktop_icon.set_order',
 						args: {
@@ -284,8 +283,9 @@ $.extend(frappe.desktop, {
 						quiet: true
 					});
 				}
-			})
-		);
+			});
+		}
+
 	},
 
 	set_background: function() {

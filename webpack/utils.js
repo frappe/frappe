@@ -25,7 +25,7 @@ const bundle_map = apps_list.reduce((out, app) => {
 
 	for (let js_file of js_files) {
 		const filename = path.basename(js_file).split('.')[0];
-		out[path.join(app, filename)] = path.resolve(public_js_path, js_file);
+		out[path.join(app, 'js', filename)] = path.resolve(public_js_path, js_file);
 	}
 
 	return out;

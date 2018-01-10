@@ -4,7 +4,6 @@ import "../css/website.css";
 import "../css/avatar.css";
 
 import "./frappe/class.js";
-import "bootstrap";
 import "./frappe/provide.js";
 import "./frappe/format.js";
 import "./frappe/misc/number_format.js";

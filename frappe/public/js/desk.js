@@ -1,5 +1,27 @@
-// import '../less/desk.less';
-import 'bootstrap';
+// import "../js/lib/datepicker/datepicker.min.css";
+// import "../js/lib/awesomplete/awesomplete.css";
+// import "../js/lib/summernote/summernote.css";
+// import "../js/lib/leaflet/leaflet.css";
+// import "../js/lib/leaflet/leaflet.draw.css";
+// import "../js/lib/leaflet/L.Control.Locate.css";
+// import "../js/lib/leaflet/easy-button.css";
+import "../css/bootstrap.css";
+import "../css/font-awesome.css";
+import "../css/octicons/octicons.css";
+import '../less/desk.less';
+import "../less/indicator.less";
+import "../less/avatar.less";
+import "../less/navbar.less";
+import "../less/sidebar.less";
+import "../less/page.less";
+import "../less/desktop.less";
+import "../less/mobile.less";
+// import "../less/form.less";
+// import "../less/tree.less";
+// import "../less/kanban.less";
+// import "../less/controls.less";
+
+// import 'sortablejs';
 
 import './frappe/class';
 import './frappe/provide';

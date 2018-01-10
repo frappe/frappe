@@ -19,7 +19,7 @@
 		href="{{ favicon or "/assets/frappe/images/favicon.png" }}" type="image/x-icon">
 	<link rel="icon"
 		href="{{ favicon or "/assets/frappe/images/favicon.png" }}" type="image/x-icon">
-	{% for include in include_css -%}
+		{% for include in include_css -%}
 	<link type="text/css" rel="stylesheet" href="{{ include }}?ver={{ build_version }}">
 	{%- endfor -%}
 </head>
@@ -38,7 +38,7 @@
 	<img src="{{ background_image }}" style="height: 1px; width: 1px; margin-bottom: -1px;">
 	{% endif %}
 
-	<script type="text/javascript" src="/assets/frappe/js/lib/jquery/jquery.min.js"></script>
+	<script type="text/javascript" src="/assets/bundles/frappe/js/vendor.bundle.js"></script>
 
 	<script type="text/javascript">
 	window._version_number = "{{ build_version }}";

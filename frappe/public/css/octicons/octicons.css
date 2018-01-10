@@ -1,9 +1,9 @@
 @font-face {
   font-family: 'octicons';
-   src: url('/assets/frappe/css/octicons/octicons.eot?#iefix') format('embedded-opentype'),
-        url('/assets/frappe/css/octicons/octicons.woff') format('woff'),
-        url('/assets/frappe/css/octicons/octicons.ttf') format('truetype'),
-        url('/assets/frappe/css/octicons/octicons.svg#octicons') format('svg');
+   src: url('./octicons.eot?#iefix') format('embedded-opentype'),
+        url('./octicons.woff') format('woff'),
+        url('./octicons.ttf') format('truetype'),
+        url('./octicons.svg#octicons') format('svg');
   font-weight: normal;
   font-style: normal;
 }

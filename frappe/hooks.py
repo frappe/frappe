@@ -23,17 +23,17 @@ page_js = {
 
 # website
 app_include_js = [
-	"assets/frappe/js/dist/common.bundle.js",
-	"assets/frappe/js/dist/desk.bundle.js",
-	"assets/frappe/js/dist/dialog.bundle.js",
-	"assets/frappe/js/dist/controls.bundle.js"
+	"assets/bundles/frappe/js/common.bundle.js",
+	"assets/bundles/frappe/js/desk.bundle.js",
+	"assets/bundles/frappe/js/dialog.bundle.js",
+	"assets/bundles/frappe/js/controls.bundle.js"
 ]
 app_include_css = [
-	"assets/css/desk.min.css",
-	"assets/css/list.min.css",
-	"assets/css/form.min.css",
-	"assets/css/report.min.css",
-	"assets/css/module.min.css"
+	"assets/bundles/frappe/css/desk.css",
+	"assets/bundles/frappe/css/list.css",
+	"assets/bundles/frappe/css/form.css",
+	"assets/bundles/frappe/css/report.css",
+	"assets/bundles/frappe/css/module.css"
 ]
 
 web_include_js = [
@@ -42,7 +42,7 @@ web_include_js = [
 
 bootstrap = "assets/frappe/css/bootstrap.css"
 web_include_css = [
-	"assets/bundles/frappe/frappe-web.css"
+	"assets/bundles/frappe/css/frappe-web.css"
 ]
 
 website_route_rules = [
