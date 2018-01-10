@@ -347,9 +347,16 @@ class DatabaseQuery(object):
 				column_name=column_name, operator=f.operator,
 				value=value)
 		else:
-			condition = 'ifnull({column_name}, {fallback}) {operator} {value}'.format(
-				column_name=column_name, fallback=fallback, operator=f.operator,
-				value=value)
+			df = frappe.get_meta(f.doctype).get("fields", {"fieldname": f.fieldname})
+			df = df[0] if df else None
+			if (f.fieldname in ('creation', 'modified') or (df and (df.fieldtype=="Date" or df.fieldtype=="Datetime"))):
+				condition = 'cast(ifnull({column_name}, {fallback}) as date) {operator} {value}'.format(
+					column_name=column_name, fallback=fallback, operator=f.operator,
+					value=value)
+			else:
+				condition = 'ifnull({column_name}, {fallback}) {operator} {value}'.format(
+					column_name=column_name, fallback=fallback, operator=f.operator,
+					value=value)
 
 		return condition
 
@@ -597,6 +604,6 @@ def get_between_date_filter(value):
 
 	data = "'%s' AND '%s'" % (
 		get_datetime(from_date).strftime("%Y-%m-%d %H:%M:%S.%f"),
-		add_to_date(get_datetime(to_date),days=1).strftime("%Y-%m-%d %H:%M:%S.%f"))
+		get_datetime(to_date).strftime("%Y-%m-%d %H:%M:%S.%f"))
 
 	return data
