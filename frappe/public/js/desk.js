@@ -28,6 +28,7 @@ import './frappe/class';
 import './frappe/provide';
 import './frappe/assets';
 import './frappe/dom';
+import './frappe/format';
 import './frappe/ui/messages';
 import './frappe/ui/keyboard';
 import './frappe/translate';
@@ -47,6 +48,7 @@ import './frappe/ui/page';
 // import './frappe/ui/dialog';
 import './frappe/ui/app_icon';
 
+import './frappe/db';
 import './frappe/model';
 
 import './frappe/misc/user';

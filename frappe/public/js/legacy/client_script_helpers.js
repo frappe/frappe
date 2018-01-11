@@ -59,7 +59,7 @@ window.set_field_tip = function(n,txt) {
 	}
 }
 
-refresh_field = function(n, docname, table_field) {
+window.refresh_field = function(n, docname, table_field) {
 	// multiple
 	if(typeof n==typeof [])
 		refresh_many(n, docname, table_field);
@@ -90,7 +90,7 @@ window.set_field_permlevel = function(n, level) {
 	cur_frm.set_df_property(n, 'permlevel', level)
 }
 
-toggle_field = function(n, hidden) {
+window.toggle_field = function(n, hidden) {
 	var df = frappe.meta.get_docfield(cur_frm.doctype, n, cur_frm.docname);
 	if(df) {
 		df.hidden = hidden;
@@ -101,21 +101,21 @@ toggle_field = function(n, hidden) {
 	}
 }
 
-hide_field = function(n) {
+window.hide_field = function(n) {
 	if(cur_frm) {
 		if(n.substr) toggle_field(n, 1);
 		else { for(var i in n) toggle_field(n[i], 1) }
 	}
 }
 
-unhide_field = function(n) {
+window.unhide_field = function(n) {
 	if(cur_frm) {
 		if(n.substr) toggle_field(n, 0);
 		else { for(var i in n) toggle_field(n[i], 0) }
 	}
 }
 
-get_field_obj = function(fn) {
+window.get_field_obj = function(fn) {
 	return cur_frm.fields_dict[fn];
 }
 

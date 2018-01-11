@@ -3,7 +3,7 @@
 
 frappe.provide("frappe.treeview_settings");
 frappe.provide('frappe.views.trees');
-cur_tree = null;
+window.cur_tree = null;
 
 frappe.views.TreeFactory = frappe.views.Factory.extend({
 	make: function(route) {
@@ -144,7 +144,7 @@ frappe.views.TreeView = Class.extend({
 			onrender: me.opts.onrender,
 			onclick: function(node) { me.select_node(node) },
 		});
-		cur_tree = this.tree;
+		window.cur_tree = this.tree;
 	},
 	select_node: function(node) {
 		var me = this;

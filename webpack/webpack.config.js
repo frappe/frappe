@@ -25,6 +25,7 @@ module.exports = function () {
 				'script-loader!jquery',
 				'script-loader!bootstrap/dist/js/bootstrap',
 				'script-loader!moment',
+				'script-loader!summernote',
 			]
 		}),
 

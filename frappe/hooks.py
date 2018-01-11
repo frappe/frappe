@@ -26,7 +26,9 @@ app_include_js = [
 	"assets/bundles/frappe/js/common.bundle.js",
 	"assets/bundles/frappe/js/desk.bundle.js",
 	"assets/bundles/frappe/js/dialog.bundle.js",
-	"assets/bundles/frappe/js/controls.bundle.js"
+	"assets/bundles/frappe/js/controls.bundle.js",
+	"assets/bundles/frappe/js/list.bundle.js",
+	"assets/bundles/frappe/js/form.bundle.js",
 ]
 app_include_css = [
 	"assets/bundles/common.css",

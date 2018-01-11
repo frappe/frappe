@@ -4,7 +4,7 @@
 frappe.provide('frappe.views.list_view');
 frappe.provide('frappe.views.list_renderers');
 
-cur_list = null;
+window.cur_list = null;
 frappe.views.ListFactory = frappe.views.Factory.extend({
 	make: function (route) {
 		var me = this;
@@ -72,10 +72,10 @@ frappe.views.ListFactory = frappe.views.Factory.extend({
 	},
 	set_cur_list: function () {
 		var route = frappe.get_route();
-		cur_list = frappe.container.page && frappe.container.page.list_view;
+		window.cur_list = frappe.container.page && frappe.container.page.list_view;
 		if (cur_list && cur_list.doctype !== route[1]) {
 			// changing...
-			cur_list = null;
+			window.cur_list = null;
 		}
 	}
 });
