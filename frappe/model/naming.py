@@ -206,7 +206,7 @@ def append_number_if_name_exists(doctype, name, fieldname='name', separator='-')
 			where {fieldname} regexp '^{name}{separator}[[:digit:]]+'
 			order by length({fieldname}) desc,
 				{fieldname} desc limit 1""".format(doctype=doctype,
-					name=escaped_name, fieldname=fieldname, separator=separator), debug=1)
+					name=escaped_name, fieldname=fieldname, separator=separator))
 
 		if last:
 			count = str(cint(last[0][0].rsplit("-", 1)[1]) + 1)
