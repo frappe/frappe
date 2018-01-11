@@ -199,11 +199,14 @@ def _set_amended_name(doc):
 
 def append_number_if_name_exists(doctype, name, fieldname='name', separator='-'):
 	if frappe.db.exists(doctype, name):
+		# should be escaped 2 times since
+		# python string will parse the first escape
+		escaped_name = re.escape(re.escape(name))
 		last = frappe.db.sql("""select name from `tab{doctype}`
 			where {fieldname} regexp '^{name}{separator}[[:digit:]]+'
 			order by length({fieldname}) desc,
 				{fieldname} desc limit 1""".format(doctype=doctype,
-					name=name, fieldname=fieldname, separator=separator))
+					name=escaped_name, fieldname=fieldname, separator=separator))
 
 		if last:
 			count = str(cint(last[0][0].rsplit("-", 1)[1]) + 1)
