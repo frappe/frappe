@@ -159,6 +159,7 @@ class SMTPServer:
 			self.port = self.email_account.smtp_port
 			self.use_tls = self.email_account.use_tls
 			self.sender = self.email_account.email_id
+                        self.smtp_start_tls = self.email_account.smtp_start_tls
 			self.always_use_account_email_id_as_sender = cint(self.email_account.get("always_use_account_email_id_as_sender"))
 
 	@property
@@ -176,8 +177,11 @@ class SMTPServer:
 		try:
 			if self.use_tls and not self.port:
 				self.port = 587
-
-			self._sess = smtplib.SMTP((self.server or "").encode('utf-8'),
+                        if self.use_tls and not self.smtp_start_tls:
+			  self._sess = smtplib.SMTP_SSL((self.server or "").encode('utf-8'),
+				cint(self.port) or None)
+			else:
+                          self._sess = smtplib.SMTP_SSL((self.server or "").encode('utf-8'),
 				cint(self.port) or None)
 
 			if not self._sess:
