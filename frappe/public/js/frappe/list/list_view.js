@@ -812,6 +812,12 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			});
 		}
 
+		items.push({
+			label: __('Toggle Sidebar'),
+			action: () => this.toggle_side_bar(),
+			standard: true
+		});
+
 		// utility
 		const bulk_assignment = () => {
 			return {

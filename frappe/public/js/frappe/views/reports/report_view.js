@@ -705,6 +705,10 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				}
 			},
 			{
+				label: __('Toggle Sidebar'),
+				action: () => this.toggle_side_bar()
+			},
+			{
 				label: __('Pick Columns'),
 				action: () => {
 					const d = new frappe.ui.Dialog({
