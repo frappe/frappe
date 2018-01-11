@@ -508,7 +508,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	get_form_link(doc) {
-		return '#Form/' + this.doctype + '/' + doc.name;
+		const docname = doc.name.match(/[%'"]/)
+			? encodeURIComponent(doc.name)
+			: doc.name;
+
+		return '#Form/' + this.doctype + '/' + docname;
 	}
 
 	get_subject_html(doc) {
