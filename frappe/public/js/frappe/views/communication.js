@@ -273,7 +273,7 @@ frappe.views.CommunicationComposer = Class.extend({
 		this.lang_code = doc.language
 
 		//On selection of language retrieve language code
-		$(fields.language_sel.input).click(function(){
+		$(fields.language_sel.input).change(function(){
 			me.lang_code = this.value
 		})
 
