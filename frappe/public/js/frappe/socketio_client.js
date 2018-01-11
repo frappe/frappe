@@ -165,6 +165,7 @@ frappe.socketio = {
 		// notify that the user has closed this doc
 		frappe.socketio.socket.emit('doc_close', doctype, docname);
 	},
+
 	setup_listeners: function() {
 		frappe.socketio.socket.on('task_status_change', function(data) {
 			frappe.socketio.process_response(data, data.status.toLowerCase());
@@ -392,5 +393,4 @@ frappe.socketio.SocketIOUploader = class SocketIOUploader {
 			}
 		}
 	}
-
 }

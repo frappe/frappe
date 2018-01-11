@@ -13,6 +13,8 @@ QUnit.test("Test: Filters [Kanban view]", function(assert) {
 			// set filter values
 			return frappe.tests.set_control('priority', 'Low');
 		},
+		// set filter values
+		() => cur_list.filter_area.add('ToDo', 'priority', '=', 'Low'),
 		() => frappe.timeout(1),
 		() => cur_list.page.btn_secondary.click(),
 		() => frappe.timeout(1),

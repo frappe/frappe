@@ -56,5 +56,14 @@ frappe.db = {
 				callback && callback(r.message);
 			}
 		});
+	},
+	get_doc: function(doctype, name, filters = null) {
+		return new Promise(resolve => {
+			frappe.call({
+				method: "frappe.client.get",
+				args: { doctype, name, filters },
+				callback: r => resolve(r.message)
+			});
+		});
 	}
-}
+};

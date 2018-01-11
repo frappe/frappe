@@ -1,5 +1,20 @@
-.unit-checkbox{
+.unit-checkbox {
 	color: #36414c;
+	margin-top: 5px;
+	margin-bottom: 5px;
+
+	label {
+		position: relative;
+	}
+
+	input[type=checkbox] {
+		margin-left: 0;
+	}
+
+	& + .checkbox {
+		margin-top: 5px;
+		margin-bottom: 5px;
+	}
 }
 
 .frappe-control .select-all {

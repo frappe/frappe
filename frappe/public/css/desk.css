@@ -216,6 +216,18 @@ a.no-decoration:active {
 .margin {
   margin: 15px;
 }
+.margin-top {
+  margin-top: 15px;
+}
+.margin-bottom {
+  margin-bottom: 15px;
+}
+.margin-left {
+  margin-left: 15px;
+}
+.margin-right {
+  margin-right: 15px;
+}
 @media (max-width: 767px) {
   .text-center-xs {
     text-align: center;
@@ -486,6 +498,9 @@ fieldset[disabled] .form-control {
 .form-control input {
   padding: 6px 10px 8px;
 }
+.input-area {
+  position: relative;
+}
 .link-field.ui-front {
   z-index: inherit;
 }
@@ -586,10 +601,6 @@ li.user-progress .progress-bar {
 }
 .intro-area {
   padding: 15px 30px;
-}
-.footnote-area {
-  padding: 0px 15px;
-  border-top: 1px solid #d1d8dd;
 }
 .file-upload .input-group-addon {
   color: #8D99A6;
@@ -970,50 +981,15 @@ li.user-progress .progress-bar {
 .note-editor.note-frame .note-editing-area .note-editable {
   color: #36414C;
 }
-.c3 svg {
-  font-family: inherit;
-  font-size: 10px;
-  color: #36414C;
+.checkbox input[type=checkbox] {
+  margin-left: 0;
 }
-.c3-line {
-  stroke-width: 3px;
-}
-.c3-tooltip {
-  box-shadow: 3px 3px 3px rgba(0, 0, 0, 0.1);
-  border-radius: 3px;
-  opacity: 1;
-}
-.c3-tooltip tr {
-  border: none;
-}
-.c3-tooltip th {
-  color: #8D99A6;
-  background-color: #ffffff;
-  font-size: 12px;
-  font-weight: normal;
-  padding: 2px 5px;
-  text-align: left;
-  border: 1px solid #d1d8dd;
-}
-.c3-tooltip td {
-  color: #36414C;
-  font-size: 11px;
-  padding: 3px 6px;
-  background-color: #fff;
-  border: 1px solid #d1d8dd;
-}
-.c3-tooltip td > span {
-  display: inline-block;
-  width: 10px;
-  height: 10px;
-  margin-right: 6px;
-}
-.c3-tooltip td.value {
-  text-align: right;
+.input-area input[type=checkbox] {
+  margin-left: -20px;
 }
 input[type="checkbox"] {
-  visibility: hidden;
   position: relative;
+  left: -999999px;
 }
 input[type="checkbox"]:before {
   position: absolute;
@@ -1031,11 +1007,18 @@ input[type="checkbox"]:before {
   -webkit-transition: 150ms color;
   -o-transition: 150ms color;
   transition: 150ms color;
+  left: 999999px;
+}
+input[type="checkbox"]:focus:before {
+  color: #8D99A6;
 }
 input[type="checkbox"]:checked:before {
   content: '\f14a';
   font-size: 13px;
   color: #3b99fc;
+}
+input[type="checkbox"]:focus {
+  outline: none;
 }
 .multiselect-empty-state {
   min-height: 300px;
@@ -1047,11 +1030,19 @@ input[type="checkbox"]:checked:before {
 @-moz-document url-prefix() {
   input[type="checkbox"] {
     visibility: visible;
+    left: 0;
+  }
+}
+@supports (-moz-appearance: none) {
+  input[type="checkbox"] {
+    visibility: visible;
+    left: 0;
   }
 }
 @supports (-ms-ime-align:auto) {
   input[type="checkbox"] {
     visibility: visible;
+    left: 0;
   }
 }
 .color-picker {

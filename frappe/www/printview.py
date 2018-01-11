@@ -398,7 +398,7 @@ def get_visible_columns(data, table_meta, df):
 	doc = data[0] or frappe.new_doc(df.options)
 	def add_column(col_df):
 		return is_visible(col_df, doc) \
-			and column_has_value(data, col_df.get("fieldname"))
+			and column_has_value(data, col_df.get("fieldname"), col_df)
 
 	if df.get("visible_columns"):
 		# columns specified by column builder
@@ -418,9 +418,12 @@ def get_visible_columns(data, table_meta, df):
 
 	return columns
 
-def column_has_value(data, fieldname):
+def column_has_value(data, fieldname, col_df):
 	"""Check if at least one cell in column has non-zero and non-blank value"""
 	has_value = False
+
+	if col_df.fieldtype in ['Float', 'Currency'] and not col_df.print_hide_if_no_value:
+		return True
 
 	for row in data:
 		value = row.get(fieldname)

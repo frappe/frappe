@@ -72,8 +72,8 @@ class User(Document):
 		if self.language == "Loading...":
 			self.language = None
 
-		if (self.name not in ["Administrator", "Guest"]) and (not self.frappe_userid):
-			self.frappe_userid = frappe.generate_hash(length=39)
+		if (self.name not in ["Administrator", "Guest"]) and (not self.get_social_login_userid("frappe")):
+			self.set_social_login_userid("frappe", frappe.generate_hash(length=39))
 
 	def validate_roles(self):
 		if self.role_profile_name:
@@ -491,6 +491,25 @@ class User(Document):
 		if len(email_accounts) != len(set(email_accounts)):
 			frappe.throw(_("Email Account added multiple times"))
 
+	def get_social_login_userid(self, provider):
+		try:
+			for p in self.social_logins:
+				if p.provider == provider:
+					return p.userid
+		except:
+			return None
+
+	def set_social_login_userid(self, provider, userid, username=None):
+		social_logins = {
+			"provider": provider,
+			"userid": userid
+		}
+
+		if username:
+			social_logins["username"] = username
+
+		self.append("social_logins", social_logins)
+
 @frappe.whitelist()
 def get_timezones():
 	import pytz
@@ -525,7 +544,7 @@ def get_perm_info(role):
 	return get_all_perms(role)
 
 @frappe.whitelist(allow_guest=True)
-def update_password(new_password, key=None, old_password=None):
+def update_password(new_password, logout_all_sessions=0, key=None, old_password=None):
 	result = test_password_strength(new_password, key, old_password)
 	feedback = result.get("feedback", None)
 
@@ -538,7 +557,7 @@ def update_password(new_password, key=None, old_password=None):
 	else:
 		user = res['user']
 
-	_update_password(user, new_password)
+	_update_password(user, new_password, logout_all_sessions=int(logout_all_sessions))
 
 	user_doc, redirect_url = reset_user_data(user)
 
@@ -547,7 +566,6 @@ def update_password(new_password, key=None, old_password=None):
 	if redirect_to:
 		redirect_url = redirect_to
 		frappe.cache().hdel('redirect_after_login', user)
-
 
 	frappe.local.login_manager.login_as(user)
 
@@ -778,6 +796,8 @@ def reset_password(user):
 
 	try:
 		user = frappe.get_doc("User", user)
+		if not user.enabled:
+			return 'disabled'
 		user.validate_reset_password()
 		user.reset_password(send_email=True)
 

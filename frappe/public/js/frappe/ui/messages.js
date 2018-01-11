@@ -235,8 +235,7 @@ frappe.verify_password = function(callback) {
 }
 
 frappe.show_progress = function(title, count, total=100, description) {
-	if(frappe.cur_progress && frappe.cur_progress.title === title
-			&& frappe.cur_progress.$wrapper.is(":visible")) {
+	if(frappe.cur_progress && frappe.cur_progress.title === title && frappe.cur_progress.is_visible) {
 		var dialog = frappe.cur_progress;
 	} else {
 		var dialog = new frappe.ui.Dialog({

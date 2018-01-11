@@ -90,6 +90,17 @@ class TestCustomizeForm(unittest.TestCase):
 		self.assertEquals(frappe.db.get_value("Property Setter",
 			{"doc_type": "User", "property": "reqd", "field_name": "location"}, "value"), None)
 
+		# for not allowing to change mandatory property of standard fields
+		self.assertEquals(frappe.db.get_value("Property Setter",
+			{"doc_type": "User", "property": "reqd", "field_name": "email"}, "value"), None)
+		
+		email_field = d.get("fields", {"fieldname": "email"})[0]
+		email_field.reqd = 0
+		d.run_method("save_customization")
+
+		self.assertEquals(frappe.db.get_value("Property Setter",
+			{"doc_type": "User", "property": "reqd", "field_name": "email"}, "value"), None)
+
 	def test_save_customization_custom_field_property(self):
 		d = self.get_customize_form("User")
 		self.assertEquals(frappe.db.get_value("Custom Field", "User-test_custom_field", "reqd"), 0)
@@ -183,4 +194,3 @@ class TestCustomizeForm(unittest.TestCase):
 		# undo
 		df.default = None
 		d.run_method("save_customization")
-

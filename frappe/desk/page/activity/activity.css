@@ -6,6 +6,7 @@
 #page-activity .list-row {
 	border: none;
 	padding: 0px;
+	height: auto;
 	cursor: pointer;
 }
 

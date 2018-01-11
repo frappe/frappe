@@ -1,6 +1,14 @@
 import frappe
+from frappe.utils.background_jobs import enqueue
 
 def execute():
+	comm_records_count = frappe.db.count("Communication", {"comment_type": "Updated"})
+	if comm_records_count > 100000:
+		enqueue(method=move_data_from_communication_to_activity_log, queue='short', now=True)
+	else:
+		move_data_from_communication_to_activity_log()
+
+def move_data_from_communication_to_activity_log():
 	frappe.reload_doc("core", "doctype", "communication")
 	frappe.reload_doc("core", "doctype", "activity_log")
 

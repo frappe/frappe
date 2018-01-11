@@ -157,6 +157,7 @@ class CustomizeForm(Document):
 	def set_property_setters(self):
 		meta = frappe.get_meta(self.doc_type)
 		# doctype property setters
+
 		for property in doctype_properties:
 			if self.get(property) != meta.get(property):
 				self.make_property_setter(property=property, value=self.get(property),
@@ -177,6 +178,15 @@ class CustomizeForm(Document):
 						frappe.msgprint(_("Row {0}: Not allowed to enable Allow on Submit for standard fields")\
 							.format(df.idx))
 						continue
+
+					elif property == "reqd" and \
+						((frappe.db.get_value("DocField", 
+							{"parent":self.doc_type,"fieldname":df.fieldname}, "reqd") == 1) \
+							and (df.get(property) == 0)):
+						frappe.msgprint(_("Row {0}: Not allowed to disable Mandatory for standard fields")\
+								.format(df.idx))
+						continue
+
 					elif property == "in_list_view" and df.get(property) \
 						and df.fieldtype!="Attach Image" and df.fieldtype in no_value_fields:
 								frappe.msgprint(_("'In List View' not allowed for type {0} in row {1}")

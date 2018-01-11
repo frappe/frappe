@@ -86,6 +86,13 @@ def get_data():
 					"name": "Error Snapshot",
 					"description": _("Log of error during requests.")
 				},
+				{
+					"type": "doctype",
+					"name": "Domain Settings",
+					"label": _("Domain Settings"),
+					"description": _("Enable / Disable Domains"),
+					"hide_count": True
+				},
 			]
 		},
 		{
@@ -93,11 +100,11 @@ def get_data():
 			"icon": "fa fa-th",
 			"items": [
 				{
-					"type": "page",
-					"name": "data-import-tool",
+					"type": "doctype",
+					"name": "Data Import",
 					"label": _("Import / Export Data"),
-					"icon": "fa fa-upload",
-					"description": _("Import / Export Data from .csv files.")
+					"icon": "octicon octicon-cloud-upload",
+					"description": _("Import / Export Data from CSV and Excel files.")
 				},
 				{
 					"type": "doctype",

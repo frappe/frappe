@@ -185,6 +185,7 @@ $.extend(frappe, {
 		if($.isArray(html)) {
 			html = html.join("<hr>")
 		}
+
 		return frappe.get_modal(title || "Message", html).modal("show");
 	},
 	send_message: function(opts, btn) {
@@ -406,4 +407,12 @@ $(document).on("page-change", function() {
 		var element = document.getElementById(window.location.hash.substring(1));
 		element && element.scrollIntoView(true);
 	}
+});
+
+
+$(document).ready(function ( ) {
+	// frappe.Chat
+	// const chat = new frappe.Chat();
+	// chat.render();
+	// end frappe.Chat
 });

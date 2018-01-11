@@ -316,6 +316,10 @@ textarea.form-control {
 	}
 }
 
+.input-area {
+	position: relative;
+}
+
 .link-field.ui-front {
 	z-index: inherit;
 }
@@ -444,11 +448,6 @@ li.user-progress {
 
 .intro-area {
 	padding: 15px 30px;
-}
-
-.footnote-area {
-	padding: 0px 15px;
-	border-top: 1px solid @border-color;
 }
 
 .file-upload {
@@ -906,58 +905,18 @@ li.user-progress {
 	color: @text-color;
 }
 
-.c3 svg {
-	font-family: inherit;
-	font-size: 10px;
-	color: @text-color;
+.checkbox input[type=checkbox] {
+	margin-left: 0;
 }
 
-.c3-line {
-	stroke-width: 3px;
+.input-area input[type=checkbox] {
+	margin-left: -20px;
 }
-
-.c3-tooltip {
-  box-shadow: 3px 3px 3px rgba(0,0,0,0.1);
-  border-radius: 3px;
-  opacity: 1;
-}
-
-.c3-tooltip tr {
-  border: none;
-}
-
-.c3-tooltip th {
-	color: @text-muted;
-	background-color: #ffffff;
-	font-size: 12px;
-	font-weight: normal;
-	padding: 2px 5px;
-	text-align: left;
-	border: 1px solid @border-color;
-}
-
-.c3-tooltip td {
-	color: @text-color;
-	font-size: 11px;
-	padding: 3px 6px;
-	background-color: #fff;
-	border: 1px solid @border-color;
-}
-
-.c3-tooltip td > span {
-  display: inline-block;
-  width: 10px;
-  height: 10px;
-  margin-right: 6px;
-}
-
-.c3-tooltip td.value {
-  text-align: right; }
 
 // custom font awesome checkbox
 input[type="checkbox"] {
-	visibility: hidden;
 	position: relative;
+	left: -999999px;
 
 	&:before {
 		position: absolute;
@@ -973,12 +932,21 @@ input[type="checkbox"] {
 		font-size: 14px;
 		color: @text-extra-muted;
 		.transition(150ms color);
+		left: 999999px;
+	}
+
+	&:focus:before {
+		color: @text-muted;
 	}
 
 	&:checked:before {
 		content: '\f14a';
 		font-size: 13px;
 		color: @checkbox-color;
+	}
+
+	&:focus {
+		outline: none;
 	}
 }
 
@@ -996,6 +964,14 @@ input[type="checkbox"] {
 @-moz-document url-prefix() {
 	input[type="checkbox"] {
 		visibility: visible;
+		left: 0;
+	}
+}
+
+@supports (-moz-appearance: none) {
+	input[type="checkbox"] {
+		visibility: visible;
+		left: 0;
 	}
 }
 
@@ -1004,6 +980,7 @@ input[type="checkbox"] {
 @supports (-ms-ime-align:auto) {
 	input[type="checkbox"] {
 		 visibility: visible;
+		 left: 0;
 	}
 }
 

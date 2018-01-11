@@ -140,9 +140,6 @@ $.extend(frappe.desktop, {
 	setup_wiggle: () => {
 		// Wiggle, Wiggle, Wiggle.
 		const DURATION_LONG_PRESS = 1000;
-		// lesser the antidode, more the wiggle (like your drunk uncle)
-		// 75 seems good to replicate the iOS feels.
-		const WIGGLE_ANTIDODE     = 75;
 
 		var   timer_id      = 0;
 		const $cases        = frappe.desktop.wrapper.find('.case-wrapper');

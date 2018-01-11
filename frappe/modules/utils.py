@@ -57,19 +57,20 @@ def export_customizations(module, doctype, sync_on_migrate=0, with_permissions=0
 		custom['custom_perms'] = frappe.get_all('Custom DocPerm',
 			fields='*', filters={'parent': doctype})
 
-	# add custom fields and property setters for all child tables
+	# also update the custom fields and property setters for all child tables
 	for d in frappe.get_meta(doctype).get_table_fields():
-		add(d.options)
+		export_customizations(module, d.options, sync_on_migrate, with_permissions)
 
-	folder_path = os.path.join(get_module_path(module), 'custom')
-	if not os.path.exists(folder_path):
-		os.makedirs(folder_path)
+	if custom["custom_fields"] or custom["property_setters"] or custom["custom_perms"]:
+		folder_path = os.path.join(get_module_path(module), 'custom')
+		if not os.path.exists(folder_path):
+			os.makedirs(folder_path)
 
-	path = os.path.join(folder_path, scrub(doctype)+ '.json')
-	with open(path, 'w') as f:
-		f.write(frappe.as_json(custom))
+		path = os.path.join(folder_path, scrub(doctype)+ '.json')
+		with open(path, 'w') as f:
+			f.write(frappe.as_json(custom))
 
-	frappe.msgprint(_('Customizations exported to {0}').format(path))
+		frappe.msgprint(_('Customizations for <b>{0}</b> exported to:<br>{1}').format(doctype,path))
 
 def sync_customizations(app=None):
 	'''Sync custom fields and property setters from custom folder in each app module'''
@@ -89,10 +90,10 @@ def sync_customizations(app=None):
 						data = json.loads(f.read())
 
 					if data.get('sync_on_migrate'):
-						sync_customizations_for_doctype(data)
+						sync_customizations_for_doctype(data, folder)
 
 
-def sync_customizations_for_doctype(data):
+def sync_customizations_for_doctype(data, folder):
 	'''Sync doctype customzations for a particular data set'''
 	from frappe.core.doctype.doctype.doctype import validate_fields_for_doctype
 
@@ -101,13 +102,21 @@ def sync_customizations_for_doctype(data):
 
 	def sync(key, custom_doctype, doctype_fieldname):
 		doctypes = list(set(map(lambda row: row.get(doctype_fieldname), data[key])))
-		frappe.db.sql('delete from `tab{0}` where `{1}` in ({2})'.format(
-			custom_doctype, doctype_fieldname, ",".join(["'%s'" % dt for dt in doctypes])))
 
-		for d in data[key]:
-			d['doctype'] = custom_doctype
-			doc = frappe.get_doc(d)
-			doc.db_insert()
+		# sync single doctype exculding the child doctype
+		def sync_single_doctype(doc_type):
+			frappe.db.sql('delete from `tab{0}` where `{1}` =%s'.format(
+				custom_doctype, doctype_fieldname), doc_type)
+			for d in data[key]:
+				if d.get(doctype_fieldname) == doc_type:
+					d['doctype'] = custom_doctype
+					doc = frappe.get_doc(d)
+					doc.db_insert()
+
+		for doc_type in doctypes:
+			# only sync the parent doctype and child doctype if there isn't any other child table json file
+			if doc_type == doctype or not os.path.exists(os.path.join(folder, frappe.scrub(doc_type)+".json")):
+				sync_single_doctype(doc_type)
 
 	if data['custom_fields']:
 		sync('custom_fields', 'Custom Field', 'dt')

@@ -101,7 +101,7 @@ def restore(context, sql_file_path, mariadb_root_username=None, mariadb_root_pas
 	if not os.path.exists(sql_file_path):
 		sql_file_path = '../' + sql_file_path
 		if not os.path.exists(sql_file_path):
-			print('Invalid path {0}' + sql_file_path[3:])
+			print('Invalid path {0}'.format(sql_file_path[3:]))
 			sys.exit(1)
 
 	if sql_file_path.endswith('sql.gz'):

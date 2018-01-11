@@ -9,8 +9,9 @@ QUnit.test("Test modules view", function(assert) {
 		//click Document Share Report in Permissions section [Report]
 		() => frappe.set_route("modules", "Setup"),
 		() => frappe.timeout(0.5),
+
 		() => frappe.tests.click_link('Document Share Report'),
-		() => assert.deepEqual(frappe.get_route(), ["Report", "DocShare", "Document Share Report"],
+		() => assert.deepEqual(frappe.get_route(), ["List", "DocShare", "Report", "Document Share Report"],
 			'document share report'),
 
 		//click Print Setting in Printing section [Form]
