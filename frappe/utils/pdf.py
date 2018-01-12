@@ -8,15 +8,32 @@ from frappe import _
 from bs4 import BeautifulSoup
 from PyPDF2 import PdfFileWriter, PdfFileReader
 
-def get_pdf(html, options=None, output = None):
+def get_pdf(html, options=None, output = None, password = None):
 	html = scrub_urls(html)
 	html, options = prepare_options(html, options)
 	fname = os.path.join("/tmp", "frappe-pdf-{0}.pdf".format(frappe.generate_hash()))
 
 	try:
 		pdfkit.from_string(html, fname, options=options or {})
+
+		if password:
+			password = str(password).encode('utf-8')
+			fname_out = os.path.join("/tmp", "frappe-pdf-{0}.pdf".format(frappe.generate_hash()))
+			writer = PdfFileWriter()
+			reader = PdfFileReader(file(fname, "rb"))
+
+			for pagenum in range(reader.numPages):
+				writer.addPage(reader.getPage(pagenum))
+
+			output_stream = file(fname_out, "wb")
+			writer.encrypted(password)
+			writer.write(output_stream)
+			output_stream.close()
+			old_fname = fname
+			fname = fname_out
+
 		if output:
-			append_pdf(PdfFileReader(file(fname,"rb")),output)
+			append_pdf(PdfFileReader(file(fname,"rb")),output, password = password)
 		else:
 			with open(fname, "rb") as fileobj:
 				filedata = fileobj.read()
@@ -41,13 +58,20 @@ def get_pdf(html, options=None, output = None):
 		cleanup(fname, options)
 
 	if output:
+		if password:
+			output.encrypt(password)
 		return output
+
+	if password and os.path.exists(old_fname):
+		os.remove(old_fname)
 
 	return filedata
 
-def append_pdf(input,output):
+def append_pdf(input,output, password = None):
+	if password and input.isEncrypted:
+		input.decrypt(password)
 	# Merging multiple pdf files
-    [output.addPage(input.getPage(page_num)) for page_num in range(input.numPages)]
+	[output.addPage(input.getPage(page_num)) for page_num in range(input.numPages)]
 
 def prepare_options(html, options):
 	if not options:
