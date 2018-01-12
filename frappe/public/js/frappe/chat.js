@@ -22,6 +22,8 @@ frappe.provide('frappe.model')
  * frappe.model.subscribe('User', 'achilles@frappe.io', 'username')
  * frappe.model.subscribe('User', ['achilles@frappe.io', 'rushabh@frappe.io'], ['email', 'username'])
  * // Subscribe to User of name for field(s)
+ * 
+ * @todo Under Development
  */
 frappe.model.subscribe = (doctype, name, field) =>
     frappe.realtime.publish('frappe.model:subscribe', { doctype: doctype, name: name, field: field })
@@ -167,7 +169,7 @@ frappe.datetime.compare = (a, b) =>
 // frappe's utility namespace.
 frappe.provide('frappe._')
 
-frappe._.head = arr => frappe._.is_empty(arr) ? undefined : arr[0]
+// String Utilities
 
 /**
  * @description Python-inspired format extension for string objects.
@@ -253,6 +255,23 @@ frappe._.pluralize = (word, count = 0, suffix = 's') => `${word}${count === 1 ? 
  * // returns "Foobar"
  */
 frappe._.capitalize = word => `${word.charAt(0).toUpperCase()}${word.slice(1)}`
+
+// Array Utilities
+
+/**
+ * @description Returns the first element of an array.
+ * 
+ * @param   {array} array - The array.
+ * 
+ * @returns - The first element of an array, undefined elsewise.
+ * 
+ * @example
+ * frappe._.head([1, 2, 3])
+ * // returns 1
+ * frappe._.head([])
+ * // returns undefined
+ */
+frappe._.head = arr => frappe._.is_empty(arr) ? undefined : arr[0]
 
 /**
  * @description Returns a copy of the given array (shallow).
@@ -391,6 +410,11 @@ frappe.user.first_name = user => frappe._.head(frappe.user.full_name(user).split
 
 // frappe.ui extensions
 frappe.provide('frappe.ui')
+/**
+ * @description Frappe's Uploader Widget
+ * 
+ * @see - Heavily inspired https://uppy.io
+ */
 frappe.ui.Uploader = class
 {
     constructor (wrapper, options = { })
@@ -554,17 +578,13 @@ frappe.chat.profile.create = (fields, fn) =>
 }
 
 /**
- * @description Create a Chat Profile.
+ * @description Updates a Chat Profile.
  * 
- * @param   {string|array} fields - (Optional) fields to be retrieved after creating a Chat Profile.
- * @param   {function}     fn     - (Optional) callback with the returned Chat Profile.
- * 
- * @returns {Promise}
+ * @param   {string} user   - (Optional) Chat Profile User, defaults to session user.
+ * @param   {object} update - (Required) Updates to be dispatched.
  * 
  * @example
- * frappe.chat.profile.create(console.log)
- * 
- * frappe.chat.profile.create("status").then(console.log) // { status: "Online" }
+ * frappe.chat.profile.update(frappe.session.user, { "status": "Offline" })
  */
 frappe.chat.profile.update = (user, update, fn) =>
 {
