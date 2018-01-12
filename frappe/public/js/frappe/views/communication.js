@@ -506,7 +506,8 @@ frappe.views.CommunicationComposer = Class.extend({
 				sender_full_name: form_values.sender?frappe.user.full_name():undefined,
 				attachments: selected_attachments,
 				_lang : me.lang_code,
-				read_receipt:form_values.send_read_receipt
+				read_receipt:form_values.send_read_receipt,
+				print_letterhead: me.is_print_letterhead_checked(),
 			},
 			btn: btn,
 			callback: function(r) {
@@ -550,6 +551,18 @@ frappe.views.CommunicationComposer = Class.extend({
 				}
 			}
 		});
+	},
+
+	is_print_letterhead_checked: function() {
+		if($(this.frm.wrapper).find('.form-print-wrapper').is(':visible')){
+			if ($(this.frm.wrapper).find('.print-letterhead').prop('checked')){
+				return true;
+			} else {
+				return false;
+			}
+		} else {
+			return true;
+		}
 	},
 
 	setup_earlier_reply: function() {
