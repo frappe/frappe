@@ -134,8 +134,7 @@ def get(user, rooms = None, fields = None, filters = None):
 		],
 		filters  = const,
 		fields   = param + ['name'] if param else default,
-		distinct = True,
-		debug    = bool(frappe.conf.get('developer_mode'))
+		distinct = True
 	)
 
 	if not fields or 'users' in fields:
