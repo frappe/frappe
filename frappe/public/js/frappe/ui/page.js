@@ -248,10 +248,17 @@ frappe.ui.Page = Class.extend({
 	//-- Generic --//
 
 	add_dropdown_item: function(label, click, standard, parent) {
+		const is_already_added = () => {
+			let found_lists = $(parent).find('li > a.grey-link:contains(' + label + ')');
+			return found_lists.length > 0;
+		}
+
 		parent.parent().removeClass("hide");
 
 		var $li = $('<li><a class="grey-link">'+ label +'</a><li>'),
 			$link = $li.find("a").on("click", click);
+
+		if (is_already_added()) return;
 
 		if(standard===true) {
 			$li.appendTo(parent);
