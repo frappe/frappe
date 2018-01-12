@@ -131,16 +131,14 @@ frappe.ui.Tree = class {
 	}
 
 	render_node_children(node, data_set) {
-		if(node.$ul.is(':empty')) {
-			node.$ul.empty();
-			if (data_set) {
-				$.each(data_set, (i, data) => {
-					var child_node = this.add_node(node, data);
-					child_node.$tree_link
-						.data('node-data', data)
-						.data('node', child_node);
-				});
-			}
+		node.$ul.empty();
+		if (data_set) {
+			$.each(data_set, (i, data) => {
+				var child_node = this.add_node(node, data);
+				child_node.$tree_link
+					.data('node-data', data)
+					.data('node', child_node);
+			});
 		}
 
 		node.expanded = false;
@@ -245,7 +243,10 @@ frappe.ui.Tree = class {
 				.html(label)
 				.addClass('tree-toolbar-button ' + (obj.btnClass || ''))
 				.appendTo($toolbar);
-			$link.on('click', () => { obj.click(node); return false; });
+			$link.on('click', () => {
+				obj.click(node);
+				this.refresh();
+			});
 		});
 
 		return $toolbar;

@@ -67,10 +67,10 @@ frappe.route = function() {
 
 frappe.get_route = function(route) {
 	// for app
-	var route = frappe.get_raw_route_str(route).split('/');
+	route = frappe.get_raw_route_str(route).split('/');
 	route = $.map(route, frappe._decode_str);
 	var parts = route[route.length - 1].split("?");
-	route[route.length - 1] = frappe._decode_str(parts[0]);
+	route[route.length - 1] = parts[0];
 	if (parts.length > 1) {
 		var query_params = get_query_params(parts[1]);
 		frappe.route_options = $.extend(frappe.route_options || {}, query_params);
@@ -133,8 +133,11 @@ frappe.set_route = function() {
 				frappe.route_options = a;
 				return null;
 			} else {
+				if (a.match(/[%'"]/)) {
+					// if special chars, then encode
+					a = encodeURIComponent(a);
+				}
 				return a;
-				// return a ? encodeURIComponent(a) : null;
 			}
 		}).join('/');
 
