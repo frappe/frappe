@@ -125,7 +125,7 @@ class SocialLoginKey(Document):
 			"enable_social_login": 1,
 			"base_url": "https://login.salesforce.com",
 			"custom_base_url": 0,
-			"icon":"fa fa-cloud",
+			"icon":"fa fa-cloud", #https://github.com/FortAwesome/Font-Awesome/issues/1744
 			"redirect_url": "/api/method/frappe.integrations.oauth2_logins.login_via_salesforce",
 			"api_endpoint": "https://login.salesforce.com/services/oauth2/userinfo",
 			"api_endpoint_args":None,

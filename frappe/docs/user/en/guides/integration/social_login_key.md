@@ -24,3 +24,11 @@ e.g. Social Login Key
 - **Client Secret** : `123456`
 - **Enable Social Login** : `Check`
 - **Base URL** : `https://erpnext.org` (required for some providers)
+
+#### Generating Client ID and Client Secret for providers
+
+- <a href="https://developers.google.com/identity/sign-in/web/devconsole-project">Creating a Google API Console project and client ID</a>
+- <a href="https://developers.facebook.com/docs/facebook-login/manually-build-a-login-flow">Manually Build a Login Flow for Facebook</a>
+- <a href="https://developer.github.com/apps/building-oauth-apps/creating-an-oauth-app/">Creating an OAuth App for GitHub</a>
+- <a href="https://docs.microsoft.com/en-us/azure/active-directory/develop/active-directory-protocols-openid-connect-code">Authorize access to web applications using OpenID Connect and Azure Active Directory</a>
+- <a href="https://help.salesforce.com/articleView?id=connected_app_create.htm">Create a Connected App on Salesforce</a>
