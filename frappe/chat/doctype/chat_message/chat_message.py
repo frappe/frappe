@@ -156,7 +156,7 @@ def history(room, fields = None, limit = 10, start = None, end = None):
 	
 	if not fields or 'seen' in fields:
 		for m in mess:
-			m['seen'] = json.loads(m._seen)
+			m['seen'] = json.loads(m._seen) if m._seen else [ ]
 			del m['_seen']
 
 	return mess

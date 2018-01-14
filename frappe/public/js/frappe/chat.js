@@ -1530,14 +1530,14 @@ class extends Component
             if ( r.user !== frappe.session.user && state.profile.message_preview && !state.toggle ) {
                 const $element = $('body').find('.frappe-chat-alert')
                 $element.remove();
-
+                
                 const  alert   = // TODO: ellipses content
                 `
                 <span>
                     <span class="indicator yellow"/> <b>${frappe.user.first_name(r.user)}</b>: ${r.content}
                 </span>
                 `
-
+    
                 frappe.show_alert(alert, 3)
             }
             
