@@ -190,9 +190,12 @@ def create(kind, owner, users = None, name = None):
 	return room
 
 @frappe.whitelist()
-def history(room, user = None, pagination = 20):
-	mess = chat_message.get_messages(room, pagination = pagination)
+def history(room, user, fields = None, limit = 10, start = None, end = None):
+	authenticate(user)
 
-	mess = squashify(mess)
+	fields = safe_json_loads(fields)
+
+	mess   = chat_message.history(room, limit = limit, start = start, end = end)
+	mess   = squashify(mess)
 	
 	return dictify(mess)

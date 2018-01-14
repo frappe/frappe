@@ -804,7 +804,7 @@ frappe.chat.room.history = function (name, fn)
     return new Promise(resolve =>
     {
         frappe.call("frappe.chat.doctype.chat_room.chat_room.history",
-            { room: name },
+            { room: name, user: frappe.session.user },
                 r =>
                 {
                     let messages = r.message ? frappe._.as_array(r.message) : [ ] // frappe.api BOGZ! (emtpy arrays are falsified, not good design).
@@ -2139,7 +2139,10 @@ class extends Component
         {
             props.messages = frappe._.as_array(props.messages)
             for (const message of props.messages)
-                frappe.chat.message.seen(message.name)
+                if ( !message.seen.includes(frappe.session.user) )
+                    frappe.chat.message.seen(message.name)
+                else
+                    break
         }
 
         return (
@@ -2147,7 +2150,7 @@ class extends Component
                 h(frappe.Chat.Widget.Room.Header, { ...props, back: props.destroy }),
                 !frappe._.is_empty(props.messages) ?
                     h(frappe.Chat.Widget.ChatList, {
-                        messages: !frappe._.is_empty(props.messages) && frappe.chat.message.sort(props.messages)
+                        messages: props.messages
                     })
                     :
                     h("div", { class: "panel-body" },
@@ -2481,7 +2484,7 @@ class extends Component {
         return (
             h(frappe.Chat.Widget.MediaProfile, {
                       title: frappe.user.full_name(props.user),
-                   subtitle: frappe.chat.pretty_datetime(props.creation),
+                   subtitle: `${frappe.chat.pretty_datetime(props.creation)}`,
                     content: props.content,
                       image: frappe.user.image(props.user),
                 width_title: "100%",

@@ -141,25 +141,23 @@ def seen(message, user = None):
 	
 	frappe.publish_realtime('frappe.chat.message:update', resp, room = room, after_commit = True)
 
-# This is fine for now. If you're "ReST"-ing it,
-# make sure you don't let the user see them.
-# Come again, Why are we even passing user?
-def get_messages(room, user = None, fields = None, pagination = 20):
-	user = get_user_doc(user)
-
+def history(room, fields = None, limit = 10, start = None, end = None):
 	room = frappe.get_doc('Chat Room', room)
 	mess = frappe.get_all('Chat Message',
-		filters = [
+		filters  = [
 			('Chat Message', 'room', '=', room.name),
 			('Chat Message', 'type', '=', room.type)
 		],
-		fields  = fields if fields else [
-			'name', 'type',
-			'room', 'content',
-			'user', 'mentions', 'urls',
-			'creation'
-		]
+		fields   = fields if fields else [
+			'name', 'type', 'room', 'content', 'user', 'mentions', 'urls', 'creation', '_seen'
+		],
+		order_by = 'creation'
 	)
+	
+	if not fields or 'seen' in fields:
+		for m in mess:
+			m['seen'] = json.loads(m._seen)
+			del m['_seen']
 
 	return mess
 
