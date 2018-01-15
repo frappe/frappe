@@ -13,7 +13,7 @@
 
 @frappe-chat-toggle-height:								40px;
 
-@frappe-chat-popper-margin:								20px;
+@frappe-chat-popper-margin:								15px;
 @frappe-chat-popper-panel-width:						350px;
 @frappe-chat-popper-panel-height:						500px;
 // z-index greater than FAB, lesser than modal.
@@ -65,9 +65,25 @@
 		{
 			& > .panel
 			{
-					 width: @frappe-chat-popper-panel-width;
+				 	 width: @frappe-chat-popper-panel-width;
 					height: @frappe-chat-popper-panel-height;
 				box-shadow: @frappe-chat-popper-panel-box-shadow;
+
+				.panel-heading
+				{
+					.frappe-chat-action-bar
+					{
+						form
+						{
+							width: 100%;
+						}
+
+						.dropdown
+						{
+							margin-left: 5px !important;
+						}
+					}
+				}
 
 				.panel-body
 				{

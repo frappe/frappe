@@ -1562,107 +1562,110 @@ class extends Component
         
         const ActionBar        = h(frappe.Chat.Widget.ActionBar,
         {
+              class: "level",
              layout: props.layout,
-            actions: 
-            [
-                {
-                    label: __("New Message"),
-                     icon: "octicon octicon-comment",
-                    click: function ( )
+               menu:
+            {
+                  label: __("New"),
+                actions: 
+                [
                     {
-                        const dialog = new frappe.ui.Dialog({
-                              title: __("New Message"),
-                            animate: false,
-                             fields: [
-                                {
-                                        label: __("Select User"),
-                                    fieldname: "user",
-                                    fieldtype: "Link",
-                                      options: "User",
-                                         reqd: true,
-                                      filters: { name: ["!=", frappe.session.user] } // not working?
-                                }
-                             ],
-                             action:
-                             {
-                                primary:
-                                {
-                                    label: __("Create"),
-                                    click: function ({ user })
+                        label: __("Message"),
+                        click: function ( )
+                        {
+                            const dialog = new frappe.ui.Dialog({
+                                  title: __("New Message"),
+                                animate: false,
+                                 fields: [
                                     {
-                                        if ( user === frappe.session.user )
-                                            frappe.throw(__('Sorry! You cannot chat with yourself.'))
-                                        else
+                                            label: __("Select User"),
+                                        fieldname: "user",
+                                        fieldtype: "Link",
+                                          options: "User",
+                                             reqd: true,
+                                          filters: { name: ["!=", frappe.session.user] } // not working?
+                                    }
+                                 ],
+                                 action:
+                                 {
+                                    primary:
+                                    {
+                                        label: __("Create"),
+                                        click: function ({ user })
+                                        {
+                                            if ( user === frappe.session.user )
+                                                frappe.throw(__('Sorry! You cannot chat with yourself.'))
+                                            else
+                                            {
+                                                dialog.hide()
+                                                
+                                                // Don't Worry, frappe.chat.room.on.create gets triggered that then subscribes and adds to DOM. :)
+                                                frappe.chat.room.create("Direct", null, user)
+                                            }
+                                        }
+                                    },
+                                    secondary:
+                                    {
+                                        label: frappe._.is_mobile() ? "<b>&times</b>" : __(`Cancel`)
+                                    }
+                                 }
+                            })
+                            dialog.show()
+                        }
+                    },
+                    {
+                        label: __("Group"),
+                        click: function ( )
+                        {
+                            const dialog = new frappe.ui.Dialog({
+                                  title: __("New Group"),
+                                animate: false,
+                                 fields: [
+                                    {
+                                            label: __("Name"),
+                                        fieldname: "name",
+                                        fieldtype: "Data",
+                                             reqd: true
+                                    },
+                                    {   
+                                            label: __("Select Users"),
+                                        fieldname: "users",
+                                        fieldtype: "MultiSelect",
+                                          options: Object.keys(frappe.boot.user_info).map(key => frappe.boot.user_info[key].email)
+                                    }
+                                 ],
+                                 action:
+                                 {
+                                    primary:
+                                    {
+                                        label: __(`Create`),
+                                        click: function ({ name, users })
                                         {
                                             dialog.hide()
                                             
+                                            // MultiSelect, y u no JSON? :(
+                                            if ( users )
+                                            {
+                                                users = users.split(", ")
+                                                users = users.slice(0, users.length - 1)
+                                            }
+                                            
                                             // Don't Worry, frappe.chat.room.on.create gets triggered that then subscribes and adds to DOM. :)
-                                            frappe.chat.room.create("Direct", null, user)
+                                            frappe.chat.room.create("Group", null, users, name)
                                         }
-                                    }
-                                },
-                                secondary:
-                                {
-                                    label: frappe._.is_mobile() ? "<b>&times</b>" : __(`Cancel`)
-                                }
-                             }
-                        })
-                        dialog.show()
-                    }
-                },
-                {
-                    label: __("New Group"),
-                     icon: "octicon octicon-organization",
-                    click: function ( )
-                    {
-                        const dialog = new frappe.ui.Dialog({
-                              title: __("New Group"),
-                            animate: false,
-                             fields: [
-                                {
-                                        label: __("Name"),
-                                    fieldname: "name",
-                                    fieldtype: "Data",
-                                         reqd: true
-                                },
-                                {   
-                                        label: __("Select Users"),
-                                    fieldname: "users",
-                                    fieldtype: "MultiSelect",
-                                      options: Object.keys(frappe.boot.user_info).map(key => frappe.boot.user_info[key].email)
-                                }
-                             ],
-                             action:
-                             {
-                                primary:
-                                {
-                                    label: __(`Create`),
-                                    click: function ({ name, users })
+                                    },
+                                    secondary:
                                     {
-                                        dialog.hide()
-                                        
-                                        // MultiSelect, y u no JSON? :(
-                                        if ( users )
-                                        {
-                                            users = users.split(", ")
-                                            users = users.slice(0, users.length - 1)
-                                        }
-                                        
-                                        // Don't Worry, frappe.chat.room.on.create gets triggered that then subscribes and adds to DOM. :)
-                                        frappe.chat.room.create("Group", null, users, name)
+                                        label: frappe._.is_mobile() ? "<b>&times</b>" : __(`Cancel`)
                                     }
-                                },
-                                secondary:
-                                {
-                                    label: frappe._.is_mobile() ? "<b>&times</b>" : __(`Cancel`)
-                                }
-                             }
-                        })
-
-                        dialog.show()
+                                 }
+                            })
+    
+                            dialog.show()
+                        }
                     }
-                }
-            ],
+                ]
+            },
             change: function (query)
             {
                 me.set_state({
@@ -1689,10 +1692,10 @@ class extends Component
 
         const component  = props.layout === frappe.Chat.Layout.POPPER ?
             state.profile.display_widget ?
-                h(frappe.Chat.Widget.Popper, { page: state.room.name && Room, target: props.target,
+                h(frappe.Chat.Widget.Popper, { heading: ActionBar, page: state.room.name && Room, target: props.target,
                     toggle: (t) => this.set_state({ toggle: t }) },
                     h("span", null,
-                        ActionBar, RoomList
+                        RoomList
                     )
                 ) : null
             :
@@ -1782,24 +1785,8 @@ class extends Component
                     h("div", { class: "frappe-chat-popper-collapse" },
                         props.page ? props.page : (
                             h("div", { class: `panel panel-default ${frappe._.is_mobile() ? "panel-span" : ""}` },
-                                h("div", { class: "panel-heading cursor-pointer", onclick: () => this.toggle(false) },
-                                    h("div", { class: "row" },
-                                        h("div", { class: "col-xs-9" }),
-                                        h("div", { class: "col-xs-3" },
-                                            h("div", { class: "text-right" },
-                                                // !frappe._.is_mobile() ?
-                                                //     h("a", { class: "action", onclick: () =>
-                                                //         {
-                                                //          
-                                                //         }},
-                                                //         h(frappe.components.FontAwesome, { type: "expand", fixed: true })
-                                                //     ) : null,
-                                                h("a", { class: "action", onclick: () => this.toggle(false) },
-                                                    h(frappe.components.Octicon, { type: "x" })
-                                                )
-                                            )
-                                        )
-                                    )
+                                h("div", { class: "panel-heading" },
+                                    props.heading
                                 ),
                                 h("div", { class: "panel-body" },
                                     props.children
@@ -1859,33 +1846,24 @@ class extends Component
     {
         const { props, state } = this
         const popper           =  props.layout === frappe.Chat.Layout.POPPER
+        const { menu }         = props
 
         return (
-            h("form", { oninput: this.change, onsubmit: this.submit },
-                h("div", { class: "form-group" },
-                    h("div", { class: "input-group input-group-sm" },
-                        props.span || props.layout !== frappe.Chat.Layout.PAGE ?
-                            h("div", { class: "input-group-addon" },
-                                h(frappe.components.Octicon, { type: "search" })
-                            ) : null,
-                        h("input", { class: "form-control", name: "query", value: state.query, placeholder: "Search" }),
-                        Array.isArray(props.actions) ?
-                            h("div", { class: "input-group-btn" },
-                                h(frappe.components.Button, { type: "default", class: "dropdown-toggle", "data-toggle": "dropdown" },
-                                    h(frappe.components.Octicon, { type: "plus" })
-                                ),
-                                h("ul", { class: "dropdown-menu dropdown-menu-right" },
-                                    props.actions.map(action =>
-                                        h("li", null,
-                                            h("a", { onclick: action.click },
-                                                h(frappe.Chat.Widget.ActionBar.Action, { ...action })
-                                            )
-                                        )
-                                    )
-                                )
-                            ) : null
-                    )
-                )
+            h("div", { class: `frappe-chat-action-bar ${props.class ? props.class : ""}` },
+                h("form", { oninput: this.change, onsubmit: this.submit },
+                    h("input", { class: "form-control", name: "query", value: state.query, placeholder: "Search" }),
+                ),
+                !frappe._.is_empty(menu) ?
+                    h("div", { class: "dropdown" },
+                        h(frappe.components.Button, { class: "btn-sm dropdown-toggle", "data-toggle": "dropdown" }, 
+                            `${menu.label} `, h("span", { class: "caret" })
+                        ),
+                        h("ul", { class: "dropdown-menu dropdown-menu-right" },
+                            props.menu.actions.map(action => 
+                                h("li","",h("a", { onclick: action.click }, action.label))
+                            )
+                        )
+                    ) : null
             )
         )
     }
@@ -1893,7 +1871,6 @@ class extends Component
 frappe.Chat.Widget.ActionBar.defaultState
 =
 {
-     span: false,
     query: null
 }
 
@@ -1909,11 +1886,8 @@ class extends Component
         const { props } = this
 
         return (
-            h("span", null,
-                props.icon ?
-                    h("i", { class: props.icon })
-                    :
-                    null,
+            h(frappe.components.Button,"",
+                props.icon ? h("i", { class: props.icon }) : null,
                 `${props.icon ? " " : ""}${props.label}`
             )
         )

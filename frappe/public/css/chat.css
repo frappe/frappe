@@ -21,13 +21,19 @@
   position: fixed;
   bottom: 0px;
   right: 0px;
-  margin: 20px;
+  margin: 15px;
   z-index: 1035;
 }
 .frappe-chat > .frappe-chat-popper > .frappe-chat-popper-collapse > .panel {
   width: 350px;
   height: 500px;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+}
+.frappe-chat > .frappe-chat-popper > .frappe-chat-popper-collapse > .panel .panel-heading .frappe-chat-action-bar form {
+  width: 100%;
+}
+.frappe-chat > .frappe-chat-popper > .frappe-chat-popper-collapse > .panel .panel-heading .frappe-chat-action-bar .dropdown {
+  margin-left: 5px !important;
 }
 .frappe-chat > .frappe-chat-popper > .frappe-chat-popper-collapse > .panel .panel-body .frappe-chat-room-list {
   height: 400px;
