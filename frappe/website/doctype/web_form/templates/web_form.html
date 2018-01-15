@@ -112,6 +112,14 @@
 			{%- if field.max_length %} maxlength={{ field.max_length }}{% endif %}>
 		{{ help(field) }}
 	</div>
+    {% elif field.fieldtype == "Password" %}
+	<div class="form-group{% if field.reqd %} has-error{% endif %}">
+		{% if with_label %}{{ label(field) }}{% endif %}
+		<input type="password" class="form-control" {{ properties(field) }}
+			value="{{ value(field, _doc) }}"
+			{%- if field.max_length %} maxlength={{ field.max_length }}{% endif %}>
+		{{ help(field) }}
+	</div>
 	{% elif field.fieldtype=="Link" %}
 	<div class="form-group{% if field.reqd %} has-error{% endif %}">
 		{% if with_label %}{{ label(field) }}{% endif %}
