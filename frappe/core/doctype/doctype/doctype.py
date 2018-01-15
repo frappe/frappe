@@ -54,6 +54,7 @@ class DocType(Document):
 
 		self.scrub_field_names()
 		self.set_default_in_list_view()
+		self.set_default_translatable()
 		self.validate_series()
 		self.validate_document_type()
 		validate_fields(self)
@@ -85,6 +86,13 @@ class DocType(Document):
 					d.in_list_view = 1
 					cnt += 1
 					if cnt == 4: break
+
+	def set_default_translatable(self):
+		'''Ensure that non-translatable never will be translatable'''
+		for d in self.fields:
+			if d.fieldtype not in ['Data', 'Select', 'Text', 'Small Text', 'Text Editor'] \
+				and d.translatable:
+				d.translatable = False
 
 	def check_developer_mode(self):
 		"""Throw exception if not developer mode or via patch"""

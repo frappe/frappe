@@ -191,8 +191,10 @@ class BaseDocument(object):
 				or (not isinstance(value, string_types)
 					and value not in link_fields):
 				d[fieldname] = value
-			else:
+			elif self.meta.is_translatable(fieldname):
 				d[fieldname] = _(value)
+			else:
+				d[fieldname] = value
 
 			# if no need for sanitization and value is None, continue
 			if not sanitize and d[fieldname] is None:
@@ -686,7 +688,7 @@ class BaseDocument(object):
 
 		val = self.get(fieldname)
 
-		if translated:
+		if translated and self.meta.is_translatable(fieldname):
 			val = _(val)
 
 		if absolute_value and isinstance(val, (int, float)):

@@ -38,6 +38,12 @@ frappe.views.TranslationManager = Class.extend({
 				'fieldtype': 'Text',
 				'default': translated
 			});
+			fields.push({
+				'label': __('Remove Translation'),
+				'fieldname': ['delete', md5(self.source_text), lang].join('_'),
+				'fieldtype': 'Check',
+				'default': 0
+			});
 		});
 		return fields;
 	},
@@ -47,22 +53,31 @@ frappe.views.TranslationManager = Class.extend({
 			translated = {
 				'source': self.source_text, 
 				'language': frappe.defaults.get_global_default('language')
-			}, key, splitted;
+			}, key, splitted, for_removal = [];
 
 		for (key in args){
 			splitted = key.split("_");
-			translated[splitted[splitted.length - 1]] = args[key];
+
+			if (splitted[0] == 'delete' && args[key] === 1){
+				for_removal.push(splitted[2])
+			} else if (splitted[0] != 'delete' && !for_removal.includes(splitted[2]) && args[key] && args[key.replace('trans', 'delete')] !== 1) {
+				translated[splitted[2]] = args[key];
+			}
 		}
 		frappe.call({
 			'method': 'frappe.translate.update_record_translation',
 			'args': {
-				'translated': translated
+				'translated': translated,
+				'for_removal': for_removal
 			},
 			'callback': function(res){
 				if (!res.exc){
-					cur_dialog.hide();
-					frappe.show_alert({messsage: __("Translations updated"), indicator:"green"})
-					cur_frm.reload_doc();
+					// Wont work properly without an setTimeout
+					setTimeout(function(){
+						cur_dialog.hide();
+						frappe.show_alert({message: __("Translations updated"), indicator:"green"})
+						cur_frm.refresh();
+					}, 500);
 				}
 			}
 		});

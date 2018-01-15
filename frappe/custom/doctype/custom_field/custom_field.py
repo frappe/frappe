@@ -39,6 +39,9 @@ class CustomField(Document):
 		if not self.fieldname:
 			frappe.throw(_("Fieldname not set for Custom Field"))
 
+		if self.translatable and self.fieldtype in ("Data", "Select", "Text", "Small Text", "Text Editor"):
+			self.translatable = 0
+
 		if not self.flags.ignore_validate:
 			from frappe.core.doctype.doctype.doctype import check_if_fieldname_conflicts_with_methods
 			check_if_fieldname_conflicts_with_methods(self.dt, self.fieldname)

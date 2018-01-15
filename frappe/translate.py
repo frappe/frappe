@@ -735,19 +735,30 @@ def rename_language(old_name, new_name):
 
 
 @frappe.whitelist()
-def update_record_translation(translated):
+def update_record_translation(translated, for_removal):
 	if isinstance(translated, string_types):
 		translated = json.loads(translated)
+	if isinstance(for_removal, string_types):
+		for_removal = json.loads(for_removal)
 
 	source = translated['source']
 	for lang, target in translated.items():
 		if lang in ('source', 'language'):
 			continue
 
-		frappe.get_doc({
-			'doctype': 'Translation',
-			'language': lang,
-			'source_name': source
-		}).update({
-			'target_name': target
+		existing = frappe.db.exists('Translation', {'language': lang, 'source_name': ["like", source]})
+		if existing:
+			doc = frappe.get_doc('Translation', existing)
+		else:
+			doc = frappe.new_doc('Translation')
+
+		doc.update({
+			'source_name': source,
+			'target_name': target,
+			'language': lang
 		}).save()
+	
+	for lang in for_removal:
+		existing = frappe.db.exists('Translation', {'language': lang, 'source_name': ['like', source]})
+		if existing:
+			frappe.delete_doc('Translation', existing)

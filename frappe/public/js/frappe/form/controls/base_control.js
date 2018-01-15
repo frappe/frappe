@@ -100,7 +100,7 @@ frappe.ui.form.Control = Class.extend({
 		// Disable translation non-string fields or special string fields
 		if (!value
 			|| !frappe.model.can_write('Translation')
-			|| !(['Data', 'Select', 'Text', 'Small Text', 'Text Editor'].includes(this.df.fieldtype))
+			|| !this.df.translatable
 			|| !this.frm ) return;
 		
 		// Disable translation in website
