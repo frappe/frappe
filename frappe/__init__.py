@@ -14,7 +14,7 @@ import os, sys, importlib, inspect, json
 from .exceptions import *
 from .utils.jinja import get_jenv, get_template, render_template, get_email_from_template
 
-__version__ = '10.0.8'
+__version__ = '10.0.9'
 __title__ = "Frappe Framework"
 
 local = Local()
@@ -1250,7 +1250,7 @@ def get_print(doctype=None, name=None, print_format=None, style=None, html=None,
 	else:
 		return html
 
-def attach_print(doctype, name, file_name=None, print_format=None, style=None, html=None, doc=None):
+def attach_print(doctype, name, file_name=None, print_format=None, style=None, html=None, doc=None, lang=None):
 	from frappe.utils import scrub_urls
 
 	if not file_name: file_name = name
@@ -1258,6 +1258,10 @@ def attach_print(doctype, name, file_name=None, print_format=None, style=None, h
 
 	print_settings = db.get_singles_dict("Print Settings")
 
+	_lang = local.lang
+
+	#set lang as specified in print format attachment
+	if lang: local.lang = lang
 	local.flags.ignore_print_permissions = True
 
 	if int(print_settings.send_print_as_pdf or 0):
@@ -1272,6 +1276,8 @@ def attach_print(doctype, name, file_name=None, print_format=None, style=None, h
 		}
 
 	local.flags.ignore_print_permissions = False
+	#reset lang to original local lang
+	local.lang = _lang
 
 	return out
 
