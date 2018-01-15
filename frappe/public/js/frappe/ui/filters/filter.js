@@ -148,6 +148,14 @@ frappe.ui.Filter = class {
 	make_field(df, old_fieldtype) {
 		let old_text = this.field ? this.field.get_value() : null;
 
+		if(df.fieldtype=="DateRange") {
+			this.filter_edit_area.find('.condition option[value="like"]').hide();
+			this.filter_edit_area.find('.condition option[value="not like"]').hide();
+		} else {
+			this.filter_edit_area.find('.condition option[value="like"]').show();
+			this.filter_edit_area.find('.condition option[value="not like"]').show();
+		}
+
 		let field_area = this.filter_edit_area.find('.filter-field').empty().get(0);
 		let f = frappe.ui.form.make_control({
 			df: df,
