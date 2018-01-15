@@ -5,7 +5,7 @@ Use Facebook, Google or GitHub authentication to login to Frappé, and your user
 The system uses the **Email Address** supplied by these services to **match with an existing user** in Frappé. If no such user is found, **a new user is created** of the default type **Website User**, if Signup is not disabled in Website Settings. Any System Manager can later change the user type from **Website User** to **System User**, so that the user can access the Desktop.
 
 #### Login screen with Social Logins enabled
-<img class="screenshot" alt="Login screen with Social Logins enabled" src="/docs/assets/img/social-logins.png">
+<img class="screenshot" alt="Login screen with Social Logins enabled" src="/assets/frappe_docs/assets/img/social-logins.png">
 
 To enable these signups, you need to have **Client ID** and **Client Secret** from these authentication services for your Frappé site. The Client ID and Client Secret are to be set in Website > Setup > Social Login Keys. Here are the steps to obtain these credentials.
 

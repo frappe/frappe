@@ -4,7 +4,7 @@ Frappé provides a group of standard dialogs that are very useful while coding.
 
 ## Alert Dialog
 
-<img class="screenshot" src="/docs/assets/img/app-development/show-alert.png">
+<img class="screenshot" src="/assets/frappe_docs/assets/img/app-development/show-alert.png">
 
 Alert Dialog is used for showing non-obstructive messages.
 
@@ -21,7 +21,7 @@ It has 2 parameters:
 
 ## Prompt Dialog
 
-<img class="screenshot" src="/docs/assets/img/app-development/prompt.png">
+<img class="screenshot" src="/assets/frappe_docs/assets/img/app-development/prompt.png">
 
 Prompt Dialog is used for collecting data from users.
 
@@ -47,7 +47,7 @@ It has 4 parameters:
 ---
 ## Confirm Dialog
 
-<img class="screenshot" src="/docs/assets/img/app-development/confirm-dialog.png">
+<img class="screenshot" src="/assets/frappe_docs/assets/img/app-development/confirm-dialog.png">
 
 Confirm Dialog is used to get a confirmation from the user before executing an action.
 
@@ -73,7 +73,7 @@ It has 3 arguments:
 
 ## Message Print
 
-<img class="screenshot" src="/docs/assets/img/app-development/msgprint.png">
+<img class="screenshot" src="/assets/frappe_docs/assets/img/app-development/msgprint.png">
 
 Message Print is used for showing information to users.
 
@@ -96,7 +96,7 @@ It has 2 arguments:
 
 ### Custom Dialog
 
-<img class="screenshot" src="/docs/assets/img/app-development/dialog.png">
+<img class="screenshot" src="/assets/frappe_docs/assets/img/app-development/dialog.png">
 
 You can extend and build your own custom dialogs using `frappe.ui.Dialog`
 

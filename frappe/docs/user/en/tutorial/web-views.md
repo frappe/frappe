@@ -16,11 +16,11 @@ Let us look at the standard Web Views:
 
 If you are logged in as the test user, go to `/article` and you should see the list of articles:
 
-<img class="screenshot" alt="web list" src="/docs/assets/img/web-list.png">
+<img class="screenshot" alt="web list" src="/assets/frappe_docs/assets/img/web-list.png">
 
 Click on one article and you will see the default web view
 
-<img class="screenshot" alt="web view" src="/docs/assets/img/web-view.png">
+<img class="screenshot" alt="web view" src="/assets/frappe_docs/assets/img/web-view.png">
 
 Now if you want to make a better list view for the article, drop a file called `row_template.html` in the
 `library_management/templates/includes/list/` folder. Here is an example file:
@@ -46,7 +46,7 @@ Here, you will get all the properties of the article in the `doc` object.
 
 The updated list view looks like this!
 
-<img class="screenshot" alt="new web list" src="/docs/assets/img/web-list-new.png">
+<img class="screenshot" alt="new web list" src="/assets/frappe_docs/assets/img/web-list-new.png">
 
 #### Home Page
 

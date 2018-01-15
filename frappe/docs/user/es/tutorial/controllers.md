@@ -48,7 +48,7 @@ En este script:
 
 Verifica si sus validaciones funcionan creando nuevos registros.
 
-<img class="screenshot" alt="Transaction" src="/docs/assets/img/lib_trans.png">
+<img class="screenshot" alt="Transaction" src="/assets/frappe_docs/assets/img/lib_trans.png">
 
 #### Depurando
 

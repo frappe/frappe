@@ -4,7 +4,7 @@ Définissons un nouveau **DocType**:
 
 1. Library Member (First Name, Last Name, Email Address, Phone, Address)
 
-<img class="screenshot" alt="Doctype Saved" src="/docs/assets/img/naming_doctype.png">
+<img class="screenshot" alt="Doctype Saved" src="/assets/frappe_docs/assets/img/naming_doctype.png">
 
 
 #### Le nommage des DocTypes
@@ -21,7 +21,7 @@ Cela peut être configuré par le champs **Autoname**. Pour le controleur, laiss
 > **Search Fields**: Un **DocType** peut être nommé sur la base d'une serie mais nous devons toujours pouvoir le chercher par un nom. 
 Dans notre cas, l'arcicle peut etre cherché par un titre ou par l'auteur. Remplissons donc le champs **Search Fields**.
 
-<img class="screenshot" alt="Autonaming and Search Field" src="/docs/assets/img/autoname_and_search_field.png">
+<img class="screenshot" alt="Autonaming and Search Field" src="/assets/frappe_docs/assets/img/autoname_and_search_field.png">
 
 #### Relation et champs select
 
@@ -34,12 +34,12 @@ Dans notre exemple, pour le **doctype** `Library Transaction`, nous avons un lie
 d'indexer la colonne. Cela pourrait ne pas être optimum, c'est pour cela que la validation de la clé étrangère est faite 
 par le framework.
 
-<img class="screenshot" alt="Link Field" src="/docs/assets/img/link_field.png">
+<img class="screenshot" alt="Link Field" src="/assets/frappe_docs/assets/img/link_field.png">
 
 Pour les champs **select**, comme mentionné plus tôt, ajoutez chacune des options dans le champs **Options**, chaque 
 option sur une nouvelle ligne.
 
-<img class="screenshot" alt="Select Field" src="/docs/assets/img/select_field.png">
+<img class="screenshot" alt="Select Field" src="/assets/frappe_docs/assets/img/select_field.png">
 
 faites de même pour les autres modèles.
 
@@ -52,7 +52,7 @@ Pour cela, nous pouvons utiliser des champs en lecture seules et, dans les optio
 et le nom du champs de la propriété que nous voulons parcourir. Dans cet exemple, dans **Member First Name** nous pouvons 
 définir `library_member.first_name`
 
-<img class="screenshot" alt="Fetch values" src="/docs/assets/img/fetch.png">
+<img class="screenshot" alt="Fetch values" src="/assets/frappe_docs/assets/img/fetch.png">
 
 ### Completer les Modeles
 
@@ -60,19 +60,19 @@ De la même facon, vous pouvez compléter les autres modèles pour qu'au final l
 
 #### Article
 
-<img class="screenshot" alt="Article" src="/docs/assets/img/doctype_article.png">
+<img class="screenshot" alt="Article" src="/assets/frappe_docs/assets/img/doctype_article.png">
 
 #### Library Member
 
-<img class="screenshot" alt="Library Member" src="/docs/assets/img/doctype_lib_member.png">
+<img class="screenshot" alt="Library Member" src="/assets/frappe_docs/assets/img/doctype_lib_member.png">
 
 #### Library Membership
 
-<img class="screenshot" alt="Library Membership" src="/docs/assets/img/doctype_lib_membership.png">
+<img class="screenshot" alt="Library Membership" src="/assets/frappe_docs/assets/img/doctype_lib_membership.png">
 
 #### Library Transaction
 
-<img class="screenshot" alt="Library Transaction" src="/docs/assets/img/doctype_lib_trans.png">
+<img class="screenshot" alt="Library Transaction" src="/assets/frappe_docs/assets/img/doctype_lib_trans.png">
 
 > Vérifiez que le modèles **Librarian** aient les permissions sur chaque **DocType**.
 

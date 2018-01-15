@@ -6,7 +6,7 @@ Para crear un nuevo **DocType**, ir a:
 
 > Developer > Documents > Doctype > New
 
-<img class="screenshot" alt="New Doctype" src="/docs/assets/img/doctype_new.png">
+<img class="screenshot" alt="New Doctype" src="/assets/frappe_docs/assets/img/doctype_new.png">
 
 En el DocType, primero el módulo, lo que en nuestro caso es **Library Management**
 
@@ -26,7 +26,7 @@ Fields are much more than database columns, they can be:
 
 Vamos a agregar los campos de el Article.
 
-<img class="screenshot" alt="Adding Fields" src="/docs/assets/img/doctype_adding_field.png">
+<img class="screenshot" alt="Adding Fields" src="/assets/frappe_docs/assets/img/doctype_adding_field.png">
 
 Cuando agredas los campos, necesitas llenar el campo **Type**. **Label** es opcional para los Section Break y Column Break. **Name** (`fieldname`) es el nombre de la columna en la tabla de la base de datos y tambien el nombre de la propiedad para el controlador. Esto tiene que ser *code friendly*, i.e. Necesitas poner _ en lugar de " ". Si dejas en blanco este campo, se va a llenar automáticamente al momento de guardar.
 
@@ -48,7 +48,7 @@ Podemos agregar los siguientes campos:
 
 Despues de agregar los campos, dar click en hecho y agrega una nueva fila en la sección de Permission Roles. Por ahora, vamos a darle accesos Lectura, Escritura, Creación y Reportes al Role **Librarian**. Frappé cuenta con un sistema basados en el modelo de Roles finamente granulado. Puedes cambiar los permisos más adealante usando el **Role Permissions Manager** desde **Setup**.
 
-<img class="screenshot" alt="Adding Permissions" src="/docs/assets/img/doctype_adding_permission.png">
+<img class="screenshot" alt="Adding Permissions" src="/assets/frappe_docs/assets/img/doctype_adding_permission.png">
 
 #### Guardando
 

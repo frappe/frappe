@@ -12,7 +12,7 @@ Crea un nuevo Usuario y llena los campos de nombre, primer nombre y nueva contra
 
 Luego dale los Roles de Librarian y de Library Member a este usuario.
 
-<img class="screenshot" alt="Add User Roles" src="/docs/assets/img/add_user_roles.png">
+<img class="screenshot" alt="Add User Roles" src="/assets/frappe_docs/assets/img/add_user_roles.png">
 
 Ahora cierra sesión y accede usando las credenciales del nuevo usuario.
 
@@ -20,36 +20,36 @@ Ahora cierra sesión y accede usando las credenciales del nuevo usuario.
 
 Debes ver un ícono del módulo de Library Management. Dar click en el ícono para entrar a la página del módulo:
 
-<img class="screenshot" alt="Library Management Module" src="/docs/assets/img/lib_management_module.png">
+<img class="screenshot" alt="Library Management Module" src="/assets/frappe_docs/assets/img/lib_management_module.png">
 
 Aquí puedes ver los DocTypes que fueron creados para la aplicación. Vamos a comenzar a crear nuevos registros.
 
 Primero vamos a crear un nuevo Article:
 
-<img class="screenshot" alt="New Article" src="/docs/assets/img/new_article_blank.png">
+<img class="screenshot" alt="New Article" src="/assets/frappe_docs/assets/img/new_article_blank.png">
 
 Aquí vas a ver que los DocTypes que haz creado han sido renderizados como un formulario. Las validaciones y las otras restricciones también están aplicadas según se diseñaron. Vamos a llenar los datos de un Article.
 
-<img class="screenshot" alt="New Article" src="/docs/assets/img/new_article.png">
+<img class="screenshot" alt="New Article" src="/assets/frappe_docs/assets/img/new_article.png">
 
 Puedes agregar una imagen si deseas.
 
-<img class="screenshot" alt="Attach Image" src="/docs/assets/img/attach_image.gif">
+<img class="screenshot" alt="Attach Image" src="/assets/frappe_docs/assets/img/attach_image.gif">
 
 Ahora vamos a crear un nuevo miembro:
 
-<img class="screenshot" alt="New Library Member" src="/docs/assets/img/new_member.png">
+<img class="screenshot" alt="New Library Member" src="/assets/frappe_docs/assets/img/new_member.png">
 
 Despues de esto, crearemos una nueva membresía (membership) para el miembro.
 
 Si recuerdas, aquí hemos específicado los valores del nombre y apellido del miembro directamente desde el registro del miembro tan pronto selecciones el miembro id, los nombres serán actualizados.
 
-<img class="screenshot" alt="New Library Membership" src="/docs/assets/img/new_lib_membership.png">
+<img class="screenshot" alt="New Library Membership" src="/assets/frappe_docs/assets/img/new_lib_membership.png">
 
 Como puedes ver la fecha tiene un formato de año-mes-día lo cual es una fecha del sistema. Para seleccionar o cambiar la fecha, tiempo y formatos de números, ir a:
 
 > Setup > Settings > System Settings
 
-<img class="screenshot" alt="System Settings" src="/docs/assets/img/system_settings.png">
+<img class="screenshot" alt="System Settings" src="/assets/frappe_docs/assets/img/system_settings.png">
 
 {next}

@@ -10,7 +10,7 @@ To add Webhook go to
 
 Webhook
 
-<img class="screenshot" src="/docs/assets/img/webhook.png">
+<img class="screenshot" src="/assets/frappe_docs/assets/img/webhook.png">
 
 1. Select the DocType for which hook needs to be triggered e.g. Note
 2. Select the DocEvent for which hook needs to be triggered e.g. on_trash

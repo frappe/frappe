@@ -24,7 +24,7 @@ We should edit `frappe\core\doctype\user\user.js`
 
 You should be seeing a button on user form as shown below,
 
-<img class="screenshot" alt="Custom Button" src="/docs/assets/img/app-development/add_custom_button.png">
+<img class="screenshot" alt="Custom Button" src="/assets/frappe_docs/assets/img/app-development/add_custom_button.png">
 
 
 <!-- markdown -->

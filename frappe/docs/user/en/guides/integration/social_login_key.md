@@ -10,7 +10,7 @@ To add Social Login Key go to
 
 Social Login Key
 
-<img class="screenshot" src="/docs/assets/img/social_login_key.png">
+<img class="screenshot" src="/assets/frappe_docs/assets/img/social_login_key.png">
 
 1. Select the Social Login Provider or select "Custom"
 2. If required for provider enter "Base URL"

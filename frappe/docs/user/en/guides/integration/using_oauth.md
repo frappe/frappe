@@ -20,7 +20,7 @@ redirect_uri = <redirect uri from OAuth Client>
 
 #### Confirmation Dialog
 
-<img class="screenshot" src="/docs/assets/img/oauth_confirmation_page.png">
+<img class="screenshot" src="/assets/frappe_docs/assets/img/oauth_confirmation_page.png">
 
 Click 'Allow' to receive authorization code in redirect uri.
 
