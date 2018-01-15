@@ -247,11 +247,26 @@ frappe.ui.Page = Class.extend({
 
 	//-- Generic --//
 
+	/*
+	* Add label to given drop down menu. If label, is already contained in the drop
+	* down menu, it will be ignored.
+	* @param {string} label - Text for the drop down menu
+	* @param {function} click - function to be called when `label` is clicked
+	* @param {Boolean} standard
+	* @param {object} parent - DOM object representing the parent of the drop down item lists
+	*/
 	add_dropdown_item: function(label, click, standard, parent) {
+		const is_already_added = () => {
+			let found_lists = $(parent).find('li > a.grey-link:contains(' + label + ')');
+			return found_lists.length > 0;
+		}
+
 		parent.parent().removeClass("hide");
 
 		var $li = $('<li><a class="grey-link">'+ label +'</a><li>'),
 			$link = $li.find("a").on("click", click);
+
+		if (is_already_added()) return;
 
 		if(standard===true) {
 			$li.appendTo(parent);
