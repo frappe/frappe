@@ -278,11 +278,18 @@ a.no-decoration:active {
   z-index: 1035;
 }
 .frappe-chat > .frappe-chat-popper > .frappe-chat-popper-collapse > .panel {
+  position: relative;
   display: flex;
   flex-direction: column;
   width: 350px;
   height: 500px;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+}
+.frappe-chat > .frappe-chat-popper > .frappe-chat-popper-collapse > .panel .vcenter {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 .frappe-chat > .frappe-chat-popper > .frappe-chat-popper-collapse > .panel .panel-heading .frappe-chat-action-bar form {
   width: 100%;
@@ -293,6 +300,7 @@ a.no-decoration:active {
 .frappe-chat > .frappe-chat-popper > .frappe-chat-popper-collapse > .panel .frappe-chat-room-list {
   height: 100%;
   overflow-y: auto;
+  padding: 0 1px 0 1px;
 }
 .frappe-chat > .frappe-chat-popper > .frappe-chat-popper-collapse > .panel .frappe-chat-room-list .media .media-heading,
 .frappe-chat > .frappe-chat-popper > .frappe-chat-popper-collapse > .panel .frappe-chat-room-list .media .media-subtitle {

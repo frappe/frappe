@@ -69,11 +69,20 @@
 		{
 			& > .panel
 			{
-				   	   display: flex;
-				flex-direction: column;
-				 	 	 width: @frappe-chat-popper-panel-width;
-						height: @frappe-chat-popper-panel-height;
-					box-shadow: @frappe-chat-popper-panel-box-shadow;
+				       position: relative;
+				  	    display: flex;
+				 flex-direction: column;
+				 	 	  width: @frappe-chat-popper-panel-width;
+						 height: @frappe-chat-popper-panel-height;
+					 box-shadow: @frappe-chat-popper-panel-box-shadow;
+
+				.vcenter
+				{
+					 position: absolute;
+						  top: 50%;
+					 	 left: 50%;
+					transform: translate(-50%, -50%);
+				}
 
 				.panel-heading
 				{
@@ -95,6 +104,7 @@
 				{
 						height: 100%;
 					overflow-y: auto;
+					   padding: 0 1px 0 1px;
 
 					.media
 					{
@@ -144,19 +154,6 @@
 	.panel
 	{
 		margin-bottom: 0px !important;
-
-		.frappe-chat-room-list
-		{
-			.media-body
-			{
-				// HACK: Truncates ChatMessage content.
-				// NOTE: "text-overflow: ellipsis" doesn't work. That's because
-				// 		 media-body has a "display: table-cell" to it.
-				//		 Wouldn't like to mess up BS.
-				// https://github.com/twbs/bootstrap/issues/15958
-				// white-space: nowrap;
-			}
-		}
 
 		.frappe-chat-form
 		{

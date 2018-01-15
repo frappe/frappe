@@ -1677,7 +1677,7 @@ class extends Component
         const rooms      = state.query ? frappe.chat.room.search(state.query, state.rooms) : frappe.chat.room.sort(state.rooms)
         
         const RoomList   = frappe._.is_empty(rooms) && !state.query ?
-            h("div", { style: "margin-top: 165px" },
+            h("div", { class: "vcenter" },
                 h("div", { class: "text-center text-extra-muted" },
                     h("p","",__("You don't have any messages yet."))
                 )
@@ -2198,7 +2198,7 @@ class extends Component
             h("div", { class: "panel-heading" },
                 h("div", { class: "row" },
                     popper ?
-                        h("div", { class: "col-xs-1 vcenter" },
+                        h("div", { class: "col-xs-1" },
                             h("a", { onclick: props.back }, h(frappe.components.Octicon, { type: "chevron-left" }))
                         ) : null,
                     h("div", { class: popper ? "col-xs-10" : "col-xs-9" },
