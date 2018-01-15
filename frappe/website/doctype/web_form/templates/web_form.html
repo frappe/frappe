@@ -19,7 +19,7 @@
 		<a href="{{ cancel_url or pathname }}" class="btn btn-default btn-sm">
 	    	{{ _("Cancel") }}</a>
 		{%- endif %}
-		{% if not is_list %}
+		{% if not is_list and layout|length == 1 %}
 	    <button type="submit" class="btn btn-primary btn-sm btn-form-submit">
 	    		{{ _("Save") }}</button>
 		{% endif %}
@@ -327,7 +327,7 @@
 					{{ _("Previous") }}</button>
 				{%- endif -%}
 				<!-- save/next button -->
-				{% if (loop.index == layout|length and frappe.form_dict.new) %}
+				{% if loop.index == layout|length %}
 					{% if not read_only %}
 				    <button type="submit" class="btn btn-primary btn-sm btn-form-submit">
 				    	{{ _("Save") }}</button>
