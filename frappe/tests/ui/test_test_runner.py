@@ -43,7 +43,7 @@ class TestTestRunner(unittest.TestCase):
 					for line in console:
 						print(line)
 					print('-' * 40)
-				else
+				else:
 					self.assertTrue(passed)
 				time.sleep(1)
 		frappe.db.set_default('in_selenium', None)
