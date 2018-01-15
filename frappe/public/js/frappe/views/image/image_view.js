@@ -18,9 +18,13 @@ frappe.views.ImageView = class ImageView extends frappe.views.ListView {
 		];
 	}
 
-	update_data(data) {
-		super.update_data(data);
-		this.items = this.data.map(this.prepare_data.bind(this));
+	prepare_data(data) {
+		super.prepare_data(data);
+		this.items = this.data.map(d => {
+			// absolute url if cordova, else relative
+			d._image_url = this.get_image_url(d);
+			return d;
+		});
 	}
 
 	render() {
@@ -34,12 +38,6 @@ frappe.views.ImageView = class ImageView extends frappe.views.ListView {
 					this.gallery.prepare_pswp_items(this.items, this.images_map);
 				}
 			});
-	}
-
-	prepare_data(data) {
-		// absolute url if cordova, else relative
-		data._image_url = this.get_image_url(data);
-		return data;
 	}
 
 	render_image_view() {

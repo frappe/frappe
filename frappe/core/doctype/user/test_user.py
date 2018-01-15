@@ -26,6 +26,10 @@ class TestUser(unittest.TestCase):
 			first_name='Tester')).insert()
 		self.assertEquals(new_user.user_type, 'Website User')
 
+		# social login userid for frappe
+		self.assertTrue(new_user.social_logins[0].userid)
+		self.assertEquals(new_user.social_logins[0].provider, "frappe")
+
 		# role with desk access
 		new_user.add_roles('_Test Role 2')
 		new_user.save()

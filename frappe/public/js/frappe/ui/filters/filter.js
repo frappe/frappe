@@ -21,6 +21,9 @@ frappe.ui.Filter = class {
 			filter_fields: this.filter_fields,
 			select: (doctype, fieldname) => {
 				this.set_field(doctype, fieldname);
+			},
+			filter_options: (doctype, fieldname) => {
+				return this.filter_items(doctype, fieldname);
 			}
 		});
 

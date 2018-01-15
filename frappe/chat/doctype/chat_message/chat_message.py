@@ -12,10 +12,12 @@ import frappe
 
 # imports - frappe module imports
 from frappe.chat.util import (
-	get_user_doc,
+	assign_if_empty,
 	check_url,
 	dictify,
-	get_emojis
+	get_emojis,
+	safe_json_loads,
+	get_user_doc
 )
 
 session = frappe.session
@@ -96,13 +98,13 @@ def get_new_chat_message_doc(user, room, content, link = True):
 
 	mess.mentions = json.dumps(meta.mentions)
 	mess.urls     = ','.join(meta.urls)
-	mess.save()
+	mess.save(ignore_permissions = True)
 
 	if link:
 		room.update(dict(
 			last_message = mess.name
 		))
-		room.save()
+		room.save(ignore_permissions = True)
 
 	return mess
 
@@ -146,7 +148,7 @@ def get_messages(room, user = None, fields = None, pagination = 20):
 	user = get_user_doc(user)
 
 	room = frappe.get_doc('Chat Room', room)
-	mess = frappe.get_list('Chat Message',
+	mess = frappe.get_all('Chat Message',
 		filters = [
 			('Chat Message', 'room', '=', room.name),
 			('Chat Message', 'type', '=', room.type)
@@ -160,3 +162,21 @@ def get_messages(room, user = None, fields = None, pagination = 20):
 	)
 
 	return mess
+
+@frappe.whitelist()
+def get(name, rooms = None, fields = None):
+	rooms, fields = safe_json_loads(rooms, fields)
+
+	dmess = frappe.get_doc('Chat Message', name)
+	data  = dict(
+		name     = dmess.name,
+		user     = dmess.user,
+		room     = dmess.room,
+		content  = dmess.content,
+		urls     = dmess.urls,
+		mentions = dmess.mentions,
+		creation = dmess.creation,
+		seen     = assign_if_empty(dmess._seen, [ ])
+	)
+
+	return data

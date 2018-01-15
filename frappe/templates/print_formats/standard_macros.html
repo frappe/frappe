@@ -10,6 +10,13 @@
 		{{ render_image(df, doc) }}
 	{%- elif df.fieldtype=="Geolocation" -%}
 		{{ render_geolocation(df, doc) }}
+	{%- elif df.fieldtype=="Currency" -%}
+		{%- if doc.print_templates and
+				doc.print_templates.get(df.fieldname) -%}
+			{% include doc.print_templates[df.fieldname] %}
+		{%- else -%}
+			{{ render_field_with_label(df, doc) }}
+		{%- endif -%}
 	{%- else -%}
 		{{ render_field_with_label(df, doc) }}
 	{%- endif -%}

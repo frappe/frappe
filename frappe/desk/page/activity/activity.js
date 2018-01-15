@@ -43,7 +43,7 @@ frappe.pages['activity'].on_page_load = function(wrapper) {
 	// Build Report Button
 	if(frappe.boot.user.can_get_report.indexOf("Feed")!=-1) {
 		this.page.add_menu_item(__('Build Report'), function() {
-			frappe.set_route('Report', "Feed");
+			frappe.set_route("List", "Feed", "Report");
 		}, 'fa fa-th')
 	}
 
@@ -52,7 +52,7 @@ frappe.pages['activity'].on_page_load = function(wrapper) {
 			"user": frappe.session.user
 		}
 
-		frappe.set_route('Report', "Activity Log");
+		frappe.set_route("List", "Activity Log", "Report");
 	}, 'fa fa-th')
 
 	this.page.add_menu_item(__('Show Likes'), function() {

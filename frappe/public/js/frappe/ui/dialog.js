@@ -34,7 +34,7 @@ frappe.ui.Dialog = frappe.ui.FieldGroup.extend({
 
 		// show footer
 		this.action = this.action || { primary: { }, secondary: { } };
-		if(this.primary_action || this.action.primary.label) {
+		if(this.primary_action || !frappe.utils.is_empty(this.action.primary)) {
 			this.set_primary_action(this.primary_action_label || this.action.primary.label || __("Submit"), this.primary_action || this.action.primary.click);
 		}
 
