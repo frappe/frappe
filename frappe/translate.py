@@ -757,7 +757,7 @@ def update_record_translation(translated, for_removal):
 			'target_name': target,
 			'language': lang
 		}).save()
-	
+
 	for lang in for_removal:
 		existing = frappe.db.exists('Translation', {'language': lang, 'source_name': ['like', source]})
 		if existing:

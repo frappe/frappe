@@ -75,7 +75,7 @@ frappe.views.TranslationManager = Class.extend({
 					// Wont work properly without an setTimeout
 					setTimeout(function(){
 						cur_dialog.hide();
-						frappe.show_alert({message: __("Translations updated"), indicator:"green"})
+						frappe.show_alert({message: __("Translations updated"), indicator:"green"});
 						cur_frm.refresh();
 					}, 500);
 				}

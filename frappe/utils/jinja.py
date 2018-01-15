@@ -88,7 +88,7 @@ def render_template(template, context, is_path=None):
 		or (template.endswith('.html') and '\n' not in template)):
 			with open(template, 'rb') as f:
 				template = f.read()
-	
+
 	return get_jenv().from_string(_(template)).render(context)
 
 def get_allowed_functions_for_jenv():
