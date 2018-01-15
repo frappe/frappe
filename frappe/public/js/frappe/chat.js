@@ -1674,7 +1674,11 @@ class extends Component
             }
         })
 
-        const rooms      = state.query ? frappe.chat.room.search(state.query, state.rooms) : frappe.chat.room.sort(state.rooms)
+        const contacts   = Object.keys(frappe.boot.user_info).map(key => 
+        {
+            return { owner: frappe.session.user, users: [frappe.boot.user_info[key].email] }
+        })
+        const rooms      = state.query ? frappe.chat.room.search(state.query, state.rooms.concat(contacts)) : frappe.chat.room.sort(state.rooms)
         
         const RoomList   = frappe._.is_empty(rooms) && !state.query ?
             h("div", { class: "vcenter" },
@@ -1683,7 +1687,13 @@ class extends Component
                 )
             )
             :
-            h(frappe.Chat.Widget.RoomList, { rooms: rooms, click: this.room.select })
+            h(frappe.Chat.Widget.RoomList, { rooms: rooms, click: room => 
+            {
+                if ( room.name )
+                    this.room.select(room.name)
+                else
+                    frappe.chat.room.create("Direct", room.owner, frappe._.squash(room.users), ({ name }) => this.room.select(name))
+            }})
         const Room       = h(frappe.Chat.Widget.Room, { ...state.room, layout: props.layout, destroy: () => {
             this.set_state({
                 room: { name: null, messages: [ ] }
@@ -1961,7 +1971,7 @@ class extends Component
 
         return (
             h("li", null,
-                h("a", { class: props.active ? "active": "", onclick: () => props.click(props.name) },
+                h("a", { class: props.active ? "active": "", onclick: () => props.click(props) },
                     h("div", { class: "row" },
                         h("div", { class: "col-xs-9" },
                             h(frappe.Chat.Widget.MediaProfile, { ...item })

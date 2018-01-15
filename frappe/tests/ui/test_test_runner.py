@@ -40,7 +40,6 @@ class TestTestRunner(unittest.TestCase):
 				console = driver.get_console()
 				passed  = 'Test Passed' in console
 				if frappe.flags.tests_verbose or not passed:
-					console = driver.get_console()
 					for line in console:
 						print(line)
 					print('-' * 40)
