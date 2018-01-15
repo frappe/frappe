@@ -320,7 +320,7 @@ frappe._.is_empty = value =>
     if ( value === undefined || value === null )
         empty = true
     else
-    if ( Array.isArray(value) || typeof value === 'string' )
+    if ( Array.isArray(value) || typeof value === 'string' || value instanceof $ )
         empty = value.length === 0
     else
     if ( typeof value === 'object' )
@@ -997,7 +997,7 @@ frappe.chat.sound.play  = function (name, volume = 0.1)
 {
     // frappe._.play_sound(`chat-${name}`)
     const $audio = $(`<audio class="chat-audio" volume="${volume}"/>`)
-    if  ( $audio.length === 0 )
+    if  ( frappe._.is_empty($audio) )
         $(document).append($audio)
 
     if  ( !$audio.paused )
@@ -1694,9 +1694,7 @@ class extends Component
             state.profile.display_widget ?
                 h(frappe.Chat.Widget.Popper, { heading: ActionBar, page: state.room.name && Room, target: props.target,
                     toggle: (t) => this.set_state({ toggle: t }) },
-                    h("span", null,
-                        RoomList
-                    )
+                    RoomList
                 ) : null
             :
             h("div", { class: "row" },
@@ -1766,6 +1764,14 @@ class extends Component
         this.props.toggle(toggle)
     }
 
+    on_mounted ( )
+    {
+        $(document.body).on('click', '.page-container, .frappe-chat-popper', ({ currentTarget }) => {
+            if ( $(currentTarget).is('.page-container') )
+                this.toggle(false)
+        })
+    }
+
     render  ( ) 
     {
         const { props, state } = this
@@ -1788,9 +1794,7 @@ class extends Component
                                 h("div", { class: "panel-heading" },
                                     props.heading
                                 ),
-                                h("div", { class: "panel-body" },
-                                    props.children
-                                )
+                                props.children
                             )
                         )
                 ) : null
@@ -1851,7 +1855,7 @@ class extends Component
         return (
             h("div", { class: `frappe-chat-action-bar ${props.class ? props.class : ""}` },
                 h("form", { oninput: this.change, onsubmit: this.submit },
-                    h("input", { class: "form-control", name: "query", value: state.query, placeholder: "Search" }),
+                    h("input", { class: "form-control input-sm", name: "query", value: state.query, placeholder: "Search" }),
                 ),
                 !frappe._.is_empty(menu) ?
                     h("div", { class: "dropdown" },
@@ -1906,7 +1910,7 @@ class extends Component
         const { props } = this
         const rooms     = props.rooms
 
-        return rooms.length ? (
+        return !frappe._.is_empty(rooms) ? (
             h("ul", { class: "frappe-chat-room-list nav nav-pills nav-stacked" },
                 rooms.map(room => h(frappe.Chat.Widget.RoomList.Item, { ...room, click: props.click }))
             )
@@ -1985,7 +1989,7 @@ class extends Component
         const { props } = this
         const position  = frappe.Chat.Widget.MediaProfile.POSITION[props.position || "left"]
         const avatar    = (
-            h("div", { class: `${position.class} media-top` },
+            h("div", { class: `${position.class} media-middle` },
                 h(frappe.components.Avatar, { ...props,
                     title: props.title,
                     image: props.image,
@@ -2001,7 +2005,7 @@ class extends Component
                 h("div", { class: "media-body" },
                     h("div", { class: "media-heading h6 ellipsis", style: `max-width: ${props.width_title || "100%"} display: inline-block` }, props.title),
                     props.content  ? h("div","",h("small","",props.content))  : null,
-                    props.subtitle ? h("div","",h("small", { class: "h6 text-muted" }, props.subtitle)) : null
+                    props.subtitle ? h("div",{ class: "media-subtitle" },h("small", { class: "h6 text-muted" }, props.subtitle)) : null
                 ),
                 position.class === "media-right" ? avatar : null
             )

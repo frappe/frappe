@@ -7,6 +7,8 @@
 
 // http://codeguide.co - @mdo (Author of Bootstrap)
 
+@import "common.less";
+
 // Typography
 @font-weight-bold:										700;
 @font-weight-heavy:										900;
@@ -25,6 +27,8 @@
 // https://github.com/twbs/bootstrap/blob/v3.3.7/less/variables.less#L278
 // Keep z-index of the ChatPopper higher than others, lower than modal background.
 
+@frappe-chat-room-list-content-max-width:				180px;
+
 @frappe-chat-form-font-size:							12px;
 @frappe-chat-form-menu-border-radius:					4px;
 @frappe-chat-form-list-group-height:					150px; // Hints
@@ -38,7 +42,7 @@
 
 // Hacks and Fixes
 // suggested by rushabh@frappe.io. Thanks, Rushabh!
-.avatar { padding: 1px; }
+.avatar { padding: 2px; }
 
 .navbar
 {
@@ -65,9 +69,11 @@
 		{
 			& > .panel
 			{
-				 	 width: @frappe-chat-popper-panel-width;
-					height: @frappe-chat-popper-panel-height;
-				box-shadow: @frappe-chat-popper-panel-box-shadow;
+				   	   display: flex;
+				flex-direction: column;
+				 	 	 width: @frappe-chat-popper-panel-width;
+						height: @frappe-chat-popper-panel-height;
+					box-shadow: @frappe-chat-popper-panel-box-shadow;
 
 				.panel-heading
 				{
@@ -85,12 +91,18 @@
 					}
 				}
 
-				.panel-body
+				.frappe-chat-room-list
 				{
-					.frappe-chat-room-list
+						height: 100%;
+					overflow-y: auto;
+
+					.media
 					{
-						    height: 400px; // Hack, sorry. :(
-						overflow-y: auto;
+						.media-heading, .media-subtitle
+						{
+							.ellipsis;
+							max-width: @frappe-chat-room-list-content-max-width;
+						}
 					}
 				}
 
@@ -142,7 +154,7 @@
 				// 		 media-body has a "display: table-cell" to it.
 				//		 Wouldn't like to mess up BS.
 				// https://github.com/twbs/bootstrap/issues/15958
-				white-space: nowrap;
+				// white-space: nowrap;
 			}
 		}
 
