@@ -561,7 +561,8 @@ frappe.views.CommunicationComposer = Class.extend({
 				return false;
 			}
 		} else {
-			return true;
+			return (frappe.model.get_doc(":Print Settings", "Print Settings") ||
+				{ with_letterhead: 1 }).with_letterhead ? true : false;
 		}
 	},
 
