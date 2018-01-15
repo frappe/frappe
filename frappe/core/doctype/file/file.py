@@ -110,7 +110,7 @@ class File(NestedSet):
 		"""Returns folder size for current folder"""
 		if not folder:
 			folder = self.name
-		file_size =  frappe.db.sql("""select sum(ifnull(file_size,0))
+		file_size =  frappe.db.sql("""select ifnull(sum(file_size), 0)
 			from tabFile where folder=%s """, (folder))[0][0]
 
 		return file_size
