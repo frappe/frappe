@@ -26,6 +26,8 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 		this.setup_chat()
 		// end Frappe Chat
 
+		this.setup_modules_dialog();
+
 		this.setup_progress_dialog();
 		this.bind_events();
 
@@ -36,6 +38,15 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 	{
 		const chat = new frappe.Chat({ target: '.navbar .frappe-chat-toggle' })
 		chat.render()
+	},
+
+	setup_modules_dialog() {
+		this.modules_select = new frappe.ui.toolbar.ModulesSelect();
+
+		$('.navbar-set-desktop-icons').on('click', () => {
+			this.modules_select.show();
+			// frappe.set_route("modules_setup");
+		});
 	},
 
 	bind_events: function() {

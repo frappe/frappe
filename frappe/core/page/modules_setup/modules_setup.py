@@ -25,7 +25,7 @@ def get_context(context):
 			fields = ['name', 'first_name', 'last_name'])
 
 @frappe.whitelist()
-def get_module_icons_html(user=None):
+def get_module_icons(user=None):
 	if user != frappe.session.user:
 		frappe.only_for('System Manager')
 
@@ -36,8 +36,10 @@ def get_module_icons_html(user=None):
 		frappe.cache().hdel('desktop_icons', user)
 		icons = get_user_icons(user)
 
-	return frappe.render_template('frappe/core/page/modules_setup/includes/module_icons.html',
-		{'icons': icons, 'user': user})
+	for icon in icons:
+		icon.value = frappe.db.escape(_(icon.label or icon.module_name))
+
+	return {'icons': icons, 'user': user}
 
 def get_user_icons(user):
 	'''Get user icons for module setup page'''

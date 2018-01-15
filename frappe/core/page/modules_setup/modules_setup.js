@@ -4,6 +4,7 @@ frappe.pages['modules_setup'].on_page_load = function(wrapper) {
 		title: __('Show or Hide Desktop Icons'),
 		single_column: true
 	});
+
 	frappe.modules_setup_page = page;
 
 	page.content = $(frappe.templates.modules_setup).appendTo(page.body);
@@ -34,19 +35,15 @@ frappe.pages['modules_setup'].on_page_load = function(wrapper) {
 		return selected_user;
 	}
 
+	frappe.reload_modules_setup_icons(page);
+
 	// save action
-	page.set_primary_action('Save', function() {
-		var hidden_list = [];
-		page.wrapper.find('input.module-select').each(function() {
-			if(!$(this).is(":checked")) {
-				hidden_list.push($(this).attr('data-module'));
-			}
-		});
+	page.set_primary_action('Save', () => {
 
 		frappe.call({
 			method: 'frappe.core.page.modules_setup.modules_setup.update',
 			args: {
-				hidden_list: hidden_list,
+				hidden_list: page.form.fields_dict.icons.get_unchecked_options(),
 				user: page.get_user()
 			},
 			freeze: true
@@ -69,6 +66,7 @@ frappe.pages['modules_setup'].on_page_load = function(wrapper) {
 	$('.check-all').on('click', function() {
 		$(wrapper).find('input.module-select').prop('checked', $(this).prop('checked'));
 	});
+
 }
 
 frappe.pages['modules_setup'].on_page_show = function(wrapper) {
@@ -85,13 +83,35 @@ frappe.pages['modules_setup'].on_page_show = function(wrapper) {
 // reload modules html (with new hidden / blocked settings for given user)
 frappe.reload_modules_setup_icons = function(page) {
 	frappe.call({
-		method: 'frappe.core.page.modules_setup.modules_setup.get_module_icons_html',
+		method: 'frappe.core.page.modules_setup.modules_setup.get_module_icons',
 		args: {
 			user: page.get_user()
 		},
 		freeze: true,
 		callback: function(r) {
-			page.wrapper.find('.modules-setup-icons').replaceWith(r.message);
+			if(r.message) {
+				const icons = r.message.icons;
+				const user = r.message.user;
+				let $wrapper = page.wrapper.find('.modules-setup-icons');
+				$wrapper.empty();
+				page.form = new frappe.ui.FieldGroup({
+					body: $wrapper.get(0),
+					no_submit_on_enter: true,
+					fields: [
+						{
+							label: __('Icons'),
+							fieldname: "icons",
+							fieldtype: "MultiCheck",
+							options: icons.map(icon => {
+								const uncheck = user ? icon.hidden : icon.blocked;
+								return { label: icon.value, value: icon.value, checked:!uncheck };
+							}),
+							select_all: 1
+						}
+					]
+				});
+				page.form.make();
+			}
 		}
 	});
 }

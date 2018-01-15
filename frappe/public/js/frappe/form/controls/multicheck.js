@@ -52,9 +52,6 @@ frappe.ui.form.ControlMultiCheck = frappe.ui.form.Control.extend({
 			if(Array.isArray(args)) {
 				this.options = args;
 			} else if(Array.isArray(args.options)) {
-				if(args.select_all) {
-					this.select_all = true;
-				}
 				this.options = args.options;
 			}
 		} else {
@@ -69,7 +66,7 @@ frappe.ui.form.ControlMultiCheck = frappe.ui.form.Control.extend({
 		this.options.forEach(option => {
 			this.get_checkbox_element(option).appendTo(this.$checkbox_area);
 		});
-		if(this.select_all) {
+		if(this.df.select_all) {
 			this.setup_select_all();
 		}
 	},
@@ -105,6 +102,10 @@ frappe.ui.form.ControlMultiCheck = frappe.ui.form.Control.extend({
 		this.$select_buttons.find('.deselect-all').on('click', () => {
 			select_all(true);
 		});
+	},
+
+	select_options(options) {
+		//
 	},
 
 	get_value() {
