@@ -43,7 +43,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 		if (!this.report_name) {
 			this.save_view_user_settings({
-				fields: this._fields,
+				fields: this.fields,
 				filters: this.filter_area.get(),
 				order_by: this.sort_selector.get_sql_string(),
 				add_totals_row: this.add_totals_row
@@ -302,19 +302,19 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	}
 
 	set_fields() {
-		if (this.report_name && this.report_doc.json._fields) {
-			this._fields = this.report_doc.json._fields;
+		if (this.report_name && this.report_doc.json.fields) {
+			this.fields = this.report_doc.json.fields;
 			return;
 		}
 
 		// get from user_settings
 		else if (this.view_user_settings.fields) {
-			this._fields = this.view_user_settings.fields;
+			this.fields = this.view_user_settings.fields;
 			return;
 		}
 
 		// get fields from meta
-		this._fields = [];
+		this.fields = [];
 		const add_field = f => this._add_field(f);
 
 		// default fields
@@ -350,10 +350,12 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	}
 
 	build_fields() {
-		this._fields.push(['docstatus', this.doctype]);
+		this.fields.push(['docstatus', this.doctype]);
 		super.build_fields();
+	}
 
-		this.fields = this._fields.map(f => {
+	get_fields() {
+		let fields = this.fields.map(f => {
 			let column_name = frappe.model.get_full_column_name(f[0], f[1]);
 			if (f[1] !== this.doctype) {
 				// child table field
@@ -361,16 +363,16 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			}
 			return column_name;
 		});
-
 		const cdt_name_fields =
 			this.get_unique_cdt_in_view()
 				.map(cdt => frappe.model.get_full_column_name('name', cdt) + ' as ' + `'${cdt}:name'`);
+		fields = fields.concat(cdt_name_fields);
 
-		this.fields = this.fields.concat(cdt_name_fields);
+		return fields;
 	}
 
 	get_unique_cdt_in_view() {
-		return this._fields
+		return this.fields
 			.filter(f => f[1] !== this.doctype)
 			.map(f => f[1])
 			.uniqBy(d => d);
@@ -378,7 +380,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 	add_column_to_datatable(fieldname, doctype, col_index) {
 		const field = [fieldname, doctype];
-		this._fields.splice(col_index, 0, field);
+		this.fields.splice(col_index, 0, field);
 
 		this.add_currency_column(fieldname, doctype, col_index);
 
@@ -396,40 +398,40 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		if (df && df.fieldtype === 'Currency' && df.options && !df.options.includes(':')) {
 			const field = [df.options, doctype];
 			if (col_index === undefined) {
-				this._fields.push(field);
+				this.fields.push(field);
 			} else {
-				this._fields.splice(col_index, 0, field);
+				this.fields.splice(col_index, 0, field);
 			}
 			frappe.show_alert(__('Also adding the dependent currency field {0}', [field[0].bold()]));
 		}
 	}
 
 	remove_column_from_datatable(column) {
-		const index = this._fields.findIndex(f => column.field === f[0]);
+		const index = this.fields.findIndex(f => column.field === f[0]);
 		if (index === -1) return;
-		const field = this._fields[index];
+		const field = this.fields[index];
 		if (field[0] === 'name') {
 			frappe.throw(__('Cannot remove ID field'));
 		}
-		this._fields.splice(index, 1);
+		this.fields.splice(index, 1);
 		this.build_fields();
 		this.setup_columns();
 		this.refresh();
 	}
 
 	switch_column(col1, col2) {
-		const index1 = this._fields.findIndex(f => col1.field === f[0]);
-		const index2 = this._fields.findIndex(f => col2.field === f[0]);
-		const _fields = this._fields.slice();
+		const index1 = this.fields.findIndex(f => col1.field === f[0]);
+		const index2 = this.fields.findIndex(f => col2.field === f[0]);
+		const _fields = this.fields.slice();
 
 		let temp = _fields[index1];
 		_fields[index1] = _fields[index2];
 		_fields[index2] = temp;
 
-		this._fields = _fields;
+		this.fields = _fields;
 		this.build_fields();
 		this.setup_columns();
-		this.save_report_settings();
+		this.	_settings();
 	}
 
 	get_columns_for_picker() {
@@ -476,7 +478,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				.map(df => ({
 					label: __(df.label),
 					value: df.fieldname,
-					checked: this._fields.find(f => f[0] === df.fieldname)
+					checked: this.fields.find(f => f[0] === df.fieldname)
 				}))
 		});
 
@@ -497,7 +499,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 					.map(df => ({
 						label: __(df.label),
 						value: df.fieldname,
-						checked: this._fields.find(f => f[0] === df.fieldname && f[1] === cdt)
+						checked: this.fields.find(f => f[0] === df.fieldname && f[1] === cdt)
 					}))
 			});
 		});
@@ -507,13 +509,13 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 	is_column_added(df) {
 		return Boolean(
-			this._fields.find(f => f[0] === df.fieldname && df.parent === f[1])
+			this.fields.find(f => f[0] === df.fieldname && df.parent === f[1])
 		);
 	}
 
 	setup_columns() {
 		const hide_columns = ['docstatus'];
-		const fields = this._fields.filter(f => !hide_columns.includes(f[0]));
+		const fields = this.fields.filter(f => !hide_columns.includes(f[0]));
 		this.columns = fields.map(f => this.build_column(f));
 	}
 
@@ -645,7 +647,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 					doctype: this.doctype,
 					json: JSON.stringify({
 						filters: this.filter_area.get(),
-						_fields: this._fields,
+						fields: this.fields,
 						order_by: this.sort_selector.get_sql_string(),
 						add_totals_row: this.add_totals_row
 					})
@@ -720,9 +722,9 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 								fields = fields.concat(values[cdt].map(f => [f, cdt]));
 							}
 
-							this._fields = fields;
+							this.fields = fields;
 
-							this._fields.map(f => this.add_currency_column(f[0], f[1]));
+							this.fields.map(f => this.add_currency_column(f[0], f[1]));
 
 							this.build_fields();
 							this.setup_columns();
