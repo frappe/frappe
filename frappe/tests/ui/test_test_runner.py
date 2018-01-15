@@ -35,8 +35,10 @@ class TestTestRunner(unittest.TestCase):
 				driver.click_primary_action()
 				driver.wait_for('#frappe-qunit-done', timeout=timeout)
 				console = driver.get_console()
-				passed = 'Tests Passed' in console
+				passed  = 'Tests Passed' in console
 			finally:
+				console = driver.get_console()
+				passed  = 'Test Passed' in console
 				if frappe.flags.tests_verbose or not passed:
 					console = driver.get_console()
 					for line in console:
