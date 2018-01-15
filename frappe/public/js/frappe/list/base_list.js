@@ -16,8 +16,8 @@ frappe.views.BaseList = class BaseList {
 
 		let tasks = [
 			this.setup_defaults,
-			this.set_stats,
 			this.setup_fields,
+			this.set_stats,
 			// make view
 			this.setup_page,
 			this.setup_page_head,
