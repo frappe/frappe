@@ -26,6 +26,8 @@ def get_context(context):
 
 @frappe.whitelist()
 def get_module_icons(user=None):
+	print("=============")
+	print(user)
 	if user != frappe.session.user:
 		frappe.only_for('System Manager')
 

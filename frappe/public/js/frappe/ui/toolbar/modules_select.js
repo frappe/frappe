@@ -1,23 +1,104 @@
-frappe.provide("frappe.ui.toolbar");
+frappe.provide('frappe.ui.toolbar');
 
 frappe.ui.toolbar.ModulesSelect = class {
 	constructor() {
-		//
+		this.user = frappe.boot.user.name;
+		this.setup();
 	}
 
 	setup() {
 		this.dialog = new frappe.ui.Dialog({
-			//
+			title: __('Set Desktop Icons'),
+			fields: [
+				{
+					label: __('Setup for'),
+					fieldname: 'setup_for',
+					fieldtype: 'Select',
+					options: [
+						{label: __('User'), value: 'user'},
+						{label: __('Everyone'), value: 'everyone'}
+					],
+					default: 'user',
+					onchange: () => {
+						let field = this.$setup_for;
+						if(field.get_value() === 'everyone') {
+							this.$user.$wrapper.hide();
+							this.user = undefined;
+							field.set_description(__('Limit icon choices for all users.'));
+						} else {
+							this.$user.$wrapper.show();
+							field.set_description('');
+						}
+						this.$icons_list.refresh();
+					}
+				},
+				{
+					fieldtype: 'Column Break'
+				},
+				{
+					label: __('User'),
+					fieldname: 'user',
+					fieldtype: 'Link',
+					options: 'User',
+					default: frappe.boot.user.name,
+					onchange: () => {
+						this.user = this.get_value() || frappe.boot.user.name;
+						this.$icons_list.refresh();
+					}
+				},
+				{
+					fieldtype: 'Section Break'
+				},
+				{
+					// label: __('Icons'),
+					fieldname: 'icons',
+					fieldtype: 'MultiCheck',
+					select_all: 1,
+					columns: 2,
+					get_data: () => {
+						return new Promise((resolve) => {
+							frappe.call({
+								method: 'frappe.core.page.modules_setup.modules_setup.get_module_icons',
+								args: {user: this.user},
+								freeze: true,
+								callback: (r) => {
+									const icons = r.message.icons;
+									const user = r.message.user;
+									resolve(icons.map(icon => {
+										const uncheck = user ? icon.hidden : icon.blocked;
+										return { label: icon.value, value: icon.value, checked:!uncheck };
+									}));
+								}
+							})
+						});
+					}
+				}
+			]
 		});
-	}
 
-	render() {
-		//
+		this.dialog.set_primary_action(__('Save'), () => {
+			frappe.call({
+				method: 'frappe.core.page.modules_setup.modules_setup.update',
+				args: {
+					hidden_list: this.$icons_list.get_unchecked_options(),
+					user: this.user
+				},
+				freeze: true,
+				callback: () => {
+					window.location.href = '';
+				}
+			});
+		});
+
+		this.$icons_list = this.dialog.fields_dict.icons;
+		this.$setup_for = this.dialog.fields_dict.setup_for;
+		this.$user = this.dialog.fields_dict.user;
 	}
 
 	show(user) {
 		if(user) {
-			//
+			this.user = user || frappe.boot.user.name;
+			this.$icons_list.refresh();
 		}
 		this.dialog.show();
 	}

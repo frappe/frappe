@@ -82,6 +82,7 @@ frappe.pages['modules_setup'].on_page_show = function(wrapper) {
 
 // reload modules html (with new hidden / blocked settings for given user)
 frappe.reload_modules_setup_icons = function(page) {
+	console.log(page.get_user());
 	frappe.call({
 		method: 'frappe.core.page.modules_setup.modules_setup.get_module_icons',
 		args: {
@@ -90,6 +91,7 @@ frappe.reload_modules_setup_icons = function(page) {
 		freeze: true,
 		callback: function(r) {
 			if(r.message) {
+				console.log('message', r.message);
 				const icons = r.message.icons;
 				const user = r.message.user;
 				let $wrapper = page.wrapper.find('.modules-setup-icons');
