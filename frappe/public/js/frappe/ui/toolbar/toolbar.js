@@ -293,7 +293,11 @@ frappe.ui.toolbar.download_backup = function() {
 }
 
 frappe.ui.toolbar.show_about = function() {
-	try { frappe.ui.misc.about(); }
-	catch(e) { console.log(e); }
+	try {
+		frappe.ui.misc.about();
+	}
+	catch(e) {
+		console.log(e);
+	}
 	return false;
 }

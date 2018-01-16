@@ -66,7 +66,7 @@ frappe.ui.toolbar.ModulesSelect = class {
 										return { label: icon.value, value: icon.value, checked:!uncheck };
 									}));
 								}
-							})
+							});
 						});
 					}
 				}
@@ -99,4 +99,4 @@ frappe.ui.toolbar.ModulesSelect = class {
 		}
 		this.dialog.show();
 	}
-}
+};
