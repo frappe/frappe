@@ -63,6 +63,8 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	}
 
 	render() {
+		if (this.data.length === 0) return;
+
 		if (this.datatable) {
 			this.datatable.refresh(this.get_data(this.data));
 			return;
