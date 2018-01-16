@@ -115,7 +115,7 @@ frappe.ui.Filter = class {
 		let cur = {};
 		if(this.field) for(let k in this.field.df) cur[k] = this.field.df[k];
 
-		let original_docfield = this.fieldselect.fields_by_name[doctype][fieldname];
+		let original_docfield = (this.fieldselect.fields_by_name[doctype] || {})[fieldname];
 		if(!original_docfield) {
 			frappe.msgprint(__("Field {0} is not selectable.", [fieldname]));
 			return;
