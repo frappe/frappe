@@ -27,14 +27,13 @@ frappe.ui.toolbar.ModulesSelect = class {
 							field.set_description(__('Limit icon choices for all users.'));
 						} else {
 							this.$user.$wrapper.show();
+							this.user = this.$user.get_value();
 							field.set_description('');
 						}
 						this.$icons_list.refresh();
 					}
 				},
-				{
-					fieldtype: 'Column Break'
-				},
+				{ fieldtype: 'Column Break' },
 				{
 					label: __('User'),
 					fieldname: 'user',
@@ -46,9 +45,7 @@ frappe.ui.toolbar.ModulesSelect = class {
 						this.$icons_list.refresh();
 					}
 				},
-				{
-					fieldtype: 'Section Break'
-				},
+				{ fieldtype: 'Section Break' },
 				{
 					// label: __('Icons'),
 					fieldname: 'icons',
@@ -58,7 +55,7 @@ frappe.ui.toolbar.ModulesSelect = class {
 					get_data: () => {
 						return new Promise((resolve) => {
 							frappe.call({
-								method: 'frappe.core.page.modules_setup.modules_setup.get_module_icons',
+								method: 'frappe.desk.doctype.desktop_icon.desktop_icon.get_module_icons',
 								args: {user: this.user},
 								freeze: true,
 								callback: (r) => {
@@ -78,7 +75,7 @@ frappe.ui.toolbar.ModulesSelect = class {
 
 		this.dialog.set_primary_action(__('Save'), () => {
 			frappe.call({
-				method: 'frappe.core.page.modules_setup.modules_setup.update',
+				method: 'frappe.desk.doctype.desktop_icon.desktop_icon.update_icons',
 				args: {
 					hidden_list: this.$icons_list.get_unchecked_options(),
 					user: this.user

@@ -109,9 +109,7 @@ frappe.ui.form.ControlMultiCheck = frappe.ui.form.Control.extend({
 	select_options(selected_options) {
 		this.options.map(option => option.value).forEach(value => {
 			let $checkbox = $(this.wrapper).find(`:checkbox[data-unit="${value}"]`)[0];
-			if($checkbox) {
-				$checkbox.checked = selected_options.includes(value);
-			}
+			if($checkbox) $checkbox.checked = selected_options.includes(value);
 		});
 	},
 

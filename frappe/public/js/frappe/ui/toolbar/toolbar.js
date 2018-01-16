@@ -27,25 +27,21 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 		// end Frappe Chat
 
 		this.setup_modules_dialog();
-
 		this.setup_progress_dialog();
 		this.bind_events();
 
 		$(document).trigger('toolbar_setup');
 	},
 
-	setup_chat ( )
-	{
-		const chat = new frappe.Chat({ target: '.navbar .frappe-chat-toggle' })
-		chat.render()
+	setup_chat () {
+		const chat = new frappe.Chat({ target: '.navbar .frappe-chat-toggle' });
+		chat.render();
 	},
 
 	setup_modules_dialog() {
 		this.modules_select = new frappe.ui.toolbar.ModulesSelect();
-
 		$('.navbar-set-desktop-icons').on('click', () => {
 			this.modules_select.show();
-			// frappe.set_route("modules_setup");
 		});
 	},
 
@@ -297,10 +293,7 @@ frappe.ui.toolbar.download_backup = function() {
 }
 
 frappe.ui.toolbar.show_about = function() {
-	try {
-		frappe.ui.misc.about();
-	} catch(e) {
-		console.log(e);
-	}
+	try { frappe.ui.misc.about(); }
+	catch(e) { console.log(e); }
 	return false;
 }

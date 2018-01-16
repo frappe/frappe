@@ -29,10 +29,6 @@ frappe.help.help_links['Form/System Settings'] = [
 	{ label: 'System Settings', url: 'https://frappe.github.io/erpnext/user/manual/en/setting-up/settings/system-settings' },
 ]
 
-frappe.help.help_links['modules_setup'] = [
-	{ label: 'Show or Hide Desktop Icons', url: 'https://frappe.github.io/erpnext/user/manual/en/setting-up/settings/module-settings' },
-]
-
 frappe.help.help_links['List/Email Account'] = [
 	{ label: 'Email Account', url: 'https://frappe.github.io/erpnext/user/manual/en/setting-up/email/email-account' },
 ]
