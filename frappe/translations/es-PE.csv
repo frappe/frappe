@@ -8,7 +8,7 @@ DocType: Workflow State,th,ª
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +214,Set the display label for the field,Ajuste la etiqueta de visualización para el campo
 DocType: Communication,Sending,Envío
 DocType: DocType,Child Tables are shown as a Grid in other DocTypes.,Las tablas secundarias se muestran como una cuadrícula en los DocTypes.
-apps/frappe/frappe/public/js/frappe/chat.js +1543,Select User,Seleccionar usuario
+apps/frappe/frappe/public/js/frappe/chat.js +1581,Select User,Seleccionar usuario
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +854,With Ledgers,Con Libro Mayor
 DocType: Report,Ref DocType,Referencia Tipo de Documento
 DocType: Print Settings,Print Style Preview,Vista previa de Estilo de impresión
@@ -159,7 +159,7 @@ DocType: Integration Request,Reference DocName,Referencia DocNombre
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +790,Saved,Guardado
 DocType: System Settings,Security,Seguridad
 DocType: Custom DocPerm,Read,Lectura
-apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +239,use % as wildcard,Use% como comodín
+apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +242,use % as wildcard,Use% como comodín
 apps/frappe/frappe/model/delete_doc.py +171,User not allowed to delete {0}: {1},El usuario no puede eliminar {0}: {1}
 apps/frappe/frappe/desk/query_report.py +88,Query must be a SELECT,Debe seleccionar la Consulta
 DocType: DocShare,Document Name,Nombre del documento
@@ -249,7 +249,7 @@ DocType: System Settings,Session Expiry Mobile,Vencimiento de sesión en disposi
 DocType: Web Form,Text to be displayed for Link to Web Page if this form has a web page. Link route will be automatically generated based on `page_name` and `parent_website_route`,El texto que se muestra para enlazar a la página Web si esta forma dispone de una página web. Ruta Enlace automáticamente se genera en base a `page_name` y` parent_website_route`
 ,Setup Wizard,Asistente de configuración
 DocType: Print Settings,Send Email Print Attachments as PDF (Recommended),Enviar Emails con adjuntos en formato PDF (recomendado)
-apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +117,Field {0} is not selectable.,El campo {0} no se puede seleccionar .
+apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +120,Field {0} is not selectable.,El campo {0} no se puede seleccionar .
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +852,Select To Download:,Seleccione la descarga :
 apps/frappe/frappe/public/js/frappe/upload.js +246,Please attach a file or set a URL,"Por favor, adjuntar un archivo o defina una URL"
 DocType: Contact,Is Primary Contact,Es Contacto principal
@@ -260,7 +260,7 @@ apps/frappe/frappe/custom/doctype/custom_field/custom_field.py +19,Label is mand
 DocType: Currency,**Currency** Master,**Moneda** Principal
 DocType: Event,Sunday,Domingo
 DocType: Custom Field,Label Help,Etiqueta Ayuda
-apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html +98,Search or type a command,Busque o escriba un comando
+apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html +100,Search or type a command,Busque o escriba un comando
 DocType: Event,Repeat On,Repetir OK
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +76,Remove all customizations?,Eliminar todas las personalizaciones ?
 apps/frappe/frappe/geo/doctype/currency/currency.js +7,This Currency is disabled. Enable to use in transactions,Esta moneda está deshabilitada . Habilite el uso en las transacciones
@@ -272,7 +272,7 @@ DocType: Communication,Unread Notification Sent,Notificación No leído Enviado
 apps/frappe/frappe/public/js/frappe/views/treeview.js +260,Select a group node first.,Seleccione un nodo de grupo primero.
 DocType: Workflow State,"Style represents the button color: Success - Green, Danger - Red, Inverse - Black, Primary - Dark Blue, Info - Light Blue, Warning - Orange","Estilo representa el color del botón : Éxito - Verde , Peligro - Rojo , Inverso - Negro , Primaria - Azul Oscuro , Info - Azul Claro, Advertencia - Orange"
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +310,Users with role {0}:,Los usuarios con función {0}:
-apps/frappe/frappe/core/doctype/file/file.py +157,Same file has already been attached to the record,El mismo archivo ya se ha adjuntado al registro
+apps/frappe/frappe/core/doctype/file/file.py +167,Same file has already been attached to the record,El mismo archivo ya se ha adjuntado al registro
 apps/frappe/frappe/core/doctype/doctype/doctype.py +721,{0}: Cannot set Cancel without Submit,{0}: no se puede 'Cancelar' sin presentarlo
 DocType: Address,Address Title,Dirección Título
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +241,Mark the field as Mandatory,Marque el campo como obligatorio
@@ -476,7 +476,7 @@ apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +46,1 minute ago,Hace 1 
 DocType: Website Slideshow,Slideshow like display for the website,Presentación como pantalla para el sitio web
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +5,"Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email and Set User Permissions.","Los permisos se establecen en las Funciones y Tipos de Documentos (llamados  DocTypes ) mediante el establecimiento de permisos  como Leer, Escribir , Crear, Eliminar , Enviar, Cancelar, Corregir, Informe , Importación, Exportación, Impresión , Correo Electrónico y Establecer Permisos de Usuario ."
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder_layout.html +8,Edit Heading,Editar Rubro
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +177,Row {0}: Not allowed to enable Allow on Submit for standard fields,Fila {0}: No se permite habilitar Permitir en Enviar para campos estándar
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +178,Row {0}: Not allowed to enable Allow on Submit for standard fields,Fila {0}: No se permite habilitar Permitir en Enviar para campos estándar
 apps/frappe/frappe/www/list.html +4,{0} List,Listado: {0}
 DocType: DocType,Is Submittable,Es presentable--
 DocType: System Settings,Disable Standard Email Footer,Desactivar pie de página estandar en Email

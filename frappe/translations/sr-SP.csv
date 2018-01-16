@@ -4,7 +4,7 @@ DocType: Desktop Icon,List,Lista
 DocType: Report,Report Type,Vrsta izvještaja
 apps/frappe/frappe/public/js/frappe/form/toolbar.js +196,New {0} (Ctrl+B),Novi {0} (Ctrl-B)
 DocType: DocShare,DocShare,Dijeljenje dokumenta
-apps/frappe/frappe/public/js/frappe/ui/filters/filter_list.js +135,Add Filter,Dodaj filter
+apps/frappe/frappe/public/js/frappe/ui/filters/filter_list.js +143,Add Filter,Dodaj filter
 DocType: Address,Contacts,Kontakti
 apps/frappe/frappe/public/js/frappe/form/save.js +12,Submitting,Potvrđivanje
 apps/frappe/frappe/public/js/frappe/form/templates/grid_form.html +4,Editing Row,Izmjena u redu
@@ -50,7 +50,7 @@ apps/frappe/frappe/public/js/frappe/views/pageview.js +112,Sorry! You are not pe
 DocType: Web Form,Success Message,Poruka o uspjehu
 apps/frappe/frappe/public/js/frappe/form/form_sidebar.js +62,{0} created this {1},{1} {0} je kreirao/la ovo.
 DocType: Chat Profile,Online,Na mreži
-apps/frappe/frappe/core/doctype/file/file.py +309,Folder {0} does not exist,Folder {0} ne postoji
+apps/frappe/frappe/core/doctype/file/file.py +319,Folder {0} does not exist,Folder {0} ne postoji
 DocType: Activity Log,Subject,Naslov
 apps/frappe/frappe/public/js/frappe/views/file/file_view.js +75,Enter folder name,Unesi naziv foldera
 DocType: Workflow State,Tags,Tagovi
@@ -91,7 +91,7 @@ apps/frappe/frappe/public/js/frappe/views/treeview.js +402,Chart of Accounts,Kon
 apps/frappe/frappe/email/doctype/email_group/email_group.js +9,View,Pogledaj
 DocType: Email Alert,Print Settings,Podešavanje štampanja
 ,Modules Setup,Podešavanje modula
-apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html +98,Search or type a command,Pretražite ili otkucajte komandu
+apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html +100,Search or type a command,Pretražite ili otkucajte komandu
 DocType: Workflow State,folder-close,Folder-zatvori
 DocType: Calendar View,Subject Field,Polje naslova
 apps/frappe/frappe/core/doctype/file/test_file.py +43,Home/Test Folder 1,Naslovna / Test Folder1
@@ -127,13 +127,13 @@ apps/frappe/frappe/website/doctype/blog_post/blog_post.py +78,1 comment,1 koment
 apps/frappe/frappe/public/js/frappe/form/multi_select_dialog.js +53,Date Range,Opseg datuma
 apps/frappe/frappe/public/js/frappe/views/treeview.js +73,Expand All,Proširi sve
 apps/frappe/frappe/public/js/frappe/ui/toolbar/search_utils.js +111,New,Novi
-apps/frappe/frappe/core/doctype/file/file.py +173,Cannot delete Home and Attachments folders,Ne možete brisati foldere Naslovna i prilozi
+apps/frappe/frappe/core/doctype/file/file.py +183,Cannot delete Home and Attachments folders,Ne možete brisati foldere Naslovna i prilozi
 DocType: User,Desktop Background,Pozadina radne površine
 apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html +50,Attach File,Priloži dokument
 DocType: ToDo,High,Visok
 apps/frappe/frappe/website/doctype/web_form/templates/web_form.html +304,Payment Complete,Plaćanje zaključeno
 apps/frappe/frappe/www/printview.py +199,No {0} permission,{0} Nema dozvolu
-apps/frappe/frappe/public/js/frappe/list/list_view.js +736,Delete {0} items permanently?,Trajno obriši stavke{0} ?
+apps/frappe/frappe/public/js/frappe/list/list_view.js +735,Delete {0} items permanently?,Trajno obriši stavke{0} ?
 apps/frappe/frappe/workflow/doctype/workflow/workflow_list.js +7,Not active,Nije aktivna
 apps/frappe/frappe/public/js/frappe/views/kanban/kanban_column.html +19,Add,Dodaj
 DocType: Email Account,Add Signature,Dodaj potpis
@@ -280,7 +280,7 @@ apps/frappe/frappe/core/doctype/communication/communication.js +42,Close,Zatvori
 apps/frappe/frappe/contacts/report/addresses_and_contacts/addresses_and_contacts.js +22,Party Name,Ime partije
 apps/frappe/frappe/templates/print_formats/standard_macros.html +39,Sr,Rb
 DocType: Contact,Purchase Master Manager,Direktor nabavke
-apps/frappe/frappe/core/doctype/file/file.py +224,Folder {0} is not empty,Folder {0} nije prazan
+apps/frappe/frappe/core/doctype/file/file.py +234,Folder {0} is not empty,Folder {0} nije prazan
 DocType: Custom DocPerm,Report,Izvještaj
 DocType: Communication,User Tags,Korisnički tagovi
 apps/frappe/frappe/public/js/frappe/form/link_selector.js +106,Make a new {0},Napravite novi {0}
@@ -304,7 +304,6 @@ apps/frappe/frappe/desk/query_report.py +227,Total,Ukupno
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +686,Show Totals,Prikaži ukupno
 apps/frappe/frappe/public/js/frappe/ui/messages.js +219,Enter your password,Unesite lozinku
 apps/frappe/frappe/utils/bot.py +91,Like,Kao
-apps/frappe/frappe/public/js/frappe/toolbar.js +25,Chat Support,Podrška za poruke
 apps/frappe/frappe/public/js/frappe/list/list_sidebar.js +199,New Kanban Board,Nova Kanban prikaz
 apps/frappe/frappe/desk/doctype/event/event.py +66,Events In Today's Calendar,Događaji u kalendaru na današnji dan.
 DocType: Workflow State,remove,Ukloni
@@ -316,7 +315,7 @@ DocType: Auto Email Report,Weekly,Nedeljni
 apps/frappe/frappe/public/js/frappe/roles_editor.js +204,Role Permissions,Prava pristupa rolama
 apps/frappe/frappe/core/doctype/file/test_file.py +74,Home/Test Folder 1/Test Folder 3,Naslovna / Test Folder1 / Test Folder3
 DocType: Workflow State,share,Podijeli
-apps/frappe/frappe/core/doctype/file/file.py +157,Same file has already been attached to the record,Isti fajl je već dodijeljen nekom zapisu
+apps/frappe/frappe/core/doctype/file/file.py +167,Same file has already been attached to the record,Isti fajl je već dodijeljen nekom zapisu
 apps/frappe/frappe/core/doctype/user/user.js +74,Set Desktop Icons,Podesi ikonice na radnoj površini
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +55,For ranges,Za opsege
 apps/frappe/frappe/public/js/frappe/form/controls/link.js +179,Advanced Search,Napredna pretraga
@@ -354,7 +353,7 @@ apps/frappe/frappe/public/js/frappe/model/indicator.js +54,Draft,Na čekanju
 DocType: Contact,Maintenance Manager,Menadžer održavanja
 apps/frappe/frappe/public/js/frappe/form/templates/grid_form.html +25,Ctrl + Down,Ctrl + down
 DocType: Data Import,Data Import,Uvoz podataka
-apps/frappe/frappe/core/doctype/file/file.py +131,Folder is mandatory,Folder je obavezan podatak
+apps/frappe/frappe/core/doctype/file/file.py +141,Folder is mandatory,Folder je obavezan podatak
 apps/frappe/frappe/desk/reportview.py +112,{0} is saved,{0} je sačuvan
 DocType: DocField,Datetime,Datum vrijeme
 DocType: Email Group,Email Group,Email grupa
