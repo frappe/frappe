@@ -22,6 +22,8 @@ frappe.provide('frappe.model')
  * frappe.model.subscribe('User', 'achilles@frappe.io', 'username')
  * frappe.model.subscribe('User', ['achilles@frappe.io', 'rushabh@frappe.io'], ['email', 'username'])
  * // Subscribe to User of name for field(s)
+ * 
+ * @todo Under Development
  */
 frappe.model.subscribe = (doctype, name, field) =>
     frappe.realtime.publish('frappe.model:subscribe', { doctype: doctype, name: name, field: field })
@@ -167,7 +169,7 @@ frappe.datetime.compare = (a, b) =>
 // frappe's utility namespace.
 frappe.provide('frappe._')
 
-frappe._.head = arr => frappe._.is_empty(arr) ? undefined : arr[0]
+// String Utilities
 
 /**
  * @description Python-inspired format extension for string objects.
@@ -254,6 +256,23 @@ frappe._.pluralize = (word, count = 0, suffix = 's') => `${word}${count === 1 ? 
  */
 frappe._.capitalize = word => `${word.charAt(0).toUpperCase()}${word.slice(1)}`
 
+// Array Utilities
+
+/**
+ * @description Returns the first element of an array.
+ * 
+ * @param   {array} array - The array.
+ * 
+ * @returns - The first element of an array, undefined elsewise.
+ * 
+ * @example
+ * frappe._.head([1, 2, 3])
+ * // returns 1
+ * frappe._.head([])
+ * // returns undefined
+ */
+frappe._.head = arr => frappe._.is_empty(arr) ? undefined : arr[0]
+
 /**
  * @description Returns a copy of the given array (shallow).
  * 
@@ -301,7 +320,7 @@ frappe._.is_empty = value =>
     if ( value === undefined || value === null )
         empty = true
     else
-    if ( Array.isArray(value) || typeof value === 'string' )
+    if ( Array.isArray(value) || typeof value === 'string' || value instanceof $ )
         empty = value.length === 0
     else
     if ( typeof value === 'object' )
@@ -391,6 +410,11 @@ frappe.user.first_name = user => frappe._.head(frappe.user.full_name(user).split
 
 // frappe.ui extensions
 frappe.provide('frappe.ui')
+/**
+ * @description Frappe's Uploader Widget
+ * 
+ * @see - Heavily inspired https://uppy.io
+ */
 frappe.ui.Uploader = class
 {
     constructor (wrapper, options = { })
@@ -554,17 +578,13 @@ frappe.chat.profile.create = (fields, fn) =>
 }
 
 /**
- * @description Create a Chat Profile.
+ * @description Updates a Chat Profile.
  * 
- * @param   {string|array} fields - (Optional) fields to be retrieved after creating a Chat Profile.
- * @param   {function}     fn     - (Optional) callback with the returned Chat Profile.
- * 
- * @returns {Promise}
+ * @param   {string} user   - (Optional) Chat Profile User, defaults to session user.
+ * @param   {object} update - (Required) Updates to be dispatched.
  * 
  * @example
- * frappe.chat.profile.create(console.log)
- * 
- * frappe.chat.profile.create("status").then(console.log) // { status: "Online" }
+ * frappe.chat.profile.update(frappe.session.user, { "status": "Offline" })
  */
 frappe.chat.profile.update = (user, update, fn) =>
 {
@@ -784,7 +804,7 @@ frappe.chat.room.history = function (name, fn)
     return new Promise(resolve =>
     {
         frappe.call("frappe.chat.doctype.chat_room.chat_room.history",
-            { room: name },
+            { room: name, user: frappe.session.user },
                 r =>
                 {
                     let messages = r.message ? frappe._.as_array(r.message) : [ ] // frappe.api BOGZ! (emtpy arrays are falsified, not good design).
@@ -977,7 +997,7 @@ frappe.chat.sound.play  = function (name, volume = 0.1)
 {
     // frappe._.play_sound(`chat-${name}`)
     const $audio = $(`<audio class="chat-audio" volume="${volume}"/>`)
-    if  ( $audio.length === 0 )
+    if  ( frappe._.is_empty($audio) )
         $(document).append($audio)
 
     if  ( !$audio.paused )
@@ -1425,7 +1445,9 @@ class extends Component
     }
 
     make ( ) {
-        frappe.chat.profile.create(["status", "display_widget", "notification_tones", "conversation_tones"]).then(profile =>
+        frappe.chat.profile.create([
+            "status", "display_widget", "message_preview", "notification_tones", "conversation_tones"
+        ]).then(profile =>
         {
             frappe.log.info(`Chat Profile created for User ${frappe.session.user} - ${JSON.stringify(profile)}.`)
             this.set_state({ profile })
@@ -1491,7 +1513,7 @@ class extends Component
                 frappe.log.warn(`User ${user} typing in Chat Room ${room}.`)
                 this.room.update(room, { typing: user })
     
-                setTimeout(() => this.room.update(room, { typing: null }), 1500)
+                setTimeout(() => this.room.update(room, { typing: null }), 5000)
             }
         })
 
@@ -1504,9 +1526,22 @@ class extends Component
                 state.profile.conversation_tones && frappe.chat.sound.play('message')
             else
                 state.profile.notification_tones && frappe.chat.sound.play('notification')
+
+            if ( r.user !== frappe.session.user && state.profile.message_preview && !state.toggle ) {
+                const $element = $('body').find('.frappe-chat-alert')
+                $element.remove();
+                
+                const  alert   = // TODO: ellipses content
+                `
+                <span>
+                    <span class="indicator yellow"/> <b>${frappe.user.first_name(r.user)}</b>: ${r.content}
+                </span>
+                `
+    
+                frappe.show_alert(alert, 3)
+            }
             
-            if ( r.room === state.room.name )
-            {
+            if ( r.room === state.room.name ) {
                 const mess  = frappe._.copy_array(state.room.messages)
                 mess.push(r)
                 
@@ -1527,107 +1562,110 @@ class extends Component
         
         const ActionBar        = h(frappe.Chat.Widget.ActionBar,
         {
+              class: "level",
              layout: props.layout,
-            actions: 
-            [
-                {
-                    label: __("New Message"),
-                     icon: "octicon octicon-comment",
-                    click: function ( )
+               menu:
+            {
+                  label: __("New"),
+                actions: 
+                [
                     {
-                        const dialog = new frappe.ui.Dialog({
-                              title: __("New Message"),
-                            animate: false,
-                             fields: [
-                                {
-                                        label: __("Select User"),
-                                    fieldname: "user",
-                                    fieldtype: "Link",
-                                      options: "User",
-                                         reqd: true,
-                                      filters: { name: ["!=", frappe.session.user] } // not working?
-                                }
-                             ],
-                             action:
-                             {
-                                primary:
-                                {
-                                    label: __("Create"),
-                                    click: function ({ user })
+                        label: __("Message"),
+                        click: function ( )
+                        {
+                            const dialog = new frappe.ui.Dialog({
+                                  title: __("New Message"),
+                                animate: false,
+                                 fields: [
                                     {
-                                        if ( user === frappe.session.user )
-                                            frappe.throw(__('Sorry! You cannot chat with yourself.'))
-                                        else
+                                            label: __("Select User"),
+                                        fieldname: "user",
+                                        fieldtype: "Link",
+                                          options: "User",
+                                             reqd: true,
+                                          filters: { name: ["!=", frappe.session.user] } // not working?
+                                    }
+                                 ],
+                                 action:
+                                 {
+                                    primary:
+                                    {
+                                        label: __("Create"),
+                                        click: function ({ user })
+                                        {
+                                            if ( user === frappe.session.user )
+                                                frappe.throw(__('Sorry! You cannot chat with yourself.'))
+                                            else
+                                            {
+                                                dialog.hide()
+                                                
+                                                // Don't Worry, frappe.chat.room.on.create gets triggered that then subscribes and adds to DOM. :)
+                                                frappe.chat.room.create("Direct", null, user)
+                                            }
+                                        }
+                                    },
+                                    secondary:
+                                    {
+                                        label: frappe._.is_mobile() ? "<b>&times</b>" : __(`Cancel`)
+                                    }
+                                 }
+                            })
+                            dialog.show()
+                        }
+                    },
+                    {
+                        label: __("Group"),
+                        click: function ( )
+                        {
+                            const dialog = new frappe.ui.Dialog({
+                                  title: __("New Group"),
+                                animate: false,
+                                 fields: [
+                                    {
+                                            label: __("Name"),
+                                        fieldname: "name",
+                                        fieldtype: "Data",
+                                             reqd: true
+                                    },
+                                    {   
+                                            label: __("Select Users"),
+                                        fieldname: "users",
+                                        fieldtype: "MultiSelect",
+                                          options: Object.keys(frappe.boot.user_info).map(key => frappe.boot.user_info[key].email)
+                                    }
+                                 ],
+                                 action:
+                                 {
+                                    primary:
+                                    {
+                                        label: __(`Create`),
+                                        click: function ({ name, users })
                                         {
                                             dialog.hide()
                                             
+                                            // MultiSelect, y u no JSON? :(
+                                            if ( users )
+                                            {
+                                                users = users.split(", ")
+                                                users = users.slice(0, users.length - 1)
+                                            }
+                                            
                                             // Don't Worry, frappe.chat.room.on.create gets triggered that then subscribes and adds to DOM. :)
-                                            frappe.chat.room.create("Direct", null, user)
+                                            frappe.chat.room.create("Group", null, users, name)
                                         }
-                                    }
-                                },
-                                secondary:
-                                {
-                                    label: frappe._.is_mobile() ? "<b>&times</b>" : __(`Cancel`)
-                                }
-                             }
-                        })
-                        dialog.show()
-                    }
-                },
-                {
-                    label: __("New Group"),
-                     icon: "octicon octicon-organization",
-                    click: function ( )
-                    {
-                        const dialog = new frappe.ui.Dialog({
-                              title: __("New Group"),
-                            animate: false,
-                             fields: [
-                                {
-                                        label: __("Name"),
-                                    fieldname: "name",
-                                    fieldtype: "Data",
-                                         reqd: true
-                                },
-                                {   
-                                        label: __("Select Users"),
-                                    fieldname: "users",
-                                    fieldtype: "MultiSelect",
-                                      options: Object.keys(frappe.boot.user_info).map(key => frappe.boot.user_info[key].email)
-                                }
-                             ],
-                             action:
-                             {
-                                primary:
-                                {
-                                    label: __(`Create`),
-                                    click: function ({ name, users })
+                                    },
+                                    secondary:
                                     {
-                                        dialog.hide()
-                                        
-                                        // MultiSelect, y u no JSON? :(
-                                        if ( users )
-                                        {
-                                            users = users.split(", ")
-                                            users = users.slice(0, users.length - 1)
-                                        }
-                                        
-                                        // Don't Worry, frappe.chat.room.on.create gets triggered that then subscribes and adds to DOM. :)
-                                        frappe.chat.room.create("Group", null, users, name)
+                                        label: frappe._.is_mobile() ? "<b>&times</b>" : __(`Cancel`)
                                     }
-                                },
-                                secondary:
-                                {
-                                    label: frappe._.is_mobile() ? "<b>&times</b>" : __(`Cancel`)
-                                }
-                             }
-                        })
-
-                        dialog.show()
+                                 }
+                            })
+    
+                            dialog.show()
+                        }
                     }
-                }
-            ],
+                ]
+            },
             change: function (query)
             {
                 me.set_state({
@@ -1636,16 +1674,26 @@ class extends Component
             }
         })
 
-        const rooms      = state.query ? frappe.chat.room.search(state.query, state.rooms) : frappe.chat.room.sort(state.rooms)
+        const contacts   = Object.keys(frappe.boot.user_info).map(key => 
+        {
+            return { owner: frappe.session.user, users: [frappe.boot.user_info[key].email] }
+        })
+        const rooms      = state.query ? frappe.chat.room.search(state.query, state.rooms.concat(contacts)) : frappe.chat.room.sort(state.rooms)
         
         const RoomList   = frappe._.is_empty(rooms) && !state.query ?
-            h("div", { style: "margin-top: 165px" },
+            h("div", { class: "vcenter" },
                 h("div", { class: "text-center text-extra-muted" },
                     h("p","",__("You don't have any messages yet."))
                 )
             )
             :
-            h(frappe.Chat.Widget.RoomList, { rooms: rooms, click: this.room.select })
+            h(frappe.Chat.Widget.RoomList, { rooms: rooms, click: room => 
+            {
+                if ( room.name )
+                    this.room.select(room.name)
+                else
+                    frappe.chat.room.create("Direct", room.owner, frappe._.squash(room.users), ({ name }) => this.room.select(name))
+            }})
         const Room       = h(frappe.Chat.Widget.Room, { ...state.room, layout: props.layout, destroy: () => {
             this.set_state({
                 room: { name: null, messages: [ ] }
@@ -1654,10 +1702,9 @@ class extends Component
 
         const component  = props.layout === frappe.Chat.Layout.POPPER ?
             state.profile.display_widget ?
-                h(frappe.Chat.Widget.Popper, { page: state.room.name && Room, target: props.target },
-                    h("span", null,
-                        ActionBar, RoomList
-                    )
+                h(frappe.Chat.Widget.Popper, { heading: ActionBar, page: state.room.name && Room, target: props.target,
+                    toggle: (t) => this.set_state({ toggle: t }) },
+                    RoomList
                 ) : null
             :
             h("div", { class: "row" },
@@ -1688,7 +1735,8 @@ frappe.Chat.Widget.defaultState =
       query: "",
     profile: { },
       rooms: [ ],
-       room: { name: null, messages: [ ], typing: [ ] }
+       room: { name: null, messages: [ ], typing: [ ] },
+     toggle: false
 }
 frappe.Chat.Widget.defaultProps =
 {
@@ -1715,7 +1763,6 @@ class extends Component
 
     toggle  (active)
     {
-
         let toggle
         if ( arguments.length === 1 )
             toggle = active
@@ -1723,9 +1770,19 @@ class extends Component
             toggle = this.state.active ? false : true
         
         this.set_state({ active: toggle })
+
+        this.props.toggle(toggle)
     }
 
-    render  ( )
+    on_mounted ( )
+    {
+        $(document.body).on('click', '.page-container, .frappe-chat-popper', ({ currentTarget }) => {
+            if ( $(currentTarget).is('.page-container') )
+                this.toggle(false)
+        })
+    }
+
+    render  ( ) 
     {
         const { props, state } = this
         
@@ -1744,28 +1801,10 @@ class extends Component
                     h("div", { class: "frappe-chat-popper-collapse" },
                         props.page ? props.page : (
                             h("div", { class: `panel panel-default ${frappe._.is_mobile() ? "panel-span" : ""}` },
-                                h("div", { class: "panel-heading cursor-pointer", onclick: () => this.toggle(false) },
-                                    h("div", { class: "row" },
-                                        h("div", { class: "col-xs-9" }),
-                                        h("div", { class: "col-xs-3" },
-                                            h("div", { class: "text-right" },
-                                                // !frappe._.is_mobile() ?
-                                                //     h("a", { class: "action", onclick: () =>
-                                                //         {
-                                                //          
-                                                //         }},
-                                                //         h(frappe.components.FontAwesome, { type: "expand", fixed: true })
-                                                //     ) : null,
-                                                h("a", { class: "action", onclick: () => this.toggle(false) },
-                                                    h(frappe.components.Octicon, { type: "x" })
-                                                )
-                                            )
-                                        )
-                                    )
+                                h("div", { class: "panel-heading" },
+                                    props.heading
                                 ),
-                                h("div", { class: "panel-body" },
-                                    props.children
-                                )
+                                props.children
                             )
                         )
                 ) : null
@@ -1821,33 +1860,24 @@ class extends Component
     {
         const { props, state } = this
         const popper           =  props.layout === frappe.Chat.Layout.POPPER
+        const { menu }         = props
 
         return (
-            h("form", { oninput: this.change, onsubmit: this.submit },
-                h("div", { class: "form-group" },
-                    h("div", { class: "input-group input-group-sm" },
-                        props.span || props.layout !== frappe.Chat.Layout.PAGE ?
-                            h("div", { class: "input-group-addon" },
-                                h(frappe.components.Octicon, { type: "search" })
-                            ) : null,
-                        h("input", { class: "form-control", name: "query", value: state.query, placeholder: "Search" }),
-                        Array.isArray(props.actions) ?
-                            h("div", { class: "input-group-btn" },
-                                h(frappe.components.Button, { type: "default", class: "dropdown-toggle", "data-toggle": "dropdown" },
-                                    h(frappe.components.Octicon, { type: "plus" })
-                                ),
-                                h("ul", { class: "dropdown-menu dropdown-menu-right" },
-                                    props.actions.map(action =>
-                                        h("li", null,
-                                            h("a", { onclick: action.click },
-                                                h(frappe.Chat.Widget.ActionBar.Action, { ...action })
-                                            )
-                                        )
-                                    )
-                                )
-                            ) : null
-                    )
-                )
+            h("div", { class: `frappe-chat-action-bar ${props.class ? props.class : ""}` },
+                h("form", { oninput: this.change, onsubmit: this.submit },
+                    h("input", { class: "form-control input-sm", name: "query", value: state.query, placeholder: "Search" }),
+                ),
+                !frappe._.is_empty(menu) ?
+                    h("div", { class: "dropdown" },
+                        h(frappe.components.Button, { class: "btn-sm dropdown-toggle", "data-toggle": "dropdown" }, 
+                            `${menu.label} `, h("span", { class: "caret" })
+                        ),
+                        h("ul", { class: "dropdown-menu dropdown-menu-right" },
+                            props.menu.actions.map(action => 
+                                h("li","",h("a", { onclick: action.click }, action.label))
+                            )
+                        )
+                    ) : null
             )
         )
     }
@@ -1855,7 +1885,6 @@ class extends Component
 frappe.Chat.Widget.ActionBar.defaultState
 =
 {
-     span: false,
     query: null
 }
 
@@ -1871,11 +1900,8 @@ class extends Component
         const { props } = this
 
         return (
-            h("span", null,
-                props.icon ?
-                    h("i", { class: props.icon })
-                    :
-                    null,
+            h(frappe.components.Button,"",
+                props.icon ? h("i", { class: props.icon }) : null,
                 `${props.icon ? " " : ""}${props.label}`
             )
         )
@@ -1894,7 +1920,7 @@ class extends Component
         const { props } = this
         const rooms     = props.rooms
 
-        return rooms.length ? (
+        return !frappe._.is_empty(rooms) ? (
             h("ul", { class: "frappe-chat-room-list nav nav-pills nav-stacked" },
                 rooms.map(room => h(frappe.Chat.Widget.RoomList.Item, { ...room, click: props.click }))
             )
@@ -1945,7 +1971,7 @@ class extends Component
 
         return (
             h("li", null,
-                h("a", { class: props.active ? "active": "", onclick: () => props.click(props.name) },
+                h("a", { class: props.active ? "active": "", onclick: () => props.click(props) },
                     h("div", { class: "row" },
                         h("div", { class: "col-xs-9" },
                             h(frappe.Chat.Widget.MediaProfile, { ...item })
@@ -1973,7 +1999,7 @@ class extends Component
         const { props } = this
         const position  = frappe.Chat.Widget.MediaProfile.POSITION[props.position || "left"]
         const avatar    = (
-            h("div", { class: `${position.class} media-top` },
+            h("div", { class: `${position.class} media-middle` },
                 h(frappe.components.Avatar, { ...props,
                     title: props.title,
                     image: props.image,
@@ -1989,7 +2015,7 @@ class extends Component
                 h("div", { class: "media-body" },
                     h("div", { class: "media-heading h6 ellipsis", style: `max-width: ${props.width_title || "100%"} display: inline-block` }, props.title),
                     props.content  ? h("div","",h("small","",props.content))  : null,
-                    props.subtitle ? h("div","",h("small", { class: "h6 text-muted" }, props.subtitle)) : null
+                    props.subtitle ? h("div",{ class: "media-subtitle" },h("small", { class: "h6 text-muted" }, props.subtitle)) : null
                 ),
                 position.class === "media-right" ? avatar : null
             )
@@ -2101,7 +2127,10 @@ class extends Component
         {
             props.messages = frappe._.as_array(props.messages)
             for (const message of props.messages)
-                frappe.chat.message.seen(message.name)
+                if ( !message.seen.includes(frappe.session.user) )
+                    frappe.chat.message.seen(message.name)
+                else
+                    break
         }
 
         return (
@@ -2109,7 +2138,7 @@ class extends Component
                 h(frappe.Chat.Widget.Room.Header, { ...props, back: props.destroy }),
                 !frappe._.is_empty(props.messages) ?
                     h(frappe.Chat.Widget.ChatList, {
-                        messages: !frappe._.is_empty(props.messages) && frappe.chat.message.sort(props.messages)
+                        messages: props.messages
                     })
                     :
                     h("div", { class: "panel-body" },
@@ -2179,7 +2208,7 @@ class extends Component
             h("div", { class: "panel-heading" },
                 h("div", { class: "row" },
                     popper ?
-                        h("div", { class: "col-xs-1 vcenter" },
+                        h("div", { class: "col-xs-1" },
                             h("a", { onclick: props.back }, h(frappe.components.Octicon, { type: "chevron-left" }))
                         ) : null,
                     h("div", { class: popper ? "col-xs-10" : "col-xs-9" },
@@ -2443,7 +2472,7 @@ class extends Component {
         return (
             h(frappe.Chat.Widget.MediaProfile, {
                       title: frappe.user.full_name(props.user),
-                   subtitle: frappe.chat.pretty_datetime(props.creation),
+                   subtitle: `${frappe.chat.pretty_datetime(props.creation)}`,
                     content: props.content,
                       image: frappe.user.image(props.user),
                 width_title: "100%",

@@ -69,7 +69,8 @@
 				</ul>
 			</li>
 
-			<!-- Frappe Chat -->
+			{% if cint(frappe.sys_defaults.enable_chat) %}
+			<!-- frappe.chat -->
 			<li class="dropdown">
 				<a class="dropdown-toggle frappe-chat-toggle" data-toggle="dropdown">
 					<div>
@@ -77,7 +78,8 @@
 					</div>
 				</a>
 			</li>
-			<!-- end Frappe Chat -->
+			<!-- end frappe.chat -->
+			{% endif %}
 
 			<li class="dropdown dropdown-navbar-new-comments dropdown-mobile">
 				<a class="btn dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">

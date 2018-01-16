@@ -7,13 +7,15 @@
 
 // http://codeguide.co - @mdo (Author of Bootstrap)
 
+@import "common.less";
+
 // Typography
 @font-weight-bold:										700;
 @font-weight-heavy:										900;
 
 @frappe-chat-toggle-height:								40px;
 
-@frappe-chat-popper-margin:								20px;
+@frappe-chat-popper-margin:								15px;
 @frappe-chat-popper-panel-width:						350px;
 @frappe-chat-popper-panel-height:						500px;
 // z-index greater than FAB, lesser than modal.
@@ -25,10 +27,11 @@
 // https://github.com/twbs/bootstrap/blob/v3.3.7/less/variables.less#L278
 // Keep z-index of the ChatPopper higher than others, lower than modal background.
 
+@frappe-chat-room-list-content-max-width:				180px;
+
 @frappe-chat-form-font-size:							12px;
 @frappe-chat-form-menu-border-radius:					4px;
 @frappe-chat-form-list-group-height:					150px; // Hints
-
 
 // Typography
 .font-bold  { font-weight: @font-weight-bold;  }
@@ -38,8 +41,8 @@
 .cursor-pointer { cursor: pointer; }
 
 // Hacks and Fixes
-// suggested by rushabh@frappe.io
-.avatar { padding: 1px; }
+// suggested by rushabh@frappe.io. Thanks, Rushabh!
+.avatar { padding: 2px; }
 
 .navbar
 {
@@ -66,16 +69,50 @@
 		{
 			& > .panel
 			{
-					 width: @frappe-chat-popper-panel-width;
-					height: @frappe-chat-popper-panel-height;
-				box-shadow: @frappe-chat-popper-panel-box-shadow;
+				       position: relative;
+				  	    display: flex;
+				 flex-direction: column;
+				 	 	  width: @frappe-chat-popper-panel-width;
+						 height: @frappe-chat-popper-panel-height;
+					 box-shadow: @frappe-chat-popper-panel-box-shadow;
 
-				.panel-body
+				.vcenter
 				{
-					.frappe-chat-room-list
+					 position: absolute;
+						  top: 50%;
+					 	 left: 50%;
+					transform: translate(-50%, -50%);
+				}
+
+				.panel-heading
+				{
+					.frappe-chat-action-bar
 					{
-						    height: 400px; // Hack, sorry. :(
-						overflow-y: auto;
+						form
+						{
+							width: 100%;
+						}
+
+						.dropdown
+						{
+							margin-left: 5px !important;
+						}
+					}
+				}
+
+				.frappe-chat-room-list
+				{
+						height: 100%;
+					overflow-y: auto;
+					   padding: 0 1px 0 1px;
+
+					.media
+					{
+						.media-heading, .media-subtitle
+						{
+							.ellipsis;
+							max-width: @frappe-chat-room-list-content-max-width;
+						}
 					}
 				}
 
@@ -117,37 +154,38 @@
 	.panel
 	{
 		margin-bottom: 0px !important;
-	}
 
-	.frappe-chat-form
-	{
-		margin: 1px; // Hack.
-		
-		.form-control
+		.frappe-chat-form
 		{
-			font-size: @frappe-chat-form-font-size;
-		}
-
-		.dropdown-menu
-		{
-			border-radius: @frappe-chat-form-menu-border-radius;
-		}
-
-		.btn
-		{
-			border-radius: 0px !important;
-		}
-
-		// Hints
-		.hint-list.list-group
-		{
-			margin-bottom: 0px !important;
-			   max-height: @frappe-chat-form-list-group-height;
-		 	   overflow-y: auto;
+			// HACK: Wraps the ChatForm within the panel.
+			margin: 1px;
 			
-			.hint-list.list-group-item:first-child, .hint-list.list-group-item:last-child
+			.form-control
+			{
+				font-size: @frappe-chat-form-font-size;
+			}
+	
+			.dropdown-menu
+			{
+				border-radius: @frappe-chat-form-menu-border-radius;
+			}
+	
+			.btn
 			{
 				border-radius: 0px !important;
+			}
+	
+			// Hints
+			.hint-list.list-group
+			{
+				margin-bottom: 0px !important;
+				   max-height: @frappe-chat-form-list-group-height;
+					overflow-y: auto;
+				
+				.hint-list.list-group-item:first-child, .hint-list.list-group-item:last-child
+				{
+					border-radius: 0px !important;
+				}
 			}
 		}
 	}

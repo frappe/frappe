@@ -44,6 +44,7 @@ def get(user, fields = None):
     duser   = frappe.get_doc('User', user)
     dprof   = frappe.get_doc('Chat Profile', user)
 
+    # If you're adding something here, make sure the client recieves it.
     profile = dict(
         # User
         name       = duser.name,
@@ -56,6 +57,7 @@ def get(user, fields = None):
         # Chat Profile
         status             = dprof.status,
         chat_background    = dprof.chat_background,
+        message_preview    = bool(dprof.message_preview),
         notification_tones = bool(dprof.notification_tones),
         conversation_tones = bool(dprof.conversation_tones),
         display_widget     = bool(dprof.display_widget)
