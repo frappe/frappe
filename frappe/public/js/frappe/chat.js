@@ -2318,15 +2318,17 @@ class extends Component {
         return (
             h("div", { class: "frappe-chat-form" },
                 state.hints.length ?
-                    h("li", { class: "hint-list list-group" },
+                    h("ul", { class: "hint-list list-group" },
                         state.hints.map((item) =>
                         {
                             return (
-                                h("a", { class: "hint-list-item list-group-item", href: "javascript:void(0)", onclick: () =>
-                                {
-                                    this.set_state({ content: item.content, hints: [ ] })
-                                }},
-                                    item.component
+                                h("li", { class: "hint-list-item list-group-item" },
+                                    h("a", { href: "javascript:void(0)", onclick: () =>
+                                    {
+                                        this.set_state({ content: item.content, hints: [ ] })
+                                    }},
+                                        item.component
+                                    )
                                 )
                             )
                         })
