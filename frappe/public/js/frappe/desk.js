@@ -233,7 +233,7 @@ frappe.Application = Class.extend({
 
 	refresh_notifications: function() {
 		var me = this;
-		if(frappe.session_alive) {
+		if(frappe.session_alive && frappe.boot && !frappe.boot.in_setup_wizard) {
 			return frappe.call({
 				method: "frappe.desk.notifications.get_notifications",
 				callback: function(r) {
