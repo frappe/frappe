@@ -439,6 +439,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 
 	log_message = {"messages": import_log, "error": error_flag}
 	if data_import_doc:
+		data_import_doc = frappe.get_doc("Data Import", data_import_doc.name)
 		data_import_doc.log_details = json.dumps(log_message)
 
 		import_status = None

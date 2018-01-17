@@ -30,7 +30,7 @@ frappe.ui.form.on('Data Import', {
 	},
 
 	refresh: function(frm) {
-		frm.disable_save();
+		// frm.disable_save();
 		frm.dashboard.clear_headline();
 		if (frm.doc.reference_doctype && !frm.doc.import_file) {
 			frm.dashboard.add_comment(__('Please attach a file to import'));
@@ -60,16 +60,17 @@ frappe.ui.form.on('Data Import', {
 			});
 		}
 
-		if (frm.doc.reference_doctype && frm.doc.import_file && frm.doc.total_rows  && frm.doc.docstatus === 0) {
-			frm.page.set_primary_action(__("Start Import"), function() {
-				frappe.call({
-					method: "frappe.core.doctype.data_import.data_import.import_data",
-					args: {
-						data_import: frm.doc.name
-					}
-				});
-			}).addClass('btn btn-primary');
-		}
+		// if (frm.doc.reference_doctype && frm.doc.import_file && frm.doc.total_rows  && frm.doc.docstatus === 0) {
+		// 	frm.page.set_primary_action(__("Start Import"), function() {
+		// 		frm.refresh_header()
+		// 		frappe.call({
+		// 			method: "frappe.core.doctype.data_import.data_import.import_data",
+		// 			args: {
+		// 				data_import: frm.doc.name
+		// 			}
+		// 		});
+		// 	}).addClass('btn btn-primary');
+		// }
 
 		if (frm.doc.log_details) {
 			frm.events.create_log_table(frm);
