@@ -25,6 +25,9 @@ def after_install():
 
 	from frappe.core.doctype.language.language import sync_languages
 	sync_languages()
+	frappe.get_doc("Language", frappe.db.get_default("lang")).update({
+		"enabled": 1
+	}).save()
 
 	# save default print setting
 	print_settings = frappe.get_doc("Print Settings")
@@ -53,6 +56,7 @@ def install_basic_docs():
 			'roles': [{'role': 'Guest'}]
 		},
 		{'doctype': "Role", "role_name": "Report Manager"},
+		{'doctype': "Role", "role_name": "Translator"},
 		{'doctype': "Workflow State", "workflow_state_name": "Pending",
 			"icon": "question-sign", "style": ""},
 		{'doctype': "Workflow State", "workflow_state_name": "Approved",

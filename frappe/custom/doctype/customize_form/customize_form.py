@@ -53,6 +53,7 @@ docfield_properties = {
 	'print_hide_if_no_value': 'Check',
 	'report_hide': 'Check',
 	'allow_on_submit': 'Check',
+	'translatable': 'Check',
 	'depends_on': 'Data',
 	'description': 'Text',
 	'default': 'Text',
@@ -208,6 +209,10 @@ class CustomizeForm(Document):
 
 					elif property == "options" and df.get("fieldtype") not in allowed_fieldtype_for_options_change:
 						frappe.msgprint(_("You can't set 'Options' for field {0}").format(df.label))
+						continue
+
+					elif property == 'translatable' and df.get('fieldtype') not in ("Data", "Select", "Text", "Small Text", "Text Editor"):
+						frappe.msgprint(_("You can't set 'Translatable for field {0}").format(df.label))
 						continue
 
 					self.make_property_setter(property=property, value=df.get(property),

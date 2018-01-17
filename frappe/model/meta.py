@@ -229,6 +229,14 @@ class Meta(Document):
 
 		return title_field
 
+	def get_translatable_fields(self):
+		'''Return all fields that are translation enabled'''
+		return [d.fieldname for d in self.fields if d.translatable]
+
+	def is_translatable(self, fieldname):
+		'''Return true of false given a field'''
+		return self.get_field(fieldname).translatable
+
 	def process(self):
 		# don't process for special doctypes
 		# prevent's circular dependency
