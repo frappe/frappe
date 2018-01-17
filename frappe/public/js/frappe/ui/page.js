@@ -338,6 +338,15 @@ frappe.ui.Page = Class.extend({
 		}
 	},
 
+	/*
+	* Add button to button group. If there exists another button with the same label,
+	* `add_inner_button` will not add the new button to the button group even if the callback
+	* function is different.
+	*
+	* @param {string} label - Label of the button to be added to the group
+	* @param {object} action - function to be called when button is clicked
+	* @param {string} group - Label of the group button
+	*/
 	add_inner_button: function(label, action, group) {
 		var me = this;
 		let _action = function() {
