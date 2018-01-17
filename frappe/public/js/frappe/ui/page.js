@@ -256,17 +256,14 @@ frappe.ui.Page = Class.extend({
 	* @param {object} parent - DOM object representing the parent of the drop down item lists
 	*/
 	add_dropdown_item: function(label, click, standard, parent) {
-		const is_already_added = () => {
-			let found_lists = $(parent).find('li > a.grey-link:contains(' + label + ')');
-			return found_lists.length > 0;
-		}
+		let item_selector = 'li > a.grey-link';
 
 		parent.parent().removeClass("hide");
 
 		var $li = $('<li><a class="grey-link">'+ label +'</a><li>'),
 			$link = $li.find("a").on("click", click);
 
-		if (is_already_added()) return;
+		if (this.is_in_group_button_dropdown(parent, `${item_selector}:contains('${label}')`, label)) return;
 
 		if(standard===true) {
 			$li.appendTo(parent);
@@ -293,6 +290,7 @@ frappe.ui.Page = Class.extend({
 		if (!label || !parent) return false;
 
 		const result = $(parent).find(`${selector}:contains('${label}')`);
+		console.log('items - ', result);
 		return result.length > 0;
 	},
 
