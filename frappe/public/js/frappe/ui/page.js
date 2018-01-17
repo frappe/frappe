@@ -281,6 +281,21 @@ frappe.ui.Page = Class.extend({
 		return $link;
 	},
 
+	/*
+	* Check if there already exists a button with a specified label in a specified button group
+	* @param {object} parent - This should be the `ul` of the button group.
+	* @param {string} selector - CSS Selector of the button to be searched for. By default, it is `li`.
+	* @param {string} label - Label of the button
+	*/
+	is_in_group_button_dropdown: function(parent, selector, label){
+		if (!selector) selector = 'li';
+
+		if (!label || !parent) return false;
+
+		const result = $(parent).find(`${selector}:contains('${label}')`);
+		return result.length > 0;
+	},
+
 	clear_btn_group: function(parent) {
 		parent.empty();
 		parent.parent().addClass("hide");
@@ -333,9 +348,13 @@ frappe.ui.Page = Class.extend({
 		if(group) {
 			var $group = this.get_or_add_inner_group_button(group);
 			$(this.inner_toolbar).removeClass("hide");
-			return $('<li><a>'+label+'</a></li>')
-				.on('click', _action)
-				.appendTo($group.find(".dropdown-menu"));
+
+			if (!this.is_in_group_button_dropdown($group.find(".dropdown-menu"), 'li', label)) {
+				return $('<li><a>'+label+'</a></li>')
+					.on('click', _action)
+					.appendTo($group.find(".dropdown-menu"));
+			}
+
 		} else {
 			return $('<button class="btn btn-default btn-xs" style="margin-left: 10px;">'+__(label)+'</btn>')
 				.on("click", _action)
