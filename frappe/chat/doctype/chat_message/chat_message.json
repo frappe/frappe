@@ -206,8 +206,8 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 0, 
- "modified": "2017-12-28 16:26:24.142473", 
- "modified_by": "achilles@erpnext.com", 
+ "modified": "2018-01-18 05:22:09.458705", 
+ "modified_by": "faris@erpnext.com", 
  "module": "Chat", 
  "name": "Chat Message", 
  "name_case": "", 
@@ -237,9 +237,11 @@
  "quick_entry": 1, 
  "read_only": 0, 
  "read_only_onload": 0, 
+ "search_fields": "content, user", 
  "show_name_in_global_search": 0, 
  "sort_field": "modified", 
  "sort_order": "DESC", 
+ "title_field": "content", 
  "track_changes": 1, 
  "track_seen": 1
 }
