@@ -444,14 +444,14 @@ class FilterArea {
 		});
 
 		const { non_standard_filters, promise } = this.set_standard_filter(filters);
-		if (non_standard_filters.length === 0) {
-			return promise;
-		}
 
 		return promise
-			.then(() => this.filter_list.add_filters(non_standard_filters))
 			.then(() => {
-				if (refresh) return this.list_view.refresh();
+				return non_standard_filters.length > 0 &&
+					this.filter_list.add_filters(non_standard_filters);
+			})
+			.then(() => {
+				refresh && this.list_view.refresh();
 			});
 	}
 
@@ -475,10 +475,6 @@ class FilterArea {
 		// check in filter area
 		if (!exists) {
 			exists = this.filter_list.filter_exists(f);
-		}
-
-		if (exists) {
-			frappe.show_alert(__('Filter already exists.'));
 		}
 
 		return exists;
