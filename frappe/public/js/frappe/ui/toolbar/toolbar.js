@@ -23,7 +23,7 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 		this.setup_help();
 
 		// frappe.chat (added to toolbar as per rushabh@frappe.io request)
-		this.setup_frappe_chat()
+		this.setup_frappe_chat();
 		// end frappe.chat
 
 		this.setup_progress_dialog();
@@ -39,7 +39,7 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 		// TODO: frappe.chat: frappe.chat.<object> requires a storage.
 		
 		// Create/Get Chat Profile for session User, retrieve enable_chat
-		frappe.log.info(`Creating a Chat Profile.`)
+		frappe.log.info(`Creating a Chat Profile.`);
 		frappe.chat.profile.create("enable_chat").then(({ enable_chat }) => {
 			const should_render = frappe.sys_defaults.enable_chat && enable_chat;
 			this.render_frappe_chat(should_render);
@@ -59,7 +59,7 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 	render_frappe_chat (render = true, force = false)
 	{
 		frappe.log.info(`${render ? "Enable" : "Disable"} Chat for User.`);
-		
+
 		// With the assumption, that there's only one navbar.
 		const $placeholder = $('.navbar .frappe-chat-dropdown');
 
