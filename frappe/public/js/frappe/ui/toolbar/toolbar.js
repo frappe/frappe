@@ -33,7 +33,8 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 	},
 
 	setup_frappe_chat ( ) {
-		// TODO: Handle realtime System Settings update.
+		// TODO: frappe.chat: Handle realtime System Settings update.
+		// TODO: frappe.chat: frappe.chat.<object> requires a storage.
 		
 		// Create/Get Chat Profile for session User, retrieve enable_chat
 		frappe.chat.profile.create("enable_chat").then(({ enable_chat }) => {
