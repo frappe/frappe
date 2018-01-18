@@ -144,7 +144,7 @@ $.extend(frappe.user, {
 	},
 
 	get_emails: ( ) => {
-		return Object.keys(frappe.boot.user_info).map(key => frappe.boot.user_info[key].email)
+		return Object.keys(frappe.boot.user_info).map(key => frappe.boot.user_info[key].email);
 	},
 
 	/* Normally frappe.user is an object
