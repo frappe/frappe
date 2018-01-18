@@ -47,7 +47,7 @@ frappe.db = {
 		return new Promise(resolve => {
 			frappe.call('frappe.client.get_single_value', { doctype, field })
 				.then(r => resolve(r ? r.message : null));
-		})
+		});
 	},
 	set_value: function(doctype, docname, fieldname, value, callback) {
 		return frappe.call({
