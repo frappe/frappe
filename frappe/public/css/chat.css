@@ -351,11 +351,15 @@ a.no-decoration:active {
   border-radius: 0px !important;
 }
 .frappe-chat .panel .frappe-chat-form .hint-list.list-group {
-  margin-bottom: 0px !important;
+  margin: 0px !important;
   max-height: 150px;
   overflow-y: auto;
 }
-.frappe-chat .panel .frappe-chat-form .hint-list.list-group .hint-list.list-group-item:first-child,
-.frappe-chat .panel .frappe-chat-form .hint-list.list-group .hint-list.list-group-item:last-child {
+.frappe-chat .panel .frappe-chat-form .hint-list.list-group .hint-list-item.list-group-item:first-child,
+.frappe-chat .panel .frappe-chat-form .hint-list.list-group .hint-list-item.list-group-item:last-child {
   border-radius: 0px !important;
+}
+.frappe-chat .panel .frappe-chat-form .hint-list.list-group .hint-list-item.list-group-item:first-child a,
+.frappe-chat .panel .frappe-chat-form .hint-list.list-group .hint-list-item.list-group-item:last-child a {
+  text-decoration: none;
 }

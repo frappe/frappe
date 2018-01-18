@@ -178,13 +178,15 @@
 			// Hints
 			.hint-list.list-group
 			{
-				margin-bottom: 0px !important;
-				   max-height: @frappe-chat-form-list-group-height;
-					overflow-y: auto;
+				    margin: 0px;
+				max-height: @frappe-chat-form-list-group-height;
+				overflow-y: auto;
 				
-				.hint-list.list-group-item:first-child, .hint-list.list-group-item:last-child
+				.hint-list-item.list-group-item:first-child, .hint-list-item.list-group-item:last-child
 				{
 					border-radius: 0px !important;
+
+					a { text-decoration: none }
 				}
 			}
 		}
