@@ -82,7 +82,7 @@ def create(user, exists_ok = False, fields = None):
     else:
         dprof      = frappe.new_doc('Chat Profile')
         dprof.user = user
-        dprof.save()
+        dprof.save(ignore_permissions = True)
 
     profile = get(user, fields = fields)
 
