@@ -69,17 +69,10 @@
 				</ul>
 			</li>
 
-			{% if cint(frappe.sys_defaults.enable_chat) %}
 			<!-- frappe.chat -->
-			<li class="dropdown">
-				<a class="dropdown-toggle frappe-chat-toggle" data-toggle="dropdown">
-					<div>
-						<i class="octicon octicon-comment-discussion"/>
-					</div>
-				</a>
-			</li>
+			<!-- "Placeholder, to display or not to display." -->
+			<li class="frappe-chat-dropdown"></li>
 			<!-- end frappe.chat -->
-			{% endif %}
 
 			<li class="dropdown dropdown-navbar-new-comments dropdown-mobile">
 				<a class="btn dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">

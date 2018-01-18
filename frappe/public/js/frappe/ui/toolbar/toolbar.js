@@ -22,9 +22,9 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 		this.setup_sidebar();
 		this.setup_help();
 
-		// Frappe Chat (added to toolbar as per rushabh@frappe.io request)
-		this.setup_chat()
-		// end Frappe Chat
+		// frappe.chat (added to toolbar as per rushabh@frappe.io request)
+		this.setup_frappe_chat()
+		// end frappe.chat
 
 		this.setup_progress_dialog();
 		this.bind_events();
@@ -32,10 +32,56 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 		$(document).trigger('toolbar_setup');
 	},
 
-	setup_chat ( )
+	setup_frappe_chat ( ) {
+		// TODO: Handle realtime System Settings update.
+		
+		// Create/Get Chat Profile for session User, retrieve enable_chat
+		frappe.chat.profile.create("enable_chat").then(({ enable_chat }) => {
+			const should_render = frappe.sys_defaults.enable_chat && enable_chat;
+			this.render_frappe_chat(should_render);
+		});
+
+		// Triggered when a User updates his/her Chat Profile.
+		// Don't worry, enable_chat is broadcasted to this user only. No overhead. :)
+		frappe.chat.profile.on.update((user, profile) => {
+			if ( user === frappe.session.user && 'enable_chat' in profile ) {
+				const should_render = frappe.sys_defaults.enable_chat && profile.enable_chat;
+				this.render_frappe_chat(should_render);
+			}
+		});
+	},
+
+	render_frappe_chat (render = true, force = false)
 	{
-		const chat = new frappe.Chat({ target: '.navbar .frappe-chat-toggle' })
-		chat.render()
+		// With the assumption, that there's only one navbar.
+		const $placeholder = $('.navbar .frappe-chat-dropdown');
+
+		// Render if frappe-chat-toggle doesn't exist.
+		if ( frappe.utils.is_empty($placeholder.has('.frappe-chat-toggle')) ) {
+			const $template = $(`
+				<a class="dropdown-toggle frappe-chat-toggle" data-toggle="dropdown">
+					<div>
+						<i class="octicon octicon-comment-discussion"/>
+					</div>
+				</a>
+			`);
+
+			$placeholder.addClass('dropdown hidden');
+			$placeholder.html($template);
+		}
+
+		if ( render ) {
+			$placeholder.removeClass('hidden');
+		} else {
+			$placeholder.addClass('hidden');
+		}
+
+		// Avoid re-renders. Once is enough.
+		if ( !frappe.chatter || force )
+		{
+			frappe.chatter = new frappe.Chat({ target: '.navbar .frappe-chat-toggle' });
+			frappe.chatter.render()
+		}
 	},
 
 	bind_events: function() {

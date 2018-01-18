@@ -1446,7 +1446,7 @@ class extends Component
 
     make ( ) {
         frappe.chat.profile.create([
-            "status", "display_widget", "message_preview", "notification_tones", "conversation_tones"
+            "status", "message_preview", "notification_tones", "conversation_tones"
         ]).then(profile =>
         {
             frappe.log.info(`Chat Profile created for User ${frappe.session.user} - ${JSON.stringify(profile)}.`)
@@ -1485,13 +1485,6 @@ class extends Component
                     const alert  = `<span class="indicator ${color}"/> ${frappe.user.full_name(user)} is currently <b>${update.status}</b>`
                     frappe.show_alert(alert, 3)
                 }
-            }
-
-            if ( 'display_widget' in update )
-            {
-                this.set_state({
-                    profile: { ...this.state.profile, display_widget: update.display_widget }
-                })
             }
         })
 
@@ -1701,11 +1694,10 @@ class extends Component
         }})
 
         const component  = props.layout === frappe.Chat.Layout.POPPER ?
-            state.profile.display_widget ?
-                h(frappe.Chat.Widget.Popper, { heading: ActionBar, page: state.room.name && Room, target: props.target,
-                    toggle: (t) => this.set_state({ toggle: t }) },
-                    RoomList
-                ) : null
+            h(frappe.Chat.Widget.Popper, { heading: ActionBar, page: state.room.name && Room, target: props.target,
+                toggle: (t) => this.set_state({ toggle: t }) },
+                RoomList
+            )
             :
             h("div", { class: "row" },
                 h("div", { class: "col-md-2  col-sm-3 layout-side-section" },
