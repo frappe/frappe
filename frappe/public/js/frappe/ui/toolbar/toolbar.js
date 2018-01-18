@@ -81,7 +81,7 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 		if ( !frappe.chatter || force )
 		{
 			frappe.chatter = new frappe.Chat({ target: '.navbar .frappe-chat-toggle' });
-			frappe.chatter.render()
+			frappe.chatter.render();
 		}
 	},
 
