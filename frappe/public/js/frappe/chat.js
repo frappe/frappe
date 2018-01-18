@@ -1015,7 +1015,9 @@ frappe.provide('frappe.chat.sound')
 frappe.chat.sound.play  = function (name, volume = 0.1)
 {
     // frappe._.play_sound(`chat-${name}`)
-    const $audio = $(`<audio class="chat-audio" volume="${volume}"/>`)
+    const $audio = $(`<audio class="chat-audio"/>`)
+    $audio.attr('volume', volume)
+
     if  ( frappe._.is_empty($audio) )
         $(document).append($audio)
 
@@ -1959,6 +1961,8 @@ class extends Component
         if ( props.last_message )
             item.timestamp = frappe.chat.pretty_datetime(props.last_message.creation)
 
+        console.log(props)
+
         return (
             h("li", null,
                 h("a", { class: props.active ? "active": "", onclick: () => props.click(props) },
@@ -1970,7 +1974,6 @@ class extends Component
                             h("div", { class: "text-muted", style: { "font-size": "9px" } }, item.timestamp)
                         ),
                     )
-                    
                 )
             )
         )
@@ -2003,9 +2006,9 @@ class extends Component
             h("div", { class: "media", style: position.class === "media-right" ? { "text-align": "right" } : null },
                 position.class === "media-left"  ? avatar : null,
                 h("div", { class: "media-body" },
-                    h("div", { class: "media-heading h6 ellipsis", style: `max-width: ${props.width_title || "100%"} display: inline-block` }, props.title),
+                    h("div", { class: "media-heading ellipsis small", style: `max-width: ${props.width_title || "100%"} display: inline-block` }, props.title),
                     props.content  ? h("div","",h("small","",props.content))  : null,
-                    props.subtitle ? h("div",{ class: "media-subtitle" },h("small", { class: "h6 text-muted" }, props.subtitle)) : null
+                    props.subtitle ? h("div",{ class: "media-subtitle small" },h("small", { class: "text-muted" }, props.subtitle)) : null
                 ),
                 position.class === "media-right" ? avatar : null
             )
@@ -2131,8 +2134,8 @@ class extends Component
                         messages: props.messages
                     })
                     :
-                    h("div", { class: "panel-body" },
-                        h("div", { style: "margin-top: 135px" },
+                    h("div", { class: "panel-body vcenter" },
+                        h("div","",
                             h("div", { class: "text-center text-extra-muted" },
                                 h(frappe.components.Octicon, { type: "comment-discussion", style: "font-size: 48px" }),
                                 h("p","",__("Start a conversation."))
@@ -2196,12 +2199,12 @@ class extends Component
         
         return (
             h("div", { class: "panel-heading" },
-                h("div", { class: "row" },
+                h("div", { class: "level" },
                     popper ?
-                        h("div", { class: "col-xs-1" },
+                        h("div", { style: { "padding-right": "15px" } }, // sins of mine.
                             h("a", { onclick: props.back }, h(frappe.components.Octicon, { type: "chevron-left" }))
                         ) : null,
-                    h("div", { class: popper ? "col-xs-10" : "col-xs-9" },
+                    h("div","",
                         h("div", { class: "panel-title" },
                             h("div", { class: "cursor-pointer", onclick: () => { frappe.set_route(item.route) }},
                                 h(frappe.Chat.Widget.MediaProfile, { ...item })

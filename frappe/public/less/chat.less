@@ -1,10 +1,5 @@
 // Author - Achilles Rasquinha <achilles@frappe.io>
 
-// For most part, we haven't used the LESS framework and its language features.
-// We could have written everything in CSS than introducing a compiler.
-// A good start to learn the same - http://lesscss.org
-// - Achilles Rasquinha <achilles@frappe.io>
-
 // http://codeguide.co - @mdo (Author of Bootstrap)
 
 @import "common.less";
@@ -37,7 +32,7 @@
 .font-bold  { font-weight: @font-weight-bold;  }
 .font-heavy { font-weight: @font-weight-heavy; }
 
-// utilities
+// Utilities
 .cursor-pointer { cursor: pointer; }
 
 // Hacks and Fixes
@@ -106,6 +101,11 @@
 					overflow-y: auto;
 					   padding: 0 1px 0 1px;
 
+					& > li > a
+					{
+						border-radius: 0px !important;
+					}
+
 					.media
 					{
 						.media-heading, .media-subtitle
@@ -113,6 +113,21 @@
 							.ellipsis;
 							max-width: @frappe-chat-room-list-content-max-width;
 						}
+					}
+
+					.message-count
+					{
+						background: #ff5858;
+						display: inline-block;
+						padding: 5px;
+						color: white;
+						border-radius: 50%;
+						font-size: 12px;
+						height: 20px;
+						line-height: 10px;
+						text-align: center;
+						min-width: 20px;
+						margin-top: 4px;
 					}
 				}
 
@@ -191,4 +206,19 @@
 			}
 		}
 	}
+}
+
+//
+.chat-message {
+	background: #E8DDFF;
+	padding: 5px 15px;
+	margin: 5px;
+	border-radius: 5px;
+	display: inline-block;
+}
+
+.seen-check {
+	font-size: 12px;
+	display: inline-block;
+	margin-left: 5px;
 }
