@@ -290,7 +290,6 @@ frappe.ui.Page = Class.extend({
 		if (!label || !parent) return false;
 
 		const result = $(parent).find(`${selector}:contains('${label}')`);
-		console.log('items - ', result);
 		return result.length > 0;
 	},
 
