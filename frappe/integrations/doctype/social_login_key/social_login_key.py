@@ -120,6 +120,23 @@ class SocialLoginKey(Document):
 			})
 		}
 
+		providers["Salesforce"] = {
+			"provider_name": "Salesforce",
+			"enable_social_login": 1,
+			"base_url": "https://login.salesforce.com",
+			"custom_base_url": 0,
+			"icon":"fa fa-cloud", #https://github.com/FortAwesome/Font-Awesome/issues/1744
+			"redirect_url": "/api/method/frappe.integrations.oauth2_logins.login_via_salesforce",
+			"api_endpoint": "https://login.salesforce.com/services/oauth2/userinfo",
+			"api_endpoint_args":None,
+			"authorize_url": "https://login.salesforce.com/services/oauth2/authorize",
+			"access_token_url": "https://login.salesforce.com/services/oauth2/token",
+			"auth_url_data": json.dumps({
+				"response_type": "code",
+				"scope": "openid"
+			})
+		}
+
 		# Initialize the doc and return, used in patch
 		# Or can be used for creating key from controller
 		if initialize and provider:
