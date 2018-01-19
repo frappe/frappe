@@ -275,15 +275,6 @@ Example,
 		"{daily_long}": [
 			"erpnext.setup.doctype.backup_manager.backup_manager.take_backups_daily"
 		],
-	}
-
-#### Cron Like Scheduler
-
-Schedule methods to be executed periodically
-
-Example,
-
-	scheduler_events = {
 		"cron": {
 			"15 18 * * *": [
 				"frappe.twofactor.delete_all_barcodes_for_users"
