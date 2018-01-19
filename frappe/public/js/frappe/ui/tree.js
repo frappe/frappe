@@ -107,7 +107,7 @@ frappe.ui.Tree = class {
 
 	set_selected_node(node) {
 		this.selected_node = node;
-		this.on_click && this.on_click();
+		this.on_click && this.on_click(node);
 	}
 
 	load_children(node, deep=false) {
