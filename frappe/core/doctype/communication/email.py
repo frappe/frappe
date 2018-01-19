@@ -374,9 +374,6 @@ def get_bcc(doc, recipients=None, fetched_from_email_account=False):
 			bcc.append(get_owner_email(doc))
 			bcc += get_assignees(doc)
 
-	if getattr(doc, "send_me_a_copy", False) and doc.sender not in bcc:
-		bcc.append(doc.sender)
-
 	if bcc:
 		exclude = []
 		exclude += [d[0] for d in frappe.db.get_all("User", ["name"], {"thread_notify": 0}, as_list=True)]
