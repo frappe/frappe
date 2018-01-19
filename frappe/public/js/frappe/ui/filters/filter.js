@@ -147,14 +147,7 @@ frappe.ui.Filter = class {
 
 	make_field(df, old_fieldtype) {
 		let old_text = this.field ? this.field.get_value() : null;
-
-		if(df.fieldtype=="DateRange") {
-			this.filter_edit_area.find('.condition option[value="like"]').hide();
-			this.filter_edit_area.find('.condition option[value="not like"]').hide();
-		} else {
-			this.filter_edit_area.find('.condition option[value="like"]').show();
-			this.filter_edit_area.find('.condition option[value="not like"]').show();
-		}
+		this.hide_condition(df.fieldtype, df.original_type);
 
 		let field_area = this.filter_edit_area.find('.filter-field').empty().get(0);
 		let f = frappe.ui.form.make_control({
@@ -248,6 +241,30 @@ frappe.ui.Filter = class {
 		$desc.html((in_list(["in", "not in"], condition)==="in"
 			? __("values separated by commas")
 			: __("use % as wildcard"))+'</div>');
+	}
+
+	hide_condition(fieldtype, original_type) {
+		let conditions = ["=", "like", "not like", "in", "not in",
+			"!=", ">", "<", ">=", "<=", "Between"];
+		let invalid_condition_map = {
+			Date: ['like', 'not like'],
+			Datetime: ['like', 'not like'],
+			Data: ['Between'],
+			Select: ["Between", "<=", ">=", "<", ">"],
+			Link: ["Between"],
+			Currency: ["Between"]
+		}
+
+		let invalid;
+		for (let k of conditions) {
+			invalid = invalid_condition_map[fieldtype] || invalid_condition_map[original_type];
+			if (invalid) {
+				if (invalid.indexOf(k)!=-1)
+					this.filter_edit_area.find(`.condition option[value="${k}"]`).hide()
+				else
+					this.filter_edit_area.find(`.condition option[value="${k}"]`).show()
+			}
+		}
 	}
 };
 
