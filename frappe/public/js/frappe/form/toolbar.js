@@ -55,14 +55,14 @@ frappe.ui.form.Toolbar = Class.extend({
 		if (this.frm.meta.title_field==="title"
 			&& this.frm.perm[0].write
 			&& !this.frm.get_docfield("title").options
-			&& !(cur_frm.doc.__islocal)){
+			&& !this.frm.doc.__islocal){
 			return true;
 		} else {
 			return false;
 		}
 	},
 	can_rename: function() {
-		return this.frm.perm[0].write && this.frm.meta.allow_rename && !(cur_frm.doc.__islocal);
+		return this.frm.perm[0].write && this.frm.meta.allow_rename && !this.frm.doc.__islocal;
 	},
 	setup_editable_title: function() {
 		var me = this;
