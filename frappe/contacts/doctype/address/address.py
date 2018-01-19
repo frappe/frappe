@@ -37,6 +37,7 @@ class Address(Document):
 		self.link_address()
 		self.validate_reference()
 		deduplicate_dynamic_links(self)
+		self.make_complete_address()
 
 	def link_address(self):
 		"""Link address based on owner"""
@@ -58,6 +59,10 @@ class Address(Document):
 			# removing other links
 			to_remove = [row for row in self.links if row.link_doctype != "Company"]
 			[ self.remove(row) for row in to_remove ]
+
+	def make_complete_address(self):
+		# for next line in link field options
+		self.complete_address = "<br>" + self.get_display()
 
 	def get_display(self):
 		return get_address_display(self.as_dict())
