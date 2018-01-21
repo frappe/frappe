@@ -208,7 +208,7 @@ frappe._.format = (string, object) =>
  */
 frappe._.fuzzy_search = (query, dataset, options) =>
 {
-    const DEFAULT  =
+    const DEFAULT     =
     {
                 shouldSort: true,
                  threshold: 0.6,
@@ -1396,7 +1396,7 @@ class extends Component
             const state     = [ ]
 
             for (const room of rooms)
-                if ( room.type === "Group" || room.owner === frappe.session.user || room.last_message )
+                if ( room.type === "Group" || room.last_message )
                 {
                     frappe.log.info(`Adding ${room.name} to component.`)
                     state.push(room)
@@ -1483,7 +1483,6 @@ class extends Component
             "status", "message_preview", "notification_tones", "conversation_tones"
         ]).then(profile =>
         {
-            frappe.log.info(`Chat Profile created for User ${frappe.session.user} - ${JSON.stringify(profile)}.`)
             this.set_state({ profile })
 
             frappe.chat.room.get(rooms =>
@@ -1960,8 +1959,6 @@ class extends Component
 
         if ( props.last_message )
             item.timestamp = frappe.chat.pretty_datetime(props.last_message.creation)
-
-        console.log(props)
 
         return (
             h("li", null,
