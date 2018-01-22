@@ -171,12 +171,6 @@
     }
 }
 
-// hacks
-.chat-list
-{
-    padding-bottom: 3px;
-}
-
 @frappe-chat-color-grey:                        #8D99A6;
 
 @frappe-chat-base-font-size:                    12px;
@@ -250,7 +244,8 @@
         {
             .btn
             {
-                background: white;
+                   background: white;
+                border-radius: 0px;
             }
         }
     
@@ -267,7 +262,7 @@
         .fa
         {
              font-size: @frappe-chat-base-font-size-lg;
-            transition: color 1s; // Change, with grace. :)
+            transition: color 0.5s; // Change, with grace. :)
         }
     }
 }
@@ -276,7 +271,7 @@
 .chat-list
 {
     padding-bottom: 50px;
-    height: 100%;
+        height: 100%; 
     background: @frappe-chat-list-bg-color;
     overflow-y: scroll;
 

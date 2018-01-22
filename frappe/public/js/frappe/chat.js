@@ -1873,7 +1873,7 @@ class extends Component
         return (
             h("div", { class: `frappe-chat-action-bar ${props.class ? props.class : ""}` },
                 h("form", { oninput: this.change, onsubmit: this.submit },
-                    h("input", { class: "form-control input-sm", name: "query", value: state.query, placeholder: props.placeholder || "Search" }),
+                    h("input", { autocomplete: "off", class: "form-control input-sm", name: "query", value: state.query, placeholder: props.placeholder || "Search" }),
                 ),
                 !frappe._.is_empty(actions) ?
                     actions.map(action => h(frappe.Chat.Widget.ActionBar.Action, { ...action })) : null

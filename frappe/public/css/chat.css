@@ -350,9 +350,6 @@ a.no-decoration:active {
 .frappe-chat .panel .chat-form .hint-list.list-group .hint-list-item.list-group-item:last-child a {
   text-decoration: none;
 }
-.chat-list {
-  padding-bottom: 3px;
-}
 .frappe-chat-popper-collapse > .panel > .panel-heading {
   padding: 5px 10px;
 }
@@ -372,6 +369,7 @@ a.no-decoration:active {
 }
 .chat-room-footer .chat-form .input-group-btn .btn {
   background: white;
+  border-radius: 0px;
 }
 .chat-room-footer .chat-form .form-control {
   line-height: 27px;
@@ -383,7 +381,7 @@ a.no-decoration:active {
 }
 .chat-room-footer .chat-form .fa {
   font-size: 14px;
-  transition: color 1s;
+  transition: color 0.5s;
 }
 .chat-list {
   padding-bottom: 50px;
