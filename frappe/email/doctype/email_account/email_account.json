@@ -839,7 +839,7 @@
    "collapsible": 0, 
    "columns": 0, 
    "depends_on": "eval:!doc.domain && doc.enable_outgoing", 
-   "description": "If non standard port (e.g. 587)", 
+   "description": "If non standard port (e.g. 587). If on Google Cloud, try port 2525.", 
    "fieldname": "smtp_port", 
    "fieldtype": "Data", 
    "hidden": 0, 
