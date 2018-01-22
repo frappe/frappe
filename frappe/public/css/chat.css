@@ -411,6 +411,9 @@ a.no-decoration:active {
 .chat-list .chat-list-item .chat-bubble.chat-bubble-l {
   background-color: #EBEFF2;
 }
+.chat-list .chat-list-item .chat-bubble.chat-bubble-l.chat-groupable {
+  margin-left: 40px;
+}
 .chat-list .chat-list-item .chat-bubble.chat-bubble-l .chat-bubble-meta > .chat-bubble-creation,
 .chat-list .chat-list-item .chat-bubble.chat-bubble-l .chat-bubble-meta > .chat-bubble-check i {
   color: #577287 !important;

@@ -2251,11 +2251,21 @@ class extends Component
 
     render ( )
     {
-        const { props } = this
+        const { props }    = this
+        const { messages } = props
         
-        return !frappe._.is_empty(props.messages) ? (
+        return !frappe._.is_empty(messages) ? (
             h("div",{class:"chat-list list-group"},
-                props.messages.map(m => h(frappe.chat.component.ChatList.Item, {...m}))
+                messages.map((m, i) =>
+                {
+                    const me        = m.user === frappe.session.user;
+                    let   groupable = false;
+
+                    if ( i !== 0 && i !== messages.length )
+                        groupable   = !me && m.room_type === "Group" && m.user === messages[i - 1].user
+                    
+                    return h(frappe.chat.component.ChatList.Item, {...m, groupable: groupable})
+                })
             )
         ) : null
     }
@@ -2264,12 +2274,14 @@ class extends Component
 /**
  * @description ChatList.Item Component
  * 
- * @prop {string} name      - ChatMessage name
- * @prop {string} user      - ChatMessage user
- * @prop {string} room      - ChatMessage room
- * @prop {string} room_type - ChatMessage Room Type ("Direct", "Group" or "Visitor")
- * @prop {string} content   - ChatMessage content
- * @prop {frappe.datetime.datetime} creation - Chat Message creation
+ * @prop {string} name       - ChatMessage name
+ * @prop {string} user       - ChatMessage user
+ * @prop {string} room       - ChatMessage room
+ * @prop {string} room_type  - ChatMessage room_type ("Direct", "Group" or "Visitor")
+ * @prop {string} content    - ChatMessage content
+ * @prop {frappe.datetime.datetime} creation - ChatMessage creation
+ * 
+ * @prop {boolean} groupable - Whether the ChatMessage is groupable.
  */
 frappe.chat.component.ChatList.Item
 =
@@ -2284,7 +2296,7 @@ class extends Component
         return (
             h("div",{class: "chat-list-item list-group-item"},
                 h("div",{class:`${me ? "text-right" : ""}`},
-                    props.room_type === "Group" && !me?
+                    !me && !props.groupable && !me ?
                         h(frappe.components.Avatar,
                         {
                             title: frappe.user.full_name(props.user),
@@ -2300,12 +2312,14 @@ class extends Component
 /**
  * @description ChatBubble Component
  * 
- * @prop {string} name      - ChatMessage name
- * @prop {string} user      - ChatMessage user
- * @prop {string} room      - ChatMessage room
- * @prop {string} room_type - ChatMessage room_type ("Direct", "Group" or "Visitor")
- * @prop {string} content   - ChatMessage content
+ * @prop {string} name       - ChatMessage name
+ * @prop {string} user       - ChatMessage user
+ * @prop {string} room       - ChatMessage room
+ * @prop {string} room_type  - ChatMessage room_type ("Direct", "Group" or "Visitor")
+ * @prop {string} content    - ChatMessage content
  * @prop {frappe.datetime.datetime} creation - ChatMessage creation
+ * 
+ * @prop {boolean} groupable - Whether the ChatMessage is groupable.
  */
 frappe.chat.component.ChatBubble
 =
@@ -2323,7 +2337,7 @@ class extends Component
         const content   = props.content
 
         return (
-            h("div",{class:`chat-bubble chat-bubble-${me ? "r" : "l"}`},
+            h("div",{class:`chat-bubble ${props.groupable ? "chat-groupable" : ""} chat-bubble-${me ? "r" : "l"}`},
                 props.room_type === "Group" && !me?
                     h("div",{class:"chat-bubble-author"},
                         h("a", { onclick: () => { frappe.set_route(`Form/User/${props.user}`) } },

@@ -200,6 +200,8 @@
 @frappe-chat-bubble-l-color:			 	  #EBEFF2;
 @frappe-chat-bubble-r-color:				  #EBF7CF;
 
+@frappe-chat-bubble-l-groupable-margin-left:    40px;
+
 @frappe-chat-bubble-author-font-size:           @frappe-chat-base-font-size;
 
 @frappe-chat-bubble-content-margin-bottom:      @frappe-chat-base-spacing;
@@ -302,6 +304,11 @@
 
             &.chat-bubble-l
             {
+                &.chat-groupable
+                {
+                     margin-left: @frappe-chat-bubble-l-groupable-margin-left;
+                }
+
                 background-color: @frappe-chat-bubble-l-color;
 
                 .chat-bubble-meta
