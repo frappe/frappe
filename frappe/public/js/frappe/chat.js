@@ -2149,7 +2149,7 @@ class extends Component
                             )
                         )
                     ),
-                h("div", { class: "frappe-chat-room-footer" },
+                h("div", { class: "chat-room-footer" },
                     h(frappe.chat.component.ChatForm, { actions: actions,
                         on_change: () => {
                             frappe.chat.message.typing(props.name)

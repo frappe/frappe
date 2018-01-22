@@ -121,14 +121,6 @@
                         height: 387px;
                     overflow-y: scroll;
                 }
-
-                .frappe-chat-room-footer
-                {
-                    position: absolute;
-                        left: 0px;
-                       right: 0px;
-                      bottom: 0px;
-                }
             }
 
             & > .panel.panel-span
@@ -228,33 +220,43 @@
 
 @frappe-chat-bubble-check-font-size:            @frappe-chat-base-font-size;
 
-.chat-form
+.chat-room-footer
 {
-    border-top: @frappe-chat-form-border;
+     position: absolute;
+         left: 1px; // HACK: Bootstrap adds a "margin-right": -1px. Cancelling out that hack.
+        right: 0px;
+       bottom: 0px;
 
-    .input-group-btn
+    .chat-form
     {
-        .btn
+        border-top: @frappe-chat-form-border;
+    
+        .input-group-btn
         {
-            background: white;
+            .btn
+            {
+                background: white;
+            }
+        }
+    
+        .form-control
+        {
+              line-height: 27px; // HACK: Makes input and placeholder centered within textarea. Also takes care of the input-btn
+                   border: none;
+               box-shadow: none;
+                   resize: none;
+             padding-left: 0px;
+            padding-right: 0px;
+        }
+        
+        .fa
+        {
+             font-size: @frappe-chat-base-font-size-lg;
+            transition: color 3s;
         }
     }
-
-    .form-control
-    {
-          line-height: 27px; // HACK: Makes input and placeholder centered within textarea. Also takes care of the input-btn
-               border: none;
-           box-shadow: none;
-               resize: none;
-         padding-left: 0px;
-        padding-right: 0px;
-    }
-    
-    .fa
-    {
-        font-size: @frappe-chat-base-font-size-lg;
-    }
 }
+
 
 .chat-list
 {

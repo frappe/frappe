@@ -318,12 +318,6 @@ a.no-decoration:active {
   height: 387px;
   overflow-y: scroll;
 }
-.frappe-chat > .frappe-chat-popper > .frappe-chat-popper-collapse > .panel .frappe-chat-room-footer {
-  position: absolute;
-  left: 0px;
-  right: 0px;
-  bottom: 0px;
-}
 .frappe-chat > .frappe-chat-popper > .frappe-chat-popper-collapse > .panel.panel-span {
   position: fixed;
   width: 100%;
@@ -363,13 +357,19 @@ a.no-decoration:active {
 .chat-list {
   padding-bottom: 3px;
 }
-.chat-form {
+.chat-room-footer {
+  position: absolute;
+  left: 1px;
+  right: 0px;
+  bottom: 0px;
+}
+.chat-room-footer .chat-form {
   border-top: 1px solid #D1D8DD;
 }
-.chat-form .input-group-btn .btn {
+.chat-room-footer .chat-form .input-group-btn .btn {
   background: white;
 }
-.chat-form .form-control {
+.chat-room-footer .chat-form .form-control {
   line-height: 27px;
   border: none;
   box-shadow: none;
@@ -377,8 +377,9 @@ a.no-decoration:active {
   padding-left: 0px;
   padding-right: 0px;
 }
-.chat-form .fa {
+.chat-room-footer .chat-form .fa {
   font-size: 14px;
+  transition: color 3s;
 }
 .chat-list {
   background: #FAFBFC;
