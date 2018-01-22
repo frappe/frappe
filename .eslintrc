@@ -50,7 +50,7 @@
 		"hljs": true,
 		"Awesomplete": true,
 		"Sortable": true,
-		"Showdown": true,
+		"showdown": true,
 		"Taggle": true,
 		"Gantt": true,
 		"Slick": true,

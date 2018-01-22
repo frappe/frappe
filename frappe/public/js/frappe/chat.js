@@ -2135,7 +2135,7 @@ class extends Component
 
         return (
             h("div", { class: `panel panel-default ${frappe._.is_mobile() ? "panel-span" : ""}` },
-                h(frappe.Chat.Widget.Room.Header, { ...props, back: props.destroy }),
+                h(frappe.Chat.Widget.Room.Header, { ...props, on_back: props.destroy }),
                 !frappe._.is_empty(props.messages) ?
                     h(frappe.chat.component.ChatList, {
                         messages: props.messages
@@ -2208,8 +2208,8 @@ class extends Component
             h("div", { class: "panel-heading" },
                 h("div", { class: "level" },
                     popper ?
-                        h("div", { style: { "padding-right": "15px" } }, // sins of mine.
-                            h("a", { onclick: props.back }, h(frappe.components.Octicon, { type: "chevron-left" }))
+                        h(frappe.components.Button,{class:"btn-back",onclick:props.on_back},
+                            h(frappe.components.Octicon, { type: "chevron-left" })
                         ) : null,
                     h("div","",
                         h("div", { class: "panel-title" },

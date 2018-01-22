@@ -115,12 +115,6 @@
                         }
                     }
                 }
-
-                .chat-list.list-group
-                {
-                        height: 387px;
-                    overflow-y: scroll;
-                }
             }
 
             & > .panel.panel-span
@@ -220,13 +214,31 @@
 
 @frappe-chat-bubble-check-font-size:            @frappe-chat-base-font-size;
 
+.frappe-chat-popper-collapse
+{
+    & > .panel
+    {
+        & > .panel-heading
+        {
+            padding: @frappe-chat-base-spacing @frappe-chat-base-spacing * 2;
+
+            .btn-back
+            {
+                margin-right: @frappe-chat-base-spacing;
+            }
+            
+            .avatar
+            {
+                width: 32px; height: 32px;
+            }
+        }
+    }
+
+}
+
+
 .chat-room-footer
 {
-     position: absolute;
-         left: 1px; // HACK: Bootstrap adds a "margin-right": -1px. Cancelling out that hack.
-        right: 0px;
-       bottom: 0px;
-
     .chat-form
     {
         border-top: @frappe-chat-form-border;
@@ -252,7 +264,7 @@
         .fa
         {
              font-size: @frappe-chat-base-font-size-lg;
-            transition: color 3s;
+            transition: color 1s; // Change, with grace. :)
         }
     }
 }
@@ -261,6 +273,7 @@
 .chat-list
 {
     background: @frappe-chat-list-bg-color;
+    overflow-y: scroll;
 
     .chat-list-item
     {

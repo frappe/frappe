@@ -237,7 +237,7 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 			if(href.indexOf('blob') > 0) {
 				window.open(href, '_blank');
 			}
-			var converter = new Showdown.converter();
+			var converter = new showdown.Converter();
 			var path = $(e.target).attr("data-path");
 			if(path) {
 				e.preventDefault();
