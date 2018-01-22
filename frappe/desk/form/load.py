@@ -138,7 +138,7 @@ def get_communication_data(doctype, name, start=0, limit=20, after=None, fields=
 	'''Returns list of communications for a given document'''
 	if not fields:
 		fields = '''name, communication_type,
-			communication_medium, comment_type,
+			communication_medium, comment_type, communication_date,
 			content, sender, sender_full_name, creation, subject, delivery_status, _liked_by,
 			timeline_doctype, timeline_name,
 			reference_doctype, reference_name,
