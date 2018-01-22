@@ -363,6 +363,10 @@ a.no-decoration:active {
   width: 32px;
   height: 32px;
 }
+.chat-room-footer {
+  position: absolute;
+  bottom: 0;
+}
 .chat-room-footer .chat-form {
   border-top: 1px solid #D1D8DD;
 }
@@ -382,6 +386,8 @@ a.no-decoration:active {
   transition: color 1s;
 }
 .chat-list {
+  padding-bottom: 50px;
+  height: 100%;
   background: #FAFBFC;
   overflow-y: scroll;
 }
