@@ -1,3 +1,4 @@
+import moment from 'moment-timezone';
 frappe.ui.form.ControlDatetime = frappe.ui.form.ControlDate.extend({
 	set_date_options: function() {
 		this._super();

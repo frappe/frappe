@@ -1,5 +1,7 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
+import "./calendar.less";
+import moment from 'moment-timezone';
 
 frappe.provide("frappe.views.calendar");
 frappe.provide("frappe.views.calendars");

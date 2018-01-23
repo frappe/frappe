@@ -1,3 +1,4 @@
+import Awesomplete from 'awesomplete';
 // <select> widget with all fields of a doctype as options
 frappe.ui.FieldSelect = Class.extend({
 	// opts parent, doctype, filter_fields, with_blank, select

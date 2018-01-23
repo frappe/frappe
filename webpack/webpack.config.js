@@ -3,7 +3,8 @@ const webpack = require('webpack');
 
 const {
 	sites_path,
-	bundle_map
+	bundle_map,
+	get_public_path
 } = require('./utils');
 
 // plugins
@@ -16,18 +17,27 @@ const extractCSS = new ExtractTextPlugin({
 	}
 });
 // environment
-const dev_mode = process.env.FRAPPE_ENV === 'development';
+const in_production = process.env.FRAPPE_ENV === 'production';
 
 module.exports = function () {
+	const desk_chunks = Object.keys(bundle_map).filter(file_path => !file_path.includes('frappe-web'));
+	const global_chunks = Object.keys(bundle_map).filter(
+		file_path => file_path.includes('frappe-web') || file_path.includes('desk')
+	);
+
 	return {
 		entry: Object.assign(bundle_map, {
-			vendor: [
+			"frappe/js/vendor": [
 				'script-loader!jquery',
-				'script-loader!bootstrap/dist/js/bootstrap',
-				'script-loader!moment',
+				// 'script-loader!bootstrap/dist/js/bootstrap',
+				// 'script-loader!moment',
+				// 'script-loader!moment-timezone',
 				'script-loader!summernote',
+				'script-loader!sortablejs',
 			]
 		}),
+
+		devtool: !in_production ? 'eval-source-map' : undefined,
 
 		output: {
 			path: path.join(sites_path, 'assets/bundles'),
@@ -61,27 +71,57 @@ module.exports = function () {
 				{
 					test: /\.less$/,
 					use: extractCSS.extract({
-						use: [{
-							loader: "css-loader"
-						}, {
-							loader: "less-loader"
-						}]
+						use: [
+							{
+								loader: "css-loader"
+							},
+							{
+								loader: "less-loader", options: {
+									paths: [path.join(get_public_path('frappe'), 'less')]
+								}
+							}
+						]
 					})
 				},
 				{
-					test: /\.(woff|woff2|eot|ttf|otf|svg)$/,
+					test: /\.(woff|woff2|eot|ttf|otf)$/,
 					use: {
-						loader: 'file-loader'
+						loader: 'file-loader', options: {
+							publicPath: '/assets/bundles/',
+							outputPath: 'fonts/'
+						}
+					}
+				},
+				{
+					test: /\.(svg|png|jpg)$/,
+					use: {
+						loader: 'file-loader', options: {
+							publicPath: '/assets/bundles/',
+							outputPath: 'images/'
+						}
 					}
 				}
 			]
 		},
 
-		plugins: [!dev_mode && new UglifyJsPlugin(),
+		plugins: [
+
+			in_production ? new UglifyJsPlugin() : null,
 
 			new webpack.optimize.CommonsChunkPlugin({
-				name: ["common", "vendor"],
-				filename: "frappe/js/[name].bundle.js",
+				name: "frappe/js/manifest",
+				minChunks: Infinity
+			}),
+
+			new webpack.optimize.CommonsChunkPlugin({
+				name: "frappe/js/desk-commons",
+				chunks: desk_chunks,
+				minChunks: 2
+			}),
+
+			new webpack.optimize.CommonsChunkPlugin({
+				name: "frappe/js/global-commons",
+				chunks: global_chunks,
 				minChunks: 2
 			}),
 

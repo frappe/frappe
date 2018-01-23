@@ -89,6 +89,8 @@ $.extend(frappe.model, {
 					for (var x=0, y=value.length; x < y; x++) {
 						var d = value[x];
 
+						if (!$.isPlainObject(d)) return;
+
 						if(!d.parent)
 							d.parent = doc.name;
 

@@ -132,7 +132,7 @@
 		"public/css/controls.css",
 		"public/css/chat.css"
 	],
-	"css/frappe-rtl.css": [
+	"++css/frappe-rtl.css": [
 		"public/css/bootstrap-rtl.css",
 		"public/css/desk-rtl.css",
 		"public/css/report-rtl.css"
@@ -383,13 +383,13 @@
 		"public/js/lib/slickgrid/slick.grid.js",
 		"public/js/lib/slickgrid/slick.dataview.js"
 	],
-	"js/web_form.min.js": [
+	"++js/web_form.min.js": [
 		"website/js/web_form.js",
 		"public/js/lib/summernote/summernote.js",
 		"public/js/lib/datepicker/datepicker.min.js",
 		"public/js/lib/datepicker/datepicker.en.js"
 	],
-	"css/web_form.css": [
+	"++css/web_form.css": [
 		"website/css/web_form.css",
 		"public/js/lib/summernote/summernote.css",
 		"public/js/lib/datepicker/datepicker.min.css"

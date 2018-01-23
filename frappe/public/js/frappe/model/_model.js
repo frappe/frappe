@@ -1,3 +1,4 @@
+import moment from 'moment-timezone';
 
 frappe.provide('frappe.model');
 

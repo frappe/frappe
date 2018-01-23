@@ -1,5 +1,6 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
+import Awesomplete from 'awesomplete';
 
 frappe.provide("frappe.report_dump");
 

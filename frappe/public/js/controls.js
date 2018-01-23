@@ -1,3 +1,4 @@
+import "../less/controls.less";
 import "./frappe/form/controls/base_control";
 import "./frappe/form/controls/base_input";
 import "./frappe/form/controls/data";

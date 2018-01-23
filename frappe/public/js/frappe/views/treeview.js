@@ -1,6 +1,7 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
+import "../../../less/tree.less";
 frappe.provide("frappe.treeview_settings");
 frappe.provide('frappe.views.trees');
 window.cur_tree = null;

@@ -1,5 +1,6 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
+import Sortable from 'sortablejs';
 
 frappe.ui.form.get_open_grid_form = function() {
 	return $(".grid-row-open").data("grid_row");

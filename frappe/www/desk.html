@@ -38,8 +38,6 @@
 	<img src="{{ background_image }}" style="height: 1px; width: 1px; margin-bottom: -1px;">
 	{% endif %}
 
-	<script type="text/javascript" src="/assets/bundles/frappe/js/vendor.bundle.js"></script>
-
 	<script type="text/javascript">
 	window._version_number = "{{ build_version }}";
 	// browser support
@@ -48,7 +46,9 @@
 
 	if(!window.frappe) window.frappe = {};
 
-	frappe.boot = {{ boot }};
+	{#
+		frappe.boot = {{ boot }};
+	#}
 
 	frappe.csrf_token = "{{ csrf_token }}";
 

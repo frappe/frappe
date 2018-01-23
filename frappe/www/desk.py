@@ -19,12 +19,8 @@ def get_context(context):
 		frappe.throw(_("You are not permitted to access this page."), frappe.PermissionError)
 
 	hooks = frappe.get_hooks()
-	try:
-		boot = frappe.sessions.get()
-	except Exception as e:
-		boot = frappe._dict(status='failed', error = str(e))
-		print(frappe.get_traceback())
 
+	boot = get_boot()
 	# this needs commit
 	csrf_token = frappe.sessions.get_csrf_token()
 
@@ -41,7 +37,6 @@ def get_context(context):
 		"include_js": hooks["app_include_js"],
 		"include_css": hooks["app_include_css"],
 		"sounds": hooks["sounds"],
-		"boot": boot if context.get("for_mobile") else boot_json,
 		"csrf_token": csrf_token,
 		"background_image": (boot.status != 'failed' and
 			(boot.user.background_image or boot.default_background_image) or None),
@@ -79,6 +74,16 @@ def get_desk_assets(build_version):
 		"boot": data["boot"],
 		"assets": assets
 	}
+
+@frappe.whitelist()
+def get_boot():
+	try:
+		boot = frappe.sessions.get()
+	except Exception as e:
+		boot = frappe._dict(status='failed', error = str(e))
+		print(frappe.get_traceback())
+
+	return boot
 
 def get_build_version():
 	return str(os.path.getmtime(os.path.join(frappe.local.sites_path, '.build')))

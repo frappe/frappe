@@ -23,28 +23,37 @@ page_js = {
 
 # website
 app_include_js = [
-	"assets/bundles/frappe/js/common.bundle.js",
+	"assets/bundles/frappe/js/manifest.bundle.js",
+	"assets/bundles/frappe/js/vendor.bundle.js",
+	"assets/bundles/frappe/js/global-commons.bundle.js",
+	"assets/bundles/frappe/js/desk-commons.bundle.js",
 	"assets/bundles/frappe/js/desk.bundle.js",
 	"assets/bundles/frappe/js/dialog.bundle.js",
 	"assets/bundles/frappe/js/controls.bundle.js",
 	"assets/bundles/frappe/js/list.bundle.js",
 	"assets/bundles/frappe/js/form.bundle.js",
+	"assets/bundles/frappe/js/report.bundle.js",
 ]
 app_include_css = [
-	"assets/bundles/common.css",
+	"assets/bundles/frappe/css/global-commons.css",
 	"assets/bundles/frappe/css/desk.css",
 	"assets/bundles/frappe/css/list.css",
+	"assets/bundles/frappe/css/controls.css",
 	"assets/bundles/frappe/css/form.css",
 	"assets/bundles/frappe/css/report.css",
 	"assets/bundles/frappe/css/module.css"
 ]
 
 web_include_js = [
+	"assets/bundles/frappe/js/manifest.bundle.js",
+	"assets/bundles/frappe/js/vendor.bundle.js",
+	"assets/bundles/frappe/js/global-commons.bundle.js",
+	"assets/bundles/frappe/js/frappe-web.bundle.js",
 	"website_script.js"
 ]
 
 web_include_css = [
-	"assets/bundles/common.css",
+	"assets/bundles/frappe/css/global-commons.css",
 	"assets/bundles/frappe/css/frappe-web.css"
 ]
 

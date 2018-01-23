@@ -1,3 +1,6 @@
+import Awesomplete from 'awesomplete';
+import './tags';
+
 frappe.ui.TagEditor = Class.extend({
 	init: function(opts) {
 		/* docs:

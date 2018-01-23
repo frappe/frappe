@@ -1,3 +1,12 @@
+// import "../js/lib/leaflet/leaflet.css";
+// import "../js/lib/leaflet/leaflet.draw.css";
+// import "../js/lib/leaflet/L.Control.Locate.css";
+// import "../js/lib/leaflet/easy-button.css";
+
+//TODO: update leaflet usage according to latest version
+import 'leaflet';
+// import 'leaflet/dist/leaflet.css';
+
 frappe.ui.form.ControlGeolocation = frappe.ui.form.ControlCode.extend({
 	make_wrapper() {
 		// Create the elements for map area

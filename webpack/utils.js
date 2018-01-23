@@ -9,10 +9,10 @@ const app_paths = apps_list.reduce((out, app) => {
 	out[app] = path.resolve(bench_path, 'apps', app, app)
 	return out;
 }, {});
-// const public_paths = apps_list.reduce((out, app) => {
-// 	out[app] = path.resolve(app_paths[app], 'public');
-// 	return out;
-// }, {});
+const public_paths = apps_list.reduce((out, app) => {
+	out[app] = path.resolve(app_paths[app], 'public');
+	return out;
+}, {});
 const public_js_paths = apps_list.reduce((out, app) => {
 	out[app] = path.resolve(app_paths[app], 'public/js');
 	return out;
@@ -26,12 +26,16 @@ const bundle_map = apps_list.reduce((out, app) => {
 	for (let js_file of js_files) {
 		const filename = path.basename(js_file).split('.')[0];
 		out[path.join(app, 'js', filename)] = path.resolve(public_js_path, js_file);
+		// out[filename] = path.resolve(public_js_path, js_file);
 	}
 
 	return out;
 }, {});
 
+const get_public_path = app => public_paths[app];
+
 module.exports = {
 	sites_path,
-	bundle_map
+	bundle_map,
+	get_public_path
 };

@@ -38,8 +38,9 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 
 	setup_chat ( )
 	{
-		const chat = new frappe.Chat({ target: '.navbar .frappe-chat-toggle' })
-		chat.render()
+		// TODO: do something about chat
+		// const chat = new frappe.Chat({ target: '.navbar .frappe-chat-toggle' })
+		// chat.render()
 	},
 
 	bind_events: function() {

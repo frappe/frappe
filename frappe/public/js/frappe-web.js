@@ -1,3 +1,4 @@
+// bootstrap 3.3.1 with our custom css
 import "../css/bootstrap.css";
 import "../css/font-awesome.css";
 import "../css/octicons/octicons.css";
@@ -5,6 +6,8 @@ import "../css/octicons/octicons.css";
 import "../css/website.css";
 import "../css/avatar.css";
 
+// bootstrap 3.3.1
+import '../js/lib/bootstrap.min.js';
 import "./frappe/class.js";
 import "./frappe/provide.js";
 import "./frappe/format.js";

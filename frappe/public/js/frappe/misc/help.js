@@ -1,6 +1,6 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
-
+import './help_links';
 frappe.provide("frappe.help");
 
 frappe.help.youtube_id = {};

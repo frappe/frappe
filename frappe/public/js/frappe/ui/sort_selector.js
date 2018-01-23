@@ -1,3 +1,5 @@
+import "./sort_selector.html";
+
 frappe.ui.SortSelector = Class.extend({
 	// parent:
 	// change:

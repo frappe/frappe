@@ -39,3 +39,7 @@ import "./frappe/form/footer/assign_to.js";
 import "./frappe/form/quick_entry.js";
 
 import "./frappe/ui/comment.js";
+import './frappe/misc/address_and_contact';
+
+import "./frappe/form/link_selector";
+import "./frappe/form/multi_select_dialog";

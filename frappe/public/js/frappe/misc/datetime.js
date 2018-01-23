@@ -2,6 +2,7 @@
 // MIT License. See license.txt
 
 import moment from 'moment-timezone';
+import './pretty_date';
 
 frappe.provide('frappe.datetime');
 

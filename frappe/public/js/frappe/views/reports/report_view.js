@@ -1,6 +1,8 @@
 /**
  * frappe.views.ReportView
  */
+import DataTable from "./frappe-datatable.js";
+import "./frappe-datatable.less";
 frappe.provide('frappe.views');
 
 frappe.views.ReportView = class ReportView extends frappe.views.ListView {
