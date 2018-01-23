@@ -26,11 +26,20 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 		this.setup_frappe_chat();
 		// end frappe.chat
 
+		this.setup_modules_dialog();
 		this.setup_progress_dialog();
 		this.bind_events();
 
 		$(document).trigger('toolbar_setup');
 	},
+
+
+	setup_modules_dialog() {
+		this.modules_select = new frappe.ui.toolbar.ModulesSelect();
+		$('.navbar-set-desktop-icons').on('click', () => {
+			this.modules_select.show();
+		});
+  },
 
 	setup_frappe_chat ( ) {
 		frappe.log = frappe.Logger.get('frappe.chat');
@@ -58,8 +67,7 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 		});
 	},
 
-	render_frappe_chat (render = true, force = false)
-	{
+	render_frappe_chat (render = true, force = false) {
 		frappe.log.info(`${render ? "Enable" : "Disable"} Chat for User.`);
 
 		// With the assumption, that there's only one navbar.
@@ -86,8 +94,7 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 		}
 
 		// Avoid re-renders. Once is enough.
-		if ( !frappe.chatter || force )
-		{
+		if ( !frappe.chatter || force ) {
 			frappe.chatter = new frappe.Chat({ target: '.navbar .frappe-chat-toggle' });
 			frappe.chatter.render();
 		}
@@ -343,7 +350,8 @@ frappe.ui.toolbar.download_backup = function() {
 frappe.ui.toolbar.show_about = function() {
 	try {
 		frappe.ui.misc.about();
-	} catch(e) {
+	}
+	catch(e) {
 		console.log(e);
 	}
 	return false;
