@@ -27,26 +27,19 @@ frappe.avatar = function(user, css_class, title) {
 		var image = (window.cordova && user_info.image.indexOf('http')===-1) ?
 			frappe.base_url + user_info.image : user_info.image;
 
-		return repl('<span class="avatar %(css_class)s" title="%(title)s">\
-			<span class="avatar-frame" style="background-image: url(%(image)s)"\
-			title="%(title)s"></span></span>', {
-				image: image,
-				title: title,
-				abbr: user_info.abbr,
-				css_class: css_class
-			});
+		return `<span class="avatar ${css_class}" title="${title}">
+				<span class="avatar-frame" style='background-image: url("${image}")'
+					title="${title}"></span>
+			</span>`;
 	} else {
 		var abbr = user_info.abbr;
 		if(css_class==='avatar-small' || css_class=='avatar-xs') {
 			abbr = abbr.substr(0, 1);
 		}
-		return repl('<span class="avatar %(css_class)s" title="%(title)s">\
-			<div class="standard-image" style="background-color: %(color)s;">%(abbr)s</div></span>', {
-				title: title,
-				abbr: abbr,
-				css_class: css_class,
-				color: user_info.color
-			})
+		return `<span class="avatar ${css_class}" title="${title}">
+			<div class="standard-image" style="background-color: ${user_info.color};">
+				${abbr}</div>
+		</span>`
 	}
 }
 

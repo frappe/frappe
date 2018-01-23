@@ -50,6 +50,7 @@ Resources:
 
  1. [Codecademy Tutorial for JavaScript](https://www.codecademy.com/learn/learn-javascript)
  1. [Codecademy Tutorial for jQuery](https://www.codecademy.com/learn/jquery)
+
 ---
 
 #### 5. Jinja Templating

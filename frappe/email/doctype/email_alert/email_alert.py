@@ -127,6 +127,8 @@ def get_context(context):
 		context = get_context(doc)
 		recipients = []
 
+		context = {"doc": doc, "alert": self, "comments": None}
+
 		for recipient in self.recipients:
 			if recipient.condition:
 				if not frappe.safe_eval(recipient.condition, None, context):
@@ -138,6 +140,9 @@ def get_context(context):
 
 				# else:
 				# 	print "invalid email"
+			if recipient.cc and "{" in recipient.cc:
+				recipient.cc = frappe.render_template(recipient.cc, context)
+
 			if recipient.cc:
 				recipient.cc = recipient.cc.replace(",", "\n")
 				recipients = recipients + recipient.cc.split("\n")
@@ -154,8 +159,6 @@ def get_context(context):
 
 		recipients = list(set(recipients))
 		subject = self.subject
-
-		context = {"doc": doc, "alert": self, "comments": None}
 
 		if self.is_standard:
 			self.load_standard_properties(context)

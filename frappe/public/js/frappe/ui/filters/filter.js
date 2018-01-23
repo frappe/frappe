@@ -6,6 +6,28 @@ frappe.ui.Filter = class {
 		$.extend(this, opts);
 
 		this.utils = frappe.ui.filter_utils;
+		this.conditions = [
+			["=", __("Equals")],
+			["!=", __("Not Equals")],
+			["like", __("Like")],
+			["not like", __("Not Like")],
+			["in", __("In")],
+			["not in", __("Not In")],
+			[">", ">"],
+			["<", "<"],
+			[">=", ">="],
+			["<=", "<="],
+			["Between", __("Between")]
+		];
+		this.invalid_condition_map = {
+			Date: ['like', 'not like'],
+			Datetime: ['like', 'not like'],
+			Data: ['Between'],
+			Select: ["Between", "<=", ">=", "<", ">"],
+			Link: ["Between"],
+			Currency: ["Between"],
+			Color: ["Between"]
+		};
 		this.make();
 		this.make_select();
 		this.set_events();
@@ -118,7 +140,7 @@ frappe.ui.Filter = class {
 		let cur = {};
 		if(this.field) for(let k in this.field.df) cur[k] = this.field.df[k];
 
-		let original_docfield = this.fieldselect.fields_by_name[doctype][fieldname];
+		let original_docfield = (this.fieldselect.fields_by_name[doctype] || {})[fieldname];
 		if(!original_docfield) {
 			frappe.msgprint(__("Field {0} is not selectable.", [fieldname]));
 			return;
@@ -150,6 +172,7 @@ frappe.ui.Filter = class {
 
 	make_field(df, old_fieldtype) {
 		let old_text = this.field ? this.field.get_value() : null;
+		this.hide_invalid_conditions(df.fieldtype, df.original_type);
 
 		let field_area = this.filter_edit_area.find('.filter-field').empty().get(0);
 		let f = frappe.ui.form.make_control({
@@ -243,6 +266,17 @@ frappe.ui.Filter = class {
 		$desc.html((in_list(["in", "not in"], condition)==="in"
 			? __("values separated by commas")
 			: __("use % as wildcard"))+'</div>');
+	}
+
+	hide_invalid_conditions(fieldtype, original_type) {
+		let invalid_conditions = this.invalid_condition_map[fieldtype] ||
+			this.invalid_condition_map[original_type] || [];
+
+		for (let condition of this.conditions) {
+			this.filter_edit_area.find(`.condition option[value="${condition[0]}"]`).toggle(
+				!invalid_conditions.includes(condition[0])
+			);
+		}
 	}
 };
 

@@ -233,7 +233,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.settings.before_render && this.settings.before_render();
 		frappe.model.user_settings.save(this.doctype, 'last_view', this.view_name);
 		this.save_view_user_settings({
-			fields: this._fields,
 			filters: this.filter_area.get(),
 			order_by: this.sort_selector.get_sql_string()
 		});

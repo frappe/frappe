@@ -26,21 +26,82 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 		this.setup_sidebar();
 		this.setup_help();
 
-		// Frappe Chat (added to toolbar as per rushabh@frappe.io request)
-		this.setup_chat()
-		// end Frappe Chat
+		// frappe.chat (added to toolbar as per rushabh@frappe.io request)
+		this.setup_frappe_chat();
+		// end frappe.chat
 
+		this.setup_modules_dialog();
 		this.setup_progress_dialog();
 		this.bind_events();
 
 		$(document).trigger('toolbar_setup');
 	},
 
-	setup_chat ( )
-	{
-		// TODO: do something about chat
-		// const chat = new frappe.Chat({ target: '.navbar .frappe-chat-toggle' })
-		// chat.render()
+
+	setup_modules_dialog() {
+		this.modules_select = new frappe.ui.toolbar.ModulesSelect();
+		$('.navbar-set-desktop-icons').on('click', () => {
+			this.modules_select.show();
+		});
+  },
+
+	setup_frappe_chat ( ) {
+		frappe.log = frappe.Logger.get('frappe.chat');
+
+		frappe.log.info('Setting up frappe.chat');
+		frappe.log.warn('TODO: Handle realtime System Settings update.');
+		frappe.log.warn('TODO: frappe.chat.<object> requires a storage.');
+		
+		// Create/Get Chat Profile for session User, retrieve enable_chat
+		frappe.log.info('Creating a Chat Profile.');
+		frappe.chat.profile.create('enable_chat').then(({ enable_chat }) => {
+            frappe.log.info(`Chat Profile created for User ${frappe.session.user}.`)
+			const should_render = frappe.sys_defaults.enable_chat && enable_chat;
+			this.render_frappe_chat(should_render);
+		});
+
+		// Triggered when a User updates his/her Chat Profile.
+		// Don't worry, enable_chat is broadcasted to this user only. No overhead. :)
+		frappe.chat.profile.on.update((user, profile) => {
+			if ( user === frappe.session.user && 'enable_chat' in profile ) {
+				frappe.log.warn(`Chat Profile update (Enable Chat - ${Boolean(profile.enable_chat)})`);
+				const should_render = frappe.sys_defaults.enable_chat && profile.enable_chat;
+				this.render_frappe_chat(should_render);
+			}
+		});
+	},
+
+	render_frappe_chat (render = true, force = false) {
+		frappe.log.info(`${render ? "Enable" : "Disable"} Chat for User.`);
+
+		// With the assumption, that there's only one navbar.
+		const $placeholder = $('.navbar .frappe-chat-dropdown');
+
+		// Render if frappe-chat-toggle doesn't exist.
+		if ( frappe.utils.is_empty($placeholder.has('.frappe-chat-toggle')) ) {
+			const $template = $(`
+				<a class="dropdown-toggle frappe-chat-toggle" data-toggle="dropdown">
+					<div>
+						<i class="octicon octicon-comment-discussion"/>
+					</div>
+				</a>
+			`);
+
+			$placeholder.addClass('dropdown hidden');
+			$placeholder.html($template);
+		}
+
+		if ( render ) {
+			$placeholder.removeClass('hidden');
+		} else {
+			$placeholder.addClass('hidden');
+		}
+
+		// Avoid re-renders. Once is enough.
+		if ( !frappe.chatter || force ) {
+			frappe.chatter = new frappe.Chat({ target: '.navbar .frappe-chat-toggle' });
+			frappe.chatter.render();
+		}
 	},
 
 	bind_events: function() {
@@ -293,7 +354,8 @@ frappe.ui.toolbar.download_backup = function() {
 frappe.ui.toolbar.show_about = function() {
 	try {
 		frappe.ui.misc.about();
-	} catch(e) {
+	}
+	catch(e) {
 		console.log(e);
 	}
 	return false;
