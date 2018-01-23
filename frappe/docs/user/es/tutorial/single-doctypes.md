@@ -4,6 +4,6 @@ Una aplicación normalmente va a tener una página de configuración. En nuestra
 
 Para crear un Single DocType, marca el checkbox **Is Single**.
 
-<img class="screenshot" alt="Single Doctypes" src="/docs/assets/img/tab_single.png">
+<img class="screenshot" alt="Single Doctypes" src="/assets/frappe_docs/assets/img/tab_single.png">
 
 {next}

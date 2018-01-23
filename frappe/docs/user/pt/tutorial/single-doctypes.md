@@ -4,6 +4,6 @@ A aplicação irá normalmente têm uma página de configurações. Em nossa apl
 
 Para criar um DocType Single, marque a propriedade **Is Single** como verdadeira.
 
-<img class="screenshot" alt="Single Doctypes" src="/docs/assets/img/tab_single.png">
+<img class="screenshot" alt="Single Doctypes" src="/assets/frappe_docs/assets/img/tab_single.png">
 
 {next}

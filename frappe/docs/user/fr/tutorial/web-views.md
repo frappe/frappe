@@ -20,11 +20,11 @@ Jettons un oeil aux vues standards:
 
 Si vous êtes connecté avec votre utilisateur de test, rendez-vous sur`/article` et vous devriez voir la liste des articles:
 
-<img class="screenshot" alt="web list" src="/docs/assets/img/web-list.png">
+<img class="screenshot" alt="web list" src="/assets/frappe_docs/assets/img/web-list.png">
 
 Cliquez sur un article et vous devriez voir une vue par défaut.
 
-<img class="screenshot" alt="web view" src="/docs/assets/img/web-view.png">
+<img class="screenshot" alt="web view" src="/assets/frappe_docs/assets/img/web-view.png">
 
 Maintenant, si vous voulez une meilleur liste pour vos articles, créez un fichier appelé `row_template.html` dans le
 repertoire `library_management/templates/includes/list/`. Voici un exemple du contenu de ce fichier:
@@ -50,7 +50,7 @@ Ici, vous aurez toutes les propriétés d'un article dans l'object `doc`.
 
 La mise à jour de la liste ressemble à ca !
 
-<img class="screenshot" alt="new web list" src="/docs/assets/img/web-list-new.png">
+<img class="screenshot" alt="new web list" src="/assets/frappe_docs/assets/img/web-list-new.png">
 
 #### La page d'accueil
 

@@ -16,11 +16,11 @@ Vamos a ver las Vistas web estandar:
 
 Si estas logueado como el usuario de prueba, ve a `/article` y deberías ver la lista de artículos.
 
-<img class="screenshot" alt="web list" src="/docs/assets/img/web-list.png">
+<img class="screenshot" alt="web list" src="/assets/frappe_docs/assets/img/web-list.png">
 
 Da click en uno de los artículos y vas a ver una vista web por defecto
 
-<img class="screenshot" alt="web view" src="/docs/assets/img/web-view.png">
+<img class="screenshot" alt="web view" src="/assets/frappe_docs/assets/img/web-view.png">
 
 Si deseas hacer una mejor vista para la lista de artículos, crea un archivo llamado `row_template.html` en el directorio `library_management/templates/includes/list/`.
  Aquí hay un archivo de ejemplo:
@@ -45,7 +45,7 @@ Aquí, vas a tener todas las propiedades de un artículo en el objeto `doc`.
 
 La lista actualizada debe lucir de esta manera!
 
-<img class="screenshot" alt="new web list" src="/docs/assets/img/web-list-new.png">
+<img class="screenshot" alt="new web list" src="/assets/frappe_docs/assets/img/web-list-new.png">
 
 #### Página de Inicio
 

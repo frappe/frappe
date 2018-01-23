@@ -8,7 +8,7 @@ To create a new Query Report:
 
 ### 1. Create a new Report
 
-<img class="screenshot" alt="Query Report" src="/docs/assets/img/query-report.png">
+<img class="screenshot" alt="Query Report" src="/assets/frappe_docs/assets/img/query-report.png">
 
 1. Set type as "Query Report"
 1. Set the reference DocType - Users that have access to the reference DocType will have access to the report
@@ -37,7 +37,7 @@ You can define complex queries such as:
 
 ### 3. Check the Report
 
-<img class="screenshot" alt="Query Report" src="/docs/assets/img/query-report-out.png">
+<img class="screenshot" alt="Query Report" src="/assets/frappe_docs/assets/img/query-report-out.png">
 
 ### 4. Advanced (adding filters)
 

@@ -36,4 +36,4 @@ Example:
 
 You can check your usage by opening the "Usage Info" page from the toolbar / AwesomeBar. A limit will only show up on the page if it has been set.
 
-<img class="screenshot" alt="Doctype Saved" src="/docs/assets/img/usage_info.png">
+<img class="screenshot" alt="Doctype Saved" src="/assets/frappe_docs/assets/img/usage_info.png">

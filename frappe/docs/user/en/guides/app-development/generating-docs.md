@@ -50,7 +50,7 @@ While linking make sure you add `/docs` to all your links.
 
 You can add images in the `/docs/assets` folder. You can add links to the images as follows:
 
-    {% raw %}<img src="/docs/assets/img/my-img/gif" class="screenshot">{% endraw %}
+    {% raw %}<img src="/assets/frappe_docs/assets/img/my-img/gif" class="screenshot">{% endraw %}
 
 ---
 
