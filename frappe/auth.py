@@ -19,6 +19,7 @@ from frappe.core.doctype.activity_log.activity_log import add_authentication_log
 from frappe.utils.background_jobs import enqueue
 from frappe.twofactor import (should_run_2fa, authenticate_for_2factor,
 	confirm_otp_token, get_cached_user_pass)
+from frappe.integrations.doctype.ldap_settings.ldap_settings import get_ldap_settings, authenticate_ldap_user
 
 from six.moves.urllib.parse import quote
 
@@ -123,7 +124,18 @@ class LoginManager:
 		# clear cache
 		frappe.clear_cache(user = frappe.form_dict.get('usr'))
 		user, pwd = get_cached_user_pass()
-		self.authenticate(user=user, pwd=pwd)
+		try:
+			self.authenticate(user=user, pwd=pwd)
+		except:
+			# try login via LDAP
+			ldap_settings = get_ldap_settings()
+			if ldap_settings.enabled:
+				ldap_args = frappe.form_dict
+				ldap_user = authenticate_ldap_user(frappe.as_unicode(ldap_args.usr), frappe.as_unicode(ldap_args.pwd))
+				self.user = ldap_user.name
+			else:
+				raise
+		
 		if should_run_2fa(self.user):
 			authenticate_for_2factor(self.user)
 			if not confirm_otp_token(self):
