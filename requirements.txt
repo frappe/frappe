@@ -5,8 +5,7 @@ gunicorn
 jinja2
 markdown2
 PyMySQL
-python-geoip
-python-geoip-geolite2
+maxminddb-geolite2
 python-dateutil
 pytz
 six
