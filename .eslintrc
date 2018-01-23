@@ -39,8 +39,7 @@
 		],
 		"no-control-regex": [
 			"off"
-		],
-		"brace-style": "stroustrup"
+		]
 	},
 	"root": true,
 	"globals": {
