@@ -139,16 +139,16 @@ frappe.datetime.datetime = class
  * @example
  * const datetime = new frappe.datetime.now()
  */
-frappe.datetime.now  = () => new frappe.datetime.datetime()
+frappe.datetime.now   = () => new frappe.datetime.datetime()
 
-frappe.datetime.diff = (a, b, type) =>
+frappe.datetime.equal = (a, b, type) =>
 {
     a = a.moment
     b = b.moment
 
-    diff = a.diff(b, type)
+    const equal = a.isSame(b, type)
 
-    return diff
+    return equal
 }
 
 /**
@@ -2261,32 +2261,21 @@ class extends Component
 
     render ( )
     {
-        const { props }    = this
-        const { messages } = props
+        var messages = [ ]
+        for (var i   = 0 ; i < this.props.messages.length ; ++i)
+        {
+            var   message   = this.props.messages[i]
+            const me        = message.user === frappe.session.user
+
+            if ( i === 0 || !frappe.datetime.equal(message.creation, this.props.messages[i - 1].creation, 'day') )
+                messages.push({ type: "Notification", content: message.creation.format('MMMM DD') })
+
+            messages.push(message)
+        }
         
         return !frappe._.is_empty(messages) ? (
             h("div",{class:"chat-list list-group"},
-                messages.map((m, i) =>
-                {
-                    const me        = m.user === frappe.session.user;
-                    let   groupable = false;
-
-                    if ( i !== 0 && i !== messages.length )
-                        groupable   = !me && m.room_type === "Group" && m.user === messages[i - 1].user
-
-                    if ( i === 0 || frappe.datetime.diff(m.creation, messages[i - 1].creation))
-                    {
-                        return (
-                            h(frappe.chat.component.ChatList.Item,
-                            {
-                                   type: "Notification",
-                                content: ""
-                            })
-                        )
-                    }
-                    
-                    return h(frappe.chat.component.ChatList.Item, {...m, type: type, groupable: groupable})
-                })
+                messages.map(m => h(frappe.chat.component.ChatList.Item, {...m}))
             )
         ) : null
     }
@@ -2316,8 +2305,12 @@ class extends Component
 
         return (
             h("div",{class: "chat-list-item list-group-item"},
-                me.type === "Notification" ?
-                    h("div","","")
+                props.type === "Notification" ?
+                    h("div",{class:"chat-list-notification"},
+                        h("div",{class:"chat-list-notification-content"},
+                            props.content
+                        )
+                    )
                     :    
                     h("div",{class:`${me ? "text-right" : ""}`},
                         !me && !props.groupable && !me ?
