@@ -417,8 +417,13 @@ def get_expiry_period(device="desktop"):
 
 def get_geo_from_ip(ip_addr):
 	try:
-		from geoip import geolite2
-		return geolite2.lookup(ip_addr)
+		from geolite2 import geolite2
+		reader = geolite2.reader()
+		data   = reader.get(ip_addr)
+
+		data   = frappe._dict(data)
+
+		geolite2.close()
 	except ImportError:
 		return
 	except ValueError:
