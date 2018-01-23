@@ -20,13 +20,14 @@ const public_js_paths = apps_list.reduce((out, app) => {
 
 const bundle_map = apps_list.reduce((out, app) => {
 	const public_js_path = public_js_paths[app];
-	const all_files = fs.readdirSync(public_js_path);
-	const js_files = all_files.filter(file => file.endsWith('.js'));
-
-	for (let js_file of js_files) {
-		const filename = path.basename(js_file).split('.')[0];
-		out[path.join(app, 'js', filename)] = path.resolve(public_js_path, js_file);
-		// out[filename] = path.resolve(public_js_path, js_file);
+	if ( fs.existsSync(public_js_path) ) {
+		const all_files = fs.readdirSync(public_js_path);
+		const js_files = all_files.filter(file => file.endsWith('.js'));
+	
+		for (let js_file of js_files) {
+			const filename = path.basename(js_file).split('.')[0];
+			out[path.join(app, 'js', filename)] = path.resolve(public_js_path, js_file);
+		}
 	}
 
 	return out;
