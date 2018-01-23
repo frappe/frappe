@@ -732,7 +732,7 @@ frappe.chat.room.get = function (names, fields, fn) {
             { user: frappe.session.user, rooms: names, fields: fields },
                 response => {
                     let rooms = response.message
-                    if ( rooms ) { // frappe.api BOGZ! (emtpy arrays are falsified, not good design).
+                    if ( rooms ) // frappe.api BOGZ! (emtpy arrays are falsified, not good design). {
                         rooms = frappe._.as_array(rooms)
                         rooms = rooms.map(room => {
                             return { ...room, creation: new frappe.datetime.datetime(room.creation),
