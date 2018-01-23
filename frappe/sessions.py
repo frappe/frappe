@@ -427,6 +427,8 @@ def get_geo_from_ip(ip_addr):
 		return
 	except ValueError:
 		return
+	except TypeError:
+		return
 
 def get_geo_ip_country(ip_addr):
 	match = get_geo_from_ip(ip_addr)
