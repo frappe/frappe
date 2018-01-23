@@ -12,6 +12,4 @@ frappe/docs/current
 .vscode
 node_modules
 
-
-# Not Recommended, but will remove once webpack ready
-package-lock.json
+npm-debug.log
