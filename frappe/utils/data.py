@@ -385,7 +385,7 @@ def fmt_money(amount, precision=None, currency=None):
 			elif len(decimals) < precision:
 				precision = len(decimals)
 
-	amount = '%.*f' % (precision, flt(amount))
+	amount = '%.*f' % (precision, round(flt(amount), precision))
 	if amount.find('.') == -1:
 		decimals = ''
 	else:
