@@ -266,6 +266,15 @@ h6.uppercase,
 .timeline-item .gmail_extra {
   display: none;
 }
+.timeline-item .reply-link,
+.timeline-item .collapse-link {
+  margin-left: 15px;
+  font-size: 12px;
+}
+.timeline-item .timeline-item-content,
+.timeline-item .timeline-editing-area {
+  padding: 15px;
+}
 .timeline-items {
   position: relative;
 }
@@ -288,6 +297,19 @@ h6.uppercase,
   .timeline::before {
     bottom: -64px;
   }
+}
+.timeline-items .collapse {
+  display: block !important;
+  visibility: visible !important;
+  height: auto !important;
+  max-height: 150px;
+}
+.timeline-items .collapse.in {
+  max-height: fit-content;
+}
+.timeline-items .collapsing {
+  max-height: fit-content;
+  height: auto !important;
 }
 .timeline-item.user-content {
   margin: 30px 0px 30px 27px;
@@ -319,7 +341,6 @@ h6.uppercase,
   padding: 10px 15px 8px 13px;
   margin: 0px;
   color: #8D99A6;
-  border-bottom: 1px solid #EBEFF2;
 }
 .timeline-item.user-content .comment-header.links-active {
   padding-right: 77px;
@@ -344,8 +365,8 @@ h6.uppercase,
   cursor: pointer;
 }
 .timeline-item.user-content .reply {
-  padding: 15px;
   overflow: auto;
+  border-top: 1px solid #EBEFF2;
 }
 .timeline-item.user-content .reply > div > p:first-child {
   margin-top: 0px;
@@ -433,10 +454,6 @@ h6.uppercase,
   left: 40px;
   border-radius: 50%;
   top: 5px;
-}
-.timeline-item .reply-link {
-  margin-left: 15px;
-  font-size: 12px;
 }
 .timeline-head {
   background-color: white;
