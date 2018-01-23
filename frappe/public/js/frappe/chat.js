@@ -139,7 +139,17 @@ frappe.datetime.datetime = class
  * @example
  * const datetime = new frappe.datetime.now()
  */
-frappe.datetime.now = () => new frappe.datetime.datetime()
+frappe.datetime.now  = () => new frappe.datetime.datetime()
+
+frappe.datetime.diff = (a, b, type) =>
+{
+    a = a.moment
+    b = b.moment
+
+    diff = a.diff(b, type)
+
+    return diff
+}
 
 /**
  * @description Compares two frappe.datetime.datetime objects.
@@ -2263,8 +2273,19 @@ class extends Component
 
                     if ( i !== 0 && i !== messages.length )
                         groupable   = !me && m.room_type === "Group" && m.user === messages[i - 1].user
+
+                    if ( i === 0 || frappe.datetime.diff(m.creation, messages[i - 1].creation))
+                    {
+                        return (
+                            h(frappe.chat.component.ChatList.Item,
+                            {
+                                   type: "Notification",
+                                content: ""
+                            })
+                        )
+                    }
                     
-                    return h(frappe.chat.component.ChatList.Item, {...m, groupable: groupable})
+                    return h(frappe.chat.component.ChatList.Item, {...m, type: type, groupable: groupable})
                 })
             )
         ) : null
@@ -2295,15 +2316,18 @@ class extends Component
 
         return (
             h("div",{class: "chat-list-item list-group-item"},
-                h("div",{class:`${me ? "text-right" : ""}`},
-                    !me && !props.groupable && !me ?
-                        h(frappe.components.Avatar,
-                        {
-                            title: frappe.user.full_name(props.user),
-                            image: frappe.user.image(props.user)
-                        }) : null,
-                    h(frappe.chat.component.ChatBubble, props)
-                )
+                me.type === "Notification" ?
+                    h("div","","")
+                    :    
+                    h("div",{class:`${me ? "text-right" : ""}`},
+                        !me && !props.groupable && !me ?
+                            h(frappe.components.Avatar,
+                            {
+                                title: frappe.user.full_name(props.user),
+                                image: frappe.user.image(props.user)
+                            }) : null,
+                        h(frappe.chat.component.ChatBubble, props)
+                    )
             )
         )
     }

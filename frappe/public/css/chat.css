@@ -387,6 +387,8 @@ a.no-decoration:active {
   padding-bottom: 50px;
   height: 100%;
   background: #FAFBFC;
+  background-size: 350px 500px;
+  background-image: url(/assets/frappe/images/chat/wallpaper-default.jpg);
   overflow-y: scroll;
 }
 .chat-list .chat-list-item {
@@ -409,7 +411,7 @@ a.no-decoration:active {
   box-shadow: 0px 0.1px 0.5px 0px rgba(0, 0, 0, 0.5);
 }
 .chat-list .chat-list-item .chat-bubble.chat-bubble-l {
-  background-color: #EBEFF2;
+  background-color: white;
 }
 .chat-list .chat-list-item .chat-bubble.chat-bubble-l.chat-groupable {
   margin-left: 40px;
