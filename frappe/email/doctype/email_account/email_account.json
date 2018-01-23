@@ -76,7 +76,7 @@
    "bold": 0, 
    "collapsible": 0, 
    "columns": 0, 
-   "depends_on": "login_id_is_different", 
+   "depends_on": "eval:doc.login_id_is_different==1", 
    "fieldname": "login_id", 
    "fieldtype": "Data", 
    "hidden": 0, 
