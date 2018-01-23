@@ -17,7 +17,7 @@ class S3BackupSettings(Document):
 
 	def validate(self):
 		if not self.endpoint_url:
-    	self.endpoint_url = 'https://s3.amazonaws.com'
+    			self.endpoint_url = 'https://s3.amazonaws.com'
 		conn = boto3.client(
 			's3',
 			aws_access_key_id=self.access_key_id,
