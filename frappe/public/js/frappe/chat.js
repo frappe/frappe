@@ -1,6 +1,12 @@
 // Frappe Chat
 // Author - Achilles Rasquinha <achilles@frappe.io>
 
+/**
+ * --------------------------------------------------------------------------------
+ * Developer Notes
+ * --------------------------------------------------------------------------------
+ */
+
 /* eslint semi: "never" */
 // Fuck semicolons - https://mislav.net/2010/05/semicolons
 
@@ -133,7 +139,17 @@ frappe.datetime.datetime = class
  * @example
  * const datetime = new frappe.datetime.now()
  */
-frappe.datetime.now = () => new frappe.datetime.datetime()
+frappe.datetime.now   = () => new frappe.datetime.datetime()
+
+frappe.datetime.equal = (a, b, type) =>
+{
+    a = a.moment
+    b = b.moment
+
+    const equal = a.isSame(b, type)
+
+    return equal
+}
 
 /**
  * @description Compares two frappe.datetime.datetime objects.
@@ -208,7 +224,7 @@ frappe._.format = (string, object) =>
  */
 frappe._.fuzzy_search = (query, dataset, options) =>
 {
-    const DEFAULT  =
+    const DEFAULT     =
     {
                 shouldSort: true,
                  threshold: 0.6,
@@ -1064,6 +1080,8 @@ const { h, Component } = hyper
 // frappe's component namespace.
 frappe.provide('frappe.components')
 
+frappe.provide('frappe.chat.component')
+
 /**
  * @description Button Component
  * 
@@ -1171,7 +1189,7 @@ class extends Component
     {
         const { props } = this
 
-        return props.type ? h("i", { ...props, class: `fa ${props.fixed ? "fa-fw" : ""} fa-${props.type}` }) : null
+        return props.type ? h("i", { ...props, class: `fa ${props.fixed ? "fa-fw" : ""} fa-${props.type} ${props.class}` }) : null
     }
 }
 frappe.components.FontAwesome.defaultProps
@@ -1483,7 +1501,6 @@ class extends Component
             "status", "message_preview", "notification_tones", "conversation_tones"
         ]).then(profile =>
         {
-            frappe.log.info(`Chat Profile created for User ${frappe.session.user} - ${JSON.stringify(profile)}.`)
             this.set_state({ profile })
 
             frappe.chat.room.get(rooms =>
@@ -1866,7 +1883,7 @@ class extends Component
         return (
             h("div", { class: `frappe-chat-action-bar ${props.class ? props.class : ""}` },
                 h("form", { oninput: this.change, onsubmit: this.submit },
-                    h("input", { class: "form-control input-sm", name: "query", value: state.query, placeholder: props.placeholder || "Search" }),
+                    h("input", { autocomplete: "off", class: "form-control input-sm", name: "query", value: state.query, placeholder: props.placeholder || "Search" }),
                 ),
                 !frappe._.is_empty(actions) ?
                     actions.map(action => h(frappe.Chat.Widget.ActionBar.Action, { ...action })) : null
@@ -1960,8 +1977,6 @@ class extends Component
 
         if ( props.last_message )
             item.timestamp = frappe.chat.pretty_datetime(props.last_message.creation)
-
-        console.log(props)
 
         return (
             h("li", null,
@@ -2094,7 +2109,8 @@ class extends Component
             {
                  icon: "camera",
                 label: "Camera",
-                click: ( ) => {
+                on_click: ( ) =>
+                {
                     const capture = new frappe.ui.Capture({
                         animate: false,
                           error: true
@@ -2110,7 +2126,8 @@ class extends Component
             {
                  icon: "file",
                 label: "File",
-                click: ( ) => {
+                on_click: ( ) =>
+                {
                     
                 }
             }
@@ -2128,9 +2145,9 @@ class extends Component
 
         return (
             h("div", { class: `panel panel-default ${frappe._.is_mobile() ? "panel-span" : ""}` },
-                h(frappe.Chat.Widget.Room.Header, { ...props, back: props.destroy }),
+                h(frappe.Chat.Widget.Room.Header, { ...props, on_back: props.destroy }),
                 !frappe._.is_empty(props.messages) ?
-                    h(frappe.Chat.Widget.ChatList, {
+                    h(frappe.chat.component.ChatList, {
                         messages: props.messages
                     })
                     :
@@ -2142,12 +2159,12 @@ class extends Component
                             )
                         )
                     ),
-                h("div", { class: "frappe-chat-room-footer" },
-                    h(frappe.Chat.Widget.ChatForm, { actions: actions,
-                        change: () => {
+                h("div", { class: "chat-room-footer" },
+                    h(frappe.chat.component.ChatForm, { actions: actions,
+                        on_change: () => {
                             frappe.chat.message.typing(props.name)
                         },
-                        submit: (message) => {
+                        on_submit: (message) => {
                             frappe.chat.message.send(props.name, message)
                         },
                           hint: hints
@@ -2201,8 +2218,8 @@ class extends Component
             h("div", { class: "panel-heading" },
                 h("div", { class: "level" },
                     popper ?
-                        h("div", { style: { "padding-right": "15px" } }, // sins of mine.
-                            h("a", { onclick: props.back }, h(frappe.components.Octicon, { type: "chevron-left" }))
+                        h(frappe.components.Button,{class:"btn-back",onclick:props.on_back},
+                            h(frappe.components.Octicon, { type: "chevron-left" })
                         ) : null,
                     h("div","",
                         h("div", { class: "panel-title" },
@@ -2223,23 +2240,162 @@ class extends Component
 }
 
 /**
- * @description Chat Form Component
+ * @description ChatList Component
+ * 
+ * @prop {array} messages - ChatMessage(s)
  */
-frappe.Chat.Widget.ChatForm
+frappe.chat.component.ChatList
 =
-class extends Component {
-    constructor (props) {
-        super (props)
-        
-        this.change   = this.change.bind(this)
-        this.submit   = this.submit.bind(this)
-
-        this.hint     = this.hint.bind(this)
-
-        this.state    = frappe.Chat.Widget.ChatForm.defaultState
+class extends Component
+{
+    on_mounted ( )
+    {
+        this.$element  = $('.frappe-chat').find('.chat-list')
+        this.$element.scrollTop(this.$element[0].scrollHeight)
     }
 
-    change (e)
+    on_updated ( )
+    {
+        this.$element.scrollTop(this.$element[0].scrollHeight)
+    }
+
+    render ( )
+    {
+        var messages = [ ]
+        for (var i   = 0 ; i < this.props.messages.length ; ++i)
+        {
+            var   message   = this.props.messages[i]
+            const me        = message.user === frappe.session.user
+
+            if ( i === 0 || !frappe.datetime.equal(message.creation, this.props.messages[i - 1].creation, 'day') )
+                messages.push({ type: "Notification", content: message.creation.format('MMMM DD') })
+
+            messages.push(message)
+        }
+        
+        return !frappe._.is_empty(messages) ? (
+            h("div",{class:"chat-list list-group"},
+                messages.map(m => h(frappe.chat.component.ChatList.Item, {...m}))
+            )
+        ) : null
+    }
+}
+
+/**
+ * @description ChatList.Item Component
+ * 
+ * @prop {string} name       - ChatMessage name
+ * @prop {string} user       - ChatMessage user
+ * @prop {string} room       - ChatMessage room
+ * @prop {string} room_type  - ChatMessage room_type ("Direct", "Group" or "Visitor")
+ * @prop {string} content    - ChatMessage content
+ * @prop {frappe.datetime.datetime} creation - ChatMessage creation
+ * 
+ * @prop {boolean} groupable - Whether the ChatMessage is groupable.
+ */
+frappe.chat.component.ChatList.Item
+=
+class extends Component
+{
+    render ( )
+    {
+        const { props } = this
+
+        const me        = props.user === frappe.session.user
+
+        return (
+            h("div",{class: "chat-list-item list-group-item"},
+                props.type === "Notification" ?
+                    h("div",{class:"chat-list-notification"},
+                        h("div",{class:"chat-list-notification-content"},
+                            props.content
+                        )
+                    )
+                    :    
+                    h("div",{class:`${me ? "text-right" : ""}`},
+                        !me && !props.groupable && !me ?
+                            h(frappe.components.Avatar,
+                            {
+                                title: frappe.user.full_name(props.user),
+                                image: frappe.user.image(props.user)
+                            }) : null,
+                        h(frappe.chat.component.ChatBubble, props)
+                    )
+            )
+        )
+    }
+}
+
+/**
+ * @description ChatBubble Component
+ * 
+ * @prop {string} name       - ChatMessage name
+ * @prop {string} user       - ChatMessage user
+ * @prop {string} room       - ChatMessage room
+ * @prop {string} room_type  - ChatMessage room_type ("Direct", "Group" or "Visitor")
+ * @prop {string} content    - ChatMessage content
+ * @prop {frappe.datetime.datetime} creation - ChatMessage creation
+ * 
+ * @prop {boolean} groupable - Whether the ChatMessage is groupable.
+ */
+frappe.chat.component.ChatBubble
+=
+class extends Component
+{
+    render ( )
+    {
+        const { props } = this
+
+        const creation  = props.creation.format('hh:mm A')
+        
+        const me        = props.user === frappe.session.user
+        const read      = !frappe._.is_empty(props.seen) && !props.seen.includes(frappe.session.user)
+
+        const content   = props.content
+
+        return (
+            h("div",{class:`chat-bubble ${props.groupable ? "chat-groupable" : ""} chat-bubble-${me ? "r" : "l"}`},
+                props.room_type === "Group" && !me?
+                    h("div",{class:"chat-bubble-author"},
+                        h("a", { onclick: () => { frappe.set_route(`Form/User/${props.user}`) } },
+                            frappe.user.full_name(props.user)
+                        )
+                    ) : null,
+                h("div",{class:"chat-bubble-content"},
+                    h("small","",content)
+                ),
+                h("div",{class:"chat-bubble-meta"},
+                    h("span",{class:"chat-bubble-creation"},creation),
+                    me && read ?
+                        h("span",{class:"chat-bubble-check"},
+                            h(frappe.components.Octicon,{type:"check"})
+                        ) : null
+                )
+            )
+        )
+    }
+}
+
+/**
+ * @description ChatForm Component
+ */
+frappe.chat.component.ChatForm
+=
+class extends Component
+{
+    constructor (props)
+    {
+        super (props)
+        
+        this.on_change   = this.on_change.bind(this)
+        this.on_submit   = this.on_submit.bind(this)
+
+        this.hint        = this.hint.bind(this)
+
+        this.state       = frappe.chat.component.ChatForm.defaultState
+    }
+
+    on_change (e)
     {
         const { props, state } = this
         const value            = e.target.value
@@ -2248,7 +2404,7 @@ class extends Component {
             [e.target.name]: value
         })
 
-        props.change(state)
+        props.on_change(state)
 
         this.hint(value)
     }
@@ -2293,23 +2449,24 @@ class extends Component {
         }
     }
 
-    submit (e)
+    on_submit (e)
     {
         e.preventDefault()
 
         if ( this.state.content )
         {
-            this.props.submit(this.state.content)
+            this.props.on_submit(this.state.content)
 
             this.set_state({ content: null })
         }
     }
 
-    render ( ) {
+    render ( )
+    {
         const { props, state } = this
 
         return (
-            h("div", { class: "frappe-chat-form" },
+            h("div",{class:"chat-form"},
                 state.hints.length ?
                     h("ul", { class: "hint-list list-group" },
                         state.hints.map((item) =>
@@ -2326,25 +2483,27 @@ class extends Component {
                             )
                         })
                     ) : null,
-                h("form", { oninput: this.change, onsubmit: this.submit },
-                    h("div", { class: "input-group input-group-lg" },
-                        h("div", { class: "input-group-btn dropup" },
-                            h(frappe.components.Button, { class: "dropdown-toggle", "data-toggle": "dropdown" },
-                                h(frappe.components.FontAwesome, { type: "paperclip", fixed: true, style: { "font-size": "14px" } })
-                            ),
-                            h("div", { class: "dropdown-menu dropdown-menu-left", onclick: e => e.stopPropagation() },
-                                !frappe._.is_empty(props.actions) && props.actions.map((action) => {
-                                    return (
-                                        h("li", null,
-                                            h("a", { onclick: action.click },
-                                                h(frappe.components.FontAwesome, { type: action.icon, fixed: true }), ` ${action.label}`,
+                h("form", { oninput: this.on_change, onsubmit: this.on_submit },
+                    h("div",{class:"input-group input-group-lg"},
+                        !frappe._.is_empty(props.actions) ?
+                            h("div",{class:"input-group-btn dropup"},
+                                h(frappe.components.Button,{ class: "dropdown-toggle", "data-toggle": "dropdown"},
+                                    h(frappe.components.FontAwesome, { class: "text-muted", type: "paperclip", fixed: true })
+                                ),
+                                h("div",{ class:"dropdown-menu dropdown-menu-left", onclick: e => e.stopPropagation() },
+                                    !frappe._.is_empty(props.actions) && props.actions.map((action) =>
+                                    {
+                                        return (
+                                            h("li", null,
+                                                h("a",{onclick:action.on_click},
+                                                    h(frappe.components.FontAwesome,{type:action.icon,fixed:true}), ` ${action.label}`,
+                                                )
                                             )
                                         )
-                                    )
-                                })
-                            )
-                        ),
-                        h("input",
+                                    })
+                                )
+                            ) : null,
+                        h("textarea",
                         {
                                     class: "form-control",
                                      name: "content",
@@ -2354,12 +2513,12 @@ class extends Component {
                                onkeypress: (e) =>
                                {
                                     if ( e.which === frappe.ui.keycode.RETURN && !e.shiftKey )
-                                        this.submit(e)
+                                        this.on_submit(e)
                                }
                         }),
-                        h("div", { class: "input-group-btn" },
-                            h(frappe.components.Button, { type: "primary", class: "dropdown-toggle", "data-toggle": "dropdown", onclick: this.submit },
-                                h(frappe.components.FontAwesome, { type: "send", fixed: true, style: { "font-size": "14px" } })
+                        h("div",{class:"input-group-btn"},
+                            h(frappe.components.Button, { onclick: this.on_submit },
+                                h(frappe.components.FontAwesome, { class: !frappe._.is_empty(state.content) ? "text-primary" : "text-muted", type: "send", fixed: true })
                             ),
                         )
                     )
@@ -2368,14 +2527,20 @@ class extends Component {
         )
     }
 }
-frappe.Chat.Widget.ChatForm.defaultState
+frappe.chat.component.ChatForm.defaultState
 =
 {
     content: null,
       hints: [ ],
 }
 
-frappe.Chat.Widget.EmojiPicker
+
+/**
+ * @description EmojiPicker Component
+ * 
+ * @todo Under Development
+ */
+frappe.chat.component.EmojiPicker
 =
 class extends Component 
 {
@@ -2390,14 +2555,14 @@ class extends Component
                 ),
                 h("div", { class: "dropdown-menu dropdown-menu-right", onclick: e => e.stopPropagation() },
                     h("div", { class: "panel panel-default" },
-                        h(frappe.Chat.Widget.EmojiPicker.List)
+                        h(frappe.chat.component.EmojiPicker.List)
                     )
                 )
             )
         )
     }
 }
-frappe.Chat.Widget.EmojiPicker.List
+frappe.chat.component.EmojiPicker.List
 =
 class extends Component
 {
@@ -2411,72 +2576,4 @@ class extends Component
             )
         )
     }
-}
-
-/**
- * @description Chat List HOC
- */
-frappe.Chat.Widget.ChatList
-=
-class extends Component {
-    on_mounted ( )
-    {
-        const $element = $('.frappe-chat').find('.chat-list')
-        $element.scrollTop($element[0].scrollHeight)
-    }
-
-    on_updated ( )
-    {
-        const $element = $('.frappe-chat').find('.chat-list')
-        $element.scrollTop($element[0].scrollHeight)
-    }
-
-    render ( ) {
-        const { props } = this
-        
-        return !frappe._.is_empty(props.messages) ? (
-            h("ul", { class: "chat-list list-group" },
-                props.messages.map(m => h(frappe.Chat.Widget.ChatList.Item, {
-                    ...m
-                }))
-            )
-        ) : null
-    }
-}
-
-frappe.Chat.Widget.ChatList.Item
-=
-class extends Component {
-    render ( ) {
-        const { props } = this
-
-        return (
-            h("li", { class: "list-group-item", style: "border: none !important" },
-                h(frappe.Chat.Widget.ChatList.Bubble, props)
-            )
-        )
-    }
-}
-
-frappe.Chat.Widget.ChatList.Bubble
-=
-class extends Component {
-    render ( ) {
-        const { props } = this
-
-        return (
-            h(frappe.Chat.Widget.MediaProfile, {
-                      title: frappe.user.full_name(props.user),
-                   subtitle: `${frappe.chat.pretty_datetime(props.creation)}`,
-                    content: props.content,
-                      image: frappe.user.image(props.user),
-                width_title: "100%",
-                   position: frappe.user.full_name(props.user) === "You" ? "right" : "left"
-            })
-        )
-    }
-}
-frappe.Chat.Widget.ChatList.Bubble.defaultState =
-{
-    creation: ""
 }

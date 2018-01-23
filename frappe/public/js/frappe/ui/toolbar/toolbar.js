@@ -34,13 +34,15 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 
 	setup_frappe_chat ( ) {
 		frappe.log = frappe.Logger.get('frappe.chat');
+
 		frappe.log.info('Setting up frappe.chat');
-		// TODO: frappe.chat: Handle realtime System Settings update.
-		// TODO: frappe.chat: frappe.chat.<object> requires a storage.
+		frappe.log.warn('TODO: Handle realtime System Settings update.');
+		frappe.log.warn('TODO: frappe.chat.<object> requires a storage.');
 		
 		// Create/Get Chat Profile for session User, retrieve enable_chat
-		frappe.log.info(`Creating a Chat Profile.`);
-		frappe.chat.profile.create("enable_chat").then(({ enable_chat }) => {
+		frappe.log.info('Creating a Chat Profile.');
+		frappe.chat.profile.create('enable_chat').then(({ enable_chat }) => {
+            frappe.log.info(`Chat Profile created for User ${frappe.session.user}.`)
 			const should_render = frappe.sys_defaults.enable_chat && enable_chat;
 			this.render_frappe_chat(should_render);
 		});
@@ -49,7 +51,7 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 		// Don't worry, enable_chat is broadcasted to this user only. No overhead. :)
 		frappe.chat.profile.on.update((user, profile) => {
 			if ( user === frappe.session.user && 'enable_chat' in profile ) {
-				frappe.log.warn(`Chat Profile update (Enable Chat - ${Boolean(profile.enable_chat)}.`);
+				frappe.log.warn(`Chat Profile update (Enable Chat - ${Boolean(profile.enable_chat)})`);
 				const should_render = frappe.sys_defaults.enable_chat && profile.enable_chat;
 				this.render_frappe_chat(should_render);
 			}
