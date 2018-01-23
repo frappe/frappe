@@ -11,7 +11,7 @@ frappe.views.ImageView = class ImageView extends frappe.views.ListView {
 	}
 
 	set_fields() {
-		this._fields = [
+		this.fields = [
 			'name',
 			this.meta.title_field,
 			this.meta.image_field

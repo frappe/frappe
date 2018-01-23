@@ -14,7 +14,8 @@ $(document).ready(function(){
 			description: "{{description}}",
 			amount: cint("{{ amount }}" * 100), // 2000 paise = INR 20
 			email: "{{payer_email}}",
-			currency: "{{currency}}"
+			currency: "{{currency}}",
+			locale: "auto"
 		});
 		
 	})();

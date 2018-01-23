@@ -53,6 +53,7 @@ frappe.views.BaseList = class BaseList {
 		this.can_delete = frappe.model.can_delete(this.doctype);
 		this.can_write = frappe.model.can_write(this.doctype);
 
+		this.fields = [];
 		this.filters = [];
 		this.order_by = 'modified desc';
 
@@ -76,8 +77,6 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	set_fields() {
-		this._fields = [];
-
 		let fields = [].concat(
 			frappe.model.std_fields_list,
 			this.get_fields_in_list_view(),
@@ -105,16 +104,14 @@ frappe.views.BaseList = class BaseList {
 
 	build_fields() {
 		// fill in missing doctype
-		this._fields = this._fields.map(f => {
+		this.fields = this.fields.map(f => {
 			if (typeof f === 'string') {
 				f = [f, this.doctype];
 			}
 			return f;
 		});
 		//de-dup
-		this._fields = this._fields.uniqBy(f => f[0] + f[1]);
-		// build this.fields
-		this.fields = this._fields.map(f => frappe.model.get_full_column_name(f[0], f[1]));
+		this.fields = this.fields.uniqBy(f => f[0] + f[1]);
 	}
 
 	_add_field(fieldname) {
@@ -135,7 +132,7 @@ frappe.views.BaseList = class BaseList {
 			return;
 		}
 
-		this._fields.push([fieldname, doctype]);
+		this.fields.push([fieldname, doctype]);
 	}
 
 	set_stats() {
@@ -304,7 +301,8 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	get_fields() {
-		return this.fields;
+		// convert [fieldname, Doctype] => tabDoctype.fieldname
+		return this.fields.map(f => frappe.model.get_full_column_name(f[0], f[1]));
 	}
 
 	setup_view() {
@@ -444,14 +442,14 @@ class FilterArea {
 		});
 
 		const { non_standard_filters, promise } = this.set_standard_filter(filters);
-		if (non_standard_filters.length === 0) {
-			return promise;
-		}
 
 		return promise
-			.then(() => this.filter_list.add_filters(non_standard_filters))
 			.then(() => {
-				if (refresh) return this.list_view.refresh();
+				return non_standard_filters.length > 0 &&
+					this.filter_list.add_filters(non_standard_filters);
+			})
+			.then(() => {
+				refresh && this.list_view.refresh();
 			});
 	}
 
@@ -475,10 +473,6 @@ class FilterArea {
 		// check in filter area
 		if (!exists) {
 			exists = this.filter_list.filter_exists(f);
-		}
-
-		if (exists) {
-			frappe.show_alert(__('Filter already exists.'));
 		}
 
 		return exists;

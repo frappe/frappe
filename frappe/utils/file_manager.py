@@ -27,6 +27,7 @@ def upload():
 	# get record details
 	dt = frappe.form_dict.doctype
 	dn = frappe.form_dict.docname
+	df = frappe.form_dict.docfield
 	file_url = frappe.form_dict.file_url
 	filename = frappe.form_dict.filename
 	frappe.form_dict.is_private = cint(frappe.form_dict.is_private)
@@ -56,38 +57,32 @@ def upload():
 		"comment": comment.as_dict() if comment else {}
 	}
 
-
-def get_file_doc(dt=None, dn=None, folder=None, is_private=None):
-	""" Returns File object (Document) from given parameters or form_dict"""
+def get_file_doc(dt=None, dn=None, folder=None, is_private=None, df=None):
+	'''returns File object (Document) from given parameters or form_dict'''
 	r = frappe.form_dict
 
-	if dt is None:
-		dt = r.doctype
-	if dn is None:
-		dn = r.docname
-	if folder is None:
-		folder = r.folder
-	if is_private is None:
-		is_private = r.is_private
+	if dt is None: dt = r.doctype
+	if dn is None: dn = r.docname
+	if df is None: df = r.docfield
+	if folder is None: folder = r.folder
+	if is_private is None: is_private = r.is_private
 
-	# r.filedata will be '' if file is empty
-	if r.filedata or r.filedata == '':
-		file_doc = save_uploaded(dt, dn, folder, is_private)
+	if r.filedata:
+		file_doc = save_uploaded(dt, dn, folder, is_private, df)
+
 	elif r.file_url:
-		file_doc = save_url(r.file_url, r.filename, dt, dn, folder, is_private)
+		file_doc = save_url(r.file_url, r.filename, dt, dn, folder, is_private, df)
 
 	return file_doc
 
-
-def save_uploaded(dt, dn, folder, is_private):
+def save_uploaded(dt, dn, folder, is_private, df=None):
 	fname, content = get_uploaded_content()
-	if content or content == '':
-		return save_file(fname, content, dt, dn, folder, is_private=is_private);
+	if content:
+		return save_file(fname, content, dt, dn, folder, is_private=is_private, df=df);
 	else:
 		raise Exception
 
-
-def save_url(file_url, filename, dt, dn, folder, is_private):
+def save_url(file_url, filename, dt, dn, folder, is_private, df=None):
 	# if not (file_url.startswith("http://") or file_url.startswith("https://")):
 	# 	frappe.msgprint("URL must start with 'http://' or 'https://'")
 	# 	return None, None
@@ -100,6 +95,7 @@ def save_url(file_url, filename, dt, dn, folder, is_private):
 		"file_name": filename,
 		"attached_to_doctype": dt,
 		"attached_to_name": dn,
+		"attached_to_field": df,
 		"folder": folder,
 		"is_private": is_private
 	})
@@ -123,8 +119,7 @@ def get_uploaded_content():
 		frappe.msgprint(_('No file attached'))
 		return None, None
 
-
-def save_file(fname, content, dt, dn, folder=None, decode=False, is_private=0):
+def save_file(fname, content, dt, dn, folder=None, decode=False, is_private=0, df=None):
 	if decode:
 		if isinstance(content, text_type):
 			content = content.encode("utf-8")
@@ -149,6 +144,7 @@ def save_file(fname, content, dt, dn, folder=None, decode=False, is_private=0):
 		"doctype": "File",
 		"attached_to_doctype": dt,
 		"attached_to_name": dn,
+		"attached_to_field": df,
 		"folder": folder,
 		"file_size": file_size,
 		"content_hash": content_hash,
