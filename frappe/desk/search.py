@@ -59,7 +59,10 @@ def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 
 			# build from doctype
 			if txt:
-				search_fields = ["name"]
+				if doctype == "DocField":
+					search_fields = ["name", "fieldname", "label"]
+				else:
+					search_fields = ["name"]
 				if meta.title_field:
 					search_fields.append(meta.title_field)
 
