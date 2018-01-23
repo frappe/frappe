@@ -12,19 +12,6 @@ from frappe.desk.form.meta import get_code_files_via_hooks, get_js
 from frappe.core.doctype.custom_role.custom_role import get_custom_allowed_roles
 from six import text_type
 
-# from webpack.compiler import webpack
-
-# from webpack.conf import settings
-
-# DEBUG = True
-
-# settings.configure(
-#     STATIC_ROOT=os.path.join(os.getcwd()),
-# 	STATIC_URL='foo',
-#     WATCH=DEBUG,
-#     HMR=DEBUG,
-# )
-
 class Page(Document):
 	def autoname(self):
 		"""
@@ -161,24 +148,6 @@ class Page(Document):
 			js = get_js(path)
 			if js:
 				self.script += "\n\n" + js
-
-		# with open('foo.js', mode = 'w') as f:
-		# 	f.write(self.script)
-
-		# bundle = webpack(os.getcwd() + '/webpack/webpack.config.js', context = dict(
-		# 	entry = os.path.join(os.getcwd(), 'foo.js')
-		# ))
-
-		# print('\n' * 10)
-		# print(bundle.render_js())
-		# print('\n' * 10)
-
-		# print(self.script)
-
-		# print(self.script)
-
-		# with open(os.getcwd() + '/foo.js', mode = 'w', encoding = 'utf-8') as f:
-		# 	f.write(self.script)
 
 def delete_custom_role(field, docname):
 	name = frappe.db.get_value('Custom Role', {field: docname}, "name")
