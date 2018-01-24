@@ -288,11 +288,12 @@ def mysql(context):
 	site = get_site(context)
 	frappe.init(site=site)
 	mysql = find_executable('mycli')
-	args  = [mysql, '-u', frappe.conf.db_name, '-p'+frappe.conf.db_password, frappe.conf.db_name, '-h', frappe.conf.db_host or "localhost"]
+	args  = ['-u', frappe.conf.db_name, '-p'+frappe.conf.db_password, frappe.conf.db_name, '-h', frappe.conf.db_host or "localhost"]
 	if not mysql:
 		mysql = find_executable('mysql')
 		args.append("-A")
-
+	args.insert(0, mysql)
+	
 	os.execv(mysql, args)
 
 @click.command('console')
