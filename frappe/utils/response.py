@@ -4,6 +4,7 @@
 from __future__ import unicode_literals
 import json
 import datetime
+from decimal import Decimal
 import mimetypes
 import os
 import frappe
@@ -104,6 +105,9 @@ def json_handler(obj):
 	"""serialize non-serializable data for json"""
 	# serialize date
 	if isinstance(obj, (datetime.date, datetime.timedelta, datetime.datetime)):
+		return text_type(obj)
+
+	if isinstance(obj, Decimal):
 		return text_type(obj)
 
 	elif isinstance(obj, LocalProxy):
