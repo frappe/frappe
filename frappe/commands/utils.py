@@ -529,7 +529,7 @@ def auto_deploy(context, app, migrate=False, restart=False, remote='upstream'):
 
 	# get diff
 	if subprocess.check_output(['git', 'diff', '{0}..upstream/{0}'.format(branch)], cwd = app_path):
-		print('✔ Updates found for {0}'.format(app))
+		print('Updates found for {0}'.format(app))
 		if app=='frappe':
 			# run bench update
 			subprocess.check_output(['bench', 'update', '--no-backup'], cwd = '..')
