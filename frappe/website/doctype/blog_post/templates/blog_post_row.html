@@ -2,10 +2,10 @@
 <div class="web-list-item blog-list-item">
 	<div class="row">
 		<div class="col-xs-12">
-			<h2><a href="/{{ post.route }}">{{ post.title }}</a></h2>
+			<h1><a href="/{{ post.route }}">{{ post.title }}</a></h1>
 			{% if post.cover_image %}
 			<p>
-				<img class="blopost-cover-img" src="{{ post.cover_image }}" alt="{{post.title}} - Cover Image">
+				<img  class="blogpost-cover-img" src="{{ post.cover_image }}" alt="{{post.title}} - Cover Image">
 			</p>
 			{% endif %}
 			<p class="post-description">{{ post.intro }}</p>
