@@ -287,8 +287,13 @@ def mysql(context):
 	"Start Mariadb console for a site"
 	site = get_site(context)
 	frappe.init(site=site)
-	msq = find_executable('mysql')
-	os.execv(msq, [msq, '-u', frappe.conf.db_name, '-p'+frappe.conf.db_password, frappe.conf.db_name, '-h', frappe.conf.db_host or "localhost", "-A"])
+	mysql = find_executable('mycli')
+	args  = [mysql, '-u', frappe.conf.db_name, '-p'+frappe.conf.db_password, frappe.conf.db_name, '-h', frappe.conf.db_host or "localhost"]
+	if not mysql:
+		mysql = find_executable('mysql')
+		args.append("-A")
+
+	os.execv(mysql, args)
 
 @click.command('console')
 @pass_context
