@@ -70,7 +70,8 @@ class Communication(Document):
 		if not (self.reference_doctype and self.reference_name):
 			return
 
-		if self.reference_doctype == "Communication" and self.sent_or_received == "Sent":
+		if self.reference_doctype == "Communication" and self.sent_or_received == "Sent" and \
+			self.communication_type != 'Comment':
 			frappe.db.set_value("Communication", self.reference_name, "status", "Replied")
 
 		if self.communication_type in ("Communication", "Comment"):

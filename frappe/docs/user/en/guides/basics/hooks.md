@@ -260,6 +260,7 @@ Scheduler hooks are methods that are run periodically in background. Structure f
 * `monthly_long`
 * `hourly`
 * `all`
+* `cron`
 
 The scheduler events require celery, celerybeat and redis (or a supported and
 configured broker) to be running. The events with suffix '\_long' are for long
@@ -274,4 +275,17 @@ Example,
 		"{daily_long}": [
 			"erpnext.setup.doctype.backup_manager.backup_manager.take_backups_daily"
 		],
+		"cron": {
+			"15 18 * * *": [
+				"frappe.twofactor.delete_all_barcodes_for_users"
+			],
+			"*/6 * * * *": [
+				"frappe.utils.error.collect_error_snapshots"
+			],
+			"annual": [
+				"frappe.utils.error.collect_error_snapshots"
+			]
+		}
 	}
+
+The asterisk (*) operator specifies all possible values for a field. For example, an asterisk in the hour time field would be equivalent to every hour or an asterisk in the month field would be equivalent to every month.
