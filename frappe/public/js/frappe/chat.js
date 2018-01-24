@@ -47,10 +47,8 @@ frappe.model.subscribe = (doctype, name, field) =>
  * @see  https://stackoverflow.com/a/32749533
  * @todo Requires "transform-builtin-extend" for Babel 6
  */
-frappe.Error = class extends Error
-{
-    constructor (message)
-    {
+frappe.Error = class extends Error {
+    constructor (message) {
         super (message)
 
         this.name = 'FrappeError'
@@ -65,10 +63,8 @@ frappe.Error = class extends Error
 /**
  * @description TypeError
  */
-frappe.TypeError  = class extends frappe.Error
-{
-    constructor (message)
-    {
+frappe.TypeError  = class extends frappe.Error {
+    constructor (message) {
         super (message)
 
         this.name = this.constructor.name
@@ -78,10 +74,8 @@ frappe.TypeError  = class extends frappe.Error
 /**
  * @description ValueError
  */
-frappe.ValueError = class extends frappe.Error
-{
-    constructor (message)
-    {
+frappe.ValueError = class extends frappe.Error {
+    constructor (message) {
         super (message)
 
         this.name = this.constructor.name
@@ -91,10 +85,8 @@ frappe.ValueError = class extends frappe.Error
 /**
  * @description ImportError
  */
-frappe.ImportError = class extends frappe.Error
-{
-    constructor (message)
-    {
+frappe.ImportError = class extends frappe.Error {
+    constructor (message) {
         super (message)
 
         this.name  = this.constructor.name
@@ -110,13 +102,11 @@ frappe.provide('frappe.datetime')
  * @example
  * const datetime = new frappe.datetime.datetime()
  */
-frappe.datetime.datetime = class
-{
+frappe.datetime.datetime = class {
     /**
      * @description Frappe's datetime Class's constructor.
      */
-    constructor (instance)
-    {
+    constructor (instance) {
         if ( typeof moment === undefined )
             throw new frappe.ImportError(`Moment.js not installed.`)
 
@@ -126,8 +116,7 @@ frappe.datetime.datetime = class
     /**
      * @description Returns a formatted string of the datetime object.
      */
-    format (format)
-    {
+    format (format) {
         const  formatted = this.moment.format(format)
         return formatted
     }
@@ -141,8 +130,7 @@ frappe.datetime.datetime = class
  */
 frappe.datetime.now   = () => new frappe.datetime.datetime()
 
-frappe.datetime.equal = (a, b, type) =>
-{
+frappe.datetime.equal = (a, b, type) => {
     a = a.moment
     b = b.moment
 
@@ -167,8 +155,7 @@ frappe.datetime.equal = (a, b, type) =>
  * frappe.datetime.compare(then, frappe.datetime.now())
  * // returns 1
  */
-frappe.datetime.compare = (a, b) =>
-{
+frappe.datetime.compare = (a, b) => {
     a = a.moment
     b = b.moment
 
@@ -199,8 +186,7 @@ frappe.provide('frappe._')
  * frappe._.format('{foo} {bar}', { bar: 'foo', foo: 'bar' })
  * // returns "bar foo"
  */
-frappe._.format = (string, object) =>
-{
+frappe._.format = (string, object) => {
     for (const key in object)
         string  = string.replace(`{${key}}`, object[key])
 
@@ -222,10 +208,8 @@ frappe._.format = (string, object) =>
  * 
  * @see http://fusejs.io
  */
-frappe._.fuzzy_search = (query, dataset, options) =>
-{
-    const DEFAULT     =
-    {
+frappe._.fuzzy_search = (query, dataset, options) => {
+    const DEFAULT     = {
                 shouldSort: true,
                  threshold: 0.6,
                   location: 0,
@@ -302,8 +286,7 @@ frappe._.head = arr => frappe._.is_empty(arr) ? undefined : arr[0]
  * 
  * @todo Add optional deep copy.
  */
-frappe._.copy_array = array =>
-{
+frappe._.copy_array = array => {
     if ( Array.isArray(array) )
         return array.slice()
     else
@@ -331,8 +314,7 @@ frappe._.copy_array = array =>
  * 
  * @todo Handle other cases.
  */
-frappe._.is_empty = value =>
-{
+frappe._.is_empty = value => {
     let empty = false
 
     if ( value === undefined || value === null )
@@ -388,8 +370,7 @@ frappe._.squash = list => Array.isArray(list) && list.length === 1 ? list[0] : l
  * 
  * @see https://developer.mozilla.org/en-US/docs/Web/HTTP/Browser_detection_using_the_user_agent
  */
-frappe._.is_mobile = () =>
-{
+frappe._.is_mobile = () => {
     const regex    = new RegExp("Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini", "i")
     const agent    = navigator.userAgent
     const mobile   = regex.test(agent)
@@ -435,38 +416,32 @@ frappe.provide('frappe.ui')
  * 
  * @todo Under Development
  */
-frappe.ui.Uploader = class
-{
-    constructor (wrapper, options = { })
-    {
+frappe.ui.Uploader = class {
+    constructor (wrapper, options = { }) {
         this.options = frappe.ui.Uploader.OPTIONS
         this.set_wrapper(wrapper)
         this.set_options(options)
     }
 
-    set_wrapper (wrapper)
-    {
+    set_wrapper (wrapper) {
         this.$wrapper = $(wrapper)
 
         return this
     }
 
-    set_options (options)
-    {
+    set_options (options) {
         this.options  = { ...this.options, ...options }
 
         return this
     }
 
-    render ( )
-    {
+    render ( ) {
         const $template = $(frappe.ui.Uploader.TEMPLATE)
         this.$wrapper.html($template)
     }
 }
 frappe.ui.Uploader.Layout   = { DIALOG: 'DIALOG' }
-frappe.ui.Uploader.OPTIONS  =
-{
+frappe.ui.Uploader.OPTIONS  = {
     layout: frappe.ui.Uploader.Layout.DIALOG
 }
 frappe.ui.Uploader.TEMPLATE =
@@ -486,10 +461,8 @@ frappe.provide('frappe.stores')
  * 
  * @todo Under Development
  */
-frappe.Store   = class
-{
-    constructor ( )
-    {
+frappe.Store   = class {
+    constructor ( ) {
 
     }
 }
@@ -506,15 +479,13 @@ frappe.provide('frappe.loggers')
  * frappe.log.info('foobar')
  * // prints '[timestamp] foobar: foobar'
  */
-frappe.Logger = class
-{
+frappe.Logger = class {
     /**
      * @description Frappe's Logger Class's constructor.
      * 
      * @param {string} name - Name of the logger.
      */
-    constructor (name)
-    {
+    constructor (name) {
         if ( typeof name !== 'string' )
             throw new frappe.TypeError(`Expected string for name, got ${typeof name} instead.`)
 
@@ -531,8 +502,7 @@ frappe.Logger = class
      * 
      * @param {string} name - Name of the logger.
      */
-    static get (name)
-    {
+    static get (name) {
         if ( !(name in frappe.loggers) )
             frappe.loggers[name] = new frappe.Logger(name)
         return frappe.loggers[name]
@@ -543,14 +513,11 @@ frappe.Logger = class
     warn  (message) { this.log(message, frappe.Logger.WARN)  }
     error (message) { this.log(message, frappe.Logger.ERROR) }
 
-    log (message, level)
-    {
+    log (message, level) {
         const timestamp   = frappe.datetime.now()
 
-        if ( level.value <= this.level.value )
-        {
-            const format  = frappe._.format(this.format,
-            {
+        if ( level.value <= this.level.value ) {
+            const format  = frappe._.format(this.format, {
                 time: timestamp.format('HH:mm:ss'),
                 name: this.name
             })
@@ -588,22 +555,18 @@ frappe.provide('frappe.chat.profile')
  * 
  * frappe.chat.profile.create("status").then(console.log) // { status: "Online" }
  */
-frappe.chat.profile.create = (fields, fn) =>
-{
-    if ( typeof fields === "function" )
-    {
+frappe.chat.profile.create = (fields, fn) => {
+    if ( typeof fields === "function" ) {
         fn     = fields
         fields = null
     } else
     if ( typeof fields === "string" )
         fields = frappe._.as_array(fields)
 
-    return new Promise(resolve =>
-    {
+    return new Promise(resolve => {
         frappe.call("frappe.chat.doctype.chat_profile.chat_profile.create",
             { user: frappe.session.user, exists_ok: true, fields: fields },
-                response =>
-                {
+                response => {
                     if ( fn )
                         fn(response.message)
                     
@@ -621,14 +584,11 @@ frappe.chat.profile.create = (fields, fn) =>
  * @example
  * frappe.chat.profile.update(frappe.session.user, { "status": "Offline" })
  */
-frappe.chat.profile.update = (user, update, fn) =>
-{
-    return new Promise(resolve =>
-    {
+frappe.chat.profile.update = (user, update, fn) => {
+    return new Promise(resolve => {
         frappe.call("frappe.chat.doctype.chat_profile.chat_profile.update",
             { user: user || frappe.session.user, data: update },
-                response =>
-                {
+                response => {
                     if ( fn )
                         fn(response.message)
                     
@@ -653,26 +613,21 @@ frappe.provide('frappe.chat.profile.on')
  *      // do stuff
  * })
  */
-frappe.chat.profile.on.update = function (fn)
-{
+frappe.chat.profile.on.update = function (fn) {
     frappe.realtime.on("frappe.chat.profile:update", r => fn(r.user, r.data))
 }
 frappe.chat.profile.STATUSES
 =
-[
-    {
+[ {
         name: "Online",
        color: "green"
-    },
-    {
+    }, {
          name: "Away",
         color: "yellow"
-    },
-    {
+    }, {
          name: "Busy",
         color: "red"
-    },
-    {
+    }, {
          name: "Offline",
         color: "darkgrey"
     }
@@ -700,22 +655,18 @@ frappe.provide('frappe.chat.room')
  *      // do stuff
  * })
  */
-frappe.chat.room.create = function (kind, owner, users, name, fn)
-{
-    if ( typeof name === "function" )
-    {
+frappe.chat.room.create = function (kind, owner, users, name, fn) {
+    if ( typeof name === "function" ) {
         fn   = name
         name = null
     }
 
     users    = frappe._.as_array(users)
     
-    return new Promise(resolve =>
-    {
+    return new Promise(resolve => {
         frappe.call("frappe.chat.doctype.chat_room.chat_room.create",
             { kind: kind, owner: owner || frappe.session.user, users: users, name: name },
-            r =>
-            {
+            r => {
                 let room = r.message
                 room     = { ...room, creation: new frappe.datetime.datetime(room.creation) }
 
@@ -756,17 +707,14 @@ frappe.chat.room.create = function (kind, owner, users, name, fn)
  * 
  * })
  */
-frappe.chat.room.get = function (names, fields, fn)
-{
-    if ( typeof names === "function" )
-    {
+frappe.chat.room.get = function (names, fields, fn) {
+    if ( typeof names === "function" ) {
         fn     = names
         names  = null
         fields = null
     }
     else
-    if ( typeof names === "string" )
-    {
+    if ( typeof names === "string" ) {
         names  = frappe._.as_array(names)
 
         if ( typeof fields === "function" ) {
@@ -778,19 +726,15 @@ frappe.chat.room.get = function (names, fields, fn)
             fields = frappe._.as_array(fields)
     }
 
-    return new Promise(resolve =>
-    {
+    return new Promise(resolve => {
 
         frappe.call("frappe.chat.doctype.chat_room.chat_room.get",
             { user: frappe.session.user, rooms: names, fields: fields },
-                response =>
-                {
+                response => {
                     let rooms = response.message
-                    if ( rooms ) // frappe.api BOGZ! (emtpy arrays are falsified, not good design).
-                    {
+                    if ( rooms ) { // frappe.api BOGZ! (emtpy arrays are falsified, not good design).
                         rooms = frappe._.as_array(rooms)
-                        rooms = rooms.map(room =>
-                        {
+                        rooms = rooms.map(room => {
                             return { ...room, creation: new frappe.datetime.datetime(room.creation),
                                 last_message: room.last_message ? { ...room.last_message, creation: new frappe.datetime.datetime(room.last_message.creation) } : null
                             }
@@ -816,8 +760,7 @@ frappe.chat.room.get = function (names, fields, fn)
  * @example
  * frappe.chat.room.subscribe("CR00001")
  */
-frappe.chat.room.subscribe = function (rooms)
-{
+frappe.chat.room.subscribe = function (rooms) {
     frappe.realtime.publish("frappe.chat.room:subscribe", rooms)
 }
 
@@ -834,14 +777,11 @@ frappe.chat.room.subscribe = function (rooms)
  *      // do stuff.
  * })
  */
-frappe.chat.room.history = function (name, fn)
-{
-    return new Promise(resolve =>
-    {
+frappe.chat.room.history = function (name, fn) {
+    return new Promise(resolve => {
         frappe.call("frappe.chat.doctype.chat_room.chat_room.history",
             { room: name, user: frappe.session.user },
-                r =>
-                {
+                r => {
                     let messages = r.message ? frappe._.as_array(r.message) : [ ] // frappe.api BOGZ! (emtpy arrays are falsified, not good design).
                     messages     = messages.map(m => { return { ...m, creation: new frappe.datetime.datetime(m.creation) } })
 
@@ -861,10 +801,8 @@ frappe.chat.room.history = function (name, fn)
  * 
  * @returns {array}        - A fuzzy searched list of rooms.
  */
-frappe.chat.room.search = function (query, rooms)
-{
-    const dataset = rooms.map(r =>
-    {
+frappe.chat.room.search = function (query, rooms) {
+    const dataset = rooms.map(r => {
         if ( r.room_name )
             return r.room_name
         else
@@ -885,10 +823,8 @@ frappe.chat.room.search = function (query, rooms)
  * @param {array}   - A list of Chat Room(s)
  * @param {compare} - (Optional) a comparision function.
  */
-frappe.chat.room.sort = function (rooms, compare = null)
-{
-    compare = compare || function (a, b)
-    {
+frappe.chat.room.sort = function (rooms, compare = null) {
+    compare = compare || function (a, b) {
         if ( a.last_message && b.last_message )
             return frappe.datetime.compare(a.last_message.creation, b.last_message.creation)
         else
@@ -913,10 +849,8 @@ frappe.provide('frappe.chat.room.on')
  * 
  * @param {function} fn - callback with the Chat Room and Update.
  */
-frappe.chat.room.on.update = function (fn)
-{
-    frappe.realtime.on("frappe.chat.room:update", r =>
-    {
+frappe.chat.room.on.update = function (fn) {
+    frappe.realtime.on("frappe.chat.room:update", r => {
         if ( r.data.last_message )
             // creation to frappe.datetime.datetime (easier to manipulate).
             r.data = { ...r.data, last_message: { ...r.data.last_message, creation: new frappe.datetime.datetime(r.data.last_message.creation) } }
@@ -930,8 +864,7 @@ frappe.chat.room.on.update = function (fn)
  * 
  * @param {function} fn - callback with the created Chat Room.
  */
-frappe.chat.room.on.create = function (fn)
-{
+frappe.chat.room.on.create = function (fn) {
     frappe.realtime.on("frappe.chat.room:create", r => fn({ ...r, creation: new frappe.datetime.datetime(r.creation) }))
 }
 
@@ -940,32 +873,27 @@ frappe.chat.room.on.create = function (fn)
  * 
  * @param {function} fn - callback with the typing User within the Chat Room.
  */
-frappe.chat.room.on.typing = function (fn)
-{
+frappe.chat.room.on.typing = function (fn) {
     frappe.realtime.on("frappe.chat.room:typing", r => fn(r.room, r.user))
 }
 
 // frappe.chat.message
 frappe.provide('frappe.chat.message')
 
-frappe.chat.message.typing = function (room, user)
-{
+frappe.chat.message.typing = function (room, user) {
     frappe.realtime.publish("frappe.chat.message:typing", { user: user || frappe.session.user, room: room })
 }
 
-frappe.chat.message.send   = function (room, message)
-{
+frappe.chat.message.send   = function (room, message) {
     frappe.call("frappe.chat.doctype.chat_message.chat_message.send",
         { user: frappe.session.user, room: room, content: message })
 }
 
-frappe.chat.message.update = function (message, update, fn)
-{
+frappe.chat.message.update = function (message, update, fn) {
     return new Promise(resolve => {
         frappe.call('frappe.chat.doctype.chat_message.chat_message.update',
             { user: frappe.session.user, message: message, update: update },
-            r => 
-            {
+            r =>  {
                 if ( fn )
                     fn(response.message)
 
@@ -974,8 +902,7 @@ frappe.chat.message.update = function (message, update, fn)
     })
 }
 
-frappe.chat.message.sort   = (messages) =>
-{
+frappe.chat.message.sort   = (messages) => {
     if ( !frappe._.is_empty(messages) )
         messages.sort((a, b) => frappe.datetime.compare(b.creation, a.creation))
 
@@ -985,26 +912,22 @@ frappe.chat.message.sort   = (messages) =>
 /**
  * @description Add user to seen (defaults to session.user)
  */
-frappe.chat.message.seen   = (mess, user) =>
-{
+frappe.chat.message.seen   = (mess, user) => {
     frappe.call('frappe.chat.doctype.chat_message.chat_message.seen',
         { message: mess, user: user || frappe.session.user })
 }
 
 frappe.provide('frappe.chat.message.on')
-frappe.chat.message.on.create = function (fn)
-{
+frappe.chat.message.on.create = function (fn) {
     frappe.realtime.on("frappe.chat.message:create", r => fn({ ...r, creation: new frappe.datetime.datetime(r.creation) }))
 }
 
 
-frappe.chat.message.on.update = function (fn)
-{
+frappe.chat.message.on.update = function (fn) {
     frappe.realtime.on("frappe.chat.message:update", r => fn(r.message, r.data))
 }
 
-frappe.chat.pretty_datetime   = function (date)
-{
+frappe.chat.pretty_datetime   = function (date) {
     const today    = moment()
     const instance = date.moment
         
@@ -1028,8 +951,7 @@ frappe.provide('frappe.chat.sound')
  * @example
  * frappe.chat.sound.play("message")
  */
-frappe.chat.sound.play  = function (name, volume = 0.1)
-{
+frappe.chat.sound.play  = function (name, volume = 0.1) {
     // frappe._.play_sound(`chat-${name}`)
     const $audio = $(`<audio class="chat-audio"/>`)
     $audio.attr('volume', volume)
@@ -1037,8 +959,7 @@ frappe.chat.sound.play  = function (name, volume = 0.1)
     if  ( frappe._.is_empty($audio) )
         $(document).append($audio)
 
-    if  ( !$audio.paused )
-    {
+    if  ( !$audio.paused ) {
         frappe.log.info('Stopping sound playing.')
         $audio[0].pause()
         $audio.attr('currentTime', 0)
@@ -1052,11 +973,9 @@ frappe.chat.sound.PATH  = '/assets/frappe/sounds'
 
 // frappe.chat.emoji
 frappe.chat.emojis = [ ]
-frappe.chat.emoji  = function (fn)
-{
+frappe.chat.emoji  = function (fn) {
     return new Promise(resolve => {
-        if ( !frappe._.is_empty(frappe.chat.emojis) )
-        {
+        if ( !frappe._.is_empty(frappe.chat.emojis) ) {
             if ( fn )
                 fn(frappe.chat.emojis)
 
@@ -1090,10 +1009,8 @@ frappe.provide('frappe.chat.component')
  */
 frappe.components.Button
 =
-class extends Component
-{
-    render ( )
-    {
+class extends Component {
+    render ( ) {
         const { props } = this
         const size      = frappe.components.Button.SIZE[props.size]
 
@@ -1105,20 +1022,16 @@ class extends Component
     }
 }
 frappe.components.Button.SIZE
-=
-{
-    small:
-    {
+= {
+    small: {
         class: "btn-sm"
     },
-    large:
-    {
+    large: {
         class: "btn-lg"
     }
 }
 frappe.components.Button.defaultProps
-=
-{
+= {
      type: "default",
     block: false
 }
@@ -1130,10 +1043,8 @@ frappe.components.Button.defaultProps
  */
 frappe.components.FAB
 =
-class extends frappe.components.Button
-{
-    render ( )
-    {
+class extends frappe.components.Button {
+    render ( ) {
         const { props } = this
         const size      = frappe.components.FAB.SIZE[props.size]
         
@@ -1145,19 +1056,15 @@ class extends frappe.components.Button
     }
 }
 frappe.components.FAB.defaultProps
-=
-{
+= {
     icon: "octicon octicon-plus"
 }
 frappe.components.FAB.SIZE
-=
-{
-    small:
-    {
+= {
+    small: {
         class: "frappe-fab-sm"
     },
-    large:
-    {
+    large: {
         class: "frappe-fab-lg"
     }
 }
@@ -1169,8 +1076,7 @@ frappe.components.FAB.SIZE
  */
 frappe.components.Indicator
 =
-class extends Component
-{
+class extends Component {
     render ( ) {
         const { props } = this
 
@@ -1183,18 +1089,15 @@ class extends Component
  */
 frappe.components.FontAwesome
 =
-class extends Component
-{
-    render ( )
-    {
+class extends Component {
+    render ( ) {
         const { props } = this
 
         return props.type ? h("i", { ...props, class: `fa ${props.fixed ? "fa-fw" : ""} fa-${props.type} ${props.class}` }) : null
     }
 }
 frappe.components.FontAwesome.defaultProps
-=
-{
+= {
     fixed: false
 }
 
@@ -1205,10 +1108,8 @@ frappe.components.FontAwesome.defaultProps
  */
 frappe.components.Octicon
 =
-class extends Component
-{
-    render ( )
-    {
+class extends Component {
+    render ( ) {
         const { props } = this
 
         return props.type ? h("i", { ...props, class: `octicon octicon-${props.type}` }) : null
@@ -1225,10 +1126,8 @@ class extends Component
  */
 frappe.components.Avatar
 =
-class extends Component
-{
-    render ( )
-    {
+class extends Component {
+    render ( ) {
         const { props } = this
         const abbr      = props.abbr || props.title.substr(0, 1)
         const size      = frappe.components.Avatar.SIZE[props.size] || frappe.components.Avatar.SIZE.medium
@@ -1244,18 +1143,14 @@ class extends Component
     }
 }
 frappe.components.Avatar.SIZE
-=
-{
-    small:
-    {
+= {
+    small: {
         class: "avatar-small"
     },
-    large:
-    {
+    large: {
         class: "avatar-large"
     },
-    medium:
-    {
+    medium: {
         class: "avatar-medium"
     }
 }
@@ -1276,18 +1171,15 @@ frappe.components.Avatar.SIZE
  */
 frappe.Chat
 =
-class
-{
+class {
     /**
      * @description Frappe Chat Object.
      * 
      * @param {string} selector - A query selector, HTML Element or jQuery object.
      * @param {object} options  - Optional configurations.
      */
-    constructor (selector, options)
-    {
-        if ( !(typeof selector === "string" || selector instanceof $ || selector instanceof HTMLElement) )
-        {
+    constructor (selector, options) {
+        if ( !(typeof selector === "string" || selector instanceof $ || selector instanceof HTMLElement) ) {
             options  = selector
             selector = null
         }
@@ -1311,8 +1203,7 @@ class
      * const chat = new frappe.Chat()
      * chat.set_wrapper(".selector")
      */
-    set_wrapper (selector)
-    {
+    set_wrapper (selector) {
         this.$wrapper = $(selector)
 
         return this
@@ -1328,8 +1219,7 @@ class
      * const chat = new frappe.Chat()
      * chat.set_options({ layout: frappe.Chat.Layout.PAGE })
      */
-    set_options (options)
-    {
+    set_options (options) {
         this.options = { ...this.options, ...options }
 
         return this
@@ -1345,8 +1235,7 @@ class
      * chat.render()
      *     .destroy()
      */
-    destroy ( )
-    {
+    destroy ( ) {
         const $wrapper = this.$wrapper
         $wrapper.remove(".frappe-chat")
 
@@ -1362,15 +1251,13 @@ class
      * const chat = new frappe.Chat()
      * chat.render()
      */
-    render ( )
-    {
+    render ( ) {
         this.destroy()
 
         const $wrapper   = this.$wrapper
         const options    = this.options
 
-        const component  = h(frappe.Chat.Widget,
-        {
+        const component  = h(frappe.Chat.Widget, {
             layout: options.layout,
             target: options.target
         })
@@ -1381,13 +1268,11 @@ class
     }
 }
 frappe.Chat.Layout
-=
-{
+= {
     PAGE: "page", POPPER: "popper"
 }
 frappe.Chat.OPTIONS
-=
-{
+= {
     layout: frappe.Chat.Layout.POPPER
 }
 
@@ -1396,15 +1281,12 @@ frappe.Chat.OPTIONS
  */
 frappe.Chat.Widget
 =
-class extends Component
-{
-    constructor (props)
-    {
+class extends Component {
+    constructor (props) {
         super (props)
 
         this.room           = { }
-        this.room.add       = (rooms) =>
-        {   
+        this.room.add       = (rooms) => {
             rooms           = frappe._.as_array(rooms)
             const names     = rooms.map(r => r.name)
             
@@ -1414,30 +1296,23 @@ class extends Component
             const state     = [ ]
 
             for (const room of rooms)
-                if ( room.type === "Group" || room.owner === frappe.session.user || room.last_message )
-                {
+                if ( room.type === "Group" || room.owner === frappe.session.user || room.last_message ) {
                     frappe.log.info(`Adding ${room.name} to component.`)
                     state.push(room)
                 }
 
             this.set_state({ rooms: [ ...this.state.rooms, ...state ] })
         }
-        this.room.update    = (room, update) =>
-        {
+        this.room.update    = (room, update) => {
             const { state } = this
             var   exists    = false
-            const rooms     = state.rooms.map(r =>
-            {
-                if ( r.name === room )
-                {
+            const rooms     = state.rooms.map(r => {
+                if ( r.name === room ) {
                     exists  = true
-                    if ( update.typing )
-                    {
-                        if ( !frappe._.is_empty(r.typing) )
-                        {
+                    if ( update.typing ) {
+                        if ( !frappe._.is_empty(r.typing) ) {
                             const usr = update.typing
-                            if ( !r.typing.includes(usr) )
-                            {
+                            if ( !r.typing.includes(usr) ) {
                                 update.typing = frappe._.copy_array(r.typing)
                                 update.typing.push(usr)
                             }
@@ -1457,15 +1332,11 @@ class extends Component
             else
                 this.set_state({ rooms })
 
-            if ( state.room.name === room )
-            {
-                if ( update.typing )
-                {
-                    if ( !frappe._.is_empty(state.room.typing) )
-                    {
+            if ( state.room.name === room ) {
+                if ( update.typing ) {
+                    if ( !frappe._.is_empty(state.room.typing) ) {
                         const usr = update.typing
-                        if ( !state.room.typing.includes(usr) )
-                        {
+                        if ( !state.room.typing.includes(usr) ) {
                             update.typing = frappe._.copy_array(state.room.typing)
                             update.typing.push(usr)
                         }
@@ -1478,10 +1349,8 @@ class extends Component
                 this.set_state({ room })
             }
         }
-        this.room.select    = (name) =>
-        {
-            frappe.chat.room.history(name, (messages) =>
-            {
+        this.room.select    = (name) => {
+            frappe.chat.room.history(name, (messages) => {
                 const  { state } = this
                 const room       = state.rooms.find(r => r.name === name)
                 
@@ -1499,12 +1368,10 @@ class extends Component
     make ( ) {
         frappe.chat.profile.create([
             "status", "message_preview", "notification_tones", "conversation_tones"
-        ]).then(profile =>
-        {
+        ]).then(profile => {
             this.set_state({ profile })
 
-            frappe.chat.room.get(rooms =>
-            {
+            frappe.chat.room.get(rooms => {
                 rooms = frappe._.as_array(rooms)
                 frappe.log.info(`User ${frappe.session.user} is subscribed to ${rooms.length} ${frappe._.pluralize('room', rooms.length)}.`)
 
@@ -1517,19 +1384,15 @@ class extends Component
     }
     
     bind ( ) {
-        frappe.chat.profile.on.update((user, update) =>
-        {
+        frappe.chat.profile.on.update((user, update) => {
             frappe.log.warn(`TRIGGER: Chat Profile update ${JSON.stringify(update)} of User ${user}.`)
 
-            if ( 'status' in update )
-            {
-                if ( user === frappe.session.user )
-                {
+            if ( 'status' in update ) {
+                if ( user === frappe.session.user ) {
                     this.set_state({
                         profile: { ...this.state.profile, status: update.status }
                     })
-                } else
-                {
+                } else {
                     const status = frappe.chat.profile.STATUSES.find(s => s.name === update.status)
                     const color  = status.color
                     
@@ -1539,21 +1402,18 @@ class extends Component
             }
         })
 
-        frappe.chat.room.on.create((room) =>
-        {
+        frappe.chat.room.on.create((room) => {
             frappe.log.warn(`TRIGGER: Chat Room ${room.name} created.`)
             this.room.add(room)
         })
 
-        frappe.chat.room.on.update((room, update) =>
-        {
+        frappe.chat.room.on.update((room, update) => {
             frappe.log.warn(`TRIGGER: Chat Room ${room} update ${JSON.stringify(update)} recieved.`)
             this.room.update(room, update)
         })
         
         frappe.chat.room.on.typing((room, user) => {
-            if ( user !== frappe.session.user )
-            {
+            if ( user !== frappe.session.user ) {
                 frappe.log.warn(`User ${user} typing in Chat Room ${room}.`)
                 this.room.update(room, { typing: user })
     
@@ -1561,8 +1421,7 @@ class extends Component
             }
         })
 
-        frappe.chat.message.on.create((r) =>
-        {
+        frappe.chat.message.on.create((r) => {
             const { state } = this
             
             // play sound.
@@ -1593,62 +1452,52 @@ class extends Component
             }
         })
 
-        frappe.chat.message.on.update((message, update) =>
-        {
+        frappe.chat.message.on.update((message, update) => {
             frappe.log.warn(`TRIGGER: Chat Message ${message} update ${JSON.stringify(update)} recieved.`)
         })
     }
 
-    render ( )
-    {
+    render ( ) {
         const { props, state } = this
         const me               = this
         
-        const ActionBar        = h(frappe.Chat.Widget.ActionBar,
-        {
+        const ActionBar        = h(frappe.Chat.Widget.ActionBar, {
             placeholder: __("Search or Create a New Chat"),
                   class: "level",
                  layout: props.layout,
                 actions:
-            [
-                {
+            [ {
                        type: "primary",
                       label: __("New"),
-                    onclick: function ( )
-                    {
+                    onclick: function ( ) {
                         const dialog = new frappe.ui.Dialog({
                               title: __("New Chat"),
-                             fields: [
-                                 {
+                             fields: [ {
                                          label: __("Chat Type"),
                                      fieldname: "type",
                                      fieldtype: "Select",
                                        options: ["Group", "Direct Chat"],
                                        default: "Group",
-                                      onchange: () => 
-                                      {
+                                      onchange: () =>  {
                                             const type     = dialog.get_value("type")
                                             const is_group = type === "Group"
 
                                             dialog.set_df_property("group_name", "reqd",  is_group)
                                             dialog.set_df_property("user",       "reqd", !is_group)
                                       }
-                                 },
-                                 {
+                                 }, {
                                          label: __("Group Name"),
                                      fieldname: "group_name",
                                      fieldtype: "Data",
                                           reqd: true,
                                     depends_on: "eval:doc.type == 'Group'"
-                                 },
-                                 {
+                                 }, {
                                          label: __("Users"),
                                      fieldname: "users",
                                      fieldtype: "MultiSelect",
                                        options: frappe.user.get_emails(),
                                     depends_on: "eval:doc.type == 'Group'"
-                                 },
-                                 {
+                                 }, {
                                          label: __("User"),
                                      fieldname: "user",
                                      fieldtype: "Link",
@@ -1656,17 +1505,12 @@ class extends Component
                                     depends_on: "eval:doc.type == 'Direct Chat'"
                                  }
                              ],
-                            action:
-                            {
-                                primary:
-                                {
+                            action: {
+                                primary: {
                                        label: __("Create"),
-                                    onsubmit: (values) =>
-                                    {
-                                        if ( values.type === "Group" )
-                                        {
-                                            if ( !frappe._.is_empty(values.users) )
-                                            {
+                                    onsubmit: (values) => {
+                                        if ( values.type === "Group" ) {
+                                            if ( !frappe._.is_empty(values.users) ) {
                                                 const name  = values.group_name
                                                 const users = dialog.fields_dict.users.get_values()
 
@@ -1686,16 +1530,14 @@ class extends Component
                     }
                 }
             ],
-            change: function (query)
-            {
+            change: function (query) {
                 me.set_state({
                     query: query
                 })
             }
         })
 
-        const contacts   = Object.keys(frappe.boot.user_info).map(key => 
-        {
+        const contacts   = Object.keys(frappe.boot.user_info).map(key =>  {
             return { owner: frappe.session.user, users: [frappe.boot.user_info[key].email] }
         })
         const rooms      = state.query ? frappe.chat.room.search(state.query, state.rooms.concat(contacts)) : frappe.chat.room.sort(state.rooms)
@@ -1707,8 +1549,7 @@ class extends Component
                 )
             )
             :
-            h(frappe.Chat.Widget.RoomList, { rooms: rooms, click: room => 
-            {
+            h(frappe.Chat.Widget.RoomList, { rooms: rooms, click: room =>  {
                 if ( room.name )
                     this.room.select(room.name)
                 else
@@ -1749,16 +1590,14 @@ class extends Component
             ) : null
     }
 }
-frappe.Chat.Widget.defaultState = 
-{
+frappe.Chat.Widget.defaultState =  {
       query: "",
     profile: { },
       rooms: [ ],
        room: { name: null, messages: [ ], typing: [ ] },
      toggle: false
 }
-frappe.Chat.Widget.defaultProps =
-{
+frappe.Chat.Widget.defaultProps = {
     layout: frappe.Chat.Layout.POPPER
 }
 
@@ -1767,8 +1606,7 @@ frappe.Chat.Widget.defaultProps =
  */
 frappe.Chat.Widget.Popper
 =
-class extends Component
-{
+class extends Component {
     constructor (props) {
         super (props)
 
@@ -1780,8 +1618,7 @@ class extends Component
             $(props.target).click(() => this.toggle())
     }
 
-    toggle  (active)
-    {
+    toggle  (active) {
         let toggle
         if ( arguments.length === 1 )
             toggle = active
@@ -1793,16 +1630,14 @@ class extends Component
         this.props.toggle(toggle)
     }
 
-    on_mounted ( )
-    {
+    on_mounted ( ) {
         $(document.body).on('click', '.page-container, .frappe-chat-popper', ({ currentTarget }) => {
             if ( $(currentTarget).is('.page-container') )
                 this.toggle(false)
         })
     }
 
-    render  ( ) 
-    {
+    render  ( )  {
         const { props, state } = this
         
         return !state.destroy ?
@@ -1832,8 +1667,7 @@ class extends Component
     }
 }
 frappe.Chat.Widget.Popper.defaultState
-=
-{
+= {
      active: false,
     destroy: false
 }
@@ -1843,10 +1677,8 @@ frappe.Chat.Widget.Popper.defaultState
  */
 frappe.Chat.Widget.ActionBar
 =
-class extends Component
-{
-    constructor (props)
-    {
+class extends Component {
+    constructor (props) {
         super (props)
         
         this.change = this.change.bind(this)
@@ -1855,8 +1687,7 @@ class extends Component
         this.state  = frappe.Chat.Widget.ActionBar.defaultState
     }
 
-    change (e)
-    {
+    change (e) {
         const { props, state } = this
 
         this.set_state({
@@ -1866,8 +1697,7 @@ class extends Component
         props.change(state.query)
     }
 
-    submit (e)
-    {
+    submit (e) {
         const { props, state } = this
         
         e.preventDefault()
@@ -1875,8 +1705,7 @@ class extends Component
         props.submit(state.query)
     }
 
-    render ( )
-    {
+    render ( ) {
         const { props, state } = this
         const { actions }      = props
 
@@ -1892,8 +1721,7 @@ class extends Component
     }
 }
 frappe.Chat.Widget.ActionBar.defaultState
-=
-{
+= {
     query: null
 }
 
@@ -1902,10 +1730,8 @@ frappe.Chat.Widget.ActionBar.defaultState
  */
 frappe.Chat.Widget.ActionBar.Action
 =
-class extends Component
-{
-    render ( )
-    {
+class extends Component {
+    render ( ) {
         const { props } = this
 
         return (
@@ -1922,10 +1748,8 @@ class extends Component
  */
 frappe.Chat.Widget.RoomList
 =
-class extends Component
-{
-    render ( )
-    {
+class extends Component {
+    render ( ) {
         const { props } = this
         const rooms     = props.rooms
 
@@ -1942,10 +1766,8 @@ class extends Component
  */
 frappe.Chat.Widget.RoomList.Item
 =
-class extends Component
-{
-    render ( )
-    {
+class extends Component {
+    render ( ) {
         const { props }    = this
         const item         = { }
 
@@ -1953,8 +1775,7 @@ class extends Component
             item.title     = props.room_name
             item.image     = props.avatar
 
-            if ( !frappe._.is_empty(props.typing) )
-            {
+            if ( !frappe._.is_empty(props.typing) ) {
                 props.typing  = frappe._.as_array(props.typing) // HACK: (BUG) why does typing return a string?
                 const names   = props.typing.map(user => frappe.user.first_name(user))
                 item.subtitle = `${names.join(", ")} typing...`
@@ -2000,10 +1821,8 @@ class extends Component
  */
 frappe.Chat.Widget.MediaProfile
 =
-class extends Component
-{
-    render ( )
-    {
+class extends Component {
+    render ( ) {
         const { props } = this
         const position  = frappe.Chat.Widget.MediaProfile.POSITION[props.position || "left"]
         const avatar    = (
@@ -2031,8 +1850,7 @@ class extends Component
     }
 }
 frappe.Chat.Widget.MediaProfile.POSITION
-=
-{
+= {
     left: { class: "media-left" }, right: { class: "media-right" }
 }
 
@@ -2041,19 +1859,14 @@ frappe.Chat.Widget.MediaProfile.POSITION
  */
 frappe.Chat.Widget.Room
 =
-class extends Component
-{
-    render ( )
-    {
+class extends Component {
+    render ( ) {
         const { props, state } = this
         const hints            =
-        [
-            {
+        [ {
                  match: /@(\w*)$/,
-                search: function (keyword, callback)
-                {
-                    if ( props.type === 'Group' )
-                    {
+                search: function (keyword, callback) {
+                    if ( props.type === 'Group' ) {
                         const query = keyword.slice(1)
                         const users = [].concat(frappe._.as_array(props.owner), props.users)
                         const grep  = users.filter(user => user !== frappe.session.user && user.indexOf(query) === 0)
@@ -2061,24 +1874,19 @@ class extends Component
                         callback(grep)
                     }
                 },
-                component: function (item)
-                {
+                component: function (item) {
                     return (
-                        h(frappe.Chat.Widget.MediaProfile,
-                        {
+                        h(frappe.Chat.Widget.MediaProfile, {
                             title: frappe.user.full_name(item),
                             image: frappe.user.image(item),
                              size: "small"
                         })
                     )
                 }
-            },
-            {
+            }, {
                 match: /:([a-z]*)$/,
-               search: function (keyword, callback)
-               {
-                    frappe.chat.emoji(function (emojis)
-                    {
+               search: function (keyword, callback) {
+                    frappe.chat.emoji(function (emojis) {
                         const query = keyword.slice(1)
                         const items = [ ]
                         for (const emoji of emojis)
@@ -2090,11 +1898,9 @@ class extends Component
                     })
                },
                  content: (item) => item.value,
-               component: function (item)
-               {
+               component: function (item) {
                     return (
-                        h(frappe.Chat.Widget.MediaProfile,
-                        {
+                        h(frappe.Chat.Widget.MediaProfile, {
                             title: item.name,
                              abbr: item.value,
                              size: "small"
@@ -2105,36 +1911,30 @@ class extends Component
         ]
 
         const actions = frappe._.compact([
-            !frappe._.is_mobile() &&
-            {
+            !frappe._.is_mobile() && {
                  icon: "camera",
                 label: "Camera",
-                on_click: ( ) =>
-                {
+                on_click: ( ) => {
                     const capture = new frappe.ui.Capture({
                         animate: false,
                           error: true
                     })
                     capture.show()
 
-                    capture.submit(data_url =>
-                    {
+                    capture.submit(data_url => {
                         // data_url
                     })
                 }
-            },
-            {
+            }, {
                  icon: "file",
                 label: "File",
-                on_click: ( ) =>
-                {
+                on_click: ( ) => {
                     
                 }
             }
         ])
 
-        if (props.messages)
-        {
+        if (props.messages) {
             props.messages = frappe._.as_array(props.messages)
             for (const message of props.messages)
                 if ( !message.seen.includes(frappe.session.user) )
@@ -2177,10 +1977,8 @@ class extends Component
 
 frappe.Chat.Widget.Room.Header
 =
-class extends Component
-{
-    render ( )
-    {
+class extends Component {
+    render ( ) {
         const { props }     = this
 
         const item          = { }
@@ -2191,16 +1989,14 @@ class extends Component
             item.title      = props.room_name
             item.image      = props.avatar
 
-            if ( !frappe._.is_empty(props.typing) )
-            {
+            if ( !frappe._.is_empty(props.typing) ) {
                 props.typing  = frappe._.as_array(props.typing) // HACK: (BUG) why does typing return as a string?
                 const users   = props.typing.map(user => frappe.user.first_name(user))
                 item.subtitle = `${users.join(", ")} typing...`
             } else
                 item.subtitle = __(`${props.users.length} ${frappe._.pluralize('member', props.users.length)}`)
         }
-        else
-        {
+        else {
             const user      = props.owner === frappe.session.user ? frappe._.squash(props.users) : props.owner
 
             item.route      = `Form/User/${user}`
@@ -2246,24 +2042,19 @@ class extends Component
  */
 frappe.chat.component.ChatList
 =
-class extends Component
-{
-    on_mounted ( )
-    {
+class extends Component {
+    on_mounted ( ) {
         this.$element  = $('.frappe-chat').find('.chat-list')
         this.$element.scrollTop(this.$element[0].scrollHeight)
     }
 
-    on_updated ( )
-    {
+    on_updated ( ) {
         this.$element.scrollTop(this.$element[0].scrollHeight)
     }
 
-    render ( )
-    {
+    render ( ) {
         var messages = [ ]
-        for (var i   = 0 ; i < this.props.messages.length ; ++i)
-        {
+        for (var i   = 0 ; i < this.props.messages.length ; ++i) {
             var   message   = this.props.messages[i]
             const me        = message.user === frappe.session.user
 
@@ -2295,10 +2086,8 @@ class extends Component
  */
 frappe.chat.component.ChatList.Item
 =
-class extends Component
-{
-    render ( )
-    {
+class extends Component {
+    render ( ) {
         const { props } = this
 
         const me        = props.user === frappe.session.user
@@ -2314,8 +2103,7 @@ class extends Component
                     :    
                     h("div",{class:`${me ? "text-right" : ""}`},
                         !me && !props.groupable && !me ?
-                            h(frappe.components.Avatar,
-                            {
+                            h(frappe.components.Avatar, {
                                 title: frappe.user.full_name(props.user),
                                 image: frappe.user.image(props.user)
                             }) : null,
@@ -2340,10 +2128,8 @@ class extends Component
  */
 frappe.chat.component.ChatBubble
 =
-class extends Component
-{
-    render ( )
-    {
+class extends Component {
+    render ( ) {
         const { props } = this
 
         const creation  = props.creation.format('hh:mm A')
@@ -2381,10 +2167,8 @@ class extends Component
  */
 frappe.chat.component.ChatForm
 =
-class extends Component
-{
-    constructor (props)
-    {
+class extends Component {
+    constructor (props) {
         super (props)
         
         this.on_change   = this.on_change.bind(this)
@@ -2395,8 +2179,7 @@ class extends Component
         this.state       = frappe.chat.component.ChatForm.defaultState
     }
 
-    on_change (e)
-    {
+    on_change (e) {
         const { props, state } = this
         const value            = e.target.value
 
@@ -2409,28 +2192,22 @@ class extends Component
         this.hint(value)
     }
 
-    hint (value)
-    {
+    hint (value) {
         const { props, state } = this
 
-        if ( props.hint )
-        {
+        if ( props.hint ) {
             const tokens =  value.split(" ")
             const sliced = tokens.slice(0, tokens.length - 1)
 
             const token  = tokens[tokens.length - 1]
 
-            if ( token )
-            {
+            if ( token ) {
                 props.hint   = frappe._.as_array(props.hint)
                 const hint   = props.hint.find(hint => hint.match.test(token))
     
-                if ( hint )
-                {
-                    hint.search(token, items =>
-                    {
-                        const hints = items.map(item =>
-                        {
+                if ( hint ) {
+                    hint.search(token, items => {
+                        const hints = items.map(item => {
                             // You should stop writing one-liners! >_>
                             const replace = token.replace(hint.match, hint.content ? hint.content(item) : item)
                             const content = `${sliced.join(" ")} ${replace}`.trim()
@@ -2449,32 +2226,27 @@ class extends Component
         }
     }
 
-    on_submit (e)
-    {
+    on_submit (e) {
         e.preventDefault()
 
-        if ( this.state.content )
-        {
+        if ( this.state.content ) {
             this.props.on_submit(this.state.content)
 
             this.set_state({ content: null })
         }
     }
 
-    render ( )
-    {
+    render ( ) {
         const { props, state } = this
 
         return (
             h("div",{class:"chat-form"},
                 state.hints.length ?
                     h("ul", { class: "hint-list list-group" },
-                        state.hints.map((item) =>
-                        {
+                        state.hints.map((item) => {
                             return (
                                 h("li", { class: "hint-list-item list-group-item" },
-                                    h("a", { href: "javascript:void(0)", onclick: () =>
-                                    {
+                                    h("a", { href: "javascript:void(0)", onclick: () => {
                                         this.set_state({ content: item.content, hints: [ ] })
                                     }},
                                         item.component
@@ -2491,8 +2263,7 @@ class extends Component
                                     h(frappe.components.FontAwesome, { class: "text-muted", type: "paperclip", fixed: true })
                                 ),
                                 h("div",{ class:"dropdown-menu dropdown-menu-left", onclick: e => e.stopPropagation() },
-                                    !frappe._.is_empty(props.actions) && props.actions.map((action) =>
-                                    {
+                                    !frappe._.is_empty(props.actions) && props.actions.map((action) => {
                                         return (
                                             h("li", null,
                                                 h("a",{onclick:action.on_click},
@@ -2503,15 +2274,13 @@ class extends Component
                                     })
                                 )
                             ) : null,
-                        h("textarea",
-                        {
+                        h("textarea", {
                                     class: "form-control",
                                      name: "content",
                                     value: state.content,
                               placeholder: "Type a message",
                                 autofocus: true,
-                               onkeypress: (e) =>
-                               {
+                               onkeypress: (e) => {
                                     if ( e.which === frappe.ui.keycode.RETURN && !e.shiftKey )
                                         this.on_submit(e)
                                }
@@ -2528,8 +2297,7 @@ class extends Component
     }
 }
 frappe.chat.component.ChatForm.defaultState
-=
-{
+= {
     content: null,
       hints: [ ],
 }
@@ -2542,10 +2310,8 @@ frappe.chat.component.ChatForm.defaultState
  */
 frappe.chat.component.EmojiPicker
 =
-class extends Component 
-{
-    render ( )
-    {
+class extends Component  {
+    render ( ) {
         const { props } = this
 
         return (
@@ -2564,10 +2330,8 @@ class extends Component
 }
 frappe.chat.component.EmojiPicker.List
 =
-class extends Component
-{
-    render ( )
-    {
+class extends Component {
+    render ( ) {
         const { props } = this
 
         return (
