@@ -74,6 +74,7 @@ frappe.ui.FilterGroup = class {
 	_push_new_filter(doctype, fieldname, condition, value, hidden = false) {
 		let args = {
 			parent: this.wrapper,
+			parent_doctype: this.doctype,
 			doctype: doctype,
 			fieldname: fieldname,
 			condition: condition,
