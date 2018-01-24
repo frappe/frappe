@@ -363,6 +363,8 @@ a.no-decoration:active {
 .chat-room-footer {
   position: absolute;
   bottom: 0;
+  left: 0;
+  right: 0;
 }
 .chat-room-footer .chat-form {
   border-top: 1px solid #D1D8DD;
@@ -378,13 +380,13 @@ a.no-decoration:active {
   resize: none;
   padding-left: 0px;
   padding-right: 0px;
+  overflow: auto;
 }
 .chat-room-footer .chat-form .fa {
   font-size: 14px;
   transition: color 0.5s;
 }
 .chat-list {
-  padding-bottom: 50px;
   height: 100%;
   background: #FAFBFC;
   background-size: 350px 500px;
