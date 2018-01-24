@@ -380,7 +380,7 @@ a.no-decoration:active {
   resize: none;
   padding-left: 0px;
   padding-right: 0px;
-  overflow: auto;
+  overflow: hidden;
 }
 .chat-room-footer .chat-form .fa {
   font-size: 14px;
