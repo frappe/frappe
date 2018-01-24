@@ -387,6 +387,7 @@ a.no-decoration:active {
   transition: color 0.5s;
 }
 .chat-list {
+  padding-bottom: 50px;
   height: 100%;
   background: #FAFBFC;
   background-size: 350px 500px;
