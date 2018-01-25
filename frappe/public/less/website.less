@@ -698,6 +698,19 @@ li.footer-child-item {
 
 
 //blog
+.headers(@style) {
+    h1, h2, h3, h4, h5, h6 {
+        @style();
+    }  
+}
+
+.blog-text {
+  .headers({
+        margin-top: 3em;
+        margin-bottom: 1em;
+    });
+}
+
 .blog-list-content {
     border: 0px;
     background: transparent;
@@ -708,13 +721,46 @@ li.footer-child-item {
 	padding-bottom: 60px;
 }
 
+.blogpost-cover-img{
+width: 75%;
+}
+
 .blog-list-item .avatar {
     margin-right: 15px;
 }
 
 .blog-list-item .blog-header {
     font-size: 1.6em;
-    }
+}
+
+.blog-header {
+	font-size: 2em;
+}
+.blog-comments {
+	position: relative;
+	border-top: 1px solid @border-color;
+}
+.blog-info {
+	margin: 2em 0;
+}
+.blog-text {
+	line-height: 2;
+	font-size: 1.25em;
+	letter-spacing: 0.01em;
+}
+
+.blog-content{
+margin-bottom: 3em;
+}
+
+.blogger {
+	padding-top: 0px;
+	padding-bottom: 50px;
+}
+.blogger-name {
+	margin-top: 5px;
+}
+
 .post-description {
     margin: 15px 0;
 }
