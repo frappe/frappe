@@ -630,6 +630,26 @@ class BaseDocument(object):
 				# set dummy password like '*****'
 				self.set(df.fieldname, '*'*len(new_password))
 
+	def _validate_disabled_link(self):
+		if frappe.flags.in_install:
+			return
+
+		def raise_disabled_link_exception(doctype, docname, label):
+			frappe.throw(_("Cannot use disabled {0}: {1} as a {2}".format(doctype, docname, label)))
+
+		for fieldname, value in iteritems(self.get_valid_dict()):
+			df = self.meta.get_field(fieldname)
+			if df and df.get("fieldtype") == 'Link' and value:
+
+				reference_meta = frappe.get_meta(df.get("options"))
+				if reference_meta.has_field('enabled'):
+					if not frappe.db.get_value(df.get("options"), value, 'enabled'):
+						raise_disabled_link_exception(df.get("options"), value, df.get("label"))
+				else:
+					if reference_meta.has_field("disabled"):
+						if frappe.db.get_value(df.get("options"), value, 'disabled'):
+							raise_disabled_link_exception(df.get("options"), value, df.get("label"))
+
 	def get_password(self, fieldname='password', raise_exception=True):
 		if self.get(fieldname) and not self.is_dummy_password(self.get(fieldname)):
 			return self.get(fieldname)
