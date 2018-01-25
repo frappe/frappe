@@ -372,12 +372,6 @@ a.no-decoration:active {
   width: 32px;
   height: 32px;
 }
-.chat-room-footer {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-}
 .chat-room-footer .chat-form {
   border-top: 1px solid #D1D8DD;
 }
@@ -399,10 +393,7 @@ a.no-decoration:active {
   transition: color 0.5s;
 }
 .chat-list {
-  padding-bottom: 50px;
   height: 100%;
-  background-size: 350px 500px;
-  background-image: url(/assets/frappe/images/chat/wallpaper-default.jpg);
   overflow-y: scroll;
 }
 .chat-list .chat-list-item {
