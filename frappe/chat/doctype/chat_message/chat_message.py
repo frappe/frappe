@@ -17,7 +17,8 @@ from frappe.chat.util import (
 	dictify,
 	get_emojis,
 	safe_json_loads,
-	get_user_doc
+	get_user_doc,
+	squashify
 )
 
 session = frappe.session
@@ -91,13 +92,13 @@ def get_new_chat_message_doc(user, room, content, link = True):
 
 	meta = get_message_meta(content)
 	mess = frappe.new_doc('Chat Message')
-	mess.type     = room.type
-	mess.room 	  = room.name
-	mess.content  = sanitize_message_content(content)
-	mess.user	  = user.name
+	mess.room 	   = room.name
+	mess.room_type = room.type
+	mess.content   = sanitize_message_content(content)
+	mess.user	   = user.name
 
-	mess.mentions = json.dumps(meta.mentions)
-	mess.urls     = ','.join(meta.urls)
+	mess.mentions  = json.dumps(meta.mentions)
+	mess.urls      = ','.join(meta.urls)
 	mess.save(ignore_permissions = True)
 
 	if link:
@@ -112,14 +113,15 @@ def get_new_chat_message(user, room, content):
 	mess = get_new_chat_message_doc(user, room, content)
 
 	resp = dict(
-		name     = mess.name,
-		user     = mess.user,
-		room     = mess.room,
-		content  = mess.content,
-		urls     = mess.urls,
-		mentions = json.loads(mess.mentions),
-		creation = mess.creation,
-		seen     = json.loads(mess._seen) if mess._seen else [ ],
+		name      = mess.name,
+		user      = mess.user,
+		room      = mess.room,
+		room_type = mess.room_type,
+		content   = mess.content,
+		urls      = mess.urls,
+		mentions  = json.loads(mess.mentions),
+		creation  = mess.creation,
+		seen      = json.loads(mess._seen) if mess._seen else [ ],
 	)
 
 	return resp
@@ -145,11 +147,11 @@ def history(room, fields = None, limit = 10, start = None, end = None):
 	room = frappe.get_doc('Chat Room', room)
 	mess = frappe.get_all('Chat Message',
 		filters  = [
-			('Chat Message', 'room', '=', room.name),
-			('Chat Message', 'type', '=', room.type)
+			('Chat Message', 'room', 	  '=', room.name),
+			('Chat Message', 'room_type', '=', room.type)
 		],
 		fields   = fields if fields else [
-			'name', 'type', 'room', 'content', 'user', 'mentions', 'urls', 'creation', '_seen'
+			'name', 'room_type', 'room', 'content', 'user', 'mentions', 'urls', 'creation', '_seen'
 		],
 		order_by = 'creation'
 	)
@@ -167,14 +169,15 @@ def get(name, rooms = None, fields = None):
 
 	dmess = frappe.get_doc('Chat Message', name)
 	data  = dict(
-		name     = dmess.name,
-		user     = dmess.user,
-		room     = dmess.room,
-		content  = dmess.content,
-		urls     = dmess.urls,
-		mentions = dmess.mentions,
-		creation = dmess.creation,
-		seen     = assign_if_empty(dmess._seen, [ ])
+		name      = dmess.name,
+		user      = dmess.user,
+		room      = dmess.room,
+		room_type = dmess.room_type,
+		content   = dmess.content,
+		urls      = dmess.urls,
+		mentions  = dmess.mentions,
+		creation  = dmess.creation,
+		seen      = assign_if_empty(dmess._seen, [ ])
 	)
 
 	return data

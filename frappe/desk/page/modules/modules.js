@@ -14,10 +14,8 @@ frappe.pages['modules'].on_page_load = function(wrapper) {
 
 	// menu
 	page.add_menu_item(__('Set Desktop Icons'), function() {
-		frappe.route_options = {
-			"user": frappe.session.user
-		};
-		frappe.set_route("modules_setup");
+		frappe.frappe_toolbar.modules_select
+			.show(frappe.session.user);
 	});
 
 	if(frappe.user.has_role('System Manager')) {

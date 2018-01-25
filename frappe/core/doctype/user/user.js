@@ -72,10 +72,7 @@ frappe.ui.form.on('User', {
 
 		if(!frm.is_new()) {
 			frm.add_custom_button(__("Set Desktop Icons"), function() {
-				frappe.route_options = {
-					"user": doc.name
-				};
-				frappe.set_route("modules_setup");
+				frappe.frappe_toolbar.modules_select.show(doc.name);
 			}, null, "btn-default")
 
 			if(has_common(frappe.user_roles, ["Administrator", "System Manager"])) {
