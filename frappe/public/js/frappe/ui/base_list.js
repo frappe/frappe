@@ -265,6 +265,10 @@ frappe.ui.BaseList = Class.extend({
 		this.onreset && this.onreset();
 	},
 
+	/*
+	* Uses the value of `frappe.route_options` to automatically set
+	* a filter in a list view.
+	*/
 	set_filters_from_route_options: function ({clear_filters=true} = {}) {
 		var me = this;
 		if(this.filter_list && clear_filters) {
@@ -368,8 +372,12 @@ frappe.ui.BaseList = Class.extend({
 			}
 		}
 	},
+
+	/*
+	* Prepares arguments that will be used to query the database to
+	* return the desired records for the list view
+	*/
 	get_call_args: function () {
-		// load query
 		if (!this.method) {
 			var query = this.get_query && this.get_query() || this.query;
 			query = this.add_limits(query);
