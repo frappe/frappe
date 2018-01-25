@@ -1575,7 +1575,7 @@ class extends Component {
 					state.room.name ?
 						Room : (
 							h("div", "",
-								h("div", { class: "text-center text-extra-muted" },
+								h("div", { class: "text-center text-muted" },
 									h(frappe.components.Octicon, { type: "comment-discussion", style: "font-size: 48px" }),
 									h("p","",__("Select a chat to start messaging."))
 								)
@@ -1703,6 +1703,14 @@ class extends Component {
 		e.preventDefault()
 
 		props.submit(state.query)
+	}
+
+	on_mounted ( )
+	{
+		$(document).ready(function (e) 
+		{
+			// if ( e.keyCode === frappe.ui.keycode.CTRL )
+		})
 	}
 
 	render ( ) {
@@ -1944,7 +1952,7 @@ class extends Component {
 		}
 
 		return (
-			h("div", { class: `panel panel-default ${frappe._.is_mobile() ? "panel-span" : ""}` },
+			h("div", { class: `panel panel-default panel-bg ${frappe._.is_mobile() ? "panel-span" : ""}` },
 				h(frappe.Chat.Widget.Room.Header, { ...props, on_back: props.destroy }),
 				!frappe._.is_empty(props.messages) ?
 					h(frappe.chat.component.ChatList, {
@@ -2011,7 +2019,7 @@ class extends Component {
 		const popper        = props.layout === frappe.Chat.Layout.POPPER || frappe._.is_mobile()
 		
 		return (
-			h("div", { class: "panel-heading" },
+			h("div", { class: "panel-heading", style: { "height": "50px" } }, // sorry. :(
 				h("div", { class: "level" },
 					popper ?
 						h(frappe.components.Button,{class:"btn-back",onclick:props.on_back},
@@ -2102,7 +2110,7 @@ class extends Component {
 					)
 					:    
 					h("div",{class:`${me ? "text-right" : ""}`},
-						!me && !props.groupable && !me ?
+						props.room_type === "Group" && !me ?
 							h(frappe.components.Avatar, {
 								title: frappe.user.full_name(props.user),
 								image: frappe.user.image(props.user)
@@ -2340,6 +2348,22 @@ class extends Component {
 			)
 		)
 	}
+}
+
+/**
+ * @description Python equivalent to sys.platform
+ */
+frappe.provide('frappe._')
+frappe._.platform   = () =>
+{
+	const string    = navigator.appVersion
+
+	if ( string.includes("Win") ) 	return "Windows"
+	if ( string.includes("Mac") ) 	return "Darwin"
+	if ( string.includes("X11") ) 	return "UNIX"
+	if ( string.includes("Linux") ) return "Linux"
+
+	return undefined
 }
 
 /**
