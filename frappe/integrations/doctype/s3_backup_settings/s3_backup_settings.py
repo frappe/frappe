@@ -2,7 +2,7 @@
 # Copyright (c) 2017, Frappe Technologies and contributors
 # For license information, please see license.txt
 
-from __future__ import unicode_literals
+from __future__ import print_function, unicode_literals
 import os
 import os.path
 import frappe
@@ -122,11 +122,11 @@ def upload_file_to_s3(filename, folder, conn, bucket):
 
 	destpath = os.path.join(folder, os.path.basename(filename))
 	try:
-		print "Uploading file:", filename
+		print("Uploading file:", filename)
 		conn.upload_file(filename, bucket, destpath)
 
 	except Exception as e:
-		print "Error uploading: %s" % (e)
+		print("Error uploading: %s" % (e))
 
 
 def delete_old_backups(limit, bucket):
@@ -147,7 +147,7 @@ def delete_old_backups(limit, bucket):
 	oldest_backup = sorted(all_backups)[0]
 
 	if len(all_backups) > backup_limit:
-		print "Deleting Backup: {0}".format(oldest_backup)
+		print("Deleting Backup: {0}".format(oldest_backup))
 		for obj in bucket.objects.filter(Prefix=oldest_backup):
 			# delete all keys that are inside the oldest_backup
 			s3.Object(bucket.name, obj.key).delete()

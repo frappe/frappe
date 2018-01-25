@@ -1,6 +1,6 @@
-.result,
-.no-result,
-.freeze {
+.frappe-list .result,
+.frappe-list .no-result,
+.frappe-list .freeze {
   min-height: calc(100vh - 284px);
 }
 .freeze-row .level-left,

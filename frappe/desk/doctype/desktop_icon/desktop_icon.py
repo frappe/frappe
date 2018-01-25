@@ -10,7 +10,7 @@ import json
 import random
 from frappe.model.document import Document
 from six import iteritems, string_types
-
+from frappe.utils.user import UserPermissions
 
 class DesktopIcon(Document):
 	def validate(self):
@@ -71,7 +71,7 @@ def get_desktop_icons(user=None):
 				if standard_icon.blocked:
 					icon.hidden = 1
 
-					# flag for modules_setup page
+					# flag for modules_select dialog
 					icon.hidden_in_standard = 1
 
 				elif standard_icon.force_show:
@@ -355,6 +355,69 @@ def sync_from_app(app):
 		desktop_icon.save()
 
 	return modules_list
+
+@frappe.whitelist()
+def update_icons(hidden_list, user=None):
+	"""update modules"""
+	if not user:
+		frappe.only_for('System Manager')
+
+	set_hidden_list(hidden_list, user)
+	frappe.msgprint(frappe._('Updated'), indicator='green', title=_('Success'), alert=True)
+
+def get_context(context):
+	context.icons = get_user_icons(frappe.session.user)
+	context.user = frappe.session.user
+
+	if 'System Manager' in frappe.get_roles():
+		context.users = frappe.db.get_all('User', filters={'user_type': 'System User', 'enabled': 1},
+			fields = ['name', 'first_name', 'last_name'])
+
+@frappe.whitelist()
+def get_module_icons(user=None):
+	if user != frappe.session.user:
+		frappe.only_for('System Manager')
+
+	if not user:
+		icons = frappe.db.get_all('Desktop Icon',
+			fields='*', filters={'standard': 1}, order_by='idx')
+	else:
+		frappe.cache().hdel('desktop_icons', user)
+		icons = get_user_icons(user)
+
+	for icon in icons:
+		icon.value = frappe.db.escape(_(icon.label or icon.module_name))
+
+	return {'icons': icons, 'user': user}
+
+def get_user_icons(user):
+	'''Get user icons for module setup page'''
+	user_perms = UserPermissions(user)
+	user_perms.build_permissions()
+
+	from frappe.boot import get_allowed_pages
+	allowed_pages = get_allowed_pages()
+
+	icons = []
+	for icon in get_desktop_icons(user):
+		add = True
+		if icon.hidden_in_standard:
+			add = False
+
+		if not icon.custom:
+			if icon.module_name=='Learn':
+				pass
+
+			elif icon.type=="page" and icon.link not in allowed_pages:
+				add = False
+
+			elif icon.type=="module" and icon.module_name not in user_perms.allow_modules:
+				add = False
+
+		if add:
+			icons.append(icon)
+
+	return icons
 
 palette = (
 	('#FFC4C4',),

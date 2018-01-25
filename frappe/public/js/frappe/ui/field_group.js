@@ -25,6 +25,8 @@ frappe.ui.FieldGroup = frappe.ui.form.Layout.extend({
 			$.each(this.fields_list, function(i, field) {
 				if(field.df["default"]) {
 					field.set_input(field.df["default"]);
+					// if default and has depends_on, render its fields.
+					me.refresh_dependency();
 				}
 			})
 
@@ -129,4 +131,9 @@ frappe.ui.FieldGroup = frappe.ui.form.Layout.extend({
 			}
 		}
 	},
+	set_df_property: function (fieldname, prop, value) {
+		const field    = this.get_field(fieldname);
+		field.df[prop] = value;
+		field.refresh();
+	}
 });

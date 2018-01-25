@@ -116,7 +116,8 @@ def get_feedback_request_details(reference_doctype, reference_name, trigger="Man
 			frappe.msgprint(_("At least one reply is mandatory before requesting feedback"))
 			return None
 
-	if recipients and frappe.safe_eval(feedback_trigger.condition, None, context):
+	if recipients and (not feedback_trigger.condition or \
+		frappe.safe_eval(feedback_trigger.condition, None, context)):
 		subject = feedback_trigger.subject
 		context.update({ "feedback_trigger": feedback_trigger })
 
