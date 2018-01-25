@@ -872,6 +872,11 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 						args.cmd = 'frappe.desk.reportview.export_query';
 						args.file_format_type = data.file_format_type;
 
+						if (args.file_format_type === 'CSV') {
+							frappe.tools.downloadify(this.data, null, this.doctype);
+							return;
+						}
+
 						if(this.add_totals_row) {
 							args.add_totals_row = 1;
 						}
@@ -879,6 +884,10 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 						if(selected_items.length > 0) {
 							args.selected_items = selected_items;
 						}
+
+						args.start = 0;
+						args.page_length = this.data.length;
+
 						open_url_post(frappe.request.url, args);
 					},
 					__("Export Report: {0}",[__(this.doctype)]), __("Download"));
