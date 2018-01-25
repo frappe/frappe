@@ -1,4 +1,4 @@
-QUnit.test("test: Address", function (assert) {
+QUnit.test("test: Address", function (assert){
 	let done = assert.async();
 
 	// number of asserts
@@ -15,5 +15,4 @@ QUnit.test("test: Address", function (assert) {
 		},
 		() => done()
 	]);
-
 });
