@@ -1954,19 +1954,19 @@ class extends Component {
 		return (
 			h("div", { class: `panel panel-default panel-bg ${frappe._.is_mobile() ? "panel-span" : ""}` },
 				h(frappe.Chat.Widget.Room.Header, { ...props, on_back: props.destroy }),
-				!frappe._.is_empty(props.messages) ?
-					h(frappe.chat.component.ChatList, {
-						messages: props.messages
-					})
-					:
-					h("div", { class: "panel-body vcenter" },
-						h("div","",
-							h("div", { class: "text-center text-extra-muted" },
-								h(frappe.components.Octicon, { type: "comment-discussion", style: "font-size: 48px" }),
-								h("p","",__("Start a conversation."))
-							)
-						)
-					),
+				// !frappe._.is_empty(props.messages) ?
+				h(frappe.chat.component.ChatList, {
+					messages: props.messages
+				}),
+					// :
+					// h("div", { class: "panel-body vcenter" },
+					// 	h("div","",
+					// 		h("div", { class: "text-center text-extra-muted" },
+					// 			h(frappe.components.Octicon, { type: "comment-discussion", style: "font-size: 48px" }),
+					// 			h("p","",__("Start a conversation."))
+					// 		)
+					// 	)
+					// ),
 				h("div", { class: "chat-room-footer" },
 					h(frappe.chat.component.ChatForm, { actions: actions,
 						on_change: () => {
@@ -2072,11 +2072,12 @@ class extends Component {
 			messages.push(message)
 		}
 		
-		return !frappe._.is_empty(messages) ? (
+		return (
 			h("div",{class:"chat-list list-group"},
-				messages.map(m => h(frappe.chat.component.ChatList.Item, {...m}))
+				!frappe._.is_empty(messages) ?
+					messages.map(m => h(frappe.chat.component.ChatList.Item, {...m})) : null
 			)
-		) : null
+		)
 	}
 }
 
