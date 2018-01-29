@@ -39,10 +39,16 @@ def validate_link():
 		if fetch:
 			# escape with "`"
 			fetch = ", ".join(("`{0}`".format(frappe.db.escape(f.strip())) for f in fetch.split(",")))
+			fetch_value = None
+			try:
+				fetch_value = frappe.db.sql("select %s from `tab%s` where name=%s"
+					% (fetch, frappe.db.escape(options), '%s'), (value,))[0]
+			except Exception as e:
+				frappe.msgprint("Wrong add fetch in the custom script.")
+				frappe.errprint(frappe.get_traceback())
 
-			frappe.response['fetch_values'] = [frappe.utils.parse_val(c) \
-				for c in frappe.db.sql("select %s from `tab%s` where name=%s" \
-					% (fetch, frappe.db.escape(options), '%s'), (value,))[0]]
+			if fetch_value:
+				frappe.response['fetch_values'] = [frappe.utils.parse_val(c) for c in fetch_value]
 
 		frappe.response['valid_value'] = valid_value
 		frappe.response['message'] = 'Ok'
