@@ -46,6 +46,9 @@ frappe.ui.FilterList = Class.extend({
 		}
 	},
 
+	/*
+	* Removes all filters.
+	*/
 	clear_filters: function() {
 		$.each(this.filters, function(i, f) { f.remove(true); });
 		if(this.base_list.page.fields_dict) {
@@ -56,6 +59,15 @@ frappe.ui.FilterList = Class.extend({
 		this.filters = [];
 	},
 
+	/*
+	* Adds a new filter.
+	* @param {string} doctype
+	* @param {string} fieldname
+	* @param {string} condition
+	* @param {string} value
+	* @param {string} hidden
+	* @returns {Boolean} - Returns true if filter is added
+	*/
 	add_filter: function(doctype, fieldname, condition, value, hidden) {
 		// adds a new filter, returns true if filter has been added
 
