@@ -30,6 +30,10 @@ def get_context(context):
 
 	frappe.db.commit()
 
+	print('\n' * 5)
+	print(boot)
+	print(type(boot))
+	print('\n' * 5)
 	boot_json = frappe.as_json(boot)
 
 	# remove script tags from boot
