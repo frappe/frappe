@@ -19,7 +19,7 @@ import mimetypes, imghdr
 from frappe.utils.file_manager import delete_file_data_content, get_content_hash, get_random_filename
 from frappe import _
 from frappe.utils.nestedset import NestedSet
-from frappe.utils import strip, get_files_path
+from frappe.utils import strip, get_files_path, flt
 from PIL import Image, ImageOps
 from six import StringIO, string_types
 from six.moves.urllib.parse import unquote
@@ -120,8 +120,8 @@ class File(NestedSet):
 		"""Returns folder size for current folder"""
 		if not folder:
 			folder = self.name
-		file_size =  frappe.db.sql("""select sum(ifnull(file_size,0))
-			from tabFile where folder=%s """, (folder))[0][0]
+		file_size =  flt(frappe.db.sql("""select sum(ifnull(file_size,0))
+			from tabFile where folder=%s """, (folder))[0][0])
 
 		return file_size
 

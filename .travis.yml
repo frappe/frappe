@@ -1,13 +1,6 @@
 language: python
 dist: trusty
 
-addons:
-  apt:
-    sources:
-      - google-chrome
-    packages:
-      - google-chrome-stable
-
 python:
   - "2.7"
 
@@ -30,15 +23,6 @@ install:
   - cp -r $TRAVIS_BUILD_DIR/test_sites/test_site ~/frappe-bench/sites/
 
 before_script:
-  - wget http://chromedriver.storage.googleapis.com/2.33/chromedriver_linux64.zip
-  - unzip chromedriver_linux64.zip
-  - sudo apt-get install libnss3
-  - sudo apt-get --only-upgrade install google-chrome-stable
-  - sudo cp chromedriver /usr/local/bin/.
-  - sudo chmod +x /usr/local/bin/chromedriver
-  - export DISPLAY=:99.0
-  - sh -e /etc/init.d/xvfb start
-  - sleep 3
   - mysql -u root -ptravis -e 'create database test_frappe'
   - echo "USE mysql;\nCREATE USER 'test_frappe'@'localhost' IDENTIFIED BY 'test_frappe';\nFLUSH PRIVILEGES;\n" | mysql -u root -ptravis
   - echo "USE mysql;\nGRANT ALL PRIVILEGES ON \`test_frappe\`.* TO 'test_frappe'@'localhost';\n" | mysql -u root -ptravis
@@ -55,5 +39,3 @@ before_script:
 script:
   - set -e
   - bench run-tests
-  - sleep 5
-  - bench run-ui-tests --app frappe
