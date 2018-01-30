@@ -8,7 +8,7 @@ frappe.custom_server_action = {
 		frappe.model.with_doctype(frm.doc.document_type, function() {
 			let get_select_options = function(df) {
 				return {value: df.fieldname, label: df.fieldname + " (" + __(df.label) + ")"};
-			}
+			};
 
 			let get_date_change_options = function() {
 				let date_options = $.map(fields, function(d) {
@@ -24,8 +24,10 @@ frappe.custom_server_action = {
 
 			let fields = frappe.get_doc("DocType", frm.doc.document_type).fields;
 			let options = $.map(fields,
-				function(d) { return in_list(frappe.model.no_value_type, d.fieldtype) ?
-					null : get_select_options(d); });
+				function(d) { 
+						return in_list(frappe.model.no_value_type, d.fieldtype) ?
+							null : get_select_options(d); 
+					    });
 
 			// set value changed options
 			frm.set_df_property("value_changed", "options", [""].concat(options));
@@ -48,14 +50,13 @@ frappe.custom_server_action = {
 				let options = $.map(fields,
 					function(d) { return in_list(frappe.model.no_value_type, d.fieldtype) ?
 						null : get_select_options(d); });
-				console.log(options);
 			
 				// set crud field options
 				frappe.meta.get_docfield("Custom Server Action Field", "doc_field", frm.doc.name).options = [""].concat(options);
 
 				frm.fields_dict.value_mapping.grid.refresh();
-		});
-              }
+			});
+		}
 
 	}
 }
@@ -82,7 +83,7 @@ frappe.ui.form.on("Custom Server Action", {
 		frm.trigger('event');
 	},
 	document_type: function(frm) {
-		if(!frm.doc.target_document_type) {
+	if(!frm.doc.target_document_type) {
 			frm.set_value('target_document_type', frm.doc.document_type);
 		}
 		frappe.custom_server_action.setup_fieldname_select(frm);
@@ -93,8 +94,7 @@ frappe.ui.form.on("Custom Server Action", {
 	    if(!frm.doc.target_document_type) {
 			return;
 		}
-              frappe.custom_server_action.setup_fieldname_select(frm);
-	    
+		frappe.custom_server_action.setup_fieldname_select(frm);
 	},
 	view_properties: function(frm) {
 		frappe.route_options = {doc_type:frm.doc.document_type};
