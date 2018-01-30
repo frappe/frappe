@@ -100,7 +100,7 @@ _SAFE_OPCODES = _EXPR_OPCODES.union(set(opmap[x] for x in [
     'JUMP_IF_FALSE_OR_POP', 'JUMP_IF_TRUE_OR_POP', 'POP_JUMP_IF_FALSE',
     'POP_JUMP_IF_TRUE', 'SETUP_EXCEPT', 'END_FINALLY', 'RAISE_VARARGS',
      #add STORE_ATTR
-    'LOAD_NAME', 'STORE_NAME', 'DELETE_NAME', 'LOAD_ATTR', 'STORE_ATTR',  
+    'LOAD_NAME', 'STORE_NAME', 'DELETE_NAME', 'LOAD_ATTR', 'STORE_ATTR',
     'LOAD_FAST', 'STORE_FAST', 'DELETE_FAST', 'UNPACK_SEQUENCE',
     'LOAD_GLOBAL', # Only allows access to restricted globals
 ] if x in opmap))
@@ -189,9 +189,10 @@ def test_expr(expr, allowed_codes, mode="eval"):
             expr = expr.strip()
         code_obj = compile(expr, "", mode)
     except (SyntaxError, TypeError, ValueError):
-        raise
-    except Exception as e:
-        exc_info = sys.exc_info()
+      raise
+    except:
+      raise
+        #exc_info = sys.exc_info()
         #pycompat.reraise(ValueError, ValueError('"%s" while compiling\n%r' % (ustr(e), expr)), exc_info[2])
     assert_valid_codeobj(allowed_codes, code_obj, expr)
     return code_obj
