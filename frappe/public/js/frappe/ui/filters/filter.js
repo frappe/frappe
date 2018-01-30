@@ -42,7 +42,7 @@ frappe.ui.Filter = class {
 	make_select() {
 		this.fieldselect = new frappe.ui.FieldSelect({
 			parent: this.filter_edit_area.find('.fieldname-select-area'),
-			doctype: this.doctype,
+			doctype: this.parent_doctype,
 			filter_fields: this.filter_fields,
 			select: (doctype, fieldname) => {
 				this.set_field(doctype, fieldname);

@@ -45,3 +45,4 @@ pypng
 premailer
 croniter
 googlemaps
+mycli

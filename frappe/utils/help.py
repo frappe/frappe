@@ -174,7 +174,6 @@ class HelpDatabase(object):
 		return intro
 
 	def make_content(self, html, path, relpath):
-
 		if '<h1>' in html:
 			html = html.split('</h1>', 1)[1]
 
@@ -185,18 +184,10 @@ class HelpDatabase(object):
 		app_name = path.split('/', 3)[2]
 		html += get_improve_page_html(app_name, target)
 
-
 		soup = BeautifulSoup(html, 'html.parser')
 
-		for link in soup.find_all('a'):
-			if link.has_attr('href'):
-				url = link['href']
-				if '/user' in url:
-					data_path = url[url.index('/user'):]
-					if '.' in data_path:
-						data_path = data_path[: data_path.rindex('.')]
-					if data_path:
-						link['data-path'] = data_path.replace("user", app_name)
+		self.fix_links(soup, app_name)
+		self.fix_images(soup, app_name)
 
 		parent = self.get_parent(relpath)
 		if parent:
@@ -207,6 +198,24 @@ class HelpDatabase(object):
 			soup.find().insert_before(parent_tag)
 
 		return soup.prettify()
+
+	def fix_links(self, soup, app_name):
+		for link in soup.find_all('a'):
+			if link.has_attr('href'):
+				url = link['href']
+				if '/user' in url:
+					data_path = url[url.index('/user'):]
+					if '.' in data_path:
+						data_path = data_path[: data_path.rindex('.')]
+					if data_path:
+						link['data-path'] = data_path.replace("user", app_name)
+
+	def fix_images(self, soup, app_name):
+		for img in soup.find_all('img'):
+			if img.has_attr('src'):
+				url = img['src']
+				if '/docs/' in url:
+					img['src'] = url.replace('/docs/', '/assets/{0}_docs/'.format(app_name))
 
 	def build_index(self):
 		for data in self.db.sql('select path, full_path, content from help'):
