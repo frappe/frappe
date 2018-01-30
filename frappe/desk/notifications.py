@@ -191,7 +191,7 @@ def get_notification_info_for_boot():
 	module_doctypes = {}
 	doctype_info = dict(frappe.db.sql("""select name, module from tabDocType"""))
 
-	for d in list(set(can_read + config.for_doctype.keys())):
+	for d in list(set(can_read + list(config.for_doctype.keys()))):
 		if d in config.for_doctype:
 			conditions[d] = config.for_doctype[d]
 
