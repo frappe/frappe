@@ -191,4 +191,4 @@ def send(server_action, doc):
 
 
 def get_context(doc):
-	return {"doc": doc, "frappe": frappe, "nowdate": nowdate, "frappe.utils": frappe.utils}
+	return {"doc": doc, "frappe": frappe, "nowdate": nowdate, "frappe.utils": frappe.utils, "_": _}
