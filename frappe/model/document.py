@@ -810,7 +810,7 @@ class Document(BaseDocument):
 				_evaluate_alert(alert)
 			elif alert.event=='Method' and method == alert.method:
 				_evaluate_alert(alert)
-				
+
 	def run_custom_server_action(self, method):
 		'''Run email alerts for this method'''
 		if frappe.flags.in_import or frappe.flags.in_patch or frappe.flags.in_install:
@@ -855,7 +855,7 @@ class Document(BaseDocument):
 			if event and custom_server_action.event == event:
 				_evaluate_custom_server_action(custom_server_action)
 			elif custom_server_action.event=='Method' and method == custom_server_action.method:
-				_evaluate_custom_server_action(custom_server_action)				
+				_evaluate_custom_server_action(custom_server_action)
 
 	@staticmethod
 	def whitelist(f):
