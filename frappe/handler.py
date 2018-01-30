@@ -26,7 +26,7 @@ def handle():
 	#for mapper related call, the cmd is mapper.xx, method as form parameter
 	if frappe.local.form_dict.get('method','').split('.')[0]=='custom_server_action':
 		server_action =  frappe.local.form_dict.get('method','').split('.',1)[-1]
-	if server_action:	   
+	if server_action:
 		data = run_custom_server_action(server_action)
 	elif cmd!='login':
 		data = execute_cmd(cmd)
@@ -45,7 +45,7 @@ def run_custom_server_action(server_action_name):
 	server_action_doc = frappe.cache().hget('custom_server_action', server_action_name)
 	if server_action_doc ==None:
 		server_action_doc = frappe.get_doc('Custom Server Action', server_action_name)
-		frappe.cache().hset('custom_server_action', server_action_name, server_action_doc)		
+		frappe.cache().hset('custom_server_action', server_action_name, server_action_doc)
 	if not server_action_doc or (not server_action_doc.enabled or server_action_doc.action_type != 'Execute Python Code'):
 		frappe.respond_as_web_page(title='Invalid Custom Server Action Method', html='Method not found',
 			                    indicator_color='red', http_status_code=404)
@@ -62,7 +62,7 @@ def run_custom_server_action(server_action_name):
 		if data:
 			frappe.local.form_dict.pop('custom_server_action_out') # remove as this is global shared
 			frappe.log_error(data, 'executed server action returned data')
-			return data	
+			return data
 		
 def execute_cmd(cmd, from_async=False):
 	"""execute a request as python module"""
