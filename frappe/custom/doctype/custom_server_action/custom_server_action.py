@@ -3,7 +3,6 @@
 
 from __future__ import unicode_literals
 import frappe
-import os
 from frappe import _
 from frappe.exceptions import *
 from frappe.model.document import Document
@@ -19,8 +18,7 @@ class CustomServerAction(Document):
 			frappe.throw(_("Please specify which date field must be checked"))
 
 		if self.event == "Value Change" and not self.value_changed:
-			frappe.throw(_("Please specify which value field must be checked"))
-		
+			frappe.throw(_("Please specify which value field must be checked"))		
 		if self.action_type in ("Create Record", "Update Record") and not (self.target_document_type and self.value_mapping):
 			frappe.throw(_("Please specify which target document type and fied mapping"))
 
@@ -124,10 +122,10 @@ def trigger_custom_server_actions(doc, method=None):
 
 
 def evaluate_custom_server_action(doc, server_action, event):
-	try:	
-		try:	
-			if isinstance(server_action, string_types):			
-				server_action = frappe.get_doc("Custom Server Action", server_action)		
+	try:
+		try:
+			if isinstance(server_action, string_types):
+				server_action = frappe.get_doc("Custom Server Action", server_action)
 		except Exception as e:
 			return
 		context = get_context(doc)
@@ -177,7 +175,7 @@ def send(server_action, doc):
 			field_dict.update({line.doc_field: expr})
 		frappe.log_error( field_dict, 'server action name:'+server_action.name )
 		frappe.log_error(doc.as_json() + "doc/upd_doc" + update_doc.as_json(), 'server action name:'+server_action.name )
-		if server_action.action_type == "Update Record":			
+		if server_action.action_type == "Update Record":
 			if update_doc:
 				doc = update_doc    # update_doc to be changed
 			frappe.db.set_value(doc.doctype, doc.name, field_dict, None, update_modified=False)
