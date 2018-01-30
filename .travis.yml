@@ -55,5 +55,3 @@ before_script:
 script:
   - set -e
   - bench run-tests
-  - sleep 5
-  - bench run-ui-tests --app frappe
