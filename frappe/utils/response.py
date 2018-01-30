@@ -103,6 +103,7 @@ def make_logs(response = None):
 def json_handler(obj):
 	"""serialize non-serializable data for json"""
 	# serialize date
+	import collections
 	if isinstance(obj, (datetime.date, datetime.timedelta, datetime.datetime)):
 		return text_type(obj)
 
@@ -113,6 +114,9 @@ def json_handler(obj):
 		doc = obj.as_dict(no_nulls=True)
 
 		return doc
+	
+	elif isinstance(obj, collections.Iterable):
+		return list(obj)
 
 	elif type(obj)==type or isinstance(obj, Exception):
 		return repr(obj)
