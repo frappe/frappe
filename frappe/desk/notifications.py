@@ -161,7 +161,7 @@ def clear_notifications(user=None):
 		return
 
 	config = get_notification_config()
-	for_doctype = config.get('for_doctype').keys() if config.get('for_doctype') else []
+	for_doctype = list(config.get('for_doctype').keys()) if config.get('for_doctype') else []
 	for_module = list(config.get('for_module').keys()) if config.get('for_module') else []
 	groups = for_doctype + for_module
 	cache = frappe.cache()
