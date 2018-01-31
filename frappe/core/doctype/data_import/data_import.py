@@ -27,6 +27,12 @@ class DataImport(Document):
 		if self.import_file and not self.total_rows:
 			upload(data_import_doc=self, from_data_import="Yes", validate_template=True)
 
+	def before_submit(self):
+		if not self.import_file:
+			frappe.throw('Please attach a file to import')
+
+	def on_submit(self):
+		import_data(self.name)
 
 @frappe.whitelist()
 def import_data(data_import):
