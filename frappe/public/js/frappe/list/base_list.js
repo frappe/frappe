@@ -22,14 +22,7 @@ frappe.views.BaseList = class BaseList {
 			this.setup_page,
 			this.setup_page_head,
 			this.setup_side_bar,
-			this.setup_list_wrapper,
-			this.setup_filter_area,
-			this.setup_sort_selector,
-			this.setup_result_area,
-			this.setup_no_result_area,
-			this.setup_freeze_area,
-			this.setup_paging_area,
-			this.setup_footnote_area,
+			this.setup_main_section,
 			this.setup_view,
 		].map(fn => fn.bind(this));
 
@@ -193,6 +186,11 @@ frappe.views.BaseList = class BaseList {
 			page: this.page,
 			list_view: this
 		});
+	}
+
+	toggle_side_bar() {
+		this.list_sidebar.parent.toggleClass('hide');
+		this.page.current_view.find('.layout-main-section-wrapper').toggleClass('col-md-10 col-md-12');
 	}
 
 	setup_main_section() {
