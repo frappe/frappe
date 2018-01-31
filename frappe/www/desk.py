@@ -41,6 +41,7 @@ def get_context(context):
 		"include_js": hooks["app_include_js"],
 		"include_css": hooks["app_include_css"],
 		"sounds": hooks["sounds"],
+		"app_color": hooks["app_color"][-1],
 		"boot": boot if context.get("for_mobile") else boot_json,
 		"csrf_token": csrf_token,
 		"background_image": (boot.status != 'failed' and
