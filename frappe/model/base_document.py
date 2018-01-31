@@ -256,12 +256,12 @@ class BaseDocument(object):
 			doc[df.fieldname] = [d.as_dict(no_nulls=no_nulls) for d in children]
 
 		if no_nulls:
-			for k in doc.keys():
+			for k in list(doc):
 				if doc[k] is None:
 					del doc[k]
 
 		if no_default_fields:
-			for k in doc.keys():
+			for k in list(doc):
 				if k in default_fields:
 					del doc[k]
 
@@ -293,7 +293,7 @@ class BaseDocument(object):
 
 		d = self.get_valid_dict()
 
-		columns = d.keys()
+		columns = list(d)
 		try:
 			frappe.db.sql("""insert into `tab{doctype}`
 				({columns}) values ({values})""".format(
@@ -333,7 +333,7 @@ class BaseDocument(object):
 		name = d['name']
 		del d['name']
 
-		columns = d.keys()
+		columns = list(d)
 
 		try:
 			frappe.db.sql("""update `tab{doctype}`

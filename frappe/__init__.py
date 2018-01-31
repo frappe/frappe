@@ -14,7 +14,7 @@ import os, sys, importlib, inspect, json
 from .exceptions import *
 from .utils.jinja import get_jenv, get_template, render_template, get_email_from_template
 
-__version__ = '10.0.12'
+__version__ = '10.0.18'
 __title__ = "Frappe Framework"
 
 local = Local()
@@ -1409,3 +1409,57 @@ def get_system_settings(key):
 def get_active_domains():
 	from frappe.core.doctype.domain_settings.domain_settings import get_active_domains
 	return get_active_domains()
+
+def get_version(doctype, name, limit = None, head = False, raise_err = True):
+	'''
+	Returns a list of version information of a given DocType (Applicable only if DocType has changes tracked).
+
+	Example
+	>>> frappe.get_version('User', 'foobar@gmail.com')
+	>>>
+	[
+		{
+			 "version": [version.data], 	 # Refer Version DocType get_diff method and data attribute
+			    "user": "admin@gmail.com"    # User that created this version
+			"creation": <datetime.datetime>  # Creation timestamp of that object.
+		}
+	]
+	'''
+	meta  = get_meta(doctype)
+	if meta.track_changes:
+		names = db.sql("""
+			SELECT name from tabVersion
+			WHERE  ref_doctype = '{doctype}' AND docname = '{name}'
+			{order_by}
+			{limit}
+		""".format(
+			doctype  = doctype,
+			name     = name,
+			order_by = 'ORDER BY creation'	 			     if head  else '',
+			limit    = 'LIMIT {limit}'.format(limit = limit) if limit else ''
+		))
+
+		from frappe.chat.util import squashify, dictify, safe_json_loads
+
+		versions = [ ]
+
+		for name in names:
+			name = squashify(name)
+			doc  = get_doc('Version', name)
+
+			data = doc.data
+			data = safe_json_loads(data)
+			data = dictify(dict(
+				version  = data,
+				user 	 = doc.owner,
+				creation = doc.creation
+			))
+
+			versions.append(data)
+
+		return versions
+	else:
+		if raise_err:
+			raise ValueError('{doctype} has no versions tracked.'.format(
+				doctype = doctype
+			))

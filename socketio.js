@@ -46,15 +46,16 @@ io.on('connection', function (socket) {
 		return;
 	}
 
-
-
-
-	if (flags[sid]) {
+	// firefox reconnects multiple times on boot, so allow a few
+	// rapid reconnections
+	if (flags[sid] && flags[sid] > 4) {
 		// throttle this function
 		return;
+	} else {
+		flags[sid] = 1;
 	}
 
-	flags[sid] = sid;
+	flags[sid] += 1;
 	setTimeout(function () {
 		flags[sid] = null;
 	}, 10000);
@@ -76,7 +77,7 @@ io.on('connection', function (socket) {
 
 		return room
 	}
-	
+
 	socket.on('frappe.model:subscribe', function (params) {
 		const doctype = params.doctype
 		const name    = params.name

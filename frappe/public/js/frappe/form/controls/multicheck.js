@@ -12,16 +12,17 @@ frappe.ui.form.ControlMultiCheck = frappe.ui.form.Control.extend({
 
 		const row = this.get_column_size() === 12 ? '' : 'row';
 		this.$checkbox_area = $(`<div class="checkbox-options ${row}"></div>`).appendTo(this.wrapper);
+		this.refresh();
+	},
+
+	refresh() {
 		this.set_options();
 		this.bind_checkboxes();
+		this.refresh_input();
 	},
 
 	refresh_input() {
-		this.options.map(option => option.value).forEach(value => {
-			$(this.wrapper)
-				.find(`:checkbox[data-unit="${value}"]`)
-				.prop("checked", this.selected_options.includes(value));
-		});
+		this.select_options(this.selected_options);
 	},
 
 	set_options() {
@@ -52,9 +53,6 @@ frappe.ui.form.ControlMultiCheck = frappe.ui.form.Control.extend({
 			if(Array.isArray(args)) {
 				this.options = args;
 			} else if(Array.isArray(args.options)) {
-				if(args.select_all) {
-					this.select_all = true;
-				}
 				this.options = args.options;
 			}
 		} else {
@@ -63,15 +61,15 @@ frappe.ui.form.ControlMultiCheck = frappe.ui.form.Control.extend({
 	},
 
 	make_checkboxes() {
-		this.set_checked_options();
 		this.$load_state.hide();
 		this.$checkbox_area.empty();
 		this.options.forEach(option => {
 			this.get_checkbox_element(option).appendTo(this.$checkbox_area);
 		});
-		if(this.select_all) {
+		if(this.df.select_all) {
 			this.setup_select_all();
 		}
+		this.set_checked_options();
 	},
 
 	bind_checkboxes() {
@@ -92,6 +90,7 @@ frappe.ui.form.ControlMultiCheck = frappe.ui.form.Control.extend({
 		this.selected_options = this.options
 			.filter(o => o.checked)
 			.map(o => o.value);
+		this.select_options(this.selected_options);
 	},
 
 	setup_select_all() {
@@ -104,6 +103,13 @@ frappe.ui.form.ControlMultiCheck = frappe.ui.form.Control.extend({
 		});
 		this.$select_buttons.find('.deselect-all').on('click', () => {
 			select_all(true);
+		});
+	},
+
+	select_options(selected_options) {
+		this.options.map(option => option.value).forEach(value => {
+			let $checkbox = $(this.wrapper).find(`:checkbox[data-unit="${value}"]`)[0];
+			if($checkbox) $checkbox.checked = selected_options.includes(value);
 		});
 	},
 

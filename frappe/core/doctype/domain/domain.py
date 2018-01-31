@@ -43,6 +43,10 @@ class Domain(Document):
 					role.disabled = 1
 					role.save()
 
+		self.remove_custom_field()
+
+	def remove_custom_field(self):
+		'''Remove custom_fields when disabling domain'''
 		if self.data.custom_fields:
 			for doctype in self.data.custom_fields:
 				custom_fields = self.data.custom_fields[doctype]

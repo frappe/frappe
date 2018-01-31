@@ -120,6 +120,8 @@ def parse_naming_series(parts, doctype= '', doc = ''):
 			part = today.strftime("%d")
 		elif e=='YYYY':
 			part = today.strftime('%Y')
+		elif e=='FY':
+			part = frappe.defaults.get_user_default("fiscal_year")
 		elif doc and doc.get(e):
 			part = doc.get(e)
 		else: part = e
@@ -200,17 +202,13 @@ def _set_amended_name(doc):
 def append_number_if_name_exists(doctype, value, fieldname='name', separator='-'):
 	exists = frappe.db.exists(doctype,
 		value if fieldname == 'name' else {fieldname: value})
-
+				
+	regex = '^{value}{separator}[[:digit:]]+'.format(value=re.escape(value), separator=separator)
 	if exists:
-		# should be escaped 2 times since
-		# python string will parse the first escape
-		escaped_value = re.escape(re.escape(value))
-
 		last = frappe.db.sql("""select {fieldname} from `tab{doctype}`
-			where {fieldname} regexp '^{value}{separator}[[:digit:]]+'
+			where {fieldname} regexp %s
 			order by length({fieldname}) desc,
-				{fieldname} desc limit 1""".format(doctype=doctype,
-					value=escaped_value, fieldname=fieldname, separator=separator))
+				{fieldname} desc limit 1""".format(doctype=doctype, fieldname=fieldname), regex)
 
 		if last:
 			count = str(cint(last[0][0].rsplit(separator, 1)[1]) + 1)

@@ -104,24 +104,28 @@ def make_logs(response = None):
 def json_handler(obj):
 	"""serialize non-serializable data for json"""
 	# serialize date
-	if isinstance(obj, (datetime.date, datetime.timedelta, datetime.datetime)):
+	import collections
+
+  if isinstance(obj, (datetime.date, datetime.timedelta, datetime.datetime)):
 		return text_type(obj)
 
-	if isinstance(obj, Decimal):
+  if isinstance(obj, Decimal):
 		return text_type(obj)
 
-	elif isinstance(obj, LocalProxy):
+  elif isinstance(obj, LocalProxy):
 		return text_type(obj)
 
-	elif isinstance(obj, frappe.model.document.BaseDocument):
+  elif isinstance(obj, frappe.model.document.BaseDocument):
 		doc = obj.as_dict(no_nulls=True)
-
 		return doc
 
-	elif type(obj)==type or isinstance(obj, Exception):
+  elif isinstance(obj, collections.Iterable):
+		return list(obj)
+
+  elif type(obj)==type or isinstance(obj, Exception):
 		return repr(obj)
 
-	else:
+  else:
 		raise TypeError("""Object of type %s with value of %s is not JSON serializable""" % \
 						(type(obj), repr(obj)))
 
