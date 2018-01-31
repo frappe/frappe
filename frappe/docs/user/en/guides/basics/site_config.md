@@ -47,6 +47,11 @@ To connect to a remote database server using ssl, you must first configure the d
 - `disable_website_cache`: Don't cache website pages.
 - `logging`: writes logs if **1**, writes queries also if set to **2**.
 
+### Regulatory Compliance Log
+
+- `log_transactions`: Logs sales invoice and payment entries transactions in a chained log for regulatory compliance purpose.
+The TransactionLog Report displays the result of this log and checks the integrity of the chain to discover any invoice or payment entry deleted after submission.
+
 ### Others
 
 - `robots_txt`: Path to robots.txt file to be rendered when going to frappe-site.com/robots.txt

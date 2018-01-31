@@ -64,6 +64,9 @@ frappe.ui.form.PrintPreview = Class.extend({
 
 		this.wrapper.find(".btn-download-pdf").click(function () {
 			if (!me.is_old_style()) {
+				if (frappe.boot.log_transactions==1) {
+					me.track_print();
+				}
 				var w = window.open(
 					frappe.urllib.get_full_url("/api/method/frappe.utils.print_format.download_pdf?"
 						+ "doctype=" + encodeURIComponent(me.frm.doc.doctype)
@@ -146,8 +149,36 @@ frappe.ui.form.PrintPreview = Class.extend({
 	printit: function () {
 		this.new_page_preview(true);
 	},
+	track_print: function(){
+		var me = this;
+		if (me.frm.doctype == 'Sales Invoice' || me.frm.doctype == 'Payment Entry' ){
+			var datalist = [];
+			var doc = frappe.get_doc(me.frm.doctype,me.frm.doc.name);
+			if (me.frm.doctype == 'Sales Invoice'){
+				datalist={ "action":'Printed'};
+			}
+			else {
+				datalist={"action":'Printed', "amended_from": me.frm.doc.amended_from};
+			}
+			var d = Object.assign({}, datalist, doc);
+			delete d["__last_sync_on"], delete d["__onload"],delete d["__proto__"], delete d["timesheets"], delete d["taxes"],
+			delete d["sales_team"], delete d["payments"], delete d["packed_items"], delete d["items"], delete d["advances"],
+			delete d["other_charges_calculation"], delete d["address_display"], delete d["company_address_display"], delete d["shipping_address"] ;
+			frappe.call({
+				method: "frappe.core.doctype.transactionlog.transactionlog.create_transaction_log",
+				args: {
+					"doctype": me.frm.doctype,
+					"document": me.frm.docname,
+					"data": d
+				}
+			});
+		}
+	},
 	new_page_preview: function (printit) {
 		var me = this;
+		if (frappe.boot.log_transactions==1) {
+			me.track_print();
+		}
 		var w = window.open(frappe.urllib.get_full_url("/printview?"
 			+ "doctype=" + encodeURIComponent(me.frm.doc.doctype)
 			+ "&name=" + encodeURIComponent(me.frm.doc.name)
