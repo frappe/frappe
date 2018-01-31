@@ -51,6 +51,11 @@ class DomainSettings(Document):
 					if domain not in active_domains:
 						remove_role(role)
 
+			if 'custom_fields' in data:
+				if domain not in active_domains:
+					inactive_domain = frappe.get_doc("Domain", domain)
+					inactive_domain.setup_data()
+					inactive_domain.remove_custom_field()
 
 def get_active_domains():
 	""" get the domains set in the Domain Settings as active domain """
