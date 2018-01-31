@@ -3,10 +3,9 @@
 
 frappe.provide('frappe.views');
 
-/**
-* Renders customized list. Usually based on `in_list_view` property.
-* It carries information that is used in frappe.views.ListView
-*/
+// Renders customized list
+// usually based on `in_list_view` property
+
 frappe.views.ListRenderer = Class.extend({
 	name: 'List',
 	init: function (opts) {
@@ -39,7 +38,6 @@ frappe.views.ListRenderer = Class.extend({
 
 		// default settings
 		this.order_by = this.order_by || 'modified desc';
-		this.group_by = this.group_by || '';
 		this.filters = this.filters || [];
 		this.or_filters = this.or_filters || [];
 		this.page_length = this.page_length || 20;
@@ -56,7 +54,6 @@ frappe.views.ListRenderer = Class.extend({
 		this.init_user_settings();
 
 		this.order_by = this.user_settings.order_by || this.settings.order_by;
-		this.group_by = this.get_group_by();
 		this.filters = this.user_settings.filters || this.settings.filters;
 		this.page_length = this.settings.page_length;
 
@@ -64,16 +61,6 @@ frappe.views.ListRenderer = Class.extend({
 		if(frappe.model.is_submittable(this.doctype) && (!this.filters || !this.filters.length)) {
 			this.filters = [[this.doctype, "docstatus", "!=", 2]];
 		}
-	},
-
-	/**
-	* Get the name of the column to use in SQL `group by`.
-	* It defaults to 'creation'
-	*/
-	get_group_by: function() {
-		const default_column = this.settings.group_by || 'creation';
-		const group_by = $.format('`tab{0}`.`{1}`', [this.doctype, default_column]);
-		return group_by;
 	},
 	init_user_settings: function () {
 		frappe.provide('frappe.model.user_settings.' + this.doctype + '.' + this.name);
