@@ -17,7 +17,7 @@ class S3BackupSettings(Document):
 
 	def validate(self):
 		if not self.endpoint_url:
-    			self.endpoint_url = 'https://s3.amazonaws.com'
+			self.endpoint_url = 'https://s3.amazonaws.com'
 		conn = boto3.client(
 			's3',
 			aws_access_key_id=self.access_key_id,
@@ -106,7 +106,7 @@ def backup_to_s3():
 			's3',
 			aws_access_key_id=doc.access_key_id,
 			aws_secret_access_key=doc.get_password('secret_access_key'),
-			endpoint_url=doc.endpoint_url
+			endpoint_url=doc.endpoint_url or 'https://s3.amazonaws.com'
 			)
 
 	backup = new_backup(ignore_files=False, backup_path_db=None,
@@ -142,7 +142,7 @@ def delete_old_backups(limit, bucket):
 			's3',
 			aws_access_key_id=doc.access_key_id,
 			aws_secret_access_key=doc.get_password('secret_access_key'),
-			endpoint_url=doc.endpoint_url
+			endpoint_url=doc.endpoint_url or 'https://s3.amazonaws.com'
 			)
 	bucket = s3.Bucket(bucket)
 	objects = bucket.meta.client.list_objects_v2(Bucket=bucket.name, Delimiter='/')
