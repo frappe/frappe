@@ -63,7 +63,7 @@ def import_file_by_path(path, ignore_links=False, overwrite=False, submit=False,
 			submit_after_import=submit, pre_process=pre_process)
 
 
-def export_json(doctype, path, filters=None, or_filters=None, name=None):
+def export_json(doctype, path, filters=None, or_filters=None, name=None, order_by="creation asc"):
 	def post_process(out):
 		del_keys = ('parent', 'parentfield', 'parenttype', 'modified_by', 'creation', 'owner', 'idx')
 		for doc in out:
@@ -83,7 +83,7 @@ def export_json(doctype, path, filters=None, or_filters=None, name=None):
 	elif frappe.db.get_value("DocType", doctype, "issingle"):
 		out.append(frappe.get_doc(doctype).as_dict())
 	else:
-		for doc in frappe.get_all(doctype, fields=["name"], filters=filters, or_filters=or_filters, limit_page_length=0, order_by="creation asc"):
+		for doc in frappe.get_all(doctype, fields=["name"], filters=filters, or_filters=or_filters, limit_page_length=0, order_by=order_by):
 			out.append(frappe.get_doc(doctype, doc.name).as_dict())
 	post_process(out)
 
@@ -110,4 +110,4 @@ def export_fixture(doctype, app):
 	if not os.path.exists(frappe.get_app_path(app, "fixtures")):
 		os.mkdir(frappe.get_app_path(app, "fixtures"))
 
-	export_json(doctype, frappe.get_app_path(app, "fixtures", frappe.scrub(doctype) + ".json"))
+	export_json(doctype, frappe.get_app_path(app, "fixtures", frappe.scrub(doctype) + ".json"), order_by="name asc")

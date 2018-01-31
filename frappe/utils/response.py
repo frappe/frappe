@@ -4,6 +4,7 @@
 from __future__ import unicode_literals
 import json
 import datetime
+from decimal import Decimal
 import mimetypes
 import os
 import frappe
@@ -103,7 +104,12 @@ def make_logs(response = None):
 def json_handler(obj):
 	"""serialize non-serializable data for json"""
 	# serialize date
+	import collections
+
 	if isinstance(obj, (datetime.date, datetime.timedelta, datetime.datetime)):
+		return text_type(obj)
+
+	if isinstance(obj, Decimal):
 		return text_type(obj)
 
 	elif isinstance(obj, LocalProxy):
@@ -111,8 +117,10 @@ def json_handler(obj):
 
 	elif isinstance(obj, frappe.model.document.BaseDocument):
 		doc = obj.as_dict(no_nulls=True)
-
 		return doc
+
+	elif isinstance(obj, collections.Iterable):
+		return list(obj)
 
 	elif type(obj)==type or isinstance(obj, Exception):
 		return repr(obj)

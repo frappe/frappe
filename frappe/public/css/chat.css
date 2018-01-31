@@ -291,6 +291,14 @@ a.no-decoration:active {
   left: 50%;
   transform: translate(-50%, -50%);
 }
+.frappe-chat > .frappe-chat-popper > .frappe-chat-popper-collapse > .panel .panel-heading .panel-title .media-heading {
+  font-size: 12px;
+  margin: 0px;
+  padding: 0px;
+}
+.frappe-chat > .frappe-chat-popper > .frappe-chat-popper-collapse > .panel .panel-heading .panel-title .media-subtitle {
+  font-size: 12px;
+}
 .frappe-chat > .frappe-chat-popper > .frappe-chat-popper-collapse > .panel .panel-heading .frappe-chat-action-bar form {
   width: 100%;
 }
@@ -313,6 +321,10 @@ a.no-decoration:active {
   max-width: 100%;
   vertical-align: middle;
   max-width: 180px;
+}
+.frappe-chat > .frappe-chat-popper > .frappe-chat-popper-collapse > .panel.panel-bg {
+  background-size: 350px 500px;
+  background-image: url(/assets/frappe/images/chat/wallpaper-default.jpg);
 }
 .frappe-chat > .frappe-chat-popper > .frappe-chat-popper-collapse > .panel.panel-span {
   position: fixed;
@@ -360,12 +372,6 @@ a.no-decoration:active {
   width: 32px;
   height: 32px;
 }
-.chat-room-footer {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-}
 .chat-room-footer .chat-form {
   border-top: 1px solid #D1D8DD;
 }
@@ -380,18 +386,14 @@ a.no-decoration:active {
   resize: none;
   padding-left: 0px;
   padding-right: 0px;
-  overflow: auto;
+  overflow: hidden;
 }
 .chat-room-footer .chat-form .fa {
   font-size: 14px;
   transition: color 0.5s;
 }
 .chat-list {
-  padding-bottom: 50px;
   height: 100%;
-  background: #FAFBFC;
-  background-size: 350px 500px;
-  background-image: url(/assets/frappe/images/chat/wallpaper-default.jpg);
   overflow-y: scroll;
 }
 .chat-list .chat-list-item {
@@ -402,6 +404,9 @@ a.no-decoration:active {
 }
 .chat-list .chat-list-item .avatar {
   vertical-align: top;
+}
+.chat-list .chat-list-item .avatar .standard-image {
+  background-color: white;
 }
 .chat-list .chat-list-item .chat-bubble {
   min-width: 20%;

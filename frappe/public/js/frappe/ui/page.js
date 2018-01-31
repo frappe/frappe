@@ -263,7 +263,7 @@ frappe.ui.Page = Class.extend({
 		var $li = $('<li><a class="grey-link">'+ label +'</a><li>'),
 			$link = $li.find("a").on("click", click);
 
-		if (this.is_in_group_button_dropdown(parent, `${item_selector}:contains('${label}')`, label)) return;
+		if (this.is_in_group_button_dropdown(parent, item_selector, label)) return;
 
 		if(standard===true) {
 			$li.appendTo(parent);
@@ -289,7 +289,10 @@ frappe.ui.Page = Class.extend({
 
 		if (!label || !parent) return false;
 
-		const result = $(parent).find(`${selector}:contains('${label}')`);
+		const result = $(parent).find(`${selector}:contains('${label}')`)
+			.filter(function() {
+				return $(this).text() === label;
+			});
 		return result.length > 0;
 	},
 

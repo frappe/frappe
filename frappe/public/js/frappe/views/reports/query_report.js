@@ -197,6 +197,7 @@ frappe.views.QueryReport = Class.extend({
 				content: content,
 				title: __(this.report_name),
 				print_settings: this.print_settings,
+				columns: this.columns
 			});
 		} else {
 			frappe.render_grid({

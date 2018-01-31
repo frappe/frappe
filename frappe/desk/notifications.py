@@ -161,7 +161,7 @@ def clear_notifications(user=None):
 		return
 
 	config = get_notification_config()
-	for_doctype = config.get('for_doctype').keys() if config.get('for_doctype') else []
+	for_doctype = list(config.get('for_doctype').keys()) if config.get('for_doctype') else []
 	for_module = list(config.get('for_module').keys()) if config.get('for_module') else []
 	groups = for_doctype + for_module
 	cache = frappe.cache()
@@ -191,7 +191,7 @@ def get_notification_info_for_boot():
 	module_doctypes = {}
 	doctype_info = dict(frappe.db.sql("""select name, module from tabDocType"""))
 
-	for d in list(set(can_read + config.for_doctype.keys())):
+	for d in list(set(can_read + list(config.for_doctype.keys()))):
 		if d in config.for_doctype:
 			conditions[d] = config.for_doctype[d]
 
