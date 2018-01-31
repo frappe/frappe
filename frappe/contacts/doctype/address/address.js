@@ -6,8 +6,8 @@ frappe.ui.form.on("Address", {
 		if(frm.doc.__islocal) {
 			var last_route = frappe.route_history.slice(-2, -1)[0];
 			let docname = last_route[2];
-			if (last_route.length == 4)
-				docname = `${last_route[2]}/${last_route[3]}`;
+			if (last_route.length > 3)
+				docname = last_route.slice(2).join("/");
 			if(frappe.dynamic_link && frappe.dynamic_link.doc
 					&& frappe.dynamic_link.doc.name==docname) {
 				frm.add_child('links', {
