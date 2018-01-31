@@ -536,22 +536,16 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 		})
 	},
 
-	/*
-	* Prepares extra information for the SQL query to fetch
-	* records for the list view.
-	*/
 	get_args: function () {
 		var args = {
 			doctype: this.doctype,
 			fields: this.list_renderer.fields,
 			filters: this.get_filters_args(),
 			order_by: this.get_order_by_args(),
-			group_by: this.list_renderer.group_by,
 			with_comment_count: true
 		}
 		return args;
 	},
-
 	get_filters_args: function() {
 		var filters = [];
 		if(this.filter_list) {
