@@ -44,7 +44,9 @@ def validate_link():
 				fetch_value = frappe.db.sql("select %s from `tab%s` where name=%s"
 					% (fetch, frappe.db.escape(options), '%s'), (value,))[0]
 			except Exception as e:
-				frappe.msgprint("Wrong add fetch in the custom script.")
+				error_message = str(e).split("Unknown column '")
+				fieldname = None if len(error_message)<=1 else error_message[1].split("'")[0]
+				frappe.msgprint("Wrong fieldname <b>{0}</b> in add_fetch configuration of custom script".format(fieldname))
 				frappe.errprint(frappe.get_traceback())
 
 			if fetch_value:
