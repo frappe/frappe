@@ -119,7 +119,7 @@ class Page(Document):
 		for fname in os.listdir(path):
 			if fname.endswith(".html"):
 				with open(os.path.join(path, fname), 'r') as f:
-					template = text_type(f.read(), "utf-8")
+					template = f.read()
 					if "<!-- jinja -->" in template:
 						context = frappe._dict({})
 						try:
