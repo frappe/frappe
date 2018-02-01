@@ -301,7 +301,7 @@ def get_site_config_path():
 
 def get_conf_params(db_name=None, db_password=None):
 	if not db_name:
-		db_name = raw_input("Database Name: ")
+		db_name = input("Database Name: ")
 		if not db_name:
 			raise Exception("Database Name Required")
 
