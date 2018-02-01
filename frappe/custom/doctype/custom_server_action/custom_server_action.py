@@ -160,32 +160,30 @@ def evaluate_custom_server_action(doc, server_action, event):
 		frappe.throw(_("Error in Custom Server Action"))
 
 def send(server_action, doc):
-		'''Build recipients and send Custom Server Action'''
-		eval_context = get_context(doc)
-		if server_action.document_type != server_action.target_document_type:
-			if isinstance(doc.get(server_action.link_field), string_types):			
-				update_doc = frappe.get_doc(server_action.target_document_type, doc.get(server_action.link_field))
-			else:
-				update_doc = doc.get(server_action.link_field)
-			eval_context.update({'update_doc':update_doc})		
+	'''Build recipients and send Custom Server Action'''
+	eval_context = get_context(doc)
+	if server_action.document_type != server_action.target_document_type:
+		if isinstance(doc.get(server_action.link_field), string_types):			
+			update_doc = frappe.get_doc(server_action.target_document_type, doc.get(server_action.link_field))
+		else:
+			update_doc = doc.get(server_action.link_field)
+		eval_context.update({'update_doc':update_doc})		
 
-		field_dict = {}
-		for line in server_action.value_mapping:
-			expr = line.value if line.type == "Value" else safe_eval(line.value,{}, eval_context)
-			field_dict.update({line.doc_field: expr})
-		frappe.log_error( field_dict, 'server action name:'+server_action.name )
-		frappe.log_error(doc.as_json() + "doc/upd_doc" + update_doc.as_json(), 'server action name:'+server_action.name )
-		if server_action.action_type == "Update Record":
-			if update_doc:
-				doc = update_doc    # update_doc to be changed
-			frappe.db.set_value(doc.doctype, doc.name, field_dict, None, update_modified=False)
-			for key, value in field_dict.items():
-				doc.set(key, value)
-		elif server_action.action_type == "Create New Record":
-			field_dict.update({'doctype': server_action.target_document_type})
-			frappe.get_doc(field_dict).insert()
-		elif server_action.action_type == "Execute Python Code":
-			return safe_eval(server_action.code, eval_context, mode='exec')
+	field_dict = {}
+	for line in server_action.value_mapping:
+		expr = line.value if line.type == "Value" else safe_eval(line.value,{}, eval_context)
+		field_dict.update({line.doc_field: expr})
+	if server_action.action_type == "Update Record":
+		if update_doc:
+			doc = update_doc    # update_doc to be changed
+		frappe.db.set_value(doc.doctype, doc.name, field_dict, None, update_modified=False)
+		for key, value in field_dict.items():
+			doc.set(key, value)
+	elif server_action.action_type == "Create New Record":
+		field_dict.update({'doctype': server_action.target_document_type})
+		frappe.get_doc(field_dict).insert()
+	elif server_action.action_type == "Execute Python Code":
+		return safe_eval(server_action.code, eval_context, mode='exec')
 
 
 def get_context(doc):
