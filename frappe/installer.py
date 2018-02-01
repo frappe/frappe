@@ -1,9 +1,9 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
+from __future__ import unicode_literals, print_function
 
 from builtins import input
 
-from __future__ import unicode_literals, print_function
 
 import os, json, sys, subprocess, shutil
 import frappe
