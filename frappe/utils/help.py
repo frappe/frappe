@@ -135,9 +135,10 @@ class HelpDatabase(object):
 					for fname in files:
 						if fname.rsplit('.', 1)[-1] in ('md', 'html'):
 							fpath = os.path.join(basepath, fname)
-							with open(fpath, 'r') as f:
+							import codecs
+							with codecs.open(fpath, 'r', encoding = 'utf-8') as f:
 								try:
-									content = frappe.render_template(text_type(f.read(), 'utf-8'),
+									content = frappe.render_template(text_type(f.read()))
 										{'docs_base_url': '/assets/{app}_docs'.format(app=app)})
 
 									relpath = self.get_out_path(fpath)
