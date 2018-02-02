@@ -13,7 +13,7 @@
 					</span>
 				</div>
 				<div class="col-sm-4  hidden-xs list-col ellipsis h6 text-muted">
-					<span class="filterable text-muted" data-filter="sender,=,{%= data.sender %} inbox-value">
+					<span class="filterable text-muted inbox-value" data-filter="sender,=,{%= data.sender %}">
 						{%= is_sent_emails? data.recipients: data.sender %}
 					</span>
 				</div>
