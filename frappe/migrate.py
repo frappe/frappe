@@ -18,14 +18,22 @@ import frappe.utils.help
 
 def migrate(verbose=True, rebuild_website=False):
 	'''Migrate all apps to the latest version, will:
-
+	- run before migrate hooks
 	- run patches
 	- sync doctypes (schema)
 	- sync fixtures
 	- sync desktop icons
-	- sync web pages (from /www)'''
+	- sync web pages (from /www)
+	- sync web pages (from /www)
+	- run after migrate hooks
+	'''
 	frappe.flags.in_migrate = True
 	clear_global_cache()
+
+	#run before_migrate hooks
+	for app in frappe.get_installed_apps():
+		for fn in frappe.get_hooks('before_migrate', app_name=app):
+			frappe.get_attr(fn)()
 
 	# run patches
 	frappe.modules.patch_handler.run_all()
@@ -44,6 +52,11 @@ def migrate(verbose=True, rebuild_website=False):
 
 	# add static pages to global search
 	router.sync_global_search()
+
+	#run after_migrate hooks
+	for app in frappe.get_installed_apps():
+		for fn in frappe.get_hooks('after_migrate', app_name=app):
+			frappe.get_attr(fn)()
 
 	frappe.db.commit()
 

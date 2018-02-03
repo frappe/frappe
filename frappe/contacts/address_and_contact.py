@@ -134,7 +134,7 @@ def filter_dynamic_link_doctypes(doctype, txt, searchfield, start, page_len, fil
 	})
 
 	doctypes = frappe.db.get_all("DocField", filters=filters, fields=["parent"],
-		order_by="parent asc", distinct=True, as_list=True)
+		distinct=True, as_list=True)
 
 	filters.pop("parent")
 	filters.update({
@@ -143,7 +143,13 @@ def filter_dynamic_link_doctypes(doctype, txt, searchfield, start, page_len, fil
 	})
 
 	_doctypes = frappe.db.get_all("Custom Field", filters=filters, fields=["dt"],
-		order_by="dt asc", as_list=True)
+		as_list=True)
 
-	all_doctypes = doctypes + _doctypes
-	return sorted(all_doctypes, key=lambda item: item[0])
+	all_doctypes = [d[0] for d in doctypes + _doctypes]
+	valid_doctypes = []
+
+	for doctype in all_doctypes:
+		if frappe.has_permission(doctype):
+			valid_doctypes.append([doctype])
+
+	return sorted(valid_doctypes)

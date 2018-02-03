@@ -140,7 +140,7 @@ frappe.ui.FilterList = Class.extend({
 		}
 		if (i!==undefined) {
 			// remove index
-			this.splice(i, 1);
+			this.filters.splice(i, 1);
 		}
 	},
 

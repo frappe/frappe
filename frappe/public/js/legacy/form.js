@@ -197,7 +197,7 @@ _f.Frm.prototype.watch_model_updates = function() {
 		if(doc.name===me.docname) {
 			if ((value==='' || value===null) && !doc[value]) {
 				// both the incoming and outgoing values are falsy
-				// the texteditor, summernote, changes nulls to empty strings on render, 
+				// the texteditor, summernote, changes nulls to empty strings on render,
 				// so ignore those changes
 			} else {
 				me.dirty();
@@ -360,8 +360,9 @@ _f.Frm.prototype.show_web_link = function() {
 	}
 };
 
-_f.Frm.prototype.add_web_link = function(path) {
-	this.web_link = this.sidebar.add_user_action(__("See on Website"),
+_f.Frm.prototype.add_web_link = function(path, label) {
+	label = label || "See on Website";
+	this.web_link = this.sidebar.add_user_action(__(label),
 		function() {}).attr("href", path || this.doc.route).attr("target", "_blank");
 };
 
@@ -385,6 +386,8 @@ _f.Frm.prototype.refresh = function(docname) {
 			frappe.utils.scroll_to(0);
 			this.hide_print();
 		}
+		// reset visible columns, since column headings can change in different docs
+		this.grids.forEach(grid_obj => grid_obj.grid.visible_columns = null);
 		frappe.ui.form.close_grid_form();
 		this.docname = docname;
 	}

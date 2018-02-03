@@ -304,6 +304,10 @@ textarea.form-control {
 	}
 }
 
+.input-area {
+	position: relative;
+}
+
 .link-field.ui-front {
 	z-index: inherit;
 }
@@ -432,11 +436,6 @@ li.user-progress {
 
 .intro-area {
 	padding: 15px 30px;
-}
-
-.footnote-area {
-	padding: 0px 15px;
-	border-top: 1px solid @border-color;
 }
 
 .file-upload {
@@ -894,10 +893,18 @@ li.user-progress {
 	color: @text-color;
 }
 
+.checkbox input[type=checkbox] {
+	margin-left: 0;
+}
+
+.input-area input[type=checkbox] {
+	margin-left: -20px;
+}
+
 // custom font awesome checkbox
 input[type="checkbox"] {
 	position: relative;
-	height: 16px;
+	left: -999999px;
 
 	&:before {
 		position: absolute;
@@ -913,9 +920,7 @@ input[type="checkbox"] {
 		font-size: 14px;
 		color: @text-extra-muted;
 		.transition(150ms color);
-		background-color: white;
-		padding: 1px;
-		margin: -1px;
+		left: 999999px;
 	}
 
 	&:focus:before {
@@ -947,6 +952,14 @@ input[type="checkbox"] {
 @-moz-document url-prefix() {
 	input[type="checkbox"] {
 		visibility: visible;
+		left: 0;
+	}
+}
+
+@supports (-moz-appearance: none) {
+	input[type="checkbox"] {
+		visibility: visible;
+		left: 0;
 	}
 }
 
@@ -955,6 +968,7 @@ input[type="checkbox"] {
 @supports (-ms-ime-align:auto) {
 	input[type="checkbox"] {
 		 visibility: visible;
+		 left: 0;
 	}
 }
 

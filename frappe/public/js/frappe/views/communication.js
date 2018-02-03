@@ -273,7 +273,7 @@ frappe.views.CommunicationComposer = Class.extend({
 		this.lang_code = doc.language
 
 		//On selection of language retrieve language code
-		$(fields.language_sel.input).click(function(){
+		$(fields.language_sel.input).change(function(){
 			me.lang_code = this.value
 		})
 
@@ -418,8 +418,7 @@ frappe.views.CommunicationComposer = Class.extend({
 		if(!form_values) return;
 
 		var selected_attachments =
-			$.map($(me.dialog.wrapper)
-			.find("[data-file-name]:checked"), function (element) {
+			$.map($(me.dialog.wrapper).find("[data-file-name]:checked"), function (element) {
 				return $(element).attr("data-file-name");
 			});
 
@@ -585,12 +584,13 @@ frappe.views.CommunicationComposer = Class.extend({
 				.replace(/&lt;meta[\s\S]*meta&gt;/g, '') // remove <meta> tags
 				.replace(/&lt;style[\s\S]*&lt;\/style&gt;/g, ''); // // remove <style> tags
 
+			var communication_date = last_email.communication_date || last_email.creation;
 			content = '<div><br></div>'
 				+ reply
 				+ "<br><!-- original-reply --><br>"
 				+ '<blockquote>' +
 					'<p>' + __("On {0}, {1} wrote:",
-					[frappe.datetime.global_date_format(last_email.communication_date) , last_email.sender]) + '</p>' +
+					[frappe.datetime.global_date_format(communication_date) , last_email.sender]) + '</p>' +
 					last_email_content +
 				'<blockquote>';
 		} else {

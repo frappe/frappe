@@ -15,7 +15,10 @@ class DomainSettings(Document):
 		self.save()
 
 	def on_update(self):
-		for d in self.active_domains:
+		for i, d in enumerate(self.active_domains):
+			# set the flag to update the the desktop icons of all domains
+			if i >= 1:
+				frappe.flags.keep_desktop_icons = True
 			domain = frappe.get_doc('Domain', d.domain)
 			domain.setup_domain()
 
@@ -48,6 +51,11 @@ class DomainSettings(Document):
 					if domain not in active_domains:
 						remove_role(role)
 
+			if 'custom_fields' in data:
+				if domain not in active_domains:
+					inactive_domain = frappe.get_doc("Domain", domain)
+					inactive_domain.setup_data()
+					inactive_domain.remove_custom_field()
 
 def get_active_domains():
 	""" get the domains set in the Domain Settings as active domain """

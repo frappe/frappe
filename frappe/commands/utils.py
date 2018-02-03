@@ -1,10 +1,13 @@
+# -*- coding: utf-8 -*-
+
 from __future__ import unicode_literals, absolute_import, print_function
 import click
-import json, os, sys
+import json, os, sys, subprocess
 from distutils.spawn import find_executable
 import frappe
 from frappe.commands import pass_context, get_site
 from frappe.utils import update_progress_bar
+from frappe.utils.response import json_handler
 
 @click.command('build')
 @click.option('--make-copy', is_flag=True, default=False, help='Copy the files instead of symlinking')
@@ -15,7 +18,9 @@ def build(make_copy=False, restore = False, verbose=False):
 	import frappe.build
 	import frappe
 	frappe.init('')
-	frappe.build.bundle(False, make_copy=make_copy, restore = restore, verbose=verbose)
+	# don't minify in developer_mode for faster builds
+	no_compress = frappe.local.conf.developer_mode or False
+	frappe.build.bundle(no_compress, make_copy=make_copy, restore = restore, verbose=verbose)
 
 @click.command('watch')
 def watch():
@@ -119,7 +124,7 @@ def execute(context, method, args=None, kwargs=None):
 		finally:
 			frappe.destroy()
 		if ret:
-			print(json.dumps(ret))
+			print(json.dumps(ret, default=json_handler))
 
 
 @click.command('add-to-email-queue')
@@ -283,8 +288,14 @@ def mysql(context):
 	"Start Mariadb console for a site"
 	site = get_site(context)
 	frappe.init(site=site)
-	msq = find_executable('mysql')
-	os.execv(msq, [msq, '-u', frappe.conf.db_name, '-p'+frappe.conf.db_password, frappe.conf.db_name, '-h', frappe.conf.db_host or "localhost", "-A"])
+	mysql = find_executable('mycli')
+	args  = ['-u', frappe.conf.db_name, '-p'+frappe.conf.db_password, frappe.conf.db_name, '-h', frappe.conf.db_host or "localhost"]
+	if not mysql:
+		mysql = find_executable('mysql')
+		args.append("-A")
+	args.insert(0, mysql)
+	
+	os.execv(mysql, args)
 
 @click.command('console')
 @pass_context
@@ -506,6 +517,48 @@ def rebuild_global_search(context):
 		finally:
 			frappe.destroy()
 
+@click.command('auto-deploy')
+@click.argument('app')
+@click.option('--migrate', is_flag=True, default=False, help='Migrate after pulling')
+@click.option('--restart', is_flag=True, default=False, help='Restart after migration')
+@click.option('--remote', default='upstream', help='Remote, default is "upstream"')
+@pass_context
+def auto_deploy(context, app, migrate=False, restart=False, remote='upstream'):
+	'''Pull and migrate sites that have new version'''
+	from frappe.utils.gitutils import get_app_branch
+	from frappe.utils import get_sites
+
+	branch = get_app_branch(app)
+	app_path = frappe.get_app_path(app)
+
+	# fetch
+	subprocess.check_output(['git', 'fetch', remote, branch], cwd = app_path)
+
+	# get diff
+	if subprocess.check_output(['git', 'diff', '{0}..upstream/{0}'.format(branch)], cwd = app_path):
+		print('Updates found for {0}'.format(app))
+		if app=='frappe':
+			# run bench update
+			subprocess.check_output(['bench', 'update', '--no-backup'], cwd = '..')
+		else:
+			updated = False
+			subprocess.check_output(['git', 'pull', '--rebase', 'upstream', branch],
+				cwd = app_path)
+			# find all sites with that app
+			for site in get_sites():
+				frappe.init(site)
+				if app in frappe.get_installed_apps():
+					print('Updating {0}'.format(site))
+					updated = True
+					subprocess.check_output(['bench', '--site', site, 'clear-cache'], cwd = '..')
+					if migrate:
+						subprocess.check_output(['bench', '--site', site, 'migrate'], cwd = '..')
+				frappe.destroy()
+
+			if updated and restart:
+				subprocess.check_output(['bench', 'restart'], cwd = '..')
+	else:
+		print('No Updates')
 
 commands = [
 	build,
@@ -535,5 +588,6 @@ commands = [
 	add_to_email_queue,
 	setup_global_help,
 	setup_help,
-	rebuild_global_search
+	rebuild_global_search,
+	auto_deploy
 ]

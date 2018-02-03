@@ -34,8 +34,12 @@ def get_data_keys():
 @frappe.whitelist()
 def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, no_email=True, overwrite=None,
 	update_only = None, ignore_links=False, pre_process=None, via_console=False, from_data_import="No",
-	skip_errors = True, data_import_doc=None, validate_template=False):
+	skip_errors = True, data_import_doc=None, validate_template=False, user=None):
 	"""upload data"""
+
+	# for translations
+	if user:
+		frappe.set_user_lang(user)
 
 	if data_import_doc and isinstance(data_import_doc, string_types):
 		data_import_doc = frappe.get_doc("Data Import", data_import_doc)
@@ -72,7 +76,6 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 		frappe.throw(_("Please do not change the rows above {0}").format(get_data_keys_definition().data_separator))
 
 	def check_data_length():
-		max_rows = 5000
 		if not data:
 			frappe.throw(_("No data found in the file. Please reattach the new file with data."))
 
@@ -127,6 +130,8 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 	def get_doc(start_idx):
 		if doctypes:
 			doc = {}
+			attachments = []
+			last_error_row_idx = None
 			for idx in range(start_idx, len(rows)):
 				last_error_row_idx = idx	# pylint: disable=W0612
 				if (not doc) or main_doc_empty(rows[idx]):
@@ -163,7 +168,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 									# added file to attachments list
 									attachments.append(d[fieldname])
 
-								elif fieldtype in ("Link", "Dynamic Link") and d[fieldname]:
+								elif fieldtype in ("Link", "Dynamic Link", "Data") and d[fieldname]:
 									# as fields can be saved in the number format(long type) in data import template
 									d[fieldname] = cstr(d[fieldname])
 
@@ -179,7 +184,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 							if dt == doctype:
 								doc.update(d)
 							else:
-								if not overwrite:
+								if not overwrite and doc.get("name"):
 									d['parent'] = doc["name"]
 								d['parenttype'] = doctype
 								d['parentfield'] = parentfield
@@ -187,7 +192,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 				else:
 					break
 
-			return doc
+			return doc, attachments, last_error_row_idx
 		else:
 			doc = frappe._dict(zip(columns, rows[start_idx][1:]))
 			doc['doctype'] = doctype
@@ -198,18 +203,18 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 
 	def validate_naming(doc):
 		autoname = frappe.get_meta(doctype).autoname
+		if autoname:
+			if autoname[0:5] == 'field':
+				autoname = autoname[6:]
+			elif autoname == 'naming_series:':
+				autoname = 'naming_series'
+			else:
+				return True
 
-		if ".#" in autoname or "hash" in autoname:
-			autoname = ""
-		elif autoname[0:5] == 'field':
-			autoname = autoname[6:]
-		elif autoname=='naming_series:':
-			autoname = 'naming_series'
-		else:
-			return True
-
-		if autoname and not doc[autoname]:
-			frappe.throw(_("{0} is a mandatory field".format(autoname)))
+			if (autoname not in doc) or (not doc[autoname]):
+				from frappe.model.base_document import get_controller
+				if not hasattr(get_controller(doctype), "autoname"):
+					frappe.throw(_("{0} is a mandatory field".format(autoname)))
 		return True
 
 	users = frappe.db.sql_list("select name from tabUser")
@@ -276,15 +281,16 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 	start_row = get_start_row()
 	header = rows[:start_row]
 	data = rows[start_row:]
-	doctype = get_header_row(get_data_keys_definition().main_table)[1]
-	columns = filter_empty_columns(get_header_row(get_data_keys_definition().columns)[1:])
+	try:
+		doctype = get_header_row(get_data_keys_definition().main_table)[1]
+		columns = filter_empty_columns(get_header_row(get_data_keys_definition().columns)[1:])
+	except:
+		frappe.throw(_("Cannot change header content"))
 	doctypes = []
 	column_idx_to_fieldname = {}
 	column_idx_to_fieldtype = {}
-	attachments = []
 
 	if skip_errors:
-		last_error_row_idx = None
 		data_rows_with_error = header
 
 	if submit_after_import and not cint(frappe.db.get_value("DocType",
@@ -354,7 +360,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 		publish_progress(i)
 
 		try:
-			doc = get_doc(row_idx)
+			doc, attachments, last_error_row_idx = get_doc(row_idx)
 			validate_naming(doc)
 			if pre_process:
 				pre_process(doc)
@@ -365,7 +371,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 				doc = parent.append(parentfield, doc)
 				parent.save()
 			else:
-				if overwrite and doc["name"] and frappe.db.exists(doctype, doc["name"]):
+				if overwrite and doc.get("name") and frappe.db.exists(doctype, doc["name"]):
 					original = frappe.get_doc(doctype, doc["name"])
 					original_name = original.name
 					original.update(doc)
@@ -416,8 +422,11 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 			log(**{"row": row_idx + 1, "title":'Error for row %s' % (len(row)>1 and row[1] or ""), "message": err_msg,
 				"indicator": "red", "link":error_link})
 			# data with error to create a new file
+			# include the errored data in the last row as last_error_row_idx will not be updated for the last row
 			if skip_errors:
-				data_rows_with_error += data[row_idx:last_error_row_idx]
+				if last_error_row_idx == len(rows)-1:
+					last_error_row_idx = len(rows)
+				data_rows_with_error += rows[row_idx:last_error_row_idx]
 			else:
 				rollback_flag = True
 		finally:
@@ -461,8 +470,10 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 		data_import_doc.save()
 		if data_import_doc.import_status in ["Successful", "Partially Successful"]:
 			data_import_doc.submit()
+			publish_progress(100, True)
+		else:
+			publish_progress(0, True)
 		frappe.db.commit()
-		publish_progress(100, True)
 	else:
 		return log_message
 

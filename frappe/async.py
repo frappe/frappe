@@ -89,8 +89,10 @@ def publish_realtime(event=None, message=None, room=None,
 			room = get_user_room(user)
 		elif doctype and docname:
 			room = get_doc_room(doctype, docname)
-		else:
-			room = get_site_room()
+	else:
+		# frappe.chat
+		room = get_chat_room(room)
+		# end frappe.chat
 
 	if after_commit:
 		params = [event, message, room]
@@ -110,7 +112,7 @@ def emit_via_redis(event, message, room):
 	try:
 		r.publish('events', frappe.as_json({'event': event, 'message': message, 'room': room}))
 	except redis.exceptions.ConnectionError:
-		# print frappe.get_traceback()
+		# print(frappe.get_traceback())
 		pass
 
 def put_log(line_no, line, task_id=None):
@@ -194,3 +196,10 @@ def get_site_room():
 
 def get_task_progress_room(task_id):
 	return "".join([frappe.local.site, ":task_progress:", task_id])
+
+# frappe.chat
+def get_chat_room(room):
+	room = ''.join([frappe.local.site, ":room:", room])
+	
+	return room
+# end frappe.chat room

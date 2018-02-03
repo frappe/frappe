@@ -191,6 +191,7 @@ def _run_unittest(modules, verbose=False, tests=(), profile=False):
 
 	out = unittest_runner(verbosity=1+(verbose and 1 or 0)).run(test_suite)
 
+
 	if profile:
 		pr.disable()
 		s = StringIO()
@@ -199,7 +200,6 @@ def _run_unittest(modules, verbose=False, tests=(), profile=False):
 		print(s.getvalue())
 
 	return out
-
 
 def _add_test(app, path, filename, verbose, test_suite=None, ui_tests=False):
 	import os

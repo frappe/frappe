@@ -83,6 +83,13 @@ def get_value(doctype, fieldname, filters=None, as_dict=True, debug=False):
 	return frappe.db.get_value(doctype, filters, fieldname, as_dict=as_dict, debug=debug)
 
 @frappe.whitelist()
+def get_single_value(doctype, field):
+	if not frappe.has_permission(doctype):
+		frappe.throw(_("No permission for {doctype}".format(doctype = doctype)), frappe.PermissionError)
+	value = frappe.db.get_single_value(doctype, field)
+	return value
+
+@frappe.whitelist()
 def set_value(doctype, name, fieldname, value=None):
 	'''Set a value using get_doc, group of values
 

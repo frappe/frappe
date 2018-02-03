@@ -37,13 +37,6 @@ def get_data():
 					"description": _("Set Permissions on Document Types and Roles")
 				},
 				{
-					"type": "page",
-					"name": "modules_setup",
-					"label": _("Show / Hide Modules"),
-					"icon": "fa fa-upload",
-					"description": _("Show or hide modules globally.")
-				},
-				{
 					"type": "doctype",
 					"name": "Role Permission for Page and Report",
 					"description": _("Set custom roles for page and report")
@@ -85,6 +78,13 @@ def get_data():
 					"type": "doctype",
 					"name": "Error Snapshot",
 					"description": _("Log of error during requests.")
+				},
+				{
+					"type": "doctype",
+					"name": "Domain Settings",
+					"label": _("Domain Settings"),
+					"description": _("Enable / Disable Domains"),
+					"hide_count": True
 				},
 			]
 		},

@@ -477,8 +477,8 @@ frappe.ui.form.Timeline = Class.extend({
 								parts.push(__('{0} from {1} to {2} in row #{3}', [
 									frappe.meta.get_label(me.frm.fields_dict[row[0]].grid.doctype,
 										p[0]),
-									(frappe.ellipsis(p[1], 40) || '""').bold(),
 									(frappe.ellipsis(p[2], 40) || '""').bold(),
+									(frappe.ellipsis(p[1], 40) || '""').bold(),
 									row[1]
 								]));
 							}
@@ -612,15 +612,10 @@ frappe.ui.form.Timeline = Class.extend({
 	 */
 	update_comment: function(name, content)
 	{
-		// TODO: is there a frappe.client.update function?
 		return frappe.call({
-			method: 'frappe.client.set_value',
-			args: {
-				doctype: 'Communication',
-				name: name,
-				fieldname: 'content',
-				value: content,
-			}, callback: function(r) {
+			method: 'frappe.desk.form.utils.update_comment',
+			args: { name, content },
+			callback: function(r) {
 				if(!r.exc) {
 					frappe.utils.play_sound('click');
 				}

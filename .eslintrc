@@ -11,6 +11,18 @@
 			"tab",
 			{ "SwitchCase": 1 }
 		],
+		"brace-style": [
+			"error",
+			"1tbs"
+		],
+		"space-before-function-paren": [
+			"error",
+			"never"
+		],
+		"space-unary-ops": [
+			"error",
+			{ "words": true }
+		],
 		"linebreak-style": [
 			"error",
 			"unix"
@@ -120,6 +132,7 @@
 		"QUnit": true,
 		"JsBarcode": true,
 		"L": true,
-		"Chart": true
+		"Chart": true,
+		"DataTable": true
 	}
 }

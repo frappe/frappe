@@ -43,6 +43,12 @@ frappe.db = {
 			}
 		});
 	},
+	get_single_value: (doctype, field) => {
+		return new Promise(resolve => {
+			frappe.call('frappe.client.get_single_value', { doctype, field })
+				.then(r => resolve(r ? r.message : null));
+		});
+	},
 	set_value: function(doctype, docname, fieldname, value, callback) {
 		return frappe.call({
 			method: "frappe.client.set_value",
@@ -56,5 +62,14 @@ frappe.db = {
 				callback && callback(r.message);
 			}
 		});
+	},
+	get_doc: function(doctype, name, filters = null) {
+		return new Promise(resolve => {
+			frappe.call({
+				method: "frappe.client.get",
+				args: { doctype, name, filters },
+				callback: r => resolve(r.message)
+			});
+		});
 	}
-}
+};

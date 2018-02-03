@@ -4,7 +4,7 @@ frappe.RoleEditor = Class.extend({
 		this.frm = frm;
 		this.wrapper = wrapper;
 		this.disable = disable;
-		$(wrapper).html('<div class="help">' + __("Loading") + '...</div>')
+		$(wrapper).html('<div class="help">' + __("Loading") + '...</div>');
 		return frappe.call({
 			method: 'frappe.core.doctype.user.user.get_all_roles',
 			callback: function(r) {
@@ -60,7 +60,7 @@ frappe.RoleEditor = Class.extend({
 			me.frm.dirty();
 		});
 		$(this.wrapper).find('.user-role a').click(function() {
-			me.show_permissions($(this).parent().attr('data-user-role'))
+			me.show_permissions($(this).parent().attr('data-user-role'));
 			return false;
 		});
 	},
@@ -126,13 +126,13 @@ frappe.RoleEditor = Class.extend({
 		return {
 			checked_roles: checked_roles,
 			unchecked_roles: unchecked_roles
-		}
+		};
 	},
 	show_permissions: function(role) {
 		// show permissions for a role
 		var me = this;
 		if(!this.perm_dialog)
-			this.make_perm_dialog()
+			this.make_perm_dialog();
 		$(this.perm_dialog.body).empty();
 		return frappe.call({
 			method: 'frappe.core.doctype.user.user.get_perm_info',
@@ -191,7 +191,7 @@ frappe.RoleEditor = Class.extend({
 						// <td>%(print)s</td>\
 						// <td>%(email)s</td>'
 						+ '<td>%(set_user_permissions)s</td>\
-						</tr>', perm))
+						</tr>', perm));
 				}
 
 				me.perm_dialog.show();

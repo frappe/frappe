@@ -11,16 +11,16 @@ frappe.ui.form.on('User Permission for Page and Report', {
 		if(!frm.roles_editor) {
 			frm.role_area = $('<div style="min-height: 300px">')
 				.appendTo(frm.fields_dict.roles_html.wrapper);
-			frm.roles_editor = new frappe.RoleEditor(frm.role_area);
+			frm.roles_editor = new frappe.RoleEditor(frm.role_area, frm);
 		}
 	},
 	
 	page: function(frm) {
-		frm.trigger("get_roles")
+		frm.trigger("get_roles");
 	},
 
 	report: function(frm){
-		frm.trigger("get_roles")
+		frm.trigger("get_roles");
 	},
 
 	get_roles: function(frm) {
@@ -30,26 +30,26 @@ frappe.ui.form.on('User Permission for Page and Report', {
 			method:"get_custom_roles",
 			doc: frm.doc,
 			callback: function(r) {
-				refresh_field('roles')
-				frm.roles_editor.show()
+				refresh_field('roles');
+				frm.roles_editor.show();
 			}
-		})
+		});
 	},
 
 	update: function(frm) {
 		if(frm.roles_editor) {
-			frm.roles_editor.set_roles_in_table()
+			frm.roles_editor.set_roles_in_table();
 		}
 
 		return frappe.call({
 			method:"set_custom_roles",
 			doc: frm.doc,
 			callback: function(r) {
-				refresh_field('roles')
-				frm.roles_editor.show()
-				frappe.msgprint(__("Successfully Updated"))
-				frm.reload_doc()
+				refresh_field('roles');
+				frm.roles_editor.show();
+				frappe.msgprint(__("Successfully Updated"));
+				frm.reload_doc();
 			}
-		})
+		});
 	}
 });

@@ -10,9 +10,9 @@ QUnit.test("Test: Filters [Kanban view]", function(assert) {
 		() => {
 			assert.deepEqual(["List", "ToDo", "Kanban", "Kanban test"], frappe.get_route(),
 				"Kanban view opened successfully.");
-			// set filter values
-			return frappe.set_control('priority', 'Low');
 		},
+		// set filter values
+		() => cur_list.filter_area.add('ToDo', 'priority', '=', 'Low'),
 		() => frappe.timeout(1),
 		() => cur_list.page.btn_secondary.click(),
 		() => frappe.timeout(1),

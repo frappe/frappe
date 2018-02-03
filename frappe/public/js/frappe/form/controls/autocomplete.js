@@ -8,8 +8,11 @@ frappe.ui.form.ControlAutocomplete = frappe.ui.form.ControlData.extend({
 	set_options() {
 		if (this.df.options) {
 			let options = this.df.options || [];
-			if(typeof options === 'string') {
+			if (typeof options === 'string') {
 				options = options.split('\n');
+			}
+			if (typeof options[0] === 'string') {
+				options = options.map(o => ({label: o, value: o}));
 			}
 			this._data = options;
 		}
@@ -20,13 +23,14 @@ frappe.ui.form.ControlAutocomplete = frappe.ui.form.ControlData.extend({
 			minChars: 0,
 			maxItems: 99,
 			autoFirst: true,
-			list: this.get_data()
+			list: this.get_data(),
+			sort: () => {
+				return 0;
+			}
 		};
 	},
 
 	setup_awesomplete() {
-		var me = this;
-
 		this.awesomplete = new Awesomplete(this.input, this.get_awesomplete_settings());
 
 		$(this.input_area).find('.awesomplete ul').css('min-width', '100%');

@@ -77,7 +77,6 @@ class DatabaseQuery(object):
 		self.user = user or frappe.session.user
 		self.update = update
 		self.user_settings_fields = copy.deepcopy(self.fields)
-		#self.debug = True
 
 		if user_settings:
 			self.user_settings = json.loads(user_settings)
@@ -185,8 +184,8 @@ class DatabaseQuery(object):
 		# add tables from fields
 		if self.fields:
 			for f in self.fields:
-				if ( not ("tab" in f and "." in f) ) or ("locate(" in f): continue
-
+				if ( not ("tab" in f and "." in f) ) or ("locate(" in f) or ("count(" in f):
+					continue
 
 				table_name = f.split('.')[0]
 				if table_name.lower().startswith('group_concat('):
@@ -308,7 +307,7 @@ class DatabaseQuery(object):
 			if f.operator.lower() == 'between' and \
 				(f.fieldname in ('creation', 'modified') or (df and (df.fieldtype=="Date" or df.fieldtype=="Datetime"))):
 
-				value = get_between_date_filter(f.value)
+				value = get_between_date_filter(f.value, df)
 				fallback = "'0000-00-00 00:00:00'"
 
 			elif df and df.fieldtype=="Date":
@@ -571,38 +570,6 @@ def get_list(doctype, *args, **kwargs):
 	kwargs.pop('cmd', None)
 	return DatabaseQuery(doctype).execute(None, *args, **kwargs)
 
-@frappe.whitelist()
-def get_count(doctype, filters=None):
-	if filters:
-		filters = json.loads(filters)
-
-	if is_parent_only_filter(doctype, filters):
-		if isinstance(filters, list):
-			filters = frappe.utils.make_filter_dict(filters)
-
-		return frappe.db.count(doctype, filters=filters)
-
-	else:
-		# If filters contain child table as well as parent doctype - Join
-		tables, conditions = ['`tab{0}`'.format(doctype)], []
-		for f in filters:
-			fieldname = '`tab{0}`.{1}'.format(f[0], f[1])
-			table = '`tab{0}`'.format(f[0])
-
-			if table not in tables:
-				tables.append(table)
-
-			conditions.append('{fieldname} {operator} "{value}"'.format(fieldname=fieldname,
-				operator=f[2], value=f[3]))
-
-			if doctype != f[0]:
-				join_condition = '`tab{child_doctype}`.parent =`tab{doctype}`.name'.format(child_doctype=f[0], doctype=doctype)
-				if join_condition not in conditions:
-					conditions.append(join_condition)
-
-		return frappe.db.sql_list("""select count(*) from {0}
-			where {1}""".format(','.join(tables), ' and '.join(conditions)), debug=0)
-
 def is_parent_only_filter(doctype, filters):
 	#check if filters contains only parent doctype
 	only_parent_doctype = True
@@ -616,20 +583,27 @@ def is_parent_only_filter(doctype, filters):
 
 	return only_parent_doctype
 
-def get_between_date_filter(value):
+def get_between_date_filter(value, df=None):
 	'''
 		return the formattted date as per the given example
 		[u'2017-11-01', u'2017-11-03'] => '2017-11-01 00:00:00.000000' AND '2017-11-04 00:00:00.000000'
 	'''
 	from_date = None
 	to_date = None
+	date_format = "%Y-%m-%d %H:%M:%S.%f"
+
+	if df:
+		date_format = "%Y-%m-%d %H:%M:%S.%f" if df.fieldtype == 'Datetime' else "%Y-%m-%d"
 
 	if value and isinstance(value, (list, tuple)):
 		if len(value) >= 1: from_date = value[0]
 		if len(value) >= 2: to_date = value[1]
 
+	if not df or (df and df.fieldtype == 'Datetime'):
+		to_date = add_to_date(to_date,days=1)
+
 	data = "'%s' AND '%s'" % (
-		get_datetime(from_date).strftime("%Y-%m-%d %H:%M:%S.%f"),
-		add_to_date(get_datetime(to_date),days=1).strftime("%Y-%m-%d %H:%M:%S.%f"))
+		get_datetime(from_date).strftime(date_format),
+		get_datetime(to_date).strftime(date_format))
 
 	return data
