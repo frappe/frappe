@@ -623,7 +623,8 @@ frappe.ui.form.Grid = Class.extend({
 								}
 							}
 						});
-
+					
+						me.frm.script_manager.trigger(me.df.fieldname+"_upload_complete", me.doctype, me.name);
 						me.frm.refresh_field(me.df.fieldname);
 						frappe.msgprint({message:__('Table updated'), title:__('Success'), indicator:'green'})
 
